@@ -1922,14 +1922,15 @@ STRUCTURED_RE_AYUMI_CLOSEOUT_STATUS = DASHBOARD / "structured-re-ayumi-closeout-
 STRUCTURED_RE_CLOSEOUT_PACKAGE = DASHBOARD / "structured-re-closeout-package.tsv"
 STRUCTURED_RE_EXECUTABLE_EVIDENCE = DASHBOARD / "structured-re-executable-evidence.tsv"
 CLAIM_MATRIX_REF = "docs/design/168-r-julia-finish-capability-matrix.md"
+INTERNAL_ROADMAP = ROOT / "docs" / "dev-log" / "internal-roadmap.md"
 PUBLIC_CLAIM_REFERENCE_FILES = (
     ROOT / "README.md",
-    ROOT / "ROADMAP.md",
     ROOT / "NEWS.md",
     ROOT / "_pkgdown.yml",
     ROOT / "docs" / "dev-log" / "dashboard" / "README.md",
     ROOT / "docs" / "dev-log" / "known-limitations.md",
 )
+CLAIM_REFERENCE_FILES = PUBLIC_CLAIM_REFERENCE_FILES + (INTERNAL_ROADMAP,)
 PUBLIC_CLAIM_SCAN_FILES = PUBLIC_CLAIM_REFERENCE_FILES + (
     ROOT / "docs" / "design" / "168-r-julia-finish-capability-matrix.md",
 )
@@ -13666,6 +13667,10 @@ def qseries_v1_release_classification(row: dict[str, str]) -> dict[str, str]:
 
 def main() -> int:
     errors: list[str] = []
+    if (ROOT / "ROADMAP.md").exists():
+        errors.append("ROADMAP.md must be absent; use docs/dev-log/internal-roadmap.md")
+    if not INTERNAL_ROADMAP.is_file():
+        errors.append("docs/dev-log/internal-roadmap.md is missing")
     status = read_json(DASHBOARD / "status.json")
     read_json(DASHBOARD / "sweep.json")
     gate_rows = read_tsv(GATE_REGISTRY)
@@ -19829,16 +19834,16 @@ def main() -> int:
         if phrase not in normalized_qseries_v1_status:
             errors.append(f"q-series-v1-release-status.md must mention {phrase!r}")
     v1_status_link = "docs/dev-log/release-audits/q-series-v1-release-status.md"
-    for public_path in (
+    for reference_path in (
         ROOT / "README.md",
-        ROOT / "ROADMAP.md",
+        INTERNAL_ROADMAP,
         ROOT / "NEWS.md",
         ROOT / "docs" / "dev-log" / "known-limitations.md",
     ):
-        if public_path.exists() and v1_status_link not in public_path.read_text(
+        if reference_path.exists() and v1_status_link not in reference_path.read_text(
             encoding="utf-8"
         ):
-            errors.append(f"{rel_path(public_path)} must link to {v1_status_link}")
+            errors.append(f"{rel_path(reference_path)} must link to {v1_status_link}")
     for claim_guard_error in qseries_v1_claim_guard.check_claims(ROOT):
         errors.append(f"qseries v1 claim guard: {claim_guard_error}")
 
@@ -98377,9 +98382,9 @@ def main() -> int:
         if count != 10:
             errors.append(f"finish-100-slices.tsv wave {wave!r} has {count} rows; expected 10")
 
-    for path in PUBLIC_CLAIM_REFERENCE_FILES:
+    for path in CLAIM_REFERENCE_FILES:
         if not path.exists():
-            errors.append(f"public claim reference file is missing: {rel_path(path)}")
+            errors.append(f"claim reference file is missing: {rel_path(path)}")
             continue
         text = path.read_text(encoding="utf-8")
         if CLAIM_MATRIX_REF not in text:

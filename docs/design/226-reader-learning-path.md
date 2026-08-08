@@ -67,11 +67,12 @@ at that point in the workflow.
    practice. Four pages, one question. Per §9.2 the Julia engine and
    cross-family routes do **not** belong here — they are an alternative
    compute backend, not a trustworthiness question.
-6. **Honest limitations** — "What does this package NOT support yet, and
-   where is the line between fitted, first-slice, and planned syntax?"
-   `capability-and-limits` closes the arc; it is deliberately last, not
-   first, because it opens with sobering material that would discourage a
-   reader who has not yet fit anything.
+6. **Can I fit and report this model?** — "Can I fit it, report the point
+   estimate, report the named interval, and what is the exact fallback?"
+   `capability-and-limits` is the second Get Started page, immediately after
+   the first model. This supersedes the earlier terminal-placement decision:
+   readers need a reporting boundary before they choose syntax, not only after
+   they have completed a tutorial.
 
 A **Specialist branch** sits alongside stage 3 for three pages that are
 deliberately off the main line: `meta-analysis`, which uses known sampling
@@ -120,7 +121,7 @@ path.
 | 24 | `julia-engine` | Specialist branch | guide | **Corrected in §9.** Halted/deferred future-support documentation, not a trustworthiness question or current alternate backend. A count-data reader has no reason to pass through it. |
 | 25 | `cross-family` | Specialist branch | tutorial | **Corrected in §9.** Deferred future cross-family route; follows `julia-engine`, and neither page belongs in the main analysis path. |
 | 26 | `figure-gallery` | 3. Interpretation tutorials | tutorial | **Corrected in §9.** Family-agnostic plotting recipes answering "how do I show my result?" — a question the reader has while interpreting coefficients, not after diagnostics. Was stranded behind two experimental-engine pages. |
-| 27 | `capability-and-limits` | 6. Honest limitations | route-chooser | Per P7, stays LAST. Opens with sobering multi-seed-evidence and boundary material that would discourage a reader who has not yet fit anything; correct as the closing "what this package will not yet do" page. |
+| 27 | `capability-and-limits` | 1a. Reporting boundary | route-chooser | **Superseded placement.** Second under Get Started, after the overview/first model. Its generated reader summary separates fit, point reporting, interval reporting, fallback, and exact scope before technical evidence. |
 | 28 | `formula-grammar` | Developer track | developer | Formula-parsing internals for contributors adding syntax, not for the applied reader path. |
 | 29 | `adding-families` | Developer track | developer | Contributor guide for adding a new distribution family to the C++/R engine. |
 | 30 | `source-map` | Developer track | developer | Maps R builders to TMB `model_type` integers and C++ density blocks — internals reference for contributors. |
@@ -153,6 +154,17 @@ Two rows deserve a placement note beyond the reason column:
   placement that is genuinely arguable; see §8.
 
 ## 4. What changes in `_pkgdown.yml`
+
+### 2026-08-08 supersession: reporting boundary before model choice
+
+The placement recommendation below is historical. The current reader contract
+supersedes it: the Get Started menu is ordered **Overview and first model →
+Can I fit and report this? → Choose a family → Model map → Check and report a
+fitted model**. `capability-and-limits` is removed from Model Guides and keeps
+the stable article path `articles/capability-and-limits.html`. Its top section
+uses the generated ledger summary; detailed tiers, cell identifiers, and
+campaign evidence remain below **Evidence and exact tested scopes**. The
+former public `ROADMAP.html` redirects once to this page.
 
 **Target: collapse to one taxonomy.** Recommendation: delete the
 navbar/`articles:` split as two independently-curated lists and drive both

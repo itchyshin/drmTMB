@@ -156,7 +156,7 @@ diagnostics, and honest limits.
 | Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
 | The optimizer did not converge cleanly — what do I check? | [Errors, warnings, and convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
 | My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE`, `se_group_sd` |
-| What does `drmTMB` not support yet, and where is the line between fitted, first-slice, and planned syntax? | [What drmTMB can and can't do](capability-and-limits.html) | fitted, first-slice, and planned status |
+| Can I fit this model, report its point estimate or interval, and what should I try if I cannot? | [Can I fit and report this model?](capability-and-limits.html) | reporting scope and named fallback |
 
 Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and
 `sd(group)` refers to a group-level random-effect standard deviation rather than
@@ -202,8 +202,8 @@ block is also fitted when matching labelled spatial terms appear in all four
 `corpair()` rows remain planned. Those layers should not be reported as if they
 were the same estimand.
 
-The model guide [What can I fit today?](model-map.html) is the source for exact
-family and component support; this introduction deliberately does not repeat
-that changing capability ledger. Once this first fit is checked, continue with
+Use [Can I fit and report this model?](capability-and-limits.html) for the
+current reporting boundary and named fallback; use the [model map](model-map.html)
+when you need syntax detail. Once this first fit is checked, continue with
 [Checking and using fitted models](model-workflow.html) or choose a scientific
 question from the Learning path table above.

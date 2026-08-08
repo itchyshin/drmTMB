@@ -1,8 +1,8 @@
 ---
-title: "What drmTMB can and can't do"
+title: "Can I fit and report this model?"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{What drmTMB can and can't do}
+  %\VignetteIndexEntry{Can I fit and report this model?}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,24 +11,44 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-If you are an ecology or evolution graduate student deciding whether
-`drmTMB` fits your problem, the first question is not "can I fit this
-model?" It is "which numbers from the fitted model can I report with a
-straight face?" A model can converge, print coefficients, and still hand you
-a confidence/compatibility interval that does not cover the truth at the
-rate it claims to. This page separates what `drmTMB` fits from what
-`drmTMB` has checked, cell by cell, so you know whether to trust a point
-estimate, an interval, or neither before it goes in a manuscript.
+If you are deciding what to report from an ecology or evolution analysis, use
+this page before putting a fitted `drmTMB` model in a manuscript. A successful
+fit is not, by itself, evidence that its point estimate or interval is ready
+to report. The summary below gives five distinct answers: whether the model can
+be fitted, whether its point estimate can be reported, whether its named
+interval can be reported, what simpler model or other tool to try when it
+cannot, and the exact scope that was tested.
 
-Throughout, `mu` is the location term, `sigma` is the scale term,
-family-specific parameters such as Student-t `nu` are shape terms, and
-coscale means a residual-correlation parameter such as bivariate `rho12` --
-the association left between two responses after their means and scales are
-modelled. Those four words describe what a formula changes; they say
-nothing about whether the resulting interval has been checked. That check
-is what the rest of this page reports.
+`mu` is the **location** parameter: it describes the family-specific centre
+of the response. `sigma` is the **scale** parameter: it describes residual
+variability. `nu` is a **shape** parameter for distributions such as the
+Student-t, describing features beyond location and scale. **Coscale** models
+residual correlation such as `rho12`: association between two responses left
+after their locations and scales are modelled. `sd(group)` describes
+among-group random-effect variation, not residual `sigma`; `phylo()` and
+`spatial()` specify phylogenetic and coordinate-structured random effects;
+and `meta_V(V = V)` supplies known sampling covariance for the specialist
+meta-analysis route. `meta_known_V(V = V)` is a deprecated compatibility
+alias. This page does not use `tau`, because it is not a general drmTMB
+parameter name.
 
-## Capability tiers, defined once
+## Can I fit and report this model?
+
+The current ledger supplies this summary when the article is built. Read the
+scope and fallback fields before generalising a result to a different family,
+parameter, grouping structure, or sample size.
+
+```{r capability-ledger-summary, echo = FALSE, results = "asis"}
+cat(readLines("includes/capability-ledger-summary.md", warn = FALSE), sep = "\n")
+```
+
+## Evidence and exact tested scopes
+
+The sections below retain the technical evidence behind the reader summary.
+They use internal evidence tiers, fit labels, and campaign details only to
+state the exact boundary of a claim; they do not change a cell's status.
+
+### Capability tiers, defined once
 
 Evidence accumulates through the following tiers. A higher tier retains the
 capabilities below it.
@@ -65,22 +85,15 @@ audited against this ladder. Read the evidence and caveat columns when a legacy
 meaning above is the forward definition.
 
 
-## Capability skim (family × dpar × RE × interval tier)
+### Historical capability skim (technical evidence)
 
-Use this skim when you need a **parseable** first answer without opening the
-capability ledger TSV. Counts and highest-evidence labels are a snapshot of the
-generated model surface dated **2026-08-05**
-(`docs/dev-log/dashboard/capability-surface.md`). They are **not** a promotion,
-and they are not a claim that every cell in a family sits at the family's
-highest tier — read the exact cell and claim boundary before reporting an
-interval as inference-ready.
+This historical skim records the technical routes described below. It is not a
+current census: use the generated reader summary above for current counts and
+reporting boundaries.
 
 **Evidence ladder (same definitions as above):** supported >
 inference-ready with caveats > interval-feasible > point-fit recovery >
-diagnostic-only. Model-surface snapshot: **699** cells; evidence counts
-**4** supported / **29** inference-ready / **187** interval-feasible /
-**55** recovery-grade; runtime **339** implemented / **350** not currently
-supported / **10** actionable not implemented.
+diagnostic-only.
 
 ::: {.table-responsive}
 
@@ -105,7 +118,7 @@ feasibility means a public interval method exists for some cells; it does not
 imply coverage. For the long caveat table, stay on this page; for the full
 generated census, see the dashboard snapshot linked above.
 
-## At a glance
+### Detailed route evidence
 
 ::: {.table-responsive}
 
@@ -138,16 +151,15 @@ generated census, see the dashboard snapshot linked above.
 The rest of this page expands each row with the caveat that changes how you
 should read it.
 
-## Tier 1: inference-ready
+### Tier 1: inference-ready
 
-### Gaussian structured random effects: eleven anchor cells
+### Gaussian structured random effects: selected anchor cells
 
-Eleven conceptual cells across `drmTMB`'s structured Gaussian-family random-effect
-routes are inference-ready today. Eight are the established ML model-surface
-anchors: six sit on a univariate Gaussian `mu` or `sigma` formula, all at q1,
-and two are bivariate-Gaussian slope-only `mu1:x`/`mu2:x` q2 mean-mean blocks.
-The other three
-are the Arc 1a REML estimator cells for pure-`mu` univariate `spatial()`,
+Selected structured Gaussian-family random-effect routes are inference-ready
+within their recorded scopes. The ML model-surface anchors include univariate
+Gaussian `mu` or `sigma` formulas at q1 and bivariate-Gaussian slope-only
+`mu1:x`/`mu2:x` q2 mean-mean blocks. The same evidence record also includes
+the Arc 1a REML estimator routes for pure-`mu` univariate `spatial()`,
 `animal()`, and `relmat()` routes:
 
 - three q1 mean-intercept rows -- `phylo()`, `spatial()`, `relmat()` on
@@ -166,12 +178,11 @@ are the Arc 1a REML estimator cells for pure-`mu` univariate `spatial()`,
   is one ledger cell that covers both admitted shapes; the cell count is not a
   count of formula shapes.
 
-The machine ledger contains thirteen rows for these eleven conceptual cells
-because each of the two bivariate slope-only q2 provider blocks has separate
-`mu1` and `mu2` endpoint rows. That storage detail does not create four distinct
-scientific covariance blocks.
+The machine ledger records endpoint rows separately for bivariate provider
+blocks. That storage detail does not create additional scientific covariance
+blocks.
 
-None of these eleven is free of a caveat, and the caveat is different for
+Each route has a caveat, and the caveat is different for
 each group. The three q1 `mu` intercept rows are backed by the default
 location-axis bias-corrected, small-sample-t Wald channel, with coverage of
 0.9705-0.9832 in the retained-denominator campaigns. The three q1
@@ -234,7 +245,7 @@ automatically. If you explicitly turn the correction off
 Wald interval under-covers on these two rows -- do not do that for a
 bivariate `phylo()`/`relmat()` q2 mean-mean report.
 
-None of these eleven structured cells carries the "supported" `fit_status`
+None of these structured cells carries the "supported" `fit_status`
 the census reserves for the package's ordinary (unstructured) Gaussian and
 bivariate-Gaussian random effects -- and even those supported cells are
 point-trustworthy with interval coverage still planned, not
@@ -257,9 +268,8 @@ report the point estimate with confidence.
 
 ### Unstructured non-Gaussian fixed effects
 
-A 2026-07-09 coverage campaign
-(`docs/dev-log/simulation-artifacts/2026-07-09-nongaussian-unstructured-coverage-pilot/`)
-checked the fixed-effect mean coefficients of `binomial()`, `poisson()`,
+A retained multi-seed coverage campaign checked the fixed-effect mean
+coefficients of `binomial()`, `poisson()`,
 `beta()`, and `nbinom2()` across `n` in `{50, 150, 500}`, 400 seeds per
 cell. Every cell cleared the bar: finite rate at 1.00 and Wald coverage
 between 0.922 and 0.973, with no worsening at the smallest sample size and
@@ -327,7 +337,7 @@ is excluded because boundary behaviour made that arm unsuitable for reporting.
 This is not evidence for Gamma `sigma` slopes, labelled blocks, joint `mu` and
 `sigma` random effects, REML, or other sampling designs.
 
-## Tier 2: recovery-only
+### Tier 2: recovery-only
 
 A larger set of non-Gaussian structured random-effect routes has verified
 point-estimate recovery but no coverage evidence at all. Trust the
@@ -354,9 +364,9 @@ scientific question turns on the width of a confidence/compatibility
 interval rather than the sign and rough size of an effect, do not build
 the argument on one of these rows yet.
 
-## Tier 3: diagnostic-only
+### Tier 3: diagnostic-only
 
-Ten exact structured routes currently have deterministic or single-smoke
+Some exact structured routes currently have deterministic or single-smoke
 fit/extractor evidence without a retained-denominator recovery ladder:
 ordinal `mu ~ phylo()`, truncated-nbinom2 `hu ~ relmat()`, Poisson
 `zi ~ spatial()`, fixed-`zi` Poisson `mu ~ spatial()`, Student-t
@@ -368,7 +378,7 @@ routes establish that the parser, likelihood target, and extractors connect.
 They do **not** establish point-estimate recovery. Use them for feasibility or
 debugging only, and do not report an interval or coverage claim.
 
-## Tier 4: not available or rejected by design
+### Tier 4: not available or rejected by design
 
 **Structured random effects outside the narrow gates above.** `drmTMB`
 does not currently accept structured `phylo()`, `spatial()`, `animal()`,
@@ -419,7 +429,7 @@ covariance or correlation summary you need, and check
 `profile_targets(fit)` for any direct target that already has an interval
 route before assuming none exists.
 
-## Known limitations for 0.6.0
+### Known limitations for 0.6.0
 
 If you are deciding whether a specific `drmTMB` output belongs in a
 manuscript, read this section next. It names four gaps between what an
@@ -503,7 +513,7 @@ pass. It does not manufacture bounds for an unstable or unresolved result.
 Simultaneous eta bands, profiles, random effects, missingness, weights,
 offsets, and REML remain outside this interval surface.
 
-## Missing data
+### Missing data
 
 Missing-data support is a separate axis from the tiers above: it is likelihood
 based (missing responses are marginalised, missing predictors are modelled inside
@@ -557,7 +567,7 @@ or REML missing-data engines. No fitted response route remains at G0 on the
 generated board, but each G3 tick applies only to the route and effect structure
 named in its evidence row.
 
-## Full per-family capability map
+### Full per-family capability map
 
 The table below preserves the original whole-package view alongside the
 missing-response board. It shows distributional parameters, fixed and random
@@ -571,7 +581,7 @@ cat(
 )
 ```
 
-## Choosing an interval method
+### Choosing an interval method
 
 `confint()`'s default method is Wald (`method = "wald"`), and for most
 unstructured fixed-effect rows in Tier 1 that default is already calibrated.
@@ -593,12 +603,10 @@ your conclusion: an ordinary `sigma ~ (1 | id)` random intercept, or a
 fixed-effect `sigma ~ predictors` model, both of which carry stronger
 evidence than the structured-`sigma` recovery-only routes above.
 
-## Where the exhaustive detail lives
+### Where the exhaustive detail lives
 
-This page is a summary. The full, machine-readable capability census --
-one row per family, distributional parameter, effect type, structure
-provider, estimator, and evidence tier, with a source citation for every
-row -- lives under `docs/dev-log/dashboard/capability-census/` in the
-package repository. Read it when you need the exact test or simulation
-artifact behind a specific cell rather than the tier-level summary given
-here.
+This page is the public reporting summary. Contributors who need to audit a
+specific cell should use the repository's internal capability ledger; applied
+readers do not need that development material to choose a fitted route. Start
+from the generated summary above and use the exact caveat before interpreting
+an estimate.

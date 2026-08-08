@@ -8,6 +8,7 @@ import csv
 import subprocess
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 
@@ -18,6 +19,7 @@ SPEC = importlib.util.spec_from_file_location(
 assert SPEC and SPEC.loader
 ledger = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ledger)
+INTERNAL_ROADMAP = ROOT / "docs" / "dev-log" / "internal-roadmap.md"
 
 
 class CapabilityLedgerTests(unittest.TestCase):
@@ -785,6 +787,98 @@ class CapabilityLedgerTests(unittest.TestCase):
         second = ledger.outputs(self.cells, self.evidence)
         self.assertEqual(first, second)
 
+    def test_internal_roadmap_replaces_root_roadmap(self):
+        self.assertFalse((ROOT / "ROADMAP.md").exists())
+        self.assertTrue(INTERNAL_ROADMAP.is_file())
+        self.assertNotIn("^ROADMAP\\.md$", (ROOT / ".Rbuildignore").read_text())
+
+    def test_reader_summary_is_model_surface_only_and_reconciles_selected_routes(self):
+        summary = ledger.reader_summary_value(self.cells)
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+
+        self.assertEqual(summary["ledger_updated"], ledger.ledger_updated_date(self.cells))
+        self.assertEqual(summary["model_surface_total"], len(model))
+        self.assertEqual(
+            summary["runtime_counts"],
+            dict(Counter(row["capability_status"] for row in model)),
+        )
+        self.assertEqual(
+            summary["evidence_counts"],
+            dict(Counter(
+                row["evidence_tier"]
+                for row in model
+                if row["capability_status"] == "implemented"
+            )),
+        )
+        self.assertEqual(
+            [row["cell_id"] for row in summary["rows"]],
+            [spec["cell_id"] for spec in ledger.READER_SUMMARY_SPECS],
+        )
+        for reader_row in summary["rows"]:
+            source = by_id[reader_row["cell_id"]]
+            self.assertEqual(reader_row["ledger"]["axis"], "model_surface")
+            for field, value in reader_row["ledger"].items():
+                self.assertEqual(value, source[field])
+            for field in (
+                "fit_permission", "point_report_permission",
+                "interval_method_report_permission", "scope_caveat", "fallback",
+            ):
+                self.assertTrue(reader_row[field].strip(), field)
+            if (
+                source["capability_status"] != "implemented"
+                or source["evidence_tier"] in {"none", "diagnostic_only"}
+            ):
+                self.assertGreater(len(reader_row["fallback"]), 40)
+                self.assertRegex(reader_row["fallback"].lower(), r"\b(use|fit|reduce)\b")
+
+    def test_reader_summary_derives_date_and_counts_without_manual_constants(self):
+        changed = copy.deepcopy(self.cells)
+        changed[0]["updated_date"] = "2099-12-31"
+        extra = copy.deepcopy(changed[0])
+        extra["cell_id"] = "reader-summary-test-only"
+        changed.append(extra)
+
+        summary = ledger.reader_summary_value(changed)
+        self.assertEqual(summary["ledger_updated"], "2099-12-31")
+        self.assertEqual(summary["model_surface_total"], 1 + sum(
+            row["axis"] == "model_surface" for row in self.cells
+        ))
+
+    def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
+        generated = ledger.outputs(self.cells, self.evidence)
+        rendered = generated[ledger.READER_SUMMARY].decode("utf-8")
+        self.assertTrue(ledger.READER_SUMMARY.is_relative_to(ROOT / "vignettes/includes"))
+        self.assertIn("## Reader routes", rendered)
+        self.assertIn("<summary>Technical ledger snapshot</summary>", rendered)
+        reader_start = rendered.index("## Reader routes")
+        technical_start = rendered.index("<details>")
+        self.assertLess(reader_start, technical_start)
+        first_screen = rendered[:technical_start]
+        self.assertNotIn("point-fit recovery", first_screen)
+        self.assertNotIn("supported", first_screen)
+        self.assertNotIn("Model-surface total", first_screen)
+        self.assertNotIn("docs/dev-log", rendered)
+        self.assertNotRegex(rendered, r"\bmc-[0-9]+\b")
+        self.assertNotRegex(rendered, r"\bq[0-9]+\b")
+        for heading in (
+            "Beta location", "Binomial location", "Poisson phylogenetic",
+            "Negative-binomial", "Tweedie location", "Lognormal location",
+            "meta_V(V = V)", "rho12",
+        ):
+            self.assertIn(heading, rendered)
+
+    def test_cli_check_covers_the_reader_summary_output(self):
+        result = subprocess.run(
+            ["python3", "tools/capability_ledger.py", "--check"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("capability-ledger: OK", result.stdout)
+
     def test_model_projection_uses_current_primary_evidence_and_claim(self):
         evidence_by_id = {
             row["evidence_id"]: row for row in self.evidence
@@ -1046,7 +1140,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             ROOT / "vignettes/which-scale.Rmd"
         ).read_text()
         surfaces["NEWS.md"] = (ROOT / "NEWS.md").read_text()
-        surfaces["ROADMAP.md"] = (ROOT / "ROADMAP.md").read_text()
+        surfaces["internal-roadmap.md"] = INTERNAL_ROADMAP.read_text()
         surfaces["README.md"] = (ROOT / "README.md").read_text()
         surfaces["113-phase-18-count-first-wave-closure-slices-1319-1328.md"] = (
             ROOT / "docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md"
@@ -1407,7 +1501,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         for name in (
             "25-ordinal-scale-discrimination.md",
             "known-limitations.md",
-            "ROADMAP.md",
+            "internal-roadmap.md",
         ):
             text = surfaces[name].lower()
             self.assertIn("ordinary", text)
@@ -1420,7 +1514,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             for name in (
                 "25-ordinal-scale-discrimination.md",
                 "known-limitations.md",
-                "ROADMAP.md",
+                "internal-roadmap.md",
             )
         )
         for stale in (
@@ -1436,7 +1530,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["README.md"],
         )
         self.assertIn(
-            "deliberately does not repeat\nthat changing capability ledger",
+            "Can I fit and report this model?",
             surfaces["drmTMB.Rmd"],
         )
         self.assertNotIn("fixed-effect zero-one beta", surfaces["drmTMB.Rmd"])
@@ -1559,7 +1653,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("marginal SD at node `i` is `sigma_z * sqrt(K[i, i])`", common_math)
         self.assertNotIn("`sigma_z` is the unknown marginal SD", common_math)
 
-        roadmap = (ROOT / "ROADMAP.md").read_text()
+        roadmap = INTERNAL_ROADMAP.read_text()
         self.assertIn(
             "q1 structured `sigma` one-slope paths also fit for all four providers",
             roadmap,
@@ -1612,7 +1706,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             path.read_text()
             for path in (
                 ROOT / "NEWS.md",
-                ROOT / "ROADMAP.md",
+                INTERNAL_ROADMAP,
                 ROOT / "docs/design/34-validation-debt-register.md",
                 ROOT / "docs/design/46-pre-simulation-readiness-matrix.md",
                 ROOT / "docs/design/59-structural-slope-and-non-gaussian-map.md",
@@ -1734,7 +1828,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             path.read_text()
             for path in (
                 ROOT / "README.md",
-                ROOT / "ROADMAP.md",
+                INTERNAL_ROADMAP,
                 ROOT / "NEWS.md",
                 ROOT / "docs/design/03-likelihoods.md",
                 ROOT / "docs/design/45-cross-dpar-correlation-gate.md",
@@ -1760,7 +1854,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_single_smoke_routes_never_read_as_recovery_grade(self):
         active_paths = (
             ROOT / "README.md",
-            ROOT / "ROADMAP.md",
+            INTERNAL_ROADMAP,
             ROOT / "docs/design/01-formula-grammar.md",
             ROOT / "docs/design/02-family-registry.md",
             ROOT / "docs/design/03-likelihoods.md",
@@ -1891,7 +1985,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         public = {
             "README": (ROOT / "README.md").read_text(),
-            "ROADMAP": (ROOT / "ROADMAP.md").read_text(),
+            "ROADMAP": INTERNAL_ROADMAP.read_text(),
             "NEWS": (ROOT / "NEWS.md").read_text(),
             "capability": (
                 ROOT / "vignettes/capability-and-limits.Rmd"
@@ -1901,7 +1995,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("Poisson `mu ~ spatial(1 | site", public["README"])
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
-        self.assertIn("Ten exact structured routes", public["capability"])
+        self.assertIn("Row-specific single-smoke slices", public["capability"])
         # pkgdown-site/llms.txt is a git-ignored pkgdown BUILD artifact, not a ledger
         # output. Assert on it only when it is version-controlled; a git-ignored local
         # build may be stale or absent, and the authoritative surface check is the README
@@ -1971,7 +2065,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_capability_vignette_names_arc1a_reml_boundary(self):
         vignette = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
         self.assertIn(
-            "Gaussian structured random effects: eleven anchor cells",
+            "Gaussian structured random effects: selected anchor cells",
             vignette,
         )
         for provider in ("spatial", "animal", "relmat"):
@@ -2187,7 +2281,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "independent intercept-plus-one-numeric-\n  slope REML cells",
             news,
         )
-        roadmap = (ROOT / "ROADMAP.md").read_text()
+        roadmap = INTERNAL_ROADMAP.read_text()
         self.assertIn(
             "Arc 1a admits REML only for the exact unlabelled intercept and independent intercept-plus-one-slope spatial/animal/relmat cells",
             roadmap,

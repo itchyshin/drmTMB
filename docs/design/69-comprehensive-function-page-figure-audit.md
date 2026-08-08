@@ -58,9 +58,9 @@ Run these scans before closing the first audit set, and paste the exact results
 or a compact summary into the after-task report:
 
 ```sh
-rg -n 'bootstrap intervals are not implemented|method = "bootstrap"|parametric-bootstrap intervals|unsupported bootstrap|direct random-effect SD.*Wald|fixed-effect intervals only|Fisher-z.*public|profile_precision' README.md ROADMAP.md NEWS.md docs/design vignettes R man tests/testthat -S
+rg -n 'bootstrap intervals are not implemented|method = "bootstrap"|parametric-bootstrap intervals|unsupported bootstrap|direct random-effect SD.*Wald|fixed-effect intervals only|Fisher-z.*public|profile_precision' README.md docs/dev-log/internal-roadmap.md NEWS.md docs/design vignettes R man tests/testthat -S
 rg -n 'conf.status = "wald_unavailable"|no confidence band|no Wald interval|direct random-effect SD surface|uncertainty|confidence|profile|bootstrap' vignettes/figure-gallery.Rmd vignettes/model-workflow.Rmd docs/design/39-visualization-grammar.md -S
-rg -n 'Current capability|implemented|planned|blocked|smoke|derived_interval_unavailable|profile_ready' README.md ROADMAP.md vignettes/implementation-map.Rmd vignettes/model-map.Rmd docs/design/46-pre-simulation-readiness-matrix.md -S
+rg -n 'Current capability|implemented|planned|blocked|smoke|derived_interval_unavailable|profile_ready' README.md docs/dev-log/internal-roadmap.md vignettes/implementation-map.Rmd vignettes/model-map.Rmd docs/design/46-pre-simulation-readiness-matrix.md -S
 ```
 
 Historical after-task reports and older NEWS entries can remain true for their

@@ -35,14 +35,14 @@ with a precision parameter such as `phi` or `theta`.
 
 - New to the package? Read
   [Getting started](https://itchyshin.github.io/drmTMB/articles/drmTMB.html).
-- Want the current status before choosing syntax? Use
+- Before choosing syntax or reporting an estimate, read
+  [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
+  It distinguishes a fitted route from a point estimate or interval that has
+  evidence for reporting, and names a simpler fallback where one is needed.
+- Need the syntax available for a particular family? Use
   [What can I fit today?](https://itchyshin.github.io/drmTMB/articles/model-map.html)
-  for the user-facing model map and the
-  [implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
-  when you need the fitted-versus-planned ledger. Contributor-facing promotion
-  decisions use the
-  [finish capability matrix](https://github.com/itchyshin/drmTMB/blob/main/docs/design/168-r-julia-finish-capability-matrix.md),
-  and the stricter row wins whenever status ledgers disagree.
+  and then the [implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
+  for technical detail.
 - Not sure which response family fits your data? Use
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - Unsure whether you are modelling residual variation, group variation, or
@@ -53,8 +53,7 @@ with a precision parameter such as `phi` or `theta`.
 - Working with effect sizes or study-level sampling uncertainty? See
   [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
 - Need a one-screen family × dpar × RE × interval-tier skim? Read
-  [Capabilities and limits — Capability skim](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html#capability-skim-family--dpar--re--interval-tier)
-  (snapshot of existing ledger tiers; no new promotions).
+  [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
 - First-week uncertainty path (fit → profile an RE-SD → read `profile.boundary`)?
   See
   [First-week intervals](https://itchyshin.github.io/drmTMB/articles/first-week-intervals.html).
@@ -316,7 +315,7 @@ Read status words consistently:
 | First slice | Fitted and tested, but intentionally narrow; stay inside the named formula, family, and data-shape boundary. |
 | Opt-in control | Available for hardening, scalability, or memory control, but not a modelling guarantee for neighbouring surfaces. |
 | Planned or reserved | Public grammar or roadmap wording may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
-| Unsupported or blocked | Do not use as analysis syntax; fit the nearest implemented model or check the roadmap before interpreting a richer structure. |
+| Unsupported or blocked | Do not use as analysis syntax; fit the named simpler model or follow the fallback in [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html). |
 
 Every fitted univariate family now has an ordinary `mu` random intercept and
 an independent numeric `mu` slope at recovery grade. Thus, in the compact row
@@ -476,7 +475,7 @@ percentiles on the fitted log scale and exponentiate the endpoints.
 
 ## Project status
 
-The package is under active development. See the
-[roadmap](https://itchyshin.github.io/drmTMB/ROADMAP.html), the
+The package is under active development. See
+[Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html), the
 [reference index](https://itchyshin.github.io/drmTMB/reference/index.html), and
 the articles above for the current fitted workflows.

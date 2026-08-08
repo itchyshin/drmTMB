@@ -45,7 +45,7 @@ but an analysis should not interpret that surface yet.
 | First slice | Fitted and tested inside a deliberately narrow boundary. Stay inside the named family, formula, q, and data-shape limits. |
 | Fixed-effect only | Formula coefficients are fitted for this distributional parameter, but random effects or structured dependence for that parameter are not fitted. |
 | Planned or reserved | Syntax, roadmap wording, or a parser guard may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
-| Unsupported or blocked | Do not use as analysis syntax; choose the nearest fitted route or check the roadmap. |
+| Unsupported or blocked | Do not use as analysis syntax; choose the nearest fitted route or follow the named fallback in [Can I fit and report this model?](capability-and-limits.html). |
 
 Location means the expected response (`mu`, `mu1`, `mu2`). Scale means residual
 standard deviation, dispersion, or an equivalent response-family scale
