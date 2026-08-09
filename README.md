@@ -82,18 +82,21 @@ in the [finish capability matrix](https://github.com/itchyshin/drmTMB/blob/main/
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `v0.5.0` release from GitHub
-with `pak`:
+`drmTMB` is not on CRAN yet. Install from GitHub with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.5.0")
+pak::pak("itchyshin/drmTMB")
 ```
 
-If you want the newest development build from `main`, use:
+That tracks `main`, which is the supported install target. The older `v0.5.0`
+tag predates the current line and is **not** a supported install; it was never
+accepted to CRAN, and the first CRAN release is numbered `0.7.0`.
+
+To pin an exact commit rather than track `main`, append it:
 
 ```r
-pak::pak("itchyshin/drmTMB")
+pak::pak("itchyshin/drmTMB@<commit-sha>")
 ```
 
 Then load the package and run a small smoke test:
