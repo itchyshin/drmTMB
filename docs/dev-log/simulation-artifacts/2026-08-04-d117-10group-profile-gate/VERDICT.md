@@ -242,3 +242,34 @@ these; this arc did not.
    is Shinichi's call (D-87). Recorded as unattributed.
 5. The banked 2026-07-26 evidence remains **unpushed** on
    `codex/sd-bootstrap-r999-diagnosis` (`4cc837a85`), on no remote.
+
+---
+
+## ADDENDUM 2026-08-09 — §4's gap is CLOSED (this document is overtaken, not wrong)
+
+§4 above says there is **"no analogous warning"** when `profile.boundary = TRUE`, and calls
+closing that gap *"this arc's most valuable finding."* **The gap was closed on 2026-08-05**, one
+day after this document was written, by commit `4b601a448` *"feat(d117): warn when a profile
+interval is returned at a boundary."* §4 was accurate as written; it has simply been overtaken.
+It is left unedited so the record stands.
+
+`warn_profile_boundary()` (`R/profile.R:1869` on `origin/main @ a2695a788`) is reached from both
+`confint()` paths (`R/profile.R:1704`, `R/profile.R:1853`) via
+`confint.drmTMB` → `drm_profile_confint`. Verified by execution on 2026-08-09 against **this
+arc's own boundary seed**, `20660728` (cell 4, `estimate_sd = 0.1919612`, `profile_lower = 0`):
+
+- fires on the boundary fit, class `drmTMB_profile_boundary_warning`, text *"Profile interval for
+  \"sd:mu:(1 | g)\" is at a variance-component or correlation boundary… Profile coverage is well
+  below nominal there, so this interval is not a reliable `level` interval."*
+- **silent** on the non-boundary seed `20660729` — no false positives.
+
+Regression test: `tests/testthat/test-d117-boundary-warning.R` (9 PASS), which reproduces this
+arc's exact cell-4 seeds on the `mu` random-intercept target.
+
+D-117's documentary open item — that `NEWS.md`, `man/confint.drmTMB.Rd` and the vignettes were
+silent on this regime — was separately closed on 2026-08-09.
+
+**Panel finding #6 is therefore CLOSED.** Do not carry it forward as open.
+
+Recorded by the `claude/d117-discharge` lane while re-running this gate at `nrep = 100000`; see
+`../2026-08-09-d117-100k-regate/`.
