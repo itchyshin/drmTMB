@@ -3,7 +3,26 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-08; 0.7 issue sweep complete on focused branch).**
+> **▶ Latest — start here (2026-08-09; two 0.7 lanes handed to Claude).**
+> Shinichi transferred two distinct subjects to two separate Claude tasks: staged candidate preparation in
+> a **fresh clean lane**, and the existing complete/quasi-complete separation experiment
+> in its own worktree. Never cross-stage or collapse those lanes. The
+> final candidate SHA, DESCRIPTION bump, and definitive tarball must wait for a reviewed
+> finite disposition of the separate complete/quasi-complete separation experiment.
+> `origin/main@ac363cadb` is an orientation baseline only; exact-main GitHub run
+> `31300437472` is green, DESCRIPTION remains `0.6.0`, and the release verdict is
+> **NOT READY**. The candidate Claude task may run Stage A release-gate orientation and
+> predecessor-instrument salvage while the separation Claude task independently drives its experiment to a reviewed
+> MERGE / DEFER / DEFECT disposition, then must stop at the synchronization gate. No D-43, unsupported
+> `platform-clean`, final `cran-comments.md`, tag, GitHub release, or CRAN upload.
+> Preserve #858, #937, historical #947, all foreign lanes/stashes, the dirty primary,
+> and the deliberately unpushed separation branch until its new owner records a reviewed
+> disposition. Multi-lane entrypoint:
+> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md).
+> START HERE:
+> [`docs/dev-log/handover/2026-08-09-claude-handover.md`](docs/dev-log/handover/2026-08-09-claude-handover.md).
+>
+> **▶ Historical (2026-08-08; 0.7 issue sweep complete on focused branch; authorization superseded 2026-08-09).**
 > The 29/29 open-issue sweep against `main@efb5af4f` found one issue-derived
 > candidate blocker: **#61**, the procedural exact-candidate gate, not a new code defect.
 > **#870** is the sole owner-policy decision and is not a demonstrated blocker. All other
