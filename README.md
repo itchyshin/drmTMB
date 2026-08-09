@@ -63,10 +63,11 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Preview status
 
-This site is built from the `0.6.0` development cycle (`DESCRIPTION` Version: 0.6.0). The package is still
+This site is built from the `0.7.0` release candidate (`DESCRIPTION` Version: 0.7.0). The package is still
 pre-CRAN and intentionally bounded: use it for the implemented one-response and
 two-response workflows listed below, and treat unsupported model classes as
-future work rather than hidden features.
+future work rather than hidden features. The version number is a candidate
+identity, not evidence of acceptance — drmTMB is not on CRAN.
 
 The first CRAN release is targeted at **0.7.0**, not 1.0 — an honest reflection
 that much of the family and inference surface is still scaffolded or

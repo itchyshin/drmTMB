@@ -1,8 +1,9 @@
-# drmTMB (unreleased notes toward 0.7.0)
+# drmTMB 0.7.0
 
-User-facing honesty notes for the next CRAN-facing cycle. `DESCRIPTION` remains
-**0.6.0** until an explicit freeze bumps the version; these bullets freeze the
-default story readers should follow, not a release claim.
+First CRAN-targeted release candidate. `DESCRIPTION` is now **0.7.0**; the bump
+happened inside the release slice, as the release gate requires. A version
+number is a candidate identity, not evidence of acceptance — drmTMB is **not**
+on CRAN. These bullets freeze the default story readers should follow.
 
 ## Offsets in `mu` for every univariate family
 
