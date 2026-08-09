@@ -2560,6 +2560,38 @@ drm_standard_error_status <- function(object) {
 #' AIC(fit)
 #' BIC(fit)
 #' vcov(fit)
+#'
+#' @section Experimental MSPL fits:
+#' For a fit made with `estimator = "mspl"`, `vcov()` behaves differently from
+#' an ordinary maximum-likelihood fit in two ways worth knowing before you use
+#' it.
+#'
+#' First, **the shape differs**. It returns the full outer-parameter covariance
+#' after Laplace marginalisation — the fixed effects *and* the covariance
+#' parameters in their frozen Cholesky coordinates (`log_sd_mu`, and
+#' `eta_cor_mu` for a q = 2 block) — not the fixed-effect-only block an ordinary
+#' fit returns. Code that assumes `vcov(fit)` has the same dimension across
+#' estimators will break.
+#'
+#' Second, **it is a standard error, not an interval**. The matrix inverts the
+#' Hessian of the *unpenalized* Laplace log-likelihood evaluated at the MSPL
+#' estimate: the penalty obtains a finite estimate but does not describe
+#' sampling variability. Do not form `coef ± 1.96 * se`. Kosmidis and Firth show
+#' that Wald intervals in this setting fail to cover regardless of the nominal
+#' level, and that the failure persists even for profile penalized-likelihood
+#' intervals; the mechanism is the finiteness of the penalized estimator and its
+#' standard error, not separation as such. A second reason applies here: the
+#' MSPL estimate maximises the *penalized* criterion, so the unpenalized score
+#' is not zero at it and the usual "evaluate at the maximum likelihood estimate"
+#' justification does not transfer. The size of that departure is recorded in
+#' `fit$mspl$wald$unpenalized_gradient_max_abs`.
+#'
+#' Accordingly `confint()`, `profile()`, `logLik()`, `AIC`, `BIC`, and `anova()`
+#' deliberately error for MSPL fits. When the information matrix is not
+#' positive definite — which happens on exactly the strongly separated designs
+#' MSPL exists to handle — the standard errors are `NA` and a
+#' `drmTMB_mspl_wald_unavailable` warning is signalled, rather than a
+#' fabricated number.
 #' @name model-fit-extractors
 NULL
 
@@ -4306,9 +4338,19 @@ print.summary.drmTMB <- function(x, ...) {
     cli::cli_text(
       "unpenalized Laplace log objective (diagnostic): {format(x$mspl$unpenalized_laplace_logLik, digits = 6)}"
     )
+    ## Two different gradients, and conflating them is a real hazard: the
+    ## penalized one is near zero by optimizer construction and says nothing
+    ## about the Wald estimand, while the unpenalized one is non-zero BY
+    ## CONSTRUCTION (the MSPL estimate maximises the penalized criterion) and is
+    ## the quantity that qualifies the standard errors. Label both.
     cli::cli_text(
-      "max fixed gradient: {format(x$mspl$numerical$gradient_max_abs, digits = 4)}"
+      "max penalized-criterion gradient (convergence): {format(x$mspl$numerical$gradient_max_abs, digits = 4)}"
     )
+    if (!is.null(x$mspl$wald$unpenalized_gradient_max_abs)) {
+      cli::cli_text(
+        "max unpenalized-likelihood gradient at the MSPL estimate (non-zero by construction): {format(x$mspl$wald$unpenalized_gradient_max_abs, digits = 4)}"
+      )
+    }
     cli::cli_text(
       "MSPL outer Hessian positive definite: {x$mspl$numerical$hessian_positive_definite}"
     )

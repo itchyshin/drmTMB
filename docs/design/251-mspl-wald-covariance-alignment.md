@@ -15,12 +15,21 @@ Following 250 §"penalty form", for the admitted binomial-logit surface:
 | symbol | meaning |
 |---|---|
 | `β` | fixed-effect coefficients, `p` of them |
-| `ψ` | covariance parameters in the frozen Cholesky coordinates (q1 or q2) |
+| `ψ` | covariance parameters in the **optimisation** coordinates: `log_sd_mu`, plus `eta_cor_mu` for a q = 2 block |
 | `θ = (β, ψ)` | the **outer** parameter vector, after Laplace marginalisation of the random effects |
 | `ℓ_L(θ)` | the **unpenalized** Laplace-approximate log-likelihood |
 | `P_f(β)` | fixed-effect Jeffreys term |
-| `P_v(ψ)` | negative-Huber term on the covariance-Cholesky coordinates |
+| `P_v(·)` | negative-Huber term, on the **penalty** coordinates — see the warning below |
 | `c_n = 2√(p / n_eff)` | softness scale, `n_eff = Σ fᵢ mᵢ` |
+
+> **Two coordinate systems, and they are not the same one.** Note 250 writes the
+> negative-Huber penalty on the derived Cholesky entries `(log L11, log L22, L21)`
+> (`R/mspl.R`, `src/drmTMB.cpp`). The Wald covariance in this note is **not** on those.
+> It is on the coordinates the optimizer actually varies — `(β, log_sd_mu, eta_cor_mu)` —
+> because the Hessian is taken directly on `opt$par`. No Jacobian or delta-method step is
+> applied, and none is needed, precisely because the two never mix. An earlier draft of
+> this table reused 250's phrase "frozen Cholesky coordinates" for `ψ`, which was
+> ambiguous; the implementation was always correct. (Noether, C5 review.)
 
 The MSPL criterion and its maximiser:
 

@@ -427,9 +427,14 @@ test_that("the MSPL Wald covariance carries the correct sign convention (positiv
   # `obj$fn` is the NEGATIVE Laplace log-likelihood, so
   # `optimHess(theta_tilde, uobj$fn, uobj$gr)` already IS the observed
   # information and design 251 requires NO further sign flip: `V = solve(H)`
-  # directly. An implementation that negated H before inverting (i.e. used
-  # `solve(-H)`) would report a NEGATIVE DEFINITE "covariance" -- this test
-  # fails immediately against that bug.
+  # directly.
+  #
+  # How this test actually catches a negation (Noether, C5 review): near a
+  # concave optimum of l_L the true H is positive definite, so negating it makes
+  # it negative definite and `chol()` inside the SPD gate FAILS. The observable
+  # symptom is therefore `spd = FALSE` with NA standard errors -- a loud refusal
+  # -- rather than a returned negative-definite "covariance". Both assertions
+  # below fail against the bug; the `spd` one fires first.
   dat <- mspl_q1_fixture("overlap")
   fit <- drmTMB(
     bf(y ~ x + (1 | group)), binomial(), dat,

@@ -170,9 +170,19 @@
 #'   preserves ordinary maximum likelihood. Experimental `"mspl"` implements
 #'   the clean-room maximum softly-penalized likelihood criterion for one
 #'   complete Bernoulli or grouped-binomial logit model with one ordinary
-#'   q = 1 or correlated q = 2 grouping block. MSPL is point-estimation only:
-#'   likelihood comparisons, Wald standard errors, and confidence intervals
-#'   are deliberately unavailable.
+#'   q = 1 or correlated q = 2 grouping block. `vcov()` and the `std_error`
+#'   column of `summary()` are available: they invert the Hessian of the
+#'   *unpenalized* Laplace log-likelihood evaluated at the MSPL estimate, so the
+#'   penalty is used to obtain a finite estimate but not to describe sampling
+#'   variability. **A standard error is reported; an interval is not claimed.**
+#'   Likelihood comparisons (`logLik()`, `AIC`, `BIC`, `anova()`), profiles, and
+#'   `confint()` remain deliberately unavailable. Do not form
+#'   `coef ± 1.96 * se` by hand: Kosmidis and Firth show that Wald intervals in
+#'   this setting fail to cover regardless of the nominal level, a failure that
+#'   persists even for profile penalized-likelihood intervals. When the
+#'   information matrix is not positive definite the standard errors are `NA`
+#'   with a `drmTMB_mspl_wald_unavailable` warning rather than a fabricated
+#'   number.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.

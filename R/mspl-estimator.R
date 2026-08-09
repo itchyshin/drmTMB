@@ -97,10 +97,18 @@ drm_mspl_vcov <- function(object) {
 
 # `summary()$coefficients$std_error` for an MSPL fit (design doc 251 sec 5).
 # Phase 3 admits exactly one `mu` formula, so `est`/`labels` are the `beta_mu`
-# fixed effects in TMB packing order; pull the matching `beta_mu` entries out
-# of `fit$mspl$wald$std_error` by name (not by calling `vcov()` generically --
-# that returns the full outer-parameter block, `beta_mu` plus the covariance
-# coordinates, which would not align with `est` by position or length).
+# fixed effects in TMB packing order; select the `beta_mu` entries out of
+# `fit$mspl$wald$std_error` (not by calling `vcov()` generically -- that returns
+# the full outer-parameter block, `beta_mu` plus the covariance coordinates,
+# which would not align with `est` by position or length).
+#
+# Precision note (Noether, C5 review): TMB gives EVERY fixed-effect entry the
+# identical name `beta_mu`, so this filter selects the right BLOCK but cannot
+# disambiguate coefficients within it. Alignment with `est` therefore rests on
+# both deriving from the same `opt$par` in the same order, not on per-coefficient
+# names. The `length()` guard below catches a block-size mismatch; it would NOT
+# catch a same-length reordering. Safe under the Phase 3 single-`mu`-formula
+# scope; revisit if multiple distributional parameters ever reach this path.
 drm_mspl_summary_coefficients <- function(object, labels, est) {
   wald <- object$mspl$wald
   se <- rep(NA_real_, length(est))
