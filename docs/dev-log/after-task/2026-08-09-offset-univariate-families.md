@@ -84,8 +84,22 @@ Created:
 | Deferred-family rejection probe | truncated_nbinom2, hurdle path, biv_gaussian all reject; aggregation guard fires |
 | `python3 tools/capability_ledger.py --check` | **OK** (31 generated outputs) |
 | Ledger census before vs after | **identical** — 723 cells; 364 none / 192 interval_feasible / 74 point_fit_recovery / 60 diagnostic_only / 29 inference_ready_with_caveats / 4 supported |
-| Full `devtools::test()` | *(recorded below on completion)* |
+| Full `devtools::test()` (2327 files, 45 min 40 s) | **43,342 pass / 0 fail / 1 error / 30 warn / 25 skip** |
 | `R CMD check --as-cran` | *(recorded below on completion)* |
+
+**The one error is pre-existing on `origin/main` and unrelated to this arc.**
+`test-b1-breadth-dispatch.R:8` guards with `file.exists(dispatch_path)` and then `source()`s
+`tools/prepare-b1-drac-dispatch.R`; in a source checkout `file.exists()` returns `TRUE` but
+`source()` cannot open the connection, so the intended skip never fires. Proved rather than
+assumed: the same file errors identically in the sibling candidate-preparation worktree,
+which is `origin/main` plus documentation only — `git diff origin/main -- R/ src/` is empty
+there. Under `R CMD check` the guard works as designed, because `^tools$` is in
+`.Rbuildignore` and the path is genuinely absent from the tarball. Filed as an observation,
+not fixed here: it is outside this arc's subject.
+
+The 30 warnings are likewise pre-existing (`log(sigma)` clamp notices in the zero-inflated
+NB2 fixtures, a `sd_phylo()` deprecation, and the known tweedie toy-data convergence case).
+None arises from a family this arc touched via an offset path.
 
 ## 6. Tests of the Tests
 
@@ -115,6 +129,12 @@ rejection was enforced only by an untested default argument.
 
 ## 7a. Issue Ledger
 
+- **Pre-existing, found in passing, NOT fixed:** `test-b1-breadth-dispatch.R:1-8` cannot
+  reliably guard its own `source()`. `testthat::test_path("..", "..", "tools", ...)` makes
+  `file.exists()` true in a source checkout while `source()` still fails to open the path,
+  so the intended `skip()` never runs and the file errors under `devtools::test()`. It is
+  invisible under `R CMD check` because `tools/` is build-excluded. Reproduced on an
+  unmodified tree; outside this arc's subject.
 - **#870 (family scope of `offset()`)** — the 29-issue sweep framed this as an all-`mu`
   versus count-only *policy* question. That premise was false: the code was already
   family-scoped to three builders. The real defect was a **documentation overclaim** — the

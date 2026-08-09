@@ -33,6 +33,13 @@
 - Red-tested the oracle by deleting one family's offset hand-off — the mode
   where the formula still parses and the fit still converges — which failed
   exactly that family's two assertions and no others.
+- Full `devtools::test()`: **43,342 pass / 0 fail / 1 error / 30 warn / 25 skip**
+  across 2327 files in 45 min 40 s. The single error is
+  `test-b1-breadth-dispatch.R`, whose `file.exists()`/`source()` guard misfires
+  in a source checkout; it reproduces on an unmodified `origin/main` tree and is
+  invisible under `R CMD check` because `tools/` is build-excluded. Pre-existing
+  and outside this arc; recorded, not fixed. The 30 warnings are likewise
+  pre-existing clamp/deprecation/toy-data notices.
 - Report:
   [`2026-08-09-offset-univariate-families.md`](after-task/2026-08-09-offset-univariate-families.md).
 
