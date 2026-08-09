@@ -1,6 +1,38 @@
 # Check Log
 
 
+## 2026-08-09 — `offset()` admitted for every univariate family (Tiers A+B)
+
+- Enabled a standard R `offset()` term in the `mu` formula of the ten remaining
+  univariate families: gaussian, student, skew_normal, lognormal, gamma, and
+  tweedie (identity/log links), plus beta, beta_binomial, zero_one_beta, and
+  cumulative_logit (logit links). Each needed a builder gate, a `spec$offset$mu`
+  assignment, and `offset_mu +` on that `model_type`'s linear-predictor
+  initialiser in `src/drmTMB.cpp`.
+- Fixed a latent trap first: `make_tmb_data_core()` fell back to `numeric(1)`
+  for `offset_mu`, which was safe only while no family read it. It now falls
+  back to `rep(0, length(spec$y))`, so a branch reading it cannot size-mismatch
+  inside Eigen. Added a guard rejecting `offset()` with Gaussian
+  sufficient-statistic aggregation, which consumes a separate `offset_mu_agg`.
+- Corrected a documentation overclaim: the `drmTMB()` roxygen granted
+  `offset(log(exposure))` to zero-truncated NB2 `mu` formulas, which the code
+  rejected. The roxygen is now expanded and split by link — exposure for log,
+  additive mean shift for identity, log-odds calibration (**not** exposure) for
+  logit — and names what still rejects offsets and why.
+- `truncated_nbinom2()`, its hurdle path, every bivariate family, Gaussian
+  aggregation, and every non-`mu` dpar continue to reject offsets. The
+  truncated/hurdle exclusion is the one recorded as deliberate in the original
+  `923ae62b2` after-task log; extending it needs a decision about whether the
+  offset targets the latent untruncated rate or the observed mean.
+- Passed: new `test-offset-families.R` (25 expectations, 0 failures, 0 warnings,
+  5.2 s); 17 targeted regression files across every touched family with 0
+  failures and 0 errors; a link-agnostic constant-offset oracle at machine zero
+  for all ten families; deferred-family rejection probes; and
+  `tools/capability_ledger.py --check` with the 723-cell census unchanged.
+- Report:
+  [`2026-08-09-offset-univariate-families.md`](after-task/2026-08-09-offset-univariate-families.md).
+
+
 ## 2026-08-08 — pkgdown function-map route restored and model-map deduplicated
 
 - Restored **Function map and cheat sheet** to the Get started menu and kept

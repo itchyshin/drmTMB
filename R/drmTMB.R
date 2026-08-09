@@ -18,10 +18,24 @@
 #' ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 #' zero-truncated negative-binomial `mu` formulas support ordinary unlabelled
 #' random intercepts and independent numeric slopes where
-#' documented. Binomial `mu` formulas may include standard R `offset()` terms
-#' on the logit-event-probability scale. Poisson, ordinary negative-binomial,
-#' and zero-truncated negative-binomial `mu` formulas may include standard R
-#' `offset(log(exposure))` terms for exposure or effort,
+#' documented. Every univariate `mu` formula may include a standard R
+#' `offset()` term, which enters the location linear predictor as a known
+#' constant. Read it on the family's own link scale: for log-link families
+#' (Poisson, ordinary negative-binomial, Gamma, Tweedie) `offset(log(exposure))`
+#' is the usual exposure or effort rate model; for identity-link families
+#' (Gaussian, Student-t, lognormal, skew-normal) an offset is a known additive
+#' shift of the mean; and for logit-link families (Bernoulli/binomial,
+#' beta-binomial, beta, zero-one-beta, ordinal cumulative-logit) it is a known
+#' log-odds shift, which is a calibration term rather than an exposure. A
+#' zero-one-beta offset shifts only the interior beta component, leaving `zoi`
+#' and `coi` unchanged, and an ordinal offset shifts the latent location
+#' against fixed cutpoints. Zero-truncated and hurdle negative-binomial
+#' responses, every bivariate family, and Gaussian sufficient-statistic
+#' aggregation reject offsets: the first two renormalise their observed mean
+#' over a restricted support, so an exposure term would not scale the reported
+#' mean, and the others have no per-response offset contract yet. Offsets remain
+#' restricted to `mu`; other distributional parameters reject them.
+#' drmTMB also supports
 #' Gaussian random intercepts, independent numeric random slopes,
 #' and labelled or unlabelled correlated numeric random intercept-slope blocks
 #' in the location formula,
@@ -3175,7 +3189,14 @@ drm_build_gaussian_ls_spec <- function(
     )
   }
 
-  drm_reject_phase1_terms(mu_entry$rhs, "mu")
+  if (aggregate_gaussian && formula_contains_call(mu_entry$rhs, "offset")) {
+    cli::cli_abort(c(
+      "Gaussian aggregation does not support {.fn offset} terms in the {.code mu} formula.",
+      "x" = "Aggregation reduces rows to group summaries, so a row-level offset has no aggregated counterpart.",
+      "i" = "Use {.code control = drm_control(aggregate_gaussian = FALSE)} to fit the row-level model with its offset."
+    ))
+  }
+  drm_reject_phase1_terms(mu_entry$rhs, "mu", allow_offset = TRUE)
   drm_reject_phase1_terms(sigma_entry$rhs, "sigma")
   for (sd_mu_entry in sd_mu_entries) {
     drm_reject_phase1_terms(sd_mu_entry$rhs, sd_mu_entry$dpar)
@@ -3287,6 +3308,7 @@ drm_build_gaussian_ls_spec <- function(
     }
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && any(!observed_y)) {
     cli::cli_abort(
@@ -3530,6 +3552,7 @@ drm_build_gaussian_ls_spec <- function(
 
   spec <- list(
     model_type = "gaussian",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = V_known$V,
@@ -3777,7 +3800,7 @@ drm_build_student_ls_spec <- function(
   validate_student_sigma_random_terms(sigma_re$terms)
 
   for (entry in list(mu_entry, sigma_entry, nu_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -3824,6 +3847,7 @@ drm_build_student_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
     cli::cli_abort(
@@ -3879,6 +3903,7 @@ drm_build_student_ls_spec <- function(
 
   spec <- list(
     model_type = "student",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -4056,7 +4081,7 @@ drm_build_skew_normal_ls_spec <- function(
   validate_skew_normal_random_terms(nu_re$terms, "nu")
 
   for (entry in list(mu_entry, sigma_entry, nu_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -4101,6 +4126,7 @@ drm_build_skew_normal_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
     cli::cli_abort(
@@ -4154,6 +4180,7 @@ drm_build_skew_normal_ls_spec <- function(
 
   spec <- list(
     model_type = "skew_normal",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -4316,7 +4343,7 @@ drm_build_lognormal_ls_spec <- function(
   )
 
   for (entry in list(mu_entry, sigma_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -4356,6 +4383,7 @@ drm_build_lognormal_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
     cli::cli_abort(
@@ -4406,6 +4434,7 @@ drm_build_lognormal_ls_spec <- function(
 
   spec <- list(
     model_type = "lognormal",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -4575,7 +4604,7 @@ drm_build_gamma_ls_spec <- function(
   )
 
   for (entry in list(mu_entry, sigma_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -4615,6 +4644,7 @@ drm_build_gamma_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
     cli::cli_abort(
@@ -4665,6 +4695,7 @@ drm_build_gamma_ls_spec <- function(
 
   spec <- list(
     model_type = "gamma",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -4822,7 +4853,7 @@ drm_build_tweedie_ls_spec <- function(
   validate_tweedie_random_terms(nu_re$terms, "nu")
 
   for (entry in list(mu_entry, sigma_entry, nu_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -4867,6 +4898,7 @@ drm_build_tweedie_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
     cli::cli_abort(
@@ -4926,6 +4958,7 @@ drm_build_tweedie_ls_spec <- function(
 
   spec <- list(
     model_type = "tweedie",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -5164,7 +5197,7 @@ drm_build_beta_ls_spec <- function(
   }
 
   for (entry in c(list(mu_entry, sigma_entry), sd_phylo_entries)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -5226,6 +5259,7 @@ drm_build_beta_ls_spec <- function(
     na.action = stats::na.omit
   )
   y <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (!is.null(dim(y))) {
     cli::cli_abort(c(
@@ -5312,6 +5346,7 @@ drm_build_beta_ls_spec <- function(
 
   spec <- list(
     model_type = "beta",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -5731,7 +5766,7 @@ drm_build_zero_one_beta_spec <- function(
   }
 
   for (entry in list(mu_entry, sigma_entry, zoi_entry, coi_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -5789,6 +5824,7 @@ drm_build_zero_one_beta_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
     cli::cli_abort(
@@ -5842,6 +5878,7 @@ drm_build_zero_one_beta_spec <- function(
 
   spec <- list(
     model_type = "zero_one_beta",
+    offset = list(mu = offset_mu),
     y = as.numeric(y),
     weights = weights_model,
     V_known = rep(0, length(y)),
@@ -6010,7 +6047,7 @@ drm_build_beta_binomial_spec <- function(
   validate_beta_binomial_sigma_random_terms(sigma_re$terms)
 
   for (entry in list(mu_entry, sigma_entry)) {
-    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+    drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -6048,6 +6085,7 @@ drm_build_beta_binomial_spec <- function(
     na.action = stats::na.omit
   )
   response_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (is.null(dim(response_raw)) || ncol(response_raw) != 2L) {
     cli::cli_abort(
       "{.fn beta_binomial} requires a two-column count response."
@@ -6093,6 +6131,7 @@ drm_build_beta_binomial_spec <- function(
 
   spec <- list(
     model_type = "beta_binomial",
+    offset = list(mu = offset_mu),
     y = as.numeric(response$successes),
     trials = as.numeric(response$trials),
     failures = as.numeric(response$failures),
@@ -6496,7 +6535,7 @@ drm_build_cumulative_logit_spec <- function(
   mu_entry$rhs <- mu_phylo$rhs
   validate_ordinal_phylo_mu_structured_term(mu_phylo$term)
   if (formula_contains_structured_marker(mu_entry$rhs)) {
-    drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+    drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
   }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
@@ -6507,7 +6546,7 @@ drm_build_cumulative_logit_spec <- function(
       "i" = "Use one of {.code phylo(1 | species)} or {.code (1 | id)} for this slice."
     ))
   }
-  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar)
+  drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   vars <- unique(c(all.vars(f_mu), random_effect_vars(mu_re$terms)))
@@ -6533,6 +6572,7 @@ drm_build_cumulative_logit_spec <- function(
     na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y_raw) == 0L) {
     cli::cli_abort(
       "No complete observations remain after applying ordinal model missingness rules."
@@ -6577,6 +6617,7 @@ drm_build_cumulative_logit_spec <- function(
 
   spec <- list(
     model_type = "cumulative_logit",
+    offset = list(mu = offset_mu),
     y = as.numeric(ordinal$y),
     weights = weights_model,
     V_known = rep(0, length(ordinal$y)),
@@ -18982,7 +19023,14 @@ make_tmb_data_core <- function(spec) {
     x = numeric(0),
     dims = c(1L, 1L)
   )
-  offset_mu <- if (!is.null(spec$offset$mu)) spec$offset$mu else numeric(1)
+  # Every family branch that reads `offset_mu` in the TMB template needs a
+  # full-length vector, so the fallback is a zero vector rather than a length-1
+  # dummy: a shorter vector size-mismatches inside Eigen at run time.
+  offset_mu <- if (!is.null(spec$offset$mu)) {
+    spec$offset$mu
+  } else {
+    rep(0, length(spec$y))
+  }
   tmb_trials <- if (!is.null(spec$trials)) {
     spec$trials
   } else {

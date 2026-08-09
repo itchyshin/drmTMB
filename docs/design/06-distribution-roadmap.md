@@ -3,6 +3,13 @@
 This roadmap orders response families by scientific value, implementation risk,
 and how well they support the identity of `drmTMB`.
 
+Note on offsets: the per-family entries below mention `offset(log(trap_nights))`
+only for the count families where exposure offsets were first introduced. A
+standard R `offset()` in the `mu` formula is now accepted by **every** univariate
+family, read on that family's link scale, with `truncated_nbinom2()`, its hurdle
+path, every bivariate family, and Gaussian aggregation still rejecting it. See
+[`19-family-link-contract.md`](19-family-link-contract.md) for the contract.
+
 ## Tier 1: Continuous MVP
 
 These establish the formula parser, family registry, TMB pipeline, prediction,
