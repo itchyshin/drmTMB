@@ -1,0 +1,53 @@
+=== cell 4 start 16:09:52 ===
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_100k/out/full/g10_n04_sd05.csv rows 100000 
+  coverage(profile, all-attempt) = 0.9229 
+  finite intervals = 100000 / 100000 
+  estimate_sd < 1e-3 (boundary) = 6075 
+=== cell 4 rc=0 end 16:15:32 ===
+=== cell 5 start 16:15:32 ===
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_100k/out/full/g10_n04_sd10.csv rows 100000 
+  coverage(profile, all-attempt) = 0.9257 
+  finite intervals = 100000 / 100000 
+  estimate_sd < 1e-3 (boundary) = 125 
+=== cell 5 rc=0 end 16:19:55 ===
+=== cell 6 start 16:19:55 ===
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_100k/out/full/g10_n10_sd10.csv rows 100000 
+  coverage(profile, all-attempt) = 0.9251 
+  finite intervals = 100000 / 100000 
+  estimate_sd < 1e-3 (boundary) = 2 
+=== cell 6 rc=0 end 16:24:58 ===
+=== cell 1 start 16:24:58 ===
+
+Attaching package: ‘drmTMB’
+
+The following object is masked from ‘package:base’:
+
+    beta
+
+WROTE /home/snakagaw/d117_100k/out/full/g10_n10_sd05.csv rows 100000 
+  coverage(profile, all-attempt) = 0.9255 
+  finite intervals = 100000 / 100000 
+  estimate_sd < 1e-3 (boundary) = 468 
+=== cell 1 rc=0 end 16:30:08 ===
+CAMPAIGN_COMPLETE
