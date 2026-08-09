@@ -41,6 +41,22 @@ to catch.
 now shows 0/89 — newly visible. Not materially worse than 2026-08-04, shared with `lme4`
 on the same DGP and seeds, warned at point of use, and documented.
 
+**Recovery half, added after the D-43 panel found it missing.** D-117 asks for a
+"recovery/coverage" gate; only coverage had been measured. Recomputed from the 400,000
+rows: relative bias **-15.76 / -9.31 / -10.26 / -8.34%** (the n=1000 figures
+-16.90 / -9.12 / -9.05 / -9.16% are **superseded**). Expected ML behaviour at g=10;
+lme4 agrees on point estimates to ~1e-6. The mean **log**-SD statistic is unusable in
+the boundary-heavy cell -- two independent recomputations on the same rows disagreed by
+>20 points, because 49.7% of fits sit at `estimate_sd ~ 0`.
+
+**D-43 panel: 2 of 3 NOT-DONE -> the composite claim is WITHHELD.** Noether **DONE**
+(recomputed every mathematical claim from raw rows, zero discrepancies); Grace
+**NOT-DONE** (no environment fingerprint, provenance asserted, regeneration command
+broken); Rose **NOT-DONE**, load-bearing (recovery half unmeasured, no after-task
+shipped). All findings are now repaired, but **the repairs came after the verdict and
+have NOT been re-adjudicated** -- they do not convert it. The coverage *result* itself
+was independently reproduced by two of the three reviewers.
+
 Scope: the **A1 scalar Gaussian corner only** (`TRUE_BETA = 0.5`, residual `sigma = 0.7`,
 one mean formula, `g = 10`, ML). Raw CSVs (~195 MB) are not committed; SHA-256s and the
 regeneration command are recorded instead. Discharge remains the owner's decision.

@@ -5,6 +5,20 @@
 
 ---
 
+> **⚠ SUPERSEDED FIGURES — read with `VERDICT-100K.md §6b`.** This packet was written
+> *before* the recovery half was recomputed on the 100,000-replicate data, and before the
+> D-43 panel reported. Two corrections apply throughout:
+>
+> 1. **Every recovery/bias number below is the n = 1,000 figure** (-16.90 / -9.12 / -9.05 /
+>    -9.16%). The current values, from the 400,000 rows, are
+>    **-15.76 / -9.31 / -10.26 / -8.34%** (`VERDICT-100K.md` §6b). All four changed;
+>    `g10_n10_sd05` moved a full point.
+> 2. **The panel has now run: 2 of 3 NOT-DONE, so the composite claim is WITHHELD.** This
+>    packet's §6 conditions its recommendation on that panel; the condition resolved
+>    *against* it. The blocking findings are repaired but have **not** been re-adjudicated.
+>
+> The packet's *reasoning* stands; its numbers and its confidence statement do not.
+
 ## 1. What D-117 asked for, and whether it was delivered
 
 D-117's own text (`~/shinichi-brain/memory/DECISIONS.md`, `### D-117`):
