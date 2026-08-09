@@ -59,7 +59,7 @@ The predecessor recorded this as an **open policy risk deliberately not blocking
 
 | | predecessor `da9b2d76` | **this candidate** |
 | --- | --- | --- |
-| `inst/doc` (uncompressed) | 11.105 MB, 112 files | **4.605 MB, 97 files** |
+| `inst/doc` (uncompressed) | 11.105 MB, 111 files | **4.605 MB, 96 files** |
 | installed `doc` sub-directory | 11.11 Mb | **4.8 Mb** |
 | installed package size | 31.2 Mb | **24.7 Mb** |
 | tarball | 9,853,648 bytes | **4,190,432 bytes** |
@@ -176,3 +176,30 @@ Pages artifact, so running it at this branch would publish the candidate's site 
   [D-117](../../../../..) holds 0.7.0: the 10-group gate was run, but its D-43 panel returned 2 of
   3 NOT-DONE and the **PASS is withheld**. D-89 also records that submission is far away by choice.
 - **Not on CRAN.** A version number is a candidate identity, not evidence of acceptance.
+
+## Repository guards repaired after the move (does NOT touch the candidate)
+
+Moving the five vignettes broke three assertions in `tools/tests/test_capability_ledger.py`, the
+guard CI actually runs. **CI caught this; the local run did not, because the guard was run before
+the move rather than after** — recorded as a process lapse, not smoothed over.
+
+| Failure | Cause | Repair |
+| --- | --- | --- |
+| `FileNotFoundError: vignettes/model-workflow.Rmd` | hard-coded path | point at `vignettes/articles/model-workflow.Rmd` |
+| `getting_started_entries.count("function-map-cheatsheet") == 1` gave 0 | the entry is now `articles/function-map-cheatsheet`, and the regex disallowed `/` | accept an optional `articles/` prefix and capture the stem either way |
+| `across 32 vignettes` not found in a heading saying 37 | the glob was non-recursive, so it stopped counting the five | make it recursive — the contract is about **reader** coverage, and all 37 remain reader-facing |
+
+None of these re-pins a fingerprint to hide a change; each restores the assertion's original intent
+under the new layout. The third is the substantive one: counting only shipped vignettes would have
+silently redefined a reader-coverage contract as a packaging contract, and `docs/design/226`
+correctly still says 37.
+
+`tools/` is `.Rbuildignore`d and absent from the tarball listing, so **the frozen artifact
+`d04d0e88` is unaffected and remains valid**. Full suite: `python3 -m unittest discover -s
+tools/tests` → **122 tests, OK**.
+
+## Independent verification
+
+- **Mechanical re-verify** (fresh context, read-only, re-measured every number from the artifact
+  rather than copying it): **20 claims checked, 20 match, 0 mismatch** — including a re-hash from
+  the final frozen path, the forbidden-path scan, and the ledger's own fields.

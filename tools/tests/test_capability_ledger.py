@@ -1012,7 +1012,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         capability_choice = config.split(
             "  - title: Capability and Model Choice", 1
         )[1].split("  - title: Location and Scale", 1)[0]
-        article_entry_pattern = r"^\s{6}- ([A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+        # A pkgdown-only article is listed by its path relative to vignettes/,
+        # so `articles/function-map-cheatsheet` and `function-map-cheatsheet`
+        # name the same vignette. Capture the stem either way: this contract is
+        # about which vignette sits in which nav section, not about whether it
+        # ships inside the tarball.
+        article_entry_pattern = r"^\s{6}- (?:articles/)?([A-Za-z0-9][A-Za-z0-9-]*)\s*$"
         getting_started_entries = re.findall(
             article_entry_pattern, getting_started, re.MULTILINE
         )
@@ -1037,7 +1042,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(learning_positions, sorted(learning_positions))
 
         design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
-        vignette_stems = {path.stem for path in (ROOT / "vignettes").glob("*.Rmd")}
+        # Recursive: five heavy vignettes live in vignettes/articles/ so they
+        # stop shipping in the tarball, but they are still rendered by pkgdown
+        # and are still part of the reader learning path. This contract is
+        # about reader coverage, so it must count them.
+        vignette_stems = {path.stem for path in (ROOT / "vignettes").rglob("*.Rmd")}
         vignette_count = len(vignette_stems)
         self.assertIn(f"across {vignette_count} vignettes", design.splitlines()[0])
         self.assertIn(f"{vignette_count} rows.", design)
@@ -2441,7 +2450,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 vignette,
                 r"(?s)corpairs\([^\)]*(?:ystep|ytol)\s*=",
             )
-        workflow = (ROOT / "vignettes/model-workflow.Rmd").read_text()
+        workflow = (ROOT / "vignettes/articles/model-workflow.Rmd").read_text()
         self.assertIn(
             "profile availability alone is not that evidence",
             workflow,
