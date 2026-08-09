@@ -40,6 +40,13 @@
   invisible under `R CMD check` because `tools/` is build-excluded. Pre-existing
   and outside this arc; recorded, not fixed. The 30 warnings are likewise
   pre-existing clamp/deprecation/toy-data notices.
+- `R CMD check --as-cran` (52 checks): **Status OK** — 0 errors, 0 warnings, 0
+  notes; examples, `--run-donttest` examples, `testthat.R`, and `spelling.R` all
+  OK. **Scope caveat:** built with `vignettes = FALSE` and run with
+  `--ignore-vignettes` and `_R_CHECK_CRAN_INCOMING_=false`, so incoming
+  feasibility and vignette timing were not exercised. This is a
+  code-correctness check, **not** a `tarball-clean` claim; the exact-artifact
+  gate belongs to the 0.7.0 candidate freeze on one immutable hash.
 - Report:
   [`2026-08-09-offset-univariate-families.md`](after-task/2026-08-09-offset-univariate-families.md).
 

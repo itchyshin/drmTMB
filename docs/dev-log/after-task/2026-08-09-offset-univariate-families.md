@@ -85,7 +85,21 @@ Created:
 | `python3 tools/capability_ledger.py --check` | **OK** (31 generated outputs) |
 | Ledger census before vs after | **identical** — 723 cells; 364 none / 192 interval_feasible / 74 point_fit_recovery / 60 diagnostic_only / 29 inference_ready_with_caveats / 4 supported |
 | Full `devtools::test()` (2327 files, 45 min 40 s) | **43,342 pass / 0 fail / 1 error / 30 warn / 25 skip** |
-| `R CMD check --as-cran` | *(recorded below on completion)* |
+| `R CMD check --as-cran` (52 checks) | **Status: OK** — 0 errors, 0 warnings, 0 notes. Examples OK (10 s), examples with `--run-donttest` OK (11 s), `testthat.R` OK (10 m), `spelling.R` OK. |
+
+**What that check does and does not establish.** It was run on a tarball built with
+`vignettes = FALSE`, with `--ignore-vignettes` and `_R_CHECK_CRAN_INCOMING_=false`. So it
+verifies that this code change installs, documents, runs its examples, and passes its tests
+cleanly — and nothing more. It is **not** the exact-artifact CRAN gate: incoming feasibility
+never ran, so the known new-submission, DESCRIPTION-spelling, and file-URI notes could not
+fire, and vignette build time — the live Windows-timing risk for this package — was not
+measured. Those belong to the 0.7.0 candidate freeze in the separate candidate-preparation
+lane, on one immutable hash. Do not cite this line as `tarball-clean`.
+
+Useful corroboration, though: `testthat.R` passed inside the check, and
+`test-b1-breadth-dispatch.R` did **not** error there. That independently confirms the
+adjudication above — its guard behaves correctly once `tools/` is genuinely absent, which
+is exactly the tarball case.
 
 **The one error is pre-existing on `origin/main` and unrelated to this arc.**
 `test-b1-breadth-dispatch.R:8` guards with `file.exists(dispatch_path)` and then `source()`s
