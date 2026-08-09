@@ -506,6 +506,7 @@ Read `conf.status` as an action column:
 | `wald` | A Wald interval was returned for a fixed-effect or direct parameter row. | Use it for routine summaries and as the fastest screen for large models, while remembering it is asymptotic. |
 | `profile` | A profile-likelihood interval was returned. | Inspect `profile.boundary` and `profile.message` before treating the interval as stable. |
 | `bootstrap` | A simulate/refit percentile interval was returned by `confint()`. | Check `bootstrap.n`, `bootstrap.failed`, and `attr(ci, "bootstrap.diagnostics")`; increase `R` only after a small runtime pilot works. |
+| `bootstrap_at_boundary` | A bootstrap interval was returned, but at least 5% of the retained resamples landed on the target's bound. | Treat the interval as reporting the constraint, not the sampling distribution; resampling does not repair a boundary. |
 | `profile_ready` | The row is a direct profile target, but the current summary call did not request it. | Use the row's `parm` value in `confint(..., method = "profile")` or in `summary(..., method = "profile", ci_parm = ...)`. |
 | `newdata_required` | The fitted surface needs a concrete row before it can be profiled. | Build a biologically meaningful `newdata` row and call `confint(..., newdata = ...)`. |
 | `derived_interval_unavailable` | The point estimate combines multiple fitted quantities and has no validated interval method yet. | Report the point estimate as exploratory, or simplify to a direct target if interval support is essential. |
