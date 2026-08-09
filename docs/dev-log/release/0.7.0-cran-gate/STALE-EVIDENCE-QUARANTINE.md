@@ -1,7 +1,32 @@
 # ⚠ READ FIRST — everything in this directory is PREDECESSOR evidence
 
 **Written:** 2026-08-09 · **By:** Claude task 1, staged 0.7.0 candidate preparation, Stage A
-**Applies to:** every file in `docs/dev-log/release/0.7.0-cran-gate/`, including `platform/`
+**Applies to:** every file in `docs/dev-log/release/0.7.0-cran-gate/` **except**
+`FREEZE-NOTES-0.7.0.md` and `CANDIDATE-EVIDENCE/` — see the scope amendment below.
+
+> ## ⚠ Scope amendment — 2026-08-09 evening
+>
+> This note was written before a 0.7.0 candidate existed. Two things about it are now wrong,
+> and an adversarial audit caught both. **The D-49 doctrine below still holds in full; the
+> "Current state" block does not.**
+>
+> **1. Scope.** "Every file in this directory" now literally includes `FREEZE-NOTES-0.7.0.md`,
+> the current packet, which this note would then declare predecessor evidence. It is not.
+> `FREEZE-NOTES-0.7.0.md` and `CANDIDATE-EVIDENCE/` are excluded; everything else in the
+> directory remains quarantined.
+>
+> **2. These sibling files ARE predecessor receipts.** A reader who opens
+> `local-as-cran-check.log` beside the current packet reads `doc 11.3Mb` — the very risk the
+> current packet reports as resolved. Explicitly stale: `tarball.sha256` (a **0.6.0** hash),
+> `tarball.size.txt` (9831204), `local-as-cran-check.log`, `00check.log`,
+> `tarball-inventory.txt`, `build.log`, `platform/`, and `RENDERED-SITE-0.7.0.md` (its own
+> line 3 says "Candidate: `da9b2d76…`", and it predates the vignette move). The current
+> candidate's equivalents live in `CANDIDATE-EVIDENCE/`.
+>
+> **3. The "Current state, stated plainly" block below is superseded.** It says `DESCRIPTION`
+> is `0.6.0` (it is **0.7.0**), that there is "no 0.7.0 candidate tarball at all" (there is),
+> and that the separation lane blocks any candidate freeze (it reached **DEFER**, PR #956).
+> Read the current state from `FREEZE-NOTES-0.7.0.md` instead.
 
 ## The one-sentence warning
 
