@@ -1,0 +1,13 @@
+M docs/dev-log/dashboard/capability-census/_master.tsv
+M docs/dev-log/dashboard/capability-census/_widget_data.json
+M docs/dev-log/dashboard/capability-census/binomial.tsv
+M docs/dev-log/dashboard/capability-census/cumulative_logit.tsv
+M docs/dev-log/dashboard/capability-ledger/cells.tsv
+M docs/dev-log/dashboard/capability-ledger/evidence.tsv
+M docs/dev-log/dashboard/capability-ledger/transitions.tsv
+M docs/dev-log/dashboard/capability-surface.html
+M docs/dev-log/dashboard/capability-surface.md
+M tools/capability_ledger.py
+M tools/tests/test_capability_ledger.py
+M vignettes/includes/capability-ledger-family-map.md
+M vignettes/includes/capability-ledger-summary.md

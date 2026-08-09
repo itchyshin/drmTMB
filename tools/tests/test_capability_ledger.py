@@ -105,15 +105,75 @@ class CapabilityLedgerTests(unittest.TestCase):
         }
         self.assertEqual(len(source_ids), ledger.C14_BOUNDARY_COUNT)
         self.assertTrue(source_ids <= set(by_id))
-        self.assertFalse(any(
-            by_id[cell_id]["capability_status"] == "implemented"
-            for cell_id in source_ids
-        ))
+        self.assertEqual(
+            {
+                cell_id for cell_id in source_ids
+                if by_id[cell_id]["capability_status"] == "implemented"
+            },
+            ledger.CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES,
+        )
         for cell_id in source_ids:
             row = by_id[cell_id]
+            if cell_id in ledger.CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES:
+                self.assertEqual(row["work_status"], "verified")
+                self.assertEqual(row["evidence_tier"], "diagnostic_only")
+                continue
             self.assertEqual(row["capability_status"], "rejected_by_design")
             self.assertEqual(row["work_status"], "deferred")
             self.assertEqual(row["evidence_tier"], "none")
+
+    def test_07_capability_truth_cells_are_exact_and_evidence_bound(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        evidence = {row["evidence_id"]: row for row in self.evidence}
+        expected = {
+            "mc-0058": ("rejected_by_design", "deferred", "none", "ev-mc-0058-capability-truth-rejection"),
+            "mc-0060": ("implemented", "verified", "diagnostic_only", "ev-mc-0060-capability-truth-o2"),
+            "mc-0062": ("implemented", "verified", "diagnostic_only", "ev-mc-0062-capability-truth-o2"),
+            "mc-0068": ("rejected_by_design", "deferred", "none", "ev-mc-0068-capability-truth-rejection"),
+            "mc-0227": ("implemented", "verified", "point_fit_recovery", "ev-mc-0227-arc2b"),
+        }
+        for cell_id, state in expected.items():
+            row = by_id[cell_id]
+            self.assertEqual(
+                tuple(row[field] for field in (
+                    "capability_status", "work_status", "evidence_tier",
+                    "primary_evidence_id",
+                )),
+                state,
+            )
+            self.assertEqual(row["tranche_id"], "07-capability-truth")
+            self.assertEqual(row["updated_date"], "2026-08-08")
+
+        for cell_id in ("mc-0060", "mc-0062"):
+            comparator = evidence[f"ev-{cell_id}-capability-truth-o2"]
+            self.assertEqual(comparator["evidence_class"], "external_comparator")
+            self.assertIn("glmmTMB", comparator["run_id"])
+            self.assertIn("WEAK INDEPENDENCE", comparator["claim_boundary"])
+            self.assertIn("same joint-Laplace", comparator["claim_boundary"])
+
+        self.assertIn(
+            "unavailable through drmTMB()",
+            evidence["ev-mc-0227-o3"]["claim_boundary"],
+        )
+        transitions = {row["transition_id"] for row in self.transitions}
+        self.assertEqual(
+            {
+                f"tr-{cell_id}-07-capability-truth"
+                for cell_id in ledger.CAPABILITY_TRUTH_CELL_IDS
+            } - transitions,
+            set(),
+        )
+
+    def test_internal_o3_evidence_cannot_grant_public_reporting_permission(self):
+        cells = copy.deepcopy(self.cells)
+        row = next(item for item in cells if item["cell_id"] == "mc-0227")
+        row["primary_evidence_id"] = "ev-mc-0227-o3"
+        row["evidence_tier"] = "inference_ready_with_caveats"
+        with self.assertRaisesRegex(
+            SystemExit,
+            "internal estimator evidence grants public reporting permission",
+        ):
+            ledger.validate(cells, self.evidence, self.transitions)
 
     def test_c14_structured_zero_one_beta_leaves_preserve_q2plus_boundaries(self):
         by_id = {row["cell_id"]: row for row in self.cells}
@@ -372,14 +432,13 @@ class CapabilityLedgerTests(unittest.TestCase):
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
 
-        # implemented 337 -> 339: Arc 4b's mc-0207 split adds two new
-        # implemented leaves (mc-0715, mc-0716); rejected_by_design and
-        # not_implemented are untouched since the split changes evidence_tier,
-        # not capability_status.
+        # Arc 4b raised implemented 337 -> 339. The exact 0.7 capability-truth
+        # reconciliation then corrects the two C14 false negatives mc-0060 and
+        # mc-0062, so implemented becomes 341 and rejected_by_design becomes 348.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -421,11 +480,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             for cell_id in ("mc-0199", "mc-0672", "mc-0673")
         }
 
-        # implemented 337 -> 339: Arc 4b's mc-0207 split (see above).
+        # Arc 4b plus the exact two-row 0.7 capability-truth override (see above).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -516,7 +575,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # this total. Recounted directly from cells.tsv.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            55,
+            56,
         )
 
         by_id = {row["cell_id"]: row for row in model}
@@ -1120,7 +1179,10 @@ class CapabilityLedgerTests(unittest.TestCase):
             for row in ledger.family_map_rows(cells)
         }
         self.assertEqual(before["binomial"], after["binomial"])
-        self.assertIn("`mu`: not currently supported", before["binomial"])
+        self.assertEqual(
+            before["binomial"],
+            "`mu`: scope-limited (implemented 2; not currently supported 2)",
+        )
 
     def test_planning_class_keeps_unimplemented_work_visible(self):
         by_id = {row["cell_id"]: row for row in self.cells}

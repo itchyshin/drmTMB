@@ -215,7 +215,7 @@ C14_RECEIPT_EQUIVALENCE_PATHS = (
     "src/drmTMB.cpp::model_type_15",
 )
 C17_C14_CURRENT_SOURCE_COMPATIBILITY = (
-    LEDGER / "c17c2-c14-current-source-compatibility.tsv"
+    LEDGER / "2026-08-08-c17c2-c14-current-source-compatibility.tsv"
 )
 C17_C14_COMPATIBLE_SEEDS = {
     "mc-0568": {str(seed) for seed in range(2026073401, 2026073405)},
@@ -229,6 +229,19 @@ C17_C14_SOURCE_FILES = (
     "tests/testthat/test-zero-one-beta.R",
     "tools/run-lane-c-c17c1-c14-model15-compatibility.R",
 )
+
+# The 0.7 capability-truth reconciliation corrects two false-negative C14
+# taxonomy rows after the already-landed binomial O2 implementation was found
+# to admit and deterministically match ordinary random-intercept and
+# independent random-slope REML fits.  The historical C14 snapshot remains
+# immutable; these are the only source-pinned boundary IDs allowed to be
+# overridden, and validate() binds their exact evidence and state below.
+CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES = {"mc-0060", "mc-0062"}
+CAPABILITY_TRUTH_CELL_IDS = {
+    "mc-0058", "mc-0060", "mc-0062", "mc-0068", "mc-0227",
+}
+CAPABILITY_TRUTH_DATE = "2026-08-08"
+INTERNAL_ONLY_ESTIMATOR_EVIDENCE_IDS = {"ev-mc-0227-o3"}
 
 DATE = "2026-07-14"
 IMPORTED_MODEL_COUNT = 668
@@ -354,7 +367,7 @@ FROZEN_CENSUS_COUNT = 676
 # frozen <=676 window, so it does not move this constant. The gap the note above
 # describes -- "reconcile() never reads a true value" -- is now closed
 # mechanically; that is what found these two.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 54
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 55
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
@@ -1563,6 +1576,259 @@ def split_mc0207_ordinary_q_leaves() -> None:
     print("mc-0207 q4/q6/q8 ordinary leaves are current")
 
 
+def reconcile_capability_truth() -> None:
+    """Reconcile the five exact 0.7 binomial/O3 capability-truth cells.
+
+    This is an idempotent, one-time ledger migration.  It does not alter the
+    immutable C14 snapshot or delete O3's completed internal-estimator study.
+    """
+    cells = read_tsv(CELLS)
+    evidence = read_tsv(EVIDENCE)
+    transitions = read_tsv(TRANSITIONS)
+    by_id = {row["cell_id"]: row for row in cells}
+    missing = CAPABILITY_TRUTH_CELL_IDS - set(by_id)
+    if missing:
+        raise SystemExit(
+            "Capability-truth source cells are missing: " + ", ".join(sorted(missing))
+        )
+
+    source_sha = git_sha()
+    test_path = "tests/testthat/test-reml-binomial-coxreid.R"
+    design_path = "docs/design/224-aghq-coxreid-nongaussian-reml-alignment.md"
+    common_next = (
+        "A higher evidence tier requires separately approved recovery or calibrated "
+        "interval evidence for this exact public drmTMB() route."
+    )
+
+    states = {
+        "mc-0058": {
+            "capability_status": "rejected_by_design",
+            "work_status": "deferred",
+            "evidence_tier": "none",
+            "test_gate": "na",
+            "primary_evidence_id": "ev-mc-0058-capability-truth-rejection",
+            "claim_boundary": (
+                "Fixed-effect-only binomial REML is rejected before TMB construction: "
+                "the O2 joint-Laplace restricted likelihood requires at least one "
+                "admitted ordinary mu random-effect variance component. Use REML=FALSE "
+                "for a fixed-only binomial model. This exact gate grants no broader "
+                "non-Gaussian REML capability."
+            ),
+            "next_gate": (
+                "A fixed-only binomial REML route would require a separately designed "
+                "estimand, implementation, and validation arc; use REML=FALSE now."
+            ),
+            "updated_commit": source_sha,
+        },
+        "mc-0060": {
+            "capability_status": "implemented",
+            "work_status": "verified",
+            "evidence_tier": "diagnostic_only",
+            "test_gate": "G2",
+            "primary_evidence_id": "ev-mc-0060-capability-truth-o2",
+            "claim_boundary": (
+                "The exact public binomial mu random-intercept route y ~ x + (1 | g) "
+                "is admitted with REML=TRUE through O2's joint-Laplace fixed-effect "
+                "fold. A deterministic fixture agrees with glmmTMB(REML=TRUE), "
+                "converges with pdHess, and exposes finite vcov(). This is "
+                "diagnostic_only: no recovery, interval calibration, coverage, or "
+                "broader non-Gaussian REML claim is earned."
+            ),
+            "next_gate": common_next,
+            "updated_commit": source_sha,
+        },
+        "mc-0062": {
+            "capability_status": "implemented",
+            "work_status": "verified",
+            "evidence_tier": "diagnostic_only",
+            "test_gate": "G2",
+            "primary_evidence_id": "ev-mc-0062-capability-truth-o2",
+            "claim_boundary": (
+                "The exact public binomial independent mu random-slope route "
+                "y ~ x + (0 + x | g) is admitted with REML=TRUE through O2's "
+                "joint-Laplace fixed-effect fold. A deterministic fixture agrees "
+                "with glmmTMB(REML=TRUE), converges with pdHess, and exposes finite "
+                "vcov(). This is diagnostic_only: correlated or labelled slopes, "
+                "recovery, interval calibration, coverage, and broader non-Gaussian "
+                "REML remain outside scope."
+            ),
+            "next_gate": common_next,
+            "updated_commit": source_sha,
+        },
+        "mc-0068": {
+            "capability_status": "rejected_by_design",
+            "work_status": "deferred",
+            "evidence_tier": "none",
+            "test_gate": "na",
+            "primary_evidence_id": "ev-mc-0068-capability-truth-rejection",
+            "claim_boundary": (
+                "Binomial REML remains rejected for structured mu effects, including "
+                "phylo(), spatial(), animal(), relmat(), and phylo_interaction() "
+                "routes at every q gate. O2 admits only ordinary unlabelled random "
+                "intercepts and one independent slope; structured, correlated, and "
+                "labelled binomial REML blocks are outside the public contract."
+            ),
+            "next_gate": (
+                "Keep REML=FALSE or use an admitted ordinary binomial random effect; "
+                "structured binomial REML needs a separate implementation and evidence arc."
+            ),
+            "updated_commit": source_sha,
+        },
+        "mc-0227": {
+            "capability_status": "implemented",
+            "work_status": "verified",
+            "evidence_tier": "point_fit_recovery",
+            "test_gate": "G3",
+            "primary_evidence_id": "ev-mc-0227-arc2b",
+            "claim_boundary": (
+                "Public drmTMB() cumulative_logit mu random-slope fitting uses the "
+                "ML-Laplace route and has DG2 point-fit recovery for one independent "
+                "slope (0 + x | id). The completed O3 AGHQ25+Cox-Reid profile study "
+                "is preserved as internal-estimator technical provenance, but O3 is "
+                "unavailable through drmTMB() and grants no public ML interval or "
+                "reporting permission. Correlated/labelled slopes, public AGHQ/REML, "
+                "interval calibration, and coverage remain outside this public row."
+            ),
+            "next_gate": (
+                "Expose and validate a public estimator route, then bind calibration "
+                "evidence to that exact callable route before restoring any interval-reporting tier."
+            ),
+            "updated_commit": source_sha,
+        },
+    }
+    for cell_id, state in states.items():
+        row = by_id[cell_id]
+        row.update(state)
+        row["tranche_id"] = "07-capability-truth"
+        row["owner"] = ""
+        row["blocking_reviewers"] = ""
+        row["issue_url"] = ""
+        row["pr_url"] = ""
+        row["updated_date"] = CAPABILITY_TRUTH_DATE
+        row["legacy_evidence_source"] = test_path if cell_id != "mc-0227" else (
+            test_path + "; " + design_path
+        )
+        row["notes"] = state["claim_boundary"]
+
+    evidence_by_id = {row["evidence_id"]: row for row in evidence}
+    new_evidence = (
+        {
+            "evidence_id": "ev-mc-0058-capability-truth-rejection",
+            "cell_id": "mc-0058", "evidence_class": "rejection_test",
+            "path_or_url": test_path, "commit_sha": source_sha,
+            "run_id": "07-capability-truth-fixed-only-rejection",
+            "command": 'devtools::test(filter="reml-binomial-coxreid")',
+            "result": "exact_gate", "replicates": "1 deterministic fixture",
+            "reviewed_by": "0.7 capability-truth reconciliation",
+            "review_date": CAPABILITY_TRUTH_DATE,
+            "claim_boundary": states["mc-0058"]["claim_boundary"],
+        },
+        {
+            "evidence_id": "ev-mc-0060-capability-truth-o2",
+            "cell_id": "mc-0060", "evidence_class": "external_comparator",
+            "path_or_url": test_path, "commit_sha": source_sha,
+            "run_id": "glmmTMB(REML=TRUE) (same joint-Laplace construction; weak independence)",
+            "command": 'devtools::test(filter="reml-binomial-coxreid")',
+            "result": "glmmTMB deterministic parity; convergence 0; pdHess; finite vcov",
+            "replicates": "1 deterministic fixture",
+            "reviewed_by": "0.7 capability-truth reconciliation",
+            "review_date": CAPABILITY_TRUTH_DATE,
+            "claim_boundary": (
+                "WEAK INDEPENDENCE: glmmTMB is a separately exposed implementation "
+                "of the same joint-Laplace fixed-effect fold. Exact intercept route "
+                "only; this single-seed comparator supplies no recovery, interval, "
+                "coverage, or calibrated-inference claim."
+            ),
+        },
+        {
+            "evidence_id": "ev-mc-0062-capability-truth-o2",
+            "cell_id": "mc-0062", "evidence_class": "external_comparator",
+            "path_or_url": test_path, "commit_sha": source_sha,
+            "run_id": "glmmTMB(REML=TRUE) (same joint-Laplace construction; weak independence)",
+            "command": 'devtools::test(filter="reml-binomial-coxreid")',
+            "result": "glmmTMB deterministic parity; convergence 0; pdHess; finite vcov",
+            "replicates": "1 deterministic fixture",
+            "reviewed_by": "0.7 capability-truth reconciliation",
+            "review_date": CAPABILITY_TRUTH_DATE,
+            "claim_boundary": (
+                "WEAK INDEPENDENCE: glmmTMB is a separately exposed implementation "
+                "of the same joint-Laplace fixed-effect fold. Exact independent-slope "
+                "route only; this single-seed comparator supplies no recovery, interval, "
+                "coverage, or calibrated-inference claim."
+            ),
+        },
+        {
+            "evidence_id": "ev-mc-0068-capability-truth-rejection",
+            "cell_id": "mc-0068", "evidence_class": "rejection_test",
+            "path_or_url": test_path, "commit_sha": source_sha,
+            "run_id": "07-capability-truth-structured-rejection",
+            "command": 'devtools::test(filter="reml-binomial-coxreid")',
+            "result": "exact_structured_boundary", "replicates": "1 deterministic fixture",
+            "reviewed_by": "0.7 capability-truth reconciliation",
+            "review_date": CAPABILITY_TRUTH_DATE,
+            "claim_boundary": states["mc-0068"]["claim_boundary"],
+        },
+        {
+            "evidence_id": "ev-mc-0227-capability-truth-public-boundary",
+            "cell_id": "mc-0227", "evidence_class": "estimator_diagnostic",
+            "path_or_url": design_path, "commit_sha": source_sha,
+            "run_id": "07-capability-truth-o3-public-boundary",
+            "command": "static public-route and estimator-boundary reconciliation",
+            "result": "internal_only_no_public_drmTMB_route", "replicates": "",
+            "reviewed_by": "0.7 capability-truth reconciliation",
+            "review_date": CAPABILITY_TRUTH_DATE,
+            "claim_boundary": (
+                "INTERNAL ESTIMATOR ONLY: the completed O3 evidence is preserved, "
+                "but O3 is unavailable through drmTMB() and grants no public ML "
+                "interval or reporting permission."
+            ),
+        },
+    )
+    for row in new_evidence:
+        if row["evidence_id"] in evidence_by_id:
+            evidence_by_id[row["evidence_id"]].update(row)
+        else:
+            evidence.append(row)
+
+    o3 = next(row for row in evidence if row["evidence_id"] == "ev-mc-0227-o3")
+    internal_boundary = (
+        " INTERNAL ESTIMATOR ONLY: O3 is unavailable through drmTMB(); this "
+        "completed study is retained as technical provenance and grants no "
+        "public ML interval or reporting permission."
+    )
+    if "INTERNAL ESTIMATOR ONLY" not in o3["claim_boundary"]:
+        o3["claim_boundary"] += internal_boundary
+
+    transition_ids = {row["transition_id"] for row in transitions}
+    transition_specs = (
+        ("mc-0058", "deferred", "deferred", "ev-mc-0058-capability-truth-rejection",
+         "Replace the stale family-wide Gaussian-only reason with the exact fixed-only binomial REML gate."),
+        ("mc-0060", "deferred", "verified", "ev-mc-0060-capability-truth-o2",
+         "Correct a C14 false negative: the landed public O2 random-intercept route has deterministic parity and uncertainty diagnostics."),
+        ("mc-0062", "deferred", "verified", "ev-mc-0062-capability-truth-o2",
+         "Correct a C14 false negative: the landed public O2 independent-slope route has deterministic parity and uncertainty diagnostics."),
+        ("mc-0068", "deferred", "deferred", "ev-mc-0068-capability-truth-rejection",
+         "Replace the stale family-wide REML reason with the exact structured binomial boundary."),
+        ("mc-0227", "verified", "verified", "ev-mc-0227-arc2b;ev-mc-0227-o3;ev-mc-0227-capability-truth-public-boundary",
+         "Restore the public ML row to its independently earned point-fit tier while retaining O3 as internal-estimator provenance only."),
+    )
+    for cell_id, before, after, evidence_id, reason in transition_specs:
+        transition_id = f"tr-{cell_id}-07-capability-truth"
+        if transition_id not in transition_ids:
+            transitions.append({
+                "transition_id": transition_id, "cell_id": cell_id,
+                "from_work_status": before, "to_work_status": after,
+                "evidence_ids": evidence_id, "reason": reason,
+                "actor": "Codex 0.7 capability-truth reconciliation",
+                "commit_sha": source_sha, "date": CAPABILITY_TRUTH_DATE,
+            })
+
+    CELLS.write_bytes(tsv_bytes(CELL_FIELDS, cells))
+    EVIDENCE.write_bytes(tsv_bytes(EVIDENCE_FIELDS, evidence))
+    TRANSITIONS.write_bytes(tsv_bytes(TRANSITION_FIELDS, transitions))
+    print("0.7 capability-truth cells reconciled")
+
+
 def check_c14_receipt_equivalence() -> None:
     """Verify C14's separate source-equivalence bridge for retained receipts.
 
@@ -1893,6 +2159,57 @@ def validate(
     # historical "Wald" wording cannot erase the correction or apply it to
     # the sigma axis.
     by_id = {row["cell_id"]: row for row in cells}
+
+    # Bind the exact 0.7 capability-truth repair.  Two historical C14 boundary
+    # IDs are deliberately overridden by landed O2 behavior; every other C14
+    # member remains source-pinned and non-implemented.
+    truth_expected = {
+        "mc-0058": ("rejected_by_design", "deferred", "none", "ev-mc-0058-capability-truth-rejection"),
+        "mc-0060": ("implemented", "verified", "diagnostic_only", "ev-mc-0060-capability-truth-o2"),
+        "mc-0062": ("implemented", "verified", "diagnostic_only", "ev-mc-0062-capability-truth-o2"),
+        "mc-0068": ("rejected_by_design", "deferred", "none", "ev-mc-0068-capability-truth-rejection"),
+        "mc-0227": ("implemented", "verified", "point_fit_recovery", "ev-mc-0227-arc2b"),
+    }
+    for cell_id, expected_state in truth_expected.items():
+        row = by_id.get(cell_id, {})
+        actual_state = tuple(row.get(field, "") for field in (
+            "capability_status", "work_status", "evidence_tier", "primary_evidence_id"
+        ))
+        if actual_state != expected_state:
+            errors.append(
+                f"{cell_id}: capability-truth state changed: {actual_state!r}"
+            )
+    for cell_id in CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES:
+        comparator = evidence_by_id.get(
+            f"ev-{cell_id}-capability-truth-o2", {}
+        )
+        if (
+            comparator.get("evidence_class") != "external_comparator"
+            or "glmmTMB" not in comparator.get("run_id", "")
+            or "WEAK INDEPENDENCE" not in comparator.get("claim_boundary", "")
+            or "same joint-Laplace" not in comparator.get("claim_boundary", "")
+        ):
+            errors.append(
+                f"{cell_id}: glmmTMB(REML=TRUE) weak-independence comparator binding changed"
+            )
+    if "unavailable through drmTMB()" not in by_id.get("mc-0227", {}).get(
+        "claim_boundary", ""
+    ):
+        errors.append("mc-0227: public ML boundary does not identify O3 as internal-only")
+    for evidence_id in INTERNAL_ONLY_ESTIMATOR_EVIDENCE_IDS:
+        internal = evidence_by_id.get(evidence_id, {})
+        if "unavailable through drmTMB()" not in internal.get("claim_boundary", ""):
+            errors.append(f"{evidence_id}: internal estimator boundary is missing")
+        cell = by_id.get(internal.get("cell_id", ""), {})
+        if (
+            cell.get("primary_evidence_id") == evidence_id
+            and cell.get("evidence_tier") in {
+                "inference_ready_with_caveats", "supported"
+            }
+        ):
+            errors.append(
+                f"{evidence_id}: internal estimator evidence grants public reporting permission"
+            )
     location_bias_t_ids = {
         "mc-0085", "mc-0086", "mc-0153", "mc-0154",
         "mc-0272", "mc-0285", "mc-0309",
@@ -1996,11 +2313,12 @@ def validate(
     # capability_status.
     expected = Counter(
         {
-            "implemented": 339,
+            "implemented": 341,
             "rejected_by_design": (
                 C14_BOUNDARY_COUNT
                 + len(C14_ZOB_LEAF_TAXONOMY)
                 + len(C18_ZOB_ATOM_LEAF_TAXONOMY)
+                - len(CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES)
             ),
             "not_implemented": 10,
         }
@@ -3603,6 +3921,7 @@ def main() -> None:
     action.add_argument("--split-c14-zob-structured-leaves", action="store_true")
     action.add_argument("--split-c18-zob-atom-leaves", action="store_true")
     action.add_argument("--split-mc0207-ordinary-q-leaves", action="store_true")
+    action.add_argument("--reconcile-capability-truth", action="store_true")
     action.add_argument("--check-c14-receipt-equivalence", action="store_true")
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
@@ -3622,6 +3941,9 @@ def main() -> None:
         return
     if args.split_mc0207_ordinary_q_leaves:
         split_mc0207_ordinary_q_leaves()
+        return
+    if args.reconcile_capability_truth:
+        reconcile_capability_truth()
         return
     if args.check_c14_receipt_equivalence:
         check_c14_receipt_equivalence()
