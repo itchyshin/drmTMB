@@ -24,11 +24,15 @@
   truncated/hurdle exclusion is the one recorded as deliberate in the original
   `923ae62b2` after-task log; extending it needs a decision about whether the
   offset targets the latent untruncated rate or the observed mean.
-- Passed: new `test-offset-families.R` (25 expectations, 0 failures, 0 warnings,
-  5.2 s); 17 targeted regression files across every touched family with 0
+- Passed: new `test-offset-families.R` (29 expectations, 0 failures, 0 warnings,
+  6.4 s); 17 targeted regression files across every touched family with 0
   failures and 0 errors; a link-agnostic constant-offset oracle at machine zero
-  for all ten families; deferred-family rejection probes; and
+  for all ten families, holding also when the offset is combined with an
+  ordinary random intercept; deferred-family rejection probes; and
   `tools/capability_ledger.py --check` with the 723-cell census unchanged.
+- Red-tested the oracle by deleting one family's offset hand-off — the mode
+  where the formula still parses and the fit still converges — which failed
+  exactly that family's two assertions and no others.
 - Report:
   [`2026-08-09-offset-univariate-families.md`](after-task/2026-08-09-offset-univariate-families.md).
 

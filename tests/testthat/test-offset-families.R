@@ -153,6 +153,47 @@ test_that("zero_one_beta offsets shift only the interior component", {
   )
 })
 
+test_that("a mu offset composes with an ordinary random intercept", {
+  skip_on_cran()
+  # The template adds the offset to eta before folding in random-effect
+  # contributions, so the constant-offset identity must survive unchanged. One
+  # identity-link and one log-link family is enough to exercise both paths.
+  const <- 0.35
+  set.seed(2026)
+  n_group <- 40
+  per <- 8
+  n <- n_group * per
+  g <- factor(rep(seq_len(n_group), each = per))
+  u <- stats::rnorm(n_group, 0, 0.6)
+  x <- stats::rnorm(n)
+  base <- data.frame(x = x, k = rep(const, n), g = g)
+
+  pair <- function(dat, family_call, rest) {
+    co <- function(with_offset) {
+      txt <- sprintf(
+        "drmTMB(bf(mu = y ~ x + (1 | g)%s%s), data = dat, family = %s)",
+        if (with_offset) " + offset(k)" else "", rest, family_call
+      )
+      as.numeric(stats::coef(eval(parse(text = txt), envir = environment()))$mu)
+    }
+    list(plain = co(FALSE), offset = co(TRUE))
+  }
+
+  gauss <- pair(
+    transform(base, y = stats::rnorm(n, 1 + 0.5 * x + u[g], 0.5)),
+    "gaussian()", ", sigma = ~1"
+  )
+  expect_equal(gauss$offset[[1L]], gauss$plain[[1L]] - const, tolerance = 1e-3)
+  expect_equal(gauss$offset[[2L]], gauss$plain[[2L]], tolerance = 1e-3)
+
+  gam <- pair(
+    transform(base, y = stats::rgamma(n, 6, rate = 6 / exp(1 + 0.5 * x + u[g]))),
+    "stats::Gamma(link = \"log\")", ", sigma = ~1"
+  )
+  expect_equal(gam$offset[[1L]], gam$plain[[1L]] - const, tolerance = 1e-3)
+  expect_equal(gam$offset[[2L]], gam$plain[[2L]], tolerance = 1e-3)
+})
+
 test_that("the offset vector is stored at full model-frame length", {
   base <- new_offset_data(n = 80)
   dat <- transform(base, y = stats::rnorm(80, 1 + 0.5 * x, 0.5))

@@ -78,7 +78,7 @@ Created:
 
 | Check | Result |
 | --- | --- |
-| `test-offset-families.R` | **25 pass / 0 fail / 0 warn**, 5.2 s |
+| `test-offset-families.R` | **29 pass / 0 fail / 0 warn**, 6.4 s |
 | Targeted regression, 17 files (all 10 touched families + poisson/nbinom2/binomial + kernel oracle + aggregation + control + emmeans) | **0 failures, 0 errors**; 2 warnings, both pre-existing (a `sd_phylo()` deprecation and a known tweedie toy-data convergence case) |
 | Constant-offset oracle, standalone across 10 families | all `d(intercept)+c` and `d(slope)` at **machine zero** |
 | Deferred-family rejection probe | truncated_nbinom2, hurdle path, biv_gaussian all reject; aggregation guard fires |
@@ -195,6 +195,10 @@ touches every downstream surface of every family it is enabled for.
 - Fitting and coefficient recovery for all 10 newly enabled univariate families, both links
   represented, verified by the constant-offset identity.
 - `spec$offset$mu` storage at full model-frame length for all 10.
+- **Composition with an ordinary random intercept**, on one identity-link and one log-link
+  family (gaussian, gamma; 40 groups × 8). The offset is added to eta before random-effect
+  contributions are folded in, and the constant-offset identity survives at machine
+  precision, so the two do not interfere.
 - `predict()`/`fitted()` with and without `newdata`, verified on gamma (log link) by the
   exp-scaling identity; the prediction path is family-agnostic and shared.
 - Non-finite offset rejection (shared `drm_model_offset()` guard).
@@ -204,9 +208,9 @@ touches every downstream surface of every family it is enabled for.
 
 **Does NOT cover ✗**
 
-- **Random or structured effects combined with an offset** for the newly enabled families.
-  The offset is added before RE contributions in every branch, so it should compose, but no
-  test exercises `offset() + (1|g)` or `offset() + phylo()` on these families.
+- **Structured effects** (`phylo()`, `spatial()`, `animal()`, `relmat()`) combined with an
+  offset, for any family. Ordinary random intercepts are now covered (below); structured
+  providers are not exercised.
 - **`emmeans` grids** for the newly enabled families. Existing emmeans offset tests cover
   only poisson/nbinom2/binomial; the code path is shared and family-agnostic, so this is
   untested-but-expected-to-work, not verified.
