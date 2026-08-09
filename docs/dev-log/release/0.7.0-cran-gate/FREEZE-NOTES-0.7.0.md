@@ -1,51 +1,113 @@
 # drmTMB 0.7.0 — exact candidate freeze
 
-**Date:** 2026-08-09 · **Lane:** Claude task 1, Stage B · **Branch:** `claude/07-release-slice`
+**Date:** 2026-08-09 · **Lane:** Claude, release slice (third candidate) · **Branch:** `claude/07-release-slice`
 **Draft PR:** [#959](https://github.com/itchyshin/drmTMB/pull/959) — **must not merge** without the release decision.
 
-> This supersedes [`FREEZE-NOTES.md`](FREEZE-NOTES.md), which describes the **0.6.0**
-> predecessor artifact at source `ad475cc39`. That one remains valid history and is
-> quarantined by [`STALE-EVIDENCE-QUARANTINE.md`](STALE-EVIDENCE-QUARANTINE.md).
+> This supersedes the two predecessor candidates described below, and supersedes
+> [`FREEZE-NOTES.md`](FREEZE-NOTES.md), which describes the **0.6.0** artifact at source
+> `ad475cc39`. Those remain valid history and are quarantined by
+> [`STALE-EVIDENCE-QUARANTINE.md`](STALE-EVIDENCE-QUARANTINE.md).
 
 ## Artifact identity
 
 | Property | Value |
 | --- | --- |
 | Package / version | `drmTMB_0.7.0.tar.gz` |
-| **SHA-256** | `da9b2d76badcdd48e7200d134f6a314d765071884e7e094da330ba85163df04a` |
-| **Size** | 9,853,648 bytes |
-| **Entries** | 924 |
-| **Source commit** | `14bc8ce89476e6c483107cb4d975c359d413bf70` |
-| Worktree at build | **one dirty build-excluded path** — `docs/dev-log/release-audits/…ledger.json`, uncommitted at build time. No build-included path differed, so installed bytes are unaffected; recorded rather than claimed clean. |
+| **SHA-256** | `d04d0e88d068e82eab64fbe710a01ed3302fd2d37f77901189cac8d7af84089e` |
+| **Size** | 4,190,432 bytes |
+| **Entries** | 904 |
+| **Source commit (built at)** | `6d1fb0562` |
+| Branch head at freeze | `9fc92e9f7` — see *Provenance delta* below |
 | Base | `origin/main@8d441a32d` (PR #956, separation disposition **DEFER**) |
-| Immutable copy | `scratchpad/frozen-da9b2d76badc/`, write-protected, re-hashed from that path and matching |
+| Immutable copy | `scratchpad/frozen-d04d0e88d068/`, write-protected, **re-hashed from that final path and matching** |
 
 Built with vignettes. Any installed-byte change from here creates a **new** candidate and
 invalidates every artifact-bound result below.
 
+### Provenance delta — read this before citing the source commit
+
+The tarball was built at `6d1fb0562`. The branch head is `9fc92e9f7`, which adds exactly one
+commit touching exactly one file: `_pkgdown.yml`. That path is `.Rbuildignore`d
+(`^_pkgdown\.yml$`, line 13), and a grep of the built tarball's own listing for `pkgdown`
+returns **0 hits**, so **no installed byte differs**. This is recorded, not glossed: a reviewer
+who wants source-commit and branch-head to be literally identical should require a rebuild, which
+would change only timestamps. The same situation was recorded for the predecessor candidate.
+
+## What changed since the predecessor, and why the predecessor died
+
+| Candidate | SHA-256 | Size | Entries | Fate |
+| --- | --- | --- | --- | --- |
+| `d35c0b9e` | — | — | — | **Invalidated (D-49)** — README told users to install the unsupported `v0.5.0` tag |
+| `da9b2d76` | `da9b2d76badc…` | 9,853,648 | 924 | **Invalidated (D-49)** — boundary surfacing touches `R/` |
+| **`d04d0e88` (this)** | `d04d0e88d068…` | **4,190,432** | **904** | **current** |
+
+Two substantive changes landed since `da9b2d76`:
+
+1. **Boundary surfacing merged** (PR [#961](https://github.com/itchyshin/drmTMB/pull/961) into the
+   slice, not into `main`). `confint(method = "bootstrap")` now flags a variance-component or
+   correlation boundary using the bootstrap's **own** signal — the share of retained resamples on
+   the bound, computed on the **natural** scale — and `check_drm()` states that it does not assess
+   interval reliability.
+2. **The five heaviest vignettes moved to `vignettes/articles/`**, which `.Rbuildignore` excludes
+   from the build. This is what closed the size question below.
+
+## The documentation-size question is RESOLVED
+
+The predecessor recorded this as an **open policy risk deliberately not blocking the rung**:
+`inst/doc` was **11.11 MB** against CRAN's stated **5MB** documentation maximum, reported by
+`R CMD check` only as an `INFO` line. It is now closed by measurement.
+
+| | predecessor `da9b2d76` | **this candidate** |
+| --- | --- | --- |
+| `inst/doc` (uncompressed) | 11.105 MB, 112 files | **4.605 MB, 97 files** |
+| installed `doc` sub-directory | 11.11 Mb | **4.8 Mb** |
+| installed package size | 31.2 Mb | **24.7 Mb** |
+| tarball | 9,853,648 bytes | **4,190,432 bytes** |
+
+**What the bytes actually were.** Of the 11.105 MB, HTML was **9.92 MB**; the `.Rmd` sources were
+only 0.920 MB and the `.R` files 0.261 MB. Measured directly, **87.9%** of `figure-gallery.html`
+and **98.0%** of `function-map-cheatsheet.html` was embedded base64 plot images. So the lever was
+never how the vignettes are written — it was which rendered vignettes ship.
+
+**Why moving beat dropping.** Dropping the four largest stems reaches only 5.07 MB, still over the
+limit; five are required. Moving those five to `vignettes/articles/` reaches 4.605 MB **and keeps
+every one of them on the pkgdown website**, so no reader loses access. Owner decision, 2026-08-09.
+
+Moved: `figure-gallery` (3.057 MB), `function-map-cheatsheet` (1.528 MB),
+`simulation-plot-grammar` (0.767 MB), `model-workflow` (0.681 MB),
+`distributional-outputs-and-adequacy` (0.483 MB). `function-map-cheatsheet.png` (1.17 MB) moved
+with its vignette, because the `.Rmd` includes it by **relative** path.
+
+**Reader access proved, not assumed.** `pkgdown::as_pkgdown(".")` still discovers **37** vignettes,
+and all five resolve to `articles/…` outputs. `pkgdown::check_pkgdown()` reports **no problems**.
+This needed a fix: an article's `_pkgdown.yml` contents entry is its path relative to `vignettes/`,
+so the five became `articles/<stem>`. Without it `check_pkgdown()` aborted and the site build would
+have failed — dropping all five from the website, the exact opposite of the intent.
+
+**Fifteen cross-links repaired.** Fifteen relative links from *staying* vignettes to the five moved
+ones would have pointed at files that no longer ship. They now use the absolute pkgdown URL,
+matching what `README.md` already did. Links *between* moved vignettes were left alone: both ends
+land in `articles/`.
+
 ## Forbidden-path scan — 0 hits
 
-Proved by listing the **built tarball**, not by pointing at `.Rbuildignore`, which is what
-Gate 1 requires. Top-level entries are exactly `DESCRIPTION`, `NAMESPACE`, `NEWS.md`, `R`,
-`README.md`, `build`, `inst`, `man`, `src`, `tests`, `vignettes`.
+Proved by listing the **built tarball**, not by pointing at `.Rbuildignore`, which is what Gate 1
+requires. Top-level entries are exactly `DESCRIPTION`, `NAMESPACE`, `NEWS.md`, `R`, `README.md`,
+`build`, `inst`, `man`, `src`, `tests`, `vignettes`.
 
-Absent as intended: `docs/`, `tools/`, `scratchpad/`, `LOOP/`, `pkgdown-site/`, `.git`,
-`.github`, `AGENTS.md`, `CLAUDE.md`, `cran-comments.md`, `*.Rproj`.
-
-Worth noting: the separation merge added a large `scratchpad/` evidence set to `main` about
-an hour before this build, and **none of it ships**.
+Absent as intended: `docs/`, `tools/`, `scratchpad/`, `LOOP/`, `pkgdown-site/`, `.git`, `.github`,
+`AGENTS.md`, `CLAUDE.md`, `cran-comments.md`, `_pkgdown.yml`, `*.Rproj`.
 
 ## Local CRAN-lane check — the claim-bearing run
 
-`R CMD check --as-cran --run-donttest` on the exact frozen tarball, CRAN incoming
-**enabled**, vignettes **built**, manual built (`pdflatex` present),
-`_R_CHECK_FORCE_SUGGESTS_` **not** disabled.
+`R CMD check --as-cran --run-donttest` on the exact frozen tarball, CRAN incoming **enabled**,
+vignettes **built**, `_R_CHECK_FORCE_SUGGESTS_` **not** disabled.
 
 ### **Status: 1 NOTE**
 
 ```
-* checking CRAN incoming feasibility ... [4s/21s] NOTE
-Maintainer: 'Shinichi Nakagawa <itchyshin@gmail.com>'
+* checking CRAN incoming feasibility ... [4s/26s] NOTE
+Maintainer: ‘Shinichi Nakagawa <itchyshin@gmail.com>’
 
 New submission
 ```
@@ -53,114 +115,64 @@ New submission
 That is the whole NOTE. **0 errors, 0 warnings**, and the only note is the unavoidable
 first-submission line.
 
-### Both predecessor incoming items are cleared
-
-The predecessor win-builder run reported, besides `New submission`, possible DESCRIPTION
-spellings (`centile`, `mis`, `uncalibrated`) and a possibly-invalid file URI
-(`function-map-cheatsheet.png`). Neither appears here — a grep for
+Both predecessor incoming items stay cleared: a case-insensitive grep for
 `misspelled|invalid.*URI` over this log returns **0**.
 
-The URI fix was verified **in the artifact**, not in source: `inst/doc/function-map-cheatsheet.html`
-now carries `href="https://github.com/itchyshin/drmTMB/blob/main/vignettes/function-map-cheatsheet.png"`,
-and **zero** PNGs ship into `inst/doc`.
+Log: `/tmp/drm-rc3b/as-cran.log`.
 
-### Timings and size
+### Timings
 
 | Stage | Time |
 | --- | --- |
-| install | 62s / 68s |
-| examples | 11s / 12s |
-| examples with `--run-donttest` | included above |
-| tests (`testthat.R`) | **9m / 10m** |
-| **re-building vignette outputs** | **83s / 96s** |
-| **total wall clock** | **15m 04s** |
+| install | 64s / 67s |
+| examples (incl. `--run-donttest`) | 11s / 12s |
+| tests (`testthat.R`) | **10m / 11m** |
+| re-building vignette outputs | 67s / 78s |
+| **total wall clock** | **~15m** |
 
 ```
 * checking installed package size ... INFO
-  installed size is 31.2Mb
+  installed size is 24.7Mb
   sub-directories of 1Mb or more:
     R      3.1Mb
-    doc   11.4Mb
+    doc    4.8Mb
     libs  13.6Mb
     sim    1.9Mb
 ```
 
-**On the Windows-threshold question.** The 37-vignette rebuild took **96s wall**, which is
-comfortably inside CRAN's observed ~10-minute incoming signal. But this is Apple-silicon
-macOS, and **macOS timing is not Windows timing** — that boundary is an observed incoming
-behaviour on CRAN's own Windows machines, not a property of this run. Treat 96s as
-*encouraging*, not as evidence. The real measurement comes from win-builder in the platform
-matrix.
+## Supporting checks
 
-Compilers: Apple clang 21.0.0, SDK MacOSX26.5. Installed size is an `INFO`, not a NOTE, and
-is intrinsic to a TMB package (`libs` 13.6Mb); `glmmTMB` on CRAN carries the same pattern.
+- **Capability-ledger fingerprint guard** — `tools/tests/test_capability_ledger.py`, the guard CI
+  actually runs: **66 tests OK**, `C17 current-source compatibility PASS`. No re-pin was performed
+  and none was needed: the C17 model-15 fingerprint covers `R/drmTMB.R` and `src/drmTMB.cpp`, and
+  the boundary merge touched only `R/profile.R` and `R/check.R`.
+- **Targeted suite** — `test-boundary-surfacing` (16) + `test-offset-families` (29) = **45 pass, 0
+  failures**.
 
-## Rungs
+## Platform matrix — dispatched, NOT adjudicated
 
-**Highest proven: `tarball-clean`** — for hash `da9b2d76…` only.
+`platform-clean` is **not** claimed. These runs are recorded so the next session can read them;
+their results are owner-gated.
 
-**Next unproven: `platform-clean`.**
+| Workflow | Run | At commit | Note |
+| --- | --- | --- | --- |
+| `R-CMD-check` | [31332830272](https://github.com/itchyshin/drmTMB/actions/runs/31332830272) | `9fc92e9f7` | branch head; auto-triggered by push |
+| `R-CMD-check` | [31332769740](https://github.com/itchyshin/drmTMB/actions/runs/31332769740) | `6d1fb0562` | manual dispatch, exact candidate source |
+| `R-hub` | [31332770848](https://github.com/itchyshin/drmTMB/actions/runs/31332770848) | `6d1fb0562` | exact candidate source. Not re-dispatched at `9fc92e9f7`: the delta is `_pkgdown.yml` only, which does not ship, so a re-run would burn R-hub minutes for zero information |
 
-⚠ **The first platform dispatch is void for this candidate.** Runs
-[31327046167](https://github.com/itchyshin/drmTMB/actions/runs/31327046167) (3-OS) and
-[31327047576](https://github.com/itchyshin/drmTMB/actions/runs/31327047576) (R-hub) were
-launched at source `7fccac0b9`, *before* both the guard repair and the README fix. They
-therefore test neither this candidate's source nor its bytes. Re-dispatched at the final
-source; see the runs recorded in the decision packet.
+Two earlier runs (`31332751892` at `6d1fb0562`, `31332230305` at `7a71d28e4`) show
+`conclusion: cancelled`. **Each was superseded by a later push**, so these are concurrency
+cancels, not timeout kills — checked against the 75-minute ceiling rather than trusting the
+conclusion string.
 
-**The `platform-clean` rung itself still requires a separate explicit owner word**, per the
-standing hold in [`platform/PLATFORM-NOT-READY.md`](platform/PLATFORM-NOT-READY.md).
-Dispatching the runs does not write the rung.
+`pkgdown` was **deliberately not dispatched**: its `workflow_dispatch` path uploads and deploys a
+Pages artifact, so running it at this branch would publish the candidate's site over the live one.
 
-When reading those results: **a timeout kill is logged as `conclusion: cancelled`**, the same
-string as a concurrency cancel. Distinguish them by comparing job duration against the 75-min
-ceiling, never by reading the conclusion.
+## What this freeze does NOT claim
 
-## Not run, not claimed
-
-D-43 panel (deferred by owner until platform evidence exists) · final `cran-comments.md` ·
-author-role consent line · tag · GitHub release · CRAN upload · reverse-dependency checks
-(not applicable, first submission).
-
-## Owner decisions carried into this freeze
-
-- **D-93 — DISCHARGED (2026-08-09).** Its premise was a fixable drmTMB defect. Measurement
-  answered it: `lme4` reproduces the same conditional undercoverage on identical DGP and
-  seeds, so the honest remedy was the user-facing boundary warning, which shipped
-  2026-08-05. **D-117's PASS claim remains withheld** and is unaffected.
-- **#870 — implemented**, not documented away: `offset()` now works for every univariate
-  family (PR #958). Truncated/hurdle NB2 and bivariate families still reject it, with the
-  reason recorded.
-- **Separation lane — DEFER**, no demonstrated release-relevant defect (PR #956).
-
-## Predecessor within this same session — `d35c0b9e` is RETRACTED
-
-An earlier 0.7.0 candidate, SHA-256
-`d35c0b9ef8d83f1fb3c703419c4d9ac7d4736783211f3a0541769790429a458f` (9,853,615 bytes, source
-`7fccac0b9`), was frozen and passed the identical CRAN-lane check at **Status: 1 NOTE**.
-
-It is **retracted, not superseded quietly**. Building the pkgdown site and reading the
-rendered homepage found the README Install section still directing new users to the
-unsupported `v0.5.0` tag. `README.md` ships, so fixing it changed installed bytes and, under
-D-49, created a new candidate. Any result measured against `d35c0b9e` is predecessor
-evidence and must not be cited for `da9b2d76`.
-
-Both hashes were produced in the same session, minutes apart, from sources differing by one
-documentation commit. That is exactly the situation in which a stale green is easiest to
-mistake for a current one — hence this note.
-
-## Guard regression repaired before this freeze
-
-CI on the branch failed with `mc-0568: current model-15 fingerprint differs`. The capability
-ledger fingerprints named source anchors — `R/drmTMB.R`'s zero-one-beta builder regions and
-`src/drmTMB.cpp::model_type_15` — and the offset arc edited both, so the retained C17
-compatibility evidence no longer authenticated.
-
-Remedied by **re-measurement**, not by re-pinning a stale hash: the named runner was re-run
-against the new source (81 s) and all three cells returned 4/4 `PASS_CURRENT_SOURCE_COMPATIBILITY`
-with mean tau relative errors 0.099 / 0.166 / 0.061 against a 0.40 threshold. So the offset
-change did not alter zero-one-beta behaviour; the guard fired because the source moved,
-which is what it is for. `tools/tests/test_capability_ledger.py`: 66 tests OK.
-
-That work lives entirely under `docs/`, which is build-excluded, so it did not affect any
-artifact hash.
+- **Not `platform-clean`.** Dispatched only; nothing adjudicated.
+- **Not `submission-ready`.** The D-43 panel has not fired; the owner deferred it.
+- **Not permission to publish.** Independently of this candidate's cleanliness,
+  [D-117](../../../../..) holds 0.7.0: the 10-group gate was run, but its D-43 panel returned 2 of
+  3 NOT-DONE and the **PASS is withheld**. D-89 also records that submission is far away by choice.
+- **Not on CRAN.** A version number is a candidate identity, not evidence of acceptance.
