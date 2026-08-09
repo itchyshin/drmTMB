@@ -67,7 +67,7 @@ Do not stage anything from the dirty primary checkout, separation worktree, old 
 | Artifact / branch | Committed | Pushed | PR | State |
 | --- | --- | --- | --- | --- |
 | `origin/main@ac363cadb` (#954 closeout) | yes | yes | #954 merged | LANDED |
-| `codex/handover-07-candidate-prep-0809` | pending at document authoring | pending | none yet | HANDOVER SLICE — commit/push/open PR before chat close |
+| `codex/handover-07-candidate-prep-0809` | content commit `9490f0a79424ba6aa928a4f6ce0104f2fadb8650` | yes | #955 open, ready | HANDOVER SLICE — pushed; read this branch directly if #955 has not merged |
 | Primary `claude/handover-freshness-0718` | mixed historical state | no for all local content | none | PROTECTED — 96 uncommitted paths; never work/stage there |
 | `codex/fixed-design-binary-separation-experiment@a28522579` | yes, 3 local commits | deliberately no | none | TRANSFERRED TO CLAUDE at retained STOP; existing worktree only: `cd /Users/z3437171/local-scratch/worktrees/drmTMB-separation-s0 && git status --short --branch` |
 | `cursor/07-cran-readiness@bff30dded` | yes | yes | historical | CARRIED-OVER predecessor instruments; 39 behind, evidence not transferable |
