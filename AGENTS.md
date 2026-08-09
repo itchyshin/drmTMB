@@ -3,20 +3,22 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-08; 0.7 issue sweep before candidate freeze).**
-> `main` @ `c996613db` (#950 merged). Post-merge R-CMD-check
-> [31278747498](https://github.com/itchyshin/drmTMB/actions/runs/31278747498) and pkgdown
-> [31280621236](https://github.com/itchyshin/drmTMB/actions/runs/31280621236) are green. DESCRIPTION
-> remains **0.6.0**. The exact predecessor `ad475cc39` / `2e5234bd…` artifact retains its
-> historical **`tarball-clean`** proof, but #950 changed an installed vignette, so current `main`
-> is not yet an exact frozen candidate. Next = a 29-issue sweep that defines the finite 0.7
-> blocker set before any version bump or refreeze. **No upload; not platform-clean; not CRAN-ready.**
+> **▶ Latest — start here (2026-08-08; 0.7 issue sweep complete on focused branch).**
+> The 29/29 open-issue sweep against `main@efb5af4f` found one issue-derived
+> candidate blocker: **#61**, the procedural exact-candidate gate, not a new code defect.
+> **#870** is the sole owner-policy decision and is not a demonstrated blocker. All other
+> 27 issues are non-blocking post-0.7 or backlog work; five bounded status comments were
+> posted and no issue was closed. D-93 and D-117 remain independent owner holds.
+> DESCRIPTION remains **0.6.0**; current main is neither `tarball-clean` nor
+> `platform-clean`. The exact predecessor `ad475cc39` / `2e5234bd…` retains only its
+> historical `tarball-clean` proof. **NO-GO for exact-candidate work until Shinichi separately
+> authorizes candidate preparation; no upload and no release-rung advance.**
 > Preserve #858, #937, historical #947, and the protected dirty primary checkout. Multi-lane
 > board (read every live row — do not orphan siblings):
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
 > on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.
-> START HERE (Codex):
-> [`docs/dev-log/handover/2026-08-08-codex-handover.md`](docs/dev-log/handover/2026-08-08-codex-handover.md).
+> START HERE:
+> [`docs/dev-log/release-audits/2026-08-08-0.7-issue-sweep.md`](docs/dev-log/release-audits/2026-08-08-0.7-issue-sweep.md).
 >
 > **▶ Prior — (2026-08-05, 135-TRACE CAMPAIGN LANDED ON MAIN via #930).**
 > Totoro 135/135; **5/14 cells** promoted to `interval_feasible`. Post-campaign doc

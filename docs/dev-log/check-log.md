@@ -92731,3 +92731,33 @@ family that can discriminate an engine that improves on Laplace.
   withheld 9. Census IF 182→187; FROZEN_CENSUS_POINT_FIT_RECOVERY 59→54.
 - Evidence: docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/
 - After-task: docs/dev-log/after-task/2026-08-05-135-trace-campaign.md
+
+## 2026-08-08 — 0.7 open-issue scope sweep
+
+- Execution base: `origin/main@efb5af4fea0204a8d0ce381685b259029d040637`
+  in `/private/tmp/drmTMB-07-issue-sweep-exec` on
+  `codex/07-issue-sweep-0808-exec`; PR #951 was already merged.
+- Live inventory: 29 open issues, exact equality with the approved T0 set;
+  no open-state delta.
+- Independent evidence passes: R0 Luna repo map; Rose batch A; Fisher batch B;
+  Grace batch C; root adjudication of #61, #680, #682, #802, and #870.
+- Final V1 Luna mechanical verifier: PASS — 29 rows, no missing/extra/duplicate
+  issues, 29/29 required fields, matching disposition/action totals, valid
+  local evidence paths, clean diff, and no forbidden changes.
+- V2 claim review: Rose PASS; Grace NEEDS REPAIR then accepted after the exact
+  predecessor-artifact and candidate-preparation wording repair.
+- Final Rose after-task audit: PASS; no concrete findings across the 12-section
+  report, ledger, receipts, pointers, check log, or protected boundaries.
+- Final counts: 1 `blocker_candidate` (#61), 1 `owner_decision` (#870),
+  27 `not_blocker`; actions = 1 `retain_blocker`, 1
+  `retain_owner_decision`, 21 `retain_post_0.7`, and 6
+  `retain_nonblocking_backlog`.
+- Issue comments posted and read back: #3
+  `5229063640`, #5 `5229064087`, #33 `5229064265`, #61 `5229064768`,
+  and #531 `5229064993`. No issue was closed.
+- The connector comment route returned HTTP 403 without mutation; authenticated
+  `gh issue comment --body-file` was the successful fallback.
+- No package code, tests, DESCRIPTION, `cran-comments.md`, platform evidence,
+  D-43 material, compute output, or release-rung state changed. Full package
+  tests and pkgdown were not rerun because this arc changes coordination and
+  audit documentation only.
