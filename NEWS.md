@@ -4,6 +4,24 @@ User-facing honesty notes for the next CRAN-facing cycle. `DESCRIPTION` remains
 **0.6.0** until an explicit freeze bumps the version; these bullets freeze the
 default story readers should follow, not a release claim.
 
+## Live Workflow G `engine = "julia"` FE gate (#499)
+
+* Skip-safe live tests now round-trip DRM.jl's **eleven** admitted Workflow G
+  fixtures through `drmTMB(..., engine = "julia")` against committed
+  `expected.toml` numbers (drmTMB **0.6.0** pin). Measured locally: **11/11**
+  pass when JuliaCall + DRM.jl are available.
+* The R bridge now admits those Workflow G fixed-effect families (Gaussian,
+  bivariate Gaussian, Student-t, lognormal, Poisson, NB2, Gamma, Beta,
+  Binomial) without requiring a `phylo()` term; large-p phylo routes for the
+  count / non-Gaussian set remain. Beta-binomial stays gated.
+* Marshalling fixes that the live gate surfaced: expand `cbind(successes,
+  failures)` into data columns, and rewrite `meta_V(V = v)` /
+  `drmTMB::meta_V(...)` to positional `meta_V(v)` for DRM.jl's StatsModels
+  parser.
+* **Claim fence:** experimental live parity for the eleven cells only — not a
+  CRAN-default Julia engine, not closure of all of #499 (FIML / remaining
+  honest scope stay open).
+
 ## Default uncertainty story
 
 * **Fixed effects / routine Wald targets:** start with `confint(fit)`

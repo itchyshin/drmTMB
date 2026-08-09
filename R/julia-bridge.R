@@ -24,7 +24,6 @@ drm_julia_intentional_gates <- function() {
       "base_missing_predictor_model",
       "base_missing_response_nongaussian",
       "base_unsupported_family",
-      "base_nonphylo_count",
       "biv_invalid_partial_phylo",
       "biv_rho12_phylo",
       "structured_unsupported_family",
@@ -35,7 +34,7 @@ drm_julia_intentional_gates <- function() {
       "xfam_dispersionless_sigma"
     ),
     route = c(
-      rep("base", 7),
+      rep("base", 6),
       rep("bivariate_phylo", 2),
       rep("structured", 3),
       rep("cross_family", 3)
@@ -47,7 +46,6 @@ drm_julia_intentional_gates <- function() {
       "missing predictor",
       "missing response",
       "family",
-      "non-phylo family",
       "invalid partial bivariate phylo",
       "rho12 phylo",
       "structured family",
@@ -63,8 +61,7 @@ drm_julia_intentional_gates <- function() {
       "gaussian",
       "gaussian",
       "poisson",
-      "student",
-      "nbinom2",
+      "beta_binomial",
       "biv_gaussian",
       "biv_gaussian",
       "beta",
@@ -80,8 +77,7 @@ drm_julia_intentional_gates <- function() {
       "control = list(...)",
       "missing = miss_control(predictor = \"model\")",
       "missing = miss_control(response = \"include\") with poisson()",
-      "family = student()",
-      "family = nbinom2() without phylo()",
+      "family = beta_binomial() through engine = \"julia\"",
       "bivariate phylo on only one axis or on three axes",
       "phylo() term in rho12",
       "relmat() with beta()",
@@ -98,8 +94,7 @@ drm_julia_intentional_gates <- function() {
       "no R engine-control surface",
       "unsupported payload",
       "not audited for non-Gaussian masks",
-      "no coefficient-scale parity test",
-      "large-p phylo route only",
+      "no BetaBinomial tree/FE R bridge claim",
       "bivariate phylo route admits q2 mu1/mu2 or q4 all four axes only",
       "unsupported q4 PLSM axis",
       "general-covariance route is narrower than R grammar",
@@ -115,8 +110,7 @@ drm_julia_intentional_gates <- function() {
       "default .*control",
       "missing.*route|impute",
       "missing.*route",
-      "Gaussian one-/two-response",
-      "only with a .*phylo.* random intercept",
+      "Gaussian one-/two-response|Workflow G fixed-effect",
       "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis",
       "Unsupported phylogenetic axis",
       "only for univariate Gaussian, Poisson, NB2, or Gamma",
@@ -128,7 +122,7 @@ drm_julia_intentional_gates <- function() {
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
-      rep("https://github.com/itchyshin/drmTMB/issues/544", 12),
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 11),
       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3)
     ),
     action = "error",
@@ -138,8 +132,7 @@ drm_julia_intentional_gates <- function() {
       "Julia optimizer controls need an explicit engine_control surface.",
       "DRM.jl bridge receives complete predictor columns only.",
       "Observed-response masks are admitted only for Gaussian bridge cells.",
-      "The R bridge has no coefficient-scale parity tests for this family.",
-      "The Julia speed edge for these families is the large-p phylo route.",
+      "BetaBinomial has no Workflow G R bridge admission; use native TMB.",
       "DRM.jl bivariate phylo bridge expects either q2 terms on mu1/mu2 or q4 terms on mu1, mu2, sigma1, and sigma2.",
       "DRM.jl q4 PLSM does not take a phylogenetic residual-correlation axis.",
       "DRM.jl general-covariance bridge is limited to Gaussian, Poisson, NB2, and Gamma.",
@@ -206,7 +199,7 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "unsupported",
-      "intentional_error"
+      "experimental"
     ),
     drmjl_status = c(
       "default DRM.jl Gaussian location-scale path",
@@ -219,7 +212,7 @@ drm_julia_capability_comparison <- function() {
       "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
       "latent-rho mixed-family path; API drift is tracked in tests",
       "no R surface by design",
-      "direct Binomial evidence is not an R non-phylo bridge claim"
+      "Workflow G FE bridge cell (binomial-trials) via drm_bridge"
     ),
     claim_status = c(
       "partial",
@@ -232,7 +225,7 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "unsupported",
-      "planned"
+      "partial"
     ),
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
@@ -246,12 +239,12 @@ drm_julia_capability_comparison <- function() {
       "Phase 1.5 Hopper admitted cell (Route A): first phylo-mean (sigma ~ 1) marshalling/result-shape + optional live TMB parity; not loc-scale phylo or non-Gaussian phylo.",
       "Gaussian-only response masks; missing predictors and non-Gaussian response masks remain gated.",
       "Requires the full four-axis phylogenetic location-scale grammar; native TMB has separate q4 recovery evidence, but this Julia row does not establish same-target bridge parity, interval reliability, or HSquared AI-REML support.",
-      "Large-p phylogenetic random-intercept route only; non-phylogenetic count models stay native TMB.",
+      "Large-p phylogenetic random-intercept route; Workflow G FE count cells also route via live expected.toml parity (#499).",
       "Finite-and-sane bridge smoke evidence only; no native TMB parity or non-phylo binomial bridge promotion.",
       "Requires covariance/relatedness matrix K and sigma ~ 1; beta, precision Q, and sigma predictors stay gated.",
       "Latent-rho development route; public docs must not present rho12 formulas or release-ready cross-family inference.",
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
-      "Native TMB #569 owns ordinary binomial support; Julia bridge binomial remains separate evidence."
+      "Live R Workflow G binomial-trials cell vs DRM.jl expected.toml; still experimental, not a CRAN default."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
@@ -259,16 +252,16 @@ drm_julia_capability_comparison <- function() {
       "Keep first phylo-mean result-shape and Route A parity tests; do not widen to sigma-phylo here.",
       "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
       "Bank fit-specific CI/status parity before release language.",
-      "Keep non-phylo count bridge errors in the gate registry.",
+      "Keep phylo count smoke + Workflow G FE parity tests; do not promote beyond experimental.",
       "Add comparator or parity evidence before promoting beyond experimental.",
       "Compare current DRM.jl accepted families with the R gate before widening.",
       "Resolve the mixed-family API mismatch before any public promotion.",
       "Design engine_control explicitly before relaxing the gate.",
-      "Wait for #569 native parity plus a separate bridge parity PR."
+      "Keep Workflow G live R gate green; do not claim CRAN-default Julia."
     ),
     issue = c(
       rep("drmTMB#544", 10),
-      "drmTMB#569"
+      "drmTMB#499"
     ),
     stringsAsFactors = FALSE
   )
@@ -522,14 +515,25 @@ drm_julia_slope_phylo_families <- function() {
 }
 
 # Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
-# Julia engine may route. Gaussian one-/two-response models route unconditionally
-# (the verified base lane). The phylo-only families above route ONLY when the
-# model carries a phylogenetic random intercept. Cluster 4 (locscale) and
-# cluster 3 (slope) are gated by their own family sets and route via a phylo
-# term as well; the tag is the same family string the bridge.jl family switch
-# expects.
+# Julia engine may route. Workflow G fixed-effect cohort families (Gaussian,
+# bivariate Gaussian, Student-t, lognormal, Poisson, NB2, Gamma, Beta, Binomial)
+# route unconditionally once live coefficient-scale parity exists (#499). The
+# phylo-only helpers above still document the large-p phylogenetic speed edge
+# for those same tags when a phylo() term is present. Everything else stays
+# native TMB until a separate bridge admission lands.
 drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
-  if (family_type %in% c("gaussian", "biv_gaussian")) {
+  wfg_fe <- c(
+    "gaussian",
+    "biv_gaussian",
+    "student",
+    "lognormal",
+    "poisson",
+    "nbinom2",
+    "gamma",
+    "beta",
+    "binomial"
+  )
+  if (family_type %in% wfg_fe) {
     return(family_type)
   }
   phylo_only <- drm_julia_phylo_only_families()
@@ -543,7 +547,7 @@ drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
     ))
   }
   cli::cli_abort(c(
-    "{.code engine = \"julia\"} currently supports Gaussian one-/two-response models and large-p phylogenetic Poisson, NB2, Gamma, Beta, or Binomial models.",
+    "{.code engine = \"julia\"} currently supports Workflow G fixed-effect families (Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson, NB2, Gamma, Beta, Binomial) and large-p phylogenetic Poisson, NB2, Gamma, Beta, or Binomial models.",
     i = "Use {.code engine = \"tmb\"} for other non-Gaussian drmTMB fits until the R bridge has coefficient-scale parity tests."
   ))
 }
@@ -690,8 +694,12 @@ drm_julia_bridge_payload <- function(
 drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
   needed <- unique(unlist(
     lapply(formula$entries, function(entry) {
+      response_cols <- character()
+      if (!is.na(entry$response)) {
+        response_cols <- drm_julia_expand_response_columns(entry$response)
+      }
       c(
-        if (!is.na(entry$response)) entry$response,
+        response_cols,
         all.vars(
           drm_julia_collapse_phylo_block(drm_julia_strip_phylo_tree(entry$rhs))
         )
@@ -703,6 +711,20 @@ drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
     needed <- unique(c(needed, phylo_payload$group))
   }
   needed
+}
+
+# Expand response labels that encode cbind(successes, failures) into the two
+# underlying data columns the Julia bridge must marshal.
+drm_julia_expand_response_columns <- function(response) {
+  response <- as.character(response)
+  if (grepl("^cbind\\(", response)) {
+    inside <- sub("^cbind\\((.*)\\)$", "\\1", response)
+    parts <- trimws(strsplit(inside, ",", fixed = TRUE)[[1L]])
+    if (length(parts) >= 2L) {
+      return(parts[seq_len(2L)])
+    }
+  }
+  response
 }
 
 # Drop rows with any NA in a modelled column when the caller requested
@@ -826,12 +848,48 @@ drm_julia_formula_spec <- function(formula) {
 
 drm_julia_formula_entry <- function(entry) {
   rhs <- deparse1(
-    drm_julia_collapse_phylo_block(drm_julia_strip_phylo_tree(entry$rhs))
+    drm_julia_rewrite_meta_V(
+      drm_julia_collapse_phylo_block(drm_julia_strip_phylo_tree(entry$rhs))
+    )
   )
   if (!is.na(entry$response)) {
     return(paste(entry$response, "~", rhs))
   }
   paste(entry$dpar, "~", rhs)
+}
+
+# DRM.jl's StatsModels parser accepts positional `meta_V(v)` (Workflow G
+# fixture spelling) but rejects R's named-kwarg deparse `meta_V(V = v)` and
+# namespaced `drmTMB::meta_V(...)`.
+drm_julia_rewrite_meta_V <- function(expr) {
+  if (!is.call(expr)) {
+    return(expr)
+  }
+  parts <- as.list(expr)
+  head <- parts[[1L]]
+  is_meta <- FALSE
+  if (is.name(head) && identical(as.character(head), "meta_V")) {
+    is_meta <- TRUE
+  } else if (
+    is.call(head) &&
+      identical(head[[1L]], as.name("::")) &&
+      length(head) >= 3L &&
+      identical(as.character(head[[3L]]), "meta_V")
+  ) {
+    is_meta <- TRUE
+  }
+  if (is_meta) {
+    nm <- names(parts)
+    if (!is.null(nm) && any(nm == "V", na.rm = TRUE)) {
+      v_idx <- which(nm == "V")[[1L]]
+      return(call("meta_V", parts[[v_idx]]))
+    }
+    if (length(parts) >= 2L) {
+      return(call("meta_V", parts[[2L]]))
+    }
+  }
+  parts[-1L] <- lapply(parts[-1L], drm_julia_rewrite_meta_V)
+  as.call(parts)
 }
 
 drm_julia_call_bridge <- function(
@@ -1290,7 +1348,7 @@ drm_julia_collapse_phylo_block <- function(expr) {
   }
   parts <- as.list(expr)
   marker <- if (is.name(parts[[1L]])) as.character(parts[[1L]]) else NULL
-  if (marker %in% names(drm_julia_structured_marker_kwargs())) {
+  if (!is.null(marker) && marker %in% names(drm_julia_structured_marker_kwargs())) {
     nm <- names(parts)
     for (i in seq_along(parts)) {
       if (i == 1L) {
