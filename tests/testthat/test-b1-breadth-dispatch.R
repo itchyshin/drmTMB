@@ -1,11 +1,24 @@
 dispatch_path <- testthat::test_path("..", "..", "tools", "prepare-b1-drac-dispatch.R")
 
-if (!file.exists(dispatch_path)) {
+# The helper lives outside the built tarball (`^tools$` is in .Rbuildignore), so
+# its absence is expected and skips. Existence alone is not enough to proceed,
+# though: the helper sources a sibling contract file, and if that lookup fails
+# the whole test file errors instead of skipping. Degrade to a skip so a broken
+# out-of-tarball helper cannot turn the package suite red.
+dispatch_loaded <- file.exists(dispatch_path) &&
+  tryCatch(
+    {
+      source(dispatch_path)
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+
+if (!dispatch_loaded) {
   test_that("B1 dispatch helpers are available in a source checkout", {
-    skip("Top-level tools are intentionally excluded from the source tarball")
+    skip("B1 dispatch helper unavailable; top-level tools are excluded from the source tarball")
   })
 } else {
-  source(dispatch_path)
 
   test_that("B1 partition plan preserves all immutable tasks and the cap", {
     manifest <- b1_make_full_manifest()
