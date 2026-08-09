@@ -1,6 +1,56 @@
 # Check Log
 
 
+## 2026-08-09 — `offset()` admitted for every univariate family (Tiers A+B)
+
+- Enabled a standard R `offset()` term in the `mu` formula of the ten remaining
+  univariate families: gaussian, student, skew_normal, lognormal, gamma, and
+  tweedie (identity/log links), plus beta, beta_binomial, zero_one_beta, and
+  cumulative_logit (logit links). Each needed a builder gate, a `spec$offset$mu`
+  assignment, and `offset_mu +` on that `model_type`'s linear-predictor
+  initialiser in `src/drmTMB.cpp`.
+- Fixed a latent trap first: `make_tmb_data_core()` fell back to `numeric(1)`
+  for `offset_mu`, which was safe only while no family read it. It now falls
+  back to `rep(0, length(spec$y))`, so a branch reading it cannot size-mismatch
+  inside Eigen. Added a guard rejecting `offset()` with Gaussian
+  sufficient-statistic aggregation, which consumes a separate `offset_mu_agg`.
+- Corrected a documentation overclaim: the `drmTMB()` roxygen granted
+  `offset(log(exposure))` to zero-truncated NB2 `mu` formulas, which the code
+  rejected. The roxygen is now expanded and split by link — exposure for log,
+  additive mean shift for identity, log-odds calibration (**not** exposure) for
+  logit — and names what still rejects offsets and why.
+- `truncated_nbinom2()`, its hurdle path, every bivariate family, Gaussian
+  aggregation, and every non-`mu` dpar continue to reject offsets. The
+  truncated/hurdle exclusion is the one recorded as deliberate in the original
+  `923ae62b2` after-task log; extending it needs a decision about whether the
+  offset targets the latent untruncated rate or the observed mean.
+- Passed: new `test-offset-families.R` (29 expectations, 0 failures, 0 warnings,
+  6.4 s); 17 targeted regression files across every touched family with 0
+  failures and 0 errors; a link-agnostic constant-offset oracle at machine zero
+  for all ten families, holding also when the offset is combined with an
+  ordinary random intercept; deferred-family rejection probes; and
+  `tools/capability_ledger.py --check` with the 723-cell census unchanged.
+- Red-tested the oracle by deleting one family's offset hand-off — the mode
+  where the formula still parses and the fit still converges — which failed
+  exactly that family's two assertions and no others.
+- Full `devtools::test()`: **43,342 pass / 0 fail / 1 error / 30 warn / 25 skip**
+  across 2327 files in 45 min 40 s. The single error is
+  `test-b1-breadth-dispatch.R`, whose `file.exists()`/`source()` guard misfires
+  in a source checkout; it reproduces on an unmodified `origin/main` tree and is
+  invisible under `R CMD check` because `tools/` is build-excluded. Pre-existing
+  and outside this arc; recorded, not fixed. The 30 warnings are likewise
+  pre-existing clamp/deprecation/toy-data notices.
+- `R CMD check --as-cran` (52 checks): **Status OK** — 0 errors, 0 warnings, 0
+  notes; examples, `--run-donttest` examples, `testthat.R`, and `spelling.R` all
+  OK. **Scope caveat:** built with `vignettes = FALSE` and run with
+  `--ignore-vignettes` and `_R_CHECK_CRAN_INCOMING_=false`, so incoming
+  feasibility and vignette timing were not exercised. This is a
+  code-correctness check, **not** a `tarball-clean` claim; the exact-artifact
+  gate belongs to the 0.7.0 candidate freeze on one immutable hash.
+- Report:
+  [`2026-08-09-offset-univariate-families.md`](after-task/2026-08-09-offset-univariate-families.md).
+
+
 ## 2026-08-08 — pkgdown function-map route restored and model-map deduplicated
 
 - Restored **Function map and cheat sheet** to the Get started menu and kept

@@ -147,6 +147,49 @@ new distribution enters the package.
 | p8 endpoint blocks, q8 variants beyond the first matching all-four ordinary endpoint slice, labelled or cross-formula residual-scale slope blocks, broader bivariate residual-scale blocks beyond the matching q2 `sigma1`/`sigma2` scale-slope slice, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Unlabelled ordinary univariate correlated `sigma` blocks are already fitted. Intercept-slope `corpair()` rows are distant-future; broader slope-correlation regressions need coefficient-aware syntax. |
 | `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, bivariate coordinate-spatial q=2 or constant q=4 rows, and the animal/`relmat()` q=2 or constant q=4 rows. |
 
+## Offsets
+
+Every univariate family accepts a standard R `offset()` term in its `mu`
+formula. The offset is a known constant added to the location linear predictor,
+so what it means depends on the family's link.
+
+For **log-link** families — Poisson, `nbinom2()` and its zero-inflated path,
+`Gamma(link = "log")`, and `tweedie()` — an offset is the familiar exposure or
+effort model. Use it when counts or amounts accumulate over unequal observation
+windows; the coefficients then describe a rate:
+
+```r
+drmTMB(bf(mu = count ~ habitat + offset(log(trap_nights))),
+       data = surveys, family = poisson(link = "log"))
+```
+
+For **identity-link** families — Gaussian, `student()`, `lognormal()`, and
+`skew_normal()` — an offset is a known additive shift of the mean. Use it when
+part of the response is already known and should not cost a parameter, such as
+a baseline you want to subtract.
+
+For **logit-link** families — Bernoulli/binomial, `beta_binomial()`, `beta()`,
+`zero_one_beta()`, and `cumulative_logit()` — an offset is a known shift in
+log-odds. This is a **calibration** term, not an exposure: writing
+`offset(log(effort))` here does not give you a rate model, and the value you
+supply is on the log-odds scale. Two family-specific details matter: a
+`zero_one_beta()` offset moves only the interior beta component and leaves the
+`zoi` and `coi` boundary probabilities alone, and a `cumulative_logit()` offset
+shifts the latent location relative to fixed cutpoints rather than an intercept.
+
+What still rejects an offset, and why:
+
+| Route | Reason |
+| --- | --- |
+| `truncated_nbinom2()` and its hurdle path | Both renormalise the observed mean over a restricted support, so doubling exposure would not double the reported mean the way it does for plain Poisson or NB2. Extending them needs a decision about whether the offset targets the latent untruncated rate or the observed mean. |
+| Every bivariate family | There is no per-response offset contract yet. |
+| Gaussian sufficient-statistic aggregation | Aggregation reduces rows to group summaries, so a row-level offset has no aggregated counterpart; fit the row-level model instead. |
+| `sigma`, `zi`, `hu`, `zoi`, `coi`, `nu`, `rho12` | Offsets are restricted to the location formula. |
+
+If you need a rate model for a route in that first row, put the exposure in the
+formula as a log-scale covariate and interpret the estimated coefficient instead
+of fixing it at one.
+
 Current implemented univariate Gaussian random-effect forms include:
 
 ```r
