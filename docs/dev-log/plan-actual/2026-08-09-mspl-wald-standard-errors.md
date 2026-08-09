@@ -92,8 +92,29 @@ Arc C complete to its stated closure: local green plus a reviewed receipt, stopp
 Branch `claude/mspl-binomial-inference-promotion` pushed at `24abee2fd` (plus the receipt commit).
 
 Carried forward, in priority order:
-1. **q2 has no external oracle** — only q1 is validated against ML `sdreport()`. Smallest
-   highest-value gap if MSPL SEs go user-facing in 0.7.0.
+1. ~~q2 has no external oracle~~ — **CLOSED in-session as slice C7**, at the owner's request, after
+   this reconciliation was first written. See deviation 7.
 2. No threshold or scale-free reading of `unpenalized_gradient_max_abs`.
 3. Arc D (probit/cloglog + link-general Jeffreys, 0.7.1) — fully scoped in design note 252,
    including the Julia-bridge re-gate that is its highest-risk item.
+
+## Deviation 7 — C7 added after the plan closed (adaptive, owner-requested)
+
+The plan's Arc C ended at C6. The owner then asked to close the q2-oracle gap the receipt had just
+named, so **C7 was added and executed in-session**: two comparator arms in
+`tests/testthat/test-mspl-estimator.R` (drmTMB ML `sdreport()`, and external `lme4::glmer(nAGQ=1)`),
+bringing that file to 18 blocks / 139 expectations / 0 failures.
+
+Notable because the *method* mattered more than the code: a size ladder was run **before** the test
+was written, which established that the q2 gap is genuinely larger than q1's (1.85 % vs 0.38 % at
+comparable n) and that the glmer arm plateaus rather than converging. Writing the test first and
+tuning tolerances afterwards would have produced a passing test with fitted thresholds and no
+understanding of why. Tolerances are ~3× measured, taken from the ladder, and the ladder is recorded
+in the test header.
+
+No planning artifact was produced for C7, deliberately: it was a linear, single-file, sub-hour slice,
+which the method's own gate says to execute rather than plan. Recorded here so the omission is a
+decision rather than a silence.
+
+`--as-cran` was **not** re-run for C7 — the change is test-only and adds no package code. Stated
+rather than assumed.

@@ -71,6 +71,43 @@ at the MSPL estimate, because that estimate maximises the *penalized* criterion.
 `2.03e-06`. Both are now printed by `summary()`, labelled, because a reader seeing only the near-zero
 number could reasonably conclude the stationarity concern was handled. It is not.
 
+## 4a. The q2 oracle — added after review, closing Fisher's asymmetry finding
+
+Fisher's review noted that q1 had an external oracle while q2 had only internal
+`vcov`-vs-`summary` self-consistency, so the two were not evidenced to the same standard. That gap
+is now closed with two arms of deliberately different strength.
+
+Measured ladder on a non-separated q2 DGP (`sd_int = 0.6`, `sd_slope = 0.4`), maximum relative
+difference in fixed-effect standard errors:
+
+| G | n | vs drmTMB ML `sdreport()` | vs `lme4::glmer` |
+|---|---|---|---|
+| 10 | 80 | 10.13 % | 10.13 % |
+| 20 | 200 | 1.85 % | 1.81 % |
+| 40 | 480 | **0.69 %** | **2.42 %** |
+| 80 | 1120 | 0.14 % | 1.16 % |
+
+**The ML arm converges monotonically**, which is the actual evidence — `c_n = 2√(p/n_eff)` vanishes
+with `n`, so MSPL → ML. Arm 1 is a genuine cross-check despite both fits being drmTMB: ML standard
+errors come through TMB's `sdreport()` delta method, MSPL's through `optimHess()` + `chol2inv()`.
+
+**The glmer arm does not converge monotonically** and plateaus around 1–2 %. That is an irreducible
+implementation difference — different optimizer, different parameterisation — not a defect. It is
+therefore a *sanity* arm with a deliberately loose bound; tightening it would be measuring `lme4`,
+not drmTMB. Its value is that it can catch a bug shared across the TMB path, which Arm 1 structurally
+cannot.
+
+**q2's gap is genuinely larger than q1's** (1.85 % at n = 200 versus 0.38 % at n = 180). Reusing the
+q1 tolerance would have failed. That is expected rather than alarming: `c_n` grows with `p`, and the
+negative-Huber term acts on the covariance Cholesky, which is doing real work even without
+separation because it holds the correlation off the boundary. Tolerances are set at roughly 3× the
+measured value at the asserted size, taken from the ladder rather than fitted to pass, and the ladder
+is recorded in the test header so a later reader can re-derive them.
+
+Comparison is on **fixed-effect standard errors only** — the variance-component entries live on
+`(log_sd, eta_cor)` coordinates and have no comparable ML or glmer counterpart, so forcing that
+comparison would generate noise rather than evidence.
+
 ## 5. Checks run
 
 - `devtools::document()` — exit 0, clean; regenerated `drmTMB.Rd` and `model-fit-extractors.Rd`.
@@ -116,9 +153,9 @@ error and class.
 
 - **A standard error is reported. An interval is not claimed, and is not implied.** Enforced in code:
   `vcov()` lifts, `confint()` does not.
-- **q1 and q2 are NOT validated to the same standard.** q1 has an external ML-`sdreport()` oracle.
-  **q2 has only internal `vcov`-vs-`summary` self-consistency** — no independent comparator. Do not
-  describe them as equally evidenced. (Fisher.)
+- **q1 and q2 now both have external oracles** — this caveat was raised by Fisher and has since been
+  **closed**, see §4a. q1 is checked against drmTMB ML `sdreport()`; q2 against *both* ML `sdreport()`
+  and `lme4::glmer(nAGQ = 1)`. The two are no longer asymmetric.
 - **"SEs are reported" and "SEs are usable" are different claims, and only the first is tested.** The
   oracle proves the right Hessian is inverted *in the zero-penalty limit*. It says nothing about SE
   quality when the penalty is not negligible — i.e. the separated regime MSPL exists for. The
@@ -168,8 +205,13 @@ log_sd_mu`, so a user could not index it. Caught on independent verification, no
 
 ## 10. Known residuals
 
-- q2 Wald SEs lack an external oracle (§7a).
+- ~~q2 Wald SEs lack an external oracle~~ — **closed**, §4a. Both q1 and q2 now have external
+  comparators; q2 has two.
 - No gradient-diagnostic threshold (§7b).
+- The oracles bound the **zero-penalty limit** only. Neither arm says anything about SE quality in
+  the separated regime, where the separated-fixture tests still deliberately assert only
+  "large-and-finite or NA". "SEs are reported" and "SEs are usable under separation" remain
+  different claims.
 - `vcov()` shape differs between MSPL and ordinary fits — documented, but a latent break for code that
   assumes a portable `vcov()` dimension. (Fisher.)
 - probit/cloglog and the link-general Jeffreys penalty are 0.7.1 work.

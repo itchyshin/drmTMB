@@ -743,3 +743,110 @@ test_that("MSPL rejects structured binomial random effects", {
     )
   )
 })
+
+# ---------------------------------------------------------------------------
+# q2 EXTERNAL STANDARD-ERROR ORACLE
+#
+# Closes the gap the C5 review named: q1 had an external ML-`sdreport()` oracle
+# while q2 had only internal `vcov()`-vs-`summary()` self-consistency, so the
+# two were NOT evidenced to the same standard.
+#
+# Two arms, deliberately at different strengths.
+#
+#   Arm 1 -- drmTMB `estimator = "ml"`. Same package, but a genuinely different
+#   machinery: ML standard errors come through TMB's `sdreport()` delta method,
+#   MSPL's through `optimHess()` + `chol2inv()`. Agreement cross-checks the
+#   inversion.
+#
+#   Arm 2 -- `lme4::glmer(..., nAGQ = 1)`. A separate codebase, also Laplace, so
+#   it can catch a bug shared across the TMB path that Arm 1 structurally cannot.
+#
+# MEASURED LADDER (non-separated q2 DGP, sd_int 0.6 / sd_slope 0.4), max relative
+# difference in fixed-effect SEs:
+#
+#     G     n     vs drmTMB-ML   vs glmer
+#    10    80        10.13%       10.13%
+#    20   200         1.85%        1.81%
+#    40   480         0.69%        2.42%
+#    80  1120         0.14%        1.16%
+#
+# The ML arm converges MONOTONICALLY, which is the actual evidence: the penalty
+# scale c_n = 2*sqrt(p/n_eff) vanishes with n, so MSPL -> ML. The glmer arm does
+# NOT converge monotonically and plateaus around 1-2% -- an irreducible
+# implementation difference (different optimizer and parameterisation), not a
+# defect. It is therefore a SANITY arm and is given a deliberately loose bound;
+# tightening it would be measuring lme4, not drmTMB.
+#
+# Note the q2 gap is genuinely LARGER than q1's (1.85% at n=200 here, versus
+# 0.38% at n=180 for q1). Reusing the q1 tolerance would fail. That is expected:
+# c_n grows with p, and the negative-Huber term acts on the covariance Cholesky,
+# which is doing real work even without separation because it holds the
+# correlation off the boundary.
+#
+# Tolerances below are ~3x the measured value at the size asserted, chosen from
+# the ladder rather than fitted to pass.
+# ---------------------------------------------------------------------------
+
+mspl_q2_oracle_fixture <- function(G = 40L, npg = 12L, seed = 103L) {
+  set.seed(seed)
+  d <- data.frame(
+    group = factor(rep(seq_len(G), each = npg)),
+    x = rep(seq(-2, 2, length.out = npg), times = G)
+  )
+  u0 <- rnorm(G, 0, 0.6)
+  u1 <- rnorm(G, 0, 0.4)
+  eta <- 0.4 + 0.6 * d$x +
+    u0[as.integer(d$group)] + u1[as.integer(d$group)] * d$x
+  d$y <- rbinom(nrow(d), 1, plogis(eta))
+  d
+}
+
+test_that("q2 MSPL standard errors agree with the drmTMB ML sdreport oracle", {
+  dat <- mspl_q2_oracle_fixture()
+
+  ml <- drmTMB(bf(y ~ x + (1 + x | group)), family = binomial(), data = dat)
+  mspl <- drmTMB(
+    bf(y ~ x + (1 + x | group)),
+    family = binomial(), data = dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+
+  se_ml <- summary(ml)$coefficients$std_error
+  se_mspl <- summary(mspl)$coefficients$std_error
+
+  expect_true(all(is.finite(se_ml)))
+  expect_true(all(is.finite(se_mspl)))
+  expect_true(all(se_mspl > 0))
+  expect_equal(length(se_mspl), length(se_ml))
+
+  # Fixed effects only: the variance-component entries live on
+  # (log_sd, eta_cor) coordinates and have no comparable ML/glmer counterpart.
+  relative <- max(abs(se_mspl - se_ml) / se_ml)
+  expect_lt(relative, 0.02)
+})
+
+test_that("q2 MSPL standard errors are consistent with an external lme4 fit", {
+  skip_if_not_installed("lme4")
+  dat <- mspl_q2_oracle_fixture()
+
+  mspl <- drmTMB(
+    bf(y ~ x + (1 + x | group)),
+    family = binomial(), data = dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+  gl <- lme4::glmer(
+    y ~ x + (1 + x | group),
+    family = binomial, data = dat, nAGQ = 1L
+  )
+
+  se_mspl <- summary(mspl)$coefficients$std_error
+  se_glmer <- coef(summary(gl))[, "Std. Error"]
+
+  expect_equal(length(se_mspl), length(se_glmer))
+  expect_true(all(is.finite(se_glmer)))
+
+  # Loose by design -- see the header note. This arm asserts "no systematic
+  # divergence from an independent implementation", not numerical equality.
+  relative <- max(abs(se_mspl - se_glmer) / se_glmer)
+  expect_lt(relative, 0.06)
+})
