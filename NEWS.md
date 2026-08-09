@@ -29,8 +29,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   ordinary unlabelled location (`mu`) random intercept or independent slope.
   This route is diagnostic-only despite deterministic agreement with
   `glmmTMB(REML = TRUE)`; it has no recovery or coverage claim. Fixed-only,
-  correlated, labelled, structured, and missing-response binomial REML remain
-  unavailable.
+  multiple-term, correlated, labelled, structured, and missing-response
+  binomial REML remain unavailable.
 * The retained cumulative-logit AGHQ plus Cox-Reid campaign is now identified
   as evidence for a package-private estimator. It does not grant a public
   `drmTMB()` fit or reader-facing reporting permission.

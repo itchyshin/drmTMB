@@ -195,7 +195,7 @@ head(sigma(fit)^2) # fitted residual variances
   `cbind(successes, failures)` when the data need extra-binomial variation
   through `sigma`. Binomial `REML = TRUE` is diagnostic-only for one ordinary
   unlabelled `mu` random intercept or independent slope; use ML for scientific
-  reporting. Fixed-only, correlated, labelled, structured, and
+  reporting. Fixed-only, multiple-term, correlated, labelled, structured, and
   missing-response binomial REML routes are unavailable. Correlated or
   labelled binomial random slopes, structured
   effects, `sigma` formulas, bivariate or mixed responses, and non-phylogenetic

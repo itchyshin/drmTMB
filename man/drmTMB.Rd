@@ -121,12 +121,13 @@ direct-SD formula, or \code{corpair()} regression. Both have point-fit-recovery
 evidence only; bivariate \code{relmat(..., Q = Q)} REML remains deferred.
 Aggregation and ordinary direct \code{sd()} scale formulae also remain
 unsupported under REML. For \code{binomial()} models, the bounded native route
-requires at least one ordinary unlabelled \code{mu} random intercept or
-independent numeric slope. Fixed-only binomial models, correlated or
-labelled covariance blocks, structured effects, missing-data engines, and
-other extensions are not admitted under REML; use \code{REML = FALSE} for those
-models. The binomial route has diagnostic parity and uncertainty evidence,
-not calibrated interval or coverage evidence.
+requires exactly one ordinary unlabelled \code{mu} random intercept or exactly
+one independent numeric slope. Fixed-only and multiple-term binomial
+models, correlated or labelled covariance blocks, structured effects,
+missing-data engines, and other extensions are not admitted under REML;
+use \code{REML = FALSE} for those models. The binomial route has diagnostic
+parity and finite-uncertainty evidence, not calibrated interval or coverage
+evidence.
 The halted \code{engine = "julia"} compatibility bridge is not a supported
 estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
 \code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across

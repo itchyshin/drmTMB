@@ -646,7 +646,7 @@ framework where the prior is explicit.
 maximum likelihood (`REML = TRUE`) is available across a bounded Gaussian
 surface, including phylogenetic models. A diagnostic-only binomial slice also
 accepts one ordinary unlabelled location (`mu`) random intercept or independent
-slope. Fixed-only, correlated, labelled, structured, and missing-response
+slope. Fixed-only, multiple-term, correlated, labelled, structured, and missing-response
 binomial REML models remain unavailable.
 
 Why: maximum likelihood estimates a variance component as if the fixed effects

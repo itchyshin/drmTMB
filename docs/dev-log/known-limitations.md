@@ -503,9 +503,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate cumulative-logit ordinal models are implemented for ordered
   responses with `family = cumulative_logit()`. The routine path supports a
   `mu` location formula, ordered cutpoints, a fixed latent logistic scale, and
-  ordinary `mu` random intercepts or independent numeric slopes. The exact
-  `mc-0227` independent-slope cell is inference-ready with caveats under its
-  recorded M>=80 design. One row-specific q=1
+  ordinary `mu` random intercepts or independent numeric slopes. The public
+  `mc-0227` independent-slope cell uses ML-Laplace and remains point-fit-
+  recovery only; its retained M>=80 O3 study is package-private technical
+  evidence with no public interval or reporting permission. One row-specific q=1
   `mu ~ phylo(1 | id, tree = tree)` intercept is
   also fitted at local point-fit/extractor grade. Correlated or labelled
   ordinary slopes, other structured providers, interval/coverage promotion for

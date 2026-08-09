@@ -1609,9 +1609,10 @@ def reconcile_capability_truth() -> None:
             "primary_evidence_id": "ev-mc-0058-capability-truth-rejection",
             "claim_boundary": (
                 "Fixed-effect-only binomial REML is rejected before TMB construction: "
-                "the O2 joint-Laplace restricted likelihood requires at least one "
-                "admitted ordinary mu random-effect variance component. Use REML=FALSE "
-                "for a fixed-only binomial model. This exact gate grants no broader "
+                "the O2 joint-Laplace restricted likelihood requires exactly one "
+                "admitted ordinary unlabelled mu random-effect term. Use REML=FALSE "
+                "for a fixed-only binomial model. Multiple-term routes are also "
+                "unavailable. This exact gate grants no broader "
                 "non-Gaussian REML capability."
             ),
             "next_gate": (
@@ -1629,7 +1630,8 @@ def reconcile_capability_truth() -> None:
             "claim_boundary": (
                 "The exact public binomial mu random-intercept route y ~ x + (1 | g) "
                 "is admitted with REML=TRUE through O2's joint-Laplace fixed-effect "
-                "fold. A deterministic fixture agrees with glmmTMB(REML=TRUE), "
+                "fold. Deterministic Bernoulli and grouped-binomial fixtures agree "
+                "with glmmTMB(REML=TRUE), "
                 "converges with pdHess, and exposes finite vcov(). This is "
                 "diagnostic_only: no recovery, interval calibration, coverage, or "
                 "broader non-Gaussian REML claim is earned."
@@ -1646,8 +1648,9 @@ def reconcile_capability_truth() -> None:
             "claim_boundary": (
                 "The exact public binomial independent mu random-slope route "
                 "y ~ x + (0 + x | g) is admitted with REML=TRUE through O2's "
-                "joint-Laplace fixed-effect fold. A deterministic fixture agrees "
-                "with glmmTMB(REML=TRUE), converges with pdHess, and exposes finite "
+                "joint-Laplace fixed-effect fold. Deterministic Bernoulli and "
+                "grouped-binomial fixtures agree with glmmTMB(REML=TRUE), converge "
+                "with pdHess, and expose finite "
                 "vcov(). This is diagnostic_only: correlated or labelled slopes, "
                 "recovery, interval calibration, coverage, and broader non-Gaussian "
                 "REML remain outside scope."
@@ -1662,10 +1665,11 @@ def reconcile_capability_truth() -> None:
             "test_gate": "na",
             "primary_evidence_id": "ev-mc-0068-capability-truth-rejection",
             "claim_boundary": (
-                "Binomial REML remains rejected for structured mu effects, including "
+                "Binomial REML remains rejected for structured mu effects. Exact q1 "
                 "phylo(), spatial(), animal(), relmat(), and phylo_interaction() "
-                "routes at every q gate. O2 admits only ordinary unlabelled random "
-                "intercepts and one independent slope; structured, correlated, and "
+                "formula gates are tested; the binomial parser admits no structured "
+                "q gate. O2 admits only one ordinary unlabelled random intercept or "
+                "one independent slope; multiple-term, structured, correlated, and "
                 "labelled binomial REML blocks are outside the public contract."
             ),
             "next_gate": (
@@ -1729,8 +1733,8 @@ def reconcile_capability_truth() -> None:
             "path_or_url": test_path, "commit_sha": source_sha,
             "run_id": "glmmTMB(REML=TRUE) (same joint-Laplace construction; weak independence)",
             "command": 'devtools::test(filter="reml-binomial-coxreid")',
-            "result": "glmmTMB deterministic parity; convergence 0; pdHess; finite vcov",
-            "replicates": "1 deterministic fixture",
+            "result": "glmmTMB deterministic parity; convergence 0; pdHess; finite drmTMB vcov",
+            "replicates": "2 deterministic response encodings",
             "reviewed_by": "0.7 capability-truth reconciliation",
             "review_date": CAPABILITY_TRUTH_DATE,
             "claim_boundary": (
@@ -1746,8 +1750,8 @@ def reconcile_capability_truth() -> None:
             "path_or_url": test_path, "commit_sha": source_sha,
             "run_id": "glmmTMB(REML=TRUE) (same joint-Laplace construction; weak independence)",
             "command": 'devtools::test(filter="reml-binomial-coxreid")',
-            "result": "glmmTMB deterministic parity; convergence 0; pdHess; finite vcov",
-            "replicates": "1 deterministic fixture",
+            "result": "glmmTMB deterministic parity; convergence 0; pdHess; finite drmTMB vcov",
+            "replicates": "2 deterministic response encodings",
             "reviewed_by": "0.7 capability-truth reconciliation",
             "review_date": CAPABILITY_TRUTH_DATE,
             "claim_boundary": (
@@ -1763,7 +1767,7 @@ def reconcile_capability_truth() -> None:
             "path_or_url": test_path, "commit_sha": source_sha,
             "run_id": "07-capability-truth-structured-rejection",
             "command": 'devtools::test(filter="reml-binomial-coxreid")',
-            "result": "exact_structured_boundary", "replicates": "1 deterministic fixture",
+            "result": "five exact q1 structured formula gates", "replicates": "5 providers",
             "reviewed_by": "0.7 capability-truth reconciliation",
             "review_date": CAPABILITY_TRUTH_DATE,
             "claim_boundary": states["mc-0068"]["claim_boundary"],

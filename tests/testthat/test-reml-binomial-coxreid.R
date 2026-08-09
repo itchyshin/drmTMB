@@ -39,6 +39,17 @@ binom_slope_fixture <- function(nid = 60L, neach = 12L, seed = 20260808L) {
   data.frame(y = y, x = x, g = g)
 }
 
+binom_grouped_fixture <- function(nid = 50L, neach = 10L, trials = 5L, seed = 20260809L) {
+  set.seed(seed)
+  g <- factor(rep(seq_len(nid), each = neach))
+  x <- rep(seq(-1.5, 1.5, length.out = neach), times = nid)
+  u0 <- stats::rnorm(nid, 0, 0.75)
+  u1 <- stats::rnorm(nid, 0, 0.85)
+  eta <- -0.25 + 0.4 * x + u0[as.integer(g)] + u1[as.integer(g)] * x
+  successes <- stats::rbinom(length(x), trials, stats::plogis(eta))
+  data.frame(successes, failures = trials - successes, x, g)
+}
+
 drm_re_sd <- function(fit) {
   s <- summary(fit$sdr)
   i <- which(rownames(s) == "sd_mu_re")
@@ -47,7 +58,7 @@ drm_re_sd <- function(fit) {
 
 test_that("fixed-only binomial REML fails early for Bernoulli and cbind responses", {
   fx <- binom_re_fixture()
-  err <- "Binomial `REML` requires at least one admitted ordinary `mu` random effect"
+  err <- "Binomial `REML` requires exactly one admitted ordinary unlabelled `mu` random-effect term"
 
   expect_error(
     drmTMB(bf(y ~ x), family = binomial(), data = fx$data, REML = TRUE),
@@ -117,6 +128,42 @@ test_that("binomial independent-slope REML matches glmmTMB and has finite uncert
   expect_true(all(is.finite(as.matrix(stats::vcov(fit_reml)))))
 })
 
+test_that("grouped-binomial intercept and slope REML match glmmTMB", {
+  skip_if_not_installed("glmmTMB")
+  dat <- binom_grouped_fixture()
+  response <- cbind(dat$successes, dat$failures)
+
+  fit_intercept <- drmTMB(
+    bf(cbind(successes, failures) ~ x + (1 | g)),
+    family = binomial(), data = dat, REML = TRUE
+  )
+  gm_intercept <- glmmTMB::glmmTMB(
+    response ~ x + (1 | g), family = binomial(), data = dat, REML = TRUE
+  )
+  fit_slope <- drmTMB(
+    bf(cbind(successes, failures) ~ x + (0 + x | g)),
+    family = binomial(), data = dat, REML = TRUE
+  )
+  gm_slope <- glmmTMB::glmmTMB(
+    response ~ x + (0 + x | g), family = binomial(), data = dat, REML = TRUE
+  )
+
+  expect_identical(fit_intercept$opt$convergence, 0L)
+  expect_true(isTRUE(fit_intercept$sdr$pdHess))
+  expect_equal(
+    drm_re_sd(fit_intercept),
+    unname(attr(glmmTMB::VarCorr(gm_intercept)$cond$g, "stddev")),
+    tolerance = 1e-5
+  )
+  expect_identical(fit_slope$opt$convergence, 0L)
+  expect_true(isTRUE(fit_slope$sdr$pdHess))
+  expect_equal(
+    drm_re_sd(fit_slope),
+    unname(attr(glmmTMB::VarCorr(gm_slope)$cond$g, "stddev")[[1L]]),
+    tolerance = 1e-5
+  )
+})
+
 test_that("binomial REML gives a larger RE-SD than ML on the frozen fixture", {
   fx <- binom_re_fixture()
   fit_ml <- drmTMB(bf(y ~ x + (1 | g)), family = binomial(), data = fx$data, REML = FALSE)
@@ -151,6 +198,26 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
   )
   expect_error(
     drmTMB(
+      bf(y ~ x + (1 | g) + (0 + x | g)),
+      family = binomial(),
+      data = fx$data,
+      REML = TRUE
+    ),
+    "requires exactly one admitted ordinary unlabelled `mu` random-effect term",
+    fixed = TRUE
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | g) + (1 | h)),
+      family = binomial(),
+      data = transform(fx$data, h = factor(rep(seq_len(20L), length.out = nrow(fx$data)))),
+      REML = TRUE
+    ),
+    "requires exactly one admitted ordinary unlabelled `mu` random-effect term",
+    fixed = TRUE
+  )
+  expect_error(
+    drmTMB(
       bf(y ~ x + (1 | p | g)),
       family = binomial(),
       data = fx$data,
@@ -171,6 +238,41 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
       REML = TRUE
     ),
     "`REML` is not implemented with explicit missing-data engines yet",
+    fixed = TRUE
+  )
+})
+
+test_that("binomial REML rejects every structured mu provider", {
+  fx <- binom_re_fixture(nid = 8L, neach = 4L)
+  ids <- levels(fx$data$g)
+  tree <- ape::rtree(length(ids), tip.label = ids)
+  coords <- cbind(x = seq_along(ids), y = rep(c(0, 1), length.out = length(ids)))
+  rownames(coords) <- ids
+  A <- diag(length(ids))
+  dimnames(A) <- list(ids, ids)
+
+  structured_calls <- list(
+    quote(drmTMB(bf(y ~ x + phylo(1 | g, tree = tree)), family = binomial(), data = fx$data, REML = TRUE)),
+    quote(drmTMB(bf(y ~ x + spatial(1 | g, coords = coords)), family = binomial(), data = fx$data, REML = TRUE)),
+    quote(drmTMB(bf(y ~ x + animal(1 | g, A = A)), family = binomial(), data = fx$data, REML = TRUE)),
+    quote(drmTMB(bf(y ~ x + relmat(1 | g, K = A)), family = binomial(), data = fx$data, REML = TRUE))
+  )
+  for (call in structured_calls) {
+    expect_error(
+      eval(call),
+      "Structured-effect syntax is planned, not implemented",
+      fixed = TRUE
+    )
+  }
+
+  fx$data$partner1 <- fx$data$g
+  fx$data$partner2 <- factor(rep(ids, each = 4L))
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo_interaction(1 | partner1:partner2, tree1 = tree, tree2 = tree)),
+      family = binomial(), data = fx$data, REML = TRUE
+    ),
+    "Structured-effect syntax is planned, not implemented",
     fixed = TRUE
   )
 })

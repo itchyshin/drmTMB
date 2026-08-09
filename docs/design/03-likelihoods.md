@@ -2229,9 +2229,10 @@ are later phases.
 ## Implemented Cumulative-Logit Ordinal Location
 
 The ordinal path is univariate and location-only, with fixed effects plus
-ordinary `mu` random intercepts and independent numeric slopes. The exact
-`mc-0227` slope cell is inference-ready with caveats under its recorded M>=80
-design:
+ordinary `mu` random intercepts and independent numeric slopes. The public
+`mc-0227` slope cell uses ML-Laplace and remains at `point_fit_recovery`. Its
+retained M>=80 O3 study is package-private technical evidence and grants no
+public `drmTMB()` interval or reporting permission:
 
 ```text
 Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)

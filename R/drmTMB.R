@@ -148,12 +148,13 @@
 #'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
 #'   Aggregation and ordinary direct `sd()` scale formulae also remain
 #'   unsupported under REML. For `binomial()` models, the bounded native route
-#'   requires at least one ordinary unlabelled `mu` random intercept or
-#'   independent numeric slope. Fixed-only binomial models, correlated or
-#'   labelled covariance blocks, structured effects, missing-data engines, and
-#'   other extensions are not admitted under REML; use `REML = FALSE` for those
-#'   models. The binomial route has diagnostic parity and uncertainty evidence,
-#'   not calibrated interval or coverage evidence.
+#'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
+#'   one independent numeric slope. Fixed-only and multiple-term binomial
+#'   models, correlated or labelled covariance blocks, structured effects,
+#'   missing-data engines, and other extensions are not admitted under REML;
+#'   use `REML = FALSE` for those models. The binomial route has diagnostic
+#'   parity and finite-uncertainty evidence, not calibrated interval or coverage
+#'   evidence.
 #'   The halted `engine = "julia"` compatibility bridge is not a supported
 #'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
 #'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
@@ -2229,15 +2230,19 @@ drm_validate_reml_spec <- function(spec) {
       "{.arg REML} is implemented for univariate/bivariate Gaussian and binomial models."
     )
   }
-  if (
-    identical(spec$model_type, "binomial") &&
-      !isTRUE(spec$random$mu$n_re > 0L)
-  ) {
-    cli::cli_abort(c(
-      "Binomial {.arg REML} requires at least one admitted ordinary {.code mu} random effect.",
-      "x" = "The model has no ordinary unlabelled {.code mu} random intercept or independent numeric slope.",
-      "i" = "Add an admitted term such as {.code (1 | group)} or {.code (0 + x | group)}, or use {.code REML = FALSE} for maximum likelihood."
-    ))
+  if (identical(spec$model_type, "binomial")) {
+    n_mu_terms <- spec$random$mu$n_terms
+    if (!isTRUE(n_mu_terms == 1L) || !isTRUE(spec$random$mu$n_cors == 0L)) {
+      cli::cli_abort(c(
+        "Binomial {.arg REML} requires exactly one admitted ordinary unlabelled {.code mu} random-effect term.",
+        "x" = if (isTRUE(n_mu_terms == 0L)) {
+          "The model has no ordinary {.code mu} random intercept or independent numeric slope."
+        } else {
+          "The model has multiple or correlated ordinary {.code mu} random-effect coefficients."
+        },
+        "i" = "Use exactly one term such as {.code (1 | group)} or {.code (0 + x | group)}, or use {.code REML = FALSE} for maximum likelihood."
+      ))
+    }
   }
   if (isTRUE(spec$sparse_fixed$mu)) {
     cli::cli_abort(c(

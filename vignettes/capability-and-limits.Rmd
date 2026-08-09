@@ -152,7 +152,7 @@ above; the long caveat table stays on this page.
 | nbinom2 unstructured location-scale (`mu` and `sigma ~ x`) | Inference-ready | Point estimate and Wald interval on both formulas |
 | beta unstructured location-scale, interior proportions | Inference-ready | Point estimate and Wald interval; exact 0 or 1 needs `zero_one_beta()` instead |
 | Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | Profile interval for the natural-scale slope SD under ML only, not `supported`, with no Wald or point-bias claim. The tested floor differs by family, so do not generalize one number: skew-normal / Tweedie / zero-one-beta at `M >= 16` (true SD 0.50, ML-Laplace) and binomial at `M >= 32` (true SD 0.6, ML-Laplace). Zero-one-beta is generator-qualified (see the caveat below) |
-| Binomial ordinary `mu` random intercept or independent slope with `REML = TRUE` | Diagnostic-only | The joint-Laplace fit and uncertainty calculation agree with the overlapping `glmmTMB(REML = TRUE)` route in deterministic checks. Use this only to compare estimator behaviour; it is not recovery- or coverage-backed reporting permission. Fixed-only, correlated, labelled, structured, and missing-response binomial REML routes are unavailable |
+| Binomial ordinary `mu` random intercept or independent slope with `REML = TRUE` | Diagnostic-only | The random-effect SD agrees with the overlapping `glmmTMB(REML = TRUE)` route in deterministic Bernoulli and grouped-binomial checks, and drmTMB's uncertainty calculation is finite. Use this only to compare estimator behaviour; it is not recovery- or coverage-backed reporting permission. Fixed-only, multiple-term, correlated, labelled, structured, and missing-response binomial REML routes are unavailable |
 | Cumulative-logit ordinary `mu` random slope evaluated with internal AGHQ plus a Cox-Reid adjustment | Internal evidence only; no public fit/report route | The retained campaign is technical evidence about an internal estimator. `drmTMB()` does not expose that estimator, so the campaign does not authorize a cumulative-logit interval or scientific report from a public fitted object. Use the public ML-Laplace route only at its separately documented evidence tier |
 | Gamma `sigma` ordinary random intercept `(1 \| id)` | Inference-ready with caveats | ML-Laplace profile interval only for the exact iid, uncentred coverage fixture (true SD 0.40, 12 observations/group, `M = 32` or `64`); `M = 16` is borderline and `M = 8` is excluded |
 | Poisson / nbinom2 structured `mu` q1 -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only |
@@ -459,8 +459,8 @@ random intercept or independent slope. That O2 joint-Laplace route is
 diagnostic-only: deterministic comparator and uncertainty checks show that it
 is wired correctly, but no recovery or coverage campaign authorizes a
 scientific estimate. A fixed-only binomial model has no random-effect variance
-component for REML to target, and correlated, labelled, structured, and
-missing-response binomial REML routes remain unavailable. Every other
+component for REML to target. Multiple-term, correlated, labelled, structured,
+and missing-response binomial REML routes remain unavailable. Every other
 non-Gaussian family remains outside the public REML surface. Try instead: fit
 the same model with `REML = FALSE` (maximum likelihood); ML is the route to use
 for any model REML rejects or for reportable binomial inference.
