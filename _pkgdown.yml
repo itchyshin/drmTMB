@@ -183,6 +183,7 @@ reference:
       - fixef
       - imputed
       - model-fit-extractors
+      - anova.drmTMB
       - marginal_parameters
       - prediction_grid
       - predict_parameters

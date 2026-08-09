@@ -171,7 +171,11 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # calls in the shared helper and one CondExpGt fail-closed objective gate.
   # They are intentionally C0/C1-unclassified here because their separate
   # overflow and AD behavior is exercised in test-arc-d-sd-overflow-guard.R.
-  expect_equal(n_cpp, 24L)
+  # Experimental MSPL adds four audited source sites: stable abs(log-sech),
+  # negative-Huber abs and knot selection, and log-weight max scaling. Their
+  # numerical contracts are exercised in test-mspl-kernels.R and
+  # test-mspl-estimator.R.
+  expect_equal(n_cpp, 28L)
   expect_equal(n_numeric, 2L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 2L)

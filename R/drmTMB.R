@@ -166,6 +166,13 @@
 #'   regularises a weakly-identified phylogenetic standard deviation; the fit is
 #'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
 #'   Native `engine = "tmb"` only.
+#' @param estimator Estimator for the native TMB route. The default `"ml"`
+#'   preserves ordinary maximum likelihood. Experimental `"mspl"` implements
+#'   the clean-room maximum softly-penalized likelihood criterion for one
+#'   complete Bernoulli or grouped-binomial logit model with one ordinary
+#'   q = 1 or correlated q = 2 grouping block. MSPL is point-estimation only:
+#'   likelihood comparisons, Wald standard errors, and confidence intervals
+#'   are deliberately unavailable.
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
@@ -190,8 +197,10 @@ drmTMB <- function(
   engine = c("tmb", "julia"),
   REML = FALSE,
   penalty = NULL,
+  estimator = c("ml", "mspl"),
   ...
 ) {
+  fit_call <- match.call()
   if (!inherits(formula, "drm_formula")) {
     cli::cli_abort(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
@@ -205,6 +214,7 @@ drmTMB <- function(
     cli::cli_abort("{.arg data} must be a data frame.")
   }
   engine <- match.arg(engine)
+  estimator <- drm_match_estimator(estimator)
   if (
     identical(engine, "julia") &&
       inherits(family, "drm_family") &&
@@ -218,6 +228,11 @@ drmTMB <- function(
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia")) {
+    if (drm_is_mspl(estimator)) {
+      cli::cli_abort(
+        "Experimental MSPL is implemented only for {.code engine = \"tmb\"}."
+      )
+    }
     if (!is.null(penalty)) {
       cli::cli_abort(
         "{.arg penalty} is not supported with {.code engine = \"julia\"} yet."
@@ -249,6 +264,24 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  drm_validate_mspl_request(
+    estimator = estimator,
+    engine = engine,
+    family = family,
+    family_type = family_type,
+    REML = REML,
+    penalty = penalty,
+    impute = impute,
+    missing_control = missing_control,
+    control = control
+  )
+  mspl_frequency_rows <- drm_mspl_filter_frequency_rows(
+    data,
+    weights_full,
+    estimator
+  )
+  data <- mspl_frequency_rows$data
+  weights_full <- mspl_frequency_rows$weights
   if (
     family_type %in% c("biv_lognormal", "biv_student") &&
       !is.null(weights_expr)
@@ -476,7 +509,8 @@ drmTMB <- function(
     control = control,
     REML = REML,
     penalty = penalty,
-    fit_call = match.call()
+    estimator = estimator,
+    fit_call = fit_call
   )
 }
 
@@ -487,6 +521,7 @@ drm_fit_spec <- function(
   control,
   REML = FALSE,
   penalty = NULL,
+  estimator = "ml",
   fit_call = NULL
 ) {
   if (is.null(fit_call)) {
@@ -495,7 +530,12 @@ drm_fit_spec <- function(
 
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
-  spec <- drm_apply_estimator_spec(spec, REML = REML)
+  drm_validate_binomial_q2_context(spec, REML = REML)
+  spec <- drm_apply_estimator_spec(
+    spec,
+    REML = REML,
+    estimator = estimator
+  )
   spec <- drm_apply_phylo_penalty_spec(spec, penalty)
   if (is.null(control$logsigma_clamp)) {
     spec$tmb_data$use_logsigma_clamp <- 0L
@@ -531,17 +571,34 @@ drm_fit_spec <- function(
   drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
 
-  uncertainty <- drm_compute_uncertainty(obj, opt, control)
+  uncertainty <- drm_compute_uncertainty(
+    obj,
+    opt,
+    control,
+    estimator = spec$estimator
+  )
   sdr <- uncertainty$sdr
   par_list <- obj$env$parList(opt$par)
   par <- split_tmb_parameters(par_list, spec)
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
-  phylo_penalty_report <- obj$report()$phylo_penalty
+  objective_report <- obj$report()
+  phylo_penalty_report <- objective_report$phylo_penalty
   phylo_penalty_value <- if (is.null(phylo_penalty_report)) {
     0
   } else {
     as.numeric(phylo_penalty_report)
+  }
+
+  mspl <- if (identical(spec$estimator, "MSPL")) {
+    drm_finalize_mspl_fit(spec, obj, opt, objective_report)
+  } else {
+    NULL
+  }
+  stored_loglik <- if (identical(spec$estimator, "MSPL")) {
+    NA_real_
+  } else {
+    -opt$objective + phylo_penalty_value
   }
 
   fit <- list(
@@ -563,12 +620,13 @@ drm_fit_spec <- function(
     random_effects = split_tmb_random_effects(par_list, spec),
     ordinal = ordinal_fit_info(par_list, spec),
     missing_data = missing_data,
-    logLik = -opt$objective + phylo_penalty_value,
+    logLik = stored_loglik,
     df = drm_fit_df(spec, opt),
     nobs = spec$nobs,
     estimator = spec$estimator,
     penalty = spec$penalty,
     phylo_penalty = phylo_penalty_value,
+    mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
     optimizer_attempts = optimizer$attempts
@@ -922,7 +980,32 @@ drm_optimizer_selected_record <- function(row) {
   )
 }
 
-drm_apply_estimator_spec <- function(spec, REML = FALSE) {
+drm_apply_estimator_spec <- function(
+  spec,
+  REML = FALSE,
+  estimator = "ml"
+) {
+  estimator <- drm_match_estimator(estimator)
+  spec$tmb_data$use_mspl <- 0L
+  spec$tmb_data$mspl_c_n <- 0
+  spec$tmb_data$mspl_q <- 0L
+  if (drm_is_mspl(estimator)) {
+    mspl <- drm_validate_mspl_spec(spec)
+    # A separated ordinary-ML GLM start can already be numerically infinite.
+    # The published soft criterion is well-defined at beta = 0, so use that
+    # deterministic finite origin for the experimental route.
+    spec$start$beta_mu <- stats::setNames(
+      rep(0, mspl$p),
+      colnames(spec$X$mu)
+    )
+    spec$estimator <- "MSPL"
+    spec$tmb_random_names <- spec$random_names
+    spec$mspl <- mspl
+    spec$tmb_data$use_mspl <- 1L
+    spec$tmb_data$mspl_c_n <- mspl$c_n
+    spec$tmb_data$mspl_q <- mspl$q
+    return(spec)
+  }
   if (!isTRUE(REML)) {
     spec$estimator <- "ML"
     spec$tmb_random_names <- spec$random_names
@@ -2488,7 +2571,20 @@ drm_fit_df <- function(spec, opt) {
   df
 }
 
-drm_compute_uncertainty <- function(obj, opt, control) {
+drm_compute_uncertainty <- function(obj, opt, control, estimator = "ML") {
+  if (identical(estimator, "MSPL")) {
+    return(list(
+      sdr = NULL,
+      state = drm_uncertainty_state(
+        status = "unsupported",
+        se = FALSE,
+        message = paste(
+          "TMB::sdreport() was intentionally skipped because experimental",
+          "MSPL Phase 3 supports point estimation only."
+        )
+      )
+    ))
+  }
   if (!isTRUE(control$se)) {
     return(list(
       sdr = NULL,
@@ -10176,6 +10272,27 @@ validate_binomial_mu_random_terms <- function(terms) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
+  has_correlated_block <- vapply(
+    terms,
+    function(term) term$type %in% c("correlated_slope", "correlated_block"),
+    logical(1L)
+  )
+  if (any(has_correlated_block)) {
+    supported <-
+      length(terms) == 1L &&
+      identical(terms[[1L]]$type, "correlated_slope") &&
+      is.null(terms[[1L]]$covariance_label)
+    if (!supported) {
+      labels <- vapply(terms, `[[`, character(1L), "label")
+      cli::cli_abort(c(
+        "Binomial correlated random effects support one unlabelled intercept-slope block.",
+        "x" = "Requested random-effect term{?s}: {.code {labels}}.",
+        "i" = "Use exactly {.code cbind(successes, failures) ~ x + (1 + x | id)}.",
+        "i" = "Labelled covariance blocks, additional random-effect terms, and multiple random slopes remain unsupported."
+      ))
+    }
+    return(invisible(terms))
+  }
   unsupported <- vapply(
     terms,
     function(term) {
@@ -10187,10 +10304,10 @@ validate_binomial_mu_random_terms <- function(terms) {
   if (any(unsupported)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
-      "Only independent binomial {.code mu} random intercepts and slopes are implemented in this slice.",
+      "Binomial {.code mu} supports independent random intercepts/slopes and one exact complete-data unlabelled correlated intercept-slope block.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use {.code bf(cbind(successes, failures) ~ x + (1 | id) + (0 + x | id))}.",
-      "i" = "Correlated binomial slopes, labelled covariance blocks, and structured effects remain planned until separate recovery tests exist."
+      "i" = "Use the exact complete-data unlabelled (1 + x | id) binomial block for the experimental q = 2 route; additional correlated blocks, labels, and structured effects remain unsupported."
     ))
   }
   invisible(terms)
@@ -20276,7 +20393,11 @@ make_tmb_data <- function(spec) {
   # The TMB template declares mesh fields globally, so every builder-level
   # data contract must carry them. This also protects tracked low-level tools
   # that intentionally call MakeADFun() without passing through drm_fit_spec().
-  add_mesh_spatial_tmb_data(make_tmb_data_core(spec), spec)
+  out <- add_mesh_spatial_tmb_data(make_tmb_data_core(spec), spec)
+  out$use_mspl <- 0L
+  out$mspl_c_n <- 0
+  out$mspl_q <- 0L
+  out
 }
 
 split_tmb_parameters <- function(par, spec) {
@@ -20754,7 +20875,10 @@ split_tmb_corpars <- function(par, spec) {
     phylo_mu_has_labelled_mu_intercept_slope_q2(
       spec$structured$phylo_mu
     )
-  if (!spec$model_type %in% c("gaussian", "biv_gaussian") && !count_phylo_q2) {
+  if (
+    !spec$model_type %in% c("gaussian", "biv_gaussian", "binomial") &&
+      !count_phylo_q2
+  ) {
     return(list())
   }
 
@@ -20777,8 +20901,12 @@ split_tmb_corpars <- function(par, spec) {
       rho_mu <- modelled_corpair_values(par, spec)
       names(rho_mu) <- modelled_mu_correlation_labels(spec, length(rho_mu))
     } else {
-      rho_mu <- 0.999999 *
-        tanh(unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)]))
+      eta_mu <- unname(par$eta_cor_mu[seq_len(spec$random$mu$n_cors)])
+      rho_mu <- if (identical(spec$model_type, "binomial")) {
+        tanh(eta_mu)
+      } else {
+        0.999999 * tanh(eta_mu)
+      }
       names(rho_mu) <- spec$random$mu$cor_labels
     }
     out$mu <- rho_mu
@@ -20800,12 +20928,14 @@ split_tmb_corpars <- function(par, spec) {
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
   }
-  rho_re_cov <- covariance_block_correlations_from_par(
-    par,
-    spec$random$covariance_blocks
-  )
-  if (length(rho_re_cov) > 0L) {
-    out$re_cov <- rho_re_cov
+  if (is.list(spec$random$covariance_blocks)) {
+    rho_re_cov <- covariance_block_correlations_from_par(
+      par,
+      spec$random$covariance_blocks
+    )
+    if (length(rho_re_cov) > 0L) {
+      out$re_cov <- rho_re_cov
+    }
   }
   if (
     identical(spec$model_type, "biv_gaussian") &&
@@ -21018,7 +21148,8 @@ split_tmb_random_effects <- function(par, spec) {
       par,
       spec$random$mu,
       spec$random_scale$mu,
-      tmb_data = spec$tmb_data
+      tmb_data = spec$tmb_data,
+      binomial_q2 = identical(spec$model_type, "binomial")
     )
     out$mu <- format_random_effect_values(latent, values, spec$random$mu)
   }
@@ -21268,11 +21399,13 @@ transform_mu_random_effects <- function(
   par,
   re_mu,
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
-  tmb_data = NULL
+  tmb_data = NULL,
+  binomial_q2 = FALSE
 ) {
   sd_by_index <- mu_sd_by_random_effect(par, re_mu, sd_mu, tmb_data)
   rho <- if (re_mu$n_cors > 0L) {
-    0.999999 * tanh(unname(par$eta_cor_mu[seq_len(re_mu$n_cors)]))
+    eta <- unname(par$eta_cor_mu[seq_len(re_mu$n_cors)])
+    if (isTRUE(binomial_q2)) tanh(eta) else 0.999999 * tanh(eta)
   } else {
     numeric()
   }
@@ -21284,8 +21417,16 @@ transform_mu_random_effects <- function(
     if (is_cor_slope) {
       pair <- re_mu$re_pair_index0[[idx]] + 1L
       rho_i <- rho[[cor_id]]
-      values[[idx]] <- sd_by_index[[idx]] *
-        (rho_i * latent[[pair]] + sqrt(1 - rho_i^2) * latent[[idx]])
+      if (isTRUE(binomial_q2)) {
+        eta_i <- unname(par$eta_cor_mu[[cor_id]])
+        logsech_i <- log(2) - abs(eta_i) - log1p(exp(-2 * abs(eta_i)))
+        values[[idx]] <-
+          sd_by_index[[idx]] * rho_i * latent[[pair]] +
+          exp(unname(par$log_sd_mu[[term]]) + logsech_i) * latent[[idx]]
+      } else {
+        values[[idx]] <- sd_by_index[[idx]] *
+          (rho_i * latent[[pair]] + sqrt(1 - rho_i^2) * latent[[idx]])
+      }
     } else {
       values[[idx]] <- sd_by_index[[idx]] * latent[[idx]]
     }

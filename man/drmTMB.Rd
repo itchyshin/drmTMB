@@ -15,6 +15,7 @@ drmTMB(
   engine = c("tmb", "julia"),
   REML = FALSE,
   penalty = NULL,
+  estimator = c("ml", "mspl"),
   ...
 )
 }
@@ -140,6 +141,14 @@ switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
 regularises a weakly-identified phylogenetic standard deviation; the fit is
 labeled \code{MAP} and \code{logLik()} returns the unpenalized data log-likelihood.
 Native \code{engine = "tmb"} only.}
+
+\item{estimator}{Estimator for the native TMB route. The default \code{"ml"}
+preserves ordinary maximum likelihood. Experimental \code{"mspl"} implements
+the clean-room maximum softly-penalized likelihood criterion for one
+complete Bernoulli or grouped-binomial logit model with one ordinary
+q = 1 or correlated q = 2 grouping block. MSPL is point-estimation only:
+likelihood comparisons, Wald standard errors, and confidence intervals
+are deliberately unavailable.}
 
 \item{...}{Reserved for future model options.}
 }

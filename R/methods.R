@@ -45,7 +45,14 @@ print.drmTMB <- function(x, ...) {
       "  standard errors: unavailable; point estimates only ({drm_uncertainty_message(x)})"
     )
   }
-  cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  if (drm_is_mspl(x)) {
+    cli::cli_text(
+      "  penalized objective: {format(x$mspl$penalized_objective, digits = 4)}"
+    )
+    cli::cli_text("  likelihood inference: unavailable for experimental MSPL")
+  } else {
+    cli::cli_text("  logLik: {format(x$logLik, digits = 4)}")
+  }
   if (is.null(drm_convergence_label(x$opt$convergence, x$opt$message))) {
     cli::cli_text("  convergence: {x$opt$convergence}")
   } else {
@@ -2299,6 +2306,7 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
+  drm_abort_mspl_inference(object, "vcov")
   cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
@@ -2430,6 +2438,10 @@ drm_uncertainty_message <- function(object) {
   switch(
     drm_uncertainty_status(object),
     ok = "TMB::sdreport() completed successfully.",
+    unsupported = paste(
+      "Wald uncertainty is intentionally unavailable for experimental",
+      "MSPL point-estimation fits."
+    ),
     skipped = paste(
       "TMB::sdreport() was skipped because",
       "drm_control(se = FALSE) was used."
@@ -2463,7 +2475,7 @@ drm_sdreport_unavailable_message <- function(object) {
 }
 
 drm_uncertainty_check_status <- function(object) {
-  if (identical(drm_uncertainty_status(object), "skipped")) {
+  if (drm_uncertainty_status(object) %in% c("skipped", "unsupported")) {
     return("note")
   }
   "warning"
@@ -2479,6 +2491,7 @@ drm_standard_error_status <- function(object) {
   }
   switch(
     drm_uncertainty_status(object),
+    unsupported = "mspl_inference_unsupported",
     skipped = "sdreport_skipped",
     failed = "sdreport_failed",
     ok = "ok",
@@ -2539,6 +2552,7 @@ NULL
 #' @rdname model-fit-extractors
 #' @export
 logLik.drmTMB <- function(object, ...) {
+  drm_abort_mspl_inference(object, "logLik")
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
@@ -2583,6 +2597,9 @@ drm_warn_information_criterion <- function(fits, what) {
 }
 
 drm_information_criterion <- function(fits, penalty, what) {
+  if (any(vapply(fits, drm_is_mspl, logical(1L)))) {
+    drm_abort_mspl_inference(fits[[which(vapply(fits, drm_is_mspl, logical(1L)))[[1L]]]], what)
+  }
   drm_warn_information_criterion(fits, what)
   values <- vapply(
     fits,
@@ -2612,6 +2629,29 @@ BIC.drmTMB <- function(object, ...) {
   fits <- c(list(object), list(...))
   fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
   drm_information_criterion(fits, function(o) log(as.numeric(o$nobs)), "BIC")
+}
+
+#' Likelihood comparison guard for drmTMB fits
+#'
+#' Experimental MSPL fits do not expose likelihood-ratio comparisons. Ordinary
+#' drmTMB fits likewise have no package-level `anova()` comparison contract;
+#' compare explicitly supported likelihood quantities instead.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Additional fitted objects.
+#' @param test Requested test label; currently unsupported.
+#'
+#' @return This method always errors.
+#' @export
+anova.drmTMB <- function(object, ..., test = NULL) {
+  fits <- c(list(object), list(...))
+  mspl <- vapply(fits, drm_is_mspl, logical(1L))
+  if (any(mspl)) {
+    drm_abort_mspl_inference(fits[[which(mspl)[[1L]]]], "anova")
+  }
+  cli::cli_abort(
+    "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB} fits."
+  )
 }
 
 #' @rdname model-fit-extractors
@@ -4057,6 +4097,9 @@ summary.drmTMB <- function(
 ) {
   profile_precision_missing <- missing(profile_precision)
   validate_summary_conf_int(conf.int)
+  if (isTRUE(conf.int)) {
+    drm_abort_mspl_inference(object, "summary(conf.int = TRUE)")
+  }
   if (
     conf.int &&
       identical(object$model$model_type, "biv_student")
@@ -4181,7 +4224,8 @@ summary.drmTMB <- function(
     corpars = object$corpars,
     ordinal = object$ordinal,
     uncertainty = object$uncertainty,
-    logLik = stats::logLik(object),
+    logLik = if (drm_is_mspl(object)) NA_real_ else stats::logLik(object),
+    mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     convergence = object$opt$convergence,
     conf.int = conf.int,
@@ -4229,7 +4273,30 @@ print.summary.drmTMB <- function(x, ...) {
     cli::cli_text("Ordinal cutpoints:")
     print(x$ordinal$cutpoints)
   }
-  cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
+  if (identical(x$estimator, "MSPL")) {
+    cli::cli_text(
+      "penalized objective: {format(x$mspl$penalized_objective, digits = 6)}"
+    )
+    cli::cli_text(
+      "unpenalized Laplace log objective (diagnostic): {format(x$mspl$unpenalized_laplace_logLik, digits = 6)}"
+    )
+    cli::cli_text(
+      "max fixed gradient: {format(x$mspl$numerical$gradient_max_abs, digits = 4)}"
+    )
+    cli::cli_text(
+      "MSPL outer Hessian positive definite: {x$mspl$numerical$hessian_positive_definite}"
+    )
+    cli::cli_text(
+      "minimum random-effect SD: {format(x$mspl$boundary$min_sd, digits = 4)}"
+    )
+    if (identical(x$mspl$q, 2L)) {
+      cli::cli_text(
+        "absolute random-effect correlation: {format(x$mspl$boundary$max_abs_rho, digits = 4)}"
+      )
+    }
+  } else {
+    cli::cli_text("logLik: {format(as.numeric(x$logLik), digits = 4)}")
+  }
   cli::cli_text("convergence: {x$convergence}")
   invisible(x)
 }
@@ -5978,6 +6045,7 @@ drm_fresh_ordinary_random_effect_values <- function(
   re,
   sd_lookup,
   rho_lookup,
+  eta_lookup = NULL,
   cross_latent = NULL,
   cross_rho_lookup = NULL,
   cross_re = NULL
@@ -6018,7 +6086,13 @@ drm_fresh_ordinary_random_effect_values <- function(
     if (is_cor_slope) {
       pair <- re$re_pair_index0[[idx]] + 1L
       rho_i <- rho[[cor_id]]
-      u <- rho_i * latent[[pair]] + sqrt(1 - rho_i^2) * latent[[idx]]
+      eta_i <- if (is.null(eta_lookup)) NA_real_ else eta_lookup[[cor_id]]
+      innovation_scale <- if (is.finite(eta_i)) {
+        exp(log(2) - abs(eta_i) - log1p(exp(-2 * abs(eta_i))))
+      } else {
+        sqrt(max(0, 1 - rho_i^2))
+      }
+      u <- rho_i * latent[[pair]] + innovation_scale * latent[[idx]]
     }
     if (has_cross) {
       cross_cor_id <- cross_re$sigma_cross_cor_id0[[idx]] + 1L
@@ -6157,10 +6231,24 @@ drm_ordinary_random_effect_draws <- function(object) {
   mu_latent <- NULL
   if (has_mu) {
     re_mu <- object$model$random$mu
+    eta_mu <- NULL
+    if (identical(object$model$model_type, "binomial") && re_mu$n_cors > 0L) {
+      eta_mu <- tryCatch(
+        as.numeric(object$obj$env$parList(object$opt$par)$eta_cor_mu)[
+          seq_len(re_mu$n_cors)
+        ],
+        error = function(e) NULL
+      )
+      if (is.null(eta_mu) && !is.null(object$corpars$mu)) {
+        eta_mu <- atanh(pmax(-1 + .Machine$double.eps,
+          pmin(1 - .Machine$double.eps, unname(object$corpars$mu))))
+      }
+    }
     draw <- drm_fresh_ordinary_random_effect_values(
       re_mu,
       object$sdpars$mu,
-      object$corpars$mu
+      object$corpars$mu,
+      eta_lookup = eta_mu
     )
     mu_latent <- draw$latent
     for (dpar in unique(re_mu$dpars)) {
@@ -6177,6 +6265,7 @@ drm_ordinary_random_effect_draws <- function(object) {
       re_sigma,
       object$sdpars$sigma,
       object$corpars$sigma,
+      eta_lookup = NULL,
       cross_latent = mu_latent,
       cross_rho_lookup = object$corpars$mu_sigma,
       cross_re = object$model$random$mu_sigma

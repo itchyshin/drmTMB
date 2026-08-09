@@ -65,6 +65,25 @@ Type drm_exp_sd_logscale_guarded(Type eta, Type& guard_hit) {
   return exp(safe_eta);
 }
 
+// Stable log(sech(eta)) for the binomial q = 2 ordinary random-effect block.
+// This avoids the cancellation in log(sqrt(1 - tanh(eta)^2)) and remains
+// finite when eta is far enough from zero that tanh(eta) rounds to +/-1.
+template<class Type>
+Type drm_log_sech(Type eta) {
+  Type abs_eta = CppAD::CondExpGe(eta, Type(0.0), eta, -eta);
+  return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
+}
+
+// Paper-sign negative Huber function D(x): zero at the origin, quadratic in
+// [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
+template<class Type>
+Type drm_mspl_negative_huber(Type x) {
+  Type abs_x = CppAD::CondExpGe(x, Type(0.0), x, -x);
+  Type quadratic = Type(-0.5) * x * x;
+  Type linear = -abs_x + Type(0.5);
+  return CppAD::CondExpLe(abs_x, Type(1.0), quadratic, linear);
+}
+
 // PC-prior penalty (negative log-prior) for an optional penalized/MAP fit: an
 // exponential prior on each phylogenetic SD = exp(log_sd_phylo) with the
 // log-Jacobian, plus an optional mean-zero normal on the live phylogenetic
@@ -321,6 +340,9 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(y1);
   DATA_VECTOR(y2);
   DATA_INTEGER(model_type);
+  DATA_INTEGER(use_mspl);
+  DATA_SCALAR(mspl_c_n);
+  DATA_INTEGER(mspl_q);
   DATA_MATRIX(X_mu);
   DATA_INTEGER(use_sparse_X_mu);
   DATA_SPARSE_MATRIX(X_mu_sparse);
@@ -3292,11 +3314,31 @@ Type objective_function<Type>::operator()()
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
+      // The admitted binomial q = 2 block is one unlabelled `(1 + x | group)`
+      // term.  Its unconstrained theta is (log_sd1, log_sd2, eta), with
+      // rho = tanh(eta) and L = [[exp(theta1), 0],
+      //                        [exp(theta2) rho, exp(theta2) sech(eta)]].
+      // The independent q = 1 paths keep their existing calculation exactly.
+      vector<Type> rho_mu_re(n_mu_re_cors);
+      vector<Type> logsech_mu_re(n_mu_re_cors);
+      for (int j = 0; j < n_mu_re_cors; ++j) {
+        rho_mu_re(j) = tanh(eta_cor_mu(j));
+        logsech_mu_re(j) = drm_log_sech(eta_cor_mu(j));
+      }
       for (int i = 0; i < y.size(); ++i) {
         for (int j = 0; j < n_mu_re_terms; ++j) {
           int idx = mu_re_index(i, j);
-          eta_mu(i) +=
-            mu_re_value(i, j) * sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+          int cor_id = mu_re_cor_id(idx);
+          Type contribution;
+          if (cor_id >= 0 && mu_re_pos(idx) == 1) {
+            int pair_idx = mu_re_pair_index(idx);
+            Type l21 = sd_mu_re(mu_re_term(idx)) * rho_mu_re(cor_id);
+            Type l22 = exp(log_sd_mu(mu_re_term(idx)) + logsech_mu_re(cor_id));
+            contribution = l21 * u_mu(pair_idx) + l22 * u_mu(idx);
+          } else {
+            contribution = sd_mu_re(mu_re_term(idx)) * u_mu(idx);
+          }
+          eta_mu(i) += mu_re_value(i, j) * contribution;
         }
       }
       for (int j = 0; j < u_mu.size(); ++j) {
@@ -3305,8 +3347,17 @@ Type objective_function<Type>::operator()()
       REPORT(u_mu);
       REPORT(log_sd_mu);
       REPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        REPORT(eta_cor_mu);
+        REPORT(rho_mu_re);
+        REPORT(logsech_mu_re);
+      }
       ADREPORT(log_sd_mu);
       ADREPORT(sd_mu_re);
+      if (n_mu_re_cors > 0) {
+        ADREPORT(eta_cor_mu);
+        ADREPORT(rho_mu_re);
+      }
     }
     // Missing-predictor mi() 2-point sum for a binary predictor (mirrors the
     // poisson MD9a); the response density is the shared leaf.
@@ -4901,6 +4952,85 @@ Type objective_function<Type>::operator()()
   }
 
   REPORT(sd_logscale_overflow_guard_hit);
+  if (use_mspl == 1) {
+    // Fixed-only Jeffreys information. The predictor includes the finite
+    // offset but deliberately excludes random effects. Scale the weights by
+    // their largest log value before the cross-product, then restore the
+    // determinant analytically; this avoids probability underflow along a
+    // separation ray without changing the exact criterion.
+    int p_mspl = beta_mu.size();
+    vector<Type> eta_fixed_mspl = offset_mu + X_mu * beta_mu;
+    vector<Type> log_weight_mspl(eta_fixed_mspl.size());
+    for (int i = 0; i < eta_fixed_mspl.size(); ++i) {
+      log_weight_mspl(i) =
+        log(weights(i) * trials(i)) -
+        logspace_add(Type(0.0), eta_fixed_mspl(i)) -
+        logspace_add(Type(0.0), -eta_fixed_mspl(i));
+    }
+    Type log_weight_scale_mspl = log_weight_mspl(0);
+    for (int i = 1; i < log_weight_mspl.size(); ++i) {
+      log_weight_scale_mspl = CppAD::CondExpGt(
+        log_weight_mspl(i), log_weight_scale_mspl,
+        log_weight_mspl(i), log_weight_scale_mspl);
+    }
+    matrix<Type> information_scaled_mspl(p_mspl, p_mspl);
+    information_scaled_mspl.setZero();
+    for (int i = 0; i < X_mu.rows(); ++i) {
+      Type w_scaled = exp(log_weight_mspl(i) - log_weight_scale_mspl);
+      for (int a = 0; a < p_mspl; ++a) {
+        for (int b = 0; b < p_mspl; ++b) {
+          information_scaled_mspl(a, b) +=
+            w_scaled * X_mu(i, a) * X_mu(i, b);
+        }
+      }
+    }
+    Type logdet_scaled_mspl = atomic::logdet(information_scaled_mspl);
+    Type mspl_jeffreys = Type(0.5) *
+      (logdet_scaled_mspl + Type(p_mspl) * log_weight_scale_mspl);
+
+    Type mspl_variance_negative_huber = Type(0.0);
+    Type mspl_rho = Type(0.0);
+    Type mspl_sech = Type(1.0);
+    Type mspl_log_sech = Type(0.0);
+    Type mspl_L11 = exp(log_sd_mu(0));
+    Type mspl_L21 = Type(0.0);
+    Type mspl_L22 = mspl_L11;
+    if (mspl_q == 1) {
+      mspl_variance_negative_huber =
+        drm_mspl_negative_huber(log_sd_mu(0));
+    } else if (mspl_q == 2) {
+      Type z = eta_cor_mu(0);
+      mspl_rho = tanh(z);
+      mspl_log_sech = drm_log_sech(z);
+      mspl_sech = exp(mspl_log_sech);
+      mspl_L11 = exp(log_sd_mu(0));
+      mspl_L21 = exp(log_sd_mu(1)) * mspl_rho;
+      mspl_L22 = exp(log_sd_mu(1) + mspl_log_sech);
+      // The paper penalty coordinates are (log L11, log L22, L21),
+      // not drmTMB's native (log SD1, log SD2, correlation eta).
+      mspl_variance_negative_huber =
+        drm_mspl_negative_huber(log_sd_mu(0)) +
+        drm_mspl_negative_huber(log_sd_mu(1) + mspl_log_sech) +
+        drm_mspl_negative_huber(mspl_L21);
+    }
+    Type mspl_log_objective_bonus = mspl_c_n *
+      (mspl_jeffreys + mspl_variance_negative_huber);
+    Type mspl_nll_penalty = -mspl_log_objective_bonus;
+    nll += mspl_nll_penalty;
+
+    REPORT(mspl_jeffreys);
+    REPORT(mspl_variance_negative_huber);
+    REPORT(mspl_log_objective_bonus);
+    REPORT(mspl_nll_penalty);
+    REPORT(mspl_rho);
+    REPORT(mspl_sech);
+    REPORT(mspl_log_sech);
+    REPORT(mspl_L11);
+    REPORT(mspl_L21);
+    REPORT(mspl_L22);
+    REPORT(information_scaled_mspl);
+    REPORT(log_weight_scale_mspl);
+  }
   nll = CppAD::CondExpGt(
     sd_logscale_overflow_guard_hit, Type(0.0), Type(R_PosInf), nll);
   return nll;
