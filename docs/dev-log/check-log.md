@@ -1,6 +1,36 @@
 # Check Log
 
 
+## 2026-08-09 — FOURTH 0.7.0 candidate frozen (`a8f7c479`); third invalidated by its own audit
+
+- Supersedes the entry below. Candidate `d04d0e88` passed `--as-cran` at Status 1 NOTE and was
+  frozen — then **deliberately invalidated under D-49** when a fresh adversarial audit of that
+  packet returned **4 SURVIVES / 3 FAILS** with 13 required corrections. Two of them touched
+  shipped bytes: `NEWS.md` never told users five vignettes stop shipping, and the cheatsheet's
+  full-size-map link still pointed at `blob/main/vignettes/function-map-cheatsheet.png`, which
+  would 404 once the move reached `main`. Same principle as the two prior invalidations: a
+  candidate is not worth keeping if keeping it means shipping a known defect.
+- The audit's most valuable finding was one nobody had noticed: **`R CMD check` builds
+  `vignettes/*.Rmd` and not `vignettes/articles/*.Rmd`**, so the vignette re-build now covers 32
+  documents rather than 37, and the R code in the five most code-dense documents — `figure-gallery`
+  alone is ~92 KB of plotting code — **is executed by nothing in the release gate**. Disclosed in
+  the packet; re-establishing that coverage is real follow-up work.
+- Also corrected: the ledger cited `RENDERED-SITE-0.7.0.md` as this candidate's rendered-site
+  evidence when its own line 3 names predecessor `da9b2d76`; a predecessor-era R-hub run id sat in
+  `compiled_diagnostics`; the claim-bearing log lived only in `/tmp`; `STALE-EVIDENCE-QUARANTINE.md`
+  had grown to cover the current packet and still said `DESCRIPTION 0.6.0`; and the installed-size
+  block was quoted but never adjudicated. Evidence is now durable under
+  `docs/dev-log/release/0.7.0-cran-gate/CANDIDATE-EVIDENCE/`.
+- Passed on the exact frozen tarball `a8f7c479…`, 4,190,882 bytes, 904 entries:
+  `R CMD check --as-cran --run-donttest` → **Status: 1 NOTE** (`New submission` only), 0 errors,
+  0 warnings, 0 `misspelled|invalid URI`; `inst/doc` **4.605 MB**; forbidden-path scan 0 hits;
+  re-hash from the final frozen path matching; `cran_release_gate.py --selftest` 14/14 fail closed,
+  then **READY FOR CLAIMED RUNG** at `tarball-clean`.
+- **Not claimed:** `platform-clean` — dispatched runs exist but **none at this candidate's source
+  `cc4f5baee`** — nor `submission-ready`, D-43, tag, release, or upload. Publication stays blocked
+  independently by D-117's withheld PASS and D-89.
+
+
 ## 2026-08-09 — third 0.7.0 candidate frozen (`d04d0e88`); the 5MB documentation risk resolved
 
 - Merged boundary surfacing into `claude/07-release-slice` (PR #961, base the slice, **not**

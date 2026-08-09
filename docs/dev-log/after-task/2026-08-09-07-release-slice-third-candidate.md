@@ -145,3 +145,53 @@ tree is clean — it is evidence that *that* trap did not fire.
 - **Not covered:** Windows/macOS vignette timing — no win-builder submission was made.
 - **Not tested:** that the absolute pkgdown URLs survive CRAN's URL check on a future
   `--as-cran` run against a live network; the local run reported 0 URI findings.
+
+---
+
+# Amendment — the third candidate was invalidated; a fourth was frozen
+
+Written after the adversarial verification step returned. The report above describes candidate
+`d04d0e88`; it is superseded, and the reason is worth keeping rather than editing away.
+
+## What the audit found
+
+Instructed to refute, a fresh-context auditor returned **4 SURVIVES / 3 FAILS** and 13 required
+corrections. The rung claim, artifact identity, size resolution, and check-log authenticity all
+held under attack — measured independently, not taken on trust. What failed was **disclosure**:
+
+1. **"No reader loses access" was false as written.** Measured against the installed candidate:
+   32 vignettes, not 37, and `vignette("model-workflow")` → "vignette not found".
+2. **`NEWS.md` said nothing about it**, so a user upgrading would discover the loss from a failed
+   `vignette()` call rather than the release notes. *(Ships → invalidates the candidate.)*
+3. **A correctness check was silently retired.** `R CMD check` builds `vignettes/*.Rmd` and not
+   `vignettes/articles/*.Rmd`, so the vignette re-build dropped from 37 documents to 32 and the R
+   code in the five most code-dense documents is now executed by nothing in the release gate.
+4. **"Reader access proved" proved discovery, not rendering** — no site has been built since the move.
+5. A missed cross-link, a stale rendered-site citation, a predecessor R-hub run id, evidence living
+   only in `/tmp`, a self-contradicting quarantine note, an unadjudicated installed size, and a dead
+   `[D-117]` link that resolved outside the repository.
+
+## What I did about it
+
+All 13 are applied. Items 2 and 5's cross-link touch shipped bytes, so candidate `d04d0e88` was
+**deliberately invalidated under D-49** — the third invalidation in this arc, and the first of one
+that had already passed the check — and candidate **`a8f7c479`** was built and re-checked from
+`cc4f5baee`: **Status: 1 NOTE**, 0 errors, 0 warnings, gate **READY FOR CLAIMED RUNG**.
+
+## The lesson, which is not the obvious one
+
+The obvious reading is "run the audit earlier". The real one is that **finding 3 was invisible to
+every check that passed.** `--as-cran` went from rebuilding 37 vignettes to 32 and reported Status
+1 NOTE both times; the guard suite passed; the gate went green. A check getting *cheaper* is not a
+signal any of those instruments emit. Only an adversary asking "what did this change stop
+verifying?" found it.
+
+**That generalises: when a change makes a check faster, ask what it stopped checking.** The
+after-task report above recorded the timing drop as a neutral fact and drew no conclusion from it.
+
+## Correction to §10 of the report above
+
+"Known residuals" should have listed the retired vignette-code coverage as a residual and did not,
+because I had not yet noticed it. It is now recorded in the freeze notes as cost 2 and is genuine
+follow-up work: the five relocated documents need their code executed by something — a site build
+in CI, or a test that knits them — before the next candidate claims more than `tarball-clean`.

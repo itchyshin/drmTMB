@@ -90,3 +90,23 @@ carries the fully-affirmative freeze packet with no trace of the invalidation at
   handing off.
 - No item routes to a domain reviewer (Fisher/Noether/Boole) — this reconciliation found no
   likelihood, math, or formula-grammar claim in scope.
+
+---
+
+## Resolution amendment — 2026-08-09, after the reconciliation ran
+
+This reconciliation ran **mid-flight**, while a rebuild was in progress, so four of its five
+drift/unclear items were transient. Each is recorded here with its disposition rather than left
+open. Nothing below revises the reconciliation's judgement; it was correct about the tree it saw.
+
+| Item | Disposition |
+| --- | --- |
+| **D1** — S11 adversarial verify had no artifact in the repo | **RESOLVED.** It existed but lived in a session scratchpad, which is exactly the durability failure the audit itself flagged. Now committed at [`../release-audits/2026-08-09-07-adversarial-freeze-audit.md`](../release-audits/2026-08-09-07-adversarial-freeze-audit.md), alongside the mechanical re-verify. Verdict: 4 SURVIVES / 3 FAILS, 13 required corrections. |
+| **D2** — packet still asserted `d04d0e88` was `tarball-clean` while HEAD said it was invalidated | **RESOLVED.** The packet, ledger, and check-log now describe the fourth candidate `a8f7c479`; `d04d0e88` appears only in the candidate-history table with its invalidation reason. |
+| **D3** — S3 (D-117 vignette surface) landed bundled inside the S5 commit | **ACCEPTED as adaptive.** The vignette move and the `conf.status` edit touched the same files in the same tree; splitting them would have produced a commit that could not be built or checked on its own. The bundling is recorded in the commit message and the after-task report. |
+| **D4** — two commits unpushed, branch state undeclared | **RESOLVED.** Pushed. |
+| **U1** *(unclear)* — S10's model tier not attributable from the record | **RESOLVED by disclosure.** The mechanical re-verify ran on **Haiku**, per the plan's routing (`FAN-OUT BUDGET: scout(Haiku)=2`). Recorded here because a tier that is not written down is not auditable — which was the reconciliation's point. |
+
+**The reconciliation earned its place.** D1 and D2 were real: without them the adversarial audit
+would have stayed a chat artifact, and the packet would have described a candidate that no longer
+existed. That is precisely the plan-vs-actual gap this step is for.
