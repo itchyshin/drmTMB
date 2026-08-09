@@ -3,7 +3,29 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-09 evening; 0.7.0 RELEASE SLICE ASSEMBLED, candidate NOT frozen).**
+> **▶ Latest — start here (2026-08-09 late; 0.7.0 CANDIDATE `a8f7c479` FROZEN at `tarball-clean`).**
+> A candidate exists and is clean: `R CMD check --as-cran --run-donttest` on the exact frozen tarball
+> gives **Status: 1 NOTE** (`New submission` only), 0 errors, 0 warnings, and the fail-closed gate
+> returns **READY FOR CLAIMED RUNG** at `tarball-clean` after its 14/14 selftest.
+> **The 5MB documentation blocker is RESOLVED** — `inst/doc` **11.105 → 4.605 MB**, tarball
+> **9,853,648 → 4,190,882** bytes — by moving the five heaviest vignettes to `vignettes/articles/`
+> (pkgdown-only). **Three costs are recorded, not glossed:** those five no longer ship, so
+> `vignette()`/`browseVignettes()` show 32 of 37 and offline readers lose them; `R CMD check`'s
+> vignette re-build now covers 32 documents, so **the R code in the five most code-dense documents is
+> executed by nothing in the release gate**; and pkgdown *discovery* is proved while *rendering* since
+> the move is not. **This is the FOURTH candidate — three were deliberately invalidated under D-49**,
+> the last (`d04d0e88`) after it had already passed the identical check, because an adversarial audit
+> found `NEWS.md` never told users the five vignettes stop shipping. That audit and the mechanical
+> re-verify are committed under `docs/dev-log/release-audits/2026-08-09-07-*`.
+> **NOT claimed:** `platform-clean` (dispatched runs exist but **none at this candidate's source**),
+> `submission-ready`, D-43, tag, release, upload, or merging PR **#959** — merging it *is* the release
+> action. **Publication is blocked independently of this candidate** by **D-117** (10-group gate ran;
+> D-43 panel 2-of-3 NOT-DONE, **PASS withheld**) and **D-89** (submission far away by choice).
+> Sibling lanes UNCHANGED and **PROTECTED**: #858, #937, #960, the stashes, the dirty primary, and all
+> foreign `codex/*` branches.
+> START HERE: [`docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md`](docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md).
+>
+> **▶ Prior (2026-08-09 evening; 0.7.0 RELEASE SLICE ASSEMBLED, candidate NOT frozen).**
 > Gate H is **CLEARED**: the separation lane merged as **DEFER** (PR #956, `8d441a32d`), touching no
 > package code. Stage A and most of Stage B are done on `claude/07-release-slice` (draft PR **#959** —
 > **do not merge; merging it is the release action**). `DESCRIPTION` is **0.7.0**; the offset arc (#958)
