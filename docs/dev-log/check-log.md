@@ -1,6 +1,50 @@
 # Check Log
 
 
+## 2026-08-09 — D-117 10-group profile coverage gate re-run at nrep = 100,000
+
+The 2026-08-04 gate scored PASS on every cell, but its worst cell cleared the floor
+only on the `+2 x MCSE` margin (raw coverage 0.9140 vs `ss_floor(10) = 0.918`), and
+that margin shrinks as `1/sqrt(n)`. `VERDICT.md:115` had already recorded the cell
+going BORDERLINE at `n >~ 19,700`. This arc paid the ~20 minutes of Totoro compute
+nobody had paid.
+
+| Slice | Check | Result |
+|---|---|---|
+| Pre-registration | committed `ab83638f5` **before any 100k fit** | ✅ predicted BORDERLINE / no discharge |
+| Smoke gate (S0) | cell 4, `--nrep=50`, one fit inspected past its guards | ✅ 50/50 converged, 0 NA |
+| Local vs Totoro parity | same seeds, `estimate_sd = 0.1919612`, `lower = 0`, `upper = 0.6268075` | ✅ identical |
+| Campaign | 4 cells x 100,000 reps, 90 cores, 16:09:52 -> 16:30:08 | ✅ all `rc=0` |
+| **Gate** | `score_d117_gate.R`, byte-identical to the frozen original | ✅ **OVERALL PASS** |
+| Cross-check (pre-registered) | one-sided LCB + exact `binom.test` | ✅ all 4 pass, p = 1 |
+| Prefix reproduction | r = 1..1000 vs banked 2026-08-04 | ✅ bit-exact, `max|diff| = 0.000e+00` |
+| Mechanical verify | 10 checks incl. SHA-256, NA counts, seed collisions | ✅ ALL PASS |
+| Focused tests | `d117-boundary-warning` + `profile-targets` | ✅ 880 PASS, 0 fail |
+
+**Result.** Pooled coverage **0.924800** (SE 0.000417) over 400,000 attempts; per-cell
+0.9229 / 0.9257 / 0.9255 / 0.9251, every one clearing 0.918 on **raw** coverage;
+100,000/100,000 finite intervals, convergence and `pdHess` 1.000 throughout.
+
+**The pre-registered prediction was WRONG and is recorded as such** in
+`PREDICTION-OUTCOME.md`. The 2026-08-04 value of 0.9140 was a low Monte-Carlo draw
+(+0.0089 = 1.00 x MCSE at n=1000). The `+2 x MCSE` artifact hypothesis is refuted by
+measurement.
+
+**Panel finding #3 inverts.** Against a like-for-like `g = 10` comparator (0.9370) the
+corner sits at z = **-1.586, not significant**; only against a comparator pooled across
+`g` (0.9400) is it significant (z = -3.490) — the exact structural error D-117 exists
+to catch.
+
+**Open caveat, stated not buried.** The boundary sub-population contributes
+85% / 45% / 78% / 1% of each cell's miss, conditional coverage
+0.8683 / 0.1021 / 0.2387 / 0.0000. `g10_n10_sd10` had zero boundary events at n=1000 and
+now shows 0/89 — newly visible. Not materially worse than 2026-08-04, shared with `lme4`
+on the same DGP and seeds, warned at point of use, and documented.
+
+Scope: the **A1 scalar Gaussian corner only** (`TRUE_BETA = 0.5`, residual `sigma = 0.7`,
+one mean formula, `g = 10`, ML). Raw CSVs (~195 MB) are not committed; SHA-256s and the
+regeneration command are recorded instead. Discharge remains the owner's decision.
+
 ## 2026-08-09 — live Workflow G engine=julia FE gate (#499)
 
 | Slice | Check | Result |
