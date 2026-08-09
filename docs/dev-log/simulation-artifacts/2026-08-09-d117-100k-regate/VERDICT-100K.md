@@ -116,7 +116,18 @@ and a miss can only be an **upper**-side miss (U < truth).
    pooled estimand and it belongs in front of the owner, not buried.
 
 Per `COMPARATOR.md`, this is **not a drmTMB defect**: `lme4::lmer` on the same DGP and seeds agreed
-on boundary incidence 4000/4000 and on conditional coverage to four decimal places. And `confint()`
+on boundary incidence 4000/4000 and on conditional coverage to four decimal places.
+
+> **Scope of that comparison — stated so it is not over-read.** The lme4 comparator ran on the
+> **2026-08-04 campaign at n = 1,000 per cell** (4,000 paired fits total). It was **NOT re-run at
+> n = 100,000**, so the parity claim rests on the smaller sample and is *not* independently
+> confirmed on the new data. It remains the best available attribution evidence — paired, same DGP,
+> same seeds, `REML = FALSE` to match drmTMB's ML default — and the prefix check shows the shared
+> 1,000 replicates are bit-identical between the two campaigns, so the comparison is against data
+> the 100k run genuinely contains. But 396,000 of the 400,000 new attempts have **no** lme4
+> counterpart. Re-running the comparator at 100k is a cheap, obvious follow-up and has not been done.
+
+And `confint()`
 now **warns** in this regime (`drmTMB_profile_boundary_warning`, verified by execution on this
 arc's own boundary seed; regression test `tests/testthat/test-d117-boundary-warning.R`, 9 PASS).
 
