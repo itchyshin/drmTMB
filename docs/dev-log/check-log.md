@@ -1,6 +1,44 @@
 # Check Log
 
 
+## 2026-08-09 — third 0.7.0 candidate frozen (`d04d0e88`); the 5MB documentation risk resolved
+
+- Merged boundary surfacing into `claude/07-release-slice` (PR #961, base the slice, **not**
+  `main`). That also closed two of the three documentation surfaces D-117 names; the third —
+  the `conf.status` enumerations in `first-week-intervals` and `model-workflow` — now lists
+  `bootstrap_at_boundary` too.
+- Resolved the open 5MB documentation risk the predecessor carried. Measured first rather than
+  guessed: of `inst/doc`'s 11.105 MB, HTML was 9.92 MB and the `.Rmd` sources only 0.920 MB, with
+  **87.9%** of `figure-gallery.html` and **98.0%** of `function-map-cheatsheet.html` being embedded
+  base64 images, so the lever was which rendered vignettes ship. Dropping the four largest reaches
+  only 5.07 MB — still over — so five are needed either way. Moved those five to
+  `vignettes/articles/` (`.Rbuildignore`d), which keeps them on the pkgdown site.
+  `inst/doc` 11.105 → **4.605 MB**; tarball 9,853,648 → **4,190,432** bytes; installed 31.2 → 24.7 Mb.
+- Collateral repaired: `_pkgdown.yml` article paths (an article is named by its path relative to
+  `vignettes/`, so `check_pkgdown()` aborted until the five became `articles/<stem>` — left
+  unfixed, the site build would have failed and dropped all five from the website); 15 cross-links
+  from staying vignettes rewritten to absolute pkgdown URLs; `function-map-cheatsheet.png` moved
+  with its vignette because the `.Rmd` includes it by relative path.
+- Three `tools/tests/test_capability_ledger.py` guards broke on the move and were repaired without
+  re-pinning anything: a hard-coded path, a nav-entry regex that disallowed `/`, and a
+  non-recursive vignette glob. The third mattered most — counting only shipped vignettes would have
+  silently turned a reader-coverage contract into a packaging contract, so the glob is now
+  recursive and the contract stays 37 = 37 = 37. **CI caught these; the local guard run did not,
+  because it was run before the move rather than after.**
+- Passed: `R CMD check --as-cran --run-donttest` on the exact frozen tarball — **Status: 1 NOTE**
+  (`New submission` only), 0 errors, 0 warnings, 0 `misspelled|invalid URI` hits, in-check
+  `testthat` 10m/11m OK; targeted `boundary-surfacing` + `offset-families` 45/45;
+  `python3 -m unittest discover -s tools/tests` 122 tests OK; `cran_release_gate.py --selftest`
+  14/14 negative controls fail closed, then **READY FOR CLAIMED RUNG** at `tarball-clean`;
+  `pkgdown::check_pkgdown()` no problems and `as_pkgdown()` still discovering 37 vignettes;
+  forbidden-path scan 0 hits; a full relative-link resolver finding 0 dead links across the 32
+  shipped vignettes; and an independent fresh-context re-measurement of 20 recorded claims,
+  20 match / 0 mismatch.
+- **Not claimed:** `platform-clean` (dispatched, not adjudicated), `submission-ready`, D-43, tag,
+  release, or upload. Publication stays blocked independently by D-117's withheld PASS and D-89.
+  Freeze packet: `docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md`.
+
+
 ## 2026-08-09 — `offset()` admitted for every univariate family (Tiers A+B)
 
 - Enabled a standard R `offset()` term in the `mu` formula of the ten remaining
