@@ -3,7 +3,27 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-09; two 0.7 lanes handed to Claude).**
+> **▶ Latest — start here (2026-08-09 evening; 0.7.0 RELEASE SLICE ASSEMBLED, candidate NOT frozen).**
+> Gate H is **CLEARED**: the separation lane merged as **DEFER** (PR #956, `8d441a32d`), touching no
+> package code. Stage A and most of Stage B are done on `claude/07-release-slice` (draft PR **#959** —
+> **do not merge; merging it is the release action**). `DESCRIPTION` is **0.7.0**; the offset arc (#958)
+> and the B1 dispatch fix (#957) are merged into that slice; the spelling, file-URI, README-install and
+> version-consistency defects are repaired. Two candidates were frozen and both **deliberately
+> invalidated** under D-49 — `d35c0b9e` because the README still pointed at the unsupported `v0.5.0`
+> tag, then the current source because boundary surfacing touches `R/`. **There is currently NO valid
+> frozen candidate.** OWED: merge `claude/boundary-surfacing` (pushed, **no PR**) into the slice, then
+> rebuild → re-check → re-freeze → re-dispatch platform (~30 min).
+> **The likeliest submission blocker is not a check failure:** `inst/doc` is **11.11 MB** against CRAN's
+> stated **5MB** documentation maximum, and `R CMD check` reports it only as an `INFO` line — a product
+> decision about which vignettes ship. **D-93 was DISCHARGED by Shinichi 2026-08-09; D-117's PASS stays
+> withheld.** Stop before D-43, `platform-clean`, final `cran-comments.md`, tag, release, or upload.
+> Sibling lanes are UNCHANGED — #858, #937, historical #947, the five stashes, the dirty primary, and
+> ~15 foreign `codex/*` branches with unpushed commits are all **PROTECTED**; read
+> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md) before claiming anything.
+> START HERE:
+> [`docs/dev-log/handover/2026-08-09-claude-handover-release-slice.md`](docs/dev-log/handover/2026-08-09-claude-handover-release-slice.md).
+>
+> **▶ Prior (2026-08-09; two 0.7 lanes handed to Claude).**
 > Shinichi transferred two distinct subjects to two separate Claude tasks: staged candidate preparation in
 > a **fresh clean lane**, and the existing complete/quasi-complete separation experiment
 > in its own worktree. Never cross-stage or collapse those lanes. The
