@@ -92805,3 +92805,8 @@ family that can discriminate an engine that improves on Laplace.
   reader-facing overclaim finding. This was a bounded review, not D-43.
 - `git diff --check`: PASS. No DESCRIPTION, `cran-comments.md`, release rung,
   D-43, compute, tag, candidate freeze, or CRAN action occurred.
+- PR #953 exact head `0f8f3e44e`: GitHub run 31297133410 PASS; Ubuntu package
+  check 37m34s and `os-matrix` 4s. Squash-merged to main as
+  `08c9f2330550f766534a7f1e1f910373963b2cf1` on 2026-08-09. The exact
+  merge-commit main run is 31298530499; its final verdict is recorded by the
+  closeout once complete.
