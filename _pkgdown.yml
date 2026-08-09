@@ -232,7 +232,7 @@ articles:
     contents:
       - drmTMB
       - capability-and-limits
-      - function-map-cheatsheet
+      - articles/function-map-cheatsheet
       - first-week-intervals
   - title: Capability and Model Choice
     contents:
@@ -259,11 +259,11 @@ articles:
       - meta-analysis
   - title: Model Checking and Practical Workflow
     contents:
-      - model-workflow
-      - distributional-outputs-and-adequacy
+      - articles/model-workflow
+      - articles/distributional-outputs-and-adequacy
       - convergence
       - large-data
-      - figure-gallery
+      - articles/figure-gallery
   - title: Structured Dependence
     contents:
       - structural-dependence
@@ -279,7 +279,7 @@ articles:
   - title: Simulation and Validation
     contents:
       - testing-likelihoods
-      - simulation-plot-grammar
+      - articles/simulation-plot-grammar
   - title: Developer Notes
     contents:
       - formula-grammar
