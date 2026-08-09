@@ -5,6 +5,22 @@ happened inside the release slice, as the release gate requires. A version
 number is a candidate identity, not evidence of acceptance — drmTMB is **not**
 on CRAN. These bullets freeze the default story readers should follow.
 
+## Five vignettes are now web-only, and no longer ship with the package
+
+* `figure-gallery`, `function-map-cheatsheet`, `simulation-plot-grammar`,
+  `model-workflow`, and `distributional-outputs-and-adequacy` are still
+  maintained and still published, but they are **no longer installed with the
+  package**. Read them at
+  <https://itchyshin.github.io/drmTMB/>. **This is a real
+  loss for offline readers:** `vignette("model-workflow")` now returns "vignette
+  not found", `browseVignettes("drmTMB")` lists 32 vignettes rather than 37, and
+  links to these five from other vignettes now require a network connection.
+* **Why.** Together these five were 6.5 MB of the 11.1 MB in `inst/doc`, against
+  CRAN's stated 5MB documentation maximum — and 88–98% of the worst of them was
+  embedded plot images, not text. Removing four of them was not enough to reach
+  the limit, so five had to go one way or another. Publishing them on the website
+  keeps them available to most readers; deleting them would not have.
+
 ## Boundary intervals are now flagged on every route
 
 * **`confint(method = "bootstrap")` warns at a variance-component or correlation

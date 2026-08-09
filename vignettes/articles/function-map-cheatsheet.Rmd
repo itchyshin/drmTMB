@@ -75,7 +75,7 @@ exhaustive family list.
 knitr::include_graphics("function-map-cheatsheet.png")
 ```
 
-[Open the full-size function map](https://github.com/itchyshin/drmTMB/blob/main/vignettes/function-map-cheatsheet.png)
+[Open the full-size function map](https://github.com/itchyshin/drmTMB/blob/main/vignettes/articles/function-map-cheatsheet.png)
 when reading on a small screen.
 
 ```{=html}
