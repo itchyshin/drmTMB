@@ -462,6 +462,31 @@ drm_mspl_wald <- function(unpenalized_object, opt) {
     stats::setNames(rep(NA_real_, n), par_names)
   }
 
+  ## Scale-free reading of the non-stationarity in design note 251 sec 3.
+  ##
+  ## `unpenalized_gradient_max_abs` is on the raw score scale, so its magnitude
+  ## depends on the parameterisation and on n -- a reader has no basis to judge
+  ## whether any particular value is large (Fisher, C5 review). The quadratic
+  ## form sqrt(g' V g) is dimensionless: it measures the unpenalized score in
+  ## units of its own standard error, i.e. approximately how many standard
+  ## errors the MSPL estimate sits from the unpenalized likelihood's stationary
+  ## point. Zero would mean the penalty moved nothing; large means the reported
+  ## Wald covariance is being evaluated far from where the likelihood is flat.
+  ##
+  ## Only computable when the gate passed, since it needs V.
+  score_distance <- NA_real_
+  if (spd && !is.null(diagnostics$gradient) &&
+      length(diagnostics$gradient) == n &&
+      all(is.finite(diagnostics$gradient))) {
+    quad <- tryCatch(
+      as.numeric(crossprod(diagnostics$gradient, vcov %*% diagnostics$gradient)),
+      error = function(e) NA_real_
+    )
+    if (is.finite(quad) && quad >= 0) {
+      score_distance <- sqrt(quad)
+    }
+  }
+
   list(
     hessian = hessian,
     vcov = vcov,
@@ -469,7 +494,9 @@ drm_mspl_wald <- function(unpenalized_object, opt) {
     spd = spd,
     rcond = rcond_value,
     status = status,
-    unpenalized_gradient_max_abs = diagnostics$gradient_max_abs
+    unpenalized_gradient = diagnostics$gradient,
+    unpenalized_gradient_max_abs = diagnostics$gradient_max_abs,
+    unpenalized_score_distance = score_distance
   )
 }
 
