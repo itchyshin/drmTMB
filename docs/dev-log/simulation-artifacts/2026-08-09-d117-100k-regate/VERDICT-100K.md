@@ -131,6 +131,43 @@ And `confint()`
 now **warns** in this regime (`drmTMB_profile_boundary_warning`, verified by execution on this
 arc's own boundary seed; regression test `tests/testthat/test-d117-boundary-warning.R`, 9 PASS).
 
+## 6b. The recovery half — measured at 100k (added after the D-43 panel)
+
+**This section exists because the panel caught a real omission.** D-117 asks for a
+*"recovery/coverage gate"*. Sections 1–6 measured **coverage only**; this document originally
+contained **zero** mentions of point-estimate bias, while the recovery numbers in circulation were
+still the n = 1,000 figures from 2026-08-04. The 400,000 rows needed to fix that were already on
+disk. Recomputed:
+
+| cell | truth | mean `estimate_sd` | rel. bias | MCSE | median bias | 2026-08-04 (n=1000) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `g10_n04_sd05` | 0.5 | 0.42120 | **−15.76%** | 0.122% | −13.06% | −16.90% |
+| `g10_n04_sd10` | 1.0 | 0.90690 | **−9.31%** | 0.081% | −9.66% | −9.12% |
+| `g10_n10_sd05` | 0.5 | 0.44870 | **−10.26%** | 0.088% | −10.45% | −9.05% |
+| `g10_n10_sd10` | 1.0 | 0.91664 | **−8.34%** | 0.074% | −9.11% | −9.16% |
+
+**All four differ from the n = 1,000 values**, and `g10_n10_sd05` moves a full point
+(−9.05% → −10.26%). Any statement about recovery should now cite these, not the 2026-08-04 figures.
+
+**Attribution is unchanged.** A downward bias in a variance component at 10 groups under ML is
+expected, not anomalous, and `COMPARATOR.md`'s paired lme4 run (`REML = FALSE`, same DGP, same
+seeds) agreed on point estimates to ~1e-6. This is the ML estimator, not a drmTMB defect. It is
+also the mechanism behind the upper-side miss asymmetry in §6: an SD biased low yields an interval
+whose upper endpoint too often falls short of the truth.
+
+**The log-SD statistic is not usable in the boundary-heavy cell — and the panel's own numbers prove
+it.** For `g10_n04_sd05`, mean log-ratio and median log-ratio diverge wildly (median ≈ **−14%**,
+mean anywhere from **−54%** to **−77%** depending purely on how the near-zero tail is floored).
+Two independent recomputations of the *same* statistic on the *same* 100,000 rows disagreed by more
+than 20 percentage points. That disagreement **is** the finding: with 49.7% of fits at
+`estimate_sd ≈ 0`, the mean on the log scale is dominated by an arbitrary floor and is not a
+meaningful summary. **Use the raw-scale bias and the median; do not quote a mean log-SD bias for
+this cell.**
+
+**Bias is not a function of `g` alone.** At fixed `g = 10` it roughly doubles when `n_per` drops
+from 10 to 4 at `sd = 0.5` (−10.26% → −15.76%). This mirrors the `ss_floor` observation in §7:
+within-group replication matters and the `g`-only floor does not price it.
+
 ## 7. What this does and does not establish
 
 **Establishes.** For the **A1 scalar Gaussian 10-group corner**, the profile random-effect-SD
@@ -161,9 +198,41 @@ estimand passes, and the boundary sub-population it pools over is poorly covered
 cells. That tension is real, is shared with `lme4`, is now warned about at the point of use, and is
 documented in `NEWS.md`, `man/confint.drmTMB.Rd` and the vignettes.
 
-A fresh D-43 panel — **with Bash and git**, unlike the 2026-08-04 panel whose Noether seat was
-dispatched Read/Grep/Glob-only and could not reach the branch — should adjudicate before the
-recommendation is acted on.
+### D-43 panel verdict — RAN 2026-08-09, and the composite claim is WITHHELD
+
+Three fresh reviewers, distinct lenses, each **with Bash and git** (the 2026-08-04 panel's Noether
+seat lacked them and its NOT-DONE was recorded as a dispatch error; that seat has now been taken
+properly).
+
+| seat | lens | model | verdict |
+| --- | --- | --- | --- |
+| Noether | mathematical consistency | Sonnet | **DONE** |
+| Grace | reproducibility / evidence chain | Sonnet | **NOT-DONE** |
+| Rose | claims and scope (load-bearing) | Opus | **NOT-DONE** |
+
+**2 of 3 NOT-DONE → under D-43 the claim is WITHHELD.** Precisely which claim matters:
+
+- **The coverage result SURVIVES.** Noether recomputed every mathematical claim from the raw rows —
+  coverage, MCSE, score, the `profile_covers` definition (0/400,000 mismatches), the LCB and
+  `binom.test`, both z-statistics, the boundary identity, the seed algebra — with **zero**
+  discrepancies. Rose independently re-scored all 400,000 rows bypassing `profile_covers` entirely
+  and reproduced every headline exactly, and verified the pre-registration was committed at
+  16:04:54 against a campaign starting 16:09:52 — genuinely unshaded.
+- **The composite claim FAILS**, on two blocking grounds, both now repaired above: this document
+  measured only the *coverage* half of D-117's "recovery/coverage" gate (fixed in **§6b**), and the
+  arc had shipped no after-task report closing panel finding #5 (now at
+  `docs/dev-log/after-task/2026-08-09-d117-discharge-100k-regate.md`). Grace's reproducibility
+  findings are answered in `PROVENANCE.md` and in §9's corrected commands.
+
+**A repaired claim has not been re-adjudicated.** These repairs were made *after* the panel
+reported; no reviewer has seen them. Under the arc's own "own the verifier" rule, the fixes do not
+retroactively convert the verdict — a re-run panel would be required for that, and has not
+happened.
+
+Two process faults of mine that the panel caught and that belong on the record: I **edited a
+document while the panel was reviewing it** (the lme4 scope fix, `423b30ac6`), creating a moving
+target — Noether noticed HEAD advancing mid-review; and the brief said 9 commits when there were
+11. Freeze the tree before dispatching reviewers.
 
 ## 9. Provenance and data
 
@@ -183,11 +252,29 @@ recommendation is acted on.
   9d56a179cd639fd6eac1dfc97f551cc886ef9cfd5427e42d043aaef6e330d0ed  g10_n10_sd10.csv
   ```
 
-  This omission is stated rather than silent. The campaign fully regenerates in ~20 minutes:
+  This omission is stated rather than silent. The campaign fully regenerates in ~20 minutes.
+  **Corrected after the D-43 panel found the earlier command did not work as written** — it omitted
+  the working directory (the harness lives in the **2026-08-04** directory, not this one) and the
+  `--repo=` argument needed unless drmTMB is installed:
 
   ```sh
-  Rscript --no-init-file d117_profile_gate.R --cell=<1|4|5|6> --nrep=100000 --cores=90 --outdir=OUT
+  cd docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate
+  R_PROFILE_USER=/dev/null Rscript --no-init-file d117_profile_gate.R \
+      --cell=<1|4|5|6> --nrep=100000 --cores=90 \
+      --outdir=<OUT> --repo=<path/to/drmTMB/worktree>
   ```
+
+  Scoring (the scorer reads `<its own dir>/results/`, and requires exactly 4 CSVs):
+
+  ```sh
+  mkdir -p score/results && cp <OUT>/*.csv score/results/
+  cp 2026-08-04-d117-10group-profile-gate/{score_d117_gate.R,a1_profile_common.R} score/
+  cd score && R_PROFILE_USER=/dev/null Rscript --no-init-file score_d117_gate.R
+  ```
+
+  Environment the numbers were produced under is recorded in `PROVENANCE.md` (R 4.5.3, TMB 1.9.21,
+  Matrix 1.7.5, reference BLAS/LAPACK, Totoro). Cross-R-version reproducibility is **not**
+  demonstrated by this arc.
 
   **Do not exceed `--nrep=100000`**: seeds are `20260727 + 100000*cell_i + r` with
   `cell_i ∈ {1,4,5,6}`, so cells 4/5 and 5/6 abut exactly at 100,000 and **collide at 100,001**.
