@@ -18999,6 +18999,7 @@ make_tmb_data_core <- function(spec) {
       isTRUE(gaussian_aggregation$enabled)
     return(list(
       model_type = 1L,
+      link_code = 0L,
       y = if (use_gaussian_aggregation) numeric(1) else spec$y,
       trials = if (use_gaussian_aggregation) numeric(1) else tmb_trials,
       weights = if (use_gaussian_aggregation) numeric(1) else spec$weights,
@@ -19091,6 +19092,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 3L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19162,6 +19164,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 17L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19222,6 +19225,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 4L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19294,6 +19298,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 5L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19365,6 +19370,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 16L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19426,6 +19432,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 10L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19503,6 +19510,7 @@ make_tmb_data_core <- function(spec) {
     re_coi <- spec$random$coi
     return(list(
       model_type = 15L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19570,6 +19578,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 14L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19627,6 +19636,7 @@ make_tmb_data_core <- function(spec) {
   if (identical(spec$model_type, "binomial")) {
     return(list(
       model_type = 18L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19685,6 +19695,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 13L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19755,6 +19766,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 6L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19825,6 +19837,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 8L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19898,6 +19911,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 7L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19969,6 +19983,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 11L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20027,6 +20042,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 12L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20098,6 +20114,7 @@ make_tmb_data_core <- function(spec) {
     re_sigma <- spec$random$sigma
     return(list(
       model_type = 9L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,

@@ -45,10 +45,23 @@ test_that("bridge family classifier recognises logit binomial, defers otherwise"
     drmTMB:::drm_julia_bridge_family_type(stats::binomial()),
     "binomial"
   )
-  # Non-logit binomial falls through to drm_family_type(), which rejects it.
-  expect_error(
-    drmTMB:::drm_julia_bridge_family_type(stats::binomial(link = "probit"))
-  )
+  # Non-logit binomial must be rejected BY THE BRIDGE ITSELF, with a
+  # bridge-specific message.
+  #
+  # This used to be a bare expect_error(), which passed for the wrong reason:
+  # the rejection came from the native drm_family_type() guard, and the bridge
+  # merely deferred to it. That was safe only while drmTMB was logit-only. Now
+  # that probit and cloglog are admitted natively, a deferring bridge would hand
+  # them to DRM.jl tagged "binomial" and DRM.jl would fit LOGIT -- a silently
+  # wrong model. Asserting the MESSAGE is what makes this test able to fail if
+  # anyone reinstates the deferral.
+  for (lk in c("probit", "cloglog")) {
+    expect_error(
+      drmTMB:::drm_julia_bridge_family_type(stats::binomial(link = lk)),
+      "DRM.jl",
+      fixed = TRUE
+    )
+  }
   # A family drm_family_type() does classify is passed straight through.
   expect_equal(
     drmTMB:::drm_julia_bridge_family_type(stats::gaussian()),
