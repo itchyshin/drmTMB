@@ -123,7 +123,7 @@ answers above are authoritative.
 | `lognormal` | `mu`, `sigma` | `mu` + `sigma` intercept | limited `phylo` / `relmat` on `mu` | inference-ready with caveats (`sigma` RE) |
 | `gamma` | `mu`, `sigma` | `mu` + `sigma` intercept | limited `phylo` / `relmat` | inference-ready with caveats (`sigma` RE) |
 | `poisson` / `nbinom2` | `mu`, `sigma` (NB2) | `mu` intercept + slope; NB2 `sigma` intercept | q1 structured `mu` (scoped) | inference-ready with caveats (unstructured) |
-| `binomial` | `mu` | `mu` intercept + slope | not generally available | inference-ready with caveats |
+| `binomial` | `mu` | `mu` intercept + slope | not generally available | inference-ready with caveats under ML; REML diagnostic-only |
 | `beta` / `beta_binomial` / `zero_one_beta` | family-specific `mu`/`sigma`/(atoms) | ordinary `mu` gates; atom gates scoped | mostly unavailable / recovery exceptions | inference-ready with caveats (scoped) |
 | `tweedie` / `skew_normal` / `cumulative_logit` | family-specific | ordinary `mu` intercept + slope | mostly unavailable | inference-ready with caveats (scoped) |
 | zero-inflated / hurdle / truncated counts | `mu`, `sigma`, `zi`/`hu` | limited diagnostic or recovery gates | mostly unavailable | interval-feasible or recovery-only |
@@ -151,7 +151,9 @@ above; the long caveat table stays on this page.
 | binomial / Poisson / beta / nbinom2 unstructured `mu` | Inference-ready | Point estimate and Wald interval in the tested designs (`n = 50`, `150`, or `500`); this is not a universal sample-size threshold |
 | nbinom2 unstructured location-scale (`mu` and `sigma ~ x`) | Inference-ready | Point estimate and Wald interval on both formulas |
 | beta unstructured location-scale, interior proportions | Inference-ready | Point estimate and Wald interval; exact 0 or 1 needs `zero_one_beta()` instead |
-| Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, cumulative-logit, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | Profile interval for the natural-scale slope SD, ML only, not `supported`, no Wald or point-bias claim. The tested floor differs by family, so do not generalize one number: skew-normal / Tweedie / zero-one-beta at `M >= 16` (true SD 0.50, ML-Laplace); binomial at `M >= 32` (true SD 0.6, ML-Laplace); cumulative-logit at `M >= 80` (true SD 0.50, adaptive Gauss-Hermite + Cox-Reid; its `M = 40` rung is exploratory, not the floor). Zero-one-beta is generator-qualified (see the caveat below) |
+| Ordinary independent `mu` random slope `(0 + x \| id)` -- binomial, skew-normal, Tweedie, zero-one-beta | Inference-ready with caveats | Profile interval for the natural-scale slope SD under ML only, not `supported`, with no Wald or point-bias claim. The tested floor differs by family, so do not generalize one number: skew-normal / Tweedie / zero-one-beta at `M >= 16` (true SD 0.50, ML-Laplace) and binomial at `M >= 32` (true SD 0.6, ML-Laplace). Zero-one-beta is generator-qualified (see the caveat below) |
+| Binomial ordinary `mu` random intercept or independent slope with `REML = TRUE` | Diagnostic-only | The joint-Laplace fit and uncertainty calculation agree with the overlapping `glmmTMB(REML = TRUE)` route in deterministic checks. Use this only to compare estimator behaviour; it is not recovery- or coverage-backed reporting permission. Fixed-only, correlated, labelled, structured, and missing-response binomial REML routes are unavailable |
+| Cumulative-logit ordinary `mu` random slope evaluated with internal AGHQ plus a Cox-Reid adjustment | Internal evidence only; no public fit/report route | The retained campaign is technical evidence about an internal estimator. `drmTMB()` does not expose that estimator, so the campaign does not authorize a cumulative-logit interval or scientific report from a public fitted object. Use the public ML-Laplace route only at its separately documented evidence tier |
 | Gamma `sigma` ordinary random intercept `(1 \| id)` | Inference-ready with caveats | ML-Laplace profile interval only for the exact iid, uncentred coverage fixture (true SD 0.40, 12 observations/group, `M = 32` or `64`); `M = 16` is borderline and `M = 8` is excluded |
 | Poisson / nbinom2 structured `mu` q1 -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only |
 | nbinom2 structured `sigma` -- `phylo()`, `spatial()`, `animal()`, `relmat()` | Recovery-only | Point estimate only; scale-targeting bug fixed in 0.4.0 |
@@ -159,9 +161,9 @@ above; the long caveat table stays on this page.
 | Bivariate Gaussian spatial q2 location-intercept REML -- matching labelled `spatial(1 | p | site, coords = coords)` in `mu1` and `mu2` | Recovery-only | Point estimates for both structured SDs and their latent correlation; requires intercept-only `sigma1`, `sigma2`, and `rho12`, complete pairs, unit weights, no known `meta_V()`, and no additional ordinary random, direct-SD, or `corpair()` layer; no interval or coverage promotion |
 | Bivariate Gaussian supplied-`K` relmat q2 location-intercept REML -- matching labelled `relmat(1 | p | id, K = K)` in `mu1` and `mu2` | Recovery-only (`point_fit_recovery`) | Point estimates for both structured SDs and their latent relatedness correlation; requires the same named `K`, group ordering, and label in both formulas, intercept-only `sigma1`, `sigma2`, and `rho12`, complete pairs, unit weights, and no additional random-effect, scale-side, `meta_V()`, direct-SD, or `corpair()` layer; no interval or coverage promotion |
 | Row-specific single-smoke slices: ordinal `mu ~ phylo()`, truncated-nbinom2 `hu ~ relmat()`, Student-t `nu ~ phylo()`, Student-t intercept-only `mu ~ spatial(1 | ...)`, Poisson slope-only `mu ~ spatial(0 + x | ...)`, Poisson labelled-scalar `mu ~ spatial()`, Poisson `mu ~ spatial(1 | ...) + (1 | id)`, Poisson `zi ~ spatial()`, fixed-`zi` Poisson `mu ~ spatial()`, and fixed-`zi` NB2 `mu ~ spatial()` | Diagnostic-only | Use only to confirm fit/extractor feasibility; no recovery, interval, or coverage claim |
-| Structured effects for lognormal, skew-normal, Tweedie, zero-one-beta | Not available | Use a Gaussian or basic count/proportion structured route, or fixed effects |
+| Structured effects for lognormal, skew-normal, and Tweedie; zero-one-beta routes outside the exact q1 gates | Not generally available | Zero-one-beta has point-recovery q1 intercept gates on `mu` and `sigma` for `phylo()`, `animal()`, `relmat()`, `spatial()`, and `phylo_interaction()`, plus selected q1 `zoi` and `coi` gates. Its `sigma`-`relmat()` and `sigma`-`spatial()` profile targets are interval-feasible, not coverage-calibrated. For other families or structures, use a named admitted route or fixed effects |
 | Gaussian pure-`mu` univariate REML -- `spatial()`, `animal()`, `relmat()` | Inference-ready with caveats | Unlabelled intercept or independent intercept plus one numeric slope, with `sigma ~ 1`; report a direct structured-SD profile interval only inside the tested discrete domains below |
-| REML for non-Gaussian families; non-phylogenetic mean-side REML outside the pure-`mu` Arc 1a boundary and the exact bivariate spatial and supplied-`K` relmat q2 intercepts above; all other bivariate non-phylogenetic structured REML | Not available (rejected by design) | Use `REML = FALSE` (maximum likelihood) |
+| REML outside the admitted Gaussian routes and ordinary binomial `mu` intercept/slope diagnostic | Not available (rejected by design) | Use `REML = FALSE` (maximum likelihood). In particular, fixed-only and structured binomial REML are unavailable |
 | `q4`/`q6`/`q8`/`q12` covariance interval promotion; derived-correlation intervals | Not available (planned) | Use the fitted point estimate; try `profile_targets()` for a direct target |
 
 :::
@@ -312,17 +314,20 @@ around. If your proportions can legitimately sit at the boundary, fit
 
 The following non-Gaussian families carry an inference-ready-with-caveats interval
 for the standard deviation of a single ordinary independent `mu` random slope,
-`(0 + x | id)`: binomial, cumulative-logit, skew-normal, Tweedie, and
+`(0 + x | id)`: binomial, skew-normal, Tweedie, and
 zero-one-beta. The claim is narrow and the same in shape across them -- a profile interval for
 the *natural-scale* slope SD, ML only, no Wald-interval or point-bias claim --
 but the tested floor and design differ by family and should not be generalized
 to a single number. Skew-normal, Tweedie, and zero-one-beta are certified at
 `M >= 16` groups (true slope SD 0.50) with the standard ML-Laplace profile.
-Binomial is certified at `M >= 32` (true SD 0.6). Cumulative-logit is certified
-at `M >= 80` (true SD 0.50) and reaches this tier through adaptive Gauss-Hermite
-quadrature with a Cox-Reid restricted likelihood rather than the Laplace
-approximation; its `M = 40` grid rung clears mechanically but is
-boundary-heavy and exploratory, so it is not the reporting floor.
+Binomial is certified at `M >= 32` (true SD 0.6).
+
+The retained cumulative-logit campaign used adaptive Gauss-Hermite quadrature
+with a Cox-Reid adjustment, but that estimator is package-private and cannot be
+requested through `drmTMB()`. The campaign remains useful technical evidence;
+it does not grant reporting permission to the public ML-Laplace fit. Do not
+report a cumulative-logit random-slope interval on the strength of that
+campaign.
 
 Zero-one-beta carries an extra caveat and is **generator-qualified**. Its
 coverage campaign was designed with a fixed 15% structural boundary mass and
@@ -373,6 +378,16 @@ correctly modifies scale with verified point-fit recovery -- but intervals
 and coverage remain out of scope, so this row stays recovery-only even
 after the fix.
 
+Zero-one-beta also has exact q1 structured-intercept gates. Point-recovery
+evidence covers `mu` under `phylo()`, `animal()`, `relmat()`, `spatial()`, and
+`phylo_interaction()`; `sigma` has the same five point-fit gates. The
+`sigma`-`relmat()` and `sigma`-`spatial()` direct profile targets are
+interval-feasible, not coverage-calibrated. Selected q1 `zoi` and `coi`
+structured intercepts have point-recovery evidence, but several provider
+combinations remain unavailable. These exact cells do not extend to slopes,
+labels, q2 or larger covariance blocks, simultaneous atom effects, REML, or a
+family-wide structured-effect claim.
+
 A further handful of row-specific slices sit at the same tier: beta `animal()`
 structured effects on `mu` and on `sigma`, Student-t
 `mu ~ spatial(1 + x | ...)`, and Gamma `mu ~ relmat()` (unlabelled intercept
@@ -400,8 +415,10 @@ debugging only, and do not report an interval or coverage claim.
 
 **Structured random effects outside the narrow gates above.** `drmTMB`
 does not currently accept structured `phylo()`, `spatial()`, `animal()`,
-or `relmat()` random effects for lognormal, skew-normal, Tweedie, or
-zero-one-beta families. Gamma is the one partial exception: it accepts
+or `relmat()` random effects for lognormal, skew-normal, or Tweedie families.
+Zero-one-beta accepts only the exact q1 structured-intercept cells described
+under Tier 2; it does not provide blanket structured support. Gamma is another
+partial exception: it accepts
 `relmat()` on `mu` (recovery-only, listed under Tier 2 above) but rejects
 `phylo()`, `spatial()`, and `animal()`. Try instead: model the same
 structural dependence through a Gaussian route (for example a log- or
@@ -409,9 +426,10 @@ logit-transformed response under `gaussian()`), fall back to the ordinary
 Poisson/nbinom2 structured routes described above for count data, or drop to
 fixed effects for the family you need while structured support catches up.
 
-**REML outside its Gaussian scope.** REML is implemented for Gaussian
-models only, and even inside Gaussian models it accepts a specific
-boundary rather than every structured shape. It accepts univariate
+**REML outside its admitted scope.** REML is implemented across a bounded
+Gaussian surface and a diagnostic-only ordinary binomial slice. Inside
+Gaussian models it accepts a specific boundary rather than every structured
+shape. It accepts univariate
 phylogenetic mean-side, scale-side, and matched q2 mean-and-scale blocks,
 plus univariate spatial, animal, and `relmat()` structured effects on the
 scale side, bivariate phylogenetic structured effects in every covariance
@@ -434,10 +452,18 @@ relatedness correlation as point estimates, not calibrated intervals.
 The relmat REML exception does not admit `Q = Q`, slopes, q4 or larger blocks,
 scale-side terms, extra random effects, incomplete response pairs, non-unit
 weights, nonconstant residual formulas, direct-SD models, `meta_V()`, or
-`corpair()`. Animal-model bivariate REML and every non-Gaussian family also
-remain rejected.
-Try instead: fit the same model with `REML = FALSE` (maximum likelihood); ML
-is the route to use for any model REML rejects.
+`corpair()`. Animal-model bivariate REML remains rejected.
+
+For binomial responses, `REML = TRUE` accepts one ordinary unlabelled `mu`
+random intercept or independent slope. That O2 joint-Laplace route is
+diagnostic-only: deterministic comparator and uncertainty checks show that it
+is wired correctly, but no recovery or coverage campaign authorizes a
+scientific estimate. A fixed-only binomial model has no random-effect variance
+component for REML to target, and correlated, labelled, structured, and
+missing-response binomial REML routes remain unavailable. Every other
+non-Gaussian family remains outside the public REML surface. Try instead: fit
+the same model with `REML = FALSE` (maximum likelihood); ML is the route to use
+for any model REML rejects or for reportable binomial inference.
 
 **Higher-order covariance promotion.** `q4`, `q6`, `q8`, and `q12`
 covariance-interval promotion, plus derived-correlation intervals more

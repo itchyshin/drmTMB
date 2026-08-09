@@ -51,7 +51,10 @@ missing rows.
 For Gaussian mixed models, use ML (`REML = FALSE`) when AIC or BIC compares
 different fixed-effect formulas. REML is useful for Gaussian variance-component
 estimation inside a fixed mean structure, but the restricted likelihood depends
-on the fixed-effect design that was integrated out.
+on the fixed-effect design that was integrated out. Use ML for binomial model
+selection and scientific reporting. The bounded binomial REML route is
+diagnostic-only and must not be used to compare different fixed-effect
+formulas.
 
 ```{r setup}
 library(drmTMB)
@@ -153,6 +156,11 @@ if (requireNamespace("lme4", quietly = TRUE)) {
   )
 }
 ```
+
+This example answers a Gaussian variance-component question. For a binomial
+response, keep `REML = FALSE` after selecting the location formula: the current
+ordinary-intercept and independent-slope REML routes have deterministic
+comparator evidence only, not recovery or coverage evidence for reporting.
 
 ## Tail Assumption
 

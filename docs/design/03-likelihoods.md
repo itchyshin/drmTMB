@@ -1568,9 +1568,14 @@ spatial/animal/relmat REML and selected ordinary q > 2 location blocks are
 separate pre-existing admissions. These admissions do not transfer interval,
 coverage, `supported`, or AI-REML status to neighbouring rows.
 
-REML still rejects non-Gaussian models, explicit missing-data routes, Gaussian
-row aggregation, sparse fixed-effect matrices, ordinary direct-`sd()` scale
-formulas, and any structured layout outside its exact row gate. Arc 1b-S1's one
+Outside Gaussian models, REML admits only one diagnostic binomial O2 slice:
+an ordinary unlabelled `mu` random intercept or independent slope. Fixed-only,
+correlated, labelled, structured, and missing-response binomial REML models
+remain rejected, as do all public REML routes for other non-Gaussian families.
+The internal cumulative-logit AGHQ plus Cox-Reid estimator is not exposed by
+`drmTMB()` and grants no public fit or reporting permission. REML also rejects
+Gaussian row aggregation, sparse fixed-effect matrices, ordinary direct-`sd()`
+scale formulas, and any structured layout outside its exact row gate. Arc 1b-S1's one
 non-phylogenetic bivariate exception is a matching labelled fixed-covariance
 spatial q2 location-intercept block in `mu1` and `mu2`, with intercept-only
 `sigma1`, `sigma2`, and `rho12`, complete response pairs, unit weights, no
@@ -1636,9 +1641,10 @@ shift.
 
 For model selection, REML is not the default. AIC/BIC comparisons across
 different fixed-effect formulas should use ML (`REML = FALSE`) because REML
-integrates over the fitted fixed-effect design. REML is the Gaussian
-mixed-model option for variance-component estimation within a fixed mean
-structure.
+integrates over the fitted fixed-effect design. REML is the reporting-grade
+Gaussian mixed-model option for variance-component estimation within a fixed
+mean structure. The bounded binomial O2 route is diagnostic-only and should
+not be used for model selection or scientific reporting.
 
 ## Implemented Meta-Analytic Gaussian Regression
 

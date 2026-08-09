@@ -31,24 +31,25 @@ for cumulative_logit only — the cutpoints `θ = theta_ord`. The RE-SD `σ = ex
 | # | Object | u integrated by | β,θ treated by | = / ≈ | Cert. role |
 |---|---|---|---|---|---|
 | **O1** | **Laplace ML** (current drmTMB) | Laplace | outer (optimized) | — | baseline; the −7.3% point |
-| **O2** | **Joint-Laplace REML** (un-gate the fold) | Laplace | folded into `random=` (joint Laplace) | **= `glmmTMB(REML=TRUE)`** | binomial nominal; ordinal *intermediate* |
-| **O3** | **Nested AGHQ + Cox–Reid-style profile** (external) | **AGHQ** | observed-information adjustment `−½log|I|` on the AGHQ-marginal | ≈ rolled reference | **ordinal nominal object** |
+| **O2** | **Joint-Laplace REML** (un-gate the fold) | Laplace | folded into `random=` (joint Laplace) | **= `glmmTMB(REML=TRUE)`** | binomial deterministic comparator; no calibration credit |
+| **O3** | **Nested AGHQ + Cox–Reid-style profile** (external) | **AGHQ** | observed-information adjustment `−½log|I|` on the AGHQ-marginal | ≈ rolled reference | internal ordinal campaign object; no public route |
 
 - **O2 is what un-gating the existing fold produces.** `drm_apply_estimator_spec()` appends `beta_mu`
   to `tmb_random_names` → TMB does one joint Laplace over `(u, β)`. That is *exactly* how
   `glmmTMB(REML=TRUE)` builds its restricted likelihood → **O2 ≡ glmmTMB REML**, a tight (~1e-6)
-  deterministic oracle. For **binomial** this removes ~42% of the ML variance bias and reaches nominal
-  because binomial's AGHQ integral error is negligible (high information).
+  deterministic oracle. In the historical scoping fixture, **binomial** O2 reduced the measured ML
+  variance bias by about 42%; that direction result did not establish generic debiasing, recovery,
+  interval calibration, or nominal coverage.
 - **O3 is the ordinal nominal object, and it is NOT O2.** For cumulative_logit the Laplace integral
   error over `u` is *not* negligible (~2.3 pt at M=40); O2 (Laplace-u) leaves it in. Reaching nominal
   needs AGHQ over `u` **and** the O3 observed-information adjustment — the **nested** construction of §2.
   The 2026-07-18 scoping ladder (Laplace −7.3% → +AGHQ −5.0% → +Cox–Reid −0.9%) is the O1→O3 path;
   **O2-alone for ordinal lands around −3%, still under nominal at small M.**
 
-**Consequence for the plan:** binomial certifies on **O2** (S2/S3, gate-relax + glmmTMB oracle);
-ordinal certifies on **O3** (S4b/S5/S6/S6b), which is an external nested build, not a TMB `random=`
-fold. The θ_ord TMB fold (O2-flavour ordinal) is at most a cheap *intermediate*, not the certified
-object — see §4.6.
+**Consequence for the current public boundary:** binomial O2 has deterministic comparator and
+finite-uncertainty evidence only. Ordinal O3 is an external nested build, not a TMB `random=` fold,
+and its retained campaign does not authorize a public `drmTMB()` estimator. The θ_ord TMB fold
+(O2-flavour ordinal) remains only an intermediate object — see §4.6.
 
 ---
 
@@ -244,8 +245,18 @@ on one M=30 draw, reproducing the scoping direction and the "Cox–Reid > AGHQ" 
 residual is large at M=30; this is a direction/ordering proof, NOT a coverage claim — coverage is S10.)
 
 **Status:** the package-private O3 implementation and its deterministic checks exist. Its `nodes`
-control is intentionally not part of `drmTMB()`. Coverage certification remains a separate,
-compute-gated decision and is not implied by this record.
+control is intentionally not part of `drmTMB()`. The retained cumulative-logit campaign is
+technical evidence about that private estimator, not evidence for the public ML-Laplace route.
+It therefore supplies no `drmTMB()` fit or reader-facing reporting permission. The public
+cumulative-logit route must be described only at the evidence tier earned independently by that
+callable estimator.
+
+The public O2 boundary is also narrower than numerical equivalence alone might suggest. Binomial
+`REML = TRUE` admits one ordinary unlabelled `mu` random intercept or independent slope and is
+classified as `diagnostic_only`: the deterministic `glmmTMB(REML = TRUE)` comparison and finite
+uncertainty checks establish correct wiring, not recovery or coverage. Fixed-only binomial REML has
+no admitted random-effect variance component; correlated, labelled, structured, and
+missing-response binomial REML remain outside the route. No general non-Gaussian REML claim follows.
 
 ## 8. Literature cited
 

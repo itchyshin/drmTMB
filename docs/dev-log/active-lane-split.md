@@ -1,7 +1,7 @@
 # drmTMB Active-Lane Split
 
-Meta: 2026-08-08 issue sweep complete · canonical baseline `origin/main@efb5af4fea0204a8d0ce381685b259029d040637`
-(#951 merged; prior board meta retained in git history).
+Meta: 2026-08-08 issue sweep landed · canonical baseline `origin/main@31da19f2819d383d4abb2c25ddbeb64d785fef01`
+(#952 merged unchanged; prior board meta retained in git history).
 Capability census is **not** restated here — read the ledger / Mission Control.
 
 This is the current coordination entrypoint. Read the row for the lane you own
@@ -12,6 +12,7 @@ before editing. Concurrent lanes are separated by subject, not by tool name.
 
 | Lane | Subject and state | Current authority | Ownership boundary |
 | --- | --- | --- | --- |
+| **0.7 capability truth (Codex)** | **ACTIVE** on `codex/07-capability-truth-reconcile` from merged `main@31da19f28`. Reconcile the earned binomial O2 REML routes and the internal-only cumulative-logit O3 evidence across runtime, ledger, reader docs, pkgdown, and Mission Control. | Approved G0–G8 ultra-plan in the active Codex goal; fresh worktree `/private/tmp/drmTMB-07-capability-truth`. | Fixed-only binomial REML must fail early; ordinary intercept/slope REML may reach only `diagnostic_only`; O3 remains technical evidence without public `drmTMB()` reporting permission. No DESCRIPTION/platform-clean/D-43/compute/CRAN work. Preserve every foreign lane below. |
 | **0.7 scope / packaging → owner decision** | **Issue sweep COMPLETE on `codex/07-issue-sweep-0808-exec` against `main@efb5af4f`.** Exact 29/29 ledger: #61 is the sole issue-derived procedural candidate blocker; #870 is the sole owner-policy decision; 27 are non-blockers. Five bounded comments posted; zero closures. Candidate-preparation verdict = **NO-GO pending separate owner authorization**. D-93/D-117 remain independent holds. DESCRIPTION **0.6.0**; current main is neither `tarball-clean` nor `platform-clean`. | [`release-audits/2026-08-08-0.7-issue-sweep.md`](release-audits/2026-08-08-0.7-issue-sweep.md) | Next owner call is whether to authorize a fresh exact-`0.7.0` candidate-preparation arc. This lane did not implement issues, bump DESCRIPTION, write platform-clean, run D-43/compute, finalize cran-comments, or upload. Preserve #858 / #937 / historical #947. |
 | **win-builder adjudication** | **MERGED** [#946](https://github.com/itchyshin/drmTMB/pull/946) → `5affb962b`. R-release + R-devel **1 NOTE**, CondExp ERROR **cleared** on fixed SHA `f9b9588e…` / 9818425. GHA never started on the PR (docs-only; owner authorized merge anyway). #945 closed (superseded). | after-task `2026-08-07-winbuilder-fixed-adjudication.md`; `platform/winbuilder-emails.md` | Closed for evidence land. Do not write `platform-clean` without owner word. |
 | **useful-0.7 (Cursor)** | **MERGED** [#942](https://github.com/itchyshin/drmTMB/pull/942) → `9e85ff91d`. | after-task `2026-08-07-useful-07-user-facing.md` | Closed for this arc. |

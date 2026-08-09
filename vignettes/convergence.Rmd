@@ -643,10 +643,11 @@ framework where the prior is explicit.
 ## Choosing between maximum likelihood and REML
 
 `drmTMB` fits by maximum likelihood (`REML = FALSE`) by default. Restricted
-maximum likelihood (`REML = TRUE`) is available for Gaussian and
-bivariate-Gaussian models, including phylogenetic ones. The choice affects only
-**variance components** -- phylogenetic and other random-effect standard
-deviations -- and mainly at small sample sizes.
+maximum likelihood (`REML = TRUE`) is available across a bounded Gaussian
+surface, including phylogenetic models. A diagnostic-only binomial slice also
+accepts one ordinary unlabelled location (`mu`) random intercept or independent
+slope. Fixed-only, correlated, labelled, structured, and missing-response
+binomial REML models remain unavailable.
 
 Why: maximum likelihood estimates a variance component as if the fixed effects
 were known, which biases the variance *downward* by a factor of order `p / n`
@@ -689,9 +690,18 @@ fit_reml <- drmTMB(form, data = dat, family = gaussian(), REML = TRUE)
 # Compare the variance-component estimates; the mean coefficients should agree.
 ```
 
-A REML fit is labeled `estimator = "REML"` and goes through the same
+A Gaussian REML fit is labeled `estimator = "REML"` and goes through the same
 `check_drm()`, profile, and standard-error diagnostics as an ML fit; REML does
 not change how you read them.
+
+For a binomial model, use `REML = FALSE` for scientific reporting. The admitted
+O2 binomial REML route agrees with `glmmTMB(REML = TRUE)` in deterministic
+joint-Laplace checks and returns finite uncertainty for the tested ordinary
+intercept and independent-slope fits, but it is only diagnostic evidence. It
+has no recovery or coverage campaign. An internal cumulative-logit estimator
+combining adaptive Gauss-Hermite quadrature with a Cox-Reid adjustment is not
+exposed through `drmTMB()` and does not authorize an interval from a public
+ordinal fit.
 
 ## Separate optimization from uncertainty
 
