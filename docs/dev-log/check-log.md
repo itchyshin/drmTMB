@@ -1,6 +1,50 @@
 # Check Log
 
 
+## 2026-08-08 — pkgdown function-map route restored and model-map deduplicated
+
+- Restored **Function map and cheat sheet** to the Get started menu and kept
+  **What can I fit today?** under Model Guides. Both source articles and the
+  function-map PNG remain tracked; no reader page or asset was deleted.
+- Synchronized the introductory learning-path table and the canonical design
+  inventory (37 vignettes, including `first-week-intervals` and
+  `bivariate-nongaussian`).
+- Added regression checks for exact navbar label-to-href pairs, intended
+  article-group membership, introductory route order, and the design inventory.
+- Passed: 64 capability-ledger Python tests, generator `--check`,
+  `pkgdown::check_pkgdown()`, focused renders of `model-map`, `drmTMB`, and
+  `function-map-cheatsheet`, and `git diff --check`. Pat, Rose, and Ada reviewed
+  the repaired reader/navigation surface independently.
+
+
+## 2026-08-08 — Reader boundary live + exact current-main tarball-clean
+
+- Merged PR [#948](https://github.com/itchyshin/drmTMB/pull/948) at
+  `ad475cc39f62f47a346c77aa17c3d20bf3fc9bae`. Post-merge main R-CMD-check
+  [31266713858](https://github.com/itchyshin/drmTMB/actions/runs/31266713858)
+  and pkgdown/Pages
+  [31268615909](https://github.com/itchyshin/drmTMB/actions/runs/31268615909)
+  passed. Live homepage, capability page, one-hop `ROADMAP.html` redirect,
+  search, sitemap, and desktop/mobile layouts were verified.
+- The public page **Can I fit and report this model?** separates fit, point,
+  named-interval, exact-scope, and fallback decisions. Its reader summary is
+  generated from the canonical capability ledger; generator check, 64 Python
+  tests, full source tests, tarball-contained rendering, and Pat/Florence/Grace/
+  Rose reviews passed.
+- Fresh source `ad475cc39` produced `drmTMB_0.6.0.tar.gz`, SHA-256
+  `2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea`,
+  size 9,831,204 bytes, 922 paths. Exact `R CMD check --as-cran
+  --run-donttest`: **0 ERROR, 0 WARNING, 1 NOTE** (`New submission` only).
+- A fresh Luna verifier reproduced the artifact/check identity. Its strict
+  read-only extraction attempt was preserved as FAIL because `mktemp` was
+  blocked; a narrowed scratch-write rerun freshly extracted and rendered the
+  capability article using tarball-contained inputs, SHA-256
+  `0cff046d1211e5b0c9baf442653d88e3854573643579ba9d27b469f571d9edbc`.
+- Highest proven rung: **`tarball-clean`**. Earlier Windows/platform evidence is
+  predecessor evidence only. DESCRIPTION remains 0.6.0; no `platform-clean`
+  write, CRAN upload, D-43 panel, or `cran-comments.md` finalization occurred.
+
+
 ## 2026-08-08 — Codex handover live verify (still tarball-clean)
 
 - Re-fetched `origin/main` = `5affb962b` (unchanged since #946). Ledger
@@ -92687,3 +92731,82 @@ family that can discriminate an engine that improves on Laplace.
   withheld 9. Census IF 182→187; FROZEN_CENSUS_POINT_FIT_RECOVERY 59→54.
 - Evidence: docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/
 - After-task: docs/dev-log/after-task/2026-08-05-135-trace-campaign.md
+
+## 2026-08-08 — 0.7 open-issue scope sweep
+
+- Execution base: `origin/main@efb5af4fea0204a8d0ce381685b259029d040637`
+  in `/private/tmp/drmTMB-07-issue-sweep-exec` on
+  `codex/07-issue-sweep-0808-exec`; PR #951 was already merged.
+- Live inventory: 29 open issues, exact equality with the approved T0 set;
+  no open-state delta.
+- Independent evidence passes: R0 Luna repo map; Rose batch A; Fisher batch B;
+  Grace batch C; root adjudication of #61, #680, #682, #802, and #870.
+- Final V1 Luna mechanical verifier: PASS — 29 rows, no missing/extra/duplicate
+  issues, 29/29 required fields, matching disposition/action totals, valid
+  local evidence paths, clean diff, and no forbidden changes.
+- V2 claim review: Rose PASS; Grace NEEDS REPAIR then accepted after the exact
+  predecessor-artifact and candidate-preparation wording repair.
+- Final Rose after-task audit: PASS; no concrete findings across the 12-section
+  report, ledger, receipts, pointers, check log, or protected boundaries.
+- Final counts: 1 `blocker_candidate` (#61), 1 `owner_decision` (#870),
+  27 `not_blocker`; actions = 1 `retain_blocker`, 1
+  `retain_owner_decision`, 21 `retain_post_0.7`, and 6
+  `retain_nonblocking_backlog`.
+- Issue comments posted and read back: #3
+  `5229063640`, #5 `5229064087`, #33 `5229064265`, #61 `5229064768`,
+  and #531 `5229064993`. No issue was closed.
+- The connector comment route returned HTTP 403 without mutation; authenticated
+  `gh issue comment --body-file` was the successful fallback.
+- No package code, tests, DESCRIPTION, `cran-comments.md`, platform evidence,
+  D-43 material, compute output, or release-rung state changed. Full package
+  tests and pkgdown were not rerun because this arc changes coordination and
+  audit documentation only.
+
+## 2026-08-08 — 0.7 capability-truth reconciliation
+
+- Base and lane: PR #952 merged unchanged at `31da19f28`; fresh branch
+  `codex/07-capability-truth-reconcile` in
+  `/private/tmp/drmTMB-07-capability-truth`. Protected PRs #858/#937,
+  historical #947, dirty primary/MSPL checkouts, foreign worktrees, and five
+  stashes remained outside the lane.
+- Runtime gate: fixed-only and multiple-term binomial REML reject before TMB
+  construction. Exactly one ordinary unlabelled `mu` random intercept or one
+  independent numeric slope is admitted. Correlated, labelled, all five
+  structured-provider q1 formulas, and missing-response neighbours reject.
+- Focused R verification:
+  `devtools::test(filter = "reml-binomial-coxreid|julia-sigma-phylo-reml")`
+  PASS; binomial file 33 expectations, Julia file PASS with one unavailable-
+  engine skip.
+- Full `devtools::test(reporter = "summary")`: PASS with no failures; 25
+  optional-engine/workflow skips and 72 expected numerical/deprecation
+  warnings were reported.
+- `devtools::check(args = "--no-manual", quiet = TRUE)`: 0 errors, 0 warnings,
+  2 environmental notes (`future file timestamps` could not verify network
+  time; inherited `xcrun_db` temp detritus). This is local evidence only and
+  does not earn `platform-clean`.
+- `python3 tools/capability_ledger.py --check`: PASS, 31 generated outputs.
+  `python3 -m unittest discover -s tools/tests -p 'test*.py'`: PASS, 122 tests.
+- C17/C14 final-source compatibility at source commit `2d1be7842`: 12/12
+  attempts PASS across `mc-0568`, `mc-0569`, and `mc-0576`; semantic
+  fingerprint remains
+  `8435987e3540e3b136c298d697508e74632b4f055490beb05d1408547015681d`.
+  New immutable receipt:
+  `docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv`.
+- Source-installed reader gate: current source installed to an isolated temp
+  library, then full `pkgdown::build_site(install = FALSE)` plus
+  `pkgdown::check_pkgdown()` PASS with `No problems found`. The first sandboxed
+  attempt failed only on blocked CRAN DNS and macOS Sass-cache access; the same
+  installed-source build passed outside the restricted sandbox.
+- Fisher initial read-only review: NEEDS REPAIR on five exact issues (O3 reader
+  leaks, missing exact-one-term runtime gate, missing five-provider structured
+  rejection evidence, overbroad uncertainty wording, and no grouped-binomial
+  admitted-route comparator). All five were repaired. Fisher final read-only
+  re-review: PASS with no remaining estimator-boundary, evidence, or current
+  reader-facing overclaim finding. This was a bounded review, not D-43.
+- `git diff --check`: PASS. No DESCRIPTION, `cran-comments.md`, release rung,
+  D-43, compute, tag, candidate freeze, or CRAN action occurred.
+- PR #953 exact head `0f8f3e44e`: GitHub run 31297133410 PASS; Ubuntu package
+  check 37m34s and `os-matrix` 4s. Squash-merged to main as
+  `08c9f2330550f766534a7f1e1f910373963b2cf1` on 2026-08-09. The exact
+  merge-commit main run is 31298530499; its final verdict is recorded by the
+  closeout once complete.

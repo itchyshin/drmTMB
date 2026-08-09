@@ -68,9 +68,9 @@
           "evidence": "tools/validate-mission-control.py"
         },
         {
-          "name": "Wire README, ROADMAP, NEWS, pkgdown, and Documenter claims to the matrix",
+          "name": "Wire README, internal roadmap, NEWS, pkgdown, and Documenter claims to the matrix",
           "status": "verified",
-          "evidence": "README.md, ROADMAP.md, NEWS.md, _pkgdown.yml, docs/dev-log/dashboard/README.md, and local Documenter source check in tools/validate-mission-control.py"
+          "evidence": "README.md, docs/dev-log/internal-roadmap.md, NEWS.md, _pkgdown.yml, docs/dev-log/dashboard/README.md, and local Documenter source check in tools/validate-mission-control.py"
         },
         {
           "name": "Add broader claim lint so public docs cannot drift from the matrix",
@@ -1005,7 +1005,7 @@
       "visual": "planned",
       "simulation": "partial",
       "release": "partial",
-      "next": "Wire README, ROADMAP, NEWS, pkgdown, Documenter, and dashboard claims to this matrix.",
+      "next": "Wire README, the internal roadmap, NEWS, pkgdown, Documenter, and dashboard claims to this matrix.",
       "evidence_url": "docs/design/168-r-julia-finish-capability-matrix.md"
     },
     {

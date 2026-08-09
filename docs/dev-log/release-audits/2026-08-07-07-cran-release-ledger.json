@@ -3,7 +3,7 @@
   "version": "0.6.0",
   "release_type": "first_submission",
   "target_cran_version": "0.7.0",
-  "note": "DESCRIPTION remains 0.6.0 (D-86). Highest proven rung remains tarball-clean. 2026-08-07 platform-clean attempt NOT READY: win-builder R-release and R-devel both Status 1 ERROR (test-guard-branch-continuity cannot find src/drmTMB.cpp). GHA 3-OS workflow_dispatch 31195187084 success. R-hub ASAN/UBSAN/gcc-ASAN OK; rchk noise; valgrind incomplete at ledger write. Evidence under docs/dev-log/release/0.7.0-cran-gate/platform/. STOP before platform-clean claim, DESCRIPTION 0.7 bump, and upload.",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). Exact current-main reader-boundary freeze ad475cc39 is tarball-clean: local R CMD check --as-cran --run-donttest has 0 ERROR, 0 WARNING, and the expected New submission NOTE. Earlier 2026-08-07 platform and fixed win-builder results belong to predecessor artifacts only. STOP before platform-clean claim, DESCRIPTION 0.7 bump, and upload.",
   "profile": {
     "compiled_code": true,
     "reverse_dependencies": false,
@@ -11,49 +11,49 @@
     "large_data_or_vignettes": true
   },
   "artifact": {
-    "path": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/drmTMB_0.6.0.tar.gz",
-    "sha256": "c787ee40b8895d15609e77dd8024c3520efb333c657ba5bc98bc0388aa156cbb",
-    "size_bytes": 9817096,
-    "source_commit": "459bd3fa9e3267985568ac960b819a00d129f950",
+    "path": "/private/tmp/drmTMB-07-reader-boundaries-tarball/drmTMB_0.6.0.tar.gz",
+    "sha256": "2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea",
+    "size_bytes": 9831204,
+    "source_commit": "ad475cc39f62f47a346c77aa17c3d20bf3fc9bae",
     "clean_worktree": true,
     "inventory_evidence": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release/0.7.0-cran-gate/tarball-inventory.txt"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/tarball-inventory.txt"
     },
     "forbidden_entries": []
   },
   "evidence": {
     "product_contract": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release-audits/2026-08-07-07-product-contract.md"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release-audits/2026-08-07-07-product-contract.md"
     },
     "rights_and_consent": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release-audits/2026-08-07-07-rights-skim.md"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release-audits/2026-08-07-07-rights-skim.md"
     },
     "current_cran_policy": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
     },
     "rendered_site": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release-audits/2026-08-07-07-rendered-site-evidence.md"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/after-task/2026-08-08-cran-reader-boundaries.md"
     },
     "local_as_cran": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
     },
     "incoming_feasibility": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release/0.7.0-cran-gate/00check.log"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/00check.log"
     },
     "installed_package": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
     },
     "timing": {
       "kind": "file",
-      "value": "/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
     }
   },
   "panel": {
@@ -76,5 +76,5 @@
     "public_check_page_evidence": {}
   },
   "clean_worktree": true,
-  "source_commit": "459bd3fa9e3267985568ac960b819a00d129f950"
+  "source_commit": "ad475cc39f62f47a346c77aa17c3d20bf3fc9bae"
 }

@@ -35,7 +35,8 @@ question is about which scale, weights, or known variance you are modelling
 rather than which family, read [Which scale are you
 modelling?](which-scale.html) first.
 
-The implementation roadmap lives in `docs/design/06-distribution-roadmap.md`.
+For current fit and reporting boundaries, use [Can I fit and report this
+model?](capability-and-limits.html).
 
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_V(V = V)`, while deprecated `meta_known_V(V = V)` remains a

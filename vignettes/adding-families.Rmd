@@ -381,7 +381,7 @@ minimum closure record should answer:
 - Which simulation, comparator, or independent likelihood checks passed?
 - Did `devtools::document()`, `devtools::test()`, `pkgdown::check_pkgdown()`,
   `pkgdown::build_site()`, and `devtools::check()` pass?
-- Which docs, roadmap entries, NEWS bullets, and known-limitations notes were
+- Which docs, future-work design entries, NEWS bullets, and known-limitations notes were
   synchronized?
 - What did not go smoothly?
 

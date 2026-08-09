@@ -556,6 +556,7 @@ or phylogenetic location effect through `sd()`.
 - Missing rows are removed when variables used by either formula are missing.
 - A fitted optimizer code is not enough: run `check_drm()`, inspect gradient
   and Hessian diagnostics, and use
-  [What can I trust?](capability-and-limits.html) before widening the claim.
+  [Can I fit and report this model?](capability-and-limits.html) before widening
+  the claim.
 - `sigma` is not a group random-effect SD. Use Part 2 for the separate
   `sd(group) ~ predictors` grammar.

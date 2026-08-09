@@ -43,6 +43,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `(1 + x1 + x2 | id)`. Larger q blocks are advanced, sample-size hungry fits;
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
+- Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
+  unlabelled location (`mu`) random intercept or independent slope. Its
+  joint-Laplace result and uncertainty agree with the overlapping
+  `glmmTMB(REML = TRUE)` calculation in deterministic checks, but no recovery
+  or coverage campaign authorizes scientific reporting. Fixed-only binomial
+  REML has no admitted variance component; correlated, labelled, structured,
+  and missing-response forms remain unavailable. Other non-Gaussian public
+  REML routes are not implemented. The retained cumulative-logit AGHQ plus
+  Cox-Reid campaign concerns a package-private estimator and supplies no
+  `drmTMB()` fit or reporting permission.
 - Residual-scale random intercepts, independent numeric random slopes, and
   UNLABELLED correlated intercept-slope blocks are implemented on log-`sigma` in
   the `sigma` formula as `sigma ~ x + (1 | id)`, `sigma ~ x + (0 + w | id)`, and
@@ -493,9 +503,10 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate cumulative-logit ordinal models are implemented for ordered
   responses with `family = cumulative_logit()`. The routine path supports a
   `mu` location formula, ordered cutpoints, a fixed latent logistic scale, and
-  ordinary `mu` random intercepts or independent numeric slopes. The exact
-  `mc-0227` independent-slope cell is inference-ready with caveats under its
-  recorded M>=80 design. One row-specific q=1
+  ordinary `mu` random intercepts or independent numeric slopes. The public
+  `mc-0227` independent-slope cell uses ML-Laplace and remains point-fit-
+  recovery only; its retained M>=80 O3 study is package-private technical
+  evidence with no public interval or reporting permission. One row-specific q=1
   `mu ~ phylo(1 | id, tree = tree)` intercept is
   also fitted at local point-fit/extractor grade. Correlated or labelled
   ordinary slopes, other structured providers, interval/coverage promotion for

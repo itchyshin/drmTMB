@@ -1,25 +1,18 @@
-# drmTMB 0.7 CRAN gate — tarball-clean freeze
+# drmTMB current-main 0.6.0 — tarball-clean freeze
 
-- **Freeze source commit:** `459bd3fa9e3267985568ac960b819a00d129f950` (merge of PR #938 onto `main`)
-- **Worktree:** `/Users/z3437171/local-scratch/worktrees/drmTMB-07-tarball` on `cursor/07-tarball-clean`
-- **Clean worktree at build:** yes (`git status --porcelain` empty)
-- **`.Rbuildignore`:** contains `^LOOP$` (verified on tip)
-- **Tarball:** `drmTMB_0.6.0.tar.gz` (DESCRIPTION remains 0.6.0; target CRAN version 0.7.0)
-- **SHA-256:** `c787ee40b8895d15609e77dd8024c3520efb333c657ba5bc98bc0388aa156cbb`
-- **Size:** 9817096 bytes
-- **Inventory:** `tarball-inventory.txt` (917 paths; no `LOOP` entries)
-- **Local CRAN lane:** `R CMD check --as-cran --no-manual` → **Status: 1 NOTE** (New submission only); 0 ERROR / 0 WARNING
-- **Logs:** `local-as-cran-check.log`, `00check.log`
-- **Highest proven rung (ledger):** `tarball-clean` (owner must authorize any
-  `platform-clean` advance even after ERROR-free win-builder evidence)
-- **Platform attempt (2026-08-07):** see `platform/PLATFORM-NOT-READY.md`. GHA 3-OS green
-  (`workflow_dispatch` run 31195187084); morning win-builder **1 ERROR** (CondExp
-  path); R-hub sanitizers OK / rchk noise / valgrind incomplete at first write.
-- **Path repair + fixed win-builder (2026-08-07):** CondExp `drm_src_path` on
-  `main` via #941. Fixed tarball SHA `f9b9588e…` (9818425) FTP 226 to R-release
-  + R-devel; result emails **1 NOTE** each
-  ([release](https://win-builder.r-project.org/BQVnXOH066rJ),
-  [devel](https://win-builder.r-project.org/qS15UqA2O00A)) — CondExp ERROR
-  **cleared**. Ledger claim **not** auto-advanced. No upload.
+- **Freeze source commit:** `ad475cc39f62f47a346c77aa17c3d20bf3fc9bae` (merge of PR #948 onto `main`)
+- **Worktree:** `/private/tmp/drmTMB-07-reader-boundaries-tarball` on `codex/07-reader-boundaries-tarball`
+- **Clean tracked worktree at build:** yes (`git status --porcelain` empty)
+- **Tarball:** `drmTMB_0.6.0.tar.gz` (DESCRIPTION remains 0.6.0)
+- **SHA-256:** `2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea`
+- **Size:** 9,831,204 bytes
+- **Inventory:** 922 paths; capability article and generated summary present; no root roadmap, `docs/dev-log`, tools, scratch, pkgdown-site, VCS, AGENTS, or CLAUDE paths
+- **Local CRAN-shaped check:** `R CMD check --as-cran --run-donttest` → **Status: 1 NOTE** (`New submission` only); 0 ERROR / 0 WARNING
+- **Installed size:** 31.2 MB; `doc` 11.3 MB, `libs` 13.6 MB, `R` 3.0 MB, `sim` 1.9 MB
+- **Exact-tarball exercises:** installation, tests, examples, installed vignettes, vignette rebuild, PDF/HTML manuals, and temp cleanup all passed
+- **Independent verification:** fresh Luna-medium verifier reproduced identity/check values; strict read-only extraction was blocked and preserved as FAIL, then a scratch-write-only rerun freshly extracted and rendered `capability-and-limits.Rmd` from package-contained inputs, output SHA-256 `0cff046d1211e5b0c9baf442653d88e3854573643579ba9d27b469f571d9edbc`
+- **Live M1 evidence:** PR #948 merged; main R-CMD-check run `31266713858` and pkgdown/Pages run `31268615909` green; deployed capability page, redirect, search, sitemap, and mobile/desktop surfaces verified
+- **Highest proven rung:** `tarball-clean`
+- **Next unproven rung:** `platform-clean`, deliberately deferred to the real `0.7.0` candidate and requiring Shinichi's authorization before any ledger write
 
-Do not commit the `.tar.gz` binary (root `/*.tar.gz` is gitignored).
+Earlier fixed win-builder and platform evidence belongs to predecessor artifacts. It does not prove this tarball. Do not commit the tarball binary, bump DESCRIPTION, finalize `cran-comments.md`, write `platform-clean`, or upload to CRAN in this lane.

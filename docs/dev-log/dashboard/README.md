@@ -71,7 +71,7 @@ evidence fields, and the dashboard matrix has the same number of rows as
 100-row finish-run ledger in `finish-100-slices.tsv`, validates the guarded q4
 target and estimator inventory in `q4-target-inventory.tsv`, validates the
 location/scale `phylo()` balance inventory in
-`phylo-balance-inventory.tsv`, checks that README, ROADMAP, NEWS, pkgdown
+`phylo-balance-inventory.tsv`, checks that README, the internal roadmap, NEWS, pkgdown
 navigation, this dashboard README, and any local
 Documenter.jl sources link back to
 `docs/design/168-r-julia-finish-capability-matrix.md`, and rejects
@@ -287,7 +287,8 @@ only. It does not authorize coverage, change support-cell status, create
 public-support wording.
 The same generator writes
 `docs/dev-log/release-audits/q-series-v1-release-status.md`, the
-release-facing summary that `README.md`, `NEWS.md`, `ROADMAP.md`, and
+release-facing summary that `README.md`, `NEWS.md`,
+`docs/dev-log/internal-roadmap.md`, and
 `docs/dev-log/known-limitations.md` should cite while v1.0 wording is being
 prepared. Its progress-accounting section reports row percentages for the
 practical v1.0 surface, Gaussian core, basic-distribution recovery, exact

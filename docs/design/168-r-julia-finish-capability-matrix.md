@@ -30,7 +30,7 @@ evidence is reconciled.
 | Area | Engine | R bridge | Point estimates | Wald CI | Profile CI | Bootstrap CI | Docs/article | Visual | Simulation | Release gate | Next gate |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Dashboard and issue ledger | covered | partial | covered | unsupported | unsupported | unsupported | covered | covered | unsupported | partial | Post-#635/#295 evidence now includes direct DRM.jl smoke evidence and a Julia-via-R clean-main bridge-test audit, while keeping bridge-row promotion separate. Keep `status.json`, `sweep.json`, check-log, and after-task notes synchronized with issues. |
-| Master capability matrix | partial | partial | partial | partial | partial | partial | partial | planned | partial | partial | Wire README, ROADMAP, NEWS, pkgdown, Documenter, and dashboard claims to this matrix. |
+| Master capability matrix | partial | partial | partial | partial | partial | partial | partial | planned | partial | partial | Wire README, `docs/dev-log/internal-roadmap.md`, NEWS, pkgdown, Documenter, and dashboard claims to this matrix. |
 | R-Julia bridge gate | partial | experimental | partial | planned | partial | partial | covered | covered | partial | planned | `drmTMB#544` is closed after the generated gate registry, capability comparison, docs-drift guard, and dashboard rendering landed. The clean-main bridge audit removed stale local DRM.jl and Julia-home test defaults; newer structured-RE evidence now banks q1 mean-phylo Route A ML parity, q1 sigma-only phylo ML parity, q1 matched `mu` plus `sigma` phylo ML parity, q1 `spatial()` mean-side ML parity via native fixed-range K, q1 `relmat()` mean-side ML parity, q1 `animal()` mean-side ML parity, q1 Poisson `phylo()` ML/Laplace parity, q1 unsupported-route preflight errors, q1 coefficient-scale maps, the q1 acceptance gate, the q2 payload-boundary contract, q2 payload provenance, q2 phylo direct/R-via-Julia fixture evidence, q2 animal and relmat direct/R-via-Julia known-covariance fixture evidence, and q2 spatial fixed-covariance direct evidence as separate row-specific fixtures. Future bridge work still needs row-specific parity issues before promoting any R-gated Julia-covered cell. |
 | Gaussian phylogenetic SD target | partial | experimental | partial | partial | partial | partial | partial | planned | partial | planned | Native R/TMB now has q4 target inventory and endpoint-budget status rows, but promotion still waits for native R, R-Julia bridge, and direct Julia point estimate plus CI/status parity in one row; use `drmTMB#555` for the Ayumi q4 status harness. |
 | Random slopes | partial | planned | partial | partial | planned | planned | partial | planned | partial | planned | Fixed-effect likelihoods first, independent slopes second, correlated slopes third, structured slopes last. |
@@ -222,7 +222,7 @@ weakly identified cells cannot collapse into one status word.
 
 `tools/validate-mission-control.py` is the local guard for this matrix. It
 checks dashboard status counts and registry schemas, then checks that README,
-ROADMAP, NEWS, pkgdown navigation, the dashboard README, and any local
+the internal roadmap, NEWS, pkgdown navigation, the dashboard README, and any local
 Documenter.jl source files link back to this claim registry. It also rejects
 public-facing "release-ready" wording outside the release-gate row and rejects
 reserved `engine_control` language until a supported public control surface has

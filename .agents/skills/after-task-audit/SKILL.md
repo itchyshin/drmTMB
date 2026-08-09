@@ -29,7 +29,7 @@ coherent story after code changes.
    evidence, error recoverability, and over-bulleted prose.
 10. For family, formula-grammar, diagnostic, or implemented-scope changes,
     check the status inventory explicitly: `README.md` current status,
-    `ROADMAP.md`, `NEWS.md`, `docs/dev-log/known-limitations.md`,
+    `docs/dev-log/internal-roadmap.md`, `NEWS.md`, `docs/dev-log/known-limitations.md`,
     `docs/design/01-formula-grammar.md`, `vignettes/formula-grammar.Rmd`, and
     `_pkgdown.yml` when navigation should change. Record the exact `rg`
     patterns used; do not write only "stale-wording scans".
@@ -46,8 +46,8 @@ Use task-specific searches. Common `drmTMB` patterns:
 
 ```sh
 rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]" .
-rg "full.*rejected|block.*rejected|only diagonal|planned.*implemented" README.md ROADMAP.md NEWS.md docs vignettes
-rg "rho12|sigma1|sigma2|sd\\(" README.md ROADMAP.md docs vignettes R tests
+rg "full.*rejected|block.*rejected|only diagonal|planned.*implemented" README.md docs/dev-log/internal-roadmap.md NEWS.md docs vignettes
+rg "rho12|sigma1|sigma2|sd\\(" README.md docs/dev-log/internal-roadmap.md docs vignettes R tests
 ```
 
 Generated pkgdown pages can also contain stale text after a site build:

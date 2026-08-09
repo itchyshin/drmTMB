@@ -5,9 +5,11 @@ from __future__ import annotations
 import importlib.util
 import copy
 import csv
+import re
 import subprocess
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 
@@ -18,6 +20,7 @@ SPEC = importlib.util.spec_from_file_location(
 assert SPEC and SPEC.loader
 ledger = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ledger)
+INTERNAL_ROADMAP = ROOT / "docs" / "dev-log" / "internal-roadmap.md"
 
 
 class CapabilityLedgerTests(unittest.TestCase):
@@ -102,15 +105,75 @@ class CapabilityLedgerTests(unittest.TestCase):
         }
         self.assertEqual(len(source_ids), ledger.C14_BOUNDARY_COUNT)
         self.assertTrue(source_ids <= set(by_id))
-        self.assertFalse(any(
-            by_id[cell_id]["capability_status"] == "implemented"
-            for cell_id in source_ids
-        ))
+        self.assertEqual(
+            {
+                cell_id for cell_id in source_ids
+                if by_id[cell_id]["capability_status"] == "implemented"
+            },
+            ledger.CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES,
+        )
         for cell_id in source_ids:
             row = by_id[cell_id]
+            if cell_id in ledger.CAPABILITY_TRUTH_C14_IMPLEMENTED_OVERRIDES:
+                self.assertEqual(row["work_status"], "verified")
+                self.assertEqual(row["evidence_tier"], "diagnostic_only")
+                continue
             self.assertEqual(row["capability_status"], "rejected_by_design")
             self.assertEqual(row["work_status"], "deferred")
             self.assertEqual(row["evidence_tier"], "none")
+
+    def test_07_capability_truth_cells_are_exact_and_evidence_bound(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        evidence = {row["evidence_id"]: row for row in self.evidence}
+        expected = {
+            "mc-0058": ("rejected_by_design", "deferred", "none", "ev-mc-0058-capability-truth-rejection"),
+            "mc-0060": ("implemented", "verified", "diagnostic_only", "ev-mc-0060-capability-truth-o2"),
+            "mc-0062": ("implemented", "verified", "diagnostic_only", "ev-mc-0062-capability-truth-o2"),
+            "mc-0068": ("rejected_by_design", "deferred", "none", "ev-mc-0068-capability-truth-rejection"),
+            "mc-0227": ("implemented", "verified", "point_fit_recovery", "ev-mc-0227-arc2b"),
+        }
+        for cell_id, state in expected.items():
+            row = by_id[cell_id]
+            self.assertEqual(
+                tuple(row[field] for field in (
+                    "capability_status", "work_status", "evidence_tier",
+                    "primary_evidence_id",
+                )),
+                state,
+            )
+            self.assertEqual(row["tranche_id"], "07-capability-truth")
+            self.assertEqual(row["updated_date"], "2026-08-08")
+
+        for cell_id in ("mc-0060", "mc-0062"):
+            comparator = evidence[f"ev-{cell_id}-capability-truth-o2"]
+            self.assertEqual(comparator["evidence_class"], "external_comparator")
+            self.assertIn("glmmTMB", comparator["run_id"])
+            self.assertIn("WEAK INDEPENDENCE", comparator["claim_boundary"])
+            self.assertIn("same joint-Laplace", comparator["claim_boundary"])
+
+        self.assertIn(
+            "unavailable through drmTMB()",
+            evidence["ev-mc-0227-o3"]["claim_boundary"],
+        )
+        transitions = {row["transition_id"] for row in self.transitions}
+        self.assertEqual(
+            {
+                f"tr-{cell_id}-07-capability-truth"
+                for cell_id in ledger.CAPABILITY_TRUTH_CELL_IDS
+            } - transitions,
+            set(),
+        )
+
+    def test_internal_o3_evidence_cannot_grant_public_reporting_permission(self):
+        cells = copy.deepcopy(self.cells)
+        row = next(item for item in cells if item["cell_id"] == "mc-0227")
+        row["primary_evidence_id"] = "ev-mc-0227-o3"
+        row["evidence_tier"] = "inference_ready_with_caveats"
+        with self.assertRaisesRegex(
+            SystemExit,
+            "internal estimator evidence grants public reporting permission",
+        ):
+            ledger.validate(cells, self.evidence, self.transitions)
 
     def test_c14_structured_zero_one_beta_leaves_preserve_q2plus_boundaries(self):
         by_id = {row["cell_id"]: row for row in self.cells}
@@ -369,14 +432,13 @@ class CapabilityLedgerTests(unittest.TestCase):
         by_id = {row["cell_id"]: row for row in model}
         evidence_by_id = {row["evidence_id"]: row for row in self.evidence}
 
-        # implemented 337 -> 339: Arc 4b's mc-0207 split adds two new
-        # implemented leaves (mc-0715, mc-0716); rejected_by_design and
-        # not_implemented are untouched since the split changes evidence_tier,
-        # not capability_status.
+        # Arc 4b raised implemented 337 -> 339. The exact 0.7 capability-truth
+        # reconciliation then corrects the two C14 false negatives mc-0060 and
+        # mc-0062, so implemented becomes 341 and rejected_by_design becomes 348.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -418,11 +480,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             for cell_id in ("mc-0199", "mc-0672", "mc-0673")
         }
 
-        # implemented 337 -> 339: Arc 4b's mc-0207 split (see above).
+        # Arc 4b plus the exact two-row 0.7 capability-truth override (see above).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 339, "not_implemented": 10, "rejected_by_design": 350},
+            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -513,7 +575,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         # this total. Recounted directly from cells.tsv.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            55,
+            56,
         )
 
         by_id = {row["cell_id"]: row for row in model}
@@ -785,6 +847,260 @@ class CapabilityLedgerTests(unittest.TestCase):
         second = ledger.outputs(self.cells, self.evidence)
         self.assertEqual(first, second)
 
+    def test_internal_roadmap_replaces_root_roadmap(self):
+        self.assertFalse((ROOT / "ROADMAP.md").exists())
+        self.assertTrue(INTERNAL_ROADMAP.is_file())
+        self.assertNotIn("^ROADMAP\\.md$", (ROOT / ".Rbuildignore").read_text())
+        live_pointers = (
+            ROOT / "docs/design/62-implementation-map-slices-303-310.md",
+            ROOT / "docs/design/69-comprehensive-function-page-figure-audit.md",
+            ROOT / "docs/design/168-r-julia-finish-capability-matrix.md",
+            ROOT / "docs/design/180-r-julia-100-slice-finish-run.md",
+            ROOT / "docs/dev-log/dashboard/README.md",
+            ROOT / "docs/dev-log/dashboard/status.json",
+        )
+        for path in live_pointers:
+            self.assertNotIn("ROADMAP.md", path.read_text(), str(path))
+            self.assertNotRegex(path.read_text(), r"\bREADME, ROADMAP\b", str(path))
+
+    def test_reader_summary_is_model_surface_only_and_reconciles_selected_routes(self):
+        summary = ledger.reader_summary_value(self.cells)
+        model = [row for row in self.cells if row["axis"] == "model_surface"]
+        by_id = {row["cell_id"]: row for row in model}
+
+        self.assertEqual(summary["ledger_updated"], ledger.ledger_updated_date(self.cells))
+        self.assertEqual(summary["model_surface_total"], len(model))
+        self.assertEqual(
+            summary["runtime_counts"],
+            dict(Counter(row["capability_status"] for row in model)),
+        )
+        self.assertEqual(
+            summary["evidence_counts"],
+            dict(Counter(
+                row["evidence_tier"]
+                for row in model
+                if row["capability_status"] == "implemented"
+            )),
+        )
+        self.assertEqual(
+            [row["cell_id"] for row in summary["rows"]],
+            [spec["cell_id"] for spec in ledger.READER_SUMMARY_SPECS],
+        )
+        for reader_row in summary["rows"]:
+            source = by_id[reader_row["cell_id"]]
+            self.assertEqual(reader_row["ledger"]["axis"], "model_surface")
+            for field, value in reader_row["ledger"].items():
+                self.assertEqual(value, source[field])
+            for field in (
+                "fit_permission", "point_report_permission",
+                "interval_method_report_permission", "scope_caveat", "fallback",
+            ):
+                self.assertTrue(reader_row[field].strip(), field)
+            if (
+                source["capability_status"] != "implemented"
+                or source["evidence_tier"] in {"none", "diagnostic_only"}
+            ):
+                self.assertGreater(len(reader_row["fallback"]), 40)
+                self.assertRegex(reader_row["fallback"].lower(), r"\b(use|fit|reduce)\b")
+
+    def test_reader_summary_derives_date_and_counts_without_manual_constants(self):
+        changed = copy.deepcopy(self.cells)
+        changed[0]["updated_date"] = "2099-12-31"
+        extra = copy.deepcopy(changed[0])
+        extra["cell_id"] = "reader-summary-test-only"
+        changed.append(extra)
+
+        summary = ledger.reader_summary_value(changed)
+        self.assertEqual(summary["ledger_updated"], "2099-12-31")
+        self.assertEqual(summary["model_surface_total"], 1 + sum(
+            row["axis"] == "model_surface" for row in self.cells
+        ))
+
+    def test_reader_summary_fails_when_canonical_claim_boundary_drifts(self):
+        changed = copy.deepcopy(self.cells)
+        selected = next(row for row in changed if row["cell_id"] == "mc-0061")
+        selected["claim_boundary"] = "Contradictory replacement boundary"
+        with self.assertRaisesRegex(SystemExit, "Reader summary scope is stale"):
+            ledger.reader_summary_value(changed)
+
+    def test_legacy_supported_label_does_not_authorize_an_interval(self):
+        fit, point, interval = ledger.reader_reporting_permissions(
+            {"capability_status": "implemented", "evidence_tier": "supported"},
+            "Wald interval",
+        )
+        self.assertTrue(fit.startswith("Yes"))
+        self.assertTrue(point.startswith("Yes"))
+        self.assertTrue(interval.startswith("No"))
+        self.assertIn("legacy supported label", interval)
+
+    def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
+        generated = ledger.outputs(self.cells, self.evidence)
+        rendered = generated[ledger.READER_SUMMARY].decode("utf-8")
+        self.assertTrue(ledger.READER_SUMMARY.is_relative_to(ROOT / "vignettes/includes"))
+        self.assertIn("## Reader routes", rendered)
+        self.assertIn("<summary>Technical ledger snapshot</summary>", rendered)
+        reader_start = rendered.index("## Reader routes")
+        technical_start = rendered.index("<details>")
+        self.assertLess(reader_start, technical_start)
+        first_screen = rendered[:technical_start]
+        self.assertNotIn("point-fit recovery", first_screen)
+        self.assertNotIn("supported", first_screen)
+        self.assertNotIn("Model-surface total", first_screen)
+        self.assertNotIn("docs/dev-log", rendered)
+        self.assertNotRegex(rendered, r"\bmc-[0-9]+\b")
+        self.assertNotRegex(rendered, r"\bq[0-9]+\b")
+        self.assertEqual(rendered.count(".drmtmb-route-card"), 8)
+        self.assertIn(".drmtmb-route-interval", rendered)
+        self.assertIn(".drmtmb-route-point", rendered)
+        self.assertIn(".drmtmb-route-unavailable", rendered)
+        for heading in (
+            "Beta location", "Binomial location", "Poisson phylogenetic",
+            "Negative-binomial", "Tweedie location", "Lognormal location",
+            "meta_V(V = V)", "rho12",
+        ):
+            self.assertIn(heading, rendered)
+
+    def test_cli_check_covers_the_reader_summary_output(self):
+        result = subprocess.run(
+            ["python3", "tools/capability_ledger.py", "--check"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("capability-ledger: OK", result.stdout)
+
+    def test_reader_navigation_redirect_and_public_language_contract(self):
+        config = (ROOT / "_pkgdown.yml").read_text()
+        self.assertIn(
+            '- ["ROADMAP.html", "articles/capability-and-limits.html"]',
+            config,
+        )
+        intro = config.split("    intro:", 1)[1].split("    model_guides:", 1)[0]
+        intro_pairs = re.findall(
+            r"- text: ([^\n]+)\n\s+href: ([^\n]+)", intro
+        )
+        self.assertEqual(
+            intro_pairs,
+            [
+                ("Overview and first model", "articles/drmTMB.html"),
+                ("Can I fit and report this?", "articles/capability-and-limits.html"),
+                ("Choose a family", "articles/distribution-families.html"),
+                ("Function map and cheat sheet", "articles/function-map-cheatsheet.html"),
+                ("Check and report a fitted model", "articles/model-workflow.html"),
+            ],
+        )
+        model_guides = config.split("    model_guides:", 1)[1].split("    tutorials:", 1)[0]
+        self.assertNotIn("capability-and-limits", model_guides)
+        model_guide_pairs = re.findall(
+            r"- text: ([^\n]+)\n\s+href: ([^\n]+)", model_guides
+        )
+        self.assertEqual(
+            model_guide_pairs[0],
+            ("What can I fit today?", "articles/model-map.html"),
+        )
+        self.assertEqual(
+            model_guide_pairs.count(
+                ("What can I fit today?", "articles/model-map.html")
+            ),
+            1,
+        )
+        getting_started = config.split("  - title: Getting Started", 1)[1].split(
+            "  - title: Capability and Model Choice", 1
+        )[0]
+        capability_choice = config.split(
+            "  - title: Capability and Model Choice", 1
+        )[1].split("  - title: Location and Scale", 1)[0]
+        article_entry_pattern = r"^\s{6}- ([A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+        getting_started_entries = re.findall(
+            article_entry_pattern, getting_started, re.MULTILINE
+        )
+        capability_choice_entries = re.findall(
+            article_entry_pattern, capability_choice, re.MULTILINE
+        )
+        self.assertEqual(getting_started_entries.count("function-map-cheatsheet"), 1)
+        self.assertNotIn("model-map", getting_started_entries)
+        self.assertEqual(capability_choice_entries.count("model-map"), 1)
+        self.assertNotIn("function-map-cheatsheet", capability_choice_entries)
+
+        learning_path = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
+            "## Learning path", 1
+        )[1]
+        learning_links = (
+            "capability-and-limits.html",
+            "distribution-families.html",
+            "function-map-cheatsheet.html",
+            "model-workflow.html",
+        )
+        learning_positions = [learning_path.index(link) for link in learning_links]
+        self.assertEqual(learning_positions, sorted(learning_positions))
+
+        design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
+        vignette_stems = {path.stem for path in (ROOT / "vignettes").glob("*.Rmd")}
+        vignette_count = len(vignette_stems)
+        self.assertIn(f"across {vignette_count} vignettes", design.splitlines()[0])
+        self.assertIn(f"{vignette_count} rows.", design)
+        design_stems = re.findall(
+            r"^\| [^|]+ \| `([^`]+)` \|", design, re.MULTILINE
+        )
+        self.assertEqual(len(design_stems), len(set(design_stems)))
+        self.assertEqual(set(design_stems), vignette_stems)
+        article_index = config.split("\narticles:", 1)[1]
+        article_stems = re.findall(
+            article_entry_pattern, article_index, re.MULTILINE
+        )
+        self.assertEqual(len(article_stems), len(set(article_stems)))
+        self.assertEqual(set(article_stems), vignette_stems)
+
+        public_paths = [ROOT / "README.md", *sorted((ROOT / "vignettes").glob("*.Rmd"))]
+        public_text = "\n".join(path.read_text() for path in public_paths)
+        for stale in (
+            "ROADMAP.html", "ROADMAP.md", "check the roadmap",
+            "What drmTMB can and can't do", "What can I trust?",
+        ):
+            self.assertNotIn(stale, public_text)
+
+    def test_capability_article_has_reporting_rule_and_stable_terms(self):
+        article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
+        css = (ROOT / "pkgdown" / "extra.css").read_text()
+        self.assertIn('title: "Can I fit and report this model?"', article)
+        self.assertIn("## Before reporting", article)
+        self.assertIn("## Evidence and exact tested scopes", article)
+        for token in (
+            "`mu`", "`sigma`", "`nu`", "`rho12`", "`sd(group)`",
+            "`phylo()`", "`spatial()`", "`meta_V(V = V)`",
+            "`check_drm(fit)`", "`conf.status`", "`profile.boundary`",
+            "failed bootstrap refits",
+        ):
+            self.assertIn(token, article)
+        self.assertEqual(article.count("meta_known_V(V = V)"), 1)
+        self.assertEqual(len(re.findall(r"\btau\b", article)), 1)
+        self.assertIn('<details class="drmtmb-notation">', article)
+        self.assertIn("Supported (legacy ledger label)", article)
+        self.assertNotIn("Five non-Gaussian families now carry", article)
+        self.assertNotIn("All five admitted fixed-effect", article)
+        self.assertNotRegex(
+            article,
+            r"\b(?:two|three|four|five)\s+(?:certified\s+|Arc\s+1a\s+REML\s+)?"
+            r"(?:q[0-9]+\s+[^\n]{0,24})?(?:rows|cells|classes|families)\b",
+        )
+        for token in (
+            ".drmtmb-reader-routes",
+            ".drmtmb-route-interval",
+            "Scroll horizontally to see all columns",
+            "min-width: 9rem",
+        ):
+            self.assertIn(token, css)
+
+    def test_unsupported_fit_errors_name_reader_compatible_fallbacks(self):
+        source = (ROOT / "R" / "drmTMB.R").read_text()
+        self.assertIn(
+            "Use an unlabelled intercept with {.fn phylo} or {.fn relmat}, "
+            "or remove the structured term.",
+            source,
+        )
+
     def test_model_projection_uses_current_primary_evidence_and_claim(self):
         evidence_by_id = {
             row["evidence_id"]: row for row in self.evidence
@@ -863,7 +1179,10 @@ class CapabilityLedgerTests(unittest.TestCase):
             for row in ledger.family_map_rows(cells)
         }
         self.assertEqual(before["binomial"], after["binomial"])
-        self.assertIn("`mu`: not currently supported", before["binomial"])
+        self.assertEqual(
+            before["binomial"],
+            "`mu`: scope-limited (implemented 2; not currently supported 2)",
+        )
 
     def test_planning_class_keeps_unimplemented_work_visible(self):
         by_id = {row["cell_id"]: row for row in self.cells}
@@ -1046,7 +1365,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             ROOT / "vignettes/which-scale.Rmd"
         ).read_text()
         surfaces["NEWS.md"] = (ROOT / "NEWS.md").read_text()
-        surfaces["ROADMAP.md"] = (ROOT / "ROADMAP.md").read_text()
+        surfaces["internal-roadmap.md"] = INTERNAL_ROADMAP.read_text()
         surfaces["README.md"] = (ROOT / "README.md").read_text()
         surfaces["113-phase-18-count-first-wave-closure-slices-1319-1328.md"] = (
             ROOT / "docs/design/113-phase-18-count-first-wave-closure-slices-1319-1328.md"
@@ -1407,7 +1726,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         for name in (
             "25-ordinal-scale-discrimination.md",
             "known-limitations.md",
-            "ROADMAP.md",
+            "internal-roadmap.md",
         ):
             text = surfaces[name].lower()
             self.assertIn("ordinary", text)
@@ -1420,7 +1739,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             for name in (
                 "25-ordinal-scale-discrimination.md",
                 "known-limitations.md",
-                "ROADMAP.md",
+                "internal-roadmap.md",
             )
         )
         for stale in (
@@ -1436,7 +1755,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["README.md"],
         )
         self.assertIn(
-            "deliberately does not repeat\nthat changing capability ledger",
+            "Can I fit and report this model?",
             surfaces["drmTMB.Rmd"],
         )
         self.assertNotIn("fixed-effect zero-one beta", surfaces["drmTMB.Rmd"])
@@ -1559,7 +1878,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("marginal SD at node `i` is `sigma_z * sqrt(K[i, i])`", common_math)
         self.assertNotIn("`sigma_z` is the unknown marginal SD", common_math)
 
-        roadmap = (ROOT / "ROADMAP.md").read_text()
+        roadmap = INTERNAL_ROADMAP.read_text()
         self.assertIn(
             "q1 structured `sigma` one-slope paths also fit for all four providers",
             roadmap,
@@ -1612,7 +1931,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             path.read_text()
             for path in (
                 ROOT / "NEWS.md",
-                ROOT / "ROADMAP.md",
+                INTERNAL_ROADMAP,
                 ROOT / "docs/design/34-validation-debt-register.md",
                 ROOT / "docs/design/46-pre-simulation-readiness-matrix.md",
                 ROOT / "docs/design/59-structural-slope-and-non-gaussian-map.md",
@@ -1734,7 +2053,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             path.read_text()
             for path in (
                 ROOT / "README.md",
-                ROOT / "ROADMAP.md",
+                INTERNAL_ROADMAP,
                 ROOT / "NEWS.md",
                 ROOT / "docs/design/03-likelihoods.md",
                 ROOT / "docs/design/45-cross-dpar-correlation-gate.md",
@@ -1760,7 +2079,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_single_smoke_routes_never_read_as_recovery_grade(self):
         active_paths = (
             ROOT / "README.md",
-            ROOT / "ROADMAP.md",
+            INTERNAL_ROADMAP,
             ROOT / "docs/design/01-formula-grammar.md",
             ROOT / "docs/design/02-family-registry.md",
             ROOT / "docs/design/03-likelihoods.md",
@@ -1891,7 +2210,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         public = {
             "README": (ROOT / "README.md").read_text(),
-            "ROADMAP": (ROOT / "ROADMAP.md").read_text(),
+            "ROADMAP": INTERNAL_ROADMAP.read_text(),
             "NEWS": (ROOT / "NEWS.md").read_text(),
             "capability": (
                 ROOT / "vignettes/capability-and-limits.Rmd"
@@ -1901,7 +2220,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("Poisson `mu ~ spatial(1 | site", public["README"])
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
-        self.assertIn("Ten exact structured routes", public["capability"])
+        self.assertIn("Row-specific single-smoke slices", public["capability"])
         # pkgdown-site/llms.txt is a git-ignored pkgdown BUILD artifact, not a ledger
         # output. Assert on it only when it is version-controlled; a git-ignored local
         # build may be stale or absent, and the authoritative surface check is the README
@@ -1971,7 +2290,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_capability_vignette_names_arc1a_reml_boundary(self):
         vignette = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
         self.assertIn(
-            "Gaussian structured random effects: eleven anchor cells",
+            "Gaussian structured random effects: selected anchor cells",
             vignette,
         )
         for provider in ("spatial", "animal", "relmat"):
@@ -2187,7 +2506,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "independent intercept-plus-one-numeric-\n  slope REML cells",
             news,
         )
-        roadmap = (ROOT / "ROADMAP.md").read_text()
+        roadmap = INTERNAL_ROADMAP.read_text()
         self.assertIn(
             "Arc 1a admits REML only for the exact unlabelled intercept and independent intercept-plus-one-slope spatial/animal/relmat cells",
             roadmap,

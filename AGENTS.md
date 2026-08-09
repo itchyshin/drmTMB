@@ -3,24 +3,22 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-08 morning verify; Codex 0.7 rescope + pre-19 Aug ladder).**
-> `main` @ `5affb962b` (#946 merged). Highest proven CRAN rung = **`tarball-clean`**. DESCRIPTION
-> still **0.6.0**; **no upload**; **not platform-clean**; **not CRAN-ready**. useful-0.7
-> [#942](https://github.com/itchyshin/drmTMB/pull/942), CondExp path [#941](https://github.com/itchyshin/drmTMB/pull/941),
-> and win-builder ERROR-free docs [#946](https://github.com/itchyshin/drmTMB/pull/946) are on `main`.
-> Post-merge `main` CI green: R-CMD-check
-> [31231949532](https://github.com/itchyshin/drmTMB/actions/runs/31231949532) + pkgdown
-> [31233577522](https://github.com/itchyshin/drmTMB/actions/runs/31233577522).
-> Win-builder on **fixed** SHA `f9b9588e…` / 9818425 is ERROR-free
-> (R-release [BQVnXOH066rJ](https://win-builder.r-project.org/BQVnXOH066rJ) + R-devel
-> [qS15UqA2O00A](https://win-builder.r-project.org/qS15UqA2O00A), 1 NOTE each; logs re-read
-> 2026-08-08). Ledger stays `tarball-clean` until owner authorizes `platform-clean`. CRAN
-> submit UI offline until ~19 Aug 2026. Draft handover [#947](https://github.com/itchyshin/drmTMB/pull/947)
-> — do not auto-merge. Multi-lane board (read every live row — do not orphan siblings):
+> **▶ Latest — start here (2026-08-08; 0.7 issue sweep complete on focused branch).**
+> The 29/29 open-issue sweep against `main@efb5af4f` found one issue-derived
+> candidate blocker: **#61**, the procedural exact-candidate gate, not a new code defect.
+> **#870** is the sole owner-policy decision and is not a demonstrated blocker. All other
+> 27 issues are non-blocking post-0.7 or backlog work; five bounded status comments were
+> posted and no issue was closed. D-93 and D-117 remain independent owner holds.
+> DESCRIPTION remains **0.6.0**; current main is neither `tarball-clean` nor
+> `platform-clean`. The exact predecessor `ad475cc39` / `2e5234bd…` retains only its
+> historical `tarball-clean` proof. **NO-GO for exact-candidate work until Shinichi separately
+> authorizes candidate preparation; no upload and no release-rung advance.**
+> Preserve #858, #937, historical #947, and the protected dirty primary checkout. Multi-lane
+> board (read every live row — do not orphan siblings):
 > [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
 > on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.
-> START HERE (Codex) — same 2026-08-07 filename, refreshed; no competing pointer:
-> [`docs/dev-log/handover/2026-08-07-codex-handover.md`](docs/dev-log/handover/2026-08-07-codex-handover.md).
+> START HERE:
+> [`docs/dev-log/release-audits/2026-08-08-0.7-issue-sweep.md`](docs/dev-log/release-audits/2026-08-08-0.7-issue-sweep.md).
 >
 > **▶ Prior — (2026-08-05, 135-TRACE CAMPAIGN LANDED ON MAIN via #930).**
 > Totoro 135/135; **5/14 cells** promoted to `interval_feasible`. Post-campaign doc
