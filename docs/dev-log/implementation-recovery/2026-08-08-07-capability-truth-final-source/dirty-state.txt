@@ -1,0 +1,2 @@
+?? docs/dev-log/implementation-recovery/2026-08-08-07-capability-truth-final-source/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-08-07-capability-truth-final-source/provenance.tsv

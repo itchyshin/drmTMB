@@ -215,7 +215,7 @@ C14_RECEIPT_EQUIVALENCE_PATHS = (
     "src/drmTMB.cpp::model_type_15",
 )
 C17_C14_CURRENT_SOURCE_COMPATIBILITY = (
-    LEDGER / "2026-08-08-c17c2-c14-current-source-compatibility.tsv"
+    LEDGER / "2026-08-08-c17c2-c14-final-source-compatibility.tsv"
 )
 C17_C14_COMPATIBLE_SEEDS = {
     "mc-0568": {str(seed) for seed in range(2026073401, 2026073405)},
