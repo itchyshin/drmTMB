@@ -790,7 +790,7 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
 
 # Emit a single warning (and fall back to ML) when REML is requested for a
 # Julia-engine cell that DRM.jl does not yet fit by restricted maximum
-# likelihood. REML remains a Gaussian-only claim: unsupported cells fall back to
+# likelihood. The Julia bridge remains a Gaussian-only REML claim: unsupported cells fall back to
 # ML instead of implying that a nearby TMB or Julia path is a full REML fallback.
 drm_julia_warn_reml_unsupported <- function(REML, cell) {
   if (!isTRUE(REML)) {
@@ -798,7 +798,7 @@ drm_julia_warn_reml_unsupported <- function(REML, cell) {
   }
   cli::cli_warn(c(
     "{.code engine = \"julia\"} does not support {.code REML = TRUE} for {cell} models yet; fitting by maximum likelihood (ML) instead.",
-    i = "REML is currently a Gaussian-only drmTMB/DRM.jl capability. Use {.code REML = FALSE} for this cell, or simplify to a documented Gaussian REML cell; native {.code engine = \"tmb\"} is only a fallback for its documented univariate Gaussian REML slice."
+    i = "The DRM.jl bridge currently supports REML only for documented Gaussian cells. Use {.code REML = FALSE} for this bridge cell or simplify to a documented Gaussian REML cell; native {.code engine = \"tmb\"} also has a separate diagnostic-only binomial REML route for an ordinary unlabelled {.code mu} random intercept or independent slope."
   ))
   invisible(TRUE)
 }

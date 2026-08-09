@@ -92761,3 +92761,47 @@ family that can discriminate an engine that improves on Laplace.
   D-43 material, compute output, or release-rung state changed. Full package
   tests and pkgdown were not rerun because this arc changes coordination and
   audit documentation only.
+
+## 2026-08-08 — 0.7 capability-truth reconciliation
+
+- Base and lane: PR #952 merged unchanged at `31da19f28`; fresh branch
+  `codex/07-capability-truth-reconcile` in
+  `/private/tmp/drmTMB-07-capability-truth`. Protected PRs #858/#937,
+  historical #947, dirty primary/MSPL checkouts, foreign worktrees, and five
+  stashes remained outside the lane.
+- Runtime gate: fixed-only and multiple-term binomial REML reject before TMB
+  construction. Exactly one ordinary unlabelled `mu` random intercept or one
+  independent numeric slope is admitted. Correlated, labelled, all five
+  structured-provider q1 formulas, and missing-response neighbours reject.
+- Focused R verification:
+  `devtools::test(filter = "reml-binomial-coxreid|julia-sigma-phylo-reml")`
+  PASS; binomial file 33 expectations, Julia file PASS with one unavailable-
+  engine skip.
+- Full `devtools::test(reporter = "summary")`: PASS with no failures; 25
+  optional-engine/workflow skips and 72 expected numerical/deprecation
+  warnings were reported.
+- `devtools::check(args = "--no-manual", quiet = TRUE)`: 0 errors, 0 warnings,
+  2 environmental notes (`future file timestamps` could not verify network
+  time; inherited `xcrun_db` temp detritus). This is local evidence only and
+  does not earn `platform-clean`.
+- `python3 tools/capability_ledger.py --check`: PASS, 31 generated outputs.
+  `python3 -m unittest discover -s tools/tests -p 'test*.py'`: PASS, 122 tests.
+- C17/C14 final-source compatibility at source commit `2d1be7842`: 12/12
+  attempts PASS across `mc-0568`, `mc-0569`, and `mc-0576`; semantic
+  fingerprint remains
+  `8435987e3540e3b136c298d697508e74632b4f055490beb05d1408547015681d`.
+  New immutable receipt:
+  `docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv`.
+- Source-installed reader gate: current source installed to an isolated temp
+  library, then full `pkgdown::build_site(install = FALSE)` plus
+  `pkgdown::check_pkgdown()` PASS with `No problems found`. The first sandboxed
+  attempt failed only on blocked CRAN DNS and macOS Sass-cache access; the same
+  installed-source build passed outside the restricted sandbox.
+- Fisher initial read-only review: NEEDS REPAIR on five exact issues (O3 reader
+  leaks, missing exact-one-term runtime gate, missing five-provider structured
+  rejection evidence, overbroad uncertainty wording, and no grouped-binomial
+  admitted-route comparator). All five were repaired. Fisher final read-only
+  re-review: PASS with no remaining estimator-boundary, evidence, or current
+  reader-facing overclaim finding. This was a bounded review, not D-43.
+- `git diff --check`: PASS. No DESCRIPTION, `cran-comments.md`, release rung,
+  D-43, compute, tag, candidate freeze, or CRAN action occurred.

@@ -101,9 +101,9 @@ deferred for future work; it is retained only so existing objects and code
 can be inspected, not as a current fitting route.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
-engine supports it. Native \code{engine = "tmb"} keeps REML Gaussian-only and
-restricts the likelihood by marginalising the admitted fixed-effect mean
-coefficients. Validated univariate routes include ordinary random effects;
+engine supports it. Native \code{engine = "tmb"} restricts the likelihood by
+marginalising the admitted fixed-effect mean coefficients. Validated
+Gaussian routes include ordinary random effects;
 mean-side \code{\link[=phylo]{phylo()}}, \code{\link[=spatial]{spatial()}}, \code{\link[=animal]{animal()}}, and \code{\link[=relmat]{relmat()}} effects; known
 sampling covariance through \code{\link[=meta_V]{meta_V()}}; non-unit likelihood \code{weights}; and
 selected scale-side random or structured effects. Mean-side \code{spatial()},
@@ -119,13 +119,20 @@ location intercepts for \code{spatial(1 | p | site, coords = coords)} and
 known \code{\link[=meta_V]{meta_V()}} covariance, and no additional ordinary random effect,
 direct-SD formula, or \code{corpair()} regression. Both have point-fit-recovery
 evidence only; bivariate \code{relmat(..., Q = Q)} REML remains deferred.
-Aggregation and ordinary direct \code{sd()} scale formulae also
-remain unsupported under REML.
+Aggregation and ordinary direct \code{sd()} scale formulae also remain
+unsupported under REML. For \code{binomial()} models, the bounded native route
+requires exactly one ordinary unlabelled \code{mu} random intercept or exactly
+one independent numeric slope. Fixed-only and multiple-term binomial
+models, correlated or labelled covariance blocks, structured effects,
+missing-data engines, and other extensions are not admitted under REML;
+use \code{REML = FALSE} for those models. The binomial route has diagnostic
+parity and finite-uncertainty evidence, not calibrated interval or coverage
+evidence.
 The halted \code{engine = "julia"} compatibility bridge is not a supported
 estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
 \code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
-different fixed-effect formulas, non-Gaussian models, and currently
-unsupported extensions.}
+different fixed-effect formulas, non-binomial non-Gaussian models, and
+currently unsupported extensions.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty

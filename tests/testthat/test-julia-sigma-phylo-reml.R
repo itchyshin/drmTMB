@@ -150,8 +150,9 @@ test_that("unsupported Julia REML warning does not overclaim native TMB fallback
   warning_text <- paste(warnings, collapse = "\n")
 
   expect_match(warning_text, "non-Gaussian \\(poisson\\)")
-  expect_match(warning_text, "Gaussian-only")
-  expect_match(warning_text, "univariate Gaussian REML slice")
+  expect_match(warning_text, "documented Gaussian cells")
+  expect_match(warning_text, "diagnostic-only binomial REML route")
+  expect_match(warning_text, "ordinary unlabelled `mu` random intercept or independent slope")
   expect_false(grepl("for an REML fit of this cell", warning_text))
 })
 

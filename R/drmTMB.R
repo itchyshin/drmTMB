@@ -128,9 +128,9 @@
 #'   deferred for future work; it is retained only so existing objects and code
 #'   can be inspected, not as a current fitting route.
 #' @param REML Logical; use restricted maximum likelihood where the selected
-#'   engine supports it. Native `engine = "tmb"` keeps REML Gaussian-only and
-#'   restricts the likelihood by marginalising the admitted fixed-effect mean
-#'   coefficients. Validated univariate routes include ordinary random effects;
+#'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
+#'   marginalising the admitted fixed-effect mean coefficients. Validated
+#'   Gaussian routes include ordinary random effects;
 #'   mean-side [phylo()], [spatial()], [animal()], and [relmat()] effects; known
 #'   sampling covariance through [meta_V()]; non-unit likelihood `weights`; and
 #'   selected scale-side random or structured effects. Mean-side `spatial()`,
@@ -146,13 +146,20 @@
 #'   known [meta_V()] covariance, and no additional ordinary random effect,
 #'   direct-SD formula, or `corpair()` regression. Both have point-fit-recovery
 #'   evidence only; bivariate `relmat(..., Q = Q)` REML remains deferred.
-#'   Aggregation and ordinary direct `sd()` scale formulae also
-#'   remain unsupported under REML.
+#'   Aggregation and ordinary direct `sd()` scale formulae also remain
+#'   unsupported under REML. For `binomial()` models, the bounded native route
+#'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
+#'   one independent numeric slope. Fixed-only and multiple-term binomial
+#'   models, correlated or labelled covariance blocks, structured effects,
+#'   missing-data engines, and other extensions are not admitted under REML;
+#'   use `REML = FALSE` for those models. The binomial route has diagnostic
+#'   parity and finite-uncertainty evidence, not calibrated interval or coverage
+#'   evidence.
 #'   The halted `engine = "julia"` compatibility bridge is not a supported
 #'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
 #'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
-#'   different fixed-effect formulas, non-Gaussian models, and currently
-#'   unsupported extensions.
+#'   different fixed-effect formulas, non-binomial non-Gaussian models, and
+#'   currently unsupported extensions.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
@@ -2222,6 +2229,20 @@ drm_validate_reml_spec <- function(spec) {
     cli::cli_abort(
       "{.arg REML} is implemented for univariate/bivariate Gaussian and binomial models."
     )
+  }
+  if (identical(spec$model_type, "binomial")) {
+    n_mu_terms <- spec$random$mu$n_terms
+    if (!isTRUE(n_mu_terms == 1L) || !isTRUE(spec$random$mu$n_cors == 0L)) {
+      cli::cli_abort(c(
+        "Binomial {.arg REML} requires exactly one admitted ordinary unlabelled {.code mu} random-effect term.",
+        "x" = if (isTRUE(n_mu_terms == 0L)) {
+          "The model has no ordinary {.code mu} random intercept or independent numeric slope."
+        } else {
+          "The model has multiple or correlated ordinary {.code mu} random-effect coefficients."
+        },
+        "i" = "Use exactly one term such as {.code (1 | group)} or {.code (0 + x | group)}, or use {.code REML = FALSE} for maximum likelihood."
+      ))
+    }
   }
   if (isTRUE(spec$sparse_fixed$mu)) {
     cli::cli_abort(c(

@@ -193,7 +193,11 @@ head(sigma(fit)^2) # fitted residual variances
   independent-slope design recorded in the capability ledger has
   `inference_ready_with_caveats` coverage evidence. Use `beta_binomial()` with
   `cbind(successes, failures)` when the data need extra-binomial variation
-  through `sigma`. Correlated or labelled binomial random slopes, structured
+  through `sigma`. Binomial `REML = TRUE` is diagnostic-only for one ordinary
+  unlabelled `mu` random intercept or independent slope; use ML for scientific
+  reporting. Fixed-only, multiple-term, correlated, labelled, structured, and
+  missing-response binomial REML routes are unavailable. Correlated or
+  labelled binomial random slopes, structured
   effects, `sigma` formulas, bivariate or mixed responses, and non-phylogenetic
   `engine = "julia"` binomial fits remain unsupported. Ordinary
   repeated-measure beta-binomial random intercepts in `mu` are fitted as a
@@ -214,9 +218,15 @@ head(sigma(fit)^2) # fitted residual variances
   population-level point-recovery evidence at `M = 64` with 50 observations
   per group. Sparse observed atoms or weak boundary-row predictor spread can
   weaken conditional group modes, so inspect both before interpreting them.
-  Other atom shapes, transformed or mismatched slope symbols, correlated or
-  labelled atom effects, denominator syntax, structured atom effects, and
-  bivariate bounded responses remain planned or blocked. Read
+  Exact q1 structured-intercept gates also have point-recovery evidence for
+  `mu` and `sigma` under `phylo()`, `animal()`, `relmat()`, `spatial()`, and
+  `phylo_interaction()`, and for selected `zoi` and `coi` provider cells. The
+  `sigma`-`relmat()` and `sigma`-`spatial()` profile targets are
+  interval-feasible, not coverage-calibrated. Other atom shapes, transformed
+  or mismatched slope symbols, correlated or labelled atom effects, remaining
+  structured atom-provider combinations, structured slopes or q2-plus blocks,
+  denominator syntax, and bivariate bounded responses remain planned or
+  blocked. Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Overdispersed, zero-heavy, truncated, or hurdle counts.** Use
   `poisson()`, `nbinom2()`, `truncated_nbinom2()`, `zi ~`, or `hu ~`.
