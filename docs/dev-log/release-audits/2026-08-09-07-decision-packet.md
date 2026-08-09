@@ -74,8 +74,12 @@ candidate's site over your live one.
    coverage. If you want it restored before the next rung, say which route.
 2. **D-117.** All three documentary surfaces it names are now closed. Do you consider the withheld
    PASS dischargeable, or does the conditional-coverage finding still hold it?
-3. **`platform-clean`** — owner-gated. Dispatched runs exist but **none at this candidate's source**;
-   a run at `cc4f5baee` or later is required first.
+3. **`platform-clean`** — owner-gated, and now unblocked to decide. The matrix **is** dispatched at
+   this candidate: `R-CMD-check` [31336312020](https://github.com/itchyshin/drmTMB/actions/runs/31336312020)
+   and `R-hub` [31336313176](https://github.com/itchyshin/drmTMB/actions/runs/31336313176), both at
+   `604016a5d`, which differs from candidate source `cc4f5baee` only by `.Rbuildignore`d paths.
+   **I have deliberately not read or adjudicated them** — dispatch is not evidence, and writing the
+   rung is yours.
 4. **D-43 panel** — you deferred it until platform evidence exists. Still deferred.
 5. **win-builder** — not submitted. It remains the only real Windows vignette-timing measurement.
 6. **Installed size 24.7 Mb**, dominated by `libs 13.6Mb` (the TMB template), not documentation.

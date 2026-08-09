@@ -224,15 +224,27 @@ still-open CRAN-facing item and is deliberately *not* claimed as resolved:
 `platform-clean` is **not** claimed. Runs are recorded for the next session; adjudicating them is
 owner-gated.
 
-| Workflow | Run | At commit |
-| --- | --- | --- |
-| `R-CMD-check` | [31332769740](https://github.com/itchyshin/drmTMB/actions/runs/31332769740) | `6d1fb0562` |
-| `R-hub` | [31332770848](https://github.com/itchyshin/drmTMB/actions/runs/31332770848) | `6d1fb0562` |
+| Workflow | Run | At commit | Covers this candidate? |
+| --- | --- | --- | --- |
+| `R-CMD-check` | [31336312020](https://github.com/itchyshin/drmTMB/actions/runs/31336312020) | `604016a5d` | **yes** — see below |
+| `R-hub` | [31336313176](https://github.com/itchyshin/drmTMB/actions/runs/31336313176) | `604016a5d` | **yes** — see below |
+| `R-CMD-check` | [31333822332](https://github.com/itchyshin/drmTMB/actions/runs/31333822332) | `6dc48cd94` | no — **success**, but predates the candidate; proves the guard repairs |
+| `R-CMD-check` | [31332769740](https://github.com/itchyshin/drmTMB/actions/runs/31332769740) | `6d1fb0562` | no — predecessor `d04d0e88` source |
+| `R-hub` | [31332770848](https://github.com/itchyshin/drmTMB/actions/runs/31332770848) | `6d1fb0562` | no — predecessor `d04d0e88` source |
 
-**None of these ran at this candidate's source `cc4f5baee`.** A run at the final head is required
-before any platform claim. Earlier runs showing `conclusion: cancelled` were each superseded by a
-later push — concurrency cancels, checked against the 75-minute ceiling rather than trusted from
-the conclusion string.
+**Why `604016a5d` covers candidate source `cc4f5baee`.** `git diff --name-only cc4f5baee..604016a5d`
+returns 14 paths, all of them `AGENTS.md` or under `docs/` — both `.Rbuildignore`d (`^docs$` line
+10; `AGENTS.md` verified absent from the tarball listing). No build-included path differs, so the
+package these runs build is content-identical to the frozen candidate. This is the same
+property-of-paths argument used for the provenance delta above, and it is the reason a re-dispatch
+was warranted here but not for the `_pkgdown.yml`-only delta earlier: `cc4f5baee` **did** change
+shipped bytes (`NEWS.md`) relative to `6d1fb0562`, so the earlier runs genuinely do not cover this
+candidate.
+
+**Results are NOT adjudicated.** Dispatch is not evidence; `platform-clean` remains owner-gated and
+unclaimed. Earlier runs showing `conclusion: cancelled` were each superseded by a later push —
+concurrency cancels, checked against the 75-minute ceiling rather than trusted from the conclusion
+string.
 
 ## What this freeze does NOT claim
 
