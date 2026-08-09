@@ -2,7 +2,7 @@
   "package": "drmTMB",
   "version": "0.7.0",
   "release_type": "first_submission",
-  "note": "Exact 0.7.0 candidate frozen 2026-08-09 from source cc4f5baee9128b3d9674f60b25af18f7ea0ae53b at post-separation main 8d441a32d. Claim-bearing local check: R CMD check --as-cran --run-donttest, CRAN incoming ENABLED, vignettes built, _R_CHECK_FORCE_SUGGESTS_ not disabled. Status: 1 NOTE (New submission only), 0 errors, 0 warnings. FOURTH candidate: retracts d35c0b9e (README pointed at the unsupported v0.5.0 tag), da9b2d76 (superseded when boundary surfacing touched R/), and d04d0e88 (checked clean at 1 NOTE and frozen, then deliberately invalidated when an adversarial audit found NEWS.md never told users five vignettes stop shipping, and a moved-PNG link that would 404 on merge to main). Results measured on those are predecessor evidence. THE 5MB DOCUMENTATION RISK IS RESOLVED: inst/doc 11.105 -> 4.605 MB, tarball 9853648 -> 4190882 bytes, by moving the five heaviest vignettes to vignettes/articles/. COSTS STATED, NOT GLOSSED: (1) those five no longer ship, so vignette() and browseVignettes() do not reach them (32 of 37) and an offline reader cannot open them; (2) R CMD check's vignette re-build now covers 32 documents not 37, so the R code in the five most code-dense documents is executed by nothing in the release gate; (3) pkgdown discovery and config are proved, rendering is NOT. STILL OPEN, NOT CLAIMED RESOLVED: installed size 24.7Mb, dominated by libs 13.6Mb, reported as INFO not NOTE on this run; what CRAN's machines will say is not established here. platform_matrix and external_logs omitted because platform-clean is NOT claimed. SEPARATELY AND NOT A PROPERTY OF THIS ARTIFACT: D-117 holds 0.7.0 publication with its PASS withheld, and D-89 records that submission is far away by choice.",
+  "note": "Exact 0.7.0 candidate frozen 2026-08-09 from source cc4f5baee9128b3d9674f60b25af18f7ea0ae53b at post-separation main 8d441a32d. Claim-bearing local check: R CMD check --as-cran --run-donttest, CRAN incoming ENABLED, vignettes built, _R_CHECK_FORCE_SUGGESTS_ not disabled. Status: 1 NOTE (New submission only), 0 errors, 0 warnings. FOURTH candidate: retracts d35c0b9e (README pointed at the unsupported v0.5.0 tag), da9b2d76 (superseded when boundary surfacing touched R/), and d04d0e88 (checked clean at 1 NOTE and frozen, then deliberately invalidated when an adversarial audit found NEWS.md never told users five vignettes stop shipping, and a moved-PNG link that would 404 on merge to main). Results measured on those are predecessor evidence. THE 5MB DOCUMENTATION RISK IS RESOLVED: inst/doc 11.105 -> 4.605 MB, tarball 9853648 -> 4190882 bytes, by moving the five heaviest vignettes to vignettes/articles/. COSTS STATED, NOT GLOSSED: (1) those five no longer ship, so vignette() and browseVignettes() do not reach them (32 of 37) and an offline reader cannot open them; (2) R CMD check's vignette re-build now covers 32 documents not 37, so the R code in the five most code-dense documents is executed by nothing in the release gate; (3) pkgdown discovery and config are proved, rendering is NOT. STILL OPEN, NOT CLAIMED RESOLVED: installed size 24.7Mb, dominated by libs 13.6Mb, reported as INFO not NOTE on this run; what CRAN's machines will say is not established here. platform_matrix and external_logs omitted because platform-clean is NOT claimed. SEPARATELY AND NOT A PROPERTY OF THIS ARTIFACT: D-117 holds 0.7.0 publication with its PASS withheld, and D-89 records that submission is far away by choice. ARTIFACT DURABILITY: the artifact path now points at a write-protected copy under ~/local-scratch/drmTMB-0.7.0-candidates/, outside /tmp and outside the per-session agent scratchpad the original freeze used, re-hashed from that path and matching. The check log, inventory and sha256 are additionally committed under CANDIDATE-EVIDENCE/.",
   "profile": {
     "compiled_code": true,
     "reverse_dependencies": false,
@@ -10,14 +10,14 @@
     "large_data_or_vignettes": true
   },
   "artifact": {
-    "path": "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/76ce8c06-9aad-442c-9d2a-126e4f98f630/scratchpad/frozen-a8f7c47905b0/drmTMB_0.7.0.tar.gz",
+    "path": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/drmTMB_0.7.0-a8f7c47905b0.tar.gz",
     "sha256": "a8f7c47905b03a95c30c413d2ae351c589a3884a0bbf2e1d9a31ce4bc9ffcad5",
     "size_bytes": 4190882,
     "source_commit": "cc4f5baee9128b3d9674f60b25af18f7ea0ae53b",
     "clean_worktree": true,
     "inventory_evidence": {
       "kind": "file",
-      "value": "/private/tmp/drmTMB-07-release/docs/dev-log/release/0.7.0-cran-gate/CANDIDATE-EVIDENCE/inventory-a8f7c47905b0.txt"
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/inventory-a8f7c47905b0.txt"
     },
     "forbidden_entries": []
   },

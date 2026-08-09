@@ -43,12 +43,23 @@ shipped `.Rmd`, and pkgdown is not a dependency.
 
 ### Where the evidence physically lives — read this before relying on it
 
-The frozen tarball is at
-`/private/tmp/claude-503/-Users-…/76ce8c06-9aad-442c-9d2a-126e4f98f630/scratchpad/frozen-a8f7c47905b0/`,
-write-protected. **That is a per-session agent scratchpad under `/private/tmp`, keyed by a session
-UUID — it is NOT the repo's tracked `scratchpad/` directory, and it will not survive the session or
-a `/private/tmp` purge.** Because a rebuild produces a different SHA-256 (timestamps), the exact
-artifact is unrecoverable once that path is gone.
+**Durable copy — use this one:**
+
+```
+~/local-scratch/drmTMB-0.7.0-candidates/drmTMB_0.7.0-a8f7c47905b0.tar.gz
+~/local-scratch/drmTMB-0.7.0-candidates/inventory-a8f7c47905b0.txt
+```
+
+Write-protected, outside `/tmp` entirely, and **re-hashed from that path to
+`a8f7c47905b03a95…` — matching**. This exists because the original freeze went to a *per-session*
+agent scratchpad (`/private/tmp/claude-503/<session-uuid>/scratchpad/frozen-a8f7c47905b0/`) which is
+**not** the repo's tracked `scratchpad/` and does **not** survive the session or a `/private/tmp`
+purge. Since a rebuild produces a different SHA-256 (timestamps), the exact artifact would have been
+unrecoverable once that path went away. The adversarial audit flagged this as the packet's most
+consequential structural gap; the copy above closes it.
+
+The claim-bearing check log, inventory, and SHA-256 are additionally **committed** under
+[`CANDIDATE-EVIDENCE/`](CANDIDATE-EVIDENCE/), so the evidence survives even if both copies are lost.
 
 The **durable** copies are committed: the claim-bearing check log, the tarball inventory, and the
 SHA-256 are in [`CANDIDATE-EVIDENCE/`](CANDIDATE-EVIDENCE/), stamped with this candidate's hash. If
