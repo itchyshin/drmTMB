@@ -23,7 +23,21 @@ regression using Template Model Builder.
 > D-43 panel 2-of-3 NOT-DONE, **PASS withheld**) and **D-89** (submission far away by choice).
 > Sibling lanes UNCHANGED and **PROTECTED**: #858, #937, #960, the stashes, the dirty primary, and all
 > foreign `codex/*` branches.
-> START HERE: [`docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md`](docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md).
+> **NEXT ARC = the D-117 discharge question** (Shinichi, 2026-08-09), and the decisive fact is cheap:
+> the worst cell's PASS rests on a `+2×MCSE` margin — raw coverage **0.9140** against a **0.918**
+> floor at n=1000 — and MCSE shrinks as `1/√n`, so at 100,000 replicates the same coverage scores
+> **0.9158 and FAILS**. The whole 4,000-fit campaign took **~21 seconds** on Totoro at 90 cores.
+> Nobody has re-run it. Also: one of the three NOT-DONE verdicts was a **dispatch error** (Noether
+> given no Bash/git), and open finding #6 ("no boundary warning") looks **already fixed** at
+> `R/profile.R:1888`. **Do not move the floor or drop the worst corner to reach a PASS — "does not
+> discharge, hold 0.7.0" is a legitimate outcome.**
+> ⚠ **`docs/dev-log/internal-roadmap.md:16` is STALE** — it names the Beta phylogenetic LSS arc as
+> "current closeout", but that arc was **aborted 2026-07-16** (Noether/Fisher/Rose all STOP) and
+> needs Shinichi's explicit new goal. Do not follow it.
+> ⚠ **Debt from this session:** `R CMD check` no longer executes the five relocated vignettes' code
+> (37 → 32 documents rebuilt), and pkgdown builds only on `main`, never on a PR.
+> START HERE: [`docs/dev-log/handover/2026-08-09-claude-handover-d117-discharge.md`](docs/dev-log/handover/2026-08-09-claude-handover-d117-discharge.md)
+> · packet: [`docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md`](docs/dev-log/release/0.7.0-cran-gate/FREEZE-NOTES-0.7.0.md).
 >
 > **▶ Prior (2026-08-09 evening; 0.7.0 RELEASE SLICE ASSEMBLED, candidate NOT frozen).**
 > Gate H is **CLEARED**: the separation lane merged as **DEFER** (PR #956, `8d441a32d`), touching no
