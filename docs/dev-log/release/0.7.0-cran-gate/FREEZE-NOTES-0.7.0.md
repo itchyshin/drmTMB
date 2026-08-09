@@ -71,7 +71,15 @@ never how the vignettes are written — it was which rendered vignettes ship.
 
 **Why moving beat dropping.** Dropping the four largest stems reaches only 5.07 MB, still over the
 limit; five are required. Moving those five to `vignettes/articles/` reaches 4.605 MB **and keeps
-every one of them on the pkgdown website**, so no reader loses access. Owner decision, 2026-08-09.
+every one of them on the pkgdown website**. Owner decision, 2026-08-09.
+
+**What this does cost the reader — stated plainly, not glossed.** These five no longer ship, so
+for them `vignette("model-workflow")` fails, `browseVignettes("drmTMB")` does not list them, and a
+reader with no network cannot reach them at all. The correct claim is therefore **"no reader loses
+access *on the website*"**, not "no reader loses access". Fifteen in-vignette cross-links now point
+at `https://itchyshin.github.io/…`, so following them from a shipped vignette requires a network
+connection where it previously did not. This trade was put to the owner with that cost named before
+the move was made.
 
 Moved: `figure-gallery` (3.057 MB), `function-map-cheatsheet` (1.528 MB),
 `simulation-plot-grammar` (0.767 MB), `model-workflow` (0.681 MB),
