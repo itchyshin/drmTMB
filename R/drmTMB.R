@@ -2579,8 +2579,11 @@ drm_compute_uncertainty <- function(obj, opt, control, estimator = "ML") {
         status = "unsupported",
         se = FALSE,
         message = paste(
-          "TMB::sdreport() was intentionally skipped because experimental",
-          "MSPL Phase 3 supports point estimation only."
+          "TMB::sdreport() is intentionally skipped for experimental MSPL",
+          "fits. Fixed-effect Wald standard errors, when available, are",
+          "computed separately from the unpenalized-Laplace Hessian at the",
+          "MSPL estimate (see fit$mspl$wald and vcov()); confidence",
+          "intervals remain unsupported."
         )
       )
     ))

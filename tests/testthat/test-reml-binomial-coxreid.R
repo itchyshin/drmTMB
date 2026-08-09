@@ -186,6 +186,12 @@ test_that("binomial REML exposes a finite uncertainty path (sdreport / vcov)", {
 
 test_that("binomial REML preserves unsupported-shape and missing-engine rejections", {
   fx <- binom_re_fixture()
+  # Rejection preserved; the MESSAGE moved. The experimental MSPL lane admits
+  # one complete-data unlabelled correlated q = 2 binomial block, so
+  # `(1 + x | g)` is now parsed rather than refused outright. Under REML it is
+  # therefore caught by drm_validate_binomial_q2_context() -- which names the
+  # actual reason -- instead of by validate_binomial_mu_random_terms().
+  # The safety property is unchanged: correlated q = 2 binomial + REML errors.
   expect_error(
     drmTMB(
       bf(y ~ x + (1 + x | g)),
@@ -193,7 +199,7 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
       data = fx$data,
       REML = TRUE
     ),
-    "Only independent binomial `mu` random intercepts and slopes",
+    "Correlated q = 2 binomial random effects are not implemented with",
     fixed = TRUE
   )
   expect_error(
@@ -216,6 +222,10 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
     "requires exactly one admitted ordinary unlabelled `mu` random-effect term",
     fixed = TRUE
   )
+  # Same message move as above: labelled blocks are still refused by
+  # validate_binomial_mu_random_terms(), but its wording widened when the
+  # experimental unlabelled correlated q = 2 block was admitted. Labelled
+  # `(1 | p | g)` remains unsupported.
   expect_error(
     drmTMB(
       bf(y ~ x + (1 | p | g)),
@@ -223,7 +233,7 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
       data = fx$data,
       REML = TRUE
     ),
-    "Only independent binomial `mu` random intercepts and slopes",
+    "Binomial `mu` supports independent random intercepts/slopes",
     fixed = TRUE
   )
 

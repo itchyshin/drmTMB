@@ -27,6 +27,104 @@ drm_abort_mspl_inference <- function(object, what) {
   )
 }
 
+# Wald standard errors and `vcov()` are unlocked for MSPL fits (design doc
+# `docs/design/251-mspl-wald-covariance-alignment.md` sec 5/6, amending
+# `docs/design/250-mspl-binomial-logit-alignment.md` "Phase 4 amendment").
+# When the unpenalized-Hessian SPD gate fails, `vcov()` and `summary()` return
+# NA rather than fabricate a number, and warn with this typed condition so the
+# caller does not mistake NA for "not requested". Mirrors the
+# `drmTMB_profile_boundary_warning` idiom (`R/profile.R:1871`).
+warn_mspl_wald_unavailable <- function(object) {
+  wald <- object$mspl$wald
+  if (is.null(wald) || identical(wald$status, "ok")) {
+    return(invisible(object))
+  }
+  cli::cli_warn(
+    c(
+      "MSPL Wald standard errors are unavailable for this fit.",
+      "!" = "The unpenalized-likelihood observed information failed the positive-definite gate ({.val {wald$status}}).",
+      "i" = "{.code vcov()} and {.code summary()} report {.val NA} standard errors rather than a fabricated number."
+    ),
+    class = "drmTMB_mspl_wald_unavailable"
+  )
+  invisible(object)
+}
+
+# `vcov()` for an MSPL fit (design doc 251 sec 5): the full outer-parameter
+# covariance `fit$mspl$wald$vcov`, i.e. the fixed effects `beta_mu` AND the
+# covariance-Cholesky coordinates together, not only the fixed-effect block
+# ordinary `vcov.drmTMB()` returns for ML/REML fits. On SPD-gate failure,
+# return a same-shaped NA matrix and warn (`warn_mspl_wald_unavailable()`)
+# rather than error, so `vcov()` stays usable.
+# TMB names every fixed-effect outer parameter `beta_mu`, so the raw
+# `names(opt$par)` are duplicated and a user cannot index the returned matrix by
+# name. Reuse the labels `summary()` already shows for the `beta_mu` block and
+# uniquify the remainder, so `vcov(fit)["mu:x", "mu:x"]` works and the two
+# surfaces agree on naming.
+drm_mspl_vcov_names <- function(object) {
+  par_names <- names(object$opt$par)
+  if (is.null(par_names)) {
+    return(NULL)
+  }
+  is_beta <- par_names == "beta_mu"
+  labels <- tryCatch(coefficient_labels(object), error = function(e) NULL)
+  if (!is.null(labels) && length(labels) == sum(is_beta)) {
+    par_names[is_beta] <- labels
+  }
+  make.unique(par_names, sep = ".")
+}
+
+drm_mspl_vcov <- function(object) {
+  wald <- object$mspl$wald
+  display_names <- drm_mspl_vcov_names(object)
+  n <- length(object$opt$par)
+  if (is.null(wald) || !isTRUE(wald$spd) || !is.matrix(wald$vcov)) {
+    warn_mspl_wald_unavailable(object)
+    out <- matrix(
+      NA_real_,
+      nrow = n,
+      ncol = n,
+      dimnames = list(display_names, display_names)
+    )
+    return(out)
+  }
+  out <- wald$vcov
+  if (!is.null(display_names) && length(display_names) == nrow(out)) {
+    dimnames(out) <- list(display_names, display_names)
+  }
+  out
+}
+
+# `summary()$coefficients$std_error` for an MSPL fit (design doc 251 sec 5).
+# Phase 3 admits exactly one `mu` formula, so `est`/`labels` are the `beta_mu`
+# fixed effects in TMB packing order; pull the matching `beta_mu` entries out
+# of `fit$mspl$wald$std_error` by name (not by calling `vcov()` generically --
+# that returns the full outer-parameter block, `beta_mu` plus the covariance
+# coordinates, which would not align with `est` by position or length).
+drm_mspl_summary_coefficients <- function(object, labels, est) {
+  wald <- object$mspl$wald
+  se <- rep(NA_real_, length(est))
+  ok <- FALSE
+  if (!is.null(wald) && isTRUE(wald$spd)) {
+    beta_se <- wald$std_error[names(wald$std_error) == "beta_mu"]
+    if (length(beta_se) == length(est)) {
+      se <- as.numeric(beta_se)
+      ok <- TRUE
+    }
+  }
+  out <- data.frame(
+    estimate = est,
+    std_error = se,
+    row.names = labels,
+    check.names = FALSE
+  )
+  if (!ok) {
+    warn_mspl_wald_unavailable(object)
+    out$std_error.status <- "mspl_wald_unavailable"
+  }
+  out
+}
+
 drm_mspl_filter_frequency_rows <- function(data, weights, estimator) {
   if (!drm_is_mspl(estimator) || is.null(weights)) {
     return(list(data = data, weights = weights, kept = seq_len(nrow(data))))
@@ -295,6 +393,78 @@ drm_mspl_hessian_diagnostics <- function(obj, opt) {
   )
 }
 
+# Wald covariance of the MSPL estimate (design doc
+# `docs/design/251-mspl-wald-covariance-alignment.md` sec 2/6): the inverse
+# observed information of the *unpenalized* Laplace log likelihood, evaluated
+# at the MSPL estimate. `unpenalized_object` is the ADFun returned by
+# `drm_mspl_unpenalized_objective()` (`use_mspl = 0`, `random =` retained), so
+# `unpenalized_object$fn` is the NEGATIVE unpenalized Laplace log likelihood.
+# `optimHess(opt$par, unpenalized_object$fn, unpenalized_object$gr)` is
+# therefore already `-d^2 log(lik)`, i.e. the observed information -- it must
+# NOT be negated before inverting. Negating it here would be exactly the sign
+# bug the design doc warns is easiest to get backwards.
+#
+# The penalized Hessian is never used for this covariance (design doc sec 2):
+# it would add the penalty's curvature to the likelihood's, shrinking SEs
+# most in the separated directions where the penalty is carrying the fit.
+drm_mspl_wald <- function(unpenalized_object, opt) {
+  diagnostics <- drm_mspl_hessian_diagnostics(unpenalized_object, opt)
+  par_names <- names(opt$par)
+  n <- length(opt$par)
+  hessian <- diagnostics$hessian
+
+  status <- "ok"
+  rcond_value <- NA_real_
+  vcov <- NULL
+  spd <- FALSE
+
+  if (is.null(hessian) || !all(is.finite(hessian))) {
+    status <- "hessian_not_finite"
+  } else {
+    asymmetry <- max(abs(hessian - t(hessian)))
+    symmetric_tolerance <- sqrt(.Machine$double.eps) * max(1, max(abs(hessian)))
+    if (!is.finite(asymmetry) || asymmetry > symmetric_tolerance) {
+      status <- "hessian_not_symmetric"
+    } else {
+      # Symmetrize only after the symmetry check above (design doc sec 6,
+      # gate condition 2) -- checking on the already-symmetrized matrix would
+      # hide a genuine asymmetry.
+      symmetrized <- (hessian + t(hessian)) / 2
+      chol_hessian <- tryCatch(chol(symmetrized), error = function(e) e)
+      if (inherits(chol_hessian, "error")) {
+        status <- "hessian_not_positive_definite"
+      } else {
+        rcond_value <- tryCatch(rcond(symmetrized), error = function(e) NA_real_)
+        if (!is.finite(rcond_value) || rcond_value <= 1e-12) {
+          status <- "hessian_ill_conditioned"
+        } else {
+          # V = chol2inv(chol(H)); H already IS the observed information (see
+          # comment above), so no sign flip is applied here.
+          vcov <- chol2inv(chol_hessian)
+          dimnames(vcov) <- list(par_names, par_names)
+          spd <- TRUE
+        }
+      }
+    }
+  }
+
+  std_error <- if (spd) {
+    stats::setNames(sqrt(diag(vcov)), par_names)
+  } else {
+    stats::setNames(rep(NA_real_, n), par_names)
+  }
+
+  list(
+    hessian = hessian,
+    vcov = vcov,
+    std_error = std_error,
+    spd = spd,
+    rcond = rcond_value,
+    status = status,
+    unpenalized_gradient_max_abs = diagnostics$gradient_max_abs
+  )
+}
+
 drm_mspl_unpenalized_objective <- function(spec, opt) {
   data <- spec$tmb_data
   data$use_mspl <- 0L
@@ -313,6 +483,7 @@ drm_mspl_unpenalized_objective <- function(spec, opt) {
 drm_finalize_mspl_fit <- function(spec, obj, opt, report) {
   unpenalized <- drm_mspl_unpenalized_objective(spec, opt)
   numerical <- drm_mspl_hessian_diagnostics(obj, opt)
+  wald <- drm_mspl_wald(unpenalized$object, opt)
   components <- drm_mspl_report_components(report)
   par_list <- obj$env$parList(opt$par)
   log_sd <- as.numeric(par_list$log_sd_mu)
@@ -369,6 +540,7 @@ drm_finalize_mspl_fit <- function(spec, obj, opt, report) {
       log_sech = components$mspl_log_sech
     ),
     numerical = numerical,
+    wald = wald,
     boundary = list(
       log_sd = log_sd,
       sd = exp(log_sd),

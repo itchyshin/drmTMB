@@ -39,11 +39,23 @@ print.drmTMB <- function(x, ...) {
   if (has_sigma_random_effects(x)) {
     cli::cli_text("  sigma random-effect terms: {length(x$sdpars$sigma)}")
   }
-  uncertainty <- drm_uncertainty_status(x)
-  if (!identical(uncertainty, "ok")) {
-    cli::cli_text(
-      "  standard errors: unavailable; point estimates only ({drm_uncertainty_message(x)})"
-    )
+  if (drm_is_mspl(x)) {
+    if (isTRUE(x$mspl$wald$spd)) {
+      cli::cli_text(
+        "  standard errors: fixed-effect Wald SEs available via {.fn vcov} and {.fn summary}; confidence intervals are not implemented for MSPL fits."
+      )
+    } else {
+      cli::cli_text(
+        "  standard errors: unavailable ({.val {x$mspl$wald$status}}); point estimates only."
+      )
+    }
+  } else {
+    uncertainty <- drm_uncertainty_status(x)
+    if (!identical(uncertainty, "ok")) {
+      cli::cli_text(
+        "  standard errors: unavailable; point estimates only ({drm_uncertainty_message(x)})"
+      )
+    }
   }
   if (drm_is_mspl(x)) {
     cli::cli_text(
@@ -2306,7 +2318,9 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @rdname model-fit-extractors
 #' @export
 vcov.drmTMB <- function(object, ...) {
-  drm_abort_mspl_inference(object, "vcov")
+  if (drm_is_mspl(object)) {
+    return(drm_mspl_vcov(object))
+  }
   cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
@@ -4248,11 +4262,23 @@ print.summary.drmTMB <- function(x, ...) {
       "confidence intervals: {x$conf.method}, level = {format(x$conf.level)}"
     )
   }
-  uncertainty <- drm_uncertainty_status(x)
-  if (!identical(uncertainty, "ok")) {
-    cli::cli_text(
-      "standard errors: unavailable; coefficient and parameter tables are point estimates only ({drm_uncertainty_message(x)})"
-    )
+  if (identical(x$estimator, "MSPL")) {
+    if (isTRUE(x$mspl$wald$spd)) {
+      cli::cli_text(
+        "standard errors: fixed-effect Wald SEs reported (unpenalized Laplace Hessian at the MSPL estimate); confidence intervals are not implemented for MSPL fits."
+      )
+    } else {
+      cli::cli_text(
+        "standard errors: unavailable ({.val {x$mspl$wald$status}}); coefficient table is point estimates only."
+      )
+    }
+  } else {
+    uncertainty <- drm_uncertainty_status(x)
+    if (!identical(uncertainty, "ok")) {
+      cli::cli_text(
+        "standard errors: unavailable; coefficient and parameter tables are point estimates only ({drm_uncertainty_message(x)})"
+      )
+    }
   }
   print(x$coefficients)
   if (nrow(x$parameters) > 0L) {
@@ -4337,6 +4363,9 @@ drm_summary_coefficients <- function(object) {
       row.names = character(),
       check.names = FALSE
     ))
+  }
+  if (drm_is_mspl(object)) {
+    return(drm_mspl_summary_coefficients(object, labels, est))
   }
   vcov <- tryCatch(stats::vcov(object), error = function(e) e)
   if (inherits(vcov, "error")) {

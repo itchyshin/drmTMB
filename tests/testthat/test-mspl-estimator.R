@@ -304,11 +304,33 @@ test_that("q2 MSPL uses the paper Cholesky coordinates and permits point output 
   expect_error(AIC(fit), class = "drmTMB_mspl_inference_unsupported")
   expect_error(BIC(fit), class = "drmTMB_mspl_inference_unsupported")
   expect_error(anova(fit, fit), class = "drmTMB_mspl_inference_unsupported")
-  expect_error(vcov(fit), class = "drmTMB_mspl_inference_unsupported")
+  # vcov() and summary()$coefficients$std_error are UNLOCKED for MSPL fits
+  # (design doc 251 sec 5, a Phase 4 amendment to 250's Phase 3 blanket
+  # fence): they report the inverse observed information of the
+  # *unpenalized* Laplace likelihood at the MSPL estimate, not a withheld or
+  # fabricated number. This q2 fixture's unpenalized Hessian passes the SPD
+  # gate, so both surfaces should be finite, positive, and name-indexable.
+  V <- vcov(fit)
+  expect_true(is.matrix(V))
+  expect_identical(dim(V), c(5L, 5L))
+  expect_true(all(is.finite(V)))
+  expect_identical(
+    rownames(V),
+    c("mu:(Intercept)", "mu:x", "log_sd_mu", "log_sd_mu.1", "eta_cor_mu")
+  )
+  expect_identical(colnames(V), rownames(V))
+  expect_true(all(diag(V) > 0))
   expect_error(confint(fit), class = "drmTMB_mspl_inference_unsupported")
   expect_error(profile(fit, parm = "sd:mu:(1 + x | group)"), class = "drmTMB_mspl_inference_unsupported")
   expect_error(summary(fit, conf.int = TRUE), class = "drmTMB_mspl_inference_unsupported")
-  expect_true(all(is.na(summary(fit)$coefficients$std_error)))
+  coefficients_table <- summary(fit)$coefficients
+  expect_true(all(is.finite(coefficients_table$std_error)))
+  expect_true(all(coefficients_table$std_error > 0))
+  expect_equal(
+    coefficients_table$std_error,
+    unname(sqrt(diag(V))[c("mu:(Intercept)", "mu:x")]),
+    tolerance = 1e-10
+  )
   expect_true(is_converged(fit, include_hessian = TRUE))
   diagnostics <- check_drm(fit)
   hessian <- diagnostics[diagnostics$check == "hessian_positive_definite", ]
@@ -364,6 +386,158 @@ test_that("q2 MSPL remains finite for separated and mirrored fixed-X directions"
     estimator = "ml", control = mspl_test_control(1L)
   ))
   expect_gt(abs(coef(ml, "mu")[["x"]]), abs(slopes[["complete"]]))
+})
+
+test_that("MSPL Wald standard errors agree with ML sdreport standard errors when the penalty is negligible", {
+  # design 251 sec 9 test 1 -- the oracle. The MSPL soft-penalty scale
+  # c_n = 2*sqrt(p / n_eff) shrinks with n_eff, so its influence on the
+  # unpenalized-Hessian-based covariance should vanish as n grows. This
+  # fixture (30 groups x 6 rows, alternating non-separated y across an
+  # x range of [-2, 2]) is not separated: every x level has both y = 0 and
+  # y = 1 present across groups. Exploration at n = 48 / 180 / 480 / 960 gave
+  # relative |MSPL SE - ML SE| / ML SE of 1.7% / 0.4% / 0.1% / 0.04%,
+  # monotonically shrinking with n as expected if the two agree in the
+  # zero-penalty limit. 2% is roughly 5x the measured 0.4%-0.01% gap at this
+  # n = 180 size, tight enough to catch a materially wrong Hessian while
+  # tolerating ordinary penalty-induced drift.
+  n_group <- 30L
+  n_each <- 6L
+  group <- factor(rep(seq_len(n_group), each = n_each))
+  x <- rep(seq(-2, 2, length.out = n_each), n_group)
+  y <- rep(as.integer(seq_len(n_each) %% 2 == 0), n_group)
+  dat <- data.frame(y, x, group)
+
+  ml <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = "ml", control = drm_control(optimizer_preset = "careful")
+  )
+  mspl <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+  se_ml <- summary(ml)$coefficients$std_error
+  se_mspl <- summary(mspl)$coefficients$std_error
+  expect_true(all(is.finite(se_ml)))
+  expect_true(all(is.finite(se_mspl)))
+  expect_equal(se_mspl, se_ml, tolerance = 0.02)
+})
+
+test_that("the MSPL Wald covariance carries the correct sign convention (positive definite, not negated)", {
+  # design 251 sec 6/9 test 2. For a TMB object with `random =` retained,
+  # `obj$fn` is the NEGATIVE Laplace log-likelihood, so
+  # `optimHess(theta_tilde, uobj$fn, uobj$gr)` already IS the observed
+  # information and design 251 requires NO further sign flip: `V = solve(H)`
+  # directly. An implementation that negated H before inverting (i.e. used
+  # `solve(-H)`) would report a NEGATIVE DEFINITE "covariance" -- this test
+  # fails immediately against that bug.
+  dat <- mspl_q1_fixture("overlap")
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+  expect_true(fit$mspl$wald$spd)
+  V <- vcov(fit)
+  eigenvalues <- eigen((V + t(V)) / 2, symmetric = TRUE, only.values = TRUE)$values
+  expect_true(all(eigenvalues > 0))
+  se <- summary(fit)$coefficients$std_error
+  expect_true(all(is.finite(se)))
+  expect_true(all(se > 0))
+})
+
+test_that("the reported MSPL vcov derives from the unpenalized Hessian, not the penalized one", {
+  # design 251 sec 2/9 test 3. `fit$mspl$numerical$hessian` is the
+  # PENALIZED objective's Hessian (an optimizer diagnostic, design 251
+  # sec 2); `fit$mspl$wald$hessian` is the UNPENALIZED likelihood's
+  # Hessian, which is what the reported `vcov()` must invert.
+  dat <- mspl_q1_fixture("overlap")
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+  penalized <- fit$mspl$numerical$hessian
+  unpenalized <- fit$mspl$wald$hessian
+  expect_gt(max(abs(penalized - unpenalized)), 1e-3)
+
+  vcov_from_unpenalized <- chol2inv(chol((unpenalized + t(unpenalized)) / 2))
+  expect_equal(
+    unname(vcov_from_unpenalized), unname(vcov(fit)),
+    tolerance = 1e-8
+  )
+  vcov_from_penalized <- chol2inv(chol((penalized + t(penalized)) / 2))
+  expect_gt(max(abs(vcov_from_penalized - vcov_from_unpenalized)), 1e-4)
+})
+
+test_that("under separation, MSPL Wald SEs are large-and-finite or NA-with-warning, never silently small", {
+  # design 251 sec 4/9 test 4. Two separated fixtures give the two honest
+  # outcomes the design permits:
+  #  - q1 "complete" separation (random intercept only): exploration shows
+  #    the unpenalized-Hessian SPD gate PASSES (the random intercept
+  #    partially absorbs the separation), giving large finite SEs
+  #    (intercept 1.60, slope 1.72, log_sd 2.01) versus ~0.2-0.3 in the
+  #    non-separated "overlap" fixture used elsewhere in this file. 1 is a
+  #    threshold well below the observed values and well above ordinary
+  #    non-separated SEs.
+  #  - q2 complete separation on the (1 + x | group) block: exploration
+  #    shows the gate FAILS (status "hessian_not_positive_definite"), so
+  #    the reported SEs are NA and the typed warning fires.
+  # Neither path is a small, fabricated number.
+  fit_finite <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), mspl_q1_fixture("complete"),
+    estimator = "mspl", control = mspl_test_control()
+  )
+  expect_true(fit_finite$mspl$wald$spd)
+  se_finite <- summary(fit_finite)$coefficients$std_error
+  expect_true(all(is.finite(se_finite)))
+  expect_true(all(se_finite > 1))
+
+  group <- factor(rep(seq_len(24L), each = 6L))
+  x <- rep(c(-2, -1, -0.25, 0.25, 1, 2), 24L)
+  y <- as.integer(x > 0)
+  fit_na <- drmTMB(
+    bf(y ~ x + (1 + x | group)), binomial(), data.frame(y, x, group),
+    estimator = "mspl", control = mspl_test_control(2L)
+  )
+  expect_false(fit_na$mspl$wald$spd)
+  expect_warning(vcov(fit_na), class = "drmTMB_mspl_wald_unavailable")
+  expect_true(all(is.na(suppressWarnings(vcov(fit_na)))))
+  expect_warning(summary(fit_na), class = "drmTMB_mspl_wald_unavailable")
+  expect_true(all(is.na(suppressWarnings(summary(fit_na))$coefficients$std_error)))
+})
+
+test_that("the unpenalized-likelihood gradient diagnostic is recorded and non-zero by construction", {
+  # design 251 sec 3/9 test 5. theta_tilde maximises the PENALIZED
+  # criterion, not the unpenalized likelihood, so grad(ell_L)(theta_tilde)
+  # != 0 in general (the textbook Wald argument's stationarity does not
+  # transfer unmodified). A recorded value of exactly 0 here would mean the
+  # wrong (penalized) objective was differentiated.
+  dat <- mspl_q1_fixture("overlap")
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+  g <- fit$mspl$wald$unpenalized_gradient_max_abs
+  expect_true(is.finite(g))
+  expect_gt(g, 0)
+})
+
+test_that("MSPL vcov and summary std_error agree exactly and vcov is indexable by name", {
+  # design 251 sec 9 test 6.
+  dat <- mspl_q1_fixture("overlap")
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = "mspl", control = mspl_test_control()
+  )
+  V <- vcov(fit)
+  labels <- drmTMB:::coefficient_labels(fit)
+  expect_identical(rownames(V)[seq_along(labels)], labels)
+  expect_identical(colnames(V), rownames(V))
+  expect_length(unique(rownames(V)), length(rownames(V)))
+  expect_equal(
+    unname(sqrt(diag(V))[seq_along(labels)]),
+    summary(fit)$coefficients$std_error,
+    tolerance = 1e-10
+  )
+  expect_identical(V["mu:x", "mu:x"], V[2L, 2L])
 })
 
 test_that("independent q1 and q2 penalty values and gradients match TMB", {
