@@ -121,16 +121,77 @@ straight into it. Fix the roadmap.
 - **Installed size 24.7 Mb** is quoted and adjudicated as *still open*: dominated by `libs 13.6Mb`,
   reported as `INFO` not `NOTE` here; CRAN's verdict is not established. `inst/sim` (1.9 Mb) ships.
 
+## Goals / mission (the durable why)
+
+Produce drmTMB's **first CRAN release as `0.7.0`** (D-86) without broadening its scientific claims,
+under the fail-closed rung ladder (D-49): never say "CRAN ready", always report the **highest proven
+rung and the next unproven one**. **D-89 governs the pace — submission is far away by choice; there
+is no clock.** Trust capability by exact cell and evidence tier.
+
+## Plans / roadmap beyond the next steps
+
+1. **This arc** — the D-117 discharge question (above).
+2. **Then** — repay the vignette-code-coverage debt below, and decide `platform-clean`.
+3. **After that** — the open-issue frontier clusters into five themes: interval construction and
+   coverage calibration (#682, #687, #686, #680, #802), variational inference and outer optimization
+   (#932–#936, the Gates 0–4 umbrella under #496; **GVA itself was declined 2026-08-03 — AGHQ is the
+   route**), structured effects and covariance (#33, #5, #531), recovery validation (#859, #570,
+   #555), and performance at scale (#4, #914, #740, #714).
+4. **NOT next** — the Beta phylogenetic LSS arc, despite what `internal-roadmap.md` says. See the
+   landmine section.
+
+## Files created / modified this session
+
+**15 commits**, `eda38306b..91e2e85da` on `claude/07-release-slice`.
+
+*Package paths (ship):* `NEWS.md` · `R/profile.R` · `R/check.R` · `man/confint.drmTMB.Rd` ·
+`tests/testthat/test-boundary-surfacing.R` (all via the PR #961 merge) · five vignettes +
+`function-map-cheatsheet.png` moved to `vignettes/articles/` · link rewrites in
+`vignettes/{convergence,drmTMB,first-week-intervals,implementation-map,julia-engine,large-data,model-map,model-selection,structural-dependence}.Rmd`.
+
+*Repo-only (do not ship):* `.Rbuildignore` · `_pkgdown.yml` · `tools/tests/test_capability_ledger.py` ·
+`AGENTS.md` · `docs/dev-log/release/0.7.0-cran-gate/{FREEZE-NOTES-0.7.0.md,STALE-EVIDENCE-QUARANTINE.md}` ·
+`docs/dev-log/release/0.7.0-cran-gate/CANDIDATE-EVIDENCE/{as-cran-a8f7c47905b0.log,inventory-a8f7c47905b0.txt,tarball-a8f7c47905b0.sha256}` ·
+`docs/dev-log/release-audits/2026-08-09-07-{cran-release-ledger.json,decision-packet.md,adversarial-freeze-audit.md,mechanical-freeze-verify.md}` ·
+`docs/dev-log/after-task/2026-08-09-07-release-slice-third-candidate.md` ·
+`docs/dev-log/plan-actual/2026-08-09-07-release-slice.md` · `docs/dev-log/check-log.md` · this handover.
+
+## Live environment the next session needs
+
+```sh
+cd /private/tmp/drmTMB-07-release          # or re-create; see How to Resume
+R_PROFILE_USER=/dev/null Rscript --no-init-file -e '...'   # the .Rprofile R-4.5 lib segfaults R 4.6
+```
+
+Verified on this machine: R 4.6.0, TMB 1.9.21, `pkgbuild::has_build_tools()` TRUE, `pdflatex` present.
+Full suite ~45 min · `R CMD check --as-cran` with vignettes ~15 min · candidate build ~9 min.
+Totoro reachable via its existing ControlMaster (no Duo needed).
+
+**Safe verification command (changes nothing):**
+
+```sh
+R_PROFILE_USER=/dev/null NOT_CRAN=true Rscript --no-init-file -e 'suppressMessages(pkgload::load_all(".")); testthat::test_dir("tests/testthat", filter="^(offset-families|boundary-surfacing)$", reporter="summary")'
+```
+
+**Files you must NOT stage:** anything under `scratchpad/` you did not create, and every foreign
+branch's work listed below. **Never `git add -A` in this repository.**
+
 ## Landing state
+
+`tools/handoff_gate.sh` returns **GATE FAIL — 1 of 1 repo(s) have UNLANDED state.** That failure is
+**entirely pre-existing foreign work**, declared here rather than cleaned, per the protocol's
+"DECLARE it" branch. **This session's own lane is clean and fully pushed.**
 
 | Artifact | Committed | Pushed | State |
 | --- | --- | --- | --- |
-| `claude/07-release-slice` @ `4679e1176`+ | yes | yes | **ACTIVE** — draft PR **#959**, do not merge; merging it *is* the release action |
-| Candidate `a8f7c479` | evidence committed | — | frozen; tarball itself in a **session-scoped** `/private/tmp/claude-503/<uuid>/scratchpad/frozen-a8f7c47905b0/` that will not survive — durable copies in `docs/dev-log/release/0.7.0-cran-gate/CANDIDATE-EVIDENCE/` |
-| PR #961 (boundary surfacing) | merged into the slice | yes | done |
-| CI | — | — | **green at `6dc48cd94`**; a run at the final head was still in flight at handoff — check it |
-| PRs #957, #958, #937, #960, #955, #858 | — | — | **PROTECTED FOREIGN** — untouched |
-| stashes · dirty primary `claude/handover-freshness-0718` · all `codex/*` | — | — | **PROTECTED** — never work there |
+| `claude/07-release-slice` @ `91e2e85da` | yes | yes | **ACTIVE, CLEAN** — draft PR **#959**; do not merge, merging it *is* the release action |
+| Candidate `a8f7c479` | evidence committed | yes | frozen. **The tarball itself lives in a session-scoped `/private/tmp/claude-503/<uuid>/scratchpad/frozen-a8f7c47905b0/` that will NOT survive.** Durable log/inventory/sha256 are committed under `CANDIDATE-EVIDENCE/`; recovering the exact bytes needs a rebuild, which yields a new hash |
+| PR #961 (boundary surfacing) | merged into the slice | yes | DONE |
+| CI | — | — | **green at `6dc48cd94`**; platform matrix dispatched at `604016a5d` (runs `31336312020`, `31336313176`) — **deliberately unread** |
+| ~24 foreign branches with unpushed commits (`codex/lane-b-q1-preflight-admission` alone has **226**, `codex/lane-c-provider-cohort-20260729` **99**, `codex/aoi2-drac-recovery` **59**) | mixed | **no** | **CARRIED-OVER · PROTECTED FOREIGN.** Reason: pre-existing, not this session's, and not this lane's to land. Resume: whoever owns each lane. Do **not** push, clean, or reconcile |
+| `claude/handover-freshness-0718` (primary checkout, 2 unpushed, dirty) | partial | no | **CARRIED-OVER · PROTECTED.** Never work, stage, or clean there |
+| repository stashes | n/a | n/a | **PROTECTED** — do not pop or drop |
+| PRs #957, #958, #937, #960, #955, #858 | — | — | **PROTECTED FOREIGN** — untouched. See [`../active-lane-split.md`](../active-lane-split.md) for each lane's own authority |
 
 ## Owner gates — none crossed, none to cross without Shinichi
 
