@@ -1,5 +1,8 @@
 # Binomial link generalisation — probit and cloglog
 
+> Companion notes: `250-mspl-binomial-logit-alignment.md` (the frozen MSPL contract, and its
+> Phase 4 amendment) and `251-mspl-wald-covariance-alignment.md` (the standard-error estimand).
+
 Status: **scoped, not started. Target 0.7.1, deliberately NOT 0.7.0.**
 Owner decision 2026-08-09. This note exists so the arc is not rediscovered from scratch;
 every finding below was verified by inspection and is cited.

@@ -264,6 +264,13 @@ an MSPL-specific message or be explicitly marked unsupported.  `sdreport()`
 may be retained as an optimizer diagnostic but is not an MSPL uncertainty
 endorsement.
 
+> **Superseded in part — see "Phase 4 amendment" below.**  The Wald
+> standard-error clause in the preceding paragraph is lifted for `vcov()` and
+> `summary()` **only**.  Every other fence it names — `logLik()`, AIC, BIC,
+> profile likelihood, `confint()`, and `anova()` — is re-asserted verbatim and
+> remains in force.  The Phase 3 text is retained above as written rather than
+> edited, so the original contract stays legible.
+
 ## Validation gate
 
 The local experimental point-fit claim requires all of the following. These
@@ -319,3 +326,47 @@ with a latent-normal q1/independent-term implementation (`src/drmTMB.cpp:3291-33
 and its fixed-only runtime link is `logit` (`R/methods.R:5597-5614`).  Those
 facts establish the landing interface only; they do not import MSPL code or
 prove the new estimator.
+
+## Phase 4 amendment — Wald standard errors
+
+Owner decision, 2026-08-09: **MSPL ships standard errors in drmTMB 0.7.0,
+claim-bounded.**  This section amends the Phase 3 clause above.  It is a
+deliberate contract change, recorded as an amendment rather than applied as a
+silent unlock, because the Phase 3 text explicitly required Wald standard
+errors to error or be marked unsupported.
+
+The estimand, the SPD gate, the failure behaviour, and the obligated tests are
+specified in `251-mspl-wald-covariance-alignment.md`.  This section states only
+what changes in the contract.
+
+**Lifted.**  `vcov()` and `summary()$coefficients$std_error` may return values
+for an MSPL fit.  The reported covariance is the inverse observed information
+of the **unpenalized** Laplace log likelihood evaluated at the MSPL estimate.
+The penalized Hessian remains an optimizer diagnostic and must never be the
+reported covariance: it adds the penalty's curvature to the likelihood's, which
+shrinks standard errors most in exactly the separated directions where the
+penalty is carrying the fit.
+
+**Re-asserted verbatim, still in force.**  `logLik()`, AIC, BIC, profile
+likelihood, `confint()`, and `anova()` retain no MSPL validity claim and must
+continue to error with an MSPL-specific message.  The stored unpenalized
+objective must still never be exposed through `logLik()`.
+
+**A standard error is a reported quantity; an interval is a coverage claim.**
+The two are separated in code, not only in prose, which is why `vcov()` is
+lifted while `confint()` is not.  Kosmidis and Firth establish that Wald
+intervals in this setting fail to cover regardless of the nominal level, a
+failure that persists even for profile penalized-likelihood intervals, and that
+the mechanism is finiteness of the penalized estimator and its standard error
+rather than separation as such.  A second, independent reason is recorded in
+`251` section 3: the MSPL estimate maximises the penalized criterion, so the
+unpenalized score is not zero at it and the textbook "evaluate at the maximum
+likelihood estimate" justification does not transfer.
+
+**Unchanged by this amendment.**  The admitted model surface of Phase 3, the
+penalty form and its scaling, `sdreport()` remaining skipped, the validation
+gate, the clean-room provenance boundary, and the requirement of a separately
+authorized campaign before any recovery, bias, RMSE, interval, coverage, or
+calibrated-boundary claim.  `probit`/`cloglog` also remain out of scope for
+MSPL — see `252-binomial-link-generalisation.md` section 7 for why the
+mixed-effects bounds do not exist.
