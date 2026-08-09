@@ -104,6 +104,30 @@ test_that("binary mi() predictor model uses exact two-state likelihood", {
   expect_true(all(is.na(imp$std_error)))
 })
 
+test_that("binary mi() predictor model reports a route-conditional std_error when sdreport is available", {
+  # Unlike the fixture above, this fit uses drm_control() defaults (se = TRUE)
+  # so TMB::sdreport() actually runs; drm_imputed_route_conditional_sd()
+  # then supplies std_error from the stored Bernoulli posterior probability,
+  # sqrt(p * (1 - p)), with no new TMB computation.
+  dat <- missing_predictor_binary_data()
+  missing_x <- is.na(dat$treatment)
+
+  fit <- drmTMB(
+    bf(y ~ z + mi(treatment), sigma ~ 1),
+    data = dat,
+    impute = list(
+      treatment = impute_model(treatment ~ z, family = binomial())
+    ),
+    missing = miss_control(predictor = "model")
+  )
+  imp <- imputed(fit)
+  p <- fit$missing_data$predictors$treatment$conditional_probability
+
+  expect_true(all(is.finite(imp$std_error)))
+  expect_equal(imp$std_error, sqrt(p * (1 - p)), tolerance = 1e-10)
+  expect_equal(imp$uncertainty_status, rep("ok", sum(missing_x)))
+})
+
 test_that("binary mi() predictor model combines with response masks", {
   dat <- missing_predictor_binary_data()
   dat$y[c(4, 17)] <- NA_real_

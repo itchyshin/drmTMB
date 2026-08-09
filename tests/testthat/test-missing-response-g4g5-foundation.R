@@ -4,6 +4,51 @@ source_missing_response_g4g5 <- function(env = parent.frame()) {
   source(path, local = env)
 }
 
+test_that("every G3 route builds a fixture without the testthat helpers", {
+  # The campaign scripts source this runner after a plain `library(drmTMB)`, so a
+  # route that silently depends on a test helper cannot run in deployment even
+  # though it passes here. Rebuild each fixture in an environment whose only
+  # parent is the package namespace, which is what an installed run actually sees.
+  deploy_env <- new.env(parent = asNamespace("drmTMB"))
+  source_missing_response_g4g5(env = deploy_env)
+
+  routes <- deploy_env$mr_g4g5_route_manifest()$route_id
+  expect_length(routes, 18L)
+
+  failures <- vapply(routes, function(route) {
+    tryCatch(
+      {
+        deploy_env$mr_g4g5_route_fixture(route, information_multiplier = 1)
+        NA_character_
+      },
+      error = function(e) conditionMessage(e)
+    )
+  }, character(1))
+
+  expect_equal(unname(routes[!is.na(failures)]), character(0))
+})
+
+test_that("the runner's skew-normal fallback matches the tested helper", {
+  # The runner carries its own copy of skew_normal_public_to_native() because the
+  # canonical one is a testthat helper and cannot be reached from an installed
+  # package. This is the guard against the two definitions drifting apart.
+  deploy_env <- new.env(parent = asNamespace("drmTMB"))
+  source_missing_response_g4g5(env = deploy_env)
+
+  mu <- c(-1.5, 0, 0.4, 2.2)
+  sigma <- c(0.3, 1, 1.7, 0.8)
+  nu <- c(-2.5, 0, 1.4, 3.1)
+
+  expect_equal(
+    deploy_env$.mr_skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu),
+    skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu)
+  )
+  expect_error(
+    deploy_env$.mr_skew_normal_public_to_native(mu = 0, sigma = 0, nu = 1),
+    "sigma must be finite and positive"
+  )
+})
+
 test_that("the missing-response manifest freezes all 18 G3 routes", {
   source_missing_response_g4g5()
   manifest <- mr_g4g5_route_manifest()

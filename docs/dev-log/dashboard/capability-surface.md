@@ -1,6 +1,6 @@
 # drmTMB capability surface
 
-_Generated 2026-08-08 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
+_Generated 2026-08-09 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
 
 The model surface, staged-association surface, and missing-response execution axis answer different questions. Model cells describe direct drmTMB fits; association cells describe post-fit associate_pairs() estimators; missing-response cells describe response handling. Evidence never transfers automatically between axes.
 

@@ -4,6 +4,60 @@
 # capability ledger.  A G5 result is evidence for one frozen response-mask
 # target, not a promotion of the model-wide inference tier.
 
+# Deployment compatibility.
+#
+# This runner ships in `inst/` and the campaign scripts source it after a plain
+# `library(drmTMB)` (see `tools/mr-g5-drac-route-array.R`).  Two symbols it needs
+# are not on the search path in that setting, which silently blocked the
+# `skew_normal` and `tweedie` fixtures under `library()` while they worked under
+# `devtools::load_all()` (which attaches internals and sources test helpers):
+#
+#   * `rtweedie_compound()` is real package code (`R/methods.R`) but unexported.
+#   * `skew_normal_public_to_native()` exists ONLY as a testthat helper
+#     (`tests/testthat/helper-skew-normal-density.R`), so no namespace lookup
+#     can reach it from an installed package.
+#
+# Both are bound unconditionally below, under runner-owned names.  An `exists()`
+# guard would be unreliable here: `exists()` inherits up the whole search path to
+# the global environment, so under `devtools::load_all()` it finds the test helper
+# and the runner would resolve differently in test and deployment -- the exact
+# split this block exists to remove.  Binding unconditionally means the runner
+# uses one definition everywhere.  The maths below is identical to the helper, so
+# the frozen DGPs and the frozen manifest hash are unchanged;
+# `test-missing-response-g4g5-foundation.R` asserts that equivalence.
+.mr_rtweedie_compound <- get("rtweedie_compound", envir = asNamespace("drmTMB"))
+
+# Realized-random-effect centring: the v1/v2 switch.
+#
+# The frozen v1 DGPs centre their realized random intercepts (`u <- u - mean(u)`),
+# which removes the sampling variability of the group mean.  The simulated
+# intercept is then the EXACT realized mean, while the fitted model's interval
+# correctly includes that variability -- so `fixef:mu:(Intercept)` intervals are
+# systematically conservative and coverage pins at 1.000.  This is diagnosed in
+# `docs/dev-log/evidence/2026-07-31-mr-g5-gaussian-calibration-receipt.md`, and
+# the natural experiment already in the campaign confirms it: `nbinom2` is the one
+# route that does NOT centre, and it is the one route whose intercept cells pass.
+#
+# Default TRUE reproduces the frozen v1 DGP bit-for-bit (the frozen manifest hash
+# still matches), so existing evidence stays valid and comparable.  Set the option
+# to FALSE to generate the corrected v2 design.  This is deliberately a declared
+# switch rather than an edit, so a v1 and a v2 artifact can never be silently
+# conflated.
+.mr_centre_random_effects <- function() {
+  isTRUE(getOption("drmTMB.mr_g4g5_centre_random_effects", TRUE))
+}
+
+.mr_skew_normal_public_to_native <- function(mu, sigma, nu) {
+  if (any(!is.finite(sigma)) || any(sigma <= 0)) {
+    stop("sigma must be finite and positive", call. = FALSE)
+  }
+  delta <- nu / sqrt(1 + nu^2)
+  mean_shift <- delta * sqrt(2 / pi)
+  omega <- sigma / sqrt(1 - mean_shift^2)
+  xi <- mu - omega * mean_shift
+  data.frame(xi = xi, omega = omega, alpha = nu, delta = delta)
+}
+
 mr_g4g5_route_manifest <- function() {
   data.frame(
     route_id = c(
@@ -105,7 +159,7 @@ mr_g4g5_gaussian_g3_dgp <- function(information_multiplier = 1, seed = 202607110
   x <- rnorm(length(id))
   z <- rnorm(length(id))
   u <- rnorm(n_id, sd = 0.7)
-  u <- u - mean(u)
+  if (.mr_centre_random_effects()) u <- u - mean(u)
   data <- data.frame(id = id, x = x, z = z)
   data$y <- rnorm(nrow(data), 0.35 + 0.55 * x + u[id], exp(-0.25 + 0.22 * z))
   data <- mr_g4g5_mask_mcar(data, "y", seed = seed + 1L, group = "id")
@@ -152,7 +206,7 @@ mr_g4g5_t1_ri_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     beta = list(mu = c(-0.30, 0.70), sigma = c(-0.85, 0.16), sd = 0.55, mask_seed = 2026071111L)
   )
   u <- rnorm(n_id, sd = spec$sd)
-  if (route %in% c("poisson", "beta")) u <- u - mean(u)
+  if (.mr_centre_random_effects() && route %in% c("poisson", "beta")) u <- u - mean(u)
   eta <- spec$mu[[1L]] + spec$mu[[2L]] * data$x + u[id]
   if (route == "poisson") {
     data$count <- rpois(nrow(data), exp(eta))
@@ -249,7 +303,7 @@ mr_g4g5_t2_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     data <- data.frame(x = seq(-1.2, 1.2, length.out = n), z = rep(seq(-1, 1, length.out = 24), length.out = n))
     truth <- c("fixef:mu:(Intercept)" = .2, "fixef:mu:x" = .4,
       "fixef:sigma:(Intercept)" = -.3, "fixef:sigma:z" = .15, "fixef:nu:(Intercept)" = 1.4)
-    native <- skew_normal_public_to_native(.2 + .4 * data$x, exp(-.3 + .15 * data$z), 1.4)
+    native <- .mr_skew_normal_public_to_native(.2 + .4 * data$x, exp(-.3 + .15 * data$z), 1.4)
     i <- seq_len(n); u <- qnorm((i - .5) / n); v <- qnorm((((i * 37L) %% n) + .5) / n)
     data$y <- native$xi + native$omega * (native$delta * abs(u) + sqrt(1 - native$delta^2) * v)
     data <- mr_g4g5_mask_mcar(data, "y", seed = if (use_g3_seed) defaults[[route]] else seed + 1L)
@@ -265,7 +319,8 @@ mr_g4g5_t2_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     lognormal = list(mu = c(.25, .40), sigma = c(-.75, .18), sd = .55),
     gamma = list(mu = c(.15, .36), sigma = c(-.85, .16), sd = .48)
   )
-  u <- rnorm(n_id, sd = spec$sd); u <- u - mean(u)
+  u <- rnorm(n_id, sd = spec$sd)
+  if (.mr_centre_random_effects()) u <- u - mean(u)
   eta <- spec$mu[[1L]] + spec$mu[[2L]] * data$x + u[id]
   sigma <- exp(spec$sigma[[1L]] + spec$sigma[[2L]] * data$z)
   if (route == "student") data$y <- eta + sigma * sample(qt((seq_len(n)-.5)/n, df = 2 + exp(spec$nu)))
@@ -298,7 +353,7 @@ mr_g4g5_t3_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   if (route == "tweedie") {
     data <- data.frame(x = runif(n, -1, 1), z = rnorm(n))
     mu <- exp(.20 + .45 * data$x); sigma <- exp(-.55 + .20 * data$z)
-    data$y <- rtweedie_compound(n, mu = mu, phi = sigma^2, power = 1.35)
+    data$y <- .mr_rtweedie_compound(n, mu = mu, phi = sigma^2, power = 1.35)
     truth <- c("fixef:mu:(Intercept)" = .20, "fixef:mu:x" = .45,
       "fixef:sigma:(Intercept)" = -.55, "fixef:sigma:z" = .20, "fixef:nu:(Intercept)" = 1.35)
   } else {
@@ -333,7 +388,8 @@ mr_g4g5_t4_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   if (route == "beta_binomial") {
     n_id <- mr_g4g5_group_count(52L, 10L, information_multiplier); id <- factor(rep(seq_len(n_id), each = 10L)); n <- length(id)
     data <- data.frame(id = id, x = rnorm(n), z = rnorm(n), trials = sample(18:34, n, replace = TRUE))
-    u <- rnorm(n_id, sd = .60); u <- u - mean(u)
+    u <- rnorm(n_id, sd = .60)
+    if (.mr_centre_random_effects()) u <- u - mean(u)
     mu <- plogis(-.25 + .65 * data$x + u[id]); sigma <- exp(-1.35 + .15 * data$z); phi <- 1/sigma^2
     data$success <- rbinom(n, data$trials, rbeta(n, mu*phi, (1-mu)*phi)); data$failure <- data$trials - data$success
     data <- mr_g4g5_mask_mcar(data, "success", if (use_g3_seed) defaults[[route]] else seed+1L)
