@@ -251,7 +251,7 @@ For a short applied walkthrough, see the vignette
 
 \section{Boundary intervals}{
 
-Both interval methods are unreliable when a variance component approaches zero
+Every interval method is unreliable when a variance component approaches zero
 or a correlation approaches \verb{+/-1}, and each warns about its own case.
 
 \code{method = "wald"} flags a row with \code{conf.status = "wald_at_boundary"} and warns
@@ -273,9 +273,26 @@ boundary incidence for 4000/4000 replicates and matched the conditional coverage
 to four decimal places. Treat a flagged interval as indicative of scale, not as a
 calibrated \code{level} interval, and prefer more groups where the design allows it.
 
+\code{method = "bootstrap"} flags a row with \code{conf.status = "bootstrap_at_boundary"}
+and warns (class \code{drmTMB_bootstrap_boundary_warning}) when at least 5\% of the
+retained resamples land on the target's bound. Resampling does not repair a
+boundary: a percentile interval whose draws pile up at zero is reporting the
+constraint rather than the sampling distribution. Measured on three Gaussian
+random-intercept fits at \code{R = 200}, a true SD of 0 put 43\% of draws on the
+bound and a true SD of 0.25 put 5\% there with a lower endpoint of exactly
+zero, while a true SD of 0.9 put none there. The flag needs at least 20
+retained draws to fire, because a share computed from a handful of resamples
+is noise; \code{bootstrap.n} reports how many were retained.
+
 Rows with \code{conf.status = "profile_failed"} or \code{"clamp_limited"} also carry
 \code{profile.boundary = TRUE}, but return missing endpoints and are not warned about
 separately; read their \code{conf.status} and \code{profile.message} instead.
+
+\code{check_drm()} does \strong{not} assess any of this. It reads the fit, so a target
+whose point estimate sits well clear of zero passes every fit-level check
+while its interval is still flagged here. \code{check_drm()} emits an
+\code{interval_reliability_scope} note saying so; read \code{conf.status} before
+reporting an interval.
 }
 
 \section{Profiling a structured \code{sigma} random-effect SD}{
