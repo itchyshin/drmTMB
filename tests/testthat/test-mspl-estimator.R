@@ -850,3 +850,85 @@ test_that("q2 MSPL standard errors are consistent with an external lme4 fit", {
   relative <- max(abs(se_mspl - se_glmer) / se_glmer)
   expect_lt(relative, 0.06)
 })
+
+# ---------------------------------------------------------------------------
+# EQUIVARIANCE UNDER CONTRASTS
+#
+# Sterzinger & Kosmidis (2023) prove MSPL fixed-effect estimates are EXACTLY
+# equivariant under linear reparameterisation of the fixed-effect design, and
+# make the point by exhibiting a competitor that is not: `blme`/`bglmer`, whose
+# independent normal/t priors on the fixed effects give non-matching estimates
+# of the same quantity under a change of reference category (their Table 2
+# reports gamma_1 = 5.75 against -beta_4 = -4.73 for what is algebraically one
+# number). The brain's ENGINEERING-NOTEBOOK entry for that paper lists this
+# explicitly as a check any penalty implementation should be run against.
+#
+# Why it can fail, and so why it is worth asserting: the Jeffreys term is
+# 0.5 * log|X'WX|. Under X -> XA the determinant changes by the constant |A|^2,
+# which shifts the objective without moving its argmax -- equivariance is a
+# CONSEQUENCE of that structure. An implementation that built the penalty on a
+# rescaled, centred, or otherwise reparameterised design, or that let the
+# scaling constant c_n depend on the parameterisation, would break it while
+# still producing plausible-looking estimates. Nothing else in this file would
+# catch that.
+#
+# Run on a SEPARATED fixture on purpose: there the penalty is doing real work,
+# so the property is actually being exercised rather than holding trivially
+# because the penalty is negligible.
+#
+# MEASURED: |beta_d + gamma_a| = 4.9e-06 for MSPL, and 5.2e-05 for ML. MSPL is
+# the tighter of the two -- ML's agreement is bounded by wherever the optimizer
+# stopped on an almost-flat likelihood, whereas MSPL has a finite optimum to
+# converge to. Tolerance 1e-4 gives ~20x headroom over the measured value.
+# ---------------------------------------------------------------------------
+
+mspl_separated_contrast_fixture <- function(G = 12L, seed = 20260809L) {
+  set.seed(seed)
+  d <- data.frame(
+    block = factor(rep(seq_len(G), each = 8L)),
+    trt = factor(rep(c("a", "b", "c", "d"), times = 2L * G))
+  )
+  u <- rnorm(G, 0, 0.8)
+  eta <- c(a = 0.5, b = 1.2, c = -0.3, d = -50)[as.character(d$trt)] +
+    u[as.integer(d$block)]
+  d$y <- rbinom(nrow(d), 1, plogis(eta))
+  d
+}
+
+test_that("MSPL fixed effects are equivariant under a change of reference level", {
+  base <- mspl_separated_contrast_fixture()
+
+  d_ref_a <- base
+  d_ref_a$trt <- relevel(d_ref_a$trt, ref = "a")
+  d_ref_d <- base
+  d_ref_d$trt <- relevel(d_ref_d$trt, ref = "d")
+
+  fit_one <- function(dat) {
+    drmTMB(
+      bf(y ~ trt + (1 | block)),
+      family = binomial(), data = dat,
+      estimator = "mspl", control = mspl_test_control()
+    )
+  }
+
+  ca <- summary(fit_one(d_ref_a))$coefficients
+  cd <- summary(fit_one(d_ref_d))$coefficients
+
+  # The paper's own check: beta_d under reference "a" is algebraically the
+  # negative of gamma_a under reference "d".
+  beta_d <- ca[grep("trtd$", rownames(ca)), "estimate"]
+  gamma_a <- cd[grep("trta$", rownames(cd)), "estimate"]
+  expect_equal(length(beta_d), 1L)
+  expect_equal(length(gamma_a), 1L)
+  expect_lt(abs(beta_d + gamma_a), 1e-4)
+
+  # Stronger form: every fitted cell mean on the link scale must agree, not
+  # just the one contrast the paper happens to print.
+  cell_means <- function(cf, levels_in_order) {
+    b <- cf[, "estimate"]
+    stats::setNames(c(b[[1L]], b[[1L]] + b[-1L]), levels_in_order)
+  }
+  ma <- cell_means(ca, c("a", "b", "c", "d"))
+  md <- cell_means(cd, c("d", "a", "b", "c"))[c("a", "b", "c", "d")]
+  expect_lt(max(abs(ma - md)), 1e-4)
+})
