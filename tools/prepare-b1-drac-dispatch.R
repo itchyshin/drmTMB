@@ -2,13 +2,33 @@
 # Pure B1 DRAC dispatch planner.  It freezes manifests and derives an array
 # layout, but deliberately never calls sbatch or loads drmTMB.
 
+b1_self_name <- "prepare-b1-drac-dispatch.R"
+# `--file=` names the script R was launched with, which is only this file when it
+# is run directly. Sourced from another script -- a test runner, say -- it points
+# at the caller, and trusting it sends the sibling lookup below to the wrong
+# directory. Accept it only when it actually names this file.
 script_arg <- grep("^--file=", commandArgs(FALSE), value = TRUE)
-script <- if (length(script_arg)) sub("^--file=", "", script_arg[[1L]]) else {
-  candidates <- c("tools/prepare-b1-drac-dispatch.R", "../../tools/prepare-b1-drac-dispatch.R")
+script_arg <- if (length(script_arg)) sub("^--file=", "", script_arg[[1L]]) else character(0)
+script <- if (length(script_arg) && identical(basename(script_arg), b1_self_name)) {
+  script_arg
+} else {
+  candidates <- file.path(c("tools", file.path("..", "..", "tools")), b1_self_name)
   hits <- candidates[file.exists(candidates)]
-  if (length(hits)) hits[[1L]] else "tools/prepare-b1-drac-dispatch.R"
+  if (length(hits)) hits[[1L]] else file.path("tools", b1_self_name)
 }
-source(file.path(dirname(normalizePath(script, mustWork = FALSE)), "b1-breadth-contract.R"))
+b1_contract_path <- file.path(
+  dirname(normalizePath(script, mustWork = FALSE)),
+  "b1-breadth-contract.R"
+)
+if (!file.exists(b1_contract_path)) {
+  stop(
+    "Could not locate 'b1-breadth-contract.R' next to '", b1_self_name, "'. ",
+    "Looked in '", dirname(b1_contract_path), "'. ",
+    "Run this script from the repository root, or with Rscript tools/", b1_self_name, ".",
+    call. = FALSE
+  )
+}
+source(b1_contract_path)
 
 b1_dispatch_stop <- function(...) stop(..., call. = FALSE)
 b1_dispatch_args <- function(args) {
