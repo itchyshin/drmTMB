@@ -19,15 +19,15 @@
 # ape, or the DRM.jl engine is unavailable, or when a fit errors in this
 # environment.
 
-test_that("Gamma / Beta / Binomial route phylo, reject without it", {
+test_that("Gamma / Beta / Binomial route phylo and Workflow G FE", {
   for (fam in c("gamma", "beta", "binomial")) {
     expect_equal(
       drmTMB:::drm_julia_family_tag(fam, has_phylo = TRUE),
       fam
     )
-    expect_error(
+    expect_equal(
       drmTMB:::drm_julia_family_tag(fam, has_phylo = FALSE),
-      "only with a .*phylo.* random intercept"
+      fam
     )
   }
 })

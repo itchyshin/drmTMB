@@ -57,7 +57,6 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "base_missing_predictor_model",
     "base_missing_response_nongaussian",
     "base_unsupported_family",
-    "base_nonphylo_count",
     "biv_invalid_partial_phylo",
     "biv_rho12_phylo",
     "structured_unsupported_family",
@@ -182,8 +181,8 @@ test_that("Julia capability comparison artifact matches the registry", {
   binomial_row <- registry[
     registry$capability_id == "plain_binomial_nonphylo",
   ]
-  expect_equal(binomial_row$r_bridge_status, "intentional_error")
-  expect_match(binomial_row$claim_boundary, "#569")
+  expect_equal(binomial_row$r_bridge_status, "experimental")
+  expect_match(binomial_row$claim_boundary, "Workflow G|expected\\.toml|#499")
 
   # Hopper Phase 1.5 admitted trio (DRM.jl #5) — named, not a family expansion.
   expect_true(all(
@@ -313,21 +312,11 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
     "base_unsupported_family",
     drmTMB(
       bf(y ~ x, sigma ~ 1),
-      family = student(),
+      family = beta_binomial(),
       data = dat,
       engine = "julia"
     ),
-    "Gaussian one-/two-response"
-  )
-  expect_julia_gate(
-    "base_nonphylo_count",
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = nbinom2(),
-      data = dat,
-      engine = "julia"
-    ),
-    "only with a .*phylo.* random intercept"
+    "Gaussian one-/two-response|Workflow G fixed-effect"
   )
 })
 

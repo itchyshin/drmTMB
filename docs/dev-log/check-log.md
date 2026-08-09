@@ -1,6 +1,17 @@
 # Check Log
 
 
+## 2026-08-09 — live Workflow G engine=julia FE gate (#499)
+
+| Slice | Check | Result |
+|---|---|---|
+| Live WF-G 11 cells vs DRM.jl expected.toml | `test-julia-workflow-g.R` (NOT_CRAN + JuliaCall + DRM.jl) | ✅ 11/11 PASS (~193 s) |
+| Gate registry + FE admission | `test-julia-gate-vs-engine.R` | ✅ 140 PASS |
+| Bridge rejection surface | `test-julia-bridge.R` | ✅ green |
+
+Advances #499; does not close. Experimental claim only.
+
+
 ## 2026-08-08 — pkgdown function-map route restored and model-map deduplicated
 
 - Restored **Function map and cheat sheet** to the Get started menu and kept
