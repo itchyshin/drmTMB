@@ -137,6 +137,17 @@ Panel-driven repairs, all made **after** the verdict and therefore **not re-adju
 | Grace #2 — package provenance asserted | MATERIAL | `PROVENANCE.md` — source tree hash proven identical |
 | Grace #3 — regeneration command broken | MINOR-MATERIAL | `VERDICT-100K.md §9` corrected |
 
+### Plan-vs-actual (Melissa, `docs/dev-log/plan-actual/2026-08-09-d117-discharge.md`)
+
+**adaptive = 4 · drift = 4 · unclear = 0.** The drift rows and their disposition:
+
+| drift | owner | disposition |
+|---|---|---|
+| S0/S1 run **inline by the orchestrator** rather than dispatched to a Curie subagent as the slice table specified | Ada | **Accepted, recorded here.** Deliberate — S0 was the hard gate and S1 the load-bearing campaign, so I ran them myself rather than delegate. That is a defensible call but it was never written down, which is what made it drift rather than an adaptation. It also means the plan's "6 producers" budget over-counted: only 4 producer subagents ran (S2, S3, S4, S5) plus S6. |
+| Document edited **mid-panel** (`423b30ac6`) | Rose | Recorded in §9 and §11; not retroactively fixable |
+| `check-log.md` reported the PASS **without** the panel verdict or the WITHHELD claim | Rose | **Fixed** — panel verdict and recovery half added |
+| Decision packet cited **superseded** n = 1,000 recovery figures | Fisher | **Fixed** — superseded-figures banner added at its head |
+
 ## 8. Consistency Audit
 
 - `VERDICT.md §4` (2026-08-04) claimed no boundary warning existed. True when written; overtaken by
