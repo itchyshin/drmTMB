@@ -5,8 +5,13 @@ Totoro compute · **Lane:** `claude/d117-discharge` off `origin/main @ a2695a788
 **Foreign lanes:** PRs #959, #958, #957, #955, #937, #858 and ~24 `codex/`/`cursor/` branches —
 all untouched.
 
-> **Headline: the COVERAGE half passes decisively; the RECOVERY half was never made scoreable;
-> D-117 therefore does not fully discharge — through under-specification, not through failure.**
+> **Headline: the COVERAGE half passes decisively; the RECOVERY half was never made scoreable.
+> RECOMMENDATION — DISCHARGE D-117**, because its operative sentence conditions the hold on *"until
+> that number exists"* and the number now exists for both halves at 400,000 attempts, with the
+> specific collapse it feared (marginal route, 0.810 at ten groups) refuted at 0.925. Four
+> conditions attach; both paths are priced in
+> [`../release-audits/2026-08-09-d117-FINAL-RECOMMENDATION.md`](../release-audits/2026-08-09-d117-FINAL-RECOMMENDATION.md).
+> Shinichi decides.**
 > Coverage: pooled **0.924800** (SE 0.000417) over 400,000 attempts, every cell clearing
 > `ss_floor(10) = 0.918` on **raw** coverage and on the strict one-sided LCB. My pre-registered
 > prediction that it would fail was **WRONG** and is recorded as such.

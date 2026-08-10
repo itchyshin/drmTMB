@@ -64,6 +64,12 @@ shipped). All findings are now repaired, but **the repairs came after the verdic
 have NOT been re-adjudicated** -- they do not convert it. The coverage *result* itself
 was independently reproduced by two of the three reviewers.
 
+**RECOMMENDATION: DISCHARGE D-117** (moderate-to-high confidence) -- its operative
+sentence holds 0.7.0 *"until that number exists"*, and the number now exists for both
+halves at 400,000 attempts; the marginal route's 0.810 collapse it feared is refuted at
+0.925. Four conditions and both costed paths:
+`docs/dev-log/release-audits/2026-08-09-d117-FINAL-RECOMMENDATION.md`. Shinichi decides.
+
 Scope: the **A1 scalar Gaussian corner only** (`TRUE_BETA = 0.5`, residual `sigma = 0.7`,
 one mean formula, `g = 10`, ML). Raw CSVs (~195 MB) are not committed; SHA-256s and the
 regeneration command are recorded instead. Discharge remains the owner's decision.

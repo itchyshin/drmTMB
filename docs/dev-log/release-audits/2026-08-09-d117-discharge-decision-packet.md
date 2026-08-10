@@ -17,7 +17,12 @@
 >    packet's §6 conditions its recommendation on that panel; the condition resolved
 >    *against* it. The blocking findings are repaired but have **not** been re-adjudicated.
 >
-> The packet's *reasoning* stands; its numbers and its confidence statement do not.
+>    The packet's *reasoning* stands; its numbers and its confidence statement do not.
+>
+> 3. **Its §6 recommendation is SUPERSEDED.** It was conditioned on a panel that has since reported
+>    NOT-DONE, which made it non-actionable as written. The operative recommendation now lives in
+>    **[`2026-08-09-d117-FINAL-RECOMMENDATION.md`](2026-08-09-d117-FINAL-RECOMMENDATION.md)**:
+>    **discharge D-117**, with four conditions, both paths priced, and every finding dispositioned.
 
 ## 1. What D-117 asked for, and whether it was delivered
 
