@@ -67,8 +67,15 @@ defect) · **Noether SOUND**-with-fixes, all applied · **Melissa 0 drift**.
 
 Comparison against `glm`, `lme4::glmer`, `glmmTMB` across all three links: drmTMB and glmmTMB agree
 to **every printed digit**; glmer diverges only on the non-canonical links (1.2e-3 probit, 3.6e-3
-cloglog), the known lme4-vs-TMB difference. Published artifact:
+cloglog), the known lme4-vs-TMB difference.
+
+**Published artifact — keep and update, do not re-create:**
 https://claude.ai/code/artifact/919665ed-56fc-4604-8f46-5ab766572d15
+Source: `binomial-link-comparison.html` in this session's scratchpad. It carries both comparison
+tables, the separation panel, and the "can we get to the truth" argument. Revised 2026-08-10 after
+the literature corrections — **its earlier text conflated existence with the softness bounds.** To
+update from a future session, pass that URL as `url` to the Artifact tool, or it will mint a new
+one.
 
 ## Five defects fixed
 
@@ -163,6 +170,31 @@ the 2026 Theorem 4.1, which is not transportable to a GLMM.
 
 Consolidated because this arc's knowledge is scattered across three design docs, two campaigns and
 an external exchange. **Read this section before touching MSPL.**
+
+### CAN WE GET TO THE TRUTH? — the epistemic point, and the one most easily lost
+
+Under **complete separation the data carry no information about the slope.** Every value above some
+threshold fits the observations equally well. The truth (0.8 in our fixture) is **not identified by
+that dataset**, so *no* estimator can recover it — not MSPL, not a better optimiser, not more
+compute. This is a property of the data, not a deficiency of any method.
+
+**So the question is not "which estimator gets closest to the truth."** It is *"which estimator says
+honestly that the truth is out of reach."*
+
+| engine | behaviour under complete separation | honest? |
+|---|---|---|
+| ML, `glmer` | refuse to fit | **yes** — unhelpful but unmistakable |
+| `glmmTMB` | returns intercept 13.955 with **SE 6 146 177**; `NaN` SEs under quasi-separation | **no** — looks like a result |
+| **MSPL** | 214.051 with **SE 177.812** | **yes** — SE ≈ estimate says *no information* |
+
+**Read the ratio, never the point estimate.** MSPL's contribution is not a better number; it is a
+finite, interpretable, honestly-labelled *non-answer* where the alternatives either refuse or
+mislead. Anyone reporting an MSPL slope from separated data as an effect size has misread it, and
+that is the single most likely way this estimator gets misused.
+
+This also settles the earlier unease about the magnitude: **214 is not failed shrinkage.** KF2021
+Thm 2 shows shrinkage is toward equiprobability under an information metric, not toward zero in
+Euclidean terms, so *"only typically, rather than always, smaller in absolute value."*
 
 ### What MSPL is and is not
 
