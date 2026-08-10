@@ -75,8 +75,8 @@ exhaustive family list.
 knitr::include_graphics("function-map-cheatsheet.png")
 ```
 
-[Open the full-size function map](function-map-cheatsheet.png) when reading on
-a small screen.
+[Open the full-size function map](https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.png)
+when reading on a small screen.
 
 ```{=html}
 <div class="drmtmb-route-note" role="note">

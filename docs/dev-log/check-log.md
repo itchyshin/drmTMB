@@ -1,6 +1,64 @@
 # Check Log
 
 
+## 2026-08-10 — Emmy condition 1: `link_code` becomes a required argument
+
+Also records the **Arc D landing**, which this log had missed: PR #973 squash-merged to `main` as
+`d88901699` on 2026-08-10 13:04:38Z, shipping `binomial(link = "probit")` and
+`binomial(link = "cloglog")`. The log's previous entry was 2026-08-08, so the merge itself went
+unrecorded — noted here rather than left as a hole.
+
+`drm_response_log_density()` declared `int link_code = 0`. With two new links admitted, that default
+means a caller who forgets a link silently gets logit **and compiles clean** — the same shape as the
+five defects Arc D had just spent a session fixing, where code written against the single-link
+contract kept working by assumption rather than declaration. The default is removed; all 21 call
+sites in `src/drmTMB.cpp` now state their link. The compiler is the check from here on.
+
+| Slice | Check | Result |
+|---|---|---|
+| Implementation | default dropped; 21 call sites made explicit | ✅ 21/21 pass 7 arguments |
+| Recompile | `devtools::load_all()` after the change | ✅ builds |
+| Focused tests | binomial suite | ✅ 359 pass / 0 fail (3 pre-existing warnings) |
+| C17 re-certification | committed runner vs `402803a7`, 3 cells x 4 seeds | ✅ 4/4 all three, `PASS_CURRENT_SOURCE_COMPATIBILITY` |
+| Behaviour preservation | mean tau rel. error vs pre-change receipt | ✅ **bit-identical** (0.0990017646754622 / 0.166085237666842 / 0.0613064198360253) |
+| Fingerprint | `source_fingerprint` before vs after | ✅ unchanged `8435987e…` |
+| Ledger validator | `capability_ledger.py --check` + `test_capability_ledger` | ✅ OK (31 outputs); **66 tests OK**, `C17 current-source compatibility PASS` |
+| Other validators | 5 unittest modules · profile-truth-manifest · capability-runtime | ✅ all OK; 30 rows; 18 routes, G0=G1=G2=0 |
+| CI (PR #988) | `Validate generated capability ledger` step | ✅ success |
+| Full suite | `NOT_CRAN=true devtools::test()` | ✅ **FAIL 0** \| WARN 73 \| SKIP 26 \| **PASS 43440** |
+| Independent verification | 7 claims re-checked in a fresh context (Curie) | ✅ 7/7 PASS |
+| Closeout audit | Rose | ✅ no overclaim, no scope breach, no census/promotion movement |
+
+**Why the bit-identical figures matter.** A re-certification that merely reports PASS proves less than
+it appears to: a runner insensitive to its input would pass on anything. Reproducing the prior receipt
+digit for digit shows the same fits reached the same optimum, which is what behaviour-preserving means
+here.
+
+**The full-suite result was discarded once and re-run.** A first `devtools::test()` was started, then
+the worktree was moved to a different branch while it ran — because PR #973 squash-merged mid-task and
+the work had to be transplanted onto `main`. A second suite was then started in the same worktree, so
+two runs were executing against one set of compiled objects and one testthat scratch area. Neither
+result was trustworthy, and the first was additionally testing source that no longer existed on the
+checked-out branch. Both were killed and a single clean run was taken instead. Worth recording because
+the failure is invisible in the output: each run prints an ordinary-looking summary, and only
+`ps` shows two of them. **Do not switch a worktree's branch while a test run is live in it.**
+
+`source_fingerprint` was checked **before** the run, not after: it hashes the named model-15 anchors,
+whose C++ region is the `model_type == 15` block (`src/drmTMB.cpp:3041-3238`), and no
+`drm_response_log_density` call site falls inside it. So all 21 edits sit outside the authenticated
+surface by construction rather than by luck.
+
+**No census, capability promotion, claim tier, or release rung moved.** `DESCRIPTION` untouched at
+0.6.0. `mc-0568`/`mc-0569`/`mc-0576` keep exactly the evidence they had; only the source they are
+certified against moves forward.
+
+Also retired the last two stale `0.7.1` references in `docs/design/252` (D-135) and corrected
+`AGENTS.md`'s LOAD-FIRST banner, which still described PR #973 as open and the MSPL lane as having no
+PR. Both were found by the closeout audit, not by the implementing pass.
+
+After-task: `docs/dev-log/after-task/2026-08-10-emmy-condition-1-link-code.md`.
+
+
 ## 2026-08-09 — `offset()` admitted for every univariate family (Tiers A+B)
 
 - Enabled a standard R `offset()` term in the `mu` formula of the ten remaining

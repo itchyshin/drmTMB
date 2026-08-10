@@ -49,6 +49,91 @@ test_that("reconciliation refuses to merge, or to accept, unauthenticated design
   expect_identical(unique(marked$design_state), "UNAUTHENTICATED")
 })
 
+test_that("no route's response is frozen across seeds (#980)", {
+  # skew_normal built its response from deterministic quantile grids, so it was
+  # bit-identical across every seed and only the MCAR mask varied. Those cells
+  # measured sensitivity to masking on one fixed realisation, not coverage.
+  source_missing_response_g4g5()
+  skip_on_cran()
+
+  for (route in mr_g4g5_route_manifest()$route_id) {
+    a <- mr_g4g5_route_fixture(route, information_multiplier = 1, seed = 20260810L)
+    b <- mr_g4g5_route_fixture(route, information_multiplier = 1, seed = 88888888L)
+    resp <- names(a$data)[vapply(a$data, function(z) any(is.na(z)), logical(1))][1]
+    va <- a$data[[resp]]; vb <- b$data[[resp]]
+    if (is.factor(va)) { va <- as.integer(va); vb <- as.integer(vb) }
+    ok <- !is.na(va) & !is.na(vb)
+    expect_gt(sum(va[ok] != vb[ok]), 0L)
+  }
+})
+
+test_that("no DGP draws its response from a fixed quantile set (#980)", {
+  # The residual-level cousin, which the check above CANNOT see. student used
+  # `sample(qt((seq_len(n)-.5)/n, ...))` -- a permutation of a fixed multiset. The
+  # response still varies (eta and sigma vary per observation), so a
+  # does-it-change test passes; what is frozen is the STANDARDIZED-residual
+  # multiset, which makes the profile likelihood in the scale and shape targets
+  # permutation-invariant and those cells near-deterministic.
+  #
+  # Detecting that from data alone would require reconstructing eta and sigma per
+  # route. It is far cheaper, and no less binding, to forbid the construction:
+  # a response must come from an r* sampler, never from q*() over a fixed grid.
+  runner <- readLines(
+    if (nzchar(system.file("sim/R/sim_missing_response_g4g5.R", package = "drmTMB")))
+      system.file("sim/R/sim_missing_response_g4g5.R", package = "drmTMB")
+    else testthat::test_path("..", "..", "inst", "sim", "R", "sim_missing_response_g4g5.R")
+  )
+  body <- runner[!grepl("^\\s*#", runner)]          # ignore commentary
+
+  # a quantile function fed a deterministic index grid
+  grid_draw <- grepl("q(norm|t|gamma|beta|pois|nbinom|lnorm)\\s*\\(\\s*\\(?\\s*(seq_len|i\\b|\\(i)", body)
+  expect_equal(
+    which(grid_draw), integer(0),
+    label = "DGP lines drawing a response from a deterministic quantile grid"
+  )
+
+  # a permutation of a quantile set, which is the same defect wearing randomness
+  perm_draw <- grepl("sample\\s*\\(\\s*q(norm|t|gamma|beta|pois|nbinom|lnorm)\\s*\\(", body)
+  expect_equal(
+    which(perm_draw), integer(0),
+    label = "DGP lines permuting a fixed quantile multiset"
+  )
+})
+
+test_that("every truth constant sits on the scale its profile target reports (#981)", {
+  # Two truth constants were on the wrong scale: tweedie's nu stated the response
+  # -scale power 1.35 where the profiled parameter is eta_nu on the link scale,
+  # and cumulative_logit's second cutpoint stated the cumulative value 0.75 where
+  # the internal parameter is a log-increment. Neither is detectable by the
+  # calibration policy, which never compares truth against the target's scale.
+  source_missing_response_g4g5()
+
+  manifests <- mr_g4g5_freeze_target_manifests()
+
+  # tweedie: p = 1 + plogis(eta_nu)  =>  eta_nu = qlogis(p - 1)
+  tw <- manifests[["tweedie"]]
+  nu_truth <- tw$truth[tw$parm == "fixef:nu:(Intercept)"]
+  expect_equal(nu_truth, stats::qlogis(0.35), tolerance = 1e-12)
+  expect_true(nu_truth < 0)                       # a link-scale value, not a power
+  expect_false(isTRUE(all.equal(nu_truth, 1.35)))  # the value it used to hold
+
+  # cumulative_logit: c_1 = theta_1; c_j = c_{j-1} + exp(theta_j)
+  cl <- manifests[["cumulative_logit"]]
+  t1 <- cl$truth[cl$parm == "ordinal:theta_ord:low|medium"]
+  t2 <- cl$truth[cl$parm == "ordinal:theta_ord:medium|high"]
+  expect_equal(t1, -0.90, tolerance = 1e-12)      # first cutpoint is the raw value
+  expect_equal(t2, log(1.65), tolerance = 1e-12)  # second is a log-increment
+  # reconstructing the cutpoints must recover the DGP's own boundaries
+  expect_equal(c(t1, t1 + exp(t2)), c(-0.90, 0.75), tolerance = 1e-12)
+
+  # every truth must at least be finite and named
+  for (route in names(manifests)) {
+    m <- manifests[[route]]
+    expect_true(all(is.finite(m$truth)), label = paste(route, "truth finite"))
+    expect_true(all(nzchar(m$parm)), label = paste(route, "parm named"))
+  }
+})
+
 test_that("every G3 route builds a fixture without the testthat helpers", {
   # The campaign scripts source this runner after a plain `library(drmTMB)`, so a
   # route that silently depends on a test helper cannot run in deployment even

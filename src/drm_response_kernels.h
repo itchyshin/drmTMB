@@ -24,7 +24,7 @@ Type drm_response_log_density(
     Type log_sigma_val,
     Type V_known_val,
     Type trials_val,
-    int link_code = 0)
+    int link_code)
 {
   (void) trials_val; // used by the binomial leaf added in P3
   switch (model_type) {

@@ -1930,12 +1930,37 @@ def check_c17_c14_current_source_compatibility(
     runner_path = ROOT / C17_C14_SOURCE_FILES[-1]
     runner_hash = hashlib.sha256(runner_path.read_bytes()).hexdigest()
 
+    # Only for the remediation text below. The tests point this manifest at a
+    # temporary directory outside ROOT, and relative_to() raises there, so an
+    # unguarded call would replace a clean SystemExit with a traceback.
+    try:
+        manifest_display = C17_C14_CURRENT_SOURCE_COMPATIBILITY.relative_to(ROOT)
+    except ValueError:
+        manifest_display = C17_C14_CURRENT_SOURCE_COMPATIBILITY
+
     for row in rows:
         cell_id = row["cell_id"]
         if row["compared_paths"] != expected_paths:
             raise SystemExit(f"{cell_id}: wrong C17 compatibility path set")
         if row["source_fingerprint"] != current_fingerprint:
-            raise SystemExit(f"{cell_id}: current model-15 fingerprint differs")
+            raise SystemExit(
+                f"{cell_id}: current model-15 fingerprint differs\n"
+                f"    recorded {row['source_fingerprint']}\n"
+                f"    current  {current_fingerprint}\n"
+                "  MEANING: the authenticated model-15 surface itself moved -- one of the\n"
+                "  named anchors above changed, not merely a file that happens to contain\n"
+                "  them. This is the mode that CAN hide a real change to zero-one-beta\n"
+                "  behaviour, so re-certifying is a genuine check rather than paperwork.\n"
+                "  TO CLEAR: re-run the committed runner\n"
+                f"    R_PROFILE_USER=/dev/null Rscript --no-init-file {C17_C14_SOURCE_FILES[-1]}\n"
+                "  then, in\n"
+                f"    {manifest_display}\n"
+                "  repoint raw_attempts_path / provenance_path / summary_path, set\n"
+                "  current_source_sha, AND update source_fingerprint on all three rows.\n"
+                "  Compare mean_tau_relative_error against the previous receipt before you do:\n"
+                "  unchanged digits mean the change is inert for model 15. If they MOVE, that\n"
+                "  is a real regression -- do not update the fingerprint, fix the code."
+            )
         if row["source_files"] != expected_source_files:
             raise SystemExit(f"{cell_id}: wrong C17 authenticated source-file set")
         if (
@@ -1971,7 +1996,22 @@ def check_c17_c14_current_source_compatibility(
                 text=True,
             ).stdout.strip()
             if provenance.get(f"git_blob:{source_file}") != blob:
-                raise SystemExit(f"{cell_id}: current source blob differs for {source_file}")
+                raise SystemExit(
+                    f"{cell_id}: current source blob differs for {source_file}\n"
+                    f"    receipt {provenance.get(f'git_blob:{source_file}')}\n"
+                    f"    current {blob}\n"
+                    "  MEANING: a pinned FILE changed while the authenticated model-15\n"
+                    "  surface did NOT -- source_fingerprint already matched, and it is\n"
+                    "  checked before this. So the receipt is stale, not wrong: nothing the\n"
+                    "  three cells certify has moved. This is the cheap mode.\n"
+                    "  TO CLEAR: re-run the committed runner\n"
+                    f"    R_PROFILE_USER=/dev/null Rscript --no-init-file {C17_C14_SOURCE_FILES[-1]}\n"
+                    "  then, in\n"
+                    f"    {manifest_display}\n"
+                    "  repoint raw_attempts_path / provenance_path / summary_path and set\n"
+                    "  current_source_sha on all three rows. LEAVE source_fingerprint alone --\n"
+                    "  changing it here would widen the claim beyond what was re-measured."
+                )
 
         raw_rows = [
             item for item in read_tsv(raw_path) if item["cell_id"] == cell_id
