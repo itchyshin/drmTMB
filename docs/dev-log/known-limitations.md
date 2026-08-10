@@ -539,11 +539,17 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   trial totals from row sums, includes the binomial normalizing constant for
   `stats::glm()` log-likelihood, AIC, and BIC parity, and has no public
   `sigma`. Ordinary `mu` random intercepts and independent numeric slopes are
-  fitted first slices. The exact independent-slope domain in capability cell
+  fitted first slices. One complete-data native-TMB unlabelled correlated
+  intercept-slope block is also fitted at point-fit-only grade. The exact independent-slope domain in capability cell
   `mc-0061` is inference-ready with caveats; it does not authorize neighbouring
   random-effect designs. Non-logit links, factor response ordering, proportions plus
-  `weights`, `weights = trials`, correlated or labelled random slopes, structured effects,
+  `weights`, `weights = trials`, labelled or multiple correlated random slopes, structured effects,
   bivariate or mixed responses, and `engine = "julia"` remain unsupported.
+  Experimental `estimator = "mspl"` is narrower still: one q=1 or q=2 ordinary
+  block, full-rank dense fixed design, finite offsets, and positive integer
+  frequency weights. Its point estimates and predictions are locally tested;
+  likelihood inference, Wald uncertainty, profiles, intervals, recovery,
+  coverage, REML, and missing-response integration remain unavailable or unclaimed.
 - Phylogenetic random effects are implemented for univariate Gaussian `mu` and
   `sigma` intercepts, matching univariate `mu`/`sigma` structured correlations,
   one numeric univariate Gaussian `mu` slope, matching bivariate Gaussian

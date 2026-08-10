@@ -552,15 +552,6 @@ test_that("bivariate relmat K q2 REML keeps K ordering and neighbours exact", {
     ),
     "bivariate|Gaussian"
   )
-  expect_error(
-    drmTMB(
-      arc1b_s2r_formula(K),
-      family = biv_gaussian(), data = dat, REML = TRUE,
-      estimator = "AI-REML"
-    ),
-    "does not use arguments"
-  )
-
   Q_animal <- solve(K)
   expect_error(
     drmTMB(

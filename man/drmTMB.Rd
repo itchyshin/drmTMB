@@ -15,6 +15,7 @@ drmTMB(
   engine = c("tmb", "julia"),
   REML = FALSE,
   penalty = NULL,
+  estimator = c("ml", "mspl"),
   ...
 )
 }
@@ -141,6 +142,24 @@ switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
 regularises a weakly-identified phylogenetic standard deviation; the fit is
 labeled \code{MAP} and \code{logLik()} returns the unpenalized data log-likelihood.
 Native \code{engine = "tmb"} only.}
+
+\item{estimator}{Estimator for the native TMB route. The default \code{"ml"}
+preserves ordinary maximum likelihood. Experimental \code{"mspl"} implements
+the clean-room maximum softly-penalized likelihood criterion for one
+complete Bernoulli or grouped-binomial logit model with one ordinary
+q = 1 or correlated q = 2 grouping block. \code{vcov()} and the \code{std_error}
+column of \code{summary()} are available: they invert the Hessian of the
+\emph{unpenalized} Laplace log-likelihood evaluated at the MSPL estimate, so the
+penalty is used to obtain a finite estimate but not to describe sampling
+variability. \strong{A standard error is reported; an interval is not claimed.}
+Likelihood comparisons (\code{logLik()}, \code{AIC}, \code{BIC}, \code{anova()}), profiles, and
+\code{confint()} remain deliberately unavailable. Do not form
+\verb{coef ± 1.96 * se} by hand: Kosmidis and Firth show that Wald intervals in
+this setting fail to cover regardless of the nominal level, a failure that
+persists even for profile penalized-likelihood intervals. When the
+information matrix is not positive definite the standard errors are \code{NA}
+with a \code{drmTMB_mspl_wald_unavailable} warning rather than a fabricated
+number.}
 
 \item{...}{Reserved for future model options.}
 }

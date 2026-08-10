@@ -1,5 +1,20 @@
 # Binomial link generalisation — probit and cloglog
 
+> Companion notes: `250-mspl-binomial-logit-alignment.md` (the frozen MSPL contract, and its
+> Phase 4 amendment) and `251-mspl-wald-covariance-alignment.md` (the standard-error estimand).
+
+> **Merge note (2026-08-10).** This file was an add/add conflict when
+> `claude/mspl-binomial-inference-promotion` merged `origin/main`: both branches independently wrote
+> a design doc for the same arc. The `main`-side copy (landed via PR #973,
+> `feat(binomial): admit probit and cloglog links`, commit `d88901699`) is the more evolved
+> revision — it carries the 2026-08-09/2026-08-10 corrections to §4, §5, §7, and §9 below. The
+> `claude/mspl-binomial-inference-promotion`-side copy was an earlier snapshot of the same document
+> that had not yet picked up those corrections; its own load-bearing MSPL-specific addenda live in
+> the companion file `253-mspl-nonlogit-links-derivation.md` (Addenda 1-3), which did not conflict
+> and is unchanged by this merge. This merged version keeps the `main`-side body (it is a strict
+> superset of the pre-correction snapshot — see the `<details>` block in §7, which already preserves
+> the superseded text verbatim) plus this branch's companion-notes pointer above.
+
 Status: **BUILT, TESTED, AND TARGETED AT 0.7.0 — owner decision, Shinichi, 2026-08-09:
 *"I want 0.7 - we can do it."*** This SUPERSEDES the original 0.7.1 target below.
 
@@ -238,6 +253,10 @@ Reason 1 is link-specific and is genuinely open research. Reason 2 is link-*inde
 equally to the logit route we ship. The link-general Jeffreys helper stays internal scaffolding,
 unreachable from the public API.
 
+For the full derivation behind these two corrections — including a third correction from an
+external (gllvmTMB-team) review that refined Correction 2's scope — see the companion file
+`253-mspl-nonlogit-links-derivation.md`, Addenda 1-3.
+
 <details><summary>Superseded paragraph, kept for the record</summary>
 
 > But **Sterzinger & Kosmidis leave the probit and cloglog bounds for the *mixed-effects* case as
@@ -287,8 +306,13 @@ the same evidence standing behind them as binomial logit — no more.*
 `claude/mspl-binomial-inference-promotion` and is not on `main`. Its rejection test therefore stays
 a rejection test *on that branch*, and §4/§5's MSPL Jeffreys generalisation is unreachable from Arc
 D — it belongs to the MSPL lane. The correct range for the first file is `:206-213`, not `:206-212`.
+(Both branches are merged together as of the 2026-08-10 merge note at the top of this file, so both
+`test-mspl-estimator.R` and `test-binomial-links.R` now coexist on this tree; the "does not exist on
+the Arc D branch" statement above is a historical record of the pre-merge state, not a description of
+the current tree.)
 
 Delivered in `tests/testthat/test-binomial-links.R`: `glm()` parity (both links), random-intercept
 recovery (both links), the response/link round-trip, extreme-η tail accuracy against a naive
 `1e-12` probability clamp, `cauchit` still rejected — plus one test §8 did not anticipate, standard
 errors through `predict_parameters()`, guarding the §2 miss.
+</content>

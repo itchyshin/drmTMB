@@ -160,7 +160,10 @@ phylo_prior_tmb_data <- function(precision) {
       phylo_cor_penalty_sd = numeric(0),
       use_logsigma_clamp = 1L,
       logsigma_clamp = c(-12, 12, 3),
-      qgt2_corr_parameterization = 0L
+      qgt2_corr_parameterization = 0L,
+      use_mspl = 0L,
+      mspl_c_n = 0,
+      mspl_q = 0L
     ),
     drmTMB:::empty_labelled_covariance_block_tmb_data()
   )

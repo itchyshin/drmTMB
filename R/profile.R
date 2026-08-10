@@ -371,6 +371,7 @@ confint.drmTMB <- function(
   bootstrap_re_form = NULL,
   ...
 ) {
+  drm_abort_mspl_inference(object, "confint")
   if (identical(object$model$model_type, "biv_student")) {
     cli::cli_abort(
       "{.fn confint} is not implemented for model type {.val {object$model$model_type}}; interval and profile claims are deferred."
@@ -716,6 +717,7 @@ profile.drmTMB <- function(
   first_pass_ytol = 2,
   ...
 ) {
+  drm_abort_mspl_inference(fitted, "profile")
   if (identical(fitted$model$model_type, "biv_student")) {
     cli::cli_abort(
       "{.fn profile} is not implemented for model type {.val {fitted$model$model_type}}; interval and profile claims are deferred."

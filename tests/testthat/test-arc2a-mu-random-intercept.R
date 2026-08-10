@@ -69,10 +69,6 @@ test_that("binomial mu supports an ordinary random intercept", {
   fit <- drmTMB(bf(cbind(succ, fail) ~ x + (1 | id)), family = binomial(), data = dat)
   expect_mu_random_intercept_recovered(fit, "binomial", u_id, sd_id)
   expect_lt(max(abs(coef(fit, "mu") - c(-0.2, 0.7))), 0.30)
-  expect_error(
-    drmTMB(bf(cbind(succ, fail) ~ x + (1 + x | id)), family = binomial(), data = dat),
-    "random intercept"
-  )
 })
 
 test_that("zero_one_beta mu supports an ordinary random intercept", {

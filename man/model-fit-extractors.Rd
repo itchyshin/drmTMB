@@ -59,6 +59,40 @@ unavailable while point estimates remain usable. \code{vcov()} intentionally doe
 not include random-effect conditional modes or derived response-scale
 quantities.
 }
+\section{Experimental MSPL fits}{
+
+For a fit made with \code{estimator = "mspl"}, \code{vcov()} behaves differently from
+an ordinary maximum-likelihood fit in two ways worth knowing before you use
+it.
+
+First, \strong{the shape differs}. It returns the full outer-parameter covariance
+after Laplace marginalisation — the fixed effects \emph{and} the covariance
+parameters in their frozen Cholesky coordinates (\code{log_sd_mu}, and
+\code{eta_cor_mu} for a q = 2 block) — not the fixed-effect-only block an ordinary
+fit returns. Code that assumes \code{vcov(fit)} has the same dimension across
+estimators will break.
+
+Second, \strong{it is a standard error, not an interval}. The matrix inverts the
+Hessian of the \emph{unpenalized} Laplace log-likelihood evaluated at the MSPL
+estimate: the penalty obtains a finite estimate but does not describe
+sampling variability. Do not form \verb{coef ± 1.96 * se}. Kosmidis and Firth show
+that Wald intervals in this setting fail to cover regardless of the nominal
+level, and that the failure persists even for profile penalized-likelihood
+intervals; the mechanism is the finiteness of the penalized estimator and its
+standard error, not separation as such. A second reason applies here: the
+MSPL estimate maximises the \emph{penalized} criterion, so the unpenalized score
+is not zero at it and the usual "evaluate at the maximum likelihood estimate"
+justification does not transfer. The size of that departure is recorded in
+\code{fit$mspl$wald$unpenalized_gradient_max_abs}.
+
+Accordingly \code{confint()}, \code{profile()}, \code{logLik()}, \code{AIC}, \code{BIC}, and \code{anova()}
+deliberately error for MSPL fits. When the information matrix is not
+positive definite — which happens on exactly the strongly separated designs
+MSPL exists to handle — the standard errors are \code{NA} and a
+\code{drmTMB_mspl_wald_unavailable} warning is signalled, rather than a
+fabricated number.
+}
+
 \examples{
 set.seed(20260524)
 n <- 36
@@ -76,4 +110,5 @@ deviance(fit)
 AIC(fit)
 BIC(fit)
 vcov(fit)
+
 }

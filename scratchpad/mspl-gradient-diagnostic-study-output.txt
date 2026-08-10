@@ -1,0 +1,9 @@
+   eta_d events_d       sep    max|grad|     score_dist     max SE       spd
+       0      11     FALSE       0.4082         0.4244       1.04      TRUE
+      -1      12     FALSE       0.4082         0.3748      0.926      TRUE
+      -2       7     FALSE       0.4082         0.4298       1.06      TRUE
+      -3       3     FALSE       0.3291         0.2794      0.861      TRUE
+      -4       2     FALSE       0.3239          0.285      0.873      TRUE
+      -6       0      TRUE       0.4082         0.6062       2.29      TRUE
+     -10       0      TRUE       0.4082         0.6062       2.29      TRUE
+     -50       0      TRUE       0.4082         0.6062       2.29      TRUE

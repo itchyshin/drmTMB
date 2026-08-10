@@ -159,10 +159,19 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
     cli::cli_abort("{.arg include_hessian} must be `TRUE` or `FALSE`.")
   }
 
+  objective_values <- if (drm_is_mspl(object)) {
+    c(object$opt$objective, object$mspl$unpenalized_laplace_objective)
+  } else {
+    c(object$opt$objective, object$logLik)
+  }
   optimizer_ok <- identical(as.integer(object$opt$convergence), 0L) &&
-    isTRUE(all(is.finite(c(object$opt$objective, object$logLik))))
+    isTRUE(all(is.finite(objective_values)))
   if (!optimizer_ok || !include_hessian) {
     return(optimizer_ok)
+  }
+
+  if (drm_is_mspl(object)) {
+    return(isTRUE(object$mspl$numerical$hessian_positive_definite))
   }
 
   identical(drm_uncertainty_status(object), "ok") &&
@@ -451,16 +460,28 @@ format_optimizer_count <- function(x) {
 }
 
 check_finite_objective <- function(object) {
-  values <- c(object$opt$objective, object$logLik)
+  values <- if (drm_is_mspl(object)) {
+    c(object$opt$objective, object$mspl$unpenalized_laplace_objective)
+  } else {
+    c(object$opt$objective, object$logLik)
+  }
   ok <- all(is.finite(values))
   check_row(
     "finite_objective",
     if (ok) "ok" else "error",
     format_check_number(object$opt$objective),
     if (ok) {
-      "Objective and log-likelihood are finite."
+      if (drm_is_mspl(object)) {
+        "Penalized and separately evaluated unpenalized Laplace objectives are finite."
+      } else {
+        "Objective and log-likelihood are finite."
+      }
     } else {
-      "Objective or log-likelihood is not finite."
+      if (drm_is_mspl(object)) {
+        "The penalized or unpenalized Laplace objective is not finite."
+      } else {
+        "Objective or log-likelihood is not finite."
+      }
     }
   )
 }
@@ -612,6 +633,19 @@ disambiguate_duplicate_labels <- function(labels) {
 }
 
 check_hessian <- function(object) {
+  if (drm_is_mspl(object)) {
+    pd_hess <- isTRUE(object$mspl$numerical$hessian_positive_definite)
+    return(check_row(
+      "hessian_positive_definite",
+      if (pd_hess) "ok" else "warning",
+      pd_hess,
+      if (pd_hess) {
+        "The separately evaluated MSPL outer Hessian is positive definite."
+      } else {
+        "The separately evaluated MSPL outer Hessian is not positive definite."
+      }
+    ))
+  }
   if (is.null(object$sdr)) {
     return(check_row(
       "hessian_positive_definite",
@@ -644,6 +678,7 @@ check_sdreport_status <- function(object) {
       status,
       ok = "ok",
       skipped = "note",
+      unsupported = "note",
       failed = "warning",
       "warning"
     ),
