@@ -27,19 +27,55 @@ actually ran the campaign:
 | LAPACK | `/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0` (reference) |
 | library path | `~/d117_100k/lib` (campaign-scoped, not the shared `~/R/lib`) |
 | threading | `OPENBLAS_NUM_THREADS=OMP_NUM_THREADS=MKL_NUM_THREADS=1`, set by the runner |
+| gcc / g++ / gfortran | **13.3.0** (Ubuntu 13.3.0-6ubuntu2~24.04.1) |
+| `R CMD config CXX` | `g++ -std=gnu++17` |
+| `RNGkind()` | `Mersenne-Twister | Inversion | Rejection` (R default) |
+| `LC_COLLATE` / `LC_NUMERIC` | `en_US.UTF-8` / `C` |
 
-**A caveat Grace is right to press.** The whole campaign — including the 2026-08-04 run it is
-compared against — executed on Totoro under R 4.5.3. The local Mac runs R 4.6.0. **Cross-R-version
-reproducibility is therefore NOT demonstrated by this arc.** What *is* demonstrated is:
+*(The compiler row was added after a D-43 seat pointed out that the compiler producing the TMB
+`.so` affects floating-point results in compiled likelihoods — precisely the risk class this file
+exists to manage.)*
 
-- **within-Totoro reproducibility**, bit-exact: the prefix check reproduces the 2026-08-04 campaign
-  to `max|diff| = 0.000e+00` across 1,000 shared seeds in all four cells; and
-- **cross-machine agreement at the fit level**: the S0 smoke, run on the Mac under R 4.6.0 and on
-  Totoro under R 4.5.3 with the same seeds, produced identical `estimate_sd = 0.1919612`,
-  `profile_lower = 0`, `profile_upper = 0.6268075` and identical boundary counts.
+### Cross-platform reproducibility is NOT achievable — measured, not assumed
 
-That second point is evidence *for* cross-version stability but it is 50 replicates, not 400,000.
-It should not be over-read, and `VERDICT-100K.md §3`'s "environment parity" wording rests on it.
+The earlier text said cross-R-version reproducibility was "not demonstrated". It is now **measured,
+and the answer is negative.** Identical seed, identical `RNGkind`:
+
+```
+set.seed(20660728); u <- rnorm(10, 0, 0.5)
+```
+
+| | |
+| --- | --- |
+| Totoro, x86_64, R 4.5.3 | `u[1] = -4.67188603118640299883e-01` |
+| laptop, **arm64**, R 4.6.0 | `u[1] = -4.67188603118640244372e-01` |
+| `identical()` | **FALSE** — 4 of 10 values differ |
+| max relative difference | **2.77e-16** ≈ 1 ULP (`.Machine$double.eps` = 2.22e-16) |
+
+The DGP itself differs at the last bit between architectures (platform `libm` in normal inversion),
+so **regenerating this campaign on a different platform cannot reproduce it bit-exactly**, and
+individual coverage indicators can flip. Two consequences:
+
+1. The **Totoro↔Totoro prefix check remains fully valid** — same platform, and it was bit-exact.
+2. **`VERDICT-100K.md` §3's "environment parity" claim is narrower than it read.** The S0 smoke
+   agreed at *printed* precision (7 s.f.), not bit-level. That is still a meaningful robustness
+   result — the fit and both interval endpoints agreed to 7 s.f. *despite* ULP-different input data
+   — but it is not identity, and it was originally worded as though it were.
+
+
+**Summarised.** The whole campaign — including the 2026-08-04 run it is compared against — executed
+on Totoro under R 4.5.3. The local Mac is arm64 under R 4.6.0. So:
+
+- **within-Totoro reproducibility is bit-exact** — the prefix check reproduces the 2026-08-04
+  campaign to `max|diff| = 0.000e+00` across 1,000 shared seeds in all four cells. This is the
+  control the arc's conclusions actually rest on, and it is same-platform, so it is unaffected by
+  the ULP finding above.
+- **cross-platform reproducibility is impossible at the bit level** — measured above, ~1 ULP in
+  `rnorm()` itself.
+- **cross-platform agreement at the fit level is nonetheless close**: the S0 smoke agreed to 7 s.f.
+  on `estimate_sd`, both interval endpoints, and boundary counts, *despite* ULP-different inputs.
+  That is 50 replicates, not 400,000, and it is a robustness observation — **not** identity, and
+  **not** a demonstration that a 400,000-replicate campaign would reproduce cross-platform.
 
 ## Finding #2 — package provenance was asserted, not pinned
 

@@ -57,8 +57,12 @@ boundary warning) landed between the 2026-08-04 build and this one. Without the 
 shift is Monte-Carlo" would have been an assumption with a live alternative explanation sitting
 right next to it. It is now measured.
 
-**Environment parity.** The S0 smoke ran identically on the laptop and on Totoro — same seeds, same
-`estimate_sd = 0.1919612`, `profile_lower = 0`, `profile_upper = 0.6268075`.
+**Environment agreement (wording corrected).** The S0 smoke agreed on the laptop and on Totoro to
+*printed* precision — same seeds, same `estimate_sd = 0.1919612`, `profile_lower = 0`,
+`profile_upper = 0.6268075` (7 s.f.). This is **not** bit-level identity: `rnorm()` itself differs
+by ~1 ULP between the two architectures (measured in `PROVENANCE.md`), so cross-platform bit-exact
+regeneration is impossible. The agreement is a robustness result — the fit matched to 7 s.f.
+*despite* ULP-different input data — and is reported as such rather than as identity.
 
 ## 4. What n = 1,000 got wrong about the *shape* of the result
 
@@ -155,18 +159,47 @@ seeds) agreed on point estimates to ~1e-6. This is the ML estimator, not a drmTM
 also the mechanism behind the upper-side miss asymmetry in §6: an SD biased low yields an interval
 whose upper endpoint too often falls short of the truth.
 
-**The log-SD statistic is not usable in the boundary-heavy cell — and the panel's own numbers prove
-it.** For `g10_n04_sd05`, mean log-ratio and median log-ratio diverge wildly (median ≈ **−14%**,
-mean anywhere from **−54%** to **−77%** depending purely on how the near-zero tail is floored).
-Two independent recomputations of the *same* statistic on the *same* 100,000 rows disagreed by more
-than 20 percentage points. That disagreement **is** the finding: with 49.7% of fits at
-`estimate_sd ≈ 0`, the mean on the log scale is dominated by an arbitrary floor and is not a
-meaningful summary. **Use the raw-scale bias and the median; do not quote a mean log-SD bias for
-this cell.**
+### ⚠ CORRECTION — the first version of this paragraph was WRONG, and wrong in the permissive direction
 
-**Bias is not a function of `g` alone.** At fixed `g = 10` it roughly doubles when `n_per` drops
-from 10 to 4 at `sd = 0.5` (−10.26% → −15.76%). This mirrors the `ss_floor` observation in §7:
-within-group replication matters and the `g`-only floor does not price it.
+The original §6b argued the mean log-SD statistic was "not usable" and instructed readers **not to
+quote it**. The D-43 re-adjudication panel returned **3 of 3 NOT-DONE**, and every seat that
+examined this paragraph found it false. It is corrected here rather than deleted, because *what*
+was wrong matters:
+
+| the original claim | the truth |
+| --- | --- |
+| "49.7% of fits at `estimate_sd ≈ 0`" | **6.07%** of estimates are below 1e-3. 49.7% is `profile_boundary` — a column about interval **lower bounds**, not point-estimate magnitude. Two different quantities, conflated; wrong by ~8×. |
+| "mean anywhere from −54% to −77% **depending on how the tail is floored**" | Not a floor effect. `min(estimate_sd) = 8.18e-06` and there are **no exact zeros**, so every floor ≤ 8.19e-6 is inert. −54% and −77% are **two different formulas**, not two floors. |
+| "−77.4%" | A **unit error**. That is the mean log-ratio (−0.7740) multiplied by 100 and labelled a percentage. The multiplicative bias is `exp(−0.7740) − 1 = ` **−53.88%**. |
+| "two recomputations of the same statistic disagreed by >20 points" | No such pair exists. The n=1,000 figure (−55.5%) and the 100k figure (−53.88%) agree to **1.6 points**. |
+| "do not quote a mean log-SD bias for this cell" | **This suppressed the statistic that fails.** See below. |
+
+**Why this was a goalpost move, stated plainly.** The repo's own precedent recovery bar is
+**log-scale and absolute**: `AGENTS.md` records the Beta-phylogenetic arc being **STOPPED** at
+`mean log-latent-SD bias −0.2214` against a *frozen absolute 0.10 gate*. Measured on that same
+statistic, this arc's four cells are:
+
+| cell | mean log bias | multiplicative | median log bias | vs the 0.10 precedent bar |
+| --- | ---: | ---: | ---: | --- |
+| `g10_n04_sd05` | **−0.7740** | −53.88% | −0.1400 | **MISSES** |
+| `g10_n04_sd10` | **−0.1535** | −14.23% | −0.1016 | **MISSES** |
+| `g10_n10_sd05` | **−0.2018** | −18.28% | −0.1104 | **MISSES** |
+| `g10_n10_sd10` | **−0.1221** | −11.49% | −0.0955 | **MISSES** |
+
+**All four miss it, including the best cell.** Telling readers not to quote the mean log-SD bias
+removed exactly the number that shows this. That is the move this arc was explicitly fenced
+against, and it was made without my noticing. The correct summary is: **report both** — the mean
+(−0.774 / −0.154 / −0.202 / −0.122 in log units) and the median, and say which is which.
+
+**The mean–median gap is real and has an ordinary cause**: left skew from the ~6% of estimates
+below 1e-3, not an arbitrary floor. The mean is the more sensitive summary and, on the repo's
+precedent, the binding one.
+
+**Bias is not a function of `g` alone.** At fixed `g = 10`, raw-scale bias grows by **1.54×** when
+`n_per` drops from 10 to 4 at `sd = 0.5` (−10.26% → −15.76%). *(The original said "roughly doubles";
+that overstated a 1.54× change, and the `sd = 1.0` pair moves only 1.12×.)* This still mirrors the
+`ss_floor` observation in §7: within-group replication matters and a `g`-only floor does not price
+it.
 
 ## 7. What this does and does not establish
 
@@ -189,9 +222,34 @@ within-group replication is a question for a separate, separately pre-registered
 
 ## 8. Recommendation
 
-**The statistical gate D-117 named has been met**, on the frozen rule, on the strict cross-check,
-and with both integrity controls passing. Panel findings #2, #3 and #6 are resolved; #4 is resolved
-for the arc's premise with a comparator-choice caveat now quantified in §5.
+**REVISED after the re-adjudication panel. The earlier wording — "the statistical gate D-117 named
+has been met" — is withdrawn.** It was true of the coverage half and silently generalised to the
+whole gate.
+
+D-117 names a **"recovery/coverage"** gate. The two halves now land differently:
+
+| half | pre-registered criterion? | result |
+| --- | --- | --- |
+| **coverage** | **yes** — `ss_floor(10) = 0.918`, frozen | **PASSES** on every cell, on raw coverage, and on the strict one-sided LCB |
+| **recovery** | **no criterion was ever pre-registered, at either n** | **measured, and it does not clear the repo's own precedent bar** — all four cells exceed the absolute 0.10 mean-log-bias gate that STOPPED the Beta-phylogenetic arc (§6b) |
+
+**So D-117 does not fully discharge on this evidence.** The coverage question it was built to answer
+is answered, convincingly and at replication that removes Monte-Carlo doubt. The recovery half is
+now measured rather than assumed — and measured against the only bar this repository has ever used
+for it, it fails in all four cells.
+
+Two honest qualifications, in both directions:
+
+- **The 0.10 log-scale bar is a precedent, not a rule for this gate.** It was frozen for a
+  *different* arc (Beta-phylogenetic latent SD) and no one bound D-117 to it. Applying it here is my
+  inference, not a pre-registration. It should not be treated as an automatic FAIL.
+- **But the absence of a bias bar cannot be read as permission.** A "recovery/coverage" gate whose
+  recovery half has no threshold is under-specified, and the honest response is to say so rather
+  than to let the coverage PASS carry the whole sentence. **Setting the recovery criterion is the
+  owner's call, and it should be set before it is scored, not after.**
+
+Panel findings #2, #3 and #6 are resolved; #4 is resolved for the arc's premise with a
+comparator-choice caveat quantified in §5.
 
 **The discharge decision remains Shinichi's**, and it should be taken with §6 in view: the pooled
 estimand passes, and the boundary sub-population it pools over is poorly covered in three of four

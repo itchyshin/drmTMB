@@ -5,10 +5,18 @@ Totoro compute · **Lane:** `claude/d117-discharge` off `origin/main @ a2695a788
 **Foreign lanes:** PRs #959, #958, #957, #955, #937, #858 and ~24 `codex/`/`cursor/` branches —
 all untouched.
 
-> **Headline: the gate PASSES at 100,000 replicates, and my pre-registered prediction that it would
-> not was WRONG.** Pooled coverage **0.924800** (SE 0.000417) over 400,000 attempts; every cell
-> clears `ss_floor(10) = 0.918` on **raw** coverage, and the strict one-sided lower confidence bound
-> passes too. The discharge decision remains the owner's.
+> **Headline, after TWO D-43 panels: the COVERAGE half passes; the RECOVERY half does not clear the
+> repo's own precedent bar; D-117 therefore does not fully discharge.**
+> Coverage: pooled **0.924800** (SE 0.000417) over 400,000 attempts, every cell clearing
+> `ss_floor(10) = 0.918` on **raw** coverage and on the strict one-sided LCB. My pre-registered
+> prediction that it would fail was **WRONG** and is recorded as such.
+> Recovery: mean log-SD bias **−0.774 / −0.154 / −0.202 / −0.122** — **all four cells miss** the
+> absolute **0.10** log-scale gate that STOPPED the Beta-phylogenetic arc. D-117 never pre-registered
+> a bias bar, so this is a precedent applied by inference, not a rule; **setting that criterion is
+> the owner's call, and it should be set before scoring, not after.**
+>
+> **Re-adjudication panel: 3 of 3 NOT-DONE.** The first panel's two blocking findings were repaired,
+> but the repair to the recovery section was itself wrong — see §9. The claim remains WITHHELD.
 
 ## 1. Goal
 
@@ -124,7 +132,18 @@ The verification was itself verified, in four ways:
 | Grace | reproducibility / evidence chain | Sonnet | **NOT-DONE** — no environment fingerprint; provenance asserted not pinned; regeneration command broken |
 | Rose | claims and scope (load-bearing) | Opus | **NOT-DONE** — the recovery half was never measured at 100k; no after-task shipped |
 
-Panel-driven repairs, all made **after** the verdict and therefore **not re-adjudicated**:
+**Re-adjudication panel (2026-08-09, frozen tree `08f84cb2e`): 3 of 3 NOT-DONE.**
+
+| seat | model | verdict | what it found |
+|---|---|---|---|
+| Rose (load-bearing) | Opus | **NOT-DONE** | §6b's log-SD paragraph factually wrong on three counts and propagated to `check-log.md`; §8 headline unrevised; lme4 scope bound dropped; stale commit counts |
+| Fisher | Sonnet | **NOT-DONE** | same §6b mechanism errors, independently derived; ruled it **illegitimate** to headline the gate "met" with no pre-registered bias bar |
+| Grace | Sonnet | **NOT-DONE** | previous findings all CLOSED; one new gap — compiler/`RNGkind`/locale absent from the fingerprint |
+
+All are repaired above; **these repairs are, again, not re-adjudicated.** A third panel has not run.
+The verdict stands at 3 NOT-DONE and the composite claim remains WITHHELD.
+
+First-panel repairs, made after that verdict:
 
 | finding | severity | repair |
 |---|---|---|
@@ -192,6 +211,22 @@ Panel-driven repairs, all made **after** the verdict and therefore **not re-adju
   few minutes looked like a provenance failure. Cause: macOS and GNU `sort` collate
   `associate-pairs.R` against `associate-pairs-sandwich-*.R` differently, so identical files rolled
   up in different orders. Per-file hashes matched throughout.
+- **My repair of the first panel's blocking finding was itself wrong — and wrong permissively.**
+  The added §6b argued the mean log-SD statistic was "unusable" and told readers not to quote it.
+  Three errors, all caught by the second panel and all confirmed by my own recomputation: I cited
+  **49.7%** of fits "at `estimate_sd ≈ 0`" when that figure is `profile_boundary` — a column about
+  interval *lower bounds* — and the true share below 1e-3 is **6.07%**; I attributed a −54%/−77%
+  spread to *flooring* when those are **two different formulas** (`min(estimate_sd) = 8.18e-06`,
+  no exact zeros, so every sane floor is inert); and **−77.4% was a unit error**, the mean
+  log-ratio −0.7740 × 100 mislabelled as a percentage against a true multiplicative bias of
+  **−53.88%**. The consequence was the serious part: suppressing that statistic removed exactly the
+  number that **fails** the repo's precedent 0.10 log-scale bar in all four cells. That is a
+  goalpost move, made while writing a section whose purpose was to close a goalpost-related finding.
+- **A regression I introduced during repair:** restating the lme4 agreement in `check-log.md` dropped
+  the n = 1,000 scope bound that an earlier commit existed solely to add.
+- **Stale commit counts, three times.** Panel briefs and documents said 9, then 11, then 12 when the
+  true counts were 11, 15, 15. The lesson was written into §11 after the first instance and still
+  did not fire.
 - Plan mode re-engaged mid-execution, briefly halting writes; the detached Totoro campaign was
   unaffected.
 
@@ -234,9 +269,21 @@ Panel-driven repairs, all made **after** the verdict and therefore **not re-adju
 - **Freeze the tree before dispatching reviewers.** Fixing a flaw mid-review is worse than fixing it
   after: it invalidates the brief, gives reviewers a moving target, and buys nothing a follow-up
   commit would not.
-- **Repairs after a verdict do not overturn the verdict.** Every blocking finding here is now
-  repaired, and the panel result still stands at 2 NOT-DONE. Re-adjudication requires a re-run, not
-  an assertion that the objections were addressed — otherwise the producer is grading itself again.
+- **Repairs after a verdict do not overturn the verdict — and re-adjudication is not a formality.**
+  I expected the re-run panel to confirm the repairs. It returned **3 of 3 NOT-DONE** and found the
+  principal repair was itself wrong. Had I treated the first panel's findings as "addressed" and
+  moved on, a fabricated justification for suppressing a failing statistic would have entered
+  `check-log.md` — the most-read cross-session record — as settled fact.
+- **The most dangerous error is the one made while fixing an error.** §6b was written *to close* a
+  finding about incomplete measurement, and in closing it I introduced a permissive misstatement.
+  Repair work deserves the same adversarial scrutiny as original work, not less.
+- **Check which column a number came from.** `profile_boundary` (49.7%) and "estimates near zero"
+  (6.07%) are different quantities that happen to live in the same data frame. I read a number that
+  supported the argument I was writing and did not verify it measured what I claimed.
+- **Log-scale and raw-scale bias are different bars, and this repo's precedent is log-scale.**
+  `AGENTS.md` stopped a whole arc on `mean log-latent-SD bias` against an absolute 0.10 gate. Any
+  future recovery claim here should be scored on that statistic unless a different one is
+  pre-registered *first*.
 - **A cross-platform tree hash must sort the hashes, not the filenames.** Locale collation
   manufactured a false provenance mismatch.
 
