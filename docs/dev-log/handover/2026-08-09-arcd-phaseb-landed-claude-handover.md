@@ -35,7 +35,9 @@ aborted. Verified against `glm()` to four decimals on every coefficient, converg
   *content* decision is not authorization to prepare a candidate. `DESCRIPTION` is still **0.6.0**
   on both branches; no ledger, no census, no rung advanced.
 - **The MSPL PR** — Shinichi's call, unchanged by this session.
-- **The SE-calibration campaign** — designed, unbuilt, needs Totoro GO and a `PREREGISTRATION.md`.
+- ~~The SE-calibration campaign~~ — **DONE the same evening** (owner said "Totoro go"). 60,000 fits;
+  result and a retraction in `claude/mspl-binomial-inference-promotion`,
+  `docs/dev-log/simulation-artifacts/2026-08-09-mspl-se-calibration/VERDICT.md`.
 - **Merging #973** — a separate call now that the gates are green.
 
 ## Claim boundary — read before writing anything public
@@ -96,8 +98,8 @@ GitHub CI was pending at the time of writing — confirm before merging.
 2. **Emmy condition 1** — remove the `= 0` default at `src/drm_response_kernels.h:27` so omissions
    become compile errors. Deferred with a written audit (after-task §10) showing **0** binomial call
    sites currently rely on the default. Do it in the arc that next touches this kernel.
-3. **Brain lessons** — drafted at `scratchpad/2026-08-09-brain-lessons-DRAFT.md`, gap-checked
-   against `LESSONS.md` / `CROSS-REPO-GUARDS.md`. **Not written** — D-37 requires owner approval.
+3. ~~Brain lessons~~ — **WRITTEN and committed** (`~/shinichi-brain` @ `9a308d3`) after owner
+   approval: three `LESSONS.md` entries + one `CROSS-REPO-GUARDS.md` guard.
 4. **Design 252 §4 is wrong** and is corrected in place: it prescribed `stats::make.link()$mu.eta`
    for the MSPL weight, which clamps to `[eps, 1-eps]` and would silently change the penalty value —
    the same probability-scale downgrade §3 refuses for the likelihood.
