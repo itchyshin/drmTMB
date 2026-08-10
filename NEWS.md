@@ -4,6 +4,27 @@ User-facing honesty notes for the next CRAN-facing cycle. `DESCRIPTION` remains
 **0.6.0** until an explicit freeze bumps the version; these bullets freeze the
 default story readers should follow, not a release claim.
 
+## Binomial models accept probit and cloglog links (new in 0.7.0)
+
+* `binomial(link = "probit")` and `binomial(link = "cloglog")` now fit, alongside
+  the existing `binomial(link = "logit")`. `predict()`, `summary()`, and
+  `predict_parameters()` back-transform through the fitted link rather than
+  assuming logit. Other binomial links (for example `cauchit`) are still
+  rejected.
+* The link is evaluated on the **log scale** throughout (a tail-safe log-normal
+  CDF for probit; a `log1mexp` form for cloglog), not by computing a probability
+  and clamping it. This keeps accuracy in the extreme tails; see
+  `docs/design/252-binomial-link-generalisation.md` §3 and `inst/COPYRIGHTS`.
+* **This is a fitting capability, not an interval or coverage claim.** The new
+  links inherit binomial's existing capability-ledger evidence; no new recovery
+  or coverage campaign was run for them, and the census is unchanged.
+* The `DRM.jl` bridge continues to reject probit and cloglog: DRM.jl implements
+  the logit mean only, so `engine = "julia"` errors rather than silently fitting
+  a different model.
+* The maximum-softly-penalized-likelihood (MSPL) entry point remains
+  **logit-only**. Its finiteness guarantee is published for the fixed-effect
+  case; the mixed-effects probit/cloglog bounds are open research.
+
 ## Default uncertainty story
 
 * **Fixed effects / routine Wald targets:** start with `confint(fit)`
