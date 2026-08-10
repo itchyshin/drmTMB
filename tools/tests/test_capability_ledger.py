@@ -256,13 +256,23 @@ class CapabilityLedgerTests(unittest.TestCase):
         change came to look identical to a merely stale receipt.
         """
         current = ledger.c14_model15_source_fingerprint()
+        recorded = ledger.read_tsv(ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY)[0][
+            "source_fingerprint"
+        ]
 
         with self.assertRaises(SystemExit) as caught:
             ledger.check_c17_c14_current_source_compatibility("0" * 64)
         fingerprint_message = str(caught.exception)
         self.assertIn("current model-15 fingerprint differs", fingerprint_message)
         self.assertIn("update source_fingerprint", fingerprint_message)
-        self.assertIn(current, fingerprint_message)
+        # Assert on the two values the message actually reports: what the manifest
+        # RECORDS, and what it was HANDED. Asserting the live fingerprint appears
+        # would couple this test to the ledger being up to date, so it would fail
+        # on precisely the stale tree it exists to explain -- observed for real on
+        # the MSPL and offset branches, where recorded and live legitimately differ
+        # until re-certification.
+        self.assertIn(recorded, fingerprint_message)
+        self.assertIn("0" * 64, fingerprint_message)
 
         original = ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY
         rows = ledger.read_tsv(original)
@@ -292,12 +302,17 @@ class CapabilityLedgerTests(unittest.TestCase):
                 tampered = Path(directory) / "compatibility.tsv"
                 tampered.write_bytes(ledger.tsv_bytes(list(rows[0]), rows))
                 ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = tampered
+                # Hand it the RECORDED fingerprint, not the live one. The blob
+                # check sits behind the fingerprint check, so passing the live
+                # value would make this half unreachable whenever the ledger is
+                # legitimately stale -- the same coupling fixed above.
+                #
                 # The manifest deliberately lives outside ROOT here, exactly as
                 # the other C17 test arranges it. An unguarded relative_to() in
                 # the remediation text raises ValueError, replacing a clean
                 # diagnostic with a traceback.
                 with self.assertRaises(SystemExit) as caught:
-                    ledger.check_c17_c14_current_source_compatibility(current)
+                    ledger.check_c17_c14_current_source_compatibility(recorded)
                 blob_message = str(caught.exception)
             finally:
                 ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = original
