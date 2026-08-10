@@ -68,10 +68,23 @@ No file under `src/`, no capability ledger, no census, no `DESCRIPTION`.
 
 ## 5. Checks Run
 
-`devtools::document()` clean. Targeted: `test-binomial-links.R` 66 pass,
-`test-binomial-response.R` 60 pass, `test-julia-phylo-nongaussian.R` 15 pass /
-2 pre-existing skips (DRM.jl absent). Full `devtools::test()` and
-`--as-cran` were re-run after the defect in §9 was fixed.
+`devtools::document()` clean. Targeted: `test-binomial-links.R` 78 pass,
+`test-binomial-response.R` 60 pass, `test-phylo-utils.R` 186 pass,
+`test-julia-phylo-nongaussian.R` 15 pass / 2 pre-existing skips (DRM.jl absent).
+
+**Final gates, on the committed tree:** `--as-cran` **0 errors / 0 warnings /
+1 NOTE** ("New submission"); `NOT_CRAN=true devtools::test()` **zero failures**.
+Both were needed: `--as-cran` skips `skip_on_cran()` tests, so it does not
+exercise the new hard-case convergence test, while the `NOT_CRAN` run does.
+
+**`--as-cran` was started four times and killed three.** Each kill was because a
+real fix had landed after that run began, and the handover's own rule is that a
+check describing code which no longer ships is worthless. In order: (1) killed
+after the bivariate `link_code` defect was found mid-run; (2) killed after the
+six `test-phylo-utils.R` failures were fixed; (3) killed after Emmy's
+starting-values and print-link fixes landed. The fourth ran to completion on the
+final tree and is the result quoted above. Recording the count because a reader
+comparing timestamps would otherwise see unexplained restarts.
 
 ## 6. Tests of the Tests
 
@@ -128,6 +141,29 @@ before any PR. It shipped in the engine commit, was pushed, and was invisible to
 every targeted test run. Only the full suite caught it.
 
 ## 10. Known Residuals
+
+**Emmy's condition 1 is DEFERRED, with the audit that justifies it.** She asked
+that the `= 0` default be removed from `int link_code = 0` at
+`src/drm_response_kernels.h:27`, so that a future call site omitting it becomes a
+compile error rather than a silently-logit model. That is sound, and it is not
+done. The reason:
+
+All 21 `drm_response_log_density()` call sites in `src/drmTMB.cpp` were audited
+with a **brace-matching parser** over the full argument list (a line-oriented
+grep is not sufficient here — one gave a false positive that was reported and
+retracted, because the calls span lines). Result:
+
+| enclosing guard | sites | passes `link_code` |
+|---|---|---|
+| `model_type == 18` (binomial) | 2 (`:3339`, `:3344`) | **yes, both** |
+| `model_type == 1` (gaussian) | 13 | no — cannot reach `case 18` |
+| `model_type == 6 / 7 / 10` | 6 | no — cannot reach `case 18` |
+
+**Binomial sites missing `link_code`: 0.** So the default is never read for a
+binomial model and there is no live defect; the change is defensive hardening
+costing 21 C++ edits plus a recompile and a full re-check. Deferred on those
+grounds, not forgotten. It should be done in the arc that next touches this
+kernel. The audit script is reproducible and should be re-run then.
 
 The MSPL entry point stays logit-only (design 252 §7) — extending it is a
 research arc, since Kosmidis & Firth's finiteness result is fixed-effect while
