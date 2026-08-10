@@ -278,6 +278,28 @@ Here `o_i` is a known offset supplied by standard R formula syntax such as
 the familiar exposure/rate convention from `glm()` while keeping the public
 parameter as the expected count `mu_i`.
 
+**The `o_i` term generalises to every univariate family.** It is added to the
+location linear predictor before the inverse link in each case, so the same
+symbol carries three different readings:
+
+| Link | Families | Reading of `o_i` |
+| --- | --- | --- |
+| log | Poisson, `nbinom2()` (incl. zero-inflated), Gamma, Tweedie | exposure/rate, as above |
+| identity | Gaussian, Student-t, lognormal, skew-normal | known additive shift of the mean |
+| logit | Bernoulli/binomial, beta-binomial, beta, zero-one-beta, cumulative-logit | known log-odds shift; a calibration term, **not** an exposure |
+
+Two boundary cases: a zero-one-beta `o_i` enters only the interior beta
+component and does not shift `zoi`/`coi`, and an ordinal `o_i` shifts the latent
+location against fixed cutpoints rather than an intercept.
+
+`truncated_nbinom2()` and its hurdle path deliberately have **no** `o_i` term.
+Their observed mean renormalises over a restricted support, so `o_i` would scale
+the latent untruncated rate rather than the reported mean; admitting it requires
+a recorded decision about which of the two the offset is meant to target.
+Bivariate families have no per-response offset vector in the template, and
+Gaussian sufficient-statistic aggregation has no row-level counterpart for
+`o_i`.
+
 This path has no fitted `sigma` distributional parameter. `sigma(fit)` returns
 a fixed unit dispersion vector for base-R method compatibility only. It should
 not be interpreted as a modelled residual scale.

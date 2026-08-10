@@ -18,6 +18,25 @@ Each family should be represented by a small structured object.
 - `fitted_response_rule`
 - `variance_rule`
 
+## Offset Convention
+
+Every univariate family's `mu` block carries an implicit known offset term
+`o_i`, added to the location linear predictor before the inverse link, with
+`o_i = 0` when the formula supplies no `offset()`. The math blocks below spell
+`o_i` out only for the count families where it was introduced; treat it as
+present in every univariate `mu` block. Its interpretation follows the link —
+exposure for log, additive mean shift for identity, log-odds calibration for
+logit — and the full table lives in
+[`19-family-link-contract.md`](19-family-link-contract.md).
+
+Three routes deliberately have **no** `o_i`: `truncated_nbinom2()` and its
+hurdle path (their observed mean renormalises over a restricted support), every
+bivariate family (no per-response offset vector in the template), and Gaussian
+sufficient-statistic aggregation (no row-level counterpart). Adding `o_i` to a
+family means enabling it in that family's builder **and** adding it to that
+`model_type`'s linear-predictor initialiser in `src/drmTMB.cpp`; the TMB data
+vector already reaches every family.
+
 ## Link and Response-Scale Contract
 
 Distributional parameter names do not determine links by themselves. For

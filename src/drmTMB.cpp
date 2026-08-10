@@ -798,7 +798,7 @@ Type objective_function<Type>::operator()()
       } else {
         fixed_mu = X_mu * beta_mu;
       }
-      vector<Type> mu = fixed_mu;
+      vector<Type> mu = offset_mu + fixed_mu;
       vector<Type> log_sigma = X_sigma * beta_sigma;
 
       if (n_re_cov_blocks > 0) {
@@ -2441,7 +2441,7 @@ Type objective_function<Type>::operator()()
     }
     }
   } else if (model_type == 3) {
-    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
     if (n_mu_re_terms > 0) {
@@ -2538,7 +2538,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
   } else if (model_type == 17) {
-    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
     if (n_mu_re_terms > 0) {
@@ -2598,7 +2598,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
   } else if (model_type == 4) {
-    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
@@ -2695,7 +2695,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
   } else if (model_type == 5) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
@@ -2803,7 +2803,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
   } else if (model_type == 16) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_nu = X_nu * beta_nu;
     if (n_mu_re_terms > 0) {
@@ -2850,7 +2850,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
   } else if (model_type == 10) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     // Arc B finding A5: this clamp MUST precede the mi() 2-point sum below. The
     // mi() leaf evaluates the same response density as the main loop, so if the
@@ -3061,7 +3061,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
   } else if (model_type == 15) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     vector<Type> eta_zoi = X_zi * beta_zoi;
     vector<Type> eta_coi = X_nu * beta_coi;
@@ -3258,7 +3258,7 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_zoi);
     ADREPORT(beta_coi);
   } else if (model_type == 14) {
-    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
@@ -3433,7 +3433,7 @@ Type objective_function<Type>::operator()()
     REPORT(mu);
     ADREPORT(beta_mu);
   } else if (model_type == 13) {
-    vector<Type> mu = X_mu * beta_mu;
+    vector<Type> mu = offset_mu + X_mu * beta_mu;
     if (n_mu_re_terms > 0) {
       vector<Type> sd_mu_re = exp(log_sd_mu);
       for (int i = 0; i < y.size(); ++i) {

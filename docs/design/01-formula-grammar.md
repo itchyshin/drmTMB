@@ -1119,11 +1119,26 @@ Not every parameter should accept random effects at the same development stage.
 - `meta_V(V = V)` is the preferred known-sampling-covariance marker, not a
   predictor. Deprecated `meta_known_V(V = V)` is a compatibility alias for the
   same additive known-covariance path.
-- `offset()` terms are implemented only in the `mu` formula for Poisson and
-  `nbinom2()` count models, including their zero-inflated paths. Use standard
-  exposure syntax such as `offset(log(trap_nights))`. Offsets in `sigma`, `zi`,
-  `hu`, Gaussian, bivariate, meta-analytic, phylogenetic, or spatial formulas
-  must be rejected rather than accepted silently.
+- `offset()` terms are implemented in the `mu` formula of every univariate
+  family. The offset enters the location linear predictor as a known constant,
+  so its reading is the family's own link scale:
+  - log link (Poisson, `nbinom2()` including zero-inflated paths, Gamma,
+    Tweedie): standard exposure syntax such as `offset(log(trap_nights))`,
+    giving a rate model;
+  - identity link (Gaussian, Student-t, lognormal, skew-normal): a known
+    additive shift of the mean;
+  - logit link (Bernoulli/binomial, `beta_binomial()`, `beta()`,
+    `zero_one_beta()`, `cumulative_logit()`): a known log-odds shift. This is a
+    calibration term, **not** an exposure. A `zero_one_beta()` offset shifts
+    only the interior beta component and leaves `zoi`/`coi` untouched; an
+    ordinal offset shifts the latent location against fixed cutpoints.
+  Offsets in `sigma`, `zi`, `hu`, `zoi`, `coi`, `nu`, or `rho12` formulas, in
+  any bivariate family, and in Gaussian sufficient-statistic aggregation must be
+  rejected rather than accepted silently. `truncated_nbinom2()` and its hurdle
+  path also reject offsets: both renormalise the observed mean over a restricted
+  support, so an exposure term would not scale the reported mean the way it does
+  for plain Poisson or NB2. Extending them needs a recorded decision about
+  whether the offset targets the latent untruncated rate or the observed mean.
 - Random intercepts, random slopes with one numeric predictor per random-slope
   term, and labelled or unlabelled ordinary correlated intercept-slope blocks
   are currently implemented for the univariate Gaussian `mu` formula; multiple
