@@ -117,6 +117,32 @@ test_that("categorical mi() predictor model uses exact finite-state likelihood",
   ))
 })
 
+test_that("categorical mi() predictor model reports route_conditional_se_unavailable when sdreport is available", {
+  # Unlike fit_missing_predictor_categorical()'s se = FALSE fixture, this fit
+  # uses drm_control() defaults so TMB::sdreport() succeeds (fit_status ==
+  # "ok"). Unordered categories still have no metrically meaningful variance,
+  # so std_error stays NA, and uncertainty_status must say why: "ok" would
+  # wrongly suggest std_error is just missing by omission.
+  dat <- missing_predictor_categorical_data()
+  missing_x <- is.na(dat$habitat)
+
+  fit <- drmTMB(
+    bf(y ~ z + mi(habitat), sigma ~ 1),
+    data = dat,
+    impute = list(
+      habitat = impute_model(habitat ~ z, family = categorical())
+    ),
+    missing = miss_control(predictor = "model")
+  )
+  imp <- imputed(fit)
+
+  expect_true(all(is.na(imp$std_error)))
+  expect_equal(
+    imp$uncertainty_status,
+    rep("route_conditional_se_unavailable", sum(missing_x))
+  )
+})
+
 test_that("categorical mi() predictor model combines with response masks", {
   dat <- missing_predictor_categorical_data()
   dat$y[c(10, 31, 52)] <- NA_real_
