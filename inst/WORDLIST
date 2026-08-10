@@ -12,6 +12,7 @@ Wald
 atanh
 betabinomial
 bivariate
+centile
 distributional
 emmeans
 ggplot
@@ -42,4 +43,5 @@ roxygen
 sdreport
 semicontinuous
 testthat
+uncalibrated
 univariate
