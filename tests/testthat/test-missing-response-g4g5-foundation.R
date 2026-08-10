@@ -4,6 +4,51 @@ source_missing_response_g4g5 <- function(env = parent.frame()) {
   source(path, local = env)
 }
 
+test_that("every G4/G5 record is stamped with the design that produced it", {
+  # #982: the frozen manifest hash cannot distinguish a centred from an uncentred
+  # design (`truth` is identical either way), and a seed fixes the RNG stream, not
+  # what is done with it. So the design must be recorded on the record itself.
+  source_missing_response_g4g5()
+
+  withr::local_options(drmTMB.mr_g4g5_centre_random_effects = TRUE)
+  centred <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  expect_true("design_state" %in% names(centred))
+  expect_identical(unique(centred$design_state), "centre_random_effects=TRUE")
+
+  withr::local_options(drmTMB.mr_g4g5_centre_random_effects = FALSE)
+  uncentred <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  expect_identical(unique(uncentred$design_state), "centre_random_effects=FALSE")
+
+  # the stamp must actually track the design, not merely exist
+  expect_false(identical(centred$design_state[1], uncentred$design_state[1]))
+})
+
+test_that("reconciliation refuses to merge, or to accept, unauthenticated designs", {
+  # The guard is only worth having if it FAILS on purpose. Exercise both closures:
+  # disagreeing designs, and records that predate stamping entirely.
+  source_missing_response_g4g5()
+
+  withr::local_options(drmTMB.mr_g4g5_centre_random_effects = TRUE)
+  a <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  b <- a
+  b$design_state <- "centre_random_effects=FALSE"
+
+  expect_silent(mr_g4g5_check_design_agreement(a, "test"))
+  expect_error(
+    mr_g4g5_check_design_agreement(rbind(a, b), "test"),
+    "mixes 2 designs"
+  )
+
+  # Missing provenance must NOT block access to already-computed evidence -- it
+  # must taint it, so the caveat travels with the artifact instead of the data
+  # becoming unreadable.
+  legacy <- a
+  legacy$design_state <- NULL
+  expect_warning(mr_g4g5_check_design_agreement(legacy, "test"), "UNAUTHENTICATED")
+  marked <- suppressWarnings(mr_g4g5_check_design_agreement(legacy, "test"))
+  expect_identical(unique(marked$design_state), "UNAUTHENTICATED")
+})
+
 test_that("every G3 route builds a fixture without the testthat helpers", {
   # The campaign scripts source this runner after a plain `library(drmTMB)`, so a
   # route that silently depends on a test helper cannot run in deployment even
@@ -510,7 +555,11 @@ test_that("G4 checkpoint reconciliation retains provenance and rejects collision
   source_missing_response_g4g5()
   one <- data.frame(
     route_id = "gaussian", parm = "fixef:mu:x", information_rung = "1x",
-    g4_interval_usable = TRUE, stringsAsFactors = FALSE
+    g4_interval_usable = TRUE,
+    # a real record carries its design (#982); a fixture that omits it is
+    # reconciled as UNAUTHENTICATED, which is correct but not what this test is about
+    design_state = "centre_random_effects=TRUE",
+    stringsAsFactors = FALSE
   )
   duplicate <- tempfile(fileext = ".rds")
   original <- tempfile(fileext = ".rds")
