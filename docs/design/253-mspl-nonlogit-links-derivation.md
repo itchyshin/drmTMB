@@ -349,3 +349,37 @@ logit route drmTMB already ships.
 Design 252 §7 should be rewritten accordingly: keep the guard if desired, but the reason is *"we
 have no drmTMB-Laplace evidence for any link, and none at all for non-logit"* — **not** *"the bounds
 are unproved for probit and cloglog."* They are proved.
+
+
+---
+
+# ADDENDUM 3 — the gllvmTMB team corrected Addendum 2's scope (2026-08-10)
+
+Addendum 2 concluded *"the link is not the obstruction, and now that is proved."* **True of
+existence, false of the asymptotics.** The gllvmTMB team caught it; verified against 2023 §7, p. 7.
+
+| result | link-general? |
+|---|---|
+| Jeffreys barrier / fixed-effect finiteness | **YES, proved** (KF2021 Thm 1, §3.1, Table 1) |
+| composite existence, exact likelihood | **YES** (2023 p. 6) |
+| **softness scaling `c = 2√(p/n)`** | **NO — logit delta-method result** (2023 §7) |
+| **asymptotic gradient bound, Thm C.1** | **NO — logit constants** |
+
+2023 §7: *"c … the square root of the average of the approximate variances of η̂ᵢⱼ **at β = 0**. A
+delta method argument gives that **c = 2√(p/n)**."* Logit has `ω(0) = ¼` ⇒ `Var ≈ 4p/n` ⇒
+`c = 2√(p/n)`. **Probit has `ω(0) = 2/π ≈ 0.637` ⇒ `c ≈ 1.25√(p/n)`.** Different constant.
+
+So drmTMB's `c_n = 2√(p/n_eff)` is **the wrong scaling for probit/cloglog** — it would not deliver
+the softness the ML asymptotics depend on. Non-logit softness bounds genuinely *are* future work,
+exactly as design 250 said.
+
+**Three corrections in three days on one question**, each from a wider evidence base: original
+derivation (no papers) → Addendum 1 (2023 + 2026) → Addendum 2 (+ KF2021) → Addendum 3 (+ external
+review). The pattern worth keeping: **each round was confidently stated and each was partly wrong.**
+The failure mode was not lack of rigour but *asserting the negative* — "the authors do NOT defer
+this" — from sources that were silent rather than contrary.
+
+**Also corrected by the same review:** gllvmTMB already has the cloglog negative-tail series repair;
+their `mspl_cloglog_*_tail_extension_count` instruments the **opposite** tail (`η > 690`, near
+overflow), and any MSPL fit touching that extension is **rejected**, not returned. Our draft's
+inference that they shared our bug was wrong on both counts.
