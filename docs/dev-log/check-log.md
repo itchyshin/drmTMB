@@ -92952,3 +92952,39 @@ family that can discriminate an engine that improves on Laplace.
   neighbour surfaces repaired by the fresh completion audit. HEAD and
   merge-base remain `efb5af4f`, `origin/main` remains `31da19f2`, and the
   branch has no upstream.
+
+## 2026-08-10 — `main` CI unblocked: beta-binomial `mi()` fixture identifiability
+
+- Diagnosis correction. `main` had been red since `fddb82105` (PR #972). The inherited handover
+  attributed it to a missing Julia package `Suppressor`; verified wrong. The `LoadError` is Julia
+  teardown noise printed *after* `Execution halted`, all Julia tests skipped correctly (305 skips),
+  and the actual ERROR was three assertions at
+  `tests/testthat/test-missing-predictor-beta-binomial.R:152-154`
+  (`uncertainty_status` = `sdreport_non_pd_hessian`, not `"ok"`). Identical failures confirmed on
+  three runs — main `31350747542`, PR #978 `31350952083`, PR #976 `31383639291` — with zero
+  Julia-caused failures on any of them. Correction committed as `062250f19`.
+- Root cause. `missing_predictor_beta_binomial_data()` built counts with `qbinom(ppoints(n), ...)`,
+  which is markedly UNDER-dispersed (Pearson dispersion 0.201). Beta-binomial can only represent
+  dispersion >= 1, so `sigma_mi` had no likelihood information: profile deviance at the boundary was
+  exactly 0.000 and the MLE ran to zero. `pdHess` was therefore a BLAS/LAPACK coin-flip (macOS TRUE
+  at condition number 3.63e+07; ubuntu non-PD).
+- A rejected repair, measured before implementation. Permuting the `qbinom` quantile levels and
+  shrinking them off 0/1 improves `VIF(cover|z)` 71.2 -> 4.34 and leaves boundary profile deviance
+  at **exactly 0.000** — it does not touch the defect. Refuted by Fisher at Phase-2 plan review and
+  reproduced independently before any code was written.
+- Fix. The fixture now draws the latent probability from Beta quantiles and the count from binomial
+  quantiles at two independently permuted levels (`sigma_mi_true = 0.35`), staying deterministic (no
+  `set.seed`). Dispersion 1.994; boundary profile deviance 13.234; `sigma_mi` argmin recovers 0.35.
+  `success <= trials` holds row-wise by construction and is asserted in the diagnostic.
+- Measured on the fit at line 138: convergence warning `false convergence (8)` -> **none**;
+  `pdHess` TRUE; max eigen `cov.fixed` ~320 -> **0.0255**; condition number **3.63e+07 -> 2,318**;
+  `se(log_sigma_mi)` **0.159**; `uncertainty_status` -> `ok`; recovered `sigma_mi` 0.297 (truth 0.35).
+- Checks: whole beta-binomial file 30/30 PASS with the three pre-existing `false convergence`
+  warnings now gone; `test-missing-predictor-gaussian.R` 109, `-binary.R` 24, `-categorical.R` 26,
+  `test-missing-data-robustness.R` 15 all PASS; `capability_ledger.py --check` `OK (31 generated
+  outputs)`, unchanged. Diff is one test file (21 insertions, 2 deletions). No `R/`, `src/`, `man/`,
+  `NAMESPACE`, ledger, census, rung, or `DESCRIPTION` change.
+- Receipts: `docs/dev-log/simulation-artifacts/2026-08-10-beta-binomial-fixture-identifiability/`.
+  After-task: `docs/dev-log/after-task/2026-08-10-beta-binomial-mi-fixture-identifiability.md`.
+- Residual: the MD7f `0:n_i` summation remains lightly exercised (posterior is near a point mass
+  because `y` is noiseless); flagged for a separate decision, not changed here.
