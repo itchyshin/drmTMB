@@ -76,6 +76,28 @@ it is content-equivalence, not a literal hash match, and the packet says so.
    Reverted. This is the arc's recurring lesson, now filed as
    `~/shinichi-brain/memory/The most dangerous error is the one made while fixing an error.md`.
 
+## 🔴 THE ONE THING THAT IS NOT READY — `main` CI is RED
+
+Full diagnosis: `../release/0.7.0-cran-gate/BLOCKER-main-ci-red-julia.md`.
+
+`main` fails `R CMD check` and **has since `fddb82105` (PR #972, missing-data) — before either of
+tonight's D-117 merges.** Cause: the **Julia** package `Suppressor` is missing from the CI runner's
+depot, so `JuliaCall`'s `setup.jl` throws during "checking tests".
+
+The live Workflow-G test says it is *"skip-safe"*, but it guards with
+`skip_if_not_installed("JuliaCall")` — and **JuliaCall the R package IS installed** in CI, so the skip
+never fires. The guard tests the R binding's presence, not whether the Julia runtime works. The
+workflow has **no Julia setup step at all**.
+
+**Two fixes, and the choice is the Julia lane's or yours:** (1) `tryCatch()` around Julia
+initialisation and `skip()` on failure — small, restores green immediately, keeps CI Julia-free; or
+(2) add `julia-actions/setup-julia` + `Pkg.add("Suppressor")` — makes the gate genuinely live, at the
+cost of Julia on every routine run. I did **not** pick for you; it is another lane's test.
+
+**Two things this does not block:** the release slice is unaffected — the 3-OS matrix at `bce9cfb6f`
+passed on all three platforms, because that branch predates the live-Julia test. And **PR #978 failed
+for this reason alone** — its own local `--as-cran` returns `Status: 1 NOTE`.
+
 ## YOUR ACTIONS
 
 1. **`rm -f "/Users/z3437171/Dropbox/Github Local/drmTMB/.git/index.lock"`** — the harness blocks me
