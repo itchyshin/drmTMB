@@ -54,7 +54,8 @@
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [skew_normal()], [lognormal()], [stats::Gamma()] with `link = "log"`,
 #'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
-#'   [beta_binomial()], [stats::binomial()] with `link = "logit"`,
+#'   [beta_binomial()], [stats::binomial()] with `link = "logit"`, `"probit"`,
+#'   or `"cloglog"`,
 #'   [cumulative_logit()], [stats::poisson()] with `link = "log"`, [nbinom2()],
 #'   [truncated_nbinom2()], or [biv_gaussian()]. Adding
 #'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
@@ -457,7 +458,8 @@ drmTMB <- function(
       env = formula_env,
       weights = weights_full,
       impute = impute,
-      missing = missing_control
+      missing = missing_control,
+      link = family$link
     ),
     cumulative_logit = drm_build_cumulative_logit_spec(
       formula,
@@ -2910,6 +2912,12 @@ drm_spec_response_names <- function(spec) {
   out
 }
 
+# Codes must match src/drm_numeric.h:103 (drm_binom_log_mu).
+drm_binomial_links <- function() c("logit", "probit", "cloglog")
+
+drm_binomial_link_code <- function(link) switch(link, logit = 0L, probit = 1L, cloglog = 2L,
+  cli::cli_abort("Internal error: unsupported binomial link {.val {link}}."))
+
 drm_family_type <- function(family) {
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
@@ -2935,11 +2943,11 @@ drm_family_type <- function(family) {
     return("poisson")
   }
   if (inherits(family, "family") && identical(family$family, "binomial")) {
-    if (!identical(family$link, "logit")) {
+    if (!family$link %in% drm_binomial_links()) {
       cli::cli_abort(c(
-        "{.pkg drmTMB} binomial models currently require {.code binomial(link = \"logit\")}.",
+        "{.pkg drmTMB} binomial models support {.code binomial(link = \"logit\")}, {.code binomial(link = \"probit\")}, and {.code binomial(link = \"cloglog\")}.",
         "x" = "Received binomial link {.val {family$link}}.",
-        "i" = "The first binomial-response contract is {.code logit(mu) = X_mu beta_mu}; use {.code cbind(successes, failures)} for trial denominators."
+        "i" = "The binomial-response contract is {.code link(mu) = X_mu beta_mu}; use {.code cbind(successes, failures)} for trial denominators."
       ))
     }
     return("binomial")
@@ -3018,7 +3026,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -6268,7 +6276,8 @@ drm_build_binomial_spec <- function(
   env = parent.frame(),
   weights = NULL,
   impute = NULL,
-  missing = miss_control()
+  missing = miss_control(),
+  link = "logit"
 ) {
   missing <- drm_parse_missing_control(missing)
   include_missing_response <- identical(missing$response, "include")
@@ -6468,6 +6477,7 @@ drm_build_binomial_spec <- function(
 
   spec <- list(
     model_type = "binomial",
+    link = link,
     y = as.numeric(response$successes),
     trials = as.numeric(response$trials),
     failures = as.numeric(response$failures),
@@ -6503,7 +6513,8 @@ drm_build_binomial_spec <- function(
       X_mu,
       offset_mu,
       re_mu = re_mu,
-      observed_y = observed_y
+      observed_y = observed_y,
+      link = link
     ),
     map = binomial_map(re_mu),
     random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
@@ -17360,9 +17371,24 @@ binomial_start <- function(
   X_mu,
   offset_mu = rep(0, length(successes)),
   re_mu = empty_random_mu_structure(length(successes)),
-  observed_y = rep(TRUE, length(successes))
+  observed_y = rep(TRUE, length(successes)),
+  link = "logit"
 ) {
   observed_y <- as.logical(observed_y)
+  # Starting values must be on the FITTED link's scale. This used to hardcode
+  # logit in all three places below (the glm.fit family, the intercept
+  # fallback, and the linearised response used for random-effect starts).
+  # Logit and probit differ by a factor of ~1.7, so a probit fit started from
+  # logit values begins ~70% too far out, and cloglog is asymmetrically wrong;
+  # the optimizer usually recovers, but on sparse or extreme-probability data
+  # that shows up as slow convergence, pdHess = FALSE, or a boundary stall.
+  # (Emmy, Arc D go/no-go review.)
+  #
+  # stats::make.link() is fine HERE, unlike in the likelihood and the MSPL
+  # Jeffreys weight, where its [eps, 1-eps] clamping would corrupt a value. A
+  # starting value is a hint, and the proportions below are already clamped to
+  # [1e-4, 1-1e-4] anyway.
+  link_fun <- stats::make.link(link)$linkfun
   n <- length(successes)
   off_full <- if (length(offset_mu) == n) offset_mu else rep(0, n)
   s_obs <- successes[observed_y]
@@ -17374,7 +17400,7 @@ binomial_start <- function(
       stats::glm.fit(
         X_mu_obs,
         cbind(s_obs, f_obs),
-        family = stats::binomial(link = "logit"),
+        family = stats::binomial(link = link),
         offset = off_obs
       )$coefficients
     ),
@@ -17385,14 +17411,14 @@ binomial_start <- function(
     prop_obs <- (s_obs + 0.5) / (trials_obs + 1)
     beta_mu <- rep(0, ncol(X_mu))
     beta_mu[[1L]] <-
-      stats::qlogis(min(max(mean(prop_obs), 1e-4), 1 - 1e-4)) -
+      link_fun(min(max(mean(prop_obs), 1e-4), 1 - 1e-4)) -
       mean(off_obs)
   }
   names(beta_mu) <- colnames(X_mu)
   eta_mu <- as.vector(X_mu %*% beta_mu) + off_full
   trials_all <- successes + failures
   prop_all <- (successes + 0.5) / (trials_all + 1)
-  link_y <- stats::qlogis(pmin(pmax(prop_all, 1e-4), 1 - 1e-4))
+  link_y <- link_fun(pmin(pmax(prop_all, 1e-4), 1 - 1e-4))
   resid <- link_y - eta_mu
   resid[!observed_y] <- 0
   y_scale <- stats::sd(link_y[observed_y])
@@ -19129,6 +19155,7 @@ make_tmb_data_core <- function(spec) {
       isTRUE(gaussian_aggregation$enabled)
     return(list(
       model_type = 1L,
+      link_code = 0L,
       y = if (use_gaussian_aggregation) numeric(1) else spec$y,
       trials = if (use_gaussian_aggregation) numeric(1) else tmb_trials,
       weights = if (use_gaussian_aggregation) numeric(1) else spec$weights,
@@ -19221,6 +19248,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 3L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19292,6 +19320,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 17L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19352,6 +19381,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 4L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19424,6 +19454,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 5L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19495,6 +19526,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 16L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19556,6 +19588,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 10L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19633,6 +19666,7 @@ make_tmb_data_core <- function(spec) {
     re_coi <- spec$random$coi
     return(list(
       model_type = 15L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19700,6 +19734,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 14L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19757,6 +19792,7 @@ make_tmb_data_core <- function(spec) {
   if (identical(spec$model_type, "binomial")) {
     return(list(
       model_type = 18L,
+      link_code = drm_binomial_link_code(if (is.null(spec$link)) "logit" else spec$link),
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19815,6 +19851,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 13L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19885,6 +19922,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 6L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -19955,6 +19993,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 8L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20028,6 +20067,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 7L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20099,6 +20139,7 @@ make_tmb_data_core <- function(spec) {
     sd_mu <- spec$random_scale$mu
     return(list(
       model_type = 11L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20157,6 +20198,7 @@ make_tmb_data_core <- function(spec) {
     phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 12L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20228,6 +20270,7 @@ make_tmb_data_core <- function(spec) {
     re_sigma <- spec$random$sigma
     return(list(
       model_type = 9L,
+      link_code = 0L,
       y = spec$y,
       trials = tmb_trials,
       weights = spec$weights,
@@ -20305,6 +20348,14 @@ make_tmb_data_core <- function(spec) {
         biv_lognormal = 19L,
         biv_student = 20L
       ),
+      # `link_code` is a global DATA_INTEGER (src/drmTMB.cpp:328), so EVERY
+      # builder branch must supply it, even for families with no link choice.
+      # This branch declares model_type via switch() rather than a literal
+      # `model_type = <n>L`, so a grep for that literal MISSES it -- which is
+      # exactly how the three bivariate families were left without a link_code
+      # when it was introduced, failing every bivariate fit with
+      # "Error when reading the variable: 'link_code'".
+      link_code = 0L,
       y = numeric(1),
       trials = numeric(1),
       weights = spec$weights,

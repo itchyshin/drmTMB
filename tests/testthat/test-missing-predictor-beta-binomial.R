@@ -124,6 +124,36 @@ test_that("beta-binomial mi() predictor model uses success/trial likelihood", {
   )
 })
 
+test_that("beta-binomial mi() predictor model reports a route-conditional std_error when sdreport is available", {
+  # Unlike fit_missing_predictor_beta_binomial()'s se = FALSE fixture, this
+  # fit uses drm_control() defaults so TMB::sdreport() succeeds (fit_status
+  # == "ok"). drm_imputed_route_conditional_sd() rescales the stored
+  # success_support counts by each missing row's own trials denominator
+  # (fit$missing_data$predictors$cover$trials), which is persisted even
+  # though it is not part of the finalized quadrature grid.
+  skip_on_cran()
+  dat <- missing_predictor_beta_binomial_data()
+  missing_x <- is.na(dat$success)
+
+  fit <- drmTMB(
+    bf(y ~ z + mi(cover), sigma ~ 1),
+    data = dat,
+    impute = list(
+      cover = impute_model(
+        success ~ z,
+        family = beta_binomial(),
+        trials = trials
+      )
+    ),
+    missing = miss_control(predictor = "model")
+  )
+  imp <- imputed(fit)
+
+  expect_true(all(is.finite(imp$std_error)))
+  expect_true(all(imp$std_error > 0))
+  expect_equal(imp$uncertainty_status, rep("ok", sum(missing_x)))
+})
+
 test_that("beta-binomial mi() predictor model combines with response masks", {
   # Near-boundary beta-binomial mi() + response-mask fit that reports false
   # convergence; the tight logLik consistency assertion (5e-4) lands at a

@@ -11,32 +11,15 @@ boundary itself is maintained in
 registry is `docs/design/168-r-julia-finish-capability-matrix.md`; when these
 ledgers disagree, the stricter row wins until the evidence is reconciled.
 
-## Immediate bounded arc queue (ratified 2026-07-15)
+## Immediate bounded arc queue (ratified 2026-07-15; STALE — see note below)
 
-1. **Current closeout — Beta phylogenetic LSS PR 1:** land the exact
-   univariate ML `beta()` q1 `mu ~ phylo(1 | spp_id, tree = tree)` prerequisite
-   at `point_fit_recovery` only for the tested `g = 1024, m = 4` regime.
-   Preserve the `g = 256` and `g = 512` recovery HOLDs and the inconclusive
-   estimator diagnostic. This is not `g >= 1024` and does not establish a
-   universal minimum species count.
-2. **Next lane — Beta phylogenetic LSS PR 2:** only after PR 1 review, merge,
-   and exact green post-merge CI, add the bounded direct latent-SD target
-   `sd(spp_id, level = "phylogenetic") ~ 1 + x`. Keep family `sigma`, which
-   controls `phi = sigma^(-2)`, distinct from latent-target `sd(...)`, and do
-   not infer broader Beta or all-family `sd()` support.
-3. **After that — separate hierarchical-`sd()` subarc:** the current `sd()` RHS
-   remains fixed-effect-only, with predictors constant within the target group.
-   The conservative first random-RHS design may admit only a genuinely
-   higher/coarser grouping level with multiple target groups nested in every
-   higher group, for example `sd(individual) ~ habitat + (1 | population)` with
-   multiple individuals per population. Same-level
-   `sd(individual) ~ (1 | individual)` remains rejected. If the target is
-   already the highest available level, its `sd()` RHS remains fixed-effect-only.
-   Thus `sd(spp_id, level = "phylogenetic")` needs a separately justified
-   higher genus/family grouping with adequate species replication before any
-   random RHS is considered. This is a first-implementation admission and
-   identifiability rule, not a universal mathematical theorem. Require symbolic
-   alignment, explicit nesting checks, recovery, and rejected-neighbour tests.
+> **⚠ STALE NOTE (2026-08-09):** This queue was ratified 2026-07-15; the first item (Beta phylogenetic LSS) was **ABORTED on 2026-07-16** and cannot resume without an explicit new goal from Shinichi. Subsequent items depend on item 1 and are therefore BLOCKED. For current active work and decisions, read the latest entries in `AGENTS.md` (start with "Latest — start here") and `docs/dev-log/active-lane-split.md`.
+
+1. **ABORTED — Beta phylogenetic LSS PR 1 (2026-07-16):** This arc stopped at PR 1's recovery gate. A disjoint Totoro pilot (30 fits, `g = 256`) returned mean log-latent-SD bias `-0.2214` (MCSE `0.0861`) against a frozen absolute gate of `0.10`. Noether, Fisher, and Rose returned STOP; the 1,200-fit certification was not launched and no PR was opened. Restarting requires Shinichi's explicit new goal (abandon the arc, or approve a redesigned approach with separate claim boundary). See `AGENTS.md` block dated 2026-07-16 ("BETA PHYLOGENETIC q1 STOPPED") and handover [`docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md`](docs/dev-log/handover/2026-07-16-beta-phylo-q1-pilot-abort-codex-handover.md).
+
+2. **BLOCKED — Beta phylogenetic LSS PR 2:** Depends on item 1. Do not plan until item 1 is either abandoned formally or restarted with Shinichi's new goal.
+
+3. **BLOCKED — separate hierarchical-`sd()` subarc:** Depends on item 1. Do not plan until item 1 is resolved.
 
 ## Release versioning: conservative `0.x` numbering, v1.0 as maturity milestone
 

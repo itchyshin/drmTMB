@@ -49,3 +49,31 @@ parameterizes the covariance-scale multiplier `s = exp(log_sd)` directly and
 supplies `s`.  Both give covariance `s^2 Q^-1` after identifying
 `s = 1 / tau`.  No gllvmTMB range, multivariate, slope, non-Gaussian,
 anisotropy, barrier, or spatiotemporal implementation is adopted here.
+
+## Binomial link generalisation -- probit/cloglog dispatch and log-pnorm (2026-08-09)
+
+Two things are adapted from gllvmTMB commit `431e173f7198f74c356ec3099ffa211f1ee85fd0`
+(GPL-3), per `docs/design/252-binomial-link-generalisation.md`:
+
+1. The link-DISPATCH PATTERN (not the numerics): gllvmTMB's `family_to_id()`
+   at `R/fit-multi.R:441-450`/`:375-`(`switch(f$link, logit = 0L, probit = 1L,
+   cloglog = 2L, ...)`) and the paired C++ `DATA_IVECTOR(link_id_vec)` /
+   `if (lid == 0) ... else if (lid == 1) ... else if (lid == 2)` dispatch at
+   `src/gllvmTMB.cpp:2185-2196` motivate drmTMB's `link_code` integer
+   (0 = logit, 1 = probit, 2 = cloglog) plumbed as a single `DATA_INTEGER`
+   alongside the existing `model_type == 18` binomial family tag.
+
+2. The tail-safe log-scale normal CDF `drm_log_pnorm()` in `src/drm_numeric.h`
+   is closely adapted from gllvmTMB's `gll_log_pnorm()` at
+   `src/gllvmTMB.cpp:112-146` (Mills-ratio asymptotic expansion below x = -20,
+   direct `log(pnorm(x))` above it).
+
+drmTMB deliberately does NOT adopt gllvmTMB's probability-scale clamp
+(`gll_clamp(p, 1e-12, 1 - 1e-12)` before `dbinom()`, `src/gllvmTMB.cpp:2196-2199`).
+That clamp is a downgrade against drmTMB's existing log-scale `logspace_add`
+binomial path: every drmTMB binomial link (logit, probit, cloglog) is
+evaluated as `log(mu)`/`log(1-mu)` on the log scale throughout
+(`drm_binom_log_mu()` in `src/drm_numeric.h`), with no probability-scale
+floor or ceiling. `drm_binom_log_mu_eta()` (the `log|dmu/deta|` primitive for
+the MSPL Jeffreys weight) is independently derived, not adapted from
+gllvmTMB, which has no MSPL-style penalty.

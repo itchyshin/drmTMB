@@ -1,6 +1,8 @@
 #ifndef DRMTMB_RESPONSE_KERNELS_H
 #define DRMTMB_RESPONSE_KERNELS_H
 
+#include "drm_numeric.h"
+
 // Pluggable per-family response log-density leaf, used by the missing-predictor
 // mi() quadrature so a non-Gaussian response can reuse the same integration
 // loop. P2 extracts only the Gaussian case (a pure refactor: the returned value
@@ -21,7 +23,8 @@ Type drm_response_log_density(
     Type eta_val,
     Type log_sigma_val,
     Type V_known_val,
-    Type trials_val)
+    Type trials_val,
+    int link_code = 0)
 {
   (void) trials_val; // used by the binomial leaf added in P3
   switch (model_type) {
@@ -38,9 +41,12 @@ Type drm_response_log_density(
       return dpois(y_val, exp(eta_val), true);
     }
     case 18: {
-      // binomial: logit link; trials_val successes-out-of-trials.
-      Type log_p1 = -logspace_add(Type(0.0), -eta_val);
-      Type log_p0 = -logspace_add(Type(0.0), eta_val);
+      // binomial: link dispatched on link_code (0 = logit, 1 = probit,
+      // 2 = cloglog; see drm_binom_log_mu() in drm_numeric.h).
+      // trials_val successes-out-of-trials.
+      DrmBinomLogMu<Type> log_mu = drm_binom_log_mu(eta_val, link_code);
+      Type log_p1 = log_mu.log_mu;
+      Type log_p0 = log_mu.log_one_minus_mu;
       Type failures = trials_val - y_val;
       Type log_choose = lgamma(trials_val + Type(1.0)) -
         lgamma(y_val + Type(1.0)) - lgamma(failures + Type(1.0));

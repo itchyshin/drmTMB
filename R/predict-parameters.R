@@ -344,6 +344,8 @@ predict_parameters_inverse_link_derivative <- function(object, dpar, eta) {
       p <- stats::plogis(eta)
       p * (1 - p)
     },
+    probit = stats::dnorm(eta),
+    cloglog = exp(eta - exp(eta)),
     logm2 = exp(eta),
     logit12 = {
       p <- stats::plogis(eta)
