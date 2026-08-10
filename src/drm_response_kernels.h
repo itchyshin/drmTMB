@@ -5,7 +5,12 @@
 // mi() quadrature so a non-Gaussian response can reuse the same integration
 // loop. P2 extracts only the Gaussian case (a pure refactor: the returned value
 // is byte-identical to the inline dnorm it replaces); P3 fills the other
-// families and wires them into non-Gaussian-response mi() call sites.
+// families and wires them into non-Gaussian-response mi() call sites. P3 adds
+// gamma (case 5) and lognormal (case 4), each extracted verbatim from its
+// model_type block. Student (model_type 3) is NOT added here: its density
+// needs a per-row shape parameter nu, which this leaf's signature cannot carry
+// without widening every existing caller -- see the mi()-wiring notes in
+// src/drmTMB.cpp for the deferral.
 //
 // Contract:
 //   * weights(i) is applied OUTSIDE this leaf at every call site -- do NOT
@@ -50,6 +55,24 @@ Type drm_response_log_density(
       // nbinom2: log link via eta; dispersion size = exp(-2*log_sigma).
       // The kernel takes the raw linear predictor (eta), NOT mu.
       return drm_nbinom2_log_density(y_val, eta_val, log_sigma_val);
+    }
+    case 5: {
+      // gamma: log link, mu = exp(eta); sigma is the coefficient of variation
+      // (shape = 1/sigma^2, scale = mu*sigma^2). Replicates the model_type==5
+      // block verbatim.
+      Type mu_val = exp(eta_val);
+      Type sigma_val = exp(log_sigma_val);
+      Type shape = Type(1.0) / (sigma_val * sigma_val);
+      Type scale = mu_val * sigma_val * sigma_val;
+      return (shape - Type(1.0)) * log(y_val) -
+        y_val / scale - lgamma(shape) - shape * log(scale);
+    }
+    case 4: {
+      // lognormal: identity-link location mu (eta_val) for log(y); dispersion
+      // sigma = exp(log_sigma). Replicates the model_type==4 block verbatim,
+      // including the -log(y) Jacobian for the log(y) change of variables.
+      Type log_y = log(y_val);
+      return dnorm(log_y, eta_val, exp(log_sigma_val), true) - log_y;
     }
     case 10: {
       // beta: nudged logit mean, precision phi = exp(-2*log_sigma). Replicates

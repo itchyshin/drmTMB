@@ -1,6 +1,78 @@
 # Check Log
 
 
+## 2026-08-09 — missing-predictor `mi()` P3: Gamma and lognormal response leaves
+
+Admitted `mi()` missing-predictor support (one binary Bernoulli/logit
+predictor) for `Gamma(link = "log")` and `lognormal()` responses, following
+the pluggable-leaf design (`src/drm_response_kernels.h`) and the existing
+poisson/binomial/nbinom2/beta bernoulli-predictor wiring pattern in
+`src/drmTMB.cpp`. Student-t (`model_type == 3`) is NOT admitted: its density
+needs a per-row shape parameter `nu` that the shared leaf's fixed
+six-argument signature cannot carry without widening every existing caller.
+
+- Added `drm_response_log_density` kernel cases 5 (Gamma, mean-CV) and 4
+  (lognormal, `dnorm(log(y), mu, sigma) - log(y)`), each extracted verbatim
+  from its `model_type` block and cross-checked against an independent R-side
+  `stats::dgamma`/`stats::dnorm` reference in the new test files.
+- Wired the bernoulli-predictor `mi()` 2-point sum into `model_type == 5` and
+  `model_type == 4` in `src/drmTMB.cpp`, mirroring the beta/nbinom2 reference
+  pattern; both new blocks recompute `mu`/`sigma` AFTER the `mi()` update
+  (unlike the pre-existing nbinom2 block, whose `REPORT(mu)` predates its
+  `mi()` block — left untouched, out of scope).
+- R-side wiring required more than the family gate: `drm_build_gamma_ls_spec`
+  and `drm_build_lognormal_ls_spec` previously had no `impute` parameter or
+  `mi_setup`/`missing_predictor` plumbing at all. Added it end-to-end
+  (signature, `na.action`, `vars`, missing-predictor model build, `mu_col`,
+  `spec$missing_predictor`, `spec$start$beta_mi`, `spec$missing_data`,
+  `spec$nobs`), mirroring `drm_build_beta_ls_spec`. Also extended the
+  `split_tmb_parameters()` `mi_` coefficient-extraction gate (was
+  gaussian/nbinom2/beta only) to include gamma/lognormal, and added
+  `"gamma"`/`"lognormal"` to `drm_missing_predictor_families()`
+  (`R/missing-data.R:366-368`).
+- New tests: `test-missing-predictor-gamma-response.R` and
+  `test-missing-predictor-lognormal-response.R`, each with (a) an exact FIML
+  logLik cross-check against a hand-computed 2-point-sum reference (tolerance
+  1e-6) and (b) an n=3000 known-DGP recovery test (tolerance 0.15) recovering
+  `mu`, `sigma`, and the `mi_x` predictor-model coefficients. Both recover
+  cleanly: Gamma `mu` (0.388, 0.496, 0.712) vs truth (0.4, 0.5, 0.7), `sigma`
+  -1.191 vs truth -1.204, `mi_x` (0.242, 0.827) vs truth (0.3, 0.8);
+  lognormal `mu` (0.432, 0.507, 0.674) vs truth (0.4, 0.5, 0.7), `sigma`
+  -0.921 vs truth -0.916, `mi_x` (0.268, 0.840) vs truth (0.3, 0.8).
+- Fixed a pre-existing anti-drift regression that the change surfaced:
+  `test-missing-data-capability-gate.R`'s `predictor_validated` allow-list and
+  its "non-validated family" loop still asserted gamma/lognormal were
+  rejected; updated both to match the now-loosened runtime gate.
+- Ledger: added `mp-gamma-bernoulli` and `mp-lognormal-bernoulli`
+  (`docs/dev-log/dashboard/capability-ledger/cells.tsv`, `point_fit_recovery`,
+  `G3`), matching the tier of the binomial/nbinom2/beta bernoulli-predictor
+  siblings; bumped `MISSING_PREDICTOR_COUNT` 17 -> 19 in
+  `tools/capability_ledger.py` and `schema.json`'s `expected_counts`.
+- Checks: `devtools::document()` clean; `devtools::test(filter =
+  "missing-predictor")` 438 PASS / 0 FAIL (3 pre-existing beta-binomial
+  false-convergence warnings, unrelated); `devtools::test(filter =
+  "missing-data")` 42 PASS / 0 FAIL; `python3 tools/capability_ledger.py
+  --write` then `--check` PASS (31 outputs); `python3 -m unittest
+  tools/tests/test_capability_ledger.py` 66 tests, one pre-existing test
+  fixed (`test_missing_predictor_map_matches_live_runtime_gate`), two
+  pre-existing ERRORs remain
+  (`test_c14_receipt_equivalence_keeps_raw_sources_separate`,
+  `test_c17_c14_bridge_is_current_source_and_fail_closed`): these assert an
+  exact `git hash-object` blob match on `R/drmTMB.R`/`src/drmTMB.cpp` against
+  a frozen C17/C14 receipt for unrelated cells `mc-0568`/`mc-0569`/`mc-0576`
+  (zero_one_beta), and any edit to those two files invalidates that pin
+  (confirmed to pass on the clean baseline before this change). Not a defect
+  in this slice; needs a fresh Lane C current-source compatibility
+  campaign as a follow-up, tracked separately from this admission.
+- Compiler check: `devtools::load_all(recompile = TRUE)` produces no new
+  warnings from `src/drm_response_kernels.h` or the touched `drmTMB.cpp`
+  regions (the pre-existing `sigma_i` unused-variable warnings are all in the
+  untouched gaussian block, lines 1227-2250).
+- Full-package `devtools::test()` (extra diligence beyond the two required
+  filters): `[ FAIL 0 | WARN 73 | SKIP 26 | PASS 43357 ]`. No regressions;
+  all warnings/skips are pre-existing (optional-engine skips, documented
+  non-convergence/clamp warnings from unrelated fixtures).
+
 ## 2026-08-09 — live Workflow G engine=julia FE gate (#499)
 
 | Slice | Check | Result |

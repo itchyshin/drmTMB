@@ -35,8 +35,11 @@
 # correctly includes that variability -- so `fixef:mu:(Intercept)` intervals are
 # systematically conservative and coverage pins at 1.000.  This is diagnosed in
 # `docs/dev-log/evidence/2026-07-31-mr-g5-gaussian-calibration-receipt.md`, and
-# the natural experiment already in the campaign confirms it: `nbinom2` is the one
-# route that does NOT centre, and it is the one route whose intercept cells pass.
+# the natural experiment already in the campaign supports it: the routes that do
+# NOT centre -- `nbinom2` (excluded below), `biv_gaussian` and `truncated_nbinom2`
+# -- are the ones whose intercept cells pass, while the centred routes fail that
+# one target at coverage 1.000. (An earlier version of this comment said `nbinom2`
+# was the ONLY uncentred route; that was wrong, and the contrast is 3-vs-4.)
 #
 # Default TRUE reproduces the frozen v1 DGP bit-for-bit (the frozen manifest hash
 # still matches), so existing evidence stays valid and comparable.  Set the option

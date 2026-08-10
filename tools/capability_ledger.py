@@ -266,7 +266,15 @@ ASSOCIATION_COUNT = 6
 # families), and 4 cells for the poisson()/binomial()/nbinom2()/beta() responses,
 # each admitting only one binary (bernoulli) missing predictor. Bump this guard
 # only for an approved row insert, never to silence drift.
-MISSING_PREDICTOR_COUNT = 17
+# 2026-08-09 P3 (Gauss): drm_missing_predictor_families() gains "gamma" and
+# "lognormal" (one binary mi() predictor each, via a new drm_response_log_density
+# case 5/4 extracted verbatim from their model_type blocks); two new rows
+# (mp-gamma-bernoulli, mp-lognormal-bernoulli), each with its own G3 recovery
+# test, land at point_fit_recovery, matching the binomial/nbinom2/beta siblings.
+# Student (model_type 3) is explicitly NOT admitted: its density needs a
+# per-row shape parameter nu that the shared leaf's fixed signature cannot
+# carry without widening every existing caller. 17 -> 19.
+MISSING_PREDICTOR_COUNT = 19
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and

@@ -22,6 +22,29 @@ default story readers should follow, not a release claim.
   CRAN-default Julia engine, not closure of all of #499 (FIML / remaining
   honest scope stay open).
 
+## Missing-predictor `mi()` for Gamma and lognormal responses (P3)
+
+* **Two more non-Gaussian response families join `mi()`.** `missing =
+  miss_control(predictor = "model")` with an `impute` model now supports one
+  binary (Bernoulli/logit) missing predictor on `Gamma(link = "log")` and
+  `lognormal()` responses, alongside the existing `poisson()`, `binomial()`,
+  `nbinom2()`, and `beta()` routes. The missing predictor is marginalised by
+  an exact 2-point sum inside the same joint likelihood, with the response
+  density carrying the family dispersion (Gamma coefficient of variation
+  `sigma`; lognormal log-scale `sigma`) through the shared
+  `drm_response_log_density` leaf (`src/drm_response_kernels.h`, cases 5 and
+  4). Point-fit recovery of the mean/location, dispersion, and predictor-model
+  coefficients is tested at scale for each family
+  (`test-missing-predictor-gamma-response.R`,
+  `test-missing-predictor-lognormal-response.R`).
+* **Student-t is explicitly deferred.** The Student-t response density needs a
+  per-row shape parameter `nu`; the shared `mi()` leaf's fixed six-argument
+  signature cannot carry it without widening every existing caller, so this
+  route is not admitted yet.
+* **Claim fence:** fixed-effect `mu`/`sigma` only for these two routes (no
+  random or structured terms combined with `mi()` yet), one binary missing
+  predictor, no intervals or coverage evidence.
+
 ## Default uncertainty story
 
 * **Fixed effects / routine Wald targets:** start with `confint(fit)`
