@@ -52,7 +52,12 @@ set.seed(20660728); u <- rnorm(10, 0, 0.5)
 | `identical()` | **FALSE** — 4 of 10 values differ |
 | max relative difference | **2.77e-16** ≈ 1 ULP (`.Machine$double.eps` = 2.22e-16) |
 
-The DGP itself differs at the last bit between architectures (platform `libm` in normal inversion),
+*(Confound, stated: this experiment varies **architecture and R version simultaneously**, so the
+cause is not isolated to `libm`. Either way the conclusion — no bit-exact cross-platform
+regeneration — is conservative.)*
+
+The DGP itself differs at the last bit between the two environments (most likely platform `libm` in
+normal inversion),
 so **regenerating this campaign on a different platform cannot reproduce it bit-exactly**, and
 individual coverage indicators can flip. Two consequences:
 

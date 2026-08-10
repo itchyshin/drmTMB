@@ -174,26 +174,39 @@ was wrong matters:
 | "two recomputations of the same statistic disagreed by >20 points" | No such pair exists. The n=1,000 figure (−55.5%) and the 100k figure (−53.88%) agree to **1.6 points**. |
 | "do not quote a mean log-SD bias for this cell" | **This suppressed the statistic that fails.** See below. |
 
-**Why this was a goalpost move, stated plainly.** The repo's own precedent recovery bar is
-**log-scale and absolute**: `AGENTS.md` records the Beta-phylogenetic arc being **STOPPED** at
-`mean log-latent-SD bias −0.2214` against a *frozen absolute 0.10 gate*. Measured on that same
-statistic, this arc's four cells are:
+**Why suppressing it was wrong.** The log-scale mean is the statistic this repository has
+historically used to judge recovery, so telling readers not to quote it removed the number most
+likely to embarrass the result. Report it, with its dispersion and its sensitivity to the
+near-zero tail:
 
-| cell | mean log bias | multiplicative | median log bias | vs the 0.10 precedent bar |
-| --- | ---: | ---: | ---: | --- |
-| `g10_n04_sd05` | **−0.7740** | −53.88% | −0.1400 | **MISSES** |
-| `g10_n04_sd10` | **−0.1535** | −14.23% | −0.1016 | **MISSES** |
-| `g10_n10_sd05` | **−0.2018** | −18.28% | −0.1104 | **MISSES** |
-| `g10_n10_sd10` | **−0.1221** | −11.49% | −0.0955 | **MISSES** |
+| cell | mean log bias | MCSE | multiplicative | median log bias | mean log, tail-trimmed (`≥1e-3`) | share `<1e-3` |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `g10_n04_sd05` | −0.7740 | 0.00733 | −53.88% | −0.1400 | **−0.1973** | 6.07% |
+| `g10_n04_sd10` | −0.1535 | 0.00151 | −14.23% | −0.1016 | −0.1407 | 0.13% |
+| `g10_n10_sd05` | −0.2018 | 0.00234 | −18.28% | −0.1104 | −0.1574 | 0.47% |
+| `g10_n10_sd10` | −0.1221 | 0.00087 | −11.49% | −0.0955 | −0.1219 | 0.00% |
 
-**All four miss it, including the best cell.** Telling readers not to quote the mean log-SD bias
-removed exactly the number that shows this. That is the move this arc was explicitly fenced
-against, and it was made without my noticing. The correct summary is: **report both** — the mean
-(−0.774 / −0.154 / −0.202 / −0.122 in log units) and the median, and say which is which.
+**Read `−0.7740` carefully — it is dominated by boundary mass, not by central bias.** Removing the
+6.07% of estimates below 1e-3 moves it to **−0.1973**, statistically indistinguishable from
+`g10_n10_sd05`'s −0.2018. So −0.774 is *not* evidence that this cell's estimator is ~4× worse than
+its siblings; the four cells are alike once the near-zero tail is separated (−0.197 / −0.141 /
+−0.157 / −0.122). Pooled, only **1.67%** of estimates fall below 1e-3.
 
-**The mean–median gap is real and has an ordinary cause**: left skew from the ~6% of estimates
-below 1e-3, not an arbitrary floor. The mean is the more sensitive summary and, on the repo's
-precedent, the binding one.
+**The mean–median gap has an ordinary cause**: left skew from that tail, not an arbitrary floor.
+
+> **Cross-reference, NOT a criterion applied here.** `AGENTS.md` records the Beta-phylogenetic arc
+> being STOPPED at `mean log-latent-SD bias −0.2214` against a frozen absolute **0.10** gate. Every
+> number above exceeds 0.10. **That bar is not applied as this gate's criterion, and it would be
+> unfair to do so**: it was frozen for a different family, a different estimand, and — decisively —
+> **`g = 256`**. At `g = 256` a −0.22 log bias signals a defect; at `g = 10` a downward
+> variance-component bias is the expected ML property, which is why this document's *coverage* floor
+> is `g`-tapered in the first place. Holding coverage to a `g`-tapered bar while holding recovery to
+> a `g`-flat one imported from a 25×-larger design would be internally inconsistent. And since
+> drmTMB matches `lme4` here to ~1e-6, that bar fails the **estimator class**, not the
+> implementation — which makes it evidence about ML at ten groups, not about this package.
+>
+> It is recorded because it is the only recovery bar this repository has ever frozen, and a future
+> arc setting one should start from it knowingly — not because it adjudicates this result.
 
 **Bias is not a function of `g` alone.** At fixed `g = 10`, raw-scale bias grows by **1.54×** when
 `n_per` drops from 10 to 4 at `sd = 0.5` (−10.26% → −15.76%). *(The original said "roughly doubles";
@@ -230,23 +243,30 @@ D-117 names a **"recovery/coverage"** gate. The two halves now land differently:
 
 | half | pre-registered criterion? | result |
 | --- | --- | --- |
-| **coverage** | **yes** — `ss_floor(10) = 0.918`, frozen | **PASSES** on every cell, on raw coverage, and on the strict one-sided LCB |
-| **recovery** | **no criterion was ever pre-registered, at either n** | **measured, and it does not clear the repo's own precedent bar** — all four cells exceed the absolute 0.10 mean-log-bias gate that STOPPED the Beta-phylogenetic arc (§6b) |
+| **coverage** | **yes** — `ss_floor(10) = 0.918`, frozen before results | **PASSES** on every cell, on raw coverage, and on the strict one-sided LCB |
+| **recovery** | **none, at either n** | **measured** (§6b) — but with no threshold it can be scored neither pass nor fail |
 
-**So D-117 does not fully discharge on this evidence.** The coverage question it was built to answer
-is answered, convincingly and at replication that removes Monte-Carlo doubt. The recovery half is
-now measured rather than assumed — and measured against the only bar this repository has ever used
-for it, it fails in all four cells.
+**So D-117 does not fully discharge on this evidence — because half of it was never made
+scoreable.** The coverage question is answered convincingly, at replication that removes
+Monte-Carlo doubt. The recovery half is now measured rather than assumed, but *"recovery/coverage
+gate"* with a criterion for only one half cannot be adjudicated as passed. **That is
+under-specification, not failure**, and it is the load-bearing reason here.
 
-Two honest qualifications, in both directions:
+Deliberately **not** the reason: the Beta-phylogenetic 0.10 log-scale bar. All four cells exceed it,
+and an earlier draft of this document leaned on that as a FAIL. §6b now explains why that would be
+an unfair transplant — different family, different estimand, `g = 256` versus `g = 10`, and a bar
+that `lme4` would fail identically on the same data. **Reporting a number against a bar it was never
+bound to is the mirror image of suppressing it; this document should do neither.**
 
-- **The 0.10 log-scale bar is a precedent, not a rule for this gate.** It was frozen for a
-  *different* arc (Beta-phylogenetic latent SD) and no one bound D-117 to it. Applying it here is my
-  inference, not a pre-registration. It should not be treated as an automatic FAIL.
-- **But the absence of a bias bar cannot be read as permission.** A "recovery/coverage" gate whose
-  recovery half has no threshold is under-specified, and the honest response is to say so rather
-  than to let the coverage PASS carry the whole sentence. **Setting the recovery criterion is the
-  owner's call, and it should be set before it is scored, not after.**
+What the recovery measurement *does* support, stated positively: the point-estimate bias is
+**−15.76 / −9.31 / −10.26 / −8.34%** on the raw scale, consistent in sign and magnitude with the
+expected ML downward bias for a variance component at ten groups, matching `lme4` to ~1e-6, and
+tightly estimated (MCSE ≤ 0.13%). A user should expect their random-effect SD estimate at this
+design to run low by roughly 8–16%.
+
+**Setting the recovery criterion is the owner's call, and it belongs before scoring, not after** —
+otherwise the choice of statistic (mean vs median, raw vs log, trimmed vs not) decides the outcome,
+and §6b shows those choices span −0.12 to −0.77 on the same data.
 
 Panel findings #2, #3 and #6 are resolved; #4 is resolved for the arc's premise with a
 comparator-choice caveat quantified in §5.

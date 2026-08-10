@@ -46,9 +46,12 @@ on the same DGP and seeds, warned at point of use, and documented.
 rows: relative bias **-15.76 / -9.31 / -10.26 / -8.34%** (the n=1000 figures
 -16.90 / -9.12 / -9.05 / -9.16% are **superseded**). Expected ML behaviour at g=10;
 lme4 agrees on point estimates to ~1e-6 (**that comparator ran at n=1000 only and was
-not re-run at 100k**). **On the log scale the recovery half does NOT clear the repo's
-precedent bar:** mean log bias **-0.774 / -0.154 / -0.202 / -0.122**, against the
-absolute **0.10** gate that STOPPED the Beta-phylogenetic arc -- all four cells miss.
+not re-run at 100k**). **The recovery half is measured but NOT scoreable** -- D-117
+pre-registered no bias criterion, so it can be adjudicated neither pass nor fail.
+Mean log bias -0.774 / -0.154 / -0.202 / -0.122 (the first is 74.5% boundary mass;
+tail-trimmed it is -0.197, like its siblings). The Beta-phylo 0.10 log gate is
+recorded as a cross-reference only -- applying it here would be an unfair
+transplant (g=256 vs g=10, different family, and lme4 would fail it identically).
 An earlier version of this entry claimed the mean log-SD statistic was "unusable"; that
 was wrong (it conflated `profile_boundary` with point-estimate magnitude and contained a
 unit error) and is corrected in `VERDICT-100K.md` section 6b.

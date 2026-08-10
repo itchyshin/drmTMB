@@ -5,18 +5,24 @@ Totoro compute · **Lane:** `claude/d117-discharge` off `origin/main @ a2695a788
 **Foreign lanes:** PRs #959, #958, #957, #955, #937, #858 and ~24 `codex/`/`cursor/` branches —
 all untouched.
 
-> **Headline, after TWO D-43 panels: the COVERAGE half passes; the RECOVERY half does not clear the
-> repo's own precedent bar; D-117 therefore does not fully discharge.**
+> **Headline: the COVERAGE half passes decisively; the RECOVERY half was never made scoreable;
+> D-117 therefore does not fully discharge — through under-specification, not through failure.**
 > Coverage: pooled **0.924800** (SE 0.000417) over 400,000 attempts, every cell clearing
 > `ss_floor(10) = 0.918` on **raw** coverage and on the strict one-sided LCB. My pre-registered
 > prediction that it would fail was **WRONG** and is recorded as such.
-> Recovery: mean log-SD bias **−0.774 / −0.154 / −0.202 / −0.122** — **all four cells miss** the
-> absolute **0.10** log-scale gate that STOPPED the Beta-phylogenetic arc. D-117 never pre-registered
-> a bias bar, so this is a precedent applied by inference, not a rule; **setting that criterion is
-> the owner's call, and it should be set before scoring, not after.**
+> Recovery: **measured but not scoreable** — D-117 never pre-registered a bias criterion, so the
+> recovery half can be adjudicated neither pass nor fail. Raw-scale bias is
+> **−15.76 / −9.31 / −10.26 / −8.34%**, consistent with expected ML behaviour at ten groups and
+> matching `lme4` to ~1e-6. **Setting the recovery criterion is the owner's call and belongs before
+> scoring, not after.** (An earlier draft leaned on the Beta-phylogenetic 0.10 log-scale gate as a
+> FAIL; a final verifier ruled that an unfair transplant — `g = 256` vs `g = 10`, different family,
+> and a bar `lme4` would fail identically. Corrected.)
 >
-> **Re-adjudication panel: 3 of 3 NOT-DONE.** The first panel's two blocking findings were repaired,
-> but the repair to the recovery section was itself wrong — see §9. The claim remains WITHHELD.
+> **Two D-43 panels (2/3 then 3/3 NOT-DONE) plus a final correction verifier.** The second panel
+> found my repair of the first panel's blocking finding was itself wrong; the verifier then found
+> my repair of *that* had over-corrected in the opposite direction. Both are fixed. The composite
+> claim remains **WITHHELD**; the coverage result was independently reproduced from the raw rows by
+> three separate reviewers.
 
 ## 1. Goal
 
@@ -69,8 +75,10 @@ Also: a regression test locking the `confint()` boundary warning; a dated addend
 
 ## 4. Files Touched
 
-Eleven commits on `claude/d117-discharge`, **not pushed**. Only `docs/dev-log/**` and one new test
-file — **no `R/`, `DESCRIPTION`, `NEWS.md`, or `_pkgdown.yml`**.
+All commits are on `claude/d117-discharge`, **not pushed** (count deliberately not hard-coded here —
+it went stale three times in this arc; run `git rev-list --count origin/main..HEAD`). Only
+`docs/dev-log/**` and one new test file — **no `R/`, `src/`, `DESCRIPTION`, `NEWS.md`, or
+`_pkgdown.yml`**.
 
 - `docs/dev-log/simulation-artifacts/2026-08-09-d117-100k-regate/` — `PREREGISTRATION.md`,
   `PREDICTION-OUTCOME.md`, `VERDICT-100K.md`, `PANEL-FINDINGS-2-3-4.md`, `CROSSCHECKS.csv`,
@@ -149,7 +157,7 @@ First-panel repairs, made after that verdict:
 |---|---|---|
 | Rose #1 — "all findings resolved" false; no after-task | BLOCKING | this report; §7a now covers all six |
 | Rose #2 — recovery half unmeasured at 100k | BLOCKING | `VERDICT-100K.md §6b`, recomputed from the 400,000 rows |
-| Rose #3 — packet's preconditions circular; log-SD caveat unfolded | MATERIAL | §6b; the log-SD statistic is shown to be *unusable* in the boundary-heavy cell |
+| Rose #3 — packet's preconditions circular; log-SD caveat unfolded | MATERIAL | §6b — **but this repair was itself WRONG** (it claimed the statistic was "unusable"); retracted and corrected, see §9 |
 | Rose #4 — brief stale; document edited mid-review | MATERIAL | recorded in §9 and §11; no repair possible retroactively |
 | Rose #5 — roadmap commit off-scope for this lane | MINOR | accepted; content accurate, lane wrong |
 | Grace #1 — no environment fingerprint | MATERIAL | `PROVENANCE.md` |
