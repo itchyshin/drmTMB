@@ -6,6 +6,7 @@ import importlib.util
 import copy
 import csv
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -243,6 +244,68 @@ class CapabilityLedgerTests(unittest.TestCase):
                     ledger.check_c17_c14_current_source_compatibility(current)
             finally:
                 ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = original
+
+    def test_c17_failure_modes_give_opposite_fingerprint_instructions(self):
+        """The two C17 failures need opposite remediation; say so, don't converge.
+
+        A fingerprint mismatch means the authenticated model-15 surface moved, so
+        source_fingerprint must be updated after re-measuring. A blob mismatch
+        means only a pinned file moved and the surface did not, so updating
+        source_fingerprint there would widen the claim past what was re-measured.
+        Both once reported a bare one-line message, which is how a real model-15
+        change came to look identical to a merely stale receipt.
+        """
+        current = ledger.c14_model15_source_fingerprint()
+
+        with self.assertRaises(SystemExit) as caught:
+            ledger.check_c17_c14_current_source_compatibility("0" * 64)
+        fingerprint_message = str(caught.exception)
+        self.assertIn("current model-15 fingerprint differs", fingerprint_message)
+        self.assertIn("update source_fingerprint", fingerprint_message)
+        self.assertIn(current, fingerprint_message)
+
+        original = ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY
+        rows = ledger.read_tsv(original)
+        receipt_source = ROOT / Path(rows[0]["provenance_path"]).parent
+        receipt = ROOT / "tmp_c17_failure_mode_probe"
+        with tempfile.TemporaryDirectory() as directory:
+            shutil.copytree(receipt_source, receipt)
+            try:
+                provenance = receipt / "provenance.tsv"
+                provenance.write_text(
+                    "\n".join(
+                        "git_blob:R/methods.R\t" + "d" * 40
+                        if line.startswith("git_blob:R/methods.R\t")
+                        else line
+                        for line in provenance.read_text(encoding="utf-8").splitlines()
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                for row in rows:
+                    for field, leaf in (
+                        ("raw_attempts_path", "raw-attempts.tsv"),
+                        ("provenance_path", "provenance.tsv"),
+                        ("summary_path", "summary.tsv"),
+                    ):
+                        row[field] = str((receipt / leaf).relative_to(ROOT))
+                tampered = Path(directory) / "compatibility.tsv"
+                tampered.write_bytes(ledger.tsv_bytes(list(rows[0]), rows))
+                ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = tampered
+                # The manifest deliberately lives outside ROOT here, exactly as
+                # the other C17 test arranges it. An unguarded relative_to() in
+                # the remediation text raises ValueError, replacing a clean
+                # diagnostic with a traceback.
+                with self.assertRaises(SystemExit) as caught:
+                    ledger.check_c17_c14_current_source_compatibility(current)
+                blob_message = str(caught.exception)
+            finally:
+                ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = original
+                shutil.rmtree(receipt, ignore_errors=True)
+
+        self.assertIn("current source blob differs for R/methods.R", blob_message)
+        self.assertIn("LEAVE source_fingerprint alone", blob_message)
+        self.assertNotIn("update source_fingerprint", blob_message)
 
     def test_c17b_promotes_only_the_exact_same_symbol_zoi_slope(self):
         by_id = {row["cell_id"]: row for row in self.cells}
