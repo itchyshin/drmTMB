@@ -65,6 +65,53 @@ applied to a **ratio**, assuming `β̂` is Gaussian. In the separated cells `β�
 so `sd(β̂)` behaves like a rare-event statistic. The reported values understate the true uncertainty
 by an unknown and probably large factor. **Do not quote them.**
 
+## RE-ANALYSIS (same-replicate pairing + degeneracy flags + bootstrap MCSE)
+
+`analyse2.R` supersedes `analyse.R`. It implements the three things the first pass omitted: the
+D-117 **same-replicate intersection**, a **degeneracy flag** (modal fraction > 0.20 **or** fewer
+than `n/2` distinct estimates), and a **bootstrap MCSE** that assumes nothing about the shape of
+`β̂`. Every drop is now printed in `retention_report.tsv`.
+
+### Cells where `R` is interpretable
+
+| cell | design | paired n | `R_sd` | boot MCSE | reading |
+|---|---|---|---|---|---|
+| 1 | q1 `η=0`, G=12 | 1000 | **1.031** | 0.024 | calibrated |
+| 2 | q1 `η=−2`, G=12 | 1000 | **0.933** | 0.026 | **BORDERLINE, anti-conservative side** |
+| 6 | q1 `η=0`, G=30 | 1000 | **0.967** | 0.021 | calibrated |
+| 7 | q1 `η=−2`, G=30 | 1000 | **0.964** | 0.021 | calibrated |
+| 11 | q2 `η=0`, G=30 | 990 | **0.981** | 0.023 | calibrated |
+| 12 | q2 `η=−2`, G=30 | 981 | **1.046** | 0.026 | calibrated |
+| 13 | q2 `η=−4`, G=30 | 780 | **1.240** | 0.041 | genuinely conservative |
+| 14 | q2 `η=−6`, G=30 | 274 | **2.044** | 0.128 | genuinely conservative |
+
+### Cells flagged DEGENERATE — `R` is not a calibration statistic there
+
+| cell | design | modal fraction | distinct estimates | `R_sd` |
+|---|---|---|---|---|
+| 3 | q1 `η=−4`, G=12 | 0.054 | 216 / 914 | 1.055 |
+| 4 | q1 `η=−6`, G=12 | **0.656** | 55 / 407 | 2.806 |
+| 8 | q1 `η=−4`, G=30 | 0.012 | 489 / 996 | 0.885 |
+| 9 | q1 `η=−6`, G=30 | **0.281** | 121 / 736 | 1.588 |
+
+### Cells with too few paired replicates to say anything
+
+Cells **5** (4 paired), **10** (19), **15** (6). Reported, not hidden.
+
+### Two findings the first pass buried
+
+**1. The `q1` / `q2` split is the real structure.** Every degenerate cell is **q1** (random intercept
+only); **no q2 cell degenerates** — cell 14 has 274 distinct estimates out of 274 paired. So
+`R = 2.04` at `q2, η_d = −6` is a **genuine conservative result**, while `R = 2.81` at the
+comparable `q1, η_d = −6` is an artifact of collapse. The first analysis reported both as
+"conservative" and both as `FAIL`, which was wrong in opposite ways.
+
+**2. Cell 2 is the closest thing to the hazard, and the first pass never highlighted it.**
+`R = 0.933 ± 0.026` sits **below** the PASS floor of 0.95 on the **anti-conservative** side. It is
+BORDERLINE, not FAIL, so the campaign's stopping rule is not tripped — but it is the one cell where
+reported uncertainty runs *smaller* than the truth, and it deserves attention precisely because the
+headline was about the absence of that direction.
+
 ## Corrected status by regime
 
 | regime | verdict |
