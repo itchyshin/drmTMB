@@ -3,6 +3,49 @@
 **Found 2026-08-10 during the overnight 0.7.0 readiness run. Reported, not fixed — the fix belongs to
 the Julia lane or to CI, not to this lane.**
 
+> ## ⚠ CORRECTION (2026-08-10, later session) — the cause below is WRONG
+>
+> **The `Suppressor` `LoadError` is not the ERROR. It is Julia teardown noise printed *after*
+> `Execution halted`.** Every Julia test in run `31350747542` **skipped correctly** (they carry a
+> second `skip_if_not(...)` after `skip_if_not_installed("JuliaCall")`; the log records
+> `DRM.jl engine path not available (9)` and siblings, 305 skips total).
+>
+> **The real ERROR is three failing assertions**, all in one test:
+>
+> ```
+> ── Failure ('test-missing-predictor-beta-binomial.R:152:3'): beta-binomial mi() predictor model
+>    reports a route-conditional std_error when sdreport is available ──
+> Expected `all(is.finite(imp$std_error))` to be TRUE.   actual: FALSE
+> Expected `all(imp$std_error > 0)` to be TRUE.          actual: <NA>
+> Expected `imp$uncertainty_status` to equal `rep("ok", 5)`.
+>     actual: "sdreport_non_pd_hessian" ×5
+> [ FAIL 3 | WARN 75 | SKIP 305 | PASS 20023 ]
+> ```
+>
+> This **confirms the timeline in the table below and corrects its attribution**: the test was added by
+> `afb917213` inside PR #972 — the very merge at which `main` went red.
+>
+> **It is a borderline-conditioned fixture, not a platform bug.** Reproduced at `64149c465` on macOS
+> (`pkgload::load_all`, `NOT_CRAN=true`): the test **passes**, but the fit reaches
+> `false convergence (8)` on *both* platforms and its `sdreport` covariance is only marginally positive
+> definite — `min eigenvalue 8.81e-06`, **condition number 3.63e+07**. Whether the smallest eigenvalue
+> lands just above or just below zero is a BLAS/LAPACK coin-flip; macOS says `pdHess = TRUE`, the ubuntu
+> runner says non-PD. The adjacent test in the same file already carries a BLAS/LAPACK-sensitivity
+> comment, and `0f612e648` already had to `skip_on_cran()` other blocks in this file for fragility.
+>
+> **Consequence for the plan: neither Julia fix below would turn `main` green.** They address at most
+> the `checking for detritus in the temp directory` **NOTE** (`jl_*` temp dirs), not the ERROR. The
+> remaining fix belongs to the **missing-data lane**, and the choice between hardening the fixture,
+> widening the assertion, or treating the near-singular Hessian as a real finding is **not the release
+> lane's to make**. Sections "The cause", "Why the skip guard does not save it", and "Two candidate
+> fixes" are **SUPERSEDED**; the "state" table and "Why this matters" remain accurate once the cause is
+> substituted.
+>
+> **Verified on all three runs** — `main` `31350747542`, PR #978 `31350952083`, PR #976 `31383639291` —
+> each `Status: 1 ERROR, 1 NOTE` with the *identical* three failures and **zero** Julia-caused failures.
+> So "PR #978 failed for this reason and nothing else" below is still true of the *shape* of the
+> failure; the reason is the beta-binomial fixture, not Julia.
+
 ## The state
 
 `main` is **failing** `R CMD check`. It is not a flake and it is not caused by tonight's merges.
