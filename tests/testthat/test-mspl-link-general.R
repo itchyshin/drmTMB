@@ -247,3 +247,51 @@ test_that("non-finite log weights are reported as a failure, not silently scaled
 test_that("an unsupported link is rejected by the weight helper", {
   expect_error(mspl_log_weight(0, 1, "cauchit"))
 })
+
+test_that("mspl_penalty_components threads the link to the Jeffreys term", {
+  # Regression test for a real gap (Noether, doc 253): the leaves
+  # (mspl_jeffreys, mspl_log_weight) were made link-general while this COMPOSITE
+  # caller took no `link` argument and so silently used the logit default. The
+  # bug named nothing about links, so no search for "link" would have found it.
+  #
+  # The assertion that matters is the NEGATIVE one: the composite must actually
+  # CHANGE with the link. A test that only checked "probit runs" would have
+  # passed against the broken version.
+  set.seed(404)
+  n <- 60L
+  X <- cbind(1, rnorm(n))
+  beta <- c(-0.4, 0.9)
+  variance <- 0.5
+
+  logit_c <- mspl_penalty_components(
+    X = X, beta = beta, variance = variance, q = 1L, link = "logit"
+  )
+  probit_c <- mspl_penalty_components(
+    X = X, beta = beta, variance = variance, q = 1L, link = "probit"
+  )
+  cloglog_c <- mspl_penalty_components(
+    X = X, beta = beta, variance = variance, q = 1L, link = "cloglog"
+  )
+
+  expect_true(logit_c$ok)
+  expect_true(probit_c$ok)
+  expect_true(cloglog_c$ok)
+
+  # All three must differ from each other. Before the fix, all three returned
+  # the logit value.
+  expect_false(isTRUE(all.equal(logit_c$jeffreys_bonus, probit_c$jeffreys_bonus)))
+  expect_false(isTRUE(all.equal(logit_c$jeffreys_bonus, cloglog_c$jeffreys_bonus)))
+  expect_false(isTRUE(all.equal(probit_c$jeffreys_bonus, cloglog_c$jeffreys_bonus)))
+
+  # And the composite's Jeffreys half must equal the standalone leaf for the
+  # same link -- i.e. the argument really is reaching mspl_jeffreys().
+  direct_probit <- mspl_jeffreys(X = X, beta = beta, link = "probit")
+  expect_equal(probit_c$jeffreys$half_logdet, direct_probit$half_logdet,
+               tolerance = 1e-12)
+
+  # The default must remain logit, so existing callers are unaffected.
+  default_c <- mspl_penalty_components(
+    X = X, beta = beta, variance = variance, q = 1L
+  )
+  expect_equal(default_c$jeffreys_bonus, logit_c$jeffreys_bonus, tolerance = 1e-12)
+})

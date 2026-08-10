@@ -352,11 +352,17 @@ mspl_cholesky_q2 <- function(psi) {
 
 mspl_penalty_components <- function(
   X, beta, variance, q = NULL, offset = 0, trials = 1L, frequency = 1L,
+  link = "logit",
   rank_tol = sqrt(.Machine$double.eps)
 ) {
+  # `link` is threaded explicitly. This function previously took no link and so
+  # silently inherited mspl_jeffreys()'s logit default, which made the COMPOSITE
+  # reference logit-only even after the leaves (mspl_jeffreys, mspl_log_weight)
+  # were made link-general -- a caller that named nothing about links and
+  # therefore matched no search for them. (Noether, doc 253 derivation.)
   jeffreys <- mspl_jeffreys(
     X = X, beta = beta, offset = offset, trials = trials,
-    frequency = frequency, rank_tol = rank_tol
+    frequency = frequency, link = link, rank_tol = rank_tol
   )
   if (!jeffreys$ok) return(jeffreys)
   if (inherits(variance, "drm_mspl_cholesky")) {
