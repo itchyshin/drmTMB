@@ -321,6 +321,11 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(y1);
   DATA_VECTOR(y2);
   DATA_INTEGER(model_type);
+  // Binomial link (model_type == 18 only): 0 = logit, 1 = probit, 2 = cloglog.
+  // Every other model_type ignores this field; it defaults to 0 in R so no
+  // existing call site needs to change. model_type itself stays the single
+  // family+link tag; this does not mint a new model_type.
+  DATA_INTEGER(link_code);
   DATA_MATRIX(X_mu);
   DATA_INTEGER(use_sparse_X_mu);
   DATA_SPARSE_MATRIX(X_mu_sparse);
@@ -3332,11 +3337,13 @@ Type objective_function<Type>::operator()()
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type log_y1 = observed_y(i) == 1 ?
             weights(i) * drm_response_log_density(
-              model_type, y(i), eta1, Type(0.0), Type(0.0), trials(i)) :
+              model_type, y(i), eta1, Type(0.0), Type(0.0), trials(i),
+              link_code) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
             weights(i) * drm_response_log_density(
-              model_type, y(i), eta0, Type(0.0), Type(0.0), trials(i)) :
+              model_type, y(i), eta0, Type(0.0), Type(0.0), trials(i),
+              link_code) :
             Type(0.0);
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           nll -= log_denom;
@@ -3354,8 +3361,9 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> mu(y.size());
     for (int i = 0; i < y.size(); ++i) {
-      Type log_p1 = -logspace_add(Type(0.0), -eta_mu(i));
-      Type log_p0 = -logspace_add(Type(0.0), eta_mu(i));
+      DrmBinomLogMu<Type> log_mu = drm_binom_log_mu(eta_mu(i), link_code);
+      Type log_p1 = log_mu.log_mu;
+      Type log_p0 = log_mu.log_one_minus_mu;
       mu(i) = exp(log_p1);
       // Missing-response mask (MD): plain data-if; also skip missing-predictor
       // rows, whose likelihood is already added by the mi() 2-point sum above.

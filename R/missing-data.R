@@ -233,6 +233,9 @@ drm_impute_family_type <- function(family) {
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }
+  # The logit-only restriction here is DELIBERATE (design 252 §6), not an
+  # oversight: the imputation-model classifier fails closed on its own
+  # family$link check, independent of drmTMB's own drm_family_type() guard.
   if (inherits(family, "family") && identical(family$family, "binomial")) {
     if (!identical(family$link, "logit")) {
       cli::cli_abort(c(
