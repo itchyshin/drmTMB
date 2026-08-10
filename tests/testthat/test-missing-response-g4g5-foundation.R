@@ -28,6 +28,32 @@ test_that("every G3 route builds a fixture without the testthat helpers", {
   expect_equal(unname(routes[!is.na(failures)]), character(0))
 })
 
+test_that("a retained failure binds to a successful attempt without costing the cell", {
+  # The prospective policy requires failed fits to stay in the unconditional
+  # 1,200-attempt denominator. A failure record is narrower than a success record,
+  # so combining them must union-and-pad rather than rbind naively -- otherwise the
+  # cell aborts on exactly the attempt the denominator is supposed to retain.
+  source_missing_response_g4g5()
+
+  manifests <- mr_g4g5_freeze_target_manifests()
+  g4 <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  registry <- mr_g5_registry_from_g4(manifests, g4)
+  cell <- registry$cells[1, , drop = FALSE]
+  seed <- registry$seeds$seed[registry$seeds$cell_id == cell$cell_id][1]
+
+  success <- mr_g5_run_attempt(cell, seed = seed, replicate = 1L, trace = TRUE)
+  failure <- mr_g5_failure_record(cell, seed = seed, message = "forced", fit_status = "fit_failed")
+
+  expect_false(identical(ncol(success), ncol(failure)))   # the shapes really do differ
+
+  bound <- mr_g5_bind_records(success, failure)
+  expect_equal(nrow(bound), 2L)
+  expect_setequal(names(bound), union(names(success), names(failure)))
+  expect_identical(bound$fit_status[2], "fit_failed")
+  # fields only the success record has are padded, not dropped
+  expect_true(all(is.na(bound[2, setdiff(names(success), names(failure))])))
+})
+
 test_that("the runner's skew-normal fallback matches the tested helper", {
   # The runner carries its own copy of skew_normal_public_to_native() because the
   # canonical one is a testthat helper and cannot be reached from an installed

@@ -1266,6 +1266,24 @@ mr_g5_reconcile_checkpoints <- function(paths, registry) {
 # Run or resume a planned G5 campaign.  Checkpoints are append-only at the
 # attempt level: an unsuccessful fit is retained and never retried in place,
 # while an interrupted campaign resumes only genuinely absent attempt keys.
+# Combine attempt records whose field sets differ.
+#
+# `mr_g5_failure_record()` emits a fixed, narrower frame than a successful
+# `mr_g5_run_attempt()` record, and the mask receipt is route-dependent
+# (`biv_gaussian` reports paired-mask fields the other routes do not).  Union the
+# names and pad the gaps with NA so a retained failure never costs the cell.  This
+# is the same rule `mr_g5_reconcile_checkpoints()` applies when merging receipts.
+mr_g5_bind_records <- function(...) {
+  parts <- Filter(Negate(is.null), list(...))
+  if (!length(parts)) return(NULL)
+  fields <- Reduce(union, lapply(parts, names))
+  parts <- lapply(parts, function(x) {
+    for (field in setdiff(fields, names(x))) x[[field]] <- NA
+    x[, fields, drop = FALSE]
+  })
+  do.call(rbind, parts)
+}
+
 mr_g5_run_campaign <- function(registry, trace = TRUE, checkpoint_path = NULL,
                                runner = mr_g5_run_attempt) {
   if (!is.list(registry) || registry$n_rep != 1200L || is.null(registry$cells) || is.null(registry$seeds)) {
@@ -1285,7 +1303,12 @@ mr_g5_run_campaign <- function(registry, trace = TRUE, checkpoint_path = NULL,
     if (!is.null(records) && expected_key %in% key(records)) next
     next_record <- runner(cell, seed = seed_row$seed, replicate = seed_row$replicate, trace = trace)
     mr_g5_validate_record(next_record)
-    records <- if (is.null(records)) next_record else rbind(records, next_record)
+    # A failure record carries fewer fields than a successful attempt, which also
+    # reports its route-specific mask receipt.  A naive rbind() therefore aborts
+    # the whole cell the moment one fit fails -- which is exactly the attempt the
+    # unconditional 1,200 denominator is required to RETAIN.  Union the fields and
+    # pad, matching what mr_g5_reconcile_checkpoints() already does downstream.
+    records <- if (is.null(records)) next_record else mr_g5_bind_records(records, next_record)
     if (!is.null(checkpoint_path)) {
       dir.create(dirname(checkpoint_path), recursive = TRUE, showWarnings = FALSE)
       saveRDS(records, checkpoint_path)
