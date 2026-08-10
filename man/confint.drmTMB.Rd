@@ -263,15 +263,26 @@ recommends \code{method = "profile"}.
 \code{drmTMB_profile_boundary_warning}) when it returns a usable interval that
 reaches a boundary. \strong{A profile interval is not a repair for a boundary.}
 Conditional on that flag, a seeded 10-group random-effect SD gate measured
-coverage at 0.0732, 0.2540, and 0.8566 against a nominal 0.95. The mechanism is
-a maximum likelihood random-effect SD biased 9.1\%-16.9\% low at small group
-counts, which anchors the interval low so that it misses from above.
+coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
+fourth cell where boundary hits are rare (0.09\% of fits). The mechanism is a
+maximum likelihood random-effect SD biased 8.3\%-15.8\% low at small group counts,
+which anchors the interval low so that it misses from above.
+
+Unconditionally -- across all fits, flagged or not -- the same gate measured
+0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
+bad case, not the typical one, and the flag is returned in the table so you can
+tell which case you are in.
 
 This is a property of profile intervals near a variance boundary rather than of
 \code{drmTMB}: \code{lme4::lmer} on the same data-generating process and seeds agreed on
 boundary incidence for 4000/4000 replicates and matched the conditional coverage
 to four decimal places. Treat a flagged interval as indicative of scale, not as a
 calibrated \code{level} interval, and prefer more groups where the design allows it.
+
+These figures come from one measured design: Gaussian, a single random intercept
+on the mean, 10 groups, 4 or 10 observations per group, maximum likelihood. They
+describe that corner, and are not a general statement about every family,
+provider, or group count.
 
 Rows with \code{conf.status = "profile_failed"} or \code{"clamp_limited"} also carry
 \code{profile.boundary = TRUE}, but return missing endpoints and are not warned about

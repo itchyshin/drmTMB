@@ -1,0 +1,48 @@
+
+== CURRENT (on main) ==
+  success<=trials      : TRUE (checked)
+  Pearson dispersion   : 0.201      [gate > 1.5]
+  cor(cover, z)        : 0.9930
+  VIF(cover | z)       : 71.20      [gate < 10]
+  exact 0s / exact 1s  : 8 / 5
+  argmin sigma_mi      : 0.001
+  BOUNDARY prof dev    : 0.000      [gate > 1.92]
+  profile (nll-min) over sigma grid:
+    sigma       0.001   0.010   0.050   0.100   0.200   0.350   0.500
+    dev          0.00    0.04    0.94    3.64   12.88   30.80   48.80
+
+== ADA proposal (permute+shrink u) ==
+  success<=trials      : TRUE (checked)
+  Pearson dispersion   : 0.611      [gate > 1.5]
+  cor(cover, z)        : 0.8773
+  VIF(cover | z)       : 4.34      [gate < 10]
+  exact 0s / exact 1s  : 1 / 0
+  argmin sigma_mi      : 0.001
+  BOUNDARY prof dev    : 0.000      [gate > 1.92]
+  profile (nll-min) over sigma grid:
+    sigma       0.001   0.010   0.050   0.100   0.200   0.350   0.500
+    dev          0.00    0.02    0.52    2.11    8.43   23.51   41.05
+
+== FISHER proposal (latent Beta, sig=0.35) ==
+  success<=trials      : TRUE (checked)
+  Pearson dispersion   : 1.994      [gate > 1.5]
+  cor(cover, z)        : 0.7249
+  VIF(cover | z)       : 2.11      [gate < 10]
+  exact 0s / exact 1s  : 7 / 0
+  argmin sigma_mi      : 0.35
+  BOUNDARY prof dev    : 13.234      [gate > 1.92]
+  profile (nll-min) over sigma grid:
+    sigma       0.001   0.010   0.050   0.100   0.200   0.350   0.500
+    dev         13.23   13.18   12.02    8.97    2.29    0.00    6.09
+
+== FISHER fallback (latent Beta, sig=0.50) ==
+  success<=trials      : TRUE (checked)
+  Pearson dispersion   : 3.104      [gate > 1.5]
+  cor(cover, z)        : 0.6567
+  VIF(cover | z)       : 1.76      [gate < 10]
+  exact 0s / exact 1s  : 8 / 4
+  argmin sigma_mi      : 0.5
+  BOUNDARY prof dev    : 46.214      [gate > 1.92]
+  profile (nll-min) over sigma grid:
+    sigma       0.001   0.010   0.050   0.100   0.200   0.350   0.500
+    dev         46.21   46.11   43.57   36.74   19.57    3.25    0.00

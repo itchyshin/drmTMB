@@ -12,8 +12,7 @@
 # callr, pkgload, ape, or the DRM.jl engine is unavailable, or when the fit
 # itself errors in this environment.
 
-test_that("family-tag gating routes phylo count, rejects plain count", {
-  # Poisson / NB2 route ONLY when a phylo term is present.
+test_that("family-tag gating admits Workflow G FE tags and phylo counts", {
   expect_equal(
     drmTMB:::drm_julia_family_tag("poisson", has_phylo = TRUE),
     "poisson"
@@ -22,7 +21,6 @@ test_that("family-tag gating routes phylo count, rejects plain count", {
     drmTMB:::drm_julia_family_tag("nbinom2", has_phylo = TRUE),
     "nbinom2"
   )
-  # Gaussian one-/two-response route unconditionally (verified base lane).
   expect_equal(
     drmTMB:::drm_julia_family_tag("gaussian", has_phylo = FALSE),
     "gaussian"
@@ -31,36 +29,31 @@ test_that("family-tag gating routes phylo count, rejects plain count", {
     drmTMB:::drm_julia_family_tag("biv_gaussian", has_phylo = FALSE),
     "biv_gaussian"
   )
-  # A count family with NO phylo term is rejected (TMB-only).
-  expect_error(
-    drmTMB:::drm_julia_family_tag("poisson", has_phylo = FALSE),
-    "only with a .*phylo.* random intercept"
-  )
-  expect_error(
-    drmTMB:::drm_julia_family_tag("nbinom2", has_phylo = FALSE),
-    "only with a .*phylo.* random intercept"
-  )
-  # Gamma / Beta / Binomial now ALSO route when a phylo term is present
-  # (DRM.jl's non-Gaussian phylo Laplace), and are rejected without one.
+  # Workflow G FE cohort (#499 live expected.toml gate): FE tags admitted.
+  for (fam in c(
+    "poisson",
+    "nbinom2",
+    "gamma",
+    "beta",
+    "binomial",
+    "student",
+    "lognormal"
+  )) {
+    expect_equal(
+      drmTMB:::drm_julia_family_tag(fam, has_phylo = FALSE),
+      fam
+    )
+  }
   for (fam in c("gamma", "beta", "binomial")) {
     expect_equal(
       drmTMB:::drm_julia_family_tag(fam, has_phylo = TRUE),
       fam
     )
-    expect_error(
-      drmTMB:::drm_julia_family_tag(fam, has_phylo = FALSE),
-      "only with a .*phylo.* random intercept"
-    )
   }
-  # Genuinely-unsupported families are still rejected regardless of phylo.
-  # beta_binomial has no Julia phylo route (DRM.jl BetaBinomial has no tree arg).
+  # beta_binomial stays outside the R Julia bridge admission.
   expect_error(
     drmTMB:::drm_julia_family_tag("beta_binomial", has_phylo = TRUE),
-    "Gaussian one-/two-response"
-  )
-  expect_error(
-    drmTMB:::drm_julia_family_tag("student", has_phylo = TRUE),
-    "Gaussian one-/two-response"
+    "Workflow G fixed-effect|Gaussian one-/two-response"
   )
 })
 
