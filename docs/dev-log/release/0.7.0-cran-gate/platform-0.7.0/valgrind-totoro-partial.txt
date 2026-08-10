@@ -1,0 +1,25 @@
+>>> RUNNING test-family-dpq-batchC.R 
+>>> test-family-dpq-batchC.R pass=122 fail=0 skip=0
+>>> RUNNING test-gaussian-random-intercepts.R 
+>>> test-gaussian-random-intercepts.R pass=429 fail=0 skip=0
+>>> RUNNING test-count-structured-mu.R 
+>>> test-count-structured-mu.R pass=533 fail=0 skip=0
+>>> RUNNING test-score-consistency.R 
+>>> test-score-consistency.R pass=17 fail=0 skip=0
+>>> RUNNING test-binomial-response.R 
+==401488== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==395874== Conditional jump or move depends on uninitialised value(s)
+==395874== Conditional jump or move depends on uninitialised value(s)
+==395874== Conditional jump or move depends on uninitialised value(s)
+==395874== Conditional jump or move depends on uninitialised value(s)
+==395874== Invalid read of size 8
+==395874== Invalid read of size 4
+==395874== ERROR SUMMARY: 22 errors from 9 contexts (suppressed: 0 from 0)
+
+--- provenance ---
+Host: totoro (384-core, Linux), valgrind-3.22.0, R 4.5.3
+Target: drmTMB_0.7.0.tar.gz sha256 d1c7b4f0...bc2b, hash re-verified on Totoro before install
+Tool: memcheck --track-origins=yes --errors-for-leak-kinds=definite
+Status at capture: PARTIAL - 4 of 6 files complete, test-binomial-response.R in flight
+All 6 memcheck findings trace to the Julia runtime (jl_gc_alloc_, gc-stock.c, loading.jl);
+ZERO findings in drmTMB, TMB, CppAD or Eigen.
