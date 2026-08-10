@@ -3,19 +3,52 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-05, 135-TRACE CAMPAIGN DONE ON BRANCH; LAND PUSH/PR).**
-> Branch `cursor/135-trace-campaign` @ `8e1af270d` (worktree
-> `~/local-scratch/worktrees/drmTMB-135trace`). Totoro 135/135; **5/14 cells** promoted
-> `point_fit_recovery` → `interval_feasible` (`mc-0568`, `mc-0576`, `mc-0595`, `mc-0596`,
-> `mc-0653`). Census on branch **187 IF / 55 PFR**; `FROZEN_CENSUS_POINT_FIT_RECOVERY` **54**.
-> Nine WITHHOLD stay PFR. **Do not re-run Totoro under the old prereg.** Multi-lane board:
-> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
-> on `claude/handover-freshness-0718` remains dirty/stale — **never work there**.
+> **▶ Latest — start here (2026-08-09; PROBIT + CLOGLOG LAND, targeting 0.7.0; PR #973 open).**
+> `binomial(link = "probit")` and `binomial(link = "cloglog")` **now fit** — both abort before
+> today. Arc D is `claude/binomial-link-generalisation` @ **`b4ae15cb3`** (pushed,
+> **PR [#973](https://github.com/itchyshin/drmTMB/pull/973) OPEN, not merged**); the link-general
+> MSPL Jeffreys helper is `claude/mspl-binomial-inference-promotion` @ **`f1a7f6dea`** (pushed,
+> **no PR — Shinichi's call**). **Owner decision 2026-08-09: target 0.7.0**, superseding design
+> 252's 0.7.1, which made `--as-cran` a release gate and Emmy's review go/no-go. **Both gates
+> green:** `--as-cran` **0/0/1** ("New submission") and `NOT_CRAN` full suite **zero failures**, on
+> both branches; Emmy **GO**-with-conditions; Melissa **0 drift**.
+> **STILL FENCED — the 0.7.0 content decision is NOT release authorization.** Candidate preparation
+> and the release rung remain under the standing NO-GO; `DESCRIPTION` is **0.6.0** on both branches;
+> no ledger, no census, no rung moved. The MSPL PR and the SE-calibration campaign (needs Totoro GO)
+> are unchanged.
+> **CLAIM BOUNDARY:** a fitting capability, **not** an interval or coverage claim. Per design 252 §9
+> (now settled), a new *link* **inherits** binomial's evidence cells — ceiling stays
+> `point_fit_recovery`. **MSPL remains logit-only** (§7).
+> **The lesson worth carrying:** five defects surfaced, **none** findable by a targeted probit test.
+> `make_tmb_data_core()` has **19** model_type branches, not 17 — the bivariate one uses `switch()`,
+> so the grep that found the rest missed it, and every bivariate fit died (223+ errors). *Grep finds
+> what NAMES a contract, not what ASSUMES the old one.* Also fixed: `binomial_start()` hardcoded
+> logit (probit started ~70% too far out, found by Emmy from inspection alone), and a missing
+> delta-method arm that would have aborted every probit standard error.
 > START HERE:
-> [`docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md`](docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md)
-> (morning run-the-campaign doc
-> [`2026-08-05-cursor-handover.md`](docs/dev-log/handover/2026-08-05-cursor-handover.md)
-> is historical — campaign step is DONE).
+> [`docs/dev-log/handover/2026-08-09-arcd-phaseb-landed-claude-handover.md`](docs/dev-log/handover/2026-08-09-arcd-phaseb-landed-claude-handover.md).
+>
+> **▶ Prior — (2026-08-08; 0.7 issue sweep complete on focused branch).**
+> The 29/29 open-issue sweep against `main@efb5af4f` found one issue-derived
+> candidate blocker: **#61**, the procedural exact-candidate gate, not a new code defect.
+> **#870** is the sole owner-policy decision and is not a demonstrated blocker. All other
+> 27 issues are non-blocking post-0.7 or backlog work; five bounded status comments were
+> posted and no issue was closed. D-93 and D-117 remain independent owner holds.
+> DESCRIPTION remains **0.6.0**; current main is neither `tarball-clean` nor
+> `platform-clean`. The exact predecessor `ad475cc39` / `2e5234bd…` retains only its
+> historical `tarball-clean` proof. **NO-GO for exact-candidate work until Shinichi separately
+> authorizes candidate preparation; no upload and no release-rung advance.**
+> Preserve #858, #937, historical #947, and the protected dirty primary checkout. Multi-lane
+> board (read every live row — do not orphan siblings):
+> [`docs/dev-log/active-lane-split.md`](docs/dev-log/active-lane-split.md). Primary checkout
+> on `claude/handover-freshness-0718` remains dirty/stale — **PROTECTED, never work there**.
+> START HERE:
+> [`docs/dev-log/release-audits/2026-08-08-0.7-issue-sweep.md`](docs/dev-log/release-audits/2026-08-08-0.7-issue-sweep.md).
+>
+> **▶ Prior — (2026-08-05, 135-TRACE CAMPAIGN LANDED ON MAIN via #930).**
+> Totoro 135/135; **5/14 cells** promoted to `interval_feasible`. Post-campaign doc
+> [`2026-08-05-cursor-handover-post-135.md`](docs/dev-log/handover/2026-08-05-cursor-handover-post-135.md)
+> is historical — land step is DONE on `main`. **Do not re-run Totoro under the old prereg.**
 >
 > **▶ Prior — (2026-08-04, PRONG B STACK LANDED; CI CEILING SET FROM MEASUREMENT).**
 > `main` = `71ce9e544`. All three stacked branches merged in order — #915

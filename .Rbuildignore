@@ -13,7 +13,6 @@
 ^_pkgdown\.yml$
 ^AGENTS\.md$
 ^CONTRIBUTING\.md$
-^ROADMAP\.md$
 ^tools$
 ^LICENSE$
 ^inst/extdata/\.gitkeep$
@@ -28,3 +27,4 @@
 ^doc$
 ^Meta$
 ^CRAN-SUBMISSION$
+^LOOP$

@@ -658,7 +658,7 @@ test_that("Arc 3a new routes reject multiple and deferred structured providers",
         family = family,
         data = sim$data
       ),
-      "animal|phylo|relmat|structured"
+      "Use an unlabelled intercept with.*remove the\\s+structured term"
     )
     expect_error(
       drmTMB(

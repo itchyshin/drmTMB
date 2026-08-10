@@ -58,7 +58,13 @@ test_that("drm_imputed_missing_predictor_se selects x_miss positions without the
     )
   )
 
-  se <- drmTMB:::drm_imputed_missing_predictor_se(object, n_missing = 2L, se = TRUE)
+  se <- drmTMB:::drm_imputed_missing_predictor_se(
+    object,
+    predictor = NULL,
+    n_missing = 2L,
+    se = TRUE,
+    fit_status = "ok"
+  )
   expect_equal(se, c(3, 4))
 
   # No random parameters: NA fallback rather than a mismatch.
@@ -70,10 +76,40 @@ test_that("drm_imputed_missing_predictor_se selects x_miss positions without the
   )
   se_none <- drmTMB:::drm_imputed_missing_predictor_se(
     object_none,
+    predictor = NULL,
     n_missing = 1L,
-    se = TRUE
+    se = TRUE,
+    fit_status = "ok"
   )
   expect_true(is.na(se_none))
+})
+
+test_that("drm_imputed_missing_predictor_se withholds std_error when fit_status is not ok", {
+  # A route-conditional posterior SD does not itself call sdreport(), so it
+  # must still be gated on fit_status; otherwise std_error and
+  # uncertainty_status would disagree (a real number next to
+  # "sdreport_skipped").
+  predictor <- list(
+    summary = "conditional_probability",
+    conditional_probability = c(0.2, 0.8)
+  )
+  se_skipped <- drmTMB:::drm_imputed_missing_predictor_se(
+    object = list(),
+    predictor = predictor,
+    n_missing = 2L,
+    se = TRUE,
+    fit_status = "sdreport_skipped"
+  )
+  expect_true(all(is.na(se_skipped)))
+
+  se_ok <- drmTMB:::drm_imputed_missing_predictor_se(
+    object = list(),
+    predictor = predictor,
+    n_missing = 2L,
+    se = TRUE,
+    fit_status = "ok"
+  )
+  expect_equal(se_ok, sqrt(c(0.2, 0.8) * c(0.8, 0.2)))
 })
 
 test_that("count mi support helpers use observed values, not the logical mask", {

@@ -44,8 +44,8 @@ Common checks include:
 
 ```sh
 rg "meta_gaussian|tau ~|rho ~|meta_known_V\\([^V]|meta_known_V\\(V = V\\).*(current|preferred|stable|default)" .
-rg "rho12|sigma1|sigma2|sd\\(" README.md ROADMAP.md docs vignettes R tests
-rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location|log_sd_mu|Current TMB-side objects" README.md ROADMAP.md docs vignettes R tests
+rg "rho12|sigma1|sigma2|sd\\(" README.md docs/dev-log/internal-roadmap.md docs vignettes R tests
+rg "simple.*mu random|sigma.*Later|currently.*only.*mu|optional simple.*location|log_sd_mu|Current TMB-side objects" README.md docs/dev-log/internal-roadmap.md docs vignettes R tests
 ```
 
 The goal is not only to make tests pass. It is to make sure code, docs,
@@ -57,7 +57,7 @@ For family, formula-grammar, diagnostic, or implemented-scope changes, explicitl
 check the status inventory before closing:
 
 - `README.md` current project status;
-- `ROADMAP.md`;
+- `docs/dev-log/internal-roadmap.md`;
 - `NEWS.md`;
 - `docs/dev-log/known-limitations.md`;
 - `docs/design/01-formula-grammar.md`;

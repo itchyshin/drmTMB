@@ -18,9 +18,9 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STATUS_LINK = "docs/dev-log/release-audits/q-series-v1-release-status.md"
 STATUS_PATH = ROOT / STATUS_LINK
-PUBLIC_STATUS_PATHS = (
+STATUS_REFERENCE_PATHS = (
     pathlib.Path("README.md"),
-    pathlib.Path("ROADMAP.md"),
+    pathlib.Path("docs/dev-log/internal-roadmap.md"),
     pathlib.Path("NEWS.md"),
     pathlib.Path("docs/dev-log/known-limitations.md"),
 )
@@ -72,7 +72,7 @@ SUPPORT_CELLS_LINK = "docs/dev-log/dashboard/structured-re-q-series-support-cell
 CATALOG_REQUIRED_DIMENSION_PATTERNS = ("q12",)
 CATALOG_CAPABILITY_FILES = (
     pathlib.Path("README.md"),
-    pathlib.Path("ROADMAP.md"),
+    pathlib.Path("docs/dev-log/internal-roadmap.md"),
 )
 
 
@@ -121,7 +121,7 @@ def check_claims(root: pathlib.Path = ROOT) -> list[str]:
         if phrase not in normalized_status:
             errors.append(f"{STATUS_LINK}: must mention {phrase!r}")
 
-    for relative_path in PUBLIC_STATUS_PATHS:
+    for relative_path in STATUS_REFERENCE_PATHS:
         path = root / relative_path
         if not path.exists():
             errors.append(f"{relative_path.as_posix()}: missing public/status file")
@@ -161,11 +161,12 @@ def dimension_mention_pattern(dimension_pattern: str) -> "re.Pattern[str]":
 
 
 def check_capability_catalog(root: pathlib.Path = ROOT) -> list[str]:
-    """Fail if a ledger dimension pattern is missing from the public catalogs.
+    """Fail if a ledger dimension pattern is missing from current catalogs.
 
     Rose safeguard #2: the current status gates confirm the support-cell ledger,
     the release ledger, and the high-q audit stay mutually consistent, but none
-    of them check that an admitted cell is actually described in README/ROADMAP.
+    of them check that an admitted cell is actually described in the README or
+    internal roadmap.
     This closes that gap for the configured high-q patterns (q12 today), so a
     future cell that lands in the ledger without a capability row fails loudly.
     """
@@ -205,7 +206,7 @@ def check_capability_catalog(root: pathlib.Path = ROOT) -> list[str]:
                 errors.append(
                     f"{relative_path}: {len(ledger_cells)} support-cell rows have "
                     f"dimension_pattern={dimension_pattern} (e.g. {example!r}) but no "
-                    f"{dimension_pattern} capability mention was found; the public "
+                    f"{dimension_pattern} capability mention was found; the current "
                     "capability catalog has drifted behind the ledger"
                 )
     return errors
@@ -219,10 +220,10 @@ def main() -> int:
             print(error, file=sys.stderr)
         return 1
     if args.summary:
-        public_files = ", ".join(path.as_posix() for path in PUBLIC_STATUS_PATHS)
+        reference_files = ", ".join(path.as_posix() for path in STATUS_REFERENCE_PATHS)
         catalog_patterns = ", ".join(CATALOG_REQUIRED_DIMENSION_PATTERNS)
         print(
-            f"qseries_v1_claim_guard_ok: {STATUS_LINK}; public_files={public_files}; "
+            f"qseries_v1_claim_guard_ok: {STATUS_LINK}; reference_files={reference_files}; "
             f"capability_catalog_patterns={catalog_patterns}",
             file=sys.stderr,
         )

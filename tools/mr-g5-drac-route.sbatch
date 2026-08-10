@@ -20,6 +20,8 @@ scratch_root="$SCRATCH/mr-g5-${MR_G5_ROUTE_ID}-${SLURM_ARRAY_JOB_ID}-${SLURM_ARR
 mkdir -p "$scratch_root" "$campaign_root/artifacts/g5-${MR_G5_ROUTE_ID}"
 export MR_G5_OUT_DIR="$scratch_root"
 export MR_G5_RUNNER_PATH="$campaign_root/drmTMB/inst/sim/R/sim_missing_response_g4g5.R"
+# Design declaration is REQUIRED (#982); override on submission to run the v2 design.
+export MR_G5_CENTRE_RANDOM_EFFECTS="${MR_G5_CENTRE_RANDOM_EFFECTS:-TRUE}"
 Rscript --vanilla "$campaign_root/drmTMB/tools/mr-g5-drac-route-array.R" \
   "$campaign_root/artifacts/target-manifests.rds" \
   "$campaign_root/artifacts/g4-reconciled-records.rds" \

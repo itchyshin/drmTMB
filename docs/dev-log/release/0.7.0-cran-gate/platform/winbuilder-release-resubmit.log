@@ -1,0 +1,5 @@
+R-release fixed-tarball curl still FTP 550 (prior same-name upload queued).
+Stale morning tarball (9817096) was accidentally curl-uploaded earlier.
+Wait for that result email, then upload FIXED tarball (9818425 / sha256 f9b9588e…).
+source_head: 25e38cc743d0422d3292063aeaa41a25d5772f87
+written_at: 2026-08-07T20:09:31Z

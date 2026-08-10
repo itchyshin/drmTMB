@@ -1,45 +1,43 @@
-# GOAL — 135-trace Prong B campaign (IMMUTABLE — re-read at the top of EVERY arc)
+# GOAL — useful-0.7 user-facing (IMMUTABLE — re-read at the top of EVERY arc)
 
 ## Mission
 
-Promote up to 14 Prong B Tier-1 cells from `point_fit_recovery` →
-`interval_feasible` **iff** each clears the preregistered ten-clause contract
-with retained grid-engine (`tmbprofile`) receipts. Target census: **182 → 196**
-`interval_feasible`; `FROZEN_CENSUS_POINT_FIT_RECOVERY` **59 → 45** only at
-actual promotion.
+Land the four first-week user-facing deliverables for a “really useful 0.7”
+programme: (1) default uncertainty story frozen in NEWS + `?confint`;
+(2) onboarding path fit → `profile_targets()` → `confint(method="profile")` →
+`profile.boundary` → when not to trust; (3) parseable family × dpar × RE ×
+interval-tier skim; (4) Ayumi-scale `se_group_sd` advice in `large-data`.
+No packaging, no CRAN upload, no DESCRIPTION bump.
 
 ## Headline
 
-Build the grid-engine 14-cell campaign runner (real clamp/LR/truth fields),
-re-smoke `mc-0568` with `profile_engine="tmbprofile"`, run Totoro ≤100 cores
-**only after explicit owner approval**, review every result, promote only
-PASSes.
+Make a new ecology/evolution user productive in week one without reading the
+capability ledger TSV or claiming nominal coverage everywhere.
 
 ## Invariants
 
-- One lane: this worktree `cursor/135-trace-campaign`. Sequential vs Claude/Codex (D-87/D-88).
-- Recorded endpoints from **grid** engine only (`stats::profile` → `TMB::tmbprofile`). Endpoint is cross-check only.
-- Never hard-code `clamp_limited = FALSE`; compute from profile message / clamp trace.
-- Clause 6 (both-sides LR + unimodality) must be enforced before promotion.
-- 4/5 truth-bracketing = **BLOCK**, not an 80% pass.
-- Totoro / local compute only — never GitHub Actions (D-50).
-- Structured-σ cells need ML-bias + REML-unavailable `claim_boundary` text on promotion.
-- **OPEN GATE:** explicit Totoro go before ≤100-core grid.
-
-## Fences (do not touch)
-
-Primary-checkout debris; PR **#858**; coi/Tier-2 cells; D-117 discharge; PR **#926**;
-REML design doc; other deferred work named in the ultra-plan.
+- One lane: worktree `~/local-scratch/worktrees/drmTMB-useful-07`, branch
+  `cursor/useful-07-user-facing`. Never the dirty primary checkout.
+- Never claim “CRAN ready”. Never bump DESCRIPTION to 0.7.0.
+- No platform-clean, win-builder, R-hub, or CRAN upload.
+- No Totoro / DRAC. No AGHQ / Cox-Reid campaigns.
+- Do **not** touch `tests/testthat/test-guard-branch-continuity.R`, PR #941, or
+  `docs/dev-log/release/` packaging ledgers.
+- Capability-surface edits **cite existing tiers only** — no ledger promotions.
+- Docs restatement of measured behaviour only; no new public claims.
 
 ## Authoritative WHAT
 
-→ `LOOP/ultra-plan.md` (approved G0 copy) ·
-`docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/PREREGISTRATION.md`
+→ `LOOP/ultra-plan.md` · `scratchpad/2026-08-07-arc-useful-07-user-facing.md`
+(PR #940 @ ~`8004fc05`)
 
 ## Definition of done
 
-1. Campaign runner + Totoro driver land and refuse wrong cell/target pairs.
-2. C1 tmbprofile smoke for `mc-0568` PASSes.
-3. After Totoro approval: receipts for all retained seeds/targets.
-4. Ten-clause + Fisher review → PASS/WITHHOLD per cell; promote only PASSes.
-5. Verification, after-task, and plan-vs-actual records written.
+1. Onboarding path exists and is linked from Getting Started + `drmTMB.Rmd`.
+2. NEWS + `?confint` state the default uncertainty story without
+   nominal-coverage-everywhere.
+3. Users can parse family × dpar × RE × interval tier from README/pkgdown
+   without opening the ledger TSV.
+4. Ayumi-scale `se_group_sd` advice is in `large-data` (and learning-path).
+5. After-task written; draft PR opened; AGHQ remains deferred; STOP (no
+   packaging claim).

@@ -1,6 +1,234 @@
 # Check Log
 
+
+## 2026-08-09 — D-117 10-group profile coverage gate re-run at nrep = 100,000
+
+The 2026-08-04 gate scored PASS on every cell, but its worst cell cleared the floor
+only on the `+2 x MCSE` margin (raw coverage 0.9140 vs `ss_floor(10) = 0.918`), and
+that margin shrinks as `1/sqrt(n)`. `VERDICT.md:115` had already recorded the cell
+going BORDERLINE at `n >~ 19,700`. This arc paid the ~20 minutes of Totoro compute
+nobody had paid.
+
+| Slice | Check | Result |
+|---|---|---|
+| Pre-registration | committed `ab83638f5` **before any 100k fit** | ✅ predicted BORDERLINE / no discharge |
+| Smoke gate (S0) | cell 4, `--nrep=50`, one fit inspected past its guards | ✅ 50/50 converged, 0 NA |
+| Local vs Totoro parity | same seeds, `estimate_sd = 0.1919612`, `lower = 0`, `upper = 0.6268075` | ✅ identical |
+| Campaign | 4 cells x 100,000 reps, 90 cores, 16:09:52 -> 16:30:08 | ✅ all `rc=0` |
+| **Gate** | `score_d117_gate.R`, byte-identical to the frozen original | ✅ **OVERALL PASS** |
+| Cross-check (pre-registered) | one-sided LCB + exact `binom.test` | ✅ all 4 pass, p = 1 |
+| Prefix reproduction | r = 1..1000 vs banked 2026-08-04 | ✅ bit-exact, `max|diff| = 0.000e+00` |
+| Mechanical verify | 10 checks incl. SHA-256, NA counts, seed collisions | ✅ ALL PASS |
+| Focused tests | `d117-boundary-warning` + `profile-targets` | ✅ 880 PASS, 0 fail |
+
+**Result.** Pooled coverage **0.924800** (SE 0.000417) over 400,000 attempts; per-cell
+0.9229 / 0.9257 / 0.9255 / 0.9251, every one clearing 0.918 on **raw** coverage;
+100,000/100,000 finite intervals, convergence and `pdHess` 1.000 throughout.
+
+**The pre-registered prediction was WRONG and is recorded as such** in
+`PREDICTION-OUTCOME.md`. The 2026-08-04 value of 0.9140 was a low Monte-Carlo draw
+(+0.0089 = 1.00 x MCSE at n=1000). The `+2 x MCSE` artifact hypothesis is refuted by
+measurement.
+
+**Panel finding #3 inverts.** Against a like-for-like `g = 10` comparator (0.9370) the
+corner sits at z = **-1.586, not significant**; only against a comparator pooled across
+`g` (0.9400) is it significant (z = -3.490) — the exact structural error D-117 exists
+to catch.
+
+**Open caveat, stated not buried.** The boundary sub-population contributes
+85% / 45% / 78% / 1% of each cell's miss, conditional coverage
+0.8683 / 0.1021 / 0.2387 / 0.0000. `g10_n10_sd10` had zero boundary events at n=1000 and
+now shows 0/89 — newly visible. Not materially worse than 2026-08-04, shared with `lme4`
+on the same DGP and seeds, warned at point of use, and documented.
+
+**Recovery half, added after the D-43 panel found it missing.** D-117 asks for a
+"recovery/coverage" gate; only coverage had been measured. Recomputed from the 400,000
+rows: relative bias **-15.76 / -9.31 / -10.26 / -8.34%** (the n=1000 figures
+-16.90 / -9.12 / -9.05 / -9.16% are **superseded**). Expected ML behaviour at g=10;
+lme4 agrees on point estimates to ~1e-6 (**that comparator ran at n=1000 only and was
+not re-run at 100k**). **The recovery half is measured but NOT scoreable** -- D-117
+pre-registered no bias criterion, so it can be adjudicated neither pass nor fail.
+Mean log bias -0.774 / -0.154 / -0.202 / -0.122 (the first is 74.5% boundary mass;
+tail-trimmed it is -0.197, like its siblings). The Beta-phylo 0.10 log gate is
+recorded as a cross-reference only -- applying it here would be an unfair
+transplant (g=256 vs g=10, different family, and lme4 would fail it identically).
+An earlier version of this entry claimed the mean log-SD statistic was "unusable"; that
+was wrong (it conflated `profile_boundary` with point-estimate magnitude and contained a
+unit error) and is corrected in `VERDICT-100K.md` section 6b.
+
+**D-43 panel: 2 of 3 NOT-DONE -> the composite claim is WITHHELD.** Noether **DONE**
+(recomputed every mathematical claim from raw rows, zero discrepancies); Grace
+**NOT-DONE** (no environment fingerprint, provenance asserted, regeneration command
+broken); Rose **NOT-DONE**, load-bearing (recovery half unmeasured, no after-task
+shipped). All findings are now repaired, but **the repairs came after the verdict and
+have NOT been re-adjudicated** -- they do not convert it. The coverage *result* itself
+was independently reproduced by two of the three reviewers.
+
+**RECOMMENDATION: DISCHARGE D-117** (moderate-to-high confidence) -- its operative
+sentence holds 0.7.0 *"until that number exists"*, and the number now exists for both
+halves at 400,000 attempts; the marginal route's 0.810 collapse it feared is refuted at
+0.925. Four conditions and both costed paths:
+`docs/dev-log/release-audits/2026-08-09-d117-FINAL-RECOMMENDATION.md`. Shinichi decides.
+
+Scope: the **A1 scalar Gaussian corner only** (`TRUE_BETA = 0.5`, residual `sigma = 0.7`,
+one mean formula, `g = 10`, ML). Raw CSVs (~195 MB) are not committed; SHA-256s and the
+regeneration command are recorded instead. Discharge remains the owner's decision.
+
+## 2026-08-09 — live Workflow G engine=julia FE gate (#499)
+
+| Slice | Check | Result |
+|---|---|---|
+| Live WF-G 11 cells vs DRM.jl expected.toml | `test-julia-workflow-g.R` (NOT_CRAN + JuliaCall + DRM.jl) | ✅ 11/11 PASS (~193 s) |
+| Gate registry + FE admission | `test-julia-gate-vs-engine.R` | ✅ 140 PASS |
+| Bridge rejection surface | `test-julia-bridge.R` | ✅ green |
+
+Advances #499; does not close. Experimental claim only.
+
+
+## 2026-08-08 — pkgdown function-map route restored and model-map deduplicated
+
+- Restored **Function map and cheat sheet** to the Get started menu and kept
+  **What can I fit today?** under Model Guides. Both source articles and the
+  function-map PNG remain tracked; no reader page or asset was deleted.
+- Synchronized the introductory learning-path table and the canonical design
+  inventory (37 vignettes, including `first-week-intervals` and
+  `bivariate-nongaussian`).
+- Added regression checks for exact navbar label-to-href pairs, intended
+  article-group membership, introductory route order, and the design inventory.
+- Passed: 64 capability-ledger Python tests, generator `--check`,
+  `pkgdown::check_pkgdown()`, focused renders of `model-map`, `drmTMB`, and
+  `function-map-cheatsheet`, and `git diff --check`. Pat, Rose, and Ada reviewed
+  the repaired reader/navigation surface independently.
+
+
+## 2026-08-08 — Reader boundary live + exact current-main tarball-clean
+
+- Merged PR [#948](https://github.com/itchyshin/drmTMB/pull/948) at
+  `ad475cc39f62f47a346c77aa17c3d20bf3fc9bae`. Post-merge main R-CMD-check
+  [31266713858](https://github.com/itchyshin/drmTMB/actions/runs/31266713858)
+  and pkgdown/Pages
+  [31268615909](https://github.com/itchyshin/drmTMB/actions/runs/31268615909)
+  passed. Live homepage, capability page, one-hop `ROADMAP.html` redirect,
+  search, sitemap, and desktop/mobile layouts were verified.
+- The public page **Can I fit and report this model?** separates fit, point,
+  named-interval, exact-scope, and fallback decisions. Its reader summary is
+  generated from the canonical capability ledger; generator check, 64 Python
+  tests, full source tests, tarball-contained rendering, and Pat/Florence/Grace/
+  Rose reviews passed.
+- Fresh source `ad475cc39` produced `drmTMB_0.6.0.tar.gz`, SHA-256
+  `2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea`,
+  size 9,831,204 bytes, 922 paths. Exact `R CMD check --as-cran
+  --run-donttest`: **0 ERROR, 0 WARNING, 1 NOTE** (`New submission` only).
+- A fresh Luna verifier reproduced the artifact/check identity. Its strict
+  read-only extraction attempt was preserved as FAIL because `mktemp` was
+  blocked; a narrowed scratch-write rerun freshly extracted and rendered the
+  capability article using tarball-contained inputs, SHA-256
+  `0cff046d1211e5b0c9baf442653d88e3854573643579ba9d27b469f571d9edbc`.
+- Highest proven rung: **`tarball-clean`**. Earlier Windows/platform evidence is
+  predecessor evidence only. DESCRIPTION remains 0.6.0; no `platform-clean`
+  write, CRAN upload, D-43 panel, or `cran-comments.md` finalization occurred.
+
+
+## 2026-08-08 — Codex handover live verify (still tarball-clean)
+
+- Re-fetched `origin/main` = `5affb962b` (unchanged since #946). Ledger
+  `status_claim` still **`tarball-clean`**. DESCRIPTION **0.6.0**.
+- Post-merge `main` CI now **green**: R-CMD-check
+  https://github.com/itchyshin/drmTMB/actions/runs/31231949532 and pkgdown
+  https://github.com/itchyshin/drmTMB/actions/runs/31233577522.
+- Win-builder logs re-read: R-devel
+  https://win-builder.r-project.org/qS15UqA2O00A/00check.log and R-release
+  https://win-builder.r-project.org/BQVnXOH066rJ/00check.log both **Status: 1 NOTE**.
+- Handoff gate FAIL (foreign unpushed + primary dirty + WT `.tmp-941-merge/`)
+  declared CARRIED-OVER / PROTECTED; not mass-pushed. #937 / #858 left open.
+- Draft #947 refreshed in place; same START HERE filename
+  `docs/dev-log/handover/2026-08-07-codex-handover.md`. No competing 2026-08-08
+  handover. After-task:
+  `docs/dev-log/after-task/2026-08-08-codex-handover-live-verify.md`.
+
+
+## 2026-08-07 — Codex handover + #946 merge (still tarball-clean)
+
+- Merged [#946](https://github.com/itchyshin/drmTMB/pull/946) → `5affb962b`
+  (docs-only; GHA never started on the PR; owner asked to merge anyway).
+- Win-builder fixed SHA `f9b9588e…` / 9818425: R-devel
+  https://win-builder.r-project.org/qS15UqA2O00A and R-release
+  https://win-builder.r-project.org/BQVnXOH066rJ both **1 NOTE**, CondExp ERROR
+  **cleared**. Ledger `status_claim` remains **`tarball-clean`**.
+- Did not merge #937 / #858. Did not bump DESCRIPTION. Did not upload.
+- Codex handover: `docs/dev-log/handover/2026-08-07-codex-handover.md`.
+  After-task: `docs/dev-log/after-task/2026-08-07-codex-handover-rescope.md`.
+
+
+## 2026-08-07 — win-builder fixed-tarball adjudication (still tarball-clean)
+
+- Gmail thread `19fdd3b95ebe5f0b` (ligges): fixed SHA `f9b9588e…` / 9818425
+  results after ~23:00Z FTP 226.
+- R-devel https://win-builder.r-project.org/qS15UqA2O00A — **1 NOTE**
+  (email 23:44:22Z); R-release https://win-builder.r-project.org/BQVnXOH066rJ —
+  **1 NOTE** (email 23:49:12Z).
+- CondExp `drm_src_path` ERROR **cleared** (tests OK; fixed logs have no
+  `Cannot locate` match). Morning ERROR URLs superseded.
+- Ledger `status_claim` left at **`tarball-clean`** — ERROR-free evidence ready
+  for owner authorize of `platform-clean`. No DESCRIPTION bump / no CRAN upload.
+- Docs: `platform/winbuilder-emails.md`, fixed `*-fixed-00check.log`, PR #945.
+
+## 2026-08-07 — useful-0.7 CI fix (first-week-intervals columns)
+
+- PR #942 `ubuntu-latest (release)` failed at R CMD build vignette step (~8.5m,
+  not a 75m timeout): `first-week-intervals.Rmd` selected
+  `estimate`/`conf.low`/`conf.high`, but `confint()` returns `lower`/`upper`
+  (no `estimate` column) → `undefined columns selected`.
+- Fixed column subset to `parm`/`lower`/`upper`/`conf.status`/`profile.boundary`;
+  local `rmarkdown::render("vignettes/first-week-intervals.Rmd")` OK.
+
+## 2026-08-07 — useful-0.7 user-facing (docs honesty)
+
+- Lane `cursor/useful-07-user-facing`: NEWS + `?confint` default uncertainty story; vignette `first-week-intervals`; capability skim in `capability-and-limits`; `se_group_sd` in `large-data`.
+- `devtools::document()` wrote `man/confint.drmTMB.Rd` (§Default uncertainty story).
+- `pkgdown::check_pkgdown()` after `_pkgdown.yml` / article changes.
+- DESCRIPTION remains 0.6.0; no packaging / release-ledger edits; no ledger promotions.
+- After-task: `docs/dev-log/after-task/2026-08-07-useful-07-user-facing.md`.
+
 Record meaningful development checks here.
+
+## 2026-08-07: win-builder CondExp `drm_src_path` repair (platform-clean still NOT READY)
+
+- Root cause: under `test_check()`, `test_path()` is relative to
+  `*.Rcheck/tests/`; old `../../00_pkg_src/...` overshoots. Local freeze passed
+  only via accidental checkout `../../src`.
+- Fix: `tests/testthat/test-guard-branch-continuity.R` candidates + layout unit
+  test (checkout / `00_pkg_src` / win-builder sibling).
+- Focused continuity: `FAIL 0 | PASS 51`. Pure win-builder fixture: old miss /
+  new hit.
+- Highest proven rung remains **`tarball-clean`** until win-builder re-green.
+
+## 2026-08-07: 0.7 CRAN gate — platform-clean attempt (NOT READY)
+
+- Worktree `drmTMB-07-platform` / `cursor/07-platform-clean` from `main` @ `744b9fbe`.
+- Frozen SHA re-verified `c787ee40…aa156cbb`. DESCRIPTION still 0.6.0.
+- GHA 3-OS `workflow_dispatch` [31195187084](https://github.com/itchyshin/drmTMB/actions/runs/31195187084):
+  ubuntu/macOS/windows **success** (46.5 / 31.7 / 58.8 min; <75m ceiling).
+- win-builder R-release + R-devel: **1 ERROR, 1 NOTE**
+  ([XhAiv0jf1AUd](https://win-builder.r-project.org/XhAiv0jf1AUd),
+  [nF44JzoI2nZ9](https://win-builder.r-project.org/nF44JzoI2nZ9)) —
+  `test-guard-branch-continuity.R` cannot locate `src/drmTMB.cpp`.
+- R-hub [31195195196](https://github.com/itchyshin/drmTMB/actions/runs/31195195196):
+  clang-asan/ubsan + gcc-asan OK; rchk FAIL adjudicated TMB-framework noise;
+  valgrind still in progress at write.
+- Ledger `status_claim` stays **`tarball-clean`** (honest NOT READY for platform-clean).
+- Evidence: `docs/dev-log/release/0.7.0-cran-gate/platform/`.
+
+## 2026-08-07: 0.7 CRAN gate — tarball-clean freeze
+
+- Merged PR #938 → `main` `459bd3fa9`. Clean worktree rebuild at
+  `~/local-scratch/worktrees/drmTMB-07-tarball`.
+- Tarball SHA-256 `c787ee40b8895d15609e77dd8024c3520efb333c657ba5bc98bc0388aa156cbb`
+  (9817096 bytes); inventory has no `LOOP` paths (`^LOOP$` in `.Rbuildignore`).
+- `R CMD check --as-cran --no-manual`: **Status: 1 NOTE** (New submission only);
+  0 ERROR / 0 WARNING.
+- Ledger `status_claim: tarball-clean`; `cran_release_gate.py` → READY FOR CLAIMED RUNG.
+- **STOP** before platform-clean and upload. DESCRIPTION remains 0.6.0.
 
 ## 2026-08-04: D-117 10-group profile coverage gate — measured; PASS claim WITHHELD
 
@@ -92587,3 +92815,118 @@ family that can discriminate an engine that improves on Laplace.
   withheld 9. Census IF 182→187; FROZEN_CENSUS_POINT_FIT_RECOVERY 59→54.
 - Evidence: docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/
 - After-task: docs/dev-log/after-task/2026-08-05-135-trace-campaign.md
+
+## 2026-08-08 — 0.7 open-issue scope sweep
+
+- Execution base: `origin/main@efb5af4fea0204a8d0ce381685b259029d040637`
+  in `/private/tmp/drmTMB-07-issue-sweep-exec` on
+  `codex/07-issue-sweep-0808-exec`; PR #951 was already merged.
+- Live inventory: 29 open issues, exact equality with the approved T0 set;
+  no open-state delta.
+- Independent evidence passes: R0 Luna repo map; Rose batch A; Fisher batch B;
+  Grace batch C; root adjudication of #61, #680, #682, #802, and #870.
+- Final V1 Luna mechanical verifier: PASS — 29 rows, no missing/extra/duplicate
+  issues, 29/29 required fields, matching disposition/action totals, valid
+  local evidence paths, clean diff, and no forbidden changes.
+- V2 claim review: Rose PASS; Grace NEEDS REPAIR then accepted after the exact
+  predecessor-artifact and candidate-preparation wording repair.
+- Final Rose after-task audit: PASS; no concrete findings across the 12-section
+  report, ledger, receipts, pointers, check log, or protected boundaries.
+- Final counts: 1 `blocker_candidate` (#61), 1 `owner_decision` (#870),
+  27 `not_blocker`; actions = 1 `retain_blocker`, 1
+  `retain_owner_decision`, 21 `retain_post_0.7`, and 6
+  `retain_nonblocking_backlog`.
+- Issue comments posted and read back: #3
+  `5229063640`, #5 `5229064087`, #33 `5229064265`, #61 `5229064768`,
+  and #531 `5229064993`. No issue was closed.
+- The connector comment route returned HTTP 403 without mutation; authenticated
+  `gh issue comment --body-file` was the successful fallback.
+- No package code, tests, DESCRIPTION, `cran-comments.md`, platform evidence,
+  D-43 material, compute output, or release-rung state changed. Full package
+  tests and pkgdown were not rerun because this arc changes coordination and
+  audit documentation only.
+
+## 2026-08-08 — 0.7 capability-truth reconciliation
+
+- Base and lane: PR #952 merged unchanged at `31da19f28`; fresh branch
+  `codex/07-capability-truth-reconcile` in
+  `/private/tmp/drmTMB-07-capability-truth`. Protected PRs #858/#937,
+  historical #947, dirty primary/MSPL checkouts, foreign worktrees, and five
+  stashes remained outside the lane.
+- Runtime gate: fixed-only and multiple-term binomial REML reject before TMB
+  construction. Exactly one ordinary unlabelled `mu` random intercept or one
+  independent numeric slope is admitted. Correlated, labelled, all five
+  structured-provider q1 formulas, and missing-response neighbours reject.
+- Focused R verification:
+  `devtools::test(filter = "reml-binomial-coxreid|julia-sigma-phylo-reml")`
+  PASS; binomial file 33 expectations, Julia file PASS with one unavailable-
+  engine skip.
+- Full `devtools::test(reporter = "summary")`: PASS with no failures; 25
+  optional-engine/workflow skips and 72 expected numerical/deprecation
+  warnings were reported.
+- `devtools::check(args = "--no-manual", quiet = TRUE)`: 0 errors, 0 warnings,
+  2 environmental notes (`future file timestamps` could not verify network
+  time; inherited `xcrun_db` temp detritus). This is local evidence only and
+  does not earn `platform-clean`.
+- `python3 tools/capability_ledger.py --check`: PASS, 31 generated outputs.
+  `python3 -m unittest discover -s tools/tests -p 'test*.py'`: PASS, 122 tests.
+- C17/C14 final-source compatibility at source commit `2d1be7842`: 12/12
+  attempts PASS across `mc-0568`, `mc-0569`, and `mc-0576`; semantic
+  fingerprint remains
+  `8435987e3540e3b136c298d697508e74632b4f055490beb05d1408547015681d`.
+  New immutable receipt:
+  `docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv`.
+- Source-installed reader gate: current source installed to an isolated temp
+  library, then full `pkgdown::build_site(install = FALSE)` plus
+  `pkgdown::check_pkgdown()` PASS with `No problems found`. The first sandboxed
+  attempt failed only on blocked CRAN DNS and macOS Sass-cache access; the same
+  installed-source build passed outside the restricted sandbox.
+- Fisher initial read-only review: NEEDS REPAIR on five exact issues (O3 reader
+  leaks, missing exact-one-term runtime gate, missing five-provider structured
+  rejection evidence, overbroad uncertainty wording, and no grouped-binomial
+  admitted-route comparator). All five were repaired. Fisher final read-only
+  re-review: PASS with no remaining estimator-boundary, evidence, or current
+  reader-facing overclaim finding. This was a bounded review, not D-43.
+- `git diff --check`: PASS. No DESCRIPTION, `cran-comments.md`, release rung,
+  D-43, compute, tag, candidate freeze, or CRAN action occurred.
+- PR #953 exact head `0f8f3e44e`: GitHub run 31297133410 PASS; Ubuntu package
+  check 37m34s and `os-matrix` 4s. Squash-merged to main as
+  `08c9f2330550f766534a7f1e1f910373963b2cf1` on 2026-08-09. The exact
+  merge-commit main run is 31298530499; its final verdict is recorded by the
+  closeout once complete.
+
+## 2026-08-10 — `main` CI unblocked: beta-binomial `mi()` fixture identifiability
+
+- Diagnosis correction. `main` had been red since `fddb82105` (PR #972). The inherited handover
+  attributed it to a missing Julia package `Suppressor`; verified wrong. The `LoadError` is Julia
+  teardown noise printed *after* `Execution halted`, all Julia tests skipped correctly (305 skips),
+  and the actual ERROR was three assertions at
+  `tests/testthat/test-missing-predictor-beta-binomial.R:152-154`
+  (`uncertainty_status` = `sdreport_non_pd_hessian`, not `"ok"`). Identical failures confirmed on
+  three runs — main `31350747542`, PR #978 `31350952083`, PR #976 `31383639291` — with zero
+  Julia-caused failures on any of them. Correction committed as `062250f19`.
+- Root cause. `missing_predictor_beta_binomial_data()` built counts with `qbinom(ppoints(n), ...)`,
+  which is markedly UNDER-dispersed (Pearson dispersion 0.201). Beta-binomial can only represent
+  dispersion >= 1, so `sigma_mi` had no likelihood information: profile deviance at the boundary was
+  exactly 0.000 and the MLE ran to zero. `pdHess` was therefore a BLAS/LAPACK coin-flip (macOS TRUE
+  at condition number 3.63e+07; ubuntu non-PD).
+- A rejected repair, measured before implementation. Permuting the `qbinom` quantile levels and
+  shrinking them off 0/1 improves `VIF(cover|z)` 71.2 -> 4.34 and leaves boundary profile deviance
+  at **exactly 0.000** — it does not touch the defect. Refuted by Fisher at Phase-2 plan review and
+  reproduced independently before any code was written.
+- Fix. The fixture now draws the latent probability from Beta quantiles and the count from binomial
+  quantiles at two independently permuted levels (`sigma_mi_true = 0.35`), staying deterministic (no
+  `set.seed`). Dispersion 1.994; boundary profile deviance 13.234; `sigma_mi` argmin recovers 0.35.
+  `success <= trials` holds row-wise by construction and is asserted in the diagnostic.
+- Measured on the fit at line 138: convergence warning `false convergence (8)` -> **none**;
+  `pdHess` TRUE; max eigen `cov.fixed` ~320 -> **0.0255**; condition number **3.63e+07 -> 2,318**;
+  `se(log_sigma_mi)` **0.159**; `uncertainty_status` -> `ok`; recovered `sigma_mi` 0.297 (truth 0.35).
+- Checks: whole beta-binomial file 30/30 PASS with the three pre-existing `false convergence`
+  warnings now gone; `test-missing-predictor-gaussian.R` 109, `-binary.R` 24, `-categorical.R` 26,
+  `test-missing-data-robustness.R` 15 all PASS; `capability_ledger.py --check` `OK (31 generated
+  outputs)`, unchanged. Diff is one test file (21 insertions, 2 deletions). No `R/`, `src/`, `man/`,
+  `NAMESPACE`, ledger, census, rung, or `DESCRIPTION` change.
+- Receipts: `docs/dev-log/simulation-artifacts/2026-08-10-beta-binomial-fixture-identifiability/`.
+  After-task: `docs/dev-log/after-task/2026-08-10-beta-binomial-mi-fixture-identifiability.md`.
+- Residual: the MD7f `0:n_i` summation remains lightly exercised (posterior is near a point mass
+  because `y` is noiseless); flagged for a separate decision, not changed here.

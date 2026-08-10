@@ -17,6 +17,9 @@ template:
 development:
   mode: default
 
+redirects:
+  - ["ROADMAP.html", "articles/capability-and-limits.html"]
+
 navbar:
   structure:
     left: [intro, reference, model_guides, tutorials, diagnostics, developer, news]
@@ -25,15 +28,19 @@ navbar:
     intro:
       text: Get started
       menu:
-        - text: Get started with drmTMB
+        - text: Overview and first model
           href: articles/drmTMB.html
+        - text: Can I fit and report this?
+          href: articles/capability-and-limits.html
+        - text: Choose a family
+          href: articles/distribution-families.html
         - text: Function map and cheat sheet
           href: articles/function-map-cheatsheet.html
+        - text: Check and report a fitted model
+          href: articles/model-workflow.html
     model_guides:
       text: Model Guides
       menu:
-        - text: What can I trust? (capabilities & limits)
-          href: articles/capability-and-limits.html
         - text: What can I fit today?
           href: articles/model-map.html
         - text: Detailed implementation status
@@ -224,14 +231,15 @@ articles:
   - title: Getting Started
     contents:
       - drmTMB
+      - capability-and-limits
       - function-map-cheatsheet
+      - first-week-intervals
   - title: Capability and Model Choice
     contents:
-      - capability-and-limits
-      - model-map
-      - implementation-map
       - which-scale
       - distribution-families
+      - model-map
+      - implementation-map
       - model-selection
       - missing-data
   - title: Location and Scale

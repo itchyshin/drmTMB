@@ -171,6 +171,31 @@
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
 #'
+#' @section Default uncertainty story:
+#' Use this recipe for ordinary first-week inference; it restates measured
+#' behaviour and does **not** claim nominal coverage on every route.
+#' \itemize{
+#'   \item Fixed effects and other routine Wald-ready targets: start with
+#'     \code{confint(fit)} (\code{method = "wald"}). It is the fastest
+#'     fitted-object route when \code{TMB::sdreport()} succeeded.
+#'   \item Random-effect SDs and other direct variance-component targets: prefer
+#'     \code{confint(fit, parm = ..., method = "profile")} after
+#'     \code{profile_targets(fit)} shows the row is profile-ready. Profile
+#'     re-optimizes nuisance parameters and is slower than Wald.
+#'   \item Always read \code{conf.status} and \code{profile.boundary} on the
+#'     returned table. A usable profile interval that lands on a variance-component
+#'     boundary warns with class \code{drmTMB_profile_boundary_warning}; treat
+#'     that interval as indicative of scale, not as a calibrated
+#'     \code{level} interval (see Boundary intervals below).
+#'   \item A computable interval is not coverage certification. Check the
+#'     exact cell in
+#'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
+#'     before reporting a route as inference-ready.
+#' }
+#'
+#' For a short applied walkthrough, see the vignette
+#' \emph{First-week intervals: fit, profile, and boundary}.
+#'
 #' @section Boundary intervals:
 #' Both interval methods are unreliable when a variance component approaches zero
 #' or a correlation approaches `+/-1`, and each warns about its own case.
@@ -184,15 +209,26 @@
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
 #' Conditional on that flag, a seeded 10-group random-effect SD gate measured
-#' coverage at 0.0732, 0.2540, and 0.8566 against a nominal 0.95. The mechanism is
-#' a maximum likelihood random-effect SD biased 9.1%-16.9% low at small group
-#' counts, which anchors the interval low so that it misses from above.
+#' coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
+#' fourth cell where boundary hits are rare (0.09% of fits). The mechanism is a
+#' maximum likelihood random-effect SD biased 8.3%-15.8% low at small group counts,
+#' which anchors the interval low so that it misses from above.
+#'
+#' Unconditionally -- across all fits, flagged or not -- the same gate measured
+#' 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
+#' bad case, not the typical one, and the flag is returned in the table so you can
+#' tell which case you are in.
 #'
 #' This is a property of profile intervals near a variance boundary rather than of
 #' `drmTMB`: `lme4::lmer` on the same data-generating process and seeds agreed on
 #' boundary incidence for 4000/4000 replicates and matched the conditional coverage
 #' to four decimal places. Treat a flagged interval as indicative of scale, not as a
 #' calibrated `level` interval, and prefer more groups where the design allows it.
+#'
+#' These figures come from one measured design: Gaussian, a single random intercept
+#' on the mean, 10 groups, 4 or 10 observations per group, maximum likelihood. They
+#' describe that corner, and are not a general statement about every family,
+#' provider, or group count.
 #'
 #' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
 #' `profile.boundary = TRUE`, but return missing endpoints and are not warned about

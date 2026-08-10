@@ -1,0 +1,80 @@
+{
+  "package": "drmTMB",
+  "version": "0.6.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). Exact current-main reader-boundary freeze ad475cc39 is tarball-clean: local R CMD check --as-cran --run-donttest has 0 ERROR, 0 WARNING, and the expected New submission NOTE. Earlier 2026-08-07 platform and fixed win-builder results belong to predecessor artifacts only. STOP before platform-clean claim, DESCRIPTION 0.7 bump, and upload.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/private/tmp/drmTMB-07-reader-boundaries-tarball/drmTMB_0.6.0.tar.gz",
+    "sha256": "2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea",
+    "size_bytes": 9831204,
+    "source_commit": "ad475cc39f62f47a346c77aa17c3d20bf3fc9bae",
+    "clean_worktree": true,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/tarball-inventory.txt"
+    },
+    "forbidden_entries": []
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release-audits/2026-08-07-07-product-contract.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release-audits/2026-08-07-07-rights-skim.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/after-task/2026-08-08-cran-reader-boundaries.md"
+    },
+    "local_as_cran": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+    },
+    "incoming_feasibility": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/00check.log"
+    },
+    "installed_package": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+    },
+    "timing": {
+      "kind": "file",
+      "value": "/private/tmp/drmTMB-07-reader-boundaries-tarball/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check.log"
+    }
+  },
+  "panel": {
+    "grace": "NOT_RUN",
+    "rose": "NOT_RUN",
+    "pat": "NOT_RUN",
+    "note": "D-43 panel required only at submission-ready; not claimed here."
+  },
+  "status_claim": "tarball-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  },
+  "clean_worktree": true,
+  "source_commit": "ad475cc39f62f47a346c77aa17c3d20bf3fc9bae"
+}

@@ -36,7 +36,7 @@ The source map is not a roadmap. It records what currently exists and where the
 evidence lives. User-facing availability belongs in `model-map` and
 `implementation-map`; evidence status belongs in
 `docs/design/34-validation-debt-register.md`; sequence and future work belong
-in `ROADMAP.md`. Planned features belong in design notes until implementation,
+in the [current reporting boundary](capability-and-limits.html). Planned features belong in design notes until implementation,
 tests, diagnostics, documentation, and after-task evidence all exist.
 
 ## Routing overview

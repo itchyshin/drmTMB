@@ -203,13 +203,23 @@ test_that("binomial rejects unsupported response encodings and routes", {
     ),
     "finite non-negative integers"
   )
+  # binomial(link = "probit") is now admitted (docs/design/252); dedicated
+  # coefficient recovery, predict() round-tripping, and tail-numerics
+  # evidence live in test-binomial-links.R. Here we only assert admission.
+  fit_probit <- drmTMB(
+    bf(y ~ x),
+    family = stats::binomial(link = "probit"),
+    data = dat
+  )
+  expect_s3_class(fit_probit, "drmTMB")
+  expect_equal(fit_probit$opt$convergence, 0)
   expect_error(
     drmTMB(
       bf(y ~ x),
-      family = stats::binomial(link = "probit"),
+      family = stats::binomial(link = "cauchit"),
       data = dat
     ),
-    "link = \"logit\""
+    "cauchit"
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1), family = stats::binomial(), data = dat),

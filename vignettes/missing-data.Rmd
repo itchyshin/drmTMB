@@ -109,7 +109,7 @@ never silently degrades to a wrong likelihood.
 | hurdle NB2 | ✓ (fixed effects; hurdle mass and truncated positive component) | — |
 
 The package keeps separate single-source-of-truth inventories for response and
-predictor missingness. A positive runtime test reconciles all 18 fitted response
+predictor missingness. A positive runtime test reconciles all fitted response
 routes with the generated response ledger, while the predictor anti-drift test
 still requires every family outside `drm_missing_predictor_families()` to
 reject. Route-specific response tests retain the unsupported-neighbour checks.

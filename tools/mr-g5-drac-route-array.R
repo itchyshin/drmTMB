@@ -13,6 +13,20 @@ if (!is.na(smoke_attempts) && (!is.finite(smoke_attempts) || smoke_attempts < 1L
 }
 
 library(drmTMB)
+
+# Design declaration (#982) -- REQUIRED, fail closed.
+#
+# These runners execute under `Rscript --vanilla`, so no .Rprofile can supply the
+# DGP design.  A campaign that does not state its design produced exactly the
+# situation #982 records: an artifact whose provenance could only be inferred
+# from its own results.  Declare it explicitly or do not run.
+mr_centre <- Sys.getenv("MR_G5_CENTRE_RANDOM_EFFECTS", unset = NA_character_)
+if (is.na(mr_centre) || !toupper(mr_centre) %in% c("TRUE", "FALSE")) {
+  stop("Set MR_G5_CENTRE_RANDOM_EFFECTS to TRUE (frozen v1 design) or FALSE (uncentred v2). ",
+       "It is recorded on every record and the reconcilers refuse to merge disagreeing designs.",
+       call. = FALSE)
+}
+options(drmTMB.mr_g4g5_centre_random_effects = identical(toupper(mr_centre), "TRUE"))
 runner_path <- Sys.getenv("MR_G5_RUNNER_PATH", unset = system.file("sim/R/sim_missing_response_g4g5.R", package = "drmTMB"))
 if (!nzchar(runner_path) || !file.exists(runner_path)) stop("The G4/G5 runner source is unavailable.", call. = FALSE)
 source(runner_path)

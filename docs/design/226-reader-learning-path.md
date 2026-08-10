@@ -1,4 +1,4 @@
-# 226 — One canonical reader learning path across 35 vignettes
+# 226 — One canonical reader learning path across 37 vignettes
 
 ## 1. The problem
 
@@ -35,8 +35,9 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 35 vignettes after the
-location-scale tutorial was split into two shorter parts.
+The synchronized placement table below now contains 37 vignettes after the
+location-scale tutorial was split into two shorter parts and the first-week
+interval and bivariate non-Gaussian routes were added.
 
 ## 2. The canonical sequence
 
@@ -67,11 +68,12 @@ at that point in the workflow.
    practice. Four pages, one question. Per §9.2 the Julia engine and
    cross-family routes do **not** belong here — they are an alternative
    compute backend, not a trustworthiness question.
-6. **Honest limitations** — "What does this package NOT support yet, and
-   where is the line between fitted, first-slice, and planned syntax?"
-   `capability-and-limits` closes the arc; it is deliberately last, not
-   first, because it opens with sobering material that would discourage a
-   reader who has not yet fit anything.
+6. **Can I fit and report this model?** — "Can I fit it, report the point
+   estimate, report the named interval, and what is the exact fallback?"
+   `capability-and-limits` is the second Get Started page, immediately after
+   the first model. This supersedes the earlier terminal-placement decision:
+   readers need a reporting boundary before they choose syntax, not only after
+   they have completed a tutorial.
 
 A **Specialist branch** sits alongside stage 3 for three pages that are
 deliberately off the main line: `meta-analysis`, which uses known sampling
@@ -83,7 +85,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-35 rows. Role legend: **tutorial** = worked biological example with fitted
+37 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -94,6 +96,7 @@ path.
 |---|---|---|---|---|
 | 1 | `drmTMB` | 1. First fit | tutorial | Fits the first Gaussian location-scale model, runs `check_drm()`, is the front door every other stage is reached from. |
 | 1a | `function-map-cheatsheet` | 1. First fit | guide | A searchable function router and compact workflow for readers who know their question but need the smallest useful `drmTMB` sequence before the longer model-workflow guide. |
+| 1b | `first-week-intervals` | 1. First fit | guide | A first-week route from a fitted model to a profile interval, including the boundary and status checks that prevent premature reporting. |
 | 2 | `model-workflow` | 1. First fit | guide | Post-fit checklist (`check_drm()`, `profile_targets()`, `conf.status`, prediction, residuals, simulation) a reader needs immediately after the first fit, before touching family choice. |
 | 3 | `which-scale` | 2. Choose your family | route-chooser | Disambiguates residual `sigma`, `sd(group)`, likelihood weights, and known sampling variance before the reader picks a family — answers "which scale am I even modelling" ahead of "which family." |
 | 4 | `distribution-families` | 2. Choose your family | route-chooser | Direct family-selection guide: continuous, count, proportion, robust — the question stage 2 exists to answer. |
@@ -104,6 +107,7 @@ path.
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
 | 10 | `bivariate-coscale` | 3. Interpretation tutorials | tutorial | `rho12` residual-coupling worked tutorial — the coscale interpretation case named in the target order. |
+| 10a | `bivariate-nongaussian` | 3. Interpretation tutorials | route-chooser | Distinguishes the implemented joint and staged routes for non-Gaussian response pairs before readers interpret an association as if every family combination used the same model. |
 | 11 | `missing-data` | 3. Interpretation tutorials | guide | Documents `miss_control()` response/predictor routes; a reader needs this while writing the formula for their chosen family, not after fitting, so it sits with the family/formula-writing stage rather than stage 5. |
 | 12 | `meta-analysis` | Specialist branch | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
 | 13 | `structural-dependence` | 4. Random & structured effects | route-chooser | Overview and router across `animal()`, `phylo()`, `spatial()`, `relmat()` before the reader picks a specific structured-effect tutorial. |
@@ -120,7 +124,7 @@ path.
 | 24 | `julia-engine` | Specialist branch | guide | **Corrected in §9.** Halted/deferred future-support documentation, not a trustworthiness question or current alternate backend. A count-data reader has no reason to pass through it. |
 | 25 | `cross-family` | Specialist branch | tutorial | **Corrected in §9.** Deferred future cross-family route; follows `julia-engine`, and neither page belongs in the main analysis path. |
 | 26 | `figure-gallery` | 3. Interpretation tutorials | tutorial | **Corrected in §9.** Family-agnostic plotting recipes answering "how do I show my result?" — a question the reader has while interpreting coefficients, not after diagnostics. Was stranded behind two experimental-engine pages. |
-| 27 | `capability-and-limits` | 6. Honest limitations | route-chooser | Per P7, stays LAST. Opens with sobering multi-seed-evidence and boundary material that would discourage a reader who has not yet fit anything; correct as the closing "what this package will not yet do" page. |
+| 27 | `capability-and-limits` | 1a. Reporting boundary | route-chooser | **Superseded placement.** Second under Get Started, after the overview/first model. Its generated reader summary separates fit, point reporting, interval reporting, fallback, and exact scope before technical evidence. |
 | 28 | `formula-grammar` | Developer track | developer | Formula-parsing internals for contributors adding syntax, not for the applied reader path. |
 | 29 | `adding-families` | Developer track | developer | Contributor guide for adding a new distribution family to the C++/R engine. |
 | 30 | `source-map` | Developer track | developer | Maps R builders to TMB `model_type` integers and C++ density blocks — internals reference for contributors. |
@@ -128,12 +132,12 @@ path.
 | 32 | `implementation-map` | 2. Choose your family | guide | **Corrected in §9 — reverted to the applied path.** It opens "This map answers one practical question: what model surface can an applied user…", and `model-map` links to it from four places (`model-map.Rmd:38,53,152,157`). Reclassifying it developer-only would break live cross-links from an applied guide and hide the page readers are explicitly sent to. |
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 
-Total: 35 placed. Stage counts **after the §9 corrections**: **1. First fit**
-= 3 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 8 ·
+Total: 37 placed. Stage counts **after the §9 corrections**: **1. First fit**
+= 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 9 ·
 **Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
 **5. Uncertainty & inference boundaries** = 4 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-3 + 4 + 8 + 3 + 7 + 4 + 1 + 5 = 35.
+4 + 4 + 9 + 3 + 7 + 4 + 1 + 5 = 37.
 
 Two rows deserve a placement note beyond the reason column:
 
@@ -153,6 +157,19 @@ Two rows deserve a placement note beyond the reason column:
   placement that is genuinely arguable; see §8.
 
 ## 4. What changes in `_pkgdown.yml`
+
+### 2026-08-08 supersession: reporting boundary before model choice
+
+The placement recommendation below is historical. The current reader contract
+supersedes it: the Get Started menu is ordered **Overview and first model →
+Can I fit and report this? → Choose a family → Function map and cheat sheet →
+Check and report a fitted model**. The status-oriented `model-map` remains only
+under Model Guides, avoiding a duplicate route across the two menus.
+`capability-and-limits` is removed from Model Guides and keeps
+the stable article path `articles/capability-and-limits.html`. Its top section
+uses the generated ledger summary; detailed tiers, cell identifiers, and
+campaign evidence remain below **Evidence and exact tested scopes**. The
+former public `ROADMAP.html` redirects once to this page.
 
 **Target: collapse to one taxonomy.** Recommendation: delete the
 navbar/`articles:` split as two independently-curated lists and drive both

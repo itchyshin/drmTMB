@@ -1,39 +1,38 @@
 # drmTMB Active-Lane Split
 
-Meta: 2026-08-02 · canonical baseline `origin/main@83055ec5846bc2f9b1d939c13aa16c4500181f04`
-(was `c8e04258d`; PR #896 merged 2026-08-02 and moved the baseline. The
-model-surface census is unchanged at `330 / 340 / 17 = 687` — #896 moved five
-Gaussian cells' evidence tiers, not their `capability_status`.)
+Meta: 2026-08-09 capability-truth reconciliation landed · canonical baseline
+`origin/main@08c9f2330550f766534a7f1e1f910373963b2cf1` (#953 merged after green
+Ubuntu CI; #952 issue sweep remains the preceding baseline).
+Capability census is **not** restated here — read the ledger / Mission Control.
 
 This is the current coordination entrypoint. Read the row for the lane you own
 before editing. Concurrent lanes are separated by subject, not by tool name.
 
-> **Filename collision resolved 2026-08-02.** Two lanes independently wrote
-> `handover/2026-08-02-claude-handover.md`. That path now belongs to the
-> interval-feasibility lane (it landed on `main` via #896); the C18 handover moved
-> to `handover/2026-08-02-claude-c18-structured-atoms-handover.md`. Neither
-> document was discarded. Name future handovers per lane, not per date alone.
+> **Multi-lane rule.** A single `AGENTS.md` “Latest” pointer must not orphan siblings.
+> Rehydrate from **this board** plus the START HERE handover for your lane.
 
 | Lane | Subject and state | Current authority | Ownership boundary |
 | --- | --- | --- | --- |
-| C18 — structured zero-one-beta atom effects | **LANDED on lane (PR #898).** Split the ten collapsed structured `zoi`/`coi` rows, then promoted seven evidence-backed q1 cells. Lane census 337/350/10 = 697. `mc-0615` withheld at 3/4; spatial `mc-0606`/`mc-0616` deferred **and refused in code**. | Branch `claude/c18-structured-atoms-plan`; PR #895 carries the [`handover/2026-08-02-claude-c18-structured-atoms-handover.md`](handover/2026-08-02-claude-c18-structured-atoms-handover.md) snapshot | Overlap with #893 **authorized** (Shinichi, 2026-08-02). Spatial `mc-0606`/`mc-0616` **deferred**. Makes no interval, coverage, inference-ready, or support claim. |
-| Current-source interval feasibility | **Arc 0 + Arc 1 landed** via PR #896. Froze the 82-cell current-source candidate denominator; promoted five direct targets to `interval_feasible` (now 161 `interval_feasible` / 77 `point_fit_recovery`). `mc-0438` is STOP — both tested profiles had nonfinite endpoints. | PR #896; [`handover/2026-08-02-claude-handover.md`](handover/2026-08-02-claude-handover.md) | Owns profile/interval promotion and the frozen manifest. Does not touch structured `zoi`/`coi` representation, the ZOB spec builder, or the model-15 dispatch. |
-| **135-trace Prong B campaign (Cursor)** | **DONE (partial promote); land push/PR.** Totoro 135/135; **5 PASS** → census **187 IF / 55 PFR**, frozen PFR **54**. WITHHOLD: mc-0593/0594/0597, five q2 cells, mc-0425. Worktree `~/local-scratch/worktrees/drmTMB-135trace`, branch `cursor/135-trace-campaign`. | [`handover/2026-08-05-cursor-handover-post-135.md`](handover/2026-08-05-cursor-handover-post-135.md); [`after-task/2026-08-05-135-trace-campaign.md`](after-task/2026-08-05-135-trace-campaign.md) | Closed for this prereg. Next Cursor session lands PR + surfaces owner calls. WITHHOLD re-pilot needs a new prereg. Does not touch #858 / #893 / #869. |
-| Mesh/SPDE | PR #893, `codex/drmtmb-spatial-mesh`, is draft; its release check was pending at last read and its head has moved to `849955f02`. PR #891 is its green docs-only handover companion. | PRs #893 and #891; [`handover/2026-08-01-codex-mesh-spde-handover.md`](handover/2026-08-01-codex-mesh-spde-handover.md) when available on that branch | Owns mesh/SPDE design and implementation, including broad edits to `R/drmTMB.R`, `src/drmTMB.cpp`, formula/likelihood docs, check-log, and C17 compatibility receipts. C18 rebases before editing `R/profile.R`. |
-| Lane B E0 | PR #858, `codex/lane-b-e0-readiness`, remains open. | PR #858 | Preserve all Lane B evidence, manifests, classifications, and branches. C18 must not make interval, coverage, inference-ready, or support claims. |
-| Missing-data cross brief | PR #869, `claude/missing-data-cross-brief-20260730`, remains open and docs-scoped. | PR #869 | Preserve missing-response and missing-predictor scope; C18 is complete-response only. |
+| **0.7 capability truth (Codex)** | **MERGED** via [#953](https://github.com/itchyshin/drmTMB/pull/953) at `08c9f2330`. Fixed-only and multiple-term binomial REML fail early; exactly one ordinary unlabelled intercept or one independent slope is `diagnostic_only`; public `mc-0227` remains ML-Laplace point-fit-recovery and O3 remains internal/non-reportable. | [`after-task/2026-08-08-0.7-capability-truth-reconciliation.md`](after-task/2026-08-08-0.7-capability-truth-reconciliation.md) and [`release-audits/2026-08-08-0.7-capability-truth-reconciliation.md`](release-audits/2026-08-08-0.7-capability-truth-reconciliation.md). | Closed for implementation and truth reconciliation. No DESCRIPTION/platform-clean/D-43/compute/CRAN authority was created. Next release action remains the separate #61 owner-authorized exact-candidate decision; preserve every foreign lane below. |
+| **0.7 scope / packaging → owner decision** | **Issue sweep COMPLETE on `codex/07-issue-sweep-0808-exec` against `main@efb5af4f`.** Exact 29/29 ledger: #61 is the sole issue-derived procedural candidate blocker; #870 is the sole owner-policy decision; 27 are non-blockers. Five bounded comments posted; zero closures. Candidate-preparation verdict = **NO-GO pending separate owner authorization**. D-93/D-117 remain independent holds. DESCRIPTION **0.6.0**; current main is neither `tarball-clean` nor `platform-clean`. | [`release-audits/2026-08-08-0.7-issue-sweep.md`](release-audits/2026-08-08-0.7-issue-sweep.md) | Next owner call is whether to authorize a fresh exact-`0.7.0` candidate-preparation arc. This lane did not implement issues, bump DESCRIPTION, write platform-clean, run D-43/compute, finalize cran-comments, or upload. Preserve #858 / #937 / historical #947. |
+| **win-builder adjudication** | **MERGED** [#946](https://github.com/itchyshin/drmTMB/pull/946) → `5affb962b`. R-release + R-devel **1 NOTE**, CondExp ERROR **cleared** on fixed SHA `f9b9588e…` / 9818425. GHA never started on the PR (docs-only; owner authorized merge anyway). #945 closed (superseded). | after-task `2026-08-07-winbuilder-fixed-adjudication.md`; `platform/winbuilder-emails.md` | Closed for evidence land. Do not write `platform-clean` without owner word. |
+| **useful-0.7 (Cursor)** | **MERGED** [#942](https://github.com/itchyshin/drmTMB/pull/942) → `9e85ff91d`. | after-task `2026-08-07-useful-07-user-facing.md` | Closed for this arc. |
+| **CondExp path repair** | **MERGED** [#941](https://github.com/itchyshin/drmTMB/pull/941) → `13e8cafb0`. | after-task `2026-08-07-winbuilder-drm-src-path-fix.md` | Closed for the repair; rung claim still owner-gated. |
+| 135-trace Prong B campaign | **LANDED** on `main` via **#930** (`8df6f240`). Five PASS promotions; nine WITHHOLD stay PFR. | Historical: [`handover/2026-08-05-cursor-handover-post-135.md`](handover/2026-08-05-cursor-handover-post-135.md) | Closed prereg — do not re-run Totoro; WITHHOLD needs a new prereg. |
+| C18 — structured zero-one-beta atom effects | **LANDED on lane (PR #898).** | [`handover/2026-08-02-claude-c18-structured-atoms-handover.md`](handover/2026-08-02-claude-c18-structured-atoms-handover.md) | Historical; spatial ZOB deferred/refused. |
+| Current-source interval feasibility | **Arc 0 + Arc 1 landed** via PR #896. | [`handover/2026-08-02-claude-handover.md`](handover/2026-08-02-claude-handover.md) | Historical programme docs; do not reopen frozen denominator casually. |
+| Mesh/SPDE | **MERGED** (#893). | — | Closed; do not treat as open foreign blocker. |
+| Lane B E0 | PR **#858**, `codex/lane-b-e0-readiness`, remains open draft. | PR #858 | **Foreign.** Preserve Lane B evidence; CRAN lane must not merge into it. |
+| GVA decision docs | Open **#937** (`claude/land-gva-decision`). | PR #937 | Optional docs merge; **not** CRAN-blocking; no GVA implementation in 0.7. |
+| Missing-data cross brief | **MERGED** (#869). | — | Closed. |
+| Primary checkout AGHQ debris | `claude/handover-freshness-0718` dirty/stale. | — | **PROTECTED** — never clean, stage, or work there. |
 
-## Closed baseline
+## Closed baseline notes
 
-C17 is complete through PR #894. Canonical `main` and Mission Control agree on
-`330 implemented / 340 rejected by design / 17 not implemented = 687`
-model-surface rows. The new C18 programme starts from that SHA and must not
-reopen `mc-0577`, `mc-0570`, or `mc-0578`.
-
-## C18 headline
-
-Ten of the seventeen remaining `not_implemented` rows are the structured
-zero-one-beta atom block: `mc-0603:mc-0607` for `zoi` and
-`mc-0613:mc-0617` for `coi`. Each current row collapses q1 through q12. C18
-therefore starts with an honest representation split; q1 evidence must never
-promote an aggregate row that implies q2+ support.
+C17 complete through PR #894. 135-trace land complete through #930. Packaging
+through predecessor `tarball-clean` completed through #949. Reader navigation
+then changed installed vignette bytes through #950, so current main must not
+inherit that exact-artifact identity. Win-builder predecessor evidence remains
+evidence only; **`platform-clean` still needs owner authorization on the eventual
+exact 0.7 candidate.** The issue sweep is complete; the next step is Shinichi's
+separate candidate-preparation decision. **#937 and #858 stay open and protected — do not orphan.**

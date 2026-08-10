@@ -585,7 +585,8 @@ and operating-characteristic evidence justify a broader claim.
 - Diagnostics and intervals: planned-feature errors should fire before fitting;
   no interval target should be advertised.
 - User-facing docs: `vignettes/formula-grammar.Rmd`,
-  `vignettes/model-map.Rmd`, `vignettes/source-map.Rmd`, and `ROADMAP.md`.
+  `vignettes/model-map.Rmd`, `vignettes/source-map.Rmd`, and
+  `docs/dev-log/internal-roadmap.md`.
 - Check-log evidence: planned-feature and unsupported-combination evidence is
   spread across the family, random-effect, bivariate, phylogenetic, spatial,
   and large-data check-log entries named above.

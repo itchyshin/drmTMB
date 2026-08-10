@@ -1,180 +1,138 @@
----
-name: 135-trace campaign
-overview: Outcome-first arc to move up to 14 Prong B cells from point_fit_recovery to interval_feasible (182→196) via a grid-engine campaign runner, Totoro ≤100 cores, ten-clause review, and promotion only of cells that clear. Smoke already PASS; Arc 0 is mostly done.
-todos:
-  - id: s1-runner
-    content: "S1: Build grid-engine 14-cell campaign runner + Totoro driver (real clamp/LR/truth fields)"
-    status: in_progress
-  - id: s2-c1-smoke
-    content: "S2: C1 re-smoke mc-0568 with profile_engine=grid; gate Totoro"
-    status: pending
-  - id: s3-totoro
-    content: "S3: Totoro ≤100-core grid after explicit go; land receipts"
-    status: pending
-  - id: s4-review
-    content: "S4: Ten-clause + Fisher review → PASS/WITHHOLD per cell"
-    status: pending
-  - id: s5-promote
-    content: "S5: Promote PASSes only (ledger, FROZEN 59→45, NEWS, claim_boundary)"
-    status: pending
-  - id: verify-close
-    content: Mechanical verify + Rose claim check + Melissa plan-actual + after-task
-    status: pending
-isProject: false
----
+# ARC CARD — Really useful 0.7 (user-facing onboarding + honesty)
 
-# ARC CARD + ULTRA PLAN — 135-trace Prong B campaign
+Created 2026-08-07 by Cursor via `arc-creation` (size mode), after Shinichi
+approved a “really useful 0.7” user-facing programme distinct from the CRAN
+packaging ladder. Written in worktree
+`~/local-scratch/worktrees/drmTMB-07-tarball` (`cursor/07-tarball-clean` @
+`f065fc905`). Scratchpad is `.Rbuildignore`d; `scratchpad/*.md` is not
+gitignored (only `*.log` / `*.rds`).
 
-```text
-GOAL
-PLATFORM: Cursor (this session plans; after G0 approval hand to /goal for execution — same worktree).
-DELIVERABLE: Up to 14 cells promoted point_fit_recovery → interval_feasible with retained
-receipts, truth-gate pass, ten-clause review, and structured-sigma claim_boundary text where required.
-HEADLINE: Build the grid-engine campaign runner (fixing the endpoint-engine smoke gap), run Totoro
-≤100 cores, review all ~135 traces, promote only cells that clear.
-IN PARALLEL: none for compute (embarrassingly parallel inside Totoro job); lane #858 preserved unread.
-DEFER (fenced): D-117 discharge; PR #926 re-score; REML design doc; coi/Tier-2 fences; 7-method
-coverage grid; predict() scale-axis; CI split; B4-CI; mc-0282.
-DISCIPLINE: preregistration already written; smoke-first already green for mc-0568; never hard-code
-clamp_limited=FALSE; recorded endpoints from grid engine only; 4/5 truth-bracketing = BLOCK;
-Totoro never Actions (D-50); FROZEN_CENSUS 59→45 only at actual promotion.
-```
-
-**Default end-state (override if you want receipts-only):** promote every cell that clears the ten-clause contract in this arc. That is the only path that can move the census metric.
+**Mode:** size  
+**Requested outcome:** not quantified — land the four first-week user-facing
+deliverables Shinichi listed (onboarding vignette path; frozen default
+uncertainty story; parseable capability surface; Ayumi-scale ergonomics
+advice), with optional non-Gaussian REML/AGHQ corner deferred post-submit.  
+**Mechanism authority:** reversible docs / pkgdown / README / NEWS / roxygen
+edits that **restate existing evidence**; CRAN-safe vignette smoke only if a
+new article needs it.  
+**Excluded:** platform-clean; CRAN upload; DESCRIPTION `0.7` bump; Totoro /
+DRAC campaigns; ledger promotions; AGHQ/Cox-Reid as Arc 0 or a CRAN blocker;
+duplicating the packaging lane already at **tarball-clean** (#939 / check-log
+2026-08-07).  
+**Recommended arc:** **5.5 h** capacity programme (range **4.5–7 h**; Arc 0 =
+40 min)  
+**Time contract:** ceiling ~6 h for the four landed deliverables; later AGHQ
+rung is optional and separately stoppable  
+**Estimate confidence:** **inferred** — prior pkgdown/vignette honesty arcs
+and the existing `model-workflow` / `capability-and-limits` / `?confint`
+Boundary section are direct reuse surfaces; no measured end-to-end timing for
+this exact programme.  
+**Arc 0 outcome:** written gap map that cites what already exists and decides
+**thin new vignette vs tighten + link** for the onboarding path (no blank-page
+rebuild).  
+**State transition:** packaging at **tarball-clean**; first-week
+onboarding / default-uncertainty / parseable capability matrix incomplete →
+those four doc/API-honesty deliverables landed and linked from README +
+pkgdown Getting Started; AGHQ deferred unless a trivial doc-only pointer.  
+**Executable rung and evidence:** prose + vignette + pkgdown/_pkgdown.yml +
+README links; optional `R CMD check` vignette smoke / focused test only if a
+new vignette is added. No campaign receipts. No public tier promotion without
+citing an existing ledger cell.
 
 ---
 
-## ARC CARD — 135-trace Prong B
+## Why this arc (and why not packaging / AGHQ)
 
-**Mode:** outcome-first (with measured compute ceiling)  
-**Requested outcome:** up to **+14** `interval_feasible` cells (182→196; frozen PFR 59→45)  
-**Mechanism authority:** worktree `~/local-scratch/worktrees/drmTMB-135trace` · branch `cursor/135-trace-campaign` · Totoro ≤100 cores · grid-engine profiles · truth gate · ledger promotion of cleared cells only · **exclude** primary-checkout debris · **exclude** #858 / mesh / missing-data  
-**Recommended arc:** **6–10 h wall-clock** (range; not a pad)  
-**Time contract:** outcome-first / no hard time-box; Totoro compute ≤30 min once launched  
-**Estimate confidence:** **measured** for compute (scoping memo + mc-0568 smoke ~30 s profile after load); **inferred** for review (135 traces)  
-**Arc 0 outcome:** DONE — preregistration + mc-0568 smoke PASS (engine=endpoint catch recorded)  
-**State transition:** `point_fit_recovery` → `interval_feasible` for cleared subset of the 14  
-**Executable rung and evidence:** Totoro retained receipts + truth gate + Fisher location review + ledger/evidence edits
+Highest proven CRAN rung is already **tarball-clean** on main (#939). Another
+agent may own **platform-clean**; this card must not duplicate that or upload.
+Shinichi’s approved “really useful 0.7” list is **user-week usefulness**: can a
+new ecology/evolution user fit → inventory targets → profile an RE-SD → read
+`profile.boundary` → know when not to trust the interval, and find a
+family × dpar × RE × interval-tier surface without reading the ledger TSV.
+AGHQ / non-Gaussian REML is a **science corner**, not a first-week doc gap —
+keep it post-submit or as a final optional rung after the four deliverables.
 
-### Outcome cohort ladder
+## State-transition gate
 
-| Cohort | Candidates | Shared mechanism | Required action | Acceptance evidence | Expected yield / stop |
-| --- | ---: | --- | --- | --- | --- |
-| C0 smoke | 1 (`mc-0568`) | local fit+profile | already run | SMOKE_PASS + receipt | **DONE** |
-| C1 grid smoke | 1 (`mc-0568`) | same DGP, **grid** engine | force `profile_engine=grid` | brackets + real clamp/LR fields | fail → fix runner before Totoro |
-| C2 ordinary zob | 2 | ordinary sigma RE | Totoro 5 seeds | ten-clause + truth gate | best 2 / credible 1–2 / fail→WITHHOLD |
-| C3 structured zob σ | 5 | structured σ ML | Totoro 5 seeds + claim_boundary text | ten-clause + bias disclosure | best 5 / credible 3–5; R3 early-stop |
-| C4 count mu q2 | 5 | labelled q2 (2 SD + cor) | Totoro 5 seeds; **8 for cor** | ten-clause; R2 cor warnings | best 5 / credible 2–4; cor often WITHHOLD |
-| C5 count σ interaction | 2 | phylo_interaction σ | Totoro 5 seeds | ten-clause + bias disclosure | best 2 / credible 1–2 |
-| **Goal** | **14** | | | | **credible ~8–12 promoted; failures stay PFR** |
+| Step | Content |
+| --- | --- |
+| 1. Current | Packaging **tarball-clean**; `?confint` has **Boundary intervals**; NEWS has profile-boundary + Prong B honesty; `model-workflow` already walks `profile_targets()` / `confint` / `conf.status`; `capability-and-limits` defines tiers; generated `docs/dev-log/dashboard/capability-surface.md` exists but is **not** a first-week pkgdown article; `se_group_sd` is documented in `?drm_control` / NEWS but **absent** from `large-data.Rmd` learning-path advice; DESCRIPTION still **0.6.0**. |
+| 2. Intended | Four deliverables landed + linked from README/pkgdown Getting Started; default uncertainty story frozen in NEWS + `?confint` without claiming nominal coverage everywhere; Ayumi-scale default advice visible; AGHQ deferred. |
+| 3. Intervention | Gap-aware vignette (or short article) + roxygen/NEWS freeze + README/pkgdown parseable capability surface + `large-data` / phylo ergonomics paragraphs. |
+| 4. Approval | Shinichi already approved this list. **Do not** bump version, upload, or promote ledger cells. Capability-surface edits must **cite existing tiers** (reversible docs) and not invent new public claims. |
 
-### Budget (Arc 0 already spent ~45–60 min)
+## Prior-work sweep (do not rebuild)
 
-| Segment | Minutes | Output / stop |
+| Surface | What already exists | Gap for this arc |
+| --- | --- | --- |
+| `man/confint.drmTMB.Rd` §Boundary intervals | Full D-117 story: profile warns with `drmTMB_profile_boundary_warning`; coverage 0.0732 / 0.2540 / 0.8566; lme4 comparator; “not a repair for a boundary” | Needs a short **default uncertainty recipe** (profile RE-SD; Wald FE; boundary warn; no nominal-coverage-everywhere) near the top of Details / a dedicated subsection, not only deep in Boundary |
+| `NEWS.md` (top) | Profile boundary warning + Prong B “computable ≠ coverage” | Freeze an explicit **default uncertainty story** bullet block for 0.7 readers (may live under unreleased / 0.7 draft notes without bumping DESCRIPTION) |
+| `vignettes/model-workflow.Rmd` | Long “Checking and using fitted models”: `profile_targets()`, Wald/`profile`/`bootstrap`, `conf.status` table, mentions `profile.boundary` | Too long for first week; D-117 “when not to trust” is thin vs `?confint`; needs a **short onboarding spine** (new vignette *or* a front-loaded section + Getting Started link) |
+| `vignettes/drmTMB.Rmd` | Learning-path table → model-workflow / capability-and-limits / large-data | No single row for “fit → profile RE-SD → read boundary” |
+| `vignettes/capability-and-limits.Rmd` | Tier definitions + “at a glance” tables; points at `capability-census/` | Not a parseable **family × dpar × RE × interval tier** matrix for README/pkgdown skim |
+| `docs/dev-log/dashboard/capability-surface.md` (+ `.html`) | Generated snapshot (699 model cells; 187 IF / 55 recovery / 29 IR as of 2026-08-05) | Dev-log only; not in `_pkgdown.yml` articles; first-week users never see it |
+| `_pkgdown.yml` articles | Getting Started = `drmTMB`, `function-map-cheatsheet`; Capability = `capability-and-limits`, …; Workflow = `model-workflow`, `large-data`, … | Slot for onboarding uncertainty article missing; no compact matrix article |
+| `vignettes/large-data.Rmd` | Memory-light `drm_control()`, `se = FALSE`, large-phylo Wald-first advice | **`se_group_sd` never named**; Ayumi 10,440-tip path not default advice |
+| `man/drm_control.Rd` / NEWS ~L794 | `se_group_sd = FALSE` default; n_group×n_group ADREPORT / REML GB warning | Need vignette + learning-path pointer so users find it without reading Rd |
+| Packaging | check-log: tarball-clean freeze; STOP before platform-clean/upload | Out of scope here |
+
+## Capacity ladder
+
+| Order | Budget | Outcome | Trigger / definition of done |
+| --- | ---: | --- | --- |
+| Arc 0 | 40 min | Gap map + decision: **new short vignette** vs **tighten model-workflow + drmTMB learning-path** (prefer reuse; new article only if a ≤~150-line spine is cleaner) | Start now. Cite the prior-work table above. |
+| Rung 1 | 70 min | **Default uncertainty story frozen** in NEWS + `?confint` (profile for RE-SD / variance components; Wald for FE routine; read `profile.boundary`; no nominal-coverage-everywhere). Docs-only; no claim expansion. | After Arc 0. Reversible prose. |
+| Rung 2 | 100 min | **Onboarding path landed**: fit → `profile_targets()` → `confint(method="profile")` → read `profile.boundary` → when not to trust; linked from `_pkgdown.yml` Getting Started + `drmTMB.Rmd` learning path. Prefer CRAN-safe tiny example (no long phylo). | After Rung 1 so vignette can cite the frozen story. |
+| Rung 3 | 80 min | **Parseable capability surface** for users: compact family × dpar × RE × interval tier (fit / `interval_feasible` / `inference_ready`) on README and/or a pkgdown-facing page that **summarises** existing `capability-and-limits` + ledger snapshot — no new promotions. | After Arc 0 decision on where the matrix lives. |
+| Rung 4 | 50 min | **Ayumi-scale ergonomics**: `large-data.Rmd` (+ learning-path row) default advice for big tip counts — keep `se_group_sd = FALSE`; when to set `TRUE`; point at `?drm_control`. | Independent of Rung 2 once Arc 0 confirms gap. |
+| Integrate/close | 30 min | Links consistent; after-task or check-log note; Actuals; HAND TO next (platform-clean owner / AGHQ post-submit). | Always reserve. |
+| *(optional later)* | — | One non-Gaussian REML/AGHQ supported corner (binomial or cumlogit) | **Post-submit / separate arc** — not Arc 0; not a CRAN blocker. |
+| **Total** | **370 min (~6.2 h)** | Shortest credible programme that lands all four; trim to ~5.5 h if Arc 0 chooses reuse-only (no new vignette file). | |
+
+**Reversible docs vs public claims:** Rungs 1–2 and 4 are reversible documentation if they only restate measured behaviour. Rung 3 is reversible **only while it cites existing ledger tiers**; inventing “supported” / expanding domains is a public-claim change and is **out of scope**.
+
+## Budget — Arc 0
+
+| Segment | Minutes | Output / stop point |
 | --- | ---: | --- |
-| Orient (spent) | 45 | worktree, classify, prereg, smoke |
-| Core — runner + grid smoke | 90–120 | `tools/run-135-trace-campaign.R` (+ Totoro driver); C1 PASS |
-| Core — Totoro grid | 30–45 | ~135 receipts under artifact dir |
-| Verify — trace review | 180–240 | per-cell PASS/WITHHOLD + Fisher notes |
-| Repair reserve | 60–90 | provider early-stops, cor failures, clamp/LR bugs |
-| Closeout — promote + PR | 60–90 | ledger, FROZEN 59→45, NEWS, after-task, PR |
-| **Total remaining** | **~7–10 h** | |
+| Orient | 15 | Re-read `?confint` Boundary, `model-workflow` confint section, `capability-and-limits` tiers, `large-data` memory section, `_pkgdown.yml` Getting Started |
+| Core | 15 | Write gap map (files + 1-sentence gap each) + decide vignette strategy |
+| Verify | 5 | Confirm platform-clean / upload still foreign; DESCRIPTION stays 0.6.0 |
+| Repair reserve | 0 | External packaging wait is not this arc |
+| Closeout | 5 | Record decision on this card; start Rung 1 or Rung 4 if Rung 1 blocked |
+| **Total** | **40** | |
 
-**In scope:** runner (grid + real clamp/LR), Totoro campaign, review, promote cleared cells.  
-**Not in this arc:** owner D-117/#926/REML-doc decisions; Tier-2/zoi/coi; Actions compute.  
-**Evidence used:** [PREREGISTRATION.md](docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/PREREGISTRATION.md); smoke PASS; [scoping §4](scratchpad/2026-08-03-prong-b-scoping-decision.md); Arc 2 runner pattern in [tools/run-arc2-profile-feasibility.R](tools/run-arc2-profile-feasibility.R); DGP sources in fence fixtures / Lane C recovery scripts.  
-**Risk branch:** If C1 grid smoke fails by minute 30 of runner work, stop Totoro and repair engine wiring. If any provider seed-1 rel_err >0.25, pilot that provider alone (R3).
+**In scope:** onboarding uncertainty path; NEWS/`?confint` default story; parseable capability surface linked for users; Ayumi `se_group_sd` advice.  
+**Not in this arc:** platform-clean; CRAN upload; DESCRIPTION version bump; Totoro; ledger promotions; AGHQ/Cox-Reid implementation; rebuilding `capability-and-limits` from scratch; touching the dirty primary checkout.  
+**Evidence used:** `man/confint.drmTMB.Rd` §Boundary intervals; NEWS profile-boundary + Prong B entries; `vignettes/model-workflow.Rmd` (`profile_targets` / `conf.status`); `vignettes/capability-and-limits.Rmd`; `docs/dev-log/dashboard/capability-surface.md` (2026-08-05 snapshot); `man/drm_control.Rd` `se_group_sd`; absence of `se_group_sd` in `vignettes/large-data.Rmd`; `_pkgdown.yml` articles; check-log tarball-clean freeze; prior Arc Card `scratchpad/2026-08-05-arc-07-cran-release-readiness.md` (packaging — complementary, not overlapping).  
+**Risk branch:** If Arc 0 finds the onboarding path is already first-week complete in `model-workflow` after a short front-load, **do not** add a new vignette — spend the Rung 2 budget on linking + Boundary cross-refs + capability matrix instead. If Rung 3 tempts a ledger regeneration or tier rewrite, **stop** and ship a skim table that cites existing statuses only. If another agent’s platform-clean PR conflicts on README/`_pkgdown.yml`, rebase in a useful-07 worktree off `origin/main` — never dirty primary.
 
-**Done when:** every one of the 14 has a retained PASS or WITHHOLD with reasons; every PASS is promoted with claim_boundary (structured-σ disclosure where required); census/frozen constant updated only for promotions; after-task + plan-actual written.  
-**First action after G0:** implement grid-engine path in campaign runner and re-smoke mc-0568 with `profile_engine=grid`.
-
-### Actuals (fill at close)
-*(empty until execution)*
-
----
-
-## Phase 0.25 sweep receipt
-
-| Surface | Evidence | Finding | Call |
-| --- | --- | --- | --- |
-| repo git | `git status -sb`; `branch_drift_check.sh` → 0 ahead/0 behind `origin/main` | worktree clean except this lane’s uncommitted prereg/smoke/lane-split; tip `56449fd64` | **resume** `cursor/135-trace-campaign` |
-| twin/sister | gllvmTMB not owning these 14 cells; #858 foreign | no co-opt for this slate | n/a |
-| brain | `search_notes` 135-trace/Prong B; `grep DECISIONS` D-117 | campaign **UNFENCED** 2026-08-05; D-117 **not discharged** (PASS withheld) | reuse unfence; **do not** reopen D-117 in this arc |
-| log/journal | `grep AGENT_LOG/DECISIONS/journal` | Prong B stack landed 2026-08-04; campaign next | build-the-gap = **runner + Totoro + review + promote** |
-| **Verdict** | | | **Gap:** full 14-cell grid-engine campaign + promotion. Reuse Arc2 receipt shape, Lane C DGPs, existing truth gate. |
-
-Foreign lane: PR **#858** draft — preserve; no overlap.
-
----
-
-## Phase 0.4 — questions for you (1–2)
-
-**Already defaulted:** promote cleared cells in this arc (not receipts-only). Say if you want receipts-only instead.
-
-**Still needed before Totoro launch (execution trigger):** explicit **Totoro go** after C1 grid smoke is green. Unfence authorizes the campaign; launching ≤100 cores still wants a spoken go under D-50 habit.
-
-Owner decisions (D-117 / #926 / REML design doc) stay **surfaced, not assumed** — out of this arc.
-
----
-
-## TEAM RAISED (compact)
-
-- **Fisher** — clause 8 + Fisher location review are load-bearing; endpoint-only smoke is not contract-complete until grid C1 passes. · Recommend: C1 gate before Totoro.  
-- **Rose** — do not promote on mean stats; structured-σ cells need claim_boundary bias text; do not touch #858.  
-- **Gauss** — clamp_limited must be computed; never copy arc1/arc2 `clamp_limited=FALSE`.  
-- **Ada** — outcome-first; Arc 0 done; remaining work is runner → Totoro → review → promote; after G0 hand to `/goal`.
-
----
-
-## ULTRA PLAN — slice table (post-G0 via `/goal`)
-
-| Slice | Member | Model+effort | Bar | Time | Detail | Dep |
-| --- | --- | --- | --- | --- | --- | --- |
-| RECON (done) | Ada | — | Cursor Models | done | classify, prereg, smoke | — |
-| S1 runner+registry | Gauss/build | Composer or Sonnet med | Cursor Models | 90–120m | New `tools/run-135-trace-campaign.R` (+ bash Totoro driver): 14-cell registry from Lane C / fence DGPs; one `se=TRUE` fit per (cell,seed); **grid** endpoints; compute clamp_limited + both-sides LR; emit Arc2-shaped receipts + `true_value`/`brackets_truth` | — |
-| S2 C1 grid smoke | Curie | Composer | Cursor Models | 20–30m | Re-smoke mc-0568 with grid; abort Totoro on fail | S1 |
-| S3 Totoro grid | Ada+Curie | Cursor parent + SSH | Cursor / hand HPC | 30–45m | ≤100 cores; artifact dir under `simulation-artifacts/2026-08-05-135-trace-campaign/` | S2 + Totoro go |
-| S4 review panel | Fisher+Rose | Other Models (judgment) | Other Models | 180–240m | Ten-clause + location review per cell; PASS/WITHHOLD table | S3 |
-| S5 promote | Ada+Emmy | Sonnet/Composer | Cursor Models | 60–90m | Ledger/evidence/NEWS/`FROZEN` only for PASSes; structured-σ claim_boundary | S4 |
-| MECHANICAL-VERIFY | Luna/Haiku | Composer | Cursor Models | 20m | `capability_ledger.py --check`; adversarial frozen flip; fence integrity | S5 |
-| VERIFY (judgment) | Rose | Other Models | Other Models | 30m | D-43-style claim vs evidence on promotions | S5 |
-| RECONCILE | Melissa | Sonnet med | Other Models | 20m | `docs/dev-log/plan-actual/2026-08-05-135-trace-campaign.md` | close |
-
-**FAN-OUT BUDGET:** checkpoint=`135-trace` · children ≤4 · scout 0–1 · build 2–3 · ceiling 0–1 (Fisher/Rose review)  
-**LUNA SUITABILITY:** yes — mechanical verify + receipt inventory  
-**ULTRA EFFORT:** no  
-**CONTEXT BRAKE:** after S3 or S4 milestone → prefer `/goal` fresh task if context heavy  
-**D-43 PANEL:** fire once before any public promotion claim
-
-### Architecture (execution)
-
-```mermaid
-flowchart LR
-  prereg[PREREGISTRATION]
-  runner[CampaignRunner_grid]
-  c1[C1_grid_smoke]
-  totoro[Totoro_le_100]
-  review[TenClause_Fisher]
-  promo[Ledger_promote]
-  prereg --> runner --> c1 --> totoro --> review --> promo
-```
-
-### Key implementation pins
-
-- Work only in [~/local-scratch/worktrees/drmTMB-135trace](~/local-scratch/worktrees/drmTMB-135trace); never stage primary-checkout debris.
-- Reuse DGP constructors from [tools/profile-fence-fixtures.R](tools/profile-fence-fixtures.R) / [tools/run-lane-c-c17c1-c14-model15-compatibility.R](tools/run-lane-c-c17c1-c14-model15-compatibility.R) and Lane C recovery scripts named in scoping turnkey step 3.
-- Receipt contract: extend Arc2 fields with **computed** `clamp_limited`, LR both-sides, unimodality, `true_value`, `brackets_truth`; wire [tools/profile_truth_gate.py](tools/profile_truth_gate.py).
-- Seeds: `20260805 + 1000000 * cell_index + seed_index` (32-bit safe).
-- Delimiter `^` in Totoro driver (never `|`).
-
----
-
-## After G0 approval
-
-Do **not** continue Phase 3 in this planning chat. Paste a `/goal` prompt:
+**Done when:** (size-mode programme) (1) onboarding path exists and is linked from Getting Started; (2) NEWS + `?confint` state the default uncertainty story without nominal-coverage-everywhere; (3) users can parse family × dpar × RE × interval tier from README/pkgdown without opening the ledger TSV; (4) Ayumi-scale `se_group_sd` advice is in `large-data` (or equivalent user surface); AGHQ remains deferred; no version bump / upload / campaign.  
+**First action:**
 
 ```text
-/goal Execute the approved 135-trace plan in ~/local-scratch/worktrees/drmTMB-135trace on branch cursor/135-trace-campaign. Start at S1 (grid-engine campaign runner), then C1 grid smoke of mc-0568. STOP for Totoro go before S3. Promote only cells that clear the preregistered ten-clause contract. Do not touch primary-checkout debris or PR #858.
+In ~/local-scratch/worktrees/drmTMB-07-tarball (or a fresh useful-07 worktree
+off origin/main): open man/confint.drmTMB.Rd §Boundary intervals,
+vignettes/model-workflow.Rmd (confint / profile_targets),
+vignettes/capability-and-limits.Rmd (tier defs), vignettes/large-data.Rmd,
+and _pkgdown.yml Getting Started — then record Arc 0 decision on this card:
+new short vignette vs reuse+link only.
 ```
 
-**HAND TO ULTRA PLAN / GOAL:** outcome-first 135-trace campaign · ~7–10 h remaining · promote cleared cells · Totoro after C1 · Cursor platform.
+### Actuals (complete at close)
+**Recommended / actual:** 370 / _ · **Requested / used:** N/A / _ · **Rungs completed:** _  
+**Under-run event:** _  
+**Calibration:** _  
+**Metric movement:** first-week user surfaces incomplete → _ (four deliverables: _) · AGHQ: deferred  
+**Result:** _ · **Next arc:** platform-clean (other owner) **or** post-submit AGHQ corner (binomial / cumlogit) as a separate science arc
+
+---
+
+HAND TO ULTRA PLAN: 5.5h drmTMB “really useful 0.7” user-facing programme —
+Arc 0 = 40 min gap map (reuse vs thin new vignette); then freeze default
+uncertainty story in NEWS+?confint; land fit→profile_targets→confint(profile)→
+profile.boundary onboarding linked from Getting Started; ship parseable
+family×dpar×RE×tier surface from existing ledger (no promotions); add
+Ayumi-scale se_group_sd advice to large-data; no platform-clean, no upload,
+no DESCRIPTION 0.7 bump, no Totoro, AGHQ deferred post-submit; work from
+clean worktree off origin/main / tarball worktree, never dirty primary.
