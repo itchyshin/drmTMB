@@ -114,9 +114,15 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
 - `profile.boundary == TRUE` on a usable interval: treat the interval as
   indicative of scale, not as a calibrated `level` interval. The D-117
   10-group random-effect SD gate measured conditional coverage as low as
-  0.0732 against a nominal 0.95 when that flag was set; the same behaviour
-  appears in `lme4` on the same seeds (see `?confint.drmTMB` Boundary
-  intervals). Prefer more groups when the design allows it.
+  0.1021 against a nominal 0.95 when that flag was set (and 0 of 89 in one
+  cell where boundary hits are rare); the same behaviour appears in `lme4`
+  on the same seeds (see `?confint.drmTMB` Boundary intervals). Prefer more
+  groups when the design allows it.
+- Expect the SD itself to run low. At this design the point estimate was
+  biased 8.3%-15.8% below truth -- a property of maximum likelihood at few
+  groups, not of this package. Unconditionally the interval still covered
+  0.9248 against a nominal 0.95 over 400,000 attempts, so the flagged rows
+  are the bad case rather than the usual one.
 - `conf.status` is `profile_failed`, `clamp_limited`, `wald_at_boundary`,
   `newdata_required`, or `derived_interval_unavailable`: there is no usable
   calibrated interval on that row — follow the action implied by the status.

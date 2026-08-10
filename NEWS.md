@@ -90,9 +90,14 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   boundary (`drmTMB_wald_boundary_warning`), and it steers the user to
   `method = "profile"` -- into a regime the package had measured as worse, with no
   signal. Conditional on the boundary flag, the D-117 10-group random-effect SD
-  gate measured profile coverage at **0.0732**, **0.2540**, and **0.8566** against a
-  nominal 0.95, driven by a random-effect SD point estimate biased 9.1%-16.9% low
-  (`p < 1e-23`), which anchors the interval low and makes it miss from above.
+  gate measured profile coverage at **0.1021**, **0.2387**, and **0.8683** against a
+  nominal 0.95 -- and 0 of 89 in a fourth cell where boundary hits are rare (0.09%
+  of fits) -- driven by a random-effect SD point estimate biased **8.3%-15.8%** low,
+  which anchors the interval low and makes it miss from above. Unconditionally, over
+  all fits, the same gate measured **0.9248** against a nominal 0.95: a flagged
+  interval is the bad case, not the typical one, and the flag tells you which you
+  have. These figures are from a 400,000-attempt campaign and supersede the
+  1,000-replicate figures quoted in earlier releases.
 
 * This is **not** a drmTMB defect, and the warning does not report one.
   `lme4::lmer` on the same data-generating process and the same seeds agreed on
@@ -100,8 +105,16 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   to four decimal places; in the single divergence, `lme4` returned an interval that
   excluded its own maximum likelihood estimate. Sub-nominal coverage here is a
   property of profile intervals near a variance boundary, not of this
-  implementation. Evidence:
-  `docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/`.
+  implementation. The comparator ran at 1,000 replicates per cell and was not
+  re-run at 400,000. Evidence:
+  `docs/dev-log/simulation-artifacts/2026-08-04-d117-10group-profile-gate/` and
+  `.../2026-08-09-d117-100k-regate/`.
+
+* **Scope.** All of the above was measured on one design: Gaussian, a single random
+  intercept on the mean, 10 groups, 4 or 10 observations per group, maximum
+  likelihood. It is not a general claim about other families, providers, or group
+  counts, and 0.9248 against a nominal 0.95 is real undercoverage -- the package's
+  small-sample floor is deliberately tapered with the group count for that reason.
 
 * The interval is still returned -- a boundary is a warning, not an auto-discard,
   matching the Wald path. Only usable intervals are flagged: `profile_failed` and
