@@ -4803,28 +4803,50 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
 #' Extract fitted missing-predictor summaries
 #'
 #' `imputed()` reports the fitted values used for explicitly modelled missing
-#' predictors. Gaussian missing predictor values are reported as conditional
-#' modes from the fitted TMB likelihood. When [TMB::sdreport()] is available,
-#' `std_error` contains the corresponding likelihood-based conditional standard
-#' error for Gaussian missing predictor values. Binary missing predictor values
-#' are reported as fitted conditional probabilities from the Bernoulli/logit
-#' predictor model and the Gaussian response likelihood. Ordered categorical
-#' missing predictor values are reported as fitted conditional expected scores
-#' from the cumulative-logit predictor model and the Gaussian response
-#' likelihood. Unordered categorical missing predictor values are reported as
-#' fitted conditional modal category scores from the baseline-category softmax
-#' predictor model and the Gaussian response likelihood. Beta/proportion,
-#' zero-one beta boundary-proportion, and denominator-aware beta-binomial
-#' missing predictor values are reported as fitted conditional means from the
-#' fitted predictor model and the Gaussian response likelihood. Count missing
-#' predictor values are reported as
-#' fitted conditional expected counts from Poisson, negative-binomial, or
-#' zero-truncated negative-binomial predictor models and Gaussian response
-#' likelihood. Lognormal, Gamma, and Tweedie missing predictor values are
-#' reported as fitted conditional quadrature means from the positive or
-#' semi-continuous predictor model and Gaussian response likelihood. The first
-#' finite-state, beta/proportion, boundary-proportion, beta-binomial, count,
-#' lognormal, Gamma, and Tweedie routes report `NA` standard errors.
+#' predictors, for two readers: applied users inspecting a fit, and downstream
+#' packages (for example `drmSEM`) that build effect intervals directly on
+#' these values and need to know, row by row, whether `std_error` is usable.
+#'
+#' Gaussian missing predictor values are reported as conditional modes from
+#' the fitted TMB likelihood, a genuine random effect; their `std_error` comes
+#' from [TMB::sdreport()]'s conditional covariance. Every other fitted route
+#' already stores a normalized posterior probability vector or matrix over a
+#' finite-state or quadrature grid, and the reported value is already the
+#' posterior mean of that grid: binary missing predictor values are fitted
+#' conditional probabilities (Bernoulli/logit predictor model), ordered
+#' categorical values are fitted conditional expected scores
+#' (cumulative-logit predictor model), beta/proportion, zero-one beta
+#' boundary-proportion, and denominator-aware beta-binomial values are fitted
+#' conditional means (quadrature or exact summation over the reported
+#' proportion), count values are fitted conditional expected counts (Poisson,
+#' negative-binomial, or zero-truncated negative-binomial predictor models),
+#' and lognormal, Gamma, and Tweedie values are fitted conditional quadrature
+#' means. For all of these, `std_error` is the posterior standard deviation
+#' over that same grid, `sqrt(sum(p * (x - mean)^2))`, computed directly from
+#' the stored grid with no additional TMB computation. The one exception is
+#' unordered categorical missing predictor values, reported as fitted
+#' conditional modal category scores from the baseline-category softmax
+#' predictor model: the reported value is a mode over unordered nominal
+#' codes, and no metrically meaningful variance exists over categories that
+#' carry no order, so `std_error` stays `NA` for this route.
+#'
+#' `uncertainty_status` tells a consumer why `std_error` is `NA` when it is,
+#' and what to do about it:
+#' * `"ok"`: `std_error` is a usable standard error (or the row is an observed
+#'   value, which never carries one). Use it.
+#' * `"sdreport_skipped"`: the fit used `drm_control(se = FALSE)`. Refit with
+#'   `se = TRUE` (the default) to get standard errors.
+#' * `"sdreport_failed"` or `"sdreport_non_pd_hessian"`: [TMB::sdreport()] ran
+#'   but did not return a usable covariance. Standard errors are unavailable
+#'   for this fit; diagnose with [check_drm()] before trusting point estimates
+#'   either.
+#' * `"sdreport_unavailable"`: the fit has no [TMB::sdreport()] object at all
+#'   (for example, refitted without `keep_tmb_object`). Refit to get one.
+#' * `"route_conditional_se_unavailable"`: the fit and `sdreport()` are both
+#'   fine, but this specific missing-predictor row has no well-defined
+#'   posterior standard error — currently only the unordered categorical
+#'   route. Do not treat the missing `std_error` as zero or impute one; the
+#'   point estimate (the modal category) remains usable on its own.
 #'
 #' This is not multiple imputation: the output does not contain posterior
 #' means, posterior intervals, credible intervals, or pooled-imputation
@@ -4837,11 +4859,17 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
 #'   predictor values. `"all"` returns retained model rows, with observed
 #'   predictor values labelled as observed.
 #' @param se Logical; include conditional standard errors when the fit contains
-#'   a successful [TMB::sdreport()] result.
+#'   a successful [TMB::sdreport()] result. `se = FALSE` reports `std_error =
+#'   NA` and `uncertainty_status = "ok"` throughout, because nothing was
+#'   requested.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A data frame with `variable`, `original_row`, `model_row`,
 #'   `observed`, `estimate`, `std_error`, `source`, and `uncertainty_status`.
+#'   `uncertainty_status` takes the values `"ok"`, `"sdreport_skipped"`,
+#'   `"sdreport_failed"`, `"sdreport_non_pd_hessian"`,
+#'   `"sdreport_unavailable"`, or `"route_conditional_se_unavailable"`; see
+#'   Details.
 #' @export
 #'
 #' @examples
@@ -4928,11 +4956,14 @@ imputed.drmTMB <- function(
   } else {
     seq_along(observed)
   }
+  fit_status <- drm_standard_error_status(object)
   missing_rows <- which(!observed)
   se_missing <- drm_imputed_missing_predictor_se(
     object,
+    predictor,
     length(missing_rows),
-    se
+    se,
+    fit_status
   )
   se_full <- rep(NA_real_, length(observed))
   se_full[missing_rows] <- se_missing
@@ -4943,6 +4974,12 @@ imputed.drmTMB <- function(
     "conditional_mode"
   }
   source <- ifelse(observed[row_index], "observed", missing_source)
+  uncertainty_status <- drm_imputed_uncertainty_status(
+    fit_status,
+    observed,
+    se_full,
+    se
+  )
   out <- data.frame(
     variable = rep(variable, length(row_index)),
     original_row = as.integer(object$missing_data$original_row[row_index]),
@@ -4951,23 +4988,86 @@ imputed.drmTMB <- function(
     estimate = as.numeric(predictor$value[row_index]),
     std_error = as.numeric(se_full[row_index]),
     source = source,
-    uncertainty_status = rep(
-      drm_standard_error_status(object),
-      length(row_index)
-    ),
+    uncertainty_status = uncertainty_status[row_index],
     stringsAsFactors = FALSE
   )
   row.names(out) <- NULL
   out
 }
 
-drm_imputed_missing_predictor_se <- function(object, n_missing, se) {
+#' Row-level uncertainty status for `imputed()`
+#'
+#' `drm_standard_error_status()` (`R/methods.R`) reports only the FIT-level
+#' [TMB::sdreport()] state (`"ok"`, `"sdreport_skipped"`,
+#' `"sdreport_failed"`, `"sdreport_non_pd_hessian"`, or
+#' `"sdreport_unavailable"`). That fit-level state does not distinguish "the
+#' fit has no usable covariance at all" from "the fit is fine, but this
+#' particular missing-predictor route has no well-defined posterior standard
+#' error". `imputed()` needs the second distinction because most non-Gaussian
+#' routes now report a real conditional standard error
+#' (see [drm_imputed_route_conditional_sd()]), while the unordered categorical
+#' route never can.
+#'
+#' This wrapper leaves `drm_standard_error_status()` itself untouched, so its
+#' other call site (`drm_summary_coefficients()`, the fixed-effect
+#' coefficient table) keeps its existing behaviour. It layers one more state,
+#' `"route_conditional_se_unavailable"`, on top:
+#'
+#' 1. If the fit-level status is not `"ok"`, it wins outright for every row
+#'    (`sdreport()` was skipped, failed, or returned a non-positive-definite
+#'    Hessian). This also means `std_error` is `NA` throughout in that case:
+#'    `drm_imputed_missing_predictor_se()` only attempts a route-conditional
+#'    standard error when the fit-level status is `"ok"`, even though that
+#'    computation does not itself call `sdreport()` — this keeps `std_error`
+#'    and `uncertainty_status` consistent instead of reporting a real number
+#'    next to a status that says standard errors were skipped.
+#' 2. If the caller passed `se = FALSE` to `imputed()`, the fit-level `"ok"`
+#'    status is reported unchanged; nothing was requested, so nothing is
+#'    "unavailable".
+#' 3. Otherwise, for each row where a missing-predictor value was actually
+#'    estimated (`!observed[row]`), `"route_conditional_se_unavailable"`
+#'    replaces `"ok"` when that row's `std_error` is not finite. Observed
+#'    rows never carry a `std_error` by design and keep the fit-level `"ok"`
+#'    status; they are not "unavailable", because no missing-predictor value
+#'    was estimated for them.
+#'
+#' @param fit_status The fit-level status from `drm_standard_error_status()`,
+#'   computed once by the caller.
+#' @param observed Logical vector, one entry per retained model row; `TRUE`
+#'   where the missing-predictor value was observed.
+#' @param std_error Numeric vector, one entry per retained model row, as
+#'   assembled by `imputed.drmTMB()` (`NA` for observed rows).
+#' @param se Logical; the `se` argument `imputed()` was called with.
+#' @return A character vector the same length as `observed`.
+#' @keywords internal
+drm_imputed_uncertainty_status <- function(fit_status, observed, std_error, se) {
+  status <- rep(fit_status, length(observed))
+  if (identical(fit_status, "ok") && isTRUE(se)) {
+    missing_rows <- which(!observed)
+    unavailable <- missing_rows[!is.finite(std_error[missing_rows])]
+    status[unavailable] <- "route_conditional_se_unavailable"
+  }
+  status
+}
+
+drm_imputed_missing_predictor_se <- function(
+  object,
+  predictor,
+  n_missing,
+  se,
+  fit_status
+) {
   if (n_missing == 0L) {
     return(numeric(0))
   }
-  if (
-    !isTRUE(se) || is.null(object$sdr) || is.null(object$sdr$diag.cov.random)
-  ) {
+  if (!isTRUE(se) || !identical(fit_status, "ok")) {
+    return(rep(NA_real_, n_missing))
+  }
+  route_sd <- drm_imputed_route_conditional_sd(predictor)
+  if (!is.null(route_sd) && length(route_sd) == n_missing) {
+    return(as.numeric(route_sd))
+  }
+  if (is.null(object$sdr) || is.null(object$sdr$diag.cov.random)) {
     return(rep(NA_real_, n_missing))
   }
   random_names <- names(object$sdr$par.random)
@@ -4979,4 +5079,119 @@ drm_imputed_missing_predictor_se <- function(object, n_missing, se) {
   }
   variance <- as.numeric(object$sdr$diag.cov.random[positions])
   sqrt(pmax(variance, 0))
+}
+
+#' Posterior standard error of a fitted missing-predictor value
+#'
+#' Every non-Gaussian `mi()` route already stores a normalized posterior
+#' probability vector or matrix over a finite-state or quadrature grid on
+#' `fit$missing_data$predictors[[variable]]`, and `predictor$value` at the
+#' missing rows is already the posterior mean of that exact grid
+#' (`predictor$summary` names which one). The posterior standard deviation is
+#' therefore `sqrt(sum(p * (x - mean)^2))` over the same grid, with no new TMB
+#' computation. This function dispatches on `predictor$summary` and returns
+#' `NULL` when no such grid exists for the route.
+#'
+#' `"conditional_modal_category"` (unordered `categorical()` predictors)
+#' always returns `NULL`: the reported value is the mode over unordered
+#' nominal codes, and no metrically meaningful variance exists over categories
+#' that carry no order.
+#'
+#' `"conditional_mode"` (Gaussian predictors, a genuine TMB random effect)
+#' also returns `NULL` here; its standard error comes from
+#' `TMB::sdreport()`'s `diag.cov.random`, computed by the caller,
+#' `drm_imputed_missing_predictor_se()`.
+#'
+#' @param predictor One element of `fit$missing_data$predictors`.
+#' @return A numeric vector the same length as `predictor$model_row`, in the
+#'   same row order, or `NULL`.
+#' @keywords internal
+drm_imputed_route_conditional_sd <- function(predictor) {
+  summary <- predictor$summary
+  if (is.null(summary)) {
+    return(NULL)
+  }
+  if (identical(summary, "conditional_probability")) {
+    p <- predictor$conditional_probability
+    if (is.null(p)) {
+      return(NULL)
+    }
+    return(sqrt(pmax(p * (1 - p), 0)))
+  }
+  if (identical(summary, "conditional_expected_score")) {
+    grid <- seq_along(predictor$levels)
+    return(drm_grid_posterior_sd(grid, predictor$conditional_probabilities))
+  }
+  if (identical(summary, "conditional_expected_count")) {
+    return(drm_grid_posterior_sd(
+      predictor$count_support,
+      predictor$conditional_probabilities
+    ))
+  }
+  if (identical(summary, "conditional_quadrature_mean")) {
+    grid <- if (!is.null(predictor$quadrature_values)) {
+      predictor$quadrature_values
+    } else if (!is.null(predictor$quadrature_probabilities)) {
+      # The `beta()` route does not store `quadrature_values`; the shared
+      # node grid is only available as the (rounded) column names of
+      # `quadrature_probabilities`. This loses precision to the
+      # `format(nodes, digits = 4)` rounding applied when those column names
+      # were built, which is an approximation, not the exact node value.
+      as.numeric(colnames(predictor$quadrature_probabilities))
+    } else {
+      return(NULL)
+    }
+    return(drm_grid_posterior_sd(grid, predictor$quadrature_probabilities))
+  }
+  if (identical(summary, "conditional_proportion_mean")) {
+    if (
+      is.null(predictor$success_support) ||
+        is.null(predictor$trials) ||
+        is.null(predictor$model_row)
+    ) {
+      return(NULL)
+    }
+    trials_row <- predictor$trials[predictor$model_row]
+    if (length(trials_row) != nrow(predictor$success_support)) {
+      return(NULL)
+    }
+    # `success_support` holds raw success counts on `0, ..., trials_i`;
+    # dividing by each row's own trial count rescales it to the reported
+    # proportion scale, matching `predictor$value`. This is NOT structurally
+    # blocked: `predictor$trials` is the full per-row trial-count vector
+    # already persisted by `drm_missing_predictor_metadata()`.
+    grid <- predictor$success_support / trials_row
+    return(drm_grid_posterior_sd(grid, predictor$conditional_probabilities))
+  }
+  NULL
+}
+
+#' Posterior standard deviation over a shared or row-specific grid
+#'
+#' @param grid A numeric vector (one grid shared by every row) or a numeric
+#'   matrix the same shape as `probability` (a row-specific grid).
+#' @param probability A numeric matrix, one row per missing-predictor value,
+#'   one column per grid point; rows sum to 1 over the finite (non-`NA`)
+#'   entries.
+#' @return A numeric vector the same length as `nrow(probability)`, or `NULL`
+#'   if `grid` or `probability` is missing or shaped inconsistently.
+#' @keywords internal
+drm_grid_posterior_sd <- function(grid, probability) {
+  if (is.null(grid) || is.null(probability) || !is.matrix(probability)) {
+    return(NULL)
+  }
+  n <- nrow(probability)
+  if (is.matrix(grid)) {
+    if (!identical(dim(grid), dim(probability))) {
+      return(NULL)
+    }
+  } else {
+    if (length(grid) != ncol(probability)) {
+      return(NULL)
+    }
+    grid <- matrix(grid, nrow = n, ncol = length(grid), byrow = TRUE)
+  }
+  mean_x <- rowSums(probability * grid, na.rm = TRUE)
+  var_x <- rowSums(probability * (grid - mean_x)^2, na.rm = TRUE)
+  sqrt(pmax(var_x, 0))
 }
