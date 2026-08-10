@@ -261,12 +261,17 @@ drm_validate_mspl_spec <- function(spec) {
   if (!isTRUE(scaling$ok)) {
     cli::cli_abort("Experimental MSPL could not compute a finite softness scale.")
   }
-  initial <- mspl_logit_jeffreys(
+  # `link = "logit"` is explicit, not defaulted: the MSPL entry point is
+  # logit-only (see the guard above), so this call must never silently follow a
+  # future change to `mspl_jeffreys()`'s default. The helper is link-general
+  # scaffolding; the estimator is not.
+  initial <- mspl_jeffreys(
     X = X,
     beta = rep(0, p),
     offset = spec$offset$mu,
     trials = round(trials),
-    frequency = round(frequency)
+    frequency = round(frequency),
+    link = "logit"
   )
   if (!isTRUE(initial$ok)) {
     cli::cli_abort(c(

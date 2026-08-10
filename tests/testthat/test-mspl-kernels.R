@@ -4,9 +4,9 @@ test_that("MSPL logit Jeffreys kernel agrees with grouped Bernoulli expansion", 
   offset <- c(-0.4, 0.1, 0.3, -0.2)
   trials <- c(2L, 3L, 1L, 4L)
   frequency <- c(1L, 2L, 3L, 1L)
-  grouped <- mspl_logit_jeffreys(X, beta, offset, trials, frequency)
+  grouped <- mspl_jeffreys(X, beta, offset, trials, frequency)
   repeat_n <- trials * frequency
-  expanded <- mspl_logit_jeffreys(
+  expanded <- mspl_jeffreys(
     X = X[rep(seq_len(nrow(X)), repeat_n), , drop = FALSE], beta = beta,
     offset = offset[rep(seq_len(nrow(X)), repeat_n)]
   )
@@ -21,9 +21,9 @@ test_that("Jeffreys kernel retains finite offsets and is invariant to row order"
   X <- cbind(1, c(-2, -0.5, 0.2, 1.3, 2.1))
   beta <- c(0.25, -0.8)
   offset <- c(-4, -0.25, 0.1, 2.5, 6)
-  out <- mspl_logit_jeffreys(X, beta, offset, trials = c(1L, 2L, 3L, 1L, 2L))
+  out <- mspl_jeffreys(X, beta, offset, trials = c(1L, 2L, 3L, 1L, 2L))
   perm <- c(5L, 2L, 1L, 4L, 3L)
-  reordered <- mspl_logit_jeffreys(
+  reordered <- mspl_jeffreys(
     X[perm, , drop = FALSE], beta, offset[perm], trials = c(1L, 2L, 3L, 1L, 2L)[perm]
   )
   expect_true(out$ok)
@@ -34,10 +34,10 @@ test_that("Jeffreys kernel retains finite offsets and is invariant to row order"
 test_that("Jeffreys penalty follows the exact contrast and rescaling shift", {
   X <- cbind(1, c(-1.5, -0.1, 0.8, 2.0, 3.1))
   beta <- c(0.3, -0.4)
-  base <- mspl_logit_jeffreys(X, beta)
+  base <- mspl_jeffreys(X, beta)
   # gamma = C beta and X_gamma = X C^{-1}; eta must be unchanged.
   C <- matrix(c(1, 0.4, 0, 7), 2L, 2L, byrow = TRUE)
-  transformed <- mspl_logit_jeffreys(X %*% solve(C), drop(C %*% beta))
+  transformed <- mspl_jeffreys(X %*% solve(C), drop(C %*% beta))
   expect_true(base$ok)
   expect_true(transformed$ok)
   expect_equal(transformed$eta, base$eta, tolerance = 1e-14)
@@ -45,12 +45,12 @@ test_that("Jeffreys penalty follows the exact contrast and rescaling shift", {
 })
 
 test_that("Jeffreys kernel exposes rank failure and keeps extreme eta on log scale", {
-  rank_bad <- mspl_logit_jeffreys(cbind(1, 1), c(0, 0))
+  rank_bad <- mspl_jeffreys(cbind(1, 1), c(0, 0))
   expect_false(rank_bad$ok)
   expect_identical(rank_bad$code, "rank_deficient_information")
   expect_false(rank_bad$diagnostics$full_rank)
 
-  extreme <- mspl_logit_jeffreys(cbind(1, c(-1, 1)), c(1000, 0))
+  extreme <- mspl_jeffreys(cbind(1, c(-1, 1)), c(1000, 0))
   expect_true(extreme$ok)
   expect_true(all(is.finite(extreme$log_weight)))
   expect_true(is.finite(extreme$half_logdet))
@@ -60,7 +60,7 @@ test_that("Jeffreys half log determinant matches independent determinant oracles
   X <- rbind(c(1, -1), c(1, 0), c(1, 2), c(1, 3))
   beta <- c(-0.15, 0.42)
   offset <- c(-0.3, 0.1, 0.2, -0.1)
-  out <- mspl_logit_jeffreys(X, beta, offset)
+  out <- mspl_jeffreys(X, beta, offset)
   eta <- drop(X %*% beta) + offset
   w <- stats::plogis(eta) * stats::plogis(-eta)
   info <- crossprod(X, X * w)

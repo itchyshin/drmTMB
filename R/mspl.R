@@ -3,8 +3,11 @@
 # These helpers intentionally have no public API and do not fit a model.  They
 # implement the two penalty terms in Sterzinger & Kosmidis (2023), equations
 # (4)--(5), on inputs supplied by a future fitting adapter.  In particular,
-# `mspl_logit_jeffreys()` is the fixed-effect GLM penalty and does not include
-# random effects in its information matrix.
+# `mspl_jeffreys()` is the fixed-effect GLM penalty and does not include
+# random effects in its information matrix.  It accepts a `link` argument as
+# internal scaffolding for a future link-general MSPL adapter, but the public
+# MSPL entry point (`drm_validate_mspl_request()` in R/mspl-estimator.R)
+# still rejects every link except logit.
 
 mspl_failure <- function(code, message, ...) {
   structure(
@@ -44,6 +47,68 @@ mspl_softplus <- function(x) {
   pmax(x, 0) + log1p(exp(-abs(x)))
 }
 
+# Binomial working weight, log scale, for a general link mu = g^{-1}(eta):
+#   w = n * (dmu/deta)^2 / (mu * (1 - mu))
+#   log w = log(n) + 2*log|dmu/deta| - log(mu) - log(1 - mu)
+# These are the EXPECTED (Fisher) information weights, not the observed
+# information; the two coincide only for the canonical logit link.  Every
+# branch is a closed form on the log scale so that mu and 1 - mu are never
+# formed as probabilities and subtracted or multiplied together, which would
+# give 0/0 for cloglog at eta >~ 6.6 and for probit at |eta| >~ 38.
+mspl_log_weight <- function(eta, n_trials, link = "logit") {
+  switch(
+    link,
+    logit = log(n_trials) - mspl_softplus(eta) - mspl_softplus(-eta),
+    probit = log(n_trials) + 2 * stats::dnorm(eta, log = TRUE) -
+      stats::pnorm(eta, log.p = TRUE) -
+      stats::pnorm(eta, lower.tail = FALSE, log.p = TRUE),
+    cloglog = log(n_trials) + 2 * eta - exp(eta) - mspl_log_cloglog_mu(eta),
+    cli::cli_abort("Unsupported link {.val {link}} for the MSPL Jeffreys weight.")
+  )
+}
+
+# log(mu) for cloglog, i.e. log(1 - exp(-exp(eta))), correct in BOTH tails.
+#
+# The direct form log(-expm1(-exp(eta))) is right as eta -> +Inf but WRONG as
+# eta -> -Inf: exp(eta) underflows to exactly 0 below eta = -745.13, so
+# -expm1(-0) is 0 and log(0) is -Inf, which makes the Jeffreys weight
+# log(n) + 2*eta - exp(eta) - (-Inf) = +Inf -- the WRONG SIGN of infinity for a
+# weight that is tending to zero (w -> n*mu -> 0).  Measured: eta = -745 gives
+# -745.56 (correct), eta = -746 gives +Inf.
+#
+# The series fixes it. For small x = exp(eta),
+#   1 - exp(-x) = x*(1 - x/2 + x^2/6 - ...)  =>  log mu = eta + log1p(-x/2 + ...)
+# so log w -> log(n) + eta, which is the correct limit.  A finiteness guard
+# downstream currently converts the +Inf into a failure rather than corrupting a
+# fit, but it would become the dominant weight in max() if that guard were ever
+# relaxed, so fix it at the source.  (Noether, Phase B review.)
+# Branch with indexing rather than ifelse(): ifelse() evaluates BOTH arms over
+# the whole vector, so the series arm would run at large positive eta where
+# -x/2 is hugely negative and log1p() returns NaN with a warning. The result
+# would still be correct (the NaN lands in the discarded arm), but warning-free
+# code is worth more than the brevity.
+mspl_log_cloglog_mu <- function(eta) {
+  x <- exp(eta)
+  out <- numeric(length(eta))
+  small <- x < 1e-8
+  out[small] <- eta[small] + log1p(-x[small] / 2)
+  out[!small] <- log(-expm1(-x[!small]))
+  out
+}
+
+# Inverse link mu = g^{-1}(eta), closed form and unclamped, matching the
+# weight branches above exactly (never stats::make.link() or
+# binomial()$linkinv, which clamp mu into [eps, 1 - eps]).
+mspl_link_mu <- function(eta, link = "logit") {
+  switch(
+    link,
+    logit = stats::plogis(eta),
+    probit = stats::pnorm(eta),
+    cloglog = -expm1(-exp(eta)),
+    cli::cli_abort("Unsupported link {.val {link}} for the MSPL inverse link.")
+  )
+}
+
 mspl_c_n <- function(p, n_eff) {
   if (
     !is.numeric(p) || length(p) != 1L || !is.finite(p) || p < 1 ||
@@ -62,13 +127,16 @@ mspl_c_n <- function(p, n_eff) {
   )
 }
 
-# Compute the fixed-effect Jeffreys term for a binomial logit GLM.  `trials`
-# and `frequency` are integer multiplicities: each row contributes
+# Compute the fixed-effect Jeffreys term for a binomial GLM.  `trials` and
+# `frequency` are integer multiplicities: each row contributes
 # `trials * frequency` Bernoulli observations.  The returned
 # `information_scaled` and `log_weight_scale` are a lossless log-scale
-# representation of X' W X, preventing underflow for extreme eta.
-mspl_logit_jeffreys <- function(
-  X, beta, offset = 0, trials = 1L, frequency = 1L,
+# representation of X' W X, preventing underflow for extreme eta.  `link`
+# defaults to "logit"; other links are internal scaffolding only (see the
+# file-level comment above) and are not reachable from the public MSPL entry
+# point today.
+mspl_jeffreys <- function(
+  X, beta, offset = 0, trials = 1L, frequency = 1L, link = "logit",
   rank_tol = sqrt(.Machine$double.eps)
 ) {
   if (!is.matrix(X) || !is.numeric(X) || nrow(X) == 0L || ncol(X) == 0L ||
@@ -106,9 +174,27 @@ mspl_logit_jeffreys <- function(
   n_trials <- trials$value * frequency$value
   n_eff <- sum(n_trials)
   scaling <- mspl_c_n(p, n_eff)
-  # log{mu(1-mu)} = -softplus(eta) - softplus(-eta), evaluated without
+  mu <- mspl_link_mu(eta, link)
+  # log w = log(n) + 2*log|dmu/deta| - log(mu) - log(1-mu), the EXPECTED
+  # (Fisher) binomial working weight; see mspl_log_weight() above.  For
+  # logit this is -softplus(eta) - softplus(-eta), evaluated without
   # subtracting probabilities that may already have rounded to 0/1.
-  log_weight <- log(n_trials) - mspl_softplus(eta) - mspl_softplus(-eta)
+  #
+  # Paired site: src/drmTMB.cpp:4966-4969 carries the same logit-only weight
+  # (using logspace_add instead of mspl_softplus).  The two must be
+  # generalised together in the arc that opens the MSPL entry point to other
+  # links; today they cannot diverge in practice because
+  # drm_validate_mspl_request() (R/mspl-estimator.R:179-184) rejects every
+  # non-logit link before a model is ever built.
+  log_weight <- mspl_log_weight(eta, n_trials, link)
+  if (any(!is.finite(log_weight))) {
+    return(mspl_failure(
+      "non_finite_log_weight",
+      "The binomial working weight is not finite for one or more observations.",
+      p = p, n_eff = n_eff, c_n = scaling$c_n, eta = eta, mu = mu,
+      log_weight = log_weight
+    ))
+  }
   log_weight_scale <- max(log_weight)
   weight_scaled <- exp(log_weight - log_weight_scale)
   information_scaled <- crossprod(X, X * weight_scaled)
@@ -122,7 +208,7 @@ mspl_logit_jeffreys <- function(
       "rank_deficient_information",
       "The scaled fixed-effect information matrix is not numerically full rank.",
       p = p, n_eff = n_eff, c_n = scaling$c_n, eta = eta,
-      mu = stats::plogis(eta), log_weight = log_weight,
+      mu = mu, log_weight = log_weight,
       information_scaled = information_scaled, diagnostics = diagnostics
     ))
   }
@@ -141,7 +227,7 @@ mspl_logit_jeffreys <- function(
       n_eff = n_eff,
       c_n = scaling$c_n,
       eta = eta,
-      mu = stats::plogis(eta),
+      mu = mu,
       log_weight = log_weight,
       log_weight_scale = log_weight_scale,
       weight_scaled = weight_scaled,
@@ -268,7 +354,7 @@ mspl_penalty_components <- function(
   X, beta, variance, q = NULL, offset = 0, trials = 1L, frequency = 1L,
   rank_tol = sqrt(.Machine$double.eps)
 ) {
-  jeffreys <- mspl_logit_jeffreys(
+  jeffreys <- mspl_jeffreys(
     X = X, beta = beta, offset = offset, trials = trials,
     frequency = frequency, rank_tol = rank_tol
   )
