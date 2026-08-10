@@ -259,3 +259,93 @@ than complete. **This is the soft penalty working as designed, not a defect:** t
 requires the penalty be *"soft enough to preserve the optimal asymptotic properties"*, i.e. to vanish
 as information accumulates. Guaranteed interiority is not guaranteed shrinkage. Users must read the
 ratio (SE ≈ estimate ⇒ no information), never the point estimate as an effect size.
+
+---
+
+# ADDENDUM 2 — Kosmidis & Firth (2021) read directly; ADDENDUM 1 was WRONG on the key point
+
+Source now in hand: **Kosmidis, I. & Firth, D. (2021), "Jeffreys-prior penalty, finiteness and
+shrinkage in binomial-response generalized linear models", *Biometrika* **108**(1), 71–82,
+doi:10.1093/biomet/asaa052.** This was named in Addendum 1 as "the single highest-value missing
+source." It is decisive, and it reverses that addendum's central correction.
+
+## The condition, verbatim (§3.1, p. 76)
+
+> *"Theorem 1 and Corollary 1 readily extend to link functions other than the logistic one.
+> Specifically, if G(η) = exp(η)/{1+exp(η)} in model (1) is replaced by an at least twice
+> differentiable and invertible function G : ℝ → (0,1), then the expected information matrix again
+> has the form XᵀW(β)X, but with working weights wᵢ(β) = mᵢ(ω ∘ ηᵢ)(β), where
+> **ω(η) = g(η)²/[G(η){1 − G(η)}]** and g(η) = dG(η)/dη. **If the link function is such that
+> ω(η) → 0 as η diverges to either −∞ or ∞, then the proofs of Theorem 1 and Corollary 1 in the
+> Supplementary Material carry through unaltered** to show that lim|XᵀW*(r)X| = 0 and that, when the
+> penalty is a positive power of Jeffreys' invariant prior, the maximum penalized likelihood
+> estimates have finite components. **The logit, probit, complementary log-log, log-log and cauchit
+> links are some commonly used link functions for which ω(η) → 0.**"*
+
+**Theorem 1** (p. 75): *"Suppose that X is of full rank. Then lim_{r→∞}|XᵀW*(r)X| = 0."*
+**Corollary 1**: *"Suppose that X is of full rank. The vector β̃ that maximizes ℓ̃(β) has all of its
+components finite."* And: *"Corollary 1 also holds for any fixed a > 0"* — any positive power of the
+Jeffreys penalty, not only ½.
+
+**Table 1** (p. 77) tabulates ω(η) for all five links, captioned *"for all the displayed link
+functions, ω(η) vanishes as η diverges."*
+
+## What Addendum 1 got wrong
+
+Addendum 1 §4 demoted the `ω(η) → 0` condition, calling it **"AGENT-INFERRED"**, *"not stated by
+either source"*, and *"not obviously sufficient: ω → 0 alone gives no rate."*
+
+**All three claims are false.** It is the paper's own condition, stated verbatim; it is exactly what
+the theorem requires; and it *is* sufficient — the proofs "carry through unaltered", with no rate
+condition anywhere. The only additional requirement is **X of full rank**.
+
+**§2 of the original derivation was therefore correct all along.** Its tail-order table computed
+`ω(η) = h'(η)²/[h(η)(1−h(η))]` for logit, probit and cloglog and found all three vanish in both
+tails — which is precisely Theorem 1's hypothesis. The correction was the error, not the derivation.
+
+*Provenance note:* Addendum 1 was written from the 2023 and 2026 papers only. The 2023 paper cites
+this condition to "Kosmidis and Firth 2021, Section 3.1" **without restating it**, so the reviewer,
+lacking that paper, reasonably declined to credit a condition she could not source — and then went
+one step further and asserted it was insufficient. **Declining to verify is right; asserting the
+negative is not.** That is the transferable lesson.
+
+## The settled position
+
+| claim | status |
+|---|---|
+| Jeffreys penalty → −∞ as β diverges, **probit** | **PROVED** — KF2021 Thm 1 + §3.1 + Table 1 |
+| same, **cloglog** | **PROVED** — same |
+| holds for any penalty power `a > 0` | **PROVED** — KF2021, Corollary 1 remark |
+| only structural requirement | **X full rank** |
+| composite MSPL existence, **exact** likelihood | **FOLLOWS** — 2023 p. 6, link-free second half |
+| variance-component half | **link-free** — acts on the Cholesky |
+| composite MSPL existence, **Laplace** | **NUMERICAL EVIDENCE ONLY** — 2023 p. 6, and that evidence is glmer's |
+
+**The link is not the obstruction, and now that is proved rather than argued.** The residual gap is
+the Laplace approximation, it is **link-independent**, and it therefore applies equally to the
+logit route drmTMB already ships.
+
+## Bonus: two claims drmTMB makes are confirmed at source
+
+1. **Wald intervals fail under separation.** KF2021 §2.1, p. 75: *"there will always be a parameter
+   vector with large enough components that the usual Wald-type confidence intervals … will fail to
+   cover regardless of the nominal level α that is used."* drmTMB's MSPL ships standard errors and
+   no intervals on exactly this basis; the citation is now verified rather than inherited.
+2. **Shrinkage is toward equiprobability, not toward zero.** KF2021 Thm 2 and §2.2: the penalty
+   shrinks toward the model implying equiprobability across observations, *"with respect to a metric
+   based on the expected information matrix rather than … Euclidean distance. Hence, the reduced-bias
+   estimates are only typically, rather than always, smaller in absolute value."* This explains the
+   measured behaviour directly: a finite estimate of 214 is not a failed shrinkage — shrinkage was
+   never promised to be toward zero in Euclidean terms.
+
+## Revised statement of what remains
+
+1. ~~KF2021 §3.1's link condition~~ — **OBTAINED AND SATISFIED** for probit and cloglog.
+2. **Finite-estimate behaviour under TMB Laplace** for the non-logit composite — still our own
+   evidence to generate, because the authors' is glmer + logit. **This is now the only technical
+   gap**, and it is not link-specific.
+3. `glm()` / `brglm2` Jeffreys parity for the link-general `W` — a cheap implementation check.
+
+Design 252 §7 should be rewritten accordingly: keep the guard if desired, but the reason is *"we
+have no drmTMB-Laplace evidence for any link, and none at all for non-logit"* — **not** *"the bounds
+are unproved for probit and cloglog."* They are proved.
