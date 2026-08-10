@@ -3,7 +3,32 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-08; 0.7 issue sweep complete on focused branch).**
+> **▶ Latest — start here (2026-08-09; PROBIT + CLOGLOG LAND, targeting 0.7.0; PR #973 open).**
+> `binomial(link = "probit")` and `binomial(link = "cloglog")` **now fit** — both abort before
+> today. Arc D is `claude/binomial-link-generalisation` @ **`b4ae15cb3`** (pushed,
+> **PR [#973](https://github.com/itchyshin/drmTMB/pull/973) OPEN, not merged**); the link-general
+> MSPL Jeffreys helper is `claude/mspl-binomial-inference-promotion` @ **`f1a7f6dea`** (pushed,
+> **no PR — Shinichi's call**). **Owner decision 2026-08-09: target 0.7.0**, superseding design
+> 252's 0.7.1, which made `--as-cran` a release gate and Emmy's review go/no-go. **Both gates
+> green:** `--as-cran` **0/0/1** ("New submission") and `NOT_CRAN` full suite **zero failures**, on
+> both branches; Emmy **GO**-with-conditions; Melissa **0 drift**.
+> **STILL FENCED — the 0.7.0 content decision is NOT release authorization.** Candidate preparation
+> and the release rung remain under the standing NO-GO; `DESCRIPTION` is **0.6.0** on both branches;
+> no ledger, no census, no rung moved. The MSPL PR and the SE-calibration campaign (needs Totoro GO)
+> are unchanged.
+> **CLAIM BOUNDARY:** a fitting capability, **not** an interval or coverage claim. Per design 252 §9
+> (now settled), a new *link* **inherits** binomial's evidence cells — ceiling stays
+> `point_fit_recovery`. **MSPL remains logit-only** (§7).
+> **The lesson worth carrying:** five defects surfaced, **none** findable by a targeted probit test.
+> `make_tmb_data_core()` has **19** model_type branches, not 17 — the bivariate one uses `switch()`,
+> so the grep that found the rest missed it, and every bivariate fit died (223+ errors). *Grep finds
+> what NAMES a contract, not what ASSUMES the old one.* Also fixed: `binomial_start()` hardcoded
+> logit (probit started ~70% too far out, found by Emmy from inspection alone), and a missing
+> delta-method arm that would have aborted every probit standard error.
+> START HERE:
+> [`docs/dev-log/handover/2026-08-09-arcd-phaseb-landed-claude-handover.md`](docs/dev-log/handover/2026-08-09-arcd-phaseb-landed-claude-handover.md).
+>
+> **▶ Prior — (2026-08-08; 0.7 issue sweep complete on focused branch).**
 > The 29/29 open-issue sweep against `main@efb5af4f` found one issue-derived
 > candidate blocker: **#61**, the procedural exact-candidate gate, not a new code defect.
 > **#870** is the sole owner-policy decision and is not a demonstrated blocker. All other

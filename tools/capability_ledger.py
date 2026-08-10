@@ -258,6 +258,15 @@ IMPORTED_MODEL_COUNT = 668
 # Bump this guard only for an approved row insert or split, never to silence drift.
 MODEL_SURFACE_COUNT = 699
 ASSOCIATION_COUNT = 6
+# 2026-08-09 systems-audit seeding: the first missing_predictor axis rows.
+# One row per (response family x predictor family) cell actually admitted by
+# drm_missing_predictor_families() (R/missing-data.R:366-368) and its use sites
+# (R/drmTMB.R:277-296): 13 cells for the gaussian() response x its 13-family
+# impute_model() catalogue (gaussian itself plus 12 non-Gaussian predictor
+# families), and 4 cells for the poisson()/binomial()/nbinom2()/beta() responses,
+# each admitting only one binary (bernoulli) missing predictor. Bump this guard
+# only for an approved row insert, never to silence drift.
+MISSING_PREDICTOR_COUNT = 17
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
@@ -879,7 +888,7 @@ def compact_json_bytes(value: object) -> bytes:
 def schema_value() -> dict[str, object]:
     return {
         "schema_version": 1,
-        "axes": ["model_surface", "association", "missing_response"],
+        "axes": ["model_surface", "association", "missing_response", "missing_predictor"],
         "cell_fields": CELL_FIELDS,
         "evidence_fields": EVIDENCE_FIELDS,
         "transition_fields": TRANSITION_FIELDS,
@@ -894,10 +903,16 @@ def schema_value() -> dict[str, object]:
             "model_surface": MODEL_SURFACE_COUNT,
             "association": ASSOCIATION_COUNT,
             "missing_response": 18,
+            "missing_predictor": MISSING_PREDICTOR_COUNT,
         },
         "missing_response_verified_gate": "G3",
         "claim_boundary": (
-            "Missing-response evidence is independent of model inference maturity."
+            "Missing-response evidence is independent of model inference maturity. "
+            "Missing-predictor evidence (missing_predictor axis) is a separate, "
+            "narrower governance surface seeded 2026-08-09: it tracks admitted "
+            "(response family x predictor family) mi()/impute_model() cells, mostly at "
+            "G2 likelihood-identity/accounting evidence (diagnostic_only), not the "
+            "known-DGP recovery evidence missing_response cells carry at G3."
         ),
     }
 
@@ -2124,11 +2139,13 @@ def validate(
         "model_surface": MODEL_SURFACE_COUNT,
         "missing_response": 18,
         "association": ASSOCIATION_COUNT,
+        "missing_predictor": MISSING_PREDICTOR_COUNT,
     }):
         errors.append(
             f"axis counts are {dict(by_axis)}, expected "
             f"{MODEL_SURFACE_COUNT} model + 18 missing-response + "
-            f"{ASSOCIATION_COUNT} association"
+            f"{ASSOCIATION_COUNT} association + "
+            f"{MISSING_PREDICTOR_COUNT} missing-predictor"
         )
     route_names = {row["family_route"] for row in cells if row["axis"] == "missing_response"}
     if route_names != {route for _, route, _, _, _ in ROUTES}:
