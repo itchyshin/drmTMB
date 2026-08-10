@@ -37,7 +37,7 @@ any level** — the candidate-era R-hub run tested linux/windows/macos R-devel o
 | --- | --- | --- |
 | `clang-asan` | **success** | genuine clean pass on the candidate's `src` |
 | `clang-ubsan` | **success** | genuine clean pass |
-| `gcc-asan` | *(pending at write time — update before citing)* | |
+| `gcc-asan` | **success** | genuine clean pass |
 | `valgrind` | **failure** | **infrastructural, not a memory defect** — see below |
 | `rchk` | **failure** | **findings are in TMB's headers, not drmTMB** — see below |
 
@@ -80,8 +80,8 @@ had. It is stronger evidence for the same conclusion, not a new problem.
 
 ## What this does and does not establish
 
-**Establishes.** The candidate's compiled code passes a full 3-OS `R CMD check` and both clang
-sanitizers. The rchk signal is attributable to TMB and R internals rather than to this package, now
+**Establishes.** The candidate's compiled code passes a full 3-OS `R CMD check` and **all three
+memory sanitizers — clang-asan, clang-ubsan and gcc-asan.** The rchk signal is attributable to TMB and R internals rather than to this package, now
 demonstrated at the candidate's own source state.
 
 **Does not establish.** `platform-clean`. Three gaps remain:
