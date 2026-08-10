@@ -2,8 +2,27 @@ missing_predictor_beta_binomial_data <- function() {
   n <- 86
   z <- seq(-1.8, 1.8, length.out = n)
   trials <- rep(8:16, length.out = n)
-  p <- stats::plogis(-0.25 + 0.85 * z + 0.10 * sin(seq_len(n) / 5))
-  success_full <- stats::qbinom(ppoints(n), size = trials, prob = p)
+  # Generate genuine extra-binomial variation, deterministically (no set.seed,
+  # matching the other missing-predictor fixtures). qbinom() alone is markedly
+  # UNDER-dispersed here (Pearson dispersion 0.20), and beta-binomial can only
+  # represent dispersion >= 1, so the overdispersion parameter had no likelihood
+  # information at all: its profile deviance at the boundary was exactly 0.000
+  # and the MLE ran to sigma_mi -> 0. That flat direction, not any covariate
+  # collinearity, is what made sdreport()'s Hessian a BLAS-dependent coin-flip
+  # (macOS pdHess = TRUE at condition number 3.6e+07; ubuntu non-PD).
+  #
+  # Draw the latent success probability from Beta quantiles at one permuted
+  # level and the count from binomial quantiles at another, so the two sources
+  # of variation are independent. qbinom() is evaluated row-wise, so
+  # success <= trials holds by construction even though trials varies by row --
+  # permuting success_full directly would not preserve that.
+  sigma_mi_true <- 0.35
+  phi <- 1 / sigma_mi_true^2
+  mu_mi <- stats::plogis(-0.25 + 0.85 * z)
+  latent_level <- ppoints(n)[order(order(cos(2 * seq_len(n))))]
+  count_level <- ppoints(n)[order(order(sin(seq_len(n))))]
+  p <- stats::qbeta(latent_level, mu_mi * phi, (1 - mu_mi) * phi)
+  success_full <- stats::qbinom(count_level, size = trials, prob = p)
   cover_full <- success_full / trials
   y <- 0.30 + 1.15 * cover_full - 0.24 * z + 0.05 * cos(seq_len(n) / 6)
   dat <- data.frame(
