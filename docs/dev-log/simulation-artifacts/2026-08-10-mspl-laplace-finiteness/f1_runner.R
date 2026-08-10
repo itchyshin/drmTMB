@@ -8,16 +8,35 @@
 args <- commandArgs(trailingOnly = TRUE)
 getarg <- function(k, d = NULL) { i <- match(k, args); if (is.na(i)) d else args[i + 1L] }
 SRC   <- getarg("--src", ".")
+LIB   <- getarg("--lib", "")
 OUT   <- getarg("--out", "f1_raw.tsv")
 ONLY  <- getarg("--cell", NA)
 RFROM <- as.integer(getarg("--rfrom", "1"))
 RTO   <- as.integer(getarg("--rto", "500"))
 
-# NOT library(drmTMB): an INSTALLED package hides internals and may predate the
-# MSPL merge, in which case `estimator=` lands in `...` and every fit errors with
-# "`drmTMB()` does not use arguments in `...` yet." Paid for twice: locally in
-# this campaign's pre-run test, and on Totoro during the 2026-08-09 E1 probe.
-suppressMessages(devtools::load_all(SRC, quiet = TRUE))
+# Two load paths, deliberately.
+#
+# --lib: a library holding drmTMB INSTALLED FROM THE CAMPAIGN SHA. This is the
+#   Totoro path. 100 workers each calling load_all() would race on the same
+#   src/*.o and *.so, so the package is compiled ONCE and workers only attach it.
+#   Safe here because this runner touches nothing internal -- drmTMB(), bf(),
+#   coef(), vcov() are exported and fit$mspl is a plain field.
+#
+# --src: devtools::load_all(). The local path.
+#
+# Either way the version is asserted below. A STALE build is the failure mode
+# that cost the 2026-08-09 E1 probe a run and this campaign's own pre-run test:
+# it presents as "`drmTMB()` does not use arguments in `...` yet", because
+# `estimator=` falls through to `...` in a build predating the MSPL merge.
+if (nzchar(LIB)) {
+  .libPaths(c(LIB, .libPaths()))
+  suppressMessages(library(drmTMB))
+} else {
+  suppressMessages(devtools::load_all(SRC, quiet = TRUE))
+}
+if (!"estimator" %in% names(formals(drmTMB::drmTMB))) {
+  stop("STALE BUILD: drmTMB() has no `estimator` formal. Rebuild from the campaign SHA.")
+}
 
 grid <- expand.grid(q = c("q1", "q2"), eta_d = c(0, -2, -4, -6, -10), G = c(12L, 30L),
                     stringsAsFactors = FALSE)
@@ -59,6 +78,16 @@ fit_drm <- function(q, d, est) {
 
 na1 <- function(x, f = NA_real_) if (is.null(x) || length(x) != 1L) f else x
 
+# Error/message text carries embedded newlines and tabs (drmTMB uses multi-line
+# cli messages, e.g. the "Refit with drm_control(se = TRUE)" hint). Written raw
+# into a tab-separated file with quote = FALSE, those SHATTER the table: the
+# first run produced 25,887 lines for 20,000 fits and R message text appeared in
+# the `estimator` column. Flatten before writing.
+flat <- function(s) {
+  if (is.null(s) || length(s) != 1L || is.na(s)) return("")
+  gsub("[[:space:]]+", " ", trimws(substr(as.character(s), 1, 200)))
+}
+
 fit_one <- function(sim, q, est) {
   tryCatch({
     f  <- fit_drm(q, sim$d, est)
@@ -86,7 +115,7 @@ fit_one <- function(sim, q, est) {
       beta = NA_real_, se = NA_real_, conv = NA_integer_, fi_finite_pos = NA,
       logdet_fi = NA_real_, hess_pd = NA, hess_mineig = NA_real_, pen_obj = NA_real_,
       unpen_obj = NA_real_, ident_err = NA_real_, c_n = NA_real_, n_eff = NA_real_,
-      err = substr(conditionMessage(e), 1, 200)))
+      err = conditionMessage(e)))
 }
 
 rows <- list()
@@ -105,7 +134,7 @@ for (i in seq_len(nrow(grid))) {
         hess_pd = f$hess_pd, hess_mineig = f$hess_mineig,
         pen_obj = f$pen_obj, unpen_obj = f$unpen_obj, ident_err = f$ident_err,
         c_n = f$c_n, n_eff = f$n_eff,
-        err = if (is.na(f$err)) "" else f$err, stringsAsFactors = FALSE)
+        err = flat(f$err), stringsAsFactors = FALSE)
     }
   }
   cat(sprintf("cell %d (%s eta_d=%g G=%d) done\n", g$cell, g$q, g$eta_d, g$G))
