@@ -1253,9 +1253,9 @@ Type objective_function<Type>::operator()()
           Type mu0 = mu(i) + beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
           nll -= logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           mi_x_full(i) = mi_probability(i);
           mu(i) += beta_mu(mi_col) * (mi_probability(i) - X_mu(i, mi_col));
@@ -1336,7 +1336,7 @@ Type objective_function<Type>::operator()()
             Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
             Type log_y = observed_y(i) == 1 ?
-              weights(i) * drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
+              weights(i) * drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
             log_terms(state) = log_prob + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1416,7 +1416,7 @@ Type objective_function<Type>::operator()()
             Type mu_state = mu(i) - fixed_mu(i) + state_fixed_mu;
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
             Type log_y = observed_y(i) == 1 ?
-              weights(i) * drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0)) : Type(0.0);
+              weights(i) * drm_response_log_density(model_type, y(i), mu_state, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
             log_terms(state) = mi_log_prior(i, state) + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1500,7 +1500,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1638,7 +1638,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1769,7 +1769,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(k) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1831,7 +1831,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -1913,7 +1913,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2017,7 +2017,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2098,7 +2098,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log(mi_quad_weights(q)) + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2182,7 +2182,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log_prior + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2275,7 +2275,7 @@ Type objective_function<Type>::operator()()
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
-            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0));
+            Type log_y = weights(i) * drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
             log_terms(q) = log(mi_quad_weights(q)) + log_density + log_y;
           }
           Type log_denom = log_terms(0);
@@ -2888,11 +2888,11 @@ Type objective_function<Type>::operator()()
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type log_y1 = observed_y(i) == 1 ?
             weights(i) * drm_response_log_density(
-              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0)) :
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
             weights(i) * drm_response_log_density(
-              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0)) :
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           nll -= log_denom;
@@ -3672,9 +3672,9 @@ Type objective_function<Type>::operator()()
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0)) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0)) : Type(0.0);
+            weights(i) * drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           nll -= log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
@@ -3980,11 +3980,11 @@ Type objective_function<Type>::operator()()
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type log_y1 = observed_y(i) == 1 ?
             weights(i) * drm_response_log_density(
-              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0)) :
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
             weights(i) * drm_response_log_density(
-              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0)) :
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           nll -= log_denom;

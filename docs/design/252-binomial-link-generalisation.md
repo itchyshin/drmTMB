@@ -169,12 +169,12 @@ The hazard is closed and has a **live regression test that predates this arc**:
 `DRM.jl` message. It passes unchanged after the guard was widened — which is the actual proof that
 the bridge no longer leans on the native guard.
 
-This, plus the missing `drm_inverse_link()` cases, is why Emmy recommended against 0.7.0 and why the
-arc moved to 0.7.1: both gaps were found *by direct inspection* in a bounded review of a decomposition
-that looked complete, in a **first CRAN submission** already behind a fail-closed gate. (The top-of-
-file status block records the subsequent 2026-08-09 owner reversal back to 0.7.0, once both gaps
-closed — that reversal post-dates this section's own "moved out of 0.7.0" framing, which is kept
-verbatim as a record of the review sequence.)
+This, plus the missing `drm_inverse_link()` cases, is why Emmy first recommended against 0.7.0: both
+gaps were found *by direct inspection* in a bounded review of a decomposition that looked complete,
+in a **first CRAN submission** already behind a fail-closed gate. Both are now shut —
+`drm_julia_bridge_family_type()` aborts on any non-logit binomial, and `drm_inverse_link()` carries
+`probit = stats::pnorm(eta)` and `cloglog = -expm1(-exp(eta))` — which is what let the owner move the
+arc back to 0.7.0.
 
 ## 6. Deliberately untouched — say so, do not silently widen
 
