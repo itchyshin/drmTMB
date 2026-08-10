@@ -3,9 +3,9 @@
 > Companion notes: `250-mspl-binomial-logit-alignment.md` (the frozen MSPL contract, and its
 > Phase 4 amendment) and `251-mspl-wald-covariance-alignment.md` (the standard-error estimand).
 
-Status: **scoped, not started. Target 0.7.1, deliberately NOT 0.7.0.**
-Owner decision 2026-08-09. This note exists so the arc is not rediscovered from scratch;
-every finding below was verified by inspection and is cited.
+Status: **implemented in PR #973. Target 0.7.0.**
+Owner decision 2026-08-09 moved this arc from 0.7.1 to 0.7.0. This note exists so the arc is not
+rediscovered from scratch; every finding below was verified by inspection and is cited.
 
 ## 1. The goal, and the reason it is not the stated reason
 
@@ -88,16 +88,18 @@ loud failure.
 **The Julia bridge must be explicitly re-gated in the same change**, not left to inherit the widened
 guard. Audit all three sites: `R/julia-bridge.R:481-490`, `:3839-3843`, `:502-504`.
 
-This, plus the missing `drm_inverse_link()` cases, is why Emmy recommended against 0.7.0 and why the
-arc moved to 0.7.1: both gaps were found *by direct inspection* in a bounded review of a decomposition
-that looked complete, in a **first CRAN submission** already behind a fail-closed gate.
+Both gaps were found by direct inspection in a bounded review of a decomposition that looked
+complete, which is why Emmy first argued the arc should wait. PR #973 closes both:
+`drm_julia_bridge_family_type()` now aborts on any non-logit binomial rather than deferring to the
+native guard, and `drm_inverse_link()` gained `probit = stats::pnorm(eta)` and
+`cloglog = -expm1(-exp(eta))`. With the two gaps shut, the work ships in 0.7.0.
 
 ## 6. Deliberately untouched — say so, do not silently widen
 
 - `R/associate-pairs.R:1199-1211` (`drm_pair_validate_bernoulli`) — stays logit-only.
 - `R/missing-data.R:236-244` (imputation-model classifier) — stays logit-only.
 
-## 7. MSPL stays logit-only, even in 0.7.1
+## 7. MSPL stays logit-only, even in 0.7.0
 
 Kosmidis & Firth's **fixed-effect** finiteness result generalises to probit, log-log, cloglog and
 cauchit — any link with ω(η) → 0 as η → ±∞ (`ENGINEERING-NOTEBOOK.md:1055-1061`). Those ω(η) are just

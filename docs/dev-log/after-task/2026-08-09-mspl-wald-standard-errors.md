@@ -48,8 +48,8 @@ gate, the inversion, and the surface.
 - **`vcov()` dimnames rebuilt.** TMB names every fixed-effect outer parameter `beta_mu`, so the raw
   names were duplicated and un-indexable. Reuses `coefficient_labels()`; `vcov(fit)["mu:x","mu:x"]`
   now works and `sqrt(diag(V))` matches `summary()` exactly.
-- **Did not generalise to probit/cloglog.** Scoped to 0.7.1 — see
-  `docs/design/252-binomial-link-generalisation.md`.
+- **Did not generalise to probit/cloglog.** The link generalisation is separate work in 0.7.0 — see
+  `docs/design/252-binomial-link-generalisation.md`; MSPL itself remains logit-only.
 
 ## 4. The oracle — what actually proves this correct
 
@@ -214,7 +214,7 @@ log_sd_mu`, so a user could not index it. Caught on independent verification, no
   different claims.
 - `vcov()` shape differs between MSPL and ordinary fits — documented, but a latent break for code that
   assumes a portable `vcov()` dimension. (Fisher.)
-- probit/cloglog and the link-general Jeffreys penalty are 0.7.1 work.
+- probit/cloglog and the link-general Jeffreys penalty are 0.7.0 work (implemented in PR #973).
 - No PR opened: Doc B reserves push/PR/merge on this lane to the owner.
 
 ## 11. Team learning
