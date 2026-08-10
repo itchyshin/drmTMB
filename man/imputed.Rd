@@ -22,38 +22,67 @@ predictor values. \code{"all"} returns retained model rows, with observed
 predictor values labelled as observed.}
 
 \item{se}{Logical; include conditional standard errors when the fit contains
-a successful \code{\link[TMB:sdreport]{TMB::sdreport()}} result.}
+a successful \code{\link[TMB:sdreport]{TMB::sdreport()}} result. \code{se = FALSE} reports \code{std_error = NA} and \code{uncertainty_status = "ok"} throughout, because nothing was
+requested.}
 }
 \value{
 A data frame with \code{variable}, \code{original_row}, \code{model_row},
 \code{observed}, \code{estimate}, \code{std_error}, \code{source}, and \code{uncertainty_status}.
+\code{uncertainty_status} takes the values \code{"ok"}, \code{"sdreport_skipped"},
+\code{"sdreport_failed"}, \code{"sdreport_non_pd_hessian"},
+\code{"sdreport_unavailable"}, or \code{"route_conditional_se_unavailable"}; see
+Details.
 }
 \description{
 \code{imputed()} reports the fitted values used for explicitly modelled missing
-predictors. Gaussian missing predictor values are reported as conditional
-modes from the fitted TMB likelihood. When \code{\link[TMB:sdreport]{TMB::sdreport()}} is available,
-\code{std_error} contains the corresponding likelihood-based conditional standard
-error for Gaussian missing predictor values. Binary missing predictor values
-are reported as fitted conditional probabilities from the Bernoulli/logit
-predictor model and the Gaussian response likelihood. Ordered categorical
-missing predictor values are reported as fitted conditional expected scores
-from the cumulative-logit predictor model and the Gaussian response
-likelihood. Unordered categorical missing predictor values are reported as
-fitted conditional modal category scores from the baseline-category softmax
-predictor model and the Gaussian response likelihood. Beta/proportion,
-zero-one beta boundary-proportion, and denominator-aware beta-binomial
-missing predictor values are reported as fitted conditional means from the
-fitted predictor model and the Gaussian response likelihood. Count missing
-predictor values are reported as
-fitted conditional expected counts from Poisson, negative-binomial, or
-zero-truncated negative-binomial predictor models and Gaussian response
-likelihood. Lognormal, Gamma, and Tweedie missing predictor values are
-reported as fitted conditional quadrature means from the positive or
-semi-continuous predictor model and Gaussian response likelihood. The first
-finite-state, beta/proportion, boundary-proportion, beta-binomial, count,
-lognormal, Gamma, and Tweedie routes report \code{NA} standard errors.
+predictors, for two readers: applied users inspecting a fit, and downstream
+packages (for example \code{drmSEM}) that build effect intervals directly on
+these values and need to know, row by row, whether \code{std_error} is usable.
 }
 \details{
+Gaussian missing predictor values are reported as conditional modes from
+the fitted TMB likelihood, a genuine random effect; their \code{std_error} comes
+from \code{\link[TMB:sdreport]{TMB::sdreport()}}'s conditional covariance. Every other fitted route
+already stores a normalized posterior probability vector or matrix over a
+finite-state or quadrature grid, and the reported value is already the
+posterior mean of that grid: binary missing predictor values are fitted
+conditional probabilities (Bernoulli/logit predictor model), ordered
+categorical values are fitted conditional expected scores
+(cumulative-logit predictor model), beta/proportion, zero-one beta
+boundary-proportion, and denominator-aware beta-binomial values are fitted
+conditional means (quadrature or exact summation over the reported
+proportion), count values are fitted conditional expected counts (Poisson,
+negative-binomial, or zero-truncated negative-binomial predictor models),
+and lognormal, Gamma, and Tweedie values are fitted conditional quadrature
+means. For all of these, \code{std_error} is the posterior standard deviation
+over that same grid, \code{sqrt(sum(p * (x - mean)^2))}, computed directly from
+the stored grid with no additional TMB computation. The one exception is
+unordered categorical missing predictor values, reported as fitted
+conditional modal category scores from the baseline-category softmax
+predictor model: the reported value is a mode over unordered nominal
+codes, and no metrically meaningful variance exists over categories that
+carry no order, so \code{std_error} stays \code{NA} for this route.
+
+\code{uncertainty_status} tells a consumer why \code{std_error} is \code{NA} when it is,
+and what to do about it:
+\itemize{
+\item \code{"ok"}: \code{std_error} is a usable standard error (or the row is an observed
+value, which never carries one). Use it.
+\item \code{"sdreport_skipped"}: the fit used \code{drm_control(se = FALSE)}. Refit with
+\code{se = TRUE} (the default) to get standard errors.
+\item \code{"sdreport_failed"} or \code{"sdreport_non_pd_hessian"}: \code{\link[TMB:sdreport]{TMB::sdreport()}} ran
+but did not return a usable covariance. Standard errors are unavailable
+for this fit; diagnose with \code{\link[=check_drm]{check_drm()}} before trusting point estimates
+either.
+\item \code{"sdreport_unavailable"}: the fit has no \code{\link[TMB:sdreport]{TMB::sdreport()}} object at all
+(for example, refitted without \code{keep_tmb_object}). Refit to get one.
+\item \code{"route_conditional_se_unavailable"}: the fit and \code{sdreport()} are both
+fine, but this specific missing-predictor row has no well-defined
+posterior standard error — currently only the unordered categorical
+route. Do not treat the missing \code{std_error} as zero or impute one; the
+point estimate (the modal category) remains usable on its own.
+}
+
 This is not multiple imputation: the output does not contain posterior
 means, posterior intervals, credible intervals, or pooled-imputation
 summaries.

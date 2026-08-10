@@ -34,6 +34,14 @@ phylo_prior_tmb_data <- function(precision) {
   c(
     list(
       model_type = 99L,
+      # `link_code` selects the binomial link in src/drm_numeric.h (0 = logit,
+      # 1 = probit, 2 = cloglog). It is a GLOBAL `DATA_INTEGER`, so TMB reads it
+      # for every model_type -- including this synthetic 99L probe, which never
+      # uses it. 0L is the inert value. See the contract comment below: this is
+      # exactly the "every new DATA_INTEGER must be added here too" case, and
+      # omitting it aborts all six MakeADFun() probes in this file with
+      # "Error when reading the variable: 'link_code'".
+      link_code = 0L,
       y = numeric(1),
       observed_y = 1L,
       observed_y1 = 1L,

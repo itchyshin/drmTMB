@@ -468,25 +468,15 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
     ),
     "default .*control"
   )
+  # Beta-binomial remains outside the Workflow G FE Julia admission.
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ 1),
-      family = student(),
+      family = beta_binomial(),
       data = dat,
       engine = "julia"
     ),
-    "Gaussian one-/two-response"
-  )
-  # NB2 without a phylo term stays TMB-only: the Julia route is the large-p
-  # phylogenetic count speed edge, not a general count GLM path.
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = nbinom2(),
-      data = dat,
-      engine = "julia"
-    ),
-    "only with a .*phylo.* random intercept"
+    "Gaussian one-/two-response|Workflow G fixed-effect"
   )
 })
 
