@@ -1,6 +1,10 @@
 # Session Handoff: probit/cloglog shipped · MSPL evidence · three self-corrections
 
-Meta: 2026-08-09 → 2026-08-10 · Claude Code · **cite by branch + SHA, never by path**
+Meta: 2026-08-09 → 2026-08-10 · from Claude to Claude · **cite by branch + SHA, never by path**
+
+> **Filename note.** Deliberately NOT `2026-08-10-claude-handover.md` — that path is already taken by
+> `claude/07-hash-ledger` ("0.7.0 readiness handoff", `55ae95a3`), a **different lane**. Adding a
+> second would repeat a collision that has already caused real ambiguity in this repo twice.
 
 ## The one-paragraph version
 
@@ -36,6 +40,20 @@ behaviour. Output is in the worktree.
 **I did not wire it into the ledger.** `AGENTS.md` fences that surface and the permission classifier
 blocked it — I stopped rather than route around. Exact steps:
 `scratchpad/2026-08-10-c17-recertification-BLOCKED.md` (in the links worktree).
+
+## Landing State — `handoff_gate.sh` FAILS; everything unlanded is declared here
+
+Both branches are **committed and pushed**. The gate fails only on untracked working notes, declared
+below per option (b). Nothing is silently uncommitted.
+
+| Artifact | Landed | State |
+|---|---|---|
+| `claude/binomial-link-generalisation@2c60abb1f` | pushed | **CARRIED-OVER** — PR #973 open, not merged. Resume: `cd /Users/z3437171/local-scratch/worktrees/drmTMB-links` |
+| `claude/mspl-binomial-inference-promotion@7cacd1a68` | pushed | **CARRIED-OVER** — no PR, Shinichi's call. Resume: `cd /Users/z3437171/local-scratch/worktrees/drmTMB-mspl-inference` |
+| `docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/` | **NO** | **CARRIED-OVER — the C17 re-certification evidence (PASS 4/4).** Untracked deliberately: it is ledger-adjacent, `AGENTS.md` fences that surface, and the permission classifier blocked writes there. **Do not delete.** Rename to a truthful `2026-08-10-…` date when wiring it in. |
+| `scratchpad/*.md` (both worktrees) | **NO** | **CARRIED-OVER** — working notes, `Rbuildignore`d, conventionally untracked here. Contains the two scout reports, the brain-lessons draft, the gllvmTMB reply draft, and the C17 blocker writeup. Read before assuming anything is missing. |
+| PR #973 · #977 · #983 · #984 | — | open |
+| gllvmTMB PR #952, `codex/mspl-binomial-glmm-experimental`, five repo stashes, primary checkout | — | **PROTECTED** — foreign lanes; do not touch |
 
 ## What shipped, verified
 
@@ -141,6 +159,73 @@ the 2026 Theorem 4.1, which is not transportable to a GLMM.
 - Do not treat the E1 halt as a failure to be worked around — the criterion needs revising, not the
   data reinterpreting.
 
+## MSPL — every lesson, in one place
+
+Consolidated because this arc's knowledge is scattered across three design docs, two campaigns and
+an external exchange. **Read this section before touching MSPL.**
+
+### What MSPL is and is not
+
+- **Guarantees** an estimate in the *interior* of the parameter space when no finite MLE exists.
+- **Does not guarantee a small estimate.** The penalty is deliberately *soft* — scaled to vanish as
+  information accumulates so ML asymptotics survive (2023 abstract). Under separation you get
+  **finite but arbitrary magnitude**: measured 177→745 (complete) and 83→3 197 (quasi-complete)
+  across five seeds, every fit reporting `convergence = 0`.
+- **Shrinkage is toward equiprobability under an information metric, not toward zero in Euclidean
+  terms** (KF2021 Thm 2). So a slope of 214 is not failed shrinkage — reading the point estimate as
+  an effect size is the error. **The honest signal is the ratio**: SE ≈ estimate ⇒ *no information*.
+- **Quasi-complete separation gives LARGER estimates than complete**, systematically. Counter-intuitive
+  but reproducible.
+
+### The literature, settled
+
+| result | link-general? | source |
+|---|---|---|
+| Jeffreys barrier / fixed-effect finiteness | **YES, proved** | KF2021 Thm 1 + §3.1 + Table 1 |
+| condition on the link | **`ω(η) = g(η)²/[G(η){1−G(η)}] → 0` as `η → ±∞`**; only X full rank needed; any penalty power `a > 0` | KF2021 §3.1 p. 76 |
+| composite existence, **exact** likelihood | **YES** — second half turns only on the likelihood being a pmf | 2023 p. 6 |
+| variance-component penalty | **link-free** — acts on the Cholesky | 2023 eq. 5 |
+| **softness scaling `c = 2√(p/n)`** | **NO — logit delta-method at β = 0** (`ω(0)=¼`). Probit's `ω(0)=2/π` ⇒ `c ≈ 1.25√(p/n)` | 2023 §7 p. 7 |
+| composite existence under **Laplace** | **numerical evidence only, and it is glmer's** | 2023 p. 6 |
+
+### Why the guard stays — two independent reasons
+
+1. **`c_n = 2√(p/n_eff)` is the WRONG CONSTANT for probit/cloglog**, not merely unproved.
+   Link-specific; genuine open research.
+2. **No drmTMB-Laplace finiteness evidence for ANY link.** Link-*independent* — **we owe this for
+   logit too.** The estimator we ship rests on the authors' numerics, obtained on lme4/glmer.
+
+### Implementation facts worth not rediscovering
+
+- The Jeffreys weight is the **EXPECTED (Fisher)** information. Expected and observed coincide *only*
+  for canonical logit, so **only a non-canonical link can catch a drift** to observed information.
+- cloglog's `log μ` needs a **two-branch** form: the direct `log(-expm1(-exp(η)))` returns **`+Inf`**
+  (wrong sign) below `η = −745.13`. Series branch: `η + log1p(-exp(η)/2)`.
+- **Never `stats::make.link()`** in the penalty: it clamps to `[eps, 1−eps]` and `cloglog$mu.eta`
+  floors at `.Machine$double.eps`, which changes the penalty *value*. Fine for *starting values*.
+- `n_eff = Σ(trials × frequency)` substitutes for the paper's `n` — equal for single-trial Bernoulli
+  only ([#984](https://github.com/itchyshin/drmTMB/issues/984)).
+- MSPL can return `convergence = 0` with an **`NA` standard error**
+  ([#977](https://github.com/itchyshin/drmTMB/issues/977)).
+- Internals are **not exported**: on an installed package use `drmTMB:::`, unlike `load_all()`.
+
+### The open design question — genuinely undecided
+
+drmTMB ships MSPL **Wald SEs** and blocks intervals. **gllvmTMB holds that finite estimates and a
+finite penalized Hessian license *neither*.** KF2021 §2.1 condemns the *intervals*; whether reporting
+an SE invites the user to build the failing interval is a judgement call. **Our own campaign evidence
+arguably supports their stricter line.** Draft reply awaiting Shinichi:
+`scratchpad/2026-08-10-message-to-gllvmTMB.md`.
+
+### Process lessons this arc paid for
+
+- **Grep finds what NAMES a contract, not what ASSUMES the old one.** Enumerate by behaviour.
+- **Asserting the negative from a silent source** is how three successive corrections all went wrong.
+  "The authors do not defer this" was inferred from papers that were quiet, not contrary.
+- **A frozen decision rule protects against choosing the statistic, not against the statistic being
+  the wrong one.** `R > 1` was graded against bands without asking whether `R` was *meaningful*.
+- **Re-run every sub-agent claim.** One fabricated a file it never wrote; two over-reported defects.
+
 ## Environment
 
 ```sh
@@ -153,3 +238,10 @@ cd /Users/z3437171/local-scratch/worktrees/drmTMB-mspl-inference # MSPL
 `load_all()`), and local fixes do not reach the cluster — redeploy and rebuild. **Never `git add -A`.**
 The primary checkout stays PROTECTED and dirty. A second Claude session was active in
 `drmTMB-missing-data-0809` — its work landed as #972; do not touch that worktree.
+
+
+## Resume prompt
+
+```text
+Read AGENTS.md and docs/dev-log/handover/2026-08-10-arcd-mspl-evidence-handover.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
+```
