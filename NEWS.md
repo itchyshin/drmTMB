@@ -4,6 +4,33 @@ User-facing honesty notes for the next CRAN-facing cycle. `DESCRIPTION` remains
 **0.6.0** until an explicit freeze bumps the version; these bullets freeze the
 default story readers should follow, not a release claim.
 
+## Offsets in `mu` for every univariate family
+
+* `offset()` in the `mu` formula now works for **all** univariate families, not
+  only Poisson, `nbinom2()`, and Bernoulli/binomial. Newly accepted: Gaussian,
+  `student()`, `skew_normal()`, `lognormal()`, `Gamma()`, `tweedie()`,
+  `beta()`, `beta_binomial()`, `zero_one_beta()`, and `cumulative_logit()`.
+* **Read the offset on the family's link scale.** For log-link families it is
+  the usual `offset(log(exposure))` rate model. For identity-link families it is
+  a known additive shift of the mean. For logit-link families it is a known
+  log-odds shift — a calibration term, **not** an exposure;
+  `offset(log(effort))` on a logit-link family does not give a rate model.
+* A `zero_one_beta()` offset shifts only the interior beta component and leaves
+  `zoi`/`coi` untouched. A `cumulative_logit()` offset shifts the latent
+  location against fixed cutpoints rather than an intercept.
+* **Still rejected, deliberately:** `truncated_nbinom2()` and its hurdle path
+  (both renormalise the observed mean over a restricted support, so an exposure
+  term would not scale the reported mean — extending them needs a decision on
+  whether the offset targets the latent untruncated rate or the observed mean),
+  every bivariate family (no per-response offset contract yet), Gaussian
+  sufficient-statistic aggregation, and every distributional parameter other
+  than `mu`.
+* Correctness is pinned by a link-agnostic identity: a constant offset `c` must
+  lower the fitted intercept by exactly `c` and leave every slope unchanged.
+  `tests/testthat/test-offset-families.R` checks that for each family.
+* Fixes a documentation defect: the `drmTMB()` help previously claimed
+  `offset(log(exposure))` support for zero-truncated negative-binomial `mu`
+  formulas, which the code rejected.
 ## Live Workflow G `engine = "julia"` FE gate (#499)
 
 * Skip-safe live tests now round-trip DRM.jl's **eleven** admitted Workflow G

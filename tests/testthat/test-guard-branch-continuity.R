@@ -171,15 +171,25 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # calls in the shared helper and one CondExpGt fail-closed objective gate.
   # They are intentionally C0/C1-unclassified here because their separate
   # overflow and AD behavior is exercised in test-arc-d-sd-overflow-guard.R.
-  # The binomial link generalisation (probit/cloglog) adds THREE CondExp sites
-  # to drm_numeric.h, all inside drm_log_pnorm() -- the tail-safe log-Phi the
-  # probit link needs. They are the branch-selects between the direct
-  # log(pnorm(x)) form and the Mills-ratio asymptotic expansion below x = -20.
-  # This anchor is bumped 2L -> 5L DELIBERATELY, together with the paired
-  # continuity test for that switch point below. Bumping the anchor WITHOUT the
-  # paired test would be precisely the silent normalisation this guard exists
-  # to prevent.
-  expect_equal(n_cpp, 24L)
+  # Experimental MSPL adds four audited source sites to drmTMB.cpp: stable
+  # abs(log-sech), negative-Huber abs and knot selection, and log-weight max
+  # scaling. Their numerical contracts are exercised in test-mspl-kernels.R
+  # and test-mspl-estimator.R. n_cpp = 28L reflects those MSPL sites only;
+  # the binomial link generalisation below did not add any drmTMB.cpp sites.
+  #
+  # The binomial link generalisation (probit/cloglog) separately adds THREE
+  # CondExp sites to drm_numeric.h, all inside drm_log_pnorm() -- the
+  # tail-safe log-Phi the probit link needs. They are the branch-selects
+  # between the direct log(pnorm(x)) form and the Mills-ratio asymptotic
+  # expansion below x = -20. This anchor is bumped 2L -> 5L DELIBERATELY,
+  # together with the paired continuity test for that switch point below.
+  # Bumping the anchor WITHOUT the paired test would be precisely the silent
+  # normalisation this guard exists to prevent.
+  #
+  # The two additions are to different files and are additive: n_cpp is
+  # MSPL's count unchanged by the link work, n_numeric is the link work's
+  # count unchanged by MSPL.
+  expect_equal(n_cpp, 28L)
   expect_equal(n_numeric, 5L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 2L)

@@ -15,6 +15,7 @@ drmTMB(
   engine = c("tmb", "julia"),
   REML = FALSE,
   penalty = NULL,
+  estimator = c("ml", "mspl"),
   ...
 )
 }
@@ -142,6 +143,24 @@ regularises a weakly-identified phylogenetic standard deviation; the fit is
 labeled \code{MAP} and \code{logLik()} returns the unpenalized data log-likelihood.
 Native \code{engine = "tmb"} only.}
 
+\item{estimator}{Estimator for the native TMB route. The default \code{"ml"}
+preserves ordinary maximum likelihood. Experimental \code{"mspl"} implements
+the clean-room maximum softly-penalized likelihood criterion for one
+complete Bernoulli or grouped-binomial logit model with one ordinary
+q = 1 or correlated q = 2 grouping block. \code{vcov()} and the \code{std_error}
+column of \code{summary()} are available: they invert the Hessian of the
+\emph{unpenalized} Laplace log-likelihood evaluated at the MSPL estimate, so the
+penalty is used to obtain a finite estimate but not to describe sampling
+variability. \strong{A standard error is reported; an interval is not claimed.}
+Likelihood comparisons (\code{logLik()}, \code{AIC}, \code{BIC}, \code{anova()}), profiles, and
+\code{confint()} remain deliberately unavailable. Do not form
+\verb{coef ± 1.96 * se} by hand: Kosmidis and Firth show that Wald intervals in
+this setting fail to cover regardless of the nominal level, a failure that
+persists even for profile penalized-likelihood intervals. When the
+information matrix is not positive definite the standard errors are \code{NA}
+with a \code{drmTMB_mspl_wald_unavailable} warning rather than a fabricated
+number.}
+
 \item{...}{Reserved for future model options.}
 }
 \value{
@@ -166,10 +185,24 @@ mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
 ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 zero-truncated negative-binomial \code{mu} formulas support ordinary unlabelled
 random intercepts and independent numeric slopes where
-documented. Binomial \code{mu} formulas may include standard R \code{offset()} terms
-on the logit-event-probability scale. Poisson, ordinary negative-binomial,
-and zero-truncated negative-binomial \code{mu} formulas may include standard R
-\code{offset(log(exposure))} terms for exposure or effort,
+documented. Every univariate \code{mu} formula may include a standard R
+\code{offset()} term, which enters the location linear predictor as a known
+constant. Read it on the family's own link scale: for log-link families
+(Poisson, ordinary negative-binomial, Gamma, Tweedie) \code{offset(log(exposure))}
+is the usual exposure or effort rate model; for identity-link families
+(Gaussian, Student-t, lognormal, skew-normal) an offset is a known additive
+shift of the mean; and for logit-link families (Bernoulli/binomial,
+beta-binomial, beta, zero-one-beta, ordinal cumulative-logit) it is a known
+log-odds shift, which is a calibration term rather than an exposure. A
+zero-one-beta offset shifts only the interior beta component, leaving \code{zoi}
+and \code{coi} unchanged, and an ordinal offset shifts the latent location
+against fixed cutpoints. Zero-truncated and hurdle negative-binomial
+responses, every bivariate family, and Gaussian sufficient-statistic
+aggregation reject offsets: the first two renormalise their observed mean
+over a restricted support, so an exposure term would not scale the reported
+mean, and the others have no per-response offset contract yet. Offsets remain
+restricted to \code{mu}; other distributional parameters reject them.
+drmTMB also supports
 Gaussian random intercepts, independent numeric random slopes,
 and labelled or unlabelled correlated numeric random intercept-slope blocks
 in the location formula,

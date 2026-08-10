@@ -1,0 +1,92 @@
+Regime 1 -- Culcita, events by treatment:
+                          
+                            0  1
+  No Symbionts              2 18
+  Pair of Crabs             8 12
+  Pair of Shrimp            9 11
+  Pair of Shrimp and Crabs 11  9
+
+Every cell has both outcomes, so this is NOT fixed-design separation.
+`detect_separation()` on the fixed design agrees:
+  separation = FALSE 
+
+######## REGIME 1: Culcita (identified) ########
+
+-- drmTMB ML --
+                               estimate std_error
+mu:(Intercept)                     5.10      1.81
+mu:trtPair of Crabs               -3.84      1.47
+mu:trtPair of Shrimp              -4.43      1.55
+mu:trtPair of Shrimp and Crabs    -5.60      1.73
+
+-- lme4::glmer --
+                            Estimate Std. Error
+(Intercept)                     5.10       1.81
+trtPair of Crabs               -3.84       1.46
+trtPair of Shrimp              -4.43       1.55
+trtPair of Shrimp and Crabs    -5.60       1.72
+
+-- drmTMB MSPL --
+                               estimate std_error
+mu:(Intercept)                     4.29      1.54
+mu:trtPair of Crabs               -3.48      1.36
+mu:trtPair of Shrimp              -3.98      1.43
+mu:trtPair of Shrimp and Crabs    -4.99      1.57
+
+-- headline --
+  ML     max|beta| =       5.60   max SE =         1.81
+  glmer  max|beta| =       5.60   max SE =         1.81
+  MSPL   max|beta| =       4.99   max SE =         1.57
+
+  MSPL Wald: spd = TRUE | rcond = 0.0113 | unpenalized grad = 0.4472
+
+
+Regime 2 -- engineered separation, events by treatment:
+   
+     0  1
+  a  8 16
+  b 10 14
+  c 20  4
+  d 24  0
+
+  separation = TRUE 
+boundary (singular) fit: see help('isSingular')
+
+######## REGIME 2: engineered separation ########
+
+-- drmTMB ML --
+               estimate std_error
+mu:(Intercept)     0.69      0.43
+mu:trtb           -0.36      0.60
+mu:trtc           -2.30      0.70
+mu:trtd          -19.26   2195.23
+
+-- lme4::glmer --
+            Estimate Std. Error
+(Intercept)     0.69       0.43
+trtb           -0.36       0.60
+trtc           -2.30       0.70
+trtd          -33.05 2172004.98
+
+-- drmTMB MSPL --
+               estimate std_error
+mu:(Intercept)     0.70      0.45
+mu:trtb           -0.36      0.61
+mu:trtc           -2.30      0.71
+mu:trtd           -5.52      2.29
+
+-- headline --
+  ML     max|beta| =      19.26   max SE =      2195.23
+  glmer  max|beta| =      33.05   max SE =   2172004.98
+  MSPL   max|beta| =       5.52   max SE =         2.29
+
+  MSPL Wald: spd = TRUE | rcond = 0.00793 | unpenalized grad = 0.4082
+
+
+#### What to look for ####
+Regime 1: all three engines should agree closely, and MSPL should shrink
+  only mildly -- the penalty must not disturb an identified fit.
+Regime 2: ML and glmer both diverge on the separated coefficient AND
+  DISAGREE WITH EACH OTHER, because they stop at different points on an
+  almost-flat likelihood. That disagreement is the tell. MSPL stays finite
+  and its three identified coefficients still match ML to ~2 decimals.

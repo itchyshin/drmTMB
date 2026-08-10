@@ -44,6 +44,7 @@ LinkingTo:
 Suggests:
     ape,
     callr,
+    detectseparation (>= 0.4.0),
     emmeans,
     extraDistr,
     fmesher,

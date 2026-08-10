@@ -59,6 +59,54 @@ PR. Both were found by the closeout audit, not by the implementing pass.
 After-task: `docs/dev-log/after-task/2026-08-10-emmy-condition-1-link-code.md`.
 
 
+## 2026-08-09 — `offset()` admitted for every univariate family (Tiers A+B)
+
+- Enabled a standard R `offset()` term in the `mu` formula of the ten remaining
+  univariate families: gaussian, student, skew_normal, lognormal, gamma, and
+  tweedie (identity/log links), plus beta, beta_binomial, zero_one_beta, and
+  cumulative_logit (logit links). Each needed a builder gate, a `spec$offset$mu`
+  assignment, and `offset_mu +` on that `model_type`'s linear-predictor
+  initialiser in `src/drmTMB.cpp`.
+- Fixed a latent trap first: `make_tmb_data_core()` fell back to `numeric(1)`
+  for `offset_mu`, which was safe only while no family read it. It now falls
+  back to `rep(0, length(spec$y))`, so a branch reading it cannot size-mismatch
+  inside Eigen. Added a guard rejecting `offset()` with Gaussian
+  sufficient-statistic aggregation, which consumes a separate `offset_mu_agg`.
+- Corrected a documentation overclaim: the `drmTMB()` roxygen granted
+  `offset(log(exposure))` to zero-truncated NB2 `mu` formulas, which the code
+  rejected. The roxygen is now expanded and split by link — exposure for log,
+  additive mean shift for identity, log-odds calibration (**not** exposure) for
+  logit — and names what still rejects offsets and why.
+- `truncated_nbinom2()`, its hurdle path, every bivariate family, Gaussian
+  aggregation, and every non-`mu` dpar continue to reject offsets. The
+  truncated/hurdle exclusion is the one recorded as deliberate in the original
+  `923ae62b2` after-task log; extending it needs a decision about whether the
+  offset targets the latent untruncated rate or the observed mean.
+- Passed: new `test-offset-families.R` (29 expectations, 0 failures, 0 warnings,
+  6.4 s); 17 targeted regression files across every touched family with 0
+  failures and 0 errors; a link-agnostic constant-offset oracle at machine zero
+  for all ten families, holding also when the offset is combined with an
+  ordinary random intercept; deferred-family rejection probes; and
+  `tools/capability_ledger.py --check` with the 723-cell census unchanged.
+- Red-tested the oracle by deleting one family's offset hand-off — the mode
+  where the formula still parses and the fit still converges — which failed
+  exactly that family's two assertions and no others.
+- Full `devtools::test()`: **43,342 pass / 0 fail / 1 error / 30 warn / 25 skip**
+  across 2327 files in 45 min 40 s. The single error is
+  `test-b1-breadth-dispatch.R`, whose `file.exists()`/`source()` guard misfires
+  in a source checkout; it reproduces on an unmodified `origin/main` tree and is
+  invisible under `R CMD check` because `tools/` is build-excluded. Pre-existing
+  and outside this arc; recorded, not fixed. The 30 warnings are likewise
+  pre-existing clamp/deprecation/toy-data notices.
+- `R CMD check --as-cran` (52 checks): **Status OK** — 0 errors, 0 warnings, 0
+  notes; examples, `--run-donttest` examples, `testthat.R`, and `spelling.R` all
+  OK. **Scope caveat:** built with `vignettes = FALSE` and run with
+  `--ignore-vignettes` and `_R_CHECK_CRAN_INCOMING_=false`, so incoming
+  feasibility and vignette timing were not exercised. This is a
+  code-correctness check, **not** a `tarball-clean` claim; the exact-artifact
+  gate belongs to the 0.7.0 candidate freeze on one immutable hash.
+- Report:
+  [`2026-08-09-offset-univariate-families.md`](after-task/2026-08-09-offset-univariate-families.md).
 ## 2026-08-09 — D-117 10-group profile coverage gate re-run at nrep = 100,000
 
 The 2026-08-04 gate scored PASS on every cell, but its worst cell cleared the floor
@@ -92952,6 +93000,64 @@ family that can discriminate an engine that improves on Laplace.
   `08c9f2330550f766534a7f1e1f910373963b2cf1` on 2026-08-09. The exact
   merge-commit main run is 31298530499; its final verdict is recorded by the
   closeout once complete.
+## 2026-08-08 — experimental binomial-logit MSPL Phase 3
+
+- Branch/worktree: `codex/mspl-binomial-glmm-experimental` in the recycled
+  `drmTMB-rose-nit` worktree; base `origin/main` `efb5af4f`.
+- Clean-room q1/q2 Jeffreys plus derived-Cholesky negative-Huber objective,
+  stable correlated-binomial q=2 prerequisite, opt-in `estimator = "mspl"`,
+  point prediction/simulation, diagnostic receipt, and inference fences added.
+- `devtools::document()`: PASS and idempotent; NAMESPACE/man diff SHA-256
+  `0763af0cb7a2dd58707013e46f819d390b1d5bb716126a0c0896e490a84911d3` before and after.
+- Focused MSPL/q2/legacy-neighbour tests: PASS.
+- Independent fixed-vector q1/q2 penalty value and numerical-gradient oracle:
+  PASS.
+- Independent exact quadrature: q1 41/81-node increment `0`; q2 31/41-node
+  increment `2.56e-13`; exact-criterion optimizers code 0 with maximum gradients
+  `2.01e-06` and `1.27e-05`.
+- Quadrature SHA-256: script `22386a957dd2747a7d9d2a92cc54c0312fa9f90da7884bb5d772116517380027`;
+  TSV `4be95fe8b5cfc8fd10964741188b26c335a06cc7c463368c3b41bd3bfe8e3ece`.
+- Pre-review broad package check: 0 errors, 0 warnings, 0 reported notes;
+  22m13s. The final frozen repaired-snapshot
+  `devtools::check(args = "--as-cran", error_on = "warning")` completed in
+  21m58s with 0 errors and 0 warnings. The raw checker retained its known
+  long-test timing NOTE (`testthat.R` took about 18 minutes), while devtools
+  summarized 0 notes.
+- The first `pkgdown::check_pkgdown()` exposed the new `anova.drmTMB` topic as
+  missing from the reference index. After adding that inference-fence topic to
+  `_pkgdown.yml`, the rerun reported no problems.
+- Final lane preflight returned no detected Claude lane (explicitly weak
+  evidence). The experiment remains tied to merge-base `efb5af4f`; during
+  closeout the local `origin/main` ref advanced by two commits to `31da19f2`.
+  No rebase, merge, or foreign change was absorbed.
+- First Emmy/Fisher/Grace reviews: NOT-DONE and retained. Repaired re-review:
+  Emmy DONE; Fisher DONE; Grace DONE for the local mechanical snapshot before
+  the final broad gates. Grace's final post-gate audit also returned DONE on
+  the 22-tracked/11-untracked intended file fence, unchanged oracle hashes,
+  parsed R/Rd/DESCRIPTION surfaces, and reconciled receipts.
+- No Totoro, DRAC, GitHub Actions, PR, push, or merge.
+- Fresh completion audit after the reviewed snapshot: the focused
+  `(mspl|binomial-correlated-re-mspl-prereq)` matrix passed again; independent
+  quadrature regenerated byte-for-byte with the recorded script and TSV
+  hashes; a full `pkgdown::build_site()` plus `pkgdown::check_pkgdown()` rebuilt
+  every article and reported no problems. The audit found and repaired one
+  stale-neighbour class: the implemented q=2 binomial point-fit route was still
+  described as unavailable by the core error and several current design/model
+  map surfaces. The final repaired-snapshot
+  `devtools::check(args = "--as-cran", error_on = "warning")` completed in
+  22m07.7s with 0 errors and 0 warnings; raw `R CMD check` retained only the
+  known long-test timing NOTE, while devtools summarized 0 notes.
+- The first completion-audit quadrature regeneration computed all numerical
+  gates but could not replace the tracked TSV under the managed sandbox. The
+  same local-only command was rerun with approved worktree-write access and
+  produced an exact byte match; this was an operational retry, not a changed
+  fixture or numerical rerun-to-pass.
+- Final post-receipt scope audit: `git diff --check` passed; the intended fence
+  is 32 tracked modifications plus 11 untracked additions. The increase from
+  Grace's 22/11 reviewed snapshot is exactly the ten current design/vignette
+  neighbour surfaces repaired by the fresh completion audit. HEAD and
+  merge-base remain `efb5af4f`, `origin/main` remains `31da19f2`, and the
+  branch has no upstream.
 
 ## 2026-08-10 — `main` CI unblocked: beta-binomial `mi()` fixture identifiability
 
