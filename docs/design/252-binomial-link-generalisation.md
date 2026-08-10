@@ -154,16 +154,19 @@ The hazard is closed and has a **live regression test that predates this arc**:
 `DRM.jl` message. It passes unchanged after the guard was widened — which is the actual proof that
 the bridge no longer leans on the native guard.
 
-This, plus the missing `drm_inverse_link()` cases, is why Emmy recommended against 0.7.0 and why the
-arc moved to 0.7.1: both gaps were found *by direct inspection* in a bounded review of a decomposition
-that looked complete, in a **first CRAN submission** already behind a fail-closed gate.
+This, plus the missing `drm_inverse_link()` cases, is why Emmy first recommended against 0.7.0: both
+gaps were found *by direct inspection* in a bounded review of a decomposition that looked complete,
+in a **first CRAN submission** already behind a fail-closed gate. Both are now shut —
+`drm_julia_bridge_family_type()` aborts on any non-logit binomial, and `drm_inverse_link()` carries
+`probit = stats::pnorm(eta)` and `cloglog = -expm1(-exp(eta))` — which is what let the owner move the
+arc back to 0.7.0.
 
 ## 6. Deliberately untouched — say so, do not silently widen
 
 - `R/associate-pairs.R:1199-1211` (`drm_pair_validate_bernoulli`) — stays logit-only.
 - `R/missing-data.R:236-244` (imputation-model classifier) — stays logit-only.
 
-## 7. MSPL stays logit-only, even in 0.7.1
+## 7. MSPL stays logit-only, even in 0.7.0
 
 Kosmidis & Firth's **fixed-effect** finiteness result generalises to probit, log-log, cloglog and
 cauchit — any link with ω(η) → 0 as η → ±∞ (`ENGINEERING-NOTEBOOK.md:1055-1061`). Those ω(η) are just

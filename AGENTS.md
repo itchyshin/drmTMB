@@ -3,19 +3,24 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-09; PROBIT + CLOGLOG LAND, targeting 0.7.0; PR #973 open).**
-> `binomial(link = "probit")` and `binomial(link = "cloglog")` **now fit** — both abort before
-> today. Arc D is `claude/binomial-link-generalisation` @ **`b4ae15cb3`** (pushed,
-> **PR [#973](https://github.com/itchyshin/drmTMB/pull/973) OPEN, not merged**); the link-general
-> MSPL Jeffreys helper is `claude/mspl-binomial-inference-promotion` @ **`f1a7f6dea`** (pushed,
-> **no PR — Shinichi's call**). **Owner decision 2026-08-09: target 0.7.0**, superseding design
+> **▶ Latest — start here (2026-08-10; PROBIT + CLOGLOG **MERGED** to main, targeting 0.7.0).**
+> `binomial(link = "probit")` and `binomial(link = "cloglog")` **now fit** — both aborted before.
+> Arc D **squash-merged to `main` as `d88901699`**
+> (PR [#973](https://github.com/itchyshin/drmTMB/pull/973) **MERGED**). Emmy's last open condition —
+> the `int link_code = 0` default, which let a caller mean "logit" by forgetting — is discharged on
+> `claude/emmy-condition-1-link-code` (PR [#988](https://github.com/itchyshin/drmTMB/pull/988),
+> open): all 21 call sites now state their link, and the C17 model-15 receipt was re-certified
+> against the new source, passing 4/4 with **bit-identical** tau errors. The link-general MSPL
+> Jeffreys helper is `claude/mspl-binomial-inference-promotion`
+> (PR [#986](https://github.com/itchyshin/drmTMB/pull/986), open — **not for merge yet**).
+> **Owner decision 2026-08-09: target 0.7.0**, superseding design
 > 252's 0.7.1, which made `--as-cran` a release gate and Emmy's review go/no-go. **Both gates
 > green:** `--as-cran` **0/0/1** ("New submission") and `NOT_CRAN` full suite **zero failures**, on
 > both branches; Emmy **GO**-with-conditions; Melissa **0 drift**.
 > **STILL FENCED — the 0.7.0 content decision is NOT release authorization.** Candidate preparation
-> and the release rung remain under the standing NO-GO; `DESCRIPTION` is **0.6.0** on both branches;
-> no ledger, no census, no rung moved. The MSPL PR and the SE-calibration campaign (needs Totoro GO)
-> are unchanged.
+> and the release rung remain under the standing NO-GO; `DESCRIPTION` is **0.6.0** everywhere;
+> no ledger, no census, no rung moved. The MSPL lane is now visible as PR #986 but is **not for
+> merge**, and the SE-calibration campaign (needs Totoro GO) is unchanged.
 > **CLAIM BOUNDARY:** a fitting capability, **not** an interval or coverage claim. Per design 252 §9
 > (now settled), a new *link* **inherits** binomial's evidence cells — ceiling stays
 > `point_fit_recovery`. **MSPL remains logit-only** (§7).
