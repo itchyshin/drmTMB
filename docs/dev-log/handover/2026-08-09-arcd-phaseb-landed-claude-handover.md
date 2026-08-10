@@ -70,6 +70,26 @@ that ASSUME the old one.* Enumerate by behaviour — "who reads this value?" —
 A repo-wide sweep confirms exactly **two** files hand-build a `model_type` data list
 (`R/drmTMB.R`, `tests/testthat/test-phylo-utils.R`); both now carry `link_code`.
 
+
+## POST-MERGE UPDATE (2026-08-09, 21:55)
+
+`origin/main` moved **5 commits** during the session (#972 missing-data from a concurrent Claude
+session, #960 Julia Workflow G, and merges). PR #973 went `CONFLICTING`.
+
+**Resolved and re-gated:**
+
+- Conflict was **`NEWS.md` only** — `R/julia-bridge.R`, `R/missing-data.R` and
+  `test-julia-phylo-nongaussian.R` all auto-merged. Resolution keeps **both** NEWS sections; no
+  content dropped.
+- **Semantic check that mattered:** main's Workflow G now admits Binomial through the Julia bridge,
+  while Arc D added a non-logit rejection there. They coexist — `test-julia-phylo-nongaussian.R`
+  and `test-julia-workflow-g.R` both pass after the merge.
+- **Gates re-run on the MERGED tree** (the pre-merge greens described a tree that no longer exists):
+  `--as-cran` **0 errors / 0 warnings / 1 NOTE**, `NOT_CRAN` suite **zero failures**.
+- PR #973 is now **MERGEABLE**. `DESCRIPTION` still `0.6.0`; ledger and census still untouched.
+
+GitHub CI was pending at the time of writing — confirm before merging.
+
 ## Owed / next
 
 1. **Merge #973** when you want it in — gates are green; that is now a decision, not a blocker.
