@@ -328,7 +328,13 @@ mr_g4g5_t2_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     truth <- c("fixef:mu:(Intercept)" = .2, "fixef:mu:x" = .4,
       "fixef:sigma:(Intercept)" = -.3, "fixef:sigma:z" = .15, "fixef:nu:(Intercept)" = 1.4)
     native <- .mr_skew_normal_public_to_native(.2 + .4 * data$x, exp(-.3 + .15 * data$z), 1.4)
-    i <- seq_len(n); u <- qnorm((i - .5) / n); v <- qnorm((((i * 37L) %% n) + .5) / n)
+    # #980: u and v were deterministic quantile grids (`qnorm((i-.5)/n)`), so the
+    # response was bit-identical across every seed and `set.seed()` had nothing to
+    # act on. Only the MCAR mask varied, so the cells measured sensitivity to
+    # masking on one fixed realisation rather than coverage over datasets, and
+    # intercept coverage pinned at 1.000. These are the two independent standard
+    # normals the skew-normal stochastic representation actually requires.
+    u <- rnorm(n); v <- rnorm(n)
     data$y <- native$xi + native$omega * (native$delta * abs(u) + sqrt(1 - native$delta^2) * v)
     data <- mr_g4g5_mask_mcar(data, "y", seed = if (use_g3_seed) defaults[[route]] else seed + 1L)
     return(list(data = data, truth = truth, information_multiplier = information_multiplier))
@@ -347,7 +353,12 @@ mr_g4g5_t2_dgp <- function(route, information_multiplier = 1, seed = NULL) {
   if (.mr_centre_random_effects()) u <- u - mean(u)
   eta <- spec$mu[[1L]] + spec$mu[[2L]] * data$x + u[id]
   sigma <- exp(spec$sigma[[1L]] + spec$sigma[[2L]] * data$z)
-  if (route == "student") data$y <- eta + sigma * sample(qt((seq_len(n)-.5)/n, df = 2 + exp(spec$nu)))
+  # #980: this permuted a FIXED quantile multiset (`sample(qt(...))`), so every
+  # symmetric function of the residuals was constant across replicates. The
+  # profile log-likelihood in (fixef:sigma:(Intercept), fixef:nu:(Intercept)) is
+  # permutation-invariant, making those cells near-deterministic — a subtler form
+  # of the skew_normal defect that a "does the response change?" check passes.
+  if (route == "student") data$y <- eta + sigma * rt(n, df = 2 + exp(spec$nu))
   if (route == "lognormal") data$y <- rlnorm(n, meanlog = eta, sdlog = sigma)
   if (route == "gamma") data$y <- rgamma(n, shape = 1/sigma^2, scale = exp(eta) * sigma^2)
   data <- mr_g4g5_mask_mcar(data, "y", seed = if (use_g3_seed) defaults[[route]] else seed + 1L)
@@ -379,7 +390,11 @@ mr_g4g5_t3_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     mu <- exp(.20 + .45 * data$x); sigma <- exp(-.55 + .20 * data$z)
     data$y <- .mr_rtweedie_compound(n, mu = mu, phi = sigma^2, power = 1.35)
     truth <- c("fixef:mu:(Intercept)" = .20, "fixef:mu:x" = .45,
-      "fixef:sigma:(Intercept)" = -.55, "fixef:sigma:z" = .20, "fixef:nu:(Intercept)" = 1.35)
+      "fixef:sigma:(Intercept)" = -.55, "fixef:sigma:z" = .20,
+      # #981: the DGP power is p = 1.35, but src/drmTMB.cpp parameterises it as
+      # p = 1 + plogis(eta_nu) and R/profile.R reports every fixef:* target on the
+      # LINK scale. The profiled parameter is eta_nu, whose truth is qlogis(p - 1).
+      "fixef:nu:(Intercept)" = stats::qlogis(1.35 - 1))
   } else {
     data <- data.frame(x = rnorm(n), z = rnorm(n), w = rnorm(n), v = rnorm(n))
     mu <- plogis(-.20 + .65 * data$x); sigma <- exp(-.85 + .22 * data$z)
@@ -426,7 +441,10 @@ mr_g4g5_t4_dgp <- function(route, information_multiplier = 1, seed = NULL) {
     data$score <- ordered(c("low","medium","high")[draw], levels = c("low","medium","high"))
     data <- mr_g4g5_mask_mcar(data, "score", if (use_g3_seed) defaults[[route]] else seed+1L)
     truth <- c("fixef:mu:x"=.85, "ordinal:theta_ord:low|medium"=-.90,
-      "ordinal:theta_ord:medium|high"=.75)
+      # #981: internal cutpoints are log-increments (c_1 = theta_1,
+      # c_j = c_{j-1} + exp(theta_j)) and R/profile.R reports scale = "internal".
+      # The second cutpoint sits at 0.75, so its parameter is log(0.75 - (-0.90)).
+      "ordinal:theta_ord:medium|high" = log(.75 - (-.90)))
   }
   list(data=data, truth=truth, information_multiplier=information_multiplier)
 }
