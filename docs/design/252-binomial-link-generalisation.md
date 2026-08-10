@@ -170,15 +170,83 @@ cauchit — any link with ω(η) → 0 as η → ±∞ (`ENGINEERING-NOTEBOOK.md
 the binomial working weight, so no paper lookup is needed, and the condition self-checks: the weight
 does tend to 0 for both links.
 
-But **Sterzinger & Kosmidis leave the probit and cloglog bounds for the *mixed-effects* case as future
-work** (`docs/design/250-mspl-binomial-logit-alignment.md:76-78`). MSPL's guarantee comes from the
-*composite* penalty — Jeffreys on β plus negative-Huber on the covariance Cholesky — and that
-composite has published guarantees for logit only.
+> **CORRECTED 2026-08-10, after reading all three source papers.** The paragraph that stood here was
+> **factually wrong** and is preserved at the bottom of this section. It claimed *"Sterzinger &
+> Kosmidis leave the probit and cloglog bounds for the mixed-effects case as future work"* and that
+> *"that composite has published guarantees for logit only."* **Neither is true.**
+>
+> **The paragraph immediately above, however, was right all along** — and is now confirmed at source.
+> **Kosmidis & Firth (2021), *Biometrika* 108(1):71–82, §3.1 p. 76:** *"If the link function is such
+> that ω(η) → 0 as η diverges to either −∞ or ∞, then the proofs of Theorem 1 and Corollary 1 carry
+> through **unaltered** … The logit, probit, complementary log-log, log-log and cauchit links are some
+> commonly used link functions for which ω(η) → 0."* Their **Table 1** tabulates ω for all five.
+> Theorem 1 requires **only that X be full rank**; Corollary 1 holds for **any** penalty power `a > 0`.
+>
+> The composite extends too. **Sterzinger & Kosmidis (2023), p. 6:** the penalised log-likelihood
+> *"diverges to −∞ as β diverges, for any value of ψ"*, because the marginal likelihood is
+> *"bounded from above by one as a probability mass function"* — **link-free**. And the
+> variance-component penalty (their eq. 5) is a function of the Cholesky alone; it never sees the link.
 
-**Therefore `drm_validate_mspl_request()` keeps rejecting non-logit.** The link-general Jeffreys helper
-is built and unit-tested as internal scaffolding; it is not reachable from the public API. Extending
-MSPL itself to other links is a *research* arc requiring either derived bounds or our own evidence,
-and must not be described as a port.
+### The real gap is the LAPLACE APPROXIMATION — and it is LINK-INDEPENDENT
+
+**Sterzinger & Kosmidis (2023), p. 6**, on their own sufficient condition:
+
+> *"A weaker sufficient condition is that the penalized objective diverges to −∞ … From the numerous
+> numerical experiments we carried out, **we encountered no evidence that this weaker condition does
+> not hold for the adaptive quadrature and Laplace approximations** … that the glmer routine of the R
+> package lme4 employs."*
+
+The proof runs through the **exact** marginal likelihood being ≤ 1. **The Laplace criterion is not so
+bounded**, so for Laplace the authors offer numerical evidence rather than proof — and that evidence
+is **glmer's, not TMB's**. drmTMB penalises the Laplace `nll` (`src/drmTMB.cpp:5019`).
+
+> **So the finiteness guarantee behind the logit route we ALREADY SHIP rests on the same footing as
+> probit and cloglog would.** The obstruction is the approximation, not the link.
+
+### CORRECTION 2 (2026-08-10, from the gllvmTMB team) — the correction above was TOO BROAD
+
+The rewrite above said the authors do not defer probit/cloglog. **That is right about EXISTENCE and
+wrong about the ASYMPTOTICS**, and the distinction is the whole point:
+
+| result | link-general? | source |
+|---|---|---|
+| Jeffreys barrier / finiteness of the fixed effects | **YES — proved** | KF2021 Thm 1 + §3.1 + Table 1 |
+| composite existence, exact likelihood | **YES** | 2023 p. 6, link-free second half |
+| **softness scaling `c = 2√(p/n)`** | **NO — derived for logit** | 2023 §7, p. 7 |
+| **asymptotic gradient bound (Thm C.1)** | **NO — logit constants** | 2023 §7 / Appendix C |
+
+2023 §7, p. 7: *"we propose using c₁ = c₂ = c to be the square root of the average of the approximate
+variances of η̂ᵢⱼ **at β = 0**. **A delta method argument gives that c = 2√(p/n)**."* Under logit
+`ω(0) = ¼`, so `Var(η̂) ≈ 4p/n` and `c = 2√(p/n)`. **Under probit `ω(0) = 2/π ≈ 0.637`, and the same
+argument gives `c ≈ 1.25√(p/n)`.** Theorem C.1's bound `‖∇P₍f₎‖ ≤ p^{3/2} max|x_st|/2` carries the
+same logit-derived constants.
+
+So the *softness* half — the thing that buys consistency, asymptotic normality and Cramér–Rao
+efficiency — **is** logit-specific, and non-logit bounds **are** future work. The original §7 was
+closer to right than the first correction; it simply conflated two results that need separating.
+
+**Therefore `drm_validate_mspl_request()` keeps rejecting non-logit, for two honest reasons:**
+1. **the softness scaling is unproved for non-logit** — `c = 2√(p/n)` is a logit delta-method
+   result, so drmTMB's `c_n` is the wrong constant for probit/cloglog and the ML asymptotics the
+   estimator is built to preserve are not established there;
+2. **we have no drmTMB-Laplace evidence for any link**, and none at all for non-logit `W`.
+
+Reason 1 is link-specific and is genuinely open research. Reason 2 is link-*independent* and applies
+equally to the logit route we ship. The link-general Jeffreys helper stays internal scaffolding,
+unreachable from the public API.
+
+<details><summary>Superseded paragraph, kept for the record</summary>
+
+> But **Sterzinger & Kosmidis leave the probit and cloglog bounds for the *mixed-effects* case as
+> future work** (`docs/design/250-mspl-binomial-logit-alignment.md:76-78`). MSPL's guarantee comes
+> from the *composite* penalty — Jeffreys on β plus negative-Huber on the covariance Cholesky — and
+> that composite has published guarantees for logit only.
+
+Why it was wrong: the 2023 paper cites its link condition to "Kosmidis and Firth 2021, Section 3.1"
+**without restating it**, so a reader without that paper sees a deferral where there is a citation.
+Full account: `docs/design/253-mspl-nonlogit-links-derivation.md`, Addendum 2.
+
+</details>
 
 ## 8. Test surface — update, do not delete
 
