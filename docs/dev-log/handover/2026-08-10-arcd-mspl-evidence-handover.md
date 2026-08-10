@@ -24,22 +24,26 @@ literature twice.
 
 `DESCRIPTION` is **0.6.0** on both. No ledger, no census, no release rung moved.
 
-## THE ONE BLOCKER — 2 minutes, needs your hands
+## THE BLOCKER — RESOLVED (`939df20cb`, owner-authorized)
 
-PR #973's CI fails on a **Python ledger validator**, not R:
+PR #973's CI failed on a **Python ledger validator**, not R:
+`SystemExit: mc-0568: current source blob differs for R/drmTMB.R`.
 
-```
-SystemExit: mc-0568: current source blob differs for R/drmTMB.R
-```
+Cells `mc-0568/0569/0576` carry C17 receipts certified against blob hashes of five files; Arc D
+changed two. Re-ran the repo's committed runner (76 s) — **PASS 4/4 on all three**
+(mean τ relative error 0.099 / 0.166 / 0.061). **Arc D does not change zero_one_beta model-15
+behaviour**, now measured rather than assumed.
 
-Cells `mc-0568/0569/0576` are certified against blob hashes of five files; Arc D changed two. **I ran
-the re-certification with the repo's committed runner — it PASSES 4/4 on all three cells** (mean τ
-relative error 0.099 / 0.166 / 0.061), proving Arc D does not change zero_one_beta model-15
-behaviour. Output is in the worktree.
+**Minimal ledger change:** only the three receipt paths and `current_source_sha` moved.
+**`source_fingerprint` is UNCHANGED** — it hashes the named model-15 anchors, not all of
+`R/drmTMB.R`, and Arc D touched binomial code outside that surface. The fingerprint design working
+as intended is itself the reassurance. **No census, claim or promotion changed.**
 
-**I did not wire it into the ledger.** `AGENTS.md` fences that surface and the permission classifier
-blocked it — I stopped rather than route around. Exact steps:
-`scratchpad/2026-08-10-c17-recertification-BLOCKED.md` (in the links worktree).
+Validator: 66 tests **OK**, *"C17 current-source compatibility PASS"*. CI re-triggered.
+
+> Done only after Shinichi's explicit authorization — the permission classifier blocked it twice and
+> `AGENTS.md` fences that surface. **A future session should not touch the capability ledger
+> unattended**; re-certification is a sanctioned, reproducible procedure, but it is his call.
 
 ## Landing State — `handoff_gate.sh` FAILS; everything unlanded is declared here
 
@@ -50,7 +54,7 @@ below per option (b). Nothing is silently uncommitted.
 |---|---|---|
 | `claude/binomial-link-generalisation@2c60abb1f` | pushed | **CARRIED-OVER** — PR #973 open, not merged. Resume: `cd /Users/z3437171/local-scratch/worktrees/drmTMB-links` |
 | `claude/mspl-binomial-inference-promotion@7cacd1a68` | pushed | **CARRIED-OVER** — no PR, Shinichi's call. Resume: `cd /Users/z3437171/local-scratch/worktrees/drmTMB-mspl-inference` |
-| `docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/` | **NO** | **CARRIED-OVER — the C17 re-certification evidence (PASS 4/4).** Untracked deliberately: it is ledger-adjacent, `AGENTS.md` fences that surface, and the permission classifier blocked writes there. **Do not delete.** Rename to a truthful `2026-08-10-…` date when wiring it in. |
+| C17 re-certification evidence + ledger repoint | **YES** — `939df20cb` | **LANDED**, owner-authorized. Directory renamed to `2026-08-10-arcd-c17c2-c14-final-source-compatibility`. |
 | `scratchpad/*.md` (both worktrees) | **NO** | **CARRIED-OVER** — working notes, `Rbuildignore`d, conventionally untracked here. Contains the two scout reports, the brain-lessons draft, the gllvmTMB reply draft, and the C17 blocker writeup. Read before assuming anything is missing. |
 | PR #973 · #977 · #983 · #984 | — | open |
 | gllvmTMB PR #952, `codex/mspl-binomial-glmm-experimental`, five repo stashes, primary checkout | — | **PROTECTED** — foreign lanes; do not touch |
@@ -148,7 +152,8 @@ the 2026 Theorem 4.1, which is not transportable to a GLMM.
 
 ## Owed / next
 
-1. **Wire the C17 re-certification** (above) → CI green → merge #973 if you want it.
+1. ~~Wire the C17 re-certification~~ — **DONE** (`939df20cb`). Confirm CI green, then **merge #973
+   if you want it** — that is now purely a decision.
 2. **Send or discard the gllvmTMB reply** — `scratchpad/2026-08-10-message-to-gllvmTMB.md`. It raises
    a real divergence: they hold that finite estimates license **neither** Wald SEs nor intervals;
    drmTMB ships SEs and blocks intervals. Our own campaign evidence arguably supports their stricter
