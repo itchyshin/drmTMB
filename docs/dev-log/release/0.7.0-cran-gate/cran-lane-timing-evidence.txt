@@ -1,0 +1,10 @@
+filter: phase18|structured-re-conversion-contracts|^associate-pairs|^missing-response-g4g5-foundation$|^zero-one-beta$|^biv-gaussian$|^profile-targets$ 
+=== MEASURED CRAN-lane: 432.6 s (7.21 min) ===
+files=199  passed=12122  failed=0  skipped=120
+projected win-builder at 1.50x: 10.8 min
+
+--- source ---
+Profiled 2026-08-10 on macOS, NOT_CRAN=false (CRAN lane), per-file wall time.
+Baseline: 1159.7 s across 216 files. After the testthat.R filter: 432.6 s across 199 files.
+win-builder scale factor 1.50x derived from 29 min (win-builder R-release, predecessor
+tarball) vs 19.3 min local on the same lane.
