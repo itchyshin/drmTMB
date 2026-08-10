@@ -4,6 +4,122 @@ source_missing_response_g4g5 <- function(env = parent.frame()) {
   source(path, local = env)
 }
 
+test_that("every G4/G5 record is stamped with the design that produced it", {
+  # #982: the frozen manifest hash cannot distinguish a centred from an uncentred
+  # design (`truth` is identical either way), and a seed fixes the RNG stream, not
+  # what is done with it. So the design must be recorded on the record itself.
+  source_missing_response_g4g5()
+
+  withr::local_options(drmTMB.mr_g4g5_centre_random_effects = TRUE)
+  centred <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  expect_true("design_state" %in% names(centred))
+  expect_identical(unique(centred$design_state), "centre_random_effects=TRUE")
+
+  withr::local_options(drmTMB.mr_g4g5_centre_random_effects = FALSE)
+  uncentred <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  expect_identical(unique(uncentred$design_state), "centre_random_effects=FALSE")
+
+  # the stamp must actually track the design, not merely exist
+  expect_false(identical(centred$design_state[1], uncentred$design_state[1]))
+})
+
+test_that("reconciliation refuses to merge, or to accept, unauthenticated designs", {
+  # The guard is only worth having if it FAILS on purpose. Exercise both closures:
+  # disagreeing designs, and records that predate stamping entirely.
+  source_missing_response_g4g5()
+
+  withr::local_options(drmTMB.mr_g4g5_centre_random_effects = TRUE)
+  a <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  b <- a
+  b$design_state <- "centre_random_effects=FALSE"
+
+  expect_silent(mr_g4g5_check_design_agreement(a, "test"))
+  expect_error(
+    mr_g4g5_check_design_agreement(rbind(a, b), "test"),
+    "mixes 2 designs"
+  )
+
+  # Missing provenance must NOT block access to already-computed evidence -- it
+  # must taint it, so the caveat travels with the artifact instead of the data
+  # becoming unreadable.
+  legacy <- a
+  legacy$design_state <- NULL
+  expect_warning(mr_g4g5_check_design_agreement(legacy, "test"), "UNAUTHENTICATED")
+  marked <- suppressWarnings(mr_g4g5_check_design_agreement(legacy, "test"))
+  expect_identical(unique(marked$design_state), "UNAUTHENTICATED")
+})
+
+test_that("every G3 route builds a fixture without the testthat helpers", {
+  # The campaign scripts source this runner after a plain `library(drmTMB)`, so a
+  # route that silently depends on a test helper cannot run in deployment even
+  # though it passes here. Rebuild each fixture in an environment whose only
+  # parent is the package namespace, which is what an installed run actually sees.
+  deploy_env <- new.env(parent = asNamespace("drmTMB"))
+  source_missing_response_g4g5(env = deploy_env)
+
+  routes <- deploy_env$mr_g4g5_route_manifest()$route_id
+  expect_length(routes, 18L)
+
+  failures <- vapply(routes, function(route) {
+    tryCatch(
+      {
+        deploy_env$mr_g4g5_route_fixture(route, information_multiplier = 1)
+        NA_character_
+      },
+      error = function(e) conditionMessage(e)
+    )
+  }, character(1))
+
+  expect_equal(unname(routes[!is.na(failures)]), character(0))
+})
+
+test_that("a retained failure binds to a successful attempt without costing the cell", {
+  # The prospective policy requires failed fits to stay in the unconditional
+  # 1,200-attempt denominator. A failure record is narrower than a success record,
+  # so combining them must union-and-pad rather than rbind naively -- otherwise the
+  # cell aborts on exactly the attempt the denominator is supposed to retain.
+  source_missing_response_g4g5()
+
+  manifests <- mr_g4g5_freeze_target_manifests()
+  g4 <- mr_g4_run_route("gaussian", information_multiplier = 1)
+  registry <- mr_g5_registry_from_g4(manifests, g4)
+  cell <- registry$cells[1, , drop = FALSE]
+  seed <- registry$seeds$seed[registry$seeds$cell_id == cell$cell_id][1]
+
+  success <- mr_g5_run_attempt(cell, seed = seed, replicate = 1L, trace = TRUE)
+  failure <- mr_g5_failure_record(cell, seed = seed, message = "forced", fit_status = "fit_failed")
+
+  expect_false(identical(ncol(success), ncol(failure)))   # the shapes really do differ
+
+  bound <- mr_g5_bind_records(success, failure)
+  expect_equal(nrow(bound), 2L)
+  expect_setequal(names(bound), union(names(success), names(failure)))
+  expect_identical(bound$fit_status[2], "fit_failed")
+  # fields only the success record has are padded, not dropped
+  expect_true(all(is.na(bound[2, setdiff(names(success), names(failure))])))
+})
+
+test_that("the runner's skew-normal fallback matches the tested helper", {
+  # The runner carries its own copy of skew_normal_public_to_native() because the
+  # canonical one is a testthat helper and cannot be reached from an installed
+  # package. This is the guard against the two definitions drifting apart.
+  deploy_env <- new.env(parent = asNamespace("drmTMB"))
+  source_missing_response_g4g5(env = deploy_env)
+
+  mu <- c(-1.5, 0, 0.4, 2.2)
+  sigma <- c(0.3, 1, 1.7, 0.8)
+  nu <- c(-2.5, 0, 1.4, 3.1)
+
+  expect_equal(
+    deploy_env$.mr_skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu),
+    skew_normal_public_to_native(mu = mu, sigma = sigma, nu = nu)
+  )
+  expect_error(
+    deploy_env$.mr_skew_normal_public_to_native(mu = 0, sigma = 0, nu = 1),
+    "sigma must be finite and positive"
+  )
+})
+
 test_that("the missing-response manifest freezes all 18 G3 routes", {
   source_missing_response_g4g5()
   manifest <- mr_g4g5_route_manifest()
@@ -439,7 +555,11 @@ test_that("G4 checkpoint reconciliation retains provenance and rejects collision
   source_missing_response_g4g5()
   one <- data.frame(
     route_id = "gaussian", parm = "fixef:mu:x", information_rung = "1x",
-    g4_interval_usable = TRUE, stringsAsFactors = FALSE
+    g4_interval_usable = TRUE,
+    # a real record carries its design (#982); a fixture that omits it is
+    # reconciled as UNAUTHENTICATED, which is correct but not what this test is about
+    design_state = "centre_random_effects=TRUE",
+    stringsAsFactors = FALSE
   )
   duplicate <- tempfile(fileext = ".rds")
   original <- tempfile(fileext = ".rds")

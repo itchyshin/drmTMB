@@ -1196,6 +1196,9 @@ drm_pair_validate_gaussian <- function(fit) {
   }
 }
 
+# The logit-only restriction here is DELIBERATE (design 252 §6), not an
+# oversight: it fails closed on its own fit$family$link check, independent of
+# drm_family_type()'s now-wider logit/probit/cloglog admissibility guard.
 drm_pair_validate_bernoulli <- function(fit) {
   if (
     !identical(fit$family$link, "logit") ||

@@ -469,15 +469,33 @@ drm_julia_missing_supported <- function(missing_control, family_type) {
 # DRM.jl DOES fit a univariate Binomial phylo model, so the bridge recognizes a
 # `binomial(link = "logit")` object here and maps it to the "binomial" tag;
 # every other family defers to `drm_family_type()`. The logit-link guard mirrors
-# DRM.jl's Binomial likelihood (logit mean); other links fall through to
-# `drm_family_type()`, which rejects them with the standard message.
+# DRM.jl's Binomial likelihood, which is logit-mean ONLY.
+#
+# DO NOT go back to relying on `drm_family_type()` to reject a non-logit
+# binomial. It used to do so, and this function leaned on that: the previous
+# comment here read "other links fall through to `drm_family_type()`, which
+# rejects them with the standard message". That held only while drmTMB was
+# logit-only, which made a NATIVE-engine admissibility check double as this
+# bridge's safety net by accident.
+#
+# drmTMB now admits `probit` and `cloglog` natively. Were this function still
+# deferring, such a fit would fall through and reach DRM.jl tagged plainly as
+# "binomial" -- and DRM.jl would fit it as LOGIT. That is a silently wrong model
+# that runs and returns plausible numbers, which is far worse than a loud
+# failure. The rejection is therefore explicit and local, and must stay that way
+# whatever the native guard admits in future.
+# (Emmy, Arc D review; docs/design/252-binomial-link-generalisation.md sec 5.)
 drm_julia_bridge_family_type <- function(family) {
-  if (
-    inherits(family, "family") &&
-      identical(family$family, "binomial") &&
-      identical(family$link, "logit")
-  ) {
-    return("binomial")
+  if (inherits(family, "family") && identical(family$family, "binomial")) {
+    if (identical(family$link, "logit")) {
+      return("binomial")
+    }
+    cli::cli_abort(c(
+      "The {.pkg DRM.jl} bridge supports {.code binomial(link = \"logit\")} only.",
+      "x" = "Received binomial link {.val {family$link}}.",
+      "i" = "{.pkg drmTMB} fits this link natively; use {.code engine = \"tmb\"}.",
+      "i" = "DRM.jl's Binomial likelihood is logit-mean only, so routing this model to the bridge would silently fit a different model."
+    ))
   }
   drm_family_type(family)
 }

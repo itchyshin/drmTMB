@@ -10,7 +10,15 @@ print.drmTMB <- function(x, ...) {
     beta = "Beta mean-scale",
     zero_one_beta = "zero-one beta mean-scale-boundary",
     beta_binomial = "Beta-binomial mean-overdispersion",
-    binomial = "Binomial event-probability",
+    # Name the link. Binomial is the only family admitting more than one, so
+    # without it a probit fit prints identically to a logit fit and the user
+    # cannot tell from the output which model they fitted.
+    # (Emmy, Arc D go/no-go review.)
+    binomial = paste0(
+      "Binomial event-probability (",
+      if (is.null(x$model$link)) "logit" else x$model$link,
+      " link)"
+    ),
     cumulative_logit = "cumulative-logit ordinal",
     poisson = "Poisson mean",
     zi_poisson = "zero-inflated Poisson mean",
@@ -5570,6 +5578,8 @@ drm_inverse_link <- function(object, dpar, eta) {
     identity = eta,
     log = exp(eta),
     logit = stats::plogis(eta),
+    probit = stats::pnorm(eta),
+    cloglog = -expm1(-exp(eta)),
     logm2 = 2 + exp(eta),
     logit12 = 1 + stats::plogis(eta),
     atanh_guarded = rho_response(eta),
@@ -5610,7 +5620,7 @@ drm_dpar_link <- function(object, dpar) {
       coi = "logit"
     ),
     beta_binomial = c(mu = "logit", sigma = "log"),
-    binomial = c(mu = "logit"),
+    binomial = c(mu = if (is.null(object$model$link)) "logit" else object$model$link),
     cumulative_logit = c(mu = "identity"),
     poisson = c(mu = "log"),
     zi_poisson = c(mu = "log", zi = "logit"),

@@ -171,10 +171,52 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # calls in the shared helper and one CondExpGt fail-closed objective gate.
   # They are intentionally C0/C1-unclassified here because their separate
   # overflow and AD behavior is exercised in test-arc-d-sd-overflow-guard.R.
+  # The binomial link generalisation (probit/cloglog) adds THREE CondExp sites
+  # to drm_numeric.h, all inside drm_log_pnorm() -- the tail-safe log-Phi the
+  # probit link needs. They are the branch-selects between the direct
+  # log(pnorm(x)) form and the Mills-ratio asymptotic expansion below x = -20.
+  # This anchor is bumped 2L -> 5L DELIBERATELY, together with the paired
+  # continuity test for that switch point below. Bumping the anchor WITHOUT the
+  # paired test would be precisely the silent normalisation this guard exists
+  # to prevent.
   expect_equal(n_cpp, 24L)
-  expect_equal(n_numeric, 2L)
+  expect_equal(n_numeric, 5L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 2L)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_log_pnorm (src/drm_numeric.h), threshold x = -20.
+# Class: C1 expected. Below the threshold the direct form log(pnorm(x))
+# underflows -- pnorm(-100) is zero in double precision -- so a Mills-ratio
+# asymptotic expansion takes over. This test confirms the branches still agree
+# in value AND derivative at the switch point, which is what makes the branch
+# safe to differentiate through under AD.
+# ---------------------------------------------------------------------------
+test_that("drm_log_pnorm: direct and Mills-ratio branches agree at x = -20", {
+  x0 <- -20
+
+  mills <- function(x) {
+    -x^2 / 2 - log(-x) - log(sqrt(2 * pi)) +
+      log(1 - 1 / x^2 + 3 / x^4 - 15 / x^6 + 105 / x^8)
+  }
+  direct <- function(x) log(stats::pnorm(x))
+
+  expect_lt(rel_diff(mills(x0), direct(x0)), VALUE_TOL)
+
+  # Derivative agreement. d/dx log(pnorm(x)) is the inverse Mills ratio
+  # dnorm(x)/pnorm(x); compare against a central difference of the asymptotic
+  # branch at two step sizes, matching the drm_log1mexp pattern above.
+  direct_der <- stats::dnorm(x0) / stats::pnorm(x0)
+  for (h in c(1e-4, 1e-5)) {
+    mills_der <- (mills(x0 + h) - mills(x0 - h)) / (2 * h)
+    expect_lt(rel_diff(mills_der, direct_der), DERIV_TOL)
+  }
+
+  # Why the branch exists at all: the direct form dies further out, while the
+  # asymptotic branch stays finite and accurate.
+  expect_true(is.finite(mills(-100)))
+  expect_false(is.finite(direct(-100)))
 })
 
 # ---------------------------------------------------------------------------
