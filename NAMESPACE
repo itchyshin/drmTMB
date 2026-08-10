@@ -2,6 +2,7 @@
 
 S3method(AIC,drmTMB)
 S3method(BIC,drmTMB)
+S3method(anova,drmTMB)
 S3method(association,drm_pair_association)
 S3method(centile_chart,drmTMB)
 S3method(check_drm,drmTMB)

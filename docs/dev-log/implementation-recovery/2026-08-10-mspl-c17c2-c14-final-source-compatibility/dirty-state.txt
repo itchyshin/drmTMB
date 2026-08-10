@@ -1,0 +1,3 @@
+?? scratchpad/phaseB-mspl-map.md
+?? scratchpad/scout-brain-jeffreys-paper.md
+?? scratchpad/scout-gllvm-jeffreys.md

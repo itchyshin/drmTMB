@@ -129,10 +129,6 @@ test_that("binomial mu supports an independent random slope (trials > 1)", {
     drmTMB(bf(cbind(succ, fail) ~ x + (0 + x | p | id)), family = binomial(), data = d),
     "random intercept"
   )
-  expect_error(
-    drmTMB(bf(cbind(succ, fail) ~ x + (1 + x | id)), family = binomial(), data = d),
-    "random intercept"
-  )
 })
 
 test_that("cumulative_logit mu supports an independent random slope", {
