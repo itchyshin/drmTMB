@@ -5,6 +5,13 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-08-11 reassignment (Shinichi, in session):** the live 0.7 CRAN ladder is
+  now owned by **Claude**, superseding the 2026-08-07 Codex-ownership line below.
+  Scope of that decision: lane ownership only. It does **not** authorise a rung
+  advance, a submission, or the merge of any open PR.
+  Factual note, not an approval: the DESCRIPTION 0.7.0 bump currently sits on the
+  Claude branch `claude/07-candidate-freeze-2` in **PR #996, open and unmerged** —
+  the merge decision remains Shinichi's and has not been given.
 - **Codex** — owns the live **0.7 CRAN ladder** through `submission-ready`
   (rescope: packaging + honest caveats, not science-complete). Authoritative
   handover: [`handover/2026-08-07-codex-handover.md`](handover/2026-08-07-codex-handover.md).

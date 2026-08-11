@@ -1,0 +1,102 @@
+{
+  "package": "drmTMB",
+  "version": "0.7.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "READ known_evidence_gaps BEFORE RELYING ON THIS LEDGER — four disclosed gaps, including stale rights evidence. Live 0.7.0 candidate (supersedes the 0.6.0-tarball ledger at docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json, sha256 2e5234bd..., commit ad475cc39). DESCRIPTION on this branch is already 0.7.0. Claimed rung is tarball-clean ONLY. platform-clean is NOT claimed: win-builder is ABSENT for this exact artifact (no run has ever been submitted against sha256 2176e4b8...cda9), so Windows CRAN-lane timing is UNMEASURED for this candidate (the GitHub Actions Windows run sets NOT_CRAN=true and therefore exercises a different, larger test lane than the CRAN check would). R-hub 3-sanitizer success and 3-OS CI success exist for this commit (a75c3c9013e1e7c4ab8e56aa13baf5e668b99c76) but that platform evidence is deliberately not cited as grounds for a platform-clean claim here; rchk failed but every finding is inside TMB/include/tmb_core.hpp with zero findings attributable to drmTMB.cpp (see RUNG-REPORT). Advancing the status_claim past tarball-clean requires Shinichi's explicit authorisation under D-49; this ledger does not itself authorise submission, upload, or a DESCRIPTION/tag action.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/drmTMB_0.7.0.tar.gz",
+    "sha256": "2176e4b81b887e8d944456e4a74fa581afda959d0d2a5468c89bc700d693cda9",
+    "size_bytes": 9925713,
+    "source_commit": "a75c3c9013e1e7c4ab8e56aa13baf5e668b99c76",
+    "clean_worktree": true,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release/0.7.0-cran-gate/tarball-0.7.0-inventory.txt",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/tarball-0.7.0-inventory.txt"
+    },
+    "forbidden_entries": [],
+    "copies": [
+      "/Users/z3437171/drmTMB-release-artifacts/0.7.0/drmTMB_0.7.0.tar.gz (durable, primary)",
+      "snakagaw@totoro:~/drmTMB_0.7.0_cand2.tar.gz (durable, off-machine)",
+      "/private/tmp/drmTMB-07-freeze2/drmTMB_0.7.0.tar.gz (volatile; /private/tmp is purged by macOS)"
+    ],
+    "rebuild_note": "R CMD build embeds timestamps, so these exact bytes cannot be regenerated from the source commit. All three copies verified byte-identical 2026-08-11.",
+    "evidence_durability_note": "evidence.*.value are absolute paths under ~/drmTMB-release-artifacts/0.7.0/evidence/ so the gate remains reproducible after /private/tmp is purged. Each entry also records repo_path, the tracked location in the git repository, which is the portable reference on another machine."
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release-audits/2026-08-07-07-product-contract.md",
+      "repo_path": "docs/dev-log/release-audits/2026-08-07-07-product-contract.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release-audits/2026-08-07-07-rights-skim.md",
+      "repo_path": "docs/dev-log/release-audits/2026-08-07-07-rights-skim.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md",
+      "repo_path": "docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release-audits/2026-08-07-07-rendered-site-evidence.md",
+      "repo_path": "docs/dev-log/release-audits/2026-08-07-07-rendered-site-evidence.md"
+    },
+    "local_as_cran": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log"
+    },
+    "incoming_feasibility": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log"
+    },
+    "installed_package": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log"
+    },
+    "timing": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/local-as-cran-check-0.7.0.log"
+    }
+  },
+  "panel": {
+    "grace": "NOT_RUN",
+    "rose": "NOT_RUN",
+    "pat": "NOT_RUN",
+    "note": "D-43 panel required only at submission-ready; not claimed here."
+  },
+  "status_claim": "tarball-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  },
+  "clean_worktree": true,
+  "source_commit": "a75c3c9013e1e7c4ab8e56aa13baf5e668b99c76",
+  "known_evidence_gaps": {
+    "rights_and_consent_is_stale": "The cited rights skim is dated 2026-08-07 at commit 8df6f2402. The candidate (a75c3c901) ships a LATER borrowing: inst/COPYRIGHTS section 'Binomial link generalisation -- probit/cloglog dispatch and log-pnorm (2026-08-09)', adapting gllvmTMB commit 431e173f7198f74c356ec3099ffa211f1ee85fd0 (GPL-3), including drm_log_pnorm() in src/drm_numeric.h. The borrowing IS documented with upstream commit and line-level provenance, so this is not undocumented borrowing; the gap is that no rights review has covered it. MUST be closed before submission-ready.",
+    "gate1_unresolved_items": "RUNG-REPORT-0.7.0.md Gate 1 records 'SHIP 4 · EXCLUDE 0 · UNRESOLVED 2'. Two rights/product-contract items remain unresolved and are not resolved by this ledger.",
+    "source_clean_evidence_predates_candidate": "product_contract and rendered_site evidence describe commit 8df6f2402; 339 files changed between that commit and a75c3c901, including a new vignette (vignettes/first-week-intervals.Rmd) and a new Suggests (detectseparation). No rendered-site check covers the candidate. Tolerable at tarball-clean because the exact-bytes --as-cran log reports 'checking re-building of vignette outputs ... OK'; must be re-cut before submission-ready.",
+    "platform_evidence_provenance": "The 3-OS matrix and R-hub sanitizer runs are SAME-SOURCE (commit a75c3c901), not same-bytes: those services build their own tarball from the source checkout. Only the local --as-cran and the Totoro valgrind run were executed against 2176e4b8...cda9."
+  }
+}

@@ -93094,3 +93094,43 @@ family that can discriminate an engine that improves on Laplace.
   After-task: `docs/dev-log/after-task/2026-08-10-beta-binomial-mi-fixture-identifiability.md`.
 - Residual: the MD7f `0:n_i` summation remains lightly exercised (posterior is near a point mass
   because `y` is noiseless); flagged for a separate decision, not changed here.
+
+## 2026-08-11 — the 0.7.0 CRAN gate now names the candidate we intend to ship
+
+- Defect. `docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json` was the repo's only
+  machine-checkable release gate, and it described the **superseded 0.6.0 artifact** `2e5234bd` /
+  `ad475cc39`. Running `~/shinichi-brain/tools/cran_release_gate.py` against it printed
+  `READY FOR CLAIMED RUNG` — a green mechanical verdict for a tarball nobody intends to ship. This is
+  the D-49 failure mode (partial-green evidence promoted into a whole-release claim) reached by a
+  different route: the evidence stayed correct while the gate guarding it went stale.
+- Fix. New ledger `docs/dev-log/release-audits/2026-08-11-070-cran-release-ledger.json` describing the
+  live candidate `2176e4b81b887e8d944456e4a74fa581afda959d0d2a5468c89bc700d693cda9` / `a75c3c901`,
+  `status_claim: tarball-clean`, passing the gate. Predecessor ledger marked `superseded_by`;
+  `FREEZE-NOTES.md` marked `PREDECESSOR (0.6.0)` with the two prohibitions this work crossed named
+  outright (`a75c3c901` DESCRIPTION bump, `885f260d1` cran-comments) and no owner authorisation claimed.
+- Durability. The gate stats `artifact.path` and every `evidence.*` file and fails closed on absence,
+  so a ledger anchored in the session scratchpad is not reproducible. Artifact + all nine evidence
+  files copied to `~/drmTMB-release-artifacts/0.7.0/`; each entry also records `repo_path`. Gate
+  re-run from `/` → `READY FOR CLAIMED RUNG`. `R CMD build` embeds timestamps, so these bytes cannot
+  be regenerated; three copies now exist, all verified identical.
+- `cran-comments.md` corrected. It had claimed *"Every check result below was run against these exact
+  bytes"* while listing the 3-OS matrix and R-hub sanitizers. Those services build their own tarball
+  from the source checkout and never saw the frozen bytes. Evidence is now split into labelled
+  **Exact-bytes** (local `--as-cran`, Totoro valgrind) and **Same-source** (3-OS, sanitizers at
+  `a75c3c901`) classes.
+- Tests of the tests. Tampering one hex digit of the SHA → `NOT READY`; pointing at the real 0.6.0
+  predecessor tarball → `NOT READY` on hash and size; raising `status_claim` to `platform-clean` →
+  `NOT READY`, demanding `platform_matrix`/`external_logs`. `--selftest`: all 14 planted negative
+  controls fail closed. The `platform-clean` fence is enforced, not merely documented.
+- Review. Fresh adversarial reviewer, default NOT READY, returned **NOT READY** with four blocking
+  defects — including the `cran-comments.md` provenance claim above. All four fixed, then re-verified
+  to **READY (tarball-clean only)**, with drift falsified by hashing each durable copy against its git
+  `HEAD` blob (6/6 match) and the gllvmTMB licence position tested (GPL-3 inside GPL (>= 3) —
+  compatible, so the stale rights evidence is a review gap, not a licence defect).
+- Checks: `capability_ledger.py --check` `OK (31 generated outputs)`; `unittest
+  tools.tests.test_capability_ledger` 67 tests OK. No `R/`, `src/`, `man/`, `NAMESPACE`, `DESCRIPTION`,
+  or `NEWS.md` change — the frozen tarball is unaffected and no re-freeze is required.
+- Not claimed. `platform-clean` remains unclaimed and unauthorised; win-builder is **ABSENT** for this
+  candidate (run-book at `docs/dev-log/release/0.7.0-cran-gate/WIN-BUILDER-RUNBOOK.md`); Windows
+  CRAN-lane time is UNMEASURED; four evidence gaps are disclosed in the ledger's `known_evidence_gaps`.
+- After-task: `docs/dev-log/after-task/2026-08-11-070-gate-truth.md`.
