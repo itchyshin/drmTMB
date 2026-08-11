@@ -11,6 +11,62 @@ re-certification is one command, and issue #979 is closed. 0.7.0 sits at **`tarb
 verified-fresh artifact, blocked on **win-builder**, which is the owner's to run. One claim of mine
 was **retracted on inspection of the source** — see §5, it changes the next arc.
 
+## 0. Landing State — `handoff_gate.sh` FAILS; here is why, and what is mine
+
+The gate fails. **None of it is my lane.** Declared per option (b):
+
+| artifact | landed | state |
+|---|---|---|
+| `claude/handover-2026-08-11` (this doc, **#1001**) | pushed | **CARRIED-OVER** — PR open, not merged. Resume: `cd /Users/z3437171/local-scratch/worktrees/drmTMB-links` |
+| `claude/0.7.0-freshness-record` (**#999**) | pushed | **CARRIED-OVER** — PR open, CI running at handoff |
+| #988 · #991 · #993 · #995 · #997 · #998 | **merged to `main`** | branches deleted, each verified `0` commits outside `main` |
+| `scratchpad/*.md` in this worktree | **NO** | **CARRIED-OVER** — working notes, conventionally untracked here. Never stage them. |
+| ~18 `codex/*`, `hopper/*`, `shannon-install` and sibling `claude/*` branches with unpushed commits | — | **PROTECTED — foreign lanes. Do not touch, push, or clean.** |
+
+My two branches have **0 unpushed commits**. The gate's entire failure surface is other lanes'.
+
+## 0.1 Multi-lane — and why the AGENTS.md pointer was deliberately NOT refreshed
+
+`lane_preflight.sh` at handoff: **FOREIGN LANE ACTIVE (codex)** plus **7 live `claude` lanes besides
+this one**.
+
+The protocol's snapshot step says a **single** pointer cannot represent 8 lanes, and refreshing
+`AGENTS.md`'s `▶ Latest` block to *this* doc would orphan the siblings. Preflight additionally
+reports **another ref already has work on `docs/dev-log/coordination-board.md`**, so appending there
+would be bleed-through into a lane mid-edit.
+
+**So neither file was touched.** This document stands alone. The live lane split is
+[`docs/dev-log/coordination-board.md`](../coordination-board.md) → `active-lane-split.md`, which is
+committed to `origin/main` and therefore reaches every lane. Read it before claiming any subject.
+
+`PLATFORM: claude | ON BRANCH: claude/handover-2026-08-11 | LANE: MSPL finiteness evidence + C17
+guard tooling | OTHER LANES: codex (#955, #858) + 7x claude`
+
+**From the board, dated today:** the live **0.7 CRAN ladder is now owned by Claude** (Shinichi, in
+session), superseding the 2026-08-07 Codex line. Ownership only — it does **not** authorise a rung
+advance, a submission, or the merge of any open PR.
+
+## 0.2 Files created or modified this session
+
+Merged to `main`:
+
+- `src/drm_response_kernels.h`, `src/drmTMB.cpp` — `link_code` default removed, 21 call sites (#988)
+- `tools/capability_ledger.py`, `tools/tests/test_capability_ledger.py` — C17 failure-mode messages + the decoupling fix (#991, #993)
+- `tools/recertify-c17.py` — **new**, closes #979 (#998)
+- `docs/dev-log/simulation-artifacts/2026-08-10-mspl-laplace-finiteness/` — F1 prereg, runner, scorer, raw 20,000 rows, verdict (#995)
+- `docs/dev-log/simulation-artifacts/2026-08-11-mspl-rare-prevalence/` — F2 + F2b prereg, two runners, scorer, raw 8,000 + 3,000 rows, verdict (#997)
+- `docs/dev-log/simulation-artifacts/README.md` — **new**, the keep-raw-data convention (#997)
+- `docs/dev-log/after-task/2026-08-10-emmy-condition-1-link-code.md`, `docs/dev-log/check-log.md`, `AGENTS.md` banner (#988)
+- `docs/dev-log/dashboard/capability-ledger/2026-08-08-c17c2-c14-final-source-compatibility.tsv` + 4 receipt dirs under `docs/dev-log/implementation-recovery/` — six C17 re-certifications
+
+Open, not merged:
+
+- `docs/dev-log/release/0.7.0-cran-gate/FRESHNESS-2026-08-11.md` — **new** (#999)
+- `docs/dev-log/handover/2026-08-11-claude-handover.md` — **new**, this file (#1001)
+
+On Totoro (not in the repo): `~/R/f1lib`, `~/f1_runner.R`, `~/f1_launch.sh`, `~/f2_runner.R`,
+`~/f2b_runner.R`, `~/f1_out/`, `~/f2_out/`, `~/f2b_out/`.
+
 ## 1. Landed
 
 | PR | what |
@@ -60,6 +116,11 @@ candidate went stale in three hours; this one has not.
 2. **Windows CRAN-lane time — UNMEASURED**, projected **~11 min** against CRAN's ~10-minute incoming
    threshold, which the protocol treats as a **blocker for a first submission even when the status is
    only a NOTE**. Only win-builder measures it (`NOT_CRAN=false`).
+
+**A win-builder result does exist — for a PREDECESSOR.** The coordination board records it ERROR-free
+on `f9b9588e…` with #946 merged. That is *predecessor evidence only*: it describes different bytes
+than `2176e4b8…`, so it does not advance this candidate's rung. Do not cite it as though it does —
+that substitution is the exact failure the release protocol was written to stop.
 
 **These are one action.** Nothing else advances the rung. Do not read a green 3-OS run, sanitizer, or
 the clean valgrind subset as `platform-clean` — each proves only its own class.
@@ -177,3 +238,13 @@ formula **variable** fails and the literal must appear. And multi-line `cli` mes
 | MSPL Wald SEs vs gllvmTMB's stricter line | **undecided, public-surface, affects the shipped logit route** |
 | probit/cloglog MSPL fence | closed, deliberately, pending P1 + P2 |
 | cloglog `ω(0) ≈ 0.582 → 1.3108` | **my arithmetic, unverified against a source** |
+
+## 10. How to resume
+
+You are Claude, picking this up in a fresh session. First run `tools/lane_preflight.sh`, then compare
+this document against the live repository and classify every item here as **OWED**, **DONE**,
+**RETRACTED**, or **PROTECTED** before acting. §5 is already marked RETRACTED — do not re-derive it.
+
+```text
+Read AGENTS.md and docs/dev-log/handover/2026-08-11-claude-handover.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
+```
