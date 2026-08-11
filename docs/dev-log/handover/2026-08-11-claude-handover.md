@@ -103,6 +103,12 @@ a public-surface decision and it affects the **shipped logit route**, not a futu
 
 ## 3. 0.7.0 — `tarball-clean`, blocked on one action
 
+**#996 MERGED as `a3217da93` while this handover was being written.** `main` now carries
+`DESCRIPTION: Version: 0.7.0`, and its shipped surface is **byte-equal to the frozen tarball's** —
+`git diff a75c3c901 origin/main` over every shipped path is empty. The candidate landing is the one
+tarball-visible change that moves `main` *onto* the artifact rather than away from it. #999 records
+the re-check.
+
 Artifact `2176e4b81b887e8d9…`, commit `a75c3c901`, 937 paths, forbidden-path scan empty.
 
 **Verified fresh on 2026-08-11** (#999): `main` moved 13 commits and the candidate branch 5 since the
