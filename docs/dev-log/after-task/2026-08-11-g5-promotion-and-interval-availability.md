@@ -134,6 +134,21 @@ Not filed — surfaced for the maintainer, all discovered this session:
   not touch, in both directions.
 - **#967 action**, per its memo: per-target scope-out, a first-cutpoint carve-out, and
   `theta_ord[j>1]` deferred as a genuine open capability gap.
+- **The held rows now contradict the shipped gate — added after Rose's audit, and the most urgent
+  item here.** `c040701f6` (06:46) wrote each held row's `next_gate` citing "the all-1200
+  interval-usability rule"; `19e4a1d03` (07:07) deleted that rule. Under v2, `tweedie` and
+  `skew_normal` have **zero** availability failures, so the reader-facing ledger will say availability
+  blocks them while the code says it does not; `beta`'s and `poisson`'s strings are false in detail and
+  four more counts are stale. Every string was correct under the old rule — this is staleness on merge,
+  not fabrication — but it must be fixed before the two branches land together. **The missing
+  safeguard is a merge-time check that no `next_gate` string names a gate predicate absent from the
+  current `mr_g5_calibration_gate()`.**
+- **The threshold document went through no reviewer** until Rose was commissioned after the fact,
+  despite producing the constant now shipped at `inst/sim/R/sim_missing_response_g4g5.R:951`. That
+  audit found a wrong sensitivity table, a circular justification, and an unstated independence
+  assumption — all since corrected in `2026-08-11-availability-threshold-evidence.md`, none of which
+  any test could have caught. A reader should weight this report accordingly: its author's analytical
+  output was the last thing in the arc to be checked, and it did not survive checking intact.
 
 ## 8. Consistency Audit
 
@@ -193,5 +208,10 @@ mechanical detects it.
 ## 12. Cross-Product Coverage
 
 `missing_response` axis only. The promotion does not touch model-inference maturity, the
-`missing_predictor` axis, or MD7f. The v2 gate changes scoring for the G4/G5 missing-response campaign
-and nothing else; DEFER-fenced items (MAR/MNAR, REML, MD7f, the 0.7 release ladder) were not touched.
+`missing_predictor` axis, or MD7f. DEFER-fenced items (MAR/MNAR, REML, MD7f, the 0.7 release ladder)
+were not touched.
+
+**Correction (Rose closeout audit).** An earlier version of this section said the v2 gate "changes
+scoring for the G4/G5 missing-response campaign and nothing else." That is **false**. It also changes
+the truth value of eight of the ten held ledger rows' `next_gate` strings on the sibling branch, which
+cite the all-1200 rule that v2 deleted. See §7a and §10.
