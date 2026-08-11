@@ -176,8 +176,21 @@ drm_validate_mspl_request <- function(
   if (!identical(engine, "tmb")) {
     cli::cli_abort("Experimental MSPL is implemented only for {.code engine = \"tmb\"}.")
   }
+  # EVIDENCE-ONLY BYPASS -- MUST NEVER BE MERGED TO main.
+  #
+  # Set on branch claude/mspl-nonlogit-evidence so the G1 finiteness campaign
+  # can FIT probit and cloglog and measure whether drmTMB's TMB-Laplace route
+  # returns finite estimates for them.  Simulating is not shipping: the fence
+  # stays closed until that evidence exists and is reviewed, and this option is
+  # deliberately undocumented, un-exported and absent from any man page.
+  mspl_evidence_links <- isTRUE(getOption("drmTMB.mspl_evidence_unsafe", FALSE))
+  allowed_links <- if (mspl_evidence_links) {
+    c("logit", "probit", "cloglog")
+  } else {
+    "logit"
+  }
   if (!identical(family_type, "binomial") ||
-      !is.list(family) || !identical(family$link, "logit")) {
+      !is.list(family) || !(isTRUE(family$link %in% allowed_links))) {
     cli::cli_abort(
       "Experimental MSPL requires {.code family = binomial(link = \"logit\")} exactly."
     )
@@ -203,6 +216,20 @@ drm_validate_mspl_request <- function(
     )
   }
   invisible(NULL)
+}
+
+# Map the TMB `link_code` data member (src/drmTMB.cpp DATA_INTEGER(link_code))
+# onto the name `mspl_jeffreys()` and `mspl_log_weight()` expect. Kept next to
+# its callers so the R reference penalty and the C++ objective cannot drift
+# apart on the link.
+drm_mspl_link_name <- function(link_code) {
+  switch(
+    as.character(as.integer(link_code %||% 0L)),
+    "0" = "logit",
+    "1" = "probit",
+    "2" = "cloglog",
+    cli::cli_abort("Internal MSPL error: unsupported link code {.val {link_code}}.")
+  )
 }
 
 drm_validate_mspl_spec <- function(spec) {
@@ -261,17 +288,24 @@ drm_validate_mspl_spec <- function(spec) {
   if (!isTRUE(scaling$ok)) {
     cli::cli_abort("Experimental MSPL could not compute a finite softness scale.")
   }
-  # `link = "logit"` is explicit, not defaulted: the MSPL entry point is
-  # logit-only (see the guard above), so this call must never silently follow a
-  # future change to `mspl_jeffreys()`'s default. The helper is link-general
-  # scaffolding; the estimator is not.
+  # The link is read from the fitted specification rather than hard-coded, and
+  # is passed EXPLICITLY so this call can never silently follow a future change
+  # to `mspl_jeffreys()`'s default. Under the shipped guard the only reachable
+  # value is "logit"; the evidence bypass above is what makes the other two
+  # reachable, and when it is off this is exactly the previous behaviour.
+  #
+  # This must agree with the weight the TMB objective actually uses
+  # (`src/drmTMB.cpp`, the `use_mspl == 1` block), which dispatches on the same
+  # `link_code`. Holding the R reference at logit while the C++ evaluated a
+  # different link would make `initial_half_logdet` a silently wrong baseline.
+  mspl_link <- drm_mspl_link_name(spec$tmb_data$link_code)
   initial <- mspl_jeffreys(
     X = X,
     beta = rep(0, p),
     offset = spec$offset$mu,
     trials = round(trials),
     frequency = round(frequency),
-    link = "logit"
+    link = mspl_link
   )
   if (!isTRUE(initial$ok)) {
     cli::cli_abort(c(
@@ -525,15 +559,18 @@ drm_finalize_mspl_fit <- function(spec, obj, opt, report) {
   numerical <- drm_mspl_hessian_diagnostics(obj, opt)
   wald <- drm_mspl_wald(unpenalized$object, opt)
   components <- drm_mspl_report_components(report)
+  mspl_fitted_link <- drm_mspl_link_name(spec$tmb_data$link_code)
   par_list <- obj$env$parList(opt$par)
   log_sd <- as.numeric(par_list$log_sd_mu)
   eta_cor <- as.numeric(par_list$eta_cor_mu)
   rho <- if (length(eta_cor)) tanh(eta_cor) else numeric()
   list(
     active = TRUE,
-    route = "binomial-logit-ordinary-q1-q2",
+    # Report the link actually fitted. Recording "logit" for a probit or cloglog
+    # fit would put a false label on every row of an evidence campaign.
+    route = paste0("binomial-", mspl_fitted_link, "-ordinary-q1-q2"),
     family = "binomial",
-    link = "logit",
+    link = mspl_fitted_link,
     q = spec$mspl$q,
     p = spec$mspl$p,
     n_row = spec$mspl$n_row,
