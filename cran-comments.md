@@ -14,7 +14,14 @@ These comments describe one identified artifact:
 * size 9,925,713 bytes
 * built from commit `a75c3c9013e1e7c4ab8e56aa13baf5e668b99c76`
 
-Every check result below was run against these exact bytes.
+Check results below fall into two classes, and this file keeps them distinct:
+
+* **Exact-bytes** — run against the tarball above: the local `R CMD check --as-cran`
+  and the valgrind run.
+* **Same-source** — run at commit `a75c3c901`, the commit this tarball was built
+  from, with the checking service building its own tarball from that source: the
+  three-platform matrix and the sanitizer runs. These describe the same source,
+  not the same bytes.
 
 ## R CMD check results
 
@@ -45,21 +52,25 @@ distributional grammar usable.
 
 ## Test environments
 
-All against the tarball identified above.
+**Exact-bytes**, run against the tarball identified above:
 
 * macOS aarch64 (local), R 4.6.0 — `R CMD check --as-cran --run-donttest`:
   Status 1 NOTE, as above.
-* GitHub Actions ubuntu-latest, macOS-latest, windows-latest, R-release —
-  success on all three.
-  Run: https://github.com/itchyshin/drmTMB/actions/runs/31435894784
-* R-hub clang-asan, clang-ubsan, gcc-asan — success on all three.
-  Run: https://github.com/itchyshin/drmTMB/actions/runs/31435909361
 * valgrind (memcheck) 3.22.0 with R 4.5.3, on a documented seven-file subset of
   the test suite: `ERROR SUMMARY: 0 errors from 0 contexts`, 0 bytes definitely
   or indirectly lost, across 1,653 assertions. This is a named subset, not the
   full suite; the full suite exceeds the wall-clock budget under memcheck. The
   subset excludes `test-binomial-response.R` because it initialises Julia, whose
   precompilation cache segfaults under memcheck for reasons outside this package.
+
+**Same-source**, run at commit `a75c3c901` with the service building its own
+tarball from that source:
+
+* GitHub Actions ubuntu-latest, macOS-latest, windows-latest, R-release —
+  success on all three.
+  Run: https://github.com/itchyshin/drmTMB/actions/runs/31435894784
+* R-hub clang-asan, clang-ubsan, gcc-asan — success on all three.
+  Run: https://github.com/itchyshin/drmTMB/actions/runs/31435909361
 
 R-hub's `rchk` job reports a failure. Every protection finding is inside TMB's
 own header, `TMB/include/tmb_core.hpp` (lines 1241/1243, 1512/1515, 2275/2277),
