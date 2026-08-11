@@ -2780,13 +2780,16 @@ class CapabilityLedgerTests(unittest.TestCase):
         # the same review by mr-g5-calibration-v2 (availability >= 0.99
         # floor); v1 wording must not linger, and the named gate version
         # must appear so a future gate change is visible rather than silent.
+        # beta's resume then completed the 294/294 campaign, so its stale
+        # "truncated by an 8h walltime" blocker must be gone too.
         self.assertNotIn(
             "G4/G5 framework is ready and partial calibration evidence is retained",
             markdown,
         )
         self.assertNotIn("the all-1200 interval-usability rule", markdown)
+        self.assertNotIn("truncated by an 8h walltime and are re-running", markdown)
         self.assertIn("mr-g5-calibration-v2", markdown)
-        self.assertIn("route evidence is incomplete, not failing", markdown)
+        self.assertIn("Campaign-wide reconciliation is now complete (294/294", markdown)
         self.assertIn("structural, not evidential, grounds", markdown)
         self.assertNotIn("Missing-response execution board", html)
         latest = max(row["updated_date"] for row in self.cells)

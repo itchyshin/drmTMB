@@ -3078,7 +3078,11 @@ MISSING_G5_ROUTE_SUMMARIES = {
         "campaign; supersedes the earlier 12/15 figure from the "
         "pre-panel cohort)"
     ),
-    "beta": "G5: cancelled after 2 unreconciled receipts",
+    "beta": (
+        "G5: 15/15 cells pass under mr-g5-calibration-v2 (2026-08-11, "
+        "campaign 294/294 complete; supersedes the earlier 'cancelled "
+        "after 2 unreconciled receipts' status, which predated the resume)"
+    ),
     "beta_binomial": "G5: 15/15 cells pass (2026-08-11 route-wide campaign)",
     "zero_one_beta": "G5: 24/24 cells pass (2026-08-11 route-wide campaign)",
     "zi_poisson": "G5: 18/18 cells pass (2026-08-11 route-wide campaign)",

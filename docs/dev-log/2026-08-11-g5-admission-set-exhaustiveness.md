@@ -99,8 +99,43 @@ Per-cell figures: [`panel-cell-summary.csv`](simulation-artifacts/2026-08-11-g5-
 
 ## Status of the gap
 
-The four cells were resubmitted as array `18826926` (`--array=222-225 --time=0-12:00`), which resumes
-from the retained checkpoints on the same deterministic seeds — `mr_g5_run_campaign()` skips any
-`(route, parm, rung, replicate)` key already present, so the completed replicates are not recomputed
-and the resumed rows are exact rather than approximate. Estimated 3.7 h wall for the longest task.
-Completion takes the campaign to 294/294; **it does not gate the promotion decision.**
+The four cells were resubmitted as array `18826926` (`--array=222-225 --time=0-12:00`), resuming from
+the retained checkpoints on the same deterministic seeds — `mr_g5_run_campaign()` skips any
+`(route, parm, rung, replicate)` key already present, so completed replicates are not recomputed.
+
+## CLOSED — the campaign is 294/294
+
+All four tasks `COMPLETED` (4:49:32 · 1:19:26 · 3:29:56 · 0:31:45). **294 of 294 registry cells now
+hold ≥1200 records; the missing set is empty.**
+
+**The resume was exact, and this was verified rather than assumed.** Every `attempt_seed` matches the
+registry's deterministic seed on *both* sides of each truncation point, and `design_state` is
+`centre_random_effects=FALSE` throughout:
+
+| cell | pre-cut seeds matched | post-cut seeds matched |
+|---|---|---|
+| `fixef:mu:(Intercept)` 2x | 818 | 382 |
+| `fixef:mu:x` 2x | 1042 | 158 |
+| `fixef:sigma:(Intercept)` 2x | 851 | 349 |
+| `fixef:sigma:z` 2x | 1132 | 68 |
+
+**Estimate accuracy, for the record:** 4.8 h actual against a 3.7 h first estimate and a 4.9 h revision
+issued once per-fit rates were observable. The first estimate was ~30% optimistic; the revision held.
+
+### `beta` is now complete — and passes 15/15 under `mr-g5-calibration-v2`
+
+Coverage across all 15 cells spans 0.9308–0.9558, every cell in band, every MCSE ≤ 0.0073.
+
+Under the superseded v1 all-1200 rule it would be **10/15**: five cells fail on availability alone, at
+0.9967 / 0.9992 / 0.9992 / 0.9967 / 0.9992 — **1 to 4 unusable replicates out of 1200**. This is the
+near-miss population the v2 floor exists for, appearing in a route that had no bearing on the floor's
+derivation.
+
+**Two of those five cells are out-of-sample.** `fixef:mu:(Intercept)` 2x and `fixef:sigma:z` 2x did not
+exist when the 0.99 floor was chosen — they were still truncated. They are therefore support for the
+threshold rather than part of its basis, which is worth stating precisely because the threshold was
+otherwise chosen post hoc with the admission count in view.
+
+**`beta` is now a candidate for a future D-43 panel, not a route with an outstanding defect.** It is
+**not** promoted here: no panel has ruled on it, and its `dpar = "all fitted dpars"` parity has not
+been checked. None of this disturbs the eight routes already promoted — `beta` was never among them.
