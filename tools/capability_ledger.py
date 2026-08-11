@@ -906,8 +906,9 @@ def schema_value() -> dict[str, object]:
             "missing_predictor": MISSING_PREDICTOR_COUNT,
         },
         "missing_response_verified_gate": (
-            "G3 (11 routes); G5 (7 routes, 2026-08-11 D-43 panel: gaussian, "
-            "biv_gaussian, gamma, beta_binomial, binomial, zero_one_beta, zi_poisson)"
+            "G3 (10 routes); G5 (8 routes, 2026-08-11 D-43 panel + addendum: "
+            "gaussian, biv_gaussian, gamma, beta_binomial, binomial, "
+            "zero_one_beta, zi_poisson, lognormal)"
         ),
         "claim_boundary": (
             "Missing-response evidence is independent of model inference maturity. "
@@ -916,7 +917,7 @@ def schema_value() -> dict[str, object]:
             "(response family x predictor family) mi()/impute_model() cells, mostly at "
             "G2 likelihood-identity/accounting evidence (diagnostic_only), not the "
             "known-DGP recovery evidence missing_response cells carry at G3, nor the "
-            "archived replicated coverage evidence the seven promoted routes carry "
+            "archived replicated coverage evidence the eight promoted routes carry "
             "at G5."
         ),
     }
@@ -3047,12 +3048,12 @@ def missing_g4g5_summary() -> str:
 
 
 MISSING_G5_ROUTE_SUMMARIES = {
-    # 2026-08-11 D-43 panel (Fisher/Noether/Rose): a later, authenticated
-    # route-wide campaign supersedes the earlier cohort figure for gaussian,
-    # biv_gaussian, and gamma (three of the seven promoted candidate routes)
-    # -- see cells.tsv test_gate=G5 rows. Both numbers are kept side by
-    # side; the panel did not determine why the earlier figure differed and
-    # makes no claim about it.
+    # 2026-08-11 D-43 panel (Fisher/Noether/Rose) + addendum: a later,
+    # authenticated route-wide campaign supersedes the earlier cohort
+    # figure for gaussian, biv_gaussian, gamma, and lognormal (four of the
+    # eight promoted candidate routes) -- see cells.tsv test_gate=G5 rows.
+    # Both numbers are kept side by side; the panel did not determine why
+    # the earlier figure differed and makes no claim about it.
     "gaussian": (
         "G5: 15/15 cells pass (2026-08-11 authenticated route-wide "
         "campaign; supersedes the earlier 51/54 figure from the "
@@ -3067,7 +3068,11 @@ MISSING_G5_ROUTE_SUMMARIES = {
     "poisson": "G5: 5/9 cells pass; 4 retained failures",
     "nbinom2": "G5: 10/15 cells pass; 5 retained failures",
     "student": "G5: 3/16 cells pass; 13 retained failures",
-    "lognormal": "G5: 11/15 cells pass; 4 retained failures",
+    "lognormal": (
+        "G5: 15/15 cells pass (2026-08-11 authenticated route-wide "
+        "campaign; supersedes the earlier 11/15 figure from the "
+        "pre-panel cohort)"
+    ),
     "gamma": (
         "G5: 15/15 cells pass (2026-08-11 authenticated route-wide "
         "campaign; supersedes the earlier 12/15 figure from the "

@@ -10,12 +10,12 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `gaussian` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, `lognormal`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
-| `biv_gaussian` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, `lognormal`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
-| `poisson` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
-| `nbinom2` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
-| `beta` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
-| `binomial` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, `lognormal`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `gaussian` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `biv_gaussian` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `poisson` | implemented | G3 ✓ | verified | G5 held: 2/9 campaign cells failed -- 1 on interval availability, 1 on coverage (fixef:mu:(Intercept), 0.5x rung, 0.9217, just below the [0.925, 0.975] band); G3 stands until both are fixed and the route re-passes exhaustively. |
+| `nbinom2` | implemented | G3 ✓ | verified | G5 held: 6/15 campaign cells failed the all-1200 interval-usability rule (not the coverage band); G3 stands until availability is fixed and the route re-passes exhaustively. |
+| `beta` | implemented | G3 ✓ | verified | G5 held: route evidence is incomplete, not failing -- 11 of 15 registry cells reconciled (3 of those 11 failed interval availability); the remaining four 2x cells were truncated by an 8h walltime and are re-running. G3 stands until the full 15-cell grid reconciles. |
+| `binomial` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
 
 ## Does not cover
 

@@ -77,13 +77,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             ledger.TIER_ORDER[:3],
             ["supported", "inference_ready_with_caveats", "interval_feasible"],
         )
-        # 2026-08-11 D-43 panel (Fisher/Noether/Rose): seven exhaustively
-        # campaigned routes promote G3 (point_fit_recovery) -> G5
-        # (inference_ready_with_caveats); the remaining eleven admitted
+        # 2026-08-11 D-43 panel (Fisher/Noether/Rose) + addendum: eight
+        # exhaustively campaigned routes promote G3 (point_fit_recovery) ->
+        # G5 (inference_ready_with_caveats); the remaining ten admitted
         # routes stay at G3. See docs/dev-log/2026-08-11-g5-admission-set-exhaustiveness.md.
         g5_promoted = {
             "gaussian", "biv_gaussian", "gamma", "beta_binomial",
-            "binomial", "zero_one_beta", "zi_poisson",
+            "binomial", "zero_one_beta", "zi_poisson", "lognormal",
         }
         self.assertEqual(
             {
@@ -2771,7 +2771,18 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn("G4/G5 interval and coverage evidence are outside this arc.", output)
             self.assertIn("Current G4/G5 evidence (target-rung grain)", output)
             self.assertIn("eight reconciled cohorts: 98 of 130 exact cells pass", output)
-        self.assertIn("G4/G5 framework is ready and partial calibration evidence is retained", markdown)
+        # 2026-08-11 D-43 panel + addendum: the generic "campaign stopped
+        # before route-wide reconciliation" placeholder is no longer true
+        # for ANY of the 18 missing_response rows (eight promoted, ten held
+        # for their own distinct, real reasons), so it must not appear, and
+        # each held route's real per-route next_gate reason must.
+        self.assertNotIn(
+            "G4/G5 framework is ready and partial calibration evidence is retained",
+            markdown,
+        )
+        self.assertIn("the all-1200 interval-usability rule", markdown)
+        self.assertIn("route evidence is incomplete, not failing", markdown)
+        self.assertIn("structural, not evidential, grounds", markdown)
         self.assertNotIn("Missing-response execution board", html)
         latest = max(row["updated_date"] for row in self.cells)
         self.assertIn(f"Generated {latest}", html)

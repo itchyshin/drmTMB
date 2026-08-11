@@ -117,6 +117,6 @@
     "missing_response": 18,
     "missing_predictor": 17
   },
-  "missing_response_verified_gate": "G3 (11 routes); G5 (7 routes, 2026-08-11 D-43 panel: gaussian, biv_gaussian, gamma, beta_binomial, binomial, zero_one_beta, zi_poisson)",
-  "claim_boundary": "Missing-response evidence is independent of model inference maturity. Missing-predictor evidence (missing_predictor axis) is a separate, narrower governance surface seeded 2026-08-09: it tracks admitted (response family x predictor family) mi()/impute_model() cells, mostly at G2 likelihood-identity/accounting evidence (diagnostic_only), not the known-DGP recovery evidence missing_response cells carry at G3, nor the archived replicated coverage evidence the seven promoted routes carry at G5."
+  "missing_response_verified_gate": "G3 (10 routes); G5 (8 routes, 2026-08-11 D-43 panel + addendum: gaussian, biv_gaussian, gamma, beta_binomial, binomial, zero_one_beta, zi_poisson, lognormal)",
+  "claim_boundary": "Missing-response evidence is independent of model inference maturity. Missing-predictor evidence (missing_predictor axis) is a separate, narrower governance surface seeded 2026-08-09: it tracks admitted (response family x predictor family) mi()/impute_model() cells, mostly at G2 likelihood-identity/accounting evidence (diagnostic_only), not the known-DGP recovery evidence missing_response cells carry at G3, nor the archived replicated coverage evidence the eight promoted routes carry at G5."
 }
