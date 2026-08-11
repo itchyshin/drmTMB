@@ -3180,6 +3180,119 @@ test_that("profile interval diagnostics flag boundary-like intervals", {
   expect_equal(ok_diag$message, "ok")
 })
 
+test_that("profile interval diagnostics flag a profile that beats the fit (issue #1009)", {
+  # `TMB:::confint.tmbprofile` anchors at which.min(prof$value), the observed
+  # grid minimum, not the fitted optimum. When the profile's warm-started
+  # inner solve finds a lower objective than the fit, that anchor has moved
+  # off the MLE and the interval is untrustworthy even if it still happens to
+  # contain the point estimate. This exercises the cause-level check directly
+  # (`profile_min_objective` vs `fit_objective`), independent of the older
+  # consequence-level `point_estimate_outside_interval` check.
+
+  # 1. Profile minimum exactly equals the fitted objective: must NOT fire.
+  equal_diag <- drmTMB:::profile_interval_diagnostics(
+    c(-0.2, 0.2),
+    transformation = "linear_predictor",
+    estimate = 0,
+    profile_min_objective = 10,
+    fit_objective = 10
+  )
+  expect_false(equal_diag$boundary)
+  expect_equal(equal_diag$message, "ok")
+
+  # 2. Profile minimum below the fit, but by less than the tolerance: must
+  # NOT fire. This is the floating-point-noise regime the tolerance exists
+  # to exclude.
+  within_tol_diag <- drmTMB:::profile_interval_diagnostics(
+    c(-0.2, 0.2),
+    transformation = "linear_predictor",
+    estimate = 0,
+    profile_min_objective = 10 - 5e-4,
+    fit_objective = 10
+  )
+  expect_false(within_tol_diag$boundary)
+  expect_equal(within_tol_diag$message, "ok")
+
+  # 3. Profile minimum below the fit by more than the tolerance: MUST fire,
+  # with the new cause-level status string, even though the interval still
+  # contains the point estimate (so the old consequence-level check would
+  # have stayed silent). The message carries the observed gap magnitude.
+  below_fit_diag <- drmTMB:::profile_interval_diagnostics(
+    c(-0.2, 0.2),
+    transformation = "linear_predictor",
+    estimate = 0,
+    profile_min_objective = 10 - 1.5,
+    fit_objective = 10
+  )
+  expect_true(below_fit_diag$boundary)
+  expect_true(startsWith(below_fit_diag$message, "profile_below_fit_objective"))
+  expect_equal(below_fit_diag$message, "profile_below_fit_objective (gap=1.5 nll)")
+  expect_equal(
+    drmTMB:::profile_conf_status_from_diagnostics(below_fit_diag),
+    "profile_failed"
+  )
+
+  # 3b. A gap many orders of magnitude larger than any plausible real second
+  # basin (e.g. issue #1010's `TMB::tmbprofile()` bracket-search sentinel)
+  # gets the SAME status -- a magnitude threshold cannot separate the two
+  # populations (rescoring the real campaign found a continuum, not two
+  # clusters; see the comment in `profile_interval_diagnostics()`) -- but the
+  # gap embedded in the message makes the two cases distinguishable at a
+  # glance without the code having to draw a line.
+  overflow_diag <- drmTMB:::profile_interval_diagnostics(
+    c(-0.2, 0.2),
+    transformation = "linear_predictor",
+    estimate = 0,
+    profile_min_objective = -1e141,
+    fit_objective = 10
+  )
+  expect_true(overflow_diag$boundary)
+  expect_true(startsWith(overflow_diag$message, "profile_below_fit_objective"))
+  expect_match(overflow_diag$message, "gap=1e\\+141 nll", fixed = FALSE)
+  expect_equal(
+    drmTMB:::profile_conf_status_from_diagnostics(overflow_diag),
+    "profile_failed"
+  )
+
+  # 4. The new check is additive: with no profile-objective information
+  # supplied (the endpoint-engine call site, which is structurally immune to
+  # this failure mode and does not pass these arguments), the existing
+  # diagnostics are unchanged.
+  nonfinite_diag <- drmTMB:::profile_interval_diagnostics(
+    c(NA_real_, NA_real_),
+    transformation = "linear_predictor",
+    estimate = 0
+  )
+  expect_equal(nonfinite_diag$message, "nonfinite_interval")
+
+  outside_diag <- drmTMB:::profile_interval_diagnostics(
+    c(0.1, 0.5),
+    transformation = "linear_predictor",
+    estimate = 0
+  )
+  expect_equal(outside_diag$message, "point_estimate_outside_interval")
+
+  boundary_diag <- drmTMB:::profile_interval_diagnostics(
+    c(0, 0.5),
+    transformation = "exp",
+    estimate = 0.1
+  )
+  expect_equal(boundary_diag$message, "near_sd_boundary")
+
+  # A cause-level failure takes priority over the older consequence-level
+  # check when both would fire (this is the situation the six originally
+  # flagged records were actually in): the more accurate, cause-based status
+  # is reported.
+  both_diag <- drmTMB:::profile_interval_diagnostics(
+    c(0.1, 0.5),
+    transformation = "linear_predictor",
+    estimate = 0,
+    profile_min_objective = 8,
+    fit_objective = 10
+  )
+  expect_true(startsWith(both_diag$message, "profile_below_fit_objective"))
+})
+
 test_that("a usable profile interval at a boundary warns the user", {
   boundary_row <- data.frame(
     parm = "sd:sigma:(1 | id)",
