@@ -21,7 +21,10 @@
 #' For predictor-dependent scale, residual-correlation, or currently supported
 #' `corpair()` formulae, supply `newdata` with `parm = "sigma"`,
 #' `parm = "rho12"`, or the fitted `corpair(...)` dpar to profile the fitted
-#' response-scale value for each supplied row.
+#' response-scale value for each supplied row. Row-specific `rho12` profile
+#' intervals from a regression `rho12` formula are computable this way, but no
+#' simulation has measured their coverage; treat them as interval-feasible,
+#' not as a calibrated `level` interval (tracked as issue #802).
 #'
 #' Target names follow the profile target namespace. For fixed effects, use
 #' names such as `"fixef:mu:x"`, `"fixef:sigma:(Intercept)"`, or
@@ -251,6 +254,17 @@
 #' recovery evidence only, and no seeded campaign has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
+#'
+#' @section Ordinal cutpoints:
+#' For `cumulative_logit()` fits, `confint()` does not compute an interval for
+#' the ordinal cutpoints themselves (the `"ordinal:theta_ord:..."` targets):
+#' `method = "wald"`, `"profile"`, and `"bootstrap"` all reject them, because
+#' the cutpoint target class is not in any method's implemented set. The
+#' fixed-effect coefficients on `mu` (and on any other fitted distributional
+#' parameter) remain fully interval-ready through the usual
+#' `confint(fit, parm = "fixed_effects")` or `confint(fit, parm = "fixef:mu:x")`
+#' calls; only the category-separating cutpoints are unsupported for interval
+#' estimation.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

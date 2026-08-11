@@ -93159,3 +93159,40 @@ family that can discriminate an engine that improves on Laplace.
   currency command.
 - Checks: `cran_release_gate.py` on the 0.7.0 ledger still `READY FOR CLAIMED RUNG`; `status_claim`
   unchanged at `tarball-clean`; no `platform-clean` claim written anywhere.
+
+## 2026-08-11 (later still) — CRAN polish: estimator round-trip, offset message, three documented limits
+
+- Scope. The 2026-08-11 pre-release triage of all 42 open issues returned 0 BLOCKING and 1
+  USER-SURFACE. This lands that one item plus the four DOCUMENT items.
+  Triage: `docs/dev-log/release-audits/2026-08-11-0.7.0-open-issue-triage.md`.
+- **#983 fixed.** `drm_match_estimator()` lower-cases character input before `match.arg()`, so a fit's
+  own reported `estimator = "ML"` is accepted back by `drmTMB()`. Fixed on the INPUT side only: the
+  AGHQ arc kept the reported token `"ML"` because a new token flips a family-map slope to "absent" in
+  the capability ledger. Test-of-the-test recorded — the old implementation was confirmed to error on
+  `"ML"` before the fix landed.
+- **#870 fixed (message only).** The non-finite-offset abort advertised count exposure models alone.
+  It now names all three link scales and the usual cause, a non-positive or missing value inside
+  `log()`. No gating logic changed; `offset()` remains `dpar == "mu"` with no family conditional.
+- **#967, #984, #802 documented**, each verified against code first: no interval method computes an
+  ordinal-cutpoint CI; MSPL's penalty uses `n_eff = sum(trials * frequency)`, reducing to the paper's
+  `n` at `trials = frequency = 1`; row-specific regression-`rho12` intervals exist but have no
+  coverage evidence.
+- **C17 re-certification.** `R/drmTMB.R` is one of five whole-file-pinned C17 sources, so the message
+  edit staled the `mc-0568/0569/0576` receipt — exactly the friction issue #979 describes. Cleared with
+  the sanctioned `tools/recertify-c17.py` (owner-approved), not by hand. It re-ran the committed runner
+  and **reproduced measured behaviour exactly: `|change| 0.000e+00` on all three cells**, so nothing
+  those cells certify moved. `source_fingerprint` left untouched; `current_source_sha` now `33f6139c2`.
+  `claim_boundary` is prose no automated check validates, so it was extended by hand to name this edit.
+  Receipt: `docs/dev-log/implementation-recovery/2026-08-11-cran-polish-c17c2-c14-final-source-compatibility/`.
+- Checks: `test-mspl-estimator.R` 154 pass / 0 fail · `test-offset-families.R` 8 pass / 0 fail ·
+  `capability_ledger.py --check` OK (31 generated outputs) · `unittest` 67 tests OK ·
+  `R CMD check --as-cran` on a tarball built from this branch **Status: 1 NOTE** (New submission),
+  0 ERROR, 0 WARNING, `checking tests [207s/240s]`.
+- Consequence. `R/drmTMB.R`, `R/mspl-estimator.R`, `R/profile.R` and two `man/` pages are shipped
+  files, so the frozen candidate `2176e4b8...cda9` diverges further from `main`. A re-freeze before
+  submission was already required (NEWS.md, earlier today); this batches into that same re-freeze.
+- Two tooling observations, neither blocking. `tools/recertify-c17.py` prints "refusing to run" when
+  its run directory already exists but still exits 0, so a caller checking `$?` reads the refusal as
+  success. And `tools/tests/test_capability_ledger.py::test_c17_failure_modes_give_opposite_fingerprint_instructions`
+  asserts a message naming `R/methods.R` but reads live repo state, so it fails whenever a *different*
+  pinned file is the one that changed.
