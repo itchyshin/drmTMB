@@ -1017,13 +1017,37 @@ drm_apply_estimator_spec <- function(
   spec$tmb_data$mspl_q <- 0L
   if (drm_is_mspl(estimator)) {
     mspl <- drm_validate_mspl_spec(spec)
-    # A separated ordinary-ML GLM start can already be numerically infinite.
-    # The published soft criterion is well-defined at beta = 0, so use that
-    # deterministic finite origin for the experimental route.
-    spec$start$beta_mu <- stats::setNames(
-      rep(0, mspl$p),
-      colnames(spec$X$mu)
-    )
+    # A separated ordinary-ML GLM start can already be numerically infinite, so
+    # the experimental route uses a deterministic finite origin rather than a
+    # GLM start. Slopes begin at zero.
+    #
+    # The INTERCEPT does not, because zero is a deterministic origin but not
+    # always a usable one. At beta = 0 the implied event rate is the link's
+    # value at eta = 0 -- 0.5 for logit and probit, but 1 - exp(-1) = 0.632 for
+    # cloglog -- so a design with one event in 120 starts about 4.8 log units
+    # from its own intercept. Measured: every cloglog MSPL failure in the G1
+    # campaign (33 of 11,000, all with 1-2 events and a random slope) came from
+    # this, and all three optimizer presets fail identically because they change
+    # only iter.max/eval.max, never the start.
+    #
+    # Setting the intercept to the link of the observed event rate keeps every
+    # property the comment above asks for -- deterministic, finite, independent
+    # of a possibly-divergent GLM fit -- while starting inside the data's own
+    # scale. The rate is clamped by half an observation so the link stays finite
+    # for an all-zero or all-one response, which is exactly the separated case.
+    start_beta <- rep(0, mspl$p)
+    beta_names <- colnames(spec$X$mu)
+    intercept_at <- match("(Intercept)", beta_names)
+    if (!is.na(intercept_at)) {
+      total_trials <- sum(round(spec$trials))
+      observed <- sum(spec$y) / max(total_trials, 1)
+      guard <- 1 / (2 * max(total_trials, 1))
+      observed <- min(max(observed, guard), 1 - guard)
+      start_beta[intercept_at] <- stats::binomial(
+        link = drm_mspl_link_name(spec$tmb_data$link_code)
+      )$linkfun(observed)
+    }
+    spec$start$beta_mu <- stats::setNames(start_beta, beta_names)
     spec$estimator <- "MSPL"
     spec$tmb_random_names <- spec$random_names
     spec$mspl <- mspl
