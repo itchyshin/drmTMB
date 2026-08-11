@@ -93225,3 +93225,25 @@ still absent, and the 3-OS matrix and sanitizers ran against the earlier candida
 **Not recorded as green:** the merge-commit R-CMD-check and the branch-head run are the same content,
 so they are not independent confirmations of each other; they are listed separately only so a reader
 can see which commit each one actually examined.
+
+## 2026-08-11 — the coordination board no longer contradicts itself on who owns the 0.7 CRAN ladder
+
+- Defect. `coordination-board.md` on `main` asserted **both** ownerships at once: a 2026-08-11 bullet
+  reassigning the 0.7 CRAN ladder to Claude, and immediately below it the untouched 2026-08-07 bullet
+  "**Codex** — owns the live 0.7 CRAN ladder through `submission-ready`". A board whose purpose is one
+  owner per subject named two.
+- Fix. Codex's CRAN-ladder claim is struck and marked SUPERSEDED, with the 2026-08-07 handover
+  relabelled a historical record rather than a live claim; Codex's real remaining holdings (#858,
+  #955) are named and kept PROTECTED FOREIGN. Claude's row now states the ownership. The Status block
+  was 2026-08-08 (`main` @ `5affb962b`) and is refreshed to `aa76c2399`, including that `DESCRIPTION`
+  is now `0.7.0` and that the rung is unchanged at `tarball-clean` / `platform-clean` unproven.
+- Three unmerged Cursor branches rewrite ~60 lines of that same section. Read before writing rather
+  than assumed: **they already retire Codex's CRAN-ladder claim too**, so they agree with this board
+  on that point. The single genuine conflict is Cursor-vs-Claude ownership of the live 0.7 slices,
+  and resolving it is Shinichi's call under D-87 — recorded on the board with an instruction to
+  rebase rather than straight-merge, since a straight merge would drop the reassignment.
+- `active-lane-split.md` carried a stale sentence — "DESCRIPTION **0.6.0**; current main is neither
+  `tarball-clean` nor `platform-clean`" — both halves now false. Annotated in place rather than
+  rewritten, so the 2026-08-08 lane record survives. Checked first: none of the six refs carrying
+  work on that file had already corrected it.
+- No code, ledger, rung, or claim changed. Docs only; the frozen candidate is unaffected.
