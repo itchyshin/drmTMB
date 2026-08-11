@@ -77,20 +77,44 @@ class CapabilityLedgerTests(unittest.TestCase):
             ledger.TIER_ORDER[:3],
             ["supported", "inference_ready_with_caveats", "interval_feasible"],
         )
+        # 2026-08-11 D-43 panel (Fisher/Noether/Rose): seven exhaustively
+        # campaigned routes promote G3 (point_fit_recovery) -> G5
+        # (inference_ready_with_caveats); the remaining eleven admitted
+        # routes stay at G3. See docs/dev-log/2026-08-11-g5-admission-set-exhaustiveness.md.
+        g5_promoted = {
+            "gaussian", "biv_gaussian", "gamma", "beta_binomial",
+            "binomial", "zero_one_beta", "zi_poisson",
+        }
+        self.assertEqual(
+            {
+                row["family_route"]
+                for row in missing
+                if row["test_gate"] in ("G3", "G5") and row["work_status"] == "verified"
+            },
+            ledger.ADMITTED,
+        )
+        self.assertEqual(
+            {
+                row["family_route"]
+                for row in missing
+                if row["test_gate"] == "G5" and row["work_status"] == "verified"
+            },
+            g5_promoted,
+        )
         self.assertEqual(
             {
                 row["family_route"]
                 for row in missing
                 if row["test_gate"] == "G3" and row["work_status"] == "verified"
             },
-            ledger.ADMITTED,
+            ledger.ADMITTED - g5_promoted,
         )
         self.assertEqual(
             {row["family_route"] for row in missing if row["test_gate"] == "G0"},
             {route for _, route, _, _, _ in ledger.ROUTES} - ledger.ADMITTED,
         )
         by_route = {row["family_route"]: row for row in missing}
-        self.assertEqual(by_route["zi_poisson"]["test_gate"], "G3")
+        self.assertEqual(by_route["zi_poisson"]["test_gate"], "G5")
         self.assertEqual(by_route["zi_nbinom2"]["test_gate"], "G3")
         self.assertEqual(by_route["hurdle_nbinom2"]["test_gate"], "G3")
         self.assertEqual(

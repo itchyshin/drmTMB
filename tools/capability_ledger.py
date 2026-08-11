@@ -905,14 +905,19 @@ def schema_value() -> dict[str, object]:
             "missing_response": 18,
             "missing_predictor": MISSING_PREDICTOR_COUNT,
         },
-        "missing_response_verified_gate": "G3",
+        "missing_response_verified_gate": (
+            "G3 (11 routes); G5 (7 routes, 2026-08-11 D-43 panel: gaussian, "
+            "biv_gaussian, gamma, beta_binomial, binomial, zero_one_beta, zi_poisson)"
+        ),
         "claim_boundary": (
             "Missing-response evidence is independent of model inference maturity. "
             "Missing-predictor evidence (missing_predictor axis) is a separate, "
             "narrower governance surface seeded 2026-08-09: it tracks admitted "
             "(response family x predictor family) mi()/impute_model() cells, mostly at "
             "G2 likelihood-identity/accounting evidence (diagnostic_only), not the "
-            "known-DGP recovery evidence missing_response cells carry at G3."
+            "known-DGP recovery evidence missing_response cells carry at G3, nor the "
+            "archived replicated coverage evidence the seven promoted routes carry "
+            "at G5."
         ),
     }
 
@@ -3042,15 +3047,36 @@ def missing_g4g5_summary() -> str:
 
 
 MISSING_G5_ROUTE_SUMMARIES = {
-    "gaussian": "G5: 51/54 passing cells in the combined Gaussian cohort",
-    "biv_gaussian": "G5: 51/54 passing cells in the combined Gaussian cohort",
+    # 2026-08-11 D-43 panel (Fisher/Noether/Rose): a later, authenticated
+    # route-wide campaign supersedes the earlier cohort figure for gaussian,
+    # biv_gaussian, and gamma (three of the seven promoted candidate routes)
+    # -- see cells.tsv test_gate=G5 rows. Both numbers are kept side by
+    # side; the panel did not determine why the earlier figure differed and
+    # makes no claim about it.
+    "gaussian": (
+        "G5: 15/15 cells pass (2026-08-11 authenticated route-wide "
+        "campaign; supersedes the earlier 51/54 figure from the "
+        "combined Gaussian cohort)"
+    ),
+    "biv_gaussian": (
+        "G5: 39/39 cells pass (2026-08-11 authenticated route-wide "
+        "campaign; supersedes the earlier 51/54 figure from the "
+        "combined Gaussian cohort)"
+    ),
     "binomial": "G5: 6/6 cells pass",
     "poisson": "G5: 5/9 cells pass; 4 retained failures",
     "nbinom2": "G5: 10/15 cells pass; 5 retained failures",
     "student": "G5: 3/16 cells pass; 13 retained failures",
     "lognormal": "G5: 11/15 cells pass; 4 retained failures",
-    "gamma": "G5: 12/15 cells pass; 3 retained failures",
+    "gamma": (
+        "G5: 15/15 cells pass (2026-08-11 authenticated route-wide "
+        "campaign; supersedes the earlier 12/15 figure from the "
+        "pre-panel cohort)"
+    ),
     "beta": "G5: cancelled after 2 unreconciled receipts",
+    "beta_binomial": "G5: 15/15 cells pass (2026-08-11 route-wide campaign)",
+    "zero_one_beta": "G5: 24/24 cells pass (2026-08-11 route-wide campaign)",
+    "zi_poisson": "G5: 18/18 cells pass (2026-08-11 route-wide campaign)",
 }
 
 

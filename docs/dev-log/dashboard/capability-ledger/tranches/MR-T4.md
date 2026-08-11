@@ -11,7 +11,7 @@ _Generated; do not hand-edit._
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
 | `cumulative_logit` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
-| `beta_binomial` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `beta_binomial` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, `lognormal`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
 
 ## Does not cover
 

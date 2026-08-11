@@ -1,0 +1,291 @@
+"route","parm","rung","n","usable","usable_rate","coverage","mcse"
+"beta","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9308,0.0073
+"beta","fixef:mu:x","0.5x",1200,1200,1,0.9392,0.0069
+"beta","fixef:sigma:(Intercept)","0.5x",1200,1199,0.9992,0.95,0.0063
+"beta","fixef:sigma:z","0.5x",1200,1200,1,0.9517,0.0062
+"beta","sd:mu:(1 | id)","0.5x",1200,1196,0.9967,0.9423,0.0067
+"beta","fixef:mu:(Intercept)","1x",1200,1200,1,0.9308,0.0073
+"beta","fixef:mu:x","1x",1200,1200,1,0.9525,0.0061
+"beta","fixef:sigma:(Intercept)","1x",1200,1200,1,0.9467,0.0065
+"beta","fixef:sigma:z","1x",1200,1200,1,0.9558,0.0059
+"beta","sd:mu:(1 | id)","1x",1200,1199,0.9992,0.9458,0.0065
+"beta","sd:mu:(1 | id)","2x",1200,1200,1,0.9408,0.0068
+"beta_binomial","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9383,0.0069
+"beta_binomial","fixef:mu:x","0.5x",1200,1200,1,0.9533,0.0061
+"beta_binomial","fixef:sigma:(Intercept)","0.5x",1200,1200,1,0.9508,0.0062
+"beta_binomial","fixef:sigma:z","0.5x",1200,1200,1,0.9542,0.006
+"beta_binomial","sd:mu:(1 | id)","0.5x",1200,1200,1,0.9467,0.0065
+"beta_binomial","fixef:mu:(Intercept)","1x",1200,1200,1,0.9508,0.0062
+"beta_binomial","fixef:mu:x","1x",1200,1200,1,0.9533,0.0061
+"beta_binomial","fixef:sigma:(Intercept)","1x",1200,1200,1,0.9433,0.0067
+"beta_binomial","fixef:sigma:z","1x",1200,1200,1,0.9392,0.0069
+"beta_binomial","sd:mu:(1 | id)","1x",1200,1200,1,0.9475,0.0064
+"beta_binomial","fixef:mu:(Intercept)","2x",1200,1200,1,0.9417,0.0068
+"beta_binomial","fixef:mu:x","2x",1200,1200,1,0.9517,0.0062
+"beta_binomial","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9458,0.0065
+"beta_binomial","fixef:sigma:z","2x",1200,1200,1,0.9567,0.0059
+"beta_binomial","sd:mu:(1 | id)","2x",1200,1200,1,0.9442,0.0066
+"binomial","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9625,0.0055
+"binomial","fixef:mu:x","0.5x",1200,1200,1,0.9483,0.0064
+"binomial","fixef:mu:(Intercept)","1x",1200,1200,1,0.9492,0.0063
+"binomial","fixef:mu:x","1x",1200,1200,1,0.9542,0.006
+"binomial","fixef:mu:(Intercept)","2x",1200,1200,1,0.9583,0.0058
+"binomial","fixef:mu:x","2x",1200,1200,1,0.9417,0.0068
+"biv_gaussian","cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)","0.5x",1200,1200,1,0.9475,0.0064
+"biv_gaussian","fixef:mu1:(Intercept)","0.5x",1200,1200,1,0.94,0.0069
+"biv_gaussian","fixef:mu1:x","0.5x",1200,1200,1,0.9567,0.0059
+"biv_gaussian","fixef:mu2:(Intercept)","0.5x",1200,1200,1,0.9367,0.007
+"biv_gaussian","fixef:mu2:x","0.5x",1200,1200,1,0.955,0.006
+"biv_gaussian","fixef:rho12:(Intercept)","0.5x",1200,1200,1,0.9533,0.0061
+"biv_gaussian","fixef:sigma1:(Intercept)","0.5x",1200,1200,1,0.96,0.0057
+"biv_gaussian","fixef:sigma2:(Intercept)","0.5x",1200,1200,1,0.9475,0.0064
+"biv_gaussian","rho12","0.5x",1200,1200,1,0.9583,0.0058
+"biv_gaussian","sd:mu:mu1:(1 | p | id)","0.5x",1200,1200,1,0.9467,0.0065
+"biv_gaussian","sd:mu:mu2:(1 | p | id)","0.5x",1200,1200,1,0.95,0.0063
+"biv_gaussian","sigma1","0.5x",1200,1200,1,0.9483,0.0064
+"biv_gaussian","sigma2","0.5x",1200,1200,1,0.955,0.006
+"biv_gaussian","cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)","1x",1200,1200,1,0.94,0.0069
+"biv_gaussian","fixef:mu1:(Intercept)","1x",1200,1200,1,0.9533,0.0061
+"biv_gaussian","fixef:mu1:x","1x",1200,1200,1,0.9425,0.0067
+"biv_gaussian","fixef:mu2:(Intercept)","1x",1200,1200,1,0.9317,0.0073
+"biv_gaussian","fixef:mu2:x","1x",1200,1200,1,0.9617,0.0055
+"biv_gaussian","fixef:rho12:(Intercept)","1x",1200,1200,1,0.9383,0.0069
+"biv_gaussian","fixef:sigma1:(Intercept)","1x",1200,1200,1,0.9542,0.006
+"biv_gaussian","fixef:sigma2:(Intercept)","1x",1200,1200,1,0.945,0.0066
+"biv_gaussian","rho12","1x",1200,1200,1,0.955,0.006
+"biv_gaussian","sd:mu:mu1:(1 | p | id)","1x",1200,1200,1,0.955,0.006
+"biv_gaussian","sd:mu:mu2:(1 | p | id)","1x",1200,1200,1,0.9467,0.0065
+"biv_gaussian","sigma1","1x",1200,1200,1,0.95,0.0063
+"biv_gaussian","sigma2","1x",1200,1200,1,0.9492,0.0063
+"biv_gaussian","cor:mu:cor(mu1:(Intercept),mu2:(Intercept) | p | id)","2x",1200,1200,1,0.9417,0.0068
+"biv_gaussian","fixef:mu1:(Intercept)","2x",1200,1200,1,0.9392,0.0069
+"biv_gaussian","fixef:mu1:x","2x",1200,1200,1,0.95,0.0063
+"biv_gaussian","fixef:mu2:(Intercept)","2x",1200,1200,1,0.9517,0.0062
+"biv_gaussian","fixef:mu2:x","2x",1200,1200,1,0.9575,0.0058
+"biv_gaussian","fixef:rho12:(Intercept)","2x",1200,1200,1,0.9567,0.0059
+"biv_gaussian","fixef:sigma1:(Intercept)","2x",1200,1200,1,0.9492,0.0063
+"biv_gaussian","fixef:sigma2:(Intercept)","2x",1200,1200,1,0.9517,0.0062
+"biv_gaussian","rho12","2x",1200,1200,1,0.95,0.0063
+"biv_gaussian","sd:mu:mu1:(1 | p | id)","2x",1200,1200,1,0.9483,0.0064
+"biv_gaussian","sd:mu:mu2:(1 | p | id)","2x",1200,1200,1,0.9517,0.0062
+"biv_gaussian","sigma1","2x",1200,1200,1,0.9425,0.0067
+"biv_gaussian","sigma2","2x",1200,1200,1,0.9592,0.0057
+"cumulative_logit","fixef:mu:x","0.5x",1200,1200,1,0.9492,0.0063
+"cumulative_logit","fixef:mu:x","1x",1200,1200,1,0.9608,0.0056
+"cumulative_logit","fixef:mu:x","2x",1200,1200,1,0.9542,0.006
+"gamma","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9375,0.007
+"gamma","fixef:mu:x","0.5x",1200,1200,1,0.9458,0.0065
+"gamma","fixef:sigma:(Intercept)","0.5x",1200,1200,1,0.9475,0.0064
+"gamma","fixef:sigma:z","0.5x",1200,1200,1,0.9433,0.0067
+"gamma","sd:mu:(1 | id)","0.5x",1200,1200,1,0.9417,0.0068
+"gamma","fixef:mu:(Intercept)","1x",1200,1200,1,0.9483,0.0064
+"gamma","fixef:mu:x","1x",1200,1200,1,0.9567,0.0059
+"gamma","fixef:sigma:(Intercept)","1x",1200,1200,1,0.95,0.0063
+"gamma","fixef:sigma:z","1x",1200,1200,1,0.9492,0.0063
+"gamma","sd:mu:(1 | id)","1x",1200,1200,1,0.9542,0.006
+"gamma","fixef:mu:(Intercept)","2x",1200,1200,1,0.9442,0.0066
+"gamma","fixef:mu:x","2x",1200,1200,1,0.9442,0.0066
+"gamma","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9475,0.0064
+"gamma","fixef:sigma:z","2x",1200,1200,1,0.95,0.0063
+"gamma","sd:mu:(1 | id)","2x",1200,1200,1,0.9417,0.0068
+"gaussian","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9367,0.007
+"gaussian","fixef:mu:x","0.5x",1200,1200,1,0.95,0.0063
+"gaussian","fixef:sigma:(Intercept)","0.5x",1200,1200,1,0.9608,0.0056
+"gaussian","fixef:sigma:z","0.5x",1200,1200,1,0.9492,0.0063
+"gaussian","sd:mu:(1 | id)","0.5x",1200,1200,1,0.9375,0.007
+"gaussian","fixef:mu:(Intercept)","1x",1200,1200,1,0.9483,0.0064
+"gaussian","fixef:mu:x","1x",1200,1200,1,0.9492,0.0063
+"gaussian","fixef:sigma:(Intercept)","1x",1200,1200,1,0.9467,0.0065
+"gaussian","fixef:sigma:z","1x",1200,1200,1,0.9483,0.0064
+"gaussian","sd:mu:(1 | id)","1x",1200,1200,1,0.9392,0.0069
+"gaussian","fixef:mu:(Intercept)","2x",1200,1200,1,0.9508,0.0062
+"gaussian","fixef:mu:x","2x",1200,1200,1,0.9525,0.0061
+"gaussian","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9433,0.0067
+"gaussian","fixef:sigma:z","2x",1200,1200,1,0.96,0.0057
+"gaussian","sd:mu:(1 | id)","2x",1200,1200,1,0.9567,0.0059
+"hurdle_nbinom2","fixef:hu:(Intercept)","0.5x",1200,1200,1,0.9525,0.0061
+"hurdle_nbinom2","fixef:hu:habitatopen","0.5x",1200,1200,1,0.9508,0.0062
+"hurdle_nbinom2","fixef:hu:w","0.5x",1200,1200,1,0.9392,0.0069
+"hurdle_nbinom2","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9458,0.0065
+"hurdle_nbinom2","fixef:mu:habitatopen","0.5x",1200,1200,1,0.9517,0.0062
+"hurdle_nbinom2","fixef:mu:x","0.5x",1200,1200,1,0.9433,0.0067
+"hurdle_nbinom2","fixef:sigma:(Intercept)","0.5x",1200,1182,0.985,0.9569,0.0059
+"hurdle_nbinom2","fixef:sigma:z","0.5x",1200,1200,1,0.9558,0.0059
+"hurdle_nbinom2","fixef:hu:(Intercept)","1x",1200,1200,1,0.9567,0.0059
+"hurdle_nbinom2","fixef:hu:habitatopen","1x",1200,1200,1,0.9533,0.0061
+"hurdle_nbinom2","fixef:hu:w","1x",1200,1200,1,0.9542,0.006
+"hurdle_nbinom2","fixef:mu:(Intercept)","1x",1200,1200,1,0.9542,0.006
+"hurdle_nbinom2","fixef:mu:habitatopen","1x",1200,1200,1,0.9425,0.0067
+"hurdle_nbinom2","fixef:mu:x","1x",1200,1200,1,0.9467,0.0065
+"hurdle_nbinom2","fixef:sigma:(Intercept)","1x",1200,1200,1,0.9433,0.0067
+"hurdle_nbinom2","fixef:sigma:z","1x",1200,1200,1,0.9617,0.0055
+"hurdle_nbinom2","fixef:hu:(Intercept)","2x",1200,1200,1,0.945,0.0066
+"hurdle_nbinom2","fixef:hu:habitatopen","2x",1200,1200,1,0.9483,0.0064
+"hurdle_nbinom2","fixef:hu:w","2x",1200,1200,1,0.9467,0.0065
+"hurdle_nbinom2","fixef:mu:(Intercept)","2x",1200,1200,1,0.9583,0.0058
+"hurdle_nbinom2","fixef:mu:habitatopen","2x",1200,1200,1,0.9458,0.0065
+"hurdle_nbinom2","fixef:mu:x","2x",1200,1200,1,0.9575,0.0058
+"hurdle_nbinom2","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9458,0.0065
+"hurdle_nbinom2","fixef:sigma:z","2x",1200,1200,1,0.9608,0.0056
+"lognormal","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9367,0.007
+"lognormal","fixef:mu:x","0.5x",1200,1200,1,0.9467,0.0065
+"lognormal","fixef:sigma:(Intercept)","0.5x",1200,1200,1,0.9475,0.0064
+"lognormal","fixef:sigma:z","0.5x",1200,1200,1,0.9458,0.0065
+"lognormal","sd:mu:(1 | id)","0.5x",1200,1200,1,0.9317,0.0073
+"lognormal","fixef:mu:(Intercept)","1x",1200,1200,1,0.9442,0.0066
+"lognormal","fixef:mu:x","1x",1200,1200,1,0.96,0.0057
+"lognormal","fixef:sigma:(Intercept)","1x",1200,1200,1,0.9383,0.0069
+"lognormal","fixef:sigma:z","1x",1200,1200,1,0.955,0.006
+"lognormal","sd:mu:(1 | id)","1x",1200,1200,1,0.9417,0.0068
+"lognormal","fixef:mu:(Intercept)","2x",1200,1200,1,0.9417,0.0068
+"lognormal","fixef:mu:x","2x",1200,1200,1,0.9475,0.0064
+"lognormal","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9533,0.0061
+"lognormal","fixef:sigma:z","2x",1200,1200,1,0.9392,0.0069
+"lognormal","sd:mu:(1 | id)","2x",1200,1200,1,0.9392,0.0069
+"nbinom2","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9433,0.0067
+"nbinom2","fixef:mu:x","0.5x",1200,1200,1,0.9275,0.0075
+"nbinom2","fixef:sigma:(Intercept)","0.5x",1200,1128,0.94,0.9619,0.0057
+"nbinom2","fixef:sigma:z","0.5x",1200,1175,0.9792,0.9498,0.0064
+"nbinom2","sd:mu:(1 | id)","0.5x",1200,1080,0.9,0.9796,0.0043
+"nbinom2","fixef:mu:(Intercept)","1x",1200,1200,1,0.95,0.0063
+"nbinom2","fixef:mu:x","1x",1200,1200,1,0.95,0.0063
+"nbinom2","fixef:sigma:(Intercept)","1x",1200,1197,0.9975,0.9449,0.0066
+"nbinom2","fixef:sigma:z","1x",1200,1197,0.9975,0.9373,0.007
+"nbinom2","sd:mu:(1 | id)","1x",1200,1193,0.9942,0.9522,0.0062
+"nbinom2","fixef:mu:(Intercept)","2x",1200,1200,1,0.9525,0.0061
+"nbinom2","fixef:mu:x","2x",1200,1200,1,0.9483,0.0064
+"nbinom2","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9508,0.0062
+"nbinom2","fixef:sigma:z","2x",1200,1200,1,0.9542,0.006
+"nbinom2","sd:mu:(1 | id)","2x",1200,1200,1,0.95,0.0063
+"poisson","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9217,0.0078
+"poisson","fixef:mu:x","0.5x",1200,1200,1,0.955,0.006
+"poisson","sd:mu:(1 | id)","0.5x",1200,1198,0.9983,0.9316,0.0073
+"poisson","fixef:mu:(Intercept)","1x",1200,1200,1,0.9483,0.0064
+"poisson","fixef:mu:x","1x",1200,1200,1,0.9433,0.0067
+"poisson","sd:mu:(1 | id)","1x",1200,1200,1,0.955,0.006
+"poisson","fixef:mu:(Intercept)","2x",1200,1200,1,0.9575,0.0058
+"poisson","fixef:mu:x","2x",1200,1200,1,0.9525,0.0061
+"poisson","sd:mu:(1 | id)","2x",1200,1200,1,0.9533,0.0061
+"skew_normal","fixef:mu:(Intercept)","0.5x",1200,1199,0.9992,0.9491,0.0063
+"skew_normal","fixef:mu:x","0.5x",1200,1200,1,0.945,0.0066
+"skew_normal","fixef:nu:(Intercept)","0.5x",1200,1196,0.9967,0.9289,0.0074
+"skew_normal","fixef:sigma:(Intercept)","0.5x",1200,1199,0.9992,0.9558,0.0059
+"skew_normal","fixef:sigma:z","0.5x",1200,1200,1,0.9408,0.0068
+"skew_normal","fixef:mu:(Intercept)","1x",1200,1200,1,0.9583,0.0058
+"skew_normal","fixef:mu:x","1x",1200,1200,1,0.9492,0.0063
+"skew_normal","fixef:nu:(Intercept)","1x",1200,1200,1,0.9383,0.0069
+"skew_normal","fixef:sigma:(Intercept)","1x",1200,1200,1,0.94,0.0069
+"skew_normal","fixef:sigma:z","1x",1200,1200,1,0.9467,0.0065
+"skew_normal","fixef:mu:(Intercept)","2x",1200,1200,1,0.9425,0.0067
+"skew_normal","fixef:mu:x","2x",1200,1200,1,0.955,0.006
+"skew_normal","fixef:nu:(Intercept)","2x",1200,1200,1,0.9467,0.0065
+"skew_normal","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9492,0.0063
+"skew_normal","fixef:sigma:z","2x",1200,1200,1,0.9467,0.0065
+"student","fixef:mu:(Intercept)","0.5x",1200,1183,0.9858,0.9484,0.0064
+"student","fixef:mu:x","0.5x",1200,1188,0.99,0.9411,0.0068
+"student","fixef:sigma:(Intercept)","0.5x",1200,1168,0.9733,0.899,0.0088
+"student","fixef:sigma:z","0.5x",1200,1189,0.9908,0.9394,0.0069
+"student","sd:mu:(1 | id)","0.5x",1200,1170,0.975,0.9581,0.0059
+"student","fixef:mu:(Intercept)","1x",1200,1192,0.9933,0.9346,0.0072
+"student","fixef:mu:x","1x",1200,1194,0.995,0.9548,0.006
+"student","fixef:sigma:(Intercept)","1x",1200,1183,0.9858,0.9011,0.0087
+"student","fixef:sigma:z","1x",1200,1191,0.9925,0.9538,0.0061
+"student","sd:mu:(1 | id)","1x",1200,1186,0.9883,0.9401,0.0069
+"student","fixef:mu:(Intercept)","2x",1200,1196,0.9967,0.9431,0.0067
+"student","fixef:mu:x","2x",1200,1200,1,0.9475,0.0064
+"student","fixef:nu:(Intercept)","2x",1200,912,0.76,0.955,0.0069
+"student","fixef:sigma:(Intercept)","2x",1200,1190,0.9917,0.9311,0.0073
+"student","fixef:sigma:z","2x",1200,1199,0.9992,0.9416,0.0068
+"student","sd:mu:(1 | id)","2x",1200,1199,0.9992,0.9425,0.0067
+"truncated_nbinom2","fixef:mu:(Intercept)","0.5x",1200,1182,0.985,0.945,0.0066
+"truncated_nbinom2","fixef:mu:x","0.5x",1200,1200,1,0.9342,0.0072
+"truncated_nbinom2","fixef:sigma:z","0.5x",1200,1168,0.9733,0.9512,0.0063
+"truncated_nbinom2","fixef:mu:(Intercept)","1x",1200,1200,1,0.9392,0.0069
+"truncated_nbinom2","fixef:mu:x","1x",1200,1200,1,0.9408,0.0068
+"truncated_nbinom2","fixef:sigma:(Intercept)","1x",1200,926,0.7717,0.9492,0.0072
+"truncated_nbinom2","sd:mu:(1 | id)","1x",1200,498,0.415,0.9659,0.0081
+"truncated_nbinom2","fixef:mu:(Intercept)","2x",1200,1200,1,0.9475,0.0064
+"truncated_nbinom2","fixef:mu:x","2x",1200,1200,1,0.9425,0.0067
+"truncated_nbinom2","fixef:sigma:(Intercept)","2x",1200,1165,0.9708,0.9571,0.0059
+"truncated_nbinom2","fixef:sigma:z","2x",1200,1199,0.9992,0.9441,0.0066
+"tweedie","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9375,0.007
+"tweedie","fixef:mu:x","0.5x",1200,1200,1,0.9575,0.0058
+"tweedie","fixef:nu:(Intercept)","0.5x",1200,1200,1,0.93,0.0074
+"tweedie","fixef:sigma:(Intercept)","0.5x",1200,1199,0.9992,0.9374,0.007
+"tweedie","fixef:sigma:z","0.5x",1200,1200,1,0.9417,0.0068
+"tweedie","fixef:mu:(Intercept)","1x",1200,1200,1,0.9417,0.0068
+"tweedie","fixef:mu:x","1x",1200,1200,1,0.9433,0.0067
+"tweedie","fixef:nu:(Intercept)","1x",1200,1200,1,0.9408,0.0068
+"tweedie","fixef:sigma:(Intercept)","1x",1200,1200,1,0.95,0.0063
+"tweedie","fixef:sigma:z","1x",1200,1200,1,0.9408,0.0068
+"tweedie","fixef:mu:(Intercept)","2x",1200,1200,1,0.9617,0.0055
+"tweedie","fixef:mu:x","2x",1200,1200,1,0.945,0.0066
+"tweedie","fixef:nu:(Intercept)","2x",1200,1200,1,0.95,0.0063
+"tweedie","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9475,0.0064
+"tweedie","fixef:sigma:z","2x",1200,1200,1,0.9508,0.0062
+"zero_one_beta","fixef:coi:(Intercept)","0.5x",1200,1200,1,0.9567,0.0059
+"zero_one_beta","fixef:coi:v","0.5x",1200,1200,1,0.9617,0.0055
+"zero_one_beta","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9467,0.0065
+"zero_one_beta","fixef:mu:x","0.5x",1200,1200,1,0.9475,0.0064
+"zero_one_beta","fixef:sigma:(Intercept)","0.5x",1200,1200,1,0.9475,0.0064
+"zero_one_beta","fixef:sigma:z","0.5x",1200,1200,1,0.9575,0.0058
+"zero_one_beta","fixef:zoi:(Intercept)","0.5x",1200,1200,1,0.95,0.0063
+"zero_one_beta","fixef:zoi:w","0.5x",1200,1200,1,0.9575,0.0058
+"zero_one_beta","fixef:coi:(Intercept)","1x",1200,1200,1,0.9425,0.0067
+"zero_one_beta","fixef:coi:v","1x",1200,1200,1,0.9417,0.0068
+"zero_one_beta","fixef:mu:(Intercept)","1x",1200,1200,1,0.9542,0.006
+"zero_one_beta","fixef:mu:x","1x",1200,1200,1,0.95,0.0063
+"zero_one_beta","fixef:sigma:(Intercept)","1x",1200,1200,1,0.95,0.0063
+"zero_one_beta","fixef:sigma:z","1x",1200,1200,1,0.95,0.0063
+"zero_one_beta","fixef:zoi:(Intercept)","1x",1200,1200,1,0.955,0.006
+"zero_one_beta","fixef:zoi:w","1x",1200,1200,1,0.9492,0.0063
+"zero_one_beta","fixef:coi:(Intercept)","2x",1200,1200,1,0.9642,0.0054
+"zero_one_beta","fixef:coi:v","2x",1200,1200,1,0.9558,0.0059
+"zero_one_beta","fixef:mu:(Intercept)","2x",1200,1200,1,0.9433,0.0067
+"zero_one_beta","fixef:mu:x","2x",1200,1200,1,0.9508,0.0062
+"zero_one_beta","fixef:sigma:(Intercept)","2x",1200,1200,1,0.945,0.0066
+"zero_one_beta","fixef:sigma:z","2x",1200,1200,1,0.9383,0.0069
+"zero_one_beta","fixef:zoi:(Intercept)","2x",1200,1200,1,0.9517,0.0062
+"zero_one_beta","fixef:zoi:w","2x",1200,1200,1,0.9525,0.0061
+"zi_nbinom2","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.9425,0.0067
+"zi_nbinom2","fixef:mu:habitatopen","0.5x",1200,1200,1,0.9483,0.0064
+"zi_nbinom2","fixef:mu:x","0.5x",1200,1199,0.9992,0.9491,0.0063
+"zi_nbinom2","fixef:sigma:(Intercept)","0.5x",1200,1195,0.9958,0.9431,0.0067
+"zi_nbinom2","fixef:sigma:z","0.5x",1200,1196,0.9967,0.9507,0.0063
+"zi_nbinom2","fixef:zi:(Intercept)","0.5x",1200,1197,0.9975,0.9457,0.0065
+"zi_nbinom2","fixef:zi:habitatopen","0.5x",1200,1178,0.9817,0.9406,0.0069
+"zi_nbinom2","fixef:zi:w","0.5x",1200,1196,0.9967,0.9398,0.0069
+"zi_nbinom2","fixef:mu:(Intercept)","1x",1200,1200,1,0.9375,0.007
+"zi_nbinom2","fixef:mu:habitatopen","1x",1200,1200,1,0.96,0.0057
+"zi_nbinom2","fixef:mu:x","1x",1200,1200,1,0.9442,0.0066
+"zi_nbinom2","fixef:sigma:(Intercept)","1x",1200,1200,1,0.9492,0.0063
+"zi_nbinom2","fixef:sigma:z","1x",1200,1200,1,0.95,0.0063
+"zi_nbinom2","fixef:zi:(Intercept)","1x",1200,1200,1,0.965,0.0053
+"zi_nbinom2","fixef:zi:habitatopen","1x",1200,1200,1,0.9475,0.0064
+"zi_nbinom2","fixef:zi:w","1x",1200,1200,1,0.9575,0.0058
+"zi_nbinom2","fixef:mu:(Intercept)","2x",1200,1200,1,0.9542,0.006
+"zi_nbinom2","fixef:mu:habitatopen","2x",1200,1200,1,0.9392,0.0069
+"zi_nbinom2","fixef:mu:x","2x",1200,1200,1,0.9433,0.0067
+"zi_nbinom2","fixef:sigma:(Intercept)","2x",1200,1200,1,0.9558,0.0059
+"zi_nbinom2","fixef:sigma:z","2x",1200,1200,1,0.955,0.006
+"zi_nbinom2","fixef:zi:(Intercept)","2x",1200,1200,1,0.9508,0.0062
+"zi_nbinom2","fixef:zi:habitatopen","2x",1200,1200,1,0.9442,0.0066
+"zi_nbinom2","fixef:zi:w","2x",1200,1200,1,0.9567,0.0059
+"zi_poisson","fixef:mu:(Intercept)","0.5x",1200,1200,1,0.96,0.0057
+"zi_poisson","fixef:mu:habitatopen","0.5x",1200,1200,1,0.9442,0.0066
+"zi_poisson","fixef:mu:x","0.5x",1200,1200,1,0.9525,0.0061
+"zi_poisson","fixef:zi:(Intercept)","0.5x",1200,1200,1,0.9392,0.0069
+"zi_poisson","fixef:zi:habitatopen","0.5x",1200,1200,1,0.9558,0.0059
+"zi_poisson","fixef:zi:z","0.5x",1200,1200,1,0.9508,0.0062
+"zi_poisson","fixef:mu:(Intercept)","1x",1200,1200,1,0.9567,0.0059
+"zi_poisson","fixef:mu:habitatopen","1x",1200,1200,1,0.9592,0.0057
+"zi_poisson","fixef:mu:x","1x",1200,1200,1,0.9575,0.0058
+"zi_poisson","fixef:zi:(Intercept)","1x",1200,1200,1,0.9433,0.0067
+"zi_poisson","fixef:zi:habitatopen","1x",1200,1200,1,0.945,0.0066
+"zi_poisson","fixef:zi:z","1x",1200,1200,1,0.9533,0.0061
+"zi_poisson","fixef:mu:(Intercept)","2x",1200,1200,1,0.9433,0.0067
+"zi_poisson","fixef:mu:habitatopen","2x",1200,1200,1,0.9433,0.0067
+"zi_poisson","fixef:mu:x","2x",1200,1200,1,0.9417,0.0068
+"zi_poisson","fixef:zi:(Intercept)","2x",1200,1200,1,0.9575,0.0058
+"zi_poisson","fixef:zi:habitatopen","2x",1200,1200,1,0.9467,0.0065
+"zi_poisson","fixef:zi:z","2x",1200,1200,1,0.9525,0.0061
