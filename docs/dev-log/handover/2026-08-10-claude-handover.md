@@ -60,10 +60,61 @@ see a DGP that fails to vary correctly, or a truth constant on the wrong scale.*
 
 ## Current working state
 
-**IN PROGRESS — the authenticated campaign (rorqual array `18777800`).**
-294 cells × 1,200 attempts = 352,800 fits. At handover: **290/294 finished, 4 running, 0 errors.**
-This is the **first campaign whose evidence can be authenticated** — every record carries
-`design_state = centre_random_effects=FALSE`, verified live (95/95 stamped on a sampled cell).
+**COMPLETE — the authenticated campaign (rorqual array `18777800`).** Finished and reconciled
+2026-08-10 20:52. Artifact: `rorqual:~/g5run/g5-reconciled-final.rds`.
+
+**It authenticates itself, which is the whole point of the run:**
+
+```
+design_state: centre_random_effects=FALSE
+UNAUTHENTICATED rows: 0 / 348,000
+```
+
+That is precisely what withheld promotion at the first panel. Noether's objection is now answered by
+the artifact rather than by inference from its own results.
+
+**Outcome: 247 pass / 43 fail of 290 reconciled cells** (previous campaign: 236/294).
+Failure modes: `unusable_interval` **42** · `coverage_outside_policy_band` **1**.
+
+**Nine routes pass every cell** (was eight): `biv_gaussian` (39), `zero_one_beta` (24),
+`zi_poisson` (18), `gaussian` (15), `gamma` (15), `beta_binomial` (15), **`lognormal` (15)**,
+`binomial` (6), `cumulative_logit` (3).
+
+Per-route (fail, pass): beta 3/8 · beta_binomial 0/15 · binomial 0/6 · biv_gaussian 0/39 ·
+cumulative_logit 0/3 · gamma 0/15 · gaussian 0/15 · hurdle_nbinom2 1/23 · lognormal 0/15 ·
+nbinom2 6/9 · poisson 2/7 · skew_normal 3/12 · **student 15/1** · truncated_nbinom2 6/5 ·
+tweedie 1/14 · zero_one_beta 0/24 · zi_nbinom2 6/18 · zi_poisson 0/18.
+
+**Two predictions were made in advance. One held; one did not — read this before trusting the
+student numbers.**
+
+- **`skew_normal` — CONFIRMED.** Intercepts moved from **1.0000 / 1.0000 / 0.9992** to
+  **0.9483 / 0.9583 / 0.9425**; the route went 0/15 → **12/15**. The frozen DGP was the problem.
+- **`student` — PREDICTION WRONG.** I predicted substantial improvement from 4/15; it went to
+  **1/15, worse.** The *diagnosis* was right — its intercept coverages are now
+  **0.9350 / 0.9283 / 0.9400**, all in band, and it fails on `unusable_interval`, not on coverage.
+  Permuting a fixed quantile multiset was **artificially stabilising the fits**; real `rt()` draws
+  produce genuine heavy-tailed outliers, some profile intervals fail, and the all-1,200-usable rule
+  fails the cell. **Better statistics, worse pass rate.** Do not read student's 1/15 as a regression.
+
+**This reframes the remaining work.** 42 of 43 failures are *interval availability*, not calibration.
+The open question is no longer "does drmTMB cover correctly" but "can the profile machinery produce an
+interval on all 1,200 draws" — i.e. the availability-vs-coverage reporting split raised in #965, now
+decidable on evidence.
+
+**⚠ 290 of 294 cells reconciled — FOUR ARE MISSING.** Identify them before the panel: the previous
+panel's single blocking objection (raised independently by two reviewers) was exactly an incomplete
+admission set. If any missing cell belongs to one of the nine clean routes, that route's "passes every
+cell" claim is not exhaustive.
+```bash
+ssh rorqual 'module load StdEnv/2023 r-bundle-bioconductor/3.21; export R_LIBS_USER=$HOME/R/g4g5-lib; \
+  Rscript -e "reg <- readRDS(path.expand(\"~/g5run/registry.rds\")); \
+    f <- list.files(path.expand(\"~/g5run/g5\"), \"[.]rds$\", full.names=TRUE); \
+    n <- vapply(f, function(p) tryCatch(nrow(readRDS(p)), error=function(e) 0L), integer(1)); \
+    have <- vapply(f[n>=1200], function(p){x<-readRDS(p); paste(x\$route_id[1],x\$parm[1],x\$information_rung[1])}, character(1)); \
+    want <- paste(reg\$cells\$route_id, reg\$cells\$parm, reg\$cells\$information_rung); \
+    print(setdiff(want, have))"'
+```
 
 What makes it different from the three earlier runs:
 
@@ -86,7 +137,7 @@ failures, known-DGP recovery passing for both. Blocked *only* by the C17 guard (
 |---|---|---|
 | #972, #985, #989 | **LANDED** | merged to `main` |
 | `claude/mi-response-leaves` @ `01179d89c` | **CARRIED-OVER** | pushed, 2 commits, not merged. Blocked on #979. Resume: see Next Steps. |
-| rorqual array `18777800` | **CARRIED-OVER (live compute)** | 290/294 at handover; reconciler staged at `rorqual:~/g5run/recon.R` |
+| rorqual array `18777800` | **DONE** | complete + reconciled; `rorqual:~/g5run/g5-reconciled-final.rds`; 247 pass / 43 fail of 290. **4 cells unreconciled — identify before the panel.** |
 | D-43 panel | **OWED** | must run on the reconciled artifact before any promotion |
 | Stale `.git/index.lock` (Aug 5) | **REPORT ONLY** | pre-existing, not mine. Do **not** remove — the harness blocks `.git` deletions. Flag to the owner. |
 | Other lanes' unpushed branches | **NOT MINE** | `codex/*`, `hopper/*`, `shannon-install` — the handoff gate flags these; they belong to other lanes |
@@ -138,16 +189,9 @@ On `claude/mi-response-leaves` (**not merged**): `R/drmTMB.R`, `R/missing-data.R
 
 ## Next immediate steps (OWED)
 
-1. **Finish the campaign and reconcile.**
-   ```bash
-   ssh totoro   # not needed; the campaign is on rorqual
-   ssh rorqual 'squeue -u $USER -h | wc -l'          # 0 == done
-   ssh rorqual 'cd ~/g5run && module load StdEnv/2023 r-bundle-bioconductor/3.21 && \
-     OPENBLAS_NUM_THREADS=1 Rscript recon.R 2>&1 | tail -60'
-   ```
-   The reconciler writes `rorqual:~/g5run/g5-reconciled-final.rds` and prints the calibration table.
-   **Confirm it reports `design_state: centre_random_effects=FALSE` with no `UNAUTHENTICATED` rows** —
-   that is the whole point of this run.
+1. **~~Finish the campaign and reconcile.~~ DONE** — see Current Working State. The artifact is
+   authenticated (0 UNAUTHENTICATED of 348,000 records). **First: identify the 4 unreconciled cells**
+   using the command in that section, and check whether any belongs to the nine clean routes.
 
 2. **Run a fresh D-43 panel** on the reconciled artifact. Brief:
    `scratchpad/d43-panel-brief.md` (session-local; its content is reproduced in the after-task report).
@@ -156,9 +200,10 @@ On `claude/mi-response-leaves` (**not merged**): `R/drmTMB.R`, `R/missing-data.R
    wording (25% MCAR, ML only, profile intervals only, excluding MAR/MNAR and REML); and the fact that
    Noether's objection is now *directly answerable* because records carry their design.
 
-3. **Two predictions to falsify, stated in advance:** `skew_normal` should go from 0/15 to behaving
-   like any other route; `student` should improve substantially from 4/15. If `student` does not
-   improve, the permutation diagnosis was wrong — say so.
+3. **~~Two predictions to falsify.~~ RESOLVED — `skew_normal` confirmed, `student` prediction WRONG.**
+   Details in Current Working State. Carry the correction into the panel brief: student's 1/15 is an
+   interval-availability effect on now-correct statistics, not a regression, and its coverage is in
+   band at every rung.
 
 4. **Then promote**, if earned. The prior panel converged on 7 routes: `gaussian`, `biv_gaussian`,
    `gamma`, `beta_binomial`, `binomial`, `zero_one_beta`, `zi_poisson`.
@@ -217,7 +262,7 @@ On `claude/mi-response-leaves` (**not merged**): `R/drmTMB.R`, `R/missing-data.R
 | Repo | Branch / main | CI | What shipped | Plan by leverage |
 |---|---|---|---|---|
 | drmTMB | `main` @ `60459cfaa` | 0.7.0 freeze requested | ledger axis · `imputed()` SEs 12/13 · design provenance · 4 DGP/truth defects fixed · 3 guards | (1) reconcile + D-43 → promotion · (2) #979 → merge `mi-response-leaves` · (3) #967 · (4) MD7f fixture noise |
-| Evidence | array `18777800` | 290/294, 0 errors | first **authenticated** campaign | reconcile → panel → promote 7 routes if earned |
+| Evidence | array `18777800` | **complete, 0 errors** | first **authenticated** campaign — 247/43 of 290, 0 UNAUTHENTICATED | identify 4 missing cells → D-43 panel → promote (9 routes now clean) |
 
 ## How to resume
 
