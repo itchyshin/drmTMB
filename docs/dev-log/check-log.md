@@ -93134,3 +93134,28 @@ family that can discriminate an engine that improves on Laplace.
   candidate (run-book at `docs/dev-log/release/0.7.0-cran-gate/WIN-BUILDER-RUNBOOK.md`); Windows
   CRAN-lane time is UNMEASURED; four evidence gaps are disclosed in the ledger's `known_evidence_gaps`.
 - After-task: `docs/dev-log/after-task/2026-08-11-070-gate-truth.md`.
+
+## 2026-08-11 (later) — NEWS no longer claims a CRAN release the package has not had
+
+- Defect. Merging PR #996 put `NEWS.md:3` on `main` reading flatly **"First CRAN release."** while
+  drmTMB is not on CRAN. The same file already carried the corrected D-125 wording at line 788
+  (`0.5.0` was "the **intended** first CRAN release"), so line 3 contradicted it. pkgdown deploys from
+  `main`, making this a live public surface — the same failure class D-125 fixed for the `v0.5.0`
+  GitHub release title.
+- Fix. `NEWS.md:3` now reads "First CRAN-targeted release candidate; not yet submitted to or accepted
+  by CRAN." Wording deliberately aligned with the unmerged `claude/07-release-slice` (PR #959), which
+  rewrites the same paragraph to "First CRAN-targeted release candidate" — adopting its phrasing rather
+  than forking a second correct wording in one file.
+- Stale authorisation records corrected. `FREEZE-NOTES.md` and `coordination-board.md` both stated that
+  no owner authorisation existed for the DESCRIPTION bump and the `cran-comments.md` finalisation. True
+  when written; false once Shinichi merged **#1000** (`5a225378d`) and **#996** (`a3217da93`). Both now
+  record the merge as the authorisation, and both restate what is still NOT authorised: advancing
+  `status_claim`, writing `platform-clean`, or uploading.
+- Consequence, recorded not hidden. `NEWS.md` is a SHIPPED file, so the frozen candidate
+  `2176e4b8...cda9` (built from `a75c3c901`) no longer represents `main`'s shipped source. The
+  candidate's evidence stays valid for that artifact and `tarball-clean` is unaffected, but a
+  **re-freeze is required before submission** so the submitted tarball carries the corrected NEWS.
+  Logged as `known_evidence_gaps.candidate_no_longer_matches_main` in the 0.7.0 ledger, with the exact
+  currency command.
+- Checks: `cran_release_gate.py` on the 0.7.0 ledger still `READY FOR CLAIMED RUNG`; `status_claim`
+  unchanged at `tarball-clean`; no `platform-clean` claim written anywhere.
