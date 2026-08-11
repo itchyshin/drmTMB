@@ -1,0 +1,18 @@
+>>> RUNNING test-family-dpq-batchC.R 
+>>> test-family-dpq-batchC.R pass=122 fail=0 skip=0
+>>> RUNNING test-gaussian-random-intercepts.R 
+>>> test-gaussian-random-intercepts.R pass=429 fail=0 skip=0
+>>> RUNNING test-count-structured-mu.R 
+>>> test-count-structured-mu.R pass=533 fail=0 skip=0
+>>> RUNNING test-score-consistency.R 
+>>> test-score-consistency.R pass=17 fail=0 skip=0
+>>> RUNNING test-nbinom2-location-scale.R 
+>>> test-nbinom2-location-scale.R pass=157 fail=0 skip=0
+>>> RUNNING test-adequacy.R 
+>>> test-adequacy.R pass=10 fail=0 skip=0
+>>> RUNNING test-phylo-gaussian.R 
+>>> test-phylo-gaussian.R pass=385 fail=0 skip=0
+>>> VALGRIND SUBSET COMPLETE
+==974469==    definitely lost: 0 bytes in 0 blocks
+==974469==    indirectly lost: 0 bytes in 0 blocks
+==974469== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
