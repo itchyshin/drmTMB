@@ -77,13 +77,18 @@ class CapabilityLedgerTests(unittest.TestCase):
             ledger.TIER_ORDER[:3],
             ["supported", "inference_ready_with_caveats", "interval_feasible"],
         )
-        # 2026-08-11 D-43 panel (Fisher/Noether/Rose) + addendum: eight
-        # exhaustively campaigned routes promote G3 (point_fit_recovery) ->
-        # G5 (inference_ready_with_caveats); the remaining ten admitted
+        # 2026-08-11: two D-43 panels. The first promoted eight
+        # exhaustively campaigned routes G3 (point_fit_recovery) -> G5
+        # (inference_ready_with_caveats) on coverage inside the
+        # pre-registered band. A second panel separately promoted beta,
+        # tweedie, and skew_normal on a threshold-free worst-case coverage
+        # bound (explicitly NOT the mr-g5-calibration-v2 availability
+        # floor). Eleven routes are G5; the remaining seven admitted
         # routes stay at G3. See docs/dev-log/2026-08-11-g5-admission-set-exhaustiveness.md.
         g5_promoted = {
             "gaussian", "biv_gaussian", "gamma", "beta_binomial",
             "binomial", "zero_one_beta", "zi_poisson", "lognormal",
+            "beta", "tweedie", "skew_normal",
         }
         self.assertEqual(
             {
@@ -2771,17 +2776,19 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn("G4/G5 interval and coverage evidence are outside this arc.", output)
             self.assertIn("Current G4/G5 evidence (target-rung grain)", output)
             self.assertIn("eight reconciled cohorts: 98 of 130 exact cells pass", output)
-        # 2026-08-11 D-43 panel + addendum: the generic "campaign stopped
-        # before route-wide reconciliation" placeholder is no longer true
-        # for ANY of the 18 missing_response rows (eight promoted, ten held
-        # for their own distinct, real reasons), so it must not appear, and
-        # each held route's real per-route next_gate reason must. The v1
-        # "all-1200 interval-usability rule" was itself superseded within
-        # the same review by mr-g5-calibration-v2 (availability >= 0.99
-        # floor); v1 wording must not linger, and the named gate version
-        # must appear so a future gate change is visible rather than silent.
-        # beta's resume then completed the 294/294 campaign, so its stale
-        # "truncated by an 8h walltime" blocker must be gone too.
+        # 2026-08-11: two D-43 panels. The generic "campaign stopped before
+        # route-wide reconciliation" placeholder is no longer true for ANY
+        # of the 18 missing_response rows (eleven promoted across the two
+        # panels, seven held for their own distinct, real reasons), so it
+        # must not appear, and each held route's real per-route next_gate
+        # reason must. The v1 "all-1200 interval-usability rule" was
+        # itself superseded within the same review by mr-g5-calibration-v2
+        # (availability >= 0.99 floor); v1 wording must not linger, and
+        # the named gate version must appear so a future gate change is
+        # visible rather than silent. beta/tweedie/skew_normal's stale
+        # "truncated by an 8h walltime" / "not promoted" text must also be
+        # gone -- the second panel promoted all three on a threshold-free
+        # worst-case bound, explicitly NOT the v2 floor.
         self.assertNotIn(
             "G4/G5 framework is ready and partial calibration evidence is retained",
             markdown,
@@ -2789,8 +2796,18 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertNotIn("the all-1200 interval-usability rule", markdown)
         self.assertNotIn("truncated by an 8h walltime and are re-running", markdown)
         self.assertIn("mr-g5-calibration-v2", markdown)
-        self.assertIn("Campaign-wide reconciliation is now complete (294/294", markdown)
         self.assertIn("structural, not evidential, grounds", markdown)
+        self.assertIn("threshold-free worst-case bound", markdown)
+        # claim_boundary prose itself is not rendered into
+        # capability-surface.md for missing_response rows (only next_gate
+        # and the MISSING_G5_ROUTE_SUMMARIES tally are); check the second
+        # panel's "not grounded in v2" clause against the raw ledger row.
+        by_route_full = {row["family_route"]: row for row in self.cells if row["axis"] == "missing_response"}
+        for route in ("beta", "tweedie", "skew_normal"):
+            self.assertIn(
+                "NOT grounded in the mr-g5-calibration-v2 availability floor",
+                by_route_full[route]["claim_boundary"],
+            )
         self.assertNotIn("Missing-response execution board", html)
         latest = max(row["updated_date"] for row in self.cells)
         self.assertIn(f"Generated {latest}", html)

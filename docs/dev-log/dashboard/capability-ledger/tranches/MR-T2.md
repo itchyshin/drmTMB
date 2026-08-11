@@ -11,9 +11,9 @@ _Generated; do not hand-edit._
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
 | `student` | implemented | G3 ✓ | verified | Under mr-g5-calibration-v2 (complete & precise & in-band & availability >= 0.99), 7/16 campaign cells fail -- 6 on the availability floor (< 0.99), 1 on coverage; G3 stands until both are fixed and the route re-passes exhaustively. |
-| `lognormal` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
-| `gamma` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `beta`, `cumulative_logit`, or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
-| `skew_normal` | implemented | G3 ✓ | verified | Under mr-g5-calibration-v2 (complete & precise & in-band & availability >= 0.99), 0/15 campaign cells fail -- no availability or coverage blocker remains. Not promoted: no D-43 panel has reviewed this route under v2 yet, so this is a candidate for a future panel, not a route with an outstanding defect. |
+| `lognormal` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `cumulative_logit` or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `gamma` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `cumulative_logit` or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `skew_normal` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `cumulative_logit` or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
 
 ## Does not cover
 
