@@ -11,10 +11,11 @@
 > - **"bump DESCRIPTION"** — crossed by `a75c3c901` (2026-08-10), the 0.7.0 candidate freeze commit.
 > - **"finalize `cran-comments.md`"** — crossed by `885f260d1` (2026-08-11).
 >
-> **No explicit owner authorisation is on record for either.** Shinichi's 2026-08-11 decision
-> reassigned *lane ownership* to Claude and nothing more; it did not authorise these two actions.
-> Both live on `claude/07-candidate-freeze-2` in **PR #996, open and unmerged**, so the merge decision
-> is still his and is the natural place to accept or reject them.
+> **Both were authorised on 2026-08-11, by merge.** Shinichi's earlier decision that day reassigned
+> *lane ownership* only; the authorisation for these two actions is his instruction to merge
+> **PR #996**, landed as `a3217da93`. That is what put `Version: 0.7.0` on `main`. Recorded here
+> because an earlier revision of this banner said no authorisation existed — true when written, false
+> once the PR merged.
 >
 > **Still in force, uncrossed:** do not write `platform-clean`, do not commit the tarball binary, and
 > do not upload to CRAN. Advancing to `platform-clean` requires Shinichi's explicit authorisation.

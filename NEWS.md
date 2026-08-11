@@ -1,8 +1,9 @@
 # drmTMB 0.7.0
 
-First CRAN release. drmTMB fits distributional regression models -- location,
-scale, shape, zero inflation, and residual correlation -- for one or two
-responses, using Template Model Builder.
+First CRAN-targeted release candidate; not yet submitted to or accepted by
+CRAN. drmTMB fits distributional regression models -- location, scale, shape,
+zero inflation, and residual correlation -- for one or two responses, using
+Template Model Builder.
 
 ## Offsets in `mu` for every univariate family
 

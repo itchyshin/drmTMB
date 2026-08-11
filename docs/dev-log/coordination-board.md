@@ -7,11 +7,15 @@ census; capability counts belong in the ledger and Mission Control.
 ## Active Lane Split
 - **2026-08-11 reassignment (Shinichi, in session):** the live 0.7 CRAN ladder is
   now owned by **Claude**, superseding the 2026-08-07 Codex-ownership line below.
-  Scope of that decision: lane ownership only. It does **not** authorise a rung
-  advance, a submission, or the merge of any open PR.
-  Factual note, not an approval: the DESCRIPTION 0.7.0 bump currently sits on the
-  Claude branch `claude/07-candidate-freeze-2` in **PR #996, open and unmerged** —
-  the merge decision remains Shinichi's and has not been given.
+  That reassignment covered lane ownership only.
+  **Later the same day Shinichi authorised the merges**, and both landed on `main`:
+  **#1000** (`5a225378d`, the CRAN-gate docs) and **#996** (`a3217da93`, the candidate
+  freeze), which is what put `Version: 0.7.0` on `main`.
+  **Still NOT authorised by any of the above:** advancing `status_claim` past
+  `tarball-clean`, writing `platform-clean`, or uploading to CRAN. `platform-clean`
+  additionally remains mechanically blocked — the release gate rejects the claim while
+  `platform_matrix` and `external_logs` are absent, and win-builder has not run against
+  the candidate.
 - **Codex** — owns the live **0.7 CRAN ladder** through `submission-ready`
   (rescope: packaging + honest caveats, not science-complete). Authoritative
   handover: [`handover/2026-08-07-codex-handover.md`](handover/2026-08-07-codex-handover.md).
