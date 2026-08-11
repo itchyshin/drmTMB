@@ -376,3 +376,89 @@ schema is fixed, and it should not be cited as a reason to doubt the route.
   false for that route — i.e. whenever admitted canonical targets are a strict subset of the route's
   frozen `truth` vector. For the seven candidates this test passes 44/44; for `cumulative_logit` it
   fails 1/3.
+
+---
+
+# ADDENDUM 2 — `lognormal` (appended; §1–§8 and Addendum 1 stand unchanged)
+
+**Ruling: PROMOTE.** **`dpar = "all fitted dpars"` is TRUE for `mr-lognormal`.**
+
+Like `cumulative_logit`, this exclusion traced to an inherited "candidate" tag rather than a derived
+reason — and here there was no stated reason at all. I applied the A2 test and it passes. I reached
+this independently; I have not seen Fisher's or Rose's reasoning and did not weigh either.
+
+## B1. The test, applied against the fitted model rather than the campaign's target list
+
+The coordinator is right that reading the campaign's own target list would be circular: an omitted
+target is exactly the failure mode that makes the row false. So I took the canonical set from
+`profile_targets(fit)` on a live lognormal fit and compared three sets — canonical, frozen truth
+vector, and G5-admitted (`noether10.R`):
+
+```
+######## lognormal ########
+profile_targets(fit) [CANONICAL, from the fitted model]: 5
+  fixef:mu:(Intercept)      fixed-effect      mu     link   profile_ready TRUE
+  fixef:mu:x                fixed-effect      mu     link   profile_ready TRUE
+  fixef:sigma:(Intercept)   fixed-effect      sigma  link   profile_ready TRUE
+  fixef:sigma:z             fixed-effect      sigma  link   profile_ready TRUE
+  sd:mu:(1 | id)            random-effect-sd  mu     response profile_ready TRUE
+frozen truth vector : 5      canonical == frozen ?   TRUE
+G5 ADMITTED         : 5      canonical == ADMITTED ? TRUE
+CANONICAL TARGETS NOT TESTED: (none)
+==> dpar = "all fitted dpars" would be: TRUE
+```
+
+**No fitted dpar or canonical target is missing.** The fit spans both distributional parameters of
+the family (`mu`, `sigma`), both with covariates, plus the random-effect SD, and every one is tested
+at all three rungs.
+
+I ran controls so the test is not self-confirming:
+
+| route | canonical | admitted | `all fitted dpars` | note |
+|---|---|---|---|---|
+| **lognormal** | 5 | 5 | **TRUE** | the route in question |
+| gaussian | 5 | 5 | TRUE | positive control, already promoted |
+| gamma | 5 | 5 | TRUE | positive control, already promoted |
+| cumulative_logit | 3 | 1 | FALSE | negative control — missing both `ordinal:theta_ord:*` |
+
+The negative control discriminates, so the test has content. And lognormal's canonical target table
+is **identical in structure** to gaussian's and gamma's — same five `parm` values, same
+`target_class`, `dpar`, `scale`, and `profile_ready` throughout. There is no structural distinction
+between lognormal and two routes already in the promotion set.
+
+## B2. Same evidential standard as the seven
+
+I held lognormal to the standard that discharged my original objection rather than promoting it on
+the strength of the target-set test alone (`noether10.R`, `noether11.R`):
+
+- **15 cells, 1200/1200 interval-usable on every one**, so the §5 conditioning is vacuous here too.
+- **All 15 coverages in [0.925, 0.975]**; `interval_method` and `conf.status` are `profile` on all
+  18,000 records — no Wald cells, so the §6 ruling requires no split.
+- **`design_state = centre_random_effects=FALSE`** on all 18,000 records.
+- **Bit-exact reproduction, 16/16 fields identical, on two cells** spanning both target classes:
+  `fixef:mu:(Intercept)` 1x rep 9 (CI `[0.101044395800, 0.536304686750]`) and `sd:mu:(1 | id)` 0.5x
+  rep 31 (CI `[0.278371283936, 0.637081658258]`).
+- **Centring exposure checked, not assumed.** The T2 DGP does apply the centring switch to lognormal
+  (`inst/sim/R/sim_missing_response_g4g5.R:353`), so this route was genuinely exposed to the defect
+  that caused my original withhold. Its intercept coverages are 0.9367 / 0.9442 / 0.9417 — not pinned
+  at 1.000. The corrected design is visible in the results as well as in the stamp.
+
+## B3. One caveat, applied for consistency
+
+`lognormal sd:mu:(1 | id)` **0.5x = 0.9317 (MCSE 0.00728)** — lower 1-MCSE bound 0.9244, just below
+the band, ~2.5 MCSE under nominal. This is numerically the same edge case as
+`biv_gaussian fixef:mu2:(Intercept)` 1x, and I give it the same treatment I gave that one in §7.3:
+it is not a scale or estimand error — truth 0.48 on the response scale, bit-exact reproduction, 100%
+usable — but genuine finite-sample undercoverage at the weakest rung of a variance component. **Name
+it in the ledger rather than absorb it into a route-level pass.** Consistency requires this; I would
+not accept it flagged on biv_gaussian and waved through here.
+
+Caveats §7.4 (admission conditioning — inert here, 5/5), §7.5 (record
+`interval_method = profile`), and §7.6 (residual stamp note) apply to `mr-lognormal` unchanged.
+
+## B4. Effect on the promotion set
+
+The set becomes **eight routes**, 147 cells: the original seven (132 cells) plus lognormal (15).
+`cumulative_logit` remains HOLD on Addendum 1's container grounds, and `beta` remains excluded per
+§7.1. The A2/B1 test now has a clean record on this campaign — it admits eight routes, refuses one,
+and its refusal is for a reason visible in the fitted model rather than in an inherited tag.
