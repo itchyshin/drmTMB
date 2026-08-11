@@ -2775,12 +2775,17 @@ class CapabilityLedgerTests(unittest.TestCase):
         # before route-wide reconciliation" placeholder is no longer true
         # for ANY of the 18 missing_response rows (eight promoted, ten held
         # for their own distinct, real reasons), so it must not appear, and
-        # each held route's real per-route next_gate reason must.
+        # each held route's real per-route next_gate reason must. The v1
+        # "all-1200 interval-usability rule" was itself superseded within
+        # the same review by mr-g5-calibration-v2 (availability >= 0.99
+        # floor); v1 wording must not linger, and the named gate version
+        # must appear so a future gate change is visible rather than silent.
         self.assertNotIn(
             "G4/G5 framework is ready and partial calibration evidence is retained",
             markdown,
         )
-        self.assertIn("the all-1200 interval-usability rule", markdown)
+        self.assertNotIn("the all-1200 interval-usability rule", markdown)
+        self.assertIn("mr-g5-calibration-v2", markdown)
         self.assertIn("route evidence is incomplete, not failing", markdown)
         self.assertIn("structural, not evidential, grounds", markdown)
         self.assertNotIn("Missing-response execution board", html)

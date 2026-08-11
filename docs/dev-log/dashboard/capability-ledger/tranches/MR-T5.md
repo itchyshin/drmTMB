@@ -10,7 +10,7 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `truncated_nbinom2` | implemented | G3 ✓ | verified | G5 held: 6/11 campaign cells failed the all-1200 interval-usability rule (not the coverage band); G3 stands until availability is fixed and the route re-passes exhaustively. |
+| `truncated_nbinom2` | implemented | G3 ✓ | verified | Under mr-g5-calibration-v2 (complete & precise & in-band & availability >= 0.99), 5/11 campaign cells fail on the availability floor (< 0.99); G3 stands until availability is fixed and the route re-passes exhaustively. |
 
 ## Does not cover
 
