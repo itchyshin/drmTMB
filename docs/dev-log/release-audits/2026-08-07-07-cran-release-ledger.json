@@ -1,9 +1,10 @@
 {
+  "superseded_by": "This ledger describes the 0.6.0 predecessor artifact 2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea / ad475cc39f62f47a346c77aa17c3d20bf3fc9bae and is PREDECESSOR-ONLY EVIDENCE. The live 0.7.0 candidate is 2176e4b81b887e8d944456e4a74fa581afda959d0d2a5468c89bc700d693cda9 / a75c3c9013e1e7c4ab8e56aa13baf5e668b99c76. The current ledger is 2026-08-11-070-cran-release-ledger.json.",
   "package": "drmTMB",
   "version": "0.6.0",
   "release_type": "first_submission",
   "target_cran_version": "0.7.0",
-  "note": "DESCRIPTION remains 0.6.0 (D-86). Exact current-main reader-boundary freeze ad475cc39 is tarball-clean: local R CMD check --as-cran --run-donttest has 0 ERROR, 0 WARNING, and the expected New submission NOTE. Earlier 2026-08-07 platform and fixed win-builder results belong to predecessor artifacts only. STOP before platform-clean claim, DESCRIPTION 0.7 bump, and upload.",
+  "note": "DESCRIPTION remains 0.6.0 (D-86). Exact current-main reader-boundary freeze ad475cc39 is tarball-clean: local R CMD check --as-cran --run-donttest has 0 ERROR, 0 WARNING, and the expected New submission NOTE. Earlier 2026-08-07 platform and fixed win-builder results belong to predecessor artifacts only. STOP before platform-clean claim, DESCRIPTION 0.7 bump, and upload. This ledger describes the 0.6.0 predecessor artifact 2e5234bd4bf819663e9ef95f10a1944d51c90ce64ffd5dd7a9641b69fa50c5ea / ad475cc39f62f47a346c77aa17c3d20bf3fc9bae and is PREDECESSOR-ONLY EVIDENCE. The live 0.7.0 candidate is 2176e4b81b887e8d944456e4a74fa581afda959d0d2a5468c89bc700d693cda9 / a75c3c9013e1e7c4ab8e56aa13baf5e668b99c76. The current ledger is 2026-08-11-070-cran-release-ledger.json.",
   "profile": {
     "compiled_code": true,
     "reverse_dependencies": false,
