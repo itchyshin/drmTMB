@@ -93196,3 +93196,32 @@ family that can discriminate an engine that improves on Laplace.
   success. And `tools/tests/test_capability_ledger.py::test_c17_failure_modes_give_opposite_fingerprint_instructions`
   asserts a message naming `R/methods.R` but reads live repo state, so it fails whenever a *different*
   pinned file is the one that changed.
+
+## 2026-08-11 — CI receipts for the 0.7.0 polish batch (run IDs, so the claim is checkable)
+
+Recorded because the batch's own check-log entry cites only the LOCAL checks. A reader cannot verify
+"CI green" without the run IDs, and the whole point of the D-49 discipline is that a claim names the
+artifact and the evidence that produced it.
+
+| what | run | head | result |
+| --- | --- | --- | --- |
+| `R-CMD-check` on PR #1006's head | [31501559418](https://github.com/itchyshin/drmTMB/actions/runs/31501559418) | `9e295efe6` | **success** — `os-matrix` + `ubuntu-latest (release)` |
+| `R-CMD-check` on `main` after merge | [31503787002](https://github.com/itchyshin/drmTMB/actions/runs/31503787002) | `4e4a915aa` | **success** — both jobs |
+| `pkgdown` on `main` after merge | [31508044587](https://github.com/itchyshin/drmTMB/actions/runs/31508044587) | `4e4a915aa` | **success** |
+
+**Why the ubuntu job matters here specifically.** `.github/workflows/R-CMD-check.yaml` sets
+`NOT_CRAN: true`, so that job runs the **full** suite, including the seventeen files PR #990's filter
+excludes from the CRAN lane. The local `R CMD check --as-cran` recorded for this batch therefore never
+exercised those files. PR #1006 was merged before this job reported, on the reasoning that a strictly
+permissive `match.arg()` change cannot break a passing test; that reasoning is now **confirmed rather
+than assumed**, which is the only reason it is worth writing down.
+
+**Scope of the claim.** These runs establish that the merged source passes on ubuntu, and that the
+docs site builds. They are **same-source** evidence for commit `4e4a915aa`: GitHub Actions checks out
+the source and builds its own tarball, so no run above examined the frozen candidate
+`2176e4b8...cda9`. They say nothing about `platform-clean`, which remains unproven — win-builder is
+still absent, and the 3-OS matrix and sanitizers ran against the earlier candidate commit `a75c3c901`.
+
+**Not recorded as green:** the merge-commit R-CMD-check and the branch-head run are the same content,
+so they are not independent confirmations of each other; they are listed separately only so a reader
+can see which commit each one actually examined.
