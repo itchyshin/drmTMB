@@ -92796,7 +92796,7 @@ Shinichi grants a separate Gate A compute approval.
   parameter intervals.
 - Post-synchronization mesh tests: 87/87 expectations. The status inventory
   search and exact file list are recorded in the after-task report.
-=======
+
 ## 2026-07-30 — directed to the drmTMB team: gllvmTMB missing-data cross-brief
 
 Cross-package brief filed at
