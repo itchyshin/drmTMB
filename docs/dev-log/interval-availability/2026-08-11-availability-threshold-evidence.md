@@ -60,15 +60,42 @@ cannot bracket a crossing (→ unavailable) and, where it does return endpoints,
 off the true optimum (→ undercoverage). Availability and coverage would then be **two symptoms of one
 defect**, not one causing the other.
 
-**Which mechanism holds is not settled here, and the distinction matters for what to do next** —
-selection would call for reporting discipline, whereas a common optimizer cause would call for an
-engine fix that could raise availability *and* coverage together. It does not change the policy
-recommendation below: under either mechanism, low availability is a signal that a cell's coverage
-number should not be trusted at face value.
+**(c) Genuine identifiability boundaries — this is the answer for the heavy cells, and it settles it.**
+The concentrated-failure diagnosis
+([`2026-08-11-diagnosis-concentrated-failures.md`](2026-08-11-diagnosis-concentrated-failures.md))
+**refuted (b) directly**: reprofiling from scratch at the reported MLE, independent of both drmTMB
+profile engines, found no non-convergence (`|Δnll| < 0.01` near `theta_hat`). `near_sd_boundary` and
+`nonfinite_interval` do share one root cause, but it is not a broken optimizer — **the profile
+genuinely does not cross the χ²₁ threshold before the internal floor.** Three of the four heavy cells
+are identifiability limits; `student fixef:nu` is mixed, majority genuine `nu → ∞` flatness plus a
+separable `TMB::tmbprofile()` bracket-search overflow. **None would flip pass/fail from an engine fix.**
 
-The aggregate contamination from the 245 is small — removing them all moves route coverage by
-≤0.0003 — so the table above stands as a description of the campaign. It is the *interpretation* that
-is open.
+So the honest reading is that low availability is usually the parameter telling you something true:
+it is near a boundary, and near a boundary the profile has no crossing to find and the interval is
+correspondingly hard to cover. Selection (a) remains plausible as a contributor and is not excluded;
+optimizer failure (b) is excluded for these cells.
+
+## The decisive argument against the all-1200 rule
+
+The diagnosis makes a structural point that is stronger than any of the above, and it is statistical
+rather than practical:
+
+> the all-1200 bar will fail cells with any nonzero genuine boundary-touching rate by binomial chance,
+> independent of code quality.
+
+If a parameter legitimately sits near a boundary on a fraction *p* of draws, the probability a cell of
+1200 replicates produces 1200 usable intervals is (1 − *p*)¹²⁰⁰. At *p* = 0.001 that is **0.30**; at
+*p* = 0.002 it is **0.09**. A perfectly well-behaved cell fails the rule most of the time, and whether
+it passes is close to a coin toss over which seeds were drawn.
+
+**The all-1200 rule is therefore not merely strict — it is incoherent for any parameter that can
+legitimately approach a boundary.** That, and not the convenience of admitting 25 more cells, is the
+reason to replace it.
+
+## Note on the 245 contaminated records
+
+Removing all 245 non-MLE-anchored records moves route coverage by ≤0.0003, so the table above stands
+as a description of the campaign.
 
 ## Consequence 1 — the obvious fix is wrong
 
