@@ -72,6 +72,32 @@ test_that("default and explicit ML remain equivalent", {
   expect_null(default$mspl)
 })
 
+test_that("the estimator a fit reports is accepted back by drmTMB() (#983)", {
+  # The round trip is the point: `fit$estimator` is upper case, so a user who
+  # reads it off a fit and passes it back must not hit an error.
+  expect_identical(drm_match_estimator("ML"), "ml")
+  expect_identical(drm_match_estimator("MSPL"), "mspl")
+  expect_identical(drm_match_estimator("ml"), "ml")
+  expect_identical(drm_match_estimator("mspl"), "mspl")
+  expect_identical(drm_match_estimator("Ml"), "ml")
+  expect_identical(drm_match_estimator(c("ml", "mspl")), "ml")
+  expect_error(drm_match_estimator("reml"))
+  expect_error(drm_match_estimator("nonsense"))
+
+  dat <- mspl_q1_fixture("overlap")
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    control = drm_control(se = FALSE)
+  )
+  expect_identical(fit$estimator, "ML")
+  round_trip <- drmTMB(
+    bf(y ~ x + (1 | group)), binomial(), dat,
+    estimator = fit$estimator, control = drm_control(se = FALSE)
+  )
+  expect_identical(round_trip$estimator, "ML")
+  expect_equal(round_trip$opt$par, fit$opt$par, tolerance = 0)
+})
+
 test_that("the optional fixed-X detector has a deterministic unavailable receipt", {
   dat <- mspl_q1_fixture("overlap")
   fit <- drmTMB(

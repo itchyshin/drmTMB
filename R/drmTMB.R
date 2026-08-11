@@ -185,7 +185,14 @@
 #'   preserves ordinary maximum likelihood. Experimental `"mspl"` implements
 #'   the clean-room maximum softly-penalized likelihood criterion for one
 #'   complete Bernoulli or grouped-binomial logit model with one ordinary
-#'   q = 1 or correlated q = 2 grouping block. `vcov()` and the `std_error`
+#'   q = 1 or correlated q = 2 grouping block. For grouped binomial data, the
+#'   soft-penalty scale `c_n = 2 * sqrt(p / n_eff)` uses
+#'   `n_eff = sum(trials * frequency)`, the retained total number of Bernoulli
+#'   trials, in place of the source paper's row count `n`; the two agree
+#'   exactly when every row is a single Bernoulli trial (`trials = frequency
+#'   = 1`). This is a deliberate grouped-data extension, not a claim that
+#'   Sterzinger and Kosmidis's (2023) results carry over unchanged.
+#'   `vcov()` and the `std_error`
 #'   column of `summary()` are available: they invert the Hessian of the
 #'   *unpenalized* Laplace log-likelihood evaluated at the MSPL estimate, so the
 #'   penalty is used to obtain a finite estimate but not to describe sampling
@@ -16365,7 +16372,8 @@ drm_model_offset <- function(model_frame, dpar) {
     cli::cli_abort(c(
       "Offset terms must evaluate to one finite value per modelled row.",
       "x" = "The {.code {dpar}} formula contains a non-finite offset.",
-      "i" = "For count exposure models, use {.code offset(log(exposure))} with positive finite exposure values."
+      "i" = "An offset is read on the family's own link scale: {.code offset(log(exposure))} for log-link exposure models, a known additive shift for identity-link families, and a known log-odds shift for logit-link families.",
+      "i" = "The usual cause is a non-positive or missing value inside {.code log()}."
     ))
   }
   out

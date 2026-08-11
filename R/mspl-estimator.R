@@ -3,6 +3,13 @@
 # `R/mspl.R`; this file owns admission, fit diagnostics, and method fences.
 
 drm_match_estimator <- function(estimator) {
+  # A fitted object reports `estimator` in upper case ("ML", "MSPL"), so accept
+  # that spelling back: reading the setting off a fit and passing it to
+  # `drmTMB()` should round-trip rather than error (#983). The canonical stored
+  # value is unchanged; only the input spelling is relaxed.
+  if (is.character(estimator)) {
+    estimator <- tolower(estimator)
+  }
   match.arg(estimator, c("ml", "mspl"))
 }
 
