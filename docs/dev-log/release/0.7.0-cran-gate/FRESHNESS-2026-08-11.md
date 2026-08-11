@@ -66,6 +66,28 @@ threshold, which the release protocol treats as a blocker for a first submission
 is only a NOTE. Those two are one action: win-builder measures the timing and closes the last platform
 class.
 
-**This check is perishable.** It holds as of `main` `256e586e5` and candidate `6ec09d30c`. Any later
+**This check is perishable.** It held as of `main` `256e586e5` and candidate `6ec09d30c`. Any later
 commit touching a path *not* under `docs/` or `tools/` invalidates it, and the artifact must be
 re-frozen and its platform evidence re-run.
+
+## Update — #996 merged; `main` now EQUALS the artifact
+
+**PR #996 merged as `a3217da93`.** That brought the candidate's own `DESCRIPTION` (0.7.0) and
+`NEWS.md` onto `main` — the first tarball-visible change since the cut, and by the paragraph above it
+triggers a re-check.
+
+Re-checked, and it **strengthens** rather than invalidates:
+
+```
+git diff --name-only a75c3c901 origin/main -- R/ src/ tests/ man/ vignettes/ \
+                                              NAMESPACE DESCRIPTION inst/ data/
+(empty)
+```
+
+`main`'s shipped surface is now **byte-equal to the frozen tarball's**. `DESCRIPTION` reads
+`Version: 0.7.0` on both. The change that triggered the re-check *was the candidate landing*, so it
+moved `main` onto the artifact rather than away from it — the one case where a tarball-visible commit
+does not stale the evidence.
+
+**Perishability now reads from `main` `a3217da93`.** The next commit touching a shipped path *will*
+stale it, because there is no longer any gap for it to close.
