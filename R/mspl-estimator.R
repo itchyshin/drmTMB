@@ -288,6 +288,27 @@ drm_validate_mspl_spec <- function(spec) {
   if (!isTRUE(scaling$ok)) {
     cli::cli_abort("Experimental MSPL could not compute a finite softness scale.")
   }
+  # EVIDENCE-ONLY OVERRIDE -- MUST NEVER BE MERGED TO main.
+  #
+  # `mspl_c_n()` ships c_n = 2 * sqrt(p / n_eff). The 2 is omega(0)^(-1/2) for
+  # the LOGIT link: Sterzinger & Kosmidis (2023) section 7 derive c from the
+  # approximate variance of eta-hat at beta = 0, and logit has omega(0) = 1/4.
+  # probit has omega(0) = 2/pi (factor 1.2533) and cloglog 1/(e-1) (factor
+  # 1.3108), so the shipped constant is stronger than the delta-method argument
+  # intends for those links -- design 253 Addendum 3.
+  #
+  # This option exists so the G2 campaign can FIT the same data under both
+  # constants and measure whether the difference matters. It changes the
+  # estimator, so it is undocumented, un-exported, and absent from any man page.
+  # The shipped default is untouched when the option is unset.
+  cn_factor <- getOption("drmTMB.mspl_cn_factor_unsafe", NULL)
+  if (!is.null(cn_factor)) {
+    if (!is.numeric(cn_factor) || length(cn_factor) != 1L ||
+        !is.finite(cn_factor) || cn_factor <= 0) {
+      cli::cli_abort("Internal MSPL error: the unsafe c_n factor must be one positive finite number.")
+    }
+    scaling$c_n <- as.numeric(cn_factor) * sqrt(p / n_eff)
+  }
   # The link is read from the fitted specification rather than hard-coded, and
   # is passed EXPLICITLY so this call can never silently follow a future change
   # to `mspl_jeffreys()`'s default. Under the shipped guard the only reachable
