@@ -1,5 +1,13 @@
 # G1 verdict — TMB-Laplace finiteness for MSPL, probit and cloglog
 
+> **READ WITH `VERDICT-G1b.md` (2026-08-11).** The cloglog-standard **FAIL** below stands as a
+> pre-registered decision and is not rescored — but it means *"not demonstrated"*, not *"demonstrated
+> to fail"*. All 33 losses were optimizer errors and **none** was a non-finite estimate, and plain ML
+> errored on 33 of the same 33 datasets. A follow-up run on a **fresh seed stream**, with completion
+> and finiteness measured as separate endpoints, found **0 non-finite estimates in 43,972 completed
+> fits** across all four conditions. The shortfall here is non-completion of the optimizer, not
+> divergence of the estimator.
+
 Graded 2026-08-11 against `PREREGISTRATION.md`, frozen at `9ebffaf0` before any replicate, with the
 `η_d` grids frozen in `S3-CALIBRATION.md`. 88 cells × 500 replicates × 2 engines = **88,000 fits**,
 Totoro, 100 cores, **11 minutes** (declared estimate 20–30 min; under, and reported either way).
