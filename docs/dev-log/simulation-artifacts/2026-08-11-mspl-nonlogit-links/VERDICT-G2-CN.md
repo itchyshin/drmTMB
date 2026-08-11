@@ -36,8 +36,8 @@ cloglog number here would have been readable.
 | cloglog | −3.5 | 1200 | 0.01514 | 0.01554 | 4.1e−4 | 0.2526 | 0.0016 |
 
 The worst cell in each link is its deepest separation at the smallest verdict size — as expected,
-since that is where the penalty does the most work. Even there the two constants differ byabout 1% of a
-standard error.
+since that is where the penalty does the most work. Even there the two constants differ by about 1% of
+a standard error.
 
 At the excluded `n_eff = 120` cells (`c_n = 0.258`, the hardest regime), the maximum is **0.054** —
 still inside the IMMATERIAL band, though the prereg deliberately declined to grade there.
