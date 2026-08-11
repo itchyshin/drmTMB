@@ -412,6 +412,72 @@ test_that("G5 calibration gate rejects systematic overcoverage without promotion
   expect_true(all(mr_g5_calibration_gate(summary)$calibration_pass))
 })
 
+test_that("G5 calibration v2 gates on an interval-availability RATE, not the old all-1200 rule", {
+  # docs/dev-log/interval-availability/2026-08-11-availability-threshold-evidence.md
+  # the 0.99 floor: cells at or above it pass on their coverage merits alone;
+  # below it, availability itself becomes the (separately labelled) reason.
+  source_missing_response_g4g5()
+  base <- list(route_id = "gaussian", parm = "fixef:mu:(Intercept)",
+    information_rung = "1x", n_planned = 1200L, n_attempt = 1200L,
+    coverage = .95, coverage_mcse = sqrt(.95 * .05 / 1200))
+
+  # 1. exactly 1.0 availability: full parity with the old rule, must pass.
+  full <- do.call(data.frame, c(base, list(n_interval_usable = 1200L, stringsAsFactors = FALSE)))
+  cal_full <- mr_g5_calibration_gate(full)
+  expect_silent(mr_g5_validate_calibration(cal_full))
+  expect_equal(cal_full$interval_availability, 1)
+  expect_true(cal_full$calibration_available)   # old-rule indicator, still TRUE here
+  expect_true(cal_full$calibration_availability_ok)
+  expect_false(cal_full$coverage_is_conditional)
+  expect_true(cal_full$calibration_pass)
+  expect_identical(cal_full$calibration_reason, "pass")
+
+  # 2. exactly at the 0.99 boundary: must PASS.
+  at_floor <- do.call(data.frame, c(base, list(n_interval_usable = 1188L, stringsAsFactors = FALSE)))
+  cal_at_floor <- mr_g5_calibration_gate(at_floor)
+  expect_silent(mr_g5_validate_calibration(cal_at_floor))
+  expect_equal(cal_at_floor$interval_availability, 0.99)
+  expect_false(cal_at_floor$calibration_available)  # old rule would have failed this cell
+  expect_true(cal_at_floor$calibration_availability_ok)
+  expect_true(cal_at_floor$coverage_is_conditional)
+  expect_true(cal_at_floor$calibration_pass)
+  expect_identical(cal_at_floor$calibration_reason, "pass")
+
+  # 3. just below the 0.99 boundary: must FAIL, and on an AVAILABILITY reason,
+  #    not a coverage reason -- coverage itself is still in-band here.
+  below_floor <- do.call(data.frame, c(base, list(n_interval_usable = 1187L, stringsAsFactors = FALSE)))
+  cal_below_floor <- mr_g5_calibration_gate(below_floor)
+  expect_silent(mr_g5_validate_calibration(cal_below_floor))
+  expect_true(cal_below_floor$calibration_in_band)
+  expect_false(cal_below_floor$calibration_availability_ok)
+  expect_false(cal_below_floor$calibration_pass)
+  expect_identical(cal_below_floor$calibration_reason, "availability_below_policy_floor")
+
+  # 4. in-band coverage but only 0.5 availability: must FAIL on availability.
+  half <- do.call(data.frame, c(base, list(n_interval_usable = 600L, stringsAsFactors = FALSE)))
+  cal_half <- mr_g5_calibration_gate(half)
+  expect_silent(mr_g5_validate_calibration(cal_half))
+  expect_equal(cal_half$interval_availability, 0.5)
+  expect_true(cal_half$calibration_in_band)
+  expect_false(cal_half$calibration_pass)
+  expect_identical(cal_half$calibration_reason, "availability_below_policy_floor")
+
+  # 5. out-of-band coverage with full availability: must FAIL on COVERAGE,
+  #    unaffected by the availability rule (this is the old rule's own case).
+  bad_coverage <- do.call(data.frame, c(
+    list(route_id = "gaussian", parm = "fixef:mu:(Intercept)", information_rung = "1x",
+      n_planned = 1200L, n_attempt = 1200L, n_interval_usable = 1200L,
+      coverage = 1, coverage_mcse = 0), stringsAsFactors = FALSE))
+  cal_bad_coverage <- mr_g5_calibration_gate(bad_coverage)
+  expect_silent(mr_g5_validate_calibration(cal_bad_coverage))
+  expect_true(cal_bad_coverage$calibration_availability_ok)
+  expect_false(cal_bad_coverage$calibration_pass)
+  expect_identical(cal_bad_coverage$calibration_reason, "coverage_outside_policy_band")
+
+  # The policy identifier changed with the predicate.
+  expect_identical(cal_full$calibration_policy, "mr-g5-calibration-v2")
+})
+
 test_that("G5 provenance receipt hashes runner, inputs, and all receipts", {
   source_missing_response_g4g5()
   paths <- vapply(seq_len(4L), function(i) {
