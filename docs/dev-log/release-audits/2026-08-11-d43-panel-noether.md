@@ -266,3 +266,113 @@ and hard-error when the runtime value disagrees.
 - Any promoted row mixing profile and Wald cells, per the §6 ruling.
 - A future artifact whose embedded registry is again the reconciled subset rather than the frozen
   intent, with no external 294-cell comparison performed.
+
+---
+
+# ADDENDUM — `cumulative_logit` (appended after the verdict above; §1–§8 stand unchanged)
+
+**Ruling: HOLD.** The three measured cells are estimand-clean and their evidence is sound — I found
+no defect in them. The hold is **structural, not evidential**: the ledger row is keyed per route and
+the evidence covers one of the route's three canonical targets, so the row cannot state the claim
+without asserting something false in a *keyed* field.
+
+I record for the panel that the original exclusion reason was circular (Rose cited a "— candidate"
+tag that the admission doc had inherited rather than re-derived). My hold does not rest on that tag,
+and I re-derived everything below from the artifact and the source.
+
+## A1. Is `fixef:mu:x` free of the cutpoint scale hazard? — Verified, yes
+
+I verified rather than reasoned, because reasoning is what the #981 wrong-scale constant survived.
+
+Artifact facts (`noether9.R`): 3 cells, all `fixef:mu:x`, `target_class = fixed-effect`,
+`target_scale = link`, `truth = 0.85` exactly and invariant across 0.5x/1x/2x; 3600/3600
+interval-usable; `conf.status = "profile"` throughout; coverage 0.9492 / 0.9608 / 0.9542
+(MCSE 0.00634 / 0.00560 / 0.00604), all in band. One record reproduced **bit-exactly**, 8/8 fields
+identical (`1x` rep 13; CI `[0.695082919993, 1.023987989443]`).
+
+The DGP is `eta = 0.85 x`, `P(Y<=1) = plogis(-0.90 - eta)`, `P(Y<=2) = plogis(0.75 - eta)`
+(`inst/sim/R/sim_missing_response_g4g5.R:440-447`), i.e. the standard `plogis(theta_j - eta)`
+convention with truth `+0.85`.
+
+**The decisive check is an independent oracle with a different cutpoint parameterisation.**
+`MASS::polr` stores cutpoints as *raw* values (`zeta`), not as log-increments. On the identical
+fixture:
+
+```
+drmTMB  fixef:mu:x  = 0.856685933687
+MASS::polr coef(x)  = 0.856684586939      difference = 1.35e-06
+polr zeta (raw cutpoints) = -0.935000849625, 0.714296183976   (DGP: -0.90, 0.75)
+drmTMB profile CI  [0.695082919993, 1.023987989443]
+polr   Wald CI     [0.692357429228, 1.021011744649]
+```
+
+Two estimators whose internal cutpoint coordinates differ agree on the slope to 1.3e-06 — optimizer
+tolerance. That is a direct demonstration, not an argument, that **the log-increment
+parameterisation of `theta_ord[j>1]` does not leak into the `mu` slope**: the slope is a separate
+coordinate on the linear predictor, and it is parameterisation-invariant in exactly the way the
+cutpoints are not. `polr`'s `zeta` also recovers the DGP cumulative values, confirming the sign
+convention on both sides.
+
+For completeness: the frozen truth vector carries
+`ordinal:theta_ord:medium|high = 0.500775287912 = log(1.65)`, so the #981 log-increment fix is
+correctly applied — but that target is **not in the G5 registry**, so it contributes no evidence.
+
+**Conclusion on question 1: the estimand is clean, the truth is on the correct scale, and it is
+independently corroborated.** The hazard that bit the cutpoint constant does not reach this target.
+
+## A2. Can a per-route ledger row honestly carry a per-target claim? — No
+
+Admission is **1 of 3 canonical targets** (`noether9.R`): the registry holds `fixef:mu:x` at three
+rungs and nothing else. The two `ordinal:theta_ord:*` targets are absent because
+`ordinal-cutpoint-internal` is not in `implemented_classes` (`R/profile.R:2863-2869`) — an explicit
+class rejection, not a run failure. Per the #967 memo, `theta_ord[j>1]` additionally conflates a
+log-increment with the cutpoint itself, a curved-constraint problem this codebase has not solved.
+
+This is the same *shape* as the §6 profile/Wald ruling, and it resolves the same way: **the row's
+grain must match the claim's grain.** But here the evidence is stronger than an argument from shape,
+because the ledger schema settles it. The key is `cell_id = mr-<route>` — one row per route — and the
+row carries `dpar = "all fitted dpars"`
+(`docs/dev-log/dashboard/capability-ledger/cells.tsv`, field 9; `mr-cumulative-logit` currently
+`point_fit_recovery` / `G3`).
+
+That is why this is structural rather than a matter of wording:
+
+- For the seven §1–§8 candidates, `dpar = "all fitted dpars"` is **true** — 44 of 44 canonical
+  targets measured (§3). Route grain and target grain coincide, so the route row is honest.
+- For `cumulative_logit`, a G5 row would carry `dpar = "all fitted dpars"` while resting on 1 of 3
+  targets — and `theta_ord` is a distinct target class, so the assertion is false at *dpar* grain,
+  not merely at coefficient grain.
+- `claim_boundary` (field 23) is free text and **not part of the key**. A caveat written there does
+  not travel: any consumer that joins, filters, or aggregates on the row key sees the route-level
+  reading with `dpar = "all fitted dpars"` attached and the qualification stripped.
+
+So a per-target claim boundary is **not sufficient protection**, because the thing that would be
+false is a keyed field and the thing that would qualify it is not. A per-target claim needs a
+per-target key, not a per-route key plus prose.
+
+**And the misread is the natural reading, not a stretch.** "cumulative_logit G5 verified" tells an
+ordinal user that interval coverage is calibrated for ordinal models. Cutpoints are among the
+parameters ordinal users most often report, and they are precisely the ones with an unsolved
+curved-constraint problem and a prior wrong-scale incident. This is the highest-consequence available
+misreading of the row, which is the one a claim boundary most needs to survive — and it does not.
+
+## A3. What I would accept
+
+The evidence is sound; only the container is wrong. I would drop the hold on either of:
+
+1. **A per-target key.** Extend the ledger key to include the target (e.g. `mr-cumulative-logit-mu-x`)
+   or make `dpar` truthful (`mu` only, not "all fitted dpars"), so the row asserts at the grain the
+   evidence supports. Then the mu-slope cells promote on their own merits — they are clean.
+2. **Completing the route.** Admit the cutpoint targets and measure them. That is blocked on the
+   `R/profile.R:2863-2869` class rejection and the curved-constraint problem, so it is not near-term.
+
+Until one of those holds, `mr-cumulative-logit` stays at G3. **I want it recorded that this is a
+container defect, not an evidential one** — the mu-slope evidence should not be re-litigated when the
+schema is fixed, and it should not be cited as a reason to doubt the route.
+
+## A4. Addition to §8 (what would make me withhold again)
+
+- Any `missing_response` row promoted to a route-level tier while `dpar = "all fitted dpars"` is
+  false for that route — i.e. whenever admitted canonical targets are a strict subset of the route's
+  frozen `truth` vector. For the seven candidates this test passes 44/44; for `cumulative_logit` it
+  fails 1/3.
