@@ -1,0 +1,70 @@
+=== (b) RETENTION IS AN ENDPOINT: all 60 cells present ===
+
+=== PER-LINK VERDICT, identified regime (the calibration claim) ===
+             cond cells pass borderline anticons_fail other  min_R  max_R
+            logit     6    6          0             0     0 0.9802 1.0460
+           probit     6    5          1             0     0 0.9463 1.0081
+ cloglog_standard     6    6          0             0     0 0.9574 1.0270
+ cloglog_mirrored     6    2          2             2     0 0.8202 0.9956
+          claim
+     CALIBRATED
+     CALIBRATED
+     CALIBRATED
+ NOT CALIBRATED
+
+=== separated regime ===
+             cond cells pass borderline degenerate low_retention anticons_fail
+            logit     9    1          1          4             1             0
+           probit     9    3          2          2             0             1
+ cloglog_standard     9    3          1          3             0             0
+ cloglog_mirrored     9    3          1          4             0             0
+
+=== ANTI-CONSERVATIVE FAILURES (one fails the campaign for that link) ===
+ cell             cond  q eta_d  G     regime   R_sd n_mspl_retained
+   29           probit q2    -3 30  separated 0.7932             891
+   46 cloglog_mirrored q1     0 12 identified 0.8202            1000
+   47 cloglog_mirrored q1     0 30 identified 0.8970            1000
+
+=== SE-AVAILABILITY: reported convergence == 0 but NO usable SE ===
+(prereg §3 -- what a user actually receives)
+ cell             cond  q eta_d  G    regime se_na_rate_given_conv0
+   15            logit q2 -10.0 30 separated                0.98300
+   60 cloglog_mirrored q2  -8.4 30 separated                0.92192
+   45 cloglog_standard q2  -7.0 30 separated                0.74227
+   30           probit q2  -4.2 30 separated                0.64500
+   14            logit q2  -6.0 30 separated                0.54400
+   59 cloglog_mirrored q2  -6.0 30 separated                0.38238
+   44 cloglog_standard q2  -5.0 30 separated                0.25228
+   29           probit q2  -3.0 30 separated                0.10900
+   13            logit q2  -4.0 30 separated                0.07600
+   58 cloglog_mirrored q2  -4.2 30 separated                0.06507
+   50 cloglog_mirrored q1  -4.2 12 separated                0.02700
+   43 cloglog_standard q2  -3.5 30 separated                0.01700
+   28           probit q2  -2.1 30 separated                0.00200
+   52 cloglog_mirrored q1  -6.0 12 separated                0.00200
+   20           probit q1  -2.1 12 separated                0.00100
+ retention_mspl
+          0.017
+          0.078
+          0.250
+          0.355
+          0.456
+          0.618
+          0.738
+          0.891
+          0.924
+          0.934
+          0.973
+          0.983
+          0.998
+          0.998
+          0.999
+
+by condition, worst cell:
+             cond worst_se_na_rate cells_with_any
+            logit           0.9830              3
+           probit           0.6450              4
+ cloglog_standard           0.7423              3
+ cloglog_mirrored           0.9219              5
+
+=== DEGENERATE cells (R is not a calibration statistic there) ===

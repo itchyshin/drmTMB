@@ -1,0 +1,16 @@
+cell	cond	link	mirrored	q	eta_d	G	regime	rep	seed	engine	event_rate	ok	beta	se	conv	se_missing	err
+15	logit	logit	FALSE	q2	-10	30	separated	1	21760814	mspl	0	TRUE	-0.429764010874997	NA	0	TRUE	
+15	logit	logit	FALSE	q2	-10	30	separated	1	21760814	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+15	logit	logit	FALSE	q2	-10	30	separated	1	21760814	glmmtmb	0	TRUE	2.95791471551878	20368.4099651884	1	FALSE	
+15	logit	logit	FALSE	q2	-10	30	separated	2	21760815	mspl	0	TRUE	0.341115380491887	NA	0	TRUE	
+15	logit	logit	FALSE	q2	-10	30	separated	2	21760815	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+15	logit	logit	FALSE	q2	-10	30	separated	2	21760815	glmmtmb	0	TRUE	1.05178401554018	615906.380050092	1	FALSE	
+15	logit	logit	FALSE	q2	-10	30	separated	3	21760816	mspl	0	TRUE	0.0559494784736215	NA	0	TRUE	
+15	logit	logit	FALSE	q2	-10	30	separated	3	21760816	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+15	logit	logit	FALSE	q2	-10	30	separated	3	21760816	glmmtmb	0	TRUE	-0.72547296559614	101508.005947504	1	FALSE	
+15	logit	logit	FALSE	q2	-10	30	separated	4	21760817	mspl	0	TRUE	-0.55867412378375	NA	0	TRUE	
+15	logit	logit	FALSE	q2	-10	30	separated	4	21760817	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+15	logit	logit	FALSE	q2	-10	30	separated	4	21760817	glmmtmb	0	TRUE	-2.03324068922021	590759.218021427	1	FALSE	
+15	logit	logit	FALSE	q2	-10	30	separated	5	21760818	mspl	0	TRUE	-0.949697506967639	NA	0	TRUE	
+15	logit	logit	FALSE	q2	-10	30	separated	5	21760818	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+15	logit	logit	FALSE	q2	-10	30	separated	5	21760818	glmmtmb	0	TRUE	3.89105792214871	23928.8848890231	1	FALSE	
