@@ -100,3 +100,55 @@ raw `data/f2_raw.tsv` (8,000 rows) · per-cell `data/f2_cells.tsv` · scorer `an
 quoted from the prereg · Totoro, 100 workers, `OPENBLAS_NUM_THREADS=1` · drmTMB 0.6.0 from
 `~/R/f1lib`, unchanged since F1 (no shipped source moved between them) · UTC 2026-08-11
 11:24:40 → 11:25:37 · seeds `20260811 + 100000*cell + rep`.
+
+---
+
+# ADDENDUM F2b — the clean answer at the target prevalence
+
+Graded 2026-08-11 against the addendum frozen at `822117366`, before any F2b replicate.
+3 cells × 500 replicates × 2 engines = **3,000 fits**, Totoro, **~90 seconds**.
+
+F2's evidence at prevalence ~1e−3 was diluted by degenerate replicates (17–47% zero-event, and 78%
+in cell 5). F2b applies F2's own finding — gate on **expected event count** — to fix it.
+
+| cell | n_per | N | prevalence | events | zero-event | ML div | control | finiteness |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 20 | 2,000 | 8.08e−4 | 1.62 | 20.6% | 0.742 | ✅ | **500/500** |
+| **2** | **30** | **3,000** | **8.11e−4** | **2.43** | **10.4%** | **0.592** | ✅ | **500/500** |
+| 3 | 40 | 4,000 | 7.85e−4 | 3.14 | 4.2% | 0.474 | ❌ **void** | 500/500 |
+
+**The pre-registered prediction was correct.** The addendum said, before running, that the control
+would hold at `n_per` 20 and 30 and *may fail* at 40. It held at 0.742 and 0.592 and failed at 0.474.
+Being able to predict where the control breaks — from F2's event-count relationship, not from
+hindsight — is the evidence that the mechanism is understood rather than described.
+
+## The claim, now clean
+
+> **Cell 2 is the clean cell at the target prevalence.** At prevalence **8.11e−4**, with only 10.4%
+> of replicates degenerate and maximum likelihood diverging or failing in **59.2%** of them, drmTMB's
+> MSPL under TMB-Laplace returned a finite interior estimate with finite, positive fixed information
+> in **500 of 500** fits.
+
+Median `logdet` of the fixed information across the three cells is **−11.49, −10.07, −9.49** — deeply
+collapsed, versus **+4.27** at F2's healthiest cell. Information is nearly gone; the estimate is
+finite anyway.
+
+That answers the headline question — *does MSPL stay finite at prevalence ~1/1000?* — on a cell that
+is genuinely sparse, genuinely hard for ML, and **not** mostly all-zero data. F2 could only answer it
+through cells that were one or the other.
+
+Cell 3 is **void for MSPL** by the same rule that voided four F2 cells: at 3.14 expected events ML is
+well-behaved in a majority of replicates, so that cell does not test the question. Its finiteness
+result is reported but not claimed.
+
+## Combined position after F1 + F2 + F2b
+
+drmTMB now has its **own** TMB-Laplace finiteness evidence for logit spanning designs from 120 to
+5,000 observations and expected event counts from **0.25 to 1.83** (F2) and **1.62 to 2.43** (F2b) in
+cells where ML demonstrably fails — 31,000 fits in total, none of which produced a non-finite MSPL
+estimate. The reliance on Sterzinger & Kosmidis's glmer-based numerical evidence, for the route
+drmTMB actually ships, is discharged.
+
+**Unchanged:** not a proof; nothing about probit/cloglog; not an interval or coverage claim; nothing
+about a GLLVM's shared latent structure, which is the question that actually decides the
+rare-species filtering trade-off.
