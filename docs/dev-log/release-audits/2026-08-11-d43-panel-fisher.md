@@ -194,3 +194,126 @@ For each of the 7 promoted rows, style-matched to the existing G3 wording:
 > random effects beyond what was fitted, and does not extend to any route/rung outside this grid.
 > The biv_gaussian 1x rung's minimum observed coverage (0.9317, mcse 0.0073) is recorded here rather
 > than only in the underlying artifact."
+
+---
+
+## ADDENDUM (same review session, later) — the candidate list itself was inherited, not derived
+
+The coordinator flagged that the "seven candidate routes" frame — which I used verbatim above,
+including in my own "stays at G3" list — was inherited from the admission doc's `— candidate`
+tagging rather than re-derived from this campaign's evidence, and that Rose's §3.3 excluded
+`cumulative_logit` explicitly *because* it lacked that tag (circular), with no stated reason at all
+for excluding `lognormal`. I re-derived both from the CSV independently rather than accepting the
+correction at face value.
+
+### What I checked
+
+- `panel-cell-summary.csv`, filtered to `route == "lognormal"`: 15 rows (5 parms × 3 rungs:
+  `fixef:mu:(Intercept)`, `fixef:mu:x`, `fixef:sigma:(Intercept)`, `fixef:sigma:z`,
+  `sd:mu:(1 | id)`) — the identical parameter shape to `gaussian` and `gamma`, both of which I
+  already promoted. `usable == 1200/1200` on all 15; coverage range 0.9317–0.9600, all inside
+  `[0.925, 0.975]`. Zero exceptions, matching the pattern of the promoted seven exactly.
+- `panel-cell-summary.csv`, filtered to `route == "cumulative_logit"`: 3 rows, all
+  `parm == "fixef:mu:x"` at 0.5x/1x/2x. `usable == 1200/1200` on all 3; coverage 0.9492/0.9608/0.9542,
+  all in band.
+- Confirmed Rose's §3.3 reasoning directly (`docs/dev-log/release-audits/2026-08-11-d43-panel-rose.md:146-151`):
+  the stated reason to exclude `cumulative_logit` is "reported EXHAUSTIVE... but conspicuously not
+  tagged — candidate," which is a labelling artifact, not a finding. Grepped the same file for
+  `lognormal`: it appears only in the exclusion list (lines 22, 93, 259) with no independent
+  rationale given anywhere in the document.
+- Checked whether `#967` (ordinal cutpoint interval infeasibility) actually reaches the one
+  cumulative_logit cell that was tested. `R/profile.R:2864-2868` defines `implemented_classes` for
+  `drm_profile_target_confint()` as `c("fixed-effect", "distributional-scale", "random-effect-sd",
+  "random-effect-correlation", "residual-correlation")` — `"ordinal-cutpoint-internal"` is absent, so
+  cutpoint targets are rejected. But `R/profile.R:1628-1650` shows `"ordinal-cutpoint-internal"` is
+  assigned only to `parm = paste0("ordinal:theta_ord:", ...)` rows (the two cutpoints); the tested
+  cell, `fixef:mu:x`, is an ordinary fixed-effect target built through the same machinery every other
+  route uses. #967 does not touch it — confirmed by reading the code, not by repeating the claim.
+- Checked the DGP itself for a defect history. `inst/sim/R/sim_missing_response_g4g5.R:436-444`:
+  `truth <- c("fixef:mu:x"=.85, "ordinal:theta_ord:low|medium"=-.90,
+  "ordinal:theta_ord:medium|high"=log(.75-(-.90)))`. Noether's audit
+  (`docs/dev-log/release-audits/2026-08-11-d43-panel-noether.md:92-94`) identifies the cumulative_logit
+  wrong-scale-constant fix as the `log(.75-(-.90))` log-increment correction (#981) — that fix applies
+  only to the second cutpoint's internal-scale truth, not to `fixef:mu:x = .85`, which is a plain,
+  untransformed slope constant with no defect history I could find. Noether's own table explicitly
+  scoped its truth-constant audit to the seven candidates and did not re-verify this fix against
+  source, so I do not have an independent line-level confirmation that `.85` is right beyond reading
+  the constant myself — a smaller, narrower gap than the one Noether closed for the seven.
+- Checked for the "over-coverage from centred random-effect draws" defect (the same mechanism as
+  Correction 1's context) in `lognormal`'s history specifically:
+  `docs/dev-log/evidence/2026-07-31-mr-g5-lognormal-calibration-receipt.md` records an *earlier*
+  cohort with `fixef:mu:(Intercept)` coverage exactly **1.000** at all three rungs (a clear,
+  textbook-magnitude over-coverage failure) and a failed `sd:mu:(1 | id)` 0.5x cell (1199/1200
+  usable). The `2026-07-31-mr-g5-gaussian-calibration-receipt.md` and
+  `...-gamma-calibration-receipt.md` files show the **identical** failure signature for the same
+  target class, diagnosed explicitly there as centring-induced conservatism ("The frozen G3
+  [route] simulator centers its realized random intercepts, whereas the fitted random-intercept
+  model estimates a population intercept... systematically conservative"). `lognormal` had the same
+  defect as the two routes I already promoted, at the same severity (coverage 1.000), and the current
+  campaign's clean 0.9367–0.9600 numbers are the same kind of post-fix, re-verified result as
+  `gaussian`'s and `gamma`'s — not a route that skipped scrutiny.
+
+### Ruling
+
+1. **`lognormal` — PROMOTE**, all 3 rungs, G3 → G5, on the same terms as the seven already
+   promoted. There is no inferential reason to treat it differently from `gaussian`/`gamma`: same
+   parameter shape (5 parms × 3 rungs), same clean 15/15 result, same documented defect-and-repair
+   history (July 31 over-coverage receipt → August 11 clean rerun under
+   `centre_random_effects=FALSE`), same G3 claim-boundary breadth ("recovery of every fitted
+   distributional parameter for the ordinary random-intercept route") matched exactly by the G5
+   evidence. Holding it back would be exclusion by inherited label, not by evidence — exactly the
+   error under review.
+
+2. **`cumulative_logit` — HOLD at G3.** Not because the 3 measured cells are flawed — they are
+   clean, and I confirmed independently that #967 does not reach them. The reason is breadth: the
+   row's own G3 claim boundary already asserts "recovery of the fixed location slope **and every
+   cutpoint**" (`cells.tsv`, `mr-cumulative-logit`), i.e. 3 fitted parameters. The G5 evidence covers
+   exactly 1 of those 3 (`fixef:mu:x`); the two cutpoints have **zero** G5 evidence and are not
+   merely untested but *structurally* excluded from G4 profile intervals under the current
+   `implemented_classes` list (`R/profile.R:2864-2868`) with no Wald fallback built for that target
+   class. Promoting the single existing route-level row to G5 under the current
+   one-row-per-route `missing_response` schema (confirmed via `cells.tsv`: `dpar = "all fitted
+   dpars"`, one row per route, no `target_class` column — unlike the `model_surface` axis, which
+   does split rows by finer keys, e.g. 160 rows for `biv_gaussian`) would either overstate coverage
+   by implication, or require a claim-boundary carve-out so large that G5's claimed breadth (1
+   parameter) would be *narrower* than the same row's existing G3 breadth (3 parameters) — a
+   non-monotonic gate label that inverts the ordinary reading of "a higher gate is at least as much
+   evidence as the lower one," and is exactly the kind of quiet, structural over-claim risk this
+   panel exists to catch. The clean 3-cell result should be preserved (e.g. as a dated note/receipt
+   on the row, not a `test_gate` change) so the evidence is not lost, pending either a per-target
+   ledger split for this axis or a Wald-fallback interval path for ordinal cutpoints.
+
+### The breadth principle (answering the coordinator's direct question)
+
+Absolute cell or parameter count is not the criterion, and I do not think a G5 route promotion
+needs to test *every conceivable* parameter of a family in general — but it must not claim less
+breadth than the same ledger row already claims at G3, and if it covers less than the model's full
+fitted-parameter set, that must not silently shrink what a reader would expect a higher gate to mean.
+Concretely: **a route-level G5 promotion is sound when the tested parameter set matches the breadth
+already asserted in that row's own G3 claim-boundary text — full parity, not partial — because a
+one-row-per-route schema cannot express "G5 for some parameters, G3 for others" without either an
+explicit, prominent, non-shrinking carve-out or a schema change.** `binomial` clears this cleanly: it
+has no scale, shape, or random-effect parameter in this route, so its G3 breadth ("every fitted
+distributional parameter") and its 2-parameter, 6-cell G5 evidence are the *same* set — small in
+absolute terms, complete in relative terms, no carve-out needed. `cumulative_logit` fails this: its
+G3 breadth is 3 parameters, its G5 evidence is 1, and the 2 missing ones are not close to being
+fillable under the current engine. That is the line I would set, and by that standard `binomial`
+promotes and `cumulative_logit` does not — not because 6 cells beats 3, but because 2/2 beats 1/3
+against each row's own prior claim.
+
+### Does this change confidence in the seven already promoted?
+
+No, and I can say this from my own numbers, not just by trusting the correction: my very first
+full-panel failure decomposition (see "What I checked and how," above) already enumerated every
+route with a `usable_rate<1` or out-of-band cell — `beta, hurdle_nbinom2, nbinom2, poisson,
+skew_normal, student, truncated_nbinom2, tweedie, zi_nbinom2` — and `lognormal` and
+`cumulative_logit` were never in that list. I had the exculpatory numbers for both routes on hand
+from the start; I simply organized my report around the brief's "seven candidates" frame rather than
+re-deriving the candidate/non-candidate split myself, which is the same gap Rose and the original
+admission doc had. That is worth naming plainly as a process miss on my part, not just the
+coordinator's: independent recomputation of the *pass/fail facts* protected the seven from a
+labelling error, but it did not protect me from **passively reusing someone else's inclusion/exclusion
+frame** even while sitting on data that contradicted it for `lognormal`. The seven's promotion rests
+on cell-by-cell recomputation, not on the tag, so it is unaffected. The lesson is procedural: when a
+"candidate list" is handed to a reviewer, treat it as a hypothesis to re-derive from the full data,
+not a partition to filter by.
