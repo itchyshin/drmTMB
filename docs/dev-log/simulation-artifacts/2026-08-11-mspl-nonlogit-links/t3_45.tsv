@@ -1,0 +1,16 @@
+cell	cond	link	mirrored	q	eta_d	G	regime	rep	seed	engine	event_rate	ok	beta	se	conv	se_missing	err
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	1	24760814	mspl	0	TRUE	0.288597762802705	NA	0	TRUE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	1	24760814	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	1	24760814	glmmtmb	0	TRUE	2.70328094643446	169529.74980442	1	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	2	24760815	mspl	0.00666666666666667	TRUE	4.60225662270375	3.41114484223831	0	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	2	24760815	ml	0.00666666666666667	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	2	24760815	glmmtmb	0.00666666666666667	TRUE	8.37509804508338	33.8852619082687	0	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	3	24760816	mspl	0.00666666666666667	TRUE	0.147710818664565	4.10875874190681	0	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	3	24760816	ml	0.00666666666666667	TRUE	0.0449802589143137	1.63254351177467	0	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	3	24760816	glmmtmb	0.00666666666666667	TRUE	0.260896507142109	0.656687935922943	0	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	4	24760817	mspl	0	TRUE	-0.111488613836318	NA	0	TRUE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	4	24760817	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	4	24760817	glmmtmb	0	TRUE	1.00039959295358	4134.98979247235	1	FALSE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	5	24760818	mspl	0	TRUE	-0.417211769593891	NA	0	TRUE	
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	5	24760818	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+45	cloglog_standard	cloglog	FALSE	q2	-7	30	separated	5	24760818	glmmtmb	0	TRUE	0.516485449369458	560051.228218686	0	FALSE	

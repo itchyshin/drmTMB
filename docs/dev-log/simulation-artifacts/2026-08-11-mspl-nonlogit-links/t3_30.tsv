@@ -1,0 +1,16 @@
+cell	cond	link	mirrored	q	eta_d	G	regime	rep	seed	engine	event_rate	ok	beta	se	conv	se_missing	err
+30	probit	probit	FALSE	q2	-4.2	30	separated	1	23260814	mspl	0	TRUE	-0.0387134348892589	NA	0	TRUE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	1	23260814	ml	0	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+30	probit	probit	FALSE	q2	-4.2	30	separated	1	23260814	glmmtmb	0	TRUE	2.75469566857842	2280031.38076157	1	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	2	23260815	mspl	0.00333333333333333	TRUE	14.8295554584593	NA	0	TRUE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	2	23260815	ml	0.00333333333333333	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+30	probit	probit	FALSE	q2	-4.2	30	separated	2	23260815	glmmtmb	0.00333333333333333	TRUE	55.6297656567476	959621.045982125	1	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	3	23260816	mspl	0.00333333333333333	TRUE	0.104684287214083	NA	0	TRUE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	3	23260816	ml	0.00333333333333333	TRUE	0.459215133076946	3.43135663072492	0	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	3	23260816	glmmtmb	0.00333333333333333	TRUE	0.459274955146653	3.43270781529022	1	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	4	23260817	mspl	0.00333333333333333	TRUE	0.0698386756396076	0.391960517849204	0	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	4	23260817	ml	0.00333333333333333	TRUE	0.157555004011527	1.22156946088162	0	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	4	23260817	glmmtmb	0.00333333333333333	TRUE	0.157555146923893	1.2215595556787	1	FALSE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	5	23260818	mspl	0.00333333333333333	TRUE	10.3137486230292	NA	0	TRUE	
+30	probit	probit	FALSE	q2	-4.2	30	separated	5	23260818	ml	0.00333333333333333	FALSE	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `
+30	probit	probit	FALSE	q2	-4.2	30	separated	5	23260818	glmmtmb	0.00333333333333333	TRUE	43.9011166125186	NA	1	TRUE	

@@ -1,0 +1,7 @@
+cell	cond	link	mirrored	q	eta_d	G	corner	rep	seed	estimator	event_rate	beta	se	conv	fi_finite_pos	logdet_fi	hess_pd	pen_obj	ident_err	c_n	n_eff	rep_link	completed	err
+57	cloglog_standard	cloglog	FALSE	q2	-5	12	FALSE	1	25960813	mspl	0.00833333333333333	0.774551672293683	1.30123920621058	0	TRUE	-0.524597332335808	TRUE	5.34449297675329	7.16315895488151e-12	0.258198889747161	120	cloglog	TRUE	
+57	cloglog_standard	cloglog	FALSE	q2	-5	12	FALSE	1	25960813	ml	0.00833333333333333	0.614627289952906	2.49649554660102	0	NA	NA	NA	NA	NA	NA	NA	NA	FALSE	
+57	cloglog_standard	cloglog	FALSE	q2	-5	12	FALSE	2	25960814	mspl	0.025	0.76002156532695	0.547750984554319	0	TRUE	2.76150412213703	TRUE	12.9295169546748	3.19744231092045e-14	0.258198889747161	120	cloglog	TRUE	
+57	cloglog_standard	cloglog	FALSE	q2	-5	12	FALSE	2	25960814	ml	0.025	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	FALSE	Fixed-effect covariance is unavailable because TMB::sdreport() did not report a positive-definite Hessian. ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard errors, or Wald
+57	cloglog_standard	cloglog	FALSE	q2	-5	12	FALSE	3	25960815	mspl	0.0333333333333333	1.43671707810342	0.950757334520444	0	TRUE	1.76804114889189	TRUE	14.4229710877049	-5.17452747317293e-11	0.258198889747161	120	cloglog	TRUE	
+57	cloglog_standard	cloglog	FALSE	q2	-5	12	FALSE	3	25960815	ml	0.0333333333333333	2.02373102375998	1.42770740160071	0	NA	NA	NA	NA	NA	NA	NA	NA	FALSE	

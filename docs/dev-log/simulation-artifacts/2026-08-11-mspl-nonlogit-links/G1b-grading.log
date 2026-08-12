@@ -1,0 +1,31 @@
+=== ENDPOINT F — finiteness GIVEN completion (prereg §3) ===
+cells: 88  evaluable: 88  INSUFFICIENT-COMPLETION: 0 
+finiteness holds in: 88 of 88 evaluable cells
+
+=== BY CONDITION ===
+             cond cells completion min_cell_completion fits_completed
+            logit    22   1.000000               1.000          11000
+           probit    22   1.000000               1.000          11000
+ cloglog_standard    22   0.997545               0.974          10973
+ cloglog_mirrored    22   0.999909               0.998          10999
+ fits_finite finite_given_completed non_finite_completed verdict
+       11000                      1                    0    PASS
+       11000                      1                    0    PASS
+       10973                      1                    0    PASS
+       10999                      1                    0    PASS
+
+=== THE DECISIVE COUNT: completed fits that were NOT finite ===
+(this is the only quantity that is evidence AGAINST MSPL finiteness)
+total across all conditions: 0 of 43972 completed fits
+none
+
+=== cells failing finiteness where evaluable ===
+none
+
+=== cells below the 0.90 completion guard ===
+none
+
+=== logit control ===
+all evaluable: TRUE  all finiteness_ok: TRUE  min completion: 1 
+
+wrote G1b-cell-results.csv
