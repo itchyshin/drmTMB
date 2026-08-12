@@ -3036,7 +3036,13 @@ def missing_next_gate(row: dict[str, str]) -> str:
             "all routes remain G3 because the campaign stopped before route-wide "
             "reconciliation and promotion review."
         )
-    return row["next_gate"]
+    next_gate = row["next_gate"]
+    if row["family_route"] != "cumulative_logit":
+        next_gate = next_gate.replace(
+            "Extending this claim to `cumulative_logit` or any other",
+            "Extending this claim to additional `cumulative_logit` targets or any other",
+        )
+    return next_gate
 
 
 def missing_g4g5_summary() -> str:
@@ -3106,6 +3112,9 @@ MISSING_G5_ROUTE_SUMMARIES = {
     "beta_binomial": "G5: 15/15 cells pass (2026-08-11 route-wide campaign)",
     "zero_one_beta": "G5: 24/24 cells pass (2026-08-11 route-wide campaign)",
     "zi_poisson": "G5: 18/18 cells pass (2026-08-11 route-wide campaign)",
+"cumulative_logit": (
+    "G5: `fixef:mu:x` only, 3/3 target-rung cells pass; cutpoint targets remain excluded (#967)"
+),
 }
 
 
@@ -3124,7 +3133,9 @@ def missing_markdown(missing: list[dict[str, str]], compact: bool = False) -> st
         runtime = "implemented" if row["capability_status"] == "implemented" else "rejected"
         verified = " ✓" if int(row["test_gate"][1:]) >= 3 else ""
         lines.append(
-            f"| `{row['family_route']}` | {runtime} | {row['test_gate']}{verified} | "
+            f"| `{row['family_route']}`" + (
+                "" if row["dpar"] == "all fitted dpars" else f" (`{row['dpar']}` only)"
+            ) + f" | {runtime} | {row['test_gate']}{verified} | "
             f"{row['work_status'].replace('_', ' ')} | {missing_next_gate(row)} |"
         )
     if compact:

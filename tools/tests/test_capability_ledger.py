@@ -83,12 +83,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         # pre-registered band. A second panel separately promoted beta,
         # tweedie, and skew_normal on a threshold-free worst-case coverage
         # bound (explicitly NOT the mr-g5-calibration-v2 availability
-        # floor). Eleven routes are G5; the remaining seven admitted
-        # routes stay at G3. See docs/dev-log/2026-08-11-g5-admission-set-exhaustiveness.md.
+        # floor). The separately keyed cumulative-logit fixed mu slope also
+        # has G5 evidence; its ordinal cutpoints remain outside that key.
         g5_promoted = {
             "gaussian", "biv_gaussian", "gamma", "beta_binomial",
             "binomial", "zero_one_beta", "zi_poisson", "lognormal",
-            "beta", "tweedie", "skew_normal",
+            "beta", "tweedie", "skew_normal", "cumulative_logit",
         }
         self.assertEqual(
             {
@@ -2796,7 +2796,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertNotIn("the all-1200 interval-usability rule", markdown)
         self.assertNotIn("truncated by an 8h walltime and are re-running", markdown)
         self.assertIn("mr-g5-calibration-v2", markdown)
-        self.assertIn("structural, not evidential, grounds", markdown)
+        self.assertIn("cutpoint targets remain excluded", markdown)
         self.assertIn("threshold-free worst-case bound", markdown)
         # claim_boundary prose itself is not rendered into
         # capability-surface.md for missing_response rows (only next_gate

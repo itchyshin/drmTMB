@@ -27,11 +27,13 @@ if (!length(paths)) stop("G5 receipt directory contains no RDS files.", call. = 
 
 target_manifests <- readRDS(manifest_path)
 g4_records <- readRDS(g4_path)
-registry <- mr_g5_registry_from_g4(target_manifests, g4_records)
+expected_registry <- mr_g5_registry_from_g4(target_manifests, g4_records)
+registry <- expected_registry
 cohort_routes <- c("gaussian", "biv_gaussian")
 registry$cells <- registry$cells[registry$cells$route_id %in% cohort_routes, , drop = FALSE]
 registry$seeds <- registry$seeds[registry$seeds$cell_id %in% registry$cells$cell_id, , drop = FALSE]
 if (!nrow(registry$cells)) stop("No G5-eligible Gaussian-cohort cells exist.", call. = FALSE)
+mr_g5_validate_cohort_registry(registry, expected_registry)
 
 records <- mr_g5_reconcile_checkpoints(paths, registry)
 summary <- mr_g5_summarise_attempts(records)
@@ -49,6 +51,8 @@ artifact <- list(
   summary = summary,
   calibration = calibration,
   registry = registry,
+  expected_registry = expected_registry,
+  expected_cell_count = nrow(expected_registry$cells),
   provenance = provenance,
   created_utc = format(Sys.time(), tz = "UTC", usetz = TRUE)
 )

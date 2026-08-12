@@ -10,8 +10,8 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `zero_one_beta` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `cumulative_logit` or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
-| `tweedie` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to `cumulative_logit` or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `zero_one_beta` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to additional `cumulative_logit` targets or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
+| `tweedie` | implemented | G5 ✓ | verified | G5 is the ceiling of this axis's ladder (README: G0-G5). Extending this claim to additional `cumulative_logit` targets or any other missing_response route requires its own exhaustive, defect-free G5 reconciliation and a fresh D-43 panel. |
 
 ## Does not cover
 

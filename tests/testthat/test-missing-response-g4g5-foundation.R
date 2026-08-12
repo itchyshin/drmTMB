@@ -373,6 +373,38 @@ test_that("target manifests require every canonical target and choose the gate m
   )
 })
 
+test_that("a frozen interval method must agree with the fitted target registry", {
+  source_missing_response_g4g5()
+  fit <- structure(list(), class = "mr_g4g5_test_fit")
+  local_mocked_bindings(
+    profile_targets = function(object) data.frame(
+      parm = "fixef:mu:x", profile_ready = TRUE
+    ),
+    .package = "drmTMB"
+  )
+  target <- data.frame(
+    parm = "fixef:mu:x", profile_ready = TRUE, interval_method = "profile"
+  )
+  expect_silent(mr_g4_validate_runtime_interval_method(fit, target))
+  target$interval_method <- "wald"
+  expect_error(
+    mr_g4_validate_runtime_interval_method(fit, target),
+    "disagrees with the fitted profile-target registry"
+  )
+  target$interval_method <- "profile"
+  target$profile_ready <- FALSE
+  expect_error(
+    mr_g4_validate_runtime_interval_method(fit, target),
+    "disagrees with the fitted profile-target registry"
+  )
+  target$profile_ready <- TRUE
+  target$parm <- "missing:target"
+  expect_error(
+    mr_g4_validate_runtime_interval_method(fit, target),
+    "absent from the fitted profile-target registry"
+  )
+})
+
 test_that("G5 coverage retains all planned attempts in its denominator", {
   source_missing_response_g4g5()
   records <- data.frame(route_id = "gaussian", parm = "fixef:mu:x",
@@ -395,6 +427,34 @@ test_that("route-specific G5 cohorts retain only frozen eligible cells and seeds
   expect_identical(out$cells$cell_id, "a")
   expect_true(all(out$seeds$cell_id == "a"))
   expect_error(mr_g5_select_routes(registry, "not_a_route"), "absent")
+})
+
+test_that("a G5 cohort retains its pre-selection expected registry", {
+  source_missing_response_g4g5()
+  expected <- list(
+    cells = data.frame(
+      cell_id = c("one", "two"), route_id = c("gaussian", "gamma")
+    ),
+    seeds = data.frame(cell_id = c("one", "two")), n_rep = 1200L, master_seed = 1L
+  )
+  cohort <- expected
+  cohort$cells <- expected$cells[1L, , drop = FALSE]
+  cohort$seeds <- expected$seeds[1L, , drop = FALSE]
+  expect_silent(mr_g5_validate_cohort_registry(cohort, expected))
+  cohort$cells$cell_id <- "dropped-before-check"
+  expect_error(
+    mr_g5_validate_cohort_registry(cohort, expected),
+    "not a valid subset"
+  )
+  expected_one_route <- expected
+  expected_one_route$cells$route_id <- "gaussian"
+  cohort <- expected_one_route
+  cohort$cells <- expected_one_route$cells[1L, , drop = FALSE]
+  cohort$seeds <- expected_one_route$seeds[1L, , drop = FALSE]
+  expect_error(
+    mr_g5_validate_cohort_registry(cohort, expected_one_route),
+    "drops expected cells"
+  )
 })
 
 test_that("G5 calibration gate rejects systematic overcoverage without promotion", {
