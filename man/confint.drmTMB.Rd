@@ -197,7 +197,10 @@ correlation, block-diagonal bivariate phylogenetic \code{mu1}/\code{mu2} and
 For predictor-dependent scale, residual-correlation, or currently supported
 \code{corpair()} formulae, supply \code{newdata} with \code{parm = "sigma"},
 \code{parm = "rho12"}, or the fitted \code{corpair(...)} dpar to profile the fitted
-response-scale value for each supplied row.
+response-scale value for each supplied row. Row-specific \code{rho12} profile
+intervals from a regression \code{rho12} formula are computable this way, but no
+simulation has measured their coverage; treat them as interval-feasible,
+not as a calibrated \code{level} interval (tracked as issue #802).
 }
 \details{
 Target names follow the profile target namespace. For fixed effects, use
@@ -307,6 +310,19 @@ inherits the bias of its centre uncorrected. These routes carry point-fit
 recovery evidence only, and no seeded campaign has yet measured the
 coverage of a profile interval built on them, so treat the endpoints as a
 computed profile rather than calibrated inference.
+}
+
+\section{Ordinal cutpoints}{
+
+For \code{cumulative_logit()} fits, \code{confint()} does not compute an interval for
+the ordinal cutpoints themselves (the \code{"ordinal:theta_ord:..."} targets):
+\code{method = "wald"}, \code{"profile"}, and \code{"bootstrap"} all reject them, because
+the cutpoint target class is not in any method's implemented set. The
+fixed-effect coefficients on \code{mu} (and on any other fitted distributional
+parameter) remain fully interval-ready through the usual
+\code{confint(fit, parm = "fixed_effects")} or \code{confint(fit, parm = "fixef:mu:x")}
+calls; only the category-separating cutpoints are unsupported for interval
+estimation.
 }
 
 \examples{

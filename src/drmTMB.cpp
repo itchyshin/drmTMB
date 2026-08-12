@@ -4969,11 +4969,30 @@ Type objective_function<Type>::operator()()
     int p_mspl = beta_mu.size();
     vector<Type> eta_fixed_mspl = offset_mu + X_mu * beta_mu;
     vector<Type> log_weight_mspl(eta_fixed_mspl.size());
+    // The weight is the EXPECTED-information weight w = n (dmu/deta)^2 /
+    // (mu (1 - mu)), which is link-dependent.  The logit branch below is the
+    // algebraic collapse of that form under the canonical link and is kept
+    // VERBATIM so the shipped logit route is bit-identical to before this
+    // block learned about links; drm_numeric.h documents why the collapse does
+    // not generalise by substituting log_mu / log_one_minus_mu.  Every other
+    // link goes through the per-link stable primitives, whose log-scale
+    // branches are correct in BOTH tails (the cloglog negative tail in
+    // particular: log(1 - mu) = -exp(eta) exactly, and log(mu) via log1mexp,
+    // so the weight tends to zero rather than to the +Inf a naive form gives).
     for (int i = 0; i < eta_fixed_mspl.size(); ++i) {
-      log_weight_mspl(i) =
-        log(weights(i) * trials(i)) -
-        logspace_add(Type(0.0), eta_fixed_mspl(i)) -
-        logspace_add(Type(0.0), -eta_fixed_mspl(i));
+      if (link_code == 0) {
+        log_weight_mspl(i) =
+          log(weights(i) * trials(i)) -
+          logspace_add(Type(0.0), eta_fixed_mspl(i)) -
+          logspace_add(Type(0.0), -eta_fixed_mspl(i));
+      } else {
+        DrmBinomLogMu<Type> mspl_log_mu =
+          drm_binom_log_mu(eta_fixed_mspl(i), link_code);
+        log_weight_mspl(i) =
+          log(weights(i) * trials(i)) +
+          Type(2.0) * drm_binom_log_mu_eta(eta_fixed_mspl(i), link_code) -
+          mspl_log_mu.log_mu - mspl_log_mu.log_one_minus_mu;
+      }
     }
     Type log_weight_scale_mspl = log_weight_mspl(0);
     for (int i = 1; i < log_weight_mspl.size(); ++i) {

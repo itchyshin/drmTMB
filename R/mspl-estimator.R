@@ -3,6 +3,13 @@
 # `R/mspl.R`; this file owns admission, fit diagnostics, and method fences.
 
 drm_match_estimator <- function(estimator) {
+  # A fitted object reports `estimator` in upper case ("ML", "MSPL"), so accept
+  # that spelling back: reading the setting off a fit and passing it to
+  # `drmTMB()` should round-trip rather than error (#983). The canonical stored
+  # value is unchanged; only the input spelling is relaxed.
+  if (is.character(estimator)) {
+    estimator <- tolower(estimator)
+  }
   match.arg(estimator, c("ml", "mspl"))
 }
 
@@ -205,6 +212,22 @@ drm_validate_mspl_request <- function(
   invisible(NULL)
 }
 
+# Map the TMB `link_code` data member (src/drmTMB.cpp DATA_INTEGER(link_code))
+# onto the name `mspl_jeffreys()` and `mspl_log_weight()` expect. Kept next to
+# its callers so the R reference penalty and the C++ objective cannot drift
+# apart on the link. Under the current guard only "logit" is reachable; the
+# other two exist so that the R reference follows the C++ objective the moment
+# the guard is opened, rather than silently holding at logit.
+drm_mspl_link_name <- function(link_code) {
+  switch(
+    as.character(as.integer(link_code %||% 0L)),
+    "0" = "logit",
+    "1" = "probit",
+    "2" = "cloglog",
+    cli::cli_abort("Internal MSPL error: unsupported link code {.val {link_code}}.")
+  )
+}
+
 drm_validate_mspl_spec <- function(spec) {
   if (!identical(spec$model_type, "binomial")) {
     cli::cli_abort("Internal MSPL error: the fitted specification is not binomial.")
@@ -261,17 +284,22 @@ drm_validate_mspl_spec <- function(spec) {
   if (!isTRUE(scaling$ok)) {
     cli::cli_abort("Experimental MSPL could not compute a finite softness scale.")
   }
-  # `link = "logit"` is explicit, not defaulted: the MSPL entry point is
-  # logit-only (see the guard above), so this call must never silently follow a
-  # future change to `mspl_jeffreys()`'s default. The helper is link-general
-  # scaffolding; the estimator is not.
+  # The link is read from the fitted specification and passed EXPLICITLY, so
+  # this call can never silently follow a future change to `mspl_jeffreys()`'s
+  # default. Under the current guard the only reachable value is "logit", so
+  # this is behaviour-preserving today.
+  #
+  # It must agree with the weight the TMB objective actually uses (the
+  # `use_mspl == 1` block in `src/drmTMB.cpp`), which dispatches on the same
+  # `link_code`. Holding this reference at logit while the C++ evaluated a
+  # different link would make `initial_half_logdet` a silently wrong baseline.
   initial <- mspl_jeffreys(
     X = X,
     beta = rep(0, p),
     offset = spec$offset$mu,
     trials = round(trials),
     frequency = round(frequency),
-    link = "logit"
+    link = drm_mspl_link_name(spec$tmb_data$link_code)
   )
   if (!isTRUE(initial$ok)) {
     cli::cli_abort(c(
@@ -525,15 +553,19 @@ drm_finalize_mspl_fit <- function(spec, obj, opt, report) {
   numerical <- drm_mspl_hessian_diagnostics(obj, opt)
   wald <- drm_mspl_wald(unpenalized$object, opt)
   components <- drm_mspl_report_components(report)
+  mspl_fitted_link <- drm_mspl_link_name(spec$tmb_data$link_code)
   par_list <- obj$env$parList(opt$par)
   log_sd <- as.numeric(par_list$log_sd_mu)
   eta_cor <- as.numeric(par_list$eta_cor_mu)
   rho <- if (length(eta_cor)) tanh(eta_cor) else numeric()
   list(
     active = TRUE,
-    route = "binomial-logit-ordinary-q1-q2",
+    # Report the link actually fitted rather than a constant. Today the guard
+    # admits only logit, so this is the same string it always was; if the guard
+    # is ever opened, a probit fit must not be labelled "logit".
+    route = paste0("binomial-", mspl_fitted_link, "-ordinary-q1-q2"),
     family = "binomial",
-    link = "logit",
+    link = mspl_fitted_link,
     q = spec$mspl$q,
     p = spec$mspl$p,
     n_row = spec$mspl$n_row,

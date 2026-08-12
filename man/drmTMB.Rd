@@ -147,7 +147,13 @@ Native \code{engine = "tmb"} only.}
 preserves ordinary maximum likelihood. Experimental \code{"mspl"} implements
 the clean-room maximum softly-penalized likelihood criterion for one
 complete Bernoulli or grouped-binomial logit model with one ordinary
-q = 1 or correlated q = 2 grouping block. \code{vcov()} and the \code{std_error}
+q = 1 or correlated q = 2 grouping block. For grouped binomial data, the
+soft-penalty scale \code{c_n = 2 * sqrt(p / n_eff)} uses
+\code{n_eff = sum(trials * frequency)}, the retained total number of Bernoulli
+trials, in place of the source paper's row count \code{n}; the two agree
+exactly when every row is a single Bernoulli trial (\code{trials = frequency = 1}). This is a deliberate grouped-data extension, not a claim that
+Sterzinger and Kosmidis's (2023) results carry over unchanged.
+\code{vcov()} and the \code{std_error}
 column of \code{summary()} are available: they invert the Hessian of the
 \emph{unpenalized} Laplace log-likelihood evaluated at the MSPL estimate, so the
 penalty is used to obtain a finite estimate but not to describe sampling

@@ -3,7 +3,31 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-10; PROBIT + CLOGLOG **MERGED** to main, targeting 0.7.0).**
+> **▶ Latest — start here (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
+> ship; `DESCRIPTION` is **0.7.0** on `main`).**
+> `main` = `511a7a390`. **Rung UNCHANGED and that is the point: `tarball-clean` proven,
+> `platform-clean` unproven.** Eight PRs merged today advanced the *record*, not the *claim*.
+> **The defect fixed:** the repo's only machine-checkable release gate still described the
+> **superseded 0.6.0 tarball** (`2e5234bd` / `ad475cc39`) and printed `READY FOR CLAIMED RUNG` about
+> it — a green verdict for a package nobody intends to ship. A ledger for the live candidate
+> (`2176e4b8…cda9` / `a75c3c901`) now passes at `tarball-clean`, and `platform-clean` is
+> **mechanically blocked**: raising the claim returns NOT READY while `platform_matrix` /
+> `external_logs` are absent (verified by negative control). Also landed: `NEWS.md` no longer claims
+> a CRAN release drmTMB has not had; **all 42 open issues triaged — 0 BLOCKING**; the one
+> user-surface defect (#983 estimator round-trip) fixed with four limitations documented; C17
+> re-certified (behaviour reproduced **exactly**, `|change| 0.000e+00`).
+> **⚠ The candidate no longer matches `main`** (`NEWS.md` + today's source fixes are shipped files),
+> so **a re-freeze is required before submission**.
+> **What gates the release is NOT engineering:** **D-93** holds 0.7.0 undischarged; **D-117**
+> measured 0.9248 over 400,000 attempts with discharge **RECOMMENDED, NOT DECIDED**; **win-builder is
+> ABSENT** (Shinichi's action); the rights re-review and source-clean re-cut are owed.
+> **MULTI-LANE — 17 lanes live.** This pointer does **not** represent them all: for each lane's
+> current handover see the board's Active-Lane-Split,
+> [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+> START HERE for this lane:
+> [`docs/dev-log/handover/2026-08-11-codex-handover-07-cran-lane.md`](docs/dev-log/handover/2026-08-11-codex-handover-07-cran-lane.md).
+>
+> **▶ Prior (2026-08-10; PROBIT + CLOGLOG **MERGED** to main, targeting 0.7.0).**
 > `binomial(link = "probit")` and `binomial(link = "cloglog")` **now fit** — both aborted before.
 > Arc D **squash-merged to `main` as `d88901699`**
 > (PR [#973](https://github.com/itchyshin/drmTMB/pull/973) **MERGED**). Emmy's last open condition —

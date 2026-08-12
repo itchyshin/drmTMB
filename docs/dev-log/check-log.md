@@ -93094,3 +93094,156 @@ family that can discriminate an engine that improves on Laplace.
   After-task: `docs/dev-log/after-task/2026-08-10-beta-binomial-mi-fixture-identifiability.md`.
 - Residual: the MD7f `0:n_i` summation remains lightly exercised (posterior is near a point mass
   because `y` is noiseless); flagged for a separate decision, not changed here.
+
+## 2026-08-11 — the 0.7.0 CRAN gate now names the candidate we intend to ship
+
+- Defect. `docs/dev-log/release-audits/2026-08-07-07-cran-release-ledger.json` was the repo's only
+  machine-checkable release gate, and it described the **superseded 0.6.0 artifact** `2e5234bd` /
+  `ad475cc39`. Running `~/shinichi-brain/tools/cran_release_gate.py` against it printed
+  `READY FOR CLAIMED RUNG` — a green mechanical verdict for a tarball nobody intends to ship. This is
+  the D-49 failure mode (partial-green evidence promoted into a whole-release claim) reached by a
+  different route: the evidence stayed correct while the gate guarding it went stale.
+- Fix. New ledger `docs/dev-log/release-audits/2026-08-11-070-cran-release-ledger.json` describing the
+  live candidate `2176e4b81b887e8d944456e4a74fa581afda959d0d2a5468c89bc700d693cda9` / `a75c3c901`,
+  `status_claim: tarball-clean`, passing the gate. Predecessor ledger marked `superseded_by`;
+  `FREEZE-NOTES.md` marked `PREDECESSOR (0.6.0)` with the two prohibitions this work crossed named
+  outright (`a75c3c901` DESCRIPTION bump, `885f260d1` cran-comments) and no owner authorisation claimed.
+- Durability. The gate stats `artifact.path` and every `evidence.*` file and fails closed on absence,
+  so a ledger anchored in the session scratchpad is not reproducible. Artifact + all nine evidence
+  files copied to `~/drmTMB-release-artifacts/0.7.0/`; each entry also records `repo_path`. Gate
+  re-run from `/` → `READY FOR CLAIMED RUNG`. `R CMD build` embeds timestamps, so these bytes cannot
+  be regenerated; three copies now exist, all verified identical.
+- `cran-comments.md` corrected. It had claimed *"Every check result below was run against these exact
+  bytes"* while listing the 3-OS matrix and R-hub sanitizers. Those services build their own tarball
+  from the source checkout and never saw the frozen bytes. Evidence is now split into labelled
+  **Exact-bytes** (local `--as-cran`, Totoro valgrind) and **Same-source** (3-OS, sanitizers at
+  `a75c3c901`) classes.
+- Tests of the tests. Tampering one hex digit of the SHA → `NOT READY`; pointing at the real 0.6.0
+  predecessor tarball → `NOT READY` on hash and size; raising `status_claim` to `platform-clean` →
+  `NOT READY`, demanding `platform_matrix`/`external_logs`. `--selftest`: all 14 planted negative
+  controls fail closed. The `platform-clean` fence is enforced, not merely documented.
+- Review. Fresh adversarial reviewer, default NOT READY, returned **NOT READY** with four blocking
+  defects — including the `cran-comments.md` provenance claim above. All four fixed, then re-verified
+  to **READY (tarball-clean only)**, with drift falsified by hashing each durable copy against its git
+  `HEAD` blob (6/6 match) and the gllvmTMB licence position tested (GPL-3 inside GPL (>= 3) —
+  compatible, so the stale rights evidence is a review gap, not a licence defect).
+- Checks: `capability_ledger.py --check` `OK (31 generated outputs)`; `unittest
+  tools.tests.test_capability_ledger` 67 tests OK. No `R/`, `src/`, `man/`, `NAMESPACE`, `DESCRIPTION`,
+  or `NEWS.md` change — the frozen tarball is unaffected and no re-freeze is required.
+- Not claimed. `platform-clean` remains unclaimed and unauthorised; win-builder is **ABSENT** for this
+  candidate (run-book at `docs/dev-log/release/0.7.0-cran-gate/WIN-BUILDER-RUNBOOK.md`); Windows
+  CRAN-lane time is UNMEASURED; four evidence gaps are disclosed in the ledger's `known_evidence_gaps`.
+- After-task: `docs/dev-log/after-task/2026-08-11-070-gate-truth.md`.
+
+## 2026-08-11 (later) — NEWS no longer claims a CRAN release the package has not had
+
+- Defect. Merging PR #996 put `NEWS.md:3` on `main` reading flatly **"First CRAN release."** while
+  drmTMB is not on CRAN. The same file already carried the corrected D-125 wording at line 788
+  (`0.5.0` was "the **intended** first CRAN release"), so line 3 contradicted it. pkgdown deploys from
+  `main`, making this a live public surface — the same failure class D-125 fixed for the `v0.5.0`
+  GitHub release title.
+- Fix. `NEWS.md:3` now reads "First CRAN-targeted release candidate; not yet submitted to or accepted
+  by CRAN." Wording deliberately aligned with the unmerged `claude/07-release-slice` (PR #959), which
+  rewrites the same paragraph to "First CRAN-targeted release candidate" — adopting its phrasing rather
+  than forking a second correct wording in one file.
+- Stale authorisation records corrected. `FREEZE-NOTES.md` and `coordination-board.md` both stated that
+  no owner authorisation existed for the DESCRIPTION bump and the `cran-comments.md` finalisation. True
+  when written; false once Shinichi merged **#1000** (`5a225378d`) and **#996** (`a3217da93`). Both now
+  record the merge as the authorisation, and both restate what is still NOT authorised: advancing
+  `status_claim`, writing `platform-clean`, or uploading.
+- Consequence, recorded not hidden. `NEWS.md` is a SHIPPED file, so the frozen candidate
+  `2176e4b8...cda9` (built from `a75c3c901`) no longer represents `main`'s shipped source. The
+  candidate's evidence stays valid for that artifact and `tarball-clean` is unaffected, but a
+  **re-freeze is required before submission** so the submitted tarball carries the corrected NEWS.
+  Logged as `known_evidence_gaps.candidate_no_longer_matches_main` in the 0.7.0 ledger, with the exact
+  currency command.
+- Checks: `cran_release_gate.py` on the 0.7.0 ledger still `READY FOR CLAIMED RUNG`; `status_claim`
+  unchanged at `tarball-clean`; no `platform-clean` claim written anywhere.
+
+## 2026-08-11 (later still) — CRAN polish: estimator round-trip, offset message, three documented limits
+
+- Scope. The 2026-08-11 pre-release triage of all 42 open issues returned 0 BLOCKING and 1
+  USER-SURFACE. This lands that one item plus the four DOCUMENT items.
+  Triage: `docs/dev-log/release-audits/2026-08-11-0.7.0-open-issue-triage.md`.
+- **#983 fixed.** `drm_match_estimator()` lower-cases character input before `match.arg()`, so a fit's
+  own reported `estimator = "ML"` is accepted back by `drmTMB()`. Fixed on the INPUT side only: the
+  AGHQ arc kept the reported token `"ML"` because a new token flips a family-map slope to "absent" in
+  the capability ledger. Test-of-the-test recorded — the old implementation was confirmed to error on
+  `"ML"` before the fix landed.
+- **#870 fixed (message only).** The non-finite-offset abort advertised count exposure models alone.
+  It now names all three link scales and the usual cause, a non-positive or missing value inside
+  `log()`. No gating logic changed; `offset()` remains `dpar == "mu"` with no family conditional.
+- **#967, #984, #802 documented**, each verified against code first: no interval method computes an
+  ordinal-cutpoint CI; MSPL's penalty uses `n_eff = sum(trials * frequency)`, reducing to the paper's
+  `n` at `trials = frequency = 1`; row-specific regression-`rho12` intervals exist but have no
+  coverage evidence.
+- **C17 re-certification.** `R/drmTMB.R` is one of five whole-file-pinned C17 sources, so the message
+  edit staled the `mc-0568/0569/0576` receipt — exactly the friction issue #979 describes. Cleared with
+  the sanctioned `tools/recertify-c17.py` (owner-approved), not by hand. It re-ran the committed runner
+  and **reproduced measured behaviour exactly: `|change| 0.000e+00` on all three cells**, so nothing
+  those cells certify moved. `source_fingerprint` left untouched; `current_source_sha` now `33f6139c2`.
+  `claim_boundary` is prose no automated check validates, so it was extended by hand to name this edit.
+  Receipt: `docs/dev-log/implementation-recovery/2026-08-11-cran-polish-c17c2-c14-final-source-compatibility/`.
+- Checks: `test-mspl-estimator.R` 154 pass / 0 fail · `test-offset-families.R` 8 pass / 0 fail ·
+  `capability_ledger.py --check` OK (31 generated outputs) · `unittest` 67 tests OK ·
+  `R CMD check --as-cran` on a tarball built from this branch **Status: 1 NOTE** (New submission),
+  0 ERROR, 0 WARNING, `checking tests [207s/240s]`.
+- Consequence. `R/drmTMB.R`, `R/mspl-estimator.R`, `R/profile.R` and two `man/` pages are shipped
+  files, so the frozen candidate `2176e4b8...cda9` diverges further from `main`. A re-freeze before
+  submission was already required (NEWS.md, earlier today); this batches into that same re-freeze.
+- Two tooling observations, neither blocking. `tools/recertify-c17.py` prints "refusing to run" when
+  its run directory already exists but still exits 0, so a caller checking `$?` reads the refusal as
+  success. And `tools/tests/test_capability_ledger.py::test_c17_failure_modes_give_opposite_fingerprint_instructions`
+  asserts a message naming `R/methods.R` but reads live repo state, so it fails whenever a *different*
+  pinned file is the one that changed.
+
+## 2026-08-11 — CI receipts for the 0.7.0 polish batch (run IDs, so the claim is checkable)
+
+Recorded because the batch's own check-log entry cites only the LOCAL checks. A reader cannot verify
+"CI green" without the run IDs, and the whole point of the D-49 discipline is that a claim names the
+artifact and the evidence that produced it.
+
+| what | run | head | result |
+| --- | --- | --- | --- |
+| `R-CMD-check` on PR #1006's head | [31501559418](https://github.com/itchyshin/drmTMB/actions/runs/31501559418) | `9e295efe6` | **success** — `os-matrix` + `ubuntu-latest (release)` |
+| `R-CMD-check` on `main` after merge | [31503787002](https://github.com/itchyshin/drmTMB/actions/runs/31503787002) | `4e4a915aa` | **success** — both jobs |
+| `pkgdown` on `main` after merge | [31508044587](https://github.com/itchyshin/drmTMB/actions/runs/31508044587) | `4e4a915aa` | **success** |
+
+**Why the ubuntu job matters here specifically.** `.github/workflows/R-CMD-check.yaml` sets
+`NOT_CRAN: true`, so that job runs the **full** suite, including the seventeen files PR #990's filter
+excludes from the CRAN lane. The local `R CMD check --as-cran` recorded for this batch therefore never
+exercised those files. PR #1006 was merged before this job reported, on the reasoning that a strictly
+permissive `match.arg()` change cannot break a passing test; that reasoning is now **confirmed rather
+than assumed**, which is the only reason it is worth writing down.
+
+**Scope of the claim.** These runs establish that the merged source passes on ubuntu, and that the
+docs site builds. They are **same-source** evidence for commit `4e4a915aa`: GitHub Actions checks out
+the source and builds its own tarball, so no run above examined the frozen candidate
+`2176e4b8...cda9`. They say nothing about `platform-clean`, which remains unproven — win-builder is
+still absent, and the 3-OS matrix and sanitizers ran against the earlier candidate commit `a75c3c901`.
+
+**Not recorded as green:** the merge-commit R-CMD-check and the branch-head run are the same content,
+so they are not independent confirmations of each other; they are listed separately only so a reader
+can see which commit each one actually examined.
+
+## 2026-08-11 — the coordination board no longer contradicts itself on who owns the 0.7 CRAN ladder
+
+- Defect. `coordination-board.md` on `main` asserted **both** ownerships at once: a 2026-08-11 bullet
+  reassigning the 0.7 CRAN ladder to Claude, and immediately below it the untouched 2026-08-07 bullet
+  "**Codex** — owns the live 0.7 CRAN ladder through `submission-ready`". A board whose purpose is one
+  owner per subject named two.
+- Fix. Codex's CRAN-ladder claim is struck and marked SUPERSEDED, with the 2026-08-07 handover
+  relabelled a historical record rather than a live claim; Codex's real remaining holdings (#858,
+  #955) are named and kept PROTECTED FOREIGN. Claude's row now states the ownership. The Status block
+  was 2026-08-08 (`main` @ `5affb962b`) and is refreshed to `aa76c2399`, including that `DESCRIPTION`
+  is now `0.7.0` and that the rung is unchanged at `tarball-clean` / `platform-clean` unproven.
+- Three unmerged Cursor branches rewrite ~60 lines of that same section. Read before writing rather
+  than assumed: **they already retire Codex's CRAN-ladder claim too**, so they agree with this board
+  on that point. The single genuine conflict is Cursor-vs-Claude ownership of the live 0.7 slices,
+  and resolving it is Shinichi's call under D-87 — recorded on the board with an instruction to
+  rebase rather than straight-merge, since a straight merge would drop the reassignment.
+- `active-lane-split.md` carried a stale sentence — "DESCRIPTION **0.6.0**; current main is neither
+  `tarball-clean` nor `platform-clean`" — both halves now false. Annotated in place rather than
+  rewritten, so the 2026-08-08 lane record survives. Checked first: none of the six refs carrying
+  work on that file had already corrected it.
+- No code, ledger, rung, or claim changed. Docs only; the frozen candidate is unaffected.
