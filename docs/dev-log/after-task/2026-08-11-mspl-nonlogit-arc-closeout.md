@@ -83,9 +83,11 @@ gllvmTMB, whose registered both-tail sweep would have hit the same trap.
   separates at `n = 120` produces 10–114 events and no divergence at all, so the adversarial corner
   tested small `c_n` but largely *not* under separation. Re-confirms F2 from a second direction.
 - **Converged fits with no standard error, link-general.** 15 of 60 cells return MSPL fits reporting
-  `convergence == 0` whose slope SE is missing — 98.3% in the worst logit cell. All are random-slope
-  cells under separation, in all four conditions. **This affects the shipped logit route** and is
-  independent of every calibration question. It deserves an issue.
+  `convergence == 0` whose slope SE is missing — 98.3% in the worst logit cell, in all four
+  conditions, all in the separated regime. **This affects the shipped logit route** and is independent
+  of every calibration question. Added to existing issue **#977** (which already had the logit case)
+  rather than filed anew. *Correction: I first wrote that all affected cells were random-slope (`q2`);
+  three are `q1`, so the defect is not confined to random slopes.*
 - **The two cloglog orientations need different separation depths** (−5 vs −6, measured) and separate
   into opposite tails. The asymmetry is operational, not just a tail-order remark.
 - **`ω(0)` closed forms**, verified to machine precision: `1/4`, `2/π`, `1/(e−1)` → factors 2,
@@ -111,7 +113,7 @@ runners and scorers, 460,000 rows of raw data, and two evidence-only options
 |---|---|
 | MSPL guard | **closed**; the `c_n` and finiteness objections are now answered on evidence, the decision is not mine |
 | SE policy | **undecided** — G3 suggests neither ship-all nor block-all: calibrated where identified, silently absent where not |
-| the missing-SE defect | **unfiled** — deserves an issue; affects the shipped logit route |
+| the missing-SE defect | **on issue #977**, extended from logit-only to link-general with exact per-cell rates; the fix (an inspectable `std_error.status` field vs a fit-time warning) is still a maintainer choice |
 | the 0–3-event × correlated-RE corner | identifiability wall where ML also fails; a diagnostic message would serve better than an optimizer chase |
 | intercept start fix | evidence-branch only; needs its own PR if wanted on `main` |
 | 0.7.0 candidate | **stale since #1006** — six shipped-path files differ from the frozen tarball; Codex's lane |

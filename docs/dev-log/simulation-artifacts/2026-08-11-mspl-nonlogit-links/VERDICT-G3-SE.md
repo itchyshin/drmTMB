@@ -92,9 +92,18 @@ slope SE is missing or non-finite:
 | cloglog-mirrored | q2 | −6 | 30 | 38.2% | 0.618 |
 | cloglog-standard | q2 | −5 | 30 | 25.2% | 0.738 |
 
-15 of 60 cells show it; every one is a **random-slope (`q2`) cell in the separated regime**, and it
-appears in **all four conditions**. The logit figure independently reproduces the 2026-08-09
+15 of 60 cells show it, in **all four conditions**. Every one is in the **separated** regime; no
+identified-regime cell is affected. The logit figure independently reproduces the 2026-08-09
 campaign's accidental discovery at its cell 15 (17 of 1000 retained = 98.3% missing).
+
+**Correction to a first reading of this table (2026-08-11).** I initially wrote that every affected
+cell was a random-slope (`q2`) cell. **Three are `q1`** — the intercept-only `y ~ trt + (1 | block)`
+model at `G = 12`: cloglog-mirrored at `η_d = −4.2` (2.7%) and `−6` (0.2%), and probit at
+`η_d = −2.1` (0.1%). Low rates, but non-zero, so the defect is **not confined to random slopes**.
+Caught by enumerating the table exhaustively instead of reading its head — the same failure
+`memory/A simulator can fail in your package's favour` records under *"when a claim is load-bearing
+enough to write into a PR, enumerate it exhaustively rather than reporting the first instance you
+found."*
 
 **What a user receives in that regime: `convergence = 0`, a point estimate, and `NA` for the standard
 error.** The fit reports success. Nothing in the printed output says the SE was unavailable rather
