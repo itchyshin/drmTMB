@@ -141,18 +141,49 @@ fit_pair <- drmTMB(
   family = poisson(link = "log"),
   data = network_dat
 )
-fit_pair$sdpars$mu
+check_drm(fit_pair)
 ```
 
 The fitted standard deviation is the scale of the latent pair deviations on the
 linear predictor scale. For this Poisson model, that is the log-count scale.
-Use `ranef()` when you want conditional pair deviations, and use
-`profile_targets()` when you want to see whether the pair SD is registered for
-profile-likelihood diagnostics.
+Use `ranef()` for conditional pair deviations and `profile_targets()` for the
+pair-SD estimate and its uncertainty status. These are different outputs: the
+deviations describe this fitted network, whereas the SD says how much pair
+deviation the model estimates across comparable pairs.
 
 ```{r inspect-pair-count}
-names(ranef(fit_pair))
-profile_targets(fit_pair)
+pair_term <- "phylo_interaction(1 | plant:pollinator)"
+pair_targets <- profile_targets(fit_pair)
+pair_targets[
+  pair_targets$parm == paste0("sd:mu:", pair_term),
+  c("parm", "estimate", "scale", "profile_ready", "profile_note")
+]
+
+pair_dev <- ranef(fit_pair, "phylo_interaction_mu")$terms[[pair_term]]
+pair_table <- data.frame(
+  pair = names(pair_dev),
+  conditional_log_rate_deviation = unname(pair_dev),
+  row.names = NULL
+)
+pair_table[order(pair_table$conditional_log_rate_deviation), ]
+```
+
+The table is a reportable **point-estimate** summary of which observed pairs
+depart above or below the fixed-effect log rate. It is not an interval for an
+individual pair. Before reporting the pair SD as an uncertainty interval,
+inspect `profile_ready` and `profile_note` above, then check the exact
+capability evidence for this family and target; a computable profile is not by
+itself a calibration claim.
+
+```{r pair-deviation-figure, fig.width = 7.2, fig.height = 4.2, fig.cap = "Conditional pair deviations for the fitted two-tree Poisson model. Positive values indicate pairs with a higher fitted log visit rate than the fixed effects predict; negative values indicate lower fitted rates. The display is point-only and is not an interval plot.", fig.alt = "A horizontal dot plot of 16 plant-pollinator pairs ordered by conditional log-rate deviation. Points lie on both sides of a vertical zero line, with the caption stating that they are point estimates rather than intervals."}
+pair_table <- pair_table[order(pair_table$conditional_log_rate_deviation), ]
+graphics::dotchart(
+  pair_table$conditional_log_rate_deviation,
+  labels = pair_table$pair,
+  xlab = "Conditional log-rate deviation",
+  main = "Fitted pair deviations"
+)
+graphics::abline(v = 0, lty = 2, col = "grey40")
 ```
 
 ## Independent pairs are a different question

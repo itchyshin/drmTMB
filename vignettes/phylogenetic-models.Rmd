@@ -170,16 +170,21 @@ fit <- drmTMB(
   family = gaussian(),
   data = dat
 )
-
-fit$opt$convergence   # 0 indicates the optimizer converged
+check_drm(fit)
 ```
 
-A few accessors return the pieces of the fit:
+Start with `check_drm()`: it reports convergence, Hessian, scale, and
+phylogenetic-replication diagnostics in one public table. Then use the public
+coefficient and target extractors to see the fixed slope and the two SDs:
 
 ```{r gaussian-pieces, eval = has_ape}
-coef(fit, "mu")              # fixed-effect mean coefficients
-fit$sdpars$mu                # phylogenetic location SD
-unique(stats::sigma(fit))    # residual SD (constant for this model)
+coef(fit, "mu")
+
+sd_targets <- profile_targets(fit)
+sd_targets[
+  sd_targets$parm %in% c("sigma", "sd:mu:phylo(1 | species)"),
+  c("parm", "estimate", "scale", "profile_ready", "profile_note")
+]
 ```
 
 The recovered slope (`x`) is close to its true value of `-0.4`, and the
@@ -229,8 +234,8 @@ confint(fit, parm = "variance_components")[, c(
 
 A transformed log-SD interval is necessarily positive, so its lower bound
 should **not** be read as a test of a zero variance component. Use it to
-describe uncertainty in the magnitude of each SD. A `check_drm(fit)` call (not
-shown) reports diagnostics for the recognised phylogenetic layer.
+describe uncertainty in the magnitude of each SD. The earlier `check_drm(fit)`
+table reports diagnostics for the recognised phylogenetic layer.
 
 The figure uses **Confidence Eyes** rather than flat interval bars. Each pale
 eye is the finite 95% Wald confidence region shaped on the log-SD scale:
@@ -239,15 +244,11 @@ The eye is a frequentist compatibility display, not a posterior density.
 
 ```{r gaussian-figure, eval = has_ape && has_ggplot2, fig.width = 5.2, fig.height = 2.2, fig.cap = "Confidence Eyes for the two response-scale SDs. Pale shapes are the default finite 95% Wald confidence regions, constructed on the log-SD scale; hollow circles are the raw fitted SDs. The default small-sample correction shifts the phylogenetic eye slightly relative to its raw estimate. The data-generating values were 0.8 and 0.3.", fig.alt = "Two Confidence Eye rows. The phylogenetic SD has a raw fitted value of 0.78 and a broad pale confidence region from 0.50 to 1.37. The residual SD has a fitted value of 0.27 and a narrow pale confidence region from 0.23 to 0.31. Hollow circles mark the fitted values."}
 vc <- confint(fit, parm = "variance_components")
-
-phylo_sd_name <- names(fit$sdpars$mu)[
-  grepl("^phylo\\(", names(fit$sdpars$mu))
-]
-stopifnot(length(phylo_sd_name) == 1L)
-
-target <- c(paste0("sd:mu:", phylo_sd_name), "sigma")
+sd_targets <- profile_targets(fit)
+target <- c("sd:mu:phylo(1 | species)", "sigma")
 interval_row <- match(target, vc$parm)
-stopifnot(!anyNA(interval_row))
+target_row <- match(target, sd_targets$parm)
+stopifnot(!anyNA(interval_row), !anyNA(target_row))
 
 sd_tab <- data.frame(
   label = factor(
@@ -255,8 +256,7 @@ sd_tab <- data.frame(
     levels = c("Residual SD", "Phylogenetic SD")
   ),
   estimate = c(
-    unname(fit$sdpars$mu[[phylo_sd_name]]),
-    unique(unname(stats::sigma(fit)))[1L]
+    sd_targets$estimate[target_row]
   ),
   lower = vc$lower[interval_row],
   upper = vc$upper[interval_row]
