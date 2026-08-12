@@ -850,11 +850,14 @@ dat <- data.frame(
   habitat = habitat
 )
 
-drmTMB(
+fit_ordinal <- drmTMB(
   bf(score ~ habitat),
   family = cumulative_logit(),
   data = dat
 )
+
+check_drm(fit_ordinal)
+summary(fit_ordinal)
 ```
 
 Use an ordinal model for ordered scores such as disease severity, breeding
@@ -869,10 +872,48 @@ the direction of a predictor but should not be treated as a measured continuous
 outcome. With `Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)`, larger `mu_i`
 shifts probability toward higher ordered categories.
 
-For fitted location coefficients, `confint(fit)` returns Wald intervals on the
-latent `mu` coefficient scale. Internal ordered-cutpoint profile targets are
-visible through `profile_targets()`, but transformed cutpoint or
-category-probability intervals are not a polished user-facing surface yet.
+Make that direction visible with an explicit prediction grid. The first table
+is the fitted latent location shift with its ordinary Wald interval. The second
+is a table of fitted category probabilities, built with the exported
+`fitted_distribution()` interface:
+
+```r
+ordinal_grid <- prediction_grid(
+  fit_ordinal,
+  focal = "habitat",
+  at = list(habitat = c(-1, 0, 1))
+)
+
+predict_parameters(
+  fit_ordinal,
+  newdata = ordinal_grid,
+  dpar = "mu",
+  conf.int = TRUE
+)
+
+ordinal_distribution <- fitted_distribution(
+  fit_ordinal,
+  newdata = ordinal_grid
+)
+ordinal_probability <- sapply(1:3, function(k) {
+  ordinal_distribution$d(rep(k, nrow(ordinal_grid)))
+})
+colnames(ordinal_probability) <- levels(dat$score)
+cbind(ordinal_grid, ordinal_probability)
+```
+
+For this fixed-effect example, the first table is the appropriate uncertainty
+route for the location coefficient. The category-probability table is a fitted
+description, not a category-probability interval. `profile_targets()` shows
+that raw `ordinal:theta_ord:*` entries are internal optimisation coordinates;
+they are not a public response-scale cutpoint estimand or a reportable cutpoint
+interval on current `main`.
+
+```r
+profile_targets(fit_ordinal)[, c(
+  "parm", "estimate", "scale", "profile_ready", "profile_note"
+)]
+```
 
 Ordinal scale or discrimination formulas remain planned. A future extension
 may add `sigma ~ mismatch` with

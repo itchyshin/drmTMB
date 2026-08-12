@@ -93297,3 +93297,22 @@ can see which commit each one actually examined.
   estimand, phylogenetic tutorials using stable public accessors, and a complete
   bipartite post-fit reporting endpoint. This does not alter any ledger row or
   inference claim.
+## 2026-08-12 — reader-path P1 documentation repair
+
+- `phylogenetic-models.Rmd` now starts its Gaussian `phylo()` workflow with
+  `check_drm()` and public `coef()`/`profile_targets()` output. The derived
+  figure now takes SD estimates from public targets rather than fit internals.
+- `bipartite-phylogenetic-interactions.Rmd` now shows `check_drm()`, an honest
+  pair-SD target-status table, a conditional-deviation table, and a point-only
+  deviation plot. It explicitly withholds individual-pair and calibration claims.
+- `distribution-families.Rmd` now gives `cumulative_logit()` a complete
+  fixed-effect workflow: fit, diagnostics, location-Wald table, and fitted
+  category-probability table via `fitted_distribution()`. Raw `theta_ord`
+  entries remain explicitly internal, not response-scale cutpoint intervals.
+- Checks: all three changed Rmd files rendered with `rmarkdown::render()` after
+  `pkgload::load_all()`; `test-cumulative-logit.R` passed; `test-phylo-interaction.R`
+  passed with four expected On-CRAN skips; `pkgdown::check_pkgdown()` reported
+  no problems; `git diff --check` passed.
+- Tracker: issue #967 remains the existing ordinal-cutpoint interval decision;
+  no duplicate issue was opened. No code, formula grammar, capability ledger,
+  interval calibration, or release claim changed.
