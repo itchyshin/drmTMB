@@ -105,10 +105,23 @@ Caught by enumerating the table exhaustively instead of reading its head — the
 enough to write into a PR, enumerate it exhaustively rather than reporting the first instance you
 found."*
 
-**What a user receives in that regime: `convergence = 0`, a point estimate, and `NA` for the standard
+> **RETRACTED, 2026-08-11 — the "silence" below is a harness artefact, not package behaviour.**
+> This runner calls `suppressWarnings(sqrt(diag(vcov(f))))`, which suppresses the exact signal the
+> paragraph then reports as missing. drmTMB **does** signal it, and has since `1d6cd5330`
+> (2026-08-09): `vcov()` raises the typed condition `drmTMB_mspl_wald_unavailable` naming the gate
+> that failed, and `summary()` carries a per-coefficient `std_error.status = "mspl_wald_unavailable"`.
+> Verified on the worst cell and then exhaustively: **62 of 62 SE-unavailable fits warned, 100%**,
+> across all four conditions and both `q`. **The measured rates below stand; the interpretation does
+> not.** Issue #977, filed on the same mistaken premise, is recommended for closure.
+
+~~**What a user receives in that regime: `convergence = 0`, a point estimate, and `NA` for the standard
 error.** The fit reports success. Nothing in the printed output says the SE was unavailable rather
 than merely large. That is a usability defect independent of every calibration question above, it is
-not link-specific, and it affects the **shipped logit route**.
+not link-specific, and it affects the **shipped logit route**.~~
+
+**What actually stands:** in that regime a user receives `convergence = 0`, a point estimate, `NA` for
+the standard error, **a typed warning naming the failed gate, and a `std_error.status` column**. The
+frequency is the finding — up to 98.3% of converged fits in the worst cell — not the signalling.
 
 ## 5. What G3 licenses, and what it does not
 

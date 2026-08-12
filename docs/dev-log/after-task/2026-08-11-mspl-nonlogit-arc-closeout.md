@@ -77,17 +77,39 @@ The arm remains valid for G1/G1b — finiteness is unaffected by misspecificatio
 calibration. Recorded as a G3 design limitation, not removed from the table. This warning was sent to
 gllvmTMB, whose registered both-tail sweep would have hit the same trap.
 
+## 5b. Third self-correction — the "silent NA" does not exist, and I nearly wrote code for it
+
+Asked to implement the `std_error.status` field that issue #977 suggests, I opened the source to find
+**it already exists, and so does the typed warning**. Both landed in `1d6cd5330` (2026-08-09), the day
+*before* #977 was filed.
+
+`vcov()` raises `drmTMB_mspl_wald_unavailable` — a catchable condition naming the exact gate that
+failed (`hessian_not_positive_definite`) — and `summary()` carries a per-coefficient
+`std_error.status = "mspl_wald_unavailable"`. Verified on the worst cell, then exhaustively:
+**62 of 62 SE-unavailable fits warned, 100%**, across all four conditions and both `q`.
+
+**Why two campaigns missed it.** Both the 2026-08-09 runner and mine call
+`suppressWarnings(sqrt(diag(vcov(f))))`. **The harness suppressed the exact signal whose absence it
+then reported**, and I repeated the conclusion into a public issue comment and a cross-repo PR before
+opening the source.
+
+The measured rates stand — the SE genuinely is unavailable that often. Only the word *silent* was
+wrong. Retracted on #977 (recommended for closure), in `VERDICT-G3-SE.md`, and in gllvmTMB PR #955.
+
+**The pattern across all three self-corrections this session is one thing:** I trusted a derived
+artefact — a FAIL verdict, a summary table's head, a runner's output — over the primary source it was
+derived from. The fix each time was thirty seconds of looking.
+
 ## 6. Findings beyond the gates
 
 - **Separation tracks absolute event *count*, not prevalence.** At `n = 4,000` the same `η_d` that
   separates at `n = 120` produces 10–114 events and no divergence at all, so the adversarial corner
   tested small `c_n` but largely *not* under separation. Re-confirms F2 from a second direction.
-- **Converged fits with no standard error, link-general.** 15 of 60 cells return MSPL fits reporting
-  `convergence == 0` whose slope SE is missing — 98.3% in the worst logit cell, in all four
-  conditions, all in the separated regime. **This affects the shipped logit route** and is independent
-  of every calibration question. Added to existing issue **#977** (which already had the logit case)
-  rather than filed anew. *Correction: I first wrote that all affected cells were random-slope (`q2`);
-  three are `q1`, so the defect is not confined to random slopes.*
+- **Standard errors unavailable at high rates under deep separation, link-general.** 15 of 60 cells
+  return MSPL fits reporting `convergence == 0` whose slope SE is missing — 98.3% in the worst logit
+  cell, in all four conditions, all in the separated regime. Added to existing issue **#977** rather
+  than filed anew. Two corrections were needed on the way, both mine: I first wrote that all affected
+  cells were `q2` (**three are `q1`**), and I described the `NA` as **silent** — see §5b, it is not.
 - **The two cloglog orientations need different separation depths** (−5 vs −6, measured) and separate
   into opposite tails. The asymmetry is operational, not just a tail-order remark.
 - **`ω(0)` closed forms**, verified to machine precision: `1/4`, `2/π`, `1/(e−1)` → factors 2,
@@ -113,7 +135,7 @@ runners and scorers, 460,000 rows of raw data, and two evidence-only options
 |---|---|
 | MSPL guard | **closed**; the `c_n` and finiteness objections are now answered on evidence, the decision is not mine |
 | SE policy | **undecided** — G3 suggests neither ship-all nor block-all: calibrated where identified, silently absent where not |
-| the missing-SE defect | **on issue #977**, extended from logit-only to link-general with exact per-cell rates; the fix (an inspectable `std_error.status` field vs a fit-time warning) is still a maintainer choice |
+| issue #977 | **recommended for closure** — the field and the warning it asks for both already exist (`1d6cd5330`, 2026-08-09). What remains is not signalling but **frequency**: whether "point estimates available, inference not" deserves a documented boundary in the deep-separation `q2` regime |
 | the 0–3-event × correlated-RE corner | identifiability wall where ML also fails; a diagnostic message would serve better than an optimizer chase |
 | intercept start fix | evidence-branch only; needs its own PR if wanted on `main` |
 | 0.7.0 candidate | **stale since #1006** — six shipped-path files differ from the frozen tarball; Codex's lane |
