@@ -5,6 +5,43 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Experimental MSPL accepts probit and complementary log-log
+
+* `estimator = "mspl"` previously required `binomial(link = "logit")` exactly.
+  It now also accepts `binomial(link = "probit")` and
+  `binomial(link = "cloglog")`. Everything else about the route is unchanged:
+  still one complete Bernoulli or grouped-binomial model, one ordinary `q = 1`
+  or correlated `q = 2` grouping block, `engine = "tmb"`, no REML, no
+  intervals.
+* **The basis is measured, not assumed.** Kosmidis and Firth (2021, Theorem 1
+  with Section 3.1) prove the Jeffreys penalty yields finite estimates for any
+  link whose working weight vanishes in both tails, which logit, probit and
+  cloglog all do. drmTMB's own TMB-Laplace evidence: **no non-finite estimate
+  in 43,972 completed fits**, and Wald standard errors calibrated in the
+  identified regime (probit `mean(SE)/sd(beta)` in `[0.946, 1.008]`, cloglog in
+  `[0.957, 1.027]`). Artifacts under
+  `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+* **The soft-penalty scale is unchanged and is a logit constant.**
+  `c_n = 2 * sqrt(p / n_eff)` comes from a delta-method argument at `beta = 0`
+  for the logit link; the same argument gives about `1.25 * sqrt(p / n_eff)`
+  for probit and `1.31` for cloglog. Using the logit constant for all three was
+  measured to move the estimate by roughly **1% of one standard error**, so it
+  is kept rather than made link-specific -- a per-link constant would define a
+  different estimator.
+* **Know this before using it on rare events.** Under deep separation with a
+  random slope, the standard error is frequently unavailable: `vcov()` and
+  `summary()` return `NA` with a `drmTMB_mspl_wald_unavailable` warning rather
+  than a fabricated number, and in the most extreme cells measured this
+  affected the large majority of converged fits. The point estimate remains
+  finite -- that is what the penalty is for -- but inference is not available
+  there for any link.
+* MSPL start values now place the intercept at the link of the observed event
+  rate instead of at zero. At `beta = 0` cloglog implies an event rate of
+  `1 - exp(-1) = 0.632`, so a rare-event design previously began several log
+  units from its own intercept; this removes a class of avoidable optimizer
+  failures. Slopes still start at zero and the start remains deterministic and
+  finite.
+
 ## Offsets in `mu` for every univariate family
 
 * `offset()` in the `mu` formula now works for **all** univariate families, not

@@ -614,13 +614,18 @@ test_that("MSPL rejects every unvalidated estimator and structure combination", 
     drmTMB(base_formula, binomial(), dat, estimator = "AI-REML"),
     "one of.*ml.*mspl"
   )
-  expect_error(
+  # SUPERSEDED 2026-08-12: probit and cloglog were admitted on measured
+  # evidence (docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/).
+  # They now FIT rather than error; the positive assertions live in
+  # test-mspl-nonlogit-links.R. Kept here as an explicit non-rejection so this
+  # list does not silently lose two rows.
+  expect_s3_class(
     drmTMB(base_formula, binomial(link = "probit"), dat, estimator = "mspl"),
-    "logit"
+    "drmTMB"
   )
-  expect_error(
+  expect_s3_class(
     drmTMB(base_formula, binomial(link = "cloglog"), dat, estimator = "mspl"),
-    "logit"
+    "drmTMB"
   )
   expect_error(
     drmTMB(base_formula, binomial(), dat, estimator = "mspl", engine = "julia"),

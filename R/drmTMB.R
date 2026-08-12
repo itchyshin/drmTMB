@@ -184,8 +184,19 @@
 #' @param estimator Estimator for the native TMB route. The default `"ml"`
 #'   preserves ordinary maximum likelihood. Experimental `"mspl"` implements
 #'   the clean-room maximum softly-penalized likelihood criterion for one
-#'   complete Bernoulli or grouped-binomial logit model with one ordinary
-#'   q = 1 or correlated q = 2 grouping block. For grouped binomial data, the
+#'   complete Bernoulli or grouped-binomial model with one ordinary
+#'   q = 1 or correlated q = 2 grouping block. Supported links are
+#'   `"logit"`, `"probit"` and `"cloglog"`. Kosmidis and Firth (2021,
+#'   Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
+#'   estimates for any link whose working weight vanishes in both tails, which
+#'   these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
+#'   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+#'   Two limits are worth stating for the non-logit links. The soft-penalty
+#'   scale below is a *logit* delta-method constant, kept unchanged for all
+#'   three because using it for probit and cloglog was measured to cost about
+#'   1% of one standard error; and under deep separation with a random slope
+#'   the standard error is frequently unavailable (see the `NA` note below),
+#'   more often for probit and cloglog than for logit. For grouped binomial data, the
 #'   soft-penalty scale `c_n = 2 * sqrt(p / n_eff)` uses
 #'   `n_eff = sum(trials * frequency)`, the retained total number of Bernoulli
 #'   trials, in place of the source paper's row count `n`; the two agree
@@ -1024,13 +1035,45 @@ drm_apply_estimator_spec <- function(
   spec$tmb_data$mspl_q <- 0L
   if (drm_is_mspl(estimator)) {
     mspl <- drm_validate_mspl_spec(spec)
-    # A separated ordinary-ML GLM start can already be numerically infinite.
-    # The published soft criterion is well-defined at beta = 0, so use that
-    # deterministic finite origin for the experimental route.
-    spec$start$beta_mu <- stats::setNames(
-      rep(0, mspl$p),
-      colnames(spec$X$mu)
-    )
+    # A separated ordinary-ML GLM start can already be numerically infinite, so
+    # the experimental route uses a deterministic finite origin rather than a
+    # GLM start. Slopes begin at zero.
+    #
+    # The INTERCEPT does not, because zero is a deterministic origin but not
+    # always a usable one. At beta = 0 the implied event rate is the link's
+    # value at eta = 0: 0.5 for logit and probit, but 1 - exp(-1) = 0.632 for
+    # cloglog. A design with one event in 120 therefore starts about 4.8 log
+    # units from its own intercept, and the optimizer can wander into a region
+    # where the objective is NaN. Measured before this changed: all 33 cloglog
+    # MSPL optimizer failures in the G1 campaign (of 11,000 fits) came from
+    # there, and all three optimizer presets fail identically because they vary
+    # only iter.max/eval.max, never the start.
+    #
+    # Setting the intercept to the link of the observed event rate keeps every
+    # property the paragraph above asks for -- deterministic, finite, and
+    # independent of a possibly-divergent GLM fit -- while starting inside the
+    # data's own scale. The rate is clamped by half an observation so the link
+    # stays finite for an all-zero or all-one response, which is exactly the
+    # separated case this estimator exists for.
+    #
+    # Measured effect (docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links):
+    # cloglog optimizer failures 33 -> 28 at full replication, and 120
+    # previously-passing fits across all four link/orientation conditions still
+    # pass with beta moving at a median of ~1e-7. It is an improvement, not a
+    # cure: the residue is q2 with 0-3 events, where plain ML also fails.
+    start_beta <- rep(0, mspl$p)
+    beta_names <- colnames(spec$X$mu)
+    intercept_at <- match("(Intercept)", beta_names)
+    if (!is.na(intercept_at)) {
+      total_trials <- sum(round(spec$trials))
+      observed <- sum(spec$y) / max(total_trials, 1)
+      guard <- 1 / (2 * max(total_trials, 1))
+      observed <- min(max(observed, guard), 1 - guard)
+      start_beta[intercept_at] <- stats::binomial(
+        link = drm_mspl_link_name(spec$tmb_data$link_code)
+      )$linkfun(observed)
+    }
+    spec$start$beta_mu <- stats::setNames(start_beta, beta_names)
     spec$estimator <- "MSPL"
     spec$tmb_random_names <- spec$random_names
     spec$mspl <- mspl

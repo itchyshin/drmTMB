@@ -183,11 +183,30 @@ drm_validate_mspl_request <- function(
   if (!identical(engine, "tmb")) {
     cli::cli_abort("Experimental MSPL is implemented only for {.code engine = \"tmb\"}.")
   }
-  if (!identical(family_type, "binomial") ||
-      !is.list(family) || !identical(family$link, "logit")) {
-    cli::cli_abort(
-      "Experimental MSPL requires {.code family = binomial(link = \"logit\")} exactly."
-    )
+  # Admitted links. `logit` has shipped since the route opened; `probit` and
+  # `cloglog` were admitted 2026-08-12 on the evidence in
+  # `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`
+  # (design 253 §6, amended). The three-gate basis, briefly:
+  #
+  #   finiteness  0 non-finite estimates in 43,972 completed TMB-Laplace fits
+  #               (VERDICT-G1b.md), on top of the link condition PROVED at source
+  #               for all three links (Kosmidis & Firth 2021, Thm 1 + §3.1)
+  #   std errors  calibrated in the identified regime -- probit R in
+  #               [0.946, 1.008], cloglog [0.957, 1.027] (VERDICT-G3-SE.md)
+  #   softness    the shipped c_n = 2*sqrt(p/n_eff) is a LOGIT delta-method
+  #               constant, and using it for the other two costs about 1% of one
+  #               standard error (VERDICT-G2-CN.md)
+  #
+  # `log-log` and `cauchit` also satisfy the KF2021 condition but are NOT
+  # admitted: drmTMB has no link_code for them and no evidence was gathered.
+  mspl_admitted_links <- c("logit", "probit", "cloglog")
+  if (!identical(family_type, "binomial") || !is.list(family) ||
+      !isTRUE(family$link %in% mspl_admitted_links)) {
+    cli::cli_abort(c(
+      "Experimental MSPL requires a binomial family with a supported link.",
+      "x" = "Supported: {.code binomial(link = )} with {.val {mspl_admitted_links}}.",
+      "i" = "Other links are rejected because drmTMB has no evidence for them under this estimator, not because the criterion is known to fail."
+    ))
   }
   if (isTRUE(REML)) {
     cli::cli_abort("Experimental MSPL cannot be combined with {.arg REML}.")

@@ -183,6 +183,22 @@ arc back to 0.7.0.
 
 ## 7. MSPL stays logit-only, even in 0.7.0
 
+> **SUPERSEDED 2026-08-12 — the entry point now admits probit and cloglog.** This section's verdict
+> stood until the evidence it implicitly asked for existed. It does now: four pre-registered
+> campaigns, 460,000 fits, recorded in
+> `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/` and adjudicated in
+> **design 253, Addendum 4** — finiteness (0 non-finite in 43,972 completed fits), calibrated Wald
+> standard errors in the identified regime, and a softness constant whose logit calibration costs
+> ~1% of one standard error for the other two links.
+>
+> **What this section got right and is retained:** log-log and cauchit are *still not admitted*
+> (drmTMB has no `link_code` for them and no evidence was gathered), the `c_n` scaling is *still*
+> the logit constant, and intervals are *still* unavailable. The reasoning below is therefore
+> correct as written — read it as the state of the question before 2026-08-11, not as current
+> behaviour. §4's table row and the closing note in §6 about the rejection test are likewise
+> superseded; the rejection test became a positive assertion in
+> `tests/testthat/test-mspl-nonlogit-links.R`.
+
 Kosmidis & Firth's **fixed-effect** finiteness result generalises to probit, log-log, cloglog and
 cauchit — any link with ω(η) → 0 as η → ±∞ (`ENGINEERING-NOTEBOOK.md:1055-1061`). Those ω(η) are just
 the binomial working weight, so no paper lookup is needed, and the condition self-checks: the weight
