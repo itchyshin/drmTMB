@@ -21,11 +21,16 @@ Template Model Builder.
   identified regime (probit `mean(SE)/sd(beta)` in `[0.946, 1.008]`, cloglog in
   `[0.957, 1.027]`). Artifacts under
   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
+  **Scope of that measurement:** Bernoulli responses with two fixed-effect
+  columns. Grouped-binomial and wider designs inherit the `n_eff` extrapolation
+  noted below without direct measurement -- which was already true of the logit
+  route and is not made worse here, only left unresolved for two more links.
 * **The soft-penalty scale is unchanged and is a logit constant.**
   `c_n = 2 * sqrt(p / n_eff)` comes from a delta-method argument at `beta = 0`
   for the logit link; the same argument gives about `1.25 * sqrt(p / n_eff)`
   for probit and `1.31` for cloglog. Using the logit constant for all three was
-  measured to move the estimate by roughly **1% of one standard error**, so it
+  measured to move the estimate by roughly **1% of one standard error** (at
+  `q = 1` with two fixed-effect columns; not measured at `q = 2`), so it
   is kept rather than made link-specific -- a per-link constant would define a
   different estimator.
 * **Know this before using it on rare events.** Under deep separation with a

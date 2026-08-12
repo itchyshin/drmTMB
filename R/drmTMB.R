@@ -191,12 +191,17 @@
 #'   estimates for any link whose working weight vanishes in both tails, which
 #'   these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
 #'   `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`.
-#'   Two limits are worth stating for the non-logit links. The soft-penalty
-#'   scale below is a *logit* delta-method constant, kept unchanged for all
-#'   three because using it for probit and cloglog was measured to cost about
-#'   1% of one standard error; and under deep separation with a random slope
-#'   the standard error is frequently unavailable (see the `NA` note below),
-#'   more often for probit and cloglog than for logit. For grouped binomial data, the
+#'   Three limits are worth stating. The soft-penalty scale below is a *logit*
+#'   delta-method constant, kept unchanged for all three links because using it
+#'   for probit and cloglog was measured to cost about 1% of one standard error
+#'   -- measured at `q = 1` with two fixed-effect columns, and not at `q = 2`.
+#'   Under deep separation with a random slope the standard error is frequently
+#'   unavailable for **every** link, logit included (see the `NA` note below);
+#'   in the most extreme cells measured this affected the large majority of
+#'   converged fits. And the evidence behind the two new links used **Bernoulli**
+#'   responses with two fixed-effect columns, so grouped-binomial and wider
+#'   designs inherit the `n_eff` extrapolation described next without direct
+#'   measurement, for any link. For grouped binomial data, the
 #'   soft-penalty scale `c_n = 2 * sqrt(p / n_eff)` uses
 #'   `n_eff = sum(trials * frequency)`, the retained total number of Bernoulli
 #'   trials, in place of the source paper's row count `n`; the two agree
@@ -1065,8 +1070,13 @@ drm_apply_estimator_spec <- function(
     beta_names <- colnames(spec$X$mu)
     intercept_at <- match("(Intercept)", beta_names)
     if (!is.na(intercept_at)) {
-      total_trials <- sum(round(spec$trials))
-      observed <- sum(spec$y) / max(total_trials, 1)
+      # Weight by frequency as well as trials. Everywhere else in MSPL the
+      # effective size is `trials * frequency` (`mspl_c_n()`'s `n_eff`), and a
+      # start derived from an unweighted rate would describe a different dataset
+      # than the one being fitted whenever rows carry multiplicities.
+      freq <- if (is.null(spec$weights)) rep(1, length(spec$y)) else spec$weights
+      total_trials <- sum(round(spec$trials) * round(freq))
+      observed <- sum(spec$y * round(freq)) / max(total_trials, 1)
       guard <- 1 / (2 * max(total_trials, 1))
       observed <- min(max(observed, guard), 1 - guard)
       start_beta[intercept_at] <- stats::binomial(

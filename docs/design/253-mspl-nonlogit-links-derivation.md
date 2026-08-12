@@ -402,7 +402,7 @@ before any replicate, none rescored. **460,000 fits**, Totoro, four distinct see
 | **G0 / G0b** | do the kernels — R *and* compiled — compute the right link-general weight? | PASS. R matches `glm()` IRLS weights (4.8e−8) and an independent Jeffreys determinant (5.6e−10); the compiled objective matches the R kernels along a separation ray in both tails (3.6e−16 / 5.4e−16 / 1.7e−14) |
 | **G1b** | does TMB-Laplace return finite estimates? | **0 non-finite in 43,972 completed fits**, all four link/orientation conditions |
 | **G3** | are the Wald standard errors calibrated? | **CALIBRATED** in the identified regime — probit `[0.946, 1.008]`, cloglog `[0.957, 1.027]`, with logit reproducing an earlier logit-only campaign as the reference arm |
-| **G2** | does §5's rejection of a modified `c_n` cost anything? | **IMMATERIAL** — the logit constant costs ~1% of one standard error for both links |
+| **G2** | does §5's rejection of a modified `c_n` cost anything? | **IMMATERIAL** — the logit constant costs ~1% of one standard error for both links. **Measured at `q1`, `p = 2` only**; the `q2` regime the same guard admits is not covered |
 
 ## §5's "rejected: a modified `c_n`" is upheld, and now on evidence rather than principle
 

@@ -153,12 +153,17 @@ Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
 estimates for any link whose working weight vanishes in both tails, which
 these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
 \verb{docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/}.
-Two limits are worth stating for the non-logit links. The soft-penalty
-scale below is a \emph{logit} delta-method constant, kept unchanged for all
-three because using it for probit and cloglog was measured to cost about
-1\% of one standard error; and under deep separation with a random slope
-the standard error is frequently unavailable (see the \code{NA} note below),
-more often for probit and cloglog than for logit. For grouped binomial data, the
+Three limits are worth stating. The soft-penalty scale below is a \emph{logit}
+delta-method constant, kept unchanged for all three links because using it
+for probit and cloglog was measured to cost about 1\% of one standard error
+-- measured at \code{q = 1} with two fixed-effect columns, and not at \code{q = 2}.
+Under deep separation with a random slope the standard error is frequently
+unavailable for \strong{every} link, logit included (see the \code{NA} note below);
+in the most extreme cells measured this affected the large majority of
+converged fits. And the evidence behind the two new links used \strong{Bernoulli}
+responses with two fixed-effect columns, so grouped-binomial and wider
+designs inherit the \code{n_eff} extrapolation described next without direct
+measurement, for any link. For grouped binomial data, the
 soft-penalty scale \code{c_n = 2 * sqrt(p / n_eff)} uses
 \code{n_eff = sum(trials * frequency)}, the retained total number of Bernoulli
 trials, in place of the source paper's row count \code{n}; the two agree
