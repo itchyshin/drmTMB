@@ -314,15 +314,20 @@ computed profile rather than calibrated inference.
 
 \section{Ordinal cutpoints}{
 
-For \code{cumulative_logit()} fits, \code{confint()} does not compute an interval for
-the ordinal cutpoints themselves (the \code{"ordinal:theta_ord:..."} targets):
-\code{method = "wald"}, \code{"profile"}, and \code{"bootstrap"} all reject them, because
-the cutpoint target class is not in any method's implemented set. The
-fixed-effect coefficients on \code{mu} (and on any other fitted distributional
-parameter) remain fully interval-ready through the usual
+For a \code{cumulative_logit()} fit, the public ordinal targets are the ordered
+latent-logistic cutpoints \code{"ordinal:cutpoint:<label>"}, not the internal
+\code{"ordinal:theta_ord:<label>"} coordinates. Use
+\code{confint(fit, parm = "ordinal:cutpoint:<label>", method = "profile")} to
+obtain a pointwise likelihood-ratio interval on the cutpoint scale. The
+constrained engine fixes the cumulative cutpoint while preserving strict
+ordering of every threshold; it does not change the fitted likelihood.
+These are not simultaneous bands or category-probability intervals, and
+they are not yet calibrated coverage claims. Raw \code{theta_ord} entries remain
+visible in \code{\link[=profile_targets]{profile_targets()}} only as internal diagnostics and reject
+interval methods. The fixed-effect coefficients on \code{mu} (and on any other
+fitted distributional parameter) remain available through the usual
 \code{confint(fit, parm = "fixed_effects")} or \code{confint(fit, parm = "fixef:mu:x")}
-calls; only the category-separating cutpoints are unsupported for interval
-estimation.
+calls.
 }
 
 \examples{

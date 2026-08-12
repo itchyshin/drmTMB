@@ -100,7 +100,7 @@ continues. This is an inventory update, not new inference code.
 | q4 ordinary or phylogenetic covariance rows | `corpairs()` and covariance-summary rows, but no direct q4 public profile target for derived unstructured correlations yet. | Derived, because reported endpoint correlations are functions of a larger covariance parameterization. | `derived_interval_unavailable`. |
 | Phylogenetic and spatial SDs | `sd:mu:phylo(1 | species)` and `sd:mu:spatial(1 | site)` where the fitted object exposes those labels. | Direct for the implemented univariate structured SD paths and for fitted q2 phylogenetic mean-mean rows already covered by tests. | `profile_ready` or `profile`; weak-SD diagnostics still matter. |
 | Derived summaries | `derived:repeatability(group)`, `derived:phylogenetic_signal(species)`, and future nonlinear summaries. | Derived and not direct profile-ready. | `derived_interval_unavailable` until a fix-and-refit or reparameterized derived-profile method exists. |
-| Ordinal cutpoint internals | `ordinal:theta_ord:<cutpoint>` | Direct internal targets, but not yet a polished response-scale tutorial interval. | Profile-capable internals; transformed ordinal summaries remain later work. |
+| Ordinal cutpoints | `ordinal:cutpoint:<cutpoint>` | Public constrained profile targets when the TMB object is retained; raw `ordinal:theta_ord:<cutpoint>` rows remain internal diagnostics. | Explicit `method = "profile"`, `profile_engine = "auto"` yields a pointwise latent-logistic cutpoint interval; calibration remains separate. |
 
 The inventory rule for the next slices is simple: profile-ready means a direct
 target maps to a current TMB parameter or linear combination and the fitted
@@ -869,9 +869,11 @@ The first fitted targets should be direct parameters in this order:
 7. phylogenetic `mu` SDs;
 8. ordinal cutpoints.
 
-Ordinal rows in the internal inventory currently refer to raw `theta_ord`
-parameters. A later user-facing interval table can add transformed cutpoint
-rows, but it should keep `theta_ord` visible as the profiled TMB parameter.
+Ordinal rows now distinguish public cumulative-cutpoint targets from raw
+`theta_ord` diagnostics. The public `ordinal:cutpoint:<label>` route profiles
+the ordered latent-logistic threshold; it does not relabel a raw log-gap.
+`theta_ord` remains visible for diagnosis but cannot be requested as an
+interval estimand.
 
 Derived summaries such as simple Gaussian repeatability and phylogenetic signal
 now have named point-estimate rows, but their profile intervals still wait for
@@ -990,3 +992,54 @@ variance, covariance, or nonlinear summary that combines several fitted
 quantities must keep
 `derived_interval_unavailable` until a fix-and-refit or reparameterized derived
 profile method is implemented and tested.
+
+## Ordinal Cutpoint Profile Intervals
+
+This section tells an applied ecology or evolution reader what an ordinal
+cutpoint interval answers. It applies only to the initial public route:
+an ML/Laplace `cumulative_logit()` fit and an explicit target named
+`"ordinal:cutpoint:<label>"`. It does not broaden the default `confint()`
+method or create an interval for any other ordinal quantity.
+
+In distributional regression, **location** is the latent ordered-score shift,
+**scale** is residual spread, and **shape** changes distributional form. A
+**coscale** models residual correlation such as `rho12`; it is not part of a
+univariate ordinal cutpoint. Here the latent logistic scale is fixed, so this
+section concerns neither a fitted scale nor a shape or coscale parameter. It
+concerns the boundaries between ordered categories on the latent logistic
+location axis (see [Ordinal Scale And Discrimination](25-ordinal-scale-discrimination.md)).
+
+For ordered categories, the public targets are cumulative thresholds
+`c_1, ..., c_{K-1}`. A target such as
+`"ordinal:cutpoint:medium|high"` is the latent-logistic boundary separating
+those two categories. It is not a category probability, an expected category
+score, or an ordinary observed response value. The raw TMB vector
+`theta_ord` remains internal: users should not request
+`"ordinal:theta_ord:<label>"` for an interval.
+
+Use the profile route explicitly:
+
+```r
+confint(
+  fit,
+  parm = "ordinal:cutpoint:medium|high",
+  method = "profile",
+  profile_engine = "auto"
+)
+```
+
+For this public target, `profile_engine = "auto"` selects the constrained
+ordinal engine. Wald and bootstrap methods are deliberately unavailable for
+ordinal cutpoints, and `confint(fit)` does not acquire cutpoint intervals by
+default. The output may contain two finite endpoints, an unavailable result,
+or a one-sided/boundary result. A finite interval is evidence only that the
+profile crossed the requested likelihood-ratio cutoff on both sides under this
+fit; it is not a promise that every dataset will yield two endpoints.
+
+The interval is pointwise for one named threshold. It is not a simultaneous
+band across cutpoints, a confidence interval for fitted category probabilities,
+or a calibrated coverage claim. In particular, this implementation makes no
+G5 or other calibration promotion. The planned DRAC campaign contract
+[`2026-08-12-ordinal-cutpoint-profile-drac-contract.md`](../dev-log/interval-availability/2026-08-12-ordinal-cutpoint-profile-drac-contract.md)
+separates whether the method returns an interval from whether repeated-use
+coverage is adequate.

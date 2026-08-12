@@ -4007,7 +4007,7 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   )
 })
 
-test_that("profile target inventory lists residual rho12 and ordinal internals", {
+test_that("profile target inventory separates ordinal internals from public cutpoints", {
   dat <- new_profile_biv_data()
   fit_biv <- drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~w),
@@ -4048,8 +4048,192 @@ test_that("profile target inventory lists residual rho12 and ordinal internals",
   expect_equal(theta_rows$tmb_parameter, c("theta_ord", "theta_ord"))
   expect_equal(theta_rows$index, c(1L, 2L))
   expect_equal(theta_rows$transformation, rep("ordered_cutpoint", 2))
-  expect_true(all(theta_rows$profile_ready))
-  expect_equal(theta_rows$profile_note, rep("ready", 2))
+  expect_false(any(theta_rows$profile_ready))
+  expect_equal(
+    theta_rows$profile_note,
+    rep("internal_ordinal_parameter", 2L)
+  )
+
+  cutpoint_rows <- ord_targets[
+    ord_targets$target_class == "ordinal-cutpoint",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    cutpoint_rows$parm,
+    c("ordinal:cutpoint:1|2", "ordinal:cutpoint:2|3")
+  )
+  expect_equal(cutpoint_rows$dpar, rep("ordinal", 2L))
+  expect_equal(cutpoint_rows$term, c("1|2", "2|3"))
+  expect_equal(cutpoint_rows$tmb_parameter, c("theta_ord", "theta_ord"))
+  expect_equal(cutpoint_rows$index, c(1L, 2L))
+  expect_equal(cutpoint_rows$estimate, unname(fit_ord$ordinal$cutpoints))
+  expect_equal(cutpoint_rows$scale, rep("cutpoint", 2L))
+  expect_equal(cutpoint_rows$transformation, rep("ordered_cutpoint", 2L))
+  expect_equal(cutpoint_rows$target_type, rep("constrained", 2L))
+  expect_true(all(cutpoint_rows$profile_ready))
+  expect_equal(cutpoint_rows$profile_note, rep("ready", 2L))
+
+  ready_targets <- profile_targets(fit_ord, ready_only = TRUE)
+  expect_setequal(
+    ready_targets$parm[ready_targets$dpar == "ordinal"],
+    cutpoint_rows$parm
+  )
+})
+
+test_that("ordinal cutpoint profile intervals use public constrained targets", {
+  set.seed(20260812)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 30L)),
+    x = stats::rnorm(90L)
+  )
+  fit <- drmTMB(
+    bf(y ~ x),
+    family = cumulative_logit(),
+    data = dat
+  )
+
+  parm <- c("ordinal:cutpoint:1|2", "ordinal:cutpoint:2|3")
+  ci <- stats::confint(
+    fit,
+    parm = parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE
+  )
+
+  expect_equal(ci$parm, parm)
+  expect_equal(ci$scale, rep("cutpoint", 2L))
+  expect_equal(ci$transformation, rep("ordered_cutpoint", 2L))
+  expect_equal(ci$tmb_parameter, rep("theta_ord", 2L))
+  expect_equal(ci$index, c(1L, 2L))
+  expect_equal(ci$profile.engine, rep("ordinal_constrained", 2L))
+  expect_equal(ci$conf.status, rep("profile", 2L))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_lt(ci$lower, unname(fit$ordinal$cutpoints))
+  expect_gt(ci$upper, unname(fit$ordinal$cutpoints))
+
+  targets <- profile_targets(fit)
+  cutpoint_targets <- targets[match(parm, targets$parm), , drop = FALSE]
+  expect_equal(cutpoint_targets$estimate, unname(fit$ordinal$cutpoints))
+  expect_false(isTRUE(all.equal(
+    cutpoint_targets$estimate,
+    unname(fit$ordinal$theta_raw)
+  )))
+
+  expect_error(
+    profile(fit, parm = parm[[1L]]),
+    "constrained interval"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = parm[[1L]],
+      method = "profile",
+      profile_engine = "tmbprofile"
+    ),
+    "constrained profile engine"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "ordinal:theta_ord:2|3",
+      method = "profile"
+    ),
+    "not ready for constrained profiling"
+  )
+})
+
+test_that("cumulative-logit cutpoint estimates agree with ordinal::clm", {
+  skip_if_not_installed("ordinal")
+  set.seed(20260812)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 40L)),
+    x = stats::rnorm(120L)
+  )
+  fit <- drmTMB(
+    bf(y ~ x),
+    family = cumulative_logit(),
+    data = dat
+  )
+  reference <- ordinal::clm(
+    y ~ x,
+    link = "logit",
+    threshold = "flexible",
+    data = dat
+  )
+
+  expect_equal(
+    unname(fit$ordinal$cutpoints),
+    unname(stats::coef(reference)[c("1|2", "2|3")]),
+    tolerance = 1e-5
+  )
+  expect_equal(as.numeric(stats::logLik(fit)), as.numeric(stats::logLik(reference)), tolerance = 1e-5)
+})
+
+test_that("constrained ordinal profiles agree with an independent likelihood oracle", {
+  set.seed(20260812)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 45L)),
+    x = stats::rnorm(135L)
+  )
+  fit <- drmTMB(bf(y ~ x), family = cumulative_logit(), data = dat)
+  targets <- profile_targets(fit)
+  targets <- targets[targets$target_class == "ordinal-cutpoint", , drop = FALSE]
+  nll_hat <- -as.numeric(stats::logLik(fit))
+
+  # This is deliberately not a call through drmTMB's TMB objective. It is the
+  # fixed-effect cumulative-logit likelihood written directly on the category
+  # probabilities, with c_1 or c_2 held on the cumulative-threshold scale.
+  oracle_nll <- function(value, index) {
+    start <- c(unname(fit$coefficients$mu[["x"]]), fit$ordinal$theta_raw[[2L]])
+    objective <- function(par) {
+      beta <- par[[1L]]
+      log_gap <- par[[2L]]
+      cutpoints <- if (index == 1L) {
+        c(value, value + exp(log_gap))
+      } else {
+        c(value - exp(log_gap), value)
+      }
+      eta <- beta * dat$x
+      probability <- cbind(
+        stats::plogis(cutpoints[[1L]] - eta),
+        stats::plogis(cutpoints[[2L]] - eta) - stats::plogis(cutpoints[[1L]] - eta),
+        1 - stats::plogis(cutpoints[[2L]] - eta)
+      )
+      -sum(log(probability[cbind(seq_len(nrow(dat)), as.integer(dat$y))]))
+    }
+    stats::nlminb(start, objective)
+  }
+
+  for (i in seq_len(nrow(targets))) {
+    target <- targets[i, , drop = FALSE]
+    evaluator <- drmTMB:::ordinal_cutpoint_profile_evaluator(
+      fit, target, drmTMB:::profile_endpoint_inner_control(list())
+    )
+    for (value in target$estimate + c(-0.15, 0, 0.15)) {
+      constrained <- evaluator$evaluate(value, evaluator$start_free)
+      independent <- oracle_nll(value, target$index)
+      expect_equal(constrained$nll, independent$objective, tolerance = 1e-5)
+    }
+    at_fit <- oracle_nll(target$estimate, target$index)
+    expect_equal(at_fit$objective, nll_hat, tolerance = 1e-5)
+  }
+
+  ci <- stats::confint(
+    fit, parm = targets$parm, level = 0.80, method = "profile", trace = FALSE
+  )
+  cutoff <- stats::qchisq(0.80, df = 1) / 2
+  for (i in seq_len(nrow(ci))) {
+    for (endpoint in c(ci$lower[[i]], ci$upper[[i]])) {
+      expect_equal(
+        oracle_nll(endpoint, ci$index[[i]])$objective - nll_hat,
+        cutoff,
+        tolerance = 2e-3
+      )
+    }
+  }
 })
 
 test_that("count_point_fit_only_profile_restricted_status() aborts on an unreachable model_type/dpar combination", {
