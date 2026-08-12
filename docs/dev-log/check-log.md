@@ -93279,3 +93279,21 @@ can see which commit each one actually examined.
   frozen. The candidate already required a re-freeze; this adds a *shipped-source* change to that
   list. Merging before submission means re-cutting the tarball and re-running platform evidence.
   Deferring to 0.7.1/0.8.0 is entirely reasonable and is the maintainer's call, not this branch's.
+## 2026-08-12 — reader-workflow smoke audit
+
+- Added `tools/run-reader-workflow-audit.R` and its generated TSV receipt for ten
+  article-shaped workflows: continuous location-scale, count with effort,
+  denominator proportion, ordinal, boundary proportion, phylogenetic, spatial,
+  bivariate, meta-analysis, and missing response.
+- Each fixture makes a CSV round trip, then uses exported analysis functions for
+  fit, `check_drm()`, `summary()`, and response-scale `fitted()` output. Each
+  row names the exact model, estimand, uncertainty route, diagnostic route,
+  report artifact, smoke-only evidence tier, warnings, and first blocker.
+- Check: `R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-reader-workflow-audit.R`
+  completed all ten rows with `fit = diagnostics = report_output = pass`, no
+  fit warnings, and `first_blocker = none`; `git diff --check` passed.
+- The resulting gap register records no new package defect from this smoke,
+  but three P1 reader paths: a standalone ordinal workflow/public cutpoint
+  estimand, phylogenetic tutorials using stable public accessors, and a complete
+  bipartite post-fit reporting endpoint. This does not alter any ledger row or
+  inference claim.
