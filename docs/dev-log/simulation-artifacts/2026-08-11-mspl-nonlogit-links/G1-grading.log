@@ -1,0 +1,62 @@
+=== PRIMARY ENDPOINT, per cell (prereg §6) ===
+cells: 88  PASS: 86  FAIL: 2 
+
+=== BY CONDITION (graded separately -- never pooled, prereg §6) ===
+             cond cells cells_pass  fits fits_pass     prop min_cell_prop
+            logit    22         22 11000     11000 1.000000         1.000
+           probit    22         22 11000     11000 1.000000         1.000
+ cloglog_standard    22         20 11000     10967 0.997000         0.968
+ cloglog_mirrored    22         22 11000     10998 0.999818         0.998
+ verdict
+    PASS
+    PASS
+    FAIL
+    PASS
+
+=== FAILING CELLS (if any) ===
+ cell             cond  q eta_d  G corner   k   n  prop   cp_lo ml_div
+   57 cloglog_standard q2    -5 12  FALSE 490 500 0.980 0.96353  0.670
+   60 cloglog_standard q2    -7 30  FALSE 484 500 0.968 0.94855  0.872
+
+=== CONTROL (prereg §7): ML divergence in the two deepest cells per condition ===
+             cond deepest_eta_d ml_div_min ml_div_mean control_ok
+            logit       -10, -6      0.614      0.8845       TRUE
+           probit      -4.2, -3      0.170      0.4812      FALSE
+ cloglog_standard        -7, -5      0.330      0.7348      FALSE
+ cloglog_mirrored      -8.4, -6      0.208      0.7250      FALSE
+ median_event_deepest
+             0.003333
+             0.016667
+             0.006667
+             0.996667
+
+=== LOGIT CONTROL vs F1 (prereg §3a: must reproduce, or the harness is wrong) ===
+logit main cells: 20  all PASS: TRUE  min prop: 1 
+
+=== SECONDARY (reported, not gating): median logdet monotone in eta_d ===
+logit              monotone declining with depth: TRUE
+probit             monotone declining with depth: TRUE
+cloglog_standard   monotone declining with depth: TRUE
+cloglog_mirrored   monotone declining with depth: FALSE
+
+=== ADVERSARIAL CORNER (prereg §5.3) ===
+ cell             cond eta_d   k   n prop   cp_lo cell_pass ml_div
+   81            logit -10.0 500 500    1 0.99265      TRUE  0.980
+   82            logit  -6.0 500 500    1 0.99265      TRUE  0.000
+   83           probit  -4.2 500 500    1 0.99265      TRUE  0.248
+   84           probit  -3.0 500 500    1 0.99265      TRUE  0.000
+   85 cloglog_standard  -7.0 500 500    1 0.99265      TRUE  0.080
+   86 cloglog_standard  -5.0 500 500    1 0.99265      TRUE  0.002
+   87 cloglog_mirrored  -8.4 500 500    1 0.99265      TRUE  0.206
+   88 cloglog_mirrored  -6.0 500 500    1 0.99265      TRUE  0.000
+corner c_n: 0.04472 
+
+=== LINK INTEGRITY (no silent logit fallback) ===
+                  
+                   cloglog logit probit  <NA>
+  cloglog_mirrored   10998     0      0     2
+  cloglog_standard   10967     0      0    33
+  logit                  0 11000      0     0
+  probit                 0     0  11000     0
+
+wrote G1-cell-results.csv

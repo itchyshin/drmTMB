@@ -1,0 +1,44 @@
+=== NULL CONTROL: logit arms must be bit-identical ===
+max |d_bias| over logit cells: 0e+00  -> control PASS 
+
+=== MATERIALITY = |bias_shipped - bias_perlink| / sd(beta), n_eff >= 300 ===
+    link eta_d n_eff bias_shipped bias_perlink    d_bias sd_beta materiality
+ cloglog  -3.5   300     0.093946     0.101810 7.864e-03 0.66631   0.0118017
+ cloglog  -3.5   600     0.055726     0.056986 1.260e-03 0.36702   0.0034325
+ cloglog  -3.5  1200     0.015136     0.015542 4.054e-04 0.25264   0.0016046
+ cloglog  -2.0   300     0.025885     0.026568 6.832e-04 0.26737   0.0025551
+ cloglog  -2.0   600     0.006839     0.007079 2.398e-04 0.18207   0.0013172
+ cloglog  -2.0  1200     0.007534     0.007618 8.423e-05 0.12988   0.0006485
+ cloglog   0.0   300     0.009832     0.010354 5.216e-04 0.19182   0.0027191
+ cloglog   0.0   600     0.007571     0.007736 1.642e-04 0.13598   0.0012076
+ cloglog   0.0  1200     0.012081     0.012138 5.680e-05 0.09839   0.0005772
+  probit  -2.1   300     0.013501     0.017182 3.681e-03 0.29632   0.0124220
+  probit  -2.1   600     0.015357     0.016246 8.890e-04 0.19198   0.0046307
+  probit  -2.1  1200     0.005547     0.005845 2.979e-04 0.12972   0.0022963
+  probit  -1.2   300     0.005746     0.006120 3.738e-04 0.18909   0.0019766
+  probit  -1.2   600     0.003940     0.004070 1.299e-04 0.12813   0.0010142
+  probit  -1.2  1200     0.004708     0.004754 4.593e-05 0.09219   0.0004982
+  probit   0.0   300     0.012755     0.013019 2.645e-04 0.17659   0.0014980
+  probit   0.0   600     0.003383     0.003474 9.087e-05 0.12784   0.0007108
+  probit   0.0  1200     0.003616     0.003648 3.169e-05 0.08840   0.0003585
+
+=== VERDICT per link (prereg §3) ===
+probit   max materiality = 0.0124 over 9 cells  ->  IMMATERIAL
+cloglog  max materiality = 0.0118 over 9 cells  ->  IMMATERIAL
+
+=== n_eff = 120 cells (reported, excluded from verdict) ===
+    link eta_d n_eff   d_bias sd_beta materiality
+  probit   0.0   120 0.001032  0.2893    0.003566
+  probit  -1.2   120 0.001895  0.3151    0.006015
+  probit  -2.1   120 0.026800  0.4928    0.054379
+ cloglog   0.0   120 0.003627  0.3140    0.011549
+ cloglog  -2.0   120 0.003086  0.4364    0.007071
+ cloglog  -3.5   120 0.050515  1.0592    0.047692
+
+=== SECONDARY: does |d_bias| decay ~sqrt(p/n)? expect ~3.16x from n=120 to 1200 ===
+probit   eta_d=0      d_bias: 0.0010 0.0003 0.0001 0.0000   ratio n120/n1200 = 32.55
+probit   eta_d=-1.2   d_bias: 0.0019 0.0004 0.0001 0.0000   ratio n120/n1200 = 41.26
+probit   eta_d=-2.1   d_bias: 0.0268 0.0037 0.0009 0.0003   ratio n120/n1200 = 89.97
+cloglog  eta_d=0      d_bias: 0.0036 0.0005 0.0002 0.0001   ratio n120/n1200 = 63.86
+cloglog  eta_d=-2     d_bias: 0.0031 0.0007 0.0002 0.0001   ratio n120/n1200 = 36.64
+cloglog  eta_d=-3.5   d_bias: 0.0505 0.0079 0.0013 0.0004   ratio n120/n1200 = 124.61
