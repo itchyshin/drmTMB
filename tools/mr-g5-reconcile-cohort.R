@@ -21,7 +21,9 @@ source(runner_path)
 
 paths <- sort(list.files(receipt_dir, pattern = "\\.rds$", full.names = TRUE))
 if (!length(paths)) stop("G5 receipt directory contains no RDS files.", call. = FALSE)
-registry <- mr_g5_select_routes(mr_g5_registry_from_g4(readRDS(manifest_path), readRDS(g4_path)), route_ids)
+expected_registry <- mr_g5_registry_from_g4(readRDS(manifest_path), readRDS(g4_path))
+registry <- mr_g5_select_routes(expected_registry, route_ids)
+mr_g5_validate_cohort_registry(registry, expected_registry)
 records <- mr_g5_reconcile_checkpoints(paths, registry)
 summary <- mr_g5_summarise_attempts(records)
 calibration <- mr_g5_calibration_gate(summary)
@@ -31,6 +33,8 @@ mr_g5_validate_provenance(provenance)
 artifact <- list(
   schema_version = "mr-g4g5-v2", cohort = cohort_name, records = records,
   summary = summary, calibration = calibration, registry = registry,
+  expected_registry = expected_registry,
+  expected_cell_count = nrow(expected_registry$cells),
   provenance = provenance, created_utc = format(Sys.time(), tz = "UTC", usetz = TRUE)
 )
 dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)

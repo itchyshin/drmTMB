@@ -658,6 +658,32 @@ mr_g4_validate_target_manifest <- function(manifest) {
   invisible(manifest)
 }
 
+# The interval method is frozen with the target manifest, but the fitted object
+# still supplies the current runtime capability.  Compare them at execution:
+# otherwise a later change to `profile_targets()` can silently route a frozen
+# profile experiment through the Wald fallback (or vice versa).
+mr_g4_validate_runtime_interval_method <- function(fit, target) {
+  if (!is.data.frame(target) || nrow(target) != 1L ||
+      !all(c("parm", "profile_ready", "interval_method") %in% names(target))) {
+    stop("A frozen target must declare its parameter and interval method.", call. = FALSE)
+  }
+  current <- profile_targets(fit)
+  index <- match(target$parm, current$parm)
+  if (is.na(index)) {
+    stop("Frozen G4 target is absent from the fitted profile-target registry.", call. = FALSE)
+  }
+  current_profile_ready <- isTRUE(current$profile_ready[[index]])
+  current_method <- if (current_profile_ready) "profile" else "wald"
+  if (!identical(as.logical(target$profile_ready), current_profile_ready) ||
+      !identical(as.character(target$interval_method), current_method)) {
+    stop(
+      "Frozen G4 interval method disagrees with the fitted profile-target registry.",
+      call. = FALSE
+    )
+  }
+  invisible(target)
+}
+
 # Convert one profile attempt into an immutable G4 record.  The caller supplies
 # the frozen truth on the reporting scale for the canonical `profile_targets()`
 # parameter name.  G4 is an interval-feasibility gate: one-shot containment is
@@ -726,6 +752,7 @@ mr_g4_run_target_manifest <- function(fit, target_manifest, replicate = 1L, trac
   mr_g4_validate_target_manifest(target_manifest)
   rows <- lapply(seq_len(nrow(target_manifest)), function(i) {
     target <- target_manifest[i, , drop = FALSE]
+    mr_g4_validate_runtime_interval_method(fit, target)
     trace_lines <- character()
     ci <- tryCatch({
       value <- NULL
@@ -1186,6 +1213,32 @@ mr_g5_select_routes <- function(registry, route_ids) {
   registry$cells <- cells
   registry$seeds <- registry$seeds[registry$seeds$cell_id %in% cells$cell_id, , drop = FALSE]
   registry
+}
+
+# A reconciled cohort may be a deliberate subset, but its artifact must retain
+# the registry it was selected from.  This prevents a later reader from
+# mistaking "all surviving cells" for "all planned cells" (#1007).
+mr_g5_validate_cohort_registry <- function(registry, expected_registry) {
+  required <- c("cells", "seeds", "n_rep", "master_seed")
+  if (!is.list(registry) || !is.list(expected_registry) ||
+      !all(required %in% names(registry)) || !all(required %in% names(expected_registry))) {
+    stop("A G5 cohort must retain both its cohort and expected registries.", call. = FALSE)
+  }
+  if (!all(registry$cells$cell_id %in% expected_registry$cells$cell_id) ||
+      !all(registry$seeds$cell_id %in% registry$cells$cell_id) ||
+      registry$n_rep != expected_registry$n_rep) {
+    stop("G5 cohort registry is not a valid subset of its expected registry.", call. = FALSE)
+  }
+  selected_routes <- unique(registry$cells$route_id)
+  expected_selected <- expected_registry$cells[
+    expected_registry$cells$route_id %in% selected_routes,
+    "cell_id",
+    drop = TRUE
+  ]
+  if (!setequal(registry$cells$cell_id, expected_selected)) {
+    stop("G5 cohort registry drops expected cells for a selected route.", call. = FALSE)
+  }
+  invisible(registry)
 }
 
 # A G5 attempt is a fresh masked DGP, fit, and interval calculation.  It is
