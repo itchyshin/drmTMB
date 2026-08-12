@@ -136,6 +136,40 @@ scale, `sigma ~ z + (0 + w | id)` checks group-specific residual-scale slopes,
 whereas `sd(id) ~ z_group` checks predictors of a `mu` random-effect standard
 deviation.
 
+## Claim Demotion Rule
+
+A converged fit is evidence that an algorithm returned a numerical result. It
+is not, by itself, evidence of identification, accurate estimation, or
+calibrated inference. The capability ledger therefore carries a standing
+downgrade rule, not only a record of downgrades that already happened.
+
+**The rule.** A cell in `docs/dev-log/dashboard/capability-ledger/cells.tsv`
+may not hold `evidence_tier` of `inference_ready_with_caveats` or `supported`
+if a pre-publish audit cannot point at a row in `evidence.tsv` whose `result`
+and `claim_boundary` cover the estimand being claimed. When the audit cannot,
+the cell walks down to the highest tier its receipts do support, and the change
+is logged in `transitions.tsv` before publication.
+
+Two details make the rule bite. The audit is run by someone other than the
+author of the evidence, using the existing memo-blind D-43 review; the agent
+that built a thing does not get to be its only judge. And the check is against
+the estimand, not the route: a receipt establishing point recovery for a route
+does not cover an interval or coverage claim for the same route, so a cell
+whose only receipts are recovery receipts cannot hold an inference tier however
+many of them there are.
+
+This is adapted from the overpromise-preventer in `gllvmTMB`'s
+`docs/design/35-validation-debt-register.md`, which downgrades a row claiming
+`covered` when a pre-publish audit cannot point at a test file with concrete
+assertions. That package had the rule and no demotion log; this one had the log
+(`transitions.tsv`, 738 rows) and no rule.
+
+The rule is a gate on publication, not a mandate to re-audit the ledger. It
+applies to cells at the moment they are promoted, published, or cited in
+user-facing wording. Cells promoted before its adoption are not reopened by it.
+Reasoning and the wider proposal it comes from:
+`docs/dev-log/research/2026-08-11-validation-governance-swap-proposal.md`.
+
 ## Random-Effect Scale Formula Tests
 
 The simplest implemented random-effect scale model is:
