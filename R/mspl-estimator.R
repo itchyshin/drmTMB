@@ -1,5 +1,5 @@
 # Internal adapter for the experimental maximum softly-penalized likelihood
-# (MSPL) binomial-logit mixed-model route. The numerical atoms live in
+# (MSPL) binomial mixed-model route (logit, probit and cloglog). The numerical atoms live in
 # `R/mspl.R`; this file owns admission, fit diagnostics, and method fences.
 
 drm_match_estimator <- function(estimator) {
@@ -195,7 +195,8 @@ drm_validate_mspl_request <- function(
   #               [0.946, 1.008], cloglog [0.957, 1.027] (VERDICT-G3-SE.md)
   #   softness    the shipped c_n = 2*sqrt(p/n_eff) is a LOGIT delta-method
   #               constant, and using it for the other two costs about 1% of one
-  #               standard error (VERDICT-G2-CN.md)
+  #               standard error -- measured at q1 with p = 2 only, NOT at q2,
+  #               which this guard nonetheless admits (VERDICT-G2-CN.md §4)
   #
   # `log-log` and `cauchit` also satisfy the KF2021 condition but are NOT
   # admitted: drmTMB has no link_code for them and no evidence was gathered.
@@ -579,9 +580,9 @@ drm_finalize_mspl_fit <- function(spec, obj, opt, report) {
   rho <- if (length(eta_cor)) tanh(eta_cor) else numeric()
   list(
     active = TRUE,
-    # Report the link actually fitted rather than a constant. Today the guard
-    # admits only logit, so this is the same string it always was; if the guard
-    # is ever opened, a probit fit must not be labelled "logit".
+    # Report the link actually fitted rather than a constant. The guard admits
+    # logit, probit and cloglog, so this genuinely varies; a probit fit must
+    # never be labelled "logit".
     route = paste0("binomial-", mspl_fitted_link, "-ordinary-q1-q2"),
     family = "binomial",
     link = mspl_fitted_link,

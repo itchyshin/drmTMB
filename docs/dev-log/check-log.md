@@ -93257,7 +93257,7 @@ can see which commit each one actually examined.
   streams, merged as evidence in PR #1019: finiteness (**0 non-finite in 43,972 completed fits**),
   Wald standard errors calibrated in the identified regime (probit `[0.946, 1.008]`, cloglog
   `[0.957, 1.027]`), and the logit-calibrated `c_n` costing ~1% of one standard error for the other
-  two links. The C++ dispatch that made any of it measurable merged earlier as PR #1012.
+  two links (measured at `q1`, `p = 2` only -- not at the `q2` the guard also admits). The C++ dispatch that made any of it measurable merged earlier as PR #1012.
 - **`c_n` deliberately unchanged.** It is a logit delta-method constant and is knowably "wrong" for
   probit/cloglog; design 253 §5 rejects modifying it because a per-link constant defines a different
   estimator. G2 measured the cost of leaving it alone and it is immaterial, so §5's rejection is now
