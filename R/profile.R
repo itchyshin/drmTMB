@@ -3032,10 +3032,23 @@ drm_profile_target_tmbprofile_confint <- function(
     c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
     target
   )
+  # `TMB:::confint.tmbprofile` anchors at which.min(prof$value) -- the observed
+  # grid minimum -- not at the fitted optimum. If the warm-started inner solve
+  # inside `TMB::tmbprofile` found a lower objective than the fit, the anchor
+  # has moved off the MLE (issue #1009). Both quantities are already in hand,
+  # so this costs no extra model evaluations.
+  profile_values <- prof$value[is.finite(prof$value)]
+  profile_min_objective <- if (length(profile_values)) {
+    min(profile_values)
+  } else {
+    NA_real_
+  }
   diagnostics <- profile_interval_diagnostics(
     interval,
     transformation = target$transformation,
-    estimate = target$estimate
+    estimate = target$estimate,
+    profile_min_objective = profile_min_objective,
+    fit_objective = unname(object$opt$objective)
   )
   conf_status <- profile_conf_status_from_diagnostics(diagnostics)
   if (identical(conf_status, "profile_failed")) {
@@ -3123,8 +3136,12 @@ drm_profile_target_endpoint_confint <- function(
 }
 
 profile_conf_status_from_diagnostics <- function(diagnostics) {
+  # `profile_below_fit_objective` carries a variable gap-magnitude suffix
+  # (see `profile_interval_diagnostics()`), so match on the stable prefix
+  # rather than exact equality.
   if (
     identical(diagnostics$message, "nonfinite_interval") ||
+      startsWith(diagnostics$message, "profile_below_fit_objective") ||
       identical(diagnostics$message, "point_estimate_outside_interval")
   ) {
     return("profile_failed")
@@ -3734,11 +3751,71 @@ profile_interval_diagnostics <- function(
   transformation,
   estimate = NULL,
   sd_boundary = sqrt(.Machine$double.eps),
-  correlation_boundary = 0.98
+  correlation_boundary = 0.98,
+  profile_min_objective = NULL,
+  fit_objective = NULL,
+  profile_below_fit_tol = 1e-3
 ) {
   interval <- as.numeric(interval)
   if (length(interval) != 2L || any(!is.finite(interval))) {
     return(list(boundary = TRUE, message = "nonfinite_interval"))
+  }
+  # A profile evaluation lower than the fitted objective means the profile's
+  # warm-started inner optimizer found a better point than the fit did, which
+  # moves `TMB:::confint.tmbprofile`'s which.min() anchor off the MLE. This is
+  # a cause-level check (issue #1009): it fires before, and independently of,
+  # whether the resulting interval happens to exclude the point estimate.
+  #
+  # Tolerance: 1e-3 nll units. A campaign-scale rescore of the 348,000-record
+  # artifact this issue diagnosed (using the first profile-trace value as a
+  # proxy for the fit, since the stored records do not retain the true fitted
+  # objective) found the gap distribution is not dense near zero: the flagged
+  # count is flat at 973 from tol = 0 through tol = 1e-6, then falls to 921 at
+  # 1e-4 and 764 at 1e-3. So [1e-6, 1e-3] is where the ambiguous, plausibly
+  # floating-point-noise records sit (~209 of them), and 1e-3 sits above that
+  # band while still reproducing this issue's own headline count (764). Real
+  # failures are not marginal once past that band: median gap 1.0 nll unit,
+  # third quartile 639. At runtime this check compares against the true
+  # `object$opt$objective`, not the proxy, so it should if anything be more
+  # exact than this calibration, never less.
+  #
+  # A single status covers every gap above the tolerance, including the very
+  # large ones. An earlier version of this check tried to split off a second
+  # status for a `TMB::tmbprofile()` bracket-search overflow sentinel
+  # (tracked separately as issue #1010) using a magnitude threshold at 1e6.
+  # That threshold was wrong on its own terms (the smallest gap it was meant
+  # to catch was 4,194,304, not the ~1e141 originally assumed), and rescoring
+  # the full decade-by-decade distribution above 1e-3 showed there is no gap
+  # to threshold in: counts are spread continuously from 1e-3 up past 1e100
+  # (e.g. 155 in [100, 1e3), 43 in [1e4, 1e5), 8 in [1e5, 1e6), then 1 in
+  # [1e6, 1e7), 2 in [1e7, 1e8), 26 in [1e8, 1e20), 42 in [1e20, 1e100), 14
+  # above 1e100). A magnitude cut cannot separate a genuine second basin from
+  # the #1010 sentinel because they are not magnitude-separated; the one
+  # candidate threshold examined landed inside a decade holding exactly one
+  # record. Separating the two would need a signature-based test instead --
+  # e.g. detecting the sentinel's own pattern (some observed sentinel gaps
+  # are exact powers of two, such as 2^22 and close to 2^28) or a
+  # non-finite/overflowed intermediate earlier in the trace -- not a gap
+  # threshold. That is future work if #1010 is not fixed upstream first.
+  # Instead, the gap itself is reported in the message: an operator seeing
+  # `gap=1.628e+237` versus `gap=0.5` can already tell the two apart, and the
+  # message degrades gracefully (shrinks toward ordinary values) if #1010 is
+  # fixed upstream.
+  if (
+    length(profile_min_objective) == 1L &&
+      length(fit_objective) == 1L &&
+      is.finite(profile_min_objective) &&
+      is.finite(fit_objective) &&
+      (fit_objective - profile_min_objective) > profile_below_fit_tol
+  ) {
+    gap <- fit_objective - profile_min_objective
+    return(list(
+      boundary = TRUE,
+      message = sprintf(
+        "profile_below_fit_objective (gap=%s nll)",
+        trimws(formatC(gap, digits = 4, format = "g"))
+      )
+    ))
   }
   if (
     length(estimate) == 1L &&
