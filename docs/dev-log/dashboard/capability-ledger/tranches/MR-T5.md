@@ -10,7 +10,7 @@ _Generated; do not hand-edit._
 
 | Route | Runtime state | Evidence gate | Work state | Next gate |
 |---|---|---:|---|---|
-| `truncated_nbinom2` | implemented | G3 ✓ | verified | G4/G5 framework is ready and partial calibration evidence is retained; all routes remain G3 because the campaign stopped before route-wide reconciliation and promotion review. |
+| `truncated_nbinom2` | implemented | G3 ✓ | verified | Under mr-g5-calibration-v2 (complete & precise & in-band & availability >= 0.99), 5/11 campaign cells fail on the availability floor (< 0.99); G3 stands until availability is fixed and the route re-passes exhaustively. |
 
 ## Does not cover
 

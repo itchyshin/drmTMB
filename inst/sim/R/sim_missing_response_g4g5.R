@@ -934,13 +934,39 @@ mr_g5_summarise_attempts <- function(records, by = c("route_id", "parm", "inform
   out
 }
 
+# Interval-availability floor for the G5 calibration gate.
+#
+# A cell whose profile intervals are usable on at least this fraction of its
+# planned replicates is treated as available for calibration purposes; below
+# it, availability itself predicts miscalibration.  0.99 is a reading of the
+# dose-response measured over the full 290-cell campaign (mean coverage falls
+# from ~0.95 at availability >= 0.99 to 0.92 in the 0.90-0.99 band and to
+# 0.40-0.78 below that), not a universal constant -- see
+# `docs/dev-log/interval-availability/2026-08-11-availability-threshold-evidence.md`
+# before changing it.  The old all-1200 rule (`availability == 1`) is
+# statistically incoherent for any parameter that can legitimately approach a
+# boundary: at a genuine per-draw boundary-touching rate p = 0.001, a
+# well-behaved 1200-replicate cell only clears an all-1200 bar with
+# probability (1-p)^1200 = 0.30.
+MR_G5_AVAILABILITY_FLOOR <- 0.99
+
 # A G5 result is eligible for a response-mask coverage statement only when it
 # clears this prospective, per-cell calibration policy.  The policy is not a
 # model inference-tier rule and must never be applied retroactively to promote
 # an artifact created before its provenance receipt exists.
+#
+# v2 replaces the v1 all-1200-usable availability requirement
+# (`calibration_available`, retained below as the old-rule indicator for
+# before/after comparison) with a reported `interval_availability` rate gated
+# at `MR_G5_AVAILABILITY_FLOOR`.  See
+# `docs/dev-log/interval-availability/2026-08-11-availability-threshold-evidence.md`
+# for why: coverage degrades with availability below the floor, so a cell
+# failing on availability must be labelled and reasoned separately from a
+# cell failing on coverage, not folded into one "calibration failure".
 mr_g5_calibration_gate <- function(summary, nominal = 0.95,
                                    tolerance = 0.025, mcse_max = 0.01,
-                                   policy_id = "mr-g5-calibration-v1") {
+                                   availability_floor = MR_G5_AVAILABILITY_FLOOR,
+                                   policy_id = "mr-g5-calibration-v2") {
   required <- c("route_id", "parm", "information_rung", "n_planned",
     "n_attempt", "n_interval_usable", "coverage", "coverage_mcse")
   if (!is.data.frame(summary) || !all(required %in% names(summary))) {
@@ -948,7 +974,9 @@ mr_g5_calibration_gate <- function(summary, nominal = 0.95,
   }
   if (!is.numeric(nominal) || length(nominal) != 1L || nominal <= 0 || nominal >= 1 ||
       !is.numeric(tolerance) || length(tolerance) != 1L || tolerance <= 0 ||
-      !is.numeric(mcse_max) || length(mcse_max) != 1L || mcse_max <= 0) {
+      !is.numeric(mcse_max) || length(mcse_max) != 1L || mcse_max <= 0 ||
+      !is.numeric(availability_floor) || length(availability_floor) != 1L ||
+      availability_floor <= 0 || availability_floor > 1) {
     stop("G5 calibration policy values must be positive finite scalars.", call. = FALSE)
   }
   out <- summary
@@ -958,15 +986,32 @@ mr_g5_calibration_gate <- function(summary, nominal = 0.95,
   out$calibration_upper <- nominal + tolerance
   out$calibration_delta <- abs(out$coverage - nominal)
   out$calibration_complete <- out$n_attempt == out$n_planned
+  # `interval_availability` is the reported rate; `calibration_available` is
+  # kept, unchanged, as the OLD (v1) all-1200 boolean for old-vs-new
+  # comparisons -- it is no longer part of the v2 pass predicate.
+  out$interval_availability <- out$n_interval_usable / out$n_planned
   out$calibration_available <- out$n_interval_usable == out$n_planned
+  out$calibration_availability_floor <- availability_floor
+  out$calibration_availability_ok <- is.finite(out$interval_availability) &
+    out$interval_availability >= availability_floor
   out$calibration_precise <- is.finite(out$coverage_mcse) & out$coverage_mcse <= mcse_max
   out$calibration_in_band <- is.finite(out$coverage) &
     out$coverage >= out$calibration_lower & out$coverage <= out$calibration_upper
-  out$calibration_pass <- with(out, calibration_complete & calibration_available &
-    calibration_precise & calibration_in_band)
+  # Coverage is reported conditional on the interval being usable whenever
+  # any planned replicate lacked one; this does not change the pass
+  # predicate, only how the coverage number must be read (Fisher's lens).
+  out$coverage_is_conditional <- out$interval_availability < 1
+  out$calibration_pass <- with(out, calibration_complete & calibration_precise &
+    calibration_in_band & calibration_availability_ok)
   out$calibration_status <- ifelse(out$calibration_pass, "pass", "fail")
+  # Availability is checked right after completeness (mirroring the v1
+  # ordering, with the all-1200 boolean replaced by the >= floor rate): a
+  # cell far below the availability floor is reasoned as an availability
+  # failure even when its coverage estimate would also be imprecise or
+  # out of band, so the worst-availability cells never get mislabelled as
+  # merely imprecise or miscalibrated.
   out$calibration_reason <- ifelse(!out$calibration_complete, "incomplete_attempt_denominator",
-    ifelse(!out$calibration_available, "unusable_interval",
+    ifelse(!out$calibration_availability_ok, "availability_below_policy_floor",
       ifelse(!out$calibration_precise, "mcse_exceeds_policy",
         ifelse(!out$calibration_in_band, "coverage_outside_policy_band", "pass"))))
   out
@@ -975,6 +1020,8 @@ mr_g5_calibration_gate <- function(summary, nominal = 0.95,
 mr_g5_validate_calibration <- function(calibration) {
   required <- c("calibration_policy", "calibration_nominal", "calibration_lower",
     "calibration_upper", "calibration_complete", "calibration_available",
+    "interval_availability", "calibration_availability_floor",
+    "calibration_availability_ok", "coverage_is_conditional",
     "calibration_precise", "calibration_in_band", "calibration_pass",
     "calibration_status", "calibration_reason")
   if (!is.data.frame(calibration) || !all(required %in% names(calibration))) {
@@ -982,7 +1029,14 @@ mr_g5_validate_calibration <- function(calibration) {
   }
   if (any(calibration$calibration_lower >= calibration$calibration_upper) ||
       any(calibration$calibration_status != ifelse(calibration$calibration_pass, "pass", "fail")) ||
-      any(calibration$calibration_reason == "pass" & !calibration$calibration_pass)) {
+      any(calibration$calibration_reason == "pass" & !calibration$calibration_pass) ||
+      # A cell that is complete but fails the availability floor must be
+      # reasoned as an availability failure -- never mislabelled as a
+      # coverage or precision failure -- regardless of whether it would
+      # also miss on coverage or precision grounds.
+      any(calibration$calibration_complete & !calibration$calibration_availability_ok &
+        calibration$calibration_reason != "availability_below_policy_floor") ||
+      any(calibration$coverage_is_conditional != (calibration$interval_availability < 1))) {
     stop("G5 calibration receipt is internally inconsistent.", call. = FALSE)
   }
   invisible(calibration)

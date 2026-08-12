@@ -93196,3 +93196,54 @@ family that can discriminate an engine that improves on Laplace.
   success. And `tools/tests/test_capability_ledger.py::test_c17_failure_modes_give_opposite_fingerprint_instructions`
   asserts a message naming `R/methods.R` but reads live repo state, so it fails whenever a *different*
   pinned file is the one that changed.
+
+## 2026-08-11 — CI receipts for the 0.7.0 polish batch (run IDs, so the claim is checkable)
+
+Recorded because the batch's own check-log entry cites only the LOCAL checks. A reader cannot verify
+"CI green" without the run IDs, and the whole point of the D-49 discipline is that a claim names the
+artifact and the evidence that produced it.
+
+| what | run | head | result |
+| --- | --- | --- | --- |
+| `R-CMD-check` on PR #1006's head | [31501559418](https://github.com/itchyshin/drmTMB/actions/runs/31501559418) | `9e295efe6` | **success** — `os-matrix` + `ubuntu-latest (release)` |
+| `R-CMD-check` on `main` after merge | [31503787002](https://github.com/itchyshin/drmTMB/actions/runs/31503787002) | `4e4a915aa` | **success** — both jobs |
+| `pkgdown` on `main` after merge | [31508044587](https://github.com/itchyshin/drmTMB/actions/runs/31508044587) | `4e4a915aa` | **success** |
+
+**Why the ubuntu job matters here specifically.** `.github/workflows/R-CMD-check.yaml` sets
+`NOT_CRAN: true`, so that job runs the **full** suite, including the seventeen files PR #990's filter
+excludes from the CRAN lane. The local `R CMD check --as-cran` recorded for this batch therefore never
+exercised those files. PR #1006 was merged before this job reported, on the reasoning that a strictly
+permissive `match.arg()` change cannot break a passing test; that reasoning is now **confirmed rather
+than assumed**, which is the only reason it is worth writing down.
+
+**Scope of the claim.** These runs establish that the merged source passes on ubuntu, and that the
+docs site builds. They are **same-source** evidence for commit `4e4a915aa`: GitHub Actions checks out
+the source and builds its own tarball, so no run above examined the frozen candidate
+`2176e4b8...cda9`. They say nothing about `platform-clean`, which remains unproven — win-builder is
+still absent, and the 3-OS matrix and sanitizers ran against the earlier candidate commit `a75c3c901`.
+
+**Not recorded as green:** the merge-commit R-CMD-check and the branch-head run are the same content,
+so they are not independent confirmations of each other; they are listed separately only so a reader
+can see which commit each one actually examined.
+
+## 2026-08-11 — the coordination board no longer contradicts itself on who owns the 0.7 CRAN ladder
+
+- Defect. `coordination-board.md` on `main` asserted **both** ownerships at once: a 2026-08-11 bullet
+  reassigning the 0.7 CRAN ladder to Claude, and immediately below it the untouched 2026-08-07 bullet
+  "**Codex** — owns the live 0.7 CRAN ladder through `submission-ready`". A board whose purpose is one
+  owner per subject named two.
+- Fix. Codex's CRAN-ladder claim is struck and marked SUPERSEDED, with the 2026-08-07 handover
+  relabelled a historical record rather than a live claim; Codex's real remaining holdings (#858,
+  #955) are named and kept PROTECTED FOREIGN. Claude's row now states the ownership. The Status block
+  was 2026-08-08 (`main` @ `5affb962b`) and is refreshed to `aa76c2399`, including that `DESCRIPTION`
+  is now `0.7.0` and that the rung is unchanged at `tarball-clean` / `platform-clean` unproven.
+- Three unmerged Cursor branches rewrite ~60 lines of that same section. Read before writing rather
+  than assumed: **they already retire Codex's CRAN-ladder claim too**, so they agree with this board
+  on that point. The single genuine conflict is Cursor-vs-Claude ownership of the live 0.7 slices,
+  and resolving it is Shinichi's call under D-87 — recorded on the board with an instruction to
+  rebase rather than straight-merge, since a straight merge would drop the reassignment.
+- `active-lane-split.md` carried a stale sentence — "DESCRIPTION **0.6.0**; current main is neither
+  `tarball-clean` nor `platform-clean`" — both halves now false. Annotated in place rather than
+  rewritten, so the 2026-08-08 lane record survives. Checked first: none of the six refs carrying
+  work on that file had already corrected it.
+- No code, ledger, rung, or claim changed. Docs only; the frozen candidate is unaffected.
