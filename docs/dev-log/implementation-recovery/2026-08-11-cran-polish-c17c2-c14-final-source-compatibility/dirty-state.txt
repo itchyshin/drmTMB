@@ -1,0 +1,4 @@
+?? docs/dev-log/implementation-recovery/2026-08-11-cran-polish-c17c1-c14-model15-compatibility/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-11-cran-polish-c17c1-c14-model15-compatibility/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-11-cran-polish-c17c1-c14-model15-compatibility/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-11-cran-polish-c17c1-c14-model15-compatibility/summary.tsv

@@ -1,3 +1,25 @@
+> **PREDECESSOR (0.6.0) — superseded 2026-08-11.** This file records the `ad475cc39` / 0.6.0
+> tarball-clean freeze. It is not the current 0.7.0 rung record; for the live candidate see
+> [`RUNG-REPORT-0.7.0.md`](./RUNG-REPORT-0.7.0.md).
+>
+> **Two of the prohibitions in the closing paragraph have since been crossed, and this banner says so
+> rather than quietly retiring them.** The paragraph was written for the 0.6.0 predecessor lane
+> (`codex/07-reader-boundaries-tarball`) and closes with "in this lane", so it is arguably scoped to
+> that lane — but the crossings are recorded here plainly, because a reader must not have to
+> reconstruct them:
+>
+> - **"bump DESCRIPTION"** — crossed by `a75c3c901` (2026-08-10), the 0.7.0 candidate freeze commit.
+> - **"finalize `cran-comments.md`"** — crossed by `885f260d1` (2026-08-11).
+>
+> **Both were authorised on 2026-08-11, by merge.** Shinichi's earlier decision that day reassigned
+> *lane ownership* only; the authorisation for these two actions is his instruction to merge
+> **PR #996**, landed as `a3217da93`. That is what put `Version: 0.7.0` on `main`. Recorded here
+> because an earlier revision of this banner said no authorisation existed — true when written, false
+> once the PR merged.
+>
+> **Still in force, uncrossed:** do not write `platform-clean`, do not commit the tarball binary, and
+> do not upload to CRAN. Advancing to `platform-clean` requires Shinichi's explicit authorisation.
+
 # drmTMB current-main 0.6.0 — tarball-clean freeze
 
 - **Freeze source commit:** `ad475cc39f62f47a346c77aa17c3d20bf3fc9bae` (merge of PR #948 onto `main`)

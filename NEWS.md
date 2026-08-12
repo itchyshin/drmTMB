@@ -1,8 +1,9 @@
-# drmTMB (unreleased notes toward 0.7.0)
+# drmTMB 0.7.0
 
-User-facing honesty notes for the next CRAN-facing cycle. `DESCRIPTION` remains
-**0.6.0** until an explicit freeze bumps the version; these bullets freeze the
-default story readers should follow, not a release claim.
+First CRAN-targeted release candidate; not yet submitted to or accepted by
+CRAN. drmTMB fits distributional regression models -- location, scale, shape,
+zero inflation, and residual correlation -- for one or two responses, using
+Template Model Builder.
 
 ## Offsets in `mu` for every univariate family
 
