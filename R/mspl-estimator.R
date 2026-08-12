@@ -1,5 +1,5 @@
 # Internal adapter for the experimental maximum softly-penalized likelihood
-# (MSPL) binomial-logit mixed-model route. The numerical atoms live in
+# (MSPL) binomial mixed-model route (logit, probit and cloglog). The numerical atoms live in
 # `R/mspl.R`; this file owns admission, fit diagnostics, and method fences.
 
 drm_match_estimator <- function(estimator) {
@@ -183,11 +183,31 @@ drm_validate_mspl_request <- function(
   if (!identical(engine, "tmb")) {
     cli::cli_abort("Experimental MSPL is implemented only for {.code engine = \"tmb\"}.")
   }
-  if (!identical(family_type, "binomial") ||
-      !is.list(family) || !identical(family$link, "logit")) {
-    cli::cli_abort(
-      "Experimental MSPL requires {.code family = binomial(link = \"logit\")} exactly."
-    )
+  # Admitted links. `logit` has shipped since the route opened; `probit` and
+  # `cloglog` were admitted 2026-08-12 on the evidence in
+  # `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`
+  # (design 253 §6, amended). The three-gate basis, briefly:
+  #
+  #   finiteness  0 non-finite estimates in 43,972 completed TMB-Laplace fits
+  #               (VERDICT-G1b.md), on top of the link condition PROVED at source
+  #               for all three links (Kosmidis & Firth 2021, Thm 1 + §3.1)
+  #   std errors  calibrated in the identified regime -- probit R in
+  #               [0.946, 1.008], cloglog [0.957, 1.027] (VERDICT-G3-SE.md)
+  #   softness    the shipped c_n = 2*sqrt(p/n_eff) is a LOGIT delta-method
+  #               constant, and using it for the other two costs about 1% of one
+  #               standard error -- measured at q1 with p = 2 only, NOT at q2,
+  #               which this guard nonetheless admits (VERDICT-G2-CN.md §4)
+  #
+  # `log-log` and `cauchit` also satisfy the KF2021 condition but are NOT
+  # admitted: drmTMB has no link_code for them and no evidence was gathered.
+  mspl_admitted_links <- c("logit", "probit", "cloglog")
+  if (!identical(family_type, "binomial") || !is.list(family) ||
+      !isTRUE(family$link %in% mspl_admitted_links)) {
+    cli::cli_abort(c(
+      "Experimental MSPL requires a binomial family with a supported link.",
+      "x" = "Supported: {.code binomial(link = )} with {.val {mspl_admitted_links}}.",
+      "i" = "Other links are rejected because drmTMB has no evidence for them under this estimator, not because the criterion is known to fail."
+    ))
   }
   if (isTRUE(REML)) {
     cli::cli_abort("Experimental MSPL cannot be combined with {.arg REML}.")
@@ -560,9 +580,9 @@ drm_finalize_mspl_fit <- function(spec, obj, opt, report) {
   rho <- if (length(eta_cor)) tanh(eta_cor) else numeric()
   list(
     active = TRUE,
-    # Report the link actually fitted rather than a constant. Today the guard
-    # admits only logit, so this is the same string it always was; if the guard
-    # is ever opened, a probit fit must not be labelled "logit".
+    # Report the link actually fitted rather than a constant. The guard admits
+    # logit, probit and cloglog, so this genuinely varies; a probit fit must
+    # never be labelled "logit".
     route = paste0("binomial-", mspl_fitted_link, "-ordinary-q1-q2"),
     family = "binomial",
     link = mspl_fitted_link,

@@ -383,3 +383,64 @@ this" — from sources that were silent rather than contrary.
 their `mspl_cloglog_*_tail_extension_count` instruments the **opposite** tail (`η > 690`, near
 overflow), and any MSPL fit touching that extension is **rejected**, not returned. Our draft's
 inference that they shared our bug was wrong on both counts.
+
+---
+
+# ADDENDUM 4 — the fence is OPEN for probit and cloglog (2026-08-12)
+
+**This supersedes §6's verdict ("NEEDS EVIDENCE. The guard stays") and design 252 §7's fence.** The
+evidence §4 asked for was gathered on 2026-08-11 and the guard was opened on it. The derivation above
+is unchanged and still correct; only its *status* moved.
+
+## What the three gates returned
+
+All under `docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/`, each pre-registered
+before any replicate, none rescored. **460,000 fits**, Totoro, four distinct seed streams.
+
+| gate | question | result |
+|---|---|---|
+| **G0 / G0b** | do the kernels — R *and* compiled — compute the right link-general weight? | PASS. R matches `glm()` IRLS weights (4.8e−8) and an independent Jeffreys determinant (5.6e−10); the compiled objective matches the R kernels along a separation ray in both tails (3.6e−16 / 5.4e−16 / 1.7e−14) |
+| **G1b** | does TMB-Laplace return finite estimates? | **0 non-finite in 43,972 completed fits**, all four link/orientation conditions |
+| **G3** | are the Wald standard errors calibrated? | **CALIBRATED** in the identified regime — probit `[0.946, 1.008]`, cloglog `[0.957, 1.027]`, with logit reproducing an earlier logit-only campaign as the reference arm |
+| **G2** | does §5's rejection of a modified `c_n` cost anything? | **IMMATERIAL** — the logit constant costs ~1% of one standard error for both links. **Measured at `q1`, `p = 2` only**; the `q2` regime the same guard admits is not covered |
+
+## §5's "rejected: a modified `c_n`" is upheld, and now on evidence rather than principle
+
+§5 rejected inflating `c_n` on the grounds that it defines a *different estimator*. Addendum 3 then
+showed the shipped `c_n = 2√(p/n)` **is** the logit constant and that probit and cloglog want 1.2533
+and 1.3108 by the same delta-method argument. That left an uncomfortable position: the shipped
+constant is knowably wrong for the admitted links, and §5 forbids fixing it.
+
+G2 resolves it. The wrong constant costs **~1% of one standard error** at `n_eff ≥ 300`, the shipped
+(stronger) constant produces slightly *less* bias in every cell, and the gap closes 32–125× from
+`n_eff` 120 to 1200 — faster than the shared `√(p/n)` rate requires. **So `c_n` stays as shipped**,
+and the reason is now measured rather than asserted.
+
+## What was NOT admitted, and why
+
+- **log-log and cauchit.** Both satisfy KF2021's condition (Table 1) and would be admissible on the
+  same theory. drmTMB has no `link_code` for either and no evidence was gathered, so neither is
+  admitted. §2's tail-order table covers only the three.
+- **Intervals.** Unchanged. KF2021 §2.1 proves Wald intervals fail to cover under separation at any
+  nominal level, link-generally; `confint()`, profiles and likelihood comparisons stay unavailable.
+- **The `q2` deep-separation regime as an inference domain.** Point estimates are finite there — that
+  is what the penalty is for — but G3 measured the standard error as *unavailable* in up to 98.3% of
+  converged fits. The package signals this correctly (`drmTMB_mspl_wald_unavailable` plus a
+  `std_error.status` column); it is a documented limit, not a defect.
+
+## One correction to §3 worth carrying
+
+§3 states the mixed-effects gap "bites hardest for cloglog", since `κ₀(η) = e^η` is unbounded and no
+parameter-free sandwich exists. **The empirical ordering did not follow that prediction.** Under
+TMB-Laplace, cloglog's *as-generated* orientation produced the most optimizer failures (33 of 11,000)
+while its *mirrored* orientation produced 2 — same link, same grid — and probit produced none. The
+coercivity concern is about the criterion; what was measured is optimizer behaviour on near-degenerate
+data (0–3 events with a 2×2 random-effect covariance, where plain ML fails on 100% of the same
+datasets). **These are different objects and §3's argument is not falsified by this**, but anyone
+reading §3 as a prediction about which link will misbehave in practice should read this paragraph too.
+
+## Provenance
+
+Opened by PR (branch `claude/mspl-open-probit-cloglog`), Claude, 2026-08-12. Evidence merged in
+PR #1019; the C++ link dispatch that made any of it measurable merged in PR #1012. MSPL and
+binomial-link suites: **399 pass, 0 fail** at the time of admission.

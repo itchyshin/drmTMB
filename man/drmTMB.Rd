@@ -146,8 +146,24 @@ Native \code{engine = "tmb"} only.}
 \item{estimator}{Estimator for the native TMB route. The default \code{"ml"}
 preserves ordinary maximum likelihood. Experimental \code{"mspl"} implements
 the clean-room maximum softly-penalized likelihood criterion for one
-complete Bernoulli or grouped-binomial logit model with one ordinary
-q = 1 or correlated q = 2 grouping block. For grouped binomial data, the
+complete Bernoulli or grouped-binomial model with one ordinary
+q = 1 or correlated q = 2 grouping block. Supported links are
+\code{"logit"}, \code{"probit"} and \code{"cloglog"}. Kosmidis and Firth (2021,
+Theorem 1 and Section 3.1) prove the Jeffreys penalty gives finite
+estimates for any link whose working weight vanishes in both tails, which
+these three do; drmTMB's own TMB-Laplace evidence for them is recorded in
+\verb{docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/}.
+Three limits are worth stating. The soft-penalty scale below is a \emph{logit}
+delta-method constant, kept unchanged for all three links because using it
+for probit and cloglog was measured to cost about 1\% of one standard error
+-- measured at \code{q = 1} with two fixed-effect columns, and not at \code{q = 2}.
+Under deep separation with a random slope the standard error is frequently
+unavailable for \strong{every} link, logit included (see the \code{NA} note below);
+in the most extreme cells measured this affected the large majority of
+converged fits. And the evidence behind the two new links used \strong{Bernoulli}
+responses with two fixed-effect columns, so grouped-binomial and wider
+designs inherit the \code{n_eff} extrapolation described next without direct
+measurement, for any link. For grouped binomial data, the
 soft-penalty scale \code{c_n = 2 * sqrt(p / n_eff)} uses
 \code{n_eff = sum(trials * frequency)}, the retained total number of Bernoulli
 trials, in place of the source paper's row count \code{n}; the two agree

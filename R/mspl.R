@@ -4,10 +4,10 @@
 # implement the two penalty terms in Sterzinger & Kosmidis (2023), equations
 # (4)--(5), on inputs supplied by a future fitting adapter.  In particular,
 # `mspl_jeffreys()` is the fixed-effect GLM penalty and does not include
-# random effects in its information matrix.  It accepts a `link` argument as
-# internal scaffolding for a future link-general MSPL adapter, but the public
-# MSPL entry point (`drm_validate_mspl_request()` in R/mspl-estimator.R)
-# still rejects every link except logit.
+# random effects in its information matrix.  Its `link` argument is live, not
+# scaffolding: the public MSPL entry point (`drm_validate_mspl_request()` in
+# R/mspl-estimator.R) admits binomial logit, probit and cloglog as of
+# 2026-08-12, so all three reach these kernels.
 
 mspl_failure <- function(code, message, ...) {
   structure(
@@ -180,12 +180,15 @@ mspl_jeffreys <- function(
   # logit this is -softplus(eta) - softplus(-eta), evaluated without
   # subtracting probabilities that may already have rounded to 0/1.
   #
-  # Paired site: src/drmTMB.cpp:4966-4969 carries the same logit-only weight
-  # (using logspace_add instead of mspl_softplus).  The two must be
-  # generalised together in the arc that opens the MSPL entry point to other
-  # links; today they cannot diverge in practice because
-  # drm_validate_mspl_request() (R/mspl-estimator.R:179-184) rejects every
-  # non-logit link before a model is ever built.
+  # Paired site: the `use_mspl` block in src/drmTMB.cpp.  It carried a
+  # HARDCODED logit weight until PR #1012 while this kernel was already
+  # link-general -- two implementations of one estimator, disagreeing for probit
+  # and cloglog, and unreachable from the public API because the entry point was
+  # logit-only at the time.  Both are now link-dispatched and the entry point
+  # admits all three, so the two sites must be changed TOGETHER.  Parity is
+  # asserted in tests/testthat/test-mspl-link-dispatch.R and was measured along
+  # a separation ray in both tails (docs/dev-log/simulation-artifacts/
+  # 2026-08-11-mspl-nonlogit-links/G0b-parity.log).
   log_weight <- mspl_log_weight(eta, n_trials, link)
   if (any(!is.finite(log_weight))) {
     return(mspl_failure(

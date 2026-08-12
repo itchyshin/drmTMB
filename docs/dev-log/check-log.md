@@ -93247,3 +93247,35 @@ can see which commit each one actually examined.
   rewritten, so the 2026-08-08 lane record survives. Checked first: none of the six refs carrying
   work on that file had already corrected it.
 - No code, ledger, rung, or claim changed. Docs only; the frozen candidate is unaffected.
+
+## 2026-08-12 — MSPL admits probit and cloglog (`claude/mspl-open-probit-cloglog`)
+
+- **The fence is open.** `estimator = "mspl"` accepted `binomial(link = "logit")` exactly; it now
+  also accepts `probit` and `cloglog`. Nothing else about the route moved: still `engine = "tmb"`,
+  one ordinary `q = 1` or correlated `q = 2` block, no REML, no penalty interface, no intervals.
+- **The basis is measured.** Four pre-registered campaigns, **460,000 fits**, four distinct seed
+  streams, merged as evidence in PR #1019: finiteness (**0 non-finite in 43,972 completed fits**),
+  Wald standard errors calibrated in the identified regime (probit `[0.946, 1.008]`, cloglog
+  `[0.957, 1.027]`), and the logit-calibrated `c_n` costing ~1% of one standard error for the other
+  two links (measured at `q1`, `p = 2` only -- not at the `q2` the guard also admits). The C++ dispatch that made any of it measurable merged earlier as PR #1012.
+- **`c_n` deliberately unchanged.** It is a logit delta-method constant and is knowably "wrong" for
+  probit/cloglog; design 253 §5 rejects modifying it because a per-link constant defines a different
+  estimator. G2 measured the cost of leaving it alone and it is immaterial, so §5's rejection is now
+  upheld on evidence rather than on principle.
+- **Start values changed for all three links.** The MSPL intercept now starts at the link of the
+  observed event rate rather than at 0. At `beta = 0` cloglog implies a 0.632 event rate, so a
+  rare-event design began several log units from its own intercept. Measured: cloglog optimizer
+  failures 33 → 28 at full replication, with 120 previously-passing fits re-checked and `beta` moving
+  at a median ~1e-7. **This affects the shipped logit route** and is the riskier half of this change.
+- **Docs reconciled, not left contradicting the code.** Design 252 §7 ("MSPL stays logit-only, even
+  in 0.7.0") is marked SUPERSEDED in place with what it still gets right; design 253 gains
+  **Addendum 4** recording the three gates, upholding §5, and correcting §3's implicit prediction
+  that cloglog would misbehave worst — the measured ordering did not follow it.
+- **Two existing tests inverted, not deleted.** `test-mspl-link-dispatch.R`'s "the shipped guard
+  still admits logit only" and two rejection rows in `test-mspl-estimator.R` asserted the old
+  contract. Both now assert the new one, with a SUPERSEDED note, so the change is visible in history.
+- MSPL + binomial-link suites: **399 pass, 0 fail, 0 error** across seven files.
+- **Release-timing caveat, for the maintainer.** This touches `R/` and `NEWS.md` while 0.7.0 is
+  frozen. The candidate already required a re-freeze; this adds a *shipped-source* change to that
+  list. Merging before submission means re-cutting the tarball and re-running platform evidence.
+  Deferring to 0.7.1/0.8.0 is entirely reasonable and is the maintainer's call, not this branch's.

@@ -60,14 +60,20 @@ test_that("the Jeffreys half-logdet differs by link on the same design", {
   expect_equal(length(unique(round(j, 8))), 3L)
 })
 
-test_that("the shipped guard still admits logit only", {
-  # The link threading above must NOT be read as opening the fence.
+test_that("the guard now admits probit and cloglog as well as logit", {
+  # SUPERSEDED 2026-08-12. When this file was written the link threading below
+  # was explicitly NOT to be read as opening the fence, and this test asserted
+  # the fence held. The fence has since been opened deliberately, on the
+  # evidence in docs/dev-log/simulation-artifacts/2026-08-11-mspl-nonlogit-links/
+  # (finiteness, calibrated standard errors, and an immaterial c_n mismatch).
+  # The assertion is inverted rather than deleted so the contract change is
+  # visible in the history rather than silently disappearing.
   skip_if_not_installed("testthat")
-  d <- data.frame(y = c(0, 1, 0, 1, 1, 0), trt = c(0, 0, 1, 1, 0, 1),
-                  block = factor(c(1, 1, 2, 2, 3, 3)))
-  expect_error(
-    drmTMB(bf(y ~ trt + (1 | block)), family = binomial(link = "probit"),
-           data = d, estimator = "mspl"),
-    "logit"
-  )
+  d <- data.frame(y = c(0, 1, 0, 1, 1, 0, 1, 0), trt = c(0, 0, 1, 1, 0, 1, 1, 0),
+                  block = factor(c(1, 1, 2, 2, 3, 3, 4, 4)))
+  for (lk in c("logit", "probit", "cloglog")) {
+    fit <- drmTMB(bf(y ~ trt + (1 | block)), family = binomial(link = lk),
+                  data = d, estimator = "mspl")
+    expect_identical(fit$mspl$link, lk)
+  }
 })
