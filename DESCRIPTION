@@ -57,6 +57,7 @@ Suggests:
     metafor,
     mvtnorm,
     numDeriv,
+    ordinal,
     palmerpenguins,
     pkgload,
     rmarkdown,

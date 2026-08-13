@@ -438,8 +438,8 @@ expect_profile_target_contract <- function(targets) {
   expect_type(targets$parm, "character")
   expect_false(anyDuplicated(targets$parm) > 0L)
   expect_type(targets$profile_ready, "logical")
-  expect_true(all(targets$target_type %in% c("direct", "derived")))
-  expect_true(all(targets$scale %in% c("link", "response", "internal")))
+  expect_true(all(targets$target_type %in% c("direct", "derived", "constrained")))
+  expect_true(all(targets$scale %in% c("link", "response", "internal", "cutpoint")))
   expect_true(all(
     targets$transformation %in%
       c(
@@ -461,15 +461,25 @@ expect_profile_target_contract <- function(targets) {
         "missing_tmb_parameter",
         "point_fit_only_zero_one_beta_phylo_q1",
         "derived_target",
-        "derived_unstructured_correlation"
+        "derived_unstructured_correlation",
+        "internal_ordinal_parameter"
       )
   ))
-  expect_false(any(targets$profile_ready & targets$target_type != "direct"))
+  expect_false(any(
+    targets$profile_ready &
+      !targets$target_type %in% c("direct", "constrained")
+  ))
   expect_false(any(targets$profile_ready & targets$profile_note != "ready"))
   expect_false(any(
     targets$target_type == "derived" &
       !targets$profile_note %in%
         c("derived_target", "derived_unstructured_correlation")
+  ))
+  expect_false(any(
+    targets$target_type == "constrained" &
+      (targets$scale != "cutpoint" |
+        targets$transformation != "ordered_cutpoint" |
+        targets$profile_note != "ready")
   ))
 }
 
@@ -3016,7 +3026,7 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       method = "profile",
       trace = FALSE
     ),
-    "ordinal-cutpoint-internal"
+    "Raw ordinal:theta_ord:.*internal ordinal diagnostics"
   )
   expect_error(
     stats::confint(fit, method = "profile"),
@@ -4007,7 +4017,7 @@ test_that("profile target inventory marks derived variance ratios as unavailable
   )
 })
 
-test_that("profile target inventory lists residual rho12 and ordinal internals", {
+test_that("profile target inventory separates ordinal internals from public cutpoints", {
   dat <- new_profile_biv_data()
   fit_biv <- drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~w),
@@ -4048,8 +4058,378 @@ test_that("profile target inventory lists residual rho12 and ordinal internals",
   expect_equal(theta_rows$tmb_parameter, c("theta_ord", "theta_ord"))
   expect_equal(theta_rows$index, c(1L, 2L))
   expect_equal(theta_rows$transformation, rep("ordered_cutpoint", 2))
-  expect_true(all(theta_rows$profile_ready))
-  expect_equal(theta_rows$profile_note, rep("ready", 2))
+  expect_false(any(theta_rows$profile_ready))
+  expect_equal(
+    theta_rows$profile_note,
+    rep("internal_ordinal_parameter", 2L)
+  )
+
+  cutpoint_rows <- ord_targets[
+    ord_targets$target_class == "ordinal-cutpoint",
+    ,
+    drop = FALSE
+  ]
+  expect_equal(
+    cutpoint_rows$parm,
+    c("ordinal:cutpoint:1|2", "ordinal:cutpoint:2|3")
+  )
+  expect_equal(cutpoint_rows$dpar, rep("ordinal", 2L))
+  expect_equal(cutpoint_rows$term, c("1|2", "2|3"))
+  expect_equal(cutpoint_rows$tmb_parameter, c("theta_ord", "theta_ord"))
+  expect_equal(cutpoint_rows$index, c(1L, 2L))
+  expect_equal(cutpoint_rows$estimate, unname(fit_ord$ordinal$cutpoints))
+  expect_equal(cutpoint_rows$scale, rep("cutpoint", 2L))
+  expect_equal(cutpoint_rows$transformation, rep("ordered_cutpoint", 2L))
+  expect_equal(cutpoint_rows$target_type, rep("constrained", 2L))
+  expect_true(all(cutpoint_rows$profile_ready))
+  expect_equal(cutpoint_rows$profile_note, rep("ready", 2L))
+
+  ready_targets <- profile_targets(fit_ord, ready_only = TRUE)
+  expect_setequal(
+    ready_targets$parm[ready_targets$dpar == "ordinal"],
+    cutpoint_rows$parm
+  )
+})
+
+test_that("ordinal cutpoint profile intervals use public constrained targets", {
+  set.seed(20260812)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 30L)),
+    x = stats::rnorm(90L)
+  )
+  fit <- drmTMB(
+    bf(y ~ x),
+    family = cumulative_logit(),
+    data = dat
+  )
+
+  parm <- c("ordinal:cutpoint:1|2", "ordinal:cutpoint:2|3")
+  ci <- stats::confint(
+    fit,
+    parm = parm,
+    level = 0.80,
+    method = "profile",
+    trace = FALSE
+  )
+
+  expect_equal(ci$parm, parm)
+  expect_equal(ci$scale, rep("cutpoint", 2L))
+  expect_equal(ci$transformation, rep("ordered_cutpoint", 2L))
+  expect_equal(ci$tmb_parameter, rep("theta_ord", 2L))
+  expect_equal(ci$index, c(1L, 2L))
+  expect_equal(ci$profile.engine, rep("ordinal_constrained", 2L))
+  expect_equal(ci$conf.status, rep("profile", 2L))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < unname(fit$ordinal$cutpoints)))
+  expect_true(all(ci$upper > unname(fit$ordinal$cutpoints)))
+
+  targets <- profile_targets(fit)
+  cutpoint_targets <- targets[match(parm, targets$parm), , drop = FALSE]
+  expect_equal(cutpoint_targets$estimate, unname(fit$ordinal$cutpoints))
+  expect_false(isTRUE(all.equal(
+    cutpoint_targets$estimate,
+    unname(fit$ordinal$theta_raw)
+  )))
+
+  expect_error(
+    profile(fit, parm = parm[[1L]]),
+    "constrained interval"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = parm[[1L]],
+      method = "profile",
+      profile_engine = "tmbprofile"
+    ),
+    "constrained profile engine"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "ordinal:theta_ord:2|3",
+      method = "profile"
+    ),
+    "Raw .* coordinates are internal ordinal diagnostics, not interval targets"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "ordinal:1|2",
+      method = "profile"
+    ),
+    "Ordinal confidence-interval alias.*ambiguous"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = parm[[1L]],
+      method = "profile",
+      profile_engine = "auto",
+      ystep = 0.1
+    ),
+    "constrained profile engine, which does not accept.*controls"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = parm[[1L]],
+      method = "wald"
+    ),
+    "Wald confidence intervals are not available for ordered cutpoints.*method = \"profile\""
+  )
+})
+
+test_that("ordinal constrained profiles reject non-ML objectives and fail closed", {
+  set.seed(20260814)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 24L)),
+    x = stats::rnorm(72L)
+  )
+  fit <- drmTMB(bf(y ~ x), family = cumulative_logit(), data = dat)
+  parm <- "ordinal:cutpoint:2|3"
+
+  map_fit <- fit
+  map_fit$estimator <- "MAP"
+  expect_error(
+    stats::confint(map_fit, parm = parm, method = "profile"),
+    "require an unpenalized ML fit"
+  )
+
+  local_mocked_bindings(
+    profile_endpoint_crossing = function(...) {
+      stop("forced ordinal endpoint failure", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+  failed <- stats::confint(fit, parm = parm, method = "profile")
+  expect_equal(failed$profile.engine, "ordinal_constrained")
+  expect_equal(failed$conf.status, "profile_failed")
+  expect_true(all(is.na(failed$lower)))
+  expect_true(all(is.na(failed$upper)))
+  expect_match(failed$profile.message, "forced ordinal endpoint failure")
+})
+
+test_that("cumulative-logit cutpoint estimates agree with ordinal::clm", {
+  skip_if_not_installed("ordinal")
+  set.seed(20260812)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 40L)),
+    x = stats::rnorm(120L)
+  )
+  fit <- drmTMB(
+    bf(y ~ x),
+    family = cumulative_logit(),
+    data = dat
+  )
+  reference <- ordinal::clm(
+    y ~ x,
+    link = "logit",
+    threshold = "flexible",
+    data = dat
+  )
+
+  expect_equal(
+    unname(fit$ordinal$cutpoints),
+    unname(stats::coef(reference)[c("1|2", "2|3")]),
+    tolerance = 1e-5
+  )
+  expect_equal(as.numeric(stats::logLik(fit)), as.numeric(stats::logLik(reference)), tolerance = 1e-5)
+})
+
+test_that("constrained ordinal profiles agree with an independent likelihood oracle", {
+  set.seed(20260812)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 45L)),
+    x = stats::rnorm(135L)
+  )
+  fit <- drmTMB(bf(y ~ x), family = cumulative_logit(), data = dat)
+  targets <- profile_targets(fit)
+  targets <- targets[targets$target_class == "ordinal-cutpoint", , drop = FALSE]
+  nll_hat <- -as.numeric(stats::logLik(fit))
+
+  # This is deliberately not a call through drmTMB's TMB objective. It is the
+  # fixed-effect cumulative-logit likelihood written directly on the category
+  # probabilities, with c_1 or c_2 held on the cumulative-threshold scale.
+  oracle_nll <- function(value, index) {
+    start <- c(unname(fit$coefficients$mu[["x"]]), fit$ordinal$theta_raw[[2L]])
+    objective <- function(par) {
+      beta <- par[[1L]]
+      log_gap <- par[[2L]]
+      cutpoints <- if (index == 1L) {
+        c(value, value + exp(log_gap))
+      } else {
+        c(value - exp(log_gap), value)
+      }
+      eta <- beta * dat$x
+      probability <- cbind(
+        stats::plogis(cutpoints[[1L]] - eta),
+        stats::plogis(cutpoints[[2L]] - eta) - stats::plogis(cutpoints[[1L]] - eta),
+        1 - stats::plogis(cutpoints[[2L]] - eta)
+      )
+      -sum(log(probability[cbind(seq_len(nrow(dat)), as.integer(dat$y))]))
+    }
+    stats::nlminb(start, objective)
+  }
+
+  for (i in seq_len(nrow(targets))) {
+    target <- targets[i, , drop = FALSE]
+    evaluator <- drmTMB:::ordinal_cutpoint_profile_evaluator(
+      fit, target, drmTMB:::profile_endpoint_inner_control(list())
+    )
+    for (value in target$estimate + c(-0.15, 0, 0.15)) {
+      constrained <- evaluator$evaluate(value, evaluator$start_free)
+      independent <- oracle_nll(value, target$index)
+      expect_equal(constrained$nll, independent$objective, tolerance = 1e-5)
+    }
+    at_fit <- oracle_nll(target$estimate, target$index)
+    expect_equal(at_fit$objective, nll_hat, tolerance = 1e-5)
+  }
+
+  ci <- stats::confint(
+    fit, parm = targets$parm, level = 0.80, method = "profile", trace = FALSE
+  )
+  cutoff <- stats::qchisq(0.80, df = 1) / 2
+  for (i in seq_len(nrow(ci))) {
+    for (endpoint in c(ci$lower[[i]], ci$upper[[i]])) {
+      expect_equal(
+        oracle_nll(endpoint, ci$index[[i]])$objective - nll_hat,
+        cutoff,
+        tolerance = 2e-3
+      )
+    }
+  }
+})
+
+test_that("first ordinal cutpoint agrees with its one-coordinate TMB profile", {
+  set.seed(20260815)
+  dat <- data.frame(
+    y = ordered(rep(1:3, each = 36L)),
+    x = stats::rnorm(108L)
+  )
+  fit <- drmTMB(bf(y ~ x), family = cumulative_logit(), data = dat)
+  target <- profile_targets(fit)
+  target <- target[target$parm == "ordinal:cutpoint:1|2", , drop = FALSE]
+  constrained <- stats::confint(
+    fit, parm = target$parm, level = 0.80, method = "profile", trace = FALSE
+  )
+  lincomb <- rep(0, length(fit$opt$par))
+  lincomb[which(names(fit$opt$par) == "theta_ord")[[1L]]] <- 1
+  raw_profile <- TMB::tmbprofile(
+    fit$obj,
+    name = "theta_ord[1]",
+    lincomb = lincomb,
+    trace = FALSE
+  )
+  raw_ci <- stats::confint(raw_profile, level = 0.80)
+
+  # c_1 is exactly theta_ord[1], so the public constrained profile must agree
+  # with TMB's existing one-coordinate route on the common cutpoint scale.
+  expect_equal(constrained$lower, unname(raw_ci[1L, "lower"]), tolerance = 2e-3)
+  expect_equal(constrained$upper, unname(raw_ci[1L, "upper"]), tolerance = 2e-3)
+})
+
+test_that("interior ordinal cutpoint profiles preserve constraints and weighted likelihood geometry", {
+  # Five categories make c_3 an interior threshold rather than an endpoint of
+  # the ordered-cutpoint vector.  The deterministic, balanced fixture avoids
+  # sparse-category boundary fits while exercising theta_ord[2:3]'s chain rule.
+  set.seed(20260813)
+  dat <- data.frame(
+    y = ordered(rep(seq_len(5L), each = 28L)),
+    x = stats::rnorm(140L)
+  )
+  w <- rep(c(0.5, 1, 1.5, 2), length.out = nrow(dat))
+  fit <- drmTMB(bf(y ~ x), family = cumulative_logit(), data = dat, weights = w)
+  fit_rescaled <- drmTMB(
+    bf(y ~ x), family = cumulative_logit(), data = dat, weights = 3 * w
+  )
+
+  # Multiplying every row likelihood by a positive constant leaves its MLE
+  # unchanged. This guards the weighted constrained engine independently of
+  # the absolute objective scale. These are separate optimizer runs, so allow
+  # ordinary optimizer-level variation rather than demanding bitwise equality.
+  expect_lt(
+    max(abs(coef(fit_rescaled, "mu") - coef(fit, "mu"))),
+    2e-5
+  )
+  expect_lt(
+    max(abs(
+      unname(fit_rescaled$ordinal$cutpoints) -
+        unname(fit$ordinal$cutpoints)
+    )),
+    2e-5
+  )
+
+  targets <- profile_targets(fit)
+  target <- targets[
+    targets$target_class == "ordinal-cutpoint" & targets$index == 3L,
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(target), 1L)
+  evaluator <- drmTMB:::ordinal_cutpoint_profile_evaluator(
+    fit, target, drmTMB:::profile_endpoint_inner_control(list())
+  )
+
+  # At every trial value the reconstructed vector has c_3 exactly at the
+  # requested value and retains strictly ordered cutpoints.
+  trial_values <- target$estimate + c(-0.18, 0, 0.18)
+  for (value in trial_values) {
+    full <- evaluator$compose(evaluator$start_free, value)
+    theta <- full[evaluator$theta_positions]
+    cutpoints <- drmTMB:::ordinal_cutpoints_from_raw(theta)
+    expect_equal(cutpoints[[3L]], value, tolerance = 1e-12)
+    expect_true(all(diff(cutpoints) > 0))
+  }
+
+  # The c_3 constraint makes theta_1 = c_3 - exp(theta_2) - exp(theta_3).
+  # Check the corresponding free gradient (including both chain-rule terms)
+  # against central finite differences away from the MLE.
+  value <- target$estimate + 0.18
+  free_positions <- setdiff(seq_along(fit$opt$par), evaluator$theta_positions[[1L]])
+  constrained_fn <- function(par_free) {
+    fit$obj$fn(evaluator$compose(par_free, value))
+  }
+  constrained_gr <- function(par_free) {
+    full <- evaluator$compose(par_free, value)
+    gradient <- fit$obj$gr(full)
+    out <- gradient[free_positions]
+    theta <- full[evaluator$theta_positions]
+    affected <- evaluator$theta_positions[2:3]
+    affected_free <- match(affected, free_positions)
+    out[affected_free] <- out[affected_free] -
+      gradient[[evaluator$theta_positions[[1L]]]] * exp(theta[2:3])
+    out
+  }
+  h <- 1e-6
+  finite_difference <- vapply(seq_along(evaluator$start_free), function(j) {
+    plus <- evaluator$start_free
+    minus <- evaluator$start_free
+    plus[[j]] <- plus[[j]] + h
+    minus[[j]] <- minus[[j]] - h
+    (constrained_fn(plus) - constrained_fn(minus)) / (2 * h)
+  }, numeric(1L))
+  expect_equal(
+    constrained_gr(evaluator$start_free), finite_difference,
+    tolerance = 2e-5
+  )
+
+  # A constrained off-MLE fit must not beat the unconstrained weighted fit.
+  off_mle <- evaluator$evaluate(value, evaluator$start_free)
+  expect_gte(off_mle$nll + 1e-8, fit$opt$objective)
+
+  # Re-evaluate the returned finite endpoints against the LR cutoff. This is
+  # intentionally done after confint() rather than trusting its cached roots.
+  ci <- stats::confint(
+    fit, parm = target$parm, level = 0.80, method = "profile", trace = FALSE
+  )
+  cutoff <- stats::qchisq(0.80, df = 1) / 2
+  expect_true(all(is.finite(c(ci$lower, ci$upper))))
+  for (endpoint in c(ci$lower, ci$upper)) {
+    endpoint_nll <- evaluator$evaluate(endpoint, evaluator$start_free)$nll
+    expect_equal(endpoint_nll - fit$opt$objective, cutoff, tolerance = 2e-3)
+  }
 })
 
 test_that("count_point_fit_only_profile_restricted_status() aborts on an unreachable model_type/dpar combination", {
