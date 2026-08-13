@@ -56,9 +56,9 @@ percentile intervals for selected direct targets and records successful and
 failed refits; `summary()` and `corpairs()` do not yet expose bootstrap
 intervals directly. `profile_targets(fit)` lists fitted-object target names and
 readiness notes; row-specific `newdata` targets are generated at call time.
-Transformed ordinal, modelled group-SD, custom multi-row contrasts, conditional
-random-effect mode intervals, and derived summary profile/bootstrap intervals
-remain planned.
+Raw ordinal-coordinate and transformed ordinal-summary targets, modelled
+group-SD, custom multi-row contrasts, conditional random-effect mode intervals,
+and derived summary profile/bootstrap intervals remain planned.
 
 ## Phase 6 Slice 51 Target Audit
 
@@ -102,10 +102,13 @@ continues. This is an inventory update, not new inference code.
 | Derived summaries | `derived:repeatability(group)`, `derived:phylogenetic_signal(species)`, and future nonlinear summaries. | Derived and not direct profile-ready. | `derived_interval_unavailable` until a fix-and-refit or reparameterized derived-profile method exists. |
 | Ordinal cutpoints | `ordinal:cutpoint:<cutpoint>` | Public constrained profile targets when the TMB object is retained; raw `ordinal:theta_ord:<cutpoint>` rows remain internal diagnostics. | Explicit `method = "profile"`, `profile_engine = "auto"` yields a pointwise latent-logistic cutpoint interval; calibration remains separate. |
 
-The inventory rule for the next slices is simple: profile-ready means a direct
-target maps to a current TMB parameter or linear combination and the fitted
-object retained the TMB object. It means the profile can be attempted, not that
-every dataset will cross the likelihood-ratio threshold on both sides.
+The inventory rule for the next slices is simple: profile-ready usually means a
+direct target maps to a current TMB parameter or linear combination and the
+fitted object retained the TMB object. Public ordinal cutpoints are the
+deliberate exception: their constrained profile maps the named cumulative
+cutpoint onto the existing ordered `theta_ord` parameterization. In either
+case, profile-ready means the profile can be attempted, not that every dataset
+will cross the likelihood-ratio threshold on both sides.
 Predictor-row profiles are valid only after the user supplies `newdata`;
 derived summaries must stay status-only until a validated derived interval
 method exists.
@@ -684,12 +687,17 @@ Examples:
 
 - log random-effect SDs;
 - log residual SD or dispersion parameters;
-- ordinal cutpoints;
+- raw ordinal coordinates (internal diagnostics, not public interval targets);
 - transformed correlation parameters when they are direct entries in the TMB
   parameter vector.
 
 These are the first target because `TMB::tmbprofile()` can profile them
 directly by name.
+
+Public ordinal cutpoints are different. A named
+`ordinal:cutpoint:<label>` target is a cumulative threshold, not generally a
+raw `theta_ord` coordinate, so `profile_engine = "auto"` uses its separate
+constrained profile route rather than `TMB::tmbprofile()`.
 
 Current high-value direct targets are:
 
@@ -834,9 +842,10 @@ bivariate Gaussian group-level `mu1`/`mu2` random-intercept SD and correlation
 target rows, and row-specific `newdata` profiles for predictor-dependent
 `sigma`, `sigma1`, `sigma2`, `rho12`, and fitted ordinary or phylogenetic q=2
 `corpair()` values. `summary(conf.int = TRUE, method = "profile")` reuses the
-same direct target table when `ci_parm` names one of these rows. Unsupported
-ordinal-transform, modelled group-SD, custom multi-row contrast, and
-derived-summary targets still fail before doing expensive optimization.
+same direct target table when `ci_parm` names one of these rows. Public ordinal
+cutpoints use the separate constrained route; raw ordinal-coordinate,
+modelled group-SD, custom multi-row contrast, and derived-summary targets still
+fail before doing expensive optimization.
 
 When the interval table is not enough, `profile(fit, parm = target)` returns
 the full `TMB::tmbprofile()` curve for selected direct target rows. The returned
@@ -867,7 +876,7 @@ The first fitted targets should be direct parameters in this order:
 6. bivariate Gaussian group-level `mu1`/`mu2` random-intercept SDs and
    correlations, still under the `mu` random-effect target namespace;
 7. phylogenetic `mu` SDs;
-8. ordinal cutpoints.
+8. ordinal cutpoints through the constrained public profile route.
 
 Ordinal rows now distinguish public cumulative-cutpoint targets from raw
 `theta_ord` diagnostics. The public `ordinal:cutpoint:<label>` route profiles
@@ -1031,10 +1040,11 @@ confint(
 For this public target, `profile_engine = "auto"` selects the constrained
 ordinal engine. Wald and bootstrap methods are deliberately unavailable for
 ordinal cutpoints, and `confint(fit)` does not acquire cutpoint intervals by
-default. The output may contain two finite endpoints, an unavailable result,
-or a one-sided/boundary result. A finite interval is evidence only that the
-profile crossed the requested likelihood-ratio cutoff on both sides under this
-fit; it is not a promise that every dataset will yield two endpoints.
+default. The output contains two finite endpoints only when the profile crosses
+the requested likelihood-ratio cutoff on both sides. If either endpoint fails,
+the public result is unavailable with `profile_failed`; there is no one-sided
+ordinal interval. A finite interval is evidence only for this fit, not a
+promise that every dataset will yield two endpoints.
 
 The interval is pointwise for one named threshold. It is not a simultaneous
 band across cutpoints, a confidence interval for fitted category probabilities,

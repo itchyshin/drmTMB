@@ -66,16 +66,20 @@ public cutpoint target.
 ## Interval interpretation and scope fence
 
 A successful result is a pointwise likelihood-ratio interval for one named
-cutpoint on the latent-logistic cutpoint scale. It may be finite, unavailable,
-or one-sided when the profile cannot cross the cutoff on one side. A finite
-result must not be described as simultaneous uncertainty across all thresholds
-or as uncertainty for category probabilities.
+cutpoint on the latent-logistic cutpoint scale. It is returned only when the
+profile crosses the cutoff on both sides. If either endpoint cannot be found,
+the public result is unavailable with `profile_failed`; it does not expose a
+one-sided interval. A finite result must not be described as simultaneous
+uncertainty across all thresholds or as uncertainty for category probabilities.
 
-The initial scope excludes Wald cutpoint intervals, bootstrap cutpoint
-intervals, profile curves exported through `profile()`, default broadening of
-`confint(fit)`, ordinal scale or discrimination formulae, bivariate or mixed
-ordinal models, and coverage or G5 calibration claims. The reader should use
-the explicit profile call and inspect status, boundary, and message columns.
+The initial scope is unpenalized ML cumulative-logit fits, including the
+already-supported ordinary `mu` random-effect layouts because the constrained
+refit preserves all nuisance parameters. It excludes Wald cutpoint intervals,
+bootstrap cutpoint intervals, profile curves exported through `profile()`,
+default broadening of `confint(fit)`, ordinal scale or discrimination formulae,
+bivariate ordinal models, MAP/penalized, REML, and MSPL fits, and coverage or
+G5 calibration claims. The reader should use the explicit profile call and
+inspect status, boundary, and message columns.
 The implementation tests in `tests/testthat/test-profile-targets.R` exercise
 the public constrained target and its finite-endpoint contract; the repeated-
 sampling question is deliberately reserved for the DRAC contract cited below.

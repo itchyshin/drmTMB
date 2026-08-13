@@ -536,6 +536,18 @@ confint.drmTMB <- function(
     profile_maxit = profile_maxit,
     dots = profile_dots
   )
+  ordinal_cutpoints <- targets$target_class == "ordinal-cutpoint"
+  if (
+    identical(profile_engine, "auto") &&
+      tmbprofile_controls &&
+      any(ordinal_cutpoints)
+  ) {
+    cli::cli_abort(c(
+      "Ordered cutpoint intervals use drmTMB's constrained profile engine, which does not accept {.fun TMB::tmbprofile} controls.",
+      i = "Remove {.arg profile_precision}, {.arg profile_maxit}, and {.arg ...} when profiling {.val {targets$parm[ordinal_cutpoints]}}.",
+      i = "Profile ordinary direct targets with TMB controls in a separate {.fn confint} call."
+    ))
+  }
   if (identical(profile_engine, "endpoint") && tmbprofile_controls) {
     cli::cli_abort(c(
       "{.code profile_engine = \"endpoint\"} does not use {.fun TMB::tmbprofile} controls.",
@@ -1973,7 +1985,20 @@ drm_wald_confint <- function(
 ) {
   small_sample_df <- match.arg(small_sample_df)
   bias_correct <- match.arg(bias_correct)
-  targets <- drm_profile_targets(object)
+  all_targets <- drm_profile_targets(object)
+  if (!is.null(parm) && is.character(parm)) {
+    ordinal_requested <- intersect(
+      parm,
+      all_targets$parm[all_targets$target_class == "ordinal-cutpoint"]
+    )
+    if (length(ordinal_requested) > 0L) {
+      cli::cli_abort(c(
+        "Wald confidence intervals are not available for ordered cutpoints.",
+        i = "Use {.code method = \"profile\"} with {.val {ordinal_requested}} to obtain constrained response-scale cutpoint intervals."
+      ))
+    }
+  }
+  targets <- all_targets
   targets <- targets[wald_supported_targets(targets), , drop = FALSE]
   targets <- profile_match_confint_targets(
     targets,
@@ -2924,6 +2949,13 @@ drm_profile_target_confint <- function(
     return(drm_profile_ordinal_cutpoint_confint(object, target, level))
   }
 
+  if (identical(target$target_class[[1L]], "ordinal-cutpoint-internal")) {
+    cli::cli_abort(c(
+      "Raw {.val ordinal:theta_ord:<label>} coordinates are internal ordinal diagnostics, not interval targets.",
+      i = "Use the public cumulative cutpoint target {.val {paste0(\"ordinal:cutpoint:\", target$term[[1L]])}}."
+    ))
+  }
+
   # The endpoint engine must degrade to a per-row failure rather than aborting a
   # mixed-target batch. Handle it before the shared readiness / class checks
   # below (which cli_abort() and are the intended contract for the tmbprofile
@@ -3399,6 +3431,12 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
   if (!identical(object$model$model_type, "cumulative_logit")) {
     cli::cli_abort("Constrained ordinal cutpoint profiles are only available for cumulative_logit() fits.")
   }
+  if (!identical(object$estimator, "ML") || !is.null(object$penalty)) {
+    cli::cli_abort(c(
+      "Constrained ordinal cutpoint profiles require an unpenalized ML fit.",
+      i = "MAP/penalized, REML, and MSPL objectives do not have this likelihood-ratio interval interpretation. Refit with {.code estimator = \"ml\"} and no {.code penalty}."
+    ))
+  }
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
   control <- if (is.list(object$control) && is.list(object$control$optimizer)) object$control$optimizer else list()
   control <- profile_endpoint_inner_control(control)
@@ -3411,9 +3449,13 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
     error = function(err) err
   )
   if (inherits(at_fit, "error") ||
-    !isTRUE(all.equal(at_fit$nll, nll_hat, tolerance = 1e-6))) {
+    !is.finite(at_fit$nll) ||
+    abs(at_fit$nll - nll_hat) > 1e-6) {
     detail <- if (inherits(at_fit, "error")) conditionMessage(at_fit) else {
-      sprintf("constrained nll = %.12g; fitted nll = %.12g", at_fit$nll, nll_hat)
+      sprintf(
+        "absolute objective gap = %.12g nll (constrained = %.12g; fitted = %.12g)",
+        abs(at_fit$nll - nll_hat), at_fit$nll, nll_hat
+      )
     }
     return(drm_profile_failed_confint_row(
       target, level, "ordinal_constrained",
@@ -3430,7 +3472,8 @@ drm_profile_ordinal_cutpoint_confint <- function(object, target, level) {
       root_tol = 1e-4,
       max_bracket_steps = 40L,
       target_name = target$parm,
-      curvature_se = NA_real_
+      curvature_se = NA_real_,
+      remediation = "The constrained ordinal engine cannot use TMB::tmbprofile; inspect the fitted cutpoint and category support before retrying."
     )
   }
   result <- tryCatch(
@@ -3619,7 +3662,8 @@ profile_endpoint_crossing <- function(
   target_name,
   curvature_se = NA_real_,
   max_eval = NULL,
-  allow_lower_boundary = FALSE
+  allow_lower_boundary = FALSE,
+  remediation = "Try {.code profile_engine = \"tmbprofile\"} for the full profile path."
 ) {
   n_eval <- 0L
   last_free <- evaluator$start_free
@@ -3728,10 +3772,13 @@ profile_endpoint_crossing <- function(
   )
   root_error <- abs(root$f.root)
   if (!is.finite(root_error) || root_error > 5e-3) {
+    advice <- if (is.null(remediation)) character() else {
+      c(i = remediation)
+    }
     cli::cli_abort(c(
       "Endpoint profile root for target {.val {target_name}} did not satisfy the likelihood-ratio equation closely enough.",
       i = "Absolute root error: {format(root_error, digits = 4)}.",
-      i = "Try {.code profile_engine = \"tmbprofile\"} for the full profile path."
+      advice
     ))
   }
   list(
@@ -4564,7 +4611,28 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
   index <- match(parm, targets$parm)
   missing_index <- is.na(index)
   if (any(missing_index)) {
-    index[missing_index] <- match(parm[missing_index], aliases)
+    alias_matches <- lapply(parm[missing_index], function(one) which(aliases == one))
+    ambiguous_ordinal <- vapply(
+      alias_matches,
+      function(rows) {
+        length(rows) > 1L && any(targets$dpar[rows] == "ordinal")
+      },
+      logical(1L)
+    )
+    if (any(ambiguous_ordinal)) {
+      ambiguous <- parm[missing_index][ambiguous_ordinal]
+      labels <- sub("^ordinal:", "", ambiguous)
+      public_targets <- paste0("ordinal:cutpoint:", labels)
+      cli::cli_abort(c(
+        "Ordinal confidence-interval alias{?es} {.val {ambiguous}} {?is/are} ambiguous.",
+        i = "Use the public cutpoint target{?s} {.val {public_targets}} rather than an internal {.val ordinal:theta_ord:<label>} coordinate."
+      ))
+    }
+    index[missing_index] <- vapply(
+      alias_matches,
+      function(rows) if (length(rows)) rows[[1L]] else NA_integer_,
+      integer(1L)
+    )
   }
   missing_index <- is.na(index)
   if (any(missing_index)) {

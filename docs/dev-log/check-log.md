@@ -93216,6 +93216,28 @@ exercised those files. PR #1006 was merged before this job reported, on the reas
 permissive `match.arg()` change cannot break a passing test; that reasoning is now **confirmed rather
 than assumed**, which is the only reason it is worth writing down.
 
+## 2026-08-13 — ordinal cutpoint constrained-profile rebase review
+
+- Rebased the issue #967 implementation-only branch on `origin/main` at
+  `02b9041f0` and repaired all independent-review findings: absolute fitted
+  objective equality, raw-coordinate/alias diagnostics, ML-only routing,
+  fail-closed endpoint behavior, actionable Wald rejection, and a first
+  cutpoint `TMB::tmbprofile()` comparator.
+- Current focused check passed:
+  `R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'devtools::document(quiet = TRUE); devtools::load_all(quiet = TRUE); testthat::test_file("tests/testthat/test-profile-targets.R", reporter = "summary")'`.
+  It covers public cumulative thresholds, not raw `theta_ord` gaps, including
+  an interior threshold, independent likelihood oracle, `ordinal::clm`,
+  weighting, non-ML rejection, and a forced failed endpoint.
+- `pkgdown::check_pkgdown()` was clean. The `--as-cran` snapshot passed
+  compilation, installation, R code, Rd, examples, and vignettes but its
+  package-wide test phase predates the final ordinal repairs and also has
+  unrelated missing-response G4/G5 failures; the known Phase 18
+  `student_shape_grid` missing artifact is separately out of scope. This branch
+  neither repairs those foreign failures nor claims a green full check.
+- Claim boundary: implementation correctness only for unpenalized ML
+  cumulative-logit cutpoint profiles; no coverage, G5, DRAC, CRAN, or MSPL
+  promotion.
+
 **Scope of the claim.** These runs establish that the merged source passes on ubuntu, and that the
 docs site builds. They are **same-source** evidence for commit `4e4a915aa`: GitHub Actions checks out
 the source and builds its own tarball, so no run above examined the frozen candidate
