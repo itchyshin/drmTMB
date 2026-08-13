@@ -1853,10 +1853,9 @@ interval below is a profile-likelihood interval, so `conf.status` and
 
 The fit uses a constant residual correlation, `rho12 ~ 1`. That is deliberate:
 when `rho12` is modelled as a regression, `corpairs(conf.int = TRUE)` reports
-`conf.status = "newdata_required"` and returns no bounds, because there is no
-single scalar correlation to profile. That status is an instruction, not a
-dead end. Supply the covariate values you want and the interval is computed per
-row, either as a profile interval from
+`conf.status = "derived_interval_unavailable"` and returns no bounds, because
+there is no single scalar correlation to profile. Choose covariate values and
+compute a row-specific interval with
 `confint(fit, parm = "rho12", newdata = grid, method = "profile")` or as a Wald
 interval from `predict_parameters(fit, newdata = grid, dpar = "rho12",
 conf.int = TRUE)`. The constant `rho12 ~ 1` profile interval is a finite
@@ -2559,7 +2558,7 @@ gallery_source_map <- data.frame(
     "empirical marginalisation, not emmeans",
     "unsupported targets remain unsupported",
     "fixed-effect univariate mu",
-    "constant residual rho12 only; a rho12 regression returns conf.status = \"newdata_required\"",
+    "constant residual rho12 only; a rho12 regression summary returns conf.status = \"derived_interval_unavailable\"",
     "layout fixture; no fit produces all six rows together",
     "partial q4 location-scale blocks for spatial, animal, and relmat (recovery-grade); regression and remaining richer paths planned",
     "display grammar for later result articles"

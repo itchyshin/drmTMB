@@ -93343,3 +93343,31 @@ can see which commit each one actually examined.
 - Tracker: issue #967 remains the existing ordinal-cutpoint interval decision;
   no duplicate issue was opened. No code, formula grammar, capability ledger,
   interval calibration, or release claim changed.
+
+## 2026-08-13 — reader-journey reliability, baseline and public-status repair
+
+- The ten native article-shaped journeys are now executable test coverage, not
+  only a manually-run audit. `test-reader-journeys.R` runs the generic smoke
+  in a temporary receipt and separately checks response-scale ordinal
+  probabilities and missing-response row alignment.
+- The prior audit label is narrowed to **generic post-fit smoke**. It does not
+  claim that `summary()` is a complete reporting endpoint for every model.
+- The cumulative-logit missing-response fixture now freezes truths for both
+  internal ordinal coordinates and the public ordered-cutpoint targets. This
+  repairs the exact-name manifest failure exposed after PR #1024 without
+  changing a campaign, ledger row, or calibration claim.
+- `corpairs(conf.int = TRUE)` now reports
+  `derived_interval_unavailable` for a modelled aggregate correlation row:
+  supplying `newdata` can profile a particular row through `confint()`, but
+  cannot create an interval for an average-and-range summary. The reader
+  wording is synchronized in the capability, spatial/phylogenetic, and known-
+  limitations surfaces.
+- Checks: the ten-journey integration test passed; a direct cumulative-logit
+  manifest smoke confirmed both public cutpoint truths; a direct modelled-
+  `rho12` smoke confirmed the repaired status; `test-corpairs.R` passed;
+  `test-profile-targets.R` completed without a reported failure;
+  `pkgdown::check_pkgdown()` reported no problems; and
+  `missing-data.Rmd` rendered after one public residual-column-name repair.
+- Not yet a full-package/CRAN claim: the all-route G4/G5 foundation test is a
+  long profile exercise, and the full suite/`--as-cran` gate remains the next
+  validation step before this slice can be promoted or merged.

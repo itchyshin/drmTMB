@@ -1168,7 +1168,10 @@ corpairs_conf_status <- function(pairs, target_rows, target_index) {
               identical(pairs$level[[i]], "group") ||
               identical(pairs$level[[i]], "phylogenetic"))
         ) {
-          return("newdata_required")
+          # `corpairs()` summarizes a modelled surface over fitted rows. A
+          # supplied `newdata` can profile a particular row via `confint()`,
+          # but cannot turn this aggregate summary into a scalar target.
+          return("derived_interval_unavailable")
         }
         return("target_unavailable")
       }

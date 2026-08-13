@@ -1071,8 +1071,8 @@ confint(
 )
 ```
 
-`corpairs(conf.int = TRUE)` still reports `newdata_required` for the modelled
-summary row because that row averages and ranges over group-level or
+`corpairs(conf.int = TRUE)` reports `derived_interval_unavailable` for the
+modelled summary row because that row averages and ranges over group-level or
 species-level correlation values. Neither predictor-dependent q2 example above
 has coverage-backed interval validation, so do not use those diagnostic
 profiles as reporting intervals. q=4 rows still need a fix-and-refit or

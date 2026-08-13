@@ -483,8 +483,8 @@ and what to do about each one.
 **Regression-parameterised coscale intervals are computable, but not
 coverage-certified.** If your `rho12` formula depends on a covariate
 (`rho12 ~ x`), `corpairs(fit, conf.int = TRUE)` reports
-`conf.status = "newdata_required"` and no bounds until you supply the
-covariate values. Use `confint(fit, parm = "rho12", newdata = grid,
+`conf.status = "derived_interval_unavailable"` because its one-row summary
+averages a fitted surface. Use `confint(fit, parm = "rho12", newdata = grid,
 method = "profile")` for row-specific profile intervals, or
 `predict_parameters(fit, newdata = grid, dpar = "rho12", conf.int = TRUE)`
 for the corresponding Wald intervals. The same evidence boundary applies to

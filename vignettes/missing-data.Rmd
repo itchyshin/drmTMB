@@ -246,15 +246,17 @@ number of retained rows:
 
 ```{r}
 nobs(fit_response)
-fit_response$missing_data$counts
+length(fitted(fit_response))
+sum(is.na(residuals(fit_response)))
 ```
 
-The fitted object preserves original-row accounting:
+The fitted and residual vectors preserve the input row order, so row accounting
+does not require inspecting fit internals:
 
 ```{r}
 head(data.frame(
-  original_row = fit_response$missing_data$original_row,
-  observed_y = fit_response$missing_data$observed_y,
+  original_row = seq_along(fitted(fit_response)),
+  observed_y = !is.na(residuals(fit_response)),
   fitted = fitted(fit_response),
   residual = residuals(fit_response)
 ), 10)
@@ -308,8 +310,11 @@ fit_pair <- drmTMB(
   control = drm_control(se = FALSE)
 )
 
-fit_pair$missing_data$counts
-table(fit_pair$missing_data$response_pattern)
+pair_residuals <- residuals(fit_pair)
+table(
+  activity_observed = !is.na(pair_residuals[, 1]),
+  boldness_observed = !is.na(pair_residuals[, 2])
+)
 ```
 
 Use the response-pattern counts before interpreting `rho12`. If complete pairs

@@ -126,6 +126,19 @@ test_that("every truth constant sits on the scale its profile target reports (#9
   # reconstructing the cutpoints must recover the DGP's own boundaries
   expect_equal(c(t1, t1 + exp(t2)), c(-0.90, 0.75), tolerance = 1e-12)
 
+  # The public profile targets report cumulative thresholds, never the raw
+  # log-gap used by the second internal coordinate.
+  expect_equal(
+    cl$truth[cl$parm == "ordinal:cutpoint:low|medium"],
+    -0.90,
+    tolerance = 1e-12
+  )
+  expect_equal(
+    cl$truth[cl$parm == "ordinal:cutpoint:medium|high"],
+    0.75,
+    tolerance = 1e-12
+  )
+
   # every truth must at least be finite and named
   for (route in names(manifests)) {
     m <- manifests[[route]]

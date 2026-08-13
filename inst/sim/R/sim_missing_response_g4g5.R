@@ -444,7 +444,12 @@ mr_g4g5_t4_dgp <- function(route, information_multiplier = 1, seed = NULL) {
       # #981: internal cutpoints are log-increments (c_1 = theta_1,
       # c_j = c_{j-1} + exp(theta_j)) and R/profile.R reports scale = "internal".
       # The second cutpoint sits at 0.75, so its parameter is log(0.75 - (-0.90)).
-      "ordinal:theta_ord:medium|high" = log(.75 - (-.90)))
+      "ordinal:theta_ord:medium|high" = log(.75 - (-.90)),
+      # Public cutpoint targets are on the ordered latent-logistic threshold
+      # scale. Keep both coordinate and public truths in the frozen manifest:
+      # they are distinct canonical targets and must never be silently dropped.
+      "ordinal:cutpoint:low|medium" = -.90,
+      "ordinal:cutpoint:medium|high" = .75)
   }
   list(data=data, truth=truth, information_multiplier=information_multiplier)
 }
