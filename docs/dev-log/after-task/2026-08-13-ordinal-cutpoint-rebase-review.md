@@ -42,6 +42,11 @@ ledger status, or simulation artifact changes in this receipt.
   geometry, and first-cutpoint agreement with `TMB::tmbprofile()`.
 - `pkgdown::check_pkgdown()` reported no problems before the tests-only final
   repair set; `git diff --check` is clean.
+- PR CI initially found the generated missing-response capability include stale.
+  Regenerating it with `python3 tools/capability_ledger.py --write` changed only
+  its ordinal row, preserving the statement that the pre-existing G5 claim is
+  for `fixef:mu:x` only and does not calibrate cutpoint intervals. The generator
+  check and its ledger/profile-truth unit tests passed locally.
 - A `devtools::check(args = "--as-cran")` snapshot passed compilation,
   installation, R code, Rd, examples, and vignettes. Its package-wide test
   phase was red because it was built before the final ordinal-test repairs

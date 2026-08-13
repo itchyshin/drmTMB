@@ -93234,6 +93234,11 @@ than assumed**, which is the only reason it is worth writing down.
   unrelated missing-response G4/G5 failures; the known Phase 18
   `student_shape_grid` missing artifact is separately out of scope. This branch
   neither repairs those foreign failures nor claims a green full check.
+- PR #1024 CI required a regenerated
+  `vignettes/includes/capability-ledger-missing-response.md`. Its single
+  changed row keeps ordinal cutpoints outside the existing G5 key; the
+  generator, `--check`, capability-ledger unit test, and profile-truth unit
+  test passed. No status claim moved.
 - Claim boundary: implementation correctness only for unpenalized ML
   cumulative-logit cutpoint profiles; no coverage, G5, DRAC, CRAN, or MSPL
   promotion.
