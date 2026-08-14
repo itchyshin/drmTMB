@@ -167,6 +167,17 @@ test_that("zero-one-beta sigma random-intercept response mask matches observed d
   expect_gt(cor(fit_mask$random_effects$sigma$values, u), 0.35)
 })
 
+test_that("zero-one-beta zoi random-intercept response mask matches observed data", {
+  set.seed(2026081566L); id <- factor(rep(seq_len(50L), each = 32L)); n <- length(id)
+  x <- rnorm(n); u <- rnorm(50L, sd = .45); mu <- plogis(-.2 + .65*x); sig <- exp(-.85)
+  zoi <- plogis(-1 + u[id]); y <- rbeta(n, mu/sig^2, (1-mu)/sig^2); y[runif(n)<zoi] <- 0
+  d <- data.frame(y,x,id); m <- missing_response_mask_mcar_within_group(d,"y","id",seed=2026081568L); o <- !is.na(m$y)
+  f <- bf(y~x,sigma~1,zoi~1+(1|id),coi~1)
+  a <- drmTMB(f,zero_one_beta(),m,missing=miss_control(response="include"),control=drm_control(se=FALSE)); b <- drmTMB(f,zero_one_beta(),m[o,],control=drm_control(se=FALSE))
+  expect_equal(coef(a,"zoi"),coef(b,"zoi"),tolerance=1e-5); expect_equal(a$sdpars$zoi,b$sdpars$zoi,tolerance=1e-5); expect_equal(as.numeric(logLik(a)),as.numeric(logLik(b)),tolerance=1e-5)
+  expect_missing_response_sentinel_invariant(a,sentinels=c(0,1)); expect_lt(abs(unname(a$sdpars$zoi)-.45),.25); expect_gt(cor(a$random_effects$zoi$values,u),.35)
+})
+
 test_that("zero-one-beta mu random-slope response mask matches observed data", {
   case <- mr_t3_zero_one_beta_data(n = 1600L, seed = 2026081520L)
   dat <- case$data

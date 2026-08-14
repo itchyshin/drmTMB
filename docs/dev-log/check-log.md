@@ -93844,3 +93844,9 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote other zero-one-beta random effects,
   correlated or structured effects, REML, another family, or missing predictors.
+
+## 2026-08-14 — zero-one-beta ML zoi random-intercept response mask
+
+- `mc-0569` is now G3 validated for `zoi ~ 1 + (1 | id)` with response masking.
+  The former missing-response front-door abort was removed after the masked
+  observed-data equality, sentinel, and deterministic recovery test passed.

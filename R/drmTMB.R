@@ -5735,12 +5735,6 @@ drm_build_zero_one_beta_spec <- function(
     sigma_terms = sigma_re$terms,
     zoi_terms = zoi_re$terms
   )
-  if (include_missing_response && length(zoi_re$terms) > 0L) {
-    cli::cli_abort(c(
-      "The zero-one-beta zoi q1 random-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with either {.code zoi ~ 1 + (1 | id)} or the same-raw-symbol slope form {.code zoi ~ x + (0 + x | id)}."
-    ))
-  }
   if (include_missing_response && length(coi_re$terms) > 0L) {
     cli::cli_abort(c(
       "The zero-one-beta coi q1 random-effect gate does not support missing responses.",
