@@ -1900,6 +1900,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
+    "mc-0422": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 log-sigma TMB-objective and numerical-gradient equality, observed-"
+            "row fit equality, and direct count-response sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact NB2 ML formula `y ~ x`, `sigma ~ spatial(1 + x "
+            "| site, coords = coords)`. The larger non-Gaussian fixture has 128 sites, 32 observations "
+            "per site, one masked response per site, and nonzero spatial log-sigma intercept and slope "
+            "fields. It checks fixed location, fixed log-sigma, and both sigma-side spatial SDs. It "
+            "does not promote location-side structured effects, other providers, labelled covariance, "
+            "REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
 }
 
 

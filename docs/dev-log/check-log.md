@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — NB2 spatial log-sigma response-mask recovery
+
+- `rmf-mc-0422` is now G3 for the exact ML formula
+  `y ~ x, sigma ~ spatial(1 + x | site, coords = coords)`. The non-Gaussian
+  fixture has 128 sites, 32 observations per site, one masked response per
+  site, and nonzero spatial intercept and slope fields on log-sigma.
+- G2 uses a conditional NB2 log-sigma likelihood plus spatial precision oracle
+  and numerical gradients; direct count-sentinel retapes and observed-row fit
+  equality also pass. G3 recovers fixed location, fixed log-sigma, and both
+  sigma-side spatial SDs. This does not certify location-side structure,
+  another provider, labelled covariance, REML, missing predictors, intervals,
+  or coverage.
+- Check: isolated 4,096-row response-mask test, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — NB2 phylogenetic log-sigma response-mask recovery
 
 - `rmf-mc-0421` is now G3 for the exact ML formula

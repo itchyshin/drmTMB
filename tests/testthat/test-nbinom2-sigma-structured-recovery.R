@@ -65,6 +65,46 @@ new_nb2_sigma_phylo_slope_data <- function(
   )
 }
 
+new_nb2_sigma_spatial_slope_data <- function(
+  seed = 2026081754L,
+  n_site = 128L,
+  n_each = 32L,
+  sd_intercept = 0.55,
+  sd_slope = 0.35,
+  beta_mu = c(`(Intercept)` = 0.55, x = -0.15),
+  beta_sigma = c(`(Intercept)` = -0.40)
+) {
+  set.seed(seed)
+  levels <- paste0("site", seq_len(n_site))
+  theta <- seq(0, 1.75 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (4 * n_site), y = sin(theta)
+  )
+  rownames(coords) <- levels
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords, site = levels, group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  draw_field <- function(sd) {
+    out <- as.vector(t(chol(covariance)) %*% stats::rnorm(n_site, sd = sd))
+    names(out) <- levels
+    out
+  }
+  spatial_intercept <- draw_field(sd_intercept)
+  spatial_slope <- draw_field(sd_slope)
+  site <- rep(levels, each = n_each)
+  x <- stats::rnorm(length(site))
+  log_sigma <- beta_sigma[["(Intercept)"]] + spatial_intercept[site] +
+    x * spatial_slope[site]
+  eta_mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x
+  y <- stats::rnbinom(length(site), mu = exp(eta_mu), size = exp(-2 * log_sigma))
+  list(
+    data = data.frame(y = y, x = x, site = site), coords = coords,
+    beta_mu = beta_mu, beta_sigma = beta_sigma,
+    sd_intercept = sd_intercept, sd_slope = sd_slope
+  )
+}
+
 nb2_sigma_phylo_slope_nll <- function(fit, par) {
   data <- fit$model$tmb_data
   n_phylo <- nrow(data$Q_phylo)
@@ -141,6 +181,48 @@ test_that("NB2 phylo log-sigma response mask has oracle and recovery evidence", 
   observed <- !is.na(dat$y)
   tree <- sim$tree
   formula <- bf(y ~ x, sigma ~ phylo(1 + x | sp, tree = tree))
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), nb2_sigma_phylo_slope_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_sigma_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.20)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.15)
+  expect_lt(abs(coef(fit_masked, "sigma")[["(Intercept)"]] - sim$beta_sigma[["(Intercept)"]]), 0.20)
+  expect_lt(abs(unname(fit_masked$sdpars$sigma[[1L]]) - sim$sd_intercept), 0.25)
+  expect_lt(abs(unname(fit_masked$sdpars$sigma[[2L]]) - sim$sd_slope), 0.22)
+})
+
+test_that("NB2 spatial log-sigma response mask has oracle and recovery evidence", {
+  sim <- new_nb2_sigma_spatial_slope_data()
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 32L)] <- NA_integer_
+  observed <- !is.na(dat$y)
+  coords <- sim$coords
+  formula <- bf(y ~ x, sigma ~ spatial(1 + x | site, coords = coords))
   fit_masked <- drmTMB(
     formula, family = nbinom2(), data = dat,
     missing = miss_control(response = "include"), control = drm_control(se = FALSE)
