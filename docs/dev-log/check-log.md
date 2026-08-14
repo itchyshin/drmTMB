@@ -93821,3 +93821,15 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote slopes, correlated or structured
   effects, other binomial REML formulas, another family, or missing predictors.
+
+## 2026-08-14 — grouped-binomial REML mu random-slope response mask
+
+- `mc-0062` is now `formula_validated` at G3 for the admitted grouped-binomial
+  REML formula `cbind(success, failure) ~ x + (0 + x | id)`. The masked and
+  observed-row REML fits agree in mu, slope SD, and likelihood; encoded
+  response sentinels are inert; and deterministic 25% MCAR recovery covers the
+  fixed, slope-SD, and conditional slope-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-binomial")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote correlated or structured effects,
+  other binomial REML formulas, another family, or missing predictors.

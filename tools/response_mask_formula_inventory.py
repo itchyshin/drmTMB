@@ -615,6 +615,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for the remaining admitted binomial REML geometry.",
     },
+    "mc-0062": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-row REML parameter and likelihood equality, plus direct grouped-"
+            "binomial response-sentinel retapes, and G3 deterministic 25% MCAR known-DGP "
+            "recovery validate the binomial univariate ordinary mu independent random-slope "
+            "REML response-mask formula `(0 + x | id)`. The check covers fixed mu "
+            "coefficients, the mu random-slope SD, and conditional slope-effect recovery. "
+            "It does not promote correlated or structured effects, other binomial REML "
+            "formulas, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add formula-specific evidence for each remaining binomial REML geometry.",
+    },
 }
 
 
