@@ -130,6 +130,34 @@ student_spatial_fixture <- function(
   )
 }
 
+student_phylo_nu_fixture <- function(
+  n_tip = 48L, n_each = 200L, seed = 2026081805L
+) {
+  set.seed(seed)
+  tree <- ape::chronos(ape::rtree(n_tip), lambda = 1, quiet = TRUE)
+  levels_id <- tree$tip.label
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree, species = levels_id)
+  latent <- as.vector(
+    t(chol(solve(as.matrix(precision$precision)))) %*%
+      stats::rnorm(nrow(precision$precision), sd = 0.85)
+  )
+  names(latent) <- rownames(precision$precision)
+  id <- factor(rep(levels_id, each = n_each), levels = levels_id)
+  x <- stats::rnorm(length(id))
+  beta_mu <- c("(Intercept)" = 0.2, x = 0.45)
+  beta_sigma <- log(0.28)
+  beta_nu <- log(8)
+  eta_nu <- beta_nu + latent[as.character(id)]
+  y <- beta_mu[[1L]] + beta_mu[[2L]] * x + exp(beta_sigma) * stats::rt(
+    length(id), df = 2 + exp(eta_nu)
+  )
+  list(
+    data = data.frame(y = y, x = x, id = id), tree = tree,
+    beta_mu = beta_mu, beta_sigma = beta_sigma, beta_nu = beta_nu,
+    sd_nu = 0.85
+  )
+}
+
 test_that("non-count structured mu one-slope cells fit and expose intercept + slope SDs", {
   testthat::skip_if_not_installed("ape")
 
@@ -463,4 +491,47 @@ test_that("Student spatial mu intercept-slope response mask has oracle and recov
   expect_lt(abs(coef(fit_masked, "nu")[[1L]] - sim$beta_nu), 0.40)
   expect_lt(abs(fit_masked$sdpars$mu[["spatial(1 | id)"]] - sim$sd_intercept), 0.28)
   expect_lt(abs(fit_masked$sdpars$mu[["spatial(0 + x | id)"]] - sim$sd_slope), 0.28)
+})
+
+test_that("Student phylo nu response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  sim <- student_phylo_nu_fixture()
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 200L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  tree <- sim$tree
+  formula <- bf(y ~ x, sigma ~ 1, nu ~ phylo(1 | id, tree = tree))
+  fit_masked <- drmTMB(
+    formula, family = student(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = student(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), student_structured_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), beta_animal_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(-2, 2))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "nu"), coef(fit_observed, "nu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$nu, fit_observed$sdpars$nu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.10)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$beta_sigma), 0.10)
+  expect_lt(abs(coef(fit_masked, "nu")[[1L]] - sim$beta_nu), 0.35)
+  expect_lt(abs(fit_masked$sdpars$nu[["phylo(1 | id)"]] - sim$sd_nu), 0.30)
 })

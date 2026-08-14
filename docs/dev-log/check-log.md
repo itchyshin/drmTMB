@@ -94943,6 +94943,20 @@ can see which commit each one actually examined.
   slopes, another provider, the phylogenetic `nu` formula, REML,
   interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Student phylogenetic shape response mask
+
+- `mc-0495` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1, nu ~
+  phylo(1 | id, tree = tree)`. A direct observed-data Student-t objective and
+  numerical-gradient oracle, continuous response-sentinel checks, and
+  masked-versus-observed fit equality test the response mask. The deterministic
+  recovery fixture has 48 ultrametric-tree tips and 200 observations per tip;
+  this larger sample is needed because the structured effect changes tail shape,
+  not the mean. It recovers fixed location, constant scale, fixed `nu`, and the
+  phylogenetic `nu` SD.
+- Check: the focused `Student phylo nu response mask` test passed. This does not
+  promote a `mu` formula, another provider or endpoint, labelled/correlated
+  blocks, REML, interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one

@@ -404,6 +404,23 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Validate the Student phylogenetic nu formula separately; do not use this mu evidence for another endpoint.",
     },
+    "mc-0495": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct Student-t observed-data objective and numerical-gradient "
+            "equality, direct continuous-sentinel retapes, and masked-versus-observed "
+            "fit equality validate `y ~ x, sigma ~ 1, nu ~ phylo(1 | id, tree = "
+            "tree)`. G3 uses a deterministic 48-tip, 200-observation-per-tip "
+            "tail-information fixture to recover fixed location, constant log-scale, "
+            "fixed shape, and the phylogenetic nu SD. This is not mu-side spatial "
+            "evidence, another provider, another structured endpoint, a labelled or "
+            "correlated block, REML, interval or coverage evidence, or missing-predictor "
+            "support."
+        ),
+        "next_gate": "Validate any other admitted Student formula separately; do not reuse this nu-side evidence for a mu formula.",
+    },
     **{
         cell_id: {
             "formula_status": "not_admitted",
