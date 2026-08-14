@@ -245,6 +245,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent observed-response oracle and recovery design for each remaining NB2 geometry.",
     },
+    "mc-0402": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case likelihood and parameter equality, "
+            "plus direct sentinel retapes, and G3 deterministic 25% MCAR "
+            "known-DGP recovery validate the NB2 univariate ordinary mu "
+            "independent random-slope ML response-mask formula `(0 + x | id)` "
+            "with fixed sigma regression. The check covers fixed mu and sigma "
+            "coefficients, the mu random-slope SD, and conditional slope-effect "
+            "recovery. It does not promote sigma random effects, correlated "
+            "blocks, structured effects, bivariate, REML, another family, or "
+            "missing-predictor formulas."
+        ),
+        "next_gate": "Add an independent observed-response oracle and recovery design for each remaining NB2 geometry.",
+    },
     "mc-0005": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

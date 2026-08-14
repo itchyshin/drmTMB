@@ -93579,3 +93579,15 @@ can see which commit each one actually examined.
   generation, generated-ledger drift check, and `git diff --check` passed.
   This is not evidence for correlated blocks, structured effects, bivariate,
   REML, another response family, or missing-predictor formulas.
+
+## 2026-08-14 — NB2 ML independent random-slope response mask
+
+- `mc-0402` is now `formula_validated` at G3 for the exact NB2 formula
+  `y ~ x + (0 + x | id), sigma ~ z`.  The masked and observed-data fits agree
+  in fixed mu/sigma coefficients, random-slope SD, and log likelihood;
+  sentinels are inert; and the deterministic 25% MCAR DGP recovers the named
+  fixed, dispersion, slope-SD, and conditional slope-effect targets.
+- Check: `NOT_CRAN=true` `test-missing-response-nbinom2.R` passed; inventory
+  generation, generated-ledger drift check, and `git diff --check` passed.
+  This does not promote sigma random effects, correlated blocks, structured
+  effects, bivariate, REML, another response family, or missing predictors.
