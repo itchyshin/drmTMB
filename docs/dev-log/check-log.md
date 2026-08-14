@@ -1,5 +1,18 @@
 # Check Log
 
+## 2026-08-14 — bivariate response-mask inventory unit repair
+
+- The bivariate `mc-0069`/`mc-0070` rows were endpoint fragments, not accepted
+  formulas: the parser refuses either unlabelled `(1 | id)` or a labelled `mu1`
+  term without a matching labelled `mu2` partner. They are now marked
+  `not_admitted` at G0 rather than incorrectly shown as pending formula evidence.
+- Added `rmf-biv-gaussian-mu12-labelled-intercept`, the actual accepted
+  `mu1 ~ (1 | p | id), mu2 ~ (1 | p | id)` ML formula cell. It remains G1 and
+  needs a partial-response oracle including the random-effect prior, followed by
+  joint SD/correlation recovery. No support claim changed.
+- Check: response-mask inventory generation, capability-ledger drift check, and
+  `git diff --check` passed.
+
 ## 2026-08-14 — Tweedie ML random-intercept response mask
 
 - `mc-0538` is now `formula_validated` at G3 for `y ~ x + (1 | id), sigma ~ z,

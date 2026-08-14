@@ -29,6 +29,33 @@ FIELDS = [
 
 EXPLICIT_BOUNDARIES = (
     {
+        "formula_cell_id": "rmf-biv-gaussian-mu12-labelled-intercept",
+        "model_cell_id": "mc-0069,mc-0070",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_labelled_mu1_mu2_intercept",
+        "route_modifier": "covariance_block",
+        "dpar": "mu1+mu2",
+        "effect_type": "labelled_covariance_block",
+        "structure_provider": "none",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "needs_formula_evidence",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched labelled block "
+            "`mu1 ~ (1 | p | id)`, `mu2 ~ (1 | p | id)`, not either endpoint "
+            "alone. Family-level response-mask evidence and the existing fixed-effect "
+            "partial-response oracle do not validate this latent covariance block."
+        ),
+        "next_gate": (
+            "Add a partial-response observed-data oracle that includes the labelled "
+            "random-effect prior, then a known-DGP recovery fixture for both SDs and their correlation."
+        ),
+    },
+    {
         "formula_cell_id": "rmf-biv-gaussian-meta-v-partial",
         "model_cell_id": "",
         "family_type": "biv_gaussian",
@@ -57,6 +84,23 @@ EXPLICIT_BOUNDARIES = (
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
+    **{
+        cell_id: {
+            "formula_status": "not_admitted",
+            "formula_mask_gate": "G0",
+            "replace_model_claim": True,
+            "claim_boundary": (
+                "This endpoint-only bivariate random-effect fragment is not an accepted "
+                "formula. The parser requires a matched labelled covariance block across "
+                "mu1 and mu2, or a same-response mu/sigma pair; it rejects an unlabelled "
+                "term and a labelled endpoint without its partner. The corresponding accepted "
+                "intercept block is represented separately as "
+                "`rmf-biv-gaussian-mu12-labelled-intercept`."
+            ),
+            "next_gate": "Keep the endpoint fragment absent; validate the paired labelled formula cell instead.",
+        }
+        for cell_id in ("mc-0069", "mc-0070")
+    },
     **{
         cell_id: {
             "formula_status": "formula_oracle_validated",
@@ -829,6 +873,10 @@ def build(rows: list[dict[str, str]]) -> list[dict[str, str]]:
             raise ValueError(f"{row['cell_id']}: no missing-response family row")
         family = missing[row["family_route"]]
         status, gate, next_gate, claim_prefix = formula_gate(row)
+        evidence = FORMULA_EVIDENCE.get(row["cell_id"], {})
+        claim_boundary = claim_prefix
+        if not evidence.get("replace_model_claim", False):
+            claim_boundary += row["claim_boundary"]
         result.append({
             "formula_cell_id": f"rmf-{row['cell_id']}",
             "model_cell_id": row["cell_id"],
@@ -845,10 +893,7 @@ def build(rows: list[dict[str, str]]) -> list[dict[str, str]]:
             "formula_status": status,
             "family_mask_gate": family["test_gate"],
             "formula_mask_gate": gate,
-            "claim_boundary": (
-                claim_prefix
-                + row["claim_boundary"]
-            ),
+            "claim_boundary": claim_boundary,
             "next_gate": next_gate,
         })
     return result + list(EXPLICIT_BOUNDARIES)
