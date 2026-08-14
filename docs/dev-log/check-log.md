@@ -93773,3 +93773,14 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote sigma slopes, mu random effects,
   correlated or structured effects, REML, another family, or missing predictors.
+
+## 2026-08-14 — lognormal ML sigma random-intercept response mask
+
+- `mc-0382` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1 + (1 | id)`.
+  The masked and observed-data fits agree in fixed coefficients, sigma SD, and
+  likelihood; positive-response sentinels are inert; and deterministic 25% MCAR
+  recovery covers fixed, sigma-SD, and conditional sigma-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-continuous")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote sigma slopes, mu random effects,
+  correlated or structured effects, REML, another family, or missing predictors.
