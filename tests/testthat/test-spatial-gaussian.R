@@ -232,6 +232,57 @@ new_spatial_sigma_slope_gaussian_data <- function(
   )
 }
 
+new_spatial_location_scale_gaussian_slope_data <- function(
+  seed = 2026081617L,
+  n_site = 64L,
+  n_each = 24L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_mu = c(`(Intercept)` = 0.30, x = 0.18),
+  sd_sigma = c(`(Intercept)` = 0.24, x = 0.15)
+) {
+  set.seed(seed)
+  site_levels <- paste0("site_", seq_len(n_site))
+  theta <- seq(0, 1.5 * pi, length.out = n_site)
+  coords <- data.frame(
+    x = cos(theta) + seq_len(n_site) / (3 * n_site),
+    y = sin(theta)
+  )
+  rownames(coords) <- site_levels
+  precision <- drmTMB:::drm_spatial_coords_precision(
+    coords, site = site_levels, group = "site"
+  )
+  covariance <- solve(as.matrix(precision$precision))
+  draw_spatial_field <- function(sd) {
+    as.vector(t(chol(covariance)) %*% stats::rnorm(n_site, sd = sd))
+  }
+  spatial_mu_intercept <- draw_spatial_field(sd_mu[["(Intercept)"]])
+  spatial_mu_slope <- draw_spatial_field(sd_mu[["x"]])
+  spatial_sigma_intercept <- draw_spatial_field(sd_sigma[["(Intercept)"]])
+  spatial_sigma_slope <- draw_spatial_field(sd_sigma[["x"]])
+  names(spatial_mu_intercept) <- site_levels
+  names(spatial_mu_slope) <- site_levels
+  names(spatial_sigma_intercept) <- site_levels
+  names(spatial_sigma_slope) <- site_levels
+
+  site <- rep(site_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
+  mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    spatial_mu_intercept[site] + spatial_mu_slope[site] * x
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    spatial_sigma_intercept[site] + spatial_sigma_slope[site] * x
+  y <- mu + exp(log_sigma) * stats::rnorm(length(site))
+
+  list(
+    data = data.frame(y = unname(y), x = x, site = site),
+    coords = coords,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu = sd_mu,
+    sd_sigma = sd_sigma
+  )
+}
+
 new_biv_spatial_gaussian_data <- function(
   seed = 20260582,
   n_site = 8L,
@@ -1236,6 +1287,50 @@ test_that("Gaussian supports matched one-slope spatial location-scale fields", {
   expect_named(spatial_re$terms, c(mu_names, sigma_names))
   expect_length(spatial_re$values, 4L * nrow(sim$coords))
   expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("Gaussian matched one-slope spatial location-scale masks match observed data", {
+  sim <- new_spatial_location_scale_gaussian_slope_data()
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081618L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + spatial(1 + x | site, coords = coords),
+    sigma ~ spatial(1 + x | site, coords = coords)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
+  )
 })
 
 test_that("spatial labelled one-slope location blocks expose partial q4 members", {

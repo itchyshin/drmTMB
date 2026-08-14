@@ -94121,3 +94121,20 @@ can see which commit each one actually examined.
   passed. This does not promote labelled/q2 blocks, mu-side spatial effects,
   another provider, bivariate or REML formulas, interval/coverage evidence, or
   missing predictors.
+
+## 2026-08-14 — paired Gaussian spatial location-scale one-slope response mask
+
+- `mc-0293` and `mc-0294` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + spatial(1 + x | site, coords = coords), sigma ~
+  spatial(1 + x | site, coords = coords)`. The missing-response fit agrees
+  with the observed-response fit in fixed coefficients, all four spatial SDs,
+  likelihood, and `nobs()`; continuous sentinels are inert. A deterministic
+  25% MCAR DGP with 64 sites and 24 observations per site has separate mu
+  intercept, mu slope, sigma intercept, and sigma slope fields, and recovers
+  all four fitted SD targets.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-spatial-gaussian.R")`
+  passed. The first 64-by-20 rung missed the fixed log-scale intercept bound by
+  0.0013, so the retained test uses 24 within-site observations with the
+  original recovery bounds. This does not promote either endpoint alone, a
+  labelled/correlated or q4+ block, another provider, bivariate or REML
+  formulas, interval/coverage evidence, or missing predictors.

@@ -254,6 +254,28 @@ FORMULA_EVIDENCE = {
             "formula_status": "formula_validated",
             "formula_mask_gate": "G3",
             "claim_boundary": (
+                "This row is one component of the paired univariate Gaussian q2 spatial "
+                "location-scale one-slope formula `y ~ x + spatial(1 + x | site, coords = "
+                "coords), sigma ~ spatial(1 + x | site, coords = coords)`; neither endpoint "
+                "is promoted alone. G2 masked-versus-observed-data equality covers fixed mu "
+                "and sigma coefficients, all four named spatial SDs, and likelihood; direct "
+                "continuous-response sentinel retapes and G3 deterministic 25% MCAR recovery "
+                "cover the same four-field block. The fixture has 64 sites and 24 observations "
+                "per site. The ledger's q2 label denotes the paired mu/sigma formula cell; this "
+                "unlabelled formula fits four independent coefficient-level spatial fields and "
+                "exposes no cross-axis correlation target. This does not promote either endpoint "
+                "alone, a labelled/correlated or q4+ block, another provider, bivariate, REML, "
+                "interval/coverage, or missing-predictor formulas."
+            ),
+            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
+        }
+        for cell_id in ("mc-0293", "mc-0294")
+    },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
                 "This row is one component of the paired univariate Gaussian q2 phylogenetic "
                 "location-scale formula `y ~ x + phylo(1 | species, tree = tree), sigma ~ "
                 "phylo(1 | species, tree = tree)`; neither endpoint is promoted alone. G2 "
