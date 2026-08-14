@@ -136,6 +136,45 @@ test_that("poisson response mask combines with a random-effect mu term", {
   expect_equal(sum(!fit$missing_data$observed_y), length(miss))
 })
 
+test_that("Poisson random-intercept response mask matches observed-data fit", {
+  # Formula-level G2: this has to retain all rows for the random-effect
+  # structure while contributing only observed responses to the likelihood.
+  set.seed(2026081401)
+  n_id <- 36L
+  n_each <- 12L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rep(seq(-1, 1, length.out = n_each), n_id)
+  truth_sd <- 0.5
+  u <- rnorm(n_id, sd = truth_sd)
+  dat <- data.frame(id, x)
+  dat$y <- rpois(nrow(dat), exp(0.35 + 0.4 * x + u[id]))
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081402
+  )
+  observed <- !is.na(masked$y)
+
+  fit_mask <- drmTMB(
+    bf(y ~ x + (1 | id)), family = poisson(), data = masked,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(y ~ x + (1 | id)), family = poisson(),
+    data = masked[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-8)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-8)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-8
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 11))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(0.35, 0.4))), 0.3)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.3)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.35)
+})
+
 test_that("poisson response mask rejects response plus mi() predictor combos", {
   dd <- missing_response_poisson_data()
   d2 <- dd$masked

@@ -199,6 +199,21 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining phylo geometry.",
     },
+    "mc-0429": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case likelihood and parameter equality, "
+            "plus direct sentinel retapes, and G3 deterministic 25% MCAR "
+            "known-DGP recovery validate the Poisson univariate ordinary mu "
+            "random-intercept ML response-mask formula `(1 | id)`. The check "
+            "covers fixed mu coefficients, the mu random-intercept SD, and "
+            "conditional random-effect recovery. It does not promote Poisson "
+            "random slopes, correlated blocks, structured effects, bivariate, "
+            "REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add an independent observed-response oracle and recovery design for each remaining Poisson geometry.",
+    },
 }
 
 
