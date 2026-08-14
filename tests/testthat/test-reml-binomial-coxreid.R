@@ -247,7 +247,7 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
       missing = miss_control(response = "include"),
       REML = TRUE
     ),
-    "`REML` is not implemented with explicit missing-data engines yet",
+    "univariate Gaussian response masks",
     fixed = TRUE
   )
 })

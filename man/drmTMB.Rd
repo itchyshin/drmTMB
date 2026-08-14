@@ -134,7 +134,12 @@ The halted \code{engine = "julia"} compatibility bridge is not a supported
 estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
 \code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
 different fixed-effect formulas, non-binomial non-Gaussian models, and
-currently unsupported extensions.}
+currently unsupported extensions.
+With \code{missing = miss_control(response = "include")}, the native REML
+route is currently validated only for univariate Gaussian response masks
+with complete predictors and other non-response inputs. Other explicit
+missing-data engines, including missing predictors, remain unsupported
+under REML.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty

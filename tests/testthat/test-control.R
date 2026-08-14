@@ -623,7 +623,7 @@ test_that("se_report_covariance and se_skip_delta_method reach TMB::sdreport()",
   expect_true(is.matrix(fit_legacy$sdr$cov))
 })
 
-test_that("REML rejects a missing-data engine only when it actually engages", {
+test_that("Gaussian REML admits the response mask but not other missing-data engines", {
   skip_on_cran()
   # Reported by A. Mizuno (2026-07-08): the gate tested the `missing` SETTING, so
   # `miss_control(response = "include")` on complete-case data was rejected even
@@ -647,10 +647,11 @@ test_that("REML rejects a missing-data engine only when it actually engages", {
     )
   ))
 
-  # Real missingness: the engine engages and REML is still unvalidated with it.
+  # Real Gaussian response missingness is the one explicitly validated REML
+  # slice. Other engines remain guarded at the front door.
   dat_na <- dat
   dat_na$y[c(3L, 17L)] <- NA_real_
-  expect_error(
+  expect_no_error(suppressWarnings(
     drmTMB(
       bf(y ~ x + (1 | id)),
       family = gaussian(),
@@ -658,7 +659,19 @@ test_that("REML rejects a missing-data engine only when it actually engages", {
       missing = miss_control(response = "include"),
       REML = TRUE
     ),
-    "missing-data engine"
+  ))
+
+  dat_x_na <- dat
+  dat_x_na$x[[3L]] <- NA_real_
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | id)),
+      family = gaussian(),
+      data = dat_x_na,
+      missing = miss_control(predictor = "model"),
+      REML = TRUE
+    ),
+    "univariate Gaussian response masks"
   )
 
   # The default control still drops incomplete rows and fits under REML.

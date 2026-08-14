@@ -93413,3 +93413,20 @@ can see which commit each one actually examined.
   profile target through exported `confint(..., method = "profile")`. The
   regenerated receipt records `unsupported_response = pass` for every row,
   confirming that no model manufactures an interval for an unsupported target.
+
+## 2026-08-14 — first response-mask REML formula cell
+
+- `miss_control(response = "include")` is admitted under `REML = TRUE` for the
+  univariate Gaussian response-mask route, while every other explicit
+  missing-data engine remains front-door rejected. The formula inventory records
+  only `mc-0265` (ordinary `mu` random intercept) as `formula_validated` at G3;
+  this is not a broader Gaussian-REML or all-formulas claim.
+- The cell has an observed-row restricted-fit equality check, direct sentinel
+  objective/gradient retapes, and a deterministic 25% MCAR recovery check for
+  fixed `mu`, constant `sigma`, and the `mu` random-intercept SD.
+- Checks: focused Gaussian, control, binomial-REML, and estimator-conformance
+  tests passed with `NOT_CRAN=true`; the full missing-response test filter
+  completed without a reported failure; formula-inventory unit tests passed;
+  generated-ledger drift check passed; and `git diff --check` passed. This is
+  unit-scale G2/G3 evidence, not a DRAC campaign, interval, coverage, or
+  structured/bivariate/other-family validation.

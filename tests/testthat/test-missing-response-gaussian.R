@@ -97,6 +97,69 @@ test_that("Gaussian response masks retain rows but match observed complete-case 
   expect_true(all(is.na(residuals(fit_mask, type = "pearson")[!observed])))
 })
 
+test_that("Gaussian REML response masks equal the observed-row REML fit", {
+  dat <- missing_response_gaussian_group_data()
+  observed <- !is.na(dat$y)
+
+  fit_mask <- drmTMB(
+    bf(y ~ x + (1 | group), sigma ~ 1),
+    data = dat,
+    missing = miss_control(response = "include"),
+    REML = TRUE,
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(y ~ x + (1 | group), sigma ~ 1),
+    data = dat[observed, , drop = FALSE],
+    REML = TRUE,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-8)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-8)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-8)
+  expect_equal(
+    as.numeric(logLik(fit_mask)),
+    as.numeric(logLik(fit_observed)),
+    tolerance = 1e-8
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(
+    fit_mask,
+    sentinels = c(-1e6, 1e6)
+  )
+})
+
+test_that("Gaussian REML response masks recover an ordinary random-intercept DGP", {
+  set.seed(2026081401)
+  n_group <- 96L
+  n_each <- 8L
+  group <- factor(rep(seq_len(n_group), each = n_each))
+  x <- stats::rnorm(n_group * n_each)
+  beta <- c(`(Intercept)` = 0.4, x = 0.7)
+  sd_group <- 0.55
+  sigma <- 0.35
+  group_effect <- stats::rnorm(n_group, sd = sd_group)
+  y <- beta[[1L]] + beta[[2L]] * x + group_effect[group] +
+    stats::rnorm(n_group * n_each, sd = sigma)
+  observed <- stats::runif(n_group * n_each) > 0.25
+  dat <- data.frame(y = y, x = x, group = group)
+  dat$y[!observed] <- NA_real_
+
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group), sigma ~ 1),
+    data = dat,
+    missing = miss_control(response = "include"),
+    REML = TRUE,
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit, "mu"), beta, tolerance = 0.12)
+  expect_equal(unname(coef(fit, "sigma")), log(sigma), tolerance = 0.15)
+  expect_equal(unname(fit$sdpars$mu), sd_group, tolerance = 0.16)
+  expect_equal(nobs(fit), sum(observed))
+})
+
 test_that("Gaussian response-mask sentinel cannot leak into likelihood or gradients", {
   dat <- missing_response_gaussian_data()
   observed <- !is.na(dat$y)

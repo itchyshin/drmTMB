@@ -175,6 +175,11 @@
 #'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
 #'   different fixed-effect formulas, non-binomial non-Gaussian models, and
 #'   currently unsupported extensions.
+#'   With `missing = miss_control(response = "include")`, the native REML
+#'   route is currently validated only for univariate Gaussian response masks
+#'   with complete predictors and other non-response inputs. Other explicit
+#'   missing-data engines, including missing predictors, remain unsupported
+#'   under REML.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
@@ -355,18 +360,23 @@ drmTMB <- function(
       "i" = "Use {.code family = gaussian()}, {.code biv_gaussian()}, or {.code binomial()}, or set {.code REML = FALSE}."
     ))
   }
+  reml_response_mask_slice <-
+    identical(family_type, "gaussian") &&
+    identical(missing_control$response, "include") &&
+    identical(missing_control$predictor, "fail")
   if (
     isTRUE(REML) &&
       drm_reml_missing_engine_engages(
         missing_control,
         formula,
         data
-      )
+      ) &&
+      !reml_response_mask_slice
   ) {
     cli::cli_abort(c(
-      "{.arg REML} is not implemented with explicit missing-data engines yet.",
+      "{.arg REML} with an explicit missing-data engine is currently implemented only for univariate Gaussian response masks.",
       "x" = "The model variables contain missing values and {.arg missing} requests a non-default engine.",
-      "i" = "Use the default {.code missing = miss_control()}, drop the incomplete rows, or set {.code REML = FALSE}."
+      "i" = "Use {.code family = gaussian()} with {.code missing = miss_control(response = \"include\")}, drop the incomplete rows, or set {.code REML = FALSE}."
     ))
   }
   if (isTRUE(REML) && !is.null(penalty)) {

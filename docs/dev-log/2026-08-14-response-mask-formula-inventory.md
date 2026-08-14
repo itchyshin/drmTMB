@@ -21,7 +21,8 @@ the existing capability claim. Instead it records the work still needed:
 - fixed-effect cells retain their family-level response-mask evidence;
 - implemented ML modifier cells require formula-specific G2/G3 evidence;
 - implemented REML cells remain blocked until an observed-response restricted
-  likelihood is derived and validated;
+  likelihood is derived and validated, except where a named formula has its own
+  recorded evidence;
 - bivariate partial responses with dense known covariance remain blocked until
   component-level covariance slicing agrees with an independent dense-MVN
   oracle.
@@ -35,3 +36,14 @@ git diff --check
 ```
 
 No response likelihood or public support claim changes in this checkpoint.
+
+## First formula-level REML evidence
+
+`mc-0265` is the first named departure from the family-level boundary: the
+univariate Gaussian `mu` ordinary-random-intercept REML formula has a G2
+observed-row restricted-fit equality check, direct objective/gradient sentinel
+retapes, and one deterministic 25% MCAR G3 recovery check. The generated row is
+therefore `formula_validated` at G3. This is a formula-cell record, not a
+Gaussian-REML-wide claim: fixed-only, random-slope, sigma-side, structured,
+bivariate, non-Gaussian, and missing-predictor REML cells remain separately
+gated.

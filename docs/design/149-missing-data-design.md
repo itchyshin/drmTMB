@@ -150,9 +150,13 @@ draws, and credible intervals are out of scope for this lane.
 Estimator choice should stay separate from missing-data engine choice. ML is the
 default estimator. The first ordinary Gaussian mixed-model REML route lives on
 the top-level `drmTMB(..., REML = TRUE)` estimator switch, not in
-`miss_control()`. REML for explicit missing-response or missing-predictor routes
-remains a later slice because those likelihoods need their own extractor and
-comparator checks.
+`miss_control()`. The first explicit missing-data REML slice admits a univariate
+Gaussian response mask with complete predictors and other non-response inputs.
+Its G2 contract compares the masked fit with the observed-row restricted fit and
+retapes distinct response sentinels through the objective and gradient. This does
+not certify structured Gaussian REML, bivariate REML, non-Gaussian REML, or any
+missing-predictor engine; each needs its own observed-data derivation and
+comparator route.
 
 ## Response-Missingness Contract
 
@@ -630,10 +634,10 @@ After MD1, the public claim can be:
 
 ```text
 drmTMB can retain missing response rows for univariate Gaussian models with
-complete predictors through miss_control(response = "include"). Missing
-predictors, bivariate partial response pairs, EM engines, REML support for
-missing-data routes, imputation summaries, and measurement-error models remain
-future work.
+complete predictors through miss_control(response = "include"). The ordinary
+Gaussian REML response-mask slice is also validated against the observed-row
+restricted fit. Missing predictors, EM engines, broader REML formula cells,
+imputation summaries, and measurement-error models remain future work.
 ```
 
 After MD1 and MD2, the claim can become:
@@ -807,8 +811,8 @@ univariate fitted response route; the 18-route inventory and boundaries are in
 the missing-data vignette. Multiple missing predictors, grouped or structured
 non-Gaussian predictor models, transformed or interacted mi() terms,
 non-binary missing predictors in non-Gaussian response models,
-zero-inflated/hurdle responses with `mi()`, EM/profile engines, REML for
-explicit missing-data routes, simulated imputation summaries, response
+zero-inflated/hurdle responses with `mi()`, EM/profile engines, broader REML
+formula cells beyond the univariate Gaussian response-mask slice, simulated imputation summaries, response
 imputation, measurement-error models, and pigauto interoperability remain
 separate future lanes.
 ```

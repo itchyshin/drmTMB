@@ -54,37 +54,69 @@ EXPLICIT_BOUNDARIES = (
     },
 )
 
+# Formula-level evidence is deliberately enumerated here rather than inferred
+# from a family mask or from the complete-response model-surface ledger.
+FORMULA_EVIDENCE = {
+    "mc-0265": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-row REML equality and direct sentinel retapes, plus a "
+            "deterministic 25% MCAR known-DGP recovery check, validate the "
+            "univariate Gaussian ordinary mu random-intercept REML response-mask "
+            "formula. The check covers fixed mu coefficients, constant residual "
+            "sigma, and the mu random-intercept SD. It does not promote fixed-only, "
+            "random-slope, sigma-side, structured, bivariate, non-Gaussian, or "
+            "missing-predictor REML formulas."
+        ),
+        "next_gate": "Add an independent recovery design before widening this REML formula geometry.",
+    },
+}
+
 
 def read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle, delimiter="\t"))
 
 
-def formula_gate(row: dict[str, str]) -> tuple[str, str, str]:
-    """Return status, evidence gate, and next action for one model-surface cell."""
+def formula_gate(row: dict[str, str]) -> tuple[str, str, str, str]:
+    """Return status, evidence gate, next action, and claim prefix for one cell."""
+    if row["cell_id"] in FORMULA_EVIDENCE:
+        evidence = FORMULA_EVIDENCE[row["cell_id"]]
+        return (
+            evidence["formula_status"],
+            evidence["formula_mask_gate"],
+            evidence["next_gate"],
+            evidence["claim_boundary"],
+        )
     if row["capability_status"] != "implemented":
         return (
             "not_admitted", "G0",
-            "Keep the response-mask cell absent until this formula is admitted."
+            "Keep the response-mask cell absent until this formula is admitted.",
+            "Family-level response-mask evidence does not promote this formula cell. "
         )
     if row["estimator"] == "REML":
         return (
             "blocked_reml", "G0",
-            "Derive and validate the observed-response restricted likelihood before admission."
+            "Derive and validate the observed-response restricted likelihood before admission.",
+            "Family-level response-mask evidence does not promote this formula cell. "
         )
     if row["dimension"] == "bivariate" and row["route_modifier"] == "meta_V":
         return (
             "blocked_dense_known_V", "G0",
-            "Implement component-level covariance slicing and verify it against a dense-MVN oracle."
+            "Implement component-level covariance slicing and verify it against a dense-MVN oracle.",
+            "Family-level response-mask evidence does not promote this formula cell. "
         )
     if row["effect_type"] == "fixed":
         return (
             "family_validated", "G3",
-            "Retain the family-level sentinel and recovery evidence for this fixed-effect formula."
+            "Retain the family-level sentinel and recovery evidence for this fixed-effect formula.",
+            "Family-level response-mask evidence supports this fixed-effect formula. "
         )
     return (
         "needs_formula_evidence", "G1",
-        "Add formula-specific G2 sentinel/oracle checks and G3 known-DGP recovery evidence."
+        "Add formula-specific G2 sentinel/oracle checks and G3 known-DGP recovery evidence.",
+        "Family-level response-mask evidence does not promote this formula cell. "
     )
 
 
@@ -100,7 +132,7 @@ def build(rows: list[dict[str, str]]) -> list[dict[str, str]]:
         if row["family_route"] not in missing:
             raise ValueError(f"{row['cell_id']}: no missing-response family row")
         family = missing[row["family_route"]]
-        status, gate, next_gate = formula_gate(row)
+        status, gate, next_gate, claim_prefix = formula_gate(row)
         result.append({
             "formula_cell_id": f"rmf-{row['cell_id']}",
             "model_cell_id": row["cell_id"],
@@ -118,7 +150,7 @@ def build(rows: list[dict[str, str]]) -> list[dict[str, str]]:
             "family_mask_gate": family["test_gate"],
             "formula_mask_gate": gate,
             "claim_boundary": (
-                "Family-level response-mask evidence does not promote this formula cell. "
+                claim_prefix
                 + row["claim_boundary"]
             ),
             "next_gate": next_gate,
