@@ -242,6 +242,50 @@ new_animal_sigma_slope_large_data <- function(
   )
 }
 
+new_animal_location_scale_gaussian_slope_data <- function(
+  seed = 2026081623L,
+  n_id = 64L,
+  n_each = 24L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_mu = c(`(Intercept)` = 0.30, x = 0.18),
+  sd_sigma = c(`(Intercept)` = 0.24, x = 0.15)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  draw_animal_field <- function(sd) {
+    as.vector(t(chol(A)) %*% stats::rnorm(n_id, sd = sd))
+  }
+  animal_mu_intercept <- draw_animal_field(sd_mu[["(Intercept)"]])
+  animal_mu_slope <- draw_animal_field(sd_mu[["x"]])
+  animal_sigma_intercept <- draw_animal_field(sd_sigma[["(Intercept)"]])
+  animal_sigma_slope <- draw_animal_field(sd_sigma[["x"]])
+  names(animal_mu_intercept) <- id_levels
+  names(animal_mu_slope) <- id_levels
+  names(animal_sigma_intercept) <- id_levels
+  names(animal_sigma_slope) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    animal_mu_intercept[id] + animal_mu_slope[id] * x
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    animal_sigma_intercept[id] + animal_sigma_slope[id] * x
+  y <- mu + exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu = sd_mu,
+    sd_sigma = sd_sigma
+  )
+}
+
 new_known_relatedness_sigma_slope_data <- function(
   seed = 20260635,
   n_id = 8L,
@@ -967,6 +1011,50 @@ test_that("Gaussian sigma supports animal A-matrix one structured slope", {
       data = sim$data
     ),
     "matching intercept-only or one-slope structured terms"
+  )
+})
+
+test_that("Gaussian matched one-slope animal location-scale masks match observed data", {
+  sim <- new_animal_location_scale_gaussian_slope_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081624L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + animal(1 + x | id, A = A),
+    sigma ~ animal(1 + x | id, A = A)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
   )
 })
 

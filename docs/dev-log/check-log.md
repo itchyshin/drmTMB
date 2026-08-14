@@ -94164,3 +94164,17 @@ can see which commit each one actually examined.
   passed. This does not promote labelled/q2 blocks, mu-side animal effects,
   pedigree/Ainv representations, another provider, bivariate or REML formulas,
   interval/coverage evidence, or missing predictors.
+
+## 2026-08-14 — paired Gaussian animal location-scale one-slope response mask
+
+- `mc-0305` and `mc-0306` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + animal(1 + x | id, A = A), sigma ~ animal(1 + x |
+  id, A = A)`. The missing-response fit agrees with the observed-response fit
+  in fixed coefficients, all four animal SDs, likelihood, and `nobs()`;
+  continuous sentinels are inert. A deterministic 25% MCAR DGP with 64 related
+  IDs and 24 observations per ID has separate mu intercept, mu slope, sigma
+  intercept, and sigma slope fields, and recovers all four fitted SD targets.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote either endpoint alone, a labelled/correlated or
+  q4+ block, pedigree/Ainv representations, another provider, bivariate or
+  REML formulas, interval/coverage evidence, or missing predictors.
