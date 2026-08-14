@@ -494,6 +494,23 @@ FORMULA_EVIDENCE = {
             "mc-0326", "mc-0342", "mc-0358",  # hurdle NB2: mu, sigma, hu
         )
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "G2 partial-response bivariate-Gaussian likelihood equality and "
+                "component-wise sentinel retapes, plus G3 deterministic 25% MCAR recovery, "
+                "validate this fixed-effect ML response-mask formula. The recovery fixture "
+                "has over 800 complete pairs and separately recovers both endpoint location "
+                "and scale parameters and rho12. It does not promote random or structured "
+                "effects, dense known-V partial responses, REML, another family, or missing-"
+                "predictor formulas."
+            ),
+            "next_gate": "Add formula-specific evidence for each admitted bivariate effect geometry.",
+        }
+        for cell_id in ("mc-0177", "mc-0178", "mc-0179", "mc-0180", "mc-0181")
+    },
 }
 
 

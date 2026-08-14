@@ -93735,3 +93735,15 @@ can see which commit each one actually examined.
   inventory generation, generated-ledger drift check, and `git diff --check`
   passed. This does not promote random or structured effects, REML, another
   family, or missing predictors.
+
+## 2026-08-14 — fixed bivariate-Gaussian ML response mask
+
+- `mc-0177`–`mc-0181` are now `formula_validated` at G3 for the fixed bivariate
+  Gaussian formula with both endpoint location and scale formulas and `rho12 ~
+  1`. The direct partial-response likelihood oracle and component-wise sentinel
+  retapes provide G2. A deterministic 25% MCAR DGP with more than 800 complete
+  pairs recovers both endpoint coefficients/scales and `rho12`.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-recovery")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote random or structured effects, dense
+  known-V partial responses, REML, another family, or missing predictors.

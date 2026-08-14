@@ -98,6 +98,37 @@ test_that("bivariate Gaussian partial responses recover fixed and q2 parameters"
   )
 })
 
+test_that("bivariate Gaussian partial responses recover fixed parameters", {
+  set.seed(2026081534L)
+  n <- 1600L
+  x <- rnorm(n)
+  truth_mu1 <- c(0.20, 0.45)
+  truth_mu2 <- c(-0.15, -0.35)
+  truth_sigma <- c(0.35, 0.45)
+  truth_rho <- 0.25
+  e1 <- rnorm(n)
+  e2 <- truth_rho * e1 + sqrt(1 - truth_rho^2) * rnorm(n)
+  dat <- data.frame(
+    x = x,
+    y1 = truth_mu1[[1L]] + truth_mu1[[2L]] * x + truth_sigma[[1L]] * e1,
+    y2 = truth_mu2[[1L]] + truth_mu2[[2L]] * x + truth_sigma[[2L]] * e2
+  )
+  dat <- missing_response_mask_mcar(dat, "y1", seed = 2026081535L)
+  dat <- missing_response_mask_mcar(dat, "y2", seed = 2026081536L)
+  complete_pairs <- !is.na(dat$y1) & !is.na(dat$y2)
+  expect_gt(sum(complete_pairs), 800L)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - truth_mu1)), 0.08)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - truth_mu2)), 0.08)
+  expect_lt(abs(mean(sigma(fit)$sigma1) - truth_sigma[[1L]]), 0.05)
+  expect_lt(abs(mean(sigma(fit)$sigma2) - truth_sigma[[2L]]), 0.05)
+  expect_lt(abs(tanh(unname(coef(fit, "rho12"))) - truth_rho), 0.06)
+})
+
 test_that("Poisson missing responses recover fixed and random parameters", {
   set.seed(2026071106)
   n_id <- 48L
