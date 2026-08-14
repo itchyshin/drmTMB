@@ -1604,6 +1604,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining lognormal structured geometry.",
     },
+    "mc-0386": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 observed-row equality, direct positive-response sentinel retapes, and the "
+            "lognormal-to-Gaussian transformed-response comparator, including its Jacobian "
+            "and q1 phylogenetic field, plus G3 deterministic known-DGP recovery, validate "
+            "the exact lognormal ML formula `y ~ x + phylo(1 | species, tree = tree)`, "
+            "`sigma ~ 1`. The check covers fixed location and log-scale terms and the "
+            "phylogenetic SD on a 64-tip, 16-observation-per-tip fixture with one masked "
+            "response per tip. It does not promote relmat(), slopes, q2+, labels, structured "
+            "sigma, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining lognormal structured geometry.",
+    },
 }
 
 

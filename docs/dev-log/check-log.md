@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — lognormal phylo q1 response-mask recovery
+
+- `rmf-mc-0386` is now G3 for `y ~ x + phylo(1 | species, tree = tree)`,
+  `sigma ~ 1` under ML. The deterministic fixture has 64 phylogenetic tips,
+  16 observations per tip, and one masked response per tip.
+- G2 compares the masked lognormal fit with the matching masked Gaussian fit
+  on `log(y)`, including the Jacobian and phylogenetic field; direct positive
+  sentinel retapes and observed-row equality also pass. G3 recovers fixed
+  location, log-scale, and phylogenetic SD. This does not certify relmat,
+  slopes, q2+, labels, structured sigma, REML, missing predictors, intervals,
+  or coverage.
+- Check: `test-positive-continuous-structured-mu.R`, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — lognormal relmat q1 response-mask recovery
 
 - `rmf-mc-0388` is now G3 for `y ~ x + relmat(1 | id, K = K)`, `sigma ~ 1`

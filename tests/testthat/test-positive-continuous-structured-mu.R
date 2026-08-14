@@ -538,6 +538,56 @@ test_that("lognormal relmat q1 response mask matches its Gaussian oracle and DGP
   expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$tau), 0.22)
 })
 
+test_that("lognormal phylo q1 response mask matches its Gaussian oracle and DGP", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_arc3a_positive_data(
+    family = "lognormal", provider = "phylo", seed = 2026081735L,
+    n_level = 64L, n_each = 16L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 16L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  tree <- sim$tree
+  formula <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = lognormal(), data = dat,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = lognormal(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  dat_gaussian <- transform(dat, log_y = log(y))
+  fit_gaussian <- drmTMB(
+    bf(log_y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    family = gaussian(), data = dat_gaussian,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(fit_gaussian$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0.1, 10))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "mu"), coef(fit_gaussian, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_gaussian, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_gaussian$sdpars$mu, tolerance = 1e-6)
+  expect_equal(
+    as.numeric(logLik(fit_masked)),
+    as.numeric(logLik(fit_gaussian)) - sum(log(dat$y[observed])),
+    tolerance = 1e-6
+  )
+  expect_lt(max(abs(coef(fit_masked, "mu") - sim$beta_mu)), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$beta_sigma), 0.15)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sim$tau), 0.22)
+})
+
 test_that("Gamma relmat comparator retains conditional prediction and one-slope support", {
   sim <- new_arc3a_positive_data(
     family = "gamma",
