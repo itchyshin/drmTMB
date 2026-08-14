@@ -511,6 +511,37 @@ FORMULA_EVIDENCE = {
         }
         for cell_id in ("mc-0177", "mc-0178", "mc-0179", "mc-0180", "mc-0181")
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "G2 observed-data complete-case parameter and likelihood equality, with "
+                "direct support-valid response-sentinel retapes, plus G3 deterministic 25% "
+                "MCAR known-DGP recovery validate this fixed-effect univariate ML response-"
+                "mask formula. The check covers every fixed distributional parameter exposed "
+                "by the formula. It does not promote random or structured effects, bivariate "
+                "formulas, REML, another family, or missing-predictor formulas."
+            ),
+            "next_gate": "Add formula-specific evidence for each admitted non-fixed effect geometry.",
+        }
+        for cell_id in (
+            "mc-0001", "mc-0003",  # beta
+            "mc-0025", "mc-0027",  # beta-binomial
+            "mc-0057",              # binomial
+            "mc-0223",              # cumulative logit
+            "mc-0236", "mc-0238",  # Gamma
+            "mc-0260", "mc-0262",  # Gaussian
+            "mc-0374", "mc-0376",  # lognormal
+            "mc-0397", "mc-0398",  # NB2
+            "mc-0427",              # Poisson
+            "mc-0456", "mc-0458", "mc-0460",  # skew-normal
+            "mc-0484", "mc-0485", "mc-0486",  # Student
+            "mc-0508", "mc-0509",  # truncated NB2
+            "mc-0531", "mc-0533", "mc-0535",  # Tweedie
+            "mc-0559", "mc-0560", "mc-0561", "mc-0562",  # zero-one-beta
+        )
+    },
 }
 
 

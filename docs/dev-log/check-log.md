@@ -93747,3 +93747,17 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote random or structured effects, dense
   known-V partial responses, REML, another family, or missing predictors.
+
+## 2026-08-14 — fixed univariate ML formula surface
+
+- Thirty fixed-effect univariate formula cells are now `formula_validated` at
+  G3 rather than inheriting a family-level label. These are the fixed
+  distributional parameters for beta, beta-binomial, binomial,
+  cumulative-logit, Gamma, Gaussian, lognormal, NB2, Poisson, skew-normal,
+  Student, truncated NB2, Tweedie, and zero-one-beta. The route-specific tests
+  already pair observed-data equality and sentinel retapes with deterministic
+  25% MCAR recovery of every fixed parameter in each formula.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response")` passed;
+  inventory generation, generated-ledger drift check, and `git diff --check`
+  passed. This does not promote random or structured effects, bivariate
+  formulas, REML, or missing predictors.
