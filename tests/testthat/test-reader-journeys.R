@@ -24,17 +24,23 @@ test_that("the ten native reader journeys complete their generic post-fit smoke"
   expect_true(all(grepl("generic post-fit smoke", results$report_artifact, fixed = TRUE)))
 })
 
-test_that("the reader audit does not call warning diagnostics a pass", {
-  audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
-  skip_if_not(file.exists(audit_path), "The development audit script is not installed with drmTMB")
-  audit_lines <- readLines(audit_path)
-  first_workflow <- grep("^results <- list", audit_lines)[1L]
-  audit_env <- new.env(parent = globalenv())
-  eval(parse(text = audit_lines[seq_len(first_workflow - 1L)]), envir = audit_env)
-  warning_diagnostic <- structure(data.frame(status = "warning"), ok = FALSE)
-  expect_false(audit_env$reader_diagnostic_pass(list(ok = TRUE, value = warning_diagnostic)))
-  expect_false(audit_env$reader_diagnostic_pass(list(ok = FALSE, value = warning_diagnostic)))
-  expect_true(audit_env$reader_diagnostic_pass(list(ok = TRUE, value = structure(data.frame(status = "ok"), ok = TRUE))))
+test_that("check_drm() makes a boundary warning visible to reader workflows", {
+  set.seed(20260813)
+  n <- 60L
+  dat <- data.frame(x = seq(-1, 1, length.out = n))
+  shared_error <- stats::rnorm(n)
+  dat$y1 <- 0.4 * dat$x + shared_error + stats::rnorm(n, sd = .15)
+  dat$y2 <- -0.3 * dat$x + shared_error + stats::rnorm(n, sd = .15)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = c(gaussian(), gaussian()), data = dat
+  )
+
+  diagnostic <- check_drm(fit, rho_boundary = 1e-6)
+  rho_row <- diagnostic[diagnostic$check == "rho12_boundary", , drop = FALSE]
+  expect_s3_class(diagnostic, "drm_check")
+  expect_identical(rho_row$status, "warning")
+  expect_false(isTRUE(attr(diagnostic, "ok")))
 })
 
 test_that("ordinal probabilities are response-scale probabilities, not raw thresholds", {
