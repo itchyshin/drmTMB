@@ -2134,6 +2134,24 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
     },
+    "mc-0417": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality across both "
+            "structured precision blocks, observed-row fit equality, and direct count-response "
+            "sentinel retapes, plus G3 deterministic known-DGP recovery, validate the bound "
+            "spatial-plus-relatedness ML formula `y ~ x + spatial(1 | site, coords = coords) + "
+            "relmat(1 | id, Q = Q)`, `sigma ~ 1`. The response-mask fixture keeps the established "
+            "well-conditioned crossed 20-site by 24-ID structure but raises replication to 20 "
+            "observations per pair (9,600 rows), with one masked response per ID. It checks fixed "
+            "location, NB2 log-scale, and both structured SDs. This aggregate inventory cell remains "
+            "bound only to spatial+relmat; it does not promote the other provider pairs, slopes, "
+            "labelled covariance, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
 }
 
 

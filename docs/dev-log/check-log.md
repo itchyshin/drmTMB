@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — NB2 spatial-plus-relatedness response-mask recovery
+
+- `rmf-mc-0417` is now G3 for the bound aggregate-cell formula
+  `y ~ x + spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)`,
+  `sigma ~ 1`. The claim is only for spatial + relmat, not the five other
+  possible provider pairs represented by this aggregate inventory row.
+- G2 uses an NB2 oracle containing both independent structured precision
+  priors, numerical gradients, direct count-sentinel retapes, and observed-row
+  fit equality. G3 uses the established well-conditioned 20-site × 24-ID
+  crossed fixture with 20 observations per pair (9,600 rows) and one masked
+  response per ID. It recovers fixed location, NB2 log-scale, spatial SD, and
+  relatedness SD. Slopes, labelled covariance, REML, missing predictors,
+  intervals, and coverage remain outside this claim.
+- Check: isolated response-mask test (24 successes), response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — Poisson spatial-plus-ordinary response-mask recovery
 
 - `rmf-mc-0445` is now G3 for the exact ML formula
