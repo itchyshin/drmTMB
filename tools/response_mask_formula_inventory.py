@@ -234,6 +234,21 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining spatial geometry.",
     },
+    "mc-0289": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for fixed mu and sigma coefficients, "
+            "both spatial sigma SDs, and likelihood, plus direct continuous-response sentinel "
+            "retapes, and G3 deterministic 25% MCAR known-DGP recovery validate the "
+            "univariate Gaussian unlabelled q1 spatial sigma-side intercept-plus-slope ML "
+            "response-mask formula `y ~ x, sigma ~ spatial(1 + x | site, coords = coords)`. "
+            "The recovery fixture has 64 sites and 20 observations per site. It does not "
+            "promote a labelled/q2 block, mu-side spatial effects, another provider, bivariate, "
+            "REML, interval/coverage, or missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining spatial geometry.",
+    },
     **{
         cell_id: {
             "formula_status": "formula_validated",
