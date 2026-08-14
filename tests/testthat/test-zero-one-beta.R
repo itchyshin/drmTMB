@@ -129,17 +129,22 @@ new_zero_one_beta_spatial_data <- function(seed = 2026073201L, n_group = 24L, n_
   )
 }
 
-new_zero_one_beta_phylo_interaction_data <- function(seed = 2026073301L, n_each = 30L) {
+new_zero_one_beta_phylo_interaction_data <- function(
+  seed = 2026073301L, n_tip = 4L, n_each = 30L
+) {
   set.seed(seed)
-  plant_tree <- ape::stree(4L, type = "balanced"); plant_tree$edge.length <- rep(1, nrow(plant_tree$edge)); plant_tree$tip.label <- paste0("plant", 1:4)
-  pollinator_tree <- ape::stree(4L, type = "balanced"); pollinator_tree$edge.length <- rep(1, nrow(pollinator_tree$edge)); pollinator_tree$tip.label <- paste0("poll", 1:4)
+  plant_tree <- ape::stree(n_tip, type = "balanced"); plant_tree$edge.length <- rep(1, nrow(plant_tree$edge)); plant_tree$tip.label <- paste0("plant", seq_len(n_tip))
+  pollinator_tree <- ape::stree(n_tip, type = "balanced"); pollinator_tree$edge.length <- rep(1, nrow(pollinator_tree$edge)); pollinator_tree$tip.label <- paste0("poll", seq_len(n_tip))
   V <- kronecker(drmTMB:::drm_phylo_tip_covariance(pollinator_tree), drmTMB:::drm_phylo_tip_covariance(plant_tree))
   grid <- expand.grid(plant = plant_tree$tip.label, pollinator = pollinator_tree$tip.label, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
   u <- as.numeric(t(chol(V)) %*% stats::rnorm(nrow(grid), sd = .55)); names(u) <- paste0(grid$plant, ":", grid$pollinator)
   data <- grid[rep(seq_len(nrow(grid)), each = n_each), , drop = FALSE]; data$x <- stats::rnorm(nrow(data)); data$x <- data$x - ave(data$x, interaction(data$plant, data$pollinator), FUN = mean); data$x <- data$x / stats::sd(data$x)
   mu <- stats::plogis(-.10 + .35 * data$x + u[paste0(data$plant, ":", data$pollinator)]); boundary <- stats::rbinom(nrow(data), 1, .12)
   data$y <- ifelse(boundary == 1, stats::rbinom(nrow(data), 1, .45), stats::rbeta(nrow(data), mu / .45^2, (1 - mu) / .45^2))
-  list(data = data, plant_tree = plant_tree, pollinator_tree = pollinator_tree)
+  list(
+    data = data, plant_tree = plant_tree, pollinator_tree = pollinator_tree,
+    truth = list(beta_mu = c(`(Intercept)` = -.10, x = .35), sigma = .45, sd_mu = .55)
+  )
 }
 
 new_zero_one_beta_sigma_random_intercept_data <- function(
@@ -491,7 +496,10 @@ zoib_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame) {
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta)
   sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma)); zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2*pi) + 2 * length(u) * par$log_sd_phylo - (nrow(p2$Q) * p1$log_det + nrow(p1$Q) * p2$log_det) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(
+    d$y[observed], mu[observed], sigma[observed], zoi[observed], coi[observed], log = TRUE
+  ))
 }
 
 zoib_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame) {
@@ -988,6 +996,48 @@ test_that("zero-one-beta spatial mu response mask has oracle and recovery eviden
     function(fit, par, dat) zoib_spatial_nll(fit, par, coords, dat$site),
     "spatial(1 | site)"
   )
+})
+
+test_that("zero-one-beta phylo interaction mu response mask has oracle and recovery evidence", {
+  skip_if_not_installed("ape")
+  sim <- new_zero_one_beta_phylo_interaction_data(
+    seed = 2026081815L, n_tip = 8L, n_each = 50L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 50L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  plant_tree <- sim$plant_tree
+  pollinator_tree <- sim$pollinator_tree
+  formula <- bf(y ~ x + phylo_interaction(
+    1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
+  ))
+  fit_masked <- drmTMB(
+    formula, family = zero_one_beta(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = zero_one_beta(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par))
+  oracle_fn <- function(v) zoib_phylo_interaction_nll(
+    fit_masked, obj$env$parList(v), plant_tree, pollinator_tree, dat
+  )
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 1, .5))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$truth$beta_mu[["x"]]), .12)
+  expect_lt(abs(fit_masked$sdpars$mu[["phylo_interaction(1 | plant:pollinator)"]] - sim$truth$sd_mu), .25)
 })
 
 test_that("zero-one-beta admits only the exact animal Ainv q1 sigma gate", {

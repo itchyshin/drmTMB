@@ -95006,6 +95006,18 @@ can see which commit each one actually examined.
   location SD. This does not promote phylogenetic-interaction location,
   another endpoint, REML, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Zero-one-beta phylogenetic-interaction location response mask
+
+- `mc-0587` is now `formula_validated` at G3 for the q1
+  `phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 =
+  pollinator_tree)` location formula. Its observed-data oracle, numerical
+  gradient, atom/interior sentinels, and observed-only fit equality are tested
+  directly.
+- The recovery fixture has an 8-by-8 pair grid and 50 observations per pair;
+  it recovers the fixed location slope and interaction location SD. This closes
+  only the zero-one-beta location provider set, not scale or atom endpoints,
+  REML, interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one

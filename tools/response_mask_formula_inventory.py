@@ -423,6 +423,22 @@ FORMULA_EVIDENCE = {
         }
         for cell_id in ("mc-0585", "mc-0586")
     },
+    "mc-0587": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct zero-one-beta observed-data objective and numerical-gradient "
+            "equality, direct atom/interior response-sentinel retapes, and masked-"
+            "versus-observed fit equality validate `y ~ x + phylo_interaction(1 | "
+            "plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`. G3 uses "
+            "a deterministic 8-by-8 pair grid with 50 observations per pair to recover "
+            "fixed location and the phylogenetic-interaction mu SD. This is not another "
+            "endpoint or provider, a labelled or correlated block, REML, interval or "
+            "coverage evidence, or missing-predictor support."
+        ),
+        "next_gate": "Validate each zero-one-beta scale or atom endpoint separately; do not reuse this mu evidence.",
+    },
     "mc-0364": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
