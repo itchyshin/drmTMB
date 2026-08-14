@@ -214,6 +214,36 @@ EXPLICIT_BOUNDARIES = (
         "next_gate": "Validate other animal geometries with their own recovery designs.",
     },
     {
+        "formula_cell_id": "rmf-biv-gaussian-animal-mu12-q2-slope",
+        "model_cell_id": "mc-0131,mc-0132",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_animal_mu1_mu2_slope",
+        "route_modifier": "structured_q2",
+        "dpar": "mu1+mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "animal",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched animal q2 slope block "
+            "`mu1 ~ animal(0 + x | p | id, Ainv = Ainv)`, `mu2 ~ animal(0 + x | "
+            "p | id, Ainv = Ainv)`, not either endpoint alone. G2 conditional TMB-objective "
+            "equality at the fitted latent mode includes the correlated animal-field prior, "
+            "and direct endpoint sentinel retapes leave the objective and gradient unchanged. "
+            "G3 deterministic 25% MCAR recovery validates both fixed-effect vectors, both "
+            "residual scales, both animal slope SDs, the slope correlation, and rho12 on an "
+            "independently seeded 64-ID, 20-observation-per-ID fixture. This is not an "
+            "intercept or q4+ block, relmat evidence, REML, interval/coverage evidence, or "
+            "dense known-V partial-response support."
+        ),
+        "next_gate": "Validate each remaining animal bivariate geometry separately.",
+    },
+    {
         "formula_cell_id": "rmf-biv-gaussian-relmat-mu12-q2-intercept",
         "model_cell_id": "mc-0151,mc-0152",
         "family_type": "biv_gaussian",
@@ -242,6 +272,36 @@ EXPLICIT_BOUNDARIES = (
             "partial-response support."
         ),
         "next_gate": "Validate animal and other relmat geometries with their own recovery designs.",
+    },
+    {
+        "formula_cell_id": "rmf-biv-gaussian-relmat-mu12-q2-slope",
+        "model_cell_id": "mc-0153,mc-0154",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_relmat_mu1_mu2_slope",
+        "route_modifier": "structured_q2",
+        "dpar": "mu1+mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "relmat",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched relmat q2 slope block "
+            "`mu1 ~ relmat(0 + x | p | id, Q = Q)`, `mu2 ~ relmat(0 + x | p | id, "
+            "Q = Q)`, not either endpoint alone. G2 conditional TMB-objective equality at "
+            "the fitted latent mode includes the correlated relatedness-field prior, and direct "
+            "endpoint sentinel retapes leave the objective and gradient unchanged. G3 deterministic "
+            "25% MCAR recovery validates both fixed-effect vectors, both residual scales, both "
+            "relatedness slope SDs, the slope correlation, and rho12 on an independently seeded "
+            "64-ID, 20-observation-per-ID fixture. This is not an intercept or q4+ block, animal "
+            "evidence, a K representation, REML, interval/coverage evidence, or dense known-V "
+            "partial-response support."
+        ),
+        "next_gate": "Validate each remaining relmat bivariate geometry separately.",
     },
     {
         "formula_cell_id": "rmf-biv-gaussian-meta-v-partial",

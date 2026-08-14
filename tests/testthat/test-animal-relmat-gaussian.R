@@ -485,6 +485,44 @@ new_biv_known_relatedness_gaussian_data <- function(
   )
 }
 
+new_biv_known_relatedness_slope_gaussian_data <- function(
+  seed = 2026081722L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_known = c(0.55, 0.45),
+  rho_known = 0.30,
+  sigma = c(0.18, 0.20),
+  rho12_true = 0.10
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.40^abs(i - j))
+  diag(K) <- diag(K) + 0.10
+  dimnames(K) <- list(id_levels, id_levels)
+  Q <- solve(K)
+  id <- rep(id_levels, each = n_each)
+  x <- stats::rnorm(length(id))
+  z1 <- stats::rnorm(n_id)
+  z2 <- rho_known * z1 + sqrt(1 - rho_known^2) * stats::rnorm(n_id)
+  slope1 <- as.vector(t(chol(K)) %*% z1) * sd_known[[1L]]
+  slope2 <- as.vector(t(chol(K)) %*% z2) * sd_known[[2L]]
+  names(slope1) <- id_levels
+  names(slope2) <- id_levels
+  beta_mu1 <- c(`(Intercept)` = 0.25, x = 0.35)
+  beta_mu2 <- c(`(Intercept)` = -0.15, x = -0.25)
+  e1 <- stats::rnorm(length(id))
+  e2 <- rho12_true * e1 + sqrt(1 - rho12_true^2) * stats::rnorm(length(id))
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] + (beta_mu1[[2L]] + slope1[id]) * x + sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] + (beta_mu2[[2L]] + slope2[id]) * x + sigma[[2L]] * e2,
+      x = x, id = id
+    ),
+    K = K, Q = Q, beta_mu1 = beta_mu1, beta_mu2 = beta_mu2,
+    sd_known = sd_known, rho_known = rho_known, sigma = sigma, rho12 = rho12_true
+  )
+}
+
 manual_biv_known_response_loglik <- function(fit) {
   dat <- fit$model$data
   observed_y1 <- fit$missing_data$observed_y1
@@ -1883,6 +1921,64 @@ test_that("bivariate animal q2 response masks recover an independent known DGP",
     unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
   ) - sim$sigma)), 0.06)
   expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
+})
+
+test_that("bivariate animal and relmat q2 slope masks recover independent DGPs", {
+  settings <- list(
+    list(provider = "relmat", seed = 2026081722L, mask1 = 2026081723L, mask2 = 2026081724L),
+    list(provider = "animal", seed = 2026081725L, mask1 = 2026081726L, mask2 = 2026081727L)
+  )
+  for (setting in settings) {
+    sim <- new_biv_known_relatedness_slope_gaussian_data(seed = setting$seed)
+    Q <- sim$Q
+    dat <- missing_response_mask_mcar_within_group(sim$data, "y1", "id", seed = setting$mask1)
+    dat <- missing_response_mask_mcar_within_group(dat, "y2", "id", seed = setting$mask2)
+    fit <- if (identical(setting$provider, "relmat")) {
+      drmTMB(
+        bf(
+          mu1 = y1 ~ x + relmat(0 + x | p | id, Q = Q),
+          mu2 = y2 ~ x + relmat(0 + x | p | id, Q = Q),
+          sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+        ),
+        family = biv_gaussian(), data = dat,
+        missing = miss_control(response = "include"),
+        control = list(eval.max = 1500, iter.max = 1500)
+      )
+    } else {
+      drmTMB(
+        bf(
+          mu1 = y1 ~ x + animal(0 + x | p | id, Ainv = Q),
+          mu2 = y2 ~ x + animal(0 + x | p | id, Ainv = Q),
+          sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+        ),
+        family = biv_gaussian(), data = dat,
+        missing = miss_control(response = "include"),
+        control = list(eval.max = 1500, iter.max = 1500)
+      )
+    }
+    full_parameters <- fit$obj$env$parList(fit$opt$par)
+    joint <- TMB::MakeADFun(
+      data = fit$model$tmb_data, parameters = full_parameters,
+      map = fit$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    data_zero <- fit$model$tmb_data
+    data_large <- fit$model$tmb_data
+    data_zero$y1[fit$missing_data$observed_y1 == 0L] <- -1e6
+    data_large$y1[fit$missing_data$observed_y1 == 0L] <- 1e6
+    zero_obj <- TMB::MakeADFun(data_zero, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+    large_obj <- TMB::MakeADFun(data_large, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(-joint$fn(joint$par), manual_biv_known_response_loglik(fit) + manual_biv_known_q2_prior_loglik(fit), tolerance = 1e-6)
+    expect_equal(zero_obj$fn(zero_obj$par), large_obj$fn(large_obj$par), tolerance = 1e-8)
+    expect_equal(zero_obj$gr(zero_obj$par), large_obj$gr(large_obj$par), tolerance = 1e-8, ignore_attr = TRUE)
+    expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+    expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+    expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_known)), 0.20)
+    expect_lt(abs(unname(fit$corpars[[setting$provider]]) - sim$rho_known), 0.20)
+    expect_lt(max(abs(c(unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)) - sim$sigma)), 0.05)
+    expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.15)
+  }
 })
 
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {

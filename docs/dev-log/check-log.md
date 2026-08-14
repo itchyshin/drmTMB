@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — bivariate animal and relmat q2 slope response-mask recovery
+
+- `rmf-biv-gaussian-animal-mu12-q2-slope` (`mc-0131`/`mc-0132`) and
+  `rmf-biv-gaussian-relmat-mu12-q2-slope` (`mc-0153`/`mc-0154`) are now G3 for
+  paired `mu1`/`mu2` slope fields. Each fixture has 64 IDs, 20 observations per
+  ID, and separate 25% MCAR masks; the animal and relmat DGPs use different
+  seeds.
+- The checks cover fixed vectors, residual scales, slope SDs and correlation,
+  and `rho12`, with exact conditional oracles and direct sentinel retapes.
+  Neither formula promotes an intercept or q4+ block, its other provider,
+  REML, interval/coverage, or dense-known-`V` partial responses.
+- Check: `test-animal-relmat-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — formula-cell inventory de-duplication
 
 - The model capability ledger stores parameter targets, while the response-mask
