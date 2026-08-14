@@ -172,6 +172,39 @@ new_animal_sigma_slope_gaussian_data <- function(
   )
 }
 
+new_animal_sigma_gaussian_data <- function(
+  seed = 2026081619L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_animal = 0.28,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  animal_sigma <- as.vector(
+    t(chol(A)) %*% stats::rnorm(n_id, sd = sd_animal)
+  )
+  names(animal_sigma) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  log_sigma <- beta_sigma[["(Intercept)"]] + animal_sigma[id]
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    exp(log_sigma) * stats::rnorm(length(id))
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_animal = sd_animal
+  )
+}
+
 new_known_relatedness_sigma_slope_data <- function(
   seed = 20260635,
   n_id = 8L,
@@ -714,6 +747,39 @@ test_that("animal and relmat Gaussian mu support one structured slope", {
     ),
     "all-four bivariate Gaussian block"
   )
+})
+
+test_that("Gaussian animal sigma intercept masks match observed data", {
+  sim <- new_animal_sigma_gaussian_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081620L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ animal(1 | id, A = A))
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_animal)), log(2.5))
 })
 
 test_that("Gaussian sigma supports animal A-matrix one structured slope", {
