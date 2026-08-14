@@ -287,8 +287,13 @@ results <- list(
     function() {
       food <- stats::runif(n, -1, 1)
       disturbance <- stats::runif(n, -1, 1)
-      activity <- 0.8 * food + stats::rnorm(n, sd = 0.6)
-      boldness <- -0.3 + 0.5 * food + stats::rnorm(n, sd = 0.7)
+      residual_activity <- stats::rnorm(n)
+      residual_auxiliary <- stats::rnorm(n)
+      rho_true <- 0.65 * tanh(1.2 * disturbance)
+      residual_boldness <- rho_true * residual_activity +
+        sqrt(1 - rho_true^2) * residual_auxiliary
+      activity <- 0.8 * food + 0.6 * residual_activity
+      boldness <- -0.3 + 0.5 * food + 0.7 * residual_boldness
       data <- reader_import(data.frame(activity, boldness, food, disturbance))
       list(fit = drmTMB::drmTMB(drmTMB::drm_formula(
         mu1 = activity ~ food, mu2 = boldness ~ food,

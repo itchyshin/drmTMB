@@ -105,7 +105,9 @@ test_that("each reader journey retains its scientific meaning through exported A
   expect_named(phylo_deviation$terms, "phylo(1 | species)")
   expect_true(length(phylo_term) > 0L)
   expect_true(all(is.finite(phylo_term)))
+  expect_gt(nrow(phylo_sd), 0L)
   expect_true(all(is.finite(phylo_sd$estimate) & phylo_sd$estimate > 0))
+  expect_true(all(phylo_sd$profile_ready))
 
   spatial <- reader_journey("spatial_site_effect")
   spatial_deviation <- ranef(spatial$fit, dpar = "spatial_mu")
@@ -115,17 +117,20 @@ test_that("each reader journey retains its scientific meaning through exported A
   expect_named(spatial_deviation$terms, "spatial(1 | site)")
   expect_true(length(spatial_term) > 0L)
   expect_true(all(is.finite(spatial_term)))
+  expect_gt(nrow(spatial_sd), 0L)
   expect_true(all(is.finite(spatial_sd$estimate) & spatial_sd$estimate > 0))
+  expect_true(all(spatial_sd$profile_ready))
 
   bivariate <- reader_journey("bivariate_traits")
   bivariate_grid <- bivariate$data[seq_len(3L), c("food", "disturbance")]
-  bivariate_grid$food <- c(-0.5, 0, 0.5)
-  bivariate_grid$disturbance <- 0
+  bivariate_grid$food <- 0
+  bivariate_grid$disturbance <- c(-0.75, 0, 0.75)
   response_rho <- rho12(bivariate$fit, newdata = bivariate_grid)
   link_rho <- rho12(bivariate$fit, newdata = bivariate_grid, type = "link")
   expect_true(all(is.finite(response_rho) & abs(response_rho) < 1))
   expect_equal(response_rho, 0.999999 * tanh(link_rho), tolerance = 1e-12)
   expect_false(isTRUE(all.equal(response_rho, link_rho)))
+  expect_true(all(diff(response_rho) > 0))
 
   meta <- reader_journey("meta_analysis")
   meta_diagnostic <- check_drm(meta$fit)
