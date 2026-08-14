@@ -94178,3 +94178,16 @@ can see which commit each one actually examined.
   passed. This does not promote either endpoint alone, a labelled/correlated or
   q4+ block, pedigree/Ainv representations, another provider, bivariate or
   REML formulas, interval/coverage evidence, or missing predictors.
+
+## 2026-08-14 — Gaussian relmat sigma response masks
+
+- `mc-0312` and `mc-0313` are now `formula_validated` at G3 for `y ~ x,
+  sigma ~ relmat(1 | id, K = K)` and `y ~ x, sigma ~ relmat(1 + x | id, K =
+  K)`, respectively. Each missing-response fit agrees with its observed-response
+  fit in fixed coefficients, named relmat sigma SDs, likelihood, and `nobs()`;
+  continuous sentinels are inert. Deterministic 25% MCAR DGPs with 64 related
+  IDs and 20 observations per ID recover the fitted parameter blocks.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote q2 blocks, mu-side relmat effects, Q
+  representations, another provider, bivariate or REML formulas,
+  interval/coverage evidence, or missing predictors.

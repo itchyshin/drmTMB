@@ -279,6 +279,36 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining animal geometry.",
     },
+    "mc-0312": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for fixed mu and sigma coefficients, "
+            "the relmat sigma SD, and likelihood, plus direct continuous-response sentinel "
+            "retapes, and G3 deterministic 25% MCAR known-DGP recovery validate the "
+            "univariate Gaussian unlabelled q1 relmat sigma-side intercept ML response-mask "
+            "formula `y ~ x, sigma ~ relmat(1 | id, K = K)`. The recovery fixture has 64 "
+            "related IDs and 20 observations per ID. It does not promote a relmat slope or q2 "
+            "block, mu-side relmat effects, Q representations, another provider, bivariate, "
+            "REML, interval/coverage, or missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining relmat geometry.",
+    },
+    "mc-0313": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for fixed mu and sigma coefficients, "
+            "both relmat sigma SDs, and likelihood, plus direct continuous-response sentinel "
+            "retapes, and G3 deterministic 25% MCAR known-DGP recovery validate the "
+            "univariate Gaussian unlabelled q1 relmat sigma-side intercept-plus-slope ML "
+            "response-mask formula `y ~ x, sigma ~ relmat(1 + x | id, K = K)`. The recovery "
+            "fixture has 64 related IDs and 20 observations per ID. It does not promote a "
+            "labelled/q2 block, mu-side relmat effects, Q representations, another provider, "
+            "bivariate, REML, interval/coverage, or missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining relmat geometry.",
+    },
     **{
         cell_id: {
             "formula_status": "formula_validated",
