@@ -93482,3 +93482,16 @@ can see which commit each one actually examined.
   tests and generated-ledger drift check passed; `git diff --check` passed.
   This does not promote random slopes, correlated/sigma-side, structured,
   bivariate, non-Gaussian, or missing-predictor ML cells.
+
+## 2026-08-14 — Gaussian REML q1 phylo response-mask cell
+
+- `mc-0274` is now `formula_validated` at G3 for the unlabelled q1 mean-side
+  phylogenetic Gaussian formula. The masked REML fit agrees with an independent
+  dense restricted-likelihood oracle with covariance
+  `s_phylo^2 Z A Z^T + sigma^2 I`; direct response-sentinel retapes leave the
+  objective, gradient, and reoptimised solution invariant. A deterministic 25%
+  MCAR fixture recovers fixed `mu`, residual `sigma`, and the phylogenetic SD.
+- Check: `NOT_CRAN=true` `test-reml-phylo-location.R` passed; inventory unit
+  tests and generated-ledger drift check passed; `git diff --check` passed.
+  This does not promote phylo slopes/q2/scale-side effects, spatial, animal,
+  relmat, bivariate, non-Gaussian, or missing-predictor REML cells.

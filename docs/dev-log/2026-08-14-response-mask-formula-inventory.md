@@ -70,3 +70,9 @@ Gaussian likelihood, rather than the REML restricted likelihood used for
 `mc-0264` is separately `formula_validated` at G3 for the ordinary Gaussian ML
 random-intercept formula `y ~ x + (1 | id), sigma ~ 1`, with its own full
 marginal-Gaussian oracle and deterministic MCAR recovery fixture.
+
+`mc-0274` is `formula_validated` at G3 for the unlabelled q1 phylogenetic
+Gaussian mean-side random intercept under REML. Its observed-response oracle
+uses the exact dense covariance `s_phylo^2 ZAZ^T + sigma^2 I`; evidence does not
+transfer to phylogenetic slopes, q2 blocks, scale-side effects, or another
+structured provider.

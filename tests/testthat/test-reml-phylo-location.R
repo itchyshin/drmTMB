@@ -96,6 +96,52 @@ test_that("REML for a phylo location model matches a hand-computed restricted li
   expect_equal(as.numeric(fit$par$mu), ref$beta, tolerance = 2e-2)
 })
 
+test_that("REML phylo location response masks match the observed-data oracle", {
+  skip_on_cran()
+  skip_fragile_recovery()
+  skip_if_not_installed("ape")
+  fx <- reml_phylo_location_fixture(
+    n_tip = 72L,
+    n_each = 8L,
+    seed = 2026081406L
+  )
+  set.seed(2026081407L)
+  tree <- fx$tree
+  observed <- stats::runif(nrow(fx$data)) > 0.25
+  masked_data <- fx$data
+  masked_data$y[!observed] <- NA_real_
+  form <- bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    form,
+    data = masked_data,
+    REML = TRUE,
+    missing = miss_control(response = "include"),
+    control = drm_control(optimizer_preset = "robust", se = FALSE)
+  )
+  observed_data <- fx$data[observed, , drop = FALSE]
+  observed_tip <- fx$tip[observed]
+  Z <- matrix(0, nrow(observed_data), nrow(fx$A))
+  Z[cbind(seq_len(nrow(observed_data)), observed_tip)] <- 1
+  ref <- reml_reference(
+    observed_data$y,
+    stats::model.matrix(~ x, observed_data),
+    Z,
+    fx$A
+  )
+
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), ref$sd_phylo, tolerance = 3e-2)
+  expect_equal(exp(as.numeric(fit_masked$par$sigma)), ref$sigma, tolerance = 3e-2)
+  expect_equal(as.numeric(fit_masked$par$mu), ref$beta, tolerance = 3e-2)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_missing_response_sentinel_invariant(
+    fit_masked,
+    sentinels = c(-1e6, 1e6)
+  )
+  expect_equal(as.numeric(fit_masked$par$mu), c(0.4, 0.7), tolerance = 0.15)
+  expect_equal(exp(as.numeric(fit_masked$par$sigma)), 0.5, tolerance = 0.10)
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), fx$true_sd_phylo, tolerance = 0.20)
+})
+
 test_that("REML phylo SD is not more downward-biased than ML", {
   skip_on_cran()
   skip_fragile_recovery()

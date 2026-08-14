@@ -118,6 +118,21 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent recovery design before widening this REML formula geometry.",
     },
+    "mc-0274": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data dense restricted-likelihood equality and direct "
+            "sentinel retapes, plus a deterministic 25% MCAR known-DGP recovery "
+            "check, validate the univariate Gaussian unlabelled q1 phylo mu "
+            "random-intercept REML response-mask formula. The check covers fixed "
+            "mu coefficients, constant residual sigma, and the phylogenetic mu "
+            "SD. It does not promote phylo slopes or q2 blocks, sigma-side phylo "
+            "effects, other providers, bivariate, non-Gaussian, or missing-"
+            "predictor REML formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining phylo geometry.",
+    },
 }
 
 
