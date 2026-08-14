@@ -93616,3 +93616,15 @@ can see which commit each one actually examined.
   generation, generated-ledger drift check, and `git diff --check` passed.
   This does not promote correlated blocks, structured effects, REML, another
   response family, or missing predictors.
+
+## 2026-08-14 — cumulative-logit ML independent random-slope response mask
+
+- `mc-0227` is now `formula_validated` at G3 for
+  `score ~ x + (0 + x | id)`.  The masked ordinal fit preserves declared
+  levels, agrees with its observed-data fit in parameters and likelihood,
+  keeps ordinal sentinels inert, and recovers the fixed slope, random-slope SD,
+  and conditional slope effects under the deterministic 25% MCAR DGP.
+- Check: `NOT_CRAN=true` `test-missing-response-encoded.R` passed; inventory
+  generation, generated-ledger drift check, and `git diff --check` passed.
+  This does not promote intercepts, correlated blocks, structured effects,
+  REML, another response family, or missing predictors.
