@@ -1045,7 +1045,7 @@ test_that("bivariate phylogenetic corpair regression reports q2 location correla
       guard = 0.999999
     )
   )
-  expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_equal(pair_ci$conf.status, "derived_interval_unavailable")
   expect_equal(pair_ci$interval_source, "not_available")
   expect_equal(cor_ci$parm, paste0(cor_dpar, "[typical_species]"))
   expect_equal(cor_ci$scale, "response")
