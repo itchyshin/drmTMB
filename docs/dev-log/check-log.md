@@ -93795,3 +93795,16 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote sigma slopes, mu random effects,
   correlated or structured effects, REML, another family, or missing predictors.
+
+## 2026-08-14 — Gaussian REML sigma random-intercept response mask
+
+- `mc-0267` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1 + (1 | group)`
+  under REML. The masked fit equals the observed-row REML fit in fixed
+  coefficients, sigma SD, and likelihood; sentinels are inert; and a
+  deterministic 25% MCAR DGP recovers fixed, sigma-SD, and conditional
+  sigma-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-gaussian")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote sigma slopes, mu random effects,
+  correlated or structured effects, bivariate formulas, another family, or
+  missing predictors.

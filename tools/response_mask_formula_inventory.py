@@ -587,6 +587,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Gamma parameter geometry.",
     },
+    "mc-0267": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-row REML parameter and likelihood equality, plus direct response "
+            "sentinel retapes, and G3 deterministic 25% MCAR known-DGP recovery validate "
+            "the Gaussian univariate ordinary sigma random-intercept REML response-mask "
+            "formula `(1 | group)` with a fixed mu regression. The check covers fixed mu "
+            "and sigma coefficients, the sigma random-intercept SD, and conditional random-"
+            "effect recovery. It does not promote sigma slopes, mu random effects, correlated "
+            "or structured effects, bivariate formulas, another family, or missing predictors."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Gaussian REML effect geometry.",
+    },
 }
 
 
