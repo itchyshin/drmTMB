@@ -70,7 +70,7 @@ test_that("every non-validated response family loudly rejects miss_control(predi
         data = cs$data,
         missing = miss_control(predictor = "model")
       ),
-      regexp = "models are currently validated only",
+      regexp = "Missing-predictor.*currently validated",
       info = sprintf("family_type = %s", ft)
     )
   }
