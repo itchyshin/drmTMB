@@ -329,7 +329,10 @@ poisson_provider_q2_covariance_nll <- function(fit, par, precision, rho = NULL) 
       n_level * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
       2 * log_det_precision + quadratic
   )
-  prior - sum(data$weights * stats::dpois(data$y, exp(eta_mu), log = TRUE))
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], exp(eta_mu[observed]), log = TRUE
+  ))
 }
 
 poisson_provider_q2_independent_nll <- function(fit, par, precision) {
@@ -1897,6 +1900,79 @@ test_that("Poisson C2 provider q2 penalties match independent provider oracles",
       abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)),
       1e-5
     )
+  }
+})
+
+test_that("Poisson spatial, animal, and relmat labelled q2 masks have separate recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  routes <- list(
+    list(provider = "spatial", seed = 2026081762L),
+    list(provider = "animal", seed = 2026081763L),
+    list(provider = "relmat", seed = 2026081764L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_slope_data(
+      n_level = 128L, n_each = 64L, rho_provider = 0.35, seed = route$seed
+    )
+    dat <- sim$data
+    response <- if (identical(route$provider, "spatial")) "poisson_spatial" else "poisson_known"
+    dat[[response]][seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+    observed <- !is.na(dat[[response]])
+    coords <- sim$coords
+    Q <- sim$Q
+    formula <- switch(
+      route$provider,
+      spatial = bf(poisson_spatial ~ x + spatial(1 + x | p | site, coords = coords)),
+      animal = bf(poisson_known ~ x + animal(1 + x | p | id, Ainv = Q)),
+      relmat = bf(poisson_known ~ x + relmat(1 + x | p | id, Q = Q))
+    )
+    fit_masked <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+    precision <- if (identical(route$provider, "spatial")) {
+      independent_spatial_precision(coords, fit_masked$model$structured$phylo_mu$node_labels)
+    } else {
+      nodes <- fit_masked$model$structured$phylo_mu$node_labels
+      unname(Q[nodes, nodes, drop = FALSE])
+    }
+    group <- if (identical(route$provider, "spatial")) "site" else "id"
+    correlation <- paste0("cor(mu:(Intercept),mu:x | p | ", group, ")")
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(
+      obj$fn(probe), poisson_provider_q2_covariance_nll(fit_masked, par, precision),
+      tolerance = 1e-7
+    )
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+    expect_equal(
+      fit_masked$corpars[[route$provider]], fit_observed$corpars[[route$provider]],
+      tolerance = 1e-6
+    )
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.30)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.30)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.20)
+    expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.22)
+    expect_lt(abs(unname(fit_masked$corpars[[route$provider]][[correlation]]) - 0.35), 0.22)
   }
 })
 

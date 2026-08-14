@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — Poisson labelled spatial, animal, and relatedness q2 response-mask recovery
+
+- `rmf-mc-0446`, `rmf-mc-0450`, and `rmf-mc-0454` are now G3 for,
+  respectively, labelled `spatial(1 + x | p | site)`,
+  `animal(1 + x | p | id)`, and `relmat(1 + x | p | id)` location formulas.
+  Each non-Gaussian fixture has 128 groups, 64 observations per group, one
+  masked response per group, two provider SDs, and true correlation 0.35.
+- G2 uses the provider-specific dense precision oracle and numerical gradients;
+  direct count-sentinel retapes and observed-row fit equality also pass. G3
+  recovers fixed location, both provider SDs, and the named correlation. These
+  results do not certify q1, unlabelled terms, another provider, q4+, REML,
+  missing predictors, intervals, or coverage.
+- Check: isolated three-provider labelled-q2 response-mask test (72 successes),
+  response-mask inventory generation, capability-ledger drift check, and
+  `git diff --check` passed.
+
 ## 2026-08-14 — Poisson labelled phylogenetic q2 response-mask recovery
 
 - `rmf-mc-0436` is now G3 for the exact ML formula
