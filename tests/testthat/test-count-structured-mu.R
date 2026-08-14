@@ -874,6 +874,50 @@ test_that("Poisson spatial q1 slope response mask has oracle and recovery eviden
   expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.40), 0.22)
 })
 
+test_that("NB2 phylo q1 intercept response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    n_level = 128L, n_each = 16L, sd_slope = 0, seed = 2026081746L
+  )
+  dat <- sim$data
+  dat$nb2_phylo[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$nb2_phylo)
+  tree <- sim$tree
+  formula <- bf(nb2_phylo ~ x + phylo(1 | site, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), nb2_structured_q1_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.25), 0.22)
+})
+
 test_that("NB2 spatial, animal, and relmat q1 response masks have separate recovery evidence", {
   routes <- list(
     list(provider = "spatial", seed = 2026081743L),
@@ -926,7 +970,7 @@ test_that("NB2 spatial, animal, and relmat q1 response masks have separate recov
     expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
     expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
     expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
-    expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - sim$sigma_nb2), 0.18)
+    expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
     expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.28)
   }
 })
