@@ -1635,6 +1635,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Gamma structured geometry.",
     },
+    "mc-0251": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional Gamma TMB-objective and numerical-gradient equality, observed-row "
+            "fit equality, and direct positive-response sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact Gamma ML formula `y ~ x + phylo(1 | species, "
+            "tree = tree)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 tips, 16 "
+            "observations per tip, and one masked response per tip; it checks the fixed slope, "
+            "the uncentred-field intercept at its wider conditional tolerance, log-scale, and "
+            "phylogenetic SD. It does not promote relmat(), slopes, q2+, labels, structured "
+            "sigma, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Gamma structured geometry.",
+    },
 }
 
 

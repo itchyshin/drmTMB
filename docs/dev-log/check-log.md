@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — Gamma phylo q1 response-mask recovery
+
+- `rmf-mc-0251` is now G3 for `y ~ x + phylo(1 | species, tree = tree)`,
+  `sigma ~ 1` under ML. The non-Gaussian fixture uses 128 tips, 16
+  observations per tip, and one masked response per tip.
+- G2 uses a conditional Gamma likelihood plus phylogenetic-prior oracle and
+  numerical gradients; direct positive sentinel retapes and observed-row fit
+  equality also pass. G3 recovers the fixed slope, log-scale, and phylogenetic
+  SD. The intercept has a wider conditional tolerance because the uncentred
+  phylogenetic draw can shift its realised overall level. This does not certify
+  relmat, slopes, q2+, labels, structured sigma, REML, missing predictors,
+  intervals, or coverage.
+- Check: `test-positive-continuous-structured-mu.R`, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — Gamma relmat q1 response-mask recovery
 
 - `rmf-mc-0248` is now G3 for `y ~ x + relmat(1 | id, K = K)`, `sigma ~ 1`
