@@ -62,8 +62,31 @@ test_that("the scanner catches bracket private slots regardless of object name",
   )
 })
 
+test_that("the scanner catches bare and backticked private output routes", {
+  for (route in c("sdpars$mu", "`corpars`$mu", "random_effects[[\"sigma\"]]")) {
+    root <- contract_fixture(files = list("reader.Rmd" = route))
+    problems <- paste(contract_linter$reader_contract_lint(root), collapse = "\n")
+    expect_match(problems, "Undeclared private access in reader.Rmd")
+  }
+})
+
+test_that("route scanning keeps contributor permissions exact", {
+  root <- contract_fixture(files = list("adding-families.Rmd" = "`opt`$convergence\n`sdpars`$mu"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in adding-families.Rmd.*sdpars"
+  )
+})
+
 test_that("public summary and ranef fields are accepted", {
-  root <- contract_fixture()
+  root <- contract_fixture(files = list(
+    "reader.Rmd" = paste(
+      "summary(fit)$parameters",
+      "summary(fit)$covariance",
+      "ranef(fit)$terms",
+      sep = "\n"
+    )
+  ))
   expect_length(contract_linter$reader_contract_lint(root), 0L)
 })
 
@@ -152,6 +175,10 @@ test_that("invalid declared private vocabulary fails closed", {
   manifest_path <- file.path(root, "inst", "reader-contracts", "vignette-manifest.csv")
   manifest <- utils::read.csv(manifest_path, stringsAsFactors = FALSE, check.names = FALSE)
   manifest$permitted_private_fields[manifest$vignette == "adding-families.Rmd"] <- "opt;not_a_private_slot"
+  writeLines(
+    "opt$convergence\nnot_a_private_slot$mu",
+    file.path(root, "vignettes", "adding-families.Rmd")
+  )
   utils::write.csv(manifest, manifest_path, row.names = FALSE)
   expect_match(
     paste(contract_linter$reader_contract_lint(root), collapse = "\n"),

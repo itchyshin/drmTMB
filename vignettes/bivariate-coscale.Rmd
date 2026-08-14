@@ -536,9 +536,9 @@ drmTMB(
 )
 ```
 
-Here `sigma1` and `sigma2` are residual scale parameters. The fitted
-random-intercept SDs are group-level standard deviations in `sdpars$mu`, not
-residual `sigma`.
+Here `sigma1` and `sigma2` are residual scale parameters. Read the fitted
+group-level random-intercept SDs from `summary(fit)$parameters` or their named
+rows in `profile_targets(fit)`; they are not residual `sigma`.
 
 Symbolically, the implemented random-intercept mean part is:
 
@@ -786,9 +786,9 @@ drmTMB(
 )
 ```
 
-Read this model through `sdpars$mu` for the two response-specific slope SDs,
-`corpairs(fit, class = "slope-slope")` for the group-level slope-slope
-correlation, `summary(fit)$covariance` for the covariance table, and
+Read this model through the named SD rows in `summary(fit)$parameters` for the
+two response-specific slope SDs, `corpairs(fit, class = "slope-slope")` for
+the group-level slope-slope correlation, `summary(fit)$covariance` for the covariance table, and
 `profile_targets(fit)` for the direct SD and correlation target names. Run
 `check_drm(fit)` before interpreting the row; the relevant diagnostic is the
 bivariate `mu` random-effect covariance check, plus the ordinary convergence,
