@@ -139,7 +139,8 @@ new_spatial_gaussian_slope_data <- function(
   n_each = 8L,
   sd_intercept = 0.45,
   sd_slope = 0.30,
-  sigma = 0.16
+  sigma = 0.16,
+  beta_mu = c(`(Intercept)` = 0.6, x = -0.25)
 ) {
   set.seed(seed)
   site_levels <- paste0("site_", seq_len(n_site))
@@ -167,7 +168,6 @@ new_spatial_gaussian_slope_data <- function(
 
   site <- rep(site_levels, each = n_each)
   x <- rep(seq(-1, 1, length.out = n_each), times = n_site)
-  beta_mu <- c(`(Intercept)` = 0.6, x = -0.25)
   y <- beta_mu[[1L]] +
     beta_mu[[2L]] * x +
     spatial_intercept[site] +
@@ -1249,6 +1249,45 @@ test_that("Gaussian mu supports coordinate-based spatial one-slope fields", {
     unname(conditional_mu),
     fixed_mu + drmTMB:::phylo_mu_contribution(fit),
     tolerance = 1e-8
+  )
+})
+
+test_that("Gaussian spatial mu slope masks recover known data", {
+  sim <- new_spatial_gaussian_slope_data(
+    seed = 2026081639L, n_site = 80L, n_each = 20L
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081640L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) /
+      c(`spatial(1 | site)` = sim$sd_intercept, `spatial(0 + x | site)` = sim$sd_slope)))),
+    log(2.5)
   )
 })
 

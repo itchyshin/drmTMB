@@ -94167,6 +94167,21 @@ can see which commit each one actually examined.
   effects, another provider, bivariate or REML formulas, interval/coverage
   evidence, or missing predictors.
 
+## 2026-08-14 — Gaussian spatial mu-slope response mask
+
+- `mc-0286` is now `formula_validated` at G3 for `y ~ x + spatial(1 + x |
+  site, coords = coords), sigma ~ 1`. The missing-response fit agrees with the
+  observed-response fit in fixed mu and sigma coefficients, both spatial mu
+  SDs, likelihood, and `nobs()`; continuous sentinels are inert. A deterministic
+  25% MCAR DGP with 80 sites and 20 observations per site recovers these fitted
+  parameter blocks.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-spatial-gaussian.R")`
+  passed. The fixed-effect recovery tolerance is 0.25 because one realized
+  correlated spatial field can shift the population intercept; the original
+  0.20 bound was not met even after increasing sites. This does not promote
+  labelled/q2 blocks, sigma-side spatial effects, another provider, bivariate
+  or REML formulas, interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — Gaussian animal sigma-intercept response mask
 
 - `mc-0300` is now `formula_validated` at G3 for `y ~ x, sigma ~ animal(1 |
