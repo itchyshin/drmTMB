@@ -93534,6 +93534,19 @@ can see which commit each one actually examined.
   stable candidate design and requests explicit approval for the all-attempt
   campaign only.
 
+## 2026-08-14 — structured response-mask Totoro recovery receipt
+
+- The approved 300-attempt q1 structured Gaussian REML response-mask campaign
+  completed on Totoro and retained every task receipt.  The first output set is
+  retained as an instrumentation-only record because `se = FALSE` disabled the
+  `pdHess` calculation that its runner inspected.  The corrected runner
+  (`f7323969f`) gave 300/300 convergence-zero, `pdHess = TRUE` fits.
+- No G3 promotion follows.  The frozen absolute-recovery gate fails for spatial
+  and animal intercept error, and animal has a structured-SD outlier above the
+  predeclared maximum.  Full receipt:
+  `2026-08-14-structured-response-mask-recovery-totoro.md`.  The cells
+  `mc-0287`, `mc-0299`, and `mc-0311` remain G2-only.
+
 ## 2026-08-14 — q1 spatial, animal, and relmat ML response-mask oracles
 
 - `mc-0285`, `mc-0297`, and `mc-0309` now record G2 for their respective
