@@ -93640,3 +93640,15 @@ can see which commit each one actually examined.
   generation, generated-ledger drift check, and `git diff --check` passed.
   This does not promote slopes, sigma random effects, correlated blocks,
   structured effects, REML, another response family, or missing predictors.
+
+## 2026-08-14 — beta-binomial ML independent random-slope response mask
+
+- `mc-0031` is now `formula_validated` at G3 for the exact beta-binomial
+  formula `cbind(success, failure) ~ x + (0 + x | id), sigma ~ z`.  The paired
+  encoded response is masked as a unit; masked and observed-data fits agree in
+  fixed mu/sigma coefficients, random-slope SD, and likelihood; and the fixed
+  25% MCAR DGP recovers all named targets.
+- Check: `NOT_CRAN=true` `test-missing-response-encoded.R` passed; inventory
+  generation, generated-ledger drift check, and `git diff --check` passed.
+  This does not promote sigma random effects, correlated blocks, structured
+  effects, REML, another response family, or missing predictors.
