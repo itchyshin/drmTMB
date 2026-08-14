@@ -309,6 +309,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent observed-response oracle and recovery design for each remaining binomial geometry.",
     },
+    "mc-0061": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case likelihood and parameter equality "
+            "within the stated latent-mode numerical tolerance, plus direct "
+            "sentinel retapes, and G3 deterministic 25% MCAR known-DGP recovery "
+            "validate the grouped-binomial-logit univariate ordinary mu independent "
+            "random-slope ML response-mask formula `(0 + x | id)`. The check uses "
+            "a two-column cbind response, covers its response-row accounting, fixed "
+            "mu coefficients, the mu random-slope SD, and conditional slope-effect "
+            "recovery. It does not promote correlated blocks, structured effects, "
+            "REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add an independent observed-response oracle and recovery design for each remaining binomial geometry.",
+    },
 }
 
 
