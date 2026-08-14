@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — NB2 animal and relatedness log-sigma response-mask recovery
+
+- `rmf-mc-0423` and `rmf-mc-0424` are now G3 for, respectively,
+  `y ~ x, sigma ~ animal(1 + x | id, Ainv = Q)` and
+  `y ~ x, sigma ~ relmat(1 + x | id, Q = Q)`. Each non-Gaussian fixture has
+  128 IDs, 32 observations per ID, one masked response per ID, and nonzero
+  intercept and slope fields on log-sigma; the two providers use separate seeds.
+- G2 uses a conditional NB2 log-sigma likelihood plus the supplied precision
+  oracle and numerical gradients; direct count-sentinel retapes and observed-
+  row fit equality also pass. G3 recovers fixed location, fixed log-sigma, and
+  both provider SDs. These results do not certify location-side structure,
+  another provider, labelled covariance, REML, missing predictors, intervals,
+  or coverage.
+- Check: isolated response-mask tests, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — NB2 spatial log-sigma response-mask recovery
 
 - `rmf-mc-0422` is now G3 for the exact ML formula

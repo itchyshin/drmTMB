@@ -1916,6 +1916,38 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
+    "mc-0423": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 log-sigma TMB-objective and numerical-gradient equality, observed-"
+            "row fit equality, and direct count-response sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact NB2 ML formula `y ~ x`, `sigma ~ animal(1 + x "
+            "| id, Ainv = Q)`. The larger non-Gaussian fixture has 128 IDs, 32 observations per ID, "
+            "one masked response per ID, and nonzero animal log-sigma intercept and slope fields. "
+            "It checks fixed location, fixed log-sigma, and both sigma-side animal SDs. It does not "
+            "promote location-side structured effects, other providers, labelled covariance, REML, "
+            "missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
+    "mc-0424": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 log-sigma TMB-objective and numerical-gradient equality, observed-"
+            "row fit equality, and direct count-response sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact NB2 ML formula `y ~ x`, `sigma ~ relmat(1 + x "
+            "| id, Q = Q)`. The larger non-Gaussian fixture has 128 IDs, 32 observations per ID, "
+            "one masked response per ID, and nonzero relatedness log-sigma intercept and slope fields. "
+            "It checks fixed location, fixed log-sigma, and both sigma-side relatedness SDs. It does "
+            "not promote location-side structured effects, other providers, labelled covariance, REML, "
+            "missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
 }
 
 
