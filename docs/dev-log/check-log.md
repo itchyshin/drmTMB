@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — Poisson labelled spatial q1-intercept response-mask recovery
+
+- `rmf-mc-0443` is now G3 for the exact ML formula
+  `poisson_spatial ~ x + spatial(1 | p | site, coords = coords)`. The larger
+  non-Gaussian fixture has 128 sites, 64 observations per site, and one masked
+  response per site.
+- G2 uses the conditional Poisson spatial oracle and numerical gradients;
+  direct count-sentinel retapes and observed-row fit equality also pass. G3
+  recovers the fixed slope, spatial SD, and conditional intercept against the
+  realised spatial-field mean. This does not certify unlabelled q1, labelled
+  one-slope or q2 covariance, another provider, REML, missing predictors,
+  intervals, or coverage.
+- Check: isolated labelled-q1 response-mask test (22 successes), response-mask
+  inventory generation, capability-ledger drift check, and `git diff --check`
+  passed.
+
 ## 2026-08-14 — Poisson phylogenetic-interaction response-mask recovery
 
 - `rmf-mc-0438` is now G3 for the exact ML formula
