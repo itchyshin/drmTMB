@@ -261,7 +261,7 @@ test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
 
 mr_t2_random_slope_data <- function(route, seed) {
   set.seed(seed)
-  n_id <- switch(route, student = 44L, lognormal = 42L, gamma = 46L)
+  n_id <- switch(route, student = 44L, skew_normal = 50L, lognormal = 42L, gamma = 46L)
   n_each <- 16L
   id <- factor(rep(seq_len(n_id), each = n_each))
   n <- length(id)
@@ -269,6 +269,7 @@ mr_t2_random_slope_data <- function(route, seed) {
   truth <- switch(
     route,
     student = list(mu = c(0.20, 0.48), sigma = c(-0.42, 0.18), nu = log(7), sd = 0.50),
+    skew_normal = list(mu = c(0.20, 0.45), sigma = c(-0.35, 0.18), nu = 1.6, sd = 0.45),
     lognormal = list(mu = c(0.25, 0.40), sigma = c(-0.75, 0.18), sd = 0.50),
     gamma = list(mu = c(0.15, 0.36), sigma = c(-0.85, 0.16), sd = 0.48)
   )
@@ -278,6 +279,11 @@ mr_t2_random_slope_data <- function(route, seed) {
   if (route == "student") {
     q <- qt((seq_len(n) - 0.5) / n, df = 2 + exp(truth$nu))
     dat$y <- eta + sigma * sample(q)
+  } else if (route == "skew_normal") {
+    native <- skew_normal_public_to_native(eta, sigma, truth$nu)
+    dat$y <- native$xi + native$omega * (
+      native$delta * abs(rnorm(n)) + sqrt(1 - native$delta^2) * rnorm(n)
+    )
   } else if (route == "lognormal") {
     dat$y <- rlnorm(n, meanlog = eta, sdlog = sigma)
   } else {
@@ -289,8 +295,8 @@ mr_t2_random_slope_data <- function(route, seed) {
   list(data = dat, complete = complete, truth = truth, u = u)
 }
 
-test_that("Student, lognormal, and Gamma masks recover random-slope DGPs", {
-  routes <- c("student", "lognormal", "gamma")
+test_that("continuous masks recover random-slope DGPs", {
+  routes <- c("student", "skew_normal", "lognormal", "gamma")
   for (i in seq_along(routes)) {
     route <- routes[[i]]
     case <- mr_t2_random_slope_data(route, 2026081530L + i)
@@ -299,15 +305,16 @@ test_that("Student, lognormal, and Gamma masks recover random-slope DGPs", {
     form <- switch(
       route,
       student = bf(y ~ x + (0 + x | id), sigma ~ z, nu ~ 1),
+      skew_normal = bf(y ~ x + (0 + x | id), sigma ~ z, nu ~ 1),
       lognormal = bf(y ~ x + (0 + x | id), sigma ~ z),
       gamma = bf(y ~ x + (0 + x | id), sigma ~ z)
     )
     fit <- drmTMB(
-      form, switch(route, student = student(), lognormal = lognormal(), gamma = Gamma(link = "log")),
+      form, switch(route, student = student(), skew_normal = skew_normal(), lognormal = lognormal(), gamma = Gamma(link = "log")),
       dat, missing = miss_control(response = "include"), control = drm_control(se = FALSE)
     )
     fit_observed <- drmTMB(
-      form, switch(route, student = student(), lognormal = lognormal(), gamma = Gamma(link = "log")),
+      form, switch(route, student = student(), skew_normal = skew_normal(), lognormal = lognormal(), gamma = Gamma(link = "log")),
       case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
     )
     for (dpar in names(coef(fit))) {
@@ -321,6 +328,7 @@ test_that("Student, lognormal, and Gamma masks recover random-slope DGPs", {
     expect_lt(max(abs(unname(coef(fit, "mu")) - case$truth$mu)), 0.25)
     expect_lt(max(abs(unname(coef(fit, "sigma")) - case$truth$sigma)), 0.25)
     if (route == "student") expect_lt(abs(unname(coef(fit, "nu")) - case$truth$nu), 0.65)
+    if (route == "skew_normal") expect_lt(abs(unname(coef(fit, "nu")) - case$truth$nu), 0.35)
     expect_lt(abs(unname(fit$sdpars$mu) - case$truth$sd), 0.28)
     slope_effects <- fit$random_effects$mu$terms[["(0 + x | id)"]]
     expect_gt(cor(slope_effects, case$u), 0.40)

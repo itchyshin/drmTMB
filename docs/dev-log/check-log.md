@@ -94011,3 +94011,16 @@ can see which commit each one actually examined.
   drift check, and `git diff --check` passed. This does not promote an endpoint
   fragment, slopes, another covariance block, structured effects, REML,
   interval/coverage evidence, or dense known-`V` partial responses.
+
+## 2026-08-14 — skew-normal ML mu random-slope response mask
+
+- `mc-0464` is now `formula_validated` at G3 for `y ~ x + (0 + x | id),
+  sigma ~ z, nu ~ 1`. Masked and observed-data fits agree in fixed
+  distributional parameters, random-slope SD, and likelihood; continuous
+  sentinels are inert; and deterministic 25% MCAR recovery covers fixed,
+  slope-SD, and conditional slope-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter =
+  "missing-response-continuous")` passed; inventory generation,
+  generated-ledger drift check, and `git diff --check` passed. This does not
+  promote correlated or structured effects, other skew-normal geometries,
+  REML, another family, or missing predictors.

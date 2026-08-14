@@ -802,6 +802,21 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining skew-normal geometry.",
     },
+    "mc-0464": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case parameter and likelihood equality, plus direct "
+            "continuous-response sentinel retapes, and G3 deterministic 25% MCAR known-DGP "
+            "recovery validate the skew-normal univariate ordinary mu independent random-slope "
+            "ML response-mask formula `(0 + x | id)` with fixed sigma and nu regressions. "
+            "The check covers fixed mu, sigma, and nu coefficients, the mu random-slope SD, "
+            "and conditional random-slope recovery. It does not promote intercepts beyond "
+            "their separate cell, correlated or structured effects, REML, another family, "
+            "or missing-predictor formulas."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining skew-normal geometry.",
+    },
     "mc-0538": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
