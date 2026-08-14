@@ -404,6 +404,25 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Validate each zero-one-beta provider and endpoint separately; do not reuse this animal mu evidence.",
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "replace_model_claim": True,
+            "claim_boundary": (
+                "G2 direct zero-one-beta observed-data objective and numerical-gradient "
+                "equality, direct atom/interior response-sentinel retapes, and masked-"
+                "versus-observed fit equality validate this q1 location formula. G3 uses "
+                "a deterministic 64-group, 50-observation-per-group fixture to recover "
+                "fixed location, constant beta scale, and the named structured mu SD. "
+                "This is not evidence for another provider or endpoint, a labelled or "
+                "correlated block, REML, interval or coverage evidence, or missing-"
+                "predictor support."
+            ),
+            "next_gate": "Validate each zero-one-beta provider and endpoint separately; do not reuse this provider-specific mu evidence.",
+        }
+        for cell_id in ("mc-0585", "mc-0586")
+    },
     "mc-0364": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

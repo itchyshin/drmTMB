@@ -105,7 +105,10 @@ new_zero_one_beta_relmat_data <- function(seed = 2026073101L, n_group = 32L, n_e
   mu <- stats::plogis(-.10 + .35 * data$x + u[data$species])
   boundary <- stats::rbinom(nrow(data), 1, .12)
   data$y <- ifelse(boundary == 1, stats::rbinom(nrow(data), 1, .45), stats::rbeta(nrow(data), mu / .45^2, (1 - mu) / .45^2))
-  list(data = data, K = K)
+  list(
+    data = data, K = K,
+    truth = list(beta_mu = c(`(Intercept)` = -.10, x = .35), sigma = .45, sd_mu = .55)
+  )
 }
 
 new_zero_one_beta_spatial_data <- function(seed = 2026073201L, n_group = 24L, n_each = 35L) {
@@ -120,7 +123,10 @@ new_zero_one_beta_spatial_data <- function(seed = 2026073201L, n_group = 24L, n_
   mu <- stats::plogis(-.10 + .35 * data$x + u[data$site])
   boundary <- stats::rbinom(nrow(data), 1, .12)
   data$y <- ifelse(boundary == 1, stats::rbinom(nrow(data), 1, .45), stats::rbeta(nrow(data), mu / .45^2, (1 - mu) / .45^2))
-  list(data = data, coords = coords)
+  list(
+    data = data, coords = coords,
+    truth = list(beta_mu = c(`(Intercept)` = -.10, x = .35), sigma = .45, sd_mu = .55)
+  )
 }
 
 new_zero_one_beta_phylo_interaction_data <- function(seed = 2026073301L, n_each = 30L) {
@@ -427,7 +433,10 @@ zoib_relmat_nll <- function(fit, par, K, species) {
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo +
     as.numeric(determinant(K, logarithm = TRUE)$modulus) +
     exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(
+    d$y[observed], mu[observed], sigma[observed], zoi[observed], coi[observed], log = TRUE
+  ))
 }
 
 dense_zoib_spatial_precision <- function(coords, site_levels, jitter = 1e-6) {
@@ -451,7 +460,10 @@ zoib_spatial_nll <- function(fit, par, coords, site) {
   sigma <- exp(as.vector(d$X_sigma %*% par$beta_sigma))
   zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det_Q + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, sigma, zoi, coi, log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(
+    d$y[observed], mu[observed], sigma[observed], zoi[observed], coi[observed], log = TRUE
+  ))
 }
 
 zoib_sigma_spatial_nll <- function(fit, par, coords, site) {
@@ -916,6 +928,66 @@ test_that("zero-one-beta animal mu response mask has oracle and recovery evidenc
   expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$truth$beta_mu[["x"]]), .12)
   expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$truth$sigma)), .15)
   expect_lt(abs(fit_masked$sdpars$mu[["animal(1 | species)"]] - sim$truth$sd_mu), .25)
+})
+
+expect_zoib_mu_response_mask <- function(sim, formula, oracle_builder, sd_name) {
+  dat <- sim$data
+  n_each <- as.integer(nrow(dat) / length(unique(dat[[if ("species" %in% names(dat)) "species" else "site"]])))
+  dat$y[seq(1L, nrow(dat), by = n_each)] <- NA_real_
+  observed <- !is.na(dat$y)
+  fit_masked <- drmTMB(
+    formula, family = zero_one_beta(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = zero_one_beta(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par))
+  oracle_fn <- function(v) oracle_builder(fit_masked, obj$env$parList(v), dat)
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 1, .5))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "zoi"), coef(fit_observed, "zoi"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "coi"), coef(fit_observed, "coi"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$truth$beta_mu[["x"]]), .12)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$truth$sigma)), .15)
+  expect_lt(abs(fit_masked$sdpars$mu[[sd_name]] - sim$truth$sd_mu), .25)
+}
+
+test_that("zero-one-beta relmat mu response mask has oracle and recovery evidence", {
+  sim <- new_zero_one_beta_relmat_data(
+    seed = 2026081813L, n_group = 64L, n_each = 50L
+  )
+  K <- sim$K
+  expect_zoib_mu_response_mask(
+    sim, bf(y ~ x + relmat(1 | species, K = K)),
+    function(fit, par, dat) zoib_relmat_nll(fit, par, K, dat$species),
+    "relmat(1 | species)"
+  )
+})
+
+test_that("zero-one-beta spatial mu response mask has oracle and recovery evidence", {
+  sim <- new_zero_one_beta_spatial_data(
+    seed = 2026081814L, n_group = 64L, n_each = 50L
+  )
+  coords <- sim$coords
+  expect_zoib_mu_response_mask(
+    sim, bf(y ~ x + spatial(1 | site, coords = coords)),
+    function(fit, par, dat) zoib_spatial_nll(fit, par, coords, dat$site),
+    "spatial(1 | site)"
+  )
 })
 
 test_that("zero-one-beta admits only the exact animal Ainv q1 sigma gate", {

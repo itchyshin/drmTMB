@@ -94994,6 +94994,18 @@ can see which commit each one actually examined.
   not promote another provider or endpoint, REML, interval/coverage evidence,
   or missing predictors.
 
+## 2026-08-14 — Zero-one-beta relmat and spatial location response masks
+
+- `mc-0585` and `mc-0586` are now `formula_validated` at G3 for `y ~ x +
+  relmat(1 | species, K = K)` and `y ~ x + spatial(1 | site, coords =
+  coords)`, respectively. Each provider has a separate observed-data oracle,
+  gradient, and response-mask check; their shared helper only removes repeated
+  assertions.
+- Both deterministic fixtures use 64 groups and 50 observations per group to
+  recover fixed location, constant beta scale, and the named structured
+  location SD. This does not promote phylogenetic-interaction location,
+  another endpoint, REML, interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one
