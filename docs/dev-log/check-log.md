@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — bivariate spatial q2 location response-mask oracle
+
+- `rmf-biv-gaussian-spatial-mu12-q2-intercept` represents the accepted paired
+  `mu1 ~ spatial(1 | p | site, coords = coords)`, `mu2 ~ spatial(1 | p | site,
+  coords = coords)` ML formula (`mc-0107`/`mc-0108`). Its G2 conditional oracle
+  reconstructs component-level response contributions and the correlated
+  spatial-field prior at the fitted latent mode; endpoint sentinel retapes are
+  inert.
+- This is deliberately G2 only. It does not claim recovery, another spatial
+  geometry or provider, REML, interval/coverage evidence, or dense-known-`V`
+  partial-response support.
+- Check: `test-spatial-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate phylogenetic q2 location response mask
 
 - `rmf-biv-gaussian-phylo-mu12-q2-intercept` now represents the accepted paired
