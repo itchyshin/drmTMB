@@ -93567,3 +93567,15 @@ can see which commit each one actually examined.
   coverage, or recovery claim follows.
 - Check: `NOT_CRAN=true` `test-reml-structured-location.R` passed; inventory
   tests, generated-ledger drift check, and `git diff --check` passed.
+
+## 2026-08-14 — Poisson ML independent random-slope response mask
+
+- `mc-0431` is now `formula_validated` at G3 for the exact Poisson formula
+  `y ~ x + (0 + x | id)`.  The masked and observed-data fits agree in fixed
+  coefficients, random-slope SD, and log likelihood; response sentinels are
+  inert; and a deterministic 25% MCAR DGP recovers the fixed coefficients,
+  slope SD, and conditional slope effects.
+- Check: `NOT_CRAN=true` `test-missing-response-poisson.R` passed; inventory
+  generation, generated-ledger drift check, and `git diff --check` passed.
+  This is not evidence for correlated blocks, structured effects, bivariate,
+  REML, another response family, or missing-predictor formulas.
