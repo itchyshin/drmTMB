@@ -249,6 +249,28 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining spatial geometry.",
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "This row is one component of the paired univariate Gaussian q2 spatial "
+                "location-scale intercept formula `y ~ x + spatial(1 | site, coords = coords), "
+                "sigma ~ spatial(1 | site, coords = coords)`; neither endpoint is promoted "
+                "alone. G2 masked-versus-observed-data equality covers fixed mu and sigma "
+                "coefficients, both spatial SDs, their named cross-axis correlation, and "
+                "likelihood; direct continuous-response sentinel retapes and G3 deterministic "
+                "25% MCAR recovery cover the same paired block. The fixture has 128 sites and "
+                "20 observations per site. The 64-site rung did not recover the cross-axis "
+                "correlation within the fixed point-recovery bound, so this claim has that 128-"
+                "site information floor. This does not promote either endpoint alone, slopes, "
+                "another provider, q4+, bivariate, REML, interval/coverage, or missing-predictor "
+                "formulas."
+            ),
+            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
+        }
+        for cell_id in ("mc-0291", "mc-0292")
+    },
     "mc-0300": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

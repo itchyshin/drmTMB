@@ -94139,6 +94139,21 @@ can see which commit each one actually examined.
   labelled/correlated or q4+ block, another provider, bivariate or REML
   formulas, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — paired Gaussian spatial location-scale intercept response mask
+
+- `mc-0291` and `mc-0292` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + spatial(1 | site, coords = coords), sigma ~ spatial(1
+  | site, coords = coords)`. The missing-response fit agrees with the
+  observed-response fit in fixed coefficients, both spatial SDs, their named
+  cross-axis correlation, likelihood, and `nobs()`; continuous sentinels are
+  inert. A deterministic 25% MCAR DGP at 128 sites and 20 observations per site
+  recovers the paired block.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-spatial-gaussian.R")`
+  passed. The 64-site rung did not recover the cross-axis correlation within the
+  fixed recovery bound, so the G3 claim has a 128-site floor. This does not
+  promote either endpoint alone, slopes, another provider, q4+, bivariate or
+  REML formulas, interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — Gaussian animal sigma-intercept response mask
 
 - `mc-0300` is now `formula_validated` at G3 for `y ~ x, sigma ~ animal(1 |

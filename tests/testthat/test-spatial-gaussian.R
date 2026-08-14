@@ -47,7 +47,9 @@ new_spatial_location_scale_gaussian_data <- function(
   n_site = 7L,
   n_each = 7L,
   sd_spatial = c(mu = 0.35, sigma = 0.15),
-  rho_spatial = 0.10
+  rho_spatial = 0.10,
+  beta_mu = c(`(Intercept)` = 0.20, x = 0.20),
+  beta_sigma = c(`(Intercept)` = -1.10)
 ) {
   set.seed(seed)
   site_levels <- paste0("site_", seq_len(n_site))
@@ -75,15 +77,17 @@ new_spatial_location_scale_gaussian_data <- function(
 
   site <- rep(site_levels, each = n_each)
   x <- stats::rnorm(length(site))
-  log_sigma <- -1.10 + spatial_sigma[site]
-  y <- 0.20 +
-    0.20 * x +
+  log_sigma <- beta_sigma[["(Intercept)"]] + spatial_sigma[site]
+  y <- beta_mu[["(Intercept)"]] +
+    beta_mu[["x"]] * x +
     spatial_mu[site] +
     exp(log_sigma) * stats::rnorm(length(site))
 
   list(
     data = data.frame(y = unname(y), x = x, site = site),
     coords = coords,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
     sd_spatial = sd_spatial,
     rho_spatial = rho_spatial
   )
@@ -474,6 +478,48 @@ test_that("Gaussian supports coordinate-spatial residual-scale structured effect
   )
   expect_true("sd:sigma:sigma:spatial(1 | site)" %in% profile_targets(fit)$parm)
   expect_equal(corpairs(fit, level = "spatial")$class, "mean-scale")
+})
+
+test_that("Gaussian matched spatial location-scale intercept masks match observed data", {
+  sim <- new_spatial_location_scale_gaussian_data(
+    seed = 2026081631L, n_site = 128L, n_each = 20L, rho_spatial = 0.30
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081632L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + spatial(1 | site, coords = coords),
+    sigma ~ spatial(1 | site, coords = coords)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(fit_mask$corpars$spatial, fit_observed$corpars$spatial, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.30)
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_spatial[["mu"]]))), log(2.5))
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_spatial[["sigma"]]))), log(2.5))
+  expect_lt(abs(unname(fit_mask$corpars$spatial) - sim$rho_spatial), 0.45)
 })
 
 test_that("Gaussian spatial sigma intercept masks match observed data", {
