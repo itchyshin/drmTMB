@@ -46,6 +46,32 @@ effects, intervals, or missing-predictor support.
 - `schema.json` defines fields, enums, denominators, and the verified-tick gate.
 - `tranches/` contains generated tranche summaries.
 
+## Provenance keys
+
+Four `cells.tsv` fields record where a route's method came from. They answer a
+different question from `evidence_tier`: not *how strong is the evidence* but
+*what is this an implementation of*. A citation records provenance; it is not a
+correctness certificate, and none of these fields can promote a claim.
+
+| Field | Meaning | Checked by `--check` |
+| --- | --- | --- |
+| `source_citation` | BibTeX key in `REFERENCES.bib`, or `none` | the key must resolve |
+| `provenance_relation` | `none`, `direct_implementation`, `adaptation`, `independent_derivation` | must be one of the four |
+| `assumption_anchor` | path to the design-doc section stating what the source assumes and this route inherits, or `none` | the path must exist |
+| `comparator_bridge` | path to the parameterisation bridge the route's comparator evidence relies on, or `none` | the path must exist |
+
+`none` is a first-class answer and the default for all 740 rows; a route with no
+literature source is not thereby suspect. A relation other than `none` or
+`independent_derivation` requires a citation, so a row cannot claim to implement
+a source it does not name.
+
+All four are keys rather than prose, deliberately. Issue #1011 recorded three
+cases in one session where free-text ledger fields cross-referenced other rows,
+were silently falsified by a partial change, and still passed every mechanical
+check because the strings stayed syntactically valid. A BibTeX key, an
+enumerated relation, and two paths are all joinable and all checkable for
+existence; a paragraph is neither.
+
 ## Missing-response gates
 
 | Gate | Meaning |

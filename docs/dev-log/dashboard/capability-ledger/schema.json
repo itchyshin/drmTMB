@@ -36,7 +36,11 @@
     "updated_commit",
     "updated_date",
     "legacy_evidence_source",
-    "notes"
+    "notes",
+    "source_citation",
+    "provenance_relation",
+    "assumption_anchor",
+    "comparator_bridge"
   ],
   "evidence_fields": [
     "evidence_id",
@@ -109,6 +113,12 @@
       "model_recovery",
       "recovery_test",
       "rejection_test"
+    ],
+    "provenance_relation": [
+      "adaptation",
+      "direct_implementation",
+      "independent_derivation",
+      "none"
     ]
   },
   "expected_counts": {

@@ -737,6 +737,13 @@ CELL_FIELDS = [
     "tranche_id", "owner", "blocking_reviewers", "primary_evidence_id",
     "claim_boundary", "next_gate", "issue_url", "pr_url", "updated_commit",
     "updated_date", "legacy_evidence_source", "notes",
+    # Provenance keys (Transfer C of #1015). Appended, so every pre-existing
+    # column keeps its position for `awk -F'\t'` consumers. These are keys, not
+    # prose: #1011 showed free text in a ledger row rots silently because no
+    # join can see what it asserts. A citation records provenance; it is not a
+    # correctness certificate, so none of these promote a claim.
+    "source_citation", "provenance_relation", "assumption_anchor",
+    "comparator_bridge",
 ]
 EVIDENCE_FIELDS = [
     "evidence_id", "cell_id", "evidence_class", "path_or_url", "commit_sha",
@@ -783,6 +790,13 @@ CAPABILITY_STATUSES = {
     "not_implemented", "rejected_by_design", "scaffolded", "implemented",
 }
 TEST_GATES = {"na", "G0", "G1", "G2", "G3", "G4", "G5"}
+# How this route's code relates to its cited source. Constrained for the same
+# reason EVIDENCE_CLASSES is: an unconstrained field accepts a typo and still
+# passes --check. "none" is a first-class answer and is the default; a route
+# with no literature source is not thereby suspect.
+PROVENANCE_RELATIONS = {
+    "none", "direct_implementation", "adaptation", "independent_derivation",
+}
 # evidence_class was previously unconstrained, so a typo silently produced zero badges
 # and a green --check. external_comparator is the newest member: agreement with an
 # independent implementation. Adding a class here is deliberate; it is not a free-text field.
@@ -898,6 +912,7 @@ def schema_value() -> dict[str, object]:
             "test_gate": sorted(TEST_GATES),
             "evidence_tier": sorted(EVIDENCE_TIERS),
             "evidence_class": sorted(EVIDENCE_CLASSES),
+            "provenance_relation": sorted(PROVENANCE_RELATIONS),
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
@@ -2160,12 +2175,27 @@ def source_path_exists(value: str) -> bool:
     return (ROOT / candidate).exists()
 
 
+def bibliography_keys() -> set[str]:
+    """Citation keys declared in REFERENCES.bib.
+
+    A `source_citation` must resolve to one of these. Free-text citations were
+    rejected deliberately: an unresolvable string looks like provenance without
+    being checkable, which is the failure #1011 documented for prose fields.
+    """
+    path = ROOT / "REFERENCES.bib"
+    if not path.exists():
+        return set()
+    text = path.read_text(encoding="utf-8")
+    return set(re.findall(r"^@\w+\{\s*([^,\s]+)\s*,", text, flags=re.MULTILINE))
+
+
 def validate(
     cells: list[dict[str, str]],
     evidence: list[dict[str, str]],
     transitions: list[dict[str, str]],
 ) -> None:
     errors: list[str] = []
+    bib_keys = bibliography_keys()
     if list(cells[0]) != CELL_FIELDS:
         errors.append("cells.tsv header does not match schema")
     if evidence and list(evidence[0]) != EVIDENCE_FIELDS:
@@ -2212,6 +2242,29 @@ def validate(
             errors.append(f"{row['cell_id']}: invalid test_gate")
         if row["evidence_tier"] not in EVIDENCE_TIERS:
             errors.append(f"{row['cell_id']}: invalid evidence_tier")
+        if row["provenance_relation"] not in PROVENANCE_RELATIONS:
+            errors.append(f"{row['cell_id']}: invalid provenance_relation")
+        citation = row["source_citation"]
+        if citation and citation != "none" and citation not in bib_keys:
+            errors.append(
+                f"{row['cell_id']}: source_citation {citation} is not a key in "
+                "REFERENCES.bib"
+            )
+        if citation in ("", "none") and row["provenance_relation"] not in (
+            "", "none", "independent_derivation"
+        ):
+            errors.append(
+                f"{row['cell_id']}: provenance_relation "
+                f"{row['provenance_relation']} names a source relation but "
+                "source_citation is empty"
+            )
+        for anchor_field in ("assumption_anchor", "comparator_bridge"):
+            anchor = row[anchor_field]
+            if anchor and anchor != "none" and not source_path_exists(anchor):
+                errors.append(
+                    f"{row['cell_id']}: {anchor_field} points at a missing path "
+                    f"{anchor}"
+                )
         if not row["claim_boundary"] or not row["next_gate"]:
             errors.append(f"{row['cell_id']}: claim_boundary and next_gate are required")
         primary = row["primary_evidence_id"]

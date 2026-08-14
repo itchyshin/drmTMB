@@ -3011,6 +3011,68 @@ class CapabilityLedgerTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ledger.validate(copy.deepcopy(self.cells), broken, copy.deepcopy(self.transitions))
 
+    def test_every_cell_carries_the_four_provenance_keys(self):
+        for row in self.cells:
+            for field in (
+                "source_citation", "provenance_relation", "assumption_anchor",
+                "comparator_bridge",
+            ):
+                self.assertIn(field, row, f"{row['cell_id']}: missing {field}")
+            self.assertIn(
+                row["provenance_relation"], ledger.PROVENANCE_RELATIONS,
+                f"{row['cell_id']}: unknown provenance_relation",
+            )
+
+    def test_provenance_relation_is_a_key_not_free_text(self):
+        cells = copy.deepcopy(self.cells)
+        cells[0]["provenance_relation"] = "adaptaion"
+        with self.assertRaisesRegex(SystemExit, "invalid provenance_relation"):
+            ledger.validate(cells, self.evidence, self.transitions)
+
+    def test_source_citation_must_resolve_to_a_references_bib_key(self):
+        keys = ledger.bibliography_keys()
+        self.assertTrue(keys, "REFERENCES.bib yielded no citation keys")
+        cells = copy.deepcopy(self.cells)
+        cells[0]["source_citation"] = "notARealKey2026"
+        cells[0]["provenance_relation"] = "adaptation"
+        with self.assertRaisesRegex(SystemExit, "is not a key in"):
+            ledger.validate(cells, self.evidence, self.transitions)
+        # A real key is accepted, so the check gates typos rather than citation.
+        cells[0]["source_citation"] = sorted(keys)[0]
+        ledger.validate(cells, self.evidence, self.transitions)
+
+    def test_a_source_relation_without_a_citation_is_rejected(self):
+        cells = copy.deepcopy(self.cells)
+        cells[0]["provenance_relation"] = "direct_implementation"
+        cells[0]["source_citation"] = "none"
+        with self.assertRaisesRegex(SystemExit, "source_citation is empty"):
+            ledger.validate(cells, self.evidence, self.transitions)
+        # independent_derivation is the one relation that needs no source.
+        cells[0]["provenance_relation"] = "independent_derivation"
+        ledger.validate(cells, self.evidence, self.transitions)
+
+    def test_provenance_anchors_must_point_at_paths_that_exist(self):
+        for field in ("assumption_anchor", "comparator_bridge"):
+            cells = copy.deepcopy(self.cells)
+            cells[0][field] = "docs/design/does-not-exist.md"
+            with self.assertRaisesRegex(SystemExit, f"{field} points at a missing path"):
+                ledger.validate(cells, self.evidence, self.transitions)
+            cells[0][field] = "docs/design/05-testing-strategy.md"
+            ledger.validate(cells, self.evidence, self.transitions)
+
+    def test_provenance_keys_do_not_promote_a_claim(self):
+        """Provenance records where code came from; it certifies nothing."""
+        before = Counter(row["evidence_tier"] for row in self.cells)
+        cells = copy.deepcopy(self.cells)
+        for row in cells:
+            row["source_citation"] = "none"
+            row["provenance_relation"] = "independent_derivation"
+        ledger.validate(cells, self.evidence, self.transitions)
+        self.assertEqual(
+            before, Counter(row["evidence_tier"] for row in cells),
+            "changing provenance must not move any cell's evidence_tier",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
