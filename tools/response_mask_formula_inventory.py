@@ -340,6 +340,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent observed-response oracle and recovery design for each remaining cumulative-logit geometry.",
     },
+    "mc-0029": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case likelihood and parameter equality, "
+            "plus direct beta-binomial encoded-response sentinel retapes, and G3 "
+            "deterministic 25% MCAR known-DGP recovery validate the beta-binomial "
+            "univariate ordinary mu random-intercept ML response-mask formula "
+            "`(1 | id)` with fixed sigma regression. The check covers two-column "
+            "response-row accounting, fixed mu and sigma coefficients, the mu "
+            "random-intercept SD, and conditional random-effect recovery. It does "
+            "not promote slopes, sigma random effects, correlated blocks, structured "
+            "effects, REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add an independent observed-response oracle and recovery design for each remaining beta-binomial geometry.",
+    },
 }
 
 
