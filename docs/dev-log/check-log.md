@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — Poisson phylogenetic-interaction response-mask recovery
+
+- `rmf-mc-0438` is now G3 for the exact ML formula
+  `count ~ x + phylo_interaction(1 | plant:pollinator,
+  tree1 = plant_tree, tree2 = pollinator_tree)`. The larger non-Gaussian
+  fixture has 8 plant by 8 pollinator tips, 64 pair levels, 64 observations
+  per pair, and one masked response per pair.
+- G2 uses a dense Kronecker Poisson interaction oracle and numerical gradients;
+  direct count-sentinel retapes and observed-row fit equality also pass. G3
+  recovers fixed location and interaction SD. This does not certify interaction
+  slopes, another effect geometry, REML, missing predictors, intervals, or coverage.
+- Check: isolated interaction response-mask test (22 successes), response-mask
+  inventory generation, capability-ledger drift check, and `git diff --check`
+  passed.
+
 ## 2026-08-14 — Poisson labelled spatial, animal, and relatedness q2 response-mask recovery
 
 - `rmf-mc-0446`, `rmf-mc-0450`, and `rmf-mc-0454` are now G3 for,

@@ -2070,6 +2070,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
     },
+    "mc-0438": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 dense conditional Poisson phylogenetic-interaction objective and numerical-gradient "
+            "equality, observed-row fit equality, and direct count-response sentinel retapes, plus G3 "
+            "deterministic known-DGP recovery, validate the exact Poisson ML formula `count ~ x + "
+            "phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`. "
+            "The larger non-Gaussian fixture has 8 plant by 8 pollinator tips, 64 pairs, 64 observations "
+            "per pair, and one masked response per pair. It checks fixed effects and the phylogenetic-"
+            "interaction SD. It does not promote interaction slopes, other effect geometries, REML, "
+            "missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
+    },
 }
 
 
