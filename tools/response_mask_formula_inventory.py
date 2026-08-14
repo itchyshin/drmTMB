@@ -121,6 +121,41 @@ EXPLICIT_BOUNDARIES = (
         ),
         "next_gate": "Run and retain a stable spatial known-DGP recovery design before G3 promotion.",
     },
+    *[
+        {
+            "formula_cell_id": f"rmf-biv-gaussian-{provider}-mu12-q2-intercept",
+            "model_cell_id": cell_ids,
+            "family_type": "biv_gaussian",
+            "model_type": "2",
+            "route_variant": f"matched_{provider}_mu1_mu2_intercept",
+            "route_modifier": "structured_q2",
+            "dpar": "mu1+mu2",
+            "effect_type": "structured_covariance_block",
+            "structure_provider": provider,
+            "dimension": "bivariate",
+            "q_gate": "q2",
+            "estimator": "ML",
+            "formula_status": "formula_oracle_validated",
+            "family_mask_gate": "G3",
+            "formula_mask_gate": "G2",
+            "claim_boundary": (
+                f"The accepted bivariate formula is the matched {provider} q2 location block "
+                "across `mu1` and `mu2`, not either endpoint alone. G2 conditional "
+                "TMB-objective equality at the fitted latent mode includes the correlated "
+                f"{provider} field prior, and component-wise sentinel retapes validate the "
+                "response mask. Known-DGP recovery is not yet validated, so this does not "
+                "promote G3, a slope, another provider, REML, interval/coverage evidence, "
+                "or dense known-V partial-response support."
+            ),
+            "next_gate": (
+                f"Run and retain a {provider}-specific known-DGP recovery design before G3 promotion."
+            ),
+        }
+        for provider, cell_ids in (
+            ("animal", "mc-0129,mc-0130"),
+            ("relmat", "mc-0151,mc-0152"),
+        )
+    ],
     {
         "formula_cell_id": "rmf-biv-gaussian-meta-v-partial",
         "model_cell_id": "",

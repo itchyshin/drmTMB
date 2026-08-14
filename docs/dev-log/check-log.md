@@ -1,5 +1,18 @@
 # Check Log
 
+## 2026-08-14 — bivariate animal and relmat q2 response-mask oracles
+
+- `rmf-biv-gaussian-animal-mu12-q2-intercept` (`mc-0129`/`mc-0130`) and
+  `rmf-biv-gaussian-relmat-mu12-q2-intercept` (`mc-0151`/`mc-0152`) now have
+  their own G2 conditional oracles for paired mu1/mu2 intercept blocks. Each
+  reconstructs component-level response contributions and the correlated
+  provider-specific field prior at the fitted latent mode; endpoint sentinel
+  retapes are inert.
+- Both remain G2 only. The matched K/Q fixture deliberately exercises the two
+  provider routes but is not independent recovery evidence for either one.
+- Check: `test-animal-relmat-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate spatial q2 location response-mask oracle
 
 - `rmf-biv-gaussian-spatial-mu12-q2-intercept` represents the accepted paired

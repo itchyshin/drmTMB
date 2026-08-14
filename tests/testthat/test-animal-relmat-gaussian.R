@@ -483,6 +483,52 @@ new_biv_known_relatedness_gaussian_data <- function(seed = 2026052101) {
   )
 }
 
+manual_biv_known_response_loglik <- function(fit) {
+  dat <- fit$model$data
+  observed_y1 <- fit$missing_data$observed_y1
+  observed_y2 <- fit$missing_data$observed_y2
+  mu1 <- predict(fit, dpar = "mu1")
+  mu2 <- predict(fit, dpar = "mu2")
+  sigma1 <- predict(fit, dpar = "sigma1")
+  sigma2 <- predict(fit, dpar = "sigma2")
+  rho12 <- predict(fit, dpar = "rho12")
+  both <- observed_y1 & observed_y2
+  out <- numeric(nrow(dat))
+  z1 <- (dat$y1[both] - mu1[both]) / sigma1[both]
+  z2 <- (dat$y2[both] - mu2[both]) / sigma2[both]
+  one_minus_rho2 <- 1 - rho12[both]^2
+  out[both] <- -log(2 * pi) - log(sigma1[both]) - log(sigma2[both]) -
+    0.5 * log(one_minus_rho2) -
+    0.5 * (z1^2 - 2 * rho12[both] * z1 * z2 + z2^2) / one_minus_rho2
+  y1_only <- observed_y1 & !observed_y2
+  out[y1_only] <- stats::dnorm(dat$y1[y1_only], mu1[y1_only], sigma1[y1_only], log = TRUE)
+  y2_only <- !observed_y1 & observed_y2
+  out[y2_only] <- stats::dnorm(dat$y2[y2_only], mu2[y2_only], sigma2[y2_only], log = TRUE)
+  sum(out)
+}
+
+manual_biv_known_q2_prior_loglik <- function(fit) {
+  par <- fit$obj$env$parList(fit$opt$par)
+  n_known <- nrow(fit$model$tmb_data$Q_phylo)
+  u1 <- par$u_phylo[seq_len(n_known)]
+  u2 <- par$u_phylo[n_known + seq_len(n_known)]
+  Q <- as.matrix(fit$model$tmb_data$Q_phylo)
+  q11 <- drop(crossprod(u1, Q %*% u1))
+  q12 <- drop(crossprod(u1, Q %*% u2))
+  q22 <- drop(crossprod(u2, Q %*% u2))
+  sd <- exp(par$log_sd_phylo)
+  rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  one_minus_rho2 <- 1 - rho^2
+  quadratic <- q11 / (sd[[1L]]^2 * one_minus_rho2) -
+    2 * rho * q12 / (sd[[1L]] * sd[[2L]] * one_minus_rho2) +
+    q22 / (sd[[2L]]^2 * one_minus_rho2)
+  log_det_cov <- 2 * sum(par$log_sd_phylo) + log(one_minus_rho2)
+  -0.5 * (
+    2 * n_known * log(2 * pi) + n_known * log_det_cov -
+      2 * fit$model$tmb_data$log_det_Q_phylo + quadratic
+  )
+}
+
 new_biv_animal_pedigree_gaussian_data <- function(seed = 2026052103) {
   set.seed(seed)
   pedigree <- data.frame(
@@ -1720,6 +1766,57 @@ test_that("Gaussian sigma supports relmat K/Q one structured slope", {
     unname(matched_Q$sdpars$sigma),
     tolerance = 1e-5
   )
+})
+
+test_that("bivariate animal and relmat q2 response masks have exact conditional oracles", {
+  sim <- new_biv_known_relatedness_gaussian_data()
+  dat <- sim$data
+  dat$y1[c(3L, 19L, 44L)] <- NA_real_
+  dat$y2[c(8L, 19L, 51L)] <- NA_real_
+  fits <- list(
+    relmat = drmTMB(
+      bf(
+        mu1 = y1 ~ x + relmat(1 | p | id, Q = sim$Q),
+        mu2 = y2 ~ x + relmat(1 | p | id, Q = sim$Q),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat,
+      missing = miss_control(response = "include"),
+      control = list(eval.max = 500, iter.max = 500)
+    ),
+    animal = drmTMB(
+      bf(
+        mu1 = y1 ~ x + animal(1 | p | id, Ainv = sim$Q),
+        mu2 = y2 ~ x + animal(1 | p | id, Ainv = sim$Q),
+        sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+      ),
+      family = biv_gaussian(), data = dat,
+      missing = miss_control(response = "include"),
+      control = list(eval.max = 500, iter.max = 500)
+    )
+  )
+
+  for (fit in fits) {
+    full_parameters <- fit$obj$env$parList(fit$opt$par)
+    joint <- TMB::MakeADFun(
+      data = fit$model$tmb_data, parameters = full_parameters,
+      map = fit$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    expect_equal(fit$opt$convergence, 0)
+    expect_equal(
+      -joint$fn(joint$par),
+      manual_biv_known_response_loglik(fit) + manual_biv_known_q2_prior_loglik(fit),
+      tolerance = 1e-6
+    )
+    expect_missing_response_sentinel_invariant(
+      fit, response = "y1", observed = fit$missing_data$observed_y1,
+      sentinels = c(-1e6, 1e6)
+    )
+    expect_missing_response_sentinel_invariant(
+      fit, response = "y2", observed = fit$missing_data$observed_y2,
+      sentinels = c(-1e6, 1e6)
+    )
+  }
 })
 
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {
