@@ -1588,6 +1588,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining cumulative-logit geometry.",
     },
+    "mc-0388": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 observed-row equality, direct positive-response sentinel retapes, and the "
+            "lognormal-to-Gaussian transformed-response comparator, including its Jacobian "
+            "and q1 relatedness field, plus G3 deterministic known-DGP recovery, validate "
+            "the exact lognormal ML formula `y ~ x + relmat(1 | id, K = K)`, `sigma ~ 1`. "
+            "The check covers fixed location and log-scale terms and the relatedness SD on a "
+            "64-level, 16-observation-per-level fixture with one masked response per level. "
+            "It does not promote phylo(), slopes, q2+, labels, structured sigma, REML, "
+            "missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining lognormal structured geometry.",
+    },
 }
 
 
