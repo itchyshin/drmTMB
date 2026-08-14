@@ -542,6 +542,21 @@ FORMULA_EVIDENCE = {
             "mc-0559", "mc-0560", "mc-0561", "mc-0562",  # zero-one-beta
         )
     },
+    "mc-0403": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case parameter and likelihood equality, plus "
+            "direct count-response sentinel retapes, and G3 deterministic 25% MCAR "
+            "known-DGP recovery validate the NB2 univariate ordinary sigma random-"
+            "intercept ML response-mask formula `(1 | id)` with a fixed mu regression. "
+            "The check covers fixed mu and sigma coefficients, the sigma random-intercept "
+            "SD, and conditional random-effect recovery. It does not promote sigma slopes, "
+            "mu random effects, correlated blocks, structured effects, REML, another family, "
+            "or missing-predictor formulas."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 parameter geometry.",
+    },
 }
 
 

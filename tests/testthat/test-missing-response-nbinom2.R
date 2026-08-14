@@ -197,3 +197,40 @@ test_that("NB2 random-slope response mask matches observed-data fit", {
   expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.25)
   expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.4)
 })
+
+test_that("NB2 sigma random-intercept response mask matches observed-data fit", {
+  set.seed(2026081538)
+  n_id <- 60L
+  n_each <- 20L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rnorm(length(id))
+  truth_sd <- 0.42
+  u <- rnorm(n_id, sd = truth_sd)
+  dat <- data.frame(id, x)
+  log_sigma <- -0.55 + u[id]
+  dat$y <- rnbinom(
+    nrow(dat), size = 1 / exp(2 * log_sigma), mu = exp(0.30 - 0.25 * x)
+  )
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081539
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ 1 + (1 | id))
+  fit_mask <- drmTMB(
+    form, family = nbinom2(), data = masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, family = nbinom2(), data = masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-6)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 9))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(0.30, -0.25))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) + 0.55), 0.20)
+  expect_lt(abs(unname(fit_mask$sdpars$sigma) - truth_sd), 0.25)
+  expect_gt(cor(fit_mask$random_effects$sigma$values, u), 0.40)
+})

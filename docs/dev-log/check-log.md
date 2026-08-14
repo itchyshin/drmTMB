@@ -93761,3 +93761,15 @@ can see which commit each one actually examined.
   inventory generation, generated-ledger drift check, and `git diff --check`
   passed. This does not promote random or structured effects, bivariate
   formulas, REML, or missing predictors.
+
+## 2026-08-14 — NB2 ML sigma random-intercept response mask
+
+- `mc-0403` is now `formula_validated` at G3 for the exact NB2 formula
+  `y ~ x, sigma ~ 1 + (1 | id)`. The masked and observed-data fits agree in
+  fixed coefficients, sigma random-intercept SD, and likelihood; count
+  sentinels are inert; and a deterministic 25% MCAR DGP recovers the fixed,
+  sigma-SD, and conditional sigma-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-nbinom2")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote sigma slopes, mu random effects,
+  correlated or structured effects, REML, another family, or missing predictors.
