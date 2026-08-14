@@ -166,11 +166,12 @@ mr_t2_random_intercept_data <- function(route, seed) {
     mu <- exp(eta)
     dat$y <- rgamma(n, shape = 1 / sigma^2, scale = mu * sigma^2)
   }
+  complete <- dat
   dat <- missing_response_mask_mcar(dat, "y", seed = seed + 1L)
   if (any(tapply(!is.na(dat$y), dat$id, sum) == 0L)) {
     stop("Fixed-seed MCAR mask removed every response from a group.")
   }
-  list(data = dat, truth = truth, u = u)
+  list(data = dat, complete = complete, truth = truth, u = u)
 }
 
 test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
@@ -200,6 +201,37 @@ test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
         missing = miss_control(response = "include"),
         control = drm_control(se = FALSE)
       )
+    )
+    observed <- !is.na(dat$y)
+    fit_observed <- switch(
+      route,
+      student = drmTMB(
+        bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1), student(),
+        case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+      ),
+      lognormal = drmTMB(
+        bf(y ~ x + (1 | id), sigma ~ z), lognormal(),
+        case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+      ),
+      gamma = drmTMB(
+        bf(y ~ x + (1 | id), sigma ~ z), Gamma(link = "log"),
+        case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+      )
+    )
+
+    for (dpar in intersect(names(case$truth), c("mu", "sigma", "nu"))) {
+      expect_equal(
+        unname(coef(fit, dpar)), unname(coef(fit_observed, dpar)),
+        tolerance = 1e-6, info = paste(route, dpar, "observed-data equality")
+      )
+    }
+    expect_equal(
+      as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)),
+      tolerance = 1e-6, info = paste(route, "observed-data equality")
+    )
+    expect_missing_response_sentinel_invariant(
+      fit,
+      sentinels = if (route == "gamma") c(1, 0) else c(0, -1)
     )
 
     expect_lt(

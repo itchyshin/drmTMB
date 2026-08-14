@@ -93652,3 +93652,32 @@ can see which commit each one actually examined.
   generation, generated-ledger drift check, and `git diff --check` passed.
   This does not promote sigma random effects, correlated blocks, structured
   effects, REML, another response family, or missing predictors.
+
+## 2026-08-14 — zero-one-beta ML mu random-intercept response mask
+
+- `mc-0567` is now `formula_validated` at G3 for the exact zero-one-beta
+  formula `y ~ x + (1 | id), sigma ~ z, zoi ~ w, coi ~ v`. Masked and
+  observed-data fits agree in location coefficients, the mu random-intercept
+  SD, and likelihood; zero, one, and interior response sentinels are inert;
+  and the deterministic 25% MCAR DGP recovers the location and conditional
+  random-effect targets.
+- Check: `NOT_CRAN=true` `test-missing-response-boundary.R` passed; inventory
+  generation, generated-ledger drift check, and `git diff --check` passed.
+  This does not promote random effects in sigma, zoi, or coi; slopes,
+  correlated or structured effects, REML, another response family, or missing
+  predictors.
+
+## 2026-08-14 — Student, lognormal, and Gamma ML mu random-intercept masks
+
+- `mc-0487`, `mc-0378`, and `mc-0240` are now `formula_validated` at G3 for
+  their exact ordinary random-intercept formulas `(1 | id)`, with fixed
+  distributional-parameter regressions. The tests now pair the existing
+  deterministic 25% MCAR recovery fixtures with observed-response parameter and
+  likelihood equality, plus response-sentinel retapes. The recovered targets
+  are the fixed coefficients, mu random-intercept SD, and conditional effects;
+  Student also checks its fixed nu coefficient.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-continuous")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote random slopes, random distributional
+  parameters, correlated or structured effects, REML, another family, or
+  missing predictors.
