@@ -93522,3 +93522,14 @@ can see which commit each one actually examined.
   these cells become `formula_validated`.
 - Check: `NOT_CRAN=true` `test-reml-structured-location.R` passed; inventory
   unit tests and generated-ledger drift check passed; `git diff --check` passed.
+
+## 2026-08-14 — structured response-mask recovery pre-run
+
+- A local 9-fit pre-run for the q1 spatial, animal, and relmat Gaussian REML
+  response-mask formulas retained every attempt: all converged with `pdHess =
+  TRUE`. Mean absolute structured-SD errors were 0.1218, 0.0269, and 0.0549;
+  the worst individual error was 0.2554 for spatial. Full receipt and proposed
+  300-fit DRAC gate: `2026-08-14-structured-response-mask-recovery-prerun.md`.
+- This pre-run authorizes no promotion and no DRAC submission. It measures a
+  stable candidate design and requests explicit approval for the all-attempt
+  campaign only.
