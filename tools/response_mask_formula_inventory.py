@@ -269,6 +269,17 @@ EXPLICIT_BOUNDARIES = (
     },
 )
 
+# ``cells.tsv`` is a parameter-target ledger, so one accepted covariance
+# formula may be represented by several endpoint rows.  The response-mask
+# surface is formula-level: replace those bookkeeping fragments with their one
+# explicit paired-formula row rather than counting them twice.
+EXPLICIT_MODEL_CELL_IDS = frozenset(
+    cell_id.strip()
+    for boundary in EXPLICIT_BOUNDARIES
+    for cell_id in boundary["model_cell_id"].split(",")
+    if cell_id.strip()
+)
+
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
@@ -1513,6 +1524,8 @@ def build(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     missing = {row["family_route"]: row for row in rows if row["axis"] == "missing_response"}
     result: list[dict[str, str]] = []
     for row in model:
+        if row["cell_id"] in EXPLICIT_MODEL_CELL_IDS:
+            continue
         if row["family_route"] not in missing:
             raise ValueError(f"{row['cell_id']}: no missing-response family row")
         family = missing[row["family_route"]]

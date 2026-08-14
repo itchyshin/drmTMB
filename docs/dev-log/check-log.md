@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — formula-cell inventory de-duplication
+
+- The model capability ledger stores parameter targets, while the response-mask
+  surface must store accepted formulas. Paired covariance formulas had therefore
+  appeared once as their explicit formula cell and again as endpoint bookkeeping
+  rows. The generator now removes every model row represented by an explicit
+  paired-formula cell.
+- This is an inventory correction, not a support promotion: it changes the
+  generated count from 175 to 163 G1 rows by enforcing one accepted formula per
+  row. The explicit paired G3 cells remain the only support claims for their
+  formulas.
+- Check: response-mask inventory generation, capability-ledger drift check,
+  and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate spatial q2 slope response-mask recovery
 
 - `rmf-biv-gaussian-spatial-mu12-q2-slope` (`mc-0109`/`mc-0110`) is now G3
