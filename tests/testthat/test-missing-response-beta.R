@@ -155,3 +155,41 @@ test_that("Beta random-intercept response mask matches observed-data fit", {
   expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.3)
   expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.35)
 })
+
+test_that("Beta random-slope response mask matches observed-data fit", {
+  set.seed(2026081505)
+  n_id <- 52L
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- rep(seq(-1, 1, length.out = n_each), n_id)
+  z <- rnorm(length(id))
+  truth_sd <- 0.45
+  u <- rnorm(n_id, sd = truth_sd)
+  log_sigma <- -0.9 + 0.15 * z
+  mu <- plogis(-0.25 + 0.6 * x + u[id] * x)
+  phi <- exp(-2 * log_sigma)
+  dat <- data.frame(id, x, z, y = rbeta(length(id), mu * phi, (1 - mu) * phi))
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081506
+  )
+  observed <- !is.na(masked$y)
+
+  fit_mask <- drmTMB(
+    bf(y ~ x + (0 + x | id), sigma ~ z), family = beta(), data = masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(y ~ x + (0 + x | id), sigma ~ z), family = beta(),
+    data = masked[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0.2, 0.8))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - c(-0.25, 0.6))), 0.3)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - c(-0.9, 0.15))), 0.2)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.2)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.5)
+})

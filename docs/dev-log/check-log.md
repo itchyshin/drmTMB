@@ -93591,3 +93591,15 @@ can see which commit each one actually examined.
   generation, generated-ledger drift check, and `git diff --check` passed.
   This does not promote sigma random effects, correlated blocks, structured
   effects, bivariate, REML, another response family, or missing predictors.
+
+## 2026-08-14 — Beta ML independent random-slope response mask
+
+- `mc-0007` is now `formula_validated` at G3 for the exact Beta formula
+  `y ~ x + (0 + x | id), sigma ~ z`.  Masked and observed-data fits agree
+  within the documented latent-mode numerical tolerance in fixed mu/sigma
+  coefficients, random-slope SD, and log likelihood; sentinels are inert; and
+  a deterministic 25% MCAR DGP recovers the named targets.
+- Check: `NOT_CRAN=true` `test-missing-response-beta.R` passed; inventory
+  generation, generated-ledger drift check, and `git diff --check` passed.
+  This does not promote sigma random effects, correlated blocks, structured
+  effects, bivariate, REML, another response family, or missing predictors.
