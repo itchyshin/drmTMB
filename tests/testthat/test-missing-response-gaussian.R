@@ -190,6 +190,41 @@ test_that("Gaussian REML response masks recover a sigma random-intercept DGP", {
   expect_gt(cor(fit$random_effects$sigma$values, u), 0.40)
 })
 
+test_that("Gaussian ML response masks recover a sigma random-intercept DGP", {
+  set.seed(2026081560L)
+  n_group <- 72L
+  n_each <- 20L
+  group <- factor(rep(seq_len(n_group), each = n_each))
+  x <- rnorm(n_group * n_each)
+  beta <- c(`(Intercept)` = 0.25, x = 0.40)
+  log_sigma <- -0.70
+  sd_sigma <- 0.35
+  u <- rnorm(n_group, sd = sd_sigma)
+  y <- beta[[1L]] + beta[[2L]] * x +
+    rnorm(n_group * n_each, sd = exp(log_sigma + u[group]))
+  observed <- runif(n_group * n_each) > 0.25
+  dat <- data.frame(y = y, x = x, group = group)
+  dat$y[!observed] <- NA_real_
+  form <- bf(y ~ x, sigma ~ 1 + (1 | group))
+  fit <- drmTMB(
+    form, data = dat, missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, data = dat[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+  expect_equal(coef(fit, "mu"), coef(fit_observed, "mu"), tolerance = 1e-7)
+  expect_equal(coef(fit, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-7)
+  expect_equal(fit$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-7)
+  expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)), tolerance = 1e-7)
+  expect_equal(nobs(fit), sum(observed))
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(-1e6, 1e6))
+  expect_equal(coef(fit, "mu"), beta, tolerance = 0.10)
+  expect_equal(unname(coef(fit, "sigma")), log_sigma, tolerance = 0.15)
+  expect_equal(unname(fit$sdpars$sigma), sd_sigma, tolerance = 0.16)
+  expect_gt(cor(fit$random_effects$sigma$values, u), 0.40)
+})
+
 test_that("Gaussian response-mask sentinel cannot leak into likelihood or gradients", {
   dat <- missing_response_gaussian_data()
   observed <- !is.na(dat$y)

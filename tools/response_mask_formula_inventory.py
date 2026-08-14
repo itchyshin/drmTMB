@@ -711,6 +711,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining truncated-NB2 geometry.",
     },
+    "mc-0266": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-row ML parameter and likelihood equality, plus direct Gaussian "
+            "response-sentinel retapes, and G3 deterministic 25% MCAR known-DGP recovery "
+            "validate the Gaussian univariate ordinary sigma random-intercept ML response-mask "
+            "formula `(1 | group)`. The check covers fixed mu and sigma coefficients, the sigma "
+            "random-intercept SD, and conditional random-effect recovery. It does not promote "
+            "slopes, correlated or structured effects, REML, bivariate formulas, or missing-"
+            "predictor formulas."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Gaussian ML geometry.",
+    },
 }
 
 
