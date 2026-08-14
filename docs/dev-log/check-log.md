@@ -93681,3 +93681,17 @@ can see which commit each one actually examined.
   --check` passed. This does not promote random slopes, random distributional
   parameters, correlated or structured effects, REML, another family, or
   missing predictors.
+
+## 2026-08-14 — zero-one-beta ML mu random-slope response mask
+
+- `mc-0575` is now `formula_validated` at G3 for the exact formula
+  `y ~ x + (0 + x | id), sigma ~ z, zoi ~ w, coi ~ v`. The masked and
+  observed-data fits agree in mu coefficients, the mu slope-SD, and
+  likelihood; zero, one, and interior response sentinels are inert; and the
+  deterministic 25% MCAR DGP recovers the named SD and conditional slope
+  effects.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-boundary")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote other distributional-parameter random
+  effects, correlated or structured effects, REML, another family, or missing
+  predictors.
