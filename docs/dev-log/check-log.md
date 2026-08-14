@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — NB2 phylogenetic log-sigma response-mask recovery
+
+- `rmf-mc-0421` is now G3 for the exact ML formula
+  `y ~ x, sigma ~ phylo(1 + x | sp, tree = tree)`. The non-Gaussian fixture
+  has 128 tips, 32 observations per tip, one masked response per tip, and
+  nonzero phylogenetic intercept and slope fields on log-sigma.
+- G2 uses a conditional NB2 log-sigma likelihood plus phylogenetic precision
+  oracle and numerical gradients; direct count-sentinel retapes and observed-
+  row fit equality also pass. G3 recovers fixed location, fixed log-sigma, and
+  both sigma-side phylogenetic SDs. This does not certify location-side
+  structure, another provider, labelled covariance, REML, missing predictors,
+  intervals, or coverage.
+- Check: isolated 4,096-row response-mask test, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — NB2 phylogenetic-interaction location response-mask recovery
 
 - `rmf-mc-0409` is now G3 for the exact ML formula

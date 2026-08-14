@@ -1884,6 +1884,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
+    "mc-0421": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 log-sigma TMB-objective and numerical-gradient equality, observed-"
+            "row fit equality, and direct count-response sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact NB2 ML formula `y ~ x`, `sigma ~ phylo(1 + x "
+            "| sp, tree = tree)`. The larger non-Gaussian fixture has 128 tips, 32 observations per "
+            "tip, one masked response per tip, and nonzero phylogenetic log-sigma intercept and slope "
+            "fields. It checks fixed location, fixed log-sigma, and both sigma-side phylogenetic SDs. "
+            "It does not promote location-side structured effects, other providers, labelled covariance, "
+            "REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
 }
 
 
