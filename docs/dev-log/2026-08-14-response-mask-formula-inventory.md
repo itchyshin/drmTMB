@@ -47,3 +47,10 @@ therefore `formula_validated` at G3. This is a formula-cell record, not a
 Gaussian-REML-wide claim: fixed-only, random-slope, sigma-side, structured,
 bivariate, non-Gaussian, and missing-predictor REML cells remain separately
 gated.
+
+The cell also has a heteroscedastic companion fixture,
+`y ~ x + (1 | id), sigma ~ z`: its masked fit equals both the observed-row fit
+and an independent dense restricted-likelihood reference, and it recovers the
+fixed `mu` and `sigma` coefficients plus the `mu` random-intercept SD. This
+strengthens the exact ordinary-intercept formula geometry; it does not certify
+the separate sigma-side or random-slope formula cells.

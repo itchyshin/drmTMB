@@ -64,10 +64,12 @@ FORMULA_EVIDENCE = {
             "G2 observed-row REML equality and direct sentinel retapes, plus a "
             "deterministic 25% MCAR known-DGP recovery check, validate the "
             "univariate Gaussian ordinary mu random-intercept REML response-mask "
-            "formula. The check covers fixed mu coefficients, constant residual "
-            "sigma, and the mu random-intercept SD. It does not promote fixed-only, "
-            "random-slope, sigma-side, structured, bivariate, non-Gaussian, or "
-            "missing-predictor REML formulas."
+            "formula. One fixture has constant residual sigma; a second has "
+            "sigma ~ z and agrees with an independent observed-data restricted-"
+            "likelihood oracle. Together they cover fixed mu coefficients, fixed "
+            "sigma coefficients, and the mu random-intercept SD. They do not "
+            "promote fixed-only, random-slope, sigma-random-effect, structured, "
+            "bivariate, non-Gaussian, or missing-predictor REML formulas."
         ),
         "next_gate": "Add an independent recovery design before widening this REML formula geometry.",
     },

@@ -93430,3 +93430,16 @@ can see which commit each one actually examined.
   generated-ledger drift check passed; and `git diff --check` passed. This is
   unit-scale G2/G3 evidence, not a DRAC campaign, interval, coverage, or
   structured/bivariate/other-family validation.
+
+## 2026-08-14 — heteroscedastic companion for the first REML response-mask cell
+
+- The `mc-0265` ordinary Gaussian `mu` random-intercept response-mask cell now
+  has a second deterministic 25% MCAR fixture: `y ~ x + (1 | id), sigma ~ z`.
+  The masked REML fit agrees with both its observed-row fit and an independent
+  dense restricted-likelihood calculation on the observed rows. It recovers
+  fixed `mu`, fixed `sigma`, and the `mu` random-intercept SD.
+- Check: `NOT_CRAN=true` `test-reml-heteroscedastic.R` passed; inventory unit
+  tests and generated-ledger drift check passed; `git diff --check` passed.
+  The added evidence strengthens only the ordinary-intercept geometry and does
+  not promote the separate fixed-only, random-slope, sigma-random-effect,
+  structured, bivariate, or non-Gaussian REML cells.

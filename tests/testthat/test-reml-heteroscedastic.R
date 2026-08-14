@@ -16,6 +16,9 @@ reml_hetero_fixture <- function(n_id = 30L, n_each = 4L, seed = 11L) {
   y <- 0.4 + 0.7 * x + u[id] + stats::rnorm(n, 0, sigma)
   list(
     data = data.frame(y = y, x = x, z = z, id = id), id = id,
+    true_beta = c(`(Intercept)` = 0.4, x = 0.7),
+    true_sd_u = 0.6,
+    true_sigma = c(`(Intercept)` = -0.5, z = 0.3),
     # Structural zero: x does not appear in the sigma DGP above (sigma is a
     # function of z only), so the true `fixef:sigma:x` coefficient is exactly
     # 0 by construction, not an estimated/rounded value.
@@ -82,6 +85,54 @@ test_that("heteroscedastic REML matches a hand-computed restricted likelihood", 
   expect_equal(as.numeric(fit$sdpars$mu[[1L]]), ref$sd_u, tolerance = 3e-2)
   expect_equal(as.numeric(fit$par$sigma), ref$a, tolerance = 3e-2)
   expect_equal(as.numeric(fit$par$mu), ref$beta, tolerance = 3e-2)
+})
+
+test_that("heteroscedastic Gaussian REML response masks match the observed-data reference", {
+  fx <- reml_hetero_fixture(n_id = 96L, n_each = 8L, seed = 2026081402L)
+  dat <- fx$data
+  set.seed(2026081403L)
+  observed <- stats::runif(nrow(dat)) > 0.25
+  dat_masked <- dat
+  dat_masked$y[!observed] <- NA_real_
+
+  fit_masked <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z),
+    family = gaussian(),
+    data = dat_masked,
+    missing = miss_control(response = "include"),
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust", se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    bf(y ~ x + (1 | id), sigma ~ z),
+    family = gaussian(),
+    data = dat[observed, , drop = FALSE],
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust", se = FALSE)
+  )
+  observed_data <- dat[observed, , drop = FALSE]
+  ref <- reml_hetero_reference(
+    observed_data$y,
+    stats::model.matrix(~ x, observed_data),
+    stats::model.matrix(~ 0 + id, observed_data),
+    stats::model.matrix(~ z, observed_data)
+  )
+
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), ref$sd_u, tolerance = 3e-2)
+  expect_equal(as.numeric(fit_masked$par$sigma), ref$a, tolerance = 3e-2)
+  expect_equal(as.numeric(fit_masked$par$mu), ref$beta, tolerance = 3e-2)
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-8)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-8)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-8)
+  expect_equal(nobs(fit_masked), sum(observed))
+
+  expect_equal(as.numeric(fit_masked$par$mu), unname(fx$true_beta), tolerance = 0.12)
+  expect_equal(as.numeric(fit_masked$par$sigma), unname(fx$true_sigma), tolerance = 0.14)
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), fx$true_sd_u, tolerance = 0.14)
+  expect_missing_response_sentinel_invariant(
+    fit_masked,
+    sentinels = c(-1e6, 1e6)
+  )
 })
 
 test_that("REML degrees of freedom count the marginalised mean fixed effects", {
