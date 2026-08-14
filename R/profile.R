@@ -1049,10 +1049,16 @@ drm_profile_curve <- function(
   objective <- profile_data$value
   delta_objective <- objective - min(objective, na.rm = TRUE)
   clamp_trace <- drm_profile_direct_sd_clamp_trace(object, prof)
-  ci <- tryCatch(
-    drm_tmbprofile_confint(prof, target_name = target$parm, level = level),
-    error = function(err) err
+  bracket_overflow <- drm_tmbprofile_bracket_overflow(
+    prof,
+    baseline = unname(object$opt$objective)
   )
+  ci <- if (!bracket_overflow) {
+    tryCatch(
+      drm_tmbprofile_confint(prof, target_name = target$parm, level = level),
+      error = function(err) err
+    )
+  }
   interval <- c(NA_real_, NA_real_)
   conf_status <- "profile_interval_unavailable"
   profile_message <- "interval_unavailable"
@@ -1060,6 +1066,9 @@ drm_profile_curve <- function(
       !identical(clamp_trace$status, "ok")) {
     conf_status <- "clamp_limited"
     profile_message <- clamp_trace$status
+  } else if (bracket_overflow) {
+    conf_status <- "profile_failed"
+    profile_message <- "tmbprofile_bracket_overflow"
   } else if (!inherits(ci, "error")) {
     interval <- profile_transform_interval(
       c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
@@ -1872,6 +1881,7 @@ drm_profile_response_newdata_confint <- function(
 
   labels <- profile_newdata_parm_labels(dpar, newdata)
   plan <- profile_parallel_plan(nrow(X), parallel = parallel, workers = workers)
+  transformation <- profile_newdata_transformation(object, dpar)
   worker <- function(i) {
     lincomb <- rep(0, length(object$opt$par))
     lincomb[positions[seq_len(ncol(X))]] <- as.numeric(X[i, ])
@@ -1882,6 +1892,27 @@ drm_profile_response_newdata_confint <- function(
       trace = trace,
       ...
     )
+    if (drm_tmbprofile_bracket_overflow(
+      prof,
+      baseline = unname(object$opt$objective)
+    )) {
+      return(data.frame(
+        parm = labels[[i]],
+        level = level,
+        lower = NA_real_,
+        upper = NA_real_,
+        scale = "response",
+        transformation = transformation,
+        tmb_parameter = internal,
+        index = NA_integer_,
+        method = "profile",
+        profile.engine = "tmbprofile",
+        conf.status = "profile_failed",
+        profile.boundary = TRUE,
+        profile.message = "tmbprofile_bracket_overflow",
+        stringsAsFactors = FALSE
+      ))
+    }
     ci <- drm_tmbprofile_confint(prof, target_name = labels[[i]], level = level)
     interval <- profile_transform_newdata_interval(
       c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
@@ -1892,7 +1923,7 @@ drm_profile_response_newdata_confint <- function(
 
     diagnostics <- profile_interval_diagnostics(
       interval,
-      transformation = profile_newdata_transformation(object, dpar)
+      transformation = transformation
     )
 
     data.frame(
@@ -1901,7 +1932,7 @@ drm_profile_response_newdata_confint <- function(
       lower = interval[[1L]],
       upper = interval[[2L]],
       scale = "response",
-      transformation = profile_newdata_transformation(object, dpar),
+      transformation = transformation,
       tmb_parameter = internal,
       index = NA_integer_,
       method = "profile",
@@ -3056,7 +3087,8 @@ drm_profile_failed_confint_row <- function(
   target,
   level,
   profile_engine,
-  message
+  message,
+  profile_boundary = NA
 ) {
   data.frame(
     parm = target$parm,
@@ -3070,10 +3102,47 @@ drm_profile_failed_confint_row <- function(
     method = "profile",
     profile.engine = profile_engine,
     conf.status = "profile_failed",
-    profile.boundary = NA,
+    profile.boundary = profile_boundary,
     profile.message = message,
     stringsAsFactors = FALSE
   )
+}
+
+# TMB::tmbprofile() can corrupt a flat-ridge bracket search with one isolated
+# low objective value before it resets to the fitted-value neighbourhood in the
+# opposite direction. This is a trace pattern, not an objective-gap cutoff:
+# the preceding sweep is monotone, the low point lies below that whole sweep,
+# and the following value returns to the sweep's range. Ordinary flat profiles
+# and genuine lower basins do not have this three-part signature.
+drm_tmbprofile_bracket_overflow <- function(
+  profile,
+  baseline = NULL,
+  min_sweep_points = 3L
+) {
+  profile <- as.data.frame(profile)
+  values <- profile$value
+  if (is.null(baseline)) {
+    baseline <- values[[1L]]
+  }
+  if (
+    !is.numeric(values) ||
+      length(values) < min_sweep_points + 2L ||
+      any(!is.finite(values)) ||
+      length(baseline) != 1L ||
+      !is.finite(baseline)
+  ) {
+    return(FALSE)
+  }
+  sentinel <- seq.int(min_sweep_points + 1L, length(values) - 1L)
+  any(vapply(sentinel, function(index) {
+    sweep <- values[(index - min_sweep_points):(index - 1L)]
+    reset <- values[[index + 1L]]
+    all(diff(sweep) >= 0) &&
+      values[[index]] < min(sweep) &&
+      values[[index]] < baseline &&
+      reset >= min(sweep) &&
+      reset <= max(sweep)
+  }, logical(1L)))
 }
 
 drm_profile_target_tmbprofile_confint <- function(
@@ -3100,6 +3169,18 @@ drm_profile_target_tmbprofile_confint <- function(
         message = clamp_trace$status
       ))
     }
+  }
+  if (drm_tmbprofile_bracket_overflow(
+    prof,
+    baseline = unname(object$opt$objective)
+  )) {
+    return(drm_profile_failed_confint_row(
+      target = target,
+      level = level,
+      profile_engine = "tmbprofile",
+      message = "tmbprofile_bracket_overflow",
+      profile_boundary = TRUE
+    ))
   }
   ci <- drm_tmbprofile_confint(prof, target_name = target$parm, level = level)
   interval <- profile_transform_interval(

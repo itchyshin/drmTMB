@@ -3026,7 +3026,7 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       method = "profile",
       trace = FALSE
     ),
-    "Raw ordinal:theta_ord:.*internal ordinal diagnostics"
+    "Raw \\\"ordinal:theta_ord:.*internal ordinal diagnostics"
   )
   expect_error(
     stats::confint(fit, method = "profile"),
@@ -3301,6 +3301,126 @@ test_that("profile interval diagnostics flag a profile that beats the fit (issue
     fit_objective = 10
   )
   expect_true(startsWith(both_diag$message, "profile_below_fit_objective"))
+})
+
+test_that("tmbprofile bracket-overflow sentinels fail closed before extraction (#1010)", {
+  sentinel_profile <- data.frame(
+    theta = 0:5,
+    value = c(10, 10.2, 10.5, -75, 10.1, 10.3)
+  )
+  flat_profile <- data.frame(
+    theta = 0:5,
+    value = c(10, 10, 10.01, 10.01, 10.02, 10.02)
+  )
+  ordinary_below_fit <- data.frame(
+    theta = 0:5,
+    value = c(10, 9, 9.2, 9.4, 9.6, 9.8)
+  )
+  small_nonmonotone_above_fit <- data.frame(
+    theta = 0:5,
+    value = c(8, 10, 10.2, 9, 10.1, 10.3)
+  )
+
+  expect_true(drmTMB:::drm_tmbprofile_bracket_overflow(sentinel_profile))
+  expect_false(drmTMB:::drm_tmbprofile_bracket_overflow(flat_profile))
+  expect_false(drmTMB:::drm_tmbprofile_bracket_overflow(ordinary_below_fit))
+  expect_false(drmTMB:::drm_tmbprofile_bracket_overflow(
+    small_nonmonotone_above_fit,
+    baseline = 8
+  ))
+
+  target <- list(
+    parm = "fixef:nu:(Intercept)",
+    target_class = "fixed-effect",
+    dpar = "nu",
+    term = "(Intercept)",
+    profile_ready = TRUE,
+    estimate = 0,
+    link_estimate = 0,
+    scale = "link",
+    transformation = "linear_predictor",
+    tmb_parameter = "beta_nu",
+    index = 1L
+  )
+  object <- list(opt = list(objective = 10))
+  local_mocked_bindings(
+    profile_lincomb = function(...) 1,
+    drm_tmbprofile = function(...) sentinel_profile,
+    drm_profile_direct_sd_clamp_trace = function(...) list(status = "not_applicable"),
+    drm_tmbprofile_confint = function(...) {
+      stop("sentinel must be classified before interval extraction", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+
+  ci <- drmTMB:::drm_profile_target_tmbprofile_confint(
+    object = object,
+    target = target,
+    level = 0.95,
+    trace = FALSE
+  )
+  curve <- drmTMB:::drm_profile_curve(
+    object = object,
+    target = target,
+    level = 0.95,
+    trace = FALSE,
+    profile_pass = "profile",
+    profile_controls = "default"
+  )
+
+  expect_identical(ci$conf.status, "profile_failed")
+  expect_identical(ci$profile.engine, "tmbprofile")
+  expect_true(all(is.na(ci[c("lower", "upper")])))
+  expect_identical(ci$profile.boundary, TRUE)
+  expect_identical(ci$profile.message, "tmbprofile_bracket_overflow")
+  expect_identical(unique(curve$conf.status), "profile_failed")
+  expect_true(all(is.na(curve[c("conf.low", "conf.high")])))
+  expect_identical(
+    unique(curve$profile.message),
+    "tmbprofile_bracket_overflow"
+  )
+})
+
+test_that("newdata profiles fail closed on a tmbprofile bracket-overflow sentinel (#1010)", {
+  sentinel_profile <- data.frame(
+    theta = 0:5,
+    value = c(10, 10.2, 10.5, -75, 10.1, 10.3)
+  )
+  object <- list(
+    obj = list(),
+    coefficients = list(nu = c("(Intercept)" = 0)),
+    opt = list(par = c(beta_nu = 0), objective = 10)
+  )
+  local_mocked_bindings(
+    profile_newdata_dpar = function(...) "nu",
+    drm_prediction_matrix = function(...) {
+      matrix(1, nrow = 1L, dimnames = list(NULL, "(Intercept)"))
+    },
+    drm_prediction_offset = function(...) 0,
+    profile_fixef_internal = function(...) "beta_nu",
+    profile_newdata_parm_labels = function(...) "nu[1]",
+    profile_parallel_plan = function(...) list(),
+    profile_lapply = function(X, FUN, ...) lapply(X, FUN),
+    profile_newdata_transformation = function(...) "linear_predictor",
+    drm_tmbprofile = function(...) sentinel_profile,
+    drm_tmbprofile_confint = function(...) {
+      stop("sentinel must be classified before interval extraction", call. = FALSE)
+    },
+    .package = "drmTMB"
+  )
+
+  ci <- drmTMB:::drm_profile_response_newdata_confint(
+    object = object,
+    parm = "nu",
+    newdata = data.frame(x = 0),
+    level = 0.95
+  )
+
+  expect_identical(ci$conf.status, "profile_failed")
+  expect_identical(ci$profile.engine, "tmbprofile")
+  expect_true(all(is.na(ci[c("lower", "upper")])))
+  expect_identical(ci$profile.boundary, TRUE)
+  expect_identical(ci$profile.message, "tmbprofile_bracket_overflow")
 })
 
 test_that("a usable profile interval at a boundary warns the user", {
