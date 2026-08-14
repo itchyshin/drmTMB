@@ -1,10 +1,12 @@
 test_that("the ten native reader journeys complete their generic post-fit smoke", {
   skip_if_not_installed("ape")
 
+  audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
+  skip_if_not(file.exists(audit_path), "The development audit script is not installed with drmTMB")
   audit_env <- new.env(parent = globalenv())
   audit_out <- tempfile(fileext = ".tsv")
   withr::local_envvar(DRMTMB_READER_AUDIT_OUT = audit_out)
-  source(testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R"), local = audit_env)
+  source(audit_path, local = audit_env)
 
   results <- utils::read.delim(audit_out, check.names = FALSE)
   expect_equal(nrow(results), 10L)
@@ -24,6 +26,7 @@ test_that("the ten native reader journeys complete their generic post-fit smoke"
 
 test_that("the reader audit does not call warning diagnostics a pass", {
   audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
+  skip_if_not(file.exists(audit_path), "The development audit script is not installed with drmTMB")
   audit_lines <- readLines(audit_path)
   first_workflow <- grep("^results <- list", audit_lines)[1L]
   audit_env <- new.env(parent = globalenv())
