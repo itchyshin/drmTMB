@@ -18,6 +18,9 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from response_mask_formula_inventory import build as build_response_mask_formula_inventory
+from response_mask_formula_inventory import render as render_response_mask_formula_inventory
+
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "docs/dev-log/dashboard/capability-ledger"
@@ -4076,6 +4079,9 @@ def outputs(
         key=lambda row: int(row["model_type"]),
     )
     result: dict[Path, bytes] = {
+        LEDGER / "response-mask-formulas.tsv": render_response_mask_formula_inventory(
+            build_response_mask_formula_inventory(cells)
+        ).encode("utf-8"),
         CENSUS / "_master.tsv": legacy_tsv_bytes(MODEL_FIELDS, model),
         CENSUS / "_widget_data.json": compact_json_bytes(
             widget_value(model, generated_date)
