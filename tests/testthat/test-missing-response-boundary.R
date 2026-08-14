@@ -390,6 +390,44 @@ test_that("Tweedie mu random-slope response mask matches observed data", {
   expect_gt(cor(slope_effects, u), 0.45)
 })
 
+test_that("Tweedie mu random-intercept response mask matches observed data", {
+  set.seed(2026081538L)
+  n_id <- 50L
+  n_each <- 32L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  x <- runif(n, -1, 1)
+  z <- rnorm(n)
+  truth_sd <- 0.45
+  u <- rnorm(n_id, sd = truth_sd)
+  mu <- exp(0.20 + 0.45 * x + u[id])
+  sigma <- exp(-0.55 + 0.20 * z)
+  nu <- 1.35
+  y <- rtweedie_compound(n, mu = mu, phi = sigma^2, power = nu)
+  dat <- data.frame(y, x, z, id)
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081539L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + (1 | id), sigma ~ z, nu ~ 1)
+  fit_mask <- drmTMB(
+    form, tweedie(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, tweedie(), masked[observed, ], control = drm_control(se = FALSE)
+  )
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "nu"), coef(fit_observed, "nu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth_sd), 0.25)
+  expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.45)
+})
+
 test_that("MR-T3 masks recover every fixed distributional parameter", {
   tweedie_case <- mr_t3_tweedie_data()
   tweedie_dat <- missing_response_mask_mcar(

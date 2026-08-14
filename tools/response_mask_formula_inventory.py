@@ -753,6 +753,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining skew-normal geometry.",
     },
+    "mc-0538": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case parameter and likelihood equality, plus direct "
+            "zero/positive response-sentinel retapes, and G3 deterministic 25% MCAR known-DGP "
+            "recovery validate the Tweedie univariate ordinary mu random-intercept ML response-"
+            "mask formula `(1 | id)` with fixed sigma and nu regressions. The check covers fixed "
+            "mu, sigma, and nu coefficients, the mu random-intercept SD, and conditional random-"
+            "effect recovery. It does not promote slopes beyond their separate cell, correlated "
+            "or structured effects, REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Tweedie geometry.",
+    },
 }
 
 

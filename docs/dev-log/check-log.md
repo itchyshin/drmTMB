@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — Tweedie ML random-intercept response mask
+
+- `mc-0538` is now `formula_validated` at G3 for `y ~ x + (1 | id), sigma ~ z,
+  nu ~ 1`. The masked and observed-data fits agree in fixed coefficients,
+  random-intercept SD, and likelihood; zero and positive response sentinels are
+  inert; and the deterministic 25% MCAR DGP recovers the location SD and
+  conditional effects.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-boundary")`
+  passed; the response-mask inventory, capability ledger, and `git diff --check`
+  passed. This does not promote correlated or structured effects, REML, another
+  response family, or missing predictors.
+
 ## 2026-08-14 — skew-normal ML random-intercept response mask
 
 - `mc-0463` is now `formula_validated` at G3 for `y ~ x + (1 | id), sigma ~ z,
