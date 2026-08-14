@@ -16,7 +16,18 @@ providers <- c("spatial", "animal", "relmat")
 provider <- providers[[(task - 1L) %/% 100L + 1L]]
 seed <- 2026081000L + (task - 1L) %% 100L
 
-pkgload::load_all(".", quiet = TRUE)
+installed_library <- Sys.getenv("DRMTMB_RESPONSE_MASK_LIBRARY", unset = "")
+if (nzchar(installed_library)) {
+  .libPaths(c(installed_library, .libPaths()))
+}
+if (identical(Sys.getenv("DRMTMB_RESPONSE_MASK_USE_INSTALLED"), "true")) {
+  if (!requireNamespace("drmTMB", quietly = TRUE)) {
+    stop("Installed drmTMB is unavailable in DRMTMB_RESPONSE_MASK_LIBRARY", call. = FALSE)
+  }
+  library(drmTMB)
+} else {
+  pkgload::load_all(".", quiet = TRUE)
+}
 
 pedigree <- function(labels) {
   n <- length(labels); dam <- sire <- rep(NA_character_, n)
