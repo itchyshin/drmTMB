@@ -473,6 +473,27 @@ FORMULA_EVIDENCE = {
         }
         for cell_id in ("mc-0244", "mc-0380", "mc-0488")
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "G2 observed-data complete-case parameter and likelihood equality, "
+                "with direct zero and positive-response sentinel retapes, plus G3 "
+                "deterministic 25% MCAR recovery validate this fixed-effect count-mixture "
+                "ML response-mask formula. Separate masked-zero and masked-positive tests "
+                "exercise the mixture path. The check covers every fixed distributional "
+                "parameter exposed by the formula. It does not promote random or structured "
+                "effects, REML, another family, or missing-predictor formulas."
+            ),
+            "next_gate": "Add formula-specific evidence for each admitted count-mixture effect geometry.",
+        }
+        for cell_id in (
+            "mc-0657", "mc-0663",  # ZIP: mu, zi
+            "mc-0623", "mc-0625", "mc-0627",  # ZINB2: mu, sigma, zi
+            "mc-0326", "mc-0342", "mc-0358",  # hurdle NB2: mu, sigma, hu
+        )
+    },
 }
 
 

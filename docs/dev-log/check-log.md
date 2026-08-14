@@ -93721,3 +93721,17 @@ can see which commit each one actually examined.
   --check` passed. This does not promote other distributional-parameter random
   effects, correlated or structured effects, REML, another family, or missing
   predictors.
+
+## 2026-08-14 — fixed count-mixture ML response masks
+
+- The fixed-effect formula cells for ZIP (`mc-0657`, `mc-0663`), ZINB2
+  (`mc-0623`, `mc-0625`, `mc-0627`), and hurdle NB2 (`mc-0326`, `mc-0342`,
+  `mc-0358`) are now `formula_validated` at G3. Existing tests already provide
+  observed-data equality, zero/positive sentinel retapes, and deterministic
+  25% MCAR recovery for every fixed distributional parameter; they separately
+  mask observed zeros and positive counts.
+- Check: `NOT_CRAN=true`
+  `devtools::test(filter = "missing-response-count-mixtures")` passed;
+  inventory generation, generated-ledger drift check, and `git diff --check`
+  passed. This does not promote random or structured effects, REML, another
+  family, or missing predictors.
