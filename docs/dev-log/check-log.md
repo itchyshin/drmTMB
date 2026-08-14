@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — NB2 spatial, animal, and relmat q1 response-mask recovery
+
+- `rmf-mc-0406`, `rmf-mc-0407`, and `rmf-mc-0408` are now G3 for the q1
+  spatial, animal, and relatedness NB2 location-intercept formulas. Each
+  non-Gaussian fixture has 128 groups, 16 observations per group, and one
+  masked response per group; the three providers have separate seeds.
+- G2 uses a conditional NB2 likelihood plus its provider precision oracle and
+  numerical gradients; direct count sentinel retapes and observed-row fit
+  equality also pass. G3 recovers fixed location, NB2 log-scale, and provider
+  SD. These results do not certify slopes, q2+, another provider, REML,
+  missing predictors, intervals, or coverage.
+- Check: `test-count-structured-mu.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — Poisson spatial q1-slope response-mask recovery
 
 - `rmf-mc-0441` is now G3 for

@@ -1730,6 +1730,51 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
     },
+    "mc-0406": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_spatial ~ x + spatial(1 | site, "
+            "coords = coords)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 sites, 16 "
+            "observations per site, and one masked response per site; it checks fixed effects, "
+            "NB2 log-scale, and the spatial SD. It does not promote slopes, q2+, other providers, "
+            "REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
+    "mc-0407": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_known ~ x + animal(1 | id, "
+            "Ainv = Q)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 IDs, 16 observations "
+            "per ID, one masked response per ID, and a seed distinct from relmat; it checks fixed "
+            "effects, NB2 log-scale, and the animal SD. It does not promote slopes, q2+, other "
+            "providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
+    "mc-0408": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_known ~ x + relmat(1 | id, "
+            "Q = Q)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 IDs, 16 observations "
+            "per ID, one masked response per ID, and a seed distinct from animal; it checks fixed "
+            "effects, NB2 log-scale, and the relatedness SD. It does not promote slopes, q2+, other "
+            "providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
 }
 
 
