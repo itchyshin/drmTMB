@@ -42,6 +42,27 @@ beta_animal_central_gradient <- function(fn, par, step = 1e-6) {
   }, numeric(1L))
 }
 
+beta_animal_sigma_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  log_sigma <- log_sigma + data$phylo_mu_value[, 1L] *
+    par$u_phylo[data$phylo_mu_node_index + 1L]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  prior <- 0.5 * (
+    nrow(data$Q_phylo) * log(2 * pi) +
+      2 * nrow(data$Q_phylo) * par$log_sd_phylo -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  )
+  mu <- stats::plogis(eta_mu)
+  phi <- exp(-2 * log_sigma)
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dbeta(
+    data$y[observed], shape1 = mu[observed] * phi[observed],
+    shape2 = (1 - mu[observed]) * phi[observed], log = TRUE
+  ))
+}
+
 test_that("non-count structured mu one-slope cells fit and expose intercept + slope SDs", {
   testthat::skip_if_not_installed("ape")
 
@@ -197,4 +218,45 @@ test_that("Beta animal mu intercept-slope response mask has oracle and recovery 
   expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(1 / sqrt(sim$phi))), 0.15)
   expect_lt(abs(fit_masked$sdpars$mu[["animal(1 | id)"]] - sim$sd_intercept), 0.22)
   expect_lt(abs(fit_masked$sdpars$mu[["animal(0 + x | id)"]] - sim$sd_slope), 0.22)
+})
+
+test_that("Beta animal sigma response mask has oracle and recovery evidence", {
+  source(file.path("tools", "arc2-beta-animal-fixtures.R"), local = TRUE)
+  sim <- beta_animal_sigma_intercept_fixture(n_each = 60L, seed = 2026081774L)
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 60L)] <- NA_real_
+  observed <- !is.na(dat$y)
+  pedigree <- sim$pedigree
+  formula <- bf(y ~ x, sigma ~ animal(1 | id, pedigree = pedigree))
+  fit_masked <- drmTMB(
+    formula, family = beta(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = beta(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), beta_animal_sigma_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), beta_animal_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0.2, 0.8))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_x), 0.15)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma0)), 0.18)
+  expect_lt(abs(fit_masked$sdpars$sigma[["animal(1 | id)"]] - sim$sd_animal_sigma), 0.20)
 })
