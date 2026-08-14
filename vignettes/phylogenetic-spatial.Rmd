@@ -968,9 +968,10 @@ intercepts.
 There are two different kinds of "random-effect" uncertainty.
 
 The first kind is uncertainty in the covariance parameters: random-effect SDs
-and correlations. These are the quantities shown by `sdpars`, `corpars`,
-`corpairs()`, and `summary(fit)$covariance`. The admitted interval method is
-row-specific rather than a blanket preference for profile likelihood. The q1
+and correlations. Read these quantities from `summary(fit)$parameters`,
+`corpairs()`, `summary(fit)$covariance`, and their named `profile_targets()`
+rows. The admitted interval method is row-specific rather than a blanket
+preference for profile likelihood. The q1
 `mu` anchors and the exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows
 use the default location-axis bias-corrected, small-sample-t Wald channel; q1
 `sigma` uses raw uncorrected log-SD Wald-z evidence and treats profile as
@@ -1847,7 +1848,7 @@ residual `rho12` curve, which is why the example shows `corpairs()` and
 `rho12()` separately.
 
 For the simpler fitted mean-mean phylogenetic correlation point estimate, use
-`corpars$phylo`, `corpairs(fit_biv_phylo, level = "phylogenetic")`, or
+`corpairs(fit_biv_phylo, level = "phylogenetic")` or
 `summary(fit_biv_phylo)$covariance`. Run `check_drm(fit_biv_phylo)` before
 interpreting that row: the current diagnostic flags phylogenetic correlations
 near the boundary and phylogenetic location SDs that are tiny relative to the

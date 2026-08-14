@@ -731,8 +731,9 @@ b_{1j}
 \end{aligned}
 \]
 
-This `rho_re` is a group-level random-effect correlation. It is reported under
-`corpars$mu`.
+This `rho_re` is a group-level random-effect correlation. Read it from the
+matching row of `corpairs(fit, level = "group")` or
+`summary(fit)$covariance`.
 
 Implemented bivariate residual correlation:
 

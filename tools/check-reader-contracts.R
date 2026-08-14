@@ -82,38 +82,70 @@ reader_contract_split_fields <- function(value) {
 
 reader_contract_private_accesses <- function(path) {
   lines <- readLines(path, warn = FALSE)
+  field_pattern <- paste(reader_contract_private_fields, collapse = "|")
   dollar_pattern <- paste0(
-    "\\$\\s*(", paste(reader_contract_private_fields, collapse = "|"),
-    ")(?![[:alnum:]_.])"
+    "\\$\\s*(", field_pattern, ")(?![[:alnum:]_.])"
   )
   bracket_pattern <- paste0(
     "\\[\\[\\s*['\"](",
-    paste(reader_contract_private_fields, collapse = "|"),
+    field_pattern,
     ")['\"]\\s*\\]\\]"
   )
+  # Reader prose can label a private extracted component directly, for example
+  # `sdpars$mu`, without spelling `fit$sdpars`.  Recognize those bare and
+  # Markdown-backticked routes while requiring a following extraction operator:
+  # ordinary prose such as "the model" is not a private-field access.
+  route_pattern <- paste0(
+    "(?<![[:alnum:]_.])`?(", field_pattern, ")`?\\s*(?=\\$|\\[\\[)"
+  )
 
-  records <- lapply(seq_along(lines), function(line_number) {
-    line <- lines[[line_number]]
-    dollar <- regmatches(line, gregexpr(dollar_pattern, line, perl = TRUE))[[1L]]
-    bracket <- regmatches(line, gregexpr(bracket_pattern, line, perl = TRUE))[[1L]]
-    tokens <- c(dollar, bracket)
-    if (!length(tokens) || identical(tokens, "")) return(NULL)
-    fields <- sub(
-      ".*(opt|sdr|sdpars|corpars|optimizer_used|optimizer_attempts|obj|model|missing_data|random_effects).*",
-      "\\1", tokens, perl = TRUE
+  access_matches <- function(pattern, line, line_number) {
+    locations <- gregexpr(pattern, line, perl = TRUE)[[1L]]
+    if (identical(locations, -1L)) return(NULL)
+    tokens <- regmatches(line, list(locations))[[1L]]
+    fields <- vapply(
+      tokens,
+      function(token) regmatches(token, regexpr(field_pattern, token, perl = TRUE)),
+      character(1)
+    )
+    field_offsets <- vapply(
+      tokens,
+      function(token) as.integer(regexpr(field_pattern, token, perl = TRUE)),
+      integer(1)
     )
     data.frame(
       line = rep.int(line_number, length(fields)),
       field = fields,
+      field_start = as.integer(locations) + field_offsets - 1L,
       text = rep.int(line, length(fields)),
       stringsAsFactors = FALSE
     )
+  }
+
+  records <- lapply(seq_along(lines), function(line_number) {
+    line <- lines[[line_number]]
+    matches <- Filter(
+      Negate(is.null),
+      list(
+        access_matches(dollar_pattern, line, line_number),
+        access_matches(bracket_pattern, line, line_number),
+        access_matches(route_pattern, line, line_number)
+      )
+    )
+    if (!length(matches)) return(NULL)
+    matches <- do.call(rbind, matches)
+    # `fit$sdpars$mu` satisfies both the direct-access and route patterns.
+    # It is one private access, not two exception candidates.
+    matches[!duplicated(matches[c("field", "field_start")]), , drop = FALSE]
   })
   records <- Filter(Negate(is.null), records)
   if (!length(records)) {
-    return(data.frame(line = integer(), field = character(), text = character()))
+    return(data.frame(
+      line = integer(), field = character(), field_start = integer(), text = character()
+    ))
   }
-  do.call(rbind, records)
+  records <- do.call(rbind, records)
+  records[c("line", "field", "text")]
 }
 
 reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "inst", "reader-contracts")) {
