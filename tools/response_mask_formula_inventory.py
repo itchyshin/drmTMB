@@ -61,6 +61,35 @@ EXPLICIT_BOUNDARIES = (
         ),
     },
     {
+        "formula_cell_id": "rmf-biv-gaussian-sigma12-labelled-intercept",
+        "model_cell_id": "mc-0071,mc-0072",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_labelled_sigma1_sigma2_intercept",
+        "route_modifier": "covariance_block",
+        "dpar": "sigma1+sigma2",
+        "effect_type": "labelled_covariance_block",
+        "structure_provider": "none",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched labelled residual-scale block "
+            "`sigma1 ~ 1 + (1 | p | id)`, `sigma2 ~ 1 + (1 | p | id)`, not either "
+            "endpoint alone. G2 conditional TMB-objective equality at the fitted latent mode "
+            "includes the independent-standard-normal scale latent prior, and direct endpoint "
+            "sentinel retapes leave the objective and gradient unchanged. G3 deterministic 25% "
+            "MCAR recovery validates both fixed location vectors, both fixed log-scale terms, "
+            "both scale SDs, their correlation, and rho12 on a 128-group, 12-observation-per-"
+            "group fixture. This is not a slope, a mixed location-scale block, a structured "
+            "effect, REML, interval/coverage evidence, or dense known-V partial-response support."
+        ),
+        "next_gate": "Validate each remaining labelled bivariate scale geometry separately.",
+    },
+    {
         "formula_cell_id": "rmf-biv-gaussian-phylo-mu12-q2-intercept",
         "model_cell_id": "mc-0083,mc-0084",
         "family_type": "biv_gaussian",

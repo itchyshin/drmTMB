@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — bivariate labelled residual-scale q2 response-mask recovery
+
+- `rmf-biv-gaussian-sigma12-labelled-intercept` (`mc-0071`/`mc-0072`) is now
+  G3 for the paired `sigma1`/`sigma2` labelled random-intercept block. Its
+  deterministic fixture has 128 groups, 12 observations per group, and
+  separate 25% MCAR masks for both responses.
+- The conditional oracle includes the independent-standard-normal scale prior;
+  direct endpoint sentinel retapes are invariant. Recovery covers both fixed
+  location vectors, fixed log scales, scale SDs and correlation, and `rho12`.
+  This is not a slope, mixed location-scale block, structured effect, REML,
+  interval/coverage, or dense-known-`V` partial-response result.
+- Check: `test-missing-response-biv-gaussian.R`, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate animal and relmat q2 slope response-mask recovery
 
 - `rmf-biv-gaussian-animal-mu12-q2-slope` (`mc-0131`/`mc-0132`) and
