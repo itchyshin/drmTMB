@@ -372,6 +372,12 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent observed-response oracle and recovery design for each remaining beta-binomial geometry.",
     },
+    "mc-0567": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": "G2 observed-data equality and sentinel retapes, plus G3 deterministic MCAR recovery, validate zero-one-beta mu random intercepts with fixed sigma, zoi, and coi regressions. This does not promote other distributional parameters, slopes, structured effects, REML, or missing predictors.",
+        "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
+    },
 }
 
 
