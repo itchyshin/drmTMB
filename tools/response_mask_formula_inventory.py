@@ -154,6 +154,36 @@ EXPLICIT_BOUNDARIES = (
         "next_gate": "Validate each remaining spatial geometry with its own recovery design.",
     },
     {
+        "formula_cell_id": "rmf-biv-gaussian-spatial-mu12-q2-slope",
+        "model_cell_id": "mc-0109,mc-0110",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_spatial_mu1_mu2_slope",
+        "route_modifier": "structured_q2",
+        "dpar": "mu1+mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "spatial",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched spatial q2 slope block "
+            "`mu1 ~ spatial(0 + x | p | site, coords = coords)`, `mu2 ~ spatial(0 + "
+            "x | p | site, coords = coords)`, not either endpoint alone. G2 conditional "
+            "TMB-objective equality at the fitted latent mode includes the correlated "
+            "spatial-field prior, and direct endpoint sentinel retapes leave the objective "
+            "and gradient unchanged. G3 deterministic 25% MCAR recovery validates both "
+            "fixed-effect vectors, both residual scales, both spatial slope SDs, the slope "
+            "correlation, and rho12 on a 128-site, 20-observation-per-site fixture. This is "
+            "not an intercept or q4+ block, another provider, REML, interval/coverage evidence, "
+            "or dense known-V partial-response support."
+        ),
+        "next_gate": "Validate each remaining spatial bivariate geometry separately.",
+    },
+    {
         "formula_cell_id": "rmf-biv-gaussian-animal-mu12-q2-intercept",
         "model_cell_id": "mc-0129,mc-0130",
         "family_type": "biv_gaussian",

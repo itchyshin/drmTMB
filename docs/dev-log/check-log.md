@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — bivariate spatial q2 slope response-mask recovery
+
+- `rmf-biv-gaussian-spatial-mu12-q2-slope` (`mc-0109`/`mc-0110`) is now G3
+  for paired `mu1`/`mu2` spatial slope fields. The deterministic fixture has
+  128 sites, 20 observations per site, and separate 25% MCAR masks for each
+  response. It recovers both fixed vectors, residual scales, slope SDs and
+  correlation, and `rho12`.
+- This does not certify an intercept or q4+ block, another provider, REML,
+  intervals/coverage, or dense-known-`V` partial responses.
+- Check: `test-spatial-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate phylogenetic q2 slope response-mask recovery
 
 - `rmf-biv-gaussian-phylo-mu12-q2-slope` (`mc-0085`/`mc-0086`) is now G3 for
