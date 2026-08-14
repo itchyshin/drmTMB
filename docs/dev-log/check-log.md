@@ -94182,6 +94182,20 @@ can see which commit each one actually examined.
   labelled/q2 blocks, sigma-side spatial effects, another provider, bivariate
   or REML formulas, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Gaussian REML spatial mu-intercept response mask
+
+- `mc-0287` is now `formula_validated` at G3 for `y ~ x + spatial(1 | site,
+  coords = coords), sigma ~ 1, REML = TRUE`. The missing-response restricted
+  fit agrees with the observed-response restricted fit in fixed coefficients,
+  spatial mu SD, likelihood, and `nobs()`; continuous sentinels are inert. A
+  deterministic 25% MCAR DGP with 128 sites and 20 observations per site
+  recovers these fitted targets.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-spatial-gaussian.R")`
+  passed. The 64-site rung missed the fixed mu bound, so the G3 claim has a
+  128-site floor. This does not promote spatial slopes/q2 blocks, another
+  provider, bivariate, non-Gaussian, interval/coverage, or missing-predictor
+  REML formulas.
+
 ## 2026-08-14 — Gaussian animal sigma-intercept response mask
 
 - `mc-0300` is now `formula_validated` at G3 for `y ~ x, sigma ~ animal(1 |

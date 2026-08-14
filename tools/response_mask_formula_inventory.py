@@ -280,6 +280,21 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining spatial geometry.",
     },
+    "mc-0287": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-response restricted-likelihood equality and direct continuous-response "
+            "sentinel retapes, plus G3 deterministic 25% MCAR known-DGP recovery validate the "
+            "univariate Gaussian unlabelled q1 spatial mu intercept REML response-mask formula "
+            "`y ~ x + spatial(1 | site, coords = coords), sigma ~ 1`. The recovery fixture has "
+            "128 sites and 20 observations per site. The 64-site rung did not recover fixed mu "
+            "coefficients within the fixed bound, so this claim has that 128-site information "
+            "floor. It does not promote spatial slopes/q2 blocks, another provider, bivariate, "
+            "non-Gaussian, interval/coverage, or missing-predictor REML formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining structured REML geometry.",
+    },
     **{
         cell_id: {
             "formula_status": "formula_validated",
