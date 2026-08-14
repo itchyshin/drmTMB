@@ -108,7 +108,7 @@ three tiny fitted examples: a clean Gaussian fit, the same model run with
 `drm_control(se = FALSE)`, and a deliberately under-budgeted random-effect fit.
 The colours are diagnostic statuses, not uncertainty intervals.
 
-```{r convergence-check-map, eval=has_ggplot2, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a clean fit, a no-standard-error stress fit, and a deliberately low-budget random-effect fit. Clean checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
+```{r convergence-check-map, eval=has_ggplot2, warning=FALSE, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a clean fit, a no-standard-error stress fit, and a deliberately low-budget random-effect fit. Clean checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
 set.seed(20260523)
 diagnostic_data <- data.frame(
   y = 0.5 + 0.7 * stats::rnorm(80) + stats::rnorm(80, sd = 0.35),
@@ -361,8 +361,9 @@ When the default deterministic `nlminb()` call raises an optimizer error, for
 example a non-finite gradient evaluation on a difficult tree topology,
 `drmTMB()` retries with `optimizer_preset = "careful"` and then `"robust"`.
 The retry is deliberately narrow: it runs only along the existing preset
-budgets, warns if a larger preset succeeds, and records the selected preset in
-`fit$optimizer_used` plus the full attempt table in `fit$optimizer_attempts`.
+budgets and warns if a larger preset succeeds. Use `check_drm(fit)` to inspect
+the documented diagnostic status, value, and message for the final fit rather
+than relying on implementation details of the optimizer record.
 If you pass explicit optimizer controls, `drmTMB()` respects those controls
 instead of silently replacing them with the preset ladder.
 
@@ -481,8 +482,8 @@ In that second case, look for the culprit:
 ```{r, purl=FALSE}
 summary(fit)
 check_drm(fit)
-fit$sdpars
-fit$corpars
+summary(fit)$parameters
+summary(fit)$covariance
 ```
 
 If one SD is effectively zero, that component may be unnecessary for these
@@ -625,7 +626,9 @@ sweep <- lapply(c(0.25, 0.5, 1.0), function(s) {
     data = dat, family = biv_gaussian(),
     penalty = drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = s)
   )
-  f$corpars$phylo
+  pairs <- corpairs(f, level = "phylogenetic")
+  stopifnot(nrow(pairs) > 0L)
+  pairs
 })
 ```
 

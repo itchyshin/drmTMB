@@ -968,9 +968,10 @@ intercepts.
 There are two different kinds of "random-effect" uncertainty.
 
 The first kind is uncertainty in the covariance parameters: random-effect SDs
-and correlations. These are the quantities shown by `sdpars`, `corpars`,
-`corpairs()`, and `summary(fit)$covariance`. The admitted interval method is
-row-specific rather than a blanket preference for profile likelihood. The q1
+and correlations. Read these quantities from `summary(fit)$parameters`,
+`corpairs()`, `summary(fit)$covariance`, and their named `profile_targets()`
+rows. The admitted interval method is row-specific rather than a blanket
+preference for profile likelihood. The q1
 `mu` anchors and the exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows
 use the default location-axis bias-corrected, small-sample-t Wald channel; q1
 `sigma` uses raw uncorrected log-SD Wald-z evidence and treats profile as
@@ -1199,8 +1200,11 @@ thermal tolerance model. The `sigma:(Intercept)` row is the log residual SD, so
 among-species SD in the mean after body size has been included.
 
 ```{r}
-phylo_sd <- unname(fit_phylo$sdpars$mu["phylo(1 | species)"])
-residual_sd <- exp(coef(fit_phylo, "sigma")["(Intercept)"])
+phylo_parameters <- summary(fit_phylo)$parameters
+phylo_sd <- phylo_parameters[
+  phylo_parameters$parm == "sd:mu:phylo(1 | species)", "estimate"
+]
+residual_sd <- unname(sigma(fit_phylo)[1])
 c(phylogenetic_sd = phylo_sd, residual_sd = residual_sd)
 ```
 
@@ -1544,7 +1548,11 @@ the location predictor, after the fixed effects and residual scale have been
 estimated:
 
 ```{r}
-fit_spatial$sdpars$mu
+spatial_parameters <- summary(fit_spatial)$parameters
+spatial_parameters[
+  grepl("^sd:mu:spatial", spatial_parameters$parm),
+  c("parm", "estimate")
+]
 head(ranef(fit_spatial, "spatial_mu")$terms[[1]])
 profile_targets(fit_spatial, ready_only = TRUE)[
   grep("spatial", profile_targets(fit_spatial, ready_only = TRUE)$parm),
@@ -1566,7 +1574,11 @@ fit_spatial_slope <- drmTMB(
   data = spatial_dat
 )
 
-fit_spatial_slope$sdpars$mu
+spatial_slope_parameters <- summary(fit_spatial_slope)$parameters
+spatial_slope_parameters[
+  grepl("^sd:mu:spatial", spatial_slope_parameters$parm),
+  c("parm", "estimate")
+]
 names(ranef(fit_spatial_slope, "spatial_mu")$terms)
 ```
 
@@ -1836,7 +1848,7 @@ residual `rho12` curve, which is why the example shows `corpairs()` and
 `rho12()` separately.
 
 For the simpler fitted mean-mean phylogenetic correlation point estimate, use
-`corpars$phylo`, `corpairs(fit_biv_phylo, level = "phylogenetic")`, or
+`corpairs(fit_biv_phylo, level = "phylogenetic")` or
 `summary(fit_biv_phylo)$covariance`. Run `check_drm(fit_biv_phylo)` before
 interpreting that row: the current diagnostic flags phylogenetic correlations
 near the boundary and phylogenetic location SDs that are tiny relative to the

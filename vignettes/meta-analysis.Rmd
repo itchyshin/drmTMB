@@ -152,13 +152,19 @@ output, but they do not by themselves establish that a `sigma` interval is
 finite, usable, or coverage-valid.
 
 ```{r}
-fit$opt$convergence # 0 means the optimiser converged
-fit$sdr$pdHess # TRUE means the Hessian is positive definite
+is_converged(fit)                 # optimizer convergence
+is_converged(fit, include_hessian = TRUE) # also requires a positive-definite Hessian
 ```
 
 ```{r}
-check_drm(fit)
+diagnostics <- check_drm(fit)
+diagnostics[, c("check", "status", "value", "message")]
 ```
+
+If `is_converged(fit, include_hessian = TRUE)` is `FALSE`, use the status and
+message in `diagnostics` to identify the failed check before interpreting Wald
+intervals. A Hessian warning is an inference warning, not by itself proof that
+the fitted pooled effect is unusable.
 
 ## The pooled effect
 

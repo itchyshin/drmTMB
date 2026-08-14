@@ -223,8 +223,9 @@ fit_grm <- drmTMB(
 )
 ```
 
-Here `G` can be a correlation matrix. `fit_grm$sdpars$mu` reports the fitted
-structured SD scale `s`, so the latent covariance is `s^2 G` and line `i` has
+Here `G` can be a correlation matrix. The `sd:mu:relmat(1 | line)` row of
+`summary(fit_grm)$parameters` reports the fitted structured SD scale `s`, so
+the latent covariance is `s^2 G` and line `i` has
 marginal SD `s sqrt(G[i, i])`. Thus `s` is a line-level marginal SD only when
 the corresponding diagonal entry of `G` is one. This is not known sampling
 error; it is latent among-line structure left after the fixed effects.
@@ -417,7 +418,7 @@ After fitting, inspect the relatedness layer before interpreting it:
 | Output | Use |
 | --- | --- |
 | `check_drm(fit)` | Confirm the `relmat()` layer was recognized and review matrix/replication diagnostics. |
-| `fit$sdpars$mu` | Read the fitted latent known-matrix scale `s`; level `i` has marginal SD `s sqrt(K[i, i])`. |
+| `summary(fit)$parameters` | Read the fitted latent known-matrix scale `s`; level `i` has marginal SD `s sqrt(K[i, i])`. |
 | `ranef(fit, "relmat_mu")` | Inspect conditional deviations on the fitted relatedness layer. |
 | `summary(fit)$covariance` | Check how the `relmat()` SD or q=2 correlation is reported beside other covariance layers. |
 | `profile_targets(fit)` | See which relatedness SD or q=2 correlation targets can be profiled directly; q=4 correlations are derived-only in the first slice. |
@@ -484,11 +485,14 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 ```{r relmat-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and level-specific known-matrix marginal SDs `s sqrt(K[i,i])` from a univariate Gaussian `relmat()` model. Points and bars are response-scale estimates with 95% Wald intervals transformed by the known diagonal multipliers.", fig.alt = "Horizontal interval display comparing residual sigma with known-matrix node marginal standard deviations calculated by multiplying the fitted latent scale and interval endpoints by the square root of each known covariance diagonal."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   relmat_ci <- confint(fit_relmat, parm = "variance_components")
+  relmat_parameters <- summary(fit_relmat)$parameters
   node_multiplier <- sqrt(diag(K))
   relmat_sd <- relmat_ci[c(1, rep(2, length(node_multiplier))), , drop = FALSE]
   relmat_sd$estimate <- c(
     unname(exp(coef(fit_relmat, "sigma")["(Intercept)"])),
-    unname(fit_relmat$sdpars$mu["relmat(1 | line)"]) * node_multiplier
+    relmat_parameters[
+      relmat_parameters$parm == "sd:mu:relmat(1 | line)", "estimate"
+    ] * node_multiplier
   )
   relmat_sd$lower[-1] <- relmat_sd$lower[-1] * node_multiplier
   relmat_sd$upper[-1] <- relmat_sd$upper[-1] * node_multiplier

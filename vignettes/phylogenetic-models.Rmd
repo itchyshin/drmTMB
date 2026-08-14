@@ -373,9 +373,9 @@ fit_pois <- drmTMB(
   data = dat_count
 )
 
-fit_pois$opt$convergence
+check_drm(fit_pois)
 coef(fit_pois, "mu")     # log-mean intercept near log(3) ~ 1.10, slope near -0.3
-fit_pois$sdpars$mu       # phylogenetic SD on the log-mean scale
+summary(fit_pois)$parameters # phylogenetic SD on the log-mean scale
 ```
 
 If the counts are overdispersed relative to a Poisson, swap in `nbinom2()`. The
@@ -389,8 +389,8 @@ fit_nb <- drmTMB(
   data = dat_count
 )
 
-fit_nb$opt$convergence
-fit_nb$sdpars$mu         # phylogenetic SD, NB2 mean model
+check_drm(fit_nb)
+summary(fit_nb)$parameters # phylogenetic SD, NB2 mean model
 ```
 
 The phylogenetic SD is reported on the log-mean (link) scale for count
@@ -421,9 +421,7 @@ fit_big <- drmTMB(
   family = gaussian(),
   data = big
 )
-fit_big$sdpars$mu
-#> phylo(1 | species)
-#>              ~0.70
+summary(fit_big)$parameters
 # The sparse-precision path keeps this on the order of a second on a laptop;
 # cost grows roughly linearly in the number of species rather than cubically.
 ```
