@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — Poisson labelled phylogenetic q2 response-mask recovery
+
+- `rmf-mc-0436` is now G3 for the exact ML formula
+  `poisson_phylo ~ x + phylo(1 + x | p | site, tree = tree)`. The larger
+  non-Gaussian fixture has 128 tips, 64 observations per tip, one masked
+  response per tip, two phylogenetic SDs, and a true correlation of 0.35.
+- G2 uses a dense conditional Poisson phylogenetic covariance oracle and
+  numerical gradients; direct count-sentinel retapes and observed-row fit
+  equality also pass. G3 recovers fixed location, both phylogenetic SDs, and
+  the named correlation. This does not certify q1, unlabelled terms, another
+  provider, q4+, REML, missing predictors, intervals, or coverage.
+- Check: isolated labelled-q2 response-mask test (24 successes), response-mask
+  inventory generation, capability-ledger drift check, and `git diff --check`
+  passed.
+
 ## 2026-08-14 — Poisson phylogenetic, animal, and relatedness q1-slope response-mask recovery
 
 - `rmf-mc-0435`, `rmf-mc-0448`, and `rmf-mc-0452` are now G3 for,
