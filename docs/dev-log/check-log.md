@@ -93695,3 +93695,15 @@ can see which commit each one actually examined.
   --check` passed. This does not promote other distributional-parameter random
   effects, correlated or structured effects, REML, another family, or missing
   predictors.
+
+## 2026-08-14 — Tweedie ML mu random-slope response mask
+
+- `mc-0539` is now `formula_validated` at G3 for the exact Tweedie formula
+  `y ~ x + (0 + x | id), sigma ~ z, nu ~ 1`. Masked and observed-data fits
+  agree in mu, sigma, nu, the mu slope-SD, and likelihood; zero and positive
+  response sentinels are inert; and the deterministic 25% MCAR DGP recovers
+  all named fixed, slope-SD, and conditional slope-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-boundary")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote sigma or nu random effects, correlated
+  or structured effects, REML, another family, or missing predictors.

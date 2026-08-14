@@ -168,6 +168,38 @@ test_that("zero-one-beta mu random-slope response mask matches observed data", {
   expect_gt(cor(slope_effects, u), 0.5)
 })
 
+test_that("Tweedie mu random-slope response mask matches observed data", {
+  set.seed(2026081524L)
+  n_id <- 48L
+  n_each <- 32L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(id = id, x = runif(n, -1, 1), z = rnorm(n))
+  truth <- list(mu = c(0.20, 0.45), sigma = c(-0.55, 0.20), nu = 1.35, sd = 0.48)
+  u <- rnorm(n_id, sd = truth$sd)
+  mu <- exp(truth$mu[[1L]] + (truth$mu[[2L]] + u[id]) * dat$x)
+  sigma <- exp(truth$sigma[[1L]] + truth$sigma[[2L]] * dat$z)
+  dat$y <- rtweedie_compound(n, mu = mu, phi = sigma^2, power = truth$nu)
+  masked <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = 2026081525L)
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + (0 + x | id), sigma ~ z, nu ~ 1)
+  fit_mask <- drmTMB(form, tweedie(), masked, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(form, tweedie(), masked[observed, ], control = drm_control(se = FALSE))
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "nu"), coef(fit_observed, "nu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - truth$mu)), 0.20)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - truth$sigma)), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "nu")) - truth$nu), 0.15)
+  expect_lt(abs(unname(fit_mask$sdpars$mu) - truth$sd), 0.25)
+  slope_effects <- fit_mask$random_effects$mu$terms[["(0 + x | id)"]]
+  expect_gt(cor(slope_effects, u), 0.45)
+})
+
 test_that("MR-T3 masks recover every fixed distributional parameter", {
   tweedie_case <- mr_t3_tweedie_data()
   tweedie_dat <- missing_response_mask_mcar(
