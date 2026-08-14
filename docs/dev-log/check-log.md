@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — Poisson spatial-plus-ordinary response-mask recovery
+
+- `rmf-mc-0445` is now G3 for the exact ML formula
+  `y ~ x + spatial(1 | site, coords = coords) + (1 | id)`.
+- G2 uses the conditional Poisson objective with both the independent `id`
+  intercept prior and spatial-field precision, numerical gradients, direct
+  count-sentinel retapes, and observed-row fit equality. G3 uses a larger
+  fixture: 64 sites, 256 IDs (four IDs per site), 64 observations per ID, and
+  one masked response per ID. It recovers the fixed slope, the conditional
+  intercept, and both ordinary and spatial SDs. This does not certify other
+  combined geometries, slopes, labelled covariance, other providers, REML,
+  missing predictors, intervals, or coverage.
+- Check: isolated response-mask test (22 successes), response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — Poisson spatial slope-only duplicate-cell reconciliation
 
 - `rmf-mc-0442` is now G3 because it is a duplicate inventory row for the

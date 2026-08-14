@@ -2117,6 +2117,23 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
     },
+    "mc-0445": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional Poisson TMB-objective and numerical-gradient equality across the "
+            "ordinary and spatial latent blocks, observed-row fit equality, and direct count-"
+            "response sentinel retapes, plus G3 deterministic known-DGP recovery, validate the "
+            "exact Poisson ML formula `y ~ x + spatial(1 | site, coords = coords) + (1 | id)`. "
+            "The larger non-Gaussian fixture has 64 sites, 256 IDs, four IDs per site, 64 "
+            "observations per ID, and one masked response per ID. It checks the fixed slope, "
+            "the conditional intercept against both realised-field means, and both the ordinary "
+            "and spatial SDs. It does not promote another combined geometry, slopes, labelled "
+            "covariance, another provider, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
+    },
 }
 
 

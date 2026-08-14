@@ -340,6 +340,30 @@ poisson_provider_q2_independent_nll <- function(fit, par, precision) {
   poisson_provider_q2_covariance_nll(fit, par, precision, rho = 0)
 }
 
+poisson_spatial_plus_ordinary_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  for (j in seq_len(data$n_mu_re_terms)) {
+    index <- data$mu_re_index[, j] + 1L
+    term <- data$mu_re_term[index] + 1L
+    eta_mu <- eta_mu + data$mu_re_value[, j] *
+      exp(par$log_sd_mu[term]) * par$u_mu[index]
+  }
+  eta_mu <- eta_mu + data$phylo_mu_value[, 1L] *
+    par$u_phylo[data$phylo_mu_node_index + 1L]
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  spatial_prior <- 0.5 * (
+    nrow(data$Q_phylo) * log(2 * pi) +
+      2 * nrow(data$Q_phylo) * par$log_sd_phylo -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
+  )
+  ordinary_prior <- -sum(stats::dnorm(par$u_mu, log = TRUE))
+  observed <- as.logical(data$observed_y)
+  spatial_prior + ordinary_prior - sum(data$weights[observed] * stats::dpois(
+    data$y[observed], exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
 independent_spatial_precision <- function(coords, levels, jitter = 1e-6) {
   xy <- as.matrix(coords[levels, seq_len(2L), drop = FALSE])
   distances <- as.matrix(stats::dist(xy))
@@ -393,7 +417,12 @@ new_count_structured_mu_plus_ordinary_data <- function(
       site = factor(site, levels = sites),
       id = factor(id, levels = ids)
     ),
-    coords = coords
+    coords = coords,
+    beta_mu = c(`(Intercept)` = 0.55, x = -0.20),
+    spatial_effect = spatial_effect,
+    ordinary_effect = ordinary_effect,
+    sd_spatial = 0.45,
+    sd_ordinary = 0.25
   )
 }
 
@@ -839,6 +868,54 @@ test_that("Poisson spatial q1 intercept response mask has oracle and recovery ev
   expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.35)
   expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.14)
   expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.25)
+})
+
+test_that("Poisson spatial plus ordinary response mask has oracle and recovery evidence", {
+  sim <- new_count_structured_mu_plus_ordinary_data(
+    n_site = 64L, n_id = 256L, n_each = 64L, seed = 2026081771L
+  )
+  dat <- sim$data
+  dat$y[seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+  observed <- !is.na(dat$y)
+  coords <- sim$coords
+  formula <- bf(y ~ x + spatial(1 | site, coords = coords) + (1 | id))
+  fit_masked <- drmTMB(
+    formula, family = stats::poisson(link = "log"), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = stats::poisson(link = "log"),
+    data = dat[observed, , drop = FALSE], control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(
+    obj$fn(probe), poisson_spatial_plus_ordinary_nll(fit_masked, par),
+    tolerance = 1e-7
+  )
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  # Both simulated fields are uncentred, so this is the realised conditional intercept.
+  conditional_intercept <- sim$beta_mu[["(Intercept)"]] +
+    mean(sim$spatial_effect) + mean(sim$ordinary_effect)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - conditional_intercept), 0.18)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.12)
+  expect_lt(abs(fit_masked$sdpars$mu[["(1 | id)"]] - sim$sd_ordinary), 0.12)
+  expect_lt(abs(fit_masked$sdpars$mu[["spatial(1 | site)"]] - sim$sd_spatial), 0.16)
 })
 
 test_that("Poisson labelled spatial q1 intercept response mask has oracle and recovery evidence", {
