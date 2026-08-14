@@ -314,6 +314,28 @@ FORMULA_EVIDENCE = {
             "formula_status": "formula_validated",
             "formula_mask_gate": "G3",
             "claim_boundary": (
+                "This row is one component of the paired univariate Gaussian q2 relmat "
+                "location-scale one-slope formula `y ~ x + relmat(1 + x | id, K = K), sigma ~ "
+                "relmat(1 + x | id, K = K)`; neither endpoint is promoted alone. G2 masked-"
+                "versus-observed-data equality covers fixed mu and sigma coefficients, all four "
+                "named relmat SDs, and likelihood; direct continuous-response sentinel retapes "
+                "and G3 deterministic 25% MCAR recovery cover the same four-field block. The "
+                "fixture has 64 related IDs and 24 observations per ID. The ledger's q2 label "
+                "denotes the paired mu/sigma formula cell; this unlabelled formula fits four "
+                "independent coefficient-level relmat fields and exposes no cross-axis correlation "
+                "target. This does not promote either endpoint alone, a labelled/correlated or "
+                "q4+ block, Q representations, another provider, bivariate, REML, interval/"
+                "coverage, or missing-predictor formulas."
+            ),
+            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
+        }
+        for cell_id in ("mc-0317", "mc-0318")
+    },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
                 "This row is one component of the paired univariate Gaussian q2 animal "
                 "location-scale one-slope formula `y ~ x + animal(1 + x | id, A = A), sigma ~ "
                 "animal(1 + x | id, A = A)`; neither endpoint is promoted alone. G2 masked-"

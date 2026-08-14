@@ -1127,6 +1127,50 @@ test_that("Gaussian matched one-slope animal location-scale masks match observed
   )
 })
 
+test_that("Gaussian matched one-slope relmat location-scale masks match observed data", {
+  sim <- new_animal_location_scale_gaussian_slope_data(seed = 2026081629L)
+  K <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081630L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + relmat(1 + x | id, K = K),
+    sigma ~ relmat(1 + x | id, K = K)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
+  )
+})
+
 test_that("Gaussian sigma supports relmat K/Q one structured slope", {
   sim <- new_known_relatedness_sigma_slope_data()
   K <- sim$K
