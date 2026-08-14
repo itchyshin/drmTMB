@@ -88,10 +88,11 @@ nb2_phylo_q2_independent_nll <- function(fit, par) {
     n_phylo * log(2 * pi) + 2 * par$log_sd_phylo * n_phylo -
       data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo) * quadratic
   ))
-  prior - sum(data$weights * stats::dnbinom(
-    data$y,
-    size = exp(-2 * log_sigma),
-    mu = exp(eta_mu),
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed],
+    size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]),
     log = TRUE
   ))
 }
@@ -126,10 +127,11 @@ nb2_phylo_q2_covariance_nll <- function(fit, par, rho = NULL) {
       n_phylo * (2 * sum(par$log_sd_phylo) + log(one_minus_rho2)) -
       2 * data$log_det_Q_phylo + quadratic
   )
-  prior - sum(data$weights * stats::dnbinom(
-    data$y,
-    size = exp(-2 * log_sigma),
-    mu = exp(eta_mu),
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed],
+    size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]),
     log = TRUE
   ))
 }
@@ -1445,6 +1447,54 @@ test_that("NB2 phylo q2 covariance penalty matches the dense joint oracle", {
   rho_zero[[eta_index]] <- 0
   rho_nonzero[[eta_index]] <- atanh(0.35 / 0.999999)
   expect_gt(abs(full_obj$fn(rho_nonzero) - full_obj$fn(rho_zero)), 1e-5)
+})
+
+test_that("NB2 phylo labelled q2 response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  sim <- new_count_structured_mu_slope_data(
+    n_level = 128L, n_each = 16L, rho_phylo = 0.35, seed = 2026081751L
+  )
+  dat <- sim$data
+  dat$nb2_phylo[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+  observed <- !is.na(dat$nb2_phylo)
+  tree <- sim$tree
+  formula <- bf(nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree), sigma ~ 1)
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+  correlation <- "cor(mu:(Intercept),mu:x | p | site)"
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), nb2_phylo_q2_covariance_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(fit_masked$corpars$phylo, fit_observed$corpars$phylo, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[1L]]) - 0.25), 0.22)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[2L]]) - 0.45), 0.25)
+  expect_lt(abs(unname(fit_masked$corpars$phylo[[correlation]]) - 0.35), 0.25)
 })
 
 test_that("NB2 labelled phylo covariance keeps non-C1 forms closed", {

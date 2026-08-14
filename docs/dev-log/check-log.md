@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — NB2 labelled phylogenetic q2 response-mask recovery
+
+- `rmf-mc-0418` is now G3 for the exact ML formula
+  `nb2_phylo ~ x + phylo(1 + x | p | site, tree = tree), sigma ~ 1`.
+  The non-Gaussian fixture has 128 tips, 16 observations per tip, one masked
+  response per tip, two phylogenetic SDs, and a true intercept-slope
+  correlation of 0.35.
+- G2 uses a dense conditional NB2 phylogenetic covariance oracle and numerical
+  gradients; direct count-sentinel retapes and observed-row fit equality also
+  pass. G3 recovers fixed location, NB2 log-sigma, both phylogenetic SDs, and
+  the labelled correlation. This does not certify q1, unlabelled terms, other
+  providers, q4+, REML, missing predictors, intervals, or coverage.
+- Check: `test-count-structured-mu.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — NB2 q1 structured intercept-slope response-mask recovery
 
 - `rmf-mc-0410` to `rmf-mc-0413` are now G3 for, respectively,
