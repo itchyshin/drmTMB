@@ -94982,6 +94982,18 @@ can see which commit each one actually examined.
   not promote other providers or endpoints, REML, interval/coverage evidence,
   or missing predictors.
 
+## 2026-08-14 — Zero-one-beta animal location response mask
+
+- `mc-0584` is now `formula_validated` at G3 for `y ~ x + animal(1 | species,
+  Ainv = Ainv)`. The animal-specific zero-one-beta oracle uses observed
+  responses only, and the response-mask test checks its objective and
+  numerical gradient, atom/interior sentinels, and equality with the
+  observed-only fit.
+- The deterministic fixture has 64 IDs and 50 observations per ID. It recovers
+  fixed location, constant beta scale, and the animal location SD. This does
+  not promote another provider or endpoint, REML, interval/coverage evidence,
+  or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one

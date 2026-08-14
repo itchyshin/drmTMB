@@ -388,6 +388,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Validate each zero-one-beta provider and endpoint separately; do not reuse this phylogenetic mu evidence.",
     },
+    "mc-0584": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct zero-one-beta observed-data objective and numerical-gradient "
+            "equality, direct atom/interior response-sentinel retapes, and masked-"
+            "versus-observed fit equality validate `y ~ x + animal(1 | species, Ainv "
+            "= Ainv)`. G3 uses a deterministic 64-ID, 50-observation-per-ID fixture "
+            "to recover fixed location, constant beta scale, and the animal mu SD. "
+            "This is not phylogenetic or relmat evidence, another endpoint, a labelled "
+            "or correlated block, REML, interval or coverage evidence, or missing-"
+            "predictor support."
+        ),
+        "next_gate": "Validate each zero-one-beta provider and endpoint separately; do not reuse this animal mu evidence.",
+    },
     "mc-0364": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
