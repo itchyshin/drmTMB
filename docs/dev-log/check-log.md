@@ -93386,3 +93386,20 @@ can see which commit each one actually examined.
 - Check: `test-reader-journeys.R` passed after the behavioral diagnostic test;
   `git diff --check` passed. These are deterministic workflow contracts, not
   recovery, calibration, or release evidence.
+
+## 2026-08-13 — reader truth contracts
+
+- A `TMB::tmbprofile()` trace with the known monotone-sweep, isolated-low
+  sentinel, and reset signature now returns an explicitly failed profile row
+  rather than attempting to extract corrupted endpoints. The contract applies
+  to direct, curve, and supplied-`newdata` profile paths and records
+  `tmbprofile_bracket_overflow` for the reader.
+- The capability-ledger generator now validates a keyed sidecar for the three
+  threshold-free missing-response G5 routes. It checks the current gate policy,
+  route state, retired predicate absence, and required wording on each route's
+  exact generated family-map row.
+- Checks: focused profile tests passed; focused live-prose contract tests
+  passed; `python3 tools/capability_ledger.py --check` regenerated and checked
+  31 outputs; and the reader-journey diagnostic acceptance test passed. This
+  changes failure reporting and stale-prose detection only—no likelihood,
+  evidence tier, calibration result, or capability claim changed.
