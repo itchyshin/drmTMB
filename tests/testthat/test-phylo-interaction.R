@@ -238,6 +238,33 @@ nb2_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, observation_
   ))
 }
 
+nb2_mu_phylo_interaction_nll <- function(fit, par, tree1, tree2, observation_data) {
+  data <- fit$model$tmb_data
+  u <- as.vector(par$u_phylo)
+  precision1 <- dense_augmented_phylo_precision(tree1)
+  precision2 <- dense_augmented_phylo_precision(tree2)
+  Q <- kronecker(precision2$Q, precision1$Q)
+  node1 <- precision1$tip_index[match(observation_data$plant, tree1$tip.label)]
+  node2 <- precision2$tip_index[match(observation_data$pollinator, tree2$tip.label)]
+  observation_node_index <- (node2 - 1L) * nrow(precision1$Q) + node1
+  expect_equal(data$phylo_mu_node_index + 1L, unname(observation_node_index))
+  eta_mu <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu) +
+    data$phylo_mu_value[, 1L] * u[observation_node_index]
+  log_sigma <- as.vector(data$X_sigma %*% par$beta_sigma)
+  quadratic <- sum(u * as.vector(Q %*% u))
+  n_u <- length(u)
+  prior <- .5 * (
+    n_u * log(2 * pi) + 2 * n_u * par$log_sd_phylo -
+      (nrow(precision2$Q) * precision1$log_det + nrow(precision1$Q) * precision2$log_det) +
+      exp(-2 * par$log_sd_phylo) * quadratic
+  )
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed], size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]), log = TRUE
+  ))
+}
+
 zi_nbinom2_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, observation_data) {
   data <- fit$model$tmb_data
   u <- as.vector(par$u_phylo)
@@ -411,6 +438,59 @@ test_that("NB2 mu supports a q1 bipartite phylogenetic interaction", {
   )
 
   expect_phylo_interaction_fit(fit, "nbinom2")
+})
+
+test_that("NB2 phylo-interaction mu response mask has oracle and recovery evidence", {
+  sim <- new_phylo_interaction_count_data(
+    n_plant = 8L, n_pollinator = 8L, n_each = 64L, seed = 2026081752L
+  )
+  plant_tree <- sim$plant_tree
+  pollinator_tree <- sim$pollinator_tree
+  dat <- sim$data
+  dat$nb2[seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+  observed <- !is.na(dat$nb2)
+  formula <- bf(
+    nb2 ~ x + phylo_interaction(
+      1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
+    ),
+    sigma ~ 1
+  )
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+  sd_name <- "phylo_interaction(1 | plant:pollinator)"
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(
+    obj$fn(probe),
+    nb2_mu_phylo_interaction_nll(fit_masked, par, plant_tree, pollinator_tree, dat),
+    tolerance = 1e-7
+  )
+  expect_equal(
+    as.numeric(obj$gr(probe)), central_gradient(obj$fn, probe), tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]), 0.38)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
+  expect_lt(abs(unname(fit_masked$sdpars$mu[[sd_name]]) - sim$sd_pair), 0.25)
 })
 
 test_that("NB2 sigma supports only the point-fit q1 phylo-interaction gate", {
