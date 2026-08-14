@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — bivariate animal q2 location response-mask recovery
+
+- `rmf-biv-gaussian-animal-mu12-q2-intercept` (`mc-0129`/`mc-0130`) is now G3
+  for paired `mu1`/`mu2` animal intercepts with the tested `Ainv` route. The
+  independently seeded deterministic fixture has 64 IDs, 20 observations per
+  ID, and separate 25% MCAR masks for each response. It recovers both fixed
+  vectors, residual scales, animal SDs and correlation, and `rho12`.
+- This does not certify relmat, a slope, another animal geometry, REML,
+  intervals/coverage, or dense-known-`V` partial responses.
+- Check: `test-animal-relmat-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate relmat q2 location response-mask recovery
 
 - `rmf-biv-gaussian-relmat-mu12-q2-intercept` (`mc-0151`/`mc-0152`) is now G3

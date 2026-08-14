@@ -1853,6 +1853,38 @@ test_that("bivariate relmat q2 response masks recover an independent known DGP",
   expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
 })
 
+test_that("bivariate animal q2 response masks recover an independent known DGP", {
+  sim <- new_biv_known_relatedness_gaussian_data(
+    seed = 2026081710L, n_id = 64L, n_each = 20L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "id", seed = 2026081711L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "id", seed = 2026081712L
+  )
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + animal(1 | p | id, Ainv = sim$Q),
+      mu2 = y2 ~ x + animal(1 | p | id, Ainv = sim$Q),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1000, iter.max = 1000)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_known)), 0.25)
+  expect_lt(abs(unname(fit$corpars$animal) - sim$rho_known), 0.25)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.06)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
+})
+
 test_that("bivariate Gaussian mu fits relmat and animal q2 known-matrix covariance", {
   sim <- new_biv_known_relatedness_gaussian_data()
   dat <- sim$data
