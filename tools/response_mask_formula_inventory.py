@@ -457,6 +457,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining relmat geometry.",
     },
+    "mc-0311": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-response restricted-likelihood equality and direct continuous-response "
+            "sentinel retapes, plus G3 deterministic 25% MCAR known-DGP recovery validate the "
+            "univariate Gaussian unlabelled q1 relmat mu intercept REML response-mask formula "
+            "`y ~ x + relmat(1 | id, K = K), sigma ~ 1`. The recovery fixture has 128 related "
+            "IDs and 20 observations per ID. It does not promote relmat slopes/q2 blocks, Q "
+            "representations, another provider, bivariate, non-Gaussian, interval/coverage, or "
+            "missing-predictor REML formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining structured REML geometry.",
+    },
     "mc-0313": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
