@@ -61,7 +61,9 @@ fixture <- function(provider, seed, g = 64L, n_each = 8L) {
 row <- tryCatch({
   fx <- fixture(provider, seed)
   fit <- drmTMB(fx$form, data = fx$data,
-    REML = TRUE, missing = miss_control(response = "include"), control = drm_control(optimizer_preset = "robust", se = FALSE))
+    # This campaign records `pdHess` as a diagnostic.  It therefore must request
+    # the sdreport calculation that supplies that diagnostic.
+    REML = TRUE, missing = miss_control(response = "include"), control = drm_control(optimizer_preset = "robust", se = TRUE))
   convergence <- fit$opt$convergence
   pd_hess <- isTRUE(fit$sdr$pdHess)
   beta0 <- fit$par$mu[[1L]]
