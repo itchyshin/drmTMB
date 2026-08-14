@@ -332,6 +332,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining animal geometry.",
     },
+    "mc-0298": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for fixed mu coefficients, both animal "
+            "mu SDs, residual sigma, and likelihood, plus direct continuous-response sentinel "
+            "retapes, and G3 deterministic 25% MCAR known-DGP recovery validate the univariate "
+            "Gaussian unlabelled q1 animal mu intercept-plus-slope ML response-mask formula "
+            "`y ~ x + animal(1 + x | id, A = A), sigma ~ 1`. The recovery fixture has 80 "
+            "related IDs and 20 observations per ID; the fixed-effect tolerance reflects one "
+            "realized correlated animal field. It does not promote a labelled/q2 block, sigma-"
+            "side animal effects, pedigree/Ainv representations, another provider, bivariate, "
+            "REML, interval/coverage, or missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining animal geometry.",
+    },
     "mc-0301": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

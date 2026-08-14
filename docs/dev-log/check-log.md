@@ -94208,6 +94208,21 @@ can see which commit each one actually examined.
   effects, pedigree/Ainv representations, another provider, bivariate or REML
   formulas, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Gaussian animal mu-slope response mask
+
+- `mc-0298` is now `formula_validated` at G3 for `y ~ x + animal(1 + x | id,
+  A = A), sigma ~ 1`. The missing-response fit agrees with the observed-response
+  fit in fixed mu and sigma coefficients, both animal mu SDs, likelihood, and
+  `nobs()`; continuous sentinels are inert. A deterministic 25% MCAR DGP with
+  80 related IDs and 20 observations per ID recovers these fitted parameter
+  blocks.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. The fixed-effect recovery tolerance is 0.25 because one realized
+  correlated animal field can shift the population intercept. This does not
+  promote labelled/q2 blocks, sigma-side animal effects, pedigree/Ainv
+  representations, another provider, bivariate or REML formulas,
+  interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — Gaussian animal sigma-slope response mask
 
 - `mc-0301` is now `formula_validated` at G3 for `y ~ x, sigma ~ animal(1 +
