@@ -95018,6 +95018,13 @@ can see which commit each one actually examined.
   only the zero-one-beta location provider set, not scale or atom endpoints,
   REML, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Zero-one-beta phylogenetic scale response mask
+
+- `mc-0593` is now `formula_validated` at G3 for `sigma ~ phylo(1 | species,
+  tree = tree)`. The check uses the observed-data oracle and gradient,
+  atom/interior sentinels, observed-only equality, and a 64-tip by
+  60-observation interior-rich recovery fixture.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one
