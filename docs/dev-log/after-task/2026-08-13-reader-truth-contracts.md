@@ -53,8 +53,9 @@ true.
   target requests as rejected.
 - `missing-data.Rmd` rendered successfully to a temporary directory.
 - Fresh exact source-tarball `R CMD check --as-cran` on the final repaired
-  branch passed with no errors or warnings and the expected new-submission NOTE
-  only. GitHub Actions remains the cross-platform gate before merge.
+  branch, including the ten rejected unsupported-target contracts, passed with
+  no errors or warnings and the expected new-submission NOTE only. GitHub
+  Actions remains the cross-platform gate before merge.
 
 ## Tests Of The Tests
 

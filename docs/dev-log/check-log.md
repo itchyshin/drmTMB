@@ -93406,9 +93406,9 @@ can see which commit each one actually examined.
   changes failure reporting and stale-prose detection only—no likelihood,
   evidence tier, calibration result, or capability claim changed.
 - Fresh exact source-tarball `R CMD check --as-cran` on the final repaired
-  integration branch passed with no errors or warnings and one expected
-  new-submission NOTE. The required GitHub Actions gate is still pending at
-  this record.
+  integration branch, including the ten rejected unsupported-target contracts,
+  passed with no errors or warnings and one expected new-submission NOTE. The
+  required GitHub Actions gate is still pending at this record.
 - Each of the ten native reader workflows now sends a unique nonexistent
   profile target through exported `confint(..., method = "profile")`. The
   regenerated receipt records `unsupported_response = pass` for every row,
