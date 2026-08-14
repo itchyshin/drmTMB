@@ -93456,3 +93456,29 @@ can see which commit each one actually examined.
   tests and generated-ledger drift check passed; `git diff --check` passed.
   This does not promote random intercept-plus-slope, correlated, sigma-side,
   structured, bivariate, non-Gaussian, or missing-predictor REML cells.
+
+## 2026-08-14 — Gaussian ML ordinary random-slope response-mask cell
+
+- `mc-0268` is now `formula_validated` at G3 for the exact ordinary random-slope
+  ML geometry `y ~ x + (0 + x | id), sigma ~ 1`. The masked fit agrees with the
+  independent full marginal-Gaussian oracle on observed rows; direct response-
+  sentinel retapes leave the objective, gradient, and reoptimised solution
+  invariant. The deterministic 25% MCAR fixture recovers fixed `mu`, residual
+  `sigma`, and the random-slope SD.
+- Check: `NOT_CRAN=true` `test-reml-heteroscedastic.R` passed; inventory unit
+  tests and generated-ledger drift check passed; `git diff --check` passed.
+  This does not promote random intercepts, correlated/sigma-side, structured,
+  bivariate, non-Gaussian, or missing-predictor ML cells, and it does not
+  substitute for the separately recorded REML evidence in `mc-0269`.
+
+## 2026-08-14 — Gaussian ML ordinary random-intercept response-mask cell
+
+- `mc-0264` is now `formula_validated` at G3 for `y ~ x + (1 | id), sigma ~ 1`.
+  Its masked fit agrees with an independent full marginal-Gaussian oracle; direct
+  response-sentinel retapes leave its objective, gradient, and reoptimised
+  solution invariant. The deterministic 25% MCAR fixture recovers fixed `mu`,
+  residual `sigma`, and the random-intercept SD.
+- Check: `NOT_CRAN=true` `test-reml-heteroscedastic.R` passed; inventory unit
+  tests and generated-ledger drift check passed; `git diff --check` passed.
+  This does not promote random slopes, correlated/sigma-side, structured,
+  bivariate, non-Gaussian, or missing-predictor ML cells.

@@ -61,3 +61,12 @@ agrees with a dense observed-data restricted-likelihood oracle and its
 deterministic 25% MCAR fixture recovers fixed `mu`, residual `sigma`, and the
 random-slope SD. This does not transfer to intercept-plus-slope or correlated
 ordinary blocks.
+
+`mc-0268` is separately `formula_validated` at G3 for the same exact
+independent random-slope geometry under ML. Its oracle is the full marginal
+Gaussian likelihood, rather than the REML restricted likelihood used for
+`mc-0269`; evidence does not transfer between estimators.
+
+`mc-0264` is separately `formula_validated` at G3 for the ordinary Gaussian ML
+random-intercept formula `y ~ x + (1 | id), sigma ~ 1`, with its own full
+marginal-Gaussian oracle and deterministic MCAR recovery fixture.

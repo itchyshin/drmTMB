@@ -57,6 +57,36 @@ EXPLICIT_BOUNDARIES = (
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
+    "mc-0264": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data full marginal-Gaussian likelihood equality and "
+            "direct sentinel retapes, plus a deterministic 25% MCAR known-DGP "
+            "recovery check, validate the univariate Gaussian ordinary mu "
+            "random-intercept ML response-mask formula `(1 | id)`. The check "
+            "covers fixed mu coefficients, constant residual sigma, and the mu "
+            "random-intercept SD. It does not promote random slopes, correlated "
+            "blocks, sigma-side effects, structured, bivariate, non-Gaussian, "
+            "or missing-predictor ML formulas."
+        ),
+        "next_gate": "Add an independent recovery design before widening this ML formula geometry.",
+    },
+    "mc-0268": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data full marginal-Gaussian likelihood equality and "
+            "direct sentinel retapes, plus a deterministic 25% MCAR known-DGP "
+            "recovery check, validate the univariate Gaussian ordinary mu "
+            "random-slope ML response-mask formula `(0 + x | id)`. The check "
+            "covers fixed mu coefficients, constant residual sigma, and the mu "
+            "random-slope SD. It does not promote random intercepts, correlated "
+            "blocks, sigma-side effects, structured, bivariate, non-Gaussian, "
+            "or missing-predictor ML formulas."
+        ),
+        "next_gate": "Add an independent recovery design before widening this ML formula geometry.",
+    },
     "mc-0265": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
