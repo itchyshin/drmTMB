@@ -1448,7 +1448,7 @@ test_that("bivariate Gaussian fits ordinary q2 corpair regression for mu1/mu2 bl
   expect_equal(pair$min, min(cor_hat), tolerance = 1e-12)
   expect_equal(pair$max, max(cor_hat), tolerance = 1e-12)
   expect_equal(pair$link_estimate, mean(cor_link), tolerance = 1e-12)
-  expect_equal(pair_ci$conf.status, "newdata_required")
+  expect_equal(pair_ci$conf.status, "derived_interval_unavailable")
   expect_equal(cor_ci$parm, paste0(dpar, "[ecology_mid]"))
   expect_equal(cor_ci$scale, "response")
   expect_equal(cor_ci$transformation, "random_effect_correlation_tanh")

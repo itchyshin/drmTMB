@@ -3026,7 +3026,7 @@ test_that("profile confidence intervals reject unsupported targets clearly", {
       method = "profile",
       trace = FALSE
     ),
-    "Raw ordinal:theta_ord:.*internal ordinal diagnostics"
+    "Raw \\\"ordinal:theta_ord:.*internal ordinal diagnostics"
   )
   expect_error(
     stats::confint(fit, method = "profile"),

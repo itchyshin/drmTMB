@@ -34,6 +34,10 @@ status <- function(expr) {
 
 as_flag <- function(x) if (isTRUE(x)) "pass" else "fail"
 
+reader_diagnostic_pass <- function(result) {
+  isTRUE(result$ok) && isTRUE(attr(result$value, "ok"))
+}
+
 reader_import <- function(data) {
   path <- tempfile(fileext = ".csv")
   on.exit(unlink(path), add = TRUE)
@@ -48,7 +52,7 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
     return(data.frame(
       workflow = id, question = question, exact_model = model, estimand = estimand,
       uncertainty_route = uncertainty, diagnostic_route = "check_drm()",
-      report_artifact = "summary() coefficient table + fitted() response-scale vector",
+      report_artifact = "generic post-fit smoke: summary() + fitted()",
       evidence_tier = "smoke only; no recovery or calibration claim",
       fit = "fail", diagnostics = "not_run", report_output = "not_run", limitation = limitation,
       seconds = round(proc.time()[["elapsed"]] - started, 2),
@@ -58,8 +62,9 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
 
   fit_object <- fitted$value
   diagnostic <- status(drmTMB::check_drm(fit_object))
-  # summary() is the report-ready coefficient table; fitted() is a compact
-  # response-scale output check that does not depend on plotting devices.
+  diagnostic_pass <- reader_diagnostic_pass(diagnostic)
+  # This is a generic post-fit smoke only. Dedicated specialist assertions live
+  # in the test suite; do not imply that summary() answers every workflow.
   reporting <- status({
     summary(fit_object)
     stats::fitted(fit_object)
@@ -68,16 +73,20 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
   blocker <- ""
   fit_warnings <- paste(fitted$warnings, collapse = " | ")
   if (nzchar(fit_warnings)) blocker <- paste("fit warning:", fit_warnings)
-  if (!diagnostic$ok) blocker <- paste("check_drm():", diagnostic$message)
+  if (!diagnostic$ok) {
+    blocker <- paste("check_drm():", diagnostic$message)
+  } else if (!diagnostic_pass) {
+    blocker <- "check_drm(): reported warning or error diagnostics"
+  }
   if (!reporting$ok) blocker <- paste(c(blocker, "report output:", reporting$message), collapse = " ")
   if (!nzchar(blocker)) blocker <- "none"
 
   data.frame(
     workflow = id, question = question, exact_model = model, estimand = estimand,
     uncertainty_route = uncertainty, diagnostic_route = "check_drm()",
-    report_artifact = "summary() coefficient table + fitted() response-scale vector",
+    report_artifact = "generic post-fit smoke: summary() + fitted()",
     evidence_tier = "smoke only; no recovery or calibration claim", fit = "pass",
-    diagnostics = as_flag(diagnostic$ok), report_output = as_flag(reporting$ok),
+    diagnostics = as_flag(diagnostic_pass), report_output = as_flag(reporting$ok),
     limitation = limitation,
     seconds = round(proc.time()[["elapsed"]] - started, 2),
     fit_warnings = fit_warnings,
@@ -148,7 +157,7 @@ results <- list(
     "Does habitat shift an ordered breeding-condition score?",
     "cumulative-logit: bf(score ~ habitat + x)",
     "fixed-effect shift in ordered-category probabilities",
-    "fixed-effect output only; cutpoint profile intervals are not public on main",
+    "fixed-effect output plus opt-in pointwise cutpoint profiles; calibration remains deferred",
     "Expected category is a plotting aid, not a continuous biological measurement.",
     function() {
       habitat <- factor(rep(c("poor", "good"), each = n / 2))
@@ -237,7 +246,7 @@ results <- list(
     "meta_analysis",
     "What is the pooled effect after known study sampling variances and heterogeneity?",
     "Gaussian meta-regression: bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1)",
-    "pooled Gaussian effect and between-study sigma (tau)",
+    "pooled Gaussian effect and between-study sigma (conventionally tau)",
     "ordinary model output; meta_V is supplied sampling variance",
     "This is Gaussian regression with known sampling variance, not a separate meta family.",
     function() {
@@ -269,7 +278,10 @@ results <- list(
 )
 
 results <- do.call(rbind, results)
-out <- file.path("docs", "dev-log", "reader-workflow-audit", "2026-08-12-reader-workflow-smoke.tsv")
+out <- Sys.getenv(
+  "DRMTMB_READER_AUDIT_OUT",
+  unset = file.path("docs", "dev-log", "reader-workflow-audit", "2026-08-12-reader-workflow-smoke.tsv")
+)
 utils::write.table(results, out, sep = "\t", quote = FALSE, row.names = FALSE, na = "")
 print(results, row.names = FALSE)
 cat("\nWrote ", out, "\n", sep = "")

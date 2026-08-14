@@ -360,8 +360,8 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   fitted q=2 `corpair()` routes,
   `confint(fit, parm = "corpair(...)", newdata = ...)` can profile
   response-scale latent correlations at supplied group-level predictor rows,
-  but `corpairs(conf.int = TRUE)` still marks the summary row as
-  `newdata_required` because it reports a mean and range over groups.
+  but `corpairs(conf.int = TRUE)` marks the summary row as
+  `derived_interval_unavailable` because it reports a mean and range over groups.
 - Internal q4 phylogenetic algebra, the hidden TMB prior probe, and the public
   bivariate Gaussian q=4 phylogenetic location-scale endpoint now use the same
   endpoint order. The ordinary grouped q4 location-scale block, `mu1`/`mu2`
