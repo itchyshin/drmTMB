@@ -1,5 +1,18 @@
 # Check Log
 
+## 2026-08-14 — cumulative-logit phylogenetic q1 response-mask recovery
+
+- `rmf-mc-0229` is now G3 for the exact cumulative-logit ML formula
+  `score ~ x + phylo(1 | species, tree = tree)`. A deterministic 96-tip,
+  16-observation-per-tip star-tree fixture masks one response per tip.
+- The check uses a conditional ordinal likelihood and phylogenetic-prior
+  oracle, numerical gradients, observed-row fit equality, direct category
+  sentinel retapes, and known-DGP recovery of the location coefficient,
+  cutpoints, and phylogenetic SD. This is not q2+, slopes, ordinary random
+  effects, REML, missing predictors, intervals, or coverage.
+- Check: `test-cumulative-logit.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — beta phylogenetic direct-SD response-mask recovery
 
 - `rmf-mc-0017` is now G3 for the exact beta ML formula with a q1

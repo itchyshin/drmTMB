@@ -43,6 +43,57 @@ ordinal_prob_from_fit <- function(fit) {
   prob
 }
 
+ordinal_phylo_joint_nll <- function(fit, par) {
+  data <- fit$model$tmb_data
+  n_phylo <- nrow(data$Q_phylo)
+  eta <- as.vector(data$offset_mu + data$X_mu %*% par$beta_mu)
+  index <- data$phylo_mu_node_index + 1L
+  eta <- eta + data$phylo_mu_value[, 1L] * par$u_phylo[index]
+  cutpoints <- numeric(length(par$theta_ord))
+  cutpoints[[1L]] <- par$theta_ord[[1L]]
+  if (length(cutpoints) > 1L) {
+    for (j in 2:length(cutpoints)) {
+      cutpoints[[j]] <- cutpoints[[j - 1L]] + exp(par$theta_ord[[j]])
+    }
+  }
+  observed <- as.logical(data$observed_y)
+  y <- as.integer(data$y)
+  log_prob <- numeric(length(y))
+  for (i in which(observed)) {
+    if (y[[i]] == 1L) {
+      log_prob[[i]] <- stats::plogis(cutpoints[[1L]] - eta[[i]], log.p = TRUE)
+    } else if (y[[i]] == length(cutpoints) + 1L) {
+      log_prob[[i]] <- stats::plogis(
+        cutpoints[[length(cutpoints)]] - eta[[i]], lower.tail = FALSE, log.p = TRUE
+      )
+    } else {
+      upper <- stats::plogis(cutpoints[[y[[i]]]] - eta[[i]])
+      lower <- stats::plogis(cutpoints[[y[[i]] - 1L]] - eta[[i]])
+      log_prob[[i]] <- log(upper - lower)
+    }
+  }
+  quadratic <- sum(par$u_phylo * as.vector(data$Q_phylo %*% par$u_phylo))
+  prior <- 0.5 * (
+    n_phylo * log(2 * pi) + 2 * n_phylo * par$log_sd_phylo[[1L]] -
+      data$log_det_Q_phylo + exp(-2 * par$log_sd_phylo[[1L]]) * quadratic
+  )
+  prior - sum(data$weights[observed] * log_prob[observed])
+}
+
+ordinal_central_gradient <- function(fn, par) {
+  vapply(
+    seq_along(par),
+    function(i) {
+      step <- 1e-6 * max(1, abs(par[[i]]))
+      plus <- minus <- par
+      plus[[i]] <- plus[[i]] + step
+      minus[[i]] <- minus[[i]] - step
+      (fn(plus) - fn(minus)) / (2 * step)
+    },
+    numeric(1L)
+  )
+}
+
 test_that("drmTMB fits fixed-effect cumulative-logit ordinal models", {
   sim <- new_ordinal_data()
 
@@ -168,6 +219,70 @@ test_that("cumulative-logit admits the first phylogenetic mu intercept gate", {
     ),
     "unlabelled q=1 intercepts"
   )
+})
+
+test_that("cumulative-logit phylogenetic q1 response mask has oracle and recovery evidence", {
+  testthat::skip_if_not_installed("ape")
+  set.seed(2026081733L)
+  n_tip <- 96L
+  n_each <- 16L
+  species_levels <- paste0("sp", seq_len(n_tip))
+  species <- factor(rep(species_levels, each = n_each), levels = species_levels)
+  x <- stats::rnorm(length(species))
+  sd_phylo <- 0.40
+  u <- stats::rnorm(n_tip, sd = sd_phylo)
+  names(u) <- species_levels
+  beta_mu <- c(x = 0.60)
+  cutpoints <- c(-0.75, 0.70)
+  eta <- beta_mu[["x"]] * x + u[as.character(species)]
+  p_low <- stats::plogis(cutpoints[[1L]] - eta)
+  p_medium <- stats::plogis(cutpoints[[2L]] - eta) - p_low
+  draw <- vapply(
+    seq_along(eta),
+    function(i) sample.int(3L, 1L, prob = c(p_low[[i]], p_medium[[i]], 1 - p_low[[i]] - p_medium[[i]])),
+    integer(1L)
+  )
+  dat <- data.frame(
+    score = ordered(c("low", "medium", "high")[draw], levels = c("low", "medium", "high")),
+    x = x, species = species
+  )
+  dat$score[seq(1L, nrow(dat), by = n_each)] <- NA
+  observed <- !is.na(dat$score)
+  tree <- ape::stree(n_tip, type = "star")
+  tree$tip.label <- species_levels
+  tree$edge.length <- rep(1, nrow(tree$edge))
+  formula <- bf(score ~ x + phylo(1 | species, tree = tree))
+  fit_masked <- drmTMB(
+    formula, family = cumulative_logit(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = cumulative_logit(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), ordinal_phylo_joint_nll(fit_masked, par), tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)),
+    ordinal_central_gradient(obj$fn, probe), tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(1, 3))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(fit_masked$ordinal$cutpoints, fit_observed$ordinal$cutpoints, tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-6)
+  expect_equal(unname(coef(fit_masked, "mu")), unname(beta_mu), tolerance = 0.15)
+  expect_equal(unname(fit_masked$ordinal$cutpoints), cutpoints, tolerance = 0.16)
+  expect_lt(abs(unname(fit_masked$sdpars$mu) - sd_phylo), 0.20)
 })
 
 test_that("cumulative-logit methods return latent location and ordinal summaries", {

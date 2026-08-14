@@ -1572,6 +1572,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining beta structured geometry.",
     },
+    "mc-0229": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional ordinal TMB-objective and numerical-gradient equality, observed-row "
+            "fit equality, and direct ordinal-category sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact cumulative-logit ML formula `score ~ x + "
+            "phylo(1 | species, tree = tree)`. The check covers the fixed location coefficient, "
+            "both ordered cutpoints, and the phylogenetic SD on a 96-tip, 16-observation-per-"
+            "tip star-tree fixture with one masked response per tip. This is not q2+, slopes, "
+            "ordinary random effects, another ordinal endpoint, REML, missing predictors, "
+            "intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining cumulative-logit geometry.",
+    },
 }
 
 
