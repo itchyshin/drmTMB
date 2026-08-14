@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — cumulative-logit ML random-intercept response mask
+
+- `mc-0225` is now `formula_validated` at G3 for `score ~ x + (1 | id)`. The
+  masked ordinal fit preserves declared levels, agrees with its observed-data
+  fit in parameters and likelihood, keeps ordinal sentinels inert, and recovers
+  the fixed slope, random-intercept SD, and conditional intercept effects under
+  the deterministic 25% MCAR DGP.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-encoded")`
+  passed; the response-mask inventory, capability ledger, and `git diff --check`
+  passed. This does not promote the slope beyond its separate cell, correlated
+  or structured effects, REML, another response family, or missing predictors.
+
 ## 2026-08-14 — zero-one-beta ML sigma random-slope response mask
 
 - `mc-0576` is now `formula_validated` at G3 for `y ~ x, sigma ~ x + (0 + x |

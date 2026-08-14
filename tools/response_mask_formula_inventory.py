@@ -340,6 +340,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent observed-response oracle and recovery design for each remaining cumulative-logit geometry.",
     },
+    "mc-0225": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data parameter and likelihood equality, ordinal-sentinel "
+            "retapes, and declared-level preservation, plus G3 deterministic 25% "
+            "MCAR known-DGP recovery validate the cumulative-logit univariate ordinary "
+            "mu random-intercept ML response-mask formula `(1 | id)`. The check covers "
+            "the mu coefficient, random-intercept SD, and conditional random-effect "
+            "recovery. It does not promote slopes beyond their separate cell, correlated "
+            "or structured effects, REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add an independent observed-response oracle and recovery design for each remaining cumulative-logit geometry.",
+    },
     "mc-0029": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
