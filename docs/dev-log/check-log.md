@@ -93833,3 +93833,14 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote correlated or structured effects,
   other binomial REML formulas, another family, or missing predictors.
+
+## 2026-08-14 — zero-one-beta ML sigma random-intercept response mask
+
+- `mc-0568` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1 + (1 | id),
+  zoi ~ 1, coi ~ 1`. The masked and observed-data fits agree in coefficients,
+  sigma SD, and likelihood; zero/one sentinels are inert; and deterministic
+  25% MCAR recovery covers the sigma-SD and conditional sigma-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-boundary")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote other zero-one-beta random effects,
+  correlated or structured effects, REML, another family, or missing predictors.

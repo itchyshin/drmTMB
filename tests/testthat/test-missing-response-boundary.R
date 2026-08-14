@@ -139,6 +139,34 @@ test_that("zero-one-beta mu random-intercept response mask matches observed data
   expect_gt(cor(fit_mask$random_effects$mu$values, u), 0.5)
 })
 
+test_that("zero-one-beta sigma random-intercept response mask matches observed data", {
+  case <- mr_t3_zero_one_beta_data(n = 1600L, seed = 2026081562L)
+  dat <- case$data
+  set.seed(2026081563L)
+  dat$id <- factor(rep(seq_len(50L), each = 32L))
+  truth_sd <- 0.35
+  u <- rnorm(50L, sd = truth_sd)
+  mu <- plogis(case$truth$mu[[1L]] + case$truth$mu[[2L]] * dat$x)
+  sigma <- exp(case$truth$sigma[[1L]] + u[dat$id])
+  zoi <- plogis(case$truth$zoi[[1L]])
+  coi <- plogis(case$truth$coi[[1L]])
+  dat$y <- rbeta(nrow(dat), mu / sigma^2, (1 - mu) / sigma^2)
+  atom <- runif(nrow(dat)) < zoi
+  dat$y[atom] <- as.numeric(runif(sum(atom)) < coi[atom])
+  masked <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = 2026081564L)
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ 1 + (1 | id), zoi ~ 1, coi ~ 1)
+  fit_mask <- drmTMB(form, zero_one_beta(), masked, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(form, zero_one_beta(), masked[observed, ], control = drm_control(se = FALSE))
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
+  expect_lt(abs(unname(fit_mask$sdpars$sigma) - truth_sd), 0.22)
+  expect_gt(cor(fit_mask$random_effects$sigma$values, u), 0.35)
+})
+
 test_that("zero-one-beta mu random-slope response mask matches observed data", {
   case <- mr_t3_zero_one_beta_data(n = 1600L, seed = 2026081520L)
   dat <- case$data

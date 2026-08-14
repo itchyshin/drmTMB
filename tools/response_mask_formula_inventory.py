@@ -629,6 +629,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for each remaining binomial REML geometry.",
     },
+    "mc-0568": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case parameter and likelihood equality, plus direct "
+            "zero-one-beta response-sentinel retapes, and G3 deterministic 25% MCAR known-"
+            "DGP recovery validate the zero-one-beta univariate ordinary sigma random-"
+            "intercept ML response-mask formula `(1 | id)` with fixed mu, zoi, and coi "
+            "regressions. The check covers the sigma random-intercept SD and conditional "
+            "random-effect recovery. It does not promote sigma slopes, mu/zoi/coi random "
+            "effects, correlated blocks, structured effects, REML, another family, or missing predictors."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
+    },
 }
 
 
