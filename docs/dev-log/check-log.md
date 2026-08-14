@@ -94039,3 +94039,16 @@ can see which commit each one actually examined.
   passed. This does not promote labelled/q2 blocks, sigma-side phylogenetic
   effects, another provider, bivariate or REML formulas, interval/coverage
   evidence, or missing predictors.
+
+## 2026-08-14 — Gaussian phylogenetic sigma intercept response mask
+
+- `mc-0275` is now `formula_validated` at G3 for `y ~ x, sigma ~
+  phylo(1 | species, tree = tree)`. Masked and observed-data fits agree in
+  fixed mu and sigma coefficients, phylogenetic sigma SD, and likelihood;
+  continuous sentinels are inert. A deterministic 25% MCAR DGP with 64 tips
+  and 20 observations per tip recovers these fitted parameter blocks.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "phylo-gaussian")` passed;
+  inventory generation, generated-ledger drift check, and `git diff --check`
+  passed. This does not promote sigma slopes/q2 blocks, mu-side phylogenetic
+  effects, another provider, bivariate or REML formulas, interval/coverage
+  evidence, or missing predictors.

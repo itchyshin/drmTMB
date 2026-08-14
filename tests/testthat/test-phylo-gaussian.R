@@ -2265,6 +2265,39 @@ test_that("Gaussian supports sigma-only phylogenetic residual-scale structured e
   expect_equal(sigma_target$profile_note, "ready")
 })
 
+test_that("Gaussian phylogenetic sigma intercept masks match observed data", {
+  sim <- new_sigma_only_phylo_gaussian_data(
+    seed = 2026081605L, n_tip = 64L, n_each = 20L
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081606L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ phylo(1 | species, tree = tree))
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE, optimizer = list(eval.max = 600, iter.max = 600))
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE, optimizer = list(eval.max = 600, iter.max = 600))
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.15)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_phylo)), log(2))
+})
+
 test_that("Gaussian supports sigma-only one-slope phylogenetic residual-scale fields", {
   sim <- new_sigma_only_phylo_gaussian_slope_data()
   tree <- sim$tree
