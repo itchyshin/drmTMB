@@ -3974,7 +3974,6 @@ drm_tmb_missing_predictor_data <- function(spec) {
   if (isTRUE(model$enabled)) {
     return(list(
       has_mi = as.integer(!isTRUE(model$joint)),
-      has_mi_joint = as.integer(isTRUE(model$joint)),
       mi_family = switch(
         model$family,
         gaussian = 0L,
@@ -4073,7 +4072,6 @@ drm_tmb_missing_predictor_data <- function(spec) {
   }
   list(
     has_mi = 0L,
-    has_mi_joint = 0L,
     mi_family = 0L,
     mi_col = 0L,
     mi_x = rep(0, max(1L, n)),

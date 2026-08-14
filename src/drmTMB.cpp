@@ -303,7 +303,6 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(observed_y1);
   DATA_IVECTOR(observed_y2);
   DATA_INTEGER(has_mi);
-  DATA_INTEGER(has_mi_joint);
   DATA_INTEGER(mi_family);
   DATA_INTEGER(mi_col);
   DATA_VECTOR(mi_x);
@@ -327,6 +326,8 @@ Type objective_function<Type>::operator()()
   DATA_IMATRIX(mi_observed_joint);
   DATA_IVECTOR(mi_col_joint);
   DATA_MATRIX(X_mi_joint);
+  bool has_mi_joint =
+    mi_col_joint.size() == 2 && mi_col_joint(0) != mi_col_joint(1);
   DATA_VECTOR(trials);
   DATA_VECTOR(weights);
   DATA_VECTOR(offset_mu);

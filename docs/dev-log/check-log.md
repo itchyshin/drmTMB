@@ -93445,3 +93445,16 @@ can see which commit each one actually examined.
   compute-target change. All 3,000 attempts completed; the immutable receipt
   and final scope are in
   `docs/dev-log/2026-08-13-joint-mi-gaussian-recovery-completion.md`.
+
+## 2026-08-14 — joint-mi TMB direct-fixture compatibility repair
+
+- The first fresh source-tarball check exposed seven failures in hand-built
+  `TMB::MakeADFun()` phylogenetic fixtures: the new joint-imputation inputs
+  were absent. Joint mode is now inferred from the two distinct joint
+  predictor-column indices rather than a redundant global data flag. The
+  shared fixture supplies inert joint matrices and the correlation parameter,
+  matching the complete C++ data/parameter contract.
+- Checks: `missing-predictor-gaussian`,
+  `missing-predictor-poisson-response`, and `phylo-utils` passed together
+  (348 expectations, 0 failures). A new source-tarball check is required
+  before recording package-wide success.
