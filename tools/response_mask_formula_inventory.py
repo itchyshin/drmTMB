@@ -151,11 +151,38 @@ EXPLICIT_BOUNDARIES = (
                 f"Run and retain a {provider}-specific known-DGP recovery design before G3 promotion."
             ),
         }
-        for provider, cell_ids in (
-            ("animal", "mc-0129,mc-0130"),
-            ("relmat", "mc-0151,mc-0152"),
-        )
+        for provider, cell_ids in (("animal", "mc-0129,mc-0130"),)
     ],
+    {
+        "formula_cell_id": "rmf-biv-gaussian-relmat-mu12-q2-intercept",
+        "model_cell_id": "mc-0151,mc-0152",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_relmat_mu1_mu2_intercept",
+        "route_modifier": "structured_q2",
+        "dpar": "mu1+mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "relmat",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched relmat q2 location block "
+            "`mu1 ~ relmat(1 | p | id, Q = Q)`, `mu2 ~ relmat(1 | p | id, Q = Q)`, "
+            "not either endpoint alone. G2 conditional TMB-objective equality at the fitted "
+            "latent mode includes the correlated relatedness-field prior, and component-wise "
+            "sentinel retapes validate the response mask. G3 deterministic 25% MCAR recovery "
+            "validates both fixed-effect vectors, both residual scales, both relatedness SDs, "
+            "the relatedness correlation, and rho12 on an independent 64-ID, 20-observation-"
+            "per-ID fixture. This is not animal evidence, a slope, a Q/K representation claim "
+            "beyond the tested Q route, REML, interval/coverage evidence, or dense known-V "
+            "partial-response support."
+        ),
+        "next_gate": "Validate animal and other relmat geometries with their own recovery designs.",
+    },
     {
         "formula_cell_id": "rmf-biv-gaussian-meta-v-partial",
         "model_cell_id": "",
