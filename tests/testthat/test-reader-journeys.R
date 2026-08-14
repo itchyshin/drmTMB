@@ -23,8 +23,15 @@ test_that("the ten native reader journeys complete their generic post-fit smoke"
 })
 
 test_that("the reader audit does not call warning diagnostics a pass", {
-  source_lines <- readLines(testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R"))
-  expect_true(any(grepl('isTRUE\\(attr\\(diagnostic\\$value, "ok"\\)\\)', source_lines)))
+  audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
+  audit_lines <- readLines(audit_path)
+  first_workflow <- grep("^results <- list", audit_lines)[1L]
+  audit_env <- new.env(parent = globalenv())
+  eval(parse(text = audit_lines[seq_len(first_workflow - 1L)]), envir = audit_env)
+  warning_diagnostic <- structure(data.frame(status = "warning"), ok = FALSE)
+  expect_false(audit_env$reader_diagnostic_pass(list(ok = TRUE, value = warning_diagnostic)))
+  expect_false(audit_env$reader_diagnostic_pass(list(ok = FALSE, value = warning_diagnostic)))
+  expect_true(audit_env$reader_diagnostic_pass(list(ok = TRUE, value = structure(data.frame(status = "ok"), ok = TRUE))))
 })
 
 test_that("ordinal probabilities are response-scale probabilities, not raw thresholds", {

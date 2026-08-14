@@ -34,6 +34,10 @@ status <- function(expr) {
 
 as_flag <- function(x) if (isTRUE(x)) "pass" else "fail"
 
+reader_diagnostic_pass <- function(result) {
+  isTRUE(result$ok) && isTRUE(attr(result$value, "ok"))
+}
+
 reader_import <- function(data) {
   path <- tempfile(fileext = ".csv")
   on.exit(unlink(path), add = TRUE)
@@ -58,7 +62,7 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
 
   fit_object <- fitted$value
   diagnostic <- status(drmTMB::check_drm(fit_object))
-  diagnostic_pass <- diagnostic$ok && isTRUE(attr(diagnostic$value, "ok"))
+  diagnostic_pass <- reader_diagnostic_pass(diagnostic)
   # This is a generic post-fit smoke only. Dedicated specialist assertions live
   # in the test suite; do not imply that summary() answers every workflow.
   reporting <- status({

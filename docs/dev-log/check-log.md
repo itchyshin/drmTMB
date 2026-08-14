@@ -93371,3 +93371,18 @@ can see which commit each one actually examined.
 - Not yet a full-package/CRAN claim: the all-route G4/G5 foundation test is a
   long profile exercise, and the full suite/`--as-cran` gate remains the next
   validation step before this slice can be promoted or merged.
+
+## 2026-08-13 — reader-journey specialist public-output contract
+
+- Added deterministic acceptance assertions alongside the ten workflow smoke:
+  ordinal probabilities and ordered-cutpoint target metadata; missing-response
+  `nobs()`/fitted/residual row accounting; bivariate link-versus-response
+  `rho12`; phylogenetic `ranef()`/target schemas; meta-analysis `sigma`; and
+  the intentional distinction between lognormal parameter prediction and the
+  response mean returned by `fitted()`.
+- The audit’s diagnostic result is now a pass only when `check_drm()` returns
+  normally **and** marks its public result `ok`. A warning diagnostic cannot be
+  silently recorded as a successful reader journey.
+- Check: `test-reader-journeys.R` passed after the behavioral diagnostic test;
+  `git diff --check` passed. These are deterministic workflow contracts, not
+  recovery, calibration, or release evidence.

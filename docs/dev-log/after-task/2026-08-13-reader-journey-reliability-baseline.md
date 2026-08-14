@@ -32,6 +32,10 @@ known-limitations and check-log records.
 ## Checks Run
 
 - Ten-journey reader integration test: pass.
+- Specialist public-output assertions: ordinal probability/cutpoint targets,
+  missing-response row accounting, bivariate response-scale `rho12`,
+  phylogenetic deviation/target schemas, meta-analysis `sigma`, and the
+  lognormal `predict()` versus `fitted()` distinction: pass.
 - Direct ordinal manifest smoke: public cutpoint truths present and correct.
 - Direct modelled-`rho12` status smoke and `test-corpairs.R`: pass.
 - `test-profile-targets.R`: completed without a reported failure.
@@ -76,10 +80,13 @@ message is a user contract: it must recommend an action that can succeed.
 
 This is native-only. It does not add methods, calibration evidence, a new
 interval engine, Julia support, CRAN certification, or a missing-response G4/G5
-campaign. Full package and `--as-cran` validation remain required before merge.
+campaign. The generic journey smoke covers continuous location-scale, count,
+both proportion workflows, and spatial fits; it is deliberately not a claim
+that each has received an estimator-specific inference campaign. Full package
+and `--as-cran` validation remain required before merge.
 
 ## Next Actions
 
-Run the full deterministic package/`--as-cran` gates, inspect any residual
-failure, then complete the remaining specialist reader assertions and open the
-first reliability PR.
+Let the pull-request CI establish the package-wide cross-platform gate. Inspect
+any failure narrowly; then seek merge approval without widening into Julia,
+calibration, CRAN re-freeze, MSPL, or simulation work.
