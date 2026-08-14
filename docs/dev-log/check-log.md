@@ -94194,6 +94194,19 @@ can see which commit each one actually examined.
   q4+ block, pedigree/Ainv representations, another provider, bivariate or
   REML formulas, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — paired Gaussian animal location-scale intercept response mask
+
+- `mc-0303` and `mc-0304` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + animal(1 | id, A = A), sigma ~ animal(1 | id, A =
+  A)`. The missing-response fit agrees with the observed-response fit in fixed
+  coefficients, both animal SDs, their named cross-axis correlation, likelihood,
+  and `nobs()`; continuous sentinels are inert. A deterministic 25% MCAR DGP
+  with 128 related IDs and 20 observations per ID recovers the paired block.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote either endpoint alone, slopes, pedigree/Ainv
+  representations, another provider, q4+, bivariate or REML formulas,
+  interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — Gaussian relmat sigma response masks
 
 - `mc-0312` and `mc-0313` are now `formula_validated` at G3 for `y ~ x,

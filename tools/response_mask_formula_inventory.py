@@ -301,6 +301,25 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining animal geometry.",
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "This row is one component of the paired univariate Gaussian q2 animal "
+                "location-scale intercept formula `y ~ x + animal(1 | id, A = A), sigma ~ "
+                "animal(1 | id, A = A)`; neither endpoint is promoted alone. G2 masked-versus-"
+                "observed-data equality covers fixed mu and sigma coefficients, both animal SDs, "
+                "their named cross-axis correlation, and likelihood; direct continuous-response "
+                "sentinel retapes and G3 deterministic 25% MCAR recovery cover the same paired "
+                "block. The fixture has 128 related IDs and 20 observations per ID. This does "
+                "not promote either endpoint alone, slopes, pedigree/Ainv representations, another "
+                "provider, q4+, bivariate, REML, interval/coverage, or missing-predictor formulas."
+            ),
+            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
+        }
+        for cell_id in ("mc-0303", "mc-0304")
+    },
     "mc-0312": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
