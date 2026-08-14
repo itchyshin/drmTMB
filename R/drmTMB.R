@@ -165,8 +165,8 @@
 #'   unsupported under REML. For `binomial()` models, the bounded native route
 #'   requires exactly one ordinary unlabelled `mu` random intercept or exactly
 #'   one independent numeric slope. Fixed-only and multiple-term binomial
-#'   models, correlated or labelled covariance blocks, structured effects,
-#'   missing-data engines, and other extensions are not admitted under REML;
+#'   models, correlated or labelled covariance blocks, structured effects, and
+#'   other extensions are not admitted under REML;
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
 #'   evidence.
@@ -176,10 +176,10 @@
 #'   different fixed-effect formulas, non-binomial non-Gaussian models, and
 #'   currently unsupported extensions.
 #'   With `missing = miss_control(response = "include")`, the native REML
-#'   route is currently validated only for univariate Gaussian response masks
-#'   with complete predictors and other non-response inputs. Other explicit
-#'   missing-data engines, including missing predictors, remain unsupported
-#'   under REML.
+#'   route is currently validated for univariate Gaussian response masks and
+#'   for the bounded binomial ordinary `mu` random-intercept route, with complete
+#'   predictors and other non-response inputs. Other explicit missing-data
+#'   engines, including missing predictors, remain unsupported under REML.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
@@ -361,7 +361,7 @@ drmTMB <- function(
     ))
   }
   reml_response_mask_slice <-
-    identical(family_type, "gaussian") &&
+    family_type %in% c("gaussian", "binomial") &&
     identical(missing_control$response, "include") &&
     identical(missing_control$predictor, "fail")
   if (

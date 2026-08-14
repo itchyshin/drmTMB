@@ -93808,3 +93808,16 @@ can see which commit each one actually examined.
   --check` passed. This does not promote sigma slopes, mu random effects,
   correlated or structured effects, bivariate formulas, another family, or
   missing predictors.
+
+## 2026-08-14 — binomial REML mu random-intercept response mask
+
+- `mc-0060` is now `formula_validated` at G3 for the admitted binomial REML
+  formula `y ~ x + (1 | id)`. The implementation removes the stale broad
+  missing-engine gate only for this already-admitted binomial route. Masked and
+  observed-row REML fits agree in mu, random-intercept SD, and likelihood;
+  binary sentinels are inert; and deterministic 25% MCAR recovery covers the
+  fixed, SD, and conditional-effect targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-binomial")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote slopes, correlated or structured
+  effects, other binomial REML formulas, another family, or missing predictors.
