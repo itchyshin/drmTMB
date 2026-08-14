@@ -1,0 +1,13 @@
+cell_id	field	reference_kind	reference_id	expected_live_state	generated_artifact	generated_row_marker	required_rendered_clauses
+mr-beta	cells.claim_boundary	g5_policy_not_grounded	mr_g5_calibration_gate	mr-g5-calibration-v2	vignettes/includes/capability-ledger-family-map.md	| **beta** |	threshold-free worst-case bound||NOT the {g5_policy} floor
+mr-beta	evidence:ev-mr-beta-g5.claim_boundary	g5_policy_not_grounded	mr_g5_calibration_gate	mr-g5-calibration-v2	vignettes/includes/capability-ledger-family-map.md	| **beta** |	threshold-free worst-case bound||NOT the {g5_policy} floor
+mr-beta	cells.claim_boundary	route_state	mr-beta	test_gate=G5;work_status=verified;evidence_tier=inference_ready_with_caveats			
+mr-beta	cells.claim_boundary	retired_predicate_absent	mr_g5_calibration_gate	the all-1200 interval-usability rule			
+mr-tweedie	cells.claim_boundary	g5_policy_not_grounded	mr_g5_calibration_gate	mr-g5-calibration-v2	vignettes/includes/capability-ledger-family-map.md	| **tweedie** |	threshold-free worst-case bound||NOT the {g5_policy} floor
+mr-tweedie	evidence:ev-mr-tweedie-g5.claim_boundary	g5_policy_not_grounded	mr_g5_calibration_gate	mr-g5-calibration-v2	vignettes/includes/capability-ledger-family-map.md	| **tweedie** |	threshold-free worst-case bound||NOT the {g5_policy} floor
+mr-tweedie	cells.claim_boundary	route_state	mr-tweedie	test_gate=G5;work_status=verified;evidence_tier=inference_ready_with_caveats			
+mr-tweedie	cells.claim_boundary	retired_predicate_absent	mr_g5_calibration_gate	the all-1200 interval-usability rule			
+mr-skew-normal	cells.claim_boundary	g5_policy_not_grounded	mr_g5_calibration_gate	mr-g5-calibration-v2	vignettes/includes/capability-ledger-family-map.md	| **skew_normal** |	threshold-free worst-case bound||NOT the {g5_policy} floor
+mr-skew-normal	evidence:ev-mr-skew-normal-g5.claim_boundary	g5_policy_not_grounded	mr_g5_calibration_gate	mr-g5-calibration-v2	vignettes/includes/capability-ledger-family-map.md	| **skew_normal** |	threshold-free worst-case bound||NOT the {g5_policy} floor
+mr-skew-normal	cells.claim_boundary	route_state	mr-skew-normal	test_gate=G5;work_status=verified;evidence_tier=inference_ready_with_caveats			
+mr-skew-normal	cells.claim_boundary	retired_predicate_absent	mr_g5_calibration_gate	the all-1200 interval-usability rule			
