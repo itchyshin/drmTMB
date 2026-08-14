@@ -149,7 +149,8 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
   G3 through its ordinary `mu` random-intercept route. Fixed-effect ZIP, ZINB2,
   and hurdle NB2 complete the 18-route G3 board with independent zero/positive
   mixture evidence. Broader random/structured-route masking claims, multiple
-  missing predictors, response-imputation summaries, and G4/G5 interval or
+  missing predictors beyond the exact two-continuous-predictor joint route,
+  response-imputation summaries, and G4/G5 interval or
   coverage promotion remain later work.
 - Completed before tagging the version:
   - `devtools::check()` passes with 0 errors and 0 warnings;

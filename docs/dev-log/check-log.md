@@ -93343,7 +93343,6 @@ can see which commit each one actually examined.
 - Tracker: issue #967 remains the existing ordinal-cutpoint interval decision;
   no duplicate issue was opened. No code, formula grammar, capability ledger,
   interval calibration, or release claim changed.
-
 ## 2026-08-13 — reader-journey reliability, baseline and public-status repair
 
 - The ten native article-shaped journeys are now executable test coverage, not
@@ -93413,3 +93412,36 @@ can see which commit each one actually examined.
   profile target through exported `confint(..., method = "profile")`. The
   regenerated receipt records `unsupported_response = pass` for every row,
   confirming that no model manufactures an interval for an unsupported target.
+
+## 2026-08-13 — joint continuous missing predictors, Gaussian plus Poisson proof route
+
+- Added `impute_joint(cbind(x1, x2) ~ z)` for exactly two bare continuous
+  `mi()` terms. The Gaussian route has a direct observed-data likelihood oracle
+  and a fixed-seed 600-row recovery smoke. The separate Poisson route retains
+  the continuous joint latent block through TMB/Laplace; it is not a blanket
+  non-Gaussian admission.
+- Checks: focused Gaussian/Poisson tests **161 pass**; all
+  `missing-predictor` tests **461 pass**; `pkgdown::check_pkgdown()` passed;
+  Rose pattern scan and `git diff --check` passed. `devtools::check()` was
+  started but did not return a final local receipt, so it is not recorded as
+  green. The full closeout and DRAC pre-run boundary are in
+  `docs/dev-log/after-task/2026-08-13-joint-mi-two-predictor.md`.
+
+## 2026-08-13 — MD9b Gaussian recovery pre-run and Poisson numerical oracle
+
+- The DRAC-ready Gaussian recovery runner and 60-task array wrapper are added.
+  The frozen grid has 12 cells (`n = 300, 600, 1200` by predictor correlation
+  `0.2, 0.6` and independent MCAR masking `0.2, 0.4`) and 250 attempts per
+  cell. Both the ordinary two-replicate pre-run and the installed-package
+  hardest-cell pre-run converged with `pdHess = TRUE`; the latter took 1.56
+  seconds and had maximum gradient `0.00292`.
+- The Poisson proof now has an independent one-dimensional quadrature oracle
+  over every singly missing row. Its fixed-DGP observed-data negative-log-
+  likelihood differs from the TMB/Laplace objective by `0.0109669`, inside the
+  `0.05` test tolerance. This remains an experimental proof route, not a
+  Poisson recovery or broad non-Gaussian claim.
+- The DRAC ControlMaster sockets were expired at the live host check. No array
+  was submitted; the campaign was instead run on Totoro after an approved
+  compute-target change. All 3,000 attempts completed; the immutable receipt
+  and final scope are in
+  `docs/dev-log/2026-08-13-joint-mi-gaussian-recovery-completion.md`.

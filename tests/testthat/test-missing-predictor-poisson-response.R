@@ -135,3 +135,109 @@ test_that("Poisson-response mi() validates the first non-Gaussian response bound
     "outside explicit"
   )
 })
+
+joint_missing_predictor_poisson_data <- function() {
+  set.seed(20260813)
+  n <- 120L
+  z <- rnorm(n)
+  e1 <- rnorm(n)
+  e2 <- 0.45 * e1 + sqrt(1 - 0.45^2) * rnorm(n)
+  x1 <- 0.25 + 0.65 * z + e1
+  x2 <- -0.10 - 0.35 * z + 1.10 * e2
+  y <- stats::rpois(n, exp(0.15 + 0.25 * z + 0.35 * x1 - 0.20 * x2))
+  dat <- data.frame(y = y, z = z, x1 = x1, x2 = x2)
+  dat$x1[c(5, 27, 61, 103)] <- NA_real_
+  dat$x2[c(12, 39, 77, 114)] <- NA_real_
+  dat
+}
+
+joint_poisson_observed_nll_1d <- function(fit, dat) {
+  model <- fit$model$missing_predictor
+  par <- fit$obj$env$parList(fit$opt$par)
+  beta_x <- matrix(par$beta_mi, nrow = ncol(model$X))
+  sigma_x <- exp(par$log_sigma_mi)
+  rho_x <- 0.999999 * tanh(par$eta_cor_mi[[1L]])
+  Sigma_x <- diag(sigma_x) %*%
+    matrix(c(1, rho_x, rho_x, 1), nrow = 2L) %*%
+    diag(sigma_x)
+  beta_y <- par$beta_mu
+  out <- 0
+  for (i in seq_len(nrow(dat))) {
+    mean_x <- as.vector(model$X[i, , drop = FALSE] %*% beta_x)
+    observed <- model$observed[i, ]
+    x <- model$x[i, ]
+    log_y <- function(x1, x2) {
+      stats::dpois(dat$y[[i]],
+        lambda = exp(beta_y[[1L]] + beta_y[[2L]] * dat$z[[i]] +
+          beta_y[[3L]] * x1 + beta_y[[4L]] * x2),
+        log = TRUE
+      )
+    }
+    if (all(observed)) {
+      out <- out + log_y(x[[1L]], x[[2L]]) +
+        mvtnorm::dmvnorm(x, mean = mean_x, sigma = Sigma_x, log = TRUE)
+    } else if (observed[[2L]] && !observed[[1L]]) {
+      conditional_mean <- mean_x[[1L]] + Sigma_x[1L, 2L] / Sigma_x[2L, 2L] *
+        (x[[2L]] - mean_x[[2L]])
+      conditional_sd <- sqrt(Sigma_x[1L, 1L] - Sigma_x[1L, 2L]^2 / Sigma_x[2L, 2L])
+      integral <- stats::integrate(function(x1) {
+        exp(log_y(x1, x[[2L]])) * stats::dnorm(x1, conditional_mean, conditional_sd)
+      }, lower = -Inf, upper = Inf, subdivisions = 300L)$value
+      out <- out + log(integral) + stats::dnorm(x[[2L]], mean_x[[2L]], sqrt(Sigma_x[2L, 2L]), log = TRUE)
+    } else if (observed[[1L]] && !observed[[2L]]) {
+      conditional_mean <- mean_x[[2L]] + Sigma_x[2L, 1L] / Sigma_x[1L, 1L] *
+        (x[[1L]] - mean_x[[1L]])
+      conditional_sd <- sqrt(Sigma_x[2L, 2L] - Sigma_x[2L, 1L]^2 / Sigma_x[1L, 1L])
+      integral <- stats::integrate(function(x2) {
+        exp(log_y(x[[1L]], x2)) * stats::dnorm(x2, conditional_mean, conditional_sd)
+      }, lower = -Inf, upper = Inf, subdivisions = 300L)$value
+      out <- out + log(integral) + stats::dnorm(x[[1L]], mean_x[[1L]], sqrt(Sigma_x[1L, 1L]), log = TRUE)
+    } else {
+      stop("This independent one-dimensional oracle requires no doubly-missing row.")
+    }
+  }
+  -out
+}
+
+test_that("joint continuous mi() predictor works with a Poisson response", {
+  dat <- joint_missing_predictor_poisson_data()
+  fit <- drmTMB(
+    bf(y ~ z + mi(x1) + mi(x2)),
+    family = poisson(),
+    data = dat,
+    impute = impute_joint(cbind(x1, x2) ~ z),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(fit$missing_data$version, "MD9b")
+  expect_named(fit$missing_data$predictors, c("x1", "x2"))
+  expect_equal(fit$missing_data$predictors$x1$model_row, which(is.na(dat$x1)))
+  expect_equal(fit$missing_data$predictors$x2$model_row, which(is.na(dat$x2)))
+  expect_true(all(is.finite(coef(fit, "mu"))))
+  expect_true(all(is.finite(coef(fit, "mi_x1"))))
+  expect_true(all(is.finite(coef(fit, "mi_x2"))))
+  expect_true(is.finite(coef(fit)$rho_mi_x1_x2[[1L]]))
+  expect_true(all(is.finite(imputed(fit, "x1", se = FALSE)$estimate)))
+  expect_true(all(is.finite(imputed(fit, "x2", se = FALSE)$estimate)))
+  expect_lt(max(abs(fit$obj$gr(fit$opt$par))), 1e-2)
+  # This is an independent one-dimensional quadrature oracle for the rows
+  # with one missing predictor. Laplace is approximate for the Poisson route.
+  expect_lt(abs(joint_poisson_observed_nll_1d(fit, dat) - fit$opt$objective), 0.05)
+})
+
+test_that("joint continuous Poisson mi() rejects response masks", {
+  dat <- joint_missing_predictor_poisson_data()
+  dat$y[[3L]] <- NA_real_
+  expect_error(
+    drmTMB(
+      bf(y ~ z + mi(x1) + mi(x2)),
+      family = poisson(),
+      data = dat,
+      impute = impute_joint(cbind(x1, x2) ~ z),
+      missing = miss_control(response = "include", predictor = "model"),
+      control = drm_control(se = FALSE)
+    ),
+    "does not combine"
+  )
+})

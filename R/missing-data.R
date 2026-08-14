@@ -8,6 +8,11 @@
 #' response contributes no direct response likelihood. `predictor = "model"`
 #' is implemented mainly for one `mi()`
 #' missing predictor at a time in a univariate Gaussian location model:
+#' `impute_joint(cbind(x1, x2) ~ z)` additionally supports exactly two
+#' correlated continuous missing predictors in that Gaussian location model,
+#' with fixed-effect imputation terms only. A separate proof route supports the
+#' same predictor model for a Poisson response. Neither route combines with
+#' masked responses or random or structured imputation terms.
 #' numeric missing predictors can use Gaussian fixed-effect, grouped, or
 #' structured predictor models. Binary,
 #' ordered categorical, unordered categorical, strict beta/proportion,
@@ -70,6 +75,50 @@ miss_control <- function(
     ),
     class = "drm_missing_control"
   )
+}
+
+#' Define a joint Gaussian missing-predictor model
+#'
+#' `impute_joint()` declares the first joint missing-predictor route: exactly
+#' two continuous predictors with a common fixed-effect predictor model and an
+#' estimated residual correlation. Use it with two bare additive [mi()] terms
+#' in a univariate Gaussian location formula or the separate Poisson proof
+#' route.
+#'
+#' @param formula A two-sided formula with `cbind(x1, x2)` on the left-hand
+#'   side and a fixed-effect right-hand side.
+#' @return A `drm_joint_impute_model` object for the `impute` argument of
+#'   [drmTMB()].
+#' @export
+#'
+#' @examples
+#' impute_joint(cbind(x1, x2) ~ z)
+impute_joint <- function(formula) {
+  if (!inherits(formula, "formula") || length(formula) != 3L) {
+    cli::cli_abort(
+      "{.arg formula} must be a two-sided formula such as {.code cbind(x1, x2) ~ z}."
+    )
+  }
+  lhs <- formula[[2L]]
+  if (
+    !is.call(lhs) || !identical(as.character(lhs[[1L]]), "cbind") ||
+      length(lhs) != 3L || !is.symbol(lhs[[2L]]) || !is.symbol(lhs[[3L]]) ||
+      identical(as.character(lhs[[2L]]), as.character(lhs[[3L]]))
+  ) {
+    cli::cli_abort(
+      "{.arg formula} must use two distinct bare variables, such as {.code cbind(x1, x2) ~ z}."
+    )
+  }
+  rhs <- formula[[3L]]
+  unsupported <- c("|", "||", "relmat", "animal", "phylo", "spatial")
+  if (any(vapply(unsupported, function(name) {
+    formula_contains_call(rhs, name)
+  }, logical(1)))) {
+    cli::cli_abort(
+      "{.fn impute_joint} supports fixed-effect imputation terms only."
+    )
+  }
+  structure(list(formula = formula), class = "drm_joint_impute_model")
 }
 
 #' Define a missing-predictor model
@@ -625,6 +674,49 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
   if (!predictor_model) {
     return(empty_gaussian_mi_setup())
   }
+  joint_impute <- inherits(impute, "drm_joint_impute_model")
+  if (joint_impute) {
+    if (identical(missing$response, "include")) {
+      cli::cli_abort(c(
+        "{.fn impute_joint} does not combine with {.code response = \"include\"}.",
+        "i" = "Use complete responses for the joint missing-predictor route."
+      ))
+    }
+    if (length(mi_calls) != 2L) {
+      cli::cli_abort(
+        "{.fn impute_joint} requires exactly two {.fn mi} terms in the response location formula."
+      )
+    }
+    variables <- vapply(mi_calls, function(call) {
+      if (length(call) != 2L || !is.symbol(call[[2L]])) {
+        cli::cli_abort("{.fn impute_joint} supports only bare predictors inside {.fn mi}.")
+      }
+      as.character(call[[2L]])
+    }, character(1))
+    if (length(unique(variables)) != 2L) {
+      cli::cli_abort("{.fn impute_joint} requires two distinct {.fn mi} predictors.")
+    }
+    labels <- paste0("mi(", variables, ")")
+    term_labels <- attr(stats::terms(stats::as.formula(call("~", mu_rhs))), "term.labels")
+    if (!setequal(term_labels[term_labels %in% labels], labels)) {
+      cli::cli_abort("The joint {.fn mi} route supports only simple additive terms such as {.code mi(x1) + mi(x2)}.")
+    }
+    formula <- impute$formula
+    lhs <- formula[[2L]]
+    impute_variables <- vapply(as.list(lhs)[-1L], as.character, character(1))
+    if (!identical(impute_variables, variables)) {
+      cli::cli_abort(c(
+        "The {.fn impute_joint} variables must match the {.fn mi} terms in order.",
+        "i" = "Use {.code impute_joint(cbind({variables[[1L]]}, {variables[[2L]]}) ~ ...)}."
+      ))
+    }
+    return(list(
+      enabled = TRUE, joint = TRUE, variable = variables, label = labels,
+      model_column = labels, formula = formula, raw_formula = formula,
+      family = "gaussian_joint", trials = NULL, trials_variable = character(0),
+      response_variable = variables, random = NULL, structured = NULL
+    ))
+  }
   if (length(mi_calls) != 1L) {
     cli::cli_abort(c(
       "The current missing-predictor routes require exactly one {.fn mi} term in the response location formula.",
@@ -655,7 +747,7 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
   }
   impute_spec <- drm_validate_single_impute_formula(impute, variable)
   list(
-    enabled = TRUE,
+    enabled = TRUE, joint = FALSE,
     variable = variable,
     label = mi_label,
     model_column = mi_label,
@@ -672,7 +764,7 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
 
 empty_gaussian_mi_setup <- function() {
   list(
-    enabled = FALSE,
+    enabled = FALSE, joint = FALSE,
     variable = character(0),
     label = character(0),
     model_column = character(0),
@@ -1024,6 +1116,9 @@ drm_build_gaussian_missing_predictor_model <- function(
   if (!isTRUE(setup$enabled)) {
     return(drm_empty_missing_predictor_model(nrow(data_model)))
   }
+  if (isTRUE(setup$joint)) {
+    return(drm_build_joint_gaussian_missing_predictor_model(setup, data_model, env))
+  }
   if (identical(setup$family, "bernoulli")) {
     return(drm_build_bernoulli_missing_predictor_model(
       setup,
@@ -1231,6 +1326,50 @@ drm_build_gaussian_missing_predictor_model <- function(
       0
     },
     log_sd_structured_start = log_sd_structured_start
+  )
+}
+
+drm_build_joint_gaussian_missing_predictor_model <- function(setup, data_model, env) {
+  formula <- setup$formula
+  environment(formula) <- env
+  mf <- stats::model.frame(formula, data = data_model, na.action = stats::na.pass)
+  x <- as.matrix(stats::model.response(mf))
+  storage.mode(x) <- "double"
+  if (ncol(x) != 2L || any(!is.finite(x[!is.na(x)]))) {
+    cli::cli_abort("Observed joint {.fn mi} predictor values must be finite numeric values.")
+  }
+  observed <- !is.na(x)
+  if (!any(!observed) || any(colSums(observed) == 0L)) {
+    cli::cli_abort("{.fn impute_joint} requires missing values and at least one observed value for each predictor.")
+  }
+  terms_x <- stats::delete.response(stats::terms(mf))
+  X <- stats::model.matrix(terms_x, mf)
+  if (any(!stats::complete.cases(X))) {
+    cli::cli_abort("Joint imputation-model predictors must be complete.")
+  }
+  beta <- vapply(seq_len(2L), function(j) {
+    fit <- stats::lm.fit(X[observed[, j], , drop = FALSE], x[observed[, j], j])
+    out <- fit$coefficients; out[is.na(out)] <- 0; out
+  }, numeric(ncol(X)))
+  eta <- X %*% beta
+  residuals <- x - eta
+  scales <- apply(residuals, 2L, function(v) stats::sd(v[is.finite(v)]))
+  scales[!is.finite(scales) | scales <= 0] <- 1
+  x_start <- x
+  for (j in seq_len(2L)) x_start[!observed[, j], j] <- eta[!observed[, j], j]
+  list(
+    enabled = TRUE, joint = TRUE, variable = setup$variable, label = setup$label,
+    model_column = setup$model_column, mu_col = integer(0), family = "gaussian_joint",
+    x = x_start, observed = observed, missing_index = which(!observed, arr.ind = TRUE),
+    X = X, formula = formula, raw_formula = setup$raw_formula,
+    beta_start = as.numeric(beta), log_sigma_start = log(scales),
+    x_miss_start = x_start[!observed], eta_cor_start = 0,
+    coef_names = unlist(lapply(setup$variable, function(v) paste0("mi_", v, "_", colnames(X))), use.names = FALSE),
+    predictor_names = all.vars(terms_x), levels = character(0), n_state = 0L,
+    X_mu_state = matrix(0, 1L, 1L), response_value = NULL, summary = "conditional_mode",
+    random = list(enabled = FALSE), structured = list(enabled = FALSE),
+    u_group_start = 0, log_sd_group_start = 0, u_structured_start = 0,
+    log_sd_structured_start = 0
   )
 }
 
@@ -3753,6 +3892,19 @@ drm_missing_predictor_metadata <- function(model, original_row) {
   if (!isTRUE(model$enabled)) {
     return(list())
   }
+  if (isTRUE(model$joint)) {
+    return(stats::setNames(lapply(seq_along(model$variable), function(j) list(
+      variable = model$variable[[j]], family = "gaussian_joint",
+      formula = paste(deparse(model$raw_formula), collapse = " "),
+      model_row = as.integer(which(!model$observed[, j])),
+      original_row = as.integer(original_row[which(!model$observed[, j])]),
+      observed = as.logical(model$observed[, j]),
+      counts = list(observed = sum(model$observed[, j]), missing = sum(!model$observed[, j])),
+      coef_names = model$coef_names, predictor_names = model$predictor_names,
+      levels = character(0), n_state = 0L, summary = "conditional_mode",
+      joint = list(variables = model$variable, correlation = "rho_mi_x1_x2")
+    )), model$variable))
+  }
   out <- list(
     variable = model$variable,
     family = model$family,
@@ -3821,7 +3973,8 @@ drm_tmb_missing_predictor_data <- function(spec) {
   )
   if (isTRUE(model$enabled)) {
     return(list(
-      has_mi = 1L,
+      has_mi = as.integer(!isTRUE(model$joint)),
+      has_mi_joint = as.integer(isTRUE(model$joint)),
       mi_family = switch(
         model$family,
         gaussian = 0L,
@@ -3904,7 +4057,11 @@ drm_tmb_missing_predictor_data <- function(spec) {
         as.numeric(model$quad_weights)
       } else {
         1
-      }
+      },
+      mi_x_joint = if (isTRUE(model$joint)) model$x else matrix(0, 1L, 2L),
+      mi_observed_joint = if (isTRUE(model$joint)) matrix(as.integer(model$observed), ncol = 2L) else matrix(1L, 1L, 2L),
+      mi_col_joint = if (isTRUE(model$joint)) as.integer(model$mu_col - 1L) else c(0L, 0L),
+      X_mi_joint = if (isTRUE(model$joint)) model$X else matrix(0, 1L, 1L)
     ))
   }
   n <- if (!is.null(spec$y)) {
@@ -3916,6 +4073,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
   }
   list(
     has_mi = 0L,
+    has_mi_joint = 0L,
     mi_family = 0L,
     mi_col = 0L,
     mi_x = rep(0, max(1L, n)),
@@ -3934,7 +4092,11 @@ drm_tmb_missing_predictor_data <- function(spec) {
     mi_n_state = 0L,
     X_mi_state_mu = matrix(0, nrow = 1L, ncol = 1L),
     mi_quad_nodes = 0,
-    mi_quad_weights = 1
+    mi_quad_weights = 1,
+    mi_x_joint = matrix(0, 1L, 2L),
+    mi_observed_joint = matrix(1L, 1L, 2L),
+    mi_col_joint = c(0L, 0L),
+    X_mi_joint = matrix(0, 1L, 1L)
   )
 }
 
@@ -3947,6 +4109,33 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
     return(missing_data)
   }
   model <- spec$missing_predictor
+  if (isTRUE(model$joint)) {
+    variables <- as.character(model$variable)
+    if (
+      length(variables) != 2L ||
+        !is.list(missing_data$predictors) ||
+        !all(variables %in% names(missing_data$predictors))
+    ) {
+      return(missing_data)
+    }
+    value <- as.matrix(model$x)
+    observed <- as.matrix(model$observed)
+    x_miss <- as.numeric(par_list$x_miss)
+    if (length(x_miss) != sum(!observed)) {
+      return(missing_data)
+    }
+    value[!observed] <- x_miss
+    rho <- 0.999999 * tanh(as.numeric(par_list$eta_cor_mi[[1L]]))
+    for (j in seq_along(variables)) {
+      predictor <- missing_data$predictors[[variables[[j]]]]
+      predictor$value <- as.numeric(value[, j])
+      predictor$conditional_mode <- as.numeric(value[!observed[, j], j])
+      predictor$joint_variables <- variables
+      predictor$joint_correlation <- rho
+      missing_data$predictors[[variables[[j]]]] <- predictor
+    }
+    return(missing_data)
+  }
   variable <- model$variable
   if (
     !is.list(missing_data$predictors) ||
@@ -5061,6 +5250,12 @@ drm_imputed_missing_predictor_se <- function(
     return(numeric(0))
   }
   if (!isTRUE(se) || !identical(fit_status, "ok")) {
+    return(rep(NA_real_, n_missing))
+  }
+  if (!is.null(predictor$joint_variables)) {
+    # The joint Gaussian route estimates both missing-predictor vectors in one
+    # correlated latent block.  Conditional standard errors require extracting
+    # the corresponding block covariance, which is not yet exposed here.
     return(rep(NA_real_, n_missing))
   }
   route_sd <- drm_imputed_route_conditional_sd(predictor)

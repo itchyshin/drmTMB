@@ -303,6 +303,7 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(observed_y1);
   DATA_IVECTOR(observed_y2);
   DATA_INTEGER(has_mi);
+  DATA_INTEGER(has_mi_joint);
   DATA_INTEGER(mi_family);
   DATA_INTEGER(mi_col);
   DATA_VECTOR(mi_x);
@@ -322,6 +323,10 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(X_mi_state_mu);
   DATA_VECTOR(mi_quad_nodes);
   DATA_VECTOR(mi_quad_weights);
+  DATA_MATRIX(mi_x_joint);
+  DATA_IMATRIX(mi_observed_joint);
+  DATA_IVECTOR(mi_col_joint);
+  DATA_MATRIX(X_mi_joint);
   DATA_VECTOR(trials);
   DATA_VECTOR(weights);
   DATA_VECTOR(offset_mu);
@@ -477,6 +482,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(beta_mi);
   PARAMETER_VECTOR(log_sigma_mi);
   PARAMETER_VECTOR(x_miss);
+  PARAMETER_VECTOR(eta_cor_mi);
   PARAMETER_VECTOR(u_mi_group);
   PARAMETER_VECTOR(log_sd_mi_group);
   PARAMETER_VECTOR(u_mi_struct);
@@ -1161,6 +1167,41 @@ Type objective_function<Type>::operator()()
       vector<Type> sd_mesh_spatial = exp(log_sd_phylo2);
       REPORT(sd_mesh_spatial);
       ADREPORT(sd_mesh_spatial);
+    }
+
+    if (has_mi_joint == 1) {
+      int n_mi = mi_x_joint.rows();
+      int p_mi = X_mi_joint.cols();
+      vector<Type> x1(n_mi);
+      vector<Type> x2(n_mi);
+      int missing_cursor = 0;
+      for (int col = 0; col < 2; ++col) {
+        for (int i = 0; i < n_mi; ++i) {
+          Type value = mi_x_joint(i, col);
+          if (mi_observed_joint(i, col) == 0) value = x_miss(missing_cursor++);
+          if (col == 0) x1(i) = value; else x2(i) = value;
+        }
+      }
+      Type sd1 = exp(log_sigma_mi(0));
+      Type sd2 = exp(log_sigma_mi(1));
+      Type rho = Type(0.999999) * tanh(eta_cor_mi(0));
+      Type one_minus_rho2 = Type(1.0) - rho * rho;
+      for (int i = 0; i < n_mi; ++i) {
+        Type eta1 = Type(0.0), eta2 = Type(0.0);
+        for (int j = 0; j < p_mi; ++j) {
+          eta1 += X_mi_joint(i, j) * beta_mi(j);
+          eta2 += X_mi_joint(i, j) * beta_mi(p_mi + j);
+        }
+        Type z1 = (x1(i) - eta1) / sd1;
+        Type z2 = (x2(i) - eta2) / sd2;
+        nll += Type(0.5) * (Type(2.0) * log(Type(2.0) * M_PI) +
+          Type(2.0) * log(sd1) + Type(2.0) * log(sd2) + log(one_minus_rho2) +
+          (z1 * z1 - Type(2.0) * rho * z1 * z2 + z2 * z2) / one_minus_rho2);
+        mu(i) += beta_mu(mi_col_joint(0)) * (x1(i) - X_mu(i, mi_col_joint(0)));
+        mu(i) += beta_mu(mi_col_joint(1)) * (x2(i) - X_mu(i, mi_col_joint(1)));
+      }
+      REPORT(x1); REPORT(x2); REPORT(eta_cor_mi); REPORT(log_sigma_mi);
+      ADREPORT(eta_cor_mi); ADREPORT(log_sigma_mi);
     }
 
     if (has_mi == 1 && mi_family == 0) {
@@ -3650,6 +3691,40 @@ Type objective_function<Type>::operator()()
       vector<Type> sd_phylo = exp(log_sd_phylo);
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
+    }
+    if (has_mi_joint == 1) {
+      int n_mi = mi_x_joint.rows();
+      int p_mi = X_mi_joint.cols();
+      vector<Type> x1(n_mi);
+      vector<Type> x2(n_mi);
+      int missing_cursor = 0;
+      for (int col = 0; col < 2; ++col) {
+        for (int i = 0; i < n_mi; ++i) {
+          Type value = mi_x_joint(i, col);
+          if (mi_observed_joint(i, col) == 0) value = x_miss(missing_cursor++);
+          if (col == 0) x1(i) = value; else x2(i) = value;
+        }
+      }
+      Type sd1 = exp(log_sigma_mi(0));
+      Type sd2 = exp(log_sigma_mi(1));
+      Type rho = Type(0.999999) * tanh(eta_cor_mi(0));
+      Type one_minus_rho2 = Type(1.0) - rho * rho;
+      for (int i = 0; i < n_mi; ++i) {
+        Type eta1 = Type(0.0), eta2 = Type(0.0);
+        for (int j = 0; j < p_mi; ++j) {
+          eta1 += X_mi_joint(i, j) * beta_mi(j);
+          eta2 += X_mi_joint(i, j) * beta_mi(p_mi + j);
+        }
+        Type z1 = (x1(i) - eta1) / sd1;
+        Type z2 = (x2(i) - eta2) / sd2;
+        nll += Type(0.5) * (Type(2.0) * log(Type(2.0) * M_PI) +
+          Type(2.0) * log(sd1) + Type(2.0) * log(sd2) + log(one_minus_rho2) +
+          (z1 * z1 - Type(2.0) * rho * z1 * z2 + z2 * z2) / one_minus_rho2);
+        eta_mu(i) += beta_mu(mi_col_joint(0)) * (x1(i) - X_mu(i, mi_col_joint(0)));
+        eta_mu(i) += beta_mu(mi_col_joint(1)) * (x2(i) - X_mu(i, mi_col_joint(1)));
+      }
+      REPORT(x1); REPORT(x2); REPORT(eta_cor_mi); REPORT(log_sigma_mi);
+      ADREPORT(eta_cor_mi); ADREPORT(log_sigma_mi);
     }
     if (has_mi == 1 && mi_family == 1) {
       vector<Type> mi_eta = X_mi * beta_mi;

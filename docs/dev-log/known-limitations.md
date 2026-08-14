@@ -146,13 +146,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `miss_control(predictor = "model")` fits one explicit `mi()` missing
   predictor at a time in univariate Gaussian location models, with fixed-effect
   family-aware predictor models plus the grouped and structured Gaussian
-  covariate routes. Poisson, binomial, NB2, and beta response models separately
-  support one fixed-effect binary `mi()` predictor when the response is
-  complete. Beta-binomial masking requires a complete success/failure pair per
-  observed row; cumulative-logit masking requires an ordered factor and every
-  declared category among observed responses. Multiple missing predictors,
-  non-binary missing predictors in non-Gaussian response models, grouped or
-  structured non-Gaussian predictor models,
+  covariate routes. The exact exception is `impute_joint(cbind(x1, x2) ~ z)`:
+  two continuous predictors with a shared fixed-effect imputation formula are
+  supported for Gaussian responses and as a fixed-effect Poisson proof route.
+  Poisson, binomial, NB2, and beta response models otherwise separately support
+  one fixed-effect binary `mi()` predictor when the response is complete.
+  Beta-binomial masking requires a complete success/failure pair per observed
+  row; cumulative-logit masking requires an ordered factor and every declared
+  category among observed responses. Additional or mixed-type missing
+  predictors, other non-binary missing predictors in non-Gaussian response
+  models, grouped or structured non-Gaussian predictor models,
   transformed or interacted `mi()` terms, EM/profile engines, REML for
   explicit missing-data routes, simulation-based imputation summaries,
   response imputation, measurement-error models, and pigauto interoperability

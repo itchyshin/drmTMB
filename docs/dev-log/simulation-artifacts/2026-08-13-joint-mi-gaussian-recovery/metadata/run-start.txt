@@ -1,0 +1,10 @@
+date=2026-08-13T21:53:14-06:00
+host=totoro
+nworkers=60
+core_cap=150
+run_root=/home/snakagaw/hsq_work/joint-mi-20260813
+source=/home/snakagaw/hsq_work/joint-mi-20260813/source
+R_LIBS=/home/snakagaw/hsq_work/joint-mi-20260813/rlib:
+R version 4.5.3 (2026-03-11) -- "Reassured Reassurer"
+finished=2026-08-13T21:53:32-06:00
+result_files=60

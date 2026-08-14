@@ -87,7 +87,7 @@
 #' @param control Optional list passed to [stats::nlminb()], or a
 #'   [drm_control()] object when optimizer settings and fitted-object storage
 #'   choices should be supplied together.
-#' @param impute Optional one-element named list of predictor models for the
+#' @param impute Optional predictor model for the
 #'   current missing-predictor routes. Bare formulas such as `list(x = x ~ z)`
 #'   define Gaussian models for numeric missing predictors. Use
 #'   [impute_model()] for explicit predictor families, such as
@@ -116,10 +116,14 @@
 #'   covariate models use syntax such as
 #'   `list(x = x ~ z + (1 | group))`; structured Gaussian covariate models use
 #'   explicit syntax such as `list(x = x ~ z + relmat(1 | line, Q = Q))`.
+#'   [impute_joint()] supplies the separate two-predictor route, for example
+#'   `impute_joint(cbind(x1, x2) ~ z)` with `mi(x1) + mi(x2)`.
 #'   Most fitted routes use a univariate Gaussian formula containing one `mi(x)`
-#'   location term and `missing = miss_control(predictor = "model")`. The first
-#'   non-Gaussian response route also supports `family = poisson()` with one
-#'   fixed-effect binary `mi()` predictor modelled by `family = binomial()`.
+#'   location term and `missing = miss_control(predictor = "model")`. The
+#'   joint route is restricted to two continuous predictors with fixed-effect
+#'   imputation terms; it is implemented for Gaussian and Poisson responses.
+#'   The Poisson route otherwise also supports one fixed-effect binary `mi()`
+#'   predictor modelled by `family = binomial()`.
 #' @param missing Missing-data policy created by [miss_control()]. The default
 #'   keeps the existing complete-case behaviour. In the current fitted slices,
 #'   `missing = miss_control(response = "include")` is implemented only for
@@ -134,10 +138,13 @@
 #'   beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
 #'   zero-truncated negative-binomial count, lognormal positive continuous,
 #'   Gamma positive continuous, and Tweedie semi-continuous predictors may use
-#'   one fixed-effect family-aware `impute_model()`. The first Poisson-response
-#'   route supports one fixed-effect binary missing predictor with a
-#'   Bernoulli/logit `impute_model()`, complete count responses, and no
-#'   zero-inflation, random, or structured response terms.
+#'   one fixed-effect family-aware `impute_model()`. A separate joint route
+#'   supports exactly two correlated continuous `mi()` predictors using
+#'   `impute_joint(cbind(x1, x2) ~ z)` with fixed-effect imputation terms. It
+#'   is available for Gaussian responses and as a separate Poisson proof route.
+#'   The Poisson proof route requires complete responses and excludes response
+#'   random/structured terms, zero inflation, REML, sparse matrices, and
+#'   response masking.
 #' @param engine Computational engine. The default `"tmb"` uses the native
 #'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
 #'   deferred for future work; it is retained only so existing objects and code
@@ -392,7 +399,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue) and {.code poisson()}/{.code binomial()}/{.code nbinom2()}/{.code beta()} responses (one binary missing predictor).",
+      "x" = "Missing-predictor {.fn mi} models are currently validated for {.code gaussian()} responses (the broad predictor-family catalogue); {.code poisson()} also admits exactly two joint continuous predictors through {.fn impute_joint}; {.code poisson()}/{.code binomial()}/{.code nbinom2()}/{.code beta()} otherwise support one binary missing predictor.",
       "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
@@ -701,6 +708,14 @@ drm_complete_shared_tmb_parameters <- function(spec) {
   if (is.null(spec$start$log_sd_coi)) spec$start$log_sd_coi <- 0
   if (is.null(spec$map$u_coi) && !has_coi_re) spec$map$u_coi <- factor(NA)
   if (is.null(spec$map$log_sd_coi) && !has_coi_re) spec$map$log_sd_coi <- factor(NA)
+  has_joint_mi <- is.list(spec$missing_predictor) && isTRUE(spec$missing_predictor$joint)
+  if (has_joint_mi) {
+    spec$map$beta_mi <- NULL
+    spec$map$log_sigma_mi <- NULL
+    spec$map$x_miss <- NULL
+  }
+  if (is.null(spec$start$eta_cor_mi)) spec$start$eta_cor_mi <- 0
+  if (is.null(spec$map$eta_cor_mi) && !has_joint_mi) spec$map$eta_cor_mi <- factor(NA)
   spec
 }
 
@@ -3315,6 +3330,20 @@ drm_build_gaussian_ls_spec <- function(
   )
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (
+    isTRUE(mi_setup$joint) &&
+      (!identical(sigma_entry$rhs, quote(1)) ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(sigma_phylo$term) ||
+        !is.null(sigma_spatial$term) ||
+        !is.null(sigma_animal$term) ||
+        !is.null(sigma_relmat$term))
+  ) {
+    cli::cli_abort(c(
+      "The first joint {.fn mi} Gaussian route requires {.code sigma ~ 1}.",
+      "i" = "Keep the residual-scale formula constant until a separate joint route is validated."
+    ))
+  }
   sparse_mu <- isTRUE(control$sparse_fixed)
   aggregate_gaussian <- isTRUE(control$aggregate_gaussian)
   if (include_missing_predictor && sparse_mu) {
@@ -3547,6 +3576,11 @@ drm_build_gaussian_ls_spec <- function(
     env = env
   )
   if (include_missing_predictor) {
+    if (isTRUE(mi_setup$joint)) {
+      for (j in seq_along(missing_predictor$model_column)) {
+        mf_mu[[missing_predictor$model_column[[j]]]] <- missing_predictor$x[, j]
+      }
+    } else {
     missing_response_value <- if (is.null(missing_predictor$response_value)) {
       missing_predictor$x
     } else {
@@ -3558,11 +3592,18 @@ drm_build_gaussian_ls_spec <- function(
       )
     }
     mf_mu[[missing_predictor$model_column]] <- missing_response_value
+    }
   }
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
   X_mu <- drm_fixed_effect_matrix(terms_mu, mf_mu, sparse = sparse_mu)
   if (include_missing_predictor) {
+    if (isTRUE(mi_setup$joint)) {
+      missing_predictor$mu_col <- match(missing_predictor$model_column, colnames(X_mu))
+      if (anyNA(missing_predictor$mu_col)) {
+        cli::cli_abort("Internal joint {.fn mi} design-matrix error: predictor coefficient columns were not found.")
+      }
+    } else {
     if (missing_predictor$family %in% c("ordinal", "categorical")) {
       missing_predictor <- drm_missing_predictor_state_design(
         missing_predictor,
@@ -3580,6 +3621,7 @@ drm_build_gaussian_ls_spec <- function(
           "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
         )
       }
+    }
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
@@ -3667,6 +3709,7 @@ drm_build_gaussian_ls_spec <- function(
     start$beta_mi <- missing_predictor$beta_start
     start$log_sigma_mi <- missing_predictor$log_sigma_start
     start$x_miss <- missing_predictor$x_miss_start
+    if (isTRUE(mi_setup$joint)) start$eta_cor_mi <- missing_predictor$eta_cor_start
     start$u_mi_group <- missing_predictor$u_group_start
     start$log_sd_mi_group <- missing_predictor$log_sd_group_start
     start$u_mi_struct <- missing_predictor$u_structured_start
@@ -3784,6 +3827,12 @@ drm_build_gaussian_ls_spec <- function(
       ) {
         map$theta_ord <- NULL
       }
+      if (include_missing_predictor && isTRUE(missing_predictor$joint)) {
+        map$beta_mi <- NULL
+        map$log_sigma_mi <- NULL
+        map$x_miss <- NULL
+        map$eta_cor_mi <- NULL
+      }
       map
     },
     random_names = c(
@@ -3794,7 +3843,8 @@ drm_build_gaussian_ls_spec <- function(
       if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
       if (
         include_missing_predictor &&
-          identical(missing_predictor$family, "gaussian")
+          (identical(missing_predictor$family, "gaussian") ||
+             identical(missing_predictor$family, "gaussian_joint"))
       ) {
         "x_miss"
       },
@@ -6989,11 +7039,15 @@ drm_build_poisson_spec <- function(
       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
     ))
   }
-  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+  if (
+    include_missing_predictor &&
+      !identical(mi_setup$family, "bernoulli") &&
+      !identical(mi_setup$family, "gaussian_joint")
+  ) {
     cli::cli_abort(c(
-      "The first Poisson-response {.fn mi} slice supports one binary missing predictor.",
+      "The Poisson-response {.fn mi} slice supports one binary missing predictor or exactly two joint Gaussian missing predictors.",
       "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
-      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} or {.code impute_joint(cbind(x1, x2) ~ z)}."
     ))
   }
   if (include_missing_predictor && !is.null(zi_entry)) {
@@ -7133,12 +7187,18 @@ drm_build_poisson_spec <- function(
     env = env
   )
   if (include_missing_predictor) {
-    if (!missing_predictor$model_column %in% names(mf_mu)) {
-      cli::cli_abort(
-        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
-      )
+    if (isTRUE(mi_setup$joint)) {
+      for (j in seq_along(missing_predictor$model_column)) {
+        mf_mu[[missing_predictor$model_column[[j]]]] <- missing_predictor$x[, j]
+      }
+    } else {
+      if (!missing_predictor$model_column %in% names(mf_mu)) {
+        cli::cli_abort(
+          "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+        )
+      }
+      mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
     }
-    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
   }
 
   X_mu <- stats::model.matrix(
@@ -7146,11 +7206,8 @@ drm_build_poisson_spec <- function(
     mf_mu
   )
   if (include_missing_predictor) {
-    missing_predictor$mu_col <- match(
-      missing_predictor$model_column,
-      colnames(X_mu)
-    )
-    if (is.na(missing_predictor$mu_col)) {
+    missing_predictor$mu_col <- match(missing_predictor$model_column, colnames(X_mu))
+    if (anyNA(missing_predictor$mu_col)) {
       cli::cli_abort(
         "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
       )
@@ -7208,6 +7265,11 @@ drm_build_poisson_spec <- function(
   }
   if (include_missing_predictor) {
     start$beta_mi <- missing_predictor$beta_start
+    if (isTRUE(mi_setup$joint)) {
+      start$log_sigma_mi <- missing_predictor$log_sigma_start
+      start$x_miss <- missing_predictor$x_miss_start
+      start$eta_cor_mi <- missing_predictor$eta_cor_start
+    }
   }
   missing_data <- if (include_missing_predictor) {
     new_drm_missing_data(
@@ -7220,7 +7282,7 @@ drm_build_poisson_spec <- function(
         missing_predictor,
         original_row = which(keep)
       ),
-      version = "MD9a"
+      version = if (isTRUE(mi_setup$joint)) "MD9b" else "MD9a"
     )
   } else if (include_missing_response) {
     new_drm_missing_data(
@@ -7276,6 +7338,7 @@ drm_build_poisson_spec <- function(
       poisson_map(re_mu, phylo_mu)
     },
     random_names = c(
+      if (include_missing_predictor && isTRUE(mi_setup$joint)) "x_miss",
       if (re_mu$n_re > 0L) "u_mu",
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
@@ -20584,7 +20647,20 @@ split_tmb_parameters <- function(par, spec) {
     ) {
       beta_mi <- unname(par$beta_mi)
       names(beta_mi) <- spec$missing_predictor$coef_names
-      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      if (isTRUE(spec$missing_predictor$joint)) {
+        p <- ncol(spec$missing_predictor$X)
+        out[[paste0("mi_", spec$missing_predictor$variable[[1L]])]] <-
+          beta_mi[seq_len(p)]
+        out[[paste0("mi_", spec$missing_predictor$variable[[2L]])]] <-
+          beta_mi[p + seq_len(p)]
+        out$sigma_mi <- stats::setNames(
+          exp(unname(par$log_sigma_mi)),
+          spec$missing_predictor$variable
+        )
+        out$rho_mi_x1_x2 <- 0.999999 * tanh(unname(par$eta_cor_mi))
+      } else {
+        out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      }
     }
     return(out)
   }
@@ -20712,7 +20788,17 @@ split_tmb_parameters <- function(par, spec) {
     ) {
       beta_mi <- unname(par$beta_mi)
       names(beta_mi) <- spec$missing_predictor$coef_names
-      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      if (isTRUE(spec$missing_predictor$joint)) {
+        p <- ncol(spec$missing_predictor$X)
+        out[[paste0("mi_", spec$missing_predictor$variable[[1L]])]] <-
+          beta_mi[seq_len(p)]
+        out[[paste0("mi_", spec$missing_predictor$variable[[2L]])]] <-
+          beta_mi[p + seq_len(p)]
+        out$sigma_mi <- stats::setNames(exp(unname(par$log_sigma_mi)), spec$missing_predictor$variable)
+        out$rho_mi_x1_x2 <- 0.999999 * tanh(unname(par$eta_cor_mi))
+      } else {
+        out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      }
       if (
         spec$missing_predictor$family %in%
           c(

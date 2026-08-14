@@ -5,6 +5,19 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Joint continuous missing predictors
+
+* `impute_joint(cbind(x1, x2) ~ z)` now fits exactly two correlated continuous
+  missing predictors used as bare additive `mi(x1) + mi(x2)` terms. The Gaussian
+  route has an independent observed-data likelihood check; the same grammar is
+  also available as a separate Poisson TMB/Laplace proof route.
+* This is a narrow route: fixed-effect imputation terms only, no response mask,
+  REML, interactions, third predictor, mixed predictor family, or structured
+  joint imputation. The Poisson proof route also excludes zero inflation and
+  response random or structured terms. `imputed()` returns each fitted
+  predictor's conditional mode; joint conditional standard errors are not yet
+  exposed.
+
 ## Experimental MSPL accepts probit and complementary log-log
 
 * `estimator = "mspl"` previously required `binomial(link = "logit")` exactly.

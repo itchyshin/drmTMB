@@ -25,7 +25,12 @@ meta_V <- function(V) {
 #' matching Gaussian fixed-effect, one random-intercept, or one intercept-only
 #' structured predictor model supplied through `impute`, for example
 #' `impute = list(x = x ~ z)` or
-#' `impute = list(x = x ~ z + relmat(1 | line, Q = Q))`. Family-aware
+#' `impute = list(x = x ~ z + relmat(1 | line, Q = Q))`.
+#' The separate [impute_joint()] route admits exactly two continuous bare terms,
+#' for example `mi(x1) + mi(x2)` with
+#' `impute_joint(cbind(x1, x2) ~ z)`, for Gaussian responses and as a Poisson
+#' proof route. It uses fixed-effect imputation terms only.
+#' Family-aware
 #' fixed-effect predictor models supplied with [impute_model()] cover binary,
 #' ordered categorical, unordered categorical, strict proportion, zero-one
 #' boundary proportion, denominator-aware beta-binomial proportion, count,

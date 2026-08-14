@@ -18,6 +18,191 @@ fit_missing_predictor_gaussian <- function(dat) {
   )
 }
 
+missing_predictor_joint_gaussian_data <- function() {
+  n <- 48L
+  z <- seq(-1.3, 1.3, length.out = n)
+  e1 <- sin(seq_len(n) * 0.73)
+  e2 <- cos(seq_len(n) * 0.41)
+  x1 <- 0.35 + 0.70 * z + e1
+  x2 <- -0.20 - 0.45 * z + 0.50 * e1 + e2
+  y <- 0.80 + 0.45 * z + 0.90 * x1 - 0.65 * x2 +
+    0.20 * sin(seq_len(n) / 3)
+  dat <- data.frame(y = y, z = z, x1 = x1, x2 = x2)
+  dat$x1[c(4, 11, 23, 37)] <- NA_real_
+  dat$x2[c(7, 11, 29, 42)] <- NA_real_
+  dat
+}
+
+fit_missing_predictor_joint_gaussian <- function(dat) {
+  drmTMB(
+    bf(y ~ z + mi(x1) + mi(x2), sigma ~ 1),
+    data = dat,
+    impute = impute_joint(cbind(x1, x2) ~ z),
+    missing = miss_control(predictor = "model"),
+    control = drm_control(se = FALSE)
+  )
+}
+
+joint_gaussian_observed_nll <- function(fit, dat) {
+  par <- fit$obj$env$parList(fit$opt$par)
+  p <- length(par$beta_mi) / 2L
+  beta_x <- matrix(par$beta_mi, nrow = p)
+  sigma_x <- exp(par$log_sigma_mi)
+  rho_x <- 0.999999 * tanh(par$eta_cor_mi[[1L]])
+  Sigma_x <- diag(sigma_x) %*%
+    matrix(c(1, rho_x, rho_x, 1), nrow = 2L) %*%
+    diag(sigma_x)
+  beta_y <- par$beta_mu
+  sigma_y <- exp(par$beta_sigma[[1L]])
+  nll <- 0
+  for (i in seq_len(nrow(dat))) {
+    mean_x <- as.vector(c(1, dat$z[[i]]) %*% beta_x)
+    mean_y <- beta_y[[1L]] + beta_y[[2L]] * dat$z[[i]] +
+      sum(beta_y[3:4] * mean_x)
+    cov_yx <- as.vector(t(beta_y[3:4]) %*% Sigma_x)
+    Sigma <- rbind(
+      c(sigma_y^2 + sum(beta_y[3:4] * (Sigma_x %*% beta_y[3:4])), cov_yx),
+      cbind(cov_yx, Sigma_x)
+    )
+    value <- c(dat$y[[i]], dat$x1[[i]], dat$x2[[i]])
+    keep <- !is.na(value)
+    delta <- value[keep] - c(mean_y, mean_x)[keep]
+    Sigma_keep <- Sigma[keep, keep, drop = FALSE]
+    nll <- nll + 0.5 * (
+      length(delta) * log(2 * pi) +
+        log(det(Sigma_keep)) +
+        drop(crossprod(delta, solve(Sigma_keep, delta)))
+    )
+  }
+  nll
+}
+
+test_that("joint Gaussian mi() matches an independent observed-data likelihood", {
+  dat <- missing_predictor_joint_gaussian_data()
+  fit <- fit_missing_predictor_joint_gaussian(dat)
+
+  expect_equal(nobs(fit), nrow(dat))
+  expect_named(fit$missing_data$predictors, c("x1", "x2"))
+  expect_equal(fit$missing_data$predictors$x1$model_row, which(is.na(dat$x1)))
+  expect_equal(fit$missing_data$predictors$x2$model_row, which(is.na(dat$x2)))
+  expect_true(all(is.finite(fitted(fit))))
+  expect_true(all(is.finite(coef(fit, "mi_x1"))))
+  expect_true(all(is.finite(coef(fit, "mi_x2"))))
+  expect_true(is.finite(coef(fit)$rho_mi_x1_x2[[1L]]))
+  expect_equal(
+    joint_gaussian_observed_nll(fit, dat),
+    fit$opt$objective,
+    tolerance = 1e-7
+  )
+  expect_lt(max(abs(fit$obj$gr(fit$opt$par))), 1e-3)
+
+  x1 <- imputed(fit, "x1", se = FALSE)
+  x2 <- imputed(fit, "x2", se = FALSE)
+  expect_equal(x1$model_row, which(is.na(dat$x1)))
+  expect_equal(x2$model_row, which(is.na(dat$x2)))
+  expect_true(all(is.finite(x1$estimate)))
+  expect_true(all(is.finite(x2$estimate)))
+})
+
+test_that("joint Gaussian mi() ignores missing-value storage sentinels", {
+  dat <- missing_predictor_joint_gaussian_data()
+  fit <- fit_missing_predictor_joint_gaussian(dat)
+  data_sentinel <- fit$model$tmb_data
+  missing <- data_sentinel$mi_observed_joint == 0L
+  data_sentinel$mi_x_joint[missing] <- c(-999, 999)[(seq_len(sum(missing)) - 1L) %% 2L + 1L]
+  obj_sentinel <- TMB::MakeADFun(
+    data = data_sentinel,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    random = fit$model$tmb_random_names,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  expect_equal(
+    obj_sentinel$fn(fit$opt$par),
+    fit$obj$fn(fit$opt$par),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    obj_sentinel$gr(fit$opt$par),
+    fit$obj$gr(fit$opt$par),
+    tolerance = 1e-8
+  )
+})
+
+test_that("joint Gaussian mi() keeps its narrow grammar boundary", {
+  dat <- missing_predictor_joint_gaussian_data()
+  expect_error(
+    impute_joint(cbind(x1, x2) ~ z + (1 | group)),
+    "fixed-effect"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ z + mi(x1) + mi(x2) + mi(x3), sigma ~ 1),
+      data = transform(dat, x3 = z),
+      impute = impute_joint(cbind(x1, x2) ~ z),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    ),
+    "exactly two"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ z + mi(x1):mi(x2), sigma ~ 1),
+      data = dat,
+      impute = impute_joint(cbind(x1, x2) ~ z),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    ),
+    "simple additive"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ z + mi(x1) + mi(x2), sigma ~ z),
+      data = dat,
+      impute = impute_joint(cbind(x1, x2) ~ z),
+      missing = miss_control(predictor = "model"),
+      control = drm_control(se = FALSE)
+    ),
+    "sigma ~ 1"
+  )
+  dat_response_missing <- dat
+  dat_response_missing$y[[2L]] <- NA_real_
+  expect_error(
+    drmTMB(
+      bf(y ~ z + mi(x1) + mi(x2), sigma ~ 1),
+      data = dat_response_missing,
+      impute = impute_joint(cbind(x1, x2) ~ z),
+      missing = miss_control(response = "include", predictor = "model"),
+      control = drm_control(se = FALSE)
+    ),
+    "does not combine"
+  )
+})
+
+test_that("joint Gaussian mi() has a fixed-seed parameter-recovery smoke", {
+  set.seed(20260813)
+  n <- 600L
+  z <- rnorm(n)
+  Sigma_x <- matrix(c(1, 0.5, 0.5, 1.44), nrow = 2L)
+  error_x <- matrix(rnorm(2L * n), nrow = n) %*% chol(Sigma_x)
+  x1 <- 0.3 + 0.7 * z + error_x[, 1L]
+  x2 <- -0.2 - 0.4 * z + error_x[, 2L]
+  y <- 1 + 0.5 * z + 0.8 * x1 - 0.6 * x2 + rnorm(n, sd = 0.7)
+  dat <- data.frame(y = y, z = z, x1 = x1, x2 = x2)
+  dat$x1[sample.int(n, 120L)] <- NA_real_
+  dat$x2[sample.int(n, 120L)] <- NA_real_
+
+  fit <- fit_missing_predictor_joint_gaussian(dat)
+  estimate <- coef(fit)
+  expect_lt(abs(estimate$mu[["mi(x1)"]] - 0.8), 0.2)
+  expect_lt(abs(estimate$mu[["mi(x2)"]] + 0.6), 0.2)
+  expect_lt(abs(estimate$mi_x1[["mi_x1_z"]] - 0.7), 0.2)
+  expect_lt(abs(estimate$mi_x2[["mi_x2_z"]] + 0.4), 0.2)
+  expect_lt(abs(estimate$rho_mi_x1_x2[[1L]] - 0.5), 0.2)
+  expect_lt(max(abs(fit$obj$gr(fit$opt$par))), 1e-2)
+})
+
 missing_predictor_grouped_gaussian_data <- function() {
   group <- factor(rep(letters[1:8], each = 7))
   z <- seq(-1.4, 1.4, length.out = length(group))

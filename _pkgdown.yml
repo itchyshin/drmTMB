@@ -132,6 +132,7 @@ reference:
       - meta_V
       - mi
       - impute_model
+      - impute_joint
       - meta_vcov_bivariate
       - beta
       - zero_one_beta

@@ -35,6 +35,11 @@ without dense known covariance. It uses an observed-response mask: a missing
 response contributes no direct response likelihood. \code{predictor = "model"}
 is implemented mainly for one \code{mi()}
 missing predictor at a time in a univariate Gaussian location model:
+\code{impute_joint(cbind(x1, x2) ~ z)} additionally supports exactly two
+correlated continuous missing predictors in that Gaussian location model,
+with fixed-effect imputation terms only. A separate proof route supports the
+same predictor model for a Poisson response. Neither route combines with
+masked responses or random or structured imputation terms.
 numeric missing predictors can use Gaussian fixed-effect, grouped, or
 structured predictor models. Binary,
 ordered categorical, unordered categorical, strict beta/proportion,

@@ -48,7 +48,7 @@ formula instead.}
 \code{\link[=drm_control]{drm_control()}} object when optimizer settings and fitted-object storage
 choices should be supplied together.}
 
-\item{impute}{Optional one-element named list of predictor models for the
+\item{impute}{Optional predictor model for the
 current missing-predictor routes. Bare formulas such as \code{list(x = x ~ z)}
 define Gaussian models for numeric missing predictors. Use
 \code{\link[=impute_model]{impute_model()}} for explicit predictor families, such as
@@ -74,10 +74,14 @@ non-negative semi-continuous predictor with exact zeros. Grouped Gaussian
 covariate models use syntax such as
 \code{list(x = x ~ z + (1 | group))}; structured Gaussian covariate models use
 explicit syntax such as \code{list(x = x ~ z + relmat(1 | line, Q = Q))}.
+\code{\link[=impute_joint]{impute_joint()}} supplies the separate two-predictor route, for example
+\code{impute_joint(cbind(x1, x2) ~ z)} with \code{mi(x1) + mi(x2)}.
 Most fitted routes use a univariate Gaussian formula containing one \code{mi(x)}
-location term and \code{missing = miss_control(predictor = "model")}. The first
-non-Gaussian response route also supports \code{family = poisson()} with one
-fixed-effect binary \code{mi()} predictor modelled by \code{family = binomial()}.}
+location term and \code{missing = miss_control(predictor = "model")}. The
+joint route is restricted to two continuous predictors with fixed-effect
+imputation terms; it is implemented for Gaussian and Poisson responses.
+The Poisson route otherwise also supports one fixed-effect binary \code{mi()}
+predictor modelled by \code{family = binomial()}.}
 
 \item{missing}{Missing-data policy created by \code{\link[=miss_control]{miss_control()}}. The default
 keeps the existing complete-case behaviour. In the current fitted slices,
@@ -92,10 +96,13 @@ categorical, strict beta/proportion, zero-one beta boundary-proportion,
 beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
 zero-truncated negative-binomial count, lognormal positive continuous,
 Gamma positive continuous, and Tweedie semi-continuous predictors may use
-one fixed-effect family-aware \code{impute_model()}. The first Poisson-response
-route supports one fixed-effect binary missing predictor with a
-Bernoulli/logit \code{impute_model()}, complete count responses, and no
-zero-inflation, random, or structured response terms.}
+one fixed-effect family-aware \code{impute_model()}. A separate joint route
+supports exactly two correlated continuous \code{mi()} predictors using
+\code{impute_joint(cbind(x1, x2) ~ z)} with fixed-effect imputation terms. It
+is available for Gaussian responses and as a separate Poisson proof route.
+The Poisson proof route requires complete responses and excludes response
+random/structured terms, zero inflation, REML, sparse matrices, and
+response masking.}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
 \code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and
