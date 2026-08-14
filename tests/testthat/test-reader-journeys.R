@@ -144,3 +144,9 @@ test_that("fitted means are not silently substituted with lognormal mu predictio
   expect_false(isTRUE(all.equal(mu, response_mean)))
   expect_equal(response_mean, exp(predict(fit, dpar = "mu", type = "link") + .5 * sigma(fit)^2))
 })
+
+test_that("reader vignettes do not depend on private missing-data slots", {
+  vignette_files <- list.files("vignettes", pattern = "\\.Rmd$", full.names = TRUE)
+  vignette_text <- unlist(lapply(vignette_files, readLines, warn = FALSE), use.names = FALSE)
+  expect_false(any(grepl("fit$missing_data", vignette_text, fixed = TRUE)))
+})
