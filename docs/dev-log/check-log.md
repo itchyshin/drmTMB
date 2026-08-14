@@ -1,5 +1,20 @@
 # Check Log
 
+## 2026-08-14 — NB2 phylogenetic-interaction log-sigma response-mask recovery
+
+- `rmf-mc-0425` is now G3 for the exact ML formula
+  `nb2 ~ x, sigma ~ phylo_interaction(1 | plant:pollinator,
+  tree1 = plant_tree, tree2 = pollinator_tree)`. The larger non-Gaussian
+  fixture has 8 plant by 8 pollinator tips, 64 pair levels, 64 observations
+  per pair, and one masked response per pair.
+- G2 uses a dense Kronecker phylogenetic-interaction NB2 log-sigma oracle and
+  numerical gradients; direct count-sentinel retapes and observed-row fit
+  equality also pass. G3 recovers fixed location, fixed log-sigma, and the
+  sigma-side interaction SD. This does not certify location-side interaction,
+  another effect geometry, REML, missing predictors, intervals, or coverage.
+- Check: isolated 4,096-row response-mask test, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — NB2 animal and relatedness log-sigma response-mask recovery
 
 - `rmf-mc-0423` and `rmf-mc-0424` are now G3 for, respectively,

@@ -233,8 +233,10 @@ nb2_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, observation_
       (nrow(precision2$Q) * precision1$log_det + nrow(precision1$Q) * precision2$log_det) +
       exp(-2 * par$log_sd_phylo) * quadratic
   )
-  prior - sum(data$weights * stats::dnbinom(
-    data$y, size = exp(-2 * log_sigma), mu = exp(eta_mu), log = TRUE
+  observed <- as.logical(data$observed_y)
+  prior - sum(data$weights[observed] * stats::dnbinom(
+    data$y[observed], size = exp(-2 * log_sigma[observed]),
+    mu = exp(eta_mu[observed]), log = TRUE
   ))
 }
 
@@ -491,6 +493,59 @@ test_that("NB2 phylo-interaction mu response mask has oracle and recovery eviden
   expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]), 0.20)
   expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - log(sim$sigma_nb2)), 0.18)
   expect_lt(abs(unname(fit_masked$sdpars$mu[[sd_name]]) - sim$sd_pair), 0.25)
+})
+
+test_that("NB2 phylo-interaction log-sigma response mask has oracle and recovery evidence", {
+  sim <- new_phylo_interaction_sigma_nb2_data(
+    n_plant = 8L, n_pollinator = 8L, n_each = 64L, seed = 2026081757L
+  )
+  plant_tree <- sim$plant_tree
+  pollinator_tree <- sim$pollinator_tree
+  dat <- sim$data
+  dat$nb2[seq(1L, nrow(dat), by = 64L)] <- NA_integer_
+  observed <- !is.na(dat$nb2)
+  formula <- bf(
+    nb2 ~ x,
+    sigma ~ phylo_interaction(
+      1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree
+    )
+  )
+  fit_masked <- drmTMB(
+    formula, family = nbinom2(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = nbinom2(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+  sd_name <- "phylo_interaction(1 | plant:pollinator)"
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(
+    obj$fn(probe),
+    nb2_sigma_phylo_interaction_nll(fit_masked, par, plant_tree, pollinator_tree, dat),
+    tolerance = 1e-7
+  )
+  expect_equal(
+    as.numeric(obj$gr(probe)), central_gradient(obj$fn, probe), tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - 1.4), 0.20)
+  expect_lt(abs(coef(fit_masked, "mu")[["x"]] - 0.3), 0.15)
+  expect_lt(abs(coef(fit_masked, "sigma")[["(Intercept)"]] + 0.20), 0.20)
+  expect_lt(abs(unname(fit_masked$sdpars$sigma[[sd_name]]) - sim$sd_pair), 0.25)
 })
 
 test_that("NB2 sigma supports only the point-fit q1 phylo-interaction gate", {
