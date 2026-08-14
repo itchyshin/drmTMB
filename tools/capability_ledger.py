@@ -28,6 +28,8 @@ SCHEMA = LEDGER / "schema.json"
 CENSUS = ROOT / "docs/dev-log/dashboard/capability-census"
 PARITY_TRIAGE = ROOT / "docs/dev-log/dashboard/parity-triage.tsv"
 READER_SUMMARY = ROOT / "vignettes/includes/capability-ledger-summary.md"
+LIVE_PROSE_CONTRACTS = LEDGER / "live-prose-contracts.tsv"
+G5_POLICY_ANCHOR = ROOT / "inst/sim/R/sim_missing_response_g4g5.R"
 
 # These are deliberately exact ledger cells, not per-family representatives.
 # A family has multiple model-surface cells with different parameters,
@@ -3272,6 +3274,118 @@ def reader_summary_value(cells: list[dict[str, str]]) -> dict[str, object]:
     }
 
 
+def active_g5_policy_version() -> str:
+    """Read the G5 policy identifier from the executable gate, not prose."""
+    source = G5_POLICY_ANCHOR.read_text(encoding="utf-8")
+    match = re.search(
+        r"mr_g5_calibration_gate\s*<-\s*function\(.*?"
+        r"policy_id\s*=\s*\"([^\"]+)\"",
+        source,
+        re.DOTALL,
+    )
+    if not match:
+        raise SystemExit("Cannot find policy_id in mr_g5_calibration_gate()")
+    return match.group(1)
+
+
+def live_prose_contract_value(
+    contract: dict[str, str], cells: list[dict[str, str]], evidence: list[dict[str, str]]
+) -> str:
+    """Return one canonical, current prose field named by a sidecar row."""
+    field = contract["field"]
+    if field.startswith("cells."):
+        rows = [row for row in cells if row["cell_id"] == contract["cell_id"]]
+        column = field.removeprefix("cells.")
+    elif field.startswith("evidence:"):
+        evidence_id, separator, column = field.removeprefix("evidence:").partition(".")
+        if not separator:
+            raise SystemExit(f"{contract['cell_id']}: invalid evidence prose field {field!r}")
+        rows = [
+            row for row in evidence
+            if row["cell_id"] == contract["cell_id"] and row["evidence_id"] == evidence_id
+        ]
+    else:
+        raise SystemExit(f"{contract['cell_id']}: invalid live prose field {field!r}")
+    if len(rows) != 1 or column not in rows[0]:
+        raise SystemExit(f"{contract['cell_id']}: unresolved live prose field {field!r}")
+    return rows[0][column]
+
+
+def validate_live_prose_contracts(
+    cells: list[dict[str, str]], evidence: list[dict[str, str]],
+    generated: dict[Path, bytes] | None = None,
+) -> None:
+    """Bind selected live G5 prose to the executable policy and route state.
+
+    This intentionally reads only the canonical ledger TSVs and freshly rendered
+    generator outputs.  Historical dev logs are evidence records, not live reader
+    claims, so an old phrase there must never make a current contract fail.
+    """
+    contracts = read_tsv(LIVE_PROSE_CONTRACTS)
+    required = {
+        "cell_id", "field", "reference_kind", "reference_id", "expected_live_state",
+        "generated_artifact", "generated_row_marker", "required_rendered_clauses",
+    }
+    if not contracts or set(contracts[0]) != required:
+        raise SystemExit("live-prose-contracts.tsv has the wrong schema")
+    policy = active_g5_policy_version()
+    cells_by_id = {row["cell_id"]: row for row in cells}
+    generated = outputs(cells, evidence) if generated is None else generated
+    for contract in contracts:
+        prose = live_prose_contract_value(contract, cells, evidence)
+        kind = contract["reference_kind"]
+        reference = contract["reference_id"]
+        expected = contract["expected_live_state"]
+        label = f"{contract['cell_id']} {contract['field']}"
+        if kind == "g5_policy_not_grounded":
+            if reference != "mr_g5_calibration_gate":
+                raise SystemExit(f"{label}: unknown G5 policy anchor {reference!r}")
+            if expected != policy:
+                raise SystemExit(
+                    f"{label}: G5 policy drifted to {policy!r}; sidecar expects {expected!r}"
+                )
+            clause = f"NOT grounded in the {policy} availability floor"
+            if clause not in prose:
+                raise SystemExit(f"{label}: missing threshold-free G5 policy distinction")
+            artifact = ROOT / contract["generated_artifact"]
+            rendered = generated.get(artifact)
+            if rendered is None:
+                raise SystemExit(f"{label}: missing generated reader artifact {artifact!s}")
+            rendered_text = rendered.decode("utf-8")
+            marker = contract["generated_row_marker"]
+            row_start = rendered_text.find(marker)
+            if row_start < 0:
+                raise SystemExit(f"{label}: generated reader row {marker!r} is absent")
+            row_end = rendered_text.find("\n", row_start)
+            rendered_row = rendered_text[row_start:] if row_end < 0 else rendered_text[row_start:row_end]
+            clauses = [
+                clause.format(g5_policy=policy)
+                for clause in contract["required_rendered_clauses"].split("||")
+                if clause
+            ]
+            if not clauses or any(clause not in rendered_row for clause in clauses):
+                raise SystemExit(f"{label}: generated reader surfaces lost the G5 policy distinction")
+        elif kind == "route_state":
+            referenced = cells_by_id.get(reference)
+            if referenced is None:
+                raise SystemExit(f"{label}: referenced route {reference!r} is absent")
+            actual = ";".join(
+                f"{key}={referenced[key]}"
+                for key in ("test_gate", "work_status", "evidence_tier")
+            )
+            if actual != expected:
+                raise SystemExit(
+                    f"{label}: referenced route state drifted: {actual!r} != {expected!r}"
+                )
+            if "G5" not in prose:
+                raise SystemExit(f"{label}: prose no longer makes the G5 route reference")
+        elif kind == "retired_predicate_absent":
+            if expected.lower() in prose.lower():
+                raise SystemExit(f"{label}: retired predicate {expected!r} returned to live prose")
+        else:
+            raise SystemExit(f"{label}: unknown live prose reference kind {kind!r}")
+
+
 def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
     """Render the reader summary consumed from ``vignettes/includes``."""
     summary = reader_summary_value(cells)
@@ -3998,6 +4112,7 @@ def load_sources() -> tuple[list[dict[str, str]], list[dict[str, str]], list[dic
     evidence = read_tsv(EVIDENCE)
     transitions = read_tsv(TRANSITIONS)
     validate(cells, evidence, transitions)
+    validate_live_prose_contracts(cells, evidence)
     return cells, evidence, transitions
 
 

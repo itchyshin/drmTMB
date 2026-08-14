@@ -186,11 +186,11 @@ model for each supported predictor-family route.
 
 ## Relation to gllvmTMB and glmmTMB
 
-The sibling `gllvmTMB` missing-data layer uses the same vocabulary:
-`miss_control()`, `mi()`, `impute`, `fit$missing_data`, and `imputed()` for
-predictors. `gllvmTMB` adds `predict_missing()` for masked responses; in
-`drmTMB` that information comes from `fitted()`, `residuals()`, and
-`fit$missing_data`. The `gllvmTMB` multivariate trait engine needs
+The sibling `gllvmTMB` missing-data layer uses related vocabulary:
+`miss_control()`, `mi()`, `impute`, and `imputed()` for predictors.
+`gllvmTMB` adds `predict_missing()` for masked responses; in `drmTMB`, inspect
+masked-response rows with `fitted()` and `residuals()`. The `gllvmTMB`
+multivariate trait engine needs
 per-unit products across trait rows, so its missing-predictor implementation is
 not a drop-in copy of the scalar `drmTMB` route. The shared contract is the
 important part: missing responses are masked or marginalised, missing
@@ -1006,26 +1006,6 @@ coordinate `spatial()`, `animal()`, or `relmat()` covariate field. It does not
 automatically inherit structure from the response model. That explicitness is
 intentional: a model for a missing trait is a scientific model for the trait,
 not just a technical patch for a response regression.
-
-## Inspect the missing-data metadata
-
-Every fitted route records a `fit$missing_data` object. The most useful fields
-are:
-
-| Field | Meaning |
-| --- | --- |
-| `version` | The fitted implementation slice, such as `"MD1"`, `"MD2"`, `"MD3a"`, `"MD3b"`, `"MD4"`, `"MD6a"`, `"MD6b"`, `"MD6c"`, `"MD7a"`, `"MD7b"`, `"MD7c"`, `"MD7d"`, `"MD7e"`, `"MD7f"`, `"MD8a"`, `"MD8b"`, `"MD8c"`, `"MD9a"` (Poisson-response `mi()`), `"MD-binomial-mi"`, `"MD-nbinom2-mi"`, or `"MD-beta-mi"`. |
-| `response_policy` | Whether response rows were dropped or included. |
-| `predictor_policy` | Whether missing predictors fail or are modelled. |
-| `original_row` | Row indices in the user's original data. |
-| `model_row` | Row indices in the retained model frame. |
-| `observed_y` | Logical response mask for univariate fits, or a two-column mask for bivariate fits. |
-| `counts` | Retained rows, observed responses, missing responses, and likelihood-contributing rows. |
-| `predictors` | Metadata and fitted values for explicitly modelled `mi()` predictors. |
-
-For ordinary user work, prefer `nobs()`, `fitted()`, `residuals()`, and
-`imputed()` over hand-parsing internals. The metadata is there so row
-accounting stays auditable.
 
 ## Current boundaries
 

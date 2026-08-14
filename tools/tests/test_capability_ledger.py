@@ -1078,6 +1078,63 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("capability-ledger: OK", result.stdout)
 
+    def test_live_prose_contract_fails_when_the_executable_g5_policy_drifts(self):
+        original = ledger.active_g5_policy_version
+        try:
+            ledger.active_g5_policy_version = lambda: "mr-g5-calibration-v3"
+            with self.assertRaisesRegex(SystemExit, "G5 policy drifted"):
+                ledger.validate_live_prose_contracts(self.cells, self.evidence)
+        finally:
+            ledger.active_g5_policy_version = original
+
+    def test_live_prose_contract_rejects_retired_all_1200_predicate(self):
+        cells = copy.deepcopy(self.cells)
+        beta = next(row for row in cells if row["cell_id"] == "mr-beta")
+        beta["claim_boundary"] += " The all-1200 interval-usability rule applies."
+        with self.assertRaisesRegex(SystemExit, "retired predicate"):
+            ledger.validate_live_prose_contracts(cells, self.evidence)
+
+    def test_live_prose_contract_rejects_referenced_route_state_drift(self):
+        cells = copy.deepcopy(self.cells)
+        beta = next(row for row in cells if row["cell_id"] == "mr-beta")
+        beta["test_gate"] = "G3"
+        with self.assertRaisesRegex(SystemExit, "referenced route state drifted"):
+            ledger.validate_live_prose_contracts(cells, self.evidence)
+
+    def test_live_prose_contract_binds_beta_to_its_own_generated_summary(self):
+        generated = ledger.outputs(self.cells, self.evidence)
+        artifact = ROOT / "vignettes/includes/capability-ledger-family-map.md"
+        beta_summary = ledger.missing_route_g4g5_summary("beta").encode("utf-8")
+        self.assertIn(beta_summary, generated[artifact])
+        generated[artifact] = generated[artifact].replace(beta_summary, b"CORRUPTED BETA")
+        # Tweedie and skew-normal retain their own threshold-free wording, but
+        # they cannot mask a missing beta summary in its named reader artifact.
+        self.assertIn(
+            ledger.missing_route_g4g5_summary("tweedie").encode("utf-8"),
+            generated[artifact],
+        )
+        with self.assertRaisesRegex(SystemExit, "generated reader surfaces lost"):
+            ledger.validate_live_prose_contracts(self.cells, self.evidence, generated)
+
+    def test_live_prose_contract_rejects_summary_helper_policy_regression(self):
+        original = ledger.MISSING_G5_ROUTE_SUMMARIES["beta"]
+        try:
+            ledger.MISSING_G5_ROUTE_SUMMARIES["beta"] = "G5: 15/15 cells pass"
+            generated = ledger.outputs(self.cells, self.evidence)
+            with self.assertRaisesRegex(SystemExit, "generated reader surfaces lost"):
+                ledger.validate_live_prose_contracts(self.cells, self.evidence, generated)
+        finally:
+            ledger.MISSING_G5_ROUTE_SUMMARIES["beta"] = original
+
+    def test_live_prose_contract_excludes_historical_phrases(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            historical = Path(temporary) / "2025-old-panel.md"
+            historical.write_text("the all-1200 interval-usability rule", encoding="utf-8")
+            self.assertTrue(historical.exists())
+            # The contract reads only the current TSV fields plus freshly rendered
+            # outputs, so an old log cannot rewrite the live reader contract.
+            ledger.validate_live_prose_contracts(self.cells, self.evidence)
+
     def test_reader_navigation_redirect_and_public_language_contract(self):
         config = (ROOT / "_pkgdown.yml").read_text()
         self.assertIn(

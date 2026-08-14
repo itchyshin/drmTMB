@@ -21,20 +21,35 @@ test_that("the ten native reader journeys complete their generic post-fit smoke"
   expect_true(all(results$fit == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$diagnostics == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$report_output == "pass"), info = paste(results$first_blocker, collapse = "\n"))
+  expect_true(all(results$unsupported_response == "pass"), info = paste(results$first_blocker, collapse = "\n"))
+  expect_true(all(grepl(
+    "^Unknown confidence-interval target:",
+    results$unsupported_message
+  )))
+  expect_setequal(
+    results$unsupported_request,
+    paste0("profile target unsupported:", results$workflow)
+  )
   expect_true(all(grepl("generic post-fit smoke", results$report_artifact, fixed = TRUE)))
 })
 
-test_that("the reader audit does not call warning diagnostics a pass", {
-  audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
-  skip_if_not(file.exists(audit_path), "The development audit script is not installed with drmTMB")
-  audit_lines <- readLines(audit_path)
-  first_workflow <- grep("^results <- list", audit_lines)[1L]
-  audit_env <- new.env(parent = globalenv())
-  eval(parse(text = audit_lines[seq_len(first_workflow - 1L)]), envir = audit_env)
-  warning_diagnostic <- structure(data.frame(status = "warning"), ok = FALSE)
-  expect_false(audit_env$reader_diagnostic_pass(list(ok = TRUE, value = warning_diagnostic)))
-  expect_false(audit_env$reader_diagnostic_pass(list(ok = FALSE, value = warning_diagnostic)))
-  expect_true(audit_env$reader_diagnostic_pass(list(ok = TRUE, value = structure(data.frame(status = "ok"), ok = TRUE))))
+test_that("check_drm() makes a boundary warning visible to reader workflows", {
+  set.seed(20260813)
+  n <- 60L
+  dat <- data.frame(x = seq(-1, 1, length.out = n))
+  shared_error <- stats::rnorm(n)
+  dat$y1 <- 0.4 * dat$x + shared_error + stats::rnorm(n, sd = .15)
+  dat$y2 <- -0.3 * dat$x + shared_error + stats::rnorm(n, sd = .15)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = c(gaussian(), gaussian()), data = dat
+  )
+
+  diagnostic <- check_drm(fit, rho_boundary = 1e-6)
+  rho_row <- diagnostic[diagnostic$check == "rho12_boundary", , drop = FALSE]
+  expect_s3_class(diagnostic, "drm_check")
+  expect_identical(rho_row$status, "warning")
+  expect_false(isTRUE(attr(diagnostic, "ok")))
 })
 
 test_that("ordinal probabilities are response-scale probabilities, not raw thresholds", {
@@ -137,4 +152,10 @@ test_that("fitted means are not silently substituted with lognormal mu predictio
   response_mean <- fitted(fit)
   expect_false(isTRUE(all.equal(mu, response_mean)))
   expect_equal(response_mean, exp(predict(fit, dpar = "mu", type = "link") + .5 * sigma(fit)^2))
+})
+
+test_that("reader vignettes do not depend on private missing-data slots", {
+  vignette_files <- list.files("vignettes", pattern = "\\.Rmd$", full.names = TRUE)
+  vignette_text <- unlist(lapply(vignette_files, readLines, warn = FALSE), use.names = FALSE)
+  expect_false(any(grepl("fit$missing_data", vignette_text, fixed = TRUE)))
 })
