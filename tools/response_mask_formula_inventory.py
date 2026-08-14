@@ -1964,6 +1964,51 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
+    "mc-0435": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional Poisson TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-DGP "
+            "recovery, validate the exact Poisson ML formula `poisson_phylo ~ x + phylo(1 + x | site, "
+            "tree = tree)`. The larger non-Gaussian fixture has 128 tips, 64 observations per tip, "
+            "one masked response per tip, and independent phylogenetic intercept and slope fields. It "
+            "checks fixed effects and both phylogenetic SDs. It does not promote q1 intercept-only, "
+            "labelled q2 correlation, other providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
+    },
+    "mc-0448": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional Poisson TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-DGP "
+            "recovery, validate the exact Poisson ML formula `poisson_known ~ x + animal(1 + x | id, "
+            "Ainv = Q)`. The larger non-Gaussian fixture has 128 IDs, 64 observations per ID, one "
+            "masked response per ID, and independent animal intercept and slope fields. It checks fixed "
+            "effects and both animal SDs. It does not promote q1 intercept-only, labelled q2 correlation, "
+            "other providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
+    },
+    "mc-0452": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional Poisson TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-DGP "
+            "recovery, validate the exact Poisson ML formula `poisson_known ~ x + relmat(1 + x | id, "
+            "Q = Q)`. The larger non-Gaussian fixture has 128 IDs, 64 observations per ID, one masked "
+            "response per ID, and independent relatedness intercept and slope fields. It checks fixed "
+            "effects and both relatedness SDs. It does not promote q1 intercept-only, labelled q2 correlation, "
+            "other providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
+    },
 }
 
 

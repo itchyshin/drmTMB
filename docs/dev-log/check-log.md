@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — Poisson phylogenetic, animal, and relatedness q1-slope response-mask recovery
+
+- `rmf-mc-0435`, `rmf-mc-0448`, and `rmf-mc-0452` are now G3 for,
+  respectively, unlabelled `phylo(1 + x | site)`, `animal(1 + x | id)`, and
+  `relmat(1 + x | id)` location formulas. Each non-Gaussian fixture has 128
+  groups, 64 observations per group, and one masked response per group; the
+  three providers use separate seeds.
+- G2 uses the conditional Poisson likelihood plus provider precision oracle and
+  numerical gradients; direct count-sentinel retapes and observed-row fit
+  equality also pass. G3 recovers fixed location and the independent intercept
+  and slope SDs. These results do not certify intercept-only q1, labelled q2
+  correlation, another provider, REML, missing predictors, intervals, or coverage.
+- Check: isolated three-provider response-mask test (66 successes), response-
+  mask inventory generation, capability-ledger drift check, and
+  `git diff --check` passed.
+
 ## 2026-08-14 — NB2 phylogenetic-interaction log-sigma response-mask recovery
 
 - `rmf-mc-0425` is now G3 for the exact ML formula
