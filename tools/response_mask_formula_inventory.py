@@ -397,6 +397,37 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining relmat geometry.",
     },
+    "mc-0309": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for fixed mu coefficients, the relmat "
+            "mu SD, residual sigma, and likelihood, plus direct continuous-response sentinel "
+            "retapes, and G3 deterministic 25% MCAR known-DGP recovery validate the univariate "
+            "Gaussian unlabelled q1 relmat mu intercept ML response-mask formula `y ~ x + "
+            "relmat(1 | id, K = K), sigma ~ 1`. The recovery fixture has 64 related IDs and "
+            "20 observations per ID. It does not promote a relmat slope or q2 block, sigma-side "
+            "relmat effects, Q representations, another provider, bivariate, REML, interval/"
+            "coverage, or missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining relmat geometry.",
+    },
+    "mc-0310": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for fixed mu coefficients, both relmat "
+            "mu SDs, residual sigma, and likelihood, plus direct continuous-response sentinel "
+            "retapes, and G3 deterministic 25% MCAR known-DGP recovery validate the univariate "
+            "Gaussian unlabelled q1 relmat mu intercept-plus-slope ML response-mask formula "
+            "`y ~ x + relmat(1 + x | id, K = K), sigma ~ 1`. The recovery fixture has 80 "
+            "related IDs and 20 observations per ID; the fixed-effect tolerance reflects one "
+            "realized correlated relmat field. It does not promote a labelled/q2 block, sigma-"
+            "side relmat effects, Q representations, another provider, bivariate, REML, "
+            "interval/coverage, or missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining relmat geometry.",
+    },
     "mc-0313": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

@@ -94276,6 +94276,20 @@ can see which commit each one actually examined.
   representations, another provider, bivariate or REML formulas,
   interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Gaussian relmat mu response masks
+
+- `mc-0309` and `mc-0310` are now `formula_validated` at G3 for `y ~ x +
+  relmat(1 | id, K = K), sigma ~ 1` and `y ~ x + relmat(1 + x | id, K = K),
+  sigma ~ 1`, respectively. Each missing-response fit agrees with its
+  observed-response fit in fixed mu and sigma coefficients, named relmat mu
+  SDs, likelihood, and `nobs()`; continuous sentinels are inert. Deterministic
+  25% MCAR DGPs with 64 or 80 related IDs and 20 observations per ID recover the
+  fitted parameter blocks.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote q2 blocks, sigma-side relmat effects, Q
+  representations, another provider, bivariate or REML formulas,
+  interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one
