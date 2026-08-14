@@ -93435,7 +93435,7 @@ can see which commit each one actually examined.
   under the approved post-0.7 boundary. The exact source-tarball
   `R CMD check --as-cran` completed with 0 errors, 0 warnings, and one expected
   new-submission NOTE; receipt:
-  `/private/tmp/drmtmb-native-reader-check-final2-20260814/drmTMB.Rcheck/00check.log`.
+  `/private/tmp/drmtmb-native-reader-check-final4-20260814/drmTMB.Rcheck/00check.log`.
 - PR #1027's repaired head `c1a756ee9` passed both required checks in GitHub
   run `31813020416` and is clean and mergeable. The stacked scientific-journey
   repair is `ba431b0b3`. The five protected files retain their lane-receipt

@@ -75,7 +75,7 @@ public extraction and documentation, not model mathematics.
 - `pkgdown::check_pkgdown()` reported `No problems found`.
 - Exact source build followed by `R CMD check --as-cran`: 0 errors, 0 warnings,
   and one expected new-submission NOTE. Receipt:
-  `/private/tmp/drmtmb-native-reader-check-final2-20260814/drmTMB.Rcheck/00check.log`.
+  `/private/tmp/drmtmb-native-reader-check-final4-20260814/drmTMB.Rcheck/00check.log`.
 - Complete native `devtools::test()` suite: exit 0 with no failures. It retained
   70 expected condition/deprecation warnings and 26 explicit skips; Julia
   engine paths were deliberately unavailable under the approved post-0.7
