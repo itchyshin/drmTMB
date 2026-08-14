@@ -682,6 +682,20 @@ FORMULA_EVIDENCE = {
         "claim_boundary": "G2 observed-data equality and sentinel retapes, plus G3 deterministic MCAR recovery, validate zero-one-beta sigma independent random slopes with fixed mu, zoi, and coi formulas. This does not promote sigma intercepts beyond their separate cell, other random effects, structured effects, REML, or missing predictors.",
         "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
     },
+    "mc-0510": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case parameter and likelihood equality, plus direct "
+            "positive-count response-sentinel retapes, and G3 deterministic 25% MCAR known-"
+            "DGP recovery validate the truncated-NB2 univariate ordinary mu random-intercept "
+            "ML response-mask formula `(1 | id)` with fixed sigma regression. The check covers "
+            "fixed mu and sigma coefficients, the mu random-intercept SD, and conditional "
+            "random-effect recovery. It does not promote slopes, correlated or structured "
+            "effects, REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining truncated-NB2 geometry.",
+    },
 }
 
 

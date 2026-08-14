@@ -143,9 +143,19 @@ test_that("MR-T5 recovers every fitted parameter with 25 percent MCAR", {
     missing = miss_control(response = "include"),
     se = TRUE
   )
+  observed <- !is.na(dat$count)
+  fit_observed <- mr_t5_fit(
+    dat[observed, , drop = FALSE], random = TRUE, se = FALSE
+  )
 
   expect_equal(mean(is.na(dat$count)), 0.25)
   expect_equal(fit$opt$convergence, 0L)
+  expect_equal(coef(fit, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit), sum(observed))
+  expect_missing_response_sentinel_invariant(fit, sentinels = c(1, 7))
   expect_lt(max(abs(unname(coef(fit, "mu")) - sim$truth$mu)), 0.25)
   expect_lt(max(abs(unname(coef(fit, "sigma")) - sim$truth$sigma)), 0.35)
   expect_lt(abs(unname(fit$sdpars$mu[["(1 | id)"]]) - sim$truth$sd_id), 0.25)
