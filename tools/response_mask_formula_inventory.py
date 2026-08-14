@@ -172,6 +172,23 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining phylo geometry.",
     },
+    "mc-0273": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 masked-versus-observed-data equality for all fixed mu coefficients, both "
+            "phylogenetic mu SDs, residual sigma, and likelihood, plus direct continuous-"
+            "response sentinel retapes, and G3 deterministic 25% MCAR known-DGP recovery "
+            "validate the univariate Gaussian unlabelled q1 phylo mu intercept-plus-slope "
+            "ML response-mask formula `phylo(1 + x | species, tree = tree)`. The recovery "
+            "fixture has 64 tips and 12 observations per tip; fixed-effect tolerance is "
+            "wider than an independent-group design because it shares one correlated "
+            "phylogenetic field. It does not promote a labelled or q2 block, sigma-side "
+            "phylo effects, another provider, bivariate, REML, intervals/coverage, or "
+            "missing-predictor formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining phylo geometry.",
+    },
     "mc-0264": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

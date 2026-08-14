@@ -2460,3 +2460,40 @@ test_that("Gaussian mu supports one-slope phylogenetic fields", {
   expect_match(phylo_check$value, "min_phylo_sd=", fixed = TRUE)
   expect_match(phylo_check$value, "min_sd_ratio=", fixed = TRUE)
 })
+
+test_that("Gaussian phylogenetic mu slope masks match observed data", {
+  sim <- new_phylo_gaussian_slope_data(
+    seed = 2026081603L, n_tip = 64L, n_each = 12L
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081604L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ 1)
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    stats::sigma(fit_mask)[[1L]], stats::sigma(fit_observed)[[1L]], tolerance = 1e-5
+  )
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(
+    max(abs(unname(fit_mask$sdpars$mu) - c(sim$sd_intercept, sim$sd_slope))),
+    0.30
+  )
+  expect_lt(abs(stats::sigma(fit_mask)[[1L]] - sim$sigma), 0.10)
+})

@@ -94024,3 +94024,18 @@ can see which commit each one actually examined.
   generated-ledger drift check, and `git diff --check` passed. This does not
   promote correlated or structured effects, other skew-normal geometries,
   REML, another family, or missing predictors.
+
+## 2026-08-14 — Gaussian phylogenetic mu slope response mask
+
+- `mc-0273` is now `formula_validated` at G3 for `y ~ x +
+  phylo(1 + x | species, tree = tree), sigma ~ 1`. Masked and observed-data
+  fits agree in fixed mu, both phylogenetic SDs, residual sigma, and likelihood;
+  continuous sentinels are inert. A deterministic 25% MCAR DGP with 64 tips
+  and 12 observations per tip recovers the fitted parameter blocks. The
+  fixed-effect bound is set for one correlated phylogenetic field rather than
+  independent groups.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "phylo-gaussian")` passed;
+  inventory generation, generated-ledger drift check, and `git diff --check`
+  passed. This does not promote labelled/q2 blocks, sigma-side phylogenetic
+  effects, another provider, bivariate or REML formulas, interval/coverage
+  evidence, or missing predictors.
