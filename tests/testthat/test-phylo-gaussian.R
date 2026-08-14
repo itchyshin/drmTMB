@@ -170,6 +170,48 @@ new_sigma_only_phylo_gaussian_slope_data <- function(
   )
 }
 
+new_phylo_location_scale_gaussian_slope_data <- function(
+  seed = 2026081611L,
+  n_tip = 64L,
+  n_each = 20L,
+  beta_mu = c(`(Intercept)` = 0.35, x = -0.20),
+  beta_sigma = c(`(Intercept)` = -1.05),
+  sd_mu = c(`(Intercept)` = 0.30, x = 0.18),
+  sd_sigma = c(`(Intercept)` = 0.24, x = 0.15)
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  draw_phylo_field <- function(sd) {
+    as.vector(t(chol(A)) %*% stats::rnorm(n_tip, sd = sd))
+  }
+  phylo_mu_intercept <- draw_phylo_field(sd_mu[["(Intercept)"]])
+  phylo_mu_slope <- draw_phylo_field(sd_mu[["x"]])
+  phylo_sigma_intercept <- draw_phylo_field(sd_sigma[["(Intercept)"]])
+  phylo_sigma_slope <- draw_phylo_field(sd_sigma[["x"]])
+  names(phylo_mu_intercept) <- tree$tip.label
+  names(phylo_mu_slope) <- tree$tip.label
+  names(phylo_sigma_intercept) <- tree$tip.label
+  names(phylo_sigma_slope) <- tree$tip.label
+
+  species <- rep(tree$tip.label, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_tip)
+  mu <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x +
+    phylo_mu_intercept[species] + phylo_mu_slope[species] * x
+  log_sigma <- beta_sigma[["(Intercept)"]] +
+    phylo_sigma_intercept[species] + phylo_sigma_slope[species] * x
+  y <- mu + exp(log_sigma) * stats::rnorm(length(species))
+
+  list(
+    data = data.frame(y = unname(y), x = x, species = species),
+    tree = tree,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu = sd_mu,
+    sd_sigma = sd_sigma
+  )
+}
+
 new_phylo_gaussian_slope_data <- function(
   seed = 20260573,
   n_tip = 16L,
@@ -2506,6 +2548,50 @@ test_that("Gaussian supports matched one-slope phylogenetic location-scale field
   expect_equal(matched_targets$target_type, rep("direct", 4L))
   expect_true(all(matched_targets$profile_ready))
   expect_true(is.finite(as.numeric(stats::logLik(fit))))
+})
+
+test_that("Gaussian matched one-slope phylogenetic location-scale masks match observed data", {
+  sim <- new_phylo_location_scale_gaussian_slope_data()
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081612L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + phylo(1 + x | species, tree = tree),
+    sigma ~ phylo(1 + x | species, tree = tree)
+  )
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.40)
+  expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma))), 0.30)
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$mu) / unname(sim$sd_mu)))),
+    log(2.5)
+  )
+  expect_lt(
+    max(abs(log(unname(fit_mask$sdpars$sigma) / unname(sim$sd_sigma)))),
+    log(2.5)
+  )
 })
 
 test_that("Gaussian mu supports one-slope phylogenetic fields", {

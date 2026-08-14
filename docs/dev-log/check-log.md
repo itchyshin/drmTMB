@@ -94080,3 +94080,18 @@ can see which commit each one actually examined.
   passed. This does not promote either endpoint alone, slopes, q4+, another
   provider, bivariate or REML formulas, interval/coverage evidence, or missing
   predictors.
+
+## 2026-08-14 — paired Gaussian phylogenetic location-scale one-slope response mask
+
+- `mc-0280` and `mc-0281` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + phylo(1 + x | species, tree = tree), sigma ~
+  phylo(1 + x | species, tree = tree)`. The missing-response fit agrees with
+  the observed-response fit in fixed mu and sigma coefficients, the four named
+  phylogenetic SDs, likelihood, and `nobs()`; continuous sentinels are inert.
+  A deterministic 25% MCAR DGP with 64 tips and 20 observations per tip has a
+  separate mu intercept, mu slope, sigma intercept, and sigma slope field, and
+  recovers all four fitted SD targets.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "phylo-gaussian")` passed.
+  This does not promote an endpoint alone, a labelled/correlated or q4+ block,
+  another provider, bivariate or REML formulas, interval/coverage evidence, or
+  missing predictors.
