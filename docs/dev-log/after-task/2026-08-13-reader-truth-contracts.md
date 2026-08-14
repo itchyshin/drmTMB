@@ -13,6 +13,8 @@ sentinel, and reset pattern now return a `profile_failed` row with missing
 endpoints, `profile.boundary = TRUE`, and
 `profile.message = "tmbprofile_bracket_overflow"`. The result applies both to
 ordinary target profiles and response profiles at supplied `newdata`.
+The invalid trace's objective and likelihood-ratio columns are missing, and
+`plot()` refuses to draw a profile with no valid curve.
 
 The capability-ledger generator now reads a keyed live-prose sidecar for the
 three threshold-free missing-response G5 routes. It verifies the current
@@ -50,7 +52,8 @@ true.
 ## Tests Of The Tests
 
 The profile tests construct the sentinel signature, a flat trace, an ordinary
-lower basin, and a nonmonotone-above-fit trace. Only the sentinel fails closed.
+lower basin, and a nonmonotone-above-fit trace. Only the sentinel fails closed,
+with no objective, likelihood-ratio, or plottable curve retained.
 The ledger tests independently remove a named route row and mutate a helper's
 wording; the generated contract then fails. The reader diagnostic test fits a
 real bivariate model and proves that `attr(check_drm(fit), "ok")` becomes

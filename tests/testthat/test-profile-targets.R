@@ -3379,6 +3379,15 @@ test_that("tmbprofile bracket-overflow sentinels fail closed before extraction (
     unique(curve$profile.message),
     "tmbprofile_bracket_overflow"
   )
+  expect_true(all(is.na(curve[c(
+    "objective", "delta_objective", "delta_deviance"
+  )])))
+  class(curve) <- c("profile.drmTMB", class(curve))
+  attr(curve, "level") <- 0.95
+  expect_error(
+    plot(curve),
+    "no valid likelihood-ratio curve to plot"
+  )
 })
 
 test_that("newdata profiles fail closed on a tmbprofile bracket-overflow sentinel (#1010)", {

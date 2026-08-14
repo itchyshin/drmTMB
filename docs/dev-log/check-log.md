@@ -93393,7 +93393,9 @@ can see which commit each one actually examined.
   sentinel, and reset signature now returns an explicitly failed profile row
   rather than attempting to extract corrupted endpoints. The contract applies
   to direct, curve, and supplied-`newdata` profile paths and records
-  `tmbprofile_bracket_overflow` for the reader.
+  `tmbprofile_bracket_overflow` for the reader. The invalid curve has missing
+  objective/deviance values, and `plot()` refuses it rather than displaying
+  fabricated likelihood evidence.
 - The capability-ledger generator now validates a keyed sidecar for the three
   threshold-free missing-response G5 routes. It checks the current gate policy,
   route state, retired predicate absence, and required wording on each route's

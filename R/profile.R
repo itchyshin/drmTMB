@@ -903,6 +903,15 @@ plot.profile.drmTMB <- function(x, interval = TRUE, ...) {
   ]
 
   data <- x
+  if (!any(is.finite(data$delta_deviance))) {
+    messages <- unique(data$profile.message[!is.na(data$profile.message)])
+    cli::cli_abort(c(
+      "This profile has no valid likelihood-ratio curve to plot.",
+      i = if (length(messages) > 0L) {
+        paste0("Profile status: ", paste(messages, collapse = "; "), ".")
+      }
+    ))
+  }
   data$.drmTMB_profile_parm <- data$parm
   estimates$.drmTMB_profile_parm <- estimates$parm
   intervals$.drmTMB_profile_parm <- intervals$parm
@@ -1047,12 +1056,20 @@ drm_profile_curve <- function(
   }
   profile_value_link <- profile_data[[value_column]]
   objective <- profile_data$value
-  delta_objective <- objective - min(objective, na.rm = TRUE)
   clamp_trace <- drm_profile_direct_sd_clamp_trace(object, prof)
   bracket_overflow <- drm_tmbprofile_bracket_overflow(
     prof,
     baseline = unname(object$opt$objective)
   )
+  # A bracket-overflow trace is not an approximate profile: one fabricated
+  # objective value sets an invalid minimum. Suppress the whole curve so
+  # downstream plotting cannot make it look like likelihood evidence.
+  if (bracket_overflow) {
+    objective[] <- NA_real_
+    delta_objective <- rep(NA_real_, length(objective))
+  } else {
+    delta_objective <- objective - min(objective, na.rm = TRUE)
+  }
   ci <- if (!bracket_overflow) {
     tryCatch(
       drm_tmbprofile_confint(prof, target_name = target$parm, level = level),
