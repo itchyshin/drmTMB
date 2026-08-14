@@ -94095,3 +94095,16 @@ can see which commit each one actually examined.
   This does not promote an endpoint alone, a labelled/correlated or q4+ block,
   another provider, bivariate or REML formulas, interval/coverage evidence, or
   missing predictors.
+
+## 2026-08-14 — Gaussian spatial sigma-intercept response mask
+
+- `mc-0288` is now `formula_validated` at G3 for `y ~ x, sigma ~ spatial(1 |
+  site, coords = coords)`. The missing-response fit agrees with the
+  observed-response fit in fixed mu and sigma coefficients, spatial sigma SD,
+  likelihood, and `nobs()`; continuous sentinels are inert. A deterministic
+  25% MCAR DGP with 64 sites and 20 observations per site recovers these fitted
+  parameter blocks.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-spatial-gaussian.R")`
+  passed. This does not promote spatial slopes/q2 blocks, mu-side spatial
+  effects, another provider, bivariate or REML formulas, interval/coverage
+  evidence, or missing predictors.
