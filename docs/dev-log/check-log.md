@@ -94957,6 +94957,19 @@ can see which commit each one actually examined.
   promote a `mu` formula, another provider or endpoint, labelled/correlated
   blocks, REML, interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Hurdle-NB2 relmat hurdle response mask
+
+- `mc-0364` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1, hu ~
+  relmat(1 | id, Q = Q)`. The test compares a direct observed-data hurdle-NB2
+  objective and numerical gradient with the TMB objective, checks count
+  response sentinels, and verifies equality of masked and observed-only fits.
+  A deterministic 80-ID, 30-observation-per-ID fixture recovers fixed mean,
+  scale, hurdle probability, and the relmat hurdle SD.
+- Check: `test-hurdle-nbinom2-relmat-response-mask.R` passed (24
+  expectations). This does not promote another mixture/hurdle endpoint or
+  provider, a slope, labelled/correlated blocks, REML, interval/coverage
+  evidence, or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one

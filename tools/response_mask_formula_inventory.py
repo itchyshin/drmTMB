@@ -372,6 +372,22 @@ EXPLICIT_MODEL_CELL_IDS = frozenset(
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
+    "mc-0364": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct hurdle-NB2 observed-data objective and numerical-gradient "
+            "equality, direct count-sentinel retapes, and masked-versus-observed fit "
+            "equality validate `y ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q)`. "
+            "G3 uses a deterministic 80-ID, 30-observation-per-ID fixture to recover "
+            "fixed log-mean, constant log-scale, fixed hurdle probability, and the "
+            "relmat hurdle SD. This is not a mu-side structured effect, another hurdle "
+            "provider, a slope, a labelled or correlated block, REML, interval or "
+            "coverage evidence, or missing-predictor support."
+        ),
+        "next_gate": "Validate each remaining hurdle or mixture formula separately; do not use this hu evidence for another endpoint.",
+    },
     "mc-0493": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
