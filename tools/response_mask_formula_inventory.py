@@ -57,6 +57,23 @@ EXPLICIT_BOUNDARIES = (
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
+    **{
+        cell_id: {
+            "formula_status": "formula_oracle_validated",
+            "formula_mask_gate": "G2",
+            "claim_boundary": (
+                "G2 observed-data dense restricted-likelihood equality and direct "
+                "sentinel retapes validate this univariate Gaussian unlabelled q1 "
+                "structured mu random-intercept REML response-mask formula. The "
+                "single-draw structured fixture was not stable enough for a G3 "
+                "recovery claim, so this row does not promote recovery, intervals, "
+                "coverage, another provider, another structured geometry, bivariate, "
+                "non-Gaussian, or missing-predictor REML formulas."
+            ),
+            "next_gate": "Measure and approve a stable structured known-DGP recovery design before G3 promotion.",
+        }
+        for cell_id in ("mc-0287", "mc-0299", "mc-0311")
+    },
     "mc-0272": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

@@ -50,6 +50,14 @@ class TestResponseMaskFormulaInventory(unittest.TestCase):
             for row in inventory
         ))
 
+    def test_named_structured_reml_cells_record_oracle_without_recovery(self):
+        cells = MODULE.read_tsv(MODULE.CELLS)
+        inventory = MODULE.build(cells)
+        for cell_id in ("mc-0287", "mc-0299", "mc-0311"):
+            row = next(row for row in inventory if row["model_cell_id"] == cell_id)
+            self.assertEqual(row["formula_status"], "formula_oracle_validated")
+            self.assertEqual(row["formula_mask_gate"], "G2")
+
 
 if __name__ == "__main__":
     unittest.main()

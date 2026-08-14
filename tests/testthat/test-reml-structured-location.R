@@ -150,12 +150,18 @@ arc1a_formula <- function(fixture, representation = "canonical") {
   stop("Unknown Arc 1a provider", call. = FALSE)
 }
 
-arc1a_fit <- function(fixture, representation = "canonical", REML = TRUE) {
+arc1a_fit <- function(
+  fixture,
+  representation = "canonical",
+  REML = TRUE,
+  missing = miss_control()
+) {
   drmTMB(
     arc1a_formula(fixture, representation),
     family = gaussian(),
     data = fixture$data,
     REML = REML,
+    missing = missing,
     control = drm_control(optimizer_preset = "robust")
   )
 }
@@ -300,6 +306,46 @@ test_that("Arc 1a REML providers match an independent restricted likelihood", {
         )
       }
     }
+  }
+})
+
+test_that("Arc 1a REML q1 provider response masks match observed-data oracles", {
+  skip_on_cran()
+  skip_fragile_recovery()
+
+  for (provider in c("spatial", "animal", "relmat")) {
+    fixture <- arc1a_provider_fixture(
+      provider,
+      shape = "intercept",
+      g = 32L,
+      n_each = 8L,
+      seed = 2026081408L
+    )
+    masked_fixture <- fixture
+    masked_fixture$data <- missing_response_mask_mcar_within_group(
+      fixture$data, "y", "id", seed = 2026081409L
+    )
+    observed <- !is.na(masked_fixture$data$y)
+    observed_fixture <- fixture
+    observed_fixture$data <- fixture$data[observed, , drop = FALSE]
+    observed_fixture$X <- fixture$X[observed, , drop = FALSE]
+    observed_fixture$Z <- fixture$Z[observed, , drop = FALSE]
+    observed_fixture$designs <- lapply(
+      fixture$designs,
+      function(design) design[observed, , drop = FALSE]
+    )
+    fit <- suppressWarnings(arc1a_fit(
+      masked_fixture,
+      missing = miss_control(response = "include")
+    ))
+    reference <- arc1a_reml_reference(observed_fixture)
+    info <- paste(provider, "q1 response mask")
+
+    expect_equal(as.numeric(fit$sdpars$mu), reference$sd, tolerance = 3e-2, info = info)
+    expect_equal(exp(as.numeric(fit$par$sigma)), reference$sigma, tolerance = 3e-2, info = info)
+    expect_equal(as.numeric(fit$par$mu), reference$beta, tolerance = 3e-2, info = info)
+    expect_equal(nobs(fit), sum(observed), info = info)
+    expect_missing_response_sentinel_invariant(fit, sentinels = c(-1e6, 1e6))
   }
 })
 

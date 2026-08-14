@@ -93508,3 +93508,17 @@ can see which commit each one actually examined.
   tests and generated-ledger drift check passed; `git diff --check` passed.
   This does not promote the phylo slope/q2/scale-side, other-provider,
   bivariate, non-Gaussian, or missing-predictor ML cells.
+
+## 2026-08-14 — q1 spatial, animal, and relmat REML response-mask oracles
+
+- `mc-0287`, `mc-0299`, and `mc-0311` now record G2, not G3: their respective
+  spatial, animal, and relmat unlabelled q1 mean-side REML formulas agree with
+  independent observed-data dense restricted-likelihood oracles after 25% MCAR
+  response masking. Direct sentinel retapes leave each objective, gradient, and
+  reoptimised solution invariant.
+- The first structured fixture was intentionally withheld from recovery
+  promotion: its single latent-field draw did not meet a stable, predeclared G3
+  recovery gate. A subsequent structured recovery design must be measured before
+  these cells become `formula_validated`.
+- Check: `NOT_CRAN=true` `test-reml-structured-location.R` passed; inventory
+  unit tests and generated-ledger drift check passed; `git diff --check` passed.
