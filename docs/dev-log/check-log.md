@@ -94151,3 +94151,16 @@ can see which commit each one actually examined.
   passed. This does not promote animal slopes/q2 blocks, mu-side animal effects,
   pedigree/Ainv representations, another provider, bivariate or REML formulas,
   interval/coverage evidence, or missing predictors.
+
+## 2026-08-14 — Gaussian animal sigma-slope response mask
+
+- `mc-0301` is now `formula_validated` at G3 for `y ~ x, sigma ~ animal(1 +
+  x | id, A = A)`. The missing-response fit agrees with the observed-response
+  fit in fixed mu and sigma coefficients, both animal sigma SDs, likelihood,
+  and `nobs()`; continuous sentinels are inert. A deterministic 25% MCAR DGP
+  with 64 related IDs and 20 observations per ID recovers these fitted parameter
+  blocks.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote labelled/q2 blocks, mu-side animal effects,
+  pedigree/Ainv representations, another provider, bivariate or REML formulas,
+  interval/coverage evidence, or missing predictors.
