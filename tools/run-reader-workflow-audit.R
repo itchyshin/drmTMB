@@ -57,6 +57,7 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
       fit = "fail", diagnostics = "not_run", report_output = "not_run", limitation = limitation,
       unsupported_request = paste0("profile target unsupported:", id),
       unsupported_response = "not_run",
+      unsupported_message = "",
       seconds = round(proc.time()[["elapsed"]] - started, 2),
       fit_warnings = "", first_blocker = fitted$message, stringsAsFactors = FALSE
     ))
@@ -80,7 +81,11 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
     parm = unsupported_request,
     method = "profile"
   ))
-  unsupported_pass <- !isTRUE(unsupported$ok)
+  unsupported_message <- gsub("[[:cntrl:]]+", " ", unsupported$message)
+  unsupported_pass <- !isTRUE(unsupported$ok) && grepl(
+    "^Unknown confidence-interval target:",
+    unsupported_message
+  )
 
   blocker <- ""
   fit_warnings <- paste(fitted$warnings, collapse = " | ")
@@ -104,6 +109,7 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
     diagnostics = as_flag(diagnostic_pass), report_output = as_flag(reporting$ok),
     unsupported_request = unsupported_request,
     unsupported_response = as_flag(unsupported_pass),
+    unsupported_message = unsupported_message,
     limitation = limitation,
     seconds = round(proc.time()[["elapsed"]] - started, 2),
     fit_warnings = fit_warnings,

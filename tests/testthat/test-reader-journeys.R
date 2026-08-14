@@ -22,6 +22,10 @@ test_that("the ten native reader journeys complete their generic post-fit smoke"
   expect_true(all(results$diagnostics == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$report_output == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$unsupported_response == "pass"), info = paste(results$first_blocker, collapse = "\n"))
+  expect_true(all(grepl(
+    "^Unknown confidence-interval target:",
+    results$unsupported_message
+  )))
   expect_setequal(
     results$unsupported_request,
     paste0("profile target unsupported:", results$workflow)
