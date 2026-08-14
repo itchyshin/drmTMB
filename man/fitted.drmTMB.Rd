@@ -40,12 +40,6 @@ marginal means. For lognormal fits this is the arithmetic response mean,
 Fitted values are returned for the original fitted rows. Use \code{\link[=predict]{predict()}} for
 new data or for non-location distributional parameters such as \code{sigma} or
 \code{rho12}.
-
-\code{fitted()} is a response-summary interface, whereas
-\code{\link[=predict_parameters]{predict_parameters()}} is the distributional-component surface. In
-particular, for a lognormal fit \code{fitted()} returns the arithmetic response
-mean \code{exp(mu + sigma^2 / 2)}, not the log-scale \code{mu} returned by
-\code{predict_parameters(..., dpar = "mu")}.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

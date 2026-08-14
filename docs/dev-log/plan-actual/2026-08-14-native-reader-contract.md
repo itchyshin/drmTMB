@@ -21,7 +21,7 @@ all ordinary output shapes remain unchanged.
 | S1 | complete corpus and linter | 37/37 manifest, three exact contributor permissions, four exact exceptions, and 21 adversarial expectations including prose-only routes | matched plus D-43 repair |
 | S2 | migrate reader articles | 13 unique articles moved to exported diagnosis/extraction paths | matched plus corpus-wide repair |
 | S3 | integrate PR 1 | `798af8dbc`, `c6f22c608`, and prose-linter repair `c1a756ee9`; PR #1027 | adaptive repair |
-| S4 | minimum stable schemas | roxygen/Rd/tests for five established verbs; advanced components fenced | matched |
+| S4 | minimum stable schemas | dedicated roxygen/Rd contract plus tests for five established verbs; advanced components fenced | matched |
 | S5 | ten scientific journeys | one shared fixture set and 53 expectations across ten distinct interpretation assertions | matched plus D-43 repair |
 | S6 | mechanical verification | focused contracts, live linter, protected hashes, path-portability repair | matched plus repair |
 | S7 | package gate | repaired exact source `--as-cran` 0/0/1, pkgdown green, full native suite exit 0, and repaired PR 1 exact-head CI green | matched |
@@ -51,6 +51,14 @@ such as `sdpars$mu`. The repair added bare/backticked-route detection, six
 article migrations (13 unique articles in the full PR), and adversarial tests.
 Fisher also required a bivariate DGP that genuinely varies residual correlation
 with disturbance and non-vacuous profile-readiness checks for structured SDs.
+
+The first exact-head PR 2 workflow stopped at the capability-ledger gate because
+reader prose changed the receipt-pinned `R/methods.R` blob. The validator
+confirmed that the authenticated model-15 surface was unchanged. Rather than
+widen into the deferred ledger lane, the repair restored `R/methods.R` exactly
+and moved the stable-schema prose to `R/reader-contracts.R`. The same public
+contract tests pass, and the 73-test ledger suite now accepts the original
+receipt.
 
 ## Evidence And Claim Boundary
 

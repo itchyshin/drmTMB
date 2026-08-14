@@ -48,12 +48,7 @@ caller supplies those controls in \code{...}.}
 \code{conf.int = TRUE} and \code{method = "profile"}.}
 }
 \value{
-An object of class \code{summary.drmTMB}. Its stable native reader tables
-are \code{coefficients}, \code{parameters}, \code{covariance}, and \code{derived}, with
-\code{confint} as the stable interval-table key (\code{NULL} when intervals were not
-requested, otherwise a table). Relayed internals (\code{sdpars},
-\code{corpars}, \code{ordinal}, \code{uncertainty}, and \code{mspl}) remain available for
-compatibility but are outside the stable reader contract.
+An object of class \code{summary.drmTMB}.
 }
 \description{
 \code{summary()} returns a compact summary of fixed-effect estimates,
@@ -82,16 +77,6 @@ parameter Wald confidence intervals, and use \code{method = "profile"} with
 random-effect SD. Correlation Wald intervals use the fitted TMB
 correlation-link scale, equivalent to a guarded Fisher z/atanh transform,
 before returning lower and upper bounds on the correlation scale.
-}
-\details{
-For native \code{drmTMB} fits, the stable reader tables are \code{coefficients},
-\code{parameters}, \code{covariance}, and \code{derived}; \code{confint} is the stable interval
-table key. It is \code{NULL} when intervals were not requested and a table when
-they were. \code{conf.status} reports an interval result or availability state,
-while \code{profile.boundary} is only a flag that the relevant profile reached a
-boundary. The relayed \code{sdpars}, \code{corpars}, \code{ordinal}, \code{uncertainty}, and
-\code{mspl} components are compatibility-only internals outside this stable
-reader contract, and their layouts should not be used as a public schema.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

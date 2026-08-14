@@ -19,30 +19,16 @@ ranef(object, ...)
 }
 \value{
 A named list of random-effect blocks when \code{dpar = NULL}, otherwise
-one random-effect block. For native fits, \code{terms} on ordinary
-distributional and named structured-effect blocks is the stable
-model-scale conditional-deviation interface. Other components, including
-\code{values}, \code{latent}, \code{covariance_blocks}, and specialised mesh fields, are
-compatibility-only advanced components. A fit with no random effects
-returns an empty list when \code{dpar = NULL}; requesting a named block from
-that fit gives an actionable error.
+one random-effect block.
 }
 \description{
 \code{ranef()} returns conditional random-effect estimates for one fitted random
 effect block, or all fitted random-effect blocks when \code{dpar = NULL}.
 }
 \details{
-For native \code{drmTMB} fits, \code{terms} is the stable reader interface on ordinary
-distributional and named structured-effect blocks: it splits conditional
-deviations on the model scale by fitted random-effect term. It is not a
-random-effect standard-deviation extractor; use \code{summary()} for
-fixed random-effect standard deviations and \code{\link[=predict_parameters]{predict_parameters()}} for
-fitted distributional or predictor-varying scale parameters. \code{values},
-\code{latent}, \code{covariance_blocks}, and specialised mesh fields are advanced
-components retained for compatibility, not part of this stable reader
-contract. In particular, \code{latent} holds standard-normal latent effects
-rather than model-scale deviations, and covariance-block entries do not
-promise a \code{terms} component.
+The returned blocks use the internal \code{drmTMB} structure: \code{values} are on the
+model scale, \code{latent} are the corresponding standard-normal latent effects,
+and \code{terms} split model-scale values by random-effect term.
 }
 \examples{
 set.seed(20260525)

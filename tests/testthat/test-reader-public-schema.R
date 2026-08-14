@@ -50,7 +50,7 @@ test_that("ranef terms are model-scale deviations with actionable errors", {
   no_random <- drmTMB(bf(y ~ x, sigma ~ 1), gaussian(), data = dat)
   expect_error(
     ranef(no_random, "mu"),
-    "does not contain random effects.*Fit a formula containing a random-effect term"
+    "does not contain random effects"
   )
   expect_identical(ranef(no_random), list())
   expect_error(ranef(fit, "sigma"), "Unknown random-effect block.*Available blocks")

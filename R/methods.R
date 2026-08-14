@@ -131,17 +131,9 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #' `ranef()` returns conditional random-effect estimates for one fitted random
 #' effect block, or all fitted random-effect blocks when `dpar = NULL`.
 #'
-#' For native `drmTMB` fits, `terms` is the stable reader interface on ordinary
-#' distributional and named structured-effect blocks: it splits conditional
-#' deviations on the model scale by fitted random-effect term. It is not a
-#' random-effect standard-deviation extractor; use `summary()` for
-#' fixed random-effect standard deviations and [predict_parameters()] for
-#' fitted distributional or predictor-varying scale parameters. `values`,
-#' `latent`, `covariance_blocks`, and specialised mesh fields are advanced
-#' components retained for compatibility, not part of this stable reader
-#' contract. In particular, `latent` holds standard-normal latent effects
-#' rather than model-scale deviations, and covariance-block entries do not
-#' promise a `terms` component.
+#' The returned blocks use the internal `drmTMB` structure: `values` are on the
+#' model scale, `latent` are the corresponding standard-normal latent effects,
+#' and `terms` split model-scale values by random-effect term.
 #'
 #' @param object A `drmTMB` fit.
 #' @param dpar Optional random-effect block name, such as `"mu"`, `"sigma"`,
@@ -149,13 +141,7 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
-#'   one random-effect block. For native fits, `terms` on ordinary
-#'   distributional and named structured-effect blocks is the stable
-#'   model-scale conditional-deviation interface. Other components, including
-#'   `values`, `latent`, `covariance_blocks`, and specialised mesh fields, are
-#'   compatibility-only advanced components. A fit with no random effects
-#'   returns an empty list when `dpar = NULL`; requesting a named block from
-#'   that fit gives an actionable error.
+#'   one random-effect block.
 #' @export
 #'
 #' @examples
@@ -183,10 +169,7 @@ ranef.drmTMB <- function(object, dpar = NULL, ...) {
     return(blocks)
   }
   if (!length(blocks)) {
-    cli::cli_abort(c(
-      "This {.cls drmTMB} fit does not contain random effects.",
-      i = "Fit a formula containing a random-effect term before calling {.fn ranef}."
-    ))
+    cli::cli_abort("This {.cls drmTMB} fit does not contain random effects.")
   }
   if (!dpar %in% names(blocks)) {
     cli::cli_abort(c(
@@ -2318,12 +2301,6 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
 #' new data or for non-location distributional parameters such as `sigma` or
 #' `rho12`.
 #'
-#' `fitted()` is a response-summary interface, whereas
-#' [predict_parameters()] is the distributional-component surface. In
-#' particular, for a lognormal fit `fitted()` returns the arithmetic response
-#' mean `exp(mu + sigma^2 / 2)`, not the log-scale `mu` returned by
-#' `predict_parameters(..., dpar = "mu")`.
-#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future fitted-value options.
 #'
@@ -4120,15 +4097,6 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' correlation-link scale, equivalent to a guarded Fisher z/atanh transform,
 #' before returning lower and upper bounds on the correlation scale.
 #'
-#' For native `drmTMB` fits, the stable reader tables are `coefficients`,
-#' `parameters`, `covariance`, and `derived`; `confint` is the stable interval
-#' table key. It is `NULL` when intervals were not requested and a table when
-#' they were. `conf.status` reports an interval result or availability state,
-#' while `profile.boundary` is only a flag that the relevant profile reached a
-#' boundary. The relayed `sdpars`, `corpars`, `ordinal`, `uncertainty`, and
-#' `mspl` components are compatibility-only internals outside this stable
-#' reader contract, and their layouts should not be used as a public schema.
-#'
 #' @param object A `drmTMB` fit.
 #' @param conf.int Logical; include confidence intervals when `TRUE`.
 #' @param level Confidence level for intervals.
@@ -4153,12 +4121,7 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `conf.int = TRUE` and `method = "profile"`.
 #'
-#' @return An object of class `summary.drmTMB`. Its stable native reader tables
-#'   are `coefficients`, `parameters`, `covariance`, and `derived`, with
-#'   `confint` as the stable interval-table key (`NULL` when intervals were not
-#'   requested, otherwise a table). Relayed internals (`sdpars`,
-#'   `corpars`, `ordinal`, `uncertainty`, and `mspl`) remain available for
-#'   compatibility but are outside the stable reader contract.
+#' @return An object of class `summary.drmTMB`.
 #'
 #' @seealso The tier definitions and per-cell evidence behind these interval
 #'   targets, including random-effect standard-deviation rows, are curated in

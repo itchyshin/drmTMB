@@ -15,14 +15,17 @@ a fail-closed development linter with adversarial tests, and public-extractor
 migrations in 13 reader articles.
 
 PR 2 documents the stable native schemas for `check_drm()`, `summary()`,
-`ranef()`, `fitted()`, and `predict_parameters()`. It synchronizes their Rd
-files and turns the ten reader workflows into shared fixtures with distinct
-scientific assertions.
+`ranef()`, `fitted()`, and `predict_parameters()` in a dedicated roxygen/Rd
+contract page. It turns the ten reader workflows into shared fixtures with
+distinct scientific assertions.
 
-Two verification defects found during package gates were repaired. The reader
+Three verification defects found during package gates were repaired. The reader
 audit no longer reloads an already loaded package namespace, and the q6 receipt
-audit quotes paths containing spaces. Neither repair changes a model or
-inference result.
+audit quotes paths containing spaces. Exact-head CI then showed that reader
+prose placed beside `R/methods.R` invalidated a capability receipt that pins the
+whole file even though its authenticated model-15 surface was unchanged. The
+prose now lives in `R/reader-contracts.R`, and `R/methods.R` is byte-identical
+to its receipt. None of these repairs changes a model or inference result.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -47,10 +50,11 @@ relatedness-matrix, and spatial workflows. The D-43 sweep additionally changed
 bivariate-coscale, formula-grammar, implementation-map, model-map, and
 which-scale, and then repaired phylogenetic-spatial again.
 
-PR 2 changes the public documentation beside `R/check.R`, `R/methods.R`, and
-`R/predict-parameters.R`; their generated Rd files; the reader schema and
-journey tests; and the two audit scripts. Closeout adds this report, the
-plan-versus-actual record, and a check-log entry.
+PR 2 changes the public documentation beside `R/check.R` and
+`R/predict-parameters.R`, adds `R/reader-contracts.R` and its generated Rd
+page, updates the reader schema and journey tests, and repairs two audit
+scripts. Closeout adds this report, the plan-versus-actual record, and a
+check-log entry. The final PR does not change `R/methods.R` relative to PR 1.
 
 No formula or likelihood design document changed because the work governs
 public extraction and documentation, not model mathematics.
@@ -63,6 +67,8 @@ public extraction and documentation, not model mathematics.
   requests passed.
 - Reader-vignette linter: 21 expectations passed; the live 37-article corpus
   reported `Reader vignette contract: OK`.
+- Capability-ledger generation passed for 31 outputs, and all 73 ledger unit
+  tests passed with the C17/C14 current-source compatibility receipt intact.
 - The initial eight-article set and the six-article D-43 repair set rendered
   successfully. This covers 13 unique changed articles; the repaired rendered
   HTML contains no `sdpars$`, `corpars$`, or `random_effects` extraction route.
@@ -140,6 +146,15 @@ The first closeout draft used descriptive headings rather than the executable
 after-task schema. The repository validator caught that omission before the
 completion panel, and this report now uses the required structure.
 
+The first manually dispatched PR 2 exact-head run failed before package check
+because its source-compatibility receipt pins all of `R/methods.R`. The changed
+bytes were reader-contract prose plus a message clarification, not model-15
+behavior, and the validator correctly classified the receipt as stale rather
+than wrong. Updating the capability ledger was outside this arc. Instead, the
+message change was reverted and the same tested contract was moved to a
+dedicated roxygen/Rd page. The full 73-test ledger suite now passes without a
+receipt or capability-file change.
+
 Rose's first D-43 review found that prose-only private routes such as
 `sdpars$mu` could evade the syntax-oriented linter. A manifest-driven sweep
 migrated every reader-facing instance, and the linter now detects bare and
@@ -151,8 +166,9 @@ profile-ready phylogenetic and spatial SD targets.
 
 The contract is native-only. Julia remains post-0.7. `summary()` compatibility
 relays and advanced `ranef()` covariance/mesh components remain available but
-are not stable reader schemas. D-43 is green; the stacked PR 2 still requires
-its external exact-head CI after push. Neither PR is merged by this task.
+are not stable reader schemas. D-43 is green; the repaired stacked PR 2 still
+requires a new external exact-head CI after push. Neither PR is merged by this
+task.
 
 ## 11. Team Learning
 

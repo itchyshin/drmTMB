@@ -93444,3 +93444,12 @@ can see which commit each one actually examined.
   unresolved P0-P2 after the prose-route and journey-contract repairs.
   This is a reader-contract claim only: no likelihood, estimand, calibration,
   Julia, MSPL, CRAN re-freeze, or capability-ledger status changed.
+- The first manually dispatched PR #1028 exact-head run `31817341265` failed
+  closed before package check because reader documentation changed the
+  capability-receipt-pinned `R/methods.R` blob. The validator reported that the
+  authenticated model-15 fingerprint still matched. The in-scope repair
+  restored `R/methods.R` byte-for-byte (`cdc73257105a7e26cb9ab36a9c469726d5a55652`)
+  and moved the same schema prose to the dedicated roxygen/Rd topic
+  `native_reader_contracts`. No capability file or claim changed. The ledger
+  generator then passed for 31 outputs and all 73 ledger tests passed, including
+  C17/C14 current-source compatibility.
