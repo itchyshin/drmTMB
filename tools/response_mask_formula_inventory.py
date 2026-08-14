@@ -648,6 +648,11 @@ FORMULA_EVIDENCE = {
         "claim_boundary": "G2 observed-data equality and sentinel retapes, plus G3 deterministic MCAR recovery, validate zero-one-beta zoi random intercepts with fixed mu, sigma, and coi formulas. This does not promote zoi slopes, other random effects, structured effects, REML, or missing predictors.",
         "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
     },
+    "mc-0570": {
+        "formula_status": "formula_validated", "formula_mask_gate": "G3",
+        "claim_boundary": "G2 observed-data equality and sentinel retapes, plus G3 deterministic MCAR recovery, validate zero-one-beta coi random intercepts with fixed mu, sigma, and zoi formulas. This does not promote coi slopes, other random effects, structured effects, REML, or missing predictors.",
+        "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
+    },
 }
 
 

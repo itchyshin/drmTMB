@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — zero-one-beta ML coi random-intercept response mask
+
+- `mc-0570` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1, zoi ~ 1,
+  coi ~ 1 + (1 | id)`. The masked and observed-data fits agree in the coi
+  coefficient, coi random-intercept SD, and likelihood; zero, one, and
+  interior response sentinels are inert; and the deterministic 25% MCAR DGP
+  recovers the coi SD and conditional effects.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-boundary")`
+  passed; the response-mask inventory, capability ledger, and `git diff --check`
+  passed. This does not promote coi slopes, other random or structured effects,
+  REML, another response family, or missing predictors.
+
 
 ## 2026-08-10 — Emmy condition 1: `link_code` becomes a required argument
 
