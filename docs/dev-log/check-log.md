@@ -1,5 +1,16 @@
 # Check Log
 
+## 2026-08-14 — Gaussian ML sigma random-slope response mask
+
+- `mc-0270` is now `formula_validated` at G3 for `y ~ x, sigma ~ z + (0 + w |
+  group)`. The masked and observed-data ML fits agree in fixed coefficients,
+  sigma random-slope SD, and likelihood; Gaussian sentinels are inert; and the
+  deterministic 25% MCAR DGP recovers fixed, SD, and conditional effects.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-gaussian")`
+  passed; the response-mask inventory, capability ledger, and `git diff --check`
+  passed. This does not promote correlated or structured effects, REML,
+  bivariate formulas, or missing predictors.
+
 ## 2026-08-14 — Gaussian ML sigma random-intercept response mask
 
 - `mc-0266` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1 + (1 |
