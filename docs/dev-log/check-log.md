@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — bivariate spatial q2 location response-mask recovery
+
+- `rmf-biv-gaussian-spatial-mu12-q2-intercept` (`mc-0107`/`mc-0108`) is now G3
+  for paired `mu1`/`mu2` spatial intercepts. The deterministic fixture has 128
+  sites, 20 observations per site, and separate 25% MCAR masks for each
+  response. It recovers both fixed vectors, residual scales, spatial SDs and
+  correlation, and `rho12`.
+- The earlier 32-site pre-run did not recover the fixed intercepts and was not
+  promoted. The 128-site floor is part of this exact G3 claim.
+- This does not certify a spatial slope, another provider, REML,
+  intervals/coverage, or dense-known-`V` partial responses.
+- Check: `test-spatial-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate animal q2 location response-mask recovery
 
 - `rmf-biv-gaussian-animal-mu12-q2-intercept` (`mc-0129`/`mc-0130`) is now G3

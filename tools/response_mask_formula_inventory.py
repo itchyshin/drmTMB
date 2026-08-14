@@ -106,20 +106,22 @@ EXPLICIT_BOUNDARIES = (
         "dimension": "bivariate",
         "q_gate": "q2",
         "estimator": "ML",
-        "formula_status": "formula_oracle_validated",
+        "formula_status": "formula_validated",
         "family_mask_gate": "G3",
-        "formula_mask_gate": "G2",
+        "formula_mask_gate": "G3",
         "claim_boundary": (
             "The accepted bivariate formula is the matched spatial q2 location block "
             "`mu1 ~ spatial(1 | p | site, coords = coords)`, `mu2 ~ spatial(1 | p | "
             "site, coords = coords)`, not either endpoint alone. G2 conditional "
             "TMB-objective equality at the fitted latent mode includes the correlated "
             "spatial-field prior, and component-wise sentinel retapes validate the response "
-            "mask. Known-DGP recovery is not yet validated, so this does not promote G3, "
-            "a slope, another structured provider, REML, interval/coverage evidence, or "
-            "dense known-V partial-response support."
+            "mask. G3 deterministic 25% MCAR recovery validates both fixed-effect vectors, "
+            "both residual scales, both spatial SDs, the spatial correlation, and rho12 on "
+            "a 128-site, 20-observation-per-site fixture. This is not a slope, another "
+            "structured provider, REML, interval/coverage evidence, or dense known-V "
+            "partial-response support."
         ),
-        "next_gate": "Run and retain a stable spatial known-DGP recovery design before G3 promotion.",
+        "next_gate": "Validate each remaining spatial geometry with its own recovery design.",
     },
     {
         "formula_cell_id": "rmf-biv-gaussian-animal-mu12-q2-intercept",

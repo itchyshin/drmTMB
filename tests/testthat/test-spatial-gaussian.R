@@ -896,6 +896,41 @@ test_that("bivariate spatial q2 response masks have an exact conditional oracle"
   )
 })
 
+test_that("bivariate spatial q2 response masks recover at the 128-site rung", {
+  sim <- new_biv_spatial_gaussian_data(
+    seed = 2026081713L, n_site = 128L, n_each = 20L,
+    sd_spatial = c(0.90, 0.80), rho_spatial = 0.55,
+    sigma = c(0.18, 0.20), rho12 = 0.10
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "site", seed = 2026081714L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "site", seed = 2026081715L
+  )
+  coords <- sim$coords
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + spatial(1 | p | site, coords = coords),
+      mu2 = y2 ~ x + spatial(1 | p | site, coords = coords),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1200, iter.max = 1200)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_spatial)), 0.25)
+  expect_lt(abs(unname(fit$corpars$spatial) - sim$rho_spatial), 0.25)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.06)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.20)
+})
+
 test_that("bivariate Gaussian mu supports spatial q2 slope-only covariance", {
   sim <- new_biv_spatial_gaussian_data(n_site = 8L, n_each = 4L)
   dat <- sim$data
