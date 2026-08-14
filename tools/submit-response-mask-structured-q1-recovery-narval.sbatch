@@ -9,5 +9,6 @@
 
 set -euo pipefail
 : "${RUN_ROOT:?Submit with --export=ALL,RUN_ROOT=/project/.../run-root}"
+module load gcc r/4.6.1
 
 source "$RUN_ROOT/source/tools/run-response-mask-structured-q1-recovery-narval.sh"
