@@ -94,6 +94,36 @@ EXPLICIT_BOUNDARIES = (
         ),
     },
     {
+        "formula_cell_id": "rmf-biv-gaussian-phylo-mu12-q2-slope",
+        "model_cell_id": "mc-0085,mc-0086",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_phylo_mu1_mu2_slope",
+        "route_modifier": "structured_q2",
+        "dpar": "mu1+mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "phylo",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched phylogenetic q2 slope block "
+            "`mu1 ~ phylo(0 + x | p | species, tree = tree)`, `mu2 ~ phylo(0 + x | "
+            "p | species, tree = tree)`, not either endpoint alone. G2 conditional "
+            "TMB-objective equality at the fitted latent mode includes the correlated "
+            "phylogenetic-field prior, and direct endpoint sentinel retapes leave the "
+            "objective and gradient unchanged. G3 deterministic 25% MCAR recovery validates "
+            "both fixed-effect vectors, both residual scales, both phylogenetic slope SDs, "
+            "the slope correlation, and rho12 on a 128-tip, 20-observation-per-tip fixture. "
+            "This is not an intercept or q4+ block, another provider, REML, interval/coverage "
+            "evidence, or dense known-V partial-response support."
+        ),
+        "next_gate": "Validate each remaining phylogenetic bivariate geometry separately.",
+    },
+    {
         "formula_cell_id": "rmf-biv-gaussian-spatial-mu12-q2-intercept",
         "model_cell_id": "mc-0107,mc-0108",
         "family_type": "biv_gaussian",

@@ -343,6 +343,41 @@ new_biv_phylo_gaussian_data <- function(
   )
 }
 
+new_biv_phylo_slope_gaussian_data <- function(
+  seed = 2026081716L,
+  n_tip = 128L,
+  n_each = 20L,
+  sd_phylo = c(0.55, 0.45),
+  rho_phylo = 0.30,
+  sigma = c(0.18, 0.20),
+  rho12 = 0.10
+) {
+  set.seed(seed)
+  tree <- balanced_ultrametric_tree(n_tip)
+  A <- drmTMB:::drm_phylo_tip_covariance(tree)
+  z1 <- stats::rnorm(n_tip)
+  z2 <- rho_phylo * z1 + sqrt(1 - rho_phylo^2) * stats::rnorm(n_tip)
+  slope1 <- as.vector(t(chol(A)) %*% z1) * sd_phylo[[1L]]
+  slope2 <- as.vector(t(chol(A)) %*% z2) * sd_phylo[[2L]]
+  names(slope1) <- tree$tip.label
+  names(slope2) <- tree$tip.label
+  species <- rep(tree$tip.label, each = n_each)
+  x <- stats::rnorm(length(species))
+  beta_mu1 <- c(`(Intercept)` = 0.35, x = 0.25)
+  beta_mu2 <- c(`(Intercept)` = -0.20, x = -0.30)
+  e1 <- stats::rnorm(length(species))
+  e2 <- rho12 * e1 + sqrt(1 - rho12^2) * stats::rnorm(length(species))
+  list(
+    data = data.frame(
+      y1 = beta_mu1[[1L]] + (beta_mu1[[2L]] + slope1[species]) * x + sigma[[1L]] * e1,
+      y2 = beta_mu2[[1L]] + (beta_mu2[[2L]] + slope2[species]) * x + sigma[[2L]] * e2,
+      x = x, species = species
+    ),
+    tree = tree, beta_mu1 = beta_mu1, beta_mu2 = beta_mu2,
+    sd_phylo = sd_phylo, rho_phylo = rho_phylo, sigma = sigma, rho12 = rho12
+  )
+}
+
 manual_biv_response_loglik <- function(fit) {
   dat <- fit$model$data
   observed_y1 <- fit$missing_data$observed_y1
@@ -958,6 +993,49 @@ test_that("bivariate phylogenetic q2 response masks recover a known DGP", {
     unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
   ) - sim$sigma)), 0.08)
   expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.25)
+})
+
+test_that("bivariate phylogenetic q2 slope masks recover at the 128-tip rung", {
+  sim <- new_biv_phylo_slope_gaussian_data()
+  tree <- sim$tree
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "species", seed = 2026081717L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "species", seed = 2026081718L
+  )
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(0 + x | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(0 + x | p | species, tree = tree),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 1500, iter.max = 1500)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  data_zero <- fit$model$tmb_data
+  data_large <- fit$model$tmb_data
+  data_zero$y1[fit$missing_data$observed_y1 == 0L] <- -1e6
+  data_large$y1[fit$missing_data$observed_y1 == 0L] <- 1e6
+  zero_obj <- TMB::MakeADFun(data_zero, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+  large_obj <- TMB::MakeADFun(data_large, full_parameters, map = fit$model$map, DLL = "drmTMB", silent = TRUE)
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(-joint$fn(joint$par), manual_biv_response_loglik(fit) + manual_biv_phylo_q2_prior_loglik(fit), tolerance = 1e-6)
+  expect_equal(zero_obj$fn(zero_obj$par), large_obj$fn(large_obj$par), tolerance = 1e-8)
+  expect_equal(zero_obj$gr(zero_obj$par), large_obj$gr(large_obj$par), tolerance = 1e-8, ignore_attr = TRUE)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_phylo)), 0.20)
+  expect_lt(abs(unname(fit$corpars$phylo) - sim$rho_phylo), 0.20)
+  expect_lt(max(abs(c(unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)) - sim$sigma)), 0.05)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.15)
 })
 
 test_that("bivariate Gaussian mu supports phylogenetic q2 slope-only covariance", {
