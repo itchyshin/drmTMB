@@ -78,6 +78,12 @@
 #' programmatic checks, the returned object has `attr(x, "ok") == TRUE` only
 #' when no rows have `warning` or `error` status.
 #'
+#' For native `drmTMB` fits, this is a stable reader schema: the
+#' `drm_check` data frame has, in order, the character columns `check`,
+#' `status`, `value`, and `message`. `status` is one of `"ok"`, `"note"`,
+#' `"warning"`, or `"error"`. Its `"ok"` attribute is `TRUE` exactly when
+#' no row has status `"warning"` or `"error"`.
+#'
 #' @param object A `drmTMB` fit.
 #' @param gradient_tolerance Maximum absolute fixed-parameter gradient treated
 #'   as acceptable.
@@ -88,8 +94,11 @@
 #'   boundary.
 #' @param ... Reserved for future diagnostic options.
 #'
-#' @return A data frame of checks with columns `check`, `status`, `value`, and
-#'   `message`. The returned object has class `drm_check`.
+#' @return A `drm_check` data frame. Its stable native reader columns are, in
+#'   order, `check`, `status`, `value`, and `message`, all character. `status`
+#'   uses only `"ok"`, `"note"`, `"warning"`, and `"error"`; its `"ok"`
+#'   attribute is `TRUE` exactly when no row has status `"warning"` or
+#'   `"error"`.
 #' @export
 #'
 #' @examples

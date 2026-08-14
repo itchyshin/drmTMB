@@ -93413,3 +93413,43 @@ can see which commit each one actually examined.
   profile target through exported `confint(..., method = "profile")`. The
   regenerated receipt records `unsupported_response = pass` for every row,
   confirming that no model manufactures an interval for an unsupported target.
+
+## 2026-08-14 — native reader contract candidate
+
+- PR 1 records every one of the 37 reader/contributor vignettes exactly once,
+  freezes the three contributor field permissions and four explanatory reader
+  exceptions, and rejects unmanifested, duplicated, broadened, or stale access
+  rules. Eight reader articles now use exported diagnosis and extraction paths.
+- PR 2 documents and tests the minimum native reader schemas for `check_drm()`,
+  `summary()`, `ranef()`, `fitted()`, and `predict_parameters()`. The ten audit
+  fits are shared with ten distinct scientific assertions; an unsupported
+  request passes only when it returns the public unknown-target explanation.
+- Focused evidence: reader schema 34/34, repaired journey contract 53/53, and
+  vignette contract 21/21. `Rscript tools/check-reader-contracts.R` reported
+  the live 37-article corpus clean. The initial eight-article render set and
+  six-article D-43 repair set passed (13 unique articles), and rendered output
+  contained no private `sdpars$`, `corpars$`, or `random_effects` route.
+  `pkgdown::check_pkgdown()` reported no problems.
+- Full native `devtools::test()` exited 0 with no failures, retaining 70
+  expected warnings and 26 explicit skips. Julia engine paths were disabled
+  under the approved post-0.7 boundary. The exact source-tarball
+  `R CMD check --as-cran` completed with 0 errors, 0 warnings, and one expected
+  new-submission NOTE; receipt:
+  `/private/tmp/drmtmb-native-reader-check-final4-20260814/drmTMB.Rcheck/00check.log`.
+- PR #1027's repaired head `c1a756ee9` passed both required checks in GitHub
+  run `31813020416` and is clean and mergeable. The stacked scientific-journey
+  repair is `ba431b0b3`. The five protected files retain their lane-receipt
+  blob hashes.
+- Fresh D-43 completion review is 3/3 `DONE`: Emmy, Fisher, and Rose report no
+  unresolved P0-P2 after the prose-route and journey-contract repairs.
+  This is a reader-contract claim only: no likelihood, estimand, calibration,
+  Julia, MSPL, CRAN re-freeze, or capability-ledger status changed.
+- The first manually dispatched PR #1028 exact-head run `31817341265` failed
+  closed before package check because reader documentation changed the
+  capability-receipt-pinned `R/methods.R` blob. The validator reported that the
+  authenticated model-15 fingerprint still matched. The in-scope repair
+  restored `R/methods.R` byte-for-byte (`cdc73257105a7e26cb9ab36a9c469726d5a55652`)
+  and moved the same schema prose to the dedicated roxygen/Rd topic
+  `native_reader_contracts`. No capability file or claim changed. The ledger
+  generator then passed for 31 outputs and all 73 ledger tests passed, including
+  C17/C14 current-source compatibility.

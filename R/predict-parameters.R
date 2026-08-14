@@ -3,8 +3,8 @@
 #' `predict_parameters()` returns predicted distributional parameters from a
 #' `drmTMB` fit in one long data frame. It is a compact data surface for
 #' interpretation tables, plotting helpers, and marginalisation helpers: the
-#' same grid can hold location or mean, scale, shape, probability, and coscale
-#' quantities.
+#' same grid can hold location (which can differ from the response mean),
+#' scale, shape, probability, and coscale quantities.
 #'
 #' The helper calls [predict.drmTMB()] for each requested distributional
 #' parameter. With `newdata = NULL`, predictions use the fitted rows. With
@@ -26,6 +26,16 @@
 #' profile-likelihood uncertainty, or uncertainty for direct random-effect scale
 #' models.
 #'
+#' For native `drmTMB` fits, the stable core columns retain this relative order:
+#' `row`, `row_label`, `dpar`, `component`, `type`, `estimate`, `conf.status`,
+#' and `interval_source`. `conf.status` describes the requested interval result
+#' or availability; `interval_source` identifies its provenance. Interval
+#' columns appear only when `conf.int = TRUE`, in the established position after
+#' `estimate` and before `conf.status`. Supplied `newdata` columns are appended
+#' after the core and optional interval columns, with a `newdata_` prefix if
+#' their names would collide with this schema and a stable suffix when two
+#' supplied names would otherwise collide after prefixing.
+#'
 #' @param object A `drmTMB` fit.
 #' @param newdata Optional data frame for prediction. If omitted, fitted rows
 #'   are used.
@@ -42,11 +52,15 @@
 #'   `conf.int = TRUE`.
 #' @param ... Reserved for future options.
 #'
-#' @return A data frame with columns `row`, `row_label`, `dpar`, `component`,
-#'   `type`, `estimate`, `conf.status`, and `interval_source`. When
+#' @return A data frame whose stable native core columns retain this relative
+#'   order: `row`, `row_label`, `dpar`, `component`, `type`, `estimate`,
+#'   `conf.status`, and `interval_source`. `conf.status` is an interval result
+#'   or availability state; `interval_source` is interval provenance. Only when
 #'   `conf.int = TRUE`, `std.error`, `conf.low`, `conf.high`, and `conf.level`
-#'   are also included. When `include_newdata = TRUE`, supplied `newdata`
-#'   columns are appended after those core columns.
+#'   are included after `estimate` and before the status/provenance columns.
+#'   When `include_newdata = TRUE`, supplied `newdata` columns are appended
+#'   after the schema columns and renamed with `newdata_` plus, when needed, a
+#'   stable uniqueness suffix when they collide.
 #'
 #' @examples
 #' set.seed(20260522)
@@ -410,11 +424,12 @@ predict_parameters_newdata_columns <- function(newdata, n_dpar) {
     "conf.status",
     "interval_source"
   )
-  names(out) <- ifelse(
+  output_names <- ifelse(
     names(out) %in% reserved,
     paste0("newdata_", names(out)),
     names(out)
   )
+  names(out) <- make.unique(output_names, sep = "_")
   row.names(out) <- NULL
   out
 }

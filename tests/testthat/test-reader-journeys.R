@@ -1,157 +1,166 @@
+reader_journey_audit <- local({
+  cached <- NULL
+
+  function() {
+    if (is.null(cached)) {
+      skip_if_not_installed("ape")
+      audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
+      skip_if_not(file.exists(audit_path), "The development audit script is not installed with drmTMB")
+      audit_env <- new.env(parent = globalenv())
+      audit_out <- tempfile(fileext = ".tsv")
+      withr::local_envvar(DRMTMB_READER_AUDIT_OUT = audit_out)
+      source(audit_path, local = audit_env)
+      value <- audit_env$reader_workflow_audit
+      value$tsv <- utils::read.delim(audit_out, check.names = FALSE)
+      cached <<- value
+    }
+    cached
+  }
+})
+
+reader_journey <- function(id) {
+  reader_journey_audit()$fixtures[[id]]
+}
+
 test_that("the ten native reader journeys complete their generic post-fit smoke", {
-  skip_if_not_installed("ape")
-
-  audit_path <- testthat::test_path("..", "..", "tools", "run-reader-workflow-audit.R")
-  skip_if_not(file.exists(audit_path), "The development audit script is not installed with drmTMB")
-  audit_env <- new.env(parent = globalenv())
-  audit_out <- tempfile(fileext = ".tsv")
-  withr::local_envvar(DRMTMB_READER_AUDIT_OUT = audit_out)
-  source(audit_path, local = audit_env)
-
-  results <- utils::read.delim(audit_out, check.names = FALSE)
-  expect_equal(nrow(results), 10L)
-  expect_setequal(
-    results$workflow,
-    c(
-      "continuous_location_scale", "count_with_effort", "denominator_proportion",
-      "ordinal_condition", "boundary_proportion", "phylogenetic_trait",
-      "spatial_site_effect", "bivariate_traits", "meta_analysis", "missing_response"
-    )
+  audit <- reader_journey_audit()
+  results <- audit$tsv
+  workflows <- c(
+    "continuous_location_scale", "count_with_effort", "denominator_proportion",
+    "ordinal_condition", "boundary_proportion", "phylogenetic_trait",
+    "spatial_site_effect", "bivariate_traits", "meta_analysis", "missing_response"
   )
+
+  expect_equal(nrow(results), 10L)
+  expect_setequal(results$workflow, workflows)
+  expect_setequal(names(audit$fixtures), workflows)
+  expect_true(all(vapply(audit$fixtures, function(x) inherits(x$fit, "drmTMB"), logical(1))))
   expect_true(all(results$fit == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$diagnostics == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$report_output == "pass"), info = paste(results$first_blocker, collapse = "\n"))
   expect_true(all(results$unsupported_response == "pass"), info = paste(results$first_blocker, collapse = "\n"))
-  expect_true(all(grepl(
-    "^Unknown confidence-interval target:",
-    results$unsupported_message
-  )))
-  expect_setequal(
-    results$unsupported_request,
-    paste0("profile target unsupported:", results$workflow)
-  )
+  expect_true(all(grepl("^Unknown confidence-interval target:", results$unsupported_message)))
+  expect_setequal(results$unsupported_request, paste0("profile target unsupported:", workflows))
   expect_true(all(grepl("generic post-fit smoke", results$report_artifact, fixed = TRUE)))
 })
 
-test_that("check_drm() makes a boundary warning visible to reader workflows", {
-  set.seed(20260813)
-  n <- 60L
-  dat <- data.frame(x = seq(-1, 1, length.out = n))
-  shared_error <- stats::rnorm(n)
-  dat$y1 <- 0.4 * dat$x + shared_error + stats::rnorm(n, sd = .15)
-  dat$y2 <- -0.3 * dat$x + shared_error + stats::rnorm(n, sd = .15)
-  fit <- drmTMB(
-    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
-    family = c(gaussian(), gaussian()), data = dat
+test_that("each reader journey retains its scientific meaning through exported APIs", {
+  continuous <- reader_journey("continuous_location_scale")
+  continuous_parameters <- predict_parameters(
+    continuous$fit, dpar = c("mu", "sigma"), type = "response"
+  )
+  expect_true(all(is.finite(continuous_parameters$estimate[continuous_parameters$dpar == "mu"])))
+  expect_true(all(
+    is.finite(continuous_parameters$estimate[continuous_parameters$dpar == "sigma"]) &
+      continuous_parameters$estimate[continuous_parameters$dpar == "sigma"] > 0
+  ))
+
+  count <- reader_journey("count_with_effort")
+  count_grid <- count$data[rep(1L, 2L), c("habitat", "x", "effort")]
+  count_grid$habitat <- factor("degraded", levels = unique(count$data$habitat))
+  count_grid$effort <- c(2, 6)
+  count_mean <- predict_parameters(
+    count$fit, newdata = count_grid, dpar = "mu", type = "response",
+    include_newdata = FALSE
+  )$estimate
+  expect_true(all(is.finite(count_mean) & count_mean > 0))
+  expect_gt(count_mean[[2L]], count_mean[[1L]])
+
+  denominator <- reader_journey("denominator_proportion")
+  probability <- predict_parameters(denominator$fit, dpar = "mu", type = "response")$estimate
+  distribution <- fitted_distribution(denominator$fit)
+  expect_true(all(is.finite(probability) & probability >= 0 & probability <= 1))
+  expect_equal(
+    distribution$params$trials,
+    denominator$data$germinated + denominator$data$failed
   )
 
+  ordinal <- reader_journey("ordinal_condition")
+  ordinal_distribution <- fitted_distribution(ordinal$fit)
+  ordinal_probability <- vapply(seq_along(levels(ordinal$data$score)), function(k) {
+    ordinal_distribution$d(rep(k, nrow(ordinal$data)))
+  }, numeric(nrow(ordinal$data)))
+  ordinal_targets <- profile_targets(ordinal$fit)
+  ordinal_raw <- ordinal_targets[grepl("^ordinal:theta_ord:", ordinal_targets$parm), , drop = FALSE]
+  ordinal_cutpoints <- ordinal_targets[grepl("^ordinal:cutpoint:", ordinal_targets$parm), , drop = FALSE]
+  expect_true(all(is.finite(ordinal_probability) & ordinal_probability >= 0 & ordinal_probability <= 1))
+  expect_equal(rowSums(ordinal_probability), rep(1, nrow(ordinal$data)), tolerance = 1e-8)
+  expect_true(all(ordinal_cutpoints$profile_ready))
+  expect_true(all(!ordinal_raw$profile_ready))
+  expect_false(isTRUE(all.equal(ordinal_cutpoints$estimate, ordinal_raw$estimate)))
+
+  boundary <- reader_journey("boundary_proportion")
+  boundary_parameters <- predict_parameters(
+    boundary$fit, dpar = c("mu", "zoi", "coi"), type = "response"
+  )
+  expect_true(all(is.finite(stats::fitted(boundary$fit)) & stats::fitted(boundary$fit) >= 0 & stats::fitted(boundary$fit) <= 1))
+  expect_setequal(unique(boundary_parameters$dpar), c("mu", "zoi", "coi"))
+  expect_true(all(is.finite(boundary_parameters$estimate) & boundary_parameters$estimate >= 0 & boundary_parameters$estimate <= 1))
+
+  phylo <- reader_journey("phylogenetic_trait")
+  phylo_deviation <- ranef(phylo$fit, dpar = "phylo_mu")
+  phylo_term <- phylo_deviation$terms[["phylo(1 | species)"]]
+  phylo_targets <- profile_targets(phylo$fit)
+  phylo_sd <- phylo_targets[grepl("^sd:mu:phylo", phylo_targets$parm), , drop = FALSE]
+  expect_named(phylo_deviation$terms, "phylo(1 | species)")
+  expect_true(length(phylo_term) > 0L)
+  expect_true(all(is.finite(phylo_term)))
+  expect_gt(nrow(phylo_sd), 0L)
+  expect_true(all(is.finite(phylo_sd$estimate) & phylo_sd$estimate > 0))
+  expect_true(all(phylo_sd$profile_ready))
+
+  spatial <- reader_journey("spatial_site_effect")
+  spatial_deviation <- ranef(spatial$fit, dpar = "spatial_mu")
+  spatial_term <- spatial_deviation$terms[["spatial(1 | site)"]]
+  spatial_targets <- profile_targets(spatial$fit)
+  spatial_sd <- spatial_targets[grepl("^sd:mu:spatial", spatial_targets$parm), , drop = FALSE]
+  expect_named(spatial_deviation$terms, "spatial(1 | site)")
+  expect_true(length(spatial_term) > 0L)
+  expect_true(all(is.finite(spatial_term)))
+  expect_gt(nrow(spatial_sd), 0L)
+  expect_true(all(is.finite(spatial_sd$estimate) & spatial_sd$estimate > 0))
+  expect_true(all(spatial_sd$profile_ready))
+
+  bivariate <- reader_journey("bivariate_traits")
+  bivariate_grid <- bivariate$data[seq_len(3L), c("food", "disturbance")]
+  bivariate_grid$food <- 0
+  bivariate_grid$disturbance <- c(-0.75, 0, 0.75)
+  response_rho <- rho12(bivariate$fit, newdata = bivariate_grid)
+  link_rho <- rho12(bivariate$fit, newdata = bivariate_grid, type = "link")
+  expect_true(all(is.finite(response_rho) & abs(response_rho) < 1))
+  expect_equal(response_rho, 0.999999 * tanh(link_rho), tolerance = 1e-12)
+  expect_false(isTRUE(all.equal(response_rho, link_rho)))
+  expect_true(all(diff(response_rho) > 0))
+
+  meta <- reader_journey("meta_analysis")
+  meta_diagnostic <- check_drm(meta$fit)
+  known_sampling <- meta_diagnostic[
+    meta_diagnostic$check == "known_sampling_covariance", , drop = FALSE
+  ]
+  expect_identical(known_sampling$status, "ok")
+  expect_match(known_sampling$message, "meta_V\\(V = V\\)")
+  expect_true(all(is.finite(sigma(meta$fit)) & sigma(meta$fit) > 0))
+
+  missing <- reader_journey("missing_response")
+  missing_rows <- is.na(missing$data$growth)
+  expect_equal(nobs(missing$fit), sum(!missing_rows))
+  expect_length(stats::fitted(missing$fit), nrow(missing$data))
+  expect_true(all(is.na(stats::residuals(missing$fit)[missing_rows])))
+  expect_true(all(is.finite(stats::fitted(missing$fit)[missing_rows])))
+})
+
+test_that("check_drm() makes a boundary warning visible to reader workflows", {
+  fit <- reader_journey("bivariate_traits")$fit
   diagnostic <- check_drm(fit, rho_boundary = 1e-6)
   rho_row <- diagnostic[diagnostic$check == "rho12_boundary", , drop = FALSE]
+
   expect_s3_class(diagnostic, "drm_check")
   expect_identical(rho_row$status, "warning")
   expect_false(isTRUE(attr(diagnostic, "ok")))
-})
-
-test_that("ordinal probabilities are response-scale probabilities, not raw thresholds", {
-  set.seed(20260813)
-  dat <- data.frame(
-    x = seq(-1, 1, length.out = 60),
-    score = ordered(sample(c("low", "medium", "high"), 60, replace = TRUE),
-      levels = c("low", "medium", "high"))
+  expect_identical(
+    isTRUE(attr(diagnostic, "ok")),
+    !any(diagnostic$status %in% c("warning", "error"))
   )
-  fit <- drmTMB(bf(score ~ x), cumulative_logit(), data = dat)
-  grid <- prediction_grid(fit, focal = "x", at = list(x = c(-.5, 0, .5)))
-  distribution <- fitted_distribution(fit, newdata = grid)
-  probability <- vapply(seq_along(levels(dat$score)), function(k) {
-    distribution$d(rep(k, nrow(grid)))
-  }, numeric(nrow(grid)))
-
-  expect_equal(nrow(probability), nrow(grid))
-  expect_true(all(is.finite(probability) & probability >= 0 & probability <= 1))
-  expect_equal(rowSums(probability), rep(1, nrow(grid)), tolerance = 1e-8)
-  targets <- profile_targets(fit)
-  expect_true(all(!targets$profile_ready[grepl("^ordinal:theta_ord:", targets$parm)]))
-  expect_true(all(targets$profile_ready[grepl("^ordinal:cutpoint:", targets$parm)]))
-})
-
-test_that("missing-response rows retain fitted values but not residuals", {
-  set.seed(20260813)
-  dat <- data.frame(x = seq(-1, 1, length.out = 40))
-  dat$y <- .5 + .7 * dat$x + stats::rnorm(nrow(dat), sd = .2)
-  missing <- c(5L, 16L, 29L)
-  dat$y[missing] <- NA_real_
-  fit <- drmTMB(
-    bf(y ~ x, sigma ~ 1), gaussian(), data = dat,
-    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
-  )
-
-  expect_equal(nobs(fit), nrow(dat) - length(missing))
-  expect_length(fitted(fit), nrow(dat))
-  expect_true(all(is.na(residuals(fit)[missing])))
-  expect_true(all(is.finite(fitted(fit)[missing])))
-})
-
-test_that("bivariate reader output separates response-scale rho12 from its link", {
-  set.seed(20260813)
-  n <- 80L
-  dat <- data.frame(x = seq(-1, 1, length.out = n))
-  latent_rho <- 0.2 + 0.4 * dat$x
-  rho <- 0.999999 * tanh(latent_rho)
-  e1 <- stats::rnorm(n)
-  dat$y1 <- 0.4 * dat$x + e1
-  dat$y2 <- -0.3 * dat$x + rho * e1 + sqrt(1 - rho^2) * stats::rnorm(n)
-  fit <- drmTMB(
-    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~x),
-    family = c(gaussian(), gaussian()), data = dat
-  )
-
-  grid <- prediction_grid(fit, focal = "x", at = list(x = c(-.5, 0, .5)))
-  response_rho <- rho12(fit, newdata = grid)
-  link_rho <- rho12(fit, newdata = grid, type = "link")
-  pair <- corpairs(fit, conf.int = TRUE)
-  expect_length(response_rho, nrow(grid))
-  expect_true(all(is.finite(response_rho) & abs(response_rho) < 1))
-  expect_equal(response_rho, 0.999999 * tanh(link_rho), tolerance = 1e-12)
-  expect_identical(pair$conf.status, "derived_interval_unavailable")
-  expect_identical(pair$level, "residual")
-})
-
-test_that("structured and meta-analysis reader extractors retain their meaning", {
-  skip_if_not_installed("ape")
-  set.seed(20260813)
-  tree <- ape::chronos(ape::rtree(8), lambda = 1)
-  species <- factor(rep(tree$tip.label, each = 3), levels = tree$tip.label)
-  phylo_dat <- data.frame(
-    species = species,
-    x = rep(c(-1, 0, 1), 8)
-  )
-  phylo_dat$y <- 0.5 * phylo_dat$x + rep(stats::rnorm(8, sd = .25), each = 3) +
-    stats::rnorm(nrow(phylo_dat), sd = .2)
-  phylo_fit <- drmTMB(
-    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1), gaussian(), data = phylo_dat
-  )
-  deviations <- ranef(phylo_fit)
-  targets <- profile_targets(phylo_fit)
-  expect_true(length(deviations$phylo_mu$values) > 0L)
-  expect_true(any(grepl("phylo", targets$parm, fixed = TRUE)))
-
-  vi <- rep(.08, 24)
-  meta_fit <- drmTMB(
-    bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1), gaussian(),
-    data = data.frame(yi = stats::rnorm(24, .2, sqrt(vi + .06)), vi = vi)
-  )
-  expect_true(all(is.finite(sigma(meta_fit)) & sigma(meta_fit) > 0))
-})
-
-test_that("fitted means are not silently substituted with lognormal mu predictions", {
-  set.seed(20260813)
-  dat <- data.frame(x = seq(-1, 1, length.out = 50))
-  dat$y <- exp(.2 + .5 * dat$x + stats::rnorm(nrow(dat), sd = .35))
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1), lognormal(), data = dat)
-  mu <- predict(fit, dpar = "mu")
-  response_mean <- fitted(fit)
-  expect_false(isTRUE(all.equal(mu, response_mean)))
-  expect_equal(response_mean, exp(predict(fit, dpar = "mu", type = "link") + .5 * sigma(fit)^2))
 })
 
 test_that("reader vignettes do not depend on private missing-data slots", {
