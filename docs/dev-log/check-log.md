@@ -95051,3 +95051,6 @@ can see which commit each one actually examined.
   passed. This does not promote either endpoint alone, slopes, Q
   representations, another provider, q4+, bivariate or REML formulas,
   interval/coverage evidence, or missing predictors.
+## 2026-08-14 — Zero-one-beta animal scale response mask
+
+- `mc-0594` is `formula_validated` at G3 for `sigma ~ animal(1 | species, Ainv = Ainv)`: observed-data oracle/gradient, atom/interior sentinels, observed-only equality, and a 64-ID × 60-observation recovery fixture.

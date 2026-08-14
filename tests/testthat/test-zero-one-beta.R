@@ -389,7 +389,12 @@ zoib_sigma_animal_nll <- function(fit, par, Ainv, species) {
   }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - as.numeric(determinant(Ainv, logarithm = TRUE)$modulus) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Ainv %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(
+    d$y[observed], mu[observed], exp(log_sigma[observed]),
+    stats::plogis(as.vector(d$X_zi %*% par$beta_zoi))[observed],
+    stats::plogis(as.vector(d$X_nu %*% par$beta_coi))[observed], log = TRUE
+  ))
 }
 
 zoib_sigma_relmat_nll <- function(fit, par, K, species) {
@@ -939,6 +944,40 @@ test_that("zero-one-beta phylo sigma response mask has oracle and recovery evide
   expect_equal(fit_masked$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
   expect_lt(abs(coef(fit_masked, "sigma")[[1L]] + 1), .15)
   expect_lt(abs(fit_masked$sdpars$sigma[["phylo(1 | species)"]] - .55), .25)
+})
+
+test_that("zero-one-beta animal sigma response mask has oracle and recovery evidence", {
+  set.seed(2026081817L)
+  n_id <- 64L; n_each <- 60L
+  labels <- paste0("sp", seq_len(n_id))
+  Ainv <- diag(2, n_id)
+  Ainv[cbind(seq_len(n_id - 1L), seq.int(2L, n_id))] <- -.5
+  Ainv[cbind(seq.int(2L, n_id), seq_len(n_id - 1L))] <- -.5
+  rownames(Ainv) <- colnames(Ainv) <- rev(labels)
+  latent <- as.numeric(t(chol(solve(Ainv))) %*% stats::rnorm(n_id, sd = .55))
+  names(latent) <- rownames(Ainv)
+  species <- rep(labels, each = n_each); x <- stats::rnorm(length(species))
+  mu <- stats::plogis(-.15 + .35 * x); sigma <- exp(-1 + latent[species])
+  zoi <- stats::plogis(-2.2); coi <- stats::plogis(.1)
+  boundary <- stats::rbinom(length(x), 1L, zoi)
+  y <- stats::rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2)
+  y[boundary == 1L] <- stats::rbinom(sum(boundary == 1L), 1L, coi)
+  dat <- data.frame(y, x, species); dat$y[seq(1L, nrow(dat), by = n_each)] <- NA_real_
+  observed <- !is.na(dat$y)
+  formula <- bf(y ~ x, sigma ~ animal(1 | species, Ainv = Ainv), zoi ~ 1, coi ~ 1)
+  fit_masked <- drmTMB(formula, family = zero_one_beta(), data = dat, missing = miss_control(response = "include"), control = drm_control(se = FALSE))
+  fit_observed <- drmTMB(formula, family = zero_one_beta(), data = dat[observed, , drop = FALSE], control = drm_control(se = FALSE))
+  obj <- TMB::MakeADFun(data = fit_masked$model$tmb_data, parameters = fit_masked$model$start, map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE)
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par))
+  oracle_fn <- function(v) zoib_sigma_animal_nll(fit_masked, obj$env$parList(v), Ainv, dat$species)
+  expect_equal(fit_masked$opt$convergence, 0L); expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed)); expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe), tolerance = 2e-5)
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 1, .5))
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] + 1), .15)
+  expect_lt(abs(fit_masked$sdpars$sigma[["animal(1 | species)"]] - .55), .25)
 })
 
 test_that("zero-one-beta animal mu response mask has oracle and recovery evidence", {
