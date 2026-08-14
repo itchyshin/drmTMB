@@ -1,5 +1,18 @@
 # Check Log
 
+## 2026-08-14 — Gamma relmat q1 response-mask recovery
+
+- `rmf-mc-0248` is now G3 for `y ~ x + relmat(1 | id, K = K)`, `sigma ~ 1`
+  under ML. The deterministic fixture has 64 relatedness levels, 16
+  observations per level, and one masked response per level.
+- G2 uses a conditional Gamma likelihood plus relatedness-prior oracle and
+  numerical gradients; direct positive sentinel retapes and observed-row fit
+  equality also pass. G3 recovers fixed location, log-scale, and relatedness
+  SD. This does not certify phylo, slopes, q2+, labels, structured sigma,
+  REML, missing predictors, intervals, or coverage.
+- Check: `test-positive-continuous-structured-mu.R`, response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — lognormal phylo q1 response-mask recovery
 
 - `rmf-mc-0386` is now G3 for `y ~ x + phylo(1 | species, tree = tree)`,
