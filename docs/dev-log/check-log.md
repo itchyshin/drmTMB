@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — truncated-NB2 ML random-slope response mask
+
+- `mc-0511` is now `formula_validated` at G3 for `count ~ x + (0 + x | id),
+  sigma ~ z`. The masked and observed-data fits agree in fixed coefficients,
+  random-slope SD, and likelihood; positive-count sentinels are inert; and the
+  deterministic 25% MCAR DGP recovers the slope SD and conditional effects.
+- Check: `NOT_CRAN=true`
+  `devtools::test(filter = "missing-response-truncated-nbinom2")` passed; the
+  response-mask inventory, capability ledger, and `git diff --check` passed.
+  This does not promote correlated or structured effects, REML, another response
+  family, or missing predictors.
+
 ## 2026-08-14 — truncated-NB2 ML random-intercept response mask
 
 - `mc-0510` is now `formula_validated` at G3 for `count ~ x + (1 | id), sigma
