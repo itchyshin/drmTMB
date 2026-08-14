@@ -1,5 +1,18 @@
 # Check Log
 
+## 2026-08-14 — Poisson spatial slope-only duplicate-cell reconciliation
+
+- `rmf-mc-0442` is now G3 because it is a duplicate inventory row for the
+  exact admitted formula already validated as `rmf-mc-0441`:
+  `poisson_spatial ~ x + spatial(0 + x | site, coords = coords)`.
+- The shared direct-formula evidence uses the conditional Poisson spatial
+  objective and numerical gradients, sentinel retapes, observed-row equality,
+  and recovery at 128 sites × 16 observations. This is evidence reuse for
+  identical syntax only; it does not promote intercept, labelled, q2, provider,
+  REML, missing-predictor, interval, or coverage claims.
+- Check: response-mask inventory generation, capability-ledger drift check, and
+  `git diff --check` passed.
+
 ## 2026-08-14 — Poisson labelled spatial q1-intercept response-mask recovery
 
 - `rmf-mc-0443` is now G3 for the exact ML formula

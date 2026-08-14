@@ -2101,6 +2101,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
     },
+    "mc-0442": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "This inventory row duplicates the exact admitted Poisson ML syntax already validated for "
+            "mc-0441: `poisson_spatial ~ x + spatial(0 + x | site, coords = coords)`. G2 conditional "
+            "Poisson TMB-objective and numerical-gradient equality, observed-row fit equality, and direct "
+            "count-response sentinel retapes, plus G3 deterministic known-DGP recovery, therefore apply "
+            "to this duplicate formula cell as well. The fixture has 128 sites, 16 observations per site, "
+            "and one masked response per site; it checks fixed effects and the spatial slope SD. It does "
+            "not promote intercept fields, labels, q2+, other providers, REML, missing predictors, intervals, "
+            "or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Poisson structured geometry.",
+    },
 }
 
 
