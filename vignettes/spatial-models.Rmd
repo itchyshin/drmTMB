@@ -198,15 +198,17 @@ c(
   observations = nrow(mesh$A_st),
   max_projection_row_error = max(abs(Matrix::rowSums(mesh$A_st) - 1))
 )
-fit_mesh$sdpars$mu
+mesh_parameters <- summary(fit_mesh)$parameters
+mesh_parameters[mesh_parameters$parm == "sd:mu:spatial(1 | site)", ]
 ranef(fit_mesh, "spatial_mu")$projected
 profile_targets(fit_mesh)[, c("parm", "profile_ready", "profile_note")]
 ```
 
 The model is `y = X beta + A_st omega + epsilon`, with
 `omega ~ Normal(0, s^2 Q(kappa)^(-1))` and
-`Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2`. Thus `sdpars(fit_mesh)$mu`
-reports the fitted GMRF field scale `s`; after projection, the marginal SD at
+`Q(kappa) = kappa^4 C0 + 2 kappa^2 C1 + C2`. Thus the
+`sd:mu:spatial(1 | site)` row of `summary(fit_mesh)$parameters` reports the
+fitted GMRF field scale `s`; after projection, the marginal SD at
 an observation generally varies with its row of `A_st`. Do not treat it as a
 single uniform marginal field SD. The existing `coords = coords` route remains
 a distinct dense covariance model and is unchanged.
@@ -335,7 +337,7 @@ After fitting, inspect the spatial layer before interpreting it:
 | Output | Use |
 | --- | --- |
 | `check_drm(fit)` | Confirm the spatial layer was recognized. Mesh fits report vertex count, fixed `kappa`, the exact tested point-recovery designs, and the remaining interval/range boundary. |
-| `fit$sdpars$mu` | Read fitted spatial location SDs, including separate intercept and slope SDs when a one-slope model is used. |
+| `summary(fit)$parameters` | Read fitted spatial location SDs, including separate intercept and slope SDs when a one-slope model is used. |
 | `ranef(fit, "spatial_mu")` | For `coords =`, inspect conditional site deviations. For a mesh, use `$projected` for observation-level field values and `$latent` for mesh vertices. |
 | `summary(fit)$covariance` | Check how spatial SDs and q=2 or q=4 spatial correlations are reported beside other covariance layers. |
 | `profile_targets(fit)` | See which spatial SD or constant q=2 correlation targets can be profiled directly, and which q=4 correlation rows are derived-unavailable for intervals. |
@@ -436,9 +438,13 @@ The compact display below reports each estimate in its own unit instead.
 spatial_sd <- data.frame(
   Component = c("Spatial intercept SD", "Spatial depth-slope SD"),
   Estimate = formatC(
-    unname(fit_spatial_slope$sdpars$mu[
-      c("spatial(1 | site)", "spatial(0 + depth | site)")
-    ]),
+    summary(fit_spatial_slope)$parameters[
+      match(
+        c("sd:mu:spatial(1 | site)", "sd:mu:spatial(0 + depth | site)"),
+        summary(fit_spatial_slope)$parameters$parm
+      ),
+      "estimate"
+    ],
     digits = 4,
     format = "g"
   ),

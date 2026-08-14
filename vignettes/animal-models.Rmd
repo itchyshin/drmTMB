@@ -274,7 +274,7 @@ After fitting, inspect the animal layer before interpreting it:
 | Output | Use |
 | --- | --- |
 | `check_drm(fit)` | Confirm the structured layer was recognized and review convergence diagnostics. |
-| `fit$sdpars$mu` | Read the fitted latent animal scale `s`; individual `i` has marginal SD `s sqrt(A[i, i])`. |
+| `summary(fit)$parameters` | Read the fitted latent animal scale `s`; individual `i` has marginal SD `s sqrt(A[i, i])`. |
 | `ranef(fit, "animal_mu")` | Inspect conditional individual deviations on the fitted animal layer. |
 | `summary(fit)$covariance` | Check how the animal SD or correlation is reported beside other covariance layers. |
 | `profile_targets(fit)` | See which animal SD or q=2 correlation targets can be profiled directly; q=4 correlations are derived-only in the first slice. |
@@ -341,11 +341,14 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
 ```{r animal-sd-figure, fig.width = 6.6, fig.height = 3.4, fig.cap = "Fitted residual `sigma` and individual marginal animal SD point estimates `s sqrt(A[i,i])` from a univariate Gaussian model. The animal q1 location-SD interval is not validated, so this comparison is point-only.", fig.alt = "Horizontal point display comparing residual sigma with individual marginal animal standard deviations calculated as the fitted latent scale times the square root of each additive-relationship diagonal, without interval bars."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  animal_scale <- unname(fit_animal$sdpars$mu["animal(1 | individual)"])
+  animal_parameters <- summary(fit_animal)$parameters
+  animal_scale <- animal_parameters[
+    animal_parameters$parm == "sd:mu:animal(1 | individual)", "estimate"
+  ]
   animal_node_sd <- animal_scale * sqrt(diag(A))
   animal_sd <- data.frame(
     estimate = c(
-      unname(exp(coef(fit_animal, "sigma")["(Intercept)"])),
+      unname(sigma(fit_animal)[1]),
       animal_node_sd
     ),
     label = c(
