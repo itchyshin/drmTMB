@@ -966,6 +966,41 @@ test_that("Gaussian animal mu intercept masks recover known data", {
   expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
 })
 
+test_that("Gaussian REML animal mu intercept masks recover known data", {
+  sim <- new_animal_mu_gaussian_data(
+    seed = 2026081651L, n_id = 128L, n_each = 20L
+  )
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081652L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), REML = TRUE, control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], REML = TRUE, control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
+})
+
 test_that("Gaussian animal mu slope masks recover known data", {
   sim <- new_animal_mu_slope_gaussian_data()
   A <- sim$A

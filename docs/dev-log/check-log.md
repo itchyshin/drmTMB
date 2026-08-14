@@ -94196,6 +94196,19 @@ can see which commit each one actually examined.
   provider, bivariate, non-Gaussian, interval/coverage, or missing-predictor
   REML formulas.
 
+## 2026-08-14 — Gaussian REML animal mu-intercept response mask
+
+- `mc-0299` is now `formula_validated` at G3 for `y ~ x + animal(1 | id, A =
+  A), sigma ~ 1, REML = TRUE`. The missing-response restricted fit agrees with
+  the observed-response restricted fit in fixed coefficients, animal mu SD,
+  likelihood, and `nobs()`; continuous sentinels are inert. A deterministic 25%
+  MCAR DGP with 128 related IDs and 20 observations per ID recovers these fitted
+  targets.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote animal slopes/q2 blocks, pedigree/Ainv
+  representations, another provider, bivariate, non-Gaussian, interval/coverage,
+  or missing-predictor REML formulas.
+
 ## 2026-08-14 — Gaussian animal sigma-intercept response mask
 
 - `mc-0300` is now `formula_validated` at G3 for `y ~ x, sigma ~ animal(1 |

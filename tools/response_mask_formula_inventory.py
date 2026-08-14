@@ -363,6 +363,20 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining animal geometry.",
     },
+    "mc-0299": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-response restricted-likelihood equality and direct continuous-response "
+            "sentinel retapes, plus G3 deterministic 25% MCAR known-DGP recovery validate the "
+            "univariate Gaussian unlabelled q1 animal mu intercept REML response-mask formula "
+            "`y ~ x + animal(1 | id, A = A), sigma ~ 1`. The recovery fixture has 128 related "
+            "IDs and 20 observations per ID. It does not promote animal slopes/q2 blocks, "
+            "pedigree/Ainv representations, another provider, bivariate, non-Gaussian, interval/"
+            "coverage, or missing-predictor REML formulas."
+        ),
+        "next_gate": "Add a separate observed-response oracle and recovery design for each remaining structured REML geometry.",
+    },
     "mc-0301": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
