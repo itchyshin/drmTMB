@@ -439,6 +439,41 @@ test_that("Gaussian mu supports coordinate-based spatial intercepts", {
   )
 })
 
+test_that("Gaussian spatial mu intercept masks recover known data", {
+  sim <- new_spatial_gaussian_data(
+    seed = 2026081637L, n_site = 64L, n_each = 20L
+  )
+  coords <- sim$coords
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "site", seed = 2026081638L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.20)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_spatial)), log(2.5))
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+})
+
 test_that("Gaussian supports coordinate-spatial residual-scale structured effects", {
   sim <- new_spatial_location_scale_gaussian_data()
   coords <- sim$coords
