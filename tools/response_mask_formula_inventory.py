@@ -1555,6 +1555,23 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Tweedie geometry.",
     },
+    "mc-0017": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional TMB-objective and numerical-gradient equality, observed-row "
+            "fit equality, and direct beta-response sentinel retapes, plus G3 deterministic "
+            "known-DGP recovery, validate the exact beta phylogenetic direct-SD ML formula "
+            "`y ~ x_mu + phylo(1 | species, tree = tree)`, `sigma ~ x_sigma`, "
+            "`sd(species, level = \"phylogenetic\") ~ z_species`. The check covers fixed "
+            "mu and sigma coefficients and both direct latent-SD regression coefficients "
+            "on a 96-tip, 12-observation-per-tip fixture with one masked response per tip. "
+            "It does not promote q2+, labels, slopes, family-sigma phylogeny, ordinary "
+            "random effects, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining beta structured geometry.",
+    },
 }
 
 

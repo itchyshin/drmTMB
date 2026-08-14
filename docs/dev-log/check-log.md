@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — beta phylogenetic direct-SD response-mask recovery
+
+- `rmf-mc-0017` is now G3 for the exact beta ML formula with a q1
+  phylogenetic location intercept and direct phylogenetic SD regression:
+  `y ~ x_mu + phylo(1 | species, tree = tree)`, `sigma ~ x_sigma`, and
+  `sd(species, level = "phylogenetic") ~ z_species`.
+- A deterministic 96-tip, 12-observation-per-tip fixture masks one response
+  per tip. The check uses the conditional objective and numerical-gradient
+  oracle, observed-row fit equality, direct beta sentinel retapes, and known-
+  DGP recovery of fixed location, fixed log-scale, and both direct latent-SD
+  regression coefficients. It does not certify q2+, labels, slopes,
+  family-sigma phylogeny, ordinary random effects, REML, missing predictors,
+  intervals, or coverage.
+- Check: `test-beta-phylo-direct-sd.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate labelled residual-scale q2 response-mask recovery
 
 - `rmf-biv-gaussian-sigma12-labelled-intercept` (`mc-0071`/`mc-0072`) is now

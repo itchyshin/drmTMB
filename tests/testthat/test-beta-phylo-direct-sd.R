@@ -72,9 +72,13 @@ beta_phylo_direct_sd_joint_nll <- function(
   phi <- if (wrong_phi) exp(2 * log_sigma) else exp(-2 * log_sigma)
   shape1 <- pmax(mu * phi, 1e-8)
   shape2 <- pmax((1 - mu) * phi, 1e-8)
+  observed <- as.logical(data$observed_y)
   prior - sum(
-    data$weights *
-      stats::dbeta(data$y, shape1 = shape1, shape2 = shape2, log = TRUE)
+    data$weights[observed] *
+      stats::dbeta(
+        data$y[observed], shape1 = shape1[observed],
+        shape2 = shape2[observed], log = TRUE
+      )
   )
 }
 
@@ -230,6 +234,79 @@ test_that("Beta direct-SD joint NLL and every gradient match independent oracles
   )
 })
 
+test_that("Beta phylogenetic direct-SD response mask has an oracle and recovers its DGP", {
+  skip_if_not_installed("ape")
+  sim <- new_beta_phylo_direct_sd_data(
+    n_tip = 96L,
+    n_each = 12L,
+    seed = 2026081732L
+  )
+  dat_masked <- sim$data
+  tree <- sim$tree
+  # Keep every phylogenetic level represented in the observed response set.
+  dat_masked$y[seq(1L, nrow(dat_masked), by = 12L)] <- NA_real_
+  observed <- !is.na(dat_masked$y)
+  formula <- bf(
+    y ~ x_mu + phylo(1 | species, tree = tree),
+    sigma ~ x_sigma,
+    sd(species, level = "phylogenetic") ~ z_species
+  )
+  fit_masked <- drmTMB(
+    formula, family = beta(), data = dat_masked,
+    missing = miss_control(response = "include"),
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 2000, iter.max = 2000)
+    )
+  )
+  fit_observed <- drmTMB(
+    formula, family = beta(), data = dat_masked[observed, , drop = FALSE],
+    control = drm_control(
+      se = FALSE,
+      optimizer = list(eval.max = 2000, iter.max = 2000)
+    )
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data,
+    parameters = fit_masked$model$start,
+    map = fit_masked$model$map,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+  par <- obj$env$parList(probe)
+
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), beta_phylo_direct_sd_joint_nll(fit_masked, par),
+    tolerance = 1e-7)
+  expect_equal(
+    as.numeric(obj$gr(probe)),
+    beta_direct_sd_central_gradient(obj$fn, probe),
+    tolerance = 5e-5
+  )
+  expect_missing_response_sentinel_invariant(
+    fit_masked, sentinels = c(0.2, 0.8)
+  )
+  expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"), tolerance = 1e-6)
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(
+    coef(fit_masked, "sd_phylo(species)"),
+    coef(fit_observed, "sd_phylo(species)"),
+    tolerance = 1e-6
+  )
+  expect_equal(unname(coef(fit_masked, "mu")), unname(sim$beta_mu), tolerance = 0.30)
+  expect_equal(
+    unname(coef(fit_masked, "sigma")), unname(sim$beta_sigma), tolerance = 0.25
+  )
+  expect_equal(
+    unname(coef(fit_masked, "sd_phylo(species)")),
+    unname(sim$alpha_sd), tolerance = 0.50
+  )
+})
+
 test_that("Beta intercept-only direct SD is equivalent to scalar phylogenetic SD", {
   skip_if_not_installed("ape")
   sim <- new_beta_phylo_direct_sd_data(
@@ -375,21 +452,6 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
     ),
     "unsupported model terms"
   )
-  dat_missing <- dat
-  dat_missing$y[[1L]] <- NA_real_
-  expect_error(
-    drmTMB(
-      bf(
-        y ~ x_mu + phylo(1 | species, tree = tree),
-        sigma ~ x_sigma,
-        sd(species, level = "phylogenetic") ~ z_species
-      ),
-      family = beta(),
-      data = dat_missing,
-      missing = miss_control(response = "include")
-    ),
-    "not implemented with missing-data routes"
-  )
   dat_mi <- dat
   dat_mi$treatment <- factor(as.integer(dat_mi$x_mu > 0), levels = c(0, 1))
   dat_mi$treatment[c(2L, 7L)] <- NA
@@ -407,7 +469,7 @@ test_that("Beta direct phylogenetic SD keeps malformed neighbours closed", {
       ),
       missing = miss_control(predictor = "model")
     ),
-    "not implemented with missing-data routes"
+    "not implemented with missing-predictor"
   )
   expect_error(
     drmTMB(

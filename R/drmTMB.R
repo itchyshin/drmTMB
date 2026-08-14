@@ -5361,13 +5361,10 @@ drm_build_beta_ls_spec <- function(
       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
     ))
   }
-  if (
-    length(sd_phylo_entries) > 0L &&
-      (include_missing_response || include_missing_predictor)
-  ) {
+  if (length(sd_phylo_entries) > 0L && include_missing_predictor) {
     cli::cli_abort(c(
-      "Beta phylogenetic direct-SD regression is not implemented with missing-data routes.",
-      "i" = "Use complete responses and predictors for {.code sd(species, level = \"phylogenetic\") ~ ...}; missing-response and {.fn mi} combinations remain deferred."
+      "Beta phylogenetic direct-SD regression is not implemented with missing-predictor {.fn mi}.",
+      "i" = "Use complete predictors for {.code sd(species, level = \"phylogenetic\") ~ ...}; response masking is supported separately."
     ))
   }
   if (
