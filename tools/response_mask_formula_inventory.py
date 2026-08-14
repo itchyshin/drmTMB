@@ -1791,6 +1791,67 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
+    "mc-0410": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_phylo ~ x + phylo(1 + x | "
+            "site, tree = tree)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 tips, 16 "
+            "observations per tip, and one masked response per tip; it checks fixed effects, NB2 "
+            "log-sigma, and the independent phylogenetic intercept and slope SDs. It does not "
+            "promote labelled q2 correlation, other providers, REML, missing predictors, intervals, "
+            "or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
+    "mc-0411": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_spatial ~ x + spatial(1 + x | "
+            "site, coords = coords)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 sites, "
+            "16 observations per site, and one masked response per site; it checks fixed effects, "
+            "NB2 log-sigma, and the independent spatial intercept and slope SDs. It does not promote "
+            "labelled q2 correlation, other providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
+    "mc-0412": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_known ~ x + animal(1 + x | id, "
+            "Ainv = Q)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 IDs, 16 observations "
+            "per ID, and one masked response per ID; it checks fixed effects, NB2 log-sigma, and the "
+            "independent animal intercept and slope SDs. It does not promote labelled q2 correlation, "
+            "other providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
+    "mc-0413": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
+            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
+            "DGP recovery, validate the exact NB2 ML formula `nb2_known ~ x + relmat(1 + x | id, "
+            "Q = Q)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 IDs, 16 observations "
+            "per ID, and one masked response per ID; it checks fixed effects, NB2 log-sigma, and the "
+            "independent relatedness intercept and slope SDs. It does not promote labelled q2 correlation, "
+            "other providers, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+    },
 }
 
 

@@ -1,5 +1,22 @@
 # Check Log
 
+## 2026-08-14 — NB2 q1 structured intercept-slope response-mask recovery
+
+- `rmf-mc-0410` to `rmf-mc-0413` are now G3 for, respectively,
+  `phylo(1 + x | site)`, `spatial(1 + x | site)`, `animal(1 + x | id)`,
+  and `relmat(1 + x | id)` in NB2 location formulas with `sigma ~ 1`.
+  Each non-Gaussian fixture has 128 groups, 16 observations per group, and one
+  masked response per group; providers use separate seeds.
+- G2 uses a conditional NB2 likelihood plus the relevant precision oracle and
+  numerical gradients; direct count-sentinel retapes and observed-row fit
+  equality also pass. G3 recovers the fixed location coefficients, NB2
+  log-sigma, and independent intercept and slope SDs. These results do not
+  certify labelled q2 correlation, another provider, REML, missing predictors,
+  intervals, or coverage.
+- Check: `test-count-structured-mu.R` (177 successful expectations),
+  response-mask inventory generation, capability-ledger drift check, and
+  `git diff --check` passed.
+
 ## 2026-08-14 — NB2 phylogenetic q1 response-mask recovery
 
 - `rmf-mc-0405` is now G3 for the exact ML formula
