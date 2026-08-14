@@ -205,6 +205,36 @@ new_animal_sigma_gaussian_data <- function(
   )
 }
 
+new_animal_mu_gaussian_data <- function(
+  seed = 2026081641L,
+  n_id = 64L,
+  n_each = 20L,
+  sd_animal = 0.40,
+  sigma = 0.18,
+  beta_mu = c(`(Intercept)` = 0.30, x = -0.20)
+) {
+  set.seed(seed)
+  id_levels <- paste0("id", seq_len(n_id))
+  A <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.35^abs(i - j))
+  diag(A) <- diag(A) + 0.15
+  dimnames(A) <- list(id_levels, id_levels)
+  animal_mu <- as.vector(t(chol(A)) %*% stats::rnorm(n_id, sd = sd_animal))
+  names(animal_mu) <- id_levels
+
+  id <- rep(id_levels, each = n_each)
+  x <- rep(seq(-1, 1, length.out = n_each), times = n_id)
+  y <- beta_mu[["(Intercept)"]] + beta_mu[["x"]] * x + animal_mu[id] +
+    stats::rnorm(length(id), sd = sigma)
+
+  list(
+    data = data.frame(y = unname(y), x = x, id = id),
+    A = A,
+    beta_mu = beta_mu,
+    sd_animal = sd_animal,
+    sigma = sigma
+  )
+}
+
 new_animal_sigma_slope_large_data <- function(
   seed = 2026081621L,
   n_id = 64L,
@@ -865,6 +895,39 @@ test_that("animal and relmat Gaussian mu support one structured slope", {
     ),
     "all-four bivariate Gaussian block"
   )
+})
+
+test_that("Gaussian animal mu intercept masks recover known data", {
+  sim <- new_animal_mu_gaussian_data()
+  A <- sim$A
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "id", seed = 2026081642L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)
+  control <- drm_control(
+    se = FALSE,
+    optimizer = list(eval.max = 800, iter.max = 800)
+  )
+  fit_mask <- drmTMB(
+    form, gaussian(), masked,
+    missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(
+    as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5
+  )
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - log(sim$sigma)), 0.25)
+  expect_lt(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_animal)), log(2.5))
 })
 
 test_that("Gaussian animal sigma intercept masks match observed data", {
