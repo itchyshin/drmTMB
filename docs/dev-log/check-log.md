@@ -94926,6 +94926,23 @@ can see which commit each one actually examined.
   representations, another provider, bivariate or REML formulas,
   interval/coverage evidence, or missing predictors.
 
+## 2026-08-14 — Student spatial location response masks
+
+- `mc-0493` and `mc-0494` are now `formula_validated` at G3 for `y ~ x +
+  spatial(1 | id, coords = coords), sigma ~ 1` and `y ~ x + spatial(1 + x |
+  id, coords = coords), sigma ~ 1`, respectively. Each uses a direct
+  observed-data Student-t objective and numerical-gradient oracle, continuous
+  response-sentinel checks, and agreement between the masked and observed-only
+  fits. Deterministic 64-site fixtures use 40 observations per site for the
+  intercept and 48 for the intercept-plus-slope formula, so the non-Gaussian
+  fit has enough information to recover the fixed terms, shape, scale, and the
+  named spatial SD targets.
+- Check: direct focused tests in
+  `tests/testthat/test-nongaussian-structured-mu-slope.R` passed (24 and 25
+  expectations). This does not promote labelled/correlated blocks, additional
+  slopes, another provider, the phylogenetic `nu` formula, REML,
+  interval/coverage evidence, or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one

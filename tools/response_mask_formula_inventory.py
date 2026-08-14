@@ -372,6 +372,38 @@ EXPLICIT_MODEL_CELL_IDS = frozenset(
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
+    "mc-0493": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct Student-t observed-data objective and numerical-gradient "
+            "equality, direct continuous-sentinel retapes, and masked-versus-observed "
+            "fit equality validate `y ~ x + spatial(1 | id, coords = coords), "
+            "sigma ~ 1`. G3 uses a deterministic 64-site, 40-observation-per-site "
+            "known-DGP fixture to recover fixed location, constant log-scale, fixed "
+            "shape, and the spatial intercept SD. This is not a slope, a labelled or "
+            "correlated block, another provider, nu-side structure, REML, interval or "
+            "coverage evidence, or missing-predictor support."
+        ),
+        "next_gate": "Validate the Student spatial one-slope formula separately; retain the remaining structured endpoints as separate cells.",
+    },
+    "mc-0494": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct Student-t observed-data objective and numerical-gradient "
+            "equality, direct continuous-sentinel retapes, and masked-versus-observed "
+            "fit equality validate `y ~ x + spatial(1 + x | id, coords = coords), "
+            "sigma ~ 1`. G3 uses a deterministic 64-site, 48-observation-per-site "
+            "known-DGP fixture to recover fixed location, constant log-scale, fixed "
+            "shape, and both independent spatial location SDs. This is not a labelled "
+            "or correlated block, multiple slopes, another provider, nu-side structure, "
+            "REML, interval or coverage evidence, or missing-predictor support."
+        ),
+        "next_gate": "Validate the Student phylogenetic nu formula separately; do not use this mu evidence for another endpoint.",
+    },
     **{
         cell_id: {
             "formula_status": "not_admitted",
