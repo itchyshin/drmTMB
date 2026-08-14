@@ -37,7 +37,7 @@ class TestResponseMaskFormulaInventory(unittest.TestCase):
     def test_named_gaussian_reml_formula_records_its_own_g2_g3_evidence(self):
         cells = MODULE.read_tsv(MODULE.CELLS)
         inventory = MODULE.build(cells)
-        for cell_id in ("mc-0264", "mc-0265", "mc-0268", "mc-0269", "mc-0274"):
+        for cell_id in ("mc-0264", "mc-0265", "mc-0268", "mc-0269", "mc-0272", "mc-0274"):
             row = next(row for row in inventory if row["model_cell_id"] == cell_id)
             self.assertEqual(row["formula_status"], "formula_validated")
             self.assertEqual(row["formula_mask_gate"], "G3")

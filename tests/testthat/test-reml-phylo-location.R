@@ -64,6 +64,34 @@ reml_reference <- function(y, X, Z, A) {
   list(sd_phylo = sqrt(s2p), sigma = sqrt(s2r), beta = as.numeric(b))
 }
 
+ml_phylo_reference <- function(y, X, Z, A) {
+  n <- length(y)
+  ZAZt <- Z %*% A %*% t(Z)
+  neg_log_likelihood <- function(par) {
+    s2p <- exp(par[[1L]])
+    s2r <- exp(par[[2L]])
+    V <- s2p * ZAZt + s2r * diag(n)
+    Vi <- solve(V)
+    beta <- solve(t(X) %*% Vi %*% X, t(X) %*% Vi %*% y)
+    residual <- y - X %*% beta
+    0.5 * (
+      n * log(2 * pi) +
+        as.numeric(determinant(V, logarithm = TRUE)$modulus) +
+        as.numeric(t(residual) %*% Vi %*% residual)
+    )
+  }
+  opt <- stats::optim(
+    c(log(0.3), log(0.3)), neg_log_likelihood, method = "Nelder-Mead",
+    control = list(reltol = 1e-11, maxit = 5000)
+  )
+  s2p <- exp(opt$par[[1L]])
+  s2r <- exp(opt$par[[2L]])
+  V <- s2p * ZAZt + s2r * diag(n)
+  Vi <- solve(V)
+  beta <- solve(t(X) %*% Vi %*% X, t(X) %*% Vi %*% y)
+  list(sd_phylo = sqrt(s2p), sigma = sqrt(s2r), beta = as.numeric(beta))
+}
+
 test_that("REML for a phylo location model matches a hand-computed restricted likelihood", {
   skip_on_cran()
   skip_fragile_recovery()
@@ -137,6 +165,37 @@ test_that("REML phylo location response masks match the observed-data oracle", {
     fit_masked,
     sentinels = c(-1e6, 1e6)
   )
+  expect_equal(as.numeric(fit_masked$par$mu), c(0.4, 0.7), tolerance = 0.15)
+  expect_equal(exp(as.numeric(fit_masked$par$sigma)), 0.5, tolerance = 0.10)
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), fx$true_sd_phylo, tolerance = 0.20)
+})
+
+test_that("ML phylo location response masks match the observed-data oracle", {
+  skip_on_cran()
+  skip_fragile_recovery()
+  skip_if_not_installed("ape")
+  fx <- reml_phylo_location_fixture(n_tip = 72L, n_each = 8L, seed = 2026081406L)
+  set.seed(2026081407L)
+  tree <- fx$tree
+  observed <- stats::runif(nrow(fx$data)) > 0.25
+  masked_data <- fx$data
+  masked_data$y[!observed] <- NA_real_
+  fit_masked <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    data = masked_data,
+    missing = miss_control(response = "include"),
+    control = drm_control(optimizer_preset = "robust", se = FALSE)
+  )
+  observed_data <- fx$data[observed, , drop = FALSE]
+  Z <- matrix(0, nrow(observed_data), nrow(fx$A))
+  Z[cbind(seq_len(nrow(observed_data)), fx$tip[observed])] <- 1
+  ref <- ml_phylo_reference(observed_data$y, stats::model.matrix(~ x, observed_data), Z, fx$A)
+
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), ref$sd_phylo, tolerance = 3e-2)
+  expect_equal(exp(as.numeric(fit_masked$par$sigma)), ref$sigma, tolerance = 3e-2)
+  expect_equal(as.numeric(fit_masked$par$mu), ref$beta, tolerance = 3e-2)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(-1e6, 1e6))
   expect_equal(as.numeric(fit_masked$par$mu), c(0.4, 0.7), tolerance = 0.15)
   expect_equal(exp(as.numeric(fit_masked$par$sigma)), 0.5, tolerance = 0.10)
   expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), fx$true_sd_phylo, tolerance = 0.20)
