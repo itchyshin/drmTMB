@@ -93533,3 +93533,13 @@ can see which commit each one actually examined.
 - This pre-run authorizes no promotion and no DRAC submission. It measures a
   stable candidate design and requests explicit approval for the all-attempt
   campaign only.
+
+## 2026-08-14 — q1 spatial, animal, and relmat ML response-mask oracles
+
+- `mc-0285`, `mc-0297`, and `mc-0309` now record G2 for their respective
+  unlabelled q1 mean-side Gaussian ML formulas. The masked fits agree with their
+  own observed-data dense full marginal-likelihood oracles; direct sentinel
+  retapes leave each objective, gradient, and reoptimised solution invariant.
+- G3 remains withheld for the same measured structured-recovery reason as the
+  REML cells. Check: `NOT_CRAN=true` `test-reml-structured-location.R` passed;
+  inventory tests, generated-ledger drift check, and `git diff --check` passed.

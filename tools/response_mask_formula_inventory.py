@@ -62,6 +62,23 @@ FORMULA_EVIDENCE = {
             "formula_status": "formula_oracle_validated",
             "formula_mask_gate": "G2",
             "claim_boundary": (
+                "G2 observed-data dense full marginal-Gaussian likelihood equality "
+                "and direct sentinel retapes validate this univariate Gaussian "
+                "unlabelled q1 structured mu random-intercept ML response-mask "
+                "formula. G3 recovery remains unvalidated, so this row does not "
+                "promote recovery, intervals, coverage, another provider, another "
+                "structured geometry, bivariate, non-Gaussian, or missing-predictor "
+                "ML formulas."
+            ),
+            "next_gate": "Measure and approve a stable structured known-DGP recovery design before G3 promotion.",
+        }
+        for cell_id in ("mc-0285", "mc-0297", "mc-0309")
+    },
+    **{
+        cell_id: {
+            "formula_status": "formula_oracle_validated",
+            "formula_mask_gate": "G2",
+            "claim_boundary": (
                 "G2 observed-data dense restricted-likelihood equality and direct "
                 "sentinel retapes validate this univariate Gaussian unlabelled q1 "
                 "structured mu random-intercept REML response-mask formula. The "
