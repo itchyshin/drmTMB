@@ -93403,3 +93403,6 @@ can see which commit each one actually examined.
   31 outputs; and the reader-journey diagnostic acceptance test passed. This
   changes failure reporting and stale-prose detection only—no likelihood,
   evidence tier, calibration result, or capability claim changed.
+- Fresh exact source-tarball `R CMD check --as-cran` on the rebased integration
+  branch passed with no errors or warnings and one expected new-submission
+  NOTE. The required GitHub Actions gate is still pending at this record.

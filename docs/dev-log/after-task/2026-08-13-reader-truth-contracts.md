@@ -43,10 +43,9 @@ true.
 - `python3 tools/capability_ledger.py --check`: passed (31 generated outputs).
 - Focused reader-journey test: 28 passes, 0 failures, warnings, or skips.
 - `missing-data.Rmd` rendered successfully to a temporary directory.
-- A source-tarball `R CMD check --as-cran` on the integration candidate passed
-  with no errors or warnings; the two retained NOTEs are the new-submission
-  and pre-existing manual URI notes. The final rebased branch still requires
-  its exact check and GitHub Actions result before merge.
+- Fresh exact source-tarball `R CMD check --as-cran` on the rebased branch
+  passed with no errors or warnings and the expected new-submission NOTE only.
+  GitHub Actions remains the cross-platform gate before merge.
 
 ## Tests Of The Tests
 
