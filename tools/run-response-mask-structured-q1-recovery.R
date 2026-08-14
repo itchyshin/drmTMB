@@ -51,7 +51,31 @@ row <- tryCatch({
   fx <- fixture(provider, seed)
   fit <- drmTMB(fx$form, data = fx$data,
     REML = TRUE, missing = miss_control(response = "include"), control = drm_control(optimizer_preset = "robust", se = FALSE))
-  data.frame(task, provider, seed, status = if (fit$opt$convergence == 0L && isTRUE(fit$sdr$pdHess)) "ok" else "diagnostic",
-    beta0 = fit$par$mu[[1L]], beta_x = fit$par$mu[[2L]], sigma = exp(fit$par$sigma[[1L]]), sd = fit$sdpars$mu[[1L]], stringsAsFactors = FALSE)
-}, error = function(e) data.frame(task, provider, seed, status = paste0("error: ", conditionMessage(e)), beta0 = NA_real_, beta_x = NA_real_, sigma = NA_real_, sd = NA_real_))
-write.csv(row, file.path(output_dir, sprintf("task-%03d.csv", task)), row.names = FALSE)
+  convergence <- fit$opt$convergence
+  pd_hess <- isTRUE(fit$sdr$pdHess)
+  beta0 <- fit$par$mu[[1L]]
+  beta_x <- fit$par$mu[[2L]]
+  sigma <- exp(fit$par$sigma[[1L]])
+  sd <- fit$sdpars$mu[[1L]]
+  data.frame(
+    task, provider, seed,
+    status = if (convergence == 0L && pd_hess) "ok" else "diagnostic",
+    convergence, pd_hess,
+    message = if (convergence == 0L && pd_hess) NA_character_ else "non-zero convergence or non-positive-definite Hessian",
+    beta0, beta_x, sigma, sd,
+    abs_error_beta0 = abs(beta0 - 0.4),
+    abs_error_beta_x = abs(beta_x - 0.25),
+    abs_error_sigma = abs(sigma - 0.5),
+    abs_error_sd = abs(sd - 0.5),
+    stringsAsFactors = FALSE
+  )
+}, error = function(e) data.frame(
+  task, provider, seed, status = "error", convergence = NA_integer_, pd_hess = NA,
+  message = conditionMessage(e), beta0 = NA_real_, beta_x = NA_real_, sigma = NA_real_, sd = NA_real_,
+  abs_error_beta0 = NA_real_, abs_error_beta_x = NA_real_, abs_error_sigma = NA_real_, abs_error_sd = NA_real_,
+  stringsAsFactors = FALSE
+))
+target <- file.path(output_dir, sprintf("task-%03d.csv", task))
+temporary <- paste0(target, ".tmp-", Sys.getpid())
+write.csv(row, temporary, row.names = FALSE)
+if (!file.rename(temporary, target)) stop("Could not atomically publish task receipt", call. = FALSE)
