@@ -43,18 +43,22 @@ available for the supplied prediction grid.}
 \code{conf.int = TRUE}.}
 }
 \value{
-A data frame with columns \code{row}, \code{row_label}, \code{dpar}, \code{component},
-\code{type}, \code{estimate}, \code{conf.status}, and \code{interval_source}. When
+A data frame whose stable native core columns retain this relative
+order: \code{row}, \code{row_label}, \code{dpar}, \code{component}, \code{type}, \code{estimate},
+\code{conf.status}, and \code{interval_source}. \code{conf.status} is an interval result
+or availability state; \code{interval_source} is interval provenance. Only when
 \code{conf.int = TRUE}, \code{std.error}, \code{conf.low}, \code{conf.high}, and \code{conf.level}
-are also included. When \code{include_newdata = TRUE}, supplied \code{newdata}
-columns are appended after those core columns.
+are included after \code{estimate} and before the status/provenance columns.
+When \code{include_newdata = TRUE}, supplied \code{newdata} columns are appended
+after the schema columns and renamed with \code{newdata_} plus, when needed, a
+stable uniqueness suffix when they collide.
 }
 \description{
 \code{predict_parameters()} returns predicted distributional parameters from a
 \code{drmTMB} fit in one long data frame. It is a compact data surface for
 interpretation tables, plotting helpers, and marginalisation helpers: the
-same grid can hold location or mean, scale, shape, probability, and coscale
-quantities.
+same grid can hold location (which can differ from the response mean),
+scale, shape, probability, and coscale quantities.
 }
 \details{
 The helper calls \code{\link[=predict.drmTMB]{predict.drmTMB()}} for each requested distributional
@@ -76,6 +80,16 @@ predictor scale; response-scale intervals use the model link and a delta
 method standard error. They do not include random-effect mode uncertainty,
 profile-likelihood uncertainty, or uncertainty for direct random-effect scale
 models.
+
+For native \code{drmTMB} fits, the stable core columns retain this relative order:
+\code{row}, \code{row_label}, \code{dpar}, \code{component}, \code{type}, \code{estimate}, \code{conf.status},
+and \code{interval_source}. \code{conf.status} describes the requested interval result
+or availability; \code{interval_source} identifies its provenance. Interval
+columns appear only when \code{conf.int = TRUE}, in the established position after
+\code{estimate} and before \code{conf.status}. Supplied \code{newdata} columns are appended
+after the core and optional interval columns, with a \code{newdata_} prefix if
+their names would collide with this schema and a stable suffix when two
+supplied names would otherwise collide after prefixing.
 }
 \examples{
 set.seed(20260522)

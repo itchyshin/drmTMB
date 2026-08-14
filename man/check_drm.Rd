@@ -31,8 +31,11 @@ receives a warning that the variance component is near the lower
 boundary.}
 }
 \value{
-A data frame of checks with columns \code{check}, \code{status}, \code{value}, and
-\code{message}. The returned object has class \code{drm_check}.
+A \code{drm_check} data frame. Its stable native reader columns are, in
+order, \code{check}, \code{status}, \code{value}, and \code{message}, all character. \code{status}
+uses only \code{"ok"}, \code{"note"}, \code{"warning"}, and \code{"error"}; its \code{"ok"}
+attribute is \code{TRUE} exactly when no row has status \code{"warning"} or
+\code{"error"}.
 }
 \description{
 \code{check_drm()} runs a compact set of model-fit diagnostics. It is intended as
@@ -113,6 +116,12 @@ fitted model may still be useful but needs inspection before inference. An
 not automatic proof that fitted point estimates are unusable. For
 programmatic checks, the returned object has \code{attr(x, "ok") == TRUE} only
 when no rows have \code{warning} or \code{error} status.
+
+For native \code{drmTMB} fits, this is a stable reader schema: the
+\code{drm_check} data frame has, in order, the character columns \code{check},
+\code{status}, \code{value}, and \code{message}. \code{status} is one of \code{"ok"}, \code{"note"},
+\code{"warning"}, or \code{"error"}. Its \code{"ok"} attribute is \code{TRUE} exactly when
+no row has status \code{"warning"} or \code{"error"}.
 }
 \examples{
 set.seed(1)
