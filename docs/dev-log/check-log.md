@@ -93994,3 +93994,20 @@ can see which commit each one actually examined.
 - `mc-0569` is now G3 validated for `zoi ~ 1 + (1 | id)` with response masking.
   The former missing-response front-door abort was removed after the masked
   observed-data equality, sentinel, and deterministic recovery test passed.
+
+## 2026-08-14 — bivariate Gaussian matched labelled mu intercept response mask
+
+- `rmf-biv-gaussian-mu12-labelled-intercept` is now `formula_validated` at G3
+  for the one admitted paired formula `mu1 ~ (1 | p | id)`,
+  `mu2 ~ (1 | p | id)`. The G2 check reconstructs the conditional TMB
+  objective at its fitted latent mode from the partial-response likelihood and
+  the independent-standard-normal latent prior, then retapes each endpoint's
+  missing-response sentinel. The existing deterministic 25% MCAR recovery
+  fixture covers fixed effects, both residual scales, both latent SDs, the
+  labelled latent correlation, and `rho12`.
+- Check: `NOT_CRAN=true` `devtools::test(filter =
+  "missing-response-biv-gaussian")` and `devtools::test(filter =
+  "missing-response-recovery")` passed; inventory generation, generated-ledger
+  drift check, and `git diff --check` passed. This does not promote an endpoint
+  fragment, slopes, another covariance block, structured effects, REML,
+  interval/coverage evidence, or dense known-`V` partial responses.

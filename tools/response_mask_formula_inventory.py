@@ -41,18 +41,23 @@ EXPLICIT_BOUNDARIES = (
         "dimension": "bivariate",
         "q_gate": "q2",
         "estimator": "ML",
-        "formula_status": "needs_formula_evidence",
+        "formula_status": "formula_validated",
         "family_mask_gate": "G3",
-        "formula_mask_gate": "G1",
+        "formula_mask_gate": "G3",
         "claim_boundary": (
             "The accepted bivariate formula is the matched labelled block "
             "`mu1 ~ (1 | p | id)`, `mu2 ~ (1 | p | id)`, not either endpoint "
-            "alone. Family-level response-mask evidence and the existing fixed-effect "
-            "partial-response oracle do not validate this latent covariance block."
+            "alone. G2 conditional TMB-objective equality at the fitted latent mode, "
+            "including the independent-standard-normal random-effect prior, and "
+            "component-wise sentinel retapes validate the response mask. G3 deterministic "
+            "25% MCAR recovery validates fixed effects, both residual scales, both latent "
+            "SDs, the latent correlation, and rho12. This is not a marginal dense-MVN "
+            "oracle, a slope, a structured effect, REML, interval/coverage evidence, "
+            "or dense known-V partial-response support."
         ),
         "next_gate": (
-            "Add a partial-response observed-data oracle that includes the labelled "
-            "random-effect prior, then a known-DGP recovery fixture for both SDs and their correlation."
+            "Validate the next admitted labelled geometry separately; retain dense known-V "
+            "partial responses as blocked until component-level covariance slicing exists."
         ),
     },
     {
