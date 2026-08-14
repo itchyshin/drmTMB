@@ -1,5 +1,17 @@
 # Check Log
 
+## 2026-08-14 — zero-one-beta ML coi random-slope response mask
+
+- `mc-0578` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1, zoi ~ 1,
+  coi ~ x + (0 + x | id)`. The masked and observed-data fits agree in the coi
+  slope, coi random-slope SD, and likelihood; zero, one, and interior response
+  sentinels are inert; and the deterministic 25% MCAR DGP recovers the coi
+  slope SD and conditional effects.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-boundary")`
+  passed; the response-mask inventory, capability ledger, and `git diff --check`
+  passed. This does not promote correlated or structured effects, REML, another
+  response family, or missing predictors.
+
 ## 2026-08-14 — zero-one-beta ML coi random-intercept response mask
 
 - `mc-0570` is now `formula_validated` at G3 for `y ~ x, sigma ~ 1, zoi ~ 1,

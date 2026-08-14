@@ -215,6 +215,44 @@ test_that("zero-one-beta coi random-intercept response mask matches observed dat
   expect_gt(cor(fit_mask$random_effects$coi$values, u), 0.35)
 })
 
+test_that("zero-one-beta coi random-slope response mask matches observed data", {
+  set.seed(2026081578L)
+  id <- factor(rep(seq_len(50L), each = 32L))
+  n <- length(id)
+  x <- runif(n, -1, 1)
+  truth_sd <- 0.45
+  u <- rnorm(50L, sd = truth_sd)
+  mu <- plogis(-0.2 + 0.65 * x)
+  sigma <- exp(-0.85)
+  zoi <- plogis(-1)
+  coi <- plogis((0.2 + u[id]) * x)
+  y <- rbeta(n, mu / sigma^2, (1 - mu) / sigma^2)
+  atom <- runif(n) < zoi
+  y[atom] <- as.numeric(runif(sum(atom)) < coi[atom])
+  dat <- data.frame(y, x, id)
+  masked <- missing_response_mask_mcar_within_group(
+    dat, "y", "id", seed = 2026081579L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ x + (0 + x | id))
+  fit_mask <- drmTMB(
+    form, zero_one_beta(), masked,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    form, zero_one_beta(), masked[observed, ], control = drm_control(se = FALSE)
+  )
+  expect_equal(coef(fit_mask, "coi"), coef(fit_observed, "coi"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$coi, fit_observed$sdpars$coi, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
+  expect_lt(abs(unname(fit_mask$sdpars$coi) - truth_sd), 0.25)
+  slope_effects <- fit_mask$random_effects$coi$terms[["(0 + x | id)"]]
+  expect_gt(cor(slope_effects, u), 0.35)
+})
+
 test_that("zero-one-beta mu random-slope response mask matches observed data", {
   case <- mr_t3_zero_one_beta_data(n = 1600L, seed = 2026081520L)
   dat <- case$data
