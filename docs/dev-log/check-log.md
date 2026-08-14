@@ -93543,3 +93543,14 @@ can see which commit each one actually examined.
 - G3 remains withheld for the same measured structured-recovery reason as the
   REML cells. Check: `NOT_CRAN=true` `test-reml-structured-location.R` passed;
   inventory tests, generated-ledger drift check, and `git diff --check` passed.
+
+## 2026-08-14 — q1 structured independent-slope response-mask oracles
+
+- The observed-data dense oracle and direct sentinel-retape contract now covers
+  `spatial()`, `animal()`, and `relmat()` q1 intercept-plus-one-independent-
+  slope formulas under both ML and REML. The three distinct ML slope rows
+  (`mc-0286`, `mc-0298`, `mc-0310`) record G2; the existing REML q1 provider
+  rows retain their G2-only status. No q2/correlated, scale-side, interval,
+  coverage, or recovery claim follows.
+- Check: `NOT_CRAN=true` `test-reml-structured-location.R` passed; inventory
+  tests, generated-ledger drift check, and `git diff --check` passed.
