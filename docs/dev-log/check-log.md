@@ -93443,3 +93443,16 @@ can see which commit each one actually examined.
   The added evidence strengthens only the ordinary-intercept geometry and does
   not promote the separate fixed-only, random-slope, sigma-random-effect,
   structured, bivariate, or non-Gaussian REML cells.
+
+## 2026-08-14 — Gaussian REML ordinary random-slope response-mask cell
+
+- `mc-0269` is now `formula_validated` at G3 for the exact ordinary random-slope
+  geometry `y ~ x + (0 + x | id), sigma ~ 1`. The masked fit agrees with an
+  independent dense observed-data restricted-likelihood reference for
+  `V = s_x^2 Z_x Z_x^T + sigma^2 I`; direct response-sentinel retapes leave the
+  objective, gradient, and reoptimised solution invariant. A deterministic 25%
+  MCAR fixture recovers fixed `mu`, residual `sigma`, and the random-slope SD.
+- Check: `NOT_CRAN=true` `test-reml-heteroscedastic.R` passed; inventory unit
+  tests and generated-ledger drift check passed; `git diff --check` passed.
+  This does not promote random intercept-plus-slope, correlated, sigma-side,
+  structured, bivariate, non-Gaussian, or missing-predictor REML cells.

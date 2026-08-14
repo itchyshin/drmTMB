@@ -54,3 +54,10 @@ and an independent dense restricted-likelihood reference, and it recovers the
 fixed `mu` and `sigma` coefficients plus the `mu` random-intercept SD. This
 strengthens the exact ordinary-intercept formula geometry; it does not certify
 the separate sigma-side or random-slope formula cells.
+
+`mc-0269` is separately `formula_validated` at G3 for the ordinary Gaussian
+random-slope formula `y ~ x + (0 + x | id), sigma ~ 1`. Its masked REML fit
+agrees with a dense observed-data restricted-likelihood oracle and its
+deterministic 25% MCAR fixture recovers fixed `mu`, residual `sigma`, and the
+random-slope SD. This does not transfer to intercept-plus-slope or correlated
+ordinary blocks.

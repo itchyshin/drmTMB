@@ -63,6 +63,37 @@ reml_hetero_reference <- function(y, X, Z_re, Z_sig) {
   list(sd_u = sd_u, a = a, beta = as.numeric(b))
 }
 
+reml_random_slope_reference <- function(y, X, Z_slope) {
+  n <- length(y)
+  p <- ncol(X)
+  ZVZt <- Z_slope %*% t(Z_slope)
+  neg_restricted_ll <- function(par) {
+    sd_slope <- exp(par[[1L]])
+    sigma <- exp(par[[2L]])
+    V <- sd_slope^2 * ZVZt + diag(sigma^2, n)
+    Vi <- solve(V)
+    XtViX <- t(X) %*% Vi %*% X
+    beta <- solve(XtViX, t(X) %*% Vi %*% y)
+    residual <- y - X %*% beta
+    0.5 * (
+      (n - p) * log(2 * pi) + det_log(V) + det_log(XtViX) +
+        as.numeric(t(residual) %*% Vi %*% residual)
+    )
+  }
+  opt <- stats::optim(
+    c(log(0.5), log(0.35)),
+    neg_restricted_ll,
+    method = "Nelder-Mead",
+    control = list(reltol = 1e-10, maxit = 8000)
+  )
+  sd_slope <- exp(opt$par[[1L]])
+  sigma <- exp(opt$par[[2L]])
+  V <- sd_slope^2 * ZVZt + diag(sigma^2, n)
+  Vi <- solve(V)
+  beta <- solve(t(X) %*% Vi %*% X, t(X) %*% Vi %*% y)
+  list(sd_slope = sd_slope, sigma = sigma, beta = as.numeric(beta))
+}
+
 test_that("heteroscedastic REML matches a hand-computed restricted likelihood", {
   skip_on_cran()
   fx <- reml_hetero_fixture()
@@ -129,6 +160,51 @@ test_that("heteroscedastic Gaussian REML response masks match the observed-data 
   expect_equal(as.numeric(fit_masked$par$mu), unname(fx$true_beta), tolerance = 0.12)
   expect_equal(as.numeric(fit_masked$par$sigma), unname(fx$true_sigma), tolerance = 0.14)
   expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), fx$true_sd_u, tolerance = 0.14)
+  expect_missing_response_sentinel_invariant(
+    fit_masked,
+    sentinels = c(-1e6, 1e6)
+  )
+})
+
+test_that("Gaussian REML random-slope response masks match their observed-data oracle", {
+  set.seed(2026081404L)
+  n_id <- 64L
+  n_each <- 8L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  x <- stats::rnorm(n_id * n_each)
+  beta <- c(`(Intercept)` = 0.4, x = 0.7)
+  sd_slope <- 0.5
+  sigma <- 0.35
+  slope <- stats::rnorm(n_id, sd = sd_slope)
+  y <- beta[[1L]] + beta[[2L]] * x + slope[id] * x +
+    stats::rnorm(n_id * n_each, sd = sigma)
+  observed <- stats::runif(n_id * n_each) > 0.25
+  dat <- data.frame(y = y, x = x, id = id)
+  dat_masked <- dat
+  dat_masked$y[!observed] <- NA_real_
+
+  fit_masked <- drmTMB(
+    bf(y ~ x + (0 + x | id), sigma ~ 1),
+    family = gaussian(),
+    data = dat_masked,
+    missing = miss_control(response = "include"),
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust", se = FALSE)
+  )
+  observed_data <- dat[observed, , drop = FALSE]
+  ref <- reml_random_slope_reference(
+    observed_data$y,
+    stats::model.matrix(~ x, observed_data),
+    stats::model.matrix(~ 0 + id:x, observed_data)
+  )
+
+  expect_equal(as.numeric(fit_masked$par$mu), ref$beta, tolerance = 3e-2)
+  expect_equal(exp(as.numeric(fit_masked$par$sigma)), ref$sigma, tolerance = 3e-2)
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), ref$sd_slope, tolerance = 3e-2)
+  expect_equal(as.numeric(fit_masked$par$mu), unname(beta), tolerance = 0.13)
+  expect_equal(exp(as.numeric(fit_masked$par$sigma)), sigma, tolerance = 0.08)
+  expect_equal(as.numeric(fit_masked$sdpars$mu[[1L]]), sd_slope, tolerance = 0.15)
+  expect_equal(nobs(fit_masked), sum(observed))
   expect_missing_response_sentinel_invariant(
     fit_masked,
     sentinels = c(-1e6, 1e6)

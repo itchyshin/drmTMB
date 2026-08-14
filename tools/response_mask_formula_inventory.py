@@ -73,6 +73,21 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent recovery design before widening this REML formula geometry.",
     },
+    "mc-0269": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data dense restricted-likelihood equality and direct "
+            "sentinel retapes, plus a deterministic 25% MCAR known-DGP recovery "
+            "check, validate the univariate Gaussian ordinary mu random-slope "
+            "REML response-mask formula `(0 + x | id)`. The check covers fixed "
+            "mu coefficients, constant residual sigma, and the mu random-slope "
+            "SD. It does not promote random intercepts, correlated blocks, "
+            "sigma-side effects, structured, bivariate, non-Gaussian, or "
+            "missing-predictor REML formulas."
+        ),
+        "next_gate": "Add an independent recovery design before widening this REML formula geometry.",
+    },
 }
 
 
