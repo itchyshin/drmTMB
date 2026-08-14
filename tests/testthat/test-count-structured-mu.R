@@ -757,6 +757,63 @@ test_that("Poisson spatial q1 intercept response mask has oracle and recovery ev
   expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.25)
 })
 
+test_that("Poisson animal and relmat q1 intercept response masks have separate recovery evidence", {
+  routes <- list(
+    list(provider = "animal", seed = 2026081740L),
+    list(provider = "relmat", seed = 2026081741L)
+  )
+  for (route in routes) {
+    sim <- new_count_structured_mu_data(
+      n_level = 128L, n_each = 16L, seed = route$seed
+    )
+    dat <- sim$data
+    dat$poisson_known[seq(1L, nrow(dat), by = 16L)] <- NA_integer_
+    observed <- !is.na(dat$poisson_known)
+    Q <- sim$Q
+    formula <- if (identical(route$provider, "animal")) {
+      bf(poisson_known ~ x + animal(1 | id, Ainv = Q))
+    } else {
+      bf(poisson_known ~ x + relmat(1 | id, Q = Q))
+    }
+    fit_masked <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat,
+      missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      formula, family = stats::poisson(link = "log"), data = dat[observed, , drop = FALSE],
+      control = drm_control(se = FALSE)
+    )
+    obj <- TMB::MakeADFun(
+      data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+      map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+    )
+    probe <- obj$par + seq(-0.04, 0.04, length.out = length(obj$par))
+    par <- obj$env$parList(probe)
+
+    expect_equal(fit_masked$opt$convergence, 0L)
+    expect_equal(fit_observed$opt$convergence, 0L)
+    expect_equal(nobs(fit_masked), sum(observed))
+    expect_equal(fit_masked$missing_data$observed_y, observed)
+    expect_equal(obj$fn(probe), poisson_structured_q1_nll(fit_masked, par),
+      tolerance = 1e-7)
+    expect_equal(
+      as.numeric(obj$gr(probe)), nb2_phylo_q2_central_gradient(obj$fn, probe),
+      tolerance = 5e-5
+    )
+    expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 12))
+    expect_equal(coef(fit_masked, "mu"), coef(fit_observed, "mu"),
+      tolerance = 1e-6)
+    expect_equal(fit_masked$sdpars$mu, fit_observed$sdpars$mu,
+      tolerance = 1e-6)
+    expect_lt(abs(coef(fit_masked, "mu")[["(Intercept)"]] - sim$beta_mu[["(Intercept)"]]),
+      0.35)
+    expect_lt(abs(coef(fit_masked, "mu")[["x"]] - sim$beta_mu[["x"]]),
+      0.14)
+    expect_lt(abs(unname(fit_masked$sdpars$mu) - 0.45), 0.25,
+      )
+  }
+})
+
 expect_poisson_labelled_q2_provider_fit <- function(fit, provider, group) {
   expected_correlation <- paste0(
     "cor(mu:(Intercept),mu:x | p | ", group, ")"

@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — Poisson animal and relmat q1-intercept response-mask recovery
+
+- `rmf-mc-0447` and `rmf-mc-0451` are now G3 for, respectively,
+  `poisson_known ~ x + animal(1 | id, Ainv = Q)` and
+  `poisson_known ~ x + relmat(1 | id, Q = Q)` under ML. Each non-Gaussian
+  fixture has 128 IDs, 16 observations per ID, and one masked response per ID;
+  the provider routes use separate seeds.
+- Both checks use a conditional Poisson likelihood plus provider precision
+  oracle and numerical gradients; direct count sentinel retapes and observed-
+  row fit equality also pass. Each recovers the fixed slope and its provider
+  SD, with a wider conditional intercept tolerance for the uncentred field.
+  Neither result certifies the q1 slope, q2+, another provider, REML, missing
+  predictors, intervals, or coverage.
+- Check: `test-count-structured-mu.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — Poisson spatial q1-intercept response-mask recovery
 
 - `rmf-mc-0440` is now G3 for
