@@ -94066,3 +94066,17 @@ can see which commit each one actually examined.
   passed. This does not promote labelled/q2 blocks, mu-side phylogenetic
   effects, another provider, bivariate or REML formulas, interval/coverage
   evidence, or missing predictors.
+
+## 2026-08-14 — paired Gaussian phylogenetic location-scale response mask
+
+- `mc-0278` and `mc-0279` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + phylo(1 | species, tree = tree), sigma ~
+  phylo(1 | species, tree = tree)`. Masked and observed-data fits agree in
+  fixed coefficients, both phylogenetic SDs, their cross-axis correlation, and
+  likelihood; continuous sentinels are inert. A deterministic 25% MCAR DGP
+  with 64 tips and 20 observations per tip recovers the full paired block.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "phylo-gaussian")` passed;
+  inventory generation, generated-ledger drift check, and `git diff --check`
+  passed. This does not promote either endpoint alone, slopes, q4+, another
+  provider, bivariate or REML formulas, interval/coverage evidence, or missing
+  predictors.

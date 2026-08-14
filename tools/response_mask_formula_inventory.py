@@ -219,6 +219,25 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add a separate observed-response oracle and recovery design for each remaining phylo geometry.",
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "This row is one component of the paired univariate Gaussian q2 phylogenetic "
+                "location-scale formula `y ~ x + phylo(1 | species, tree = tree), sigma ~ "
+                "phylo(1 | species, tree = tree)`; neither endpoint is promoted alone. G2 "
+                "masked-versus-observed-data equality covers fixed mu and sigma coefficients, "
+                "both phylogenetic SDs, their correlation, and likelihood; direct continuous-"
+                "response sentinel retapes and G3 deterministic 25% MCAR recovery cover the "
+                "same paired block. The fixture has 64 tips and 20 observations per tip. This "
+                "does not promote slopes, another q2 provider, q4+, bivariate, REML, intervals/"
+                "coverage, or missing-predictor formulas."
+            ),
+            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
+        }
+        for cell_id in ("mc-0278", "mc-0279")
+    },
     "mc-0264": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",

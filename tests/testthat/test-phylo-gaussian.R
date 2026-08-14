@@ -2032,6 +2032,43 @@ test_that("Gaussian supports phylogenetic residual-scale structured effects", {
   expect_equal(pair$estimate, unname(fit$corpars$phylo))
 })
 
+test_that("Gaussian matched phylogenetic location-scale masks match observed data", {
+  sim <- new_phylo_location_scale_gaussian_data(
+    seed = 2026081609L, n_tip = 64L, n_each = 20L,
+    sd_phylo = c(mu = 0.40, sigma = 0.24), rho_phylo = 0.30
+  )
+  tree <- sim$tree
+  masked <- missing_response_mask_mcar_within_group(
+    sim$data, "y", "species", seed = 2026081610L
+  )
+  observed <- !is.na(masked$y)
+  form <- bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ phylo(1 | species, tree = tree)
+  )
+  control <- drm_control(se = FALSE, optimizer = list(eval.max = 800, iter.max = 800))
+  fit_mask <- drmTMB(
+    form, gaussian(), masked, missing = miss_control(response = "include"), control = control
+  )
+  fit_observed <- drmTMB(
+    form, gaussian(), masked[observed, , drop = FALSE], control = control
+  )
+
+  expect_equal(coef(fit_mask, "mu"), coef(fit_observed, "mu"), tolerance = 1e-5)
+  expect_equal(coef(fit_mask, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5)
+  expect_equal(fit_mask$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-5)
+  expect_equal(fit_mask$corpars$phylo, fit_observed$corpars$phylo, tolerance = 1e-5)
+  expect_equal(as.numeric(logLik(fit_mask)), as.numeric(logLik(fit_observed)), tolerance = 1e-5)
+  expect_equal(nobs(fit_mask), sum(observed))
+  expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(-1e6, 1e6))
+  expect_lt(max(abs(unname(coef(fit_mask, "mu")) - unname(sim$beta_mu))), 0.25)
+  expect_lt(abs(unname(coef(fit_mask, "sigma")) - unname(sim$beta_sigma)), 0.25)
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$mu) / sim$sd_phylo[["mu"]]))), log(2))
+  expect_lt(max(abs(log(unname(fit_mask$sdpars$sigma) / sim$sd_phylo[["sigma"]]))), log(2))
+  expect_lt(abs(unname(fit_mask$corpars$phylo) - sim$rho_phylo), 0.35)
+})
+
 test_that("matched univariate phylogenetic location-scale terms reject mismatches early", {
   sim <- new_phylo_location_scale_gaussian_data(n_tip = 4L, n_each = 4L)
   tree <- sim$tree
