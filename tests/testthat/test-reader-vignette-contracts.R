@@ -1,8 +1,12 @@
+linter_path <- testthat::test_path("..", "..", "tools", "check-reader-contracts.R")
+
+if (!file.exists(linter_path)) {
+  test_that("reader vignette development linter is available", {
+    skip("Top-level development tools are intentionally excluded from the source tarball")
+  })
+} else {
 contract_linter <- new.env(parent = globalenv())
-sys.source(
-  testthat::test_path("..", "..", "tools", "check-reader-contracts.R"),
-  envir = contract_linter
-)
+sys.source(linter_path, envir = contract_linter)
 
 contract_fixture <- function(files = list(), manifest = NULL, exceptions = NULL) {
   root <- tempfile("reader-contract-")
@@ -195,3 +199,4 @@ test_that("the live corpus has the complete immutable manifest", {
   expect_setequal(manifest$vignette, source_vignettes)
   expect_length(contract_linter$reader_contract_lint(project_root), 0L)
 })
+}
