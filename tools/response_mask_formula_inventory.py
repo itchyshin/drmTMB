@@ -230,6 +230,22 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add an independent observed-response oracle and recovery design for each remaining NB2 geometry.",
     },
+    "mc-0005": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "G2 observed-data complete-case likelihood and parameter equality "
+            "within the stated latent-mode numerical tolerance, plus direct "
+            "sentinel retapes, and G3 deterministic 25% MCAR known-DGP recovery "
+            "validate the Beta univariate ordinary mu random-intercept ML "
+            "response-mask formula `(1 | id)` with fixed sigma regression. The "
+            "check covers fixed mu and sigma coefficients, the mu random-intercept "
+            "SD, and conditional random-effect recovery. It does not promote Beta "
+            "random slopes, sigma random effects, correlated blocks, structured "
+            "effects, bivariate, REML, another family, or missing-predictor formulas."
+        ),
+        "next_gate": "Add an independent observed-response oracle and recovery design for each remaining Beta geometry.",
+    },
 }
 
 
