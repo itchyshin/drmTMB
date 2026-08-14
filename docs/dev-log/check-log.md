@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-14 — bivariate phylogenetic q2 location response mask
+
+- `rmf-biv-gaussian-phylo-mu12-q2-intercept` now represents the accepted paired
+  `mu1 ~ phylo(1 | p | species, tree = tree)`, `mu2 ~ phylo(1 | p | species,
+  tree = tree)` ML formula (`mc-0083`/`mc-0084`); neither endpoint is promoted
+  by itself. Its G2 conditional oracle reconstructs the two endpoint response
+  contributions and the correlated phylogenetic-field prior at the fitted
+  latent mode. Direct endpoint sentinel retapes are inert.
+- G3 is a deterministic, 25% MCAR response-mask recovery fixture with 32 tips
+  and 8 observations per tip. It checks both fixed-effect vectors, residual
+  scales, phylogenetic SDs and correlation, and `rho12`. This is not dense
+  marginal-MVN, another phylogenetic geometry or provider, REML, interval or
+  coverage evidence, or dense-known-`V` partial-response support.
+- Check: `test-phylo-gaussian.R`, response-mask inventory generation,
+  capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — bivariate response-mask inventory unit repair
 
 - The bivariate `mc-0069`/`mc-0070` rows were endpoint fragments, not accepted

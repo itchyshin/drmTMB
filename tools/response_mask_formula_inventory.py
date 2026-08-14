@@ -61,6 +61,39 @@ EXPLICIT_BOUNDARIES = (
         ),
     },
     {
+        "formula_cell_id": "rmf-biv-gaussian-phylo-mu12-q2-intercept",
+        "model_cell_id": "mc-0083,mc-0084",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_phylo_mu1_mu2_intercept",
+        "route_modifier": "structured_q2",
+        "dpar": "mu1+mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "phylo",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "formula_validated",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G3",
+        "claim_boundary": (
+            "The accepted bivariate formula is the matched phylogenetic q2 location "
+            "block `mu1 ~ phylo(1 | p | species, tree = tree)`, `mu2 ~ "
+            "phylo(1 | p | species, tree = tree)`, not either endpoint alone. G2 "
+            "conditional TMB-objective equality at the fitted latent mode includes the "
+            "correlated phylogenetic-field prior, and component-wise sentinel retapes "
+            "validate the response mask. G3 deterministic 25% MCAR recovery validates "
+            "both fixed-effect vectors, both residual scales, both phylogenetic SDs, "
+            "the phylogenetic correlation, and rho12 on a 32-tip, 8-observation-per-tip "
+            "fixture. This is not a dense marginal-MVN oracle, a slope, another structured "
+            "provider, REML, interval/coverage evidence, or dense known-V partial-response support."
+        ),
+        "next_gate": (
+            "Validate each remaining bivariate structured geometry separately; retain dense "
+            "known-V partial responses as blocked until component-level covariance slicing exists."
+        ),
+    },
+    {
         "formula_cell_id": "rmf-biv-gaussian-meta-v-partial",
         "model_cell_id": "",
         "family_type": "biv_gaussian",

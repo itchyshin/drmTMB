@@ -343,6 +343,52 @@ new_biv_phylo_gaussian_data <- function(
   )
 }
 
+manual_biv_response_loglik <- function(fit) {
+  dat <- fit$model$data
+  observed_y1 <- fit$missing_data$observed_y1
+  observed_y2 <- fit$missing_data$observed_y2
+  mu1 <- predict(fit, dpar = "mu1")
+  mu2 <- predict(fit, dpar = "mu2")
+  sigma1 <- predict(fit, dpar = "sigma1")
+  sigma2 <- predict(fit, dpar = "sigma2")
+  rho12 <- predict(fit, dpar = "rho12")
+  out <- numeric(nrow(dat))
+  both <- observed_y1 & observed_y2
+  z1 <- (dat$y1[both] - mu1[both]) / sigma1[both]
+  z2 <- (dat$y2[both] - mu2[both]) / sigma2[both]
+  one_minus_rho2 <- 1 - rho12[both]^2
+  out[both] <- -log(2 * pi) - log(sigma1[both]) - log(sigma2[both]) -
+    0.5 * log(one_minus_rho2) -
+    0.5 * (z1^2 - 2 * rho12[both] * z1 * z2 + z2^2) / one_minus_rho2
+  y1_only <- observed_y1 & !observed_y2
+  out[y1_only] <- stats::dnorm(dat$y1[y1_only], mu1[y1_only], sigma1[y1_only], log = TRUE)
+  y2_only <- !observed_y1 & observed_y2
+  out[y2_only] <- stats::dnorm(dat$y2[y2_only], mu2[y2_only], sigma2[y2_only], log = TRUE)
+  sum(out)
+}
+
+manual_biv_phylo_q2_prior_loglik <- function(fit) {
+  par <- fit$obj$env$parList(fit$opt$par)
+  n_phylo <- nrow(fit$model$tmb_data$Q_phylo)
+  u1 <- par$u_phylo[seq_len(n_phylo)]
+  u2 <- par$u_phylo[n_phylo + seq_len(n_phylo)]
+  Q <- as.matrix(fit$model$tmb_data$Q_phylo)
+  q11 <- drop(crossprod(u1, Q %*% u1))
+  q12 <- drop(crossprod(u1, Q %*% u2))
+  q22 <- drop(crossprod(u2, Q %*% u2))
+  sd <- exp(par$log_sd_phylo)
+  rho <- 0.999999 * tanh(par$eta_cor_phylo)
+  one_minus_rho2 <- 1 - rho^2
+  quadratic <- q11 / (sd[[1L]]^2 * one_minus_rho2) -
+    2 * rho * q12 / (sd[[1L]] * sd[[2L]] * one_minus_rho2) +
+    q22 / (sd[[2L]]^2 * one_minus_rho2)
+  log_det_cov <- 2 * sum(par$log_sd_phylo) + log(one_minus_rho2)
+  -0.5 * (
+    2 * n_phylo * log(2 * pi) + n_phylo * log_det_cov -
+      2 * fit$model$tmb_data$log_det_Q_phylo + quadratic
+  )
+}
+
 new_biv_phylo_corpair_gaussian_data <- function(
   seed = 20260903,
   n_tip = 8L,
@@ -837,6 +883,81 @@ test_that("bivariate Gaussian mu supports correlated phylogenetic random interce
   expect_true(all(vapply(sims, is.numeric, logical(1L))))
   expect_true(all(is.finite(as.matrix(sims))))
   expect_equal(sims, simulate(fit, nsim = 2, seed = 20260631, re.form = NA))
+})
+
+test_that("bivariate phylogenetic q2 response masks have an exact conditional oracle", {
+  sim <- new_biv_phylo_gaussian_data(n_tip = 8L, n_each = 8L)
+  dat <- sim$data
+  tree <- sim$tree
+  dat$y1[c(3L, 19L, 44L)] <- NA_real_
+  dat$y2[c(8L, 19L, 51L)] <- NA_real_
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 500, iter.max = 500)
+  )
+  full_parameters <- fit$obj$env$parList(fit$opt$par)
+  joint <- TMB::MakeADFun(
+    data = fit$model$tmb_data, parameters = full_parameters,
+    map = fit$model$map, DLL = "drmTMB", silent = TRUE
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_equal(
+    -joint$fn(joint$par),
+    manual_biv_response_loglik(fit) + manual_biv_phylo_q2_prior_loglik(fit),
+    tolerance = 1e-6
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y1", observed = fit$missing_data$observed_y1,
+    sentinels = c(-1e6, 1e6)
+  )
+  expect_missing_response_sentinel_invariant(
+    fit, response = "y2", observed = fit$missing_data$observed_y2,
+    sentinels = c(-1e6, 1e6)
+  )
+})
+
+test_that("bivariate phylogenetic q2 response masks recover a known DGP", {
+  sim <- new_biv_phylo_gaussian_data(
+    seed = 2026081701L, n_tip = 32L, n_each = 8L,
+    sd_phylo = c(0.90, 0.80), rho_phylo = 0.55,
+    sigma = c(0.18, 0.20), rho12 = 0.10
+  )
+  tree <- sim$tree
+  dat <- missing_response_mask_mcar_within_group(
+    sim$data, "y1", "species", seed = 2026081702L
+  )
+  dat <- missing_response_mask_mcar_within_group(
+    dat, "y2", "species", seed = 2026081703L
+  )
+
+  fit <- drmTMB(
+    bf(
+      mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+      mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+      sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+    ),
+    family = biv_gaussian(), data = dat,
+    missing = miss_control(response = "include"),
+    control = list(eval.max = 800, iter.max = 800)
+  )
+
+  expect_equal(fit$opt$convergence, 0)
+  expect_lt(max(abs(unname(coef(fit, "mu1")) - unname(sim$beta_mu1))), 0.25)
+  expect_lt(max(abs(unname(coef(fit, "mu2")) - unname(sim$beta_mu2))), 0.25)
+  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$sd_phylo)), 0.35)
+  expect_lt(abs(unname(fit$corpars$phylo) - sim$rho_phylo), 0.30)
+  expect_lt(max(abs(c(
+    unique(stats::sigma(fit)$sigma1), unique(stats::sigma(fit)$sigma2)
+  ) - sim$sigma)), 0.08)
+  expect_lt(abs(unique(rho12(fit)) - sim$rho12), 0.25)
 })
 
 test_that("bivariate Gaussian mu supports phylogenetic q2 slope-only covariance", {
