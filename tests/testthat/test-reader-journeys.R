@@ -65,3 +65,66 @@ test_that("missing-response rows retain fitted values but not residuals", {
   expect_true(all(is.na(residuals(fit)[missing])))
   expect_true(all(is.finite(fitted(fit)[missing])))
 })
+
+test_that("bivariate reader output separates response-scale rho12 from its link", {
+  set.seed(20260813)
+  n <- 80L
+  dat <- data.frame(x = seq(-1, 1, length.out = n))
+  latent_rho <- 0.2 + 0.4 * dat$x
+  rho <- 0.999999 * tanh(latent_rho)
+  e1 <- stats::rnorm(n)
+  dat$y1 <- 0.4 * dat$x + e1
+  dat$y2 <- -0.3 * dat$x + rho * e1 + sqrt(1 - rho^2) * stats::rnorm(n)
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~x),
+    family = c(gaussian(), gaussian()), data = dat
+  )
+
+  grid <- prediction_grid(fit, focal = "x", at = list(x = c(-.5, 0, .5)))
+  response_rho <- rho12(fit, newdata = grid)
+  link_rho <- rho12(fit, newdata = grid, type = "link")
+  pair <- corpairs(fit, conf.int = TRUE)
+  expect_length(response_rho, nrow(grid))
+  expect_true(all(is.finite(response_rho) & abs(response_rho) < 1))
+  expect_equal(response_rho, 0.999999 * tanh(link_rho), tolerance = 1e-12)
+  expect_identical(pair$conf.status, "derived_interval_unavailable")
+  expect_identical(pair$level, "residual")
+})
+
+test_that("structured and meta-analysis reader extractors retain their meaning", {
+  skip_if_not_installed("ape")
+  set.seed(20260813)
+  tree <- ape::chronos(ape::rtree(8), lambda = 1)
+  species <- factor(rep(tree$tip.label, each = 3), levels = tree$tip.label)
+  phylo_dat <- data.frame(
+    species = species,
+    x = rep(c(-1, 0, 1), 8)
+  )
+  phylo_dat$y <- 0.5 * phylo_dat$x + rep(stats::rnorm(8, sd = .25), each = 3) +
+    stats::rnorm(nrow(phylo_dat), sd = .2)
+  phylo_fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1), gaussian(), data = phylo_dat
+  )
+  deviations <- ranef(phylo_fit)
+  targets <- profile_targets(phylo_fit)
+  expect_true(length(deviations$phylo_mu$values) > 0L)
+  expect_true(any(grepl("phylo", targets$parm, fixed = TRUE)))
+
+  vi <- rep(.08, 24)
+  meta_fit <- drmTMB(
+    bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1), gaussian(),
+    data = data.frame(yi = stats::rnorm(24, .2, sqrt(vi + .06)), vi = vi)
+  )
+  expect_true(all(is.finite(sigma(meta_fit)) & sigma(meta_fit) > 0))
+})
+
+test_that("fitted means are not silently substituted with lognormal mu predictions", {
+  set.seed(20260813)
+  dat <- data.frame(x = seq(-1, 1, length.out = 50))
+  dat$y <- exp(.2 + .5 * dat$x + stats::rnorm(nrow(dat), sd = .35))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), lognormal(), data = dat)
+  mu <- predict(fit, dpar = "mu")
+  response_mean <- fitted(fit)
+  expect_false(isTRUE(all.equal(mu, response_mean)))
+  expect_equal(response_mean, exp(predict(fit, dpar = "mu", type = "link") + .5 * sigma(fit)^2))
+})
