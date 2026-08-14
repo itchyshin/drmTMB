@@ -55,6 +55,8 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
       report_artifact = "generic post-fit smoke: summary() + fitted()",
       evidence_tier = "smoke only; no recovery or calibration claim",
       fit = "fail", diagnostics = "not_run", report_output = "not_run", limitation = limitation,
+      unsupported_request = paste0("profile target unsupported:", id),
+      unsupported_response = "not_run",
       seconds = round(proc.time()[["elapsed"]] - started, 2),
       fit_warnings = "", first_blocker = fitted$message, stringsAsFactors = FALSE
     ))
@@ -69,6 +71,16 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
     summary(fit_object)
     stats::fitted(fit_object)
   })
+  # Every reader journey also asks for one deliberately nonexistent public
+  # profile target. A model must reject that request rather than manufacture a
+  # generic-looking interval for the wrong estimand.
+  unsupported_request <- paste0("profile target unsupported:", id)
+  unsupported <- status(stats::confint(
+    fit_object,
+    parm = unsupported_request,
+    method = "profile"
+  ))
+  unsupported_pass <- !isTRUE(unsupported$ok)
 
   blocker <- ""
   fit_warnings <- paste(fitted$warnings, collapse = " | ")
@@ -79,6 +91,9 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
     blocker <- "check_drm(): reported warning or error diagnostics"
   }
   if (!reporting$ok) blocker <- paste(c(blocker, "report output:", reporting$message), collapse = " ")
+  if (!unsupported_pass) {
+    blocker <- paste(c(blocker, "unsupported profile target unexpectedly succeeded"), collapse = " ")
+  }
   if (!nzchar(blocker)) blocker <- "none"
 
   data.frame(
@@ -87,6 +102,8 @@ run_workflow <- function(id, question, model, estimand, uncertainty, limitation,
     report_artifact = "generic post-fit smoke: summary() + fitted()",
     evidence_tier = "smoke only; no recovery or calibration claim", fit = "pass",
     diagnostics = as_flag(diagnostic_pass), report_output = as_flag(reporting$ok),
+    unsupported_request = unsupported_request,
+    unsupported_response = as_flag(unsupported_pass),
     limitation = limitation,
     seconds = round(proc.time()[["elapsed"]] - started, 2),
     fit_warnings = fit_warnings,

@@ -93409,3 +93409,7 @@ can see which commit each one actually examined.
   integration branch passed with no errors or warnings and one expected
   new-submission NOTE. The required GitHub Actions gate is still pending at
   this record.
+- Each of the ten native reader workflows now sends a unique nonexistent
+  profile target through exported `confint(..., method = "profile")`. The
+  regenerated receipt records `unsupported_response = pass` for every row,
+  confirming that no model manufactures an interval for an unsupported target.

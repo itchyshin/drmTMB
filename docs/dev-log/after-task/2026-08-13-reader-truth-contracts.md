@@ -21,6 +21,11 @@ three threshold-free missing-response G5 routes. It verifies the current
 policy name, each route's live state, the absence of the retired predicate,
 and the required prose on that route's own rendered family-map row.
 
+Each of the ten native reader journeys now also requests a uniquely named,
+nonexistent profile target through the exported `confint()` path. Every request
+must be rejected; a successful response would be a fabricated interval for an
+unidentified estimand.
+
 ## Mathematical Contract
 
 The sentinel detector does not change the fitted objective, the likelihood,
@@ -44,6 +49,8 @@ true.
 - Focused ledger contract tests: passed (6 tests).
 - `python3 tools/capability_ledger.py --check`: passed (31 generated outputs).
 - Focused reader-journey test: 28 passes, 0 failures, warnings, or skips.
+- The regenerated ten-row audit receipt records all ten deliberate unsupported
+  target requests as rejected.
 - `missing-data.Rmd` rendered successfully to a temporary directory.
 - Fresh exact source-tarball `R CMD check --as-cran` on the final repaired
   branch passed with no errors or warnings and the expected new-submission NOTE
@@ -86,6 +93,10 @@ User-facing status is part of the statistical result. A numerical extractor
 must either return an interval whose path is valid or preserve the reason it
 cannot do so. Generated prose needs a keyed contract when it refers to live
 policy or evidence state.
+
+An article-shaped happy path alone is insufficient: every workflow needs a
+deliberate unsupported request to prove that it fails informatively instead of
+silently inventing a result.
 
 ## Known Limitations
 
