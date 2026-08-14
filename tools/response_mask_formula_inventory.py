@@ -455,6 +455,24 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining Student parameter geometry.",
     },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "G2 observed-data complete-case parameter and likelihood equality, plus "
+                "direct response-sentinel retapes, and G3 deterministic 25% MCAR known-"
+                "DGP recovery validate the univariate ordinary mu independent random-"
+                "slope ML response-mask formula `(0 + x | id)` with fixed distributional-"
+                "parameter regressions. The check covers fixed coefficients, the mu random-"
+                "slope SD, and conditional slope-effect recovery. It does not promote other "
+                "random distributional parameters, correlated blocks, structured effects, "
+                "REML, another family, or missing-predictor formulas."
+            ),
+            "next_gate": "Add formula-specific evidence for every remaining ordinary continuous-family geometry.",
+        }
+        for cell_id in ("mc-0244", "mc-0380", "mc-0488")
+    },
 }
 
 

@@ -259,6 +259,74 @@ test_that("Student, lognormal, and Gamma masks recover random-intercept DGPs", {
   }
 })
 
+mr_t2_random_slope_data <- function(route, seed) {
+  set.seed(seed)
+  n_id <- switch(route, student = 44L, lognormal = 42L, gamma = 46L)
+  n_each <- 16L
+  id <- factor(rep(seq_len(n_id), each = n_each))
+  n <- length(id)
+  dat <- data.frame(id = id, x = rnorm(n), z = rnorm(n))
+  truth <- switch(
+    route,
+    student = list(mu = c(0.20, 0.48), sigma = c(-0.42, 0.18), nu = log(7), sd = 0.50),
+    lognormal = list(mu = c(0.25, 0.40), sigma = c(-0.75, 0.18), sd = 0.50),
+    gamma = list(mu = c(0.15, 0.36), sigma = c(-0.85, 0.16), sd = 0.48)
+  )
+  u <- rnorm(n_id, sd = truth$sd)
+  eta <- truth$mu[[1L]] + (truth$mu[[2L]] + u[id]) * dat$x
+  sigma <- exp(truth$sigma[[1L]] + truth$sigma[[2L]] * dat$z)
+  if (route == "student") {
+    q <- qt((seq_len(n) - 0.5) / n, df = 2 + exp(truth$nu))
+    dat$y <- eta + sigma * sample(q)
+  } else if (route == "lognormal") {
+    dat$y <- rlnorm(n, meanlog = eta, sdlog = sigma)
+  } else {
+    mu <- exp(eta)
+    dat$y <- rgamma(n, shape = 1 / sigma^2, scale = mu * sigma^2)
+  }
+  complete <- dat
+  dat <- missing_response_mask_mcar_within_group(dat, "y", "id", seed = seed + 1L)
+  list(data = dat, complete = complete, truth = truth, u = u)
+}
+
+test_that("Student, lognormal, and Gamma masks recover random-slope DGPs", {
+  routes <- c("student", "lognormal", "gamma")
+  for (i in seq_along(routes)) {
+    route <- routes[[i]]
+    case <- mr_t2_random_slope_data(route, 2026081530L + i)
+    dat <- case$data
+    observed <- !is.na(dat$y)
+    form <- switch(
+      route,
+      student = bf(y ~ x + (0 + x | id), sigma ~ z, nu ~ 1),
+      lognormal = bf(y ~ x + (0 + x | id), sigma ~ z),
+      gamma = bf(y ~ x + (0 + x | id), sigma ~ z)
+    )
+    fit <- drmTMB(
+      form, switch(route, student = student(), lognormal = lognormal(), gamma = Gamma(link = "log")),
+      dat, missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+    )
+    fit_observed <- drmTMB(
+      form, switch(route, student = student(), lognormal = lognormal(), gamma = Gamma(link = "log")),
+      case$complete[observed, , drop = FALSE], control = drm_control(se = FALSE)
+    )
+    for (dpar in names(coef(fit))) {
+      expect_equal(coef(fit, dpar), coef(fit_observed, dpar), tolerance = 1e-5,
+        info = paste(route, dpar, "observed-data equality"))
+    }
+    expect_equal(fit$sdpars$mu, fit_observed$sdpars$mu, tolerance = 1e-5, info = route)
+    expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit_observed)), tolerance = 1e-5, info = route)
+    expect_missing_response_sentinel_invariant(fit,
+      sentinels = if (route == "gamma") c(1, 0) else c(0, -1))
+    expect_lt(max(abs(unname(coef(fit, "mu")) - case$truth$mu)), 0.25)
+    expect_lt(max(abs(unname(coef(fit, "sigma")) - case$truth$sigma)), 0.25)
+    if (route == "student") expect_lt(abs(unname(coef(fit, "nu")) - case$truth$nu), 0.65)
+    expect_lt(abs(unname(fit$sdpars$mu) - case$truth$sd), 0.28)
+    slope_effects <- fit$random_effects$mu$terms[["(0 + x | id)"]]
+    expect_gt(cor(slope_effects, case$u), 0.40)
+  }
+})
+
 test_that("skew-normal masks recover fixed location, scale, and slant", {
   n <- 360L
   dat <- data.frame(

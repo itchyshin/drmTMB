@@ -93707,3 +93707,17 @@ can see which commit each one actually examined.
   passed; inventory generation, generated-ledger drift check, and `git diff
   --check` passed. This does not promote sigma or nu random effects, correlated
   or structured effects, REML, another family, or missing predictors.
+
+## 2026-08-14 — Student, lognormal, and Gamma ML mu random-slope masks
+
+- `mc-0488`, `mc-0380`, and `mc-0244` are now `formula_validated` at G3 for
+  their exact independent slope formulas `(0 + x | id)`, with the already
+  admitted fixed distributional-parameter regressions. Masked and observed-data
+  fits agree in every fitted coefficient, the mu slope-SD, and likelihood;
+  response sentinels are inert; and deterministic 25% MCAR DGPs recover the
+  fixed targets, slope SD, and conditional slope effects.
+- Check: `NOT_CRAN=true` `devtools::test(filter = "missing-response-continuous")`
+  passed; inventory generation, generated-ledger drift check, and `git diff
+  --check` passed. This does not promote other distributional-parameter random
+  effects, correlated or structured effects, REML, another family, or missing
+  predictors.
