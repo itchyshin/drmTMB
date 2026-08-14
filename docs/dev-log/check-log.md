@@ -94970,6 +94970,18 @@ can see which commit each one actually examined.
   provider, a slope, labelled/correlated blocks, REML, interval/coverage
   evidence, or missing predictors.
 
+## 2026-08-14 — Zero-one-beta phylogenetic location response mask
+
+- `mc-0583` is now `formula_validated` at G3 for `y ~ x + phylo(1 | species,
+  tree = tree)`. The existing independent zero-one-beta phylogenetic oracle now
+  selects observed responses before evaluating the atom and interior paths. The
+  new response-mask check verifies the objective and numerical gradient,
+  atom/interior sentinels, and equality with the observed-only fit.
+- A deterministic 64-tip, 50-observation-per-tip fixture recovers fixed
+  location, constant beta scale, and the phylogenetic location SD. This does
+  not promote other providers or endpoints, REML, interval/coverage evidence,
+  or missing predictors.
+
 ## 2026-08-14 — paired Gaussian relmat location-scale one-slope response mask
 
 - `mc-0317` and `mc-0318` are now `formula_validated` at G3 only as the one

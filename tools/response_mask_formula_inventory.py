@@ -372,6 +372,22 @@ EXPLICIT_MODEL_CELL_IDS = frozenset(
 # Formula-level evidence is deliberately enumerated here rather than inferred
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
+    "mc-0583": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct zero-one-beta observed-data objective and numerical-gradient "
+            "equality, direct atom/interior response-sentinel retapes, and masked-"
+            "versus-observed fit equality validate `y ~ x + phylo(1 | species, tree "
+            "= tree)`. G3 uses a deterministic 64-tip, 50-observation-per-tip fixture "
+            "to recover fixed location, constant beta scale, and the phylogenetic mu "
+            "SD. This is not another provider, sigma or atom endpoint, a labelled or "
+            "correlated block, REML, interval or coverage evidence, or missing-predictor "
+            "support."
+        ),
+        "next_gate": "Validate each zero-one-beta provider and endpoint separately; do not reuse this phylogenetic mu evidence.",
+    },
     "mc-0364": {
         "formula_status": "formula_validated",
         "formula_mask_gate": "G3",
