@@ -356,6 +356,25 @@ FORMULA_EVIDENCE = {
             "formula_mask_gate": "G3",
             "claim_boundary": (
                 "This row is one component of the paired univariate Gaussian q2 relmat "
+                "location-scale intercept formula `y ~ x + relmat(1 | id, K = K), sigma ~ "
+                "relmat(1 | id, K = K)`; neither endpoint is promoted alone. G2 masked-versus-"
+                "observed-data equality covers fixed mu and sigma coefficients, both relmat SDs, "
+                "their named cross-axis correlation, and likelihood; direct continuous-response "
+                "sentinel retapes and G3 deterministic 25% MCAR recovery cover the same paired "
+                "block. The fixture has 128 related IDs and 20 observations per ID. This does "
+                "not promote either endpoint alone, slopes, Q representations, another provider, "
+                "q4+, bivariate, REML, interval/coverage, or missing-predictor formulas."
+            ),
+            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
+        }
+        for cell_id in ("mc-0315", "mc-0316")
+    },
+    **{
+        cell_id: {
+            "formula_status": "formula_validated",
+            "formula_mask_gate": "G3",
+            "claim_boundary": (
+                "This row is one component of the paired univariate Gaussian q2 relmat "
                 "location-scale one-slope formula `y ~ x + relmat(1 + x | id, K = K), sigma ~ "
                 "relmat(1 + x | id, K = K)`; neither endpoint is promoted alone. G2 masked-"
                 "versus-observed-data equality covers fixed mu and sigma coefficients, all four "

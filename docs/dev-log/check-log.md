@@ -94233,3 +94233,16 @@ can see which commit each one actually examined.
   passed. This does not promote either endpoint alone, a labelled/correlated or
   q4+ block, Q representations, another provider, bivariate or REML formulas,
   interval/coverage evidence, or missing predictors.
+
+## 2026-08-14 — paired Gaussian relmat location-scale intercept response mask
+
+- `mc-0315` and `mc-0316` are now `formula_validated` at G3 only as the one
+  paired formula `y ~ x + relmat(1 | id, K = K), sigma ~ relmat(1 | id, K =
+  K)`. The missing-response fit agrees with the observed-response fit in fixed
+  coefficients, both relmat SDs, their named cross-axis correlation, likelihood,
+  and `nobs()`; continuous sentinels are inert. A deterministic 25% MCAR DGP
+  with 128 related IDs and 20 observations per ID recovers the paired block.
+- Check: `NOT_CRAN=true` `testthat::test_file("tests/testthat/test-animal-relmat-gaussian.R")`
+  passed. This does not promote either endpoint alone, slopes, Q
+  representations, another provider, q4+, bivariate or REML formulas,
+  interval/coverage evidence, or missing predictors.
