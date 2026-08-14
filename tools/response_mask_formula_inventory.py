@@ -2152,6 +2152,23 @@ FORMULA_EVIDENCE = {
         ),
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
+    "mc-0013": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional Beta TMB-objective and numerical-gradient equality across both "
+            "animal location-field priors, observed-row fit equality, and direct interior-response "
+            "sentinel retapes, plus G3 deterministic known-DGP recovery, validate the exact ML "
+            "formula `y ~ x + animal(1 + x | id, pedigree = pedigree)`, `sigma ~ 1`. The larger "
+            "non-Gaussian fixture has a 40-individual three-generation pedigree, 40 observations "
+            "per individual, and one masked response per individual. It checks the fixed slope, "
+            "fixed log-scale, and both animal location SDs. It does not promote intercept-only "
+            "animal mu, sigma-side animal effects, another provider, labelled covariance, REML, "
+            "missing predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining Beta structured geometry.",
+    },
 }
 
 

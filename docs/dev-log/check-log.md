@@ -1,5 +1,19 @@
 # Check Log
 
+## 2026-08-14 — Beta animal location-slope response-mask recovery
+
+- `rmf-mc-0013` is now G3 for the exact ML formula
+  `y ~ x + animal(1 + x | id, pedigree = pedigree)`, `sigma ~ 1`.
+- G2 uses the conditional Beta objective with both animal location-field priors,
+  numerical gradients, direct interior-response sentinel retapes, and observed-row
+  fit equality. G3 uses a 40-individual, three-generation pedigree with 40
+  observations per individual (1,600 rows) and one masked response per
+  individual. It recovers the fixed slope, fixed log-scale, and both animal
+  location SDs. The intercept-only and sigma-side animal formulas remain
+  separate cells; intervals and coverage are not claimed.
+- Check: isolated response-mask test (23 successes), response-mask inventory
+  generation, capability-ledger drift check, and `git diff --check` passed.
+
 ## 2026-08-14 — NB2 spatial-plus-relatedness response-mask recovery
 
 - `rmf-mc-0417` is now G3 for the bound aggregate-cell formula
