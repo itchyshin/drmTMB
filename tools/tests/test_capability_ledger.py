@@ -2197,7 +2197,19 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_student_structured_tiers_fail_closed_to_live_ledger(self):
         by_id = {row["cell_id"]: row for row in self.cells}
         self.assertEqual(by_id["mc-0493"]["evidence_tier"], "diagnostic_only")
-        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "interval_feasible")
+        # mc-0494 held interval_feasible until 2026-08-15, when the interval-truth
+        # re-check derived its true value from its own frozen campaign contract and
+        # found the retained interval [0.305, 0.528] does not contain it (truth 0.20).
+        # It is one of seven spatial cells whose fixture generates the latent field
+        # from a different covariance than the fitted kernel, so the declared truth is
+        # not the model's estimand and no valid location check exists. Demoted to
+        # diagnostic_only rather than point_fit_recovery because the same
+        # misspecification means the point estimate was never validly tested either.
+        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "diagnostic_only")
+        self.assertIn(
+            "conditional on the correlation range",
+            by_id["mc-0494"]["claim_boundary"],
+        )
         self.assertEqual(by_id["mc-0495"]["evidence_tier"], "diagnostic_only")
         self.assertEqual(by_id["mc-0641"]["evidence_tier"], "diagnostic_only")
         for cell_id in ("mc-0229", "mc-0364", "mc-0641", "mc-0662", "mc-0667"):
