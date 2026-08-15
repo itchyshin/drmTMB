@@ -93874,3 +93874,13 @@ were about attribution and completeness, and are closed here:
   failed. `R CMD check` re-builds vignettes with `rmarkdown`, so `render()` is the
   authoritative local check and `knit()` is not a substitute for it. Both
   cascading defects were invisible to `knit()`.
+- The third `--as-cran` is **0 errors, 0 warnings, 2 notes**: the expected
+  `New submission`, and a `Non-standard file/directory found at top level:
+  'figure'` that was **my own debris** — two PNGs knitr wrote into the package root
+  while I was knitting `spatial-models.Rmd` to diagnose the search-path leak, then
+  swept into a commit by `git add -A`. Removed. The repo's own guidance is to stage
+  scoped paths and never `git add -A`; not following it cost a NOTE.
+- **No unstated-dependency note appeared**, which is what makes the `metadat`
+  declaration *observed* rather than merely reasoned. That was the whole purpose of
+  running `--as-cran` here, and it is the check that first exposed the vignette
+  leak as well.
