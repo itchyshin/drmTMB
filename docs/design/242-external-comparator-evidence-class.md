@@ -50,6 +50,31 @@ asserts standard-error or confidence-interval equality across packages. Every
 `external_comparator` row must say so in its own `claim_boundary`; a test enforces that
 the words "interval", "coverage" and "single-seed" appear there.
 
+> **Amendment, 2026-08-15 — one interval assertion now exists, and the policy above is
+> deliberately unchanged.** `tests/testthat/test-comparators-external-oracle.R` asserts
+> that drmTMB's profile endpoints match `lme4`'s shipped `fm1P` reference on the
+> sleepstudy `Reaction ~ Days + (Days | Subject)` cell, at a 5e-4 absolute bound. So the
+> sentence "none asserts ... confidence-interval equality across packages" is **no longer
+> literally true of the test suite**.
+>
+> It remains true of the **ledger**, which is what the rule governs. That test carries
+> **no `external_comparator` row**, precisely because a row would have to declare in its
+> `claim_boundary` that it does not cover intervals — which would be false. Rather than
+> weaken the boundary language to fit, the evidence was kept as a test-only regression
+> guard and the rule left intact.
+>
+> Two limits are worth recording with it. The reference's estimator is **not
+> recoverable** (`fm1P` is a bare matrix; lme4 ships no generating script; a converged
+> REML/`bobyqa` refit reproduces it better than two of three ML reconstructions), so the
+> assertion is agreement to within lme4's own optimizer-to-optimizer reproducibility, not
+> a matched-estimator proof. And it is still one model, one dataset, one seed, in the
+> **overlap** region only.
+>
+> Admitting interval evidence to the ledger would need a new evidence class with its own
+> boundary vocabulary and a change to the enforcing test in
+> `tools/tests/test_capability_ledger.py`. That is a separate decision and has not been
+> taken. Evidence for it: `docs/dev-log/external-oracle/`.
+
 **The governing constraint.** Agreement licenses the **overlap** region only, never the
 **frontier**. Where `drmTMB` is genuinely novel — scale-side random effects, `sd()`
 regression, bivariate LSS, phylogenetic structure on residual log-SD — no established

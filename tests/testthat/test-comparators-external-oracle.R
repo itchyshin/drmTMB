@@ -32,7 +32,12 @@ test_that("Gaussian correlated random slope (fm_us1) agrees with lme4 lmerMod tw
 
   # Load the external oracle models from glmmTMB test suite
   glmmtmb_path <- find.package("glmmTMB")
-  load(file.path(glmmtmb_path, "test_data", "models.rda"),
+  models_rda <- file.path(glmmtmb_path, "test_data", "models.rda")
+  # Guard the FIXTURE, not just the package: if glmmTMB stops shipping test_data/
+  # an unguarded load() is an R CMD check ERROR, where we want a stated SKIP.
+  testthat::skip_if_not(file.exists(models_rda),
+                        "glmmTMB no longer ships test_data/models.rda")
+  load(models_rda,
     envir = (e <- new.env())
   )
 
@@ -108,7 +113,12 @@ test_that("Gaussian independent random effects (fm_diag2) agrees with lme4", {
   testthat::skip_if_not_installed("glmmTMB")
 
   glmmtmb_path <- find.package("glmmTMB")
-  load(file.path(glmmtmb_path, "test_data", "models.rda"),
+  models_rda <- file.path(glmmtmb_path, "test_data", "models.rda")
+  # Guard the FIXTURE, not just the package: if glmmTMB stops shipping test_data/
+  # an unguarded load() is an R CMD check ERROR, where we want a stated SKIP.
+  testthat::skip_if_not(file.exists(models_rda),
+                        "glmmTMB no longer ships test_data/models.rda")
+  load(models_rda,
     envir = (e <- new.env())
   )
 
@@ -170,14 +180,14 @@ test_that("Gaussian independent random effects (fm_diag2) agrees with lme4", {
 # BLOCK 2: Interval agreement vs lme4 reference matrices (fm1P profile, fm1B bootstrap)
 # ============================================================================
 
-test_that("Profile confidence intervals agree with lme4 fm1P reference on sleepstudy", {
+test_that("Profile confidence intervals agree with lme4 fm1P reference on lme4::sleepstudy", {
   testthat::skip_if_not_installed("lme4")
 
-  # Load lme4 and extract sleepstudy dataset
-  library(lme4, quietly = TRUE)
 
-  # Load lme4's shipped reference confint matrices
-  load(file.path(find.package("lme4"), "testdata", "confint_ex.rda"))
+  confint_ex <- file.path(find.package("lme4"), "testdata", "confint_ex.rda")
+  testthat::skip_if_not(file.exists(confint_ex),
+                        "lme4 no longer ships testdata/confint_ex.rda")
+  load(confint_ex)
 
   # fm1P holds profile CI endpoints for
   #   Reaction ~ Days + (Days | Subject) on sleepstudy.
@@ -192,7 +202,7 @@ test_that("Profile confidence intervals agree with lme4 fm1P reference on sleeps
   fit <- drmTMB(
     bf(Reaction ~ Days + (Days | Subject)),
     family = gaussian(),
-    data = sleepstudy,
+    data = lme4::sleepstudy,
     REML = FALSE
   )
 
@@ -277,12 +287,11 @@ test_that("Profile confidence intervals agree with lme4 fm1P reference on sleeps
 test_that("confint() defaults to Wald and method argument is honored", {
   testthat::skip_if_not_installed("lme4")
 
-  library(lme4, quietly = TRUE)
 
   fit <- drmTMB(
     bf(Reaction ~ Days + (Days | Subject)),
     family = gaussian(),
-    data = sleepstudy,
+    data = lme4::sleepstudy,
     REML = FALSE
   )
 
@@ -321,7 +330,7 @@ test_that("confint() defaults to Wald and method argument is honored", {
 
   expect_true(
     abs(sd_int_wald_range - sd_int_prof_range) > 0.1,
-    info = "Wald and profile CIs should differ substantively on sleepstudy"
+    info = "Wald and profile CIs should differ substantively on lme4::sleepstudy"
   )
 })
 
@@ -332,12 +341,11 @@ test_that("confint() defaults to Wald and method argument is honored", {
 test_that("Transformation column specifies exp for scale targets and tanh for correlation", {
   testthat::skip_if_not_installed("lme4")
 
-  library(lme4, quietly = TRUE)
 
   fit <- drmTMB(
     bf(Reaction ~ Days + (Days | Subject)),
     family = gaussian(),
-    data = sleepstudy,
+    data = lme4::sleepstudy,
     REML = FALSE
   )
 
