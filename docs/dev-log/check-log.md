@@ -93562,3 +93562,12 @@ can see which commit each one actually examined.
   skips** under `test_dir(package = "drmTMB")` (176/176), the reader baseline is
   intact, no receipt-pinned file changed, and the ledger and linter gates pass.
   Full record: `docs/dev-log/external-oracle/rose-audit.md`.
+- **STATUS AT TIME OF WRITING — this entry is not a completion claim.** The pkgdown
+  repair is merged (`859c0f6e6`), but its post-merge `pkgdown` deploy had not yet
+  run green: the first attempt skipped because its triggering `R-CMD-check` was
+  cancelled by concurrency. The oracle harness is **unmerged** on
+  `claude/external-oracle-intervals`, and CI had not yet run against its exact
+  head. All checks recorded above are local. Reconciliation also logged five P1 and
+  four P2 audit findings left open by choice, and a routing commitment honoured on
+  one of three eligible slices. See
+  `docs/dev-log/plan-actual/2026-08-15-external-oracle.md`.
