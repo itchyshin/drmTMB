@@ -1,0 +1,15 @@
+field	value
+source_sha	8798d6f7762642e72823b6f930e254d3c6c3b5a5
+audit_path	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-e0-readmission-audit.tsv
+audit_sha256	694905a4953a11313377012c4b5dcac9e79a9cecda1df5fa6c9e18fc8d47f7eb
+registry_path	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-e0-q2-reml-admission-registry.tsv
+registry_sha256	9b39e0b424a60c66b9ad26557be87a9fba952998885990810b5bf9c486c9cab8
+candidate_count	2
+information_rung	high
+fixture_geometry	72_groups_x_20_observations
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible
+package_admission	ADMITTED
+lane_c_state	separate_no_clean_transition_receipt

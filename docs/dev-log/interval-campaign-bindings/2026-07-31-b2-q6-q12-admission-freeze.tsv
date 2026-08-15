@@ -1,0 +1,12 @@
+field	value
+source_sha	dc62878e6f0732ddf65e65b58f07377f48a88f37
+source_state	COMMITTED
+audit_path	2026-07-31-b2-q6-q12-admission-audit.tsv
+registry_path	2026-07-31-b2-q6-q12-admission-registry.tsv
+requested_cell_count	22
+contract_ready_count	20
+excluded_nonexact_count	2
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible

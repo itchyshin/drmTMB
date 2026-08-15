@@ -1,0 +1,1234 @@
+{
+ "mc-0012||mc-0012::sd:mu:animal(1 | id)": [
+  [
+   0.35,
+   "0.35 on beta latent/logit-mu animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.35,
+   "0.35 on beta latent/logit-mu animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0248||mc-0248::sd:mu:relmat(1 | id)": [
+  [
+   0.5,
+   "0.50 on Gamma log-mu relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on Gamma log-mu relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0248||mc-0248::sd:mu:relmat(0 + x | id)": [
+  [
+   0.2,
+   "0.20 on Gamma log-mu relatedness slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.2,
+   "0.20 on Gamma log-mu relatedness slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0386||mc-0386::sd:mu:phylo(1 | id)": [
+  [
+   0.5,
+   "0.50 on lognormal log-location phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on lognormal log-location phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0083||mc-0083::sd:mu:mu1:phylo(1 | p | sp)": [
+  [
+   1.0,
+   "1.00 on response-scale mu1 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   1.0,
+   "1.00 on response-scale mu1 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-phylo-q2-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0084||mc-0084::sd:mu:mu2:phylo(1 | p | sp)": [
+  [
+   0.8,
+   "0.80 on response-scale mu2 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.8,
+   "0.80 on response-scale mu2 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-phylo-q2-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0129||mc-0129::sd:mu:mu1:animal(1 | p | id)": [
+  [
+   0.6,
+   "0.60 on response-scale mu1 animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.6,
+   "0.60 on response-scale mu1 animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0130||mc-0130::sd:mu:mu2:animal(1 | p | id)": [
+  [
+   0.5,
+   "0.50 on response-scale mu2 animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on response-scale mu2 animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0151||mc-0151::sd:mu:mu1:relmat(1 | p | id)": [
+  [
+   0.6,
+   "0.60 on response-scale mu1 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.6,
+   "0.60 on response-scale mu1 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0152||mc-0152::sd:mu:mu2:relmat(1 | p | id)": [
+  [
+   0.5,
+   "0.50 on response-scale mu2 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on response-scale mu2 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0107||mc-0107::sd:mu:mu1:spatial(1 | p | site)": [
+  [
+   0.5,
+   "0.50 on response-scale mu1 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on response-scale mu1 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0108||mc-0108::sd:mu:mu2:spatial(1 | p | site)": [
+  [
+   0.42,
+   "0.42 on response-scale mu2 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.42,
+   "0.42 on response-scale mu2 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0005||mc-0005::sd:mu:(1 | id)": [
+  [
+   0.55,
+   "0.55 on beta latent/link-scale mu SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.55,
+   "0.55 on beta latent/link-scale mu SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0007||mc-0007::sd:mu:(0 + x | id)": [
+  [
+   0.48,
+   "0.48 on beta latent/link-scale mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.48,
+   "0.48 on beta latent/link-scale mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0059||mc-0059::sd:mu:(1 | id)": [
+  [
+   0.8,
+   "0.80 on binomial logit-scale mu SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.8,
+   "0.80 on binomial logit-scale mu SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0225||mc-0225::sd:mu:(1 | id)": [
+  [
+   0.7,
+   "0.70 on ordinal latent-logit mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.7,
+   "0.70 on ordinal latent-logit mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0251||mc-0251::sd:mu:phylo(1 | id)": [
+  [
+   0.45,
+   "0.45 on Gamma log-mu phylo SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on Gamma log-mu phylo SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0265||mc-0265::sd:mu:(1 | id)": [
+  [
+   0.8,
+   "0.80 on Gaussian response-scale mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.8,
+   "0.80 on Gaussian response-scale mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0267||mc-0267::sd:sigma:(1 | id)": [
+  [
+   0.4,
+   "0.40 on Gaussian log-sigma intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.4,
+   "0.40 on Gaussian log-sigma intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0270||mc-0270::sd:sigma:(0 + w | id)": [
+  [
+   0.35,
+   "0.35 on Gaussian log-sigma slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.35,
+   "0.35 on Gaussian log-sigma slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0271||mc-0271::sd:sigma:(0 + w | id)": [
+  [
+   0.34,
+   "0.34 on Gaussian log-sigma slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.34,
+   "0.34 on Gaussian log-sigma slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.34,
+   "0.34 on Gaussian log-sigma slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-high-rung-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0388||mc-0388::sd:mu:relmat(1 | id)": [
+  [
+   0.4,
+   "0.40 on lognormal log-mu relmat SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.4,
+   "0.40 on lognormal log-mu relmat SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0380||mc-0380::sd:mu:(0 + x | id)": [
+  [
+   0.48,
+   "0.48 on lognormal log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.48,
+   "0.48 on lognormal log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0402||mc-0402::sd:mu:(0 + x | id)": [
+  [
+   0.3,
+   "0.30 on NB2 log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.3,
+   "0.30 on NB2 log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0401||mc-0401::sd:mu:(1 | id)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on NB2 log-mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0403||mc-0403::sd:sigma:(1 | id)": [
+  [
+   0.42,
+   "0.42 on NB2 log-sigma intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.42,
+   "0.42 on NB2 log-sigma intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0405||mc-0405::sd:mu:phylo(1 | species)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu phylogenetic intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on NB2 log-mu phylogenetic intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0406||mc-0406::sd:mu:spatial(1 | site)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu spatial intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on NB2 log-mu spatial intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0407||mc-0407::sd:mu:animal(1 | id)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu animal intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on NB2 log-mu animal intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0408||mc-0408::sd:mu:relmat(1 | id)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu relmat intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on NB2 log-mu relmat intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0410||mc-0410::sd:mu:phylo(0 + x | site)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu phylogenetic slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu phylogenetic slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu phylogenetic slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu phylogenetic slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0411||mc-0411::sd:mu:spatial(0 + x | site)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu spatial slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu spatial slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu spatial slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu spatial slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0412||mc-0412::sd:mu:animal(0 + x | id)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu animal slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu animal slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu animal slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu animal slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0413||mc-0413::sd:mu:relmat(0 + x | id)": [
+  [
+   0.45,
+   "0.45 on NB2 log-mu relmat slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu relatedness slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu relatedness slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the NB2 log-mu relatedness slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0423||mc-0423::sd:sigma:animal(0 + x | id)": [
+  [
+   0.55,
+   "0.55 on NB2 log-sigma slope SD; direct slope member of the intercept-plus-slope block",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.55,
+   "0.55 on NB2 log-sigma slope SD; direct slope member of the intercept-plus-slope block",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.55,
+   "0.55 on NB2 log-sigma random-slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-nb2-animal-slope-ultra-contract.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0429||mc-0429::sd:mu:(1 | id)": [
+  [
+   0.55,
+   "0.55 on Poisson log-mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.55,
+   "0.55 on Poisson log-mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0431||mc-0431::sd:mu:(0 + x | id)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on Poisson log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0434||mc-0434::sd:mu:phylo(1 | species)": [
+  [
+   0.55,
+   "0.55 on Poisson log-mu phylogenetic intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.55,
+   "0.55 on Poisson log-mu phylogenetic intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0438||mc-0438::sd:mu:phylo_interaction(1 | plant:pollinator)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu phylo-interaction SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on Poisson log-mu phylo-interaction SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0440||mc-0440::sd:mu:spatial(1 | site)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu spatial intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on Poisson log-mu spatial intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0435||mc-0435::sd:mu:phylo(0 + x | site)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu phylogenetic slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu phylogenetic slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu phylogenetic slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu phylogenetic slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0441||mc-0441::sd:mu:spatial(0 + x | site)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu spatial slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu spatial slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu spatial slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu spatial slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0448||mc-0448::sd:mu:animal(0 + x | id)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu animal slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu animal slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu animal slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu animal slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0447||mc-0447::sd:mu:animal(1 | id)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu animal intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on Poisson log-mu animal intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0452||mc-0452::sd:mu:relmat(0 + x | id)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu relmat slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu relatedness slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu relatedness slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on the Poisson log-mu relatedness slope-SD scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-count-q1-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0451||mc-0451::sd:mu:relmat(1 | id)": [
+  [
+   0.45,
+   "0.45 on Poisson log-mu relmat intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.45,
+   "0.45 on Poisson log-mu relmat intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0463||mc-0463::sd:mu:(1 | id)": [
+  [
+   0.7,
+   "0.70 on skew-normal location mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.7,
+   "0.70 on skew-normal location mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0494||mc-0494::sd:mu:spatial(1 | id)": [
+  [
+   0.25,
+   "0.25 on Student response-location spatial intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.25,
+   "0.25 on Student response-location spatial intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0494||mc-0494::sd:mu:spatial(0 + x | id)": [
+  [
+   0.2,
+   "0.20 on Student response-location spatial slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.2,
+   "0.20 on Student response-location spatial slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-q1-expanded-whole-cell-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0511||mc-0511::sd:mu:(0 + x | id)": [
+  [
+   0.48,
+   "0.48 on truncated-NB2 log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.48,
+   "0.48 on truncated-NB2 log-mu slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-slope-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0538||mc-0538::sd:mu:(1 | id)": [
+  [
+   0.5,
+   "0.50 on Tweedie log-mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on Tweedie log-mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0567||mc-0567::sd:mu:(1 | id)": [
+  [
+   0.6,
+   "0.60 on zero-one-beta latent-logit mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.6,
+   "0.60 on zero-one-beta latent-logit mu intercept SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-ordinary-re-sd-intercept-expanded-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0184||mc-0184::sigma1": [
+  [
+   0.8,
+   "0.80 on response-scale residual sigma1",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   1.0,
+   "response-scale residual sigma1",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-biv-fixed-scale-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0185||mc-0185::sigma2": [
+  [
+   0.9,
+   "0.90 on response-scale residual sigma2",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   2.0,
+   "response-scale residual sigma2",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-biv-fixed-scale-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0199||mc-0199::sd:mu:mu1:spatial(1 | p | site)": [
+  [
+   0.5,
+   "0.50 on response-scale mu1 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on response-scale mu1 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0672||mc-0672::sd:mu:mu2:spatial(1 | p | site)": [
+  [
+   0.42,
+   "0.42 on response-scale mu2 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.42,
+   "0.42 on response-scale mu2 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0208||mc-0208::sd:mu:mu1:phylo(1 | p | sp)": [
+  [
+   1.0,
+   "1.00 on response-scale mu1 phylo SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   1.0,
+   "1.00 on response-scale mu1 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-phylo-q2-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0209||mc-0209::sd:mu:mu2:phylo(1 | p | sp)": [
+  [
+   0.8,
+   "0.80 on response-scale mu2 phylo SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.8,
+   "0.80 on response-scale mu2 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-phylo-q2-canonical-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0201||mc-0201::sd:mu:mu1:relmat(1 | p | id)": [
+  [
+   0.6,
+   "0.60 on response-scale mu1 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.6,
+   "0.60 on response-scale mu1 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0674||mc-0674::sd:mu:mu2:relmat(1 | p | id)": [
+  [
+   0.5,
+   "0.50 on response-scale mu2 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on response-scale mu2 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0212||mc-0212::sd:mu:mu1:phylo(1 | p | sp)": [
+  [
+   0.6,
+   "0.60 on response-scale mu1 phylo SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.6,
+   "0.60 on response-scale mu1 phylo location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-phylo-q4-location-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0213||mc-0213::sd:mu:mu2:phylo(1 | p | sp)": [
+  [
+   0.5,
+   "0.50 on response-scale mu2 phylo SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ],
+  [
+   0.5,
+   "0.50 on response-scale mu2 phylo location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-phylo-q4-location-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0260m||mc-0260m::fixef:sd(study):(Intercept)": [
+  [
+   -1.0,
+   "-1.00 on link-scale log-SD-study intercept",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0260m||mc-0260m::fixef:sd(study):z_study": [
+  [
+   0.2,
+   "0.20 on link-scale log-SD-study slope",
+   "docs/dev-log/interval-campaign-bindings/2026-07-27-b1-recovered-subset.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0214||mc-0214::sd:mu:sigma1:phylo(1 | p | sp)": [
+  [
+   0.4,
+   "0.40 on the sigma1 log-residual-SD random-effect scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-phylo-q4-scale-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0215||mc-0215::sd:mu:sigma2:phylo(1 | p | sp)": [
+  [
+   0.3,
+   "0.30 on the sigma2 log-residual-SD random-effect scale",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-phylo-q4-scale-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0089||mc-0089::sd:mu:mu1:phylo(1 | pl | species)": [
+  [
+   0.55,
+   "0.55 on response-scale mu1 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-phylo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0090||mc-0090::sd:mu:mu2:phylo(1 | pl | species)": [
+  [
+   0.45,
+   "0.45 on response-scale mu2 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-phylo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0091||mc-0091::sd:mu:sigma1:phylo(1 | pl | species)": [
+  [
+   0.45,
+   "0.45 on response-scale sigma1 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-phylo-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0092||mc-0092::sd:mu:sigma2:phylo(1 | pl | species)": [
+  [
+   0.4,
+   "0.40 on response-scale sigma2 phylogenetic SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-phylo-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0113||mc-0113::sd:mu:sigma1:spatial(1 | ps | site)": [
+  [
+   0.45,
+   "0.45 on response-scale sigma1 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0114||mc-0114::sd:mu:sigma2:spatial(1 | ps | site)": [
+  [
+   0.4,
+   "0.40 on response-scale sigma2 spatial SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0135||mc-0135::sd:mu:sigma1:animal(1 | ps | id)": [
+  [
+   0.45,
+   "0.45 on response-scale sigma1 animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0136||mc-0136::sd:mu:sigma2:animal(1 | ps | id)": [
+  [
+   0.4,
+   "0.40 on response-scale sigma2 animal SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0157||mc-0157::sd:mu:sigma1:relmat(1 | ps | id)": [
+  [
+   0.45,
+   "0.45 on response-scale sigma1 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0158||mc-0158::sd:mu:sigma2:relmat(1 | ps | id)": [
+  [
+   0.4,
+   "0.40 on response-scale sigma2 relatedness SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0109||mc-0109::sd:mu:mu1:spatial(0 + x | p | site)": [
+  [
+   1.05,
+   "1.05 on response-scale mu1 spatial slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-spatial-q2-slope-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0110||mc-0110::sd:mu:mu2:spatial(0 + x | p | site)": [
+  [
+   0.9,
+   "0.90 on response-scale mu2 spatial slope SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-29-spatial-q2-slope-targetwise-authorization.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0115||mc-0115::sd:mu:mu1:spatial(1 | p | site)": [
+  [
+   0.55,
+   "0.55 response-location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0116||mc-0116::sd:mu:mu2:spatial(1 | p | site)": [
+  [
+   0.5,
+   "0.50 response-location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0117||mc-0117::sd:mu:sigma1:spatial(1 | p | site)": [
+  [
+   0.4,
+   "0.40 residual-scale SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0118||mc-0118::sd:mu:sigma2:spatial(1 | p | site)": [
+  [
+   0.35,
+   "0.35 residual-scale SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0137||mc-0137::sd:mu:mu1:animal(1 | p | id)": [
+  [
+   0.55,
+   "0.55 response-location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0138||mc-0138::sd:mu:mu2:animal(1 | p | id)": [
+  [
+   0.5,
+   "0.50 response-location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0139||mc-0139::sd:mu:sigma1:animal(1 | p | id)": [
+  [
+   0.4,
+   "0.40 residual-scale SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0140||mc-0140::sd:mu:sigma2:animal(1 | p | id)": [
+  [
+   0.35,
+   "0.35 residual-scale SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0159||mc-0159::sd:mu:mu1:relmat(1 | p | id)": [
+  [
+   0.55,
+   "0.55 response-location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0160||mc-0160::sd:mu:mu2:relmat(1 | p | id)": [
+  [
+   0.5,
+   "0.50 response-location SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0161||mc-0161::sd:mu:sigma1:relmat(1 | p | id)": [
+  [
+   0.4,
+   "0.40 residual-scale SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0162||mc-0162::sd:mu:sigma2:relmat(1 | p | id)": [
+  [
+   0.35,
+   "0.35 residual-scale SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0101||mc-0101::sd:mu:mu1:phylo(1 | p | species)": [
+  [
+   0.55,
+   "0.55 latent log-SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q6-provider-mu1-intercept-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0123||mc-0123::sd:mu:mu1:spatial(1 | p | site)": [
+  [
+   0.55,
+   "0.55 latent log-SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q6-provider-mu1-intercept-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0145||mc-0145::sd:mu:mu1:animal(1 | p | id)": [
+  [
+   0.55,
+   "0.55 latent log-SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q6-provider-mu1-intercept-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ],
+ "mc-0167||mc-0167::sd:mu:mu1:relmat(1 | p | id)": [
+  [
+   0.55,
+   "0.55 latent log-SD",
+   "docs/dev-log/interval-campaign-bindings/2026-07-30-q6-provider-mu1-intercept-canonical-contracts.tsv",
+   "true_parameter_scale"
+  ]
+ ]
+}

@@ -1,138 +1,309 @@
-# ARC CARD — Really useful 0.7 (user-facing onboarding + honesty)
+# Ultra-Plan — drmTMB interval-claim truth audit (NEXT ARC, 5–12 h)
 
-Created 2026-08-07 by Cursor via `arc-creation` (size mode), after Shinichi
-approved a “really useful 0.7” user-facing programme distinct from the CRAN
-packaging ladder. Written in worktree
-`~/local-scratch/worktrees/drmTMB-07-tarball` (`cursor/07-tarball-clean` @
-`f065fc905`). Scratchpad is `.Rbuildignore`d; `scratchpad/*.md` is not
-gitignored (only `*.log` / `*.rds`).
-
-**Mode:** size  
-**Requested outcome:** not quantified — land the four first-week user-facing
-deliverables Shinichi listed (onboarding vignette path; frozen default
-uncertainty story; parseable capability surface; Ayumi-scale ergonomics
-advice), with optional non-Gaussian REML/AGHQ corner deferred post-submit.  
-**Mechanism authority:** reversible docs / pkgdown / README / NEWS / roxygen
-edits that **restate existing evidence**; CRAN-safe vignette smoke only if a
-new article needs it.  
-**Excluded:** platform-clean; CRAN upload; DESCRIPTION `0.7` bump; Totoro /
-DRAC campaigns; ledger promotions; AGHQ/Cox-Reid as Arc 0 or a CRAN blocker;
-duplicating the packaging lane already at **tarball-clean** (#939 / check-log
-2026-08-07).  
-**Recommended arc:** **5.5 h** capacity programme (range **4.5–7 h**; Arc 0 =
-40 min)  
-**Time contract:** ceiling ~6 h for the four landed deliverables; later AGHQ
-rung is optional and separately stoppable  
-**Estimate confidence:** **inferred** — prior pkgdown/vignette honesty arcs
-and the existing `model-workflow` / `capability-and-limits` / `?confint`
-Boundary section are direct reuse surfaces; no measured end-to-end timing for
-this exact programme.  
-**Arc 0 outcome:** written gap map that cites what already exists and decides
-**thin new vignette vs tighten + link** for the onboarding path (no blank-page
-rebuild).  
-**State transition:** packaging at **tarball-clean**; first-week
-onboarding / default-uncertainty / parseable capability matrix incomplete →
-those four doc/API-honesty deliverables landed and linked from README +
-pkgdown Getting Started; AGHQ deferred unless a trivial doc-only pointer.  
-**Executable rung and evidence:** prose + vignette + pkgdown/_pkgdown.yml +
-README links; optional `R CMD check` vignette smoke / focused test only if a
-new vignette is added. No campaign receipts. No public tier promotion without
-citing an existing ledger cell.
-
----
-
-## Why this arc (and why not packaging / AGHQ)
-
-Highest proven CRAN rung is already **tarball-clean** on main (#939). Another
-agent may own **platform-clean**; this card must not duplicate that or upload.
-Shinichi’s approved “really useful 0.7” list is **user-week usefulness**: can a
-new ecology/evolution user fit → inventory targets → profile an RE-SD → read
-`profile.boundary` → know when not to trust the interval, and find a
-family × dpar × RE × interval-tier surface without reading the ledger TSV.
-AGHQ / non-Gaussian REML is a **science corner**, not a first-week doc gap —
-keep it post-submit or as a final optional rung after the four deliverables.
-
-## State-transition gate
-
-| Step | Content |
-| --- | --- |
-| 1. Current | Packaging **tarball-clean**; `?confint` has **Boundary intervals**; NEWS has profile-boundary + Prong B honesty; `model-workflow` already walks `profile_targets()` / `confint` / `conf.status`; `capability-and-limits` defines tiers; generated `docs/dev-log/dashboard/capability-surface.md` exists but is **not** a first-week pkgdown article; `se_group_sd` is documented in `?drm_control` / NEWS but **absent** from `large-data.Rmd` learning-path advice; DESCRIPTION still **0.6.0**. |
-| 2. Intended | Four deliverables landed + linked from README/pkgdown Getting Started; default uncertainty story frozen in NEWS + `?confint` without claiming nominal coverage everywhere; Ayumi-scale default advice visible; AGHQ deferred. |
-| 3. Intervention | Gap-aware vignette (or short article) + roxygen/NEWS freeze + README/pkgdown parseable capability surface + `large-data` / phylo ergonomics paragraphs. |
-| 4. Approval | Shinichi already approved this list. **Do not** bump version, upload, or promote ledger cells. Capability-surface edits must **cite existing tiers** (reversible docs) and not invent new public claims. |
-
-## Prior-work sweep (do not rebuild)
-
-| Surface | What already exists | Gap for this arc |
-| --- | --- | --- |
-| `man/confint.drmTMB.Rd` §Boundary intervals | Full D-117 story: profile warns with `drmTMB_profile_boundary_warning`; coverage 0.0732 / 0.2540 / 0.8566; lme4 comparator; “not a repair for a boundary” | Needs a short **default uncertainty recipe** (profile RE-SD; Wald FE; boundary warn; no nominal-coverage-everywhere) near the top of Details / a dedicated subsection, not only deep in Boundary |
-| `NEWS.md` (top) | Profile boundary warning + Prong B “computable ≠ coverage” | Freeze an explicit **default uncertainty story** bullet block for 0.7 readers (may live under unreleased / 0.7 draft notes without bumping DESCRIPTION) |
-| `vignettes/model-workflow.Rmd` | Long “Checking and using fitted models”: `profile_targets()`, Wald/`profile`/`bootstrap`, `conf.status` table, mentions `profile.boundary` | Too long for first week; D-117 “when not to trust” is thin vs `?confint`; needs a **short onboarding spine** (new vignette *or* a front-loaded section + Getting Started link) |
-| `vignettes/drmTMB.Rmd` | Learning-path table → model-workflow / capability-and-limits / large-data | No single row for “fit → profile RE-SD → read boundary” |
-| `vignettes/capability-and-limits.Rmd` | Tier definitions + “at a glance” tables; points at `capability-census/` | Not a parseable **family × dpar × RE × interval tier** matrix for README/pkgdown skim |
-| `docs/dev-log/dashboard/capability-surface.md` (+ `.html`) | Generated snapshot (699 model cells; 187 IF / 55 recovery / 29 IR as of 2026-08-05) | Dev-log only; not in `_pkgdown.yml` articles; first-week users never see it |
-| `_pkgdown.yml` articles | Getting Started = `drmTMB`, `function-map-cheatsheet`; Capability = `capability-and-limits`, …; Workflow = `model-workflow`, `large-data`, … | Slot for onboarding uncertainty article missing; no compact matrix article |
-| `vignettes/large-data.Rmd` | Memory-light `drm_control()`, `se = FALSE`, large-phylo Wald-first advice | **`se_group_sd` never named**; Ayumi 10,440-tip path not default advice |
-| `man/drm_control.Rd` / NEWS ~L794 | `se_group_sd = FALSE` default; n_group×n_group ADREPORT / REML GB warning | Need vignette + learning-path pointer so users find it without reading Rd |
-| Packaging | check-log: tarball-clean freeze; STOP before platform-clean/upload | Out of scope here |
-
-## Capacity ladder
-
-| Order | Budget | Outcome | Trigger / definition of done |
-| --- | ---: | --- | --- |
-| Arc 0 | 40 min | Gap map + decision: **new short vignette** vs **tighten model-workflow + drmTMB learning-path** (prefer reuse; new article only if a ≤~150-line spine is cleaner) | Start now. Cite the prior-work table above. |
-| Rung 1 | 70 min | **Default uncertainty story frozen** in NEWS + `?confint` (profile for RE-SD / variance components; Wald for FE routine; read `profile.boundary`; no nominal-coverage-everywhere). Docs-only; no claim expansion. | After Arc 0. Reversible prose. |
-| Rung 2 | 100 min | **Onboarding path landed**: fit → `profile_targets()` → `confint(method="profile")` → read `profile.boundary` → when not to trust; linked from `_pkgdown.yml` Getting Started + `drmTMB.Rmd` learning path. Prefer CRAN-safe tiny example (no long phylo). | After Rung 1 so vignette can cite the frozen story. |
-| Rung 3 | 80 min | **Parseable capability surface** for users: compact family × dpar × RE × interval tier (fit / `interval_feasible` / `inference_ready`) on README and/or a pkgdown-facing page that **summarises** existing `capability-and-limits` + ledger snapshot — no new promotions. | After Arc 0 decision on where the matrix lives. |
-| Rung 4 | 50 min | **Ayumi-scale ergonomics**: `large-data.Rmd` (+ learning-path row) default advice for big tip counts — keep `se_group_sd = FALSE`; when to set `TRUE`; point at `?drm_control`. | Independent of Rung 2 once Arc 0 confirms gap. |
-| Integrate/close | 30 min | Links consistent; after-task or check-log note; Actuals; HAND TO next (platform-clean owner / AGHQ post-submit). | Always reserve. |
-| *(optional later)* | — | One non-Gaussian REML/AGHQ supported corner (binomial or cumlogit) | **Post-submit / separate arc** — not Arc 0; not a CRAN blocker. |
-| **Total** | **370 min (~6.2 h)** | Shortest credible programme that lands all four; trim to ~5.5 h if Arc 0 chooses reuse-only (no new vignette file). | |
-
-**Reversible docs vs public claims:** Rungs 1–2 and 4 are reversible documentation if they only restate measured behaviour. Rung 3 is reversible **only while it cites existing ledger tiers**; inventing “supported” / expanding domains is a public-claim change and is **out of scope**.
-
-## Budget — Arc 0
-
-| Segment | Minutes | Output / stop point |
-| --- | ---: | --- |
-| Orient | 15 | Re-read `?confint` Boundary, `model-workflow` confint section, `capability-and-limits` tiers, `large-data` memory section, `_pkgdown.yml` Getting Started |
-| Core | 15 | Write gap map (files + 1-sentence gap each) + decide vignette strategy |
-| Verify | 5 | Confirm platform-clean / upload still foreign; DESCRIPTION stays 0.6.0 |
-| Repair reserve | 0 | External packaging wait is not this arc |
-| Closeout | 5 | Record decision on this card; start Rung 1 or Rung 4 if Rung 1 blocked |
-| **Total** | **40** | |
-
-**In scope:** onboarding uncertainty path; NEWS/`?confint` default story; parseable capability surface linked for users; Ayumi `se_group_sd` advice.  
-**Not in this arc:** platform-clean; CRAN upload; DESCRIPTION version bump; Totoro; ledger promotions; AGHQ/Cox-Reid implementation; rebuilding `capability-and-limits` from scratch; touching the dirty primary checkout.  
-**Evidence used:** `man/confint.drmTMB.Rd` §Boundary intervals; NEWS profile-boundary + Prong B entries; `vignettes/model-workflow.Rmd` (`profile_targets` / `conf.status`); `vignettes/capability-and-limits.Rmd`; `docs/dev-log/dashboard/capability-surface.md` (2026-08-05 snapshot); `man/drm_control.Rd` `se_group_sd`; absence of `se_group_sd` in `vignettes/large-data.Rmd`; `_pkgdown.yml` articles; check-log tarball-clean freeze; prior Arc Card `scratchpad/2026-08-05-arc-07-cran-release-readiness.md` (packaging — complementary, not overlapping).  
-**Risk branch:** If Arc 0 finds the onboarding path is already first-week complete in `model-workflow` after a short front-load, **do not** add a new vignette — spend the Rung 2 budget on linking + Boundary cross-refs + capability matrix instead. If Rung 3 tempts a ledger regeneration or tier rewrite, **stop** and ship a skim table that cites existing statuses only. If another agent’s platform-clean PR conflicts on README/`_pkgdown.yml`, rebase in a useful-07 worktree off `origin/main` — never dirty primary.
-
-**Done when:** (size-mode programme) (1) onboarding path exists and is linked from Getting Started; (2) NEWS + `?confint` state the default uncertainty story without nominal-coverage-everywhere; (3) users can parse family × dpar × RE × interval tier from README/pkgdown without opening the ledger TSV; (4) Ayumi-scale `se_group_sd` advice is in `large-data` (or equivalent user surface); AGHQ remains deferred; no version bump / upload / campaign.  
-**First action:**
-
-```text
-In ~/local-scratch/worktrees/drmTMB-07-tarball (or a fresh useful-07 worktree
-off origin/main): open man/confint.drmTMB.Rd §Boundary intervals,
-vignettes/model-workflow.Rmd (confint / profile_targets),
-vignettes/capability-and-limits.Rmd (tier defs), vignettes/large-data.Rmd,
-and _pkgdown.yml Getting Started — then record Arc 0 decision on this card:
-new short vignette vs reuse+link only.
+```
+🎯 GOAL
+Solo platform: Claude Code — but HANDS TO: a FRESH Claude session under /arc-loop.
+  This session is deep in the response-mask arc; a 5–12 h arc must not inherit its context.
+Deliverable: every cell claiming `interval_feasible` in the drmTMB capability ledger has a
+  machine-checked verdict on whether its profile interval actually BRACKETS the true value —
+  not merely that the interval has the right shape.
+HEADLINE: 237 cells claim `interval_feasible` or above; only 27 are in the truth manifest.
+  `tools/profile_truth_gate.py` — the one gate that checks interval LOCATION — reaches a 31-cell
+  contract surface. The other 209 were validated for SHAPE only (conf_status, convergence,
+  pdHess, boundary, clamp, trace), and the tiers ABOVE interval_feasible have zero coverage.
+IN PARALLEL: cohorts are independent — each reconciler's cell set can be mapped, manifested and
+  re-checked by its own agent, with the compute-bound re-runs fanned out separately.
+DEFER: promoting any cell UP the ladder · new interval methods · coverage campaigns ·
+  the bivariate and REML response-mask harnesses · Arc 6 · GVA (post-0.7, D-127).
+DISCIPLINE: verify=a cell's verdict cites a receipt with a numeric `true_value`, never prose ·
+  compute=local first; Totoro/DRAC only for cells that genuinely need a profile RE-RUN, and only
+  after a measured pre-run (D-139) · closure=coverage table published + every miss adjudicated
 ```
 
-### Actuals (complete at close)
-**Recommended / actual:** 370 / _ · **Requested / used:** N/A / _ · **Rungs completed:** _  
-**Under-run event:** _  
-**Calibration:** _  
-**Metric movement:** first-week user surfaces incomplete → _ (four deliverables: _) · AGHQ: deferred  
-**Result:** _ · **Next arc:** platform-clean (other owner) **or** post-submit AGHQ corner (binomial / cumlogit) as a separate science arc
+## Why this arc
 
----
+Three facts, each verified:
 
-HAND TO ULTRA PLAN: 5.5h drmTMB “really useful 0.7” user-facing programme —
-Arc 0 = 40 min gap map (reuse vs thin new vignette); then freeze default
-uncertainty story in NEWS+?confint; land fit→profile_targets→confint(profile)→
-profile.boundary onboarding linked from Getting Started; ship parseable
-family×dpar×RE×tier surface from existing ledger (no promotions); add
-Ayumi-scale se_group_sd advice to large-data; no platform-clean, no upload,
-no DESCRIPTION 0.7 bump, no Totoro, AGHQ deferred post-submit; work from
-clean worktree off origin/main / tarball worktree, never dirty primary.
+1. **0.7.0 is the CRAN target and it is held.** `v0.5.0` was submitted 2026-07-11 and never
+   accepted; D-86 makes 0.6 a dev cycle that is never submitted. CI-17 has held 0.7.0 since
+   2026-08-03 on one gate. You do not want to ship a first CRAN release whose ledger carries 209
+   interval claims that were never checked for location.
+2. **The defect class is proven, twice.** On 2026-08-03 three cells reconciled **5/5 PASS** while
+   containing an interval that missed its own true value — `mc-0423` `[0.137, 0.479]` vs truth
+   `0.55`; `mc-0409` `[0.610, 0.902]` vs `0.6`; `mc-0292` `[0.404, 0.694]` vs `0.7` — and in one
+   case the build agent *printed the correct endpoints and then wrote "YES"*. Today, in the
+   response-mask lane, I found the same class one layer up: cells marked `formula_validated` on
+   tests carrying a guaranteed-failing expectation.
+3. **The machinery already exists — only its reach is short.** Arc 7b (2026-08-03) built
+   `tools/profile_truth_gate.py` with a statistically honest rule (a 95% interval is *supposed* to
+   miss ~5% of the time, so "any miss demotes" would be wrong at 3–5 seeds), deriving truth from
+   `tools/profile-truth-manifest.tsv`, itself generated by `tools/emit-profile-truth-manifest.R`
+   from the fixture builders rather than hand-typed. **This arc extends reach; it does not invent
+   a method.** That is why it is a 5–12 h arc and not a research programme.
+
+## Phase 0.2 — Lane pre-flight (Shannon)
+
+```
+VERDICT : ** FOREIGN LANE ACTIVE (codex direct-to-main) ** · 3 live claude lanes besides this one
+COORD BOARD : COMMITTED to origin/main ✅   LEDGER : duplicate IDs present
+```
+**Lane to claim:** `interval-claim truth audit`. It must NOT be the response-mask lane
+(`codex/response-missing-formula-surface` — LANDED at a075ff2d0 and pushed, but UNMERGED with no PR) and must not touch
+`claude/07-release-slice` (#959) or codex #955 / #858. A fresh branch off `origin/main`.
+Note the pre-flight script threw `line 379: syntax error` on one arithmetic branch — cosmetic, the
+verdict still printed, but worth reporting to its owner.
+
+### ⚠ CROSS-ARC CELL OVERLAP — the branch check does NOT catch this
+
+Lane pre-flight is **branch-scoped**: it compares branches, not cell IDs. **Four `mc-` ids are in
+scope for this arc AND were re-evidenced by the response-mask arc**, which has now landed on its
+branch but is NOT merged — so `origin/main` does not yet carry its verdicts:
+
+| Cell | This arc | The in-flight response-mask arc |
+| --- | --- | --- |
+| `mc-0595`, `mc-0596` | `interval_feasible`, in Wave-1/3 re-check and possible demotion | Wave-3 **S7** targets (zero-one-beta `sigma` × relmat / spatial) |
+| `mc-0321` | same | Wave-3 **S8** target (Gaussian `mu` × phylo_interaction) |
+| `mc-0653` | same | Wave-3 **S9** route (zi_nbinom2 `sigma` × phylo_interaction) |
+
+The risk is no longer a write race — that arc is finished. It is **staleness**: branching off
+`origin/main` gives you a ledger that predates commit `a075ff2d0`, so these four will look
+unexamined when they were in fact just measured.
+
+**Rule for Wave 1:** before re-checking any of the four, read its current row from
+`codex/response-missing-formula-surface`, not from `origin/main`
+(`git show codex/response-missing-formula-surface:docs/dev-log/dashboard/capability-ledger/response-mask-formulas.tsv`).
+Also diff the uncovered cohort against that arc's 11 demotions and 6 promotions. **Never demote a
+cell that arc just re-evidenced without reading its recorded reason first.** If the two arcs reach
+different verdicts on the same cell, that is Shinichi's call (D-87), not the executing session's.
+
+## Phase 0.25 — Prior-work sweep receipt (gate)
+
+| Surface | Evidence run | Finding | Call |
+| --- | --- | --- | --- |
+| repo git state | `gh issue list`; `gh pr list`; `git show origin/main:...cells.tsv` | `origin/main` is `Version: 0.7.0`; **740** ledger rows; **192 `interval_feasible`**, 41 `inference_ready_with_caveats`, only **4 `supported`** | **build the gap** on a fresh branch |
+| this repo's history | `git show origin/main:docs/dev-log/handover/2026-08-03-claude-handover.md` | The "reconciler blind spot OUTRANKS ALL" item is **DONE** — Arc 7b landed `profile_truth_gate.py` and the handover carries an explicit CORRECTED note. A scout reported it as still-owed; it is not. | **reuse Arc 7b's machinery**, do not rebuild it |
+| CI wiring | `grep -rn "tools/tests" .github/workflows/` | `test_profile_truth_gate.py` **is** wired into CI (`R-CMD-check.yaml:115`) | gate is live; extend its data, not its plumbing |
+| brain (MCP) | `search_notes "drmTMB next arc priority bivariate REML CRAN what to do next"` | Arc 6 bivariate is the parked flagship; `GOAL — drmTMB_final` exists; nothing about a truth-gate extension | **none to reuse** |
+| deterministic grep | `grep -in "truth gate\|brackets_truth\|profile_truth\|interval_feasible"` over `memory/DECISIONS.md`, `memory/AGENT_LOG.md`, `journal/`, `memory/LESSONS.md` | DECISIONS: **1 hit**, the status ladder at `:3345` only. AGENT_LOG: **no hits**. LESSONS: **no hits**. journal `2026-08-04:18`: *"across five branches (Arc 7b truth gate, a claims audit, the Prong B handover, 14 profile fences opened)"* | **no decision constrains this arc**; Arc 7b confirmed landed |
+| sibling repos | brain hits for gllvmTMB / DRM.jl | Neither has a profile-truth-bracketing gate to co-opt | **n/a** |
+| **repo's own board** (Rose caught this gap) | `docs/dev-log/coordination-board.md:19-20` | Claude "holds the prior interval-feasibility / **D-117** lane" — adjacent subject matter (boundary-interval coverage for RE-SDs) that the brain/DECISIONS/LESSONS greps all missed because none of them read the repo's board | **complementary, not duplicative** — D-117 asks *is the interval calibrated*; this arc asks *does the interval contain the truth*. Confirm with the lane owner before Wave 2. |
+
+**Verdict:** reuse Arc 7b's gate wholesale; **build the gap** = manifest coverage + re-check +
+adjudication for the cells outside the 31-cell contract surface.
+
+## The measured gap (verified in this session, not taken from a scout)
+
+```bash
+# evidence_tier distribution, origin/main:docs/dev-log/dashboard/capability-ledger/cells.tsv col 17
+364 none · 192 interval_feasible · 74 diagnostic_only · 65 point_fit_recovery
+ 41 inference_ready_with_caveats · 4 supported
+# truth manifest, origin/main:tools/profile-truth-manifest.tsv
+30 distinct cell_ids
+```
+
+| Tier | Cells | In truth manifest | Not in manifest | **Genuinely uncovered** |
+| --- | ---: | ---: | ---: | ---: |
+| `interval_feasible` | 192 | 27 | 165 | **164** |
+| `inference_ready_with_caveats` | 41 | 0 | 41 | **41** |
+| `supported` | 4 | 0 | 4 | **4** |
+| **Total** | **237** | **27** | **210** | **209** |
+
+**The last two columns differ by one, deliberately.** `mc-0282` has a `CELL_CONTRACTS` entry but no
+manifest `true_value` — it is a **documented `UNGATED` exemption**
+(`tools/tests/test_profile_truth_gate.py:62`), hand-verified against its fixture rather than a gap.
+So "not in the manifest" is 210 and the count actually needing a Wave-1 classification is **209**
+(164 + 41 + 4). Use **209** everywhere downstream; 237 is the tier *population*, not the workload.
+
+**The tiers above `interval_feasible` have zero truth-manifest coverage.** The most-claimed cells
+are the least location-checked.
+
+**And the top tier is thinner than the number suggests.** All four `supported` cells carry
+`primary_evidence_id = ev-mc-XXXX-legacy`, `evidence_class = legacy_model_evidence`, imported in the
+MR-T0 migration on 2026-07-11 with **no `command`, no `run_id`, no `replicates`**. `mc-0069`'s own
+`claim_boundary` reads `interval=interval_feasible, coverage=planned` — a cell sitting at the
+ledger's top tier whose own evidence record says coverage is *planned*. Meanwhile
+`docs/dev-log/release-audits/q-series-v1-release-status.md` states **"`supported` authority: 0 cells"**.
+
+**Correction — this is NOT a contradiction, and T10 must not chase it as one.** Rose checked: that
+release-status doc was last touched **2026-07-14** and is generated from a *superseded 104-row*
+Q-Series board (`structured-re-q-series-support-cells.tsv`); its own glossary line reads
+*"**Structured rows** with support authority; this remains zero"* (`:35`). All four current
+`supported` cells carry `structure_provider = none` and `tranche_id = legacy-census` — outside that
+doc's stated scope and outside its source population entirely. The two numbers were never describing
+the same set. **The real defect is staleness**: the old doc is still linked live from `README.md:75`
+and `NEWS.md:1173` with no supersession pointer to the current 740-row ledger. That is the fix.
+
+The `legacy_model_evidence` finding above still stands on its own and remains worth adjudicating.
+
+**Honest caveat that shapes slice T3.** "Not in the truth manifest" is not the same as "never
+checked". Some higher-tier cells were promoted on Totoro/DRAC **coverage campaigns**, and a coverage
+campaign checks bracketing by construction — it is a stronger instrument that simply does not route
+through this manifest. So the arc's first wave is not *fix*, it is *classify*: for each uncovered
+cell, is it (a) genuinely unchecked, (b) checked by a stronger instrument not wired to the gate, or
+(c) legacy-imported with no run behind it at all? Only (a) and (c) are defects.
+
+## Surface map — five findings that reshape this arc
+
+A read of `profile_truth_gate.py`, `emit-profile-truth-manifest.R`, `arc2_profile_reconcile.py`, the
+four `reconcile-arc1-*.py`, and the on-disk receipt tree returned the following. **Each of these
+changes the plan; do not execute the arc without them.**
+
+1. **The re-check / re-run split is 107 / 57, and the "re-run" half is not what it looks like.**
+   Of the 164 uncovered cells: **107** have ≥1 profile receipt on disk (**106 have exactly one
+   seed**, `mc-0494` has two) — these are manifest-and-reconcile work. **52** have **zero** profile
+   receipts. A further **5 are `association`-axis cells** whose estimator is `two_stage_Godambe`
+   (`as-0001/0002/0003/0005/0006`, verified directly) — no profile mechanism applies to them at all.
+   **`as-0004` is a sixth association cell with the same property**, sitting one tier higher at
+   `inference_ready_with_caveats` (verified). Treat all six together so it is not silently orphaned.
+   **Consequence:** this arc's honest reach is the 107, plus a scoping decision on the 52 + 6.
+
+   *Correction I made to the surface map, which over-extrapolated here.* The map inferred from two
+   spot checks (`mc-0025`, `mc-0027`) that the 52 receiptless cells are "mostly Wald-evidenced".
+   Checking every row: **exactly 11** of the 192 `interval_feasible` cells cite Wald —
+   `mc-0025, mc-0027, mc-0223, mc-0326, mc-0456, mc-0458, mc-0486, mc-0508, mc-0559, mc-0623,
+   mc-0657`. `mc-0025`'s boundary reads *"confint() Wald CI computed and asserted
+   (conf.status==""wald"")"*, so the mechanism is real — but it accounts for 11 cells, not 52.
+   **Why the other ~41 receiptless cells lack a profile receipt is NOT established.** That is a
+   genuine open question for the classify wave, and T2 must answer it from the record rather than
+   assuming Wald. Estimator split across all 192: **157 ML / 30 REML / 5 `two_stage_Godambe`**.
+
+2. **A 1-seed gate is a weaker instrument than the 31-cell surface, and that is an owner call.**
+   The gate's own calibration story (`profile_truth_gate.py:28-32`) assumes 3–5 retained seeds:
+   `MISS_MAGNITUDE_TOL = 0.05`, `MISS_COUNT_TOL = 1` — one narrow miss tolerated, a second fails.
+   With one seed, "more than one miss" is unreachable, so only the magnitude arm can ever fire.
+   **T3 must surface this, not paper over it**: either accept a magnitude-only verdict for the 107
+   and say so in every claim, or top up 2–4 seeds per cell (a partial compute job).
+
+3. **Do NOT "wire the gate into every reconciler" — that was wrong.** The four
+   `reconcile-arc1-*.py` scripts deliberately do not call it. `tools/arc1_profile_reconcile.py:1-26`
+   says so explicitly: they are *frozen provenance checks* over merged cohorts, byte-compared by
+   `test_arc1_profile_reconcilers.py`, and adding a claim gate there "would conflate 'these bytes are
+   authentic' with 'these bytes support the claim'." Those 5 cells are gated instead by a separate
+   sweep inside `tools/tests/test_profile_truth_gate.py:97-120`, which reads each module's own
+   `SEEDS`/`TARGET_ID` and calls `evaluate_cell()` directly. **Extend that sweep pattern; leave the
+   Arc-1 reconcilers alone.**
+
+4. **No merged receipt carries `true_value` / `brackets_truth`.** `run-arc2-profile-feasibility.R:1298-1310`
+   writes those columns, but **zero of the 256 receipts committed under
+   `docs/dev-log/interval-feasibility/results/` have them** — every retained receipt predates the
+   Arc-7b column addition. This is moot for correctness (the gate always recomputes bracketing from
+   `lower`/`upper` against the independently derived manifest, never trusting a receipt's own flag)
+   but it means **the receipts cannot be used as a shortcut** — truth must come from the manifest.
+
+5. **Two known blockers sit in the path, both documented and unfixed.** A `runner_sha256` mismatch
+   currently prevents `arc2_profile_reconcile.py` reconciling the real `mc-0421/0423/0424` cohorts
+   end-to-end; and `mc-0423`'s receipts were produced under `n_founders = 4` against a current
+   default of `8`, which `source_sha` cannot distinguish. Both are recorded in
+   `docs/dev-log/after-task/2026-08-03-arc7b-profile-truth-gate.md` as found-not-fixed. Expect to
+   hit them; budget for them or scope around them explicitly.
+
+**Two number corrections.** The live `interval_feasible` count is **192**, not the 196 that appears
+in `AGENTS.md:87-89` — that was a *campaign target* ("182→196") of which only 5/14 promotions landed.
+And of the 31-cell contract surface, **28** are currently `interval_feasible` (27 with manifest truth
+plus `mc-0282`, a documented `UNGATED` exemption); the other 3 — `mc-0260m`, `mc-0423`, `mc-0424` —
+were **demoted to `point_fit_recovery` by this very gate**, which is the machinery working.
+
+**And the gate's demotions are screening statistics, not verdicts.** The Arc-7b report is explicit:
+per-cell p-values under correct coverage were `mc-0424` 0.039, `mc-0260m` 0.024, `mc-0423` 0.017,
+**none surviving multiplicity correction**. A cell failing this gate means *"this claim is not
+currently supported"*, never *"this interval is proven mislocated."* Every demotion this arc writes
+must use that wording.
+
+## Slice table
+
+Four waves, each a checkpoint. ≤6 new children and ≤1 Opus child per wave.
+
+### Wave 1 — CLASSIFY (checkpoint `T1-classify`) · 5 children · 0 Opus · ~90 min
+
+| # | Slice | Agent | Model · effort | Time | Output | Dep |
+| --- | --- | --- | --- | --- | --- | --- |
+| **T1** | Read `profile_truth_gate.py`, `emit-profile-truth-manifest.R`, `arc2_profile_reconcile.py` and the four `reconcile-arc1-*.py`. Document the gate rule, the manifest derivation, and the exact extension point for a new cohort. | Gauss / `tmb_engineer` | sonnet · high | 40 m | `docs/dev-log/2026-XX-truth-gate-extension-points.md` | — |
+| **T2a–c** | Partition the uncovered cells — **164 at `interval_feasible`** (107 with a profile receipt, 52 receiptless — only 11 of which are confirmed Wald — and 6 `association`, counting `as-0004` one tier up) plus the **45 at `inference_ready_with_caveats` / `supported`** — by `tranche_id` / `primary_evidence_id` / arc, and classify each cell's evidence as (a) unchecked, (b) checked by a stronger instrument, (c) legacy import with no run. **Start from `evidence.tsv`'s `evidence_class` column** — a controlled vocabulary enforced by `capability_ledger.py --check`, and a fast mechanical first pass: of the uncovered cells it splits **13 `coverage_study` · ~64 `legacy_model_evidence` · 112 `contract_test` · 9 `estimator_diagnostic` · 12 `recovery_test`**. `coverage_study` maps to class (b), `legacy_model_evidence` to class (c). **Do not judge — record what the record says.** Tranche is dominated by `legacy-census` (149 of 164). | `Explore` ×3 | **haiku** · low | 45 m | 3 × `scratchpad/uncovered-cohort-N.md` | — |
+| **T3** | Adjudicate T2's raw classification into the **defect list**: which cells genuinely lack a location check, and per cohort whether closing it is a *re-check* (receipt on disk has enough information) or a *re-run* (profile must be recomputed). Quantify both. | Ada / `general-purpose` | sonnet · high | 30 m | `docs/dev-log/2026-XX-interval-truth-coverage-map.md` | T1, T2 |
+
+**Checkpoint: bring Shinichi the re-check vs re-run split before any compute is committed.** The
+re-run count is what decides whether this arc needs Totoro/DRAC at all.
+
+### Wave 2 — EXTEND the manifest (checkpoint `T2-manifest`) · 4 children · 0 Opus · ~2 h
+
+| # | Slice | Agent | Model · effort | Time | Scope | Dep |
+| --- | --- | --- | --- | --- | --- | --- |
+| **T4a–c** | Per cohort: derive `true_value` from that cohort's fixture builders and write a **self-contained, cohort-tagged derivation to `scratchpad/truth-derivation-<cohort>.R`** — do NOT edit the shared script. **Derived, never hand-typed**; hand-typing recreates the defect one layer up, which the module's own docstring warns about. | Curie / `simulation_tester` ×3 | sonnet · medium | 90 m | `scratchpad/truth-derivation-<cohort>.R` (disjoint per child) | T3 |
+| **T5** | **Sole writer of `tools/emit-profile-truth-manifest.R`** — fold T4a–c's three cohort derivations into it in one pass (Rose: three concurrent writers to one script is the exact shared-state failure this arc exists to repair). Then extend the **sweep in `tools/tests/test_profile_truth_gate.py:97-120`** to the newly manifested cells, following the Arc-1 pattern (read each cohort's own seed/target constants, call `evaluate_cell()` directly). **Do NOT add gate calls to the four `reconcile-arc1-*.py` scripts** — they are frozen provenance checks by design (`arc1_profile_reconcile.py:1-26`). Add `CELL_CONTRACTS` entries only where the Arc-2 `reconcile()` path genuinely applies. Confirm CI green. | Grace-role / `general-purpose` | sonnet · medium | 40 m | `tools/tests/test_profile_truth_gate.py`, `arc2_profile_reconcile.py`, `R-CMD-check.yaml` | T4 |
+
+### Wave 3 — RE-CHECK and ADJUDICATE (checkpoint `T3-verdicts`) · ≤6 children · 0 Opus · ~3 h
+
+| # | Slice | Agent | Model · effort | Time | Scope | Dep |
+| --- | --- | --- | --- | --- | --- | --- |
+| **T6a–d** | Run the extended gate over the **107 re-checkable cells**; produce a per-cell verdict using the gate's existing rule (`MISS_MAGNITUDE_TOL = 0.05`, `MISS_COUNT_TOL = 1`). **Never invent a stricter or looser rule.** At one retained seed only the magnitude arm can fire — record every verdict as *magnitude-only* so no reader mistakes it for the 3–5-seed standard. | Curie ×4 | sonnet · medium | 2 h | receipts, verdict tables | T5 |
+| **T7** | Adjudicate every miss. Demote with a recorded reason worded as **"this claim is not currently supported"**, never "this interval is proven mislocated" — the gate produces screening statistics, and the Arc-7b p-values (0.017–0.039, none surviving multiplicity correction) are why. **Never widen the gate to keep a cell.** **Schema precedent to copy literally:** `transitions.tsv` has **no `evidence_tier` column** — the Arc-7b demotion rows `tr-mc-0424-arc7b-truth-gate` and `tr-mc-0260m-arc7b-truth-gate` (`transitions.tsv:1300-1301`) leave `from_work_status`/`to_work_status` unchanged (`verified`→`verified`) and record the tier change as prose in `reason`. Follow those two rows; do not invent a new convention. | Fisher / `inference_reviewer` | sonnet · high | 60 m | `cells.tsv`, `transitions.tsv` | T6 |
+
+**The 52 receiptless cells and the 6 `association` cells are NOT in this wave.** They have no
+profile receipt and, for the association axis, no profile mechanism at all. They need a scoping
+decision from Shinichi — run a first-ever `tmbprofile()` campaign for them, build a separate
+Wald-truth check, or leave them labelled as Wald evidence. Bring that decision at the T3 checkpoint;
+do not silently absorb it. Any re-run or seed top-up is a **separate compute slice** with a measured
+pre-run (D-139) and an explicit Totoro-vs-DRAC decision — never folded into T6.
+
+### Wave 4 — VERIFY, RECONCILE, CLOSE (checkpoint `T4-close`) · 3 children · 1 Opus · ~60 min
+
+| # | Slice | Agent | Model · effort | Time | Output | Dep |
+| --- | --- | --- | --- | --- | --- | --- |
+| **T8** | MECHANICAL-VERIFY: manifest covers what the map says; every reconciler calls the gate; CI green; counts in the coverage table match `cells.tsv` | `Explore` | **haiku** · low | 20 m | verification table | T7 |
+| **T9** | Adversarial verify — **try to refute** the coverage claim: is any "covered" cell covered only nominally? Is any truth value hand-typed rather than derived? Does any verdict rest on a receipt without a numeric `true_value`? | Fisher / `inference_reviewer` | **opus** · high | 25 m | verdict | T8 |
+| **T10** | Close: after-task report; **mark `docs/dev-log/release-audits/q-series-v1-release-status.md` superseded** and scope-clarify its "0 supported authority" line — see the correction below, this is a staleness fix, NOT a contradiction to resolve; AGENTS.md pointer; plan-vs-actual | Rose / `systems_auditor` | sonnet · medium | 25 m | after-task + `plan-actual/` | T9 |
+
+```
+FAN-OUT BUDGET: W1 5/6 (3 scout + 2 build) · W2 4/6 · W3 5/6 · W4 3/6 (1 scout, 1 build, 1 ceiling)
+HAIKU SUITABILITY: yes — T2a-c (record what the record says, explicitly no judgment) and T8.
+COMPUTE: local by default. Any re-run cohort gets a measured pre-run and a Totoro-vs-DRAC decision
+         at scope time (D-139, FAILURE-TAXONOMY #11). Never GitHub Actions (D-50).
+D-43 PANEL: milestone = "every interval claim has a location verdict" · fires once at W4
+LANE RECEIPT: START A FRESH TASK — see the handoff block below.
+```
+
+## Verification
+
+```bash
+python3 -B tools/tests/test_profile_truth_gate.py
+python3 tools/capability_ledger.py --check
+# plus the extended gate run over each cohort's receipts
+```
+
+**Done means:** every one of the 209 uncovered cells at `interval_feasible` or above has a recorded verdict —
+covered-and-passing, covered-and-demoted, or explicitly classified as checked by a stronger
+instrument · the manifest is derived, never hand-typed · every reconciler calls the gate · the
+`supported`-authority contradiction is resolved one way or the other · after-task filed.
+
+**The rule that does not bend:** the gate's tolerance is not adjusted to keep a cell. A cell that
+genuinely misses gets demoted and the reason recorded.
+
+## Handoff — paste into a FRESH Claude session
+
+```
+/arc-loop drmTMB interval-claim truth audit.
+
+Read /Users/z3437171/.claude/plans/transient-napping-hippo.md — the FIRST plan in that file.
+The appendix below it is a DIFFERENT arc that has already LANDED (commit a075ff2d0, pushed to
+codex/response-missing-formula-surface). Read it for context if useful; do not redo any of it.
+
+Repo: /Users/z3437171/Dropbox/Github Local/drmTMB. Branch OFF origin/main, fresh — do NOT use
+codex/response-missing-formula-surface (landed but UNMERGED, no PR), claude/07-release-slice
+(#959), or codex #955 / #858. Run ~/shinichi-brain/tools/lane_preflight.sh first and state the
+lane you took.
+
+Four cells — mc-0595, mc-0596, mc-0321, mc-0653 — were touched by that landed arc AND are
+in scope here. It is unmerged, so origin/main does not yet have its verdicts: re-read them from
+that branch before re-checking those four, and do not demote a cell it just re-evidenced.
+
+The goal: 237 cells claim evidence_tier interval_feasible or above and 209 of them are unchecked for
+interval LOCATION; only 27 are in
+tools/profile-truth-manifest.tsv, the manifest behind tools/profile_truth_gate.py, which is the
+only thing that checks whether a profile interval BRACKETS its true value rather than merely
+having the right shape. Arc 7b (2026-08-03) built that gate — reuse it, do not rebuild it.
+
+Start with Wave 1 (classify), and STOP at the checkpoint to report the re-check vs re-run split
+before committing any compute.
+
+R entry point: pkgload::load_all(".", compile = FALSE) — the installed drmTMB is stale.
+```

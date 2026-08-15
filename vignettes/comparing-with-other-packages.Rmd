@@ -359,9 +359,9 @@ interval feasibility for that one cell's direct intercept-SD target on a
 frozen low-rung fixture, it was not evaluated for coverage or calibration,
 and it carries no public interval guidance, no broader family or formula
 support, and nothing about correlated or labelled effects. A random *slope*
-on this family is a different cell (`mc-0227`, recorded two tiers lower at
-`point_fit_recovery` — the ordered scale places `diagnostic_only` between the
-two) and is not what this comparison fits.
+on this family is a different cell (`mc-0227`, recorded one tier lower at
+`point_fit_recovery`, the rung directly beneath `interval_feasible`) and is not
+what this comparison fits.
 
 **Independence:** `ordinal` is not yet classified in `drmTMB`'s design
 documents.

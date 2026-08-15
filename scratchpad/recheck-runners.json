@@ -1,0 +1,345 @@
+{
+ "runner_of": {
+  "mc-0005": [
+   "tools/run-lane-b-ordinary-intercept-profile-gate.R"
+  ],
+  "mc-0007": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0012": [
+   "tools/promote-lane-b-q1-expanded-targetwise-profile-receipt.R"
+  ],
+  "mc-0059": [
+   "tools/run-lane-b-ordinary-intercept-profile-gate.R"
+  ],
+  "mc-0083": [
+   "tools/run-lane-b-phylo-q2-canonical-profile-gate.R"
+  ],
+  "mc-0084": [
+   "tools/run-lane-b-phylo-q2-canonical-profile-gate.R"
+  ],
+  "mc-0089": [
+   "tools/run-lane-b-q2plus-phylo-profile-gate.R"
+  ],
+  "mc-0090": [
+   "tools/run-lane-b-q2plus-phylo-profile-gate.R"
+  ],
+  "mc-0091": [
+   "tools/run-lane-b-q2plus-phylo-scale-profile-gate.R"
+  ],
+  "mc-0092": [
+   "tools/run-lane-b-q2plus-phylo-scale-profile-gate.R"
+  ],
+  "mc-0101": [
+   "tools/run-lane-b-q6-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0102": [
+   "tools/audit-b2-q6-serial-proof-cohort.R"
+  ],
+  "mc-0107": [
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0108": [
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0109": [
+   "tools/run-lane-b-spatial-q2-slope-profile-gate.R"
+  ],
+  "mc-0110": [
+   "tools/run-lane-b-spatial-q2-slope-profile-gate.R"
+  ],
+  "mc-0113": [
+   "tools/run-lane-b-q2plus-scale-profile-gate.R"
+  ],
+  "mc-0114": [
+   "tools/run-lane-b-q2plus-scale-profile-gate.R"
+  ],
+  "mc-0115": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0116": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0117": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0118": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0124": [
+   "tools/audit-b2-q6-serial-proof-cohort.R"
+  ],
+  "mc-0129": [
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0130": [
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0131": [
+   "tools/run-lane-b-animal-q2-slope-highinfo-profile-gate.R"
+  ],
+  "mc-0132": [
+   "tools/run-lane-b-animal-q2-slope-highinfo-profile-gate.R"
+  ],
+  "mc-0135": [
+   "tools/run-lane-b-q2plus-scale-profile-gate.R"
+  ],
+  "mc-0136": [
+   "tools/run-lane-b-q2plus-scale-profile-gate.R"
+  ],
+  "mc-0137": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0138": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0139": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0140": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0145": [
+   "tools/run-lane-b-q6-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0146": [
+   "tools/audit-b2-q6-serial-proof-cohort.R"
+  ],
+  "mc-0151": [
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0152": [
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0157": [
+   "tools/run-lane-b-q2plus-scale-profile-gate.R"
+  ],
+  "mc-0158": [
+   "tools/run-lane-b-q2plus-scale-profile-gate.R"
+  ],
+  "mc-0159": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0160": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0161": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0162": [
+   "tools/run-lane-b-q4-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0167": [
+   "tools/run-lane-b-q6-provider-highinfo-profile-gate.R"
+  ],
+  "mc-0168": [
+   "tools/audit-b2-q6-serial-proof-cohort.R"
+  ],
+  "mc-0184": [
+   "tools/run-lane-b-biv-fixed-scale-profile-gate.R"
+  ],
+  "mc-0185": [
+   "tools/run-lane-b-biv-fixed-scale-profile-gate.R"
+  ],
+  "mc-0201": [
+   "tools/run-arc1b-s2r-relmat-q2-reml-recovery.R",
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ],
+  "mc-0208": [
+   "tools/run-lane-b-phylo-q2-canonical-profile-gate.R"
+  ],
+  "mc-0209": [
+   "tools/run-lane-b-phylo-q2-canonical-profile-gate.R"
+  ],
+  "mc-0212": [
+   "tools/run-lane-b-phylo-q4-location-profile-gate.R"
+  ],
+  "mc-0213": [
+   "tools/run-lane-b-phylo-q4-location-profile-gate.R"
+  ],
+  "mc-0214": [
+   "tools/run-lane-b-phylo-q4-scale-profile-gate.R"
+  ],
+  "mc-0215": [
+   "tools/run-lane-b-phylo-q4-scale-profile-gate.R"
+  ],
+  "mc-0216": [
+   "tools/run-lane-b-phylo-dense-q4-highinfo-profile-gate.R"
+  ],
+  "mc-0217": [
+   "tools/run-lane-b-phylo-dense-q4-highinfo-profile-gate.R"
+  ],
+  "mc-0218": [
+   "tools/run-lane-b-phylo-dense-q4-highinfo-profile-gate.R"
+  ],
+  "mc-0219": [
+   "tools/run-lane-b-phylo-dense-q4-highinfo-profile-gate.R"
+  ],
+  "mc-0225": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0248": [
+   "tools/promote-lane-b-q1-expanded-targetwise-profile-receipt.R"
+  ],
+  "mc-0251": [
+   "tools/arc3a-positive-continuous-structured-mu-recovery.R",
+   "tools/summarize-arc3a-positive-continuous-structured-mu-recovery.R"
+  ],
+  "mc-0265": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0267": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0270": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0271": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0280": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0281": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0282": [
+   "tools/run-arc2-profile-feasibility.R"
+  ],
+  "mc-0293": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0294": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0297": [
+   "tools/promote-lane-b-scalar-animal-relmat-q1-highinfo-profile-receipts.R"
+  ],
+  "mc-0300": [
+   "tools/promote-lane-b-scalar-animal-relmat-q1-highinfo-profile-receipts.R"
+  ],
+  "mc-0305": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0306": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0312": [
+   "tools/promote-lane-b-scalar-animal-relmat-q1-highinfo-profile-receipts.R"
+  ],
+  "mc-0317": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0318": [
+   "tools/run-b2-e0-q2-profile.R"
+  ],
+  "mc-0380": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0386": [
+   "tools/arc3a-positive-continuous-structured-mu-recovery.R",
+   "tools/run-lane-b-q1-expanded-profile-gate.R",
+   "tools/summarize-arc3a-positive-continuous-structured-mu-recovery.R"
+  ],
+  "mc-0388": [
+   "tools/arc3a-positive-continuous-structured-mu-recovery.R",
+   "tools/summarize-arc3a-positive-continuous-structured-mu-recovery.R"
+  ],
+  "mc-0401": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0402": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0403": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0410": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0411": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0412": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0413": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0429": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0431": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0434": [
+   "tools/run-lane-b-q1-expanded-profile-gate.R"
+  ],
+  "mc-0435": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0440": [
+   "tools/run-lane-b-q1-expanded-profile-gate.R"
+  ],
+  "mc-0441": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0447": [
+   "tools/run-lane-b-q1-expanded-profile-gate.R"
+  ],
+  "mc-0448": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0451": [
+   "tools/run-lane-b-q1-expanded-profile-gate.R"
+  ],
+  "mc-0452": [
+   "tools/run-lane-b-count-q1-slope-canonical-profile-gate.R"
+  ],
+  "mc-0463": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0494": [
+   "tools/promote-lane-b-student-spatial-q1-highinfo-profile-receipts.R"
+  ],
+  "mc-0511": [
+   "tools/run-lane-b-ordinary-slope-profile-gate.R"
+  ],
+  "mc-0538": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0567": [
+   "tools/run-lane-b-ordinary-intercept-expanded-profile-gate.R"
+  ],
+  "mc-0568": [
+   "tools/run-135-trace-campaign.R"
+  ],
+  "mc-0576": [
+   "tools/run-135-trace-campaign.R"
+  ],
+  "mc-0595": [
+   "tools/run-135-trace-campaign.R"
+  ],
+  "mc-0596": [
+   "tools/run-135-trace-campaign.R"
+  ],
+  "mc-0653": [
+   "tools/run-135-trace-campaign.R",
+   "tools/run-lane-c-c12-zinb-sigma-control-local-recovery.R"
+  ],
+  "mc-0674": [
+   "tools/run-arc1b-s2r-relmat-q2-reml-recovery.R",
+   "tools/run-lane-b-structured-q2-production-profile-gate.R"
+  ]
+ },
+ "norunner": [
+  "mc-0187",
+  "mc-0188",
+  "mc-0203",
+  "mc-0204",
+  "mc-0405",
+  "mc-0406",
+  "mc-0407",
+  "mc-0408"
+ ]
+}

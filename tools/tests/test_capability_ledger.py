@@ -1032,13 +1032,81 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_legacy_supported_label_does_not_authorize_an_interval(self):
         fit, point, interval = ledger.reader_reporting_permissions(
-            {"capability_status": "implemented", "evidence_tier": "supported"},
+            {
+                "capability_status": "implemented",
+                "evidence_tier": "legacy_fit_supported",
+            },
             "Wald interval",
         )
         self.assertTrue(fit.startswith("Yes"))
         self.assertTrue(point.startswith("Yes"))
         self.assertTrue(interval.startswith("No"))
         self.assertIn("legacy supported label", interval)
+
+    def test_supported_is_the_ladder_summit_and_does_authorize_an_interval(self):
+        """`supported` must outrank the tier below it in PERMISSION, not just order.
+
+        Until 2026-08-15 one token carried both meanings: the ladder's summit and
+        the migrated board `fit_status` label. The reader translator gave it the
+        legacy wording, so the ladder's TOP rung authorized strictly LESS than
+        `inference_ready_with_caveats` directly beneath it, while every aggregate
+        still counted it first as the strongest evidence.
+        """
+        _, _, top = ledger.reader_reporting_permissions(
+            {"capability_status": "implemented", "evidence_tier": "supported"},
+            "profile interval",
+        )
+        _, _, below = ledger.reader_reporting_permissions(
+            {
+                "capability_status": "implemented",
+                "evidence_tier": "inference_ready_with_caveats",
+            },
+            "profile interval",
+        )
+        self.assertTrue(top.startswith("Yes"))
+        self.assertTrue(below.startswith("Yes"))
+        self.assertNotIn("legacy supported label", top)
+
+    def test_legacy_fit_supported_ranks_below_interval_feasible(self):
+        order = ledger.TIER_ORDER
+        self.assertIn("legacy_fit_supported", order)
+        self.assertGreater(
+            order.index("legacy_fit_supported"), order.index("interval_feasible")
+        )
+        self.assertLess(order.index("supported"), order.index("interval_feasible"))
+
+    def test_tier_order_is_monotone_in_reader_permission(self):
+        """A stronger rank must never authorize LESS than a weaker one.
+
+        This is the guard for a defect class the ledger hit twice, found on
+        2026-08-15:
+
+          * `supported` sat at the summit while the reader translator gave it the
+            legacy fit label's wording, so it authorized strictly less than
+            `inference_ready_with_caveats` directly beneath it.
+          * `diagnostic_only` ranked above `point_fit_recovery` while granting no
+            point-report permission at all, where `point_fit_recovery` grants one.
+
+        Both were invisible because rank and permission lived in different
+        functions and nothing compared them. This compares them.
+        """
+        def permits(tier):
+            _, point, interval = ledger.reader_reporting_permissions(
+                {"capability_status": "implemented", "evidence_tier": tier},
+                "profile interval",
+            )
+            return (interval.startswith("Yes"), point.startswith("Yes"))
+
+        ranked = [t for t in ledger.TIER_ORDER if t not in {"miswired", "none"}]
+        for stronger, weaker in zip(ranked, ranked[1:]):
+            s_int, s_pt = permits(stronger)
+            w_int, w_pt = permits(weaker)
+            self.assertGreaterEqual(
+                (s_int, s_pt), (w_int, w_pt),
+                f"{stronger} ranks above {weaker} but authorizes less: "
+                f"{stronger}=(interval={s_int}, point={s_pt}) vs "
+                f"{weaker}=(interval={w_int}, point={w_pt})",
+            )
 
     def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
         generated = ledger.outputs(self.cells, self.evidence)
@@ -2162,7 +2230,19 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_student_structured_tiers_fail_closed_to_live_ledger(self):
         by_id = {row["cell_id"]: row for row in self.cells}
         self.assertEqual(by_id["mc-0493"]["evidence_tier"], "diagnostic_only")
-        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "interval_feasible")
+        # mc-0494 held interval_feasible until 2026-08-15, when the interval-truth
+        # re-check derived its true value from its own frozen campaign contract and
+        # found the retained interval [0.305, 0.528] does not contain it (truth 0.20).
+        # It is one of seven spatial cells whose fixture generates the latent field
+        # from a different covariance than the fitted kernel, so the declared truth is
+        # not the model's estimand and no valid location check exists. Demoted to
+        # diagnostic_only rather than point_fit_recovery because the same
+        # misspecification means the point estimate was never validly tested either.
+        self.assertEqual(by_id["mc-0494"]["evidence_tier"], "diagnostic_only")
+        self.assertIn(
+            "conditional on the correlation range",
+            by_id["mc-0494"]["claim_boundary"],
+        )
         self.assertEqual(by_id["mc-0495"]["evidence_tier"], "diagnostic_only")
         self.assertEqual(by_id["mc-0641"]["evidence_tier"], "diagnostic_only")
         for cell_id in ("mc-0229", "mc-0364", "mc-0641", "mc-0662", "mc-0667"):
