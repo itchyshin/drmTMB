@@ -93453,3 +93453,26 @@ can see which commit each one actually examined.
   `native_reader_contracts`. No capability file or claim changed. The ledger
   generator then passed for 31 outputs and all 73 ledger tests passed, including
   C17/C14 current-source compatibility.
+
+## 2026-08-15 — pkgdown reference index repairs the reader-contract topic
+
+- The post-merge `pkgdown` run `31842957306` on `main` FAILED at
+  `build_reference_index()`: `In _pkgdown.yml, 1 topic missing from index:
+  "native_reader_contracts"`. The reader arc added `man/native_reader_contracts.Rd`
+  as a doc-only `@name` topic while `_pkgdown.yml` was one of that arc's lane
+  fences, so the topic landed without its index entry and the site stopped
+  deploying. Every later `main` push would have repeated the failure.
+- Repair: registered `native_reader_contracts` in the `reference:` section
+  `Model fitting and post-fit tools`, immediately before `check_drm`, so the
+  contract page precedes the post-fit verbs it governs.
+- Verified before/after rather than assuming: without the entry
+  `pkgdown::check_pkgdown()` aborts through `check_missing_topics()`; with it the
+  check reports `No problems found`. The exact failing CI call path,
+  `pkgdown::build_reference_index()`, then completed and the rendered
+  `reference/index.html` contains the topic.
+- Note for reviewers: `.github/workflows/pkgdown.yaml` triggers only on
+  `workflow_run` against `main` or on `workflow_dispatch`, so a pull request does
+  not exercise this path. The local reference-index build above is the
+  pre-merge evidence.
+- Scope: documentation index only. No R code, likelihood, estimand, capability
+  ledger, claim, or reader contract changed.
