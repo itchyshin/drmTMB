@@ -149,7 +149,9 @@ test_that("zero-one-beta sigma random-intercept response mask matches observed d
   mu <- plogis(case$truth$mu[[1L]] + case$truth$mu[[2L]] * dat$x)
   sigma <- exp(case$truth$sigma[[1L]] + u[dat$id])
   zoi <- plogis(case$truth$zoi[[1L]])
-  coi <- plogis(case$truth$coi[[1L]])
+  # coi has no covariates here (coi ~ 1); make it a full-length vector so
+  # coi[atom] indexes real values instead of recycling a length-1 vector.
+  coi <- rep(plogis(case$truth$coi[[1L]]), nrow(dat))
   dat$y <- rbeta(nrow(dat), mu / sigma^2, (1 - mu) / sigma^2)
   atom <- runif(nrow(dat)) < zoi
   dat$y[atom] <- as.numeric(runif(sum(atom)) < coi[atom])
@@ -177,7 +179,9 @@ test_that("zero-one-beta sigma random-slope response mask matches observed data"
   mu <- plogis(-0.2 + 0.65 * x)
   sigma <- exp((-0.85 + u[id]) * x)
   zoi <- plogis(-1)
-  coi <- plogis(0.3)
+  # coi has no covariates here (coi ~ 1); make it a full-length vector so
+  # coi[atom] indexes real values instead of recycling a length-1 vector.
+  coi <- rep(plogis(0.3), n)
   y <- rbeta(n, mu / sigma^2, (1 - mu) / sigma^2)
   atom <- runif(n) < zoi
   y[atom] <- as.numeric(runif(sum(atom)) < coi[atom])
@@ -226,7 +230,9 @@ test_that("zero-one-beta zoi random-slope response mask matches observed data", 
   mu <- plogis(-0.2 + 0.65 * x)
   sigma <- exp(-0.85)
   zoi <- plogis((0.2 + u[id]) * x)
-  coi <- plogis(0.3)
+  # coi has no covariates here (coi ~ 1); make it a full-length vector so
+  # coi[atom] indexes real values instead of recycling a length-1 vector.
+  coi <- rep(plogis(0.3), n)
   y <- rbeta(n, mu / sigma^2, (1 - mu) / sigma^2)
   atom <- runif(n) < zoi
   y[atom] <- as.numeric(runif(sum(atom)) < coi[atom])
@@ -384,7 +390,9 @@ test_that("Tweedie mu random-slope response mask matches observed data", {
   expect_missing_response_sentinel_invariant(fit_mask, sentinels = c(0, 1))
   expect_lt(max(abs(unname(coef(fit_mask, "mu")) - truth$mu)), 0.20)
   expect_lt(max(abs(unname(coef(fit_mask, "sigma")) - truth$sigma)), 0.20)
-  expect_lt(abs(unname(coef(fit_mask, "nu")) - truth$nu), 0.15)
+  # nu link is nu = 1 + plogis(eta_nu) (src/drmTMB.cpp Tweedie block); coef(,
+  # "nu") returns eta_nu, so transform to the power scale before comparing.
+  expect_lt(abs((1 + plogis(unname(coef(fit_mask, "nu")))) - truth$nu), 0.15)
   expect_lt(abs(unname(fit_mask$sdpars$mu) - truth$sd), 0.25)
   slope_effects <- fit_mask$random_effects$mu$terms[["(0 + x | id)"]]
   expect_gt(cor(slope_effects, u), 0.45)

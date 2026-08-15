@@ -360,7 +360,11 @@ zoib_zoi_phylo_nll <- function(fit, par, tree, species) {
   eta_coi <- as.vector(d$X_nu %*% par$beta_coi)
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta_mu)
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(eta_zoi), stats::plogis(eta_coi), log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(
+    d$y[observed], mu[observed], exp(log_sigma[observed]),
+    stats::plogis(eta_zoi)[observed], stats::plogis(eta_coi)[observed], log = TRUE
+  ))
 }
 
 zoib_coi_phylo_nll <- function(fit, par, tree, species) {
@@ -377,7 +381,11 @@ zoib_coi_phylo_nll <- function(fit, par, tree, species) {
   eta_coi <- as.vector(d$X_nu %*% par$beta_coi) + d$phylo_mu_value[, 1] * u[observation_node_index]
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(eta_mu)
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(eta_zoi), stats::plogis(eta_coi), log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(
+    d$y[observed], mu[observed], exp(log_sigma[observed]),
+    stats::plogis(eta_zoi)[observed], stats::plogis(eta_coi)[observed], log = TRUE
+  ))
 }
 
 zoib_sigma_animal_nll <- function(fit, par, Ainv, species) {
@@ -406,7 +414,8 @@ zoib_sigma_relmat_nll <- function(fit, par, K, species) {
   }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo + as.numeric(determinant(K, logarithm = TRUE)$modulus) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(d$y[observed], mu[observed], exp(log_sigma[observed]), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi))[observed], stats::plogis(as.vector(d$X_nu %*% par$beta_coi))[observed], log = TRUE))
 }
 
 zoib_phylo_central_gradient <- function(fn, par) {
@@ -491,7 +500,8 @@ zoib_sigma_spatial_nll <- function(fit, par, coords, site) {
   }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu))
   prior <- .5 * (length(u) * log(2 * pi) + 2 * length(u) * par$log_sd_phylo - precision$log_det_Q + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(precision$Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)), stats::plogis(as.vector(d$X_nu %*% par$beta_coi)), log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(d$y[observed], mu[observed], exp(log_sigma[observed]), stats::plogis(as.vector(d$X_zi %*% par$beta_zoi))[observed], stats::plogis(as.vector(d$X_nu %*% par$beta_coi))[observed], log = TRUE))
 }
 
 zoib_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame) {
@@ -523,7 +533,8 @@ zoib_sigma_phylo_interaction_nll <- function(fit, par, tree1, tree2, data_frame)
   }
   mu <- 1e-12 + (1 - 2e-12) * stats::plogis(as.vector(d$X_mu %*% par$beta_mu)); zoi <- stats::plogis(as.vector(d$X_zi %*% par$beta_zoi)); coi <- stats::plogis(as.vector(d$X_nu %*% par$beta_coi))
   prior <- .5 * (length(u) * log(2*pi) + 2 * length(u) * par$log_sd_phylo - (nrow(p2$Q) * p1$log_det + nrow(p1$Q) * p2$log_det) + exp(-2 * par$log_sd_phylo) * sum(u * as.vector(Q %*% u)))
-  prior - sum(d$weights * dzoibeta_drm(d$y, mu, exp(log_sigma), zoi, coi, log = TRUE))
+  observed <- as.logical(d$observed_y)
+  prior - sum(d$weights[observed] * dzoibeta_drm(d$y[observed], mu[observed], exp(log_sigma[observed]), zoi[observed], coi[observed], log = TRUE))
 }
 
 zoib_sigma_random_intercept_nll <- function(fit, par) {
@@ -979,6 +990,108 @@ test_that("zero-one-beta animal sigma response mask has oracle and recovery evid
   expect_lt(abs(coef(fit_masked, "sigma")[[1L]] + 1), .15)
   expect_lt(abs(fit_masked$sdpars$sigma[["animal(1 | species)"]] - .55), .25)
 })
+
+expect_zoib_sigma_response_mask <- function(dat, formula, oracle_builder, sd_name, truth) {
+  observed <- !is.na(dat$y)
+  fit_masked <- drmTMB(
+    formula, family = zero_one_beta(), data = dat,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
+  )
+  fit_observed <- drmTMB(
+    formula, family = zero_one_beta(), data = dat[observed, , drop = FALSE],
+    control = drm_control(se = FALSE)
+  )
+  obj <- TMB::MakeADFun(
+    data = fit_masked$model$tmb_data, parameters = fit_masked$model$start,
+    map = fit_masked$model$map, DLL = "drmTMB", silent = TRUE
+  )
+  probe <- obj$par + seq(-.025, .025, length.out = length(obj$par))
+  oracle_fn <- function(v) oracle_builder(fit_masked, obj$env$parList(v), dat)
+  expect_equal(fit_masked$opt$convergence, 0L)
+  expect_equal(fit_observed$opt$convergence, 0L)
+  expect_equal(nobs(fit_masked), sum(observed))
+  expect_equal(fit_masked$missing_data$observed_y, observed)
+  expect_equal(obj$fn(probe), oracle_fn(probe), tolerance = 1e-8)
+  expect_equal(
+    as.numeric(obj$gr(probe)), zoib_phylo_central_gradient(oracle_fn, probe),
+    tolerance = 2e-5
+  )
+  expect_missing_response_sentinel_invariant(fit_masked, sentinels = c(0, 1, .5))
+  expect_equal(coef(fit_masked, "sigma"), coef(fit_observed, "sigma"), tolerance = 1e-6)
+  expect_equal(fit_masked$sdpars$sigma, fit_observed$sdpars$sigma, tolerance = 1e-6)
+  expect_lt(abs(coef(fit_masked, "sigma")[[1L]] - truth$log_sigma), .15)
+  expect_lt(abs(fit_masked$sdpars$sigma[[sd_name]] - truth$sd_sigma), .25)
+}
+
+test_that("zero-one-beta relmat sigma response mask has oracle and recovery evidence", {
+  set.seed(2026081824L)
+  n_group <- 64L
+  n_each <- 60L
+  labels <- paste0("sp", seq_len(n_group))
+  Q <- diag(2, n_group)
+  Q[cbind(seq_len(n_group - 1L), seq.int(2L, n_group))] <- -.5
+  Q[cbind(seq.int(2L, n_group), seq_len(n_group - 1L))] <- -.5
+  rownames(Q) <- colnames(Q) <- rev(labels)
+  K <- solve(Q)
+  latent <- as.numeric(t(chol(K)) %*% stats::rnorm(n_group, sd = .55))
+  names(latent) <- rownames(K)
+  species <- rep(labels, each = n_each)
+  x <- stats::rnorm(length(species))
+  mu <- stats::plogis(-.15 + .35 * x)
+  sigma <- exp(-1 + latent[species])
+  zoi <- stats::plogis(-2.2)
+  coi <- stats::plogis(.1)
+  boundary <- stats::rbinom(length(x), 1L, zoi)
+  y <- stats::rbeta(length(x), mu / sigma^2, (1 - mu) / sigma^2)
+  y[boundary == 1L] <- stats::rbinom(sum(boundary == 1L), 1L, coi)
+  dat <- data.frame(y, x, species)
+  dat$y[seq(1L, nrow(dat), by = n_each)] <- NA_real_
+  formula <- bf(y ~ x, sigma ~ relmat(1 | species, K = K), zoi ~ 1, coi ~ 1)
+  expect_zoib_sigma_response_mask(
+    dat, formula,
+    function(fit, par, d) zoib_sigma_relmat_nll(fit, par, K, d$species),
+    "relmat(1 | species)",
+    truth = list(log_sigma = -1, sd_sigma = .55)
+  )
+})
+
+# mc-0596 (zero-one-beta sigma ~ spatial(...) response mask) is intentionally
+# NOT added here either, for a reason that only shows up inside
+# expect_missing_response_sentinel_invariant(), not in drmTMB()'s own
+# opt$convergence flag. At this file's established 64-site / 60-each spatial
+# scale/coords construction (dense_zoib_spatial_precision(), the same layout
+# the mu-side spatial mask test already uses successfully), the exp(-distance
+# / range) covariance is badly conditioned: eigenvalues range 0.030-27.7 for
+# K (condition number ~917), i.e. a near-constant leading eigenvector that
+# trades off against the sigma fixed intercept. The outer drmTMB() fit
+# reports opt$convergence = 0 ("relative convergence (4)", 39 iterations) --
+# its optimizer ladder gets there -- but a plain independent stats::nlminb()
+# re-optimization started AT that exact reported optimum (what
+# expect_missing_response_sentinel_invariant() runs) reports
+# "false convergence (8)" at nlminb's raw defaults AND at eval.max/iter.max
+# budgets of 900 and 3000 -- the same near-singular-Hessian signature already
+# demoted for mc-0593/mc-0594, just caught by a different assertion. Point
+# recovery of the sigma intercept was also unstable across an informal
+# 4-seed scan (diffs of 0.03, 0.39, 0.56, 0.25 against the 0.15 gate, one
+# seed in bound). relmat()'s tridiagonal Q (well-conditioned, see the sibling
+# test above) does not share this failure; spatial() at this scale does. See
+# the simulation report accompanying this change for the full numbers.
+
+# mc-0597 (zero-one-beta sigma ~ phylo_interaction(...) response mask) is
+# intentionally NOT added here. A pre-commit scan across 7 deterministic
+# seeds at this same 8x8-tip / 60-each scale found 0/7 draws satisfying both
+# the required convergence check and the .15/.25 recovery bounds copied from
+# the phylo/animal sigma siblings: one draw returned nlminb "false
+# convergence (8)" (the exact failure signature already demoted for mc-0593
+# and mc-0594), and every other draw converged cleanly but missed the log
+# sigma intercept bound (diffs 0.11-0.33 against the 0.15 gate). This tracks
+# with mc-0593/mc-0594: `phylo_interaction()` composes two
+# `dense_zoib_phylo_precision()`-style tree GMRFs (each carrying unobserved
+# internal-node latents, not just tip latents), inflating u_phylo to 196
+# dimensions against only 64 observed plant:pollinator combinations -- the
+# same internal-node-augmented-GMRF fragility axis as phylo()/animal(), not
+# the tip-only structure relmat()/spatial() use. See the simulation report
+# accompanying this change for the full seed-by-seed numbers.
 
 test_that("zero-one-beta animal mu response mask has oracle and recovery evidence", {
   sim <- new_zero_one_beta_animal_data(
@@ -1628,22 +1741,25 @@ test_that("zero-one-beta admits only the exact zoi random-intercept q1 gate", {
   )
   missing_data <- sim$data
   missing_data$y[[1L]] <- NA_real_
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
-      family = zero_one_beta(), data = missing_data,
-      missing = miss_control(response = "include")
-    ),
-    "does not support missing responses"
+  # The exact zoi q1 gate forms (random intercept and the exact
+  # same-raw-symbol slope) are now admitted with a masked response (commit
+  # 776df0f35 relaxed this restriction); full masked-vs-observed recovery
+  # evidence lives in test-missing-response-boundary.R. This fence only pins
+  # that the boundary no longer rejects these exact admitted forms.
+  fit_zoi_intercept_masked <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1),
+    family = zero_one_beta(), data = missing_data,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1),
-      family = zero_one_beta(), data = missing_data,
-      missing = miss_control(response = "include")
-    ),
-    "same-raw-symbol slope form"
+  expect_equal(fit_zoi_intercept_masked$opt$convergence, 0)
+  fit_zoi_slope_masked <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1),
+    family = zero_one_beta(), data = missing_data,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
+  expect_equal(fit_zoi_slope_masked$opt$convergence, 0)
   tree <- ape::stree(12L, type = "star")
   tree$edge.length <- rep(1, nrow(tree$edge))
   tree$tip.label <- levels(sim$data$id)
@@ -1818,14 +1934,18 @@ test_that("zero-one-beta admits only the exact coi random-intercept q1 gate", {
   )
   missing_data <- sim$data
   missing_data$y[[1L]] <- NA_real_
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id)),
-      family = zero_one_beta(), data = missing_data,
-      missing = miss_control(response = "include")
-    ),
-    "does not support missing responses"
+  # The exact coi q1 gate random-intercept form is now admitted with a masked
+  # response (commit 3792a83e2 relaxed this restriction); full
+  # masked-vs-observed recovery evidence lives in
+  # test-missing-response-boundary.R. This fence only pins that the boundary
+  # no longer rejects this exact admitted form.
+  fit_coi_intercept_masked <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id)),
+    family = zero_one_beta(), data = missing_data,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
+  expect_equal(fit_coi_intercept_masked$opt$convergence, 0)
   tree <- ape::stree(16L, type = "star")
   tree$edge.length <- rep(1, nrow(tree$edge))
   tree$tip.label <- levels(sim$data$id)
@@ -1975,14 +2095,18 @@ test_that("zero-one-beta admits only the exact coi random-slope q1 gate", {
   )
   missing_data <- sim$data
   missing_data$y[[1L]] <- NA_real_
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ x + (0 + x | id)),
-      family = zero_one_beta(), data = missing_data,
-      missing = miss_control(response = "include")
-    ),
-    "does not support missing responses"
+  # The exact coi q1 gate same-raw-symbol slope form is now admitted with a
+  # masked response (commit 3792a83e2 relaxed this restriction); full
+  # masked-vs-observed recovery evidence lives in
+  # test-missing-response-boundary.R. This fence only pins that the boundary
+  # no longer rejects this exact admitted form.
+  fit_coi_slope_masked <- drmTMB(
+    bf(y ~ x, sigma ~ 1, zoi ~ 1, coi ~ x + (0 + x | id)),
+    family = zero_one_beta(), data = missing_data,
+    missing = miss_control(response = "include"),
+    control = drm_control(se = FALSE)
   )
+  expect_equal(fit_coi_slope_masked$opt$convergence, 0)
   tree <- ape::stree(16L, type = "star")
   tree$edge.length <- rep(1, nrow(tree$edge))
   tree$tip.label <- levels(sim$data$id)
@@ -2473,25 +2597,120 @@ test_that("zero-one-beta refuses the deferred spatial provider for zoi/coi q1 at
   )
 })
 
-test_that("zero-one-beta refuses missing responses combined with a structured zoi/coi atom effect", {
+test_that("zero-one-beta admits missing responses combined with a structured zoi/coi atom effect", {
+  # The zero-one-beta zoi/coi structured-effect q1 gate used to refuse
+  # missing responses outright. That was a conservative admission gate, not
+  # a reflection of missing-template support: src/drmTMB.cpp already gates
+  # the entire zero-one-beta contribution -- both atoms and the interior
+  # beta density -- on observed_y(i) == 1, so a masked row already
+  # contributes nothing to the likelihood or its gradient regardless of
+  # which dpar carries the structured effect. This test is a formula-level
+  # smoke check that the gate admits the combination; see the comment block
+  # below ("mc-0603/0604/0605/0607/0613/0614/0617 ... atom-endpoint response
+  # mask") for the oracle/gradient/sentinel/recovery evidence gathered for
+  # each of the seven cells and why none of them are promoted to committed
+  # response-mask tests this session.
   sim <- new_zero_one_beta_animal_data(); Ainv <- sim$Ainv
   missing_data <- sim$data
   missing_data$y[[1L]] <- NA_real_
 
-  expect_error(
-    drmTMB(
-      bf(y ~ x, zoi ~ animal(1 | species, Ainv = Ainv)),
-      family = zero_one_beta(), data = missing_data,
-      missing = miss_control(response = "include")
-    ),
-    "does not support missing responses"
+  zoi_fit <- drmTMB(
+    bf(y ~ x, zoi ~ animal(1 | species, Ainv = Ainv)),
+    family = zero_one_beta(), data = missing_data,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x, coi ~ animal(1 | species, Ainv = Ainv)),
-      family = zero_one_beta(), data = missing_data,
-      missing = miss_control(response = "include")
-    ),
-    "does not support missing responses"
+  expect_equal(zoi_fit$opt$convergence, 0L)
+  expect_equal(zoi_fit$model$structured$phylo_mu$dpars, "zoi")
+  expect_equal(nobs(zoi_fit), nrow(missing_data) - 1L)
+
+  coi_fit <- drmTMB(
+    bf(y ~ x, coi ~ animal(1 | species, Ainv = Ainv)),
+    family = zero_one_beta(), data = missing_data,
+    missing = miss_control(response = "include"), control = drm_control(se = FALSE)
   )
+  expect_equal(coi_fit$opt$convergence, 0L)
+  expect_equal(coi_fit$model$structured$phylo_mu$dpars, "coi")
+  expect_equal(nobs(coi_fit), nrow(missing_data) - 1L)
 })
+
+# mc-0603 (zoi ~ phylo), mc-0604 (zoi ~ animal), mc-0605 (zoi ~ relmat),
+# mc-0607 (zoi ~ phylo_interaction), mc-0613 (coi ~ phylo), mc-0614
+# (coi ~ animal), and mc-0617 (coi ~ phylo_interaction) response-mask tests
+# are intentionally NOT added here, even though the guard above now admits
+# the missing-response + structured-zoi/coi-atom combination. Each of the
+# seven cells was built at the same scale as the sigma-endpoint response-mask
+# siblings above (64 tips/groups x 60 rows each for phylo/animal/relmat;
+# 8x8 plant:pollinator tips x 50 rows each for phylo_interaction; structured
+# effect sd = .55 on the logit-zoi or logit-coi intercept, ~1 masked row per
+# group), and measured against the same five-part contract used elsewhere in
+# this file (objective/gradient oracle equality, sentinel invariance via
+# expect_missing_response_sentinel_invariant(), masked-vs-observed point
+# equivalence, and recovery bounds of .15 on the intercept / .25 on the
+# structured sd). None cleared it robustly:
+#
+# - mc-0603 zoi ~ phylo: outer drmTMB() fit reports convergence = 0
+#   ("relative convergence (4)"), and the point recovery is in bounds
+#   (intercept diff 0.14 < .15, sd diff 0.004 < .25, single deterministic
+#   seed). But expect_missing_response_sentinel_invariant()'s independent
+#   nlminb re-optimization reports "false convergence (8)" for BOTH sentinel
+#   values, and this is budget-independent: a fresh MakeADFun() + nlminb()
+#   re-optimization from the same starting point still returns "false
+#   convergence (8)" at eval.max/iter.max = 900 (confirmed with a genuinely
+#   fresh AD tape per budget -- reusing one MakeADFun() object across
+#   successive nlminb() calls warm-starts the Laplace inner optimization for
+#   u_phylo and gives a false pass at higher budgets, which is itself worth
+#   flagging). Same near-singular-Hessian signature already demoted for
+#   mc-0593/mc-0594/mc-0596/mc-0597 (Gauss's earlier session, sigma
+#   endpoint), now shown to affect the zoi endpoint of the same phylo
+#   provider too.
+# - mc-0604 zoi ~ animal and mc-0614 coi ~ animal: both show the identical
+#   pattern -- outer fit convergence = 0, but the sentinel re-optimization's
+#   fresh nlminb() reports "false convergence (8)" for both sentinel values,
+#   budget-independent (confirmed at eval.max/iter.max = 900 with a fresh AD
+#   tape). Point recovery for mc-0604 and mc-0614 was in bounds on the tested
+#   seed, but the sentinel-invariance assertion itself would fail.
+# - mc-0613 coi ~ phylo: the sentinel re-optimization converges cleanly
+#   ("relative convergence (4)" for both sentinel values), but point recovery
+#   of the coi intercept is unstable across seeds: an informal 4-seed scan
+#   found intercept deviations of 0.006, 0.176, 0.153, and 0.227 against the
+#   .15 bound (only 1 of 4 seeds inside it); sd deviations ranged 0.006-0.289
+#   against the .25 bound. coi is informed only by the ~15-25% of rows that
+#   land on the zero/one atoms, so this cell has much less information than
+#   the all-row sigma/mu endpoints already promoted.
+# - mc-0607 zoi ~ phylo_interaction: at its original deterministic seed the
+#   sentinel re-optimization converges cleanly and recovery is in bounds
+#   (intercept diff 0.12 < .15, sd diff 0.05 < .25). A 3-seed recovery scan
+#   stayed in bounds (0.03-0.13), which looked promising. But a sentinel
+#   check at a 4th seed (the one with the *smallest* recovery deviation,
+#   0.03) returned "false convergence (8)" for both sentinel values -- the
+#   same phylo_interaction internal-node-augmented-GMRF fragility already
+#   demoted for mc-0597 (196 latent u_phylo dimensions against only 64
+#   observed plant:pollinator combinations) reappears at the zoi endpoint,
+#   and recovery quality does not predict sentinel-convergence quality.
+# - mc-0617 coi ~ phylo_interaction: sentinel re-optimization converges
+#   cleanly, but a 4-seed recovery scan found intercept deviations of 0.19,
+#   0.12, 0.31, and 0.01 against the .15 bound (2 of 4 outside it, one badly
+#   so) -- the same low-information/high-variance pattern as mc-0613.
+# - mc-0605 zoi ~ relmat: the single committed-style seed passes every part
+#   of the contract cleanly (sentinel "relative convergence (4)" for both
+#   sentinel values, intercept diff 0.009 < .15, sd diff 0.060 < .25) -- the
+#   best-behaved of the seven, consistent with relmat's well-conditioned
+#   tridiagonal Q already promoted for the sigma endpoint (mc-0595). A 3-seed
+#   robustness check was run before committing anything, and it found 2 of 3
+#   seeds clean (recovery within bounds, sentinel convergent) but the third
+#   reproduced the same "false convergence (8)" signature at both sentinel
+#   values. Promoting on the strength of a seed already known to sit next to
+#   a failing one is exactly the seed-selection this arc exists to refuse, so
+#   mc-0605 is held at point_fit_only alongside the other six pending a
+#   proper multi-seed (Totoro-scale) certification run.
+#
+# All seven cells remain admitted at the formula level (see "zero-one-beta
+# fences structured zoi/coi atoms for the {animal,relmat,phylo_interaction}
+# provider without crashing summary()" above and the phylo zoi/coi q1 gate
+# tests) and now additionally admit missing responses (this file's guard
+# removal + the "admits missing responses combined with a structured
+# zoi/coi atom effect" smoke test above). What remains unearned is the
+# response-mask point-equivalence claim itself: profile_ready stays FALSE
+# and the claim ceiling for all seven is point_fit_only
+# (point_fit_only_zero_one_beta_<provider>_<zoi|coi>_q1), same as the
+# non-missing route already documents.

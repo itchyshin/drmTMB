@@ -13,12 +13,24 @@ SPEC.loader.exec_module(MODULE)
 
 class TestResponseMaskFormulaInventory(unittest.TestCase):
     def test_every_model_cell_has_one_formula_inventory_row(self):
+        # ``EXPLICIT_BOUNDARIES`` rows deliberately carry comma-joined
+        # ``model_cell_id`` values for paired formulas (see the comment above
+        # ``EXPLICIT_MODEL_CELL_IDS`` in the module), so split them before
+        # comparing against the individual ``cell_id`` values in cells.tsv.
         cells = MODULE.read_tsv(MODULE.CELLS)
         inventory = MODULE.build(cells)
         model_ids = {row["cell_id"] for row in cells if row["axis"] == "model_surface"}
-        inventory_model_ids = {row["model_cell_id"] for row in inventory if row["model_cell_id"]}
+        inventory_model_ids = {
+            cell_id.strip()
+            for row in inventory
+            for cell_id in row["model_cell_id"].split(",")
+            if cell_id.strip()
+        }
         self.assertEqual(inventory_model_ids, model_ids)
-        self.assertEqual(len(inventory), len(model_ids) + len(MODULE.EXPLICIT_BOUNDARIES))
+        self.assertEqual(
+            len(inventory),
+            len(model_ids) - len(MODULE.EXPLICIT_MODEL_CELL_IDS) + len(MODULE.EXPLICIT_BOUNDARIES),
+        )
 
     def test_blocked_reml_and_dense_bivariate_known_v_are_never_promoted_from_family_masks(self):
         cells = MODULE.read_tsv(MODULE.CELLS)
@@ -51,12 +63,16 @@ class TestResponseMaskFormulaInventory(unittest.TestCase):
         ))
 
     def test_named_structured_reml_cells_record_oracle_without_recovery(self):
+        # These cells earned G3 recovery evidence after their original G2
+        # oracle-only entries were written (see e.g. commit fca343cf8, which
+        # promoted mc-0287/mc-0299/mc-0311 from G2 to G3); the later single-key
+        # ``FORMULA_EVIDENCE`` entries record that promotion.
         cells = MODULE.read_tsv(MODULE.CELLS)
         inventory = MODULE.build(cells)
         for cell_id in ("mc-0285", "mc-0287", "mc-0297", "mc-0299", "mc-0309", "mc-0311"):
             row = next(row for row in inventory if row["model_cell_id"] == cell_id)
-            self.assertEqual(row["formula_status"], "formula_oracle_validated")
-            self.assertEqual(row["formula_mask_gate"], "G2")
+            self.assertEqual(row["formula_status"], "formula_validated")
+            self.assertEqual(row["formula_mask_gate"], "G3")
 
 
 if __name__ == "__main__":

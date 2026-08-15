@@ -153,34 +153,55 @@ EXPLICIT_BOUNDARIES = (
         "next_gate": "Validate each remaining phylogenetic bivariate geometry separately.",
     },
     {
-        "formula_cell_id": "rmf-biv-gaussian-spatial-mu12-q2-intercept",
-        "model_cell_id": "mc-0107,mc-0108",
+        "formula_cell_id": "rmf-biv-gaussian-spatial-mu1-q2-intercept",
+        "model_cell_id": "mc-0107",
         "family_type": "biv_gaussian",
         "model_type": "2",
         "route_variant": "matched_spatial_mu1_mu2_intercept",
         "route_modifier": "structured_q2",
-        "dpar": "mu1+mu2",
+        "dpar": "mu1",
         "effect_type": "structured_covariance_block",
         "structure_provider": "spatial",
         "dimension": "bivariate",
         "q_gate": "q2",
         "estimator": "ML",
-        "formula_status": "formula_validated",
+        "formula_status": "needs_formula_evidence",
         "family_mask_gate": "G3",
-        "formula_mask_gate": "G3",
+        "formula_mask_gate": "G1",
         "claim_boundary": (
-            "The accepted bivariate formula is the matched spatial q2 location block "
-            "`mu1 ~ spatial(1 | p | site, coords = coords)`, `mu2 ~ spatial(1 | p | "
-            "site, coords = coords)`, not either endpoint alone. G2 conditional "
-            "TMB-objective equality at the fitted latent mode includes the correlated "
-            "spatial-field prior, and component-wise sentinel retapes validate the response "
-            "mask. G3 deterministic 25% MCAR recovery validates both fixed-effect vectors, "
-            "both residual scales, both spatial SDs, the spatial correlation, and rho12 on "
-            "a 128-site, 20-observation-per-site fixture. This is not a slope, another "
-            "structured provider, REML, interval/coverage evidence, or dense known-V "
-            "partial-response support."
+            "The bivariate spatial q2 response-mask claim is not currently supported: "
+            "at the cited 128-site, 20-observation fixture the mu1 location intercept "
+            "lands 1.199 from truth against a 0.25 bound whose own standard error is "
+            "0.5568, so the fixture does not identify the intercept to the precision "
+            "the claim states; the slope, spatial SDs, spatial correlation, residual "
+            "scales, and rho12 all recover."
         ),
-        "next_gate": "Validate each remaining spatial geometry with its own recovery design.",
+        "next_gate": "Redesign the fixture (more sites, or a lower-variance information design) so the mu1 intercept's own SE clears the 0.25 bound, then re-run G3 recovery.",
+    },
+    {
+        "formula_cell_id": "rmf-biv-gaussian-spatial-mu2-q2-intercept",
+        "model_cell_id": "mc-0108",
+        "family_type": "biv_gaussian",
+        "model_type": "2",
+        "route_variant": "matched_spatial_mu1_mu2_intercept",
+        "route_modifier": "structured_q2",
+        "dpar": "mu2",
+        "effect_type": "structured_covariance_block",
+        "structure_provider": "spatial",
+        "dimension": "bivariate",
+        "q_gate": "q2",
+        "estimator": "ML",
+        "formula_status": "needs_formula_evidence",
+        "family_mask_gate": "G3",
+        "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The bivariate spatial q2 response-mask claim is not currently supported: "
+            "the mu2 location intercept lands 0.882 from truth against a 0.25 bound "
+            "whose own standard error is 0.5244, so the cited fixture does not "
+            "identify the intercept to the claimed precision; every other checked "
+            "quantity recovers."
+        ),
+        "next_gate": "Redesign the fixture (more sites, or a lower-variance information design) so the mu2 intercept's own SE clears the 0.25 bound, then re-run G3 recovery.",
     },
     {
         "formula_cell_id": "rmf-biv-gaussian-spatial-mu12-q2-slope",
@@ -315,22 +336,21 @@ EXPLICIT_BOUNDARIES = (
         "dimension": "bivariate",
         "q_gate": "q2",
         "estimator": "ML",
-        "formula_status": "formula_validated",
+        "formula_status": "needs_formula_evidence",
         "family_mask_gate": "G3",
-        "formula_mask_gate": "G3",
+        "formula_mask_gate": "G1",
         "claim_boundary": (
-            "The accepted bivariate formula is the matched relmat q2 slope block "
-            "`mu1 ~ relmat(0 + x | p | id, Q = Q)`, `mu2 ~ relmat(0 + x | p | id, "
-            "Q = Q)`, not either endpoint alone. G2 conditional TMB-objective equality at "
-            "the fitted latent mode includes the correlated relatedness-field prior, and direct "
-            "endpoint sentinel retapes leave the objective and gradient unchanged. G3 deterministic "
-            "25% MCAR recovery validates both fixed-effect vectors, both residual scales, both "
-            "relatedness slope SDs, the slope correlation, and rho12 on an independently seeded "
-            "64-ID, 20-observation-per-ID fixture. This is not an intercept or q4+ block, animal "
-            "evidence, a K representation, REML, interval/coverage evidence, or dense known-V "
-            "partial-response support."
+            "The bivariate relmat q2 matched-slope response-mask claim is not currently "
+            "supported: on the cited seed the relmat slope correlation recovers at 0.5167 "
+            "against a truth of 0.30, a deviation of 0.217 over a 0.20 bound; the overestimate "
+            "direction is consistent with this cell's own recorded right-tail miss asymmetry "
+            "at this cluster count, so the next gate is a replicated multi-seed estimate with "
+            "an MCSE rather than a wider bound."
         ),
-        "next_gate": "Validate each remaining relmat bivariate geometry separately.",
+        "next_gate": (
+            "Run a replicated multi-seed estimate of the relmat slope correlation with an MCSE "
+            "before re-promoting; do not widen the bound to accommodate the single cited seed."
+        ),
     },
     {
         "formula_cell_id": "rmf-biv-gaussian-meta-v-partial",
@@ -373,14 +393,14 @@ EXPLICIT_MODEL_CELL_IDS = frozenset(
 # from a family mask or from the complete-response model-surface ledger.
 FORMULA_EVIDENCE = {
     "mc-0593": {
-        "formula_status": "formula_validated", "formula_mask_gate": "G3", "replace_model_claim": True,
-        "claim_boundary": "G2 zero-one-beta observed-data objective/gradient equality, direct atom/interior sentinels, and observed-only fit equality validate `sigma ~ phylo(1 | species, tree = tree)`. G3 uses a deterministic 64-tip, 60-observation-per-tip interior-rich fixture to recover the fixed beta scale and phylogenetic sigma SD. This is not another provider or endpoint, REML, interval/coverage evidence, or missing-predictor support.",
-        "next_gate": "Validate every remaining zero-one-beta scale provider separately.",
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1", "replace_model_claim": True,
+        "claim_boundary": "The zero-one-beta phylo sigma q1 response-mask claim is not currently supported: the retaped sentinel objective returns nlminb convergence code 1 (\"false convergence\") in two to six iterations under both 200- and 900-iteration budgets, with a sigma-intercept recovery miss of 0.52 against a 0.15 bound; the 2026-08-05 135-trace campaign independently withheld this cell on the interval axis (tools/capability_ledger.py ARC135_WITHHELD), which corroborates but does not itself govern this formula status.",
+        "next_gate": "Diagnose the nlminb false-convergence signature on the retaped sentinel objective (control= budget/tolerance sweep) before re-attempting recovery; re-run G3 and confirm the sigma-intercept miss clears the 0.15 bound.",
     },
     "mc-0594": {
-        "formula_status": "formula_validated", "formula_mask_gate": "G3", "replace_model_claim": True,
-        "claim_boundary": "G2 zero-one-beta observed-data objective/gradient equality, atom/interior sentinels, and observed-only equality validate `sigma ~ animal(1 | species, Ainv = Ainv)`. G3 uses a deterministic 64-ID, 60-observation-per-ID interior-rich fixture to recover fixed beta scale and animal sigma SD. This is not another provider or endpoint, REML, interval/coverage evidence, or missing-predictor support.",
-        "next_gate": "Validate every remaining zero-one-beta scale provider separately.",
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1", "replace_model_claim": True,
+        "claim_boundary": "The zero-one-beta animal sigma q1 response-mask claim is not currently supported: the retaped sentinel objective shows the same false-convergence signature as mc-0593 under both optimizer budgets, and the 2026-08-05 135-trace campaign independently withheld this cell on the interval axis, corroborating a near-singular Hessian rather than an optimizer-budget shortfall.",
+        "next_gate": "Diagnose the shared false-convergence/near-singular-Hessian signature (see mc-0593) before re-attempting recovery; re-run G3 once the objective converges cleanly.",
     },
     "mc-0583": {
         "formula_status": "formula_validated",
@@ -389,8 +409,14 @@ FORMULA_EVIDENCE = {
         "claim_boundary": (
             "G2 direct zero-one-beta observed-data objective and numerical-gradient "
             "equality, direct atom/interior response-sentinel retapes, and masked-"
-            "versus-observed fit equality validate `y ~ x + phylo(1 | species, tree "
-            "= tree)`. G3 uses a deterministic 64-tip, 50-observation-per-tip fixture "
+            "versus-observed objective equality validate `y ~ x + phylo(1 | species, tree "
+            "= tree)`. Masked-versus-observed agreement is evidenced at the OBJECTIVE "
+            "level (relative difference 1.9e-13 to 9.0e-13 across all five providers, "
+            "from identical starting values), not at the coefficient level; coefficient "
+            "agreement ranges from 5.3e-10 to 1.7e-5 across providers because the "
+            "fixtures differ in conditioning by roughly 5e4 along the intercept "
+            "direction, and is not an invariant of the response mask. G3 uses a "
+            "deterministic 64-tip, 50-observation-per-tip fixture "
             "to recover fixed location, constant beta scale, and the phylogenetic mu "
             "SD. This is not another provider, sigma or atom endpoint, a labelled or "
             "correlated block, REML, interval or coverage evidence, or missing-predictor "
@@ -405,8 +431,14 @@ FORMULA_EVIDENCE = {
         "claim_boundary": (
             "G2 direct zero-one-beta observed-data objective and numerical-gradient "
             "equality, direct atom/interior response-sentinel retapes, and masked-"
-            "versus-observed fit equality validate `y ~ x + animal(1 | species, Ainv "
-            "= Ainv)`. G3 uses a deterministic 64-ID, 50-observation-per-ID fixture "
+            "versus-observed objective equality validate `y ~ x + animal(1 | species, Ainv "
+            "= Ainv)`. Masked-versus-observed agreement is evidenced at the OBJECTIVE "
+            "level (relative difference 1.9e-13 to 9.0e-13 across all five providers, "
+            "from identical starting values), not at the coefficient level; coefficient "
+            "agreement ranges from 5.3e-10 to 1.7e-5 across providers because the "
+            "fixtures differ in conditioning by roughly 5e4 along the intercept "
+            "direction, and is not an invariant of the response mask. G3 uses a "
+            "deterministic 64-ID, 50-observation-per-ID fixture "
             "to recover fixed location, constant beta scale, and the animal mu SD. "
             "This is not phylogenetic or relmat evidence, another endpoint, a labelled "
             "or correlated block, REML, interval or coverage evidence, or missing-"
@@ -422,7 +454,13 @@ FORMULA_EVIDENCE = {
             "claim_boundary": (
                 "G2 direct zero-one-beta observed-data objective and numerical-gradient "
                 "equality, direct atom/interior response-sentinel retapes, and masked-"
-                "versus-observed fit equality validate this q1 location formula. G3 uses "
+                "versus-observed objective equality validate this q1 location formula. "
+                "Masked-versus-observed agreement is evidenced at the OBJECTIVE level "
+                "(relative difference 1.9e-13 to 9.0e-13 across all five providers, "
+                "from identical starting values), not at the coefficient level; "
+                "coefficient agreement ranges from 5.3e-10 to 1.7e-5 across providers "
+                "because the fixtures differ in conditioning by roughly 5e4 along the "
+                "intercept direction, and is not an invariant of the response mask. G3 uses "
                 "a deterministic 64-group, 50-observation-per-group fixture to recover "
                 "fixed location, constant beta scale, and the named structured mu SD. "
                 "This is not evidence for another provider or endpoint, a labelled or "
@@ -440,14 +478,330 @@ FORMULA_EVIDENCE = {
         "claim_boundary": (
             "G2 direct zero-one-beta observed-data objective and numerical-gradient "
             "equality, direct atom/interior response-sentinel retapes, and masked-"
-            "versus-observed fit equality validate `y ~ x + phylo_interaction(1 | "
-            "plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`. G3 uses "
+            "versus-observed objective equality validate `y ~ x + phylo_interaction(1 | "
+            "plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)`. "
+            "Masked-versus-observed agreement is evidenced at the OBJECTIVE level "
+            "(relative difference 1.9e-13 to 9.0e-13 across all five providers, from "
+            "identical starting values), not at the coefficient level; coefficient "
+            "agreement ranges from 5.3e-10 to 1.7e-5 across providers because the "
+            "fixtures differ in conditioning by roughly 5e4 along the intercept "
+            "direction, and is not an invariant of the response mask. G3 uses "
             "a deterministic 8-by-8 pair grid with 50 observations per pair to recover "
             "fixed location and the phylogenetic-interaction mu SD. This is not another "
             "endpoint or provider, a labelled or correlated block, REML, interval or "
             "coverage evidence, or missing-predictor support."
         ),
         "next_gate": "Validate each zero-one-beta scale or atom endpoint separately; do not reuse this mu evidence.",
+    },
+    "mc-0595": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 direct zero-one-beta observed-data objective equality against a "
+            "hand-written dense oracle (tolerance 1e-8), central-difference gradient "
+            "equality (tolerance 2e-5), in-domain atom/interior response-sentinel "
+            "invariance (sentinels c(0, 1, .5)), masked-versus-observed `coef(sigma)` "
+            "and `sdpars$sigma` equality (tolerance 1e-6), and `nobs()`/`observed_y` "
+            "agreement validate the univariate zero-one-beta unlabelled q1 relmat "
+            "sigma-side intercept ML response-mask formula `sigma ~ relmat(1 | "
+            "species, K = K)`. G3 deterministic known-DGP recovery (single "
+            "deterministic seed 2026081824) gives a log-sigma intercept error of "
+            "0.0070 against a 0.15 bound and a `sd(relmat(1 | species))` error of "
+            "0.0255 against a 0.25 bound. Convergence was clean (\"relative "
+            "convergence (4)\") at every one of 5 seeds probed, including the "
+            "sentinel helper's independent nlminb re-optimization. This is not "
+            "another zero-one-beta scale provider, another endpoint, REML, "
+            "interval/coverage evidence, or missing predictors."
+        ),
+        "next_gate": (
+            "Validate each remaining zero-one-beta scale provider separately; this "
+            "does not transfer to another provider, another endpoint, REML, "
+            "interval/coverage evidence, or missing predictors."
+        ),
+    },
+    "mc-0596": {
+        "claim_boundary": (
+            "Attempted and refused on measurement, not deferred by policy: the "
+            "outer fit reports convergence 0, but the sentinel helper's independent "
+            "nlminb re-optimization from that same optimum returns \"false "
+            "convergence (8)\", reproduced at eval.max/iter.max of 200, 900 and "
+            "3000 — so this is not optimizer starvation. Measured cause: the "
+            "exp(-distance/range) covariance at the 64-site scale has condition "
+            "number about 917 (eigenvalues 0.030-27.7) with a near-constant leading "
+            "eigenvector that aliases the sigma fixed intercept; only 1 of 4 seeds "
+            "fell inside the 0.15 log-sigma bound. The next gate is a "
+            "better-conditioned spatial design or a reparameterisation that "
+            "separates the constant mode from the sigma intercept, not a larger "
+            "optimizer budget or a longer fixture. "
+        ),
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
+        "next_gate": (
+            "Attempted and refused on measurement, not deferred by policy: the "
+            "outer fit reports convergence 0, but the sentinel helper's independent "
+            "nlminb re-optimization from that same optimum returns \"false "
+            "convergence (8)\", reproduced at eval.max/iter.max of 200, 900 and "
+            "3000 — so this is not optimizer starvation. Measured cause: the "
+            "exp(-distance/range) covariance at the 64-site scale has condition "
+            "number about 917 (eigenvalues 0.030-27.7) with a near-constant leading "
+            "eigenvector that aliases the sigma fixed intercept; only 1 of 4 seeds "
+            "fell inside the 0.15 log-sigma bound. The next gate is a "
+            "better-conditioned spatial design or a reparameterisation that "
+            "separates the constant mode from the sigma intercept, not a larger "
+            "optimizer budget or a longer fixture."
+        ),
+    },
+    "mc-0597": {
+        "claim_boundary": (
+            "Attempted and refused on measurement, not deferred by policy: across "
+            "7 deterministic seeds at the 8x8-tip, 60-observation scale, 1 gave "
+            "outright \"false convergence (8)\" and all 6 that converged missed the "
+            "0.15 log-sigma bound (errors 0.11-0.33); 0 of 7 satisfied both "
+            "conditions. Measured cause: phylo_interaction composes two tree GMRFs "
+            "each carrying unobserved internal-node latents, giving 196 latent "
+            "dimensions against only 64 observed plant:pollinator combinations. The "
+            "next gate is a design with more observed combinations per latent "
+            "dimension, or a reduced-rank representation, not a larger optimizer "
+            "budget. "
+        ),
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
+        "next_gate": (
+            "Attempted and refused on measurement, not deferred by policy: across "
+            "7 deterministic seeds at the 8x8-tip, 60-observation scale, 1 gave "
+            "outright \"false convergence (8)\" and all 6 that converged missed the "
+            "0.15 log-sigma bound (errors 0.11-0.33); 0 of 7 satisfied both "
+            "conditions. Measured cause: phylo_interaction composes two tree GMRFs "
+            "each carrying unobserved internal-node latents, giving 196 latent "
+            "dimensions against only 64 observed plant:pollinator combinations. The "
+            "next gate is a design with more observed combinations per latent "
+            "dimension, or a reduced-rank representation, not a larger optimizer "
+            "budget."
+        ),
+    },
+    # The zoi/coi structured-atom admission guard in R/drmTMB.R was lifted on
+    # 2026-08-14 after src/drmTMB.cpp:3226 was confirmed to already mask the
+    # full zero-one-beta contribution on observed_y(i) == 1; src/ itself was
+    # not changed. All seven admitted zoi/coi structured cells below were then
+    # measured against the full five-part contract and refused evidence, not
+    # policy: none earn promotion out of needs_formula_evidence/G1.
+    "mc-0603": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. The outer fit reports "
+            "convergence 0, but the sentinel helper's independent nlminb "
+            "re-optimization returns \"false convergence (8)\" on both "
+            "sentinel pairs, budget-independent (confirmed with a fresh AD "
+            "tape at eval.max/iter.max of 900). Recovery was in bounds "
+            "(log-zoi-intercept error 0.14 against a 0.15 bound; sd(phylo) "
+            "error 0.004 against a 0.25 bound) — the refusal is the "
+            "near-singular Hessian, the same signature as mc-0593/mc-0594, "
+            "not the recovery. The next gate is a better-conditioned "
+            "phylogenetic design or a reparameterisation that separates the "
+            "near-singular mode from the zoi intercept, not a larger "
+            "optimizer budget or a longer fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. The outer fit reports "
+            "convergence 0, but the sentinel helper's independent nlminb "
+            "re-optimization returns \"false convergence (8)\" on both "
+            "sentinel pairs, budget-independent (confirmed with a fresh AD "
+            "tape at eval.max/iter.max of 900). Recovery was in bounds "
+            "(log-zoi-intercept error 0.14 against a 0.15 bound; sd(phylo) "
+            "error 0.004 against a 0.25 bound) — the refusal is the "
+            "near-singular Hessian, the same signature as mc-0593/mc-0594, "
+            "not the recovery. The next gate is a better-conditioned "
+            "phylogenetic design or a reparameterisation that separates the "
+            "near-singular mode from the zoi intercept, not a larger "
+            "optimizer budget or a longer fixture."
+        ),
+    },
+    "mc-0604": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. The same false-convergence "
+            "signature as mc-0603 reproduces here — the sentinel helper's "
+            "independent nlminb re-optimization returns \"false convergence "
+            "(8)\", budget-independent (confirmed with a fresh AD tape) — "
+            "with recovery in bounds. The refusal is the near-singular "
+            "Hessian, not the recovery. The next gate is a better-conditioned "
+            "animal-model design or a reparameterisation that separates the "
+            "near-singular mode from the zoi intercept, not a larger "
+            "optimizer budget or a longer fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. The same false-convergence "
+            "signature as mc-0603 reproduces here — the sentinel helper's "
+            "independent nlminb re-optimization returns \"false convergence "
+            "(8)\", budget-independent (confirmed with a fresh AD tape) — "
+            "with recovery in bounds. The refusal is the near-singular "
+            "Hessian, not the recovery. The next gate is a better-conditioned "
+            "animal-model design or a reparameterisation that separates the "
+            "near-singular mode from the zoi intercept, not a larger "
+            "optimizer budget or a longer fixture."
+        ),
+    },
+    "mc-0605": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. This is the best-behaved of "
+            "the seven measured zoi/coi cells: clean convergence at 2 of 3 "
+            "scanned seeds, with recovery in bounds where it converged "
+            "(log-zoi-intercept error 0.009-0.065 against a 0.15 bound; "
+            "sd(relmat) error 0.029-0.101 against a 0.25 bound) — but a "
+            "genuine failing seed (\"false convergence (8)\") was found "
+            "before anything was committed. The next gate is a multi-seed "
+            "convergence study establishing the failure rate, not a single "
+            "passing seed, and not a larger optimizer budget or a longer "
+            "fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. This is the best-behaved of "
+            "the seven measured zoi/coi cells: clean convergence at 2 of 3 "
+            "scanned seeds, with recovery in bounds where it converged "
+            "(log-zoi-intercept error 0.009-0.065 against a 0.15 bound; "
+            "sd(relmat) error 0.029-0.101 against a 0.25 bound) — but a "
+            "genuine failing seed (\"false convergence (8)\") was found "
+            "before anything was committed. The next gate is a multi-seed "
+            "convergence study establishing the failure rate, not a single "
+            "passing seed, and not a larger optimizer budget or a longer "
+            "fixture."
+        ),
+    },
+    "mc-0607": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. Clean at the original seed but "
+            "\"false convergence (8)\" at an alternate seed — notably the "
+            "seed with the best recovery; recovery ranges 0.03-0.13 against a "
+            "0.15 bound across 4 seeds. The mc-0597 internal-node-GMRF "
+            "fragility (two composed tree GMRFs carrying unobserved "
+            "internal-node latents against too few observed combinations) "
+            "reappears at the zoi endpoint. The next gate is a design with "
+            "more observed combinations per latent dimension, or a "
+            "reduced-rank representation, not a larger optimizer budget or a "
+            "longer fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. Clean at the original seed but "
+            "\"false convergence (8)\" at an alternate seed — notably the "
+            "seed with the best recovery; recovery ranges 0.03-0.13 against a "
+            "0.15 bound across 4 seeds. The mc-0597 internal-node-GMRF "
+            "fragility (two composed tree GMRFs carrying unobserved "
+            "internal-node latents against too few observed combinations) "
+            "reappears at the zoi endpoint. The next gate is a design with "
+            "more observed combinations per latent dimension, or a "
+            "reduced-rank representation, not a larger optimizer budget or a "
+            "longer fixture."
+        ),
+    },
+    "mc-0613": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. Converges cleanly, but "
+            "recovery is unstable: sd(phylo) error ranges 0.006 to 0.227 "
+            "against a 0.15 bound across 4 seeds, 3 of 4 outside. The next "
+            "gate is a better-conditioned phylogenetic design or a "
+            "multi-seed recovery study, not a larger optimizer budget or a "
+            "longer fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. Converges cleanly, but "
+            "recovery is unstable: sd(phylo) error ranges 0.006 to 0.227 "
+            "against a 0.15 bound across 4 seeds, 3 of 4 outside. The next "
+            "gate is a better-conditioned phylogenetic design or a "
+            "multi-seed recovery study, not a larger optimizer budget or a "
+            "longer fixture."
+        ),
+    },
+    "mc-0614": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. The same false-convergence "
+            "signature as mc-0603/mc-0604 reproduces here — the sentinel "
+            "helper's independent nlminb re-optimization returns \"false "
+            "convergence (8)\", budget-independent — with recovery in "
+            "bounds. The refusal is the near-singular Hessian, not the "
+            "recovery. The next gate is a better-conditioned animal-model "
+            "design or a reparameterisation that separates the near-singular "
+            "mode from the coi intercept, not a larger optimizer budget or a "
+            "longer fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. The same false-convergence "
+            "signature as mc-0603/mc-0604 reproduces here — the sentinel "
+            "helper's independent nlminb re-optimization returns \"false "
+            "convergence (8)\", budget-independent — with recovery in "
+            "bounds. The refusal is the near-singular Hessian, not the "
+            "recovery. The next gate is a better-conditioned animal-model "
+            "design or a reparameterisation that separates the near-singular "
+            "mode from the coi intercept, not a larger optimizer budget or a "
+            "longer fixture."
+        ),
+    },
+    "mc-0617": {
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1",
+        "claim_boundary": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. Converges cleanly; recovery "
+            "ranges 0.01 to 0.31 against a 0.15 bound across 4 seeds, 2 of 4 "
+            "outside. The mc-0597/mc-0607 internal-node-GMRF fragility "
+            "reappears at the coi endpoint. The next gate is a design with "
+            "more observed combinations per latent dimension, or a "
+            "reduced-rank representation, not a larger optimizer budget or a "
+            "longer fixture. "
+        ),
+        "next_gate": (
+            "The package guard that previously refused this route was lifted "
+            "on 2026-08-14 after src/drmTMB.cpp was confirmed to mask the full "
+            "zero-one-beta contribution; the route is admitted and was then "
+            "measured, not deferred by policy. Converges cleanly; recovery "
+            "ranges 0.01 to 0.31 against a 0.15 bound across 4 seeds, 2 of 4 "
+            "outside. The mc-0597/mc-0607 internal-node-GMRF fragility "
+            "reappears at the coi endpoint. The next gate is a design with "
+            "more observed combinations per latent dimension, or a "
+            "reduced-rank representation, not a larger optimizer budget or a "
+            "longer fixture."
+        ),
     },
     "mc-0364": {
         "formula_status": "formula_validated",
@@ -530,57 +884,6 @@ FORMULA_EVIDENCE = {
             "next_gate": "Keep the endpoint fragment absent; validate the paired labelled formula cell instead.",
         }
         for cell_id in ("mc-0069", "mc-0070")
-    },
-    **{
-        cell_id: {
-            "formula_status": "formula_oracle_validated",
-            "formula_mask_gate": "G2",
-            "claim_boundary": (
-                "G2 observed-data dense full marginal-Gaussian likelihood equality "
-                "and direct sentinel retapes validate this univariate Gaussian "
-                "unlabelled q1 structured mu intercept-plus-one-independent-slope "
-                "ML response-mask formula. G3 recovery remains unvalidated, so this "
-                "row does not promote recovery, intervals, coverage, q2/correlated "
-                "structures, another provider, bivariate, non-Gaussian, or missing-"
-                "predictor ML formulas."
-            ),
-            "next_gate": "Measure and approve a stable structured known-DGP recovery design before G3 promotion.",
-        }
-        for cell_id in ("mc-0286", "mc-0298", "mc-0310")
-    },
-    **{
-        cell_id: {
-            "formula_status": "formula_oracle_validated",
-            "formula_mask_gate": "G2",
-            "claim_boundary": (
-                "G2 observed-data dense full marginal-Gaussian likelihood equality "
-                "and direct sentinel retapes validate this univariate Gaussian "
-                "unlabelled q1 structured mu random-intercept ML response-mask "
-                "formula. G3 recovery remains unvalidated, so this row does not "
-                "promote recovery, intervals, coverage, another provider, another "
-                "structured geometry, bivariate, non-Gaussian, or missing-predictor "
-                "ML formulas."
-            ),
-            "next_gate": "Measure and approve a stable structured known-DGP recovery design before G3 promotion.",
-        }
-        for cell_id in ("mc-0285", "mc-0297", "mc-0309")
-    },
-    **{
-        cell_id: {
-            "formula_status": "formula_oracle_validated",
-            "formula_mask_gate": "G2",
-            "claim_boundary": (
-                "G2 observed-data dense restricted-likelihood equality and direct "
-                "sentinel retapes validate this univariate Gaussian unlabelled q1 "
-                "structured mu random-intercept REML response-mask formula. The "
-                "single-draw structured fixture was not stable enough for a G3 "
-                "recovery claim, so this row does not promote recovery, intervals, "
-                "coverage, another provider, another structured geometry, bivariate, "
-                "non-Gaussian, or missing-predictor REML formulas."
-            ),
-            "next_gate": "Measure and approve a stable structured known-DGP recovery design before G3 promotion.",
-        }
-        for cell_id in ("mc-0287", "mc-0299", "mc-0311")
     },
     "mc-0272": {
         "formula_status": "formula_validated",
@@ -930,27 +1233,39 @@ FORMULA_EVIDENCE = {
         }
         for cell_id in ("mc-0315", "mc-0316")
     },
-    **{
-        cell_id: {
-            "formula_status": "formula_validated",
-            "formula_mask_gate": "G3",
-            "claim_boundary": (
-                "This row is one component of the paired univariate Gaussian q2 relmat "
-                "location-scale one-slope formula `y ~ x + relmat(1 + x | id, K = K), sigma ~ "
-                "relmat(1 + x | id, K = K)`; neither endpoint is promoted alone. G2 masked-"
-                "versus-observed-data equality covers fixed mu and sigma coefficients, all four "
-                "named relmat SDs, and likelihood; direct continuous-response sentinel retapes "
-                "and G3 deterministic 25% MCAR recovery cover the same four-field block. The "
-                "fixture has 64 related IDs and 24 observations per ID. The ledger's q2 label "
-                "denotes the paired mu/sigma formula cell; this unlabelled formula fits four "
-                "independent coefficient-level relmat fields and exposes no cross-axis correlation "
-                "target. This does not promote either endpoint alone, a labelled/correlated or "
-                "q4+ block, Q representations, another provider, bivariate, REML, interval/"
-                "coverage, or missing-predictor formulas."
-            ),
-            "next_gate": "Validate each remaining paired covariance geometry as one formula cell.",
-        }
-        for cell_id in ("mc-0317", "mc-0318")
+    "mc-0317": {
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "The paired relmat q2 location-scale one-slope response-mask claim is not "
+            "currently supported: the residual log-SD relmat slope SD is estimated at "
+            "3.61e-05 against a true 0.15, a zero-boundary solution reported with "
+            "convergence code 0 and no identifiability diagnostic, so the cited G3 "
+            "recovery evidence is not currently produced."
+        ),
+        "next_gate": (
+            "Add an identifiability diagnostic for the residual log-SD relmat slope "
+            "and re-run G3 recovery with a fixture that clears the zero boundary "
+            "before re-validating this formula cell."
+        ),
+    },
+    "mc-0318": {
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "The paired relmat q2 location-scale one-slope response-mask claim is not "
+            "currently supported: this row's sigma endpoint shares the mu endpoint's "
+            "evidence, whose residual log-SD relmat slope SD is at the zero boundary "
+            "(3.61e-05 against a true 0.15) under a fixture with 18 retained "
+            "observations per id."
+        ),
+        "next_gate": (
+            "Add an identifiability diagnostic for the residual log-SD relmat slope "
+            "and re-run G3 recovery with a fixture that clears the zero boundary "
+            "before re-validating this formula cell."
+        ),
     },
     **{
         cell_id: {
@@ -1583,9 +1898,9 @@ FORMULA_EVIDENCE = {
         "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
     },
     "mc-0578": {
-        "formula_status": "formula_validated", "formula_mask_gate": "G3",
-        "claim_boundary": "G2 observed-data equality and sentinel retapes, plus G3 deterministic MCAR recovery, validate zero-one-beta coi independent random slopes with fixed mu, sigma, and zoi formulas. This does not promote coi intercepts beyond their separate cell, other random effects, structured effects, REML, or missing predictors.",
-        "next_gate": "Add formula-specific evidence for every remaining zero-one-beta parameter geometry.",
+        "formula_status": "needs_formula_evidence", "formula_mask_gate": "G1", "replace_model_claim": True,
+        "claim_boundary": "The zero-one-beta coi independent random-slope response-mask claim is not currently supported: the coi random-slope SD is estimated at 2.27e-04 against a true 0.45 with a slope-effect correlation of 0.253 against a 0.35 bound, a zero-boundary solution driven by roughly six atom observations per group in the cited fixture.",
+        "next_gate": "Redesign the fixture for more atom observations per group (the current ~6-per-group density under-identifies the coi random slope) and re-run G3 recovery before re-validating this formula cell.",
     },
     "mc-0577": {
         "formula_status": "formula_validated", "formula_mask_gate": "G3",
@@ -1950,19 +2265,17 @@ FORMULA_EVIDENCE = {
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
     "mc-0411": {
-        "formula_status": "formula_validated",
-        "formula_mask_gate": "G3",
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
         "replace_model_claim": True,
         "claim_boundary": (
-            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
-            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
-            "DGP recovery, validate the exact NB2 ML formula `nb2_spatial ~ x + spatial(1 + x | "
-            "site, coords = coords)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 sites, "
-            "16 observations per site, and one masked response per site; it checks fixed effects, "
-            "NB2 log-sigma, and the independent spatial intercept and slope SDs. It does not promote "
-            "labelled q2 correlation, other providers, REML, missing predictors, intervals, or coverage."
+            "The NB2 spatial structured q1 intercept-slope response-mask claim is not currently "
+            "supported: on the cited seed the residual log-sigma recovery misses at 0.29 against "
+            "a 0.18 bound and the mu slope at 0.49 against a 0.20 bound; three independent reseeds "
+            "also miss the sigma bound, with mixed sign (+0.29, -0.51, -0.20), which rules out a "
+            "directional defect but does not establish the claim."
         ),
-        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+        "next_gate": "A >=20-seed replicated run reporting the exceedance fraction and an MCSE.",
     },
     "mc-0412": {
         "formula_status": "formula_validated",
@@ -1980,19 +2293,21 @@ FORMULA_EVIDENCE = {
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
     "mc-0413": {
-        "formula_status": "formula_validated",
-        "formula_mask_gate": "G3",
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
         "replace_model_claim": True,
         "claim_boundary": (
-            "G2 conditional NB2 TMB-objective and numerical-gradient equality, observed-row fit "
-            "equality, and direct count-response sentinel retapes, plus G3 deterministic known-"
-            "DGP recovery, validate the exact NB2 ML formula `nb2_known ~ x + relmat(1 + x | id, "
-            "Q = Q)`, `sigma ~ 1`. The larger non-Gaussian fixture has 128 IDs, 16 observations "
-            "per ID, and one masked response per ID; it checks fixed effects, NB2 log-sigma, and the "
-            "independent relatedness intercept and slope SDs. It does not promote labelled q2 correlation, "
-            "other providers, REML, missing predictors, intervals, or coverage."
+            "The NB2 relmat structured q1 intercept-slope response-mask claim is not currently "
+            "supported: the cited seed misses the residual log-sigma bound at 0.50 against 0.18, "
+            "although two independent reseeds pass comfortably (0.12, 0.09), indicating an outlier "
+            "committed seed rather than a systematic defect; the claim is withdrawn because the "
+            "evidence it cites does not reproduce, not because the formula is wrong."
         ),
-        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+        "next_gate": (
+            "Re-run recovery on a fresh committed seed (or a short multi-seed batch) and confirm "
+            "the residual log-sigma bound clears before re-promoting; the two passing reseeds are "
+            "supporting, not sufficient, evidence."
+        ),
     },
     "mc-0418": {
         "formula_status": "formula_validated",
@@ -2027,20 +2342,16 @@ FORMULA_EVIDENCE = {
         "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
     },
     "mc-0421": {
-        "formula_status": "formula_validated",
-        "formula_mask_gate": "G3",
+        "formula_status": "needs_formula_evidence",
+        "formula_mask_gate": "G1",
         "replace_model_claim": True,
         "claim_boundary": (
-            "G2 conditional NB2 log-sigma TMB-objective and numerical-gradient equality, observed-"
-            "row fit equality, and direct count-response sentinel retapes, plus G3 deterministic "
-            "known-DGP recovery, validate the exact NB2 ML formula `y ~ x`, `sigma ~ phylo(1 + x "
-            "| sp, tree = tree)`. The larger non-Gaussian fixture has 128 tips, 32 observations per "
-            "tip, one masked response per tip, and nonzero phylogenetic log-sigma intercept and slope "
-            "fields. It checks fixed location, fixed log-sigma, and both sigma-side phylogenetic SDs. "
-            "It does not promote location-side structured effects, other providers, labelled covariance, "
-            "REML, missing predictors, intervals, or coverage."
+            "The NB2 phylo log-sigma response-mask claim is not currently supported: "
+            "the fixed log-sigma intercept lands 0.214 from truth against the cited "
+            "0.200 bound on a single deterministic draw, and the evidence carries no "
+            "Monte Carlo error, so the recovery claim is not currently reproduced."
         ),
-        "next_gate": "Add formula-specific evidence for every remaining NB2 structured geometry.",
+        "next_gate": "Add a multi-seed Monte Carlo recovery campaign for this fixture (the current evidence is a single deterministic draw) and re-run G3 before re-validating this formula cell.",
     },
     "mc-0422": {
         "formula_status": "formula_validated",
@@ -2343,6 +2654,146 @@ FORMULA_EVIDENCE = {
             "intervals, or coverage."
         ),
         "next_gate": "Add formula-specific evidence for every remaining Beta structured geometry.",
+    },
+    # -- Pass 2 (2026-08-14): zi_nbinom2/zi_poisson spatial mu/zi and gaussian/
+    # zi_nbinom2 phylo_interaction mu/sigma promotions. See check-log.md for the
+    # session-level verification that backs these five entries.
+    "mc-0641": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional zi_nbinom2 TMB-objective and numerical-gradient equality "
+            "against an INDEPENDENT hand-rolled `zi_dense_spatial_precision()` oracle, "
+            "re-derived from the exponential kernel / median-distance / 1e-6 jitter "
+            "construction rather than read from `fit$model$tmb_data`, validate `y ~ x + "
+            "spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1` (single deterministic "
+            "seed): objective agreement -1.77e-10 (tolerance 1e-8), gradient max "
+            "difference 1.60e-05 (tolerance 2e-5), checked at in-support response "
+            "sentinels c(0, 12); masked-versus-observed coefficients and sdpars are "
+            "identical, nobs 3136 on a 64-site, 50-observation-per-site fixture with a "
+            "realised observed split of 1270 zero / 1866 positive responses. G3 "
+            "deterministic known-DGP recovery (single deterministic seed) validates the "
+            "fixed mu slope (0.0093, bound 0.15), residual log-sigma (0.0905, bound "
+            "0.20), the zero-inflation intercept (0.0783, bound 0.30), and the spatial "
+            "mu random-intercept SD (0.0714, bound 0.30). The fixed mu INTERCEPT is "
+            "deliberately not checked: on this fixture it is confounded with the finite "
+            "Gaussian-random-field draw's non-zero empirical mean, so the claim covers "
+            "the slope, residual scale, zero-inflation intercept, and spatial SD, not "
+            "the location intercept. This is not another provider, a mu slope on the "
+            "structured term, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": (
+            "Add a multi-seed recovery campaign before claiming intervals or coverage; "
+            "the mu intercept remains untested and should not be inferred from this evidence."
+        ),
+    },
+    "mc-0662": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional zi_poisson TMB-objective and numerical-gradient equality "
+            "against the same independent hand-rolled dense-spatial-precision oracle "
+            "family used for mc-0641 validate `y ~ x + spatial(1 | site, coords = "
+            "coords), zi ~ 1` (single deterministic seed): objective agreement "
+            "-3.64e-10, gradient max difference 6.38e-06 (both well within the "
+            "tolerance regime used across this oracle family), checked at in-support "
+            "response sentinels c(0, 12), on a fixture with a realised observed split "
+            "of 1315 zero / 1821 positive responses. G3 deterministic known-DGP "
+            "recovery (single deterministic seed) validates the fixed mu slope (0.0243, "
+            "bound 0.15), the zero-inflation intercept (0.0218, bound 0.25), and the "
+            "spatial mu random-intercept SD (0.0351, bound 0.25). The fixed mu "
+            "INTERCEPT is deliberately not checked, for the same field-draw confounding "
+            "recorded for mc-0641; the claim covers the slope, zero-inflation "
+            "intercept, and spatial SD, not the location intercept. This is not "
+            "another provider, a mu slope on the structured term, REML, missing "
+            "predictors, intervals, or coverage."
+        ),
+        "next_gate": (
+            "Add a multi-seed recovery campaign before claiming intervals or coverage; "
+            "the mu intercept remains untested and should not be inferred from this evidence."
+        ),
+    },
+    "mc-0667": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 conditional zi_poisson TMB-objective and numerical-gradient equality "
+            "against the same independent hand-rolled dense-spatial-precision oracle "
+            "family used for mc-0641/mc-0662 validate `y ~ x, zi ~ spatial(1 | site, "
+            "coords = coords)` (single deterministic seed): objective agreement "
+            "-2.55e-11, gradient max difference 7.56e-06 (both well within the "
+            "tolerance regime used across this oracle family), checked at in-support "
+            "response sentinels c(0, 12), on a fixture with a realised observed split "
+            "of 1406 zero / 1730 positive responses. G3 deterministic known-DGP "
+            "recovery (single deterministic seed) validates the fixed mu coefficients "
+            "(max|beta_mu| 0.0138, bound 0.15) and the spatial zi random-intercept SD "
+            "(0.0604, bound 0.25); unlike mc-0641/mc-0662, the fixed mu intercept IS "
+            "checked here because mu carries no structured term on this route. The zi "
+            "INTERCEPT is deliberately not checked, mirroring the mu-intercept "
+            "convention used on mc-0641/mc-0662 for the structured parameter's own "
+            "intercept. This is not another provider, a zi slope on the structured "
+            "term, REML, missing predictors, intervals, or coverage."
+        ),
+        "next_gate": (
+            "Add a multi-seed recovery campaign before claiming intervals or coverage; "
+            "the zi intercept remains untested and should not be inferred from this evidence."
+        ),
+    },
+    "mc-0321": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 dense conditional gaussian phylogenetic-interaction objective and "
+            "numerical-gradient equality validate `y ~ x + phylo_interaction(1 | "
+            "plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree)` (single "
+            "deterministic seed): objective agreement -1.12e-10, gradient agreement "
+            "within relative tolerance 2e-5, checked at in-domain response sentinels "
+            "c(-1e6, 1e6) for this unbounded Gaussian response; nobs 4032 of 4096, 64 "
+            "masked. G3 deterministic known-DGP recovery (seed 2026081771) validates "
+            "the fixed mu intercept (0.177, bound 0.30), the fixed mu slope (0.0033, "
+            "bound 0.20), and the phylogenetic-interaction mu SD (0.021, bound 0.22). "
+            "An independent 5-seed sweep gave intercept errors ranging 0.007 to 0.177; "
+            "the cited seed sits near the top of that range, so the 0.30 bound carries "
+            "real margin rather than reflecting a favourable draw. This is not "
+            "sigma-side interaction, other effect geometries, REML, missing "
+            "predictors, intervals, or coverage."
+        ),
+        "next_gate": "Add formula-specific evidence for every remaining gaussian phylo_interaction geometry.",
+    },
+    "mc-0653": {
+        "formula_status": "formula_validated",
+        "formula_mask_gate": "G3",
+        "replace_model_claim": True,
+        "claim_boundary": (
+            "G2 dense conditional zi_nbinom2 phylogenetic-interaction objective and "
+            "numerical-gradient equality validate `y ~ x, sigma ~ phylo_interaction(1 "
+            "| plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), zi ~ "
+            "1` (single deterministic seed): objective agreement -1.17e-10, gradient "
+            "3.75e-05 raw, within relative tolerance 2e-5, checked at in-support "
+            "response sentinels c(0, 12); 1152 rows, 64 masked, realised observed "
+            "split 725 zero / 363 positive. G3 deterministic known-DGP recovery (seed "
+            "2026073001, the file's canonical default already used by three sibling "
+            "tests on this fixture) validates the fixed mu intercept (0.019, bound "
+            "0.20), the fixed mu slope (0.0009, bound 0.15), the fixed sigma "
+            "intercept (0.090, bound 0.20), the phylogenetic-interaction sigma SD "
+            "(0.043, bound 0.25), and the zero-inflation intercept (0.0064, bound "
+            "0.20). DISCLOSURE: an alternative probe seed (2026081781) gave a "
+            "sigma-intercept error of 0.209 against the same 0.20 bound; the cited "
+            "canonical seed passes at 0.090, but the bound sits near this cell's "
+            "noise floor and the claim should not be read as having wide margin. "
+            "This is not mu-side interaction, other effect geometries, REML "
+            "(unavailable for this family), missing predictors, intervals, or "
+            "coverage."
+        ),
+        "next_gate": (
+            "Add a multi-seed recovery campaign before claiming intervals or coverage; "
+            "the sigma-intercept bound is close to this cell's noise floor on the "
+            "canonical fixture."
+        ),
     },
 }
 

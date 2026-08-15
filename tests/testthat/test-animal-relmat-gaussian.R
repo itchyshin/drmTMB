@@ -1813,11 +1813,12 @@ test_that("bivariate animal and relmat q2 response masks have exact conditional 
   dat <- sim$data
   dat$y1[c(3L, 19L, 44L)] <- NA_real_
   dat$y2[c(8L, 19L, 51L)] <- NA_real_
+  Q <- sim$Q
   fits <- list(
     relmat = drmTMB(
       bf(
-        mu1 = y1 ~ x + relmat(1 | p | id, Q = sim$Q),
-        mu2 = y2 ~ x + relmat(1 | p | id, Q = sim$Q),
+        mu1 = y1 ~ x + relmat(1 | p | id, Q = Q),
+        mu2 = y2 ~ x + relmat(1 | p | id, Q = Q),
         sigma1 = ~1, sigma2 = ~1, rho12 = ~1
       ),
       family = biv_gaussian(), data = dat,
@@ -1826,8 +1827,8 @@ test_that("bivariate animal and relmat q2 response masks have exact conditional 
     ),
     animal = drmTMB(
       bf(
-        mu1 = y1 ~ x + animal(1 | p | id, Ainv = sim$Q),
-        mu2 = y2 ~ x + animal(1 | p | id, Ainv = sim$Q),
+        mu1 = y1 ~ x + animal(1 | p | id, Ainv = Q),
+        mu2 = y2 ~ x + animal(1 | p | id, Ainv = Q),
         sigma1 = ~1, sigma2 = ~1, rho12 = ~1
       ),
       family = biv_gaussian(), data = dat,
@@ -1869,10 +1870,11 @@ test_that("bivariate relmat q2 response masks recover an independent known DGP",
   dat <- missing_response_mask_mcar_within_group(
     dat, "y2", "id", seed = 2026081709L
   )
+  Q <- sim$Q
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + relmat(1 | p | id, Q = sim$Q),
-      mu2 = y2 ~ x + relmat(1 | p | id, Q = sim$Q),
+      mu1 = y1 ~ x + relmat(1 | p | id, Q = Q),
+      mu2 = y2 ~ x + relmat(1 | p | id, Q = Q),
       sigma1 = ~1, sigma2 = ~1, rho12 = ~1
     ),
     family = biv_gaussian(), data = dat,
@@ -1901,10 +1903,11 @@ test_that("bivariate animal q2 response masks recover an independent known DGP",
   dat <- missing_response_mask_mcar_within_group(
     dat, "y2", "id", seed = 2026081712L
   )
+  Q <- sim$Q
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + animal(1 | p | id, Ainv = sim$Q),
-      mu2 = y2 ~ x + animal(1 | p | id, Ainv = sim$Q),
+      mu1 = y1 ~ x + animal(1 | p | id, Ainv = Q),
+      mu2 = y2 ~ x + animal(1 | p | id, Ainv = Q),
       sigma1 = ~1, sigma2 = ~1, rho12 = ~1
     ),
     family = biv_gaussian(), data = dat,

@@ -981,10 +981,11 @@ test_that("bivariate spatial q2 slope masks recover at the 128-site rung", {
   dat <- missing_response_mask_mcar_within_group(
     dat, "y2", "site", seed = 2026081721L
   )
+  coords <- sim$coords
   fit <- drmTMB(
     bf(
-      mu1 = y1 ~ x + spatial(0 + x | p | site, coords = sim$coords),
-      mu2 = y2 ~ x + spatial(0 + x | p | site, coords = sim$coords),
+      mu1 = y1 ~ x + spatial(0 + x | p | site, coords = coords),
+      mu2 = y2 ~ x + spatial(0 + x | p | site, coords = coords),
       sigma1 = ~1, sigma2 = ~1, rho12 = ~1
     ),
     family = biv_gaussian(), data = dat,

@@ -237,14 +237,32 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
     fixed = TRUE
   )
 
+  # The missing-engine rejection for a response mask no longer fires here:
+  # `reml_response_mask_slice` (R/drmTMB.R) now admits binomial alongside
+  # Gaussian for `missing = miss_control(response = "include")` with the
+  # default `predictor = "fail"` -- this is the exact ordinary
+  # random-intercept binomial route REML already supports. The boundary is
+  # narrower, not removed: a missing *predictor* engine (`predictor =
+  # "model"`) still hits the same rejection.
   dat_missing <- fx$data
   dat_missing$y[[1L]] <- NA_integer_
+  masked_fit <- drmTMB(
+    bf(y ~ x + (1 | g)),
+    family = binomial(),
+    data = dat_missing,
+    missing = miss_control(response = "include"),
+    REML = TRUE
+  )
+  expect_equal(masked_fit$opt$convergence, 0)
+
+  dat_missing_x <- fx$data
+  dat_missing_x$x[[1L]] <- NA_real_
   expect_error(
     drmTMB(
       bf(y ~ x + (1 | g)),
       family = binomial(),
-      data = dat_missing,
-      missing = miss_control(response = "include"),
+      data = dat_missing_x,
+      missing = miss_control(predictor = "model"),
       REML = TRUE
     ),
     "univariate Gaussian response masks",

@@ -95054,3 +95054,524 @@ can see which commit each one actually examined.
 ## 2026-08-14 — Zero-one-beta animal scale response mask
 
 - `mc-0594` is `formula_validated` at G3 for `sigma ~ animal(1 | species, Ainv = Ainv)`: observed-data oracle/gradient, atom/interior sentinels, observed-only equality, and a 64-ID × 60-observation recovery fixture.
+
+## 2026-08-14 — response-mask red-surface audit: 8 demotions, 5 narrowings
+
+A full audit of the 30 evidence files backing this lane's 185
+`formula_validated` response-mask cells, plus the harness repairs it
+motivated and a Fisher adjudication of the ambiguous findings, produced a
+final verdict. This entry records the disposition; the ledger writes below
+are `tools/response_mask_formula_inventory.py` (`FORMULA_EVIDENCE` and the
+one `EXPLICIT_BOUNDARIES` split) plus the regenerated
+`response-mask-formulas.tsv`.
+
+**Audit result.** 30 evidence files were run (`testthat::test_file(...,
+reporter = testthat::CheckReporter$new())`); 7 were RED (35 failures across
+them), 23 GREEN. The 38 failures the task anticipated resolved to 35 once a
+mid-audit helper repair (below) removed 3 that were never real. The 35 were
+classified into four mechanisms: **B** (substantive non-convergence or
+recovery-threshold miss — a real defect), **C** (stale `expect_error` fence
+— a rejection guard the branch deliberately relaxed, not a promoted-formula
+defect), **D** (tolerance-boundary numeric mismatch — measured magnitude
+1–2 orders of magnitude below the Class B misses on the same list), and
+**E** (non-symbol structured-marker argument — `relmat(Q = sim$Q)` instead
+of binding `Q <- sim$Q` first; `R/parse-formula.R`'s `is.symbol()` check is
+intentional, so this is a test-authoring bug that leaves the cited evidence
+currently unrunnable, not a package defect). Full inventory, per-line
+classification, and the two competing readings the audit could not resolve
+alone (mc-0410–0413's 4-way provider loop; mc-0131/0132-or-0153/0154's
+2-way loop) are in
+`docs/dev-log/2026-08-14-response-mask-red-surface.md`.
+
+**Harness repairs (measured before/after, independently verified by me
+before writing any ledger change):**
+
+| file | before | after |
+|---|---|---|
+| `test-zero-one-beta.R` | 20/3151 | 13/3214 |
+| `test-animal-relmat-gaussian.R` | 5/761 | 2/819 |
+| `test-spatial-gaussian.R` | 3/421 | 2/431 |
+| `test-reml-binomial-coxreid.R` | 1/32 | 0/34 |
+| `test-missing-response-boundary.R` | 5/257 | 2/260 |
+
+(FAIL/PASS counts.) None of these repairs touched `R/`, and none of them
+made a previously-red assertion pass by loosening it — each repair fixed a
+harness defect (a stale `expect_length` arity check, a non-symbol structure
+argument, a stale rejection fence) independently of whether the underlying
+recovery check then passed or failed.
+
+**Two green-and-empty blocks — a green test that analysed the wrong data.**
+`test-missing-response-boundary.R` at approximately lines 152 and 180 each
+generated **0 of 422** and **0 of 432** real atom values before repair: a
+scalar `coi` value was indexed by a length-1600 logical vector, injecting
+`NA` throughout and leaving the block analysing near-atom-free data. Both
+sites **passed** in that state, because a zero-one-beta atom check that
+never sees an atom cannot fail on one. After repair both sites generate
+422/422 and 432/432 real atom values and still pass — the same pass verdict,
+now backed by data the assertion actually claims to test. This is recorded
+plainly: a green test that analyses the wrong data is a worse state than a
+red one, because it reports confidence with none of the underlying
+evidence.
+
+**mc-0539 correction (largest apparent miss, and a false one).** The
+audit's largest nominal deviation — Tweedie `nu` recovery at
+`test-missing-response-boundary.R:387`, reported as `1.8` against a `0.15`
+bound, ~12x over — was a unit mismatch, not a defect: `coef(fit, "nu")`
+reports the link-scale coefficient, while the true Tweedie power is
+`nu = 1 + plogis(eta_nu)`. On the correct bounded scale the recovered power
+is `1.3824` against truth `1.35`, a deviation of `0.032`, inside the `0.15`
+bound. The assertion as written was structurally incapable of passing
+regardless of the fit's quality; it has been corrected, and mc-0539's G3
+point-fit recovery sub-claim is not on the demote list below.
+
+**Provenance flag.** `git log -S` on the two `Q = sim$Q` non-symbol test
+blocks (Class E) traces them to commits `23ee6eb33` (`test(missing-data):
+add known-q2 bivariate mask oracles`) and `bec6843e1` (`test(missing-data):
+recover bivariate relmat q2 mask`). Both commits **also edited
+`response-mask-formulas.tsv` in the same change** that introduced the
+broken test block — cells were promoted to `formula_validated` in the same
+commit as a test that errors at the parser before it can run. This is
+recorded as an observed fact about the record, not adjudicated further
+here.
+
+### Demotions (8 cells → `needs_formula_evidence` / G1)
+
+All promotion/retention evidence cited below and in the prior sections of
+this file for these cells was produced on a **(single deterministic seed)**
+unless stated otherwise; none of it was multi-seed Monte Carlo evidence.
+
+- **mc-0107, mc-0108** (bivariate spatial q2 mu1/mu2 intercept). Was one
+  combined `EXPLICIT_BOUNDARIES` row (`mc-0107,mc-0108`) claiming a joint
+  "matched labelled block" recovery. Fisher's per-endpoint reread found the
+  two intercepts fail *independently* and by different margins (mu1 misses
+  its 0.25 bound by 1.199 against an own-fixture SE of 0.5568; mu2 misses
+  by 0.882 against an SE of 0.5244), so the shared-row representation
+  itself was part of the problem: it let one endpoint's evidence stand in
+  for the other's. The row is split into two independent formula cells,
+  each demoted with its own claim text (single deterministic seed).
+- **mc-0317, mc-0318** (Gaussian q2 relmat location-scale one-slope). The
+  residual log-SD relmat slope SD sits at a zero-boundary solution
+  (3.61e-05 against a true 0.15) with convergence code 0 and no
+  identifiability diagnostic — the cited G3 recovery is not currently
+  produced (single deterministic seed).
+- **mc-0421** (NB2 phylo log-sigma). The fixed log-sigma intercept misses
+  its 0.200 bound by 0.214 on a single deterministic draw with no Monte
+  Carlo error attached — the recovery claim is not currently reproduced
+  (single deterministic seed).
+- **mc-0578** (zero-one-beta coi independent random slope). The coi
+  random-slope SD sits at a zero boundary (2.27e-04 against a true 0.45)
+  with a slope-effect correlation of 0.253 against a 0.35 bound, driven by
+  roughly six atom observations per group in the cited fixture (single
+  deterministic seed).
+- **mc-0593** (zero-one-beta phylo sigma q1). The retaped sentinel
+  objective returns nlminb convergence code 1 ("false convergence") in
+  two to six iterations under both 200- and 900-iteration budgets, with a
+  sigma-intercept miss of 0.52 against 0.15. The 2026-08-05 135-trace
+  campaign independently withheld this cell on the interval axis
+  (`tools/capability_ledger.py` `ARC135_WITHHELD`), corroborating but not
+  governing this formula-level status (single deterministic seed).
+- **mc-0594** (zero-one-beta animal sigma q1). Same false-convergence
+  signature as mc-0593 under both optimizer budgets; the same 135-trace
+  campaign independently withheld it on the interval axis, corroborating a
+  near-singular Hessian (single deterministic seed).
+
+`mc-0577` (zero-one-beta zoi independent random slope) shows the same
+magnitude of miss as mc-0578 in the audit report but is **not** demoted
+here: it was flagged by the audit, not assigned to me for disposition in
+this pass, and is left for a follow-up ledger pass rather than acted on
+without an explicit instruction.
+
+- **CLOSED (orchestrator, same day).** This loop was left open above and was
+  never revisited by ledger passes 2-4 — a documentation-completeness gap
+  caught by the closing audit, not by the passes themselves. Disposition:
+  **`mc-0577` keeps its claim and needs no ledger change.** Fisher's
+  adjudication had already removed it from the demote list on the grounds
+  that its evidence was *invalid rather than failing* —
+  `tests/testthat/test-missing-response-boundary.R` indexed a scalar `coi`
+  by a length-1600 logical, injecting NAs into 818 of 819 atom rows and
+  leaving exactly one atom observation, so the observed SD collapse to
+  9.83e-19 was correct behaviour on malformed data. That fixture bug was
+  then repaired in this arc (the same scalar-indexing defect fixed at two
+  sibling sites), and a live re-run confirms `mc-0577`'s block now **passes**
+  on genuine atom-bearing data; the only residual failure in that file is
+  `mc-0578`, which is demoted with its own recorded reason. So the cell was
+  repaired incidentally rather than adjudicated, and this note records that
+  rather than leaving a reader to infer it.
+- Check: `NOT_CRAN=true R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'suppressMessages(pkgload::load_all(".", compile = FALSE, quiet = TRUE));
+  testthat::test_file("tests/testthat/test-missing-response-boundary.R",
+  reporter = testthat::CheckReporter$new())'` → FAIL 2 | PASS 260, both
+  failures attributable to mc-0578.
+
+### Narrowings (5 cells stay `formula_validated` / G3, metric corrected)
+
+`mc-0583`, `mc-0584`, `mc-0585`, `mc-0586`, `mc-0587` all previously named
+"masked-versus-observed **fit** equality" among their evidence. Fisher
+measured that the equality actually demonstrated is at the **objective**
+level (relative difference 1.9e-13 to 9.0e-13 across all five providers,
+from identical starting values, single deterministic seed), not the
+coefficient level: coefficient agreement ranges from 5.3e-10 to 1.7e-5
+across providers because the fixtures differ in conditioning by roughly 5e4
+along the intercept direction, which is a property of each fixture's
+conditioning, not an invariant of the response mask. All five retain
+`formula_validated`/G3 — the underlying objective/gradient-level evidence
+supports the claim — but the metric named in the claim text is now the one
+actually measured. `mc-0584` clears its own coefficient-tolerance check by
+only 2.7x; leaving its text unamended would have recorded it as validated
+by a check it barely survives, so all five (not only the two audit flagged
+as Class D failures) are corrected together for consistency.
+
+Check: `python3 -B tools/tests/test_response_mask_formula_inventory.py`;
+`python3 tools/capability_ledger.py --write`;
+`python3 tools/capability_ledger.py --check`;
+`python3 tools/response_mask_formula_inventory.py --check`; a Python
+row-by-row diff of `response-mask-formulas.tsv` keyed by `model_cell_id`
+confirming exactly the 13 named cells changed status/claim text and no
+other cell's row changed.
+
+## 2026-08-14 — response-mask formula ledger pass 2: 5 promotions, 3 demotions
+
+Continuation of the same day's `response-mask-formulas.tsv` pass. All new
+`FORMULA_EVIDENCE` keys were grepped for before being written (no key
+existed for any of the five promoted cells; `mc-0411`/`mc-0413` already
+existed and were edited in place), and the whole `FORMULA_EVIDENCE` dict
+literal was checked with `ast` for duplicate string keys before and after
+the edit (113 unique keys before, 118 after, no duplicates either time;
+the file also contains 12 `**{cell_id: {...} for cell_id in (...)}`
+comprehension merges, none of which produce any of the seven cell IDs
+touched this pass).
+
+### Promotions (5 cells → `formula_validated` / G3)
+
+All evidence below is a **single deterministic seed** unless a seed or
+multi-seed sweep is named explicitly.
+
+- **mc-0641** (zi_nbinom2, `mu ~ x + spatial(1 | site, coords = coords),
+  sigma ~ 1, zi ~ 1`). G2 against an INDEPENDENT hand-rolled
+  `zi_dense_spatial_precision()` oracle re-derived from the exponential
+  kernel / median-distance / 1e-6 jitter construction (not read from
+  `fit$model$tmb_data`): objective agreement -1.77e-10 (tol 1e-8),
+  gradient max diff 1.60e-05 (tol 2e-5), in-support sentinels `c(0, 12)`,
+  masked-vs-observed coef/sdpars identical, nobs 3136 on a 64-site,
+  50-obs-per-site fixture (realised split 1270 zero / 1866 positive). G3:
+  mu slope 0.0093 (<0.15), residual log-sigma 0.0905 (<0.20), zi intercept
+  0.0783 (<0.30), spatial mu SD 0.0714 (<0.30). The fixed mu intercept is
+  deliberately NOT checked — it is confounded with the finite GRF draw's
+  non-zero empirical mean on this fixture — so the claim covers slope,
+  scale, zi, and spatial SD only.
+- **mc-0662** (zi_poisson, `mu ~ x + spatial(1 | site, coords = coords),
+  zi ~ 1`). G2 against the same oracle family: objective -3.64e-10,
+  gradient 6.38e-06, sentinels `c(0, 12)`, realised split 1315 zero / 1821
+  positive. G3: mu slope 0.0243 (<0.15), zi intercept 0.0218 (<0.25),
+  spatial mu SD 0.0351 (<0.25). Same mu-intercept exclusion as mc-0641.
+- **mc-0667** (zi_poisson, `mu ~ x, zi ~ spatial(1 | site, coords =
+  coords)`). G2: objective -2.55e-11, gradient 7.56e-06, sentinels `c(0,
+  12)`, realised split 1406 zero / 1730 positive. G3: max|beta_mu| 0.0138
+  (<0.15) — the fixed mu intercept IS checked here, unconfounded because mu
+  carries no structured term on this route — and spatial zi SD 0.0604
+  (<0.25). The zi intercept is deliberately not checked, mirroring the
+  mu-intercept exclusion used on mc-0641/mc-0662 for the structured
+  parameter's own intercept.
+- **mc-0321** (gaussian, `mu ~ x + phylo_interaction(1 | plant:pollinator,
+  tree1 = plant_tree, tree2 = pollinator_tree)`). G2: objective -1.12e-10,
+  gradient within relative tol 2e-5, in-domain sentinels `c(-1e6, 1e6)`
+  (unbounded Gaussian response), nobs 4032 of 4096 (64 masked). G3 (seed
+  2026081771): mu intercept 0.177 (<0.30), mu slope 0.0033 (<0.20),
+  interaction mu SD 0.021 (<0.22). An independent 5-seed sweep gave
+  intercept errors in [0.007, 0.177] — the cited seed sits near the top of
+  that range, so the 0.30 bound carries real margin, not a favourable draw.
+- **mc-0653** (zi_nbinom2, `mu ~ x, sigma ~ phylo_interaction(1 |
+  plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), zi ~
+  1`). G2: objective -1.17e-10, gradient 3.75e-05 raw (within relative tol
+  2e-5), sentinels `c(0, 12)`, 1152 rows, 64 masked, realised split 725
+  zero / 363 positive. G3 (seed 2026073001, the file's canonical default,
+  already used by three sibling tests on this fixture): mu intercept 0.019
+  (<0.20), mu slope 0.0009 (<0.15), sigma intercept 0.090 (<0.20),
+  interaction sigma SD 0.043 (<0.25), zi intercept 0.0064 (<0.20).
+  **Disclosure, not softened:** an alternative probe seed (2026081781) gave
+  a sigma-intercept error of 0.209 against the same 0.20 bound. The cited
+  canonical seed passes at 0.090, but the bound sits near this cell's
+  noise floor and the claim should not be read as having wide margin.
+
+### Demotions (3 cells/rows → `needs_formula_evidence` / G1)
+
+- **mc-0411** (NB2 spatial structured q1 intercept-slope). Provider
+  attribution was established by rerunning the provider loop and printing
+  `route$provider` per iteration — the prior evidence this pass inherited
+  (see the 2026-08-14 red-surface audit entry above, "mc-0410–0413's 4-way
+  provider loop") reported an aggregate failure with no provider label, so
+  this attribution step is what made the spatial-vs-relmat split
+  identifiable at all. On the cited seed, residual log-sigma misses at
+  0.29 against a 0.18 bound and the mu slope at 0.49 against a 0.20 bound;
+  three independent reseeds also miss the sigma bound, mixed sign (+0.29,
+  -0.51, -0.20), which rules out a directional defect but does not
+  establish the claim. Next gate: a >=20-seed replicated run reporting the
+  exceedance fraction and an MCSE.
+- **mc-0413** (NB2 relmat structured q1 intercept-slope). Same
+  provider-loop attribution as mc-0411. The cited seed misses the residual
+  log-sigma bound at 0.50 against 0.18; two independent reseeds pass
+  comfortably (0.12, 0.09), indicating an outlier committed seed rather
+  than a systematic defect. The claim is withdrawn because the cited
+  evidence does not reproduce, not because the formula is wrong.
+- **rmf-biv-gaussian-relmat-mu12-q2-slope** (mc-0153, mc-0154; combined
+  `EXPLICIT_BOUNDARIES` row). On the cited seed the relmat slope
+  correlation recovers at 0.5167 against a truth of 0.30, a deviation of
+  0.217 over a 0.20 bound. The overestimate direction is consistent with
+  this cell's own recorded right-tail miss asymmetry at this cluster
+  count, so the next gate is a replicated multi-seed estimate with an
+  MCSE, not a wider bound. The animal sibling row
+  `rmf-biv-gaussian-animal-mu12-q2-slope` (mc-0131, mc-0132) passes at
+  deviation 0.034 and was left unchanged.
+
+### File-level verification (run by me before writing any ledger change)
+
+| file | before | after |
+|---|---|---|
+| `test-zi-nbinom2.R` | 0/56 | 0/219 |
+| `test-zi-poisson.R` | 0/54 | 0/371 |
+| `test-phylo-interaction.R` | 0/218 | 0/266 |
+
+Check: `python3 -B tools/tests/test_response_mask_formula_inventory.py`
+(5/5 OK); `python3 tools/capability_ledger.py --write`; `python3
+tools/capability_ledger.py --check` (OK, 32 generated outputs); `python3
+tools/response_mask_formula_inventory.py --check` (OK); an `ast`-based
+duplicate-key check of `FORMULA_EVIDENCE` before and after the edit (113 →
+118 unique keys, 0 duplicates both times); a line-level diff of
+`response-mask-formulas.tsv` confirming exactly 8 rows changed
+(`rmf-mc-0321`, `rmf-mc-0411`, `rmf-mc-0413`, `rmf-mc-0641`, `rmf-mc-0653`,
+`rmf-mc-0662`, `rmf-mc-0667`, `rmf-biv-gaussian-relmat-mu12-q2-slope`) and
+no other row changed.
+
+## 2026-08-14 — response-mask formula ledger pass 3: 1 promotion, 2 measured refusals recorded
+
+### Promotion (1 cell → `formula_validated` / G3)
+
+- **mc-0595** (zero_one_beta, `sigma ~ relmat(1 | species, K = K)`). G2
+  against a hand-written dense oracle: observed-data objective equality at
+  tolerance 1e-8, central-difference gradient equality at tolerance 2e-5,
+  in-domain atom/interior sentinel invariance (sentinels `c(0, 1, .5)`),
+  masked-vs-observed `coef(sigma)` and `sdpars$sigma` equality at 1e-6,
+  and `nobs()`/`observed_y` agreement. G3, seed 2026081824 **(single
+  deterministic seed)**: log-sigma intercept error 0.0070 against a 0.15
+  bound, `sd(relmat(1 | species))` error 0.0255 against a 0.25 bound.
+  Convergence was clean (`"relative convergence (4)"`) at every one of 5
+  seeds probed, including the sentinel helper's independent nlminb
+  re-optimization. This does not transfer to another zero-one-beta scale
+  provider, another endpoint, REML, interval/coverage evidence, or missing
+  predictors.
+
+### Measured refusals recorded (2 cells stay `needs_formula_evidence` / G1 — status unchanged, `next_gate` and `claim_boundary` rewritten)
+
+These are **measured refusals, not policy deferrals**: both cells were
+attempted, and the attempt is what produced the mechanism below. A policy
+deferral invites an uninformed retry; a measured refusal tells the next
+lane what has to change before retrying is worth the compute. The prior
+`next_gate` text on both rows was the generic fallback ("Add
+formula-specific G2 sentinel/oracle checks and G3 known-DGP recovery
+evidence.") and would have let a future lane rediscover the same wall
+blind.
+
+- **mc-0596** (zero_one_beta, `sigma ~ spatial(1 | site, coords =
+  coords)`). The outer fit reports convergence 0, but the sentinel
+  helper's independent nlminb re-optimization from that same optimum
+  returns `"false convergence (8)"`, reproduced at eval.max/iter.max of
+  200, 900, and 3000 — so this is not optimizer starvation. Measured
+  cause: the `exp(-distance/range)` covariance at the 64-site scale has
+  condition number about 917 (eigenvalues 0.030–27.7) with a near-constant
+  leading eigenvector that aliases the sigma fixed intercept; only 1 of 4
+  seeds fell inside the 0.15 log-sigma bound. Next gate: a
+  better-conditioned spatial design or a reparameterisation that separates
+  the constant mode from the sigma intercept, not a larger optimizer
+  budget or a longer fixture.
+- **mc-0597** (zero_one_beta, `sigma ~ phylo_interaction(1 |
+  plant:pollinator, tree1 = ..., tree2 = ...)`). Across 7 deterministic
+  seeds at the 8x8-tip, 60-observation scale, 1 gave outright `"false
+  convergence (8)"` and all 6 that converged missed the 0.15 log-sigma
+  bound (errors 0.11–0.33); 0 of 7 satisfied both conditions. Measured
+  cause: `phylo_interaction` composes two tree GMRFs each carrying
+  unobserved internal-node latents, giving 196 latent dimensions against
+  only 64 observed plant:pollinator combinations. Next gate: a design with
+  more observed combinations per latent dimension, or a reduced-rank
+  representation, not a larger optimizer budget.
+
+**A lesson worth recording plainly.** mc-0596's outer fit reported
+`convergence = 0` — an apparently clean fit. The only thing that caught
+the false-convergence failure was the sentinel helper's second,
+*independent* nlminb re-optimization from the same optimum. That helper
+was itself broken at the start of this arc: it asserted
+`expect_length(sentinels, 2L)` while six call sites passed three
+sentinels, so those blocks could never run. The check that caught mc-0596's
+defect was repaired only hours earlier in the same arc. A verdict of
+`convergence = 0` was never sufficient on its own here; the independent
+re-optimization is what did the real work, and it very nearly wasn't
+running at all.
+
+### File-level verification (run by me before writing any ledger change)
+
+| file | before | after |
+|---|---|---|
+| `test-zero-one-beta.R` | 13/3214 | 13/3383 |
+
+FAIL/PASS counts. +169 passes, all attributable to mc-0595; the 13
+residual failures are unchanged and pre-existing (mc-0583 x3 at
+`:901`/`:902`/`:904`, mc-0593 x5 at `:945`/`:948`, mc-0594 x4 at `:979`,
+mc-0585 x1 at `:1172`).
+
+Check: `python3 -B tools/tests/test_response_mask_formula_inventory.py`
+(5/5 OK); `python3 tools/capability_ledger.py --write`; `python3
+tools/capability_ledger.py --check` (OK, 32 generated outputs); `python3
+tools/response_mask_formula_inventory.py --check` (OK); a duplicate-key
+grep of the three newly-added `FORMULA_EVIDENCE` keys (`mc-0595`,
+`mc-0596`, `mc-0597`) against the full dict, 0 duplicates; a
+before/after regeneration diff of `response-mask-formulas.tsv` (the `.py`
+file's pass-3 insertion isolated and reverted for the "before" run)
+confirming exactly 3 rows changed (`rmf-mc-0595`, `rmf-mc-0596`,
+`rmf-mc-0597`), the same 692 total lines, and a field-level check that
+`rmf-mc-0596`/`rmf-mc-0597` changed only `claim_boundary` and `next_gate`
+(`formula_status` stayed `needs_formula_evidence`, `formula_mask_gate`
+stayed `G1`); post-write status counts by category: 181
+`formula_validated` (was 180), 110 `needs_formula_evidence` (was 111), 358
+`not_admitted`, 40 `blocked_reml`, 1 `family_validated`, 1
+`blocked_dense_known_V`.
+
+## 2026-08-14 — response-mask formula ledger pass 4: zoi/coi guard lifted, 7 measured refusals, arc closeout
+
+### Guard lift
+
+The zoi/coi structured-atom admission guard in `R/drmTMB.R` — two
+`cli::cli_abort()` calls guarded by `include_missing_response &&
+!is.null(zoi_structured)` / `coi_structured` — is lifted (`grep -c "does not
+support missing responses" R/drmTMB.R` = 0, verified directly). This was a
+conservative admission-gate abort, not a reflection of missing-template
+support: `src/drmTMB.cpp:3226` already gates the *entire* zero-one-beta
+contribution — both atoms and the interior beta density — on
+`observed_y(i) == 1`, so a masked row already contributed nothing to the
+likelihood or its gradient regardless of which dpar carried the structured
+effect. **No `src/` change was needed or made** (`git diff --stat -- src/` is
+empty, confirmed). The combination is now admitted at the formula level for
+`phylo`, `animal`, `relmat`, and `phylo_interaction`. The separate `spatial`
+zoi/coi deferral (`mc-0606`, `mc-0615`, `mc-0616` stay `not_admitted`/G0) is
+deliberately unaffected and stays out of scope.
+
+Design docs updated to match:
+`docs/design/248-zero-one-beta-structured-atom-q1-symbolic-alignment.md` §8
+removes "missing responses with a structured atom effect" from its OUT list
+and records the 2026-08-14 update with the per-cell mechanism for all seven
+cells; `docs/design/149-missing-data-design.md`'s MR-T3 row and closing
+summary now describe zero-one-beta response masking as `point_fit_only` with
+one structured effect on `mu` or `sigma`, and record that none of the seven
+zoi/coi structured-atom + missing-response cells earned response-mask
+promotion.
+
+### Seven cells measured, none promoted (all stay `needs_formula_evidence` / G1)
+
+The guard lift made the route *admitted*, not *validated*. All seven zoi/coi
+structured-atom cells were then measured against the full five-part contract
+and refused **on measurement, not policy**. Their `next_gate` and
+`claim_boundary` text in `response-mask-formulas.tsv` is rewritten so a
+future lane reads the measured mechanism instead of the generic fallback
+("Add formula-specific G2 sentinel/oracle checks and G3 known-DGP recovery
+evidence.") and does not re-attempt these blind. Status is unchanged for all
+seven — only the text changed.
+
+- **mc-0603** (`zoi ~ phylo`). Outer fit reports convergence 0, but the
+  sentinel helper's independent nlminb re-optimization returns `"false
+  convergence (8)"` on both sentinel pairs, budget-independent (confirmed
+  with a fresh AD tape at eval.max/iter.max of 900). Recovery was in bounds
+  (log-zoi-intercept error 0.14 against a 0.15 bound; `sd(phylo)` error 0.004
+  against a 0.25 bound) — the refusal is the near-singular Hessian, the same
+  signature as mc-0593/mc-0594, not the recovery.
+- **mc-0604** (`zoi ~ animal`). Same false-convergence signature as mc-0603,
+  budget-independent (confirmed with a fresh AD tape); recovery in bounds.
+- **mc-0614** (`coi ~ animal`). Same false-convergence signature as
+  mc-0603/mc-0604, budget-independent; recovery in bounds.
+- **mc-0605** (`zoi ~ relmat`). The best-behaved of the seven: clean at 2 of
+  3 scanned seeds, recovery in bounds where it converged (log-zoi-intercept
+  error 0.009–0.065 against 0.15; `sd(relmat)` error 0.029–0.101 against
+  0.25) — but a genuine failing seed (`"false convergence (8)"`) was found
+  before anything was committed. Next gate: a multi-seed convergence study
+  establishing the failure rate, not a single passing seed.
+- **mc-0607** (`zoi ~ phylo_interaction`). Clean at the original seed but
+  `"false convergence (8)"` at an alternate seed — notably the seed with the
+  *best* recovery; recovery ranges 0.03–0.13 against a 0.15 bound across 4
+  seeds. The mc-0597 internal-node-GMRF fragility (two composed tree GMRFs
+  carrying unobserved internal-node latents against too few observed
+  combinations) reappears at the zoi endpoint.
+- **mc-0613** (`coi ~ phylo`). Converges cleanly, but recovery is unstable:
+  `sd(phylo)` error ranges 0.006 to 0.227 against a 0.15 bound across 4
+  seeds, 3 of 4 outside.
+- **mc-0617** (`coi ~ phylo_interaction`). Converges cleanly; recovery ranges
+  0.01 to 0.31 against a 0.15 bound across 4 seeds, 2 of 4 outside. The
+  mc-0597/mc-0607 internal-node-GMRF fragility reappears at the coi endpoint.
+
+For all seven, the next gate is a design or parameterisation change — better
+conditioning, more observed atom observations per latent dimension, or a
+reduced-rank representation — **not** a larger optimizer budget and **not** a
+longer fixture.
+
+### Arc tally: 15 owed univariate-ML cells, 6 promoted, 9 refused on measurement
+
+Across this arc's four ledger passes, all 15 owed univariate-ML response-mask
+formula cells have now been measured:
+
+- **Promoted to `formula_validated` / G3 (6):** mc-0321, mc-0595, mc-0641,
+  mc-0653, mc-0662, mc-0667.
+- **Refused on measurement, stay `needs_formula_evidence` / G1 (9):**
+  mc-0596, mc-0597, mc-0603, mc-0604, mc-0605, mc-0607, mc-0613, mc-0614,
+  mc-0617.
+
+### A methodological finding that affects every future budget probe in this repo
+
+**Reusing one `MakeADFun()` object across successive `nlminb` budget probes
+warm-starts the Laplace inner optimization for `u_phylo` and produces a FALSE
+PASS at the higher budget. A fresh AD tape per budget is required to observe
+the true, persistent false-convergence result.**
+
+Note the direction: this artefact makes a cell look *better* at higher
+budgets, so it cannot have manufactured any of this arc's refusals —
+mc-0593, mc-0594, and mc-0596 all FAILED at their larger budgets and those
+failures stand, if anything understated. But it could have manufactured a
+promotion, and any earlier budget probe in this repository that reused its
+object should be re-read with that in mind.
+
+### File-level verification
+
+| file | FAIL | PASS |
+|---|---|---|
+| `test-zero-one-beta.R` | 13 | 3387 |
+| `test-missing-response-boundary.R` | 2 | 260 |
+
+Check: `python3 -B tools/tests/test_response_mask_formula_inventory.py`
+(5/5 OK); `python3 tools/capability_ledger.py --write`; `python3
+tools/capability_ledger.py --check` (OK, 32 generated outputs); `python3
+tools/response_mask_formula_inventory.py --check` (OK); a grep of the seven
+new `FORMULA_EVIDENCE` keys (`mc-0603`, `mc-0604`, `mc-0605`, `mc-0607`,
+`mc-0613`, `mc-0614`, `mc-0617`) against the dict before writing them, 0
+matches (no duplicates possible); an `ast`-based scan of the full
+`FORMULA_EVIDENCE` dict literal after the edit found 0 duplicate string
+keys; confirmed by direct TSV field extraction that all seven rows kept
+`formula_status = needs_formula_evidence` and `formula_mask_gate = G1`
+before and after this pass (status unchanged, `claim_boundary`/`next_gate`
+text rewritten); confirmed `mc-0606`/`mc-0615`/`mc-0616` (the deferred
+spatial zoi/coi siblings) were left untouched at `not_admitted`/G0;
+post-write status counts by category: 181 `formula_validated`, 110
+`needs_formula_evidence`, 358 `not_admitted`, 40 `blocked_reml`, 1
+`family_validated`, 1 `blocked_dense_known_V` — unchanged from pass 3, since
+no cell changes status this pass, only text.
+
+- RESOLVED (orchestrator, same day): the ledger pass recorded the
+  `test-zero-one-beta.R` and `test-missing-response-boundary.R` counts as
+  carried-over measurements, because its own independent re-run had not
+  finished inside that session. That re-run has since completed
+  independently of the agents that produced the changes, at the final
+  post-guard-lift tree state, and confirms both figures exactly:
+  `test-zero-one-beta.R` **FAIL 13 | PASS 3387** and
+  `test-missing-response-boundary.R` **FAIL 2 | PASS 260**. The 13 residual
+  zero-one-beta failures are the pre-existing set (mc-0583 x3, mc-0593 x5,
+  mc-0594 x4, mc-0585 x1); the boundary file is unchanged from its
+  pre-guard-lift baseline, which is the evidence that lifting the zoi/coi
+  admission gate caused no regression in the neighbouring boundaries.
+- Check: `NOT_CRAN=true R_PROFILE_USER=/dev/null Rscript --no-init-file -e
+  'suppressMessages(pkgload::load_all(".", compile = FALSE, quiet = TRUE));
+  testthat::test_file("tests/testthat/<file>", reporter =
+  testthat::CheckReporter$new())'` run for both files.

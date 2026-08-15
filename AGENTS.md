@@ -3,7 +3,41 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
+> **▶ Latest — start here (2026-08-14, → the response-mask formula-surface lane closes;
+> Rose audit + AGENTS.md pointer only, no code changed by this entry).**
+> Branch `codex/response-missing-formula-surface`, worktree
+> `/private/tmp/drmtmb-response-missing-formula-surface`. The lane's own inherited handover claim
+> ("No technical blocker for the 15 univariate cells") did not survive rehydration; Shinichi
+> reframed the goal to **truthful ledger first, cells second**. A 30-file audit reproduced **7 red
+> files / 35 failures** (not the 38 an earlier brief anticipated — the audit doc itself already
+> corrected this; see the after-task report), classified into four mechanisms, and drove four
+> repaired harness defects: a sentinel-arity check that silently ignored a third sentinel at six
+> call sites, five stale `expect_error` fences, four non-symbol structured-marker arguments that
+> made cited evidence unrunnable (`R/parse-formula.R`'s `is.symbol()` check), and three NA-injecting
+> scalar-`coi`-indexed-by-a-length-n-logical fixtures. Four ledger passes then moved
+> `response-mask-formulas.tsv` `formula_validated` from **185 to 181** (independently reproduced,
+> exact): **11 demotions, 6 promotions, 5 claim narrowings, 9 measured refusals recorded**. Of the
+> 15 originally OWED univariate-ML cells: **6 promoted** (mc-0321, mc-0595, mc-0641, mc-0653,
+> mc-0662, mc-0667), **9 refused on measurement** with a specific, non-generic `next_gate` each
+> (near-singular Hessians, internal-node GMRF over-parameterization, or a needed multi-seed
+> convergence study — not a bigger optimizer budget or a longer fixture). The zoi/coi
+> structured-atom missing-response guard in `R/drmTMB.R` was lifted (verified `src/` unchanged —
+> `src/drmTMB.cpp:3226` already masks the full zero-one-beta contribution); the separate `spatial`
+> zoi/coi deferral is untouched. **NOT claimed:** bivariate response masking (90 cells, 40
+> `blocked_reml`, 1 `blocked_dense_known_V`), missing predictors, MNAR, or any interval/coverage/
+> inference claim — no evidence from this arc was copied into them. **One open thread:** `mc-0577`'s
+> pass-1 "left for a follow-up ledger pass" note is never revisited in writing across passes 2–4; a
+> live rerun today shows its test currently passes, but the written record never says why or that it
+> was rechecked. **Next action:** this arc's 17 modified files (+2091/-305) and 9 new files are
+> **UNCOMMITTED** in the worktree — the implementing lane should commit (mirroring the four ledger
+> passes is one option) and open a PR before this state is lost; `NEWS.md` still describes the
+> pre-arc state and needs updating first. This is one of many live lanes; see the board's
+> Active-Lane-Split, [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md), for
+> the others, including the CRAN-gate lane preserved below as "Prior". START HERE:
+> [after-task report](docs/dev-log/after-task/2026-08-14-response-mask-formula-surface-arc.md) ·
+> [plan-vs-actual reconciliation](docs/dev-log/plan-actual/2026-08-14-response-mask-formula-surface.md).
+>
+> **▶ Prior (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
 > ship; `DESCRIPTION` is **0.7.0** on `main`).**
 > `main` = `511a7a390`. **Rung UNCHANGED and that is the point: `tarball-clean` proven,
 > `platform-clean` unproven.** Eight PRs merged today advanced the *record*, not the *claim*.

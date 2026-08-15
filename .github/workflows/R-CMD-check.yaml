@@ -77,7 +77,9 @@ jobs:
       # still credits it. See
       # docs/dev-log/after-task/2026-08-03-b4-ci-mc-0207-pin-drift.md.
       #
-      # 6 of 9 run. (This count read "5 of 7" before Arc 7b: it had missed
+      # 7 of 10 run. (This count read "6 of 9" before
+      # test_response_mask_formula_inventory.py was added and wired in the
+      # same change; before that it read "5 of 7": it had missed
       # test_b4_ci_guard.py, which already existed and was already wired. A
       # stale count in the comment whose whole purpose is to stop guards going
       # stale is worth correcting rather than propagating.)
@@ -113,6 +115,7 @@ jobs:
           python3 -m unittest tools/tests/test_b4_ci_guard.py
           python3 -m unittest tools/tests/test_b4_ci_c1.py
           python3 -m unittest tools/tests/test_profile_truth_gate.py
+          python3 -m unittest tools/tests/test_response_mask_formula_inventory.py
           Rscript --no-init-file tools/emit-profile-truth-manifest.R --check
           Rscript --no-init-file tools/check-capability-runtime.R
 

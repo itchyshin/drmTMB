@@ -5895,19 +5895,6 @@ drm_build_zero_one_beta_spec <- function(
   }
   coi_structured <- if (!is.null(coi_phylo$term)) coi_phylo$term else if (!is.null(coi_animal$term)) coi_animal$term else if (!is.null(coi_relmat$term)) coi_relmat$term else if (!is.null(coi_spatial$term)) coi_spatial$term else coi_phylo_interaction$term
 
-  if (include_missing_response && !is.null(zoi_structured)) {
-    cli::cli_abort(c(
-      "The zero-one-beta zoi q1 structured-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with a structured zoi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
-    ))
-  }
-  if (include_missing_response && !is.null(coi_structured)) {
-    cli::cli_abort(c(
-      "The zero-one-beta coi q1 structured-effect gate does not support missing responses.",
-      "i" = "Use complete observed responses with a structured coi provider such as {.fn phylo}, {.fn animal}, {.fn relmat}, or {.fn phylo_interaction}."
-    ))
-  }
-
   structured_endpoints <- list(
     mu = mu_structured,
     sigma = sigma_structured,
