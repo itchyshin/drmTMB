@@ -19,9 +19,14 @@ exact-bytes classes are the local `--as-cran` and the Totoro valgrind run.
 | --- | --- | --- |
 | setup | success | n/a |
 | **clang-asan** | **failure** | **NO SANITIZER FINDINGS — job failure is vignette non-convergence, see below** |
-| clang-ubsan | *pending at write* | *(fill on completion)* |
-| gcc-asan | *pending at write* | *(fill on completion)* |
+| **clang-ubsan** | **success** | **PASS — `Status: OK` INCLUDING vignette rebuilds**: the three fragile vignettes converge under UBSAN's instrumented build, so instrumentation per se does not break them |
+| **gcc-asan** | **success** | **PASS — tests, examples, and `--run-donttest` all clean under a second, independent ASAN compiler**; vignette rebuild `SKIPPED` by that container's config, so this job does NOT discriminate the clang-asan vignette failure and is not cited as doing so |
 | **rchk** | **failure** | **NOISE — identical signature to the 2026-08-07 adjudication, inherited with fresh evidence** |
+
+**Matrix summary (run complete, conclusion `failure` at the job-gate level, adjudicated):** zero
+memory-safety or undefined-behaviour findings across all three sanitizer jobs; the only red jobs
+are the pre-adjudicated rchk noise class and a vignette-convergence quirk specific to the
+clang-ASAN environment, which clang-ubsan's own full vignette rebuild bounds from the other side.
 
 ### clang-asan — zero sanitizer reports; the failure is numerical, not memory-safety
 
