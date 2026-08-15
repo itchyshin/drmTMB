@@ -93601,3 +93601,42 @@ can see which commit each one actually examined.
   by choice with owners recorded in
   `docs/dev-log/plan-actual/2026-08-15-external-oracle.md`, alongside a routing
   commitment honoured on one of three eligible slices.
+
+## 2026-08-15 — `ranef()` and `fixef()` now dispatch regardless of attach order
+
+- **The bug, in user terms.** `library(drmTMB); library(glmmTMB)` made `ranef(fit)`
+  fail outright with "no applicable method for 'ranef' applied to an object of
+  class `drmTMB`". Load order was the only cause; nothing about the fit was wrong.
+  The same held for `lme4` and `nlme`, and for `fixef()`.
+- **Why.** `fixef()` and `ranef()` are drmTMB's own generics (`R/methods.R`), but
+  `nlme` defines generics of the same name and **`lme4` and `glmmTMB` re-export
+  `nlme`'s rather than defining their own** — verified by
+  `identical(lme4::ranef, nlme::ranef)` and the same for `glmmTMB` and `fixef`.
+  Whichever package attaches last wins, and `nlme`'s generic had no drmTMB method.
+- **Fix.** `R/zzz.R`'s `.onLoad` now registers `fixef.drmTMB` and `ranef.drmTMB`
+  against `nlme`'s generics. Because all three packages share that one generic,
+  a single registration covers `nlme`, `lme4` and `glmmTMB`. Registration is
+  dynamic rather than a `NAMESPACE` `S3method()` directive because `nlme` is
+  optional here — drmTMB does not import it and must load without it — so
+  `NAMESPACE` is unchanged. `nlme` is added to `Suggests`.
+- **`sigma()` needed nothing** and was deliberately left alone: it is already
+  registered against `stats::sigma`, the generic `lme4` and `glmmTMB` also use, so
+  no attach order can mask it. A test records this so it is not "fixed" by reflex.
+- **The test is non-vacuous, proven by disabling the fix.** With
+  `register_foreign_s3_methods()` commented out the new file reports **2 failures**
+  (`nlme::ranef` and `nlme::fixef` both error); with it restored, **12 pass**. The
+  end-to-end user scenario was also exercised directly: attach `glmmTMB` after
+  `drmTMB`, confirm `ranef` still resolves through `nlme`'s generic, and confirm
+  bare `ranef(fit)` and `fixef(fit)` both work — then attach `lme4` as well and
+  confirm they still work.
+- Regression surface re-run: `test-reader-journeys.R` 53, `test-reader-public-schema.R`
+  34, `test-comparators-external-oracle.R` 28, `test-comparators.R` 134 — all with
+  0 failures and 0 skips. Reader-contract linter OK; capability-ledger OK with 73
+  ledger tests and C17 current-source compatibility PASS. `R/methods.R` and the
+  other four receipt-pinned files are untouched, which is why the fix lives in
+  `R/zzz.R` rather than beside the methods it registers.
+- **Why this mattered enough to fix at package level.** The class had already been
+  repaired twice at the caller: `library(lme4)` in the oracle test file broke the
+  landed reader tests (PR #1031), and `library(glmmTMB)` in a new article broke
+  eight downstream vignettes under `--as-cran`. Both repairs removed an attach.
+  Neither helped a user, who has every right to attach a comparator package.
