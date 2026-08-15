@@ -445,6 +445,15 @@ test_that("Comparison 7 (c09): lognormal() mu ~ species, sigma ~ sex agrees with
 
   expect_equal(fit$opt$convergence, 0)
 
+  # Pin the structure this comparison exists to demonstrate. Without these two
+  # assertions the block is nearly vacuous on its own subject: collapsing BOTH
+  # sides to sigma = ~1 / dispformula = ~1 leaves four of the five original
+  # assertions passing, because unname()'d coefficient vectors of equal length
+  # still agree. Naming the terms is what makes the sex-varying scale
+  # load-bearing rather than incidental.
+  expect_named(coef(fit, "sigma"), c("(Intercept)", "sexmale"))
+  expect_named(glmmTMB::fixef(fit_glmm)$disp, c("(Intercept)", "sexmale"))
+
   # Compare on the log scale, coefficient-for-coefficient, sigma unsquared.
   # Measured max abs diff: mu ~4e-8, sigma ~1.5e-7 -- essentially exact,
   # since neither side involves a Laplace approximation here.

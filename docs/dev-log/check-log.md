@@ -93902,3 +93902,25 @@ were about attribution and completeness, and are closed here:
   37. The automated ledger test does not check that sentence — it checks the title,
   the "N rows." statement and the table stems — so the count was internally
   inconsistent while passing. Corrected.
+- The c04–c09 build specifications — the surface flagged as unaudited for three to
+  four rounds — were finally audited by re-fitting every model in fresh sessions.
+  **Every displayed number reproduced**, no number was attached to the wrong model,
+  and 14 of 16 deliberately introduced mutants were caught. Three defects were
+  found and are fixed here:
+  - The article said `rma.mv(struct = "DIAG")` treats `alternate` as a reference
+    level "on both sides". It has **no** reference level: it estimates one free
+    `tau^2` per level, so its four parameters are one `beta` plus three `tau^2`.
+    What makes the two sides line up is level **order**, not a shared reference.
+    Notably **the test file already had this right and the article did not** — the
+    guard was more accurate than the prose it was guarding.
+  - `mc-0227` was described as "a tier lower"; the ordered scale places
+    `diagnostic_only` between the two, so it is two tiers.
+  - The Comparison 7 test did not pin the `sigma ~ sex` structure the section
+    exists to demonstrate. Collapsing **both** sides to an intercept-only scale
+    left four of five assertions passing, because `unname()`'d coefficient vectors
+    of equal length still agree. Two `expect_named()` assertions now pin the terms;
+    re-running that same mutation produces **3 failures** instead of 1.
+- Not covered by that audit, and stated so nobody reads it as broader than it is:
+  `nbinom2` `theta = 1/sigma^2` was outside the audited range, and beta `phi`,
+  the tweedie `2 *` factor and the `rho12` guard are exercised nowhere in either
+  artifact — correctly absent rather than wrongly asserted.

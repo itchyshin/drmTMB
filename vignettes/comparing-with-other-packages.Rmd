@@ -209,8 +209,13 @@ cmp3$tau2
 
 `drmTMB`'s `sigma` linear predictor is on the `log(tau)` scale, and each
 allocation level's value is the intercept plus that level's contrast, with
-`alternate` as the reference on both sides. Exponentiating gives per-level
-`tau`, matching `rma.mv()`'s response-scale `tau`:
+`alternate` as the reference. `rma.mv()` under `struct = "DIAG"` has **no**
+reference level: it estimates one free `tau^2` per level directly, so its four
+parameters are one `beta` plus three `tau^2`. What makes the two line up is
+therefore level **order**, not a shared reference — `rma.mv()` reports in the
+order of `g.levels.f`, and the comparison below relies on that. Exponentiating
+`drmTMB`'s side gives per-level `tau`, matching `rma.mv()`'s response-scale
+`tau`:
 
 ```{r comparison3-convert, eval = has_metafor && has_metadat}
 sigma3 <- coef(fit3, "sigma")
@@ -354,8 +359,9 @@ interval feasibility for that one cell's direct intercept-SD target on a
 frozen low-rung fixture, it was not evaluated for coverage or calibration,
 and it carries no public interval guidance, no broader family or formula
 support, and nothing about correlated or labelled effects. A random *slope*
-on this family is a different cell (`mc-0227`, recorded a tier lower at
-`point_fit_recovery`) and is not what this comparison fits.
+on this family is a different cell (`mc-0227`, recorded two tiers lower at
+`point_fit_recovery` — the ordered scale places `diagnostic_only` between the
+two) and is not what this comparison fits.
 
 **Independence:** `ordinal` is not yet classified in `drmTMB`'s design
 documents.
