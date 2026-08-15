@@ -93861,3 +93861,16 @@ were about attribution and completeness, and are closed here:
   callers: any user who attaches `lme4`, `glmmTMB` or `nlme` after `drmTMB` loses
   `ranef()`. That is worth a separate fix — registering `ranef.drmTMB` on the
   `nlme` generic — and is **not** attempted here.
+- The second `--as-cran` cleared all eight downstream vignettes but failed on the
+  new article itself, in a cascade from the same root cause: with `glmmTMB` no
+  longer attached, `fixef(cmp6)` reached drmTMB's `fixef` (no method for a
+  `glmmTMB` object) and `Owls` was no longer on the search path. Repaired by
+  qualifying `glmmTMB::fixef()` on all three comparator fits and loading
+  `data(Owls, package = "glmmTMB")` explicitly. `rmarkdown::render()` now
+  completes, `glmmTMB` is absent from the search path afterwards, and `ranef`
+  resolves to `drmTMB`.
+- **Method note, because it changes what "verified" means here.** The earlier
+  `knitr::knit()` check reported OK on a file that `rmarkdown::render()` then
+  failed. `R CMD check` re-builds vignettes with `rmarkdown`, so `render()` is the
+  authoritative local check and `knit()` is not a substitute for it. Both
+  cascading defects were invisible to `knit()`.

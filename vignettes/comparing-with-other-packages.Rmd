@@ -422,8 +422,8 @@ coef(fit6, "sigma")
 cmp6 <- glmmTMB::glmmTMB(
   Reaction ~ Days + (Days | Subject), dispformula = ~ Days, data = sleepstudy
 )
-fixef(cmp6)$cond
-fixef(cmp6)$disp
+glmmTMB::fixef(cmp6)$cond
+glmmTMB::fixef(cmp6)$disp
 ```
 
 With a random effect on `mu`, `logLik()` is a Laplace marginal on both sides,
@@ -432,7 +432,7 @@ packages share instead is the marginal log-likelihood itself:
 
 ```{r comparison6-loglik, eval = has_lme4 && has_glmmTMB}
 c(drmTMB = as.numeric(logLik(fit6)), glmmTMB = as.numeric(logLik(cmp6)))
-abs(coef(fit6, "sigma") - fixef(cmp6)$disp)
+abs(coef(fit6, "sigma") - glmmTMB::fixef(cmp6)$disp)
 ```
 
 The `sigma` slope on `Days` is positive: residual spread grows with each day
@@ -466,8 +466,8 @@ coef(fit7, "sigma")
 cmp7 <- glmmTMB::glmmTMB(
   log(body_mass_g) ~ species, dispformula = ~ sex, data = pen, family = gaussian()
 )
-fixef(cmp7)$cond
-fixef(cmp7)$disp
+glmmTMB::fixef(cmp7)$cond
+glmmTMB::fixef(cmp7)$disp
 ```
 
 Compare on the log scale, coefficient for coefficient, with `sigma`
@@ -513,6 +513,7 @@ The scale conversion is again checked first on a fixed-effect variant, where
 the likelihood is exact:
 
 ```{r comparison8-fe-check, eval = has_glmmTMB}
+data(Owls, package = "glmmTMB")
 fit8_fe <- drmTMB(
   bf(mu = SiblingNegotiation ~ FoodTreatment, sigma = ~ FoodTreatment),
   data = Owls, family = drmTMB::nbinom2()
@@ -569,14 +570,14 @@ cmp8 <- glmmTMB::glmmTMB(
   SiblingNegotiation ~ FoodTreatment * SexParent + (1 | Nest),
   dispformula = ~ FoodTreatment, family = glmmTMB::nbinom2, data = Owls
 )
-fixef(cmp8)$cond
-fixef(cmp8)$disp
+glmmTMB::fixef(cmp8)$cond
+glmmTMB::fixef(cmp8)$disp
 ```
 
 ```{r comparison8-convert, eval = has_glmmTMB}
 c(drmTMB = as.numeric(logLik(fit8)), glmmTMB = as.numeric(logLik(cmp8)))
 sigma8 <- coef(fit8, "sigma")
-abs(-2 * sigma8 - fixef(cmp8)$disp)
+abs(-2 * sigma8 - glmmTMB::fixef(cmp8)$disp)
 ```
 
 Skip the conversion and the mismatch is large enough to notice — but it is
