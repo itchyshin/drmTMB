@@ -136,8 +136,12 @@ reads is empty somewhere.
 
 ## 10. Known Residuals
 
-- **The re-freeze decision is unmade** — the one OWED step this lane cannot execute. Put to Shinichi
-  with both options and a recommendation; not resolved at time of writing.
+- **The re-freeze decision is now MADE and is no longer a residual.** Put to Shinichi with the
+  notice's two options plus a third; he chose the third — **do not re-freeze yet**. Recorded in
+  `docs/dev-log/release-audits/2026-08-15-070-refreeze-timing-decision.md`, which also lists the five
+  conditions that must hold before the next freeze. The rung stays `tarball-clean`.
+- **Step 6 of the handover is deliberately not started.** Planning platform evidence for a candidate
+  that will not be cut yet would be wasted; the campaign runs once, against shipping bytes.
 - **D-93 HELD**, undischarged. No engineering step in this repo can discharge it.
 - **D-117 not discharged** — owner call, with the recommendation's four conditions attached.
 - **`8245449f2` unlanded** (§7a).

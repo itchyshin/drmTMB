@@ -16,8 +16,13 @@ regression using Template Model Builder.
 > a CRAN release drmTMB has not had; **all 42 open issues triaged — 0 BLOCKING**; the one
 > user-surface defect (#983 estimator round-trip) fixed with four limitations documented; C17
 > re-certified (behaviour reproduced **exactly**, `|change| 0.000e+00`).
-> **⚠ The candidate no longer matches `main`** (`NEWS.md` + today's source fixes are shipped files),
-> so **a re-freeze is required before submission**.
+> **⚠ The candidate no longer matches `main`** — **60 shipped files** differ as of 2026-08-15,
+> including `src/drmTMB.cpp` (#1012), while `DESCRIPTION` still reads `Version: 0.7.0`. A re-freeze
+> is required before submission, but **Shinichi decided 2026-08-15 NOT to re-freeze yet**: the
+> release is held by D-93/D-117 anyway, so the new platform-matrix campaign the moved `src/` forces
+> should run **once**, against the bytes that will actually ship. Do not build an ad-hoc tarball from
+> `main` and treat it as the candidate. Conditions for the next freeze:
+> [`docs/dev-log/release-audits/2026-08-15-070-refreeze-timing-decision.md`](docs/dev-log/release-audits/2026-08-15-070-refreeze-timing-decision.md).
 > **What gates the release is NOT engineering:** **D-93** holds 0.7.0 undischarged; **D-117**
 > measured 0.9248 over 400,000 attempts with discharge **RECOMMENDED, NOT DECIDED**; **win-builder is
 > ABSENT** (Shinichi's action); the rights re-review and source-clean re-cut are owed.
