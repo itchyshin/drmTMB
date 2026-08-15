@@ -1,0 +1,16 @@
+field	value
+runner_source_sha	8790f2e12baa892744e27aab60f57457f86aeeaa
+source_state	COMMITTED
+cohort_path	2026-07-31-b2-q12-phylo-repaired-fit-only-cohort.tsv
+re_admission_path	2026-07-31-b2-q12-phylo-repaired-fit-only-re-admission.tsv
+prior_failure_source_sha	d128a8e2b71fce9940cdb38b2301682425694bef
+prior_failure_disposition	RETAINED_UNCHANGED
+atlas_root	docs/dev-log/interval-feasibility/fit-atlas/8790f2e12baa892744e27aab60f57457f86aeeaa/b2-q12-phylo-repaired-fit-only
+fit_count	1
+atlas_disposition	RETAINED_FIT_FAILURE
+failure_gate	convergence_1__global_pdHess_FALSE__nonfinite_whole_block_SEs
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+profile_packet	NOT_EMITTED
+claim_ceiling	fit_only_admission
+negative_control	mc-0260m retained non-covering K=12 control

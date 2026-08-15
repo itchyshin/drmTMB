@@ -1,0 +1,3 @@
+cell_id	target_id	dgp_id	seed	information_rung	source_sha	execution_scope	claim_ceiling	authorization_state
+mc-0423	mc-0423::sd:sigma:animal(0 + x | id)	b1_nbinom2_sigma_animal	20260728	low	c08b5254f86cb89c7c3966daa64e87059853c071	local_only	interval_feasible	approved_for_local_profile
+mc-0438	mc-0438::sd:mu:phylo_interaction(1 | plant:pollinator)	b1_phylo_interaction_poisson	20260728	low	c08b5254f86cb89c7c3966daa64e87059853c071	local_only	interval_feasible	approved_for_local_profile

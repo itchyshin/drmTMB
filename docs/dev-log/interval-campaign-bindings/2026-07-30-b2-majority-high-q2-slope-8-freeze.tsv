@@ -1,0 +1,12 @@
+field	value
+contract_path	docs/dev-log/interval-campaign-bindings/2026-07-30-b2-majority-high-q2-slope-8-contract.tsv
+source_sha	fac36c37def62b6741e762da907a7694f1eb42d9
+contract_sha256	793b0a2350202b36737a71576537d84936518564d4280827cd8cc178ad69205b
+candidate_count	8
+information_rung	high
+fixture_geometry	72_groups_x_20_observations
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible
+package_implementation	ADMITTED

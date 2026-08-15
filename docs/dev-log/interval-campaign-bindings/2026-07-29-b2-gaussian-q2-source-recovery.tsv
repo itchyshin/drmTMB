@@ -1,0 +1,19 @@
+cohort	cell_id	source_record	source_anchor_sha	source_state	target_id	dgp_id	seed	information_rung	target_cardinality	execution_authorized	recovery_status	blocker
+gaussian_q2	mc-0278	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_BLOCK_TARGET_UNRESOLVED
+gaussian_q2	mc-0279	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_BLOCK_TARGET_UNRESOLVED
+gaussian_q2	mc-0280	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0281	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0282	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	REML_BELOW_INFORMATION_FLOOR
+gaussian_q2	mc-0283	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	REML_BELOW_INFORMATION_FLOOR
+gaussian_q2	mc-0291	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_BLOCK_TARGET_UNRESOLVED
+gaussian_q2	mc-0292	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_BLOCK_TARGET_UNRESOLVED
+gaussian_q2	mc-0293	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0294	2026-07-27-e4-atlas-q2-q4.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0303	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ROUTE_TARGET_SPLIT_UNRESOLVED
+gaussian_q2	mc-0304	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ROUTE_TARGET_SPLIT_UNRESOLVED
+gaussian_q2	mc-0305	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ONE_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0306	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ONE_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0315	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ROUTE_TARGET_SPLIT_UNRESOLVED
+gaussian_q2	mc-0316	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ROUTE_TARGET_SPLIT_UNRESOLVED
+gaussian_q2	mc-0317	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ONE_SLOPE_TARGET_UNRESOLVED
+gaussian_q2	mc-0318	2026-07-27-e4-atlas-q1.tsv	095409c0231d5f14e9abd4a0d986ff7486741e01	source_receipt_only_not_recovered						FALSE	unresolved	MATCHED_ONE_SLOPE_TARGET_UNRESOLVED

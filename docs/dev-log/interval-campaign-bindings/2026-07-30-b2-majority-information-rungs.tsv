@@ -1,0 +1,5 @@
+fixture_module	low_groups	low_replicates	medium_groups	medium_replicates	high_groups	high_replicates	use
+b2_direct_gaussian	0	160	0	320	0	640	fixed-effect and ordinary-RE target confirmation
+b2_direct_biv_gaussian	24	12	40	16	64	20	bivariate direct target confirmation; keep Lane A boundary
+b2_structured_q1	28	12	48	16	72	20	structured q1 interval preflight after target atlas
+b2_gaussian_q2	24	12	48	16	72	20	q2 intercept-only interval preflight; slopes remain excluded
