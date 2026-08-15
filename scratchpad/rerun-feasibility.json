@@ -1,0 +1,17 @@
+{
+ "has_contract": [],
+ "has_runner": [
+  "mr-beta",
+  "mr-beta-binomial",
+  "mr-binomial",
+  "mr-biv-gaussian",
+  "mr-cumulative-logit-mu-x",
+  "mr-gamma",
+  "mr-gaussian",
+  "mr-lognormal",
+  "mr-skew-normal",
+  "mr-tweedie",
+  "mr-zero-one-beta",
+  "mr-zi-poisson"
+ ]
+}

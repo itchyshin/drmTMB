@@ -1,6 +1,10 @@
 # Checkpoint — OVERWRITTEN every arc (a pointer to truth, not a log)
 
-GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 78 pass / 7 fail (all spatial) / 31 no truth.**
+GOAL: see LOOP/GOAL.md.  STATE: **all four owner-ordered items DONE. Arc at a decision point.**
+
+116 re-check: 78 pass / 7 fail (all spatial) / 31 no truth · spatial repair + narrowed claim ·
+mc-0248 corrected (my error) · 134 off-mainline runners+contracts recovered · the 73 SCOPED as a
+construction programme, not a compute job. **No compute spent anywhere in this arc.**
 
 - **DONE (verified):**
   - Wave 1 classify → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md`. 210 uncovered,
@@ -30,8 +34,14 @@ GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 78 pass / 7 fail (al
      100 of 101 campaign contracts are likewise off-mainline. Evidence is real and recoverable but
      not reproducible from a clean mainline checkout. Recover the runners onto main, or record the
      limitation?
-  4. Still open from the T1 gate: the **73 re-runs** (compute), and the **26 top-tier cells** with no
-     receipt (4 `supported` on evidence rows with no command/run_id/replicates).
+  4. **The 73 "re-runs" — SCOPED, not started** → `docs/dev-log/2026-08-15-rerun-73-scoping.md`.
+     **0 of 73 have a contract; 0 have a profile runner.** So there is no truth to check against and
+     nothing to re-run: this is fixture-and-contract *construction*, ~40-70 h across 47 distinct
+     (family x provider x dpar x effect) combinations with no reuse. Compute is negligible (7.5 s/fit)
+     — **neither Totoro nor DRAC is warranted**. Recommended split: (a) decide whether the truth
+     manifest can carry FIXED-EFFECT targets, which unlocks 37 of 47; (b) 3-cell pilot to replace the
+     estimate with a measurement; (c) treat the 4 `supported` + 22 `inference_ready_with_caveats` as a
+     CLAIMS question, not a fixture one; (d) label the 5 `association` cells out of the gate's domain.
 - **WHERE TRUTH LIVES:** branch `claude/lane-interval-truth-audit` (local, unpushed — push is a gate).
   Machine outputs: `scratchpad/recovered-truth.json`, `scratchpad/recheck-verdicts.json`,
   `scratchpad/recheck-runners.json`, `scratchpad/wave1-classification.json`.
