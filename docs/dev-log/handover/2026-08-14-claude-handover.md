@@ -150,7 +150,7 @@ reconcile foreign work. The reader deliverable itself is landed and verified.
 | `origin/main@6637b9f016e` | yes | yes | #1027 + #1028 merged | LANDED |
 | `codex/native-reader-contracts@c1a756ee9` | yes | yes | #1027 merged | LANDED; retained branch |
 | `codex/native-reader-contract-schemas@18a64b1fe` | yes | yes | #1028 merged | LANDED; retained branch |
-| `codex/2026-08-14-claude-handover-reader` | pending this handover commit | pending | pending | CARRIED-OVER handover only; do not merge without review |
+| `codex/2026-08-14-claude-handover-reader@0e014d9be` | yes | yes | #1029 open | CARRIED-OVER handover only; do not merge without review |
 | `codex/response-missing-formula-surface@63ee00c43` | yes | yes | none | PROTECTED; separate Claude handover |
 | `codex/joint-mi-two-predictor@cbbf380bd` | yes | no | none | CARRIED-OVER / PROTECTED foreign work |
 | Dirty primary `claude/handover-freshness-0718` | mixed | mixed | unrelated | PROTECTED; never clean or stage |
