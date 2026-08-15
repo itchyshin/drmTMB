@@ -214,7 +214,7 @@ cell, and the section below is where that question actually lives.
 
 This is the section that determines whether "hold until it is fixed" has a finite path. The
 repository has already tried four things. Two failed and are measured; one works but does not
-reach this cell; one is available, directly relevant, and **has never been run on this target**.
+reach this cell; one is available and directly relevant — REML — and was **measured later this same day** (see the boxed note in §7 and the VERDICT it cites).
 
 **Tried and measured as insufficient: the marginal bootstrap.** 0.8714 pooled, 0.8103 at 10
 groups (`a1_coverage_summary.txt:14,17`). Increasing bootstrap resamples from R = 199 to R = 999
@@ -360,8 +360,16 @@ nominal 0.95. The floor it clears was fitted to what profile intervals achieve a
 clearing it is a statement about typical method behaviour, not an independent finding of adequacy.
 The literature has no benchmark to compare against below 10–15 groups and reports residual bias at
 25 groups even with REML, so there is no external evidence that nominal-exact is attainable here —
-and none that it is not. One concrete lever, REML on this exact target, is implemented and has
-never been measured.
+and none that it is not.
+
+**⚠ 2026-08-15, same day, later: the REML arm has now been RUN** — 400,000 paired replicates on
+Totoro against a harness that reproduced the banked ML gate to five decimals
+(`docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/VERDICT.md`, pre-registered before
+results existed). **REML moves pooled coverage 0.924800 → 0.946325 (exact CI [0.9456, 0.9470],
+excluding 0.95), halves the point-estimate bias (−10.92% → −4.60%), and collapses the miss
+asymmetry from 5.72:1 to 2.03:1.** The pre-registered verdict: **NARROWS BUT DOES NOT CLOSE** —
+85% of the gap closed, the last 0.4 points not. The paragraphs below are kept as written for the
+record; where they say the lever is unmeasured, this measurement supersedes them.
 
 **This is a bar question, not a transparency question.** Every user-facing statement Reading B
 would require is already on `origin/main` — the 8.3%–15.8% point bias in four places (§3), the
@@ -392,14 +400,24 @@ known-weak inference in the sense D-93 meant. The risk you accept is that "docum
 the work "fixed" was supposed to do — which is close to the trade you declined on 2026-07-27, and
 is the reason this is your call and not mine.
 
-**Recommendation (mine, labelled, and not the decision).** I would take Reading B *conditional on
-the REML arm being run first* — because it is cheap (about 20 minutes of Totoro compute on an
-existing harness), because it is the one named lever nobody has measured on this target, and
-because lifting the hold without it means retiring D-93 while the obvious next experiment sits
-undone. If REML reaches nominal, Reading A's bar is met and the question dissolves. If it does
-not, you would be deciding Reading B on strictly better information than you have now. I hold
-this at moderate confidence and note the argument against it: an unmeasured lever is also an
-argument for keeping the hold, and you have already overridden one recommendation on this exact
+**Recommendation (mine, labelled, and not the decision).** The original recommendation here was
+Reading B *conditional on the REML arm being run first*. **That condition is now satisfied** —
+the arm ran the same day (VERDICT above): REML did **not** reach nominal, so Reading A's bar did
+not dissolve, and you are now deciding on strictly better information, exactly the position the
+condition was designed to produce. The choice the numbers leave is clean:
+
+- Under **Reading A**, 0.9463 with a CI excluding 0.95 still fails, and the remaining path is
+  design 218's research-grade derivation on an open timeline — REML was the last cheap lever, and
+  it is now spent.
+- Under **Reading B**, the honest disclosure is materially better than it was this morning: a
+  0.4-point shortfall with 2:1 asymmetry under REML, versus 2.5 points with 5.7:1 under ML — with
+  the caveat that REML on this route is measured on this cell only, and making REML the
+  *recommended* estimator for small-`g` random-effect SDs would need its own scope decision.
+
+I now recommend **Reading B, with REML's measured position stated in the capability claim**, at
+somewhat more than moderate confidence. The argument against is unchanged and still real: Reading
+B accepts that "documented" does the work "fixed" was meant to do, which is close to the trade you
+declined on 2026-07-27 — and you have already overridden one recommendation on this exact
 question.
 
 **The question, which I am not answering:**
