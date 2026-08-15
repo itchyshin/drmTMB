@@ -799,15 +799,30 @@ EVIDENCE_TIERS = {
     "none", "miswired", "na",
 }
 
-# `supported` is the ladder's genuine summit: coverage-backed, interval-reporting
-# permission. `legacy_fit_supported` is the 2026-07-11 migration's imported board
-# `fit_status` value -- a statement that the model FITS, not that its interval was
-# ever checked -- and it therefore sits BELOW `interval_feasible`. The two were one
-# token until 2026-08-15, which made the ladder's summit authorize strictly less
-# than the rung beneath it while still being counted first as the strongest evidence.
+# TIER_ORDER is strongest-first, and it MUST stay monotone in what the reader is
+# actually permitted to report (see reader_reporting_permissions). Two inversions
+# were fixed on 2026-08-15:
+#
+#   * `supported` was one token for both the ladder's summit and the 2026-07-11
+#     migration's imported board `fit_status` label, so the summit authorized
+#     strictly LESS than the rung beneath it. The legacy meaning now has its own
+#     token, `legacy_fit_supported`.
+#   * `diagnostic_only` ranked ABOVE `point_fit_recovery` while granting strictly
+#     less -- diagnostic evidence carries no point-report permission, whereas
+#     recovery-backed point estimates do.
+#
+# Permission strength, strongest first: point+interval (supported,
+# inference_ready_with_caveats) > point only (interval_feasible,
+# point_fit_recovery, legacy_fit_supported) > nothing (diagnostic_only, none).
+# Within the point-only band the ordering is by evidence strength: a well-formed
+# profile (interval_feasible) > a recovery test (point_fit_recovery) > a legacy
+# label with no run behind it (legacy_fit_supported).
+#
+# test_tier_order_is_monotone_in_reader_permission pins this; it is the guard that
+# would have caught both inversions.
 TIER_ORDER = [
     "supported", "inference_ready_with_caveats", "interval_feasible",
-    "legacy_fit_supported", "diagnostic_only", "point_fit_recovery",
+    "point_fit_recovery", "legacy_fit_supported", "diagnostic_only",
     "none", "miswired",
 ]
 STRUCTURED_PROVIDERS = [
@@ -4034,7 +4049,7 @@ def surface_html(
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
 <h2 id="association">Staged association capability</h2>
-<p>The evidence ladder is point-fit recovery → legacy fit-supported → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
+<p>The evidence ladder is diagnostic-only → legacy fit-supported → point-fit recovery → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
 <div class="table-wrap"><table><caption>{len(association)} post-fit <code>associate_pairs()</code> capability cells</caption><thead><tr><th scope="col">Cell</th><th scope="col">Pair route</th><th scope="col">Shape</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody>{association_rows}</tbody></table></div>
 <h2 id="missing-response">Missing-response evidence</h2>
 <p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>

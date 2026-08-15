@@ -1075,6 +1075,39 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         self.assertLess(order.index("supported"), order.index("interval_feasible"))
 
+    def test_tier_order_is_monotone_in_reader_permission(self):
+        """A stronger rank must never authorize LESS than a weaker one.
+
+        This is the guard for a defect class the ledger hit twice, found on
+        2026-08-15:
+
+          * `supported` sat at the summit while the reader translator gave it the
+            legacy fit label's wording, so it authorized strictly less than
+            `inference_ready_with_caveats` directly beneath it.
+          * `diagnostic_only` ranked above `point_fit_recovery` while granting no
+            point-report permission at all, where `point_fit_recovery` grants one.
+
+        Both were invisible because rank and permission lived in different
+        functions and nothing compared them. This compares them.
+        """
+        def permits(tier):
+            _, point, interval = ledger.reader_reporting_permissions(
+                {"capability_status": "implemented", "evidence_tier": tier},
+                "profile interval",
+            )
+            return (interval.startswith("Yes"), point.startswith("Yes"))
+
+        ranked = [t for t in ledger.TIER_ORDER if t not in {"miswired", "none"}]
+        for stronger, weaker in zip(ranked, ranked[1:]):
+            s_int, s_pt = permits(stronger)
+            w_int, w_pt = permits(weaker)
+            self.assertGreaterEqual(
+                (s_int, s_pt), (w_int, w_pt),
+                f"{stronger} ranks above {weaker} but authorizes less: "
+                f"{stronger}=(interval={s_int}, point={s_pt}) vs "
+                f"{weaker}=(interval={w_int}, point={w_pt})",
+            )
+
     def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
         generated = ledger.outputs(self.cells, self.evidence)
         rendered = generated[ledger.READER_SUMMARY].decode("utf-8")
