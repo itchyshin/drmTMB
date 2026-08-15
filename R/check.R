@@ -508,7 +508,18 @@ check_logsigma_clamp_active <- function(object) {
       "The log(sigma) clamp does not apply to this family."
     ))
   }
-  report <- tryCatch(object$obj$report(), error = function(e) NULL)
+  # This runs post-hoc on a stored fit, whose `obj$env$last.par` was left a
+  # finite-difference step away from the optimum by `TMB::sdreport()` during the
+  # fit. A bare `report()` defaults to `last.par`, so the clamp would be judged --
+  # and its value printed -- off-optimum. Report at the fit's stored `tmb_state`,
+  # which was captured before sdreport. Passing the parameter vector rather than
+  # re-pinning matters: a pin would MUTATE the stored fit's TMB object as a side
+  # effect of running a diagnostic, and a diagnostic must not change the object
+  # it inspects.
+  report <- tryCatch(
+    object$obj$report(object$tmb_state$last.par.best),
+    error = function(e) NULL
+  )
   if (is.null(report)) {
     return(check_row(
       "logsigma_clamp_active",
