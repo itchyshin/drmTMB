@@ -1,39 +1,37 @@
 # Checkpoint — OVERWRITTEN every arc (a pointer to truth, not a log)
 
-GOAL: see LOOP/GOAL.md.  STATE: **Wave 1 COMPLETE. STOPPED AT GATE `T1-classify`, awaiting Shinichi.**
+GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 77 pass / 8 fail / 31 no truth.**
 
 - **DONE (verified):**
-  - Lane pre-flight; bounded worktree on `claude/lane-interval-truth-audit` off `origin/main` `82cd00560`.
-  - Headline re-verified from the ledger, not inherited: 192/41/4 = **237 claiming**, 27 in manifest,
-    **210 uncovered**, **209 workload** (`mc-0282` is a documented `UNGATED` exemption).
-  - Cross-arc rule discharged → `scratchpad/cross-arc-four-cells.md`. The landed response-mask arc
-    measured FORMULA validity, not interval location — orthogonal axes, no conflict, no protection.
-    `mc-0321` is already manifest-covered and was never in scope.
-  - T1 (gate extension points) → `docs/dev-log/2026-08-15-truth-gate-extension-points.md`.
-  - T2a/b/c (classify) → `scratchpad/uncovered-cohort-{A,B,C}.md`, machine form in
-    `scratchpad/wave1-classification.json`.
-  - T3 (adjudicate) → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md` — **the checkpoint doc.**
-    Written by the conductor rather than dispatched, because the census work it depended on had
-    already been done here; recorded as a plan deviation.
-  - Baseline gates green and untouched: gate tests 24/24 OK; `capability-ledger: OK (31 outputs)`.
-- **IN PROGRESS:** nothing. Wave 1 is closed.
-- **NEXT (blocked on the gate):** Wave 2 — derive `true_value` per cohort and extend the manifest.
-- **OPEN GATE — `T1-classify`.** Four questions for Shinichi, all in the coverage map:
-  1. **116 re-check / 73 re-run** over 189 defect cells (the plan's 107/52 was measured over one of
-     two receipt trees). Does the 73 get a first-ever profile campaign, and on Totoro or DRAC?
-  2. **110 of the 116 re-checks can only ever be magnitude-only** — at one seed the gate's count arm
-     is structurally unreachable (`1 > 1` is False, `profile_truth_gate.py:221`). Accept magnitude-only
-     verdicts and label every claim, or top up seeds (compute)?
-  3. **Zero of the 41 `inference_ready_with_caveats` and zero of the 4 `supported` cells are
-     re-checkable**, and all four `supported` cells rest on evidence rows with no command, run_id or
-     replicates — two of them stating `coverage=planned` in their own boundary. Scope call.
-  4. **`mc-0596`** — `verified`/`interval_feasible` here vs *"false convergence (8)"* on independent
-     re-optimization in the landed arc. D-87 says this is yours.
-- **WHERE TRUTH LIVES:** branch `claude/lane-interval-truth-audit` (local, unpushed — push is a gate),
-  worktree `~/local-scratch/lanes/drmTMB-interval-truth-audit`. Key artefacts:
-  `docs/dev-log/2026-08-15-interval-truth-coverage-map.md`,
-  `docs/dev-log/2026-08-15-truth-gate-extension-points.md`,
-  `scratchpad/wave1-classification.json`, `scratchpad/shared-interval-groups.json`.
-- **NO COMPUTE COMMITTED.** No cell has a location verdict yet; 116 are merely *eligible* for one.
-- **RESUME:** read LOOP/GOAL.md → LOOP/checkpoint.md → LOOP/arcs.md → LOOP/ultra-plan.md, then the
-  coverage map. Do not start Wave 2 until the four questions above are answered.
+  - Wave 1 classify → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md`. 210 uncovered,
+    189 defects, split **116 re-check / 73 re-run**.
+  - Gate extension points → `docs/dev-log/2026-08-15-truth-gate-extension-points.md`.
+  - Cross-arc receipt → `scratchpad/cross-arc-four-cells.md`.
+  - **The 116 re-check (owner-authorized) → `docs/dev-log/2026-08-15-interval-truth-recheck-verdicts.md`.**
+    Truth recovered from 101 frozen campaign contracts across refs (only 1 on `origin/main`).
+    85 checked: **77 PASS, 8 FAIL**. 31 have no recoverable truth and no verdict.
+    Mechanism identified for 7 of the 8 failures — see below.
+  - Gates re-run after every step and unchanged: 24/24 OK; `capability-ledger: OK (31 outputs)`.
+- **IN PROGRESS:** nothing.
+- **OPEN — needs Shinichi:**
+  1. **The spatial-fixture defect.** 7 of 8 failures involve `spatial`. The q4 adapter generates
+     effects from `K = 0.25^|i-j| + 0.35I` and hands animal/relmat the matching `Ainv = solve(K)`
+     (they PASS), but hands spatial only `coords`, from which `drm_spatial_coords_precision`
+     (`R/drmTMB.R:13395`) builds `exp(-d/median(d))` — correlation 0.94 at lag 1 vs the DGP's 0.25,
+     a ~30x mismatch. **The declared truth is not the model's estimand.** Disposition: the
+     `interval_feasible` claim is *not currently supported* — but as a FIXTURE defect, not an
+     interval-machinery defect. Demote, repair the fixture, or scope out?
+  2. **`mc-0248`** (gamma × relmat) fails at 99% and does **NOT** share that mechanism.
+     **NOT ESTABLISHED** — needs its own partition before any disposition.
+  3. **Provenance.** 96 of the 116 rest on receipts whose producing runner is not on `origin/main`;
+     100 of 101 campaign contracts are likewise off-mainline. Evidence is real and recoverable but
+     not reproducible from a clean mainline checkout. Recover the runners onto main, or record the
+     limitation?
+  4. Still open from the T1 gate: the **73 re-runs** (compute), and the **26 top-tier cells** with no
+     receipt (4 `supported` on evidence rows with no command/run_id/replicates).
+- **WHERE TRUTH LIVES:** branch `claude/lane-interval-truth-audit` (local, unpushed — push is a gate).
+  Machine outputs: `scratchpad/recovered-truth.json`, `scratchpad/recheck-verdicts.json`,
+  `scratchpad/recheck-runners.json`, `scratchpad/wave1-classification.json`.
+- **NO LEDGER ROW CHANGED. NO COMPUTE SPENT.**
+- **RESUME:** read GOAL.md → this file → the re-check verdicts doc. Every verdict is
+  **magnitude-only** (count arm unreachable at 1 seed) and must be labelled as such in any claim.
