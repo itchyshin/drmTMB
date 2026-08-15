@@ -72,6 +72,28 @@ Template Model Builder.
   failures. Slopes still start at zero and the start remains deterministic and
   finite.
 
+## Boundary intervals are now flagged on every route
+
+* **`confint(method = "bootstrap")` warns at a variance-component or correlation
+  boundary** (class `drmTMB_bootstrap_boundary_warning`, `conf.status =
+  "bootstrap_at_boundary"`). The Wald and profile routes already flagged their
+  own boundary cases; bootstrap did not, which made it the one route that could
+  return a clean-looking interval for a target the other two warn about.
+  **Resampling does not repair a boundary** — a percentile interval whose draws
+  pile up at zero is reporting the constraint, not the sampling distribution.
+* The flag fires when at least 5% of retained resamples land on the bound, and
+  requires at least 20 retained draws, because a share computed from a handful
+  of resamples is noise rather than evidence. Calibration at `R = 200`: a true
+  SD of 0 put **43%** of draws on the bound; a true SD of 0.25 put **5%** there,
+  with a lower endpoint of exactly zero; a true SD of 0.9 put **none** there.
+* **`check_drm()` now states what it does not check.** It reads the fit, so a
+  random-effect SD comfortably clear of zero passes every fit-level check while
+  `confint()` still warns about that same target's interval — measured on a
+  10-group fit with an SD estimate of 0.1936, every check `ok`, and 43% of
+  bootstrap draws on the bound. A new `interval_reliability_scope` note records
+  that interval reliability is not assessed there and points at `conf.status`.
+  Previously that all-clear could reasonably be read as permission to report.
+
 ## Offsets in `mu` for every univariate family
 
 * `offset()` in the `mu` formula now works for **all** univariate families, not

@@ -220,6 +220,7 @@ check_drm.drmTMB <- function(
     check_dropped_rows(object),
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
+    check_interval_reliability_scope(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
@@ -946,6 +947,39 @@ check_random_effect_sd_boundary <- function(object, sd_boundary) {
     } else {
       "All fitted random-effect standard deviations are finite, positive, and above the requested lower-boundary warning threshold."
     }
+  )
+}
+
+# `check_drm()` reads the FIT. Interval reliability is a different question and
+# this function does not answer it: a random-effect SD estimate can sit well
+# above `sd_boundary` -- clearing every check above -- while `confint()` still
+# warns that the interval for that same target reaches a variance boundary,
+# because the profile discovers the bound while profiling and the percentile
+# bootstrap discovers it in the resamples. Measured on a 10-group Gaussian fit:
+# SD estimate 0.1936 (comfortably clear of the 1e-4 threshold, every check ok)
+# with 43% of bootstrap draws on the bound and a profile boundary warning.
+#
+# Left silent, that all-clear reads as permission to report the interval. This
+# row makes the gate the documentation tells users to run state the limit of its
+# own scope rather than imply coverage it never assessed. It deliberately
+# invents no threshold and re-fits nothing.
+check_interval_reliability_scope <- function(object) {
+  sd_values <- unlist(object$sdpars, use.names = TRUE)
+  if (length(sd_values) == 0L) {
+    return(NULL)
+  }
+  n_targets <- length(sd_values)
+  check_row(
+    "interval_reliability_scope",
+    "note",
+    paste0("sd_targets=", n_targets, "; assessed_here=0"),
+    paste0(
+      "This fit has ",
+      n_targets,
+      " random-effect standard-deviation target",
+      if (n_targets == 1L) "" else "s",
+      ". `check_drm()` assesses the fit, not interval reliability: a target can pass every check above and still return an interval that `confint()` warns about at a variance boundary. Before reporting an interval, call `confint()` and read `conf.status` and any boundary warning."
+    )
   )
 }
 
