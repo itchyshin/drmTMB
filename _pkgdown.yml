@@ -173,6 +173,7 @@ reference:
       - miss_control
       - drm_phylo_penalty
       - drm_phylo_penalty_sweep
+      - native_reader_contracts
       - check_drm
       - is_converged
       - confint.drmTMB
