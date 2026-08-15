@@ -6,9 +6,9 @@ Status: `TODO` · `WIP` · `DONE` · `GATE` (needs human)
 
 | # | Arc | Agent · model | Status |
 | --- | --- | --- | --- |
-| **T1** | Document the gate rule, the manifest derivation, and the exact extension point for a new cohort. Read `tools/profile_truth_gate.py`, `tools/emit-profile-truth-manifest.R`, `tools/arc2_profile_reconcile.py`, the four `reconcile-arc1-*.py`. → `docs/dev-log/2026-08-15-truth-gate-extension-points.md` | `tmb_engineer` · sonnet/high | TODO |
-| **T2a–c** | Partition the 209 uncovered cells; classify each as **(a)** genuinely unchecked, **(b)** checked by a stronger instrument, **(c)** legacy import with no run. Start from `evidence.tsv`'s `evidence_class`. **Record what the record says; do not judge.** → 3 × `scratchpad/uncovered-cohort-N.md` | `Explore` ×3 · haiku/low | TODO |
-| **T3** | Adjudicate into the defect list; quantify **re-check vs re-run** per cohort. → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md` | `general-purpose` · sonnet/high | TODO |
+| **T1** DONE | Document the gate rule, the manifest derivation, and the exact extension point for a new cohort. Read `tools/profile_truth_gate.py`, `tools/emit-profile-truth-manifest.R`, `tools/arc2_profile_reconcile.py`, the four `reconcile-arc1-*.py`. → `docs/dev-log/2026-08-15-truth-gate-extension-points.md` | `tmb_engineer` · sonnet/high | TODO |
+| **T2a–c** DONE | Partition the 209 uncovered cells; classify each as **(a)** genuinely unchecked, **(b)** checked by a stronger instrument, **(c)** legacy import with no run. Start from `evidence.tsv`'s `evidence_class`. **Record what the record says; do not judge.** → 3 × `scratchpad/uncovered-cohort-N.md` | `Explore` ×3 · haiku/low | TODO |
+| **T3** DONE | Adjudicate into the defect list; quantify **re-check vs re-run** per cohort. → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md` | `general-purpose` · sonnet/high | TODO |
 
 ### GATE `T1-classify` — STOP. Report to Shinichi before ANY compute:
 1. the **re-check vs re-run split** (decides whether Totoro/DRAC is needed at all);
