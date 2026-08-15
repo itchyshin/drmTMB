@@ -93924,3 +93924,60 @@ were about attribution and completeness, and are closed here:
   `nbinom2` `theta = 1/sigma^2` was outside the audited range, and beta `phi`,
   the tweedie `2 *` factor and the `rho12` guard are exercised nowhere in either
   artifact — correctly absent rather than wrongly asserted.
+
+## 2026-08-15 — interval-claim truth audit (`claude/lane-interval-truth-audit`)
+
+Every capability cell claiming `interval_feasible` or above now has a recorded position on whether
+its profile interval **brackets its true value**, or an explicit statement that it does not.
+
+**Coverage moved 27 → 112 of 233 claiming cells.** 78 pass, 7 fail, 21 are covered by a stronger
+instrument, 31 have no recoverable truth and therefore **no verdict**, and **121 remain unchecked** —
+scoped in `docs/dev-log/2026-08-15-rerun-73-scoping.md` as fixture construction (~40–70 h), not a
+compute job. No compute campaign was run.
+
+Checks: `capability_ledger.py --check` OK (31 generated outputs) · `test_capability_ledger.py`
+**76/76** (73 at lane start) · `test_profile_truth_gate.py` **24/24** · all three re-run green after
+rebasing onto `origin/main` `9f1ea65ba`. No R package source changed, so `--as-cran` and `pkgdown`
+were not run.
+
+Ledger changes, all downward or narrower:
+
+- **7 spatial cells demoted** `interval_feasible` → `diagnostic_only` (`mc-0113/0114/0115/0116/0117/0118/0494`).
+  Their fixtures generate the latent field from a different covariance than the fitted kernel, so the
+  declared truth is not the model's estimand and no valid location check exists. Not
+  `point_fit_recovery`: the Arc-7b precedent rested on a point-fit gate these cells do not have.
+- **28 spatial interval claims narrowed** to state that `spatial(coords=)` fixes the correlation range
+  at the median positive pairwise distance and never estimates it (`R/drmTMB.R:13403-13407`). For 21 of
+  them the retained evidence generated data through that same fixed-range kernel, so the assumption was
+  correct by construction and **range misspecification was never exercised**.
+- **4 cells re-tiered** off the summit into a new `legacy_fit_supported` rung. `supported` is now
+  **0 cells**, which agrees with `q-series-v1-release-status.md` rather than merely being reconcilable
+  with it.
+- **`mc-0285`'s claim boundary repaired** — it asserted precomputed-mesh spatial "is planned but not
+  implemented (R/drmTMB.R:8434-8440)"; both halves were false.
+
+**Two evidence-ladder inversions fixed.** `supported` was one token for the ladder's summit and the
+2026-07-11 migration's imported board `fit_status` label, so the summit authorized strictly less than
+the rung beneath it; and `diagnostic_only` ranked above `point_fit_recovery` while granting no
+point-report permission at all. `TIER_ORDER` is now monotone in reader permission, pinned by
+`test_tier_order_is_monotone_in_reader_permission`, which was proven by making it fail on purpose
+against the old order.
+
+**Note on an earlier entry.** The 2026-08-14 line stating that "the ordered scale places
+`diagnostic_only` between the two" described the pre-2026-08-15 ordering. Under the corrected ladder
+`point_fit_recovery` sits directly beneath `interval_feasible`; the vignette prose that repeated it
+(`vignettes/comparing-with-other-packages.Rmd:362`) is corrected here. The earlier entry is left as
+written — this log is append-only history.
+
+**Provenance.** 96 of 116 re-checked cells cited a producing runner absent from `origin/main`, and 100
+of 101 frozen campaign contracts were likewise off-mainline; none had been deleted, the adding commits
+simply were not ancestors of main. **134 files recovered** and byte-verified (two hash exactly to
+digests recorded inside the contracts; `source_map_sha256` 12/12; 32/32 recovered R files parse).
+Recovery is not re-execution — none was run.
+
+One number published wrong and corrected the same day: `mc-0248` was reported as a 99% failure; it was
+a join error against a target its own claim boundary excludes, and it passes. Both affected documents
+carry a dated CORRECTION block.
+
+Report: `docs/dev-log/after-task/2026-08-15-interval-claim-truth-audit.md` ·
+plan-vs-actual: `docs/dev-log/plan-actual/2026-08-15-interval-claim-truth-audit.md`

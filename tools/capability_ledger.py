@@ -3838,8 +3838,9 @@ def surface_markdown(
         "",
         "## Staged association capability",
         "",
-        "The evidence ladder is point-fit recovery, interval feasible, inference-"
-        "ready with caveats, then supported. Interval feasibility is sufficient "
+        "The evidence ladder is diagnostic-only, legacy fit-supported, point-fit "
+        "recovery, interval feasible, inference-ready with caveats, then "
+        "supported. Interval feasibility is sufficient "
         "to expose a scoped method; coverage evidence promotes the tested domain "
         "to inference-ready. Limits belong in the claim boundary unless evidence "
         "directly contradicts the route.",
