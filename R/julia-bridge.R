@@ -247,17 +247,17 @@ drm_julia_capability_comparison <- function() {
       "Live R Workflow G binomial-trials cell vs DRM.jl expected.toml; still experimental, not a CRAN default."
     ),
     next_action = c(
-      "Keep coefficient and likelihood parity tests tied to exact bridge payloads.",
+      "Keep coefficient and likelihood parity tests tied to exact bridge payloads. Coefficient/logLik parity re-measured 2026-08-15 against DRM.jl (coef 4.564e-06, logLik 4.584e-09, tol 1e-4); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv.",
       "Keep residual rho12 result-shape and Route B parity tests; do not promote beyond experimental.",
       "Keep first phylo-mean result-shape and Route A parity tests; do not widen to sigma-phylo here.",
       "Keep mask tests Gaussian-only until non-Gaussian observed-data likelihoods are audited.",
       "Bank fit-specific CI/status parity before release language.",
       "Keep phylo count smoke + Workflow G FE parity tests; do not promote beyond experimental.",
       "Add comparator or parity evidence before promoting beyond experimental.",
-      "Compare current DRM.jl accepted families with the R gate before widening.",
+      "Compare current DRM.jl accepted families with the R gate before widening. DRM.jl-vs-gate comparison now exists and is re-runnable: DRM.jl tools/parity_ledger.py against a pinned drmTMB ref, with docs/dev-log/evidence/2026-08-14-drmtmb-parity-ledger.md.",
       "Resolve the mixed-family API mismatch before any public promotion.",
       "Design engine_control explicitly before relaxing the gate.",
-      "Keep Workflow G live R gate green; do not claim CRAN-default Julia."
+      "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv."
     ),
     issue = c(
       rep("drmTMB#544", 10),
