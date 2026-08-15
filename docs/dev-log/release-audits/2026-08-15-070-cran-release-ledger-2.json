@@ -70,6 +70,11 @@
    "kind": "file",
    "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/local-as-cran-check.log",
    "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/local-as-cran-check.log"
+  },
+  "platform_matrix": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/gha-3os-matrix.md",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/gha-3os-matrix.md"
   }
  },
  "panel": {
@@ -94,7 +99,7 @@
  "clean_worktree": true,
  "source_commit": "302ac2579969f7d5f949a73610468c9f73f938c8",
  "known_evidence_gaps": {
-  "no_platform_evidence_for_these_bytes": "NOTHING platform-side has run against sha256 0d150ef3... or commit 302ac2579: no win-builder, no 3-OS matrix, no R-hub sanitizers, no valgrind. All prior platform evidence belongs to the superseded candidate whose src/ differs. platform-clean is mechanically blocked until platform_matrix and external_logs exist for THIS artifact.",
+  "no_platform_evidence_for_these_bytes": "NARROWED same night (2026-08-15, later): platform_matrix now EXISTS -- 3-OS all green at the exact commit (run 31908830334; ubuntu green on rerun after a timeout-minutes cancellation), R-hub clang-ubsan Status OK incl. vignettes, gcc-asan clean, clang-asan zero findings (vignette-convergence quirk adjudicated), rchk noise re-confirmed, and the exact-bytes Totoro valgrind subset CLEAN (candidate-302ac2579/ evidence). REMAINING ABSENCE: win-builder (external_logs) -- never run against these bytes; Shinichi's action. GHA/R-hub evidence is same-commit, not same-bytes (services build their own tarball); the exact-bytes classes are the local --as-cran and the valgrind subset.",
   "product_contract_partially_dated": "The component-ledger/rights review (2026-08-15) is fresh, but the narrative product contract of 2026-08-07 predates this candidate. Mitigation, not closure: PR #1040 (merged into this cut) re-reconciled the shipped capability-ledger includes against measured evidence (78 pass / 7 demoted), and pkgdown::check_pkgdown is clean on the cut. A full product-contract re-read belongs to Gate 7 before submission-ready.",
   "urlchecker_doi_403": "urlchecker flags one URL: doi.org/10.1198/0003130032369 in vignettes/figure-gallery.Rmd returns 403 to non-browser agents (Taylor & Francis bot-blocking; 403 even with a browser UA via curl). Evidence it is a non-blocker: the SUPERSEDED candidate shipped the same file and its real-CRAN-lane check returned only the New-submission NOTE, as does this candidate's. Re-examine if win-builder or CRAN incoming flags it.",
   "gate1_asset_provenance": "Two shipped assets (logo SVGs, function-map-cheatsheet.png) are SHIP with undocumented generation provenance -- follow-ups, not blockers (2026-08-15 Gate 1 review)."

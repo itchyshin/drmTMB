@@ -1,0 +1,10 @@
+SEVEN START 2026-08-15T21:19:25Z  valgrind valgrind-3.22.0
+FILE=family-dpq-batchC rc=0 elapsed=55s drmTMB.so_frames=0 test_failures=0 | ==2690300== ERROR SUMMARY: 13 errors from 13 contexts (suppressed: 0 from 0) | ==2690300==    definitely lost: 0 bytes in 0 blocks
+FILE=gaussian-random-intercepts rc=0 elapsed=205s drmTMB.so_frames=0 test_failures=0 | ==2690772== ERROR SUMMARY: 30 errors from 30 contexts (suppressed: 0 from 0) | ==2690772==    definitely lost: 0 bytes in 0 blocks
+FILE=count-structured-mu rc=0 elapsed=192s drmTMB.so_frames=0 test_failures=0 | ==2692298== ERROR SUMMARY: 52 errors from 52 contexts (suppressed: 0 from 0) | ==2692298==    definitely lost: 0 bytes in 0 blocks
+FILE=score-consistency rc=0 elapsed=225s drmTMB.so_frames=0 test_failures=0 | ==2694666== ERROR SUMMARY: 34 errors from 34 contexts (suppressed: 0 from 0) | ==2694666==    definitely lost: 0 bytes in 0 blocks
+FILE=nbinom2-location-scale rc=0 elapsed=125s drmTMB.so_frames=0 test_failures=0 | ==2699819== ERROR SUMMARY: 9 errors from 9 contexts (suppressed: 0 from 0) | ==2699819==    definitely lost: 0 bytes in 0 blocks
+FILE=adequacy rc=0 elapsed=54s drmTMB.so_frames=0 test_failures=0 | ==2700845== ERROR SUMMARY: 11 errors from 11 contexts (suppressed: 0 from 0) | ==2700845==    definitely lost: 0 bytes in 0 blocks
+FILE=phylo-gaussian rc=0 elapsed=209s drmTMB.so_frames=0 test_failures=0 | ==2701276== ERROR SUMMARY: 41 errors from 41 contexts (suppressed: 0 from 0) | ==2701276==    definitely lost: 0 bytes in 0 blocks
+SEVEN DONE 2026-08-15T21:37:10Z
+=== assertion counts ===
