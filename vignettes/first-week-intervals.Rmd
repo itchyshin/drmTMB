@@ -123,6 +123,12 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
   groups, not of this package. Unconditionally the interval still covered
   0.9248 against a nominal 0.95 over 400,000 attempts, so the flagged rows
   are the bad case rather than the usual one.
+- `REML = TRUE` helps here, measurably, without fixing everything: on the
+  same design and seeds it moved profile coverage from 0.9248 to 0.9463,
+  roughly halved the SD's downward bias, and made the misses nearly
+  balanced. The boundary caveat above still applies under REML, and this
+  is measured on this one design only -- the default estimator is
+  unchanged.
 - `conf.status` is `profile_failed`, `clamp_limited`, `wald_at_boundary`,
   `newdata_required`, or `derived_interval_unavailable`: there is no usable
   calibrated interval on that row — follow the action implied by the status.

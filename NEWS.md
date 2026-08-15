@@ -207,6 +207,20 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   counts, and 0.9248 against a nominal 0.95 is real undercoverage -- the package's
   small-sample floor is deliberately tapered with the group count for that reason.
 
+* **`REML = TRUE` improves this design without repairing it -- now measured.** Over
+  400,000 paired replicates on the same design and seeds, refitting with
+  `REML = TRUE` moved profile coverage from **0.9248** to **0.9463** against a
+  nominal 0.95, roughly halved the SD point estimate's downward bias (pooled
+  **-10.9%** under maximum likelihood to **-4.6%** under REML), and brought the
+  upper-to-lower miss asymmetry from **5.7:1** to **2.0:1** -- a better-centred
+  interval, not merely a wider one. Coverage conditional on the boundary flag
+  improved but stayed well below nominal (0.74 to 0.83), so the boundary warning
+  applies under either estimator. The maximum likelihood control arm of this
+  campaign reproduced the 400,000-attempt gate above to five decimal places. The
+  default estimator is unchanged, and this measurement covers the same single
+  design as the figures above. Evidence:
+  `docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/`.
+
 * The interval is still returned -- a boundary is a warning, not an auto-discard,
   matching the Wald path. Only usable intervals are flagged: `profile_failed` and
   `clamp_limited` rows also carry `profile.boundary = TRUE` but return missing
