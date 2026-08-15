@@ -93476,3 +93476,128 @@ can see which commit each one actually examined.
   pre-merge evidence.
 - Scope: documentation index only. No R code, likelihood, estimand, capability
   ledger, claim, or reader contract changed.
+
+## 2026-08-15 — external-oracle harness: first cross-package interval agreement
+
+- New `tests/testthat/test-comparators-external-oracle.R` reads the shipped
+  `lme4` and `glmmTMB` corpora through `find.package()` at test time. Nothing is
+  vendored: `glmmTMB` is AGPL-3 and this package is GPL (>= 3). Both packages
+  were already accepted `Suggests`, so no dependency changed.
+- **`fm1P`/`fm1B` provenance is UNRESOLVED, and the suite does not depend on
+  resolving it.** A first pass claimed the references were ML-derived
+  (`REML = FALSE`), reasoning from an ML refit reproducing `fm1P` to `4.36e-5`
+  against a REML refit at `5.64e-4`. Rose's audit **refuted that as established**:
+  a converged REML/`bobyqa` refit reproduces `fm1P` to `5.63e-5`, better than two
+  of three ML reconstructions, so the apparent 13x ratio is an optimizer artifact.
+  Within-REML optimizer spread (`5.63e-4`) is the same size as the ML-vs-REML
+  separation (`6.08e-4`), signal-to-noise about 1.1. `fm1P` carries no estimator
+  metadata and lme4 ships no generating script, so the provenance is not
+  recoverable from the artifact or by reconstruction. The claim was withdrawn
+  rather than defended.
+- Interval agreement, `confint(..., method = "profile")` versus `fm1P`, at a
+  `5e-4` **absolute** bound asserted as `max(abs(drmTMB - fm1P))` over both
+  endpoints. This is `expect_lt()`, not `expect_equal(tolerance = )`: under
+  testthat edition 3 the `tolerance` argument is **relative**, which on these
+  targets permitted absolute slack of `2.6e-2` — 40x looser than the comment
+  claimed. The first revision of this file carried exactly that mismatch between
+  code and prose, and Rose caught it.
+- Observed maxima under the corrected absolute bound: `sd(Intercept)` `2.63e-4`,
+  `sd(Days)` `1.39e-5`, `cor` `3.27e-5`, `sigma` `3.11e-4` — worst case 62% of
+  budget. The bound is **non-vacuous, measured not argued**: refitting the same
+  model with `REML = TRUE` misses three of four targets by `1.80`, `0.399` and
+  `1.93e-2` against the `5e-4` budget. What the test asserts is that drmTMB's
+  profile endpoints agree with lme4's shipped reference to within lme4's own
+  optimizer-to-optimizer reproducibility for this model — a regression guard, not
+  an estimator proof.
+- **Boundary held, not blurred.** drmTMB's REML point estimates and logLik match
+  `lme4` closely, but a REML-versus-REML profile-interval spot check showed an
+  approximately 5% gap on three of four targets. No REML interval-parity claim is
+  made anywhere in this change.
+- **No ledger row was added, and the two blocks differ in why.** The *interval*
+  block genuinely cannot carry an `external_comparator` row:
+  `docs/design/242-external-comparator-evidence-class.md` requires every such row's
+  `claim_boundary` to state it does not cover intervals, enforced by
+  `tools/tests/test_capability_ledger.py`, so a conforming row would have to
+  declare something false. The *point-agreement* block is different — doc 242
+  §"Licensed" covers exactly that ("drmTMB's likelihood and optimizer reach the
+  same optimum as an independent implementation of the same model, on the dataset
+  tested"), so the `fm_us1` and `fm_diag2` comparisons **could** carry a conforming
+  row today. Withholding it is a deliberate scope choice for this arc, **not** a
+  policy prohibition; an earlier draft of this entry conflated the two and would
+  have misdirected the next contributor. Independence strength is recorded in
+  comments: `lme4` strong (separate engine), `glmmTMB` weak (same TMB/AD stack).
+- `fm_nest` was dropped from the matched-twin set after the recon wrongly claimed
+  it expressible: drmTMB rejects nested `(1 | Subject/fDays)` grouping with
+  "Random-effect grouping terms must be simple variables." The candidate matrix
+  row in `docs/dev-log/external-oracle/candidates.tsv` initially still read
+  `EXPRESSIBLE` with the false note "drmTMB supports nested structures via formula
+  expansion", while three separate documents asserted it had been corrected. Rose
+  caught the discrepancy; the row now reads `NOT_EXPRESSIBLE` and carries the
+  verbatim rejection message. Verdict counts are 18 expressible, 14 not.
+- `tests/testthat/test-reader-oldfit-compat.R` adopts the stored-old-fit pattern.
+  A drmTMB fit's TMB pointer does die across `saveRDS()`/`readRDS()`
+  (`TMB:::isNullPointer()` flips), but TMB retapes transparently from the retained
+  plain-R `data`/`parameters`/`map`, and `fit$sdr` holds no pointers, so the reader
+  verbs survive. This is a **within-version** guarantee only; it cannot detect a
+  cross-release structural change until a real 0.7.0 fit artifact is frozen.
+- `tests/testthat/test-profile-shape-boundary.R` pins an honest limitation.
+  `lme4`'s `badprof.rds` is a stored `thpr` result with no `call`, `formula`, or
+  `data` and no companion dataset, so it **cannot** be run through drmTMB's
+  profile code as issue #859 proposed; it is used as a read-only shape oracle.
+  `profile_interval_diagnostics()` is architecturally endpoint-only and therefore
+  structurally cannot see profile-shape pathology, which is what the test pins.
+  On a clean Gaussian fixture `zeta^2 == delta_deviance` holds to `8.9e-16`,
+  cross-checked against `fit$opt$objective` rather than only the internal
+  `min(objective)` baseline. `badprof`'s own pathology is three distinct classes,
+  not uniform non-monotonicity: only `cYear` triggers lme4's non-monotonic
+  warning (197 of 198 `.zeta` values are `NaN`), while `(Intercept)` and `.sig02`
+  fall back to linear interpolation on a bad spline fit.
+- Verification, all run locally on this branch: the three new files pass 28, 15,
+  and 25 expectations with 0 failures and 0 skips. The landed reader baseline is
+  intact — `test-reader-public-schema.R` and `test-reader-journeys.R` pass with
+  53 journey assertions and no skips. `tools/check-reader-contracts.R` reports
+  `OK`; `tools/capability_ledger.py --check` reports `OK (31 generated outputs)`;
+  the ledger unit tests pass with `C17 current-source compatibility PASS`. None of
+  the five receipt-pinned source files was modified.
+- An adversarial audit was run as a gate before this entry was finalized, and it
+  returned NOT-DONE on three claims. All three defects were in the written claims
+  and one artifact, not in the tests themselves: the uncorrected `fm_nest` row,
+  the relative-vs-absolute tolerance mismatch, and the overstated ML provenance.
+  Each is now fixed or withdrawn above rather than argued down. What survived the
+  audit unchanged: the interval test is non-vacuous, the suite runs with **0
+  skips** under `test_dir(package = "drmTMB")` (176/176), the reader baseline is
+  intact, no receipt-pinned file changed, and the ledger and linter gates pass.
+  Full record: `docs/dev-log/external-oracle/rose-audit.md`.
+- **The pkgdown repair is CONFIRMED WORKING on `main`, not merely merged.**
+  `R-CMD-check` `31856928532` on `859c0f6e6` passed, which released the gated
+  `workflow_run` trigger, and `pkgdown` run **`31859033276` completed `success`**.
+  The site deploys again. The first post-merge attempt (`31856933151`) had skipped
+  because its own triggering check was cancelled by concurrency, so this is the
+  first genuine confirmation.
+- Local `--as-cran` on a source tarball: **0 errors**, 1 NOTE (`New submission`,
+  expected). Two WARNINGs appeared and both are **artifacts of building with
+  `--no-build-vignettes`** — `inst/doc` absent, vignettes lacking rendered
+  counterparts — not package defects. That makes it a partial check by
+  construction; the authoritative full check is CI on the PR's exact head.
+- **CI is green on the harness branch's exact head**, run `31858120192` at
+  `764d30152`: `FAIL 0 | WARN 71 | SKIP 312 | PASS 20786`. The head SHA was checked
+  against the run rather than reading a nearby badge — two earlier runs in this arc
+  were pinned to superseded commits.
+- **The new tests demonstrably RAN rather than skipped.** The only skip attributable
+  to the three new files is the single deliberate, narrowly stated one in
+  `test-profile-shape-boundary.R:142` — "docs/ is not present in this check tree
+  (excluded via `.Rbuildignore`)" — which guards a text-consistency assertion that
+  cannot run from a tarball. `test-comparators-external-oracle.R` and
+  `test-reader-oldfit-compat.R` contribute **zero** skips.
+- **Recorded fragility, not currently a failure:** CI emits a `glmmTMB` load warning,
+  "glmmTMB was built with TMB package version 1.9.21, current TMB package version is
+  1.9.23". `requireNamespace()` still succeeds, so the oracle tests run and pass. But
+  if that mismatch ever becomes a load error, `skip_if_not_installed("glmmTMB")` will
+  turn the whole glmmTMB half of this harness into a silent skip. Worth watching at
+  the next TMB bump.
+- **STATUS — the oracle harness is not yet merged.** It remains open on
+  `claude/external-oracle-intervals`. Reconciliation logged five P1 and four P2 audit
+  findings; P1-1 through P1-4 have since been fixed, and the remainder are left open
+  by choice with owners recorded in
+  `docs/dev-log/plan-actual/2026-08-15-external-oracle.md`, alongside a routing
+  commitment honoured on one of three eligible slices.
