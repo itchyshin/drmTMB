@@ -22,12 +22,25 @@ regression using Template Model Builder.
 > `main` bumped **`0.7.0` → `0.7.0.9000`** so it stops masquerading as the frozen candidate;
 > the bootstrap boundary flag (`bootstrap_at_boundary`, rescued from closed #959) re-landed as
 > PR **#1041**; superseded PRs #959/#955 closed. **Rung `tarball-clean` after every commit;
-> ledger + release evidence zero-diff.** NEXT = Shinichi answers the packet's question (and
-> D-117); until then nothing on this lane is buildable. **Multi-lane:** this pointer is ONE
-> lane; see the board's Active-Lane-Split,
+> ledger + release evidence zero-diff.**
+> **⚡ SAME EVENING — BOTH OWNER HOLDS ARE LIFTED.** Shinichi: *"Reading B — lift D-93 with REML
+> stated"*, then *"also lift D-117"*. Records (each states exactly what is and is NOT
+> discharged; brain deltas STAGED, not written — D-37):
+> [`…/2026-08-15-d93-decision-reading-b.md`](docs/dev-log/release-audits/2026-08-15-d93-decision-reading-b.md) ·
+> [`…/2026-08-15-d117-discharge.md`](docs/dev-log/release-audits/2026-08-15-d117-discharge.md).
+> The "REML stated" condition is discharged by PR **#1042** (claim surfaces; default estimator
+> unchanged). The VERDICT's 0.6.0-library caveat is CLOSED — cell 4 re-run at 100k on a fresh
+> `origin/main` build matched to four decimals on every figure. D-117's conditions 1 and 4
+> (bias disclosure; boundary-caveat visibility) carry forward as standing documentation
+> obligations. **NEXT = the release ladder itself, no longer owner-blocked:** merge decisions on
+> #1039/#1041/#1042, then the five re-freeze preconditions (precondition 1 now satisfied) →
+> quiesce → ONE freeze → full platform matrix + win-builder → Gate 7 panel → his submission
+> call. `status_claim` is still `tarball-clean`; do not advance it without `platform_matrix` +
+> `external_logs`. **Multi-lane:** this pointer is ONE lane; see the board's Active-Lane-Split,
 > [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
 > START HERE:
-> [`docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md`](docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md).
+> [`docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md`](docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md)
+> (its "Next Immediate Steps" §2 is now resolved by the two decision records above).
 >
 > **▶ Prior (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
 > ship; `DESCRIPTION` was **0.7.0** on `main` — bumped to `0.7.0.9000` on 2026-08-15).**

@@ -121,6 +121,16 @@ deliberately so the control could reproduce it. It is not a measurement of curre
 (0.7.0.9000). Nothing in the REML or profile path is known to have changed between them, but that
 is an assumption this run does not test.
 
+> **⚠ CAVEAT CLOSED, same day (19:42–19:49 UTC): the transfer to current `main` is now measured,
+> not assumed.** `origin/main` (`9f1ea65ba`, the `R/`/`src/` that 0.7.0.9000 ships) was built
+> fresh on Totoro (`R CMD INSTALL`, rc=0) and cell 4 — the boundary-heaviest — re-run at the full
+> 100,000 paired replicates. Result: ML **0.9229**, REML **0.9466**, Δ **+0.0237**, mean SD
+> estimates **0.4212 / 0.4618** — matching the 0.6.0-library campaign's cell 4 to four decimals
+> on every figure. Same seeds, same DGP, unchanged fit path: the agreement is expected, and now
+> it is evidence. Raw CSV retained on Totoro at `~/d117_reml/results-main/g10_n04_sd05.csv`,
+> SHA-256 `e0661331443186bf9d177b90f2cf449e1746982b8db0cfdcbc763415453d2ec3`; build + run log
+> `~/d117_reml/validate-main.log`.
+
 ## Cost and provenance
 
 - **Wall clock 17m19s** (19:11:57 → 19:29:16 UTC), 150 cores, 4 cells sequential, every `rc=0`.
