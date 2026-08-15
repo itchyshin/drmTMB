@@ -508,7 +508,18 @@ check_logsigma_clamp_active <- function(object) {
       "The log(sigma) clamp does not apply to this family."
     ))
   }
-  report <- tryCatch(object$obj$report(), error = function(e) NULL)
+  # This runs post-hoc on a stored fit, whose `obj$env$last.par` was left a
+  # finite-difference step away from the optimum by `TMB::sdreport()` during the
+  # fit. A bare `report()` defaults to `last.par`, so the clamp would be judged --
+  # and its value printed -- off-optimum. Re-pin from the fit's own stored
+  # `tmb_state` first, as `profile.R` does before it re-evaluates the objective.
+  report <- tryCatch(
+    {
+      drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
+      object$obj$report()
+    },
+    error = function(e) NULL
+  )
   if (is.null(report)) {
     return(check_row(
       "logsigma_clamp_active",

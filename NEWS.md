@@ -5,6 +5,31 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Fixed: penalized fits reported `phylo_penalty` and `logLik` off the optimum
+
+* A penalized (MAP) phylogenetic fit read its penalty from a bare
+  `obj$report()`, which TMB evaluates at `obj$env$last.par`. After
+  `TMB::sdreport()` that is a finite-difference step away from the optimum, so
+  `fit$phylo_penalty` -- and therefore `fit$logLik`, which is
+  `-opt$objective + phylo_penalty` -- were both slightly wrong. The error scaled
+  with the penalty (order 1e-3 at `sd_u = 0.5`) and, being a diagnostic-time
+  artefact, made both values depend on whether standard errors had been
+  requested at all: the same fit at the same optimum reported different numbers
+  under `se = TRUE` and `se = FALSE`.
+
+  The practical consequence was in `drm_phylo_penalty_sweep()`, whose `logLik`
+  column is the basis for deciding whether a coupling is data-informed or
+  prior-shaped. The error differed per row, so it did not cancel in exactly the
+  comparison the sweep exists to make.
+
+  Estimates were never affected -- `opt$par` and `sdreport()` were always at the
+  optimum. `check_drm()`'s `log(sigma)` clamp row had the same defect and is
+  fixed alongside. The existing regression test could not catch this because it
+  derived its "expected" penalty from the same bare `report()` call, so both
+  sides of the assertion moved together; it now derives the expectation from
+  `parList(opt$par)`, and a new test asserts that `se` cannot move a reported
+  estimate.
+
 ## Experimental MSPL accepts probit and complementary log-log
 
 * `estimator = "mspl"` previously required `binomial(link = "logit")` exactly.

@@ -631,6 +631,16 @@ drm_fit_spec <- function(
   par <- split_tmb_parameters(par_list, spec)
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
+  # Re-pin before reporting. `drm_compute_uncertainty()` above runs
+  # `TMB::sdreport()`, whose finite-difference Hessian stencil leaves
+  # `obj$env$last.par` a step away from the optimum (measured: 1e-3). A bare
+  # `obj$report()` defaults to `last.par`, so reporting here without re-pinning
+  # evaluates every REPORT()ed quantity at that perturbed state -- which made
+  # `phylo_penalty`, and therefore `logLik`, wrong for every penalized fit
+  # whenever standard errors were requested. `tmb_state` was captured at line
+  # 621, BEFORE sdreport, so it is the clean optimum; this is the same idiom
+  # `profile.R` already uses before it re-evaluates the objective.
+  drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
   objective_report <- obj$report()
   phylo_penalty_report <- objective_report$phylo_penalty
   phylo_penalty_value <- if (is.null(phylo_penalty_report)) {
