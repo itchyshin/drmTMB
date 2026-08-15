@@ -427,6 +427,11 @@ question.
 > of 0.918 that the measured 0.9248 clears — with the shortfall, the 8–16% point bias, the
 > upper-tail miss asymmetry, and the boundary caveat documented in user-facing terms?**
 
+**✅ ANSWERED 2026-08-15, same day, by Shinichi: _"Reading B — lift D-93 with REML stated."_**
+The decision record, its exact scope (what is and is not discharged), and the staged brain delta
+are in [`2026-08-15-d93-decision-reading-b.md`](2026-08-15-d93-decision-reading-b.md). D-117 and
+every release gate below `submission-ready` are untouched by it.
+
 ---
 
 ## Numbers I could not verify
