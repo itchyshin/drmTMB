@@ -6,16 +6,16 @@ Status: `TODO` · `WIP` · `DONE` · `GATE` (needs human)
 
 | # | Arc | Agent · model | Status |
 | --- | --- | --- | --- |
-| **T1** DONE | Document the gate rule, the manifest derivation, and the exact extension point for a new cohort. Read `tools/profile_truth_gate.py`, `tools/emit-profile-truth-manifest.R`, `tools/arc2_profile_reconcile.py`, the four `reconcile-arc1-*.py`. → `docs/dev-log/2026-08-15-truth-gate-extension-points.md` | `tmb_engineer` · sonnet/high | TODO |
-| **T2a–c** DONE | Partition the 209 uncovered cells; classify each as **(a)** genuinely unchecked, **(b)** checked by a stronger instrument, **(c)** legacy import with no run. Start from `evidence.tsv`'s `evidence_class`. **Record what the record says; do not judge.** → 3 × `scratchpad/uncovered-cohort-N.md` | `Explore` ×3 · haiku/low | TODO |
-| **T3** DONE | Adjudicate into the defect list; quantify **re-check vs re-run** per cohort. → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md` | `general-purpose` · sonnet/high | TODO |
+| **T1** | Document the gate rule, the manifest derivation, and the exact extension point for a new cohort. Read `tools/profile_truth_gate.py`, `tools/emit-profile-truth-manifest.R`, `tools/arc2_profile_reconcile.py`, the four `reconcile-arc1-*.py`. → `docs/dev-log/2026-08-15-truth-gate-extension-points.md` | `tmb_engineer` · sonnet/high | **DONE** |
+| **T2a–c** | Partition the 209 uncovered cells; classify each as **(a)** genuinely unchecked, **(b)** checked by a stronger instrument, **(c)** legacy import with no run. Start from `evidence.tsv`'s `evidence_class`. **Record what the record says; do not judge.** → 3 × `scratchpad/uncovered-cohort-N.md` | `Explore` ×3 · haiku/low | **DONE** |
+| **T3** | Adjudicate into the defect list; quantify **re-check vs re-run** per cohort. → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md` | `general-purpose` · sonnet/high | **DONE** |
 
-### GATE `T1-classify` — STOP. Report to Shinichi before ANY compute:
+### GATE `T1-classify` — **OPEN, awaiting Shinichi (2026-08-15).** STOP. Report to Shinichi before ANY compute:
 1. the **re-check vs re-run split** (decides whether Totoro/DRAC is needed at all);
 2. the **1-seed instrument problem** — the gate calibrates for 3–5 seeds (`MISS_MAGNITUDE_TOL=0.05`,
    `MISS_COUNT_TOL=1`); at one seed only the magnitude arm can fire. Accept magnitude-only verdicts
    and say so, or top up seeds (compute). **Owner's call.**
-3. the **52 receiptless + 6 `association` cells** — need a scoping decision, not silent absorption;
+3. **MEASURED: 73 re-run cells** (not 52) + the 6 `association` cells — plus the finding that ZERO `inference_ready_with_caveats` and ZERO `supported` cells are re-checkable — need a scoping decision, not silent absorption;
 4. the **two known blockers** (`runner_sha256` mismatch on `mc-0421/0423/0424`; `mc-0423` receipts
    built under `n_founders=4` vs current default `8`).
 
