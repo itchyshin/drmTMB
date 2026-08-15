@@ -56,6 +56,7 @@ Suggests:
     MASS,
     metafor,
     mvtnorm,
+    nlme,
     numDeriv,
     ordinal,
     palmerpenguins,
