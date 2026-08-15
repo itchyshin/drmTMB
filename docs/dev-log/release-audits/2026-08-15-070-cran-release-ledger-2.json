@@ -1,0 +1,102 @@
+{
+ "package": "drmTMB",
+ "version": "0.7.0",
+ "release_type": "first_submission",
+ "target_cran_version": "0.7.0",
+ "note": "READ known_evidence_gaps BEFORE RELYING ON THIS LEDGER. SECOND 0.7.0 candidate (2026-08-15 re-freeze), superseding the 2026-08-11 ledger (sha256 2176e4b8..., commit a75c3c901) whose evidence is now PREDECESSOR-ONLY: src/drmTMB.cpp moved after that freeze (PR #1012), so no platform result for the old bytes describes these. Cut authorised by Shinichi the same evening he lifted BOTH owner holds (D-93 Reading B; D-117 discharged -- see docs/dev-log/release-audits/2026-08-15-d93-decision-reading-b.md and 2026-08-15-d117-discharge.md). Claimed rung is tarball-clean ONLY. platform-clean is NOT claimed: NO platform evidence of any kind exists yet for these bytes or this commit (win-builder, 3-OS, R-hub, sanitizers, valgrind all unrun post-cut). Advancing status_claim requires the platform_matrix and external_logs evidence plus Shinichi's authorisation under D-49; this ledger does not authorise submission.",
+ "profile": {
+  "compiled_code": true,
+  "reverse_dependencies": false,
+  "system_or_external_services": true,
+  "large_data_or_vignettes": true
+ },
+ "artifact": {
+  "path": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/drmTMB_0.7.0.tar.gz",
+  "sha256": "0d150ef38b8d3b8b2d3dca084a62f8242832048b01e60caa4b08c5388b95e075",
+  "size_bytes": 10087906,
+  "source_commit": "302ac2579969f7d5f949a73610468c9f73f938c8",
+  "clean_worktree": true,
+  "inventory_evidence": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/tarball-inventory.txt",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/tarball-inventory.txt"
+  },
+  "forbidden_entries": [],
+  "copies": [
+   "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/drmTMB_0.7.0.tar.gz (durable, primary, write-protected)",
+   "snakagaw@totoro:~/drmTMB_0.7.0_cand3_302ac2579.tar.gz (durable, off-machine, hash-verified)",
+   "/private/tmp/drmTMB-07-freeze3b/drmTMB_0.7.0.tar.gz (volatile; /private/tmp is purged by macOS)"
+  ],
+  "rebuild_note": "R CMD build embeds timestamps, so these exact bytes cannot be regenerated from the source commit. Both durable copies hash-verified at freeze (2026-08-15). A FIRST build the same evening was DISCARDED: the pipeline wrote its build log inside the package directory and the log was tarred into the tarball (caught as a second NOTE, 'Non-standard file at top level'). This candidate is the clean rebuild; its forbidden-path scan explicitly covers the .log class.",
+  "evidence_durability_note": "evidence.*.value are absolute paths under ~/drmTMB-release-artifacts/0.7.0/evidence/ so the gate remains reproducible after /private/tmp is purged. Each entry also records repo_path, the tracked location in the git repository, which is the portable reference on another machine."
+ },
+ "evidence": {
+  "product_contract": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/gate1-component-ledger-and-rights-review.md",
+   "repo_path": "docs/dev-log/release-audits/2026-08-15-gate1-component-ledger-and-rights-review.md"
+  },
+  "rights_and_consent": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/gate1-component-ledger-and-rights-review.md",
+   "repo_path": "docs/dev-log/release-audits/2026-08-15-gate1-component-ledger-and-rights-review.md"
+  },
+  "current_cran_policy": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0/evidence/docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md",
+   "repo_path": "docs/dev-log/release-audits/2026-08-07-07-cran-policy-refresh.md"
+  },
+  "rendered_site": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/pkgdown-check.log",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/pkgdown-check.log"
+  },
+  "local_as_cran": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/local-as-cran-check.log",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/local-as-cran-check.log"
+  },
+  "incoming_feasibility": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/local-as-cran-check.log",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/local-as-cran-check.log"
+  },
+  "installed_package": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/local-as-cran-check.log",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/local-as-cran-check.log"
+  },
+  "timing": {
+   "kind": "file",
+   "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-302ac2579/evidence/local-as-cran-check.log",
+   "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/local-as-cran-check.log"
+  }
+ },
+ "panel": {
+  "grace": "NOT_RUN",
+  "rose": "NOT_RUN",
+  "pat": "NOT_RUN",
+  "note": "D-43 panel required only at submission-ready; not claimed here."
+ },
+ "status_claim": "tarball-clean",
+ "submission": {
+  "uploaded_sha256": "",
+  "uploaded_size_bytes": 0,
+  "timestamp": "",
+  "submission_id": "",
+  "confirmation_evidence": {},
+  "incoming_evidence": {},
+  "acceptance_evidence": {},
+  "archive_evidence": {},
+  "public_package_evidence": {},
+  "public_check_page_evidence": {}
+ },
+ "clean_worktree": true,
+ "source_commit": "302ac2579969f7d5f949a73610468c9f73f938c8",
+ "known_evidence_gaps": {
+  "no_platform_evidence_for_these_bytes": "NOTHING platform-side has run against sha256 0d150ef3... or commit 302ac2579: no win-builder, no 3-OS matrix, no R-hub sanitizers, no valgrind. All prior platform evidence belongs to the superseded candidate whose src/ differs. platform-clean is mechanically blocked until platform_matrix and external_logs exist for THIS artifact.",
+  "product_contract_partially_dated": "The component-ledger/rights review (2026-08-15) is fresh, but the narrative product contract of 2026-08-07 predates this candidate. Mitigation, not closure: PR #1040 (merged into this cut) re-reconciled the shipped capability-ledger includes against measured evidence (78 pass / 7 demoted), and pkgdown::check_pkgdown is clean on the cut. A full product-contract re-read belongs to Gate 7 before submission-ready.",
+  "urlchecker_doi_403": "urlchecker flags one URL: doi.org/10.1198/0003130032369 in vignettes/figure-gallery.Rmd returns 403 to non-browser agents (Taylor & Francis bot-blocking; 403 even with a browser UA via curl). Evidence it is a non-blocker: the SUPERSEDED candidate shipped the same file and its real-CRAN-lane check returned only the New-submission NOTE, as does this candidate's. Re-examine if win-builder or CRAN incoming flags it.",
+  "gate1_asset_provenance": "Two shipped assets (logo SVGs, function-map-cheatsheet.png) are SHIP with undocumented generation provenance -- follow-ups, not blockers (2026-08-15 Gate 1 review)."
+ }
+}
