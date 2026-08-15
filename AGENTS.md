@@ -32,11 +32,22 @@ regression using Template Model Builder.
 > unchanged). The VERDICT's 0.6.0-library caveat is CLOSED — cell 4 re-run at 100k on a fresh
 > `origin/main` build matched to four decimals on every figure. D-117's conditions 1 and 4
 > (bias disclosure; boundary-caveat visibility) carry forward as standing documentation
-> obligations. **NEXT = the release ladder itself, no longer owner-blocked:** merge decisions on
-> #1039/#1041/#1042, then the five re-freeze preconditions (precondition 1 now satisfied) →
-> quiesce → ONE freeze → full platform matrix + win-builder → Gate 7 panel → his submission
-> call. `status_claim` is still `tarball-clean`; do not advance it without `platform_matrix` +
-> `external_logs`. **Multi-lane:** this pointer is ONE lane; see the board's Active-Lane-Split,
+> obligations.
+> **⚡ LATER THE SAME NIGHT — MERGED AND RE-FROZEN (Shinichi: "merge all three PRs and start the
+> re-freeze").** #1041/#1042/#1039 merged in dependency order (+#1040 from the truth-audit lane,
+> deliberately included — it ships overclaim demotions); #1043 set `DESCRIPTION` to `0.7.0` at
+> the cut and posted the **QUIESCE** (no shipped-file merges to `main` until the platform matrix
+> completes — this binds #1033 and every other lane). **The SECOND candidate is FROZEN and
+> PROVEN at `tarball-clean`:** commit `302ac2579`, sha256 `0d150ef3…b95e075`, 10,087,906 bytes,
+> exact-bytes `--as-cran --run-donttest` = **1 NOTE (New submission) only**; new fail-closed
+> ledger `docs/dev-log/release-audits/2026-08-15-070-cran-release-ledger-2.json` READY, its
+> `platform-clean` probe NOT READY (negative control run). Evidence:
+> [`docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/FREEZE-NOTES.md`](docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/FREEZE-NOTES.md)
+> (#1044, merged). The 2026-08-11 candidate is predecessor evidence only. **NEXT = the platform
+> matrix against exactly these bytes** — 3-OS, R-hub sanitizers, valgrind, and **win-builder
+> (Shinichi's action)** — then the Gate 7 Grace/Rose/Pat panel, then his submission call.
+> `status_claim` stays `tarball-clean`; do not advance it without `platform_matrix` +
+> `external_logs` for THIS artifact. **Multi-lane:** this pointer is ONE lane; see the board's Active-Lane-Split,
 > [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
 > START HERE:
 > [`docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md`](docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md)
