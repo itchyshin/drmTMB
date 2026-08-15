@@ -42,7 +42,11 @@ construction programme, not a compute job. **No compute spent anywhere in this a
      manifest can carry FIXED-EFFECT targets, which unlocks 37 of 47; (b) 3-cell pilot to replace the
      estimate with a measurement; (c) treat the 4 `supported` + 22 `inference_ready_with_caveats` as a
      CLAIMS question, not a fixture one; (d) label the 5 `association` cells out of the gate's domain.
-- **WHERE TRUTH LIVES:** branch `claude/lane-interval-truth-audit` (local, unpushed — push is a gate).
+- **WHERE TRUTH LIVES:** branch `claude/lane-interval-truth-audit` — **PUSHED 2026-08-15** to
+  `origin/claude/lane-interval-truth-audit` (14 commits, 188 files). **No PR opened** — that is the
+  next gate and is Shinichi's call. The branch is 2 commits BEHIND origin/main (PR #1035, the S3
+  dispatch fix: DESCRIPTION, R/zzz.R, check-log.md, test-foreign-s3-dispatch.R) — no overlap with
+  this lane's files, but rebase or merge before any PR.
   Machine outputs: `scratchpad/recovered-truth.json`, `scratchpad/recheck-verdicts.json`,
   `scratchpad/recheck-runners.json`, `scratchpad/wave1-classification.json`.
 - **NO LEDGER ROW CHANGED. NO COMPUTE SPENT.**
