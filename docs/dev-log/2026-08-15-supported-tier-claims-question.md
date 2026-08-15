@@ -84,7 +84,39 @@ authority; this remains zero"*), while all four cells carry `structure_provider 
 populations. The doc is nonetheless **stale and still linked live** from `README.md:75` and
 `NEWS.md:1173` with no supersession pointer to the current 740-row ledger.
 
-## Recommended disposition
+## RESOLVED — the token was separated (2026-08-15)
+
+Shinichi chose *"separate the token"*. Implemented and verified:
+
+- **`legacy_fit_supported` added** to `EVIDENCE_TIERS`, `TIER_ORDER` and the schema enum, ranked
+  **below `interval_feasible`** — matching what the reader translator always said it authorized.
+- **`supported` keeps the summit** and now *grants* interval permission, so the ladder is monotone:
+
+  | tier | rank | interval permission |
+  | --- | ---: | --- |
+  | `supported` | 0 | **Yes** — coverage-backed |
+  | `inference_ready_with_caveats` | 1 | **Yes** — within scope and caveat |
+  | `interval_feasible` | 2 | No — no calibrated permission |
+  | `legacy_fit_supported` | 3 | No — legacy label |
+
+- **The four cells re-tiered** `supported` → `legacy_fit_supported`, with four `transitions.tsv` rows
+  following the Arc-7b precedent literally (`work_status` unchanged; the tier change recorded as prose
+  in `reason`; wording *"this claim is not currently supported at the ladder's top"*, never *broken*).
+- **Aggregates fixed** — both evidence summary lines now print the legacy count explicitly as
+  *"legacy fit-supported (no interval permission)"* instead of folding it into the top line.
+- **Two new tests** pin the invariant: `supported` must outrank the tier below it *in permission*, and
+  `legacy_fit_supported` must rank below `interval_feasible`. The pre-existing test that asserted the
+  old behaviour caught the change, as it should have, and was moved onto the new token.
+
+**Live counts after the change:** `supported` **0** · `inference_ready_with_caveats` 41 ·
+`interval_feasible` 192 · `legacy_fit_supported` 4. The ledger's top tier is now empty — which
+*agrees with* `q-series-v1-release-status.md`'s "supported authority: 0 cells" rather than merely
+being reconcilable with it.
+
+**Gates:** `capability_ledger.py --check` OK (31 outputs, regenerated) · ledger unit tests **75/75** ·
+truth-gate tests **24/24**.
+
+## Original recommendation (retained for the record)
 
 The defect is the **token collision**, not the four cells. Two changes, in order:
 

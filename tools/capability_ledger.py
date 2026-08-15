@@ -795,12 +795,20 @@ EVIDENCE_CLASSES = {
 }
 EVIDENCE_TIERS = {
     "supported", "inference_ready_with_caveats", "interval_feasible",
-    "diagnostic_only", "point_fit_recovery", "none", "miswired", "na",
+    "legacy_fit_supported", "diagnostic_only", "point_fit_recovery",
+    "none", "miswired", "na",
 }
 
+# `supported` is the ladder's genuine summit: coverage-backed, interval-reporting
+# permission. `legacy_fit_supported` is the 2026-07-11 migration's imported board
+# `fit_status` value -- a statement that the model FITS, not that its interval was
+# ever checked -- and it therefore sits BELOW `interval_feasible`. The two were one
+# token until 2026-08-15, which made the ladder's summit authorize strictly less
+# than the rung beneath it while still being counted first as the strongest evidence.
 TIER_ORDER = [
     "supported", "inference_ready_with_caveats", "interval_feasible",
-    "diagnostic_only", "point_fit_recovery", "none", "miswired",
+    "legacy_fit_supported", "diagnostic_only", "point_fit_recovery",
+    "none", "miswired",
 ]
 STRUCTURED_PROVIDERS = [
     "phylo", "spatial", "animal", "relmat", "phylo_interaction",
@@ -2998,7 +3006,8 @@ def widget_value(
 ) -> dict[str, object]:
     tiers = [
         "supported", "inference_ready_with_caveats", "interval_feasible",
-        "diagnostic_only", "point_fit_recovery", "none", "miswired",
+        "legacy_fit_supported", "diagnostic_only", "point_fit_recovery",
+        "none", "miswired",
     ]
     families = sorted({row["family"] for row in model})
     matrix = {
@@ -3172,6 +3181,16 @@ def reader_reporting_permissions(
             "No — no named interval method or reporting permission.",
         )
     if row["evidence_tier"] == "supported":
+        return (
+            "Yes — this exact model route is implemented.",
+            "Yes — report the point estimate within the stated exact scope.",
+            (
+                f"Yes — {interval_method}; coverage-backed within the stated exact scope."
+                if interval_method
+                else "Yes — coverage-backed within the stated exact scope."
+            ),
+        )
+    if row["evidence_tier"] == "legacy_fit_supported":
         return (
             "Yes — this exact model route is implemented.",
             "Yes — report the point estimate only within the stated exact scope.",
@@ -3441,9 +3460,11 @@ def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
         ),
         "- Evidence among implemented model cells: **{supported} supported**, "
         "**{inference_ready} inference-ready with caveats**, **{interval_feasible} "
-        "interval-feasible**, **{point_fit_recovery} point-fit recovery**, and "
+        "interval-feasible**, **{legacy_fit} legacy fit-supported (no interval "
+        "permission)**, **{point_fit_recovery} point-fit recovery**, and "
         "**{diagnostic_only} diagnostic-only**.".format(
             supported=evidence.get("supported", 0),
+            legacy_fit=evidence.get("legacy_fit_supported", 0),
             inference_ready=evidence.get("inference_ready_with_caveats", 0),
             interval_feasible=evidence.get("interval_feasible", 0),
             point_fit_recovery=evidence.get("point_fit_recovery", 0),
@@ -3793,6 +3814,8 @@ def surface_markdown(
         f"- Evidence: **{tiers['supported']} supported**, "
         f"**{tiers['inference_ready_with_caveats']} inference-ready**, "
         f"**{tiers['interval_feasible']} interval-feasible**, "
+        f"**{tiers['legacy_fit_supported']} legacy fit-supported "
+        f"(no interval permission)**, "
         f"**{tiers['point_fit_recovery']} recovery-grade**.",
         f"- Missing-response board: **{len(missing)} routes; "
         f"{missing_gates['G0']} G0; {missing_gates['G1']} G1; "
@@ -4011,7 +4034,7 @@ def surface_html(
 <div class="stat"><b>{missing_gates['G1']}</b><span>routes at G1</span></div><div class="stat"><b>{verified_missing}</b><span>routes verified at G3+</span></div>
 </section>
 <h2 id="association">Staged association capability</h2>
-<p>The evidence ladder is point-fit recovery → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
+<p>The evidence ladder is point-fit recovery → legacy fit-supported → interval feasible → inference-ready with caveats → supported. Interval feasibility is enough to expose a scoped method; coverage promotes the tested domain to inference-ready. Limits belong in warnings and the claim boundary unless evidence directly contradicts the route.</p>
 <div class="table-wrap"><table><caption>{len(association)} post-fit <code>associate_pairs()</code> capability cells</caption><thead><tr><th scope="col">Cell</th><th scope="col">Pair route</th><th scope="col">Shape</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Claim boundary</th></tr></thead><tbody>{association_rows}</tbody></table></div>
 <h2 id="missing-response">Missing-response evidence</h2>
 <p class="scope"><strong>Current G4/G5 evidence (target-rung grain):</strong> {html.escape(missing_g4g5_summary())}</p>

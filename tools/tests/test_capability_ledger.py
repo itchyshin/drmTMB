@@ -1032,13 +1032,48 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_legacy_supported_label_does_not_authorize_an_interval(self):
         fit, point, interval = ledger.reader_reporting_permissions(
-            {"capability_status": "implemented", "evidence_tier": "supported"},
+            {
+                "capability_status": "implemented",
+                "evidence_tier": "legacy_fit_supported",
+            },
             "Wald interval",
         )
         self.assertTrue(fit.startswith("Yes"))
         self.assertTrue(point.startswith("Yes"))
         self.assertTrue(interval.startswith("No"))
         self.assertIn("legacy supported label", interval)
+
+    def test_supported_is_the_ladder_summit_and_does_authorize_an_interval(self):
+        """`supported` must outrank the tier below it in PERMISSION, not just order.
+
+        Until 2026-08-15 one token carried both meanings: the ladder's summit and
+        the migrated board `fit_status` label. The reader translator gave it the
+        legacy wording, so the ladder's TOP rung authorized strictly LESS than
+        `inference_ready_with_caveats` directly beneath it, while every aggregate
+        still counted it first as the strongest evidence.
+        """
+        _, _, top = ledger.reader_reporting_permissions(
+            {"capability_status": "implemented", "evidence_tier": "supported"},
+            "profile interval",
+        )
+        _, _, below = ledger.reader_reporting_permissions(
+            {
+                "capability_status": "implemented",
+                "evidence_tier": "inference_ready_with_caveats",
+            },
+            "profile interval",
+        )
+        self.assertTrue(top.startswith("Yes"))
+        self.assertTrue(below.startswith("Yes"))
+        self.assertNotIn("legacy supported label", top)
+
+    def test_legacy_fit_supported_ranks_below_interval_feasible(self):
+        order = ledger.TIER_ORDER
+        self.assertIn("legacy_fit_supported", order)
+        self.assertGreater(
+            order.index("legacy_fit_supported"), order.index("interval_feasible")
+        )
+        self.assertLess(order.index("supported"), order.index("interval_feasible"))
 
     def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
         generated = ledger.outputs(self.cells, self.evidence)
