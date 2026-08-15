@@ -5,6 +5,16 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **⚠ 2026-08-15 (evening) — QUIESCE: the 0.7.0 re-freeze is IN PROGRESS (Shinichi: "merge all
+  three PRs and start the re-freeze", after lifting BOTH D-93 and D-117 the same evening).**
+  PRs #1039/#1041/#1042 are merged; the cut point is the `claude/07-freeze-3` merge on `main`
+  (DESCRIPTION back to `0.7.0`). **Until the new candidate's platform matrix completes, do NOT
+  merge to `main` anything that changes shipped files** (`R/ src/ tests/ man/ vignettes/
+  NAMESPACE DESCRIPTION inst/ data/ NEWS.md`) — a post-cut shipped-file merge invalidates the
+  candidate and forces another freeze (the exact failure the 2026-08-12 re-freeze notice
+  documents). Docs-only merges under `docs/` are safe. Decision records:
+  `docs/dev-log/release-audits/2026-08-15-d93-decision-reading-b.md` ·
+  `…/2026-08-15-d117-discharge.md` · freeze lane: Claude, `claude/07-cran-ladder`.
 - **2026-08-11 reassignment (Shinichi, in session):** the live 0.7 CRAN ladder is
   now owned by **Claude**, superseding the 2026-08-07 Codex-ownership line below.
   That reassignment covered lane ownership only.
