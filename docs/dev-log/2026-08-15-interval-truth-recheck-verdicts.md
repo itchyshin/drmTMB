@@ -11,8 +11,12 @@
 | re-checkable (receipt on disk) | 116 |
 | **truth recovered and checked** | **85** |
 | truth not recoverable — no verdict | 31 |
-| — of the 85: **PASS** (worst relative miss ≤ 5%) | **77** |
-| — of the 85: **FAIL** (worst relative miss > 5%) | **8** |
+| — of the 85: **PASS** (worst relative miss ≤ 5%) | **78** |
+| — of the 85: **FAIL** (worst relative miss > 5%) | **7** |
+
+> **CORRECTION (2026-08-15, same day).** This section first reported 77 pass / 8 fail, listing
+> `mc-0248` as a failure. That was **my join error, not a defect in the cell** — see §3.1. Under exact
+> `target_id` matching the split is **78 / 7**, and **all seven failures are spatial**.
 
 ## 2. How truth was obtained — and why it is derived, not hand-typed
 
@@ -30,24 +34,48 @@ For the q4 cohort the contract's truth agrees with the adapter's own `target_tru
 (`c(.55, .50, .40, .35)` in `lane_b_q4_provider_contracts()`), so the value traces to fixture **code**,
 not to prose. That is the standard this arc requires.
 
-## 3. THE EIGHT FAILURES — and the mechanism, which changes what they mean
+## 3. THE SEVEN FAILURES — every one of them spatial
 
-| cell | truth | retained interval | worst miss | provider |
+| cell | truth | retained interval | worst miss | target |
 | --- | ---: | --- | ---: | --- |
-| `mc-0116` | 0.50 | `[1.676, 2.544]` | **235.2%** | spatial |
-| `mc-0115` | 0.55 | `[1.773, 2.677]` | **222.4%** | spatial |
-| `mc-0117` | 0.40 | `[0.929, 1.843]` | **132.2%** | spatial |
-| `mc-0248` | 0.20 | `[0.398, 0.664]` | **99.0%** | relmat (gamma) |
-| `mc-0118` | 0.35 | `[0.607, 1.310]` | **73.5%** | spatial |
-| `mc-0114` | 0.40 | `[0.677, 1.642]` | **69.2%** | spatial |
-| `mc-0494` | 0.20 | `[0.305, 0.528]` | **52.7%** | spatial (student) |
-| `mc-0113` | 0.45 | `[0.547, 1.348]` | **21.6%** | spatial |
+| `mc-0116` | 0.50 | `[1.676, 2.544]` | **235.2%** | `sd:mu:mu2:spatial(1 \| p \| site)` |
+| `mc-0115` | 0.55 | `[1.773, 2.677]` | **222.4%** | `sd:mu:mu1:spatial(1 \| p \| site)` |
+| `mc-0117` | 0.40 | `[0.929, 1.843]` | **132.2%** | `sd:mu:sigma1:spatial(1 \| p \| site)` |
+| `mc-0118` | 0.35 | `[0.607, 1.310]` | **73.5%** | `sd:mu:sigma2:spatial(1 \| p \| site)` |
+| `mc-0114` | 0.40 | `[0.677, 1.642]` | **69.2%** | `sd:mu:sigma2:spatial(1 \| ps \| site)` |
+| `mc-0494` | 0.20 | `[0.305, 0.528]` | **52.7%** | `sd:mu:spatial(0 + x \| id)` (student) |
+| `mc-0113` | 0.45 | `[0.547, 1.348]` | **21.6%** | `sd:mu:sigma1:spatial(1 \| ps \| site)` |
 
-**Seven of the eight involve the `spatial` provider.** That is not a coincidence, and partitioning by
-mechanism before concluding — rather than reporting eight bad intervals — is what makes this finding
-usable.
+**All seven involve the `spatial` provider**, and the mechanism in §3.2 accounts for every one. No
+failure is left unexplained.
 
-### The spatial mechanism: the fixture's declared truth is not the model's estimand
+### 3.1 The correction: `mc-0248` was my error, and it is a lesson about joining truth
+
+`mc-0248` was first reported as a 99% failure. It is not. The cell carries **two** targets:
+
+| target | truth | `execution_authority` |
+| --- | ---: | --- |
+| `mc-0248::sd:mu:relmat(1 \| id)` — intercept | **0.50** | **TRUE** |
+| `mc-0248::sd:mu:relmat(0 + x \| id)` — slope | 0.20 | FALSE |
+
+Its own `claim_boundary` says the second is excluded: *"The sibling
+`mc-0248::sd:mu:relmat(0 + x | id)` remains profile_failed and point-fit only."* My first pass joined
+truth to interval **by cell**, falling back to the cell's single retained interval when the target IDs
+did not match — so it tested the claimed intercept's interval against the *excluded slope's* truth.
+Against the target actually claimed, `[0.398, 0.664]` contains 0.50 and the cell **PASSES**.
+
+**The lesson, which applies to every future re-check:** a cell is not the unit of a location check —
+a **target** is. Cells can carry several targets, and a claim may deliberately cover only some of
+them. Truth must be joined on exact `target_id`, and a non-matching target must be reported as
+*unmatched*, never silently substituted. Only two of the 85 cells carry more than one truth target
+(`mc-0248`, `mc-0494`), so the blast radius was small — but the failure mode was silent, which is
+precisely the class of defect this arc exists to find. It is also a caution about the arc's own
+instrument: the first pass produced a confident, specific, wrong number.
+
+`mc-0494` is the other two-target cell and its claim **does** cover both (*"its two exact direct
+Student spatial mu SD targets"*), so its miss stands.
+
+### 3.2 The spatial mechanism: the fixture's declared truth is not the model's estimand
 
 In the q4 adapter (`lane_b_q4_provider_fixture`, recovered from `3672ce757`) the DGP builds latent
 effects from
@@ -87,8 +115,8 @@ defect**, not a defect in drmTMB's profile machinery. The correct disposition is
 *the `interval_feasible` claim is not currently supported*, because no location check can be
 constructed for the cell as it stands.
 
-`mc-0248` (gamma × relmat, q1) does **not** share this mechanism and is **NOT ESTABLISHED** — it needs
-its own partition before any disposition. Do not fold it in with the spatial seven.
+Every one of the seven failures is accounted for by this mechanism. `mc-0248`, previously listed as an
+eighth and unexplained failure, was a join error on my part and passes on its claimed target (§3.1).
 
 ## 4. Every verdict here is magnitude-only — what that does and does not mean
 
@@ -110,10 +138,11 @@ none survived multiplicity correction. No cell here is described as *proven misl
 - **31 of the 116 have no recovered truth and therefore no verdict.** Their contracts either carry no
   numeric `true_parameter_scale` or were not found across refs.
 - **The 73 re-run cells are untouched** — no compute was authorized or spent.
-- **`mc-0248` is unpartitioned** — a failure without an identified mechanism.
+- **`mc-0248` needed a correction, not a partition** — see §3.1. Its excluded slope target
+  (`sd:mu:relmat(0 + x | id)`, truth 0.20) has no receipt at all and therefore still has **no verdict**.
 - **No ledger row was changed.** These are verdicts, not demotions; the tier edits are a separate,
   reviewable step.
-- **The 77 passes were not re-derived from the fixture code** cell-by-cell. Truth came from the frozen
+- **The 78 passes were not re-derived from the fixture code** cell-by-cell. Truth came from the frozen
   contract, which for the q4 cohort was *shown* to agree with adapter code; that agreement was not
   re-established for every campaign.
 - **A provenance risk this exposes:** 96 of 116 cells rest on receipts whose producing runner is not on

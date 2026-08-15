@@ -1,6 +1,6 @@
 # Checkpoint — OVERWRITTEN every arc (a pointer to truth, not a log)
 
-GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 77 pass / 8 fail / 31 no truth.**
+GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 78 pass / 7 fail (all spatial) / 31 no truth.**
 
 - **DONE (verified):**
   - Wave 1 classify → `docs/dev-log/2026-08-15-interval-truth-coverage-map.md`. 210 uncovered,
@@ -9,8 +9,8 @@ GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 77 pass / 8 fail / 3
   - Cross-arc receipt → `scratchpad/cross-arc-four-cells.md`.
   - **The 116 re-check (owner-authorized) → `docs/dev-log/2026-08-15-interval-truth-recheck-verdicts.md`.**
     Truth recovered from 101 frozen campaign contracts across refs (only 1 on `origin/main`).
-    85 checked: **77 PASS, 8 FAIL**. 31 have no recoverable truth and no verdict.
-    Mechanism identified for 7 of the 8 failures — see below.
+    85 checked: **78 PASS, 7 FAIL (all spatial)**. 31 have no recoverable truth and no verdict.
+    Mechanism identified for ALL seven failures — see below.
   - Gates re-run after every step and unchanged: 24/24 OK; `capability-ledger: OK (31 outputs)`.
 - **IN PROGRESS:** nothing.
 - **OPEN — needs Shinichi:**
@@ -21,8 +21,11 @@ GOAL: see LOOP/GOAL.md.  STATE: **the 116 re-check is DONE. 77 pass / 8 fail / 3
      a ~30x mismatch. **The declared truth is not the model's estimand.** Disposition: the
      `interval_feasible` claim is *not currently supported* — but as a FIXTURE defect, not an
      interval-machinery defect. Demote, repair the fixture, or scope out?
-  2. **`mc-0248`** (gamma × relmat) fails at 99% and does **NOT** share that mechanism.
-     **NOT ESTABLISHED** — needs its own partition before any disposition.
+  2. ~~`mc-0248`~~ **RESOLVED 2026-08-15 — it was my join error, not a defect.** The cell carries two
+     targets and its claim explicitly excludes the slope; against the claimed intercept (truth 0.50)
+     its interval `[0.398, 0.664]` brackets. Corrected split: **78 pass / 7 fail, all seven spatial**.
+     Standing lesson: join truth on exact `target_id` — a cell is not the unit of a location check,
+     a target is.
   3. **Provenance.** 96 of the 116 rest on receipts whose producing runner is not on `origin/main`;
      100 of 101 campaign contracts are likewise off-mainline. Evidence is real and recoverable but
      not reproducible from a clean mainline checkout. Recover the runners onto main, or record the

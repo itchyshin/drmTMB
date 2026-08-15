@@ -2,8 +2,7 @@
 
 **Arc:** drmTMB interval-claim truth audit · 2026-08-15 · lane `claude/lane-interval-truth-audit`
 
-**Why this document exists.** Seven of the eight cells that failed the interval-truth re-check use the
-`spatial` provider. Asked whether that indicated a bug in drmTMB's spatial code, the answer turned out
+**Why this document exists.** All seven cells that failed the interval-truth re-check use the `spatial` provider. Asked whether that indicated a bug in drmTMB's spatial code, the answer turned out
 to be: *not a coding bug, but a design property that neither of the obvious comparators shares.*
 
 ## The finding in one line
@@ -96,7 +95,7 @@ must state the conditioning. Proposed wording:
 > `drmTMB::spatial()` fixes the range at the median pairwise distance and does not estimate it; where
 > the true correlation length departs from that value, the estimated SD absorbs the difference.
 
-This applies beyond the eight failures — it is a property of **every** `spatial()` SD claim in the
+This applies far beyond the seven failures — it is a property of **every** `spatial()` SD claim in the
 ledger, none of which currently discloses it.
 
 ## What is NOT established
@@ -104,8 +103,10 @@ ledger, none of which currently discloses it.
 - **No sdmTMB or INLA model was run.** Neither package is installed locally (`fmesher` is present,
   `INLA` is not). The comparison rests on each project's own documentation, cited below — not on a
   head-to-head fit. A genuine three-way numerical comparison remains an open, separate piece of work.
-- **`mc-0248`** (gamma × relmat) fails at 99% and does **not** involve the spatial provider. Its
-  mechanism is unpartitioned and unexplained.
+- **`mc-0248` is no longer a failure.** It was listed as a non-spatial eighth failure; that was a
+  join error (truth matched against a target its own claim excludes). It passes on its claimed
+  target. The corrected split is **78 pass / 7 fail, all seven spatial** — so this mechanism now
+  accounts for every failure rather than most of them.
 - Whether `spatial()` *should* estimate its range is a **design question**, not settled here. sdmTMB's
   own guidance that fixing κ aids convergence is a real argument for the current choice.
 - The other two failing spatial cells (`mc-0113`, `mc-0114` from `q2plus-scale`, and `mc-0494` from the
