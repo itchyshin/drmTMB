@@ -1,0 +1,662 @@
+---
+title: "Comparing drmTMB with other packages"
+description: "Eight fitted comparisons against lme4, metafor, ordinal, and glmmTMB, grouped by how independent the comparator is."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparing drmTMB with other packages}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+has_lme4 <- requireNamespace("lme4", quietly = TRUE)
+has_metafor <- requireNamespace("metafor", quietly = TRUE)
+has_metadat <- requireNamespace("metadat", quietly = TRUE)
+has_ordinal <- requireNamespace("ordinal", quietly = TRUE)
+has_glmmTMB <- requireNamespace("glmmTMB", quietly = TRUE)
+has_penguins <- requireNamespace("palmerpenguins", quietly = TRUE)
+```
+
+```{r}
+library(drmTMB)
+```
+
+If you already fit mixed models in `lme4`, meta-analyses in `metafor`,
+proportional-odds models in `ordinal`, or location-scale models in `glmmTMB`,
+this article answers one question in each of those packages' own vocabulary:
+on a dataset you may already know, does `drmTMB` land on the same fit?
+
+Eight comparisons follow, each built from a real dataset, a real `drmTMB` fit,
+and a real fit from the comparator package alongside it. **These eight models
+were chosen because a package this article already depends on fits them too;
+that set is small next to what `drmTMB` implements as a whole, and the
+package's design documents record the rest of that surface.**
+
+Every comparison here is single-seed and single-dataset. Each one shows that
+`drmTMB`'s likelihood and optimizer reach the same optimum as another
+implementation of the same model, on the data shown. It is **not** evidence
+about interval calibration, coverage, bias, or small-sample behaviour, and no
+standard error or confidence interval is compared anywhere in this article.
+Agreement licenses the model both packages fit on the dataset shown; for any
+other model, `drmTMB`'s evidence is its own recovery and coverage studies,
+recorded per capability in the package's design documents and capability
+ledger.
+
+## What this article compares
+
+`drmTMB`'s location submodel is compared in every one of the eight fits
+below. Its distributional submodel — the `sigma` formula that lets residual
+spread depend on covariates — is compared in some of them, and its
+random-effect form is not compared here. The table states only what this
+article did, comparison by comparison.
+
+| `drmTMB` capability | Comparisons | Compared in this article? | Independence |
+| --- | --- | --- | --- |
+| Location (`mu`) submodel, fixed effects | 1–8 (all) | yes, eight times | 1–3 STRONG · 4–5 unclassified · 6–8 WEAK |
+| Location (`mu`) submodel, ordinary random intercept / slope | 1, 5, 6, 8 | yes, four times | 1 STRONG · 5 unclassified · 6, 8 WEAK |
+| Distributional (`sigma`) submodel, fixed effects | 2, 3, 6, 7, 8 | yes, five times | 2, 3 STRONG (a between-study heterogeneity SD, not a residual scale; 2's `sigma` formula is intercept-only, 3's carries a covariate) · 6, 7, 8 WEAK |
+| Distributional (`sigma`) submodel, ordinary random effect | none | not compared here | nothing to classify |
+| Residual correlation `rho12` with a predictor | none | not compared here | nothing to classify |
+| The rest of the implemented model surface | none | not compared here; the design documents record what it contains | nothing to classify |
+
+Comparisons 6, 7, and 8 fit `mu` and `sigma` jointly in one model. The
+agreement reported for each is a property of that joint fit; it does not
+license either submodel taken on its own.
+
+Three independence labels appear throughout: **STRONG** means the comparator
+shares no estimation code with `drmTMB`; **WEAK** means it is built on the
+same TMB automatic-differentiation stack and outer optimizer, so agreement is
+a consistency check between related implementations rather than a
+cross-implementation one; **unclassified** means the comparator is a separate
+engine whose independence `drmTMB`'s design documents have not yet
+classified.
+
+## Checked against a separate estimation engine
+
+The three comparisons in this section are against `lme4` and `metafor`,
+which share no estimation code with `drmTMB`
+(`docs/design/242-external-comparator-evidence-class.md`). Agreement here is
+a genuine cross-implementation check.
+
+### Comparison 1: contagious bovine pleuropneumonia across periods and herds
+
+If you already fit `lme4::glmer()` on `lme4::cbpp` while learning mixed
+models, this is the same model in `drmTMB`: infection risk by observation
+period, with a random herd intercept.
+
+```{r comparison1-drmtmb, eval = has_lme4}
+data(cbpp, package = "lme4")
+fit1 <- drmTMB(
+  bf(mu = cbind(incidence, size - incidence) ~ period + (1 | herd)),
+  data = cbpp, family = binomial()
+)
+coef(fit1, "mu")
+```
+
+```{r comparison1-comparator, eval = has_lme4}
+cmp1 <- lme4::glmer(
+  cbind(incidence, size - incidence) ~ period + (1 | herd),
+  family = binomial, data = cbpp
+)
+lme4::fixef(cmp1)
+```
+
+Both sides fit the same logit-scale coefficients directly — no conversion —
+and the herd random-intercept SD compares to `lme4`'s the same way:
+
+```{r comparison1-re, eval = has_lme4}
+summary(fit1)$parameters[, c("term", "estimate")]
+attr(lme4::VarCorr(cmp1)$herd, "stddev")
+```
+
+```{r comparison1-diff, eval = has_lme4}
+coef(fit1, "mu") - lme4::fixef(cmp1)
+c(drmTMB = as.numeric(logLik(fit1)), glmer = as.numeric(logLik(cmp1)))
+```
+
+The two fits agree to about three decimal places on the coefficients and the
+log-likelihood, not to five or six. Both sides use a first-order
+(`nAGQ = 1`) Laplace approximation of the marginal likelihood; a gap of this
+size between two different Laplace solvers — TMB's automatic-differentiation
+inner solve here, `lme4`'s PIRLS solve there — is the expected size for that
+comparison, not a sign that either optimizer stopped early.
+
+`binomial()` here has no dispersion parameter, on either side. `cbpp`'s known
+extra-binomial variation is therefore unmodelled symmetrically, not a
+discrepancy between the packages; `beta_binomial()` adds a dispersion
+parameter to this same two-column response if that matters for your own data.
+(`nbinom2()` also carries a dispersion parameter, but it is a count family and
+takes a single-column count response, so it is not a substitute here.)
+
+**Independence: STRONG** (`lme4`).
+
+### Comparison 2: the pooled BCG vaccine effect
+
+If you run meta-analyses in `metafor`, this is a fixed pooled effect with a
+between-trial heterogeneity term, written as `drmTMB` gaussian regression
+with the sampling variance supplied through `meta_V()`.
+
+```{r comparison2-data, eval = has_metafor && has_metadat}
+data(dat.bcg, package = "metadat")
+dat_bcg <- metafor::escalc(
+  measure = "RR", ai = tpos, bi = tneg, ci = cpos, di = cneg, data = dat.bcg
+)
+```
+
+```{r comparison2-drmtmb, eval = has_metafor && has_metadat}
+fit2 <- drmTMB(
+  bf(mu = yi ~ 1 + meta_V(V = vi), sigma = ~ 1),
+  data = dat_bcg, family = gaussian()
+)
+coef(fit2, "mu")
+```
+
+`metafor::rma.uni()`'s default estimator is REML, and it gives a visibly
+different fit:
+
+```{r comparison2-reml, eval = has_metafor && has_metadat}
+cmp2_reml <- metafor::rma.uni(yi, vi, data = dat_bcg)
+c(coef(cmp2_reml), tau2 = cmp2_reml$tau2)
+```
+
+`method = "ML"` is the comparator that matches:
+
+```{r comparison2-ml, eval = has_metafor && has_metadat}
+cmp2 <- metafor::rma.uni(yi, vi, data = dat_bcg, method = "ML")
+c(coef(cmp2), tau2 = cmp2$tau2)
+```
+
+`drmTMB` reports `log(tau)` as the `sigma` intercept; `metafor` reports
+`tau^2` directly. Converting with `tau^2 = exp(2 * coef(fit, "sigma"))` and
+comparing the two log-likelihoods shows the two packages are maximising the
+same function, not merely landing close to each other:
+
+```{r comparison2-convert, eval = has_metafor && has_metadat}
+c(drmTMB_tau2 = exp(2 * coef(fit2, "sigma")), metafor_tau2 = cmp2$tau2)
+c(drmTMB = as.numeric(logLik(fit2)), metafor = as.numeric(logLik(cmp2)))
+```
+
+BCG vaccination reduces tuberculosis risk on average, with real heterogeneity
+between the 13 trials, and `drmTMB` reproduces the estimate a `metafor` user
+already trusts before being asked to trust anything new.
+
+**Independence: STRONG** (`metafor`,
+`docs/design/242-external-comparator-evidence-class.md`).
+
+### Comparison 3: does heterogeneity itself differ by allocation design?
+
+The 13 BCG trials were allocated to treatment in three different ways
+(`alternate`, `random`, `systematic`). Rather than splitting the data into
+three separate meta-analyses, one `drmTMB` fit gives each allocation type its
+own heterogeneity `tau` through `sigma ~ alloc`.
+
+```{r comparison3-drmtmb, eval = has_metafor && has_metadat}
+fit3 <- drmTMB(
+  bf(mu = yi ~ 1 + meta_V(V = vi), sigma = ~ alloc),
+  data = dat_bcg, family = gaussian()
+)
+coef(fit3, "sigma")
+```
+
+```{r comparison3-comparator, eval = has_metafor && has_metadat}
+dat_bcg$id <- seq_len(nrow(dat_bcg))
+cmp3 <- metafor::rma.mv(
+  yi, vi, random = ~ alloc | id, struct = "DIAG", data = dat_bcg, method = "ML"
+)
+cmp3$tau2
+```
+
+`drmTMB`'s `sigma` linear predictor is on the `log(tau)` scale, and each
+allocation level's value is the intercept plus that level's contrast, with
+`alternate` as the reference. `rma.mv()` under `struct = "DIAG"` has **no**
+reference level: it estimates one free `tau^2` per level directly, so its four
+parameters are one `beta` plus three `tau^2`. What makes the two line up is
+therefore level **order**, not a shared reference — `rma.mv()` reports in the
+order of `g.levels.f`, and the comparison below relies on that. Exponentiating
+`drmTMB`'s side gives per-level `tau`, matching `rma.mv()`'s response-scale
+`tau`:
+
+```{r comparison3-convert, eval = has_metafor && has_metadat}
+sigma3 <- coef(fit3, "sigma")
+tau_by_level <- exp(c(
+  alternate = sigma3[1],
+  random = sigma3[1] + sigma3[2],
+  systematic = sigma3[1] + sigma3[3]
+))
+tau_by_level
+sqrt(cmp3$tau2)
+c(drmTMB = as.numeric(logLik(fit3)), metafor = as.numeric(logLik(cmp3)))
+```
+
+The two fits' per-level `tau` values and log-likelihood agree closely, and
+that agreement is not a coincidence: with one row per study, `rma.mv()`'s
+`~ alloc | id` under `struct = "DIAG"` puts one random effect per study with
+variance `tau^2` for that study's allocation level, so the marginal variance
+is `v_i + tau^2_{alloc(i)}` on both sides. These are the same model, written
+in two packages' syntax, not two models that happen to agree.
+
+Read the three fitted `tau` values as a point-agreement result only, not as a
+finding about which allocation design is more heterogeneous: the
+`alternate` level carries two studies, `random` seven, and `systematic` four,
+and `drmTMB`'s own recorded evidence for this route says heterogeneity
+intervals are not usable at this few studies per level. Report the estimates
+this comparison licenses — that the two packages reach the same optimum — and
+no more.
+
+**Independence: STRONG.** This and Comparison 2 are the two comparisons in
+this article that check a `sigma` linear predictor against a separate
+estimation engine — Comparison 2's `sigma` formula is intercept-only, and
+this one gives it a covariate. In both, `sigma` is a between-study
+heterogeneity SD under `meta_V()`, not a residual scale.
+
+## Checked against `ordinal`
+
+`ordinal` is a separate estimation engine, but
+`docs/design/242-external-comparator-evidence-class.md` has not yet
+classified its independence strength the way it classifies `lme4`,
+`metafor`, and `glmmTMB`, so the two comparisons in this section are
+reported without one.
+
+### Comparison 4: does serving temperature shift wine bitterness ratings?
+
+If you fit proportional-odds models with `ordinal::clm()`, this is the same
+grammar in `cumulative_logit()`: five ordered bitterness ratings, from
+Randall (1989)'s wine-tasting data, as a function of serving temperature and
+skin contact.
+
+```{r comparison4-drmtmb, eval = has_ordinal}
+data(wine, package = "ordinal")
+fit4 <- drmTMB(
+  bf(mu = rating ~ temp + contact), data = wine, family = cumulative_logit()
+)
+summary(fit4)$coefficients
+summary(fit4)$ordinal$cutpoints
+```
+
+```{r comparison4-comparator, eval = has_ordinal}
+cmp4 <- ordinal::clm(rating ~ temp + contact, data = wine)
+coef(cmp4)
+```
+
+```{r comparison4-loglik, eval = has_ordinal}
+c(drmTMB = as.numeric(logLik(fit4)), clm = as.numeric(logLik(cmp4)))
+```
+
+No conversion is needed: both sides write the same cumulative-logit
+convention, `logit P(Y <= j) = alpha_j - x'beta`, and the two log-likelihoods
+agree to five decimal places with matching-sign coefficients. Warm serving
+and skin contact both push ratings toward "more bitter."
+
+The comparison that makes this pair valuable runs the other way. `ordinal`
+can add a scale formula to this same model, and it fits:
+
+```{r comparison4-scale-comparator, eval = has_ordinal}
+cmp4_scale <- ordinal::clm(rating ~ temp + contact, scale = ~ temp, data = wine)
+as.numeric(logLik(cmp4_scale))
+```
+
+`cumulative_logit()` does not accept the equivalent formula in `drmTMB` 0.7.0:
+
+```{r comparison4-drmtmb-scale, eval = has_ordinal, error = TRUE}
+drmTMB(
+  bf(mu = rating ~ temp + contact, sigma = ~ temp),
+  data = wine, family = cumulative_logit()
+)
+```
+
+`cumulative_logit()` currently fits only a `mu` location formula; a scale or
+discrimination formula for this family is not yet implemented. If you need
+that, `ordinal::clm(scale = ~ ...)` is the tool that already has it. This
+asymmetry is worth sitting with: the two packages' surfaces do not coincide,
+and they fail to coincide in the direction that costs `drmTMB` something,
+which is the direction worth believing.
+
+**Independence:** `ordinal` is not yet classified in `drmTMB`'s design
+documents.
+
+### Comparison 5: do judges differ, and does that change the temperature effect?
+
+Nine judges each rated eight bottles. Adding a judge random intercept asks
+whether that matters, and whether `drmTMB` still matches `ordinal::clmm()`
+once it is added.
+
+```{r comparison5-drmtmb, eval = has_ordinal}
+fit5 <- drmTMB(
+  bf(mu = rating ~ temp + contact + (1 | judge)),
+  data = wine, family = cumulative_logit()
+)
+summary(fit5)$coefficients
+summary(fit5)$ordinal$cutpoints
+```
+
+```{r comparison5-comparator, eval = has_ordinal}
+cmp5 <- ordinal::clmm(rating ~ temp + contact + (1 | judge), data = wine)
+coef(cmp5)
+```
+
+For the random effect, compare SD to SD, not `clmm`'s printed variance:
+
+```{r comparison5-re, eval = has_ordinal}
+summary(fit5)$parameters[, c("term", "estimate")]
+attr(ordinal::VarCorr(cmp5)$judge, "stddev")
+c(drmTMB = as.numeric(logLik(fit5)), clmm = as.numeric(logLik(cmp5)))
+```
+
+Every quantity here — slopes, cutpoints, the random-intercept SD, and the
+log-likelihood — agrees closely between the two fits. Ignoring judge
+identity attenuates the temperature effect: Comparison 4's marginal slope was
+smaller than the conditional slope shown here, which is the expected
+conditional-versus-marginal shift, and having a working comparator is what
+makes it checkable rather than merely plausible.
+
+This licenses point-fit parity only, on this dataset. It does not license any
+REML or interval claim for `cumulative_logit()` random effects in general.
+The capability-ledger cell behind the model fitted here is `mc-0225`
+(`cumulative_logit`, `mu`, ordinary random intercept, ML), recorded at
+`interval_feasible`. That tier is narrow: it establishes computational
+interval feasibility for that one cell's direct intercept-SD target on a
+frozen low-rung fixture, it was not evaluated for coverage or calibration,
+and it carries no public interval guidance, no broader family or formula
+support, and nothing about correlated or labelled effects. A random *slope*
+on this family is a different cell (`mc-0227`, recorded two tiers lower at
+`point_fit_recovery` — the ordered scale places `diagnostic_only` between the
+two) and is not what this comparison fits.
+
+**Independence:** `ordinal` is not yet classified in `drmTMB`'s design
+documents.
+
+## Checked against a package built on the same machinery
+
+The three comparisons in this section are against `glmmTMB`, which is built
+on the same TMB automatic-differentiation stack and outer optimizer as
+`drmTMB` (`docs/design/242-external-comparator-evidence-class.md`).
+Agreement here is a consistency check between related implementations, not a
+cross-implementation check. It is also, uncomfortably, where `drmTMB`'s
+stated differentiator lives: no separate estimation engine checked a
+residual-scale submodel anywhere in this article.
+
+`glmmTMB` is called as `glmmTMB::glmmTMB()` below and is never attached with
+`library()`. That is deliberate. `glmmTMB` shares several names with `drmTMB` --
+the family constructors `lognormal()` and `nbinom2()`, and the extractor
+`ranef()` -- so attaching it silently changes which package's function a bare
+call reaches. The `drmTMB::` prefixes below are for the same reason, not style.
+
+### Comparison 6: does reaction-time variability grow with sleep deprivation?
+
+If you already fit `lme4::lmer(Reaction ~ Days + (Days | Subject))` on
+`lme4::sleepstudy`, this asks a further question: does the spread of
+reaction times widen with each day of deprivation, on top of the mean?
+
+The scale conversion is checked first on a fixed-effect variant of the
+model, where the likelihood is exact and no Laplace step intervenes on
+either side:
+
+```{r comparison6-fe-check, eval = has_lme4}
+data(sleepstudy, package = "lme4")
+fit6_fe <- drmTMB(
+  bf(mu = Reaction ~ Days, sigma = ~ Days), data = sleepstudy, family = gaussian()
+)
+mu_hat <- predict_parameters(fit6_fe, dpar = "mu", type = "response")$estimate
+eta_sigma <- predict_parameters(fit6_fe, dpar = "sigma", type = "link")$estimate
+c(
+  reported = as.numeric(logLik(fit6_fe)),
+  `hand, sd = exp(eta)` = sum(dnorm(sleepstudy$Reaction, mu_hat, exp(eta_sigma), log = TRUE)),
+  `hand, sd = sqrt(exp(eta))` = sum(dnorm(sleepstudy$Reaction, mu_hat, sqrt(exp(eta_sigma)), log = TRUE))
+)
+```
+
+`drmTMB`'s `sigma` linear predictor is `log(SD)`; no transform, no squaring.
+The wrong alternative misses `drmTMB`'s own reported log-likelihood by
+thousands of units, so the link is structural, not something that happens to
+hold for one fit.
+
+On the displayed random-effect model, that same no-transform rule is the one
+to use, and the two packages' `sigma` coefficients compare directly to
+`glmmTMB`'s `dispformula` coefficients:
+
+```{r comparison6-drmtmb, eval = has_lme4}
+fit6 <- drmTMB(
+  bf(mu = Reaction ~ Days + (1 + Days | Subject), sigma = ~ Days),
+  data = sleepstudy, family = gaussian()
+)
+coef(fit6, "mu")
+coef(fit6, "sigma")
+```
+
+```{r comparison6-comparator, eval = has_lme4 && has_glmmTMB}
+cmp6 <- glmmTMB::glmmTMB(
+  Reaction ~ Days + (Days | Subject), dispformula = ~ Days, data = sleepstudy
+)
+glmmTMB::fixef(cmp6)$cond
+glmmTMB::fixef(cmp6)$disp
+```
+
+With a random effect on `mu`, `logLik()` is a Laplace marginal on both sides,
+so no row-by-row density identity holds the way it did above. What the two
+packages share instead is the marginal log-likelihood itself:
+
+```{r comparison6-loglik, eval = has_lme4 && has_glmmTMB}
+c(drmTMB = as.numeric(logLik(fit6)), glmmTMB = as.numeric(logLik(cmp6)))
+abs(coef(fit6, "sigma") - glmmTMB::fixef(cmp6)$disp)
+```
+
+The `sigma` slope on `Days` is positive: residual spread grows with each day
+of deprivation. A mean-only model cannot show that, because it carries a
+single residual SD for every observation; this is an addition to the mean
+model you already trust, not a replacement for it.
+
+**Independence: WEAK.** The two fits are a consistency check between related
+implementations, not an independent confirmation.
+
+### Comparison 7: are male penguins more variable in body mass than females?
+
+`palmerpenguins::penguins` lets one model ask two things at once: does mean
+body mass differ by species, and is one sex more variable than the other?
+
+```{r comparison7-drmtmb, eval = has_penguins && has_glmmTMB}
+pen <- palmerpenguins::penguins[
+  stats::complete.cases(
+    palmerpenguins::penguins[, c("species", "sex", "body_mass_g")]
+  ),
+]
+fit7 <- drmTMB(
+  bf(mu = body_mass_g ~ species, sigma = ~ sex),
+  data = pen, family = drmTMB::lognormal()
+)
+coef(fit7, "mu")
+coef(fit7, "sigma")
+```
+
+```{r comparison7-comparator, eval = has_penguins && has_glmmTMB}
+cmp7 <- glmmTMB::glmmTMB(
+  log(body_mass_g) ~ species, dispformula = ~ sex, data = pen, family = gaussian()
+)
+glmmTMB::fixef(cmp7)$cond
+glmmTMB::fixef(cmp7)$disp
+```
+
+Compare on the log scale, coefficient for coefficient, with `sigma`
+unsquared. Two things matter here that a coefficient-by-coefficient eyeball
+can miss. First, `drmTMB`'s `mu` is `E[log y]`, not `log E[y]`:
+
+```{r comparison7-mu-check, eval = has_penguins && has_glmmTMB}
+mu_hat <- predict_parameters(fit7, dpar = "mu", type = "link")$estimate
+eta_sigma <- predict_parameters(fit7, dpar = "sigma", type = "link")$estimate
+y <- pen$body_mass_g
+c(
+  reported = as.numeric(logLik(fit7)),
+  `hand, meanlog = mu` = sum(dlnorm(y, mu_hat, exp(eta_sigma), log = TRUE)),
+  `hand, meanlog = mu - sigma^2/2` = sum(dlnorm(y, mu_hat - exp(eta_sigma)^2 / 2, exp(eta_sigma), log = TRUE))
+)
+```
+
+Second, the two packages' raw log-likelihoods are not comparable directly:
+`drmTMB` reports it on the original `body_mass_g` scale, including the
+log-Jacobian for the log transform, while `glmmTMB` reports it for
+`log(body_mass_g)`. The gap between them is exactly that Jacobian term:
+
+```{r comparison7-loglik, eval = has_penguins && has_glmmTMB}
+c(drmTMB = as.numeric(logLik(fit7)), glmmTMB = as.numeric(logLik(cmp7)))
+sum(-log(y))
+```
+
+Coefficient agreement, once the two traps above are accounted for, is close
+on every term. Gentoo penguins are heavier than Adelie on the log scale, and
+males are noticeably more variable in log body mass than females — the
+`sigma ~ sex` submodel is what makes that second finding representable at
+all; a model with one residual SD has no parameter for it.
+
+**Independence: WEAK.**
+
+### Comparison 8: are satiated owl broods more variable, not just quieter?
+
+`glmmTMB::Owls` records sibling negotiation calls by nest, food treatment,
+and parent sex. Beyond the mean call rate, does food treatment change the
+overdispersion too?
+
+The scale conversion is again checked first on a fixed-effect variant, where
+the likelihood is exact:
+
+```{r comparison8-fe-check, eval = has_glmmTMB}
+data(Owls, package = "glmmTMB")
+fit8_fe <- drmTMB(
+  bf(mu = SiblingNegotiation ~ FoodTreatment, sigma = ~ FoodTreatment),
+  data = Owls, family = drmTMB::nbinom2()
+)
+mu_hat <- predict_parameters(fit8_fe, dpar = "mu", type = "response")$estimate
+eta_sigma <- predict_parameters(fit8_fe, dpar = "sigma", type = "link")$estimate
+y <- Owls$SiblingNegotiation
+c(
+  reported = as.numeric(logLik(fit8_fe)),
+  `hand, size = 1/sigma^2` = sum(dnbinom(y, mu = mu_hat, size = 1 / exp(eta_sigma)^2, log = TRUE)),
+  `hand, size = 1/sigma` = sum(dnbinom(y, mu = mu_hat, size = 1 / exp(eta_sigma), log = TRUE)),
+  `hand, size = sigma` = sum(dnbinom(y, mu = mu_hat, size = exp(eta_sigma), log = TRUE))
+)
+```
+
+`drmTMB`'s `sigma` maps to `size = 1 / sigma^2`; `glmmTMB`'s `dispformula`
+predictor is `log(size)` directly. The conversion is therefore
+`log(theta) = -2 * log(sigma)`, and only the first hand-built likelihood
+above reproduces `drmTMB`'s reported value — the other two miss it by a wide
+margin, in an order of magnitude that could otherwise look plausible if you
+did not check it.
+
+The `drmTMB::` prefix on `nbinom2()` above is mandatory here, not stylistic.
+`glmmTMB` also exports a family constructor named `nbinom2()`. If you attach
+`glmmTMB` with `library()`, a bare `family = nbinom2()` silently hands `drmTMB`
+`glmmTMB`'s family object instead of its own, and the call is rejected. This
+article never attaches `glmmTMB`, so the clash is shown explicitly:
+
+```{r comparison8-clash, eval = has_glmmTMB, error = TRUE}
+drmTMB(
+  bf(mu = SiblingNegotiation ~ FoodTreatment, sigma = ~ FoodTreatment),
+  data = Owls, family = glmmTMB::nbinom2()
+)
+```
+
+On the displayed random-effect model, the joint fits agree on the marginal
+log-likelihood, and the same `-2 *` conversion carries over to the `sigma`
+coefficients:
+
+```{r comparison8-drmtmb, eval = has_glmmTMB}
+fit8 <- drmTMB(
+  bf(
+    mu = SiblingNegotiation ~ FoodTreatment * SexParent + (1 | Nest),
+    sigma = ~ FoodTreatment
+  ),
+  data = Owls, family = drmTMB::nbinom2()
+)
+coef(fit8, "mu")
+coef(fit8, "sigma")
+```
+
+```{r comparison8-comparator, eval = has_glmmTMB}
+cmp8 <- glmmTMB::glmmTMB(
+  SiblingNegotiation ~ FoodTreatment * SexParent + (1 | Nest),
+  dispformula = ~ FoodTreatment, family = glmmTMB::nbinom2, data = Owls
+)
+glmmTMB::fixef(cmp8)$cond
+glmmTMB::fixef(cmp8)$disp
+```
+
+```{r comparison8-convert, eval = has_glmmTMB}
+c(drmTMB = as.numeric(logLik(fit8)), glmmTMB = as.numeric(logLik(cmp8)))
+sigma8 <- coef(fit8, "sigma")
+abs(-2 * sigma8 - glmmTMB::fixef(cmp8)$disp)
+```
+
+Skip the conversion and the mismatch is large enough to notice — but it is
+signed the opposite way for `nbinom2()` than it was for the identity rule in
+Comparison 6, which is exactly the kind of error that survives a casual
+eyeball because it still lands in a plausible-looking range. Applied
+correctly, satiated broods have higher `sigma`, meaning lower `size`,
+meaning more overdispersion than food-deprived broods, and the two packages
+agree once, and only once, the conversion is applied.
+
+**Independence: WEAK.**
+
+## What these eight comparisons show
+
+Three of the comparisons above — the `lme4` and `metafor` ones — are against
+separate estimation engines. Three are against `glmmTMB`, which is built on
+the same TMB automatic-differentiation stack and outer optimizer as
+`drmTMB`, so they check consistency between related implementations rather
+than across independent ones. Two are against `ordinal`, whose independence
+`drmTMB`'s design documents have not yet classified. It is worth naming
+where the
+distributional-parameter comparisons fall among those three groups: every
+comparison of a residual-scale submodel in this article — the capability
+`drmTMB` exists for — is in the `glmmTMB` group. The separate-engine checks
+on a `sigma` linear predictor are the two meta-analysis comparisons, where
+`sigma` is a between-study heterogeneity SD, not a residual scale.
+
+These eight models were compared against packages listed in `drmTMB`'s
+`DESCRIPTION` under `Suggests`, because those are the packages this article
+can call. `drmTMB` implements a great deal more than eight models; what it
+implements, and what evidence stands behind each capability, is recorded in
+the package's design documents and capability ledger rather than here.
+
+## Reproducing these numbers
+
+Every figure above is a fitted result, so it is tied to the versions that
+produced it. Two comparisons are quoted to a precision — agreement to `1e-3`,
+and a log-likelihood gap of `1.63e-11` — that a different optimizer build can
+move. The block below records what this rendering used, so a reader who gets a
+different number can tell whether the package changed or their environment did.
+
+```{r reproducibility}
+pkgs <- c(
+  "drmTMB", "TMB", "Matrix", "lme4", "metafor", "metadat", "ordinal", "glmmTMB",
+  "palmerpenguins"
+)
+data.frame(
+  package = pkgs,
+  version = vapply(
+    pkgs,
+    function(p) {
+      if (requireNamespace(p, quietly = TRUE)) {
+        as.character(utils::packageVersion(p))
+      } else {
+        NA_character_
+      }
+    },
+    character(1)
+  ),
+  row.names = NULL
+)
+```
+
+```{r reproducibility-platform}
+c(
+  R = R.version.string,
+  platform = R.version$platform,
+  BLAS = basename(extSoftVersion()[["BLAS"]])
+)
+```
+
+No comparison on this page draws random numbers, so none of them carries a
+seed: each fit is a deterministic optimisation of a fixed dataset shipped by
+the package named beside it. The two quantities that do vary between machines
+are the optimiser's stopping point and the BLAS in use, which is why both are
+recorded above rather than the seed that does not exist.

@@ -54,6 +54,7 @@ Suggests:
     knitr,
     lme4,
     MASS,
+    metadat,
     metafor,
     mvtnorm,
     nlme,

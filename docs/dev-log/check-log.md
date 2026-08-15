@@ -93640,3 +93640,287 @@ can see which commit each one actually examined.
   landed reader tests (PR #1031), and `library(glmmTMB)` in a new article broke
   eight downstream vignettes under `--as-cran`. Both repairs removed an attach.
   Neither helped a user, who has every right to attach a comparator package.
+
+## 2026-08-15 — Phase 19: `comparing-with-other-packages.Rmd`, its comparator tests, and their registration
+
+**Scope of this entry.** It was first written against a tree that held only the
+four registration edits, while the article was still another agent's in-flight
+work. The article and its test file have since landed in this same branch, and
+three statements written at that moment (the article "does not exist"; the
+reader-contract linter "fails"; an `expect_setequal()` "will fail") were true
+then and are false now. Rather than ship an entry that a future session would
+read as current, this entry has been brought up to date: the registration
+record below is unchanged in substance, and the article, the test file, the
+`DESCRIPTION` change, and a repair pass have been added. Every number below was
+re-run in the tree as it now stands, not carried over.
+
+- The branch now contains four coupled things, not one: the reader article
+  `vignettes/comparing-with-other-packages.Rmd`, its regression guards in
+  `tests/testthat/test-comparators-phase19.R`, the `metadat` declaration in
+  `DESCRIPTION`, and the four registration edits recorded below.
+- `_pkgdown.yml`: added a new top-level `articles:` section, `- title:
+  Comparison with Established Packages`, `contents: [comparing-with-other-packages]`,
+  inserted between the existing "Applied Family Tutorials" and "Model Checking
+  and Practical Workflow" sections, per `PR2-build-plan.md` §9.1 item 2. The
+  vignettes==articles invariant now holds at **38** (`awk` count over the
+  `articles:` block, confirmed after the edit).
+- `inst/reader-contracts/vignette-manifest.csv`: added
+  `comparing-with-other-packages.Rmd,reader,,` (trailing fields empty, matching
+  the `structural-dependence.Rmd,reader,,` pattern), placed alphabetically
+  between `capability-and-limits.Rmd` and `convergence.Rmd` to match the file's
+  existing sort order. File is now 39 lines = 1 header + 38 rows.
+- `tests/testthat/test-reader-vignette-contracts.R`: bumped
+  `expect_equal(nrow(manifest), 37L)` to `38L` at the line that reads that
+  literal today (verified by `grep -n`, not assumed from an old citation).
+- **§9 line-number re-verification (requested explicitly, because this phase
+  has had stale-line-citation recur three times):** all four of §9.1's cited
+  locations were checked against the live worktree *before* editing and all
+  four were still exactly where the plan said — `_pkgdown.yml:256-261` /
+  `:262-268` (Applied Family Tutorials / Model Checking boundary),
+  `inst/reader-contracts/vignette-manifest.csv:36` (`structural-dependence.Rmd`
+  row), and `tests/testthat/test-reader-vignette-contracts.R:224` /
+  `:226` (`nrow()` and `expect_setequal()`). This round's §9 citations were
+  accurate, unlike the pattern the plan itself warns about elsewhere.
+- **Honest audit history, recorded per the maintainer's instruction:** the
+  restructured plan and its columned comparator survey failed **five
+  consecutive claims audits** (Rose, gate1–gate5) on one recurring defect
+  class — unqualified absence claims ("no comparator exists for X"). Each of
+  the first four repairs moved the wording rather than closing the defect
+  (`docs/dev-log/external-oracle/phase19/gate5-claims.md` Part D table: a
+  5-string blacklist in round 2→3, a required-clause phrase search in round
+  3→4, each defeated by a new unmatched phrasing). The maintainer's decisions
+  along the way: (1) drop the two frontier fits from the article rather than
+  keep arguing their wording; (2) once the defect class persisted in the
+  *taxonomy itself* — not just individual sentences — cut the absence
+  narrative out of the article entirely, and give the per-family comparator
+  survey table explicit **claim-class / searched / run** columns so
+  incompleteness is visible from the table's shape (an empty cell is the
+  finding) rather than from a prose sweep. Round 5 closed the four-round class
+  this way; `gate5-claims.md` Part A verifies all 17 survey rows carry
+  non-empty claim-class/searched/run cells mechanically. **The recurring
+  mechanism was string-shaped sweeps substituting for enumeration** — a grep
+  for one known-bad phrase or clause, rather than reading every sentence
+  against the rule — and round 5 is the first that replaced the surface the
+  claim needed rather than chasing its wording. Round 5's own gate is not a
+  clean pass: it found one blocking finding (G5-B1, two mandated article
+  conclusions assert a named comparator "cannot" do something, a related but
+  distinct absence-claim shape) and five serious findings, all confined to
+  planning documents. **§9 (registration, this entry's own subject), §12
+  (reproducibility), and the c04–c09 build specifications remain unaudited
+  from the audit side** — `gate5-claims.md` says so explicitly and this
+  registration slice does not close that gap; it only re-verified §9's line
+  numbers, which is a narrower check than a claims audit.
+- No capability-ledger row is added by this entry, consistent with
+  `PR2-build-plan.md` §10.1's recommendation (no new ledger rows in PR 2).
+- Verification, re-run in the current tree (the article is present, so the
+  linter's earlier missing-vignette failure no longer applies):
+
+  ```
+  $ R_PROFILE_USER=/dev/null Rscript --no-init-file tools/check-reader-contracts.R
+  Reader vignette contract: OK
+  (exit code 0)
+
+  testthat::test_file("tests/testthat/test-reader-vignette-contracts.R")
+    21 assertions, 0 failed, 0 errors, 0 skipped
+
+  testthat::test_file("tests/testthat/test-comparators-phase19.R")
+    8 test blocks, 41 assertions, 0 failed, 0 errors, 0 skipped
+
+  $ python3 -m unittest tools/tests/test_capability_ledger.py
+    Ran 73 tests — OK
+
+  knitr::knit("vignettes/comparing-with-other-packages.Rmd")
+    73/73 chunks, no error (the two error = TRUE chunks fire as intended)
+  ```
+- A pre-edit lane-check hook flagged that 32 other refs carry unrelated commits
+  touching `_pkgdown.yml` (e.g. `codex/joint-mi-two-predictor`,
+  `claude/07-release-slice`, `cursor/useful-07-user-facing`). This edit is a
+  single additive insertion (one new `articles:` section) scoped to this
+  phase's own vignette and does not appear to duplicate any of those; not
+  independently diffed against all 32 refs given the scope of this task.
+
+### The article — `vignettes/comparing-with-other-packages.Rmd`
+
+- Eight comparisons, each a real dataset with a real `drmTMB` fit and a real
+  comparator fit beside it, grouped by how independent the comparator is:
+  Comparisons 1–3 against `lme4` and `metafor` (STRONG, no shared estimation
+  code), 4–5 against `ordinal` (unclassified — `docs/design/242-external-
+  comparator-evidence-class.md` has not classified it), 6–8 against `glmmTMB`
+  (WEAK — same TMB AD stack and outer optimizer, so a consistency check between
+  related implementations).
+- Evidence class is `external_comparator`: point estimates and `logLik` only,
+  one dataset and one seed per cell, no interval or coverage claim anywhere,
+  per `docs/design/242-external-comparator-evidence-class.md`. **No
+  capability-ledger row is added**, per `PR2-build-plan.md` §10.1.
+- The article volunteers its own uncomfortable finding twice: every
+  residual-scale `sigma` comparison in it is in the WEAK `glmmTMB` group. The
+  two separate-engine `sigma` checks are the meta-analysis comparisons, where
+  `sigma` is a between-study heterogeneity SD under `meta_V()`, not a residual
+  scale.
+
+### The tests — `tests/testthat/test-comparators-phase19.R`
+
+- One `test_that()` per article Comparison, mirroring the same `drmTMB` call,
+  the same comparator call, and the same matched-scale conversion. 41
+  assertions across 8 blocks.
+- Tolerances are stated per assertion with the measured difference recorded in
+  a comment beside it, rather than set to a round number and left unexplained.
+  Comparison 1 is deliberately the loosest at `1e-3`: both sides are `nAGQ = 1`
+  Laplace, and the residual gap is a stable difference between TMB's AD inner
+  solve and `lme4`'s PIRLS solve, not under-convergence.
+- The guards are non-vacuous under mutation, checked rather than asserted:
+  refitting Comparison 6 with the wrong random-effect structure, Comparison 5
+  without its random intercept, and Comparison 2 against `rma.uni()`'s default
+  REML each turn the relevant assertions red; a relative perturbation sweep on
+  Comparison 1 passes at `1e-4` and fails at `1e-3`.
+
+### `DESCRIPTION` — `metadat` declared
+
+- Added `metadat` to `Suggests` (alphabetically, between `MASS` and
+  `metafor`). Comparisons 2 and 3 call `metadat::dat.bcg` in both the article
+  and the tests, and `R CMD check`'s unstated-dependency scan reaches tangled
+  vignette sources as well as test files, so an undeclared `metadat` was a real
+  check risk.
+- This declares a dependency the package already had transitively rather than
+  adding a new one: `metafor` 5.0.1's `Depends` field is
+  `R (>= 4.0.0), methods, Matrix, metadat, numDeriv`, verified by reading
+  `packageDescription("metafor")$Depends`, so `metadat` is already installed
+  wherever `metafor` is. The transitive route is not something this package
+  pins, though — `DESCRIPTION` declares a bare `metafor` with no version
+  floor — which is the second reason to declare `metadat` directly. A scan of
+  every local and remote ref confirmed no other branch already adds it, so this
+  is not a duplicate of another lane's fix.
+
+### Repair pass over the landed artifacts
+
+Two independent audits (`docs/dev-log/external-oracle/phase19/build-verify-
+claims.md`, `-numeric.md`) ran against the landed article and tests. Both found
+the A1 absence-claim enumeration **clean** — 0 violations across 59 paragraphs,
+13 headings and 8 table cells — every arithmetic claim independently
+reproduced, and the tests non-vacuous under mutation. The defects they did find
+were about attribution and completeness, and are closed here:
+
+- **Wrong ledger cell.** Comparison 5 displays a random *intercept*
+  (`(1 | judge)`) but cited `mc-0227`, which is the `ordinary_re_slope` row at
+  `point_fit_recovery`, and imported that row's package-private-estimator
+  boundary prose, which describes neither model. Both cells were re-read from
+  `docs/dev-log/dashboard/capability-ledger/cells.tsv`: the displayed model is
+  governed by `mc-0225` (`ordinary_re_intercept`, ML, `interval_feasible`). The
+  citation, the tier, and the boundary wording are now `mc-0225`'s own, with
+  `mc-0227` named only as the different cell it is.
+- **A false "only".** Comparison 3 claimed to be the only comparison checking a
+  `sigma` linear predictor against a separate engine; Comparison 2 does it too
+  (`drmTMB` `tau^2` 0.2800281 vs `metafor` 0.2800282). Corrected in all three
+  places that carried the omission — the independence line, the closing
+  summary, and the capability table's `sigma` fixed-effects row (now 2, 3, 6,
+  7, 8; five times, not four).
+- **An unshown claim.** Comparison 5 asserted cutpoint agreement without ever
+  printing `drmTMB`'s cutpoints, while Comparison 4 printed both sides.
+  `summary(fit5)$ordinal$cutpoints` is now displayed; rendered, the two sets
+  agree visibly (`-1.623669 / 1.513357 / 4.228520 / 6.088769` against `clmm`'s
+  `-1.623667 / 1.513365 / 4.228527 / 6.088773`, max abs diff 8.7e-06), so the
+  claim is checkable from the page rather than only from the test.
+- **A pointer that dead-ends.** Comparison 1 offered `nbinom2()` beside
+  `beta_binomial()` for a two-column `cbind(incidence, size - incidence)`
+  response. Run on the article's own model, `beta_binomial()` fits
+  (`logLik = -88.042`) and `nbinom2()` errors with "Internal model-frame
+  mismatch in nbinom2 model." `nbinom2()` is now scoped explicitly to a
+  single-column count response instead of being offered as a substitute.
+- **A guard that errors instead of skipping.** Comparison 6's test used
+  `lme4::sleepstudy` but skipped only on `glmmTMB`; a machine with `glmmTMB`
+  and without `lme4` is a legitimate check environment, and there the test
+  errored. `skip_if_not_installed("lme4")` added.
+- **A stale header comment.** The test file's header said the `DESCRIPTION`
+  edit was out of scope and cited "metafor (>= 5.0-1)" although `DESCRIPTION`
+  declares a bare `metafor` with no floor. Rewritten to record what is now
+  true.
+
+### 2026-08-15 — `--as-cran` caught a search-path leak the unit tests could not
+
+- The first `R CMD check --as-cran` of this branch **FAILED**: eight vignettes
+  failed to re-build with `no applicable method for 'ranef' applied to an object
+  of class "drmTMB"`, raised from `nlme::ranef`.
+- **Cause, and it was ours.** The new article attached `glmmTMB` with `library()`.
+  `glmmTMB` re-exports `nlme`'s `ranef` generic, and **drmTMB's `ranef` is not
+  registered as an S3 method on that generic** — `getS3method("ranef", "drmTMB")`
+  returns `NULL` — so once anything exporting `ranef` is attached, every later
+  `ranef(fit)` call fails outright.
+- Attribution was established rather than assumed. `spatial-models.Rmd` knits
+  cleanly **on its own**, and **all eight failures sort alphabetically after
+  `comparing-with-other-packages.Rmd` while every vignette before it passed**.
+  Vignette re-building shares a search path, so one `library()` broke the rest.
+- Repair: the attach is removed. `glmmTMB` is now reached as `glmmTMB::glmmTMB()`,
+  the `nbinom2` clash demonstration is made explicit with `glmmTMB::nbinom2()`,
+  and the prose now explains that the `drmTMB::` prefixes exist to avoid masking.
+- Verified both directions in one session: the article knits, `glmmTMB` is absent
+  from the search path afterwards, `ranef` resolves to `drmTMB`, and
+  `spatial-models.Rmd` then knits cleanly. Before the fix it failed.
+- **This is the second time this exact class has bitten this arc.** The first was
+  `library(lme4)` in the oracle test file breaking the landed reader tests
+  (repaired in PR #1031). The underlying fragility is in the package, not the
+  callers: any user who attaches `lme4`, `glmmTMB` or `nlme` after `drmTMB` loses
+  `ranef()`. That is worth a separate fix — registering `ranef.drmTMB` on the
+  `nlme` generic — and is **not** attempted here.
+- The second `--as-cran` cleared all eight downstream vignettes but failed on the
+  new article itself, in a cascade from the same root cause: with `glmmTMB` no
+  longer attached, `fixef(cmp6)` reached drmTMB's `fixef` (no method for a
+  `glmmTMB` object) and `Owls` was no longer on the search path. Repaired by
+  qualifying `glmmTMB::fixef()` on all three comparator fits and loading
+  `data(Owls, package = "glmmTMB")` explicitly. `rmarkdown::render()` now
+  completes, `glmmTMB` is absent from the search path afterwards, and `ranef`
+  resolves to `drmTMB`.
+- **Method note, because it changes what "verified" means here.** The earlier
+  `knitr::knit()` check reported OK on a file that `rmarkdown::render()` then
+  failed. `R CMD check` re-builds vignettes with `rmarkdown`, so `render()` is the
+  authoritative local check and `knit()` is not a substitute for it. Both
+  cascading defects were invisible to `knit()`.
+- The third `--as-cran` is **0 errors, 0 warnings, 2 notes**: the expected
+  `New submission`, and a `Non-standard file/directory found at top level:
+  'figure'` that was **my own debris** — two PNGs knitr wrote into the package root
+  while I was knitting `spatial-models.Rmd` to diagnose the search-path leak, then
+  swept into a commit by `git add -A`. Removed. The repo's own guidance is to stage
+  scoped paths and never `git add -A`; not following it cost a NOTE.
+- **No unstated-dependency note appeared**, which is what makes the `metadat`
+  declaration *observed* rather than merely reasoned. That was the whole purpose of
+  running `--as-cran` here, and it is the check that first exposed the vignette
+  leak as well.
+- A final audit of the three surfaces the claims reviewer never reached — the
+  registration checklist, the reproducibility block, and the c04–c09 build
+  specifications — returned **registration correct on all five coupled edits**
+  (including the fifth, `docs/design/226`, which the contract's own text still
+  does not name) but **reproducibility NOT BUILT**: no versions, platform, seed
+  statement or threading information appeared anywhere a re-runner could find it,
+  although issue #60's Definition of Done requires exactly that, and the article
+  quotes precisions (`1e-3`, `1.63e-11`) that depend on the comparator versions
+  in use. Repaired by adding a "Reproducing these numbers" section that emits the
+  drmTMB, TMB, Matrix and comparator versions, the R version, platform and BLAS.
+  It also states plainly that no comparison draws random numbers, so there is no
+  seed to record — the quantities that vary between machines are the optimiser
+  stopping point and the BLAS, which is what is recorded instead.
+- The same audit found one more stale count in `docs/design/226` that my earlier
+  hand-edit missed: the prose sentence introducing the placement table still said
+  37. The automated ledger test does not check that sentence — it checks the title,
+  the "N rows." statement and the table stems — so the count was internally
+  inconsistent while passing. Corrected.
+- The c04–c09 build specifications — the surface flagged as unaudited for three to
+  four rounds — were finally audited by re-fitting every model in fresh sessions.
+  **Every displayed number reproduced**, no number was attached to the wrong model,
+  and 14 of 16 deliberately introduced mutants were caught. Three defects were
+  found and are fixed here:
+  - The article said `rma.mv(struct = "DIAG")` treats `alternate` as a reference
+    level "on both sides". It has **no** reference level: it estimates one free
+    `tau^2` per level, so its four parameters are one `beta` plus three `tau^2`.
+    What makes the two sides line up is level **order**, not a shared reference.
+    Notably **the test file already had this right and the article did not** — the
+    guard was more accurate than the prose it was guarding.
+  - `mc-0227` was described as "a tier lower"; the ordered scale places
+    `diagnostic_only` between the two, so it is two tiers.
+  - The Comparison 7 test did not pin the `sigma ~ sex` structure the section
+    exists to demonstrate. Collapsing **both** sides to an intercept-only scale
+    left four of five assertions passing, because `unname()`'d coefficient vectors
+    of equal length still agree. Two `expect_named()` assertions now pin the terms;
+    re-running that same mutation produces **3 failures** instead of 1.
+- Not covered by that audit, and stated so nobody reads it as broader than it is:
+  `nbinom2` `theta = 1/sigma^2` was outside the audited range, and beta `phi`,
+  the tweedie `2 *` factor and the `rho12` guard are exercised nowhere in either
+  artifact — correctly absent rather than wrongly asserted.

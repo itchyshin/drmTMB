@@ -718,3 +718,64 @@ scouting belongs to Jason).
 - Trigger: the first mesh V3 smoke reused two proposed promotion seeds. Curie
   caught the overlap after launch; the run was stopped, the complete proposed
   ledger was excluded, and the valid campaign used 100 wholly fresh seeds.
+
+## 2026-08-15 - Verify A Vignette With render(), Not knit()
+
+- Improvement implemented: a vignette is only "verified" once
+  `rmarkdown::render()` completes on it. `R CMD check` re-builds vignettes with
+  `rmarkdown`, so `knitr::knit()` is a weaker instrument and is not a substitute.
+- Trigger: a new article was reported as knitting cleanly on the strength of
+  `knit()`. `render()` then failed it twice in a row, on two genuinely different
+  defects — a masked accessor and a dataset that was only on the search path.
+  Both were invisible to `knit()`, and the first "verified" claim was wrong.
+
+## 2026-08-15 - A New Vignette Needs Five Coupled Edits, Not Four
+
+- Improvement implemented: adding a vignette requires the `.Rmd`, the
+  `_pkgdown.yml` `articles:` entry, the `inst/reader-contracts/vignette-manifest.csv`
+  row, the hard-coded count in `tests/testthat/test-reader-vignette-contracts.R`,
+  **and** `docs/design/226-reader-learning-path.md`, which
+  `tools/tests/test_capability_ledger.py` enforces against the live vignette count.
+  Doc 226 needs a title count, an "N rows." statement and a table row — not just a
+  header bump.
+- Trigger: the fifth edit is documented nowhere and was found by tripping its test.
+  A follow-up audit then found a sixth stale count inside doc 226 that the
+  enforcing test does not check, so the document was internally inconsistent while
+  passing. Recompute doc 226's stage counts from its own table after editing it.
+
+## 2026-08-15 - Never Attach A Comparator Package In A Test Or Vignette
+
+- Improvement implemented: reach comparator packages as `pkg::fun()` and
+  `data(x, package = "pkg")`. Do not `library()` them in tests or vignettes.
+- Trigger: two separate incidents in one arc. `library(lme4)` in a test file
+  masked `fixef`/`ranef` and produced an ERROR in landed reader tests when the
+  files ran in one session. `library(glmmTMB)` in a new article broke **eight**
+  downstream vignettes under `--as-cran` — every vignette sorting alphabetically
+  after it, because vignette re-building shares a search path. The underlying
+  package fragility was fixed separately by registering `ranef`/`fixef` on
+  `nlme`'s generics, but the calling discipline still stands: an attach changes
+  which package's function a bare call reaches, for every later file too.
+
+## 2026-08-15 - A Closed Blacklist Cannot Enforce An Open-Ended Claim Class
+
+- Improvement implemented: when a rule forbids a *kind* of claim rather than a
+  set of words, enforce it with a required clause or a structural column, not a
+  list of banned strings. Make the incomplete case visible on sight — e.g. a
+  "claim class / set searched / actually run" column, where an empty cell is
+  obviously wrong — so no sweep is ever needed.
+- Trigger: five consecutive claims-audit rounds each killed every named instance
+  of one defect class and it reappeared elsewhere, because the term itself was
+  *defined* as the forbidden claim. Correcting instances of a term is not
+  correcting the term. Four of the five sweeps were string-shaped, including the
+  round that adopted a rule saying a grep "is explicitly not the test".
+
+## 2026-08-15 - Audit A Sub-Agent's TOOL GRANT, Not Just Its Model Tier
+
+- Improvement implemented: before dispatching an implementation slice, check the
+  agent type can actually write. Review-only lenses in `.claude/agents/`
+  (`inference_reviewer`, `reproducibility_engineer`, `math_consistency_reviewer`,
+  and others) have Read/Grep/Bash but no Write or Edit.
+- Trigger: a plan assigned four implementation slices to review-only lenses. They
+  would have read as correctly routed and simply produced nothing. Routing was
+  corrected before dispatch by sending the writing slices to tool-capable agents
+  carrying the same lens, but the plan's own slice table still named the lenses.
