@@ -3,8 +3,34 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
-> ship; `DESCRIPTION` is **0.7.0** on `main`).**
+> **▶ Latest — start here (2026-08-15, → CLAUDE; the CRAN lane's holds are DECIDABLE and the
+> REML arm is MEASURED; rung UNCHANGED at `tarball-clean`).**
+> Lane `claude/07-cran-ladder` @ `966039f17` (PR **#1039**, open; 10 commits, all docs +
+> `DESCRIPTION`). **Everything that now gates 0.7.0 is an OWNER decision:** the **D-93 decision
+> packet** is written, adversarially reviewed, and ends in one unanswered question
+> (nominal-exact bar vs the `g`-tapered floor 0.918) —
+> [`docs/dev-log/release-audits/2026-08-15-d93-decision-packet.md`](docs/dev-log/release-audits/2026-08-15-d93-decision-packet.md);
+> **D-117's four conditions are ALL MET** (condition 1 was already satisfied on `main` as
+> `8.3%-15.8%` in four user-facing places), so its discharge is a pure judgement call.
+> **The REML arm RAN on Totoro** (400,000 paired replicates, pre-registered, ML control
+> reproduced the banked 100k gate to five decimals): **NARROWS BUT DOES NOT CLOSE** — pooled
+> profile coverage 0.9248 → **0.9463** (CI excludes 0.95), SD bias −10.9% → −4.6%, miss asymmetry
+> 5.7:1 → 2.0:1. Caveat: run on the 0.6.0 campaign library. Evidence:
+> [`docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/VERDICT.md).
+> Also landed: **Gate 1 CLOSED** (component ledger rebuilt; the owed rights review of the
+> `drm_log_pnorm()` gllvmTMB borrowing is **CLEAR**, verified against a sibling checkout);
+> `main` bumped **`0.7.0` → `0.7.0.9000`** so it stops masquerading as the frozen candidate;
+> the bootstrap boundary flag (`bootstrap_at_boundary`, rescued from closed #959) re-landed as
+> PR **#1041**; superseded PRs #959/#955 closed. **Rung `tarball-clean` after every commit;
+> ledger + release evidence zero-diff.** NEXT = Shinichi answers the packet's question (and
+> D-117); until then nothing on this lane is buildable. **Multi-lane:** this pointer is ONE
+> lane; see the board's Active-Lane-Split,
+> [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+> START HERE:
+> [`docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md`](docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md).
+>
+> **▶ Prior (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
+> ship; `DESCRIPTION` was **0.7.0** on `main` — bumped to `0.7.0.9000` on 2026-08-15).**
 > `main` = `511a7a390`. **Rung UNCHANGED and that is the point: `tarball-clean` proven,
 > `platform-clean` unproven.** Eight PRs merged today advanced the *record*, not the *claim*.
 > **The defect fixed:** the repo's only machine-checkable release gate still described the
