@@ -98,7 +98,7 @@ floor is `g`-tapered in the first place"* (`VERDICT-100K.md:226-228`).
 
 **The shortfall is one-sided, and that matters more than its size.** Across the four cells at
 100,000 attempts each, lower-side misses number 1163 / 1089 / 1139 / 1083 while upper-side misses
-number 6547 / 6344 / 6308 / 6407 — an upper-tail excess of roughly 5.6:1 to 5.9:1
+number 6547 / 6344 / 6308 / 6407 — an upper-tail excess of roughly 5.5:1 to 5.9:1
 (`docs/dev-log/simulation-artifacts/2026-08-09-d117-100k-regate/results/SUMMARY.csv`). The
 interval is not symmetrically slightly narrow; it sits systematically too low. A user who reports
 the upper bound will understate the random-effect SD more often than the nominal rate implies.
@@ -140,7 +140,7 @@ The same file defines the two tiers this decision runs on, in the repository's o
 g-appropriate floor), skew documented"*; `supported` is *"NOMINAL-EXACT: |cov − nominal| <=
 2*MCSE AND miss-balance"* (`tools/gate-inference-ready.R:18-22`). On that vocabulary the A1
 10-group corner passes `inference_ready` and fails `supported`, and it fails `supported` on both
-clauses — the 2.5-point gap and the 5.6:1 miss asymmetry.
+clauses — the 2.5-point gap and the 5.5:1-to-5.9:1 miss asymmetry.
 
 **One observation, flagged rather than acted on.** Ledger row `mc-0264` (gaussian, `mu`,
 `ordinary_re_intercept`, ML) carries `evidence_tier = supported`, but its `claim_boundary` reads
@@ -354,7 +354,7 @@ from the overall 0.9248, where a named, implemented, untested lever (REML) still
 
 The measured position, in one paragraph. The defect D-93 named has been repaired from 0.509 to
 0.9248 at the 10-group corner, on 400,000 attempts with zero attrition, with the point estimate
-running 8–16% low and the misses running 5.6:1 upper-heavy. That clears the repository's
+running 8–16% low and the misses running 5.5:1 to 5.9:1 upper-heavy. That clears the repository's
 `g`-tapered floor of 0.918 on raw coverage and on the strict one-sided test, and it does not reach
 nominal 0.95. The floor it clears was fitted to what profile intervals achieve at small `g`, so
 clearing it is a statement about typical method behaviour, not an independent finding of adequacy.
