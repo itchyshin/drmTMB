@@ -610,3 +610,47 @@ These eight models were compared against packages listed in `drmTMB`'s
 can call. `drmTMB` implements a great deal more than eight models; what it
 implements, and what evidence stands behind each capability, is recorded in
 the package's design documents and capability ledger rather than here.
+
+## Reproducing these numbers
+
+Every figure above is a fitted result, so it is tied to the versions that
+produced it. Two comparisons are quoted to a precision — agreement to `1e-3`,
+and a log-likelihood gap of `1.63e-11` — that a different optimizer build can
+move. The block below records what this rendering used, so a reader who gets a
+different number can tell whether the package changed or their environment did.
+
+```{r reproducibility}
+pkgs <- c(
+  "drmTMB", "TMB", "Matrix", "lme4", "metafor", "metadat", "ordinal", "glmmTMB",
+  "palmerpenguins"
+)
+data.frame(
+  package = pkgs,
+  version = vapply(
+    pkgs,
+    function(p) {
+      if (requireNamespace(p, quietly = TRUE)) {
+        as.character(utils::packageVersion(p))
+      } else {
+        NA_character_
+      }
+    },
+    character(1)
+  ),
+  row.names = NULL
+)
+```
+
+```{r reproducibility-platform}
+c(
+  R = R.version.string,
+  platform = R.version$platform,
+  BLAS = basename(extSoftVersion()[["BLAS"]])
+)
+```
+
+No comparison on this page draws random numbers, so none of them carries a
+seed: each fit is a deterministic optimisation of a fixed dataset shipped by
+the package named beside it. The two quantities that do vary between machines
+are the optimiser's stopping point and the BLAS in use, which is why both are
+recorded above rather than the seed that does not exist.

@@ -35,9 +35,10 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 37 vignettes after the
-location-scale tutorial was split into two shorter parts and the first-week
-interval and bivariate non-Gaussian routes were added.
+The synchronized placement table below now contains 38 vignettes after the
+location-scale tutorial was split into two shorter parts, the first-week
+interval and bivariate non-Gaussian routes were added, and the comparator
+article was placed under stage 5.
 
 ## 2. The canonical sequence
 

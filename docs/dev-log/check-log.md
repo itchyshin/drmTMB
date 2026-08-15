@@ -93884,3 +93884,21 @@ were about attribution and completeness, and are closed here:
   declaration *observed* rather than merely reasoned. That was the whole purpose of
   running `--as-cran` here, and it is the check that first exposed the vignette
   leak as well.
+- A final audit of the three surfaces the claims reviewer never reached — the
+  registration checklist, the reproducibility block, and the c04–c09 build
+  specifications — returned **registration correct on all five coupled edits**
+  (including the fifth, `docs/design/226`, which the contract's own text still
+  does not name) but **reproducibility NOT BUILT**: no versions, platform, seed
+  statement or threading information appeared anywhere a re-runner could find it,
+  although issue #60's Definition of Done requires exactly that, and the article
+  quotes precisions (`1e-3`, `1.63e-11`) that depend on the comparator versions
+  in use. Repaired by adding a "Reproducing these numbers" section that emits the
+  drmTMB, TMB, Matrix and comparator versions, the R version, platform and BLAS.
+  It also states plainly that no comparison draws random numbers, so there is no
+  seed to record — the quantities that vary between machines are the optimiser
+  stopping point and the BLAS, which is what is recorded instead.
+- The same audit found one more stale count in `docs/design/226` that my earlier
+  hand-edit missed: the prose sentence introducing the placement table still said
+  37. The automated ledger test does not check that sentence — it checks the title,
+  the "N rows." statement and the table stems — so the count was internally
+  inconsistent while passing. Corrected.
