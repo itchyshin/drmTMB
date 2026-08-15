@@ -222,6 +222,16 @@
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
 #'
+#' Refitting the same design with `REML = TRUE` improved this without repairing
+#' it: over 400,000 paired replicates, profile coverage moved from 0.9248 to
+#' 0.9463 against a nominal 0.95, the SD point estimate's downward bias roughly
+#' halved (pooled -10.9% under maximum likelihood to -4.6% under REML), and the
+#' upper-to-lower miss asymmetry fell from 5.7:1 to 2.0:1. Coverage conditional
+#' on the boundary flag improved but stayed well below nominal (0.74 to 0.83),
+#' so a flagged interval remains the bad case under either estimator. The
+#' default estimator is unchanged; this measurement covers the one design below
+#' only.
+#'
 #' This is a property of profile intervals near a variance boundary rather than of
 #' `drmTMB`: `lme4::lmer` on the same data-generating process and seeds agreed on
 #' boundary incidence for 4000/4000 replicates and matched the conditional coverage
