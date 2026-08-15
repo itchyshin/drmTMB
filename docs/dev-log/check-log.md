@@ -93981,3 +93981,23 @@ carry a dated CORRECTION block.
 
 Report: `docs/dev-log/after-task/2026-08-15-interval-claim-truth-audit.md` ·
 plan-vs-actual: `docs/dev-log/plan-actual/2026-08-15-interval-claim-truth-audit.md`
+
+### 2026-08-15 (follow-up) — spatial conditioning extended to every fitted cell
+
+The 28 interval-tier spatial cells were narrowed in the entry above. The same conditioning applies to
+the 23 fitted spatial cells *below* those tiers (14 `diagnostic_only`, 9 `point_fit_recovery`), which
+run through the identical `drm_spatial_coords_precision` call site. They now carry a **tier-neutral**
+variant — *"the spatial sd(group) **estimate** here is conditional on the correlation range… This cell
+makes no interval claim, so the conditioning applies to its point-scale evidence"* — because the
+interval-framed sentence would have implied a claim these cells do not make.
+
+**All 51 fitted spatial cells now disclose.** The remaining 50 spatial rows are `rejected_by_design`
+(48) or `not_implemented` (2): no fit, nothing to condition.
+
+Mesh was ruled out for all 23 **structurally, not by assumption**: `allow_mesh = TRUE` occurs exactly
+once in the package (`R/drmTMB.R:3219`, the univariate-Gaussian `mu` extractor) and none of the 23 sits
+on that route — they are bivariate, non-Gaussian, or Gaussian `sigma`. `mc-0446`, whose row mentions a
+mesh lane, states `coords = coords` in its own boundary.
+
+Checks: `capability_ledger.py --check` OK (31 generated outputs) · `test_capability_ledger.py` 76/76 ·
+`test_profile_truth_gate.py` 24/24. No tier changed, so no `transitions.tsv` rows were added.

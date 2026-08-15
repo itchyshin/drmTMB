@@ -22,7 +22,9 @@ behind `tools/profile_truth_gate.py` — the one instrument that checks interval
   → `2026-08-15-spatial-range-drmTMB-vs-sdmTMB-vs-INLA.md`
 - **Recovered 134 off-mainline files** (32 runners/adapters, 97 contracts/target maps, 4 md, 1 txt),
   byte-verified. → `2026-08-15-runner-provenance-recovery.md`
-- **Narrowed all 28 spatial interval claims** to state the fixed-range conditioning.
+- **Narrowed all 28 spatial interval claims** to state the fixed-range conditioning, then extended a
+  tier-neutral variant to the 23 fitted spatial cells below those tiers. **All 51 fitted spatial cells
+  now disclose;** the 50 that do not are `rejected_by_design`/`not_implemented` and never fit.
 - **Demoted the 7** `interval_feasible` → `diagnostic_only`, with 7 `transitions.tsv` rows.
 - **Fixed two evidence-ladder inversions** in `tools/capability_ledger.py` and added the guard.
 - **Scoped the 73 "re-run" cells** as a construction programme, not a compute job. NOT started.
@@ -55,7 +57,7 @@ this report · `docs/dev-log/plan-actual/2026-08-15-interval-claim-truth-audit.m
 `tools/capability_ledger.py` (EVIDENCE_TIERS, TIER_ORDER, widget tiers, reader translator, both
 evidence summary lines, ladder prose) ·
 `tools/tests/test_capability_ledger.py` (1 test moved to the new token, 3 added) ·
-`docs/dev-log/dashboard/capability-ledger/cells.tsv` (28 boundaries narrowed, 4 re-tiered, 7 demoted)
+`docs/dev-log/dashboard/capability-ledger/cells.tsv` (51 boundaries narrowed, 4 re-tiered, 7 demoted)
 · `docs/dev-log/dashboard/capability-ledger/transitions.tsv` (+11 rows) ·
 `docs/dev-log/dashboard/capability-ledger/schema.json` (enum) · 31 regenerated outputs
 
@@ -112,7 +114,7 @@ and `scratchpad/recover/q4-spatial-fixture-repair.R`
 | 9 | 73 cells need fixture+contract construction (~40–70 h) | **SCOPED, not started** |
 | 10 | 5 `association` cells (`two_stage_Godambe`) outside the gate's domain | **OPEN** |
 | 11 | 8 cells name no runner at all | **OPEN** |
-| 12 | 23 sub-interval-tier spatial cells share the conditioning, undisclosed | **OPEN** |
+| 12 | 23 sub-interval-tier spatial cells share the conditioning, undisclosed | **FIXED** — every fitted spatial cell now discloses |
 | 13 | `mc-0596`: `verified` here vs "false convergence (8)" in the landed response-mask arc | **OPEN — D-87, owner's call** |
 | 14 | `q-series-v1-release-status.md` stale, linked from `README.md:75` | **OPEN** |
 | 15 | `lane_preflight.sh` line 379 arithmetic error; census omitted 2 cursor lanes | **OPEN — reported to its owner** |
@@ -223,10 +225,15 @@ Covers ✓ — all 28 spatial cells at interval tiers, disclosure applied and ve
 `R/drmTMB.R:13403-13407` including the `max()` fallback · the 7 cells whose fixture truth is not the
 model's estimand, demoted · `mc-0285`'s false mesh statement, repaired.
 
-It does NOT cover ✗ — the **23 spatial cells at `diagnostic_only` / `point_fit_recovery`** that fit
-through the identical call site and carry the identical conditioning (enumerated, undisclosed) · the
-**mesh/SPDE route**, whose kappa is equally fixed and which has *no* ledger cell and no interval claim
-to qualify · the 50 `evidence_tier = none` spatial rows (no fit, nothing to condition) · whether
+Covers ✓ (added after the first close) — the **23 spatial cells at `diagnostic_only` /
+`point_fit_recovery`**, given a tier-neutral variant of the sentence ("the spatial sd(group) *estimate*
+here is conditional on…", since these carry no interval claim). **All 51 fitted spatial cells now
+disclose.** Mesh was ruled out for all 23 structurally, not assumed: `allow_mesh = TRUE` occurs once,
+on the univariate-Gaussian-`mu` route, and none of the 23 sits on it.
+
+It does NOT cover ✗ — the **mesh/SPDE route**, whose kappa is equally fixed and which has *no* ledger cell and no interval claim
+to qualify · the 50 non-fitted spatial rows (48 `rejected_by_design`, 2 `not_implemented` — no fit, nothing to
+condition) · whether
 `spatial()` *should* estimate its range (a design question, not settled here) · any non-spatial
 provider — `phylo`, `animal`, `relmat`, `phylo_interaction` were **not** audited for an analogous
 fixed-hyperparameter conditioning, and the `animal`/`relmat` arms passing here says nothing about
