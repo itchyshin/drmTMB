@@ -93834,3 +93834,30 @@ were about attribution and completeness, and are closed here:
   edit was out of scope and cited "metafor (>= 5.0-1)" although `DESCRIPTION`
   declares a bare `metafor` with no floor. Rewritten to record what is now
   true.
+
+### 2026-08-15 — `--as-cran` caught a search-path leak the unit tests could not
+
+- The first `R CMD check --as-cran` of this branch **FAILED**: eight vignettes
+  failed to re-build with `no applicable method for 'ranef' applied to an object
+  of class "drmTMB"`, raised from `nlme::ranef`.
+- **Cause, and it was ours.** The new article attached `glmmTMB` with `library()`.
+  `glmmTMB` re-exports `nlme`'s `ranef` generic, and **drmTMB's `ranef` is not
+  registered as an S3 method on that generic** — `getS3method("ranef", "drmTMB")`
+  returns `NULL` — so once anything exporting `ranef` is attached, every later
+  `ranef(fit)` call fails outright.
+- Attribution was established rather than assumed. `spatial-models.Rmd` knits
+  cleanly **on its own**, and **all eight failures sort alphabetically after
+  `comparing-with-other-packages.Rmd` while every vignette before it passed**.
+  Vignette re-building shares a search path, so one `library()` broke the rest.
+- Repair: the attach is removed. `glmmTMB` is now reached as `glmmTMB::glmmTMB()`,
+  the `nbinom2` clash demonstration is made explicit with `glmmTMB::nbinom2()`,
+  and the prose now explains that the `drmTMB::` prefixes exist to avoid masking.
+- Verified both directions in one session: the article knits, `glmmTMB` is absent
+  from the search path afterwards, `ranef` resolves to `drmTMB`, and
+  `spatial-models.Rmd` then knits cleanly. Before the fix it failed.
+- **This is the second time this exact class has bitten this arc.** The first was
+  `library(lme4)` in the oracle test file breaking the landed reader tests
+  (repaired in PR #1031). The underlying fragility is in the package, not the
+  callers: any user who attaches `lme4`, `glmmTMB` or `nlme` after `drmTMB` loses
+  `ranef()`. That is worth a separate fix — registering `ranef.drmTMB` on the
+  `nlme` generic — and is **not** attempted here.

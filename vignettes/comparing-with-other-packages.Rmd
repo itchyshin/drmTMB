@@ -370,14 +370,11 @@ cross-implementation check. It is also, uncomfortably, where `drmTMB`'s
 stated differentiator lives: no separate estimation engine checked a
 residual-scale submodel anywhere in this article.
 
-```{r block2c-attach, eval = has_glmmTMB}
-library(glmmTMB)
-```
-
-Attaching `glmmTMB` masks several names it shares with `drmTMB`, including
-the family constructors `lognormal()` and `nbinom2()` used below. From this
-point on, those two are called as `drmTMB::lognormal()` and
-`drmTMB::nbinom2()` for that reason, not for style.
+`glmmTMB` is called as `glmmTMB::glmmTMB()` below and is never attached with
+`library()`. That is deliberate. `glmmTMB` shares several names with `drmTMB` --
+the family constructors `lognormal()` and `nbinom2()`, and the extractor
+`ranef()` -- so attaching it silently changes which package's function a bare
+call reaches. The `drmTMB::` prefixes below are for the same reason, not style.
 
 ### Comparison 6: does reaction-time variability grow with sleep deprivation?
 
@@ -422,7 +419,7 @@ coef(fit6, "sigma")
 ```
 
 ```{r comparison6-comparator, eval = has_lme4 && has_glmmTMB}
-cmp6 <- glmmTMB(
+cmp6 <- glmmTMB::glmmTMB(
   Reaction ~ Days + (Days | Subject), dispformula = ~ Days, data = sleepstudy
 )
 fixef(cmp6)$cond
@@ -466,7 +463,7 @@ coef(fit7, "sigma")
 ```
 
 ```{r comparison7-comparator, eval = has_penguins && has_glmmTMB}
-cmp7 <- glmmTMB(
+cmp7 <- glmmTMB::glmmTMB(
   log(body_mass_g) ~ species, dispformula = ~ sex, data = pen, family = gaussian()
 )
 fixef(cmp7)$cond
@@ -539,14 +536,15 @@ margin, in an order of magnitude that could otherwise look plausible if you
 did not check it.
 
 The `drmTMB::` prefix on `nbinom2()` above is mandatory here, not stylistic.
-`glmmTMB` also exports a family constructor named `nbinom2()`; once
-`glmmTMB` is attached, a bare `family = nbinom2()` silently hands `drmTMB`
-`glmmTMB`'s family object instead of its own, and the call is rejected:
+`glmmTMB` also exports a family constructor named `nbinom2()`. If you attach
+`glmmTMB` with `library()`, a bare `family = nbinom2()` silently hands `drmTMB`
+`glmmTMB`'s family object instead of its own, and the call is rejected. This
+article never attaches `glmmTMB`, so the clash is shown explicitly:
 
 ```{r comparison8-clash, eval = has_glmmTMB, error = TRUE}
 drmTMB(
   bf(mu = SiblingNegotiation ~ FoodTreatment, sigma = ~ FoodTreatment),
-  data = Owls, family = nbinom2()
+  data = Owls, family = glmmTMB::nbinom2()
 )
 ```
 
@@ -567,9 +565,9 @@ coef(fit8, "sigma")
 ```
 
 ```{r comparison8-comparator, eval = has_glmmTMB}
-cmp8 <- glmmTMB(
+cmp8 <- glmmTMB::glmmTMB(
   SiblingNegotiation ~ FoodTreatment * SexParent + (1 | Nest),
-  dispformula = ~ FoodTreatment, family = nbinom2, data = Owls
+  dispformula = ~ FoodTreatment, family = glmmTMB::nbinom2, data = Owls
 )
 fixef(cmp8)$cond
 fixef(cmp8)$disp
