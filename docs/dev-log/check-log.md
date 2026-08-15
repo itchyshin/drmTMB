@@ -93513,13 +93513,19 @@ can see which commit each one actually examined.
   `lme4` closely, but a REML-versus-REML profile-interval spot check showed an
   approximately 5% gap on three of four targets. No REML interval-parity claim is
   made anywhere in this change.
-- Per `docs/design/242-external-comparator-evidence-class.md`, **no ledger row was
-  added.** That policy requires every `external_comparator` `claim_boundary` to
-  state it does not cover intervals, enforced by
-  `tools/tests/test_capability_ledger.py`. This evidence is deliberately a
-  test-only regression guard; amending the policy is a separate decision.
-  Independence strength is recorded in comments: `lme4` strong (separate engine),
-  `glmmTMB` weak (same TMB/AD stack).
+- **No ledger row was added, and the two blocks differ in why.** The *interval*
+  block genuinely cannot carry an `external_comparator` row:
+  `docs/design/242-external-comparator-evidence-class.md` requires every such row's
+  `claim_boundary` to state it does not cover intervals, enforced by
+  `tools/tests/test_capability_ledger.py`, so a conforming row would have to
+  declare something false. The *point-agreement* block is different — doc 242
+  §"Licensed" covers exactly that ("drmTMB's likelihood and optimizer reach the
+  same optimum as an independent implementation of the same model, on the dataset
+  tested"), so the `fm_us1` and `fm_diag2` comparisons **could** carry a conforming
+  row today. Withholding it is a deliberate scope choice for this arc, **not** a
+  policy prohibition; an earlier draft of this entry conflated the two and would
+  have misdirected the next contributor. Independence strength is recorded in
+  comments: `lme4` strong (separate engine), `glmmTMB` weak (same TMB/AD stack).
 - `fm_nest` was dropped from the matched-twin set after the recon wrongly claimed
   it expressible: drmTMB rejects nested `(1 | Subject/fDays)` grouping with
   "Random-effect grouping terms must be simple variables." The candidate matrix
@@ -93562,12 +93568,36 @@ can see which commit each one actually examined.
   skips** under `test_dir(package = "drmTMB")` (176/176), the reader baseline is
   intact, no receipt-pinned file changed, and the ledger and linter gates pass.
   Full record: `docs/dev-log/external-oracle/rose-audit.md`.
-- **STATUS AT TIME OF WRITING — this entry is not a completion claim.** The pkgdown
-  repair is merged (`859c0f6e6`), but its post-merge `pkgdown` deploy had not yet
-  run green: the first attempt skipped because its triggering `R-CMD-check` was
-  cancelled by concurrency. The oracle harness is **unmerged** on
-  `claude/external-oracle-intervals`, and CI had not yet run against its exact
-  head. All checks recorded above are local. Reconciliation also logged five P1 and
-  four P2 audit findings left open by choice, and a routing commitment honoured on
-  one of three eligible slices. See
-  `docs/dev-log/plan-actual/2026-08-15-external-oracle.md`.
+- **The pkgdown repair is CONFIRMED WORKING on `main`, not merely merged.**
+  `R-CMD-check` `31856928532` on `859c0f6e6` passed, which released the gated
+  `workflow_run` trigger, and `pkgdown` run **`31859033276` completed `success`**.
+  The site deploys again. The first post-merge attempt (`31856933151`) had skipped
+  because its own triggering check was cancelled by concurrency, so this is the
+  first genuine confirmation.
+- Local `--as-cran` on a source tarball: **0 errors**, 1 NOTE (`New submission`,
+  expected). Two WARNINGs appeared and both are **artifacts of building with
+  `--no-build-vignettes`** — `inst/doc` absent, vignettes lacking rendered
+  counterparts — not package defects. That makes it a partial check by
+  construction; the authoritative full check is CI on the PR's exact head.
+- **CI is green on the harness branch's exact head**, run `31858120192` at
+  `764d30152`: `FAIL 0 | WARN 71 | SKIP 312 | PASS 20786`. The head SHA was checked
+  against the run rather than reading a nearby badge — two earlier runs in this arc
+  were pinned to superseded commits.
+- **The new tests demonstrably RAN rather than skipped.** The only skip attributable
+  to the three new files is the single deliberate, narrowly stated one in
+  `test-profile-shape-boundary.R:142` — "docs/ is not present in this check tree
+  (excluded via `.Rbuildignore`)" — which guards a text-consistency assertion that
+  cannot run from a tarball. `test-comparators-external-oracle.R` and
+  `test-reader-oldfit-compat.R` contribute **zero** skips.
+- **Recorded fragility, not currently a failure:** CI emits a `glmmTMB` load warning,
+  "glmmTMB was built with TMB package version 1.9.21, current TMB package version is
+  1.9.23". `requireNamespace()` still succeeds, so the oracle tests run and pass. But
+  if that mismatch ever becomes a load error, `skip_if_not_installed("glmmTMB")` will
+  turn the whole glmmTMB half of this harness into a silent skip. Worth watching at
+  the next TMB bump.
+- **STATUS — the oracle harness is not yet merged.** It remains open on
+  `claude/external-oracle-intervals`. Reconciliation logged five P1 and four P2 audit
+  findings; P1-1 through P1-4 have since been fixed, and the remainder are left open
+  by choice with owners recorded in
+  `docs/dev-log/plan-actual/2026-08-15-external-oracle.md`, alongside a routing
+  commitment honoured on one of three eligible slices.

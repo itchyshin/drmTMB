@@ -50,11 +50,17 @@ existence; parity reaches ~15 cells ever and 6 are wired. That ceiling was accep
 than re-litigated. The arc was rescoped to the one thing Arc A never attempted —
 cross-package **interval** agreement — plus the deferred reader workflows of issue #60.
 
-**No ledger row.** `docs/design/242-external-comparator-evidence-class.md` requires every
-`external_comparator` `claim_boundary` to state it does not cover intervals, enforced at
-`tools/tests/test_capability_ledger.py:2997`. Recording interval evidence would require
-amending that policy. Rejected doing so inside this task: the evidence lands as a test-only
-regression guard, and the amendment is proposed separately with the measured numbers in hand.
+**No ledger row — but the two blocks are blocked for different reasons, and an earlier
+draft wrongly merged them.** The *interval* block cannot carry an `external_comparator`
+row: `docs/design/242` requires every such row's `claim_boundary` to state it does not
+cover intervals, enforced at `tools/tests/test_capability_ledger.py:2997`, so a conforming
+row would have to assert something false. Recording it would mean amending the policy,
+which was rejected inside this task; the evidence lands as a test-only guard and the
+amendment is proposed separately. The *point-agreement* block is **not** blocked — doc 242's
+"Licensed" paragraph covers exactly it, so the `fm_us1`/`fm_diag2` twin comparisons could
+carry a conforming row today with `lme4` declared STRONG. Withholding that row is a scope
+choice for this arc, not a policy prohibition, and doc 242 now says so explicitly so the
+next contributor is not misdirected.
 
 **Rejected: asserting REML interval parity.** drmTMB's REML point estimates and logLik match
 `lme4` closely, but a REML-vs-REML profile spot check showed real gaps on three of four
@@ -96,8 +102,16 @@ None of the five receipt-pinned files was touched: `R/methods.R`, `R/drmTMB.R`,
 | `pkgdown::check_pkgdown()` | `No problems found` (aborts without the fix) |
 | `pkgdown::build_reference_index()` | completes; topic present in rendered index |
 
-**Not yet done:** CI on PR #1031's exact head, and the post-merge `pkgdown` deploy on `main`.
-See §10.
+**`--as-cran` on a source tarball:** **0 errors**, 1 NOTE (`New submission`, expected). Two
+WARNINGs appeared and both are **artifacts of the build flag I chose, not package defects** —
+the check was built with `--no-build-vignettes`, so `inst/doc` does not exist and every
+vignette is reported as lacking a rendered counterpart. That is a partial check by
+construction. The authoritative full check, with vignettes built, is the CI run on the PR's
+exact head; local `--as-cran` here is corroboration, not a substitute.
+
+**Post-merge `pkgdown` on `main`: SUCCESS** (run `31859033276`), after `R-CMD-check`
+`31856928532` on `859c0f6e6` passed. This is the evidence that the PR #1030 repair actually
+restored the deploy, rather than merely being merged.
 
 ## 6. Tests of the Tests
 

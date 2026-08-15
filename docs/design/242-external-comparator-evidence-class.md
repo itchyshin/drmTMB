@@ -74,6 +74,14 @@ the words "interval", "coverage" and "single-seed" appear there.
 > boundary vocabulary and a change to the enforcing test in
 > `tools/tests/test_capability_ledger.py`. That is a separate decision and has not been
 > taken. Evidence for it: `docs/dev-log/external-oracle/`.
+>
+> **Do not over-read this as "that arc could record nothing".** The same file's
+> *point-agreement* block — drmTMB versus the matched `lmerMod` twins `fm_us1` and
+> `fm_diag2` on fixed effects, RE SDs, correlation, `sigma` and `logLik` — is exactly what
+> the **Licensed** paragraph above covers, and **could carry a conforming
+> `external_comparator` row today**, with `lme4` declared STRONG. It was withheld as a
+> scope choice for that arc, not because the policy forbids it. A contributor picking this
+> up should treat the point-agreement row as available and the interval row as blocked.
 
 **The governing constraint.** Agreement licenses the **overlap** region only, never the
 **frontier**. Where `drmTMB` is genuinely novel — scale-side random effects, `sd()`
