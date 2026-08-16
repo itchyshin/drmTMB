@@ -175,12 +175,16 @@
 #'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
 #'   different fixed-effect formulas, non-binomial non-Gaussian models, and
 #'   currently unsupported extensions.
-#' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
-#'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
-#'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
-#'   regularises a weakly-identified phylogenetic standard deviation; the fit is
-#'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
-#'   Native `engine = "tmb"` only.
+#' @param penalty Optional penalty / prior built by [drm_phylo_penalty()] or
+#'   experimental [drm_boundary_penalty()], or `NULL` (default) for plain
+#'   maximum likelihood. A non-`NULL` penalty switches the fit to a penalized /
+#'   maximum-a-posteriori (MAP) estimator. Phylogenetic PC-priors regularise a
+#'   weakly-identified phylogenetic SD; the boundary soft-penalty (Design 256)
+#'   is scoped to the univariate Gaussian A1 iid `(1 | group)` cell only and
+#'   withholds `confint()` / `profile()`. In both cases the fit is labeled
+#'   `MAP` and `logLik()` returns the unpenalized data log-likelihood.
+#'   Native `engine = "tmb"` only. Do not overload `estimator = "mspl"`
+#'   for this route.
 #' @param estimator Estimator for the native TMB route. The default `"ml"`
 #'   preserves ordinary maximum likelihood. Experimental `"mspl"` implements
 #'   the clean-room maximum softly-penalized likelihood criterion for one
@@ -302,7 +306,7 @@ drmTMB <- function(
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
   REML <- drm_control_flag(REML, "REML")
-  penalty <- drm_parse_phylo_penalty(penalty)
+  penalty <- drm_parse_penalty(penalty)
 
   weights_expr <- if (base::missing(weights)) NULL else substitute(weights)
   weights_full <- evaluate_likelihood_weights_arg(
@@ -373,7 +377,7 @@ drmTMB <- function(
     cli::cli_abort(c(
       "{.arg REML} and {.arg penalty} cannot be combined.",
       "i" = "A penalized fit is a maximum-a-posteriori (MAP) estimator and REML is a restricted-likelihood estimator; they are different estimators of the variance components.",
-      "i" = "Use one of {.code REML = TRUE} or {.code penalty = drm_phylo_penalty(...)}, not both."
+      "i" = "Use one of {.code REML = TRUE} or {.code penalty = drm_phylo_penalty(...)} / {.code drm_boundary_penalty()}, not both."
     ))
   }
   if (
@@ -653,6 +657,13 @@ drm_fit_spec <- function(
   } else {
     as.numeric(phylo_penalty_report)
   }
+  boundary_penalty_report <- objective_report$boundary_penalty
+  boundary_penalty_value <- if (is.null(boundary_penalty_report)) {
+    0
+  } else {
+    as.numeric(boundary_penalty_report)
+  }
+  map_penalty_nll <- phylo_penalty_value + boundary_penalty_value
 
   mspl <- if (identical(spec$estimator, "MSPL")) {
     drm_finalize_mspl_fit(spec, obj, opt, objective_report)
@@ -662,7 +673,7 @@ drm_fit_spec <- function(
   stored_loglik <- if (identical(spec$estimator, "MSPL")) {
     NA_real_
   } else {
-    -opt$objective + phylo_penalty_value
+    -opt$objective + map_penalty_nll
   }
 
   fit <- list(
@@ -690,6 +701,8 @@ drm_fit_spec <- function(
     estimator = spec$estimator,
     penalty = spec$penalty,
     phylo_penalty = phylo_penalty_value,
+    boundary_penalty = boundary_penalty_value,
+    boundary_penalty_meta = spec$boundary_penalty_meta,
     mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
@@ -18906,6 +18919,10 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),
+      penalize_boundary = 0L,
+      boundary_c_g = 0,
+      boundary_kappa_minus = 1,
+      boundary_kappa_plus = 1,
       use_logsigma_clamp = 1L,
       logsigma_clamp = c(-12, 12, 3),
       qgt2_corr_parameterization = drm_qgt2_corr_parameterization()

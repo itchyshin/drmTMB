@@ -435,6 +435,12 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
+  // Design 256 S2: scale-equivariant boundary soft-penalty for ordinary RE SD.
+  // Always present (default off) so ML fits stay bit-identical.
+  DATA_INTEGER(penalize_boundary);
+  DATA_SCALAR(boundary_c_g);
+  DATA_SCALAR(boundary_kappa_minus);
+  DATA_SCALAR(boundary_kappa_plus);
   DATA_INTEGER(use_logsigma_clamp);
   DATA_VECTOR(logsigma_clamp);
   DATA_INTEGER(qgt2_corr_parameterization);
@@ -505,6 +511,7 @@ Type objective_function<Type>::operator()()
 
   Type nll = 0;
   Type phylo_penalty = Type(0.0);
+  Type boundary_penalty = Type(0.0);
   Type sd_logscale_overflow_guard_hit = Type(0.0);
   (void)mi_observed;
   (void)n_re_cov_blocks;
@@ -2362,6 +2369,24 @@ Type objective_function<Type>::operator()()
           nll -= weights(i) * dnorm(y(i), mu(i), obs_sigma(i), true);
         }
       }
+    }
+
+    // Design 256 §4.2 / §9: P_v = c_g * Q(a - mean(eta^sigma)). Maximize
+    // ell + P_v ⇒ nll += -P_v. Gate is R-side; C++ assumes q1 log_sd_mu(0).
+    if (penalize_boundary == 1) {
+      Type log_s = Type(0.0);
+      for (int i = 0; i < log_sigma.size(); ++i) {
+        log_s += log_sigma(i);
+      }
+      log_s /= Type(log_sigma.size());
+      Type r = log_sd_mu(0) - log_s;
+      Type kappa = CppAD::CondExpLe(
+        r, Type(0.0), boundary_kappa_minus, boundary_kappa_plus);
+      Type Q = kappa * drm_mspl_negative_huber(r);
+      boundary_penalty = -boundary_c_g * Q;
+      nll += boundary_penalty;
+      REPORT(boundary_penalty);
+      REPORT(log_s);
     }
 
     REPORT(mu);

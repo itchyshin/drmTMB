@@ -136,12 +136,16 @@ estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
 different fixed-effect formulas, non-binomial non-Gaussian models, and
 currently unsupported extensions.}
 
-\item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
-\code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty
-switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
-regularises a weakly-identified phylogenetic standard deviation; the fit is
-labeled \code{MAP} and \code{logLik()} returns the unpenalized data log-likelihood.
-Native \code{engine = "tmb"} only.}
+\item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}} or
+experimental \code{\link[=drm_boundary_penalty]{drm_boundary_penalty()}}, or \code{NULL} (default) for plain
+maximum likelihood. A non-\code{NULL} penalty switches the fit to a penalized /
+maximum-a-posteriori (MAP) estimator. Phylogenetic PC-priors regularise a
+weakly-identified phylogenetic SD; the boundary soft-penalty (Design 256)
+is scoped to the univariate Gaussian A1 iid \code{(1 | group)} cell only and
+withholds \code{confint()} / \code{profile()}. In both cases the fit is labeled
+\code{MAP} and \code{logLik()} returns the unpenalized data log-likelihood.
+Native \code{engine = "tmb"} only. Do not overload \code{estimator = "mspl"}
+for this route.}
 
 \item{estimator}{Estimator for the native TMB route. The default \code{"ml"}
 preserves ordinary maximum likelihood. Experimental \code{"mspl"} implements

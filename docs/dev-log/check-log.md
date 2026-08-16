@@ -1,6 +1,20 @@
 # Check Log
 
 
+## 2026-08-16 — MSPL boundary S2 slice 1 (A1 `penalty` route)
+
+Lane `claude/mspl-boundary-s0-s1` @ worktree `.worktrees/mspl-s0s1`. S1 sign-off already
+accepted; S2 started after Shinichi G0 ("S2 is good").
+
+| Slice | Check | Result |
+|---|---|---|
+| API | `drm_boundary_penalty()` on `penalty=` (not `estimator="mspl"`) | ✅ |
+| C++ | Gaussian `model_type==1` adds `c_g * Q(a - mean(eta^sigma))` | ✅ |
+| Gates | A1-only; REML×penalty; singleton groups; confint/profile withheld | ✅ |
+| Focused tests | `test-boundary-penalty.R` (`NOT_CRAN=true`) | ✅ FAIL 0 / PASS 137 |
+| Regression | `test-reml-penalty-guard.R` + `test-phylo-penalized-map.R` | ✅ 2 + 22 pass |
+| Scope | No S3 campaign; no missing-data; no 0.7 freeze merge | held |
+
 ## 2026-08-10 — Emmy condition 1: `link_code` becomes a required argument
 
 Also records the **Arc D landing**, which this log had missed: PR #973 squash-merged to `main` as

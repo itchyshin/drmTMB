@@ -88,30 +88,250 @@ drm_phylo_penalty <- function(sd_u = 1, sd_alpha = 0.05, cor_sd = NULL) {
 }
 
 # Validate and normalise the `penalty` argument of drmTMB(). Returns NULL or a
-# validated drm_phylo_penalty object.
-drm_parse_phylo_penalty <- function(penalty) {
+# validated drm_phylo_penalty / drm_boundary_penalty object.
+drm_parse_penalty <- function(penalty) {
   if (is.null(penalty)) {
     return(NULL)
   }
-  if (!inherits(penalty, "drm_phylo_penalty")) {
-    cli::cli_abort(
-      "{.arg penalty} must be created with {.fn drm_phylo_penalty} or be NULL."
-    )
+  if (inherits(penalty, "drm_phylo_penalty") ||
+      inherits(penalty, "drm_boundary_penalty")) {
+    return(penalty)
   }
-  penalty
+  cli::cli_abort(c(
+    "{.arg penalty} must be created with {.fn drm_phylo_penalty}, {.fn drm_boundary_penalty}, or be NULL.",
+    "i" = "Do not pass a raw list or an {.code estimator = \"mspl\"} token here; boundary soft-penalties use the {.arg penalty} vocabulary (design 256)."
+  ))
 }
 
-# Attach the penalty DATA fields to spec$tmb_data and, when penalizing, record
-# the estimator and penalty on the spec. The DATA fields are ALWAYS added (with
-# `penalize_phylo = 0L` and empty rate vectors when there is no penalty) so that
-# TMB sees them for every model type and a plain-ML fit stays bit-identical.
+# Compatibility alias — callers and older notes still name the phylo parser.
+drm_parse_phylo_penalty <- drm_parse_penalty
+
+#' Scale-equivariant boundary soft-penalty for ordinary RE SDs (experimental)
+#'
+#' Builds the Design-256 moving-anchor negative-Huber penalty for a univariate
+#' Gaussian A1 cell: one ordinary iid `mu` random intercept `(1 | group)`. Pass
+#' the result to [drmTMB()]'s `penalty` argument. The fit is labeled `MAP`;
+#' intervals (`confint` / `profile`) are withheld on this experimental route.
+#'
+#' Softness rate `c_g = 2 * sqrt(q_v / g)` with `q_v = 1` for this cell. The
+#' Huber argument is `log(sd_u) - mean(eta^sigma)`, so the penalty is exactly
+#' scale-equivariant on the identity-link Gaussian location model (Theorem 1).
+#' Defaults keep the shipped symmetric shape (`kappa_minus = kappa_plus = 1`).
+#'
+#' @param kappa_minus,kappa_plus Positive slope scales on the lower and upper
+#'   sides of the negative Huber. Defaults `1` match the shipped MSPL shape.
+#' @return An object of class `drm_boundary_penalty`.
+#' @references
+#' Sterzinger, W., Kosmidis, I., & Moustaki, I. (2026). Softly penalized
+#' likelihood for factor models. Psychometrika.
+#'
+#' Chung, Y., Rabe-Hesketh, S., Dorie, V., Gelman, A., & Liu, J. (2013). A
+#' nondegenerate penalized likelihood estimator for variance parameters in
+#' multilevel models. Psychometrika, 78(4), 685-709.
+#' @seealso [drm_phylo_penalty()], design
+#'   `docs/design/256-mspl-boundary-penalty-derivation.md`
+#' @export
+#'
+#' @examples
+#' pen <- drm_boundary_penalty()
+#' pen$c_g_formula
+drm_boundary_penalty <- function(kappa_minus = 1, kappa_plus = 1) {
+  validate_boundary_kappa <- function(x, name) {
+    if (
+      !is.numeric(x) || length(x) != 1L || !is.finite(x) || x <= 0
+    ) {
+      cli::cli_abort("{.arg {name}} must be a single positive number.")
+    }
+    as.numeric(x)
+  }
+  structure(
+    list(
+      kind = "boundary",
+      kappa_minus = validate_boundary_kappa(kappa_minus, "kappa_minus"),
+      kappa_plus = validate_boundary_kappa(kappa_plus, "kappa_plus"),
+      q_v = 1L,
+      c_g_formula = "2 * sqrt(q_v / g)",
+      experimental = TRUE
+    ),
+    class = c("drm_boundary_penalty", "list")
+  )
+}
+
+drm_boundary_c_g <- function(q_v, g) {
+  if (
+    !is.numeric(q_v) || length(q_v) != 1L || !is.finite(q_v) || q_v < 1 ||
+      q_v != floor(q_v) ||
+      !is.numeric(g) || length(g) != 1L || !is.finite(g) || g < 2
+  ) {
+    cli::cli_abort(
+      "{.fn drm_boundary_c_g} requires integer q_v >= 1 and g >= 2."
+    )
+  }
+  2 * sqrt(as.numeric(q_v) / as.numeric(g))
+}
+
+# Closed-form efficient information for log(sigma_u) on the balanced Gaussian
+# A1 cell (design 256 eq. 5.1). Shipped as a unit-test oracle.
+drm_boundary_I_g_log_sd <- function(g, m, sigma, sigma_u) {
+  stopifnot(
+    length(g) == 1L, length(m) == 1L, length(sigma) == 1L, length(sigma_u) == 1L
+  )
+  g <- as.numeric(g)
+  m <- as.numeric(m)
+  sigma <- as.numeric(sigma)
+  sigma_u <- as.numeric(sigma_u)
+  lambda1 <- sigma^2 + m * sigma_u^2
+  2 * g * m^2 * (m - 1) * sigma_u^4 /
+    (sigma^4 + (m - 1) * lambda1^2)
+}
+
+# Equivariance-weight table (design 256 §4.2). Fail loudly rather than default
+# to s ≡ 1 for an unclassified family.
+drm_boundary_equivariance_weight <- function(family_type, family = NULL) {
+  link <- if (is.list(family) && !is.null(family$link)) {
+    as.character(family$link)
+  } else {
+    NA_character_
+  }
+  if (identical(family_type, "gaussian")) {
+    if (!is.na(link) && !identical(link, "identity")) {
+      cli::cli_abort(c(
+        "Boundary penalty equivariance weight is unclassified for {.code gaussian(link = {.val {link}})}.",
+        "x" = "Design 256 §4.2 only classifies the identity-link Gaussian location RE.",
+        "i" = "Do not silently default the residual-scale anchor to 1."
+      ), class = "drm_boundary_equivariance_unclassified")
+    }
+    return(list(weight = 1L, anchor = "mean_eta_sigma", classified = TRUE))
+  }
+  cli::cli_abort(c(
+    "Boundary penalty equivariance weight is unclassified for family {.val {family_type}}.",
+    "x" = "S2 admits only the univariate Gaussian A1 identity-link location RE cell.",
+    "i" = "Refuse rather than default the anchor to {.code s ≡ 1} (design 256 §4.2)."
+  ), class = "drm_boundary_equivariance_unclassified")
+}
+
+drm_apply_boundary_penalty_spec <- function(spec, penalty) {
+  # Inert defaults keep the shared TMB signature stable for every model type.
+  spec$tmb_data$penalize_boundary <- 0L
+  spec$tmb_data$boundary_c_g <- 0
+  spec$tmb_data$boundary_kappa_minus <- 1
+  spec$tmb_data$boundary_kappa_plus <- 1
+  if (is.null(penalty) || !inherits(penalty, "drm_boundary_penalty")) {
+    return(spec)
+  }
+
+  drm_boundary_equivariance_weight(spec$model_type, family = NULL)
+
+  if (!identical(spec$model_type, "gaussian")) {
+    cli::cli_abort(c(
+      "Experimental {.fn drm_boundary_penalty} requires {.code family = gaussian()}.",
+      "i" = "S2 is scoped to the A1 iid {.code sd(group)} cell only (design 256)."
+    ))
+  }
+
+  re_mu <- spec$random$mu
+  re_sigma <- spec$random$sigma
+  if (is.null(re_mu) || !isTRUE(re_mu$n_terms == 1L)) {
+    cli::cli_abort(c(
+      "Experimental {.fn drm_boundary_penalty} requires exactly one ordinary {.code mu} random-intercept term.",
+      "i" = "Use {.code bf(y ~ x + (1 | group), sigma ~ 1)}."
+    ))
+  }
+  if (!identical(re_mu$coef_names, "(Intercept)")) {
+    cli::cli_abort(c(
+      "Experimental {.fn drm_boundary_penalty} admits only an intercept-only {.code (1 | group)} term.",
+      "x" = "Found coefficient(s): {.val {re_mu$coef_names}}."
+    ))
+  }
+  if (!isTRUE(re_mu$n_cors == 0L)) {
+    cli::cli_abort(
+      "Experimental {.fn drm_boundary_penalty} does not admit correlated random-effect blocks yet."
+    )
+  }
+  if (!is.null(re_sigma) && isTRUE(re_sigma$n_terms > 0L)) {
+    cli::cli_abort(
+      "Experimental {.fn drm_boundary_penalty} does not admit sigma-side random effects yet."
+    )
+  }
+  if (isTRUE(spec$tmb_data$has_sd_mu_model == 1L)) {
+    cli::cli_abort(
+      "Experimental {.fn drm_boundary_penalty} does not admit {.code sd(...)} regression formulae yet."
+    )
+  }
+
+  phylo_mu <- if (is.list(spec$structured)) spec$structured$phylo_mu else NULL
+  if (is.list(phylo_mu) && isTRUE(phylo_mu$has)) {
+    cli::cli_abort(c(
+      "Experimental {.fn drm_boundary_penalty} does not combine with {.fn phylo} terms.",
+      "i" = "Use {.fn drm_phylo_penalty} for phylogenetic MAP, or drop the structured term."
+    ))
+  }
+  if (isTRUE(spec$tmb_data$has_mesh_spatial_mu == 1L) ||
+      isTRUE(spec$tmb_data$has_phylo_mu == 1L) ||
+      isTRUE(spec$tmb_data$has_phylo_mu2 == 1L)) {
+    cli::cli_abort(
+      "Experimental {.fn drm_boundary_penalty} admits only ordinary iid grouping, not structured fields."
+    )
+  }
+
+  group_levels <- re_mu$groups[[1L]]
+  g <- length(group_levels)
+  if (!is.finite(g) || g < 2L) {
+    cli::cli_abort(
+      "Experimental {.fn drm_boundary_penalty} needs at least two grouping levels."
+    )
+  }
+  # Design 256 §4.3c: reject designs with any singleton group (m ≡ 1).
+  group_name <- re_mu$group_names[[1L]]
+  group_factor <- factor(spec$data[[group_name]], levels = group_levels)
+  sizes <- tabulate(as.integer(group_factor), nbins = g)
+  if (any(sizes < 2L)) {
+    cli::cli_abort(c(
+      "Experimental {.fn drm_boundary_penalty} rejects designs with singleton groups.",
+      "x" = "At least one level of {.field {group_name}} has size 1, so sigma and sigma_u are not separately identified along the scale orbit.",
+      "i" = "Require within-group replication (m >= 2) for every retained level (design 256 §4.3c)."
+    ), class = "drm_boundary_singleton_group")
+  }
+
+  q_v <- as.integer(penalty$q_v)
+  c_g <- drm_boundary_c_g(q_v, g)
+  spec$tmb_data$penalize_boundary <- 1L
+  spec$tmb_data$boundary_c_g <- c_g
+  spec$tmb_data$boundary_kappa_minus <- penalty$kappa_minus
+  spec$tmb_data$boundary_kappa_plus <- penalty$kappa_plus
+  spec$estimator <- "MAP"
+  spec$penalty <- penalty
+  spec$boundary_penalty_meta <- list(
+    g = as.integer(g),
+    q_v = q_v,
+    c_g = c_g,
+    group = group_name
+  )
+  spec
+}
+
+# Attach penalty DATA fields. Phylo and boundary routes are mutually exclusive;
+# inert zeros are always present so plain ML stays bit-identical.
 drm_apply_phylo_penalty_spec <- function(spec, penalty) {
   spec$tmb_data$penalize_phylo <- 0L
   spec$tmb_data$phylo_sd_penalty_rate <- numeric(0)
   spec$tmb_data$phylo_cor_penalty_sd <- numeric(0)
+  spec <- drm_apply_boundary_penalty_spec(spec, NULL)
+
   if (is.null(penalty)) {
     return(spec)
   }
+
+  if (inherits(penalty, "drm_boundary_penalty")) {
+    return(drm_apply_boundary_penalty_spec(spec, penalty))
+  }
+
+  if (!inherits(penalty, "drm_phylo_penalty")) {
+    cli::cli_abort(
+      "{.arg penalty} must be a {.fn drm_phylo_penalty} or {.fn drm_boundary_penalty} object."
+    )
+  }
+
   phylo_mu <- spec$structured$phylo_mu
   if (is.null(phylo_mu) || !isTRUE(phylo_mu$has)) {
     cli::cli_abort(c(

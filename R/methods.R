@@ -37,9 +37,15 @@ print.drmTMB <- function(x, ...) {
     cli::cli_text("  estimator: {x$estimator}")
   }
   if (!is.null(x$penalty)) {
-    cli::cli_text(
-      "  penalty: phylogenetic PC-prior (MAP); logLik shown is unpenalized"
-    )
+    if (inherits(x$penalty, "drm_boundary_penalty")) {
+      cli::cli_text(
+        "  penalty: experimental RE-SD boundary soft-penalty (MAP); logLik shown is unpenalized; confint withheld"
+      )
+    } else {
+      cli::cli_text(
+        "  penalty: phylogenetic PC-prior (MAP); logLik shown is unpenalized"
+      )
+    }
   }
   if (has_mu_random_effects(x)) {
     cli::cli_text("  mu random-effect terms: {n_mu_random_effect_terms(x)}")
