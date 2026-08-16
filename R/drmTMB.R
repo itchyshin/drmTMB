@@ -6976,6 +6976,19 @@ drm_build_poisson_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry))
+  if (include_missing_response) {
+    has_ordinary_correlated <- any(vapply(
+      mu_re$terms,
+      function(term) term$type %in% c("correlated_slope", "correlated_block"),
+      logical(1L)
+    ))
+    if (isTRUE(has_ordinary_correlated)) {
+      cli::cli_abort(c(
+        "Ordinary Poisson correlated {.code (1 + x | g)} blocks are not implemented with missing-response integration.",
+        "i" = "Use complete data, or the independent form {.code (1 | g) + (0 + x | g)}."
+      ))
+    }
+  }
   validate_count_structured_mu_term(
     mu_structured_term,
     mu_re$terms,
@@ -9430,6 +9443,28 @@ validate_poisson_mu_random_terms <- function(
       "i" = "Fit {.code y ~ x + (1 | id) + (0 + x | id)} without a {.code zi} formula, or use a fixed-effect {.code zi ~ predictors} model."
     ))
   }
+  has_correlated_block <- vapply(
+    terms,
+    function(term) term$type %in% c("correlated_slope", "correlated_block"),
+    logical(1L)
+  )
+  if (any(has_correlated_block)) {
+    poisson_wedge <-
+      identical(family_label, "Poisson") &&
+      length(terms) == 1L &&
+      identical(terms[[1L]]$type, "correlated_slope") &&
+      is.null(terms[[1L]]$covariance_label)
+    if (!poisson_wedge) {
+      labels <- vapply(terms, `[[`, character(1L), "label")
+      cli::cli_abort(c(
+        "Ordinary correlated {family_label} random effects support one unlabelled Poisson intercept-slope block.",
+        "x" = "Requested random-effect term{?s}: {.code {labels}}.",
+        "i" = "Use exactly {.code count ~ x + (1 + x | id)} with {.code family = poisson()} and complete data.",
+        "i" = "NB2, labelled covariance blocks, additional random-effect terms, and multiple random slopes remain unsupported."
+      ))
+    }
+    return(invisible(terms))
+  }
   unsupported <- vapply(
     terms,
     function(term) {
@@ -9444,7 +9479,7 @@ validate_poisson_mu_random_terms <- function(
       "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code count ~ x + (1 | id)} or {.code count ~ x + (0 + x | id)}.",
-      "i" = "Correlated {family_label} random-slope blocks and labelled covariance blocks remain planned for a later non-Gaussian random-effect gate."
+      "i" = "Ordinary Poisson also admits one complete-data unlabelled {.code (1 + x | id)} block; labelled covariance blocks remain planned."
     ))
   }
   invisible(terms)
@@ -21068,7 +21103,7 @@ split_tmb_corpars <- function(par, spec) {
       spec$structured$phylo_mu
     )
   if (
-    !spec$model_type %in% c("gaussian", "biv_gaussian", "binomial") &&
+    !spec$model_type %in% c("gaussian", "biv_gaussian", "binomial", "poisson") &&
       !count_phylo_q2
   ) {
     return(list())

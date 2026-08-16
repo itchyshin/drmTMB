@@ -462,11 +462,14 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   boundary messages. There is no modelled `sigma`
   parameter. The first structured count routes are fitted for one unlabelled
   q=1 `phylo()`, `spatial()`, `animal()`, or `relmat()` intercept in ordinary
-  Poisson `mu`. Overdispersion, correlated Poisson slope blocks, labelled
+  Poisson `mu`. One complete-data unlabelled ordinary `(1 + x | g)` Poisson
+  block is `point_fit_recovery` (`mc-0718`) under the design-17 Cholesky;
+  it is not an interval or coverage claim. Overdispersion, labelled ordinary
   Poisson covariance blocks, known sampling covariance, structured count
-  slopes, zero-inflated structured effects beyond the exact Poisson spatial `zi`
-  local-fit gate, simultaneous structured types within Poisson, and bivariate or mixed Poisson
-  models remain planned.
+  slopes beyond the existing labelled q2 point-fits, zero-inflated structured
+  effects beyond the exact Poisson spatial `zi` local-fit gate, simultaneous
+  structured types within Poisson, and bivariate or mixed Poisson models remain
+  planned.
 - Fixed-effect univariate negative-binomial 2 mean-dispersion models are
   implemented for overdispersed counts with `family = nbinom2()`. `mu` is the
   count mean and `sigma` is an overdispersion scale in

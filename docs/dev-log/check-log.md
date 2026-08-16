@@ -43,6 +43,36 @@ After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
 
 **Do not launch** a smoke or `N ≈ 1200` campaign from this document.
 
+## 2026-08-16 — Stack refresh: #1060 onto #1059 tip `ae307f4b1`
+
+Lane: Cursor, rebasing `cursor/ng-correlated-slope-wave2` onto
+`cursor/ng-correlated-slope-impl` @ `ae307f4b1` (`3399e7eda` constant-x abort
++ Totoro smoke). **Quiesce merge hold** — neither PR merges to `main`.
+`#1033` / Ligges / CRAN not touched.
+
+| Check | Result |
+| --- | --- |
+| Order | Wave 1 first (`mc-0717`), then Wave 2 (`mc-0718`) |
+| Surface | `MODEL_SURFACE_COUNT` **701**; implemented **343** |
+| Kept | `mc-0717` + `mc-0718`; Wave 1 constant-within-group `x` abort |
+| Poisson rejection | already NB2 on Wave 2; constant-x abort kept |
+| Merge | **not requested**; drafts only |
+
+## 2026-08-16 — Stack Wave 2 (`#1060` / `mc-0718`) onto Wave 1 (`#1059` / `mc-0717`)
+
+Lane: Cursor, stacking `cursor/ng-correlated-slope-wave2` onto
+`cursor/ng-correlated-slope-impl`. **Quiesce merge hold** — neither PR merges
+to `main`. `#1060` retargets to the Wave 1 branch.
+
+| Check | Result |
+| --- | --- |
+| Order | Wave 1 first (`mc-0717`, source_order 717), then Wave 2 (`mc-0718`, 718) |
+| Surface | `MODEL_SURFACE_COUNT` 699 → **701**; implemented 341 → **343** |
+| Design 257 | one file; Wave 0 "no family" text replaced by the live Wave 1+2 contract |
+| NEWS / grammar | both waves present; no duplicate 257 |
+| Focused R tests | `binomial-correlated-re-mspl-prereq\|reml-binomial-coxreid\|poisson-ordinary-correlated-q2\|poisson-mean` FAIL 0 / WARN 0 / SKIP 0 / PASS 250 |
+| Merge | **not requested**; drafts only |
+
 ## 2026-08-16 — constant-within-group `x` rejection for binomial q2 (PR #1059)
 
 Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
@@ -112,6 +142,24 @@ Base: `origin/main` `@ d9fddfa28`. **Quiesce merge hold** — draft PR only.
 | New cell | `mc-0717` `ordinary_correlated_q2` `point_fit_recovery` |
 | Not overwritten | `mc-0060` / `mc-0061` / `mc-0062` unchanged |
 | Merge | **not requested**; quiesce stands |
+
+## 2026-08-16 — Design 257 Wave 2: Poisson ordinary correlated `(1+x|g)` as `mc-0718`
+
+Lane: Cursor, `cursor/ng-correlated-slope-wave2` (worktree `.worktrees/ng-corr-w2`).
+Draft PR only. Quiesce still standing. Not `mc-0717`, not `mc-0061`.
+
+| Check | Result |
+| --- | --- |
+| Wedge | complete-data Poisson log `count ~ x + (1 + x \| id)`, ML-Laplace, `point_fit_recovery` |
+| Cell | **`mc-0718`** (`ordinary_correlated_q2`); `mc-0432` stays rejected remainder |
+| Focused tests | `poisson-ordinary-correlated-q2\|poisson-mean` FAIL 0 / WARN 0 / SKIP 0 / PASS 161 |
+| Ledger `--check` | OK (31 generated outputs); surface 699→700, implemented 341→342 (pre-stack; stacked surface is 701) |
+| C14 refresh | runner 4/4 PASS; receipt `2026-08-16-wave2-poisson-c17c2-c14-final-source-compatibility/`; fingerprint unchanged |
+| C++ | untouched (design-17 carrier already in `model_type == 6`) |
+| Neighbours | NB2 / labelled / mixed / REML / missing-response stay rejected |
+| Quiesce | **no merge** |
+
+After-task: `docs/dev-log/after-task/2026-08-16-design-257-wave2-poisson-correlated.md`.
 
 ## 2026-08-16 — win-builder collection: R-devel clean; R-release/oldrelease ABSENT → re-upload; STOP
 
