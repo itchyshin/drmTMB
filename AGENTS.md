@@ -23,6 +23,19 @@ regression using Template Model Builder.
 > D-93 and D-117 are DISCHARGED (2026-08-15, recorded in repo + brain).
 >
 > **▶ Prior (2026-08-15, → CLAUDE; the CRAN lane's holds are DECIDABLE and the
+>
+> **▶ Prior (2026-08-16, INTERVAL-TRUTH PROGRAMME → CURSOR; 3 PRs merged — its own lane handover, see the Split).**
+> PRs #1040/#1047/#1050 merged; `main` green (R-CMD-check + pkgdown). Every interval-claiming cell
+> now carries a stored `location_checked` verdict: **176 passed / 44 unchecked / 6 not_applicable**
+> (the 44 = the 2026-07-11 import, disposition = Shinichi's; facts in
+> `docs/dev-log/2026-08-15-import-44-shape-audit.md`). `interval_feasible` contract DECIDED = shape
+> only (`docs/design/255`). One finding RETRACTED (the PSOCK "leak" — attribution error; rule: by
+> port, never a global count). Other lanes remain live — see `docs/dev-log/coordination-board.md`;
+> this pointer does not supersede theirs. **Handover TO CURSOR** (blob-pinning partition of the 22 +
+> the student-campaign 0.81–0.86 review; no tier changes without Shinichi). START HERE:
+> [`docs/dev-log/handover/2026-08-16-cursor-handover.md`](docs/dev-log/handover/2026-08-16-cursor-handover.md)
+>
+> **▶ Latest — start here (2026-08-15, → CLAUDE; the CRAN lane's holds are DECIDABLE and the
 > REML arm is MEASURED; rung UNCHANGED at `tarball-clean`).**
 > Lane `claude/07-cran-ladder` @ `966039f17` (PR **#1039**, open; 10 commits, all docs +
 > `DESCRIPTION`). **Everything that now gates 0.7.0 is an OWNER decision:** the **D-93 decision
