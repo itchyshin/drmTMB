@@ -94082,3 +94082,34 @@ convenience fix is not worth invalidating a provenance binding, and the coupling
 Checks after every change: `capability_ledger.py --check` OK (31 outputs) · `test_capability_ledger`,
 `test_b4_ci_c1`, `test_profile_truth_gate` all OK. Compute spend: three single-threaded fits. After-task:
 `docs/dev-log/after-task/2026-08-16-overnight-location-and-import-audit.md`.
+
+### 2026-08-16 — RETRACTION: the reported `drmTMB(se = TRUE)` PSOCK worker leak does not exist
+
+The overnight entry above recorded a PSOCK worker leak on the `se` path. **That was wrong, and the
+error was in my attribution method, not in the package.**
+
+`grep -rE "makeCluster|makePSOCKcluster|makeForkCluster|parLapply|foreach|future::" R/` returns
+**nothing**: the package creates no cluster on any path. Its only parallel mechanism is fork-based
+`mclapply` (`R/profile.R:2804,2811`), reached solely via `parallel = "multicore"` on bootstrap or
+profile — never from `se`, which is one in-process `TMB::sdreport()` call. PSOCK is deliberately
+unsupported because fitted TMB objects carry external pointers that do not survive serialisation.
+
+Two mistakes produced the false report:
+
+1. **A global census on a shared host.** I counted `ps aux | grep workRSOCK` across a machine running
+   ten lanes and attributed the result to whatever I was running.
+2. **`PPID 1` misread as orphaning.** Since R 4.0, `makePSOCKcluster()` on localhost defaults to
+   `setup_strategy = "parallel"`, which backgrounds every worker at launch; healthy, connected workers
+   are reparented to init. PPID 1 is normal.
+
+Lane `claude/eloquent-driscoll-521fa1` resolved a live worker of the exact signature **by port** to a
+living master: a concurrent pigauto benchmark (`script/bench_zi_count.R`), whose own scripts call
+`makeCluster()` with `stopCluster()` on the success path only. Its owner has been notified. That lane
+also measured the negative directly — 3× `drmTMB(se = TRUE)` and 3× `test-profile-targets.R`, zero new
+workers each time — and landed a hygiene guard plus a non-repro report on its own branch.
+
+**I killed those workers three times tonight believing them orphaned**, which may have terminated
+another lane's live compute. Recorded here rather than left in a scratchpad.
+
+**Rule:** attribute a process by PORT, or by descent from your own PID. Never by a global count on a
+shared host.

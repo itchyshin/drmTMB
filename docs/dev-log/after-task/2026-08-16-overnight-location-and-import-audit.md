@@ -82,7 +82,7 @@ for an unrelated provenance reason, so its correctness is established even thoug
 | 7 | 44-cell import disposition | **OPEN — owner's call**, facts in the audit doc |
 | 8 | student campaign 0.81–0.86 coverage, unwired | **OPEN** — needs its own review |
 | 9 | 22 (C) cells; option-2 fix blocked where the test is blob-pinned | **OPEN** |
-| 10 | PSOCK worker leak in `drmTMB(se = TRUE)` | **OPEN** — spawned as its own task |
+| 10 | ~~PSOCK worker leak in `drmTMB(se = TRUE)`~~ | **RETRACTED 2026-08-16 — NOT REPRODUCIBLE, and the attribution was my error.** `grep` over `R/` finds no cluster creation at all; the workers belonged to a concurrent pigauto benchmark, traced by port to a living master by lane `claude/eloquent-driscoll-521fa1`. I mis-attributed twice: a GLOBAL `ps` count on a ten-lane host, and reading `PPID 1` as orphaning when R ≥ 4.0 backgrounds healthy PSOCK workers by default. **I also killed those workers three times believing them orphaned — possibly another lane's live compute.** |
 
 ## 8. Consistency Audit
 
@@ -112,6 +112,13 @@ unchecked cells are exactly the import; `mc-0300`/`mc-0312` truths rest on a fro
 alone; and the option-2 partition (which of the 22 are blob-pinned) has not been computed.
 
 ## 11. Team Learning
+
+**Attribute a process by port or by descent from your own PID — never by a global count on a shared
+host.** Tonight I reported a package defect that does not exist, twice killed what were probably
+another lane's healthy workers, and spawned a task to hunt a cluster the package never creates. The
+tell I missed: `PPID 1` has not meant "orphaned" since R 4.0, because `setup_strategy = "parallel"`
+backgrounds workers at launch. A peer lane caught it by doing the one thing I skipped — resolving the
+port to a living master.
 
 **A blank or code-shaped field in the current ledger is not evidence of absence — it is usually a
 migration that dropped a link.** Applied deliberately tonight, it converted 31 "unrecoverable" cells
