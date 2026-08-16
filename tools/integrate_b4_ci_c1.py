@@ -29,14 +29,14 @@ ALLOWLIST_SHA256 = "659f5a660c60dc48e67981406e9d9e68af9565b52fd19bf00f115bd715e4
 # byte-IDENTICAL to origin/main, and mc-0124 differs in claim_boundary ONLY, as a pure
 # append (new == old + the sentence). Tier, target, scale and evidence are unchanged.
 # Re-freeze a B3 row only after re-running that same field-level diff.
-B3_BASE_ROWS_SHA256 = "31c3c7addb28cd200b15f8047d795d6e8707d75e5256ae27d6c7e7e5851de344"
+B3_BASE_ROWS_SHA256 = "555a4ccb1d547bcf27e6e81ccdcd7063e62350d13d3ae8016ab77af6d50c8ffd"
 # Re-frozen 2026-08-15 (2nd time today; was 396b4b9452c9408a3ec09dd440b3dc26dd42e4c64033e9375b487fc49032096a).
 # The `location_checked` column was appended to CELL_FIELDS, which changes every row's
 # bytes and therefore every row digest. Gated on the same proof as the B3 re-freeze:
 # a field-level diff of all 24 C1 rows, all 4 B3 rows and all 4 EXCLUDED rows against the
 # prior commit found NO pre-existing field changed at all -- the digests move solely
 # because a column was added. Re-freeze a pinned digest only after re-running that diff.
-C1_CELL_ROWS_SHA256 = "5e9f825e5abc9498dd7ba8970d9df4177d9708cddcc0d3dd5eecc1b183d877a9"
+C1_CELL_ROWS_SHA256 = "f3bb073da7800caf100194937e6ab5d4c7ee3279946f4963f9a37136e20dcae2"
 # Identity (not full row) of the four hard-excluded neighbours. Their evidence-bearing
 # fields legitimately move under later arcs -- mc-0207 was split by Arc 4b and mc-0269
 # promoted by the Arc 1 REML-slope campaign -- but their identity never may. Paired with

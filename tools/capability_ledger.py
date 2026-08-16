@@ -931,6 +931,30 @@ def compact_json_bytes(value: object) -> bytes:
     return (json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
 
 
+def location_summary_line(rows: list[dict[str, str]]) -> str:
+    """One derived sentence: the location_checked split among interval-claiming cells.
+
+    `interval_feasible` claims SHAPE only (docs/design/255); this line is the reader's
+    view of the orthogonal location fact, so the honest number is printed rather than
+    left to be inferred from tier names.
+    """
+    claiming = [
+        row for row in rows
+        if row["evidence_tier"] in {
+            "supported", "inference_ready_with_caveats", "interval_feasible"
+        }
+    ]
+    counts = Counter(row.get("location_checked", "") for row in claiming)
+    return (
+        f"- Location checks among the {len(claiming)} interval-claiming cells "
+        f"(`location_checked`; tiers claim interval SHAPE only — docs/design/255): "
+        f"**{counts.get('passed', 0)} passed**, "
+        f"**{counts.get('unchecked', 0)} unchecked**, "
+        f"**{counts.get('failed', 0)} failed**, "
+        f"**{counts.get('not_applicable', 0)} not applicable**."
+    )
+
+
 def schema_value() -> dict[str, object]:
     return {
         "schema_version": 1,
@@ -3512,6 +3536,9 @@ def reader_summary_markdown(cells: list[dict[str, str]]) -> str:
             point_fit_recovery=evidence.get("point_fit_recovery", 0),
             diagnostic_only=evidence.get("diagnostic_only", 0),
         ),
+        location_summary_line(
+            [row for row in cells if row["axis"] == "model_surface"]
+        ),
         "",
         "</details>",
     ])
@@ -3859,6 +3886,7 @@ def surface_markdown(
         f"**{tiers['legacy_fit_supported']} legacy fit-supported "
         f"(no interval permission)**, "
         f"**{tiers['point_fit_recovery']} recovery-grade**.",
+        location_summary_line(model),
         f"- Missing-response board: **{len(missing)} routes; "
         f"{missing_gates['G0']} G0; {missing_gates['G1']} G1; "
         f"{missing_gates['G2']} G2; {verified_missing} verified (G3+)**.",
@@ -4020,8 +4048,8 @@ def surface_html(
             **{key: row[key] for key in (
                 "cell_id", "family_route", "route_variant", "dpar", "effect_type",
                 "structure_provider", "dimension", "q_gate", "estimator",
-                "capability_status", "evidence_tier", "claim_boundary",
-                "primary_evidence_id",
+                "capability_status", "evidence_tier", "location_checked",
+                "claim_boundary", "primary_evidence_id",
             )},
             "planning_class": planning_class(row),
             "external_comparator": comparators.get(row["cell_id"], ""),
@@ -4040,6 +4068,7 @@ def surface_html(
         f"<td>{html.escape(planning_class(row))}</td>"
         f"<td><span class=\"pill\">{html.escape(row['capability_status'].replace('_', ' '))}</span></td>"
         f"<td>{html.escape(row['evidence_tier'].replace('_', ' '))}</td>"
+        f"<td>{html.escape(row.get('location_checked', '').replace('_', ' '))}</td>"
         f"<td>{html.escape(comparators.get(row['cell_id'], ''))}</td>"
         f"<td>{html.escape(row['claim_boundary'])}</td>"
         "</tr>"
@@ -4071,6 +4100,7 @@ def surface_html(
 <p class="lede">One model census, one staged-association surface, one scoped missing-response evidence summary, and no inherited ticks. The ledger distinguishes code admission, validation work, and inferential evidence across axes.</p>
 <nav class="jump" aria-label="Capability surface sections"><a href="#association">Association</a><a href="#missing-response">Missing-response board</a><a href="#model-cells">Detailed cells</a><a href="#family-capability">Per-family map</a></nav>
 <p class="scope"><strong>Scope:</strong> {len(model)} model-surface cells, {len(association)} staged-association cells, and 18 missing-response routes. Evidence never transfers automatically between axes; a missing-response ✓ appears only at G3 recovery or above and never promotes the model's separate inference tier.</p>
+<p class="scope">{html.escape(location_summary_line(model).lstrip('- ').replace('**', ''))}</p>
 <section class="stats" aria-label="Capability summary">
 <div class="stat"><b>{len(model)}</b><span>model cells</span></div><div class="stat"><b>{len(association)}</b><span>association cells</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'interval_feasible' for row in association)}</b><span>association interval-feasible</span></div><div class="stat"><b>{sum(row['evidence_tier'] == 'inference_ready_with_caveats' for row in association)}</b><span>association inference-ready</span></div><div class="stat"><b>{len(missing)}</b><span>missing-response routes</span></div>
 <div class="stat"><b>{status['implemented']}</b><span>implemented model cells</span></div><div class="stat"><b>{status['not_implemented']}</b><span>actionable backlog cells</span></div><div class="stat"><b>{status['rejected_by_design']}</b><span>not currently supported</span></div><div class="stat"><b>{tiers['inference_ready_with_caveats']}</b><span>inference-ready cells</span></div>
@@ -4089,7 +4119,7 @@ def surface_html(
 <p class="muted"><strong>External comparator</strong> names a package that fits the same model and reaches the same estimates on a single simulated dataset. It says the implementation agrees with an independent one; it is <em>not</em> an interval, coverage, bias or recovery claim, and it never raises the evidence tier. <em>strong</em> means a separate estimation engine (lme4, metafor); <em>weak</em> means the comparator shares drmTMB's TMB/AD stack (glmmTMB), so agreement is a consistency check between related implementations. A blank cell means no comparator has been recorded — for structured, scale-side, bivariate and phylogenetic routes no established implementation exists to compare against at all.</p>
 <div class="filters" role="search"><label>Route <select id="family"><option value="">All</option></select></label><label>Status <select id="status"><option value="">All</option></select></label><label>Search <input id="query" type="search" placeholder="parameter, provider, evidence…"></label><button id="clear" type="button">Clear</button></div>
 <div id="count" class="muted" aria-live="polite"></div>
-<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
+<div class="table-wrap"><table><caption>Generated {len(model)}-cell model capability census</caption><thead><tr><th scope="col">Cell</th><th scope="col">Route</th><th scope="col">Variant</th><th scope="col">dpar</th><th scope="col">Effect</th><th scope="col">Provider</th><th scope="col">Estimator</th><th scope="col">Planning class</th><th scope="col">Status</th><th scope="col">Evidence tier</th><th scope="col">Location checked</th><th scope="col">External comparator</th><th scope="col">Claim boundary</th></tr></thead><tbody id="rows">{initial_model_rows}</tbody></table></div>
 <h2 id="family-capability">Per-family capability reference</h2>
 <p class="muted">This reference is projected from current model-surface cells. REML uses only REML rows; missing-response is joined from its separate route ledger; and missing-predictor support follows the live R runtime gate.</p>
 <div class="family-wrap"><table class="family-map"><caption>Live per-family capability map</caption><thead><tr><th scope="col">Family</th><th scope="col">dpars</th><th scope="col">Fixed</th><th scope="col">Random (int / slope)</th><th scope="col">Structured — phylo / spatial / animal / relmat / phylo_interaction</th><th scope="col">REML</th><th scope="col">Highest evidence (exact scope)</th><th scope="col">Missing response</th><th scope="col">Missing predictor mi()</th></tr></thead><tbody>{family_map_html(missing, family_rows)}</tbody></table></div>

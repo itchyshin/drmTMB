@@ -94039,3 +94039,77 @@ evidence-citations none · 7 touched test files FAIL=0. B4-CI pins re-frozen twi
 field-level diff proving no pre-existing field moved. After-task:
 `docs/dev-log/after-task/2026-08-15-irc-evidence-rewire-and-tier-contract.md` (PASS close-out
 compiler); plan-vs-actual filed alongside.
+
+## 2026-08-15/16 — overnight: 31 location verdicts, the 44-cell import audit, four residuals closed
+
+Unattended run on `claude/lane-overnight-0815`, off `a5bd62d6b`.
+
+**31 cells went from "no recoverable truth" to a location verdict, at zero compute.** Truth was
+recovered for all 31 (135-trace `all-receipts.tsv` `true_value` for 5; campaign bindings for 26, 18 of
+those cross-validated against fixture-builder constants, some readable only at off-mainline commits),
+then checked with the gate's own rule: **31/31 pass, every retained interval brackets its truth,
+worst relative miss 0.0%**. Five carry 5 seeds (both gate arms reachable); the other 26 are
+**magnitude-only**. Claiming cells now **176 passed / 44 unchecked / 6 not_applicable**.
+
+**The 44-cell 2026-07-11 import was audited against the shape contract** (`docs/design/255`): **19
+shape-justified, 22 whose cited evidence never computes an interval at all, 3 with an unwired campaign
+whose coverage is 0.81–0.86 against nominal 0.95** — a warning, not a promotion. No tier was changed;
+the disposition is the owner's. Facts: `2026-08-15-import-44-shape-audit.md`.
+
+**Four residuals closed.** `location_checked` is now rendered (census column + a derived sentence on
+three surfaces, test-pinned). The three flagged vacuous-shape test sites are all **real** — zero fixes
+needed. `binding_source_sha256` is **not** the defect the earlier audit recorded: the validator
+enforces it as the digest of the shared bindings input, so my own claim was wrong and is corrected;
+semantics documented. The frozen-before-decision staleness class has **8 more instances**, all from
+one 2026-06-30 commit, now covered by the extended supersession note — and the sweep confirms the
+class does not recur elsewhere across 190 decision-bearing TSVs.
+
+**`mc-0596`'s cross-arc tension is a fixture difference, not a contradiction.** On the fixture backing
+its interval claim, three seeds give convergence 0, pdHess TRUE, and an independent `nlminb` restart
+re-confirms the optimum under both the raw defaults and the campaign's 900-iteration budget
+(grad-max ≤ 1.2e-3). The "false convergence (8)" was measured on the response-mask arc's own sentinel
+fixture. Facts only; D-87 disposition reserved.
+
+**Two citation errors of my own from the previous lane were found and repaired** — an extension that
+made `mc-0486` look shape-justified using a different test's assertions, and an off-by-one leaving
+`mc-0623/0625/0627` citing line 100 when their assertions sit at 101-103.
+
+**One fix was written, proven, and deliberately thrown away:** endpoint assertions for the
+zero_one_beta cells passed (1521) and mutation-proved red, but `test-zero-one-beta.R` is the pinned
+source blob behind `mc-0568`'s retained receipt, so the C14/C17 guard rejected it. Reverted — a
+convenience fix is not worth invalidating a provenance binding, and the coupling is now recorded.
+
+Checks after every change: `capability_ledger.py --check` OK (31 outputs) · `test_capability_ledger`,
+`test_b4_ci_c1`, `test_profile_truth_gate` all OK. Compute spend: three single-threaded fits. After-task:
+`docs/dev-log/after-task/2026-08-16-overnight-location-and-import-audit.md`.
+
+### 2026-08-16 — RETRACTION: the reported `drmTMB(se = TRUE)` PSOCK worker leak does not exist
+
+The overnight entry above recorded a PSOCK worker leak on the `se` path. **That was wrong, and the
+error was in my attribution method, not in the package.**
+
+`grep -rE "makeCluster|makePSOCKcluster|makeForkCluster|parLapply|foreach|future::" R/` returns
+**nothing**: the package creates no cluster on any path. Its only parallel mechanism is fork-based
+`mclapply` (`R/profile.R:2804,2811`), reached solely via `parallel = "multicore"` on bootstrap or
+profile — never from `se`, which is one in-process `TMB::sdreport()` call. PSOCK is deliberately
+unsupported because fitted TMB objects carry external pointers that do not survive serialisation.
+
+Two mistakes produced the false report:
+
+1. **A global census on a shared host.** I counted `ps aux | grep workRSOCK` across a machine running
+   ten lanes and attributed the result to whatever I was running.
+2. **`PPID 1` misread as orphaning.** Since R 4.0, `makePSOCKcluster()` on localhost defaults to
+   `setup_strategy = "parallel"`, which backgrounds every worker at launch; healthy, connected workers
+   are reparented to init. PPID 1 is normal.
+
+Lane `claude/eloquent-driscoll-521fa1` resolved a live worker of the exact signature **by port** to a
+living master: a concurrent pigauto benchmark (`script/bench_zi_count.R`), whose own scripts call
+`makeCluster()` with `stopCluster()` on the success path only. Its owner has been notified. That lane
+also measured the negative directly — 3× `drmTMB(se = TRUE)` and 3× `test-profile-targets.R`, zero new
+workers each time — and landed a hygiene guard plus a non-repro report on its own branch.
+
+**I killed those workers three times tonight believing them orphaned**, which may have terminated
+another lane's live compute. Recorded here rather than left in a scratchpad.
+
+**Rule:** attribute a process by PORT, or by descent from your own PID. Never by a global count on a
+shared host.
