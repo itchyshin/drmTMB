@@ -164,6 +164,66 @@ test_that("binomial q2 ML recovers a correlated random intercept and slope", {
     names(fit$sdpars$mu),
     c("(1 + x | id):(Intercept)", "(1 + x | id):x")
   )
-  expect_lt(max(abs(unname(fit$sdpars$mu) - sim$truth[1:2])), 0.30)
-  expect_lt(abs(unname(fit$corpars$mu) - sim$truth[["rho"]]), 0.30)
+  sd0 <- unname(fit$sdpars$mu[["(1 + x | id):(Intercept)"]])
+  sd1 <- unname(fit$sdpars$mu[["(1 + x | id):x"]])
+  rho_re <- unname(fit$corpars$mu[["cor((Intercept),x | id)"]])
+  expect_lt(abs(sd0 - sim$truth[["(Intercept)"]]), 0.30)
+  expect_lt(abs(sd1 - sim$truth[["x"]]), 0.30)
+  expect_lt(abs(rho_re - sim$truth[["rho"]]), 0.30)
+  raw_par <- fit$obj$env$parList(fit$opt$par)
+  report <- fit$obj$report()
+  expect_true(all(c("eta_cor_mu", "rho_mu_re", "logsech_mu_re") %in% names(report)))
+  expect_equal(rho_re, tanh(unname(raw_par$eta_cor_mu)), tolerance = 1e-12)
+})
+
+test_that("binomial q2 rejection matrix stays closed", {
+  sim <- mspl_q2_data(n_group = 10L, n_each = 8L, seed = 20260813L)
+  q2 <- bf(cbind(success, failure) ~ x + (1 + x | id))
+
+  expect_error(
+    drmTMB(q2, family = binomial(), data = sim$data, REML = TRUE),
+    "Correlated q = 2 binomial random effects are not implemented with",
+    fixed = TRUE
+  )
+
+  missing_dat <- sim$data
+  missing_dat$success[[1L]] <- NA_integer_
+  expect_error(
+    drmTMB(
+      q2,
+      family = binomial(),
+      data = missing_dat,
+      missing = miss_control(response = "include")
+    ),
+    "missing-response integration",
+    fixed = TRUE
+  )
+
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x + (1 | id) + (1 + x | id)),
+      family = binomial(),
+      data = sim$data
+    ),
+    "unlabelled intercept-slope block"
+  )
+
+  expect_error(
+    drmTMB(
+      bf(cbind(success, failure) ~ x + (1 + x | p | id)),
+      family = binomial(),
+      data = sim$data
+    ),
+    "unlabelled intercept-slope block"
+  )
+
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 + x | id)),
+      family = poisson(),
+      data = transform(sim$data, y = success)
+    ),
+    "Only independent Poisson `mu` random intercepts and slopes",
+    fixed = TRUE
+  )
 })

@@ -6,12 +6,12 @@ The model surface, staged-association surface, and missing-response execution ax
 
 ## Snapshot
 
-- Model surface: **699 cells** across **18 routes**.
+- Model surface: **700 cells** across **18 routes**.
 - Staged association: **6 cells**; **5 interval-feasible** and **1 inference-ready with caveats**.
-- Runtime status: **341 implemented**, **10 actionable not implemented**, and **348 not currently supported**.
+- Runtime status: **342 implemented**, **10 actionable not implemented**, and **348 not currently supported**.
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
-- Evidence: **0 supported**, **28 inference-ready**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **77 recovery-grade**.
+- Evidence: **0 supported**, **28 inference-ready**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **78 recovery-grade**.
 - Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **164 passed**, **20 unchecked**, **3 failed**, **0 not applicable**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
@@ -67,7 +67,7 @@ Each route's displayed gate and work state come from its own ledger evidence. Ve
 |---|---:|---:|---:|---:|---|
 | `beta` | 25 | 8 | 0 | 17 | inference ready with caveats |
 | `beta_binomial` | 32 | 4 | 0 | 28 | interval feasible |
-| `binomial` | 12 | 5 | 0 | 7 | inference ready with caveats |
+| `binomial` | 13 | 6 | 0 | 7 | inference ready with caveats |
 | `biv_gaussian` | 160 | 146 | 1 | 13 | inference ready with caveats |
 | `cumulative_logit` | 13 | 4 | 0 | 9 | interval feasible |
 | `gamma` | 25 | 7 | 0 | 18 | inference ready with caveats |

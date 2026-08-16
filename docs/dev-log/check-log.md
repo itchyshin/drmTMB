@@ -43,6 +43,22 @@ After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
 
 **Do not launch** a smoke or `N ≈ 1200` campaign from this document.
 
+## 2026-08-16 — Design 257 Wave 1: binomial ordinary correlated `mc-0717`
+
+Lane: Cursor, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Base: `origin/main` `@ d9fddfa28`. **Quiesce merge hold** — draft PR only.
+
+| Check | Result |
+| --- | --- |
+| Extractors `sd0` / `sd1` / `rho_re` | Present on `sdpars$mu` / `corpars$mu`; log-sech report symbols exist |
+| `devtools::test(filter = 'binomial-correlated-re-mspl-prereq')` | 56 pass / 0 fail |
+| `devtools::test(filter = 'reml-binomial-coxreid')` | 8 pass / 0 fail (REML fence kept) |
+| `python3 tools/capability_ledger.py --check` | OK |
+| `python3 -m unittest tools.tests.test_capability_ledger -q` | 78 OK |
+| New cell | `mc-0717` `ordinary_correlated_q2` `point_fit_recovery` |
+| Not overwritten | `mc-0060` / `mc-0061` / `mc-0062` unchanged |
+| Merge | **not requested**; quiesce stands |
+
 ## 2026-08-16 — win-builder collection: R-devel clean; R-release/oldrelease ABSENT → re-upload; STOP
 
 Lane: Cursor, `cursor/070-winbuilder-collect` (worktree `.worktrees/cran-07`). Candidate

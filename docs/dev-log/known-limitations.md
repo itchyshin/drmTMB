@@ -541,9 +541,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   `stats::glm()` log-likelihood, AIC, and BIC parity, and has no public
   `sigma`. Ordinary `mu` random intercepts and independent numeric slopes are
   fitted first slices. One complete-data native-TMB unlabelled correlated
-  intercept-slope block is also fitted at point-fit-only grade. The exact independent-slope domain in capability cell
-  `mc-0061` is inference-ready with caveats; it does not authorize neighbouring
-  random-effect designs. Non-logit links, factor response ordering, proportions plus
+  intercept-slope block `(1 + x | g)` recovers `sd0`, `sd1`, and group-level
+  `rho_re` at `point_fit_recovery` in capability cell `mc-0717`; that cell is
+  not the independent-slope cell `mc-0061`. The exact independent-slope domain in
+  `mc-0061` is inference-ready with caveats; it does not authorize the correlated
+  block, REML, missing-response, labelled, or mixed `(1 | g) + (1 + x | g)`
+  neighbours. Non-logit links, factor response ordering, proportions plus
   `weights`, `weights = trials`, labelled or multiple correlated random slopes, structured effects,
   bivariate or mixed responses, and `engine = "julia"` remain unsupported.
   Experimental `estimator = "mspl"` is narrower still: one q=1 or q=2 ordinary
