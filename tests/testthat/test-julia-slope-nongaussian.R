@@ -52,7 +52,7 @@ drm_phylo_slope_gamma_fit <- function(n_tip = 40L) {
 }
 
 test_that("Gamma phylo random-slope (1 + x | species) via engine = 'julia' is finite and sane", {
-  testthat::skip_on_cran()
+  drm_skip_live_julia()
   testthat::skip_if_not_installed("JuliaCall")
   testthat::skip_if_not_installed("callr")
   testthat::skip_if_not_installed("ape")

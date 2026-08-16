@@ -254,6 +254,7 @@ test_that("legacy cross-family extractor contract includes dispersion covariates
 })
 
 test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
 
   # Point the bridge at the cross-family DRM.jl engine for this run.
@@ -415,6 +416,7 @@ drm_xfam_expect_latent_ci <- function(res) {
 }
 
 test_that("Gamma x Poisson cross-family fit returns latent rho + profile CI", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -457,6 +459,7 @@ test_that("Gamma x Poisson cross-family fit returns latent rho + profile CI", {
 })
 
 test_that("NB2 x Gaussian cross-family fit returns latent rho + profile CI", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -565,6 +568,7 @@ drm_xfam_xsigma_fit <- function(n = 150L) {
 }
 
 test_that("cross-family covariate sigma sub-model returns finite beta_sigma", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
