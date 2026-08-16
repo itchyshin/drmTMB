@@ -55,6 +55,37 @@ that pointer; the TSV is left byte-intact.
 2. **The misses are one-sided.** spatial 4 lower / 10 upper, relmat 3 / 7. Symmetric coverage at the
    nominal rate is not what these achieve.
 
+## SCOPE EXTENDED (2026-08-15 overnight): this covers NINE files, not one
+
+A repo-wide sweep for this defect class enumerated 406 dashboard + 1,941 simulation-artifact TSVs,
+isolated the 190 carrying a `promotion_decision` column, and joined them against current truth. It
+found **eight siblings of this file with the identical defect** — all committed together in
+`d1b029cb6` (2026-06-30), all recording `promotion_decision = do_not_promote` for the same four
+cells, and none touched again after the later after-task promoted phylo/spatial/relmat:
+
+```
+structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv          (this note's original subject)
+structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv
+structured-re-gaussian-lowq-mu-intercept-pregrid-results.tsv
+structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv
+structured-re-gaussian-lowq-mu-intercept-pregrid-dispatch.tsv
+structured-re-gaussian-lowq-mu-intercept-topup-dispatch.tsv
+structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv
+structured-re-gaussian-lowq-mu-intercept-dry-run.tsv
+structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv
+```
+
+**This note supersedes the frozen verdict in all nine.** The correction in the table above applies
+unchanged: phylo, spatial and relmat were promoted; animal was correctly withheld at 473/475.
+
+**The sweep's reassuring half, stated because a negative result is also a finding.** Outside this
+one 2026-06-30 cluster the class did not recur: 11 other decision-bearing clusters checked
+CONSISTENT with current truth, and 1 UNDETERMINED. The closest call — the AGHQ + Cox-Reid
+non-Gaussian REML arc (2026-07-18/22) landing after `structured-re-native-reml-scope-status.tsv`
+(2026-07-14) — was read in depth and resolved CONSISTENT: the estimator was deliberately kept `ML`
+and the vignette marks binomial REML diagnostic-only, so that gate's claim still holds. Full query
+log: `scratchpad/overnight-staleness-sweep.md`.
+
 ## What this note does NOT establish
 
 - It does not re-adjudicate the promotion. Rose, Fisher and Grace reviewed it; that stands.
