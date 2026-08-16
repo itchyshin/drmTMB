@@ -73,6 +73,25 @@ ledger's internal accounting of why the tier was granted.
 (cheap, and it makes the claim true rather than removing it), option 1 for the rest. I have not acted
 on either — a 22-cell tier change is a claims decision, and it is yours.
 
+> ### ⚠ Option 2 is NOT free — measured overnight, not assumed
+>
+> I attempted the cheap half on `mc-0559`–`mc-0562` (zero_one_beta): their test at
+> `test-zero-one-beta.R:1794-1856` *does* call `confint()`, so three assertions should have closed
+> them. The assertions worked — file green at 1521 passes, and the deliberate-red mutation failed
+> correctly (`FAIL=1`).
+>
+> **But the C14/C17 source-bound guard rejected it:** `test-zero-one-beta.R` is pinned as the source
+> blob behind **`mc-0568`'s retained receipt** — one of the five 5-seed cells whose location check
+> passed tonight. Any edit to that file, however additive, breaks a real provenance binding
+> (`SystemExit: mc-0568: current source blob differs`).
+>
+> **Reverted.** A convenience fix is not worth invalidating a receipt binding. The lesson generalises:
+> **for any cell whose cited test is also source-bound evidence for another cell's receipt, option 2
+> is blocked** — the test file cannot be touched without re-pinning that receipt, which is a
+> provenance decision, not a test improvement. Whoever takes this on should first partition the 22 by
+> whether their cited test is blob-pinned. The citation-drift repair for those four (pointing at the
+> real test block instead of DGP helper code) is metadata only and was kept.
+
 ## Provenance
 
 Per-cell evidence, queries run, and negative results: `scratchpad/overnight-import-batch{1,2,3,4}.md`.
