@@ -11,6 +11,7 @@ route; `devtools::check_win_*` is not used because it rebuilds from source).**
 | Size | 10,087,906 bytes |
 | R-release upload | `ftp://win-builder.r-project.org/R-release/` — OK at **2026-08-16T00:06:40Z** |
 | R-devel upload | `ftp://win-builder.r-project.org/R-devel/` — OK at **2026-08-16T00:06:43Z** |
+| R-oldrelease upload | `ftp://win-builder.r-project.org/R-oldrelease/` — OK at **2026-08-16T00:49:55Z** |
 
 Results are expected by email to `itchyshin@gmail.com` within ~30–60 minutes per lane. Expected:
 `Status: 1 NOTE` (New submission). The `checking tests` timing in the reply is the one number no
