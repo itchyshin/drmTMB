@@ -1108,6 +1108,43 @@ class CapabilityLedgerTests(unittest.TestCase):
                 f"{weaker}=(interval={w_int}, point={w_pt})",
             )
 
+    def test_location_checked_is_rendered_and_derived(self):
+        """The location split must be VISIBLE and must agree with the stored column.
+
+        docs/design/255 separates what a tier claims (shape) from whether a location
+        check ran (`location_checked`). A stored-but-unrendered column would put the
+        honest number back where it was before the split: inferable, not visible.
+        """
+        generated = ledger.outputs(self.cells, self.evidence)
+        model = [
+            row for row in self.cells
+            if row["axis"] == "model_surface"
+        ]
+        claiming = [
+            row for row in model
+            if row["evidence_tier"] in {
+                "supported", "inference_ready_with_caveats", "interval_feasible"
+            }
+        ]
+        from collections import Counter
+        counts = Counter(row["location_checked"] for row in claiming)
+        line = ledger.location_summary_line(model)
+        self.assertIn(f"{len(claiming)} interval-claiming cells", line)
+        self.assertIn(f"**{counts.get('passed', 0)} passed**", line)
+        self.assertIn(f"**{counts.get('unchecked', 0)} unchecked**", line)
+        # rendered on both prose surfaces and as a census column
+        summary = generated[ledger.READER_SUMMARY].decode("utf-8")
+        self.assertIn("Location checks among", summary)
+        surface_html = next(
+            content.decode("utf-8") for path, content in generated.items()
+            if str(path).endswith("capability-surface.html")
+        )
+        self.assertIn("Location checked", surface_html)
+        self.assertIn("Location checks among", surface_html)
+        # and every cell carries a legal value (the validator's contract)
+        for row in self.cells:
+            self.assertIn(row["location_checked"], ledger.LOCATION_CHECKED, row["cell_id"])
+
     def test_reader_summary_is_packaged_and_free_of_internal_cell_jargon(self):
         generated = ledger.outputs(self.cells, self.evidence)
         rendered = generated[ledger.READER_SUMMARY].decode("utf-8")

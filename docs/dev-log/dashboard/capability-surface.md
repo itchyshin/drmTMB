@@ -12,6 +12,7 @@ The model surface, staged-association surface, and missing-response execution ax
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
 - Evidence: **0 supported**, **28 inference-ready**, **180 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **56 recovery-grade**.
+- Location checks among the 208 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **133 passed**, **75 unchecked**, **0 failed**, **0 not applicable**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Staged association capability
