@@ -562,12 +562,26 @@ number of retained levels of the grouping factor (after complete-case pruning, m
 250's treatment of $n_{\mathrm{eff}}$). Then
 
 $$
-\delta_g \;\le\; \frac{c_g}{\sqrt{2g}} \;=\; \frac{\sqrt{2q_v}}{g} \;\longrightarrow\; 0,
-\qquad
-c_g = O(g^{-1/2}) = o(\sqrt g)\ \checkmark,
-\qquad
-c_g = o(g) \subseteq o(n)\ \checkmark .
+\delta_g \;=\; \frac{c_g\,|Q'(r_0)|}{\sqrt{I_g}}
+\;\le\; \frac{c_g\,\max(\kappa_-,\kappa_+)}{\sqrt{I_g}}
+\;=\; \frac{c_g\,\max(\kappa_-,\kappa_+)}{\sqrt{2g\,\Phi(\kappa_0,m)}} .
 $$
+
+At a **fixed interior truth** with $\Phi(\kappa_0,m)$ bounded away from zero, this is
+$O(g^{-1/2})$ and $\to0$, and the softest (most optimistic) numerical scale is the large-$\kappa$
+limit
+
+$$
+\delta_g \;\ge\; \frac{c_g}{\sqrt{2g}} \;=\; \frac{\sqrt{2q_v}}{g}
+\qquad\text{(approached as }\Phi\to1\text{; not a uniform upper bound)}.
+$$
+
+**Do not read $c_g/\sqrt{2g}$ as a uniform ceiling on displacement.** Near the boundary
+$\Phi\to0$ and $\delta_g$ can be arbitrarily large (§5.2 reading 2); that unboundedness in $a$ is
+exactly why the penalty works there. Softness for asymptotic normality is an *interior*
+statement: $c_g = O(g^{-1/2}) = o(\sqrt g)$ ✓ and $c_g = o(g)\subseteq o(n)$ ✓ whenever
+$\Phi(\kappa_0,m)$ is fixed away from zero. The table below uses the actual $I_g$, not the
+$\Phi\to1$ limit.
 
 **Graceful degradation, as the brief requires.**
 
@@ -1064,12 +1078,19 @@ derived, not assumed.
 This derivation is not accepted until both boxes below are checked by a reviewer who did not write
 it.
 
-- [ ] **Noether independent re-check.** Theorem 1's proof (including the Cauchy step and the (E2)
+- [x] **Noether independent re-check.** Theorem 1's proof (including the Cauchy step and the (E2)
       argument), the closed-form $I_g$ and Proposition 2 re-derived independently, the $c_g$ rate
       argument, the §8 condition-by-condition verification, and Condition COMP.
-- [ ] **Fisher inference re-check.** Whether §13's predictions are genuinely falsifiable as stated,
+      **Accepted 2026-08-16 by Cursor (adversarial re-read; author was Claude).** Receipt:
+      [`…/2026-08-16-mspl-s1-signoff-recheck.md`](../dev-log/research/2026-08-16-mspl-s1-signoff-recheck.md).
+      Required fix applied in §6.3 before acceptance: $c_g/\sqrt{2g}$ is **not** a uniform upper
+      bound on $\delta_g$ (it is the large-$\Phi$ scale); near-boundary $\delta_g$ can be large.
+- [x] **Fisher inference re-check.** Whether §13's predictions are genuinely falsifiable as stated,
       whether K1/K2 are the right killers, whether P3's size class is defensible, and whether the
       ML-defined-boundary scoring rule (P4) is correctly binding on the campaign design.
+      **Accepted 2026-08-16 by Cursor** (same receipt). Carry into S3 prereg: lock P3's
+      $\widehat{\mathrm{se}}$ as the Chung quadratic-approx scale (not a singular Hessian SE), and
+      treat P5's "beat REML 0.828" as a possible self-predicted FAIL given §6.3's softness budget.
 
 **S2 (implementation) must not start before both boxes are checked.** A penalty written before the
 derivation is accepted would repeat, with a more plausible-looking lever, exactly the sequence the
