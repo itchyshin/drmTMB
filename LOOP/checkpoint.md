@@ -1,24 +1,22 @@
 # Checkpoint — OVERWRITTEN every arc (a pointer to truth, not a log)
 
-GOAL: overnight run to 5 AM (owner-delegated, 2026-08-15 ~19:45). STATE: **arcs A1, A5, A6 DONE;
-A2 (44-cell archaeology, 4 agents) + A3 (truth recovery, 1 agent) + A4 (staleness sweep, 1 agent)
-IN FLIGHT.** Branch `claude/lane-overnight-0815` off `a5bd62d6b`.
+GOAL: overnight run (owner-delegated to 05:00). STATE: **ALL SEVEN ARCS COMPLETE. PR #1050 OPEN,
+awaiting CI. Nothing running.**
 
-- **DONE (verified):**
-  - A1 `location_checked` rendered: census column + derived sentence on reader summary, surface md,
-    surface html; pinned by `test_location_checked_is_rendered_and_derived`. Commit `36ec0bb8d`.
-  - A6 `binding_source_sha256`: validator-enforced semantics documented
-    (`interval-campaign-bindings/README.md`); my earlier "not a provenance guarantee" claim
-    corrected in the recovery doc. Frozen files untouched. Commit `64f579b2b`.
-  - A5 the 3 vacuous-shape sites: ALL REAL (producers read; one flag was itself context-blind).
-    Zero fixes needed → `scratchpad/overnight-a5-vacuous-sites.md`.
-- **IN FLIGHT:** 6 agents (budget cap): overnight-import-batch1..4, truth-recovery-31,
-  staleness-sweep → all write to scratchpad/.
-- **NEXT:** fold agent results — wire any (A)-verdict campaigns; location-check any recovered truths
-  with the gate rule (magnitude-only label); staleness contradictions get supersession notes.
-  Then A7 (mc-0596 diagnostics, light single fits) if time. Close-out + PR before 05:00.
-- **OVERNIGHT RULES:** Mac CPU minimal (agents cloud-side; local = grep/git/python; R single runs
-  only, check for orphan workers after). Push + PR yes; MERGE only ledger/docs-grade on full green
-  CI; else leave open. mc-0596 and the 44-cell claims DECISION stay Shinichi's — facts only.
-- **RESUME:** read this file; agent outputs land in scratchpad/overnight-*.md; full 11-gate set
-  before any push (not a subset).
+- **DONE (verified, all 11 gates green before push):**
+  - A3 31/31 truth recovered + location-checked, zero compute. 31/31 pass, 100% bracketing.
+    Claiming cells: 176 passed / 44 unchecked / 6 not_applicable.
+  - A2 44-cell import audited: 19 shape-justified / 22 no-interval / 3 unwired campaign
+    (coverage 0.81-0.86 — a WARNING). Facts only; no tier changed.
+  - A1 location_checked rendered (census column + derived line on 3 surfaces, test-pinned).
+  - A4 staleness sweep: 8 siblings found, supersession note now covers 9; class does not recur.
+  - A5 3 vacuous-shape sites all REAL (zero fixes). A6 binding_source_sha256 semantics documented
+    (my earlier claim was wrong). A7 mc-0596 = fixture difference, not contradiction.
+  - Repaired 2 citation errors of my own from PR #1047.
+  - Wrote, proved, then REVERTED a zero_one_beta fix: the test is the pinned source blob for
+    mc-0568's receipt (C14/C17 guard). Coupling documented.
+- **IN FLIGHT:** PR #1050 CI only (GitHub-side). No local processes, no agents, no polls.
+- **NEXT (owner decisions, none taken):** the 44-cell disposition · the student campaign review ·
+  which of the 22 are blob-pinned · mc-0596 (D-87) · merge #1050 when green.
+- **RESUME:** read this file, then `docs/dev-log/after-task/2026-08-16-overnight-location-and-import-audit.md`.
+  Branch `claude/lane-overnight-0815` pushed at bf2e60552; PR #1050.
