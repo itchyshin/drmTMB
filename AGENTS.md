@@ -3,7 +3,26 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-15, → CLAUDE; the CRAN lane's holds are DECIDABLE and the
+> **▶ Latest — start here (2026-08-16, → CURSOR; the authoring Claude session CLOSED — platform
+> move, TWO live lanes, read the SPLIT, not one doc).**
+> Shinichi moved fully to Cursor. The Claude session's automation (win-builder polling + the
+> pre-authorised platform-clean cascade) **died with the session — the cascade is now manual**,
+> written out step-by-step in the release handover. Both lanes' current handovers are on the
+> board's **Active-Lane-Split**,
+> [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md):
+> **(1) the 0.7.0 release lane** (candidate `302ac2579`/`0d150ef3…` frozen + proven
+> `tarball-clean`; full self-serve matrix green/adjudicated; ONLY win-builder collection remains —
+> the results sit in **`itchyshin@gmail.com`**, which the authoring session could not read;
+> `platform-clean` advance pre-authorised conditional on evidence + gate; **submission withheld**;
+> quiesce still standing) →
+> [`docs/dev-log/handover/2026-08-16-cursor-handover-070-release.md`](docs/dev-log/handover/2026-08-16-cursor-handover-070-release.md);
+> **(2) the MSPL boundary lane** (S0 defects measured — and MSPL **beats ML on RMSE at every
+> tested cell**; S1 derivation complete: penalty form PROVED forced, `c_g = 2√(q_v/g)` derived,
+> exact equivariance proved; **S2 gated on design 256's two unchecked sign-off boxes**) →
+> [`docs/dev-log/handover/2026-08-16-cursor-handover-mspl-boundary.md`](docs/dev-log/handover/2026-08-16-cursor-handover-mspl-boundary.md).
+> D-93 and D-117 are DISCHARGED (2026-08-15, recorded in repo + brain).
+>
+> **▶ Prior (2026-08-15, → CLAUDE; the CRAN lane's holds are DECIDABLE and the
 > REML arm is MEASURED; rung UNCHANGED at `tarball-clean`).**
 > Lane `claude/07-cran-ladder` @ `966039f17` (PR **#1039**, open; 10 commits, all docs +
 > `DESCRIPTION`). **Everything that now gates 0.7.0 is an OWNER decision:** the **D-93 decision

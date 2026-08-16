@@ -5,6 +5,23 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **⚡ 2026-08-16 — PLATFORM MOVE: the authoring Claude session CLOSED; Shinichi is moving fully
+  to CURSOR. Its automation loop (win-builder polling + the platform-clean cascade) died with it —
+  the cascade is now a MANUAL checklist.** Two live lanes, each with its own Cursor handover;
+  neither pointer covers the other:
+  - **0.7.0 release lane** → [`handover/2026-08-16-cursor-handover-070-release.md`](handover/2026-08-16-cursor-handover-070-release.md)
+    — matrix green except win-builder collection; results sit in `itchyshin@gmail.com` (the
+    authoring session polled the wrong mailbox — collection is Shinichi's step); the
+    `platform-clean` advance is PRE-AUTHORISED conditional on evidence + gate; **submission
+    remains withheld**. The QUIESCE below still stands until `external_logs` lands (note: PR
+    #1050 merged 10 shipped files during it — breach recorded; adjudication is Shinichi's).
+  - **MSPL boundary lane** → [`handover/2026-08-16-cursor-handover-mspl-boundary.md`](handover/2026-08-16-cursor-handover-mspl-boundary.md)
+    — S0+S1 complete on `claude/mspl-boundary-s0-s1`; **S2 gated** on design 256's two unchecked
+    sign-off boxes (independent Noether + Fisher re-checks).
+  - **THIRD lane, not this session's:** the interval-truth programme also handed to Cursor today —
+    `origin/claude/cursor-handover-0816` carries
+    `handover/2026-08-16-cursor-handover.md` (unmerged at this writing). That lane's pointer is its
+    own; listed here so no split reader orphans it.
 - **⚠ 2026-08-15 (evening) — QUIESCE: the 0.7.0 re-freeze is IN PROGRESS (Shinichi: "merge all
   three PRs and start the re-freeze", after lifting BOTH D-93 and D-117 the same evening).**
   PRs #1039/#1041/#1042 are merged; the cut point is the `claude/07-freeze-3` merge on `main`
