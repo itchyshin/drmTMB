@@ -10,11 +10,18 @@ census; capability counts belong in the ledger and Mission Control.
   the cascade is now a MANUAL checklist.** Two live lanes, each with its own Cursor handover;
   neither pointer covers the other:
   - **0.7.0 release lane** → [`handover/2026-08-16-cursor-handover-070-release.md`](handover/2026-08-16-cursor-handover-070-release.md)
-    — matrix green except win-builder collection; results sit in `itchyshin@gmail.com` (the
-    authoring session polled the wrong mailbox — collection is Shinichi's step); the
-    `platform-clean` advance is PRE-AUTHORISED conditional on evidence + gate; **submission
-    remains withheld**. The QUIESCE below still stands until `external_logs` lands (note: PR
-    #1050 merged 10 shipped files during it — breach recorded; adjudication is Shinichi's).
+    — **Cursor owns the win-builder → platform-clean unlock (2026-08-16).** R-devel filed and
+    clean (`Status: 1 NOTE`, `winbuilder-devel.txt` + `00check.log`). R-release and
+    R-oldrelease emails are **absent** from `itchyshin@gmail.com` (incl. Trash; positive
+    control OK); both lanes **re-uploaded** at 14:47Z against immutable bytes
+    (`winbuilder-reupload-2026-08-16.md`) — awaiting Ligges mail. `status_claim` stays
+    `tarball-clean`; `platform-clean` advance remains PRE-AUTHORISED only when R-release +
+    R-devel are filed clean and the gate passes; **submission remains withheld**. The QUIESCE
+    below still stands until `external_logs` lands. Peer facts (not this lane's work): held
+    test-guard `4699cf934` on `claude/eloquent-driscoll-521fa1` belongs to the **next**
+    candidate; PR **#1050** merged shipped files during the quiesce (breach recorded;
+    adjudication is Shinichi's). `DESCRIPTION` still reads `Version: 0.7.0` while `main` has
+    drifted from `302ac2579` — **re-bump to `0.7.0.9000` awaits Shinichi's word** (do not bump).
   - **MSPL boundary lane** → [`handover/2026-08-16-cursor-handover-mspl-boundary.md`](handover/2026-08-16-cursor-handover-mspl-boundary.md)
     — S0+S1 complete on `claude/mspl-boundary-s0-s1`; **S2 gated** on design 256's two unchecked
     sign-off boxes (independent Noether + Fisher re-checks).
@@ -22,6 +29,12 @@ census; capability counts belong in the ledger and Mission Control.
     `origin/claude/cursor-handover-0816` carries
     `handover/2026-08-16-cursor-handover.md` (unmerged at this writing). That lane's pointer is its
     own; listed here so no split reader orphans it.
+- **2026-08-16 — the `se = TRUE` PSOCK worker leak is NOT drmTMB's; stop chasing it.** (peer lane
+  `claude/eloquent-driscoll-521fa1` @ `4699cf934`, held out of `main` under the quiesce — adds a
+  `tests/` file.) The 2026-08-15 report did not reproduce: drmTMB has no cluster constructor in
+  `R/`; the captured worker traced to a concurrent `pigauto` lane. Receipts:
+  [`after-task/2026-08-16-se-path-worker-leak-nonrepro.md`](after-task/2026-08-16-se-path-worker-leak-nonrepro.md).
+  Merge after the platform matrix completes.
 - **⚠ 2026-08-15 (evening) — QUIESCE: the 0.7.0 re-freeze is IN PROGRESS (Shinichi: "merge all
   three PRs and start the re-freeze", after lifting BOTH D-93 and D-117 the same evening).**
   PRs #1039/#1041/#1042 are merged; the cut point is the `claude/07-freeze-3` merge on `main`
