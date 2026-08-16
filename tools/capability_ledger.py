@@ -738,7 +738,7 @@ CELL_FIELDS = [
     "capability_status", "work_status", "evidence_tier", "test_gate",
     "tranche_id", "owner", "blocking_reviewers", "primary_evidence_id",
     "claim_boundary", "next_gate", "issue_url", "pr_url", "updated_commit",
-    "updated_date", "legacy_evidence_source", "notes",
+    "updated_date", "legacy_evidence_source", "notes", "location_checked",
 ]
 EVIDENCE_FIELDS = [
     "evidence_id", "cell_id", "evidence_class", "path_or_url", "commit_sha",
@@ -792,6 +792,27 @@ EVIDENCE_CLASSES = {
     "legacy_model_evidence", "model_recovery", "rejection_test", "recovery_test",
     "g2_contract_test", "contract_test", "coverage_study", "admission_test",
     "estimator_diagnostic", "external_comparator",
+}
+# `interval_feasible` claims SHAPE, not LOCATION (decision 2026-08-15,
+# docs/design/255-interval-feasible-tier-contract.md). A cell at that tier asserts an
+# interval EXISTS and is well formed -- finite, ordered, unclamped, convergence 0,
+# pdHess TRUE -- and asserts nothing about whether it contains the true value. Whether a
+# location check was run, and its outcome, is recorded ORTHOGONALLY in `location_checked`,
+# the same separation the project already made for comparator evidence (docs/design/242).
+# Before this decision the token carried four unreconciled cohort standards, two of them
+# approved four days apart in direct contradiction.
+LOCATION_CHECKED = {
+    # a location check was run and the interval contained the true value, or a coverage
+    # study established bracketing by construction
+    "passed",
+    # a location check was run and the interval did not contain the declared true value
+    "failed",
+    # no interval/profile mechanism applies (e.g. the two_stage_Godambe association axis),
+    # or the cell makes no interval claim
+    "not_applicable",
+    # an interval claim exists and no location check has been run. NOT a synonym for
+    # "no evidence" -- it is the honest absence of THIS check.
+    "unchecked",
 }
 EVIDENCE_TIERS = {
     "supported", "inference_ready_with_caveats", "interval_feasible",
@@ -923,6 +944,7 @@ def schema_value() -> dict[str, object]:
             "test_gate": sorted(TEST_GATES),
             "evidence_tier": sorted(EVIDENCE_TIERS),
             "evidence_class": sorted(EVIDENCE_CLASSES),
+            "location_checked": sorted(LOCATION_CHECKED),
         },
         "expected_counts": {
             "model_surface": MODEL_SURFACE_COUNT,
@@ -2235,6 +2257,11 @@ def validate(
             errors.append(f"{row['cell_id']}: invalid work_status")
         if row["test_gate"] not in TEST_GATES:
             errors.append(f"{row['cell_id']}: invalid test_gate")
+        if row.get("location_checked", "") not in LOCATION_CHECKED:
+            errors.append(
+                f"{row['cell_id']}: location_checked "
+                f"{row.get('location_checked', '')!r} is not a known value"
+            )
         if row["evidence_tier"] not in EVIDENCE_TIERS:
             errors.append(f"{row['cell_id']}: invalid evidence_tier")
         if not row["claim_boundary"] or not row["next_gate"]:
