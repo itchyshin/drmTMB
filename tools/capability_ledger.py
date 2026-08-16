@@ -378,7 +378,10 @@ FROZEN_CENSUS_COUNT = 676
 # frozen <=676 window, so it does not move this constant. The gap the note above
 # describes -- "reconcile() never reads a true value" -- is now closed
 # mechanically; that is what found these two.
-FROZEN_CENSUS_POINT_FIT_RECOVERY = 55
+# 55 -> 76 on 2026-08-16: owner-decided demotion of the 21 import cells whose cited
+# evidence never computes an interval (docs/dev-log/2026-08-15-import-44-shape-audit.md;
+# transitions tr-mc-*-import-shape-audit). The guard fired and was updated deliberately.
+FROZEN_CENSUS_POINT_FIT_RECOVERY = 76
 ARC1_GAUSSIAN_FIXED_SOURCE_SHA = "c8e04258d9d550384b037b1e2a91734c22aaaab5"
 ARC1_GAUSSIAN_FIXED_TARGETS = {
     "mc-0260": "mc-0260::fixef:mu:x",
