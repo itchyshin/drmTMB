@@ -1,5 +1,25 @@
 # Check Log
 
+## 2026-08-16 — win-builder collection: R-devel clean; R-release/oldrelease ABSENT → re-upload; STOP
+
+Lane: Cursor, `cursor/070-winbuilder-collect` (worktree `.worktrees/cran-07`). Candidate
+`302ac2579` / SHA-256 `0d150ef3…b95e075`.
+
+| Check | Result |
+| --- | --- |
+| Gmail `in:anywhere from:ligges drmTMB_0.7.0` (incl. Trash) | 1 hit: R-devel only |
+| Positive control (Ligges newer_than:14d) | devel + five 0.6.0 threads — mailbox OK |
+| R-devel Status | **1 NOTE** (New submission + spelling); 0 E / 0 W; tests [13m] OK |
+| R-release / R-oldrelease emails | **ABSENT** |
+| Pre-upload hash | matches freeze |
+| Re-upload R-release / R-oldrelease | FTP OK 14:47:41Z / 14:47:45Z; both listed in queue |
+| Gate at `tarball-clean` | READY FOR CLAIMED RUNG |
+| Gate probe at `platform-clean` | NOT READY (`external_logs` missing) |
+| Quiesce | **STILL STANDING** (matrix incomplete) |
+| Submission / Gate 7 | **not run** |
+
+Filed under `candidate-302ac2579/`: `winbuilder-devel.txt` + `00check.log`, ABSENT stubs for
+release/oldrelease, `winbuilder-reupload-2026-08-16.md`. Board updated; QUIESCE not lifted.
 
 ## 2026-08-10 — Emmy condition 1: `link_code` becomes a required argument
 

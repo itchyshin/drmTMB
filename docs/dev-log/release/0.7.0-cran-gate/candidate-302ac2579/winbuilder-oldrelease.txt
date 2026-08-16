@@ -1,0 +1,31 @@
+win-builder R-oldrelease result — candidate 302ac2579 / drmTMB_0.7.0.tar.gz
+===========================================================================
+STATUS: ABSENT as of 2026-08-16T14:48Z (Cursor collection pass)
+
+Gmail search (itchyshin@gmail.com, include Trash)
+------------------------------------------------
+Query: `in:anywhere from:ligges drmTMB_0.7.0`
+Positive control hit the R-devel 0.7.0 email and older 0.6.0 threads only.
+**No R-oldrelease email for drmTMB_0.7.0** in inbox / archive / Trash.
+
+Original upload (receipt)
+-------------------------
+R-oldrelease FTP upload was recorded OK at 2026-08-16T00:49:55Z against exact
+bytes SHA-256 0d150ef38b8d3b8b2d3dca084a62f8242832048b01e60caa4b08c5388b95e075
+(see winbuilder-upload-receipt.md). No result email arrived for that lane.
+
+Re-upload (this session)
+------------------------
+Hash re-verified immediately before upload:
+  0d150ef38b8d3b8b2d3dca084a62f8242832048b01e60caa4b08c5388b95e075
+FTP: curl -T … ftp://win-builder.r-project.org/R-oldrelease/
+Exit 0 at **2026-08-16T14:47:45Z**
+Listing after upload showed `drmTMB_0.7.0.tar.gz` in the R-oldrelease queue.
+Full receipt: winbuilder-reupload-2026-08-16.md
+
+Gate note
+---------
+platform-clean advance requires R-release + R-devel clean. R-oldrelease is
+supporting evidence for the matrix narrative but is not the mechanical
+blocker named in the authorisation note. Still file the result when it
+arrives; do not treat this stub as a pass.

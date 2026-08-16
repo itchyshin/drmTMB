@@ -1,0 +1,36 @@
+win-builder R-release result — candidate 302ac2579 / drmTMB_0.7.0.tar.gz
+=======================================================================
+STATUS: ABSENT as of 2026-08-16T14:48Z (Cursor collection pass)
+
+Gmail search (itchyshin@gmail.com, include Trash)
+------------------------------------------------
+Query: `in:anywhere from:ligges drmTMB_0.7.0`
+Positive control: same mailbox returns the R-devel result (message id
+1a0080c713d427f0, Status 1 NOTE, filed as winbuilder-devel.txt) plus five
+historical drmTMB_0.6.0 win-builder threads. **Zero R-release / R-oldrelease
+emails exist for drmTMB_0.7.0** — not inbox, not archive, not Trash.
+
+Original upload (receipt)
+-------------------------
+R-release FTP upload was recorded OK at 2026-08-16T00:06:40Z against exact
+bytes SHA-256 0d150ef38b8d3b8b2d3dca084a62f8242832048b01e60caa4b08c5388b95e075
+(see winbuilder-upload-receipt.md). No result email arrived for that lane
+(weekend drop or silent queue loss — undistinguishable from here).
+
+Re-upload (this session)
+------------------------
+Hash re-verified immediately before upload:
+  0d150ef38b8d3b8b2d3dca084a62f8242832048b01e60caa4b08c5388b95e075
+FTP: curl -T … ftp://win-builder.r-project.org/R-release/
+Exit 0 at **2026-08-16T14:47:41Z**
+Listing after upload showed `drmTMB_0.7.0.tar.gz` in the R-release queue.
+Full receipt: winbuilder-reupload-2026-08-16.md
+
+Gate consequence
+----------------
+platform-clean stays BLOCKED: R-release evidence is required alongside the
+already-clean R-devel filing. Do not invent a Status line. Do not advance
+status_claim. Do not run Gate 7. Submission remains forbidden.
+
+Next: when the Ligges email arrives, replace this ABSENT stub with the
+verbatim body + download 00check.log while the ~72h URL is live.
