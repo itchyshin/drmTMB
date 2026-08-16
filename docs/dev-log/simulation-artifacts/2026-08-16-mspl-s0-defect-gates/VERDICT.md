@@ -42,6 +42,31 @@ downward bias — it **overshoots through zero** (−30.5% → +1.5%), which is 
 pull-toward-anchor rather than bias correction; a correction calibrated to the estimator's bias
 would not change sign.
 
+## B, second pass — RMSE, which reverses the reading of two cells
+
+Bias alone flattered ML. Scoring the same 1,500 fits on RMSE and on boundary collapse:
+
+| true sd | RMSE ML | RMSE MSPL | ML fits < 0.01 | MSPL fits < 0.01 |
+| --- | --- | --- | --- | --- |
+| 0.25 | 0.2024 | **0.1441** (−29%) | **42.0%** | **0%** |
+| 0.50 | 0.2666 | **0.2188** (−18%) | 13.0% | 0% |
+| 1.00 | 0.3269 | **0.3149** (−4%) | 0.7% | 0% |
+| 2.00 | 0.6339 | **0.6175** (−3%) | 0% | 0% |
+| 4.00 | 2.0245 | **1.3326** (−34%) | 0% | 0% |
+
+**MSPL wins RMSE at every cell**, and the two ends invert the bias-only story. At `sd = 4`, ML is
+nearly unbiased in the mean (4.05) but wildly dispersed (SD 2.03); MSPL trades −6.4% bias for a
+35% variance reduction and wins RMSE by a third. The bias-only table above therefore *understates*
+the estimator: on the standard point-estimation metric it dominates over the whole ladder.
+
+The boundary column reproduces Chung et al. 2013 in this package: **42% of ML fits collapse to
+essentially zero at `sd = 0.25`; MSPL, none.** Chung reported 45–47% at comparable small-J designs.
+
+**This does not transfer to intervals.** Chung's own α=2-vs-α=3 split (best-for-bias ≠
+best-for-coverage) is the standing warning, and F4 (flag deletion ≠ miss repair) is untouched by
+any point-estimation metric. RMSE dominance raises the value of fixing the parameterisation; it
+does not pre-empt S3.
+
 ## Prediction outcome
 
 Both pre-registered predictions **held**; neither falsifier fired; the harness controls passed
