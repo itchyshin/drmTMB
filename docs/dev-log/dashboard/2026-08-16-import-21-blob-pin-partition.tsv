@@ -1,0 +1,22 @@
+cell_id	pin_class	cited_test_files	blocking_pin	cheap_assertion_fix
+mc-0029	unpinned	tests/testthat/test-beta-binomial.R;tests/testthat/test-phase18-bounded-response-mu-random-intercept.R		possible_not_authorised
+mc-0031	unpinned	tests/testthat/test-nongaussian-mu-random-slopes.R		possible_not_authorised
+mc-0177	unpinned	tests/testthat/test-biv-gaussian.R;tests/testthat/test-summary.R		possible_not_authorised
+mc-0178	unpinned	tests/testthat/test-biv-gaussian.R;tests/testthat/test-summary.R		possible_not_authorised
+mc-0179	unpinned	tests/testthat/test-biv-gaussian.R;tests/testthat/test-summary.R		possible_not_authorised
+mc-0180	unpinned	tests/testthat/test-biv-gaussian.R;tests/testthat/test-summary.R		possible_not_authorised
+mc-0181	unpinned	tests/testthat/test-biv-gaussian.R;tests/testthat/test-summary.R		possible_not_authorised
+mc-0210	unpinned	tests/testthat/test-reml-bivariate.R		possible_not_authorised
+mc-0211	unpinned	tests/testthat/test-reml-bivariate.R		possible_not_authorised
+mc-0236	unpinned	tests/testthat/test-comparators.R;tests/testthat/test-emmeans-methods.R;tests/testthat/test-gamma-location-scale.R		possible_not_authorised
+mc-0238	unpinned	tests/testthat/test-gamma-location-scale.R		possible_not_authorised
+mc-0240	unpinned	tests/testthat/test-gamma-location-scale.R		possible_not_authorised
+mc-0244	unpinned	tests/testthat/test-nongaussian-mu-random-slopes.R		possible_not_authorised
+mc-0378	unpinned	tests/testthat/test-lognormal-location-scale.R;tests/testthat/test-phase18-positive-continuous-mu-random-intercept.R		possible_not_authorised
+mc-0487	unpinned	tests/testthat/test-phase18-student-mu-random-intercept.R;tests/testthat/test-student-location-scale.R		possible_not_authorised
+mc-0488	unpinned	tests/testthat/test-nongaussian-mu-random-slopes.R		possible_not_authorised
+mc-0510	unpinned	tests/testthat/test-phase18-truncated-nbinom2-mu-random-intercept.R;tests/testthat/test-truncated-nbinom2-location-scale.R		possible_not_authorised
+mc-0559	pinned	tests/testthat/test-zero-one-beta.R	C17_C14_SOURCE_FILES git_blob:tests/testthat/test-zero-one-beta.R (mc-0568/0569/0576)	blocked
+mc-0560	pinned	tests/testthat/test-zero-one-beta.R	C17_C14_SOURCE_FILES git_blob:tests/testthat/test-zero-one-beta.R (mc-0568/0569/0576)	blocked
+mc-0561	pinned	tests/testthat/test-zero-one-beta.R	C17_C14_SOURCE_FILES git_blob:tests/testthat/test-zero-one-beta.R (mc-0568/0569/0576)	blocked
+mc-0562	pinned	tests/testthat/test-zero-one-beta.R	C17_C14_SOURCE_FILES git_blob:tests/testthat/test-zero-one-beta.R (mc-0568/0569/0576)	blocked

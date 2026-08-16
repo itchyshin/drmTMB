@@ -1,6 +1,6 @@
 # drmTMB capability surface
 
-_Generated 2026-08-11 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
+_Generated 2026-08-16 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
 
 The model surface, staged-association surface, and missing-response execution axis answer different questions. Model cells describe direct drmTMB fits; association cells describe post-fit associate_pairs() estimators; missing-response cells describe response handling. Evidence never transfers automatically between axes.
 
@@ -12,7 +12,7 @@ The model surface, staged-association surface, and missing-response execution ax
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
 - Evidence: **0 supported**, **28 inference-ready**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **77 recovery-grade**.
-- Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **164 passed**, **23 unchecked**, **0 failed**, **0 not applicable**.
+- Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **164 passed**, **20 unchecked**, **3 failed**, **0 not applicable**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
 ## Staged association capability
