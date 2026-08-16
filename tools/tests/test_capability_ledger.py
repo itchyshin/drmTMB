@@ -680,9 +680,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         # ten-clause contract; nine siblings withheld. All five sit inside the
         # frozen window, so FROZEN_CENSUS_POINT_FIT_RECOVERY moves 59 -> 54 with
         # this total. Recounted directly from cells.tsv.
+        # 56 -> 77 on 2026-08-16: the owner-decided demotion of the 21 import cells
+        # whose cited evidence never computes an interval (import shape audit;
+        # transitions tr-mc-*-import-shape-audit). All 21 are model-surface.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            56,
+            77,
         )
 
         by_id = {row["cell_id"]: row for row in model}

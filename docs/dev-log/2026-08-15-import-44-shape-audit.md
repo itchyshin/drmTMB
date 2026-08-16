@@ -20,8 +20,8 @@ reading the cited tests.
 
 | verdict | cells | meaning |
 | --- | ---: | --- |
-| **B — shape-justified** | **19** | the cited test computes an interval and asserts finite, ordered endpoints. **Correctly tiered.** |
-| **C — not even shape** | **22** | no campaign, and the cited evidence never computes an interval at all. **The tier is unearned under its own definition.** |
+| **B — shape-justified** | **19** → **20** (table corrected 2026-08-16; the prose list was right, the tally was not) | the cited test computes an interval and asserts finite, ordered endpoints. **Correctly tiered.** |
+| **C — not even shape** | **22** → **21** (corrected 2026-08-16; DEMOTED per owner decision, commit in transitions.tsv) | no campaign, and the cited evidence never computes an interval at all. **The tier is unearned under its own definition.** |
 | **A — unwired campaign** | **3** | a real coverage campaign exists but is not wired — see the warning below |
 
 ### The 22 (C) — what their evidence actually is
