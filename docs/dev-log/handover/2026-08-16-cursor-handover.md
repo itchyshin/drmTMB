@@ -94,6 +94,33 @@ any claim) · `mc-0300`/`mc-0312` truths rest on a frozen contract value alone.
 - Never stage: other lanes' untracked files in the shared checkout; anything under `scratchpad/`
   unless deliberately.
 
+## ADDENDUM (2026-08-16, after this doc was merged) — the 44-cell decision is MADE
+
+Shinichi decided the reserved item: **demote the import cells whose cited evidence never computes an
+interval.** Executed on branch `claude/demote-22-import` → **PR #1054** (open at the time of writing;
+merge on green).
+
+- **21 cells demoted** `interval_feasible` → `point_fit_recovery`, `location_checked` →
+  `not_applicable`, with 21 `transitions.tsv` rows and a `next_gate` on each saying how to re-earn
+  the tier: `mc-0029 mc-0031 mc-0177 mc-0178 mc-0179 mc-0180 mc-0181 mc-0210 mc-0211 mc-0236 mc-0238
+  mc-0240 mc-0244 mc-0378 mc-0487 mc-0488 mc-0510 mc-0559 mc-0560 mc-0561 mc-0562`.
+- **The count is 21, not the 22 this doc's audit table claimed.** The table mis-tallied; the four
+  batch reports and the doc's own prose list both give 20 B / 21 C. Corrected in the audit doc.
+- Two frozen count guards were updated deliberately (`FROZEN_CENSUS_POINT_FIT_RECOVERY` 55→76; the
+  model-surface test pin 56→77), each with the reason recorded beside it.
+
+**Ledger after #1054 merges:** 205 claiming = **176 passed · 23 unchecked · 6 not_applicable**. The
+23 are the **20 shape-justified** (correctly tiered, honestly unchecked for location) plus the **3
+student cells** awaiting their campaign review.
+
+**What this changes for you:** the "44 unchecked" figure above is superseded. **Next Immediate Step 5
+("wait for Shinichi on the 44-cell disposition") is now DONE** — do not re-open it. Steps 3 and 4
+stand unchanged, and step 3 (the blob-pinning partition) is now *only* relevant to re-earning the
+tier for the demoted 21, not to deciding their disposition.
+
+**If PR #1054 is still open when you start:** verify its CI is green, then merge it, or ask Shinichi.
+Do not re-derive the demotion set — it is evidence-derived and recorded in `transitions.tsv`.
+
 ## How to resume
 
 Paste-ready prompt at the end of this file. Read `AGENTS.md` first; it is the repo's source of truth.
