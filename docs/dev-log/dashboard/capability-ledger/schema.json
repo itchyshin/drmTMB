@@ -36,7 +36,8 @@
     "updated_commit",
     "updated_date",
     "legacy_evidence_source",
-    "notes"
+    "notes",
+    "location_checked"
   ],
   "evidence_fields": [
     "evidence_id",
@@ -110,6 +111,12 @@
       "model_recovery",
       "recovery_test",
       "rejection_test"
+    ],
+    "location_checked": [
+      "failed",
+      "not_applicable",
+      "passed",
+      "unchecked"
     ]
   },
   "expected_counts": {

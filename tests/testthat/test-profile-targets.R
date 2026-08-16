@@ -1431,6 +1431,9 @@ test_that("confint bootstrap refits bivariate phylogenetic q2 targets", {
   expect_equal(ci$bootstrap.failed, rep(0L, 4L))
   expect_equal(unique(ci$bootstrap.parallel), "none")
   expect_equal(unique(ci$bootstrap.workers), 1L)
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < ci$upper))
 })
 
 test_that("interval inventory covers Student-t fixed-effect shape targets", {

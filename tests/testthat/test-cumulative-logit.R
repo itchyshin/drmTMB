@@ -73,6 +73,7 @@ test_that("drmTMB fits fixed-effect cumulative-logit ordinal models", {
   expect_equal(ci$conf.status, "wald")
   expect_true(is.finite(ci$lower))
   expect_true(is.finite(ci$upper))
+  expect_true(ci$lower < ci$upper)
 })
 
 test_that("cumulative-logit likelihood matches independent category probabilities", {

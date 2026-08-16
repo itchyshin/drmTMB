@@ -94001,3 +94001,41 @@ mesh lane, states `coords = coords` in its own boundary.
 
 Checks: `capability_ledger.py --check` OK (31 generated outputs) · `test_capability_ledger.py` 76/76 ·
 `test_profile_truth_gate.py` 24/24. No tier changed, so no `transitions.tsv` rows were added.
+
+## 2026-08-15 — evidence re-wire, the tier contract, and the assertion gap (`claude/lane-irc-legacy-evidence`)
+
+Follow-up to the interval-claim truth audit merged earlier today (PR #1040).
+
+**The 16 interval-permission cells are all legitimate.** Every cell at
+`inference_ready_with_caveats` resting on a runless `legacy_model_evidence` stub turned out to have a
+real, reviewed, promoted campaign behind it — the 2026-07-11 schema migration dropped the link. All
+16 re-wired to `coverage_study` evidence rows (10 via the predecessor q-series summary, 6 via the
+2026-07-09 pilot with coverage recomputed from both result files). **41/41 cells at that tier are now
+coverage-backed; zero demotions.** This corrects the merged audit's class-(c) count: (b) 21→31,
+(c) 65→55, defects 189→179, with the correction appended to the merged map rather than rewritten.
+
+**`interval_feasible` now has a defined contract** (owner decision; memo
+`docs/design/255-interval-feasible-tier-contract.md`): the tier claims SHAPE — a finite, ordered,
+unclamped interval from a converged, pdHess-positive fit — and location is recorded orthogonally in a
+new `location_checked ∈ {passed, failed, not_applicable, unchecked}` column, derived for all 740
+cells. Of the 226 claiming cells: **145 passed · 75 unchecked · 6 not_applicable**. The memo
+established the tier had carried four unreconciled cohort standards, two approved four days apart in
+contradiction; the remaining genuinely-open population is ~26 cells, not the 105 previously quoted.
+
+**The 14 label-only confint sites now assert their endpoints** (finite, ordered) across 7 test files.
+The first version of the fix used the receipt column names (`conf.low`/`conf.high`) instead of
+`confint()`'s (`lower`/`upper`) and passed VACUOUSLY — `all(logical(0))` is TRUE — reproducing the
+audited defect class inside its own repair. The deliberate-red mutation caught it; after the fix the
+mutant fails and the revert passes. Three other `expect_true(all(...))` sites on different objects
+share the vacuous shape and are recorded open, not chased.
+
+**The 7 spatial demotions' boundaries were restated** under the adopted contract: the operative
+ground below `interval_feasible` is that the fixture misspecification invalidates the point premise;
+`location_checked=failed` carries the bracketing miss. Originals retained verbatim inside the new text.
+
+Checks (the full CI set, after every commit): 6/6 python suites · ledger `--check` OK (31 outputs) ·
+truth-manifest OK (30 rows) · capability-runtime OK (18 routes) · fence-integrity none ·
+evidence-citations none · 7 touched test files FAIL=0. B4-CI pins re-frozen twice, each gated on a
+field-level diff proving no pre-existing field moved. After-task:
+`docs/dev-log/after-task/2026-08-15-irc-evidence-rewire-and-tier-contract.md` (PASS close-out
+compiler); plan-vs-actual filed alongside.

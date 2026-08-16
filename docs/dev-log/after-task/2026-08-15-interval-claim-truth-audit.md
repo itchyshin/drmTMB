@@ -118,6 +118,8 @@ and `scratchpad/recover/q4-spatial-fixture-repair.R`
 | 13 | `mc-0596`: `verified` here vs "false convergence (8)" in the landed response-mask arc | **OPEN — D-87, owner's call** |
 | 14 | `q-series-v1-release-status.md` stale, linked from `README.md:75` | **OPEN** |
 | 15 | `lane_preflight.sh` line 379 arithmetic error; census omitted 2 cursor lanes | **OPEN — reported to its owner** |
+| 16 | **This arc's own class-(c) count was overstated by 10.** A same-day follow-up proved all 16 `inference_ready_with_caveats` legacy-stub cells have real campaigns; 10 were counted class (c) here. Corrected in `2026-08-15-interval-truth-coverage-map.md`; class (b) 21→31, class (c) 65→55, defects 189→179. Root cause: reading `legacy_evidence_source` and stopping, which works for an artifact **path** (correct for 6) but not for a predecessor-board **key** needing a join (wrong for 10). | **CORRECTED** |
+| 17 | `structured-re-gaussian-lowq-mu-intercept-sr475-results.tsv` records `promotion_decision = do_not_promote` / `linked_interval_status = planned` for four rows that a later review promoted. The campaign file was never updated after the decision that superseded it. | **RECORDED** — supersession pointer added, frozen decision columns left intact |
 
 ## 8. Consistency Audit
 

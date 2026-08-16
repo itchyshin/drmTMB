@@ -18,12 +18,39 @@ workload is **209**.
 
 ## The classification
 
+> ### ⚠ CORRECTION (2026-08-15, later the same day) — class (c) is overstated
+>
+> A follow-up lane audited the 16 cells at `inference_ready_with_caveats` whose evidence was a
+> single `legacy_model_evidence` stub. **All 16 turned out to have a real, reviewed, promoted
+> campaign behind them.** Ten of those 16 are counted as class (c) below. That is a
+> **10-cell overstatement of class (c)**, and the corrected count for those ten is class (b).
+>
+> **The failure mode, precisely.** This classification read each cell's `legacy_evidence_source`
+> and stopped. That works when the field holds a direct artifact **path** — and it was **correct**
+> for exactly those six (`mc-0001`, `mc-0003`, `mc-0057`, `mc-0397`, `mc-0398`, `mc-0427`, all
+> class (b) here). It fails when the field holds a predecessor-board **key** such as
+> `qseries_phylo_q1_mu_intercept`, which must be joined through
+> `docs/dev-log/dashboard/structured-re-q-series-inference-evidence-summary.tsv` to reach the
+> campaign. All ten wrong calls are of that second kind. **A blank or unresolvable field in the
+> current ledger is not evidence of absence — it is usually the 2026-07-11 schema migration having
+> dropped a link.**
+>
+> **What is NOT corrected.** The other 55 class-(c) cells were measured, not assumed, and they do
+> **not** share this defect: 42 cite source code and tests (`src/drmTMB.cpp:…`,
+> `tests/testthat/…`) which appear in **zero** predecessor-ledger files, 9 are blank `mr-*`
+> missing-response routes, and 4 are the `qseries_ordinary_*` cells already re-tiered to
+> `legacy_fit_supported`. Whether the 42 are correctly tiered is a separate question about what
+> `interval_feasible` claims — see `docs/design/255-interval-feasible-tier-contract.md`.
+>
+> Corrected totals: class (b) **31**, class (c) **55**, defects **179** rather than 189.
+> The table below is left as originally written; this log is not rewritten.
+
 | class | meaning | cells | defect? |
 | --- | --- | ---: | --- |
 | **(a)** | genuinely unchecked for interval location | **124** | **yes** |
-| **(b)** | checked by a stronger instrument (a coverage campaign brackets by construction) | **21** | no |
-| **(c)** | legacy import with no run behind it at all | **65** | **yes** |
-| | **total** | **210** | **189 defects** |
+| **(b)** | checked by a stronger instrument (a coverage campaign brackets by construction) | **21** → **31** | no |
+| **(c)** | legacy import with no run behind it at all | **65** → **55** | **yes** |
+| | **total** | **210** | ~~189~~ **179 defects** |
 
 **4 of the 21 class-(b) cells are soft** — `mc-0017`, `mc-0287`, `mc-0299`, `mc-0311` cite coverage
 artifacts (Fir cluster archive; Totoro `full-1a085440`) that are **not present on local disk**. They

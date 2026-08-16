@@ -98,6 +98,9 @@ test_that("drmTMB fits zero-inflated nbinom2 models through a zi formula", {
     )
   )
   expect_true(all(ci$conf.status == "wald"))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < ci$upper))
 })
 
 test_that("zero-inflated nbinom2 likelihood matches independent calculation", {
