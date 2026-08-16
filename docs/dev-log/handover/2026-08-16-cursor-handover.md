@@ -121,6 +121,34 @@ tier for the demoted 21, not to deciding their disposition.
 **If PR #1054 is still open when you start:** verify its CI is green, then merge it, or ask Shinichi.
 Do not re-derive the demotion set — it is evidence-derived and recorded in `transitions.tsv`.
 
+## ADDENDUM 2 (2026-08-16, Cursor `cursor/interval-truth-owed`) — steps 3 and 4 drafted
+
+PR #1054 is **merged**. Step 3 and step 4 were drafted on this branch before
+the owner wiring decision. Do not re-do the review from scratch.
+
+- Blob-pin partition of the 21:
+  `docs/dev-log/2026-08-16-import-21-blob-pin-partition.md`
+  (4 PINNED = `mc-0559`–`mc-0562`; 17 UNPINNED).
+- Student campaign review:
+  `docs/dev-log/2026-08-16-student-campaign-location-review.md`
+
+## ADDENDUM 3 (2026-08-16, same lane) — student wiring done; CRAN stays prep-only
+
+Shinichi approved wiring option 1. `mc-0484` / `mc-0485` / `mc-0486` are now
+`location_checked=failed` and still `interval_feasible`. Receipts:
+`ev-mc-048*-student-wald-location` and `tr-mc-048*-student-wald-location`.
+Among the 187 interval-claiming cells the generated surfaces now read
+**164 passed · 20 unchecked · 3 failed**.
+
+The pasted Ligges mail for `https://win-builder.r-project.org/84RS0Yqy5t0Y` is
+**R-devel**, already filed. Gmail still has no R-release or R-oldrelease
+thread. Merging #1055 does **not** advance `platform-clean`.
+
+**CRAN submit remains withheld.** Owner window is **end of August or early
+September**, not a this-week submit. Do not bump `Version` to `0.7.0.9000`
+without a separate ask. Do not touch missing-data #1033, MSPL, or NG
+correlated implementation from this lane.
+
 ## How to resume
 
 Paste-ready prompt at the end of this file. Read `AGENTS.md` first; it is the repo's source of truth.
