@@ -159,6 +159,18 @@ line exists because without it, a future change that silently skipped
 not on the `se` path, so no guard was added for
 `confint(method = "bootstrap", parallel = "multicore")`. See §10.
 
+**A comparison needs both arms, and neither lane ran one.** This report
+recommended a bare `on.exit(stopCluster(cl), add = TRUE)` to the `pigauto` lane
+without ever executing it; that lane then verified the wrapped version it wrote
+and never the bare alternative it had implicitly rejected. Two tests, both
+green, and between them they did not cover the one case that distinguished the
+options — which is why the bare form's `invalid connection` failure surfaced
+only when someone asked the question directly, days of running later. **Testing
+the option you chose is not testing the choice.** The same discipline that made
+the static scan in this file trustworthy — plant an offender, confirm the scan
+fires — was simply not applied to a recommendation handed to another lane,
+because a recommendation did not feel like code.
+
 ## 7a. Issue Ledger
 
 - **Closed by evidence, not by code:** "drmTMB `se = TRUE` leaks PSOCK
@@ -173,9 +185,21 @@ not on the `se` path, so no guard was added for
   `pigauto` PR #166 / `c536499` on `fix/bench-cluster-on-exit`, 8 files, 5
   lines each. Confirmed by reading that commit: it adds
   `on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)`. The
-  `try()` is a correction to the one-liner suggested from here — a bare second
-  `stopCluster()` on the success path errors on already-closed connections, so
-  the guard needed to tolerate an already-stopped cluster.
+  `try()` is load-bearing and the one-liner suggested from here was wrong
+  without it: a bare second `stopCluster()` on the success path fails with
+  `invalid connection`, so as sent it would have traded a leak for an error at
+  the end of every successful run.
+
+  **Provenance of that correction, because outcome and reasoning are not the
+  same evidence.** The `try()` was not diagnosed — that lane states it wrapped
+  defensively out of habit, and its behavioural test exercised only the wrapped
+  version, so the `try()` masked the very failure that justifies it. The
+  mechanism was confirmed only afterwards, by a test run in response to a
+  message from here. A habit that happens to be right is weaker evidence than
+  an argument, and this report should not lend that lane's judgement more
+  authority on the next such call than it earned on this one. An earlier
+  message from this lane thanked it for "catching" the defect, which credits an
+  intent it did not have; that lane corrected the record itself, unprompted.
 - **Opened, method:** any future worker census must attribute by master PID
   (`lsof -nP -iTCP:<PORT>` against the worker's `PORT=` argument), never by
   PPID and never by a global count. Recorded in §11.
@@ -306,5 +330,10 @@ namespace scan and the runtime child-process census were applied.
   firing on the reported night, and it matches the count in the deliberate
   reproduction. It is that lane's report of its own incident, not something
   verified from here — what was verified from here is the fix commit.
-- It does **NOT** cover whatever else on this host creates PSOCK clusters. The
-  `pigauto` scripts are fixed; nothing audited the other eight live lanes.
+- It does **NOT** cover whatever else on this host creates PSOCK clusters.
+  `pigauto` PR #166 covers all eight `script/bench_*.R`, which that lane states
+  are the only `makeCluster()` call sites in that package or its scripts —
+  a scope it bounded explicitly, and which should not be read as wider. Every
+  other lane sharing this machine is **unaudited** for the same
+  `makeCluster()`-without-`on.exit` shape. Nobody has taken that sweep. If
+  orphaned workers reappear after #166 merges, that is where to look.
