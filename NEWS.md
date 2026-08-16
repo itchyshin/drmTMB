@@ -41,6 +41,25 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Binomial responses accept a phylogenetic random effect
+
+* `binomial()` was the only common response family that could not take a
+  structured random effect -- `gaussian`, `poisson`, `nbinom2`, `Gamma` and
+  `beta` all accepted the identical `phylo(1 | id, tree = tree)` term while a
+  binomial model aborted at the structured-effect gate (#1048). Phylogenetic
+  logistic regression (a binary trait on a tree) is the canonical
+  comparative-methods use of a binary response, so the hole was conspicuous.
+
+  The first slice is deliberately narrow, matching how `beta` and
+  `zero_one_beta` grew provider by provider: one unlabelled q1 `phylo()`
+  intercept on `mu`, in either the Bernoulli or the two-column
+  `cbind(successes, failures)` form. Phylogenetic slopes, labelled covariance
+  blocks, `spatial`/`animal`/`relmat` providers, combination with ordinary
+  random effects, and combination with missing-predictor `mi()` all refuse with
+  explicit messages rather than fitting silently narrower models. Supporting
+  recovery evidence (slope and `sd_phylo` essentially unbiased by 160 tips,
+  Laplace small-sample attenuation ~9% at 40-80 tips) is recorded on #1048.
+
 ## Fixed: penalized fits reported `phylo_penalty` and `logLik` off the optimum
 
 * A penalized (MAP) phylogenetic fit read its penalty from a bare

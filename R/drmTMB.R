@@ -6451,6 +6451,17 @@ drm_build_binomial_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_binomial_mu_random_terms(mu_re$terms)
+  # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept
+  # on mu. Phylogenetic logistic regression -- a binary trait on a tree -- is the
+  # canonical comparative-methods use of a binary response, and binomial was the
+  # only common family without a structured route. Deliberately narrow, matching
+  # how beta and zero-one-beta grew provider by provider: phylo only (no
+  # spatial/animal/relmat yet), intercept only (no slopes, no labels), not
+  # combinable with mi() or with ordinary random effects in this slice.
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  binomial_structured_term <- mu_phylo$term
+  validate_binomial_structured_mu_term(binomial_structured_term, mu_re$terms)
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
   if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
@@ -6472,6 +6483,12 @@ drm_build_binomial_spec <- function(
       "i" = "Use one of a {.code (1 | id)} random intercept or {.code miss_control(predictor = \"model\")}, not both."
     ))
   }
+  if (include_missing_predictor && !is.null(binomial_structured_term)) {
+    cli::cli_abort(c(
+      "A binomial {.fn phylo} effect cannot yet be combined with missing-predictor {.fn mi}.",
+      "i" = "Fit the phylogenetic slice without {.code miss_control(predictor = \"model\")}."
+    ))
+  }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
 
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
@@ -6483,6 +6500,7 @@ drm_build_binomial_spec <- function(
   vars <- unique(c(
     all.vars(f_mu),
     impute_vars,
+    structured_mu_vars(binomial_structured_term),
     random_effect_vars(mu_re$terms)
   ))
   # response = "include": keep missing-response rows (exclude the response from
@@ -6592,6 +6610,11 @@ drm_build_binomial_spec <- function(
   }
 
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(
+    binomial_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "binomial",
@@ -6616,7 +6639,7 @@ drm_build_binomial_spec <- function(
       mu = empty_sd_mu_structure(re_mu$n_re),
       phylo = empty_sd_phylo_structure()
     ),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    structured = list(phylo_mu = phylo_mu),
     missing_predictor = missing_predictor,
     denominator = response[
       c("success_name", "failure_name", "trials", "encoding")
@@ -6632,10 +6655,14 @@ drm_build_binomial_spec <- function(
       offset_mu,
       re_mu = re_mu,
       observed_y = observed_y,
-      link = link
+      link = link,
+      phylo_mu = phylo_mu
     ),
-    map = binomial_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    map = binomial_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   if (include_missing_predictor) {
     spec$start$beta_mi <- missing_predictor$beta_start
@@ -9296,7 +9323,7 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     message <- c(
       "Structured-effect syntax is planned, not implemented.",
       "x" = "The {.code {dpar}} formula contains structured marker{?s}: {.val {structured}}.",
-      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane).",
+      "i" = "Implemented structured paths cover the fitted Gaussian {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat} slices, ordinary Poisson/NB2 q=1 {.code mu} intercept slices for {.fn phylo}, {.fn phylo_interaction}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary Poisson/NB2 q=1 {.code mu} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, ordinary NB2 q=1 {.code sigma} unlabelled one-slope slices for {.fn phylo}, {.fn spatial}, {.fn animal}, and {.fn relmat}, and zero-one-beta q=1 unlabelled intercept slices on exactly one of {.code mu}, {.code sigma}, {.code zoi}, or {.code coi} for {.fn phylo}, {.fn animal}, {.fn relmat}, and {.fn phylo_interaction} (the {.fn spatial} provider is deferred for the {.code zoi}/{.code coi} atoms pending the mesh/SPDE lane), and a binomial q=1 unlabelled {.code mu} intercept slice for {.fn phylo}.",
       "i" = "Structured non-Gaussian paths beyond those gates, including ordinal, shape, hurdle, labelled count covariance, structured count slope-only routes outside the admitted Poisson fixed-covariance spatial slope-only gate, multiple structured count slopes, structured count scale routes outside the NB2 one-slope gate, and zero-one-beta structured slopes, labels, q>=2 fields, or simultaneous endpoints, remain deferred until family-specific recovery evidence is stable."
     )
     cli::cli_abort(message)
@@ -10862,6 +10889,34 @@ validate_beta_phylo_mu_structured_term <- function(term) {
       "{.fn beta} {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
       "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
+    ))
+  }
+  invisible(NULL)
+}
+
+validate_binomial_structured_mu_term <- function(term, re_terms) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept.
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Binomial {.fn phylo} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance blocks remain deferred."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "Binomial {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
+    ))
+  }
+  if (length(re_terms) > 0L) {
+    cli::cli_abort(c(
+      "A binomial {.fn phylo} effect cannot yet be combined with ordinary random effects.",
+      "i" = "Use one of {.code phylo(1 | id, tree = tree)} or {.code (1 | id)}, not both, in this slice."
     ))
   }
   invisible(NULL)
@@ -17541,7 +17596,8 @@ binomial_start <- function(
   offset_mu = rep(0, length(successes)),
   re_mu = empty_random_mu_structure(length(successes)),
   observed_y = rep(TRUE, length(successes)),
-  link = "logit"
+  link = "logit",
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   observed_y <- as.logical(observed_y)
   # Starting values must be on the FITTED link's scale. This used to hardcode
@@ -17600,6 +17656,7 @@ binomial_start <- function(
     y_scale,
     observed_y = observed_y
   )
+  phylo_start <- gaussian_phylo_start(resid, phylo_mu)
   c(
     list(beta_mu = beta_mu),
     list(
@@ -17620,17 +17677,20 @@ binomial_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
 }
 
-binomial_map <- function(re_mu = empty_random_mu_structure(1L)) {
+binomial_map <- function(
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
+) {
   poisson_map(
     re_mu = re_mu,
-    phylo_mu = empty_phylo_mu_structure()
+    phylo_mu = phylo_mu
   )
 }
 
@@ -19966,6 +20026,7 @@ make_tmb_data_core <- function(spec) {
     ))
   }
   if (identical(spec$model_type, "binomial")) {
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 18L,
       link_code = drm_binomial_link_code(if (is.null(spec$link)) "logit" else spec$link),
@@ -20016,11 +20077,28 @@ make_tmb_data_core <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      # #1048: the first binomial structured slice. These five fields used to be
+      # hard-coded to the empty values, which silently discarded a parsed
+      # phylo() term at the data-assembly step -- the builder had already
+      # validated and stored it, so has_phylo_mu = 0L here was the one line that
+      # turned a real structure into a no-op.
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "cumulative_logit")) {
