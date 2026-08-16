@@ -1,0 +1,226 @@
+{
+ "mc-0107": {
+  "cell_id": "mc-0107",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0107/lane-b-q2-production-profile-mc-0107-low-seed-20260727-receipt.tsv formula field: \"bf(mu1 = y1 ~ x + spatial(1 | p | site, coords = coords), mu2 = y2 ~ x + spatial(1 | p | site, coords = coords), sigma1 = ~1, sigma2 = ~1, rho12 = ~1); biv_gaussian(ML)\"; identical string in docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv and 2026-07-27-b1-recovered-subset.tsv; named binding_source inst/sim/dgp/sim_dgp_spatial_q2.R:90 calls drmTMB:::drm_spatial_coords_precision(coords, site=site_levels, group=\"site\"). Runner tools/run-lane-b-structured-q2-production-profile-gate.R:106 sources tools/lane-b-structured-q2-production-adapters.R which is MISSING from this worktree, so route rests on the frozen contract + receipt + present binding source (three concordant sources). grep -riE 'mesh|kappa' over runner+registry+binding source: zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0108": {
+  "cell_id": "mc-0108",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0108/lane-b-q2-production-profile-mc-0108-low-seed-20260727-receipt.tsv exists with same dgp_id qseries_spatial_q2_ml; registry 2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv row mc-0108 formula = \"bf(mu1 = y1 ~ x + spatial(1 | p | site, coords = coords), mu2 = y2 ~ x + spatial(1 | p | site, coords = coords), ...)\", target sd:mu:mu2:spatial(1 | p | site), binding_source inst/sim/dgp/sim_dgp_spatial_q2.R:phase18_dgp_spatial_q2 (file present; line 90 uses drm_spatial_coords_precision). Adapter tools/lane-b-structured-q2-production-adapters.R MISSING. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0109": {
+  "cell_id": "mc-0109",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "docs/dev-log/interval-feasibility/results/ef8533249/spatial-q2-slope/mc-0109/lane-b-spatial-q2-slope-profile-mc-0109-low-seed-302-receipt.tsv formula field: \"bf(mu1 = y1 ~ x + spatial(0 + x | p | site, coords = coords), mu2 = y2 ~ x + spatial(0 + x | p | site, coords = coords), sigma1 = ~1, sigma2 = ~1, rho12 = ~1); biv_gaussian(ML)\"; same in docs/dev-log/interval-campaign-bindings/2026-07-29-spatial-q2-slope-targetwise-authorization.tsv. binding_source tools/run-structured-re-q2-slope-coverage-grid.R:make_q2_slope_data;fit_q2_slope \u2014 file PRESENT: line 498 'mu1 = y1 ~ x + spatial(0 + x | p | site, coords = coords)', line 350 'precision <- drmTMB:::drm_spatial_coords_precision(coords, ...)'. Runner adapter tools/lane-b-spatial-q2-slope-adapters.R and tools/validate-lane-b-spatial-q2-slope-contracts.R are MISSING, so route rests on contract+receipt+present binding source. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0110": {
+  "cell_id": "mc-0110",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "docs/dev-log/interval-feasibility/results/ef8533249/spatial-q2-slope/mc-0110/lane-b-spatial-q2-slope-profile-mc-0110-low-seed-302-receipt.tsv present; 2026-07-29-spatial-q2-slope-targetwise-authorization.tsv row mc-0110 formula = \"bf(mu1 = y1 ~ x + spatial(0 + x | p | site, coords = coords), mu2 = y2 ~ x + spatial(0 + x | p | site, coords = coords), ...)\", target sd:mu:mu2:spatial(0 + x | p | site), dgp qseries_spatial_q2_mu1_mu2_one_slope. Same binding source tools/run-structured-re-q2-slope-coverage-grid.R:498 (coords = coords). Adapter MISSING. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0113": {
+  "cell_id": "mc-0113",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/lane-b-q2plus-scale-production-adapter.R:57 (adapter PRESENT, read directly): 'coords <- data.frame(x = seq_len(n_level), y = sqrt(seq_len(n_level))); rownames(coords) <- labels' then 'formula <- drmTMB::bf(mu1 = y1 ~ 1, mu2 = y2 ~ 1, sigma1 = ~drmTMB::spatial(1 | ps | site, coords = coords), sigma2 = ~drmTMB::spatial(1 | ps | site, coords = coords), rho12 = ~1)'. Contract docs/dev-log/interval-campaign-bindings/2026-07-29-q2plus-scale-canonical-contracts.tsv row mc-0113 provider=spatial. Receipt docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0113/receipt.tsv provider=spatial, conf_status=profile. NOTE: DGP covariance is lane_b_q2scale_covariance (adapter:36) K = 0.25^|i-j| + 0.35 on the diagonal \u2014 an AR1-on-index structure that does NOT equal the fitted exp(-d/median d) built from those coords, so the fitted range is both unestimated AND misspecified relative to truth. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0114": {
+  "cell_id": "mc-0114",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Same adapter tools/lane-b-q2plus-scale-production-adapter.R:57 spatial(1 | ps | site, coords = coords); contract row mc-0114 in 2026-07-29-q2plus-scale-canonical-contracts.tsv provider=spatial, profile_parameter 'sd:mu:sigma2:spatial(1 | ps | site)'; receipt docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0114/receipt.tsv present. Same AR1-on-index DGP/exp(-d/median d) mismatch as mc-0113. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0115": {
+  "cell_id": "mc-0115",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/lane-b-q4-provider-highinfo-adapters.R:19 (adapter PRESENT, read directly): 'if(r$provider[[1L]]==\"spatial\") { data$site<-labels[ix]; coords<-data.frame(x=seq_len(nlev),y=sqrt(seq_len(nlev))); rownames(coords)<-labels; fml<-drmTMB::bf(mu1=y1~1+drmTMB::spatial(1|p|site,coords=coords), mu2=..., sigma1=..., sigma2=..., rho12=~1) }'; adapter:8-10 assigns cells mc-0115..mc-0118 to provider spatial. Contract 2026-07-30-q4-provider-highinfo-canonical-contracts.tsv row mc-0115 provider=spatial. Receipt docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0115/receipt.tsv provider=spatial, conf_status=profile. NOTE: DGP K (adapter:18) = 0.25^|i-j| + 0.35 diag, an AR1-on-index structure unequal to the fitted exp(-d/median d) \u2014 range unestimated AND misspecified. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0116": {
+  "cell_id": "mc-0116",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Same adapter tools/lane-b-q4-provider-highinfo-adapters.R:19 (spatial branch, coords=coords) and :8-10 cell block mc-0115..mc-0118 = provider spatial; contract 2026-07-30-q4-provider-highinfo-canonical-contracts.tsv row mc-0116 provider=spatial, profile_parameter 'sd:mu:mu2:spatial(1 | p | site)'; receipt docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0116/receipt.tsv present. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0117": {
+  "cell_id": "mc-0117",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Same adapter tools/lane-b-q4-provider-highinfo-adapters.R:19 spatial branch builds sigma1 = ~1+drmTMB::spatial(1|p|site,coords=coords); contract 2026-07-30-q4-provider-highinfo-canonical-contracts.tsv row mc-0117 provider=spatial, profile_parameter 'sd:mu:sigma1:spatial(1 | p | site)'; receipt docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0117/receipt.tsv provider=spatial, conf_status=profile. grep -riE 'mesh|kappa': zero hits.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0294": {
+  "cell_id": "mc-0294",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Runner tools/run-b2-e0-q2-profile.R:44 sources tools/b2-majority-gaussian-q2-fixtures.R; that fixture's spatial branch is b2-majority-gaussian-q2-fixtures.R:28-30 `coords <- data.frame(x = cos(theta)+..., y = sin(theta)); precision <- drmTMB:::drm_spatial_coords_precision(coords, site = labels, group = \"site\")` and the fit at :57 `drmTMB::bf(y ~ x + drmTMB::spatial(1 + x | p | site, coords = coords), sigma ~ drmTMB::spatial(1 + x | p | site, coords = coords))`. Frozen contract docs/dev-log/interval-campaign-bindings/2026-07-30-b2-e0-q2-admission-registry.tsv row mc-0294 gives dgp_id b2_gaussian_spatial_q2_slope_ml_v1, provider column `spatial`, 72 groups x 20 obs. No `mesh =` or make_mesh in either file.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0406": {
+  "cell_id": "mc-0406",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Frozen contract docs/dev-log/interval-campaign-bindings/2026-07-28-q1-direct-intercept-whole-cell-canonical-contracts.tsv (as of receipt SHA 8b5c226bb) row mc-0406: dgp_id count_spatial_nbinom2_q1_mu_intercept, formula `bf(nb2_spatial ~ x + spatial(1 | site, coords = coords), sigma ~ 1); nbinom2()`. Producing adapter tools/nb2-q1-breadth-adapters.R (added at 5d791a900; not on this branch's worktree, read via git show):80-88 builds coords via `drmTMB:::drm_spatial_coords_precision(coords, site = levels, group = \"site\")`, :155 fits `drmTMB::bf(nb2_spatial ~ x + drmTMB::spatial(1 | site, coords = spatial_structure$coords), sigma ~ 1)`, :183 dispatches `\"mc-0406\" = nb2_q1_breadth_shared(seed, rung, \"spatial\")`.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0411": {
+  "cell_id": "mc-0411",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Runner tools/run-lane-b-count-q1-slope-canonical-profile-gate.R:99-100 sources tools/lane-b-count-q1-slope-production-adapters.R (added at e435860c4 \u2014 the exact SHA in the mc-0411 receipt path; read via git show since it is not in this worktree). That adapter:13 registers `mc-0411::sd:mu:spatial(0 + x | site)`, :26 declares the formula `bf(nb2_spatial ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1); nbinom2()`, :115-120 builds `lane_b_count_q1_slope_spatial_coords()` (cos/sin arc), :153 `drmTMB:::drm_spatial_coords_precision(coords, ...)`, :188 fits `spatial(1 + x | site, coords = coords)`. No mesh path.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0417": {
+  "cell_id": "mc-0417",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-arc2-profile-feasibility.R:657-664 (mc-0417 block): target `sd:mu:spatial(1 | site)`, `coords <- fx$coords; drmTMB::bf(y ~ x + drmTMB::spatial(1 | site, coords = coords) + drmTMB::relmat(1 | id, Q = Q), ...)`. Fixture tools/arc4-multiprovider-mu-fixtures.R:143-148 `coords <- data.frame(x = cos(theta), y = sin(theta)); precision <- drmTMB:::drm_spatial_coords_precision(coords, site = sites, group = \"site\")`. CRITICAL: the `kappa = 66.2` / `kappa = 3.5` in this cell's claim_boundary are MATRIX CONDITION NUMBERS, not SPDE kappa \u2014 arc4-multiprovider-mu-fixtures.R:62-67 heads them 'CONDITION NUMBERS ... spatial coordinate covariance (n_site = 20, 1.75*pi arc): kappa = 66.2'. The mesh_hint on this cell is a false positive.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0422": {
+  "cell_id": "mc-0422",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-arc2-profile-feasibility.R:369-377 (mc-0422 block): target `sd:sigma:spatial(1 | site)`, comment ':374 `spatial()` requires a bare symbol for `coords`', then `coords <- fx$coords; drmTMB::bf(y ~ x, sigma ~ drmTMB::spatial(1 + x | site, coords = coords))`. Fixture tools/arc3-nbinom2-sigma-provider-fixtures.R:327-332 builds the 9x9 grid `coords` and calls `drmTMB:::drm_spatial_coords_precision(coords, site = site_levels, group = \"site\")`. No mesh anywhere in either file.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0440": {
+  "cell_id": "mc-0440",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Runner tools/run-lane-b-q1-expanded-profile-gate.R:62-63 sources tools/lane-b-q1-expanded-production-adapters.R (added at 1ab48ffb7; not in this worktree, read via git show). That adapter:54 registers `mc-0440::sd:mu:spatial(1 | site)`, :82 declares `bf(poisson_spatial ~ x + spatial(1 | site, coords = coords)); poisson(log)`, :242-249 builds coords and calls `drmTMB:::drm_spatial_coords_precision(...)`, :424-426 fits `drmTMB::drmTMB(poisson_spatial ~ x + spatial(1 | site, coords = info$coords))`.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0441": {
+  "cell_id": "mc-0441",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Same runner/adapter as mc-0411: tools/lane-b-count-q1-slope-production-adapters.R @e435860c4 (the receipt-path SHA):15 registers `mc-0441::sd:mu:spatial(0 + x | site)`, :30 declares `bf(poisson_spatial ~ x + spatial(1 + x | site, coords = coords)); poisson(log)`, :150-153 `coords <- lane_b_count_q1_slope_spatial_coords(n_level); precision <- drmTMB:::drm_spatial_coords_precision(coords, site = labels, group = \"site\")`, :188 fits the poisson branch with `spatial(1 + x | site, coords = coords)`.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0494": {
+  "cell_id": "mc-0494",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Frozen contract docs/dev-log/interval-campaign-bindings/2026-07-29-student-spatial-q1-highinfo-contracts.tsv, both mc-0494 rows: dgp_id student_spatial_mu_one_slope_highinfo_n32, formula `bf(y ~ x + spatial(1 + x | id, coords = coords), sigma ~ 1); student()`. Producing adapter tools/lane-b-student-spatial-q1-highinfo-adapters.R (added at e55bbeb7f \u2014 the SHA in the mc-0494 receipt paths; read via git show):25-26 `coords <- expand.grid(x = seq_len(8L), y = seq_len(4L)); rownames(coords) <- levels` (the 32-site grid), :45 fits `drmTMB::bf(y ~ x + spatial(1 + x | id, coords = coords), sigma ~ 1)`.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0596": {
+  "cell_id": "mc-0596",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-135-trace-campaign.R:479-502, the mc-0596 make_cell block: target `sd:sigma:spatial(1 | site)` true 0.45, `coords <- cbind(seq_len(n), (seq_len(n) %% 5L) / 3)`, and the fitted formula at :502 `drmTMB::bf(y ~ x, sigma ~ spatial(1 | site, coords = coords), zoi ~ 1, coi ~ 1)`. The DGP kernel at :139-149 (`dense_zoib_spatial_precision`) is a local copy of the SAME fixed median-distance exponential kernel \u2014 `range <- stats::median(positive); K <- exp(-distances / range)` \u2014 so the range is fixed by construction on both the simulate and fit sides; it is never estimated.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0672": {
+  "cell_id": "mc-0672",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "All three evidence lines are coords. (1) tools/run-arc1b-spatial-q2-reml-recovery.R:54-60 `arc1b_spatial_kernel(coords)` on `stats::dist(coords)` and :117-121 `bf(mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords), mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords))`. (2) Frozen contract docs/dev-log/interval-campaign-bindings/2026-07-28-structured-q2-production-whole-cell-proposed-registry.tsv:9, dgp_id arc1b_s1_spatial_q2_reml, formula `bf(mu1 = y1 ~ x + spatial(1 | p | site, coords = coords), mu2 = ... , rho12 = ~1); biv_gaussian(REML)`. (3) Coverage study tools/spatial-q2-confidence-eye-common.R:164-195 `ce_coords()` -> `drmTMB:::drm_spatial_coords_precision(...)` and :313-317 fits with `coords = coords`. Note :234 `kernel_condition = kappa(covariance)` is R's condition-number `kappa()`, confirming 'kappa' in this cohort's prose is a condition number, not an SPDE parameter.",
+  "already_discloses": true,
+  "disclosure_quote": "Fixed-kappa bivariate-Gaussian REML only; no mesh intervals, range, slopes, q4+, non-Gaussian, spatial sigma, derived observed correlations, geometry robustness, or supported-tier claim."
+ },
+ "mc-0118": {
+  "cell_id": "mc-0118",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/lane-b-q4-provider-highinfo-adapters.R:19 builds the fit as `drmTMB::bf(mu1=y1~1+drmTMB::spatial(1|p|site,coords=coords), mu2=..., sigma1=..., sigma2=..., rho12=~1)` with `coords<-data.frame(x=seq_len(nlev),y=sqrt(seq_len(nlev)))`; the frozen contract docs/dev-log/interval-campaign-bindings/2026-07-30-q4-provider-highinfo-canonical-contracts.tsv gives provider=spatial, dgp_id=lane_b_spatial_q4_all_four_highinfo_v1, and the runner tools/run-lane-b-q4-provider-highinfo-profile-gate.R sources that adapter. Structurally mesh is impossible here: bivariate Gaussian goes through guard_biv_spatial_mu_terms (R/drmTMB.R:12524-12525) which calls extract_gaussian_mu_spatial_term with allow_mesh defaulting FALSE, and R/drmTMB.R:11317-11322 aborts any non-coords structure there. NOTE (beyond route): this is the one cell of the nine whose DGP is NOT drawn from the model's own kernel \u2014 the adapter simulates from a Toeplitz K = 0.25^|i-j| with a 0.35 nugget while the fit assumes exp(-d/median pairwise distance), so the fixed range is genuinely misspecified relative to truth and the SD absorbs the mismatch.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0123": {
+  "cell_id": "mc-0123",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-arc2-profile-feasibility.R:599-620 (the \"mc-0123\" registry entry) sets formula = function(fx){ coords <- fx$coords; drmTMB::bf(mu1 = y1 ~ x + z + drmTMB::spatial(1 + x + z | p | site, coords = coords), mu2 = ... , sigma1=~1, sigma2=~1, rho12=~1) }, fixture_file = tools/arc4-q6-spatial-mu1-fixture.R. That fixture builds the truth kernel at tools/arc4-q6-spatial-mu1-fixture.R:75-79 via drmTMB:::drm_spatial_coords_precision(coords, site=site_levels, group=\"site\") on an 8x9 integer grid. Receipts under docs/dev-log/interval-feasibility/results/095b9e3b1933f9b066365f92ddd4cb3d412a9dad/arc2-profile-feasibility/mc-0123/ carry the fixture name arc4_q6_spatial_mu1_fixture. Mesh is additionally impossible on a bivariate route (R/drmTMB.R:12524-12525 -> 11317). The DGP therefore uses exactly the same fixed median-distance range the fit assumes.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0124": {
+  "cell_id": "mc-0124",
+  "route": "coords",
+  "confidence": "medium",
+  "evidence": "The producing runner tools/run-b2-q6-proof-profile-cohort.R and its fixture tools/b2-q6-q12-admission-contracts.R are BOTH absent from this tree (confirmed by `ls`), so I could not read the fit call. Route is established instead from the frozen contract the audit runner validates against: docs/dev-log/interval-campaign-bindings/2026-07-31-b2-q6-proof-serial-approved-execution-authorization.tsv line 3, formula column = \"bf(mu1 = y1 ~ x + z + spatial(1 + x + z | p | site, coords = coords), mu2 = y2 ~ x + z + spatial(1 + x + z | p | site, coords = coords), sigma1 = ~1, sigma2 = ~1, rho12 = ~1); biv_gaussian()\" \u2014 same string in the sibling contracts 2026-07-31-b2-q6-proof-approved-execution-authorization.tsv and -re-admission.tsv. Independently, mc-0123's registry entry in tools/run-arc2-profile-feasibility.R:599-608 describes mc-0124 as the mu2 endpoint of the SAME labelled coords q6 block. And structurally mesh cannot reach a biv_gaussian fit at all (R/drmTMB.R:12524-12525 calls extract_gaussian_mu_spatial_term with allow_mesh=FALSE; abort at R/drmTMB.R:11317). Confidence is medium only because the fixture source is unreachable, not because the route is in doubt.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0199": {
+  "cell_id": "mc-0199",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Two independent producers, both coords. Recovery: tools/run-arc1b-spatial-q2-reml-recovery.R:120-121 fits bf(mu1 = y1 ~ x1 + spatial(1 | p | site, coords = coords), mu2 = y2 ~ x2 + spatial(1 | p | site, coords = coords)), with the DGP kernel at :54-61 arc1b_spatial_kernel() = exp(-distances/median(positive distances)) + 1e-6 jitter. Coverage (the Confidence-Eye campaign behind ev-mc-0199-spatial-q2-confidence-eye): tools/spatial-q2-confidence-eye-common.R:316-317 fits the same coords formula, and :187-201 generates truth from drmTMB:::drm_spatial_coords_precision() with an explicit exp(-distances/median) cross-check. Mesh is doubly impossible here: bivariate (R/drmTMB.R:12524-12525 -> 11317) and REML (R/drmTMB.R:2390-2393 aborts REML for mesh fields). Key caveat for the audit: the DGP is the model's own fixed-range kernel, so this coverage result never stresses the conditioning it is conditioned on.",
+  "already_discloses": true,
+  "disclosure_quote": "Fixed-kappa bivariate-Gaussian REML only; no mesh intervals, range, slopes, q4+, non-Gaussian, spatial sigma, derived observed correlations, geometry robustness, or supported-tier claim.  \u2014 CAVEAT: this discloses a fixed correlation parameter and disclaims a range claim, but names it \"kappa\", which is the MESH/SPDE parameter. This cell is a coords cell and has no kappa; the actually-fixed quantity is the median-pairwise-distance range. The disclosure is present but mislabelled."
+ },
+ "mc-0285": {
+  "cell_id": "mc-0285",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Only legacy evidence (ev-mc-0285-legacy, legacy_evidence_source = qseries_spatial_q1_mu_intercept, commit 095409c0). That source id resolves to the SR475 mu-intercept campaign whose runner is tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R \u2014 :391 registers \"qseries_spatial_q1_mu_intercept\", :959-965 builds truth via drmTMB:::drm_spatial_coords_precision(coords, ...), and :1114 fits `bf(y ~ spatial(1 | site, coords = coords), sigma ~ 1)`. The top-up used by the gate driver (tools/gate-inference-ready-driver.R:102) is tools/run-structured-re-gaussian-lowq-mu-intercept-topup.R, which at :17 simply sources that same dry-run runner, so it inherits the coords route. Grep for `mesh` across all tools/*lowq-mu-intercept* returns nothing.",
+  "already_discloses": true,
+  "disclosure_quote": "Intercept-only spatial(1 | site, coords = coords); coordinate-based fixed covariance only, precomputed-mesh spatial (mesh = ...) is planned but not implemented (R/drmTMB.R:8434-8440)  \u2014 TWO defects: (a) \"fixed covariance\" is the only conditioning cue; it never says the range is the median pairwise distance nor that it is unestimated; (b) the mesh half is now STALE \u2014 mesh spatial IS implemented for the univariate Gaussian mu slice (R/drmTMB.R:3219 extract_gaussian_mu_spatial_term(mu_entry, allow_mesh = TRUE), builder at :3624), and R/drmTMB.R:8434-8440 is now unrelated code (a bivariate multi-provider guard)."
+ },
+ "mc-0286": {
+  "cell_id": "mc-0286",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-arc2-profile-feasibility.R:765-807 (the \"mc-0286\" registry entry) sets formula = function(fx){ coords <- fx$object$coords; drmTMB::bf(y ~ x + drmTMB::spatial(1 + x | site, coords = coords), sigma ~ 1) }, fixture arc5_gaussian_mu_one_slope_fixture in tools/arc5-gaussian-q1-one-slope-fixtures.R, which at :162-169 builds coords and calls drmTMB:::drm_spatial_coords_precision(). Receipt filenames under docs/dev-log/interval-feasibility/results/75b212cf.../totoro/mc-0286/ confirm the fixture. CRITICAL MISREAD RISK: the claim_boundary's \"circular-arc GMRF (kappa = 66.97)\" is NOT an SPDE kappa \u2014 tools/arc5-gaussian-q1-one-slope-fixtures.R:54-58 documents it as `base::kappa(exact = TRUE)`, a CONDITION NUMBER of the provider correlation matrix (the animal sibling mc-0298 is likewise labelled \"kappa = 66.70\" for a pedigree A matrix, where an SPDE kappa is meaningless). Reading \"GMRF (kappa = ...)\" as a supplied mesh kappa would route this cell to mesh incorrectly.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0287": {
+  "cell_id": "mc-0287",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-arc1a-gaussian-reml-provider-campaign.R:443-447 fits `bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1)` (intercept) or `bf(y ~ x + spatial(1 + x | site, coords = coords), sigma ~ 1)` (one-slope), with the provider kernel built at :368-378 from drmTMB:::drm_spatial_coords_precision(). Both the recovery and coverage evidence rows name this runner and their result text reads \"Spatial coordinate campaign\". Grep for `mesh` in that runner returns nothing. Structurally mesh is also impossible for this cell because it is REML: R/drmTMB.R:2390-2393 aborts with \"REML is not implemented for fixed-kappa mesh spatial fields\".",
+  "already_discloses": true,
+  "disclosure_quote": "Labelled, slope-only, multiple-slope, matched `mu+sigma`, sigma-random-effect, bivariate, non-Gaussian, estimated-range, fixed-effect-profile, untested-M, and `supported` claims remain excluded.  \u2014 This is the weakest form of disclosure: it excludes an \"estimated-range\" CLAIM rather than stating that the range is fixed at the median pairwise distance. A reader is not told what the fitted SD is conditional on. Note also that the 0.937-0.960 coverage was measured on a DGP built from the model's own fixed-range kernel (:368-378), so it never tests the conditioning."
+ },
+ "mc-0291": {
+  "cell_id": "mc-0291",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "tools/run-arc2-profile-feasibility.R:850-895 (the \"mc-0291\" registry entry) sets formula = function(fx){ coords <- fx$coords; drmTMB::bf(y ~ x + drmTMB::spatial(1 | p | site, coords = coords), sigma ~ drmTMB::spatial(1 | p | site, coords = coords)) }, fixture arc2_spatial_mu_sigma_q2_fixture in tools/arc2-spatial-animal-relmat-mu-sigma-q2-fixtures.R, which at :81-88 builds a 9x9 grid and calls drmTMB:::drm_spatial_coords_precision(). Receipt filenames under .../totoro/mc-0291/ carry `arc2_spatial_mu_sigma_q2_fixture-site81_each25`. A mesh term on the sigma side is impossible anyway: R/drmTMB.R:3227 extracts the sigma spatial term with allow_mesh defaulting FALSE. The \"condition number 344.95\" in the boundary is base::kappa (fixture file :88), not a range parameter.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ },
+ "mc-0293": {
+  "cell_id": "mc-0293",
+  "route": "coords",
+  "confidence": "high",
+  "evidence": "Runner tools/run-b2-e0-q2-profile.R sources tools/b2-majority-gaussian-q2-fixtures.R (line 44 of the runner); that fixture at :57 fits `drmTMB::bf(y ~ x + drmTMB::spatial(1 + x | p | site, coords = coords), sigma ~ drmTMB::spatial(1 + x | p | site, coords = coords))` for the slope form, with the truth kernel at :28-30 from drmTMB:::drm_spatial_coords_precision() on a circular-arc layout. The frozen contract docs/dev-log/interval-campaign-bindings/2026-07-30-b2-e0-q2-execution-authorization.tsv row mc-0293 gives provider=spatial, fixture_module=b2_gaussian_q2, dgp_id=b2_gaussian_spatial_q2_slope_ml_v1, target sd:mu:mu:spatial(0 + x | p | site). A sigma-side mesh term is rejected at R/drmTMB.R:3227/11317.",
+  "already_discloses": false,
+  "disclosure_quote": ""
+ }
+}

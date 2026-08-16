@@ -259,6 +259,9 @@ articles:
       - count-nbinom2
       - proportion-beta-binomial
       - meta-analysis
+  - title: Comparison with Established Packages
+    contents:
+      - comparing-with-other-packages
   - title: Model Checking and Practical Workflow
     contents:
       - model-workflow

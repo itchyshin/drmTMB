@@ -1,0 +1,12 @@
+field	value
+source_sha	7365fc2d69ed7f98bc617c5df29ca6aa1449d1f8
+source_state	PENDING_GIT_COMMIT
+audit_path	docs/dev-log/interval-campaign-bindings/2026-07-31-b2-current-recovery-readmission-audit.tsv
+registry_path	docs/dev-log/interval-campaign-bindings/2026-07-31-b2-current-recovery-candidate-registry.tsv
+current_b2_recovery_count	63
+candidate_count	0
+execution_authorized	FALSE
+profile_execution	NOT_AUTHORIZED
+canonical_ledger_change	NOT_AUTHORIZED
+claim_ceiling	interval_feasible
+audit_conclusion	All 63 current B2 recovery cells are excluded by the unchanged E0, Lane A, or Lane C boundaries; no exact tuple is admissible in this arc.

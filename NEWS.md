@@ -5,6 +5,31 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Fixed: penalized fits reported `phylo_penalty` and `logLik` off the optimum
+
+* A penalized (MAP) phylogenetic fit read its penalty from a bare
+  `obj$report()`, which TMB evaluates at `obj$env$last.par`. After
+  `TMB::sdreport()` that is a finite-difference step away from the optimum, so
+  `fit$phylo_penalty` -- and therefore `fit$logLik`, which is
+  `-opt$objective + phylo_penalty` -- were both slightly wrong. The error scaled
+  with the penalty (order 1e-3 at `sd_u = 0.5`) and, being a diagnostic-time
+  artefact, made both values depend on whether standard errors had been
+  requested at all: the same fit at the same optimum reported different numbers
+  under `se = TRUE` and `se = FALSE`.
+
+  The practical consequence was in `drm_phylo_penalty_sweep()`, whose `logLik`
+  column is the basis for deciding whether a coupling is data-informed or
+  prior-shaped. The error differed per row, so it did not cancel in exactly the
+  comparison the sweep exists to make.
+
+  Estimates were never affected -- `opt$par` and `sdreport()` were always at the
+  optimum. `check_drm()`'s `log(sigma)` clamp row had the same defect and is
+  fixed alongside. The existing regression test could not catch this because it
+  derived its "expected" penalty from the same bare `report()` call, so both
+  sides of the assertion moved together; it now derives the expectation from
+  `parList(opt$par)`, and a new test asserts that `se` cannot move a reported
+  estimate.
+
 ## Experimental MSPL accepts probit and complementary log-log
 
 * `estimator = "mspl"` previously required `binomial(link = "logit")` exactly.
@@ -46,6 +71,28 @@ Template Model Builder.
   units from its own intercept; this removes a class of avoidable optimizer
   failures. Slopes still start at zero and the start remains deterministic and
   finite.
+
+## Boundary intervals are now flagged on every route
+
+* **`confint(method = "bootstrap")` warns at a variance-component or correlation
+  boundary** (class `drmTMB_bootstrap_boundary_warning`, `conf.status =
+  "bootstrap_at_boundary"`). The Wald and profile routes already flagged their
+  own boundary cases; bootstrap did not, which made it the one route that could
+  return a clean-looking interval for a target the other two warn about.
+  **Resampling does not repair a boundary** — a percentile interval whose draws
+  pile up at zero is reporting the constraint, not the sampling distribution.
+* The flag fires when at least 5% of retained resamples land on the bound, and
+  requires at least 20 retained draws, because a share computed from a handful
+  of resamples is noise rather than evidence. Calibration at `R = 200`: a true
+  SD of 0 put **43%** of draws on the bound; a true SD of 0.25 put **5%** there,
+  with a lower endpoint of exactly zero; a true SD of 0.9 put **none** there.
+* **`check_drm()` now states what it does not check.** It reads the fit, so a
+  random-effect SD comfortably clear of zero passes every fit-level check while
+  `confint()` still warns about that same target's interval — measured on a
+  10-group fit with an SD estimate of 0.1936, every check `ok`, and 43% of
+  bootstrap draws on the bound. A new `interval_reliability_scope` note records
+  that interval reliability is not assessed there and points at `conf.status`.
+  Previously that all-clear could reasonably be read as permission to report.
 
 ## Offsets in `mu` for every univariate family
 
@@ -206,6 +253,20 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   likelihood. It is not a general claim about other families, providers, or group
   counts, and 0.9248 against a nominal 0.95 is real undercoverage -- the package's
   small-sample floor is deliberately tapered with the group count for that reason.
+
+* **`REML = TRUE` improves this design without repairing it -- now measured.** Over
+  400,000 paired replicates on the same design and seeds, refitting with
+  `REML = TRUE` moved profile coverage from **0.9248** to **0.9463** against a
+  nominal 0.95, roughly halved the SD point estimate's downward bias (pooled
+  **-10.9%** under maximum likelihood to **-4.6%** under REML), and brought the
+  upper-to-lower miss asymmetry from **5.7:1** to **2.0:1** -- a better-centred
+  interval, not merely a wider one. Coverage conditional on the boundary flag
+  improved but stayed well below nominal (0.74 to 0.83), so the boundary warning
+  applies under either estimator. The maximum likelihood control arm of this
+  campaign reproduced the 400,000-attempt gate above to five decimal places. The
+  default estimator is unchanged, and this measurement covers the same single
+  design as the figures above. Evidence:
+  `docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/`.
 
 * The interval is still returned -- a boundary is a warning, not an auto-discard,
   matching the Wald path. Only usable intervals are flagged: `profile_failed` and

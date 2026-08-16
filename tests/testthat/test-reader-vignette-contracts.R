@@ -221,7 +221,7 @@ test_that("the live corpus has the complete immutable manifest", {
     c("vignette", "audience", "permitted_private_fields", "rationale")
   )
   source_vignettes <- basename(list.files(file.path(project_root, "vignettes"), pattern = "[.]Rmd$"))
-  expect_equal(nrow(manifest), 37L)
+  expect_equal(nrow(manifest), 38L)
   expect_identical(anyDuplicated(manifest$vignette), 0L)
   expect_setequal(manifest$vignette, source_vignettes)
   expect_length(contract_linter$reader_contract_lint(project_root), 0L)

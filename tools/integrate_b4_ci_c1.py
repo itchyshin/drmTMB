@@ -22,7 +22,14 @@ SOURCE_COMMIT = "574c1108e16e3b0fe4ba88e254a34673508db901"
 BASE_COMMIT = "7c3bc8b3f917b5d5c00099b1dee49ff5bbf70500"
 PACKET_SHA256 = "e7bfdd77ec92351df7ea0f7a874eba69e7f9aab9e8bcf6abc0c97b5bb7d97ef7"
 ALLOWLIST_SHA256 = "659f5a660c60dc48e67981406e9d9e68af9565b52fd19bf00f115bd715e4f907"
-B3_BASE_ROWS_SHA256 = "9fcd839a8f5f15d18016c0280193a5de928eae5af98f53e672948ce6fc71a7ac"
+# Re-frozen 2026-08-15 (was 9fcd839a8f5f15d18016c0280193a5de928eae5af98f53e672948ce6fc71a7ac).
+# The interval-claim truth audit appended the spatial fixed-range conditioning to
+# mc-0124's claim_boundary. This guard fired correctly, and the re-freeze was gated on
+# proving it masks nothing else: of the four B3 rows, mc-0102/mc-0146/mc-0168 are
+# byte-IDENTICAL to origin/main, and mc-0124 differs in claim_boundary ONLY, as a pure
+# append (new == old + the sentence). Tier, target, scale and evidence are unchanged.
+# Re-freeze a B3 row only after re-running that same field-level diff.
+B3_BASE_ROWS_SHA256 = "6650061119e741a9c16f8871c0b898ea7594d44cb205149e21dd0a769b9aaeb2"
 C1_CELL_ROWS_SHA256 = "396b4b9452c9408a3ec09dd440b3dc26dd42e4c64033e9375b487fc49032096a"
 # Identity (not full row) of the four hard-excluded neighbours. Their evidence-bearing
 # fields legitimately move under later arcs -- mc-0207 was split by Arc 4b and mc-0269

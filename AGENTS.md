@@ -3,8 +3,58 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
-> ship; `DESCRIPTION` is **0.7.0** on `main`).**
+> **▶ Latest — start here (2026-08-15, → CLAUDE; the CRAN lane's holds are DECIDABLE and the
+> REML arm is MEASURED; rung UNCHANGED at `tarball-clean`).**
+> Lane `claude/07-cran-ladder` @ `966039f17` (PR **#1039**, open; 10 commits, all docs +
+> `DESCRIPTION`). **Everything that now gates 0.7.0 is an OWNER decision:** the **D-93 decision
+> packet** is written, adversarially reviewed, and ends in one unanswered question
+> (nominal-exact bar vs the `g`-tapered floor 0.918) —
+> [`docs/dev-log/release-audits/2026-08-15-d93-decision-packet.md`](docs/dev-log/release-audits/2026-08-15-d93-decision-packet.md);
+> **D-117's four conditions are ALL MET** (condition 1 was already satisfied on `main` as
+> `8.3%-15.8%` in four user-facing places), so its discharge is a pure judgement call.
+> **The REML arm RAN on Totoro** (400,000 paired replicates, pre-registered, ML control
+> reproduced the banked 100k gate to five decimals): **NARROWS BUT DOES NOT CLOSE** — pooled
+> profile coverage 0.9248 → **0.9463** (CI excludes 0.95), SD bias −10.9% → −4.6%, miss asymmetry
+> 5.7:1 → 2.0:1. Caveat: run on the 0.6.0 campaign library. Evidence:
+> [`docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/VERDICT.md`](docs/dev-log/simulation-artifacts/2026-08-15-d117-reml-arm/VERDICT.md).
+> Also landed: **Gate 1 CLOSED** (component ledger rebuilt; the owed rights review of the
+> `drm_log_pnorm()` gllvmTMB borrowing is **CLEAR**, verified against a sibling checkout);
+> `main` bumped **`0.7.0` → `0.7.0.9000`** so it stops masquerading as the frozen candidate;
+> the bootstrap boundary flag (`bootstrap_at_boundary`, rescued from closed #959) re-landed as
+> PR **#1041**; superseded PRs #959/#955 closed. **Rung `tarball-clean` after every commit;
+> ledger + release evidence zero-diff.**
+> **⚡ SAME EVENING — BOTH OWNER HOLDS ARE LIFTED.** Shinichi: *"Reading B — lift D-93 with REML
+> stated"*, then *"also lift D-117"*. Records (each states exactly what is and is NOT
+> discharged; brain deltas STAGED, not written — D-37):
+> [`…/2026-08-15-d93-decision-reading-b.md`](docs/dev-log/release-audits/2026-08-15-d93-decision-reading-b.md) ·
+> [`…/2026-08-15-d117-discharge.md`](docs/dev-log/release-audits/2026-08-15-d117-discharge.md).
+> The "REML stated" condition is discharged by PR **#1042** (claim surfaces; default estimator
+> unchanged). The VERDICT's 0.6.0-library caveat is CLOSED — cell 4 re-run at 100k on a fresh
+> `origin/main` build matched to four decimals on every figure. D-117's conditions 1 and 4
+> (bias disclosure; boundary-caveat visibility) carry forward as standing documentation
+> obligations.
+> **⚡ LATER THE SAME NIGHT — MERGED AND RE-FROZEN (Shinichi: "merge all three PRs and start the
+> re-freeze").** #1041/#1042/#1039 merged in dependency order (+#1040 from the truth-audit lane,
+> deliberately included — it ships overclaim demotions); #1043 set `DESCRIPTION` to `0.7.0` at
+> the cut and posted the **QUIESCE** (no shipped-file merges to `main` until the platform matrix
+> completes — this binds #1033 and every other lane). **The SECOND candidate is FROZEN and
+> PROVEN at `tarball-clean`:** commit `302ac2579`, sha256 `0d150ef3…b95e075`, 10,087,906 bytes,
+> exact-bytes `--as-cran --run-donttest` = **1 NOTE (New submission) only**; new fail-closed
+> ledger `docs/dev-log/release-audits/2026-08-15-070-cran-release-ledger-2.json` READY, its
+> `platform-clean` probe NOT READY (negative control run). Evidence:
+> [`docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/FREEZE-NOTES.md`](docs/dev-log/release/0.7.0-cran-gate/candidate-302ac2579/FREEZE-NOTES.md)
+> (#1044, merged). The 2026-08-11 candidate is predecessor evidence only. **NEXT = the platform
+> matrix against exactly these bytes** — 3-OS, R-hub sanitizers, valgrind, and **win-builder
+> (Shinichi's action)** — then the Gate 7 Grace/Rose/Pat panel, then his submission call.
+> `status_claim` stays `tarball-clean`; do not advance it without `platform_matrix` +
+> `external_logs` for THIS artifact. **Multi-lane:** this pointer is ONE lane; see the board's Active-Lane-Split,
+> [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+> START HERE:
+> [`docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md`](docs/dev-log/handover/2026-08-15-070-cran-ladder-close-claude-handover.md)
+> (its "Next Immediate Steps" §2 is now resolved by the two decision records above).
+>
+> **▶ Prior (2026-08-11, → CODEX; the CRAN gate now names the package we intend to
+> ship; `DESCRIPTION` was **0.7.0** on `main` — bumped to `0.7.0.9000` on 2026-08-15).**
 > `main` = `511a7a390`. **Rung UNCHANGED and that is the point: `tarball-clean` proven,
 > `platform-clean` unproven.** Eight PRs merged today advanced the *record*, not the *claim*.
 > **The defect fixed:** the repo's only machine-checkable release gate still described the
@@ -16,8 +66,13 @@ regression using Template Model Builder.
 > a CRAN release drmTMB has not had; **all 42 open issues triaged — 0 BLOCKING**; the one
 > user-surface defect (#983 estimator round-trip) fixed with four limitations documented; C17
 > re-certified (behaviour reproduced **exactly**, `|change| 0.000e+00`).
-> **⚠ The candidate no longer matches `main`** (`NEWS.md` + today's source fixes are shipped files),
-> so **a re-freeze is required before submission**.
+> **⚠ The candidate no longer matches `main`** — **60 shipped files** differ as of 2026-08-15,
+> including `src/drmTMB.cpp` (#1012), while `DESCRIPTION` still reads `Version: 0.7.0`. A re-freeze
+> is required before submission, but **Shinichi decided 2026-08-15 NOT to re-freeze yet**: the
+> release is held by D-93/D-117 anyway, so the new platform-matrix campaign the moved `src/` forces
+> should run **once**, against the bytes that will actually ship. Do not build an ad-hoc tarball from
+> `main` and treat it as the candidate. Conditions for the next freeze:
+> [`docs/dev-log/release-audits/2026-08-15-070-refreeze-timing-decision.md`](docs/dev-log/release-audits/2026-08-15-070-refreeze-timing-decision.md).
 > **What gates the release is NOT engineering:** **D-93** holds 0.7.0 undischarged; **D-117**
 > measured 0.9248 over 400,000 attempts with discharge **RECOMMENDED, NOT DECIDED**; **win-builder is
 > ABSENT** (Shinichi's action); the rights re-review and source-clean re-cut are owed.

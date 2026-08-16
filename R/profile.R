@@ -200,7 +200,7 @@
 #' \emph{First-week intervals: fit, profile, and boundary}.
 #'
 #' @section Boundary intervals:
-#' Both interval methods are unreliable when a variance component approaches zero
+#' Every interval method is unreliable when a variance component approaches zero
 #' or a correlation approaches `+/-1`, and each warns about its own case.
 #'
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
@@ -222,6 +222,16 @@
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
 #'
+#' Refitting the same design with `REML = TRUE` improved this without repairing
+#' it: over 400,000 paired replicates, profile coverage moved from 0.9248 to
+#' 0.9463 against a nominal 0.95, the SD point estimate's downward bias roughly
+#' halved (pooled -10.9% under maximum likelihood to -4.6% under REML), and the
+#' upper-to-lower miss asymmetry fell from 5.7:1 to 2.0:1. Coverage conditional
+#' on the boundary flag improved but stayed well below nominal (0.74 to 0.83),
+#' so a flagged interval remains the bad case under either estimator. The
+#' default estimator is unchanged; this measurement covers the one design below
+#' only.
+#'
 #' This is a property of profile intervals near a variance boundary rather than of
 #' `drmTMB`: `lme4::lmer` on the same data-generating process and seeds agreed on
 #' boundary incidence for 4000/4000 replicates and matched the conditional coverage
@@ -233,9 +243,26 @@
 #' describe that corner, and are not a general statement about every family,
 #' provider, or group count.
 #'
+#' `method = "bootstrap"` flags a row with `conf.status = "bootstrap_at_boundary"`
+#' and warns (class `drmTMB_bootstrap_boundary_warning`) when at least 5% of the
+#' retained resamples land on the target's bound. Resampling does not repair a
+#' boundary: a percentile interval whose draws pile up at zero is reporting the
+#' constraint rather than the sampling distribution. Measured on three Gaussian
+#' random-intercept fits at `R = 200`, a true SD of 0 put 43% of draws on the
+#' bound and a true SD of 0.25 put 5% there with a lower endpoint of exactly
+#' zero, while a true SD of 0.9 put none there. The flag needs at least 20
+#' retained draws to fire, because a share computed from a handful of resamples
+#' is noise; `bootstrap.n` reports how many were retained.
+#'
 #' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
 #' `profile.boundary = TRUE`, but return missing endpoints and are not warned about
 #' separately; read their `conf.status` and `profile.message` instead.
+#'
+#' `check_drm()` does **not** assess any of this. It reads the fit, so a target
+#' whose point estimate sits well clear of zero passes every fit-level check
+#' while its interval is still flagged here. `check_drm()` emits an
+#' `interval_reliability_scope` note saying so; read `conf.status` before
+#' reporting an interval.
 #'
 #' @section Profiling a structured `sigma` random-effect SD:
 #' A profile of a `sigma`-axis random-effect SD under `phylo()`, `animal()`,
@@ -480,7 +507,9 @@ confint.drmTMB <- function(
       parallel = bootstrap_parallel,
       workers = workers,
       refit_control = refit_control,
-      re_form = bootstrap_re_form
+      re_form = bootstrap_re_form,
+      sd_boundary = sd_boundary,
+      rho_boundary = rho_boundary
     ))
   }
 
@@ -2467,6 +2496,52 @@ wald_boundary_targets <- function(
     (is_correlation & finite & abs(estimate) > rho_boundary)
 }
 
+# Fraction of retained bootstrap draws sitting on the target's bound: zero for a
+# random-effect or structured SD, +/-1 for a correlation. Residual and
+# distributional scales are regular and never flagged, matching
+# `wald_boundary_targets()`.
+bootstrap_boundary_share_at <- function(
+  values,
+  target,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98
+) {
+  values <- values[is.finite(values)]
+  if (length(values) < bootstrap_boundary_min_draws) {
+    return(0)
+  }
+  target_class <- target$target_class
+  if (grepl("-sd$", target_class)) {
+    return(mean(values < sd_boundary))
+  }
+  if (grepl("correlation", target_class)) {
+    return(mean(abs(values) > rho_boundary))
+  }
+  0
+}
+
+# A percentile interval built from draws that repeatedly hit the bound is
+# reporting the bound, not the sampling distribution. Calibrated against three
+# Gaussian random-intercept fits at R = 200, measuring the share of retained
+# draws with SD < `sd_boundary` and the resulting interval:
+#
+#   true SD 0.00   43.0% at bound   [0.000, 0.496]   flag
+#   true SD 0.25    5.0% at bound   [0.000, 0.248]   flag -- endpoint IS the bound
+#   true SD 0.90    0.0% at bound   [0.667, 1.162]   quiet
+#
+# One in twenty separates the two regimes: at 5% the lower endpoint has already
+# collapsed to zero, and at 0% it has not. The middle case is a true positive,
+# not over-warning -- reporting "[0, 0.248]" for a standard deviation without
+# saying the lower end is a constraint is exactly the failure this guards.
+bootstrap_boundary_share <- 0.05
+
+# A share is only a statistic when there are draws to compute it from. At
+# `R = 2` a single boundary draw reads as 50%, which is noise, not evidence --
+# the plumbing tests in `test-profile-targets.R` deliberately run that small.
+# Below this many retained draws the flag stays silent; `bootstrap.n` is already
+# reported on every row, so a caller who used too few replicates can see it.
+bootstrap_boundary_min_draws <- 20L
+
 drm_bootstrap_confint <- function(
   object,
   targets,
@@ -2476,7 +2551,9 @@ drm_bootstrap_confint <- function(
   parallel,
   workers,
   refit_control,
-  re_form = NULL
+  re_form = NULL,
+  sd_boundary = 1e-4,
+  rho_boundary = 0.98
 ) {
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
@@ -2536,6 +2613,12 @@ drm_bootstrap_confint <- function(
 
   probs <- c((1 - level) / 2, (1 + level) / 2)
   intervals <- vector("list", nrow(targets))
+  # Share of retained resamples that collapsed onto the parameter's bound. This
+  # is the bootstrap's own boundary signal: the Wald test reads the point
+  # estimate and the profile test discovers the bound while profiling, so
+  # neither is available or appropriate here. A percentile interval whose draws
+  # pile up at zero is reporting the bound, not the sampling distribution.
+  boundary_fraction <- rep(0, nrow(targets))
   for (i in seq_len(nrow(targets))) {
     target <- targets[i, , drop = FALSE]
     target_index <- draws$parm == target$parm
@@ -2560,6 +2643,16 @@ drm_bootstrap_confint <- function(
       lower <- qs[[1L]]
       upper <- qs[[2L]]
       status <- "bootstrap"
+      # Test on the NATURAL scale, not `draw_values`: the latter is the link
+      # scale whenever the percentile is taken there, and "an SD near zero" is
+      # only meaningful untransformed. This matches `wald_boundary_targets()`,
+      # which reads `targets$estimate`.
+      boundary_fraction[[i]] <- bootstrap_boundary_share_at(
+        target_draws$estimate[finite],
+        target,
+        sd_boundary = sd_boundary,
+        rho_boundary = rho_boundary
+      )
       message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
     }
     intervals[[i]] <- data.frame(
@@ -2585,6 +2678,33 @@ drm_bootstrap_confint <- function(
   }
   out <- do.call(rbind, intervals)
   row.names(out) <- NULL
+
+  # A resampled interval is no more trustworthy at a variance-component or
+  # correlation boundary than a Wald or profile one; percentile bootstrap on a
+  # parameter pinned near its bound inherits the same conditional
+  # undercoverage. The Wald and profile routes each flag this, so leaving the
+  # bootstrap route silent made it the one unguarded way to obtain a
+  # clean-looking boundary interval for a target the other two warn about.
+  # The boundary test is a property of the FIT, not of the interval method, so
+  # the same detector serves all three routes.
+  at_boundary <- !is.na(out$conf.status) &
+    out$conf.status == "bootstrap" &
+    is.finite(out$lower) &
+    is.finite(out$upper) &
+    boundary_fraction >= bootstrap_boundary_share
+  out$conf.status[at_boundary] <- "bootstrap_at_boundary"
+  if (any(at_boundary)) {
+    n_boundary <- sum(at_boundary)
+    cli::cli_warn(
+      c(
+        "{cli::qty(n_boundary)}Bootstrap interval{?s} for {.val {out$parm[at_boundary]}} {?is/are} at a variance-component or correlation boundary.",
+        "!" = "{cli::qty(n_boundary)}Bootstrap coverage is unreliable there, so {?this interval is/these intervals are} not a reliable {.arg level} interval.",
+        "i" = "See the {.strong Boundary intervals} section of {.code ?confint.drmTMB}. Resampling does not repair a boundary."
+      ),
+      class = "drmTMB_bootstrap_boundary_warning"
+    )
+  }
+
   attr(out, "bootstrap.diagnostics") <- draws
   out
 }

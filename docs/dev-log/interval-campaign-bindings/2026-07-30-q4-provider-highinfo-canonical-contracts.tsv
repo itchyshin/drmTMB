@@ -1,0 +1,13 @@
+cell_id	target_id	dgp_id	provider	true_parameter_scale	profile_parameter	seed	execution_information_rung	contract_state	execution_authority
+mc-0115	mc-0115::sd:mu:mu1:spatial(1 | p | site)	lane_b_spatial_q4_all_four_highinfo_v1	spatial	0.55 response-location SD	sd:mu:mu1:spatial(1 | p | site)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0116	mc-0116::sd:mu:mu2:spatial(1 | p | site)	lane_b_spatial_q4_all_four_highinfo_v1	spatial	0.50 response-location SD	sd:mu:mu2:spatial(1 | p | site)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0117	mc-0117::sd:mu:sigma1:spatial(1 | p | site)	lane_b_spatial_q4_all_four_highinfo_v1	spatial	0.40 residual-scale SD	sd:mu:sigma1:spatial(1 | p | site)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0118	mc-0118::sd:mu:sigma2:spatial(1 | p | site)	lane_b_spatial_q4_all_four_highinfo_v1	spatial	0.35 residual-scale SD	sd:mu:sigma2:spatial(1 | p | site)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0137	mc-0137::sd:mu:mu1:animal(1 | p | id)	lane_b_animal_q4_all_four_highinfo_v1	animal	0.55 response-location SD	sd:mu:mu1:animal(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0138	mc-0138::sd:mu:mu2:animal(1 | p | id)	lane_b_animal_q4_all_four_highinfo_v1	animal	0.50 response-location SD	sd:mu:mu2:animal(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0139	mc-0139::sd:mu:sigma1:animal(1 | p | id)	lane_b_animal_q4_all_four_highinfo_v1	animal	0.40 residual-scale SD	sd:mu:sigma1:animal(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0140	mc-0140::sd:mu:sigma2:animal(1 | p | id)	lane_b_animal_q4_all_four_highinfo_v1	animal	0.35 residual-scale SD	sd:mu:sigma2:animal(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0159	mc-0159::sd:mu:mu1:relmat(1 | p | id)	lane_b_relmat_q4_all_four_highinfo_v1	relmat	0.55 response-location SD	sd:mu:mu1:relmat(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0160	mc-0160::sd:mu:mu2:relmat(1 | p | id)	lane_b_relmat_q4_all_four_highinfo_v1	relmat	0.50 response-location SD	sd:mu:mu2:relmat(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0161	mc-0161::sd:mu:sigma1:relmat(1 | p | id)	lane_b_relmat_q4_all_four_highinfo_v1	relmat	0.40 residual-scale SD	sd:mu:sigma1:relmat(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE
+mc-0162	mc-0162::sd:mu:sigma2:relmat(1 | p | id)	lane_b_relmat_q4_all_four_highinfo_v1	relmat	0.35 residual-scale SD	sd:mu:sigma2:relmat(1 | p | id)	20260730	high_information	targetwise_direct_profile	TRUE

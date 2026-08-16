@@ -1,0 +1,251 @@
+{
+ "pass": [
+  "mc-0005",
+  "mc-0007",
+  "mc-0012",
+  "mc-0059",
+  "mc-0083",
+  "mc-0084",
+  "mc-0089",
+  "mc-0090",
+  "mc-0091",
+  "mc-0092",
+  "mc-0101",
+  "mc-0107",
+  "mc-0108",
+  "mc-0109",
+  "mc-0110",
+  "mc-0129",
+  "mc-0130",
+  "mc-0135",
+  "mc-0136",
+  "mc-0137",
+  "mc-0138",
+  "mc-0139",
+  "mc-0140",
+  "mc-0145",
+  "mc-0151",
+  "mc-0152",
+  "mc-0157",
+  "mc-0158",
+  "mc-0159",
+  "mc-0160",
+  "mc-0161",
+  "mc-0162",
+  "mc-0167",
+  "mc-0184",
+  "mc-0185",
+  "mc-0201",
+  "mc-0208",
+  "mc-0209",
+  "mc-0212",
+  "mc-0213",
+  "mc-0214",
+  "mc-0215",
+  "mc-0225",
+  "mc-0251",
+  "mc-0265",
+  "mc-0267",
+  "mc-0270",
+  "mc-0271",
+  "mc-0380",
+  "mc-0386",
+  "mc-0388",
+  "mc-0401",
+  "mc-0402",
+  "mc-0403",
+  "mc-0405",
+  "mc-0406",
+  "mc-0407",
+  "mc-0408",
+  "mc-0410",
+  "mc-0411",
+  "mc-0412",
+  "mc-0413",
+  "mc-0429",
+  "mc-0431",
+  "mc-0434",
+  "mc-0435",
+  "mc-0440",
+  "mc-0441",
+  "mc-0447",
+  "mc-0448",
+  "mc-0451",
+  "mc-0452",
+  "mc-0463",
+  "mc-0511",
+  "mc-0538",
+  "mc-0567",
+  "mc-0674"
+ ],
+ "fail": [
+  {
+   "cell": "mc-0113",
+   "worst": 0.21554339349235785,
+   "rows": [
+    {
+     "cell": "mc-0113",
+     "target": "mc-0113::sd:mu:sigma1:spatial(1 | ps | site)",
+     "truth": 0.45,
+     "lo": 0.546994527071561,
+     "hi": 1.34829816015723,
+     "seed": "",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 0.21554339349235785,
+     "truth_str": "0.45 on response-scale sigma1 spatial SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0114",
+   "worst": 0.692128566995765,
+   "rows": [
+    {
+     "cell": "mc-0114",
+     "target": "mc-0114::sd:mu:sigma2:spatial(1 | ps | site)",
+     "truth": 0.4,
+     "lo": 0.676851426798306,
+     "hi": 1.64226109438002,
+     "seed": "",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 0.692128566995765,
+     "truth_str": "0.40 on response-scale sigma2 spatial SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0115",
+   "worst": 2.2237943585746907,
+   "rows": [
+    {
+     "cell": "mc-0115",
+     "target": "mc-0115::sd:mu:mu1:spatial(1 | p | site)",
+     "truth": 0.55,
+     "lo": 1.77308689721608,
+     "hi": 2.67650524282449,
+     "seed": "",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 2.2237943585746907,
+     "truth_str": "0.55 response-location SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0116",
+   "worst": 2.35225877193682,
+   "rows": [
+    {
+     "cell": "mc-0116",
+     "target": "mc-0116::sd:mu:mu2:spatial(1 | p | site)",
+     "truth": 0.5,
+     "lo": 1.67612938596841,
+     "hi": 2.54421734354165,
+     "seed": "",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 2.35225877193682,
+     "truth_str": "0.50 response-location SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0117",
+   "worst": 1.3223924260882498,
+   "rows": [
+    {
+     "cell": "mc-0117",
+     "target": "mc-0117::sd:mu:sigma1:spatial(1 | p | site)",
+     "truth": 0.4,
+     "lo": 0.9289569704353,
+     "hi": 1.84328869330678,
+     "seed": "",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 1.3223924260882498,
+     "truth_str": "0.40 residual-scale SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0118",
+   "worst": 0.7350884956086288,
+   "rows": [
+    {
+     "cell": "mc-0118",
+     "target": "mc-0118::sd:mu:sigma2:spatial(1 | p | site)",
+     "truth": 0.35,
+     "lo": 0.60728097346302,
+     "hi": 1.30953043376569,
+     "seed": "",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 0.7350884956086288,
+     "truth_str": "0.35 residual-scale SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0248",
+   "worst": 0.9899836671328449,
+   "rows": [
+    {
+     "cell": "mc-0248",
+     "target": "mc-0248::sd:mu:relmat(1 | id)",
+     "truth": 0.5,
+     "lo": 0.397996733426569,
+     "hi": 0.664258394694467,
+     "seed": "20260727",
+     "scale": "response",
+     "brackets": true,
+     "rel_miss": 0.0,
+     "truth_str": "0.50 on Gamma log-mu relatedness SD"
+    },
+    {
+     "cell": "mc-0248",
+     "target": "mc-0248::sd:mu:relmat(0 + x | id)",
+     "truth": 0.2,
+     "lo": 0.397996733426569,
+     "hi": 0.664258394694467,
+     "seed": "20260727",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 0.9899836671328449,
+     "truth_str": "0.20 on Gamma log-mu relatedness slope SD"
+    }
+   ]
+  },
+  {
+   "cell": "mc-0494",
+   "worst": 0.5272295510033098,
+   "rows": [
+    {
+     "cell": "mc-0494",
+     "target": "mc-0494::sd:mu:spatial(1 | id)",
+     "truth": 0.25,
+     "lo": 0.37444427169264,
+     "hi": 0.639743383531393,
+     "seed": "2026072902",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 0.49777708677056,
+     "truth_str": "0.25 on Student response-location spatial intercept SD"
+    },
+    {
+     "cell": "mc-0494",
+     "target": "mc-0494::sd:mu:spatial(0 + x | id)",
+     "truth": 0.2,
+     "lo": 0.305445910200662,
+     "hi": 0.528240188988605,
+     "seed": "2026072902",
+     "scale": "response",
+     "brackets": false,
+     "rel_miss": 0.5272295510033098,
+     "truth_str": "0.20 on Student response-location spatial slope SD"
+    }
+   ]
+  }
+ ]
+}

@@ -92,6 +92,7 @@
       "diagnostic_only",
       "inference_ready_with_caveats",
       "interval_feasible",
+      "legacy_fit_supported",
       "miswired",
       "na",
       "none",

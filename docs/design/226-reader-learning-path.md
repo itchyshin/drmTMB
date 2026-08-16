@@ -1,4 +1,4 @@
-# 226 — One canonical reader learning path across 37 vignettes
+# 226 — One canonical reader learning path across 38 vignettes
 
 ## 1. The problem
 
@@ -35,9 +35,10 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 37 vignettes after the
-location-scale tutorial was split into two shorter parts and the first-week
-interval and bivariate non-Gaussian routes were added.
+The synchronized placement table below now contains 38 vignettes after the
+location-scale tutorial was split into two shorter parts, the first-week
+interval and bivariate non-Gaussian routes were added, and the comparator
+article was placed under stage 5.
 
 ## 2. The canonical sequence
 
@@ -85,7 +86,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-37 rows. Role legend: **tutorial** = worked biological example with fitted
+38 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -131,13 +132,14 @@ path.
 | 31 | `testing-likelihoods` | Developer track | developer | Documents the likelihood-comparator test harness used to validate new families against reference implementations. |
 | 32 | `implementation-map` | 2. Choose your family | guide | **Corrected in §9 — reverted to the applied path.** It opens "This map answers one practical question: what model surface can an applied user…", and `model-map` links to it from four places (`model-map.Rmd:38,53,152,157`). Reclassifying it developer-only would break live cross-links from an applied guide and hide the page readers are explicitly sent to. |
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
+| 34 | `comparing-with-other-packages` | 5. Uncertainty & inference boundaries | guide | Fits eight models drmTMB shares with `lme4`, `glmmTMB`, `metafor` and `ordinal`, and shows the estimates agreeing on matched scales. Read when the question is "should I trust this package", after the reader can already fit and interpret a model. States which comparisons are independent engines and which share drmTMB's TMB stack. |
 
-Total: 37 placed. Stage counts **after the §9 corrections**: **1. First fit**
+Total: 38 placed. Stage counts **after the §9 corrections**: **1. First fit**
 = 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 9 ·
 **Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
-**5. Uncertainty & inference boundaries** = 4 · **6. Honest limitations** = 1
+**5. Uncertainty & inference boundaries** = 5 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-4 + 4 + 9 + 3 + 7 + 4 + 1 + 5 = 37.
+4 + 4 + 9 + 3 + 7 + 5 + 1 + 5 = 38.
 
 Two rows deserve a placement note beyond the reason column:
 

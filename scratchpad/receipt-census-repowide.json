@@ -1,0 +1,933 @@
+{
+"have": [
+"mc-0005",
+"mc-0007",
+"mc-0012",
+"mc-0059",
+"mc-0083",
+"mc-0084",
+"mc-0089",
+"mc-0090",
+"mc-0091",
+"mc-0092",
+"mc-0101",
+"mc-0102",
+"mc-0107",
+"mc-0108",
+"mc-0109",
+"mc-0110",
+"mc-0113",
+"mc-0114",
+"mc-0115",
+"mc-0116",
+"mc-0117",
+"mc-0118",
+"mc-0124",
+"mc-0129",
+"mc-0130",
+"mc-0131",
+"mc-0132",
+"mc-0135",
+"mc-0136",
+"mc-0137",
+"mc-0138",
+"mc-0139",
+"mc-0140",
+"mc-0145",
+"mc-0146",
+"mc-0151",
+"mc-0152",
+"mc-0157",
+"mc-0158",
+"mc-0159",
+"mc-0160",
+"mc-0161",
+"mc-0162",
+"mc-0167",
+"mc-0168",
+"mc-0184",
+"mc-0185",
+"mc-0187",
+"mc-0188",
+"mc-0199",
+"mc-0201",
+"mc-0203",
+"mc-0204",
+"mc-0208",
+"mc-0209",
+"mc-0212",
+"mc-0213",
+"mc-0214",
+"mc-0215",
+"mc-0216",
+"mc-0217",
+"mc-0218",
+"mc-0219",
+"mc-0225",
+"mc-0248",
+"mc-0251",
+"mc-0265",
+"mc-0267",
+"mc-0270",
+"mc-0271",
+"mc-0280",
+"mc-0281",
+"mc-0282",
+"mc-0293",
+"mc-0294",
+"mc-0297",
+"mc-0300",
+"mc-0305",
+"mc-0306",
+"mc-0312",
+"mc-0317",
+"mc-0318",
+"mc-0380",
+"mc-0386",
+"mc-0388",
+"mc-0401",
+"mc-0402",
+"mc-0403",
+"mc-0405",
+"mc-0406",
+"mc-0407",
+"mc-0408",
+"mc-0410",
+"mc-0411",
+"mc-0412",
+"mc-0413",
+"mc-0429",
+"mc-0431",
+"mc-0434",
+"mc-0435",
+"mc-0440",
+"mc-0441",
+"mc-0447",
+"mc-0448",
+"mc-0451",
+"mc-0452",
+"mc-0463",
+"mc-0494",
+"mc-0511",
+"mc-0538",
+"mc-0567",
+"mc-0568",
+"mc-0576",
+"mc-0595",
+"mc-0596",
+"mc-0653",
+"mc-0672",
+"mc-0674"
+],
+"none": [
+"as-0001",
+"as-0002",
+"as-0003",
+"as-0004",
+"as-0005",
+"as-0006",
+"mc-0001",
+"mc-0003",
+"mc-0017",
+"mc-0025",
+"mc-0027",
+"mc-0029",
+"mc-0031",
+"mc-0057",
+"mc-0061",
+"mc-0069",
+"mc-0070",
+"mc-0085",
+"mc-0086",
+"mc-0153",
+"mc-0154",
+"mc-0177",
+"mc-0178",
+"mc-0179",
+"mc-0180",
+"mc-0181",
+"mc-0210",
+"mc-0211",
+"mc-0223",
+"mc-0236",
+"mc-0238",
+"mc-0240",
+"mc-0242",
+"mc-0244",
+"mc-0264",
+"mc-0268",
+"mc-0272",
+"mc-0276",
+"mc-0285",
+"mc-0287",
+"mc-0299",
+"mc-0301",
+"mc-0309",
+"mc-0311",
+"mc-0313",
+"mc-0326",
+"mc-0342",
+"mc-0358",
+"mc-0374",
+"mc-0376",
+"mc-0378",
+"mc-0382",
+"mc-0397",
+"mc-0398",
+"mc-0427",
+"mc-0456",
+"mc-0458",
+"mc-0464",
+"mc-0484",
+"mc-0485",
+"mc-0486",
+"mc-0487",
+"mc-0488",
+"mc-0508",
+"mc-0509",
+"mc-0510",
+"mc-0531",
+"mc-0533",
+"mc-0535",
+"mc-0539",
+"mc-0559",
+"mc-0560",
+"mc-0561",
+"mc-0562",
+"mc-0575",
+"mc-0623",
+"mc-0625",
+"mc-0627",
+"mc-0657",
+"mc-0663",
+"mr-beta",
+"mr-beta-binomial",
+"mr-binomial",
+"mr-biv-gaussian",
+"mr-cumulative-logit-mu-x",
+"mr-gamma",
+"mr-gaussian",
+"mr-lognormal",
+"mr-skew-normal",
+"mr-tweedie",
+"mr-zero-one-beta",
+"mr-zi-poisson"
+],
+"seeds": {
+"mc-0005": [
+"20260728"
+],
+"mc-0007": [
+"20260621"
+],
+"mc-0012": [
+"2026070401"
+],
+"mc-0059": [
+"20260728"
+],
+"mc-0083": [
+"4"
+],
+"mc-0084": [
+"4"
+],
+"mc-0089": [
+"823001"
+],
+"mc-0090": [
+"823001"
+],
+"mc-0091": [],
+"mc-0092": [],
+"mc-0101": [],
+"mc-0102": [
+"20260731"
+],
+"mc-0107": [
+"20260727"
+],
+"mc-0108": [
+"20260727"
+],
+"mc-0109": [
+"302"
+],
+"mc-0110": [
+"302"
+],
+"mc-0113": [],
+"mc-0114": [],
+"mc-0115": [],
+"mc-0116": [],
+"mc-0117": [],
+"mc-0118": [],
+"mc-0124": [
+"20260731"
+],
+"mc-0129": [
+"20260727"
+],
+"mc-0130": [
+"20260727"
+],
+"mc-0131": [
+"2026072901"
+],
+"mc-0132": [
+"2026072901"
+],
+"mc-0135": [],
+"mc-0136": [],
+"mc-0137": [],
+"mc-0138": [],
+"mc-0139": [],
+"mc-0140": [],
+"mc-0145": [],
+"mc-0146": [
+"20260731"
+],
+"mc-0151": [
+"20260727"
+],
+"mc-0152": [
+"20260727"
+],
+"mc-0157": [],
+"mc-0158": [],
+"mc-0159": [],
+"mc-0160": [],
+"mc-0161": [],
+"mc-0162": [],
+"mc-0167": [],
+"mc-0168": [
+"20260731"
+],
+"mc-0184": [
+"3"
+],
+"mc-0185": [
+"3"
+],
+"mc-0187": [
+"2026051306"
+],
+"mc-0188": [
+"2026051306"
+],
+"mc-0199": [
+"20260727"
+],
+"mc-0201": [
+"20260727"
+],
+"mc-0203": [
+"2"
+],
+"mc-0204": [
+"2"
+],
+"mc-0208": [
+"4"
+],
+"mc-0209": [
+"4"
+],
+"mc-0212": [
+"3"
+],
+"mc-0213": [
+"3"
+],
+"mc-0214": [
+"3"
+],
+"mc-0215": [
+"3"
+],
+"mc-0216": [
+"202"
+],
+"mc-0217": [
+"202"
+],
+"mc-0218": [
+"202"
+],
+"mc-0219": [
+"202"
+],
+"mc-0225": [
+"9"
+],
+"mc-0248": [
+"20260727"
+],
+"mc-0251": [
+"2026072801"
+],
+"mc-0265": [
+"1001"
+],
+"mc-0267": [
+"1"
+],
+"mc-0270": [
+"20260621"
+],
+"mc-0271": [
+"238"
+],
+"mc-0280": [
+"2026072932"
+],
+"mc-0281": [
+"2026072932"
+],
+"mc-0282": [
+"101",
+"202",
+"303",
+"404",
+"505"
+],
+"mc-0293": [
+"2026072935"
+],
+"mc-0294": [
+"2026072935"
+],
+"mc-0297": [
+"2026072903"
+],
+"mc-0300": [
+"2026072903"
+],
+"mc-0305": [
+"2026072937"
+],
+"mc-0306": [
+"2026072937"
+],
+"mc-0312": [
+"2026072903"
+],
+"mc-0317": [
+"2026072939"
+],
+"mc-0318": [
+"2026072939"
+],
+"mc-0380": [
+"20260621"
+],
+"mc-0386": [
+"20260727"
+],
+"mc-0388": [
+"2026072802"
+],
+"mc-0401": [
+"20260628"
+],
+"mc-0402": [
+"20260621"
+],
+"mc-0403": [
+"20260642"
+],
+"mc-0405": [
+"20260641"
+],
+"mc-0406": [
+"2026052802"
+],
+"mc-0407": [
+"2026052802"
+],
+"mc-0408": [
+"2026052802"
+],
+"mc-0410": [
+"76003201"
+],
+"mc-0411": [
+"76003202"
+],
+"mc-0412": [
+"76003203"
+],
+"mc-0413": [
+"76003204"
+],
+"mc-0429": [
+"20260619"
+],
+"mc-0431": [
+"20260621"
+],
+"mc-0434": [
+"20260641"
+],
+"mc-0435": [
+"76003205"
+],
+"mc-0440": [
+"2026052801"
+],
+"mc-0441": [
+"76003206"
+],
+"mc-0447": [
+"2026052801"
+],
+"mc-0448": [
+"76003207"
+],
+"mc-0451": [
+"2026052801"
+],
+"mc-0452": [
+"76003208"
+],
+"mc-0463": [
+"20260712"
+],
+"mc-0494": [
+"2026072902"
+],
+"mc-0511": [
+"20260621"
+],
+"mc-0538": [
+"20260712"
+],
+"mc-0567": [
+"7"
+],
+"mc-0568": [
+"21260806",
+"21260807",
+"21260808",
+"21260809",
+"21260810"
+],
+"mc-0576": [
+"22260806",
+"22260807",
+"22260808",
+"22260809",
+"22260810"
+],
+"mc-0595": [
+"25260806",
+"25260807",
+"25260808",
+"25260809",
+"25260810"
+],
+"mc-0596": [
+"26260806",
+"26260807",
+"26260808",
+"26260809",
+"26260810"
+],
+"mc-0653": [
+"34260806",
+"34260807",
+"34260808",
+"34260809",
+"34260810"
+],
+"mc-0672": [
+"20260727"
+],
+"mc-0674": [
+"20260727"
+]
+},
+"files": {
+"mc-0005": [
+"docs/dev-log/interval-feasibility/results/093b25ece/ordinary-intercept-profile-gate/mc-0005/lane-b-ordinary-intercept-profile-mc-0005-low-seed-20260728-trace.tsv"
+],
+"mc-0007": [
+"docs/dev-log/interval-feasibility/results/b25378b2f/ordinary-slope-profile-gate/mc-0007/lane-b-ordinary-slope-profile-mc-0007-low-seed-20260621-trace.tsv"
+],
+"mc-0012": [
+"docs/dev-log/interval-feasibility/results/7755a8bf539b10d12f353c536d06d04855469533/q1-expanded-whole-cell/mc-0012/lane-b-q1-expanded-profile-mc-0012-sd-mu-animal-1-id--low-seed-2026070401-trace.tsv"
+],
+"mc-0059": [
+"docs/dev-log/interval-feasibility/results/093b25ece/ordinary-intercept-profile-gate/mc-0059/lane-b-ordinary-intercept-profile-mc-0059-low-seed-20260728-trace.tsv"
+],
+"mc-0083": [
+"docs/dev-log/interval-feasibility/results/6db76e7cbe73ff3cbdf75326d61e261492f6cd3b/phylo-q2-canonical/mc-0083/lane-b-phylo-q2-canonical-profile-mc-0083-low-seed-4-trace.tsv"
+],
+"mc-0084": [
+"docs/dev-log/interval-feasibility/results/6db76e7cbe73ff3cbdf75326d61e261492f6cd3b/phylo-q2-canonical/mc-0084/lane-b-phylo-q2-canonical-profile-mc-0084-low-seed-4-trace.tsv"
+],
+"mc-0089": [
+"docs/dev-log/interval-feasibility/results/d3e07016d9f563876297af80a5047649dcc919f9/q2plus-phylo/mc-0089/lane-b-q2plus-phylo-profile-mc-0089-low-seed-823001-trace.tsv"
+],
+"mc-0090": [
+"docs/dev-log/interval-feasibility/results/d3e07016d9f563876297af80a5047649dcc919f9/q2plus-phylo/mc-0090/lane-b-q2plus-phylo-profile-mc-0090-low-seed-823001-trace.tsv"
+],
+"mc-0091": [
+"docs/dev-log/interval-feasibility/results/6da7d9991e56f8112e5fa078664cd7a2f88f549b/q2plus-phylo-scale/mc-0091/trace.tsv"
+],
+"mc-0092": [
+"docs/dev-log/interval-feasibility/results/6da7d9991e56f8112e5fa078664cd7a2f88f549b/q2plus-phylo-scale/mc-0092/trace.tsv"
+],
+"mc-0101": [
+"docs/dev-log/interval-feasibility/results/b3d3259f9d19714eebc45fb6e34a3cef4d51f5b0/q6-provider-highinfo/mc-0101/trace.tsv"
+],
+"mc-0102": [
+"docs/dev-log/interval-feasibility/results/a8d068e641105473b3f30723a92c909467a46fac/b2-q6-proof-profile/mc-0102/b2-q6-proof-mc-0102-high-seed-20260731-trace.tsv"
+],
+"mc-0107": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0107/lane-b-q2-production-profile-mc-0107-low-seed-20260727-trace.tsv"
+],
+"mc-0108": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0108/lane-b-q2-production-profile-mc-0108-low-seed-20260727-trace.tsv"
+],
+"mc-0109": [
+"docs/dev-log/interval-feasibility/results/ef8533249/spatial-q2-slope/mc-0109/lane-b-spatial-q2-slope-profile-mc-0109-low-seed-302-trace.tsv"
+],
+"mc-0110": [
+"docs/dev-log/interval-feasibility/results/ef8533249/spatial-q2-slope/mc-0110/lane-b-spatial-q2-slope-profile-mc-0110-low-seed-302-trace.tsv"
+],
+"mc-0113": [
+"docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0113/trace.tsv"
+],
+"mc-0114": [
+"docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0114/trace.tsv"
+],
+"mc-0115": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0115/trace.tsv"
+],
+"mc-0116": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0116/trace.tsv"
+],
+"mc-0117": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0117/trace.tsv"
+],
+"mc-0118": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0118/trace.tsv"
+],
+"mc-0124": [
+"docs/dev-log/interval-feasibility/results/a8d068e641105473b3f30723a92c909467a46fac/b2-q6-proof-profile/mc-0124/b2-q6-proof-mc-0124-high-seed-20260731-trace.tsv"
+],
+"mc-0129": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0129/lane-b-q2-production-profile-mc-0129-low-seed-20260727-trace.tsv"
+],
+"mc-0130": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0130/lane-b-q2-production-profile-mc-0130-low-seed-20260727-trace.tsv"
+],
+"mc-0131": [
+"docs/dev-log/interval-feasibility/results/2753715655866a064cd2b27ffb7eaf2226216c36/q2-animal-slope-highinfo/mc-0131/lane-b-animal-q2-slope-profile-mc-0131-sd-mu-mu1-animal-0-x-p-id--high-seed-2026072901-trace.tsv"
+],
+"mc-0132": [
+"docs/dev-log/interval-feasibility/results/2753715655866a064cd2b27ffb7eaf2226216c36/q2-animal-slope-highinfo/mc-0132/lane-b-animal-q2-slope-profile-mc-0132-sd-mu-mu2-animal-0-x-p-id--high-seed-2026072901-trace.tsv"
+],
+"mc-0135": [
+"docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0135/trace.tsv"
+],
+"mc-0136": [
+"docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0136/trace.tsv"
+],
+"mc-0137": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0137/trace.tsv"
+],
+"mc-0138": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0138/trace.tsv"
+],
+"mc-0139": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0139/trace.tsv"
+],
+"mc-0140": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0140/trace.tsv"
+],
+"mc-0145": [
+"docs/dev-log/interval-feasibility/results/b3d3259f9d19714eebc45fb6e34a3cef4d51f5b0/q6-provider-highinfo/mc-0145/trace.tsv"
+],
+"mc-0146": [
+"docs/dev-log/interval-feasibility/results/a8d068e641105473b3f30723a92c909467a46fac/b2-q6-proof-profile/mc-0146/b2-q6-proof-mc-0146-high-seed-20260731-trace.tsv"
+],
+"mc-0151": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0151/lane-b-q2-production-profile-mc-0151-low-seed-20260727-trace.tsv"
+],
+"mc-0152": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0152/lane-b-q2-production-profile-mc-0152-low-seed-20260727-trace.tsv"
+],
+"mc-0157": [
+"docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0157/trace.tsv"
+],
+"mc-0158": [
+"docs/dev-log/interval-feasibility/results/1d3082a24bc290ad34611edd5270422e5814557b/q2plus-scale/mc-0158/trace.tsv"
+],
+"mc-0159": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0159/trace.tsv"
+],
+"mc-0160": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0160/trace.tsv"
+],
+"mc-0161": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0161/trace.tsv"
+],
+"mc-0162": [
+"docs/dev-log/interval-feasibility/results/3672ce7572feab7f568eb607903c8166262c5ad5/q4-provider-highinfo/mc-0162/trace.tsv"
+],
+"mc-0167": [
+"docs/dev-log/interval-feasibility/results/2dedd326014f0d9634a17e2fc5a6d5f8e6ab07f6/q6-provider-highinfo/mc-0167/trace.tsv"
+],
+"mc-0168": [
+"docs/dev-log/interval-feasibility/results/a8d068e641105473b3f30723a92c909467a46fac/b2-q6-proof-profile/mc-0168/b2-q6-proof-mc-0168-high-seed-20260731-trace.tsv"
+],
+"mc-0184": [
+"docs/dev-log/interval-feasibility/results/b83a6ab0042a0eadd646a1d47fbaf032a75e0b7c/biv-fixed-scale/mc-0184/lane-b-biv-fixed-scale-profile-mc-0184-high-seed-3-trace.tsv"
+],
+"mc-0185": [
+"docs/dev-log/interval-feasibility/results/b83a6ab0042a0eadd646a1d47fbaf032a75e0b7c/biv-fixed-scale/mc-0185/lane-b-biv-fixed-scale-profile-mc-0185-high-seed-3-trace.tsv"
+],
+"mc-0187": [
+"docs/dev-log/interval-feasibility/results/0c1f39d86a37d029a404e31a0d05f7775575e683/ordinary-biv-scale-intercept/mc-0187/lane-b-ordinary-biv-scale-intercept-profile-mc-0187-high-n120-each12-seed-2026051306-trace.tsv"
+],
+"mc-0188": [
+"docs/dev-log/interval-feasibility/results/0c1f39d86a37d029a404e31a0d05f7775575e683/ordinary-biv-scale-intercept/mc-0188/lane-b-ordinary-biv-scale-intercept-profile-mc-0188-high-n120-each12-seed-2026051306-trace.tsv"
+],
+"mc-0199": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0199/lane-b-q2-production-profile-mc-0199-low-seed-20260727-trace.tsv"
+],
+"mc-0201": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0201/lane-b-q2-production-profile-mc-0201-low-seed-20260727-trace.tsv"
+],
+"mc-0203": [
+"docs/dev-log/interval-feasibility/results/9a13f79bcc1d1a1154e754fff7fa394fc3d62020/ordinary-biv-sigma-re-intercept/mc-0203/lane-b-ordinary-biv-sigma-re-intercept-profile-mc-0203-source-n40-each8-seed-2-trace.tsv"
+],
+"mc-0204": [
+"docs/dev-log/interval-feasibility/results/9a13f79bcc1d1a1154e754fff7fa394fc3d62020/ordinary-biv-sigma-re-intercept/mc-0204/lane-b-ordinary-biv-sigma-re-intercept-profile-mc-0204-source-n40-each8-seed-2-trace.tsv"
+],
+"mc-0208": [
+"docs/dev-log/interval-feasibility/results/6db76e7cbe73ff3cbdf75326d61e261492f6cd3b/phylo-q2-canonical/mc-0208/lane-b-phylo-q2-canonical-profile-mc-0208-low-seed-4-trace.tsv"
+],
+"mc-0209": [
+"docs/dev-log/interval-feasibility/results/6db76e7cbe73ff3cbdf75326d61e261492f6cd3b/phylo-q2-canonical/mc-0209/lane-b-phylo-q2-canonical-profile-mc-0209-low-seed-4-trace.tsv"
+],
+"mc-0212": [
+"docs/dev-log/interval-feasibility/results/8698a6a39/phylo-q4-location/mc-0212/lane-b-phylo-q4-location-profile-mc-0212-high-seed-3-trace.tsv"
+],
+"mc-0213": [
+"docs/dev-log/interval-feasibility/results/8698a6a39/phylo-q4-location/mc-0213/lane-b-phylo-q4-location-profile-mc-0213-high-seed-3-trace.tsv"
+],
+"mc-0214": [
+"docs/dev-log/interval-feasibility/results/bb7720c4e/phylo-q4-scale/mc-0214/lane-b-phylo-q4-scale-profile-mc-0214-high-seed-3-trace.tsv"
+],
+"mc-0215": [
+"docs/dev-log/interval-feasibility/results/bb7720c4e/phylo-q4-scale/mc-0215/lane-b-phylo-q4-scale-profile-mc-0215-high-seed-3-trace.tsv"
+],
+"mc-0216": [
+"docs/dev-log/interval-feasibility/results/5f4a72b745fba24129633f549b3a410f9cbafd2f/phylo-dense-q4-highinfo/mc-0216/lane-b-phylo-dense-q4-mc-0216-seed-202-trace.tsv"
+],
+"mc-0217": [
+"docs/dev-log/interval-feasibility/results/5f4a72b745fba24129633f549b3a410f9cbafd2f/phylo-dense-q4-highinfo/mc-0217/lane-b-phylo-dense-q4-mc-0217-seed-202-trace.tsv"
+],
+"mc-0218": [
+"docs/dev-log/interval-feasibility/results/5f4a72b745fba24129633f549b3a410f9cbafd2f/phylo-dense-q4-highinfo/mc-0218/lane-b-phylo-dense-q4-mc-0218-seed-202-trace.tsv"
+],
+"mc-0219": [
+"docs/dev-log/interval-feasibility/results/5f4a72b745fba24129633f549b3a410f9cbafd2f/phylo-dense-q4-highinfo/mc-0219/lane-b-phylo-dense-q4-mc-0219-seed-202-trace.tsv"
+],
+"mc-0225": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0225/lane-b-ordinary-intercept-expanded-profile-mc-0225-low-seed-9-trace.tsv"
+],
+"mc-0248": [
+"docs/dev-log/interval-feasibility/results/24e15c93d2c3a1461defd8faf2a70721e98ed153/q1-expanded-whole-cell/mc-0248/lane-b-q1-expanded-profile-mc-0248-sd-mu-relmat-1-id--low-seed-20260727-trace.tsv"
+],
+"mc-0251": [
+"docs/dev-log/interval-feasibility/results/8b5c226bbef67f373648af23c73a76482d249420/q1-direct-intercept-whole-cell/mc-0251/b1-q1-profile-mc-0251-low-seed-2026072801-trace.tsv"
+],
+"mc-0265": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0265/lane-b-ordinary-intercept-expanded-profile-mc-0265-low-seed-1001-trace.tsv"
+],
+"mc-0267": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0267/lane-b-ordinary-intercept-expanded-profile-mc-0267-low-seed-1-trace.tsv"
+],
+"mc-0270": [
+"docs/dev-log/interval-feasibility/results/b25378b2f/ordinary-slope-profile-gate/mc-0270/lane-b-ordinary-slope-profile-mc-0270-low-seed-20260621-trace.tsv"
+],
+"mc-0271": [
+"docs/dev-log/interval-feasibility/results/836ed7978668500db05a964c5d2507609ffe37de/ordinary-slope-profile-gate-high/mc-0271/lane-b-ordinary-slope-profile-mc-0271-high-seed-238-trace.tsv"
+],
+"mc-0280": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0280/b2-e0-q2-mc-0280-high-seed-2026072932-trace.tsv"
+],
+"mc-0281": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0281/b2-e0-q2-mc-0281-high-seed-2026072932-trace.tsv"
+],
+"mc-0282": [
+"docs/dev-log/interval-feasibility/results/75b212cf9db45aeb2fa3181049e663e772e01e7a/arc6-profile-feasibility/totoro/mc-0282/mc-0282-arc2_phylo_sigma_q2_fixture-tip60_each12-seed101-trace.tsv",
+"docs/dev-log/interval-feasibility/results/75b212cf9db45aeb2fa3181049e663e772e01e7a/arc6-profile-feasibility/totoro/mc-0282/mc-0282-arc2_phylo_sigma_q2_fixture-tip60_each12-seed202-trace.tsv",
+"docs/dev-log/interval-feasibility/results/75b212cf9db45aeb2fa3181049e663e772e01e7a/arc6-profile-feasibility/totoro/mc-0282/mc-0282-arc2_phylo_sigma_q2_fixture-tip60_each12-seed303-trace.tsv",
+"docs/dev-log/interval-feasibility/results/75b212cf9db45aeb2fa3181049e663e772e01e7a/arc6-profile-feasibility/totoro/mc-0282/mc-0282-arc2_phylo_sigma_q2_fixture-tip60_each12-seed404-trace.tsv",
+"docs/dev-log/interval-feasibility/results/75b212cf9db45aeb2fa3181049e663e772e01e7a/arc6-profile-feasibility/totoro/mc-0282/mc-0282-arc2_phylo_sigma_q2_fixture-tip60_each12-seed505-trace.tsv"
+],
+"mc-0293": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0293/b2-e0-q2-mc-0293-high-seed-2026072935-trace.tsv"
+],
+"mc-0294": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0294/b2-e0-q2-mc-0294-high-seed-2026072935-trace.tsv"
+],
+"mc-0297": [
+"docs/dev-log/interval-feasibility/results/48a16f5180907bc7c8b3e060537fcf09b4c97d1f/scalar-animal-relmat-q1-highinfo/mc-0297/lane-b-scalar-q1-highinfo-mc-0297-n32-each20-seed-2026072903-trace.tsv"
+],
+"mc-0300": [
+"docs/dev-log/interval-feasibility/results/48a16f5180907bc7c8b3e060537fcf09b4c97d1f/scalar-animal-relmat-q1-highinfo/mc-0300/lane-b-scalar-q1-highinfo-mc-0300-n32-each20-seed-2026072903-trace.tsv"
+],
+"mc-0305": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0305/b2-e0-q2-mc-0305-high-seed-2026072937-trace.tsv"
+],
+"mc-0306": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0306/b2-e0-q2-mc-0306-high-seed-2026072937-trace.tsv"
+],
+"mc-0312": [
+"docs/dev-log/interval-feasibility/results/48a16f5180907bc7c8b3e060537fcf09b4c97d1f/scalar-animal-relmat-q1-highinfo/mc-0312/lane-b-scalar-q1-highinfo-mc-0312-n32-each20-seed-2026072903-trace.tsv"
+],
+"mc-0317": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0317/b2-e0-q2-mc-0317-high-seed-2026072939-trace.tsv"
+],
+"mc-0318": [
+"docs/dev-log/interval-feasibility/results/fac36c37def62b6741e762da907a7694f1eb42d9/b2-e0-q2-high/mc-0318/b2-e0-q2-mc-0318-high-seed-2026072939-trace.tsv"
+],
+"mc-0380": [
+"docs/dev-log/interval-feasibility/results/b25378b2f/ordinary-slope-profile-gate/mc-0380/lane-b-ordinary-slope-profile-mc-0380-low-seed-20260621-trace.tsv"
+],
+"mc-0386": [
+"docs/dev-log/interval-feasibility/results/24e15c93d2c3a1461defd8faf2a70721e98ed153/q1-expanded-whole-cell/mc-0386/lane-b-q1-expanded-profile-mc-0386-sd-mu-phylo-1-id--low-seed-20260727-trace.tsv"
+],
+"mc-0388": [
+"docs/dev-log/interval-feasibility/results/8b5c226bbef67f373648af23c73a76482d249420/q1-direct-intercept-whole-cell/mc-0388/b1-q1-profile-mc-0388-low-seed-2026072802-trace.tsv"
+],
+"mc-0401": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0401/lane-b-ordinary-intercept-expanded-profile-mc-0401-low-seed-20260628-trace.tsv"
+],
+"mc-0402": [
+"docs/dev-log/interval-feasibility/results/b25378b2f/ordinary-slope-profile-gate/mc-0402/lane-b-ordinary-slope-profile-mc-0402-low-seed-20260621-trace.tsv"
+],
+"mc-0403": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0403/lane-b-ordinary-intercept-expanded-profile-mc-0403-low-seed-20260642-trace.tsv"
+],
+"mc-0405": [
+"docs/dev-log/interval-feasibility/results/8b5c226bbef67f373648af23c73a76482d249420/nb2-q1-provider-breadth/mc-0405/nb2-q1-profile-mc-0405-low-seed-20260641-trace.tsv"
+],
+"mc-0406": [
+"docs/dev-log/interval-feasibility/results/8b5c226bbef67f373648af23c73a76482d249420/nb2-q1-provider-breadth/mc-0406/nb2-q1-profile-mc-0406-low-seed-2026052802-trace.tsv"
+],
+"mc-0407": [
+"docs/dev-log/interval-feasibility/results/8b5c226bbef67f373648af23c73a76482d249420/nb2-q1-provider-breadth/mc-0407/nb2-q1-profile-mc-0407-low-seed-2026052802-trace.tsv"
+],
+"mc-0408": [
+"docs/dev-log/interval-feasibility/results/8b5c226bbef67f373648af23c73a76482d249420/nb2-q1-provider-breadth/mc-0408/nb2-q1-profile-mc-0408-low-seed-2026052802-trace.tsv"
+],
+"mc-0410": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0410/lane-b-count-q1-slope-canonical-profile-mc-0410-g32-seed-76003201-trace.tsv"
+],
+"mc-0411": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0411/lane-b-count-q1-slope-canonical-profile-mc-0411-g32-seed-76003202-trace.tsv"
+],
+"mc-0412": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0412/lane-b-count-q1-slope-canonical-profile-mc-0412-g32-seed-76003203-trace.tsv"
+],
+"mc-0413": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0413/lane-b-count-q1-slope-canonical-profile-mc-0413-g32-seed-76003204-trace.tsv"
+],
+"mc-0429": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0429/lane-b-ordinary-intercept-expanded-profile-mc-0429-low-seed-20260619-trace.tsv"
+],
+"mc-0431": [
+"docs/dev-log/interval-feasibility/results/b25378b2f/ordinary-slope-profile-gate/mc-0431/lane-b-ordinary-slope-profile-mc-0431-low-seed-20260621-trace.tsv"
+],
+"mc-0434": [
+"docs/dev-log/interval-feasibility/results/9880fd65388b63f5f1e1c488d54b1ae40b52e098/q1-expanded-whole-cell/mc-0434/lane-b-q1-expanded-profile-mc-0434-sd-mu-phylo-1-species--low-seed-20260641-trace.tsv"
+],
+"mc-0435": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0435/lane-b-count-q1-slope-canonical-profile-mc-0435-g32-seed-76003205-trace.tsv"
+],
+"mc-0440": [
+"docs/dev-log/interval-feasibility/results/9880fd65388b63f5f1e1c488d54b1ae40b52e098/q1-expanded-whole-cell/mc-0440/lane-b-q1-expanded-profile-mc-0440-sd-mu-spatial-1-site--low-seed-2026052801-trace.tsv"
+],
+"mc-0441": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0441/lane-b-count-q1-slope-canonical-profile-mc-0441-g32-seed-76003206-trace.tsv"
+],
+"mc-0447": [
+"docs/dev-log/interval-feasibility/results/9880fd65388b63f5f1e1c488d54b1ae40b52e098/q1-expanded-whole-cell/mc-0447/lane-b-q1-expanded-profile-mc-0447-sd-mu-animal-1-id--low-seed-2026052801-trace.tsv"
+],
+"mc-0448": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0448/lane-b-count-q1-slope-canonical-profile-mc-0448-g32-seed-76003207-trace.tsv"
+],
+"mc-0451": [
+"docs/dev-log/interval-feasibility/results/9880fd65388b63f5f1e1c488d54b1ae40b52e098/q1-expanded-whole-cell/mc-0451/lane-b-q1-expanded-profile-mc-0451-sd-mu-relmat-1-id--low-seed-2026052801-trace.tsv"
+],
+"mc-0452": [
+"docs/dev-log/interval-feasibility/results/e435860c4d0bfdeb588b15fbec6fd57987b3968c/count-q1-slope-canonical/g32/mc-0452/lane-b-count-q1-slope-canonical-profile-mc-0452-g32-seed-76003208-trace.tsv"
+],
+"mc-0463": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0463/lane-b-ordinary-intercept-expanded-profile-mc-0463-low-seed-20260712-trace.tsv"
+],
+"mc-0494": [
+"docs/dev-log/interval-feasibility/results/e55bbeb7f5bc230a67ae7fb4ac88b62f51507198/student-spatial-q1-highinfo/mc-0494/lane-b-student-spatial-q1-highinfo-mc-0494-sd-mu-spatial-0-x-id--n32-each20-seed-2026072902-trace.tsv",
+"docs/dev-log/interval-feasibility/results/e55bbeb7f5bc230a67ae7fb4ac88b62f51507198/student-spatial-q1-highinfo/mc-0494/lane-b-student-spatial-q1-highinfo-mc-0494-sd-mu-spatial-1-id--n32-each20-seed-2026072902-trace.tsv"
+],
+"mc-0511": [
+"docs/dev-log/interval-feasibility/results/b25378b2f/ordinary-slope-profile-gate/mc-0511/lane-b-ordinary-slope-profile-mc-0511-low-seed-20260621-trace.tsv"
+],
+"mc-0538": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0538/lane-b-ordinary-intercept-expanded-profile-mc-0538-low-seed-20260712-trace.tsv"
+],
+"mc-0567": [
+"docs/dev-log/interval-feasibility/results/f5d4ae518/ordinary-intercept-expanded-profile-gate/mc-0567/lane-b-ordinary-intercept-expanded-profile-mc-0567-low-seed-7-trace.tsv"
+],
+"mc-0568": [
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/receipts/mc-0568/mc-0568-seed21260806-sd_sigma_1_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/smoke-mc-0568-tmbprofile/trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0568/mc-0568-seed21260806-sd_sigma_1_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0568/mc-0568-seed21260807-sd_sigma_1_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0568/mc-0568-seed21260808-sd_sigma_1_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0568/mc-0568-seed21260809-sd_sigma_1_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0568/mc-0568-seed21260810-sd_sigma_1_id_-trace.tsv"
+],
+"mc-0576": [
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0576/mc-0576-seed22260806-sd_sigma_0_x_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0576/mc-0576-seed22260807-sd_sigma_0_x_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0576/mc-0576-seed22260808-sd_sigma_0_x_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0576/mc-0576-seed22260809-sd_sigma_0_x_id_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0576/mc-0576-seed22260810-sd_sigma_0_x_id_-trace.tsv"
+],
+"mc-0595": [
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0595/mc-0595-seed25260806-sd_sigma_relmat_1_species_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0595/mc-0595-seed25260807-sd_sigma_relmat_1_species_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0595/mc-0595-seed25260808-sd_sigma_relmat_1_species_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0595/mc-0595-seed25260809-sd_sigma_relmat_1_species_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0595/mc-0595-seed25260810-sd_sigma_relmat_1_species_-trace.tsv"
+],
+"mc-0596": [
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0596/mc-0596-seed26260806-sd_sigma_spatial_1_site_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0596/mc-0596-seed26260807-sd_sigma_spatial_1_site_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0596/mc-0596-seed26260808-sd_sigma_spatial_1_site_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0596/mc-0596-seed26260809-sd_sigma_spatial_1_site_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0596/mc-0596-seed26260810-sd_sigma_spatial_1_site_-trace.tsv"
+],
+"mc-0653": [
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0653/mc-0653-seed34260806-sd_sigma_phylo_interaction_1_plant_pollinator_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0653/mc-0653-seed34260807-sd_sigma_phylo_interaction_1_plant_pollinator_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0653/mc-0653-seed34260808-sd_sigma_phylo_interaction_1_plant_pollinator_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0653/mc-0653-seed34260809-sd_sigma_phylo_interaction_1_plant_pollinator_-trace.tsv",
+"docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/totoro-receipts/mc-0653/mc-0653-seed34260810-sd_sigma_phylo_interaction_1_plant_pollinator_-trace.tsv"
+],
+"mc-0672": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0672/lane-b-q2-production-profile-mc-0672-low-seed-20260727-trace.tsv"
+],
+"mc-0674": [
+"docs/dev-log/interval-feasibility/results/a90b1ddbd203804b9919a305b7e9d4dff071440a/q2-production-whole-cell/mc-0674/lane-b-q2-production-profile-mc-0674-low-seed-20260727-trace.tsv"
+]
+}
+}
