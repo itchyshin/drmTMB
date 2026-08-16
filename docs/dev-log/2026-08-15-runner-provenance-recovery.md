@@ -48,6 +48,15 @@ round 2 pulled in 1 more; round 3 was empty. That is the termination condition.
 
 ## A pre-existing defect found by the verification, NOT introduced here
 
+> **CORRECTION (2026-08-15, overnight).** The paragraph below is half right. The column does not
+> hash `binding_source`, but it is not merely "the contract's own digest" either:
+> `tools/validate-lane-b-q1-expanded-whole-cell-contracts.R:36,138` defines and ENFORCES it as the
+> digest of the shared bindings input file the contract derives from
+> (`2026-07-27-b1-recovered-subset.tsv`) — a real provenance guarantee of the derivation base. The
+> genuine gap is narrower than stated: the column cannot detect drift in a per-row source file, and
+> the NAME misleads. Semantics now documented in `docs/dev-log/interval-campaign-bindings/README.md`;
+> the frozen files stay untouched.
+
 `binding_source_sha256` does **not** hash `binding_source`. The single value `93eea48b08c6…` is
 recorded as the hash of **seven different paths** (`tools/arc3a-…-recovery.R`,
 `tools/b1-breadth-adapters.R`, four `tests/testthat/test-*.R`, …) — a per-file hash cannot do that.
