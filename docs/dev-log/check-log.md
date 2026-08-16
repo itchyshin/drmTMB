@@ -1,6 +1,19 @@
 # Check Log
 
 
+## 2026-08-16 — MSPL A1 park reconcile (Cursor handover refresh)
+
+Worktree `.worktrees/mspl-s0s1` · branch `claude/mspl-boundary-s0-s1` @ `d2a7c45e3` (ahead 2 of
+origin). Grok panel park + 0.7 focus: no S3, no re-implement S2, no missing-data collision.
+
+| Slice | Check | Result |
+|---|---|---|
+| Rehydrate | lane preflight + fetch/prune + worktree tip | ✅ tip `d2a7c45e3`; origin branch `f91751a41` |
+| S1/S2 vs handover | Claude handover OWED S1 gate + S2 | ✅ **RETRACTED as OWED** — both DONE on tip |
+| Park note | `2026-08-16-mspl-a1-boundary-park.md` | ✅ present (was untracked; commit = Shinichi ask) |
+| Handover freshness | Cursor handover rewritten to park | ✅ claim fences aligned |
+| Protected | missing-data / 0.7 freeze / S3+D-139 | ✅ untouched; S3 not started |
+
 ## 2026-08-16 — MSPL boundary S2 slice 1 (A1 `penalty` route)
 
 Lane `claude/mspl-boundary-s0-s1` @ worktree `.worktrees/mspl-s0s1`. S1 sign-off already
