@@ -163,13 +163,19 @@ not on the `se` path, so no guard was added for
 
 - **Closed by evidence, not by code:** "drmTMB `se = TRUE` leaks PSOCK
   workers." Not reproducible; no such code path exists. Re-attributed below.
-- **Opened, another repository:** `pigauto`'s eight `script/bench_*.R` files
-  call `parallel::makeCluster()` with `stopCluster()` on the success path only
-  and no `on.exit()`. Any error, interrupt, or non-local exit between the two
-  leaks the whole cluster — workers at 60-100% CPU with a 30-day `TIMEOUT`,
-  which is the reported signature. Fix is one line per file:
-  `on.exit(parallel::stopCluster(cl), add = TRUE)` immediately after the
-  `makeCluster()` call. Not applied here: foreign lane, live working tree.
+- **Opened and CLOSED the same day, another repository:** `pigauto`'s eight
+  `script/bench_*.R` files called `parallel::makeCluster()` with
+  `stopCluster()` on the success path only and no `on.exit()`. Any error,
+  interrupt, or non-local exit between the two leaked the whole cluster —
+  workers at 60-100% CPU with a 30-day `TIMEOUT`, which is the reported
+  signature. Reported to that lane rather than fixed here (foreign lane, live
+  working tree); it verified the claim independently and fixed it in
+  `pigauto` PR #166 / `c536499` on `fix/bench-cluster-on-exit`, 8 files, 5
+  lines each. Confirmed by reading that commit: it adds
+  `on.exit(try(parallel::stopCluster(cl), silent = TRUE), add = TRUE)`. The
+  `try()` is a correction to the one-liner suggested from here — a bare second
+  `stopCluster()` on the success path errors on already-closed connections, so
+  the guard needed to tolerate an already-stopped cluster.
 - **Opened, method:** any future worker census must attribute by master PID
   (`lsof -nP -iTCP:<PORT>` against the worker's `PORT=` argument), never by
   PPID and never by a global count. Recorded in §11.
@@ -226,7 +232,11 @@ campaign fixtures into a scratch script.
   reaps them on normal return and on worker error, but a user interrupt during
   the fork window can leave them. That is upstream base-R behaviour, was not
   the reported symptom, and no test covers it.
-- **The `pigauto` leak is reported, not fixed.**
+- ~~**The `pigauto` leak is reported, not fixed.**~~ **Closed 2026-08-16** by
+  `pigauto` PR #166 / `c536499`; see §7a. That lane also reported the
+  behavioural check this report could not run from here: a simulated mid-run
+  failure now returns the worker count to baseline, and the success path still
+  exits cleanly with the double stop.
 - **No `R CMD check` was run.** The change is one new test file with no new
   dependency; a full check was not proportionate and the machine was loaded.
 
@@ -242,6 +252,17 @@ real leak would have kept running while the ticket read closed.
 launch. The only sound liveness test for a worker is its port: read `PORT=`
 from the worker's own command line and run `lsof -nP -iTCP:<PORT>`. Two
 ESTABLISHED endpoints means healthy; one means orphaned.
+
+Two neighbouring traps on the same mechanism, both hit by other lanes this
+week and both worth knowing before touching anyone's running compute.
+**Master CPU is not a liveness signal**: `parLapply` logs nothing until every
+cell finishes, so a healthy driver looks idle — the `pigauto` lane killed two
+healthy drivers reading it that way. And **never `renice` a process that will
+later fork PSOCK workers**: niceness is inherited at fork, the workers then
+miss `makePSOCKcluster()`'s connect window, and no later renice of the parent
+fixes them. Bound cluster load by worker count, never by priority. Filed by
+the `gllvmTMB` lane at `~/shinichi-brain/memory/LESSONS.md:2082` (verified
+present), and not duplicated here.
 
 **Shannon.** On a host running ten lanes, any global process census is a shared
 resource and cannot attribute anything. Measure by PID set difference plus
@@ -274,8 +295,16 @@ namespace scan and the runtime child-process census were applied.
   `confint(method = "profile")`, the Julia bridge, `callr`-based tests). The
   `callr` tests in `tests/testthat/test-julia-*.R` deliberately spawn R
   subprocesses; that is intended behaviour and was not audited here.
-- It does **NOT** establish that no leak occurred on 2026-08-15. It establishes
-  that the named code path cannot cause one and that the named test file does
-  not, and it identifies a concurrent process on the same machine that does.
-- It does **NOT** fix the `pigauto` scripts, and until they are fixed the
-  symptom will recur and can be misattributed again.
+- It does **NOT** establish that the specific 14 workers seen on 2026-08-15
+  were `pigauto`'s. It establishes that the named code path cannot produce
+  them, that the named test file does not, and that a concurrent process on
+  the same machine can and does. **Corroboration arrived after this report was
+  written**, from the `pigauto` lane's own account of that night: `bench_count`
+  died at cluster setup and `bench_zi_count` died mid-run with an "error
+  reading from connection" signature, and four orphaned masters were killed by
+  hand and written off as environmental flakiness. That is the leak mechanism
+  firing on the reported night, and it matches the count in the deliberate
+  reproduction. It is that lane's report of its own incident, not something
+  verified from here — what was verified from here is the fix commit.
+- It does **NOT** cover whatever else on this host creates PSOCK clusters. The
+  `pigauto` scripts are fixed; nothing audited the other eight live lanes.
