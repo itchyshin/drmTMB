@@ -5,6 +5,21 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-08-16 — the `se = TRUE` PSOCK worker leak is NOT drmTMB's; stop chasing it.** The
+  2026-08-15 report (14 orphaned `parallel:::.workRSOCK`, `TIMEOUT=2592000`, attributed to
+  `drmTMB(se = TRUE)` and `test-profile-targets.R`) did not reproduce: drmTMB has **no cluster
+  constructor anywhere in `R/`**, the `se` path is one in-process `TMB::sdreport()` call, and
+  PSOCK is deliberately unsupported (design 43 §124). Three `se = TRUE` fits of the mc-0596
+  fixture and three runs of `test-profile-targets.R` (986 assertions each) left **zero** workers.
+  A worker with the exact reported signature was captured live and traced **by port** to a living
+  master in a **concurrent `pigauto` lane** (`script/bench_*.R`, ×8, `makeCluster()` with
+  `stopCluster()` on the success path only, no `on.exit`). **`PPID 1` is not orphaning** — since
+  R 4.0 `setup_strategy = "parallel"` backgrounds every localhost worker at launch, so healthy
+  workers are reparented to `init` at birth, and a global `workRSOCK` census on this host
+  attributes nothing. Lane: Claude, `claude/eloquent-driscoll-521fa1` @ `4699cf934`. Receipts:
+  [`after-task/2026-08-16-se-path-worker-leak-nonrepro.md`](after-task/2026-08-16-se-path-worker-leak-nonrepro.md),
+  `tests/testthat/test-parallel-worker-hygiene.R`. **Held out of `main` under the quiesce below**
+  — it adds a `tests/` file, which is a shipped path. Merge after the platform matrix completes.
 - **⚠ 2026-08-15 (evening) — QUIESCE: the 0.7.0 re-freeze is IN PROGRESS (Shinichi: "merge all
   three PRs and start the re-freeze", after lifting BOTH D-93 and D-117 the same evening).**
   PRs #1039/#1041/#1042 are merged; the cut point is the `claude/07-freeze-3` merge on `main`
