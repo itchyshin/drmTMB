@@ -43,6 +43,26 @@ After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
 
 **Do not launch** a smoke or `N ≈ 1200` campaign from this document.
 
+## 2026-08-16 — Fisher / Noether merge-path for PR #1059 (`mc-0717`)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+**PASS** alignment + claim ceiling. **Merge blocked by quiesce.** Totoro smoke **not launched**.
+
+| Check | Result |
+| --- | --- |
+| Fitted object (seed `20260811`, `n_group=56`, `n_each=14`) | `drmTMB` binomial logit, `estimator=ML`, `REML=FALSE`, `conv=0`, `pdHess=TRUE` |
+| `sd0` `sdpars$mu["(1 + x \| id):(Intercept)"]` | 0.599448 vs 0.65; \|err\|=0.0506; gate 0.30 PASS |
+| `sd1` `sdpars$mu["(1 + x \| id):x"]` | 0.414522 vs 0.42; \|err\|=0.0055; gate 0.30 PASS |
+| `rho_re` `corpars$mu["cor((Intercept),x \| id)"]` | 0.308915 vs 0.45; \|err\|=0.1411; gate 0.30 PASS; `== tanh(eta_cor_mu)` |
+| Log-sech `Σ_g` | off-diag 0.076761 = `sd0 * sd1 * rho_re` |
+| REML creep | `REML=TRUE` still aborts |
+| Interval creep | ledger/NEWS/grammar stay `point_fit_recovery`; generic `profile_ready=TRUE` is not a claim |
+| Residuals | constant-within-group `x` still fits (`sd1≈0`, `pdHess=FALSE`); parser hint still `experimental q = 2` |
+| Totoro BatchMode | OK 20:02 UTC; brief written; **not launched** |
+| Merge | **not requested** |
+
+Brief: `docs/dev-log/research/2026-08-16-mc0717-totoro-smoke-brief.md`.
+
 ## 2026-08-16 — Design 257 Wave 1: binomial ordinary correlated `mc-0717`
 
 Lane: Cursor, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
