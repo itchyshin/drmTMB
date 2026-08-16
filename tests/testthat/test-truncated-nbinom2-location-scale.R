@@ -99,6 +99,9 @@ test_that("drmTMB fits fixed-effect truncated nbinom2 models", {
     c("beta_mu", "beta_mu", "beta_sigma", "beta_sigma")
   )
   expect_true(all(ci$conf.status == "wald"))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < ci$upper))
 })
 
 test_that("truncated nbinom2 mu supports ordinary random intercepts", {

@@ -89,6 +89,9 @@ test_that("drmTMB fits fixed-effect hurdle nbinom2 models", {
     )
   )
   expect_true(all(ci$conf.status == "wald"))
+  expect_true(all(is.finite(ci$lower)))
+  expect_true(all(is.finite(ci$upper)))
+  expect_true(all(ci$lower < ci$upper))
 })
 
 test_that("hurdle nbinom2 likelihood matches independent calculation", {
