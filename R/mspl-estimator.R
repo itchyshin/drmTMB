@@ -356,6 +356,14 @@ drm_nbinom2_correlated_q2 <- function(spec) {
     identical(re$coef_names[[1L]], "(Intercept)")
 }
 
+drm_lognormal_correlated_q2 <- function(spec) {
+  if (!identical(spec$model_type, "lognormal")) return(FALSE)
+  re <- spec$random$mu
+  isTRUE(re$n_terms == 2L && re$n_cors == 1L) &&
+    length(unique(re$group_names)) == 1L &&
+    identical(re$coef_names[[1L]], "(Intercept)")
+}
+
 drm_binomial_q2_slope_unique_n <- function(values, group_index) {
   counts <- vapply(
     split(values, group_index),
@@ -396,6 +404,10 @@ drm_validate_binomial_q2_slope_variation <- function(re) {
 drm_validate_binomial_q2_context <- function(spec, REML = FALSE) {
   if (drm_nbinom2_correlated_q2(spec)) {
     drm_validate_q2_slope_variation(spec$random$mu, family_label = "NB2")
+    return(invisible(spec))
+  }
+  if (drm_lognormal_correlated_q2(spec)) {
+    drm_validate_q2_slope_variation(spec$random$mu, family_label = "lognormal")
     return(invisible(spec))
   }
   if (!drm_binomial_correlated_q2(spec)) return(invisible(spec))

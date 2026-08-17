@@ -197,7 +197,10 @@ skew_normal <- function() {
 #' Ordinary `mu` random intercepts such as `(1 | id)` are supported in the
 #' first positive-continuous mixed-model slice; the independent numeric slope
 #' `(0 + x | id)` also fits but is a recovery-grade route only (trust the
-#' point estimate, not the interval).
+#' point estimate, not the interval). One complete-data ordinary unlabelled
+#' correlated intercept-slope block `(1 + x | id)` is also fitted at
+#' `point_fit_recovery` (`mc-0720`) under the design-17 map for group-level
+#' `sd0`, `sd1`, and `rho_re` (never residual `rho12`).
 #'
 #' @return A `drm_family` object.
 #' @export

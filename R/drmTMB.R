@@ -4524,6 +4524,19 @@ drm_build_lognormal_ls_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_positive_continuous_mu_random_terms(mu_re$terms, "{.fn lognormal}")
+  if (include_missing_response) {
+    has_ordinary_correlated <- any(vapply(
+      mu_re$terms,
+      function(term) term$type %in% c("correlated_slope", "correlated_block"),
+      logical(1L)
+    ))
+    if (isTRUE(has_ordinary_correlated)) {
+      cli::cli_abort(c(
+        "Ordinary lognormal correlated {.code (1 + x | g)} blocks are not implemented with missing-response integration.",
+        "i" = "Use complete data, or the independent form {.code (1 | g) + (0 + x | g)}."
+      ))
+    }
+  }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_positive_continuous_sigma_random_terms(
@@ -10536,6 +10549,30 @@ validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
   if (length(terms) == 0L) {
     return(invisible(terms))
   }
+  has_correlated_block <- vapply(
+    terms,
+    function(term) term$type %in% c("correlated_slope", "correlated_block"),
+    logical(1L)
+  )
+  if (any(has_correlated_block)) {
+    # Wave 3 admits exactly one complete-data unlabelled lognormal (1 + x | g)
+    # block. Gamma and every other positive-continuous neighbour stay rejected.
+    lognormal_wedge <-
+      identical(family_label, "{.fn lognormal}") &&
+      length(terms) == 1L &&
+      identical(terms[[1L]]$type, "correlated_slope") &&
+      is.null(terms[[1L]]$covariance_label)
+    if (!lognormal_wedge) {
+      labels <- vapply(terms, `[[`, character(1L), "label")
+      cli::cli_abort(c(
+        "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
+        "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
+        "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
+        "i" = "Ordinary {.fn lognormal} also admits one complete-data unlabelled {.code (1 + x | id)} block; Gamma and labelled covariance blocks remain rejected."
+      ))
+    }
+    return(invisible(terms))
+  }
   unsupported <- vapply(
     terms,
     function(term) {
@@ -10550,7 +10587,7 @@ validate_positive_continuous_mu_random_terms <- function(terms, family_label) {
       "Only independent {family_label} {.code mu} random intercepts and slopes are implemented in this slice.",
       "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
       "i" = "Use syntax like {.code bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)}.",
-      "i" = "Correlated positive-continuous slopes, labelled covariance blocks, structured effects, and scale random effects remain planned until separate recovery tests exist."
+      "i" = "Ordinary {.fn lognormal} also admits one complete-data unlabelled {.code (1 + x | id)} block; correlated Gamma slopes, labelled covariance blocks, structured effects, and scale random effects remain planned until separate recovery tests exist."
     ))
   }
   invisible(terms)
@@ -19645,7 +19682,7 @@ make_tmb_data_core <- function(spec) {
       X_cor_mu = dummy_matrix,
       has_cor_mu_model = 0L,
       n_mu_re_terms = re_mu$n_terms,
-      n_mu_re_cors = 0L,
+      n_mu_re_cors = re_mu$n_cors,
       mu_re_index = re_mu$index0,
       mu_re_value = re_mu$value,
       mu_re_term = re_mu$term_id0,
@@ -21199,7 +21236,8 @@ split_tmb_corpars <- function(par, spec) {
       "biv_gaussian",
       "binomial",
       "poisson",
-      "nbinom2"
+      "nbinom2",
+      "lognormal"
     ) &&
       !count_phylo_q2
   ) {

@@ -261,9 +261,10 @@ IMPORTED_MODEL_COUNT = 668
 # at point_fit_recovery (699 -> 700). Wave 2 adds mc-0718 (ordinary Poisson
 # unlabelled correlated q2) at point_fit_recovery (700 -> 701). Wave 2.5
 # adds mc-0719 (ordinary NB2 unlabelled correlated q2) at point_fit_recovery
-# (701 -> 702). The inserts promote nothing else.
+# (701 -> 702). Wave 3 adds mc-0720 (ordinary lognormal unlabelled correlated
+# q2) at point_fit_recovery (702 -> 703). The inserts promote nothing else.
 # Bump this guard only for an approved row insert or split, never to silence drift.
-MODEL_SURFACE_COUNT = 702
+MODEL_SURFACE_COUNT = 703
 ASSOCIATION_COUNT = 6
 # 2026-08-09 systems-audit seeding: the first missing_predictor axis rows.
 # One row per (response family x predictor family) cell actually admitted by
@@ -2468,9 +2469,10 @@ def validate(
     # Design 257 Wave 1 inserts mc-0717 as implemented (341 -> 342).
     # Wave 2 inserts mc-0718 as implemented (342 -> 343).
     # Wave 2.5 inserts mc-0719 as implemented (343 -> 344).
+    # Wave 3 inserts mc-0720 as implemented (344 -> 345).
     expected = Counter(
         {
-            "implemented": 344,
+            "implemented": 345,
             "rejected_by_design": (
                 C14_BOUNDARY_COUNT
                 + len(C14_ZOB_LEAF_TAXONOMY)

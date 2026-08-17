@@ -146,7 +146,7 @@ test_that("Poisson q2 rejection matrix stays closed", {
   expect_error(
     drmTMB(
       q2,
-      family = lognormal(),
+      family = stats::Gamma(link = "log"),
       data = transform(sim$data, count = pmax(count, 1))
     ),
     "Only independent"

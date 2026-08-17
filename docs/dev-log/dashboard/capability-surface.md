@@ -1,17 +1,17 @@
 # drmTMB capability surface
 
-_Generated 2026-08-16 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
+_Generated 2026-08-17 from `capability-ledger/` by `tools/capability_ledger.py`; do not hand-edit this file._
 
 The model surface, staged-association surface, and missing-response execution axis answer different questions. Model cells describe direct drmTMB fits; association cells describe post-fit associate_pairs() estimators; missing-response cells describe response handling. Evidence never transfers automatically between axes.
 
 ## Snapshot
 
-- Model surface: **702 cells** across **18 routes**.
+- Model surface: **703 cells** across **18 routes**.
 - Staged association: **6 cells**; **5 interval-feasible** and **1 inference-ready with caveats**.
-- Runtime status: **344 implemented**, **10 actionable not implemented**, and **348 not currently supported**.
+- Runtime status: **345 implemented**, **10 actionable not implemented**, and **348 not currently supported**.
 - Planning classes make the backlog visible without calling it impossible: admission candidate, covariance/model method, or estimator method. They are scope classes, not effort estimates or evidence claims.
 - ML and REML are separate estimators. An ML implementation does not automatically supply REML; REML cells require a valid restricted-likelihood objective and their own validation.
-- Evidence: **0 supported**, **28 inference-ready**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **80 recovery-grade**.
+- Evidence: **0 supported**, **28 inference-ready**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **81 recovery-grade**.
 - Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **164 passed**, **20 unchecked**, **3 failed**, **0 not applicable**.
 - Missing-response board: **18 routes; 0 G0; 0 G1; 0 G2; 18 verified (G3+)**.
 
@@ -73,7 +73,7 @@ Each route's displayed gate and work state come from its own ledger evidence. Ve
 | `gamma` | 25 | 7 | 0 | 18 | inference ready with caveats |
 | `gaussian` | 67 | 56 | 2 | 9 | inference ready with caveats |
 | `hurdle_nbinom2` | 48 | 4 | 0 | 44 | interval feasible |
-| `lognormal` | 25 | 7 | 0 | 18 | inference ready with caveats |
+| `lognormal` | 26 | 8 | 0 | 18 | inference ready with caveats |
 | `nbinom2` | 31 | 22 | 1 | 8 | inference ready with caveats |
 | `poisson` | 30 | 20 | 1 | 9 | inference ready with caveats |
 | `skew_normal` | 28 | 5 | 1 | 22 | inference ready with caveats |
