@@ -543,7 +543,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   fitted first slices. One complete-data native-TMB unlabelled correlated
   intercept-slope block `(1 + x | g)` recovers `sd0`, `sd1`, and group-level
   `rho_re` at `point_fit_recovery` in capability cell `mc-0717`; that cell is
-  not the independent-slope cell `mc-0061`. The exact independent-slope domain in
+  not the independent-slope cell `mc-0061`. A slope predictor that is constant
+  within every group is rejected before the fit because `sd1` and `rho_re` are
+  unidentified. The exact independent-slope domain in
   `mc-0061` is inference-ready with caveats; it does not authorize the correlated
   block, REML, missing-response, labelled, or mixed `(1 | g) + (1 + x | g)`
   neighbours. Non-logit links, factor response ordering, proportions plus

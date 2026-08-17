@@ -43,8 +43,9 @@ Binomial unlabelled `(1 + x | id)` is an **experimental point-fit** route:
 
 - Parser: `validate_binomial_mu_random_terms()` admits exactly one unlabelled
   `correlated_slope` term and rejects labels, extra terms, and multi-slope bars.
-- Context fence: `drm_validate_binomial_q2_context()` rejects `REML = TRUE` and
-  missing-response rows before TMB construction.
+- Context fence: `drm_validate_binomial_q2_context()` rejects `REML = TRUE`,
+  missing-response rows, and a slope predictor that is constant within every
+  group before TMB construction.
 - Tests: `tests/testthat/test-binomial-correlated-re-mspl-prereq.R` (Cholesky
   positive-definiteness, parser, AD vs finite-difference gradient, fresh-draw map,
   one-seed ML recovery with absolute SD/ρ gates of 0.30).
@@ -221,7 +222,8 @@ them; do not drop them quietly (MC fence).
 
 **Rejection matrix (must stay red).** labelled block; multi-slope; REML;
 missing response; one other NG family still in Wave 3; `(1 | g)` plus
-`(1 + x | g)` on the same group.
+`(1 + x | g)` on the same group; a slope predictor that is constant
+within every group (unidentified `sd1` / `rho_re`).
 
 ## Compute gate
 

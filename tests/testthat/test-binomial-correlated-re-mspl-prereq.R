@@ -226,4 +226,12 @@ test_that("binomial q2 rejection matrix stays closed", {
     "Only independent Poisson `mu` random intercepts and slopes",
     fixed = TRUE
   )
+
+  const_dat <- sim$data
+  const_dat$x <- as.numeric(const_dat$id)
+  expect_error(
+    drmTMB(q2, family = binomial(), data = const_dat),
+    "need within-group variation in the slope predictor",
+    fixed = TRUE
+  )
 })

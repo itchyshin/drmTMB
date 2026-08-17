@@ -5,10 +5,11 @@
 * Complete-data binomial logit `cbind(success, failure) ~ x + (1 + x | id)` now
   has a `point_fit_recovery` ledger cell (`mc-0717`) for `sd0`, `sd1`, and
   group-level `rho_re` under the log-sech Cholesky. This is not the
-  independent-slope cell `mc-0061`. REML, missing-response, labelled blocks,
-  mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
-  Quiesce still holds: this note is side-branch only and is not in the frozen
-  0.7.0 tarball.
+  independent-slope cell `mc-0061`. A slope predictor that is constant within
+  every group now aborts before the fit (unidentified `sd1` / `rho_re`). REML,
+  missing-response, labelled blocks, mixed `(1 | g) + (1 + x | g)`, intervals,
+  and coverage remain rejected. Quiesce still holds: this note is side-branch
+  only and is not in the frozen 0.7.0 tarball.
 
 # drmTMB 0.7.0
 

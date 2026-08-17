@@ -348,6 +348,39 @@ drm_binomial_correlated_q2 <- function(spec) {
     identical(re$coef_names[[1L]], "(Intercept)")
 }
 
+drm_binomial_q2_slope_unique_n <- function(values, group_index) {
+  counts <- vapply(
+    split(values, group_index),
+    function(x) length(unique(x[is.finite(x)])),
+    integer(1L)
+  )
+  if (length(counts) == 0L) {
+    return(0L)
+  }
+  max(counts)
+}
+
+drm_validate_binomial_q2_slope_variation <- function(re) {
+  slope_terms <- which(re$coef_names != "(Intercept)")
+  for (k in slope_terms) {
+    max_unique <- drm_binomial_q2_slope_unique_n(
+      re$value[, k],
+      re$index[, k]
+    )
+    if (max_unique < 2L) {
+      variable <- re$coef_names[[k]]
+      group_name <- re$group_names[[k]]
+      cli::cli_abort(c(
+        "Correlated q = 2 binomial random effects need within-group variation in the slope predictor.",
+        "x" = "{.field {variable}} is constant within every level of {.field {group_name}}.",
+        "i" = "The slope SD and group-level {.code rho_re} are unidentified in that design.",
+        "i" = "Use a predictor that varies within {.field {group_name}}."
+      ))
+    }
+  }
+  invisible(re)
+}
+
 drm_validate_binomial_q2_context <- function(spec, REML = FALSE) {
   if (!drm_binomial_correlated_q2(spec)) return(invisible(spec))
   if (isTRUE(REML)) {
@@ -363,6 +396,7 @@ drm_validate_binomial_q2_context <- function(spec, REML = FALSE) {
       "i" = "Use complete responses or an independently validated q = 1 route."
     ))
   }
+  drm_validate_binomial_q2_slope_variation(spec$random$mu)
   invisible(spec)
 }
 
