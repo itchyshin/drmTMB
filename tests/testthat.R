@@ -22,6 +22,13 @@ library(drmTMB)
 # matches test-missing-predictor-zero-one-beta.R, and an unanchored
 # "biv-gaussian" also matches test-missing-response-biv-gaussian.R -- neither is
 # intended, and both must keep running on the CRAN lane.
+#
+# `^julia` excludes every test-julia-*.R file. Ligges win-builder R-release
+# and R-oldrelease (2026-08-16) hung inside JuliaCall::julia_setup() for
+# 105-149 minutes. JuliaCall is Suggests, so skip_if_not_installed() does
+# not skip when those hosts have Julia 1.11.3. Cheap R-only tests in
+# test-xfam-bridge.R stay on the CRAN lane; live JuliaCall tests there use
+# drm_skip_live_julia(). The full suite still runs when NOT_CRAN=true.
 not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
 if (not_cran) {
   test_check("drmTMB")
@@ -35,6 +42,7 @@ if (not_cran) {
       "^zero-one-beta$",
       "^biv-gaussian$",
       "^profile-targets$",
+      "^julia",
       sep = "|"
     ),
     invert = TRUE

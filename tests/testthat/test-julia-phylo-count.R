@@ -153,6 +153,7 @@ drm_phylo_count_fit <- function(n_tip = 24L) {
 }
 
 test_that("Poisson phylo fit via engine = 'julia' is finite, sane, TMB-parity", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

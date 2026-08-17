@@ -289,7 +289,7 @@ drm_phylo_q4_corpairs_fit <- function(n_tip = 30L, m = 3L) {
 }
 
 test_that("q4 bivariate phylo location-scale corpairs surfaces among-axis correlations (live)", {
-  skip_on_cran()
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

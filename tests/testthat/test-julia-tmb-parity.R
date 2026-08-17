@@ -13,6 +13,10 @@
 #       sparse all-node q1 tolerance for this exact route and asserts TMB-vs-Julia
 #       logLik parity, without making any REML, interval, or non-Gaussian claim.
 
+# Defense in depth: the CRAN invert filter already excludes this file. This
+# skip keeps a direct test_file() on win-builder from hanging in julia_setup().
+drm_skip_live_julia()
+
 drm_parity_jl_path <- function() {
   drm_test_drmjl_path()
 }

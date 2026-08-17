@@ -61,6 +61,7 @@ drm_q2_phylo_point_export <- function(n_tip = 12L, nrep = 2L) {
 }
 
 test_that("private q2 phylo point-export bridge primitive returns diagnostic payload", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

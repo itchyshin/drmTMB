@@ -227,6 +227,7 @@ drm_phylo_binom_fit <- function(n_tip = 24L) {
 }
 
 test_that("Gamma phylo fit via engine = 'julia' is finite and sane", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -263,6 +264,7 @@ test_that("Gamma phylo fit via engine = 'julia' is finite and sane", {
 })
 
 test_that("Binomial phylo fit via engine = 'julia' is finite and sane", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

@@ -15,6 +15,7 @@ drm_miss_jl_path <- function() {
 }
 
 test_that("engine='julia' fits Gaussian response='include' (observed-data, design kept)", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
@@ -158,7 +159,7 @@ test_that("dropping NA rows first makes the phylo payload row_order complete-cas
 # the native engine='tmb' dropped-case fit OR error explicitly -- it must never
 # silently return a NaN loglik / non-converged result (the pre-fix failure mode).
 test_that("engine='julia' count phylo fit with NA response drops rows, matches native (live)", {
-  skip_on_cran()
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

@@ -456,6 +456,7 @@ drm_sigma_phylo_reml_fits <- function(n_tip = 32L) {
 }
 
 test_that("Gaussian sigma-phylo REML fit via engine = 'julia' is finite and sane", {
+  drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")

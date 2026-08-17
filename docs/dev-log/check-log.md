@@ -1,5 +1,22 @@
 # Check Log
 
+## 2026-08-16 — win-builder Julia skip (Ligges ERROR)
+
+Lane: Cursor, `cursor/070-winbuilder-julia-skip` from freeze `302ac2579`. Ligges
+R-release (`qdiOL4tO0suj`, 105m) and R-oldrelease (`GXMxAgB00l1C`, 149m) both
+ERROR with `testthat.Rout.fail` ending at `JuliaCall::julia_setup()`. No
+testthat Failure block. NOTE is incoming feasibility (*centile* /
+*misspecification* / *uncalibrated*), not GNU make.
+
+| Check | Result |
+| --- | --- |
+| CRAN invert filter | `^julia` added; `NOT_CRAN=true` still unfiltered |
+| Live JuliaCall tests | `drm_skip_live_julia()` unless `DRMTMB_JULIA_TESTS=true` |
+| `test-xfam-bridge.R` cheap R tests | stay on the CRAN lane |
+| Focused tests | `^cran-lane-filter$` FAIL 0 / PASS 11; invert sim 16/16 julia stems excluded; CRAN-lane xfam FAIL 0 / SKIP 4 / PASS 65 |
+| `platform-clean` | **still NOT READY** — needs new tarball + re-upload |
+| submit_cran / Ligges email / merge-as-clean | **not done** |
+
 ## 2026-08-16 — Public NG REML honesty (4a): README + ?drmTMB match the ledger
 
 Lane: Cursor, `cursor/ng-reml-honesty-4a` (worktree
