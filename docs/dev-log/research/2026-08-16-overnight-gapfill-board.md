@@ -32,14 +32,14 @@ The Dropbox checkout is a dirty July branch. All overnight writes go through loc
 
 | # | Work | Branch | Status at 18:53 MDT | Merge? |
 | --- | --- | --- | --- | --- |
-| 0 | This board | `cursor/overnight-gapfill-board` | writing | draft PR (docs) |
-| 1 | Wave 1 binomial `mc-0717` | `cursor/ng-correlated-slope-impl` | draft **#1059** at `ae307f4b1`: constant-x abort `3399e7eda` + Totoro 27-fit bank `ae307f4b1`. MERGEABLE. os-matrix green; ubuntu **in progress** | **no** |
-| 2 | Wave 2 Poisson `mc-0718` | `cursor/ng-correlated-slope-wave2` | draft **#1060** still at `aef4c8601` (does **not** contain 1059 tip). Now **CONFLICTING**. Sibling rebasing onto `ae307f4b1` | **no** |
-| 3 | Wave 2.5 NB2 `mc-0719` | `cursor/ng-correlated-slope-nb2` | **no PR**. Dirty worktree still tracking old Wave 2 tip. Sibling rebasing with #1060 | **no** |
-| 4 | Wave 3 lognormal `mc-0720` | `cursor/ng-correlated-slope-lognormal` | wait for stack refresh, then start | **no** |
-| 5 | Wave 3 Gamma | `cursor/ng-correlated-slope-gamma` | after lognormal if time | **no** |
-| 6 | mc-0576 ADEMP docs | `cursor/mc0576-ademp-freeze` | **no PR**. Worktree now has uncommitted ADEMP freeze docs. Do not touch files | merge only if a later **docs-only** PR is green |
-| 7 | REML honesty 4a docs | `cursor/ng-reml-honesty-4a` | **no PR**. Clean at `origin/main` | merge only if a later **docs-only** PR is green |
+| 0 | This board | `cursor/overnight-gapfill-board` | draft **#1064**; rebased onto `main` after #1062 | draft PR (docs) |
+| 1 | Wave 1 binomial `mc-0717` | `cursor/ng-correlated-slope-impl` | draft **#1059** at `ae307f4b1`: constant-x `3399e7eda` + Totoro bank. CI green. Now **CONFLICTING** vs #1062 on `main` | **no** |
+| 2 | Wave 2 Poisson `mc-0718` | `cursor/ng-correlated-slope-wave2` | draft **#1060** @ `3e8a9aaec` **contains 1059 tip**. MERGEABLE. CI not posted at 05:40 | **no** |
+| 3 | Wave 2.5 NB2 `mc-0719` | `cursor/ng-correlated-slope-nb2` | **no origin branch / no PR** at 05:40 | **no** |
+| 4 | Wave 3 lognormal `mc-0720` | `cursor/ng-correlated-slope-lognormal` | worktree exists at `3e8a9aaec`; **no implementation commit** (session paused until 05:39) | **no** |
+| 5 | Wave 3 Gamma | `cursor/ng-correlated-slope-gamma` | not started | **no** |
+| 6 | mc-0576 ADEMP docs | `cursor/mc0576-ademp-freeze` | **merged** [#1062](https://github.com/itchyshin/drmTMB/pull/1062) → `186d88038` | already on `main` |
+| 7 | REML honesty 4a | `cursor/ng-reml-honesty-4a` | open **#1063**; touches `R/drmTMB.R`; CONFLICTING; ubuntu FAIL | **no** (not docs-only) |
 | 8 | Julia CRAN filter | `cursor/070-winbuilder-julia-skip` | draft **#1061** CONFLICTING | **no** |
 | 9 | Design 257 | `cursor/ng-correlated-slope-design` | draft **#1057** MERGEABLE; CI green; docs-only | owner call |
 | 10 | Missing-data | `codex/response-missing-formula-surface` | **#1033** CONFLICTING | **do not touch** |
@@ -50,14 +50,16 @@ The Dropbox checkout is a dirty July branch. All overnight writes go through loc
 | PR | Head | Draft | Mergeable | CI | URL |
 | --- | --- | --- | --- | --- | --- |
 | [#1061](https://github.com/itchyshin/drmTMB/pull/1061) | `cursor/070-winbuilder-julia-skip` | yes | CONFLICTING | none | https://github.com/itchyshin/drmTMB/pull/1061 |
-| [#1060](https://github.com/itchyshin/drmTMB/pull/1060) | `cursor/ng-correlated-slope-wave2` @ `aef4c8601` | yes | CONFLICTING | os-matrix SUCCESS; ubuntu-latest **FAILURE** ([31972360870](https://github.com/itchyshin/drmTMB/actions/runs/31972360870)) | https://github.com/itchyshin/drmTMB/pull/1060 |
-| [#1059](https://github.com/itchyshin/drmTMB/pull/1059) | `cursor/ng-correlated-slope-impl` @ `ae307f4b1` | yes | MERGEABLE | os-matrix SUCCESS; ubuntu **IN_PROGRESS** ([31983261975](https://github.com/itchyshin/drmTMB/actions/runs/31983261975)) | https://github.com/itchyshin/drmTMB/pull/1059 |
+| [#1064](https://github.com/itchyshin/drmTMB/pull/1064) | `cursor/overnight-gapfill-board` | yes | rebased onto `main` | this board | https://github.com/itchyshin/drmTMB/pull/1064 |
+| [#1063](https://github.com/itchyshin/drmTMB/pull/1063) | `cursor/ng-reml-honesty-4a` | no | CONFLICTING | os-matrix SUCCESS; ubuntu **FAILURE** | https://github.com/itchyshin/drmTMB/pull/1063 |
+| [#1060](https://github.com/itchyshin/drmTMB/pull/1060) | `cursor/ng-correlated-slope-wave2` @ `3e8a9aaec` | yes | MERGEABLE | CI not posted at 05:40 | https://github.com/itchyshin/drmTMB/pull/1060 |
+| [#1059](https://github.com/itchyshin/drmTMB/pull/1059) | `cursor/ng-correlated-slope-impl` @ `ae307f4b1` | yes | CONFLICTING | os-matrix + ubuntu SUCCESS | https://github.com/itchyshin/drmTMB/pull/1059 |
 | [#1057](https://github.com/itchyshin/drmTMB/pull/1057) | `cursor/ng-correlated-slope-design` | yes | MERGEABLE | green | https://github.com/itchyshin/drmTMB/pull/1057 |
 | [#1049](https://github.com/itchyshin/drmTMB/pull/1049) | `claude/binomial-phylo` | no | MERGEABLE | ubuntu FAIL | https://github.com/itchyshin/drmTMB/pull/1049 |
 | [#1033](https://github.com/itchyshin/drmTMB/pull/1033) | `codex/response-missing-formula-surface` | no | CONFLICTING | none | https://github.com/itchyshin/drmTMB/pull/1033 |
 | [#858](https://github.com/itchyshin/drmTMB/pull/858) | `codex/lane-b-e0-readiness` | yes | MERGEABLE | stale ubuntu FAIL | https://github.com/itchyshin/drmTMB/pull/858 |
 
-No ADEMP, REML-honesty, NB2, lognormal, Gamma, or overnight-board PRs at this poll.
+Closeout poll 05:40 MDT also has [#1064](https://github.com/itchyshin/drmTMB/pull/1064) (this board) and [#1063](https://github.com/itchyshin/drmTMB/pull/1063) (REML 4a). [#1062](https://github.com/itchyshin/drmTMB/pull/1062) ADEMP is merged. No NB2 / lognormal / Gamma PRs.
 
 ## #1059 new commits (this update)
 
@@ -107,6 +109,7 @@ Ask “Totoro or DRAC?” before any recovery campaign (D-50). Overnight default
 | --- | --- |
 | 18:50 | Board opened. No NB2 / ADEMP / 4a / lognormal PRs. #1060 ubuntu red. #1061 conflicting. |
 | 18:53 | #1059 gained `3399e7eda` (constant-x abort) + `ae307f4b1` (Totoro 27-fit bank). Head `ae307f4b1`. Ubuntu CI re-running. #1060 now CONFLICTING vs that tip; sibling rebasing #1060/NB2. ADEMP worktree has uncommitted freeze docs; no PR yet. Coordinator waits for stack refresh, then starts Wave 3 lognormal. |
+| 05:40 | Session resumed after a pause. #1062 ADEMP **merged**. #1060 rebased onto 1059 tip (`3e8a9aaec`). #1063 REML 4a open but ships `R/drmTMB.R` — not merged. NB2 still no PR. Lognormal worktree sits on `3e8a9aaec` with no code. Handover written. Coordinator stopped. |
 
 ## Stop rules
 
