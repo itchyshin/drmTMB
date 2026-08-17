@@ -3364,6 +3364,49 @@ Type objective_function<Type>::operator()()
         ADREPORT(rho_mu_re);
       }
     }
+    // Structured phylogenetic mu field (#1048) -- the same Gaussian-field
+    // contribution and prior the ordinal (model 13) branch carries. Added to
+    // eta_mu BEFORE the mi() block so any downstream 2-point sum sees the full
+    // linear predictor (the R gate refuses mi + phylo in this slice, but the
+    // ordering keeps the invariant true by construction rather than by gate).
+    if (has_phylo_mu == 1) {
+      int n_phylo = Q_phylo.rows();
+      int q_phylo = log_sd_phylo.size();
+      for (int i = 0; i < y.size(); ++i) {
+        Type phylo_effect = Type(0.0);
+        for (int k = 0; k < q_phylo; ++k) {
+          int effect_index = k * n_phylo + phylo_mu_node_index(i);
+          phylo_effect += phylo_mu_value(i, k) * u_phylo(effect_index);
+        }
+        eta_mu(i) += phylo_effect;
+      }
+      Type quadratic = Type(0.0);
+      for (int k = 0; k < q_phylo; ++k) {
+        vector<Type> effect_k(n_phylo);
+        for (int j = 0; j < n_phylo; ++j) {
+          effect_k(j) = u_phylo(k * n_phylo + j);
+        }
+        vector<Type> Q_u = Q_phylo * effect_k;
+        Type quadratic_k = Type(0.0);
+        for (int j = 0; j < n_phylo; ++j) {
+          quadratic_k += effect_k(j) * Q_u(j);
+        }
+        quadratic += quadratic_k;
+        nll += Type(0.5) * (
+          Type(n_phylo) * log(Type(2.0) * M_PI) +
+          Type(2.0) * Type(n_phylo) * log_sd_phylo(k) -
+          log_det_Q_phylo +
+          exp(Type(-2.0) * log_sd_phylo(k)) * quadratic_k
+        );
+      }
+      REPORT(u_phylo);
+      REPORT(log_sd_phylo);
+      REPORT(quadratic);
+      ADREPORT(log_sd_phylo);
+      vector<Type> sd_phylo = exp(log_sd_phylo);
+      REPORT(sd_phylo);
+      ADREPORT(sd_phylo);
+    }
     // Missing-predictor mi() 2-point sum for a binary predictor (mirrors the
     // poisson MD9a); the response density is the shared leaf.
     if (has_mi == 1 && mi_family == 1) {

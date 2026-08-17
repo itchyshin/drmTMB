@@ -253,21 +253,36 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
 })
 
 test_that("binomial REML rejects every structured mu provider", {
+  # #1048 admits ML binomial q1 phylo(1 | id) only. Under REML that slice still
+  # refuses: the Cox-Reid route requires exactly one ordinary unlabelled mu RE.
+  # Other structured providers remain phase-1 refusals for binomial.
   fx <- binom_re_fixture(nid = 8L, neach = 4L)
   ids <- levels(fx$data$g)
-  tree <- ape::rtree(length(ids), tip.label = ids)
+  # Ultrametric so phylo tree validation does not mask the REML fence.
+  tree <- ape::rcoal(length(ids))
+  tree$tip.label <- ids
   coords <- cbind(x = seq_along(ids), y = rep(c(0, 1), length.out = length(ids)))
   rownames(coords) <- ids
   A <- diag(length(ids))
   dimnames(A) <- list(ids, ids)
 
-  structured_calls <- list(
-    quote(drmTMB(bf(y ~ x + phylo(1 | g, tree = tree)), family = binomial(), data = fx$data, REML = TRUE)),
+  expect_error(
+    drmTMB(
+      bf(y ~ x + phylo(1 | g, tree = tree)),
+      family = binomial(),
+      data = fx$data,
+      REML = TRUE
+    ),
+    "Binomial `REML` requires exactly one admitted ordinary unlabelled `mu`",
+    fixed = TRUE
+  )
+
+  deferred_calls <- list(
     quote(drmTMB(bf(y ~ x + spatial(1 | g, coords = coords)), family = binomial(), data = fx$data, REML = TRUE)),
     quote(drmTMB(bf(y ~ x + animal(1 | g, A = A)), family = binomial(), data = fx$data, REML = TRUE)),
     quote(drmTMB(bf(y ~ x + relmat(1 | g, K = A)), family = binomial(), data = fx$data, REML = TRUE))
   )
-  for (call in structured_calls) {
+  for (call in deferred_calls) {
     expect_error(
       eval(call),
       "Structured-effect syntax is planned, not implemented",
