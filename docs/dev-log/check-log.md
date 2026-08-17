@@ -82,6 +82,22 @@ testthat Failure block. NOTE is incoming feasibility (*centile* /
 | Focused tests | `^cran-lane-filter$` FAIL 0 / PASS 11; invert sim 16/16 julia stems excluded; CRAN-lane xfam FAIL 0 / SKIP 4 / PASS 65 |
 | `platform-clean` | **still NOT READY** — needs new tarball + re-upload |
 | submit_cran / Ligges email / merge-as-clean | **not done** |
+## 2026-08-16 — `mc-0576` ADEMP: align promotion rule with Arc 4c S0
+
+Lane: Cursor, `cursor/mc0576-ademp-s0-align` (scratch
+`~/local-scratch/lanes/drmTMB-mc0576-ademp`). Docs only. Builds on merged
+PR #1062; does not relaunch the freeze.
+
+| Check | Result |
+| --- | --- |
+| Frozen `(M, SD, n_each)` | unchanged: `{8,16,32,64}`, 0.45, 50 |
+| Gate (3) | contiguous suffix of `{16,32,64}`; `M=64` required; `M=8` never floor |
+| Claim ceiling | still `inference_ready_with_caveats`; never `supported` first campaign |
+| Launch | **do not launch**; Totoro-or-DRAC waits for owner GO |
+| Fits / ledger | **not run** |
+
+ADEMP: `docs/dev-log/research/2026-08-16-mc-0576-zo-beta-sigma-slope-ademp-freeze.md`.
+After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-s0-gate-align.md`.
 
 ## 2026-08-16 — Public NG REML honesty (4a): README + ?drmTMB match the ledger
 

@@ -12,12 +12,29 @@ profile-coverage gate for one already-admitted cell before anyone spends
 compute. The cell is `interval_feasible` on `origin/main`. It has no coverage
 claim. This sheet does not move the ledger.
 
-Skeleton: design 257 ADEMP block (`Aim` / `DGP` / `Estimand` / `Methods` /
-`Performance` / compute gate) plus Arc 4c S0
-(`docs/dev-log/2026-07-19-arc4c-three-cell-mu-slope-drac-s0.md`)
-profile-coverage language. Numbers come from the Lane C Z5 recovery
-constructor and the 135-trace interval campaign, not from Arc 4c's `mu`-slope
-fixture and not from Gamma `mc-0242`.
+Skeleton: design 257 test-plan ADEMP headings (`Aim` / `Data-generating process`
+/ `Estimand` / `Methods` / `Performance` / `Compute gate`) on
+`docs/design/257-nongaussian-ordinary-correlated-slope.md` (PR #1057; structure
+only — that note is the correlated `(1 + x | g)` neighbour, not this cell).
+Gate language: Arc 4c S0
+(`docs/dev-log/2026-07-19-arc4c-three-cell-mu-slope-drac-s0.md`).
+Numbers come from the Lane C Z5 recovery constructor and the 135-trace
+interval campaign, not from Arc 4c's `mu`-slope fixture and not from Gamma
+`mc-0242`.
+
+### Frozen contract (do not launch)
+
+| Quantity | Frozen value |
+| --- | --- |
+| Cell | `mc-0576` (`interval_feasible`; no coverage) |
+| Formula | `bf(y ~ x, sigma ~ x + (0 + x \| id), zoi ~ 1, coi ~ 1)` |
+| Estimand | `sd:sigma:(0 + x \| id)` |
+| True SD | **0.45** |
+| `n_each` | **50** |
+| `M` | **8, 16, 32, 64** (`M = 8` exploratory) |
+| Later `N` (not authorized) | 1200 attempted / `M` |
+| First-campaign ceiling | `inference_ready_with_caveats` — never `supported` |
+| Host | Totoro or DRAC — **wait for owner GO** |
 
 ## Do not launch
 
@@ -183,15 +200,19 @@ failures.
 1. Profile availability 1.000 is clean. `>= 0.99` can be promoted only with
    every failure disclosed and primary all-attempts coverage meeting (2).
    Below 0.99, any unrecorded failure, or a failed smoke withholds that `M`.
-2. The primary all-attempts exact-binomial coverage interval must overlap
-   `[0.925, 0.975]`. Entirely below 0.925 withholds. Entirely above 0.975 is
-   recorded as conservative. Conditional-on-finite coverage cannot rescue an
+2. Calibration passes when the primary all-attempts exact-binomial interval
+   intersects `[0.925, 0.975]`, or when its lower limit exceeds 0.975
+   (labelled conservative, never nominal). It withholds when the upper limit
+   is below 0.925. Conditional-on-finite coverage cannot rescue an
    attempted-denominator failure.
-3. The lowest non-exploratory `M` satisfying (1) and (2) is a mechanically
-   passing extension. It is **firmly certified** only if that primary exact
-   interval lies wholly inside `[0.925, 0.975]`. `M = 8` is exploratory.
-   A result that straddles either boundary is borderline, not firmly
-   certified.
+3. Let `A` be the acceptable non-exploratory rungs. Promotion requires `64`
+   in `A` and `A` to be a contiguous suffix of `{16, 32, 64}`. The
+   deployment floor is the smallest member of that suffix. A hole or an
+   unacceptable `M = 64` positive control withholds promotion pending
+   diagnosis. A floor is **firmly certified** only when its primary exact
+   interval lies wholly inside `[0.925, 0.975]`; boundary-overlap and
+   conservative suffixes support at most `inference_ready_with_caveats`.
+   `M = 8` is exploratory and never sets the floor.
 4. Pre-registered diagnostic: ML-Laplace's low RE-SD bias predicts
    predominantly above-upper misses at small `M`. The opposite direction is
    a red flag, not an ad-hoc promotion.
@@ -250,5 +271,6 @@ PRs #1033 / #1059 / #1060.
 - Receipts: `docs/dev-log/simulation-artifacts/2026-08-05-135-trace-campaign/reconcile/mc-0576-reconcile.tsv`.
 - Gate language: `docs/dev-log/2026-07-19-arc4c-three-cell-mu-slope-drac-s0.md`;
   `scratchpad/mc0242-gamma-sigma-gate-spec.md` (Gamma intercept analogue only).
-- ADEMP skeleton: design 257 test-plan block on the correlated-slope design
-  note (structure only; this cell is independent `(0 + x | id)`).
+- ADEMP skeleton: design 257 test-plan block
+  (`docs/design/257-nongaussian-ordinary-correlated-slope.md`, PR #1057;
+  structure only; this cell is independent `(0 + x | id)`).
