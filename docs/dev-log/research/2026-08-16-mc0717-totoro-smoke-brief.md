@@ -1,11 +1,11 @@
-# mc-0717 Totoro smoke brief (predeclared; not launched)
+# mc-0717 Totoro smoke brief (predeclared; launched 2026-08-16)
 
 **Date:** 2026-08-16  
 **Readers:** the next compute owner, plus Fisher / Noether on the Wave 1 merge-path.  
 **Lane:** `cursor/ng-correlated-slope-impl` (draft PR #1059; worktree `.worktrees/ng-corr-w1`).  
 **Cell:** `mc-0717`, `ordinary_correlated_q2`, ceiling `point_fit_recovery`.  
 **Machine answer:** Totoro, not DRAC, not the laptop, never GitHub Actions (D-50).  
-**Launch status:** **not launched.** This note is the pre-run contract. BatchMode to Totoro succeeded on 2026-08-16 20:02 UTC (`hostname=totoro`, 384 cores). That is connectivity, not compute approval. Do not burn the cluster until Shinichi records a go for this exact 27-fit smoke.
+**Launch status:** **launched and finished 2026-08-16 20:44 UTC** after Shinichi's named GO. Results: `docs/dev-log/simulation-artifacts/2026-08-16-mc0717-totoro-smoke/` and after-task `docs/dev-log/after-task/2026-08-16-mc0717-totoro-smoke.md`. This note remains the pre-run contract.
 
 This smoke cannot promote `mc-0717` above `point_fit_recovery`. It cannot open Wave 2, REML, AGHQ, intervals, coverage, or `supported`. It is not `mc-0061`.
 
@@ -135,7 +135,7 @@ on the PR branch after the run, or keep the raw TSV on Totoro and copy it back. 
 
 **STOP if** any claim fit drops an exception from the denominator; extractor names drift from the Design 257 table; a write-up says interval, coverage, REML, or `supported`; a Wave 2 family is fitted; or the job is submitted to GitHub Actions.
 
-**Do not launch from this note.** The next owner asks Shinichi for this 27-fit Totoro smoke by name, then runs it. Standing 2026-08-07 Totoro permission is not a substitute for a measured pre-run on this cell.
+**Launched from Shinichi's named GO** (2026-08-16 20:44 UTC). Do not relaunch this 27-fit set. A later certification needs its own ADEMP and a new GO. Standing 2026-08-07 Totoro permission is not a substitute for a named cell GO.
 
 ## Out of scope
 
