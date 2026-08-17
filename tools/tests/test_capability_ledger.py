@@ -49,7 +49,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         # (1 + x | g) ML-Laplace point_fit_recovery cell.
         # 701 -> 702: Wave 2.5 adds mc-0719, the ordinary NB2 correlated
         # (1 + x | g) ML-Laplace point_fit_recovery cell.
-        self.assertEqual(len(model), 702)
+        # 702 -> 703: Wave 3 adds mc-0720, the ordinary lognormal correlated
+        # (1 + x | g) ML-Laplace point_fit_recovery cell.
+        self.assertEqual(len(model), 703)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -551,10 +553,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Design 257 Wave 1 then adds mc-0717 (implemented), so 341 -> 342.
         # Wave 2 adds mc-0718 (implemented), so 342 -> 343.
         # Wave 2.5 adds mc-0719 (implemented), so 343 -> 344.
+        # Wave 3 adds mc-0720 (implemented), so 344 -> 345.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 344, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 345, "not_implemented": 10, "rejected_by_design": 348},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -597,12 +600,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         }
 
         # Arc 4b plus the exact two-row 0.7 capability-truth override (see above).
-        # 341 -> 344: Design 257 Wave 1 (mc-0717), Wave 2 (mc-0718),
-        # then Wave 2.5 (mc-0719).
+        # 341 -> 345: Design 257 Wave 1 (mc-0717), Wave 2 (mc-0718),
+        # Wave 2.5 (mc-0719), then Wave 3 (mc-0720).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 344, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 345, "not_implemented": 10, "rejected_by_design": 348},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -698,9 +701,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Wave 2 adds mc-0718 (source_order 718), and Wave 2.5 adds
         # mc-0719 (source_order 719), all outside the frozen window,
         # at point_fit_recovery.
+        # 80 -> 81: Wave 3 adds mc-0720 (source_order 720) at
+        # point_fit_recovery, also outside the frozen window.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            80,
+            81,
         )
 
         by_id = {row["cell_id"]: row for row in model}

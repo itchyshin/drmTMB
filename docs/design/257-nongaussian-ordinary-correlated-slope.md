@@ -3,20 +3,22 @@
 **Date:** 2026-08-16  
 **Lane:** stacked `cursor/ng-correlated-slope-impl` (#1059, Wave 1), then
 `cursor/ng-correlated-slope-wave2` (#1060, Wave 2), then
-`cursor/ng-correlated-slope-nb2` (Wave 2.5). No merge to `main`; no CRAN;
+`cursor/ng-correlated-slope-nb2` (#1065, Wave 2.5), then
+`cursor/ng-correlated-slope-wave3-lognormal` (Wave 3). No merge to `main`; no CRAN;
 no missing-data / MSPL. Design freeze originated on
 `cursor/ng-correlated-slope-design` (#1057).  
 **Readers:** the next implementer after win-builder unlock, plus Fisher / Noether / Boole on later family PRs.  
 **Inventory this note implements:** slices 1–2 plus the ordinary-NB2 count
-follow-on of
+follow-on and the first continuous-family Wave 3 cell of
 [`docs/dev-log/research/2026-08-16-nongaussian-re-remaining-fruit.md`](../dev-log/research/2026-08-16-nongaussian-re-remaining-fruit.md).  
 **Numbering:** 256 is reserved by the foreign MSPL-boundary lane (`256-mspl-boundary-penalty-derivation.md` on `claude/mspl-boundary-s0-s1`). This note is 257.
 
 Wave 1 (`mc-0717`, binomial logit), Wave 2 (`mc-0718`, ordinary Poisson log),
-and Wave 2.5 (`mc-0719`, ordinary NB2 log-mean) are the live
-`point_fit_recovery` contract on this stack. The Wave 0 sentence that this
-note "does not admit a family" is stale. Quiesce still holds: none of these
-waves merge to `main` until unlock. Coverage and `supported` remain later arcs.
+Wave 2.5 (`mc-0719`, ordinary NB2 log-mean), and Wave 3 (`mc-0720`, ordinary
+lognormal log-location) are the live `point_fit_recovery` contract on this
+stack. The Wave 0 sentence that this note "does not admit a family" is stale.
+Quiesce still holds: none of these waves merge to `main` until unlock.
+Coverage and `supported` remain later arcs.
 
 ## Purpose
 
@@ -33,11 +35,12 @@ Coverage and `supported` are later arcs.
 
 | Stage | Maximum claim | Not this stage |
 | --- | --- | --- |
-| This stacked note | Live Wave 1+2+2.5 contract: `mc-0717`, `mc-0718`, and `mc-0719` at `point_fit_recovery` | Intervals, coverage, REML, AGHQ, `supported`, merge to `main` |
+| This stacked note | Live Wave 1+2+2.5+3 contract: `mc-0717`, `mc-0718`, `mc-0719`, and `mc-0720` at `point_fit_recovery` | Intervals, coverage, REML, AGHQ, `supported`, merge to `main` |
 | Wave 1 (binomial, #1059) | `point_fit_recovery` for **one** complete-data binomial unlabelled `(1 + x \| g)` ML-Laplace cell | Intervals, coverage, REML, AGHQ, `supported` |
 | Wave 2 (Poisson, #1060) | `point_fit_recovery` for **one** complete-data ordinary Poisson unlabelled `(1 + x \| g)` ML-Laplace cell | Inheritance from binomial, intervals |
-| Wave 2.5 (NB2) | `point_fit_recovery` for **one** complete-data ordinary `nbinom2()` unlabelled `(1 + x \| g)` ML-Laplace cell | Independent-slope `mc-0402`, ZI/truncated, intervals |
-| Later family menu | `point_fit_recovery` per admitted family, one cell at a time | Inheritance from binomial, Poisson, or NB2 |
+| Wave 2.5 (NB2, #1065) | `point_fit_recovery` for **one** complete-data ordinary `nbinom2()` unlabelled `(1 + x \| g)` ML-Laplace cell | Independent-slope `mc-0402`, ZI/truncated, intervals |
+| Wave 3 (lognormal) | `point_fit_recovery` for **one** complete-data ordinary `lognormal()` unlabelled `(1 + x \| g)` ML-Laplace cell | Independent-slope `mc-0380`, Gamma neighbour, intervals |
+| Later family menu | `point_fit_recovery` per admitted family, one cell at a time | Inheritance from binomial, Poisson, NB2, or lognormal |
 | Later, separate owner goal | `interval_feasible` then fenced `inference_ready_with_caveats` | Never `supported` in the first arc |
 
 Do not reuse `mc-0061`. That cell is the **independent** binomial `mu` slope
@@ -187,7 +190,14 @@ matched Poisson `model_type == 6` (`eta_cor_mu`, `rho_mu_re`; no
 `mc-0402` and not `mc-0718`. Zero-inflated or truncated NB2, labelled,
 mixed, REML, and missing-response stay rejected.
 
-**Wave 3 (one family per PR).** lognormal, Gamma, beta, skew_normal, tweedie,
+**Wave 3 (this stack, `cursor/ng-correlated-slope-wave3-lognormal`).** Ordinary
+lognormal `mu` only (not Gamma). Compiled `model_type == 4` now carries the
+same design-17 ordinary-RE map as Poisson (`eta_cor_mu`, `rho_mu_re`; no
+`logsech_mu_re`). Wave 3 admits one complete-data unlabelled
+`(1 + x | g)` block at `point_fit_recovery` as `mc-0720`. Gamma, labelled,
+mixed, REML, and missing-response stay rejected.
+
+**Later Wave 3 menu.** Gamma, beta, skew_normal, tweedie,
 zero_one_beta, cumulative_logit — each already has independent `mu` slopes.
 Each needs its own alignment row if the report symbols differ.
 
@@ -283,11 +293,12 @@ When quiesce lifts:
 
 ## Stop
 
-Wave 1, Wave 2, and Wave 2.5 are implemented on this stack. No C++ in any
-of those waves. No MSPL. No missing-data. No CRAN submission. No merge to
+Wave 1, Wave 2, Wave 2.5, and Wave 3 lognormal are implemented on this stack.
+Wave 3 required the first C++ change on the design-17 path for
+`model_type == 4`. No MSPL. No missing-data. No CRAN submission. No merge to
 `main` until quiesce lifts. The next safe *code* action after unlock is
-merge Wave 1 then Wave 2 then Wave 2.5, or open a Wave 3 continuous-family
-PR from this note, not from the gllvmTMB probe.
+merge Waves 1→2→2.5→3 in order, or open the next continuous-family Wave 3
+cell from this note, not from the gllvmTMB probe.
 
 ## Wave 2 Poisson alignment (implemented on this stack)
 
@@ -359,4 +370,42 @@ drmTMB(
 
 `obj$report()` carries `eta_cor_mu` and `rho_mu_re`. It does **not** carry
 `logsech_mu_re`. Do not rewrite NB2 onto the binomial log-sech factorisation
-in this wave. Wave 3 is the continuous-family menu, one cell later.
+in this wave.
+
+## Wave 3 lognormal alignment (implemented on this stack)
+
+Location is the log-response mean (`log(y) ~ Normal(mu, sigma^2)`). Residual
+`sigma` is a fixed-effect intercept on the log-scale. Group-level correlation
+is `rho_re`, never residual `rho12`. Ordinary lognormal now reuses the
+compiled design-17 ordinary-RE carrier in `model_type == 4`; report symbols
+match Poisson/NB2 exactly. This is not `mc-0380` and not `mc-0719`. Gamma
+stays rejected by the shared positive-continuous validator.
+
+```text
+y_ij | mu_ij, sigma ~ Lognormal(mu_ij, sigma)
+mu_ij = X_ij β + b_0j + x_ij b_1j
+(b_0j, b_1j)' ~ MVN(0, Σ_g)
+
+Σ_g = [ sd0^2 ,           rho_re sd0 sd1 ]
+      [ rho_re sd0 sd1 ,  sd1^2          ]
+ρ = 0.999999 tanh(η)
+u_cond,slope = ρ u_intercept + √(1-ρ²) u_slope
+```
+
+```r
+drmTMB(
+  bf(y ~ x + (1 + x | id), sigma ~ 1),
+  family = lognormal(),
+  data = dat
+)
+```
+
+| Symbol | Extractor | Truth in `lognormal_q2_data()` |
+| --- | --- | --- |
+| `sd0` | `sdpars$mu["(1 + x \| id):(Intercept)"]` | 0.65 |
+| `sd1` | `sdpars$mu["(1 + x \| id):x"]` | 0.42 |
+| `rho_re` | `corpars$mu["cor((Intercept),x \| id)"]` = `0.999999 tanh(eta_cor_mu)` | 0.45 |
+
+`obj$report()` carries `eta_cor_mu` and `rho_mu_re`. It does **not** carry
+`logsech_mu_re`. Do not rewrite lognormal onto the binomial log-sech
+factorisation in this wave. Later Wave 3 families remain one cell at a time.

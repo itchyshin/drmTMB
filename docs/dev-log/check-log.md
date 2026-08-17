@@ -1,5 +1,21 @@
 # Check Log
 
+## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
+
+Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree
+`.worktrees/design257-1060-rebase` (fresh from `origin/main`; not the dirty
+July primary checkout). No `submit_cran`. No #1033. No mc-0576 campaign.
+
+| Check | Result |
+| --- | --- |
+| Symbolic alignment | design 257 Wave 3 table: sd0/sd1/rho_re; design-17 map; not rho12 |
+| C++ `model_type == 4` | design-17 `eta_cor_mu` / `rho_mu_re` (no logsech) |
+| R fences | lognormal-only validator wedge; missing-response abort; corpars allowlist; constant-within-group x; Gamma stays rejected |
+| Ledger | `mc-0720` `ordinary_correlated_q2` / `point_fit_recovery`; MODEL_SURFACE 702→703; implemented 344→345 |
+| Focused tests | FAIL 0 on the Wave-3 filter set (lognormal q2 + neighbours + location-scale + nongaussian slopes) |
+| C14 | cheap blob refresh; 4/4 PASS; tau digits unchanged; `source_fingerprint` left alone |
+| Ledger unit tests | counts bumped 702→703 / 344→345 / PFR 80→81 |
+
 ## 2026-08-17 — OVERRIDE QUIESCE: #1060 → #1065 → #1061 + docs #1057/#1064
 
 Lane: Cursor, `.worktrees/design257-1060-rebase`. Shinichi unblocked the parked

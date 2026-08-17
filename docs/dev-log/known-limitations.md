@@ -401,15 +401,18 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
 - Univariate lognormal location-scale models are implemented for positive
   finite responses. `mu` and `sigma` are on the log-response scale, and
   ordinary unlabelled `mu` random intercepts and independent numeric slopes
-  such as `(1 | id) + (0 + x | id)` are fitted. One ordinary log-`sigma`
+  such as `(1 | id) + (0 + x | id)` are fitted. One complete-data ordinary
+  unlabelled correlated intercept-slope block `(1 + x | id)` is also fitted
+  at `point_fit_recovery` (`mc-0720`) under the design-17 Cholesky; it is not
+  the independent-slope cell `mc-0380`. One ordinary log-`sigma`
   random intercept is also fitted; its exact Arc 4a ledger domain is
   inference-ready with caveats and mildly anti-conservative coverage. The
   `mu` and `sigma` random-effect routes must be fitted separately; combining
   them is rejected.
   Arc 3a fits one recovery-grade unlabelled q1 `phylo()` or `relmat()` intercept using `K` or `Q` in `mu`.
-  Structured slopes, labels,
+  Labelled slopes, other structured routes,
   `sigma` structure, joint `mu`/`sigma`, simultaneous structured providers, spatial/animal,
-  REML, intervals/coverage, and bivariate lognormal extensions beyond the
+  REML, missing-response for the correlated wedge, intervals/coverage, and bivariate lognormal extensions beyond the
   separate fixed-effect complete-pair Arc 6.3 slice remain rejected.
 - Univariate Student-t location-scale-shape models are implemented for robust
   continuous responses, including fixed-effect `mu`, `sigma`, and `nu` formulas
@@ -736,7 +739,9 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   row-specific phylo `nu` gate, Student-t known-covariance
   models, broad Student-t phylogenetic models, richer bivariate Student-t
   models beyond the exact fixed-effect shared-`nu` source slice,
-  correlated lognormal/Gamma/beta/beta-binomial random slopes,
+  correlated Gamma/beta/beta-binomial random slopes and labelled or mixed
+  lognormal correlated neighbours beyond the exact `mc-0720` unlabelled
+  `(1 + x | id)` wedge,
   lognormal/Gamma `sigma` slopes, labelled or combined `sigma` random effects,
   beta/beta-binomial `sigma` random effects beyond the exact beta q1
   `sigma ~ animal()` intercept gate,

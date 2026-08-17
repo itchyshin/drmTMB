@@ -217,12 +217,12 @@ test_that("binomial q2 rejection matrix stays closed", {
     "unlabelled intercept-slope block"
   )
 
-  # Wave 2.5 admits ordinary NB2 `(1 + x | g)` as mc-0719. Wave 3 continuous
-  # families stay rejected; lognormal is the next red neighbour.
+  # Wave 3 admits ordinary lognormal `(1 + x | g)` as mc-0720. Gamma stays
+  # the next red positive-continuous neighbour.
   expect_error(
     drmTMB(
       bf(y ~ x + (1 + x | id)),
-      family = lognormal(),
+      family = stats::Gamma(link = "log"),
       data = transform(sim$data, y = pmax(success, 1))
     ),
     "Only independent"
