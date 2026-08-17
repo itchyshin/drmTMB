@@ -17,10 +17,22 @@
   `point_fit_recovery` ledger cell (`mc-0718`) for `sd0`, `sd1`, and
   group-level `rho_re` under the design-17 map `ρ = 0.999999 tanh(η)`.
   This is not the independent-slope cell `mc-0431` and not Wave 1 binomial
-  `mc-0717`. NB2, REML, missing-response, labelled blocks, mixed
+  `mc-0717`. REML, missing-response, labelled blocks, mixed
   `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
   Quiesce still holds: this note is side-branch only and is not in the frozen
   0.7.0 tarball.
+
+## NB2 ordinary correlated slope
+
+* Complete-data ordinary `nbinom2()` `count ~ x + (1 + x | id)` now has a
+  `point_fit_recovery` ledger cell (`mc-0719`) for `sd0`, `sd1`, and
+  group-level `rho_re` under the same design-17 map as Poisson
+  (`ρ = 0.999999 tanh(η)`). This is not the independent-slope cell `mc-0402`
+  and not Wave 2 Poisson `mc-0718`. A slope predictor that is constant within
+  every group now aborts before the fit (unidentified `sd1` / `rho_re`).
+  Zero-inflated or truncated NB2, REML, missing-response, labelled blocks,
+  mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected. Quiesce still holds: this note
+  is side-branch only and is not in the frozen 0.7.0 tarball.
 
 # drmTMB 0.7.0
 

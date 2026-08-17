@@ -484,9 +484,12 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   are implemented by adding `hu ~ predictors`; `hu` is the hurdle-zero
   probability and nonzero counts come from the zero-truncated NB2 component.
   Ordinary non-zero-inflated NB2 `mu` random intercepts and independent numeric
-  slopes, the first ordinary NB2 log-`sigma` random intercept, and ordinary
+  slopes, one complete-data unlabelled ordinary `(1 + x | g)` NB2 block at
+  `point_fit_recovery` (`mc-0719`) under the same design-17 Cholesky as Poisson,
+  the first ordinary NB2 log-`sigma` random intercept, and ordinary
   zero-truncated NB2 `mu` random intercepts and independent numeric slopes are
-  fitted. Apart from the exact Poisson spatial `zi`, Poisson fixed-`zi` spatial
+  fitted. `mc-0719` is not an interval or coverage claim and is not the
+  independent-slope cell `mc-0402`. Apart from the exact Poisson spatial `zi`, Poisson fixed-`zi` spatial
   `mu`, NB2 fixed-`zi` spatial `mu`, and truncated-NB2 hurdle
   `hu ~ relmat(1 | id, Q = Q)` local
   fit-only gates, random effects in `zi`, `hu`, or the count-side `mu` path of

@@ -1,19 +1,22 @@
 # 257 — Non-Gaussian ordinary correlated `(1 + x | g)` (binomial wedge)
 
 **Date:** 2026-08-16  
-**Lane:** stacked `cursor/ng-correlated-slope-impl` (#1059, Wave 1) then
-`cursor/ng-correlated-slope-wave2` (#1060, Wave 2). No merge to `main`; no CRAN;
+**Lane:** stacked `cursor/ng-correlated-slope-impl` (#1059, Wave 1), then
+`cursor/ng-correlated-slope-wave2` (#1060, Wave 2), then
+`cursor/ng-correlated-slope-nb2` (Wave 2.5). No merge to `main`; no CRAN;
 no missing-data / MSPL. Design freeze originated on
 `cursor/ng-correlated-slope-design` (#1057).  
 **Readers:** the next implementer after win-builder unlock, plus Fisher / Noether / Boole on later family PRs.  
-**Inventory this note implements:** slices 1–2 of
+**Inventory this note implements:** slices 1–2 plus the ordinary-NB2 count
+follow-on of
 [`docs/dev-log/research/2026-08-16-nongaussian-re-remaining-fruit.md`](../dev-log/research/2026-08-16-nongaussian-re-remaining-fruit.md).  
 **Numbering:** 256 is reserved by the foreign MSPL-boundary lane (`256-mspl-boundary-penalty-derivation.md` on `claude/mspl-boundary-s0-s1`). This note is 257.
 
-Wave 1 (`mc-0717`, binomial logit) and Wave 2 (`mc-0718`, ordinary Poisson log)
-are the live `point_fit_recovery` contract on this stack. The Wave 0 sentence
-that this note "does not admit a family" is stale. Quiesce still holds: neither
-wave merges to `main` until unlock. Coverage and `supported` remain later arcs.
+Wave 1 (`mc-0717`, binomial logit), Wave 2 (`mc-0718`, ordinary Poisson log),
+and Wave 2.5 (`mc-0719`, ordinary NB2 log-mean) are the live
+`point_fit_recovery` contract on this stack. The Wave 0 sentence that this
+note "does not admit a family" is stale. Quiesce still holds: none of these
+waves merge to `main` until unlock. Coverage and `supported` remain later arcs.
 
 ## Purpose
 
@@ -21,17 +24,20 @@ Ordinary non-Gaussian random intercepts `(1 | g)` and independent slopes `(0 + x
 fit. The remaining ordinary gap was the **correlated** intercept–slope block `(1 + x | g)`.
 Wave 1 made the binomial experimental path an honest `point_fit_recovery` cell
 (`mc-0717`). Wave 2 admitted ordinary Poisson behind the design-17 map
-(`mc-0718`). Other fitted univariate non-Gaussian families still reject that
-block with a “planned” message. Coverage and `supported` are later arcs.
+(`mc-0718`). Wave 2.5 admitted ordinary NB2 behind the same design-17 map
+and the same report symbols (`mc-0719`). Other fitted univariate
+non-Gaussian families still reject that block with a “planned” message.
+Coverage and `supported` are later arcs.
 
 ## Claim ceiling
 
 | Stage | Maximum claim | Not this stage |
 | --- | --- | --- |
-| This stacked note | Live Wave 1+2 contract: `mc-0717` and `mc-0718` at `point_fit_recovery` | Intervals, coverage, REML, AGHQ, `supported`, merge to `main` |
+| This stacked note | Live Wave 1+2+2.5 contract: `mc-0717`, `mc-0718`, and `mc-0719` at `point_fit_recovery` | Intervals, coverage, REML, AGHQ, `supported`, merge to `main` |
 | Wave 1 (binomial, #1059) | `point_fit_recovery` for **one** complete-data binomial unlabelled `(1 + x \| g)` ML-Laplace cell | Intervals, coverage, REML, AGHQ, `supported` |
-| Wave 2 (Poisson, #1060) | `point_fit_recovery` for **one** complete-data ordinary Poisson unlabelled `(1 + x \| g)` ML-Laplace cell | NB2, inheritance from binomial, intervals |
-| Later family menu | `point_fit_recovery` per admitted family, one cell at a time | Inheritance from binomial or Poisson |
+| Wave 2 (Poisson, #1060) | `point_fit_recovery` for **one** complete-data ordinary Poisson unlabelled `(1 + x \| g)` ML-Laplace cell | Inheritance from binomial, intervals |
+| Wave 2.5 (NB2) | `point_fit_recovery` for **one** complete-data ordinary `nbinom2()` unlabelled `(1 + x \| g)` ML-Laplace cell | Independent-slope `mc-0402`, ZI/truncated, intervals |
+| Later family menu | `point_fit_recovery` per admitted family, one cell at a time | Inheritance from binomial, Poisson, or NB2 |
 | Later, separate owner goal | `interval_feasible` then fenced `inference_ready_with_caveats` | Never `supported` in the first arc |
 
 Do not reuse `mc-0061`. That cell is the **independent** binomial `mu` slope
@@ -166,12 +172,20 @@ parser only if the same `validate_binomial_mu_random_terms()` path already
 admits them; they do **not** inherit the recovery cell.
 
 **Wave 2 (this stack, `cursor/ng-correlated-slope-wave2` on Wave 1).** Ordinary
-Poisson `mu` only (no `zi`, no NB2). The compiled Poisson branch already
+Poisson `mu` only (no `zi`). The compiled Poisson branch already
 carried the design-17 map (`ρ = 0.999999 tanh(η)` and
 `u_cond = ρ u_pair + √(1-ρ²) u`). Wave 2 admits one complete-data unlabelled
-`(1 + x | g)` block at `point_fit_recovery` as `mc-0718`. NB2, labelled,
+`(1 + x | g)` block at `point_fit_recovery` as `mc-0718`. Labelled,
 mixed, REML, and missing-response stay rejected. Structured labelled q2 cells
 stay separate.
+
+**Wave 2.5 (this stack, `cursor/ng-correlated-slope-nb2` on Wave 2).** Ordinary
+NB2 `mu` only (no `zi`, no truncated). Compiled `model_type == 7` already
+matched Poisson `model_type == 6` (`eta_cor_mu`, `rho_mu_re`; no
+`logsech_mu_re`). Wave 2.5 admits one complete-data unlabelled
+`(1 + x | g)` block at `point_fit_recovery` as `mc-0719`. This is not
+`mc-0402` and not `mc-0718`. Zero-inflated or truncated NB2, labelled,
+mixed, REML, and missing-response stay rejected.
 
 **Wave 3 (one family per PR).** lognormal, Gamma, beta, skew_normal, tweedie,
 zero_one_beta, cumulative_logit — each already has independent `mu` slopes.
@@ -257,20 +271,23 @@ is not a ship.
 When quiesce lifts:
 
 1. Merge `#1059` (Wave 1 / `mc-0717`) to then-current `main`, then `#1060`
-   (Wave 2 / `mc-0718`), which is stacked on the Wave 1 branch.
-2. Do not reopen Wave 0. The live contract is already Wave 1+2 at
+   (Wave 2 / `mc-0718`), then the Wave 2.5 NB2 PR (`mc-0719`), which is
+   stacked on the Wave 2 branch.
+2. Do not reopen Wave 0. The live contract is already Wave 1+2+2.5 at
    `point_fit_recovery`.
-3. A later family PR (NB2 first) starts from this stacked note, one cell at
-   a time. Do not inherit binomial log-sech onto Poisson or NB2.
+3. A later family PR (Wave 3 continuous families) starts from this stacked
+   note, one cell at a time. Do not inherit binomial log-sech onto Poisson
+   or NB2.
 4. Do not merge until Fisher + Noether have read each new family's alignment
    table against a fitted object. Wave 1 already has that merge-path PASS.
 
 ## Stop
 
-Wave 1 and Wave 2 are implemented on this stack. No C++ in either wave. No
-MSPL. No missing-data. No CRAN submission. No merge to `main` until quiesce
-lifts. The next safe *code* action after unlock is merge Wave 1 then Wave 2,
-or open NB2 as the next family PR from this note, not from the gllvmTMB probe.
+Wave 1, Wave 2, and Wave 2.5 are implemented on this stack. No C++ in any
+of those waves. No MSPL. No missing-data. No CRAN submission. No merge to
+`main` until quiesce lifts. The next safe *code* action after unlock is
+merge Wave 1 then Wave 2 then Wave 2.5, or open a Wave 3 continuous-family
+PR from this note, not from the gllvmTMB probe.
 
 ## Wave 2 Poisson alignment (implemented on this stack)
 
@@ -305,4 +322,41 @@ drmTMB(
 
 `obj$report()` carries `eta_cor_mu` and `rho_mu_re`. It does **not** carry
 `logsech_mu_re`. Do not rewrite Poisson onto the binomial log-sech factorisation
-in this wave. NB2 remains the next family PR, one cell later.
+in this wave.
+
+## Wave 2.5 NB2 alignment (implemented on this stack)
+
+Location is the log-mean. Overdispersion `sigma` is a fixed-effect intercept
+(`size = 1 / sigma^2`). Group-level correlation is `rho_re`, never residual
+`rho12`. Ordinary NB2 reuses the compiled design-17 ordinary-RE carrier
+already in `model_type == 7`; report symbols match Poisson exactly. The
+alignment gate therefore flipped. This is not `mc-0402` and not `mc-0718`.
+
+```text
+y_ij | μ_ij ~ NB2(μ_ij, σ)
+log(μ_ij) = X_ij β + b_0j + x_ij b_1j
+(b_0j, b_1j)' ~ MVN(0, Σ_g)
+
+Σ_g = [ sd0^2 ,           rho_re sd0 sd1 ]
+      [ rho_re sd0 sd1 ,  sd1^2          ]
+ρ = 0.999999 tanh(η)
+u_cond,slope = ρ u_intercept + √(1-ρ²) u_slope
+```
+
+```r
+drmTMB(
+  bf(count ~ x + (1 + x | id), sigma ~ 1),
+  family = nbinom2(),
+  data = dat
+)
+```
+
+| Symbol | Extractor | Truth in `nbinom2_q2_data()` |
+| --- | --- | --- |
+| `sd0` | `sdpars$mu["(1 + x \| id):(Intercept)"]` | 0.65 |
+| `sd1` | `sdpars$mu["(1 + x \| id):x"]` | 0.42 |
+| `rho_re` | `corpars$mu["cor((Intercept),x \| id)"]` = `0.999999 tanh(eta_cor_mu)` | 0.45 |
+
+`obj$report()` carries `eta_cor_mu` and `rho_mu_re`. It does **not** carry
+`logsech_mu_re`. Do not rewrite NB2 onto the binomial log-sech factorisation
+in this wave. Wave 3 is the continuous-family menu, one cell later.
