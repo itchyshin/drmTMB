@@ -182,11 +182,15 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 ## REML capability wording now matches the callable surface
 
 * The capability guide now records the bounded O2 binomial REML route: one
-  ordinary unlabelled location (`mu`) random intercept or independent slope.
-  This route is diagnostic-only despite deterministic agreement with
-  `glmmTMB(REML = TRUE)`; it has no recovery or coverage claim. Fixed-only,
-  multiple-term, correlated, labelled, structured, and missing-response
-  binomial REML remain unavailable.
+  ordinary unlabelled location (`mu`) random intercept (`mc-0060`) or
+  independent slope (`mc-0062`). This route is diagnostic-only despite
+  deterministic agreement with `glmmTMB(REML = TRUE)`; it has no recovery or
+  coverage claim. Fixed-only, multiple-term, correlated, labelled, structured,
+  and missing-response binomial REML remain unavailable.
+* README and `?drmTMB` now state the same public non-Gaussian REML boundary
+  without requiring the capability guide: binomial O2 only, both
+  diagnostic-only; O3 remains package-private; `mc-0227` stays public ML
+  `point_fit_recovery`. Other non-Gaussian families reject `REML = TRUE`.
 * The retained cumulative-logit AGHQ plus Cox-Reid campaign is now identified
   as evidence for a package-private estimator. It does not grant a public
   `drmTMB()` fit or reader-facing reporting permission.

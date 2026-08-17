@@ -129,7 +129,11 @@ models, correlated or labelled covariance blocks, structured effects,
 missing-data engines, and other extensions are not admitted under REML;
 use \code{REML = FALSE} for those models. The binomial route has diagnostic
 parity and finite-uncertainty evidence, not calibrated interval or coverage
-evidence.
+evidence. Every other non-Gaussian family rejects \code{REML = TRUE}; use
+\code{REML = FALSE}. The package-private AGHQ plus Cox-Reid (O3) estimator is
+not a \code{drmTMB()} argument and is not what \code{REML = TRUE} runs. Public
+cumulative-logit random-slope fits remain maximum likelihood
+(\code{point_fit_recovery}).
 The halted \code{engine = "julia"} compatibility bridge is not a supported
 estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
 \code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across

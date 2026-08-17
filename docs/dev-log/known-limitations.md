@@ -44,15 +44,16 @@ differs, the stricter fitted, planned, or unsupported row governs public claims.
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
-  unlabelled location (`mu`) random intercept or independent slope. Its
-  joint-Laplace result and uncertainty agree with the overlapping
-  `glmmTMB(REML = TRUE)` calculation in deterministic checks, but no recovery
-  or coverage campaign authorizes scientific reporting. Fixed-only binomial
-  REML has no admitted variance component; correlated, labelled, structured,
-  and missing-response forms remain unavailable. Other non-Gaussian public
-  REML routes are not implemented. The retained cumulative-logit AGHQ plus
-  Cox-Reid campaign concerns a package-private estimator and supplies no
-  `drmTMB()` fit or reporting permission.
+  unlabelled location (`mu`) random intercept (`mc-0060`) or independent
+  slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
+  overlapping `glmmTMB(REML = TRUE)` calculation in deterministic checks, but
+  no recovery or coverage campaign authorizes scientific reporting.
+  Fixed-only binomial REML has no admitted variance component; correlated,
+  labelled, structured, and missing-response forms remain unavailable. Other
+  non-Gaussian public REML routes are not implemented. The retained
+  cumulative-logit AGHQ plus Cox-Reid campaign (O3) concerns a
+  package-private estimator and supplies no `drmTMB()` fit or reporting
+  permission; public `mc-0227` stays ML `point_fit_recovery`.
 - Residual-scale random intercepts, independent numeric random slopes, and
   UNLABELLED correlated intercept-slope blocks are implemented on log-`sigma` in
   the `sigma` formula as `sigma ~ x + (1 | id)`, `sigma ~ x + (0 + w | id)`, and
