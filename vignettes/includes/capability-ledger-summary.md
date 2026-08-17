@@ -103,9 +103,9 @@ The canonical ledger was last updated **2026-08-16**. These counts and permissio
 <details>
 <summary>Technical ledger snapshot</summary>
 
-- Model-surface total: **700 exact model routes**.
-- Runtime: **342 implemented**, **10 not implemented**, and **348 rejected by design**.
-- Evidence among implemented model cells: **0 supported**, **28 inference-ready with caveats**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **78 point-fit recovery**, and **67 diagnostic-only**.
+- Model-surface total: **701 exact model routes**.
+- Runtime: **343 implemented**, **10 not implemented**, and **348 rejected by design**.
+- Evidence among implemented model cells: **0 supported**, **28 inference-ready with caveats**, **159 interval-feasible**, **4 legacy fit-supported (no interval permission)**, **79 point-fit recovery**, and **67 diagnostic-only**.
 - Location checks among the 187 interval-claiming cells (`location_checked`; tiers claim interval SHAPE only — docs/design/255): **164 passed**, **20 unchecked**, **3 failed**, **0 not applicable**.
 
 </details>

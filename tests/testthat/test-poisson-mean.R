@@ -616,11 +616,11 @@ test_that("Poisson models reject unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 + x | id)),
+      bf(y ~ x + (1 | id) + (1 + x | id)),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "Only independent Poisson"
+    "unlabelled Poisson intercept-slope block"
   )
   expect_error(
     drmTMB(

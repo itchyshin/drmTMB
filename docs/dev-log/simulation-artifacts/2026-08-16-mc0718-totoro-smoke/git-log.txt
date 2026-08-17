@@ -1,0 +1,1 @@
+3e8a9aae feat(poisson): admit ordinary correlated (1+x|g) as mc-0718
