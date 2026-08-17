@@ -120,7 +120,7 @@
     ]
   },
   "expected_counts": {
-    "model_surface": 701,
+    "model_surface": 702,
     "association": 6,
     "missing_response": 18,
     "missing_predictor": 17

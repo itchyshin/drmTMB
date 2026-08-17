@@ -47,7 +47,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         # correlated (1 + x | g) ML-Laplace point_fit_recovery cell.
         # 700 -> 701: Wave 2 adds mc-0718, the Poisson ordinary correlated
         # (1 + x | g) ML-Laplace point_fit_recovery cell.
-        self.assertEqual(len(model), 701)
+        # 701 -> 702: Wave 2.5 adds mc-0719, the ordinary NB2 correlated
+        # (1 + x | g) ML-Laplace point_fit_recovery cell.
+        self.assertEqual(len(model), 702)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -548,10 +550,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # mc-0062, so implemented becomes 341 and rejected_by_design becomes 348.
         # Design 257 Wave 1 then adds mc-0717 (implemented), so 341 -> 342.
         # Wave 2 adds mc-0718 (implemented), so 342 -> 343.
+        # Wave 2.5 adds mc-0719 (implemented), so 343 -> 344.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 343, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 344, "not_implemented": 10, "rejected_by_design": 348},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -594,11 +597,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         }
 
         # Arc 4b plus the exact two-row 0.7 capability-truth override (see above).
-        # 341 -> 343: Design 257 Wave 1 (mc-0717) then Wave 2 (mc-0718).
+        # 341 -> 344: Design 257 Wave 1 (mc-0717), Wave 2 (mc-0718),
+        # then Wave 2.5 (mc-0719).
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 343, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 344, "not_implemented": 10, "rejected_by_design": 348},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -690,12 +694,13 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 56 -> 77 on 2026-08-16: the owner-decided demotion of the 21 import cells
         # whose cited evidence never computes an interval (import shape audit;
         # transitions tr-mc-*-import-shape-audit). All 21 are model-surface.
-        # 77 -> 79: Design 257 Wave 1 adds mc-0717 (source_order 717) and
-        # Wave 2 adds mc-0718 (source_order 718), both outside the frozen
-        # window, at point_fit_recovery.
+        # 77 -> 80: Design 257 Wave 1 adds mc-0717 (source_order 717),
+        # Wave 2 adds mc-0718 (source_order 718), and Wave 2.5 adds
+        # mc-0719 (source_order 719), all outside the frozen window,
+        # at point_fit_recovery.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            79,
+            80,
         )
 
         by_id = {row["cell_id"]: row for row in model}
@@ -3222,6 +3227,28 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("not Wave 1 binomial mc-0717", row["claim_boundary"])
         self.assertEqual(by_id["mc-0717"]["source_order"], "717")
         self.assertEqual(by_id["mc-0432"]["capability_status"], "rejected_by_design")
+
+    def test_mc0719_nbinom2_ordinary_correlated_is_a_new_point_fit_cell(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        row = by_id["mc-0719"]
+        self.assertEqual(row["axis"], "model_surface")
+        self.assertEqual(row["family_route"], "nbinom2")
+        self.assertEqual(row["source_order"], "719")
+        self.assertEqual(row["model_type"], "7")
+        self.assertEqual(row["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(row["effect_type"], "ordinary_re_slope")
+        self.assertEqual(row["estimator"], "ML")
+        self.assertEqual(row["capability_status"], "implemented")
+        self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+        self.assertIn("sd0", row["claim_boundary"])
+        self.assertIn("sd1", row["claim_boundary"])
+        self.assertIn("rho_re", row["claim_boundary"])
+        self.assertIn("not the independent-slope cell mc-0402", row["claim_boundary"])
+        self.assertIn("not Wave 2 Poisson mc-0718", row["claim_boundary"])
+        self.assertEqual(by_id["mc-0402"]["evidence_tier"], "interval_feasible")
+        self.assertNotEqual(by_id["mc-0402"]["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(by_id["mc-0718"]["family_route"], "poisson")
+        self.assertEqual(by_id["mc-0718"]["evidence_tier"], "point_fit_recovery")
 
     def test_evidence_class_is_a_closed_vocabulary(self):
         """A typo in evidence_class used to yield zero badges and a green --check."""

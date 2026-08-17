@@ -43,6 +43,27 @@ After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
 
 **Do not launch** a smoke or `N ≈ 1200` campaign from this document.
 
+## 2026-08-16 — Design 257 Wave 2.5: NB2 ordinary correlated `(1+x|g)` as `mc-0719`
+
+Lane: Cursor, `cursor/ng-correlated-slope-nb2` stacked on `#1060` /
+`cursor/ng-correlated-slope-wave2` @ `e5657ecbf` (Totoro smoke on
+`3e8a9aaec`). Worktree is
+`/Users/z3437171/local-scratch/lanes/drmTMB-ng-corr-nb2` (Dropbox
+`.worktrees/ng-corr-nb2` abandoned after a reset race). **Quiesce merge
+hold** — draft PR only; do not merge to `main`. `#1061` / `#1033` / MSPL /
+Ligges / CRAN not touched.
+
+| Check | Result |
+| --- | --- |
+| Cell | **`mc-0719`** (`ordinary_correlated_q2`); `mc-0402` stays `interval_feasible`; `mc-0718` stays Poisson `point_fit_recovery` |
+| Wedge | complete-data ordinary `nbinom2()` `count ~ x + (1 + x \| id)`, ML-Laplace, design-17 |
+| Alignment | report symbols match Poisson (`eta_cor_mu`, `rho_mu_re`; no `logsech_mu_re`); gate flipped |
+| Surface | `MODEL_SURFACE_COUNT` 701 → **702**; implemented 343 → **344**; `point_fit_recovery` 79 → **80** |
+| Focused R tests | `nbinom2-ordinary-correlated-q2\|nbinom2-location-scale\|poisson-ordinary-correlated-q2\|poisson-mean\|binomial-correlated-re-mspl-prereq` FAIL 0 / WARN 0 / SKIP 0 / PASS 478 |
+| Ledger | `python3 tools/capability_ledger.py --check` OK (31 generated outputs) |
+| C14 | 4/4 PASS; `source_fingerprint` unchanged; Wave 2 receipt left in place |
+| Merge | **not requested**; draft only |
+
 ## 2026-08-16 — mc-0718 Totoro 27-fit smoke (PR #1060)
 
 Lane: Cursor, `cursor/ng-correlated-slope-wave2` (worktree `.worktrees/ng-corr-w2`).

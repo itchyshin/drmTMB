@@ -432,7 +432,9 @@ cumulative_logit <- function() {
 #' `Var(y) = mu + sigma^2 * mu^2`. Thus larger `sigma` means greater
 #' extra-Poisson variation. Internally this is equivalent to the usual NB2
 #' size parameter `size = 1 / sigma^2`. Ordinary non-zero-inflated NB2 models
-#' also support first-slice random intercepts on the log-`sigma` predictor,
+#' also support one complete-data unlabelled `(1 + x | id)` ML-Laplace
+#' correlated intercept-slope block on the log-mean (`mc-0719`), and
+#' first-slice random intercepts on the log-`sigma` predictor,
 #' such as `bf(count ~ x, sigma ~ z + (1 | id))`. Structured `sigma` effects
 #' (`phylo`/`spatial`/`animal`/`relmat`) also fit as a point-recovery route
 #' (trust the point estimate, not the interval; not yet coverage-verified).

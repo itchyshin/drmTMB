@@ -217,15 +217,15 @@ test_that("binomial q2 rejection matrix stays closed", {
     "unlabelled intercept-slope block"
   )
 
-  # Wave 2 admits ordinary Poisson `(1 + x | g)` as mc-0718. Other count
-  # families stay rejected; NB2 is the next red neighbour.
+  # Wave 2.5 admits ordinary NB2 `(1 + x | g)` as mc-0719. Wave 3 continuous
+  # families stay rejected; lognormal is the next red neighbour.
   expect_error(
     drmTMB(
       bf(y ~ x + (1 + x | id)),
-      family = nbinom2(),
-      data = transform(sim$data, y = success)
+      family = lognormal(),
+      data = transform(sim$data, y = pmax(success, 1))
     ),
-    "unlabelled Poisson intercept-slope block"
+    "Only independent"
   )
 
   const_dat <- sim$data
