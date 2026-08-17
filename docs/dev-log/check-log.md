@@ -1,5 +1,71 @@
 # Check Log
 
+## 2026-08-17 — OVERRIDE QUIESCE: #1060 → #1065 → #1061 + docs #1057/#1064
+
+Lane: Cursor, `.worktrees/design257-1060-rebase`. Shinichi unblocked the parked
+merge stack. Leftover mid-rebase in `design257-1060-rebase` was aborted first.
+No `submit_cran`. No Ligges email. No #1033. No Wave 3.
+
+| Check | Result |
+| --- | --- |
+| #1059 | already on `main` `f021a2ece` (merge commit) |
+| #1060 | squash `0a7f93f16` after `--onto origin/main` (check-log only) |
+| #1065 | squash `a79b0b014` after `--onto origin/main` (check-log only) |
+| #1061 | squash `2f7403902` after `--onto origin/main` (check-log only) |
+| #1057 | squash `3dacd7f58`; kept live design 257 from Waves; banked unique notes |
+| #1064 | this handover SHA update; merge next |
+| #1060 smoke | still **rho 8/9** (`881402`, `n_each=4`) |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
+## 2026-08-17 — morning handover refresh (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Scorecard next action + finisher brief.
+No `submit_cran`. No #1033. Wave 3 not started.
+
+| Check | Result |
+| --- | --- |
+| #1062 | MERGED `186d88038` |
+| #1063 | MERGED `2d92c3666`; ubuntu C14 red (cheap `R/drmTMB.R` blob); left |
+| #1059 | draft complete; Totoro 9/9; CONFLICTING vs `main` |
+| #1060 | smoke banked `e5657ecbf`; **rho 8/9** (seed 881402); comment posted; do not claim 9/9 |
+| #1065 | NB2 draft snapshot @ `53f447b9f`; not in merge stack |
+| Wave 3 | never started |
+| Finisher GO | #1057 → #1059 → #1060 → #1061 |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
+## 2026-08-17 — overnight gap-fill closeout (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Stop ~05:40 MDT. No shipped
+`R/` / `src/` merge. No Ligges. No #1033. No `submit_cran`.
+
+| Check | Result |
+| --- | --- |
+| Board PR | draft [#1064](https://github.com/itchyshin/drmTMB/pull/1064) |
+| #1059 | `ae307f4b1`; constant-x + Totoro bank; CI green; now CONFLICTING |
+| #1060 | rebased onto 1059 tip (`3e8a9aaec`); MERGEABLE; CI not yet |
+| NB2 PR | none |
+| Wave 3 lognormal | worktree at Wave 2 tip; **no implementation commit** |
+| #1062 ADEMP | **merged** to `main` (`186d88038`) |
+| #1063 REML 4a | open; touches `R/drmTMB.R`; CONFLICTING; ubuntu FAIL; **not merged** |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
+## 2026-08-16 — overnight gap-fill board (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Docs-only status board for the
+18:42–05:00 MDT window. No `R/` / `src/` / test edits. Quiesce holds.
+
+| Check | Result |
+| --- | --- |
+| `gh pr list` open set | #1061, #1060, #1059, #1057, #1049, #1033, #858 |
+| #1059 head | `ae307f4b1` (constant-x `3399e7eda` + Totoro bank) |
+| #1060 vs 1059 tip | not an ancestor at 18:53; sibling rebase later landed `3e8a9aaec` |
+| NB2 / ADEMP / 4a PRs | none at 18:53 MDT |
+
+Board: `docs/dev-log/research/2026-08-16-overnight-gapfill-board.md`.
+
 ## 2026-08-16 — win-builder Julia skip (Ligges ERROR)
 
 Lane: Cursor, `cursor/070-winbuilder-julia-skip` from freeze `302ac2579`. Ligges
