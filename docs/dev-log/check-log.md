@@ -43,6 +43,76 @@ After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
 
 **Do not launch** a smoke or `N ≈ 1200` campaign from this document.
 
+## 2026-08-16 — constant-within-group `x` rejection for binomial q2 (PR #1059)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Design 257 ADEMP asked for a rejection test, not a recovery cell. **Abort landed.**
+Merge **not requested**. C14 / `R/drmTMB.R` / #1033 / Ligges / NB2 **not touched**.
+
+| Check | Result |
+| --- | --- |
+| Abort site | `drm_validate_binomial_q2_slope_variation()` in `R/mspl-estimator.R` (not C14-pinned) |
+| Rule | abort when no group has 2+ unique finite slope values |
+| `devtools::test(filter = 'binomial-correlated-re-mspl-prereq')` | 57 pass / 0 fail (was 56) |
+| `devtools::test(filter = 'reml-binomial-coxreid')` | 33 pass / 0 fail |
+| Parser `experimental q = 2` hint | left in `R/drmTMB.R`; C14 refresh is not cheap |
+| Claim ceiling | still `point_fit_recovery`; no recovery claimed for constant-`x` |
+
+## 2026-08-16 — mc-0717 Totoro 27-fit smoke (PR #1059)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Shinichi named GO. **PASS.** Merge **not requested**. DRAC / Ligges / #1033 **not touched**.
+
+| Check | Result |
+| --- | --- |
+| SHA | `5d5048d8d` on Totoro `~/hsq_work/drmTMB-mc0717` |
+| Toy | PASS; Design 257 names finite |
+| Rejection matrix | 5/5 red (REML, missing-response, labelled, mixed, Poisson) |
+| Denominator | 27/27; 0 exceptions dropped |
+| Convergence / `pdHess` | 27/27 / 27/27 |
+| Claim 0.30 gates `sd0` / `sd1` / `rho_re` | 9/9 / 9/9 / 9/9; max \|err\| 0.120 / 0.123 / 0.242 |
+| Oracle max \|drmTMB − glmmTMB\| | 1.9e-5 / 1.0e-5 / 4.1e-5 |
+| Workers / wall | 8 workers, cap 16; 27-fit wall 3 s; process group reaped |
+| Claim ceiling | still `point_fit_recovery` |
+
+Artifacts: `docs/dev-log/simulation-artifacts/2026-08-16-mc0717-totoro-smoke/`.
+
+## 2026-08-16 — Fisher / Noether merge-path for PR #1059 (`mc-0717`)
+
+Lane: Cursor Grok, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+**PASS** alignment + claim ceiling. **Merge blocked by quiesce.** Totoro smoke **not launched**.
+
+| Check | Result |
+| --- | --- |
+| Fitted object (seed `20260811`, `n_group=56`, `n_each=14`) | `drmTMB` binomial logit, `estimator=ML`, `REML=FALSE`, `conv=0`, `pdHess=TRUE` |
+| `sd0` `sdpars$mu["(1 + x \| id):(Intercept)"]` | 0.599448 vs 0.65; \|err\|=0.0506; gate 0.30 PASS |
+| `sd1` `sdpars$mu["(1 + x \| id):x"]` | 0.414522 vs 0.42; \|err\|=0.0055; gate 0.30 PASS |
+| `rho_re` `corpars$mu["cor((Intercept),x \| id)"]` | 0.308915 vs 0.45; \|err\|=0.1411; gate 0.30 PASS; `== tanh(eta_cor_mu)` |
+| Log-sech `Σ_g` | off-diag 0.076761 = `sd0 * sd1 * rho_re` |
+| REML creep | `REML=TRUE` still aborts |
+| Interval creep | ledger/NEWS/grammar stay `point_fit_recovery`; generic `profile_ready=TRUE` is not a claim |
+| Residuals | constant-within-group `x` still fits (`sd1≈0`, `pdHess=FALSE`); parser hint still `experimental q = 2` |
+| Totoro BatchMode | OK 20:02 UTC; brief written; **not launched** |
+| Merge | **not requested** |
+
+Brief: `docs/dev-log/research/2026-08-16-mc0717-totoro-smoke-brief.md`.
+
+## 2026-08-16 — Design 257 Wave 1: binomial ordinary correlated `mc-0717`
+
+Lane: Cursor, `cursor/ng-correlated-slope-impl` (worktree `.worktrees/ng-corr-w1`).
+Base: `origin/main` `@ d9fddfa28`. **Quiesce merge hold** — draft PR only.
+
+| Check | Result |
+| --- | --- |
+| Extractors `sd0` / `sd1` / `rho_re` | Present on `sdpars$mu` / `corpars$mu`; log-sech report symbols exist |
+| `devtools::test(filter = 'binomial-correlated-re-mspl-prereq')` | 56 pass / 0 fail |
+| `devtools::test(filter = 'reml-binomial-coxreid')` | 8 pass / 0 fail (REML fence kept) |
+| `python3 tools/capability_ledger.py --check` | OK |
+| `python3 -m unittest tools.tests.test_capability_ledger -q` | 78 OK |
+| New cell | `mc-0717` `ordinary_correlated_q2` `point_fit_recovery` |
+| Not overwritten | `mc-0060` / `mc-0061` / `mc-0062` unchanged |
+| Merge | **not requested**; quiesce stands |
+
 ## 2026-08-16 — win-builder collection: R-devel clean; R-release/oldrelease ABSENT → re-upload; STOP
 
 Lane: Cursor, `cursor/070-winbuilder-collect` (worktree `.worktrees/cran-07`). Candidate
@@ -25073,7 +25143,9 @@ Actions run:
 Validation:
 
 ```sh
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+rg -n '^(
+
+|
 air format docs/dev-log/check-log.md
 git diff --check
 GIT_EDITOR=true git rebase --continue
@@ -25242,7 +25314,9 @@ Rscript --vanilla -e "x <- read.csv('/tmp/drmTMB-correlation-block-status-smoke/
 Rscript --vanilla -e "pkgdown::build_news()"
 rg -n "#447|#446|phylo_interaction\\(\\)|correlation_block_status" NEWS.md docs/dev-log/after-task/2026-05-31-phylo-interaction-first-slice.md docs/dev-log/after-task/2026-05-31-bipartite-phylogenetic-interactions-article.md docs/dev-log/check-log.md pkgdown-site/news/index.html
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/dev-log/check-log.md
+rg -n '^(
+
+|
 air format docs/dev-log/check-log.md
 git diff --check
 GIT_EDITOR=true git rebase --continue
@@ -25450,7 +25524,9 @@ Validation:
 Rscript --vanilla -e "devtools::test(filter = '^phase18-(structured-workflow-registry|structured-dependence-wrapper-readiness)$', reporter = 'summary')"
 air format ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-correlation-block-wrapper-target-plan.md docs/dev-log/after-task/2026-05-30-family-surface-status-tables.md docs/dev-log/after-task/2026-05-30-structured-dependence-wrapper-readiness.md inst/sim/run/sim_phase18_structured_dependence_wrapper_readiness.R inst/sim/run/sim_phase18_structured_workflow_registry.R tests/testthat/test-phase18-structured-dependence-wrapper-readiness.R tests/testthat/test-phase18-structured-workflow-registry.R
 git diff --check
-rg -n '<<<<<<<|=======|>>>>>>>' ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md inst/sim/run tests/testthat
+rg -n '
+
+|
 rg -n 'Workflow status helper bundle|Slice 1827|Slice 1826 Workflow Status|Slice 1826 adds read-only workflow|next slice is a benchmark/API gate' ROADMAP.md docs/design/143-phase-18-structured-workflow-registry.md docs/design/41-phase-18-simulation-programme.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-05-30-*.md
 ```
 
@@ -37337,7 +37413,9 @@ Checks:
   after-task report were inspected before committing the slice-3 freeze point.
 - `git diff --check`: passed before the slice-3 commit and again after the
   slice-4 design edits.
-- `rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob
+- `rg -n '^(
+
+|
   '!docs/dev-log/recovery-checkpoints/**'`: no conflict markers found before
   the slice-3 commit.
 - `Rscript -e "cat(as.character(packageVersion('TMB')), '\\n');
@@ -38050,9 +38128,13 @@ Checks:
   the final site build.
 - `rg -n '```text|\\mathrm\\{Normal\\}|temperature_|growth_|x1_|x2_|yi_i' vignettes/location-scale.Rmd vignettes/which-scale.Rmd vignettes/robust-student.Rmd vignettes/bivariate-coscale.Rmd vignettes/phylogenetic-spatial.Rmd`:
   confirmed only intentional code-like or R-object leftovers remained.
-- `rg -n '```text|temperature_i|treatment_i|habitat_i|trap_nights_i|survey_method_i|larger fitted sigma|^(<<<<<<<|=======|>>>>>>>)' vignettes/distribution-families.Rmd`:
+- `rg -n '```text|temperature_i|treatment_i|habitat_i|trap_nights_i|survey_method_i|larger fitted sigma|^(
+
+|
   no matches.
-- `rg -n '<<<<<<<|=======|>>>>>>>' docs/dev-log/check-log.md _pkgdown.yml vignettes/drmTMB.Rmd vignettes/model-map.Rmd docs/design/21-tutorial-style.md docs/dev-log/after-task/2026-05-12-tutorial-map-model-guides.md`:
+- `rg -n '
+
+|
   no conflict markers found.
 - `rg -n "What can I fit today\\?|Model Guides|Guide Versus Tutorial Split|model-map|rho ~|meta_gaussian\\(|tau ~|meta_known_V\\([^V]" _pkgdown.yml vignettes docs/design README.md ROADMAP.md NEWS.md docs/dev-log/known-limitations.md`:
   confirmed the new guide/nav/style strings and found only intentional
@@ -76820,7 +76902,9 @@ RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools
 RSTUDIO_PANDOC=/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64 /usr/local/bin/Rscript --vanilla -e 'pkgdown::build_article("model-selection", quiet = TRUE)'
 rg -n "best model|AIC.*proves|BIC.*proves|formal.*model-selection|formal.*AIC|formal.*BIC|calibrated.*model-selection|operating-characteristic|power grid|same data|same analysis rows|same response" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md NEWS.md docs/design/37-worked-example-inventory.md inst/sim/README.md
 rg -n "model-selection|model selection|AIC|BIC" README.md ROADMAP.md NEWS.md docs vignettes inst/sim --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/recovery-checkpoints/**' --glob '!docs/dev-log/simulation-artifacts/**'
-rg -n "[[:blank:]]$|^<<<<<<<|^=======$|^>>>>>>>" vignettes/model-selection.Rmd docs/design/167-model-selection-aic-bic-simulation-design.md inst/sim/dgp/sim_dgp_model_selection.R inst/sim/fit/sim_summarise_model_selection.R inst/sim/run/sim_run_model_selection_smoke.R inst/sim/run/sim_write_model_selection_smoke.R tests/testthat/test-phase18-model-selection-smoke.R inst/sim/reports/model-selection-article-summary.csv
+rg -n "[[:blank:]]$|^
+
+$|^
 git diff --check -- NEWS.md _pkgdown.yml docs/design/37-worked-example-inventory.md inst/sim/README.md
 ```
 
@@ -77296,7 +77380,9 @@ rg -n 'skew-normal residual asymmetry|Phase 18 artifact tests|fixed-effect `skew
 Rscript --vanilla -e 'pkgdown::check_pkgdown(); cat("pkgdown_check_ok\n")'
 git diff --check
 rg -n 'Planned, not fitted yet|Use this planned syntax|not a fitted option today|skew-family likelihood exists|skew-normal.*not yet fitted|skew-normal.*not implemented|skew-normal.*remain design|skew_normal\(\) \(planned\)' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes inst/sim .github --glob '!docs/dev-log/after-task/**' --glob '!docs/dev-log/check-log.md'
-rg -n '^(<<<<<<<|=======|>>>>>>>)' .github/workflows/phase18-simulation-grid.yaml NEWS.md ROADMAP.md docs/design/02-family-registry.md docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md docs/design/125-phase-18-next-two-team-slices-1619-1718.md docs/design/127-phase-18-skew-normal-parameterization-decision-slices-1669-1672.md docs/design/128-phase-18-skew-normal-test-contract-slices-1673-1702.md docs/design/132-phase-18-skew-normal-implementation-gate-slices-1689-1702.md docs/design/157-capability-completion-worklist.md docs/design/158-phase-19-comparator-matrix.md docs/design/34-validation-debt-register.md docs/design/37-worked-example-inventory.md docs/design/41-phase-18-simulation-programme.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/known-limitations.md inst/sim/README.md inst/sim/registry/phase18_structured_workflow_registry.csv inst/sim/run/sim_run_actions_cell.R tests/testthat/test-phase18-actions-runner.R vignettes/model-map.Rmd vignettes/robust-student.Rmd docs/dev-log/after-task/2026-06-09-skew-normal-fixed-effect-artifact-lane.md inst/sim/dgp/sim_dgp_skew_normal_fixed_effect.R inst/sim/fit/sim_summarise_skew_normal_fixed_effect.R inst/sim/run/sim_run_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_summary_skew_normal_fixed_effect_smoke.R inst/sim/run/sim_write_skew_normal_fixed_effect_grid.R tests/testthat/test-phase18-skew-normal-fixed-effect.R
+rg -n '^(
+
+|
 Rscript --vanilla -e 'devtools::test(filter = "phase18-structured-workflow-registry", reporter = "summary")'
 Rscript --vanilla -e 'devtools::test(filter = "phase18-actions-runner", reporter = "summary")'
 ```
@@ -77940,7 +78026,9 @@ sh tools/start-mission-control.sh --background
 npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-desktop.png
 npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-julia-gates-mobile.png
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs R tests tools inst
+rg -n '^(
+
+|
 ```
 
 Results:
@@ -78048,7 +78136,9 @@ npx playwright screenshot --full-page --viewport-size=1440,1200 http://127.0.0.1
 npx playwright screenshot --full-page --viewport-size=390,1400 http://127.0.0.1:8765/ /tmp/drmtmb-binomial-dashboard-mobile.png
 Rscript --vanilla -e 'devtools::check(error_on = "never")'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg -n 'planned `stats::binomial|planned plain|Planned Plain Binomial|Use the planned `stats::binomial|binomial response family \| planned|Not-yet-fitted.*binomial' README.md ROADMAP.md NEWS.md docs/design docs/dev-log/known-limitations.md vignettes R tests --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
 ```
 
@@ -78154,7 +78244,9 @@ Rscript --vanilla -e 'devtools::test()'
 Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
 Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
 ```
 
@@ -78215,7 +78307,9 @@ Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 Rscript --vanilla -e 'devtools::test()'
 Rscript --vanilla -e 'devtools::check(error_on = "never", document = FALSE)'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg hard-framing terms over the touched current docs and vignette files
 rg -n '^successes out of known trials -> beta_binomial\(\)|Counted successes out of trials \|.*`beta_binomial\(\)`' vignettes/proportion-beta-binomial.Rmd vignettes/distribution-families.Rmd vignettes/model-map.Rmd docs/design/37-worked-example-inventory.md docs/design/116-nongaussian-tutorial-gate-slices-1349-1358.md docs/design/79-supported-nongaussian-evidence-goal.md
 rg -n 'Numerical Guard Simulation Audit|Hao Qin|likelihood-altering|logsigma_clamp|guard_sensitivity' docs/design/176-numerical-guard-simulation-audit.md docs/dev-log/team-improvements.md
@@ -78323,7 +78417,9 @@ python3 tools/validate-mission-control.py
 sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' . --glob '!docs/dev-log/check-log.md' --glob '!docs/dev-log/after-task/**'
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/158-phase-19-comparator-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/comparator-results/2026-06-16-binomial-glm-parity/README.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json tools/start-mission-control.sh
 ```
 
@@ -78375,7 +78471,9 @@ Checks run:
 
 ```sh
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-local-queue-refresh-after-binomial.md
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md
 ```
 
@@ -78431,7 +78529,9 @@ sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md
 browser DOM check at http://127.0.0.1:8765/ for desktop and 390x844 mobile
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/175-phase-18-binomial-fixed-effect-artifacts.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/check-log.md docs/dev-log/after-task/2026-06-17-binomial-interval-calibration.md docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration tools/start-mission-control.sh
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/175-phase-18-binomial-fixed-effect-artifacts.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/46-pre-simulation-readiness-matrix.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/simulation-artifacts/2026-06-17-binomial-fe-interval-calibration/README.md tools/start-mission-control.sh
 ```
 
@@ -78482,7 +78582,9 @@ python3 -m json.tool docs/dev-log/dashboard/status.json >/tmp/status-json-guard-
 python3 -m json.tool docs/dev-log/dashboard/sweep.json >/tmp/sweep-json-guard-pilot.out
 python3 tools/validate-mission-control.py
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot
+rg -n '^(
+
+|
 rg -n 'non-identified|nonidentified|impossible|flat/unbounded|Bayesian only reads back the prior|REML on scale|REML.*scale' docs/design/176-numerical-guard-simulation-audit.md docs/design/168-r-julia-finish-capability-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/dashboard/sweep.json docs/dev-log/after-task/2026-06-17-logsigma-clamp-sensitivity-pilot.md docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
 sh tools/start-mission-control.sh --background
 curl -fsS http://127.0.0.1:8765/docs/dev-log/simulation-artifacts/2026-06-17-logsigma-clamp-sensitivity-pilot/README.md
@@ -78521,7 +78623,9 @@ Checks run:
 git diff --check
 rg -n 'planned.*logsigma|logsigma.*planned|planned.*log\(sigma\)|planned knob|expose the band as a control' docs/design/174-controls-and-convergence.md
 # forbidden-framing scan over touched prose: no hits
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/174-controls-and-convergence.md docs/dev-log/after-task/2026-06-17-logsigma-control-doc-truth-refresh.md docs/dev-log/check-log.md
+rg -n '^(
+
+|
 ```
 
 Boundary: docs only; no package code, no `src/drmTMB.cpp`, no `R/control.R`, no
@@ -78560,7 +78664,9 @@ python3 -m json.tool docs/dev-log/dashboard/status.json
 python3 tools/validate-mission-control.py
 Rscript --vanilla -e 'devtools::test(filter = "phase18-skew-normal-fixed-effect|skew-normal-location-scale|skew-normal-density-contract", reporter = "summary")'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' docs/design/46-pre-simulation-readiness-matrix.md docs/design/157-capability-completion-worklist.md docs/design/159-drmtmb-0-2-0-release-readiness.md docs/dev-log/dashboard/status.json docs/dev-log/after-task/2026-06-17-skew-normal-fixed-effect-pilot.md docs/dev-log/check-log.md docs/dev-log/simulation-artifacts/2026-06-17-skew-normal-fixed-effect-pilot
+rg -n '^(
+
+|
 ```
 
 Boundary: no package code, no TMB likelihood code, no Julia bridge change, no
@@ -78588,7 +78694,9 @@ Rscript --vanilla -e 'devtools::document()'
 Rscript --vanilla -e 'pkgdown::check_pkgdown()'
 Rscript --vanilla -e 'devtools::check(error_on = "never")'
 git diff --check
-rg -n '^(<<<<<<<|=======|>>>>>>>)' R/drmTMB.R tests/testthat/test-optimizer-contract.R docs/design/35-optimizer-start-map-multistart.md docs/dev-log/check-log.md docs/dev-log/after-task
+rg -n '^(
+
+|
 forbidden-framing scan over touched prose and code
 ```
 

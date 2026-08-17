@@ -258,7 +258,7 @@ IMPORTED_MODEL_COUNT = 668
 # formula/target) into exact per-q leaves: mc-0207 becomes the q4 leaf in place, and
 # mc-0715 (q6) / mc-0716 (q8) are new leaves (697 -> 699). The split promotes nothing.
 # Bump this guard only for an approved row insert or split, never to silence drift.
-MODEL_SURFACE_COUNT = 699
+MODEL_SURFACE_COUNT = 700
 ASSOCIATION_COUNT = 6
 # 2026-08-09 systems-audit seeding: the first missing_predictor axis rows.
 # One row per (response family x predictor family) cell actually admitted by
@@ -2462,7 +2462,7 @@ def validate(
     # capability_status.
     expected = Counter(
         {
-            "implemented": 341,
+            "implemented": 342,
             "rejected_by_design": (
                 C14_BOUNDARY_COUNT
                 + len(C14_ZOB_LEAF_TAXONOMY)

@@ -43,7 +43,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         # q4/q6/q8 ordinary bivariate REML blocks) into exact per-q leaves;
         # mc-0207 becomes the q4 leaf in place, mc-0715/mc-0716 are new q6/q8
         # leaves. The split promotes nothing.
-        self.assertEqual(len(model), 699)
+        # 699 -> 700: Design 257 Wave 1 adds mc-0717, the binomial ordinary
+        # correlated (1 + x | g) ML-Laplace point_fit_recovery cell.
+        self.assertEqual(len(model), 700)
         self.assertEqual(len(missing), 18)
         self.assertEqual(len(association), 6)
         by_association = {row["cell_id"]: row for row in association}
@@ -542,10 +544,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # Arc 4b raised implemented 337 -> 339. The exact 0.7 capability-truth
         # reconciliation then corrects the two C14 false negatives mc-0060 and
         # mc-0062, so implemented becomes 341 and rejected_by_design becomes 348.
+        # Design 257 Wave 1 then adds mc-0717 (implemented), so 341 -> 342.
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 342, "not_implemented": 10, "rejected_by_design": 348},
         )
         for cell_id in ("mc-0251", "mc-0386", "mc-0388"):
             row = by_id[cell_id]
@@ -591,7 +594,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(
             {status: sum(row["capability_status"] == status for row in model)
              for status in ("implemented", "not_implemented", "rejected_by_design")},
-            {"implemented": 341, "not_implemented": 10, "rejected_by_design": 348},
+            {"implemented": 342, "not_implemented": 10, "rejected_by_design": 348},
         )
         # Two assertions, because one number cannot express both facts.
         #
@@ -683,9 +686,11 @@ class CapabilityLedgerTests(unittest.TestCase):
         # 56 -> 77 on 2026-08-16: the owner-decided demotion of the 21 import cells
         # whose cited evidence never computes an interval (import shape audit;
         # transitions tr-mc-*-import-shape-audit). All 21 are model-surface.
+        # 77 -> 78: Design 257 Wave 1 adds mc-0717 (source_order 717, outside
+        # the frozen window) at point_fit_recovery.
         self.assertEqual(
             sum(row["evidence_tier"] == "point_fit_recovery" for row in model),
-            77,
+            78,
         )
 
         by_id = {row["cell_id"]: row for row in model}
@@ -3175,6 +3180,25 @@ class CapabilityLedgerTests(unittest.TestCase):
                 f"{token!r} leaked into the family map; comparator evidence must stay "
                 "scoped to individual cells",
             )
+
+    def test_mc0717_binomial_ordinary_correlated_is_a_new_point_fit_cell(self):
+        by_id = {row["cell_id"]: row for row in self.cells}
+        row = by_id["mc-0717"]
+        self.assertEqual(row["axis"], "model_surface")
+        self.assertEqual(row["family_route"], "binomial")
+        self.assertEqual(row["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(row["effect_type"], "ordinary_re_slope")
+        self.assertEqual(row["estimator"], "ML")
+        self.assertEqual(row["capability_status"], "implemented")
+        self.assertEqual(row["evidence_tier"], "point_fit_recovery")
+        self.assertIn("sd0", row["claim_boundary"])
+        self.assertIn("sd1", row["claim_boundary"])
+        self.assertIn("rho_re", row["claim_boundary"])
+        self.assertIn("not the independent-slope cell mc-0061", row["claim_boundary"])
+        self.assertNotEqual(by_id["mc-0061"]["route_variant"], "ordinary_correlated_q2")
+        self.assertEqual(by_id["mc-0061"]["evidence_tier"], "inference_ready_with_caveats")
+        self.assertEqual(by_id["mc-0060"]["evidence_tier"], "diagnostic_only")
+        self.assertEqual(by_id["mc-0062"]["evidence_tier"], "diagnostic_only")
 
     def test_evidence_class_is_a_closed_vocabulary(self):
         """A typo in evidence_class used to yield zero badges and a green --check."""
