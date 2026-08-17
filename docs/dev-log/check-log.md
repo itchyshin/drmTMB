@@ -1,5 +1,23 @@
 # Check Log
 
+## 2026-08-17 — OVERRIDE QUIESCE: #1060 → #1065 → #1061 + docs #1057/#1064
+
+Lane: Cursor, `.worktrees/design257-1060-rebase`. Shinichi unblocked the parked
+merge stack. Leftover mid-rebase in `design257-1060-rebase` was aborted first.
+No `submit_cran`. No Ligges email. No #1033. No Wave 3.
+
+| Check | Result |
+| --- | --- |
+| #1059 | already on `main` `f021a2ece` (merge commit) |
+| #1060 | squash `0a7f93f16` after `--onto origin/main` (check-log only) |
+| #1065 | squash `a79b0b014` after `--onto origin/main` (check-log only) |
+| #1061 | squash `2f7403902` after `--onto origin/main` (check-log only) |
+| #1057 | squash `3dacd7f58`; kept live design 257 from Waves; banked unique notes |
+| #1064 | this handover SHA update; merge next |
+| #1060 smoke | still **rho 8/9** (`881402`, `n_each=4`) |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
 ## 2026-08-17 — morning handover refresh (docs only)
 
 Lane: Cursor, `cursor/overnight-gapfill-board`. Scorecard next action + finisher brief.

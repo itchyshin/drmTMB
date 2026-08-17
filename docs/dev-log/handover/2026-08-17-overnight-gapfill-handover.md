@@ -1,4 +1,49 @@
-# Session Handoff: overnight gap-fill → merge-stack finisher
+# Session Handoff: overnight gap-fill → OVERRIDE QUIESCE closeout
+
+Meta: 2026-08-17 ~06:35 America/Denver · Cursor merge-stack lane
+(`cursor/lane-design257-land` / `.worktrees/design257-1060-rebase`).
+Shinichi: **“unblock it” = OVERRIDE QUIESCE.**
+
+```
+OVERRIDE QUIESCE: merge #1060 → #1065 → #1061 (+ #1057/#1064 docs). No submit_cran. No #1033.
+```
+
+#1059 was already on `main` (`f021a2ece`). #1062/#1063 were already on `main`.
+
+## Merged to `main` (squash unless noted)
+
+| PR | Subject | Merge SHA | When (UTC) |
+| --- | --- | --- | --- |
+| #1059 | Wave 1 binomial `mc-0717` | `f021a2ece` (merge commit) | 2026-08-17T12:03:06Z |
+| #1060 | Wave 2 Poisson `mc-0718` | `0a7f93f16` | 2026-08-17T12:28:56Z |
+| #1065 | Wave 2.5 NB2 `mc-0719` | `a79b0b014` | 2026-08-17T12:30:53Z |
+| #1061 | Julia CRAN-lane skip | `2f7403902` | 2026-08-17T12:32:53Z |
+| #1057 | design notes (unique after-task + fruit inventory; live design 257 kept from Waves) | `3dacd7f58` | 2026-08-17T12:34:09Z |
+| #1064 | this handover / overnight board | *(this PR)* | pending merge |
+| #1062 | mc-0576 ADEMP freeze | `186d88038` | already on `main` |
+| #1063 | NG REML honesty 4a | `2d92c3666` | already on `main` |
+
+`#1060` Totoro smoke remains **rho 8/9**, not 9/9. Seed `881402`, `n_each = 4`.
+
+## Remaining (not this OVERRIDE)
+
+- **No** `submit_cran`. **No** Ligges email. **No** #1033.
+- Wave 3 lognormal: not started; draft only if spare time after this stack (not done here).
+- #1049 binomial phylo and #858 Lane B stay open and untouched.
+- Optional after #1061: rebuild tarball and FTP win-builder R-release+oldrelease (no Ligges email).
+- `main` C14 ubuntu may still be red from #1063 blob drift; cheap receipt refresh is a later follow-up.
+- Local branch deletes failed where worktrees still hold `cursor/ng-correlated-slope-*` / `cursor/070-winbuilder-julia-skip`. Remote branches were deleted by GitHub on squash-merge.
+
+## How to resume
+
+```text
+origin/main tip after this stack (before #1064 merge) is 3dacd7f58.
+Read this file. Do not submit_cran. Do not touch #1033. Do not start Wave 3 unless Shinichi asks.
+```
+
+---
+
+# Archived morning brief (05:50; superseded by the closeout above)
 
 Meta: 2026-08-17 ~05:50 America/Denver · from Cursor (morning after overnight ~45%) · to the autonomous finisher merging **#1057 → #1059 → #1060 → #1061**
 
