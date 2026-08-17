@@ -92,7 +92,7 @@ Not touched: `src/drmTMB.cpp`, `R/missing-data.R`, MSPL, Ligges / CRAN,
 
 | Check | Result |
 | --- | --- |
-| `devtools::test(filter = 'nbinom2-ordinary-correlated-q2\|nbinom2-location-scale\|poisson-ordinary-correlated-q2\|poisson-mean\|binomial-correlated-re-mspl-prereq')` | FAIL 0 / WARN 0 / SKIP 0 / PASS 476 |
+| `devtools::test(filter = 'nbinom2-ordinary-correlated-q2\|nbinom2-location-scale\|poisson-ordinary-correlated-q2\|poisson-mean\|binomial-correlated-re-mspl-prereq')` | FAIL 0 / WARN 0 / SKIP 0 / PASS 478 |
 | `python3 tools/capability_ledger.py --check` | OK (31 generated outputs) |
 | C14 compatibility runner | 4/4 PASS on mc-0568 / mc-0569 / mc-0576 |
 | `python3 -m unittest tools.tests.test_capability_ledger -q` | 80 tests OK |
@@ -158,7 +158,8 @@ estimand.
 
 ## Next Actions
 
-1. Keep the draft PR unmerged.
+1. Keep this draft unmerged from this lane. After `#1059` and `#1060`
+   land, a sibling may merge `#1065` if the stack stays green.
 2. After win-builder / platform-clean, Fisher + Noether read the alignment
    table against a fitted object.
 3. Totoro smoke only after that review and an explicit compute ask.

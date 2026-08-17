@@ -59,7 +59,7 @@ Ligges / CRAN not touched.
 | Wedge | complete-data ordinary `nbinom2()` `count ~ x + (1 + x \| id)`, ML-Laplace, design-17 |
 | Alignment | report symbols match Poisson (`eta_cor_mu`, `rho_mu_re`; no `logsech_mu_re`); gate flipped |
 | Surface | `MODEL_SURFACE_COUNT` 701 → **702**; implemented 343 → **344**; `point_fit_recovery` 79 → **80** |
-| Focused R tests | `nbinom2-ordinary-correlated-q2\|nbinom2-location-scale\|poisson-ordinary-correlated-q2\|poisson-mean\|binomial-correlated-re-mspl-prereq` FAIL 0 / WARN 0 / SKIP 0 / PASS 476 |
+| Focused R tests | `nbinom2-ordinary-correlated-q2\|nbinom2-location-scale\|poisson-ordinary-correlated-q2\|poisson-mean\|binomial-correlated-re-mspl-prereq` FAIL 0 / WARN 0 / SKIP 0 / PASS 478 |
 | Ledger | `python3 tools/capability_ledger.py --check` OK (31 generated outputs) |
 | C14 | 4/4 PASS; `source_fingerprint` unchanged; Wave 2 receipt left in place |
 | Merge | **not requested**; draft only |
