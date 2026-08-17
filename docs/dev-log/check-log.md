@@ -43,6 +43,24 @@ After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
 
 **Do not launch** a smoke or `N ≈ 1200` campaign from this document.
 
+## 2026-08-16 — mc-0718 Totoro 27-fit smoke (PR #1060)
+
+Lane: Cursor, `cursor/ng-correlated-slope-wave2` (worktree `.worktrees/ng-corr-w2`).
+Named GO. Totoro, not DRAC. Draft PR only. Ceiling `point_fit_recovery`.
+
+| Check | Result |
+| --- | --- |
+| SHA | `3e8a9aaec` (live PR #1060 head; first deploy refused stale `aef4c860`) |
+| Toy | PASS (`881000`; finite design-17 names) |
+| Rejection | 5/5 red (REML, missing-response, labelled, mixed, NB2) |
+| Denominator | 27/27; `exception_class = none`; all `conv=0`, `pdHess=TRUE` |
+| Claim 0.30 | `sd0` 9/9, `sd1` 9/9, `rho_re` **8/9**; miss is `n_each=4` seed `881402` (`0.894` vs 0.45, `|err|=0.444`; glmmTMB same) |
+| Oracle | max \|drmTMB − glmmTMB\| 5.0e-6 / 5.8e-6 / 1.5e-5 |
+| Workers | 8; cap 16; wall 3 s; live `nproc=384` |
+| Quiesce | **no merge**; not #1033 / Ligges / DRAC |
+
+After-task: `docs/dev-log/after-task/2026-08-16-mc0718-totoro-smoke.md`.
+
 ## 2026-08-16 — Stack refresh: #1060 onto #1059 tip `ae307f4b1`
 
 Lane: Cursor, rebasing `cursor/ng-correlated-slope-wave2` onto

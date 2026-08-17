@@ -1,0 +1,29 @@
+neighbour	stayed_red	message	git_sha
+reml	TRUE	`REML` is implemented for univariate/bivariate Gaussian and binomial
+models.
+ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML =
+  FALSE`.	3e8a9aaec9aae3e20a5e3bbd46fb65561304e368
+missing_response	TRUE	Ordinary Poisson correlated `(1 + x | g)` blocks are not implemented
+with missing-response integration.
+ℹ Use complete data, or the independent form `(1 | g) + (0 + x | g)`.	3e8a9aaec9aae3e20a5e3bbd46fb65561304e368
+labelled	TRUE	Ordinary correlated Poisson random effects support one unlabelled
+Poisson intercept-slope block.
+✖ Requested random-effect term: `(1 + x | p | id)`.
+ℹ Use exactly `count ~ x + (1 + x | id)` with `family = poisson()` and complete
+  data.
+ℹ NB2, labelled covariance blocks, additional random-effect terms, and multiple
+  random slopes remain unsupported.	3e8a9aaec9aae3e20a5e3bbd46fb65561304e368
+mixed	TRUE	Ordinary correlated Poisson random effects support one unlabelled
+Poisson intercept-slope block.
+✖ Requested random-effect terms: `(1 | id)` and `(1 + x | id)`.
+ℹ Use exactly `count ~ x + (1 + x | id)` with `family = poisson()` and complete
+  data.
+ℹ NB2, labelled covariance blocks, additional random-effect terms, and multiple
+  random slopes remain unsupported.	3e8a9aaec9aae3e20a5e3bbd46fb65561304e368
+nbinom2	TRUE	Ordinary correlated NB2 random effects support one unlabelled Poisson
+intercept-slope block.
+✖ Requested random-effect term: `(1 + x | id)`.
+ℹ Use exactly `count ~ x + (1 + x | id)` with `family = poisson()` and complete
+  data.
+ℹ NB2, labelled covariance blocks, additional random-effect terms, and multiple
+  random slopes remain unsupported.	3e8a9aaec9aae3e20a5e3bbd46fb65561304e368

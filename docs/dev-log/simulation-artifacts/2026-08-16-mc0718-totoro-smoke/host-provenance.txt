@@ -1,0 +1,11 @@
+totoro
+date=2026-08-17T11:38:57Z
+hostname=totoro
+nproc=1
+nworkers=8
+core_cap=16
+totoro_core_cap=150
+git_sha=3e8a9aaec9aae3e20a5e3bbd46fb65561304e368
+repo=/home/snakagaw/hsq_work/drmTMB-mc0718
+lib=/home/snakagaw/hsq_work/drmTMB-mc0718-library
+loadavg=1.06 0.48 0.18 1/6354 3987956
