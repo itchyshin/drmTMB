@@ -1,5 +1,14 @@
 # Check Log
 
+## 2026-08-17 — julia-skip win-builder FTP (Cursor)
+
+- Exact-bytes upload of `~/drmTMB-release-artifacts/0.7.0-julia-skip/drmTMB_0.7.0.tar.gz`
+  (SHA-256 `8764b2febf1d01b0c8709f3b931cae5195373ae9e1b35939fd5e39c39f058212`) to
+  win-builder R-release (23:21:44Z, curl 0 / 226) and R-oldrelease (23:21:47Z, curl 0 / 226).
+- Receipt: `docs/dev-log/release/0.7.0-cran-gate/candidate-julia-skip/winbuilder-upload-receipt.md`.
+- No submit_cran; no Ligges email; no #1033; no check results invented.
+
+
 ## 2026-08-17 — OVERRIDE QUIESCE: #1060 → #1065 → #1061 + docs #1057/#1064
 
 Lane: Cursor, `.worktrees/design257-1060-rebase`. Shinichi unblocked the parked
