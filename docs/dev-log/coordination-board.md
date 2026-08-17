@@ -29,6 +29,10 @@ census; capability counts belong in the ledger and Mission Control.
     `origin/claude/cursor-handover-0816` carries
     `handover/2026-08-16-cursor-handover.md` (unmerged at this writing). That lane's pointer is its
     own; listed here so no split reader orphans it.
+  - **Docs-only ADEMP freeze, not those lanes:** `cursor/mc0576-ademp-freeze` freezes
+    `mc-0576` (ZO-beta ordinary `sigma` slope) at SD 0.45 / `n_each` 50 /
+    `M ∈ {8,16,32,64}`. **Do not launch** coverage. Stays off #1033 / #1059 / #1060.
+    Sheet: [`research/2026-08-16-mc-0576-zo-beta-sigma-slope-ademp-freeze.md`](research/2026-08-16-mc-0576-zo-beta-sigma-slope-ademp-freeze.md).
 - **2026-08-16 — the `se = TRUE` PSOCK worker leak is NOT drmTMB's; stop chasing it.** (peer lane
   `claude/eloquent-driscoll-521fa1` @ `4699cf934`, held out of `main` under the quiesce — adds a
   `tests/` file.) The 2026-08-15 report did not reproduce: drmTMB has no cluster constructor in
