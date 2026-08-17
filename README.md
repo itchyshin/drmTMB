@@ -193,9 +193,13 @@ head(sigma(fit)^2) # fitted residual variances
   independent-slope design recorded in the capability ledger has
   `inference_ready_with_caveats` coverage evidence. Use `beta_binomial()` with
   `cbind(successes, failures)` when the data need extra-binomial variation
-  through `sigma`. Binomial `REML = TRUE` is diagnostic-only for one ordinary
-  unlabelled `mu` random intercept or independent slope; use ML for scientific
-  reporting. Fixed-only, multiple-term, correlated, labelled, structured, and
+  through `sigma`. Public non-Gaussian REML is this binomial route only
+  (O2: `mc-0060` random intercept, `mc-0062` independent slope), and it is
+  diagnostic-only; use ML for scientific reporting. Every other
+  non-Gaussian family rejects `REML = TRUE`. The package-private AGHQ plus
+  Cox-Reid estimator (O3) is not what `drmTMB(REML = TRUE)` runs; public
+  cumulative-logit slopes (`mc-0227`) stay ML `point_fit_recovery`.
+  Fixed-only, multiple-term, correlated, labelled, structured, and
   missing-response binomial REML routes are unavailable. Correlated or
   labelled binomial random slopes, structured
   effects, `sigma` formulas, bivariate or mixed responses, and non-phylogenetic
@@ -401,6 +405,17 @@ Gamma remains point-recovery only. Most other
 non-Gaussian random-effect and structured-dependence combinations remain
 planned after fixed-effect likelihoods, diagnostics, and simulations are
 stable.
+
+Restricted likelihood (`REML = TRUE`) is a Gaussian and bivariate-Gaussian
+product. The only public non-Gaussian REML is binomial O2: one ordinary
+unlabelled `mu` random intercept (`mc-0060`) or one independent numeric
+slope (`mc-0062`). Both are `diagnostic_only`. They match
+`glmmTMB(REML = TRUE)` in deterministic checks, but they are not a
+scientific reporting route; use ML. Every other non-Gaussian family
+rejects `REML = TRUE`. An internal AGHQ plus Cox-Reid experiment (O3)
+exists for ordinal models; it is package-private and is not what
+`drmTMB(REML = TRUE)` runs. Public cumulative-logit slopes (`mc-0227`)
+stay ML `point_fit_recovery`.
 
 Residual `rho12` is a within-observation bivariate Gaussian correlation. It is
 not the same as a group-level correlation among individual intercepts, slopes,

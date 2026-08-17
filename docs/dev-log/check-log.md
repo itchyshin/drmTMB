@@ -1,5 +1,23 @@
 # Check Log
 
+## 2026-08-16 — Public NG REML honesty (4a): README + ?drmTMB match the ledger
+
+Lane: Cursor, `cursor/ng-reml-honesty-4a` (worktree
+`~/local-scratch/lanes/drmTMB-ng-reml-honesty-4a`). Docs only.
+
+| Check | Result |
+| --- | --- |
+| `origin/main` README L190–205 | binomial REML already diagnostic-only |
+| Reconciliation L28–40 | `mc-0060`/`mc-0062` diagnostic; `mc-0227` ML point-fit; O3 internal |
+| `R/drmTMB.R` diff | roxygen only; no abort / `drm_validate_reml_spec` hunk |
+| `NAMESPACE` | no O3 export |
+| Ledger cells | not touched |
+| `rg` `REML planned\|non-Gaussian REML is\|REML is planned\|public O3` on edited surfaces | no leftover product claim |
+
+Pat-level sentence now on README (family bullet + Current boundaries) and
+`?drmTMB`: O2 = diagnostic binomial only; O3 = private; other NG reject REML.
+After-task: `docs/dev-log/after-task/2026-08-16-ng-reml-honesty-4a.md`.
+
 ## 2026-08-16 — `mc-0576` ADEMP freeze (ZO-beta sigma slope); docs only; do not launch
 
 Lane: Cursor, `cursor/mc0576-ademp-freeze` (worktree off `origin/main`). Stayed off

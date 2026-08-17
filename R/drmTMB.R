@@ -169,7 +169,11 @@
 #'   missing-data engines, and other extensions are not admitted under REML;
 #'   use `REML = FALSE` for those models. The binomial route has diagnostic
 #'   parity and finite-uncertainty evidence, not calibrated interval or coverage
-#'   evidence.
+#'   evidence. Every other non-Gaussian family rejects `REML = TRUE`; use
+#'   `REML = FALSE`. The package-private AGHQ plus Cox-Reid (O3) estimator is
+#'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
+#'   cumulative-logit random-slope fits remain maximum likelihood
+#'   (`point_fit_recovery`).
 #'   The halted `engine = "julia"` compatibility bridge is not a supported
 #'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
 #'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
