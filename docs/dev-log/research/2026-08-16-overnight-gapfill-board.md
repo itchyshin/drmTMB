@@ -10,21 +10,21 @@ Handover (write ~04:45 MDT):
 [`docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`](../handover/2026-08-17-overnight-gapfill-handover.md)
 once that file exists.
 
-## Quiesce (hard)
+## Quiesce (morning update)
 
-Do **not** merge shipped `R/` or `src/` to `main`.  
-Do **not** merge #1059, #1060, NB2, lognormal, Gamma, or #1061 overnight.  
-#1061 ships tests (Julia CRAN-lane filter); owner-only.  
-Docs-only PRs for **mc-0576 ADEMP** and **REML honesty 4a** may merge to `main` if CI is green, with explicit path staging.  
-#1057 is also docs-only and CI-green; leave it for the owner unless a sibling already requested the merge.
+Overnight hold on shipped `R/` / `src/` is **lifted only** for the owner-approved
+finisher stack **#1057 → #1059 → #1060 → #1061**.  
+Do **not** merge #1065 (NB2), lognormal, or Gamma in that stack.  
+Do **not** `submit_cran`. Do **not** email Ligges. Do **not** touch #1033.
 
 ## Coordinator lane
 
 | Item | Value |
 | --- | --- |
-| Taken | `cursor/overnight-gapfill-board` (docs) then `cursor/ng-correlated-slope-lognormal` (Wave 3) |
+| Taken | `cursor/overnight-gapfill-board` (docs / this handover) |
 | Worktree | `/Users/z3437171/local-scratch/lanes/drmTMB-overnight-gapfill-board` |
-| Not taken | NB2, ADEMP, REML 4a, Wave 2, Wave 1, #1061, #1033, #1049, dirty Dropbox checkout `claude/handover-freshness-0718` |
+| Handed to finisher | #1057 → #1059 → #1060 → #1061 |
+| Not taken | #1065, Wave 3, #1033, #1049, dirty Dropbox checkout `claude/handover-freshness-0718` |
 
 The Dropbox checkout is a dirty July branch. All overnight writes go through local-scratch worktrees.
 
@@ -33,15 +33,15 @@ The Dropbox checkout is a dirty July branch. All overnight writes go through loc
 | # | Work | Branch | Status at 18:53 MDT | Merge? |
 | --- | --- | --- | --- | --- |
 | 0 | This board | `cursor/overnight-gapfill-board` | draft **#1064**; rebased onto `main` after #1062 | draft PR (docs) |
-| 1 | Wave 1 binomial `mc-0717` | `cursor/ng-correlated-slope-impl` | draft **#1059** at `ae307f4b1`: constant-x `3399e7eda` + Totoro bank. CI green. Now **CONFLICTING** vs #1062 on `main` | **no** |
-| 2 | Wave 2 Poisson `mc-0718` | `cursor/ng-correlated-slope-wave2` | draft **#1060** @ `3e8a9aaec` **contains 1059 tip**. MERGEABLE. CI not posted at 05:40 | **no** |
-| 3 | Wave 2.5 NB2 `mc-0719` | `cursor/ng-correlated-slope-nb2` | **no origin branch / no PR** at 05:40 | **no** |
-| 4 | Wave 3 lognormal `mc-0720` | `cursor/ng-correlated-slope-lognormal` | worktree exists at `3e8a9aaec`; **no implementation commit** (session paused until 05:39) | **no** |
+| 1 | Wave 1 binomial `mc-0717` | `cursor/ng-correlated-slope-impl` | draft **#1059** at `ae307f4b1`: constant-x `3399e7eda` + Totoro bank (9/9). **CONFLICTING** vs `main` (#1062+#1063) | **finisher** after #1057 (rebase first) |
+| 2 | Wave 2 Poisson `mc-0718` | `cursor/ng-correlated-slope-wave2` | draft **#1060** @ `e5657ecbf` (smoke banked; **rho 8/9**). Base = #1059 | **finisher** after #1059 |
+| 3 | Wave 2.5 NB2 `mc-0719` | `cursor/ng-correlated-slope-nb2` | draft **#1065** @ `53f447b9f` (stacked on #1060). Local tests green; no Totoro smoke | **no** (not in the 1057→1061 stack) |
+| 4 | Wave 3 lognormal `mc-0720` | `cursor/ng-correlated-slope-lognormal` | **never started** | **no** |
 | 5 | Wave 3 Gamma | `cursor/ng-correlated-slope-gamma` | not started | **no** |
 | 6 | mc-0576 ADEMP docs | `cursor/mc0576-ademp-freeze` | **merged** [#1062](https://github.com/itchyshin/drmTMB/pull/1062) → `186d88038` | already on `main` |
-| 7 | REML honesty 4a | `cursor/ng-reml-honesty-4a` | open **#1063**; touches `R/drmTMB.R`; CONFLICTING; ubuntu FAIL | **no** (not docs-only) |
-| 8 | Julia CRAN filter | `cursor/070-winbuilder-julia-skip` | draft **#1061** CONFLICTING | **no** |
-| 9 | Design 257 | `cursor/ng-correlated-slope-design` | draft **#1057** MERGEABLE; CI green; docs-only | owner call |
+| 7 | REML honesty 4a | `cursor/ng-reml-honesty-4a` | **merged** [#1063](https://github.com/itchyshin/drmTMB/pull/1063) → `2d92c3666`. Ubuntu C14 receipt red (cheap `R/drmTMB.R` blob) | already on `main` |
+| 8 | Julia CRAN filter | `cursor/070-winbuilder-julia-skip` | draft **#1061** CONFLICTING | **finisher** last (rebase first) |
+| 9 | Design 257 | `cursor/ng-correlated-slope-design` | draft **#1057** MERGEABLE; CI green; docs-only | **finisher** first |
 | 10 | Missing-data | `codex/response-missing-formula-surface` | **#1033** CONFLICTING | **do not touch** |
 | 11 | 05:00 handover | see path above | write ~04:45 MDT | this docs branch |
 
@@ -109,7 +109,8 @@ Ask “Totoro or DRAC?” before any recovery campaign (D-50). Overnight default
 | --- | --- |
 | 18:50 | Board opened. No NB2 / ADEMP / 4a / lognormal PRs. #1060 ubuntu red. #1061 conflicting. |
 | 18:53 | #1059 gained `3399e7eda` (constant-x abort) + `ae307f4b1` (Totoro 27-fit bank). Head `ae307f4b1`. Ubuntu CI re-running. #1060 now CONFLICTING vs that tip; sibling rebasing #1060/NB2. ADEMP worktree has uncommitted freeze docs; no PR yet. Coordinator waits for stack refresh, then starts Wave 3 lognormal. |
-| 05:40 | Session resumed after a pause. #1062 ADEMP **merged**. #1060 rebased onto 1059 tip (`3e8a9aaec`). #1063 REML 4a open but ships `R/drmTMB.R` — not merged. NB2 still no PR. Lognormal worktree sits on `3e8a9aaec` with no code. Handover written. Coordinator stopped. |
+| 05:40 | Session resumed after a pause. #1062 ADEMP **merged**. #1060 rebased onto 1059 tip (`3e8a9aaec`). #1063 REML 4a then still open. NB2 still no PR. Handover written (now superseded). |
+| 05:50 | Morning scorecard. #1063 **merged** `2d92c3666` (ubuntu C14 red, cheap blob). #1060 smoke banked `e5657ecbf` (**rho 8/9**, comment posted). NB2 draft **#1065**. Lognormal never started. Shinichi GO: finisher merges #1057→#1059→#1060→#1061. Handover refreshed. Wave 3 start **retracted**. |
 
 ## Stop rules
 

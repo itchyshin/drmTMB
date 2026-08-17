@@ -1,50 +1,120 @@
-# Handover — overnight gap-fill (05:40 America/Denver, 2026-08-17)
+# Session Handoff: overnight gap-fill → merge-stack finisher
 
-**Reader:** Shinichi, then the next Cursor / Claude / Codex lane.  
-**From:** overnight coordinator on `cursor/overnight-gapfill-board`.  
-**CRAN:** still parked. Do not `submit_cran`. Do not email Ligges. Do not touch #1033.
+Meta: 2026-08-17 ~05:50 America/Denver · from Cursor (morning after overnight ~45%) · to the autonomous finisher merging **#1057 → #1059 → #1060 → #1061**
 
-## What landed
+You are the merge-stack finisher. Read `AGENTS.md`, this handover, and
+`docs/dev-log/research/2026-08-16-overnight-gapfill-board.md` before acting.
+**You inherit no authority from the authoring chat.** Classify every item
+`OWED` · `DONE` · `RETRACTED` · `PROTECTED` against live GitHub state.
 
-| Item | Where | Note |
-| --- | --- | --- |
-| Overnight board | draft [#1064](https://github.com/itchyshin/drmTMB/pull/1064) | `docs/dev-log/research/2026-08-16-overnight-gapfill-board.md`. Rebased onto `main` after #1062. Docs only. |
-| mc-0576 ADEMP freeze | **merged** [#1062](https://github.com/itchyshin/drmTMB/pull/1062) → `main` `186d88038` | Sibling docs-only. Do not launch that campaign. |
-| Wave 2 stack refresh | draft [#1060](https://github.com/itchyshin/drmTMB/pull/1060) @ `3e8a9aaec` | Sibling rebased Poisson onto #1059 tip `ae307f4b1`. MERGEABLE. CI not posted at 05:40. **Do not merge.** |
+## Critical Context
 
-No shipped `R/` or `src/` was merged to `main` by this coordinator.
+Shinichi lifted overnight quiesce **only** for this merge order:
+**#1057 (design) → #1059 (Wave 1 binomial) → #1060 (Wave 2 Poisson) → #1061 (Julia CRAN-lane skip).**
 
-## What is draft / held
+Do **not** `submit_cran`. Do **not** email Ligges. Do **not** touch **#1033**.
+Do **not** start Wave 3 lognormal. Do **not** merge **#1065** (NB2) in this stack.
 
-| PR / lane | Head | Status | Do at 05:00 |
-| --- | --- | --- | --- |
-| [#1059](https://github.com/itchyshin/drmTMB/pull/1059) Wave 1 `mc-0717` | `ae307f4b1` | draft; CI green; **CONFLICTING** vs current `main` (#1062) | Keep. Constant-x abort `3399e7eda` + Totoro 27-fit bank `ae307f4b1` (9/9 recovery, glmmTMB ~1e-5). Rebase onto `main` if wanted; **do not merge**. |
-| [#1060](https://github.com/itchyshin/drmTMB/pull/1060) Wave 2 `mc-0718` | `3e8a9aaec` | draft; MERGEABLE; contains 1059 tip | Wait for CI. **Do not merge.** |
-| NB2 `mc-0719` | no `origin/` branch | local dirty worktree earlier; **no PR** | Sibling still owns `cursor/ng-correlated-slope-nb2`. Do not collide. |
-| Wave 3 lognormal `mc-0720` | worktree only | `/Users/z3437171/local-scratch/lanes/drmTMB-ng-corr-lognormal` is on `3e8a9aaec`. **No implementation commit.** | Start here. See below. |
-| [#1063](https://github.com/itchyshin/drmTMB/pull/1063) REML honesty 4a | `b5f9624e0` | open, not draft; **CONFLICTING**; ubuntu FAIL | **Not docs-only.** Touches `R/drmTMB.R` + `man/drmTMB.Rd`. Quiesce: do not merge. |
-| [#1061](https://github.com/itchyshin/drmTMB/pull/1061) Julia CRAN filter | `8e7aece55` | draft; CONFLICTING | Owner-only. Do not merge. Do not email Ligges. |
-| [#1057](https://github.com/itchyshin/drmTMB/pull/1057) Design 257 | `f08648f1a` | draft; CI green; docs-only | Owner call. |
-| [#1033](https://github.com/itchyshin/drmTMB/pull/1033) | — | missing-data | **Off limits.** |
-| [#1049](https://github.com/itchyshin/drmTMB/pull/1049) | — | Claude binomial phylo | Foreign. |
+`#1060` Totoro smoke is **rho 8/9**, not 9/9. Seed `881402`, `n_each = 4`,
+`|err| = 0.444` (`rho_re = 0.894` vs 0.45); glmmTMB matched. Do not rewrite
+that as 9/9.
 
-## Wave 3 — start this morning
+`#1063` already **merged** to `main` (`2d92c3666`). The 05:40 handover that
+called it CONFLICTING is stale. Ubuntu CI on that merge is **red** (cheap C14
+receipt: `R/drmTMB.R` blob `51fd5146` → `9e0e2660`; fingerprint unchanged).
+Leave a follow-up C14 refresh; do not reopen #1063.
 
-Reserved cell **`mc-0720`**. Stack after Wave 2 tip `3e8a9aaec` (already checked out). If an NB2 PR appears first, rebase onto that tip instead.
+## What Was Accomplished
 
-Lognormal `model_type == 4` still applies independent `sd * u` and hardcodes `n_mu_re_cors = 0L` in the TMB data list. Poisson Wave 2 already has the design-17 map. Copy that map into the lognormal C++ branch; wedge `validate_positive_continuous_mu_random_terms()` for `{.fn lognormal}` only; allowlist `"lognormal"` in `split_tmb_corpars()`; abort missing-response + inherit the #1059 constant-within-group `x` helper after it is on the stack. Gamma stays rejected. Ceiling = `point_fit_recovery`. Draft PR `cursor/ng-correlated-slope-lognormal`. Do not merge.
+- **#1062 MERGED** — mc-0576 ZO-beta sigma-slope ADEMP freeze. Do not launch.
+- **#1063 MERGED** — public NG REML is diagnostic binomial O2 only. Ubuntu C14 red (see above).
+- **#1059 Wave 1 draft complete** — Totoro PASS, constant-within-group `x` abort. Head `ae307f4b1`. Now **CONFLICTING** vs `main` (#1062 + #1063).
+- **#1060 Wave 2 smoke banked** — `e5657ecbf` on `cursor/ng-correlated-slope-wave2`. 27/27 fits; `sd0`/`sd1` 9/9; **`rho_re` 8/9**. PR comment posted. Draft. Base is #1059, not `main`.
+- **#1065 NB2 snapshot** — draft `feat(nbinom2): Wave 2.5 ordinary correlated (1+x|g) cell mc-0719` @ `53f447b9f`. Local focused tests 476–478 PASS; C14 4/4. **Not in this merge stack.** No Totoro smoke.
+- **Lognormal / Wave 3** — never started. Worktree sits on the Wave 2 tip. Leave it.
+- Overnight board **#1064** exists; this file is the morning refresh.
 
-Alignment symbols: `sd0`, `sd1`, `rho_re` (never residual `rho12`). Do not reuse `mc-0380`.
+## Current Working State
 
-## Honesty
+- **Working:** docs-only #1057 is MERGEABLE and CI-green. #1060 head includes the honest 8/9 smoke bank.
+- **In progress:** this finisher rebase+merge stack. #1059 and #1061 are CONFLICTING vs current `main`.
+- **Not working / blocked:** `main` ubuntu ledger job is red after #1063 (stale C14 `R/drmTMB.R` blob). #1033 is PROTECTED. CRAN / Ligges stay parked.
 
-The coordinator wrote the board at 18:53 MDT, then the session was paused until 05:39 MDT. Wave 3 code was not implemented in that gap. #1062 merged and #1060/#1063 appeared while the session was dark. This handover is from a live poll at 05:39–05:40 MDT, not from chat memory.
+## Key Decisions & Rationale
 
-## Next at 05:00 (now)
+- Overnight quiesce held `R/` / `src/` merges. Shinichi’s morning GO lifts that **only** for #1057→#1059→#1060→#1061.
+- #1060 stays a `point_fit_recovery` draft until it lands in this stack. The 8/9 rho miss is a small-`n_each` finite-sample miss shared with glmmTMB, not an extractor split.
+- #1065 is a snapshot so NB2 does not rot. It stacks on #1060. Merge it later, after this stack is green, if Shinichi asks.
+- Wave 3 is **RETRACTED** as a this-morning task (the 05:40 handover wrongly said “start lognormal”).
 
-1. Implement Wave 3 lognormal on the existing worktree; draft PR; do not merge.
-2. Leave #1059 / #1060 / #1061 / #1063 unmerged until the owner lifts quiesce.
-3. If an NB2 PR appears, rebase lognormal onto it.
-4. Gamma (`cursor/ng-correlated-slope-gamma`) only after lognormal local recovery is green.
-5. Totoro: skip new smokes unless the owner asks; #1059 already banked 27 fits.
-6. CRAN stays parked.
+## Landing State
+
+| Artifact / branch | Committed | Pushed | PR | State |
+| --- | --- | --- | --- | --- |
+| `origin/main` `2d92c3666` | y | y | #1062 + #1063 merged | LANDED |
+| `cursor/ng-correlated-slope-design` | y | y | [#1057](https://github.com/itchyshin/drmTMB/pull/1057) draft, MERGEABLE | CARRIED-OVER — first merge |
+| `cursor/ng-correlated-slope-impl` `ae307f4b1` | y | y | [#1059](https://github.com/itchyshin/drmTMB/pull/1059) draft, CONFLICTING | CARRIED-OVER — rebase onto `main`, then merge |
+| `cursor/ng-correlated-slope-wave2` `e5657ecbf` | y | y | [#1060](https://github.com/itchyshin/drmTMB/pull/1060) draft | CARRIED-OVER — merge after #1059; keep 8/9 wording |
+| `cursor/070-winbuilder-julia-skip` | y | y | [#1061](https://github.com/itchyshin/drmTMB/pull/1061) draft, CONFLICTING | CARRIED-OVER — rebase, then merge last |
+| `cursor/ng-correlated-slope-nb2` `53f447b9f` | y | y | [#1065](https://github.com/itchyshin/drmTMB/pull/1065) draft | CARRIED-OVER — **do not merge in this stack** |
+| `cursor/overnight-gapfill-board` | y | y | [#1064](https://github.com/itchyshin/drmTMB/pull/1064) draft, CONFLICTING | CARRIED-OVER — docs; rebase onto `main` if cheap |
+| `cursor/ng-correlated-slope-lognormal` | n | n | none | CARRIED-OVER — Wave 3 never started; do not start |
+| Dirty Dropbox `claude/handover-freshness-0718` | n | n | none | CARRIED-OVER — do not commit from that checkout |
+
+**Resume for each CARRIED-OVER merge:**
+
+```sh
+# 1. #1057 — docs-only, already MERGEABLE
+gh pr ready 1057 && gh pr merge 1057 --merge
+
+# 2. #1059 — rebase onto main (conflicts from #1062/#1063, likely check-log / ledger)
+git fetch origin
+# worktree: .worktrees/ng-corr-w1 or equivalent
+git rebase origin/main
+# resolve, focused tests, push --force-with-lease
+gh pr ready 1059 && gh pr merge 1059 --merge
+
+# 3. #1060 — after #1059 is on main, retarget to main if GitHub still bases on the Wave 1 branch
+gh pr edit 1060 --base main
+# rebase if needed; do not rewrite the 8/9 smoke after-task
+gh pr ready 1060 && gh pr merge 1060 --merge
+
+# 4. #1061 — rebase onto the new main, then merge
+git rebase origin/main
+gh pr ready 1061 && gh pr merge 1061 --merge
+```
+
+## Next Immediate Steps
+
+1. Rehydrate: `bash ~/shinichi-brain/tools/lane_preflight.sh "/Users/z3437171/Dropbox/Github Local/drmTMB"`. Take **only** the merge-stack lane. Stay off #1033, #1049, #1065, lognormal.
+2. Merge **#1057** first (docs-only, MERGEABLE, CI green).
+3. Rebase **#1059** onto `origin/main`. Expect check-log / ledger / NEWS collisions with #1062/#1063. Keep Wave 1 constant-`x` abort and the 9/9 `mc-0717` smoke. Mark ready and merge.
+4. Land **#1060** after #1059. Preserve `e5657ecbf` wording: **rho 8/9**. Retarget base to `main` if the Wave 1 branch disappears.
+5. Rebase and merge **#1061**. Tests-only Julia CRAN-lane skip. Still do not email Ligges.
+6. After the stack: optional cheap C14 receipt refresh on `main` (`R/drmTMB.R` blob drift from #1063). Do not change `source_fingerprint`.
+7. Leave #1064 / #1065 / Wave 3 / CRAN for later.
+
+## Blockers / Open Questions
+
+- `#1059` and `#1061` are CONFLICTING. That is the work, not a stop.
+- `main` C14 ubuntu red after #1063. Cheap mode. #1059 also touches ledger files; refresh C14 **after** the stack if the blob moves again.
+- Whether to merge #1065 after this stack is Shinichi’s call, not this GO.
+- Win-builder / Ligges still parked. #1061 only skips live Julia on the CRAN lane.
+
+## Gotchas & Failed Approaches
+
+- The 05:40 handover is **wrong** on #1063 (now merged), #1060 head (now `e5657ecbf`, not `3e8a9aaec`), NB2 (now #1065), and “start Wave 3”. Trust this file.
+- Do not copy smoke artifacts through `/Users/z3437171/local-scratch/lanes/drmTMB-ng-corr-stack` — bank already landed from `.worktrees/ng-corr-w2` @ `e5657ecbf`.
+- Do not treat #1060 as 9/9. The miss is in `results.tsv` row seed `881402`.
+- Do not merge #1060 to `main` before #1059; it is stacked on `cursor/ng-correlated-slope-impl`.
+- Dirty Dropbox checkout `claude/handover-freshness-0718` is a July branch. Do not commit from it.
+- #1033 is Codex missing-data. Off limits even if it looks like a cheap conflict.
+
+## How to Resume
+
+```text
+Read AGENTS.md and docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md.
+Run lane preflight. Reconcile this handover with live gh pr view 1057,1059,1060,1061,1065.
+Continue only the OWED merge stack #1057 → #1059 → #1060 → #1061.
+Do not submit_cran. Do not touch #1033. Do not start Wave 3. Do not merge #1065.
+```

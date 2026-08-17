@@ -1,5 +1,22 @@
 # Check Log
 
+## 2026-08-17 — morning handover refresh (docs only)
+
+Lane: Cursor, `cursor/overnight-gapfill-board`. Scorecard next action + finisher brief.
+No `submit_cran`. No #1033. Wave 3 not started.
+
+| Check | Result |
+| --- | --- |
+| #1062 | MERGED `186d88038` |
+| #1063 | MERGED `2d92c3666`; ubuntu C14 red (cheap `R/drmTMB.R` blob); left |
+| #1059 | draft complete; Totoro 9/9; CONFLICTING vs `main` |
+| #1060 | smoke banked `e5657ecbf`; **rho 8/9** (seed 881402); comment posted; do not claim 9/9 |
+| #1065 | NB2 draft snapshot @ `53f447b9f`; not in merge stack |
+| Wave 3 | never started |
+| Finisher GO | #1057 → #1059 → #1060 → #1061 |
+
+Handover: `docs/dev-log/handover/2026-08-17-overnight-gapfill-handover.md`.
+
 ## 2026-08-17 — overnight gap-fill closeout (docs only)
 
 Lane: Cursor, `cursor/overnight-gapfill-board`. Stop ~05:40 MDT. No shipped
