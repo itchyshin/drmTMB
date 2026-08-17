@@ -1,5 +1,30 @@
 # Check Log
 
+## 2026-08-16 — `mc-0576` ADEMP freeze (ZO-beta sigma slope); docs only; do not launch
+
+Lane: Cursor, `cursor/mc0576-ademp-freeze` (worktree off `origin/main`). Stayed off
+PRs #1033 / #1059 / #1060 and off all `R/` / `src/`.
+
+`git show origin/main:docs/dev-log/dashboard/capability-ledger/cells.tsv` row
+`mc-0576` is `interval_feasible` (135-trace profile existence; true SD 0.45).
+Coverage remains a separate goal. This slice freezes the ADEMP so a later
+campaign cannot invent `M` / SD / `n_each`.
+
+| Check | Result |
+| --- | --- |
+| Ledger row | `interval_feasible`; next_gate = coverage out of scope |
+| Frozen DGP | SD **0.45**, `n_each` **50**, `M ∈ {8, 16, 32, 64}` |
+| Estimand | `sd:sigma:(0 + x \| id)` on `sigma ~ x + (0 + x \| id)` |
+| Not this cell | `mc-0575` mu slope; `(1 + x \| id)`; REML; Wave 3; NB2 |
+| Claim ceiling | later `inference_ready_with_caveats`; never `supported` first campaign |
+| Compute | Totoro-or-DRAC? **wait for owner GO** |
+| Fits / ledger edit | **not run** |
+
+ADEMP: `docs/dev-log/research/2026-08-16-mc-0576-zo-beta-sigma-slope-ademp-freeze.md`.
+After-task: `docs/dev-log/after-task/2026-08-16-mc-0576-ademp-freeze.md`.
+
+**Do not launch** a smoke or `N ≈ 1200` campaign from this document.
+
 ## 2026-08-16 — win-builder collection: R-devel clean; R-release/oldrelease ABSENT → re-upload; STOP
 
 Lane: Cursor, `cursor/070-winbuilder-collect` (worktree `.worktrees/cran-07`). Candidate
