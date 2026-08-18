@@ -15,8 +15,8 @@ July primary checkout). No `submit_cran`. No #1033. No mc-0576 campaign.
 | Focused tests | FAIL 0 on the Wave-3 filter set (lognormal q2 + neighbours + location-scale + nongaussian slopes) |
 | C14 | cheap blob refresh; 4/4 PASS; tau digits unchanged; `source_fingerprint` left alone |
 | Ledger unit tests | counts bumped 702→703 / 344→345 / PFR 80→81 |
-| Draft PR | [#1069](https://github.com/itchyshin/drmTMB/pull/1069) tip `70550fd48` |
-| CI | run `32081714283`: `os-matrix` SUCCESS; `ubuntu-latest (release)` SUCCESS (45m49s) |
+| Draft PR | [#1069](https://github.com/itchyshin/drmTMB/pull/1069) tip `f5d464d90` |
+| CI | tip `f5d464d90` run `32085311878` SUCCESS (ubuntu 47m16s); prior `70550fd48`/`32081714283` also green |
 
 ## 2026-08-17 — julia-skip win-builder FTP (Cursor)
 

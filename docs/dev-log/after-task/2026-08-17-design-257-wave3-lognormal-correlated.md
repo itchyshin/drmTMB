@@ -97,7 +97,7 @@ admission, intervals/coverage/`supported`.
 | `python3 tools/capability_ledger.py --check` | OK (31 generated outputs) |
 | C14 compatibility runner | 4/4 PASS; tau digits identical to prior receipt |
 | `python3 -m unittest tools.tests.test_capability_ledger -q` | 80 tests OK |
-| GitHub Actions on tip `70550fd48` (PR [#1069](https://github.com/itchyshin/drmTMB/pull/1069)) | `os-matrix` SUCCESS; `ubuntu-latest (release)` SUCCESS in 45m49s (run `32081714283`) |
+| GitHub Actions on tip `f5d464d90` (PR [#1069](https://github.com/itchyshin/drmTMB/pull/1069), main-synced) | `os-matrix` SUCCESS; `ubuntu-latest (release)` SUCCESS in 47m16s (run `32085311878`); prior tip `70550fd48` also green (`32081714283`) |
 
 ## Tests Of The Tests
 
