@@ -93,7 +93,7 @@ a conflict.
 - The archived raw GitHub job logs contain no obvious GitHub token pattern.
 - The manifest has 11 fields on every row, every referenced evidence file rehashes to its recorded
   SHA-256, and the immutable tarball rehashes to the frozen digest and size.
-- A final repaired-tree probe built successfully at 4,367,966 bytes with
+- A late repaired-tree probe built successfully at 4,367,966 bytes with
   SHA-256 `e93538606b5b54232d4fcbf0dadb95b87917152754bde88e028401fde346dfd1`;
   it contains 945 archive entries and excludes the six development articles
   from the installed vignette set. An earlier repaired-source probe's exact
@@ -101,11 +101,23 @@ a conflict.
   warnings, and the expected new-submission NOTE. Installed documentation fell
   from 11.6 MB to 4.7 MB. This is pre-merge repair evidence, not the next
   immutable release candidate.
+- The exact pushed PR head `30c50cee9` then built to 4,367,987 bytes with 945
+  entries and SHA-256
+  `1a5739562b8ec8767965a56fc07dedf2aa6fbf1530cf0808c73d94e7fdea72f9`.
+  This is a PR-head measurement, not the post-merge release freeze.
 - A fresh full `pkgdown::build_articles()` rendered the six development
   articles and the standard vignette set successfully. Reader inspection found
   the 0.7.0 banner and corrected formula boundaries in the rendered HTML, and
   `pkgdown::check_pkgdown()` passed afterward.
-- A final exact-artifact `--as-cran` rerun installed the package, passed code,
+- PR #1074's first Ubuntu run failed before package checking because six
+  capability-ledger assertions still resolved development articles at their
+  former top-level paths. The test helper now maps the six named development
+  articles explicitly, accepts `articles/...` pkgdown entries while comparing
+  unique basename coverage, counts articles recursively, and includes them in
+  the stale-language scan. The exact CI validator block then passed locally:
+  80 capability-ledger tests plus the 3, 3, 12, 5, and 24 neighboring Python
+  suites, the 30-row profile manifest, and the 18-route runtime check.
+- A late source-probe `--as-cran` rerun installed the package, passed code,
   documentation, examples, and the complete test suite (`FAIL 0 · WARN 52 ·
   SKIP 145 · PASS 11403`). It exceeded its declared seven-minute ceiling while
   re-building vignettes, so it was deliberately terminated and is not recorded

@@ -22,6 +22,20 @@ assert SPEC and SPEC.loader
 ledger = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ledger)
 INTERNAL_ROADMAP = ROOT / "docs" / "dev-log" / "internal-roadmap.md"
+DEVELOPMENT_ARTICLES = {
+    "distributional-outputs-and-adequacy.Rmd",
+    "figure-gallery.Rmd",
+    "function-map-cheatsheet.Rmd",
+    "model-workflow.Rmd",
+    "phylogenetic-spatial.Rmd",
+    "simulation-plot-grammar.Rmd",
+}
+
+
+def reader_vignette_path(name: str) -> Path:
+    """Return the source path for an installed or development article."""
+    directory = "articles" if name in DEVELOPMENT_ARTICLES else ""
+    return ROOT / "vignettes" / directory / name
 
 
 class CapabilityLedgerTests(unittest.TestCase):
@@ -1304,17 +1318,22 @@ class CapabilityLedgerTests(unittest.TestCase):
         capability_choice = config.split(
             "  - title: Capability and Model Choice", 1
         )[1].split("  - title: Location and Scale", 1)[0]
-        article_entry_pattern = r"^\s{6}- ([A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+        article_entry_pattern = (
+            r"^\s{6}- ((?:articles/)?[A-Za-z0-9][A-Za-z0-9-]*)\s*$"
+        )
         getting_started_entries = re.findall(
             article_entry_pattern, getting_started, re.MULTILINE
         )
         capability_choice_entries = re.findall(
             article_entry_pattern, capability_choice, re.MULTILINE
         )
-        self.assertEqual(getting_started_entries.count("function-map-cheatsheet"), 1)
+        self.assertEqual(
+            getting_started_entries.count("articles/function-map-cheatsheet"), 1
+        )
+        self.assertNotIn("function-map-cheatsheet", getting_started_entries)
         self.assertNotIn("model-map", getting_started_entries)
         self.assertEqual(capability_choice_entries.count("model-map"), 1)
-        self.assertNotIn("function-map-cheatsheet", capability_choice_entries)
+        self.assertNotIn("articles/function-map-cheatsheet", capability_choice_entries)
 
         learning_path = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
             "## Learning path", 1
@@ -1329,7 +1348,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(learning_positions, sorted(learning_positions))
 
         design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
-        vignette_stems = {path.stem for path in (ROOT / "vignettes").glob("*.Rmd")}
+        vignette_stems = {
+            path.stem for path in (ROOT / "vignettes").rglob("*.Rmd")
+        }
         vignette_count = len(vignette_stems)
         self.assertIn(f"across {vignette_count} vignettes", design.splitlines()[0])
         self.assertIn(f"{vignette_count} rows.", design)
@@ -1343,9 +1364,14 @@ class CapabilityLedgerTests(unittest.TestCase):
             article_entry_pattern, article_index, re.MULTILINE
         )
         self.assertEqual(len(article_stems), len(set(article_stems)))
-        self.assertEqual(set(article_stems), vignette_stems)
+        article_names = [Path(stem).name for stem in article_stems]
+        self.assertEqual(len(article_names), len(set(article_names)))
+        self.assertEqual(set(article_names), vignette_stems)
 
-        public_paths = [ROOT / "README.md", *sorted((ROOT / "vignettes").glob("*.Rmd"))]
+        public_paths = [
+            ROOT / "README.md",
+            *sorted((ROOT / "vignettes").rglob("*.Rmd")),
+        ]
         public_text = "\n".join(path.read_text() for path in public_paths)
         for stale in (
             "ROADMAP.html", "ROADMAP.md", "check the roadmap",
@@ -1594,7 +1620,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_reader_surfaces_do_not_erase_structured_sigma_slope_support(self):
         surfaces = {
-            name: (ROOT / "vignettes" / name).read_text()
+            name: reader_vignette_path(name).read_text()
             for name in (
                 "animal-models.Rmd",
                 "count-nbinom2.Rmd",
@@ -2190,7 +2216,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_provider_claims_name_exact_nongaussian_gates(self):
         phylo_surfaces = {
-            name: " ".join((ROOT / "vignettes" / name).read_text().split())
+            name: " ".join(reader_vignette_path(name).read_text().split())
             for name in (
                 "implementation-map.Rmd",
                 "phylogenetic-models.Rmd",
@@ -2230,7 +2256,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ROOT / "docs/dev-log/known-limitations.md",
                 ROOT / "vignettes/implementation-map.Rmd",
                 ROOT / "vignettes/phylogenetic-models.Rmd",
-                ROOT / "vignettes/phylogenetic-spatial.Rmd",
+                reader_vignette_path("phylogenetic-spatial.Rmd"),
                 ROOT / "vignettes/structural-dependence.Rmd",
             )
         )
@@ -2693,7 +2719,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertNotIn("estimates the SD of the latent site field", vignette)
 
     def test_phylogenetic_spatial_vignette_uses_row_specific_intervals(self):
-        vignette = (ROOT / "vignettes/phylogenetic-spatial.Rmd").read_text()
+        vignette = reader_vignette_path("phylogenetic-spatial.Rmd").read_text()
         self.assertIn(
             "exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows\n"
             "use the default location-axis bias-corrected, small-sample-t Wald channel",
@@ -2745,12 +2771,12 @@ class CapabilityLedgerTests(unittest.TestCase):
                 vignette,
                 r"(?s)corpairs\([^\)]*(?:ystep|ytol)\s*=",
             )
-        workflow = (ROOT / "vignettes/model-workflow.Rmd").read_text()
+        workflow = reader_vignette_path("model-workflow.Rmd").read_text()
         self.assertIn(
             "profile availability alone is not that evidence",
             workflow,
         )
-        phylo = (ROOT / "vignettes/phylogenetic-spatial.Rmd").read_text()
+        phylo = reader_vignette_path("phylogenetic-spatial.Rmd").read_text()
         self.assertIn(
             "Neither predictor-dependent q2 example above\n"
             "has coverage-backed interval validation",
@@ -2910,7 +2936,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn(stale, combined)
 
     def test_q2_profile_example_is_diagnostic_not_reporting_guidance(self):
-        vignette = (ROOT / "vignettes/phylogenetic-spatial.Rmd").read_text()
+        vignette = reader_vignette_path("phylogenetic-spatial.Rmd").read_text()
         self.assertIn(
             "The intercept-only bivariate q2 example below is diagnostic-only under\n"
             "both Wald and profile channels",
