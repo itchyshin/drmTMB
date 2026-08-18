@@ -1,0 +1,90 @@
+win-builder R-release result — post-#1061 julia-skip tarball / drmTMB_0.7.0.tar.gz
+=================================================================================
+Filed 2026-08-17 ~18:06 America/Denver (2026-08-18 ~00:06 UTC) by Cursor from
+Shinichi-forwarded Ligges facts + live win-builder artifacts (still up).
+
+Email (facts Shinichi forwarded; snippet had NO "Status:" line)
+----------------------------------------------------------------
+From: ligges@statistik.tu-dortmund.de
+~2026-08-18 ~00:00 UTC / 6:00 PM America/Denver Aug 17
+Package: drmTMB_0.7.0.tar.gz
+URL: https://win-builder.r-project.org/v57uv6zakfKO
+Installation time in seconds: 205
+Check time in seconds: 10448
+R version: 4.6.1 (2026-06-24 ucrt)  → R-release
+Status in email snippet: ABSENT (not pasted)
+
+Public artifact directory (fetched 2026-08-18T00:04Z)
+------------------------------------------------------
+https://win-builder.r-project.org/v57uv6zakfKO/
+  00check.log
+  00install.out
+  drmTMB_0.7.0.zip
+  examples_and_tests/
+
+Extracted Status / counts (from 00check.log — authoritative for this filing)
+----------------------------------------------------------------------------
+**Status line: ABSENT.** `00check.log` ends mid-check at:
+
+  * checking tests ...
+
+There is no trailing `Status: …` / `* DONE` block. Counts therefore cannot be
+read as a finished `R CMD check` summary.
+
+Observed before the truncate:
+  - CRAN incoming feasibility: NOTE (New submission; possibly misspelled words
+    centile / misspecification / uncalibrated)
+  - Examples: OK [22s]
+  - No WARNING lines in the truncated log
+  - No completed ERROR tally (check never finished)
+
+Julia hang verdict
+------------------
+**Julia hang is NOT gone.** Sibling evidence in
+`winbuilder-release-testthat.Rout` (same URL tree):
+
+  Julia version 1.11.3 at location C:\PROGRA~1\Julia\bin will be used.
+  Loading setup script for JuliaCall...
+
+…then the Rout ends. No testthat Failure block; no `All tests passed`. Check
+wall time 10448 s (~174 min) matches the prior Ligges hang class
+(`qdiOL4tO0suj` / `GXMxAgB00l1C` on the old `0d150ef3…` bytes), not a clean
+CRAN-lane finish.
+
+Note: `tests/testthat.R` on this tarball already invert-filters `^julia` and
+ships `drm_skip_live_julia()` (#1061). Something still entered
+`JuliaCall::julia_setup()` on the CRAN lane. Adjudicate the leak separately;
+this filing only records the evidence.
+
+Exact-bytes binding
+-------------------
+SHA-256: 8764b2febf1d01b0c8709f3b931cae5195373ae9e1b35939fd5e39c39f058212
+(post-#1061 julia-skip upload receipt; NOT freeze `0d150ef3…` /
+candidate-302ac2579).
+
+Adjudication (honest; not a platform-clean claim)
+-------------------------------------------------
+Treat this R-release lane as **ERROR-class / incomplete hang** — same practical
+outcome as the pre-skip ERROR runs, even though the email snippet omitted
+`Status:` and `00check.log` never printed one. Do **not** read the presence of
+`drmTMB_0.7.0.zip` as a pass.
+
+Gate consequences (unchanged)
+-----------------------------
+- `status_claim` stays `tarball-clean`
+- `platform-clean` is **not** advanced
+- No `submit_cran`
+- No email to Ligges
+- PR #1033 not touched
+
+Sibling lane
+------------
+R-oldrelease (4.5.x) for these same julia-skip bytes: **still waiting** as of
+this filing (Gmail MCP search returned no Ligges threads in the authenticated
+session; no oldrelease URL in the forwarded email).
+
+Artifacts filed beside this note
+--------------------------------
+- winbuilder-release-00check.log
+- winbuilder-release-testthat.Rout
+- winbuilder-upload-receipt.md (updated)

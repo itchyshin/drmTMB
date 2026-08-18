@@ -52,13 +52,17 @@ curl -T ~/drmTMB-release-artifacts/0.7.0-julia-skip/drmTMB_0.7.0.tar.gz \
   ftp://win-builder.r-project.org/R-oldrelease/
 ```
 
+## Results collected (partial)
+
+| Lane | URL | Filed | Outcome |
+| --- | --- | --- | --- |
+| R-release | https://win-builder.r-project.org/v57uv6zakfKO | `winbuilder-release.txt` + `winbuilder-release-00check.log` + `winbuilder-release-testthat.Rout` | **Status line ABSENT** in `00check.log` (truncated at `* checking tests ...`). Julia hang **NOT** cleared — `testthat.Rout` ends in `JuliaCall` setup. Treat as ERROR-class hang. Install 205 s / check 10448 s / R 4.6.1. |
+| R-oldrelease | *(none yet)* | — | **Still waiting** as of 2026-08-18 ~00:06 UTC. |
+
 ## Explicit non-claims
 
-- This receipt is **not** a check result. Wait for Ligges emails to
-  `itchyshin@gmail.com`; do not invent Status / ERROR / NOTE lines here.
-- `status_claim` stays `tarball-clean` until new R-release and R-oldrelease
-  logs are filed and adjudicated.
-- `platform-clean` is **not** advanced.
+- `status_claim` stays `tarball-clean`.
+- `platform-clean` is **not** advanced (R-release hang + oldrelease missing).
 - Gate 7 panel is **not** run.
 - CRAN submission remains **forbidden**.
 - No email was sent to Ligges.
@@ -66,8 +70,8 @@ curl -T ~/drmTMB-release-artifacts/0.7.0-julia-skip/drmTMB_0.7.0.tar.gz \
 
 ## Next (human / later session)
 
-1. Collect Ligges result emails for R-release and R-oldrelease.
-2. File verbatim bodies + `00check.log` beside this receipt.
-3. Only then decide whether the julia-skip path cleared the Ligges hang.
+1. Collect the R-oldrelease Ligges email when it arrives; file beside this receipt.
+2. Find which CRAN-lane test still enters `JuliaCall::julia_setup()` despite #1061.
+3. Do **not** treat v57uv6zakfKO as a green Ligges lane.
 
 See also: `docs/dev-log/research/2026-08-16-winbuilder-reupload-after-julia-skip.md`.
