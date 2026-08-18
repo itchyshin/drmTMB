@@ -1,0 +1,114 @@
+{
+  "package": "drmTMB",
+  "version": "0.7.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "Historical ledger for rejected immutable candidate e9c5556d at source commit 12a5cc5bc. This superseded candidate 302ac2579 and treats 5153ae7e only as predecessor Julia-hard-stop evidence. All three current-candidate win-builder arms are filed with raw check and test output. R-hub remains red at run level because rchk reports four findings in installed TMB headers; all three sanitizer jobs passed and no rchk protection finding cites drmTMB.cpp. Gate 7 rejected these bytes because shipped release identity, rendered-reader evidence, and inherited image provenance were inconsistent. Claimed rung is conservatively retained at tarball-clean. No submission is authorized.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/drmTMB_0.7.0.tar.gz",
+    "sha256": "e9c5556ddf09707f1020099d5d87c6cf419d64f14d00c81ccd4931708d4d485b",
+    "size_bytes": 10090216,
+    "source_commit": "12a5cc5bcc36ed1b83d969e5147e29bc98aaadf6",
+    "clean_worktree": true,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/tarball-inventory.txt",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-12a5cc5bc/tarball-inventory.txt"
+    },
+    "forbidden_entries": [],
+    "entry_count": 962,
+    "immutability": "Candidate directory and tarball are read-only; R CMD build timestamps make these exact bytes non-regenerable."
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/candidate/current-main-change-impact.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/release-audits/2026-08-15-gate1-component-ledger-and-rights-review.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/release-audits/2026-08-18-070-cran-policy-refresh.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/pkgdown-check.log"
+    },
+    "local_as_cran": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/local-as-cran-check.log"
+    },
+    "incoming_feasibility": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/local-as-cran-check.log"
+    },
+    "installed_package": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc/local-as-cran-check.log"
+    },
+    "timing": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/candidate/FREEZE-NOTES.md"
+    },
+    "platform_matrix": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/candidate/gha-3os-matrix.md"
+    },
+    "external_logs": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/candidate/evidence-manifest.tsv"
+    },
+    "reverse_dependencies": {
+      "kind": "rationale",
+      "value": "NOT_APPLICABLE: first submission; drmTMB has no CRAN reverse dependencies"
+    },
+    "compiled_diagnostics": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/candidate/rhub-sanitizer-adjudication.md"
+    },
+    "external_service_behaviour": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/candidate/local-as-cran-check.log"
+    },
+    "size_and_vignette_budget": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-12a5cc5bc-evidence/release-audits/2026-08-18-070-cran-policy-refresh.md"
+    }
+  },
+  "panel": {
+    "grace": "NOT_READY",
+    "rose": "NOT_READY",
+    "pat": "NOT_READY",
+    "note": "All three reviewers withheld submission-ready. Grace considered the platform packet sufficient for platform-clean; Rose found the cumulative platform-clean claim invalid because the shipped product contract and governance packet contradicted the ledger; Pat independently found release-identity and formula-guide contradictions. The conservative disposition is rejected at tarball-clean pending a new source repair and freeze."
+  },
+  "status_claim": "tarball-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  },
+  "known_evidence_gaps": {
+    "gate7_rejection": "The exact README, NEWS, introductory vignette, formula guide, and pkgdown banner contradict version 0.7.0 or current callable behaviour. The package also lacks current rendered-site inspection evidence, and Gate 1 records unresolved provenance for a shipped cheatsheet image. These defects require source repair, a new artifact, and fresh artifact-dependent evidence.",
+    "raw_email_mime": "Visible result messages are preserved as screenshots/transcript; raw MIME is unavailable and treated as provenance debt, not a platform gate, because upload receipts, result URLs, complete check logs, and raw test output are archived.",
+    "predecessor_r_devel": "The 5153ae7e predecessor R-devel message could not be recovered. It is historical/non-gating and cannot certify current candidate e9c5556d.",
+    "rhub_rchk": "Run 32150223826 is red: four possible protection-stack findings occur in installed TMB headers, no protection finding cites drmTMB.cpp, and clang-ASAN, clang-UBSAN, and gcc-ASAN passed. The failure remains visible and adjudicated.",
+    "source_size": "The tarball is 10.09 MB decimal (9.62 MiB), marginally above CRAN's if-possible 10 MB preference; Grace must adjudicate before submission-ready.",
+    "windows_timing": "Win-builder check times are 946-1411 seconds and test stages approximately 13-14 minutes; Grace must adjudicate before submission-ready.",
+    "urlchecker_doi_403": "Two DOI redirects return 403 to automated checks but resolve independently through Crossref; explain if retained at submission."
+  }
+}

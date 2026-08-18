@@ -34,4 +34,5 @@ does not report the received archive's digest.
 
 The strict raw-email requirement remains open until the maintainer supplies the
 message as `.eml` or equivalent complete headers and body. This R-release result
-does not establish `platform-clean`; R-oldrelease remains independently owed.
+does not alone establish `platform-clean`; R-devel and R-oldrelease are now also
+filed, and the executable ledger remains the gate.

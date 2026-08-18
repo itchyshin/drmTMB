@@ -12,16 +12,21 @@ Archive entries: 962
 
 ## Status
 
-This is the intended current-`main` 0.7.0 source candidate. It has earned the local
-`tarball-clean` rung only. It has **not** earned `platform-clean`, CRAN-ready, or submission
-status. No `submit_cran()` call is authorized, and no submission is planned for 2026-08-19.
+This was the intended current-`main` 0.7.0 source candidate. Gate 7 rejected
+these bytes because shipped release prose, formula guidance, image provenance,
+rendered-site evidence, and governance surfaces were inconsistent. The
+artifact remains useful historical `tarball-clean` and platform-test evidence,
+but it has **not** earned the cumulative `platform-clean`, CRAN-ready, or
+submission status. No `submit_cran()` call is authorized, and no submission is
+planned for 2026-08-19.
 
 The earlier `5153ae7ea7dc2e4ec518dfd6549b4245566b598f97422592d0c3210246023787`
 tarball remains useful predecessor and Julia-hard-stop evidence only. Its Ligges results cannot
 certify these bytes. Its R-release 4.6.1 and R-oldrelease results are now archived with raw test
 output in `candidate-julia-skip-2/`; both report `PASS 11379`. The predecessor R-devel message and
-result packet remain owed. Every SHA association is described as client-side chain of custody
-rather than server attestation.
+result packet could not be recovered and is recorded as unavailable, non-gating historical
+evidence. Every SHA association is described as client-side chain of custody rather than server
+attestation.
 
 ## Source and build integrity
 
@@ -75,15 +80,25 @@ blocking, not missing DOI registrations.
 - The exact-candidate R-release 4.6.1 Ligges result is filed at `Status: 1 NOTE`, with
   `00check.log`, raw test output, and the maintainer-supplied email transcript. See
   `winbuilder-R-release-result.md`. The raw MIME email remains owed.
+- The exact-candidate R-oldrelease 4.5.3 Ligges result is filed at `Status: 1 NOTE`, with
+  `00check.log`, raw test output, and the maintainer-supplied mailbox screenshot. See
+  `winbuilder-R-oldrelease-result.md`.
 
-## Remaining exact-source ladder
+## Disposition
 
-Before any ledger repointing or release claim, these exact-source or exact-byte gates remain:
+No further release rung will be claimed for these bytes. The historical ledger
+is retained as
+`docs/dev-log/release-audits/2026-08-18-070-cran-release-ledger-e9c5556d-rejected.json`
+at `tarball-clean`.
 
-1. the win-builder R-oldrelease result for this exact tarball, plus raw MIME copies of the filed
-   R-release and R-devel result emails;
-2. fresh Grace, Rose, and Pat review;
-3. fail-closed release-gate validation at the claimed rung.
+A replacement candidate must be built from the landed Gate 7 source repair,
+then rerun the complete exact-byte and external platform ladder. Fresh Grace,
+Rose, and Pat review remains required before any `submission-ready` claim.
 
-The release ledger and `cran-comments.md` remain unchanged until those results exist and the gate
-passes. PR #1033 and `_julia_skip2_artifacts/` remain protected and untouched.
+Raw MIME copies of the result emails remain useful provenance debt, but the visible messages,
+result URLs, complete `00check.log` files, and raw test outputs are preserved and are sufficient
+for the platform gate.
+
+`cran-comments.md` remains unchanged until replacement results exist and the
+new gate passes. PR #1033 and `_julia_skip2_artifacts/` remain protected and
+untouched.

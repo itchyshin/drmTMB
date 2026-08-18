@@ -1,4 +1,9 @@
-# drmTMB 0.7.0.9000 (development; not the frozen 0.7.0 candidate)
+# drmTMB 0.7.0
+
+First CRAN-targeted release candidate; not yet submitted to or accepted by
+CRAN. drmTMB fits distributional regression models -- location, scale, shape,
+zero inflation, and residual correlation -- for one or two responses, using
+Template Model Builder.
 
 ## Lognormal ordinary correlated slope
 
@@ -10,8 +15,6 @@
   every group now aborts before the fit (unidentified `sd1` / `rho_re`).
   Gamma neighbour, REML, missing-response, labelled blocks,
   mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
-  Quiesce still holds: this note is side-branch only and is not in the frozen
-  0.7.0 tarball.
 
 * **CRAN / win-builder Julia hang (post-#1061).** The `^julia` invert filter
   correctly excluded `test-julia-*.R`, but `test-binomial-response.R` still
@@ -30,8 +33,7 @@
   independent-slope cell `mc-0061`. A slope predictor that is constant within
   every group now aborts before the fit (unidentified `sd1` / `rho_re`). REML,
   missing-response, labelled blocks, mixed `(1 | g) + (1 + x | g)`, intervals,
-  and coverage remain rejected. Quiesce still holds: this note is side-branch
-  only and is not in the frozen 0.7.0 tarball.
+  and coverage remain rejected.
 
 ## Poisson ordinary correlated slope
 
@@ -41,8 +43,6 @@
   This is not the independent-slope cell `mc-0431` and not Wave 1 binomial
   `mc-0717`. REML, missing-response, labelled blocks, mixed
   `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
-  Quiesce still holds: this note is side-branch only and is not in the frozen
-  0.7.0 tarball.
 
 ## NB2 ordinary correlated slope
 
@@ -53,15 +53,7 @@
   and not Wave 2 Poisson `mc-0718`. A slope predictor that is constant within
   every group now aborts before the fit (unidentified `sd1` / `rho_re`).
   Zero-inflated or truncated NB2, REML, missing-response, labelled blocks,
-  mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected. Quiesce still holds: this note
-  is side-branch only and is not in the frozen 0.7.0 tarball.
-
-# drmTMB 0.7.0
-
-First CRAN-targeted release candidate; not yet submitted to or accepted by
-CRAN. drmTMB fits distributional regression models -- location, scale, shape,
-zero inflation, and residual correlation -- for one or two responses, using
-Template Model Builder.
+  mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
 
 ## Binomial responses accept a phylogenetic random effect
 

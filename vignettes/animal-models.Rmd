@@ -460,5 +460,5 @@ The following animal-model routes remain planned:
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
-detailed [structural-dependence tutorial](phylogenetic-spatial.html) when you
+detailed [structural-dependence tutorial](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html) when you
 need the current fitted examples, equations, and broader parity ladder.

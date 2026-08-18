@@ -50,5 +50,7 @@ the detailed dispositions above.
 
 The run is terminal and all three sanitizer raw logs are preserved and successful. The run-level
 conclusion remains failure because `rchk` is red. R-hub supplies same-source diagnostics only; the
-pending exact-byte R-oldrelease result and raw email records remain necessary before any
-`platform-clean` decision.
+three exact-candidate win-builder arms are now filed independently. No package or workflow change
+is warranted to hide this run-level failure: the four `rchk` findings remain in installed TMB
+headers, while changing drmTMB's shipped C++ merely to remove unrelated unused-variable compiler
+warnings would invalidate the frozen candidate. That cleanup is deferred to a post-release lane.

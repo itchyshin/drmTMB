@@ -60,7 +60,7 @@ check_drm(fit)
 summary(fit)
 ```
 
-For model-specific guidance, start with [Model workflow](model-workflow.html),
+For model-specific guidance, start with [Model workflow](https://itchyshin.github.io/drmTMB/articles/model-workflow.html),
 [Capability and limits](capability-and-limits.html), and the relevant family or
 structured-effect tutorial. Those pages state the current TMB-supported
 boundaries and inference evidence.

@@ -12,7 +12,8 @@ PR #1073 was allowed to merge only after its real Ubuntu package-check job passe
 `12a5cc5bcc36ed1b83d969e5147e29bc98aaadf6` was then built from a clean checkout as drmTMB 0.7.0.
 The immutable tarball has SHA-256
 `e9c5556ddf09707f1020099d5d87c6cf419d64f14d00c81ccd4931708d4d485b`, size 10,090,216 bytes,
-and 962 archive entries. It has earned `tarball-clean` only.
+and 962 archive entries. It earned `tarball-clean`, then failed the cumulative
+Gate 7 review and is now retained as a rejected historical candidate.
 
 The candidate was uploaded independently to win-builder R-release, R-devel, and R-oldrelease.
 Every transfer returned FTP `226`; these are client-side chain-of-custody receipts, not server-side
@@ -20,12 +21,15 @@ hash attestations. The R-devel result is now filed at `Status: 1 NOTE`, with its
 `00check.log`, raw `testthat.Rout`, and a maintainer-mailbox screenshot. The screenshot is an
 email-view receipt rather than raw MIME. The R-release 4.6.1 result is also filed at
 `Status: 1 NOTE`, with its result URL, `00check.log`, raw `testthat.Rout`, and the
-maintainer-supplied email transcript. R-oldrelease remains pending.
+maintainer-supplied email transcript. The R-oldrelease 4.5.3 result is now also filed at
+`Status: 1 NOTE`, with its result URL, `00check.log`, raw `testthat.Rout`, and the complete visible
+email preserved in a mailbox screenshot. All three arms report `PASS 11403`.
 
 ## 3. Mathematical Contract
 
-No model, likelihood, parameterization, estimand, formula grammar, or fitted-package behaviour
-changed in this release-evidence slice.
+No model, likelihood, parameterization, estimand, or fitted-package behaviour
+changed. The formula-grammar vignette was corrected to describe already
+callable 0.7.0 binomial links and ordinary correlated-slope cells.
 
 ## 4. Files Touched
 
@@ -34,10 +38,18 @@ The candidate evidence directory under
 tarball inventory, URL adjudication, upload receipts, raw CI logs, and a machine-readable evidence
 manifest. The predecessor directory
 `docs/dev-log/release/0.7.0-cran-gate/candidate-julia-skip-2/` now also contains the newly recovered
-R-release result packet, raw R-oldrelease test output, and mailbox-thread screenshot. This report
-is the only other file changed.
+R-release result packet, raw R-oldrelease test output, and mailbox-thread screenshot.
 
-The release ledger, `cran-comments.md`, PR #1033, and `_julia_skip2_artifacts/` were not changed.
+The rejected-candidate release ledger and Gate 7 panel report were added.
+The Gate 7 repair aligns `DESCRIPTION`, `NEWS.md`, `README.md`,
+`_pkgdown.yml`, `inst/COPYRIGHTS`, the introductory/capability/formula
+vignettes, and their cross-links. Six heavy reader pages moved under
+`vignettes/articles/` as development articles that pkgdown renders but `R CMD
+build` does not compile or install. The unverified cheatsheet PNG was removed
+from the current tree (and remains recoverable from Git history), and
+`tests/testthat/test-release-identity.R` now guards the corrected release
+contract.
+`cran-comments.md`, PR #1033, and `_julia_skip2_artifacts/` were not changed.
 `docs/dev-log/check-log.md` was also left unchanged because file-level lane preflight found active
 foreign-ref work on that shared path; this report supplies the repo-visible record without creating
 a conflict.
@@ -71,6 +83,9 @@ a conflict.
 - The current-candidate R-release 4.6.1 Ligges result completed at `Status: 1 NOTE`; raw test
   output reports `FAIL 0 · WARN 53 · SKIP 143 · PASS 11403`. Its expected new-submission NOTE,
   platform details, timings, result index, and maintainer-supplied email transcript are preserved.
+- The current-candidate R-oldrelease 4.5.3 Ligges result completed at `Status: 1 NOTE`; raw test
+  output reports `FAIL 0 · WARN 53 · SKIP 143 · PASS 11403`. Its expected new-submission NOTE,
+  platform details, timings, result index, and complete visible email screenshot are preserved.
 - The predecessor R-release 4.6.1 result at `qOBUstEvxol1` completed at `Status: 1 NOTE`; its raw
   test output reports `FAIL 0 · WARN 53 · SKIP 143 · PASS 11379`. The predecessor R-oldrelease
   raw test output independently reports the same `PASS 11379` signature. These are predecessor
@@ -78,12 +93,41 @@ a conflict.
 - The archived raw GitHub job logs contain no obvious GitHub token pattern.
 - The manifest has 11 fields on every row, every referenced evidence file rehashes to its recorded
   SHA-256, and the immutable tarball rehashes to the frozen digest and size.
+- A final repaired-tree probe built successfully at 4,367,966 bytes with
+  SHA-256 `e93538606b5b54232d4fcbf0dadb95b87917152754bde88e028401fde346dfd1`;
+  it contains 945 archive entries and excludes the six development articles
+  from the installed vignette set. An earlier repaired-source probe's exact
+  `--as-cran --run-donttest --no-manual` check completed with 0 errors, 0
+  warnings, and the expected new-submission NOTE. Installed documentation fell
+  from 11.6 MB to 4.7 MB. This is pre-merge repair evidence, not the next
+  immutable release candidate.
+- A fresh full `pkgdown::build_articles()` rendered the six development
+  articles and the standard vignette set successfully. Reader inspection found
+  the 0.7.0 banner and corrected formula boundaries in the rendered HTML, and
+  `pkgdown::check_pkgdown()` passed afterward.
+- A final exact-artifact `--as-cran` rerun installed the package, passed code,
+  documentation, examples, and the complete test suite (`FAIL 0 · WARN 52 ·
+  SKIP 145 · PASS 11403`). It exceeded its declared seven-minute ceiling while
+  re-building vignettes, so it was deliberately terminated and is not recorded
+  as a terminal clean check. The earlier exact repaired-source probe remains the
+  terminal 0-error/0-warning/1-note local receipt; CI is the next gate for the
+  final source layout.
+- The release-identity guard passed 10 expectations. A CRAN-mode focused run
+  confirmed the existing release filter; a misleading source-mode slow-test
+  probe was stopped after exceeding its 6-minute estimate and did not justify
+  additional test suppression.
 
 ## 6. Tests of the Tests
 
-No tests changed. The exact-byte CRAN lane and the larger `NOT_CRAN=true` lane exercised the same
-frozen artifact under complementary skip policies; the 3-OS workflow independently rebuilt and
-checked the same package source.
+The new release-identity regression test deliberately reads the independent
+DESCRIPTION, README, NEWS, pkgdown, vignette, and development-article surfaces.
+It passed 10 expectations on the repaired source tree, including the negative
+guard that the unverified PNG is absent. In the installed-package check its two
+source-only tests skip explicitly, while the rest of the package suite passes.
+The historical exact-byte CRAN lane and the
+larger `NOT_CRAN=true` lane exercised the rejected artifact under complementary
+skip policies; the 3-OS workflow independently rebuilt and checked that older
+package source.
 
 ## 8. Consistency Audit
 
@@ -93,8 +137,11 @@ same-source versus same-bytes, upload versus result, and `tarball-clean` versus 
 report use those terms consistently. The earlier `5153ae7e…` results remain predecessor and
 Julia-hard-stop evidence only.
 
-No source capability or public documentation changed, so README, NEWS, formula grammar, roadmap,
-known-limitations, and pkgdown navigation updates are not applicable.
+The initial evidence slice changed no source capability or public
+documentation. Gate 7 then found shipped release-identity and formula-guide
+contradictions, so a separate source-repair slice now aligns README, NEWS,
+DESCRIPTION, the introductory vignette, formula grammar, capability guidance,
+and pkgdown navigation before a replacement freeze.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -148,6 +195,13 @@ mailbox screenshot, timings, and hashes are now filed. The screenshot is still a
 receipt rather than raw MIME. The still-live predecessor R-oldrelease result page was also revisited
 to preserve its missing raw test output; it independently reports the same `PASS 11379` signature.
 
+The maintainer then expanded the 09:06 message. It identified the current-candidate R-oldrelease
+result at `EEeKbEEvb3o8`; the downloaded raw output reports `PASS 11403`, decisively separating it
+from the predecessor (`PASS 11379`). The maintainer could not recover the predecessor R-devel
+message and directed the release lane to move forward. That missing message is therefore recorded
+as unavailable, non-gating historical evidence: it cannot certify the current candidate and is
+not required for the current artifact's release ladder.
+
 ## 11. Team Learning
 
 This candidate uses one TSV manifest that joins its source commit, SHA-256, byte size, upload
@@ -157,12 +211,14 @@ weaker than server attestation.
 
 ## 10. Known Residuals
 
-The candidate remains at `tarball-clean`. It is not `platform-clean`, CRAN-ready, or submission
-authorized. The win-builder R-oldrelease result packet is absent, and the filed R-release and
-R-devel results still lack their raw MIME emails. For predecessor `5153ae7e…`, R-release is now
-filed from a mailbox screenshot and expiring result files, but its raw MIME and the entire R-devel
-result packet remain absent. Fresh Grace, Rose, and Pat review has not run because the exact-byte
-external evidence set is incomplete.
+The candidate remains a rejected historical `tarball-clean` artifact. The
+executable validator accepted a provisional `platform-clean` ledger, but fresh
+Grace, Rose, and Pat review returned three NOT READY votes; Rose identified
+semantic defects that the slot-presence validator did not catch. The ledger is
+therefore conservatively downgraded and renamed with `e9c5556d-rejected`.
+All three Windows result packets remain useful evidence for these bytes only.
+Raw MIME for the supplied email views remains provenance debt rather than a
+platform gate.
 
 No `submit_cran()` call was made, and no submission is authorized for 2026-08-19.
 
@@ -180,10 +236,8 @@ commit `12a5cc5bc…` and the explicitly named candidate bytes are in scope.
 
 ## 13. Next Actions
 
-1. Expand or export the visible 09:06 message first because it may be the current R-oldrelease arm;
-   archive that result without inferring its platform. Also preserve the raw MIME current-candidate
-   R-release and R-devel messages and the predecessor R-devel result when available.
-2. Only after all exact-byte results exist, run the fail-closed release gate and repoint the ledger
-   if the claimed rung passes.
-3. Run fresh Grace, Rose, and Pat review, then return the evidence packet to Shinichi for a separate
-   submission decision.
+1. Land the Gate 7 source repair through CI and merge it to `main`.
+2. Build a new immutable candidate from that clean merged commit and rerun the
+   complete exact-byte, rendered-site, 3-OS, R-hub, and win-builder ladder.
+3. Run fresh Grace, Rose, and Pat review, then return the replacement evidence
+   packet to Shinichi for a separate submission decision.

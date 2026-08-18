@@ -8,7 +8,8 @@ Authors@R: c(
   )
 Description: Fast distributional regression models for univariate and
     bivariate responses using Template Model Builder. The current
-    implementation focuses on Gaussian and Student-t location-scale models,
+    implementation focuses on Gaussian, Student-t, and skew-normal
+    location-scale models,
     known sampling covariance, phylogenetic location effects, random-effect
     scale models, bivariate residual correlation, positive-continuous,
     'Tweedie' semi-continuous, strict-proportion, zero-one bounded, and
@@ -16,8 +17,8 @@ Description: Fast distributional regression models for univariate and
     event-probability models, and
     fixed-effect Poisson, negative-binomial, zero-inflated, zero-truncated,
     hurdle count, and ordinal cumulative-logit models.
-    Skewness and additional response-family models are staged for later
-    phases. Every fitted family also exposes a distributional-output and
+    Additional response-family models are staged for later phases. Every
+    fitted family also exposes a distributional-output and
     adequacy layer: randomized quantile-residual worm and QQ plots that
     detect fixed-effect shape and atom misspecification, and
     conditional-quantile, exceedance, and centile outputs with plug-in

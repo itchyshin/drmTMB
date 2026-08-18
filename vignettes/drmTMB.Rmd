@@ -33,7 +33,7 @@ if (!"package:drmTMB" %in% search()) {
 `drmTMB` fits distributional regression models for one or two responses. This
 introduction explains the model components, fits a first model, and shows how
 to interpret it. If you only need to find a function or tutorial, use the
-shorter [Get started function map](function-map-cheatsheet.html).
+shorter [Get started function map](https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.html).
 
 The central workflow is simple: write one formula for each parameter you want
 to estimate, then check that the fitted model matches the symbolic model you had
@@ -53,18 +53,19 @@ variability change with an environmental predictor, after accounting for
 repeated measures from the same site or species? In `drmTMB`, that question is
 written as one formula for the mean and one formula for the residual scale.
 
-## Install the preview
+## Install the pre-CRAN release
 
-`drmTMB` is not on CRAN yet. Install the current development version (the
-`0.6.0` line) from GitHub with `pak`:
+`drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
+documentation was built, it had not yet been accepted by CRAN. Install the
+current development source from GitHub with `pak`:
 
 ```r
 install.packages("pak")
 pak::pak("itchyshin/drmTMB")
 ```
 
-The earlier `v0.5.0` tag predates the current line and is not a supported
-install target; a `0.6.0` release will be tagged when it reaches CRAN.
+After CRAN accepts the package, install the released version with
+`install.packages("drmTMB")`.
 
 You need R 4.1.0 or newer and a working compiler toolchain because TMB models
 are compiled during installation. If installation fails while compiling C++,
@@ -141,8 +142,8 @@ diagnostic questions to the matching guide.
 | --- | --- | --- |
 | Can I fit this model, report its point estimate or interval, and what should I try if I cannot? | [Can I fit and report this model?](capability-and-limits.html) | reporting scope and named fallback |
 | Which family fits my response — continuous, count, proportion, or robust? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
-| I know my task but not which function or shortest workflow to use. | [Function map and cheat sheet](function-map-cheatsheet.html) | task-to-function route and minimal workflow |
-| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
+| I know my task but not which function or shortest workflow to use. | [Function map and cheat sheet](https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.html) | task-to-function route and minimal workflow |
+| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
 | How do I profile a random-effect SD and know when not to trust the interval? | [First-week intervals: fit, profile, and boundary](first-week-intervals.html) | `profile_targets()`, `confint(method = "profile")`, `profile.boundary` |
 | Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
 | Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd1(group, level = "phylogenetic")`, `sd2(group, level = "phylogenetic")` |
@@ -155,7 +156,7 @@ diagnostic questions to the matching guide.
 | Do effect sizes have known sampling variances or covariance? (a specialist route, not a family choice for raw response data) | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` (implemented/tested; tier unregistered, with no interval or coverage claim) |
 | Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
 | I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
-| Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
+| Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](https://itchyshin.github.io/drmTMB/articles/distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
 | The optimizer did not converge cleanly — what do I check? | [Errors, warnings, and convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
 | My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE`, `se_group_sd` |
 
@@ -206,5 +207,5 @@ were the same estimand.
 Use [Can I fit and report this model?](capability-and-limits.html) for the
 current reporting boundary and named fallback; use the [model map](model-map.html)
 when you need syntax detail. Once this first fit is checked, continue with
-[Checking and using fitted models](model-workflow.html) or choose a scientific
+[Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) or choose a scientific
 question from the Learning path table above.

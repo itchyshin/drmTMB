@@ -20,14 +20,16 @@ confirmed receipt of a file with the expected name and byte transfer. This is a 
 of custody**, not server-side hash attestation: win-builder does not report a SHA-256 for the
 received file.
 
-No platform result is implied by an upload receipt. The R-release and R-devel results were
-subsequently filed at https://win-builder.r-project.org/hL8Z46XFZfTk and
-https://win-builder.r-project.org/MunJ44aZB7BQ, respectively. Each reports `Status: 1 NOTE`, and
-each has a preserved `00check.log` and raw `testthat.Rout`; see
-`winbuilder-R-release-result.md` and `winbuilder-R-devel-result.md`. The user-pasted R-release
-transcript and R-devel mailbox screenshot are preserved as email-view evidence, while both raw
-MIME messages remain owed. R-oldrelease remains independently pending until its Ligges message,
-result URL, `00check.log`, and raw test output are archived. `platform-clean` is not claimed.
+No platform result is implied by an upload receipt. All three results are now
+filed independently: R-release at https://win-builder.r-project.org/hL8Z46XFZfTk,
+R-devel at https://win-builder.r-project.org/MunJ44aZB7BQ, and R-oldrelease at
+https://win-builder.r-project.org/EEeKbEEvb3o8. Each reports `Status: 1 NOTE`,
+`PASS 11403`, and has a preserved `00check.log` plus raw `testthat.Rout`; see the
+three `winbuilder-R-*-result.md` receipts. The supplied transcript and mailbox
+screenshots preserve the visible messages as email-view evidence. Raw MIME is
+useful provenance debt but is not required once the result URL and complete raw
+service files are archived. `platform-clean` is not claimed until the executable
+ledger passes.
 
 The upload logs preserve the complete FTP exchanges, including the server's `226` response and
 post-upload directory listing.

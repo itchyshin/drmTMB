@@ -64,7 +64,7 @@ were filed.
 | --- | --- | --- | --- |
 | R-release 4.6.1 | [`qOBUstEvxol1`](https://win-builder.r-project.org/qOBUstEvxol1), 1 NOTE | `FAIL 0 · WARN 53 · SKIP 143 · PASS 11379` | result page, `00check.log`, `testthat.Rout`, and mailbox-thread screenshot filed; raw MIME pending |
 | R-oldrelease 4.5.3 | [`T2LOH4zOG6WT`](https://win-builder.r-project.org/T2LOH4zOG6WT), 1 NOTE | `FAIL 0 · WARN 53 · SKIP 143 · PASS 11379` | result page, `00check.log`, `testthat.Rout`, and email transcript filed |
-| R-devel | pending | pending | result email, URL, `00check.log`, and raw test output still owed |
+| R-devel | unavailable; non-gating | not recovered | historical predecessor result could not be found; it cannot certify the current candidate and is no longer awaited |
 
 Both filed arms have the predecessor `PASS 11379` signature. Their association
 with `5153ae7e…` is the client-side chain of custody above, not server-side hash
