@@ -23,12 +23,14 @@ library(drmTMB)
 # "biv-gaussian" also matches test-missing-response-biv-gaussian.R -- neither is
 # intended, and both must keep running on the CRAN lane.
 #
-# `^julia` excludes every test-julia-*.R file. Ligges win-builder R-release
-# and R-oldrelease (2026-08-16) hung inside JuliaCall::julia_setup() for
-# 105-149 minutes. JuliaCall is Suggests, so skip_if_not_installed() does
-# not skip when those hosts have Julia 1.11.3. Cheap R-only tests in
-# test-xfam-bridge.R stay on the CRAN lane; live JuliaCall tests there use
-# drm_skip_live_julia(). The full suite still runs when NOT_CRAN=true.
+# `^julia` excludes every test-julia-*.R file. That alone is NOT enough: CRAN-lane
+# files such as test-binomial-response.R still call engine = "julia" inside
+# expect_error(), and Workflow G now admits fixed-effect binomial into the Julia
+# bridge, so the call reaches JuliaCall::julia_setup() before any rejection.
+# Ligges win-builder (2026-08-16/17) hung there for ~10448s even after #1061.
+# Defense in depth: (1) this filter, (2) drm_skip_live_julia() in live tests,
+# (3) drm_julia_setup() hard-blocks the CRAN lane unless DRMTMB_JULIA_TESTS=true.
+# The full suite still runs when NOT_CRAN=true.
 not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
 if (not_cran) {
   test_check("drmTMB")

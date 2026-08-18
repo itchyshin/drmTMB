@@ -231,13 +231,12 @@ test_that("binomial rejects unsupported response encodings and routes", {
     drmTMB(bf(mvbind(y, y) ~ x), family = stats::binomial(), data = dat),
     "mvbind"
   )
-  expect_error(
-    drmTMB(
-      bf(y ~ x),
-      family = stats::binomial(),
-      data = dat,
-      engine = "julia"
-    ),
-    "Julia|julia|bridge|phylo|Gaussian"
+  # Workflow G admits fixed-effect binomial on the Julia bridge. Do NOT call
+  # drmTMB(..., engine = "julia") on the CRAN lane: that reaches
+  # JuliaCall::julia_setup() and hung Ligges win-builder for ~10448s after #1061.
+  # Assert the pure-R admission tag instead; live round-trips live under test-julia-*.
+  expect_identical(
+    drmTMB:::drm_julia_family_tag("binomial", has_phylo = FALSE),
+    "binomial"
   )
 })

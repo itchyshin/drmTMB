@@ -1484,7 +1484,26 @@ drm_julia_restore_value_order <- function(x, restore) {
   x
 }
 
+drm_julia_cran_lane_blocked <- function(is_interactive = interactive()) {
+  # Shared CRAN-lane predicate for live Julia. Matches tests/testthat.R
+  # `not_cran` and only blocks non-interactive checks (R CMD check / win-builder).
+  !identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true") &&
+    !isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false"))) &&
+    !isTRUE(is_interactive)
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
+  # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
+  # not enough to justify entering julia_setup(): Ligges R-release hung for
+  # ~10448s after #1061 because CRAN-lane expect_error(engine = "julia") still
+  # reached this function (Workflow G admits fixed-effect binomial). Opt in with
+  # DRMTMB_JULIA_TESTS=true; repository CI sets NOT_CRAN=true.
+  if (drm_julia_cran_lane_blocked()) {
+    cli::cli_abort(c(
+      "Live Julia setup is disabled on the CRAN check lane.",
+      i = "Set {.envvar NOT_CRAN=true} for the full suite, or {.envvar DRMTMB_JULIA_TESTS=true} to opt in."
+    ))
+  }
   normalized_path <- if (nzchar(path)) {
     normalizePath(path, winslash = "/", mustWork = TRUE)
   } else {

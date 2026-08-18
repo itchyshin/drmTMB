@@ -13,6 +13,15 @@
   Quiesce still holds: this note is side-branch only and is not in the frozen
   0.7.0 tarball.
 
+* **CRAN / win-builder Julia hang (post-#1061).** The `^julia` invert filter
+  correctly excluded `test-julia-*.R`, but `test-binomial-response.R` still
+  called `drmTMB(..., engine = "julia")` inside `expect_error()`. Workflow G
+  admits fixed-effect binomial into the Julia bridge, so that call reached
+  `JuliaCall::julia_setup()` and hung Ligges R-release for ~10448s. `drm_julia_setup()`
+  now hard-blocks the non-interactive CRAN lane unless `DRMTMB_JULIA_TESTS=true`,
+  `drm_skip_live_julia()` matches the same predicate, and the obsolete
+  binomial `expect_error(engine = "julia")` is replaced with a pure-R tag check.
+
 ## Binomial ordinary correlated slope
 
 * Complete-data binomial logit `cbind(success, failure) ~ x + (1 + x | id)` now

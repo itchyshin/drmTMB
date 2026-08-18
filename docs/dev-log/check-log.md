@@ -1,3 +1,23 @@
+# 2026-08-18 — win-builder Julia hang root cause + CRAN-lane hard stop
+
+**Lane:** `cursor/070-julia-skip-winbuilder-fix` (from `origin/main` @ `02b8fbe72`).
+
+**Root cause:** #1061's `^julia` filter excluded `test-julia-*.R`, but
+`test-binomial-response.R` (CRAN lane) still ran `expect_error(drmTMB(..., engine = "julia"))`.
+Workflow G admits fixed-effect `binomial` into the Julia bridge, so the call
+entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
+`8764b2fe…`, ~10448s) at "Loading setup script for JuliaCall...".
+
+**Fix:** `drm_julia_cran_lane_blocked()` + abort in `drm_julia_setup()`; harden
+`drm_skip_live_julia()`; replace obsolete binomial `expect_error` with pure-R
+`drm_julia_family_tag("binomial")` assertion; expand `test-cran-lane-filter.R`.
+
+**Checks:** focused `cran-lane-filter` + `binomial-response` with `NOT_CRAN=false`.
+
+**Non-claims:** no `submit_cran`; no Ligges email; no #1033; `platform-clean` not advanced.
+
+---
+
 # Check Log
 
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
