@@ -3,6 +3,16 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
+> **▶ Latest — start here (2026-08-18, → CODEX; Ligges wait/file lane only).**
+> #1072 merged as `6152aaef1`; exact julia-skip-2 bytes `5153ae7e…`
+> (10,098,642 B) have a filed R-oldrelease 1-NOTE result
+> (`T2LOH4zOG6WT`), while repaired-byte R-release is still waiting.
+> `platform-clean` is not claimed; 19 August is not a submit day; no
+> `submit_cran()` and no #1033. This is a multi-lane project: read the
+> [`coordination-board.md` Active Lane Split](docs/dev-log/coordination-board.md)
+> so sibling lanes are not orphaned. Codex lane START HERE:
+> [`docs/dev-log/handover/2026-08-18-codex-handover.md`](docs/dev-log/handover/2026-08-18-codex-handover.md).
+>
 > **▶ Latest — start here (2026-08-16, → CURSOR; the authoring Claude session CLOSED — platform
 > move, TWO live lanes, read the SPLIT, not one doc).**
 > Shinichi moved fully to Cursor. The Claude session's automation (win-builder polling + the
