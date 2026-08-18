@@ -39,6 +39,8 @@ a conflict.
 
 ## 5. Checks Run
 
+- A fresh `git fetch origin main` on 2026-08-18 confirmed live `main` remains exactly
+  `12a5cc5bcc36ed1b83d969e5147e29bc98aaadf6`; no later source or package-byte drift exists.
 - `devtools::document()` produced no source diff; `R CMD build --no-manual` succeeded from a clean
   checkout.
 - Exact-byte `R CMD check --as-cran --run-donttest --no-manual`, with
@@ -120,7 +122,9 @@ aligned to the hub's exact 12-section contract and the structure check passed on
 The connected Gmail account is `snakagaw@ualberta.ca`, while the Ligges messages are delivered to
 the maintainer Gmail account. A fresh search returned no matching messages. The maintainer then
 supplied a screenshot of the current R-devel message, so it is filed honestly as an email-view
-receipt; the full raw message and its headers were not invented.
+receipt; the full raw message and its headers were not invented. The screenshot also contains a
+collapsed 09:06 message in the same win-builder thread. Because its body, R arm, URL, and status are
+hidden, it is recorded as an unclassified mailbox lead rather than promoted to evidence.
 
 ## 11. Team Learning
 
@@ -154,7 +158,8 @@ commit `12a5cc5bc…` and the explicitly named candidate bytes are in scope.
 ## 13. Next Actions
 
 1. Provide the maintainer Gmail messages, then archive the two predecessor results, current
-   R-release and R-oldrelease results, and the raw MIME R-devel message arm by arm.
+   R-release and R-oldrelease results, and the raw MIME R-devel message arm by arm. Expand or export
+   the visible 09:06 message first because it may be one of the two current missing arms.
 2. Only after all exact-byte results exist, run the fail-closed release gate and repoint the ledger
    if the claimed rung passes.
 3. Run fresh Grace, Rose, and Pat review, then return the evidence packet to Shinichi for a separate

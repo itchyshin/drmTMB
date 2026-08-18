@@ -29,7 +29,9 @@ does not report the received archive's digest.
 
 - `winbuilder-R-devel-email-screenshot.png`: maintainer-mailbox screenshot showing
   the sender, result URL, timings, status, and R-devel version. It is an email-view
-  receipt, not a raw MIME message.
+  receipt, not a raw MIME message. The same screenshot shows a second win-builder
+  message in the thread at 09:06, but that message is collapsed: its R arm, result
+  URL, status, and body are not visible, so it is not counted as result evidence.
 - `winbuilder-R-devel-result-index.html`: downloaded Ligges result-page index.
 - `winbuilder-R-devel-00check.log`: downloaded complete package-check log.
 - `winbuilder-R-devel-testthat.Rout`: downloaded raw testthat output.
@@ -37,4 +39,5 @@ does not report the received archive's digest.
 The strict raw-email requirement remains open until the maintainer supplies the
 message as `.eml` or equivalent complete headers and body. This R-devel result
 does not establish `platform-clean`; R-release and R-oldrelease exact-candidate
-results remain independently owed.
+results remain independently owed. Expanding or exporting the visible 09:06
+message is the first mailbox action because it may resolve one of those arms.
