@@ -5,6 +5,11 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-08-18 — #1072 MERGED; Codex owns the CRAN Ligges wait lane only.**
+  R-oldrelease `T2LOH4zOG6WT` is filed at 1 NOTE for exact julia-skip-2 bytes
+  `5153ae7e…`; R-release is still waiting, `platform-clean` is not claimed,
+  19 August is not a submit day, and #1033 stays protected. Start here:
+  [`handover/2026-08-18-codex-handover.md`](handover/2026-08-18-codex-handover.md).
 - **⚡ 2026-08-16 — PLATFORM MOVE: the authoring Claude session CLOSED; Shinichi is moving fully
   to CURSOR. Its automation loop (win-builder polling + the platform-clean cascade) died with it —
   the cascade is now a MANUAL checklist.** Two live lanes, each with its own Cursor handover;
