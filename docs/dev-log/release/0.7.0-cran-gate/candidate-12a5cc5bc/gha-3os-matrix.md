@@ -24,6 +24,6 @@ The three job logs are preserved beside this receipt. Their SHA-256 digests are:
 - macOS: `734379ad5b78c1db39347b0d7c582ac8016aa4b234f11fab3e3a7cb7f5fe51c9`.
 
 This run supplies a fresh, successful three-platform source check. It does not establish
-`platform-clean`: the exact-byte win-builder R-release and R-oldrelease results remain pending,
-the filed R-devel result still lacks its raw MIME email, and the Ubuntu temporary-directory NOTE
-is retained rather than erased by the successful job conclusion.
+`platform-clean`: the exact-byte win-builder R-oldrelease result remains pending, the filed
+R-release and R-devel results still lack their raw MIME emails, and the Ubuntu temporary-directory
+NOTE is retained rather than erased by the successful job conclusion.

@@ -18,7 +18,9 @@ The candidate was uploaded independently to win-builder R-release, R-devel, and 
 Every transfer returned FTP `226`; these are client-side chain-of-custody receipts, not server-side
 hash attestations. The R-devel result is now filed at `Status: 1 NOTE`, with its result URL,
 `00check.log`, raw `testthat.Rout`, and a maintainer-mailbox screenshot. The screenshot is an
-email-view receipt rather than raw MIME; R-release and R-oldrelease results remain pending.
+email-view receipt rather than raw MIME. The R-release 4.6.1 result is also filed at
+`Status: 1 NOTE`, with its result URL, `00check.log`, raw `testthat.Rout`, and the
+maintainer-supplied email transcript. R-oldrelease remains pending.
 
 ## 3. Mathematical Contract
 
@@ -63,6 +65,9 @@ a conflict.
 - The current-candidate R-devel Ligges result completed at `Status: 1 NOTE`; raw test output reports
   `FAIL 0 · WARN 99 · SKIP 143 · PASS 11403`. Its expected new-submission NOTE, platform details,
   timings, result index, and mailbox screenshot are preserved.
+- The current-candidate R-release 4.6.1 Ligges result completed at `Status: 1 NOTE`; raw test
+  output reports `FAIL 0 · WARN 53 · SKIP 143 · PASS 11403`. Its expected new-submission NOTE,
+  platform details, timings, result index, and maintainer-supplied email transcript are preserved.
 - The archived raw GitHub job logs contain no obvious GitHub token pattern.
 - The manifest has 11 fields on every row, every referenced evidence file rehashes to its recorded
   SHA-256, and the immutable tarball rehashes to the frozen digest and size.
@@ -124,7 +129,9 @@ the maintainer Gmail account. A fresh search returned no matching messages. The 
 supplied a screenshot of the current R-devel message, so it is filed honestly as an email-view
 receipt; the full raw message and its headers were not invented. The screenshot also contains a
 collapsed 09:06 message in the same win-builder thread. Because its body, R arm, URL, and status are
-hidden, it is recorded as an unclassified mailbox lead rather than promoted to evidence.
+hidden, it is recorded as an unclassified mailbox lead rather than promoted to evidence. The
+maintainer later pasted the current R-release message received at 11:56; its visible body is
+preserved as a transcript, while the raw MIME message and canonical headers remain absent.
 
 ## 11. Team Learning
 
@@ -136,8 +143,8 @@ weaker than server attestation.
 ## 10. Known Residuals
 
 The candidate remains at `tarball-clean`. It is not `platform-clean`, CRAN-ready, or submission
-authorized. The win-builder R-release and R-oldrelease result packets are absent, and the filed
-R-devel result still lacks the raw MIME email. The two still-owed predecessor emails for
+authorized. The win-builder R-oldrelease result packet is absent, and the filed R-release and
+R-devel results still lack their raw MIME emails. The two still-owed predecessor emails for
 `5153ae7e…` are also absent. Fresh Grace, Rose, and Pat review has not run because the exact-byte
 external evidence set is incomplete.
 
@@ -157,9 +164,9 @@ commit `12a5cc5bc…` and the explicitly named candidate bytes are in scope.
 
 ## 13. Next Actions
 
-1. Provide the maintainer Gmail messages, then archive the two predecessor results, current
-   R-release and R-oldrelease results, and the raw MIME R-devel message arm by arm. Expand or export
-   the visible 09:06 message first because it may be one of the two current missing arms.
+1. Expand or export the visible 09:06 message first because it may be the current R-oldrelease arm;
+   archive that result without inferring its platform. Also preserve the raw MIME R-release and
+   R-devel messages and the two predecessor results when available.
 2. Only after all exact-byte results exist, run the fail-closed release gate and repoint the ledger
    if the claimed rung passes.
 3. Run fresh Grace, Rose, and Pat review, then return the evidence packet to Shinichi for a separate

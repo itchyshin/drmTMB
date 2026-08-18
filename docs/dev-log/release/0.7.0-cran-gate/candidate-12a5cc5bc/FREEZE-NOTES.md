@@ -71,13 +71,16 @@ blocking, not missing DOI registrations.
   failure is preserved rather than called a pass. See `rhub-sanitizer-adjudication.md`.
 - The exact-candidate R-devel Ligges result is filed at `Status: 1 NOTE`, with `00check.log` and raw
   test output. See `winbuilder-R-devel-result.md`. The raw MIME email remains owed.
+- The exact-candidate R-release 4.6.1 Ligges result is filed at `Status: 1 NOTE`, with
+  `00check.log`, raw test output, and the maintainer-supplied email transcript. See
+  `winbuilder-R-release-result.md`. The raw MIME email remains owed.
 
 ## Remaining exact-source ladder
 
 Before any ledger repointing or release claim, these exact-source or exact-byte gates remain:
 
-1. win-builder R-release and R-oldrelease results for this exact tarball, plus the raw MIME copy of
-   the filed R-devel result email;
+1. the win-builder R-oldrelease result for this exact tarball, plus raw MIME copies of the filed
+   R-release and R-devel result emails;
 2. fresh Grace, Rose, and Pat review;
 3. fail-closed release-gate validation at the claimed rung.
 

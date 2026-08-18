@@ -50,4 +50,5 @@ the detailed dispositions above.
 
 The run is terminal and all three sanitizer raw logs are preserved and successful. The run-level
 conclusion remains failure because `rchk` is red. R-hub supplies same-source diagnostics only; the
-pending exact-byte win-builder results remain necessary before any `platform-clean` decision.
+pending exact-byte R-oldrelease result and raw email records remain necessary before any
+`platform-clean` decision.
