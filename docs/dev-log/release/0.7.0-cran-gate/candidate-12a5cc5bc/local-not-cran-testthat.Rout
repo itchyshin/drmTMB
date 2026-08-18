@@ -1,0 +1,2107 @@
+
+R version 4.6.0 (2026-04-24) -- "Because it was There"
+Copyright (C) 2026 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin23
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(testthat)
+> library(drmTMB)
+
+Attaching package: 'drmTMB'
+
+The following object is masked from 'package:base':
+
+    beta
+
+> 
+> # Phase 18 is the package's exhaustive simulation/reporting harness, and the
+> # structured-conversion contract is a generated 22,000-assertion audit. Keep
+> # both in repository CI, but do not rerun them during routine CRAN checks.
+> #
+> # The second group is a CRAN check-time budget. Measured on 2026-08-10 (receipts
+> # in docs/dev-log/release/0.7.0-cran-gate/test-timings.csv): the CRAN lane ran
+> # 1160 s locally and 29-30 min of `checking tests` on win-builder, far above
+> # CRAN's ~10-minute incoming guidance. Seventeen files carried 747 s of that
+> # 1160 s; excluding them leaves 413 s locally (~6.9 min), projecting to ~10 min
+> # on Windows at the measured 1.50x local->win-builder factor.
+> #
+> # These are statistical-validation suites -- bivariate association sandwiches,
+> # the G4/G5 missing-response foundation, zero-one-beta, bivariate Gaussian, and
+> # the profile-target matrix -- not "does the package install and work" tests.
+> # They still run in full in repository CI, where NOT_CRAN=true. Nothing is
+> # deleted and no test is weakened; this only changes which lane runs them.
+> #
+> # The patterns are ANCHORED on purpose. An unanchored "zero-one-beta" also
+> # matches test-missing-predictor-zero-one-beta.R, and an unanchored
+> # "biv-gaussian" also matches test-missing-response-biv-gaussian.R -- neither is
+> # intended, and both must keep running on the CRAN lane.
+> #
+> # `^julia` excludes every test-julia-*.R file. That alone is NOT enough: CRAN-lane
+> # files such as test-binomial-response.R still call engine = "julia" inside
+> # expect_error(), and Workflow G now admits fixed-effect binomial into the Julia
+> # bridge, so the call reaches JuliaCall::julia_setup() before any rejection.
+> # Ligges win-builder (2026-08-16/17) hung there for ~10448s even after #1061.
+> # Defense in depth: (1) this filter, (2) drm_skip_live_julia() in live tests,
+> # (3) drm_julia_setup() hard-blocks the CRAN lane unless DRMTMB_JULIA_TESTS=true.
+> # The full suite still runs when NOT_CRAN=true.
+> not_cran <- isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
+> if (not_cran) {
++   test_check("drmTMB")
++ } else {
++   test_check(
++     "drmTMB",
++     filter = paste(
++       "phase18|structured-re-conversion-contracts",
++       "^associate-pairs",
++       "^missing-response-g4g5-foundation$",
++       "^zero-one-beta$",
++       "^biv-gaussian$",
++       "^profile-targets$",
++       "^julia",
++       sep = "|"
++     ),
++     invert = TRUE
++   )
++ }
+<summary.drmTMB>
+estimator: ML
+Distributional, random-effect, scale, and correlation parameters:
+logLik: 184.2
+convergence: 0
+pin verification: bit-identical repeats confirmed; inner_grad_norm=3.822e-15
+gradient-conformance: gaussian mu+sigma typical                               stat=4.396e-10 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: gaussian mu+sigma extreme                               stat=2.982e-12 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: poisson mu typical                                      stat=1.057e-09 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: poisson mu extreme                                      stat=1.882e-11 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: binomial mu typical                                     stat=4.252e-08 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: binomial mu boundary(|eta| large)                       stat=3.090e-10 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: Gamma mu+sigma typical                                  stat=9.472e-10 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: Gamma mu+sigma extreme                                  stat=7.612e-12 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: beta mu+sigma typical                                   stat=4.305e-09 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: beta mu+sigma boundary(mu->0/1)                         stat=5.506e-10 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: biv_lognormal typical                                   stat=4.340e-08 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: biv_lognormal rho12-boundary                            stat=8.827e-10 tol=1e-06 inner_grad_norm=NA
+gradient-conformance: mu random-intercept typical                             stat=2.669e-10 tol=1e-04 inner_grad_norm=2.431e-15
+gradient-conformance: mu random-intercept extreme                             stat=3.551e-09 tol=1e-04 inner_grad_norm=2.386e-15
+gradient-conformance: mu random-intercept boundary(sd->0)                     stat=1.137e-08 tol=1e-04 inner_grad_norm=2.618e-18
+gradient-conformance: relmat mu typical                                       stat=3.200e-10 tol=1e-04 inner_grad_norm=7.505e-15
+gradient-conformance: relmat mu extreme                                       stat=1.094e-09 tol=1e-04 inner_grad_norm=4.463e-15
+gradient-conformance: spatial mu (poisson) typical                            stat=1.587e-09 tol=1e-04 inner_grad_norm=1.788e-13
+gradient-conformance: spatial mu (poisson) extreme                            stat=9.724e-10 tol=1e-04 inner_grad_norm=6.825e-13
+gradient-conformance: sigma random-intercept typical                          stat=7.209e-09 tol=1e-04 inner_grad_norm=1.948e-15
+gradient-conformance: sigma random-intercept extreme                          stat=1.075e-08 tol=1e-04 inner_grad_norm=2.641e-15
+gradient-conformance: phylo mu + sd() regression typical                      stat=6.849e-09 tol=1e-04 inner_grad_norm=2.637e-13
+gradient-conformance: phylo mu + sd() regression extreme                      stat=2.783e-09 tol=1e-04 inner_grad_norm=8.685e-13
+gradient-conformance: phylo sigma (residual log-SD) typical                   stat=8.700e-09 tol=1e-04 inner_grad_norm=6.674e-14
+gradient-conformance: phylo sigma (residual log-SD) extreme                   stat=4.329e-09 tol=1e-04 inner_grad_norm=3.015e-13
+second-step-size: Richardson stat=2.669e-10; simple(eps=1e-5) stat=1.158e-05
+<drmTMB Julia-engine fit summary>
+observations: 30
+logLik: -123.4
+convergence: converged
+uncertainty: ok
+
+Fixed effects (link scale):
+  dpar        term estimate std.error statistic      p.value   conf.low
+    mu (Intercept)      0.5 0.2000000   2.50000 1.241933e-02  0.1080072
+    mu           x      0.4 0.1000000   4.00000 6.334248e-05  0.2040036
+ sigma (Intercept)     -0.3 0.1414214  -2.12132 3.389485e-02 -0.5771808
+   conf.high conf.level
+  0.89199280       0.95
+  0.59599640       0.95
+ -0.02281924       0.95
+
+Random effects (SD, response scale):
+ dpar               term       sd
+   mu phylo(1 | species) 2.404163
+<drmTMB Binomial event-probability (logit link) fit>
+observations: 168
+estimator: MSPL
+mu random-effect terms: 2
+standard errors: fixed-effect Wald SEs available via `vcov()` and `summary()`;
+confidence intervals are not implemented for MSPL fits.
+penalized objective: 212.5
+likelihood inference: unavailable for experimental MSPL
+convergence: 0
+
+Quitting from phase18-first-wave-status-report.Rmd:13-76 [setup]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<error/rlang_error>
+Error:
+! Phase 18 artifact status has missing artifacts for: student_shape_grid
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Quitting from phase18-first-wave-summary-report.Rmd:22-454 [setup]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<error/rlang_error>
+Error:
+! Phase 18 artifact status has missing artifacts for: student_shape_grid
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[ FAIL 0 | WARN 70 | SKIP 304 | PASS 21109 ]
+
+══ Skipped tests (304) ═════════════════════════════════════════════════════════
+• Arc 1b-S1 recovery runner requires a source checkout (2):
+  'test-arc1b-spatial-q2-reml-recovery.R:14:3',
+  'test-arc1b-spatial-q2-reml-recovery.R:40:3'
+• Arc 1b-S2R recovery runner requires a source checkout (3):
+  'test-arc1b-s2r-relmat-q2-recovery-runner.R:14:3',
+  'test-arc1b-s2r-relmat-q2-recovery-runner.R:56:3',
+  'test-arc1b-s2r-relmat-q2-recovery-runner.R:112:3'
+• Arc 3a campaign tools require a source checkout (1):
+  'test-positive-continuous-structured-mu.R:51:3'
+• artifact source file not available:
+  docs/dev-log/dashboard/structured-re-gaussian-lowq-mu-intercept-nibi-smoke-results.tsv
+  (1): 'test-structured-re-conversion-contracts.R:21293:3'
+• artifact source file not available:
+  docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/tables/structured-coverage-pilot-rows.csv
+  (1): 'test-structured-re-ademp-scaffold.R:284:3'
+• artifact source file not available:
+  docs/dev-log/simulation-artifacts/2026-06-22-structured-coverage-unblock-pilots/tables/structured-coverage-pilot-summary.csv
+  (1): 'test-structured-re-conversion-contracts.R:64364:3'
+• artifact source file not available:
+  docs/dev-log/simulation-artifacts/2026-06-23-q4-stabilized-preflight/q4-derived-correlation-delta-grid-two-shard-rehearsal
+  (1): 'test-structured-re-conversion-contracts.R:48269:3'
+• artifact source file not available:
+  tools/run-structured-re-gaussian-lowq-mu-intercept-dry-run.R (1):
+  'test-structured-re-conversion-contracts.R:22436:3'
+• artifact source file not available:
+  tools/run-structured-re-gaussian-lowq-sigma-intercept-pregrid.R (1):
+  'test-structured-re-conversion-contracts.R:20689:3'
+• artifact source file not available:
+  tools/run-structured-re-q2-intercept-smoke.R (1):
+  'test-structured-re-conversion-contracts.R:22578:3'
+• artifact source file not available:
+  tools/run-structured-re-q4-location-admission-smoke.R (1):
+  'test-structured-re-conversion-contracts.R:40496:3'
+• B1 dispatch helper unavailable; top-level tools are excluded from the source
+  tarball (1): 'test-b1-breadth-dispatch.R:19:5'
+• built tarball: docs/ excluded by .Rbuildignore, conformance TSV not shipped
+  (4): 'test-estimator-surface-conformance.R:216:3',
+  'test-estimator-surface-conformance.R:263:3',
+  'test-estimator-surface-conformance.R:310:3',
+  'test-estimator-surface-conformance.R:343:3'
+• dashboard source file not available: structured-re-ademp-design.tsv (1):
+  'test-structured-re-conversion-contracts.R:64223:3'
+• dashboard source file not available: structured-re-ayumi-closeout-status.tsv
+  (1): 'test-structured-re-conversion-contracts.R:64717:3'
+• dashboard source file not available:
+  structured-re-count-intercept-cluster-recovery-results.tsv (1):
+  'test-structured-re-conversion-contracts.R:26855:3'
+• dashboard source file not available:
+  structured-re-count-slope-animal-nbinom2-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:25889:3'
+• dashboard source file not available:
+  structured-re-count-slope-animal-poisson-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:25689:3'
+• dashboard source file not available:
+  structured-re-count-slope-cluster-recovery-results.tsv (1):
+  'test-structured-re-conversion-contracts.R:26700:3'
+• dashboard source file not available:
+  structured-re-count-slope-fixture-recovery-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:23859:3'
+• dashboard source file not available:
+  structured-re-count-slope-native-fixture-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:24057:3'
+• dashboard source file not available:
+  structured-re-count-slope-phylo-nbinom2-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:25290:3'
+• dashboard source file not available:
+  structured-re-count-slope-phylo-poisson-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:24868:3'
+• dashboard source file not available:
+  structured-re-count-slope-recovery-dispatch-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:24529:3'
+• dashboard source file not available:
+  structured-re-count-slope-recovery-results.tsv (1):
+  'test-structured-re-conversion-contracts.R:26620:3'
+• dashboard source file not available:
+  structured-re-count-slope-recovery-runner-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:24275:3'
+• dashboard source file not available:
+  structured-re-count-slope-recovery-shard-pack-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:24657:3'
+• dashboard source file not available:
+  structured-re-count-slope-relmat-nbinom2-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:26325:3'
+• dashboard source file not available:
+  structured-re-count-slope-relmat-poisson-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:26098:3'
+• dashboard source file not available:
+  structured-re-count-slope-sigma-one-slope-rejection-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:27082:3'
+• dashboard source file not available:
+  structured-re-count-slope-spatial-nbinom2-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:25480:3'
+• dashboard source file not available:
+  structured-re-count-slope-spatial-poisson-local-micro-shard.tsv (1):
+  'test-structured-re-conversion-contracts.R:25095:3'
+• dashboard source file not available:
+  structured-re-coverage-acceptance-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:64303:3'
+• dashboard source file not available:
+  structured-re-coverage-calibration-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:64238:3'
+• dashboard source file not available: structured-re-finish-100-slices.tsv (1):
+  'test-structured-re-conversion-contracts.R:48611:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-direct-sd-univariate-smoke.tsv (1):
+  'test-structured-re-conversion-contracts.R:19479:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-mu-intercept-dry-run.tsv (1):
+  'test-structured-re-conversion-contracts.R:20748:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-mu-intercept-retained-denominator-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:21412:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-mu-intercept-smoke-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:20912:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-mu-intercept-smoke-results.tsv (1):
+  'test-structured-re-conversion-contracts.R:21098:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-row-selection.tsv (1):
+  'test-structured-re-conversion-contracts.R:18620:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-sigma-intercept-denominator-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:20100:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-sigma-intercept-local-smoke.tsv (1):
+  'test-structured-re-conversion-contracts.R:19763:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-sigma-intercept-route-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:19663:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-sigma-profile-route-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:20476:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-tranche49-q1-sigma-intercept-blocker-decision.tsv
+  (1): 'test-structured-re-conversion-contracts.R:44452:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-tranche50-animal-q1-mu-intercept-blocker-decision.tsv
+  (1): 'test-structured-re-conversion-contracts.R:44655:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-tranche51-animal-q1-mu-interval-route-design.tsv
+  (1): 'test-structured-re-conversion-contracts.R:44877:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-tranche52-animal-q1-mu-bootstrap-smoke-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:45166:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-tranche53-q1-sigma-interval-route-design.tsv (1):
+  'test-structured-re-conversion-contracts.R:45427:3'
+• dashboard source file not available:
+  structured-re-gaussian-lowq-tranche54-q1-sigma-bootstrap-smoke-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:45708:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-interval-shape-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:1221:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-review-decision.tsv (1):
+  'test-structured-re-conversion-contracts.R:1606:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-rule-screen.tsv (1):
+  'test-structured-re-conversion-contracts.R:1331:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-split-calibration.tsv (1):
+  'test-structured-re-conversion-contracts.R:1455:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche100-spatial-drac-shell-profile-guard-packet-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:13347:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche101-spatial-drac-allocation-install-load-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:13543:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche102-spatial-drac-packet-module-executable-status-guard-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:13737:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche103-spatial-drac-allocation-install-load-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:13938:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche104-spatial-drac-module-route-executable-resolution-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:14158:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche105-spatial-drac-module-route-packet-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:14363:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche106-spatial-drac-module-route-install-load-submission-pending.tsv
+  (1): 'test-structured-re-conversion-contracts.R:14541:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche107-spatial-drac-module-route-install-load-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:14736:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche108-spatial-drac-module-list-syntax-route-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:14916:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche109-spatial-drac-module-list-packet-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:15101:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche110-spatial-drac-module-list-executable-terminal-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:15290:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche111-spatial-drac-package-load-decision-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:15455:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche112-spatial-drac-package-install-load-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:15612:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche113-spatial-drac-dependency-provenance-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:15779:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche114-spatial-drac-dependency-route-packet-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:15983:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche115-spatial-drac-dependency-route-submission-pending.tsv
+  (1): 'test-structured-re-conversion-contracts.R:16240:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche116-spatial-drac-dependency-route-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:16452:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche117-spatial-drac-package-install-load-packet-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:16665:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche118-spatial-drac-package-install-load-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:16862:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche119-spatial-drac-source-provenance-fallback-packet-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:17103:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche120-spatial-drac-package-install-load-terminal-review.tsv
+  (2): 'test-structured-re-conversion-contracts.R:17336:3',
+  'test-structured-re-conversion-contracts.R:17528:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche121-spatial-drac-model-smoke-readiness-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:17676:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche122-spatial-drac-model-smoke-packet-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:17856:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche123-spatial-drac-model-smoke-execution-approval-checkpoint.tsv
+  (1): 'test-structured-re-conversion-contracts.R:18055:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche124-spatial-drac-model-smoke-execution-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:18244:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche125-spatial-drac-dependency-route-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:18428:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche55-interval-rule-hold-decision.tsv
+  (1): 'test-structured-re-conversion-contracts.R:2537:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche56-symbolic-interval-rule-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:2743:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche57-retained-replay-summary.tsv (1):
+  'test-structured-re-conversion-contracts.R:2917:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche58-retained-replay-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:3087:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche59-spatial-candidate-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:3275:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche60-spatial-host-smoke-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:3485:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche61-spatial-execution-packet.tsv (1):
+  'test-structured-re-conversion-contracts.R:3722:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche62-spatial-runner-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:3975:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche63-spatial-host-preflight.tsv (1):
+  'test-structured-re-conversion-contracts.R:4269:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche64-spatial-command-packet.tsv (1):
+  'test-structured-re-conversion-contracts.R:4478:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche65-spatial-host-dispatch-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:4711:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche66-spatial-host-reachability-probe.tsv
+  (1): 'test-structured-re-conversion-contracts.R:4933:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche67-spatial-source-staging-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:5150:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche68-spatial-source-staging-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:5407:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche69-spatial-host-smoke-execution-decision.tsv
+  (1): 'test-structured-re-conversion-contracts.R:5708:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche70-spatial-runner-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:5950:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche71-spatial-host-smoke-load-blocker.tsv
+  (1): 'test-structured-re-conversion-contracts.R:6263:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche72-spatial-load-route-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:6557:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche73-spatial-clean-source-restaging-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:6830:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche74-spatial-runner-path-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:7120:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche75-spatial-host-smoke-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:7413:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche76-spatial-runner-source-map-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:7712:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche77-spatial-runner-source-patch-gate.tsv
+  (1): 'test-structured-re-conversion-contracts.R:7855:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche78-spatial-smoke-approval-gate.tsv
+  (1): 'test-structured-re-conversion-contracts.R:8152:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche79-spatial-totoro-auth-blocker.tsv
+  (1): 'test-structured-re-conversion-contracts.R:8341:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche80-spatial-drac-fallback-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:8552:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche81-spatial-drac-rorqual-provenance-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:8762:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche82-spatial-drac-staging-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:9005:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche83-spatial-drac-staging-proof.tsv (1):
+  'test-structured-re-conversion-contracts.R:9328:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche84-spatial-drac-smoke-approval-gate.tsv
+  (1): 'test-structured-re-conversion-contracts.R:9562:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche85-spatial-drac-runner-path-gate.tsv
+  (1): 'test-structured-re-conversion-contracts.R:9821:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche86-spatial-drac-smoke-approval-gate.tsv
+  (1): 'test-structured-re-conversion-contracts.R:10191:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche87-spatial-drac-slurm-packet.tsv (1):
+  'test-structured-re-conversion-contracts.R:10459:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche88-spatial-drac-remote-staging-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:10793:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche89-spatial-drac-sbatch-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:11049:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche90-spatial-drac-path-alignment-patch-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:11251:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche91-spatial-drac-remote-restaging-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:11478:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche92-spatial-drac-sbatch-authorization-gate.tsv
+  (1): 'test-structured-re-conversion-contracts.R:11756:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche93-spatial-drac-sbatch-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:11982:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche94-spatial-drac-dependency-load-route-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:12177:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche95-spatial-drac-dependency-staging-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:12341:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche96-spatial-drac-dependency-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:12511:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche97-spatial-drac-dependency-install-staging-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:12700:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche98-spatial-drac-dependency-install-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:12914:3'
+• dashboard source file not available:
+  structured-re-gaussian-mu-slope-tranche99-spatial-drac-allocation-install-load-proof.tsv
+  (1): 'test-structured-re-conversion-contracts.R:13128:3'
+• dashboard source file not available: structured-re-julia-twin-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:64654:3'
+• dashboard source file not available:
+  structured-re-mu-sigma-slope-interval-diagnostic-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:46817:3'
+• dashboard source file not available:
+  structured-re-mu-sigma-slope-interval-diagnostic-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:46955:3'
+• dashboard source file not available:
+  structured-re-mu-sigma-slope-interval-stability-probe.tsv (1):
+  'test-structured-re-conversion-contracts.R:47130:3'
+• dashboard source file not available:
+  structured-re-mu-sigma-slope-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:46710:3'
+• dashboard source file not available:
+  structured-re-mu-sigma-slope-readiness.tsv (1):
+  'test-structured-re-conversion-contracts.R:33404:3'
+• dashboard source file not available:
+  structured-re-mu-slope-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:31577:3'
+• dashboard source file not available:
+  structured-re-native-reml-scope-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:64414:3'
+• dashboard source file not available:
+  structured-re-nongaussian-status-audit.tsv (1):
+  'test-structured-re-conversion-contracts.R:23177:3'
+• dashboard source file not available:
+  structured-re-nongaussian-structured-family-rejection-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:27182:3'
+• dashboard source file not available:
+  structured-re-pr-stack-merge-readiness.tsv (1):
+  'test-structured-re-conversion-contracts.R:33152:3'
+• dashboard source file not available:
+  structured-re-q-series-host-access-recheck.tsv (1):
+  'test-structured-re-conversion-contracts.R:1025:3'
+• dashboard source file not available:
+  structured-re-q-series-smoke-substitution-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:1139:3'
+• dashboard source file not available: structured-re-q-series-support-cells.tsv
+  (8): 'test-structured-re-conversion-contracts.R:205:3',
+  'test-structured-re-conversion-contracts.R:646:3',
+  'test-structured-re-conversion-contracts.R:756:3',
+  'test-structured-re-conversion-contracts.R:22599:3',
+  'test-structured-re-conversion-contracts.R:22649:3',
+  'test-structured-re-conversion-contracts.R:22830:3',
+  'test-structured-re-conversion-contracts.R:23003:3',
+  'test-structured-re-conversion-contracts.R:23108:3'
+• dashboard source file not available:
+  structured-re-q-series-v1-readiness-reset.tsv (1):
+  'test-structured-re-conversion-contracts.R:30435:3'
+• dashboard source file not available:
+  structured-re-q1-bridge-payload-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:48449:3'
+• dashboard source file not available: structured-re-q1-reconstruction-map.tsv
+  (1): 'test-structured-re-conversion-contracts.R:48497:3'
+• dashboard source file not available:
+  structured-re-q2-plus-q2-sigma-rejection-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:27006:3'
+• dashboard source file not available:
+  structured-re-q2-slope-bias-t-coverage-evidence.tsv (1):
+  'test-structured-re-conversion-contracts.R:28962:3'
+• dashboard source file not available:
+  structured-re-q2-slope-coverage-pregrid-dry-run.tsv (1):
+  'test-structured-re-conversion-contracts.R:31357:3'
+• dashboard source file not available:
+  structured-re-q2-slope-denominator-admission.tsv (1):
+  'test-structured-re-conversion-contracts.R:28598:3'
+• dashboard source file not available:
+  structured-re-q2-slope-denominator-extension.tsv (1):
+  'test-structured-re-conversion-contracts.R:28776:3'
+• dashboard source file not available:
+  structured-re-q2-slope-interval-diagnostic-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:28179:3'
+• dashboard source file not available:
+  structured-re-q2-slope-interval-diagnostic-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:28309:3'
+• dashboard source file not available:
+  structured-re-q2-slope-interval-stability-probe.tsv (1):
+  'test-structured-re-conversion-contracts.R:28469:3'
+• dashboard source file not available:
+  structured-re-q2-slope-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:28072:3'
+• dashboard source file not available:
+  structured-re-q2-slope-replicated-denominator-rule.tsv (1):
+  'test-structured-re-conversion-contracts.R:31152:3'
+• dashboard source file not available:
+  structured-re-q2-slope-tranche128-spatial-replacement-rule-design.tsv (1):
+  'test-structured-re-conversion-contracts.R:30025:3'
+• dashboard source file not available:
+  structured-re-q2-slope-tranche129-spatial-g32-executable-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:30236:3'
+• dashboard source file not available: structured-re-q2-target-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:48697:3'
+• dashboard source file not available:
+  structured-re-q4-admission-denominator-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:39159:3'
+• dashboard source file not available:
+  structured-re-q4-admission-review-synthesis.tsv (1):
+  'test-structured-re-conversion-contracts.R:39401:3'
+• dashboard source file not available:
+  structured-re-q4-admission-tranche3-closure-audit.tsv (1):
+  'test-structured-re-conversion-contracts.R:45963:3'
+• dashboard source file not available:
+  structured-re-q4-animal-all-four-admission-probe.tsv (1):
+  'test-structured-re-conversion-contracts.R:36790:3'
+• dashboard source file not available:
+  structured-re-q4-animal-bounded-correlation-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:37876:3'
+• dashboard source file not available:
+  structured-re-q4-animal-map-penalty-sensitivity.tsv (1):
+  'test-structured-re-conversion-contracts.R:38363:3'
+• dashboard source file not available:
+  structured-re-q4-animal-numerical-geometry-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:37089:3'
+• dashboard source file not available:
+  structured-re-q4-animal-one-theta-release-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:38099:3'
+• dashboard source file not available:
+  structured-re-q4-animal-optimizer-route-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:37351:3'
+• dashboard source file not available:
+  structured-re-q4-animal-partial-cholesky-transform-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:38767:3'
+• dashboard source file not available:
+  structured-re-q4-animal-ridge-continuation-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:38566:3'
+• dashboard source file not available:
+  structured-re-q4-animal-start-map-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:37600:3'
+• dashboard source file not available:
+  structured-re-q4-animal-transform-admission-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:38972:3'
+• dashboard source file not available:
+  structured-re-q4-intercept-denominator-precheck.tsv (1):
+  'test-structured-re-conversion-contracts.R:35932:3'
+• dashboard source file not available:
+  structured-re-q4-intercept-hessian-bootstrap-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:36106:3'
+• dashboard source file not available:
+  structured-re-q4-intercept-interval-diagnostic-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:35575:3'
+• dashboard source file not available:
+  structured-re-q4-intercept-interval-diagnostic-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:35737:3'
+• dashboard source file not available:
+  structured-re-q4-intercept-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:35222:3'
+• dashboard source file not available:
+  structured-re-q4-location-admission-runner-design.tsv (1):
+  'test-structured-re-conversion-contracts.R:39969:3'
+• dashboard source file not available:
+  structured-re-q4-location-admission-smoke.tsv (1):
+  'test-structured-re-conversion-contracts.R:40129:3'
+• dashboard source file not available:
+  structured-re-q4-location-admission-tranche5-relmat-repeat.tsv (1):
+  'test-structured-re-conversion-contracts.R:40524:3'
+• dashboard source file not available:
+  structured-re-q4-location-admission-tranche5-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:40334:3'
+• dashboard source file not available:
+  structured-re-q4-location-admission-tranche6-relmat-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:40673:3'
+• dashboard source file not available:
+  structured-re-q4-location-slope-bootstrap-budget-probe.tsv (1):
+  'test-structured-re-conversion-contracts.R:34353:3'
+• dashboard source file not available:
+  structured-re-q4-location-slope-bootstrap-dispatch-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:34571:3'
+• dashboard source file not available:
+  structured-re-q4-location-slope-bootstrap-runner-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:34769:3'
+• dashboard source file not available:
+  structured-re-q4-location-slope-interval-diagnostic-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:33975:3'
+• dashboard source file not available:
+  structured-re-q4-location-slope-interval-diagnostic-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:34148:3'
+• dashboard source file not available:
+  structured-re-q4-location-slope-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:33763:3'
+• dashboard source file not available:
+  structured-re-q4-location-target-admission-map.tsv (1):
+  'test-structured-re-conversion-contracts.R:39756:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche34-relmat-host-preflight.tsv (1):
+  'test-structured-re-conversion-contracts.R:41374:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche35-relmat-source-snapshot-preflight.tsv (1):
+  'test-structured-re-conversion-contracts.R:41570:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche36-relmat-shard13-execution-decision.tsv
+  (1): 'test-structured-re-conversion-contracts.R:41785:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche37-relmat-shard13-terminal-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:41959:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche38-relmat-temp-install-route-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:42100:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche39-relmat-source-snapshot-dryrun.tsv (1):
+  'test-structured-re-conversion-contracts.R:42346:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche40-relmat-shard13-execution-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:42552:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche41-relmat-shard13-terminal-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:42765:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche42-relmat-dependency-route-preflight.tsv
+  (1): 'test-structured-re-conversion-contracts.R:42974:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche43-relmat-dependency-install-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:43148:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche44-relmat-shard13-after-deps-terminal-review.tsv
+  (1): 'test-structured-re-conversion-contracts.R:43357:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche45-relmat-after-deps-route-hold-failure-taxonomy.tsv
+  (1): 'test-structured-re-conversion-contracts.R:43640:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche46-relmat-boundary-hessian-inspection-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:43823:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche47-relmat-boundary-hessian-inspection-result.tsv
+  (1): 'test-structured-re-conversion-contracts.R:43996:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche48-relmat-parking-decision.tsv (1):
+  'test-structured-re-conversion-contracts.R:44265:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche7-relmat-coverage-pregrid-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:40817:3'
+• dashboard source file not available:
+  structured-re-q4-location-tranche8-relmat-host-submission-pack.tsv (1):
+  'test-structured-re-conversion-contracts.R:41105:3'
+• dashboard source file not available:
+  structured-re-q4-slope-hessian-geometry.tsv (1):
+  'test-structured-re-conversion-contracts.R:46156:3'
+• dashboard source file not available:
+  structured-re-q4-slope-identity-preflight.tsv (1):
+  'test-structured-re-conversion-contracts.R:33525:3'
+• dashboard source file not available:
+  structured-re-q4-slope-interval-diagnostic-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:35399:3'
+• dashboard source file not available:
+  structured-re-q4-slope-interval-diagnostic-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:36345:3'
+• dashboard source file not available:
+  structured-re-q4-slope-interval-stability-probe.tsv (1):
+  'test-structured-re-conversion-contracts.R:36510:3'
+• dashboard source file not available:
+  structured-re-q4-slope-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:35042:3'
+• dashboard source file not available:
+  structured-re-q4-slope-sigma-axis-differential.tsv (1):
+  'test-structured-re-conversion-contracts.R:46425:3'
+• dashboard source file not available: structured-re-q4-target-contract.tsv
+  (1): 'test-structured-re-conversion-contracts.R:58025:3'
+• dashboard source file not available: structured-re-r-docs-sync-status.tsv
+  (1): 'test-structured-re-conversion-contracts.R:64604:3'
+• dashboard source file not available:
+  structured-re-relmat-q-bridge-boundary.tsv (1):
+  'test-structured-re-conversion-contracts.R:27255:3'
+• dashboard source file not available:
+  structured-re-relmat-q-drmjl-provider-readiness.tsv (1):
+  'test-structured-re-conversion-contracts.R:27852:3'
+• dashboard source file not available:
+  structured-re-relmat-q-drmjl-stack-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:27986:3'
+• dashboard source file not available:
+  structured-re-relmat-q-payload-contract-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:27631:3'
+• dashboard source file not available:
+  structured-re-relmat-q-payload-marshalling-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:27465:3'
+• dashboard source file not available:
+  structured-re-relmat-q4-location-kq-native-parity.tsv (1):
+  'test-structured-re-conversion-contracts.R:27360:3'
+• dashboard source file not available: structured-re-reml-scope-gate.tsv (1):
+  'test-structured-re-conversion-contracts.R:64489:3'
+• dashboard source file not available: structured-re-scope-gate-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:64557:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-coverage-dispatch-review.tsv (1):
+  'test-structured-re-conversion-contracts.R:32619:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-coverage-pregrid-dry-run.tsv (1):
+  'test-structured-re-conversion-contracts.R:32421:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-coverage-runner-contract.tsv (1):
+  'test-structured-re-conversion-contracts.R:32831:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-denominator-admission.tsv (1):
+  'test-structured-re-conversion-contracts.R:32115:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-inference-evidence.tsv (1):
+  'test-structured-re-conversion-contracts.R:22943:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-interval-diagnostic-plan.tsv (1):
+  'test-structured-re-conversion-contracts.R:31710:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-interval-diagnostic-status.tsv (1):
+  'test-structured-re-conversion-contracts.R:31799:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-interval-stability-probe.tsv (1):
+  'test-structured-re-conversion-contracts.R:31944:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-parity-fixture.tsv (1):
+  'test-structured-re-conversion-contracts.R:31639:3'
+• dashboard source file not available:
+  structured-re-sigma-slope-replicated-denominator-rule.tsv (1):
+  'test-structured-re-conversion-contracts.R:32249:3'
+• dashboard source file not available:
+  structured-re-spatial-mu-boundary-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:47290:3'
+• dashboard source file not available:
+  structured-re-spatial-mu-domain-guard-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:48047:3'
+• dashboard source file not available:
+  structured-re-spatial-mu-lower-start-diagnostic.tsv (1):
+  'test-structured-re-conversion-contracts.R:47822:3'
+• dashboard source file not available:
+  structured-re-spatial-mu-profile-geometry.tsv (1):
+  'test-structured-re-conversion-contracts.R:47456:3'
+• dashboard source file not available:
+  structured-re-spatial-mu-profile-strategy.tsv (1):
+  'test-structured-re-conversion-contracts.R:47629:3'
+• dir.exists(dir) is not TRUE (1): 'test-phase18-actions-runner.R:1487:3'
+• docs/ is not present in this check tree (excluded via .Rbuildignore) (1):
+  'test-profile-shape-boundary.R:142:3'
+• DRM.jl covariate-sigma engine not available (1): 'test-xfam-bridge.R:575:3'
+• DRM.jl cross-family engine not available (1): 'test-xfam-bridge.R:262:3'
+• DRM.jl engine path not available (9): 'test-julia-missing.R:22:3',
+  'test-julia-missing.R:167:3', 'test-julia-tmb-parity.R:75:3',
+  'test-julia-tmb-parity.R:157:3', 'test-julia-tmb-parity.R:288:3',
+  'test-julia-tmb-parity.R:487:3', 'test-julia-tmb-parity.R:623:3',
+  'test-julia-tmb-parity.R:1347:3', 'test-julia-workflow-g.R:326:3'
+• DRM.jl general-covariance engine not available (4):
+  'test-julia-structured.R:455:3', 'test-julia-tmb-parity.R:774:3',
+  'test-julia-tmb-parity.R:939:3', 'test-julia-tmb-parity.R:1113:3'
+• DRM.jl phylo engine not available (3): 'test-julia-inference.R:338:3',
+  'test-julia-phylo-nongaussian.R:235:3',
+  'test-julia-phylo-nongaussian.R:272:3'
+• DRM.jl phylo-count engine not available (1): 'test-julia-phylo-count.R:161:3'
+• DRM.jl q2 diagnostic engine path not available (1):
+  'test-julia-q2-phylo-point-export.R:69:3'
+• DRM.jl q4 engine not available (1): 'test-julia-phylo-q4-corpairs.R:297:3'
+• DRM.jl sigma-phylo REML engine not available (1):
+  'test-julia-sigma-phylo-reml.R:464:3'
+• DRM.jl Tier-2 engine not available (2): 'test-xfam-bridge.R:423:3',
+  'test-xfam-bridge.R:467:3'
+• file.exists(path) is not TRUE (4): 'test-phase18-task-seed-registry.R:44:3',
+  'test-phase18-task-seed-registry.R:54:3',
+  'test-phase18-task-seed-registry.R:67:3',
+  'test-phase18-task-seed-registry.R:89:3'
+• file.exists(tool) is not TRUE (1):
+  'test-nongaussian-structured-boundary.R:539:3'
+• file.exists(workflow) is not TRUE (2):
+  'test-phase18-actions-runner.R:1407:3',
+  'test-phase18-actions-runner.R:1542:3'
+• Julia engine / DRM.jl unavailable (1): 'test-julia-slope-nongaussian.R:60:3'
+• public docs are not available in this installed-package context (1):
+  'test-julia-gate-vs-engine.R:229:3'
+• requires the development-only coverage and interior-DGP runners (1):
+  'test-beta-phylo-q1-sd-coverage-runner.R:15:1'
+• requires the development-only F3 provenance runner (1):
+  'test-arc6-f3-provenance-smoke-runner.R:2:1'
+• requires the development-only frozen PR2 runner (1):
+  'test-beta-phylo-q1-sd-regression-runner.R:8:1'
+• requires the development-only interior-DGP runner (1):
+  'test-beta-phylo-q1-sd-interior-recovery-runner.R:8:1'
+• The development audit script is not installed with drmTMB (3):
+  'test-reader-journeys.R:26:3', 'test-reader-journeys.R:48:3',
+  'test-reader-journeys.R:153:3'
+• The source-only coverage driver is unavailable in an installed-package check.
+  (1): 'test-biv-lognormal-rho12-coverage-driver.R:4:3'
+• The source-only documentation surfaces are unavailable in an
+  installed-package check. (1): 'test-biv-lognormal-rho12-coverage-docs.R:9:3'
+• Top-level campaign tools are intentionally excluded from the source tarball
+  (1): 'test-mesh-recovery-v3-contract.R:5:3'
+• Top-level development tools are intentionally excluded from the source
+  package (2): 'test-beta-phylo-q1-recovery-runner.R:417:5',
+  'test-beta-phylo-q1-successor-runners.R:497:5'
+• Top-level development tools are intentionally excluded from the source
+  tarball (1): 'test-reader-vignette-contracts.R:5:5'
+• top-level tools are excluded from the tarball (2):
+  'test-b1-dispatch-self-location.R:17:3',
+  'test-b1-dispatch-self-location.R:46:3'
+• Top-level tools are intentionally excluded from the source tarball (5):
+  'test-arc4c-drac-dispatch.R:4:5',
+  'test-arc4c-mu-slope-coverage-runner.R:6:5',
+  'test-b1-breadth-adapters.R:5:5', 'test-b1-breadth-contract.R:5:5',
+  'test-b2-q6-serial-proof-receipt-audit.R:5:5'
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+── Warning ('test-biv-gaussian.R:1567:3'): bivariate Gaussian sd1(id) and sd2(id) reject non-location and observation-level targets ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-biv-gaussian.R:1567:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. ├─drmTMB::drmTMB(...)
+  8. └─drmTMB::bf(...)
+  9.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 10.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 11.       └─drmTMB:::parse_sd_lhs(lhs)
+ 12.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 13.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-biv-gaussian.R:1581:3'): bivariate Gaussian sd1(id) and sd2(id) reject non-location and observation-level targets ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-biv-gaussian.R:1581:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. ├─drmTMB::drmTMB(...)
+  8. └─drmTMB::bf(...)
+  9.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 10.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 11.       └─drmTMB:::parse_sd_lhs(lhs)
+ 12.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 13.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-biv-gaussian.R:1581:3'): bivariate Gaussian sd1(id) and sd2(id) reject non-location and observation-level targets ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-biv-gaussian.R:1581:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB::drmTMB(...)
+  8.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+  9.     └─base::vapply(...)
+ 10.       └─drmTMB (local) FUN(X[[i]], ...)
+ 11.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 12.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 13.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-biv-gaussian.R:1581:3'): bivariate Gaussian sd1(id) and sd2(id) reject non-location and observation-level targets ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-biv-gaussian.R:1581:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB::drmTMB(...)
+  8.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+  9.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 10.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 11.         └─drmTMB (local) FUN(X[[i]], ...)
+ 12.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 13.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 14.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:696:3'): check_drm() records sd_phylo direct-SD diagnostics ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-check-drm.R:696:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:696:3'): check_drm() records sd_phylo direct-SD diagnostics ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:696:3
+ 2.   └─drmTMB:::drm_build_gaussian_ls_spec(...)
+ 3.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, mu_phylo$term)
+ 4.       └─base::lapply(entries, parse_sd_phylo_entry, phylo_term = phylo_term)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:755:3'): check_drm() summarises the sd_phylo surface in phylo_mu_diagnostics ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-check-drm.R:755:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:755:3'): check_drm() summarises the sd_phylo surface in phylo_mu_diagnostics ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:755:3
+ 2.   └─drmTMB:::drm_build_gaussian_ls_spec(...)
+ 3.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, mu_phylo$term)
+ 4.       └─base::lapply(entries, parse_sd_phylo_entry, phylo_term = phylo_term)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:790:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-check-drm.R:790:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:790:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-check-drm.R:790:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:790:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:790:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:790:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:790:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:790:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:790:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:790:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:790:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:820:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-check-drm.R:820:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:820:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:820:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-check-drm.R:820:3'): check_drm() records bivariate sd_phylo direct-SD diagnostics ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-check-drm.R:820:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-clamp-active-guard.R:119:3'): check_drm() reports a clamp-active row (warning when active, ok when not) ──
+`drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted `log(sigma)` reached -0.6, above the band upper bound -0.8).
+i The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with `drm_control(logsigma_clamp = )`, add within-group replication, or use a penalized/MAP fit; `check_drm()` reports the fit state.
+Backtrace:
+    ▆
+ 1. ├─drmTMB:::allow_nonconvergence(...) at test-clamp-active-guard.R:119:3
+ 2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+ 3. └─drmTMB::drmTMB(...)
+ 4.   └─drmTMB:::drm_fit_spec(...)
+ 5.     └─drmTMB:::drm_warn_if_clamp_active(obj, spec)
+ 6.       └─cli::cli_warn(...)
+── Warning ('test-control.R:280:3'): memory-light storage drops direct-SD phylogenetic model frames ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-control.R:280:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-control.R:280:3'): memory-light storage drops direct-SD phylogenetic model frames ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-control.R:280:3
+ 2.   └─drmTMB:::drm_build_gaussian_ls_spec(...)
+ 3.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, mu_phylo$term)
+ 4.       └─base::lapply(entries, parse_sd_phylo_entry, phylo_term = phylo_term)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-family-link-contract.R:245:3'): fitted response helper uses family-specific response summaries ──
+`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-family-link-contract.R:245:3
+ 2.   └─drmTMB:::drm_fit_spec(...)
+ 3.     └─drmTMB:::drm_warn_if_not_converged(opt)
+ 4.       └─cli::cli_warn(...)
+── Warning ('test-gaussian-location-scale.R:168:3'): fixed-effect formulas support standard R transformations and interactions ──
+NaNs produced
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-gaussian-location-scale.R:168:3
+ 2.   └─drmTMB:::drm_fit_spec(...)
+ 3.     └─drmTMB:::drm_compute_uncertainty(obj, opt, control, estimator = spec$estimator)
+ 4.       ├─base::tryCatch(...)
+ 5.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 6.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 7.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 8.       └─TMB::sdreport(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-logsigma-clamp.R:53:3'): log-sigma clamp keeps a pathological scale-phylo fit finite instead of overflowing ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─drmTMB:::allow_nonconvergence(drmTMB(form, data = d, control = drm_control(se = FALSE))) at test-logsigma-clamp.R:53:3
+  2. │ └─base::withCallingHandlers(expr, drmTMB_convergence_warning = function(w) invokeRestart("muffleWarning")) at ./helper-convergence-warning.R:7:3
+  3. └─drmTMB::drmTMB(form, data = d, control = drm_control(se = FALSE))
+  4.   └─drmTMB:::drm_fit_spec(...)
+  5.     └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+  6.       ├─base::tryCatch(...)
+  7.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+  8.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+  9.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 10.       └─drmTMB:::drm_optimize_multistart(...)
+ 11.         ├─base::tryCatch(...)
+ 12.         │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 13.         │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 14.         │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 15.         └─stats (local) optimizer(...)
+── Warning ('test-phylo-gaussian.R:589:3'): Gaussian mu supports sd_phylo(species) direct-SD models ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-phylo-gaussian.R:589:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:589:3'): Gaussian mu supports sd_phylo(species) direct-SD models ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:589:3
+ 2.   └─drmTMB:::drm_build_gaussian_ls_spec(...)
+ 3.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, mu_phylo$term)
+ 4.       └─base::lapply(entries, parse_sd_phylo_entry, phylo_term = phylo_term)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:639:3'): sd_phylo(species) intercept-only matches scalar phylo SD likelihood ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-phylo-gaussian.R:639:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:639:3'): sd_phylo(species) intercept-only matches scalar phylo SD likelihood ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:639:3
+ 2.   └─drmTMB:::drm_build_gaussian_ls_spec(...)
+ 3.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, mu_phylo$term)
+ 4.       └─base::lapply(entries, parse_sd_phylo_entry, phylo_term = phylo_term)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1111:3'): bivariate phylogenetic location supports sd_phylo1 and sd_phylo2 ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1111:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1111:3'): bivariate phylogenetic location supports sd_phylo1 and sd_phylo2 ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1111:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1111:3'): bivariate phylogenetic location supports sd_phylo1 and sd_phylo2 ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1111:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1111:3'): bivariate phylogenetic location supports sd_phylo1 and sd_phylo2 ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1111:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1111:3'): bivariate phylogenetic location supports sd_phylo1 and sd_phylo2 ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1111:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1111:3'): bivariate phylogenetic location supports sd_phylo1 and sd_phylo2 ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1111:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1194:3'): bivariate phylogenetic location allows one-sided sd_phylo direct SD ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1194:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1194:3'): bivariate phylogenetic location allows one-sided sd_phylo direct SD ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1194:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1194:3'): bivariate phylogenetic location allows one-sided sd_phylo direct SD ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1194:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1207:3'): bivariate phylogenetic location allows one-sided sd_phylo direct SD ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1207:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1207:3'): bivariate phylogenetic location allows one-sided sd_phylo direct SD ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1207:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1207:3'): bivariate phylogenetic location allows one-sided sd_phylo direct SD ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-phylo-gaussian.R:1207:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1247:3'): bivariate phylogenetic q4 block is fitted with clear boundaries ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-phylo-gaussian.R:1247:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. ├─drmTMB::drmTMB(...)
+  8. └─drmTMB::bf(...)
+  9.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 10.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 11.       └─drmTMB:::parse_sd_lhs(lhs)
+ 12.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 13.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1927:3'): phylogenetic mu terms participate in missingness and validation ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-phylo-gaussian.R:1927:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. ├─drmTMB::drmTMB(...)
+  8. └─drmTMB::bf(...)
+  9.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 10.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 11.       └─drmTMB:::parse_sd_lhs(lhs)
+ 12.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 13.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-phylo-gaussian.R:1927:3'): phylogenetic mu terms participate in missingness and validation ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-phylo-gaussian.R:1927:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB::drmTMB(...)
+  8.   └─drmTMB:::drm_build_gaussian_ls_spec(...)
+  9.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, mu_phylo$term)
+ 10.       └─base::lapply(entries, parse_sd_phylo_entry, phylo_term = phylo_term)
+ 11.         └─drmTMB (local) FUN(X[[i]], ...)
+ 12.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 13.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 14.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-profile-targets.R:2879:3'): profile target inventory covers bivariate sd_phylo coefficients ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-profile-targets.R:2879:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-profile-targets.R:2879:3'): profile target inventory covers bivariate sd_phylo coefficients ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. ├─drmTMB::drmTMB(...) at test-profile-targets.R:2879:3
+ 2. └─drmTMB::bf(...)
+ 3.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 4.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 5.       └─drmTMB:::parse_sd_lhs(lhs)
+ 6.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-profile-targets.R:2879:3'): profile target inventory covers bivariate sd_phylo coefficients ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-profile-targets.R:2879:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-profile-targets.R:2879:3'): profile target inventory covers bivariate sd_phylo coefficients ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-profile-targets.R:2879:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─base::vapply(...)
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 6.           └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 7.             └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-profile-targets.R:2879:3'): profile target inventory covers bivariate sd_phylo coefficients ──
+`sd_phylo1()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd1()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-profile-targets.R:2879:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-profile-targets.R:2879:3'): profile target inventory covers bivariate sd_phylo coefficients ──
+`sd_phylo2()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd2()` instead.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-profile-targets.R:2879:3
+ 2.   └─drmTMB:::drm_build_biv_gaussian_spec(...)
+ 3.     └─drmTMB:::parse_biv_sd_phylo_entries(sd_phylo_entries, phylo_mu)
+ 4.       └─base::lapply(entries, parse_biv_sd_phylo_entry, phylo_mu = phylo_mu)
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─drmTMB:::parse_sd_lhs(entry$lhs)
+ 7.             └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 8.               └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-reference-grid-link-scale-contract.R:193:3'): reference grids preserve link-response contracts for counts, proportions, ordinal, and bivariate fits ──
+`drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-reference-grid-link-scale-contract.R:193:3
+ 2.   └─drmTMB:::drm_fit_spec(...)
+ 3.     └─drmTMB:::drm_warn_if_not_converged(opt)
+ 4.       └─cli::cli_warn(...)
+── Warning ('test-sd-level-grammar.R:162:3'): the legacy sd_phylo() spelling fires a one-time deprecation warning ──
+`sd_phylo()` was deprecated in drmTMB 0.3.0.
+i Please use the `level` argument of `sd()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_warning(bf(sd_phylo(sp) ~ z)) at test-sd-level-grammar.R:162:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. └─drmTMB::bf(sd_phylo(sp) ~ z)
+ 11.   └─drmTMB:::parse_drm_formula_entries(calls, names)
+ 12.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i)
+ 13.       └─drmTMB:::parse_sd_lhs(lhs)
+ 14.         └─drmTMB:::canonicalize_sd_lhs_fun(fun, target_level)
+ 15.           └─drmTMB:::warn_sd_phylo_legacy_deprecated(fun)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+ 25.                   ├─base::tryCatch(...)
+ 26.                   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 27.                   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 28.                   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 29.                   └─drmTMB:::drm_optimize_multistart(...)
+ 30.                     ├─base::tryCatch(...)
+ 31.                     │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 32.                     │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 33.                     │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 34.                     └─stats (local) optimizer(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+ 25.                   ├─base::tryCatch(...)
+ 26.                   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 27.                   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 28.                   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 29.                   └─drmTMB:::drm_optimize_multistart(...)
+ 30.                     ├─base::tryCatch(...)
+ 31.                     │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 32.                     │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 33.                     │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 34.                     └─stats (local) optimizer(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+ 25.                   ├─base::tryCatch(...)
+ 26.                   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 27.                   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 28.                   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 29.                   └─drmTMB:::drm_optimize_multistart(...)
+ 30.                     ├─base::tryCatch(...)
+ 31.                     │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 32.                     │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 33.                     │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 34.                     └─stats (local) optimizer(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+ 25.                   ├─base::tryCatch(...)
+ 26.                   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 27.                   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 28.                   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 29.                   └─drmTMB:::drm_optimize_multistart(...)
+ 30.                     ├─base::tryCatch(...)
+ 31.                     │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 32.                     │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 33.                     │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 34.                     └─stats (local) optimizer(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+NA/NaN function evaluation
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+ 25.                   ├─base::tryCatch(...)
+ 26.                   │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 27.                   │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 28.                   │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 29.                   └─drmTMB:::drm_optimize_multistart(...)
+ 30.                     ├─base::tryCatch(...)
+ 31.                     │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 32.                     │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 33.                     │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 34.                     └─stats (local) optimizer(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_warn_if_not_converged(opt)
+ 25.                   └─cli::cli_warn(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_warn_if_not_converged(opt)
+ 25.                   └─cli::cli_warn(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_warn_if_not_converged(opt)
+ 25.                   └─cli::cli_warn(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+`drmTMB()`: optimizer reported non-convergence (code 1: singular convergence (7)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_warn_if_not_converged(opt)
+ 25.                   └─cli::cli_warn(...)
+── Warning ('test-simulate-re-form.R:183:3'): confint bootstrap aborts by default on an unsupported RE structure, but bootstrap_re_form = NA succeeds ──
+`drmTMB()` escalated `stats::nlminb()` to the "careful" optimizer preset to reach convergence.
+i An earlier preset errored or did not converge; inspect `fit$optimizer_attempts`.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-simulate-re-form.R:183:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. ├─stats::confint(...)
+ 11. └─drmTMB:::confint.drmTMB(...)
+ 12.   └─drmTMB:::drm_bootstrap_confint(...)
+ 13.     └─drmTMB:::bootstrap_lapply(seq_len(R), worker, plan)
+ 14.       └─base::lapply(indices, worker)
+ 15.         └─drmTMB (local) FUN(X[[i]], ...)
+ 16.           └─drmTMB:::bootstrap_refit_one(...)
+ 17.             ├─base::tryCatch(...)
+ 18.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 19.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 20.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 21.             ├─base::do.call(drmTMB, arguments)
+ 22.             └─drmTMB (local) `<fn>`(...)
+ 23.               └─drmTMB:::drm_fit_spec(...)
+ 24.                 └─drmTMB:::drm_optimize_with_preset_retry(obj, control)
+ 25.                   └─cli::cli_warn(...)
+── Warning ('test-tweedie-location-scale.R:343:3'): Tweedie supports missing filtering before response validation ──
+`drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+i Treat the estimates and standard errors with caution. The optimizer escalates its preset ladder automatically, so inspect `fit$optimizer_attempts` and run `check_drm()` to diagnose; consider rescaling the data, within-group replication, or a penalized/MAP fit.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_no_error(...) at test-tweedie-location-scale.R:343:3
+  2. │ └─testthat:::expect_no_(...)
+  3. │   └─testthat:::quasi_capture(enquo(object), NULL, capture)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ ├─base::withRestarts(...)
+  6. │     │ │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7. │     │ │   └─base (local) doWithOneRestart(return(expr), restart)
+  8. │     │ └─base::withCallingHandlers(...)
+  9. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 10. └─drmTMB::drmTMB(...)
+ 11.   └─drmTMB:::drm_fit_spec(...)
+ 12.     └─drmTMB:::drm_warn_if_not_converged(opt)
+ 13.       └─cli::cli_warn(...)
+── Warning ('test-zi-nbinom2.R:167:3'): zero-inflated nbinom2 methods return count-scale summaries ──
+`drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted `log(sigma)` reached 15, above the band upper bound 12).
+i The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with `drm_control(logsigma_clamp = )`, add within-group replication, or use a penalized/MAP fit; `check_drm()` reports the fit state.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-zi-nbinom2.R:167:3
+ 2.   └─drmTMB:::drm_fit_spec(...)
+ 3.     └─drmTMB:::drm_warn_if_clamp_active(obj, spec)
+ 4.       └─cli::cli_warn(...)
+── Warning ('test-zi-nbinom2.R:284:3'): zero-inflated nbinom2 supports complete-case filtering ──
+`drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted `log(sigma)` reached 15, above the band upper bound 12).
+i The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with `drm_control(logsigma_clamp = )`, add within-group replication, or use a penalized/MAP fit; `check_drm()` reports the fit state.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-zi-nbinom2.R:284:3
+ 2.   └─drmTMB:::drm_fit_spec(...)
+ 3.     └─drmTMB:::drm_warn_if_clamp_active(obj, spec)
+ 4.       └─cli::cli_warn(...)
+
+[ FAIL 0 | WARN 70 | SKIP 304 | PASS 21109 ]
+> 
+> proc.time()
+    user   system  elapsed 
+1108.261   42.206 1249.936 

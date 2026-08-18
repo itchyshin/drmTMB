@@ -8,6 +8,17 @@ Future selective reuse of GPL-compatible A-inverse, SPDE, mesh, projection, or
 TMB utility code must be recorded here before the reused code is treated as
 complete.
 
+## Package artwork
+
+The logo files under `man/figures/` are original drmTMB artwork. They first
+entered this repository in commit `69f11f82dd6da12a3b95dc3443315c93e4c9e666`
+and were revised in commits `7399ec3a27d8efda481f69d1e8a170eda4b1d610`,
+`c627d00a96e1ab40f8672fae72af13717c85cc24`, and
+`8b5dc618037be9de7882a58d92c5fcb035a71ffb`, each authored by Shinichi
+Nakagawa, drmTMB's listed author and maintainer. The SVG contains only paths,
+text, and a system-font stack; it embeds no external font or third-party image
+asset. The artwork is distributed under drmTMB's GPL (>= 3) package licence.
+
 Spatial citation policy:
 
 - If `drmTMB` implements SPDE/GMRF spatial fields from the published method but

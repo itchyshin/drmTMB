@@ -1,0 +1,50 @@
+Files DESCRIPTION and DESCRIPTION differ
+Files NEWS.md and NEWS.md differ
+Files R/drmTMB.R and R/drmTMB.R differ
+Files R/family.R and R/family.R differ
+Files R/julia-bridge.R and R/julia-bridge.R differ
+Files R/mspl-estimator.R and R/mspl-estimator.R differ
+Files README.md and README.md differ
+Files inst/doc/capability-and-limits.html and inst/doc/capability-and-limits.html differ
+Files inst/doc/figure-gallery.html and inst/doc/figure-gallery.html differ
+Files inst/doc/model-workflow.html and inst/doc/model-workflow.html differ
+Files inst/doc/relmat-known-matrices.html and inst/doc/relmat-known-matrices.html differ
+Files inst/extdata/julia-capabilities.tsv and inst/extdata/julia-capabilities.tsv differ
+Files man/drmTMB.Rd and man/drmTMB.Rd differ
+Files man/lognormal.Rd and man/lognormal.Rd differ
+Files man/nbinom2.Rd and man/nbinom2.Rd differ
+Files src/drmTMB.cpp and src/drmTMB.cpp differ
+Files tests/testthat/helper-julia-bridge-path.R and tests/testthat/helper-julia-bridge-path.R differ
+Files tests/testthat/test-beta-binomial.R and tests/testthat/test-beta-binomial.R differ
+Files tests/testthat/test-binomial-correlated-re-mspl-prereq.R and tests/testthat/test-binomial-correlated-re-mspl-prereq.R differ
+Only in tests/testthat: test-binomial-phylo.R
+Files tests/testthat/test-binomial-response.R and tests/testthat/test-binomial-response.R differ
+Only in tests/testthat: test-cran-lane-filter.R
+Files tests/testthat/test-cumulative-logit.R and tests/testthat/test-cumulative-logit.R differ
+Files tests/testthat/test-hurdle-nbinom2.R and tests/testthat/test-hurdle-nbinom2.R differ
+Files tests/testthat/test-julia-inference.R and tests/testthat/test-julia-inference.R differ
+Files tests/testthat/test-julia-missing.R and tests/testthat/test-julia-missing.R differ
+Files tests/testthat/test-julia-phylo-count.R and tests/testthat/test-julia-phylo-count.R differ
+Files tests/testthat/test-julia-phylo-nongaussian.R and tests/testthat/test-julia-phylo-nongaussian.R differ
+Files tests/testthat/test-julia-phylo-q4-corpairs.R and tests/testthat/test-julia-phylo-q4-corpairs.R differ
+Files tests/testthat/test-julia-q2-phylo-point-export.R and tests/testthat/test-julia-q2-phylo-point-export.R differ
+Files tests/testthat/test-julia-sigma-phylo-reml.R and tests/testthat/test-julia-sigma-phylo-reml.R differ
+Files tests/testthat/test-julia-slope-nongaussian.R and tests/testthat/test-julia-slope-nongaussian.R differ
+Files tests/testthat/test-julia-structured.R and tests/testthat/test-julia-structured.R differ
+Files tests/testthat/test-julia-tmb-parity.R and tests/testthat/test-julia-tmb-parity.R differ
+Files tests/testthat/test-julia-workflow-g.R and tests/testthat/test-julia-workflow-g.R differ
+Files tests/testthat/test-lognormal-location-scale.R and tests/testthat/test-lognormal-location-scale.R differ
+Only in tests/testthat: test-lognormal-ordinary-correlated-q2.R
+Files tests/testthat/test-nbinom2-location-scale.R and tests/testthat/test-nbinom2-location-scale.R differ
+Only in tests/testthat: test-nbinom2-ordinary-correlated-q2.R
+Files tests/testthat/test-poisson-mean.R and tests/testthat/test-poisson-mean.R differ
+Only in tests/testthat: test-poisson-ordinary-correlated-q2.R
+Files tests/testthat/test-profile-targets.R and tests/testthat/test-profile-targets.R differ
+Files tests/testthat/test-reml-binomial-coxreid.R and tests/testthat/test-reml-binomial-coxreid.R differ
+Files tests/testthat/test-truncated-nbinom2-location-scale.R and tests/testthat/test-truncated-nbinom2-location-scale.R differ
+Files tests/testthat/test-xfam-bridge.R and tests/testthat/test-xfam-bridge.R differ
+Files tests/testthat/test-zi-nbinom2.R and tests/testthat/test-zi-nbinom2.R differ
+Files tests/testthat/test-zi-poisson.R and tests/testthat/test-zi-poisson.R differ
+Files tests/testthat.R and tests/testthat.R differ
+Files vignettes/includes/capability-ledger-family-map.md and vignettes/includes/capability-ledger-family-map.md differ
+Files vignettes/includes/capability-ledger-summary.md and vignettes/includes/capability-ledger-summary.md differ

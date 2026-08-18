@@ -467,7 +467,7 @@ When a predictor changes the phylogenetic SD itself, or when the model contains
 location plus two scale submodels, continue with [When variance carries signal,
 Part II: location-scale-scale models](location-scale-scale.html). For the
 bivariate covariance layouts and the broader parity ladder, use the
-[structural-dependence tutorial](phylogenetic-spatial.html).
+[structural-dependence tutorial](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
 
 Anything outside these exact rows remains unpromoted, including other
 non-Gaussian families, additional slope/label combinations, public matrix input

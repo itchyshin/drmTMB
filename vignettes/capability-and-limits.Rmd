@@ -473,7 +473,7 @@ covariance or correlation summary you need, and check
 `profile_targets(fit)` for any direct target that already has an interval
 route before assuming none exists.
 
-### Known limitations for 0.6.0
+### Known limitations for 0.7.0
 
 If you are deciding whether a specific `drmTMB` output belongs in a
 manuscript, read this section next. It names four gaps between what an
@@ -511,7 +511,7 @@ tight `iter.max`/`eval.max` on the profile-endpoint refit could bias a
 profile CI inward -- is fixed: the endpoint refit now floors its own
 inner-iteration budget regardless of what you pass in, so tightening your
 fit's control settings no longer distorts a profile interval. One related
-item stays open post-0.6.0, a `sigma`-slope start-value correction (issue
+item stays open after 0.7.0, a `sigma`-slope start-value correction (issue
 #710.2), but it does not touch the certified profile-CI cells described
 above.
 
@@ -522,7 +522,7 @@ return only `u = 0` response-scale means and response residuals for `mu1` /
 `mu2`; `vcov()` and fixed-effect Wald intervals explicitly report unavailable
 rather than returning an empty value. What to try next: use the native TMB
 engine, `drmTMB`'s default, for current supported models. For the bounded
-post-0.6 development association route, see the frozen-margin article; it is a
+post-0.7 development association route, see the frozen-margin article; it is a
 separate staged interface and is not a Julia fit.
 
 ### Frozen-margin association intervals

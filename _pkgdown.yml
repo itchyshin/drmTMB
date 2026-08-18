@@ -4,7 +4,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   includes:
-    before_navbar: '<span class="drmtmb-version-note">0.6.0 experimental</span>'
+    before_navbar: '<span class="drmtmb-version-note">0.7.0 pre-CRAN</span>'
   bslib:
     primary: "#0f7887"
     headings-color: "#112638"
@@ -234,7 +234,7 @@ articles:
     contents:
       - drmTMB
       - capability-and-limits
-      - function-map-cheatsheet
+      - articles/function-map-cheatsheet
       - first-week-intervals
   - title: Capability and Model Choice
     contents:
@@ -264,11 +264,11 @@ articles:
       - comparing-with-other-packages
   - title: Model Checking and Practical Workflow
     contents:
-      - model-workflow
-      - distributional-outputs-and-adequacy
+      - articles/model-workflow
+      - articles/distributional-outputs-and-adequacy
       - convergence
       - large-data
-      - figure-gallery
+      - articles/figure-gallery
   - title: Structured Dependence
     contents:
       - structural-dependence
@@ -277,14 +277,14 @@ articles:
       - bipartite-phylogenetic-interactions
       - spatial-models
       - relmat-known-matrices
-      - phylogenetic-spatial
+      - articles/phylogenetic-spatial
   - title: Deferred Engine Compatibility
     contents:
       - julia-engine
   - title: Simulation and Validation
     contents:
       - testing-likelihoods
-      - simulation-plot-grammar
+      - articles/simulation-plot-grammar
   - title: Developer Notes
     contents:
       - formula-grammar

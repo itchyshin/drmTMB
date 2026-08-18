@@ -64,7 +64,7 @@ pages. Contributor design ledgers record sequence and future work; they are not
 the current-status authority.
 
 When you are closing out a slice from this ledger and need to plot its
-recovery evidence, see [Simulation plot grammar](simulation-plot-grammar.html)
+recovery evidence, see [Simulation plot grammar](https://itchyshin.github.io/drmTMB/articles/simulation-plot-grammar.html)
 for the shared bias/RMSE/coverage display contract.
 
 Every status row should be read across the same dimensions:

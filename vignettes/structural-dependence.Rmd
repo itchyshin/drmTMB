@@ -56,7 +56,7 @@ fitted residual response-response correlations.
 
 ## What to read next
 
-Read the detailed [structural-dependence tutorial](phylogenetic-spatial.html)
+Read the detailed [structural-dependence tutorial](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html)
 when you need fitted examples, equations, diagnostics, and interval guidance.
 That article is still the detailed page for animal, phylogenetic, spatial,
 combined-layer, and `relmat()` material while the topic is being split into
@@ -80,7 +80,7 @@ belong to the animal, phylogenetic, or spatial routes.
 
 Read the [formula grammar](formula-grammar.html) when you want the compact
 implemented-versus-planned syntax table. Read the
-[figure gallery](figure-gallery.html) when you want to see how `rho12`,
+[figure gallery](https://itchyshin.github.io/drmTMB/articles/figure-gallery.html) when you want to see how `rho12`,
 ordinary group, phylogenetic, spatial, animal-model, and `relmat()` correlation
 rows should stay visually separate.
 

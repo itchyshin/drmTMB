@@ -96,7 +96,7 @@ matches the question before choosing a plot:
 | among-group variation in expected response | random-effect SDs or `sd(group)` | [Which scale are you modelling?](which-scale.html) |
 | residual trait coupling after the means and residual SDs are modelled | `rho12` | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | pedigree, tree, coordinate, or known-matrix dependence | `animal()`, `phylo()`, `spatial()`, or `relmat()` depending on the source | [Structural dependence overview](structural-dependence.html) |
-| fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](model-workflow.html) |
+| fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) |
 
 ## Stable-core matrix
 
@@ -518,4 +518,4 @@ a larger covariance model than the mean-mean path.
 | a two-response residual-correlation example | [Changing residual coupling with rho12](bivariate-coscale.html) |
 | known sampling variances or covariance | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | implemented phylogenetic random intercepts or coordinate-spatial intercept/slope terms | [Structural dependence overview](structural-dependence.html) |
-| post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](model-workflow.html) |
+| post-fit checks, predictions, residuals, and simulation | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) |

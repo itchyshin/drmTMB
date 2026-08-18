@@ -61,12 +61,13 @@ with a precision parameter such as `phi` or `theta`.
   [Model workflow](https://itchyshin.github.io/drmTMB/articles/model-workflow.html)
   and the [`check_drm()` reference](https://itchyshin.github.io/drmTMB/reference/check_drm.html).
 
-## Preview status
+## Release status
 
-This site is built from the `0.6.0` development cycle (`DESCRIPTION` Version: 0.6.0). The package is still
-pre-CRAN and intentionally bounded: use it for the implemented one-response and
-two-response workflows listed below, and treat unsupported model classes as
-future work rather than hidden features.
+`drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
+documentation was built, it had not yet been submitted to or accepted by
+CRAN. The package remains intentionally bounded: use it for the implemented
+one-response and two-response workflows listed below, and treat unsupported
+model classes as future work rather than hidden features.
 
 The first CRAN release is targeted at **0.7.0**, not 1.0 — an honest reflection
 that much of the family and inference surface is still scaffolded or
@@ -81,19 +82,16 @@ in the [finish capability matrix](https://github.com/itchyshin/drmTMB/blob/main/
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the tagged `v0.5.0` release from GitHub
-with `pak`:
+`drmTMB` is not on CRAN yet. Install the current development source from
+GitHub with `pak`:
 
 ```r
 install.packages("pak")
-pak::pak("itchyshin/drmTMB@v0.5.0")
-```
-
-If you want the newest development build from `main`, use:
-
-```r
 pak::pak("itchyshin/drmTMB")
 ```
+
+After CRAN accepts the package, install the released version with
+`install.packages("drmTMB")`.
 
 Then load the package and run a small smoke test:
 
