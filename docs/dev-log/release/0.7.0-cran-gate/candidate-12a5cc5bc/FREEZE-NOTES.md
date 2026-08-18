@@ -62,15 +62,24 @@ The live URL check returned two DOI redirect 403s. Both DOI registrations were i
 resolved through Crossref; see `urlchecker-adjudication.md`. They are evidenced publisher/bot
 blocking, not missing DOI registrations.
 
+## External evidence collected
+
+- Fresh 3-OS GitHub Actions completed successfully on Windows, Ubuntu, and macOS. This is
+  same-source evidence only; see `gha-3os-matrix.md`.
+- R-hub completed with clang-ASAN, clang-UBSAN, and GCC-ASAN successful. `rchk` failed with the
+  pre-existing signature confined to installed TMB headers plus analyzer state explosion; the
+  failure is preserved rather than called a pass. See `rhub-sanitizer-adjudication.md`.
+- The exact-candidate R-devel Ligges result is filed at `Status: 1 NOTE`, with `00check.log` and raw
+  test output. See `winbuilder-R-devel-result.md`. The raw MIME email remains owed.
+
 ## Remaining exact-source ladder
 
 Before any ledger repointing or release claim, these exact-source or exact-byte gates remain:
 
-1. fresh 3-OS GitHub Actions on the release branch;
-2. R-hub diagnostics and adjudication;
-3. win-builder R-release, R-devel, and R-oldrelease for this exact tarball;
-4. fresh Grace, Rose, and Pat review;
-5. fail-closed release-gate validation at the claimed rung.
+1. win-builder R-release and R-oldrelease results for this exact tarball, plus the raw MIME copy of
+   the filed R-devel result email;
+2. fresh Grace, Rose, and Pat review;
+3. fail-closed release-gate validation at the claimed rung.
 
 The release ledger and `cran-comments.md` remain unchanged until those results exist and the gate
 passes. PR #1033 and `_julia_skip2_artifacts/` remain protected and untouched.
