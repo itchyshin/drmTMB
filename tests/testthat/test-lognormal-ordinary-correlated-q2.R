@@ -1,4 +1,4 @@
-nbinom2_q2_data <- function(
+lognormal_q2_data <- function(
   n_group = 56L,
   n_each = 14L,
   sd_intercept = 0.65,
@@ -15,10 +15,10 @@ nbinom2_q2_data <- function(
   z_slope <- stats::rnorm(n_group)
   u_intercept <- sd_intercept * z_intercept
   u_slope <- sd_slope * (rho * z_intercept + sqrt(1 - rho^2) * z_slope)
-  eta <- -0.25 + 0.70 * x + u_intercept[id] + u_slope[id] * x
+  mu <- -0.25 + 0.70 * x + u_intercept[id] + u_slope[id] * x
   list(
     data = data.frame(
-      count = stats::rnbinom(n, size = 1 / sigma^2, mu = exp(eta)),
+      y = stats::rlnorm(n, meanlog = mu, sdlog = sigma),
       x = x,
       id = id
     ),
@@ -26,11 +26,11 @@ nbinom2_q2_data <- function(
   )
 }
 
-test_that("NB2 q2 parser admits only one unlabelled intercept-slope block", {
-  sim <- nbinom2_q2_data(n_group = 12L, n_each = 8L, seed = 20260817L)
+test_that("Lognormal q2 parser admits only one unlabelled intercept-slope block", {
+  sim <- lognormal_q2_data(n_group = 12L, n_each = 8L, seed = 20260817L)
   fit <- drmTMB(
-    bf(count ~ x + (1 + x | id), sigma ~ 1),
-    family = nbinom2(),
+    bf(y ~ x + (1 + x | id), sigma ~ 1),
+    family = lognormal(),
     data = sim$data,
     control = drm_control(se = FALSE)
   )
@@ -48,28 +48,28 @@ test_that("NB2 q2 parser admits only one unlabelled intercept-slope block", {
   expect_false("logsech_mu_re" %in% names(report))
   expect_error(
     drmTMB(
-      bf(count ~ x + (1 + x | p | id), sigma ~ 1),
-      family = nbinom2(),
+      bf(y ~ x + (1 + x | p | id), sigma ~ 1),
+      family = lognormal(),
       data = sim$data
     ),
-    "unlabelled Poisson intercept-slope block"
+    "Only independent"
   )
   expect_error(
     drmTMB(
-      bf(count ~ x + (1 + x + z | id), sigma ~ 1),
-      family = nbinom2(),
+      bf(y ~ x + (1 + x + z | id), sigma ~ 1),
+      family = lognormal(),
       data = transform(sim$data, z = x^2)
     ),
-    "unlabelled Poisson intercept-slope block"
+    "Only independent"
   )
 })
 
-test_that("NB2 q2 likelihood, fitted effects, and gradients use the design-17 map", {
+test_that("Lognormal q2 likelihood, fitted effects, and gradients use the design-17 map", {
   skip_if_not_installed("numDeriv")
-  sim <- nbinom2_q2_data(n_group = 24L, n_each = 10L, seed = 20260818L)
+  sim <- lognormal_q2_data(n_group = 24L, n_each = 10L, seed = 20260818L)
   fit <- drmTMB(
-    bf(count ~ x + (1 + x | id), sigma ~ 1),
-    family = nbinom2(),
+    bf(y ~ x + (1 + x | id), sigma ~ 1),
+    family = lognormal(),
     data = sim$data
   )
   expect_equal(fit$opt$convergence, 0L)
@@ -91,11 +91,11 @@ test_that("NB2 q2 likelihood, fitted effects, and gradients use the design-17 ma
   expect_lt(max(abs(ad_gradient - fd_gradient)) / (1 + max(abs(ad_gradient))), 2e-3)
 })
 
-test_that("NB2 q2 ML recovers a correlated random intercept and slope", {
-  sim <- nbinom2_q2_data(seed = 20260816L)
+test_that("Lognormal q2 ML recovers a correlated random intercept and slope", {
+  sim <- lognormal_q2_data(seed = 20260816L)
   fit <- drmTMB(
-    bf(count ~ x + (1 + x | id), sigma ~ 1),
-    family = nbinom2(),
+    bf(y ~ x + (1 + x | id), sigma ~ 1),
+    family = lognormal(),
     data = sim$data
   )
   expect_equal(fit$opt$convergence, 0L)
@@ -113,21 +113,21 @@ test_that("NB2 q2 ML recovers a correlated random intercept and slope", {
   expect_equal(rho_re, 0.999999 * tanh(unname(raw_par$eta_cor_mu)), tolerance = 1e-12)
 })
 
-test_that("NB2 q2 rejection matrix stays closed", {
-  sim <- nbinom2_q2_data(n_group = 10L, n_each = 8L, seed = 20260819L)
-  q2 <- bf(count ~ x + (1 + x | id), sigma ~ 1)
+test_that("Lognormal q2 rejection matrix stays closed", {
+  sim <- lognormal_q2_data(n_group = 10L, n_each = 8L, seed = 20260819L)
+  q2 <- bf(y ~ x + (1 + x | id), sigma ~ 1)
 
   expect_error(
-    drmTMB(q2, family = nbinom2(), data = sim$data, REML = TRUE),
+    drmTMB(q2, family = lognormal(), data = sim$data, REML = TRUE),
     "Gaussian and binomial models"
   )
 
   missing_dat <- sim$data
-  missing_dat$count[[1L]] <- NA_integer_
+  missing_dat$y[[1L]] <- NA_real_
   expect_error(
     drmTMB(
       q2,
-      family = nbinom2(),
+      family = lognormal(),
       data = missing_dat,
       missing = miss_control(response = "include")
     ),
@@ -137,27 +137,18 @@ test_that("NB2 q2 rejection matrix stays closed", {
 
   expect_error(
     drmTMB(
-      bf(count ~ x + (1 | id) + (1 + x | id), sigma ~ 1),
-      family = nbinom2(),
+      bf(y ~ x + (1 | id) + (1 + x | id), sigma ~ 1),
+      family = lognormal(),
       data = sim$data
     ),
-    "unlabelled Poisson intercept-slope block"
-  )
-
-  expect_error(
-    drmTMB(
-      bf(count ~ x + (1 + x | id), sigma ~ 1, zi ~ 1),
-      family = nbinom2(),
-      data = sim$data
-    ),
-    "ordinary NB2 models"
+    "Only independent"
   )
 
   expect_error(
     drmTMB(
       q2,
       family = stats::Gamma(link = "log"),
-      data = transform(sim$data, count = pmax(count, 1))
+      data = sim$data
     ),
     "Only independent"
   )
@@ -165,7 +156,7 @@ test_that("NB2 q2 rejection matrix stays closed", {
   const_dat <- sim$data
   const_dat$x <- as.numeric(const_dat$id)
   expect_error(
-    drmTMB(q2, family = nbinom2(), data = const_dat),
+    drmTMB(q2, family = lognormal(), data = const_dat),
     "need within-group variation in the slope predictor",
     fixed = TRUE
   )

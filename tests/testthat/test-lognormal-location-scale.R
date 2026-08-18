@@ -253,9 +253,12 @@ test_that("lognormal models reject unsupported or invalid inputs", {
     drmTMB(bf(abs(y) + 0.1 ~ x, nu ~ 1), family = lognormal(), data = dat),
     "only support"
   )
+  # Ordinary unlabelled (1 + x | id) is now Wave 3 mc-0720; keep a mixed
+  # neighbour red here. Full recovery lives in
+  # test-lognormal-ordinary-correlated-q2.R.
   expect_error(
     drmTMB(
-      bf(abs(y) + 0.1 ~ x + (1 + x | id), sigma ~ 1),
+      bf(abs(y) + 0.1 ~ x + (1 | id) + (1 + x | id), sigma ~ 1),
       family = lognormal(),
       data = dat
     ),

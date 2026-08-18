@@ -20,7 +20,10 @@ therefore the mean of \code{log(y)}, not the arithmetic mean of \code{y}.
 Ordinary \code{mu} random intercepts such as \code{(1 | id)} are supported in the
 first positive-continuous mixed-model slice; the independent numeric slope
 \code{(0 + x | id)} also fits but is a recovery-grade route only (trust the
-point estimate, not the interval).
+point estimate, not the interval). One complete-data ordinary unlabelled
+correlated intercept-slope block \code{(1 + x | id)} is also fitted at
+\code{point_fit_recovery} (\code{mc-0720}) under the design-17 map for group-level
+\code{sd0}, \code{sd1}, and \code{rho_re} (never residual \code{rho12}).
 }
 \examples{
 lognormal()
