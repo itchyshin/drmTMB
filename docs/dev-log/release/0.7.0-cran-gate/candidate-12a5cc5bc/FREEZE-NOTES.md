@@ -18,9 +18,10 @@ status. No `submit_cran()` call is authorized, and no submission is planned for 
 
 The earlier `5153ae7ea7dc2e4ec518dfd6549b4245566b598f97422592d0c3210246023787`
 tarball remains useful predecessor and Julia-hard-stop evidence only. Its Ligges results cannot
-certify these bytes. The still-owed R-release 4.6.1 and R-devel messages for that predecessor must
-be archived as predecessor evidence when available, with any SHA association described as
-client-side chain of custody rather than server attestation.
+certify these bytes. Its R-release 4.6.1 and R-oldrelease results are now archived with raw test
+output in `candidate-julia-skip-2/`; both report `PASS 11379`. The predecessor R-devel message and
+result packet remain owed. Every SHA association is described as client-side chain of custody
+rather than server attestation.
 
 ## Source and build integrity
 

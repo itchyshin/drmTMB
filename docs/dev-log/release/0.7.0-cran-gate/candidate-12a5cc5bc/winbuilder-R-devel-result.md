@@ -38,6 +38,6 @@ does not report the received archive's digest.
 
 The strict raw-email requirement remains open until the maintainer supplies the
 message as `.eml` or equivalent complete headers and body. This R-devel result
-does not establish `platform-clean`; R-release and R-oldrelease exact-candidate
-results remain independently owed. Expanding or exporting the visible 09:06
-message is the first mailbox action because it may resolve one of those arms.
+does not establish `platform-clean`; R-release is now filed independently, while
+R-oldrelease remains owed. Expanding or exporting the visible 09:06 message is
+the first mailbox action because it may resolve that remaining arm.
