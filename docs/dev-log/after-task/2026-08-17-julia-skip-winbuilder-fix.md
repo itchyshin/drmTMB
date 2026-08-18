@@ -6,11 +6,14 @@ julia-skip tarball (`8764b2fe…`) still hung on Ligges R-release and what fixed
 ## Root cause (3 sentences)
 
 The #1061 `^julia` invert filter correctly kept `test-julia-*.R` off the CRAN
-lane. It did not stop `test-binomial-response.R`, which still called
-`drmTMB(..., engine = "julia")` inside `expect_error()` after a probit fit
-printed `<summary.drmTMB>`. Workflow G admits fixed-effect binomial into the
-Julia bridge, so that call entered `JuliaCall::julia_setup()` and hung
-win-builder for ~10448s at "Loading setup script for JuliaCall...".
+lane — confirmed in hung `testthat.Rout` from
+[`v57uv6zakfKO`](https://win-builder.r-project.org/v57uv6zakfKO/), which still
+shows the `^julia` filter before the hang. It did not stop
+`test-binomial-response.R`, which still called `drmTMB(..., engine = "julia")`
+inside `expect_error()` after a probit fit printed `<summary.drmTMB>`. Workflow
+G admits fixed-effect binomial into the Julia bridge, so that call entered
+`JuliaCall::julia_setup()` and hung win-builder for ~10448s at "Loading setup
+script for JuliaCall..." (Julia 1.11.3 on the host).
 
 ## Fix
 

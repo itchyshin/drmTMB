@@ -1,35 +1,58 @@
 # win-builder upload receipt — julia-skip-2 (CRAN-lane Julia hard-stop)
 
-**2026-08-18T00:36:29Z · Cursor · optional Ligges path · NOT a CRAN submission**
+**2026-08-18T00:44:00Z · Cursor · optional Ligges path · NOT a CRAN submission**
 
-**Lane:** `cursor/070-julia-skip-winbuilder-fix` @ `eac1133b2`
-(from `origin/main` `02b8fbe72`, post-#1068 tip).
+**Lane tip:** `cursor/070-julia-skip-winbuilder-fix` @ `d1827f1b9`
+**Code fix:** `eac1133b2` (from `origin/main` `02b8fbe72`, post-#1068).
 
 ## Why
 
-#1061's `^julia` filter was insufficient. `test-binomial-response.R` still
-called `engine = "julia"` after Workflow G admitted fixed-effect binomial,
-so Ligges R-release hung in `JuliaCall::julia_setup()` on tarball
-`8764b2fe…` (`v57uv6zakfKO`, ~10448s). This upload carries the hard-stop in
-`drm_julia_setup()` plus the obsolete `expect_error` removal.
+#1061's `^julia` filter was insufficient. Confirmed on hung Ligges run
+[`v57uv6zakfKO`](https://win-builder.r-project.org/v57uv6zakfKO/):
+`00check.log` truncates at `* checking tests ...`; `testthat.Rout` ends at
+`Julia version 1.11.3 ... Loading setup script for JuliaCall...` **after**
+printing a `<summary.drmTMB>` block and **while** the CRAN invert filter
+already included `^julia`. Root leak: `test-binomial-response.R` still called
+`engine = "julia"` inside `expect_error()`; Workflow G admits fixed-effect
+binomial, so the call reached `JuliaCall::julia_setup()` (~10448s hang on
+tarball `8764b2fe…`, 10,089,274 bytes).
 
-## Bytes
+This upload carries the hard-stop in `drm_julia_setup()` plus the obsolete
+`expect_error` removal.
+
+## Bytes (julia-skip-2)
 
 | | |
 | --- | --- |
-| File | `/tmp/drmTMB-0.7.0-julia-skip-2/drmTMB_0.7.0.tar.gz` (also under worktree `_julia_skip2_artifacts/`) |
+| File | `/tmp/drmTMB-0.7.0-julia-skip-2/drmTMB_0.7.0.tar.gz` |
 | Size | 10,098,642 bytes |
 | SHA-256 | `5153ae7ea7dc2e4ec518dfd6549b4245566b598f97422592d0c3210246023787` |
-| Differs from | `8764b2fe…` (julia-skip-1) and freeze `0d150ef3…` |
+| Differs from | `8764b2fe…` (julia-skip-1, 10,089,274 B) and freeze `0d150ef3…` |
+| Code blob | `R/julia-bridge.R` matches `eac1133b2` (`07a2be5a…`) |
 
-## Uploads this session
+Tip rebuild `7f18f519…` (10,098,680 B) differs only in DESCRIPTION Packaged
+date + vignette HTML timestamps; same hard-block code. FTP used `5153ae7e…`.
+
+## Uploads
 
 | Lane | FTP target | Result |
 | --- | --- | --- |
-| R-oldrelease | `ftp://win-builder.r-project.org/R-oldrelease/` | **226 Transfer complete** |
-| R-release | `ftp://win-builder.r-project.org/R-release/` | **550 on first try** (prior `drmTMB_0.7.0.tar.gz` likely still queued); retry exit=25 |
+| R-oldrelease | `ftp://win-builder.r-project.org/R-oldrelease/` | **226** earlier this session; later re-STOR **550** (queue occupied) |
+| R-release | `ftp://win-builder.r-project.org/R-release/` | **550** — listing still shows prior julia-skip-1 `drmTMB_0.7.0.tar.gz` at **10,089,274** bytes (`8764b2fe…`) |
+| R-devel | `ftp://win-builder.r-project.org/R-devel/` | **226 Transfer complete** (2026-08-18T00:43Z, `5153ae7e…`) |
 
-R-devel not uploaded.
+Retry R-release/R-oldrelease after the queued julia-skip-1 job clears (or after
+Ligges finishes processing the 10,089,274-byte file).
+
+## Local prove (this lane)
+
+- Non-interactive `NOT_CRAN=false`: `drm_julia_setup()` aborts with CRAN-lane
+  message before JuliaCall.
+- Same env: `drmTMB(..., family=binomial(), engine="julia")` aborts with that
+  message (not a hang).
+- `mspl` / `biv_student` still early-abort with engine gates (never JuliaCall).
+- `test-cran-lane-filter.R`: 20/20 under `NOT_CRAN=false`.
+- Invert filter: 0 `test-julia-*` files remain on the CRAN lane.
 
 ## Explicit non-claims
 
