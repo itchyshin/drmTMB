@@ -58,6 +58,19 @@ Each transfer uploaded 10,098,642 bytes. FTP `226` is an upload receipt, not a
 Ligges check result; no new result email had been reported when these receipts
 were filed.
 
+## Filed Ligges results
+
+| Arm | Result | Raw test signature | Evidence |
+| --- | --- | --- | --- |
+| R-release 4.6.1 | [`qOBUstEvxol1`](https://win-builder.r-project.org/qOBUstEvxol1), 1 NOTE | `FAIL 0 · WARN 53 · SKIP 143 · PASS 11379` | result page, `00check.log`, `testthat.Rout`, and mailbox-thread screenshot filed; raw MIME pending |
+| R-oldrelease 4.5.3 | [`T2LOH4zOG6WT`](https://win-builder.r-project.org/T2LOH4zOG6WT), 1 NOTE | `FAIL 0 · WARN 53 · SKIP 143 · PASS 11379` | result page, `00check.log`, `testthat.Rout`, and email transcript filed |
+| R-devel | pending | pending | result email, URL, `00check.log`, and raw test output still owed |
+
+Both filed arms have the predecessor `PASS 11379` signature. Their association
+with `5153ae7e…` is the client-side chain of custody above, not server-side hash
+attestation. They remain predecessor / Julia-hard-stop evidence and do not
+certify the current-main candidate.
+
 ## Local prove (this lane)
 
 - Non-interactive `NOT_CRAN=false`: `drm_julia_setup()` aborts with CRAN-lane

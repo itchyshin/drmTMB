@@ -32,7 +32,10 @@ changed in this release-evidence slice.
 The candidate evidence directory under
 `docs/dev-log/release/0.7.0-cran-gate/candidate-12a5cc5bc/` records the freeze, local checks,
 tarball inventory, URL adjudication, upload receipts, raw CI logs, and a machine-readable evidence
-manifest. This report is the only file created outside that candidate directory.
+manifest. The predecessor directory
+`docs/dev-log/release/0.7.0-cran-gate/candidate-julia-skip-2/` now also contains the newly recovered
+R-release result packet, raw R-oldrelease test output, and mailbox-thread screenshot. This report
+is the only other file changed.
 
 The release ledger, `cran-comments.md`, PR #1033, and `_julia_skip2_artifacts/` were not changed.
 `docs/dev-log/check-log.md` was also left unchanged because file-level lane preflight found active
@@ -68,6 +71,10 @@ a conflict.
 - The current-candidate R-release 4.6.1 Ligges result completed at `Status: 1 NOTE`; raw test
   output reports `FAIL 0 · WARN 53 · SKIP 143 · PASS 11403`. Its expected new-submission NOTE,
   platform details, timings, result index, and maintainer-supplied email transcript are preserved.
+- The predecessor R-release 4.6.1 result at `qOBUstEvxol1` completed at `Status: 1 NOTE`; its raw
+  test output reports `FAIL 0 · WARN 53 · SKIP 143 · PASS 11379`. The predecessor R-oldrelease
+  raw test output independently reports the same `PASS 11379` signature. These are predecessor
+  / Julia-hard-stop evidence only, joined to `5153ae7e…` by client-side chain of custody.
 - The archived raw GitHub job logs contain no obvious GitHub token pattern.
 - The manifest has 11 fields on every row, every referenced evidence file rehashes to its recorded
   SHA-256, and the immutable tarball rehashes to the frozen digest and size.
@@ -95,8 +102,8 @@ The mandatory Rose audit of the inherited Ligges handover classified the release
 
 - **DONE:** PR #1072 merged; the `5153ae7e…` upload receipt and R-oldrelease log were filed; the
   predecessor upload has a client-side hash/size chain of custody.
-- **OWED:** predecessor R-release 4.6.1 and R-devel messages; raw test output for any precise
-  predecessor pass-count claim; all three current-candidate win-builder result packets.
+- **OWED at audit time:** predecessor R-release 4.6.1 and R-devel messages; raw test output for any
+  precise predecessor pass-count claim; all three current-candidate win-builder result packets.
 - **RETRACTED:** the hung `8764b2fe…` upload as release evidence; the `os-matrix` fan-out selector
   as package-check proof; any predecessor-source platform evidence as certification of either
   `5153ae7e…` or the new current-main bytes.
@@ -133,6 +140,14 @@ hidden, it is recorded as an unclassified mailbox lead rather than promoted to e
 maintainer later pasted the current R-release message received at 11:56; its visible body is
 preserved as a transcript, while the raw MIME message and canonical headers remain absent.
 
+The maintainer subsequently supplied a wider mailbox-thread screenshot. It exposed an R-release
+4.6.1 result at `qOBUstEvxol1`. The preserved raw test output reports
+`FAIL 0 · WARN 53 · SKIP 143 · PASS 11379`, which identifies it as the `5153ae7e…` predecessor
+rather than the current candidate (`PASS 11403`). Its result page, `00check.log`, raw test output,
+mailbox screenshot, timings, and hashes are now filed. The screenshot is still an email-view
+receipt rather than raw MIME. The still-live predecessor R-oldrelease result page was also revisited
+to preserve its missing raw test output; it independently reports the same `PASS 11379` signature.
+
 ## 11. Team Learning
 
 This candidate uses one TSV manifest that joins its source commit, SHA-256, byte size, upload
@@ -144,8 +159,9 @@ weaker than server attestation.
 
 The candidate remains at `tarball-clean`. It is not `platform-clean`, CRAN-ready, or submission
 authorized. The win-builder R-oldrelease result packet is absent, and the filed R-release and
-R-devel results still lack their raw MIME emails. The two still-owed predecessor emails for
-`5153ae7e…` are also absent. Fresh Grace, Rose, and Pat review has not run because the exact-byte
+R-devel results still lack their raw MIME emails. For predecessor `5153ae7e…`, R-release is now
+filed from a mailbox screenshot and expiring result files, but its raw MIME and the entire R-devel
+result packet remain absent. Fresh Grace, Rose, and Pat review has not run because the exact-byte
 external evidence set is incomplete.
 
 No `submit_cran()` call was made, and no submission is authorized for 2026-08-19.
@@ -165,8 +181,8 @@ commit `12a5cc5bc…` and the explicitly named candidate bytes are in scope.
 ## 13. Next Actions
 
 1. Expand or export the visible 09:06 message first because it may be the current R-oldrelease arm;
-   archive that result without inferring its platform. Also preserve the raw MIME R-release and
-   R-devel messages and the two predecessor results when available.
+   archive that result without inferring its platform. Also preserve the raw MIME current-candidate
+   R-release and R-devel messages and the predecessor R-devel result when available.
 2. Only after all exact-byte results exist, run the fail-closed release gate and repoint the ledger
    if the claimed rung passes.
 3. Run fresh Grace, Rose, and Pat review, then return the evidence packet to Shinichi for a separate
