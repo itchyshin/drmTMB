@@ -44,6 +44,20 @@ date + vignette HTML timestamps; same hard-block code. FTP used `5153ae7e…`.
 Retry R-release/R-oldrelease after the queued julia-skip-1 job clears (or after
 Ligges finishes processing the 10,089,274-byte file).
 
+### Gap-fill reuploads
+
+The exact `5153ae7e…` tarball was hash-verified again immediately before these
+uploads:
+
+| Lane | UTC interval | curl exit | Server response | Transfer time |
+| --- | --- | ---: | ---: | ---: |
+| R-release | 2026-08-18T11:53:23Z–11:53:26Z | 0 | **226 Transfer complete** | 3.258620 s |
+| R-oldrelease | 2026-08-18T11:53:26Z–11:53:29Z | 0 | **226 Transfer complete** | 3.086274 s |
+
+Each transfer uploaded 10,098,642 bytes. FTP `226` is an upload receipt, not a
+Ligges check result; no new result email had been reported when these receipts
+were filed.
+
 ## Local prove (this lane)
 
 - Non-interactive `NOT_CRAN=false`: `drm_julia_setup()` aborts with CRAN-lane
