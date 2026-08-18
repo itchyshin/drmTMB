@@ -97,6 +97,7 @@ admission, intervals/coverage/`supported`.
 | `python3 tools/capability_ledger.py --check` | OK (31 generated outputs) |
 | C14 compatibility runner | 4/4 PASS; tau digits identical to prior receipt |
 | `python3 -m unittest tools.tests.test_capability_ledger -q` | 80 tests OK |
+| GitHub Actions on tip `70550fd48` (PR [#1069](https://github.com/itchyshin/drmTMB/pull/1069)) | `os-matrix` SUCCESS; `ubuntu-latest (release)` SUCCESS in 45m49s (run `32081714283`) |
 
 ## Tests Of The Tests
 
@@ -142,6 +143,8 @@ cell; a correlated block is a different estimand.
 
 ## Known Limitations
 
-Quiesce holds. No interval, coverage, REML, missing-response, labelled,
-mixed, Gamma, or `supported` claim. Local one-seed recovery only; no Totoro
+Quiesce holds — leave [#1069](https://github.com/itchyshin/drmTMB/pull/1069)
+as draft until Fisher/Noether review and the 0.7.0 platform-matrix hold
+lift. No interval, coverage, REML, missing-response, labelled, mixed,
+Gamma, or `supported` claim. Local one-seed recovery only; no Totoro
 smoke in this overnight slice.
