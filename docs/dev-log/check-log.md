@@ -94533,3 +94533,11 @@ This is readiness evidence, not submission authority. No `submit_cran()`, no
 19 August submission, no #1033 change, and no `_julia_skip2_artifacts/` change.
 Closeout report:
 `docs/dev-log/after-task/2026-08-19-current-main-070-exact-evidence-closeout.md`.
+
+**Landing correction.** PR #1076 merged as `7fd86d031` at 12:47:03Z before its
+pending Ubuntu job completed: `gh pr merge --auto` merged immediately because
+the job was not configured as a required check. This was earlier than intended
+and was disclosed in-session. The real `ubuntu-latest (release)` job, not only
+`os-matrix`, subsequently passed at 13:17:34Z after 40m19s:
+<https://github.com/itchyshin/drmTMB/actions/runs/32253581513/job/96070045054>.
+All #1076 paths are build-excluded; candidate bytes remain `1d6445db…`.

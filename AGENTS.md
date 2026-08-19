@@ -15,7 +15,8 @@ regression using Template Model Builder.
 > `5153ae7e…` and
 > `6b45164b…` are predecessor evidence only. No `submit_cran()`, no submission
 > on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes. Current
-> status: [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+> status: evidence PR #1076 merged as `7fd86d031` and its real Ubuntu release
+> job passed; [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
 >
 > **▶ Latest — start here (2026-08-18, → CODEX; Ligges wait/file lane only).**
 > #1072 merged as `6152aaef1`; exact julia-skip-2 bytes `5153ae7e…`
