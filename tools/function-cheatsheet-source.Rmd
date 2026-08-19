@@ -1,0 +1,468 @@
+---
+title: "Function map and cheatsheet"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Function map and cheatsheet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+
+# Keep this page synchronized with the current exported API. Deprecated
+# compatibility markers are intentionally excluded from the reader path.
+documented_exports <- c(
+  "animal", "associate_pairs", "association", "beta", "beta_binomial", "bf",
+  "biv_associate", "biv_gaussian", "biv_lognormal", "biv_student",
+  "categorical", "centile_chart", "check_drm", "corpair", "corpairs",
+  "cumulative_logit", "drm_control", "drm_formula", "drm_phylo_penalty",
+  "drm_phylo_penalty_sweep", "drmTMB", "exceedance",
+  "fitted_distribution", "fixef", "impute_model", "imputed",
+  "is_converged", "latent_normal", "lognormal", "make_mesh",
+  "marginal_parameters", "meta_V", "meta_vcov_bivariate", "mi",
+  "miss_control", "nbinom2", "phylo", "phylo_interaction", "plot_corpairs",
+  "plot_parameter_surface", "predict_parameters", "prediction_grid",
+  "profile_targets", "qq_plot", "ranef", "relmat", "rho12", "rho_latent",
+  "skew_normal", "spatial", "spatial_coords", "structured_effects", "student",
+  "truncated_nbinom2", "tweedie", "worm_plot", "zero_one_beta"
+)
+deprecated_exports <- c("gr", "meta_known_V")
+stopifnot(setequal(
+  documented_exports,
+  setdiff(getNamespaceExports("drmTMB"), deprecated_exports)
+))
+```
+
+<style>
+.drmtmb-map {
+  --ink: #173042;
+  margin: 1.25rem 0 2rem;
+  padding: 1.1rem;
+  color: var(--ink);
+  background: #f8fafb;
+  border: 1px solid #dce4e8;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(23, 48, 66, 0.07);
+}
+.drmtmb-map * { box-sizing: border-box; }
+.drmtmb-map__header {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.drmtmb-map__mark {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 3rem;
+  color: white;
+  background: #0f7887;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.drmtmb-map__header h2 { margin: 0; font-size: 1.45rem; }
+.drmtmb-map__header p { margin: 0.15rem 0 0; color: #536875; }
+.drmtmb-map__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-areas:
+    "spec fit inspect predict visual"
+    ". . infer . .";
+  gap: 0.9rem;
+}
+.drmtmb-map__panel {
+  position: relative;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  background: var(--wash);
+}
+.drmtmb-map__panel h3 {
+  margin: 0 0 0.65rem;
+  color: var(--accent-dark);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+.drmtmb-map__node {
+  margin-top: 0.55rem;
+  padding: 0.65rem 0.7rem;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, white);
+  border-radius: 8px;
+  line-height: 1.35;
+}
+.drmtmb-map__node strong { display: block; margin-bottom: 0.15rem; }
+.drmtmb-map__node small { display: block; color: #536875; }
+.drmtmb-map__node code {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.drmtmb-map__node a { color: var(--accent-dark); text-decoration: none; }
+.drmtmb-map__node a:hover { text-decoration: underline; }
+.map-spec { --accent: #75a843; --accent-dark: #476f1f; --wash: #f4f8ef; }
+.map-fit { --accent: #4e86bf; --accent-dark: #245c91; --wash: #eff5fb; }
+.map-inspect { --accent: #8464ad; --accent-dark: #5b3c82; --wash: #f5f1fa; }
+.map-infer { --accent: #df8a45; --accent-dark: #9a501d; --wash: #fdf5ec; }
+.map-predict { --accent: #31a0a0; --accent-dark: #126e70; --wash: #eff8f7; }
+.map-visual { --accent: #c56b8c; --accent-dark: #8f3e5e; --wash: #fbf1f5; }
+.drmtmb-map__panel.map-spec { grid-area: spec; }
+.drmtmb-map__panel.map-fit { grid-area: fit; }
+.drmtmb-map__panel.map-inspect { grid-area: inspect; }
+.drmtmb-map__panel.map-infer { grid-area: infer; }
+.drmtmb-map__panel.map-predict { grid-area: predict; }
+.drmtmb-map__panel.map-visual { grid-area: visual; }
+@media (min-width: 901px) {
+  .drmtmb-map__panel.map-spec::after,
+  .drmtmb-map__panel.map-fit::after,
+  .drmtmb-map__panel.map-inspect::after,
+  .drmtmb-map__panel.map-predict::after {
+    content: "→";
+    position: absolute;
+    z-index: 2;
+    top: 48%;
+    right: -0.8rem;
+    color: var(--accent-dark);
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+  .drmtmb-map__panel.map-inspect::before {
+    content: "↓";
+    position: absolute;
+    z-index: 2;
+    bottom: -1.25rem;
+    left: 48%;
+    color: #9a501d;
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
+}
+.drmtmb-map__flow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  padding: 0.8rem;
+  border: 1px dashed #9eabb2;
+  border-radius: 10px;
+  background: white;
+}
+.drmtmb-map__step {
+  position: relative;
+  padding: 0.55rem 0.35rem;
+  border-radius: 7px;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.drmtmb-map__step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -0.43rem;
+  color: #72818a;
+}
+.drmtmb-map__note {
+  margin: 0.8rem 0 0;
+  color: #536875;
+  font-size: 0.86rem;
+}
+.drmtmb-downloads {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0 1.25rem;
+}
+.drmtmb-download {
+  display: block;
+  padding: 0.9rem 1rem;
+  color: #173042;
+  background: #f5f9fa;
+  border: 1px solid #bfd1d6;
+  border-left: 5px solid #0f7887;
+  border-radius: 10px;
+  text-decoration: none;
+}
+.drmtmb-download:hover {
+  color: #173042;
+  background: #edf5f6;
+  text-decoration: none;
+}
+.drmtmb-download strong { display: block; color: #0b6672; }
+.drmtmb-download small { display: block; margin-top: 0.2rem; color: #536875; }
+@media (max-width: 900px) {
+  .drmtmb-map__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: none;
+  }
+  .drmtmb-map__panel { grid-area: auto !important; }
+  .drmtmb-map__flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .drmtmb-map__step::after { display: none; }
+}
+@media (max-width: 580px) {
+  .drmtmb-map__grid, .drmtmb-map__flow, .drmtmb-downloads { grid-template-columns: 1fr; }
+}
+</style>
+
+Use this page when you know what you want to do but not which function to
+reach for. The map shows the usual path from model specification to plots; the
+tables below cover every current exported function and the standard fitted-model
+methods that users call directly.
+
+This is a navigation guide, not a capability claim. A function can serve several
+families or model structures while support remains narrower for a particular
+combination. Check [What drmTMB can and can't do](capability-and-limits.html)
+before treating an interval or a complex random-effect route as validated.
+Deprecated compatibility markers are deliberately omitted.
+
+```{=html}
+<div class="drmtmb-downloads" aria-label="Download printable drmTMB function guides">
+  <a class="drmtmb-download" href="../cheatsheets/drmTMB-function-map.pdf" download>
+    <strong>Download the one-page function map (PDF)</strong>
+    <small>Landscape overview for screens, printing, or teaching.</small>
+  </a>
+  <a class="drmtmb-download" href="../cheatsheets/drmTMB-function-cheatsheet.pdf" download>
+    <strong>Download the full function cheatsheet (PDF)</strong>
+    <small>Printable guide to every current export and common fitted-model methods.</small>
+  </a>
+</div>
+```
+
+```{=html}
+<div class="drmtmb-map" role="figure" aria-label="drmTMB function map from model specification through fitting, inspection, inference, prediction, and visualization">
+  <div class="drmtmb-map__header">
+    <div class="drmtmb-map__mark">drm</div>
+    <div>
+      <h2>drmTMB function map</h2>
+      <p>The current public workflow, grouped by what the reader is trying to do.</p>
+    </div>
+  </div>
+  <div class="drmtmb-map__grid">
+    <section class="drmtmb-map__panel map-spec">
+      <h3>1 · Specify</h3>
+      <div class="drmtmb-map__node"><strong><a href="../reference/drm_formula.html"><code>drm_formula()</code> / <code>bf()</code></a></strong><small>Join location, scale, shape, inflation, and coscale formulas.</small></div>
+      <div class="drmtmb-map__node"><strong>Choose a family</strong><small><a href="../reference/student.html"><code>student()</code></a>, <a href="../reference/beta.html"><code>beta()</code></a>, <a href="../reference/nbinom2.html"><code>nbinom2()</code></a>, and the other family constructors below.</small></div>
+      <div class="drmtmb-map__node"><strong>Special data</strong><small><a href="../reference/meta_V.html"><code>meta_V()</code></a>, <a href="../reference/miss_control.html"><code>miss_control()</code></a>, <a href="../reference/mi.html"><code>mi()</code></a>, <a href="../reference/impute_model.html"><code>impute_model()</code></a>.</small></div>
+      <div class="drmtmb-map__node"><strong>Dependence</strong><small><a href="../reference/phylo.html"><code>phylo()</code></a>, <a href="../reference/spatial.html"><code>spatial()</code></a>, <a href="../reference/animal.html"><code>animal()</code></a>, <a href="../reference/relmat.html"><code>relmat()</code></a>, <a href="../reference/corpair.html"><code>corpair()</code></a>.</small></div>
+    </section>
+    <section class="drmtmb-map__panel map-fit">
+      <h3>2 · Fit</h3>
+      <div class="drmtmb-map__node"><strong><a href="../reference/drmTMB.html"><code>drmTMB()</code></a></strong><small>Fit the model with the native TMB engine by default.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/drm_control.html"><code>drm_control()</code></a></strong><small>Control optimization, storage, sparse design, and aggregation options.</small></div>
+      <div class="drmtmb-map__node"><strong>Optional stabilization</strong><small><a href="../reference/drm_phylo_penalty.html"><code>drm_phylo_penalty()</code></a> and <a href="../reference/drm_phylo_penalty_sweep.html"><code>drm_phylo_penalty_sweep()</code></a> for the documented MAP phylogenetic workflow.</small></div>
+    </section>
+    <section class="drmtmb-map__panel map-inspect">
+      <h3>3 · Inspect</h3>
+      <div class="drmtmb-map__node"><strong><a href="../reference/check_drm.html"><code>check_drm()</code></a> + <a href="../reference/is_converged.html"><code>is_converged()</code></a></strong><small>Check convergence, Hessian, gradients, boundaries, and model-specific warnings.</small></div>
+      <div class="drmtmb-map__node"><strong>Coefficients and effects</strong><small><a href="../reference/summary.drmTMB.html"><code>summary()</code></a>, <a href="../reference/fixef.html"><code>coef()</code> / <code>fixef()</code></a>, <a href="../reference/ranef.html"><code>ranef()</code></a>.</small></div>
+      <div class="drmtmb-map__node"><strong>Model parameters</strong><small><a href="../reference/sigma.drmTMB.html"><code>sigma()</code></a>, <a href="../reference/rho12.html"><code>rho12()</code></a>, <a href="../reference/corpairs.html"><code>corpairs()</code></a>, <a href="../reference/structured_effects.html"><code>structured_effects()</code></a>.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/imputed.html"><code>imputed()</code></a></strong><small>Inspect fitted values for modelled missing predictors.</small></div>
+      <div class="drmtmb-map__node"><strong>Fit summaries</strong><small><a href="../reference/model-fit-extractors.html"><code>logLik()</code>, <code>AIC()</code>, <code>BIC()</code>, <code>vcov()</code></a>.</small></div>
+    </section>
+    <section class="drmtmb-map__panel map-infer">
+      <h3>4 · Infer</h3>
+      <div class="drmtmb-map__node"><strong><a href="../reference/confint.drmTMB.html"><code>confint()</code></a></strong><small>Wald, profile-likelihood, or bootstrap intervals for available targets.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/profile_targets.html"><code>profile_targets()</code></a></strong><small>See which fitted targets can be profiled directly.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/profile.drmTMB.html"><code>profile()</code></a></strong><small>Compute likelihood profiles before plotting or extracting intervals.</small></div>
+    </section>
+    <section class="drmtmb-map__panel map-predict">
+      <h3>5 · Predict & simulate</h3>
+      <div class="drmtmb-map__node"><strong><a href="../reference/prediction_grid.html"><code>prediction_grid()</code></a></strong><small>Construct a controlled new-data grid.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/predict.drmTMB.html"><code>predict()</code></a> + <a href="../reference/predict_parameters.html"><code>predict_parameters()</code></a></strong><small>Predict responses or named distributional parameters.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/simulate.drmTMB.html"><code>simulate()</code></a></strong><small>Draw new responses from a fitted model.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/marginal_parameters.html"><code>marginal_parameters()</code></a></strong><small>Compute plug-in averages of fitted parameters; this is not an interval.</small></div>
+    </section>
+    <section class="drmtmb-map__panel map-visual">
+      <h3>6 · Visualize</h3>
+      <div class="drmtmb-map__node"><strong><a href="../reference/plot.profile.drmTMB.html"><code>plot(profile(fit, ...))</code></a></strong><small>Show a likelihood-ratio profile and its confidence cutoff.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/plot_corpairs.html"><code>plot_corpairs()</code></a></strong><small>Plot fitted latent correlation-pair summaries.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/plot_parameter_surface.html"><code>plot_parameter_surface()</code></a></strong><small>Plot a table of fitted parameter values across a prediction grid.</small></div>
+    </section>
+  </div>
+  <div class="drmtmb-map__flow" aria-label="Typical drmTMB workflow">
+    <div class="drmtmb-map__step map-spec">Specify</div>
+    <div class="drmtmb-map__step map-fit">Fit</div>
+    <div class="drmtmb-map__step map-inspect">Check</div>
+    <div class="drmtmb-map__step map-predict">Predict / simulate</div>
+    <div class="drmtmb-map__step map-visual">Visualize</div>
+  </div>
+  <p class="drmtmb-map__note"><strong>Inference is a branch from a checked fit, not a required step before prediction.</strong> The optional Julia route uses the same high-level generics where documented; <a href="../reference/rho_latent.html"><code>rho_latent()</code></a> is specific to supported cross-family Julia fits.</p>
+</div>
+```
+
+## Model specification
+
+| Function | Use it for |
+|---|---|
+| [`drm_formula()` / `bf()`](../reference/drm_formula.html) | Combine one formula per distributional parameter. `bf()` is the short alias. |
+| [`drmTMB()`](../reference/drmTMB.html) | Fit a univariate or bivariate distributional model. The native TMB engine is the default. |
+| [`drm_control()`](../reference/drm_control.html) | Set optimizer controls and fitted-object storage or large-data options. |
+| [`meta_V()`](../reference/meta_V.html) | Supply known sampling variance or covariance for Gaussian meta-analytic models. |
+| [`meta_vcov_bivariate()`](../reference/meta_vcov_bivariate.html) | Assemble the row-paired known covariance matrix for two-response meta-analysis. |
+| [`miss_control()`](../reference/miss_control.html) | Choose the documented missing-response or missing-predictor policy. |
+| [`mi()`](../reference/mi.html) | Mark a predictor whose missing values are modelled jointly with the response. |
+| [`impute_model()`](../reference/impute_model.html) | Specify the family and formula for a modelled missing predictor. |
+
+### Formula anatomy
+
+| Syntax | What it controls |
+|---|---|
+| [`drm_formula(mu = trait ~ temp, sigma = ~ temp)`](../reference/drm_formula.html) | Model the expected trait and its residual scale with separate linear predictors. |
+| [`nu = ~ 1`, `zi = ~ habitat`, `hu = ~ habitat`](../reference/drm_formula.html) | Add a shape, zero-inflation, or hurdle component where the chosen family supports it. |
+| [`rho12 = ~ environment`](../reference/drm_formula.html) | Model coscale: the within-observation residual correlation of a bivariate Gaussian fit. |
+| [`sd(group) ~ x`, `sd1(group) ~ x`, `sd2(group) ~ x`](../reference/random_effect_scale_formulas.html) | Model Gaussian location random-effect SDs; use `level = "phylogenetic"` for the documented structured route. |
+| [`corpair(label) ~ x`](../reference/corpair.html) | Formula-marker syntax for a current q=2 labelled ordinary or phylogenetic location-location correlation block; predictors must be constant within group. |
+
+### Response and predictor families
+
+| Function | Use it for |
+|---|---|
+| [`student()`](../reference/student.html) | Student-t location-scale-shape models for heavy-tailed continuous responses. |
+| [`skew_normal()`](../reference/skew_normal.html) | Skew-normal location-scale-shape models. |
+| [`lognormal()`](../reference/lognormal.html) | Positive continuous responses on the lognormal scale. |
+| [`tweedie()`](../reference/tweedie.html) | Non-negative semicontinuous responses that may include exact zeroes. |
+| [`beta()`](../reference/beta.html) | Strict proportions inside `(0, 1)`. |
+| [`zero_one_beta()`](../reference/zero_one_beta.html) | Continuous proportions with structural exact zeroes or ones. |
+| [`beta_binomial()`](../reference/beta_binomial.html) | Success counts with a known denominator and extra-binomial variation. |
+| [`categorical()`](../reference/categorical.html) | An unordered categorical missing-predictor model in `impute_model()`. |
+| [`cumulative_logit()`](../reference/cumulative_logit.html) | Ordered categorical responses or ordered missing-predictor models. |
+| [`nbinom2()`](../reference/nbinom2.html) | Negative-binomial count models with quadratic mean-variance scaling. |
+| [`truncated_nbinom2()`](../reference/truncated_nbinom2.html) | Positive or hurdle negative-binomial count models. |
+| [`biv_gaussian()`](../reference/biv_gaussian.html) | Two Gaussian responses with separate means, scales, and residual `rho12`. |
+| [`biv_lognormal()`](../reference/biv_lognormal.html) | Two lognormal responses with residual `rho12` on the log-response scale. |
+| [`biv_student()`](../reference/biv_student.html) | Two heavy-tailed Student-t responses with a shared degrees-of-freedom parameter. |
+| [`gaussian()`, `Gamma()`, `binomial()`, `poisson()`](distribution-families.html) | Base-R families for documented Gaussian, positive, event-count, and count-response routes. |
+
+The package also accepts the base-R family constructors `gaussian()`,
+`Gamma(link = "log")`, `binomial(link = "logit")`, and
+`poisson(link = "log")` where documented. Zero-inflated and hurdle components
+are selected through `zi = ~ ...` and `hu = ~ ...` formulas rather than separate
+family constructors.
+
+## Random and structured effects
+
+| Function or syntax | Use it for |
+|---|---|
+| [`animal()`](../reference/animal.html) | Pedigree or supplied animal-model precision/covariance structure. |
+| [`phylo()`](../reference/phylo.html) | A structured effect derived from one phylogenetic tree. |
+| [`phylo_interaction()`](../reference/phylo_interaction.html) | A pair-level effect derived from two phylogenetic trees. |
+| [`spatial()`](../reference/spatial.html) | Coordinate-based spatial structured effects. |
+| [`spatial_coords()`](../reference/spatial_coords.html) | Convert longitude and latitude to an explicitly chosen projected coordinate system. |
+| [`make_mesh()`](../reference/make_mesh.html) | Build the fixed-kappa SPDE mesh and projection inputs used by mesh spatial effects. |
+| [`relmat()`](../reference/relmat.html) | A structured effect from a user-supplied relationship or precision matrix. |
+| [`corpair()`](../reference/corpair.html) | Mark one current q=2 labelled ordinary or phylogenetic location-location correlation formula. Keep this distinct from residual `rho12 = ~ ...`. |
+| [`sd(group) ~ ...`, `sd1(group) ~ ...`, `sd2(group) ~ ...`](../reference/random_effect_scale_formulas.html) | Formula-only syntax for Gaussian location random-effect SDs. These are not replacements for `stats::sd()`. |
+| [`drm_phylo_penalty()`](../reference/drm_phylo_penalty.html) | Define the documented penalized/MAP prior for weakly identified phylogenetic SDs or correlations. Penalized fits are MAP fits, not ordinary ML fits for LR tests or AIC comparisons. |
+| [`drm_phylo_penalty_sweep()`](../reference/drm_phylo_penalty_sweep.html) | Check whether a penalized phylogenetic coupling is data-informed or prior-shaped. |
+
+## Paired-outcome association
+
+These functions create or inspect a separate `drm_pair_association` object.
+They are not ordinary `drmTMB` fit extractors, and latent-normal association
+`eta` is distinct from residual `rho12` and labelled random-effect
+correlations returned by `corpairs()`.
+
+| Function | Use it for |
+|---|---|
+| [`biv_associate()`](../reference/biv_associate.html) | Fit two margins for a pair class listed in the association guide, then construct their frozen-margin association. |
+| [`associate_pairs()`](../reference/associate_pairs.html) | Estimate within-row association from two fitted, aligned margins on a route listed in the association guide. |
+| [`latent_normal()`](../reference/latent_normal.html) | Declare the Gaussian-copula kernel used by the paired-outcome association stage. |
+| [`association()`](../reference/association.html) | Extract latent-normal `eta` from a separate `drm_pair_association` object. It is not residual `rho12` or a correlation from `corpairs()`. |
+
+## Check, summarize, and extract
+
+| Function | Use it for |
+|---|---|
+| [`check_drm()`](../reference/check_drm.html) | Run the model-aware convergence and identifiability checks. Start here after fitting. |
+| [`is_converged()`](../reference/is_converged.html) | Return one logical convergence summary for programmatic workflows. |
+| [`summary()`](../reference/summary.drmTMB.html) | Print coefficients, fit information, and optional intervals. |
+| [`coef()` / `fixef()`](../reference/fixef.html) | Extract fixed-effect coefficient blocks; `fixef()` makes the mixed-model meaning explicit. |
+| [`ranef()`](../reference/ranef.html) | Extract conditional modes for ordinary or structured random effects. |
+| [`sigma()`](../reference/sigma.drmTMB.html) | Extract fitted residual or family-specific scale values. |
+| [`rho12()`](../reference/rho12.html) | Extract within-observation residual correlation for bivariate Gaussian fits. |
+| [`corpairs()`](../reference/corpairs.html) | Extract labelled ordinary or structured latent-correlation summaries. |
+| [`structured_effects()`](../reference/structured_effects.html) | List fitted structured-effect terms and their model roles. |
+| [`imputed()`](../reference/imputed.html) | Summarize fitted values for a modelled missing predictor. |
+| [`fitted()`](../reference/fitted.drmTMB.html) | Extract fitted response means for the original fitted rows. |
+| [`residuals()`](../reference/residuals.drmTMB.html) | Compute the documented response, Pearson, or randomized-quantile residuals. |
+| [`weights()`](../reference/weights.drmTMB.html) | Recover fitted likelihood weights. |
+| [`logLik()`](../reference/model-fit-extractors.html) | Extract the unpenalized fitted log likelihood. |
+| [`AIC()` / `BIC()`](../reference/model-fit-extractors.html) | Compare appropriate maximum-likelihood fits using information criteria. |
+| [`vcov()`](../reference/model-fit-extractors.html) | Extract the fixed-effect covariance matrix when the Hessian is usable. |
+| [`nobs()` / `df.residual()` / `deviance()`](../reference/model-fit-extractors.html) | Extract fitted-row count, residual degrees of freedom, or absolute negative twice log likelihood. |
+
+## Intervals and likelihood profiles
+
+| Function | Use it for |
+|---|---|
+| [`profile_targets()`](../reference/profile_targets.html) | Discover direct fitted targets and their profile names before requesting an interval. |
+| [`confint()`](../reference/confint.drmTMB.html) | Compute available Wald, profile-likelihood, or parametric-bootstrap intervals. |
+| [`profile()`](../reference/profile.drmTMB.html) | Compute likelihood-ratio profiles for explicit targets. |
+| [`plot()` for a profile](../reference/plot.profile.drmTMB.html) | Plot the likelihood-ratio curve, cutoff, estimate, and interval endpoints. |
+
+Profile and bootstrap support is target-specific. Use `profile_targets(fit)` and
+read the returned status instead of assuming that every printed parameter has a
+calibrated interval.
+
+## Prediction, simulation, and plots
+
+| Function | Use it for |
+|---|---|
+| [`prediction_grid()`](../reference/prediction_grid.html) | Build a new-data grid that varies selected predictors while controlling the others. |
+| [`predict()`](../reference/predict.drmTMB.html) | Predict the response or a named distributional parameter for original or new data. |
+| [`predict_parameters()`](../reference/predict_parameters.html) | Return several fitted distributional parameters in one tidy long table. |
+| [`marginal_parameters()`](../reference/marginal_parameters.html) | Compute unweighted plug-in averages of fitted parameters on their moment-appropriate reporting scales; this is not an interval or contrast. |
+| [`simulate()`](../reference/simulate.drmTMB.html) | Simulate new responses from a fitted model. |
+| [`plot_corpairs()`](../reference/plot_corpairs.html) | Plot a table returned by `corpairs()`. |
+| [`plot_parameter_surface()`](../reference/plot_parameter_surface.html) | Plot a table returned by `predict_parameters()` or a compatible parameter-surface table. |
+
+## Distributional assessment
+
+| Function | Use it for |
+|---|---|
+| [`fitted_distribution()`](../reference/fitted_distribution.html) | Access fitted per-row density, CDF, and quantile functions. |
+| [`exceedance()`](../reference/exceedance.html) | Compute conditional probability above or below a threshold. |
+| [`centile_chart()`](../reference/centile_chart.html) | Plot conditional response centiles over one covariate. |
+| [`qq_plot()`](../reference/qq_plot.html) | Plot randomized quantile residuals against normal quantiles. |
+| [`worm_plot()`](../reference/worm_plot.html) | Detrend the QQ plot to reveal systematic departures. |
+
+### Quick ecological recipes
+
+| Task and code | Read it as |
+|---|---|
+| [`drmTMB(drm_formula(trait ~ temp, sigma = ~ temp), family = gaussian(), data = dat)`](../reference/drmTMB.html) | Ask whether both the expected trait and residual variability change with temperature. |
+| [`drmTMB(count ~ habitat, family = nbinom2(), data = dat)`](../reference/nbinom2.html) | Model overdispersed abundance counts across habitats. |
+| [`drmTMB(cbind(success, failure) ~ treatment, family = beta_binomial(), data = dat)`](../reference/beta_binomial.html) | Model success probability with extra-binomial variation. |
+| [`check_drm(fit); predict(fit, newdata = grid)`](../reference/check_drm.html) | Check the fitted object before interpreting predictions on a controlled grid. |
+| [`profile_targets(fit); confint(fit, method = "profile", parm = target)`](../reference/profile_targets.html) | Discover a direct target before requesting a profile-likelihood interval. |
+
+### Interpretation guardrails
+
+| Item | Remember |
+|---|---|
+| [`student()` scale](../reference/student.html) | Student-t `sigma` is a scale parameter, not the response standard deviation. |
+| [`drm_phylo_penalty()` fits](../reference/drm_phylo_penalty.html) | These are penalized/MAP fits; `logLik()` reports the unpenalized data likelihood, and ordinary LR/AIC comparisons are not standard. |
+| [Capability matrix](capability-and-limits.html) | A visible function does not imply every family-by-structure interval route is validated. |
+
+## Optional Julia engine
+
+Julia fitting is future/deferred work, not an optional route for a new
+analysis. Current Julia methods provide compatibility for legacy Julia-engine
+objects only.
+
+| Function | Use it for |
+|---|---|
+| [`rho_latent()`](../reference/rho_latent.html) | Extract the latent/link-scale correlation from a compatible legacy Julia-engine object. Julia fitting is not a current route for a new analysis. |
+
+## What is intentionally absent
+
+This cheatsheet excludes deprecated compatibility markers and their historical
+spellings. Existing old scripts can still consult the full
+[reference index](../reference/index.html), but new analyses should use
+`meta_V()` rather than `meta_known_V()`, structured-effect markers rather than
+`gr()`, and `sd(..., level = "phylogenetic")` rather than the legacy
+`sd_phylo*()` spellings.

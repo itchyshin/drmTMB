@@ -19,6 +19,9 @@ tests/testthat/testthat-problems.rds
 .Ruserdata
 .DS_Store
 
+# Registered local worktrees belong to Git metadata, not package source
+.worktrees/
+
 # Example code in package build process
 *-Ex.R
 

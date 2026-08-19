@@ -94541,3 +94541,38 @@ and was disclosed in-session. The real `ubuntu-latest (release)` job, not only
 `os-matrix`, subsequently passed at 13:17:34Z after 40m19s:
 <https://github.com/itchyshin/drmTMB/actions/runs/32253581513/job/96070045054>.
 All #1076 paths are build-excluded; candidate bytes remain `1d6445db…`.
+
+## 2026-08-19 — function map and printable cheat sheet restored
+
+The maintainer rejected the replacement design and requested the originals.
+The exact historical article and audited 1536 x 1024 Image 2.0 map were restored
+from commit `cc4f5bae`; the PNG SHA-256 is
+`ad709c25d9942ed8e03b08d0e24ffece20f3161e81587e25b04dad12f287729d`.
+The original two-page A4 cheat-sheet design and ReportLab source were recovered
+from preserved Codex checkpoint ref
+`refs/codex/turn-diffs/captures/1786550471672/93d68566-a14b-4f95-98da-c3b71a620bc1/base`.
+Its separate card-map PDF was not retained; the one-page printable workflow map
+was newly built by embedding the restored audited PNG.
+Only package-version text, current exported-function coverage, download links,
+accessible-alternative wording, provenance, and regression tests were updated.
+
+Final local gate: PDF generator/export check PASS; focused R tests 70/70 and
+17/17 PASS; reader-navigation Python contract 1/1 PASS; article build PASS;
+`pkgdown::check_pkgdown()` reports no problems. `pdfinfo` reports one 12 x 8
+map page and two A4-landscape cheat-sheet pages. Fresh 150-dpi renders of all
+pages are unclipped; the first new assessment-card render crossed the footer
+and was repaired before the final artifacts. The original PNG is now positively
+fenced by checksum and its Image 2.0 plus deterministic-overlay provenance is
+recorded in `inst/COPYRIGHTS`.
+The 102-row shared checkout was not bulk-cleaned: `.worktrees/` is newly ignored,
+while ambiguous tracked, scratchpad, agent, document, and test work is preserved
+and classified in `docs/dev-log/2026-08-19-dirty-checkout-disposition.md`.
+
+This repair changes five build-included paths in the immutable `6170fbeee`
+submission candidate: `inst/COPYRIGHTS`, both focused test files, the article
+Rmd, and its restored PNG. Merge/deploy therefore remains held for
+post-submission unless the maintainer explicitly reopens the exact-byte release
+gate.
+
+Closeout report:
+`docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.

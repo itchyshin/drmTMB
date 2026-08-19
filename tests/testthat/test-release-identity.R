@@ -84,5 +84,23 @@ test_that("plot-heavy reader articles remain development articles", {
       "simulation-plot-grammar.Rmd"
     )
   ))))
-  expect_false(file.exists(file.path(articles_path, "function-map-cheatsheet.png")))
+  expect_true(file.exists(file.path(
+    articles_path, "function-map-cheatsheet.png"
+  )))
+
+  pkgdown_path <- file.path(root, "pkgdown")
+  if (dir.exists(pkgdown_path)) {
+    expect_true(all(file.exists(file.path(
+      pkgdown_path,
+      "assets",
+      "cheatsheets",
+      c("drmTMB-function-map.pdf", "drmTMB-function-cheatsheet.pdf")
+    ))))
+  }
+
+  copyrights_path <- file.path(root, "inst", "COPYRIGHTS")
+  expect_true(file.exists(copyrights_path))
+  copyrights <- paste(readLines(copyrights_path, warn = FALSE), collapse = "\n")
+  expect_match(copyrights, "OpenAI Image 2.0", fixed = TRUE)
+  expect_match(copyrights, "tools/build-function-pdfs.py", fixed = TRUE)
 })
