@@ -94541,3 +94541,29 @@ and was disclosed in-session. The real `ubuntu-latest (release)` job, not only
 `os-matrix`, subsequently passed at 13:17:34Z after 40m19s:
 <https://github.com/itchyshin/drmTMB/actions/runs/32253581513/job/96070045054>.
 All #1076 paths are build-excluded; candidate bytes remain `1d6445db…`.
+
+## 2026-08-19 — function map and printable cheat sheet restored
+
+The missing function map is restored from one reviewed source inventory as a
+responsive, linked HTML map plus two distinct printable downloads: a 16:9 flow
+map and an A4 landscape task/function lookup. The source contract checks all
+featured exports, drmTMB S3 registrations, compatibility-only exclusions, Rd
+topic targets, both PDFs, and continued absence of both historical PNG paths.
+
+Final local gate: generator PASS; focused R tests 19/19 and 13/13 PASS; reader
+navigation Python contract 1/1 PASS; article build PASS; `pkgdown::check_pkgdown()`
+reports no problems; source and ignored-site PDF copies are byte-identical;
+`pdfinfo` reports one page for each artifact; 390-pixel browser audit reports no
+page overflow, all cards in bounds, 27 direct function links, and only the
+labelled route table scrolling; `git diff --check` PASS. Florence and Pat PASS.
+Rose returns content PASS and release integration HOLD.
+The 102-row shared checkout was not bulk-cleaned: `.worktrees/` is newly ignored,
+while ambiguous tracked, scratchpad, agent, document, and test work is preserved
+and classified in `docs/dev-log/2026-08-19-dirty-checkout-disposition.md`.
+
+This repair changes three build-included paths in the immutable `6170fbeee`
+submission candidate. Merge/deploy therefore remains held for post-submission
+unless the maintainer explicitly reopens the exact-byte release gate.
+
+Closeout report:
+`docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.

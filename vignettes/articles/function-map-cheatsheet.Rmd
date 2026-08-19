@@ -12,21 +12,104 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE
+)
 if (!"package:drmTMB" %in% search()) {
   library(drmTMB)
 }
+inventory_candidates <- c(
+  file.path("..", "..", "tools", "function-map-inventory.R"),
+  file.path("tools", "function-map-inventory.R")
+)
+inventory_file <- inventory_candidates[file.exists(inventory_candidates)][1]
+if (is.na(inventory_file)) {
+  stop("Cannot locate tools/function-map-inventory.R")
+}
+get("source", envir = baseenv())(normalizePath(inventory_file, mustWork = TRUE))
 ```
 
 <style>
-.drmtmb-route-note {
-  margin: 0 0 1.5rem;
-  padding: .8rem 1rem;
-  border-left: 5px solid #147f88;
-  border-radius: 8px;
-  background: #f2f8f8;
+.drmtmb-map {
+  --ink: #173042;
+  --muted: #536875;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f7fafb;
+  border: 1px solid #d9e3e8;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(23, 48, 66, .08);
+  hyphens: none;
+  -webkit-hyphens: none;
 }
-.drmtmb-route-note p { margin: 0; }
+.drmtmb-map *, .drmtmb-downloads * { box-sizing: border-box; }
+.drmtmb-map__header { margin-bottom: .9rem; }
+.drmtmb-map__header h2 { margin: 0; color: var(--ink); font-size: 1.35rem; }
+.drmtmb-map__header p, .drmtmb-map__caption { margin: .2rem 0 0; color: var(--muted); }
+.drmtmb-map__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .8rem;
+}
+.drmtmb-map__card {
+  min-width: 0;
+  padding: .8rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  background: var(--wash);
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+.drmtmb-map__card h3 { margin: 0 0 .45rem; color: var(--accent-dark); font-size: .98rem; }
+.drmtmb-map__card p { margin: .35rem 0; color: var(--ink); line-height: 1.42; }
+.drmtmb-map__card small { display: block; margin-top: .45rem; color: var(--muted); line-height: 1.35; }
+.drmtmb-map__card a { color: var(--accent-dark); font-weight: 700; text-decoration-thickness: .08em; }
+.drmtmb-map__functions code {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  color: var(--accent-dark);
+}
+.drmtmb-map__function { display: inline; font-weight: 600; }
+.drmtmb-map__card a:focus-visible, .drmtmb-download:focus-visible {
+  outline: 3px solid #052b3f;
+  outline-offset: 3px;
+}
+.map-specify { --accent: #75a843; --accent-dark: #476f1f; --wash: #f4f8ef; }
+.map-fit { --accent: #4e86bf; --accent-dark: #245c91; --wash: #eff5fb; }
+.map-check { --accent: #8464ad; --accent-dark: #5b3c82; --wash: #f5f1fa; }
+.map-interpret { --accent: #df8a45; --accent-dark: #9a501d; --wash: #fdf5ec; }
+.map-predict { --accent: #31a0a0; --accent-dark: #126e70; --wash: #eff8f7; }
+.map-uncertainty { --accent: #c56b8c; --accent-dark: #8f3e5e; --wash: #fbf1f5; }
+.drmtmb-map__route {
+  margin: .9rem 0 0;
+  padding: .7rem .8rem;
+  border: 1px dashed #9eafb8;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+}
+.drmtmb-map__route strong { color: #052b3f; }
+.drmtmb-downloads {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem;
+  margin: 1rem 0 1.25rem;
+}
+.drmtmb-download {
+  display: block;
+  padding: .85rem 1rem;
+  border: 1px solid #bdd1d8;
+  border-left: 5px solid #0f7887;
+  border-radius: 10px;
+  color: #173042;
+  background: #f5f9fa;
+  text-decoration: none;
+}
+.drmtmb-download:hover { background: #ebf4f6; color: #173042; text-decoration: none; }
+.drmtmb-download strong, .drmtmb-download small { display: block; }
+.drmtmb-download small { margin-top: .2rem; color: #536875; }
 .drmtmb-route-table {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -34,6 +117,9 @@ if (!"package:drmTMB" %in% search()) {
 .drmtmb-route-table table {
   min-inline-size: 46rem;
   margin-block-end: 0;
+}
+@media (max-width: 760px) {
+  .drmtmb-map__grid, .drmtmb-downloads { grid-template-columns: 1fr; }
 }
 </style>
 
@@ -53,6 +139,21 @@ coscale, meaning residual correlation such as `rho12` between two responses.
 Not every family exposes every parameter, and a location parameter need not be
 the unconditional response mean.
 
+```{=html}
+<div class="drmtmb-downloads" aria-label="Download printable drmTMB function guides">
+  <a class="drmtmb-download" href="../cheatsheets/drmTMB-function-map.pdf" download>
+    <strong>Download the visual function map (PDF)</strong>
+    <small>One landscape page with the six task modules and their key functions.</small>
+  </a>
+  <a class="drmtmb-download" href="../cheatsheets/drmTMB-function-cheatsheet.pdf" download>
+    <strong>Download the one-page function cheat sheet (PDF)</strong>
+    <small>A compact landscape quick reference generated from the same task inventory.</small>
+  </a>
+</div>
+<p><small>The linked HTML map below is the accessible version with navigable
+links and selectable text. The untagged PDFs are print companions.</small></p>
+```
+
 ## Find the next step
 
 The ordinary route is **Specify model → Fit → Check fit health**. After checking
@@ -65,11 +166,23 @@ specification; they are not a later analysis stage. The `gaussian()` and
 exhaustive family list.
 
 ```{=html}
-<div class="drmtmb-route-note" role="note">
-  <p><strong>Typical route:</strong> Specify → Fit → Check. Interpretation,
-  prediction, assessment, uncertainty, and simulation are conditional next
-  tasks rather than compulsory stages.</p>
-</div>
+<section class="drmtmb-map" role="figure" aria-label="drmTMB function map from model specification through fitting and fit checks to interpretation, prediction, uncertainty, and simulation">
+  <div class="drmtmb-map__header">
+    <h2>drmTMB function map</h2>
+    <p>Choose the scientific task first; then follow the relevant function and guide.</p>
+  </div>
+  <div class="drmtmb-map__grid">
+```
+
+```{r function-map-cards, echo = FALSE, results = 'asis'}
+cat(function_map_html())
+```
+
+```{=html}
+  </div>
+  <p class="drmtmb-map__route"><strong>Typical route:</strong> Specify → Fit → Check fit health. Then choose the branch that answers your question: interpretation, prediction and assessment, or uncertainty and simulation.</p>
+  <p class="drmtmb-map__caption">The map's headings, function names, links, and reading order carry the meaning without relying on colour or arrows.</p>
+</section>
 ```
 
 The **Predict & assess** branch checks fitted-response and fixed-effect
@@ -87,7 +200,7 @@ adequacy](distributional-outputs-and-adequacy.html) for that boundary.
 | Check numerical fit health before interpreting | `check_drm()`, `summary()` | [Model workflow](model-workflow.html) |
 | Resolve an error, warning, or unstable fit | `check_drm()`, the original warning, and the fitted object | [Errors, warnings, and convergence](convergence.html) |
 | Extract a parameter or make a prediction table | `coef()`, `fixef()`, `predict_parameters()` | [Distributional outputs and adequacy](distributional-outputs-and-adequacy.html) |
-| Study latent-normal association for an admitted paired-outcome class | `biv_associate()`, `association()`, `vcov()`, `confint()` | [Association between outcome pairs](cross-family.html) |
+| Study latent-normal association for a paired-outcome class admitted by the capability guide | `biv_associate()`, `association()`, `vcov()`, `confint()` | [Association between outcome pairs](cross-family.html) |
 | Work with repeated, related, or spatially structured data | `bf()` with `phylo()`, `spatial()`, or `relmat()`; then `ranef()` | [Structural dependence overview](structural-dependence.html) |
 | Request an interval or profile a target | `confint()`, `profile_targets()`, `profile()` | [Checking and using fitted models](model-workflow.html) |
 | Fit when some values are missing | `miss_control()`, `mi()`, `imputed()` | [Handling missing data](missing-data.html) |
@@ -117,10 +230,14 @@ fit <- drmTMB(
   data = dat
 )
 
-check_drm(fit)
-coef(fit, dpar = "mu")
-coef(fit, dpar = "sigma")
+fit_checks <- check_drm(fit)
+attr(fit_checks, "ok")
+table(fit_checks$status)
 ```
+
+The logical result is the first health verdict. The small status table shows
+whether any diagnostic needs attention; inspect every `warning` or `error` row
+before continuing.
 
 Here `mu` is expected growth and `sigma` is residual SD. The `sigma`
 coefficients use a log-SD link: exponentiating the slope gives the residual-SD

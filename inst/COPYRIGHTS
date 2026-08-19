@@ -19,6 +19,16 @@ Nakagawa, drmTMB's listed author and maintainer. The SVG contains only paths,
 text, and a system-font stack; it embeds no external font or third-party image
 asset. The artwork is distributed under drmTMB's GPL (>= 3) package licence.
 
+The public function map is original drmTMB documentation generated entirely
+from repository source. `tools/function-map-inventory.R` supplies the reviewed
+task and function inventory; the pkgdown article renders its accessible HTML
+and CSS map from that inventory, and `tools/build-function-cheatsheets.R` uses
+base R graphics to produce the two PDFs under `pkgdown/assets/cheatsheets/`.
+The map and PDFs contain no AI-generated raster, external image, embedded
+third-party artwork, or bundled font. The `pkgdown/` directory is excluded
+from the R source package and the generated assets are distributed through the
+documentation site under drmTMB's GPL (>= 3) package licence.
+
 Spatial citation policy:
 
 - If `drmTMB` implements SPDE/GMRF spatial fields from the published method but

@@ -779,3 +779,24 @@ scouting belongs to Jason).
   would have read as correctly routed and simply produced nothing. Routing was
   corrected before dispatch by sending the writing slices to tool-capable agents
   carrying the same lens, but the plan's own slice table still named the lenses.
+
+## 2026-08-19 - Verify Reader Graphics At Their Physical And Responsive Sizes
+
+- Improvement implemented: printable guides are reviewed at physical page size,
+  including type size and text contrast, and responsive articles are checked as
+  complete pages at a narrow viewport. An isolated component screenshot is not
+  mobile evidence; record document width, card bounds, and any intentionally
+  scrollable region.
+- Trigger: the first function-map PDFs were unclipped but used roughly 5-point
+  function text, while the first mobile screenshot visibly clipped the page.
+  Render review forced larger 7-9-point text, darker headers, a distinct A4
+  lookup sheet, and proof that only the wide route table scrolls at 390 pixels.
+
+## 2026-08-19 - Reference Links Must Resolve Rd Topics, Not Function Names
+
+- Improvement implemented: generated function links carry explicit topic
+  overrides for aliases, and a source test requires every generated target to
+  correspond to an Rd topic file.
+- Trigger: the first linked map generated `reference/bf.html`, but `bf()` is an
+  alias documented on the `drm_formula` topic. The page rendered cleanly while
+  the most prominent first function link was broken.
