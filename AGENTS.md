@@ -10,9 +10,9 @@ regression using Template Model Builder.
 > 4,368,396 bytes. Exact-byte local `--as-cran` and all three win-builder arms
 > pass with the expected first-submission NOTE; exact-source 3-OS CI and three
 > sanitizer jobs pass, while the red `rchk` findings remain honestly confined
-> to installed TMB headers. The executable ledger currently proves
-> `platform-clean`; Grace and Pat are READY, and Rose's final re-audit follows
-> this build-excluded governance/evidence landing. `5153ae7e…` and
+> to installed TMB headers. Grace, Rose, and Pat are READY and the executable
+> ledger proves `submission-ready`; this does not authorize submission.
+> `5153ae7e…` and
 > `6b45164b…` are predecessor evidence only. No `submit_cran()`, no submission
 > on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes. Current
 > status: [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).

@@ -8,8 +8,9 @@
 > `6170fbeeea65f22444d7b0934f4e808c40744d22`, SHA-256
 > `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
 > 4,368,396 bytes. Its exact-byte local and three-arm win-builder evidence and
-> exact-source 3-OS/sanitizer evidence prove `platform-clean`; Gate 7 closeout
-> is recorded in the current ledger. See
+> exact-source 3-OS/sanitizer evidence plus unanimous Gate 7 review prove
+> `submission-ready`; this is readiness evidence, not submission authority.
+> The closeout is recorded in the current ledger. See
 > [`../coordination-board.md`](../coordination-board.md). The prohibitions on
 > `submit_cran()`, 19 August submission, #1033, and
 > `_julia_skip2_artifacts/` remain in force.

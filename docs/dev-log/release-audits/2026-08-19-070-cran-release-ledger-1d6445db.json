@@ -3,7 +3,7 @@
   "version": "0.7.0",
   "release_type": "first_submission",
   "target_cran_version": "0.7.0",
-  "note": "Fresh current-main candidate replacing 5153ae7e and 6b45164b. Exact bytes pass local --as-cran and all three win-builder arms; exact source passes 3-OS CI and three sanitizer jobs. rchk remains visibly red with protection findings confined to installed TMB headers. Claimed rung is platform-clean while the build-excluded governance/evidence closeout requested by Rose is landed and re-audited. No submission is authorized or performed.",
+  "note": "Fresh current-main candidate replacing 5153ae7e and 6b45164b. Exact bytes pass local --as-cran and all three win-builder arms; exact source passes 3-OS CI and three sanitizer jobs. rchk remains visibly red with protection findings confined to installed TMB headers. Grace, Rose, and Pat are READY and the executable ledger proves submission-ready. No submission is authorized or performed.",
   "profile": {
     "compiled_code": true,
     "reverse_dependencies": false,
@@ -99,11 +99,11 @@
   },
   "panel": {
     "grace": "READY",
-    "rose": "NOT_READY",
+    "rose": "READY",
     "pat": "READY",
-    "note": "Grace and Pat are READY. Rose found no candidate-byte defect but requires the build-excluded governance refresh and durable evidence landing before a fresh re-audit."
+    "note": "Grace, Rose, and Pat independently returned READY after the build-excluded governance refresh and durable evidence landing. Panel details are in 2026-08-19-070-gate7-panel-1d6445db.md."
   },
-  "status_claim": "platform-clean",
+  "status_claim": "submission-ready",
   "submission": {
     "uploaded_sha256": "",
     "uploaded_size_bytes": 0,

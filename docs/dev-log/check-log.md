@@ -94517,3 +94517,19 @@ another lane's live compute. Recorded here rather than left in a scratchpad.
 
 **Rule:** attribute a process by PORT, or by descent from your own PID. Never by a global count on a
 shared host.
+
+## 2026-08-19 — current-main 0.7.0 exact evidence reached `submission-ready`
+
+Final immutable candidate: source `6170fbeeea65f22444d7b0934f4e808c40744d22`,
+SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
+4,368,396 bytes, 946 entries. Exact-byte local `--as-cran` and all three
+win-builder arms pass with only the expected first-submission NOTE; Windows
+tests take 110–152 seconds. Exact-source 3-OS CI and three sanitizer arms pass;
+red rchk findings remain confined to installed TMB headers. All 69 packet hashes
+verify in repo and durable copies. Grace, Rose, and Pat are READY, and the
+executable ledger returns `READY FOR CLAIMED RUNG` at `submission-ready`.
+
+This is readiness evidence, not submission authority. No `submit_cran()`, no
+19 August submission, no #1033 change, and no `_julia_skip2_artifacts/` change.
+Closeout report:
+`docs/dev-log/after-task/2026-08-19-current-main-070-exact-evidence-closeout.md`.
