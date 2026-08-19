@@ -1,0 +1,126 @@
+{
+  "package": "drmTMB",
+  "version": "0.7.0",
+  "release_type": "first_submission",
+  "target_cran_version": "0.7.0",
+  "note": "Fresh current-main candidate replacing 5153ae7e and 6b45164b. Exact bytes pass local --as-cran and all three win-builder arms; exact source passes 3-OS CI and three sanitizer jobs. rchk remains visibly red with protection findings confined to installed TMB headers. Claimed rung is platform-clean while the build-excluded governance/evidence closeout requested by Rose is landed and re-audited. No submission is authorized or performed.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": true,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/drmTMB_0.7.0.tar.gz",
+    "sha256": "1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3",
+    "size_bytes": 4368396,
+    "source_commit": "6170fbeeea65f22444d7b0934f4e808c40744d22",
+    "clean_worktree": true,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/tar-inventory.txt",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/tar-inventory.txt"
+    },
+    "forbidden_entries": [],
+    "entry_count": 946,
+    "immutability": "Primary artifact is read-only. R CMD build embeds timestamps, so these exact bytes are not regenerated from source.",
+    "evidence_durability_note": "Evidence values point to the durable copy filed beside the immutable artifact; repo_path fields identify the same packet to be landed in the repository."
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/current-main-change-impact.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/current-main-change-impact.md"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/rights-and-consent.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/rights-and-consent.md"
+    },
+    "current_cran_policy": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/current-cran-policy.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/current-cran-policy.md"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/rendered-site-inspection.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/rendered-site-inspection.md"
+    },
+    "local_as_cran": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/local-url-note-recheck-00check.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/local-url-note-recheck-00check.log"
+    },
+    "incoming_feasibility": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/local-url-note-recheck-00check.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/local-url-note-recheck-00check.log"
+    },
+    "installed_package": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/timing-and-size.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/timing-and-size.md"
+    },
+    "timing": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/timing-and-size.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/timing-and-size.md"
+    },
+    "platform_matrix": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/platform-matrix.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/platform-matrix.md"
+    },
+    "external_logs": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/EVIDENCE-SHA256SUMS",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/EVIDENCE-SHA256SUMS"
+    },
+    "reverse_dependencies": {
+      "kind": "rationale",
+      "value": "NOT_APPLICABLE: first submission; drmTMB has no CRAN reverse dependencies"
+    },
+    "compiled_diagnostics": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/rhub-result.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/rhub-result.md"
+    },
+    "external_service_behaviour": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/local-url-note-recheck-00check.log",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/local-url-note-recheck-00check.log"
+    },
+    "size_and_vignette_budget": {
+      "kind": "file",
+      "value": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-6170fbeee/evidence/timing-and-size.md",
+      "repo_path": "docs/dev-log/release/0.7.0-cran-gate/candidate-6170fbeee/timing-and-size.md"
+    }
+  },
+  "panel": {
+    "grace": "READY",
+    "rose": "NOT_READY",
+    "pat": "READY",
+    "note": "Grace and Pat are READY. Rose found no candidate-byte defect but requires the build-excluded governance refresh and durable evidence landing before a fresh re-audit."
+  },
+  "status_claim": "platform-clean",
+  "submission": {
+    "uploaded_sha256": "",
+    "uploaded_size_bytes": 0,
+    "timestamp": "",
+    "submission_id": "",
+    "confirmation_evidence": {},
+    "incoming_evidence": {},
+    "acceptance_evidence": {},
+    "archive_evidence": {},
+    "public_package_evidence": {},
+    "public_check_page_evidence": {}
+  },
+  "known_evidence_gaps": {
+    "rhub_rchk": "Run 32205509997 remains red. Protection findings occur in installed TMB headers; no protection finding cites drmTMB.cpp. All three sanitizer jobs pass and the failure remains visible.",
+    "winbuilder_stale_url": "R-devel and R-release echo a PNG URL absent from candidate source, tarball, and returned binary. A clean network-enabled exact-byte check while that URL returns 404 produces only New submission. The inferred win-builder stale-workspace/cache mechanism is not server-attested.",
+    "notification_bodies": "The maintainer supplied labelled random result URLs, not full email bodies or screenshots. Result indexes, complete check and install logs, raw tests, server timestamps, upload traces, hash, and size are retained; no email body is claimed.",
+    "compiler_warnings": "Windows and R-hub build logs retain twelve unused sigma_i compiler warnings in drmTMB.cpp. Grace and Rose adjudicated these as non-blocking cleanup debt because checks and all sanitizer jobs remain green; changing C++ now would invalidate the frozen candidate.",
+    "submission": "No submit_cran call or CRAN submission is authorized."
+  }
+}
