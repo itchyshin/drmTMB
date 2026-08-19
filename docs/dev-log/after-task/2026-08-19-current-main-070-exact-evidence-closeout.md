@@ -62,8 +62,9 @@ in source where the URL does not exist.
 - Executable release gate at `submission-ready`: `READY FOR CLAIMED RUNG`.
 - Fresh panel: Grace READY; Rose READY after governance/durability repair; Pat
   READY after exact-tarball install and a 1.4-second first-workflow fit.
-- PR #1076's real Ubuntu release job is the final landing check; its result is
-  recorded before merge.
+- PR #1076 merged as `7fd86d031` at `2026-08-19T12:47:03Z`. Its real
+  `ubuntu-latest (release)` job then completed successfully at
+  `2026-08-19T13:17:34Z` (run 32253581513; 40m19s).
 
 ## 6. Tests of the Tests
 
@@ -114,6 +115,16 @@ future work and that the full packet was not yet durable. Raw server logs also
 retain original trailing whitespace, so authored-file diff checks were run
 separately rather than rewriting evidence bytes.
 
+Landing sequencing also did not go smoothly. I requested GitHub auto-merge
+expecting it to wait for the pending Ubuntu job. Because that job is not a
+required branch-protection check, GitHub merged #1076 immediately. This
+violated the intended wait-for-green sequence even though every merged file
+was build-excluded. I disclosed it immediately, kept the actual job under
+watch, and filed its later green result rather than treating the selector job
+as sufficient. Future lanes must inspect whether checks are required before
+using `gh pr merge --auto`; if they are not, wait for green and invoke merge
+only afterward.
+
 ## 11. Team Learning
 
 Release identity has four coupled surfaces: candidate bytes, the machine ledger,
@@ -148,11 +159,9 @@ or the protected work in #1033 and `_julia_skip2_artifacts/`.
 
 ## 13. Next Actions
 
-1. Require PR #1076's real Ubuntu release job to pass and merge the
-   build-excluded evidence closeout.
-2. Return the unanimous `submission-ready` verdict to Shinichi for a separate
+1. Return the unanimous `submission-ready` verdict to Shinichi for a separate
    submission decision.
-3. Do not call `submit_cran()` or submit on 19 August; keep #1033 and
+2. Do not call `submit_cran()` or submit on 19 August; keep #1033 and
    `_julia_skip2_artifacts/` protected.
-4. Treat acceptance, CRAN check-page publication, and post-release housekeeping
+3. Treat acceptance, CRAN check-page publication, and post-release housekeeping
    as later external-state gates, not consequences of this readiness verdict.

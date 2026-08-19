@@ -10,8 +10,9 @@ census; capability counts belong in the ledger and Mission Control.
   SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
   4,368,396 bytes. Exact-byte local and three-arm win-builder checks pass;
   exact-source 3-OS CI and sanitizers pass. Grace, Rose, and Pat are READY and
-  the executable ledger proves `submission-ready`. PR #1076 is the
-  build-excluded evidence landing; no candidate rebuild is required. The
+  the executable ledger proves `submission-ready`. PR #1076 merged its
+  build-excluded evidence as `7fd86d031`; the real Ubuntu release job then
+  passed. No candidate rebuild is required. The
   complete packet is
   [`release/0.7.0-cran-gate/candidate-6170fbeee/`](release/0.7.0-cran-gate/candidate-6170fbeee/)
   and the ledger is
