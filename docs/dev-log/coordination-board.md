@@ -5,6 +5,14 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-08-18 — current-main 0.7.0 refreeze repair is active in Codex.**
+  Shinichi selected current `main`; the exact `6b45164b…` candidate completed
+  local, 3-OS, R-hub, and three-arm win-builder evidence, then failed the fresh
+  panel as a final candidate. It is predecessor evidence, not the bytes to
+  submit. Repair scope is limited to shipped release-identity contradictions,
+  the still-excessive CRAN test lane, and governance sync;
+  then cut new bytes and repeat the full ladder. No `submit_cran()`, no
+  submission on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes.
 - **2026-08-18 — #1072 MERGED; Codex owns the CRAN Ligges wait lane only.**
   R-oldrelease `T2LOH4zOG6WT` is filed at 1 NOTE for exact julia-skip-2 bytes
   `5153ae7e…`; R-release is still waiting, `platform-clean` is not claimed,

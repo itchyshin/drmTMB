@@ -1,5 +1,15 @@
 # Session Handoff: drmTMB 0.7.0 Ligges wait
 
+> **Superseded 2026-08-18:** this is the historical predecessor-byte handoff,
+> not the live release state. Shinichi subsequently selected current `main` for
+> a fresh candidate. Exact candidate `6b45164b…` completed the platform ladder
+> but was rejected as the final candidate by the fresh panel; the active work is
+> a narrow shipped-truth and CRAN-test-time repair followed by a new immutable
+> candidate and full rerun. See
+> [`../coordination-board.md`](../coordination-board.md). The prohibitions on
+> `submit_cran()`, 19 August submission, #1033, and
+> `_julia_skip2_artifacts/` remain in force.
+
 Meta: 2026-08-18 · from Claude · to Codex · branch
 `cursor/070-ligges-codex-handover`
 
