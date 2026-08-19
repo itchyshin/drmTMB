@@ -19,9 +19,11 @@ From this directory (or the package root):
 Rscript run.R
 ```
 
-Needs (all on CRAN): `drmTMB`, `metafor`, `glmmTMB`, `metadat`. It sources the
-in-package simulation harness from `inst/sim/`. Runtime ≈ 10 s. Every result below is
-written to `results/` (one CSV per slice) plus `results/badge.json`.
+Needs `drmTMB` installed from the source or release candidate under review.
+The comparator packages `metafor`, `glmmTMB`, and `metadat` are on CRAN. The
+driver sources the in-package simulation harness from `inst/sim/`. Runtime ≈
+10 s. Every result below is written to `results/` (one CSV per slice) plus
+`results/badge.json`.
 
 ## The evidence
 

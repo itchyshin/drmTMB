@@ -225,9 +225,11 @@ Template Model Builder.
 * The `DRM.jl` bridge continues to reject probit and cloglog: DRM.jl implements
   the logit mean only, so `engine = "julia"` errors rather than silently fitting
   a different model.
-* The maximum-softly-penalized-likelihood (MSPL) entry point remains
-  **logit-only**. Its finiteness guarantee is published for the fixed-effect
-  case; the mixed-effects probit/cloglog bounds are open research.
+* **Superseded later in 0.7.0:** the maximum-softly-penalized-likelihood
+  (MSPL) entry point was initially logit-only. It now also admits probit and
+  complementary log-log links under the explicitly bounded, experimentally
+  supported contract described in “Experimental MSPL accepts probit and
+  complementary log-log” above.
 
 ## Default uncertainty story
 
