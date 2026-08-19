@@ -1,0 +1,87 @@
+* using log directory 'd:/RCompile/CRANguest/R-devel/drmTMB.Rcheck'
+* using R Under development (unstable) (2026-08-17 r90424 ucrt)
+* using platform: x86_64-w64-mingw32
+* R was compiled by
+    gcc.exe (GCC) 14.3.0
+    GNU Fortran (GCC) 14.3.0
+* running under: Windows Server 2022 x64 (build 20348)
+* using session charset: UTF-8
+* current time: 2026-08-19 02:24:11 UTC
+* checking for file 'drmTMB/DESCRIPTION' ... OK
+* this is package 'drmTMB' version '0.7.0'
+* package encoding: UTF-8
+* checking CRAN incoming feasibility ... [14s] NOTE
+Maintainer: 'Shinichi Nakagawa <itchyshin@gmail.com>'
+
+New submission
+
+Possibly misspelled words in DESCRIPTION:
+  centile (24:43)
+  misspecification (23:40)
+  uncalibrated (25:6)
+
+Found the following (possibly) invalid URLs:
+  URL: https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.png
+    From: inst/doc/function-map-cheatsheet.html
+    Status: 404
+    Message: Not Found
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking whether package 'drmTMB' can be installed ... OK
+* used C compiler: 'gcc.exe (GCC) 14.3.0'
+* used C++ compiler: 'g++.exe (GCC) 14.3.0'
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking 'build' directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking use of S3 registration ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... [129s] OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking pragmas in C/C++ headers and code ... OK
+* checking compilation flags used ... OK
+* checking compiled code ... OK
+* checking installed files from 'inst/doc' ... OK
+* checking files in 'vignettes' ... OK
+* checking examples ... [30s] OK
+* checking for unstated dependencies in 'tests' ... OK
+* checking tests ... [149s] OK
+  Running 'spelling.R'
+  Running 'testthat.R' [148s]
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... OK
+* checking re-building of vignette outputs ... [153s] OK
+* checking PDF version of manual ... [16s] OK
+* checking HTML version of manual ... OK
+* DONE
+Status: 1 NOTE

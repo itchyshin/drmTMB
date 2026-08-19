@@ -1,11 +1,16 @@
 # Session Handoff: drmTMB 0.7.0 Ligges wait
 
-> **Superseded 2026-08-18:** this is the historical predecessor-byte handoff,
-> not the live release state. Shinichi subsequently selected current `main` for
-> a fresh candidate. Exact candidate `6b45164b…` completed the platform ladder
-> but was rejected as the final candidate by the fresh panel; the active work is
-> a narrow shipped-truth and CRAN-test-time repair followed by a new immutable
-> candidate and full rerun. See
+> **Final disposition 2026-08-19:** this is the historical predecessor-byte
+> handoff, not the live release state. Its OWED Windows collection is DONE;
+> `5153ae7e…` and `6b45164b…` are RETRACTED as final candidates but retained as
+> predecessor evidence; #1033 and `_julia_skip2_artifacts/` remain PROTECTED.
+> The final immutable candidate is source
+> `6170fbeeea65f22444d7b0934f4e808c40744d22`, SHA-256
+> `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
+> 4,368,396 bytes. Its exact-byte local and three-arm win-builder evidence and
+> exact-source 3-OS/sanitizer evidence plus unanimous Gate 7 review prove
+> `submission-ready`; this is readiness evidence, not submission authority.
+> The closeout is recorded in the current ledger. See
 > [`../coordination-board.md`](../coordination-board.md). The prohibitions on
 > `submit_cran()`, 19 August submission, #1033, and
 > `_julia_skip2_artifacts/` remain in force.
@@ -57,16 +62,18 @@ result was still absent from Gmail at the last verified search.
   still in progress. `os-matrix` was green, but it is only the selector job,
   not the package check.
 
-## Current Working State
+## Historical Working State
 
 - **Working:** R-oldrelease evidence is committed on `main`.
-- **In progress:** R-release Ligges mail/result for exact `5153ae7e…`;
-  post-#1072 `R-CMD-check`.
-- **Blocked on owner:** julia-skip-2 versus re-freeze-current-main choice.
-- **Withheld:** ledger rewrite, `cran-comments.md` rewrite, `platform-clean`,
-  Gate 7, and `submit_cran()`.
+- **Resolved:** all three Ligges arms for exact `5153ae7e…` were filed as
+  predecessor evidence; post-#1072 CI was verified.
+- **Resolved:** Shinichi selected current `main`; the final candidate identity
+  is recorded in the disposition banner above.
+- **Still withheld:** `submit_cran()` and any CRAN submission.
 
-The live ledger remains
+The ledger described below is historical. The current ledger is
+`docs/dev-log/release-audits/2026-08-19-070-cran-release-ledger-1d6445db.json`.
+The predecessor ledger was
 `docs/dev-log/release-audits/2026-08-15-070-cran-release-ledger-2.json` at
 `tarball-clean` for obsolete source `302ac2579…` / SHA `0d150ef3…`. Rewrite it
 only after Shinichi chooses bytes and both Windows arms for those bytes exist.

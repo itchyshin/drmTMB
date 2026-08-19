@@ -3,17 +3,19 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-18, CODEX; current-main refreeze repair).**
-> Shinichi selected current `main` for a fresh 0.7.0 candidate. Candidate
-> `6b45164b…` completed the exact-byte local, 3-OS, R-hub, and three-arm
-> win-builder ladder, but the fresh Grace/Rose/Pat panel rejected it as the
-> final candidate: two shipped release-identity contradictions and the
-> still-excessive CRAN test lane must be repaired first. The
-> candidate remains predecessor evidence only. A new immutable candidate and
-> full platform ladder are required after the repair. No `submit_cran()`, no
-> submission on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes.
-> Current status:
-> [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+> **▶ Latest — start here (2026-08-19, CODEX; exact 0.7.0 evidence closeout).**
+> Shinichi selected current `main` and the final immutable candidate is source
+> `6170fbeeea65f22444d7b0934f4e808c40744d22`, SHA-256
+> `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
+> 4,368,396 bytes. Exact-byte local `--as-cran` and all three win-builder arms
+> pass with the expected first-submission NOTE; exact-source 3-OS CI and three
+> sanitizer jobs pass, while the red `rchk` findings remain honestly confined
+> to installed TMB headers. Grace, Rose, and Pat are READY and the executable
+> ledger proves `submission-ready`; this does not authorize submission.
+> `5153ae7e…` and
+> `6b45164b…` are predecessor evidence only. No `submit_cran()`, no submission
+> on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes. Current
+> status: [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
 >
 > **▶ Latest — start here (2026-08-18, → CODEX; Ligges wait/file lane only).**
 > #1072 merged as `6152aaef1`; exact julia-skip-2 bytes `5153ae7e…`

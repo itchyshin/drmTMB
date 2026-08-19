@@ -5,18 +5,32 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-08-19 — exact 0.7.0 evidence closeout is active in Codex.** Final
+  immutable candidate: source `6170fbeeea65f22444d7b0934f4e808c40744d22`,
+  SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
+  4,368,396 bytes. Exact-byte local and three-arm win-builder checks pass;
+  exact-source 3-OS CI and sanitizers pass. Grace, Rose, and Pat are READY and
+  the executable ledger proves `submission-ready`. PR #1076 is the
+  build-excluded evidence landing; no candidate rebuild is required. The
+  complete packet is
+  [`release/0.7.0-cran-gate/candidate-6170fbeee/`](release/0.7.0-cran-gate/candidate-6170fbeee/)
+  and the ledger is
+  [`release-audits/2026-08-19-070-cran-release-ledger-1d6445db.json`](release-audits/2026-08-19-070-cran-release-ledger-1d6445db.json).
+  No submission is authorized; #1033 and `_julia_skip2_artifacts/` remain
+  protected.
 - **2026-08-18 — current-main 0.7.0 refreeze repair is active in Codex.**
   Shinichi selected current `main`; the exact `6b45164b…` candidate completed
   local, 3-OS, R-hub, and three-arm win-builder evidence, then failed the fresh
   panel as a final candidate. It is predecessor evidence, not the bytes to
   submit. Repair scope is limited to shipped release-identity contradictions,
   the still-excessive CRAN test lane, and governance sync;
-  then cut new bytes and repeat the full ladder. No `submit_cran()`, no
+  then cut new bytes and repeat the full ladder. **Superseded by the
+  2026-08-19 final candidate above.** No `submit_cran()`, no
   submission on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes.
-- **2026-08-18 — #1072 MERGED; Codex owns the CRAN Ligges wait lane only.**
-  R-oldrelease `T2LOH4zOG6WT` is filed at 1 NOTE for exact julia-skip-2 bytes
-  `5153ae7e…`; R-release is still waiting, `platform-clean` is not claimed,
-  19 August is not a submit day, and #1033 stays protected. Start here:
+- **2026-08-18 — #1072 MERGED; predecessor Ligges wait lane closed.**
+  All three `5153ae7e…` Windows arms were filed as predecessor evidence; they
+  do not certify the final candidate. The waiting claim is superseded. The
+  original historical handover remains at:
   [`handover/2026-08-18-codex-handover.md`](handover/2026-08-18-codex-handover.md).
 - **⚡ 2026-08-16 — PLATFORM MOVE: the authoring Claude session CLOSED; Shinichi is moving fully
   to CURSOR. Its automation loop (win-builder polling + the platform-clean cascade) died with it —

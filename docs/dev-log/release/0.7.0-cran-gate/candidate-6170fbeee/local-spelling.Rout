@@ -1,0 +1,41 @@
+
+R version 4.6.0 (2026-04-24) -- "Because it was There"
+Copyright (C) 2026 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin23
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Spell-check vignette prose and .Rd text against inst/WORDLIST.
+> #
+> # Report-only (error = FALSE): prints potential spelling errors to the check
+> # log without failing R CMD check, so an incomplete inst/WORDLIST never breaks
+> # CI. Skipped on CRAN (skip_on_cran = TRUE) because it depends on the system
+> # hunspell dictionary.
+> #
+> # To switch to enforcement (error = TRUE), first run spelling::update_wordlist()
+> # locally (needs hunspell) to populate inst/WORDLIST with every current term,
+> # then flip error = TRUE. DESCRIPTION uses `Language: en-GB` because the
+> # package prose uses British spellings (behaviour, colour, modelling, ...), and
+> # CI has already confirmed the en_GB hunspell dictionary is available.
+> if (requireNamespace("spelling", quietly = TRUE)) {
++   spelling::spell_check_test(
++     vignettes = TRUE,
++     error = FALSE,
++     skip_on_cran = TRUE
++   )
++ }
+All Done!
+> 
+> proc.time()
+   user  system elapsed 
+  0.089   0.039   0.157 

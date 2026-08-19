@@ -1,0 +1,7 @@
+READY FOR CLAIMED RUNG
+
+Ledger: docs/dev-log/release-audits/2026-08-19-070-cran-release-ledger-1d6445db.json
+Claim: submission-ready
+Panel: Grace READY; Rose READY; Pat READY
+Generated after the unanimous Gate 7 verdict. This receipt does not authorize
+submit_cran() or a CRAN submission.
