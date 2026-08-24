@@ -69,11 +69,16 @@
     "command": "jq -e '(.artifact.sha256 == \"115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc\") and (.artifact.size_bytes == 5546071) and (.artifact.entry_count == 948) and (.submission.authorized == false) and (.evidence.win_builder_exact_tarball.release.url != null) and (.evidence.win_builder_exact_tarball.oldrelease.url != null) and (.evidence.win_builder_exact_tarball.devel.url != null)'",
     "result": "PASS: jq assertion returned true; jq parse returned success."
   },
-  "status_claim": "evidence-ready-for-maintainer-decision",
+  "status_claim": "submitted",
   "submission": {
-    "authorized": false,
-    "performed": false,
-    "note": "No submit_cran(), upload to CRAN, tag, or announcement is authorized by this ledger."
+    "authorized": true,
+    "performed": true,
+    "uploaded_sha256": "115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc",
+    "uploaded_size_bytes": 5546071,
+    "timestamp": "2026-08-24T11:40:06Z",
+    "submission_id": "CRAN-upload-success-message; confirmation email pending",
+    "receipt": "docs/dev-log/release-audits/2026-08-24-070-cran-upload-115abfa9.md",
+    "note": "The CRAN upload endpoint reported Package submission successful. Await the maintainer email confirmation link; this is not confirmed, incoming-passed, accepted, archived, or live."
   },
   "supersedes": "2026-08-19-070-cran-release-ledger-1d6445db.json"
 }
