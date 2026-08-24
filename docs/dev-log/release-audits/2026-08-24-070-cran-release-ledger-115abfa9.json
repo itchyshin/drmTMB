@@ -60,15 +60,16 @@
     }
   },
   "panel": {
-    "grace": "PENDING_FRESH_REVIEW",
-    "rose": "PENDING_FRESH_REVIEW",
-    "pat": "PENDING_FRESH_REVIEW"
+    "grace": "READY: reproducibility review of pushed 96d676ef5",
+    "rose": "READY: evidence closeout and maintainer decision only",
+    "pat": "READY: user-facing packet review of pushed 96d676ef5",
+    "report": "docs/dev-log/release-audits/2026-08-24-070-gate7-panel-115abfa9.md"
   },
   "validation": {
     "command": "jq -e '(.artifact.sha256 == \"115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc\") and (.artifact.size_bytes == 5546071) and (.artifact.entry_count == 948) and (.submission.authorized == false) and (.evidence.win_builder_exact_tarball.release.url != null) and (.evidence.win_builder_exact_tarball.oldrelease.url != null) and (.evidence.win_builder_exact_tarball.devel.url != null)'",
     "result": "PASS: jq assertion returned true; jq parse returned success."
   },
-  "status_claim": "evidence-complete-awaiting-fresh-panel",
+  "status_claim": "evidence-ready-for-maintainer-decision",
   "submission": {
     "authorized": false,
     "performed": false,

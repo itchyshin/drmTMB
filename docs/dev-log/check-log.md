@@ -94576,3 +94576,14 @@ gate.
 
 Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
+
+## 2026-08-24 — fb8e6c 0.7.0 exact-evidence closeout
+
+Frozen artifact `115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc`
+(5,546,071 bytes; 948 entries) passed the local CRAN lane and all three exact
+win-builder arms with one expected NOTE each. Same-source 3-OS CI and three
+sanitizer jobs passed. rchk remains red and attributed to installed TMB
+headers; it is not a platform pass. The successor ledger parsed and its
+identity/authorization assertion returned true. Fresh Grace, Rose, and Pat
+reviews are READY for a maintainer decision only. No CRAN submission, tag, or
+announcement was performed.
