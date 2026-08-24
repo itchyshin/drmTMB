@@ -10,17 +10,20 @@ and bivariate residual correlation (`rho12`) to have separate predictors.
 These comments describe one identified artifact:
 
 * tarball `drmTMB_0.7.0.tar.gz`;
-* SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`;
-* size 4,368,396 bytes;
-* built from clean commit `6170fbeeea65f22444d7b0934f4e808c40744d22`.
+* SHA-256 `115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc`;
+* size 5,546,071 bytes;
+* 948 archive entries;
+* built from clean commit `fb8e6c1a5e297941de1f7b05cf516ace0d35dbe9`.
 
-Results are separated into exact-byte checks and same-source checks. The
-local and win-builder checks used the tarball above. GitHub Actions and R-hub
-checked the exact source commit but built their own archives.
+The SHA-256 and size provide a client-side chain of custody for the uploaded
+file; they are not server attestation. Results are separated into exact-byte
+and same-source checks. The local and win-builder checks used the tarball
+above. GitHub Actions and R-hub checked the exact source commit but built their
+own archives.
 
 ## R CMD check results
 
-The exact tarball was checked locally with R 4.6.0 on macOS using
+The exact tarball was checked locally on macOS using
 `R CMD check --as-cran --run-donttest --no-manual`:
 
 ```
@@ -36,39 +39,39 @@ Maintainer: 'Shinichi Nakagawa <itchyshin@gmail.com>'
 New submission
 ```
 
-The selected CRAN test lane completed in 45 seconds elapsed (54 seconds
-reported) with `FAIL 0 / SKIP 30 / PASS 3501`. Installed size was 24.8 MB,
-including 13.7 MB of compiled libraries and 4.7 MB of documentation.
+A separate CRAN-like lane ran with `NOT_CRAN=false`; it also had one expected
+first-submission NOTE and no errors or warnings. The full
+`NOT_CRAN=true` exact-artifact suite completed with
+`FAIL 0 / WARN 70 / SKIP 308 / PASS 21123`. The CRAN-like lane completed in
+55 seconds with `FAIL 0 / WARN 19 / SKIP 30 / PASS 3501`.
 
 ## Test environments
 
 Exact-byte win-builder checks completed on all three Windows arms:
 
-* R-devel r90424: 1 NOTE, 0 errors, 0 warnings; tests 149 seconds;
-  `FAIL 0 / SKIP 30 / PASS 3501`.
-* R-release 4.6.1: 1 NOTE, 0 errors, 0 warnings; tests 152 seconds;
-  `FAIL 0 / SKIP 30 / PASS 3501`.
-* R-oldrelease 4.5.3: 1 NOTE, 0 errors, 0 warnings; tests 110 seconds;
-  `FAIL 0 / SKIP 30 / PASS 3501`.
+* R-devel r90443: 1 NOTE, no check errors or warnings; raw tests
+  `FAIL 0 / WARN 64 / SKIP 30 / PASS 3501`; results:
+  <https://win-builder.r-project.org/ta4JWy8N2LQr/>.
+* R-release 4.6.1: 1 NOTE, no check errors or warnings; raw tests
+  `FAIL 0 / WARN 19 / SKIP 30 / PASS 3501`; results:
+  <https://win-builder.r-project.org/2BcwsfbcFJej/>.
+* R-oldrelease 4.5.3: 1 NOTE, no check errors or warnings; raw tests
+  `FAIL 0 / WARN 19 / SKIP 30 / PASS 3501`; results:
+  <https://win-builder.r-project.org/G2J7Ad8zMIRw/>.
 
-The incoming checks identify `centile`, `misspecification`, and `uncalibrated`
-as possible misspellings. These are intentional statistical terms: centile
-curves describe fitted distributional references; misspecification describes
-an incorrect model; and uncalibrated marks intervals without route-specific
-coverage calibration.
+The incoming checks identify `centile`, `misspecification`, and
+`uncalibrated` as possible misspellings. These are intentional statistical
+terms: centile curves describe fitted distributional references;
+misspecification describes an incorrect model; and uncalibrated marks intervals
+without route-specific coverage calibration.
 
-R-devel and R-release also echoed a stale 404 for
-`function-map-cheatsheet.png` from earlier same-package/version checks. The
-final source and tarball contain neither that link nor the attributed installed
-HTML file, the returned Windows binary does not contain it, and a fresh
-network-enabled exact-tarball check while the URL returned 404 produced only
-the first-submission NOTE. No candidate URL is being excused by this comment.
-
-Same-source GitHub Actions checks succeeded on macOS, Ubuntu, and Windows with
-the full development suite. R-hub clang-ASAN, clang-UBSAN, and GCC-ASAN also
-succeeded with no sanitizer findings and `PASS 3501`. The R-hub rchk job
-remains visibly red: its protection findings are in installed TMB headers and
-none cites `drmTMB.cpp`.
+Same-source GitHub Actions checks succeeded on macOS, Ubuntu, and Windows:
+<https://github.com/itchyshin/drmTMB/actions/runs/32669424670>. R-hub
+clang-ASAN, clang-UBSAN, and GCC-ASAN also succeeded with no sanitizer
+findings: <https://github.com/itchyshin/drmTMB/actions/runs/32669426464>.
+The R-hub rchk job remains visibly red; its protection findings cite installed
+TMB headers rather than `drmTMB.cpp`. This is retained as an attributed
+diagnostic, not represented as a passing platform check.
 
 ## Test-suite design
 
@@ -76,7 +79,7 @@ The CRAN lane retains representative compiled, family, formula, extractor,
 error-path, and release-identity tests. Long recovery, simulation, optional
 Julia, and development-only reader audits remain in the full `NOT_CRAN=true`
 repository suite; they are not run on CRAN. The bounded Windows lane completes
-in under three minutes on every tested R version.
+in under two minutes of test time on every tested R version.
 
 ## Downstream dependencies
 

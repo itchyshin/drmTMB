@@ -1,0 +1,78 @@
+{
+  "package": "drmTMB",
+  "version": "0.7.0",
+  "release_type": "first_submission",
+  "artifact": {
+    "path": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-fb8e6c1a5/drmTMB_0.7.0.tar.gz",
+    "sha256": "115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc",
+    "size_bytes": 5546071,
+    "entry_count": 948,
+    "source_commit": "fb8e6c1a5e297941de1f7b05cf516ace0d35dbe9",
+    "clean_worktree": true,
+    "chain_of_custody": "Client-side SHA-256 and size linked to upload records; not server attestation."
+  },
+  "evidence": {
+    "rights_and_consent": {
+      "source": "inst/COPYRIGHTS",
+      "result": "Included in the exact artifact; recorded in drmTMB_0.7.0.tar.gz.inventory.txt."
+    },
+    "release_policy": {
+      "source": "docs/dev-log/release-audits/2026-08-18-070-cran-policy-refresh.md",
+      "result": "First-submission policy retained; submission remains maintainer-authorized only."
+    },
+    "rendered_material": {
+      "source": "vignettes/articles/function-map-cheatsheet.Rmd",
+      "result": "Included in the exact artifact; local --as-cran check rebuilt package documentation successfully."
+    },
+    "local_exact_tarball": {
+      "command": "R_PROFILE_USER=/dev/null NOT_CRAN=false R CMD check --as-cran --run-donttest --no-manual",
+      "result": "1 NOTE (new submission); 0 errors; 0 warnings; FAIL 0 / WARN 19 / SKIP 30 / PASS 3501",
+      "log": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-fb8e6c1a5/logs/00check-cran-lane.log"
+    },
+    "win_builder_exact_tarball": {
+      "release": {
+        "url": "https://win-builder.r-project.org/2BcwsfbcFJej/",
+        "r_version": "4.6.1 (2026-06-24 ucrt)",
+        "result": "1 NOTE; raw tests FAIL 0 / WARN 19 / SKIP 30 / PASS 3501",
+        "archive": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-fb8e6c1a5/winbuilder/release/"
+      },
+      "oldrelease": {
+        "url": "https://win-builder.r-project.org/G2J7Ad8zMIRw/",
+        "r_version": "4.5.3 (2026-03-11 ucrt)",
+        "result": "1 NOTE; raw tests FAIL 0 / WARN 19 / SKIP 30 / PASS 3501",
+        "archive": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-fb8e6c1a5/winbuilder/oldrelease/"
+      },
+      "devel": {
+        "url": "https://win-builder.r-project.org/ta4JWy8N2LQr/",
+        "r_version": "R Under development (2026-08-22 r90443 ucrt)",
+        "result": "1 NOTE; raw tests FAIL 0 / WARN 64 / SKIP 30 / PASS 3501",
+        "archive": "/Users/z3437171/drmTMB-release-artifacts/0.7.0-fb8e6c1a5/winbuilder/devel/"
+      }
+    },
+    "github_actions_same_source": {
+      "url": "https://github.com/itchyshin/drmTMB/actions/runs/32669424670",
+      "result": "macOS, Ubuntu, and Windows success; independently built archives"
+    },
+    "rhub_same_source": {
+      "url": "https://github.com/itchyshin/drmTMB/actions/runs/32669426464",
+      "sanitizers": "clang-ASAN, clang-UBSAN, and GCC-ASAN success",
+      "rchk": "RED_HEADER_ATTRIBUTED: installed TMB-header protection findings retained; no finding cites drmTMB.cpp"
+    }
+  },
+  "panel": {
+    "grace": "PENDING_FRESH_REVIEW",
+    "rose": "PENDING_FRESH_REVIEW",
+    "pat": "PENDING_FRESH_REVIEW"
+  },
+  "validation": {
+    "command": "jq -e '(.artifact.sha256 == \"115abfa9c378833fc77aec94487c836e098331d4d7a49098936e405fc89919dc\") and (.artifact.size_bytes == 5546071) and (.artifact.entry_count == 948) and (.submission.authorized == false) and (.evidence.win_builder_exact_tarball.release.url != null) and (.evidence.win_builder_exact_tarball.oldrelease.url != null) and (.evidence.win_builder_exact_tarball.devel.url != null)'",
+    "result": "PASS: jq assertion returned true; jq parse returned success."
+  },
+  "status_claim": "evidence-complete-awaiting-fresh-panel",
+  "submission": {
+    "authorized": false,
+    "performed": false,
+    "note": "No submit_cran(), upload to CRAN, tag, or announcement is authorized by this ledger."
+  },
+  "supersedes": "2026-08-19-070-cran-release-ledger-1d6445db.json"
+}
