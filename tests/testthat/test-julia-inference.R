@@ -510,6 +510,48 @@ test_that("an unready fixed-effect profile/bootstrap target is refused with a cl
   )
 })
 
+test_that("confint(method = 'profile'/'bootstrap') with no parm names a real target instead of reciting a menu (#460 defect A)", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+
+  err <- tryCatch(
+    stats::confint(fit, method = "profile"),
+    error = function(e) e
+  )
+  expect_s3_class(err, "rlang_error")
+  msg <- paste(conditionMessage(err), collapse = " ")
+  expect_match(msg, "require an explicit", fixed = TRUE)
+  # Names an actual, usable target from THIS fit -- not a "supported families"
+  # menu that just recites the very families the fit already has.
+  expect_match(msg, "fixef:mu:", fixed = TRUE)
+
+  # Same for bootstrap: no-parm is rejected the same way, before ever reaching
+  # Julia (no live session needed for this assertion).
+  expect_error(
+    stats::confint(fit, method = "bootstrap"),
+    "require an explicit"
+  )
+})
+
+test_that("drm_julia_inference_parm_hint() names all four axes for a bivariate q4 inventory", {
+  targets <- data.frame(
+    parm = c(
+      "sd:mu1:phylo(1 | species)",
+      "sd:mu2:phylo(1 | species)",
+      "sd:sigma1:phylo(1 | species)",
+      "sd:sigma2:phylo(1 | species)"
+    ),
+    target_class = "random-effect-sd",
+    dpar = c("mu1", "mu2", "sigma1", "sigma2"),
+    profile_ready = TRUE,
+    stringsAsFactors = FALSE
+  )
+  hint <- drmTMB:::drm_julia_inference_parm_hint(targets)
+  expect_match(hint, "all four axis names", fixed = TRUE)
+  expect_match(hint, "sd:mu1:phylo(1 | species)", fixed = TRUE)
+  expect_match(hint, "sd:sigma2:phylo(1 | species)", fixed = TRUE)
+})
+
 # --- Live Gaussian phylo fixed-effect round-trip -----------------------------
 #
 # Fits a Gaussian mean + phylo model via engine = "julia" and profiles /
@@ -611,6 +653,142 @@ test_that("confint() profiles and bootstraps an ordinary fixed effect on a live 
   expect_true(profiled$upper < wald$upper + span)
   expect_true(booted$lower > wald$lower - span)
   expect_true(booted$upper < wald$upper + span)
+})
+
+# --- Live non-Gaussian fixed-effect bootstrap (#460 defect B) ---------------
+#
+# DRM.jl's non-Gaussian bootstrap_result() dispatches to a DIFFERENT method
+# than the Gaussian one, and that method's kwargs guard throws on ANY
+# non-nothing keyword -- including `algorithm` / `g_tol`, which the glue
+# always supplies. This was reachable for every non-Gaussian fixed-effect
+# bootstrap target and was invisible to the mocked tests above (they stand in
+# for drm_julia_call_fixef_inference() itself, never executing a character of
+# drmTMB_drm_bridge_fixef_inference). These two live round-trips are the only
+# tests in this file that actually run that Julia function for a non-Gaussian
+# fit.
+
+drm_julia_fixef_poisson_fit <- function(n = 60L, phylo = FALSE) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_test_drmjl_path()
+  callr::r(
+    function(pkg, jl_path, n, phylo) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+
+      set.seed(11)
+      if (phylo) {
+        tree <- ape::rcoal(n)
+        sp <- tree$tip.label
+        x <- stats::rnorm(n)
+        bm <- ape::rTraitCont(tree, model = "BM", sigma = 0.5)
+        eta <- 0.5 + 0.4 * x + bm[sp]
+        y <- stats::rpois(n, exp(eta))
+        dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
+        form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
+      } else {
+        x <- stats::rnorm(n)
+        eta <- 0.5 + 0.4 * x
+        y <- stats::rpois(n, exp(eta))
+        dat <- data.frame(x = x, y = y)
+        form <- drmTMB::bf(y ~ x)
+      }
+      fj <- drmTMB::drmTMB(
+        form,
+        family = stats::poisson(),
+        data = dat,
+        engine = "julia"
+      )
+
+      boot <- tryCatch(
+        stats::confint(
+          fj,
+          parm = "fixef:mu:x",
+          method = "bootstrap",
+          R = 15L,
+          seed = 1L
+        ),
+        error = function(e) conditionMessage(e)
+      )
+      prof <- tryCatch(
+        stats::confint(fj, parm = "fixef:mu:x", method = "profile"),
+        error = function(e) conditionMessage(e)
+      )
+      list(
+        boot = if (is.data.frame(boot)) as.data.frame(boot) else boot,
+        prof = if (is.data.frame(prof)) as.data.frame(prof) else prof,
+        converged = drmTMB::is_converged(fj)
+      )
+    },
+    args = list(pkg = pkg, jl_path = jl_path, n = as.integer(n), phylo = phylo),
+    error = "error"
+  )
+}
+
+test_that("confint(method = 'bootstrap') works for a non-Gaussian (Poisson) fixed effect", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+
+  res <- tryCatch(
+    drm_julia_fixef_poisson_fit(n = 60L, phylo = FALSE),
+    error = function(e) {
+      testthat::skip(paste(
+        "Poisson fixed-effect bootstrap round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(isTRUE(res$converged))
+  expect_true(is.data.frame(res$boot))
+  expect_true(is.data.frame(res$prof))
+  expect_equal(res$boot$parm, "fixef:mu:x")
+  expect_true(is.finite(res$boot$lower) && is.finite(res$boot$upper))
+  expect_true(res$boot$lower < res$boot$upper)
+  expect_equal(res$boot$method, "bootstrap")
+})
+
+test_that("confint(method = 'bootstrap') is refused (not crashed) for a phylo non-Gaussian fixed effect, while profile still works", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_test_drmjl_path()),
+    "DRM.jl phylo engine not available"
+  )
+
+  res <- tryCatch(
+    drm_julia_fixef_poisson_fit(n = 15L, phylo = TRUE),
+    error = function(e) {
+      testthat::skip(paste(
+        "Poisson phylo fixed-effect bootstrap round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(isTRUE(res$converged))
+  # bootstrap: a clear drmTMB-authored refusal, not DRM.jl's opaque
+  # "all N bootstrap replicates failed" / K-A-tree ArgumentError. Collapse
+  # whitespace first: cli::cli_abort() wraps the message across lines, so a
+  # literal multi-word regexp would be brittle against wrap width.
+  expect_true(is.character(res$boot))
+  boot_msg <- gsub("[[:space:]]+", " ", res$boot)
+  expect_match(boot_msg, "not available on a phylogenetic non-Gaussian fit")
+  # profile: unaffected by the bootstrap-only limitation.
+  expect_true(is.data.frame(res$prof))
+  expect_equal(res$prof$parm, "fixef:mu:x")
+  expect_true(is.finite(res$prof$lower) && is.finite(res$prof$upper))
 })
 
 # --- Live Poisson phylo round-trip ------------------------------------------

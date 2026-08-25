@@ -1055,6 +1055,26 @@ drm_julia_call_fixef_inference <- function(
       i = "Refit the model with {.code engine = \"julia\"} before calling {.fn confint}."
     ))
   }
+  # DRM.jl's non-Gaussian bootstrap_result() cannot thread a tree through its
+  # internal refit closure -- only the Gaussian-specific method accepts
+  # tree/algorithm/g_tol kwargs (DRM.jl src/inference.jl: the DrmFit{<:Gaussian}
+  # method vs. the generic DrmFit fallback, which rejects any non-nothing K/A/
+  # tree kwarg and, even when tree is omitted, never re-attaches the tree on
+  # refit). Every simulated refit of a phylogenetic non-Gaussian fit would
+  # therefore fail identically, so refuse up front with a clear message
+  # instead of surfacing DRM.jl's "all N bootstrap replicates failed".
+  is_gaussian_family <- object$model$model_type %in% c("gaussian", "biv_gaussian")
+  if (
+    identical(method, "bootstrap") &&
+      !is_gaussian_family &&
+      !is.null(payload$tree)
+  ) {
+    cli::cli_abort(c(
+      "Julia-engine bootstrap intervals for fixed effects are not available on a phylogenetic non-Gaussian fit.",
+      i = "DRM.jl's bootstrap refit cannot re-attach the phylogenetic tree for non-Gaussian families yet.",
+      i = "Use {.code method = \"profile\"} or {.code method = \"wald\"} instead, or {.code engine = \"tmb\"} for a native bootstrap."
+    ))
+  }
 
   drm_julia_setup()
   JuliaCall::julia_call(
@@ -1613,7 +1633,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       sep = "\n",
       "function drmTMB_drm_bridge_fixef_inference(formula, family, data, tree, options, method, level, B, seed, threads, dpar, coefname)",
       "    dat = DRM._bridge_data(data)",
-      "    bundle = DRM._bridge_formula(formula, family)",
+      "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
       "    fam = DRM._bridge_family(family)",
       "    opts = DRM._bridge_options(options)",
       "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
@@ -1634,9 +1654,14 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "            message = \"profile_result completed\")",
       "    elseif method == \"bootstrap\"",
       "        rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(Int(seed))",
-      "        result = DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
-      "            tree = tree_obj, threads = threads, failures = :skip, check_converged = true,",
-      "            algorithm = Symbol(get(opts, :algorithm, :auto)), g_tol = Float64(get(opts, :g_tol, 1e-8)))",
+      "        result = if fit isa DRM.DrmFit{<:DRM.Gaussian}",
+      "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
+      "                tree = tree_obj, threads = threads, failures = :skip, check_converged = true,",
+      "                algorithm = Symbol(get(opts, :algorithm, :auto)), g_tol = Float64(get(opts, :g_tol, 1e-8)))",
+      "        else",
+      "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
+      "                threads = threads, failures = :skip, check_converged = true)",
+      "        end",
       "        row = drmTMB_pick_fixef_row(result.summary)",
       "        return DRM._bridge_inference_flatten(row; method = \"bootstrap\",",
       "            status = result.used >= 2 ? \"bootstrap\" : \"bootstrap_unavailable\",",
@@ -2324,11 +2349,24 @@ confint.drmTMB_julia <- function(
     R <- 1L
   }
 
-  targets <- profile_match_confint_targets(
-    rbind(drm_julia_profile_targets(object), drm_julia_wald_targets(object)),
-    parm,
-    fixed_only = FALSE
+  full_targets <- rbind(
+    drm_julia_profile_targets(object),
+    drm_julia_wald_targets(object)
   )
+  # rbind()ing the SD inventory with the fixed-effect inventory means a
+  # no-parm call now sees every row at once; profile_match_confint_targets()
+  # returns them all unfiltered when parm is NULL, and
+  # drm_julia_validate_inference_targets() correctly rejects that mixed set --
+  # but its message is written for a WRONG target, not a MISSING one, so
+  # catch the missing-parm case here with a message that says so plainly and
+  # points at a real, fit-specific target.
+  if (is.null(parm)) {
+    cli::cli_abort(c(
+      "Julia-engine {.code method = \"{method}\"} confidence intervals require an explicit {.arg parm} naming exactly one target.",
+      i = drm_julia_inference_parm_hint(full_targets)
+    ))
+  }
+  targets <- profile_match_confint_targets(full_targets, parm, fixed_only = FALSE)
   drm_julia_validate_inference_targets(targets)
 
   # Ordinary fixed-effect target (#460): a different Julia entry point than the
@@ -2643,6 +2681,40 @@ drm_julia_validate_inference_targets <- function(targets) {
       i = "Inventory note: {.val {targets$profile_note[[1L]]}}."
     ))
   }
+}
+
+# Build a fit-specific "here is a target you can actually use" hint for the
+# no-parm profile/bootstrap error (#460 defect A). `targets` is the FULL,
+# unfiltered inventory (SD rows rbind()ed with fixed-effect rows).
+drm_julia_inference_parm_hint <- function(targets) {
+  ready <- targets[targets$profile_ready, , drop = FALSE]
+  biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
+  is_biv_targets <- nrow(ready) == 4L &&
+    all(ready$target_class == "random-effect-sd") &&
+    identical(sort(ready$dpar), sort(biv_dpars))
+  if (is_biv_targets) {
+    ordered <- ready[match(biv_dpars, ready$dpar), , drop = FALSE]
+    quoted <- paste0("\"", ordered$parm, "\"", collapse = ", ")
+    return(paste0(
+      "This bivariate q = 4 fit needs all four axis names at once, e.g. ",
+      "{.code parm = c(", quoted, ")}."
+    ))
+  }
+  if (nrow(ready) == 0L) {
+    return(
+      "No target on this fit is currently profile/bootstrap-ready; see the fixed-effect and SD rows in the inventory for why."
+    )
+  }
+  # Prefer an ordinary fixed effect as the example -- it is available on
+  # every non-bivariate Julia fit with a stored bridge payload -- else fall
+  # back to whichever SD target is ready.
+  fixef_rows <- ready[ready$target_class == "fixed-effect", , drop = FALSE]
+  example <- if (nrow(fixef_rows) > 0L) {
+    fixef_rows$parm[[1L]]
+  } else {
+    ready$parm[[1L]]
+  }
+  paste0("Use {.code parm = \"", example, "\"}, for example.")
 }
 
 drm_julia_inference_confint_row <- function(target, result, level, method) {
