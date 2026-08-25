@@ -20,7 +20,8 @@
 
 \item{parm}{Optional target selection. For \code{"wald"}, compact coefficient
 labels (\code{"mu:x"}) or full names (\code{"fixef:mu:x"}); for \code{"profile"} /
-\code{"bootstrap"}, supported SD target names such as
+\code{"bootstrap"}, either a fixed-effect target such as \code{"fixef:mu:x"} (or
+the compact \code{"mu:x"} alias) or a supported SD target name such as
 \code{"sd:mu:phylo(1 | species)"} or, for q = 4 bivariate fits,
 \code{"sd:sigma1:phylo(1 | species)"}.}
 
@@ -56,9 +57,16 @@ scale, using the fixed-effect covariance DRM.jl marshals back through the
 bridge (\code{vcov(object)}). This mirrors the native drmTMB Wald path, whose
 fixed-effect rows are also reported on the link scale.
 \item \code{method = "profile"} / \code{method = "bootstrap"} re-enter DRM.jl's inference
-primitive for supported phylogenetic SD targets, transformed back to the
-positive response scale. The current R bridge exposes the univariate
-Gaussian \code{sd:mu:phylo(1 | species)} target and the four bivariate q = 4
-targets \verb{sd:mu1:*}, \verb{sd:mu2:*}, \verb{sd:sigma1:*}, and \verb{sd:sigma2:*}.
+primitive. Two target families are supported:
+\itemize{
+\item the phylogenetic SD targets, transformed back to the positive response
+scale: the univariate Gaussian \code{sd:mu:phylo(1 | species)} target, and
+the four bivariate q = 4 targets \verb{sd:mu1:*}, \verb{sd:mu2:*}, \verb{sd:sigma1:*},
+and \verb{sd:sigma2:*};
+\item ordinary fixed-effect coefficients (\verb{fixef:<dpar>:<coef>}, e.g.
+\code{"fixef:mu:x"}), reported on the same link scale as the Wald rows. Not
+available for the bivariate q = 4 route (\code{biv_gaussian}), whose fixed
+effects are not individually profiled here.
+}
 }
 }

@@ -1024,6 +1024,76 @@ drm_julia_call_inference <- function(
   )
 }
 
+# Ordinary fixed-effect profile / bootstrap intervals (#460). A different
+# Julia entry point (`drmTMB_drm_bridge_fixef_inference`, registered in
+# drm_julia_setup()) than the phylogenetic SD target's
+# `drmTMB_drm_bridge_inference` -- that one is scoped to the SD row and its
+# picker explicitly refuses fixed-effect rows. `target` is the single
+# `target_class == "fixed-effect"` row selected in confint.drmTMB_julia().
+# Unlike the SD target, the tree is optional here: refitting from
+# `payload$formula` / `payload$data` only needs `payload$tree` when the
+# formula itself carries a `phylo()` term.
+drm_julia_call_fixef_inference <- function(
+  object,
+  target,
+  method,
+  level,
+  R,
+  seed,
+  threads
+) {
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} inference requires the {.pkg JuliaCall} package.",
+      i = "Install it with {.code install.packages(\"JuliaCall\")}, then retry."
+    ))
+  }
+  payload <- object$bridge_payload
+  if (is.null(payload)) {
+    cli::cli_abort(c(
+      "Julia-engine profile and bootstrap intervals require a stored bridge payload.",
+      i = "Refit the model with {.code engine = \"julia\"} before calling {.fn confint}."
+    ))
+  }
+  # DRM.jl's non-Gaussian bootstrap_result() cannot thread a tree through its
+  # internal refit closure -- only the Gaussian-specific method accepts
+  # tree/algorithm/g_tol kwargs (DRM.jl src/inference.jl: the DrmFit{<:Gaussian}
+  # method vs. the generic DrmFit fallback, which rejects any non-nothing K/A/
+  # tree kwarg and, even when tree is omitted, never re-attaches the tree on
+  # refit). Every simulated refit of a phylogenetic non-Gaussian fit would
+  # therefore fail identically, so refuse up front with a clear message
+  # instead of surfacing DRM.jl's "all N bootstrap replicates failed".
+  is_gaussian_family <- object$model$model_type %in% c("gaussian", "biv_gaussian")
+  if (
+    identical(method, "bootstrap") &&
+      !is_gaussian_family &&
+      !is.null(payload$tree)
+  ) {
+    cli::cli_abort(c(
+      "Julia-engine bootstrap intervals for fixed effects are not available on a phylogenetic non-Gaussian fit.",
+      i = "DRM.jl's bootstrap refit cannot re-attach the phylogenetic tree for non-Gaussian families yet.",
+      i = "Use {.code method = \"profile\"} or {.code method = \"wald\"} instead, or {.code engine = \"tmb\"} for a native bootstrap."
+    ))
+  }
+
+  drm_julia_setup()
+  JuliaCall::julia_call(
+    "drmTMB_drm_bridge_fixef_inference",
+    payload$formula,
+    object$model$model_type,
+    as.list(payload$data),
+    payload$tree,
+    if (length(payload$options) == 0L) NULL else payload$options,
+    method,
+    level,
+    as.integer(R),
+    seed,
+    threads,
+    target$dpar[[1L]],
+    target$term[[1L]]
+  )
+}
+
 drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   phylo_terms <- unlist(
     lapply(formula$entries, function(entry) {
@@ -1525,6 +1595,9 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   } else {
     JuliaCall::julia_command("using DRM")
   }
+  # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
+  # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
+  JuliaCall::julia_command("using Random")
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge(formula, family, data, tree, options) =",
@@ -1541,6 +1614,64 @@ drm_julia_setup <- function(path = drm_julia_path()) {
     paste(
       "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads) =",
       "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads)"
+    )
+  )
+  # Ordinary fixed-effect profile / bootstrap intervals (#460). DRM.jl has no
+  # dedicated bridge entry point for this -- `drm_bridge_inference` is scoped
+  # to the phylogenetic SD row and its picker explicitly refuses fixed-effect
+  # rows (`_bridge_pick_sd_row`) -- so this refits via the SAME private
+  # marshalling helpers `drm_bridge_inference` itself uses internally
+  # (`DRM._bridge_data` / `_bridge_formula` / `_bridge_family` / `_bridge_fit`,
+  # reached by qualified name since Julia does not restrict access to
+  # underscore-prefixed functions) and then calls the exported
+  # `DRM.profile_result` / `DRM.bootstrap_result` on the requested coefficient
+  # block, picking out the one (dpar, coef) row asked for. No DRM.jl source
+  # changes; every number is produced by DRM.jl's own existing, tested
+  # profile_result / bootstrap_result.
+  JuliaCall::julia_command(
+    paste(
+      sep = "\n",
+      "function drmTMB_drm_bridge_fixef_inference(formula, family, data, tree, options, method, level, B, seed, threads, dpar, coefname)",
+      "    dat = DRM._bridge_data(data)",
+      "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
+      "    fam = DRM._bridge_family(family)",
+      "    opts = DRM._bridge_options(options)",
+      "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
+      "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
+      "    blockparm = Symbol(dpar)",
+      "    function drmTMB_pick_fixef_row(rows)",
+      "        hit = filter(r -> r.param === blockparm && r.coef == coefname, rows)",
+      "        isempty(hit) && throw(ArgumentError(\"drmTMB_drm_bridge_fixef_inference: no row for $(dpar):$(coefname)\"))",
+      "        first(hit)",
+      "    end",
+      "    if method == \"profile\"",
+      "        result = DRM.profile_result(fit; level = level, threads = threads, parm = blockparm)",
+      "        row = drmTMB_pick_fixef_row(result.ci)",
+      "        return DRM._bridge_inference_flatten(row; method = \"profile\", status = \"profile\",",
+      "            attempted = result.attempted, used = result.used, failed = result.failed,",
+      "            elapsed = result.elapsed, threaded = result.threaded, worker_threads = result.worker_threads,",
+      "            julia_threads = result.julia_threads, blas_threads = result.blas_threads,",
+      "            message = \"profile_result completed\")",
+      "    elseif method == \"bootstrap\"",
+      "        rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(Int(seed))",
+      "        result = if fit isa DRM.DrmFit{<:DRM.Gaussian}",
+      "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
+      "                tree = tree_obj, threads = threads, failures = :skip, check_converged = true,",
+      "                algorithm = Symbol(get(opts, :algorithm, :auto)), g_tol = Float64(get(opts, :g_tol, 1e-8)))",
+      "        else",
+      "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
+      "                threads = threads, failures = :skip, check_converged = true)",
+      "        end",
+      "        row = drmTMB_pick_fixef_row(result.summary)",
+      "        return DRM._bridge_inference_flatten(row; method = \"bootstrap\",",
+      "            status = result.used >= 2 ? \"bootstrap\" : \"bootstrap_unavailable\",",
+      "            attempted = result.attempted, used = result.used, failed = result.failed,",
+      "            elapsed = result.elapsed, threaded = result.threaded, worker_threads = result.worker_threads,",
+      "            julia_threads = result.julia_threads, blas_threads = result.blas_threads,",
+      "            message = \"$(result.used)/$(result.attempted) successful refits\")",
+      "    end",
+      "    throw(ArgumentError(\"drmTMB_drm_bridge_fixef_inference: unsupported method `$method`\"))",
+      "end"
     )
   )
   # General-covariance structured route: the user-supplied K / A / coords matrix
@@ -2154,15 +2285,21 @@ vcov.drmTMB_julia <- function(object, ...) {
 #'   bridge (`vcov(object)`). This mirrors the native drmTMB Wald path, whose
 #'   fixed-effect rows are also reported on the link scale.
 #' * `method = "profile"` / `method = "bootstrap"` re-enter DRM.jl's inference
-#'   primitive for supported phylogenetic SD targets, transformed back to the
-#'   positive response scale. The current R bridge exposes the univariate
-#'   Gaussian `sd:mu:phylo(1 | species)` target and the four bivariate q = 4
-#'   targets `sd:mu1:*`, `sd:mu2:*`, `sd:sigma1:*`, and `sd:sigma2:*`.
+#'   primitive. Two target families are supported:
+#'   - the phylogenetic SD targets, transformed back to the positive response
+#'     scale: the univariate Gaussian `sd:mu:phylo(1 | species)` target, and
+#'     the four bivariate q = 4 targets `sd:mu1:*`, `sd:mu2:*`, `sd:sigma1:*`,
+#'     and `sd:sigma2:*`;
+#'   - ordinary fixed-effect coefficients (`fixef:<dpar>:<coef>`, e.g.
+#'     `"fixef:mu:x"`), reported on the same link scale as the Wald rows. Not
+#'     available for the bivariate q = 4 route (`biv_gaussian`), whose fixed
+#'     effects are not individually profiled here.
 #'
 #' @param object A `drmTMB_julia` fit.
 #' @param parm Optional target selection. For `"wald"`, compact coefficient
 #'   labels (`"mu:x"`) or full names (`"fixef:mu:x"`); for `"profile"` /
-#'   `"bootstrap"`, supported SD target names such as
+#'   `"bootstrap"`, either a fixed-effect target such as `"fixef:mu:x"` (or
+#'   the compact `"mu:x"` alias) or a supported SD target name such as
 #'   `"sd:mu:phylo(1 | species)"` or, for q = 4 bivariate fits,
 #'   `"sd:sigma1:phylo(1 | species)"`.
 #' @param level Confidence level.
@@ -2212,12 +2349,50 @@ confint.drmTMB_julia <- function(
     R <- 1L
   }
 
-  targets <- profile_match_confint_targets(
+  full_targets <- rbind(
     drm_julia_profile_targets(object),
-    parm,
-    fixed_only = FALSE
+    drm_julia_wald_targets(object)
   )
+  # rbind()ing the SD inventory with the fixed-effect inventory means a
+  # no-parm call now sees every row at once; profile_match_confint_targets()
+  # returns them all unfiltered when parm is NULL, and
+  # drm_julia_validate_inference_targets() correctly rejects that mixed set --
+  # but its message is written for a WRONG target, not a MISSING one, so
+  # catch the missing-parm case here with a message that says so plainly and
+  # points at a real, fit-specific target.
+  if (is.null(parm)) {
+    cli::cli_abort(c(
+      "Julia-engine {.code method = \"{method}\"} confidence intervals require an explicit {.arg parm} naming exactly one target.",
+      i = drm_julia_inference_parm_hint(full_targets)
+    ))
+  }
+  targets <- profile_match_confint_targets(full_targets, parm, fixed_only = FALSE)
   drm_julia_validate_inference_targets(targets)
+
+  # Ordinary fixed-effect target (#460): a different Julia entry point than the
+  # phylogenetic SD row, so it is dispatched separately here rather than inside
+  # drm_julia_call_inference() / drm_julia_inference_confint_row(), which stay
+  # exactly as they were for the SD target (no change to already-verified
+  # numerics).
+  if (identical(targets$target_class[[1L]], "fixed-effect")) {
+    target <- targets[1L, , drop = FALSE]
+    result <- drm_julia_call_fixef_inference(
+      object = object,
+      target = target,
+      method = method,
+      level = level,
+      R = R,
+      seed = seed,
+      threads = threads
+    )
+    return(drm_julia_fixef_inference_confint_row(
+      target = target,
+      result = result,
+      level = level,
+      method = method
+    ))
+  }
+
   result <- drm_julia_call_inference(
     object = object,
     method = method,
@@ -2256,7 +2431,10 @@ confint.drmTMB_julia <- function(
 # intervals wherever DRM.jl returned a finite covariance.
 drm_julia_wald_confint <- function(object, parm = NULL, level = 0.95) {
   validate_profile_level(level)
-  targets <- drm_julia_wald_targets(object)
+  targets <- rbind(
+    drm_julia_wald_targets(object),
+    drm_julia_wald_scale_targets(object)
+  )
   targets <- profile_match_confint_targets(targets, parm, fixed_only = FALSE)
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "wald"))
@@ -2275,10 +2453,23 @@ drm_julia_wald_confint <- function(object, parm = NULL, level = 0.95) {
   lower <- rep(NA_real_, nrow(targets))
   upper <- rep(NA_real_, nrow(targets))
   if (any(interval_ready)) {
-    lower[interval_ready] <- targets$link_estimate[interval_ready] -
-      z * se[interval_ready]
-    upper[interval_ready] <- targets$link_estimate[interval_ready] +
-      z * se[interval_ready]
+    # profile_transform_interval() is the identity for every previously-
+    # existing row here (transformation == "linear_predictor"); it only does
+    # work (exp()) for the new distributional-scale row (#460 item 3), so this
+    # generalization changes no existing Wald number.
+    link_lower <- targets$link_estimate[interval_ready] - z * se[interval_ready]
+    link_upper <- targets$link_estimate[interval_ready] + z * se[interval_ready]
+    transformed <- mapply(
+      function(lo, hi, row) {
+        profile_transform_interval(c(lo, hi), targets[row, , drop = FALSE])
+      },
+      link_lower,
+      link_upper,
+      which(interval_ready),
+      SIMPLIFY = FALSE
+    )
+    lower[interval_ready] <- vapply(transformed, `[[`, numeric(1L), 1L)
+    upper[interval_ready] <- vapply(transformed, `[[`, numeric(1L), 2L)
   }
 
   out <- data.frame(
@@ -2305,10 +2496,26 @@ drm_julia_wald_confint <- function(object, parm = NULL, level = 0.95) {
 # coefficient, keyed by the bridge covariance name (`"<dpar>_<term>"`) so the
 # variance can be read straight off `object$vcov`. `scale` / `transformation`
 # match the native fixed-effect rows (link scale, identity transform).
+#
+# These rows also double as the profile / bootstrap inference targets (#460):
+# `profile_ready` is TRUE whenever the fit carries a bridge payload (formula +
+# data to refit from) -- the same precondition the phylogenetic SD target
+# uses. The bivariate q=4 route is out of scope here (its inference target is
+# the four among-axis SDs, not individual fixed-effect coefficients), so its
+# fixed-effect rows stay not-ready.
 drm_julia_wald_targets <- function(object) {
   blocks <- object$coefficients
   if (is.null(blocks) || length(blocks) == 0L) {
     return(empty_profile_targets())
+  }
+  is_biv <- identical(object$model$model_type, "biv_gaussian")
+  fixef_profile_ready <- !is_biv && !is.null(object$bridge_payload)
+  fixef_profile_note <- if (fixef_profile_ready) {
+    "ready"
+  } else if (is_biv) {
+    "missing_tmb_parameter"
+  } else {
+    "julia_bridge_payload_required"
   }
   rows <- list()
   for (dpar in names(blocks)) {
@@ -2329,6 +2536,54 @@ drm_julia_wald_targets <- function(object) {
         link_estimate = unname(beta[[i]]),
         scale = "link",
         transformation = "linear_predictor",
+        target_type = "direct",
+        profile_ready = fixef_profile_ready,
+        profile_note = fixef_profile_note
+      )
+    }
+  }
+  if (length(rows) == 0L) {
+    return(empty_profile_targets())
+  }
+  out <- do.call(rbind, rows)
+  row.names(out) <- NULL
+  validate_profile_targets(out)
+}
+
+# Response-scale distributional-scale alias rows for the Wald table (#460
+# item 3). Native drmTMB's confint() reports an extra `parm = "sigma"` /
+# `"sigma1"` / `"sigma2"` response-scale row for any log-link dpar that has a
+# single `(Intercept)` coefficient -- alongside the link-scale
+# `fixef:sigma:(Intercept)` row -- the same underlying coefficient/covariance
+# entry, reported on two scales (mirrors the `scale_dpars` block in
+# `drm_profile_targets()`, R/profile.R). The Julia bridge's fixed-effect
+# targets never included this alias, so the two engines' confint() tables
+# differed in row count even for the shared Wald default on a Gaussian
+# mean-only fit. Wald-only: not wired into the profile / bootstrap inventory,
+# since it is a display alias of the fixef row rather than a distinct DRM.jl
+# inference target.
+drm_julia_wald_scale_targets <- function(object) {
+  blocks <- object$coefficients
+  scale_dpars <- intersect(names(blocks), c("sigma", "sigma1", "sigma2"))
+  rows <- list()
+  for (dpar in scale_dpars) {
+    beta <- blocks[[dpar]]
+    if (
+      length(beta) == 1L &&
+        identical(names(beta), "(Intercept)") &&
+        identical(drm_dpar_link(object, dpar), "log")
+    ) {
+      rows[[length(rows) + 1L]] <- new_profile_target_row(
+        parm = dpar,
+        target_class = "distributional-scale",
+        dpar = dpar,
+        term = "(constant)",
+        tmb_parameter = paste0(dpar, "_(Intercept)"),
+        index = 1L,
+        estimate = exp(unname(beta[[1L]])),
+        link_estimate = unname(beta[[1L]]),
+        scale = "response",
+        transformation = "exp",
         target_type = "direct",
         profile_ready = FALSE,
         profile_note = "missing_tmb_parameter"
@@ -2393,7 +2648,21 @@ drm_julia_validate_inference_targets <- function(targets) {
     return(invisible(NULL))
   }
 
-  # Univariate case: exactly 1 row, dpar == "mu", tmb_parameter == "resd".
+  # Ordinary fixed-effect coefficient target (#460): one row, any dpar/term
+  # (not the bivariate q = 4 route, which is out of scope for this target).
+  is_fixef_target <- nrow(targets) == 1L &&
+    identical(targets$target_class[[1L]], "fixed-effect")
+  if (is_fixef_target) {
+    if (!isTRUE(targets$profile_ready[[1L]])) {
+      cli::cli_abort(c(
+        "Julia-engine target {.val {targets$parm[[1L]]}} is not ready for profile or bootstrap intervals.",
+        i = "Inventory note: {.val {targets$profile_note[[1L]]}}."
+      ))
+    }
+    return(invisible(NULL))
+  }
+
+  # Univariate SD case: exactly 1 row, dpar == "mu", tmb_parameter == "resd".
   if (
     nrow(targets) != 1L ||
       !identical(targets$target_class[[1L]], "random-effect-sd") ||
@@ -2402,8 +2671,8 @@ drm_julia_validate_inference_targets <- function(targets) {
       !identical(targets$tmb_parameter[[1L]], "resd")
   ) {
     cli::cli_abort(c(
-      "Julia-engine profile and bootstrap intervals currently support exactly one Gaussian phylogenetic SD target (univariate) or all four axes (bivariate biv_gaussian).",
-      i = "Use {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted univariate bridge slice, or one of {.code sd:mu1:*}, {.code sd:mu2:*}, {.code sd:sigma1:*}, or {.code sd:sigma2:*} for a bivariate q = 4 bridge fit."
+      "Julia-engine profile and bootstrap intervals currently support one fixed-effect coefficient ({.code fixef:<dpar>:<coef>}), one Gaussian phylogenetic SD target (univariate), or all four axes (bivariate biv_gaussian).",
+      i = "Use {.code parm = \"fixef:mu:x\"} for an ordinary fixed-effect coefficient, {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted univariate SD bridge slice, or one of {.code sd:mu1:*}, {.code sd:mu2:*}, {.code sd:sigma1:*}, or {.code sd:sigma2:*} for a bivariate q = 4 bridge fit."
     ))
   }
   if (!isTRUE(targets$profile_ready[[1L]])) {
@@ -2414,6 +2683,40 @@ drm_julia_validate_inference_targets <- function(targets) {
   }
 }
 
+# Build a fit-specific "here is a target you can actually use" hint for the
+# no-parm profile/bootstrap error (#460 defect A). `targets` is the FULL,
+# unfiltered inventory (SD rows rbind()ed with fixed-effect rows).
+drm_julia_inference_parm_hint <- function(targets) {
+  ready <- targets[targets$profile_ready, , drop = FALSE]
+  biv_dpars <- c("mu1", "mu2", "sigma1", "sigma2")
+  is_biv_targets <- nrow(ready) == 4L &&
+    all(ready$target_class == "random-effect-sd") &&
+    identical(sort(ready$dpar), sort(biv_dpars))
+  if (is_biv_targets) {
+    ordered <- ready[match(biv_dpars, ready$dpar), , drop = FALSE]
+    quoted <- paste0("\"", ordered$parm, "\"", collapse = ", ")
+    return(paste0(
+      "This bivariate q = 4 fit needs all four axis names at once, e.g. ",
+      "{.code parm = c(", quoted, ")}."
+    ))
+  }
+  if (nrow(ready) == 0L) {
+    return(
+      "No target on this fit is currently profile/bootstrap-ready; see the fixed-effect and SD rows in the inventory for why."
+    )
+  }
+  # Prefer an ordinary fixed effect as the example -- it is available on
+  # every non-bivariate Julia fit with a stored bridge payload -- else fall
+  # back to whichever SD target is ready.
+  fixef_rows <- ready[ready$target_class == "fixed-effect", , drop = FALSE]
+  example <- if (nrow(fixef_rows) > 0L) {
+    fixef_rows$parm[[1L]]
+  } else {
+    ready$parm[[1L]]
+  }
+  paste0("Use {.code parm = \"", example, "\"}, for example.")
+}
+
 drm_julia_inference_confint_row <- function(target, result, level, method) {
   result <- as.list(result)
   scale <- target$estimate[[1L]] / exp(target$link_estimate[[1L]])
@@ -2422,6 +2725,62 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
     as.numeric(result$upper)
   )) *
     scale
+  diagnostics <- profile_interval_diagnostics(
+    interval,
+    transformation = target$transformation[[1L]]
+  )
+  out <- data.frame(
+    parm = target$parm,
+    level = level,
+    lower = interval[[1L]],
+    upper = interval[[2L]],
+    scale = target$scale,
+    transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter,
+    index = target$index,
+    method = method,
+    profile.engine = if (identical(method, "profile")) {
+      "julia_profile_result"
+    } else {
+      NA_character_
+    },
+    conf.status = as.character(result$status),
+    profile.boundary = diagnostics$boundary,
+    profile.message = if (nzchar(as.character(result$message))) {
+      as.character(result$message)
+    } else {
+      diagnostics$message
+    },
+    julia.threaded = isTRUE(result$threaded),
+    julia.workers = as.integer(result$worker_threads),
+    julia.threads = as.integer(result$julia_threads),
+    julia.blas_threads = as.integer(result$blas_threads),
+    julia.elapsed = as.numeric(result$elapsed),
+    stringsAsFactors = FALSE
+  )
+  if (identical(method, "bootstrap")) {
+    out$bootstrap.n <- as.integer(result$used)
+    out$bootstrap.failed <- as.integer(result$failed)
+    out$bootstrap.parallel <- if (isTRUE(result$threaded)) {
+      "julia_threads"
+    } else {
+      "none"
+    }
+    out$bootstrap.workers <- as.integer(result$worker_threads)
+  }
+  row.names(out) <- NULL
+  out
+}
+
+# Confidence-interval row for an ordinary fixed-effect profile / bootstrap
+# target (#460). Unlike the phylogenetic SD target, DRM.jl's fixed-effect
+# profile_result() / bootstrap_result() rows are already on the coefficient's
+# own linear-predictor (link) scale -- no exp() transform, no tree-height
+# rescale -- so this mirrors drm_julia_inference_confint_row() but drops that
+# SD-specific step.
+drm_julia_fixef_inference_confint_row <- function(target, result, level, method) {
+  result <- as.list(result)
+  interval <- c(as.numeric(result$lower), as.numeric(result$upper))
   diagnostics <- profile_interval_diagnostics(
     interval,
     transformation = target$transformation[[1L]]
