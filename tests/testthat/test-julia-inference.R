@@ -6,9 +6,10 @@
 # that covariance into symmetric Wald intervals for the fixed-effect
 # coefficients on the linear-predictor (link) scale, mirroring the native
 # drmTMB Wald rows; `summary()` builds the matching coefficient table with
-# standard errors, z values, and p values. The profile / bootstrap path is
-# unchanged and still routes only the Gaussian phylogenetic SD target into
-# DRM.jl's inference primitive.
+# standard errors, z values, and p values. The profile / bootstrap path routes
+# two target families into DRM.jl's inference primitive: the Gaussian
+# phylogenetic SD target, and (#460) ordinary fixed-effect coefficients
+# (`fixef:<dpar>:<coef>`).
 #
 # These tests cover (a) the pure R-side Wald / summary marshalling on a
 # synthetic bridge result (always runs, no Julia), and (b) one live Poisson
@@ -68,14 +69,29 @@ test_that("confint(method = 'wald') marshals fixed-effect intervals (link scale)
   fit <- drm_julia_inference_synthetic_fit()
 
   ci <- stats::confint(fit) # wald is the default
+  # #460 item 3: a Gaussian mean-only sigma (single log-link intercept) gets an
+  # extra response-scale "sigma" alias row, alongside the link-scale
+  # "fixef:sigma:(Intercept)" row -- the same row-count parity native drmTMB's
+  # confint() already has.
   expect_equal(
     ci$parm,
-    c("fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)")
+    c("fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)", "sigma")
   )
   expect_true(all(is.finite(ci$lower)))
   expect_true(all(is.finite(ci$upper)))
-  expect_true(all(ci$scale == "link"))
-  expect_true(all(ci$transformation == "linear_predictor"))
+  expect_equal(
+    ci$scale,
+    c("link", "link", "link", "response")
+  )
+  expect_equal(
+    ci$transformation,
+    c(
+      "linear_predictor",
+      "linear_predictor",
+      "linear_predictor",
+      "exp"
+    )
+  )
   expect_true(all(ci$method == "wald"))
   expect_true(all(ci$conf.status == "wald"))
 
@@ -94,6 +110,20 @@ test_that("confint(method = 'wald') marshals fixed-effect intervals (link scale)
   expect_equal(
     ci$lower[ci$parm == "fixef:sigma:(Intercept)"],
     -0.3 - z * sqrt(0.02),
+    tolerance = 1e-10
+  )
+
+  # The "sigma" alias row shares the same underlying (Intercept) coefficient
+  # and variance as "fixef:sigma:(Intercept)", exponentiated onto the response
+  # scale -- exp() commutes with the symmetric link-scale endpoints exactly.
+  expect_equal(
+    ci$lower[ci$parm == "sigma"],
+    exp(-0.3 - z * sqrt(0.02)),
+    tolerance = 1e-10
+  )
+  expect_equal(
+    ci$upper[ci$parm == "sigma"],
+    exp(-0.3 + z * sqrt(0.02)),
     tolerance = 1e-10
   )
 })
@@ -267,6 +297,320 @@ test_that("Julia structured coefficient scale map reconstructs SDs and recov cor
     "cor(mu:(Intercept),sigma:(Intercept) | phylo | species)"
   )
   expect_equal(unname(locscale_params$corpars$phylo), expected_rho)
+})
+
+# --- Ordinary fixed-effect profile / bootstrap targets (#460) ---------------
+#
+# The phylogenetic SD target and an ordinary fixed-effect coefficient use
+# different Julia entry points (drm_julia_call_inference() /
+# drmTMB_drm_bridge_inference vs. drm_julia_call_fixef_inference() /
+# drmTMB_drm_bridge_fixef_inference), so these tests mock the latter directly
+# -- the same pattern test-julia-bridge.R already uses for the former -- and
+# do not require a live Julia session.
+
+# Same synthetic fixture as drm_julia_inference_synthetic_fit(), plus a
+# bridge_payload (formula + data + tree to refit from), which is what makes
+# the fixed-effect targets profile/bootstrap-ready.
+drm_julia_inference_synthetic_fit_with_payload <- function() {
+  tree <- ape::rcoal(5)
+  tree$tip.label <- paste0("sp", seq_len(5))
+  coef_names <- c(
+    "mu_(Intercept)",
+    "mu_x",
+    "sigma_(Intercept)",
+    "resd_phylo(1 | species)"
+  )
+  coefficients <- c(0.5, 0.4, -0.3, log(1.7))
+  V <- diag(c(0.04, 0.01, 0.02, NA_real_))
+  dimnames(V) <- list(coef_names, coef_names)
+  result <- list(
+    coef_names = coef_names,
+    coefficients = coefficients,
+    vcov = V,
+    loglik = -123.4,
+    aic = 254.8,
+    bic = 260.0,
+    df = 4L,
+    nobs = 30L,
+    converged = TRUE,
+    fitted = rep(0, 30L),
+    residuals = rep(0, 30L),
+    sigma = exp(-0.3),
+    corpairs = list()
+  )
+  form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+  data <- data.frame(
+    y = rep(0, 30L),
+    x = rep(0, 30L),
+    species = paste0("sp", seq_len(30L))
+  )
+  drmTMB:::new_drmTMB_julia(
+    result = result,
+    call = quote(drmTMB(form, data = dat, engine = "julia")),
+    formula = form,
+    family = stats::gaussian(),
+    data = data,
+    family_type = "gaussian",
+    structured_sd_scales = c("phylo(1 | species)" = sqrt(2)),
+    bridge_payload = list(
+      formula = list(
+        mu = "y ~ x + phylo(1 | species)",
+        sigma = "sigma ~ 1"
+      ),
+      data = data,
+      tree = "((sp1:1,sp2:1):1,(sp3:1,(sp4:1,sp5:1):1):1);",
+      options = list(g_tol = 1e-8),
+      structured_sd_scales = c("phylo(1 | species)" = sqrt(2))
+    )
+  )
+}
+
+test_that("fixed-effect coefficients become profile_ready once a bridge payload is stored", {
+  skip_if_not_installed("ape")
+  bare <- drm_julia_inference_synthetic_fit()
+  wald_bare <- drmTMB:::drm_julia_wald_targets(bare)
+  expect_true(all(!wald_bare$profile_ready))
+  expect_true(all(wald_bare$profile_note == "julia_bridge_payload_required"))
+
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+  wald <- drmTMB:::drm_julia_wald_targets(fit)
+  expect_true(all(wald$profile_ready))
+  expect_true(all(wald$profile_note == "ready"))
+
+  # The bivariate q4 route is out of scope for this target: stays not-ready
+  # even with a bridge payload present.
+  biv <- fit
+  biv$model$model_type <- "biv_gaussian"
+  wald_biv <- drmTMB:::drm_julia_wald_targets(biv)
+  expect_true(all(!wald_biv$profile_ready))
+  expect_true(all(wald_biv$profile_note == "missing_tmb_parameter"))
+})
+
+test_that("confint(method = 'profile') routes an ordinary fixed effect to DRM.jl", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+
+  testthat::local_mocked_bindings(
+    drm_julia_call_fixef_inference = function(
+      object,
+      target,
+      method,
+      level,
+      R,
+      seed,
+      threads
+    ) {
+      expect_s3_class(object, "drmTMB_julia")
+      expect_equal(target$dpar[[1L]], "mu")
+      expect_equal(target$term[[1L]], "x")
+      expect_equal(method, "profile")
+      expect_equal(level, 0.90)
+      expect_equal(R, 1L)
+      expect_null(seed)
+      expect_false(threads)
+      list(
+        lower = 0.25,
+        upper = 0.62,
+        status = "profile",
+        message = "profile_result completed",
+        threaded = FALSE,
+        worker_threads = 1L,
+        julia_threads = 1L,
+        blas_threads = 1L,
+        elapsed = 0.1
+      )
+    },
+    .package = "drmTMB"
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "fixef:mu:x",
+    level = 0.90,
+    method = "profile"
+  )
+  expect_equal(ci$parm, "fixef:mu:x")
+  # Unlike the SD target, no exp() / tree-height rescale: the Julia bounds
+  # come back straight through on the link scale.
+  expect_equal(ci$lower, 0.25)
+  expect_equal(ci$upper, 0.62)
+  expect_equal(ci$scale, "link")
+  expect_equal(ci$transformation, "linear_predictor")
+  expect_equal(ci$method, "profile")
+  expect_equal(ci$profile.engine, "julia_profile_result")
+  expect_equal(ci$conf.status, "profile")
+
+  # Compact "dpar:term" alias resolves to the same target.
+  ci_alias <- stats::confint(
+    fit,
+    parm = "mu:x",
+    level = 0.90,
+    method = "profile"
+  )
+  expect_equal(ci_alias$parm, "fixef:mu:x")
+  expect_equal(ci_alias$lower, 0.25)
+})
+
+test_that("confint(method = 'bootstrap') routes an ordinary fixed effect to DRM.jl", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+
+  testthat::local_mocked_bindings(
+    drm_julia_call_fixef_inference = function(
+      object,
+      target,
+      method,
+      level,
+      R,
+      seed,
+      threads
+    ) {
+      expect_equal(target$dpar[[1L]], "sigma")
+      expect_equal(target$term[[1L]], "(Intercept)")
+      expect_equal(method, "bootstrap")
+      expect_equal(R, 49L)
+      list(
+        lower = -0.9,
+        upper = 0.1,
+        status = "bootstrap",
+        message = "48/49 successful refits",
+        threaded = FALSE,
+        worker_threads = 1L,
+        julia_threads = 1L,
+        blas_threads = 1L,
+        elapsed = 0.3,
+        used = 48L,
+        failed = 1L
+      )
+    },
+    .package = "drmTMB"
+  )
+
+  ci <- stats::confint(
+    fit,
+    parm = "fixef:sigma:(Intercept)",
+    method = "bootstrap",
+    R = 49L
+  )
+  expect_equal(ci$parm, "fixef:sigma:(Intercept)")
+  expect_equal(ci$lower, -0.9)
+  expect_equal(ci$upper, 0.1)
+  expect_equal(ci$method, "bootstrap")
+  expect_equal(ci$bootstrap.n, 48L)
+  expect_equal(ci$bootstrap.failed, 1L)
+})
+
+test_that("an unready fixed-effect profile/bootstrap target is refused with a clear message", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit() # no bridge_payload
+
+  expect_error(
+    stats::confint(fit, parm = "fixef:mu:x", method = "profile"),
+    "not ready for profile or bootstrap"
+  )
+})
+
+# --- Live Gaussian phylo fixed-effect round-trip -----------------------------
+#
+# Fits a Gaussian mean + phylo model via engine = "julia" and profiles /
+# bootstraps the ordinary fixed effect "mu:x" through the real Julia session,
+# in a fresh subprocess (same rationale as the Poisson round-trip below).
+
+drm_julia_fixef_fit <- function(n_tip = 24L) {
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  jl_path <- drm_test_drmjl_path()
+  callr::r(
+    function(pkg, jl_path, n_tip) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+
+      set.seed(42)
+      tree <- ape::rcoal(n_tip)
+      sp <- tree$tip.label
+      x <- stats::rnorm(n_tip)
+      bm <- ape::rTraitCont(tree, model = "BM", sigma = 0.7)
+      eta <- 0.5 + 0.4 * x + bm[sp]
+      y <- eta + stats::rnorm(n_tip, sd = 0.3)
+      dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
+
+      form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)
+      fj <- drmTMB::drmTMB(form, data = dat, engine = "julia")
+
+      wald <- stats::confint(fj, parm = "fixef:mu:x")
+      profiled <- stats::confint(
+        fj,
+        parm = "fixef:mu:x",
+        method = "profile"
+      )
+      booted <- stats::confint(
+        fj,
+        parm = "fixef:mu:x",
+        method = "bootstrap",
+        R = 49L,
+        seed = 1L
+      )
+      list(
+        wald = as.data.frame(wald),
+        profiled = as.data.frame(profiled),
+        booted = as.data.frame(booted)
+      )
+    },
+    args = list(pkg = pkg, jl_path = jl_path, n_tip = as.integer(n_tip)),
+    error = "error"
+  )
+}
+
+test_that("confint() profiles and bootstraps an ordinary fixed effect on a live Julia phylo fit", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_test_drmjl_path()),
+    "DRM.jl phylo engine not available"
+  )
+
+  res <- tryCatch(
+    drm_julia_fixef_fit(n_tip = 24L),
+    error = function(e) {
+      testthat::skip(paste(
+        "Gaussian phylo fixef confint round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  wald <- res$wald
+  profiled <- res$profiled
+  booted <- res$booted
+
+  expect_equal(profiled$parm, "fixef:mu:x")
+  expect_equal(booted$parm, "fixef:mu:x")
+  expect_true(is.finite(profiled$lower) && is.finite(profiled$upper))
+  expect_true(is.finite(booted$lower) && is.finite(booted$upper))
+  expect_true(profiled$lower < profiled$upper)
+  expect_true(booted$lower < booted$upper)
+  expect_equal(profiled$method, "profile")
+  expect_equal(booted$method, "bootstrap")
+  expect_equal(profiled$conf.status, "profile")
+
+  # No numerics claim beyond "the two engines agree" (#460's own evidence):
+  # sanity-check the profile / bootstrap intervals are in the neighbourhood of
+  # the Wald interval for the same coefficient, not off by orders of
+  # magnitude or on the wrong scale.
+  span <- wald$upper - wald$lower
+  expect_true(profiled$lower > wald$lower - span)
+  expect_true(profiled$upper < wald$upper + span)
+  expect_true(booted$lower > wald$lower - span)
+  expect_true(booted$upper < wald$upper + span)
 })
 
 # --- Live Poisson phylo round-trip ------------------------------------------
