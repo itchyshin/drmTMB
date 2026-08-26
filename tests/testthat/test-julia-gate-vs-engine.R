@@ -202,7 +202,16 @@ test_that("Julia capability comparison artifact matches the registry", {
       "gaussian_phylo_mean"
     )
   )
-  expect_true(all(phase15$claim_status %in% c("partial", "experimental")))
+  # Phase 1.5 cap LIFTED 2026-08-25 (owner decision, Shinichi). This assertion used
+  # to read `%in% c("partial", "experimental")`, holding three rows below the status
+  # their evidence supported. That was a CRAN-facing governance choice, not an
+  # evidence one -- D-164 holds the RELEASE, and it never held the ledger.
+  #
+  # It is now inverted rather than deleted, so the decision is locked in and an
+  # accidental reversion fails loudly. What the promotion claims is a CAPABILITY
+  # claim only; the interval_status fences on these rows are UNCHANGED, and the
+  # separate coverage_claimed assertions elsewhere in this file still enforce that.
+  expect_true(all(phase15$claim_status == "covered"))
   expect_false(any(phase15$r_bridge_status == "intentional_error"))
 
   for (capability_path in capability_paths) {
