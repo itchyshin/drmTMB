@@ -608,7 +608,12 @@ drm_find_mi_calls <- function(expr) {
   out
 }
 
-drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
+drm_prepare_gaussian_mi_setup <- function(
+  mu_rhs,
+  impute,
+  missing,
+  allow_k2 = FALSE
+) {
   mi_calls <- drm_find_mi_calls(mu_rhs)
   predictor_model <- identical(missing$predictor, "model")
   if (!predictor_model && length(mi_calls) > 0L) {
@@ -625,17 +630,83 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
   if (!predictor_model) {
     return(empty_gaussian_mi_setup())
   }
-  if (length(mi_calls) != 1L) {
+  n_mi <- length(mi_calls)
+  if (n_mi == 1L) {
+    return(drm_prepare_one_independent_mi_setup(mi_calls[[1L]], mu_rhs, impute))
+  }
+  if (isTRUE(allow_k2) && n_mi == 2L) {
+    return(drm_prepare_two_independent_gaussian_mi_setup(mi_calls, mu_rhs, impute))
+  }
+  cli::cli_abort(c(
+    "The current missing-predictor routes require exactly one {.fn mi} term in the response location formula.",
+    "x" = "Found {n_mi} {.fn mi} term{?s}.",
+    "i" = if (n_mi == 2L) {
+      "Two independent Gaussian {.fn mi} terms are implemented only for a Gaussian response. Other families still take one {.fn mi} term."
+    } else {
+      "k > 2 independent {.fn mi} terms are not implemented yet."
+    }
+  ))
+}
+
+drm_prepare_one_independent_mi_setup <- function(mi_call, mu_rhs, impute) {
+  variable <- drm_validate_bare_mi_call(mi_call, mu_rhs)
+  impute_spec <- drm_validate_named_impute_entry(impute, variable, n_expected = 1L)
+  drm_mi_setup_from_impute(variable, impute_spec)
+}
+
+drm_prepare_two_independent_gaussian_mi_setup <- function(mi_calls, mu_rhs, impute) {
+  variables <- vapply(
+    mi_calls,
+    function(mi_call) drm_validate_bare_mi_call(mi_call, mu_rhs),
+    character(1)
+  )
+  if (anyDuplicated(variables)) {
+    cli::cli_abort(
+      "Independent {.fn mi} terms must name two distinct predictors."
+    )
+  }
+  first <- drm_validate_named_impute_entry(
+    impute,
+    variables[[1L]],
+    n_expected = 2L,
+    all_variables = variables
+  )
+  second <- drm_validate_named_impute_entry(
+    impute,
+    variables[[2L]],
+    n_expected = 2L,
+    all_variables = variables
+  )
+  if (!identical(first$family, "gaussian") || !identical(second$family, "gaussian")) {
     cli::cli_abort(c(
-      "The current missing-predictor routes require exactly one {.fn mi} term in the response location formula.",
-      "x" = "Found {length(mi_calls)} {.fn mi} term{?s}."
+      "The first two-{.fn mi} slice supports two independent Gaussian predictor models only.",
+      "x" = "Found families {.val {c(first$family, second$family)}}.",
+      "i" = "Use {.code impute = list({variables[[1L]]} = impute_model({variables[[1L]]} ~ ..., family = gaussian()), {variables[[2L]]} = impute_model({variables[[2L]]} ~ ..., family = gaussian()))}."
     ))
   }
-  mi_call <- mi_calls[[1L]]
+  first_setup <- drm_mi_setup_from_impute(variables[[1L]], first)
+  second_setup <- drm_mi_setup_from_impute(variables[[2L]], second)
+  if (
+    isTRUE(first_setup$random$enabled) ||
+      isTRUE(first_setup$structured$enabled) ||
+      isTRUE(second_setup$random$enabled) ||
+      isTRUE(second_setup$structured$enabled)
+  ) {
+    cli::cli_abort(c(
+      "Two independent {.fn mi} terms currently support fixed-effect predictor models only.",
+      "i" = "Drop grouped or structured terms from each {.arg impute} formula."
+    ))
+  }
+  first_setup$n_mi <- 2L
+  first_setup$second <- second_setup
+  first_setup
+}
+
+drm_validate_bare_mi_call <- function(mi_call, mu_rhs) {
   if (length(mi_call) != 2L || !is.symbol(mi_call[[2L]])) {
     cli::cli_abort(c(
       "The current {.fn mi} routes support only a bare predictor, such as {.code mi(x)}.",
-      "x" = "Transformations, interactions inside {.fn mi}, and multiple missing predictors are planned later."
+      "x" = "Transformations, interactions inside {.fn mi}, and more than two missing predictors are planned later."
     ))
   }
   variable <- as.character(mi_call[[2L]])
@@ -653,12 +724,16 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
       "x" = "Use syntax like {.code y ~ z + mi(x)}, not interactions or transformed {.fn mi} terms."
     ))
   }
-  impute_spec <- drm_validate_single_impute_formula(impute, variable)
+  variable
+}
+
+drm_mi_setup_from_impute <- function(variable, impute_spec) {
   list(
     enabled = TRUE,
+    n_mi = 1L,
     variable = variable,
-    label = mi_label,
-    model_column = mi_label,
+    label = paste0("mi(", variable, ")"),
+    model_column = paste0("mi(", variable, ")"),
     formula = impute_spec$formula,
     raw_formula = impute_spec$raw_formula,
     family = impute_spec$family,
@@ -666,13 +741,33 @@ drm_prepare_gaussian_mi_setup <- function(mu_rhs, impute, missing) {
     trials_variable = impute_spec$trials_variable,
     response_variable = impute_spec$response_variable,
     random = impute_spec$random,
-    structured = impute_spec$structured
+    structured = impute_spec$structured,
+    second = NULL
   )
+}
+
+drm_mi_setup_variables <- function(setup) {
+  vars <- character(0)
+  if (isTRUE(setup$enabled) && length(setup$variable) == 1L) {
+    vars <- setup$variable
+  }
+  if (is.list(setup$second) && isTRUE(setup$second$enabled)) {
+    vars <- c(vars, setup$second$variable)
+  }
+  vars
+}
+
+drm_mi_setup_second <- function(setup) {
+  if (is.list(setup$second) && isTRUE(setup$second$enabled)) {
+    return(setup$second)
+  }
+  NULL
 }
 
 empty_gaussian_mi_setup <- function() {
   list(
     enabled = FALSE,
+    n_mi = 0L,
     variable = character(0),
     label = character(0),
     model_column = character(0),
@@ -683,32 +778,64 @@ empty_gaussian_mi_setup <- function() {
     trials_variable = character(0),
     response_variable = character(0),
     random = NULL,
-    structured = NULL
+    structured = NULL,
+    second = NULL
   )
 }
 
 drm_validate_single_impute_formula <- function(impute, variable) {
+  drm_validate_named_impute_entry(impute, variable, n_expected = 1L)
+}
+
+drm_validate_named_impute_entry <- function(
+  impute,
+  variable,
+  n_expected = 1L,
+  all_variables = variable
+) {
   if (is.null(impute)) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} requires an {.arg impute} formula.",
       "i" = "Use syntax such as {.code impute = list(x = x ~ z)} for a Gaussian predictor, or {.code impute = list(x = impute_model(x ~ z, family = binomial()))} for a finite-state predictor."
     ))
   }
-  if (!is.list(impute) || length(impute) != 1L) {
+  if (!is.list(impute) || length(impute) != n_expected) {
     cli::cli_abort(
-      "{.arg impute} must be a one-element named list for the current missing-predictor routes."
+      "{.arg impute} must be a {n_expected}-element named list for the current missing-predictor routes."
     )
   }
   name <- names(impute)
-  if (
-    !is.null(name) && nzchar(name[[1L]]) && !identical(name[[1L]], variable)
-  ) {
-    cli::cli_abort(c(
-      "{.arg impute} name must match the {.fn mi} predictor.",
-      "x" = "Found {.code impute = list({name[[1L]]} = ...)} for {.code mi({variable})}."
-    ))
+  if (n_expected == 1L) {
+    if (
+      !is.null(name) && nzchar(name[[1L]]) && !identical(name[[1L]], variable)
+    ) {
+      cli::cli_abort(c(
+        "{.arg impute} name must match the {.fn mi} predictor.",
+        "x" = "Found {.code impute = list({name[[1L]]} = ...)} for {.code mi({variable})}."
+      ))
+    }
+    impute_model <- drm_standardize_impute_model(impute[[1L]])
+  } else {
+    if (is.null(name) || any(!nzchar(name))) {
+      cli::cli_abort(
+        "{.arg impute} must be a named list whose names match the {.fn mi} predictors."
+      )
+    }
+    if (!variable %in% name) {
+      cli::cli_abort(c(
+        "{.arg impute} name must match the {.fn mi} predictor.",
+        "x" = "Found {.code impute} names {.val {name}} for {.code mi({variable})}."
+      ))
+    }
+    extra <- setdiff(name, all_variables)
+    if (length(extra) > 0L) {
+      cli::cli_abort(c(
+        "{.arg impute} names must match the {.fn mi} predictors.",
+        "x" = "Unexpected name{?s}: {.val {extra}}."
+      ))
+    }
+    impute_model <- drm_standardize_impute_model(impute[[variable]])
   }
-  impute_model <- drm_standardize_impute_model(impute[[1L]])
   formula <- impute_model$formula
   family <- impute_model$family_type
   trials_expr <- impute_model$trials
@@ -3749,12 +3876,17 @@ drm_build_gaussian_mi_structured_intercept <- function(
   )
 }
 
-drm_missing_predictor_metadata <- function(model, original_row) {
+drm_missing_predictor_metadata <- function(
+  model,
+  original_row,
+  latent_name = "x_miss"
+) {
   if (!isTRUE(model$enabled)) {
     return(list())
   }
   out <- list(
     variable = model$variable,
+    latent_name = latent_name,
     family = model$family,
     formula = paste(deparse(model$raw_formula), collapse = " "),
     model_row = as.integer(model$missing_index),
@@ -3820,7 +3952,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
     dims = c(1L, 1L)
   )
   if (isTRUE(model$enabled)) {
-    return(list(
+    return(c(list(
       has_mi = 1L,
       mi_family = switch(
         model$family,
@@ -3905,7 +4037,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
       } else {
         1
       }
-    ))
+    ), drm_tmb_second_missing_predictor_data(spec)))
   }
   n <- if (!is.null(spec$y)) {
     length(spec$y)
@@ -3914,7 +4046,7 @@ drm_tmb_missing_predictor_data <- function(spec) {
   } else {
     1L
   }
-  list(
+  c(list(
     has_mi = 0L,
     mi_family = 0L,
     mi_col = 0L,
@@ -3935,6 +4067,41 @@ drm_tmb_missing_predictor_data <- function(spec) {
     X_mi_state_mu = matrix(0, nrow = 1L, ncol = 1L),
     mi_quad_nodes = 0,
     mi_quad_weights = 1
+  ), drm_tmb_second_missing_predictor_data(spec))
+}
+
+drm_tmb_second_missing_predictor_data <- function(spec) {
+  model2 <- spec$missing_predictor2
+  if (is.list(model2) && isTRUE(model2$enabled)) {
+    return(list(
+      has_mi2 = 1L,
+      mi_col2 = as.integer(
+        if (length(model2$mu_col) == 1L && !is.na(model2$mu_col)) {
+          model2$mu_col - 1L
+        } else {
+          0L
+        }
+      ),
+      mi_x2 = as.numeric(model2$x),
+      mi_observed2 = as.integer(model2$observed),
+      mi_missing_index2 = as.integer(model2$missing_index - 1L),
+      X_mi2 = model2$X
+    ))
+  }
+  n <- if (!is.null(spec$y)) {
+    length(spec$y)
+  } else if (!is.null(spec$y1)) {
+    length(spec$y1)
+  } else {
+    1L
+  }
+  list(
+    has_mi2 = 0L,
+    mi_col2 = 0L,
+    mi_x2 = rep(0, max(1L, n)),
+    mi_observed2 = rep(1L, max(1L, n)),
+    mi_missing_index2 = 0L,
+    X_mi2 = matrix(0, nrow = 1L, ncol = 1L)
   )
 }
 
@@ -4797,6 +4964,20 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
   missing_data$predictors[[variable]]$value <- value
   missing_data$predictors[[variable]]$conditional_mode <- x_miss
   missing_data$predictors[[variable]]$summary <- "conditional_mode"
+  model2 <- spec$missing_predictor2
+  if (is.list(model2) && isTRUE(model2$enabled)) {
+    variable2 <- model2$variable
+    if (is.list(missing_data$predictors) && variable2 %in% names(missing_data$predictors)) {
+      x_miss2 <- as.numeric(par_list$x_miss2)
+      if (length(x_miss2) == length(model2$missing_index)) {
+        value2 <- as.numeric(model2$x)
+        value2[model2$missing_index] <- x_miss2
+        missing_data$predictors[[variable2]]$value <- value2
+        missing_data$predictors[[variable2]]$conditional_mode <- x_miss2
+        missing_data$predictors[[variable2]]$summary <- "conditional_mode"
+      }
+    }
+  }
   missing_data
 }
 
@@ -5071,7 +5252,16 @@ drm_imputed_missing_predictor_se <- function(
     return(rep(NA_real_, n_missing))
   }
   random_names <- names(object$sdr$par.random)
-  positions <- which(random_names == "x_miss")
+  latent_name <- predictor$latent_name
+  if (
+    !is.character(latent_name) ||
+      length(latent_name) != 1L ||
+      is.na(latent_name) ||
+      !nzchar(latent_name)
+  ) {
+    latent_name <- "x_miss"
+  }
+  positions <- which(random_names == latent_name)
   if (length(positions) != n_missing) {
     # Summed (finite-state) mi families legitimately have zero x_miss random
     # parameters; fall back to NA in that case rather than mismatching.

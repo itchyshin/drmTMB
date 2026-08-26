@@ -5,6 +5,15 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Two independent Gaussian `mi()` terms
+
+* A Gaussian response can now carry **two independent** `mi()` terms
+  with a named `impute` list (`y ~ mi(m1) + mi(m2) + x`). This is
+  #963 option (b): product of margins, no residual correlation. It is
+  **not** `impute_joint` and **not** FIML. Non-Gaussian responses still
+  require exactly one `mi()` term. Ledger cell
+  `mp-gaussian-gaussian-k2-indep` records MCAR + MAR point recovery.
+
 ## Lognormal ordinary correlated slope
 
 * Complete-data ordinary `lognormal()` `y ~ x + (1 + x | id)` now has a
