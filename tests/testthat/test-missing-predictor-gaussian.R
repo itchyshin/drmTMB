@@ -414,7 +414,7 @@ test_that("Gaussian mi() predictor model validates the first MD3a boundary", {
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE)
     ),
-    "exactly one"
+    "2-element"
   )
   expect_error(
     drmTMB(

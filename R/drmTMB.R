@@ -3332,8 +3332,14 @@ drm_build_gaussian_ls_spec <- function(
     sd_phylo_entries,
     mu_phylo$term
   )
-  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  mi_setup <- drm_prepare_gaussian_mi_setup(
+    mu_entry$rhs,
+    impute,
+    missing,
+    allow_k2 = TRUE
+  )
   include_missing_predictor <- isTRUE(mi_setup$enabled)
+  mi_setup2 <- drm_mi_setup_second(mi_setup)
   sparse_mu <- isTRUE(control$sparse_fixed)
   aggregate_gaussian <- isTRUE(control$aggregate_gaussian)
   if (include_missing_predictor && sparse_mu) {
@@ -3412,7 +3418,7 @@ drm_build_gaussian_ls_spec <- function(
     all.vars(f_mu)
   }
   if (include_missing_predictor) {
-    mu_model_vars <- setdiff(mu_model_vars, mi_setup$variable)
+    mu_model_vars <- setdiff(mu_model_vars, drm_mi_setup_variables(mi_setup))
   }
   impute_vars <- if (include_missing_predictor) {
     c(
@@ -3426,6 +3432,12 @@ drm_build_gaussian_ls_spec <- function(
           isTRUE(mi_setup$structured$enabled)
       ) {
         structured_mu_vars(mi_setup$structured$term)
+      },
+      if (is.list(mi_setup2)) {
+        c(
+          all.vars(stats::delete.response(stats::terms(mi_setup2$formula))),
+          mi_setup2$trials_variable
+        )
       }
     )
   } else {
@@ -3565,6 +3577,15 @@ drm_build_gaussian_ls_spec <- function(
     data_model,
     env = env
   )
+  missing_predictor2 <- if (is.list(mi_setup2)) {
+    drm_build_gaussian_missing_predictor_model(
+      mi_setup2,
+      data_model,
+      env = env
+    )
+  } else {
+    drm_empty_missing_predictor_model(nrow(data_model))
+  }
   if (include_missing_predictor) {
     missing_response_value <- if (is.null(missing_predictor$response_value)) {
       missing_predictor$x
@@ -3577,6 +3598,14 @@ drm_build_gaussian_ls_spec <- function(
       )
     }
     mf_mu[[missing_predictor$model_column]] <- missing_response_value
+    if (isTRUE(missing_predictor2$enabled)) {
+      if (!missing_predictor2$model_column %in% names(mf_mu)) {
+        cli::cli_abort(
+          "Internal {.fn mi} model-frame error: second missing predictor column was not retained."
+        )
+      }
+      mf_mu[[missing_predictor2$model_column]] <- missing_predictor2$x
+    }
   }
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
@@ -3597,6 +3626,17 @@ drm_build_gaussian_ls_spec <- function(
       if (is.na(missing_predictor$mu_col)) {
         cli::cli_abort(
           "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+        )
+      }
+    }
+    if (isTRUE(missing_predictor2$enabled)) {
+      missing_predictor2$mu_col <- match(
+        missing_predictor2$model_column,
+        colnames(X_mu)
+      )
+      if (is.na(missing_predictor2$mu_col)) {
+        cli::cli_abort(
+          "Internal {.fn mi} design-matrix error: second missing predictor coefficient column was not found."
         )
       }
     }
@@ -3697,10 +3737,22 @@ drm_build_gaussian_ls_spec <- function(
       start$beta_zoi <- missing_predictor$zoi_start
       start$beta_coi <- missing_predictor$coi_start
     }
+    if (isTRUE(missing_predictor2$enabled)) {
+      start$beta_mi2 <- missing_predictor2$beta_start
+      start$log_sigma_mi2 <- missing_predictor2$log_sigma_start
+      start$x_miss2 <- missing_predictor2$x_miss_start
+    }
   }
-  predictor_metadata <- drm_missing_predictor_metadata(
-    missing_predictor,
-    original_row = which(keep)
+  predictor_metadata <- c(
+    drm_missing_predictor_metadata(
+      missing_predictor,
+      original_row = which(keep)
+    ),
+    drm_missing_predictor_metadata(
+      missing_predictor2,
+      original_row = which(keep),
+      latent_name = "x_miss2"
+    )
   )
   missing_data <- new_drm_missing_data(
     control = missing,
@@ -3783,6 +3835,7 @@ drm_build_gaussian_ls_spec <- function(
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
     structured = list(phylo_mu = phylo_mu, mesh_spatial_mu = mesh_spatial_mu),
     missing_predictor = missing_predictor,
+    missing_predictor2 = missing_predictor2,
     data = data_model,
     variables = vars,
     keep = keep,
@@ -3816,6 +3869,9 @@ drm_build_gaussian_ls_spec <- function(
           identical(missing_predictor$family, "gaussian")
       ) {
         "x_miss"
+      },
+      if (isTRUE(missing_predictor2$enabled)) {
+        "x_miss2"
       },
       if (
         include_missing_predictor && isTRUE(missing_predictor$random$enabled)
@@ -19347,6 +19403,26 @@ add_covariance_probe_parameter <- function(spec) {
   if (is.null(spec$map$log_sd_mi_struct) && !has_mi_struct) {
     spec$map$log_sd_mi_struct <- factor(NA)
   }
+  has_mi2 <- is.list(spec$missing_predictor2) &&
+    isTRUE(spec$missing_predictor2$enabled)
+  if (is.null(spec$start$beta_mi2)) {
+    spec$start$beta_mi2 <- 0
+  }
+  if (is.null(spec$start$log_sigma_mi2)) {
+    spec$start$log_sigma_mi2 <- 0
+  }
+  if (is.null(spec$start$x_miss2)) {
+    spec$start$x_miss2 <- 0
+  }
+  if (is.null(spec$map$beta_mi2) && !has_mi2) {
+    spec$map$beta_mi2 <- factor(NA)
+  }
+  if (is.null(spec$map$log_sigma_mi2) && !has_mi2) {
+    spec$map$log_sigma_mi2 <- factor(NA)
+  }
+  if (is.null(spec$map$x_miss2) && !has_mi2) {
+    spec$map$x_miss2 <- factor(NA)
+  }
   # Scoped second structured location field. Every model declares its parameters
   # so the shared C++ signature is satisfied; they are mapped off unless the
   # admitted intercept-only two-provider combo populated `phylo_mu2`.
@@ -20913,6 +20989,19 @@ split_tmb_parameters <- function(par, spec) {
           stats::setNames(
             exp(unname(par$log_sigma_mi)),
             spec$missing_predictor$variable
+          )
+      }
+      if (
+        is.list(spec$missing_predictor2) &&
+          isTRUE(spec$missing_predictor2$enabled)
+      ) {
+        beta_mi2 <- unname(par$beta_mi2)
+        names(beta_mi2) <- spec$missing_predictor2$coef_names
+        out[[paste0("mi_", spec$missing_predictor2$variable)]] <- beta_mi2
+        out[[paste0("sigma_mi_", spec$missing_predictor2$variable)]] <-
+          stats::setNames(
+            exp(unname(par$log_sigma_mi2)),
+            spec$missing_predictor2$variable
           )
       }
       if (identical(spec$missing_predictor$family, "zero_one_beta")) {

@@ -322,6 +322,12 @@ Type objective_function<Type>::operator()()
   DATA_MATRIX(X_mi_state_mu);
   DATA_VECTOR(mi_quad_nodes);
   DATA_VECTOR(mi_quad_weights);
+  DATA_INTEGER(has_mi2);
+  DATA_INTEGER(mi_col2);
+  DATA_VECTOR(mi_x2);
+  DATA_IVECTOR(mi_observed2);
+  DATA_IVECTOR(mi_missing_index2);
+  DATA_MATRIX(X_mi2);
   DATA_VECTOR(trials);
   DATA_VECTOR(weights);
   DATA_VECTOR(offset_mu);
@@ -477,6 +483,9 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(beta_mi);
   PARAMETER_VECTOR(log_sigma_mi);
   PARAMETER_VECTOR(x_miss);
+  PARAMETER_VECTOR(beta_mi2);
+  PARAMETER_VECTOR(log_sigma_mi2);
+  PARAMETER_VECTOR(x_miss2);
   PARAMETER_VECTOR(u_mi_group);
   PARAMETER_VECTOR(log_sd_mi_group);
   PARAMETER_VECTOR(u_mi_struct);
@@ -1231,6 +1240,33 @@ Type objective_function<Type>::operator()()
       ADREPORT(beta_mi);
       ADREPORT(log_sigma_mi);
       ADREPORT(sigma_mi);
+    }
+
+    if (has_mi2 == 1) {
+      vector<Type> mi_eta2 = X_mi2 * beta_mi2;
+      Type sigma_mi2 = exp(log_sigma_mi2(0));
+      vector<Type> mi_x_full2(mi_x2.size());
+      for (int i = 0; i < mi_x2.size(); ++i) {
+        mi_x_full2(i) = mi_x2(i);
+      }
+      for (int j = 0; j < mi_missing_index2.size(); ++j) {
+        int row = mi_missing_index2(j);
+        mi_x_full2(row) = x_miss2(j);
+      }
+      for (int i = 0; i < mi_x_full2.size(); ++i) {
+        nll -= dnorm(mi_x_full2(i), mi_eta2(i), sigma_mi2, true);
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += beta_mu(mi_col2) * (mi_x_full2(i) - X_mu(i, mi_col2));
+      }
+      REPORT(mi_x_full2);
+      REPORT(beta_mi2);
+      REPORT(log_sigma_mi2);
+      REPORT(sigma_mi2);
+      REPORT(x_miss2);
+      ADREPORT(beta_mi2);
+      ADREPORT(log_sigma_mi2);
+      ADREPORT(sigma_mi2);
     }
 
     if (has_mi == 1 && mi_family == 1) {
