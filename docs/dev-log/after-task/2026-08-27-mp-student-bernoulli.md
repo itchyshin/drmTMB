@@ -22,7 +22,18 @@ without the ABI change that wait was protecting.
 - Tests, ledger `mp-student-bernoulli` (G3, capability stays partial)
 - NEWS
 
+## C17 cheap-mode recert (CI)
+
+`ubuntu-latest` failed `mc-0568` because `R/drmTMB.R` / `src/drmTMB.cpp`
+moved while the authenticated model-15 fingerprint did not. Re-ran
+`tools/run-lane-c-c17c1-c14-model15-compatibility.R` against
+`e394aaf85`. 12/12 `fit_ok`. `mean_tau_relative_error` is
+bit-identical to the beta-binomial receipt
+(0.0990017646754622 / 0.166085237666842 / 0.0613064198360253).
+`source_fingerprint` left alone. Receipt:
+`docs/dev-log/implementation-recovery/2026-08-27-s6-a7-student-c17/`.
+
 ## Not this PR
 
 Shared-leaf ABI, student × gaussian, k=2, `impute_joint`, zi-*,
-drmSEM consumer / capability `covered`.
+capability `covered`. drmSEM consumer is a follow-up after merge.
