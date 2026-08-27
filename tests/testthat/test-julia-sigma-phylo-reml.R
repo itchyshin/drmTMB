@@ -56,9 +56,12 @@ test_that("bridge options forward method = REML only when REML is requested", {
     list()
   )
 
-  # σ-phylo location-scale (univariate phylo_payload): REML key alongside the
-  # g_tol the sparse all-node phylo route already used.
-  uni_payload <- list(bivariate = FALSE)
+  # σ-phylo location-scale (univariate GAUSSIAN phylo_payload): REML key
+  # alongside the g_tol this route keeps. The payload now says its family
+  # explicitly, because the mapping is family-split (2026-08-27): Gaussian
+  # σ-phylo/locscale-REML fitters have their OWN convergence criterion and
+  # stall short of 1e-8 on the restricted objective, so they keep 1e-4.
+  uni_payload <- list(bivariate = FALSE, family_type = "gaussian")
   expect_identical(
     drmTMB:::drm_julia_bridge_options(uni_payload, method = "REML"),
     list(g_tol = 1e-4, method = "REML")
@@ -66,6 +69,19 @@ test_that("bridge options forward method = REML only when REML is requested", {
   expect_identical(
     drmTMB:::drm_julia_bridge_options(uni_payload, method = "ML"),
     list(g_tol = 1e-4)
+  )
+  # Non-Gaussian univariate phylo payloads get DRM.jl's native default 1e-8:
+  # their SE parity is banked at 1e-7..5e-6 relative on those routes, and the
+  # #491 converged flag honestly reports a 1e-4 request as not at standard —
+  # asking for less must not buy a green flag through the bridge either.
+  nongauss_payload <- list(bivariate = FALSE, family_type = "poisson")
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(nongauss_payload, method = "ML"),
+    list(g_tol = 1e-8)
+  )
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(nongauss_payload, method = "REML"),
+    list(g_tol = 1e-8, method = "REML")
   )
 
   # ML mu+sigma q1 phylo parity uses DRM.jl's coupled covariance block to match

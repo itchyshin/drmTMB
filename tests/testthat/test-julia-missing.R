@@ -69,6 +69,92 @@ test_that("engine='julia' fits Gaussian response='include' (observed-data, desig
   expect_equal(res$nobs, 54L) # 60 rows - 6 missing responses dropped from the likelihood
 })
 
+test_that("engine='julia' response='include' on Gaussian MEAN-phylo equals the drop fit (D-179 #2)", {
+  # The named hole in the gaussian_response_mask row: include used to be
+  # REFUSED on the mean-phylo route. The decision experiment (2026-08-27)
+  # showed native drmTMB's include and drop fits are byte-identical on this
+  # cell, so DRM.jl now fits include as observed rows + full tree. Assert the
+  # two policies agree through the LIVE bridge, on a fixture with one species
+  # fully masked (the prior-only-leaf case).
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not_installed("ape")
+  skip_if_not(
+    dir.exists(drm_miss_jl_path()),
+    "DRM.jl engine path not available"
+  )
+
+  res <- tryCatch(
+    {
+      pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+      callr::r(
+        function(pkg, jl_path) {
+          julia_home <- Sys.getenv(
+            "DRM_JL_JULIA_HOME",
+            Sys.getenv("JULIA_HOME", "")
+          )
+          if (nzchar(julia_home)) {
+            Sys.setenv(JULIA_HOME = julia_home)
+          }
+          options(drmTMB.DRM.jl.path = jl_path)
+          suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+          set.seed(20260827L)
+          n_tip <- 12L
+          m <- 5L
+          tree <- ape::rcoal(n_tip)
+          tree$tip.label <- paste0("sp_", seq_len(n_tip))
+          A <- ape::vcv(tree, corr = TRUE)
+          u <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * 0.6
+          species <- factor(rep(tree$tip.label, each = m),
+                            levels = tree$tip.label)
+          n <- n_tip * m
+          x <- stats::rnorm(n)
+          y <- 0.3 + 0.5 * x + u[as.integer(species)] + 0.4 * stats::rnorm(n)
+          y[c(2L, 9L)] <- NA
+          y[(3L * m + 1L):(4L * m)] <- NA   # species 4 entirely masked
+          dat <- data.frame(y = y, x = x, species = species)
+
+          fit_one <- function(policy) {
+            drmTMB::drmTMB(
+              drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+              family = stats::gaussian(),
+              data = dat,
+              engine = "julia",
+              missing = drmTMB::miss_control(response = policy)
+            )
+          }
+          fi <- fit_one("include")
+          fd <- fit_one("drop")
+          list(
+            ll_incl = as.numeric(stats::logLik(fi)),
+            ll_drop = as.numeric(stats::logLik(fd)),
+            coef_incl = as.numeric(unlist(drmTMB::fixef(fi))),
+            coef_drop = as.numeric(unlist(drmTMB::fixef(fd))),
+            nobs_incl = stats::nobs(fi)
+          )
+        },
+        args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+        error = "error"
+      )
+    },
+    error = function(e) {
+      testthat::skip(paste(
+        "julia mean-phylo include round-trip unavailable:",
+        conditionMessage(e)
+      ))
+    }
+  )
+
+  expect_true(is.finite(res$ll_incl))
+  expect_equal(res$nobs_incl, 53L) # 60 rows - 7 masked responses
+  # include IS drop on this cell: same rows fitted, same likelihood, same
+  # coefficients (bridge marshalling differs only in WHERE the filter runs).
+  expect_equal(res$ll_incl, res$ll_drop, tolerance = 1e-10)
+  expect_equal(res$coef_incl, res$coef_drop, tolerance = 1e-10)
+})
+
 test_that("engine='julia' rejects response='include' for non-Gaussian families", {
   set.seed(1L)
   n <- 40L

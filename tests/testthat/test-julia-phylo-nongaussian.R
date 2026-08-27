@@ -193,12 +193,22 @@ drm_phylo_binom_fit <- function(n_tip = 24L) {
       set.seed(11)
       tree <- ape::rcoal(n_tip)
       sp <- tree$tip.label
-      x <- stats::rnorm(n_tip)
+      # FIVE Bernoulli observations per tip, not one. With one observation per
+      # tip the phylo SD is unidentified on Bernoulli data: the fit sits on the
+      # zero-variance boundary (log sd ~ -8) with the optimiser STALLED there
+      # (measured relative gradient 2.3e-6 at every n_tip tried), and DRM.jl's
+      # honest converged flag (#491) truthfully reports it. Per-tip replication
+      # identifies the latent: measured relative gradient 2.4e-8, converged.
+      # Same lesson as DRM.jl#483/#509 — reseed the fixture, never the flag.
+      m <- 5L
+      species <- rep(sp, each = m)
+      n <- n_tip * m
+      x <- stats::rnorm(n)
       bm <- ape::rTraitCont(tree, model = "BM", sigma = 0.8)
-      eta <- -0.2 + 0.5 * x + bm[sp]
+      eta <- -0.2 + 0.5 * x + bm[species]
       p <- stats::plogis(eta)
-      y <- stats::rbinom(n_tip, size = 1L, prob = p)
-      dat <- data.frame(species = sp, x = x, y = y, stringsAsFactors = FALSE)
+      y <- stats::rbinom(n, size = 1L, prob = p)
+      dat <- data.frame(species = species, x = x, y = y, stringsAsFactors = FALSE)
 
       form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
 
@@ -287,7 +297,7 @@ test_that("Binomial phylo fit via engine = 'julia' is finite and sane", {
   # No native binomial twin -> finite-and-sane floor only.
   expect_true("drmTMB_julia" %in% res$class)
   expect_equal(res$engine, "julia")
-  expect_equal(res$nobs, 24L)
+  expect_equal(res$nobs, 120L) # 24 tips x 5 Bernoulli obs each
   expect_true(is.finite(res$loglik_julia))
   expect_true(all(is.finite(res$coef_julia)))
   expect_equal(res$coef_names, c("(Intercept)", "x"))
