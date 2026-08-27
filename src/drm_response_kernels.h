@@ -96,6 +96,25 @@ Type drm_response_log_density(
         lgamma(shape) -
         shape * log(scale);
     }
+    case 14: {
+      // beta_binomial: logit success probability, phi = exp(-2*log_sigma).
+      // Replicates the model_type==14 main-loop density so the mi() 2-point
+      // sum and the observed-x loop agree (S6 A7 / #962).
+      Type mu = Type(1.0) / (Type(1.0) + exp(-eta_val));
+      Type phi = exp(Type(-2.0) * log_sigma_val);
+      Type alpha = mu * phi;
+      Type beta_shape = (Type(1.0) - mu) * phi;
+      Type failures = trials_val - y_val;
+      return lgamma(trials_val + Type(1.0)) -
+        lgamma(y_val + Type(1.0)) -
+        lgamma(failures + Type(1.0)) +
+        lgamma(phi) -
+        lgamma(trials_val + phi) +
+        lgamma(y_val + alpha) -
+        lgamma(alpha) +
+        lgamma(failures + beta_shape) -
+        lgamma(beta_shape);
+    }
     default:
       // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
       // the model_type == 1 mi() block calls this helper).

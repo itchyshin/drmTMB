@@ -1,0 +1,15 @@
+M NEWS.md
+M R/drmTMB.R
+M R/missing-data.R
+M docs/dev-log/dashboard/capability-ledger/cells.tsv
+M docs/dev-log/dashboard/capability-ledger/evidence.tsv
+M docs/dev-log/dashboard/capability-ledger/schema.json
+M docs/dev-log/dashboard/capability-surface.html
+M docs/dev-log/dashboard/capability-surface.md
+M src/drmTMB.cpp
+M src/drm_response_kernels.h
+M tests/testthat/test-missing-data-capability-gate.R
+M tools/capability_ledger.py
+M vignettes/includes/capability-ledger-family-map.md
+?? docs/dev-log/after-task/2026-08-27-s6-a7-family-gate-kickoff.md
+?? tests/testthat/test-missing-predictor-beta-binomial-response.R
