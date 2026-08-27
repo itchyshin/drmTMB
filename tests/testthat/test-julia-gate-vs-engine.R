@@ -221,9 +221,17 @@ test_that("Julia capability comparison artifact matches the registry", {
   # interval_status / coverage_claimed fences elsewhere in this file are untouched.
   phase1_promoted <- registry[
     registry$capability_id %in%
-      c("phylo_gamma_beta_binomial", "general_covariance_structured"),
+      c(
+        "phylo_gamma_beta_binomial",
+        "general_covariance_structured",
+        # Phase 2 (2026-08-27, "do the last two promotions"): each blocker was
+        # fixed and re-measured first (DRM.jl PR #517; SE re-bank on build
+        # 19ecb005). Same lock rationale as above.
+        "phylo_count_large_p",
+        "gaussian_response_mask"
+      ),
   ]
-  expect_equal(nrow(phase1_promoted), 2L)
+  expect_equal(nrow(phase1_promoted), 4L)
   expect_true(all(phase1_promoted$claim_status == "covered"))
 
   for (capability_path in capability_paths) {
