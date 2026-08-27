@@ -5,6 +5,18 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Gamma response + one binary `mi()` predictor
+
+* A `Gamma(link = "log")` response can now carry **one** binary `mi()`
+  predictor (`y ~ z + mi(treatment)` with
+  `impute_model(treatment ~ z, family = binomial())`). This is drmTMB
+  #962 / S6 A7: C++ `has_mi` wiring and a `drm_response_log_density`
+  Gamma leaf, not a whitelist-only edit. Ledger cell
+  `mp-gamma-bernoulli` records MCAR + MAR point recovery. This is
+  **not** FIML, **not** `impute_joint`, **not** k ≥ 2, and **not** a
+  continuous missing predictor under Gamma. Lognormal, student,
+  beta_binomial, and zi-* responses remain gated.
+
 ## Two independent Gaussian `mi()` terms
 
 * A Gaussian response can now carry **two independent** `mi()` terms

@@ -2854,14 +2854,58 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
     }
-    vector<Type> mu = exp(eta_mu);
+    // Clamp BEFORE the mi() 2-point sum so the leaf and the main loop
+    // see the same log_sigma (beta lesson; #962 / S6 A7).
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(
         log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
     }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * drm_response_log_density(
+              model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
+            Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          eta_mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
+    vector<Type> mu = exp(eta_mu);
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
-      if (observed_y(i) == 1) {
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type variance_multiplier = sigma(i) * sigma(i);
         Type shape = Type(1.0) / variance_multiplier;
         Type scale = mu(i) * variance_multiplier;

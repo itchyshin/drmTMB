@@ -92,10 +92,10 @@ categorical, strict beta/proportion, zero-one beta boundary-proportion,
 beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
 zero-truncated negative-binomial count, lognormal positive continuous,
 Gamma positive continuous, and Tweedie semi-continuous predictors may use
-one fixed-effect family-aware \code{impute_model()}. The first Poisson-response
-route supports one fixed-effect binary missing predictor with a
-Bernoulli/logit \code{impute_model()}, complete count responses, and no
-zero-inflation, random, or structured response terms.}
+one fixed-effect family-aware \code{impute_model()}. Poisson, binomial,
+nbinom2, beta, and Gamma responses each support one fixed-effect binary
+missing predictor with a Bernoulli/logit \code{impute_model()}, complete
+responses, and no random or structured response terms.}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
 \code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and

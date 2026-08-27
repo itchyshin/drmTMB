@@ -1,22 +1,16 @@
-# Checkpoint — OVERWRITTEN every arc (a pointer to truth, not a log)
-
-GOAL: overnight run (owner-delegated to 05:00). STATE: **ALL SEVEN ARCS COMPLETE. PR #1050 OPEN,
-awaiting CI. Nothing running.**
-
-- **DONE (verified, all 11 gates green before push):**
-  - A3 31/31 truth recovered + location-checked, zero compute. 31/31 pass, 100% bracketing.
-    Claiming cells: 176 passed / 44 unchecked / 6 not_applicable.
-  - A2 44-cell import audited: 19 shape-justified / 22 no-interval / 3 unwired campaign
-    (coverage 0.81-0.86 — a WARNING). Facts only; no tier changed.
-  - A1 location_checked rendered (census column + derived line on 3 surfaces, test-pinned).
-  - A4 staleness sweep: 8 siblings found, supersession note now covers 9; class does not recur.
-  - A5 3 vacuous-shape sites all REAL (zero fixes). A6 binding_source_sha256 semantics documented
-    (my earlier claim was wrong). A7 mc-0596 = fixture difference, not contradiction.
-  - Repaired 2 citation errors of my own from PR #1047.
-  - Wrote, proved, then REVERTED a zero_one_beta fix: the test is the pinned source blob for
-    mc-0568's receipt (C14/C17 guard). Coupling documented.
-- **IN FLIGHT:** PR #1050 CI only (GitHub-side). No local processes, no agents, no polls.
-- **NEXT (owner decisions, none taken):** the 44-cell disposition · the student campaign review ·
-  which of the 22 are blob-pinned · mc-0596 (D-87) · merge #1050 when green.
-- **RESUME:** read this file, then `docs/dev-log/after-task/2026-08-16-overnight-location-and-import-audit.md`.
-  Branch `claude/lane-overnight-0815` pushed at bf2e60552; PR #1050.
+GOAL: see GOAL.md.   STATE: Gamma has_mi landed locally; tests green.
+ARCS DONE (verified):
+- A7.0 lane + G0 (Gamma, not Poisson) — LOOP kit on this branch
+- A7.1 C++ leaf + model_type 5 has_mi — compile clean
+- A7.2 R spec + gate — drm_build_gamma_ls_spec(impute=)
+- A7.3 tests — 14/0/0 in test-missing-predictor-gamma-response.R
+  (logLik 1e-6; MCAR 0.15; MAR 0.20)
+- A7.4 ledger row mp-gamma-bernoulli appended
+ARC IN PROGRESS: A7.5 push + PR
+NEXT: commit explicit paths; push cursor/lane-s6-family-gate; open PR.
+OPEN GATES (need human): merge if CI green (pre-authorised).
+TRUTH LIVES IN: ~/local-scratch/lanes/drmTMB-s6-family-gate
+on cursor/lane-s6-family-gate from origin/main @ cc3ef1e8f.
+RESUME: A7 Gamma has_mi. Tests already green. Do not redo C++.
+Push/PR next. First family is Gamma. Next family is lognormal.
+Do not claim covered / FIML / impute_joint.
