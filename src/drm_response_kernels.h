@@ -75,6 +75,13 @@ Type drm_response_log_density(
         (alpha - Type(1.0)) * log(y_val) +
         (beta_shape - Type(1.0)) * log(Type(1.0) - y_val);
     }
+    case 4: {
+      // lognormal: identity log-location. dnorm(log(y), mu, sigma) - log(y).
+      // Replicates the model_type==4 main-loop density so the mi() 2-point
+      // sum and the observed-x loop agree (S6 A7 / #962).
+      Type log_y = log(y_val);
+      return dnorm(log_y, eta_val, exp(log_sigma_val), true) - log_y;
+    }
     case 5: {
       // gamma: log link, mean-CV. shape = 1/sigma^2, scale = mu * sigma^2.
       // Replicates the model_type==5 main-loop density so the mi() 2-point

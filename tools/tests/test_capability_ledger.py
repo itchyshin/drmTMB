@@ -2973,7 +2973,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         runtime = ledger.validate_missing_predictor_runtime_map()
         self.assertEqual(
             runtime,
-            {"gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma"},
+            {"gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal"},
         )
         rows = {
             row["family_route"]: row
@@ -2984,6 +2984,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("via `poisson`", rows["zi_poisson"]["Miss-predictor mi()"])
         self.assertIn("implemented", rows["gamma"]["Miss-predictor mi()"])
         self.assertIn("one binary", rows["gamma"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["lognormal"]["Miss-predictor mi()"])
+        self.assertIn("one binary", rows["lognormal"]["Miss-predictor mi()"])
 
     def test_generated_surfaces_have_live_wording_and_ledger_date(self):
         generated = ledger.outputs(self.cells, self.evidence)

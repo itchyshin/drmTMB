@@ -24,7 +24,7 @@ response_validated <- c(
   "beta_binomial", "cumulative_logit", "truncated_nbinom2"
 )
 predictor_validated <- c(
-  "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma"
+  "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal"
 )
 
 # One response family object per family_type a user can pass, with a y valid
@@ -84,7 +84,7 @@ test_that("supplying `impute` with a non-validated response family loudly reject
   # Use response families that remain OUTSIDE drm_missing_predictor_families();
   # as P3 validates a family (beta/nbinom2/binomial are now validated) it must
   # move out of this reject set, mirroring predictor_validated above.
-  for (ft in c("tweedie", "lognormal")) {
+  for (ft in c("tweedie", "student")) {
     cs <- cases[[ft]]
     # predictor="model" + impute on a non-validated response hits the predictor
     # capability gate first; either way it must reject loudly, never proceed.
