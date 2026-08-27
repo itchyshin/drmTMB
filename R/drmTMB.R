@@ -7463,10 +7463,31 @@ drm_build_poisson_spec <- function(
     ))
   }
   if (include_missing_predictor && !is.null(zi_entry)) {
-    cli::cli_abort(c(
-      "Poisson-response {.fn mi} predictor models are not implemented with zero inflation yet.",
-      "i" = "Fit the first non-Gaussian response missing-predictor slice without a {.code zi} formula."
-    ))
+    # D-23: mi() in mu only; ZIP mixture in the 2-point sum; eta_zi
+    # from observed-only predictors. zi ~ mi(x) is a different estimand.
+    if (formula_contains_call(zi_entry$rhs, "mi")) {
+      cli::cli_abort(c(
+        "Zero-inflated Poisson cannot carry {.fn mi} on {.code zi}.",
+        "x" = "{.fn mi} is legal only in {.code mu}. A path to {.code zi} is not a path to the conditional mean.",
+        "i" = "Use {.code zi ~ 1} or {.code zi ~} fully observed covariates."
+      ))
+    }
+    if (mi_setup$variable %in% all.vars(zi_entry$rhs)) {
+      cli::cli_abort(c(
+        "Zero-inflated Poisson cannot use the missing predictor on {.code zi}.",
+        "x" = "{.code eta_zi} must come from observed-only predictors.",
+        "i" = "Use {.code zi ~ 1} or drop {.val {mi_setup$variable}} from the {.code zi} formula."
+      ))
+    }
+    if (
+      !is.null(zi_spatial$term) ||
+        formula_contains_call(zi_entry$rhs, "|")
+    ) {
+      cli::cli_abort(c(
+        "The first zero-inflated Poisson {.fn mi} slice is fixed-effect {.code mu} and {.code zi} only.",
+        "i" = "Remove random or structured terms from {.code zi}, or drop {.fn mi}."
+      ))
+    }
   }
   if (
     include_missing_predictor &&
@@ -7686,7 +7707,7 @@ drm_build_poisson_spec <- function(
         missing_predictor,
         original_row = which(keep)
       ),
-      version = "MD9a"
+      version = if (!is.null(zi_entry)) "MD-zi-poisson-mi" else "MD9a"
     )
   } else if (include_missing_response) {
     new_drm_missing_data(
@@ -21231,7 +21252,16 @@ split_tmb_parameters <- function(par, spec) {
     beta_zi <- unname(par$beta_zi)
     names(beta_mu) <- colnames(spec$X$mu)
     names(beta_zi) <- colnames(spec$X$zi)
-    return(list(mu = beta_mu, zi = beta_zi))
+    out <- list(mu = beta_mu, zi = beta_zi)
+    if (
+      is.list(spec$missing_predictor) &&
+        isTRUE(spec$missing_predictor$enabled)
+    ) {
+      beta_mi <- unname(par$beta_mi)
+      names(beta_mi) <- spec$missing_predictor$coef_names
+      out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+    }
+    return(out)
   }
   if (identical(spec$model_type, "zi_nbinom2")) {
     beta_mu <- unname(par$beta_mu)

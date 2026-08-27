@@ -32,6 +32,20 @@ Template Model Builder.
   Poisson / binomial / beta responses still take a binary predictor
   only. zi-* responses remain gated.
 
+## Zero-inflated Poisson + one binary `mi()` predictor
+
+* A zero-inflated Poisson response (`family = poisson()` plus `zi ~ 1`)
+  can now carry **one** binary `mi()` predictor in **`mu` only**
+  (`y ~ z + mi(treatment), zi ~ 1` with
+  `impute_model(treatment ~ z, family = binomial())`). This is drmTMB
+  #962 / S6 A7 / D-23: C++ `has_mi` wiring that **inlines the ZIP
+  mixture** in `model_type == 8`. It does **not** reuse the plain
+  Poisson leaf for structural zeros, and `eta_zi` comes from
+  observed-only predictors. Ledger cell `mp-zi-poisson-bernoulli`
+  records MCAR + MAR point recovery. This is **not** FIML, **not**
+  `impute_joint`, **not** k ≥ 2, **not** `mi()` on `zi`, and **not**
+  `zi_nbinom2`. Student remains gated. Capability stays partial.
+
 ## Beta-binomial response + one binary `mi()` predictor
 
 * A `beta_binomial()` response can now carry **one** binary `mi()`

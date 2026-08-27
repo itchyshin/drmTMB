@@ -4043,10 +4043,70 @@ Type objective_function<Type>::operator()()
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
     }
+    // ZIP × Bernoulli mi() (D-23 / #962). Inline the mixture density.
+    // Do not call drm_response_log_density (no eta_zi; case 8 is absent;
+    // the Poisson leaf would treat structural zeros as Poisson zeros).
+    // eta_zi is observed-only: it is not shifted by missing x.
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
+        Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type eta1 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type eta0 = eta_mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type mu1 = exp(eta1);
+          Type mu0 = exp(eta0);
+          Type log_y1 = Type(0.0);
+          Type log_y0 = Type(0.0);
+          if (observed_y(i) == 1) {
+            if (asDouble(y(i)) == 0.0) {
+              log_y1 = weights(i) *
+                logspace_add(log_zi, log_one_minus_zi - mu1);
+              log_y0 = weights(i) *
+                logspace_add(log_zi, log_one_minus_zi - mu0);
+            } else {
+              log_y1 = weights(i) *
+                (log_one_minus_zi + dpois(y(i), mu1, true));
+              log_y0 = weights(i) *
+                (log_one_minus_zi + dpois(y(i), mu0, true));
+            }
+          }
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          Type expected_mu =
+            posterior_p1 * mu1 +
+            (Type(1.0) - posterior_p1) * mu0;
+          eta_mu(i) = log(expected_mu);
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     vector<Type> mu = exp(eta_mu);
     vector<Type> zi = Type(1.0) / (Type(1.0) + exp(-eta_zi));
     for (int i = 0; i < y.size(); ++i) {
-      if (observed_y(i) == 1) {
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
         Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
         if (asDouble(y(i)) == 0.0) {
