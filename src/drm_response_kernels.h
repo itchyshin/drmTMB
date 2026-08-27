@@ -75,6 +75,20 @@ Type drm_response_log_density(
         (alpha - Type(1.0)) * log(y_val) +
         (beta_shape - Type(1.0)) * log(Type(1.0) - y_val);
     }
+    case 5: {
+      // gamma: log link, mean-CV. shape = 1/sigma^2, scale = mu * sigma^2.
+      // Replicates the model_type==5 main-loop density so the mi() 2-point
+      // sum and the observed-x loop agree (S6 A7 / #962).
+      Type mu = exp(eta_val);
+      Type sigma = exp(log_sigma_val);
+      Type variance_multiplier = sigma * sigma;
+      Type shape = Type(1.0) / variance_multiplier;
+      Type scale = mu * variance_multiplier;
+      return (shape - Type(1.0)) * log(y_val) -
+        y_val / scale -
+        lgamma(shape) -
+        shape * log(scale);
+    }
     default:
       // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
       // the model_type == 1 mi() block calls this helper).

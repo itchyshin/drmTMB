@@ -49,8 +49,9 @@ negative-binomial models for one count predictor, fixed-effect lognormal or
 Gamma models for one positive continuous predictor, and fixed-effect
 Tweedie models for one non-negative semi-continuous predictor with exact
 zeros. Most current non-Gaussian predictor families are fitted inside a
-Gaussian response location model; Poisson, binomial, negative-binomial, and
-beta responses are currently supported for one binary missing predictor.
+Gaussian response location model; Poisson, binomial, negative-binomial,
+beta, and Gamma responses are currently supported for one binary missing
+predictor.
 }
 \examples{
 impute_model(x ~ z)

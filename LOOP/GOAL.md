@@ -1,98 +1,54 @@
-# GOAL — every drmTMB cell claiming an interval has a verdict on whether that interval BRACKETS its true value
-
-**IMMUTABLE for this run.** Re-read this file at the top of EVERY arc, before anything else.
+# GOAL — S6 A7 family gate (IMMUTABLE — re-read at the top of EVERY arc)
 
 ## Mission
 
-237 capability cells claim `evidence_tier` of `interval_feasible` or above. `tools/profile_truth_gate.py`
-is the only thing that checks whether a profile interval actually **contains its true value**, rather
-than merely having the right *shape* (conf_status, convergence, pdHess, boundary, clamp, trace). That
-gate derives truth from `tools/profile-truth-manifest.tsv`, which reaches **30 cells — 27 of them at a
-claiming tier**. So **209 cells make a location claim that nothing has ever checked for location.**
+Ship drmTMB item 1 (#962) **one family at a time**: C++ `has_mi`
+marginalisation for a response family that currently has none, plus an
+R-side spec wire, a known-DGP recovery test, and one honest
+`missing_predictor` ledger row. This is **not** a whitelist-only edit.
 
-Verified against `origin/main` `82cd00560` on 2026-08-15 (not inherited from the plan):
+## Headline
 
-| tier | population | in manifest | uncovered |
-| --- | ---: | ---: | ---: |
-| `interval_feasible` | 192 | 27 | 165 |
-| `inference_ready_with_caveats` | 41 | **0** | 41 |
-| `supported` | 4 | **0** | 4 |
-| **total** | **237** | **27** | **210** |
+**First family = Gamma response × one Bernoulli `mi()` predictor.**
+Poisson is already wired (binary predictor only). #962's first unwired
+row is Gamma (`model_type` 5).
 
-210 are not in the manifest; **209** need classification (`mc-0282` is a documented `UNGATED`
-exemption, `tools/tests/test_profile_truth_gate.py:62`). **209 is the workload; 237 is the tier
-population.** The tiers *above* `interval_feasible` have **zero** location coverage — the
-most-claimed cells are the least checked.
+## Invariants
 
-**Why now.** 0.7.0 is the CRAN target and is held. The defect class is proven, not hypothetical: on
-2026-08-03 three cells reconciled 5/5 PASS while holding an interval that missed its own truth —
-`mc-0423` `[0.137, 0.479]` vs `0.55`; `mc-0409` `[0.610, 0.902]` vs `0.6`; `mc-0292`
-`[0.404, 0.694]` vs `0.7`. In one case the agent printed the correct endpoints and then wrote "YES".
-
-## Definition of done
-
-- [ ] Each of the **209** uncovered cells carries a recorded verdict: covered-and-passing,
-      covered-and-demoted, or explicitly classified as checked by a stronger instrument.
-- [ ] The manifest is **derived** from fixture builders, never hand-typed.
-- [ ] The gate's coverage is extended via the sweep in `tools/tests/test_profile_truth_gate.py:97-120`,
-      and CI is green.
-- [ ] Every miss is adjudicated; every demotion carries a recorded reason.
-- [ ] After-task report + plan-vs-actual filed.
-
-## Invariants (never violate, even to finish faster)
-
-- **The gate's tolerance is NEVER adjusted to keep a cell.** A genuine miss is demoted, with reason.
-- **Demotion wording is fixed:** *"this claim is not currently supported"* — never *"this interval is
-  proven mislocated."* The gate emits **screening statistics**. Arc 7b's own per-cell p-values were
-  0.017–0.039 and **none survived multiplicity correction**.
-- **Reuse Arc 7b's machinery; do not rebuild it.** It is present on `origin/main` and wired into CI
-  (`R-CMD-check.yaml:115`).
-- **Truth is derived, never hand-typed** — hand-typing recreates the exact defect one layer up.
-- **Do NOT add gate calls to the four `reconcile-arc1-*.py` scripts.** They are frozen provenance
-  checks by design (`tools/arc1_profile_reconcile.py:1-26`); a claim gate there would conflate
-  *"these bytes are authentic"* with *"these bytes support the claim."*
-- **Receipts are never a shortcut.** No committed receipt carries `true_value`/`brackets_truth`;
-  truth comes from the manifest, which the gate recomputes bracketing against.
-- **Four cells are cross-arc stale.** `mc-0595`, `mc-0596`, `mc-0321`, `mc-0653` were re-evidenced by
-  the landed-but-unmerged response-mask arc (`codex/response-missing-formula-surface`, `a075ff2d0`).
-  Read their rows from **that branch**, not `origin/main`, before classifying. **Never demote a cell
-  that arc just re-evidenced without reading its recorded reason.** A genuine conflict is Shinichi's
-  call (D-87).
-- Never push, merge, or publish — those are HUMAN GATES. Land work on this branch only.
-- **No compute without a measured pre-run (D-139)** and an explicit Totoro-vs-DRAC decision. Never
-  GitHub Actions (D-50).
-- Verification means reading the LOG and inspecting the ARTEFACT, never the exit code.
-- A narrow or negative search is not proof. "No X exists" usually means the query missed X.
-- Destructive or irreversible ⇒ STOP and surface, even if it feels urgent.
-
-## Lane
-
-```
-PLATFORM: claude | LANE: interval-claim truth audit | BRANCH: claude/lane-interval-truth-audit
-OTHER LANES: 9 live — codex direct-to-main (FOREIGN) · codex/response-missing-formula-surface ·
-             codex #955 · codex #858 · 4x claude (#1032, #959, phase19-comparator-workflows,
-             external-oracle-intervals). I touch none of their files.
-```
-
-Complementary to — not duplicative of — Claude's D-117 boundary-interval calibration lane
-(`docs/dev-log/coordination-board.md:19-20`): **D-117 asks whether the interval is calibrated; this
-arc asks whether it contains the truth.**
-
-## Out of scope (the fence — do NOT drift here)
-
-- Promoting any cell UP the ladder.
-- New interval methods; coverage campaigns.
-- The bivariate and REML response-mask harnesses; Arc 6 (bivariate flagship); GVA (post-0.7, D-127).
-- Redoing any part of the landed response-mask arc.
+- ONE lane: `cursor/lane-s6-family-gate` at
+  `~/local-scratch/lanes/drmTMB-s6-family-gate` from `origin/main`.
+  Do **not** edit the dirty drmTMB primary checkout. Do **not** touch
+  MAG-completeness, MAG-wire, S3-grouping, or `drmTMB-s6-multi-mi`.
+- C++ `has_mi` + `drm_response_log_density` leaf **before** adding
+  `"gamma"` to `drm_missing_predictor_families()`.
+- One family only this slice. Not lognormal, student, beta_binomial,
+  or zi-*.
+- One binary predictor only (sibling of poisson/binomial/nbinom2/beta).
+- Not FIML across a SEM. Not `impute_joint`. Not k ≥ 2 on Gamma.
+- Never claim capability-status `"covered"`.
+- Explicit paths on every `git add`. NEVER `git add -A`.
 
 ## Authoritative WHAT
 
-`LOOP/ultra-plan.md` (detail wins there). This file wins on what must never be lost.
+`LOOP/ultra-plan.md`. Charter:
+drmSEM `docs/memory/2026-08-26-next-arc-s6-imputation.md` A7.
+Issue: itchyshin/drmTMB#962.
 
-## R entry point
+## Definition of done
 
-The installed drmTMB is **stale (0.6.0)** — never `library()` it.
+- Gamma response accepts one `mi()` + Bernoulli `impute_model()`.
+- Manual 2-point-sum logLik identity (G2) and MCAR + MAR recovery
+  smoke (G3, honest tier).
+- Ledger row `mp-gamma-bernoulli` on the existing `missing_predictor`
+  axis.
+- Gate test `predictor_validated` updated in the same commit.
+- drmSEM consumer **not** this slice unless the engine is already
+  merged and the lift is trivial.
 
-```bash
-NOT_CRAN=true R_PROFILE_USER=/dev/null Rscript --no-init-file -e 'suppressMessages(pkgload::load_all(".", compile = FALSE, quiet = TRUE))'
-```
+## Out of scope
+
+- FIML / `impute_joint` / k ≥ 2 on a non-Gaussian response
+- Continuous missing predictor under Gamma
+- Lognormal / student / beta_binomial / zi-* (next families)
+- drmSEM capability `"covered"`
+- MAG / S3 grouping / dirty primary checkout
