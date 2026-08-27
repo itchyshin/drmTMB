@@ -2982,6 +2982,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "gamma",
                 "lognormal",
                 "beta_binomial",
+                "student",
             },
         )
         rows = {
@@ -2997,6 +2998,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("one binary", rows["lognormal"]["Miss-predictor mi()"])
         self.assertIn("implemented", rows["beta_binomial"]["Miss-predictor mi()"])
         self.assertIn("one binary", rows["beta_binomial"]["Miss-predictor mi()"])
+        self.assertIn("implemented", rows["student"]["Miss-predictor mi()"])
+        self.assertIn("one binary", rows["student"]["Miss-predictor mi()"])
 
     def test_generated_surfaces_have_live_wording_and_ledger_date(self):
         generated = ledger.outputs(self.cells, self.evidence)
