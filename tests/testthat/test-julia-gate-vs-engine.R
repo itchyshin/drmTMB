@@ -214,6 +214,18 @@ test_that("Julia capability comparison artifact matches the registry", {
   expect_true(all(phase15$claim_status == "covered"))
   expect_false(any(phase15$r_bridge_status == "intentional_error"))
 
+  # Phase 1 promotions locked (2026-08-27, owner instruction -- the promotion arc,
+  # DRM.jl docs/dev-log/plans/2026-08-26-promotion-arc.md). Same pattern as the
+  # Phase 1.5 cap inversion above: asserted rather than merely edited, so an
+  # accidental reversion fails loudly. Capability claims only -- the
+  # interval_status / coverage_claimed fences elsewhere in this file are untouched.
+  phase1_promoted <- registry[
+    registry$capability_id %in%
+      c("phylo_gamma_beta_binomial", "general_covariance_structured"),
+  ]
+  expect_equal(nrow(phase1_promoted), 2L)
+  expect_true(all(phase1_promoted$claim_status == "covered"))
+
   for (capability_path in capability_paths) {
     artifact <- utils::read.delim(
       capability_path,
