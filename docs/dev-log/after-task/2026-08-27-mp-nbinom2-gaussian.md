@@ -16,4 +16,7 @@ holds `R/imputation.R`). Capability stays `partial` on the SEM side
 until that consumer lands.
 
 **Tests.** `test-missing-predictor-nbinom2-gaussian.R` 19 pass / 0 fail;
-Bernoulli nbinom2-response 8 pass; missing-data-control 15 pass.
+Bernoulli nbinom2-response 8 pass; missing-data-control 15 pass;
+capability-gate 12 pass. C17 cheap-mode re-certified
+(`2026-08-27-s6-a7-nbinom2-gaussian-c17`); `mean_tau_relative_error`
+bit-identical; `source_fingerprint` left alone.
