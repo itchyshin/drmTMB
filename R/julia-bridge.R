@@ -829,6 +829,15 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # phylo-count / nongaussian / Workflow G tests assert converged again.
   g_tol <- if (
     identical(phylo_payload$family_type, "gaussian") &&
+      identical(phylo_payload$locscale_mode, "mean_only")
+  ) {
+    # The sparse all-node Gaussian mean-only route: 1e-8, parity-gate
+    # motivated (Route A fixture). This branch was accidentally dropped in the
+    # first rewrite of this ladder and test-julia-bridge.R:119 caught it on CI
+    # — it stays FIRST so no later arm can shadow it.
+    1e-8
+  } else if (
+    identical(phylo_payload$family_type, "gaussian") &&
       identical(phylo_payload$locscale_mode, "phylo_locscale") &&
       !reml
   ) {
