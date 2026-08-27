@@ -24,7 +24,8 @@ response_validated <- c(
   "beta_binomial", "cumulative_logit", "truncated_nbinom2"
 )
 predictor_validated <- c(
-  "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal"
+  "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal",
+  "beta_binomial"
 )
 
 # One response family object per family_type a user can pass, with a y valid

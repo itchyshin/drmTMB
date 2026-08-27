@@ -369,7 +369,10 @@ drm_missing_response_families <- function() {
 }
 
 drm_missing_predictor_families <- function() {
-  c("gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal")
+  c(
+    "gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma",
+    "lognormal", "beta_binomial"
+  )
 }
 
 drm_missing_response_sentinel <- function() {
