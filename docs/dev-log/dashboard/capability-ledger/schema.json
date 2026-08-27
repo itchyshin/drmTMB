@@ -123,7 +123,7 @@
     "model_surface": 703,
     "association": 6,
     "missing_response": 18,
-    "missing_predictor": 23
+    "missing_predictor": 24
   },
   "missing_response_verified_gate": "G3 (7 routes); G5 (11 routes, 2026-08-11, two D-43 panels: gaussian, biv_gaussian, gamma, beta_binomial, binomial, zero_one_beta, zi_poisson, lognormal [first panel, coverage inside the pre-registered band]; beta, tweedie, skew_normal [second panel, threshold-free worst-case coverage bound, NOT the mr-g5-calibration-v2 floor])",
   "claim_boundary": "Missing-response evidence is independent of model inference maturity. Missing-predictor evidence (missing_predictor axis) is a separate, narrower governance surface seeded 2026-08-09: it tracks admitted (response family x predictor family) mi()/impute_model() cells, mostly at G2 likelihood-identity/accounting evidence (diagnostic_only), not the known-DGP recovery evidence missing_response cells carry at G3, nor the archived replicated coverage evidence the eleven promoted routes carry at G5."

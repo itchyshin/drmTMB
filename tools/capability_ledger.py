@@ -274,9 +274,10 @@ ASSOCIATION_COUNT = 6
 # families); 8 cells for poisson()/binomial()/nbinom2()/beta()/gamma()/
 # lognormal()/beta_binomial()/student() responses, each admitting only one
 # binary (bernoulli) missing predictor; mp-nbinom2-gaussian (nbinom2 x
-# one Gaussian predictor); plus mp-gaussian-gaussian-k2-indep.
+# one Gaussian predictor); plus mp-gaussian-gaussian-k2-indep;
+# plus mp-zi-poisson-bernoulli (D-23; ZIP mixture, not a poisson alias).
 # Bump this guard only for an approved row insert, never to silence drift.
-MISSING_PREDICTOR_COUNT = 23
+MISSING_PREDICTOR_COUNT = 24
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
