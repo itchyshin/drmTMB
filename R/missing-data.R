@@ -16,9 +16,9 @@
 #' negative-binomial count, positive continuous lognormal or Gamma, and
 #' exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
 #' predictor models supplied by [impute_model()]. The non-Gaussian response
-#' slices support `poisson()`, `binomial()`, `nbinom2()`, `beta()`, and
-#' `Gamma(link = "log")` responses, each with one fixed-effect Bernoulli/logit
-#' binary missing predictor.
+#' slices support `poisson()`, `binomial()`, `nbinom2()`, `beta()`,
+#' `Gamma(link = "log")`, and `lognormal()` responses, each with one
+#' fixed-effect Bernoulli/logit binary missing predictor.
 #' EM/profile engines and simulation-based imputation
 #' summaries are reserved for later slices.
 #'
@@ -92,8 +92,8 @@ miss_control <- function(
 #' Tweedie models for one non-negative semi-continuous predictor with exact
 #' zeros. Most current non-Gaussian predictor families are fitted inside a
 #' Gaussian response location model; Poisson, binomial, negative-binomial,
-#' beta, and Gamma responses are currently supported for one binary missing
-#' predictor.
+#' beta, Gamma, and lognormal responses are currently supported for one
+#' binary missing predictor.
 #'
 #' @param formula Two-sided predictor-model formula. For most families, the
 #'   left-hand side must be the same variable used inside [mi()]. For
@@ -369,7 +369,7 @@ drm_missing_response_families <- function() {
 }
 
 drm_missing_predictor_families <- function() {
-  c("gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma")
+  c("gaussian", "poisson", "binomial", "nbinom2", "beta", "gamma", "lognormal")
 }
 
 drm_missing_response_sentinel <- function() {
