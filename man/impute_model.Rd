@@ -51,7 +51,8 @@ Tweedie models for one non-negative semi-continuous predictor with exact
 zeros. Most current non-Gaussian predictor families are fitted inside a
 Gaussian response location model; Poisson, binomial, negative-binomial,
 beta, Gamma, lognormal, beta-binomial, and student responses are
-currently supported for one binary missing predictor.
+currently supported for one binary missing predictor. \code{nbinom2()}
+also admits one fixed-effect Gaussian missing predictor.
 }
 \examples{
 impute_model(x ~ z)

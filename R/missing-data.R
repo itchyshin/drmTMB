@@ -20,6 +20,8 @@
 #' `Gamma(link = "log")`, `lognormal()`, `beta_binomial()`, and
 #' `student()` responses, each with one
 #' fixed-effect Bernoulli/logit binary missing predictor.
+#' `nbinom2()` also admits one fixed-effect Gaussian missing predictor
+#' (k = 1; no grouped/structured predictor model).
 #' EM/profile engines and simulation-based imputation
 #' summaries are reserved for later slices.
 #'
@@ -94,7 +96,8 @@ miss_control <- function(
 #' zeros. Most current non-Gaussian predictor families are fitted inside a
 #' Gaussian response location model; Poisson, binomial, negative-binomial,
 #' beta, Gamma, lognormal, beta-binomial, and student responses are
-#' currently supported for one binary missing predictor.
+#' currently supported for one binary missing predictor. `nbinom2()`
+#' also admits one fixed-effect Gaussian missing predictor.
 #'
 #' @param formula Two-sided predictor-model formula. For most families, the
 #'   left-hand side must be the same variable used inside [mi()]. For

@@ -96,7 +96,9 @@ one fixed-effect family-aware \code{impute_model()}. Poisson, binomial,
 nbinom2, beta, Gamma, lognormal, beta-binomial, and student responses
 each support one fixed-effect binary missing predictor with a
 Bernoulli/logit \code{impute_model()}, complete responses, and no random
-or structured response terms.}
+or structured response terms. \code{nbinom2()} also admits one
+fixed-effect Gaussian \code{impute_model()} for a continuous missing
+predictor (k = 1; no grouped/structured predictor model, no k = 2).}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
 \code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and

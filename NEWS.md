@@ -18,6 +18,20 @@ Template Model Builder.
   k ≥ 2, and **not** a continuous missing predictor under student.
   zi-* responses remain gated. Capability stays `partial`.
 
+## nbinom2 response + one Gaussian `mi()` predictor
+
+* An `nbinom2()` response can now carry **one** Gaussian `mi()`
+  predictor (`y ~ z + mi(x)` with
+  `impute_model(x ~ z, family = gaussian())`). This is drmTMB #962 /
+  S6 A7: C++ `has_mi` for `mi_family == 0` inside `model_type == 7`,
+  not a whitelist-only edit (`nbinom2` was already on
+  `drm_missing_predictor_families()`). Ledger cell
+  `mp-nbinom2-gaussian` records a joint-density identity plus MCAR +
+  MAR point recovery. This is **not** FIML, **not** `impute_joint`,
+  **not** k ≥ 2, and **not** a grouped or structured predictor model.
+  Poisson / binomial / beta responses still take a binary predictor
+  only. zi-* responses remain gated.
+
 ## Beta-binomial response + one binary `mi()` predictor
 
 * A `beta_binomial()` response can now carry **one** binary `mi()`
