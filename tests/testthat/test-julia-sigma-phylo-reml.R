@@ -94,6 +94,18 @@ test_that("bridge options forward method = REML only when REML is requested", {
     list(g_tol = 1e-4)
   )
 
+  # 2026-08-28: the phylo_hetero_sigma arm — a phylo mean term WITH a
+  # predictor-dependent residual scale, previously fenced off entirely
+  # (DRM.jl#548 made the Julia route unusable; fixed and parity-verified).
+  # It routes to DRM.jl's dense scaled-structure engine and takes the
+  # Gaussian-else 1e-4, the tolerance the M-ladder acceptance runs verified.
+  hetero_payload <- list(bivariate = FALSE, family_type = "gaussian",
+                         locscale_mode = "phylo_hetero_sigma")
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(hetero_payload, method = "ML"),
+    list(g_tol = 1e-4)
+  )
+
   # #527: a payload with NO family_type is a construction bug and now fails
   # loudly instead of silently taking the non-Gaussian 1e-8 arm (the exact
   # shape that bit this file's own synthetic payload during the 2026-08-27 arc).
