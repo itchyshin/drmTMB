@@ -151,7 +151,7 @@ drm_julia_intentional_gates <- function() {
 # DRM.jl v1.0 twin claim is measured against a PINNED drmTMB reference; later
 # drmTMB movement is a tracked delta, never a silent widening of the claim.
 # FENCED OUT of the v1.0 twin claim, by decision: the mi() missing-data axis
-# added 2026-08-17..28 — two independent Gaussian mi() terms (#963/#1086) and
+# added 2026-08-17..28 -- two independent Gaussian mi() terms (#963/#1086) and
 # per-family response has_mi for Gamma (#1088), LogNormal (#1092),
 # BetaBinomial (#1094), NB2 (#1095), Student (#1096), ZIP (#962/#1097), an
 # axis still moving at fence time. DRM.jl's counterpart (#49 FIML) stays
