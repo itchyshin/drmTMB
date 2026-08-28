@@ -135,8 +135,8 @@
 #'   zero-truncated negative-binomial count, lognormal positive continuous,
 #'   Gamma positive continuous, and Tweedie semi-continuous predictors may use
 #'   one fixed-effect family-aware `impute_model()`. Poisson, binomial,
-#'   nbinom2, beta, Gamma, lognormal, and beta-binomial responses each
-#'   support one fixed-effect binary missing predictor with a
+#'   nbinom2, beta, Gamma, lognormal, beta-binomial, and student responses
+#'   each support one fixed-effect binary missing predictor with a
 #'   Bernoulli/logit `impute_model()`, complete responses, and no random
 #'   or structured response terms. `nbinom2()` also admits one
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
@@ -399,14 +399,14 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue), {.code nbinom2()} responses (one binary or one Gaussian missing predictor), and {.code poisson()}/{.code binomial()}/{.code beta()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial} responses (one binary missing predictor).",
+      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue), {.code nbinom2()} responses (one binary or one Gaussian missing predictor), and {.code poisson()}/{.code binomial()}/{.code beta()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial}/{.fn student} responses (one binary missing predictor).",
       "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
   if (!family_type %in% drm_missing_predictor_families() && !is.null(impute)) {
     cli::cli_abort(c(
       "{.arg impute} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, {.code beta()}, {.code Gamma(link = \"log\")}, {.fn lognormal}, and {.fn beta_binomial} responses.",
+      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, {.code beta()}, {.code Gamma(link = \"log\")}, {.fn lognormal}, {.fn beta_binomial}, and {.fn student} responses.",
       "i" = "Drop {.arg impute} (or use a supported response) for a {.val {family_type}} model until its {.fn mi} slice lands."
     ))
   }
@@ -444,6 +444,7 @@ drmTMB <- function(
       data,
       env = formula_env,
       weights = weights_full,
+      impute = impute,
       missing = missing_control
     ),
     skew_normal = drm_build_skew_normal_ls_spec(
@@ -3969,6 +3970,7 @@ drm_build_student_ls_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
+  impute = NULL,
   missing = miss_control()
 ) {
   missing <- drm_parse_missing_control(missing)
@@ -4057,6 +4059,34 @@ drm_build_student_ls_spec <- function(
   sigma_entry$rhs <- sigma_re$rhs
   validate_student_sigma_random_terms(sigma_re$terms)
 
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+    cli::cli_abort(c(
+      "The first student-response {.fn mi} slice supports one binary missing predictor.",
+      "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+    ))
+  }
+  if (include_missing_response && include_missing_predictor) {
+    cli::cli_abort(c(
+      "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a student response yet.",
+      "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      (length(mu_re$terms) > 0L ||
+        length(sigma_re$terms) > 0L ||
+        !is.null(mu_spatial$term) ||
+        !is.null(nu_phylo$term))
+  ) {
+    cli::cli_abort(c(
+      "The first student-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma}/{.code nu} only.",
+      "i" = "Remove random or structured terms for the {.fn mi} predictor slice."
+    ))
+  }
+
   for (entry in list(mu_entry, sigma_entry, nu_entry)) {
     drm_reject_phase1_terms(entry$rhs, entry$dpar, allow_offset = identical(entry$dpar, "mu"))
   }
@@ -4064,6 +4094,11 @@ drm_build_student_ls_spec <- function(
   f_mu <- drm_entry_formula(mu_entry, response = TRUE)
   f_sigma <- drm_entry_formula(sigma_entry, response = FALSE)
   f_nu <- drm_entry_formula(nu_entry, response = FALSE)
+  impute_vars <- if (include_missing_predictor) {
+    all.vars(stats::delete.response(stats::terms(mi_setup$formula)))
+  } else {
+    character(0)
+  }
 
   vars <- unique(c(
     all.vars(f_mu),
@@ -4071,10 +4106,14 @@ drm_build_student_ls_spec <- function(
     all.vars(f_nu),
     random_effect_vars(mu_re$terms),
     structured_mu_vars(mu_spatial$term),
-    structured_mu_vars(nu_phylo$term)
+    structured_mu_vars(nu_phylo$term),
+    impute_vars
   ))
   if (include_missing_response) {
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
+  }
+  if (include_missing_predictor) {
+    vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
     keep <- stats::complete.cases(data[, vars, drop = FALSE])
@@ -4092,7 +4131,11 @@ drm_build_student_ls_spec <- function(
   mf_mu <- stats::model.frame(
     f_mu,
     data = data_model,
-    na.action = if (include_missing_response) stats::na.pass else stats::na.omit
+    na.action = if (include_missing_response || include_missing_predictor) {
+      stats::na.pass
+    } else {
+      stats::na.omit
+    }
   )
   mf_sigma <- stats::model.frame(
     f_sigma,
@@ -4132,10 +4175,35 @@ drm_build_student_ls_spec <- function(
     y[!observed_y] <- response_sentinel
   }
 
+  missing_predictor <- drm_build_gaussian_missing_predictor_model(
+    mi_setup,
+    data_model,
+    env = env
+  )
+  if (include_missing_predictor) {
+    if (!missing_predictor$model_column %in% names(mf_mu)) {
+      cli::cli_abort(
+        "Internal {.fn mi} model-frame error: missing predictor column was not retained."
+      )
+    }
+    mf_mu[[missing_predictor$model_column]] <- missing_predictor$x
+  }
+
   X_mu <- stats::model.matrix(
     stats::delete.response(stats::terms(mf_mu)),
     mf_mu
   )
+  if (include_missing_predictor) {
+    missing_predictor$mu_col <- match(
+      missing_predictor$model_column,
+      colnames(X_mu)
+    )
+    if (is.na(missing_predictor$mu_col)) {
+      cli::cli_abort(
+        "Internal {.fn mi} design-matrix error: missing predictor coefficient column was not found."
+      )
+    }
+  }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
 
@@ -4181,6 +4249,7 @@ drm_build_student_ls_spec <- function(
     ),
     random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
     structured = list(phylo_mu = phylo_mu),
+    missing_predictor = missing_predictor,
     data = data_model,
     variables = vars,
     keep = keep,
@@ -4200,7 +4269,23 @@ drm_build_student_ls_spec <- function(
       if (isTRUE(phylo_mu$has)) "u_phylo"
     )
   )
-  spec$missing_data <- if (include_missing_response) {
+  if (include_missing_predictor) {
+    spec$start$beta_mi <- missing_predictor$beta_start
+  }
+  spec$missing_data <- if (include_missing_predictor) {
+    new_drm_missing_data(
+      control = missing,
+      original_row = which(keep),
+      model_row = seq_along(spec$y),
+      observed_y = observed_y,
+      response_sentinel = NA_real_,
+      predictors = drm_missing_predictor_metadata(
+        missing_predictor,
+        original_row = which(keep)
+      ),
+      version = "MD-student-mi"
+    )
+  } else if (include_missing_response) {
     new_drm_missing_data(
       control = missing,
       original_row = which(keep),
@@ -4216,7 +4301,7 @@ drm_build_student_ls_spec <- function(
     make_tmb_data(spec),
     spec
   )
-  spec$nobs <- if (include_missing_response) {
+  spec$nobs <- if (include_missing_response || include_missing_predictor) {
     spec$missing_data$counts$likelihood_rows
   } else {
     length(spec$y)
@@ -21213,6 +21298,15 @@ split_tmb_parameters <- function(par, spec) {
       beta_nu <- unname(par$beta_nu)
       names(beta_nu) <- colnames(spec$X$nu)
       out$nu <- beta_nu
+      if (
+        identical(spec$model_type, "student") &&
+          is.list(spec$missing_predictor) &&
+          isTRUE(spec$missing_predictor$enabled)
+      ) {
+        beta_mi <- unname(par$beta_mi)
+        names(beta_mi) <- spec$missing_predictor$coef_names
+        out[[paste0("mi_", spec$missing_predictor$variable)]] <- beta_mi
+      }
       return(out)
     }
     if (spec$random_scale$mu$n_models > 0L) {

@@ -44,8 +44,9 @@ negative-binomial count, positive continuous lognormal or Gamma, and
 exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
 predictor models supplied by \code{\link[=impute_model]{impute_model()}}. The non-Gaussian response
 slices support \code{poisson()}, \code{binomial()}, \code{nbinom2()}, \code{beta()},
-\code{Gamma(link = "log")}, \code{lognormal()}, and \code{beta_binomial()} responses,
-each with one fixed-effect Bernoulli/logit binary missing predictor.
+\code{Gamma(link = "log")}, \code{lognormal()}, \code{beta_binomial()}, and
+\code{student()} responses, each with one
+fixed-effect Bernoulli/logit binary missing predictor.
 \code{nbinom2()} also admits one fixed-effect Gaussian missing predictor
 (k = 1; no grouped/structured predictor model).
 EM/profile engines and simulation-based imputation

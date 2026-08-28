@@ -1,5 +1,11 @@
 # A7 — Post-lognormal queue (#962 remainder)
 
+**Update 2026-08-27.** Shinichi authorized parallel
+`mp-student-bernoulli`. The `nu` wait below is lifted **without**
+extending the shared leaf ABI — see
+`LOOP/notes/A7-student-nu-abi.md` on `cursor/lane-s6-student-mi`.
+This scout file is otherwise historical.
+
 **Status.** Read-only scout (2026-08-27). No C++. No whitelist edit.
 **Lane.** `~/local-scratch/lanes/drmTMB-s6-family-gate` on
 `cursor/lane-s6-family-gate`. Notes only.

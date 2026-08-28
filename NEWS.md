@@ -5,6 +5,19 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Student-t response + one binary `mi()` predictor
+
+* A `student()` response can now carry **one** binary `mi()` predictor
+  (`y ~ z + mi(treatment)` with
+  `impute_model(treatment ~ z, family = binomial())`). This is drmTMB
+  #962 / S6 A7: C++ `has_mi` wiring via `drm_student_log_density`
+  (identity location; `nu = 2 + exp(eta_nu)`). The shared 7-arg leaf
+  ABI is **not** extended — see `LOOP/notes/A7-student-nu-abi.md`.
+  Ledger cell `mp-student-bernoulli` records MCAR + MAR point
+  recovery. This is **not** FIML, **not** `impute_joint`, **not**
+  k ≥ 2, and **not** a continuous missing predictor under student.
+  zi-* responses remain gated. Capability stays `partial`.
+
 ## nbinom2 response + one Gaussian `mi()` predictor
 
 * An `nbinom2()` response can now carry **one** Gaussian `mi()`
@@ -17,7 +30,7 @@ Template Model Builder.
   MAR point recovery. This is **not** FIML, **not** `impute_joint`,
   **not** k ≥ 2, and **not** a grouped or structured predictor model.
   Poisson / binomial / beta responses still take a binary predictor
-  only. Student and zi-* responses remain gated.
+  only. zi-* responses remain gated.
 
 ## Beta-binomial response + one binary `mi()` predictor
 

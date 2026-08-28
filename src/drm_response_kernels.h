@@ -3,11 +3,31 @@
 
 #include "drm_numeric.h"
 
+// Location-scale Student-t. nu = 2 + exp(eta_nu). Matches model_type==3.
+// Used by the main loop and the student has_mi 2-point sum. Not a 7-arg
+// drm_response_log_density leaf: that ABI has no nu slot
+// (LOOP/notes/A7-student-nu-abi.md). weights(i) stay outside.
+template<class Type>
+Type drm_student_log_density(Type y, Type mu, Type log_sigma, Type eta_nu)
+{
+  Type sigma = exp(log_sigma);
+  Type nu = Type(2.0) + exp(eta_nu);
+  Type z = (y - mu) / sigma;
+  Type half = Type(0.5);
+  return lgamma(half * (nu + Type(1.0))) -
+    lgamma(half * nu) -
+    half * log(nu * M_PI) -
+    log_sigma -
+    half * (nu + Type(1.0)) * log(Type(1.0) + z * z / nu);
+}
+
 // Pluggable per-family response log-density leaf, used by the missing-predictor
 // mi() quadrature so a non-Gaussian response can reuse the same integration
 // loop. P2 extracts only the Gaussian case (a pure refactor: the returned value
 // is byte-identical to the inline dnorm it replaces); P3 fills the other
 // families and wires them into non-Gaussian-response mi() call sites.
+// Student (model_type 3) is deliberately not a case here — see
+// drm_student_log_density and LOOP/notes/A7-student-nu-abi.md.
 //
 // Contract:
 //   * weights(i) is applied OUTSIDE this leaf at every call site -- do NOT

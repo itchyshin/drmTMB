@@ -2546,23 +2546,60 @@ Type objective_function<Type>::operator()()
       REPORT(sd_phylo);
       ADREPORT(sd_phylo);
     }
+    // Clamp BEFORE the mi() 2-point sum so the helper and the main loop
+    // see the same log_sigma (beta lesson; #962 / S6 A7).
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(
         log_sigma, logsigma_clamp(0), logsigma_clamp(1), logsigma_clamp(2));
     }
+    if (has_mi == 1 && mi_family == 1) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      vector<Type> mi_probability(mi_eta.size());
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_eta.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        mi_probability(i) = exp(log_p1);
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int i = 0; i < mi_x.size(); ++i) {
+        Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
+        Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
+        if (mi_observed(i) == 1) {
+          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
+        } else {
+          Type mu1 = mu(i) +
+            beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
+          Type mu0 = mu(i) +
+            beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          Type log_y1 = observed_y(i) == 1 ?
+            weights(i) * drm_student_log_density(
+              y(i), mu1, log_sigma(i), eta_nu(i)) :
+            Type(0.0);
+          Type log_y0 = observed_y(i) == 1 ?
+            weights(i) * drm_student_log_density(
+              y(i), mu0, log_sigma(i), eta_nu(i)) :
+            Type(0.0);
+          Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+          nll -= log_denom;
+          Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
+          mi_probability(i) = posterior_p1;
+          mi_x_full(i) = posterior_p1;
+          mu(i) += beta_mu(mi_col) * (posterior_p1 - X_mu(i, mi_col));
+        }
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(mi_probability);
+      ADREPORT(beta_mi);
+    }
     vector<Type> sigma = exp(log_sigma);
     vector<Type> nu = Type(2.0) + exp(eta_nu);
     for (int i = 0; i < y.size(); ++i) {
-      if (observed_y(i) == 1) {
-        Type z = (y(i) - mu(i)) / sigma(i);
-        Type half = Type(0.5);
-        Type log_density =
-          lgamma(half * (nu(i) + Type(1.0))) -
-          lgamma(half * nu(i)) -
-          half * log(nu(i) * M_PI) -
-          log_sigma(i) -
-          half * (nu(i) + Type(1.0)) * log(Type(1.0) + z * z / nu(i));
-        nll -= weights(i) * log_density;
+      if (observed_y(i) == 1 &&
+          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+        nll -= weights(i) * drm_student_log_density(
+          y(i), mu(i), log_sigma(i), eta_nu(i));
       }
     }
     REPORT(mu);

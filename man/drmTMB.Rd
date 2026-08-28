@@ -93,8 +93,8 @@ beta-binomial denominator-aware proportion, Poisson, negative-binomial, or
 zero-truncated negative-binomial count, lognormal positive continuous,
 Gamma positive continuous, and Tweedie semi-continuous predictors may use
 one fixed-effect family-aware \code{impute_model()}. Poisson, binomial,
-nbinom2, beta, Gamma, lognormal, and beta-binomial responses each
-support one fixed-effect binary missing predictor with a
+nbinom2, beta, Gamma, lognormal, beta-binomial, and student responses
+each support one fixed-effect binary missing predictor with a
 Bernoulli/logit \code{impute_model()}, complete responses, and no random
 or structured response terms. \code{nbinom2()} also admits one
 fixed-effect Gaussian \code{impute_model()} for a continuous missing
