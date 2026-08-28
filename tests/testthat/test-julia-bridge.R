@@ -138,15 +138,15 @@ test_that("Julia bridge marshals one phylogenetic tree", {
   expect_equal(restored$residuals, c(14, 11, 16, 13, 12, 15))
   expect_equal(restored$sigma, c(24, 21, 26, 23, 22, 25))
 
-  expect_error(
-    drmTMB:::drm_julia_bridge_payload(
-      formula = bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ x),
-      family_type = "gaussian",
-      data = dat,
-      env = environment()
-    ),
-    "sparse all-node"
-  )
+  # The sigma ~ 1 fence for phylogenetic bridge fits is LIFTED (DRM.jl#548
+  # fixed and parity-verified): a predictor-dependent residual scale now
+  # ROUTES instead of refusing, tagged with its own locscale mode.
+  expect_no_error(drmTMB:::drm_julia_bridge_payload(
+    formula = bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ x),
+    family_type = "gaussian",
+    data = dat,
+    env = environment()
+  ))
 })
 
 test_that("Julia bridge object exposes standard fitted-model methods", {

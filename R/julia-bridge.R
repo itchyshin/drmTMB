@@ -1,3 +1,35 @@
+# DRM.jl returns bridge coefficient names as "<block>_<coefficient>". Splitting
+# at the FIRST underscore is wrong twice over: block names contain underscores
+# ("sd_phylo", "resd_mu", "resd_sigma") and so do coefficient names
+# ("log_mass_z"). `sd_phylo_log_mass_z` split naively yields dpar "sd" and term
+# "phylo_log_mass_z", which then breaks profile/bootstrap targeting. Match the
+# LONGEST known block prefix instead.
+drm_julia_bridge_blocks <- function() {
+  c(
+    "sd_phylo", "resd_mu", "resd_sigma", "resd", "resid", "recov", "phylocov",
+    "sigma1", "sigma2", "rho12", "mu1", "mu2", "cutpoints", "range",
+    "sigma", "sd", "mu", "nu", "zi", "hu", "zoi", "coi"
+  )
+}
+
+drm_julia_split_coef_name <- function(nm) {
+  blocks <- drm_julia_bridge_blocks()
+  blocks <- blocks[order(nchar(blocks), decreasing = TRUE)]
+  dpar <- character(length(nm))
+  term <- character(length(nm))
+  for (i in seq_along(nm)) {
+    hit <- blocks[startsWith(nm[i], paste0(blocks, "_"))]
+    if (length(hit) > 0L) {
+      dpar[i] <- hit[[1L]]
+      term[i] <- substring(nm[i], nchar(hit[[1L]]) + 2L)
+    } else {
+      dpar[i] <- sub("_.*$", "", nm[i])
+      term[i] <- sub("^[^_]+_", "", nm[i])
+    }
+  }
+  list(dpar = dpar, term = term)
+}
+
 julia_bridge_supported_dpars <- function() {
   c(
     "mu",
@@ -171,7 +203,8 @@ drm_julia_capability_comparison <- function() {
       "general_covariance_structured",
       "cross_family_latent",
       "engine_control_surface",
-      "plain_binomial_nonphylo"
+      "plain_binomial_nonphylo",
+      "location_scale_scale"
     ),
     route = c(
       "base",
@@ -184,7 +217,8 @@ drm_julia_capability_comparison <- function() {
       "structured",
       "cross_family",
       "base",
-      "base"
+      "base",
+      "phylo"
     ),
     syntax = c(
       "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
@@ -197,7 +231,8 @@ drm_julia_capability_comparison <- function() {
       "relmat(1 | group, K = K) for supported one-response families",
       "c(gaussian(), poisson()) cross-family latent-rho route",
       "engine_control = ... or non-default Julia optimizer controls",
-      "stats::binomial() without phylo() through engine = \"julia\""
+      "stats::binomial() without phylo() through engine = \"julia\"",
+      "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\""
     ),
     r_bridge_status = c(
       "experimental",
@@ -210,6 +245,7 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "unsupported",
+      "experimental",
       "experimental"
     ),
     drmjl_status = c(
@@ -223,7 +259,8 @@ drm_julia_capability_comparison <- function() {
       "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
       "latent-rho mixed-family path; API drift is tracked in tests",
       "no R surface by design",
-      "Workflow G FE bridge cell (binomial-trials) via drm_bridge"
+      "Workflow G FE bridge cell (binomial-trials) via drm_bridge",
+      "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)"
     ),
     claim_status = c(
       # Phase 1.5 cap LIFTED 2026-08-25 by owner decision (Shinichi). These three
@@ -251,13 +288,15 @@ drm_julia_capability_comparison <- function() {
       "covered",
       "partial",
       "unsupported",
-      "covered"
+      "covered",
+      "partial"
     ),
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
       "https://github.com/itchyshin/gllvmTMB/issues/488",
       "https://github.com/itchyshin/drmTMB/issues/544",
-      "https://github.com/itchyshin/drmTMB/issues/569"
+      "https://github.com/itchyshin/drmTMB/issues/569",
+      "https://github.com/itchyshin/DRM.jl/issues/545"
     ),
     claim_boundary = c(
       "Route C Gaussian location-scale. All four design/168 limbs met: implementation; focused tests (test/parity/runparity_bridge.jl gaussian-locscale); public docs (docs/src/r-julia-bridge.md); and interval evidence (parity-se.tsv se_gaussian_location_scale, 1.499e-07 abs / 2.169e-06 rel, with a negative control in the same table). The live TMB parity remains OPT-IN by design -- its gate is CRAN-safety motivated (an unguarded live-Julia test once hung win-builder ~10,448s) -- but it is no longer an unverified assumption: measured 2026-08-24, |d_loglik| = 6.257e-09, max|d_coef| = 5.456e-06. NOT interval COVERAGE. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands.",
@@ -271,6 +310,8 @@ drm_julia_capability_comparison <- function() {
       "PERMANENT CLAIM_BOUNDARY (owner decision D-179 #3, 2026-08-27): this row stays `partial` by DESIGN, on the engine_control_surface pattern -- an owner-signed boundary, not a pending promotion. WHY IT CANNOT REACH `covered` ON THE PARITY BAR: drmTMB's native TMB engine accepts only c(gaussian(), gaussian()), so no native comparator for a mixed pair can exist; the only evidence route is multi-seed simulation recovery, which is deliberately NOT being spent here (one family pair, one fixture is what exists). RETRACTION OF THE PREVIOUS TEXT'S CLAIM (1): the route IS reachable from R. drmTMB(bf(...), c(gaussian(), poisson()), engine = \"julia\") dispatches through drmTMB_julia_xfam_bridge -> drm_julia_call_xfam -> DRM.fit_mixed_family, exercised by tests/testthat/test-xfam-bridge.R (54 passing assertions incl. a live Gaussian x Poisson round-trip). The earlier \"NOT reachable through the R bridge at all\" verdict inspected DRM.jl's src/bridge.jl -- the wrong LAYER: drmTMB's own marshalling reaches the engine without it. Consequently r_bridge_status = experimental is FAIR, not generous, and stands. WHAT THE ROUTE REFUSES, as excluded NEIGHBOURS (a rho12 formula would be a different model -- the correlation here is a latent scalar): rho12 formulas, random effects, structured markers, meta_V, weights, impute, non-drop missing routes. Smoke evidence: rho_latent 0.5336 on n=300 shared-latent fixture, DRM.jl formula-route == matrix-route equivalence tested (test_cross_family_formula.jl, 18 assertions (a 24 was recorded earlier and corrected by the 2026-08-27 audit)). NOT interval coverage. Revisiting this boundary is an owner decision; simulation-recovery evidence would be the price of `covered`.",
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects."
+,
+      "Location-scale-scale: a linear predictor on the LOG SD of a random effect -- sd(group) ~ z on the iid (1|g) intercept, and sd(group, level = \"phylogenetic\") ~ z on the per-species phylogenetic SD (the Mizuno et al. QQQ model, V = D_a A D_a + D_e^2). ADDED 2026-08-28: this capability existed in drmTMB but was ABSENT from this ledger, so the v0.7.0 closure silently excluded it -- the row exists first of all to stop that under-admission (owner challenge, 2026-08-28). MEASURED SO FAR (identical data, canonical spelling, engine=julia vs native): sd(group) logLik -417.7794 on both engines with every coefficient block <= 1e-5; the QQQ fit logLik -69.1373 agreeing to 7 significant figures; the full M2/M3/M5/M6/M6q ladder with logLik difference 0.000000 in all five cells (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md); profile and parametric-bootstrap CIs callable from R on fixef:sd_phylo targets. En route this work found and fixed DRM.jl#548 (the phylo + heteroscedastic-sigma route returned logLik +1.1e105 as converged) -- the reason the old sigma~1 fence existed. WHY partial AND NOT covered: no SE-grade parity bank yet (the design/168 four-limb bar wants a stamped se cell in parity-se.tsv, not just logLik/coef agreement), and no dedicated public docs page (DRM.jl G9). CAPACITY BOUNDARY: DRM.jl's route is a dense assembly capped at 5000 rows with a clear refusal -- family/order scopes fit, the whole-tree scope needs DRM.jl#551 (sparse O(p)). NOT interval coverage."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads. Coefficient/logLik parity re-measured 2026-08-15 against DRM.jl (coef 4.564e-06, logLik 4.584e-09, tol 1e-4); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv.",
@@ -283,11 +324,13 @@ drm_julia_capability_comparison <- function() {
       "Compare current DRM.jl accepted families with the R gate before widening. DRM.jl-vs-gate comparison now exists and is re-runnable: DRM.jl tools/parity_ledger.py against a pinned drmTMB ref, with docs/dev-log/evidence/2026-08-14-drmtmb-parity-ledger.md. PROMOTION 2026-08-27: keep the four family cells green in DRM.jl tools/parity_classc.R; beta stays an excluded neighbour until drmTMB itself admits relmat on beta().",
       "BOUNDARY IS PERMANENT (D-179 #3). Keep tests/testthat/test-xfam-bridge.R and DRM.jl's cross-family tests green; do not spend simulation-recovery compute here unless the owner reopens the boundary. The r_bridge_status re-examination named earlier is CLOSED: the route is reachable from R (drmTMB_julia_xfam_bridge) and `experimental` is fair.",
       "Design engine_control explicitly before relaxing the gate.",
-      "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv."
+      "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv.",
+      "Promote to covered when (a) a stamped SE-parity cell for an lss fit lands in parity-se.tsv and (b) DRM.jl ships the location-scale-scale docs page (its G9). Keep the ladder evidence green; the 5000-row dense cap lifts with DRM.jl#551."
     ),
     issue = c(
       rep("drmTMB#544", 10),
-      "drmTMB#499"
+      "drmTMB#499",
+      "DRM.jl#545"
     ),
     stringsAsFactors = FALSE
   )
@@ -903,7 +946,11 @@ drm_julia_warn_reml_unsupported <- function(REML, cell) {
 
 drm_julia_formula_spec <- function(formula) {
   dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
-  bad <- setdiff(dpars, julia_bridge_supported_dpars())
+  # Location-scale-scale parts carry the grouping in the dpar name itself
+  # ("sd(id)", "sd_phylo(species)"), so they are matched by shape, not listed.
+  # DRM.jl accepts exactly this spelling positionally (DRM.jl #546).
+  is_lss <- grepl("^sd(_phylo)?\\([^()]+\\)$", dpars)
+  bad <- setdiff(dpars[!is_lss], julia_bridge_supported_dpars())
   if (length(bad) > 0L) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} cannot marshal formula parameter{?s}: {.val {bad}}.",
@@ -1267,18 +1314,28 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
           function(entry) identical(entry$dpar, "sigma"),
           formula$entries
         )
+        # A predictor-dependent residual scale alongside a phylogenetic mean
+        # effect used to be fenced here because DRM.jl's route for it was
+        # NUMERICALLY BROKEN (DRM.jl #548: it returned logLik +1.1e105 with
+        # converged = TRUE where the true value was -70.38). That is fixed --
+        # DRM.jl now assembles the marginal densely and reproduces this engine
+        # to 7 significant figures on the shared fixture -- so the fence is
+        # lifted for `sigma ~ x`. The dense route is capped at 5000 rows and
+        # says so clearly; the sparse O(p) whole-tree engine is DRM.jl #545.
+        has_lss <- any(grepl(
+          "^sd(_phylo)?\\([^()]+\\)$",
+          vapply(formula$entries, `[[`, character(1L), "dpar")
+        ))
         if (
-          length(sigma_entries) > 0L &&
+          !has_lss &&
+            length(sigma_entries) > 0L &&
             !all(vapply(
               sigma_entries,
               function(entry) drm_julia_is_intercept_rhs(entry$rhs),
               logical(1L)
             ))
         ) {
-          cli::cli_abort(c(
-            "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
-            i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
-          ))
+          locscale_mode <- "phylo_hetero_sigma"
         }
         locscale_mode <- "mean_only"
       } else {
@@ -1620,6 +1677,25 @@ drm_julia_cran_lane_blocked <- function(is_interactive = interactive()) {
     !isTRUE(is_interactive)
 }
 
+# One-time hint when parallel refits were requested but Julia was started
+# single-threaded (JULIA_NUM_THREADS must be set BEFORE the first julia call,
+# so the only remedy is a restart -- worth saying once, not per call).
+drm_julia_threads_hint <- function(threads_requested, julia_threads) {
+  jt <- suppressWarnings(as.integer(julia_threads[1L]))
+  if (!isTRUE(threads_requested) || length(jt) == 0L || is.na(jt) || jt > 1L) {
+    return(invisible(NULL))
+  }
+  if (isTRUE(drm_julia_setup_state$threads_hinted)) {
+    return(invisible(NULL))
+  }
+  drm_julia_setup_state$threads_hinted <- TRUE
+  cli::cli_inform(c(
+    i = "{.code threads = TRUE} was requested, but Julia is running single-threaded, so refits run serially.",
+    i = "For parallel profile/bootstrap: set {.code Sys.setenv(JULIA_NUM_THREADS = \"8\")} (or your core count) BEFORE the first {.code engine = \"julia\"} call in a fresh R session."
+  ))
+  invisible(NULL)
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -1632,17 +1708,39 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       i = "Set {.envvar NOT_CRAN=true} for the full suite, or {.envvar DRMTMB_JULIA_TESTS=true} to opt in."
     ))
   }
-  normalized_path <- if (nzchar(path)) {
-    normalizePath(path, winslash = "/", mustWork = TRUE)
-  } else {
-    ""
+  # Friendly setup errors (2026-08-28, the Ayumi walk-around): before this,
+  # a missing path surfaced as Julia's raw 'Package DRM not found -- run
+  # Pkg.add("DRM")', which is actively WRONG advice (DRM.jl is unregistered),
+  # and a mistyped path surfaced as a bare normalizePath() error.
+  if (!nzchar(path)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} needs a local DRM.jl checkout, and none was found.",
+      i = "One-time: {.code git clone https://github.com/itchyshin/DRM.jl} then {.code julia --project=DRM.jl -e 'using Pkg; Pkg.instantiate()'}.",
+      i = "Per session (before the first julia call): {.code Sys.setenv(DRM_JL_PATH = \"/path/to/DRM.jl\")} or {.code options(drmTMB.DRM.jl.path = ...)}."
+    ))
   }
+  if (!dir.exists(path)) {
+    cli::cli_abort(c(
+      "The DRM.jl path {.path {path}} does not exist.",
+      i = "Check {.envvar DRM_JL_PATH} / {.code options(drmTMB.DRM.jl.path)} -- it must point at the cloned DRM.jl directory."
+    ))
+  }
+  if (!file.exists(file.path(path, "Project.toml"))) {
+    cli::cli_abort(c(
+      "{.path {path}} exists but does not look like a DRM.jl checkout (no {.file Project.toml}).",
+      i = "Point {.envvar DRM_JL_PATH} at the repository root, the directory containing {.file Project.toml} and {.file src/}."
+    ))
+  }
+  normalized_path <- normalizePath(path, winslash = "/", mustWork = TRUE)
   if (
     isTRUE(drm_julia_setup_state$ready) &&
       identical(drm_julia_setup_state$path, normalized_path)
   ) {
     return(invisible(TRUE))
   }
+  cli::cli_inform(c(
+    i = "Starting Julia (first call in a session takes ~30-60 s; later calls are fast)..."
+  ))
   JuliaCall::julia_setup(installJulia = FALSE)
   if (nzchar(normalized_path)) {
     JuliaCall::julia_command(paste0(
@@ -1822,10 +1920,10 @@ new_drmTMB_julia <- function(
   }
   coefficient_blocks <- split(
     fixed_coefficients,
-    sub("_.*$", "", names(fixed_coefficients))
+    drm_julia_split_coef_name(names(fixed_coefficients))$dpar
   )
   coefficient_blocks <- lapply(coefficient_blocks, function(x) {
-    stats::setNames(x, sub("^[^_]+_", "", names(x)))
+    stats::setNames(x, drm_julia_split_coef_name(names(x))$term)
   })
   V_full <- drm_julia_vcov(result$vcov, coef_names)
   V <- V_full[fixed, fixed, drop = FALSE]
@@ -1836,7 +1934,7 @@ new_drmTMB_julia <- function(
     logical()
   }
   partial_vcov <- any(finite_diag) && !finite_vcov
-  finite_vcov_dpars <- unique(sub("_.*$", "", names(finite_diag)[finite_diag]))
+  finite_vcov_dpars <- unique(drm_julia_split_coef_name(names(finite_diag)[finite_diag])$dpar)
   uncertainty_status <- if (finite_vcov) {
     "ok"
   } else if (partial_vcov) {
@@ -2443,6 +2541,7 @@ confint.drmTMB_julia <- function(
       seed = seed,
       threads = threads
     )
+    drm_julia_threads_hint(threads, result$julia_threads)
     return(drm_julia_fixef_inference_confint_row(
       target = target,
       result = result,
@@ -2472,6 +2571,7 @@ confint.drmTMB_julia <- function(
     ))
   }
   # Univariate path: single target row, scalar lower/upper.
+  drm_julia_threads_hint(threads, result$julia_threads)
   drm_julia_inference_confint_row(
     target = targets[1L, , drop = FALSE],
     result = result,
@@ -3143,8 +3243,8 @@ drm_julia_summary_coefficients <- function(object) {
   statistic <- estimate / se
   p.value <- 2 * stats::pnorm(-abs(statistic))
   data.frame(
-    dpar = sub("_.*$", "", nm),
-    term = sub("^[^_]+_", "", nm),
+    dpar = drm_julia_split_coef_name(nm)$dpar,
+    term = drm_julia_split_coef_name(nm)$term,
     estimate = estimate,
     std.error = se,
     statistic = statistic,
@@ -4954,8 +5054,8 @@ summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
   }
   beta <- object$coef_vector
   coefficients <- data.frame(
-    dpar = sub("_.*$", "", names(beta)),
-    term = sub("^[^_]+_", "", names(beta)),
+    dpar = drm_julia_split_coef_name(names(beta))$dpar,
+    term = drm_julia_split_coef_name(names(beta))$term,
     estimate = unname(beta),
     std.error = NA_real_,
     statistic = NA_real_,
