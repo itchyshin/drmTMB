@@ -1677,6 +1677,25 @@ drm_julia_cran_lane_blocked <- function(is_interactive = interactive()) {
     !isTRUE(is_interactive)
 }
 
+# One-time hint when parallel refits were requested but Julia was started
+# single-threaded (JULIA_NUM_THREADS must be set BEFORE the first julia call,
+# so the only remedy is a restart -- worth saying once, not per call).
+drm_julia_threads_hint <- function(threads_requested, julia_threads) {
+  jt <- suppressWarnings(as.integer(julia_threads[1L]))
+  if (!isTRUE(threads_requested) || length(jt) == 0L || is.na(jt) || jt > 1L) {
+    return(invisible(NULL))
+  }
+  if (isTRUE(drm_julia_setup_state$threads_hinted)) {
+    return(invisible(NULL))
+  }
+  drm_julia_setup_state$threads_hinted <- TRUE
+  cli::cli_inform(c(
+    i = "{.code threads = TRUE} was requested, but Julia is running single-threaded, so refits run serially.",
+    i = "For parallel profile/bootstrap: set {.code Sys.setenv(JULIA_NUM_THREADS = \"8\")} (or your core count) BEFORE the first {.code engine = \"julia\"} call in a fresh R session."
+  ))
+  invisible(NULL)
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -1689,17 +1708,39 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       i = "Set {.envvar NOT_CRAN=true} for the full suite, or {.envvar DRMTMB_JULIA_TESTS=true} to opt in."
     ))
   }
-  normalized_path <- if (nzchar(path)) {
-    normalizePath(path, winslash = "/", mustWork = TRUE)
-  } else {
-    ""
+  # Friendly setup errors (2026-08-28, the Ayumi walk-around): before this,
+  # a missing path surfaced as Julia's raw 'Package DRM not found -- run
+  # Pkg.add("DRM")', which is actively WRONG advice (DRM.jl is unregistered),
+  # and a mistyped path surfaced as a bare normalizePath() error.
+  if (!nzchar(path)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} needs a local DRM.jl checkout, and none was found.",
+      i = "One-time: {.code git clone https://github.com/itchyshin/DRM.jl} then {.code julia --project=DRM.jl -e 'using Pkg; Pkg.instantiate()'}.",
+      i = "Per session (before the first julia call): {.code Sys.setenv(DRM_JL_PATH = \"/path/to/DRM.jl\")} or {.code options(drmTMB.DRM.jl.path = ...)}."
+    ))
   }
+  if (!dir.exists(path)) {
+    cli::cli_abort(c(
+      "The DRM.jl path {.path {path}} does not exist.",
+      i = "Check {.envvar DRM_JL_PATH} / {.code options(drmTMB.DRM.jl.path)} -- it must point at the cloned DRM.jl directory."
+    ))
+  }
+  if (!file.exists(file.path(path, "Project.toml"))) {
+    cli::cli_abort(c(
+      "{.path {path}} exists but does not look like a DRM.jl checkout (no {.file Project.toml}).",
+      i = "Point {.envvar DRM_JL_PATH} at the repository root, the directory containing {.file Project.toml} and {.file src/}."
+    ))
+  }
+  normalized_path <- normalizePath(path, winslash = "/", mustWork = TRUE)
   if (
     isTRUE(drm_julia_setup_state$ready) &&
       identical(drm_julia_setup_state$path, normalized_path)
   ) {
     return(invisible(TRUE))
   }
+  cli::cli_inform(c(
+    i = "Starting Julia (first call in a session takes ~30-60 s; later calls are fast)..."
+  ))
   JuliaCall::julia_setup(installJulia = FALSE)
   if (nzchar(normalized_path)) {
     JuliaCall::julia_command(paste0(
@@ -2500,6 +2541,7 @@ confint.drmTMB_julia <- function(
       seed = seed,
       threads = threads
     )
+    drm_julia_threads_hint(threads, result$julia_threads)
     return(drm_julia_fixef_inference_confint_row(
       target = target,
       result = result,
@@ -2529,6 +2571,7 @@ confint.drmTMB_julia <- function(
     ))
   }
   # Univariate path: single target row, scalar lower/upper.
+  drm_julia_threads_hint(threads, result$julia_threads)
   drm_julia_inference_confint_row(
     target = targets[1L, , drop = FALSE],
     result = result,
