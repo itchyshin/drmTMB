@@ -84,6 +84,24 @@ test_that("bridge options forward method = REML only when REML is requested", {
     list(g_tol = 1e-8, method = "REML")
   )
 
+  # #527: the phylo_slope Gaussian arm, previously unpinned — it takes the
+  # Gaussian-else 1e-4 (its fitter predates the tightened non-Gaussian arm and
+  # keeps its verified tolerance).
+  slope_payload <- list(bivariate = FALSE, family_type = "gaussian",
+                        locscale_mode = "phylo_slope")
+  expect_identical(
+    drmTMB:::drm_julia_bridge_options(slope_payload, method = "ML"),
+    list(g_tol = 1e-4)
+  )
+
+  # #527: a payload with NO family_type is a construction bug and now fails
+  # loudly instead of silently taking the non-Gaussian 1e-8 arm (the exact
+  # shape that bit this file's own synthetic payload during the 2026-08-27 arc).
+  expect_error(
+    drmTMB:::drm_julia_bridge_options(list(bivariate = FALSE), method = "ML"),
+    "family_type"
+  )
+
   # ML mu+sigma q1 phylo parity uses DRM.jl's coupled covariance block to match
   # native TMB. REML stays on the existing separate-block DRM.jl route because
   # coupled mean-sigma phylo REML is not implemented.

@@ -147,6 +147,17 @@ drm_julia_intentional_gates <- function() {
   )
 }
 
+# V1.0 PIN AND THE mi() DELTA (D-180 #1, owner decision 2026-08-28). The
+# DRM.jl v1.0 twin claim is measured against a PINNED drmTMB reference; later
+# drmTMB movement is a tracked delta, never a silent widening of the claim.
+# FENCED OUT of the v1.0 twin claim, by decision: the mi() missing-data axis
+# added 2026-08-17..28 -- two independent Gaussian mi() terms (#963/#1086) and
+# per-family response has_mi for Gamma (#1088), LogNormal (#1092),
+# BetaBinomial (#1094), NB2 (#1095), Student (#1096), ZIP (#962/#1097), an
+# axis still moving at fence time. DRM.jl's counterpart (#49 FIML) stays
+# PARKED; matching this axis is the designated post-1.0 headline once it
+# stabilises. This comment is the delta-note of record; the rows below are
+# the admitted v1.0 comparison surface.
 drm_julia_capability_comparison <- function() {
   data.frame(
     capability_id = c(
@@ -827,6 +838,16 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # standard. 1e-8 matches DRM.jl's own drm() default; the estimates barely
   # move (that was #491's finding), the flag stops lying, and the live
   # phylo-count / nongaussian / Workflow G tests assert converged again.
+  # #527 hardening: every real payload constructor sets family_type; a payload
+  # without one reaching this ladder is a construction bug, and letting it
+  # fall silently onto the non-Gaussian 1e-8 arm is how the sigma-phylo unit
+  # test got bitten during the 2026-08-27 arc. Fail loudly instead.
+  if (is.null(phylo_payload$family_type)) {
+    cli::cli_abort(c(
+      "drm_julia_bridge_options: phylo payload has no {.field family_type}.",
+      i = "Internal invariant: every payload constructor sets it; this is a construction bug, not a user error."
+    ))
+  }
   g_tol <- if (
     identical(phylo_payload$family_type, "gaussian") &&
       identical(phylo_payload$locscale_mode, "mean_only")
