@@ -135,10 +135,12 @@
 #'   zero-truncated negative-binomial count, lognormal positive continuous,
 #'   Gamma positive continuous, and Tweedie semi-continuous predictors may use
 #'   one fixed-effect family-aware `impute_model()`. Poisson, binomial,
-#'   nbinom2, beta, Gamma, and lognormal responses each support one
-#'   fixed-effect binary missing predictor with a Bernoulli/logit
-#'   `impute_model()`, complete responses, and no random or structured
-#'   response terms.
+#'   nbinom2, beta, Gamma, lognormal, and beta-binomial responses each
+#'   support one fixed-effect binary missing predictor with a
+#'   Bernoulli/logit `impute_model()`, complete responses, and no random
+#'   or structured response terms. `nbinom2()` also admits one
+#'   fixed-effect Gaussian `impute_model()` for a continuous missing
+#'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
 #' @param engine Computational engine. The default `"tmb"` uses the native
 #'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
 #'   deferred for future work; it is retained only so existing objects and code
@@ -397,7 +399,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue) and {.code poisson()}/{.code binomial()}/{.code nbinom2()}/{.code beta()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial} responses (one binary missing predictor).",
+      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue), {.code nbinom2()} responses (one binary or one Gaussian missing predictor), and {.code poisson()}/{.code binomial()}/{.code beta()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial} responses (one binary missing predictor).",
       "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
@@ -7898,11 +7900,25 @@ drm_build_nbinom2_spec <- function(
 
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
-  if (include_missing_predictor && !identical(mi_setup$family, "bernoulli")) {
+  if (
+    include_missing_predictor &&
+      !identical(mi_setup$family, "bernoulli") &&
+      !identical(mi_setup$family, "gaussian")
+  ) {
     cli::cli_abort(c(
-      "The first nbinom2-response {.fn mi} slice supports one binary missing predictor.",
+      "The first nbinom2-response {.fn mi} slice supports one binary or one Gaussian missing predictor.",
       "x" = "The supplied predictor model uses family {.val {mi_setup$family}}.",
-      "i" = "Use {.code impute_model(x ~ z, family = binomial())} for this slice."
+      "i" = "Use {.code impute_model(x ~ z, family = binomial())} or {.code impute_model(x ~ z, family = gaussian())}."
+    ))
+  }
+  if (
+    include_missing_predictor &&
+      identical(mi_setup$family, "gaussian") &&
+      (isTRUE(mi_setup$random$enabled) || isTRUE(mi_setup$structured$enabled))
+  ) {
+    cli::cli_abort(c(
+      "The first nbinom2-response Gaussian {.fn mi} slice is a fixed-effect predictor model only.",
+      "i" = "Drop grouped or structured terms from the {.arg impute} formula."
     ))
   }
   if (include_missing_response && include_missing_predictor) {
@@ -8204,12 +8220,22 @@ drm_build_nbinom2_spec <- function(
       if (re_mu$n_re > 0L) "u_mu",
       if (re_sigma$n_re > 0L) "u_sigma",
       if (isTRUE(phylo_mu$has)) "u_phylo",
-      if (isTRUE(phylo_mu2$has)) "u_phylo2"
+      if (isTRUE(phylo_mu2$has)) "u_phylo2",
+      if (
+        include_missing_predictor &&
+          identical(missing_predictor$family, "gaussian")
+      ) {
+        "x_miss"
+      }
     )
   )
   spec <- add_structured_mu2_parameters(spec, phylo_mu2, y)
   if (include_missing_predictor) {
     spec$start$beta_mi <- missing_predictor$beta_start
+    if (identical(missing_predictor$family, "gaussian")) {
+      spec$start$log_sigma_mi <- missing_predictor$log_sigma_start
+      spec$start$x_miss <- missing_predictor$x_miss_start
+    }
   }
   spec$missing_data <- if (include_missing_predictor) {
     new_drm_missing_data(
@@ -8222,7 +8248,11 @@ drm_build_nbinom2_spec <- function(
         missing_predictor,
         original_row = which(keep)
       ),
-      version = "MD-nbinom2-mi"
+      version = if (identical(missing_predictor$family, "gaussian")) {
+        "MD-nbinom2-gaussian-mi"
+      } else {
+        "MD-nbinom2-mi"
+      }
     )
   } else if (include_missing_response) {
     new_drm_missing_data(

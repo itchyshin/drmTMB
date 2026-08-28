@@ -4205,6 +4205,35 @@ Type objective_function<Type>::operator()()
       ADREPORT(log_sd_sigma);
       ADREPORT(sd_sigma_re);
     }
+    // Missing-predictor mi() Gaussian predictor: latent x_miss (Laplace),
+    // then the shared nbinom2 leaf on the updated log-mean. No group/struct
+    // on this first nbinom2 x gaussian slice (R aborts those).
+    if (has_mi == 1 && mi_family == 0) {
+      vector<Type> mi_eta = X_mi * beta_mi;
+      Type sigma_mi = exp(log_sigma_mi(0));
+      vector<Type> mi_x_full(mi_x.size());
+      for (int i = 0; i < mi_x.size(); ++i) {
+        mi_x_full(i) = mi_x(i);
+      }
+      for (int j = 0; j < mi_missing_index.size(); ++j) {
+        int row = mi_missing_index(j);
+        mi_x_full(row) = x_miss(j);
+      }
+      for (int i = 0; i < mi_x_full.size(); ++i) {
+        nll -= dnorm(mi_x_full(i), mi_eta(i), sigma_mi, true);
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        eta_mu(i) += beta_mu(mi_col) * (mi_x_full(i) - X_mu(i, mi_col));
+      }
+      REPORT(mi_x_full);
+      REPORT(beta_mi);
+      REPORT(log_sigma_mi);
+      REPORT(sigma_mi);
+      REPORT(x_miss);
+      ADREPORT(beta_mi);
+      ADREPORT(log_sigma_mi);
+      ADREPORT(sigma_mi);
+    }
     vector<Type> mu = exp(eta_mu);
     if (use_logsigma_clamp == 1) {
       drm_softclamp_log_sigma(
@@ -4256,7 +4285,9 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma = exp(log_sigma);
     for (int i = 0; i < y.size(); ++i) {
       // Missing-response mask (MD): plain data-if; also skip missing-predictor
-      // rows, whose likelihood is already added by the mi() 2-point sum above.
+      // rows for non-Gaussian predictors, whose likelihood is already added
+      // by the mi() 2-point sum above. mi_family == 0 (Gaussian) keeps the
+      // nbinom2 leaf: missing x is a latent x_miss, not a finite-state sum.
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type log_density =

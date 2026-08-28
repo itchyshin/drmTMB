@@ -272,10 +272,11 @@ ASSOCIATION_COUNT = 6
 # (R/drmTMB.R:277-296): 13 cells for the gaussian() response x its 13-family
 # impute_model() catalogue (gaussian itself plus 12 non-Gaussian predictor
 # families); 7 cells for poisson()/binomial()/nbinom2()/beta()/gamma()/
-# lognormal()/beta_binomial() responses, each admitting only one binary
-# (bernoulli) missing predictor; plus mp-gaussian-gaussian-k2-indep.
+# lognormal()/beta_binomial() responses with one binary (bernoulli)
+# missing predictor; mp-nbinom2-gaussian (nbinom2 x one Gaussian
+# predictor); plus mp-gaussian-gaussian-k2-indep.
 # Bump this guard only for an approved row insert, never to silence drift.
-MISSING_PREDICTOR_COUNT = 21
+MISSING_PREDICTOR_COUNT = 22
 # The frozen 2026-07-09 census: the original 676 model_surface rows and their
 # recovery tier. C12 promoted mc-0653, then the approved canonical Lane-C
 # count tranche promoted mc-0418, mc-0425, mc-0436, mc-0446, mc-0450, and
