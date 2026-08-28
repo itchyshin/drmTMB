@@ -1,3 +1,35 @@
+# DRM.jl returns bridge coefficient names as "<block>_<coefficient>". Splitting
+# at the FIRST underscore is wrong twice over: block names contain underscores
+# ("sd_phylo", "resd_mu", "resd_sigma") and so do coefficient names
+# ("log_mass_z"). `sd_phylo_log_mass_z` split naively yields dpar "sd" and term
+# "phylo_log_mass_z", which then breaks profile/bootstrap targeting. Match the
+# LONGEST known block prefix instead.
+drm_julia_bridge_blocks <- function() {
+  c(
+    "sd_phylo", "resd_mu", "resd_sigma", "resd", "resid", "recov", "phylocov",
+    "sigma1", "sigma2", "rho12", "mu1", "mu2", "cutpoints", "range",
+    "sigma", "sd", "mu", "nu", "zi", "hu", "zoi", "coi"
+  )
+}
+
+drm_julia_split_coef_name <- function(nm) {
+  blocks <- drm_julia_bridge_blocks()
+  blocks <- blocks[order(nchar(blocks), decreasing = TRUE)]
+  dpar <- character(length(nm))
+  term <- character(length(nm))
+  for (i in seq_along(nm)) {
+    hit <- blocks[startsWith(nm[i], paste0(blocks, "_"))]
+    if (length(hit) > 0L) {
+      dpar[i] <- hit[[1L]]
+      term[i] <- substring(nm[i], nchar(hit[[1L]]) + 2L)
+    } else {
+      dpar[i] <- sub("_.*$", "", nm[i])
+      term[i] <- sub("^[^_]+_", "", nm[i])
+    }
+  }
+  list(dpar = dpar, term = term)
+}
+
 julia_bridge_supported_dpars <- function() {
   c(
     "mu",
@@ -903,7 +935,11 @@ drm_julia_warn_reml_unsupported <- function(REML, cell) {
 
 drm_julia_formula_spec <- function(formula) {
   dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
-  bad <- setdiff(dpars, julia_bridge_supported_dpars())
+  # Location-scale-scale parts carry the grouping in the dpar name itself
+  # ("sd(id)", "sd_phylo(species)"), so they are matched by shape, not listed.
+  # DRM.jl accepts exactly this spelling positionally (DRM.jl #546).
+  is_lss <- grepl("^sd(_phylo)?\\([^()]+\\)$", dpars)
+  bad <- setdiff(dpars[!is_lss], julia_bridge_supported_dpars())
   if (length(bad) > 0L) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} cannot marshal formula parameter{?s}: {.val {bad}}.",
@@ -1267,18 +1303,28 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
           function(entry) identical(entry$dpar, "sigma"),
           formula$entries
         )
+        # A predictor-dependent residual scale alongside a phylogenetic mean
+        # effect used to be fenced here because DRM.jl's route for it was
+        # NUMERICALLY BROKEN (DRM.jl #548: it returned logLik +1.1e105 with
+        # converged = TRUE where the true value was -70.38). That is fixed --
+        # DRM.jl now assembles the marginal densely and reproduces this engine
+        # to 7 significant figures on the shared fixture -- so the fence is
+        # lifted for `sigma ~ x`. The dense route is capped at 5000 rows and
+        # says so clearly; the sparse O(p) whole-tree engine is DRM.jl #545.
+        has_lss <- any(grepl(
+          "^sd(_phylo)?\\([^()]+\\)$",
+          vapply(formula$entries, `[[`, character(1L), "dpar")
+        ))
         if (
-          length(sigma_entries) > 0L &&
+          !has_lss &&
+            length(sigma_entries) > 0L &&
             !all(vapply(
               sigma_entries,
               function(entry) drm_julia_is_intercept_rhs(entry$rhs),
               logical(1L)
             ))
         ) {
-          cli::cli_abort(c(
-            "{.code engine = \"julia\"} uses DRM.jl's sparse all-node route for phylogenetic bridge fits, which currently requires {.code sigma ~ 1}.",
-            i = "Use native {.code engine = \"tmb\"} for phylogenetic models with predictor-dependent residual scale until the sparse Julia route has parity tests."
-          ))
+          locscale_mode <- "phylo_hetero_sigma"
         }
         locscale_mode <- "mean_only"
       } else {
@@ -1822,10 +1868,10 @@ new_drmTMB_julia <- function(
   }
   coefficient_blocks <- split(
     fixed_coefficients,
-    sub("_.*$", "", names(fixed_coefficients))
+    drm_julia_split_coef_name(names(fixed_coefficients))$dpar
   )
   coefficient_blocks <- lapply(coefficient_blocks, function(x) {
-    stats::setNames(x, sub("^[^_]+_", "", names(x)))
+    stats::setNames(x, drm_julia_split_coef_name(names(x))$term)
   })
   V_full <- drm_julia_vcov(result$vcov, coef_names)
   V <- V_full[fixed, fixed, drop = FALSE]
@@ -1836,7 +1882,7 @@ new_drmTMB_julia <- function(
     logical()
   }
   partial_vcov <- any(finite_diag) && !finite_vcov
-  finite_vcov_dpars <- unique(sub("_.*$", "", names(finite_diag)[finite_diag]))
+  finite_vcov_dpars <- unique(drm_julia_split_coef_name(names(finite_diag)[finite_diag])$dpar)
   uncertainty_status <- if (finite_vcov) {
     "ok"
   } else if (partial_vcov) {
@@ -3143,8 +3189,8 @@ drm_julia_summary_coefficients <- function(object) {
   statistic <- estimate / se
   p.value <- 2 * stats::pnorm(-abs(statistic))
   data.frame(
-    dpar = sub("_.*$", "", nm),
-    term = sub("^[^_]+_", "", nm),
+    dpar = drm_julia_split_coef_name(nm)$dpar,
+    term = drm_julia_split_coef_name(nm)$term,
     estimate = estimate,
     std.error = se,
     statistic = statistic,
@@ -4954,8 +5000,8 @@ summary.drmTMB_julia_xfam <- function(object, conf.int = FALSE, ...) {
   }
   beta <- object$coef_vector
   coefficients <- data.frame(
-    dpar = sub("_.*$", "", names(beta)),
-    term = sub("^[^_]+_", "", names(beta)),
+    dpar = drm_julia_split_coef_name(names(beta))$dpar,
+    term = drm_julia_split_coef_name(names(beta))$term,
     estimate = unname(beta),
     std.error = NA_real_,
     statistic = NA_real_,
