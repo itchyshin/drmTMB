@@ -4167,6 +4167,38 @@ drm_finalize_missing_data <- function(missing_data, par_list, spec) {
                 lambda = exp(eta0[rows_y]),
                 log = TRUE
               )
+        } else if (identical(spec$model_type, "zi_poisson")) {
+          # D-23: ZIP mixture, not the Poisson leaf. eta_zi is observed-only.
+          offset_mu <- if (!is.null(spec$offset$mu)) {
+            spec$offset$mu
+          } else {
+            rep(0, length(spec$y))
+          }
+          eta_base <- as.vector(offset_mu + spec$X$mu %*% beta_mu)
+          eta_zi <- as.vector(spec$X$zi %*% as.numeric(par_list$beta_zi))
+          eta1 <- eta_base + beta_x * (1 - x_base)
+          eta0 <- eta_base + beta_x * (0 - x_base)
+          zip_log <- function(y, eta_mu, eta_zi) {
+            mu <- exp(eta_mu)
+            log_zi <- stats::plogis(eta_zi, log.p = TRUE)
+            log_one_minus_zi <- stats::plogis(
+              eta_zi,
+              lower.tail = FALSE,
+              log.p = TRUE
+            )
+            log_pois <- stats::dpois(y, mu, log = TRUE)
+            a <- log_zi
+            b <- log_one_minus_zi - mu
+            m <- pmax(a, b)
+            log_zero <- m + log(exp(a - m) + exp(b - m))
+            ifelse(y == 0, log_zero, log_one_minus_zi + log_pois)
+          }
+          log_p1[rows_y] <- log_p1[rows_y] +
+            spec$weights[rows_y] *
+              zip_log(spec$y[rows_y], eta1[rows_y], eta_zi[rows_y])
+          log_p0[rows_y] <- log_p0[rows_y] +
+            spec$weights[rows_y] *
+              zip_log(spec$y[rows_y], eta0[rows_y], eta_zi[rows_y])
         } else if (identical(spec$model_type, "binomial")) {
           offset_mu <- if (!is.null(spec$offset$mu)) {
             spec$offset$mu
