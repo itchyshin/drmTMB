@@ -3718,6 +3718,13 @@ predict.drmTMB_julia <- function(
     entry <- drm_julia_predict_entry(object, dpar)
     X <- drm_julia_predict_design(object, entry, newdata)
     beta <- object$coefficients[[dpar]]
+    # Julia's StatsModels names factor and interaction coefficients "g: b" and
+    # "x & z" where R's model.matrix says "gb" and "x:z" -- so the alignment
+    # intersect below found NOTHING on those everyday formulas and predict()
+    # refused models whose fits matched the native engine to 1e-8 (2026-08-28
+    # user-journey sweep). Normalise the stored names to R's convention for
+    # matching; interactions first so "g: b & x" becomes "gb:x".
+    names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
     common <- intersect(colnames(X), names(beta))
     if (length(common) != length(beta) || length(common) != ncol(X)) {
       cli::cli_abort(c(

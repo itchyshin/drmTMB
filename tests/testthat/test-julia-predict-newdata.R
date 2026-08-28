@@ -167,3 +167,39 @@ test_that("predict(newdata) flags a design/coefficient mismatch", {
     class = NULL
   )
 })
+
+
+test_that("predict(newdata) aligns factor and interaction coefficient names (user-journey snag)", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not(dir.exists(drm_test_drmjl_path()), "DRM.jl engine path not available")
+  # The 2026-08-28 user-journey sweep: fits matched the native engine to 1e-8,
+  # but predict(newdata) failed on FACTOR covariates and `x * z` interactions
+  # because Julia's StatsModels names coefficients "g: b" / "x & z" where R's
+  # model.matrix says "gb" / "x:z" -- the alignment intersect found nothing.
+  set.seed(1)
+  n <- 120
+  d <- data.frame(y = rnorm(n), x = rnorm(n), z = rnorm(n),
+                  g = factor(sample(letters[1:4], n, TRUE)))
+  d$y <- 0.4 + 0.6 * d$x + 0.3 * (as.integer(d$g) - 2.5) + rnorm(n, 0, 0.4)
+
+  f1 <- drmTMB(bf(y ~ x + g, sigma ~ 1), family = gaussian(), data = d,
+               engine = "julia")
+  nd1 <- data.frame(x = c(0, 1), g = factor(c("b", "c"), levels = levels(d$g)))
+  p1 <- predict(f1, newdata = nd1)
+  expect_length(p1, 2L)
+  expect_true(all(is.finite(p1)))
+  # Against the native engine on the same newdata: same model, same numbers.
+  f1t <- drmTMB(bf(y ~ x + g, sigma ~ 1), family = gaussian(), data = d)
+  expect_equal(as.numeric(p1), as.numeric(predict(f1t, newdata = nd1)),
+               tolerance = 1e-5)
+
+  f2 <- drmTMB(bf(y ~ x * z, sigma ~ 1), family = gaussian(), data = d,
+               engine = "julia")
+  nd2 <- data.frame(x = c(1, -1), z = c(1, 2))
+  p2 <- predict(f2, newdata = nd2)
+  expect_length(p2, 2L)
+  f2t <- drmTMB(bf(y ~ x * z, sigma ~ 1), family = gaussian(), data = d)
+  expect_equal(as.numeric(p2), as.numeric(predict(f2t, newdata = nd2)),
+               tolerance = 1e-5)
+})
