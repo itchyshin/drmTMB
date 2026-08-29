@@ -168,10 +168,22 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
     rho12 = ~1
   )
   count_phylo <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree))
+  lss_iid <- drmTMB::bf(
+    y ~ x + (1 | group),
+    sigma ~ x,
+    sd(group) ~ z
+  )
+  lss_phylo <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tree),
+    sigma ~ x,
+    sd(species, level = "phylogenetic") ~ z
+  )
 
   expect_true(drmTMB:::drm_julia_reml_supported(fixed_locscale, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(sigma_only, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(sigma_phylo, "gaussian"))
+  expect_true(drmTMB:::drm_julia_reml_supported(lss_iid, "gaussian"))
+  expect_true(drmTMB:::drm_julia_reml_supported(lss_phylo, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(q4, "biv_gaussian"))
   expect_false(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))
   expect_false(drmTMB:::drm_julia_reml_supported(count_phylo, "poisson"))
