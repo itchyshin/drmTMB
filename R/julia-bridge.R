@@ -289,7 +289,7 @@ drm_julia_capability_comparison <- function() {
       "partial",
       "unsupported",
       "covered",
-      "partial"
+      "covered"
     ),
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
@@ -311,7 +311,7 @@ drm_julia_capability_comparison <- function() {
       "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects."
 ,
-      "Location-scale-scale: a linear predictor on the LOG SD of a random effect -- sd(group) ~ z on the iid (1|g) intercept, and sd(group, level = \"phylogenetic\") ~ z on the per-species phylogenetic SD (the Mizuno et al. QQQ model, V = D_a A D_a + D_e^2). ADDED 2026-08-28: this capability existed in drmTMB but was ABSENT from this ledger, so the v0.7.0 closure silently excluded it -- the row exists first of all to stop that under-admission (owner challenge, 2026-08-28). MEASURED SO FAR (identical data, canonical spelling, engine=julia vs native): sd(group) logLik -417.7794 on both engines with every coefficient block <= 1e-5; the QQQ fit logLik -69.1373 agreeing to 7 significant figures; the full M2/M3/M5/M6/M6q ladder with logLik difference 0.000000 in all five cells (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md); profile and parametric-bootstrap CIs callable from R on fixef:sd_phylo targets. En route this work found and fixed DRM.jl#548 (the phylo + heteroscedastic-sigma route returned logLik +1.1e105 as converged) -- the reason the old sigma~1 fence existed. WHY partial AND NOT covered: no SE-grade parity bank yet (the design/168 four-limb bar wants a stamped se cell in parity-se.tsv, not just logLik/coef agreement), and no dedicated public docs page (DRM.jl G9). CAPACITY BOUNDARY: DRM.jl's route is a dense assembly capped at 5000 rows with a clear refusal -- family/order scopes fit, the whole-tree scope needs DRM.jl#551 (sparse O(p)). NOT interval coverage."
+      "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: dense assembly capped at 5000 rows, with sparse O(p) engine (DRM.jl#551) underway. NOT interval coverage."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads. Coefficient/logLik parity re-measured 2026-08-15 against DRM.jl (coef 4.564e-06, logLik 4.584e-09, tol 1e-4); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv.",
@@ -325,7 +325,7 @@ drm_julia_capability_comparison <- function() {
       "BOUNDARY IS PERMANENT (D-179 #3). Keep tests/testthat/test-xfam-bridge.R and DRM.jl's cross-family tests green; do not spend simulation-recovery compute here unless the owner reopens the boundary. The r_bridge_status re-examination named earlier is CLOSED: the route is reachable from R (drmTMB_julia_xfam_bridge) and `experimental` is fair.",
       "Design engine_control explicitly before relaxing the gate.",
       "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv.",
-      "Promote to covered when (a) a stamped SE-parity cell for an lss fit lands in parity-se.tsv and (b) DRM.jl ships the location-scale-scale docs page (its G9). Keep the ladder evidence green; the 5000-row dense cap lifts with DRM.jl#551."
+      "Keep location-scale-scale parity tests green across ML, REML, and missing-response routes. Dense 5000-row cap lifts with DRM.jl#551."
     ),
     issue = c(
       rep("drmTMB#544", 10),
@@ -447,13 +447,13 @@ drmTMB_julia_bridge <- function(
 
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
-  # REML forwards to DRM.jl's `drm(...; method = :REML)` for two univariate
-  # Gaussian cells: the fixed-effect location-scale model, and Gaussian
+  # REML forwards to DRM.jl's `drm(...; method = :REML)` for univariate
+  # Gaussian cells: the fixed-effect location-scale model, Gaussian
   # location-scale models with a phylo term on sigma (with or without a matching
-  # mean-side phylo term), which DRM.jl now fits by restricted maximum
-  # likelihood (Ayumi #2). The mean-only phylo Gaussian route (sigma ~ 1) and
-  # the phylo-only families still return ML on the DRM.jl side, so warn and fit
-  # ML rather than silently mislead. Bivariate q4 phylo
+  # mean-side phylo term), and location-scale-scale sd(...) / sd_phylo(...)
+  # models (DRM.jl #558). The mean-only phylo Gaussian route (sigma ~ 1) without
+  # sd() and the phylo-only families still return ML on the DRM.jl side, so
+  # warn and fit ML rather than silently mislead. Bivariate q4 phylo
   # (`biv_gaussian` with phylo on all four axes) IS now supported  -  DRM.jl's
   # `drm(biv; method = :REML)` fits the q4 PLSM by Patterson-Thompson restricted
   # likelihood, and the bridge forwards `method = "REML"` to it via the payload.
@@ -703,11 +703,17 @@ drm_julia_biv_phylo_dimension <- function(formula) {
   NA_character_
 }
 
+drm_julia_has_sd_term <- function(formula) {
+  dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
+  any(grepl("^sd(_phylo)?\\([^()]+\\)$", dpars))
+}
+
 drm_julia_reml_supported <- function(formula, family_type) {
   has_phylo <- drm_julia_has_phylo_term(formula)
   sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
+  has_sd <- drm_julia_has_sd_term(formula)
   (identical(family_type, "gaussian") &&
-    (!isTRUE(has_phylo) || isTRUE(sigma_phylo))) ||
+    (!isTRUE(has_phylo) || isTRUE(sigma_phylo) || isTRUE(has_sd))) ||
     (identical(family_type, "biv_gaussian") &&
       identical(drm_julia_biv_phylo_dimension(formula), "q4"))
 }
@@ -719,7 +725,7 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
   if (identical(family_type, "biv_gaussian")) {
     return("bivariate Gaussian")
   }
-  if (drm_julia_has_phylo_term(formula)) {
+  if (drm_julia_has_phylo_term(formula) && !drm_julia_has_sd_term(formula)) {
     return("mean-only phylogenetic Gaussian")
   }
   "Gaussian"
