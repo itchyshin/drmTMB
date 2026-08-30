@@ -487,10 +487,15 @@ drmTMB_julia_bridge <- function(
     method = if (isTRUE(REML) && reml_supported) "REML" else "ML"
   )
 
-  conditional_ri <- drm_julia_conditional_gaussian_ri_spec(
+  conditional_components <- drm_julia_conditional_gaussian_components_spec(
     formula, family_type
   )
-  result <- if (is.null(conditional_ri)) {
+  if (!is.null(conditional_components)) {
+    drm_julia_validate_conditional_gaussian_components_data(
+      conditional_components, data
+    )
+  }
+  result <- if (is.null(conditional_components)) {
     drm_julia_call_bridge(
       formula = bridge_payload$formula,
       family = family_tag,
@@ -499,7 +504,7 @@ drmTMB_julia_bridge <- function(
       options = bridge_payload$options
     )
   } else {
-    drm_julia_call_conditional_gaussian_ri(
+    drm_julia_call_conditional_gaussian_components(
       formula = bridge_payload$formula,
       family = family_tag,
       data = bridge_payload$data,
@@ -522,10 +527,11 @@ drmTMB_julia_bridge <- function(
   )
 }
 
-## TRUE only for the single conditional stored-prediction cell this bridge has
-## evidence to marshal: Gaussian, one `(1 | g)` in `mu`, and no other special
-## term. Other Julia fit routes continue through `drmTMB_drm_bridge` unchanged.
-drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
+## The conditional payload is admitted only for Gaussian mean components whose
+## design and fitted modes can be checked against the training rows.  This is a
+## deliberately small ordinary-RE adapter: scalar intercept/slope components,
+## one correlated intercept+slope component, or distinct-group scalar components.
+drm_julia_conditional_gaussian_components_spec <- function(formula, family_type) {
   if (!identical(family_type, "gaussian")) {
     return(NULL)
   }
@@ -534,7 +540,8 @@ drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
     return(NULL)
   }
   dpars <- vapply(entries, `[[`, character(1L), "dpar")
-  if (any(!dpars %in% c("mu", "sigma"))) {
+  mu_pos <- which(dpars == "mu")
+  if (length(mu_pos) != 1L || any(!dpars %in% c("mu", "sigma"))) {
     return(NULL)
   }
   if (any(vapply(entries, function(entry) {
@@ -545,31 +552,83 @@ drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
   }, logical(1L)))) {
     return(NULL)
   }
-  random <- unlist(lapply(entries, function(entry) {
+  random <- lapply(entries, function(entry) {
     terms <- flatten_plus_terms(entry$rhs)
     terms[vapply(terms, is_random_bar_call, logical(1L))]
-  }), recursive = FALSE)
-  if (length(random) != 1L) {
+  })
+  if (sum(lengths(random)) == 0L || any(lengths(random[-mu_pos]) > 0L)) {
     return(NULL)
   }
-  mu_pos <- which(vapply(entries, function(entry) {
-    identical(entry$dpar, "mu")
-  }, logical(1L)))
-  if (length(mu_pos) != 1L) {
+  components <- lapply(random[[mu_pos]], function(bar) {
+    bar <- strip_parens(bar)
+    lhs <- strip_parens(bar[[2L]])
+    group <- strip_parens(bar[[3L]])
+    if (!is.name(group)) {
+      return(NULL)
+    }
+    terms <- flatten_plus_terms(lhs)
+    numbers <- vapply(terms, function(term) is.numeric(term) && length(term) == 1L, logical(1L))
+    names <- vapply(terms, is.name, logical(1L))
+    if (length(terms) == 1L && isTRUE(numbers[[1L]]) && identical(terms[[1L]], 1)) {
+      return(list(kind = "scalar", group = as.character(group), loading_source = "(Intercept)"))
+    }
+    if (length(terms) == 2L && sum(numbers) == 1L && sum(names) == 1L) {
+      constant <- terms[[which(numbers)]]
+      variable <- as.character(terms[[which(names)]])
+      if (identical(constant, 0)) {
+        return(list(kind = "scalar", group = as.character(group), loading_source = variable))
+      }
+      if (identical(constant, 1)) {
+        return(list(kind = "correlated", group = as.character(group), loading_source = variable))
+      }
+    }
+    NULL
+  })
+  if (any(vapply(components, is.null, logical(1L)))) {
     return(NULL)
   }
-  mu_terms <- flatten_plus_terms(entries[[mu_pos]]$rhs)
-  mu_random <- mu_terms[vapply(mu_terms, is_random_bar_call, logical(1L))]
-  if (length(mu_random) != 1L) {
+  groups <- vapply(components, `[[`, character(1L), "group")
+  kinds <- vapply(components, `[[`, character(1L), "kind")
+  if (anyDuplicated(groups) || sum(kinds == "correlated") > 1L ||
+      (any(kinds == "correlated") && length(components) != 1L)) {
     return(NULL)
   }
-  bar <- strip_parens(mu_random[[1L]])
-  lhs <- strip_parens(bar[[2L]])
-  group <- strip_parens(bar[[3L]])
-  if (!is.numeric(lhs) || length(lhs) != 1L || lhs != 1 || !is.name(group)) {
+  list(dpar = "mu", components = unname(components))
+}
+
+# Validate only the source columns that this adapter will serialize. This runs
+# before Julia setup, so an unsupported slope payload cannot fit and then fail
+# while the bridge tries to recover conditional modes.
+drm_julia_validate_conditional_gaussian_components_data <- function(spec, data) {
+  if (!is.data.frame(data)) {
+    cli::cli_abort("The Julia conditional Gaussian adapter requires a data frame.")
+  }
+  for (component in spec$components) {
+    group <- component$group
+    if (!group %in% names(data) || anyNA(data[[group]])) {
+      cli::cli_abort("The Julia conditional Gaussian adapter requires a present, non-missing grouping column for every admitted component.")
+    }
+    source <- component$loading_source
+    if (!identical(source, "(Intercept)")) {
+      if (!source %in% names(data) || !is.numeric(data[[source]]) ||
+          anyNA(data[[source]]) || any(!is.finite(data[[source]]))) {
+        cli::cli_abort("The Julia conditional Gaussian adapter requires a finite numeric random-slope loading before Julia is called.")
+      }
+    }
+  }
+  invisible(TRUE)
+}
+
+## Compatibility shim for the v1 `(1 | g)` payload and its established pure
+## tests. New bridge calls use the versioned components specification above.
+drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
+  spec <- drm_julia_conditional_gaussian_components_spec(formula, family_type)
+  if (is.null(spec) || length(spec$components) != 1L ||
+      !identical(spec$components[[1L]]$kind, "scalar") ||
+      !identical(spec$components[[1L]]$loading_source, "(Intercept)")) {
     return(NULL)
   }
-  list(group = as.character(group), dpar = "mu")
+  list(group = spec$components[[1L]]$group, dpar = spec$dpar)
 }
 
 drm_julia_default_control <- function(control) {
@@ -1109,7 +1168,7 @@ drm_julia_call_bridge <- function(
   )
 }
 
-drm_julia_call_conditional_gaussian_ri <- function(
+drm_julia_call_conditional_gaussian_components <- function(
   formula,
   family,
   data,
@@ -1125,7 +1184,7 @@ drm_julia_call_conditional_gaussian_ri <- function(
 
   drm_julia_setup()
   JuliaCall::julia_call(
-    "drmTMB_drm_bridge_conditional_gaussian_ri",
+    "drmTMB_drm_bridge_conditional_gaussian_components",
     formula,
     family,
     as.list(data),
@@ -1133,6 +1192,10 @@ drm_julia_call_conditional_gaussian_ri <- function(
     if (length(options) == 0L) NULL else options
   )
 }
+
+## Historical private callers retain the old R helper name; setup defines the
+## corresponding Julia alias alongside the v2 components entry point.
+drm_julia_call_conditional_gaussian_ri <- drm_julia_call_conditional_gaussian_components
 
 drm_julia_call_q2_phylo_point_export <- function(
   Y,
@@ -1790,10 +1853,11 @@ drm_julia_threads_hint <- function(threads_requested, julia_threads) {
   invisible(NULL)
 }
 
-drm_julia_conditional_gaussian_ri_source <- function() {
+drm_julia_conditional_gaussian_components_source <- function() {
   paste(
     sep = "\n",
-    "function drmTMB_drm_bridge_conditional_gaussian_ri(formula, family, data, tree, options)",
+    "begin",
+    "function drmTMB_drm_bridge_conditional_gaussian_components(formula, family, data, tree, options)",
     "    dat = DRM._bridge_data(data)",
     "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
     "    fam = DRM._bridge_family(family)",
@@ -1801,27 +1865,72 @@ drm_julia_conditional_gaussian_ri_source <- function() {
     "    opts = DRM._bridge_options(options)",
     "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
     "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
+    "    forms = Dict(bundle.forms)",
+    "    haskey(forms, :mu) || throw(ArgumentError(\"conditional bridge requires a mean formula\"))",
+    "    _, re, metav, structured = DRM._split_ranef(forms[:mu])",
+    "    metav === nothing || throw(ArgumentError(\"conditional bridge does not admit known-variance mean routes\"))",
+    "    structured === nothing || throw(ArgumentError(\"conditional bridge does not admit structured mean routes\"))",
+    "    isempty(re) && throw(ArgumentError(\"conditional bridge requires an ordinary mean random effect\"))",
     "    effects = DRM.ranef(fit)",
-    "    length(effects) == 1 || throw(ArgumentError(\"conditional bridge requires one ordinary mean random intercept\"))",
-    "    pair = first(effects)",
-    "    grp, blup = first(pair), last(pair)",
-    "    blup isa AbstractVector || throw(ArgumentError(\"conditional bridge requires scalar random-intercept BLUPs\"))",
-    "    labels = collect(getproperty(dat, grp))",
-    "    gidx, G = DRM._group_index(labels)",
-    "    length(blup) == G || throw(ArgumentError(\"conditional bridge BLUP/group size mismatch\"))",
-    "    level_values = Vector{Any}(undef, G)",
-    "    for i in eachindex(labels)",
-    "        x = labels[i]",
-    "        level_values[gidx[i]] = x isa Real ? x : string(x)",
+    "    length(effects) == length(re) || throw(ArgumentError(\"conditional bridge random-effect payload count mismatch\"))",
+    "    components = Any[]",
+    "    groups = Symbol[]",
+    "    correlated = 0",
+    "    n = length(getproperty(dat, bundle.response))",
+    "    for (lhs, grp) in re",
+    "        grp isa Symbol || throw(ArgumentError(\"conditional bridge requires symbolic grouping variables\"))",
+    "        grp in groups && throw(ArgumentError(\"conditional bridge does not admit repeated grouping variables\"))",
+    "        push!(groups, grp)",
+    "        kind, var = DRM._re_kind(lhs)",
+    "        kind in (:intercept, :slope, :corr) || throw(ArgumentError(\"conditional bridge found an unsupported random-effect shape\"))",
+    "        kind === :corr && (correlated += 1)",
+    "        labels = collect(getproperty(dat, grp))",
+    "        gidx, G = DRM._group_index(labels)",
+    "        level_values = Vector{Any}(undef, G)",
+    "        for i in eachindex(labels)",
+    "            x = labels[i]",
+    "            level_values[gidx[i]] = x isa Real ? x : string(x)",
+    "        end",
+    "        length(unique(level_values)) == G || throw(ArgumentError(\"conditional bridge group labels are not uniquely serializable\"))",
+    "        haskey(effects, grp) || throw(ArgumentError(\"conditional bridge is missing a random-effect mode block\"))",
+    "        mode = effects[grp]",
+    "        if kind === :corr",
+    "            mode isa AbstractMatrix && size(mode) == (G, 2) || throw(ArgumentError(\"conditional bridge correlated mode shape mismatch\"))",
+    "            x = Float64.(getproperty(dat, var))",
+    "            length(x) == n && all(isfinite, x) || throw(ArgumentError(\"conditional bridge slope loading is invalid\"))",
+    "            all(isfinite, mode) || throw(ArgumentError(\"conditional bridge returned non-finite modes\"))",
+    "            push!(components, Dict(\"kind\" => \"correlated\", \"group\" => String(grp), \"levels\" => level_values, \"gidx\" => gidx, \"loading_source\" => String(var), \"loading\" => x, \"modes\" => Matrix{Float64}(mode)))",
+    "        else",
+    "            mode isa AbstractVector && length(mode) == G || throw(ArgumentError(\"conditional bridge scalar mode shape mismatch\"))",
+    "            loading = kind === :intercept ? ones(Float64, n) : Float64.(getproperty(dat, var))",
+    "            length(loading) == n && all(isfinite, loading) || throw(ArgumentError(\"conditional bridge slope loading is invalid\"))",
+    "            all(isfinite, mode) || throw(ArgumentError(\"conditional bridge returned non-finite modes\"))",
+    "            source = kind === :intercept ? \"(Intercept)\" : String(var)",
+    "            push!(components, Dict(\"kind\" => \"scalar\", \"group\" => String(grp), \"levels\" => level_values, \"gidx\" => gidx, \"loading_source\" => source, \"loading\" => loading, \"modes\" => collect(Float64.(mode))))",
+    "        end",
     "    end",
-    "    length(unique(level_values)) == G || throw(ArgumentError(\"conditional bridge group labels are not uniquely serializable\"))",
-    "    all(isfinite, blup) || throw(ArgumentError(\"conditional bridge returned non-finite BLUPs\"))",
+    "    correlated <= 1 || throw(ArgumentError(\"conditional bridge does not admit multiple correlated components\"))",
+    "    correlated == 0 || length(components) == 1 || throw(ArgumentError(\"conditional bridge does not mix correlated and scalar components\"))",
+    "    sigma_clamp_active = false",
+    "    if length(components) > 1 && haskey(forms, :sigma)",
+    "        _, Xsigma, _ = DRM._design(bundle.response, forms[:sigma], dat)",
+    "        sigma_block = findfirst(p -> first(p) === :sigma, fit.blocks)",
+    "        sigma_block === nothing && throw(ArgumentError(\"conditional bridge is missing the sigma coefficient block\"))",
+    "        eta_sigma = Xsigma * fit.theta[last(fit.blocks[sigma_block])]",
+    "        sigma_clamp_active = any(abs.(eta_sigma) .>= 30.0)",
+    "    end",
     "    out = DRM._bridge_flatten(fit; family = String(family))",
-    "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_random_intercept_v1\", \"group\" => String(grp), \"levels\" => level_values, \"gidx\" => gidx, \"blup\" => collect(Float64.(blup)))",
+    "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_ordinary_components_v2\", \"components\" => components, \"sigma_clamp_active\" => sigma_clamp_active)",
     "    return out",
+    "end",
+    "drmTMB_drm_bridge_conditional_gaussian_ri(formula, family, data, tree, options) = drmTMB_drm_bridge_conditional_gaussian_components(formula, family, data, tree, options)",
     "end"
   )
 }
+
+## Stable private source accessor for callers that registered the original v1
+## entry point; the generated Julia source also defines that entry point as an alias.
+drm_julia_conditional_gaussian_ri_source <- drm_julia_conditional_gaussian_components_source
 
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
@@ -1887,10 +1996,10 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "DRM.drm_bridge(formula = formula, family = family, data = data, tree = tree, options = options)"
     )
   )
-  # The one stored conditional-prediction route intentionally reuses DRM.jl's
+  # The bounded ordinary Gaussian stored-prediction route reuses DRM.jl's
   # existing fit and `ranef()` machinery. Its versioned typed payload is built
-  # separately so pure R tests can guard numeric and logical group labels.
-  JuliaCall::julia_command(drm_julia_conditional_gaussian_ri_source())
+  # separately so pure R tests can guard level maps and component shapes.
+  JuliaCall::julia_command(drm_julia_conditional_gaussian_components_source())
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge_q2_phylo(Y, X, species, tree, options) =",
@@ -2532,6 +2641,27 @@ drm_julia_plain <- function(x) {
 # labels and numeric vectors. `drm_julia_plain()` is therefore unsuitable: its
 # named-list branch correctly flattens ordinary dpars but would coerce labels to
 # NA. Decode this small versioned transport record explicitly.
+drm_julia_conditional_component_plain <- function(x) {
+  x <- as.list(x)
+  kind <- as.character(x$kind)[[1L]]
+  modes <- x$modes
+  if (identical(kind, "correlated")) {
+    modes <- as.matrix(modes)
+    storage.mode(modes) <- "double"
+  } else {
+    modes <- as.numeric(unlist(modes, use.names = FALSE))
+  }
+  list(
+    kind = kind,
+    group = as.character(x$group)[[1L]],
+    levels = as.character(unlist(x$levels, use.names = FALSE)),
+    gidx = as.numeric(unlist(x$gidx, use.names = FALSE)),
+    loading_source = as.character(x$loading_source)[[1L]],
+    loading = as.numeric(unlist(x$loading, use.names = FALSE)),
+    modes = modes
+  )
+}
+
 drm_julia_conditional_re_plain <- function(x) {
   if (is.null(x)) {
     return(NULL)
@@ -2540,8 +2670,16 @@ drm_julia_conditional_re_plain <- function(x) {
   if (!is.list(x)) {
     return(x)
   }
+  kind <- as.character(x$kind)[[1L]]
+  if (identical(kind, "gaussian_mu_ordinary_components_v2")) {
+    return(list(
+      kind = kind,
+      components = lapply(as.list(x$components), drm_julia_conditional_component_plain),
+      sigma_clamp_active = isTRUE(as.logical(x$sigma_clamp_active)[[1L]])
+    ))
+  }
   list(
-    kind = as.character(x$kind)[[1L]],
+    kind = kind,
     group = as.character(x$group)[[1L]],
     levels = as.character(unlist(x$levels, use.names = FALSE)),
     gidx = as.numeric(unlist(x$gidx, use.names = FALSE)),
@@ -3933,8 +4071,9 @@ drm_julia_predict_has_random_effect <- function(entry) {
   }, logical(1L)))
 }
 
-# Validate the one conditional payload this adapter admits. A malformed payload
-# must error before it can change a stored prediction.
+# Validate a versioned conditional payload before it can change a stored
+# prediction. The v1 intercept record remains readable; v2 carries each
+# ordinary component explicitly and verifies it against the training rows.
 drm_julia_predict_conditional_gaussian_ri <- function(object, dpar) {
   spec <- drm_julia_conditional_gaussian_ri_spec(
     object$formula, object$model$model_type
@@ -3981,6 +4120,96 @@ drm_julia_predict_conditional_gaussian_ri <- function(object, dpar) {
     )
   }
   list(index = as.integer(expected_index), blup = as.numeric(blup))
+}
+
+drm_julia_predict_conditional_component <- function(component, spec, data) {
+  if (!is.list(component) || !identical(component$kind, spec$kind) ||
+      !identical(component$group, spec$group) ||
+      !identical(component$loading_source, spec$loading_source)) {
+    cli::cli_abort("{.fn predict} found a conditional payload component that does not match the admitted formula.")
+  }
+  group <- spec$group
+  if (!group %in% names(data)) {
+    cli::cli_abort("{.fn predict} cannot validate the conditional payload against the stored training group column.")
+  }
+  levels <- as.character(component$levels)
+  labels <- as.character(data[[group]])
+  if (length(levels) == 0L || anyNA(levels) || anyDuplicated(levels) ||
+      anyNA(labels) || !identical(levels, unique(labels))) {
+    cli::cli_abort("{.fn predict} found a conditional payload whose first-seen group levels do not match the training rows.")
+  }
+  index <- match(labels, levels)
+  gidx <- component$gidx
+  if (!is.numeric(gidx) || length(gidx) != nrow(data) ||
+      any(!is.finite(gidx)) || any(gidx != as.integer(gidx)) || anyNA(index) ||
+      !identical(as.integer(gidx), as.integer(index))) {
+    cli::cli_abort("{.fn predict} found a conditional payload whose group map does not match the training rows.")
+  }
+  expected_loading <- if (identical(spec$loading_source, "(Intercept)")) {
+    rep(1, nrow(data))
+  } else {
+    if (!spec$loading_source %in% names(data)) {
+      cli::cli_abort("{.fn predict} cannot validate the conditional payload loading against the stored training rows.")
+    }
+    as.numeric(data[[spec$loading_source]])
+  }
+  loading <- component$loading
+  if (!is.numeric(loading) || length(loading) != nrow(data) ||
+      any(!is.finite(loading)) || anyNA(expected_loading) ||
+      any(!is.finite(expected_loading)) ||
+      !isTRUE(all.equal(as.numeric(loading), expected_loading, tolerance = 0, check.attributes = FALSE))) {
+    cli::cli_abort("{.fn predict} found a conditional payload loading that does not match the training rows.")
+  }
+  modes <- component$modes
+  if (identical(spec$kind, "scalar")) {
+    if (!is.numeric(modes) || length(modes) != length(levels) || any(!is.finite(modes))) {
+      cli::cli_abort("{.fn predict} found an invalid conditional scalar mode payload.")
+    }
+    return(as.numeric(loading) * as.numeric(modes)[index])
+  }
+  modes <- as.matrix(modes)
+  if (!is.numeric(modes) || nrow(modes) != length(levels) || ncol(modes) != 2L ||
+      any(!is.finite(modes))) {
+    cli::cli_abort("{.fn predict} found an invalid conditional correlated mode payload.")
+  }
+  as.numeric(modes[index, 1L] + loading * modes[index, 2L])
+}
+
+drm_julia_predict_conditional_gaussian_components <- function(object, dpar) {
+  spec <- drm_julia_conditional_gaussian_components_spec(
+    object$formula, object$model$model_type
+  )
+  if (is.null(spec) || !identical(dpar, spec$dpar)) {
+    return(NULL)
+  }
+  payload <- object$conditional_re
+  if (is.list(payload) && identical(payload$kind, "gaussian_mu_random_intercept_v1")) {
+    legacy <- drm_julia_predict_conditional_gaussian_ri(object, dpar)
+    if (is.null(legacy)) {
+      cli::cli_abort("{.fn predict} found a random-intercept v1 payload on an ordinary Gaussian formula it cannot validate.")
+    }
+    return(list(contribution = legacy$blup[legacy$index]))
+  }
+  if (!is.list(payload) || !identical(payload$kind, "gaussian_mu_ordinary_components_v2") ||
+      !is.list(payload$components) || length(payload$components) != length(spec$components)) {
+    # Retain the established v1 refusal for the one v1 formula shape so existing
+    # hand-built objects do not experience a changed public error contract.
+    if (!is.null(drm_julia_conditional_gaussian_ri_spec(object$formula, object$model$model_type))) {
+      drm_julia_predict_conditional_gaussian_ri(object, dpar)
+    }
+    cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code mu} prediction: the Julia bridge did not retain its validated ordinary Gaussian component payload.")
+  }
+  data <- object$data
+  if (!is.data.frame(data)) {
+    cli::cli_abort("{.fn predict} cannot validate the conditional payload against stored training rows.")
+  }
+  contributions <- Map(
+    drm_julia_predict_conditional_component,
+    payload$components,
+    spec$components,
+    MoreArgs = list(data = data)
+  )
+  list(contribution = Reduce(`+`, contributions))
 }
 
 # Historical hand-built bridge objects did not always retain model_type.  Infer
@@ -4074,9 +4303,11 @@ drm_julia_tag_linkinv <- function(tag) {
 #' are available; it does not make a general engine-parity claim.
 #'
 #' With `newdata = NULL`, `predict()` reconstructs a fixed-effect stored-data
-#' prediction, except for a validated Gaussian ordinary `(1 | g)` mean
-#' random-intercept payload, where it returns the stored conditional mean. It
-#' refuses every other ordinary or structured random-effect route. With
+#' prediction, except for a validated Gaussian ordinary mean payload. The earned
+#' conditional routes are one scalar intercept or slope, one correlated
+#' intercept-and-slope component, or scalar components with distinct grouping
+#' variables. It refuses repeated groups, multiple correlated components, wider
+#' slopes, scale random effects, and structured routes. With
 #' `newdata` supplied, it returns a **population-level
 #' fixed-effect** prediction (`RE = 0`) from `X %*% beta`, using the training
 #' data to preserve factor contrasts and column order. `type = "link"` returns
@@ -4130,10 +4361,26 @@ predict.drmTMB_julia <- function(
   }
 
   entry <- drm_julia_predict_entry(object, dpar)
-  conditional <- drm_julia_predict_conditional_gaussian_ri(object, dpar)
+  component_spec <- drm_julia_conditional_gaussian_components_spec(
+    object$formula, object$model$model_type
+  )
+  if (identical(dpar, "sigma") && !is.null(component_spec) &&
+      length(component_spec$components) > 1L) {
+    # The multi-component Gaussian fitter clamps both the fitted sigma linear
+    # predictor and its BLUP path. Validate the same v2 payload before using
+    # that stored-scale rule; fresh rows intentionally remain population-level.
+    drm_julia_predict_conditional_gaussian_components(object, "mu")
+    fixed <- drm_julia_predict_fixed_eta(object, dpar, object$data, "stored")
+    eta <- pmax(pmin(fixed$eta, 30), -30)
+    if (identical(type, "link")) {
+      return(eta)
+    }
+    return(drm_julia_predict_response(object, dpar, eta))
+  }
+  conditional <- drm_julia_predict_conditional_gaussian_components(object, dpar)
   if (!is.null(conditional)) {
     fixed <- drm_julia_predict_fixed_eta(object, dpar, object$data, "stored")
-    eta <- fixed$eta + conditional$blup[conditional$index]
+    eta <- fixed$eta + conditional$contribution
     if (identical(type, "link")) {
       return(eta)
     }
