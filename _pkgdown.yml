@@ -59,7 +59,7 @@ navbar:
           href: articles/bivariate-nongaussian.html
         - text: Association between outcome pairs
           href: articles/cross-family.html
-        - text: Julia engine (future support)
+        - text: Julia engine
           href: articles/julia-engine.html
     tutorials:
       text: Tutorials

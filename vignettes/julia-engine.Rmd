@@ -1,237 +1,236 @@
 ---
-title: "Accelerating models with the Julia engine"
+title: "Using the Julia engine"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Accelerating models with the Julia engine}
+  %\VignetteIndexEntry{Using the Julia engine}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 7,
-  fig.height = 4.1,
-  dpi = 144
-)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 ```
 
-<style>
-@media (max-width: 575.98px) {
-  main h1 {
-    hyphens: none;
-    overflow-wrap: normal;
-    word-break: normal;
-  }
+For a local noninteractive script (for example, one run with `Rscript`), also
+set `Sys.setenv(DRMTMB_JULIA_TESTS = "true")` before the first Julia call. This
+explicit opt-in is needed because the package keeps Julia disabled by default
+in noninteractive package checks. Do not enable it on CRAN or win-builder.
 
-  main table {
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
-  }
-}
-</style>
+The Julia engine is available now as an **optional backend** for `drmTMB`.
+You keep the R formula and data interface and select `engine = "julia"` when
+fitting a supported model. The default, `engine = "tmb"`, does not require Julia.
 
-`drmTMB` provides two execution backends under a single, unified formula grammar:
+Julia is useful for repeated fitting and for models that can use DRM.jl's sparse
+structured solvers. It also fits ordinary regression models: a large phylogeny
+is not a prerequisite. Which backend is faster depends on the model, requested
+inference, data size, and whether Julia has already started and compiled the code.
 
-1. **Native Template Model Builder (`engine = "tmb"`, default)**: C++ templates compiled via TMB. This is the zero-configuration default for all analyses, requiring only standard R packages.
-2. **Julia high-performance engine (`engine = "julia"`)**: Powered by `DRM.jl` via the `JuliaCall` package. This backend is designed for high-dimensional models, large phylogenetic trees ($p \ge 1{,}000$), and complex multi-parameter location-scale-scale structures.
-
-When `engine = "julia"` is specified, `drmTMB` marshals the formula and data to `DRM.jl` via the `JuliaCall` package. The resulting `drmTMB_julia` fit integrates with the standard post-fit functions, including `summary()`, `coef()`, `predict()`, `confint()`, and `check_drm()`.
-
-## When to use `engine = "julia"`
-
-The Julia engine provides distinct advantages in four scenarios:
-
-1. **Location-Scale-Scale (LSS) models**: When covariates predict not only the mean ($\mu$) and residual standard deviation ($\sigma$), but also the group-level or phylogenetic standard deviation ($\sigma_{\text{group}}$ via `sd(group) ~ ...` or $\sigma_{\text{phylo}}$ via `sd(species, level = "phylogenetic") ~ ...`).
-2. **Restricted Maximum Likelihood (REML)**: `REML = TRUE` is fully supported for Gaussian location-scale, location-scale-scale, and bivariate $q=4$ phylogenetic models, estimating variance parameters without downward bias from fixed effects.
-3. **Missing response observations (`response = "include"`)**: In phylogenetic and structured Gaussian models, unobserved response values can be retained in the phylogenetic covariance graph while conditioning on observed rows.
-4. **Massive phylogenetic scaling with sparse $O(p)$ solvers**: Dense covariance methods scale as $O(p^3)$ time and $O(p^2)$ memory, becoming prohibitive for trees with thousands of tips. `DRM.jl` uses a sparse state-space formulation with exact linear-time $O(p)$ gradients, making trees with 1,000+ to 10,000+ species fast to fit and feasible to bootstrap.
-
-## Capability matrix
-
-The table below summarizes the model families, syntax, and features available under `engine = "julia"`:
-
-| Model family / structure | Formula syntax | Estimation methods | Missing response (`response = "include"`) | Key performance edge |
-|---|---|---|---|---|
-| **Gaussian Location-Scale** | `bf(y ~ x, sigma ~ z)` | ML, REML | Supported | Exact analytic gradients |
-| **Gaussian Location-Scale-Scale (IID)** | `bf(y ~ x + (1 | group), sigma ~ x, sd(group) ~ z)` | ML, REML | Supported | Simultaneous mean and multi-tier scale regression |
-| **Phylogenetic Location-Scale-Scale** | `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ x, sd(species, level = "phylogenetic") ~ z)` | ML, REML | Supported | Sparse $O(p)$ scaling for 1,000+ species |
-| **Bivariate Gaussian ($q=4$ PLSM)** | `bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)` | ML, REML | Supported | Residual correlation $\rho_{12}$ and multi-trait phylo |
-| **Large-tree Phylogenetic GLMMs** | `poisson()`, `nbinom2()`, `Gamma()`, `beta()`, `binomial(link = "logit")` with `phylo(1 | species)` | ML | `response = "drop"` | Sparse Laplace $O(p)$ solver for large $p$ |
-| **Structured Covariance / Pedigree** | `relmat(1 | group, K = K)` (Gaussian, Poisson, NB2, Gamma) | ML | `response = "drop"` | Sparse Cholesky factorization |
+This guide starts with an ordinary regression, then shows group-level and
+phylogenetic scale regression. The examples are not run during the standard R
+package build, so that installing or reading `drmTMB` does not require Julia.
 
 ## Setup and prerequisites
 
-`engine = "julia"` is an optional backend. Standard `drmTMB` models do not require Julia.
+Install **Julia 1.10 or later** and the optional R package `JuliaCall`. DRM.jl
+currently needs a local source checkout; installing a registered package named
+`DRM` is not the setup route used by this bridge.
 
-To use the Julia engine, install Julia (version 1.9 or later) from [julialang.org](https://julialang.org) and the R package `JuliaCall`:
+Run once in a terminal, choosing a directory where you keep source packages:
 
-```r
-# Install the JuliaCall bridge package in R
-install.packages("JuliaCall")
-
-# Initialize JuliaCall and ensure DRM.jl is installed
-library(JuliaCall)
-julia_setup()
-julia_install_package_if_needed("DRM")
+```sh
+git clone https://github.com/itchyshin/DRM.jl.git
+julia --project=DRM.jl -e 'using Pkg; Pkg.instantiate()'
 ```
 
-Once installed, you can pass `engine = "julia"` to `drmTMB()` when fitting supported models.
+Then, in R, set the checkout path **before the first Julia call**:
 
-## Location-Scale-Scale (LSS) models
-
-In a location-scale-scale model, predictors enter three distinct submodels:
-
-\[
-\begin{aligned}
-y_{ij} &\sim \operatorname{Normal}(\mu_{ij}, \sigma_{e,ij}^2),\\
-\mu_{ij} &= \mathbf{X}_{\mu,ij} \boldsymbol{\beta}_{\mu} + b_{i},\\
-\log(\sigma_{e,ij}) &= \mathbf{X}_{\sigma,ij} \boldsymbol{\beta}_{\sigma},\\
-\log(\sigma_{b,i}) &= \mathbf{X}_{\text{sd},i} \boldsymbol{\beta}_{\text{sd}}.
-\end{aligned}
-\]
-
-Here, $\mu_{ij}$ is the expected value, $\sigma_{e,ij}$ is the residual standard deviation (modelled via `sigma ~ ...`), and $\sigma_{b,i}$ is the among-group standard deviation (modelled via `sd(group) ~ ...`).
-
-### Example 1: Group-level LSS model with REML
-
-Suppose repeated exploration scores are measured across individuals of different sexes. We wish to test whether sex influences:
-1. Mean exploration score (`mu`),
-2. Within-individual residual variability (`sigma`), and
-3. Between-individual variability (`sd(individual)`).
-
-```r
+```{r julia-install, eval=FALSE}
+install.packages("JuliaCall")
+Sys.setenv(DRM_JL_PATH = "/absolute/path/to/DRM.jl")
 library(drmTMB)
+```
 
-# 1. Specify the location-scale-scale formula
+Replace the path with the directory containing DRM.jl's `Project.toml` and
+`src/`. The bridge initializes Julia when needed. The first call includes
+startup and compilation; time later calls separately when comparing repeated
+workflows. Keep the checkout revision with your analysis so results can be
+reproduced; a package version alone may describe more than one source build.
+
+## Start with an ordinary regression
+
+These data are generated in R and use the same formula for both backends:
+
+```{r julia-ordinary, eval=FALSE}
+set.seed(42)
+dat <- data.frame(x = seq(-1, 1, length.out = 120))
+dat$y <- 1 + 0.8 * dat$x + rnorm(nrow(dat), sd = exp(-0.4 + 0.2 * dat$x))
+form <- bf(y ~ x, sigma ~ x)
+
+fit_r <- drmTMB(form, data = dat, family = gaussian(), engine = "tmb")
+fit_julia <- drmTMB(form, data = dat, family = gaussian(), engine = "julia")
+
+summary(fit_julia)
+coef(fit_julia)
+predict(fit_julia, dpar = "mu")
+predict(fit_julia, dpar = "sigma", type = "response")
+logLik(fit_r)
+logLik(fit_julia)
+```
+
+The `mu` coefficients describe the conditional mean. The `sigma` coefficients
+are on the log standard-deviation scale: exponentiating a coefficient gives a
+multiplicative change in residual standard deviation, not residual variance.
+Compare the same estimator and requested outputs when checking the two fits.
+
+## Model variation between groups
+
+In a location-scale-scale model, predictors can enter the mean, residual
+standard deviation, and group-level standard deviation. Here sex is constant
+within each individual, and each individual has repeated observations:
+
+```{r julia-group-lss, eval=FALSE}
+set.seed(43)
+individuals <- data.frame(
+  individual = factor(seq_len(40)),
+  sex = factor(rep(c("female", "male"), each = 20))
+)
+individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * (individuals$sex == "male")))
+personality_data <- individuals[rep(seq_len(40), each = 4), ]
+personality_data$exploration_score <-
+  1 + 0.5 * (personality_data$sex == "male") + personality_data$b +
+  rnorm(nrow(personality_data), sd = 0.5)
+
 formula_lss <- bf(
   exploration_score ~ sex + (1 | individual),
   sigma ~ sex,
   sd(individual) ~ sex
 )
-
-# 2. Fit the model using the Julia engine under REML
 fit_lss <- drmTMB(
-  formula_lss,
-  family = gaussian(),
-  data = personality_data,
-  REML = TRUE,
-  engine = "julia"
+  formula_lss, family = gaussian(), data = personality_data,
+  REML = TRUE, engine = "julia"
 )
-
-# 3. Inspect results
 summary(fit_lss)
+names(coef(fit_lss))
 ```
 
-The summary displays estimates, standard errors, and test statistics for all three parameter blocks (`mu`, `sigma`, and `sd(individual)`).
+Use the returned coefficient-block names when selecting a block with `coef()`;
+formula text such as `sd(individual)` need not be the stored block name.
+Gaussian REML is available on supported routes. It accounts for estimating
+specified fixed effects, but does not guarantee unbiased estimates in every
+model or sample. Keep ML/REML choices explicit when comparing fits.
 
-### Example 2: Phylogenetic Location-Scale-Scale model
+## Add a phylogeny
 
-When the group structure represents species sharing evolutionary history, the among-species variance can also depend on ecological or life-history traits. `drmTMB` expresses phylogenetic scale regression with `sd(species, level = "phylogenetic") ~ ...`:
+The same scale-regression idea applies to a phylogenetic group effect. This
+small simulated example creates an ultrametric tree and matches data rows to
+its tip labels explicitly:
 
-```r
-# Phylogenetic LSS formula: mean, residual scale, and phylogenetic scale
+```{r julia-phylo-lss, eval=FALSE}
+install.packages("ape") # once, if not already installed
+set.seed(44)
+bird_tree <- ape::rcoal(40)
+bird_data <- data.frame(
+  species = bird_tree$tip.label,
+  habitat = rnorm(40),
+  latitude = runif(40, -1, 1)
+)
+A <- ape::vcv(bird_tree, corr = TRUE)[bird_data$species, bird_data$species]
+sd_phylo <- exp(-0.3 + 0.2 * bird_data$habitat)
+u <- sd_phylo * drop(t(chol(A)) %*% rnorm(40))
+bird_data$log_body_mass <- 1 + 0.4 * bird_data$habitat + u +
+  rnorm(40, sd = exp(-0.7 + 0.1 * bird_data$latitude))
+
 formula_phylo_lss <- bf(
-  log_body_mass ~ diet + phylo(1 | species, tree = bird_tree),
+  log_body_mass ~ habitat + phylo(1 | species, tree = bird_tree),
   sigma ~ latitude,
-  sd(species, level = "phylogenetic") ~ diet
+  sd(species, level = "phylogenetic") ~ habitat
 )
-
-# Fit under REML via Julia engine
 fit_phylo_lss <- drmTMB(
-  formula_phylo_lss,
-  family = gaussian(),
-  data = bird_data,
-  REML = TRUE,
-  engine = "julia"
+  formula_phylo_lss, family = gaussian(), data = bird_data,
+  REML = TRUE, engine = "julia"
 )
-
 summary(fit_phylo_lss)
 ```
 
-In this model:
-- `diet` shifts the mean log body mass across the phylogeny.
-- `latitude` predicts residual within-species variance.
-- `diet` modulates the phylogenetic evolutionary variance ($\sigma_{\text{phylo}}$), testing whether certain dietary guilds have undergone accelerated or constrained morphological divergence.
+Here `habitat` predicts both the mean and the phylogenetic standard deviation;
+`latitude` predicts residual standard deviation. The dense matrix above is only
+for generating this small example, not a recipe for simulating very large trees.
 
-## Missing response data (`response = "include"`)
+## Missing responses
 
-In comparative phylogenetic analyses, some species in the phylogeny may lack trait measurements for the response variable. Dropping these species from the tree (`response = "drop"`) alters the branch lengths and phylogenetic covariance between the remaining species.
+For supported Gaussian routes, `response = "include"` retains the full tree and
+group design while conditioning the likelihood on observed responses. This is
+not predictor imputation. Proper tree pruning can preserve covariances between
+observed tips; dropping a response does not inherently change those covariances.
 
-With `missing = miss_control(response = "include")`, the Julia engine retains all tips in the tree structure while conditioning the likelihood strictly on the observed response rows:
-
-```r
-# Fit with unobserved response species retained in the tree
+```{r julia-missing-response, eval=FALSE}
+bird_data_with_missing <- bird_data
+bird_data_with_missing$log_body_mass[c(3, 9)] <- NA_real_
 fit_missing <- drmTMB(
-  formula_phylo_lss,
-  family = gaussian(),
-  data = bird_data_with_missing,
+  formula_phylo_lss, family = gaussian(), data = bird_data_with_missing,
   missing = miss_control(response = "include"),
-  REML = TRUE,
-  engine = "julia"
+  REML = TRUE, engine = "julia"
 )
-
-# Extract fitted values or predictions for all tips
-pred_mu <- predict(fit_missing, dpar = "mu")
-pred_sd <- predict(fit_missing, dpar = "sd(species)")
+summary(fit_missing)
 ```
 
-This ensures that ancestral node positions and topological distances remain exact.
+Check each prediction method's documented target and row behavior. Retaining
+unobserved tips in the model does not by itself establish support for every
+prediction target, such as `predict(..., dpar = "sd(species)")`.
 
-## Scaling to 1,000+ species with sparse $O(p)$ solvers
+## Inference and post-fit methods
 
-Traditional phylogenetic algorithms invert a dense $p \times p$ phylogenetic variance-covariance matrix $\mathbf{V} = \sigma_{\text{phylo}}^2 \mathbf{A}$, requiring $O(p^3)$ floating-point operations. For a tree with $p = 5{,}000$ species:
-- Dense inversion requires billions of operations and gigabytes of memory.
-- Profiling or bootstrapping thousands of refits becomes computationally prohibitive.
+The bridge has methods for `summary()`, `coef()`, `vcov()`, `logLik()`,
+`predict()` and `confint()`. Availability depends on the fitted route and target;
+a `drmTMB_julia` object does not automatically inherit every native-TMB diagnostic.
 
-`DRM.jl` formulates the phylogenetic Gaussian process as a sparse augmented-state Markov random field on the tree directed acyclic graph (DAG). The resulting precision matrix is strictly tridiagonal along branch lineages, enabling:
-- **Exact $O(p)$ linear time** likelihood and gradient evaluations.
-- **Minimal memory footprint** scaling linearly with the number of tips and internal nodes.
-- **Fast confidence intervals**: Profile likelihoods and multi-threaded parametric bootstrapping (`confint()`) run in seconds to minutes rather than hours.
-
-```r
-# Profile likelihood confidence intervals on a 1,000+ species model
-ci_profile <- confint(
-  fit_phylo_lss,
-  method = "profile",
-  parm = "fixef:sd_phylo:dietCarnivore"
-)
+```{r julia-intervals, eval=FALSE}
+vcov(fit_julia)
+confint(fit_julia, method = "wald")
+confint(fit_julia, method = "profile", parm = "fixef:mu:x")
 ```
 
-## Post-fit inspection and diagnostics
+These interval examples use the ordinary **ML** fit above. Check the documented
+objective and target before comparing ML and REML inference. Agreement between
+engines does not establish nominal interval coverage.
 
-A model fitted with `engine = "julia"` produces a `drmTMB_julia` object that supports standard R diagnostics and inference functions:
+## Species counts, sparse solvers and parallel work
 
-```r
-# Model summary with coefficients and standard errors across all blocks
-summary(fit_lss)
+**There is no universal 5,000-species limit.** Some dense Gaussian LSS paths have
+a 5,000-observation safeguard. Other routes use sparse phylogenetic precision
+matrices and have different practical limits. Species count, observation count,
+number of latent effects, and requested uncertainty all affect cost.
 
-# Extract coefficient vector or list by parameter block
-coef(fit_lss)
-coef(fit_lss, dpar = "sigma")
-coef(fit_lss, dpar = "sd(individual)")
+A dense double-precision 5,000 by 5,000 matrix alone occupies about 200 MB, before
+factorizations and temporary storage. Its storage grows quadratically and a
+general dense factorization grows cubically. Tree-based augmented-state solvers
+can avoid the dense covariance, but the precision is **tree-sparse**, not generally
+tridiagonal. Crossed effects and other structures can introduce additional fill.
 
-# Parameter covariance matrix
-vcov(fit_lss)
+Sparse likelihood calculations, model construction, standard errors, profiles,
+and bootstrap refits are different workloads. A fast likelihood evaluation is
+not evidence that a complete fit or interval calculation takes the same time.
+There is no single speedup factor for all Julia-backed models.
 
-# Model predictions on link or response scale
-predict(fit_lss, dpar = "mu")
-predict(fit_lss, dpar = "sigma", type = "response")
+To make multiple Julia threads available, set `JULIA_NUM_THREADS` before Julia
+starts (for example in the shell launching R). A multi-threaded runtime does not
+make every fit parallel automatically. Use the documented options for the
+specific workflow, and avoid combining many Julia workers with many BLAS threads.
 
-# Model adequacy and convergence check
-check_drm(fit_lss)
-```
+## Current boundaries
 
-## Boundaries and intentional gates
+The Julia backend is implemented, but it is not yet a replacement for every
+native-TMB workflow. Check the [capability guide](capability-and-limits.html) for the
+model you intend to fit. In particular:
 
-To maintain numerical precision and guard against silent model divergence, `engine = "julia"` enforces explicit boundaries:
+- Missing-predictor modelling is currently a native-TMB workflow.
+- Missing-response inclusion and REML depend on the model route; non-Gaussian
+  fits use ML on the admitted bridge routes.
+- Accepted families do not imply that every combination of structured effects,
+  weights, controls and post-fit methods is admitted.
+- `predict()` on new data currently has narrower Julia support than in-sample
+  prediction; do not assume that every distributional parameter is available.
 
-- **Missing predictors**: Predictor variables must be fully observed (`predictor = "fail"`). Missing predictor imputation via `predictor = "model"` is supported only on native TMB.
-- **Non-Gaussian response masks**: Missing response inclusion (`response = "include"`) is supported for Gaussian and bivariate Gaussian models. Non-Gaussian families require complete response cases (`response = "drop"`).
-- **REML scope**: `REML = TRUE` is supported for Gaussian location-scale, location-scale-scale (`sd()` and `sd(level = "phylogenetic")`), and bivariate $q=4$ models. Non-Gaussian GLMMs fit by maximum likelihood (ML).
-- **Bivariate residual correlation**: Residual correlation $\rho_{12}$ is supported for bivariate Gaussian models (`family = biv_gaussian()`).
-
-When an unsupported combination is requested, `drmTMB` issues a descriptive error or warning rather than producing unverified estimates.
+If the bridge rejects a combination, use the native engine for that analysis
+and retain the warning or error when reporting the limitation.
