@@ -195,6 +195,50 @@ These interval examples use the ordinary **ML** fit above. Check the documented
 objective and target before comparing ML and REML inference. Agreement between
 engines does not establish nominal interval coverage.
 
+## One modelled missing predictor (development route)
+
+The Julia engine also has a narrow, **development** route for one
+modelled missing predictor. It is limited to a Gaussian identity-link response,
+one bare additive `mi(x)` term, complete fixed-effect exogenous designs, and a
+Gaussian or Bernoulli fixed-effect predictor model. Missing `x` values are
+integrated in the joint likelihood; they are not filled before fitting.
+
+```{r julia-missing-predictor, eval=FALSE}
+set.seed(45)
+n <- 80
+joint_data <- data.frame(z = seq(-1, 1, length.out = n))
+joint_data$x <- 0.2 + 0.7 * joint_data$z + rnorm(n, sd = 0.25)
+joint_data$y <- 0.4 + 0.5 * joint_data$z + 0.8 * joint_data$x + rnorm(n, sd = 0.3)
+joint_data$x[c(8, 21, 53)] <- NA_real_
+joint_data$y[c(15, 53)] <- NA_real_
+
+fit_joint <- drmTMB(
+  bf(y ~ z + mi(x), sigma ~ 1), family = gaussian(), data = joint_data,
+  impute = list(x = x ~ z),
+  missing = miss_control(response = "include", predictor = "model"),
+  engine = "julia"
+)
+coef(fit_joint)
+imputed(fit_joint, rows = "all")
+```
+
+For a binary predictor, use
+`impute = list(x = impute_model(x ~ z, family = binomial()))`. The R development
+route also accepts `response = "drop"`; it drops missing-response rows during
+preparation. That preprocessing differs from native-TMB behaviour, so it is not
+a response-policy parity claim.
+
+This route excludes other response families, additional or interacted `mi()`
+terms, random or structured effects, offsets, weights, non-default controls,
+and REML. `summary()` and Wald `confint()` require a usable returned covariance;
+profile and bootstrap intervals are unsupported. For a Gaussian predictor, the
+predictor-SD Wald interval is transformed to the natural SD scale, can cross
+zero, and is not a native-interval-parity or coverage result. Two public bridge
+adapter cases pass, but full native comparator parity remains open: its retained
+checks include a stale native training matrix, a Bernoulli native-`newdata`
+error, and a Bernoulli parameter discrepancy of `1.0015e-5` against a `4e-6`
+gate. This development route makes no speed or coverage claim.
+
 ## Species counts, sparse solvers and parallel work
 
 **There is no universal 5,000-species limit.** Some dense Gaussian LSS paths have
@@ -224,7 +268,8 @@ The Julia backend is implemented, but it is not yet a replacement for every
 native-TMB workflow. Check the [capability guide](capability-and-limits.html) for the
 model you intend to fit. In particular:
 
-- Missing-predictor modelling is currently a native-TMB workflow.
+- The one-modelled-predictor development route above is available through
+  `engine = "julia"`; other missing-predictor models remain native-TMB workflows.
 - Missing-response inclusion and REML depend on the model route; non-Gaussian
   fits use ML on the admitted bridge routes.
 - Accepted families do not imply that every combination of structured effects,

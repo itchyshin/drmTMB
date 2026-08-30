@@ -105,9 +105,9 @@ drm_julia_intentional_gates <- function() {
     ),
     syntax = c(
       "weights = ...",
-      "impute = list(...)",
+      "impute supplied without missing = miss_control(predictor = \"model\")",
       "control = list(...)",
-      "missing = miss_control(predictor = \"model\")",
+      "missing = miss_control(predictor = \"model\") without a matching impute model",
       "missing = miss_control(response = \"include\") with poisson()",
       "family = beta_binomial() through engine = \"julia\"",
       "bivariate phylo on only one axis or on three axes",
@@ -122,9 +122,9 @@ drm_julia_intentional_gates <- function() {
     r_bridge_status = "intentional_error",
     drmjl_status = c(
       "unsupported payload",
-      "unsupported payload",
+      "joint payload requires predictor=model and an additive mi term",
       "no R engine-control surface",
-      "unsupported payload",
+      "joint payload requires an explicit matching impute model",
       "not audited for non-Gaussian masks",
       "no BetaBinomial tree/FE R bridge claim",
       "bivariate phylo route admits q2 mu1/mu2 or q4 all four axes only",
@@ -138,9 +138,9 @@ drm_julia_intentional_gates <- function() {
     ),
     message_pattern = c(
       "weights",
-      "impute",
+      "predictor.*model",
       "default .*control",
-      "missing.*route|impute",
+      "impute",
       "missing.*route",
       "Gaussian one-/two-response|Workflow G fixed-effect",
       "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis",
@@ -160,9 +160,9 @@ drm_julia_intentional_gates <- function() {
     action = "error",
     evidence = c(
       "DRM.jl bridge payload has no weights slot.",
-      "DRM.jl bridge payload has no imputation contract.",
+      "The joint Gaussian/Bernoulli predictor payload is admitted only with complete model specification.",
       "Julia optimizer controls need an explicit engine_control surface.",
-      "DRM.jl bridge receives complete predictor columns only.",
+      "Modelled predictors require a matching impute entry; unsupported families remain separate gaps.",
       "Observed-response masks are admitted only for Gaussian bridge cells.",
       "BetaBinomial has no Workflow G R bridge admission; use native TMB.",
       "DRM.jl bivariate phylo bridge expects either q2 terms on mu1/mu2 or q4 terms on mu1, mu2, sigma1, and sigma2.",
@@ -367,6 +367,13 @@ drmTMB_julia_bridge <- function(
   call
 ) {
   REML <- drm_control_flag(REML, "REML")
+  if (drm_julia_joint_requested(formula, impute, missing)) {
+    return(drmTMB_julia_joint_bridge(
+      formula = formula, family = family, data = data, env = env,
+      weights_missing = weights_missing, control = control, impute = impute,
+      missing = missing, REML = REML, call = call
+    ))
+  }
   if (drm_julia_is_cross_family(family)) {
     drm_julia_warn_reml_unsupported(REML, "cross-family")
     return(drmTMB_julia_xfam_bridge(
