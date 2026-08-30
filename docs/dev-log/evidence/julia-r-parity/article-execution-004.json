@@ -1,0 +1,693 @@
+{
+  "kind": "article-execution-v1",
+  "time_utc": "2026-08-30 13:10:29",
+  "article_sha256": "9fc367f686f3074e117e8b51a12c02bf509a22b208d5d9c6701f393765b9383d",
+  "comparator": {
+    "version": "0.7.0",
+    "built": "R 4.6.0; aarch64-apple-darwin23; 2026-08-30 13:02:31 UTC; unix",
+    "code_hash": "98c372a1de766aae75058fc5ec36bc9f8c6b27c50aa616445e691dfa7c6d2907",
+    "n_objects": 1547,
+    "libpath": "/private/tmp/drm-parity-20260830/R-lib/drmTMB"
+  },
+  "loaded_dll_sha256": "37ecda8a20e59c7309717865948928fc186bca853cda65b2c23c27805de60174",
+  "julia_root": "/private/tmp/drm-parity-20260830/DRM.jl",
+  "julia_threads_requested": "1",
+  "blas_threads_requested": "1",
+  "R": "R version 4.6.0 (2026-04-24)",
+  "expressions": [
+    {
+      "index": 1,
+      "code": "knitr::opts_chunk$set(collapse = TRUE, comment = \"#>\")",
+      "elapsed_seconds": 0.086999999999999966,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "list",
+      "result_preview": null
+    },
+    {
+      "index": 2,
+      "code": "library(drmTMB)",
+      "elapsed_seconds": 0.0049999999999998934,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "character",
+      "result_preview": null
+    },
+    {
+      "index": 3,
+      "code": "install.packages(\"JuliaCall\")",
+      "status": "SETUP_PROVIDED"
+    },
+    {
+      "index": 4,
+      "code": "Sys.setenv(DRM_JL_PATH = \"/absolute/path/to/DRM.jl\")",
+      "status": "SETUP_PROVIDED"
+    },
+    {
+      "index": 5,
+      "code": "library(drmTMB)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "character",
+      "result_preview": null
+    },
+    {
+      "index": 6,
+      "code": "set.seed(42)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "NULL",
+      "result_preview": null
+    },
+    {
+      "index": 7,
+      "code": "dat <- data.frame(x = seq(-1, 1, length.out = 120))",
+      "elapsed_seconds": 0.001000000000000334,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": null
+    },
+    {
+      "index": 8,
+      "code": "dat$y <- 1 + 0.8 * dat$x + rnorm(nrow(dat), sd = exp(-0.4 + 0.2 * \n    dat$x))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 9,
+      "code": "form <- bf(y ~ x, sigma ~ x)",
+      "elapsed_seconds": 0.001000000000000334,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drm_formula",
+      "result_preview": null
+    },
+    {
+      "index": 10,
+      "code": "fit_r <- drmTMB(form, data = dat, family = gaussian(), engine = \"tmb\")",
+      "elapsed_seconds": 0.059000000000000163,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drmTMB",
+      "result_preview": null
+    },
+    {
+      "index": 11,
+      "code": "fit_julia <- drmTMB(form, data = dat, family = gaussian(), engine = \"julia\")",
+      "elapsed_seconds": 15.754999999999999,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 12,
+      "code": "summary(fit_julia)",
+      "elapsed_seconds": 0.00099999999999766942,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "summary.drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 13,
+      "code": "coef(fit_julia)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "list",
+      "result_preview": null
+    },
+    {
+      "index": 14,
+      "code": "predict(fit_julia, dpar = \"mu\")",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 15,
+      "code": "predict(fit_julia, dpar = \"sigma\", type = \"response\")",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 16,
+      "code": "logLik(fit_r)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "logLik",
+      "result_preview": null
+    },
+    {
+      "index": 17,
+      "code": "logLik(fit_julia)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "logLik",
+      "result_preview": null
+    },
+    {
+      "index": 18,
+      "code": "set.seed(43)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "NULL",
+      "result_preview": null
+    },
+    {
+      "index": 19,
+      "code": "individuals <- data.frame(individual = factor(seq_len(40)), sex = factor(rep(c(\"female\", \n    \"male\"), each = 20)))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": null
+    },
+    {
+      "index": 20,
+      "code": "individuals$b <- rnorm(40, sd = exp(-0.3 + 0.25 * (individuals$sex == \n    \"male\")))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 21,
+      "code": "personality_data <- individuals[rep(seq_len(40), each = 4), ]",
+      "elapsed_seconds": 0.00099999999999766942,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": null
+    },
+    {
+      "index": 22,
+      "code": "personality_data$exploration_score <- 1 + 0.5 * (personality_data$sex == \n    \"male\") + personality_data$b + rnorm(nrow(personality_data), \n    sd = 0.5)",
+      "elapsed_seconds": 0.0010000000000012221,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 23,
+      "code": "formula_lss <- bf(exploration_score ~ sex + (1 | individual), \n    sigma ~ sex, sd(individual) ~ sex)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drm_formula",
+      "result_preview": null
+    },
+    {
+      "index": 24,
+      "code": "fit_lss <- drmTMB(formula_lss, family = gaussian(), data = personality_data, \n    REML = TRUE, engine = \"julia\")",
+      "elapsed_seconds": 4.0530000000000008,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 25,
+      "code": "summary(fit_lss)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "summary.drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 26,
+      "code": "names(coef(fit_lss))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "character",
+      "result_preview": null
+    },
+    {
+      "index": 27,
+      "code": "install.packages(\"ape\")",
+      "status": "SETUP_PROVIDED"
+    },
+    {
+      "index": 28,
+      "code": "set.seed(44)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "NULL",
+      "result_preview": null
+    },
+    {
+      "index": 29,
+      "code": "bird_tree <- ape::rcoal(40)",
+      "elapsed_seconds": 0.059999999999998721,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "phylo",
+      "result_preview": null
+    },
+    {
+      "index": 30,
+      "code": "bird_data <- data.frame(species = bird_tree$tip.label, habitat = rnorm(40), \n    latitude = runif(40, -1, 1))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": null
+    },
+    {
+      "index": 31,
+      "code": "A <- ape::vcv(bird_tree, corr = TRUE)[bird_data$species, bird_data$species]",
+      "elapsed_seconds": 0.00099999999999766942,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": ["matrix", "array"],
+      "result_preview": null
+    },
+    {
+      "index": 32,
+      "code": "sd_phylo <- exp(-0.3 + 0.2 * bird_data$habitat)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 33,
+      "code": "u <- sd_phylo * drop(t(chol(A)) %*% rnorm(40))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 34,
+      "code": "bird_data$log_body_mass <- 1 + 0.4 * bird_data$habitat + u + \n    rnorm(40, sd = exp(-0.7 + 0.1 * bird_data$latitude))",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 35,
+      "code": "formula_phylo_lss <- bf(log_body_mass ~ habitat + phylo(1 | species, \n    tree = bird_tree), sigma ~ latitude, sd(species, level = \"phylogenetic\") ~ \n    habitat)",
+      "elapsed_seconds": 0.0010000000000012221,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drm_formula",
+      "result_preview": null
+    },
+    {
+      "index": 36,
+      "code": "fit_phylo_lss <- drmTMB(formula_phylo_lss, family = gaussian(), \n    data = bird_data, REML = TRUE, engine = \"julia\")",
+      "elapsed_seconds": 6.5719999999999992,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 37,
+      "code": "summary(fit_phylo_lss)",
+      "elapsed_seconds": 0.00099999999999766942,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "summary.drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 38,
+      "code": "bird_data_with_missing <- bird_data",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": null
+    },
+    {
+      "index": 39,
+      "code": "bird_data_with_missing$log_body_mass[c(3, 9)] <- NA_real_",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "numeric",
+      "result_preview": null
+    },
+    {
+      "index": 40,
+      "code": "fit_missing <- drmTMB(formula_phylo_lss, family = gaussian(), \n    data = bird_data_with_missing, missing = miss_control(response = \"include\"), \n    REML = TRUE, engine = \"julia\")",
+      "elapsed_seconds": 0.51000000000000156,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 41,
+      "code": "summary(fit_missing)",
+      "elapsed_seconds": 0.0010000000000012221,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "summary.drmTMB_julia",
+      "result_preview": null
+    },
+    {
+      "index": 42,
+      "code": "vcov(fit_julia)",
+      "elapsed_seconds": 0,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": ["matrix", "array"],
+      "result_preview": null
+    },
+    {
+      "index": 43,
+      "code": "confint(fit_julia, method = \"wald\")",
+      "elapsed_seconds": 0.0060000000000002274,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": ["                     parm level      lower      upper scale   transformation", "1    fixef:mu:(Intercept)  0.95  0.8949864  1.1413023  link linear_predictor", "2              fixef:mu:x  0.95  0.5651450  0.9879324  link linear_predictor", "3 fixef:sigma:(Intercept)  0.95 -0.5016247 -0.2485944  link linear_predictor", "4           fixef:sigma:x  0.95 -0.1349763  0.2742300  link linear_predictor", "      tmb_parameter index method profile.engine conf.status profile.boundary", "1    mu_(Intercept)     1   wald           <NA>        wald               NA", "2              mu_x     2   wald           <NA>        wald               NA", "3 sigma_(Intercept)     1   wald           <NA>        wald               NA", "4           sigma_x     2   wald           <NA>        wald               NA", "  profile.message", "1            <NA>", "2            <NA>", "3            <NA>", "4            <NA>"]
+    },
+    {
+      "index": 44,
+      "code": "confint(fit_julia, method = \"profile\", parm = \"fixef:mu:x\")",
+      "elapsed_seconds": 3.3010000000000019,
+      "status": "EXECUTED",
+      "error": null,
+      "warnings": [],
+      "result_class": "data.frame",
+      "result_preview": ["        parm level     lower     upper scale   transformation tmb_parameter", "1 fixef:mu:x  0.95 0.5634199 0.9896175  link linear_predictor          mu_x", "  index  method       profile.engine conf.status profile.boundary", "1     2 profile julia_profile_result     profile            FALSE", "           profile.message julia.threaded julia.workers julia.threads", "1 profile_result completed          FALSE             1             1", "  julia.blas_threads julia.elapsed", "1                  1     0.6411167"]
+    }
+  ],
+  "fits": {
+    "fit_r": {
+      "status": "PASS",
+      "logLik": -125.25947913972659,
+      "convergence": 0,
+      "estimator": "ML",
+      "coefficients": {
+        "mu": [1.0181443401589687, 0.7765369124973327],
+        "sigma": [-0.37511074017090523, 0.069629624452287334]
+      },
+      "uncertainty": {
+        "status": "ok",
+        "se": true,
+        "message": "TMB::sdreport() completed successfully.",
+        "sdr_error": null
+      }
+    },
+    "fit_julia": {
+      "status": "PASS",
+      "logLik": -125.25947913907653,
+      "convergence": 0,
+      "estimator": "ML",
+      "coefficients": {
+        "mu": [1.0181443683091771, 0.77653867846299474],
+        "sigma": [-0.37510954037903732, 0.069626832770015551]
+      },
+      "uncertainty": {
+        "status": "ok",
+        "se": true,
+        "finite_dpars": ["mu", "sigma"],
+        "message": "DRM.jl bridge returned fixed-effect covariance."
+      }
+    },
+    "fit_lss": {
+      "status": "PASS",
+      "logLik": -160.64388320378265,
+      "convergence": 0,
+      "estimator": "REML",
+      "coefficients": {
+        "mu": [0.98261896069681443, 0.74582973462257751],
+        "sd": [-0.26474709366930338, 0.095774892584800736],
+        "sigma": [-0.71094786765424778, -0.039282939907576954]
+      },
+      "uncertainty": {
+        "status": "ok",
+        "se": true,
+        "finite_dpars": ["mu", "sigma", "sd"],
+        "message": "DRM.jl bridge returned fixed-effect covariance."
+      }
+    },
+    "fit_phylo_lss": {
+      "status": "PASS",
+      "logLik": -39.641341346555038,
+      "convergence": 0,
+      "estimator": "REML",
+      "coefficients": {
+        "mu": [0.71085207199318978, 0.28511539517352452],
+        "sd_phylo": [-0.41278768965476692, 0.13253891162890999],
+        "sigma": [-0.61148855245625089, 0.57945050391136099]
+      },
+      "uncertainty": {
+        "status": "ok",
+        "se": true,
+        "finite_dpars": ["mu", "sigma", "sd_phylo"],
+        "message": "DRM.jl bridge returned fixed-effect covariance."
+      }
+    },
+    "fit_missing": {
+      "status": "PASS",
+      "logLik": -37.247423307674943,
+      "convergence": 0,
+      "estimator": "REML",
+      "coefficients": {
+        "mu": [0.74409786657595078, 0.25798301750398117],
+        "sd_phylo": [-0.59050925180206382, 0.30587236186359573],
+        "sigma": [-0.60580622651027116, 0.57599516992161737]
+      },
+      "uncertainty": {
+        "status": "ok",
+        "se": true,
+        "finite_dpars": ["mu", "sigma", "sd_phylo"],
+        "message": "DRM.jl bridge returned fixed-effect covariance."
+      }
+    }
+  },
+  "checks": {
+    "prediction_expression_14": {
+      "passed": true,
+      "values": [0.24160568984618236, 0.25465676007245119, 0.26770783029871997, 0.28075890052498886, 0.29380997075125764, 0.30686104097752648, 0.31991211120379526, 0.33296318143006409, 0.34601425165633287, 0.35906532188260176, 0.37211639210887054, 0.38516746233513938, 0.39821853256140816, 0.41126960278767699, 0.42432067301394588, 0.43737174324021466, 0.45042281346648338, 0.46347388369275228, 0.47652495391902111, 0.48957602414528989, 0.50262709437155872, 0.51567816459782756, 0.52872923482409639, 0.54178030505036512, 0.55483137527663406, 0.5678824455029029, 0.58093351572917162, 0.59398458595544046, 0.60703565618170929, 0.62008672640797813, 0.63313779663424696, 0.64618886686051569, 0.65923993708678452, 0.67229100731305336, 0.68534207753932219, 0.69839314776559103, 0.71144421799185986, 0.7244952882181287, 0.73754635844439742, 0.75059742867066626, 0.76364849889693509, 0.77669956912320393, 0.78975063934947276, 0.8028017095757416, 0.81585277980201032, 0.82890385002827915, 0.84195492025454799, 0.85500599048081682, 0.86805706070708566, 0.88110813093335449, 0.89415920115962333, 0.90721027138589205, 0.920261341612161, 0.93331241183842972, 0.94636348206469856, 0.95941455229096739, 0.97246562251723623, 0.98551669274350495, 0.9985677629697739, 1.0116188331960427, 1.0246699034223115, 1.0377209736485802, 1.0507720438748491, 1.0638231141011181, 1.0768741843273868, 1.0899252545536555, 1.1029763247799245, 1.1160273950061932, 1.1290784652324619, 1.1421295354587309, 1.1551806056849998, 1.1682316759112685, 1.1812827461375373, 1.194333816363806, 1.2073848865900749, 1.2204359568163439, 1.2334870270426126, 1.2465380972688813, 1.2595891674951503, 1.272640237721419, 1.2856913079476877, 1.2987423781739567, 1.3117934484002256, 1.3248445186264943, 1.3378955888527631, 1.350946659079032, 1.3639977293053007, 1.3770487995315694, 1.3900998697578384, 1.4031509399841073, 1.4162020102103761, 1.4292530804366448, 1.4423041506629135, 1.4553552208891825, 1.4684062911154514, 1.4814573613417201, 1.4945084315679891, 1.5075595017942578, 1.5206105720205265, 1.5336616422467952, 1.5467127124730642, 1.5597637826993331, 1.5728148529256019, 1.5858659231518706, 1.5989169933781395, 1.6119680636044083, 1.6250191338306772, 1.6380702040569459, 1.6511212742832149, 1.6641723445094836, 1.6772234147357523, 1.690274484962021, 1.70332555518829, 1.7163766254145589, 1.7294276956408277, 1.7424787658670966, 1.7555298360933653, 1.768580906319634, 1.781631976545903, 1.7946830467721719]
+    },
+    "prediction_expression_15": {
+      "passed": true,
+      "values": [0.64099323678853715, 0.64174376539817857, 0.64249517278962553, 0.6432474599918292, 0.64400062803494584, 0.64475467795033792, 0.64550961077057534, 0.64626542752943716, 0.64702212926191272, 0.64777971700420334, 0.64853819179372363, 0.64929755466910277, 0.65005780667018609, 0.65081894883803659, 0.6515809822149361, 0.65234390784438689, 0.65310772677111306, 0.65387244004106182, 0.65463804870140518, 0.65540455380054152, 0.65617195638809622, 0.65694025751492402, 0.65770945823311011, 0.65847955959597138, 0.65925056265805826, 0.66002246847515555, 0.66079527810428451, 0.66156899260370428, 0.66234361303291256, 0.66311914045264797, 0.66389557592489112, 0.66467292051286586, 0.66545117528104125, 0.66623034129513248, 0.66701041962210261, 0.66779141133016406, 0.66857331748878002, 0.66935613916866576, 0.67013987744179049, 0.67092453338137814, 0.67171010806190978, 0.67249660255912413, 0.6732840179500198, 0.67407235531285614, 0.67486161572715531, 0.67565180027370331, 0.6764429100345517, 0.67723494609301871, 0.67802790953369152, 0.67882180144242665, 0.67961662290635261, 0.68041237501387042, 0.68120905885465555, 0.68200667551965943, 0.68280522610111094, 0.68360471169251769, 0.6844051333886676, 0.68520649228563069, 0.68600878948076027, 0.68681202607269431, 0.68761620316135741, 0.68842132184796201, 0.68922738323500987, 0.69003438842629372, 0.69084233852689869, 0.69165123464320366, 0.69246107788288336, 0.69327186935490892, 0.69408361016955056, 0.69489630143837799, 0.69570994427426269, 0.69652453979137907, 0.69734008910520628, 0.69815659333252944, 0.69897405359144116, 0.69979247100134356, 0.70061184668294918, 0.70143218175828281, 0.70225347735068311, 0.70307573458480388, 0.703898954586616, 0.7047231384834084, 0.70554828740379028, 0.70637440247769201, 0.70720148483636713, 0.70802953561239379, 0.70885855593967628, 0.7096885469534463, 0.71051950979026501, 0.71135144558802432, 0.71218435548594849, 0.71301824062459562, 0.71385310214585918, 0.71468894119297, 0.71552575891049708, 0.71636355644434979, 0.71720233494177932, 0.71804209555137999, 0.71888283942309106, 0.71972456770819826, 0.72056728155933525, 0.72141098213048538, 0.72225567057698314, 0.72310134805551574, 0.72394801572412482, 0.72479567474220796, 0.72564432627052022, 0.72649397147117578, 0.7273446115076494, 0.7281962475447783, 0.72904888074876362, 0.72990251228717173, 0.73075714332893638, 0.73161277504435984, 0.73246940860511478, 0.73332704518424552, 0.73418568595617018, 0.73504533209668188, 0.73590598478295033, 0.73676764519352367]
+    },
+    "covariance_expression_42": {
+      "passed": true,
+      "values": [
+        [0.0039484683117228482, 0.00054832914502434915, -5.1755482486217728e-19, -1.8315872398391459e-05],
+        [0.00054832914502434915, 0.011632894877412359, -1.7601477370585648e-16, -0.00038857430820566838],
+        [-5.1755482486217728e-19, -1.7601477370585648e-16, 0.0041666666666666449, 2.0088969963591792e-16],
+        [-1.8315872398391459e-05, -0.00038857430820566838, 2.0088969963591792e-16, 0.010897542445789391]
+      ]
+    },
+    "interval_expression_43": {
+      "passed": true,
+      "bounds": [
+        {
+          "parm": "fixef:mu:(Intercept)",
+          "lower": 0.89498642733784162,
+          "upper": 1.1413023092805126,
+          "conf.status": "wald"
+        },
+        {
+          "parm": "fixef:mu:x",
+          "lower": 0.56514500155414493,
+          "upper": 0.98793235537184454,
+          "conf.status": "wald"
+        },
+        {
+          "parm": "fixef:sigma:(Intercept)",
+          "lower": -0.50162467156720292,
+          "upper": -0.2485944091908717,
+          "conf.status": "wald"
+        },
+        {
+          "parm": "fixef:sigma:x",
+          "lower": -0.13497634548551951,
+          "upper": 0.27423001102555061,
+          "conf.status": "wald"
+        }
+      ]
+    },
+    "interval_expression_44": {
+      "passed": true,
+      "bounds": [
+        {
+          "parm": "fixef:mu:x",
+          "lower": 0.56341993197495377,
+          "upper": 0.98961754873933383,
+          "conf.status": "profile"
+        }
+      ]
+    },
+    "runtime": {
+      "passed": true,
+      "error": null
+    },
+    "ordinary_ml_loglik": {
+      "actual_absolute_difference": 6.5006133809220046e-10,
+      "absolute_tolerance": 9.9999999999999995e-07,
+      "passed": true
+    }
+  },
+  "julia_runtime": {
+    "version": "1.10.0",
+    "loaded_module": "/private/tmp/drm-parity-20260830/DRM.jl/src/DRM.jl",
+    "threads": 1,
+    "blas_threads": 1,
+    "git_revision": "b1c357d0ce28192f980e50a48fbd7cedb5392f17",
+    "dirty_source": []
+  },
+  "julia_source_sha256": {
+    "src/aghq_1d.jl": "66464da504723ea24f50aefece46c17d29600d9242d2cb2de9b233b2ea8a7452",
+    "src/associate_pairs.jl": "dbaae28b966f48ad99a46dfa796561aab2cb2a26c15a898811945e1f1160e9d1",
+    "src/beta.jl": "9af3b4dc7c4df2b6bf2ec4afbc09be59c62ff0ac39bfef7113dbda7900171a3c",
+    "src/betabinomial.jl": "28f7ac5dd4ecfa426187861a30e045fa5311d6dc4da6ad015d4212f5eaa94909",
+    "src/bias_correct.jl": "68cee45247626cbc114dc29ccca675553e86179cd75885cf3ca750f07ff5b627",
+    "src/binomial.jl": "f16e768668d432bfbef9f1d140470647bd2a20274f35bfc95a8cae9c0b9c8527",
+    "src/bivariate_lognormal.jl": "af39e1e71fc45f63137f49e62e03750d0d59fc8a2e5fce802aa200bc55522a27",
+    "src/bivariate_student.jl": "f72d2b80cb3f5ce877dc0293f02f9a7f443a5eba51e832b471b0d28e23b876a7",
+    "src/bootstrap_q4_phylo.jl": "1a273cd13533b2c61d09070901d4d20c3eb4838ab40de3e48d9ca188d7753012",
+    "src/bridge.jl": "6ec496e4f88106a4ea101043d25f6a1a01c54095202cbb6b2179e5998007a904",
+    "src/chibar.jl": "6521eafccce2f505886dc3eb1d13541162812f8c093d88427a72658d4fddd97f",
+    "src/coevo_accessors.jl": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c",
+    "src/coevolution_q.jl": "77ce90a3e7dac5f9f4df4e7fac94d036146635afd7df3ab7b953b228151cb58c",
+    "src/comparison.jl": "3482d6b88f7ec5d545a2947030103fb638f41050c9a10fcb41a9823eec6eeacc",
+    "src/cumulative.jl": "5d7c8db90e0a00b3680f7e4a818ccda7912148c70fd3f5fdbcc7e6d63af10c5a",
+    "src/DRM.jl": "2c1b4b4da00bc5618d627543d9216a43df2747f9d6e6206358318902f7094179",
+    "src/experimental/em_squarem_fit.jl": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9",
+    "src/experimental/estep_armijoguard.jl": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13",
+    "src/experimental/estep_initprior.jl": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436",
+    "src/experimental/estep_lm.jl": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5",
+    "src/experimental/estep_trustregion.jl": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6",
+    "src/experimental/fit_em_closed.jl": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf",
+    "src/experimental/fit_em_natgrad.jl": "35ec282ee4fd85fe715fbd4414b801c91100b5fbf240837484d94a985dc9b63a",
+    "src/experimental/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "src/experimental/fit_ml_warm.jl": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c",
+    "src/experimental/fit_q4_p100_tmb.jl": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07",
+    "src/experimental/fit_q4_tmbgrad.jl": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6",
+    "src/experimental/fit_sparse_direct.jl": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a",
+    "src/experimental/location_only.jl": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646",
+    "src/experimental/q4_em_dense.jl": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7",
+    "src/fisherz_q4.jl": "cc864faa1b1a51c044309939e84bc1fa78a328e316ea3d8453b4ba1e2f1bf046",
+    "src/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
+    "src/fit_q4_sparse_tmb.jl": "51c0d6e982d53b0d2d448b2ed05d979f780cdb36bc27e71f4b47ebb25b8b18a2",
+    "src/gamma.jl": "a22a3c4cbbb5ce37ffa41025118646b722df195d490a22926e03c7be0d1bd4c7",
+    "src/gaussian_bivariate.jl": "7cf90337062b3ff13367321ad2b8384ecb74776c49358aa28cdb5dff04317251",
+    "src/gaussian_core.jl": "2cbfaefca88d7ed52a3a124c9eabfe2a94571f71164416421caca1453c43c629",
+    "src/gaussian_locscale_phylo.jl": "78fcaecf0a8d6fe2055321d68071101039772f71263a456cbbabbb5edbf9a39d",
+    "src/gaussian_lss.jl": "1e18a621a6047654b1331d4e0a43864b4e2495e7e8f149bcde2ce5f161d9f780",
+    "src/gaussian_meta.jl": "66c3c4a09dd952793eeebca5c9a273d8498b32b4839e868e0d26ff0e83891cfa",
+    "src/gaussian_ranef.jl": "7d096ded5eaa1172b6d6f4c8afc2794bebf84f4ae165d56fdca0758e30d18907",
+    "src/gaussian_sparse_lss.jl": "96ee90f88bc12af7e6eebd7f3f51fb285711cf8f9f9c2ed0a19953ca6b19de1f",
+    "src/gaussian_structured.jl": "3ba579b2db88f3ec02903b3183456a6dfed6d74714b83fe554b80e4663dd3698",
+    "src/heritability.jl": "524ac27831a0b7ac13575f43c0f4c62da7d96759c8d26f4c44392da915d7e24a",
+    "src/inference.jl": "bb2606042a4ee7d165fdd8b6e1b0f7f187a7738cad90cdd3ec80eccf1bbd49c0",
+    "src/introspection.jl": "546b64e0273da4530c1d1f5208b2728c001fe9466eaec1f9b5527c6730860535",
+    "src/lc_metric.jl": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f",
+    "src/link_residual.jl": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2",
+    "src/location_only.jl": "43c8727284f5cc592d2ba70b5bc21e4ac8a4224c5910d85f49f9c315268bb6ce",
+    "src/locscale_corr.jl": "8b558c2fab3416085875ee30956ff7d26600703163f487333c05de21f19bdd4a",
+    "src/locscale_fit.jl": "10a8782a78db3b1c47a5007a998ed487072285d7f7ec0c395c5bd7664f0f6d01",
+    "src/locscale_frontend.jl": "4ed6b15861df4562df0dd7fc970c3272cd0e07048bf75e46b4866ea0315861ef",
+    "src/locscale_grad.jl": "2863ec63c5a9519de3093f8c4ccbc39ff53a47295ab9abcfcbf36afa3f02e0e8",
+    "src/locscale_infer.jl": "7944724797b8ddab50df4f741bbbf3d86d1627963976f09a5c6bdfe89e4b945a",
+    "src/locscale_inner.jl": "7915b9cc780e723cd9928b2a71c3f22884d21df5f0b57c1ea1f0e2db334f8bcb",
+    "src/locscale_kernels.jl": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60",
+    "src/locscale_marginal.jl": "05cd2e416c14fb3e8063e2bb0288c574c39bec733278d2734829b458443dd71d",
+    "src/locscale_profile.jl": "c6ca8e2d9d76c372be17f61f2edc00fcef299ed897b05742ef035b3f6d29c2b5",
+    "src/locscale_sigma.jl": "23abfb0d6b2b60179ef320cf6a219baf408429709203d378dfcf0a45ab800b83",
+    "src/lognormal.jl": "6dc293eb9cb03b77d0f5590f74e34bcd92df7617bdd9e0ef67db307433b30e54",
+    "src/meta_vcov_bivariate.jl": "fe4298f40ce8560378b3f6628a99d20bc6b7111b2bd0f3f423e5384f6aa8e8be",
+    "src/missing_data.jl": "8cb515c0ce55ac1c2f1939c7373ecfdd8b1c57ac8bcdefa9f8ebc23225d3c537",
+    "src/mixed_family_postfit.jl": "0973c19cfe22b94640682fd5221d2bc09fa9b7900d377137d5984d1303edb661",
+    "src/mixed_family.jl": "1eae9a0f838bdcb5517812d73ec4b3db6dadda15c212f0d861c16da42a3f3500",
+    "src/negbinomial.jl": "2e8b20713b9e317c37d8f8bae3c74360ddc6f9a64cac3cbe45260a430b3a6f5f",
+    "src/phylo_interaction.jl": "10288c86a05f5cdaeb66fd6a9e3f8940d9098421cc2aaa1c878e89244e4a62ea",
+    "src/phylo_penalty.jl": "b186cd9521598ff502aafe09f9768ec32899faf8511aa2d2bb5c4ea358e34c39",
+    "src/plotting_ext.jl": "1283c8404b9cdda7774931b4fe7624d2e1ba42c9b31c7058e966efb5206493c4",
+    "src/poisson.jl": "7f4aadbf523fbbb0025aa07efdd54dcf5dfcb1a683e3745f4d4a67035bb6bdeb",
+    "src/profile_q4_phylo.jl": "23761ae1b082d9183118641f8dde457291f93bb389243a3f3efd293873aef3c4",
+    "src/quantile_residuals.jl": "2f582a77af8a1506746713e82c2975b7c1204801fa638ced8d1266af6fda56c5",
+    "src/reml_q2.jl": "f3e63e5040fd40c0a99c8e514cee281b54774c88670b2cc67e116f88bfb52989",
+    "src/reml_q4.jl": "269ad2492322b1733ef187c885d5b5e465d6a7d8b12c5597a2e57d22858e0d77",
+    "src/skewnormal.jl": "870cf8fd10a6f60a754ec67b957a4500fe44eb10ca9757bfffa1a28f0c501ee8",
+    "src/sparse_aug_plsm.jl": "15bfa5fd2c7cdfadf70dd32857281efcf15dd9e2433020872973e40a79ead6b3",
+    "src/sparse_em_fit.jl": "e99ef15e448e7b01424f779cea1b6297fc5014a419bf59b5ae3b94c35f9a65cd",
+    "src/sparse_laplace_glmm.jl": "396ff2a2372c526e88ddba4e4673097667acf0a623eb338e91ba4a5539d8bc93",
+    "src/sparse_phy.jl": "cefbe845312d61c9f7a931a451dc6834d2a7590c14e4dddaf8fc1a239af5833b",
+    "src/student.jl": "2dd03d7ec050bfbae3964b0db98f5020c26f45f38d6dc952922b1a40bfa09d9e",
+    "src/summary.jl": "cca7bb9066c240116a59a0c7322718840709352b3320c26b5a917d6afb0d0b79",
+    "src/takahashi_selinv.jl": "1ec53baad46c20c0c93d1f70626be5f39d9237e8f62f587741e8b56122214af1",
+    "src/tweedie.jl": "939dcf2c5b156163d0903d8166f52833a8ff90ff984c8ffb578495d1586ea2bc",
+    "src/variational.jl": "ec6e7be942370bfe67fe86396fd8480d0e2224096d236d3b8b56582d38020a7b",
+    "src/vcov_guard.jl": "49276610d4c71db6241b3bb7836f48ce85ac8b6ad494962a4250a66137ccb78a",
+    "src/visualization.jl": "31a29e6d991acca983478eaffc5a6f48f3545b77fa4ecbf93b033cd14a89b53d",
+    "src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
+  },
+  "status": "ARTICLE_EXECUTION_PASS"
+}

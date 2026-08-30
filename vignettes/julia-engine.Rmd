@@ -12,11 +12,6 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 ```
 
-For a local noninteractive script (for example, one run with `Rscript`), also
-set `Sys.setenv(DRMTMB_JULIA_TESTS = "true")` before the first Julia call. This
-explicit opt-in is needed because the package keeps Julia disabled by default
-in noninteractive package checks. Do not enable it on CRAN or win-builder.
-
 The Julia engine is available now as an **optional backend** for `drmTMB`.
 You keep the R formula and data interface and select `engine = "julia"` when
 fitting a supported model. The default, `engine = "tmb"`, does not require Julia.
@@ -50,6 +45,11 @@ install.packages("JuliaCall")
 Sys.setenv(DRM_JL_PATH = "/absolute/path/to/DRM.jl")
 library(drmTMB)
 ```
+
+For a local noninteractive script (for example, one run with `Rscript`), also
+set `Sys.setenv(DRMTMB_JULIA_TESTS = "true")` before the first Julia call. This
+explicit opt-in is needed because the package keeps Julia disabled by default
+in noninteractive package checks. Do not enable it on CRAN or win-builder.
 
 Replace the path with the directory containing DRM.jl's `Project.toml` and
 `src/`. The bridge initializes Julia when needed. The first call includes
