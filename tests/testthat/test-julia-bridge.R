@@ -191,8 +191,12 @@ test_that("Julia bridge object exposes standard fitted-model methods", {
   expect_equal(stats::fitted(fit), seq_len(6))
   expect_equal(stats::residuals(fit), rep(0.1, 6))
   expect_equal(stats::sigma(fit), rep(0.8, 6))
-  expect_equal(predict(fit, dpar = "mu"), seq_len(6))
-  expect_equal(predict(fit, dpar = "sigma"), rep(0.8, 6))
+  # These deliberately disagree with the fixture's raw `fitted` and `sigma`
+  # slots above.  Julia bridge prediction reconstructs the fixed-effect dpar
+  # from the retained formula and coefficients, rather than returning a slot
+  # whose scale/conditional semantics may differ by engine route.
+  expect_equal(predict(fit, dpar = "mu"), 0.1 + 0.4 * seq_len(6))
+  expect_equal(predict(fit, dpar = "sigma"), exp(-0.2 + 0.3 * seq_len(6)))
   expect_true(is_converged(fit))
   expect_error(rho12(fit), "no residual")
   # newdata mu prediction is population-level (RE = 0); identity link here, so
@@ -202,10 +206,9 @@ test_that("Julia bridge object exposes standard fitted-model methods", {
     predict(fit, newdata = data.frame(x = 1), type = "link"),
     0.5
   )
-  # sigma on fresh newdata remains unsupported on the Julia route.
-  expect_error(
+  expect_equal(
     predict(fit, newdata = data.frame(x = 1), dpar = "sigma"),
-    "location parameter"
+    exp(-0.2 + 0.3)
   )
 })
 

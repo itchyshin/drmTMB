@@ -134,7 +134,7 @@ test_that("predict(newdata) honours factor contrasts from the training data", {
                               beta[["(Intercept)"]] + beta[["gc"]])))
 })
 
-test_that("predict(newdata) rejects non-location parameters", {
+test_that("predict(newdata) supports Gaussian sigma on its log link", {
   train <- data.frame(y = stats::rnorm(8L), x = stats::rnorm(8L))
   fit <- make_julia_fit(
     formula = drmTMB::bf(y ~ x, sigma ~ x),
@@ -144,9 +144,13 @@ test_that("predict(newdata) rejects non-location parameters", {
                       sigma = c("(Intercept)" = 0, x = 0.1)),
     fitted = train$x
   )
-  expect_error(
-    predict(fit, newdata = data.frame(x = 0), dpar = "sigma"),
-    "supports only the location parameter"
+  expect_equal(
+    predict(fit, newdata = data.frame(x = 0), dpar = "sigma", type = "link"),
+    0
+  )
+  expect_equal(
+    predict(fit, newdata = data.frame(x = 0), dpar = "sigma", type = "response"),
+    1
   )
 })
 

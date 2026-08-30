@@ -3654,10 +3654,11 @@ is_converged.drmTMB_julia <- function(object, include_hessian = FALSE, ...) {
   isTRUE(object$opt$convergence == 0L)
 }
 
-# Locate the formula entry that supplies a distributional parameter's mean
-# sub-model (`mu` / `mu1` / `mu2`). The fixed-effect coefficient vector and the
-# entry's right-hand side together describe the linear predictor, so this is the
-# anchor for a newdata prediction. Errors if the parameter has no entry.
+# Locate the formula entry that supplies a retained fixed-effect distributional
+# parameter. The coefficient vector and the entry's right-hand side together
+# describe its linear predictor, so this is the anchor for a stored fixed-effect
+# or fresh-data prediction. Errors if the parameter has no explicit or proven
+# intercept-only default entry.
 drm_julia_predict_entry <- function(object, dpar) {
   entries <- object$formula$entries
   for (entry in entries) {
@@ -3665,19 +3666,29 @@ drm_julia_predict_entry <- function(object, dpar) {
       return(entry)
     }
   }
+  # `bf()` omits default atom axes from its explicit entries.  The bridge can
+  # recover such an axis only when its retained fixed-effect block proves that
+  # the omitted formula was intercept-only.  Do not manufacture a formula for
+  # a varying block: that would silently change the prediction contract.
+  beta <- object$coefficients[[dpar]]
+  if (
+    length(beta) == 1L &&
+      identical(names(beta), "(Intercept)")
+  ) {
+    return(list(dpar = dpar, rhs = quote(1)))
+  }
   cli::cli_abort(
     "{.fn predict} could not find a {.code {dpar}} formula entry on this Julia-engine fit."
   )
 }
 
-# Build the mean-model design matrix for `newdata`, reconstructing the model
-# terms from the fit's TRAINING data so factor contrasts and column ordering
-# match the fitted coefficients. Structured (phylo / spatial) terms are
-# group-level and contribute nothing to the population-level linear predictor;
-# they are dropped from the right-hand side before the design is built, so the
-# returned columns are exactly the fixed-effect regressors named in
-# `object$coefficients[[dpar]]`. Random effects are held at zero (population
-# level) -- a newdata row need not belong to any fitted group.
+# Build a fixed-effect dpar design matrix, reconstructing model terms from the
+# fit's TRAINING data so factor contrasts and column ordering match the fitted
+# coefficients. Structured and ordinary random-effect terms contribute nothing
+# to the population-level linear predictor; they are dropped before the design
+# is built, so the returned columns exactly match
+# `object$coefficients[[dpar]]`. Random effects are held at zero -- a newdata
+# row need not belong to any fitted group.
 drm_julia_predict_design <- function(object, entry, newdata) {
   rhs <- drm_strip_structured_terms(entry$rhs)
   train <- object$data
@@ -3703,11 +3714,14 @@ drm_julia_predict_design <- function(object, entry, newdata) {
   stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
 }
 
-# Drop phylo() / spatial() / relmat() / animal() structured markers from a
-# right-hand side, leaving only the population-level fixed-effect terms. Returns
-# the intercept (`1`) when nothing else remains.
+# Drop structured markers, ordinary random-effect bars, and model-level known
+# sampling-covariance markers from a right-hand side, leaving only
+# population-level fixed-effect terms. Returns the intercept (`1`) when nothing
+# else remains. New-data predictions set every random effect to zero, and
+# `meta_V()` / deprecated `meta_known_V()` contribute no design column.
 drm_strip_structured_terms <- function(rhs) {
-  labels <- attr(stats::terms(stats::reformulate(deparse1(rhs))), "term.labels")
+  rhs_terms <- stats::terms(stats::reformulate(deparse1(rhs)))
+  labels <- attr(rhs_terms, "term.labels")
   markers <- c("phylo", "spatial", "relmat", "animal")
   is_structured <- vapply(
     labels,
@@ -3719,28 +3733,122 @@ drm_strip_structured_terms <- function(rhs) {
     },
     logical(1L)
   )
-  kept <- labels[!is_structured]
+  is_ordinary_random <- vapply(
+    labels,
+    function(lab) {
+      parsed <- tryCatch(str2lang(lab), error = function(e) NULL)
+      !is.null(parsed) && is_random_bar_call(parsed)
+    },
+    logical(1L)
+  )
+  is_known_v <- vapply(
+    labels,
+    function(lab) {
+      parsed <- tryCatch(str2lang(lab), error = function(e) NULL)
+      !is.null(parsed) && is_meta_known_v_call(parsed)
+    },
+    logical(1L)
+  )
+  kept <- labels[!is_structured & !is_ordinary_random & !is_known_v]
   if (length(kept) == 0L) {
-    return(quote(1))
+    return(if (identical(attr(rhs_terms, "intercept"), 0L)) quote(0) else quote(1))
   }
-  stats::reformulate(kept)[[2L]]
+  stats::reformulate(
+    kept,
+    intercept = !identical(attr(rhs_terms, "intercept"), 0L)
+  )[[2L]]
 }
 
-# Inverse-link for the mean of a location parameter, used by `type = "response"`.
-# A univariate fit carries the link the linear predictor lives on directly in
-# `object$family$linkinv`. A cross-family fit stores a per-axis family TAG in
-# `object$families`, so the mu1 / mu2 inverse link is looked up from that tag.
-drm_julia_predict_linkinv <- function(object, dpar) {
+# Apply the canonical R inverse link to a bridge linear predictor.  The native
+# link table, rather than `family$linkinv`, is required because `sigma`, atom,
+# shape, and correlation dpars need not share the response family's mean link.
+drm_julia_predict_response <- function(object, dpar, eta) {
   if (dpar %in% c("mu1", "mu2") && !is.null(object$families)) {
     tag <- object$families[[if (identical(dpar, "mu1")) 1L else 2L]]
-    return(drm_julia_tag_linkinv(tag))
+    return(drm_julia_tag_linkinv(tag)(eta))
   }
-  fam <- object$family
-  if (is.list(fam) && is.function(fam$linkinv)) {
-    return(fam$linkinv)
+  drm_inverse_link(object, dpar, eta)
+}
+
+# Does this distributional-parameter formula carry an effect that native
+# stored-data prediction would condition on?  The bridge does not retain a
+# general latent mode / observation-level eta payload, so these cannot be
+# reconstructed from its fixed coefficients alone.
+drm_julia_predict_has_random_effect <- function(entry) {
+  if (length(entry$structured) > 0L) {
+    return(TRUE)
   }
-  cli::cli_abort(
-    "{.fn predict} could not resolve an inverse link for {.code {dpar}} on this Julia-engine fit; use {.code type = \"link\"}."
+  rhs_terms <- stats::terms(stats::reformulate(deparse1(entry$rhs)))
+  labels <- attr(rhs_terms, "term.labels")
+  any(vapply(labels, function(label) {
+    parsed <- tryCatch(str2lang(label), error = function(e) NULL)
+    !is.null(parsed) && is_random_bar_call(parsed)
+  }, logical(1L)))
+}
+
+# Historical hand-built bridge objects did not always retain model_type.  Infer
+# it only through the same family classifier used at bridge admission; an
+# unknown family remains an explicit prediction refusal rather than a Gaussian
+# guess.
+drm_julia_predict_model_object <- function(object) {
+  model <- object$model
+  if (!is.list(model)) {
+    model <- list()
+  }
+  model_type <- model$model_type
+  if (!is.character(model_type) || length(model_type) != 1L || !nzchar(model_type)) {
+    model_type <- tryCatch(
+      drm_julia_bridge_family_type(object$family),
+      error = function(cnd) NULL
+    )
+  }
+  if (!is.character(model_type) || length(model_type) != 1L || !nzchar(model_type)) {
+    cli::cli_abort(
+      "{.fn predict} needs a recognized Julia-bridge model type; this legacy object has insufficient family metadata."
+    )
+  }
+  model$model_type <- model_type
+  object$model <- model
+  object
+}
+
+# Rebuild a fixed-effect linear predictor from the retained formula, training
+# data, and coefficient block.  This is exact for a fixed-effect stored fit and
+# is also the population-level (`RE = 0`) newdata contract.
+drm_julia_predict_fixed_eta <- function(object, dpar, data, context) {
+  entry <- drm_julia_predict_entry(object, dpar)
+  if (formula_contains_call(entry$rhs, "offset")) {
+    cli::cli_abort(
+      "{.fn predict} cannot reconstruct {.code {dpar}} with an offset on this Julia bridge payload."
+    )
+  }
+  X <- drm_julia_predict_design(object, entry, data)
+  if (anyNA(X) || any(!is.finite(X))) {
+    cli::cli_abort(
+      "{.fn predict} requires finite, non-missing predictors for Julia-engine prediction."
+    )
+  }
+  beta <- object$coefficients[[dpar]]
+  names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
+  common <- intersect(colnames(X), names(beta))
+  if (length(common) != length(beta) || length(common) != ncol(X)) {
+    cli::cli_abort(c(
+      "{.fn predict} could not align the {.arg {context}} design with the fitted {.code {dpar}} coefficients.",
+      i = "{.arg {context}} must use the same predictors as the fitted model."
+    ))
+  }
+  list(entry = entry, eta = as.numeric(X[, common, drop = FALSE] %*% beta[common]))
+}
+
+drm_julia_predict_check_dpar <- function(object, dpar) {
+  if (dpar %in% c("mu1", "mu2") && !is.null(object$families)) {
+    return(invisible(dpar))
+  }
+  tryCatch(
+    drm_dpar_link(object, dpar),
+    error = function(cnd) cli::cli_abort(
+      "{.fn predict} has no canonical prediction link for Julia-engine {.code {dpar}}; this is not a retained fixed-effect distributional parameter."
+    )
   )
 }
 
@@ -3761,26 +3869,25 @@ drm_julia_tag_linkinv <- function(tag) {
   )
 }
 
-#' Predict from a legacy Julia-bridge `drmTMB` fit
+#' Predict from a Julia-bridge `drmTMB` fit
 #'
-#' The Julia bridge is halted/deferred future work. This compatibility method
-#' is for inspecting an existing `drmTMB_julia` object, not for a new Julia
-#' analysis. Use native TMB fits for new prediction work.
+#' This optional bridge method reconstructs predictions from the retained R
+#' formula, fixed-effect coefficient blocks, and training data. It covers a
+#' distributional parameter only when that payload and its canonical native link
+#' are available; it does not make a general engine-parity claim.
 #'
-#' With `newdata = NULL`, `predict()` returns the stored fitted values for the
-#' requested distributional parameter. With `newdata` supplied, it returns a
-#' **population-level, fixed-effect** prediction for the location parameter
-#' (`mu` / `mu1` / `mu2`): the linear predictor `X %*% beta` built from the
-#' fit's fixed-effect coefficients and a design matrix constructed from
-#' `newdata` using the training-data model terms. Group-level random effects
-#' (phylogenetic / spatial / study) are held at **zero** -- a `newdata` row need
-#' not belong to any fitted group -- so the result is the marginal mean at the
-#' population level, matching the native [predict.drmTMB()] contract for
-#' `newdata`. `type = "link"` returns the linear predictor; `type = "response"`
-#' applies the model's inverse link.
+#' With `newdata = NULL`, `predict()` reconstructs a fixed-effect stored-data
+#' prediction. It explicitly refuses a formula with ordinary or structured
+#' random effects, because the bridge does not retain a general conditional
+#' latent-mode payload. With `newdata` supplied, it returns a **population-level
+#' fixed-effect** prediction (`RE = 0`) from `X %*% beta`, using the training
+#' data to preserve factor contrasts and column order. `type = "link"` returns
+#' the linear predictor and `type = "response"` applies the canonical native
+#' dpar link.
 #'
-#' Predicting `sigma` / `rho12` for fresh `newdata` is not implemented; refit
-#' with `engine = "tmb"` for those.
+#' Fresh-data support includes only retained fixed-effect distributional
+#' parameters with a recognized native link. Random-effect scale components and
+#' other non-dpar coefficient blocks are refused.
 #'
 #' A legacy cross-family object (`drmTMB_julia_xfam`) is narrower still: only
 #' `mu1` and `mu2` are available. Stored and new-data predictions are response
@@ -3793,8 +3900,7 @@ drm_julia_tag_linkinv <- function(tag) {
 #' @param newdata Optional data frame. When supplied, predictions are
 #'   population-level (random effects set to zero).
 #' @param dpar Distributional parameter to predict. Defaults to the first
-#'   (`mu`). With `newdata`, must be a location parameter (`mu` / `mu1` /
-#'   `mu2`).
+#'   retained fixed-effect dpar.
 #' @param type `"response"` (default) or `"link"`.
 #' @param ... Reserved.
 #'
@@ -3809,61 +3915,33 @@ predict.drmTMB_julia <- function(
   ...
 ) {
   type <- match.arg(type)
+  object <- drm_julia_predict_model_object(object)
   if (is.null(dpar)) {
     dpar <- names(object$coefficients)[[1L]]
   }
   dpar <- match.arg(dpar, names(object$coefficients))
+  drm_julia_predict_check_dpar(object, dpar)
 
   if (!is.null(newdata)) {
-    if (!dpar %in% c("mu", "mu1", "mu2")) {
-      cli::cli_abort(c(
-        "{.fn predict} with {.arg newdata} for {.code engine = \"julia\"} supports only the location parameter ({.code mu} / {.code mu1} / {.code mu2}).",
-        i = "Refit with {.code engine = \"tmb\"} to predict {.code {dpar}} on fresh {.arg newdata}."
-      ))
-    }
-    entry <- drm_julia_predict_entry(object, dpar)
-    X <- drm_julia_predict_design(object, entry, newdata)
-    beta <- object$coefficients[[dpar]]
-    # Julia's StatsModels names factor and interaction coefficients "g: b" and
-    # "x & z" where R's model.matrix says "gb" and "x:z" -- so the alignment
-    # intersect below found NOTHING on those everyday formulas and predict()
-    # refused models whose fits matched the native engine to 1e-8 (2026-08-28
-    # user-journey sweep). Normalise the stored names to R's convention for
-    # matching; interactions first so "g: b & x" becomes "gb:x".
-    names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
-    common <- intersect(colnames(X), names(beta))
-    if (length(common) != length(beta) || length(common) != ncol(X)) {
-      cli::cli_abort(c(
-        "{.fn predict} could not align the {.arg newdata} design with the fitted {.code {dpar}} coefficients.",
-        i = "{.arg newdata} must use the same predictors as the fitted model."
-      ))
-    }
-    eta <- as.numeric(X[, common, drop = FALSE] %*% beta[common])
+    fixed <- drm_julia_predict_fixed_eta(object, dpar, newdata, "newdata")
+    eta <- fixed$eta
     if (identical(type, "link")) {
       return(eta)
     }
-    linkinv <- drm_julia_predict_linkinv(object, dpar)
-    return(linkinv(eta))
+    return(drm_julia_predict_response(object, dpar, eta))
   }
 
-  if (dpar %in% c("mu", "mu1", "mu2")) {
-    if (is.list(object$fitted)) {
-      return(object$fitted[[dpar]])
-    }
-    return(object$fitted)
+  entry <- drm_julia_predict_entry(object, dpar)
+  if (drm_julia_predict_has_random_effect(entry)) {
+    cli::cli_abort(
+      "{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload."
+    )
   }
-  if (dpar %in% c("sigma", "sigma1", "sigma2")) {
-    if (is.list(object$sigma)) {
-      return(object$sigma[[dpar]])
-    }
-    return(object$sigma)
+  fixed <- drm_julia_predict_fixed_eta(object, dpar, object$data, "stored")
+  if (identical(type, "link")) {
+    return(fixed$eta)
   }
-  if (identical(dpar, "rho12")) {
-    return(rho12.drmTMB_julia(object))
-  }
-  cli::cli_abort(
-    "{.fn predict} for {.code engine = \"julia\"} has no stored response-scale values for {.arg dpar = \"{dpar}\"} yet."
-  )
+  drm_julia_predict_response(object, dpar, fixed$eta)
 }
 
 # ---------------------------------------------------------------------------
