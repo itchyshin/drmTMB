@@ -164,7 +164,8 @@ drm_julia_joint_validate_imputation <- function(result, payload, rows) {
   expected_source <- ifelse(
     rows$observed_x,
     "observed",
-    if (identical(payload$predictor, "gaussian")) "conditional_mode" else "conditional_probability"
+    switch(payload$predictor,gaussian="conditional_mode",bernoulli="conditional_probability",
+      ordinal="conditional_expected_score",categorical="conditional_modal_category")
   )
   if (anyNA(variable) || !all(variable == payload$variable) ||
       !identical(original_row, rows$original_row) ||
@@ -211,6 +212,7 @@ drm_julia_joint_validate_imputation <- function(result, payload, rows) {
 drm_julia_joint_result_contract <- function(result, prepared) {
   result <- as.list(result)
   payload <- prepared$payload
+  if (identical(payload$schema,"joint_missing_finite_v1")) return(drm_julia_finite_joint_contract(result,prepared))
   if (!is.list(payload) || !payload$schema %in% c("joint_missing_v1", "joint_missing_two_gaussian_v1")) {
     cli::cli_abort("Julia joint result adapter requires a joint_missing_v1 prepared payload.")
   }
@@ -274,6 +276,8 @@ drm_julia_joint_public_parameters <- function(contract) {
   terms <- contract$terms
   theta <- contract$raw_theta
   V <- contract$raw_vcov
+  keep <- !startsWith(blocks,"rawcut_")
+  blocks <- blocks[keep]; terms <- terms[keep]; theta <- theta[keep]; V <- V[keep,keep,drop=FALSE]
   is_logsd <- startsWith(blocks, "logsd_mi_")
   public_blocks <- blocks
   public_terms <- terms
@@ -330,6 +334,9 @@ drm_julia_joint_binary_data <- function(data, variable, levels) {
 }
 
 drm_julia_joint_training_design_data <- function(data, variable, predictor, levels) {
+  if(predictor %in% c("ordinal","categorical")) {
+    return(drm_julia_finite_factor_data(data,variable,levels,predictor=="ordinal",allow_missing=TRUE))
+  }
   if (length(variable) > 1L) {
     template <- data
     for (name in variable) template <- drm_julia_joint_training_design_data(template,name,predictor,levels)
@@ -358,7 +365,7 @@ drm_julia_joint_result <- function(result, prepared, call, formula, family) {
   contract <- drm_julia_joint_result_contract(result, prepared)
   public <- drm_julia_joint_public_parameters(contract)
   training_data <- prepared$spec$data
-  predictor_levels <- if (identical(contract$predictor, "bernoulli")) {
+  predictor_levels <- if (contract$predictor %in% c("bernoulli","ordinal","categorical")) {
     as.character(prepared$spec$missing_predictor$levels)
   } else {
     character(0)
@@ -424,10 +431,27 @@ drm_julia_joint_result <- function(result, prepared, call, formula, family) {
     raw_vcov = contract$raw_vcov,
     imputation = contract$imputation,
     conditional_covariance = contract$result$conditional_covariance,
+    conditional_probabilities = contract$result$conditional_probabilities,
+    predictor_ordinal = contract$result$ordinal,
     optimizer_status = as.character(contract$result$optimizer_status),
     covariance_status = as.character(contract$result$covariance_status),
     iterations = as.integer(contract$result$iterations)
   )
+  if(contract$predictor %in% c("ordinal","categorical")) {
+    missing_rows <- which(!contract$rows$observed_x)
+    info <- base$missing_data$predictors[[contract$variable]]
+    info$conditional_probabilities <- contract$result$conditional_probabilities[missing_rows,,drop=FALSE]
+    colnames(info$conditional_probabilities) <- predictor_levels
+    info$value <- as.numeric(contract$imputation$estimate)
+    info$summary <- if(contract$predictor=="ordinal") "conditional_expected_score" else "conditional_modal_category"
+    if(contract$predictor=="ordinal") {
+      info$cutpoints <- as.numeric(contract$result$ordinal$cutpoints)
+      info$conditional_expected_score <- as.numeric(contract$imputation$estimate)[missing_rows]
+    } else {
+      info$conditional_modal_category <- as.numeric(contract$imputation$estimate)[missing_rows]
+    }
+    base$missing_data$predictors[[contract$variable]] <- info
+  }
   class(base) <- c("drmTMB_julia_joint", "drmTMB_julia")
   base
 }
@@ -481,6 +505,10 @@ predict.drmTMB_julia_joint <- function(
     newdata <- drm_julia_joint_binary_data(
       newdata, object$joint$variable, object$joint$predictor_levels
     )
+  }
+  if(identical(dpar,"mu") && object$joint$predictor %in% c("ordinal","categorical")) {
+    newdata <- drm_julia_finite_factor_data(newdata,object$joint$variable,
+      object$joint$predictor_levels,object$joint$predictor=="ordinal")
   }
   design_object <- object
   if (identical(dpar, "mu")) {

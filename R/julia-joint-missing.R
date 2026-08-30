@@ -279,6 +279,9 @@ drm_julia_joint_prepare <- function(
       "The Julia joint missing-predictor adapter requires exactly one missing predictor model."
     )
   }
+  if (model$family %in% c("ordinal", "categorical")) {
+    return(drm_julia_finite_joint_payload(spec, mi_setup, response_drop))
+  }
   if (!model$family %in% c("gaussian", "bernoulli")) {
     cli::cli_abort(c(
       "The Julia joint missing-predictor adapter supports Gaussian or Bernoulli predictor models only.",

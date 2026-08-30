@@ -29,7 +29,7 @@ drmTMB_julia_joint_bridge <- function(
     missing = missing, REML = REML
   ), error = function(cnd) cli::cli_abort(c(
     "Could not prepare the Julia joint missing-predictor model.",
-    i = "Supported: Gaussian response with one Gaussian/Bernoulli predictor or two Gaussian predictors, each with a bare additive mi() term and fixed-effect impute model."
+    i = "Supported: Gaussian response with one Gaussian/Bernoulli/ordinal/categorical predictor or two Gaussian predictors, each with a bare additive mi() term and fixed-effect impute model."
   ), parent = cnd))
   result <- drm_julia_call_joint(prepared$payload)
   drm_julia_joint_result(result, prepared, call, formula, family)
