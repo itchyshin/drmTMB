@@ -233,7 +233,7 @@ test_that("joint Julia Bernoulli prediction preserves fitted level coding", {
   unknown_data$x_var <- factor(c("no", "other"), levels = c("no", "yes", "other"))
   expect_error(
     drmTMB:::predict.drmTMB_julia_joint(fit, newdata = unknown_data),
-    "absent"
+    "unknown binary predictor level"
   )
   sigma_only <- data.frame(z_score = c(-0.5, 0.5))
   expected_sigma <- exp(0.4 + 0.5 * sigma_only$z_score)

@@ -43,6 +43,12 @@ implementation work.
 \item{...}{Reserved.}
 }
 \details{
+Binary predictor labels follow the fitted encoding, regardless of the levels
+present in the new batch. Numeric new values match raw numeric fitted labels;
+for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
+If distinct labels become identical as numbers (for example, "01" and "1"),
+supply character or factor values to preserve their identity.
+
 The \code{sigma_mi_<variable>} coefficient is the Gaussian predictor standard
 deviation on its natural scale. Its covariance includes the full delta-method
 transformation, including cross-covariances. Its symmetric delta-Wald interval

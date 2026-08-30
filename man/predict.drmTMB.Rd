@@ -77,6 +77,18 @@ result carries \code{attr(., "calibrated") <- FALSE}: this is a distributional
 (plug-in) interval at the point estimate \code{theta_hat}, not a
 calibrated-coverage interval, and it does not propagate \code{theta_hat}
 uncertainty.
+
+For retained training data with a modelled missing predictor, prediction uses
+that predictor's finalized conditional plug-in in the fixed-effect design.
+This is a distributional-parameter prediction, not an integrated response
+mean, and fixed-effect covariance does not propagate imputation-parameter
+uncertainty through the design basis.
+
+Binary predictor labels follow the fitted encoding, regardless of the levels
+present in the new batch. Numeric new values match raw numeric fitted labels;
+for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
+If distinct labels become identical as numbers (for example, "01" and "1"),
+supply character or factor values to preserve their identity.
 }
 \examples{
 dat <- data.frame(

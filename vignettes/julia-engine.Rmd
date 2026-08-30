@@ -234,10 +234,11 @@ and REML. `summary()` and Wald `confint()` require a usable returned covariance;
 profile and bootstrap intervals are unsupported. For a Gaussian predictor, the
 predictor-SD Wald interval is transformed to the natural SD scale, can cross
 zero, and is not a native-interval-parity or coverage result. Two public bridge
-adapter cases pass, but full native comparator parity remains open: its retained
-checks include a stale native training matrix, a Bernoulli native-`newdata`
-error, and a Bernoulli parameter discrepancy of `1.0015e-5` against a `4e-6`
-gate. This development route makes no speed or coverage claim.
+adapter cases pass. Native training prediction and binary `newdata` handling
+have been repaired and checked independently. Full numerical parity remains
+open: small differences in optimizer stopping affect coefficients and predictions
+beyond the declared tolerance. This development route makes no speed or
+interval-coverage claim.
 
 ## Species counts, sparse solvers and parallel work
 

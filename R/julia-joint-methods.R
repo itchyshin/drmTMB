@@ -274,28 +274,14 @@ drm_julia_joint_binary_data <- function(data, variable, levels) {
     cli::cli_abort("Joint Julia prediction lacks a valid retained binary-level map.")
   }
   value <- data[[variable]]
-  if (is.factor(value) || is.character(value)) {
-    value_chr <- as.character(value)
-    unknown <- !is.na(value_chr) & !value_chr %in% levels
-    if (any(unknown)) {
-      cli::cli_abort("Joint Julia prediction found a binary predictor level absent from the fitted data.")
-    }
-    data[[variable]] <- as.numeric(match(value_chr, levels) - 1L)
-    return(data)
-  }
-  if (is.logical(value)) {
-    data[[variable]] <- as.numeric(value)
-    return(data)
-  }
-  if (is.numeric(value) || is.integer(value)) {
-    observed <- !is.na(value)
-    if (any(!is.finite(value[observed])) || any(!value[observed] %in% c(0, 1))) {
-      cli::cli_abort("Joint Julia prediction requires a binary predictor coded as 0/1 or retained fitted levels.")
-    }
-    data[[variable]] <- as.numeric(value)
-    return(data)
-  }
-  cli::cli_abort("Joint Julia prediction requires a logical, numeric 0/1, factor, or character binary predictor.")
+  observed <- !is.na(value)
+  encoded <- rep(NA_real_, length(value))
+  # The same fitted-level rule serves native prediction and this bridge.
+  # Training design preparation retains missing entries until it supplies its
+  # internal placeholder; public newdata validation still rejects them.
+  encoded[observed] <- drm_prediction_binary_values(value[observed], variable, levels)
+  data[[variable]] <- encoded
+  data
 }
 
 drm_julia_joint_training_design_data <- function(data, variable, predictor, levels) {
