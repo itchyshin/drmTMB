@@ -1484,7 +1484,7 @@ drm_profile_targets <- function(object) {
 
   for (dpar in names(object$coefficients)) {
     beta <- object$coefficients[[dpar]]
-    internal <- profile_fixef_internal(dpar)
+    internal <- profile_fixef_internal(dpar, object)
     indices <- next_indices(internal, length(beta))
     add_rows(lapply(seq_along(beta), function(i) {
       status <- profile_direct_target_status(
@@ -1521,7 +1521,7 @@ drm_profile_targets <- function(object) {
         identical(names(beta), "(Intercept)") &&
         identical(drm_dpar_link(object, dpar), "log")
     ) {
-      internal <- profile_fixef_internal(dpar)
+      internal <- profile_fixef_internal(dpar, object)
       status <- profile_direct_target_status(object, internal, 1L)
       add_rows(list(new_profile_target_row(
         parm = dpar,
@@ -1915,7 +1915,7 @@ drm_profile_response_newdata_confint <- function(
     )
   }
 
-  internal <- profile_fixef_internal(dpar)
+  internal <- profile_fixef_internal(dpar, object)
   par_names <- names(object$opt$par)
   positions <- which(par_names == internal)
   if (length(positions) < ncol(X)) {
@@ -4550,7 +4550,19 @@ validate_profile_targets <- function(targets) {
   targets
 }
 
-profile_fixef_internal <- function(dpar) {
+profile_fixef_internal <- function(dpar, object = NULL) {
+  # Public blocks use the variable name; native parameters use model slots.
+  # Match exact stored metadata, not a prefix (positive scales and mixture
+  # probabilities have different public transformations).
+  for (slot in seq_len(2L)) {
+    key <- if (slot == 1L) "missing_predictor" else "missing_predictor2"
+    predictor <- object$model[[key]]
+    variable <- predictor$variable
+    if (is.character(variable) && length(variable) == 1L &&
+        !is.na(variable) && identical(dpar, paste0("mi_", variable))) {
+      return(if (slot == 1L) "beta_mi" else "beta_mi2")
+    }
+  }
   if (
     any(startsWith(
       dpar,
