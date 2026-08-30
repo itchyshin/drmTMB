@@ -638,7 +638,10 @@ drm_fit_spec <- function(
     estimator = spec$estimator
   )
   sdr <- uncertainty$sdr
-  par_list <- obj$env$parList(opt$par)
+  # sdreport() can leave the mutable full parameter vector at a Hessian
+  # perturbation. Use the selected pre-SE state for random/marginalized entries;
+  # parList still takes fixed parameters from opt$par and does not mutate obj.
+  par_list <- obj$env$parList(opt$par, par = tmb_state$last.par.best)
   par <- split_tmb_parameters(par_list, spec)
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 

@@ -487,13 +487,26 @@ drmTMB_julia_bridge <- function(
     method = if (isTRUE(REML) && reml_supported) "REML" else "ML"
   )
 
-  result <- drm_julia_call_bridge(
-    formula = bridge_payload$formula,
-    family = family_tag,
-    data = bridge_payload$data,
-    tree = bridge_payload$tree,
-    options = bridge_payload$options
+  conditional_ri <- drm_julia_conditional_gaussian_ri_spec(
+    formula, family_type
   )
+  result <- if (is.null(conditional_ri)) {
+    drm_julia_call_bridge(
+      formula = bridge_payload$formula,
+      family = family_tag,
+      data = bridge_payload$data,
+      tree = bridge_payload$tree,
+      options = bridge_payload$options
+    )
+  } else {
+    drm_julia_call_conditional_gaussian_ri(
+      formula = bridge_payload$formula,
+      family = family_tag,
+      data = bridge_payload$data,
+      tree = bridge_payload$tree,
+      options = bridge_payload$options
+    )
+  }
   result <- drm_julia_restore_row_order(result, bridge_payload$row_order)
   new_drmTMB_julia(
     result = result,
@@ -507,6 +520,56 @@ drmTMB_julia_bridge <- function(
     requested_REML = isTRUE(REML),
     effective_REML = isTRUE(REML) && isTRUE(reml_supported)
   )
+}
+
+## TRUE only for the single conditional stored-prediction cell this bridge has
+## evidence to marshal: Gaussian, one `(1 | g)` in `mu`, and no other special
+## term. Other Julia fit routes continue through `drmTMB_drm_bridge` unchanged.
+drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
+  if (!identical(family_type, "gaussian")) {
+    return(NULL)
+  }
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(NULL)
+  }
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  if (any(!dpars %in% c("mu", "sigma"))) {
+    return(NULL)
+  }
+  if (any(vapply(entries, function(entry) {
+    length(entry$structured) > 0L ||
+      formula_contains_call(entry$rhs, "offset") ||
+      formula_contains_call(entry$rhs, "meta_V") ||
+      formula_contains_call(entry$rhs, "meta_known_V")
+  }, logical(1L)))) {
+    return(NULL)
+  }
+  random <- unlist(lapply(entries, function(entry) {
+    terms <- flatten_plus_terms(entry$rhs)
+    terms[vapply(terms, is_random_bar_call, logical(1L))]
+  }), recursive = FALSE)
+  if (length(random) != 1L) {
+    return(NULL)
+  }
+  mu_pos <- which(vapply(entries, function(entry) {
+    identical(entry$dpar, "mu")
+  }, logical(1L)))
+  if (length(mu_pos) != 1L) {
+    return(NULL)
+  }
+  mu_terms <- flatten_plus_terms(entries[[mu_pos]]$rhs)
+  mu_random <- mu_terms[vapply(mu_terms, is_random_bar_call, logical(1L))]
+  if (length(mu_random) != 1L) {
+    return(NULL)
+  }
+  bar <- strip_parens(mu_random[[1L]])
+  lhs <- strip_parens(bar[[2L]])
+  group <- strip_parens(bar[[3L]])
+  if (!is.numeric(lhs) || length(lhs) != 1L || lhs != 1 || !is.name(group)) {
+    return(NULL)
+  }
+  list(group = as.character(group), dpar = "mu")
 }
 
 drm_julia_default_control <- function(control) {
@@ -1038,6 +1101,31 @@ drm_julia_call_bridge <- function(
   drm_julia_setup()
   JuliaCall::julia_call(
     "drmTMB_drm_bridge",
+    formula,
+    family,
+    as.list(data),
+    tree,
+    if (length(options) == 0L) NULL else options
+  )
+}
+
+drm_julia_call_conditional_gaussian_ri <- function(
+  formula,
+  family,
+  data,
+  tree = NULL,
+  options = list()
+) {
+  if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} requires the {.pkg JuliaCall} package.",
+      i = "Install it with {.code install.packages(\"JuliaCall\")}, then retry."
+    ))
+  }
+
+  drm_julia_setup()
+  JuliaCall::julia_call(
+    "drmTMB_drm_bridge_conditional_gaussian_ri",
     formula,
     family,
     as.list(data),
@@ -1702,6 +1790,39 @@ drm_julia_threads_hint <- function(threads_requested, julia_threads) {
   invisible(NULL)
 }
 
+drm_julia_conditional_gaussian_ri_source <- function() {
+  paste(
+    sep = "\n",
+    "function drmTMB_drm_bridge_conditional_gaussian_ri(formula, family, data, tree, options)",
+    "    dat = DRM._bridge_data(data)",
+    "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
+    "    fam = DRM._bridge_family(family)",
+    "    fam isa DRM.Gaussian || throw(ArgumentError(\"conditional bridge requires Gaussian family\"))",
+    "    opts = DRM._bridge_options(options)",
+    "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
+    "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
+    "    effects = DRM.ranef(fit)",
+    "    length(effects) == 1 || throw(ArgumentError(\"conditional bridge requires one ordinary mean random intercept\"))",
+    "    pair = first(effects)",
+    "    grp, blup = first(pair), last(pair)",
+    "    blup isa AbstractVector || throw(ArgumentError(\"conditional bridge requires scalar random-intercept BLUPs\"))",
+    "    labels = collect(getproperty(dat, grp))",
+    "    gidx, G = DRM._group_index(labels)",
+    "    length(blup) == G || throw(ArgumentError(\"conditional bridge BLUP/group size mismatch\"))",
+    "    level_values = Vector{Any}(undef, G)",
+    "    for i in eachindex(labels)",
+    "        x = labels[i]",
+    "        level_values[gidx[i]] = x isa Real ? x : string(x)",
+    "    end",
+    "    length(unique(level_values)) == G || throw(ArgumentError(\"conditional bridge group labels are not uniquely serializable\"))",
+    "    all(isfinite, blup) || throw(ArgumentError(\"conditional bridge returned non-finite BLUPs\"))",
+    "    out = DRM._bridge_flatten(fit; family = String(family))",
+    "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_random_intercept_v1\", \"group\" => String(grp), \"levels\" => level_values, \"gidx\" => gidx, \"blup\" => collect(Float64.(blup)))",
+    "    return out",
+    "end"
+  )
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -1766,6 +1887,10 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "DRM.drm_bridge(formula = formula, family = family, data = data, tree = tree, options = options)"
     )
   )
+  # The one stored conditional-prediction route intentionally reuses DRM.jl's
+  # existing fit and `ranef()` machinery. Its versioned typed payload is built
+  # separately so pure R tests can guard numeric and logical group labels.
+  JuliaCall::julia_command(drm_julia_conditional_gaussian_ri_source())
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge_q2_phylo(Y, X, species, tree, options) =",
@@ -1994,6 +2119,7 @@ new_drmTMB_julia <- function(
     df = as.integer(result$df),
     nobs = as.integer(result$nobs),
     fitted = drm_julia_plain(result$fitted),
+    conditional_re = drm_julia_conditional_re_plain(result$conditional_re),
     residuals = drm_julia_plain(result$residuals),
     sigma = drm_julia_plain(result$sigma),
     corpairs = drm_julia_plain(result$corpairs),
@@ -2400,6 +2526,27 @@ drm_julia_plain <- function(x) {
     return(x)
   }
   x
+}
+
+# Unlike dpar vectors, the conditional-RE payload deliberately mixes character
+# labels and numeric vectors. `drm_julia_plain()` is therefore unsuitable: its
+# named-list branch correctly flattens ordinary dpars but would coerce labels to
+# NA. Decode this small versioned transport record explicitly.
+drm_julia_conditional_re_plain <- function(x) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+  x <- as.list(x)
+  if (!is.list(x)) {
+    return(x)
+  }
+  list(
+    kind = as.character(x$kind)[[1L]],
+    group = as.character(x$group)[[1L]],
+    levels = as.character(unlist(x$levels, use.names = FALSE)),
+    gidx = as.numeric(unlist(x$gidx, use.names = FALSE)),
+    blup = as.numeric(unlist(x$blup, use.names = FALSE))
+  )
 }
 
 #' @export
@@ -3786,6 +3933,56 @@ drm_julia_predict_has_random_effect <- function(entry) {
   }, logical(1L)))
 }
 
+# Validate the one conditional payload this adapter admits. A malformed payload
+# must error before it can change a stored prediction.
+drm_julia_predict_conditional_gaussian_ri <- function(object, dpar) {
+  spec <- drm_julia_conditional_gaussian_ri_spec(
+    object$formula, object$model$model_type
+  )
+  if (is.null(spec) || !identical(dpar, spec$dpar)) {
+    return(NULL)
+  }
+  payload <- object$conditional_re
+  if (!is.list(payload) ||
+      !identical(payload$kind, "gaussian_mu_random_intercept_v1") ||
+      !identical(payload$group, spec$group)) {
+    cli::cli_abort(
+      "{.fn predict} cannot reconstruct a conditional stored {.code mu} prediction: the Julia bridge did not retain its validated Gaussian random-intercept payload."
+    )
+  }
+  data <- object$data
+  if (!is.data.frame(data) || !spec$group %in% names(data)) {
+    cli::cli_abort(
+      "{.fn predict} cannot validate the conditional payload against the stored training group column."
+    )
+  }
+  levels <- as.character(payload$levels)
+  labels <- as.character(data[[spec$group]])
+  if (length(levels) == 0L || anyNA(levels) || anyDuplicated(levels) ||
+      anyNA(labels) || !identical(levels, unique(labels))) {
+    cli::cli_abort(
+      "{.fn predict} found a conditional payload whose first-seen group levels do not match the training rows."
+    )
+  }
+  expected_index <- match(labels, levels)
+  gidx <- payload$gidx
+  if (!is.numeric(gidx) || length(gidx) != nrow(data) ||
+      any(!is.finite(gidx)) || any(gidx != as.integer(gidx)) ||
+      anyNA(expected_index) || !identical(as.integer(gidx), as.integer(expected_index))) {
+    cli::cli_abort(
+      "{.fn predict} found a conditional payload whose group map does not match the training rows."
+    )
+  }
+  blup <- payload$blup
+  if (!is.numeric(blup) || length(blup) != length(levels) ||
+      any(!is.finite(blup))) {
+    cli::cli_abort(
+      "{.fn predict} found an invalid conditional random-effect BLUP payload."
+    )
+  }
+  list(index = as.integer(expected_index), blup = as.numeric(blup))
+}
+
 # Historical hand-built bridge objects did not always retain model_type.  Infer
 # it only through the same family classifier used at bridge admission; an
 # unknown family remains an explicit prediction refusal rather than a Gaussian
@@ -3877,9 +4074,10 @@ drm_julia_tag_linkinv <- function(tag) {
 #' are available; it does not make a general engine-parity claim.
 #'
 #' With `newdata = NULL`, `predict()` reconstructs a fixed-effect stored-data
-#' prediction. It explicitly refuses a formula with ordinary or structured
-#' random effects, because the bridge does not retain a general conditional
-#' latent-mode payload. With `newdata` supplied, it returns a **population-level
+#' prediction, except for a validated Gaussian ordinary `(1 | g)` mean
+#' random-intercept payload, where it returns the stored conditional mean. It
+#' refuses every other ordinary or structured random-effect route. With
+#' `newdata` supplied, it returns a **population-level
 #' fixed-effect** prediction (`RE = 0`) from `X %*% beta`, using the training
 #' data to preserve factor contrasts and column order. `type = "link"` returns
 #' the linear predictor and `type = "response"` applies the canonical native
@@ -3932,6 +4130,15 @@ predict.drmTMB_julia <- function(
   }
 
   entry <- drm_julia_predict_entry(object, dpar)
+  conditional <- drm_julia_predict_conditional_gaussian_ri(object, dpar)
+  if (!is.null(conditional)) {
+    fixed <- drm_julia_predict_fixed_eta(object, dpar, object$data, "stored")
+    eta <- fixed$eta + conditional$blup[conditional$index]
+    if (identical(type, "link")) {
+      return(eta)
+    }
+    return(drm_julia_predict_response(object, dpar, eta))
+  }
   if (drm_julia_predict_has_random_effect(entry)) {
     cli::cli_abort(
       "{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload."

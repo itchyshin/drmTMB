@@ -34,9 +34,10 @@ are available; it does not make a general engine-parity claim.
 }
 \details{
 With \code{newdata = NULL}, \code{predict()} reconstructs a fixed-effect stored-data
-prediction. It explicitly refuses a formula with ordinary or structured
-random effects, because the bridge does not retain a general conditional
-latent-mode payload. With \code{newdata} supplied, it returns a \strong{population-level
+prediction, except for a validated Gaussian ordinary \code{(1 | g)} mean
+random-intercept payload, where it returns the stored conditional mean. It
+refuses every other ordinary or structured random-effect route. With
+\code{newdata} supplied, it returns a \strong{population-level
 fixed-effect} prediction (\code{RE = 0}) from \code{X \%*\% beta}, using the training
 data to preserve factor contrasts and column order. \code{type = "link"} returns
 the linear predictor and \code{type = "response"} applies the canonical native
