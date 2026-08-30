@@ -1,0 +1,1 @@
+Real R-to-JuliaCall two-Gaussian frontend evidence. Native comparison uses the immutable two-gaussian-native-001 export. public001 predates retention of full conditional covariance; public002 verifies the final source and retains it. RDS objects stay in this GPL repository. No warm-workflow, full parity or coverage claim.

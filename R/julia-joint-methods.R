@@ -83,6 +83,20 @@ drm_julia_joint_validate_raw_vcov <- function(result, raw_names) {
 }
 
 drm_julia_joint_validate_result_rows <- function(result, payload) {
+  if (identical(payload$schema, "joint_missing_two_gaussian_v1")) {
+    n <- length(payload$original_row)
+    if (!is.matrix(result$observed_x) || !identical(dim(result$observed_x), c(n, 2L))) {
+      cli::cli_abort("Julia joint result observed_x must be n by 2.")
+    }
+    checked <- lapply(1:2, function(j) {
+      rp <- result; pp <- payload
+      pp$schema <- "joint_missing_v1"; pp$observed_x <- payload$observed_x[,j]
+      rp$observed_x <- result$observed_x[,j]
+      drm_julia_joint_validate_result_rows(rp, pp)
+    })
+    return(list(original_row=checked[[1L]]$original_row, observed_y=checked[[1L]]$observed_y,
+      observed_x=cbind(checked[[1L]]$observed_x,checked[[2L]]$observed_x)))
+  }
   n <- length(payload$original_row)
   original_row <- drm_julia_joint_integer_ids(result$original_row, "original_row")
   observed_y <- drm_julia_joint_mask(result$observed_y, "observed_y")
@@ -97,6 +111,35 @@ drm_julia_joint_validate_result_rows <- function(result, payload) {
 }
 
 drm_julia_joint_validate_imputation <- function(result, payload, rows) {
+  if (identical(payload$schema, "joint_missing_two_gaussian_v1")) {
+    if (!is.list(result$imputation) || !identical(names(result$imputation), payload$variable)) {
+      # Dictionary conversion may reorder keys; match by unique exact names.
+      if (!is.list(result$imputation) || anyDuplicated(names(result$imputation)) ||
+          !setequal(names(result$imputation), payload$variable)) {
+        cli::cli_abort("Julia joint result must have an imputation table for each predictor.")
+      }
+    }
+    tables <- lapply(1:2, function(j) {
+      pp <- payload; rp <- result; rr <- rows
+      pp$schema <- "joint_missing_v1"; pp$variable <- payload$variable[j]
+      pp$observed_x <- payload$observed_x[,j]; rr$observed_x <- rows$observed_x[,j]
+      rp$imputation <- result$imputation[[payload$variable[j]]]
+      drm_julia_joint_validate_imputation(rp, pp, rr)
+    })
+    names(tables) <- payload$variable
+    C <- result$conditional_covariance; n <- length(rows$original_row)
+    if (!is.array(C) || !identical(dim(C),c(n,2L,2L)) || any(!is.finite(C))) {
+      cli::cli_abort("Julia joint conditional covariance must be a finite n by 2 by 2 array.")
+    }
+    for (i in seq_len(n)) {
+      if (max(abs(C[i,,]-t(C[i,,]))) > 1e-10 ||
+          min(eigen(C[i,,], symmetric=TRUE, only.values=TRUE)$values) < -1e-10 ||
+          any(abs(C[i,rows$observed_x[i,],,drop=FALSE]) > 1e-10)) {
+        cli::cli_abort("Julia joint conditional covariance violates symmetry, positivity or observed masks.")
+      }
+    }
+    return(tables)
+  }
   table <- result$imputation
   required <- c(
     "variable", "original_row", "model_row", "observed", "estimate", "std_error",
@@ -168,10 +211,12 @@ drm_julia_joint_validate_imputation <- function(result, payload, rows) {
 drm_julia_joint_result_contract <- function(result, prepared) {
   result <- as.list(result)
   payload <- prepared$payload
-  if (!is.list(payload) || !identical(payload$schema, "joint_missing_v1")) {
+  if (!is.list(payload) || !payload$schema %in% c("joint_missing_v1", "joint_missing_two_gaussian_v1")) {
     cli::cli_abort("Julia joint result adapter requires a joint_missing_v1 prepared payload.")
   }
-  if (!identical(as.character(result$schema), "joint_missing_result_v1")) {
+  two <- identical(payload$schema, "joint_missing_two_gaussian_v1")
+  expected_schema <- if (two) "joint_missing_two_gaussian_result_v1" else "joint_missing_result_v1"
+  if (!identical(as.character(result$schema), expected_schema)) {
     cli::cli_abort("Julia joint result adapter received an unknown result schema.")
   }
   variable <- as.character(payload$variable)
@@ -179,18 +224,17 @@ drm_julia_joint_result_contract <- function(result, prepared) {
   if (!predictor %in% c("gaussian", "bernoulli")) {
     cli::cli_abort("Julia joint result adapter received an unsupported predictor family.")
   }
-  expected_blocks <- c(
-    rep("mu", length(payload$mu_names)),
-    rep("sigma", length(payload$sigma_names)),
-    rep(paste0("mi_", variable), length(payload$predictor_names)),
-    if (identical(predictor, "gaussian")) paste0("logsd_mi_", variable)
-  )
-  expected_terms <- c(
-    payload$mu_names,
-    payload$sigma_names,
-    payload$predictor_names,
-    if (identical(predictor, "gaussian")) "log_sd"
-  )
+  if (two && (!identical(predictor,"gaussian") || length(variable)!=2L || anyDuplicated(variable))) {
+    cli::cli_abort("Julia joint two-predictor result needs two distinct Gaussian predictors.")
+  }
+  expected_blocks <- c(rep("mu",length(payload$mu_names)),rep("sigma",length(payload$sigma_names)))
+  expected_terms <- c(payload$mu_names,payload$sigma_names)
+  for (j in seq_along(variable)) {
+    pn <- if (two) payload$predictor_names[[j]] else payload$predictor_names
+    expected_blocks <- c(expected_blocks,rep(paste0("mi_",variable[j]),length(pn)),
+      if (identical(predictor,"gaussian")) paste0("logsd_mi_",variable[j]))
+    expected_terms <- c(expected_terms,pn,if (identical(predictor,"gaussian")) "log_sd")
+  }
   blocks <- as.character(unlist(result$coefficient_blocks, use.names = FALSE))
   terms <- as.character(unlist(result$coefficient_terms, use.names = FALSE))
   raw_names <- as.character(unlist(result$coef_names, use.names = FALSE))
@@ -236,8 +280,9 @@ drm_julia_joint_public_parameters <- function(contract) {
   public_theta <- as.numeric(theta)
   jacobian <- rep(1, length(theta))
   if (any(is_logsd)) {
-    public_blocks[is_logsd] <- paste0("sigma_mi_", contract$variable)
-    public_terms[is_logsd] <- contract$variable
+    sd_variables <- substring(blocks[is_logsd], nchar("logsd_mi_") + 1L)
+    public_blocks[is_logsd] <- paste0("sigma_mi_", sd_variables)
+    public_terms[is_logsd] <- sd_variables
     public_theta[is_logsd] <- exp(theta[is_logsd])
     jacobian[is_logsd] <- public_theta[is_logsd]
   }
@@ -285,6 +330,11 @@ drm_julia_joint_binary_data <- function(data, variable, levels) {
 }
 
 drm_julia_joint_training_design_data <- function(data, variable, predictor, levels) {
+  if (length(variable) > 1L) {
+    template <- data
+    for (name in variable) template <- drm_julia_joint_training_design_data(template,name,predictor,levels)
+    return(template)
+  }
   template <- data
   if (identical(predictor, "bernoulli")) {
     template <- drm_julia_joint_binary_data(template, variable, levels)
@@ -299,9 +349,9 @@ drm_julia_joint_training_design_data <- function(data, variable, predictor, leve
 
 #' Adapt a primitive joint missing-predictor Julia result to a drmTMB fit
 #'
-#' Internal bridge constructor for the first `engine = "julia"` joint
+#' Internal bridge constructor for the `engine = "julia"` joint
 #' missing-predictor route. It stores the raw Julia coordinates separately and
-#' exposes the Gaussian predictor SD on its natural scale.
+#' exposes each Gaussian predictor SD on its natural scale.
 #'
 #' @keywords internal
 drm_julia_joint_result <- function(result, prepared, call, formula, family) {
@@ -360,7 +410,7 @@ drm_julia_joint_result <- function(result, prepared, call, formula, family) {
     }
   )
   base$joint <- list(
-    schema = "joint_missing_result_v1",
+    schema = as.character(contract$result$schema),
     variable = contract$variable,
     predictor = contract$predictor,
     predictor_levels = predictor_levels,
@@ -373,6 +423,7 @@ drm_julia_joint_result <- function(result, prepared, call, formula, family) {
     raw_theta = contract$raw_theta,
     raw_vcov = contract$raw_vcov,
     imputation = contract$imputation,
+    conditional_covariance = contract$result$conditional_covariance,
     optimizer_status = as.character(contract$result$optimizer_status),
     covariance_status = as.character(contract$result$covariance_status),
     iterations = as.integer(contract$result$iterations)
@@ -465,14 +516,17 @@ imputed.drmTMB_julia_joint <- function(
   if (!is.logical(se) || length(se) != 1L || is.na(se)) {
     cli::cli_abort("se must be one TRUE or FALSE value.")
   }
+  if (is.null(variable) && length(object$joint$variable)>1L) {
+    cli::cli_abort("variable is required when a fit contains more than one modelled missing predictor.")
+  }
   variable <- if (is.null(variable)) object$joint$variable else as.character(variable)
-  if (length(variable) != 1L || is.na(variable) || !identical(variable, object$joint$variable)) {
+  if (length(variable) != 1L || is.na(variable) || !variable %in% object$joint$variable) {
     cli::cli_abort(c(
       "Unknown modelled missing predictor {.val {variable}}.",
       "i" = "This fit models {.val {object$joint$variable}}."
     ))
   }
-  table <- object$joint$imputation
+  table <- if (length(object$joint$variable)>1L) object$joint$imputation[[variable]] else object$joint$imputation
   required <- c(
     "variable", "original_row", "model_row", "observed", "estimate", "std_error",
     "source", "uncertainty_status", "se_available"

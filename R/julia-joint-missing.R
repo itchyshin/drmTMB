@@ -71,15 +71,17 @@ drm_julia_joint_mi_setup <- function(entries) {
     )
   }
   mi_calls <- drm_find_mi_calls(mu_entries[[1L]]$rhs)
-  if (length(mi_calls) != 1L) {
+  if (!length(mi_calls) %in% 1:2) {
     cli::cli_abort(c(
-      "The Julia joint missing-predictor adapter requires exactly one mi() term in mu.",
+      "The Julia joint missing-predictor adapter requires one or two bare additive mi() terms in mu.",
       "x" = "Found {length(mi_calls)} mi() term{?s}."
     ))
   }
-  variable <- drm_validate_bare_mi_call(mi_calls[[1L]], mu_entries[[1L]]$rhs)
+  variable <- vapply(mi_calls, drm_validate_bare_mi_call, character(1), mu_rhs = mu_entries[[1L]]$rhs)
+  variable <- unname(variable)
+  if (anyDuplicated(variable)) cli::cli_abort("The Julia joint predictors must be distinct.")
   response <- as.character(mu_entries[[1L]]$response)
-  if (identical(variable, response)) {
+  if (response %in% variable) {
     cli::cli_abort(
       "The Julia joint missing-predictor adapter cannot use the response itself as mi()."
     )
@@ -87,11 +89,11 @@ drm_julia_joint_mi_setup <- function(entries) {
   list(variable = variable, response = response)
 }
 
-drm_julia_joint_impute_formula <- function(impute, variable) {
+drm_julia_joint_impute_formula <- function(impute, variable, n_expected = 1L, all_variables = variable) {
   impute_spec <- drm_validate_named_impute_entry(
     impute,
     variable,
-    n_expected = 1L
+    n_expected = n_expected, all_variables = all_variables
   )
   rhs <- impute_spec$raw_formula[[3L]]
   forbidden <- c(
@@ -124,7 +126,7 @@ drm_julia_joint_reject_modelled_exogenous <- function(
   # an entire AST node containing mi() would also skip its other covariates.
   labels <- attr(stats::terms(stats::as.formula(call("~", mu_rhs))), "term.labels")
   mu_terms <- lapply(labels, str2lang)
-  mi_term <- labels == paste0("mi(", mi_setup$variable, ")")
+  mi_term <- labels %in% paste0("mi(", mi_setup$variable, ")")
   for (term in mu_terms[!mi_term]) {
     bad <- intersect(all.vars(term), protected)
     if (length(bad) > 0L) {
@@ -181,11 +183,12 @@ drm_julia_joint_response_drop <- function(data, response, missing) {
   )
 }
 
-#' Prepare the first joint missing-predictor Julia payload
+#' Prepare a joint missing-predictor Julia payload
 #'
-#' Internal bridge preparation. It admits one additive `mi()` predictor in a
-#' Gaussian identity-link response model with either a Gaussian or Bernoulli
-#' fixed-effect imputation model. No fitting happens here.
+#' Internal bridge preparation. A Gaussian identity-link response admits one
+#' Gaussian or Bernoulli predictor, or two independent Gaussian predictors,
+#' each with a bare additive `mi()` term and fixed-effect imputation model.
+#' No fitting happens here.
 #'
 #' @keywords internal
 drm_julia_joint_prepare <- function(
@@ -250,8 +253,12 @@ drm_julia_joint_prepare <- function(
   entries <- drm_julia_joint_formula_entries(formula)
   drm_julia_joint_reject_formula_markers(entries)
   mi_setup <- drm_julia_joint_mi_setup(entries)
-  impute_spec <- drm_julia_joint_impute_formula(impute, mi_setup$variable)
-  drm_julia_joint_reject_modelled_exogenous(entries, mi_setup, impute_spec)
+  impute_specs <- lapply(mi_setup$variable, function(variable) {
+    drm_julia_joint_impute_formula(impute, variable, length(mi_setup$variable), mi_setup$variable)
+  })
+  for (impute_spec in impute_specs) {
+    drm_julia_joint_reject_modelled_exogenous(entries, mi_setup, impute_spec)
+  }
   response_drop <- drm_julia_joint_response_drop(data, mi_setup$response, missing)
 
   spec <- drm_build_gaussian_ls_spec(
@@ -263,6 +270,9 @@ drm_julia_joint_prepare <- function(
     impute = impute,
     missing = missing
   )
+  if (length(mi_setup$variable) == 2L) {
+    return(drm_julia_two_joint_payload(spec, mi_setup, response_drop))
+  }
   model <- spec$missing_predictor
   if (!isTRUE(model$enabled) || isTRUE(spec$missing_predictor2$enabled)) {
     cli::cli_abort(
@@ -345,4 +355,53 @@ drm_julia_joint_prepare <- function(
     options = list(g_tol = 1e-8)
   )
   list(payload = payload, spec = spec)
+}
+
+# Native preparation remains the sole owner of factor coding and row policy.
+# Two predictor-indexed payload fields always follow native mi model order.
+drm_julia_two_joint_payload <- function(spec, mi_setup, response_drop) {
+  models <- list(spec$missing_predictor, spec$missing_predictor2)
+  if (!all(vapply(models, function(m) isTRUE(m$enabled) && identical(m$family,"gaussian"), logical(1)))) {
+    cli::cli_abort("The two-predictor Julia joint adapter requires two Gaussian imputation models.")
+  }
+  if (any(vapply(models, function(m) isTRUE(m$random$enabled) || isTRUE(m$structured$enabled), logical(1)))) {
+    cli::cli_abort("The two-predictor Julia adapter supports fixed-effect impute formulas only.")
+  }
+  variables <- vapply(models, `[[`, character(1), "variable")
+  if (!identical(unname(variables), mi_setup$variable)) {
+    cli::cli_abort("Internal two-predictor Julia variable-order mismatch.")
+  }
+  X_mu <- drm_julia_joint_numeric_matrix(spec$X$mu,"mu design")
+  X_sigma <- drm_julia_joint_numeric_matrix(spec$X$sigma,"sigma design")
+  X_predictor <- lapply(models,function(m) drm_julia_joint_numeric_matrix(m$X,"predictor design"))
+  mu_col <- vapply(models,function(m) as.integer(m$mu_col),integer(1))
+  mu_names <- colnames(spec$X$mu)
+  if (anyNA(mu_col) || any(mu_col < 1L | mu_col > ncol(X_mu)) || anyDuplicated(mu_col) ||
+      !identical(unname(mu_names[mu_col]),vapply(models,`[[`,character(1),"model_column"))) {
+    cli::cli_abort("Internal two-predictor Julia design-column mismatch.")
+  }
+  original_row <- as.integer(response_drop$original_row[spec$missing_data$original_row])
+  spec$missing_data$original_row <- original_row
+  for (name in names(spec$missing_data$predictors)) {
+    spec$missing_data$predictors[[name]]$original_row <- as.integer(
+      response_drop$original_row[spec$missing_data$predictors[[name]]$original_row])
+  }
+  observed_y <- as.logical(spec$missing_data$observed_y)
+  observed_x <- do.call(cbind,lapply(models,function(m) as.logical(m$observed)))
+  x <- do.call(cbind,lapply(models,function(m) as.numeric(m$x)))
+  y <- as.numeric(spec$y); n <- length(y)
+  if (length(original_row)!=n || length(observed_y)!=n || !identical(dim(x),c(n,2L)) ||
+      !identical(dim(observed_x),c(n,2L)) || nrow(X_mu)!=n || nrow(X_sigma)!=n ||
+      any(vapply(X_predictor,nrow,integer(1))!=n)) {
+    cli::cli_abort("Internal two-predictor Julia payload row mismatch.")
+  }
+  if (any(!is.finite(y[observed_y])) || any(!is.finite(x[observed_x]))) {
+    cli::cli_abort("Observed response and predictor values must be finite before Julia preparation.")
+  }
+  payload <- list(schema="joint_missing_two_gaussian_v1",predictor="gaussian",variable=unname(variables),
+    y=y,x=unname(x),observed_y=observed_y,observed_x=unname(observed_x),X_mu=X_mu,X_sigma=X_sigma,
+    X_predictor=X_predictor,mu_col=unname(mu_col),mu_names=unname(mu_names),
+    sigma_names=unname(colnames(spec$X$sigma)),predictor_names=lapply(models,function(m) unname(colnames(m$X))),
+    original_row=original_row,options=list(g_tol=1e-8))
+  list(payload=payload,spec=spec)
 }
