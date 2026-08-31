@@ -56,8 +56,9 @@ then passed after emitting `(1 | tree_boot | phylo(species))` (chunk
 `38dd0d`, 2.61 s). The final focused pure-R run passed 11 expectations:
 `Rscript --vanilla -e 'devtools::test(filter = "julia-bootstrap-tree", reporter = "summary")'`.
 After the cache-key regression was added, the retained final focused command
-passed 16 expectations. Its exact stdout/stderr receipt is
-`/private/tmp/drm-parity-20260830/bridge-bootstrap-tree/pure-r-julia-bootstrap-tree-20260831T211100Z.log`
+passed 16 expectations. Its durable exact stdout/stderr receipt is in the
+paired DRM.jl repository at
+`docs/dev-log/evidence/julia-r-parity/bridge-bootstrap-tree-20260831/pure-r-julia-bootstrap-tree-20260831T211100Z.log`
 (SHA-256 `0a9aab47b51bde82439219e006ac96a80fa8499f091bdcda469fecd636d3d776`).
 
 `Rscript --vanilla -e 'devtools::test(filter = "julia-inference", reporter = "summary")'`
@@ -67,9 +68,10 @@ not live-engine evidence. `git diff --check` passed.
 
 ### Retained pure-R transcript receipt
 
-The terminal tool retained pure-R output in its transcript instead of files.
-This report is the on-disk receipt; no standalone log paths are claimed. The
-same command above produced these red failures before their narrow repairs:
+The historical red pure-R outputs were retained only in the terminal-tool
+transcript rather than standalone files. The final 16-expectation pass has
+the durable log cited above. The historical red commands produced these
+failures before their narrow repairs:
 
 ```
 1. Julia-engine bootstrap intervals for fixed effects are not available on a
