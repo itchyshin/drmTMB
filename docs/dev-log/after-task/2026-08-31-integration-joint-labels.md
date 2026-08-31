@@ -6,7 +6,7 @@ Integrate accumulated programme work with current upstream sources, exercise int
 
 ## 2. Implemented
 
-Created clean paired `codex/parity-integration-20260831` worktrees. Julia merged current main at `567fec069758131804bc4d94582bc48e9338f63f`; R at `06518a5a5cd6888d57efc421a45b8fafd1e7f32c`. These merges changed workflows or instructions only. No numerical source changed through merging. The R prediction helper now preserves native coefficient names for joint objects instead of applying the legacy Julia punctuation rewrite. Both mean and scale predictions with factor labels such as `a: b` and `a & b` work in the new regression.
+Created clean paired `codex/parity-integration-20260831` worktrees. Julia merged current main at `567fec069758131804bc4d94582bc48e9338f63f`; R at `06518a5a5cd6888d57efc421a45b8fafd1e7f32c`. These merges changed workflows or instructions only. No numerical source changed through merging. R repair and evidence were committed locally as `acfbcd0d`; its blobs match the tested source. The R prediction helper now preserves native coefficient names for joint objects instead of applying the legacy Julia punctuation rewrite. Both mean and scale predictions with factor labels such as `a: b` and `a & b` work in the new regression.
 
 ## 3a. Decisions and Rejected Alternatives
 
@@ -14,7 +14,7 @@ Keep the existing legacy rewrite for older ordinary Julia objects. Joint constru
 
 ## 4. Files Touched
 
-R: `R/julia-bridge.R`, new `tests/testthat/test-julia-joint-prediction-labels.R`, executable worked example `tools/run-julia-integration-session.R`, and `tools/check-julia-integration-session.py`. Both repositories retain integration evidence under `docs/dev-log/evidence/julia-r-parity/integration-20260831/`, this report and check-log entries. Julia receives evidence/checkpoint changes only, with no engine edit.
+R: `R/julia-bridge.R`, new `tests/testthat/test-julia-joint-prediction-labels.R`, executable worked example `tools/run-julia-integration-session.R`, and `tools/check-julia-integration-session.py`. Mission Control local commit `3b1adbd` updates four NOW fields; their served values were verified and the vault lease released. All42 expanded foreign status entries remained byte-identical. Both repositories retain integration evidence under `docs/dev-log/evidence/julia-r-parity/integration-20260831/`, this report and check-log entries. Julia receives evidence/checkpoint changes only, with no engine edit.
 
 ## 5. Checks Run
 
@@ -41,7 +41,7 @@ Rose compared numerical source bytes with the prior verified pair and reviewed s
 
 ## 9. What Did Not Go Smoothly
 
-The first R suite completed its tests but CSV export failed on a list column; both the failure and corrected exporter run are retained. The first one-session run passed seven cases but its test oracle failed to rename lowercase categorical suffixes; mapping through model-matrix term assignments fixed the harness, without changing model code. Totoro's launch command backgrounded too broad a shell expression, leaving the SSH invocation open until its30s client timeout; the already-running pilot was inspected rather than relaunched, completed124s, and its evidence was retrieved. The second launch redirected only the intended job and returned its PID promptly. Rose found three false-pass holes in the new receipt checker; all now have corruption controls. One intermediate checker incorrectly assumed160rows for finite fixtures; their frozen180row denominator is now explicit, and the failed checker log is preserved.
+Raw captured logs retain original trailing whitespace; source/test/tool/doc whitespace checks pass with raw logs excluded. The first R suite completed its tests but CSV export failed on a list column; both the failure and corrected exporter run are retained. The first one-session run passed seven cases but its test oracle failed to rename lowercase categorical suffixes; mapping through model-matrix term assignments fixed the harness, without changing model code. Totoro's launch command backgrounded too broad a shell expression, leaving the SSH invocation open until its30s client timeout; the already-running pilot was inspected rather than relaunched, completed124s, and its evidence was retrieved. The second launch redirected only the intended job and returned its PID promptly. Rose found three false-pass holes in the new receipt checker; all now have corruption controls. One intermediate checker incorrectly assumed160rows for finite fixtures; their frozen180row denominator is now explicit, and the failed checker log is preserved.
 
 ## 10. Known Residuals
 

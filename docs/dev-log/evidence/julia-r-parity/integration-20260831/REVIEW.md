@@ -8,3 +8,5 @@ Requested/actual reviewer: Rose, gpt-5.6-sol/high, explicit existing child. No f
 4. The one-session/process runner hashes were missing from the before/after manifest. They are retained as honest post-run observations; exact executed R source is copied into tools/run-julia-integration-session.R. No retrospective pre-run hash claim.
 
 Checker review: three false-pass cases were reproduced, then repaired with required output structures, exact source-file coverage and13 corruption controls. Normal and optimized Python runs pass. The intermediate160-vs180row checker failure is retained.
+
+Melissa (Terra/high) reconciled the original obligations and this checkpoint: no denominator shrink or silently closed programme gate; only the pending Julia evidence commit remained. Rose independently reran normal/-O checker controls and approved all13damages rejected (checker5b3572fe).
