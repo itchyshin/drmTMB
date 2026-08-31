@@ -1,0 +1,1 @@
+| 2026-08-31 | **Joint bridge capability guard** (#1104 / DRM.jl#565) | RED missing helper; focused 4/4; joint dispatch 8/8; two-Gaussian neighbour 24/24 | Old DRM.jl checkout now fails with an actionable update error before missing-symbol dispatch; paired merge order explicit | Hopper / Rose / Melissa |

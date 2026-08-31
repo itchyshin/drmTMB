@@ -8,6 +8,19 @@ drm_julia_joint_requested <- function(formula, impute, missing) {
     }, logical(1)))
 }
 
+drm_julia_require_joint_capability <- function(
+  available = isTRUE(JuliaCall::julia_eval("isdefined(DRM, :drm_bridge_joint)"))
+) {
+  if (!isTRUE(available)) {
+    cli::cli_abort(c(
+      "Your DRM.jl checkout is too old for this joint missing-predictor model.",
+      i = "The loaded checkout does not provide {.code DRM.drm_bridge_joint}.",
+      i = "Update the checkout referenced by {.envvar DRM_JL_PATH}, restart R, and retry."
+    ))
+  }
+  invisible(TRUE)
+}
+
 drm_julia_call_joint <- function(payload) {
   if (!requireNamespace("JuliaCall", quietly = TRUE)) {
     cli::cli_abort(c(
@@ -16,6 +29,7 @@ drm_julia_call_joint <- function(payload) {
     ))
   }
   drm_julia_setup()
+  drm_julia_require_joint_capability()
   JuliaCall::julia_call("DRM.drm_bridge_joint", payload)
 }
 
