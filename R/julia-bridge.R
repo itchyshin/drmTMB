@@ -4288,7 +4288,10 @@ drm_julia_predict_fixed_eta <- function(object, dpar, data, context) {
     )
   }
   beta <- object$coefficients[[dpar]]
-  if (is.null(object$bridge_public_coef_labels)) {
+  # Joint adapters retain native R model-matrix names directly.  The legacy
+  # rewrite below predates that contract and corrupts punctuation in factor
+  # levels such as "a: b" and "a & b".
+  if (is.null(object$bridge_public_coef_labels) && !inherits(object, "drmTMB_julia_joint")) {
     names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
   }
   common <- intersect(colnames(X), names(beta))

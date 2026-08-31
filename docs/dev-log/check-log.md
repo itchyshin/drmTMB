@@ -94576,3 +94576,5 @@ gate.
 
 Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
+
+| 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
