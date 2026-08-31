@@ -26,8 +26,14 @@ entry. No likelihood, estimator, formula admission or returned result changed.
 
 ## 5. Checks Run
 
-The focused guard passes four assertions. Joint dispatch and two-Gaussian joint
-neighbours pass eight and twenty-four assertions respectively.
+The focused guard passes four assertions. The complete `julia-joint-*` family
+passes, including joint dispatch and two-Gaussian neighbours. The model-15
+compatibility runner then passed all twelve retained attempts at source commit
+`5eba81838`; all three mean relative-error summaries are bit-identical to the
+previous receipt. The generated-ledger check, its 127 Python unit tests, the
+30-row profile-truth manifest and the 18-route runtime reconciliation all pass.
+The profile-fence enumeration and fitted battery report zero violations, and
+all 37 evidence-citation rows resolve.
 
 ## 6. Tests of the Tests
 
