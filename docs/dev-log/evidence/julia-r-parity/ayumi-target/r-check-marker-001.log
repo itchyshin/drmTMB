@@ -1,0 +1,20 @@
+* using log directory ‘/private/tmp/drm-parity-20260830/check-marker-probe/drmcheckprobe.Rcheck’
+* using R version 4.6.0 (2026-04-24)
+* using platform: aarch64-apple-darwin23
+* R was compiled by
+    Apple clang version 17.0.0 (clang-1700.3.19.1)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Tahoe 26.6.1
+* using session charset: UTF-8
+* current time: 2026-08-31 01:10:32 UTC
+* using options ‘--no-examples --no-manual --no-vignettes --no-build-vignettes’
+* checking for file ‘drmcheckprobe/DESCRIPTION’ ... ERROR
+Required fields missing or empty:
+  ‘Author’ ‘Maintainer’
+* DONE
+
+Status: 1 ERROR
+See
+  ‘/private/tmp/drm-parity-20260830/check-marker-probe/drmcheckprobe.Rcheck/00check.log’
+for details.
+

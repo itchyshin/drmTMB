@@ -46,10 +46,10 @@ Sys.setenv(DRM_JL_PATH = "/absolute/path/to/DRM.jl")
 library(drmTMB)
 ```
 
-For a local noninteractive script (for example, one run with `Rscript`), also
-set `Sys.setenv(DRMTMB_JULIA_TESTS = "true")` before the first Julia call. This
-explicit opt-in is needed because the package keeps Julia disabled by default
-in noninteractive package checks. Do not enable it on CRAN or win-builder.
+The same setup works in ordinary noninteractive scripts run with `Rscript`;
+no test opt-in is required. Julia startup remains disabled in marked R package
+check processes unless explicitly enabled for repository testing. Do not enable
+live Julia tests on CRAN or win-builder.
 
 Replace the path with the directory containing DRM.jl's `Project.toml` and
 `src/`. The bridge initializes Julia when needed. The first call includes

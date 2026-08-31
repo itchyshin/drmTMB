@@ -77,7 +77,10 @@ test_that("drm_skip_live_julia skips on CRAN unless DRMTMB_JULIA_TESTS=true", {
 })
 
 test_that("drm_julia_cran_lane_blocked matches CRAN-lane predicate", {
-  withr::local_envvar(c(NOT_CRAN = "false", DRMTMB_JULIA_TESTS = NA))
+  withr::local_envvar(c(
+    NOT_CRAN = "false", DRMTMB_JULIA_TESTS = NA,
+    `_R_CHECK_PACKAGE_NAME_` = "drmTMB"
+  ))
   expect_true(drmTMB:::drm_julia_cran_lane_blocked(is_interactive = FALSE))
   expect_false(drmTMB:::drm_julia_cran_lane_blocked(is_interactive = TRUE))
 
@@ -93,8 +96,11 @@ test_that("drm_julia_setup aborts before JuliaCall when CRAN-lane blocked", {
     interactive() && !isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false"))),
     "interactive CRAN-lane simulation is environment-gated"
   )
-  withr::local_envvar(c(NOT_CRAN = "false", DRMTMB_JULIA_TESTS = NA))
-  # Non-interactive + NOT_CRAN=false must abort before JuliaCall::julia_setup().
+  withr::local_envvar(c(
+    NOT_CRAN = "false", DRMTMB_JULIA_TESTS = NA,
+    `_R_CHECK_PACKAGE_NAME_` = "drmTMB"
+  ))
+  # A marked non-interactive check lane must abort before JuliaCall::julia_setup().
   expect_error(
     drmTMB:::drm_julia_setup(),
     "CRAN check lane|disabled on the CRAN"

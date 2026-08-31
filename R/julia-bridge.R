@@ -1833,12 +1833,23 @@ drm_julia_restore_value_order <- function(x, restore) {
   x
 }
 
-drm_julia_cran_lane_blocked <- function(is_interactive = interactive()) {
-  # Shared CRAN-lane predicate for live Julia. Matches tests/testthat.R
-  # `not_cran` and only blocks non-interactive checks (R CMD check / win-builder).
-  !identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true") &&
-    !isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false"))) &&
-    !isTRUE(is_interactive)
+drm_julia_cran_lane_blocked <- function(
+  is_interactive = interactive(),
+  environ = Sys.getenv()
+) {
+  # A non-interactive R process is not necessarily a package check: ordinary
+  # `Rscript` is a supported way to use engine = "julia".  R's
+  # tools:::.check_packages() sets this exact marker while checking the package,
+  # including its test subprocesses.  Do not infer a check lane from arbitrary
+  # `_R_CHECK_*` switches: users and check runners may set those independently.
+  env_value <- function(name) {
+    value <- unname(environ[name])
+    if (length(value) != 1L || is.na(value)) "" else as.character(value[[1L]])
+  }
+  !identical(env_value("DRMTMB_JULIA_TESTS"), "true") &&
+    !isTRUE(as.logical(env_value("NOT_CRAN"))) &&
+    !isTRUE(is_interactive) &&
+    nzchar(env_value("_R_CHECK_PACKAGE_NAME_"))
 }
 
 # One-time hint when parallel refits were requested but Julia was started
@@ -2048,7 +2059,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "        first(hit)",
       "    end",
       "    if method == \"profile\"",
-      "        result = DRM.profile_result(fit; level = level, threads = threads, parm = blockparm)",
+      "        result = DRM.profile_result(fit; level = level, threads = threads, parm = blockparm => String(coefname))",
       "        row = drmTMB_pick_fixef_row(result.ci)",
       "        return DRM._bridge_inference_flatten(row; method = \"profile\", status = \"profile\",",
       "            attempted = result.attempted, used = result.used, failed = result.failed,",
