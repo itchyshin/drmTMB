@@ -122,6 +122,12 @@ model or sample. Keep ML/REML choices explicit when comparing fits.
 
 ## Add a phylogeny
 
+The Julia bridge accepts rooted polytomies with positive branch lengths.
+Tip labels remain literal: spaces, apostrophes and Unicode do not need to be
+renamed. The bridge quotes labels for transport and restores observation order.
+Zero-length branches and unary nodes remain unsupported; this bridge uses
+ultrametric trees on the correlation scale.
+
 The same scale-regression idea applies to a phylogenetic group effect. This
 small simulated example creates an ultrametric tree and matches data rows to
 its tip labels explicitly:

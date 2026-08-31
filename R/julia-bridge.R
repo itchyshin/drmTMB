@@ -1743,6 +1743,16 @@ drm_julia_collapse_phylo_block <- function(expr) {
   as.call(parts)
 }
 
+drm_julia_newick_label <- function(label) {
+  if (!is.character(label) || length(label) != 1L || is.na(label) || !nzchar(label)) {
+    cli::cli_abort("Phylogenetic Newick labels must be one non-missing, nonempty character string.")
+  }
+  if (grepl("^[A-Za-z0-9_.-]+$", label)) {
+    return(label)
+  }
+  paste0("'", gsub("'", "''", label, fixed = TRUE), "'")
+}
+
 drm_julia_phylo_newick <- function(tree, info = NULL) {
   if (is.null(info)) {
     info <- validate_phylo_tree(tree)
@@ -1752,14 +1762,6 @@ drm_julia_phylo_newick <- function(tree, info = NULL) {
       "{.code engine = \"julia\"} requires positive phylogenetic branch lengths."
     )
   }
-  bad_label <- grep("^[A-Za-z0-9_.-]+$", tree$tip.label, invert = TRUE)
-  if (length(bad_label) > 0L) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} can serialize only simple phylogenetic tip labels in this slice.",
-      x = "Unsupported tip label: {.val {tree$tip.label[[bad_label[[1L]]]]}}."
-    ))
-  }
-
   edge <- matrix(as.integer(tree$edge), ncol = 2L)
   children <- split(seq_len(nrow(edge)), edge[, 1L])
   child_counts <- lengths(children)
@@ -1775,8 +1777,9 @@ drm_julia_phylo_newick <- function(tree, info = NULL) {
   tip_order <- character()
   node_newick <- function(node) {
     if (node <= info$n_tip) {
-      label <- tree$tip.label[[node]]
-      tip_order <<- c(tip_order, label)
+      tip_label <- tree$tip.label[[node]]
+      tip_order <<- c(tip_order, tip_label)
+      label <- drm_julia_newick_label(tip_label)
     } else {
       child_edges <- children[[as.character(node)]]
       child_nodes <- edge[child_edges, 2L]

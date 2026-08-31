@@ -31,5 +31,5 @@ test_that("Julia serializer keeps other explicit tree refusal boundaries", {
                "ultrametric|positive")
   tree <- ape::read.tree(text = "(a:1,b:1,c:1);")
   tree$tip.label[1] <- "not simple"
-  expect_error(drm_julia_phylo_newick(tree), "simple")
+  expect_identical(drm_julia_phylo_newick(tree)$newick, "('not simple':1,b:1,c:1);")
 })
