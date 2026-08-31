@@ -54,3 +54,17 @@ test_that('selected-state extraction preserves fixed-effect and REML neighbours'
   expect_equal(as.numeric(predict(a, dpar = 'mu')), selected_state_dense_mu(a, FALSE), tolerance = 1e-8)
   expect_true(!is.null(a$sdr))
 })
+
+test_that('selected-state oracle ignores a damaged mutable Hessian state', {
+  dat <- selected_state_fixture()
+  fit <- drmTMB(bf(y ~ x + (1 | g), sigma ~ x), data = dat)
+  selected_before <- selected_tmb_par_list(fit)
+  mutable_before <- fit$obj$env$parList(fit$opt$par)
+
+  fit$obj$env$last.par <- fit$obj$env$last.par +
+    seq_along(fit$obj$env$last.par) * 1e-3
+
+  mutable_after <- fit$obj$env$parList(fit$opt$par)
+  expect_false(isTRUE(all.equal(mutable_after, mutable_before, tolerance = 0)))
+  expect_equal(selected_tmb_par_list(fit), selected_before, tolerance = 0)
+})

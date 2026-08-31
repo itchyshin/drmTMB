@@ -272,7 +272,7 @@ test_that("q2 MSPL uses the paper Cholesky coordinates and permits point output 
     bf(cbind(successes, failures) ~ x + (1 + x | group)),
     binomial(), dat, estimator = "mspl", control = mspl_test_control(3L)
   )
-  native <- fit$obj$env$parList(fit$opt$par)
+  native <- selected_tmb_par_list(fit)
   oracle <- mspl_penalty_components(
     X = fit$model$X$mu,
     beta = unname(native$beta_mu),

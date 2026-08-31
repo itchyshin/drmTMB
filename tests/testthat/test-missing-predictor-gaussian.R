@@ -268,7 +268,7 @@ test_that("imputed() reports MD3a missing-predictor conditional modes", {
   )
 
   out <- imputed(fit)
-  modes <- fit$obj$env$parList(fit$opt$par)$x_miss
+  modes <- selected_tmb_par_list(fit)$x_miss
 
   expect_s3_class(out, "data.frame")
   expect_named(

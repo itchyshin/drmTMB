@@ -32,7 +32,7 @@ manual_nbinom2_response_gaussian_mi_joint_loglik <- function(fit) {
   log_sigma <- as.numeric(coef(fit, "sigma"))
   sigma_mi <- as.numeric(coef(fit, paste0("sigma_mi_", model$variable)))
   size <- exp(-2 * log_sigma)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   x_full <- as.numeric(model$x)
   x_full[!model$observed] <- as.numeric(par$x_miss)
   offset_mu <- if (!is.null(fit$model$offset$mu)) {
