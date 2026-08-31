@@ -1,0 +1,233 @@
+expression(args <- commandArgs(trailingOnly = TRUE), if (length(args) != 
+    2L) {
+    stop("usage: run-julia-lss-bootstrap-public.R JULIA_ROOT NEW_PREFIX", 
+        call. = FALSE)
+}, julia_root <- normalizePath(args[[1L]], mustWork = TRUE), 
+    prefix <- args[[2L]], outputs <- paste0(prefix, c(".json", 
+        ".rds")), if (any(file.exists(outputs))) {
+        stop("refusing to overwrite existing receipt output", 
+            call. = FALSE)
+    }, Sys.setenv(DRM_JL_PATH = julia_root, DRMTMB_JULIA_TESTS = "true", 
+        JULIA_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1"), 
+    sha256 <- function(path) digest::digest(file = path, algo = "sha256"), 
+    git_text <- function(root, args) {
+        out <- tryCatch(system2("git", c("-C", root, args), stdout = TRUE, 
+            stderr = TRUE), error = function(e) paste("ERROR", 
+            conditionMessage(e)))
+        paste(out, collapse = "\n")
+    }, source_manifest <- function(r_root, jl_root) {
+        r_paths <- c(list.files(file.path(r_root, "R"), recursive = TRUE, 
+            full.names = TRUE), list.files(file.path(r_root, 
+            "src"), recursive = TRUE, full.names = TRUE, pattern = "[.](c|cc|cpp|h|hpp)$"), 
+            file.path(r_root, "NAMESPACE"))
+        jl_paths <- list.files(file.path(jl_root, "src"), recursive = TRUE, 
+            full.names = TRUE, pattern = "[.]jl$")
+        runner <- normalizePath("tools/run-julia-lss-bootstrap-public.R", 
+            mustWork = TRUE)
+        paths <- normalizePath(c(r_paths, jl_paths, runner), 
+            mustWork = TRUE)
+        paths <- sort(unique(paths))
+        as.list(stats::setNames(vapply(paths, sha256, ""), paths))
+    }, native_dll_stamp <- function() {
+        dll <- getLoadedDLLs()[["drmTMB"]]
+        if (is.null(dll)) {
+            return(NULL)
+        }
+        path <- dll[["path"]]
+        list(path = path, sha256 = if (file.exists(path)) sha256(path) else NA_character_)
+    }, interval_row <- function(x) {
+        fields <- c("parm", "method", "lower", "upper", "conf.status", 
+            "bootstrap.n", "bootstrap.failed", "julia.threads", 
+            "julia.blas_threads", "julia.workers")
+        present <- intersect(fields, names(x))
+        as.list(x[1L, present, drop = FALSE])
+    }, scalar <- function(x, name) {
+        value <- x[[name]]
+        if (length(value) != 1L) {
+            stop(sprintf("expected scalar `%s` from direct Julia result", 
+                name), call. = FALSE)
+        }
+        value[[1L]]
+    }, direct_bootstrap <- function(payload, B, level, seed) {
+        required <- c("y", "x", "z", "species")
+        if (!all(required %in% names(payload$data))) {
+            stop("bridge payload lacks one of y/x/z/species", 
+                call. = FALSE)
+        }
+        JuliaCall::julia_assign("lss_boot_tree", payload$tree)
+        for (name in required) {
+            JuliaCall::julia_assign(paste0("lss_boot_", name), 
+                payload$data[[name]])
+        }
+        JuliaCall::julia_assign("lss_boot_B", as.integer(B))
+        JuliaCall::julia_assign("lss_boot_level", as.numeric(level))
+        JuliaCall::julia_assign("lss_boot_seed", as.integer(seed))
+        JuliaCall::julia_eval("begin\n    using DRM, Random, LinearAlgebra\n    BLAS.set_num_threads(1)\n    pt = augmented_phy(lss_boot_tree)\n    form = bf(\n      @formula(y ~ x + phylo(1 | species)),\n      @formula(sigma ~ x),\n      @formula(sd(species, phylogenetic) ~ z),\n    )\n    dat = (y = lss_boot_y, x = lss_boot_x, z = lss_boot_z, species = lss_boot_species)\n    fit = drm(form, Gaussian(); data = dat, tree = pt, method = :REML)\n    result = bootstrap_result(\n      fit; data = dat, B = Int(lss_boot_B), level = lss_boot_level,\n      rng = MersenneTwister(Int(lss_boot_seed)), tree = pt, threads = false,\n      failures = :skip, check_converged = true,\n    )\n    mu_rows = filter(row -> row.param === :mu && row.coef == \"x\", result.summary)\n    length(mu_rows) == 1 || error(\"expected exactly one bootstrap row for mu:x\")\n    mu_row = only(mu_rows)\n    sd_rows = filter(row -> row.param === :sd_phylo && row.coef == \"z\", result.summary)\n    length(sd_rows) == 1 || error(\"expected exactly one bootstrap row for sd_phylo:z\")\n    sd_row = only(sd_rows)\n    simulator = DRM._marginal_simulator(fit, dat; tree = pt)\n    simulator === nothing && error(\"LSS marginal simulator unavailable for manual bootstrap refit\")\n    replicate = merge(dat, (; y = simulator(MersenneTwister(only(result.seeds[1:1])))))\n    manual_refit = drm(form, Gaussian(); data = replicate, tree = pt, method = :REML)\n    Dict(\n      \"lower\" => mu_row.lower,\n      \"upper\" => mu_row.upper,\n      \"estimate\" => mu_row.estimate,\n      \"std_error\" => mu_row.std_error,\n      \"sd_lower\" => sd_row.lower,\n      \"sd_upper\" => sd_row.upper,\n      \"sd_estimate\" => sd_row.estimate,\n      \"sd_std_error\" => sd_row.std_error,\n      \"attempted\" => result.attempted,\n      \"used\" => result.used,\n      \"failed\" => result.failed,\n      \"threaded\" => result.threaded,\n      \"worker_threads\" => result.worker_threads,\n      \"julia_threads\" => result.julia_threads,\n      \"blas_threads\" => result.blas_threads,\n      \"fit_method\" => String(estimation_method(fit)),\n      \"manual_refit_method\" => String(estimation_method(manual_refit)),\n      \"fit_converged\" => is_converged(fit),\n      \"fit_nobs\" => nobs(fit),\n      \"manual_refit_converged\" => is_converged(manual_refit),\n      \"source\" => pathof(DRM),\n    )\n  end")
+    }, run_missing_probe <- function(formula, data, tree_labels, 
+        B, seed) {
+        result <- tryCatch({
+            fit <- drmTMB::drmTMB(formula, family = stats::gaussian(), 
+                data = data, engine = "julia", REML = TRUE, missing = drmTMB::miss_control(response = "include"))
+            ci <- stats::confint(fit, parm = "fixef:mu:x", method = "bootstrap", 
+                R = B, seed = seed, threads = FALSE, level = 0.9)
+            payload <- fit$bridge_payload
+            direct <- direct_bootstrap(payload, B = B, level = 0.9, 
+                seed = seed)
+            expected_nobs <- sum(!is.na(data$y))
+            row_order <- as.integer(payload$row_order)
+            expected_order <- order(match(data$species, tree_labels))
+            bridge_interval <- c(lower = ci$lower[[1L]], upper = ci$upper[[1L]])
+            direct_interval <- c(lower = scalar(direct, "lower"), 
+                upper = scalar(direct, "upper"))
+            checks <- list(requested_REML = isTRUE(fit$requested_REML), 
+                effective_REML = isTRUE(fit$effective_REML), 
+                nobs = identical(as.integer(stats::nobs(fit)), 
+                  as.integer(expected_nobs)), direct_nobs = identical(as.integer(scalar(direct, 
+                  "fit_nobs")), as.integer(expected_nobs)), row_order = identical(row_order, 
+                  as.integer(expected_order)), mask = identical(is.na(payload$data$y), 
+                  is.na(data$y[row_order])), interval_finite = all(is.finite(c(bridge_interval, 
+                  direct_interval))), interval_match = max(abs(bridge_interval - 
+                  direct_interval)) <= 1e-10, used_match = identical(as.integer(ci$bootstrap.n[[1L]]), 
+                  as.integer(scalar(direct, "used"))), failed_match = identical(as.integer(ci$bootstrap.failed[[1L]]), 
+                  as.integer(scalar(direct, "failed"))), status = identical(as.character(ci$conf.status[[1L]]), 
+                  "bootstrap"))
+            list(status = if (all(unlist(checks))) "completed" else "failed_checks", 
+                checks = checks, nobs = stats::nobs(fit), expected_nobs = expected_nobs, 
+                requested_REML = isTRUE(fit$requested_REML), 
+                effective_REML = isTRUE(fit$effective_REML), 
+                interval = interval_row(ci), direct = direct)
+        }, error = function(e) {
+            list(status = "error", checks = list(completed = FALSE), 
+                message = conditionMessage(e))
+        })
+        result
+    }, run_public_case <- function() {
+        set.seed(20260830L)
+        n_tip <- 32L
+        m <- 4L
+        tree <- ape::rcoal(n_tip)
+        tree$tip.label <- sprintf("sp_%02d", seq_len(n_tip))
+        K <- ape::vcv(tree, corr = TRUE)
+        tip <- rep(seq_len(n_tip), each = m)
+        z_tip <- as.numeric(scale(seq_len(n_tip)))
+        x <- stats::rnorm(length(tip))
+        phylo_effect <- as.numeric(t(chol(K)) %*% stats::rnorm(n_tip))
+        sigma_phy <- exp(-0.35 + 0.2 * z_tip)
+        y <- 0.4 + 0.5 * x + sigma_phy[tip] * phylo_effect[tip] + 
+            stats::rnorm(length(tip), sd = exp(-0.85 + 0.12 * 
+                x))
+        canonical_data <- data.frame(y = y, x = x, z = z_tip[tip], 
+            species = tree$tip.label[tip], stringsAsFactors = FALSE)
+        canonical_data <- canonical_data[order(match(canonical_data$species, 
+            tree$tip.label)), , drop = FALSE]
+        shuffle <- sample.int(nrow(canonical_data))
+        identical(shuffle, seq_along(shuffle)) && stop("deterministic input shuffle unexpectedly preserved row order")
+        data <- canonical_data[shuffle, , drop = FALSE]
+        rownames(data) <- NULL
+        formula <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), 
+            sigma ~ x, sd(species, level = "phylogenetic") ~ 
+                z)
+        seed <- 99173L
+        B <- 6L
+        level <- 0.9
+        bridge <- drmTMB::drmTMB(formula, family = stats::gaussian(), 
+            data = data, engine = "julia", REML = TRUE)
+        fixed_ci <- stats::confint(bridge, parm = "fixef:mu:x", 
+            method = "bootstrap", R = B, seed = seed, threads = FALSE, 
+            level = level)
+        payload <- bridge$bridge_payload
+        direct <- direct_bootstrap(payload, B = B, level = level, 
+            seed = seed)
+        tolerance <- 1e-10
+        direct_interval <- c(lower = scalar(direct, "lower"), 
+            upper = scalar(direct, "upper"))
+        bridge_interval <- c(lower = fixed_ci$lower[[1L]], upper = fixed_ci$upper[[1L]])
+        fixed_checks <- list(bridge_converged = isTRUE(drmTMB::is_converged(bridge)), 
+            bridge_requested_REML = isTRUE(bridge$requested_REML), 
+            bridge_effective_REML = isTRUE(bridge$effective_REML), 
+            input_shuffled = !identical(as.character(data$species), 
+                as.character(canonical_data$species)), payload_sorted = identical(as.character(payload$data$species), 
+                as.character(canonical_data$species)), payload_row_order = identical(as.integer(payload$row_order), 
+                as.integer(order(match(data$species, tree$tip.label)))), 
+            direct_fit_reml = identical(scalar(direct, "fit_method"), 
+                "REML"), direct_manual_replicate_reml = identical(scalar(direct, 
+                "manual_refit_method"), "REML"), direct_manual_replicate_converged = isTRUE(scalar(direct, 
+                "manual_refit_converged")), direct_converged = isTRUE(scalar(direct, 
+                "fit_converged")), direct_source = identical(normalizePath(scalar(direct, 
+                "source")), file.path(julia_root, "src", "DRM.jl")), 
+            resource_threads = identical(as.integer(scalar(direct, 
+                "julia_threads")), 1L), resource_blas = identical(as.integer(scalar(direct, 
+                "blas_threads")), 1L), interval_finite = all(is.finite(c(bridge_interval, 
+                direct_interval))), interval_match = max(abs(bridge_interval - 
+                direct_interval)) <= tolerance, used_match = identical(as.integer(fixed_ci$bootstrap.n[[1L]]), 
+                as.integer(scalar(direct, "used"))), failed_match = identical(as.integer(fixed_ci$bootstrap.failed[[1L]]), 
+                as.integer(scalar(direct, "failed"))), at_least_two_used = as.integer(fixed_ci$bootstrap.n[[1L]]) >= 
+                2L, bridge_status = identical(as.character(fixed_ci$conf.status[[1L]]), 
+                "bootstrap"))
+        sd_bootstrap <- tryCatch({
+            ci <- stats::confint(bridge, parm = "fixef:sd_phylo:z", 
+                method = "bootstrap", R = B, seed = seed, threads = FALSE, 
+                level = level)
+            bridge_interval <- c(lower = ci$lower[[1L]], upper = ci$upper[[1L]])
+            direct_interval <- c(lower = scalar(direct, "sd_lower"), 
+                upper = scalar(direct, "sd_upper"))
+            checks <- list(interval_finite = all(is.finite(c(bridge_interval, 
+                direct_interval))), interval_match = max(abs(bridge_interval - 
+                direct_interval)) <= tolerance, used_match = identical(as.integer(ci$bootstrap.n[[1L]]), 
+                as.integer(scalar(direct, "used"))), failed_match = identical(as.integer(ci$bootstrap.failed[[1L]]), 
+                as.integer(scalar(direct, "failed"))), status = identical(as.character(ci$conf.status[[1L]]), 
+                "bootstrap"))
+            list(status = if (all(unlist(checks))) "completed" else "failed_checks", 
+                target = "fixef:sd_phylo:z", interval = interval_row(ci), 
+                checks = checks)
+        }, error = function(e) {
+            list(status = "error", target = "fixef:sd_phylo:z", 
+                checks = list(completed = FALSE), message = conditionMessage(e))
+        })
+        missing_data <- data
+        missing_data$y[missing_data$species == tree$tip.label[[3L]]] <- NA_real_
+        missing_probe <- run_missing_probe(formula, missing_data, 
+            tree$tip.label, B = 4L, seed = seed + 1L)
+        list(status = if (all(unlist(c(fixed_checks, sd_bootstrap$checks, 
+            missing_probe$checks)))) "PASS" else "FAIL", fixed_checks = fixed_checks, 
+            tolerance = tolerance, data = data, tree = list(edge = unname(tree$edge), 
+                edge_length = unname(tree$edge.length), tip_label = tree$tip.label, 
+                correlation = unname(K)), payload = payload, 
+            bridge = list(interval = interval_row(fixed_ci), 
+                requested_REML = isTRUE(bridge$requested_REML), 
+                effective_REML = isTRUE(bridge$effective_REML), 
+                estimator = bridge$estimator, nobs = stats::nobs(bridge)), 
+            direct = direct, sd_bootstrap = sd_bootstrap, missing_include = missing_probe)
+    }, repo_root <- normalizePath(".", mustWork = TRUE), before <- source_manifest(repo_root, 
+        julia_root), out <- list(scope = paste("Public engine=julia Gaussian LSS REML bootstrap dispatch and direct reconstruction;", 
+        "B=6 is not interval coverage or native CI parity."), 
+        runner_sha256 = sha256("tools/run-julia-lss-bootstrap-public.R"), 
+        source_before = before, git_before = list(drmtmb_head = git_text(repo_root, 
+            c("rev-parse", "HEAD")), drmtmb_status = git_text(repo_root, 
+            c("status", "--porcelain")), drmjl_head = git_text(julia_root, 
+            c("rev-parse", "HEAD")), drmjl_status = git_text(julia_root, 
+            c("status", "--porcelain")))), save_receipt <- function() {
+        jsonlite::write_json(out, outputs[[1L]], pretty = TRUE, 
+            auto_unbox = TRUE, digits = 17, na = "string", null = "null")
+    }, start <- proc.time()[["elapsed"]], out$result <- tryCatch({
+        pkgload::load_all(repo_root, quiet = TRUE, recompile = FALSE)
+        out$native_dll <- native_dll_stamp()
+        drmTMB:::drm_julia_setup()
+        JuliaCall::julia_command("using LinearAlgebra; BLAS.set_num_threads(1)")
+        run_public_case()
+    }, error = function(e) {
+        list(status = "ERROR", message = conditionMessage(e))
+    }), out$elapsed <- proc.time()[["elapsed"]] - start, out$source_after <- source_manifest(repo_root, 
+        julia_root), out$source_unchanged <- identical(out$source_before, 
+        out$source_after), out$git_after <- list(drmtmb_head = git_text(repo_root, 
+        c("rev-parse", "HEAD")), drmtmb_status = git_text(repo_root, 
+        c("status", "--porcelain")), drmjl_head = git_text(julia_root, 
+        c("rev-parse", "HEAD")), drmjl_status = git_text(julia_root, 
+        c("status", "--porcelain"))), out$status <- if (isTRUE(out$source_unchanged) && 
+        identical(out$result$status, "PASS")) "PASS" else "FAIL", 
+    save_receipt(), saveRDS(out, outputs[[2L]]), cat("JULIA_LSS_BOOTSTRAP_PUBLIC_", 
+        out$status, " elapsed=", out$elapsed, "\n", sep = ""), 
+    if (!identical(out$status, "PASS")) {
+        quit(status = 1L)
+    })
+PARSE_OK
