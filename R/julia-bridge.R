@@ -1345,6 +1345,9 @@ drm_julia_call_fixef_inference <- function(
     ))
   }
 
+  target$term[[1L]] <- drm_julia_public_inference_term(
+    object, target$dpar[[1L]], target$term[[1L]]
+  )
   drm_julia_setup()
   JuliaCall::julia_call(
     "drmTMB_drm_bridge_fixef_inference",
@@ -2150,7 +2153,9 @@ new_drmTMB_julia <- function(
   effective_REML = NULL
 ) {
   result <- as.list(result)
+  public_coef_labels <- drm_julia_bridge_coef_labels(result)
   coef_names <- as.character(result$coef_names)
+  if (!is.null(public_coef_labels)) coef_names <- public_coef_labels$public
   coefficients <- stats::setNames(
     as.numeric(unlist(result$coefficients, use.names = FALSE)),
     coef_names
@@ -2241,6 +2246,7 @@ new_drmTMB_julia <- function(
       data = data
     ),
     bridge = result,
+    bridge_public_coef_labels = public_coef_labels,
     bridge_payload = bridge_payload,
     coefficients = coefficient_blocks,
     coef_vector = fixed_coefficients,
@@ -4282,7 +4288,9 @@ drm_julia_predict_fixed_eta <- function(object, dpar, data, context) {
     )
   }
   beta <- object$coefficients[[dpar]]
-  names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
+  if (is.null(object$bridge_public_coef_labels)) {
+    names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
+  }
   common <- intersect(colnames(X), names(beta))
   if (length(common) != length(beta) || length(common) != ncol(X)) {
     cli::cli_abort(c(

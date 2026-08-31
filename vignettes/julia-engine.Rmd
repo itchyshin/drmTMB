@@ -197,6 +197,14 @@ confint(fit_julia, method = "wald")
 confint(fit_julia, method = "profile", parm = "fixef:mu:x")
 ```
 
+With matching development versions of drmTMB and DRM.jl, transformed terms
+retain their public formula names. For a model containing `I(x^2)`, select
+`parm = "fixef:mu:I(x^2)"`; factor and interaction selectors likewise use the
+names returned by `coef(fit_julia)`. Do not substitute generated Julia column
+numbers. Supported fixed-effect predictions on new data retain the training
+centering, scaling and polynomial basis. Older fitted objects without this
+label metadata keep their original coefficient names.
+
 These interval examples use the ordinary **ML** fit above. Check the documented
 objective and target before comparing ML and REML inference. Agreement between
 engines does not establish nominal interval coverage.
