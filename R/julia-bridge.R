@@ -1763,9 +1763,9 @@ drm_julia_phylo_newick <- function(tree, info = NULL) {
   edge <- matrix(as.integer(tree$edge), ncol = 2L)
   children <- split(seq_len(nrow(edge)), edge[, 1L])
   child_counts <- lengths(children)
-  if (any(child_counts != 2L)) {
+  if (any(child_counts < 2L)) {
     cli::cli_abort(
-      "{.code engine = \"julia\"} currently serializes binary phylogenies only."
+      "{.code engine = \"julia\"} requires at least two children per internal node; unary nodes are not supported."
     )
   }
   edge_length_by_child <- stats::setNames(
