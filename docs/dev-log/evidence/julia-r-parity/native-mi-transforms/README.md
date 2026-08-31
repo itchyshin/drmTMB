@@ -33,3 +33,13 @@ Her tree report is tracked in the Julia repository's `polytomy/` evidence.
 Rose approved the bounded covariance/interval implementation after the boundary
 and bootstrap-refusal repairs. No estimator, likelihood, optimizer, frozen
 comparator, parity tolerance or foreign bridge change was altered.
+
+## Live Julia adapter refresh
+
+`joint-public-006.json` records real Gaussian/Bernoulli predictor workflows after
+the log-Wald repair: both adapter checks pass, both strict native4e-6 comparisons
+fail. `finite-public-006.json` also passes both ordinal/categorical adapters while
+retaining both native failures. Source-before equals source-after in both receipts.
+Independent Julia-side receipt checks reject21joint and17finite corruptions normally
+and underPython-O. R fit objects are kept only here, not in the MIT Julia repo.
+Elapsed25.403/21.053seconds includes startup and is not warm benchmark evidence.
