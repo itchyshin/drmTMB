@@ -201,6 +201,14 @@ These interval examples use the ordinary **ML** fit above. Check the documented
 objective and target before comparing ML and REML inference. Agreement between
 engines does not establish nominal interval coverage.
 
+Inspect `conf.status` and `profile.message`, not just the limits. A
+`profile_failed` result has an invalid endpoint; signed infinity can be a
+failure placeholder, and a transformed SD lower limit of zero does not clear
+that failure. A profile that did not cross the threshold within the searched
+range is a separate diagnostic. Generic Julia profiles now report failed
+nuisance solves, but successful optimizer termination does not by itself prove
+a global optimum or a practical large-tree runtime.
+
 ## One modelled missing predictor (development route)
 
 The Julia engine also has a narrow, **development** route for one
