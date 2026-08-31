@@ -1,0 +1,1 @@
+| 2026-08-31 | Julia profile status forwarding (twin programme DRM.jl #563) | selected mocked public R test + damaged-adapter control | 14 pass; negative control 6 expected failures; no live JuliaCall claim; Rose approved | Ada / Hopper |

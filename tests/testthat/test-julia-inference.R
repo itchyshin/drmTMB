@@ -895,3 +895,43 @@ test_that("confint() on a Poisson phylo Julia fit returns finite Wald CIs", {
   # The summary coefficient table carries finite standard errors.
   expect_true(all(is.finite(res$coef_table$std.error)))
 })
+
+test_that("Julia profile failures and no-crossing messages survive public R intervals", {
+  skip_if_not_installed("ape")
+  withr::local_seed(20260831)
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+  payload <- list(
+    lower = -Inf, upper = Inf,
+    status = "profile_failed",
+    message = paste0(
+      "profile endpoint solve failed: lower ",
+      "(endpoint=max_iterations; candidate=-3.0; residual=4.0)"
+    ),
+    threaded = FALSE, worker_threads = 1L, julia_threads = 1L,
+    blas_threads = 1L, elapsed = 0.1
+  )
+  testthat::local_mocked_bindings(
+    drm_julia_call_inference = function(...) payload,
+    drm_julia_call_fixef_inference = function(...) payload,
+    .package = "drmTMB"
+  )
+
+  for (target in c("fixef:mu:x", "sd:mu:phylo(1 | species)")) {
+    ci <- stats::confint(fit, parm = target, method = "profile")
+    expect_identical(ci$conf.status, "profile_failed")
+    expect_identical(ci$profile.message, payload$message)
+    expect_identical(ci$parm, target)
+    expect_identical(ci$lower, if (startsWith(target, "sd:")) 0 else -Inf)
+    expect_identical(ci$upper, Inf)
+  }
+
+  # The same infinite bounds can also mean no crossing in the searched range.
+  # Status/message, not endpoint shape, must preserve that distinction.
+  payload$status <- "profile"
+  payload$message <- "profile did not cross threshold within searched range"
+  for (target in c("fixef:mu:x", "sd:mu:phylo(1 | species)")) {
+    ci <- stats::confint(fit, parm = target, method = "profile")
+    expect_identical(ci$conf.status, "profile")
+    expect_identical(ci$profile.message, payload$message)
+  }
+})
