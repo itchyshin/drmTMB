@@ -296,6 +296,19 @@ validate_receipt <- function(receipt, current = FALSE, rroot = NULL) {
   expect(all(permutation == as.integer(permutation)) && identical(sort(as.integer(permutation)), seq_len(n)),
          "result$permutation must be a permutation of 1:n")
   permutation <- as.integer(permutation)
+  # Older label receipts explicitly sorted direct input in their scope text.
+  # New identity receipts declare whether direct Julia received original rows.
+  direct_order <- if ("direct_order" %in% names(result))
+    scalar_character(result$direct_order, "result$direct_order") else "tree"
+  expect(direct_order %in% c("tree", "input"), "unknown direct-row order contract")
+  if (direct_order == "input") {
+    expect(identical(permutation, seq_len(n)), "input-order direct fit was reordered")
+    expect(!identical(unique(data$species), tip_order),
+           "input-order identity fixture does not challenge first-seen tip ordering")
+  } else {
+    expect(identical(permutation, order(match(data$species, tip_order))),
+           "tree-order direct fit permutation differs from the declared order")
+  }
   correlation <- numeric_matrix(field(result, "native_correlation", "result"),
     "result$native_correlation", p, p)
   expect(max_abs(correlation - t(correlation)) <= 1e-12,
@@ -374,6 +387,7 @@ summary <- validate_receipt(receipt, current = "--current" %in% flags, rroot = r
 if ("--self-test" %in% flags) {
   copy_receipt <- function(x) unserialize(serialize(x, NULL))
   mutations <- list(
+    order_contract = function(x) { x$result$direct_order <- "unknown"; x },
     labels = function(x) { x$result$outputs$direct$labels[[1L]] <- "tampered"; x },
     rows = function(x) { x$result$permutation[[1L]] <- x$result$permutation[[2L]]; x },
     coefficients = function(x) { x$result$outputs$direct$mu[[1L]] <- x$result$outputs$direct$mu[[1L]] + 0.05; x },

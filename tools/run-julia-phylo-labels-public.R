@@ -1,7 +1,9 @@
 #!/usr/bin/env Rscript
 # Lossless label transport with a shuffled-row Gaussian phylogenetic LSS model.
 args <- commandArgs(TRUE)
-if(length(args)!=2L) stop("usage: run-julia-phylo-labels-public.R JULIA_ROOT NEW_JSON")
+if(!length(args)%in%c(2L,3L)) stop("usage: run-julia-phylo-labels-public.R JULIA_ROOT NEW_JSON [tree|input]")
+direct_order <- if(length(args)==3L) args[3] else "tree"
+if(!direct_order%in%c("tree","input")) stop("direct order must be tree or input")
 jroot <- normalizePath(args[1],mustWork=TRUE);output <- args[2]
 if(file.exists(output)) stop("refusing to overwrite evidence")
 Sys.setenv(DRM_JL_PATH=jroot,JULIA_NUM_THREADS="1",OPENBLAS_NUM_THREADS="1")
@@ -10,7 +12,7 @@ files <- c(sort(list.files("R",full.names=TRUE,pattern="[.]R$")),
            sort(list.files(file.path(jroot,"src"),recursive=TRUE,full.names=TRUE,pattern="[.]jl$")))
 manifest <- function() as.list(setNames(vapply(files,sha,""),files))
 out <- list(source_before=manifest(),runner_sha256=sha("tools/run-julia-phylo-labels-public.R"),
-  scope="One shuffled-row labeled-polytomy Gaussian LSS workflow; direct data explicitly ordered by tree tips")
+  scope=paste("One shuffled-row labeled-polytomy Gaussian LSS workflow; direct order:",direct_order))
 t0 <- proc.time()[["elapsed"]]
 out$result <- tryCatch({
   pkgload::load_all(quiet=TRUE,recompile=FALSE)
@@ -27,7 +29,8 @@ out$result <- tryCatch({
   native <- drmTMB(form,gaussian(),data=d)
   bridge <- drmTMB(form,gaussian(),data=d,engine="julia")
   payload <- drm_julia_phylo_newick(tree)
-  ord <- order(match(d$species,payload$tip_order));dd <- d[ord,,drop=FALSE]
+  ord <- if(direct_order=="tree") order(match(d$species,payload$tip_order)) else seq_len(n)
+  dd <- d[ord,,drop=FALSE]
   JuliaCall::julia_assign("label_tree",payload$newick)
   for(nm in names(dd)) JuliaCall::julia_assign(paste0("label_",nm),dd[[nm]])
   direct <- JuliaCall::julia_eval('begin
@@ -61,7 +64,7 @@ out$result <- tryCatch({
     converged=all(vapply(fits,function(f)isTRUE(f$converged),TRUE)),
     source=normalizePath(direct$source)==file.path(jroot,"src","DRM.jl"))
   list(status=if(all(checks)) "PASS" else "FAIL",checks=as.list(checks),labels=labels,
-       payload=payload,data=d,permutation=ord,outputs=fits,
+       payload=payload,data=d,permutation=ord,direct_order=direct_order,outputs=fits,
        bridge_fitted=unname(fitted(bridge)),native_correlation=unname(K),
        group_covariate=zg,tree_edge=unname(tree$edge),tree_edge_length=tree$edge.length,
        runtime=list(R=R.version.string,drmTMB=as.character(packageVersion("drmTMB")),
