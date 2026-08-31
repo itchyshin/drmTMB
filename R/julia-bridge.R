@@ -867,13 +867,13 @@ drm_julia_bridge_payload <- function(
   env,
   method = "ML"
 ) {
-  formula_spec <- drm_julia_formula_spec(formula)
   phylo_payload <- drm_julia_phylo_payload(
     formula = formula,
     family_type = family_type,
     data = data,
     env = env
   )
+  formula_spec <- drm_julia_formula_spec(formula, phylo_payload = phylo_payload)
   data_out <- drm_julia_bridge_data(
     data = data,
     formula = formula,
@@ -1058,7 +1058,10 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   if (reml) {
     return(list(g_tol = g_tol, method = "REML"))
   }
-  if (identical(phylo_payload$locscale_mode, "phylo_locscale")) {
+  if (
+    identical(phylo_payload$family_type, "gaussian") &&
+      identical(phylo_payload$locscale_mode, "phylo_locscale")
+  ) {
     return(list(g_tol = g_tol, phylo_coupled = TRUE))
   }
   list(g_tol = g_tol)
@@ -1079,7 +1082,7 @@ drm_julia_warn_reml_unsupported <- function(REML, cell) {
   invisible(TRUE)
 }
 
-drm_julia_formula_spec <- function(formula) {
+drm_julia_formula_spec <- function(formula, phylo_payload = NULL) {
   dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
   # Location-scale-scale parts carry the grouping in the dpar name itself
   # ("sd(id)", "sd_phylo(species)"), so they are matched by shape, not listed.
@@ -1097,17 +1100,27 @@ drm_julia_formula_spec <- function(formula) {
     vector("list", length(formula$entries)),
     dpars
   )
+  coupled_phylo_tag <- phylo_payload$coupled_phylo_tag %||% NULL
   for (i in seq_along(formula$entries)) {
     entry <- formula$entries[[i]]
-    out[[i]] <- drm_julia_formula_entry(entry)
+    out[[i]] <- drm_julia_formula_entry(
+      entry,
+      coupled_phylo_tag = coupled_phylo_tag
+    )
   }
   out
 }
 
-drm_julia_formula_entry <- function(entry) {
+drm_julia_formula_entry <- function(entry, coupled_phylo_tag = NULL) {
+  rhs <- drm_julia_strip_phylo_tree(entry$rhs)
+  if (!is.null(coupled_phylo_tag)) {
+    rhs <- drm_julia_rewrite_coupled_phylo(rhs, coupled_phylo_tag)
+  } else {
+    rhs <- drm_julia_collapse_phylo_block(rhs)
+  }
   rhs <- deparse1(
     drm_julia_rewrite_meta_V(
-      drm_julia_collapse_phylo_block(drm_julia_strip_phylo_tree(entry$rhs))
+      rhs
     )
   )
   if (!is.na(entry$response)) {
@@ -1324,27 +1337,6 @@ drm_julia_call_fixef_inference <- function(
       i = "Refit the model with {.code engine = \"julia\"} before calling {.fn confint}."
     ))
   }
-  # DRM.jl's non-Gaussian bootstrap_result() cannot thread a tree through its
-  # internal refit closure -- only the Gaussian-specific method accepts
-  # tree/algorithm/g_tol kwargs (DRM.jl src/inference.jl: the DrmFit{<:Gaussian}
-  # method vs. the generic DrmFit fallback, which rejects any non-nothing K/A/
-  # tree kwarg and, even when tree is omitted, never re-attaches the tree on
-  # refit). Every simulated refit of a phylogenetic non-Gaussian fit would
-  # therefore fail identically, so refuse up front with a clear message
-  # instead of surfacing DRM.jl's "all N bootstrap replicates failed".
-  is_gaussian_family <- object$model$model_type %in% c("gaussian", "biv_gaussian")
-  if (
-    identical(method, "bootstrap") &&
-      !is_gaussian_family &&
-      !is.null(payload$tree)
-  ) {
-    cli::cli_abort(c(
-      "Julia-engine bootstrap intervals for fixed effects are not available on a phylogenetic non-Gaussian fit.",
-      i = "DRM.jl's bootstrap refit cannot re-attach the phylogenetic tree for non-Gaussian families yet.",
-      i = "Use {.code method = \"profile\"} or {.code method = \"wald\"} instead, or {.code engine = \"tmb\"} for a native bootstrap."
-    ))
-  }
-
   target$term[[1L]] <- drm_julia_public_inference_term(
     object, target$dpar[[1L]], target$term[[1L]]
   )
@@ -1382,6 +1374,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   bivariate <- FALSE
   bivariate_dimension <- NA_character_
   locscale_mode <- NA_character_
+  coupled_phylo_tag <- NULL
   # Univariate Gaussian keeps the verified sparse all-node route. Poisson, NB2,
   # Gamma, Beta, and Binomial add the non-Gaussian phylo (count / location-scale /
   # mean-only) routes; bivariate Gaussian (q=4 PLSM) admits intercept phylo on
@@ -1447,9 +1440,19 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
           i = "Use the same {.fn phylo} call in both {.code mu} and {.code sigma} formulas."
         ))
       }
+      if (!identical(mu_term$covariance_label, sigma_term$covariance_label)) {
+        cli::cli_abort(c(
+          "Julia-engine location-scale phylo requires matching covariance labels on {.code mu} and {.code sigma}.",
+          i = "Use one shared label, or omit the label from both {.fn phylo} terms."
+        ))
+      }
       rep_term <- mu_term
       labels <- c(mu_term$label, sigma_term$label)
       locscale_mode <- "phylo_locscale"
+      if (!identical(family_type, "gaussian")) {
+        coupled_phylo_tag <- mu_term$covariance_label %||%
+          "drmTMB_phylo_locscale"
+      }
     } else {
       # Standard intercept-only phylo on mu (mean-only or simple sigma ~ 1).
       if (length(phylo_terms) != 1L) {
@@ -1580,6 +1583,9 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       identical(cache$full_group, rep_term$group) &&
       identical(cache$full_label, labels) &&
       identical(cache$full_bivariate_dimension, bivariate_dimension) &&
+      identical(cache$full_family_type, family_type) &&
+      identical(cache$full_locscale_mode, locscale_mode) &&
+      identical(cache$full_coupled_phylo_tag, coupled_phylo_tag) &&
       identical(cache$full_species, species)
   ) {
     return(cache$full_payload)
@@ -1600,6 +1606,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     bivariate_dimension = bivariate_dimension,
     family_type = family_type,
     locscale_mode = locscale_mode,
+    coupled_phylo_tag = coupled_phylo_tag,
     structured_sd_scales = stats::setNames(
       rep(tree_payload$sd_scale, length(labels)),
       labels
@@ -1609,6 +1616,9 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   cache$full_group <- rep_term$group
   cache$full_label <- labels
   cache$full_bivariate_dimension <- bivariate_dimension
+  cache$full_family_type <- family_type
+  cache$full_locscale_mode <- locscale_mode
+  cache$full_coupled_phylo_tag <- coupled_phylo_tag
   cache$full_species <- species
   cache$full_payload <- payload
   payload
@@ -1743,6 +1753,45 @@ drm_julia_collapse_phylo_block <- function(expr) {
     return(as.call(parts))
   }
   parts[-1L] <- lapply(parts[-1L], drm_julia_collapse_phylo_block)
+  as.call(parts)
+}
+
+# DRM.jl's non-Gaussian location-scale route requires an explicit shared
+# `(1 | tag | phylo(group))` term on both axes. A shared R covariance label is
+# preserved; the already-admitted unlabelled paired case gets one internal tag.
+drm_julia_rewrite_coupled_phylo <- function(expr, coupled_phylo_tag) {
+  if (!is.call(expr)) {
+    return(expr)
+  }
+  parts <- as.list(expr)
+  marker <- if (is.name(parts[[1L]])) as.character(parts[[1L]]) else NULL
+  if (identical(marker, "phylo")) {
+    for (i in seq_along(parts)[-1L]) {
+      bar <- parts[[i]]
+      if (!is.call(bar) || !identical(bar[[1L]], as.name("|")) || length(bar) != 3L) {
+        next
+      }
+      re <- if (
+        is.call(bar[[2L]]) &&
+          identical(bar[[2L]][[1L]], as.name("|")) &&
+          length(bar[[2L]]) == 3L
+      ) {
+        bar[[2L]][[2L]]
+      } else {
+        bar[[2L]]
+      }
+      return(call(
+        "|",
+        call("|", re, as.name(coupled_phylo_tag)),
+        call("phylo", bar[[3L]])
+      ))
+    }
+  }
+  parts[-1L] <- lapply(
+    parts[-1L],
+    drm_julia_rewrite_coupled_phylo,
+    coupled_phylo_tag = coupled_phylo_tag
+  )
   as.call(parts)
 }
 
@@ -2086,7 +2135,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "                algorithm = Symbol(get(opts, :algorithm, :auto)), g_tol = Float64(get(opts, :g_tol, 1e-8)))",
       "        else",
       "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
-      "                threads = threads, failures = :skip, check_converged = true)",
+      "                tree = tree_obj, threads = threads, failures = :skip, check_converged = true)",
       "        end",
       "        row = drmTMB_pick_fixef_row(result.summary)",
       "        return DRM._bridge_inference_flatten(row; method = \"bootstrap\",",

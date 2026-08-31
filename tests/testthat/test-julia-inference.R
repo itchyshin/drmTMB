@@ -756,7 +756,7 @@ test_that("confint(method = 'bootstrap') works for a non-Gaussian (Poisson) fixe
   expect_equal(res$boot$method, "bootstrap")
 })
 
-test_that("confint(method = 'bootstrap') is refused (not crashed) for a phylo non-Gaussian fixed effect, while profile still works", {
+test_that("confint(method = 'bootstrap') works for a phylo non-Gaussian fixed effect", {
   drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
@@ -778,14 +778,11 @@ test_that("confint(method = 'bootstrap') is refused (not crashed) for a phylo no
   )
 
   expect_true(isTRUE(res$converged))
-  # bootstrap: a clear drmTMB-authored refusal, not DRM.jl's opaque
-  # "all N bootstrap replicates failed" / K-A-tree ArgumentError. Collapse
-  # whitespace first: cli::cli_abort() wraps the message across lines, so a
-  # literal multi-word regexp would be brittle against wrap width.
-  expect_true(is.character(res$boot))
-  boot_msg <- gsub("[[:space:]]+", " ", res$boot)
-  expect_match(boot_msg, "not available on a phylogenetic non-Gaussian fit")
-  # profile: unaffected by the bootstrap-only limitation.
+  expect_true(is.data.frame(res$boot))
+  expect_equal(res$boot$parm, "fixef:mu:x")
+  expect_true(is.finite(res$boot$lower) && is.finite(res$boot$upper))
+  expect_true(res$boot$lower < res$boot$upper)
+  expect_equal(res$boot$method, "bootstrap")
   expect_true(is.data.frame(res$prof))
   expect_equal(res$prof$parm, "fixef:mu:x")
   expect_true(is.finite(res$prof$lower) && is.finite(res$prof$upper))
