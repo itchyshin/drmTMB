@@ -1312,9 +1312,10 @@ drm_julia_call_inference <- function(
 # `drmTMB_drm_bridge_inference` -- that one is scoped to the SD row and its
 # picker explicitly refuses fixed-effect rows. `target` is the single
 # `target_class == "fixed-effect"` row selected in confint.drmTMB_julia().
-# Unlike the SD target, the tree is optional here: refitting from
-# `payload$formula` / `payload$data` only needs `payload$tree` when the
-# formula itself carries a `phylo()` term.
+# Unlike the SD target, the structured provider is optional here: refitting
+# from `payload$formula` / `payload$data` uses `payload$tree` for `phylo()`, or
+# one retained `payload$matrix` as K / A / coords for the general-covariance
+# structured route.
 drm_julia_call_fixef_inference <- function(
   object,
   target,
@@ -1340,6 +1341,9 @@ drm_julia_call_fixef_inference <- function(
   target$term[[1L]] <- drm_julia_public_inference_term(
     object, target$dpar[[1L]], target$term[[1L]]
   )
+  K <- if (identical(payload$kwarg, "K")) payload$matrix else NULL
+  A <- if (identical(payload$kwarg, "A")) payload$matrix else NULL
+  coords <- if (identical(payload$kwarg, "coords")) payload$matrix else NULL
   drm_julia_setup()
   JuliaCall::julia_call(
     "drmTMB_drm_bridge_fixef_inference",
@@ -1347,6 +1351,9 @@ drm_julia_call_fixef_inference <- function(
     object$model$model_type,
     as.list(payload$data),
     payload$tree,
+    K,
+    A,
+    coords,
     if (length(payload$options) == 0L) NULL else payload$options,
     method,
     level,
@@ -2100,13 +2107,13 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   JuliaCall::julia_command(
     paste(
       sep = "\n",
-      "function drmTMB_drm_bridge_fixef_inference(formula, family, data, tree, options, method, level, B, seed, threads, dpar, coefname)",
+      "function drmTMB_drm_bridge_fixef_inference(formula, family, data, tree, K, A, coords, options, method, level, B, seed, threads, dpar, coefname)",
       "    dat = DRM._bridge_data(data)",
       "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
       "    fam = DRM._bridge_family(family)",
       "    opts = DRM._bridge_options(options)",
       "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
-      "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
+      "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = K, A = A, coords = coords, options = opts)",
       "    blockparm = Symbol(dpar)",
       "    function drmTMB_pick_fixef_row(rows)",
       "        hit = filter(r -> r.param === blockparm && r.coef == coefname, rows)",
@@ -2131,11 +2138,11 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "        rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(Int(seed))",
       "        result = if fit isa DRM.DrmFit{<:DRM.Gaussian}",
       "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
-      "                tree = tree_obj, threads = threads, failures = :skip, check_converged = true,",
+      "                tree = tree_obj, K = K, A = A, coords = coords, threads = threads, failures = :skip, check_converged = true,",
       "                algorithm = Symbol(get(opts, :algorithm, :auto)), g_tol = Float64(get(opts, :g_tol, 1e-8)))",
       "        else",
       "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
-      "                tree = tree_obj, threads = threads, failures = :skip, check_converged = true)",
+      "                tree = tree_obj, K = K, A = A, coords = coords, threads = threads, failures = :skip, check_converged = true)",
       "        end",
       "        row = drmTMB_pick_fixef_row(result.summary)",
       "        return DRM._bridge_inference_flatten(row; method = \"bootstrap\",",
@@ -4499,11 +4506,11 @@ predict.drmTMB_julia <- function(
 #   spatial(1 | g, coords) -> native fixed-range K -> drm(...; K = K)
 #   spatial(1 | g, K = K)  -> drm(...; K = K)        (counts/Gamma: precomputed cov)
 #
-# DRM.jl rescales the covariance to a unit-diagonal correlation, so the recovered
-# `resd_<group>` block is the random-effect SD directly on the response scale (no
-# tree-depth SD rescaling -- structured SD scale is 1). The matrix's rows must be
-# ordered as the grouping levels first appear in `data` (DRM.jl's convention); the
-# bridge passes `data` unreordered, so no row permutation is applied.
+# DRM.jl uses K / A as supplied. Its public `re_sd` is a multiplier on that
+# supplied covariance and equals the marginal group SD only when its diagonal is
+# one (no tree-depth SD rescaling applies here). The matrix's rows must be ordered
+# as the grouping levels first appear in `data` (DRM.jl's convention); the bridge
+# passes `data` unreordered, so no row permutation is applied.
 #
 # Supported families are exactly DRM.jl's general-covariance set: Gaussian,
 # Poisson, NB2, and Gamma. Beta / Binomial support only `phylo()` in DRM.jl and
@@ -4826,7 +4833,7 @@ drmTMB_julia_structured_bridge <- function(
     data = data,
     family_type = family_type,
     structured_sd_scales = payload$structured_sd_scales,
-    bridge_payload = NULL,
+    bridge_payload = payload,
     requested_REML = isTRUE(REML),
     effective_REML = FALSE
   )
