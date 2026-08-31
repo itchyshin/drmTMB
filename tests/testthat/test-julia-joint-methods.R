@@ -164,7 +164,13 @@ test_that("joint Julia result preserves explicit blocks and transforms Gaussian 
   ci <- drmTMB:::confint.drmTMB_julia_joint(fit)
   ci_sd <- ci$tmb_parameter == "sigma_mi_x_var:x_var"
   expect_identical(ci$scale[ci_sd], "response")
-  expect_identical(ci$transformation[ci_sd], "exp_delta")
+  expect_identical(ci$transformation[ci_sd], "exp")
+  expect_equal(ci$lower[ci_sd], exp(log(1.5) - qnorm(.975)*sqrt(.08)), tolerance=1e-12)
+  expect_equal(ci$upper[ci_sd], exp(log(1.5) + qnorm(.975)*sqrt(.08)), tolerance=1e-12)
+  # Natural covariance remains delta-method covariance; only interval construction
+  # uses the underlying log coordinate, matching native R's positive-scale target.
+  subset <- drmTMB:::confint.drmTMB_julia_joint(fit,parm=c("sigma_mi_x_var:x_var","mu:(Intercept)"))
+  expect_equal(subset$lower, c(ci$lower[ci_sd], ci$lower[ci$tmb_parameter=='mu:(Intercept)']))
 })
 
 test_that("joint Julia imputed returns the native eight-column contract", {

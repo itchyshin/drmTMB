@@ -67,14 +67,14 @@ test_that("two predictors use independent native slots with custom variable name
   raw_names <- names(fit$opt$par)
   expect_gt(max(abs(raw[raw_names == "beta_mu", raw_names == "beta_mi"])), 1e-8)
   expect_gt(max(abs(raw[raw_names == "beta_mi", raw_names == "beta_mi2"])), 1e-8)
-  # This slice must not accidentally expose log-scale covariance as natural-scale
-  # covariance. Replace this guard when the separate Jacobian contract is added.
+  # Positive scales are now mapped separately and use the full public Jacobian;
+  # the dedicated transformed-covariance tests verify both covariance axes.
   scale_targets <- drmTMB:::drm_profile_targets(fit)
   scale_targets <- scale_targets[scale_targets$dpar %in%
     c("sigma_mi_body_mass", "sigma_mi_temperature"), ]
   expect_equal(nrow(scale_targets), 2L)
-  expect_false(any(scale_targets$profile_ready))
-  expect_true(all(is.na(diag(vcov(fit))[match(
+  expect_true(all(scale_targets$profile_ready))
+  expect_true(all(is.finite(diag(vcov(fit))[match(
     c("sigma_mi_body_mass:body_mass", "sigma_mi_temperature:temperature"),
     rownames(vcov(fit)))])))
 })

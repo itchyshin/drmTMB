@@ -203,6 +203,13 @@ simulation has measured their coverage; treat them as interval-feasible,
 not as a calibrated \code{level} interval (tracked as issue #802).
 }
 \details{
+Modelled missing-predictor bootstrap is not yet implemented: it requires
+joint predictor simulation and refits that preserve the imputation model and
+missingness pattern. Such requests fail before simulation. Positive predictor
+scales use log-scale Wald intervals transformed by \code{exp()}; predictor mixture
+probabilities use logit-scale intervals transformed by \code{plogis()}. Public
+covariance and summary standard errors remain on the reported natural scale.
+
 Target names follow the profile target namespace. For fixed effects, use
 names such as \code{"fixef:mu:x"}, \code{"fixef:sigma:(Intercept)"}, or
 \code{"fixef:rho12:w"}. Compact coefficient labels from \code{summary(fit)}, such as

@@ -671,7 +671,7 @@ confint.drmTMB_julia_joint <- function(
   }
   method <- match.arg(method)
   if (!identical(method, "wald")) {
-    cli::cli_abort("Joint Julia profile and bootstrap inference are not implemented; use method = \"wald\" or native engine = \"tmb\".")
+    cli::cli_abort("Joint Julia profile and bootstrap inference are not implemented. Use Wald intervals or validated native TMB profile targets; joint missing-predictor bootstrap is not yet implemented on either engine.")
   }
   validate_profile_level(level)
   labels <- object$joint$labels
@@ -693,20 +693,35 @@ confint.drmTMB_julia_joint <- function(
   } else {
     rep(NA_real_, length(take))
   }
+  natural_sd <- object$joint$natural_sd[take]
+  if (any(natural_sd)) {
+    # Raw names are validated against explicit block/term metadata at ingestion.
+    # Reconstruct only the known log-SD block, never infer arbitrary names by
+    # splitting variable names on underscores. This also supports stored fits.
+    raw_labels <- paste0("logsd_mi_", object$joint$terms[take[natural_sd]], "_log_sd")
+    raw_positions <- match(raw_labels, names(object$joint$raw_theta))
+    if (anyNA(raw_positions)) cli::cli_abort("Joint Julia log-scale interval metadata is incomplete.")
+    estimate[natural_sd] <- unname(object$joint$raw_theta[raw_positions])
+    variance[natural_sd] <- if (isTRUE(object$uncertainty$se)) {
+      diag(object$joint$raw_vcov)[raw_positions]
+    } else rep(NA_real_, length(raw_positions))
+  }
   se <- profile_wald_standard_errors(variance)
   z <- stats::qnorm((1 + level) / 2)
   ready <- is.finite(estimate) & is.finite(se)
   lower <- upper <- rep(NA_real_, length(take))
   lower[ready] <- estimate[ready] - z * se[ready]
   upper[ready] <- estimate[ready] + z * se[ready]
-  scale <- ifelse(object$joint$natural_sd[take], "response", "linear_predictor")
+  lower[natural_sd & ready] <- exp(lower[natural_sd & ready])
+  upper[natural_sd & ready] <- exp(upper[natural_sd & ready])
+  scale <- ifelse(natural_sd, "response", "linear_predictor")
   data.frame(
     parm = parm_labels[take],
     level = rep(level, length(take)),
     lower = lower,
     upper = upper,
     scale = scale,
-    transformation = ifelse(object$joint$natural_sd[take], "exp_delta", "identity"),
+    transformation = ifelse(natural_sd, "exp", "identity"),
     tmb_parameter = labels[take],
     index = take,
     method = rep("wald", length(take)),

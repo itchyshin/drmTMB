@@ -51,9 +51,11 @@ supply character or factor values to preserve their identity.
 
 The \code{sigma_mi_<variable>} coefficient is the Gaussian predictor standard
 deviation on its natural scale. Its covariance includes the full delta-method
-transformation, including cross-covariances. Its symmetric delta-Wald interval
-can extend below zero; it is not an exponentiated log-scale interval or a
-verified counterpart of native predictor-SD interval output.
+transformation, including cross-covariances. Its Wald interval is constructed
+on the raw log-SD coordinate and then exponentiated, matching native R's
+positive-scale interval construction. This does not establish interval coverage
+or full cross-engine inference parity. Joint missing-predictor bootstrap is not
+yet implemented on either engine.
 
 \code{imputed()} returns conditional summaries, not multiple-imputation draws.
 Gaussian imputation uncertainty includes conditional variance and parameter

@@ -2337,6 +2337,9 @@ vcov.drmTMB <- function(object, ...) {
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
   matched <- match(paste0("fixef:", labels), targets$parm)
+  jacobian <- vapply(matched, function(row) {
+    if (is.na(row)) NA_real_ else summary_parameter_delta_derivative(targets[row, , drop = FALSE])
+  }, numeric(1L))
   out <- matrix(
     NA_real_,
     nrow = length(labels),
@@ -2366,7 +2369,9 @@ vcov.drmTMB <- function(object, ...) {
     for (a in ok) {
       for (b in ok) {
         if (is.na(out[a, b])) {
-          out[a, b] <- cov_src[pos[[a]], pos[[b]]]
+          # Apply the public-coordinate derivative on both axes, including
+          # cross-covariance with ordinary response/predictor coefficients.
+          out[a, b] <- jacobian[[a]] * cov_src[pos[[a]], pos[[b]]] * jacobian[[b]]
         }
       }
     }
@@ -4846,6 +4851,7 @@ summary_parameter_delta_derivative <- function(target) {
     target$transformation[[1L]],
     linear_predictor = 1,
     exp = exp(eta),
+    plogis = stats::plogis(eta) * stats::plogis(-eta),
     tanh = 0.999999 * (1 - tanh(eta)^2),
     rho12_tanh = 0.999999 * (1 - tanh(eta)^2),
     NA_real_
