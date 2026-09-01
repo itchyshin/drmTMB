@@ -1,0 +1,1 @@
+| 2026-09-01 | C17 model-15 receipt refresh after Julia-engine help correction | 12 prescribed fits via `run-lane-c-c17c1-c14-model15-compatibility.R`; capability-ledger check; 80 Python ledger tests | mc-0568/mc-0569/mc-0576 each 4/4; mean relative errors reproduced exactly; current-source bridge rewired with unchanged model-15 fingerprint | Ada / Rose |
