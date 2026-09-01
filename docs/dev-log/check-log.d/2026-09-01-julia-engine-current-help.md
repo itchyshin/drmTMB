@@ -1,0 +1,1 @@
+| 2026-09-01 | Julia engine current-help correction | `devtools::document()` then `tools::Rd2txt("man/drmTMB.Rd")`; source and generated-help diff checks | passed: rendered help identifies `engine = "julia"` as an optional current fitting route with documented limits; unrelated generated artifacts were restored | Ada / Pat |
