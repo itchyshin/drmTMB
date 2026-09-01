@@ -1,0 +1,15 @@
+julia-bridge-coef-labels: .........................1.
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-bridge-coef-labels.R:56:3'): public Julia fit stores 
+Expected `actual` to equal `expected`.
+Differences:
+`names(actual)` is absent
+`names(expected)` is a character vector ('1', '2', '3', '4', '5', ...)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one is perfect!
+Error:
+! Test failures.
+Execution halted

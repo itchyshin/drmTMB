@@ -1,0 +1,68 @@
+julia-joint-finite-prepare: ........123........456.....
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-joint-finite-prepare.R:31:7'): finite predictor prepa
+Expected `p$X_mu_state[seq(k, n * K, by = K), ]` to equal `unname(X)`.
+Differences:
+`attr(actual, 'assign')` is absent
+`attr(expected, 'assign')` is an integer vector (0, 1, 2, 2)
+
+`attr(actual, 'contrasts')` is absent
+`attr(expected, 'contrasts')` is a list
+
+
+── 2. Failure ('test-julia-joint-finite-prepare.R:31:7'): finite predictor prepa
+Expected `p$X_mu_state[seq(k, n * K, by = K), ]` to equal `unname(X)`.
+Differences:
+`attr(actual, 'assign')` is absent
+`attr(expected, 'assign')` is an integer vector (0, 1, 2, 2)
+
+`attr(actual, 'contrasts')` is absent
+`attr(expected, 'contrasts')` is a list
+
+
+── 3. Failure ('test-julia-joint-finite-prepare.R:31:7'): finite predictor prepa
+Expected `p$X_mu_state[seq(k, n * K, by = K), ]` to equal `unname(X)`.
+Differences:
+`attr(actual, 'assign')` is absent
+`attr(expected, 'assign')` is an integer vector (0, 1, 2, 2)
+
+`attr(actual, 'contrasts')` is absent
+`attr(expected, 'contrasts')` is a list
+
+
+── 4. Failure ('test-julia-joint-finite-prepare.R:31:7'): finite predictor prepa
+Expected `p$X_mu_state[seq(k, n * K, by = K), ]` to equal `unname(X)`.
+Differences:
+`attr(actual, 'assign')` is absent
+`attr(expected, 'assign')` is an integer vector (0, 1, 2, 2)
+
+`attr(actual, 'contrasts')` is absent
+`attr(expected, 'contrasts')` is a list
+
+
+── 5. Failure ('test-julia-joint-finite-prepare.R:31:7'): finite predictor prepa
+Expected `p$X_mu_state[seq(k, n * K, by = K), ]` to equal `unname(X)`.
+Differences:
+`attr(actual, 'assign')` is absent
+`attr(expected, 'assign')` is an integer vector (0, 1, 2, 2)
+
+`attr(actual, 'contrasts')` is absent
+`attr(expected, 'contrasts')` is a list
+
+
+── 6. Failure ('test-julia-joint-finite-prepare.R:31:7'): finite predictor prepa
+Expected `p$X_mu_state[seq(k, n * K, by = K), ]` to equal `unname(X)`.
+Differences:
+`attr(actual, 'assign')` is absent
+`attr(expected, 'assign')` is an integer vector (0, 1, 2, 2)
+
+`attr(actual, 'contrasts')` is absent
+`attr(expected, 'contrasts')` is a list
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one gets it right on their first try
+Error:
+! Test failures.
+Execution halted

@@ -1,0 +1,7 @@
+{
+  "timing": "post-run observation, not included in the process before/after manifest",
+  "files": {
+    "one-session.R": "42fb2a93147614687b624571787ee35e1106b5597a70a90912158fc4dfbe0db9",
+    "run.py": "f9148befd8a57f34991f8b0a842cf16f2a855ecffef52f51792094ad479af654"
+  }
+}

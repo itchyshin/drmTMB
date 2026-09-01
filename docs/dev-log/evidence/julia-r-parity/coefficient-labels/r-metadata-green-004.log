@@ -1,0 +1,17 @@
+julia-bridge-coef-labels: .........................1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-bridge-coef-labels.R:55:3'): public Julia fit stores ma
+Error in `drmTMB:::drm_julia_predict_fixed_eta(fit, "mu", dat, "training")`: `predict()` could not align the `training` design with the fitted `mu` coefficients.
+i `training` must use the same predictors as the fitted model.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_julia_predict_fixed_eta(fit, "mu", dat, "training") at test-julia-bridge-coef-labels.R:55:3
+ 2.   └─cli::cli_abort(...) at drmTMB/R/julia-bridge.R:4382:5
+ 3.     └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Keep trying!
+Error:
+! Test failures.
+Execution halted

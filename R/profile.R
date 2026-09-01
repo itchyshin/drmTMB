@@ -26,6 +26,13 @@
 #' simulation has measured their coverage; treat them as interval-feasible,
 #' not as a calibrated `level` interval (tracked as issue #802).
 #'
+#' Modelled missing-predictor bootstrap is not yet implemented: it requires
+#' joint predictor simulation and refits that preserve the imputation model and
+#' missingness pattern. Such requests fail before simulation. Positive predictor
+#' scales use log-scale Wald intervals transformed by exp(); predictor mixture
+#' probabilities use logit-scale intervals transformed by plogis(). Public
+#' covariance and summary standard errors remain on the reported natural scale.
+#'
 #' Target names follow the profile target namespace. For fixed effects, use
 #' names such as `"fixef:mu:x"`, `"fixef:sigma:(Intercept)"`, or
 #' `"fixef:rho12:w"`. Compact coefficient labels from `summary(fit)`, such as
@@ -1212,6 +1219,7 @@ profile_transform_values <- function(values, target) {
     linear_predictor = values,
     ordered_cutpoint = values,
     exp = exp(values),
+    plogis = stats::plogis(values),
     tanh = DRM_CORR_GUARD * tanh(values),
     rho12_tanh = rho_response(values),
     values
@@ -1484,7 +1492,9 @@ drm_profile_targets <- function(object) {
 
   for (dpar in names(object$coefficients)) {
     beta <- object$coefficients[[dpar]]
-    internal <- profile_fixef_internal(dpar)
+    transformed <- profile_missing_predictor_transform(dpar, object)
+    internal <- if (is.null(transformed)) profile_fixef_internal(dpar, object) else transformed$internal
+    transformation <- if (is.null(transformed)) "linear_predictor" else transformed$transformation
     indices <- next_indices(internal, length(beta))
     add_rows(lapply(seq_along(beta), function(i) {
       status <- profile_direct_target_status(
@@ -1500,9 +1510,13 @@ drm_profile_targets <- function(object) {
         tmb_parameter = internal,
         index = indices[[i]],
         estimate = unname(beta[[i]]),
-        link_estimate = unname(beta[[i]]),
-        scale = "link",
-        transformation = "linear_predictor",
+        link_estimate = if (is.null(transformed)) unname(beta[[i]]) else {
+          positions <- which(names(object$opt$par) == internal)
+          if (length(positions) >= indices[[i]]) unname(object$opt$par[positions[indices[[i]]]]) else
+            switch(transformation, exp = log(unname(beta[[i]])), plogis = stats::qlogis(unname(beta[[i]])))
+        },
+        scale = if (is.null(transformed)) "link" else "response",
+        transformation = transformation,
         target_type = "direct",
         profile_ready = status$profile_ready,
         profile_note = status$profile_note
@@ -1521,7 +1535,7 @@ drm_profile_targets <- function(object) {
         identical(names(beta), "(Intercept)") &&
         identical(drm_dpar_link(object, dpar), "log")
     ) {
-      internal <- profile_fixef_internal(dpar)
+      internal <- profile_fixef_internal(dpar, object)
       status <- profile_direct_target_status(object, internal, 1L)
       add_rows(list(new_profile_target_row(
         parm = dpar,
@@ -1915,7 +1929,7 @@ drm_profile_response_newdata_confint <- function(
     )
   }
 
-  internal <- profile_fixef_internal(dpar)
+  internal <- profile_fixef_internal(dpar, object)
   par_names <- names(object$opt$par)
   positions <- which(par_names == internal)
   if (length(positions) < ncol(X)) {
@@ -2479,6 +2493,17 @@ registry_sd_target_group_count <- function(target, registry) {
 # correlation boundary, where the symmetric Wald interval is unreliable. Scoped
 # by `target_class`: random-effect / structured SDs near zero and any correlation
 # near +/-1, but NOT the residual or distributional scale (regular asymptotics).
+profile_sd_boundary_rows <- function(targets) {
+  is_sd <- grepl("-sd$", targets$target_class)
+  # These public summaries stay fixed-effect rows so coef()/vcov() retain them,
+  # but their raw parameters are random-effect SDs, not regular residual scales.
+  if (!is.null(targets$tmb_parameter)) {
+    is_sd <- is_sd | (targets$target_class == "fixed-effect" &
+      targets$tmb_parameter %in% c("log_sd_mi_group", "log_sd_mi_struct"))
+  }
+  is_sd
+}
+
 wald_boundary_targets <- function(
   targets,
   sd_boundary = 1e-4,
@@ -2489,7 +2514,7 @@ wald_boundary_targets <- function(
   }
   target_class <- targets$target_class
   estimate <- targets$estimate
-  is_sd <- grepl("-sd$", target_class)
+  is_sd <- profile_sd_boundary_rows(targets)
   is_correlation <- grepl("correlation", target_class)
   finite <- is.finite(estimate)
   (is_sd & finite & estimate < sd_boundary) |
@@ -2511,7 +2536,7 @@ bootstrap_boundary_share_at <- function(
     return(0)
   }
   target_class <- target$target_class
-  if (grepl("-sd$", target_class)) {
+  if (profile_sd_boundary_rows(target)) {
     return(mean(values < sd_boundary))
   }
   if (grepl("correlation", target_class)) {
@@ -2557,6 +2582,13 @@ drm_bootstrap_confint <- function(
 ) {
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
+  if (isTRUE(object$model$missing_predictor$enabled) ||
+      isTRUE(object$model$missing_predictor2$enabled)) {
+    cli::cli_abort(c(
+      "Bootstrap intervals for modelled missing predictors require joint predictor simulation and missingness-preserving refits.",
+      "i" = "That workflow is not implemented; use Wald or a validated profile target while joint bootstrap remains under development."
+    ), class = "drmTMB_joint_bootstrap_unavailable")
+  }
   plan <- bootstrap_parallel_plan(R, parallel = parallel, workers = workers)
   refit_control <- bootstrap_refit_control(refit_control)
   if (nrow(targets) == 0L) {
@@ -2961,7 +2993,7 @@ wald_supported_targets <- function(targets) {
         "residual-correlation"
       ) &
     targets$transformation %in%
-      c("linear_predictor", "exp", "tanh", "rho12_tanh")
+      c("linear_predictor", "exp", "plogis", "tanh", "rho12_tanh")
 }
 
 bootstrap_supported_targets <- function(targets) {
@@ -4323,6 +4355,7 @@ profile_transform_interval <- function(interval, target) {
     target$transformation,
     linear_predictor = interval,
     exp = exp(interval),
+    plogis = stats::plogis(interval),
     tanh = DRM_CORR_GUARD * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
@@ -4525,6 +4558,7 @@ validate_profile_targets <- function(targets) {
   allowed_transformations <- c(
     "linear_predictor",
     "exp",
+    "plogis",
     "rho12_tanh",
     "tanh",
     "variance_ratio",
@@ -4550,7 +4584,51 @@ validate_profile_targets <- function(targets) {
   targets
 }
 
-profile_fixef_internal <- function(dpar) {
+# Public missing-predictor summaries are already on their natural scale.
+# Keep exact model metadata separate from ordinary coefficient name mapping.
+profile_missing_predictor_transform <- function(dpar, object) {
+  for (slot in seq_len(2L)) {
+    key <- if (slot == 1L) "missing_predictor" else "missing_predictor2"
+    predictor <- object$model[[key]]
+    variable <- predictor$variable
+    if (!is.character(variable) || length(variable) != 1L || is.na(variable)) next
+    descriptor <- function(internal, transformation = "exp") {
+      list(internal = internal, transformation = transformation)
+    }
+    scale_families <- c("gaussian", "beta", "zero_one_beta", "beta_binomial",
+      "lognormal", "gamma", "nbinom2", "truncated_nbinom2", "tweedie")
+    if (identical(dpar, paste0("sigma_mi_", variable)) &&
+        isTRUE(predictor$family %in% scale_families)) {
+      return(descriptor(if (slot == 1L) "log_sigma_mi" else "log_sigma_mi2"))
+    }
+    if (slot != 1L) next
+    if (identical(predictor$family, "zero_one_beta")) {
+      if (identical(dpar, paste0("zoi_mi_", variable))) return(descriptor("beta_zoi", "plogis"))
+      if (identical(dpar, paste0("coi_mi_", variable))) return(descriptor("beta_coi", "plogis"))
+    }
+    if (isTRUE(predictor$random$enabled) &&
+        identical(dpar, paste0("sd_mi_group_", variable))) return(descriptor("log_sd_mi_group"))
+    if (isTRUE(predictor$structured$enabled) &&
+        identical(dpar, paste0("sd_mi_", predictor$structured$type, "_", variable))) {
+      return(descriptor("log_sd_mi_struct"))
+    }
+  }
+  NULL
+}
+
+profile_fixef_internal <- function(dpar, object = NULL) {
+  # Public blocks use the variable name; native parameters use model slots.
+  # Match exact stored metadata, not a prefix (positive scales and mixture
+  # probabilities have different public transformations).
+  for (slot in seq_len(2L)) {
+    key <- if (slot == 1L) "missing_predictor" else "missing_predictor2"
+    predictor <- object$model[[key]]
+    variable <- predictor$variable
+    if (is.character(variable) && length(variable) == 1L &&
+        !is.na(variable) && identical(dpar, paste0("mi_", variable))) {
+      return(if (slot == 1L) "beta_mi" else "beta_mi2")
+    }
+  }
   if (
     any(startsWith(
       dpar,

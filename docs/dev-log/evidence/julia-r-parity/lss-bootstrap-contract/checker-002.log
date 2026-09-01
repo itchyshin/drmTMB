@@ -1,0 +1,2 @@
+PASS: endpoints/counts/nobs/tree order/143 source hashes verified; masked payload mask/order runtime-only
+SELFTEST PASS: 4 damaging mutations rejected

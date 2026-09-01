@@ -2337,6 +2337,9 @@ vcov.drmTMB <- function(object, ...) {
   targets <- drm_profile_targets(object)
   targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
   matched <- match(paste0("fixef:", labels), targets$parm)
+  jacobian <- vapply(matched, function(row) {
+    if (is.na(row)) NA_real_ else summary_parameter_delta_derivative(targets[row, , drop = FALSE])
+  }, numeric(1L))
   out <- matrix(
     NA_real_,
     nrow = length(labels),
@@ -2366,7 +2369,9 @@ vcov.drmTMB <- function(object, ...) {
     for (a in ok) {
       for (b in ok) {
         if (is.na(out[a, b])) {
-          out[a, b] <- cov_src[pos[[a]], pos[[b]]]
+          # Apply the public-coordinate derivative on both axes, including
+          # cross-covariance with ordinary response/predictor coefficients.
+          out[a, b] <- jacobian[[a]] * cov_src[pos[[a]], pos[[b]]] * jacobian[[b]]
         }
       }
     }
@@ -2786,6 +2791,18 @@ deviance.drmTMB <- function(object, ...) {
 #'   `type = "quantile"`, a numeric matrix with one row per observation and
 #'   one column per `prob` (columns named as percentages, e.g. `"2.5%"`), with
 #'   `attr(., "calibrated") == FALSE`.
+#' @details
+#' For retained training data with a modelled missing predictor, prediction uses
+#' that predictor's finalized conditional plug-in in the fixed-effect design.
+#' This is a distributional-parameter prediction, not an integrated response
+#' mean, and fixed-effect covariance does not propagate imputation-parameter
+#' uncertainty through the design basis.
+#'
+#' Binary predictor labels follow the fitted encoding, regardless of the levels
+#' present in the new batch. Numeric new values match raw numeric fitted labels;
+#' for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
+#' If distinct labels become identical as numbers (for example, "01" and "1"),
+#' supply character or factor values to preserve their identity.
 #' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
 #'   [exceedance()]
 #'
@@ -4834,6 +4851,7 @@ summary_parameter_delta_derivative <- function(target) {
     target$transformation[[1L]],
     linear_predictor = 1,
     exp = exp(eta),
+    plogis = stats::plogis(eta) * stats::plogis(-eta),
     tanh = 0.999999 * (1 - tanh(eta)^2),
     rho12_tanh = 0.999999 * (1 - tanh(eta)^2),
     NA_real_
@@ -5157,9 +5175,237 @@ drm_summary_print_derived <- function(derived) {
   out
 }
 
+drm_missing_predictor_prediction_entries <- function(object, dpar) {
+  if (!identical(dpar, "mu")) {
+    return(list())
+  }
+  missing_data <- object$missing_data
+  if (!is.list(missing_data) || is.null(missing_data$predictors)) {
+    return(list())
+  }
+  predictors <- missing_data$predictors
+  predictor_names <- names(predictors)
+  if (!is.list(predictors) || length(predictor_names) != length(predictors) ||
+      anyNA(predictor_names) || any(!nzchar(predictor_names))) {
+    cli::cli_abort("Missing-predictor prediction metadata must be a named list.")
+  }
+  for (entry in predictors) {
+    if (!is.list(entry) || !is.character(entry$variable) ||
+        length(entry$variable) != 1L || is.na(entry$variable) || !nzchar(entry$variable) ||
+        !is.character(entry$family) || length(entry$family) != 1L ||
+        is.na(entry$family) || !nzchar(entry$family)) {
+      cli::cli_abort("Missing-predictor prediction metadata has an invalid variable or family.")
+    }
+  }
+  predictors
+}
+
+drm_prediction_binary_values <- function(value, variable, levels) {
+  if (length(levels) != 2L || anyNA(levels) || any(!nzchar(levels)) ||
+      anyDuplicated(levels) || anyNA(value)) {
+    cli::cli_abort("Binary missing-predictor prediction metadata or values are incomplete.")
+  }
+  if (is.factor(value) || is.character(value)) {
+    labels <- as.character(value)
+    unknown <- setdiff(unique(labels), levels)
+    if (length(unknown) > 0L) {
+      cli::cli_abort(c(
+        "New prediction data contains unknown binary predictor level{?s} for {.var {variable}}.",
+        "i" = "Unknown level{?s}: {.val {unknown}}.",
+        "i" = "Fitted level{?s}: {.val {levels}}."
+      ))
+    }
+    return(as.numeric(match(labels, levels) - 1L))
+  }
+  if (is.logical(value)) {
+    if (!identical(levels, c("FALSE", "TRUE")) && !identical(levels, c("0", "1"))) {
+      cli::cli_abort("Logical binary prediction values do not match the fitted predictor levels.")
+    }
+    return(as.numeric(value))
+  }
+  if (is.numeric(value) || is.integer(value)) {
+    if (any(!is.finite(value))) {
+      cli::cli_abort("Binary missing-predictor prediction values must be finite.")
+    }
+    numeric_levels <- suppressWarnings(as.numeric(levels))
+    if (all(is.finite(numeric_levels))) {
+      if (anyDuplicated(numeric_levels)) {
+        cli::cli_abort("Binary missing-predictor prediction metadata has ambiguous fitted numeric levels.")
+      }
+      if (any(!value %in% numeric_levels)) {
+        cli::cli_abort("Binary missing-predictor prediction values must match the fitted numeric levels.")
+      }
+      return(as.numeric(match(value, numeric_levels) - 1L))
+    }
+    if (any(!value %in% c(0, 1))) {
+      cli::cli_abort("Binary missing-predictor prediction values must be finite 0/1 values.")
+    }
+    return(as.numeric(value))
+  }
+  cli::cli_abort("Binary missing-predictor prediction values must be numeric 0/1, logical, factor, or character.")
+}
+
+drm_prepare_missing_predictor_prediction_newdata <- function(object, newdata, dpar) {
+  predictors <- drm_missing_predictor_prediction_entries(object, dpar)
+  for (entry in predictors) {
+    if (!identical(entry$family, "bernoulli")) {
+      next
+    }
+    variable <- entry$variable
+    if (!variable %in% names(newdata)) {
+      cli::cli_abort("New prediction data is missing modelled binary predictor {.var {variable}}.")
+    }
+    newdata[[variable]] <- drm_prediction_binary_values(
+      newdata[[variable]], variable, as.character(entry$levels)
+    )
+  }
+  newdata
+}
+
+drm_prepare_missing_predictor_prediction_template <- function(object, template, dpar) {
+  predictors <- drm_missing_predictor_prediction_entries(object, dpar)
+  for (entry in predictors) {
+    if (!identical(entry$family, "bernoulli") || !entry$variable %in% names(template)) {
+      next
+    }
+    if (is.factor(template[[entry$variable]])) {
+      template[[entry$variable]] <- rep.int(0, nrow(template))
+    }
+  }
+  template
+}
+
+drm_prediction_metadata_logical <- function(value, label, n) {
+  if (!is.logical(value) || length(value) != n || anyNA(value)) {
+    cli::cli_abort("Missing-predictor prediction {label} must be a complete logical vector of length {n}.")
+  }
+  value
+}
+
+drm_prediction_metadata_rows <- function(value, label) {
+  if (!is.numeric(value) || any(!is.finite(value)) || any(value != floor(value)) ||
+      any(value < 1L) || any(value > .Machine$integer.max)) {
+    cli::cli_abort("Missing-predictor prediction {label} must contain finite positive integer rows.")
+  }
+  as.integer(value)
+}
+
+drm_missing_predictor_prediction_rows <- function(entry, original_row, n) {
+  observed <- drm_prediction_metadata_logical(entry$observed, "observed metadata", n)
+  missing_rows <- which(!observed)
+  entry_model_row <- drm_prediction_metadata_rows(entry$model_row, "model-row metadata")
+  entry_original_row <- drm_prediction_metadata_rows(entry$original_row, "original-row metadata")
+  if (!identical(entry_model_row, missing_rows) ||
+      !identical(entry_original_row, original_row[missing_rows])) {
+    cli::cli_abort("Missing-predictor prediction model-row metadata does not match the stored design matrix.")
+  }
+  missing_rows
+}
+
+drm_missing_predictor_state_model <- function(object, variable) {
+  candidates <- list(
+    object$model$missing_predictor,
+    object$model$missing_predictor2
+  )
+  matches <- Filter(
+    function(model) {
+      is.list(model) && isTRUE(model$enabled) && identical(model$variable, variable)
+    },
+    candidates
+  )
+  if (length(matches) != 1L) {
+    cli::cli_abort("Missing-predictor state metadata has no unique fitted predictor model.")
+  }
+  matches[[1L]]
+}
+
+drm_reconcile_missing_predictor_state_matrix <- function(
+  object,
+  X,
+  entry,
+  original_row,
+  n
+) {
+  model <- drm_missing_predictor_state_model(object, entry$variable)
+  n_state <- model$n_state
+  levels <- as.character(model$levels)
+  if (!is.numeric(n_state) || length(n_state) != 1L || is.na(n_state) ||
+      n_state < 2L || n_state != floor(n_state) || length(levels) != n_state ||
+      anyNA(levels) || any(!nzchar(levels)) || anyDuplicated(levels)) {
+    cli::cli_abort("Missing-predictor state metadata has invalid fitted state levels.")
+  }
+  missing_rows <- drm_missing_predictor_prediction_rows(entry, original_row, n)
+  entry_levels <- as.character(entry$levels)
+  if (!identical(entry_levels, levels) || !identical(entry$n_state, as.integer(n_state))) {
+    cli::cli_abort("Missing-predictor state metadata does not match the fitted states.")
+  }
+  probability <- entry$conditional_probabilities
+  if (!is.matrix(probability) || !identical(dim(probability), c(length(missing_rows), n_state)) ||
+      !identical(colnames(probability), levels) || any(!is.finite(probability)) ||
+      any(probability < 0)) {
+    cli::cli_abort("Missing-predictor state probabilities must be finite, row-matched, and named by fitted states.")
+  }
+  totals <- rowSums(probability)
+  if (any(!is.finite(totals)) || any(totals <= 0) || any(abs(totals - 1) > 1e-8)) {
+    cli::cli_abort("Missing-predictor state probabilities must be normalized by model row.")
+  }
+  state_X <- model$X_mu_state
+  if (!(is.matrix(state_X) || inherits(state_X, "Matrix")) ||
+      nrow(state_X) != n * n_state || ncol(state_X) != ncol(X) ||
+      !identical(colnames(state_X), colnames(X)) ||
+      any(!is.finite(state_X))) {
+    cli::cli_abort("Missing-predictor state design must be observation-major and align with the fitted mu design.")
+  }
+  for (i in seq_along(missing_rows)) {
+    row <- missing_rows[[i]]
+    state_rows <- (row - 1L) * n_state + seq_len(n_state)
+    X[row, ] <- as.numeric(crossprod(probability[i, ] / totals[[i]], state_X[state_rows, , drop = FALSE]))
+  }
+  X
+}
+
+drm_reconcile_missing_predictor_matrix <- function(object, X, dpar) {
+  predictors <- drm_missing_predictor_prediction_entries(object, dpar)
+  if (length(predictors) == 0L) {
+    return(X)
+  }
+  n <- nrow(X)
+  missing_data <- object$missing_data
+  original_row <- drm_prediction_metadata_rows(missing_data$original_row, "original-row metadata")
+  model_row <- drm_prediction_metadata_rows(missing_data$model_row, "model-row metadata")
+  if (length(original_row) != n || length(model_row) != n ||
+      !identical(model_row, seq_len(n))) {
+    cli::cli_abort("Missing-predictor prediction row metadata does not match the stored design matrix.")
+  }
+  for (entry in predictors) {
+    if (entry$family %in% c("ordinal", "categorical")) {
+      X <- drm_reconcile_missing_predictor_state_matrix(
+        object, X, entry, original_row, n
+      )
+      next
+    }
+    missing_rows <- drm_missing_predictor_prediction_rows(entry, original_row, n)
+    if (!is.numeric(entry$value)) {
+      cli::cli_abort("Missing-predictor prediction values must be numeric for non-state predictor metadata.")
+    }
+    values <- as.numeric(entry$value)
+    if (length(values) != n || any(!is.finite(values[missing_rows]))) {
+      cli::cli_abort("Missing-predictor prediction values must be finite for every missing model row.")
+    }
+    column <- paste0("mi(", entry$variable, ")")
+    if (!column %in% colnames(X) || sum(colnames(X) == column) != 1L) {
+      cli::cli_abort("Missing-predictor prediction metadata has no unique {.code {column}} design column.")
+    }
+    X[missing_rows, column] <- values[missing_rows]
+  }
+  X
+}
+
 drm_prediction_matrix <- function(object, newdata, dpar) {
   if (is.null(newdata)) {
-    return(object$model$X[[dpar]])
+    return(drm_reconcile_missing_predictor_matrix(
+      object, object$model$X[[dpar]], dpar
+    ))
   }
   if (!is.data.frame(newdata)) {
     cli::cli_abort("{.arg newdata} must be a data frame.")
@@ -5239,10 +5485,12 @@ drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
   if (!is.data.frame(newdata)) {
     return(newdata)
   }
+  newdata <- drm_prepare_missing_predictor_prediction_newdata(object, newdata, dpar)
   template <- drm_prediction_template_data(object, dpar)
   if (!is.data.frame(template)) {
     return(newdata)
   }
+  template <- drm_prepare_missing_predictor_prediction_template(object, template, dpar)
 
   drm_prepare_model_matrix_newdata(
     newdata = newdata,

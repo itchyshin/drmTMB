@@ -1,0 +1,26 @@
+R version 4.6.0 (2026-04-24) 
+    check_pkg <- function(pkg, pkgname, pkgoutdir, startdir, 
+        libdir, desc, is_base_pkg, is_rec_pkg, subdirs, extra_arch) {
+        Sys.setenv(`_R_CHECK_PACKAGE_NAME_` = pkgname)
+        on.exit(Sys.unsetenv("_R_CHECK_PACKAGE_NAME_"))
+        checkingLog(Log, "package directory") 
+        libdir, desc, is_base_pkg, is_rec_pkg, subdirs, extra_arch) {
+        Sys.setenv(`_R_CHECK_PACKAGE_NAME_` = pkgname)
+        on.exit(Sys.unsetenv("_R_CHECK_PACKAGE_NAME_"))
+        checkingLog(Log, "package directory")
+        setwd(startdir) 
+        if (!is_base_pkg && dir.exists(dir <- file.path(pkgdir, 
+            "inst", "doc"))) {
+            rcp <- Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA_character_)
+            rcl <- Sys.getenv("_R_CHECK_LICENSE_")
+            if (!is.na(rcp))  
+            rcl <- Sys.getenv("_R_CHECK_LICENSE_")
+            if (!is.na(rcp)) 
+                Sys.unsetenv("_R_CHECK_PACKAGE_NAME_")
+            if (tolower(rcl) == "true") 
+                Sys.setenv(`_R_CHECK_LICENSE_` = "false") 
+                Sys.setenv(`_R_CHECK_LICENSE_` = rcl)
+            if (!is.na(rcp)) 
+                Sys.setenv(`_R_CHECK_PACKAGE_NAME_` = rcp)
+            if (nb <- length(bad_vignettes)) {
+                if (!any)  

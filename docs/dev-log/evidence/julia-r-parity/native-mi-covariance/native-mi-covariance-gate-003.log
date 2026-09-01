@@ -1,0 +1,13 @@
+APPROVAL REQUIRED leaf-S9-native-mi-covariance:G1
+    CHECK: OPENBLAS_NUM_THREADS=1 Rscript -e 'pkgload::load_all(quiet=TRUE,recompile=FALSE); testthat::test_file("tests/testthat/test-missing-predictor-public-covariance.R",stop_on_failure=TRUE); cat("NATIVE_MI_COVARIANCE_PASS\n")'
+    EXPECT: NATIVE_MI_COVARIANCE_PASS
+    CWD: /private/tmp/drm-parity-20260830/drmTMB
+    SHELL: /bin/sh
+    PATH: /opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.13/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/opt/X11/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/usr/local/share/dotnet:~/.dotnet/tools:/Users/z3437171/.codex/tmp/arg0/codex-arg02PZEgp:/Users/z3437171/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/z3437171/.antigravity-ide/antigravity-ide/bin:/Users/z3437171/.antigravity/antigravity/bin:/Users/z3437171/miniconda3/bi...
+    APPROVED: /Users/z3437171/.unlazy/approved/44cdb02cb898287d0c6215793adb8fb8c59e86dc5285a71d9374aab18ae968f3.json
+  RUN  leaf-S9-native-mi-covariance:G1 shell=/bin/sh cwd=/private/tmp/drm-parity-20260830/drmTMB PATH=/opt/local/bin:/opt/local/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.13/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/opt/X11/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/usr/local/share/dotnet:~/.dotnet/tools:/Users/z3437171/.codex/tmp/arg0/codex-arg02PZEgp:/Users/z3437171/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/z3437171/.antigravity-ide/antigravity-ide/bin:/Users/z3437171/.antigravity/antigravity/bin:/Users/z3437171/miniconda3/bi...
+  PASS leaf-S9-native-mi-covariance:G1: Regression covariance tests pass after recorded RED
+       exit=0; EXPECT=matched; output=[ FAIL 0 | WARN 0 | SKIP 0 | PASS 101 ] Done! | NATIVE_MI_COVARIANCE_PASS
+leaf-S9-native-mi-covariance.md: 2 gates
+UNMET: 1 (met: 1)
+  leaf-S9-native-mi-covariance:G2

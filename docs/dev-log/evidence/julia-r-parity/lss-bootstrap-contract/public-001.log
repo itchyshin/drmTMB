@@ -1,0 +1,11 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+Warning message:
+In system2(file.path(.julia$bin_dir, "julia"), shQuote(command),  :
+  running command ''/Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia' '--startup-file=no' '/Users/z3437171/Library/R/arm64/4.6/library/JuliaCall/julia/install_dependency.jl' '/Library/Frameworks/R.framework/Resources' 2>&1' had status 1
+JULIA_LSS_BOOTSTRAP_PUBLIC_FAIL elapsed=8.875
+Julia exit.
+  Activating project at `/private/tmp/drm-parity-20260830/DRM.jl`

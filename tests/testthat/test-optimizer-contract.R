@@ -939,7 +939,7 @@ test_that("reported parameters are split from the selected optimum", {
     control = list(eval.max = 100, iter.max = 100)
   )
 
-  par_list <- fit$obj$env$parList(fit$opt$par)
+  par_list <- selected_tmb_par_list(fit)
   expect_equal(
     fit$coefficients,
     drmTMB:::split_tmb_parameters(

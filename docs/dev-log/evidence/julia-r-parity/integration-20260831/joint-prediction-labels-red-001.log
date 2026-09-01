@@ -1,0 +1,27 @@
+
+══ Testing test-julia-joint-prediction-labels.R ════════════════════════════════
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 3 ]
+[ FAIL 1 | WARN 0 | SKIP 0 | PASS 3 ]
+
+── Error ('test-julia-joint-prediction-labels.R:106:3'): joint Julia newdata preserves punctuated factor and interaction labels ──
+Error in `drm_julia_predict_fixed_eta(design_object, dpar, newdata, "newdata")`: `predict()` could not align the `newdata` design with the fitted `mu` coefficients.
+i `newdata` must use the same predictors as the fitted model.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-joint-prediction-labels.R:106:3
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fixture$fit, newdata = newdata, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia_joint(...)
+ 6.   └─drmTMB:::drm_julia_predict_fixed_eta(design_object, dpar, newdata, "newdata") at drmTMB/R/julia-joint-methods.R:517:3
+ 7.     └─cli::cli_abort(...) at drmTMB/R/julia-bridge.R:4296:5
+ 8.       └─rlang::abort(...)
+
+[ FAIL 1 | WARN 0 | SKIP 0 | PASS 3 ]
+Error:
+! Test failures.
+Execution halted

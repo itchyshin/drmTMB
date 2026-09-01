@@ -1,0 +1,591 @@
+
+══ Testing test-missing-predictor-transformed-covariance.R ═════════════════════
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 3 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 4 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 5 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 6 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 7 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 8 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 9 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 10 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 11 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 12 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 13 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 14 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 15 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 16 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 17 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 18 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 19 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 20 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 1 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 2 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 3 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 4 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 5 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 6 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 22 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 23 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 24 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 25 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 26 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 27 ]
+[ FAIL 7 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 8 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 9 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 10 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 11 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 12 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 13 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 14 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 15 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 16 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 16 | WARN 0 | SKIP 0 | PASS 29 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 29 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 30 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 31 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 32 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 33 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 34 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 35 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 36 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 37 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 38 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 39 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 40 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 41 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 42 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 43 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 44 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 45 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 46 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 47 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 48 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 49 ]
+[ FAIL 17 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 18 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 19 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 20 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 21 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 22 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 23 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 24 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 25 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 26 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 27 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 28 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 29 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 30 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 31 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 32 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 33 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 34 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 35 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 36 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 37 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 38 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 39 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 40 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 40 | WARN 0 | SKIP 0 | PASS 51 ]
+[ FAIL 41 | WARN 0 | SKIP 0 | PASS 51 ]
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$tmb_parameter[take]` to equal `rep(raw_names[[j]], length(pos))`.
+Differences:
+`actual`:   "beta_sigma_mi_body_mass"
+`expected`: "log_sigma_mi"           
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:16:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$transformation[take]` to equal `rep(fun, length(pos))`.
+Differences:
+`actual`:   "linear_predictor"
+`expected`: "exp"             
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:17:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$link_estimate[take]` to equal `eta`.
+Differences:
+  `actual`:  0.6
+`expected`: -0.5
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(target$link_estimate[take], eta, tolerance = 1e-12) at test-missing-predictor-transformed-covariance.R:18:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$scale[take]` to equal `rep(if (fun == "linear_predictor") "link" else "response", length(pos))`.
+Differences:
+`actual`:   "link"    
+`expected`: "response"
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:19:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `all(target$profile_ready[take])` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_true(all(target$profile_ready[take])) at test-missing-predictor-transformed-covariance.R:20:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `ci$lower` to equal `unname(forward(eta - rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.5
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:24:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `ci$upper` to equal `unname(forward(eta + rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.7
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:25:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$tmb_parameter[take]` to equal `rep(raw_names[[j]], length(pos))`.
+Differences:
+`actual`:   "beta_sigma_mi_temperature"
+`expected`: "log_sigma_mi2"            
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:16:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$transformation[take]` to equal `rep(fun, length(pos))`.
+Differences:
+`actual`:   "linear_predictor"
+`expected`: "exp"             
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:17:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$link_estimate[take]` to equal `eta`.
+Differences:
+  `actual`:  0.5
+`expected`: -0.7
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(target$link_estimate[take], eta, tolerance = 1e-12) at test-missing-predictor-transformed-covariance.R:18:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `target$scale[take]` to equal `rep(if (fun == "linear_predictor") "link" else "response", length(pos))`.
+Differences:
+`actual`:   "link"    
+`expected`: "response"
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:19:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `all(target$profile_ready[take])` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_true(all(target$profile_ready[take])) at test-missing-predictor-transformed-covariance.R:20:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `ci$lower` to equal `unname(forward(eta - rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.5
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:24:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `ci$upper` to equal `unname(forward(eta + rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.6
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:25:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `all(is.finite(V[publicpos, publicpos]))` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_true(all(is.finite(V[publicpos, publicpos]))) at test-missing-predictor-transformed-covariance.R:29:3
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `unname(V[publicpos, publicpos, drop = FALSE])` to equal `unname(expected)`.
+Differences:
+actual vs expected
+                         [, 1]         [, 2]         [, 3]         [, 4]         [, 5]         [, 6]         [, 7]         [, 8]         [, 9]         [,10]         [,11]
+- actual[1, ]     4.850382e-03 -1.877442e-03  2.247579e-03 -5.262303e-04  1.065511e-04 -1.865129e-04  4.726242e-06            NA  6.953902e-05 -1.135926e-05            NA
++ expected[1, ]   4.850382e-03 -1.877442e-03  2.247579e-03 -5.262303e-04  1.065511e-04 -1.865129e-04  4.726242e-06  1.908720e-06  6.953902e-05 -1.135926e-05  1.536739e-07
+- actual[2, ]    -1.877442e-03  1.254705e-02 -2.270127e-03 -3.053539e-03 -3.712943e-04  3.213514e-05  3.161235e-05            NA  2.425569e-05  7.603620e-05            NA
++ expected[2, ]  -1.877442e-03  1.254705e-02 -2.270127e-03 -3.053539e-03 -3.712943e-04  3.213514e-05  3.161235e-05 -1.158806e-04  2.425569e-05  7.603620e-05  2.248182e-05
+- actual[3, ]     2.247579e-03 -2.270127e-03  1.751583e-02 -6.455503e-03  3.998656e-04 -1.079808e-04  1.759260e-05            NA -2.801542e-05 -1.456136e-04            NA
++ expected[3, ]   2.247579e-03 -2.270127e-03  1.751583e-02 -6.455503e-03  3.998656e-04 -1.079808e-04  1.759260e-05 -2.360186e-05 -2.801542e-05 -1.456136e-04  1.309803e-05
+- actual[4, ]    -5.262303e-04 -3.053539e-03 -6.455503e-03  8.616807e-03 -3.088113e-05  4.077085e-05 -1.106152e-04            NA  1.828527e-05  7.267957e-05            NA
++ expected[4, ]  -5.262303e-04 -3.053539e-03 -6.455503e-03  8.616807e-03 -3.088113e-05  4.077085e-05 -1.106152e-04  2.725308e-05  1.828527e-05  7.267957e-05 -3.996728e-06
+- actual[5, ]     1.065511e-04 -3.712943e-04  3.998656e-04 -3.088113e-05  4.422318e-03 -2.346809e-05 -3.850434e-05            NA -7.397693e-06 -3.948404e-05            NA
++ expected[5, ]   1.065511e-04 -3.712943e-04  3.998656e-04 -3.088113e-05  4.422318e-03 -2.346809e-05 -3.850434e-05 -2.571639e-05 -7.397693e-06 -3.948404e-05 -1.636354e-05
+- actual[6, ]    -1.865129e-04  3.213514e-05 -1.079808e-04  4.077085e-05 -2.346809e-05  3.245473e-03 -1.557430e-04            NA -2.734602e-06  5.560475e-07            NA
++ expected[6, ]  -1.865129e-04  3.213514e-05 -1.079808e-04  4.077085e-05 -2.346809e-05  3.245473e-03 -1.557430e-04  1.264218e-05 -2.734602e-06  5.560475e-07 -3.669595e-08
+- actual[7, ]     4.726242e-06  3.161235e-05  1.759260e-05 -1.106152e-04 -3.850434e-05 -1.557430e-04  3.679736e-03            NA -1.316332e-07 -3.716544e-07            NA
++ expected[7, ]   4.726242e-06  3.161235e-05  1.759260e-05 -1.106152e-04 -3.850434e-05 -1.557430e-04  3.679736e-03  2.318805e-05 -1.316332e-07 -3.716544e-07  6.031412e-08
+- actual[8, ]               NA            NA            NA            NA            NA            NA            NA            NA            NA            NA            NA
++ expected[8, ]   1.908720e-06 -1.158806e-04 -2.360186e-05  2.725308e-05 -2.571639e-05  1.264218e-05  2.318805e-05  1.634279e-03 -3.737834e-07 -3.203967e-07 -1.872673e-07
+- actual[9, ]     6.953902e-05  2.425569e-05 -2.801542e-05  1.828527e-05 -7.397693e-06 -2.734602e-06 -1.316332e-07            NA  2.377261e-03 -7.597642e-05            NA
++ expected[9, ]   6.953902e-05  2.425569e-05 -2.801542e-05  1.828527e-05 -7.397693e-06 -2.734602e-06 -1.316332e-07 -3.737834e-07  2.377261e-03 -7.597642e-05  3.500018e-06
+- actual[10, ]   -1.135926e-05  7.603620e-05 -1.456136e-04  7.267957e-05 -3.948404e-05  5.560475e-07 -3.716544e-07            NA -7.597642e-05  2.684665e-03            NA
++ expected[10, ] -1.135926e-05  7.603620e-05 -1.456136e-04  7.267957e-05 -3.948404e-05  5.560475e-07 -3.716544e-07 -3.203967e-07 -7.597642e-05  2.684665e-03  1.841018e-05
+and 1 more ...
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:30:3
+
+── Failure ('test-missing-predictor-transformed-covariance.R:46:3'): two Gaussian predictor scales transform both covariance axes and log-Wald intervals ──
+Expected `...[]` to equal `unname(sqrt(diag(expected)))`.
+Differences:
+  `actual`:  NA  NA  NA  NA  NA  NA  NA  NA  NA  NA and 1 more...
+`expected`: 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.0 0.0 0.1           ...
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:46:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:33:3
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$tmb_parameter[take]` to equal `rep(raw_names[[j]], length(pos))`.
+Differences:
+`actual`:   "beta_sigma_mi_cover"
+`expected`: "log_sigma_mi"       
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:16:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$transformation[take]` to equal `rep(fun, length(pos))`.
+Differences:
+`actual`:   "linear_predictor"
+`expected`: "exp"             
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:17:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$link_estimate[take]` to equal `eta`.
+Differences:
+  `actual`:  0.3
+`expected`: -1.1
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(target$link_estimate[take], eta, tolerance = 1e-12) at test-missing-predictor-transformed-covariance.R:18:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$scale[take]` to equal `rep(if (fun == "linear_predictor") "link" else "response", length(pos))`.
+Differences:
+`actual`:   "link"    
+`expected`: "response"
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:19:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `all(target$profile_ready[take])` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_true(all(target$profile_ready[take])) at test-missing-predictor-transformed-covariance.R:20:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `ci$lower` to equal `unname(forward(eta - rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.3
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:24:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `ci$upper` to equal `unname(forward(eta + rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.4
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:25:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$tmb_parameter[take]` to equal `rep(raw_names[[j]], length(pos))`.
+Differences:
+`actual`:   "beta_zoi_mi_cover"
+`expected`: "beta_zoi"         
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:16:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$transformation[take]` to equal `rep(fun, length(pos))`.
+Differences:
+`actual`:   "linear_predictor"
+`expected`: "plogis"          
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:17:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$link_estimate[take]` to equal `eta`.
+Differences:
+  `actual`:  0.2
+`expected`: -1.5
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(target$link_estimate[take], eta, tolerance = 1e-12) at test-missing-predictor-transformed-covariance.R:18:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$scale[take]` to equal `rep(if (fun == "linear_predictor") "link" else "response", length(pos))`.
+Differences:
+`actual`:   "link"    
+`expected`: "response"
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:19:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `all(target$profile_ready[take])` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_true(all(target$profile_ready[take])) at test-missing-predictor-transformed-covariance.R:20:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `ci$lower` to equal `unname(forward(eta - rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.1
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:24:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `ci$upper` to equal `unname(forward(eta + rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.3
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:25:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$tmb_parameter[take]` to equal `rep(raw_names[[j]], length(pos))`.
+Differences:
+`actual`:   "beta_coi_mi_cover"
+`expected`: "beta_coi"         
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:16:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$transformation[take]` to equal `rep(fun, length(pos))`.
+Differences:
+`actual`:   "linear_predictor"
+`expected`: "plogis"          
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:17:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$link_estimate[take]` to equal `eta`.
+Differences:
+  `actual`: 0.6575
+`expected`: 0.6523
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(target$link_estimate[take], eta, tolerance = 1e-12) at test-missing-predictor-transformed-covariance.R:18:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `target$scale[take]` to equal `rep(if (fun == "linear_predictor") "link" else "response", length(pos))`.
+Differences:
+`actual`:   "link"    
+`expected`: "response"
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:19:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `all(target$profile_ready[take])` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_true(all(target$profile_ready[take])) at test-missing-predictor-transformed-covariance.R:20:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `ci$lower` to equal `unname(forward(eta - rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.5
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:24:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `ci$upper` to equal `unname(forward(eta + rad))`.
+Differences:
+  `actual`:  NA
+`expected`: 0.8
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:25:5
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `all(is.finite(V[publicpos, publicpos]))` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_true(all(is.finite(V[publicpos, publicpos]))) at test-missing-predictor-transformed-covariance.R:29:3
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `unname(V[publicpos, publicpos, drop = FALSE])` to equal `unname(expected)`.
+Differences:
+actual vs expected
+                         [,1]          [,2]          [,3]          [,4]          [,5]          [,6]          [,7]          [,8]          [,9]
+- actual[1, ]    6.077666e-03  5.242243e-05 -1.005482e-02  1.890042e-04 -5.356027e-05 -5.376277e-05            NA            NA            NA
++ expected[1, ]  6.077666e-03  5.242243e-05 -1.005482e-02  1.890042e-04 -5.356027e-05 -5.376277e-05  5.033796e-06  2.647250e-05 -8.285508e-05
+- actual[2, ]    5.242243e-05  1.600911e-03 -2.824441e-04  1.475591e-05 -1.540854e-05 -6.330103e-05            NA            NA            NA
++ expected[2, ]  5.242243e-05  1.600911e-03 -2.824441e-04  1.475591e-05 -1.540854e-05 -6.330103e-05 -1.970677e-06 -1.004837e-05 -3.691869e-05
+- actual[3, ]   -1.005482e-02 -2.824441e-04  2.219051e-02 -4.277639e-04 -2.317210e-05  8.804816e-05            NA            NA            NA
++ expected[3, ] -1.005482e-02 -2.824441e-04  2.219051e-02 -4.277639e-04 -2.317210e-05  8.804816e-05 -1.163894e-05 -8.942804e-05 -1.174616e-04
+- actual[4, ]    1.890042e-04  1.475591e-05 -4.277639e-04  3.274300e-03  2.289356e-05 -1.914344e-05            NA            NA            NA
++ expected[4, ]  1.890042e-04  1.475591e-05 -4.277639e-04  3.274300e-03  2.289356e-05 -1.914344e-05 -7.681069e-06 -2.756068e-05  4.039444e-05
+- actual[5, ]   -5.356027e-05 -1.540854e-05 -2.317210e-05  2.289356e-05  3.602602e-03 -6.008099e-05            NA            NA            NA
++ expected[5, ] -5.356027e-05 -1.540854e-05 -2.317210e-05  2.289356e-05  3.602602e-03 -6.008099e-05  1.032974e-04 -6.302378e-07 -5.919819e-05
+- actual[6, ]   -5.376277e-05 -6.330103e-05  8.804816e-05 -1.914344e-05 -6.008099e-05  3.440526e-03            NA            NA            NA
++ expected[6, ] -5.376277e-05 -6.330103e-05  8.804816e-05 -1.914344e-05 -6.008099e-05  3.440526e-03  1.165630e-05 -3.767147e-06 -1.323122e-05
+- actual[7, ]              NA            NA            NA            NA            NA            NA            NA            NA            NA
++ expected[7, ]  5.033796e-06 -1.970677e-06 -1.163894e-05 -7.681069e-06  1.032974e-04  1.165630e-05  4.446248e-04 -7.189760e-07 -8.123120e-07
+- actual[8, ]              NA            NA            NA            NA            NA            NA            NA            NA            NA
++ expected[8, ]  2.647250e-05 -1.004837e-05 -8.942804e-05 -2.756068e-05 -6.302378e-07 -3.767147e-06 -7.189760e-07  1.064044e-03 -6.638617e-05
+- actual[9, ]              NA            NA            NA            NA            NA            NA            NA            NA            NA
++ expected[9, ] -8.285508e-05 -3.691869e-05 -1.174616e-04  4.039444e-05 -5.919819e-05 -1.323122e-05 -8.123120e-07 -6.638617e-05  8.334558e-03
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:30:3
+
+── Failure ('test-missing-predictor-transformed-covariance.R:59:3'): zero-one-beta predictor scale and probabilities have log and logit uncertainty ──
+Expected `...[]` to equal `unname(sqrt(diag(expected)))`.
+Differences:
+  `actual`:  NA  NA  NA  NA  NA  NA  NA  NA  NA
+`expected`: 0.1 0.0 0.1 0.1 0.1 0.1 0.0 0.0 0.1
+
+Backtrace:
+    ▆
+ 1. └─mi_transform_check(...) at test-missing-predictor-transformed-covariance.R:59:3
+ 2.   └─testthat::expect_equal(...) at test-missing-predictor-transformed-covariance.R:33:3
+
+[ FAIL 41 | WARN 0 | SKIP 0 | PASS 51 ]
+Error:
+! Test failures.
+Execution halted

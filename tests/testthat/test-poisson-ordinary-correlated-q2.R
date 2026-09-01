@@ -36,7 +36,7 @@ test_that("Poisson q2 parser admits only one unlabelled intercept-slope block", 
   expect_equal(fit$model$random$mu$n_terms, 2L)
   expect_equal(fit$model$random$mu$n_cors, 1L)
   expect_named(fit$corpars$mu, "cor((Intercept),x | id)")
-  raw_par <- fit$obj$env$parList(fit$opt$par)
+  raw_par <- selected_tmb_par_list(fit)
   expect_equal(
     unname(fit$corpars$mu),
     0.999999 * tanh(unname(raw_par$eta_cor_mu)),
@@ -73,7 +73,7 @@ test_that("Poisson q2 likelihood, fitted effects, and gradients use the design-1
   )
   expect_equal(fit$opt$convergence, 0L)
   expect_true(all(is.finite(c(fit$sdpars$mu, fit$corpars$mu))))
-  raw_par <- fit$obj$env$parList(fit$opt$par)
+  raw_par <- selected_tmb_par_list(fit)
   latent <- unname(raw_par$u_mu)
   values <- drmTMB:::transform_mu_random_effects(
     latent, raw_par, fit$model$random$mu, fit$model$random_scale$mu,
@@ -108,7 +108,7 @@ test_that("Poisson q2 ML recovers a correlated random intercept and slope", {
   expect_lt(abs(sd0 - sim$truth[["(Intercept)"]]), 0.30)
   expect_lt(abs(sd1 - sim$truth[["x"]]), 0.30)
   expect_lt(abs(rho_re - sim$truth[["rho"]]), 0.30)
-  raw_par <- fit$obj$env$parList(fit$opt$par)
+  raw_par <- selected_tmb_par_list(fit)
   expect_equal(rho_re, 0.999999 * tanh(unname(raw_par$eta_cor_mu)), tolerance = 1e-12)
 })
 

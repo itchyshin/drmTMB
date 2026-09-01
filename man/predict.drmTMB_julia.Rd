@@ -3,7 +3,7 @@
 \name{predict.drmTMB_julia}
 \alias{predict.drmTMB_julia}
 \alias{predict.drmTMB_julia_xfam}
-\title{Predict from a legacy Julia-bridge \code{drmTMB} fit}
+\title{Predict from a Julia-bridge \code{drmTMB} fit}
 \usage{
 \method{predict}{drmTMB_julia}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
 
@@ -16,8 +16,7 @@
 population-level (random effects set to zero).}
 
 \item{dpar}{Distributional parameter to predict. Defaults to the first
-(\code{mu}). With \code{newdata}, must be a location parameter (\code{mu} / \code{mu1} /
-\code{mu2}).}
+retained fixed-effect dpar.}
 
 \item{type}{\code{"response"} (default) or \code{"link"}.}
 
@@ -28,25 +27,27 @@ A numeric vector of predictions, length \code{nrow(newdata)} when
 \code{newdata} is supplied.
 }
 \description{
-The Julia bridge is halted/deferred future work. This compatibility method
-is for inspecting an existing \code{drmTMB_julia} object, not for a new Julia
-analysis. Use native TMB fits for new prediction work.
+This optional bridge method reconstructs predictions from the retained R
+formula, fixed-effect coefficient blocks, and training data. It covers a
+distributional parameter only when that payload and its canonical native link
+are available; it does not make a general engine-parity claim.
 }
 \details{
-With \code{newdata = NULL}, \code{predict()} returns the stored fitted values for the
-requested distributional parameter. With \code{newdata} supplied, it returns a
-\strong{population-level, fixed-effect} prediction for the location parameter
-(\code{mu} / \code{mu1} / \code{mu2}): the linear predictor \code{X \%*\% beta} built from the
-fit's fixed-effect coefficients and a design matrix constructed from
-\code{newdata} using the training-data model terms. Group-level random effects
-(phylogenetic / spatial / study) are held at \strong{zero} -- a \code{newdata} row need
-not belong to any fitted group -- so the result is the marginal mean at the
-population level, matching the native \code{\link[=predict.drmTMB]{predict.drmTMB()}} contract for
-\code{newdata}. \code{type = "link"} returns the linear predictor; \code{type = "response"}
-applies the model's inverse link.
+With \code{newdata = NULL}, \code{predict()} reconstructs a fixed-effect stored-data
+prediction, except for a validated Gaussian ordinary mean payload. The earned
+conditional routes are one scalar intercept or slope, one correlated
+intercept-and-slope component, or scalar components with distinct grouping
+variables. It refuses repeated groups, multiple correlated components, wider
+slopes, scale random effects, and structured routes. With
+\code{newdata} supplied, it returns a \strong{population-level
+fixed-effect} prediction (\code{RE = 0}) from \code{X \%*\% beta}, using the training
+data to preserve factor contrasts and column order. \code{type = "link"} returns
+the linear predictor and \code{type = "response"} applies the canonical native
+dpar link.
 
-Predicting \code{sigma} / \code{rho12} for fresh \code{newdata} is not implemented; refit
-with \code{engine = "tmb"} for those.
+Fresh-data support includes only retained fixed-effect distributional
+parameters with a recognized native link. Random-effect scale components and
+other non-dpar coefficient blocks are refused.
 
 A legacy cross-family object (\code{drmTMB_julia_xfam}) is narrower still: only
 \code{mu1} and \code{mu2} are available. Stored and new-data predictions are response

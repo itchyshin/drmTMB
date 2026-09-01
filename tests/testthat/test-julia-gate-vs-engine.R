@@ -304,7 +304,7 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
       impute = list(x = x ~ 1),
       engine = "julia"
     ),
-    "impute"
+    "predictor.*model"
   )
   expect_julia_gate(
     "base_control",
@@ -324,7 +324,7 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
       missing = miss_control(predictor = "model"),
       engine = "julia"
     ),
-    "missing.*route|impute"
+    "impute"
   )
   expect_julia_gate(
     "base_missing_response_nongaussian",

@@ -756,7 +756,7 @@ test_that("confint(method = 'bootstrap') works for a non-Gaussian (Poisson) fixe
   expect_equal(res$boot$method, "bootstrap")
 })
 
-test_that("confint(method = 'bootstrap') is refused (not crashed) for a phylo non-Gaussian fixed effect, while profile still works", {
+test_that("confint(method = 'bootstrap') works for a phylo non-Gaussian fixed effect", {
   drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
@@ -778,14 +778,11 @@ test_that("confint(method = 'bootstrap') is refused (not crashed) for a phylo no
   )
 
   expect_true(isTRUE(res$converged))
-  # bootstrap: a clear drmTMB-authored refusal, not DRM.jl's opaque
-  # "all N bootstrap replicates failed" / K-A-tree ArgumentError. Collapse
-  # whitespace first: cli::cli_abort() wraps the message across lines, so a
-  # literal multi-word regexp would be brittle against wrap width.
-  expect_true(is.character(res$boot))
-  boot_msg <- gsub("[[:space:]]+", " ", res$boot)
-  expect_match(boot_msg, "not available on a phylogenetic non-Gaussian fit")
-  # profile: unaffected by the bootstrap-only limitation.
+  expect_true(is.data.frame(res$boot))
+  expect_equal(res$boot$parm, "fixef:mu:x")
+  expect_true(is.finite(res$boot$lower) && is.finite(res$boot$upper))
+  expect_true(res$boot$lower < res$boot$upper)
+  expect_equal(res$boot$method, "bootstrap")
   expect_true(is.data.frame(res$prof))
   expect_equal(res$prof$parm, "fixef:mu:x")
   expect_true(is.finite(res$prof$lower) && is.finite(res$prof$upper))
@@ -894,4 +891,44 @@ test_that("confint() on a Poisson phylo Julia fit returns finite Wald CIs", {
 
   # The summary coefficient table carries finite standard errors.
   expect_true(all(is.finite(res$coef_table$std.error)))
+})
+
+test_that("Julia profile failures and no-crossing messages survive public R intervals", {
+  skip_if_not_installed("ape")
+  withr::local_seed(20260831)
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+  payload <- list(
+    lower = -Inf, upper = Inf,
+    status = "profile_failed",
+    message = paste0(
+      "profile endpoint solve failed: lower ",
+      "(endpoint=max_iterations; candidate=-3.0; residual=4.0)"
+    ),
+    threaded = FALSE, worker_threads = 1L, julia_threads = 1L,
+    blas_threads = 1L, elapsed = 0.1
+  )
+  testthat::local_mocked_bindings(
+    drm_julia_call_inference = function(...) payload,
+    drm_julia_call_fixef_inference = function(...) payload,
+    .package = "drmTMB"
+  )
+
+  for (target in c("fixef:mu:x", "sd:mu:phylo(1 | species)")) {
+    ci <- stats::confint(fit, parm = target, method = "profile")
+    expect_identical(ci$conf.status, "profile_failed")
+    expect_identical(ci$profile.message, payload$message)
+    expect_identical(ci$parm, target)
+    expect_identical(ci$lower, if (startsWith(target, "sd:")) 0 else -Inf)
+    expect_identical(ci$upper, Inf)
+  }
+
+  # The same infinite bounds can also mean no crossing in the searched range.
+  # Status/message, not endpoint shape, must preserve that distinction.
+  payload$status <- "profile"
+  payload$message <- "profile did not cross threshold within searched range"
+  for (target in c("fixef:mu:x", "sd:mu:phylo(1 | species)")) {
+    ci <- stats::confint(fit, parm = target, method = "profile")
+    expect_identical(ci$conf.status, "profile")
+    expect_identical(ci$profile.message, payload$message)
+  }
 })

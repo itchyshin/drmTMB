@@ -722,7 +722,7 @@ expect_poisson_labelled_q2_provider_fit <- function(fit, provider, group) {
   expect_named(fit$corpars[[provider]], expected_correlation)
   expect_true(is.finite(unname(fit$corpars[[provider]][[expected_correlation]])))
   expect_lt(abs(unname(fit$corpars[[provider]][[expected_correlation]])), 1)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
   expect_equal(
     unname(fit$corpars[[provider]][[expected_correlation]]),
@@ -872,7 +872,7 @@ test_that("Poisson phylo admits one labelled intercept-slope covariance block", 
   expect_named(fit$corpars$phylo, expected_correlation)
   expect_true(is.finite(unname(fit$corpars$phylo[[expected_correlation]])))
   expect_lt(abs(unname(fit$corpars$phylo[[expected_correlation]])), 1)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
   expect_equal(
     unname(fit$corpars$phylo[[expected_correlation]]),
@@ -1014,7 +1014,7 @@ test_that("NB2 phylo admits one labelled intercept-slope covariance block", {
   expect_named(fit$corpars$phylo, expected_correlation)
   expect_true(is.finite(unname(fit$corpars$phylo[[expected_correlation]])))
   expect_lt(abs(unname(fit$corpars$phylo[[expected_correlation]])), 1)
-  par <- fit$obj$env$parList(fit$opt$par)
+  par <- selected_tmb_par_list(fit)
   rho_parameter <- 0.999999 * tanh(par$eta_cor_phylo)
   expect_equal(
     unname(fit$corpars$phylo[[expected_correlation]]),

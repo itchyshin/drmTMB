@@ -1,0 +1,9 @@
+{
+  "owner_new_serializer_hunk": "codex:01a05261-julia-r-parity",
+  "active_lease": "parent R/",
+  "other_live_lease_found": false,
+  "overlap_foreign_serializer_hunk": false,
+  "writer_foreign_bytes": "unresolved; preserved, not claimed or staged",
+  "foreign_file_sha256": "1f3cdf0c141572529d8f4350e883f81eb11bd3bb5cae116d8fc97c58b11cb3a2",
+  "foreign_patch_sha256": "e681e73e862ccbf37e05c7429a6a9737efdabcc1e3f137b0e07af6e4414d49eb"
+}
