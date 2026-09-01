@@ -17,6 +17,10 @@ Your headline reading — close agreement at N=343 for point estimates, profile 
 bootstrap where both engines run — matches our own retained evidence, and we found nothing wrong
 with how you conducted it.
 
+One scoping note before the list: items 2–6 below are fixed on **open pull requests** (drmTMB
+#1112, DRM.jl #573) and are not yet merged to main — "fixed" means fixed on those branches, with
+the linked receipts.
+
 **Your limitations, one by one:**
 
 1. *Strictly binary phylogeny required.* Improved: DRM.jl now accepts non-binary (polytomy) trees
@@ -71,7 +75,7 @@ matches our own capability ledger, where the Julia bridge routes remain explicit
 ---
 
 ## Evidence links to attach before posting (verify merge state first)
-- drmTMB PR #1112 (alias repair + g_tol mapping + algorithm rejection; 125-test bridge suite green)
+- drmTMB PR #1112 (alias repair + g_tol mapping + algorithm rejection; bridge suite 125 PASS / 0 FAIL — retained count in docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/a1a2-summary.md)
 - DRM.jl PR #573 (route-aware bridge diagnostics; depth-scaled inits; bootstrap nonconverged-refit discard)
 - Retained matched-control fixture receipts (v1 + v2 logs, 2026-09-01)
 - Polytomy validation-contract evidence (docs/dev-log/evidence/julia-r-parity/polytomy/)
