@@ -209,9 +209,10 @@ and rerun the check before interpreting.
 
 ## Keep the boundaries visible
 
-`drmTMB()` is the primary R workflow shown here. Julia fitting remains
-future/deferred work; the current Julia methods provide compatibility for
-legacy Julia-engine objects and are not a route for a new analysis.
+`drmTMB()` is the primary R workflow shown here. Julia is an optional
+current fitting route for the documented admitted model cells. The native TMB
+engine remains the default for unsupported models, controls, and inference
+routes.
 
 This page chooses a route; it does not establish a claim tier. Before a
 substantive analysis, confirm the exact family, model component, and inference

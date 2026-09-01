@@ -2808,13 +2808,14 @@ vcov.drmTMB_julia <- function(object, ...) {
   object$vcov
 }
 
-#' Inspect legacy interval output from a halted Julia bridge
+#' Inspect interval output from a Julia bridge fit
 #'
-#' The Julia bridge is halted/deferred future work and is not a current fitting
-#' or inference route. This method is retained only for inspecting existing
-#' `drmTMB_julia` objects; use native TMB fits for new analyses.
+#' The optional Julia bridge is a current fitting and inference route for the
+#' documented admitted model cells. This method reports the supported interval
+#' targets for a `drmTMB_julia` object; use native TMB for unsupported models,
+#' controls, and inference routes.
 #'
-#' For a legacy `engine = "julia"` fit, `confint()` exposes two interval families:
+#' For an `engine = "julia"` fit, `confint()` exposes two interval families:
 #'
 #' * `method = "wald"` (the default) builds symmetric Wald intervals for the
 #'   fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
@@ -3512,11 +3513,12 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   out
 }
 
-#' Summarise a legacy Julia-bridge `drmTMB` fit
+#' Summarise a Julia-bridge `drmTMB` fit
 #'
-#' The Julia bridge is halted/deferred future work. This compatibility method
-#' inspects an existing `drmTMB_julia` object; it does not make Julia a current
-#' fitting or inference option. For new analyses, use native TMB fits.
+#' The optional Julia bridge is a current fitting route for documented admitted
+#' cells. This method reports the returned Julia fit and its available
+#' uncertainty; use native TMB for unsupported models, controls, and inference
+#' routes.
 #'
 #' Builds a fixed-effect coefficient table (estimate, standard error, z value,
 #' and two-sided p value, all on the linear-predictor / link scale) from the

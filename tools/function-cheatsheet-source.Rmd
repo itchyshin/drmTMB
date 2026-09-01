@@ -450,13 +450,14 @@ calibrated interval.
 
 ## Optional Julia engine
 
-Julia fitting is future/deferred work, not an optional route for a new
-analysis. Current Julia methods provide compatibility for legacy Julia-engine
-objects only.
+Julia is an optional current fitting route for the documented admitted
+model cells. Use `engine = "julia"` when that scope matches the analysis; the
+native TMB engine remains the default for unsupported models, controls, and
+inference routes.
 
 | Function | Use it for |
 |---|---|
-| [`rho_latent()`](../reference/rho_latent.html) | Extract the latent/link-scale correlation from a compatible legacy Julia-engine object. Julia fitting is not a current route for a new analysis. |
+| [`rho_latent()`](../reference/rho_latent.html) | Extract the latent/link-scale correlation from a legacy cross-family Julia object. Cross-family Julia fitting is not a current route. |
 
 ## What is intentionally absent
 
