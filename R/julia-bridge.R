@@ -1120,13 +1120,30 @@ drm_julia_bridge_options <- function(
     if (identical(phylo_payload$bivariate_dimension, "q2")) {
       return(finish(list(g_tol = 1e-4)))
     }
+    # The q = 4 route has its own outer optimiser. Its `drm()` method accepts
+    # `q4_g_tol`, while a generic `g_tol` keyword is otherwise ignored. It
+    # does not expose the generic solver-selection keyword at all. Translate
+    # the former and refuse the latter rather than giving a user a control
+    # setting that appears to work but has no effect (or fails in Julia).
+    q4_overrides <- control_overrides
+    if ("algorithm" %in% names(q4_overrides)) {
+      cli::cli_abort(c(
+        "The {.code engine = \"julia\"} q = 4 phylogenetic route does not support {.code optimizer$algorithm}.",
+        i = "Its dedicated optimiser has no solver-selection setting. You may tune {.code optimizer$g_tol}, which controls its q4 outer-gradient tolerance."
+      ))
+    }
+    if ("g_tol" %in% names(q4_overrides)) {
+      q4_overrides$q4_g_tol <- q4_overrides$g_tol
+      q4_overrides$g_tol <- NULL
+    }
+    q4_finish <- function(base) drm_julia_merge_options(base, q4_overrides)
     # The q=4 PLSM route uses DRM.jl's own optimizer defaults (no g_tol
     # override): the direct-fit parity check matched the bridge to 0 with
     # defaults. REML still has to be forwarded explicitly.
     if (reml) {
-      return(finish(list(method = "REML")))
+      return(q4_finish(list(method = "REML")))
     }
-    return(finish(list()))
+    return(q4_finish(list()))
   }
 
   # The sparse all-node Gaussian mean-only route needs a tighter tolerance to

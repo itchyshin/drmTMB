@@ -72,6 +72,27 @@ test_that("tuned drm_control() forwards g_tol and algorithm", {
     drm_julia_bridge_options(NULL, control_overrides = overrides),
     list(g_tol = 1e-6, algorithm = "lbfgs")
   )
+
+  # q = 4 has a separate outer optimizer tolerance. A generic `g_tol`
+  # kwarg is accepted by `drm()` but is not read by that route, so the bridge
+  # must translate the public control to its q4-specific option name.
+  expect_equal(
+    drm_julia_bridge_options(
+      bridge_q4_phylo_payload(),
+      control_overrides = list(g_tol = 1e-6)
+    ),
+    list(q4_g_tol = 1e-6)
+  )
+})
+
+test_that("q = 4 rejects algorithm controls that its optimizer cannot honour", {
+  expect_error(
+    drm_julia_bridge_options(
+      bridge_q4_phylo_payload(),
+      control_overrides = list(algorithm = "lbfgs")
+    ),
+    "q = 4.*algorithm"
+  )
 })
 
 test_that("a tuned control flows through the full bridge payload builder", {
