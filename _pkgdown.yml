@@ -213,12 +213,13 @@ reference:
       - centile_chart
       - worm_plot
       - qq_plot
-  - title: Deferred Julia bridge compatibility
-    desc: Compatibility methods for legacy Julia-engine objects; Julia fitting is not a current analysis route.
+  - title: Julia engine methods
+    desc: Post-fit methods for optional Julia-engine fits; availability depends on the admitted model and inference route.
     contents:
       - confint.drmTMB_julia
       - predict.drmTMB_julia
       - summary.drmTMB_julia
+      - julia-joint-methods
       - rho_latent
       - summary.drmTMB_julia_xfam
       - vcov.drmTMB_julia_xfam
