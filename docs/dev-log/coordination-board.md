@@ -5,6 +5,17 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-01 — R–Julia true-parity programme lane is active in Claude (Fable), continuing
+  `codex/rebase-julia-optimizer-controls` per the 2026-09-01 handover.** Landed on the branch:
+  Ayumi reply DRAFTS (unsent — 205 gate holds), matched-control q4 fixture receipts
+  (`evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/`), and a frozen-manifest programme
+  re-estimate (`plan/2026-09-01-parity-programme-estimate.md`, ~92–159 agent-h replacing the
+  un-receipted 157–297). Findings of record: the handover's "inconclusive" q4 fixture run HAD
+  completed; the matched re-run reproduces |Δ logLik| ≈ 1.6e-2 and diagnosis shows TMB at the
+  better optimum, g_tol-insensitive → **DRM.jl#575** (blocks q4 bridge promotion). Ayumi's exact
+  343-tip subset recipe located (deterministic, `R/51_batch_clade_revised_spec.R`). Public
+  scoreboard page opened on DRM.jl branch `docs/drmtmb-parity-scoreboard`; Parity Standing artifact
+  + Mission Control refreshed. No reply posted, no release motion, no campaign launched.
 - **2026-08-19 — exact 0.7.0 evidence closeout is active in Codex.** Final
   immutable candidate: source `6170fbeeea65f22444d7b0934f4e808c40744d22`,
   SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
