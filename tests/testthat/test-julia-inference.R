@@ -365,6 +365,82 @@ drm_julia_inference_synthetic_fit_with_payload <- function() {
   )
 }
 
+test_that("Julia profile targets retain both coupled location-scale phylo axes", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+  term <- "phylo(1 | species)"
+  # Coupled location-scale fits carry an axis prefix in `sdpars`; it is an
+  # internal storage detail and must not leak into the public `parm` label.
+  fit$sdpars <- list(
+    mu = stats::setNames(1.1, paste0("mu:", term)),
+    sigma = stats::setNames(0.9, paste0("sigma:", term))
+  )
+
+  targets <- drmTMB:::drm_julia_profile_targets(fit)
+  expect_equal(targets$parm, c(paste0("sd:mu:", term), paste0("sd:sigma:", term)))
+  expect_equal(targets$dpar, c("mu", "sigma"))
+  expect_equal(targets$tmb_parameter, c("resd_mu", "resd_sigma"))
+  expect_true(all(targets$profile_ready))
+
+  testthat::local_mocked_bindings(
+    drm_julia_call_inference = function(object, target, ...) {
+      expect_s3_class(object, "drmTMB_julia")
+      expect_equal(target$dpar[[1L]], "sigma")
+      expect_equal(target$tmb_parameter[[1L]], "resd_sigma")
+      list(lower = log(0.4), upper = log(1.5), status = "profile",
+           message = "profile_result completed", threaded = FALSE,
+           worker_threads = 1L, julia_threads = 1L, blas_threads = 1L, elapsed = 0.1)
+    },
+    .package = "drmTMB"
+  )
+  ci <- stats::confint(fit, parm = paste0("sd:sigma:", term), method = "profile")
+  expect_equal(ci$parm, paste0("sd:sigma:", term))
+  expect_equal(ci$lower, 0.4 * sqrt(2))
+  expect_equal(ci$upper, 1.5 * sqrt(2))
+})
+
+test_that("Julia profile targets keep an unprefixed sigma axis in its sigma block", {
+  skip_if_not_installed("ape")
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+  term <- "phylo(1 | species)"
+  # The asymmetric sigma-phylo frontend stores this axis without a `sigma:`
+  # name prefix, although DRM.jl returns the :resd_sigma parameter block.
+  fit$sdpars <- list(
+    mu = NULL,
+    sigma = stats::setNames(0.9, term)
+  )
+
+  targets <- drmTMB:::drm_julia_profile_targets(fit)
+  expect_equal(targets$parm, paste0("sd:sigma:", term))
+  expect_equal(targets$tmb_parameter, "resd_sigma")
+})
+
+test_that("Julia SD inference preserves the fitted parameter block", {
+  skip_if_not_installed("JuliaCall")
+  fit <- drm_julia_inference_synthetic_fit_with_payload()
+  setup_calls <- 0L
+  testthat::local_mocked_bindings(
+    drm_julia_setup = function(...) setup_calls <<- setup_calls + 1L,
+    .package = "drmTMB"
+  )
+  testthat::local_mocked_bindings(
+    julia_call = function(...) list(...),
+    .package = "JuliaCall"
+  )
+
+  legacy <- data.frame(dpar = "mu", tmb_parameter = "resd")
+  coupled_sigma <- data.frame(dpar = "sigma", tmb_parameter = "resd_sigma")
+  legacy_sent <- drmTMB:::drm_julia_call_inference(
+    fit, legacy, "profile", 0.95, 2L, 9001L, FALSE
+  )
+  sigma_sent <- drmTMB:::drm_julia_call_inference(
+    fit, coupled_sigma, "profile", 0.95, 2L, 9001L, FALSE
+  )
+  expect_identical(tail(legacy_sent, 1L)[[1L]], "sd:resd")
+  expect_identical(tail(sigma_sent, 1L)[[1L]], "sd:resd_sigma")
+  expect_identical(setup_calls, 2L)
+})
+
 test_that("fixed-effect coefficients become profile_ready once a bridge payload is stored", {
   skip_if_not_installed("ape")
   bare <- drm_julia_inference_synthetic_fit()
