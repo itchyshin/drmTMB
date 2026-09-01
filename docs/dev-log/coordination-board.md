@@ -5,6 +5,16 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-01 (later) — Arc P1 closed as an honest plateau checkpoint; #575 root-caused to BASIN SELECTION.**
+  Mechanism proven three ways (receipts in `evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/`):
+  DRM.jl's own objective at the TMB point beats its solver's result; polish/multistart shave ≤0.006 and
+  violate the gradient contract (reverted, not shipped — regressed #484); warm-started AT the TMB point the
+  same solver reaches −219.6034, better than TMB's −219.6140. Branches pushed: `fix/575-q4-optimum`
+  (test-first, @test_broken pin, no src change), `feat/575-objective-at` (diagnostic evaluator, TDD).
+  Rose V2 verified 7/8 and her one demote (durable evidence paths) is applied. Latent cache-corruption
+  hazard documented on #575. Prepared and GATED: bridge-promotion wave 1 (4 receipt-verified rows →
+  partial) awaiting #1112 merge; reverse-parity lane brief committed for the new Claude drmTMB lane.
+  Next fix slice: basin-selection over the REML warm start (new plan, not started).
 - **2026-09-01 — R–Julia true-parity programme lane is active in Claude (Fable), continuing
   `codex/rebase-julia-optimizer-controls` per the 2026-09-01 handover.** Landed on the branch:
   Ayumi reply DRAFTS (unsent — 205 gate holds), matched-control q4 fixture receipts
