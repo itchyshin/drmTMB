@@ -11,7 +11,7 @@ named in writing, and the ledger row promoted only if its pre-written gate passe
 
 SLICES (state · next action):
 - P0 close-out — DONE (Rose R1–R6 applied c65cc77ce; drmTMB branch pushed; DRM.jl PR #576 draft).
-- P1.1 mechanism probe — RUNNING (agent noether-p11 → scratchpad/575-mechanism.md; verdict line
+- P1.1 DONE (mode-finder/basin) · P1.2a DONE-PLATEAU (src reverted, @test_broken pinned, branch pushed) · P1.3 DONE (feat/575-objective-at pushed) · P1.4/P1.5 GATE-NOT-REACHED (no fix) · P1.6 DONE (issue+artifact+ledger) · V2 running · M2 DONE. ARC CLOSED as honest BLOCKED-on-basin checkpoint; successor work = basin-selection fix (new slice, own plan).
   MECHANISM: mode-finder | objective-translation | inconclusive).
 - P1.2a (mode-finder ⇒ Sonnet: failing test first, multistart/robust-LM on the cell) XOR
   P1.2b (objective-translation ⇒ Opus ceiling child: term-by-term REML alignment table) — fork
