@@ -142,9 +142,12 @@
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
 #'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
 #' @param engine Computational engine. The default `"tmb"` uses the native
-#'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
-#'   deferred for future work; it is retained only so existing objects and code
-#'   can be inspected, not as a current fitting route.
+#'   `drmTMB` TMB backend. The optional `"julia"` bridge is a current fitting route powered by
+#'   [DRM.jl](https://github.com/itchyshin/DRM.jl) through [JuliaCall]. It
+#'   supports the documented admitted model cells, including sparse
+#'   phylogenetic Gaussian location-scale-scale models; it does not make every
+#'   native TMB option or model family available. See
+#'   `vignette("julia-engine", package = "drmTMB")` for the current scope.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -177,11 +180,11 @@
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
 #'   (`point_fit_recovery`).
-#'   The halted `engine = "julia"` compatibility bridge is not a supported
-#'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
-#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
-#'   different fixed-effect formulas, non-binomial non-Gaussian models, and
-#'   currently unsupported extensions.
+#'   For `engine = "julia"`, REML is available only for the documented Gaussian
+#'   routes. Native TMB controls, penalties, model-selection comparisons across
+#'   different fixed-effect formulas, and unsupported extensions remain native
+#'   `engine = "tmb"` workflows; see the Julia-engine vignette for current
+#'   limits.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that

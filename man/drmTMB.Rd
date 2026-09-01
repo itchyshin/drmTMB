@@ -101,9 +101,12 @@ fixed-effect Gaussian \code{impute_model()} for a continuous missing
 predictor (k = 1; no grouped/structured predictor model, no k = 2).}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
-\code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and
-deferred for future work; it is retained only so existing objects and code
-can be inspected, not as a current fitting route.}
+\code{drmTMB} TMB backend. The optional \code{"julia"} bridge is a current fitting route powered by
+\href{https://github.com/itchyshin/DRM.jl}{DRM.jl} through \link[JuliaCall:JuliaCall]{JuliaCall}. It
+supports the documented admitted model cells, including sparse
+phylogenetic Gaussian location-scale-scale models; it does not make every
+native TMB option or model family available. See
+\code{vignette("julia-engine", package = "drmTMB")} for the current scope.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} restricts the likelihood by
@@ -137,11 +140,11 @@ evidence. Every other non-Gaussian family rejects \code{REML = TRUE}; use
 not a \code{drmTMB()} argument and is not what \code{REML = TRUE} runs. Public
 cumulative-logit random-slope fits remain maximum likelihood
 (\code{point_fit_recovery}).
-The halted \code{engine = "julia"} compatibility bridge is not a supported
-estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
-\code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
-different fixed-effect formulas, non-binomial non-Gaussian models, and
-currently unsupported extensions.}
+For \code{engine = "julia"}, REML is available only for the documented Gaussian
+routes. Native TMB controls, penalties, model-selection comparisons across
+different fixed-effect formulas, and unsupported extensions remain native
+\code{engine = "tmb"} workflows; see the Julia-engine vignette for current
+limits.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty
