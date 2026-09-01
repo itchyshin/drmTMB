@@ -1270,6 +1270,7 @@ drm_julia_call_q2_phylo_point_export <- function(
 
 drm_julia_call_inference <- function(
   object,
+  target,
   method,
   level,
   R,
@@ -1302,7 +1303,12 @@ drm_julia_call_inference <- function(
     level,
     as.integer(R),
     seed,
-    threads
+    threads,
+    if (identical(object$model$model_type, "biv_gaussian")) {
+      NULL
+    } else {
+      paste0("sd:", target$tmb_parameter[[1L]])
+    }
   )
 }
 
@@ -2088,8 +2094,8 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   )
   JuliaCall::julia_command(
     paste(
-      "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads) =",
-      "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads)"
+      "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads, parm) =",
+      "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads, parm = parm)"
     )
   )
   # Ordinary fixed-effect profile / bootstrap intervals (#460). DRM.jl has no
@@ -2414,42 +2420,36 @@ drm_julia_profile_targets <- function(object) {
     return(drm_julia_profile_targets_biv(object))
   }
 
-  # Univariate path (original behaviour): single phylo SD on dpar == "mu".
-  values <- object$sdpars$mu
-  if (is.null(values) || length(values) == 0L) {
-    return(empty_profile_targets())
-  }
-  keep <- startsWith(names(values), "phylo(")
-  if (!any(keep)) {
-    return(empty_profile_targets())
-  }
-
-  values <- values[keep]
-  term <- names(values)[[1L]]
-  scale <- drm_julia_structured_sd_scale(object, term)
-  profile_ready <- !is.null(object$bridge_payload) &&
-    !is.null(object$bridge_payload$tree)
-  out <- new_profile_target_row(
-    parm = paste0("sd:mu:", term),
-    target_class = "random-effect-sd",
-    dpar = "mu",
-    term = term,
-    tmb_parameter = "resd",
-    index = 1L,
-    estimate = unname(values[[1L]]),
-    link_estimate = log(unname(values[[1L]]) / scale),
-    scale = "response",
-    transformation = "exp",
-    target_type = "direct",
-    profile_ready = profile_ready,
-    profile_note = if (profile_ready) {
-      "ready"
-    } else {
-      "julia_bridge_payload_required"
+  rows <- list()
+  profile_ready <- !is.null(object$bridge_payload) && !is.null(object$bridge_payload$tree)
+  for (dpar in c("mu", "sigma")) {
+    values <- object$sdpars[[dpar]]
+    if (is.null(values) || length(values) == 0L) next
+    prefixed <- startsWith(names(values), paste0(dpar, ":"))
+    terms <- sub(paste0("^", dpar, ":"), "", names(values))
+    for (i in which(startsWith(terms, "phylo("))) {
+      term <- terms[[i]]
+      scale <- drm_julia_structured_sd_scale(object, term)
+      rows[[length(rows) + 1L]] <- new_profile_target_row(
+        parm = paste0("sd:", dpar, ":", term), target_class = "random-effect-sd",
+        dpar = dpar, term = term,
+        # Legacy mean-only fits use the unprefixed `resd` block. The
+        # asymmetric sigma-phylo location-scale frontend also stores its label
+        # unprefixed, but its Julia block is explicitly `resd_sigma`.
+        tmb_parameter = if (prefixed[[i]] || identical(dpar, "sigma")) {
+          paste0("resd_", dpar)
+        } else {
+          "resd"
+        },
+        index = i, estimate = unname(values[[i]]),
+        link_estimate = log(unname(values[[i]]) / scale), scale = "response",
+        transformation = "exp", target_type = "direct", profile_ready = profile_ready,
+        profile_note = if (profile_ready) "ready" else "julia_bridge_payload_required"
+      )
     }
-  )
-  row.names(out) <- NULL
-  validate_profile_targets(out)
+  }
+  length(rows) == 0L && return(empty_profile_targets())
+  out <- do.call(rbind, rows); row.names(out) <- NULL; validate_profile_targets(out)
 }
 
 # Bivariate profile targets: one row per axis (mu1, mu2, sigma1, sigma2).
@@ -2823,7 +2823,8 @@ vcov.drmTMB_julia <- function(object, ...) {
 #' * `method = "profile"` / `method = "bootstrap"` re-enter DRM.jl's inference
 #'   primitive. Two target families are supported:
 #'   - the phylogenetic SD targets, transformed back to the positive response
-#'     scale: the univariate Gaussian `sd:mu:phylo(1 | species)` target, and
+#'     scale: the univariate Gaussian `sd:mu:phylo(1 | species)` and
+#'     `sd:sigma:phylo(1 | species)` targets, and
 #'     the four bivariate q = 4 targets `sd:mu1:*`, `sd:mu2:*`, `sd:sigma1:*`,
 #'     and `sd:sigma2:*`;
 #'   - ordinary fixed-effect coefficients (`fixef:<dpar>:<coef>`, e.g.
@@ -2836,7 +2837,8 @@ vcov.drmTMB_julia <- function(object, ...) {
 #'   labels (`"mu:x"`) or full names (`"fixef:mu:x"`); for `"profile"` /
 #'   `"bootstrap"`, either a fixed-effect target such as `"fixef:mu:x"` (or
 #'   the compact `"mu:x"` alias) or a supported SD target name such as
-#'   `"sd:mu:phylo(1 | species)"` or, for q = 4 bivariate fits,
+#'   `"sd:mu:phylo(1 | species)"` / `"sd:sigma:phylo(1 | species)"` or,
+#'   for q = 4 bivariate fits,
 #'   `"sd:sigma1:phylo(1 | species)"`.
 #' @param level Confidence level.
 #' @param method `"wald"` (default), `"profile"`, or `"bootstrap"`.
@@ -2932,6 +2934,7 @@ confint.drmTMB_julia <- function(
 
   result <- drm_julia_call_inference(
     object = object,
+    target = targets[1L, , drop = FALSE],
     method = method,
     level = level,
     R = R,
@@ -3200,17 +3203,17 @@ drm_julia_validate_inference_targets <- function(targets) {
     return(invisible(NULL))
   }
 
-  # Univariate SD case: exactly 1 row, dpar == "mu", tmb_parameter == "resd".
+  # Univariate SD case: exactly one phylogenetic mean or scale axis.
   if (
     nrow(targets) != 1L ||
       !identical(targets$target_class[[1L]], "random-effect-sd") ||
-      !identical(targets$dpar[[1L]], "mu") ||
+      !targets$dpar[[1L]] %in% c("mu", "sigma") ||
       !startsWith(targets$term[[1L]], "phylo(") ||
-      !identical(targets$tmb_parameter[[1L]], "resd")
+      !targets$tmb_parameter[[1L]] %in% c("resd", "resd_mu", "resd_sigma")
   ) {
     cli::cli_abort(c(
       "Julia-engine profile and bootstrap intervals currently support one fixed-effect coefficient ({.code fixef:<dpar>:<coef>}), one Gaussian phylogenetic SD target (univariate), or all four axes (bivariate biv_gaussian).",
-      i = "Use {.code parm = \"fixef:mu:x\"} for an ordinary fixed-effect coefficient, {.code parm = \"sd:mu:phylo(1 | species)\"} for the admitted univariate SD bridge slice, or one of {.code sd:mu1:*}, {.code sd:mu2:*}, {.code sd:sigma1:*}, or {.code sd:sigma2:*} for a bivariate q = 4 bridge fit."
+      i = "Use {.code parm = \"fixef:mu:x\"} for an ordinary fixed-effect coefficient, {.code parm = \"sd:mu:phylo(1 | species)\"} or {.code parm = \"sd:sigma:phylo(1 | species)\"} for an admitted univariate SD bridge slice, or one of {.code sd:mu1:*}, {.code sd:mu2:*}, {.code sd:sigma1:*}, or {.code sd:sigma2:*} for a bivariate q = 4 bridge fit."
     ))
   }
   if (!isTRUE(targets$profile_ready[[1L]])) {
@@ -3524,8 +3527,8 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
 #' response scale.
 #'
 #' Set `conf.int = TRUE` to append Wald (default) or profile confidence-interval
-#' columns. Profile / bootstrap intervals are available only for the Gaussian
-#' phylogenetic SD target; see [confint.drmTMB_julia()].
+#' columns. Profile / bootstrap intervals are available for admitted Gaussian
+#' phylogenetic mean- and scale-axis SD targets; see [confint.drmTMB_julia()].
 #'
 #' @param object A `drmTMB_julia` fit.
 #' @param conf.int Logical; append confidence-interval columns.

@@ -1,0 +1,1 @@
+| 2026-09-01 | Julia scale-axis profile target (#1105) | focused R profile-target/bridge tests plus one live 8-tip Gaussian REML bridge probe | tests pass; live `sd:sigma:phylo(...)` reaches Julia `resd_sigma` and reports its boundary interval; broader inference gate remains open | Ada / Hopper |

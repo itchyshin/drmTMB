@@ -44,6 +44,6 @@ random-effect SD block (e.g. a phylogenetic SD) is reported on its positive
 response scale.
 
 Set \code{conf.int = TRUE} to append Wald (default) or profile confidence-interval
-columns. Profile / bootstrap intervals are available only for the Gaussian
-phylogenetic SD target; see \code{\link[=confint.drmTMB_julia]{confint.drmTMB_julia()}}.
+columns. Profile / bootstrap intervals are available for admitted Gaussian
+phylogenetic mean- and scale-axis SD targets; see \code{\link[=confint.drmTMB_julia]{confint.drmTMB_julia()}}.
 }

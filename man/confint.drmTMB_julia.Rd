@@ -22,7 +22,8 @@
 labels (\code{"mu:x"}) or full names (\code{"fixef:mu:x"}); for \code{"profile"} /
 \code{"bootstrap"}, either a fixed-effect target such as \code{"fixef:mu:x"} (or
 the compact \code{"mu:x"} alias) or a supported SD target name such as
-\code{"sd:mu:phylo(1 | species)"} or, for q = 4 bivariate fits,
+\code{"sd:mu:phylo(1 | species)"} / \code{"sd:sigma:phylo(1 | species)"} or,
+for q = 4 bivariate fits,
 \code{"sd:sigma1:phylo(1 | species)"}.}
 
 \item{level}{Confidence level.}
@@ -60,7 +61,8 @@ fixed-effect rows are also reported on the link scale.
 primitive. Two target families are supported:
 \itemize{
 \item the phylogenetic SD targets, transformed back to the positive response
-scale: the univariate Gaussian \code{sd:mu:phylo(1 | species)} target, and
+scale: the univariate Gaussian \code{sd:mu:phylo(1 | species)} and
+\code{sd:sigma:phylo(1 | species)} targets, and
 the four bivariate q = 4 targets \verb{sd:mu1:*}, \verb{sd:mu2:*}, \verb{sd:sigma1:*},
 and \verb{sd:sigma2:*};
 \item ordinary fixed-effect coefficients (\verb{fixef:<dpar>:<coef>}, e.g.

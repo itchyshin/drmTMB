@@ -391,6 +391,7 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   testthat::local_mocked_bindings(
     drm_julia_call_inference = function(
       object,
+      target,
       method,
       level,
       R,
@@ -398,6 +399,7 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
       threads
     ) {
       expect_s3_class(object, "drmTMB_julia")
+      expect_equal(target$dpar[[1L]], "mu")
       expect_equal(method, "profile")
       expect_equal(level, 0.80)
       expect_equal(R, 1L)
