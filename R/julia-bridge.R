@@ -1028,15 +1028,17 @@ drm_julia_bridge_payload <- function(
   )
 }
 
-# Modelled columns the bridge needs from `data`: every response plus every
+# Modelled columns the bridge needs from `data`: every mean response plus every
 # fixed-effect / structured predictor variable (phylo trees stripped first so a
-# tree object symbol is not looked for in `data`). Used both to column-subset the
+# tree object symbol is not looked for in `data`).  In bivariate formulae,
+# `sigma1`, `sigma2`, and `rho12` can appear on the left hand side as parameter
+# aliases; they are not response columns. Used both to column-subset the
 # marshalled data and to define the complete-case set for response = "drop".
 drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
   needed <- unique(unlist(
     lapply(formula$entries, function(entry) {
       response_cols <- character()
-      if (!is.na(entry$response)) {
+      if (!is.na(entry$response) && entry$dpar %in% c("mu", "mu1", "mu2")) {
         response_cols <- drm_julia_expand_response_columns(entry$response)
       }
       c(
