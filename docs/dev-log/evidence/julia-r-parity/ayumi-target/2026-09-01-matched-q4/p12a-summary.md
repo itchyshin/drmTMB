@@ -200,8 +200,8 @@ different starting point.
 ## Files
 
 - Test (kept, `@test_broken`): `test/test_575_q4_optimum.jl`
-- Diagnosis: `scratchpad/575-mechanism.md` (pre-existing, read first)
-- Diagnostic scripts: `scratchpad/mechanism_575.jl`,
-  `scratchpad/warmstart_575.jl`
+- Diagnosis: `575-mechanism.md (this directory)` (pre-existing, read first)
+- Diagnostic scripts: `mechanism_575.jl` (session scratch, not retained),
+  `warmstart_575.jl` (this directory)
 - Reverted-attempt backup (not shipped):
-  `scratchpad/reml_q4.jl.attempted-fix-backup`
+  session scratch (not retained; the attempts are fully described above)
