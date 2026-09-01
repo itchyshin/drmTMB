@@ -264,10 +264,22 @@ interval-coverage claim.
 
 ## Species counts, sparse solvers and parallel work
 
-**There is no universal 5,000-species limit.** Some dense Gaussian LSS paths have
-a 5,000-observation safeguard. Other routes use sparse phylogenetic precision
-matrices and have different practical limits. Species count, observation count,
-number of latent effects, and requested uncertainty all affect cost.
+**There is no universal 5,000-species limit.** The limit belongs to particular
+dense Gaussian location-scale-scale (LSS) routes, and is a limit on observations,
+not a general Julia limit.
+
+For a single phylogenetic LSS component, DRM.jl automatically chooses its sparse
+tree engine once there are more than 500 species. In direct Julia use, you can
+also request that route explicitly with `sparse = true` or
+`algorithm = :sparse_lbfgs`. The sparse route avoids constructing the dense
+species-by-species covariance matrix. A deliberately forced dense fallback, and
+the current multi-component LSS route, still stop at 5,000 observations. Repeated
+observations per species can therefore reach the dense limit before a dataset has
+5,000 species.
+
+Other sparse phylogenetic routes have different practical limits. Species count,
+observation count, number of latent effects, and requested uncertainty all affect
+cost.
 
 A dense double-precision 5,000 by 5,000 matrix alone occupies about 200 MB, before
 factorizations and temporary storage. Its storage grows quadratically and a
