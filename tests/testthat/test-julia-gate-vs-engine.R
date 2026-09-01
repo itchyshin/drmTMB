@@ -184,6 +184,19 @@ test_that("Julia capability comparison artifact matches the registry", {
   expect_equal(binomial_row$r_bridge_status, "experimental")
   expect_match(binomial_row$claim_boundary, "Workflow G|expected\\.toml|#499")
 
+  # The single-phylogeny LSS router has selected the sparse O(p) engine above
+  # 500 species since DRM.jl #551.  This R-side registry must not tell users it
+  # is future work or imply that the forced-dense 5,000-row guard applies to
+  # every Julia LSS fit.
+  lss_row <- registry[
+    registry$capability_id == "location_scale_scale",
+  ]
+  expect_equal(nrow(lss_row), 1L)
+  expect_match(lss_row$claim_boundary, "sparse O\\(p\\).*automatically")
+  expect_match(lss_row$next_action, "forced dense")
+  expect_false(grepl("underway|cap lifts", lss_row$claim_boundary, ignore.case = TRUE))
+  expect_false(grepl("underway|cap lifts", lss_row$next_action, ignore.case = TRUE))
+
   # Hopper Phase 1.5 admitted trio (DRM.jl #5) — named, not a family expansion.
   expect_true(all(
     c(

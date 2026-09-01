@@ -1,0 +1,1 @@
+| 2026-09-01 | Julia LSS sparse-capacity ledger | focused loaded-source `test-julia-gate-vs-engine.R` plus synchronized source/artifact registry check | pass; registry now distinguishes automatic sparse single-phylogeny routing from forced-dense and multi-component 5,000-observation guards | Ada / Hopper / Rose |
