@@ -74,6 +74,8 @@ test_that("drm_skip_live_julia skips on CRAN unless DRMTMB_JULIA_TESTS=true", {
 
   withr::local_envvar(c(NOT_CRAN = "true", DRMTMB_JULIA_TESTS = NA))
   expect_silent(drm_skip_live_julia())
+
+  drm_julia_bridge_summary_reset()
 })
 
 test_that("drm_julia_cran_lane_blocked matches CRAN-lane predicate", {
