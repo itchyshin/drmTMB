@@ -5,8 +5,8 @@ chat context. This document, `AGENTS.md`, the decision map and the current git s
 authoritative. The earlier `2026-09-02-claude-handover.md` (reverse-parity) is superseded by this
 one for everything it listed as OWED; its facts stand.
 
-**ALL FOUR MERGED on Shinichi's word (2026-09-02): #1112 (13ac255a3), #1114 (37ea93c47), #1119
-(8fda9b017), #1120 (ce273991b = main; the tip-identity receipt regenerated on main). D-164 still holds CRAN.** The reverse-parity lane, the coefficient-name contract,
+**ALL FIVE MERGED on Shinichi's word (2026-09-02): #1112 (13ac255a3), #1114 (37ea93c47), #1119
+(8fda9b017), #1120 (ce273991b), #1121 (0ceb77eb0 = main; pkgdown reference index for the two new exports). D-164 still holds CRAN.** The reverse-parity lane, the coefficient-name contract,
 the A4/A5 wrapper, the q4 SE receipt, and promotion wave 1 are on main.
 
 ## FIRST ACTIONS
@@ -38,7 +38,7 @@ the A4/A5 wrapper, the q4 SE receipt, and promotion wave 1 are on main.
 | ledger `.unlazy/true-parity/` | eight leaves + node gates; see the after-task for the final count |
 | reverse-gap issues | #1115–#1118 filed (D-204) |
 | DRM.jl fence | never edited; DRM.jl main now 77513aa0 (#577 root fix, #599 echo validator) by that lane's own merges |
-| CI (2026-09-02 night) | main ce273991b: R CMD check GREEN (ubuntu release + os-matrix); the pkgdown workflow RED because the two new exports were not in `_pkgdown.yml`'s reference index — fix on branch `claude/pkgdown-index-objective-at-provenance` (draft PR, docs-only; `check_pkgdown()` clean, `build_reference()` 90 topics). Earlier:  main after #1112; wave-1 #1119; #1114 @ 28cf21ff5 (mergeable_state clean). Both PRs await the owner's merge, #1114 first |
+| CI (2026-09-02 night) | main ce273991b: R CMD check GREEN (ubuntu release + os-matrix); the pkgdown workflow RED because the two new exports were not in `_pkgdown.yml`'s reference index — fixed by #1121 (merged 0ceb77eb0); a wake-up watches R-CMD-check + the pkgdown site run on that head. Earlier:  main after #1112; wave-1 #1119; #1114 @ 28cf21ff5 (mergeable_state clean). Both PRs await the owner's merge, #1114 first |
 
 ## Key decisions (do not re-ask)
 
