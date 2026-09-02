@@ -48,7 +48,13 @@ The current checks cover optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
-\code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, standard errors that
+\code{\link[TMB:sdreport]{TMB::sdreport()}}, the fixed-effect Hessian's minimum eigenvalue and
+condition number at the optimum (\code{hessian_conditioning}; a comparable, but
+not numerically identical, read of the same object underlying \code{pdHess}.
+\strong{This row is unavailable for any random-effect or REML fit} -- TMB's
+\code{obj$he()} does not support Laplace-marginalized models, so
+\code{hessian_conditioning} is always a \code{note} with value \code{NA} there, never a
+computed number), finite fixed-effect standard errors, standard errors that
 are finite but inflated relative to the others despite a positive-definite
 Hessian (a weakly identified, near-flat direction such as a boundary
 correlation), dropped rows,
