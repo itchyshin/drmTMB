@@ -103,6 +103,19 @@
 #'   `nlminb()` preset converges, `drmTMB()` tries this optimizer as a final
 #'   attempt; a different algorithm can succeed on a numerically awkward but
 #'   identified problem. Opt-in; `NULL` keeps the `nlminb()`-only ladder.
+#' @param start `NULL` (default) or a named list of starting values, keyed by
+#'   public start labels. Three label families are supported:
+#'   `"fixef:<dpar>:<column>"` for a fixed-effect coefficient (already on the
+#'   model's internal/link scale, e.g. `log(sigma)` for the default `sigma`
+#'   link); `"sd:<dpar>:<term>"` for a random-effect standard deviation, given
+#'   on the natural (positive) scale and transformed internally via `log()`;
+#'   and `"cor:<dpar>:<term>"` for a random-effect correlation, given on the
+#'   natural `(-1, 1)` scale and transformed internally via `atanh()`. Labels
+#'   are validated against the parsed formula and family; unknown labels
+#'   error before optimization starts. A start only changes where the
+#'   optimizer begins, never what is reported: unnamed components keep the
+#'   ordinary family-builder default. Latent random-effect values (`u`) are
+#'   not addressable through this contract.
 #'
 #' @return A `drm_control` object.
 #' @export
@@ -135,7 +148,8 @@ drm_control <- function(
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
   multi_start = 1L,
-  fallback_optimizer = NULL
+  fallback_optimizer = NULL,
+  start = NULL
 ) {
   optimizer_preset <- match.arg(optimizer_preset)
   if (
@@ -220,6 +234,7 @@ drm_control <- function(
       ))
     }
   }
+  start <- drm_control_validate_start(start)
   structure(
     list(
       optimizer = optimizer,
@@ -236,10 +251,44 @@ drm_control <- function(
       logsigma_clamp_margin = logsigma_clamp_margin,
       optimizer_preset = optimizer_preset,
       multi_start = multi_start,
-      fallback_optimizer = fallback_optimizer
+      fallback_optimizer = fallback_optimizer,
+      start = start
     ),
     class = "drm_control"
   )
+}
+
+drm_control_validate_start <- function(start) {
+  if (is.null(start)) {
+    return(NULL)
+  }
+  if (!is.list(start) || is.data.frame(start)) {
+    cli::cli_abort("{.arg start} must be NULL or a named list of public start labels.")
+  }
+  if (length(start) == 0L) {
+    return(list())
+  }
+  labels <- names(start)
+  if (
+    is.null(labels) ||
+      length(labels) != length(start) ||
+      anyNA(labels) ||
+      any(labels == "")
+  ) {
+    cli::cli_abort(
+      "{.arg start} must name every element with a public start label, e.g. {.val fixef:mu:(Intercept)}."
+    )
+  }
+  for (i in seq_along(start)) {
+    value <- start[[i]]
+    if (!is.numeric(value) || length(value) != 1L || !is.finite(value)) {
+      cli::cli_abort(c(
+        "{.arg start} values must be single finite numbers.",
+        "x" = "Start label {.val {labels[[i]]}} has a non-scalar or non-finite value."
+      ))
+    }
+  }
+  start
 }
 
 drm_parse_control <- function(control) {
@@ -271,7 +320,6 @@ drm_parse_control <- function(control) {
 drm_control_reserved_names <- function() {
   unique(c(
     setdiff(names(formals(drm_control)), "optimizer"),
-    "start",
     "starts",
     "start_from",
     "warm_start",

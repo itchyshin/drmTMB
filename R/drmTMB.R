@@ -611,6 +611,11 @@ drm_fit_spec <- function(
   # Per-group direct-SD ADREPORT is opt-in: it makes the joint ADREPORT covariance
   # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
   spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
+  if (!is.null(control$start) && length(control$start) > 0L) {
+    public_override <- drm_translate_public_start_override(spec, control$start)
+    base_override <- if (is.null(spec$start_override)) list() else spec$start_override
+    spec$start_override <- utils::modifyList(base_override, public_override)
+  }
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
@@ -1325,6 +1330,126 @@ drm_start_override_mapped_slots <- function(map, n, parameter) {
     ))
   }
   is.na(map)
+}
+
+# Public start contract (docs/design/35-optimizer-start-map-multistart.md,
+# "Public Start Contract"): a validated translation layer from public start
+# labels ("fixef:<dpar>:<column>", "sd:<dpar>:<term>", "cor:<dpar>:<term>")
+# to the internal `spec$start_override` component-keyed format already
+# consumed by `drm_apply_start_override()`. Nothing new happens at the TMB
+# boundary; this only builds the same shape the private hook already
+# validates and applies.
+drm_translate_public_start_override <- function(spec, start) {
+  labels <- names(start)
+  override <- list()
+  for (i in seq_along(start)) {
+    label <- labels[[i]]
+    value <- start[[i]]
+    parsed <- drm_parse_public_start_label(label)
+    if (is.null(parsed)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+      ))
+    }
+    if (identical(parsed$family, "u")) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} addresses a latent random effect.",
+        "x" = "Labels of the form {.val u:<dpar>:<term>} target the latent random effect ({.code u}), which is not part of the public start contract.",
+        "i" = "Only {.code fixef:}, {.code sd:}, and {.code cor:} labels are supported."
+      ))
+    }
+    resolved <- drm_resolve_public_start_target(spec, parsed, value, label)
+    component <- resolved$component
+    if (is.null(override[[component]])) {
+      override[[component]] <- spec$start[[component]]
+    }
+    override[[component]][[resolved$index]] <- resolved$value
+  }
+  override
+}
+
+drm_parse_public_start_label <- function(label) {
+  if (!is.character(label) || length(label) != 1L || is.na(label)) {
+    return(NULL)
+  }
+  m <- regmatches(label, regexec("^([^:]+):([^:]+):(.+)$", label))[[1L]]
+  if (length(m) != 4L) {
+    return(NULL)
+  }
+  list(family = m[[2L]], dpar = m[[3L]], target = m[[4L]])
+}
+
+drm_resolve_public_start_target <- function(spec, parsed, value, label) {
+  family <- parsed$family
+  dpar <- parsed$dpar
+  target <- parsed$target
+
+  if (identical(family, "fixef")) {
+    component <- paste0("beta_", dpar)
+    baseline <- spec$start[[component]]
+    target_names <- names(baseline)
+    if (is.null(baseline) || is.null(target_names) || !(target %in% target_names)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a fixed-effect coefficient of {.val {dpar}} in this model."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, target_names),
+      value = as.numeric(value)
+    ))
+  }
+
+  if (identical(family, "sd")) {
+    component <- paste0("log_sd_", dpar)
+    term_labels <- spec$random[[dpar]]$labels
+    if (is.null(spec$start[[component]]) || is.null(term_labels) || !(target %in% term_labels)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a random-effect standard-deviation term of {.val {dpar}} in this model."
+      ))
+    }
+    if (!(value > 0)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be a positive number.",
+        "x" = "{.code sd:} starts are given on the natural (positive) scale."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, term_labels),
+      value = log(value)
+    ))
+  }
+
+  if (identical(family, "cor")) {
+    component <- paste0("eta_cor_", dpar)
+    cor_labels <- spec$random[[dpar]]$cor_labels
+    if (is.null(spec$start[[component]]) || is.null(cor_labels) || !(target %in% cor_labels)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a random-effect correlation term of {.val {dpar}} in this model."
+      ))
+    }
+    if (!(value > -1) || !(value < 1)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be strictly between -1 and 1.",
+        "x" = "{.code cor:} starts are given on the natural correlation scale."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, cor_labels),
+      value = atanh(value)
+    ))
+  }
+
+  cli::cli_abort(c(
+    "Unknown public start label {.val {label}}.",
+    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+  ))
 }
 
 drm_qgt2_staged_start_override <- function(

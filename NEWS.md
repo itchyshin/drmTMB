@@ -5,6 +5,26 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Public start contract: `drm_control(start = list(...))`
+
+* `drm_control()` gains a `start` argument implementing the public start
+  contract from design 35 ("Public Start Contract"): a named list keyed by
+  `"fixef:<dpar>:<column>"`, `"sd:<dpar>:<term>"`, or `"cor:<dpar>:<term>"`
+  labels. Labels are validated against the parsed formula and family
+  **before** optimization (unknown labels error before the fit runs, never
+  during it). Values are transformed to the internal unconstrained scale
+  before `TMB::MakeADFun()` sees them: `sd:` starts are natural-scale and
+  `log()`-transformed, `cor:` starts are natural `(-1, 1)`-scale and
+  `atanh()`-transformed, and `fixef:` starts are already on the model's
+  internal link scale. A partial start updates only the named targets; every
+  other component keeps the ordinary family-builder default. Latent
+  random-effect (`u`) values are not addressable through this contract. This
+  is a validated translation layer onto the existing private
+  `drm_apply_start_override()` hook -- nothing changes at the TMB boundary,
+  and a start changes only where the optimizer begins, never what is
+  reported. `start_from = <a fitted model>` remains reserved and
+  unimplemented.
+
 ## Student-t response + one binary `mi()` predictor
 
 * A `student()` response can now carry **one** binary `mi()` predictor

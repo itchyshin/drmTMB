@@ -19,7 +19,8 @@ drm_control(
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
   multi_start = 1L,
-  fallback_optimizer = NULL
+  fallback_optimizer = NULL,
+  start = NULL
 )
 }
 \arguments{
@@ -115,6 +116,20 @@ objective result is kept. Opt-in robustness for weakly identified models;
 \code{nlminb()} preset converges, \code{drmTMB()} tries this optimizer as a final
 attempt; a different algorithm can succeed on a numerically awkward but
 identified problem. Opt-in; \code{NULL} keeps the \code{nlminb()}-only ladder.}
+
+\item{start}{\code{NULL} (default) or a named list of starting values, keyed by
+public start labels. Three label families are supported:
+\code{"fixef:<dpar>:<column>"} for a fixed-effect coefficient (already on the
+model's internal/link scale, e.g. \code{log(sigma)} for the default \code{sigma}
+link); \code{"sd:<dpar>:<term>"} for a random-effect standard deviation, given
+on the natural (positive) scale and transformed internally via \code{log()};
+and \code{"cor:<dpar>:<term>"} for a random-effect correlation, given on the
+natural \verb{(-1, 1)} scale and transformed internally via \code{atanh()}. Labels
+are validated against the parsed formula and family; unknown labels
+error before optimization starts. A start only changes where the
+optimizer begins, never what is reported: unnamed components keep the
+ordinary family-builder default. Latent random-effect values (\code{u}) are
+not addressable through this contract.}
 }
 \value{
 A \code{drm_control} object.
