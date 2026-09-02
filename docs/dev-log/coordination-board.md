@@ -14,7 +14,7 @@ census; capability counts belong in the ledger and Mission Control.
   Rose V2 verified 7/8 and her one demote (durable evidence paths) is applied. Latent cache-corruption
   hazard documented on #575. Prepared and GATED: bridge-promotion wave 1 (4 receipt-verified rows →
   partial) awaiting #1112 merge; reverse-parity lane brief committed for the new Claude drmTMB lane.
-  Next fix slice: basin-selection over the REML warm start (new plan, not started).
+  Basin-selection over the warm start was then ATTEMPTED (K=5 incl. structured Λ0, cheap pre-screen) and PLATEAUED twice more: candidates re-find the same basin (Δ 7e-5, within noise) or violate the engine-level g-contract (0.0026 > 1e-3); src reverted both times (receipts: p12a-basin-summary.md). Sharpened hypothesis: certifying convergence in the better basin needs the exact REML gradient (the mode-finder converges on FD-gradient grounds, and run noise ~1e-3 sits AT g_tol) — a derivation-level slice, not a solver tweak. Awaiting owner decision on that slice.
 - **2026-09-01 — R–Julia true-parity programme lane is active in Claude (Fable), continuing
   `codex/rebase-julia-optimizer-controls` per the 2026-09-01 handover.** Landed on the branch:
   Ayumi reply DRAFTS (unsent — 205 gate holds), matched-control q4 fixture receipts
