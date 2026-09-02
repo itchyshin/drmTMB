@@ -1,8 +1,11 @@
-# Arcs — from the approved ultra-plan
+# Arcs — true-parity overnight lane (2026-09-02/03). Status: [ ] todo · [~] in progress · [x] verified · [G] open gate
 
-| # | arc | status | gate? |
-|---|-----|--------|-------|
-| 1 | <...> | todo | — |
+- [ ] N0 — main CI green. Watch R-CMD-check + pkgdown on main 0ceb77eb0; if red, read the job's own remediation text and fix via a docs/receipt PR. Verify: both check-runs success.
+- [ ] N1 — HEADLINE. Label contract for the remaining bridge routes: extend `coef_labels` (design 258 §7) to `drm_julia_structured_payload`, `drm_julia_biv_known_structured_payload`, the joint (`R/julia-joint-call.R`) and cross-family (xfam) bridge payloads, using the ONE producer `drm_julia_bridge_payload_coef_labels()`; then delete the legacy `gsub()` rewrite in `drm_julia_predict_fixed_eta()` and flip `.unlazy/true-parity/gates/leaf-s3.md` S3-G4 from ABANDONED to MET. Tests: unit (no Julia) per builder; live Julia at 77513aa0 for one structured route (relmat/animal), the xfam route, and a joint fit, each through DRM.jl's echo; predict() with factor/interaction terms on a structured fit (Rose A10 case). Docs: design 258 §7.4 rewritten (now covered). Gate file: `.unlazy/night/gates/leaf-n1.md`. Lands as a PR; merge when green (D-208).
+- [ ] N2 — Reverse gap #1115: `heritability()`, `icc()`, `repeatability()`. Symbolic alignment table FIRST against DRM.jl's definitions (read `src/` in the pinned clone; do not port code); R implementation on the Gaussian random-intercept, `phylo()`, and animal/relmat routes; delta-method SE where `vcov()` supports it; known-DGP recovery tests; roxygen; `check_pkgdown()`; board row. Gate file `leaf-n2.md`. PR; merge when green.
+- [ ] N3 — `objective_at()` / `start=` label vocabulary reaches `rho12` and the q4 phylo covariance block (A5 finding). RED tests from the A5 receipt script's workaround; gate `leaf-n3.md`. PR; merge when green.
+- [ ] N4 — Board + B2: project `Non-Gaussian phylogenetic location-scale (mu + log sigma)` onto `docs/design/capability-status.md` as scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in the decision map); deterministic indefinite-Hessian test for `check_drm()` (exactly rank-deficient design or injected indefinite covariance) replacing the platform-boundary premise. Gate `leaf-n4.md`. PR; merge when green.
+- [ ] N5 — P2 pilots (G3 inference qualification) on Totoro: pre-run FIRST (one bridge route, profile + parametric bootstrap on both engines, small n, single core pinned, <10 min, shown in the log); then the pilot over the four `partial` rows; receipts only, no promotion, no coverage claim. Gate `leaf-n5.md`; D-139 estimate stated before each run; ≤150 cores.
+- [ ] N6 — Close: Melissa reconcile → `docs/dev-log/plan-actual/2026-09-03-true-parity-night.md`; after-task → `docs/dev-log/after-task/2026-09-03-true-parity-night.md`; handover refreshed; vault log + any finding of record (D-175); lease released; LOOP/checkpoint.md final.
 
-Status: todo / doing / done / paused / blocked. `paused` = awaiting Shinichi's named decision;
-`blocked` = external dependency. Ordinary repair work remains `doing`.
+Gates that would STOP the loop: any DRM.jl edit; CRAN/release/registration; a claim without a receipt; reopening D-179/D-181/D-202/D-204; compute beyond the cap or an estimate without a pre-run; a surprise that invalidates the plan.
