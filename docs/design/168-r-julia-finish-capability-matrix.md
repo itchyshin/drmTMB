@@ -97,6 +97,15 @@ where it exists, but the first public binomial response family claim remains
 native TMB only until R-side response parsing, likelihood parity, method tests,
 and separate bridge parity evidence exist.
 
+`r_bridge_status` may also read `partial` (added 2026-09-02, wave 1): a
+same-target point+SE parity receipt verified on the committed fixture AND the
+route running unopted in a non-interactive session, with bridge-side inference
+(profile/bootstrap through `engine = "julia"`) still unqualified (G3) — see
+`docs/design/192-capability-comparison-regeneration.md`. The word `"partial"`
+also exists as a `claim_status` value elsewhere in the same registry, with the
+ledger's own distinct meaning (a capability claim gated by CRAN-facing
+governance rather than by evidence); the two axes are not the same claim.
+
 ## Dashboard Contract
 
 The live dashboard is an operating surface, not a release claim. It should show

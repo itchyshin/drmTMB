@@ -161,6 +161,11 @@ test_that("Julia capability comparison artifact matches the registry", {
       c(
         "supported",
         "experimental",
+        # "partial" added 2026-09-02 (wave 1 bridge promotion, docs/design/192):
+        # same-target point+SE parity receipt on the committed fixture AND the
+        # route runs unopted non-interactively; bridge-side inference (G3) stays
+        # unqualified. Sits between "experimental" and "supported".
+        "partial",
         "intentional_error",
         "planned",
         "unsupported"
@@ -181,7 +186,14 @@ test_that("Julia capability comparison artifact matches the registry", {
   binomial_row <- registry[
     registry$capability_id == "plain_binomial_nonphylo",
   ]
-  expect_equal(binomial_row$r_bridge_status, "experimental")
+  # Wave 1 bridge promotion (owner instruction 2026-09-02, D-203/D-204;
+  # docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): SE parity
+  # 1.26789215931788e-09 abs / 2.482e-08 rel, comparator hash f3e754a4, and
+  # the route runs unopted non-interactively post-#1112. This was
+  # `expect_equal(binomial_row$r_bridge_status, "experimental")`; it is now
+  # inverted rather than deleted, same pattern as the Phase 1.5 / Phase 1
+  # inversions above, so an accidental reversion fails loudly.
+  expect_equal(binomial_row$r_bridge_status, "partial")
   expect_match(binomial_row$claim_boundary, "Workflow G|expected\\.toml|#499")
 
   # The single-phylogeny LSS router has selected the sparse O(p) engine above
@@ -246,6 +258,31 @@ test_that("Julia capability comparison artifact matches the registry", {
   ]
   expect_equal(nrow(phase1_promoted), 4L)
   expect_true(all(phase1_promoted$claim_status == "covered"))
+
+  # Wave 1 bridge promotion locked (owner instruction 2026-09-02, D-203/D-204;
+  # docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md). experimental ->
+  # partial on r_bridge_status for exactly these four rows -- a receipt-verified
+  # same-target point+SE parity + unopted non-interactive route bar, NOT a
+  # claim_status/covered promotion and NOT an interval_status move. Asserted
+  # rather than merely edited, same pattern as the inversions above, so an
+  # accidental reversion fails loudly.
+  wave1_promoted <- registry[
+    registry$capability_id %in%
+      c(
+        "base_gaussian_location_scale",
+        "biv_gaussian_residual",
+        "plain_binomial_nonphylo",
+        "gaussian_response_mask"
+      ),
+  ]
+  expect_equal(nrow(wave1_promoted), 4L)
+  expect_true(all(wave1_promoted$r_bridge_status == "partial"))
+
+  # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
+  # see the plan's CONDITIONS section). Locked so it cannot drift silently.
+  q4_row <- registry[registry$capability_id == "biv_q4_phylo_reml", ]
+  expect_equal(nrow(q4_row), 1L)
+  expect_equal(q4_row$r_bridge_status, "experimental")
 
   for (capability_path in capability_paths) {
     artifact <- utils::read.delim(
