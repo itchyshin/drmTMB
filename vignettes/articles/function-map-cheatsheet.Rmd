@@ -144,6 +144,7 @@ adequacy](distributional-outputs-and-adequacy.html) for that boundary.
 | Work with repeated, related, or spatially structured data | `bf()` with `phylo()`, `spatial()`, or `relmat()`; then `ranef()` | [Structural dependence overview](structural-dependence.html) |
 | Request an interval or profile a target | `confint()`, `profile_targets()`, `profile()` | [Checking and using fitted models](model-workflow.html) |
 | Fit when some values are missing | `miss_control()`, `mi()`, `imputed()` | [Handling missing data](missing-data.html) |
+| Record which build produced a result, when the version number cannot tell two builds apart | `drm_provenance()` | [Errors, warnings, and convergence](convergence.html) |
 | Confirm an unfamiliar route is supported | the model and capability guides | [What can I fit today?](model-map.html) |
 
 </div>
