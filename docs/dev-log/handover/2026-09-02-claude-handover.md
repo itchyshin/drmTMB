@@ -146,6 +146,58 @@ plus `docs/dev-log/{handover,plan-actual,after-task}/2026-09-0*`.
 `--no-build-vignettes` adds **2 spurious vignette WARNINGs**; a control on `origin/main` with the
 same flags shows them too. Local only; never GitHub Actions for campaigns (D-50).
 
+## CARRIED-OVER — every item, and why it is not landed
+
+**All 18 branches are CARRIED-OVER. None is merged; none is pushed** (`git ls-remote --heads
+origin 'claude/rev-parity-*'` returns **0**). They exist only on this machine's disk. A fresh
+clone, a disk failure, or a `git gc` in an unexpected state loses the entire lane.
+
+**Reason, common to all of them:** the lane brief is explicit — *no merges to drmTMB main without
+Shinichi* — and pushing is an outward-facing action nobody authorised while he was away. This is
+a deliberate hold, not an oversight. **Pushing is his call and it is the first thing to raise.**
+
+| branch (`claude/rev-parity-…`) | head | commits | reason held |
+|---|---|---|---|
+| `integration-all` | `14035812f` | 32 | **the one to read first** — everything merged, suite passes |
+| `arcd-integration` | `3c07afb6e` | 12 | ARC D only; superseded by `integration-all` |
+| `a0-design35` | `a7ccd5f25` | 2 | design decision, needs owner review |
+| `a1-start-tests` | `049a60c21` | 3 | RED tests; meaningless without A2 |
+| `a2-start-impl` | `cb1671cb7` | 5 | public API change |
+| `a3-objective-at` | `7afe0b8fd` | 8 | **new export**; convention choice needs confirming |
+| `b1-stored-gradient` | `0b0f869d9` | 5 | changes the fit object's shape |
+| `b2-check-conditioning` | `05ad57465` | 4 | **`obj$he()` removed unattended — confirm first** |
+| `c1-naming-spec` | `eb952d119` | 1 | spec only; blocked on the authority decision |
+| `d1-capability-status` | `dd645c778` | 1 | shared parity board |
+| `d2-loud-julia-skip` | `6f8871468` | 1 | closes #1081 |
+| `d3-error-not-skip` | `c8329c80b` | 2 | closes #1083 |
+| `d4-provenance` | `7ab8cf74b` | 3 | adds `configure`/`configure.win` — CRAN-visible |
+| `drmjl-findings` | `2648d4422` | 3 | owed to the DRM.jl lane, incl. a correction |
+| `board-entry` | `dfeccc931` | 1 | coordination board has 3 diverging versions |
+| `routing-receipt` | `9068317b5` | 1 | Melissa input |
+| `overnight-docs` | `9663fb2f7` | 1 | reconciliation + ARC E scout |
+| `handover` | `d569a4ac5` | 5 | this document |
+
+**Exact resume commands.** Inspect without disturbing the main checkout (which is on a foreign
+branch, 45 behind):
+
+    git log --oneline origin/main..claude/rev-parity-integration-all
+    git diff --stat origin/main claude/rev-parity-integration-all
+    git show origin/main:<path>                       # read main's version of any file
+
+    # work on it safely (worktrees are slow here -- ~19k files on Dropbox; allow minutes)
+    git worktree add /tmp/wt-rp claude/rev-parity-integration-all
+
+    # push, ONLY if Shinichi says so:
+    git push -u origin claude/rev-parity-integration-all
+
+**PROTECTED — do not touch:** the main checkout's branch `feat/bridge-lss-reml-row12` and every
+`codex/*` and `cursor/*` branch; `/Users/z3437171/Dropbox/Github Local/DRM.jl` in its entirety
+(a live foreign lane; we only ever read it, and the pinned fence confirms it is unchanged);
+`.unlazy/` (git-excluded run state — never stage it).
+
+**No PR was opened**, because a PR requires a push and the push is unauthorised. The protocol's
+"commit, then open a PR, do not auto-merge" stops at the commit here, deliberately.
+
 ## Next immediate steps — narrow, and all OWED
 
 1. **Reconcile.** Run lane preflight; run the scope status command above; confirm 44/55 and that
