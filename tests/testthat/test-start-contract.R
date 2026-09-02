@@ -291,3 +291,70 @@ test_that("a deliberately displaced start returns to the same optimum (round tri
   expect_equal(unname(restarted$opt$par), unname(cold$opt$par), tolerance = 1e-4)
   expect_equal(as.numeric(logLik(restarted)), as.numeric(logLik(cold)), tolerance = 1e-6)
 })
+
+# Adversarial-pass follow-up (2026-09-01): defects found in the landed
+# implementation that A1's ten blocks above did not cover. See
+# docs/dev-log/after-task/2026-09-01-a2-start-implementation.md for the
+# root-cause diagnosis and fix rationale.
+
+test_that("a fixef:sigma: start outside the log-sigma clamp band warns instead of silently reporting a clean convergence (defect A2-D1)", {
+  dat <- start_contract_fixef_data()
+
+  cold <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat, control = drm_control(se = FALSE))
+
+  # The default logsigma_clamp band is c(-12, 12); an intercept-only sigma
+  # start of 50 lies far outside it, in the clamp's fully saturated tail
+  # where the softclamp derivative is ~0. The optimizer should not be able
+  # to silently report a clean convergence from a start it never moved away
+  # from -- this must warn, naming the clamp, before or during the fit that
+  # produces the bad result.
+  expect_warning(
+    saturated <- drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      data = dat,
+      control = drm_control(
+        start = list("fixef:sigma:(Intercept)" = 50),
+        se = FALSE
+      )
+    ),
+    class = "drmTMB_start_clamp_saturated_warning"
+  )
+
+  # The contract's own invariant still holds: the warning reports the
+  # condition, it does not silently move the user's start.
+  expect_equal(unname(saturated$model$start$beta_sigma[["(Intercept)"]]), 50)
+
+  # And the fit really did land somewhere much worse than the true optimum --
+  # this is not a cosmetic warning on an otherwise-fine fit.
+  expect_true(
+    abs(as.numeric(logLik(saturated)) - as.numeric(logLik(cold))) > 10
+  )
+})
+
+test_that("a fixef:mu: start under REML errors instead of being silently accepted with no effect (defect A2-D2)", {
+  set.seed(20260905)
+  id <- factor(rep(seq_len(10L), each = 6L))
+  x <- stats::rnorm(60L)
+  dat <- data.frame(
+    id = id,
+    x = x,
+    y = 0.4 + 0.3 * x + stats::rnorm(60L, sd = 0.4)
+  )
+
+  err <- tryCatch(
+    drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ 1),
+      family = gaussian(),
+      data = dat,
+      REML = TRUE,
+      control = drm_control(
+        start = list("fixef:mu:(Intercept)" = 99),
+        se = FALSE
+      )
+    ),
+    error = function(e) e
+  )
+
+  expect_s3_class(err, "error")
+  expect_match(conditionMessage(err), "REML", ignore.case = FALSE)
+})
