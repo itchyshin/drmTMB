@@ -76,6 +76,35 @@ canonical and explicitly refuses to settle the question, because it is cross-rep
 Zero rows are confirmed breaking under drmTMB's native TMB engine; all ten `engine = "julia"`
 rows are marked *cannot determine* rather than guessed, precisely because the producer is absent.
 
+## ⚠ CORRECTION to finding 3, issued 2026-09-01 before this note was acted on
+
+**Finding 3 above overstates the case on the DRM.jl side, and the overstatement is ours.**
+
+It says no producer of the `bridge_formula_labels_v1` map exists "in DRM.jl's `src/` either".
+**That is false.** `src/bridge.jl:1272-1279` on DRM.jl's `origin/main` emits exactly that map:
+
+    out["coef_label_contract"] = "bridge_formula_labels_v1"
+    out["raw_coef_names"]      = raw_cnames
+    out["coef_name_map"]       = public_to_raw
+
+and it is reached on the ordinary bridge routes — `_bridge_formula(formula, family, dat;
+labels = true)` is called at `src/bridge.jl:55` and `:186`. A producer exists and runs.
+
+**How the error happened, since the mechanism matters more than the claim.** A sub-agent
+reported it; the coordinator verified the *easy* half of that report — the spec table's base-R
+column, 7 of 7 rows reproduced exactly against `model.matrix()` — and did **not** verify the
+*negative* claim. A negative existence claim is precisely the kind that needs checking, and the
+verifiable part was checked instead. It was then relayed twice as established before an
+adversarial pass caught it.
+
+**What survives, stated narrowly.** drmTMB's `R/julia-coefficient-labels.R` is a validator, and
+6 of 8 formula-construct parity cells still fail on names alone — those measurements are
+unaffected. The open question is **not** "does a producer exist" but the sharper one: **is the
+map populated, and correct, for the specific constructs that fail?** That is a better question
+than the one finding 3 asked, and it belongs to your lane to answer.
+
+**Do not act on finding 3 as originally written.**
+
 ## 3b. A SECOND, independent name-drift mechanism — float-coerced factor levels
 
 Surfaced while specifying the constructs, and distinct from the `__bridge_*` materialisation
