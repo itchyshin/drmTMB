@@ -34,6 +34,45 @@ drm_julia_bridge_coef_labels <- function(result) {
   list(contract = result$coef_label_contract, public = public, raw = raw, map = map[public])
 }
 
+# Fail-closed check for the "engine returned no map" path (design 258 S7).
+# When DRM.jl does not echo `bridge_formula_labels_v1`, its raw coefficient
+# names must equal drmTMB's own base-R `model.matrix()` spelling, per dpar and
+# in order -- the SAME payload names sent in `coef_labels`
+# (`drm_julia_bridge_payload_coef_labels()`) -- or the fit is refused rather
+# than shown under a mismatched label. `coef_names` are the engine's raw,
+# still-`dpar_term`-joined names (as returned before any map is applied);
+# `coef_labels` is the payload's per-dpar character-vector list. A dpar absent
+# from `coef_labels` (no plain fixed-effect entry was sent for it, e.g. it
+# carries a structured term) is not checked. This performs ONLY an exact
+# string/order comparison -- no punctuation is stripped or guessed anywhere in
+# this codebase (S3).
+drm_julia_bridge_check_coef_labels <- function(coef_names, coef_labels) {
+  if (length(coef_labels) == 0L) {
+    return(invisible(NULL))
+  }
+  split <- drm_julia_split_coef_name(coef_names)
+  detail <- character()
+  for (dpar in names(coef_labels)) {
+    engine_terms <- split$term[split$dpar == dpar]
+    expected <- as.character(coef_labels[[dpar]])
+    if (!identical(engine_terms, expected)) {
+      detail[[length(detail) + 1L]] <- paste0(
+        dpar, ": drmTMB expects (", paste(expected, collapse = ", "),
+        "); DRM.jl returned (", paste(engine_terms, collapse = ", "), ")."
+      )
+    }
+  }
+  if (length(detail) == 0L) {
+    return(invisible(NULL))
+  }
+  names(detail) <- rep_len("x", length(detail))
+  cli::cli_abort(c(
+    "DRM.jl returned coefficient names that do not match drmTMB's base-R {.fn model.matrix} spelling, and supplied no {.code bridge_formula_labels_v1} map to translate them.",
+    detail,
+    i = "DRM.jl must supply {.code bridge_formula_labels_v1} (design 258 §7) for this formula construct."
+  ), call. = FALSE)
+}
+
 # Legacy fits deliberately keep their old selector spelling. A versioned fit
 # must never silently fall back after a missing or corrupted map entry.
 drm_julia_public_inference_term <- function(object, dpar, term) {

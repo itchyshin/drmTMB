@@ -860,6 +860,39 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
   "Gaussian"
 }
 
+# Base-R public coefficient-name labels drmTMB sends alongside the payload,
+# one character vector per dpar, in `model.matrix()` column order (design 258
+# S7's `coef_labels` field). Built with the SAME `stats::model.frame()` /
+# `stats::model.matrix()` idiom already used to build the xfam design matrices
+# (`drm_julia_xfam_axis()`, `drm_julia_xfam_sigma()`) -- one design-matrix
+# construction, reused, not a second one. Only plain fixed-effect entries (no
+# structured phylo / random-effect / sd(...) terms, and a dpar the bridge
+# actually supports) are labelled; a dpar is silently omitted from the result
+# when its formula carries a structured term or fails to build a model matrix,
+# since neither case is a fixed-effect coefficient block subject to the naming
+# contract. `data` is the SAME row-ordered, column-subset data the rest of the
+# payload marshals, so factor levels/contrasts match what DRM.jl receives.
+drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
+  labels <- list()
+  for (entry in formula$entries) {
+    dpar <- entry$dpar
+    if (!(dpar %in% julia_bridge_supported_dpars())) next
+    if (length(entry$structured) > 0L) next
+    f <- stats::as.formula(paste("~", deparse1(entry$rhs)), env = env)
+    cols <- tryCatch(
+      {
+        mf <- stats::model.frame(f, data = data)
+        colnames(stats::model.matrix(stats::terms(mf), mf))
+      },
+      error = function(e) NULL
+    )
+    if (!is.null(cols)) {
+      labels[[dpar]] <- cols
+    }
+  }
+  labels
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -888,6 +921,11 @@ drm_julia_bridge_payload <- function(
   list(
     formula = formula_spec,
     data = data_out,
+    coef_labels = drm_julia_bridge_payload_coef_labels(
+      formula = formula,
+      data = data_out,
+      env = env
+    ),
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
     options = drm_julia_bridge_options(phylo_payload, method = method),
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
@@ -2218,7 +2256,14 @@ new_drmTMB_julia <- function(
   result <- as.list(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
   coef_names <- as.character(result$coef_names)
-  if (!is.null(public_coef_labels)) coef_names <- public_coef_labels$public
+  if (!is.null(public_coef_labels)) {
+    coef_names <- public_coef_labels$public
+  } else {
+    drm_julia_bridge_check_coef_labels(
+      coef_names = coef_names,
+      coef_labels = bridge_payload$coef_labels
+    )
+  }
   coefficients <- stats::setNames(
     as.numeric(unlist(result$coefficients, use.names = FALSE)),
     coef_names
