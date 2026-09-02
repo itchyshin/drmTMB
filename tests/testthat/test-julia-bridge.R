@@ -51,6 +51,22 @@ test_that("Julia bridge serializes drm_formula() objects", {
   )
 })
 
+test_that("bivariate parameter aliases are not required data columns", {
+  form <- bf(
+    mu1 = y1 ~ x,
+    mu2 = y2 ~ x,
+    sigma1 = sigma1 ~ 1,
+    sigma2 = sigma2 ~ 1,
+    rho12 = rho12 ~ 1
+  )
+  dat <- data.frame(y1 = c(1, 2, 3), y2 = c(4, 5, 6), x = c(-1, 0, 1))
+
+  marshalled <- drmTMB:::drm_julia_bridge_data(dat, form)
+
+  expect_identical(names(marshalled), c("y1", "x", "y2"))
+  expect_equal(marshalled, dat[, c("y1", "x", "y2")])
+})
+
 test_that("Julia bridge marshals one phylogenetic tree", {
   tree <- structure(
     list(
@@ -471,7 +487,7 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
       control = list(eval.max = 10),
       engine = "julia"
     ),
-    "default .*control"
+    "does not support .*control"
   )
   # Beta-binomial remains outside the Workflow G FE Julia admission.
   expect_error(

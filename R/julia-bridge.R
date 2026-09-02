@@ -106,7 +106,7 @@ drm_julia_intentional_gates <- function() {
     syntax = c(
       "weights = ...",
       "impute supplied without missing = miss_control(predictor = \"model\")",
-      "control = list(...)",
+      "control = drm_control(optimizer = list(iter.max = ...))",
       "missing = miss_control(predictor = \"model\") without a matching impute model",
       "missing = miss_control(response = \"include\") with poisson()",
       "family = beta_binomial() through engine = \"julia\"",
@@ -123,7 +123,7 @@ drm_julia_intentional_gates <- function() {
     drmjl_status = c(
       "unsupported payload",
       "joint payload requires predictor=model and an additive mi term",
-      "no R engine-control surface",
+      "Julia supports only g_tol and algorithm controls",
       "joint payload requires an explicit matching impute model",
       "not audited for non-Gaussian masks",
       "no BetaBinomial tree/FE R bridge claim",
@@ -139,7 +139,7 @@ drm_julia_intentional_gates <- function() {
     message_pattern = c(
       "weights",
       "predictor.*model",
-      "default .*control",
+      "does not support .*control",
       "impute",
       "missing.*route",
       "Gaussian one-/two-response|Workflow G fixed-effect",
@@ -161,7 +161,7 @@ drm_julia_intentional_gates <- function() {
     evidence = c(
       "DRM.jl bridge payload has no weights slot.",
       "The joint Gaussian/Bernoulli predictor payload is admitted only with complete model specification.",
-      "Julia optimizer controls need an explicit engine_control surface.",
+      "The public Julia bridge accepts drm_control(optimizer = list(g_tol = ..., algorithm = ...)); TMB-only controls and iteration caps refuse before JuliaCall.",
       "Modelled predictors require a matching impute entry; unsupported families remain separate gaps.",
       "Observed-response masks are admitted only for Gaussian bridge cells.",
       "BetaBinomial has no Workflow G R bridge admission; use native TMB.",
@@ -230,7 +230,7 @@ drm_julia_capability_comparison <- function() {
       "Gamma()/beta()/stats::binomial() with phylo(1 | group, tree = tree)",
       "relmat(1 | group, K = K) for supported one-response families",
       "c(gaussian(), poisson()) cross-family latent-rho route",
-      "engine_control = ... or non-default Julia optimizer controls",
+      "drm_control(optimizer = list(g_tol = ..., algorithm = ...))",
       "stats::binomial() without phylo() through engine = \"julia\"",
       "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\""
     ),
@@ -244,7 +244,7 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "experimental",
-      "unsupported",
+      "experimental",
       "experimental",
       "experimental"
     ),
@@ -258,7 +258,7 @@ drm_julia_capability_comparison <- function() {
       "guarded non-Gaussian phylo path",
       "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
       "latent-rho mixed-family path; API drift is tracked in tests",
-      "no R surface by design",
+      "Julia-native g_tol and algorithm controls on the base bridge; unsupported TMB controls refuse before JuliaCall",
       "Workflow G FE bridge cell (binomial-trials) via drm_bridge",
       "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)"
     ),
@@ -287,7 +287,7 @@ drm_julia_capability_comparison <- function() {
       "covered",
       "covered",
       "partial",
-      "unsupported",
+      "experimental",
       "covered",
       "covered"
     ),
@@ -301,14 +301,14 @@ drm_julia_capability_comparison <- function() {
     claim_boundary = c(
       "Route C Gaussian location-scale. All four design/168 limbs met: implementation; focused tests (test/parity/runparity_bridge.jl gaussian-locscale); public docs (docs/src/r-julia-bridge.md); and interval evidence (parity-se.tsv se_gaussian_location_scale, 1.499e-07 abs / 2.169e-06 rel, with a negative control in the same table). The live TMB parity remains OPT-IN by design -- its gate is CRAN-safety motivated (an unguarded live-Julia test once hung win-builder ~10,448s) -- but it is no longer an unverified assumption: measured 2026-08-24, |d_loglik| = 6.257e-09, max|d_coef| = 5.456e-06. NOT interval COVERAGE. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands.",
       "Route B residual rho12. Same-target live tmb-vs-julia parity, name-matched: coefficients 9.861e-07 (7/7), SE 9.176e-08 abs / 1.835e-06 rel (cross-confirmed independently by tools/parity_se.R on the same draw, with a negative control in the same table), logLik 1.307e-11; comparator build recorded via drmtmb_code_hash. Evidence is ONE fixed-effects draw (n=400, one seed) -- this is result-shape and point/SE parity, NOT interval COVERAGE and NOT a phylo or cross-family claim. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands.",
-      "Route A Gaussian phylo-mean (sigma ~ 1). All four design/168 limbs met, and the row's DEFINING parameter -- the phylogenetic SD -- is now actually compared: drmTMB 0.916577447 (correlation scale) vs DRM.jl raw re_sd x sqrt(tree height), agreeing to 1.50e-08, plus a three-height round-trip (9.37e-08 / 1.44e-08 / 3.31e-08). Its test runs in the DEFAULT suite, not behind DRM_PARITY_TESTS. NOTE the scale convention: drmTMB standardises via ape::vcv(tree, corr=TRUE) and is height-invariant; DRM.jl reports on the RAW branch-length scale -- they agree only after x sqrt(height), and the difference is invisible on a height-1 tree. Fixture reseeded 2026-08-25 (seed 404) because the previous seed-111 cell's phylo SD was UNIDENTIFIABLE (profiled nll flat over 20 orders of magnitude), so its comparison passed inside tolerance while meaning nothing (DRM.jl#483). atol_re_sd re-derived a priori from drmTMB's Wald SE. NOT interval coverage; not loc-scale phylo; not non-Gaussian phylo. INTERVAL COVERAGE NOW MEASURED (2026-08-25, Totoro, DRM.jl#468), and it does NOT promote this row. n=1000 per rung on bf(y ~ x + phylo(1|species), sigma ~ 1), MCSE ~0.007. The MEAN block is nominal at N>=128: mu:x Wald 0.950/0.950 and profile 0.953/0.952 at ntip 32/64 against nominal 0.95. At ntip=16 (N=64) everything under-covers (mu intercept Wald 0.905) -- ordinary small-sample behaviour. The sigma axis reads 0.810/0.914/0.947 marginally, but that is a SOLVER defect, not calibration: the upper profile endpoint collapses to the point estimate in 24.3%/10.6%/1.9% of fits, and split on that condition clean-arm coverage is 0.951 and 0.950 -- exactly nominal -- while collapsed-arm coverage is 0.477, the signature of a one-sided interval (DRM.jl#493). Zero non-converged fits and zero interval failures across all 3000 reps. The interval_status fence is UNCHANGED: the approved design (pre-run section 2) makes fence removal a separate PR with a Rose audit between, and #493 should be fixed first. Evidence: docs/dev-log/evidence/2026-08-25-coverage-campaign-results.md. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands. RE-MEASURED 2026-08-25 on the COMPLETE grid after DRM.jl#493/#494 were fixed, and the earlier coverage note on this row is superseded. Splitting calibration from solver reliability changes the reading: CONDITIONAL on the solver returning an interval, coverage is within ~2 MCSE of nominal at every rung (mu 0.938/0.956/0.947, sigma 0.936/0.954/0.950, resd 0.944/0.938/0.944 at ntip 16/32/64, n=1000 each). The intervals this route PRODUCES are calibrated. But the solver fails to produce one at a material rate -- 313/1000 on sigma at ntip=16, 132 at 32, 24 at 64, and 44 on resd at ntip=16 (the degenerate-endpoint bug was NOT confined to the sigma axis). Marginal coverage is therefore 0.643/0.828/0.927, LOWER than the pre-fix 0.810/0.914/0.947 because a degenerate arm used to return a bogus finite bound that contained the truth about half the time and is now scored covered=0. Lower and true. THE FAILURE RATE, NOT THE CALIBRATION, IS WHAT WOULD BLOCK A COVERAGE CLAIM HERE.",
+      "Route A Gaussian phylo-mean (sigma ~ 1). All four design/168 limbs met, and the row's DEFINING parameter -- the phylogenetic SD -- is now actually compared: drmTMB 0.916577447 (correlation scale) vs DRM.jl raw re_sd x sqrt(tree height), agreeing to 1.50e-08, plus a three-height round-trip (9.37e-08 / 1.44e-08 / 3.31e-08). Its test runs in the DEFAULT suite, not behind DRM_PARITY_TESTS. NOTE the scale convention: drmTMB standardises via ape::vcv(tree, corr=TRUE) and is height-invariant; DRM.jl reports on the RAW branch-length scale -- they agree only after x sqrt(height), and the difference is invisible on a height-1 tree. Fixture reseeded 2026-08-25 (seed 404) because the previous seed-111 cell's phylo SD was UNIDENTIFIABLE (profiled nll flat over 20 orders of magnitude), so its comparison passed inside tolerance while meaning nothing (DRM.jl#483). atol_re_sd re-derived a priori from drmTMB's Wald SE. NOT interval coverage; not loc-scale phylo; not non-Gaussian phylo. INTERVAL COVERAGE NOW MEASURED (2026-08-25, Totoro, DRM.jl#468), and it does NOT promote this row. n=1000 per rung on bf(y ~ x + phylo(1|species), sigma ~ 1), MCSE ~0.007. The MEAN block is nominal at N>=128: mu:x Wald 0.950/0.950 and profile 0.953/0.952 at ntip 32/64 against nominal 0.95. At ntip=16 (N=64) everything under-covers (mu intercept Wald 0.905) -- ordinary small-sample behaviour. The interval_status fence is UNCHANGED: the approved design (pre-run section 2) makes fence removal a separate PR with a Rose audit between, and #493 should be fixed first. Evidence: docs/dev-log/evidence/2026-08-25-coverage-campaign-results.md. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands. RE-MEASURED 2026-08-25 on the COMPLETE grid after DRM.jl#493/#494 were fixed, and the earlier coverage note on this row is superseded. Splitting calibration from solver reliability changes the reading: CONDITIONAL on the solver returning an interval, coverage is within ~2 MCSE of nominal at every rung (mu 0.938/0.956/0.947, sigma 0.936/0.954/0.950, resd 0.944/0.938/0.944 at ntip 16/32/64, n=1000 each). The intervals this route PRODUCES are calibrated. But the solver fails to produce one at a material rate -- 313/1000 on sigma at ntip=16, 132 at 32, 24 at 64, and 44 on resd at ntip=16 (the degenerate-endpoint bug was NOT confined to the sigma axis). Marginal coverage is therefore 0.643/0.828/0.927, LOWER than the pre-fix 0.810/0.914/0.947 because a degenerate arm used to return a bogus finite bound that contained the truth about half the time and is now scored covered=0. Lower and true. THE FAILURE RATE, NOT THE CALIBRATION, IS WHAT WOULD BLOCK A COVERAGE CLAIM HERE.",
       "PROMOTED partial -> covered 2026-08-27 (Phase 2, owner instruction). The named hole is CLOSED BY MEASUREMENT, not derivation: native drmTMB's own mean-phylo fits under response='include' and response='drop' are BYTE-IDENTICAL (logLik and coefficients exactly equal, same rows used) -- with rows conditionally independent given the latent field, a missing Gaussian response integrates out of its own likelihood factor entirely, so include IS drop + prediction and no missing-response likelihood exists to derive. DRM.jl (PR #517) now fits include on the phylo-MEAN cell as observed rows + FULL tree via the subset-tolerant #482 leaf matching (a fully-masked species stays in the phylo prior with no likelihood term, the sigma-phylo route's long-standing convention). EVIDENCE: include == drop asserted EXACTLY (same bytes after the row filter) in DRM.jl's default suite (test_gaussian_phylo_mean_missing_response.jl, 44 assertions incl. leak guards), to 1e-10 through the LIVE bridge with a fully-masked species (tests/testthat/test-julia-missing.R, this PR), and cross-engine drop parity measured at |d logLik| = 4e-10. BOUNDARY STILL VISIBLE: missing PREDICTORS remain gated (predictor must be 'fail'); non-Gaussian response masks remain gated; and the wrapper deliberately does NOT extend to relmat/animal/spatial mean terms, ordinary random effects, meta_V, or a phylo mean with a non-constant sigma design -- their positional row-to-level matching is not subset-safe (#482's trap) and they refuse loudly. NOT interval coverage.",
-      "Four-axis phylogenetic location-scale REML. All four design/168 limbs met: implementation (src/reml_q4.jl, in the module); focused tests (test_reml_q4_allaxes.jl AND test_parity_biv_q4_phylo_reml.jl, BOTH in the default suite); public documentation (docs/src/capabilities.md:189); and same-target evidence on a fixture where BOTH engines now converge -- max |d_coef| 0.002889, inside a re-derived a-priori atol by ~15x. IMPORTANT, and previously misdiagnosed: native TMB and DRM.jl maximise the SAME restricted likelihood (both marginalise all four fixed-effect axes; drmTMB adds beta_sigma1/2 to tmb_random_names when a sigma variance component exists, R/drmTMB.R:1122-1152). They differ only by the integration constant (n_beta/2)*log(2*pi) = 5.513631; measured 5.515569, residual 0.001938. An earlier fixture note asserted a structural difference -- that was false and is retained in the fixture for traceability. Julia-side convergence on this cell required DRM.jl#484 (automatic warm restart); before it, drm()'s public kwargs could not converge here at all. STILL NOT CLAIMED: same-target BRIDGE parity (the engine='julia' path for this cell is halted by design), interval COVERAGE, and HSquared AI-REML. UPDATE 2026-08-25 (DRM.jl#477): DRM.jl's bivariate REML routes now report the NORMALISED restricted log-likelihood, matching drmTMB/TMB/lme4/glmmTMB and DRM.jl's own univariate REML routes, which had always added the constant. This row's parity tolerance was atol_loglik = 5.5436, of which 5.513631 was exactly that integration constant -- a gate that existed almost entirely to absorb an offset. It is now 0.03, the cross-optimum spread alone, passing 33/33: a 185x tightening of the evidence behind this row, not a new claim on top of it. INTERVAL COVERAGE NOW MEASURED (2026-08-25, Totoro, DRM.jl#468), and it ARGUES AGAINST promotion. n=917 of 1000 reps, MCSE 0.006-0.013, convergence 885/917 = 96.5% (much better than the pre-run feared -- #484's warm restart). A clean structural split: phylocov DIAGONAL entries are at or above nominal (L11 0.947, L22 0.943, L33 0.963, L44 0.985 i.e. conservative) while every OFF-DIAGONAL under-covers -- L21 0.874, L31 0.891, L32 0.846, L41 0.883, L42 0.877, L43 0.810, i.e. 5-11 MCSE below nominal. Consistent with Wald on a nonlinear log-Cholesky reparameterisation; the campaign establishes THAT, not WHY. rho12 is fine (profile 0.965, Wald 0.937). sigma1/sigma2 under-cover (0.895/0.881). CRITICAL LIMIT: the missing 83 reps are NOT a random subsample -- they are exactly the seeds on which the rho12 profile RUNS AWAY (99.9% CPU, zero output, stopped under D-139's overrun rule; DRM.jl#494, 22 seeds listed). Every figure here is conditioned on 'not runaway-prone' and that cannot be checked from inside the dataset. The interval_status fence is UNCHANGED and the off-diagonal numbers are why it should stay. Evidence: docs/dev-log/evidence/2026-08-25-coverage-campaign-results.md. RE-MEASURED 2026-08-25 on the COMPLETE 1000/1000 grid (the earlier 917-rep figure and its selection caveat are RETIRED -- DRM.jl#494 is fixed and all 22 previously-runaway seeds now terminate, so no figure here is conditioned on 'not runaway-prone' any more). Convergence 965/1000. The structural finding is now beyond doubt: phylocov DIAGONAL entries cover 0.974 (n=3936) while OFF-DIAGONALS cover 0.876 (n=5910), MCSE 0.003-0.004, about 25 MCSE apart. BOTH directions are calibration failures -- L43 covers 0.827 (understates uncertainty) and L44 covers 1.000 with MCSE 0.000, i.e. it covered every single time, which is not a 95 percent interval but an uninformatively wide one. rho12 is the sharpest case and the reason marginal numbers alone mislead: 0.756 marginal with 223/1000 interval failures but 0.973 conditional -- its calibration was real AND its reliability was not. These are Wald intervals on a nonlinear log-Cholesky reparameterisation; the campaign establishes THAT the split exists and its size, not WHY. Still NOT a coverage claim, and the phylocov numbers in both directions are why. SHARPENED (DRM.jl#495): the phylocov miscalibration is a SCALE-AXIS GRADIENT, not simply diagonal-vs-off-diagonal. With axes (mu1, mu2, sigma1, sigma2): diagonal MEAN entries cover 0.951 (n=1989, MCSE 0.005) -- CORRECTLY CALIBRATED, and the control proving the machinery can hit nominal on this fit; diagonal SCALE entries cover 0.997 (L44 covered 986/986, MCSE 0.000) -- uninformatively wide; and every covariance under-covers, worst at scale x scale (L43 = 0.827, 10 MCSE low). Two defects in opposite directions, and BOTH are reasons this row must not move. The discriminating test (profile vs Wald on the same fits) is proposed in #495 and needs its own D-139 estimate.",
+      "Four-axis phylogenetic location-scale REML. All four design/168 limbs met: implementation (src/reml_q4.jl, in the module); focused tests (test_reml_q4_allaxes.jl AND test_parity_biv_q4_phylo_reml.jl, BOTH in the default suite); public documentation (docs/src/capabilities.md (Inference table, \"REML on the q=4 Laplace model\")); and same-target evidence on a fixture where BOTH engines now converge -- max |d_coef| 0.002889, inside a re-derived a-priori atol by ~15x. IMPORTANT, and previously misdiagnosed: native TMB and DRM.jl maximise the SAME restricted likelihood (both marginalise all four fixed-effect axes; drmTMB adds beta_sigma1/2 to tmb_random_names when a sigma variance component exists, R/drmTMB.R:1122-1152). They differ only by the integration constant (n_beta/2)*log(2*pi) = 5.513631; measured 5.515569, residual 0.001938. An earlier fixture note asserted a structural difference -- that was false and is retained in the fixture for traceability. Julia-side convergence on this cell required DRM.jl#484 (automatic warm restart); before it, drm()'s public kwargs could not converge here at all. STILL NOT CLAIMED: same-target BRIDGE parity (the engine='julia' path for this cell is halted by design), interval COVERAGE, and HSquared AI-REML. UPDATE 2026-08-25 (DRM.jl#477): DRM.jl's bivariate REML routes now report the NORMALISED restricted log-likelihood, matching drmTMB/TMB/lme4/glmmTMB and DRM.jl's own univariate REML routes, which had always added the constant. This row's parity tolerance was atol_loglik = 5.5436, of which 5.513631 was exactly that integration constant -- a gate that existed almost entirely to absorb an offset. It is now 0.03, the cross-optimum spread alone, passing 33/33: a 185x tightening of the evidence behind this row, not a new claim on top of it. INTERVAL COVERAGE NOW MEASURED (2026-08-25, Totoro, DRM.jl#468), and it ARGUES AGAINST promotion. n=917 of 1000 reps, MCSE 0.006-0.013, convergence 885/917 = 96.5% (much better than the pre-run feared -- #484's warm restart). A clean structural split: phylocov DIAGONAL entries are at or above nominal (L11 0.947, L22 0.943, L33 0.963, L44 0.985 i.e. conservative) while every OFF-DIAGONAL under-covers -- L21 0.874, L31 0.891, L32 0.846, L41 0.883, L42 0.877, L43 0.810, i.e. 5-11 MCSE below nominal. Consistent with Wald on a nonlinear log-Cholesky reparameterisation; the campaign establishes THAT, not WHY. rho12 is fine (profile 0.965, Wald 0.937). sigma1/sigma2 under-cover (0.895/0.881). CRITICAL LIMIT: the missing 83 reps are NOT a random subsample -- they are exactly the seeds on which the rho12 profile RUNS AWAY (99.9% CPU, zero output, stopped under D-139's overrun rule; DRM.jl#494, 22 seeds listed). Every figure here is conditioned on 'not runaway-prone' and that cannot be checked from inside the dataset. The interval_status fence is UNCHANGED and the off-diagonal numbers are why it should stay. Evidence: docs/dev-log/evidence/2026-08-25-coverage-campaign-results.md. RE-MEASURED 2026-08-25 on the COMPLETE 1000/1000 grid (the earlier 917-rep figure and its selection caveat are RETIRED -- DRM.jl#494 is fixed and all 22 previously-runaway seeds now terminate, so no figure here is conditioned on 'not runaway-prone' any more). Convergence 965/1000. The structural finding is now beyond doubt: phylocov DIAGONAL entries cover 0.974 (n=3936) while OFF-DIAGONALS cover 0.876 (n=5910), MCSE 0.003-0.004, about 25 MCSE apart. BOTH directions are calibration failures -- L43 covers 0.827 (understates uncertainty) and L44 covers 1.000 with MCSE 0.000, i.e. it covered every single time, which is not a 95 percent interval but an uninformatively wide one. rho12 is the sharpest case and the reason marginal numbers alone mislead: 0.756 marginal with 223/1000 interval failures but 0.973 conditional -- its calibration was real AND its reliability was not. These are Wald intervals on a nonlinear log-Cholesky reparameterisation; the campaign establishes THAT the split exists and its size, not WHY. Still NOT a coverage claim, and the phylocov numbers in both directions are why. SHARPENED (DRM.jl#495): the phylocov miscalibration is a SCALE-AXIS GRADIENT, not simply diagonal-vs-off-diagonal. With axes (mu1, mu2, sigma1, sigma2): diagonal MEAN entries cover 0.951 (n=1989, MCSE 0.005) -- CORRECTLY CALIBRATED, and the control proving the machinery can hit nominal on this fit; diagonal SCALE entries cover 0.997 (L44 covered 986/986, MCSE 0.000) -- uninformatively wide; and every covariance under-covers, worst at scale x scale (L43 = 0.827, 10 MCSE low). Two defects in opposite directions, and BOTH are reasons this row must not move. The discriminating test (profile vs Wald on the same fits) is proposed in #495 and needs its own D-139 estimate.",
       "PROMOTED partial -> covered 2026-08-27 (Phase 2, owner instruction). BOTH blockers this row named are fixed at source and re-measured (DRM.jl PR #517, evidence re-banked on one stamped comparator build 19ecb005): (a) THE CONVERGENCE FLAG (#491) now answers a fixed, scale-invariant question -- mean per-observation gradient <= 1e-6 -- with the Optim short-circuit removed; the old flag was anti-correlated with care (g_tol=10 reported converged at rel-gradient 1.18e-03) and the new standing gate reproduces exactly that and asserts it refused. (b) THE LARGE-P SE GAP was the finite-difference NOISE FLOOR, not a convention difference: the outer vcov Hessian used a fixed h=1e-4 on a summed, inner-solved objective whose evaluation noise grows with n; the step is now n-aware (h ~ 2.5e-7*n, clamped [1e-4, 1e-2]), diagnosed by a step-size x inner-start sweep against native TMB on identical data that ruled out solver hysteresis. RE-MEASURED: poisson_phylo_p1000 SE parity 1.178e-03 -> 3.99e-06 relative (295x), p3000 9.01e-04 -> 4.53e-06 (199x); the BEFORE numbers are the Phase 1 bank, preserved in git at DRM.jl commit c664c4b0:docs/dev-log/evidence/parity-classc.tsv (the current TSV holds only the after-fix values -- audit 2026-08-27 flagged the uncited baseline); coefficients 5e-8..1.3e-06, logLik ~1e-09; parity at p = 20, 300, 1000, 3000 all PARITY_PASS. Four limbs: implementation; tests (test_phylo_count_largep_gate.jl, 31 assertions: recovery, the raw-vs-normalised re_sd height round-trip, the converged-is-not-for-sale gate, and the FD-step shape lock); public docs (DRM.jl docs/src/capabilities.md); the SE evidence above. BOUNDARY STILL VISIBLE: p=3000 is two orders of magnitude below DRM.jl's own p=10,000 O(p) single-engine claim and NO native comparator has been attempted near that scale; native TMB scaled O(p^1.27) over the measured range (#486), so this is genuine parity on shared ground, not a DRM.jl-only regime. NOT interval coverage.",
       "PROMOTED experimental -> covered 2026-08-27 (Phase 1 of the promotion arc, owner instruction). All four design/168 limbs: implementation (DRM.jl non-Gaussian sparse-Laplace phylo route, src/sparse_laplace_glmm.jl); focused tests in DRM.jl's DEFAULT suite (test/test_gamma_beta_phylo_laplace.jl, test/test_binomial_phylo_laplace.jl); public docs (DRM.jl docs/src/capabilities.md non-Gaussian phylo table); and native-vs-native parity WITH SEs in DRM.jl docs/dev-log/evidence/parity-phylo-nongaussian.tsv, all THREE members on one stamped comparator build (f3e754a4): coefficients Gamma 6.26e-08 / Binomial 2.18e-08 / Beta 5.02e-07, logLik <= 2.9e-05, mu-block relative SE 1.49e-05 / 2.17e-07 / 1.87e-04 -- inside the 1e-3 SE bar tools/parity_se.R argues from measured headroom. HISTORY THAT MATTERS: the Binomial member was NO_NATIVE_COMPARATOR until drmTMB gained native binomial phylo() on 2026-08-17 (d30841491); re-measured 2026-08-26 it is the TIGHTEST of the three. The comparator moving made this row MORE evidenced invisibly -- caught by the #473 provenance stamping on its first real run -- and it removes the per-member evidence boundary the promotion plan expected to need. BOUNDARY: one fixture (12 tips x 6 obs, one seed); the tree is normalised to unit height because the engines' scale conventions differ by sqrt(height); the Binomial cell's phylo-SD coordinate sits at a variance boundary (DRM.jl vcov_guard flags it and uses a pseudo-inverse -- the mu-block SEs compared are unaffected, and the boundary is why the mu-only comparison is the honest one there); the evidence route is native-engine-vs-native-engine via JuliaCall, NOT the R bridge, which is why r_bridge_status stays experimental. NOT interval COVERAGE -- no interval_status fence moves here.",
       "PROMOTED partial -> covered 2026-08-27 (Phase 1 of the promotion arc, owner instruction). Supplied covariance/relatedness K with sigma ~ 1. All FOUR claimed families measured against native drmTMB and re-banked twice on stamped comparator builds (f3e754a4 on 2026-08-26, re-measured to identical values on 19ecb005 in the 2026-08-27 Phase 2 re-bank, which is the build the current parity-classc.tsv stamps): relative SE Gaussian 3.38e-07, Poisson 2.17e-06, NB2 4.79e-06, Gamma 2.17e-07; coefficients 1.6e-08..1.6e-06. THE EARLIER SE NUMBERS ON THIS ROW (Poisson 4.65e-03, NB2 6.79e-03, Gamma 4.08e-02) WERE SOLVE NOISE, NOT A CONVENTION DIFFERENCE: the promotion plan's SE-divergence diagnostic showed the Julia SE converging toward native as the inner Newton tolerance tightened, and DRM.jl#513 (newton_tol 1e-8 -> 1e-10; vcov-guard rtol recalibrated 1e-12 -> 3e-8 on 1,970 instrumented calls per arm) closed the gap -- Gamma improved 188,216x. Four limbs: implementation; focused tests in DRM.jl's default suite (test/test_relmat_counts.jl, test_relmat_counts_nb2.jl, test_relmat_counts_beta.jl); public docs (DRM.jl docs/src/capabilities.md structured-effects table); and the SE evidence above, with a negative control in parity-se.tsv from the same program. BOUNDARY UNCHANGED AND STILL VISIBLE: ONE seed/fixture per family; beta has NO_NATIVE_COMPARATOR (drmTMB refuses relmat on plain beta()) and is an excluded NEIGHBOUR -- the row claims exactly the four families measured; precision Q and sigma predictors remain GATED and unmeasured. NOT interval coverage.",
       "PERMANENT CLAIM_BOUNDARY (owner decision D-179 #3, 2026-08-27): this row stays `partial` by DESIGN, on the engine_control_surface pattern -- an owner-signed boundary, not a pending promotion. WHY IT CANNOT REACH `covered` ON THE PARITY BAR: drmTMB's native TMB engine accepts only c(gaussian(), gaussian()), so no native comparator for a mixed pair can exist; the only evidence route is multi-seed simulation recovery, which is deliberately NOT being spent here (one family pair, one fixture is what exists). RETRACTION OF THE PREVIOUS TEXT'S CLAIM (1): the route IS reachable from R. drmTMB(bf(...), c(gaussian(), poisson()), engine = \"julia\") dispatches through drmTMB_julia_xfam_bridge -> drm_julia_call_xfam -> DRM.fit_mixed_family, exercised by tests/testthat/test-xfam-bridge.R (54 passing assertions incl. a live Gaussian x Poisson round-trip). The earlier \"NOT reachable through the R bridge at all\" verdict inspected DRM.jl's src/bridge.jl -- the wrong LAYER: drmTMB's own marshalling reaches the engine without it. Consequently r_bridge_status = experimental is FAIR, not generous, and stands. WHAT THE ROUTE REFUSES, as excluded NEIGHBOURS (a rho12 formula would be a different model -- the correlation here is a latent scalar): rho12 formulas, random effects, structured markers, meta_V, weights, impute, non-drop missing routes. Smoke evidence: rho_latent 0.5336 on n=300 shared-latent fixture, DRM.jl formula-route == matrix-route equivalence tested (test_cross_family_formula.jl, 18 assertions (a 24 was recorded earlier and corrected by the 2026-08-27 audit)). NOT interval coverage. Revisiting this boundary is an owner decision; simulation-recovery evidence would be the price of `covered`.",
-      "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
+      "The base Julia bridge accepts only drm_control(optimizer = list(g_tol = ..., algorithm = ...)). These are Julia-native controls, not an attempt to match TMB presets or iteration budgets; unsupported controls refuse before JuliaCall. The translation and route-option tests are local only; no performance or interval claim moves.",
       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects."
 ,
       "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: for one phylogenetic LSS component, DRM.jl selects the sparse O(p) engine automatically above 500 species (or on explicit sparse request). The forced dense fallback and current multi-component route remain capped at 5000 observations; repeated observations can reach that dense limit before 5000 species. NOT interval coverage."
@@ -318,7 +318,7 @@ drm_julia_capability_comparison <- function() {
       "Keep residual rho12 result-shape and Route B parity tests; do not promote beyond experimental.",
       "Keep first phylo-mean result-shape and Route A parity tests; do not widen to sigma-phylo here.",
       "Keep the include==drop equality tests green on both sides (DRM.jl default suite + tests/testthat/test-julia-missing.R). Non-Gaussian observed-data likelihoods stay gated until audited; missing predictors stay predictor='fail'.",
-      "Bank fit-specific CI/status parity before release language.",
+      "#575 fixed (exact REML gradient, feat/575-exact-reml-gradient); bridge coef/logLik re-measure GATE-PASS at 1.9e-05 / 1.7e-04 (within recorded tol 0.03/0.0251). NO SE or interval evidence was re-measured; interval_status unchanged and the coverage split still blocks any status move. Bank a same-target SE receipt next, then fit-specific CI/status parity before release language.",
       "Keep the standing gate (test_phylo_count_largep_gate.jl) and the large-p SE cells green against future comparator builds. The p=10,000 single-engine claim stays single-engine unless a native comparator is attempted at that scale (a deliberate non-goal). Interval_status does not move without a coverage campaign.",
       "Keep the three-member parity harness (tools/parity_phylo_nongaussian.R, SE columns included since 2026-08-27) green against future comparator builds; widen beyond one fixture/seed only if a claim needs it. Interval_status does not move without a coverage campaign.",
       "Compare current DRM.jl accepted families with the R gate before widening. DRM.jl-vs-gate comparison now exists and is re-runnable: DRM.jl tools/parity_ledger.py against a pinned drmTMB ref, with docs/dev-log/evidence/2026-08-14-drmtmb-parity-ledger.md. PROMOTION 2026-08-27: keep the four family cells green in DRM.jl tools/parity_classc.R; beta stays an excluded neighbour until drmTMB itself admits relmat on beta().",
@@ -445,12 +445,7 @@ drmTMB_julia_bridge <- function(
       i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} for other missing-data models."
     ))
   }
-  if (!drm_julia_default_control(control)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently accepts only default {.arg control}.",
-      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
-    ))
-  }
+  control_overrides <- drm_julia_translate_control(control)
 
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
@@ -491,7 +486,8 @@ drmTMB_julia_bridge <- function(
     family_type = family_type,
     data = data,
     env = env,
-    method = if (isTRUE(REML) && reml_supported) "REML" else "ML"
+    method = if (isTRUE(REML) && reml_supported) "REML" else "ML",
+    control_overrides = control_overrides
   )
 
   conditional_components <- drm_julia_conditional_gaussian_components_spec(
@@ -638,12 +634,130 @@ drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
   list(group = spec$components[[1L]]$group, dpar = spec$dpar)
 }
 
+# All-or-nothing control gate, still used by the cross-family and general-
+# covariance structured bridges, whose option payloads have no optimizer
+# passthrough yet. The main univariate / bivariate bridge uses
+# `drm_julia_translate_control()` instead.
 drm_julia_default_control <- function(control) {
   if (inherits(control, "drm_control")) {
     default <- drm_control()
     return(identical(control, default))
   }
   is.null(control) || (is.list(control) && length(control) == 0L)
+}
+
+# Optimizer-solver names DRM.jl's `drm()` accepts on the bridge path. The Julia
+# bridge turns `options$algorithm` into a `Symbol` and `drm()` validates it
+# (src/gaussian_core.jl). Keeping the list here lets the R side reject an
+# unknown solver with a clear message before crossing the bridge.
+drm_julia_supported_algorithms <- function() {
+  c("auto", "gls", "lbfgs", "em", "sparse", "sparse_lbfgs")
+}
+
+# Translate a user `control` into the subset of optimizer settings the Julia
+# engine honours, instead of the old all-or-nothing gate. DRM.jl's bridge fit
+# (`_bridge_fit`) reads only `options$g_tol` (gradient tolerance) and
+# `options$algorithm` (solver) from `drm()`'s signature, so those are the two
+# knobs an `engine = "julia"` user can tune. They travel in the `optimizer`
+# named list of `drm_control(optimizer = list(g_tol = ..., algorithm = ...))`.
+#
+# Everything else `drm_control()` carries is TMB-only and has no effect on the
+# Julia path, so we abort (rather than silently drop) when a non-default value
+# is supplied: the storage flags (`se`, `keep_data`, `keep_model_frame`,
+# `keep_tmb_object`), the sparse / aggregate fixed-effect flags (`sparse_fixed`,
+# `aggregate_gaussian`), the `optimizer_preset` budgets, and any nlminb
+# iteration caps (`iter.max`, `eval.max`) -- DRM.jl's `drm()` exposes no
+# iteration-cap kwarg on the bridge path, so honouring one would mislead.
+#
+# Returns a (possibly empty) named list with `g_tol` and/or `algorithm`.
+drm_julia_translate_control <- function(control) {
+  if (is.null(control)) {
+    return(list())
+  }
+  if (!inherits(control, "drm_control")) {
+    if (!is.list(control)) {
+      cli::cli_abort(
+        "{.code engine = \"julia\"} expects {.arg control} to be a list or a {.cls drm_control} object."
+      )
+    }
+    if (length(control) == 0L) {
+      return(list())
+    }
+    # Bare optimizer list (e.g. `control = list(g_tol = 1e-6)`); reuse the
+    # drm_control() constructor so the same optimizer-list parsing applies.
+    control <- drm_control(optimizer = control)
+  }
+
+  default <- drm_control()
+  unsupported <- character()
+  for (field in c(
+    "se",
+    "keep_data",
+    "keep_model_frame",
+    "keep_tmb_object",
+    "sparse_fixed",
+    "aggregate_gaussian",
+    "optimizer_preset"
+  )) {
+    if (!identical(control[[field]], default[[field]])) {
+      unsupported <- c(unsupported, field)
+    }
+  }
+
+  optimizer <- control$optimizer
+  if (is.null(optimizer)) {
+    optimizer <- list()
+  }
+  overrides <- list()
+  for (name in names(optimizer)) {
+    value <- optimizer[[name]]
+    if (identical(name, "g_tol")) {
+      overrides$g_tol <- drm_julia_validate_g_tol(value)
+    } else if (identical(name, "algorithm")) {
+      overrides$algorithm <- drm_julia_validate_algorithm(value)
+    } else {
+      unsupported <- c(unsupported, name)
+    }
+  }
+
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
+      i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}.",
+      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, or preset controls."
+    ))
+  }
+  overrides
+}
+
+drm_julia_validate_g_tol <- function(value) {
+  if (
+    !is.numeric(value) ||
+      length(value) != 1L ||
+      !is.finite(value) ||
+      value <= 0
+  ) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires {.code optimizer$g_tol} to be a single positive number."
+    )
+  }
+  as.numeric(value)
+}
+
+drm_julia_validate_algorithm <- function(value) {
+  supported <- drm_julia_supported_algorithms()
+  if (
+    !is.character(value) ||
+      length(value) != 1L ||
+      is.na(value) ||
+      !(value %in% supported)
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} {.code optimizer$algorithm} must be one of {.val {supported}}.",
+      x = "Got {.val {value}}."
+    ))
+  }
+  value
 }
 
 # Missing-data routes the Julia engine supports. `response = "drop"` is always
@@ -865,7 +979,8 @@ drm_julia_bridge_payload <- function(
   family_type,
   data,
   env,
-  method = "ML"
+  method = "ML",
+  control_overrides = list()
 ) {
   phylo_payload <- drm_julia_phylo_payload(
     formula = formula,
@@ -889,7 +1004,11 @@ drm_julia_bridge_payload <- function(
     formula = formula_spec,
     data = data_out,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(phylo_payload, method = method),
+    options = drm_julia_bridge_options(
+      phylo_payload,
+      method = method,
+      control_overrides = control_overrides
+    ),
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL
@@ -909,15 +1028,17 @@ drm_julia_bridge_payload <- function(
   )
 }
 
-# Modelled columns the bridge needs from `data`: every response plus every
+# Modelled columns the bridge needs from `data`: every mean response plus every
 # fixed-effect / structured predictor variable (phylo trees stripped first so a
-# tree object symbol is not looked for in `data`). Used both to column-subset the
+# tree object symbol is not looked for in `data`).  In bivariate formulae,
+# `sigma1`, `sigma2`, and `rho12` can appear on the left hand side as parameter
+# aliases; they are not response columns. Used both to column-subset the
 # marshalled data and to define the complete-case set for response = "drop".
 drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
   needed <- unique(unlist(
     lapply(formula$entries, function(entry) {
       response_cols <- character()
-      if (!is.na(entry$response)) {
+      if (!is.na(entry$response) && entry$dpar %in% c("mu", "mu1", "mu2")) {
         response_cols <- drm_julia_expand_response_columns(entry$response)
       }
       c(
@@ -978,7 +1099,11 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
   data[, needed, drop = FALSE]
 }
 
-drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
+drm_julia_bridge_options <- function(
+  phylo_payload,
+  method = "ML",
+  control_overrides = list()
+) {
   # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
   # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
   # on the non-phylo Gaussian path and on the Gaussian sigma-phylo location-scale
@@ -986,23 +1111,41 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # the default "ML" leaves the non-REML payload byte-identical to the
   # parity-tested baseline.
   reml <- identical(method, "REML")
+  finish <- function(base) drm_julia_merge_options(base, control_overrides)
   if (is.null(phylo_payload)) {
     if (reml) {
-      return(list(method = "REML"))
+      return(finish(list(method = "REML")))
     }
-    return(list())
+    return(finish(list()))
   }
   if (isTRUE(phylo_payload$bivariate)) {
     if (identical(phylo_payload$bivariate_dimension, "q2")) {
-      return(list(g_tol = 1e-4))
+      return(finish(list(g_tol = 1e-4)))
     }
+    # The q = 4 route has its own outer optimiser. Its `drm()` method accepts
+    # `q4_g_tol`, while a generic `g_tol` keyword is otherwise ignored. It
+    # does not expose the generic solver-selection keyword at all. Translate
+    # the former and refuse the latter rather than giving a user a control
+    # setting that appears to work but has no effect (or fails in Julia).
+    q4_overrides <- control_overrides
+    if ("algorithm" %in% names(q4_overrides)) {
+      cli::cli_abort(c(
+        "The {.code engine = \"julia\"} q = 4 phylogenetic route does not support {.code optimizer$algorithm}.",
+        i = "Its dedicated optimiser has no solver-selection setting. You may tune {.code optimizer$g_tol}, which controls its q4 outer-gradient tolerance."
+      ))
+    }
+    if ("g_tol" %in% names(q4_overrides)) {
+      q4_overrides$q4_g_tol <- q4_overrides$g_tol
+      q4_overrides$g_tol <- NULL
+    }
+    q4_finish <- function(base) drm_julia_merge_options(base, q4_overrides)
     # The q=4 PLSM route uses DRM.jl's own optimizer defaults (no g_tol
     # override): the direct-fit parity check matched the bridge to 0 with
     # defaults. REML still has to be forwarded explicitly.
     if (reml) {
-      return(list(method = "REML"))
+      return(q4_finish(list(method = "REML")))
     }
-    return(list())
+    return(q4_finish(list()))
   }
 
   # The sparse all-node Gaussian mean-only route needs a tighter tolerance to
@@ -1056,15 +1199,28 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
     1e-4
   }
   if (reml) {
-    return(list(g_tol = g_tol, method = "REML"))
+    return(finish(list(g_tol = g_tol, method = "REML")))
   }
   if (
     identical(phylo_payload$family_type, "gaussian") &&
       identical(phylo_payload$locscale_mode, "phylo_locscale")
   ) {
-    return(list(g_tol = g_tol, phylo_coupled = TRUE))
+    return(finish(list(g_tol = g_tol, phylo_coupled = TRUE)))
   }
-  list(g_tol = g_tol)
+  finish(list(g_tol = g_tol))
+}
+
+# Merge user optimizer overrides into a route's base options. User values win
+# over the route default (e.g. a tuned g_tol replaces the sparse-phylo 1e-4
+# default); an empty override list returns `base` unchanged.
+drm_julia_merge_options <- function(base, overrides) {
+  if (length(overrides) == 0L) {
+    return(base)
+  }
+  for (name in names(overrides)) {
+    base[[name]] <- overrides[[name]]
+  }
+  base
 }
 
 # Emit a single warning (and fall back to ML) when REML is requested for a

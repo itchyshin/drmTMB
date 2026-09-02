@@ -5,6 +5,33 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-02 (written 05:0x MDT; work ran from 2026-09-01 evening) — Claude parity lane HANDED OVER to a fresh Claude session.**
+  START HERE for this lane: [`handover/2026-09-02-claude-handover-575-fixed.md`](handover/2026-09-02-claude-handover-575-fixed.md).
+  #575 FIXED (exact REML gradient; DRM.jl PR #579 draft; suite 9203/0/0; D-43 panel verified).
+  Three reviews await Shinichi: drmTMB #1112, DRM.jl #579, DRM.jl #576. Promotion wave 1 (4 rows)
+  fires on the #1112 merge; q4 stays out pending an SE-axis receipt. Other lanes keep their own
+  pointers above/below — this entry does not represent them.
+- **2026-09-01 (later) — Arc P1 plateau checkpoint (SUPERSEDED same evening: the "basin selection" diagnosis below was itself FD-gradient noise; #575 was fixed by the exact REML gradient — see the entry above).**
+  Mechanism proven three ways (receipts in `evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/`):
+  DRM.jl's own objective at the TMB point beats its solver's result; polish/multistart shave ≤0.006 and
+  violate the gradient contract (reverted, not shipped — regressed #484); warm-started AT the TMB point the
+  same solver reaches −219.6034, better than TMB's −219.6140. Branches pushed: `fix/575-q4-optimum`
+  (test-first, @test_broken pin, no src change), `feat/575-objective-at` (diagnostic evaluator, TDD).
+  Rose V2 verified 7/8 and her one demote (durable evidence paths) is applied. Latent cache-corruption
+  hazard documented on #575. Prepared and GATED: bridge-promotion wave 1 (4 receipt-verified rows →
+  partial) awaiting #1112 merge; reverse-parity lane brief committed for the new Claude drmTMB lane.
+  Basin-selection over the warm start was then ATTEMPTED (K=5 incl. structured Λ0, cheap pre-screen) and PLATEAUED twice more: candidates re-find the same basin (Δ 7e-5, within noise) or violate the engine-level g-contract (0.0026 > 1e-3); src reverted both times (receipts: p12a-basin-summary.md). Sharpened hypothesis: certifying convergence in the better basin needs the exact REML gradient (the mode-finder converges on FD-gradient grounds, and run noise ~1e-3 sits AT g_tol) — a derivation-level slice, not a solver tweak. The owner said keep going: the exact-REML-gradient slice then ran (Opus, derivation-first) and FIXED #575 — DRM.jl PR #579 (draft), exact-vs-FD ≤6.2e-8, both routes at −219.6140 (2e-5 from TMB), bridge re-measure GATE-PASS on coef/logLik (1.9e-05/1.7e-04), full suite 9203/0/0 with the new tests wired, D-43 panel verified with its two blockers fixed. SE axis unmeasured — q4 stays out of promotion wave 1; coverage fence stands. Follow-ups: DRM.jl#577 (ML-path gradient degeneracy), #578 (missing-response mask consistency).
+- **2026-09-01 — R–Julia true-parity programme lane is active in Claude (Fable), continuing
+  `codex/rebase-julia-optimizer-controls` per the 2026-09-01 handover.** Landed on the branch:
+  Ayumi reply DRAFTS (unsent — 205 gate holds), matched-control q4 fixture receipts
+  (`evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/`), and a frozen-manifest programme
+  re-estimate (`plan/2026-09-01-parity-programme-estimate.md`, ~92–159 agent-h replacing the
+  un-receipted 157–297). Findings of record: the handover's "inconclusive" q4 fixture run HAD
+  completed; the matched re-run reproduces |Δ logLik| ≈ 1.6e-2 and diagnosis shows TMB at the
+  better optimum, g_tol-insensitive → **DRM.jl#575** (blocks q4 bridge promotion). Ayumi's exact
+  343-tip subset recipe located (deterministic, `R/51_batch_clade_revised_spec.R`). Public
+  scoreboard page opened on DRM.jl branch `docs/drmtmb-parity-scoreboard`; Parity Standing artifact
+  + Mission Control refreshed. No reply posted, no release motion, no campaign launched.
 - **2026-08-19 — exact 0.7.0 evidence closeout is active in Codex.** Final
   immutable candidate: source `6170fbeeea65f22444d7b0934f4e808c40744d22`,
   SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
