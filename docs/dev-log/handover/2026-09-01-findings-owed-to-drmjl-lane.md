@@ -76,6 +76,23 @@ canonical and explicitly refuses to settle the question, because it is cross-rep
 Zero rows are confirmed breaking under drmTMB's native TMB engine; all ten `engine = "julia"`
 rows are marked *cannot determine* rather than guessed, precisely because the producer is absent.
 
+## 3b. A SECOND, independent name-drift mechanism — float-coerced factor levels
+
+Surfaced while specifying the constructs, and distinct from the `__bridge_*` materialisation
+in finding 3. On the reversed two-factor interaction case, R's factor levels `10` and `20`
+come back from the bridge as **`10.0` and `20.0`**: a `Vector{Any}` column of numeric-looking
+values is parsed as `Float64` on the Julia side, so the level label itself is re-rendered.
+
+That matters because it is not fixed by agreeing a naming authority. Even if both sides adopt
+base-R spelling tomorrow, `factor(h)10` and `factor(h)10.0` still differ, and the mismatch
+originates in *column parsing*, not in label translation. Whoever implements the fix needs both
+mechanisms in view, and the second one is invisible in DRM.jl#467's current framing.
+
+Verified independently on the R side: `model.matrix()` names for `I(x^2)`, `poly(x, 3)`,
+`z * poly(x, 2)`, `(x + z)^2`, `scale(x)`, `I(+x)` and `I(x + (z + 2))` all reproduce exactly
+as our spec table records them (7 of 7 checkable rows), so the base-R column of that table is
+measured, not reconstructed.
+
 ## 4. Ayumi's limitation #7 may already be answered on our side
 
 Her open limitation #7 is that a whole-tree q4 profile CI is impractical: DRM.jl's q4 profile
