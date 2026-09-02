@@ -1,0 +1,1 @@
+Q4_FIXTURE_BRIDGE_PARITY_V3 conv_tmb=TRUE conv_julia=TRUE ll_delta=1.9169825e-05 max_coef_delta=0.00016828466 tmb_s=0.928 julia_s=0.876 n_common=7 tmb_conv_msg=NA

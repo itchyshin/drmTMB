@@ -106,7 +106,7 @@ drm_julia_intentional_gates <- function() {
     syntax = c(
       "weights = ...",
       "impute supplied without missing = miss_control(predictor = \"model\")",
-      "control = list(...)",
+      "control = drm_control(optimizer = list(iter.max = ...))",
       "missing = miss_control(predictor = \"model\") without a matching impute model",
       "missing = miss_control(response = \"include\") with poisson()",
       "family = beta_binomial() through engine = \"julia\"",
@@ -123,7 +123,7 @@ drm_julia_intentional_gates <- function() {
     drmjl_status = c(
       "unsupported payload",
       "joint payload requires predictor=model and an additive mi term",
-      "no R engine-control surface",
+      "Julia supports only g_tol and algorithm controls",
       "joint payload requires an explicit matching impute model",
       "not audited for non-Gaussian masks",
       "no BetaBinomial tree/FE R bridge claim",
@@ -139,7 +139,7 @@ drm_julia_intentional_gates <- function() {
     message_pattern = c(
       "weights",
       "predictor.*model",
-      "default .*control",
+      "does not support .*control",
       "impute",
       "missing.*route",
       "Gaussian one-/two-response|Workflow G fixed-effect",
@@ -161,7 +161,7 @@ drm_julia_intentional_gates <- function() {
     evidence = c(
       "DRM.jl bridge payload has no weights slot.",
       "The joint Gaussian/Bernoulli predictor payload is admitted only with complete model specification.",
-      "Julia optimizer controls need an explicit engine_control surface.",
+      "The public Julia bridge accepts drm_control(optimizer = list(g_tol = ..., algorithm = ...)); TMB-only controls and iteration caps refuse before JuliaCall.",
       "Modelled predictors require a matching impute entry; unsupported families remain separate gaps.",
       "Observed-response masks are admitted only for Gaussian bridge cells.",
       "BetaBinomial has no Workflow G R bridge admission; use native TMB.",
@@ -230,7 +230,7 @@ drm_julia_capability_comparison <- function() {
       "Gamma()/beta()/stats::binomial() with phylo(1 | group, tree = tree)",
       "relmat(1 | group, K = K) for supported one-response families",
       "c(gaussian(), poisson()) cross-family latent-rho route",
-      "engine_control = ... or non-default Julia optimizer controls",
+      "drm_control(optimizer = list(g_tol = ..., algorithm = ...))",
       "stats::binomial() without phylo() through engine = \"julia\"",
       "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\""
     ),
@@ -244,7 +244,7 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "experimental",
-      "unsupported",
+      "experimental",
       "experimental",
       "experimental"
     ),
@@ -258,7 +258,7 @@ drm_julia_capability_comparison <- function() {
       "guarded non-Gaussian phylo path",
       "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
       "latent-rho mixed-family path; API drift is tracked in tests",
-      "no R surface by design",
+      "Julia-native g_tol and algorithm controls on the base bridge; unsupported TMB controls refuse before JuliaCall",
       "Workflow G FE bridge cell (binomial-trials) via drm_bridge",
       "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)"
     ),
@@ -287,7 +287,7 @@ drm_julia_capability_comparison <- function() {
       "covered",
       "covered",
       "partial",
-      "unsupported",
+      "experimental",
       "covered",
       "covered"
     ),
@@ -308,7 +308,7 @@ drm_julia_capability_comparison <- function() {
       "PROMOTED experimental -> covered 2026-08-27 (Phase 1 of the promotion arc, owner instruction). All four design/168 limbs: implementation (DRM.jl non-Gaussian sparse-Laplace phylo route, src/sparse_laplace_glmm.jl); focused tests in DRM.jl's DEFAULT suite (test/test_gamma_beta_phylo_laplace.jl, test/test_binomial_phylo_laplace.jl); public docs (DRM.jl docs/src/capabilities.md non-Gaussian phylo table); and native-vs-native parity WITH SEs in DRM.jl docs/dev-log/evidence/parity-phylo-nongaussian.tsv, all THREE members on one stamped comparator build (f3e754a4): coefficients Gamma 6.26e-08 / Binomial 2.18e-08 / Beta 5.02e-07, logLik <= 2.9e-05, mu-block relative SE 1.49e-05 / 2.17e-07 / 1.87e-04 -- inside the 1e-3 SE bar tools/parity_se.R argues from measured headroom. HISTORY THAT MATTERS: the Binomial member was NO_NATIVE_COMPARATOR until drmTMB gained native binomial phylo() on 2026-08-17 (d30841491); re-measured 2026-08-26 it is the TIGHTEST of the three. The comparator moving made this row MORE evidenced invisibly -- caught by the #473 provenance stamping on its first real run -- and it removes the per-member evidence boundary the promotion plan expected to need. BOUNDARY: one fixture (12 tips x 6 obs, one seed); the tree is normalised to unit height because the engines' scale conventions differ by sqrt(height); the Binomial cell's phylo-SD coordinate sits at a variance boundary (DRM.jl vcov_guard flags it and uses a pseudo-inverse -- the mu-block SEs compared are unaffected, and the boundary is why the mu-only comparison is the honest one there); the evidence route is native-engine-vs-native-engine via JuliaCall, NOT the R bridge, which is why r_bridge_status stays experimental. NOT interval COVERAGE -- no interval_status fence moves here.",
       "PROMOTED partial -> covered 2026-08-27 (Phase 1 of the promotion arc, owner instruction). Supplied covariance/relatedness K with sigma ~ 1. All FOUR claimed families measured against native drmTMB and re-banked twice on stamped comparator builds (f3e754a4 on 2026-08-26, re-measured to identical values on 19ecb005 in the 2026-08-27 Phase 2 re-bank, which is the build the current parity-classc.tsv stamps): relative SE Gaussian 3.38e-07, Poisson 2.17e-06, NB2 4.79e-06, Gamma 2.17e-07; coefficients 1.6e-08..1.6e-06. THE EARLIER SE NUMBERS ON THIS ROW (Poisson 4.65e-03, NB2 6.79e-03, Gamma 4.08e-02) WERE SOLVE NOISE, NOT A CONVENTION DIFFERENCE: the promotion plan's SE-divergence diagnostic showed the Julia SE converging toward native as the inner Newton tolerance tightened, and DRM.jl#513 (newton_tol 1e-8 -> 1e-10; vcov-guard rtol recalibrated 1e-12 -> 3e-8 on 1,970 instrumented calls per arm) closed the gap -- Gamma improved 188,216x. Four limbs: implementation; focused tests in DRM.jl's default suite (test/test_relmat_counts.jl, test_relmat_counts_nb2.jl, test_relmat_counts_beta.jl); public docs (DRM.jl docs/src/capabilities.md structured-effects table); and the SE evidence above, with a negative control in parity-se.tsv from the same program. BOUNDARY UNCHANGED AND STILL VISIBLE: ONE seed/fixture per family; beta has NO_NATIVE_COMPARATOR (drmTMB refuses relmat on plain beta()) and is an excluded NEIGHBOUR -- the row claims exactly the four families measured; precision Q and sigma predictors remain GATED and unmeasured. NOT interval coverage.",
       "PERMANENT CLAIM_BOUNDARY (owner decision D-179 #3, 2026-08-27): this row stays `partial` by DESIGN, on the engine_control_surface pattern -- an owner-signed boundary, not a pending promotion. WHY IT CANNOT REACH `covered` ON THE PARITY BAR: drmTMB's native TMB engine accepts only c(gaussian(), gaussian()), so no native comparator for a mixed pair can exist; the only evidence route is multi-seed simulation recovery, which is deliberately NOT being spent here (one family pair, one fixture is what exists). RETRACTION OF THE PREVIOUS TEXT'S CLAIM (1): the route IS reachable from R. drmTMB(bf(...), c(gaussian(), poisson()), engine = \"julia\") dispatches through drmTMB_julia_xfam_bridge -> drm_julia_call_xfam -> DRM.fit_mixed_family, exercised by tests/testthat/test-xfam-bridge.R (54 passing assertions incl. a live Gaussian x Poisson round-trip). The earlier \"NOT reachable through the R bridge at all\" verdict inspected DRM.jl's src/bridge.jl -- the wrong LAYER: drmTMB's own marshalling reaches the engine without it. Consequently r_bridge_status = experimental is FAIR, not generous, and stands. WHAT THE ROUTE REFUSES, as excluded NEIGHBOURS (a rho12 formula would be a different model -- the correlation here is a latent scalar): rho12 formulas, random effects, structured markers, meta_V, weights, impute, non-drop missing routes. Smoke evidence: rho_latent 0.5336 on n=300 shared-latent fixture, DRM.jl formula-route == matrix-route equivalence tested (test_cross_family_formula.jl, 18 assertions (a 24 was recorded earlier and corrected by the 2026-08-27 audit)). NOT interval coverage. Revisiting this boundary is an owner decision; simulation-recovery evidence would be the price of `covered`.",
-      "Do not document user-selectable Julia optimizer controls until a real R API is designed.",
+      "The base Julia bridge accepts only drm_control(optimizer = list(g_tol = ..., algorithm = ...)). These are Julia-native controls, not an attempt to match TMB presets or iteration budgets; unsupported controls refuse before JuliaCall. The translation and route-option tests are local only; no performance or interval claim moves.",
       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects."
 ,
       "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: for one phylogenetic LSS component, DRM.jl selects the sparse O(p) engine automatically above 500 species (or on explicit sparse request). The forced dense fallback and current multi-component route remain capped at 5000 observations; repeated observations can reach that dense limit before 5000 species. NOT interval coverage."
@@ -445,12 +445,7 @@ drmTMB_julia_bridge <- function(
       i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} for other missing-data models."
     ))
   }
-  if (!drm_julia_default_control(control)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} currently accepts only default {.arg control}.",
-      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
-    ))
-  }
+  control_overrides <- drm_julia_translate_control(control)
 
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
@@ -491,7 +486,8 @@ drmTMB_julia_bridge <- function(
     family_type = family_type,
     data = data,
     env = env,
-    method = if (isTRUE(REML) && reml_supported) "REML" else "ML"
+    method = if (isTRUE(REML) && reml_supported) "REML" else "ML",
+    control_overrides = control_overrides
   )
 
   conditional_components <- drm_julia_conditional_gaussian_components_spec(
@@ -638,12 +634,130 @@ drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
   list(group = spec$components[[1L]]$group, dpar = spec$dpar)
 }
 
+# All-or-nothing control gate, still used by the cross-family and general-
+# covariance structured bridges, whose option payloads have no optimizer
+# passthrough yet. The main univariate / bivariate bridge uses
+# `drm_julia_translate_control()` instead.
 drm_julia_default_control <- function(control) {
   if (inherits(control, "drm_control")) {
     default <- drm_control()
     return(identical(control, default))
   }
   is.null(control) || (is.list(control) && length(control) == 0L)
+}
+
+# Optimizer-solver names DRM.jl's `drm()` accepts on the bridge path. The Julia
+# bridge turns `options$algorithm` into a `Symbol` and `drm()` validates it
+# (src/gaussian_core.jl). Keeping the list here lets the R side reject an
+# unknown solver with a clear message before crossing the bridge.
+drm_julia_supported_algorithms <- function() {
+  c("auto", "gls", "lbfgs", "em", "sparse", "sparse_lbfgs")
+}
+
+# Translate a user `control` into the subset of optimizer settings the Julia
+# engine honours, instead of the old all-or-nothing gate. DRM.jl's bridge fit
+# (`_bridge_fit`) reads only `options$g_tol` (gradient tolerance) and
+# `options$algorithm` (solver) from `drm()`'s signature, so those are the two
+# knobs an `engine = "julia"` user can tune. They travel in the `optimizer`
+# named list of `drm_control(optimizer = list(g_tol = ..., algorithm = ...))`.
+#
+# Everything else `drm_control()` carries is TMB-only and has no effect on the
+# Julia path, so we abort (rather than silently drop) when a non-default value
+# is supplied: the storage flags (`se`, `keep_data`, `keep_model_frame`,
+# `keep_tmb_object`), the sparse / aggregate fixed-effect flags (`sparse_fixed`,
+# `aggregate_gaussian`), the `optimizer_preset` budgets, and any nlminb
+# iteration caps (`iter.max`, `eval.max`) -- DRM.jl's `drm()` exposes no
+# iteration-cap kwarg on the bridge path, so honouring one would mislead.
+#
+# Returns a (possibly empty) named list with `g_tol` and/or `algorithm`.
+drm_julia_translate_control <- function(control) {
+  if (is.null(control)) {
+    return(list())
+  }
+  if (!inherits(control, "drm_control")) {
+    if (!is.list(control)) {
+      cli::cli_abort(
+        "{.code engine = \"julia\"} expects {.arg control} to be a list or a {.cls drm_control} object."
+      )
+    }
+    if (length(control) == 0L) {
+      return(list())
+    }
+    # Bare optimizer list (e.g. `control = list(g_tol = 1e-6)`); reuse the
+    # drm_control() constructor so the same optimizer-list parsing applies.
+    control <- drm_control(optimizer = control)
+  }
+
+  default <- drm_control()
+  unsupported <- character()
+  for (field in c(
+    "se",
+    "keep_data",
+    "keep_model_frame",
+    "keep_tmb_object",
+    "sparse_fixed",
+    "aggregate_gaussian",
+    "optimizer_preset"
+  )) {
+    if (!identical(control[[field]], default[[field]])) {
+      unsupported <- c(unsupported, field)
+    }
+  }
+
+  optimizer <- control$optimizer
+  if (is.null(optimizer)) {
+    optimizer <- list()
+  }
+  overrides <- list()
+  for (name in names(optimizer)) {
+    value <- optimizer[[name]]
+    if (identical(name, "g_tol")) {
+      overrides$g_tol <- drm_julia_validate_g_tol(value)
+    } else if (identical(name, "algorithm")) {
+      overrides$algorithm <- drm_julia_validate_algorithm(value)
+    } else {
+      unsupported <- c(unsupported, name)
+    }
+  }
+
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
+      i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}.",
+      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, or preset controls."
+    ))
+  }
+  overrides
+}
+
+drm_julia_validate_g_tol <- function(value) {
+  if (
+    !is.numeric(value) ||
+      length(value) != 1L ||
+      !is.finite(value) ||
+      value <= 0
+  ) {
+    cli::cli_abort(
+      "{.code engine = \"julia\"} requires {.code optimizer$g_tol} to be a single positive number."
+    )
+  }
+  as.numeric(value)
+}
+
+drm_julia_validate_algorithm <- function(value) {
+  supported <- drm_julia_supported_algorithms()
+  if (
+    !is.character(value) ||
+      length(value) != 1L ||
+      is.na(value) ||
+      !(value %in% supported)
+  ) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} {.code optimizer$algorithm} must be one of {.val {supported}}.",
+      x = "Got {.val {value}}."
+    ))
+  }
+  value
 }
 
 # Missing-data routes the Julia engine supports. `response = "drop"` is always
@@ -865,7 +979,8 @@ drm_julia_bridge_payload <- function(
   family_type,
   data,
   env,
-  method = "ML"
+  method = "ML",
+  control_overrides = list()
 ) {
   phylo_payload <- drm_julia_phylo_payload(
     formula = formula,
@@ -889,7 +1004,11 @@ drm_julia_bridge_payload <- function(
     formula = formula_spec,
     data = data_out,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(phylo_payload, method = method),
+    options = drm_julia_bridge_options(
+      phylo_payload,
+      method = method,
+      control_overrides = control_overrides
+    ),
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL
@@ -909,15 +1028,17 @@ drm_julia_bridge_payload <- function(
   )
 }
 
-# Modelled columns the bridge needs from `data`: every response plus every
+# Modelled columns the bridge needs from `data`: every mean response plus every
 # fixed-effect / structured predictor variable (phylo trees stripped first so a
-# tree object symbol is not looked for in `data`). Used both to column-subset the
+# tree object symbol is not looked for in `data`).  In bivariate formulae,
+# `sigma1`, `sigma2`, and `rho12` can appear on the left hand side as parameter
+# aliases; they are not response columns. Used both to column-subset the
 # marshalled data and to define the complete-case set for response = "drop".
 drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
   needed <- unique(unlist(
     lapply(formula$entries, function(entry) {
       response_cols <- character()
-      if (!is.na(entry$response)) {
+      if (!is.na(entry$response) && entry$dpar %in% c("mu", "mu1", "mu2")) {
         response_cols <- drm_julia_expand_response_columns(entry$response)
       }
       c(
@@ -978,7 +1099,11 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
   data[, needed, drop = FALSE]
 }
 
-drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
+drm_julia_bridge_options <- function(
+  phylo_payload,
+  method = "ML",
+  control_overrides = list()
+) {
   # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
   # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
   # on the non-phylo Gaussian path and on the Gaussian sigma-phylo location-scale
@@ -986,23 +1111,41 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
   # the default "ML" leaves the non-REML payload byte-identical to the
   # parity-tested baseline.
   reml <- identical(method, "REML")
+  finish <- function(base) drm_julia_merge_options(base, control_overrides)
   if (is.null(phylo_payload)) {
     if (reml) {
-      return(list(method = "REML"))
+      return(finish(list(method = "REML")))
     }
-    return(list())
+    return(finish(list()))
   }
   if (isTRUE(phylo_payload$bivariate)) {
     if (identical(phylo_payload$bivariate_dimension, "q2")) {
-      return(list(g_tol = 1e-4))
+      return(finish(list(g_tol = 1e-4)))
     }
+    # The q = 4 route has its own outer optimiser. Its `drm()` method accepts
+    # `q4_g_tol`, while a generic `g_tol` keyword is otherwise ignored. It
+    # does not expose the generic solver-selection keyword at all. Translate
+    # the former and refuse the latter rather than giving a user a control
+    # setting that appears to work but has no effect (or fails in Julia).
+    q4_overrides <- control_overrides
+    if ("algorithm" %in% names(q4_overrides)) {
+      cli::cli_abort(c(
+        "The {.code engine = \"julia\"} q = 4 phylogenetic route does not support {.code optimizer$algorithm}.",
+        i = "Its dedicated optimiser has no solver-selection setting. You may tune {.code optimizer$g_tol}, which controls its q4 outer-gradient tolerance."
+      ))
+    }
+    if ("g_tol" %in% names(q4_overrides)) {
+      q4_overrides$q4_g_tol <- q4_overrides$g_tol
+      q4_overrides$g_tol <- NULL
+    }
+    q4_finish <- function(base) drm_julia_merge_options(base, q4_overrides)
     # The q=4 PLSM route uses DRM.jl's own optimizer defaults (no g_tol
     # override): the direct-fit parity check matched the bridge to 0 with
     # defaults. REML still has to be forwarded explicitly.
     if (reml) {
-      return(list(method = "REML"))
+      return(q4_finish(list(method = "REML")))
     }
-    return(list())
+    return(q4_finish(list()))
   }
 
   # The sparse all-node Gaussian mean-only route needs a tighter tolerance to
@@ -1056,15 +1199,28 @@ drm_julia_bridge_options <- function(phylo_payload, method = "ML") {
     1e-4
   }
   if (reml) {
-    return(list(g_tol = g_tol, method = "REML"))
+    return(finish(list(g_tol = g_tol, method = "REML")))
   }
   if (
     identical(phylo_payload$family_type, "gaussian") &&
       identical(phylo_payload$locscale_mode, "phylo_locscale")
   ) {
-    return(list(g_tol = g_tol, phylo_coupled = TRUE))
+    return(finish(list(g_tol = g_tol, phylo_coupled = TRUE)))
   }
-  list(g_tol = g_tol)
+  finish(list(g_tol = g_tol))
+}
+
+# Merge user optimizer overrides into a route's base options. User values win
+# over the route default (e.g. a tuned g_tol replaces the sparse-phylo 1e-4
+# default); an empty override list returns `base` unchanged.
+drm_julia_merge_options <- function(base, overrides) {
+  if (length(overrides) == 0L) {
+    return(base)
+  }
+  for (name in names(overrides)) {
+    base[[name]] <- overrides[[name]]
+  }
+  base
 }
 
 # Emit a single warning (and fall back to ML) when REML is requested for a
