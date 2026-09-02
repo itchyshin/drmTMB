@@ -265,10 +265,30 @@ release-readiness, or public warm-start API claim follows from this artifact.
 Numerical guards remain a separate sensitivity-simulation question under
 `docs/design/176-numerical-guard-simulation-audit.md`.
 
-## Future Start Contract
+## Public Start Contract (DECIDED 2026-09-01; implementation in progress)
 
-User starts should not be a free-form replacement of the entire TMB parameter
-list. The public interface should be namespaced by fitted parameter labels:
+**Status.** The contract below is settled. It is **not yet implemented** — the code
+lands on `claude/rev-parity-a2-start` and `claude/rev-parity-a3-objective-at`, and
+this section must not be read as a statement that `drm_control(start = ...)` works
+today. Until those land, `start` remains a reserved name and `drm_control()` still
+errors.
+
+**Why now.** The R<->Julia twin programme is blocked at DRM.jl#575: on the
+`biv-q4-phylo-reml` fixture DRM.jl's solver stops at a point that is worse on
+DRM.jl's own objective than the one TMB found, and the gap *grows* as `g_tol`
+tightens (0.0162 -> 0.0187) — the signature of a mode-finder defect rather than a
+loose tolerance. Diagnosing that requires evaluating each engine's objective at the
+other engine's fitted point. The Julia half exists
+(`DRM.reml_objective_at`); the R half was impossible, because drmTMB could neither
+start a fit at a supplied point nor report its objective at one. The 2026-09-01
+diagnosis was therefore done by hand in a scratchpad. This contract exists so that
+it never has to be again.
+
+### The surface
+
+User starts are **not** a free-form replacement of the TMB parameter list. The
+public interface is namespaced by fitted parameter labels, and lives on
+`drm_control()`, not on `drmTMB()`:
 
 ```r
 drm_control(
@@ -281,18 +301,111 @@ drm_control(
 )
 ```
 
-Design constraints before implementation:
+`drm_control()` is the right home: `start` is already reserved there
+(`drm_control_reserved_names()`), and `drmTMB()` explicitly rejects arguments it
+does not name, so a `drmTMB(start = )` argument would be a second, competing
+control channel.
 
-- starts must be checked after formula parsing, because valid names depend on
-  the fitted family, distributional parameters, random-effect terms, and
-  structured effects;
-- starts must be transformed to the internal unconstrained scale before TMB
-  sees them;
-- unknown names must error before optimization;
-- partial starts should update only named targets and leave family builders in
-  charge of the remaining robust defaults;
-- random-effect latent starts should remain internal until there is a clear
-  biological use case and simulation evidence.
+### Binding requirements
+
+These were written as pre-implementation constraints and are now the acceptance
+criteria:
+
+- starts are checked **after formula parsing**, because valid names depend on the
+  fitted family, distributional parameters, random-effect terms, and structured
+  effects;
+- starts are transformed to the internal unconstrained scale **before TMB sees
+  them**;
+- unknown names **error before optimization**, never at optimizer time;
+- partial starts update **only** the named targets and leave the family builders in
+  charge of every remaining robust default;
+- random-effect **latent** starts remain internal — no public label addresses `u`
+  — until there is a clear biological use case and simulation evidence.
+
+### Scope of the first landing
+
+All three label families ship together: `fixef:`, `sd:` and `cor:`. A
+`fixef:`-only start would not serve the motivating case at all, because the #575
+dispute lives entirely in the variance-component block.
+
+`start_from = <a fitted model>` — the simpler-to-richer warm-start ladder described
+in the next section — is **explicitly out of scope** and stays reserved. The
+evidence in "Slice 373-390 Q2 Source-Start Evidence" below is *negative*: every
+source-fit start still false-converged, with residual `rho12` at the boundary. A
+labelled point start and a source-fit ladder are different contracts with different
+risks, and only the first is decided here.
+
+### Implementation route (reuse, not rebuild)
+
+Nothing new is invented at the TMB boundary. The private start-override hook
+documented in "Current Private Start Override Hook" above already runs immediately
+before `TMB::MakeADFun()`, already rejects unknown components, non-finite values and
+length mismatches, already preserves `map`-fixed slots including `factor(NA)`, and
+already records `spec$start_override_applied` provenance. The public contract is a
+**validated translation layer from labels to that hook**, and nothing more.
+
+The label-to-slot keying likewise has a working precedent: the private q>2 staged
+mapper (`drm_qgt2_staged_start_override()`, "Current Private Q8 Staged-Start
+Mapper" above) already keys fixed effects by distributional parameter and
+model-matrix column name, endpoint SDs by covariance-member key, and correlations
+by pair key — exactly the three label families named here.
+
+The selected-optimum invariant at the top of this document is unaffected: a start
+changes where the optimizer begins, never what is reported. Every reported quantity
+remains a function of `opt$par`.
+
+## Objective At A Point
+
+`start` and `objective_at()` are two verbs over **one vocabulary**. The same label
+namespace addresses both "begin here" and "evaluate here", which is what makes a
+cross-engine comparison expressible in two calls instead of a scratchpad.
+
+```r
+objective_at(fit, at = list("fixef:mu:(Intercept)" = 0.2, "sd:mu:(1 | id)" = 0.3))
+```
+
+`objective_at()` evaluates the fitted model's objective at a supplied point
+**without refitting**. It is a diagnostic, not an estimator: it selects nothing,
+reports no uncertainty, and changes no fitted quantity.
+
+Requirements:
+
+- it reuses the existing evaluation pattern in `R/profile.R`, which already
+  evaluates `obj$fn()` at a substituted parameter vector for profile endpoints —
+  a second independent evaluation path would be two implementations of one thing;
+- **the self-consistency anchor**: `objective_at(fit, <the fit's own optimum>)` must
+  equal `-logLik(fit)` to machine tolerance. Every cross-engine number rests on
+  this, so it is a required test, not a nicety;
+- unknown labels error before evaluation, on the same rule as `start`;
+- it must not mutate the fitted object. TMB objects carry mutable `last.par` state,
+  and the selected-optimum invariant requires that state be restored, so
+  `objective_at()` re-pins the object afterwards.
+
+### The bridge counterpart, and a correction to its design note
+
+A companion note,
+`docs/dev-log/evidence/julia-r-parity/ayumi-target/objective-at-bridge-note.md`,
+designs an R-side wrapper for `DRM.reml_objective_at`. **One premise in it does not
+hold against current code and should not be relied on.** The note assumes the
+wrapper can reuse a fitted object's "cached Julia-side `prob`/`Q_cond` handles
+rather than re-marshalling data". There is no such cache: `Q_cond` does not appear
+anywhere in this repository, `drm_julia_call_bridge()` passes formula, data, tree
+and options into `DRM.drm_bridge` in a single `JuliaCall::julia_call`, and every
+structure DRM.jl builds internally is discarded when that call returns. R retains
+only the flat result list, stored verbatim as `fit$bridge`.
+
+The consequence is a scoping one, and it is recorded here rather than repaired
+quietly: any R-side `objective_at` for the bridge must either re-marshal the
+payload and rebuild the problem Julia-side, or wait for DRM.jl to expose an entry
+point that accepts a payload plus a parameter point. The former can be attempted
+without editing DRM.jl, by registering a second Julia-side shim from R exactly as
+`drm_julia_setup()` already registers `drmTMB_drm_bridge`. Whether DRM.jl's problem
+construction is reachable from its public API is an open question, to be answered
+by a bounded spike and not assumed.
+
+**Boundary.** Neither verb promotes any bridge route, changes any
+`r_bridge_status`, alters any capability-ledger claim, or resolves DRM.jl#575.
+They make the question answerable; they do not answer it.
 
 ## Future Simpler-Fit Warm-Start Contract
 
@@ -590,3 +703,26 @@ Slice 275 reserves warm-start names and documents the simpler-fit contract.
 Slice 276 reserves fallback-optimizer names and documents fallback comparison
 provenance. Neither slice adds user starts, warm starts, maps, fallback
 optimizers, or multi-start fitting.
+
+## 2026-09-01 Amendment
+
+The former "Future Start Contract" section is now "Public Start Contract
+(DECIDED 2026-09-01; implementation in progress)", and a new "Objective At A
+Point" section sits beside it. What changed is the *status* of the contract, not
+its content: the label namespace and all five binding requirements are carried
+over verbatim from the version this document has held since slice 80.
+
+What this amendment does **not** do:
+
+- it does not implement anything. `start` is still a reserved name and
+  `drm_control()` still errors on it until the implementation branches land;
+- it does not lift the reservation on `start_from`, `warm_start`, `map`,
+  `fixed`, or the fallback-optimizer names. Those sections are unchanged;
+- it does not promote a bridge route, change any `r_bridge_status`, or alter
+  any row of `inst/extdata/julia-capabilities.tsv`;
+- it does not bear on release. Decision D-164 holds drmTMB's CRAN submission;
+  this is reversible package design work, which D-164 explicitly still allows.
+
+Motivating context and the correction to the bridge design note's cached-`prob`
+premise are recorded in the two new sections rather than here, so they travel
+with the contract they constrain.

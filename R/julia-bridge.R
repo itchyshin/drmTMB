@@ -697,7 +697,9 @@ drm_julia_translate_control <- function(control) {
     "keep_tmb_object",
     "sparse_fixed",
     "aggregate_gaussian",
-    "optimizer_preset"
+    "optimizer_preset",
+    "start",
+    "multi_start"
   )) {
     if (!identical(control[[field]], default[[field]])) {
       unsupported <- c(unsupported, field)
@@ -724,7 +726,7 @@ drm_julia_translate_control <- function(control) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
       i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}.",
-      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, or preset controls."
+      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, preset, start, or multi_start controls."
     ))
   }
   overrides
@@ -974,6 +976,219 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
   "Gaussian"
 }
 
+# Base-R public coefficient-name labels drmTMB sends alongside the payload,
+# one character vector per dpar, in `model.matrix()` column order (design 258
+# S7's `coef_labels` field). The right-hand side is reduced to its
+# FIXED-EFFECT-ONLY part with `drm_strip_structured_terms()` (R#4145) --
+# the SAME reduction `drm_julia_predict_design()` (R#4108) already applies at
+# predict time, so the producer and predict() build the design from one
+# definition, not two. `drm_strip_structured_terms()` drops structured
+# markers (`phylo()`, `spatial()`, `relmat()`, `animal()`), lme4-style random
+# bars (`(1 | g)`, `(1 + x | g)`, matched via `is_random_bar_call()` on the
+# CALL, not the dpar name -- a bare `1 | g` is not itself a `phylo`/`sd`
+# marker and was previously fed straight to `model.matrix()`, which
+# misparses `|` as the logical-OR operator and fabricates a column such as
+# `"1 | gTRUE"`; Rose S9 attack A2b), and known-covariance `meta_V()`/
+# `meta_known_V()` markers -- leaving only the population-level fixed-effect
+# terms `model.matrix()` would show a native TMB fit. A dpar the bridge
+# supports (`julia_bridge_supported_dpars()`) is labelled EVEN WHEN its
+# formula carries a structured term (a phylo mean block gets its fixed
+# columns labelled, not exempted -- Rose S9 attack A2): the check this feeds
+# must see every fixed-effect dpar the engine returns (design 258 S7.3). A
+# dpar the bridge does not support (e.g. an `sd(group)`/`sd_phylo(group)`
+# location-scale-scale grouping formula, whose dpar NAME itself has that
+# shape) is still excluded up front, and a dpar is omitted from the result
+# only when building its (already-reduced) model matrix errors. `data` is the
+# SAME row-ordered, column-subset data the rest of the payload marshals, so
+# factor levels/contrasts match what DRM.jl receives.
+drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
+  labels <- list()
+  for (entry in formula$entries) {
+    dpar <- entry$dpar
+    # A location-scale-scale `sd(group)`/`sd_phylo(group)` dpar (design 258's
+    # own `julia_bridge_supported_dpars()` deliberately omits these: the
+    # group name varies per call, so they cannot be enumerated as a fixed
+    # string list) is DRM.jl's own separate `sd_phylo` block -- confirmed
+    # empirically fitting the lss-tip-identity fixture before this addition
+    # ("coef_labels is missing an entry for dpar "sd_phylo""), and
+    # confirmed by inspecting `entry$dpar` directly: it is the literal
+    # string `"sd_phylo(<group>)"` (or `"sd(<group>)"`), so the canonical
+    # DRM.jl block key is simply everything before the first `(` --
+    # matching the SAME `"sd_phylo"` prefix `drm_julia_bridge_blocks()`
+    # already treats as one canonical block elsewhere in this file. Its
+    # RHS (e.g. `~z`) is an ordinary formula RHS, so the SAME
+    # strip-structured-terms + `model.matrix()` reduction below applies
+    # unchanged once the dpar/key split is done.
+    is_sd_dpar <- grepl("^sd(_phylo)?\\([^()]+\\)$", dpar)
+    if (!(dpar %in% julia_bridge_supported_dpars()) && !is_sd_dpar) next
+    label_key <- if (is_sd_dpar) sub("\\(.*$", "", dpar) else dpar
+    rhs <- drm_strip_structured_terms(entry$rhs)
+    f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
+    cols <- tryCatch(
+      {
+        mf <- stats::model.frame(f, data = data)
+        colnames(stats::model.matrix(stats::terms(mf), mf))
+      },
+      error = function(e) NULL
+    )
+    if (!is.null(cols)) {
+      # `as.list()`, not the bare character vector: JuliaCall auto-unboxes a
+      # length-1 R atomic vector to a Julia SCALAR (a bare `String`, not a
+      # 1-element `Vector{String}`) crossing this boundary. DRM.jl's
+      # coef_labels echo-check iterates/measures `length()` on whatever it
+      # receives, so a scalar String silently iterates by CHARACTER --
+      # "(Intercept)" (11 chars) was read back as 11 names, not 1 --
+      # surfacing as "the R side must send exactly one name per column" for
+      # every intercept-only (or any single-coefficient) dpar. Verified
+      # empirically (JuliaCall::julia_call probe) before this fix; multi-
+      # column dpars were unaffected (a length>1 R vector already crosses as
+      # a proper Julia array). `as.list()` forces every dpar's labels to
+      # cross as an array regardless of length; the R-side reader
+      # (`drm_julia_bridge_check_coef_labels()`, `R/julia-coefficient-labels.R`)
+      # already calls `as.character()` on this field, so both a plain
+      # character vector and a list of single strings round-trip identically
+      # there -- this is a marshalling-only fix, not a schema change.
+      labels[[label_key]] <- cols
+    }
+  }
+  # The bivariate q=4 phylogenetic REML/ML route (all four axes -- mu1, mu2,
+  # sigma1, sigma2 -- sharing one `phylo()` term) reports a FIFTH block,
+  # `phylocov`, that has no `formula$entries` counterpart at all: it is the
+  # 4x4 among-axis covariance's 10 log-Cholesky entries (`Sigma_a:Lij`,
+  # lower-triangular, column-major -- the SAME naming/ordering convention
+  # `drm_julia_phylocov_matrix()` already reads back from DRM.jl elsewhere in
+  # this file). DRM.jl's coef_labels echo-check (added between DRM.jl main @
+  # e4647333 and @ 77513aa0) validates EVERY block it fits, not only the
+  # formula-driven ones, so a q4 fit with no `phylocov` entry here now aborts
+  # ("coef_labels is missing an entry for dpar "phylocov"") -- confirmed
+  # empirically fitting the committed `biv-q4-phylo-reml` fixture before this
+  # addition. `julia_bridge_supported_dpars()` deliberately has no `phylocov`
+  # entry (it is not a user-facing distributional parameter formula could
+  # ever name), so this block is built by name here rather than through the
+  # per-entry loop above.
+  if (identical(drm_julia_biv_phylo_dimension(formula), "q4")) {
+    phylocov_names <- character()
+    for (col in 1:4) {
+      for (rw in col:4) {
+        phylocov_names <- c(phylocov_names, sprintf("Sigma_a:L%d%d", rw, col))
+      }
+    }
+    labels[["phylocov"]] <- phylocov_names
+  }
+  labels
+}
+
+# Objective-At-A-Point, DRM.jl bridge counterpart (#575 follow-up; A4/A5,
+# 2026-09-02). `objective_at()` (R/objective-at.R) evaluates the NATIVE TMB
+# objective at a supplied point on the public start-label vocabulary; that
+# vocabulary does not yet reach biv_gaussian's `rho12` fixed effect or the
+# q4 phylo covariance block (log_sd_phylo/theta_phylo), so this is a SEPARATE,
+# narrower diagnostic reached by qualified internal name, not an extension of
+# objective_at() and not a public verb. It rebuilds DRM.jl's q4 REML problem
+# from a Julia-engine q4-phylo REML fit's OWN stored bridge payload (the same
+# formula/data/tree/options that produced the fit -- `fit$bridge_payload`, see
+# `drmTMB_julia_bridge()`) and evaluates DRM.jl's `reml_objective_at` at a
+# supplied point, exactly mirroring the by-hand manoeuvre in
+# `docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/
+# warmstart_575.jl`.
+#
+# Read-only diagnostic: it selects nothing, fits nothing, and does not mutate
+# `fit`. `beta` is only an inner-Newton warm start for the profiled-out
+# beta_mu1/beta_mu2/beta_sigma1/beta_sigma2 (DRM.jl's `fit_q4_reml`/
+# `reml_objective_at` re-profile them at the supplied point regardless of the
+# warm start supplied); `rho12` and `Lambda` are the actual evaluation point
+# (`phi` in DRM.jl's phi = (beta_rho, lc) parameterisation).
+drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
+  if (!inherits(fit, "drmTMB_julia")) {
+    cli::cli_abort(c(
+      "{.fn drm_julia_reml_objective_at} requires a {.code engine = \"julia\"} fit.",
+      i = "This diagnostic evaluates DRM.jl's own REML objective and has no meaning for a {.code engine = \"tmb\"} fit; use {.fn objective_at} for native TMB fits."
+    ))
+  }
+  if (
+    !identical(fit$model$model_type, "biv_gaussian") ||
+      !identical(drm_julia_biv_phylo_dimension(fit$formula), "q4") ||
+      !isTRUE(fit$effective_REML)
+  ) {
+    cli::cli_abort(c(
+      "{.fn drm_julia_reml_objective_at} only supports a bivariate q=4 phylogenetic REML bridge fit.",
+      i = "{.arg fit} must come from {.code drmTMB(bf(mu1 = ..., mu2 = ..., sigma1 = ..., sigma2 = ..., rho12 = ...), biv_gaussian(), ..., engine = \"julia\", REML = TRUE)} with a shared {.fn phylo} term on all four axes."
+    ))
+  }
+  if (
+    !is.matrix(Lambda) ||
+      !is.numeric(Lambda) ||
+      nrow(Lambda) != 4L ||
+      ncol(Lambda) != 4L ||
+      !isSymmetric(unname(Lambda), tol = 1e-6)
+  ) {
+    cli::cli_abort(
+      "{.arg Lambda} must be a 4x4 symmetric numeric matrix (the phylo q4 among-axis covariance, axis order mu1, mu2, sigma1, sigma2)."
+    )
+  }
+  required_beta <- c("beta_mu1", "beta_mu2", "beta_sigma1", "beta_sigma2")
+  if (!is.list(beta) || !all(required_beta %in% names(beta))) {
+    cli::cli_abort(
+      "{.arg beta} must be a named list with elements {.val {required_beta}} (inner-Newton warm starts on the TMB coefficient scale)."
+    )
+  }
+  if (is.null(rho12)) {
+    rho12 <- unname(fit$coef_vector[["rho12_(Intercept)"]])
+    if (is.na(rho12)) {
+      cli::cli_abort(
+        "{.arg rho12} was not supplied and {.arg fit} has no {.val rho12_(Intercept)} coefficient to default to."
+      )
+    }
+  }
+  if (!is.numeric(rho12) || length(rho12) != 1L || !is.finite(rho12)) {
+    cli::cli_abort("{.arg rho12} must be a single finite number.")
+  }
+
+  payload <- fit$bridge_payload
+  if (is.null(payload)) {
+    cli::cli_abort(
+      "{.arg fit} has no stored bridge payload; refit with a current {.pkg drmTMB} build."
+    )
+  }
+  has_phylo <- drm_julia_has_phylo_term(fit$formula)
+  family_tag <- drm_julia_family_tag(fit$model$model_type, has_phylo = has_phylo)
+
+  drm_julia_setup()
+  # Calls DRM.jl's SUPPORTED, exported `drm_bridge_objective_at` (DRM.jl#590,
+  # `src/bridge.jl`, landed e4647333, verified at DRM.jl main @ 77513aa0)
+  # directly -- no R-registered Julia glue, no qualified private-name access.
+  # `beta`/`Lambda`/`rho12` are the outer evaluation point (DRM.jl's
+  # Lambda/rho12 -> phi via `pack_phi`, Julia-side); `formula`/`family`/
+  # `data`/`tree`/`options` are exactly the payload `drm_bridge` itself takes.
+  result <- JuliaCall::julia_call(
+    "DRM.drm_bridge_objective_at",
+    payload$formula,
+    family_tag,
+    as.list(payload$data),
+    payload$tree,
+    if (length(payload$options) == 0L) NULL else payload$options,
+    Lambda = unname(Lambda),
+    rho12 = as.numeric(rho12),
+    beta = list(
+      mu1 = as.numeric(beta$beta_mu1),
+      mu2 = as.numeric(beta$beta_mu2),
+      sigma1 = as.numeric(beta$beta_sigma1),
+      sigma2 = as.numeric(beta$beta_sigma2)
+    )
+  )
+  if (!identical(result$contract, "bridge_objective_at_v1")) {
+    cli::cli_abort(c(
+      "{.code DRM.drm_bridge_objective_at} returned an unrecognised contract tag.",
+      i = "Expected {.val bridge_objective_at_v1}; got {.val {result$contract}}. The DRM.jl-side return shape may have changed incompatibly."
+    ))
+  }
+  list(
+    reml_loglik = as.numeric(result$reml_loglik),
+    raw_reml_ll = as.numeric(result$raw_reml_ll),
+    converged = isTRUE(result$converged_inner)
+  )
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -1000,15 +1215,36 @@ drm_julia_bridge_payload <- function(
       data_out[[phylo_payload$group]]
     )
   }
+  coef_labels <- drm_julia_bridge_payload_coef_labels(
+    formula = formula,
+    data = data_out,
+    env = env
+  )
+  options <- drm_julia_bridge_options(
+    phylo_payload,
+    method = method,
+    control_overrides = control_overrides
+  )
+  # Design 258 section 7.1: the Julia call carries only formula/family/data/
+  # tree/options, so `coef_labels` travels INSIDE `options` (the bridge's
+  # free-form channel) as options$coef_labels -- a list keyed by dpar of
+  # base-R model.matrix() column names. DRM.jl echoes them verbatim under
+  # bridge_formula_labels_v1. The top-level `coef_labels` element below is
+  # the R-side copy used for the fail-closed comparison after the call.
+  if (length(coef_labels) > 0L) {
+    # Wire form only: each dpar's character vector crosses as a LIST of single
+    # strings so that JuliaCall never unboxes a length-1 vector to a Julia
+    # scalar String (which DRM.jl's echo-check would iterate by character).
+    # The R-side copy (`coef_labels` below) stays a plain character vector per
+    # dpar -- that is the contract form the fail-closed comparison reads.
+    options$coef_labels <- lapply(coef_labels, as.list)
+  }
   list(
     formula = formula_spec,
     data = data_out,
+    coef_labels = coef_labels,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(
-      phylo_payload,
-      method = method,
-      control_overrides = control_overrides
-    ),
+    options = options,
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL
@@ -2329,6 +2565,14 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "DRM.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
     )
   )
+  # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
+  # landed e4647333, verified at DRM.jl main @ 77513aa0) is the SUPPORTED
+  # entry point for the objective-at diagnostic -- called directly by
+  # `drm_julia_reml_objective_at()` above, no R-registered Julia glue and no
+  # qualified private-name access. It replaces the five-private-name shim
+  # this file used to define here (the underscore-prefixed formula/data/
+  # marker/design/species-index internals DRM.jl's own bridge marshalling
+  # uses); asserted return contract `"bridge_objective_at_v1"`.
   JuliaCall::julia_command(drm_julia_xfam_helper_source())
   drm_julia_setup_state$ready <- TRUE
   drm_julia_setup_state$path <- normalized_path
@@ -2374,7 +2618,16 @@ new_drmTMB_julia <- function(
   result <- as.list(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
   coef_names <- as.character(result$coef_names)
-  if (!is.null(public_coef_labels)) coef_names <- public_coef_labels$public
+  if (!is.null(public_coef_labels)) {
+    coef_names <- public_coef_labels$public
+  }
+  # D-202: base-R spelling wins even over a validated engine map -- checked on
+  # BOTH paths (a validated map is necessary but not sufficient; design 258
+  # S7.3, Rose S9 attacks A3/A3c/A5).
+  drm_julia_bridge_check_coef_labels(
+    coef_names = coef_names,
+    bridge_payload = bridge_payload
+  )
   coefficients <- stats::setNames(
     as.numeric(unlist(result$coefficients, use.names = FALSE)),
     coef_names
@@ -4504,9 +4757,20 @@ drm_julia_predict_fixed_eta <- function(object, dpar, data, context) {
     )
   }
   beta <- object$coefficients[[dpar]]
-  # Joint adapters retain native R model-matrix names directly.  The legacy
-  # rewrite below predates that contract and corrupts punctuation in factor
-  # levels such as "a: b" and "a & b".
+  # LEGACY path (design 258 section 7.4), restored after Rose S9 attack A10:
+  # this rewrite is dead ONLY for fits whose payload was built by
+  # `drm_julia_bridge_payload()` (the main bridge) -- those either carry a
+  # validated `bridge_public_coef_labels` map or were fail-closed-checked
+  # against base-R names at fit time (section 7.3), so `beta` there already
+  # carries base-R spelling. Structured (relmat/animal/spatial via
+  # `drm_julia_structured_payload()`), bivariate-known-structured
+  # (`drm_julia_biv_known_structured_payload()`), and joint fits do NOT go
+  # through that payload builder, do not populate `coef_labels`, and are not
+  # checked at fit time (section 7.4 lists them as not yet under this
+  # contract) -- their `beta` names can still be DRM.jl's raw synthetic
+  # spelling (`" & "`-joined interactions, `": "`-joined factor levels), and
+  # this is what translates them back for `predict()`. Scheduled for removal
+  # once those payload builders adopt `coef_labels` (section 7).
   if (is.null(object$bridge_public_coef_labels) && !inherits(object, "drmTMB_julia_joint")) {
     names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
   }

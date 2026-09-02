@@ -9,7 +9,17 @@
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
-#' [TMB::sdreport()], finite fixed-effect standard errors, standard errors that
+#' [TMB::sdreport()], the fixed-effect Hessian's minimum eigenvalue and
+#' condition number at the optimum (`hessian_conditioning`; a comparable, but
+#' not numerically identical, read of the same object underlying `pdHess`).
+#' `hessian_conditioning` is computed from
+#' [TMB::sdreport()]'s already-materialized fixed-effect covariance
+#' (`sdr$cov.fixed`), never by evaluating the TMB C++ object directly, so it
+#' is available for random-effect and REML fits (where the underlying
+#' Hessian is Laplace-marginalized) and for a fit restored via `saveRDS()`/
+#' `readRDS()`, and reports a `note` with a stated reason, not a bare `NA`,
+#' only when `sdr$cov.fixed` itself is absent or incomplete (for example
+#' `drm_control(se = FALSE)`, or a failed `sdreport()`), finite fixed-effect standard errors, standard errors that
 #' are finite but inflated relative to the others despite a positive-definite
 #' Hessian (a weakly identified, near-flat direction such as a boundary
 #' correlation), dropped rows,
@@ -215,6 +225,7 @@ check_drm.drmTMB <- function(
     check_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_sdreport_status(object),
     check_hessian(object),
+    check_hessian_conditioning(object),
     check_standard_errors_finite(object),
     check_standard_errors_inflated(object),
     check_dropped_rows(object),
@@ -688,6 +699,290 @@ check_hessian <- function(object) {
     } else {
       "sdreport does not report a positive-definite Hessian."
     }
+  )
+}
+
+# Minimum eigenvalue and condition number of the fixed-effect Hessian at the
+# optimum (drmTMB/DRM.jl issue #569). `check_hessian()` above reports only a
+# bare `pdHess` boolean; this row makes "how near-singular" a comparable
+# number rather than a yes/no. It is a genuinely different read of the same
+# object than TMB's internal pdHess computation -- it is not claimed to be
+# numerically identical, only comparable.
+#
+# THIS ROW NEVER CALLS THE TMB C++ OBJECT. An earlier version evaluated
+# `object$obj$he(object$opt$par)` directly. That SEGFAULTED (uncatchable by
+# `tryCatch()`, took the whole R session down) on any fit that had been
+# through `saveRDS()`/`readRDS()`: the TMB external pointer reads dead on
+# entry to `check_drm()` but is REVIVED before this row runs, and the
+# revived pointer's AD tape is unusable for `he()` even though `gr()`
+# tolerates it. Pointer-liveness is the wrong predicate to guard on (it
+# reads live by the time this code runs), so no guard can fix it -- the only
+# fix is to never make the call. Measured 2026-09-01/02 (see
+# docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 13):
+# `object$sdr$cov.fixed` is an already-materialized numeric matrix (no C++
+# call at all), present after serialization, and gives the same condition
+# number and an algebraically equivalent minimum eigenvalue to six
+# significant figures on a well-conditioned fit (measured: cond(H) =
+# 2.408905027 vs cond(cov) = 2.408903421; min_eig(H) = 180 vs
+# 1/max_eig(cov) = 180.00012). This also closes what was a documented scope
+# gap: `obj$he()` has no Laplace support, so this row was a permanent `note`
+# with value `NA` for every random-effect or REML fit -- exactly the model
+# class the R/Julia parity programme is mostly about. `sdr$cov.fixed` IS
+# populated for those fits (measured on a random-intercept fit: 4x4,
+# cond = 7.065, implied min_eig(H) = 39.908), so `hessian_conditioning` now
+# reports a real number there too.
+#
+# For an MSPL fit, `hessian_conditioning_row()` still reuses the eigenvalues
+# already computed by `drm_mspl_hessian_diagnostics()` (`optimHess()` on the
+# unpenalized Laplace objective) -- that path was never the source of the
+# crash and is unrelated to `sdr$cov.fixed`.
+check_hessian_conditioning <- function(object) {
+  if (drm_is_mspl(object)) {
+    eig <- object$mspl$numerical$hessian_eigenvalues
+    if (is.null(eig) || length(eig) == 0L || !all(is.finite(eig))) {
+      return(check_row(
+        "hessian_conditioning",
+        "note",
+        NA_character_,
+        "Hessian eigenvalues are unavailable for this MSPL fit."
+      ))
+    }
+    return(hessian_conditioning_row(
+      eig,
+      "the separately evaluated MSPL outer Hessian (optimHess on the unpenalized Laplace objective)"
+    ))
+  }
+  if (is.null(object$sdr)) {
+    return(check_row(
+      "hessian_conditioning",
+      "note",
+      NA_character_,
+      paste(
+        "Hessian conditioning is unavailable because this fit has no",
+        "TMB::sdreport() object (drm_control(se = FALSE) was used, or",
+        "sdreport() failed); refit with drm_control(se = TRUE) to compute",
+        "fixed-effect covariance."
+      )
+    ))
+  }
+  cov <- object$sdr$cov.fixed
+  if (
+    is.null(cov) ||
+      !is.matrix(cov) ||
+      nrow(cov) == 0L ||
+      !all(is.finite(cov))
+  ) {
+    return(check_row(
+      "hessian_conditioning",
+      "note",
+      NA_character_,
+      paste(
+        "Hessian conditioning is unavailable because sdr$cov.fixed is",
+        "absent, empty, or contains non-finite entries (an incomplete",
+        "sdreport() result); inspect sdreport_status and",
+        "hessian_positive_definite before interpreting this fit's SEs."
+      )
+    ))
+  }
+  hessian_conditioning_cov_row(
+    cov,
+    "TMB's sdreport() fixed-effect covariance (sdr$cov.fixed), inverted"
+  )
+}
+
+hessian_conditioning_ill_threshold <- 1e8
+
+# Roundoff floor for TRUSTING the SIGN of `sdr$cov.fixed`'s most extreme
+# (algebraically smallest) eigenvalue, in the COVARIANCE's own eigenvalue
+# scale -- not the Hessian's. `cov.fixed` is an ordinary already-materialized
+# double-precision matrix (TMB's own solve of the Hessian), decomposed here
+# with `eigen()`, an ordinary dense symmetric LAPACK eigensolver -- the same
+# kind of computation `check_known_v()` elsewhere in this file already
+# tolerance-gates with a `sqrt(eps) * scale` floor for exactly this reason
+# (backward-stability bounds eigenvalue error by a small multiple of
+# `eps * ||matrix||_2` for this class of solver). Re-used here rather than
+# the AD-Hessian-specific `eps`-only floor the earlier `obj$he()` version
+# used: that floor was calibrated to AD's own (tighter) roundoff behaviour,
+# which no longer applies once the matrix in hand is `cov.fixed`, not a
+# freshly evaluated AD Hessian.
+hessian_conditioning_cov_eps_multiplier <- sqrt(.Machine$double.eps)
+
+# Computes the fixed-effect Hessian's conditioning FROM `sdr$cov.fixed`
+# without ever forming or inverting the Hessian directly (no C++ call; see
+# the comment above `check_hessian_conditioning()`).
+#
+# `cov.fixed`'s eigenvalues `mu_i` are the RECIPROCALS of the Hessian's
+# eigenvalues (same eigenvectors, `H = cov^{-1}`, `mu_i = 1 / lambda_i`).
+# Only the two ALGEBRAIC extremes of `mu` -- `mu_max` and `mu_min` -- can map
+# to an extreme (smallest, most negative, or smallest positive) Hessian
+# eigenvalue; every intermediate `mu` maps to an unremarkable, non-extreme
+# Hessian eigenvalue and is never the one this diagnostic reports. That
+# matters because the mapping is NOT scale-symmetric across a sign change:
+# when `cov.fixed` has a genuinely negative eigenvalue (an indefinite
+# Hessian; `pdHess = FALSE`), `mu_min` -- not `mu_max` -- is the one whose
+# reciprocal exposes it, however small that reciprocal is in Hessian-scale
+# (e.g. measured: `mu_min = -2.1e11` well beyond the tolerance floor below
+# reciprocates to `min_eig(H) = -4.76e-12`, a numerically tiny value that
+# would have been misread as roundoff dust had it been tested directly on
+# the Hessian scale, exactly the failure this function avoids by testing
+# reliability on `mu_min` BEFORE taking its reciprocal, not after).
+#
+# The reliability test is therefore on `mu_min` itself, at the covariance's
+# own scale: only when `|mu_min|` clears `hessian_conditioning_cov_eps_multiplier
+# * eps * max(|mu_max|, |mu_min|, 1)` is `mu_min`'s negative sign trusted; a
+# `mu_min` at or below that floor is deferred to the ordinary `mu_max`-based
+# (well-conditioned/positive-definite) formula, matching the same "unreliable
+# sign, defer to ok" reasoning the earlier AD-Hessian version used, just
+# anchored to the quantity that actually carries the roundoff here.
+hessian_conditioning_cov_row <- function(cov, source) {
+  eig_cov <- eigen(
+    (cov + t(cov)) / 2,
+    symmetric = TRUE,
+    only.values = TRUE
+  )$values
+  mu_max <- max(eig_cov)
+  mu_min <- min(eig_cov)
+  max_abs_cov <- max(abs(eig_cov))
+  min_abs_cov <- min(abs(eig_cov))
+  tol_cov <- hessian_conditioning_cov_eps_multiplier *
+    max(max_abs_cov, 1)
+
+  mu_min_trusted_negative <- mu_min < -tol_cov
+  min_eig <- if (mu_min_trusted_negative) 1 / mu_min else 1 / mu_max
+  condition <- if (min_abs_cov <= 0) Inf else max_abs_cov / min_abs_cov
+
+  status <- if (mu_min_trusted_negative) {
+    "warning"
+  } else if (condition > hessian_conditioning_ill_threshold) {
+    "note"
+  } else {
+    "ok"
+  }
+
+  check_row(
+    "hessian_conditioning",
+    status,
+    paste0(
+      "min_eig=",
+      format_check_number(min_eig),
+      "; cond=",
+      format_check_number(condition)
+    ),
+    paste0(
+      "Minimum eigenvalue and condition number of ",
+      source,
+      ". These are a genuinely different read of the fit's conditioning than ",
+      "TMB's internal pdHess flag -- comparable across fits, not claimed to be ",
+      "numerically identical to any raw TMB gradient or Hessian quantity. ",
+      if (identical(status, "warning")) {
+        paste(
+          "The covariance's own smallest eigenvalue is negative well beyond",
+          "the roundoff floor, so the implied minimum Hessian eigenvalue is",
+          "trusted as genuinely negative -- matching a non-PD Hessian; treat",
+          "standard errors and correlations among the affected parameters as",
+          "unreliable."
+        )
+      } else if (identical(status, "note")) {
+        paste0(
+          "The condition number exceeds ",
+          hessian_conditioning_ill_threshold,
+          ", signalling a near-flat, weakly identified direction; a clean",
+          " pdHess is necessary, not sufficient. Treat standard errors and",
+          " correlations among the affected parameters with caution."
+        )
+      } else {
+        "This fit's Hessian conditioning is within the requested threshold."
+      }
+    )
+  )
+}
+
+# Reused only by the MSPL path above, whose eigenvalues come directly from
+# `drm_mspl_hessian_diagnostics()`'s `optimHess()` call (a Hessian evaluated
+# once at fit time and stored, not `obj$he()`), so it is unaffected by, and
+# not part of, the `obj$he()` removal described above.
+hessian_conditioning_eps_multiplier <- 100
+
+hessian_conditioning_row <- function(eig, source) {
+  min_eig <- min(eig)
+  max_abs_eig <- max(abs(eig))
+  tol <- hessian_conditioning_eps_multiplier *
+    .Machine$double.eps *
+    max(max_abs_eig, 1)
+
+  # Three regimes, in order of how much the sign/magnitude of `min_eig` can
+  # be trusted:
+  # 1. `min_eig < -tol`: robustly, resolvably negative -- the same signal as
+  #    a non-PD Hessian, so it is a "warning" like `check_hessian()`.
+  # 2. `abs(min_eig) <= tol`: at the roundoff floor. Its sign is not
+  #    trustworthy and any condition number computed by dividing by it would
+  #    itself be roundoff-dominated. Reported as "ok": `pdHess` already
+  #    covers whether TMB itself judged this fit positive-definite, and
+  #    fabricating a numerically unstable condition number here would be
+  #    decoration, not signal.
+  # 3. `min_eig > tol`: resolvably positive. A positive but ill-conditioned
+  #    Hessian is a different, milder signal than case 1: a near-flat,
+  #    weakly identified direction (the same phenomenon
+  #    `check_standard_errors_inflated()` reports as a "note" despite
+  #    `pdHess = TRUE`, e.g. a poorly identified Student-t `nu`), so it is a
+  #    "note" and does not flip the fit's overall `ok` status.
+  if (min_eig < -tol) {
+    status <- "warning"
+    condition <- Inf
+  } else if (abs(min_eig) <= tol) {
+    status <- "ok"
+    condition <- max_abs_eig / max(abs(min_eig), .Machine$double.eps)
+  } else {
+    condition <- max_abs_eig / min_eig
+    status <- if (condition > hessian_conditioning_ill_threshold) {
+      "note"
+    } else {
+      "ok"
+    }
+  }
+
+  check_row(
+    "hessian_conditioning",
+    status,
+    paste0(
+      "min_eig=",
+      format_check_number(min_eig),
+      "; cond=",
+      format_check_number(condition)
+    ),
+    paste0(
+      "Minimum eigenvalue and condition number of ",
+      source,
+      ". These are a genuinely different read of the fit's conditioning than ",
+      "TMB's internal pdHess flag -- comparable across fits, not claimed to be ",
+      "numerically identical to any raw TMB gradient or Hessian quantity. ",
+      if (identical(status, "warning")) {
+        paste(
+          "The minimum eigenvalue is negative well beyond the roundoff",
+          "floor, matching a non-PD Hessian; treat standard errors and",
+          "correlations among the affected parameters as unreliable."
+        )
+      } else if (abs(min_eig) <= tol) {
+        paste0(
+          "The minimum eigenvalue is within a machine-epsilon-scaled floor ",
+          "of zero (|min_eig| <= ",
+          format_check_number(tol),
+          "); its sign and any condition number computed from it are not ",
+          "reliable, so this is reported as ok and defers to pdHess."
+        )
+      } else if (identical(status, "note")) {
+        paste0(
+          "The condition number exceeds ",
+          hessian_conditioning_ill_threshold,
+          " with a resolvably positive minimum eigenvalue, signalling a ",
+          "near-flat, weakly identified direction; a clean pdHess is ",
+          "necessary, not sufficient. Treat standard errors and correlations ",
+          "among the affected parameters with caution."
+        )
+      } else {
+        "This fit's Hessian conditioning is within the requested threshold."
+      }
+    )
   )
 }
 

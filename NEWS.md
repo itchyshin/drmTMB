@@ -5,6 +5,94 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Fitted objects now store the final gradient (DRM.jl #569, R-side)
+
+* `drmTMB()` fits now carry `$gradient` (the final outer gradient at
+  `opt$par`) and `$gradient_max_component` (the label of its largest
+  |component|), computed once at fit time. Previously this quantity was only
+  available lazily, inside `check_drm()`'s `fixed_gradient` row, and only
+  when the fit retained its TMB object (`drm_control(keep_tmb_object =
+  TRUE)`, the default). The stored value agrees exactly with what
+  `check_drm()` computes live, and survives `keep_tmb_object = FALSE`.
+
+## Public start contract: `drm_control(start = list(...))`
+
+* `drm_control()` gains a `start` argument implementing the public start
+  contract from design 35 ("Public Start Contract"): a named list keyed by
+  `"fixef:<dpar>:<column>"`, `"sd:<dpar>:<term>"`, or `"cor:<dpar>:<term>"`
+  labels. Labels are validated against the parsed formula and family
+  **before** optimization (unknown labels error before the fit runs, never
+  during it). Values are transformed to the internal unconstrained scale
+  before `TMB::MakeADFun()` sees them: `sd:` starts are natural-scale and
+  `log()`-transformed, `cor:` starts are natural `(-1, 1)`-scale and
+  `atanh()`-transformed, and `fixef:` starts are already on the model's
+  internal link scale. A partial start updates only the named targets; every
+  other component keeps the ordinary family-builder default. Latent
+  random-effect (`u`) values are not addressable through this contract. This
+  is a validated translation layer onto the existing private
+  `drm_apply_start_override()` hook -- nothing changes at the TMB boundary,
+  and a start changes only where the optimizer begins, never what is
+  reported. `start_from = <a fitted model>` remains reserved and
+  unimplemented.
+* Two defects found by an adversarial pass are fixed. (1) A `fixef:sigma:`
+  (or `sigma1:`/`sigma2:`) start whose implied `log(sigma)` linear predictor
+  falls outside the configured `logsigma_clamp` band now warns
+  (`drmTMB_start_clamp_saturated_warning`) before the fit that produces the
+  bad result: the softclamp derivative is ~0 in that region, so `nlminb` can
+  see an already-flat gradient at the start and report a spuriously clean
+  convergence without ever moving. The start itself is never silently moved.
+  (2) A `fixef:mu:` (or scale-side `fixef:sigma:` when a `sigma` variance
+  component makes REML fold it in too) start under `REML = TRUE` now errors
+  instead of being silently accepted with no effect: REML integrates those
+  fixed effects into the Laplace random block, so there is no free
+  coordinate for the start to seed. This matches `objective_at()`'s existing
+  refusal of the same labels under REML.
+
+## `objective_at()`: evaluate the fitted objective at a supplied point
+
+* New exported S3 generic `objective_at(object, at = list(...))`, with a
+  `drmTMB` method, implementing design 35's "Objective At A Point": it
+  shares the `start=` label vocabulary (`"fixef:<dpar>:<column>"`,
+  `"sd:<dpar>:<term>"`, `"cor:<dpar>:<term>"`) to evaluate a fitted model's
+  TMB objective (negative log-likelihood) at a supplied point, **without
+  refitting**. It reuses the existing `R/profile.R` evaluation pattern
+  (substituting into a copy of `fit$opt$par` and calling `fit$obj$fn()`)
+  rather than a second implementation. This is a diagnostic: it selects
+  nothing, reports no uncertainty, and does not mutate the fitted object
+  (the TMB object is re-pinned to its optimum after evaluation). Requires
+  `drm_control(keep_tmb_object = TRUE)` (the default). Unknown labels error
+  before evaluation, on the same rule as `start=`. For penalized (MAP) fits
+  the return value is on the same unpenalized convention as `logLik()` (any
+  penalty is subtracted back out, so `objective_at(fit, <own optimum>) ==
+  -logLik(fit)` holds for every fit type), and it errors for experimental
+  MSPL fits exactly as `logLik()` does.
+## Build provenance (`drm_provenance()`)
+
+* New exported `drm_provenance()` (DRM.jl#473) answers a question
+  `packageVersion("drmTMB")` cannot: which BUILD produced this attachment,
+  not just which release. Two builds can report the same version string
+  while differing by commits under `R/`, `src/`, or `NAMESPACE`.
+  `drm_provenance()` returns `package_version`, `git_sha`, `git_dirty`,
+  `build_time`, `source`, `reason`, and `queried_at`. Every fitted `drmTMB`
+  object now carries this record at `fit$provenance`.
+* The git SHA and working-tree dirty flag are captured once, at build time,
+  by `./configure`/`configure.win` (plain `git rev-parse`/`git status
+  --porcelain`, non-fatal) and baked into `inst/build-provenance.dcf`. An
+  installed package has no `.git` to consult, so `drm_provenance()` never
+  attempts a live git lookup at call time; when the baked file is absent
+  (e.g. `devtools::load_all()`, or a build whose `configure` step did not
+  run) it returns `source = "unavailable"` with a stated `reason`, and
+  `source = "baked-without-git"` when `configure` ran but git itself was
+  unavailable (no git binary, or no `.git`, as when installing from a
+  released tarball).
+* `tools/drmtmb_provenance.R` is a separate, unshipped developer/CI tool
+  (excluded from the built tarball via the pre-existing `.Rbuildignore`
+  `tools/` rule, same as every other script in that directory) for stamping
+  a build anchor into Julia-side fixture receipts. It duplicates rather than
+  shares the few git-capture lines with `configure`, deliberately: a shipped
+  `configure` must not depend on an unshipped file.
+* This is drmTMB-side only. DRM.jl has no equivalent provenance surface yet.
+
 ## Student-t response + one binary `mi()` predictor
 
 * A `student()` response can now carry **one** binary `mi()` predictor

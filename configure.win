@@ -1,0 +1,46 @@
+@echo off
+REM Windows counterpart to ./configure. Bakes build provenance into
+REM inst\build-provenance.dcf using plain `git`, not tools\drmtmb_provenance.R
+REM (excluded from the tarball by .Rbuildignore; see the comment in
+REM `configure` for why). Never fatal: install must still succeed with no
+REM git binary or no .git checkout.
+setlocal enabledelayedexpansion
+set OUT=inst\build-provenance.dcf
+if not exist inst mkdir inst
+
+for /f %%i in ('powershell -NoProfile -Command "[DateTime]::UtcNow.ToString(''yyyy-MM-ddTHH:mm:ssZ'')"') do set BUILDTIME=%%i
+if "%BUILDTIME%"=="" set BUILDTIME=NA
+
+where git >nul 2>nul
+if errorlevel 1 (
+  call :write NA NA "git executable not found on PATH" "%BUILDTIME%"
+  exit /b 0
+)
+
+git rev-parse --is-inside-work-tree >nul 2>nul
+if errorlevel 1 (
+  call :write NA NA "no .git directory found (not a git checkout, e.g. installed from a released tarball)" "%BUILDTIME%"
+  exit /b 0
+)
+
+set SHA=
+for /f "delims=" %%s in ('git rev-parse HEAD 2^>nul') do set SHA=%%s
+if "%SHA%"=="" (
+  call :write NA NA "git rev-parse HEAD failed" "%BUILDTIME%"
+  exit /b 0
+)
+
+set DIRTY=FALSE
+for /f "delims=" %%d in ('git status --porcelain 2^>nul') do set DIRTY=TRUE
+
+call :write "%SHA%" "%DIRTY%" NA "%BUILDTIME%"
+exit /b 0
+
+:write
+(
+  echo GitSHA: %~1
+  echo GitDirty: %~2
+  echo GitReason: %~3
+  echo BuildTimeUTC: %~4
+) > %OUT%
+exit /b 0

@@ -5,6 +5,7 @@ if(!length(args)%in%c(2L,3L)) stop("usage: run-julia-phylo-labels-public.R JULIA
 direct_order <- if(length(args)==3L) args[3] else "tree"
 if(!direct_order%in%c("tree","input")) stop("direct order must be tree or input")
 jroot <- normalizePath(args[1],mustWork=TRUE);output <- args[2]
+drmjl_ref <- tryCatch(system2("git",c("-C",jroot,"rev-parse","HEAD"),stdout=TRUE,stderr=TRUE),error=function(e) NA_character_) # provenance: the DRM.jl ref this receipt ran against
 if(file.exists(output)) stop("refusing to overwrite evidence")
 Sys.setenv(DRM_JL_PATH=jroot,JULIA_NUM_THREADS="1",OPENBLAS_NUM_THREADS="1")
 sha <- function(p) digest::digest(file=p,algo="sha256")
@@ -67,7 +68,7 @@ out$result <- tryCatch({
        payload=payload,data=d,permutation=ord,direct_order=direct_order,outputs=fits,
        bridge_fitted=unname(fitted(bridge)),native_correlation=unname(K),
        group_covariate=zg,tree_edge=unname(tree$edge),tree_edge_length=tree$edge.length,
-       runtime=list(R=R.version.string,drmTMB=as.character(packageVersion("drmTMB")),
+       runtime=list(R=R.version.string,drmTMB=as.character(packageVersion("drmTMB")),drmjl_ref=drmjl_ref,
          native_dll=lapply(getLoadedDLLs()[intersect("drmTMB",names(getLoadedDLLs()))],
            function(x)list(path=x[["path"]],sha256=sha(x[["path"]])))),oracle_errors=errors,
        native_differences=as.list(differences),bridge_differences=as.list(bridge_diff))

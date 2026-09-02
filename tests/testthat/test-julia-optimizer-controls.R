@@ -107,7 +107,9 @@ test_that("a tuned control flows through the full bridge payload builder", {
       drm_control(optimizer = list(g_tol = 5e-5, algorithm = "gls"))
     )
   )
-  expect_equal(payload$options, list(g_tol = 5e-5, algorithm = "gls"))
+  # design 258 S7.1: options also carries coef_labels; pin the control shape without it
+  expect_equal(drm_test_options_sans_labels(payload$options), list(g_tol = 5e-5, algorithm = "gls"))
+  expect_true(is.list(payload$options$coef_labels))
 })
 
 test_that("g_tol override coexists with REML on the sigma-phylo path", {

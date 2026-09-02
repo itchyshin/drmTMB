@@ -611,6 +611,11 @@ drm_fit_spec <- function(
   # Per-group direct-SD ADREPORT is opt-in: it makes the joint ADREPORT covariance
   # n_group x n_group, which `vcov()` reads under REML. See `drm_control()`.
   spec$tmb_data$report_group_sd <- as.integer(isTRUE(control$se_group_sd))
+  if (!is.null(control$start) && length(control$start) > 0L) {
+    public_override <- drm_translate_public_start_override(spec, control$start)
+    base_override <- if (is.null(spec$start_override)) list() else spec$start_override
+    spec$start_override <- utils::modifyList(base_override, public_override)
+  }
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
@@ -630,6 +635,16 @@ drm_fit_spec <- function(
   drm_pin_tmb_object_to_optimum(obj, opt)
   drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
+
+  # Store the final outer gradient at `opt$par` here, at fit time, so it is a
+  # property of the fit rather than something computed lazily (and only when
+  # `obj` was retained) inside `check_drm()`'s `check_fixed_gradient()`
+  # (`R/check.R`). `obj$gr()` mutates `obj$env$last.par` as a side effect
+  # (independent of the `par` argument it is handed), so re-pin to `tmb_state`
+  # immediately after -- this evaluation must not leak into what `report()`
+  # sees below, per the selected-optimum invariant (docs/design/35).
+  fit_gradient <- drm_fit_gradient(obj, opt)
+  drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
 
   uncertainty <- drm_compute_uncertainty(
     obj,
@@ -707,7 +722,10 @@ drm_fit_spec <- function(
     mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
-    optimizer_attempts = optimizer$attempts
+    optimizer_attempts = optimizer$attempts,
+    gradient = fit_gradient$gradient,
+    gradient_max_component = fit_gradient$max_component,
+    provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
@@ -1325,6 +1343,197 @@ drm_start_override_mapped_slots <- function(map, n, parameter) {
     ))
   }
   is.na(map)
+}
+
+# Public start contract (docs/design/35-optimizer-start-map-multistart.md,
+# "Public Start Contract"): a validated translation layer from public start
+# labels ("fixef:<dpar>:<column>", "sd:<dpar>:<term>", "cor:<dpar>:<term>")
+# to the internal `spec$start_override` component-keyed format already
+# consumed by `drm_apply_start_override()`. Nothing new happens at the TMB
+# boundary; this only builds the same shape the private hook already
+# validates and applies.
+drm_translate_public_start_override <- function(spec, start) {
+  labels <- names(start)
+  override <- list()
+  for (i in seq_along(start)) {
+    label <- labels[[i]]
+    value <- start[[i]]
+    parsed <- drm_parse_public_start_label(label)
+    if (is.null(parsed)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+      ))
+    }
+    if (identical(parsed$family, "u")) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} addresses a latent random effect.",
+        "x" = "Labels of the form {.val u:<dpar>:<term>} target the latent random effect ({.code u}), which is not part of the public start contract.",
+        "i" = "Only {.code fixef:}, {.code sd:}, and {.code cor:} labels are supported."
+      ))
+    }
+    resolved <- drm_resolve_public_start_target(spec, parsed, value, label)
+    component <- resolved$component
+    if (is.null(override[[component]])) {
+      override[[component]] <- spec$start[[component]]
+    }
+    override[[component]][[resolved$index]] <- resolved$value
+  }
+  drm_warn_if_start_saturates_logsigma_clamp(spec, override)
+  override
+}
+
+# Defect A2-D1 (adversarial pass, 2026-09-01): a `fixef:sigma:`-family start
+# placed outside the log(sigma) soft-clamp band lands in the clamp's fully
+# saturated tail, where the softclamp derivative is ~0 in floating point. The
+# optimizer then sees an already-flat gradient at the start itself and
+# reports a spurious `nlminb` convergence code 0 without ever moving --
+# "converged" is arithmetically true and scientifically false. This computes
+# the actual per-row `log(sigma)` linear predictor implied by the *proposed*
+# start (baseline defaults plus the override) and warns before optimization
+# ever runs when it already lies outside the configured band, so the failure
+# mode is diagnosed at its source (the start) rather than discovered later as
+# an unexplained non-convergent-looking "success". This never edits the
+# user's start value -- only reports the condition, per the public start
+# contract's invariant that a start changes only where the optimizer begins.
+drm_warn_if_start_saturates_logsigma_clamp <- function(spec, override) {
+  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+    return(invisible(FALSE))
+  }
+  if (!identical(as.integer(spec$tmb_data$use_logsigma_clamp), 1L)) {
+    return(invisible(FALSE))
+  }
+  band <- spec$tmb_data$logsigma_clamp
+  if (length(band) < 2L || anyNA(band[1:2])) {
+    return(invisible(FALSE))
+  }
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  sigma_components <- intersect(
+    names(override),
+    c("beta_sigma", "beta_sigma1", "beta_sigma2")
+  )
+  for (component in sigma_components) {
+    dpar <- sub("^beta_", "", component)
+    X <- spec$X[[dpar]]
+    beta <- override[[component]]
+    if (is.null(X) || is.null(beta) || ncol(X) != length(beta)) {
+      next
+    }
+    eta <- as.vector(X %*% beta)
+    eta <- eta[is.finite(eta)]
+    if (length(eta) == 0L || !any(eta > hi | eta < lo)) {
+      next
+    }
+    clamped <- pmin(pmax(eta, lo), hi)
+    extreme <- eta[[which.max(abs(eta - clamped))]]
+    cli::cli_warn(
+      c(
+        "{.arg start} places {.code log(sigma)} for {.val {dpar}} outside the configured clamp band [{.val {lo}}, {.val {hi}}] (reaches {.val {round(extreme, 1)}}).",
+        "i" = "The optimizer may see a locally flat objective at this start and report a spurious convergence without ever moving away from it. Choose a start inside the band, or widen it with {.code drm_control(logsigma_clamp = )}."
+      ),
+      class = "drmTMB_start_clamp_saturated_warning"
+    )
+  }
+  invisible(TRUE)
+}
+
+drm_parse_public_start_label <- function(label) {
+  if (!is.character(label) || length(label) != 1L || is.na(label)) {
+    return(NULL)
+  }
+  m <- regmatches(label, regexec("^([^:]+):([^:]+):(.+)$", label))[[1L]]
+  if (length(m) != 4L) {
+    return(NULL)
+  }
+  list(family = m[[2L]], dpar = m[[3L]], target = m[[4L]])
+}
+
+drm_resolve_public_start_target <- function(spec, parsed, value, label) {
+  family <- parsed$family
+  dpar <- parsed$dpar
+  target <- parsed$target
+
+  if (identical(family, "fixef")) {
+    component <- paste0("beta_", dpar)
+    baseline <- spec$start[[component]]
+    target_names <- names(baseline)
+    if (is.null(baseline) || is.null(target_names) || !(target %in% target_names)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a fixed-effect coefficient of {.val {dpar}} in this model."
+      ))
+    }
+    # Defect A2-D2 (adversarial pass, 2026-09-01): under REML, `drm_apply_estimator_spec()`
+    # folds this component's fixed effects into the Laplace random block
+    # (`spec$tmb_random_names`) so they are integrated out of the outer
+    # objective, not optimized as free coordinates. A `fixef:` start therefore
+    # has no fixed point to seed and was previously accepted silently with no
+    # effect on the fit. Error instead, matching `objective_at()`'s refusal of
+    # the same labels under REML, so the two verbs agree on what the shared
+    # label vocabulary means.
+    if (isTRUE(component %in% spec$tmb_random_names)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} cannot be honored under REML.",
+        "x" = "REML integrates the {.val {dpar}} fixed effects out of the outer objective (they are folded into the Laplace random block), so there is no free coordinate for a {.code fixef:} start to seed.",
+        "i" = "Use {.code REML = FALSE} to give {.val {dpar}} fixed effects a {.code fixef:} start, or omit this label under REML."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, target_names),
+      value = as.numeric(value)
+    ))
+  }
+
+  if (identical(family, "sd")) {
+    component <- paste0("log_sd_", dpar)
+    term_labels <- spec$random[[dpar]]$labels
+    if (is.null(spec$start[[component]]) || is.null(term_labels) || !(target %in% term_labels)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a random-effect standard-deviation term of {.val {dpar}} in this model."
+      ))
+    }
+    if (!(value > 0)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be a positive number.",
+        "x" = "{.code sd:} starts are given on the natural (positive) scale."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, term_labels),
+      value = log(value)
+    ))
+  }
+
+  if (identical(family, "cor")) {
+    component <- paste0("eta_cor_", dpar)
+    cor_labels <- spec$random[[dpar]]$cor_labels
+    if (is.null(spec$start[[component]]) || is.null(cor_labels) || !(target %in% cor_labels)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {target}} is not a random-effect correlation term of {.val {dpar}} in this model."
+      ))
+    }
+    if (!(value > -1) || !(value < 1)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be strictly between -1 and 1.",
+        "x" = "{.code cor:} starts are given on the natural correlation scale."
+      ))
+    }
+    return(list(
+      component = component,
+      index = match(target, cor_labels),
+      value = atanh(value)
+    ))
+  }
+
+  cli::cli_abort(c(
+    "Unknown public start label {.val {label}}.",
+    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+  ))
 }
 
 drm_qgt2_staged_start_override <- function(
@@ -2823,6 +3032,26 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
     obj$env$last.par.best <- last_par_best
   }
   invisible(TRUE)
+}
+
+# Compute the final outer gradient at `opt$par`, at fit time, so it is stored
+# on the fit rather than reconstructed lazily (and only when `obj` was kept)
+# inside `check_drm()`'s `check_fixed_gradient()` (`R/check.R`). Uses
+# `fixed_gradient_component_label()` (also `R/check.R`) for the worst-component
+# label, so a stored value and the live `check_drm()` row always agree -- one
+# label rule, not two copies that can drift apart.
+drm_fit_gradient <- function(obj, opt) {
+  gradient <- tryCatch(
+    as.numeric(obj$gr(opt$par)),
+    error = function(e) NULL
+  )
+  if (is.null(gradient) || !all(is.finite(gradient))) {
+    return(list(gradient = gradient, max_component = NA_character_))
+  }
+  names(gradient) <- names(opt$par)
+  max_index <- if (length(gradient) > 0L) which.max(abs(gradient)) else NA_integer_
+  max_component <- fixed_gradient_component_label(list(opt = opt), gradient, max_index)
+  list(gradient = gradient, max_component = max_component)
 }
 
 # Interpret an nlminb convergence code. Returns NULL when the optimizer reported

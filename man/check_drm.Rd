@@ -48,7 +48,17 @@ The current checks cover optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
-\code{\link[TMB:sdreport]{TMB::sdreport()}}, finite fixed-effect standard errors, standard errors that
+\code{\link[TMB:sdreport]{TMB::sdreport()}}, the fixed-effect Hessian's minimum eigenvalue and
+condition number at the optimum (\code{hessian_conditioning}; a comparable, but
+not numerically identical, read of the same object underlying \code{pdHess}).
+\code{hessian_conditioning} is computed from
+\code{\link[TMB:sdreport]{TMB::sdreport()}}'s already-materialized fixed-effect covariance
+(\code{sdr$cov.fixed}), never by evaluating the TMB C++ object directly, so it
+is available for random-effect and REML fits (where the underlying
+Hessian is Laplace-marginalized) and for a fit restored via \code{saveRDS()}/
+\code{readRDS()}, and reports a \code{note} with a stated reason, not a bare \code{NA},
+only when \code{sdr$cov.fixed} itself is absent or incomplete (for example
+\code{drm_control(se = FALSE)}, or a failed \code{sdreport()}), finite fixed-effect standard errors, standard errors that
 are finite but inflated relative to the others despite a positive-definite
 Hessian (a weakly identified, near-flat direction such as a boundary
 correlation), dropped rows,
