@@ -32,7 +32,7 @@ holds CRAN.** Two DRAFT PRs await the owner's merge: #1114 (the integrated rever
 | item | state |
 |---|---|
 | `origin/main` | 13ac255a3 = #1112 merged (its CI fixed at fcc05c5ab: registry ported from the hand-repaired TSVs, one cell reversed) |
-| draft PR #1114 | head 3d924e220 = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
+| draft PR #1114 | head 09f2a97cb (3d924e220 + C17 re-certification) = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
 | draft PR #1119 | `claude/bridge-promotion-wave1` @ e296168ff: four rows experimental → partial on the bridge axis; Rose scan CLEAN; adds `partial` to the r_bridge_status vocabulary (designs 192/168) — the one schema decision named in the PR body |
 | A4/A5 | on DRM.jl's supported `drm_bridge_objective_at` (DRM.jl #590), pinned main `e4647333`, zero private names; receipt at the fixed engine |
 | ledger `.unlazy/true-parity/` | eight leaves + node gates; see the after-task for the final count |
@@ -60,6 +60,10 @@ from Shinichi for drmTMB.
 - **Oracles can be wrong before the code is**: two gate CHECKs were corrected after seeing output
   (branch count; bare formula and shell-mangled regex). Record every correction in the leaf.
 - The checker resolves ledgers against `--root` (main checkout), runs against `--cwd` (worktree).
+- **CI runs Python ledger guards `devtools::test()` never sees.** Touching `R/drmTMB.R`, `R/methods.R`,
+  `src/drmTMB.cpp` or `tests/testthat/test-zero-one-beta.R` stales the C17 model-15 receipt (whole-file
+  pin); clear it with `R_PROFILE_USER=/dev/null python3 tools/recertify-c17.py --label <slug>` (refuses if
+  any number moves; ~80 s) and run `python3 -m unittest tools/tests/test_capability_ledger.py` before pushing.
 
 ## Next immediate steps (OWED)
 
