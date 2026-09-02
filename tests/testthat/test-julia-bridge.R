@@ -1,12 +1,3 @@
-# Design 258 section 7.1 (2026-09-02): every base-bridge payload now carries
-# options$coef_labels (the per-dpar base-R label list DRM.jl echoes). The
-# option-shape pins below compare the wire WITHOUT that field and assert it
-# separately, so the parity-tested baseline shape is still pinned exactly.
-drm_test_options_sans_labels <- function(o) {
-  o <- o[names(o) != "coef_labels"]
-  if (length(o) == 0L) list() else o
-}
-
 test_that("Julia bridge serializes drm_formula() objects", {
   form <- bf(y ~ x, sigma ~ z)
   spec <- drmTMB:::drm_julia_formula_spec(form)

@@ -87,7 +87,8 @@ test_that("Gamma shared phylo labels serialize as coupled Julia terms", {
     payload$formula$sigma,
     "sigma ~ 1 + (1 | tree_boot | phylo(species))"
   )
-  expect_identical(payload$options, list(g_tol = 1e-8))
+  expect_identical(drm_test_options_sans_labels(payload$options), list(g_tol = 1e-8))
+  expect_true(is.list(payload$options$coef_labels))
 })
 
 test_that("Gamma coupled phylo rejects mismatched labels without coalescing them", {
@@ -208,14 +209,14 @@ test_that("phylo payload cache keeps Gaussian and Gamma bridge routes separate",
     env = environment()
   )
 
-  expect_identical(gaussian$options, list(g_tol = 1e-6, phylo_coupled = TRUE))
-  expect_identical(gamma$options, list(g_tol = 1e-8))
+  expect_identical(drm_test_options_sans_labels(gaussian$options), list(g_tol = 1e-6, phylo_coupled = TRUE))
+  expect_identical(drm_test_options_sans_labels(gamma$options), list(g_tol = 1e-8))
   expect_identical(
     gamma$formula$mu,
     "y ~ x + (1 | tree_boot | phylo(species))"
   )
   expect_identical(
-    gaussian_again$options,
+    drm_test_options_sans_labels(gaussian_again$options),
     list(g_tol = 1e-6, phylo_coupled = TRUE)
   )
   expect_identical(gaussian_again$formula$mu, "y ~ x + phylo(1 | species)")
