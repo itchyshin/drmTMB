@@ -123,18 +123,21 @@ drmTMB's slice A4 (the R wrapper `drm_julia_reml_objective_at()`, design in
 `objective-at-bridge-note.md` on PR #1112) needs that primitive **reachable from a merged ref**.
 Either fold it into #579 or open its own PR; drmTMB's A4/A5 are HELD until it is on a ref we can pin.
 
-## 5. q4 REML: Julia `vcov()` is all-NaN on the committed fixture (found by the SE receipt)
+## 5. q4 REML SE receipt: TMB SEs delivered; the Julia SE axis is the fixture's recorded fence
 
 The same-draw SE receipt you asked for exists — drmTMB branch `claude/rev-parity-q4-se-receipt`
 @ `996870366`, files `docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-02-q4-se-receipt.{md,R}`,
 engine pinned to `cda42b8c`. Coefficients and log-likelihood agree (tmb −219.613986 vs julia
 −219.614005, |Δ| 1.9e-05; both converged; 7/7 coefficient names matched after canonicalising the
-`.`/`:`/`_` separators). **But the SE axis cannot be compared:** the bridge's `vcov()` for this
-`biv_gaussian` q4-phylo REML route returns an all-NaN fixed-effect covariance, self-reported as
-`uncertainty$status = "unavailable"`, while TMB's Wald SEs are all finite (`sdr$pdHess = TRUE`).
-Consequences for you: the `rtol_coef` re-derivation cannot be taken from a Julia SE on this fixture
-until DRM.jl's q4 REML route supplies a covariance; and `biv_q4_phylo_reml` stays out of any
-promotion wave on the SE axis. The receipt promotes nothing and edits no TSV.
+`.`/`:`/`_` separators). TMB's Wald SEs are all finite (`sdr$pdHess = TRUE`) and are tabulated
+per coefficient. The bridge's `vcov()` on this route is all-NaN, self-reported as
+`uncertainty$status = "unavailable"` — **this is the fixture's RECORDED fence, not a new defect**
+(`expected.meta.toml`: `interval_status = "wald_unavailable"`; Wald calibration on q4
+phylo-covariance is DRM.jl #495). Correction from the DRM.jl lane, 2026-09-02, adopted here: the
+`rtol_coef`/`atol_coef` re-derivation (C10) was always sized from drmTMB's OWN Wald SEs refit on the
+committed data, so this receipt **unblocks** C10 rather than blocking it. What stays true:
+`biv_q4_phylo_reml` cannot be promoted on the SE axis while the Julia side is fenced; the receipt
+promotes nothing and edits no TSV.
 
 ## What drmTMB is doing that touches you (no action needed)
 
