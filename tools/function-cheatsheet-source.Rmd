@@ -301,6 +301,7 @@ Deprecated compatibility markers are deliberately omitted.
 | [`drm_formula()` / `bf()`](../reference/drm_formula.html) | Combine one formula per distributional parameter. `bf()` is the short alias. |
 | [`drmTMB()`](../reference/drmTMB.html) | Fit a univariate or bivariate distributional model. The native TMB engine is the default. |
 | [`drm_control()`](../reference/drm_control.html) | Set optimizer controls and fitted-object storage or large-data options. |
+| [`drm_provenance()`](../reference/drm_provenance.html) | Report which BUILD produced a fit -- git SHA, dirty flag and build time -- when the package version alone cannot tell two builds apart. |
 | [`meta_V()`](../reference/meta_V.html) | Supply known sampling variance or covariance for Gaussian meta-analytic models. |
 | [`meta_vcov_bivariate()`](../reference/meta_vcov_bivariate.html) | Assemble the row-paired known covariance matrix for two-response meta-analysis. |
 | [`miss_control()`](../reference/miss_control.html) | Choose the documented missing-response or missing-predictor policy. |
