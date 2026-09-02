@@ -4393,12 +4393,13 @@ drm_julia_predict_fixed_eta <- function(object, dpar, data, context) {
     )
   }
   beta <- object$coefficients[[dpar]]
-  # Joint adapters retain native R model-matrix names directly.  The legacy
-  # rewrite below predates that contract and corrupts punctuation in factor
-  # levels such as "a: b" and "a & b".
-  if (is.null(object$bridge_public_coef_labels) && !inherits(object, "drmTMB_julia_joint")) {
-    names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
-  }
+  # Coefficient names are base-R spelling by contract (design 258 section 7):
+  # either the engine echoed `bridge_formula_labels_v1` and the fit carries
+  # `bridge_public_coef_labels`, or the engine's raw names were identical to
+  # the payload's public names and the fit proceeded unchanged; any other case
+  # aborted at fit time. No punctuation-based rewrite of engine names is
+  # permitted here (the legacy `gsub()` fallback that lived at this point
+  # corrupted factor levels such as "a: b" and is removed under that contract).
   common <- intersect(colnames(X), names(beta))
   if (length(common) != length(beta) || length(common) != ncol(X)) {
     cli::cli_abort(c(
