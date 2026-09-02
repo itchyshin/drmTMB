@@ -74,10 +74,10 @@ from Shinichi for drmTMB.
 2. **If #1112 is still OPEN:** nothing merges; do the two owner-independent items: project the
    `Non-Gaussian phylogenetic location-scale` row onto `docs/design/capability-status.md` as
    scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in
-   the decision map), and prepare (do not file) the reverse-gap issue list split user-facing vs
-   engine-internal.
-3. Ask Shinichi, once, in one message: (a) one-way vs both-ways for drmTMB; (b) keep or revert the
-   scoped legacy `gsub`; (c) file the reverse-gap issues?
+   the decision map). The reverse-gap issues are filed (#1115–#1118); each is a normal slice under
+   the both-ways rule (D-204), symbolic alignment table first.
+3. ANSWERED (D-204, 2026-09-02): both ways for user-facing; keep the legacy rewrite; issues filed as
+   #1115–#1118. Do not re-ask.
 4. `objective_at()` does not reach `rho12` or the q4 phylo covariance block by label (found by A5);
    widening the start/label vocabulary is an A2/A3 follow-up.
 5. Extending `coef_labels` to the structured/joint/xfam payload builders (design 258 §7.4) is the

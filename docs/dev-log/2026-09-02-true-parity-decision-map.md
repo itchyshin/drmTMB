@@ -49,10 +49,11 @@ Releases and registration are separate owner ceremonies (D-164, D-183).
 
 | ticket | kind | default if "use your judgment" |
 |---|---|---|
-| ~~Is true parity one- or two-directional?~~ **CLOSED (D-203): one-directional.** Remaining task: file the reverse-gap ISSUE LIST in drmTMB (`chibar_pvalue`, `lrt_boundary`, `heritability`/`icc`/`repeatability`, `aicc`, coevolution accessors) — drafted from DRM.jl's list, filed only after Shinichi sees it in this repo's session. | task | draft in this map; file on confirmation |
+| ~~Is true parity one- or two-directional?~~ **CLOSED (D-204, Shinichi direct, 2026-09-02): BOTH WAYS for user-facing capabilities as the standing rule; D-203's one-directional scope was one arc.** Reverse-gap issues FILED: #1115 heritability/icc/repeatability · #1116 chibar_pvalue/lrt_boundary · #1117 aicc + model comparison · #1118 coevolution accessors. Engine-internal exports (bias_correct, bootstrap_sigma_a, profile_sigma_a, sd/sd_phylo, fit_coevolution*, simulate_coevolution) stay accounted for in writing. | — | — |
 | ~~Non-Gaussian phylo location-scale board row~~ **CLOSED by measurement (above): scope-limited on drmTMB (nbinom2, zero_one_beta implemented; ten families rejected by design).** Remaining task: project it onto `docs/design/capability-status.md` with that status. | task | a D1-style board landing |
 | ~~Promotion authority~~ **CLOSED (D-203): Rose-scanned draft PR + owner merge.** | — | — |
 | Student-t `nu` start labels; `vcov()` abort when `sdreport` fails; and (found 2026-09-02 by A5) `objective_at()`/`start=` labels do not reach `biv_gaussian`'s `rho12` or the q4 phylo covariance block: widen or record as limitations? | decide-with-Shinichi (not blocking) | record; widen in an A2/A3 follow-up slice |
+| ~~Legacy predict-time `gsub()` rewrite~~ **CLOSED (D-204): KEEP it**, scoped to the structured/joint/xfam routes until their payload builders adopt `coef_labels` (design 258 §7.4). | — | — |
 | ~~Echo or reconstruct?~~ **CLOSED (D-203): echo.** DRM.jl already emits `coef_label_contract = "bridge_formula_labels_v1"` (`src/bridge.jl:1276`); the Codex #563 lane changes its content to payload-supplied names, PR-gated. | — | — |
 | The DRM.jl fixture's `rtol_coef = 10%` is flagged unjustified pending a drmTMB Wald-SE refit on biv-q4-phylo-reml (DRM.jl lane, 2026-09-02). | task = slice S4 here | receipt path sent to the DRM.jl lane |
 
@@ -67,7 +68,7 @@ its rule inherited-by-analogy, not a drmTMB decision. The two are consistent if 
 list should split into **user-facing** (candidates: `heritability`/`icc`/`repeatability`,
 `chibar_pvalue`/`lrt_boundary`, `aicc`) versus **engine-internal** (`coevolution_*` solvers,
 `bias_correct`, `profile_sigma_a`) so a later arc can port the first group without re-deciding.
-One sentence from Shinichi confirms or corrects this reading.
+**Resolved 2026-09-02 (D-204):** Shinichi confirmed the reading — both ways for user-facing capabilities is the standing rule; one-way was the scope of the DRM.jl arc.
 
 ## Out of scope (with the reason)
 

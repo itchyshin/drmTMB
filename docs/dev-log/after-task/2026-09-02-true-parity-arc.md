@@ -95,8 +95,8 @@ as standing rule — a tension left for one sentence from Shinichi; promotion = 
 
 ## 8. Risks and open questions for Shinichi
 
-- One sentence settles the direction tension (one-way for this arc vs both-ways for user-facing).
-- Confirm or revert the `gsub` removal (6.1).
+- ANSWERED the same day (D-204): both ways for user-facing; keep the scoped legacy rewrite; reverse-gap
+  issues filed as #1115–#1118.
 - Merge order stands: #1112 → then replace PR #1114's head with `integration-post1112`.
 
 ## 9. Files created / modified (this lane, today)
