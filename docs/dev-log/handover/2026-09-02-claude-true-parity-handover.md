@@ -77,7 +77,10 @@ from Shinichi for drmTMB.
 1. Confirm main's CI on 8fda9b017 (a wake-up was armed at merge time; if red, read the job's own
    remediation text first — the ledger guards print the exact command).
 2. Post-merge housekeeping: `python3 DRM.jl/tools/parity_ledger.py --drmtmb . --ref origin/main`
-   (re-run at merge time: CLOSURE PASS, four rows now `partial` on the bridge axis); delete the merged
+   (re-run at merge time: CLOSURE PASS, four rows now `partial` on the bridge axis; it also lists TWO
+   drmTMB exports with no DRM.jl twin — `objective_at()` and `drm_provenance()` — which need an
+   "accounted for in writing" line in DRM.jl `tools/parity_ledger.py` (handed to that lane 2026-09-02:
+   counterpart `drm_bridge_objective_at`; build-provenance stamp), not a port); delete the merged
    child branches on origin when Shinichi says so (`claude/rev-parity-*` except `handover`, which
    carries docs not yet on main — land those via a docs PR, then delete it too).
 3. Re-pin A4/A5 whenever DRM.jl main moves (one SHA in `R/julia-bridge.R` + the receipt script; re-run
