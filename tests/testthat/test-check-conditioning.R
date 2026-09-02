@@ -21,46 +21,50 @@ test_that("check_drm() reports hessian_conditioning as an ok row for a well-cond
   expect_true("hessian_positive_definite" %in% chk$check)
 })
 
-test_that("check_drm() reports hessian_conditioning as a warning for a genuinely (resolvably) indefinite Hessian", {
-  # Deterministic, reproducible construction: mock obj$he() to return a
-  # matrix whose negative eigenvalue is orders of magnitude larger than the
-  # AD-roundoff tolerance (see hessian_conditioning_eps_multiplier), so this
-  # is unambiguously "genuinely negative", not floating-point dust. This
-  # replaces an earlier near-duplicate-predictor construction whose min_eig
-  # sat at the ~1e-14 roundoff floor and was, empirically, indistinguishable
-  # run-to-run from the round-off-only case now regression-tested below --
-  # see docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 6b.
+test_that("check_drm() reports hessian_conditioning as a warning for a genuinely (resolvably) indefinite fit", {
+  # Deterministic-enough real construction: two predictors so close to
+  # collinear that TMB's own sdreport() does not reach a positive-definite
+  # Hessian (pdHess = FALSE), so sdr$cov.fixed carries a robustly, hugely
+  # negative eigenvalue (not roundoff dust -- see
+  # docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 13 for
+  # the measured value, ~ -2.1e11 against a normal-scale ~600 elsewhere in
+  # the same matrix). hessian_conditioning must still catch this via
+  # sdr$cov.fixed's own most negative eigenvalue, without ever calling
+  # obj$he().
   set.seed(20260901)
-  dat <- data.frame(
-    y = stats::rnorm(40),
-    x = stats::rnorm(40)
-  )
-  fit <- drmTMB(
-    bf(y ~ x, sigma ~ 1),
+  n <- 80
+  x1 <- stats::rnorm(n)
+  x2 <- x1 + stats::rnorm(n, sd = 1e-7)
+  y <- 0.5 + 0.3 * x1 + stats::rnorm(n, sd = 0.5)
+  dat <- data.frame(y = y, x1 = x1, x2 = x2)
+
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ x1 + x2, sigma ~ 1),
     family = gaussian(),
     data = dat
-  )
+  ))
+  expect_false(isTRUE(fit$sdr$pdHess))
 
-  indefinite <- fit
-  indefinite$obj$he <- function(par) {
-    diag(c(500, 300, 150, -50))
-  }
-  chk <- check_drm(indefinite)
+  chk <- check_drm(fit)
   row <- chk[chk$check == "hessian_conditioning", ]
 
   expect_equal(nrow(row), 1L)
   expect_equal(row$status, "warning")
-  expect_match(row$value, "min_eig=-50")
+  expect_match(row$value, "min_eig=-")
   expect_false(attr(chk, "ok"))
 })
 
-test_that("check_drm() does not flag round-off-scale near-singular collinearity as hessian_conditioning warning or note", {
-  # Reproduces the false-positive reported against B2-G3: two predictors so
-  # close to collinear that the TMB-AD Hessian's smallest eigenvalue is
-  # governed by floating-point roundoff (|min_eig| ~ 1e-14), not by any
-  # resolvable curvature. pdHess = TRUE, all standard errors finite, and the
-  # gradient check is ok; hessian_conditioning must not be the only thing
-  # that disagrees.
+test_that("check_drm() reports a stable, non-warning hessian_conditioning row for round-off-scale near-singular collinearity", {
+  # Reproduces the false-positive originally reported against B2-G3: two
+  # predictors so close to collinear that a direct AD Hessian's smallest
+  # eigenvalue was governed by floating-point roundoff. Computing from
+  # sdr$cov.fixed instead (an already-materialized numeric matrix; no C++
+  # call at all) removes the sign ambiguity that produced the false
+  # "warning" -- this fit's covariance eigenvalues are all resolvably
+  # positive, so the implied minimum Hessian eigenvalue is a stable,
+  # reproducible tiny positive number (not roundoff-noisy), and the huge
+  # (but now reliable) condition number correctly earns a "note", never a
+  # "warning". attr(ck, "ok") stays TRUE because "note" does not flip it.
   set.seed(1)
   n <- 200
   x <- stats::rnorm(n)
@@ -79,13 +83,14 @@ test_that("check_drm() does not flag round-off-scale near-singular collinearity 
   row <- chk[chk$check == "hessian_conditioning", ]
 
   expect_equal(nrow(row), 1L)
-  expect_equal(row$status, "ok")
+  expect_true(row$status %in% c("ok", "note"))
+  expect_match(row$value, "^min_eig=0\\.0")
   expect_true(attr(chk, "ok"))
   expect_true(all(chk$status != "warning"))
   expect_true(all(chk$status != "error"))
 })
 
-test_that("check_drm() reports hessian_conditioning as a note when the TMB object is not retained", {
+test_that("check_drm() reports hessian_conditioning as a note when sdreport was skipped", {
   set.seed(20260901)
   dat <- data.frame(
     y = stats::rnorm(40),
@@ -95,7 +100,7 @@ test_that("check_drm() reports hessian_conditioning as a note when the TMB objec
     bf(y ~ x, sigma ~ 1),
     family = gaussian(),
     data = dat,
-    control = drm_control(keep_tmb_object = FALSE)
+    control = drm_control(se = FALSE)
   )
 
   chk <- check_drm(fit)
@@ -103,10 +108,33 @@ test_that("check_drm() reports hessian_conditioning as a note when the TMB objec
   expect_equal(nrow(row), 1L)
   expect_equal(row$status, "note")
   expect_true(is.na(row$value))
-  expect_match(row$message, "not retained")
+  expect_match(row$message, "se = FALSE", fixed = TRUE)
 })
 
-test_that("check_drm() reports hessian_conditioning as a warning when obj$he() errors", {
+test_that("check_drm() reports hessian_conditioning as a real number even when the TMB object was not retained", {
+  # sdr$cov.fixed lives on the sdreport, independent of drm_control(keep_tmb_object);
+  # this is a further benefit of never calling obj$he().
+  set.seed(20260901)
+  dat <- data.frame(
+    y = stats::rnorm(80),
+    x = stats::rnorm(80)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ x),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(keep_tmb_object = FALSE)
+  )
+  expect_true(is.null(fit$obj))
+
+  chk <- check_drm(fit)
+  row <- chk[chk$check == "hessian_conditioning", ]
+  expect_equal(nrow(row), 1L)
+  expect_true(row$status %in% c("ok", "note"))
+  expect_false(is.na(row$value))
+})
+
+test_that("check_drm() reports hessian_conditioning as a note for incomplete sdr$cov.fixed", {
   set.seed(20260901)
   dat <- data.frame(
     y = stats::rnorm(40),
@@ -119,15 +147,21 @@ test_that("check_drm() reports hessian_conditioning as a warning when obj$he() e
   )
 
   broken <- fit
-  broken$obj$he <- function(par) stop("test hessian failure")
+  broken$sdr$cov.fixed[1, 1] <- Inf
   chk <- check_drm(broken)
   row <- chk[chk$check == "hessian_conditioning", ]
   expect_equal(nrow(row), 1L)
-  expect_equal(row$status, "warning")
-  expect_match(row$message, "test hessian failure")
+  expect_equal(row$status, "note")
+  expect_true(is.na(row$value))
+  expect_match(row$message, "cov.fixed")
 })
 
-test_that("check_drm() reports hessian_conditioning as an explicit note for random-effect fits", {
+test_that("check_drm() reports hessian_conditioning as a real number for a random-effect fit", {
+  # This is the closed scope gap: obj$he() has no Laplace support, so this
+  # row used to be a permanent note/NA for every random-effect fit -- the
+  # model class the R/Julia parity programme is mostly about. sdr$cov.fixed
+  # IS populated for a random-effect fit, so this now reports a computed
+  # number, not a stated absence.
   set.seed(20260901)
   n_id <- 20
   id <- factor(rep(seq_len(n_id), each = 5))
@@ -145,10 +179,43 @@ test_that("check_drm() reports hessian_conditioning as an explicit note for rand
   chk <- check_drm(fit)
   row <- chk[chk$check == "hessian_conditioning", ]
   expect_equal(nrow(row), 1L)
-  expect_equal(row$status, "note")
-  expect_true(is.na(row$value))
-  expect_match(row$message, "NOT AVAILABLE")
-  expect_match(row$message, "random effects")
+  expect_true(row$status %in% c("ok", "note"))
+  expect_false(is.na(row$value))
+  expect_match(row$value, "min_eig=")
+  expect_match(row$value, "cond=")
+  expect_match(row$message, "sdreport\\(\\) fixed-effect covariance")
+})
+
+test_that("check_drm() computes hessian_conditioning without crashing after a saveRDS/readRDS round trip", {
+  # This is the file/scenario that segfaulted R under obj$he() -- see
+  # test-reader-oldfit-compat.R and
+  # docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 13.
+  # check_drm() must return normally (no C++ call at all in this row now)
+  # and reproduce the pre-serialization values exactly, since sdr$cov.fixed
+  # is an ordinary numeric matrix that round-trips through saveRDS/readRDS
+  # unchanged.
+  set.seed(20260901)
+  dat <- data.frame(
+    y = stats::rnorm(80),
+    x = stats::rnorm(80)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ x),
+    family = gaussian(),
+    data = dat
+  )
+  checks_before <- check_drm(fit)
+
+  tf <- withr::local_tempfile(fileext = ".rds")
+  saveRDS(fit, tf)
+  fit2 <- readRDS(tf)
+
+  checks_after <- check_drm(fit2)
+  expect_equal(checks_after, checks_before)
+
+  row <- checks_after[checks_after$check == "hessian_conditioning", ]
+  expect_equal(nrow(row), 1L)
+  expect_true(row$status %in% c("ok", "note", "warning"))
 })
 
 test_that("check_drm() existing check names are unchanged by hessian_conditioning", {
@@ -178,49 +245,4 @@ test_that("check_drm() existing check names are unchanged by hessian_conditionin
     ) %in%
       chk$check
   ))
-})
-
-test_that("hessian conditioning refuses to touch a TMB pointer that is not live", {
-  # BACKGROUND, so a future reader does not mistake this for paranoia: a full-suite
-  # run on 2026-09-01 ABORTED R at `object$obj$he(object$opt$par)` inside
-  # check_hessian_conditioning(), reached via check_drm() on a fit that had been
-  # through saveRDS/readRDS (test-reader-oldfit-compat.R). A segfault cannot be
-  # caught by tryCatch(), so it took the session down rather than failing a test.
-  #
-  # HONEST LIMIT: that crash is NOT reproducible in isolation -- running the same
-  # file alone passes, on this branch and on the integrated tree. It needed
-  # full-suite context. So this guard is a defensible precaution, NOT a proven fix
-  # for the observed abort. Measured facts it IS built on: after readRDS the
-  # pointer formats as "<pointer: 0x0>"; obj$gr() tolerates that and returns, which
-  # is why the older gradient check never noticed; obj$he() does not.
-  set.seed(20260814)
-  dat <- data.frame(x = seq(-1, 1, length.out = 40L))
-  dat$y <- 0.4 + 0.6 * dat$x + stats::rnorm(nrow(dat), sd = 0.3)
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1), gaussian(), data = dat)
-
-  tf <- withr::local_tempfile(fileext = ".rds")
-  saveRDS(fit, tf)
-  fit2 <- readRDS(tf)
-
-  # The pointer really is dead immediately after deserialization.
-  expect_true(drm_tmb_pointer_is_dead(fit2$obj))
-
-  # Called directly, the guard fires and reports honestly rather than evaluating.
-  direct <- check_hessian_conditioning(fit2)
-  expect_equal(direct$status, "note")
-  expect_true(is.na(direct$value))
-  # Matches the wording common to BOTH guards: the direct call reaches the early
-  # one, the check_drm() path would reach the call-site one. Asserting either
-  # specific phrasing would couple this test to which guard happened to fire.
-  expect_match(direct$message, "TMB pointer is", fixed = TRUE)
-  expect_match(direct$message, "NOT a report that the Hessian is fine", fixed = TRUE)
-
-  # Via check_drm() the pointer is REVIVED before this row runs, so the row is
-  # computed for real. Asserted deliberately: it documents that the two paths
-  # differ, which is exactly the fact that made the early guard insufficient.
-  via <- check_drm(fit2)
-  expect_false(drm_tmb_pointer_is_dead(fit2$obj))
-  row <- via[via$check == "hessian_conditioning", ]
-  expect_equal(nrow(row), 1L)
-  expect_true(row$status %in% c("ok", "note", "warning"))
 })
