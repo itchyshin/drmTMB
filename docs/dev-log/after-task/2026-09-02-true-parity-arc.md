@@ -21,6 +21,7 @@ still means. Julia files untouched.
 | S2 guard | `drm_control(start=, multi_start=)` under `engine="julia"` now aborts; red control shown; filtered suites pass | `claude/rev-parity-integration-post1112` @ 89bfd210a |
 | S3 producer | design 258 §7; payload `coef_labels` (fixed-effect part only); existing validator wired; map-path cross-check against drmTMB's own names; no-vacuity rule; absent map fails closed; 10 constructs + Rose's 7 attacks green; legacy predict-time `gsub` kept and scoped | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 |
 | S4 receipt | same-draw q4 REML receipt vs DRM.jl `cda42b8c`: coef/logLik agree (|Δ logLik| 1.9e-05), TMB SEs finite; Julia SE axis is the fixture's recorded fence (`wald_unavailable`, DRM.jl #495) | `claude/rev-parity-q4-se-receipt` @ 996870366 |
+| A4/A5 wrapper + receipt | `drm_julia_reml_objective_at()` (internal) reaches DRM.jl's `reml_objective_at` from R with zero DRM.jl edits (five private names listed in one block; pinned `dc3ce190`); the #575 diagnosis is a re-runnable script: TMB@TMB −219.613986 · DRM.jl@TMB −219.620688 · TMB@Julia −219.634993 · DRM.jl@Julia −219.630326; anchors 0 and 9.5e-05 (< 2e-4); diagnosis only, no promotion | `claude/rev-parity-a4-objective-at-bridge` @ 1291772bc |
 | S5 handoff | five items to the DRM.jl lane, incl. the verbatim §7 contract and the SE-receipt correction | `claude/rev-parity-drmjl-findings` (HEAD) |
 | S9 Rose | see §4 | scratch verdict, summarised below |
 | S10 Melissa | 7 deviations: 4 adaptive · 2 drift · 1 unclear | `docs/dev-log/plan-actual/2026-09-02-true-parity.md` |
@@ -28,7 +29,7 @@ still means. Julia files untouched.
 
 ## 3. Verification (re-run by the coordinator, not read from reports)
 
-- Final ledger (`.unlazy/true-parity/`, re-run at close by the coordinator, each leaf in its own worktree): leaf-s1 5/5, leaf-s2 4/4, leaf-s3 12/13 + 1 ABANDONED with reason (S3-G4, the scoped legacy predict path), leaf-s4 4/4, leaf-s5 3/3; node gates N1–N5 all met. Totals: 33 met · 1 abandoned · 0 unmet.
+- Final ledger (`.unlazy/true-parity/`, re-run at close by the coordinator, each leaf in its own worktree): leaf-s1 5/5, leaf-s2 4/4, leaf-s3 12/13 + 1 ABANDONED with reason (S3-G4, the scoped legacy predict path), leaf-s4 4/4, leaf-s5 3/3; node gates N1–N5 all met. Totals after A4/A5: 43 met · 1 abandoned · 0 unmet (leaf-a4 6/6, leaf-a5 4/4; N1 re-run over all seven leaves).
 - Six oracle corrections recorded in the ledger after seeing output (S1-G1 exact-18 count; S1-G2 new lane branches counted as missing; S1-G3 GraphQL rate limit → REST; S3-G6 bare formula, then a shell-mangled regex; S5-G1 a count regex that breaks past 9; N1 ran leaves against the main checkout and exceeded the checker's 120 s cap → per-worktree runner with a freshness-checked receipt). All were oracle defects; no requirement moved, and each correction is written beside its gate.
 - DRM.jl fence: `DRMJL_FENCE_HELD`; HEAD still `f4778964`.
 - Full suite and `--as-cran` NOT re-run today (D-139; both passed 2026-09-01 on the integration tree; today's R/ edits are covered by the filtered suites named in the gates).
@@ -77,8 +78,13 @@ as standing rule — a tension left for one sentence from Shinichi; promotion = 
 
 ## 7. Not done, and why
 
-- S6 promotion wave 1 and S7 (A4/A5 wrapper + receipt): held, need #1112 merged (and, for S7,
-  DRM.jl's `reml_objective_at` on a pinnable ref).
+- S6 promotion wave 1: held, needs #1112 merged. A4/A5 were built after all (on top of the
+  post-#1112 branch, DRM.jl pinned at `dc3ce190`); they stay internal and depend on five DRM.jl
+  private names until that lane exposes a supported entry or folds its branch into a merging ref.
+- Found by A5, not fixed (A2/A3 lane): `objective_at()`'s label vocabulary does not reach
+  `biv_gaussian`'s `rho12` fixed effect or the q4 phylo covariance block (`beta_rho12` carries no
+  names; `log_sd_phylo`/`theta_phylo` sit outside `spec$random`); the receipt addresses those by
+  internal TMB parameter name. Recorded in the decision map as a limitation.
 - Reverse-gap issue list: drafted in the decision map, NOT filed — public posting waits for
   Shinichi's word in this repo's session.
 - Board projection of `Non-Gaussian phylogenetic location-scale`: measured as scope-limited

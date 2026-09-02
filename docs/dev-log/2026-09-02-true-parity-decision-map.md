@@ -52,7 +52,7 @@ Releases and registration are separate owner ceremonies (D-164, D-183).
 | ~~Is true parity one- or two-directional?~~ **CLOSED (D-203): one-directional.** Remaining task: file the reverse-gap ISSUE LIST in drmTMB (`chibar_pvalue`, `lrt_boundary`, `heritability`/`icc`/`repeatability`, `aicc`, coevolution accessors) — drafted from DRM.jl's list, filed only after Shinichi sees it in this repo's session. | task | draft in this map; file on confirmation |
 | ~~Non-Gaussian phylo location-scale board row~~ **CLOSED by measurement (above): scope-limited on drmTMB (nbinom2, zero_one_beta implemented; ten families rejected by design).** Remaining task: project it onto `docs/design/capability-status.md` with that status. | task | a D1-style board landing |
 | ~~Promotion authority~~ **CLOSED (D-203): Rose-scanned draft PR + owner merge.** | — | — |
-| Student-t `nu` start labels; `vcov()` abort when `sdreport` fails: widen or record as limitations? | decide-with-Shinichi (not blocking) | record |
+| Student-t `nu` start labels; `vcov()` abort when `sdreport` fails; and (found 2026-09-02 by A5) `objective_at()`/`start=` labels do not reach `biv_gaussian`'s `rho12` or the q4 phylo covariance block: widen or record as limitations? | decide-with-Shinichi (not blocking) | record; widen in an A2/A3 follow-up slice |
 | ~~Echo or reconstruct?~~ **CLOSED (D-203): echo.** DRM.jl already emits `coef_label_contract = "bridge_formula_labels_v1"` (`src/bridge.jl:1276`); the Codex #563 lane changes its content to payload-supplied names, PR-gated. | — | — |
 | The DRM.jl fixture's `rtol_coef = 10%` is flagged unjustified pending a drmTMB Wald-SE refit on biv-q4-phylo-reml (DRM.jl lane, 2026-09-02). | task = slice S4 here | receipt path sent to the DRM.jl lane |
 

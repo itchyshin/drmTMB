@@ -29,6 +29,7 @@ all on origin. One DRAFT PR (#1114) exists and says it lands after #1112.
 | head that should replace it once #1112 merges | `claude/rev-parity-integration-post1112` @ 89bfd210a (+ guard: `start`/`multi_start` rejected under `engine="julia"`) |
 | label contract (ARC C2) | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 — design 258 §7, R half, repaired after Rose |
 | q4 SE receipt | `claude/rev-parity-q4-se-receipt` @ 996870366 — TMB SEs finite; Julia SE axis is the fixture fence (`wald_unavailable`, DRM.jl #495) |
+| A4/A5 cross-engine wrapper + #575 receipt | `claude/rev-parity-a4-objective-at-bridge` @ 1291772bc — internal `drm_julia_reml_objective_at()`, DRM.jl pinned `dc3ce190` (five private names, one block); receipt re-runnable, refuses any other ref |
 | handoff to DRM.jl lane | `claude/rev-parity-drmjl-findings` @ b0b5577a6 — five items |
 | decisions | D-202 (vault) + `docs/dev-log/2026-09-02-rev-parity-owner-decisions.md`; relayed D-203 recorded as relayed |
 | shared page | vault `memory/TWIN-PARITY-SHARED-PAGE.md`, sent to all three sibling lanes, none disagreed |
@@ -63,8 +64,9 @@ from Shinichi for drmTMB.
    #1114 at it; then S6 promotion wave 1 exactly per
    `docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md` (on #1112's branch) — 4 rows
    `experimental → partial`, Rose forbidden-claim scan, draft PR; q4 stays out (SE axis fenced).
-   Then S7 (A4 `drm_julia_reml_objective_at()` per `objective-at-bridge-note.md`, A5 pinned receipt)
-   once DRM.jl's `reml_objective_at` is on a pinnable ref.
+   A4/A5 are DONE on `claude/rev-parity-a4-objective-at-bridge` (off the post-#1112 branch): merge that
+   branch into the integration head too. Re-pin the DRM.jl ref when that lane folds
+   `feat/575-objective-at` into a merging ref (one env-var + one comment line).
 2. **If #1112 is still OPEN:** nothing merges; do the two owner-independent items: project the
    `Non-Gaussian phylogenetic location-scale` row onto `docs/design/capability-status.md` as
    scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in
@@ -72,7 +74,9 @@ from Shinichi for drmTMB.
    engine-internal.
 3. Ask Shinichi, once, in one message: (a) one-way vs both-ways for drmTMB; (b) keep or revert the
    scoped legacy `gsub`; (c) file the reverse-gap issues?
-4. Extending `coef_labels` to the structured/joint/xfam payload builders (design 258 §7.4) is the
+4. `objective_at()` does not reach `rho12` or the q4 phylo covariance block by label (found by A5);
+   widening the start/label vocabulary is an A2/A3 follow-up.
+5. Extending `coef_labels` to the structured/joint/xfam payload builders (design 258 §7.4) is the
    next C-arc slice; it retires the legacy predict path.
 5. Do not re-run the full suite (~45 min) or `--as-cran` unless R/ code outside today's hunks changes.
 
