@@ -5,8 +5,8 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
-- **2026-09-01 (evening) — Claude parity lane HANDED OVER to a fresh Claude session.**
-  START HERE for this lane: [`handover/2026-09-01-claude-handover-575-fixed.md`](handover/2026-09-01-claude-handover-575-fixed.md).
+- **2026-09-02 (written 05:0x MDT; work ran from 2026-09-01 evening) — Claude parity lane HANDED OVER to a fresh Claude session.**
+  START HERE for this lane: [`handover/2026-09-02-claude-handover-575-fixed.md`](handover/2026-09-02-claude-handover-575-fixed.md).
   #575 FIXED (exact REML gradient; DRM.jl PR #579 draft; suite 9203/0/0; D-43 panel verified).
   Three reviews await Shinichi: drmTMB #1112, DRM.jl #579, DRM.jl #576. Promotion wave 1 (4 rows)
   fires on the #1112 merge; q4 stays out pending an SE-axis receipt. Other lanes keep their own

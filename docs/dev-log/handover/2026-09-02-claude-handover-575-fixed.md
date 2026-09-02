@@ -1,6 +1,6 @@
 # Session Handoff: R–Julia parity arc — #575 FIXED, promotion wave gated on reviews
 
-Meta: 2026-09-01 (evening) · from Claude (Fable) · target **Claude (Fable 5.1)** · working
+Meta: written 2026-09-02 early morning (the session ran 2026-09-01 evening → 2026-09-02 05:0x MDT; all "2026-09-01" dates in filenames/receipts below are the working date and are correct as written) · from Claude (Fable) · target **Claude (Fable 5.1)** · working
 directory `/private/tmp/drmtmb-control-audit` (drmTMB worktree, branch
 `codex/rebase-julia-optimizer-controls`) + the DRM.jl checkout at
 `/Users/z3437171/Dropbox/Github Local/DRM.jl`.
@@ -221,5 +221,5 @@ Never stage: `.codex/agents/shannon-coordinator.toml`, foreign-lane files, or an
 lanes' worktrees.
 
 ```text
-Read AGENTS.md and docs/dev-log/handover/2026-09-01-claude-handover-575-fixed.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
+Read AGENTS.md and docs/dev-log/handover/2026-09-02-claude-handover-575-fixed.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
 ```
