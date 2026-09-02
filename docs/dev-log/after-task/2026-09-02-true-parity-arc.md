@@ -98,6 +98,11 @@ as standing rule — a tension left for one sentence from Shinichi; promotion = 
   board.
 - P2–P5 arcs (G3 inference qualification, G4 threading, G5 Totoro grid, G6/G7 docs): untouched,
   each behind its own D-139 gate.
+- B2's two conditioning edge tests (1e-7 "indefinite", 1e-9 "near-singular") sit on a platform-
+  dependent LAPACK boundary: Linux runners resolved the same seeded fits on either side across two CI
+  runs. Both now carry a premise guard (skip where the platform does not produce the premise). A
+  deterministic indefinite construction (exactly rank-deficient design, or an injected indefinite
+  covariance) that exercises the warning path on every platform is a follow-up for the B2 lane.
 
 ## 8. Risks and open questions for Shinichi
 

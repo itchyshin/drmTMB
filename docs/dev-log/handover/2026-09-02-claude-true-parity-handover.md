@@ -32,7 +32,7 @@ holds CRAN.** Two DRAFT PRs await the owner's merge: #1114 (the integrated rever
 | item | state |
 |---|---|
 | `origin/main` | 13ac255a3 = #1112 merged (its CI fixed at fcc05c5ab: registry ported from the hand-repaired TSVs, one cell reversed) |
-| draft PR #1114 | head 353f39f2d (integrated tree + C17 re-cert + A4/A5 re-pin to DRM.jl 77513aa0 + phylocov/sd coef_labels + lss-tip-identity receipt) = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
+| draft PR #1114 | head 28cf21ff5 (353f39f2d + CI-portability fixes + premise guards on the two conditioning edge tests) (integrated tree + C17 re-cert + A4/A5 re-pin to DRM.jl 77513aa0 + phylocov/sd coef_labels + lss-tip-identity receipt) = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
 | draft PR #1119 | `claude/bridge-promotion-wave1` @ e296168ff: four rows experimental → partial on the bridge axis; Rose scan CLEAN; adds `partial` to the r_bridge_status vocabulary (designs 192/168) — the one schema decision named in the PR body |
 | A4/A5 | on DRM.jl's supported `drm_bridge_objective_at` (DRM.jl #590), pinned main `77513aa0` (carries #577 and #599), zero private names; receipt at the fixed engine (numbers identical to e4647333) |
 | ledger `.unlazy/true-parity/` | eight leaves + node gates; see the after-task for the final count |
