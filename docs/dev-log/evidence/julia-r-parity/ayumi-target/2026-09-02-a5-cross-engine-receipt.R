@@ -17,8 +17,9 @@
 #   the native half of the receipt without a Julia install.
 #
 # (default) full mode: also fits engine = "julia" against the PINNED DRM.jl
-#   clone (main @ e4647333, DRM.jl#589/#590 -- the exact-gradient #575 fix plus
-#   the supported drm_bridge_objective_at entry point) and computes the 2x2
+#   clone (main @ 77513aa0, carrying #577's prior_precision root fix and #599,
+#   descendant of e4647333's DRM.jl#589/#590 exact-gradient #575 fix and the
+#   supported drm_bridge_objective_at entry point) and computes the 2x2
 #   cross-engine
 #   objective table. Requires DRM_JL_PATH (or options(drmTMB.DRM.jl.path=))
 #   pointed at that exact pinned clone, and DRMTMB_JULIA_TESTS=true.
@@ -47,7 +48,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 stable_only <- "--stable-only" %in% args
 
-worktree <- "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/wt-a4"
+worktree <- "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/wt-v2"
 suppressPackageStartupMessages({
   library(devtools)
   library(ape)
@@ -95,10 +96,10 @@ if (stable_only) {
 
 drmjl_path <- Sys.getenv("DRM_JL_PATH", getOption("drmTMB.DRM.jl.path", ""))
 if (!nzchar(drmjl_path)) {
-  message("A5 REFUSED: DRM_JL_PATH is not set; point it at the pinned e4647333 clone.")
+  message("A5 REFUSED: DRM_JL_PATH is not set; point it at the pinned 77513aa0 clone.")
   quit(save = "no", status = 1)
 }
-DRMJL_PIN <- "e4647333"
+DRMJL_PIN <- "77513aa0"
 drmjl_head <- tryCatch(
   system2("git", c("-C", drmjl_path, "rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE),
   error = function(e) NA_character_

@@ -177,3 +177,71 @@ slice's scope. Rescoped the CHECK to `git diff
 claude/rev-parity-integration-post1112 -- R/julia-bridge.R | grep '^+'`,
 matching A4-G6's own diff-scoping pattern, with the correction recorded as
 its own EVIDENCE line in `leaf-a4.md` rather than silently worked around.
+
+## Re-pin to DRM.jl main @ 77513aa0, and a coef_labels contract gap (2026-09-02,
+## second follow-up, on the integrated worktree)
+
+Re-pinned A4/A5 from `e4647333` to `main @ 77513aa0` (carries #577's
+`prior_precision` root fix and #599). The receipt's own numbers are
+UNCHANGED (neither #577 nor #599 moves this fixture's numerics); the pin
+history and current table are in `2026-09-02-a5-cross-engine-receipt.md`.
+
+**A real blocker, found and fixed (`R/julia-bridge.R`,
+`drm_julia_bridge_payload_coef_labels()`), outside A4/A5's own scope but
+required to get ANY `engine = "julia"` fit of the fixture running at this
+pin.** DRM.jl#599 added `_bridge_echo_coef_labels` (`src/bridge.jl`), a NEW
+strict validator of the R-side `options["coef_labels"]` payload (design 258
+§7.1) that did not exist at `e4647333`. Two gaps surfaced immediately:
+
+1. A length-1 R character vector (any intercept-only dpar's single column
+   name) crosses to Julia as a bare scalar `String`, not a 1-element
+   `Vector{String}` -- JuliaCall's own auto-unboxing, confirmed with a
+   direct `julia_call` probe. DRM.jl's new validator iterates whatever it
+   receives, so a scalar String silently iterates by CHARACTER
+   (`"(Intercept)"`, 11 characters, read back as 11 names) --
+   `"the R side must send exactly one name per column"`. Fixed: wrap every
+   dpar's labels in `as.list()` before crossing.
+2. The bivariate q=4 phylo route's `phylocov` block (10 log-Cholesky
+   entries of the 4x4 among-axis covariance) and the location-scale-scale
+   `sd()`/`sd_phylo()` route's own block have NO `formula$entries`
+   counterpart, so the payload builder never labelled them; the new
+   validator requires an entry for EVERY block DRM.jl fits, not only
+   formula-driven ones. Fixed by adding, when detected: a `phylocov` entry
+   (same `Sigma_a:Lij` naming `drm_julia_phylocov_matrix()` already reads
+   back elsewhere in this file) for the q4 phylo route; and a `sd_phylo`
+   (or `sd`) entry -- keyed by the canonical prefix before the dpar's `(`,
+   e.g. `entry$dpar == "sd_phylo(species)"` -> key `"sd_phylo"`, matching
+   the SAME canonical name `drm_julia_bridge_blocks()` already recognises
+   -- for the `sd()`/`sd_phylo()` route, reusing the SAME
+   strip-structured-terms + `model.matrix()` reduction the ordinary dpar
+   loop already applies.
+
+Both fixes are documented with full reasoning as comments beside
+`drm_julia_bridge_payload_coef_labels()`. **Flagged for the design-258/S7
+lane, not resolved as a design decision by this note**: §7.4's documented
+exclusion list (structured/relmat/animal/spatial, bivariate-known-
+structured, joint routes) does not mention the bivariate q4/q2 phylo route
+or the `sd()`/`sd_phylo()` route, which is presumably why neither was
+already gated out or already labelled -- worth an explicit decision on
+whether these routes are now IN scope for §7 (as made to work here, since
+S7's own `lss-tip-identity` receipt needs the `sd_phylo` case) or should be
+added to §7.4's exclusion list instead.
+
+## S7 lss-tip-identity receipt regenerated (`docs/dev-log/evidence/
+## julia-r-parity/lss-tip-identity/public-001.json`)
+
+Regenerated via `tools/run-julia-phylo-labels-public.R` against DRM.jl
+@ 77513aa0 (PASS, `elapsed=39.676`s) after the `sd_phylo` coef_labels fix
+above (without it, the SAME fixture's own `sd(species, level =
+"phylogenetic") ~ z` term hit the identical missing-block error). Verified
+independently: `tools/check-julia-phylo-labels-receipt.R ... --current
+--self-test` passes, including every self-test mutation correctly REJECTED
+(12 tampered-copy checks, all rejected).
+
+The runner (`tools/run-julia-phylo-labels-public.R`, owned by the DRM.jl
+programme ledger lane, not this slice's `OWNS`) had no field recording which
+DRM.jl ref it ran against. Per direction, added `drmjl_ref` (git
+`rev-parse HEAD` of the `JULIA_ROOT` argument) as one more key inside the
+EXISTING `runtime` provenance list (alongside `R`, `drmTMB`, `native_dll`) --
+extending an existing provenance field, not inventing a new schema. Recorded
+at `result.runtime.drmjl_ref` in the committed receipt.

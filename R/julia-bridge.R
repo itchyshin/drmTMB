@@ -1005,7 +1005,23 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
   labels <- list()
   for (entry in formula$entries) {
     dpar <- entry$dpar
-    if (!(dpar %in% julia_bridge_supported_dpars())) next
+    # A location-scale-scale `sd(group)`/`sd_phylo(group)` dpar (design 258's
+    # own `julia_bridge_supported_dpars()` deliberately omits these: the
+    # group name varies per call, so they cannot be enumerated as a fixed
+    # string list) is DRM.jl's own separate `sd_phylo` block -- confirmed
+    # empirically fitting the lss-tip-identity fixture before this addition
+    # ("coef_labels is missing an entry for dpar "sd_phylo""), and
+    # confirmed by inspecting `entry$dpar` directly: it is the literal
+    # string `"sd_phylo(<group>)"` (or `"sd(<group>)"`), so the canonical
+    # DRM.jl block key is simply everything before the first `(` --
+    # matching the SAME `"sd_phylo"` prefix `drm_julia_bridge_blocks()`
+    # already treats as one canonical block elsewhere in this file. Its
+    # RHS (e.g. `~z`) is an ordinary formula RHS, so the SAME
+    # strip-structured-terms + `model.matrix()` reduction below applies
+    # unchanged once the dpar/key split is done.
+    is_sd_dpar <- grepl("^sd(_phylo)?\\([^()]+\\)$", dpar)
+    if (!(dpar %in% julia_bridge_supported_dpars()) && !is_sd_dpar) next
+    label_key <- if (is_sd_dpar) sub("\\(.*$", "", dpar) else dpar
     rhs <- drm_strip_structured_terms(entry$rhs)
     f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
     cols <- tryCatch(
@@ -1016,8 +1032,48 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
       error = function(e) NULL
     )
     if (!is.null(cols)) {
-      labels[[dpar]] <- cols
+      # `as.list()`, not the bare character vector: JuliaCall auto-unboxes a
+      # length-1 R atomic vector to a Julia SCALAR (a bare `String`, not a
+      # 1-element `Vector{String}`) crossing this boundary. DRM.jl's
+      # coef_labels echo-check iterates/measures `length()` on whatever it
+      # receives, so a scalar String silently iterates by CHARACTER --
+      # "(Intercept)" (11 chars) was read back as 11 names, not 1 --
+      # surfacing as "the R side must send exactly one name per column" for
+      # every intercept-only (or any single-coefficient) dpar. Verified
+      # empirically (JuliaCall::julia_call probe) before this fix; multi-
+      # column dpars were unaffected (a length>1 R vector already crosses as
+      # a proper Julia array). `as.list()` forces every dpar's labels to
+      # cross as an array regardless of length; the R-side reader
+      # (`drm_julia_bridge_check_coef_labels()`, `R/julia-coefficient-labels.R`)
+      # already calls `as.character()` on this field, so both a plain
+      # character vector and a list of single strings round-trip identically
+      # there -- this is a marshalling-only fix, not a schema change.
+      labels[[label_key]] <- as.list(cols)
     }
+  }
+  # The bivariate q=4 phylogenetic REML/ML route (all four axes -- mu1, mu2,
+  # sigma1, sigma2 -- sharing one `phylo()` term) reports a FIFTH block,
+  # `phylocov`, that has no `formula$entries` counterpart at all: it is the
+  # 4x4 among-axis covariance's 10 log-Cholesky entries (`Sigma_a:Lij`,
+  # lower-triangular, column-major -- the SAME naming/ordering convention
+  # `drm_julia_phylocov_matrix()` already reads back from DRM.jl elsewhere in
+  # this file). DRM.jl's coef_labels echo-check (added between DRM.jl main @
+  # e4647333 and @ 77513aa0) validates EVERY block it fits, not only the
+  # formula-driven ones, so a q4 fit with no `phylocov` entry here now aborts
+  # ("coef_labels is missing an entry for dpar "phylocov"") -- confirmed
+  # empirically fitting the committed `biv-q4-phylo-reml` fixture before this
+  # addition. `julia_bridge_supported_dpars()` deliberately has no `phylocov`
+  # entry (it is not a user-facing distributional parameter formula could
+  # ever name), so this block is built by name here rather than through the
+  # per-entry loop above.
+  if (identical(drm_julia_biv_phylo_dimension(formula), "q4")) {
+    phylocov_names <- character()
+    for (col in 1:4) {
+      for (rw in col:4) {
+        phylocov_names <- c(phylocov_names, sprintf("Sigma_a:L%d%d", rw, col))
+      }
+    }
+    labels[["phylocov"]] <- as.list(phylocov_names)
   }
   labels
 }
@@ -1099,11 +1155,11 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
 
   drm_julia_setup()
   # Calls DRM.jl's SUPPORTED, exported `drm_bridge_objective_at` (DRM.jl#590,
-  # `src/bridge.jl`, pinned e4647333) directly -- no R-registered Julia glue,
-  # no qualified private-name access. `beta`/`Lambda`/`rho12` are the outer
-  # evaluation point (DRM.jl's Lambda/rho12 -> phi via `pack_phi`, Julia-side);
-  # `formula`/`family`/`data`/`tree`/`options` are exactly the payload
-  # `drm_bridge` itself takes.
+  # `src/bridge.jl`, landed e4647333, verified at DRM.jl main @ 77513aa0)
+  # directly -- no R-registered Julia glue, no qualified private-name access.
+  # `beta`/`Lambda`/`rho12` are the outer evaluation point (DRM.jl's
+  # Lambda/rho12 -> phi via `pack_phi`, Julia-side); `formula`/`family`/
+  # `data`/`tree`/`options` are exactly the payload `drm_bridge` itself takes.
   result <- JuliaCall::julia_call(
     "DRM.drm_bridge_objective_at",
     payload$formula,
@@ -2505,12 +2561,13 @@ drm_julia_setup <- function(path = drm_julia_path()) {
     )
   )
   # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
-  # pinned e4647333) is the SUPPORTED entry point for the objective-at
-  # diagnostic -- called directly by `drm_julia_reml_objective_at()` above, no
-  # R-registered Julia glue and no qualified private-name access. It replaces
-  # the five-private-name shim this file used to define here (the underscore-
-  # prefixed formula/data/marker/design/species-index internals DRM.jl's own
-  # bridge marshalling uses); asserted return contract `"bridge_objective_at_v1"`.
+  # landed e4647333, verified at DRM.jl main @ 77513aa0) is the SUPPORTED
+  # entry point for the objective-at diagnostic -- called directly by
+  # `drm_julia_reml_objective_at()` above, no R-registered Julia glue and no
+  # qualified private-name access. It replaces the five-private-name shim
+  # this file used to define here (the underscore-prefixed formula/data/
+  # marker/design/species-index internals DRM.jl's own bridge marshalling
+  # uses); asserted return contract `"bridge_objective_at_v1"`.
   JuliaCall::julia_command(drm_julia_xfam_helper_source())
   drm_julia_setup_state$ready <- TRUE
   drm_julia_setup_state$path <- normalized_path
