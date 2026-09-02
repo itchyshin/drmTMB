@@ -43,7 +43,15 @@ test_that("check_drm() reports hessian_conditioning as a warning for a genuinely
     family = gaussian(),
     data = dat
   ))
-  expect_false(isTRUE(fit$sdr$pdHess))
+  # Premise guard: the 1e-7 collinearity is non-PD on macOS (and on some Linux
+  # runners) but Linux LAPACK has also resolved this exact seeded fit as PD with
+  # min_eig ~ +2e-12 (observed on the 2026-09-02 CI run). The property under
+  # test is "a resolvably indefinite fit earns a warning"; where the platform
+  # does not produce the indefinite fit, the premise is absent, not the property.
+  testthat::skip_if(
+    isTRUE(fit$sdr$pdHess),
+    "platform LAPACK resolved the 1e-7 collinearity as PD; the indefinite premise is not reproducible here"
+  )
 
   chk <- check_drm(fit)
   row <- chk[chk$check == "hessian_conditioning", ]
