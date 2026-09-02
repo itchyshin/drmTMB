@@ -49,6 +49,38 @@ evidence *could not report a failure* now can.
     build provenance                 = 558d240d074e
     anchor on a PENALIZED fit: diff  = 0.0e+00
 
+## ⚠ Read this first: the full suite CRASHED R, and the count said zero failures
+
+The first full-suite run on the complete integration reported **0 test failures** and then
+aborted:
+
+    An irrecoverable exception occurred. R is aborting now ...
+    7: tryCatch(object$obj$he(object$opt$par), error = function(e) e)
+    8: check_hessian_conditioning(object)
+    9: check_drm.drmTMB(fit2)
+
+**`obj$he()` segfaults on a deserialized fit** (a `saveRDS`/`readRDS` round trip nulls the TMB
+pointer), and a segfault cannot be caught by `tryCatch()`. So the new `hessian_conditioning`
+row could take down a whole R session on any fit a user had saved and reloaded — worse than the
+additivity defect the adversarial pass found in the same row.
+
+Measured: after `readRDS` the pointer formats as `<pointer: 0x0>`; **`obj$gr()` tolerates that
+and returns**, which is exactly why the pre-existing gradient check never surfaced this; `he()`
+does not. And **`check_drm()` revives the pointer** — dead on entry, live afterwards — so a
+guard at the top of the function never fires on that path. Hence two guards, the second
+immediately before the call. Detection uses `format(ptr)`, not `TMB:::isNullPointer()`, so no
+`:::` reaches package code.
+
+**What I am NOT claiming.** The guard is **not a proven fix**: the abort is not reproducible in
+isolation — the same file passes alone, on both branches. It needed full-suite context. A
+re-run of the full suite is its only real test and was running when I wrote this; its result is
+in `.unlazy/rev-parity/GATES.md`.
+
+**The durable fix is yours to decide.** Stop calling `he()` and take the conditioning from
+`sdreport`'s covariance instead: already materialised, serialization-safe, and carrying the
+*same* condition number (`cond(H) == cond(H⁻¹)`). That removes the class rather than guarding one
+instance — but it changes what the row reports, so it is a design call, not an overnight one.
+
 ## What an adversarial pass refuted — and this is the part worth reading
 
 A fresh Opus reviewer attacked the claims I had marked verified. **It refuted two, and a third
