@@ -1020,6 +1020,116 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
     }
   }
   labels
+
+# Objective-At-A-Point, DRM.jl bridge counterpart (#575 follow-up; A4/A5,
+# 2026-09-02). `objective_at()` (R/objective-at.R) evaluates the NATIVE TMB
+# objective at a supplied point on the public start-label vocabulary; that
+# vocabulary does not yet reach biv_gaussian's `rho12` fixed effect or the
+# q4 phylo covariance block (log_sd_phylo/theta_phylo), so this is a SEPARATE,
+# narrower diagnostic reached by qualified internal name, not an extension of
+# objective_at() and not a public verb. It rebuilds DRM.jl's q4 REML problem
+# from a Julia-engine q4-phylo REML fit's OWN stored bridge payload (the same
+# formula/data/tree/options that produced the fit -- `fit$bridge_payload`, see
+# `drmTMB_julia_bridge()`) and evaluates DRM.jl's `reml_objective_at` at a
+# supplied point, exactly mirroring the by-hand manoeuvre in
+# `docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/
+# warmstart_575.jl`.
+#
+# Read-only diagnostic: it selects nothing, fits nothing, and does not mutate
+# `fit`. `beta` is only an inner-Newton warm start for the profiled-out
+# beta_mu1/beta_mu2/beta_sigma1/beta_sigma2 (DRM.jl's `fit_q4_reml`/
+# `reml_objective_at` re-profile them at the supplied point regardless of the
+# warm start supplied); `rho12` and `Lambda` are the actual evaluation point
+# (`phi` in DRM.jl's phi = (beta_rho, lc) parameterisation).
+drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
+  if (!inherits(fit, "drmTMB_julia")) {
+    cli::cli_abort(c(
+      "{.fn drm_julia_reml_objective_at} requires a {.code engine = \"julia\"} fit.",
+      i = "This diagnostic evaluates DRM.jl's own REML objective and has no meaning for a {.code engine = \"tmb\"} fit; use {.fn objective_at} for native TMB fits."
+    ))
+  }
+  if (
+    !identical(fit$model$model_type, "biv_gaussian") ||
+      !identical(drm_julia_biv_phylo_dimension(fit$formula), "q4") ||
+      !isTRUE(fit$effective_REML)
+  ) {
+    cli::cli_abort(c(
+      "{.fn drm_julia_reml_objective_at} only supports a bivariate q=4 phylogenetic REML bridge fit.",
+      i = "{.arg fit} must come from {.code drmTMB(bf(mu1 = ..., mu2 = ..., sigma1 = ..., sigma2 = ..., rho12 = ...), biv_gaussian(), ..., engine = \"julia\", REML = TRUE)} with a shared {.fn phylo} term on all four axes."
+    ))
+  }
+  if (
+    !is.matrix(Lambda) ||
+      !is.numeric(Lambda) ||
+      nrow(Lambda) != 4L ||
+      ncol(Lambda) != 4L ||
+      !isSymmetric(unname(Lambda), tol = 1e-6)
+  ) {
+    cli::cli_abort(
+      "{.arg Lambda} must be a 4x4 symmetric numeric matrix (the phylo q4 among-axis covariance, axis order mu1, mu2, sigma1, sigma2)."
+    )
+  }
+  required_beta <- c("beta_mu1", "beta_mu2", "beta_sigma1", "beta_sigma2")
+  if (!is.list(beta) || !all(required_beta %in% names(beta))) {
+    cli::cli_abort(
+      "{.arg beta} must be a named list with elements {.val {required_beta}} (inner-Newton warm starts on the TMB coefficient scale)."
+    )
+  }
+  if (is.null(rho12)) {
+    rho12 <- unname(fit$coef_vector[["rho12_(Intercept)"]])
+    if (is.na(rho12)) {
+      cli::cli_abort(
+        "{.arg rho12} was not supplied and {.arg fit} has no {.val rho12_(Intercept)} coefficient to default to."
+      )
+    }
+  }
+  if (!is.numeric(rho12) || length(rho12) != 1L || !is.finite(rho12)) {
+    cli::cli_abort("{.arg rho12} must be a single finite number.")
+  }
+
+  payload <- fit$bridge_payload
+  if (is.null(payload)) {
+    cli::cli_abort(
+      "{.arg fit} has no stored bridge payload; refit with a current {.pkg drmTMB} build."
+    )
+  }
+  has_phylo <- drm_julia_has_phylo_term(fit$formula)
+  family_tag <- drm_julia_family_tag(fit$model$model_type, has_phylo = has_phylo)
+
+  drm_julia_setup()
+  # Calls DRM.jl's SUPPORTED, exported `drm_bridge_objective_at` (DRM.jl#590,
+  # `src/bridge.jl`, pinned e4647333) directly -- no R-registered Julia glue,
+  # no qualified private-name access. `beta`/`Lambda`/`rho12` are the outer
+  # evaluation point (DRM.jl's Lambda/rho12 -> phi via `pack_phi`, Julia-side);
+  # `formula`/`family`/`data`/`tree`/`options` are exactly the payload
+  # `drm_bridge` itself takes.
+  result <- JuliaCall::julia_call(
+    "DRM.drm_bridge_objective_at",
+    payload$formula,
+    family_tag,
+    as.list(payload$data),
+    payload$tree,
+    if (length(payload$options) == 0L) NULL else payload$options,
+    Lambda = unname(Lambda),
+    rho12 = as.numeric(rho12),
+    beta = list(
+      mu1 = as.numeric(beta$beta_mu1),
+      mu2 = as.numeric(beta$beta_mu2),
+      sigma1 = as.numeric(beta$beta_sigma1),
+      sigma2 = as.numeric(beta$beta_sigma2)
+    )
+  )
+  if (!identical(result$contract, "bridge_objective_at_v1")) {
+    cli::cli_abort(c(
+      "{.code DRM.drm_bridge_objective_at} returned an unrecognised contract tag.",
+      i = "Expected {.val bridge_objective_at_v1}; got {.val {result$contract}}. The DRM.jl-side return shape may have changed incompatibly."
+    ))
+  }
+  list(
+    reml_loglik = as.numeric(result$reml_loglik),
+    raw_reml_ll = as.numeric(result$raw_reml_ll),
+    converged = isTRUE(result$converged_inner)
+  )
 }
 
 drm_julia_bridge_payload <- function(
@@ -2393,6 +2503,13 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "DRM.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
     )
   )
+  # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
+  # pinned e4647333) is the SUPPORTED entry point for the objective-at
+  # diagnostic -- called directly by `drm_julia_reml_objective_at()` above, no
+  # R-registered Julia glue and no qualified private-name access. It replaces
+  # the five-private-name shim this file used to define here (the underscore-
+  # prefixed formula/data/marker/design/species-index internals DRM.jl's own
+  # bridge marshalling uses); asserted return contract `"bridge_objective_at_v1"`.
   JuliaCall::julia_command(drm_julia_xfam_helper_source())
   drm_julia_setup_state$ready <- TRUE
   drm_julia_setup_state$path <- normalized_path
