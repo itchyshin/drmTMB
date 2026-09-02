@@ -432,3 +432,223 @@ test_that("options carry coef_labels: REML and the label field coexist in option
   expect_identical(payload$options$method, "REML")
   expect_identical(unlist(payload$options$coef_labels$mu), c("(Intercept)", "x"))
 })
+
+# --- N1 (2026-09-03): widen the ONE producer contract to the remaining
+# payload builders (design 258 S7.4/S7.5) -- structured (relmat/animal/
+# spatial), bivariate q=2 known-structured, joint, and cross-family (xfam).
+# No live Julia in this section: each unit test builds the payload/axes
+# directly and checks base-R names + the extra blocks DRM.jl's echo demands
+# for blocks with no `formula$entries` counterpart (discovered empirically,
+# see the producer's comments in R/julia-bridge.R).
+
+test_that("structured payload: coef_labels covers mu/sigma from the formula and the resd block DRM.jl also fits", {
+  set.seed(1)
+  n <- 12
+  g <- factor(rep(c("a", "b", "c"), each = 4))
+  K <- diag(3)
+  rownames(K) <- colnames(K) <- levels(g)
+  d <- data.frame(y = rnorm(n), x = rnorm(n), g = g)
+  payload <- drmTMB:::drm_julia_structured_payload(
+    formula = drmTMB::bf(mu = y ~ x + relmat(1 | g, K = K)),
+    family_type = "gaussian",
+    data = d,
+    env = environment()
+  )
+  expect_identical(payload$coef_labels$mu, c("(Intercept)", "x"))
+  # `sigma` is not in the formula at all -- DRM.jl still fits an intercept-only
+  # dispersion block by default (N1's default-dpar-labels finding).
+  expect_identical(payload$coef_labels$sigma, "(Intercept)")
+  # `resd` has no `formula$entries` counterpart: DRM.jl's own synthetic name
+  # for the general-covariance random-effect SD, echoed back unchanged.
+  expect_identical(payload$coef_labels$resd, "g")
+  expect_identical(payload$options$coef_labels, lapply(payload$coef_labels, as.list))
+})
+
+test_that("known-structured payload: coef_labels covers mu1/mu2/sigma1/sigma2/rho12 and the phylocov block DRM.jl also fits", {
+  set.seed(2)
+  n <- 12
+  g <- factor(rep(c("a", "b", "c"), each = 4))
+  K <- diag(3)
+  rownames(K) <- colnames(K) <- levels(g)
+  d <- data.frame(y1 = rnorm(n), y2 = rnorm(n), x1 = rnorm(n), g = g)
+  payload <- drmTMB:::drm_julia_biv_known_structured_payload(
+    formula = drmTMB::bf(
+      mu1 = y1 ~ x1 + relmat(1 | p | g, K = K),
+      mu2 = y2 ~ x1 + relmat(1 | p | g, K = K)
+    ),
+    family_type = "biv_gaussian",
+    data = d,
+    env = environment()
+  )
+  expect_identical(payload$coef_labels$mu1, c("(Intercept)", "x1"))
+  expect_identical(payload$coef_labels$mu2, c("(Intercept)", "x1"))
+  # sigma1/sigma2/rho12 are not in the formula: DRM.jl still fits all three by
+  # default (N1's default-dpar-labels finding, biv_gaussian branch).
+  expect_identical(payload$coef_labels$sigma1, "(Intercept)")
+  expect_identical(payload$coef_labels$sigma2, "(Intercept)")
+  expect_identical(payload$coef_labels$rho12, "(Intercept)")
+  # `phylocov` has no `formula$entries` counterpart: the shared relmat term's
+  # 2x2 among-axis covariance, SAME naming convention as the q4 phylo route.
+  expect_identical(
+    payload$coef_labels$phylocov,
+    c("Sigma_a:L11", "Sigma_a:L21", "Sigma_a:L22")
+  )
+  expect_identical(payload$options$coef_labels, lapply(payload$coef_labels, as.list))
+})
+
+test_that("joint payload: mu/sigma/predictor names are base-R model.matrix() spelling by construction", {
+  dat <- data.frame(
+    y = c(0.2, 0.5, NA, 1.1, 1.4, 1.8, 2.1, NA, 2.6),
+    x = c(-.5, NA, .1, .4, NA, .9, 1.2, 1.4, .7),
+    z = c(-1, -.7, -.3, 0, .2, .5, .8, 1, 1.3),
+    g = factor(c("lo", "hi", "lo", "hi", "lo", "hi", "lo", "hi", "lo"))
+  )
+  formula <- drmTMB::bf(y ~ mi(x) + g, sigma ~ g)
+  prepared <- drmTMB:::drm_julia_joint_prepare(
+    formula = formula, family = gaussian(), data = dat, env = environment(),
+    weights_missing = TRUE, control = drm_control(), impute = list(x = x ~ z),
+    missing = miss_control(response = "include", predictor = "model")
+  )
+  # `mu_names` is the fixed-effect model.matrix() spelling with the mi(x)
+  # column substituted for `x` -- there is no round trip through DRM.jl's own
+  # naming to translate: `drm_bridge_joint()` builds `coef_names` DIRECTLY
+  # from these payload fields (R/joint_missing_bridge.jl, DRM.jl), so the
+  # joint route is under design 258's contract by construction.
+  expect_identical(
+    prepared$payload$mu_names,
+    sub("^x$", "mi(x)", colnames(stats::model.matrix(~ x + g, dat)))
+  )
+  expect_identical(prepared$payload$sigma_names, colnames(stats::model.matrix(~g, dat)))
+  expect_identical(prepared$payload$predictor_names, colnames(stats::model.matrix(~z, dat)))
+})
+
+test_that("cross-family payload (xfam): axis coef_names are base-R model.matrix() spelling by construction", {
+  set.seed(4)
+  n <- 30
+  d <- data.frame(
+    y1 = rpois(n, 3), y2 = rnorm(n), x = rnorm(n),
+    g = factor(rep(c("a", "b"), n / 2))
+  )
+  # `drm_julia_xfam_axes()` builds each axis's design straight from R's own
+  # `model.matrix()` and never asks DRM.jl for a name at all -- `fit_mixed_family`
+  # (a different Julia function from `drm_bridge`) returns only numeric
+  # coefficient vectors, which the R side names itself. The xfam route is
+  # under design 258's contract by construction, the same way the joint route
+  # is.
+  axes <- drmTMB:::drm_julia_xfam_axes(
+    formula = drmTMB::bf(mu1 = y1 ~ x + g, mu2 = y2 ~ x),
+    data = d,
+    env = environment(),
+    tags = c("poisson", "gaussian")
+  )
+  expect_identical(axes$mu1$coef_names, colnames(stats::model.matrix(~ x + g, d)))
+  expect_identical(axes$mu2$coef_names, colnames(stats::model.matrix(~x, d)))
+})
+
+# --- Live tests: DRM.jl's echo actually accepts these labels and returns
+# base-R public names end to end. Skipped -- never failed -- when live Julia
+# is unavailable, matching the rest of this suite's convention
+# (`drm_skip_live_julia()`); the fixture path is read from `DRM_JL_PATH`
+# only, never a machine-specific path.
+
+test_that("live echo: a relmat structured Julia fit reports base-R public names matching the TMB engine", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(21)
+  n <- 40
+  g <- factor(rep(letters[1:5], each = 8))
+  K <- diag(5)
+  rownames(K) <- colnames(K) <- levels(g)
+  grp <- factor(sample(c("lo", "hi"), n, TRUE))
+  x <- rnorm(n)
+  y <- rnorm(n) + 0.3 * x + as.numeric(grp == "hi") * 0.4
+  d <- data.frame(y = y, x = x, grp = grp, g = g)
+
+  form <- drmTMB::bf(mu = y ~ x + factor(grp) + relmat(1 | g, K = K))
+  fj <- drmTMB(form, family = gaussian(), data = d, engine = "julia")
+  ft <- drmTMB(form, family = gaussian(), data = d)
+
+  expect_false(is.null(fj$bridge_public_coef_labels))
+  expect_identical(names(coef(fj, "mu")), names(coef(ft, "mu")))
+  expect_true(all(grepl("^resd_|^sigma_", setdiff(
+    fj$bridge_public_coef_labels$public,
+    paste0("mu_", names(coef(fj, "mu")))
+  ))))
+})
+
+test_that("live echo: a cross-family Julia fit reports base-R public names", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(22)
+  n <- 60
+  d <- data.frame(
+    y1 = rpois(n, 3), y2 = rnorm(n), x = rnorm(n),
+    grp = factor(rep(c("a", "b"), n / 2))
+  )
+  fx <- drmTMB(
+    drmTMB::bf(mu1 = y1 ~ x + grp, mu2 = y2 ~ x),
+    family = c(poisson(), gaussian()), data = d, engine = "julia"
+  )
+  expect_true(inherits(fx, "drmTMB_julia_xfam"))
+  expect_identical(names(coef(fx, "mu1")), colnames(stats::model.matrix(~ x + grp, d)))
+  expect_identical(names(coef(fx, "mu2")), colnames(stats::model.matrix(~x, d)))
+})
+
+test_that("live echo: a joint missing-predictor Julia fit reports base-R public names", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(23)
+  dat <- data.frame(
+    y = c(0.2, 0.5, NA, 1.1, 1.4, 1.8, 2.1, NA, 2.6, 1.0, 1.3, 0.9),
+    x = c(-.5, NA, .1, .4, NA, .9, 1.2, 1.4, .7, .2, -.3, .5),
+    z = c(-1, -.7, -.3, 0, .2, .5, .8, 1, 1.3, .1, .4, .6),
+    g = factor(rep(c("lo", "hi"), 6))
+  )
+  fj <- drmTMB(
+    drmTMB::bf(y ~ mi(x) + g, sigma ~ g),
+    family = gaussian(), data = dat, engine = "julia",
+    impute = list(x = x ~ z),
+    missing = miss_control(response = "include", predictor = "model")
+  )
+  expect_true(inherits(fj, "drmTMB_julia_joint"))
+  expect_identical(
+    names(coef(fj, "mu")),
+    sub("^x$", "mi(x)", colnames(stats::model.matrix(~ x + g, dat)))
+  )
+})
+
+test_that("live predict on a structured Julia fit aligns factor and interaction terms without any punctuation rewrite", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(24)
+  n <- 60
+  g <- factor(rep(letters[1:6], each = 10))
+  K <- diag(6)
+  rownames(K) <- colnames(K) <- levels(g)
+  grp <- factor(sample(c("lo", "mid"), n, TRUE))
+  z <- rnorm(n)
+  x <- rnorm(n)
+  y <- rnorm(n) + 0.3 * x + as.numeric(grp == "mid") * 0.5 + 0.2 * x * z
+  d <- data.frame(y = y, x = x, grp = grp, g = g, z = z)
+
+  fj <- drmTMB(
+    drmTMB::bf(mu = y ~ x * z + factor(grp) + relmat(1 | g, K = K)),
+    family = gaussian(), data = d, engine = "julia"
+  )
+  nd <- d[1:5, ]
+  pr <- predict(fj, newdata = nd, type = "link")
+  expect_length(pr, 5L)
+  expect_true(all(is.finite(pr)))
+})
