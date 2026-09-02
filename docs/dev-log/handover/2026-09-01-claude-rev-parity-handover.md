@@ -71,10 +71,21 @@ guard at the top of the function never fires on that path. Hence two guards, the
 immediately before the call. Detection uses `format(ptr)`, not `TMB:::isNullPointer()`, so no
 `:::` reaches package code.
 
-**What I am NOT claiming.** The guard is **not a proven fix**: the abort is not reproducible in
-isolation — the same file passes alone, on both branches. It needed full-suite context. A
-re-run of the full suite is its only real test and was running when I wrote this; its result is
-in `.unlazy/rev-parity/GATES.md`.
+**The guard was DISPROVEN, not merely unproven.** The re-run crashed **again**, same line, with
+the guard in place — the inner frame is `f(x, type = "ADGrad", order = 1)`. `check_drm()` revives
+the pointer, so it is not null when any guard tests it, but the revived **ADGrad tape** is still
+unusable. Pointer-nullness is the wrong predicate and no guard of that kind can work.
+
+**So `obj$he()` is being removed entirely**, in favour of `sdreport`'s fixed-effect covariance —
+measured as carrying the *same* numbers (`cond(H) = 2.408905027` vs `cond(cov) = 2.408903421`;
+`min_eig(H) = 180` vs `1/max_eig(cov) = 180.00012`), surviving serialisation intact, and needing
+no C++ call at all. **It also closes the random-effect gap**: `he()` errors outright on RE fits
+("Hessian not yet implemented for models with random effects"), while `cov.fixed` is present and
+gave `cond = 7.065` on a test fit — so the limitation Rose documented becomes a capability.
+
+I took that call while you were away because the alternative was leaving code that **kills a
+user's R session** on any saved-and-reloaded fit; it is on an unmerged branch you will review;
+and it is strictly better on three independent axes. The reasoning is recorded in the ledger.
 
 **The durable fix is yours to decide.** Stop calling `he()` and take the conditioning from
 `sdreport`'s covariance instead: already materialised, serialization-safe, and carrying the
