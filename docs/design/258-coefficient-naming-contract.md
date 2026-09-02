@@ -504,3 +504,28 @@ described in §7.4.
   at lines 2336, 4410, and 5234).
 - `docs/src/capabilities.md` (DRM.jl) — reviewed; contains no coefficient-label
   contract documentation to cite.
+
+### 7.5 Amendment, 2026-09-02 evening (DRM.jl #599 echo validator; measured at DRM.jl main 77513aa0)
+
+DRM.jl's echo (`_bridge_echo_coef_labels`, `src/bridge.jl`) runs **only when `options["coef_labels"]`
+is supplied** — a payload without it (drmTMB `main` before PR #1114) fits exactly as before. When it
+IS supplied, the engine requires an entry for **every block it fits, not only formula-driven dpars**,
+with exactly one name per column. Two consequences, both implemented in
+`drm_julia_bridge_payload_coef_labels()`:
+
+- **`phylocov`** — the bivariate q=4 phylogenetic route's fifth block (the 4x4 among-axis covariance's
+  ten log-Cholesky entries) has no `formula$entries` counterpart; it is labelled by name
+  `Sigma_a:L<row><col>` (lower-triangular, column-major), the convention `drm_julia_phylocov_matrix()`
+  already reads back.
+- **`sd(group)` / `sd_phylo(group)`** — location-scale-scale dpars, whose dpar NAME carries the group
+  (so `julia_bridge_supported_dpars()` cannot enumerate them), are labelled under the block key that
+  precedes the `(` (`sd`, `sd_phylo`), from their ordinary RHS.
+
+**Wire form:** each dpar's character vector crosses as a Julia `Vector{String}` by sending an R *list*
+of single strings (JuliaCall unboxes a length-1 atomic vector to a scalar `String`, which the echo
+would iterate by character — "(Intercept)" read as 11 names). The R-side `coef_labels` copy stays a
+plain character vector per dpar; only `options$coef_labels` is list-wrapped.
+
+§7.4's "not covered" list is unchanged for the structured/joint/xfam payload builders; the two blocks
+above are now covered on the base bridge. Measured: the committed `biv-q4-phylo-reml` and
+`lss-tip-identity` fixtures fit through the echo at 77513aa0 (leaves a4/a5/s7).

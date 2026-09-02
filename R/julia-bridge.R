@@ -1048,7 +1048,7 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
       # already calls `as.character()` on this field, so both a plain
       # character vector and a list of single strings round-trip identically
       # there -- this is a marshalling-only fix, not a schema change.
-      labels[[label_key]] <- as.list(cols)
+      labels[[label_key]] <- cols
     }
   }
   # The bivariate q=4 phylogenetic REML/ML route (all four axes -- mu1, mu2,
@@ -1073,7 +1073,7 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
         phylocov_names <- c(phylocov_names, sprintf("Sigma_a:L%d%d", rw, col))
       }
     }
-    labels[["phylocov"]] <- as.list(phylocov_names)
+    labels[["phylocov"]] <- phylocov_names
   }
   labels
 }
@@ -1232,7 +1232,12 @@ drm_julia_bridge_payload <- function(
   # bridge_formula_labels_v1. The top-level `coef_labels` element below is
   # the R-side copy used for the fail-closed comparison after the call.
   if (length(coef_labels) > 0L) {
-    options$coef_labels <- coef_labels
+    # Wire form only: each dpar's character vector crosses as a LIST of single
+    # strings so that JuliaCall never unboxes a length-1 vector to a Julia
+    # scalar String (which DRM.jl's echo-check would iterate by character).
+    # The R-side copy (`coef_labels` below) stays a plain character vector per
+    # dpar -- that is the contract form the fail-closed comparison reads.
+    options$coef_labels <- lapply(coef_labels, as.list)
   }
   list(
     formula = formula_spec,

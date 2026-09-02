@@ -418,9 +418,10 @@ test_that("options carry coef_labels: the payload's options$coef_labels is the p
     formula = formula, family_type = "gaussian", data = d, env = environment()
   )
   expect_true(is.list(payload$options$coef_labels))
-  expect_identical(payload$options$coef_labels, payload$coef_labels)
-  expect_identical(payload$options$coef_labels$mu, c("(Intercept)", "x", "I(x^2)", "factor(grp)lo", "factor(grp)mid"))
-  expect_identical(payload$options$coef_labels$sigma, c("(Intercept)", "x"))
+  # wire form: list-of-strings per dpar (JuliaCall length-1 unboxing guard); R-side copy stays character
+  expect_identical(payload$options$coef_labels, lapply(payload$coef_labels, as.list))
+  expect_identical(unlist(payload$options$coef_labels$mu), c("(Intercept)", "x", "I(x^2)", "factor(grp)lo", "factor(grp)mid"))
+  expect_identical(unlist(payload$options$coef_labels$sigma), c("(Intercept)", "x"))
 })
 
 test_that("options carry coef_labels: REML and the label field coexist in options", {
@@ -429,5 +430,5 @@ test_that("options carry coef_labels: REML and the label field coexist in option
     formula = drmTMB::bf(y ~ x), family_type = "gaussian", data = d, env = environment(), method = "REML"
   )
   expect_identical(payload$options$method, "REML")
-  expect_identical(payload$options$coef_labels$mu, c("(Intercept)", "x"))
+  expect_identical(unlist(payload$options$coef_labels$mu), c("(Intercept)", "x"))
 })
