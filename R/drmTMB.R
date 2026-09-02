@@ -724,7 +724,8 @@ drm_fit_spec <- function(
     optimizer_used = optimizer$selected,
     optimizer_attempts = optimizer$attempts,
     gradient = fit_gradient$gradient,
-    gradient_max_component = fit_gradient$max_component
+    gradient_max_component = fit_gradient$max_component,
+    provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)

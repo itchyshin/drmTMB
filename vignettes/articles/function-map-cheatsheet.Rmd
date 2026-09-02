@@ -145,6 +145,7 @@ adequacy](distributional-outputs-and-adequacy.html) for that boundary.
 | Request an interval or profile a target | `confint()`, `profile_targets()`, `profile()` | [Checking and using fitted models](model-workflow.html) |
 | Fit when some values are missing | `miss_control()`, `mi()`, `imputed()` | [Handling missing data](missing-data.html) |
 | Ask what a fitted model's objective is at some other parameter point, without refitting | `objective_at()`, `drm_control(start = ...)` | [Checking and using fitted models](model-workflow.html) |
+| Record which build produced a result, when the version number cannot tell two builds apart | `drm_provenance()` | [Errors, warnings, and convergence](convergence.html) |
 | Confirm an unfamiliar route is supported | the model and capability guides | [What can I fit today?](model-map.html) |
 
 </div>
