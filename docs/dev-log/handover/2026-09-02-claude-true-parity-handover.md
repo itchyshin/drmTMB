@@ -75,7 +75,9 @@ from Shinichi for drmTMB.
 ## Next immediate steps (OWED)
 
 1. Confirm main's CI on 8fda9b017 (a wake-up was armed at merge time; if red, read the job's own
-   remediation text first — the ledger guards print the exact command).
+   remediation text first — the ledger guards print the exact command). Then merge **PR #1120**
+   (docs-only: the lss-tip-identity receipt regenerated on exact main — #1119's registry edit staled
+   the all-of-R/ pin minutes after #1114 banked it).
 2. Post-merge housekeeping: `python3 DRM.jl/tools/parity_ledger.py --drmtmb . --ref origin/main`
    (re-run at merge time: CLOSURE PASS, four rows now `partial` on the bridge axis; it also lists TWO
    drmTMB exports with no DRM.jl twin — `objective_at()` and `drm_provenance()` — which need an
