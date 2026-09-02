@@ -61,6 +61,7 @@ from Shinichi for drmTMB.
 - **Oracles can be wrong before the code is**: two gate CHECKs were corrected after seeing output
   (branch count; bare formula and shell-mangled regex). Record every correction in the leaf.
 - The checker resolves ledgers against `--root` (main checkout), runs against `--cwd` (worktree).
+- **CI has no Julia, no DRM.jl checkout, and Linux LAPACK.** Locate fixtures through `DRM_JL_PATH` and skip when absent; keep refuse/contract tests synthetic; guard numeric edge cases on `pdHess`; keep R source ASCII (R CMD check warns on a section sign in a string). Run the touched test files once with `env -u DRM_JL_PATH -u DRMTMB_JULIA_TESTS` before pushing.
 - **Two whole-file pins on the bridge file.** DRM.jl's echo (#599) requires labels for EVERY block a
   fit reports, including `phylocov` and `sd`/`sd_phylo` (design 258 §7.5); and the lss-tip-identity
   receipt (`tools/check-julia-phylo-labels-receipt.R --current`) pins the whole of `R/julia-bridge.R`,
