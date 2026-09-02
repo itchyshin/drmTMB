@@ -976,6 +976,105 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
   "Gaussian"
 }
 
+# Objective-At-A-Point, DRM.jl bridge counterpart (#575 follow-up; A4/A5,
+# 2026-09-02). `objective_at()` (R/objective-at.R) evaluates the NATIVE TMB
+# objective at a supplied point on the public start-label vocabulary; that
+# vocabulary does not yet reach biv_gaussian's `rho12` fixed effect or the
+# q4 phylo covariance block (log_sd_phylo/theta_phylo), so this is a SEPARATE,
+# narrower diagnostic reached by qualified internal name, not an extension of
+# objective_at() and not a public verb. It rebuilds DRM.jl's q4 REML problem
+# from a Julia-engine q4-phylo REML fit's OWN stored bridge payload (the same
+# formula/data/tree/options that produced the fit -- `fit$bridge_payload`, see
+# `drmTMB_julia_bridge()`) and evaluates DRM.jl's `reml_objective_at` at a
+# supplied point, exactly mirroring the by-hand manoeuvre in
+# `docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/
+# warmstart_575.jl`.
+#
+# Read-only diagnostic: it selects nothing, fits nothing, and does not mutate
+# `fit`. `beta` is only an inner-Newton warm start for the profiled-out
+# beta_mu1/beta_mu2/beta_sigma1/beta_sigma2 (DRM.jl's `fit_q4_reml`/
+# `reml_objective_at` re-profile them at the supplied point regardless of the
+# warm start supplied); `rho12` and `Lambda` are the actual evaluation point
+# (`phi` in DRM.jl's phi = (beta_rho, lc) parameterisation).
+drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
+  if (!inherits(fit, "drmTMB_julia")) {
+    cli::cli_abort(c(
+      "{.fn drm_julia_reml_objective_at} requires a {.code engine = \"julia\"} fit.",
+      i = "This diagnostic evaluates DRM.jl's own REML objective and has no meaning for a {.code engine = \"tmb\"} fit; use {.fn objective_at} for native TMB fits."
+    ))
+  }
+  if (
+    !identical(fit$model$model_type, "biv_gaussian") ||
+      !identical(drm_julia_biv_phylo_dimension(fit$formula), "q4") ||
+      !isTRUE(fit$effective_REML)
+  ) {
+    cli::cli_abort(c(
+      "{.fn drm_julia_reml_objective_at} only supports a bivariate q=4 phylogenetic REML bridge fit.",
+      i = "{.arg fit} must come from {.code drmTMB(bf(mu1 = ..., mu2 = ..., sigma1 = ..., sigma2 = ..., rho12 = ...), biv_gaussian(), ..., engine = \"julia\", REML = TRUE)} with a shared {.fn phylo} term on all four axes."
+    ))
+  }
+  if (
+    !is.matrix(Lambda) ||
+      !is.numeric(Lambda) ||
+      nrow(Lambda) != 4L ||
+      ncol(Lambda) != 4L ||
+      !isSymmetric(unname(Lambda), tol = 1e-6)
+  ) {
+    cli::cli_abort(
+      "{.arg Lambda} must be a 4x4 symmetric numeric matrix (the phylo q4 among-axis covariance, axis order mu1, mu2, sigma1, sigma2)."
+    )
+  }
+  required_beta <- c("beta_mu1", "beta_mu2", "beta_sigma1", "beta_sigma2")
+  if (!is.list(beta) || !all(required_beta %in% names(beta))) {
+    cli::cli_abort(
+      "{.arg beta} must be a named list with elements {.val {required_beta}} (inner-Newton warm starts on the TMB coefficient scale)."
+    )
+  }
+  if (is.null(rho12)) {
+    rho12 <- unname(fit$coef_vector[["rho12_(Intercept)"]])
+    if (is.na(rho12)) {
+      cli::cli_abort(
+        "{.arg rho12} was not supplied and {.arg fit} has no {.val rho12_(Intercept)} coefficient to default to."
+      )
+    }
+  }
+  if (!is.numeric(rho12) || length(rho12) != 1L || !is.finite(rho12)) {
+    cli::cli_abort("{.arg rho12} must be a single finite number.")
+  }
+
+  payload <- fit$bridge_payload
+  if (is.null(payload)) {
+    cli::cli_abort(
+      "{.arg fit} has no stored bridge payload; refit with a current {.pkg drmTMB} build."
+    )
+  }
+  has_phylo <- drm_julia_has_phylo_term(fit$formula)
+  family_tag <- drm_julia_family_tag(fit$model$model_type, has_phylo = has_phylo)
+
+  drm_julia_setup()
+  result <- JuliaCall::julia_call(
+    "drmTMB_reml_objective_at",
+    payload$formula,
+    family_tag,
+    as.list(payload$data),
+    payload$tree,
+    if (length(payload$options) == 0L) NULL else payload$options,
+    unname(Lambda),
+    as.numeric(rho12),
+    list(
+      mu1 = as.numeric(beta$beta_mu1),
+      mu2 = as.numeric(beta$beta_mu2),
+      sigma1 = as.numeric(beta$beta_sigma1),
+      sigma2 = as.numeric(beta$beta_sigma2)
+    )
+  )
+  list(
+    reml_loglik = as.numeric(result$reml_loglik),
+    raw_reml_ll = as.numeric(result$raw_reml_ll),
+    converged = isTRUE(result$converged)
+  )
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -2329,6 +2428,80 @@ drm_julia_setup <- function(path = drm_julia_path()) {
     paste(
       "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
       "DRM.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
+    )
+  )
+  # DRM.jl private names used by the objective-at shim
+  #
+  # Pinned at DRM.jl branch feat/575-objective-at @ dc3ce1908369e4734e92c37220dad951647b4844.
+  #
+  # `drmTMB_reml_objective_at()` (registered below) rebuilds the q4 phylogenetic
+  # REML problem for `DRM.reml_objective_at(prob, Q_cond, phi; beta0)` (PUBLIC,
+  # exported at `src/DRM.jl:152`) from a fit's own bridge payload. The phylo q4
+  # REML route (`_fit_bivariate_q4_phylo`, `src/gaussian_bivariate.jl:832`)
+  # builds that problem via `make_problem(phy, ...)` (PUBLIC) after parsing the
+  # formula and marking its structured term -- NOT via `make_problem_from_Q`
+  # / `_q4_structured_precision` (an earlier spike note, `.unlazy/true-parity/
+  # gates/leaf-a4.md`, named those two; they are DRM.jl's LEVEL-INDEXED
+  # relmat/animal/spatial q4 route, `_fit_bivariate_q4_structured`,
+  # `src/gaussian_bivariate.jl:679`, a DIFFERENT front end that this fixture
+  # -- phylo -- does not reach; confirmed by reading `dc3ce190`'s source
+  # directly, corrected here rather than repeated).
+  #
+  # The private (non-exported) names this shim depends on, all in
+  # `src/gaussian_bivariate.jl` or `src/bridge.jl` at `dc3ce190`, reached by
+  # qualified name (Julia does not restrict access to underscore-prefixed
+  # module internals) -- the SAME pattern `drmTMB_drm_bridge_fixef_inference`
+  # above already uses for `_bridge_data`/`_bridge_formula`/`_bridge_family`/
+  # `_bridge_fit`:
+  #   - `DRM._bridge_data(data)` -- marshals the R-side payload's `data` list
+  #     into the NamedTuple DRM.jl's formula/design code expects.
+  #   - `DRM._bridge_formula(formula, family, data; labels = true)` -- parses
+  #     the payload's formula spec into a `BivariateDrmFormula` bundle, the
+  #     SAME parse `drm_bridge()` itself performs before fitting.
+  #   - `DRM._bivariate_q4_marker(rhs)` -- strips the `phylo(1 | grp | ...)`
+  #     structured term from each axis's RHS and confirms the marker is
+  #     `:phylo_q4` (all four axes share one phylo term).
+  #   - `DRM._design(response, rhs, data)` -- builds each axis's (y, X, names)
+  #     design from the fixed-effect-only RHS `_bivariate_q4_marker` returned.
+  #   - `DRM._phylo_species_index(phy, group_labels)` -- maps the group column
+  #     to phylogeny leaf indices for `make_problem`.
+  #
+  # Depending on renamed-without-notice internals is a real maintenance
+  # liability (see the after-task note for the request to the DRM.jl lane to
+  # expose a supported (payload, phi) entry point instead); it is accepted
+  # here only because this is a diagnostic, not a fitting route, and the
+  # alternative is re-deriving DRM.jl's own formula/design/tree marshalling a
+  # second time in this file.
+  JuliaCall::julia_command(
+    paste(
+      sep = "\n",
+      "function drmTMB_reml_objective_at(formula, family, data, tree, options, Lambda, rho12, beta0)",
+      "    tree === nothing && throw(ArgumentError(\"drmTMB_reml_objective_at: `tree` is required for the phylo q4 REML objective-at diagnostic\"))",
+      "    dat = DRM._bridge_data(data)",
+      "    bundle, dat2, _ = DRM._bridge_formula(formula, family, dat; labels = true)",
+      "    bundle isa DRM.BivariateDrmFormula || throw(ArgumentError(\"drmTMB_reml_objective_at: only the bivariate q=4 phylogenetic REML route is supported\"))",
+      "    rhs = Dict(bundle.forms)",
+      "    fixed, marker = DRM._bivariate_q4_marker(rhs)",
+      "    (marker !== nothing && marker[1] === :phylo_q4) || throw(ArgumentError(\"drmTMB_reml_objective_at: only the bivariate q=4 phylogenetic REML route is supported\"))",
+      "    grp = marker[2]",
+      "    phy = DRM.augmented_phy(tree)",
+      "    species = DRM._phylo_species_index(phy, getproperty(dat2, grp))",
+      "    y1, X1, _ = DRM._design(bundle.response1, fixed[:mu1], dat2)",
+      "    y2, X2, _ = DRM._design(bundle.response2, fixed[:mu2], dat2)",
+      "    _, Xs1, _ = DRM._design(bundle.response1, fixed[:sigma1], dat2)",
+      "    _, Xs2, _ = DRM._design(bundle.response1, fixed[:sigma2], dat2)",
+      "    _, Xr, _  = DRM._design(bundle.response1, fixed[:rho12], dat2)",
+      "    prob, Q_cond = DRM.make_problem(phy, y1, y2, X1, X2, Xs1, Xs2, Xr; species = species)",
+      "    Lam = Matrix{Float64}(Lambda)",
+      "    rho_vec = [Float64(rho12)]",
+      "    phi = vcat(rho_vec, DRM.Λ_to_lc(Lam))",
+      "    _asvec(x) = x isa Number ? Float64[x] : Vector{Float64}(vec(x))",
+      "    beta0nt = (mu1 = _asvec(beta0[:mu1]), mu2 = _asvec(beta0[:mu2]),",
+      "               s1 = _asvec(beta0[:sigma1]), s2 = _asvec(beta0[:sigma2]),",
+      "               rho = rho_vec)",
+      "    rr = DRM.reml_objective_at(prob, Q_cond, phi; beta0 = beta0nt, n_newton = 60)",
+      "    return Dict{String,Any}(\"reml_loglik\" => rr.reml_loglik, \"raw_reml_ll\" => rr.raw_reml_ll, \"converged\" => rr.converged)",
+      "end"
     )
   )
   JuliaCall::julia_command(drm_julia_xfam_helper_source())
