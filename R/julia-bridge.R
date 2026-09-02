@@ -1020,6 +1020,7 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
     }
   }
   labels
+}
 
 # Objective-At-A-Point, DRM.jl bridge counterpart (#575 follow-up; A4/A5,
 # 2026-09-02). `objective_at()` (R/objective-at.R) evaluates the NATIVE TMB
