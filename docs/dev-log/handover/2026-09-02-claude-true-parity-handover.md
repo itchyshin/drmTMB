@@ -38,7 +38,7 @@ holds CRAN.** Two DRAFT PRs await the owner's merge: #1114 (the integrated rever
 | ledger `.unlazy/true-parity/` | eight leaves + node gates; see the after-task for the final count |
 | reverse-gap issues | #1115–#1118 filed (D-204) |
 | DRM.jl fence | never edited; DRM.jl main now 77513aa0 (#577 root fix, #599 echo validator) by that lane's own merges |
-| CI (2026-09-02 evening) | main after #1112: all green; wave-1 #1119: green; #1114: re-running on 353f39f2d after the C17 re-cert |
+| CI (2026-09-02, 19:35–20:20 UTC) | ALL GREEN: main after #1112; wave-1 #1119; #1114 @ 28cf21ff5 (mergeable_state clean). Both PRs await the owner's merge, #1114 first |
 
 ## Key decisions (do not re-ask)
 
