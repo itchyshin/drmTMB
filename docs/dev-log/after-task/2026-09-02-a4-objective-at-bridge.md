@@ -122,3 +122,58 @@ lane, not fixed silently by this slice.
   with the gate CHECK text corrected in place and the correction recorded as
   its own EVIDENCE line, rather than silently satisfied by adding unused
   references to the two originally-named (and inapplicable) symbols.
+
+## Supported entry adopted (2026-09-02, follow-up)
+
+DRM.jl merged #589 (the `drm_bridge_objective_at`-underlying exact REML
+gradient primitive) and #590 (the entry point itself) into `main @
+e4647333` the same day. The five-private-name shim above is retired:
+
+**What changed.** `drm_julia_reml_objective_at()` (`R/julia-bridge.R`) now
+calls `JuliaCall::julia_call("DRM.drm_bridge_objective_at", payload$formula,
+family_tag, as.list(payload$data), payload$tree, payload$options; Lambda =
+..., rho12 = ..., beta = list(mu1=, mu2=, sigma1=, sigma2=))` directly --
+the SAME positional payload `drm_bridge` itself takes, `beta`/`Lambda`/
+`rho12` as keywords, no `beta_` field-name prefix (stripped on the R side
+building the list). The R wrapper asserts `result$contract ==
+"bridge_objective_at_v1"` before trusting the return shape, and maps
+`converged = result$converged_inner` (the DRM.jl-side key name changed from
+`"converged"`). The entire `JuliaCall::julia_command(...)`-defined
+`drmTMB_reml_objective_at` Julia shim, and the "DRM.jl private names used by
+the objective-at shim" comment block, are deleted -- `grep -c 'DRM\._'
+R/julia-bridge.R` still returns non-zero (other, pre-existing, unrelated
+bridge functions in this file legitimately use qualified private names for
+their own purposes), but `git diff claude/rev-parity-integration-post1112 --
+R/julia-bridge.R | grep '^+'` contains none of the five names this shim used
+to depend on.
+
+**The liability retired.** The "YES, but" maintenance liability (five
+private DRM.jl names, any of which could be renamed without notice) is
+gone. The shim now depends on one exported, documented, tested (17
+assertions, `test/test_bridge_objective_at.jl`) Julia function with an
+explicit versioned return contract (`"bridge_objective_at_v1"`) this R code
+asserts against, so an incompatible future return-shape change fails loudly
+on the R side instead of reading a stale field silently.
+
+**Numbers, before vs. after (same fixture, `biv-q4-phylo-reml`).** Before
+(`dc3ce190`, pre-fix): DRM.jl's own optimum `-219.630326`, DRM.jl's
+objective at TMB's point `-219.620688` (own optimum WORSE by `0.009638` --
+the mode-finder gap #575 diagnosed). After (`e4647333`, post-fix): DRM.jl's
+own optimum `-219.614005`, essentially matching TMB's own optimum
+(`-219.613986`, agree to `1.9e-5`), and now the BEST point on DRM.jl's own
+objective (beats DRM.jl's objective at TMB's point, `-219.620688`, by
+`0.006683`). The DRM.jl-side self-consistency anchor tightened from
+`9.487e-05` (finite-difference gradient) to `6.042e-09` (exact gradient).
+Full tables: `2026-09-02-a5-cross-engine-receipt.md`.
+
+**Gate correction (second pass).** The rewritten A4-G4 CHECK initially
+grepped the WHOLE file for the five retired private names. That is
+over-broad: `drmTMB_drm_bridge_fixef_inference` and
+`drmTMB_drm_bridge_conditional_gaussian_components` (pre-existing, unrelated
+functions already on the integration branch, from earlier #460-era work)
+legitimately depend on `DRM._bridge_data`/`_bridge_formula`/`_design`/
+`_bridge_fit` for their own purposes -- reverting them is out of this
+slice's scope. Rescoped the CHECK to `git diff
+claude/rev-parity-integration-post1112 -- R/julia-bridge.R | grep '^+'`,
+matching A4-G6's own diff-scoping pattern, with the correction recorded as
+its own EVIDENCE line in `leaf-a4.md` rather than silently worked around.

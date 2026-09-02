@@ -1052,26 +1052,38 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
   family_tag <- drm_julia_family_tag(fit$model$model_type, has_phylo = has_phylo)
 
   drm_julia_setup()
+  # Calls DRM.jl's SUPPORTED, exported `drm_bridge_objective_at` (DRM.jl#590,
+  # `src/bridge.jl`, pinned e4647333) directly -- no R-registered Julia glue,
+  # no qualified private-name access. `beta`/`Lambda`/`rho12` are the outer
+  # evaluation point (DRM.jl's Lambda/rho12 -> phi via `pack_phi`, Julia-side);
+  # `formula`/`family`/`data`/`tree`/`options` are exactly the payload
+  # `drm_bridge` itself takes.
   result <- JuliaCall::julia_call(
-    "drmTMB_reml_objective_at",
+    "DRM.drm_bridge_objective_at",
     payload$formula,
     family_tag,
     as.list(payload$data),
     payload$tree,
     if (length(payload$options) == 0L) NULL else payload$options,
-    unname(Lambda),
-    as.numeric(rho12),
-    list(
+    Lambda = unname(Lambda),
+    rho12 = as.numeric(rho12),
+    beta = list(
       mu1 = as.numeric(beta$beta_mu1),
       mu2 = as.numeric(beta$beta_mu2),
       sigma1 = as.numeric(beta$beta_sigma1),
       sigma2 = as.numeric(beta$beta_sigma2)
     )
   )
+  if (!identical(result$contract, "bridge_objective_at_v1")) {
+    cli::cli_abort(c(
+      "{.code DRM.drm_bridge_objective_at} returned an unrecognised contract tag.",
+      i = "Expected {.val bridge_objective_at_v1}; got {.val {result$contract}}. The DRM.jl-side return shape may have changed incompatibly."
+    ))
+  }
   list(
     reml_loglik = as.numeric(result$reml_loglik),
     raw_reml_ll = as.numeric(result$raw_reml_ll),
-    converged = isTRUE(result$converged)
+    converged = isTRUE(result$converged_inner)
   )
 }
 
@@ -2430,80 +2442,13 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "DRM.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
     )
   )
-  # DRM.jl private names used by the objective-at shim
-  #
-  # Pinned at DRM.jl branch feat/575-objective-at @ dc3ce1908369e4734e92c37220dad951647b4844.
-  #
-  # `drmTMB_reml_objective_at()` (registered below) rebuilds the q4 phylogenetic
-  # REML problem for `DRM.reml_objective_at(prob, Q_cond, phi; beta0)` (PUBLIC,
-  # exported at `src/DRM.jl:152`) from a fit's own bridge payload. The phylo q4
-  # REML route (`_fit_bivariate_q4_phylo`, `src/gaussian_bivariate.jl:832`)
-  # builds that problem via `make_problem(phy, ...)` (PUBLIC) after parsing the
-  # formula and marking its structured term -- NOT via `make_problem_from_Q`
-  # / `_q4_structured_precision` (an earlier spike note, `.unlazy/true-parity/
-  # gates/leaf-a4.md`, named those two; they are DRM.jl's LEVEL-INDEXED
-  # relmat/animal/spatial q4 route, `_fit_bivariate_q4_structured`,
-  # `src/gaussian_bivariate.jl:679`, a DIFFERENT front end that this fixture
-  # -- phylo -- does not reach; confirmed by reading `dc3ce190`'s source
-  # directly, corrected here rather than repeated).
-  #
-  # The private (non-exported) names this shim depends on, all in
-  # `src/gaussian_bivariate.jl` or `src/bridge.jl` at `dc3ce190`, reached by
-  # qualified name (Julia does not restrict access to underscore-prefixed
-  # module internals) -- the SAME pattern `drmTMB_drm_bridge_fixef_inference`
-  # above already uses for `_bridge_data`/`_bridge_formula`/`_bridge_family`/
-  # `_bridge_fit`:
-  #   - `DRM._bridge_data(data)` -- marshals the R-side payload's `data` list
-  #     into the NamedTuple DRM.jl's formula/design code expects.
-  #   - `DRM._bridge_formula(formula, family, data; labels = true)` -- parses
-  #     the payload's formula spec into a `BivariateDrmFormula` bundle, the
-  #     SAME parse `drm_bridge()` itself performs before fitting.
-  #   - `DRM._bivariate_q4_marker(rhs)` -- strips the `phylo(1 | grp | ...)`
-  #     structured term from each axis's RHS and confirms the marker is
-  #     `:phylo_q4` (all four axes share one phylo term).
-  #   - `DRM._design(response, rhs, data)` -- builds each axis's (y, X, names)
-  #     design from the fixed-effect-only RHS `_bivariate_q4_marker` returned.
-  #   - `DRM._phylo_species_index(phy, group_labels)` -- maps the group column
-  #     to phylogeny leaf indices for `make_problem`.
-  #
-  # Depending on renamed-without-notice internals is a real maintenance
-  # liability (see the after-task note for the request to the DRM.jl lane to
-  # expose a supported (payload, phi) entry point instead); it is accepted
-  # here only because this is a diagnostic, not a fitting route, and the
-  # alternative is re-deriving DRM.jl's own formula/design/tree marshalling a
-  # second time in this file.
-  JuliaCall::julia_command(
-    paste(
-      sep = "\n",
-      "function drmTMB_reml_objective_at(formula, family, data, tree, options, Lambda, rho12, beta0)",
-      "    tree === nothing && throw(ArgumentError(\"drmTMB_reml_objective_at: `tree` is required for the phylo q4 REML objective-at diagnostic\"))",
-      "    dat = DRM._bridge_data(data)",
-      "    bundle, dat2, _ = DRM._bridge_formula(formula, family, dat; labels = true)",
-      "    bundle isa DRM.BivariateDrmFormula || throw(ArgumentError(\"drmTMB_reml_objective_at: only the bivariate q=4 phylogenetic REML route is supported\"))",
-      "    rhs = Dict(bundle.forms)",
-      "    fixed, marker = DRM._bivariate_q4_marker(rhs)",
-      "    (marker !== nothing && marker[1] === :phylo_q4) || throw(ArgumentError(\"drmTMB_reml_objective_at: only the bivariate q=4 phylogenetic REML route is supported\"))",
-      "    grp = marker[2]",
-      "    phy = DRM.augmented_phy(tree)",
-      "    species = DRM._phylo_species_index(phy, getproperty(dat2, grp))",
-      "    y1, X1, _ = DRM._design(bundle.response1, fixed[:mu1], dat2)",
-      "    y2, X2, _ = DRM._design(bundle.response2, fixed[:mu2], dat2)",
-      "    _, Xs1, _ = DRM._design(bundle.response1, fixed[:sigma1], dat2)",
-      "    _, Xs2, _ = DRM._design(bundle.response1, fixed[:sigma2], dat2)",
-      "    _, Xr, _  = DRM._design(bundle.response1, fixed[:rho12], dat2)",
-      "    prob, Q_cond = DRM.make_problem(phy, y1, y2, X1, X2, Xs1, Xs2, Xr; species = species)",
-      "    Lam = Matrix{Float64}(Lambda)",
-      "    rho_vec = [Float64(rho12)]",
-      "    phi = vcat(rho_vec, DRM.Λ_to_lc(Lam))",
-      "    _asvec(x) = x isa Number ? Float64[x] : Vector{Float64}(vec(x))",
-      "    beta0nt = (mu1 = _asvec(beta0[:mu1]), mu2 = _asvec(beta0[:mu2]),",
-      "               s1 = _asvec(beta0[:sigma1]), s2 = _asvec(beta0[:sigma2]),",
-      "               rho = rho_vec)",
-      "    rr = DRM.reml_objective_at(prob, Q_cond, phi; beta0 = beta0nt, n_newton = 60)",
-      "    return Dict{String,Any}(\"reml_loglik\" => rr.reml_loglik, \"raw_reml_ll\" => rr.raw_reml_ll, \"converged\" => rr.converged)",
-      "end"
-    )
-  )
+  # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
+  # pinned e4647333) is the SUPPORTED entry point for the objective-at
+  # diagnostic -- called directly by `drm_julia_reml_objective_at()` above, no
+  # R-registered Julia glue and no qualified private-name access. It replaces
+  # the five-private-name shim this file used to define here (the underscore-
+  # prefixed formula/data/marker/design/species-index internals DRM.jl's own
+  # bridge marshalling uses); asserted return contract `"bridge_objective_at_v1"`.
   JuliaCall::julia_command(drm_julia_xfam_helper_source())
   drm_julia_setup_state$ready <- TRUE
   drm_julia_setup_state$path <- normalized_path
