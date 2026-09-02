@@ -32,12 +32,13 @@ holds CRAN.** Two DRAFT PRs await the owner's merge: #1114 (the integrated rever
 | item | state |
 |---|---|
 | `origin/main` | 13ac255a3 = #1112 merged (its CI fixed at fcc05c5ab: registry ported from the hand-repaired TSVs, one cell reversed) |
-| draft PR #1114 | head 09f2a97cb (3d924e220 + C17 re-certification) = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
+| draft PR #1114 | head 353f39f2d (integrated tree + C17 re-cert + A4/A5 re-pin to DRM.jl 77513aa0 + phylocov/sd coef_labels + lss-tip-identity receipt) = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
 | draft PR #1119 | `claude/bridge-promotion-wave1` @ e296168ff: four rows experimental → partial on the bridge axis; Rose scan CLEAN; adds `partial` to the r_bridge_status vocabulary (designs 192/168) — the one schema decision named in the PR body |
-| A4/A5 | on DRM.jl's supported `drm_bridge_objective_at` (DRM.jl #590), pinned main `e4647333`, zero private names; receipt at the fixed engine |
+| A4/A5 | on DRM.jl's supported `drm_bridge_objective_at` (DRM.jl #590), pinned main `77513aa0` (carries #577 and #599), zero private names; receipt at the fixed engine (numbers identical to e4647333) |
 | ledger `.unlazy/true-parity/` | eight leaves + node gates; see the after-task for the final count |
 | reverse-gap issues | #1115–#1118 filed (D-204) |
-| DRM.jl fence | never edited; DRM.jl main moved to e4647333 by that lane's own merges |
+| DRM.jl fence | never edited; DRM.jl main now 77513aa0 (#577 root fix, #599 echo validator) by that lane's own merges |
+| CI (2026-09-02 evening) | main after #1112: all green; wave-1 #1119: green; #1114: re-running on 353f39f2d after the C17 re-cert |
 
 ## Key decisions (do not re-ask)
 
@@ -60,6 +61,11 @@ from Shinichi for drmTMB.
 - **Oracles can be wrong before the code is**: two gate CHECKs were corrected after seeing output
   (branch count; bare formula and shell-mangled regex). Record every correction in the leaf.
 - The checker resolves ledgers against `--root` (main checkout), runs against `--cwd` (worktree).
+- **Two whole-file pins on the bridge file.** DRM.jl's echo (#599) requires labels for EVERY block a
+  fit reports, including `phylocov` and `sd`/`sd_phylo` (design 258 §7.5); and the lss-tip-identity
+  receipt (`tools/check-julia-phylo-labels-receipt.R --current`) pins the whole of `R/julia-bridge.R`,
+  so regenerate it LAST, after every R edit (`tools/run-julia-phylo-labels-public.R <DRM.jl clone>
+  <new.json> tree`, then copy over; it refuses to overwrite).
 - **CI runs Python ledger guards `devtools::test()` never sees.** Touching `R/drmTMB.R`, `R/methods.R`,
   `src/drmTMB.cpp` or `tests/testthat/test-zero-one-beta.R` stales the C17 model-15 receipt (whole-file
   pin); clear it with `R_PROFILE_USER=/dev/null python3 tools/recertify-c17.py --label <slug>` (refuses if
