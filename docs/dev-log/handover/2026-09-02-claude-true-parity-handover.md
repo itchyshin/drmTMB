@@ -5,8 +5,8 @@ chat context. This document, `AGENTS.md`, the decision map and the current git s
 authoritative. The earlier `2026-09-02-claude-handover.md` (reverse-parity) is superseded by this
 one for everything it listed as OWED; its facts stand.
 
-**ALL THREE MERGED on Shinichi's word (2026-09-02): #1112 (13ac255a3), #1114 (37ea93c47), #1119
-(8fda9b017 = main). D-164 still holds CRAN.** The reverse-parity lane, the coefficient-name contract,
+**ALL FOUR MERGED on Shinichi's word (2026-09-02): #1112 (13ac255a3), #1114 (37ea93c47), #1119
+(8fda9b017), #1120 (ce273991b = main; the tip-identity receipt regenerated on main). D-164 still holds CRAN.** The reverse-parity lane, the coefficient-name contract,
 the A4/A5 wrapper, the q4 SE receipt, and promotion wave 1 are on main.
 
 ## FIRST ACTIONS
@@ -75,9 +75,7 @@ from Shinichi for drmTMB.
 ## Next immediate steps (OWED)
 
 1. Confirm main's CI on 8fda9b017 (a wake-up was armed at merge time; if red, read the job's own
-   remediation text first — the ledger guards print the exact command). Then merge **PR #1120**
-   (docs-only: the lss-tip-identity receipt regenerated on exact main — #1119's registry edit staled
-   the all-of-R/ pin minutes after #1114 banked it).
+   remediation text first — the ledger guards print the exact command). #1120 (receipt regenerated on main) is merged as ce273991b.
 2. Post-merge housekeeping: `python3 DRM.jl/tools/parity_ledger.py --drmtmb . --ref origin/main`
    (re-run at merge time: CLOSURE PASS, four rows now `partial` on the bridge axis; it also lists TWO
    drmTMB exports with no DRM.jl twin — `objective_at()` and `drm_provenance()` — which need an
