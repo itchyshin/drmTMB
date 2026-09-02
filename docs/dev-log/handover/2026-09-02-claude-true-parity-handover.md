@@ -15,7 +15,12 @@ all on origin. One DRAFT PR (#1114) exists and says it lands after #1112.
    gllvmTMB, GLLVM.jl); no Codex/Cursor lane. DRM.jl is read-only for you.
 2. Read `docs/dev-log/2026-09-02-true-parity-decision-map.md` (branch `claude/rev-parity-handover`)
    and the after-task `docs/dev-log/after-task/2026-09-02-true-parity-arc.md`.
-3. `gh pr view 1112 --json state` — its merge state decides your first slice (below).
+3. `gh api repos/itchyshin/drmTMB/pulls/1112 --jq .merged` — its merge state decides your first slice (below).
+   As of 2026-09-02 evening it is OPEN with the Ubuntu release check RED: `test-julia-gate-vs-engine.R:258`
+   (TSV artifact vs registry drift on rows gaussian_phylo_mean and biv_q4_phylo_reml). The branch
+   (`codex/rebase-julia-optimizer-controls`) is currently UNOWNED — the overnight session that drove it
+   has closed and the DRM.jl lane never edits drmTMB. Fix = run `tools/write-julia-capability-comparison.R`
+   on that branch and push; do it only on Shinichi's word (protected branch, D-87).
 4. Do not work in the main checkout (`feat/bridge-lss-reml-row12`, 45 behind). Worktrees only;
    create them serially (Dropbox, ~19k files).
 5. Ledger: `node ~/shinichi-brain/skills/unlazy/scripts/gate-check.mjs --root . --status --scope true-parity`
@@ -68,9 +73,18 @@ from Shinichi for drmTMB.
    branch into the integration head too. DRM.jl side (2026-09-02, Shinichi-approved, D-203 §5): the
    primitive is DRM.jl draft PR #586 (`dc3ce190`), and a SUPPORTED entry `DRM.drm_bridge_objective_at(formula,
    family, data, tree, options, beta, Lambda, rho12)` returning `contract = "bridge_objective_at_v1"` is being
-   built on `feat/563-bridge-objective-at`, pinned to our A5 numbers. When that lane sends the call and
-   return keys, replace the body of `drmTMB_reml_objective_at` with the one call, delete the five
-   private names block, re-pin the ref, re-run leaf-a4/a5 (`OPENBLAS_NUM_THREADS=1`).
+   built: DRM.jl draft PR #587 (stacked on #586). Signature, verbatim from that lane:
+   `DRM.drm_bridge_objective_at(formula, family, data, tree, options; beta, Lambda, rho12)` — positional
+   args are the SAME payload `drm_bridge` takes (`payload$formula`, family tag, `as.list(payload$data)`,
+   `payload$tree`, `payload$options`); keywords `Lambda = unname(Lambda)` (4x4), `rho12 = as.numeric(rho12)`,
+   `beta = list(mu1=, mu2=, sigma1=, sigma2=)` (no `beta_` prefix). Returns `contract =
+   "bridge_objective_at_v1"`, `objective` (= `reml_loglik`, normalised, same convention), `raw_reml_ll`,
+   `converged_inner`, plus the primitive's status fields; route-guarded (errors on non-q4 payloads, missing
+   tree, wrong-length beta, non-4x4 Lambda); its test pins our A5 numbers at 2e-4 and equality with the
+   private path at 1e-8. Full R replacement block: `docs/dev-log/2026-09-02-drmjl-objat-r-note.md`
+   (copied from that lane, on this branch). Once #586/#587 MERGE: replace the `julia_command`-defined shim
+   body with that one call, delete the five-private-names block, re-pin the ref to the merged SHA,
+   re-run leaf-a4/a5 (`OPENBLAS_NUM_THREADS=1`).
 2. **If #1112 is still OPEN:** nothing merges; do the two owner-independent items: project the
    `Non-Gaussian phylogenetic location-scale` row onto `docs/design/capability-status.md` as
    scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in
