@@ -20,7 +20,7 @@
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
-    "R/julia-bridge.R": "4ae9769269bbccccb2811469ab759a1e318faf987d0a0b22a6e9efca74a559e9",
+    "R/julia-bridge.R": "761f9d5463024cf4810b5dc43c056f71e09fcb7e21ad9459c8dbd7a7a362fe0b",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
@@ -681,8 +681,8 @@
       "drmjl_ref": "77513aa0663209b96e53a649d232558515f687fa",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpbpSYWQ/pkgload681d43ff8126/drmTMB.so",
-          "sha256": "409b50b575f374601886134144ce860f10932c9d21342f9c94fea2f1bc5de049"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpCBBLOB/pkgloadade24d0523ea/drmTMB.so",
+          "sha256": "9548e0acbbcb76b0f61800d1bfbb200ec76068e2d0e03d7150e9f448f976a1eb"
         }
       }
     },
@@ -725,7 +725,7 @@
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
-    "R/julia-bridge.R": "4ae9769269bbccccb2811469ab759a1e318faf987d0a0b22a6e9efca74a559e9",
+    "R/julia-bridge.R": "761f9d5463024cf4810b5dc43c056f71e09fcb7e21ad9459c8dbd7a7a362fe0b",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
@@ -848,6 +848,6 @@
     "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-objat/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 72.325999999999993,
+  "elapsed": 35.798999999999999,
   "status": "PASS"
 }
