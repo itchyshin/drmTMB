@@ -170,11 +170,13 @@ reference:
     contents:
       - starts_with("drmTMB")
       - drm_control
+      - objective_at
       - miss_control
       - drm_phylo_penalty
       - drm_phylo_penalty_sweep
       - native_reader_contracts
       - check_drm
+      - drm_provenance
       - is_converged
       - confint.drmTMB
       - profile_targets
