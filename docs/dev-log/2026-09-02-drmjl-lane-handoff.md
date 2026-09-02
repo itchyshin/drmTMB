@@ -132,7 +132,7 @@ engine pinned to `cda42b8c`. Coefficients and log-likelihood agree (tmb −219.6
 `.`/`:`/`_` separators). TMB's Wald SEs are all finite (`sdr$pdHess = TRUE`) and are tabulated
 per coefficient. The bridge's `vcov()` on this route is all-NaN, self-reported as
 `uncertainty$status = "unavailable"` — **this is the fixture's RECORDED fence, not a new defect**
-(`expected.meta.toml`: `interval_status = "wald_unavailable"`; Wald calibration on q4
+(`expected.toml:22`: `interval_status = "wald_unavailable"`; Wald calibration on q4
 phylo-covariance is DRM.jl #495). Correction from the DRM.jl lane, 2026-09-02, adopted here: the
 `rtol_coef`/`atol_coef` re-derivation (C10) was always sized from drmTMB's OWN Wald SEs refit on the
 committed data, so this receipt **unblocks** C10 rather than blocking it. What stays true:
