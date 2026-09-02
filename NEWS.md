@@ -5,6 +5,16 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Fitted objects now store the final gradient (DRM.jl #569, R-side)
+
+* `drmTMB()` fits now carry `$gradient` (the final outer gradient at
+  `opt$par`) and `$gradient_max_component` (the label of its largest
+  |component|), computed once at fit time. Previously this quantity was only
+  available lazily, inside `check_drm()`'s `fixed_gradient` row, and only
+  when the fit retained its TMB object (`drm_control(keep_tmb_object =
+  TRUE)`, the default). The stored value agrees exactly with what
+  `check_drm()` computes live, and survives `keep_tmb_object = FALSE`.
+
 ## Public start contract: `drm_control(start = list(...))`
 
 * `drm_control()` gains a `start` argument implementing the public start
