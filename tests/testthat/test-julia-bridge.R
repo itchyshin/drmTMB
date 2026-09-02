@@ -132,7 +132,8 @@ test_that("Julia bridge marshals one phylogenetic tree", {
   expect_equal(payload$formula$mu, "y ~ x + phylo(1 | species)")
   expect_match(payload$tree, "^\\(\\(sp_1:1")
   expect_equal(names(payload$data), c("y", "x", "species"))
-  expect_equal(payload$options, list(g_tol = 1e-8))
+  expect_equal(drm_test_options_sans_labels(payload$options), list(g_tol = 1e-8))
+  expect_true(is.list(payload$options$coef_labels))
   expect_equal(
     payload$structured_sd_scales,
     c("phylo(1 | species)" = sqrt(2)),
@@ -550,7 +551,8 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
   )
   # q4 route: DRM.jl defaults (no g_tol override); the block label "p" is NOT a
   # data column; the tree is marshalled as Newick; markers preserved per axis.
-  expect_equal(payload$options, list())
+  expect_equal(drm_test_options_sans_labels(payload$options), list())
+  expect_true(is.list(payload$options$coef_labels))
   expect_equal(payload$formula$sigma1, "sigma1 ~ 1 + phylo(1 | species)")
   expect_false("p" %in% names(payload$data))
   expect_true(all(c("y1", "y2", "x", "species") %in% names(payload$data)))
@@ -563,7 +565,8 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
     env = environment(),
     method = "REML"
   )
-  expect_equal(reml_payload$options, list(method = "REML"))
+  expect_equal(drm_test_options_sans_labels(reml_payload$options), list(method = "REML"))
+  expect_true(is.list(reml_payload$options$coef_labels))
   expect_true(drmTMB:::drm_julia_reml_supported(form, "biv_gaussian"))
 
   q2_form <- bf(
@@ -584,7 +587,8 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
   expect_equal(q2_payload$formula$sigma1, "sigma1 ~ 1")
   expect_equal(q2_payload$formula$sigma2, "sigma2 ~ 1")
   expect_equal(q2_payload$bivariate_dimension, "q2")
-  expect_equal(q2_payload$options, list(g_tol = 1e-4))
+  expect_equal(drm_test_options_sans_labels(q2_payload$options), list(g_tol = 1e-4))
+  expect_true(is.list(q2_payload$options$coef_labels))
   expect_false(drmTMB:::drm_julia_reml_supported(q2_form, "biv_gaussian"))
 
   expect_error(
@@ -700,7 +704,8 @@ test_that("Julia q4 bridge admits bivariate response masks without R-side droppi
   expect_equal(nrow(captured$data), nrow(dat))
   expect_true(anyNA(captured$data$y1))
   expect_true(anyNA(captured$data$y2))
-  expect_equal(captured$options, list(method = "REML"))
+  expect_equal(drm_test_options_sans_labels(captured$options), list(method = "REML"))
+  expect_true(is.list(captured$options$coef_labels))
   expect_equal(fit$estimator, "REML")
   expect_true(fit$requested_REML)
   expect_true(fit$effective_REML)

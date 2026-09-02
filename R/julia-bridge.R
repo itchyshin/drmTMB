@@ -976,6 +976,52 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
   "Gaussian"
 }
 
+# Base-R public coefficient-name labels drmTMB sends alongside the payload,
+# one character vector per dpar, in `model.matrix()` column order (design 258
+# S7's `coef_labels` field). The right-hand side is reduced to its
+# FIXED-EFFECT-ONLY part with `drm_strip_structured_terms()` (R#4145) --
+# the SAME reduction `drm_julia_predict_design()` (R#4108) already applies at
+# predict time, so the producer and predict() build the design from one
+# definition, not two. `drm_strip_structured_terms()` drops structured
+# markers (`phylo()`, `spatial()`, `relmat()`, `animal()`), lme4-style random
+# bars (`(1 | g)`, `(1 + x | g)`, matched via `is_random_bar_call()` on the
+# CALL, not the dpar name -- a bare `1 | g` is not itself a `phylo`/`sd`
+# marker and was previously fed straight to `model.matrix()`, which
+# misparses `|` as the logical-OR operator and fabricates a column such as
+# `"1 | gTRUE"`; Rose S9 attack A2b), and known-covariance `meta_V()`/
+# `meta_known_V()` markers -- leaving only the population-level fixed-effect
+# terms `model.matrix()` would show a native TMB fit. A dpar the bridge
+# supports (`julia_bridge_supported_dpars()`) is labelled EVEN WHEN its
+# formula carries a structured term (a phylo mean block gets its fixed
+# columns labelled, not exempted -- Rose S9 attack A2): the check this feeds
+# must see every fixed-effect dpar the engine returns (design 258 S7.3). A
+# dpar the bridge does not support (e.g. an `sd(group)`/`sd_phylo(group)`
+# location-scale-scale grouping formula, whose dpar NAME itself has that
+# shape) is still excluded up front, and a dpar is omitted from the result
+# only when building its (already-reduced) model matrix errors. `data` is the
+# SAME row-ordered, column-subset data the rest of the payload marshals, so
+# factor levels/contrasts match what DRM.jl receives.
+drm_julia_bridge_payload_coef_labels <- function(formula, data, env) {
+  labels <- list()
+  for (entry in formula$entries) {
+    dpar <- entry$dpar
+    if (!(dpar %in% julia_bridge_supported_dpars())) next
+    rhs <- drm_strip_structured_terms(entry$rhs)
+    f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
+    cols <- tryCatch(
+      {
+        mf <- stats::model.frame(f, data = data)
+        colnames(stats::model.matrix(stats::terms(mf), mf))
+      },
+      error = function(e) NULL
+    )
+    if (!is.null(cols)) {
+      labels[[dpar]] <- cols
+    }
+  }
+  labels
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -1002,15 +1048,31 @@ drm_julia_bridge_payload <- function(
       data_out[[phylo_payload$group]]
     )
   }
+  coef_labels <- drm_julia_bridge_payload_coef_labels(
+    formula = formula,
+    data = data_out,
+    env = env
+  )
+  options <- drm_julia_bridge_options(
+    phylo_payload,
+    method = method,
+    control_overrides = control_overrides
+  )
+  # Design 258 section 7.1: the Julia call carries only formula/family/data/
+  # tree/options, so `coef_labels` travels INSIDE `options` (the bridge's
+  # free-form channel) as options$coef_labels -- a list keyed by dpar of
+  # base-R model.matrix() column names. DRM.jl echoes them verbatim under
+  # bridge_formula_labels_v1. The top-level `coef_labels` element below is
+  # the R-side copy used for the fail-closed comparison after the call.
+  if (length(coef_labels) > 0L) {
+    options$coef_labels <- coef_labels
+  }
   list(
     formula = formula_spec,
     data = data_out,
+    coef_labels = coef_labels,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(
-      phylo_payload,
-      method = method,
-      control_overrides = control_overrides
-    ),
+    options = options,
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL
@@ -2376,7 +2438,16 @@ new_drmTMB_julia <- function(
   result <- as.list(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
   coef_names <- as.character(result$coef_names)
-  if (!is.null(public_coef_labels)) coef_names <- public_coef_labels$public
+  if (!is.null(public_coef_labels)) {
+    coef_names <- public_coef_labels$public
+  }
+  # D-202: base-R spelling wins even over a validated engine map -- checked on
+  # BOTH paths (a validated map is necessary but not sufficient; design 258
+  # S7.3, Rose S9 attacks A3/A3c/A5).
+  drm_julia_bridge_check_coef_labels(
+    coef_names = coef_names,
+    bridge_payload = bridge_payload
+  )
   coefficients <- stats::setNames(
     as.numeric(unlist(result$coefficients, use.names = FALSE)),
     coef_names
@@ -4506,9 +4577,20 @@ drm_julia_predict_fixed_eta <- function(object, dpar, data, context) {
     )
   }
   beta <- object$coefficients[[dpar]]
-  # Joint adapters retain native R model-matrix names directly.  The legacy
-  # rewrite below predates that contract and corrupts punctuation in factor
-  # levels such as "a: b" and "a & b".
+  # LEGACY path (design 258 section 7.4), restored after Rose S9 attack A10:
+  # this rewrite is dead ONLY for fits whose payload was built by
+  # `drm_julia_bridge_payload()` (the main bridge) -- those either carry a
+  # validated `bridge_public_coef_labels` map or were fail-closed-checked
+  # against base-R names at fit time (section 7.3), so `beta` there already
+  # carries base-R spelling. Structured (relmat/animal/spatial via
+  # `drm_julia_structured_payload()`), bivariate-known-structured
+  # (`drm_julia_biv_known_structured_payload()`), and joint fits do NOT go
+  # through that payload builder, do not populate `coef_labels`, and are not
+  # checked at fit time (section 7.4 lists them as not yet under this
+  # contract) -- their `beta` names can still be DRM.jl's raw synthetic
+  # spelling (`" & "`-joined interactions, `": "`-joined factor levels), and
+  # this is what translates them back for `predict()`. Scheduled for removal
+  # once those payload builders adopt `coef_labels` (section 7).
   if (is.null(object$bridge_public_coef_labels) && !inherits(object, "drmTMB_julia_joint")) {
     names(beta) <- gsub(": ", "", gsub(" & ", ":", names(beta)), fixed = TRUE)
   }
