@@ -177,6 +177,17 @@ order comparison of two already-final name vectors, never a `gsub()` on
 punctuation rewrite remaining anywhere in `R/` is the LEGACY predict-time path
 described in §7.4.
 
+**Wire format (corrected 2026-09-02, commit `a17306295`):** the Julia call
+`drmTMB_drm_bridge(formula, family, data, tree, options)` carries only five arguments, so
+`coef_labels` travels as `options["coef_labels"]` (`Dict{String, Vector{String}}` keyed by dpar,
+base-R `model.matrix()` column names in R's order, fixed-effect part only). Before this commit the
+field was built but never sent — the DRM.jl lane's "zero reads" measurement was correct.
+
+**Row 7 corrected (2026-09-02, both lanes measured):** base R gives six reduced-coding columns for
+`~ g + factor(h) + factor(h):g`; the nine-name list in the earlier table was wrong. With the corrected
+oracle DRM.jl's own rendering is 10/10 on §2, so #467's "1 pass / 6 fail" is stale fixture keys — item
+2 below is a fixture RE-KEY, not a map fix.
+
 What DRM.jl's half needs (`src/bridge.jl`: `_bridge_coef_vector` ~lines 937-953 produces the raw
 names, and `coef_label_contract = "bridge_formula_labels_v1"` is already emitted at ~line 1276 on
 origin/main, so the structure exists and only its CONTENT changes): read the payload's per-dpar
