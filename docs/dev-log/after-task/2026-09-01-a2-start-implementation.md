@@ -194,3 +194,183 @@ matching A1's prediction, now demonstrated rather than argued.
 ## Commit
 
 Branch `claude/rev-parity-a2-start-impl`, on top of A1's `049a60c21`.
+
+## Addendum 2026-09-01: two adversarial-pass defects, fixed
+
+An independent adversarial pass found two defects in the landed
+implementation above that A1's ten blocks did not cover. Both are fixed on
+this branch; new tests were added to `tests/testthat/test-start-contract.R`
+(I was authorized to edit that file for this follow-up only — the "producer
+must not touch its own tests" gate had already been independently verified
+against A1's committed version before this addendum; no existing block was
+altered).
+
+### Defect A2-D1 — root cause and fix
+
+**Repro:** `drm_control(start = list("fixef:sigma:(Intercept)" = 50), se = FALSE)`
+on an intercept-only-`sigma` Gaussian fit. `nlminb` reports `convergence = 0`
+("relative convergence"), `check_drm()`'s `optimizer_convergence` and
+`fixed_gradient` rows both read `ok`, and the log-likelihood sits far from
+the true optimum (in my repro, ~1800 units off on a 120-row fixture; the
+coordinator's own repro measured ~4400 on a different fixture).
+
+**Root cause (confirmed, not assumed):** I evaluated `obj$gr()` **at the
+supplied start itself**, before any optimizer step, and it was already
+`~1e-9`–`~1e-13` in every coordinate. `src/drmTMB.cpp`'s
+`drm_softclamp_log_sigma_one()` maps `log(sigma)` through
+`hi + margin * tanh((x - hi) / margin)` once `x` exceeds the configured band;
+at `x = 50` with the default band `(-12, 12, margin = 3)`,
+`tanh((50-12)/3) = tanh(12.67) ≈ 1` to double precision, so the derivative
+`1 - tanh(z)^2 ≈ 0`. The softclamp is not merely bent there, it is *flat* in
+floating point. `nlminb` sees a ~0 gradient at iteration 0 and declares
+convergence without taking a real step — "converged" is arithmetically true
+(the gradient genuinely is ~0 in that clamped coordinate) and scientifically
+false (the fit never moved from a bad point). This is exactly the mechanism
+the task brief predicted, now confirmed by direct gradient evaluation rather
+than inferred from symptoms.
+
+**Why this matters for what the slice exists to do:** design 35's motivating
+case (DRM.jl#575) is "start engine A at engine B's fitted point and see
+whether it climbs away." A silent "converged at your point" is precisely the
+wrong answer to that question — it would let someone conclude two engines
+agree at a point neither optimizer actually explored.
+
+**A pre-existing, partially-overlapping mechanism:** `drm_warn_if_clamp_active()`
+(existing code, not part of this slice, called unconditionally in
+`drm_fit_spec()`) already warns post-hoc when the *fitted* `log(sigma)`
+exceeds the upper band bound, and `check_drm()`'s `logsigma_clamp_active`
+row already surfaces it as a persistent status. In my first repro this
+warning did fire and `check_drm()` did show `logsigma_clamp_active: warning`
+— so the coordinator's report is not "nothing detects this at all," it is
+"the two check rows most people would look at (`optimizer_convergence`,
+`fixed_gradient`) still read `ok`, and the generic clamp warning doesn't
+mention the start at all, so a reader has no direct causal link from 'I
+supplied a bad start' to 'this warning fired.'" That generic warning is also
+upper-bound-only by design (its own comment: the lower bound is often a
+legitimate zero-variance boundary), so a `sigma` start driven deep below the
+lower band would not be caught by it at all — though my one attempt at that
+scenario (`-50`) instead produced `singular convergence (7)` and a
+`fixed_gradient: warning`, i.e. a different, already-visible failure
+signature, not a silent one.
+
+**Fix (shape: detect and report, never move the start):**
+`drm_warn_if_start_saturates_logsigma_clamp(spec, override)`, called from
+`drm_translate_public_start_override()` before optimization runs. It
+computes the actual per-row `log(sigma)` linear predictor implied by the
+*proposed* start (baseline family-builder defaults plus the override, via
+`spec$X[[dpar]] %*% override[[component]]`) for each of `beta_sigma`,
+`beta_sigma1`, `beta_sigma2` present in the override, and warns with a new
+class `drmTMB_start_clamp_saturated_warning` — naming the label's `dpar`,
+the configured band, and the reached value — whenever that predictor lies
+outside the band, for any family in `drm_clamped_scale_families()` (the
+existing family gate reused, not reinvented) and whenever
+`use_logsigma_clamp == 1` (the default). Checking against the design matrix
+rather than the raw scalar value means this also catches a `sigma ~ x`
+slope-driven start, not just an intercept. This is purely additive: it does
+not alter `nlminb`'s convergence code, does not touch `opt$par`, and does
+not move the user's supplied start value — `saturated$model$start$beta_sigma`
+still reads exactly `50` after the fit, asserted directly in the new test.
+
+I deliberately did not attempt to make the optimizer itself escape the flat
+region (e.g. by silently repositioning the start inside the band) — the
+task brief is explicit that doing so "would violate the contract you just
+implemented," and I agree: the whole point of `start=` is that the user's
+point is what gets evaluated.
+
+### Defect A2-D2 — REML decision: **error**, not warn
+
+**Repro:** `drm_control(start = list("fixef:mu:(Intercept)" = 99))` on a
+`REML = TRUE` Gaussian fit with a random intercept. `spec$model$start$beta_mu[1]`
+did read back as `99` (the override mechanism worked correctly at the level
+this slice controls), but `fit$coefficients$mu[1]` came back at the true
+MLE-equivalent REML estimate (~1.07), completely uninfluenced by the
+supplied start.
+
+**Root cause:** `drm_apply_estimator_spec()` (pre-existing code, called
+before the start-translation call in `drm_fit_spec()`) folds `beta_mu` (and
+`beta_sigma` when a `sigma` random effect makes REML restrict the scale
+fixed effects too) into `spec$tmb_random_names` under `REML = TRUE` — i.e.
+these coefficients are integrated out via the Laplace approximation on every
+outer iteration, not held as free outer-objective coordinates the way they
+are under `REML = FALSE`. A `fixef:` start's only lever, `spec$start[[component]]`,
+is therefore just the *inner* solver's initial guess, re-solved to the same
+joint mode regardless of where it starts (assuming the inner problem is
+well-posed) — the public label has no fixed point to seed, by construction
+of REML itself, not as a bug in the override plumbing.
+
+**Decision: error, matching `objective_at()`.** The coordinator reported
+that `objective_at()` (a separate, not-yet-landed-in-this-worktree A3 slice)
+already refuses the same `fixef:`-under-REML labels. I chose **error** over
+**warn-and-ignore** for two reasons beyond "match the sibling verb": (1) a
+silently-ignored start is the one option the task brief calls "not
+defensible," and a warning that a label did nothing is easy to miss in the
+same way the original silent-acceptance was; (2) an error surfaces exactly
+at the moment a user would want to know — before spending a fit's worth of
+compute on a start that was never going to matter — and is the cheaper
+failure to correct (drop the label or set `REML = FALSE`).
+
+**Fix:** `drm_resolve_public_start_target()`'s `"fixef"` branch checks
+`component %in% spec$tmb_random_names` (the exact set
+`drm_apply_estimator_spec()` already computes for this purpose) and errors
+naming the `dpar`, the REML mechanism, and the two ways out (`REML = FALSE`,
+or omit the label). No new REML-detection logic was written; this reuses the
+existing REML/estimator-spec bookkeeping.
+
+### Item recorded for the note only, not fixed in code
+
+Per instruction, not touched: `fixef()` on a Student-t fit emits a `nu`
+block whose coefficient labels (I did not independently re-derive the exact
+label text; the coordinator's report is the source for this item) the start
+label vocabulary's `fixef:<dpar>:<column>` matching does not resolve,
+because the vocabulary only recognizes `dpar`s with a `spec$start$beta_<dpar>`
+naming match and a validated `beta_<dpar>` component of that name. This
+breaks the natural `build-at-from-fixef()` idiom (`labels_of(fixef(fit))` in
+the round-trip oracle's own helper) specifically for `student()` fits with a
+`nu` block. Widening the label vocabulary to guarantee every `fixef()` block
+name round-trips through `start=` is a separate design decision — it touches
+which `dpar`s the family builders expose as addressable components, not the
+translation layer this slice owns — and is out of scope here.
+
+### Verification (real numbers)
+
+- New tests confirmed **RED** against pre-fix code: temporarily reverted
+  only `R/drmTMB.R` to the pre-addendum commit (`git stash push --keep-index
+  -- R/drmTMB.R`, keeping the new tests staged) and re-ran
+  `test-start-contract.R`: `[ FAIL 3 | WARN 1 | SKIP 0 | PASS 28 ]` — the
+  A2-D1 test failed because the generic clamp-active warning's class
+  (`drmTMB_clamp_active_warning`) does not match the new, more specific
+  class the test asserts (`drmTMB_start_clamp_saturated_warning`); the
+  A2-D2 test failed because the REML fit returned a `drmTMB` object instead
+  of erroring. Restored the fix (`git stash pop`).
+- **GREEN** after restoring the fix:
+  `Rscript -e 'devtools::load_all("."); testthat::test_file("tests/testthat/test-start-contract.R")'`
+  → `[ FAIL 0 | WARN 1 | SKIP 0 | PASS 31 ]` (12 blocks now, 31
+  expectations; the 1 `WARN` is `testthat` surfacing the *other*,
+  pre-existing generic clamp warning that co-fires alongside the new one in
+  the A2-D1 test — `expect_warning()` only captures the class it names, and
+  a second, additional warning during the same call is reported as an
+  informational `WARN`, not a failure).
+- Oracle: `Rscript ".unlazy/rev-parity/bin/start-roundtrip.R"` →
+  `START ROUNDTRIP OK` (unaffected; it never touches `sigma` starts outside
+  the clamp band or REML).
+- Filtered regression suite,
+  `testthat::test_dir("tests/testthat", filter="start|control|optimizer")`:
+  all files pass — `control`, `julia-batch-startup`, `missing-data-control`,
+  `multi-start`, `optimizer-contract`, `optimizer-escalation`,
+  `sigma-slope-start`, `start-contract` — with only the same 7 pre-existing
+  "On CRAN" skips and the same 1 pre-existing `sd_phylo()` deprecation
+  warning as before, plus the 1 expected co-firing warning above. No new
+  failures.
+- Did not run the full suite (another lane's run was already in progress
+  per the coordinator's instruction).
+
+### Files (addendum)
+
+- `R/drmTMB.R` — `drm_warn_if_start_saturates_logsigma_clamp()` (new) +
+  call site in `drm_translate_public_start_override()`; REML check added to
+  `drm_resolve_public_start_target()`'s `"fixef"` branch.
+- `tests/testthat/test-start-contract.R` — two new `test_that()` blocks
+  appended (A2-D1, A2-D2); no existing block altered.
+- `NEWS.md` — addendum bullet under the existing "Public start contract"
+  heading.
+- This note.

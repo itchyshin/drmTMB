@@ -34,6 +34,19 @@ Template Model Builder.
   and a start changes only where the optimizer begins, never what is
   reported. `start_from = <a fitted model>` remains reserved and
   unimplemented.
+* Two defects found by an adversarial pass are fixed. (1) A `fixef:sigma:`
+  (or `sigma1:`/`sigma2:`) start whose implied `log(sigma)` linear predictor
+  falls outside the configured `logsigma_clamp` band now warns
+  (`drmTMB_start_clamp_saturated_warning`) before the fit that produces the
+  bad result: the softclamp derivative is ~0 in that region, so `nlminb` can
+  see an already-flat gradient at the start and report a spuriously clean
+  convergence without ever moving. The start itself is never silently moved.
+  (2) A `fixef:mu:` (or scale-side `fixef:sigma:` when a `sigma` variance
+  component makes REML fold it in too) start under `REML = TRUE` now errors
+  instead of being silently accepted with no effect: REML integrates those
+  fixed effects into the Laplace random block, so there is no free
+  coordinate for the start to seed. This matches `objective_at()`'s existing
+  refusal of the same labels under REML.
 
 ## `objective_at()`: evaluate the fitted objective at a supplied point
 

@@ -1379,7 +1379,63 @@ drm_translate_public_start_override <- function(spec, start) {
     }
     override[[component]][[resolved$index]] <- resolved$value
   }
+  drm_warn_if_start_saturates_logsigma_clamp(spec, override)
   override
+}
+
+# Defect A2-D1 (adversarial pass, 2026-09-01): a `fixef:sigma:`-family start
+# placed outside the log(sigma) soft-clamp band lands in the clamp's fully
+# saturated tail, where the softclamp derivative is ~0 in floating point. The
+# optimizer then sees an already-flat gradient at the start itself and
+# reports a spurious `nlminb` convergence code 0 without ever moving --
+# "converged" is arithmetically true and scientifically false. This computes
+# the actual per-row `log(sigma)` linear predictor implied by the *proposed*
+# start (baseline defaults plus the override) and warns before optimization
+# ever runs when it already lies outside the configured band, so the failure
+# mode is diagnosed at its source (the start) rather than discovered later as
+# an unexplained non-convergent-looking "success". This never edits the
+# user's start value -- only reports the condition, per the public start
+# contract's invariant that a start changes only where the optimizer begins.
+drm_warn_if_start_saturates_logsigma_clamp <- function(spec, override) {
+  if (!isTRUE(spec$model_type %in% drm_clamped_scale_families())) {
+    return(invisible(FALSE))
+  }
+  if (!identical(as.integer(spec$tmb_data$use_logsigma_clamp), 1L)) {
+    return(invisible(FALSE))
+  }
+  band <- spec$tmb_data$logsigma_clamp
+  if (length(band) < 2L || anyNA(band[1:2])) {
+    return(invisible(FALSE))
+  }
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  sigma_components <- intersect(
+    names(override),
+    c("beta_sigma", "beta_sigma1", "beta_sigma2")
+  )
+  for (component in sigma_components) {
+    dpar <- sub("^beta_", "", component)
+    X <- spec$X[[dpar]]
+    beta <- override[[component]]
+    if (is.null(X) || is.null(beta) || ncol(X) != length(beta)) {
+      next
+    }
+    eta <- as.vector(X %*% beta)
+    eta <- eta[is.finite(eta)]
+    if (length(eta) == 0L || !any(eta > hi | eta < lo)) {
+      next
+    }
+    clamped <- pmin(pmax(eta, lo), hi)
+    extreme <- eta[[which.max(abs(eta - clamped))]]
+    cli::cli_warn(
+      c(
+        "{.arg start} places {.code log(sigma)} for {.val {dpar}} outside the configured clamp band [{.val {lo}}, {.val {hi}}] (reaches {.val {round(extreme, 1)}}).",
+        "i" = "The optimizer may see a locally flat objective at this start and report a spurious convergence without ever moving away from it. Choose a start inside the band, or widen it with {.code drm_control(logsigma_clamp = )}."
+      ),
+      class = "drmTMB_start_clamp_saturated_warning"
+    )
+  }
+  invisible(TRUE)
 }
 
 drm_parse_public_start_label <- function(label) {
@@ -1406,6 +1462,21 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
       cli::cli_abort(c(
         "Unknown public start label {.val {label}}.",
         "x" = "{.val {target}} is not a fixed-effect coefficient of {.val {dpar}} in this model."
+      ))
+    }
+    # Defect A2-D2 (adversarial pass, 2026-09-01): under REML, `drm_apply_estimator_spec()`
+    # folds this component's fixed effects into the Laplace random block
+    # (`spec$tmb_random_names`) so they are integrated out of the outer
+    # objective, not optimized as free coordinates. A `fixef:` start therefore
+    # has no fixed point to seed and was previously accepted silently with no
+    # effect on the fit. Error instead, matching `objective_at()`'s refusal of
+    # the same labels under REML, so the two verbs agree on what the shared
+    # label vocabulary means.
+    if (isTRUE(component %in% spec$tmb_random_names)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} cannot be honored under REML.",
+        "x" = "REML integrates the {.val {dpar}} fixed effects out of the outer objective (they are folded into the Laplace random block), so there is no free coordinate for a {.code fixef:} start to seed.",
+        "i" = "Use {.code REML = FALSE} to give {.val {dpar}} fixed effects a {.code fixef:} start, or omit this label under REML."
       ))
     }
     return(list(
