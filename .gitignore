@@ -13,6 +13,12 @@ __pycache__/
 # testthat debug byproducts, written by test_dir()/devtools::test() when a
 # test fails. Never source; would otherwise be swept in by a broad `git add`.
 tests/testthat/_problems/
+
+# Baked at install time by ./configure / configure.win (see
+# R/provenance.R::drm_provenance()). If tracked, this file would itself make
+# `git status --porcelain` report "dirty" on every subsequent
+# devtools::install()/R CMD INSTALL from this checkout.
+/inst/build-provenance.dcf
 tests/testthat/testthat-problems.rds
 
 # User-specific files

@@ -697,7 +697,9 @@ drm_julia_translate_control <- function(control) {
     "keep_tmb_object",
     "sparse_fixed",
     "aggregate_gaussian",
-    "optimizer_preset"
+    "optimizer_preset",
+    "start",
+    "multi_start"
   )) {
     if (!identical(control[[field]], default[[field]])) {
       unsupported <- c(unsupported, field)
@@ -724,7 +726,7 @@ drm_julia_translate_control <- function(control) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
       i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}.",
-      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, or preset controls."
+      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, preset, start, or multi_start controls."
     ))
   }
   overrides

@@ -705,3 +705,23 @@ test_that("Julia q4 bridge admits bivariate response masks without R-side droppi
   expect_true(fit$requested_REML)
   expect_true(fit$effective_REML)
 })
+
+test_that("drm_julia_translate_control() rejects a supplied start list", {
+  ctrl <- drm_control(start = list(`fixef:mu:(Intercept)` = 0.5))
+  expect_error(
+    drmTMB:::drm_julia_translate_control(ctrl),
+    "start"
+  )
+})
+
+test_that("drm_julia_translate_control() rejects multi_start > 1", {
+  ctrl <- drm_control(multi_start = 3L)
+  expect_error(
+    drmTMB:::drm_julia_translate_control(ctrl),
+    "multi_start"
+  )
+})
+
+test_that("drm_julia_translate_control() still accepts plain drm_control() defaults", {
+  expect_equal(drmTMB:::drm_julia_translate_control(drm_control()), list())
+})
