@@ -98,6 +98,18 @@ from Shinichi for drmTMB.
    next C-arc slice; it retires the legacy predict path.
 5. Do not re-run the full suite (~45 min) or `--as-cran` unless R/ code outside today's hunks changes.
 
+## DRM.jl root change in flight (2026-09-02 evening, from the daily-check session)
+
+DRM.jl#577 (branch `claude/577-ml-path-structural-zeros`): `prior_precision` stored the axis
+block through `sparse()`, which dropped exact zeros at a diagonal Λ, so the ML exact gradient was
+silently wrong from the engines' own 0.3·I warm start (two lc components off by 0.75 and 12.1 on
+biv-q4-phylo-reml; 2.9e-5 after the fix). **This lane's exposure is nil** (all its DRM.jl
+measurements are the q4 phylo REML route, #579's exact REML gradient; A4/A5 re-pin to main and refuse
+any other ref). **Not nil for the ledger:** rows promoted on ML phylo evidence
+(`gaussian_phylo_mean`, `phylo_count_large_p`) may need re-measuring once #577 merges — that is the
+#1112 / DRM.jl ledger lane's item, recorded here so it is not lost. Hub lesson promoted the same day:
+"verify the INSTRUMENT before diagnosing the SURFACE" (vault LESSONS).
+
 ## Compute (Shinichi, 2026-09-02: "make good use of DRAC + Totoro")
 
 Propose the target WITH the estimate, do not wait to be asked: P2 pilots and the P4 warm grid on
