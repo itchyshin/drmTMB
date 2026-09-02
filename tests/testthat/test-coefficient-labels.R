@@ -191,29 +191,170 @@ test_that("validator incomplete: a missing map entry aborts, no positional guess
 
 test_that("no map: absent bridge_formula_labels_v1 fails closed and names DRM.jl in the abort", {
   coef_names <- c("mu_(Intercept)", "mu_x", "mu___bridge_I_1")
-  coef_labels <- list(mu = c("(Intercept)", "x", "I(x^2)"))
+  bridge_payload <- list(coef_labels = list(mu = c("(Intercept)", "x", "I(x^2)")))
   expect_error(
-    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, coef_labels),
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, bridge_payload),
     "DRM\\.jl"
   )
 })
 
 test_that("no map: identical plain-term names pass through without aborting", {
   coef_names <- c("mu_(Intercept)", "mu_x", "sigma_(Intercept)")
-  coef_labels <- list(mu = c("(Intercept)", "x"), sigma = c("(Intercept)"))
+  bridge_payload <- list(coef_labels = list(mu = c("(Intercept)", "x"), sigma = c("(Intercept)")))
   expect_no_error(
-    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, coef_labels)
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, bridge_payload)
   )
 })
 
-test_that("no map: an absent payload coef_labels dpar is skipped, not checked", {
+test_that("no map: a bridge_payload with no coef_labels field at all (structured/joint/xfam routes) is skipped, not checked", {
+  # Rose S9 attack A10: `drm_julia_structured_payload()` and
+  # `drm_julia_biv_known_structured_payload()` never set `coef_labels` on
+  # their own payloads (design 258 S7.4). Those routes are out of THIS
+  # contract's scope, so the check must tell "field absent" apart from
+  # "field present but empty" (the vacuity tests below).
   coef_names <- c("mu_(Intercept)", "mu___bridge_I_1")
-  # `sigma` has no plain fixed-effect entry in coef_labels (e.g. it carries a
-  # structured term), so it is simply not compared -- only `mu` would fail
-  # closed, and `mu` is absent from coef_labels here too.
-  coef_labels <- list()
   expect_no_error(
-    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, coef_labels)
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, list())
+  )
+  expect_no_error(
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, NULL)
+  )
+})
+
+# --- Rose S9 (2026-09-02) repair: random-effect bars never reach model.matrix() ---
+# (design 258 S7.1, gate S3-G7). Attack A2b: a bare `(1 | g)` has
+# `entry$structured` of length 0 (it carries no `random` field at all), so the
+# OLD skip-when-structured producer let `1 | g` reach `stats::model.matrix()`,
+# which misparses `|` as logical-OR and fabricates a column `"1 | gTRUE"`.
+
+test_that("random-effect bars: a bare (1 | g) never reaches model.matrix and yields fixed-effect-only mu labels", {
+  d <- construct_data()
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(mu = y ~ x + (1 | g), sigma = ~1),
+    data = d,
+    env = environment()
+  )
+  expect_identical(labels$mu, c("(Intercept)", "x"))
+  expect_false(any(grepl("\\|", labels$mu)))
+  expect_false(any(grepl("gTRUE", labels$mu)))
+})
+
+test_that("random-effect bars: a correlated random slope (1 + x | g) also strips to fixed-effect-only labels", {
+  d <- construct_data()
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(mu = y ~ z + (1 + x | g), sigma = ~1),
+    data = d,
+    env = environment()
+  )
+  expect_identical(labels$mu, c("(Intercept)", "z"))
+  expect_false(any(grepl("\\|", labels$mu)))
+})
+
+# --- Rose S9 repair: a phylo dpar's fixed-effect block is CHECKED, not exempt ---
+# (design 258 S7.1, gate S3-G8). Attack A2: `drm_julia_has_structured_term()`
+# is FALSE for a phylo formula, so such a fit stays on the MAIN bridge and
+# reaches the fail-closed check -- but the old "skip when entry$structured is
+# non-empty" producer left the mean-side (mu) block permanently unlabelled,
+# which then made A5's vacuity hole silently pass every phylogenetic fit.
+
+test_that("phylo: a mu dpar carrying a phylo() term still gets labels for its fixed-effect block", {
+  set.seed(1)
+  d <- data.frame(
+    y = rnorm(20), x = rnorm(20),
+    g = factor(rep(letters[1:4], 5)), sp = paste0("s", 1:20)
+  )
+  tr <- ape::rtree(20)
+  tr$tip.label <- d$sp
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(mu = y ~ x + g + phylo(1 | sp, tree = tr), sigma = ~x),
+    data = d,
+    env = environment()
+  )
+  expect_identical(labels$mu, c("(Intercept)", "x", "gb", "gc", "gd"))
+  expect_identical(labels$sigma, c("(Intercept)", "x"))
+})
+
+# --- Rose S9 repair: the MAP path also cross-checks against drmTMB's own
+# base-R spelling (design 258 S7.3, gate S3-G9). D-202: base-R wins even over
+# an engine that supplies a validated, self-consistent map -- a validated map
+# is necessary but not sufficient.
+
+test_that("map cross-check: a permutation of drmTMB's own public labels aborts naming DRM.jl (attack A3)", {
+  d <- data.frame(y = seq_len(12), x = seq_len(12) / 12)
+  formula <- drmTMB::bf(y ~ x)
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = formula, family_type = "gaussian", data = d, env = environment()
+  )
+  result <- list(
+    coef_label_contract = "bridge_formula_labels_v1",
+    coef_names = c("mu_x", "mu_(Intercept)"), # swapped vs drmTMB's own order
+    raw_coef_names = c("mu_x", "mu_Intercept"),
+    coef_name_map = list("mu_x" = "mu_x", "mu_(Intercept)" = "mu_Intercept"),
+    vcov_names = c("mu_x", "mu_(Intercept)"),
+    coefficients = c(0.5, 10),
+    vcov = diag(2)
+  )
+  expect_error(
+    drmTMB:::new_drmTMB_julia(
+      result, quote(drmTMB()), formula, gaussian(), d, "gaussian",
+      bridge_payload = payload
+    ),
+    "DRM\\.jl"
+  )
+})
+
+test_that("map cross-check: public names DRM.jl never produced from drmTMB's model.matrix abort (attack A3c)", {
+  d <- data.frame(y = seq_len(12), x = seq_len(12) / 12)
+  formula <- drmTMB::bf(y ~ x)
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = formula, family_type = "gaussian", data = d, env = environment()
+  )
+  result <- list(
+    coef_label_contract = "bridge_formula_labels_v1",
+    coef_names = c("mu_beta_one", "mu_beta_two"), # invented, never in model.matrix
+    raw_coef_names = c("mu_x1", "mu_x2"),
+    coef_name_map = list("mu_beta_one" = "mu_x1", "mu_beta_two" = "mu_x2"),
+    vcov_names = c("mu_beta_one", "mu_beta_two"),
+    coefficients = c(0.5, 10),
+    vcov = diag(2)
+  )
+  expect_error(
+    drmTMB:::new_drmTMB_julia(
+      result, quote(drmTMB()), formula, gaussian(), d, "gaussian",
+      bridge_payload = payload
+    ),
+    "DRM\\.jl"
+  )
+})
+
+# --- Rose S9 repair: no vacuity (design 258 S7.3, gate S3-G10). Attack A1: an
+# empty `coef_labels` on the MAIN bridge (the field is present, i.e. this
+# route IS under the contract) used to return NULL silently. Attack A5: an
+# engine fixed-effect dpar with no payload label used to pass by iterating
+# only `names(coef_labels)`, never the engine's own dpar set.
+
+test_that("no vacuity: an empty coef_labels field on the main bridge aborts as an internal invariant failure", {
+  coef_names <- c("mu_(Intercept)", "mu_x")
+  expect_error(
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, list(coef_labels = list())),
+    "internal invariant|report this"
+  )
+})
+
+test_that("no vacuity: a fixed-effect dpar the engine returns but the payload never labelled (unlabelled) aborts", {
+  coef_names <- c("mu_(Intercept)", "mu_x", "sigma_GARBAGE & junk")
+  bridge_payload <- list(coef_labels = list(mu = c("(Intercept)", "x")))
+  expect_error(
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, bridge_payload),
+    "sigma"
+  )
+})
+
+test_that("no vacuity: variance-component blocks (resd_/recov_/phylocov_) are excluded from the unlabelled-dpar check", {
+  coef_names <- c("mu_(Intercept)", "mu_x", "resd_g_(Intercept)", "phylocov_Sigma_a:L11")
+  bridge_payload <- list(coef_labels = list(mu = c("(Intercept)", "x")))
+  expect_no_error(
+    drmTMB:::drm_julia_bridge_check_coef_labels(coef_names, bridge_payload)
   )
 })
 

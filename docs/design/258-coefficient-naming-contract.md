@@ -288,20 +288,38 @@ coef_labels: list, keyed by dpar (e.g. "mu", "sigma", "mu1", "rho12", ...)
 ```
 
 Built by `drm_julia_bridge_payload_coef_labels(formula, data, env)`: for each
-`formula$entries` entry whose `dpar` is one of `julia_bridge_supported_dpars()`
-and whose `entry$structured` is empty (no phylo / random-effect / `sd(...)`
-term anywhere in that entry's RHS), it forms `~ <rhs>` with the SAME `data`
-(the already row-ordered, column-subset `data_out` the rest of the payload
-marshals) and `env`, runs `stats::model.frame()` then
+`formula$entries` entry whose `dpar` is one of `julia_bridge_supported_dpars()`,
+the RHS is first reduced to its FIXED-EFFECT-ONLY part with
+`drm_strip_structured_terms(entry$rhs)` (`R/julia-bridge.R`) -- the SAME
+reduction `drm_julia_predict_design()` already applies at predict time, so the
+producer and `predict()` build the design from ONE definition, not two.
+`drm_strip_structured_terms()` drops structured markers (`phylo()`,
+`spatial()`, `relmat()`, `animal()`), lme4-style random bars (`(1 | g)`,
+`(1 + x | g)`), and known-covariance `meta_V()`/`meta_known_V()` markers,
+leaving only population-level fixed-effect terms. It then forms `~ <reduced
+rhs>` with the SAME `data` (the already row-ordered, column-subset `data_out`
+the rest of the payload marshals) and `env`, runs `stats::model.frame()` then
 `colnames(stats::model.matrix(stats::terms(mf), mf))`, and stores the result
-under that dpar's key. A dpar is silently absent from `coef_labels` when it
-carries a structured term, or when building the model matrix errors --
-neither case is a plain fixed-effect coefficient block this contract covers
-in its first cut (design doctrine: keep first implementations simple before
-adding random effects). These are precisely drmTMB's own `coefficient_labels()`
-column names (`R/methods.R`), minus the `"<dpar>:"` prefix that function adds
-afterwards -- i.e. `coef_labels$mu` for `y ~ x + I(x^2)` is
-`c("(Intercept)", "x", "I(x^2)")`, matching row 1 of §2 exactly.
+under that dpar's key.
+
+**Every supported dpar is labelled, even one carrying a structured or
+random-effect term** -- earlier drafts of this section (pre-Rose-S9) skipped
+a dpar entirely whenever `entry$structured` was non-empty, which (a) silently
+left a phylogenetic mean block permanently unlabelled (a bare `(1 | g)`
+random-intercept term is not even recorded in `entry$structured` at all, so
+it was NOT skipped by that rule either, and reached `stats::model.matrix()`
+directly, which misparses `|` as the logical-OR operator and fabricates a
+column such as `"1 | gTRUE"` -- Rose S9 attack A2b, the most serious of the
+seven refutations). Neither failure mode is possible once every dpar's RHS is
+reduced through `drm_strip_structured_terms()` before it ever reaches
+`model.matrix()`. A dpar is omitted from `coef_labels` only when the (already
+fixed-effect-reduced) model matrix errors to build -- an `sd(group)` /
+`sd_phylo(group)` location-scale-scale grouping formula is still excluded up
+front, since its dpar NAME itself does not match `julia_bridge_supported_dpars()`.
+These are precisely drmTMB's own `coefficient_labels()` column names
+(`R/methods.R`), minus the `"<dpar>:"` prefix that function adds afterwards --
+i.e. `coef_labels$mu` for `y ~ x + I(x^2)` is `c("(Intercept)", "x", "I(x^2)")`,
+matching row 1 of §2 exactly.
 
 ### 7.2 Echo: `bridge_formula_labels_v1`
 
@@ -338,45 +356,75 @@ contract"`, `"missing or duplicate labels"`, `"incomplete label map"`,
 `"covariance axes mismatch"`. This is the exact, already-shipping validator;
 S3 adds no new echo-side checks.
 
-### 7.3 R-side rule after the call (S3, implemented)
+### 7.3 R-side rule after the call (S3, repaired after Rose S9)
 
 `new_drmTMB_julia()` (`R/julia-bridge.R`), immediately after computing
-`public_coef_labels <- drm_julia_bridge_coef_labels(result)`:
+`public_coef_labels <- drm_julia_bridge_coef_labels(result)`, resolves
+`coef_names` (from the validated map's `public` when present, otherwise the
+engine's own raw `result$coef_names`), and THEN calls
+`drm_julia_bridge_check_coef_labels(coef_names, bridge_payload)`
+UNCONDITIONALLY on both paths -- Rose S9 attacks A3/A3c showed that a
+validated, self-consistent `bridge_formula_labels_v1` map is necessary but
+not sufficient: nothing in §7.2's validator ties the public name ORDER, or
+the public names THEMSELVES, to drmTMB's own `model.matrix()` spelling, so a
+permuted map (A3, the intercept's coefficient value gets the wrong name) or a
+map whose public names drmTMB never produced (A3c, e.g. `"mu_beta_one"`) both
+validated cleanly under the old map-path-skips-the-comparison logic. **D-202:
+base-R spelling wins even over an engine that supplies a validated map** --
+the map's INTERNAL consistency and its AGREEMENT with drmTMB's own labels are
+two separate checks, and both must hold.
 
-- **Map present and valid** (`public_coef_labels` non-`NULL`): unchanged from
-  before S3 -- `coef_names <- public_coef_labels$public` and the fit proceeds.
-  An invalid map (any §7.2 failure text) already aborts inside
-  `drm_julia_bridge_coef_labels()` before this point.
-- **Map absent** (`drm_julia_bridge_coef_labels()` returned `NULL` because
-  none of `coef_label_contract`/`raw_coef_names`/`coef_name_map` are present
-  on `result`): `drm_julia_bridge_check_coef_labels(coef_names, bridge_payload$coef_labels)`
-  runs. For every dpar present in the payload's `coef_labels`, it splits the
-  engine's raw `coef_names` by dpar (`drm_julia_split_coef_name()`) and
-  compares the per-dpar term vector to `coef_labels[[dpar]]` by
-  `identical()` (exact strings, exact order). If every checked dpar matches,
-  the fit proceeds unchanged (this is what keeps plain-term bridge fits, e.g.
-  §2 row for `- term`, working exactly as before). If any dpar's names
-  differ, it `cli::cli_abort()`s, naming DRM.jl explicitly and listing, per
-  mismatched dpar, drmTMB's expected column names against what DRM.jl
-  returned:
+`drm_julia_bridge_check_coef_labels(coef_names, bridge_payload)`:
+
+- If `bridge_payload` carries no `coef_labels` field at all (the field is
+  entirely ABSENT, not merely empty -- true for every route whose payload
+  builder is not `drm_julia_bridge_payload()`, see §7.4), the check is a
+  no-op. This is the only remaining "not checked" case, and it is
+  structural (a different payload builder), not per-dpar.
+- If `coef_labels` IS present but empty (zero dpars labelled) on a payload
+  that DOES carry the field -- i.e. the main bridge -- this is an internal
+  invariant failure, not a DRM.jl problem, and aborts:
+  `"No coefficient labels were built for this Julia-engine fit; report this
+  (an internal invariant failure in the drmTMB Julia bridge, not a DRM.jl
+  problem)."` (Rose S9 attack A1; previously this silently returned `NULL`.)
+- Otherwise, every FIXED-EFFECT dpar block the ENGINE actually returned is
+  identified from `coef_names` via `drm_julia_split_coef_name()`, EXCLUDING
+  the variance-component prefixes `drm_julia_bridge_variance_component_prefixes()`
+  returns -- `"resd_"` (random-effect SD), `"recov_"` (residual correlation),
+  `"phylocov_"` (phylogenetic among-axis covariance Cholesky entries) -- the
+  SAME three prefixes `new_drmTMB_julia()`'s `structured_coef` filter already
+  uses to separate non-fixed-effect working parameters out of the coefficient
+  table. For each such engine dpar:
+  - If it has NO entry in the payload's `coef_labels`, that ABORTS (Rose S9
+    attack A5; previously the loop iterated only `names(coef_labels)`, so an
+    engine dpar the payload never labelled -- exactly the phylo-mu case
+    §7.1 now fixes at the source -- passed by vacuity).
+  - If it has an entry, `drm_julia_split_coef_name(coef_names)$term` for that
+    dpar must be `identical()` (exact strings, exact order) to
+    `coef_labels[[dpar]]`.
+
+  If every checked dpar matches and none is missing, the fit proceeds
+  unchanged (this is what keeps plain-term bridge fits, e.g. §2 row for
+  `- term`, working exactly as before, and what lets a correctly-echoed
+  `bridge_formula_labels_v1` map still pass through). Otherwise it
+  `cli::cli_abort()`s, naming DRM.jl explicitly and listing, per problem
+  dpar, either the missing-label notice or drmTMB's expected column names
+  against what DRM.jl returned:
 
   > "DRM.jl returned coefficient names that do not match drmTMB's base-R
-  > `model.matrix()` spelling, and supplied no `bridge_formula_labels_v1` map
-  > to translate them." followed by one bullet per mismatched dpar
-  > (`"<dpar>: drmTMB expects (<names>); DRM.jl returned (<names>)."`) and a
-  > hint: "DRM.jl must supply `bridge_formula_labels_v1` (design 258 §7) for
-  > this formula construct."
-
-  A dpar absent from the payload's `coef_labels` (structured term, or the
-  payload builder that produced `bridge_payload` predates this field) is not
-  checked -- this keeps the rule additive for the structured/xfam/known-cov
-  bridge routes that build their own `payload` objects outside
-  `drm_julia_bridge_payload()` and do not yet populate `coef_labels`.
+  > `model.matrix()` spelling." followed by one bullet per problem dpar --
+  > either `"no payload label was built for fixed-effect dpar(s): <dpars>."`
+  > or `"<dpar>: drmTMB expects (<names>); DRM.jl returned (<names>)."` -- and
+  > a hint: "DRM.jl must supply `bridge_formula_labels_v1` (design 258 §7)
+  > for this formula construct, or its raw names must equal drmTMB's own
+  > base-R spelling exactly."
 
 No punctuation is stripped, guessed, or translated anywhere in this path --
 `drm_julia_bridge_check_coef_labels()` performs only an `identical()` string/
 order comparison of two already-final name vectors, never a `gsub()` on
-`__bridge_*` or `&`-joined names (§3's binding constraint).
+`__bridge_*` or `&`-joined names (§3's binding constraint). The ONLY
+punctuation rewrite remaining anywhere in `R/` is the LEGACY predict-time path
+described in §7.4.
 
 ### 7.4 What S3 does NOT cover
 
@@ -389,18 +437,46 @@ order comparison of two already-final name vectors, never a `gsub()` on
   `y ~ I(x^2)` is not exercised by this slice's tests (no live Julia
   available in this worktree); only the R-side functions are unit-tested
   against constructed `result`/payload fixtures.
-- **Structured/xfam/known-covariance bridge routes**
-  (`drm_julia_structured_payload()`, `drm_julia_biv_known_structured_payload()`,
-  the cross-family `drm_julia_xfam_axes()` path) do not yet call
-  `drm_julia_bridge_payload_coef_labels()` or populate `coef_labels` on their
-  own `payload` objects -- out of this slice's touch scope
+- **Routes NOT under this contract** -- their payload builders do not call
+  `drm_julia_bridge_payload()` and do not populate `coef_labels`, so §7.3's
+  check is a structural no-op for them (the field is absent, not merely
+  empty):
+  - `drm_julia_structured_payload()` -- structured (relmat/animal/spatial)
+    random-effect bridge fits.
+  - `drm_julia_biv_known_structured_payload()` -- bivariate known-structured
+    (q2 phylogenetic) fits.
+  - the cross-family `drm_julia_xfam_axes()` path.
+  - joint fits (`R/julia-joint-methods.R`), which never reach
+    `drm_julia_bridge_payload()` either.
+
+  These routes are out of THIS slice's touch scope
   (`R/julia-bridge.R (drm_julia_bridge_payload and the post-call label step
-  only)`). Their fits are unaffected either way, since §7.3's check is a
-  no-op when `bridge_payload$coef_labels` is absent.
+  only)`), and adopting `coef_labels` for them is deliberately deferred, not
+  done here.
+- **The LEGACY predict-time punctuation rewrite.** `drm_julia_predict_fixed_eta()`
+  (`R/julia-bridge.R`) retains a `gsub()`-based rewrite of `object$coefficients[[dpar]]`
+  names (`" & "` -> `":"`, `": "` -> `""`), guarded by
+  `is.null(object$bridge_public_coef_labels) && !inherits(object, "drmTMB_julia_joint")`.
+  It is dead for fits whose payload came from `drm_julia_bridge_payload()`
+  (those either carry a validated map or were fail-closed-checked against
+  base-R names at fit time, per §7.3, so `beta`'s names are already base-R
+  spelling by the time `predict()` runs) but LIVE for every route in the
+  bullet above: structured, bivariate-known-structured, and joint fits do not
+  populate `coef_labels` and are not checked at fit time, so their stored
+  coefficient names can still be DRM.jl's raw synthetic spelling. Removing it
+  (attempted once, in commit `5b77eb691`, on the mistaken premise that "every
+  other case aborts at fit time" -- Rose S9 attack A10 measured this false)
+  converts a previously-working structured/joint `predict()` call with
+  factor/interaction terms into a hard "could not align the design" error.
+  It is scheduled for removal once the structured/xfam/joint payload builders
+  above adopt `coef_labels` under this contract, and is documented at its
+  call site as such.
 - **Row 7's term-order disagreement** (§3, §6) is unchanged -- if DRM.jl ever
   echoes a syntactically valid but reordered map for that construct, §7.2's
   existing validator (unchanged) still refuses it via `"map order or
-  coefficient identity mismatch"`.
+  coefficient identity mismatch"`, and §7.3's cross-check refuses it a second
+  way regardless (the reordered public names would not `identical()`-match
+  `coef_labels[[dpar]]`).
 
 ## Sources
 
