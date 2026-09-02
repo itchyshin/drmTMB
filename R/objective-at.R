@@ -9,19 +9,38 @@
 # the object to its optimum, substitute the requested slots into a copy of
 # `fit$opt$par`, call `fit$obj$fn()`, then re-pin so the fitted object is left
 # exactly as it was found.
+#
+# Convention (adversarial-pass fix, 2026-09-01): `fit$logLik` is stored on the
+# *unpenalized* convention (`-opt$objective + phylo_penalty`, R/drmTMB.R),
+# while `obj$fn()` returns the *penalized* objective for MAP/penalized fits.
+# `objective_at()` reports on the SAME (unpenalized) convention as `logLik()`
+# -- chosen over erroring on penalized fits -- because the whole point of this
+# verb is a cross-engine, cross-point comparison, and a return value that
+# silently changes meaning by fit type defeats that. The cost: the returned
+# number is not literally what the optimizer minimised at that point; use
+# `fit$obj$fn()` directly if the raw penalized objective is what is wanted.
+# The penalty is re-evaluated AT the queried point (`obj$report()$phylo_penalty`
+# after `fn()`), not frozen at the fit's own optimum, so the convention holds
+# away from the optimum too, not only at it.
 
 #' Evaluate the fitted objective at a supplied point
 #'
-#' Evaluates a fitted model's TMB objective (negative log-likelihood) at a
-#' point supplied on the public label vocabulary also used by
-#' `drm_control(start = ...)`, without refitting. This is a diagnostic: it
-#' selects nothing, reports no uncertainty, and does not change any fitted
-#' quantity or mutate the fitted object.
+#' Evaluates a fitted model's negative log-likelihood at a point supplied on
+#' the public label vocabulary also used by `drm_control(start = ...)`,
+#' without refitting. This is a diagnostic: it selects nothing, reports no
+#' uncertainty, and does not change any fitted quantity or mutate the fitted
+#' object. For penalized (MAP) fits the returned value is on the same
+#' *unpenalized* convention as [logLik()] (any phylogenetic penalty is
+#' subtracted back out, re-evaluated at the queried point), so
+#' `objective_at(fit, <fit's own optimum>) == -logLik(fit)` holds for every
+#' fit type; it is therefore not literally what the optimizer minimised at
+#' that point for a penalized fit -- use `fit$obj$fn()` directly for that.
+#' Errors for experimental MSPL fits, matching [logLik()].
 #'
 #' @param object A fitted `drmTMB` object.
 #' @param ... Passed to methods.
-#' @return A single number: the TMB objective (negative log-likelihood) at
-#'   `at`.
+#' @return A single number: the unpenalized negative log-likelihood
+#'   (same convention as `-logLik(fit)`) at `at`.
 #' @export
 objective_at <- function(object, ...) {
   UseMethod("objective_at")
@@ -35,6 +54,7 @@ objective_at <- function(object, ...) {
 #'   the natural correlation scale, exactly as for `start=`.
 #' @export
 objective_at.drmTMB <- function(object, at, ...) {
+  drm_abort_mspl_inference(object, "objective_at")
   if (is.null(object$obj) || is.null(object$opt)) {
     cli::cli_abort(c(
       "{.fn objective_at} requires the TMB object retained in {.code fit$obj}.",
@@ -68,7 +88,14 @@ objective_at.drmTMB <- function(object, at, ...) {
   }
 
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
-  value <- unname(as.numeric(object$obj$fn(full)))
+  raw <- unname(as.numeric(object$obj$fn(full)))
+  # Re-evaluate the penalty AT `full`, not the frozen optimum value cached on
+  # `object$phylo_penalty` -- the queried point is generally not the optimum,
+  # and `fn()` above already re-solved the inner Laplace problem for `full`,
+  # so a bare `report()` now reads back the matching state.
+  penalty_report <- object$obj$report()$phylo_penalty
+  penalty <- if (is.null(penalty_report)) 0 else as.numeric(penalty_report)
+  value <- raw - penalty
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
   value
 }

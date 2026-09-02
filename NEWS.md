@@ -38,7 +38,11 @@ Template Model Builder.
   nothing, reports no uncertainty, and does not mutate the fitted object
   (the TMB object is re-pinned to its optimum after evaluation). Requires
   `drm_control(keep_tmb_object = TRUE)` (the default). Unknown labels error
-  before evaluation, on the same rule as `start=`.
+  before evaluation, on the same rule as `start=`. For penalized (MAP) fits
+  the return value is on the same unpenalized convention as `logLik()` (any
+  penalty is subtracted back out, so `objective_at(fit, <own optimum>) ==
+  -logLik(fit)` holds for every fit type), and it errors for experimental
+  MSPL fits exactly as `logLik()` does.
 
 ## Student-t response + one binary `mi()` predictor
 

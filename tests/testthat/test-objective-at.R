@@ -95,3 +95,79 @@ test_that("objective_at requires a named list", {
   expect_error(objective_at(fit, at = list(0.1)), class = "rlang_error")
   expect_error(objective_at(fit, at = NULL), class = "rlang_error")
 })
+
+# Adversarial-pass fix (2026-09-01): the anchor was verified only on
+# unpenalized fixed-effect Gaussian fits, which cannot expose a penalty
+# convention mismatch. `fit$logLik` is stored unpenalized
+# (`-opt$objective + phylo_penalty`, R/drmTMB.R); `obj$fn()` returns the
+# penalized objective. These tests cover the two fit types that escaped the
+# first pass: a penalized (MAP) phylo fit, and an MSPL fit.
+
+objective_at_phylo_penalty_fixture <- function() {
+  paths <- c(
+    "sim/R/sim_registry.R",
+    "sim/R/sim_utils.R",
+    "sim/R/sim_runner.R",
+    "sim/R/sim_aggregate.R",
+    "sim/R/sim_uncertainty.R",
+    "sim/dgp/sim_dgp_phylo_mu_slope.R"
+  )
+  for (path in paths) {
+    source(system.file(path, package = "drmTMB", mustWork = TRUE), local = environment())
+  }
+  dat <- phase18_dgp_phylo_mu_slope(
+    n_tip = 8L, n_each = 6L, seed = 244L, cell_id = "objective_at_pen", replicate = 1L
+  )
+  list(data = dat, tree = attr(dat, "truth")$tree)
+}
+
+objective_at_mspl_fixture <- function() {
+  group <- factor(rep(seq_len(12), each = 4L))
+  x <- rep(c(-2, -1, 1, 2), 12L)
+  y <- rep(c(0, 1, 0, 1), 12L)
+  data.frame(y = y, x = x, group = group)
+}
+
+test_that("objective_at anchors on the unpenalized (logLik) convention for a penalized MAP phylo fit", {
+  skip_on_cran()
+  fx <- objective_at_phylo_penalty_fixture()
+  tree <- fx$tree
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+    data = fx$data,
+    penalty = drm_phylo_penalty(sd_u = 0.25, sd_alpha = 0.01)
+  )
+  expect_equal(fit$estimator, "MAP")
+  expect_gt(fit$phylo_penalty, 0)
+
+  fx_fixef <- fixef(fit)
+  at <- list()
+  for (dp in names(fx_fixef)) {
+    for (nm in names(fx_fixef[[dp]])) {
+      at[[paste0("fixef:", dp, ":", nm)]] <- unname(fx_fixef[[dp]][[nm]])
+    }
+  }
+
+  got <- objective_at(fit, at = at)
+  # The pre-fix defect: `obj$fn()` alone returns the *penalized* objective, so
+  # `got` would equal `-logLik(fit) + fit$phylo_penalty`, not `-logLik(fit)`.
+  expect_equal(as.numeric(got), -as.numeric(stats::logLik(fit)), tolerance = 1e-6)
+})
+
+test_that("objective_at errors on MSPL fits, matching logLik()", {
+  skip_on_cran()
+  dat <- objective_at_mspl_fixture()
+  fit <- drmTMB(
+    bf(y ~ x + (1 | group)),
+    family = binomial(),
+    data = dat,
+    estimator = "mspl",
+    control = drm_control(se = FALSE, optimizer_preset = "careful", multi_start = 1L)
+  )
+  expect_equal(fit$estimator, "MSPL")
+  expect_error(stats::logLik(fit), class = "drmTMB_mspl_inference_unsupported")
+  expect_error(
+    objective_at(fit, at = list("fixef:mu:(Intercept)" = 0)),
+    class = "drmTMB_mspl_inference_unsupported"
+  )
+})

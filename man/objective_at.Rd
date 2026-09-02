@@ -21,13 +21,19 @@ values are given on the natural (positive) scale and \verb{cor:} values on
 the natural correlation scale, exactly as for \verb{start=}.}
 }
 \value{
-A single number: the TMB objective (negative log-likelihood) at
-\code{at}.
+A single number: the unpenalized negative log-likelihood
+(same convention as \code{-logLik(fit)}) at \code{at}.
 }
 \description{
-Evaluates a fitted model's TMB objective (negative log-likelihood) at a
-point supplied on the public label vocabulary also used by
-\code{drm_control(start = ...)}, without refitting. This is a diagnostic: it
-selects nothing, reports no uncertainty, and does not change any fitted
-quantity or mutate the fitted object.
+Evaluates a fitted model's negative log-likelihood at a point supplied on
+the public label vocabulary also used by \code{drm_control(start = ...)},
+without refitting. This is a diagnostic: it selects nothing, reports no
+uncertainty, and does not change any fitted quantity or mutate the fitted
+object. For penalized (MAP) fits the returned value is on the same
+\emph{unpenalized} convention as \code{\link[=logLik]{logLik()}} (any phylogenetic penalty is
+subtracted back out, re-evaluated at the queried point), so
+\verb{objective_at(fit, <fit's own optimum>) == -logLik(fit)} holds for every
+fit type; it is therefore not literally what the optimizer minimised at
+that point for a penalized fit -- use \code{fit$obj$fn()} directly for that.
+Errors for experimental MSPL fits, matching \code{\link[=logLik]{logLik()}}.
 }
