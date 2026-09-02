@@ -5,6 +5,30 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-01 — drmTMB REVERSE-parity lane is active in CLAUDE.** Branches `claude/rev-parity-*`,
+  each off `origin/main`; **nothing merged, nothing pushed.** Closes the drmTMB-side holes the
+  R↔Julia twin programme is blocked on, and repairs three places where drmTMB's own parity
+  evidence could not report a failure. Landed on branches: the stranded R↔Julia
+  `docs/design/capability-status.md` (**42/42 rows match DRM.jl exactly, 0 near-misses**);
+  `#1081` — a green run now states its own boundary in the real CRAN lane; `#1083` — parity tests
+  now FAIL on a code error instead of skipping (red-tested, all 9 call sites); design 35's public
+  `start=` contract DECIDED + an `objective_at` section; RED tests for that contract (10 blocks,
+  10 red); `docs/design/258` — the coefficient-naming spec, which **stops at the spec** pending a
+  cross-repo authority decision. In flight: `drm_control(start=)`, Hessian-conditioning fields in
+  `check_drm()`, build provenance.
+  **Fenced, and not touched:** any DRM.jl edit · DRM.jl#575's optimum fix · bridge-route promotion ·
+  `r_bridge_status` / `inst/extdata/julia-capabilities.tsv` · `start_from = <fit>` · release
+  (D-164 holds). Four findings are **owed to the DRM.jl lane** and written up in
+  [`handover/2026-09-01-findings-owed-to-drmjl-lane.md`](handover/2026-09-01-findings-owed-to-drmjl-lane.md).
+  **Collision declared (D-87, Shinichi's call):** PR **#1112** changes `R/julia-bridge.R` by 216
+  lines, so this lane's bridge slices are **HELD** until it lands; its 3-line `R/control.R` roxygen
+  change is disjoint from the `start=` work and proceeds.
+  **⚠ THIS BOARD HAS THREE DIVERGING VERSIONS** across live refs as of 2026-09-01 —
+  `origin/main` (134 lines), `codex/rebase-julia-optimizer-controls` (155), and
+  `codex/response-missing-formula-surface` (**−72 lines**, pruning the 08-18/08-19 entries).
+  This entry was appended to the `main` version after diffing all three, so it duplicates nothing;
+  but a board that disagrees with itself on three refs is not coordinating anything, and
+  reconciling it is an owner call, not a rebaser's.
 - **2026-08-19 — exact 0.7.0 evidence closeout is active in Codex.** Final
   immutable candidate: source `6170fbeeea65f22444d7b0934f4e808c40744d22`,
   SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
