@@ -931,16 +931,27 @@ drm_julia_bridge_payload <- function(
       data_out[[phylo_payload$group]]
     )
   }
+  coef_labels <- drm_julia_bridge_payload_coef_labels(
+    formula = formula,
+    data = data_out,
+    env = env
+  )
+  options <- drm_julia_bridge_options(phylo_payload, method = method)
+  # Design 258 section 7.1: the Julia call carries only formula/family/data/
+  # tree/options, so `coef_labels` travels INSIDE `options` (the bridge's
+  # free-form channel) as options$coef_labels -- a list keyed by dpar of
+  # base-R model.matrix() column names. DRM.jl echoes them verbatim under
+  # bridge_formula_labels_v1. The top-level `coef_labels` element below is
+  # the R-side copy used for the fail-closed comparison after the call.
+  if (length(coef_labels) > 0L) {
+    options$coef_labels <- coef_labels
+  }
   list(
     formula = formula_spec,
     data = data_out,
-    coef_labels = drm_julia_bridge_payload_coef_labels(
-      formula = formula,
-      data = data_out,
-      env = env
-    ),
+    coef_labels = coef_labels,
     tree = if (is.null(phylo_payload)) NULL else phylo_payload$newick,
-    options = drm_julia_bridge_options(phylo_payload, method = method),
+    options = options,
     row_order = if (is.null(phylo_payload)) NULL else phylo_payload$row_order,
     structured_sd_scales = if (is.null(phylo_payload)) {
       NULL

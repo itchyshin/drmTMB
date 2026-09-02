@@ -406,3 +406,28 @@ test_that("new_drmTMB_julia end-to-end: no map, mismatched payload names abort n
     "DRM\\.jl"
   )
 })
+
+# --- Wire format (design 258 S7.1, corrected 2026-09-02): the Julia call
+# carries only formula/family/data/tree/options, so `coef_labels` must travel
+# INSIDE options for DRM.jl to echo it. Gate S3-G14.
+
+test_that("options carry coef_labels: the payload's options$coef_labels is the per-dpar base-R label list DRM.jl echoes", {
+  d <- data.frame(y = seq_len(12), x = seq_len(12) / 12, grp = factor(rep(c("hi", "lo", "mid"), 4)))
+  formula <- drmTMB::bf(y ~ x + I(x^2) + factor(grp), sigma ~ x)
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = formula, family_type = "gaussian", data = d, env = environment()
+  )
+  expect_true(is.list(payload$options$coef_labels))
+  expect_identical(payload$options$coef_labels, payload$coef_labels)
+  expect_identical(payload$options$coef_labels$mu, c("(Intercept)", "x", "I(x^2)", "factor(grp)lo", "factor(grp)mid"))
+  expect_identical(payload$options$coef_labels$sigma, c("(Intercept)", "x"))
+})
+
+test_that("options carry coef_labels: REML and the label field coexist in options", {
+  d <- data.frame(y = seq_len(12), x = seq_len(12) / 12)
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = drmTMB::bf(y ~ x), family_type = "gaussian", data = d, env = environment(), method = "REML"
+  )
+  expect_identical(payload$options$method, "REML")
+  expect_identical(payload$options$coef_labels$mu, c("(Intercept)", "x"))
+})

@@ -79,7 +79,7 @@ canonical column is a proposal for this document, not a decision — see §3–4
 | 4 | crossed `poly()` | `y ~ z * poly(x, 2)` | `mu:z:poly(x, 2)1`, `mu:z:poly(x, 2)2` (plus main effects) | `mu_z & __bridge_poly2c1_1`, `mu_z & __bridge_poly2c2_2` | `mu:z:poly(x, 2)1`, `mu:z:poly(x, 2)2` |
 | 5 | powers `(...)^k` | `y ~ (x + z)^2` | `mu:x:z` | `mu_x & z` | `mu:x:z` |
 | 6 | `scale()` | `y ~ scale(x)` | `mu:scale(x)` | `mu___bridge_scale_1` | `mu:scale(x)` |
-| 7 | reversed two-factor interaction | `~ g + factor(h) + factor(h):g` | `(Intercept)`, `gb`, `gc`, `factor(h)10`, `factor(h)20`, `gb:factor(h)10`, `gc:factor(h)10`, `gb:factor(h)20`, `gc:factor(h)20` | `g: b`, `g: c`, `__bridge_factor_1: 10.0`, `__bridge_factor_1: 20.0`, `__bridge_factor_1: 10.0 & g: b`, `__bridge_factor_1: 20.0 & g: b`, `__bridge_factor_1: 10.0 & g: c`, `__bridge_factor_1: 20.0 & g: c` (all `mu_`-prefixed) | same as base-R column, `mu:` prefixed |
+| 7 | reversed two-factor interaction | `~ g + factor(h) + factor(h):g` | `(Intercept)`, `gb`, `gc`, `factor(h)20`, `gb:factor(h)20`, `gc:factor(h)20` (6 columns, reduced coding — CORRECTED 2026-09-02: an earlier version of this row listed 9 names with full dummy coding of `factor(h)` inside the interaction; base R does not do that when both main effects are present, measured independently by the drmTMB and DRM.jl lanes) | DRM.jl (StatsModels) renders exactly these 6 names in this order (DRM.jl lane, 2026-09-02) | `mu:` + the base-R column |
 | 8 | unary-plus arithmetic | `~ I(+x)` | `I(+x)` | `__bridge_I_1` | `mu:I(+x)` |
 | 9 | explicitly parenthesised arithmetic | `~ I(x + (z + 2))` | `I(x + (z + 2))` | `__bridge_I_1` | `mu:I(x + (z + 2))` |
 | 10 | decimal-spelled integer exponent | `~ I(x^2)` | `I(x^2)` | `__bridge_I_1` | `mu:I(x^2)` |
@@ -125,7 +125,9 @@ punctuation-based guessing is permitted."
 Why this constraint is load-bearing rather than pedantic: a regex or
 string-substitution translator built against the six failing constructs in §2
 (strip `__bridge_<kind>_<n>`, replace ` & ` with `:`, replace `: ` with no
-space) would look complete after those six pass. Row 7 (reversed two-factor
+space) would look complete after those six pass. (Row 7's name LIST in §2 was corrected on
+2026-09-02 to base R's six reduced-coding columns; the order evidence quoted here is from the
+earlier `public-004.json` oracle and stands as recorded.) Row 7 (reversed two-factor
 interaction) already shows why that is not safe — the same `__bridge_factor_1`
 materialisation appears on both sides of an interaction with the level
 rendered as `10.0` rather than `10`, and `public-004.json`'s own `expected`
@@ -279,8 +281,13 @@ implemented by this slice (S3) -- see "What S3 does NOT cover" below.
 
 ### 7.1 Payload: `coef_labels`
 
-`drm_julia_bridge_payload()` (`R/julia-bridge.R`) now sends an additional
-top-level field, alongside the existing `formula`/`data`/`tree`/`options`:
+`drm_julia_bridge_payload()` (`R/julia-bridge.R`) now builds an additional
+field. **Wire format (corrected 2026-09-02):** the Julia call `drmTMB_drm_bridge(formula, family,
+data, tree, options)` carries only those five arguments, so `coef_labels` travels **inside
+`options`** as `options$coef_labels` (a Dict keyed by dpar of `Vector{String}` on the Julia side);
+the top-level payload element of the same name is the R-side copy used after the call. DRM.jl reads
+`options["coef_labels"]`, checks per-dpar column counts, echoes verbatim in order under
+`bridge_formula_labels_v1`, and aborts naming the construct on any mismatch:
 
 ```
 coef_labels: list, keyed by dpar (e.g. "mu", "sigma", "mu1", "rho12", ...)
