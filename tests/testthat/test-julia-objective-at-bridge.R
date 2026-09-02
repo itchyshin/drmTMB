@@ -7,8 +7,14 @@
 # docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-02-a5-cross-engine-receipt.R
 # for the cross-engine receipt this wrapper feeds.
 
+# The committed DRM.jl fixture is located through the SAME environment variable
+# the bridge itself uses (DRM_JL_PATH, a checkout of DRM.jl); never a machine
+# path. Live tests skip when it is absent (CI has no DRM.jl); the refuse tests
+# below use a synthetic stand-in and run everywhere.
 drm_objat_fixture_dir <- function() {
-  file.path("/Users/z3437171/Dropbox/Github Local/DRM.jl", "test", "parity", "q4-reml", "biv-q4-phylo-reml")
+  root <- Sys.getenv("DRM_JL_PATH", "")
+  if (!nzchar(root)) return(NA_character_)
+  file.path(root, "test", "parity", "q4-reml", "biv-q4-phylo-reml")
 }
 
 drm_objat_fixture_formula <- function(tree) {
@@ -23,6 +29,10 @@ drm_objat_fixture_formula <- function(tree) {
 
 drm_objat_fixture_data <- function() {
   dir <- drm_objat_fixture_dir()
+  testthat::skip_if(
+    is.na(dir) || !file.exists(file.path(dir, "data.csv")),
+    "DRM.jl q4 fixture not available (set DRM_JL_PATH to a DRM.jl checkout)"
+  )
   dat <- read.csv(file.path(dir, "data.csv"), stringsAsFactors = FALSE)
   tree <- ape::read.tree(file.path(dir, "tree.newick"))
   dat$species <- factor(dat$species, levels = tree$tip.label)
@@ -32,8 +42,22 @@ drm_objat_fixture_data <- function() {
 # A minimal mock `drmTMB_julia` fit, class/family/dimension/REML-correct, for
 # the two refuse tests that must run WITHOUT Julia (a Lambda shape check has
 # no business needing a live engine).
+# Synthetic stand-in for the fixture (same shape: two responses, one
+# predictor, species on a small tree); needs neither DRM.jl nor Julia.
+drm_objat_synthetic_data <- function() {
+  set.seed(575)
+  tree <- ape::rtree(16, tip.label = sprintf("sp%02d", seq_len(16)))
+  species <- factor(rep(tree$tip.label, each = 2L), levels = tree$tip.label)
+  n <- length(species)
+  dat <- data.frame(
+    y1 = stats::rnorm(n), y2 = stats::rnorm(n), x = stats::rnorm(n),
+    species = species
+  )
+  list(data = dat, tree = tree)
+}
+
 drm_objat_mock_julia_fit <- function() {
-  fx <- drm_objat_fixture_data()
+  fx <- drm_objat_synthetic_data()
   form <- drm_objat_fixture_formula(fx$tree)
   result <- list(
     coef_names = c(
@@ -73,15 +97,10 @@ drm_objat_mock_julia_fit <- function() {
 }
 
 test_that("drm_julia_reml_objective_at refuses a TMB-engine fit", {
-  fx <- drm_objat_fixture_data()
-  form <- drm_objat_fixture_formula(fx$tree)
-  fit_tmb <- drmTMB(
-    form,
-    family = biv_gaussian(),
-    data = fx$data,
-    engine = "tmb",
-    REML = TRUE
-  )
+  # Any native-engine fit must be refused on its class; no fixture, no Julia.
+  set.seed(575)
+  dat <- data.frame(y = stats::rnorm(40), x = stats::rnorm(40))
+  fit_tmb <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat, engine = "tmb")
   Lambda <- diag(4)
   beta <- list(
     beta_mu1 = c(0, 0), beta_mu2 = c(0, 0),

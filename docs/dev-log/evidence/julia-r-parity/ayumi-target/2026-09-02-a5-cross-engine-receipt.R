@@ -48,14 +48,14 @@
 args <- commandArgs(trailingOnly = TRUE)
 stable_only <- "--stable-only" %in% args
 
-worktree <- "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/wt-v2"
+worktree <- normalizePath(Sys.getenv("DRMTMB_WORKTREE", getwd()))
 suppressPackageStartupMessages({
   library(devtools)
   library(ape)
 })
 load_all(worktree, quiet = TRUE)
 
-fixture <- "/Users/z3437171/Dropbox/Github Local/DRM.jl/test/parity/q4-reml/biv-q4-phylo-reml"
+fixture <- file.path(Sys.getenv("DRM_JL_PATH"), "test/parity/q4-reml/biv-q4-phylo-reml")  # the pinned DRM.jl checkout
 dat <- read.csv(file.path(fixture, "data.csv"), stringsAsFactors = FALSE)
 tree <- read.tree(file.path(fixture, "tree.newick"))
 dat$species <- factor(dat$species, levels = tree$tip.label)

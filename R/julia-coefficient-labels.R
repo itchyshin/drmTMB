@@ -116,7 +116,7 @@ drm_julia_bridge_check_coef_labels <- function(coef_names, bridge_payload) {
   cli::cli_abort(c(
     "DRM.jl returned coefficient names that do not match drmTMB's base-R {.fn model.matrix} spelling.",
     detail,
-    i = "DRM.jl must supply {.code bridge_formula_labels_v1} (design 258 §7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly."
+    i = "DRM.jl must supply {.code bridge_formula_labels_v1} (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly."
   ), call. = FALSE)
 }
 

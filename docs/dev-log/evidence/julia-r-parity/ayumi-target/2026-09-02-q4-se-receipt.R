@@ -13,7 +13,7 @@
 # a throwaway clone; the local DRM.jl checkout at
 # "/Users/z3437171/Dropbox/Github Local/DRM.jl" is never touched or fetched.
 
-Sys.setenv(DRM_JL_PATH = "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-579")
+if (!nzchar(Sys.getenv("DRM_JL_PATH"))) stop("set DRM_JL_PATH to the pinned DRM.jl checkout", call. = FALSE)
 Sys.setenv(DRMTMB_JULIA_TESTS = "true")
 
 suppressPackageStartupMessages({
@@ -21,10 +21,10 @@ suppressPackageStartupMessages({
   library(ape)
 })
 
-worktree <- "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/wt-s4"
+worktree <- normalizePath(Sys.getenv("DRMTMB_WORKTREE", getwd()))
 load_all(worktree, quiet = TRUE)
 
-fixture <- "/Users/z3437171/Dropbox/Github Local/DRM.jl/test/parity/q4-reml/biv-q4-phylo-reml"
+fixture <- file.path(Sys.getenv("DRM_JL_PATH"), "test/parity/q4-reml/biv-q4-phylo-reml")  # the pinned DRM.jl checkout
 dat <- read.csv(file.path(fixture, "data.csv"), stringsAsFactors = FALSE)
 tree <- read.tree(file.path(fixture, "tree.newick"))
 dat$species <- factor(dat$species, levels = tree$tip.label)
