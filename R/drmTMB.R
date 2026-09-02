@@ -636,6 +636,16 @@ drm_fit_spec <- function(
   drm_warn_if_clamp_active(obj, spec)
   tmb_state <- drm_tmb_selected_state(obj, opt)
 
+  # Store the final outer gradient at `opt$par` here, at fit time, so it is a
+  # property of the fit rather than something computed lazily (and only when
+  # `obj` was retained) inside `check_drm()`'s `check_fixed_gradient()`
+  # (`R/check.R`). `obj$gr()` mutates `obj$env$last.par` as a side effect
+  # (independent of the `par` argument it is handed), so re-pin to `tmb_state`
+  # immediately after -- this evaluation must not leak into what `report()`
+  # sees below, per the selected-optimum invariant (docs/design/35).
+  fit_gradient <- drm_fit_gradient(obj, opt)
+  drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
+
   uncertainty <- drm_compute_uncertainty(
     obj,
     opt,
@@ -712,7 +722,9 @@ drm_fit_spec <- function(
     mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
-    optimizer_attempts = optimizer$attempts
+    optimizer_attempts = optimizer$attempts,
+    gradient = fit_gradient$gradient,
+    gradient_max_component = fit_gradient$max_component
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
@@ -2948,6 +2960,26 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
     obj$env$last.par.best <- last_par_best
   }
   invisible(TRUE)
+}
+
+# Compute the final outer gradient at `opt$par`, at fit time, so it is stored
+# on the fit rather than reconstructed lazily (and only when `obj` was kept)
+# inside `check_drm()`'s `check_fixed_gradient()` (`R/check.R`). Uses
+# `fixed_gradient_component_label()` (also `R/check.R`) for the worst-component
+# label, so a stored value and the live `check_drm()` row always agree -- one
+# label rule, not two copies that can drift apart.
+drm_fit_gradient <- function(obj, opt) {
+  gradient <- tryCatch(
+    as.numeric(obj$gr(opt$par)),
+    error = function(e) NULL
+  )
+  if (is.null(gradient) || !all(is.finite(gradient))) {
+    return(list(gradient = gradient, max_component = NA_character_))
+  }
+  names(gradient) <- names(opt$par)
+  max_index <- if (length(gradient) > 0L) which.max(abs(gradient)) else NA_integer_
+  max_component <- fixed_gradient_component_label(list(opt = opt), gradient, max_index)
+  list(gradient = gradient, max_component = max_component)
 }
 
 # Interpret an nlminb convergence code. Returns NULL when the optimizer reported
