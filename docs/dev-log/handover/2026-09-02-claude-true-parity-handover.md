@@ -5,8 +5,9 @@ chat context. This document, `AGENTS.md`, the decision map and the current git s
 authoritative. The earlier `2026-09-02-claude-handover.md` (reverse-parity) is superseded by this
 one for everything it listed as OWED; its facts stand.
 
-**Nothing is merged. D-164 still holds CRAN.** All work is on `claude/rev-parity-*` branches,
-all on origin. One DRAFT PR (#1114) exists and says it lands after #1112.
+**#1112 is MERGED (13ac255a3, merged by this lane on Shinichi's word after its CI was fixed). D-164 still
+holds CRAN.** Two DRAFT PRs await the owner's merge: #1114 (the integrated reverse-parity head) and
+#1119 (bridge promotion wave 1).
 
 ## FIRST ACTIONS
 
@@ -26,19 +27,17 @@ all on origin. One DRAFT PR (#1114) exists and says it lands after #1112.
 5. Ledger: `node ~/shinichi-brain/skills/unlazy/scripts/gate-check.mjs --root . --status --scope true-parity`
    (`.unlazy/` is git-excluded run state; `--status` is a claim, `--reverify --cwd <worktree>` is evidence).
 
-## Mission control
+## Mission control (evening of 2026-09-02)
 
 | item | state |
 |---|---|
-| draft PR | #1114 from `claude/rev-parity-integration-all` @ 14035812f — "lands after #1112" |
-| head that should replace it once #1112 merges | `claude/rev-parity-integration-post1112` @ 89bfd210a (+ guard: `start`/`multi_start` rejected under `engine="julia"`) |
-| label contract (ARC C2) | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 — design 258 §7, R half, repaired after Rose |
-| q4 SE receipt | `claude/rev-parity-q4-se-receipt` @ 996870366 — TMB SEs finite; Julia SE axis is the fixture fence (`wald_unavailable`, DRM.jl #495) |
-| A4/A5 cross-engine wrapper + #575 receipt | `claude/rev-parity-a4-objective-at-bridge` @ 7afa28b62 — internal `drm_julia_reml_objective_at()` now calls DRM.jl's SUPPORTED `drm_bridge_objective_at` (contract `bridge_objective_at_v1`), pinned DRM.jl main `e4647333`; zero private names; receipt re-runnable, refuses any other ref |
-| handoff to DRM.jl lane | `claude/rev-parity-drmjl-findings` @ b0b5577a6 — five items |
-| decisions | D-202 (vault) + `docs/dev-log/2026-09-02-rev-parity-owner-decisions.md`; relayed D-203 recorded as relayed |
-| shared page | vault `memory/TWIN-PARITY-SHARED-PAGE.md`, sent to all three sibling lanes, none disagreed |
-| DRM.jl fence | HEAD `f4778964`, working tree untouched |
+| `origin/main` | 13ac255a3 = #1112 merged (its CI fixed at fcc05c5ab: registry ported from the hand-repaired TSVs, one cell reversed) |
+| draft PR #1114 | head 3d924e220 = `claude/rev-parity-integration-v2` (main + reverse-parity lane + guard + label contract + q4 SE receipt + A4/A5); every leaf ledger re-run on this tree; filtered suites 629/0. Owner merge = sign-off |
+| draft PR #1119 | `claude/bridge-promotion-wave1` @ e296168ff: four rows experimental → partial on the bridge axis; Rose scan CLEAN; adds `partial` to the r_bridge_status vocabulary (designs 192/168) — the one schema decision named in the PR body |
+| A4/A5 | on DRM.jl's supported `drm_bridge_objective_at` (DRM.jl #590), pinned main `e4647333`, zero private names; receipt at the fixed engine |
+| ledger `.unlazy/true-parity/` | eight leaves + node gates; see the after-task for the final count |
+| reverse-gap issues | #1115–#1118 filed (D-204) |
+| DRM.jl fence | never edited; DRM.jl main moved to e4647333 by that lane's own merges |
 
 ## Key decisions (do not re-ask)
 
@@ -64,39 +63,24 @@ from Shinichi for drmTMB.
 
 ## Next immediate steps (OWED)
 
-1. **If #1112 is MERGED:** rebase `claude/rev-parity-integration-post1112` onto `origin/main`,
-   merge `c2-label-producer` and `q4-se-receipt` into it, re-run leaf-s2/s3/s4 gates, point PR
-   #1114 at it; then S6 promotion wave 1 exactly per
-   `docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md` (on #1112's branch) — 4 rows
-   `experimental → partial`, Rose forbidden-claim scan, draft PR; q4 stays out (SE axis fenced).
-   A4/A5 are DONE on `claude/rev-parity-a4-objective-at-bridge` @ 7afa28b62 (off the post-#1112 branch)
-   and ALREADY use DRM.jl's supported entry (`drm_bridge_objective_at`, merged in DRM.jl #590, pinned main
-   `e4647333`): merge that branch into the integration head too. Re-pin only when DRM.jl main moves
-   (e.g. after #577 merges): one SHA in `R/julia-bridge.R` + the receipt script, re-run leaf-a4/a5.
-2. **If #1112 is still OPEN:** nothing merges; do the two owner-independent items: project the
-   `Non-Gaussian phylogenetic location-scale` row onto `docs/design/capability-status.md` as
-   scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in
-   the decision map). The reverse-gap issues are filed (#1115–#1118); each is a normal slice under
-   the both-ways rule (D-204), symbolic alignment table first.
-3. ANSWERED (D-204, 2026-09-02): both ways for user-facing; keep the legacy rewrite; issues filed as
-   #1115–#1118. Do not re-ask.
-4. `objective_at()` does not reach `rho12` or the q4 phylo covariance block by label (found by A5);
-   widening the start/label vocabulary is an A2/A3 follow-up.
-5. Extending `coef_labels` to the structured/joint/xfam payload builders (design 258 §7.4) is the
-   next C-arc slice; it retires the legacy predict path.
-5. Do not re-run the full suite (~45 min) or `--as-cran` unless R/ code outside today's hunks changes.
-
-## DRM.jl root change in flight (2026-09-02 evening, from the daily-check session)
-
-DRM.jl#577 (branch `claude/577-ml-path-structural-zeros`): `prior_precision` stored the axis
-block through `sparse()`, which dropped exact zeros at a diagonal Λ, so the ML exact gradient was
-silently wrong from the engines' own 0.3·I warm start (two lc components off by 0.75 and 12.1 on
-biv-q4-phylo-reml; 2.9e-5 after the fix). **This lane's exposure is nil** (all its DRM.jl
-measurements are the q4 phylo REML route, #579's exact REML gradient; A4/A5 re-pin to main and refuse
-any other ref). **Not nil for the ledger:** rows promoted on ML phylo evidence
-(`gaussian_phylo_mean`, `phylo_count_large_p`) may need re-measuring once #577 merges — that is the
-#1112 / DRM.jl ledger lane's item, recorded here so it is not lost. Hub lesson promoted the same day:
-"verify the INSTRUMENT before diagnosing the SURFACE" (vault LESSONS).
+1. **Owner merges** #1114 then #1119 (order matters: #1119 is off main and touches `R/julia-bridge.R`'s
+   registry rows; #1114 touches the same file elsewhere — if GitHub reports a conflict on whichever goes
+   second, rebase that one onto main and re-run `tools/write-julia-capability-comparison.R`; the
+   gate test will catch any TSV/registry drift).
+2. After both merge: delete the merged child branches on origin (keep `rev-parity-handover` until its
+   docs land on main via a docs PR), re-run `python3 DRM.jl/tools/parity_ledger.py --drmtmb . --ref origin/main`
+   (expect CLOSURE: PASS with four rows now `partial` on the bridge axis).
+3. Re-pin A4/A5 when DRM.jl main moves past #577 (one SHA in `R/julia-bridge.R` + the receipt script;
+   re-run leaf-a4/a5 with `OPENBLAS_NUM_THREADS=1`).
+4. Next engineering slices, each its own gate: extend `coef_labels` to the structured/joint/xfam payload
+   builders and retire the legacy predict-time rewrite (design 258 §7.4); widen `objective_at()`/`start=`
+   labels to `rho12` and the q4 phylo covariance block; the reverse-gap issues #1115–#1118 (both-ways rule,
+   symbolic alignment table first); project the `Non-Gaussian phylogenetic location-scale` board row as
+   scope-limited.
+5. P2–P5 arcs (G3 inference qualification on Totoro pilots, G4 threading, G5 warm grid on Totoro,
+   G6/G7 docs) per the programme estimate, each behind its own D-139 gate.
+6. Do not re-run the full suite (~45 min) or `--as-cran` unless R/ code outside today's hunks changes;
+   the PR CI (PR-triggered) covers #1114 and #1119.
 
 ## Compute (Shinichi, 2026-09-02: "make good use of DRAC + Totoro")
 

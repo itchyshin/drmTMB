@@ -22,6 +22,9 @@ still means. Julia files untouched.
 | S3 producer | design 258 §7; payload `coef_labels` (fixed-effect part only); existing validator wired; map-path cross-check against drmTMB's own names; no-vacuity rule; absent map fails closed; 10 constructs + Rose's 7 attacks green; legacy predict-time `gsub` kept and scoped | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 |
 | S4 receipt | same-draw q4 REML receipt vs DRM.jl `cda42b8c`: coef/logLik agree (|Δ logLik| 1.9e-05), TMB SEs finite; Julia SE axis is the fixture's recorded fence (`wald_unavailable`, DRM.jl #495) | `claude/rev-parity-q4-se-receipt` @ 996870366 |
 | A4/A5 wrapper + receipt | `drm_julia_reml_objective_at()` (internal) first reached DRM.jl's primitive via five private names (1291772bc, pinned `dc3ce190`); the same day DRM.jl merged a supported entry (`drm_bridge_objective_at`, #590) and the shim now calls it with zero private names (7afa28b62, pinned main `e4647333`). Receipt at the fixed engine: TMB@TMB −219.613986 · DRM.jl@TMB −219.620688 · TMB@Julia −219.616013 · DRM.jl@Julia −219.614005; anchors 0 and 6e-09. Before the fix (kept in the receipt): DRM.jl@Julia −219.630326, the 0.0096 mode-finder gap that was #575. Diagnosis only, no promotion | `claude/rev-parity-a4-objective-at-bridge` @ 7afa28b62 |
+| #1112 CI fix + merge | on Shinichi's word: registry ported from the hand-repaired TSVs (one cell reversed by the schema test), 145/145, CI green, merged as 13ac255a3 | main |
+| integration head | `claude/rev-parity-integration-v2` @ 3d924e220 = PR #1114's branch (fast-forwarded): main + all lane branches; two merge seams resolved (options builder gains `control_overrides`; a consumed closing brace); every leaf ledger re-run on it; 629/0 filtered | PR #1114 |
+| S6 promotion wave 1 | four rows experimental → partial on the bridge axis; `partial` added to the r_bridge_status vocabulary (designs 192/168) with the binomial lock inverted; TSVs regenerated; Rose scan CLEAN; draft PR #1119 | `claude/bridge-promotion-wave1` @ e296168ff |
 | S5 handoff | five items to the DRM.jl lane, incl. the verbatim §7 contract and the SE-receipt correction | `claude/rev-parity-drmjl-findings` (HEAD) |
 | S9 Rose | see §4 | scratch verdict, summarised below |
 | S10 Melissa | 7 deviations: 4 adaptive · 2 drift · 1 unclear | `docs/dev-log/plan-actual/2026-09-02-true-parity.md` |
@@ -78,9 +81,7 @@ as standing rule — a tension left for one sentence from Shinichi; promotion = 
 
 ## 7. Not done, and why
 
-- S6 promotion wave 1: held, needs #1112 merged. A4/A5 were built after all (on top of the
-  post-#1112 branch, DRM.jl pinned at `dc3ce190`); they stay internal and depend on five DRM.jl
-  private names until that lane exposes a supported entry or folds its branch into a merging ref.
+- S6 promotion wave 1: DONE (draft PR #1119). A4/A5: DONE, now on DRM.jl's supported entry.
 - Found by A5, not fixed (A2/A3 lane): `objective_at()`'s label vocabulary does not reach
   `biv_gaussian`'s `rho12` fixed effect or the q4 phylo covariance block (`beta_rho12` carries no
   names; `log_sd_phylo`/`theta_phylo` sit outside `spec$random`); the receipt addresses those by
