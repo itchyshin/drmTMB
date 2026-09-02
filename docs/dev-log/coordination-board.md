@@ -5,6 +5,12 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-01 (evening) — Claude parity lane HANDED OVER to a fresh Claude session.**
+  START HERE for this lane: [`handover/2026-09-01-claude-handover-575-fixed.md`](handover/2026-09-01-claude-handover-575-fixed.md).
+  #575 FIXED (exact REML gradient; DRM.jl PR #579 draft; suite 9203/0/0; D-43 panel verified).
+  Three reviews await Shinichi: drmTMB #1112, DRM.jl #579, DRM.jl #576. Promotion wave 1 (4 rows)
+  fires on the #1112 merge; q4 stays out pending an SE-axis receipt. Other lanes keep their own
+  pointers above/below — this entry does not represent them.
 - **2026-09-01 (later) — Arc P1 closed as an honest plateau checkpoint; #575 root-caused to BASIN SELECTION.**
   Mechanism proven three ways (receipts in `evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/`):
   DRM.jl's own objective at the TMB point beats its solver's result; polish/multistart shave ≤0.006 and
