@@ -150,6 +150,8 @@ valid. When using \code{drm_control()}, put optimizer arguments inside
 For \code{engine = "julia"} base bridge fits, only \code{optimizer$g_tol} and
 \code{optimizer$algorithm} are forwarded to DRM.jl. TMB-specific optimizer
 budgets, presets and storage controls are rejected rather than ignored.
+\code{start} and \code{multi_start} are likewise rejected under \code{engine = "julia"}
+rather than silently ignored.
 Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
 \code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
 the selected preset.

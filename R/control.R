@@ -14,6 +14,8 @@
 #' For `engine = "julia"` base bridge fits, only `optimizer$g_tol` and
 #' `optimizer$algorithm` are forwarded to DRM.jl. TMB-specific optimizer
 #' budgets, presets and storage controls are rejected rather than ignored.
+#' `start` and `multi_start` are likewise rejected under `engine = "julia"`
+#' rather than silently ignored.
 #' Presets `"careful"` and `"robust"` expand to explicit `iter.max` and
 #' `eval.max` controls for `nlminb()`. Values in `optimizer` override values from
 #' the selected preset.
