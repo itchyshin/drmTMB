@@ -11,7 +11,7 @@ census; capability counts belong in the ledger and Mission Control.
   Three reviews await Shinichi: drmTMB #1112, DRM.jl #579, DRM.jl #576. Promotion wave 1 (4 rows)
   fires on the #1112 merge; q4 stays out pending an SE-axis receipt. Other lanes keep their own
   pointers above/below — this entry does not represent them.
-- **2026-09-01 (later) — Arc P1 closed as an honest plateau checkpoint; #575 root-caused to BASIN SELECTION.**
+- **2026-09-01 (later) — Arc P1 plateau checkpoint (SUPERSEDED same evening: the "basin selection" diagnosis below was itself FD-gradient noise; #575 was fixed by the exact REML gradient — see the entry above).**
   Mechanism proven three ways (receipts in `evidence/julia-r-parity/ayumi-target/2026-09-01-matched-q4/`):
   DRM.jl's own objective at the TMB point beats its solver's result; polish/multistart shave ≤0.006 and
   violate the gradient contract (reverted, not shipped — regressed #484); warm-started AT the TMB point the
