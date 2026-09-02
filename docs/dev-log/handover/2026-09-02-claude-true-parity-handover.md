@@ -93,6 +93,16 @@ Totoro (≤150 cores, BLAS pinned; the P4 pre-run is <10 min and under the line)
 on DRAC job arrays (nibi or trillium, `--time` from `seff`); never GitHub Actions (D-50). Fleet facts:
 vault `projects/SLURM-AND-THE-FLEET.md`.
 
+## CI cost note (vault OQ-32, proposed not decided)
+
+drmTMB's `ubuntu-latest (release)` job takes ~45 min and ran four times on 2026-09-02 (two of them
+on #1112 alone). The GLLVM.jl lane filed vault OQ-32: Totoro as a self-hosted runner for the twins'
+PACKAGE-CHECK CI only (campaigns stay off Actions, D-50). Caveat that travels with it: these repos are
+public with `on: pull_request`, so self-hosted only for push/workflow_dispatch, fork PRs on hosted
+runners, ephemeral containerised runner, no-sudo, no secrets. Free wins needing no decision: shard the
+suite across parallel hosted jobs; drop coverage on routine runs. Details: vault
+`memory/OPEN_QUESTIONS.md` OQ-32 · `projects/COMPUTE-PLAYBOOK.md` §Proposed.
+
 ## How to resume
 
 ```text
