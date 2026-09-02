@@ -65,8 +65,12 @@ from Shinichi for drmTMB.
    `docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md` (on #1112's branch) — 4 rows
    `experimental → partial`, Rose forbidden-claim scan, draft PR; q4 stays out (SE axis fenced).
    A4/A5 are DONE on `claude/rev-parity-a4-objective-at-bridge` (off the post-#1112 branch): merge that
-   branch into the integration head too. Re-pin the DRM.jl ref when that lane folds
-   `feat/575-objective-at` into a merging ref (one env-var + one comment line).
+   branch into the integration head too. DRM.jl side (2026-09-02, Shinichi-approved, D-203 §5): the
+   primitive is DRM.jl draft PR #586 (`dc3ce190`), and a SUPPORTED entry `DRM.drm_bridge_objective_at(formula,
+   family, data, tree, options, beta, Lambda, rho12)` returning `contract = "bridge_objective_at_v1"` is being
+   built on `feat/563-bridge-objective-at`, pinned to our A5 numbers. When that lane sends the call and
+   return keys, replace the body of `drmTMB_reml_objective_at` with the one call, delete the five
+   private names block, re-pin the ref, re-run leaf-a4/a5 (`OPENBLAS_NUM_THREADS=1`).
 2. **If #1112 is still OPEN:** nothing merges; do the two owner-independent items: project the
    `Non-Gaussian phylogenetic location-scale` row onto `docs/design/capability-status.md` as
    scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in
