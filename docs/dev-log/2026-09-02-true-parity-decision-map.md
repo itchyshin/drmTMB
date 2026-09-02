@@ -56,6 +56,19 @@ Releases and registration are separate owner ceremonies (D-164, D-183).
 | ~~Echo or reconstruct?~~ **CLOSED (D-203): echo.** DRM.jl already emits `coef_label_contract = "bridge_formula_labels_v1"` (`src/bridge.jl:1276`); the Codex #563 lane changes its content to payload-supplied names, PR-gated. | — | — |
 | The DRM.jl fixture's `rtol_coef = 10%` is flagged unjustified pending a drmTMB Wald-SE refit on biv-q4-phylo-reml (DRM.jl lane, 2026-09-02). | task = slice S4 here | receipt path sent to the DRM.jl lane |
 
+
+**Tension to settle (recorded, not resolved; both answers are RELAYED by sibling sessions on
+2026-09-02):** for drmTMB, Shinichi told the DRM.jl session *"one-directional for this arc"*
+(D-203). For gllvmTMB he told that session *"both ways, for user-facing capabilities"* — R ports
+the models a user would miss that the Julia twin added first; engine-internal Julia-only features
+are accounted for in writing; the bridge stays one-way (R calls Julia). The gllvmTMB session marks
+its rule inherited-by-analogy, not a drmTMB decision. The two are consistent if read as
+*scope-of-arc* vs *standing principle*: this arc stays one-directional, and the reverse-gap issue
+list should split into **user-facing** (candidates: `heritability`/`icc`/`repeatability`,
+`chibar_pvalue`/`lrt_boundary`, `aicc`) versus **engine-internal** (`coevolution_*` solvers,
+`bias_correct`, `profile_sigma_a`) so a later arc can port the first group without re-deciding.
+One sentence from Shinichi confirms or corrects this reading.
+
 ## Out of scope (with the reason)
 
 - Native mixed-family bivariate in TMB — ARC E scout: a new integration path (Gauss–Hermite or a
