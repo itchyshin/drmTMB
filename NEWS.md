@@ -25,6 +25,21 @@ Template Model Builder.
   reported. `start_from = <a fitted model>` remains reserved and
   unimplemented.
 
+## `objective_at()`: evaluate the fitted objective at a supplied point
+
+* New exported S3 generic `objective_at(object, at = list(...))`, with a
+  `drmTMB` method, implementing design 35's "Objective At A Point": it
+  shares the `start=` label vocabulary (`"fixef:<dpar>:<column>"`,
+  `"sd:<dpar>:<term>"`, `"cor:<dpar>:<term>"`) to evaluate a fitted model's
+  TMB objective (negative log-likelihood) at a supplied point, **without
+  refitting**. It reuses the existing `R/profile.R` evaluation pattern
+  (substituting into a copy of `fit$opt$par` and calling `fit$obj$fn()`)
+  rather than a second implementation. This is a diagnostic: it selects
+  nothing, reports no uncertainty, and does not mutate the fitted object
+  (the TMB object is re-pinned to its optimum after evaluation). Requires
+  `drm_control(keep_tmb_object = TRUE)` (the default). Unknown labels error
+  before evaluation, on the same rule as `start=`.
+
 ## Student-t response + one binary `mi()` predictor
 
 * A `student()` response can now carry **one** binary `mi()` predictor
