@@ -179,3 +179,48 @@ test_that("check_drm() existing check names are unchanged by hessian_conditionin
       chk$check
   ))
 })
+
+test_that("hessian conditioning refuses to touch a TMB pointer that is not live", {
+  # BACKGROUND, so a future reader does not mistake this for paranoia: a full-suite
+  # run on 2026-09-01 ABORTED R at `object$obj$he(object$opt$par)` inside
+  # check_hessian_conditioning(), reached via check_drm() on a fit that had been
+  # through saveRDS/readRDS (test-reader-oldfit-compat.R). A segfault cannot be
+  # caught by tryCatch(), so it took the session down rather than failing a test.
+  #
+  # HONEST LIMIT: that crash is NOT reproducible in isolation -- running the same
+  # file alone passes, on this branch and on the integrated tree. It needed
+  # full-suite context. So this guard is a defensible precaution, NOT a proven fix
+  # for the observed abort. Measured facts it IS built on: after readRDS the
+  # pointer formats as "<pointer: 0x0>"; obj$gr() tolerates that and returns, which
+  # is why the older gradient check never noticed; obj$he() does not.
+  set.seed(20260814)
+  dat <- data.frame(x = seq(-1, 1, length.out = 40L))
+  dat$y <- 0.4 + 0.6 * dat$x + stats::rnorm(nrow(dat), sd = 0.3)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), gaussian(), data = dat)
+
+  tf <- withr::local_tempfile(fileext = ".rds")
+  saveRDS(fit, tf)
+  fit2 <- readRDS(tf)
+
+  # The pointer really is dead immediately after deserialization.
+  expect_true(drm_tmb_pointer_is_dead(fit2$obj))
+
+  # Called directly, the guard fires and reports honestly rather than evaluating.
+  direct <- check_hessian_conditioning(fit2)
+  expect_equal(direct$status, "note")
+  expect_true(is.na(direct$value))
+  # Matches the wording common to BOTH guards: the direct call reaches the early
+  # one, the check_drm() path would reach the call-site one. Asserting either
+  # specific phrasing would couple this test to which guard happened to fire.
+  expect_match(direct$message, "TMB pointer is", fixed = TRUE)
+  expect_match(direct$message, "NOT a report that the Hessian is fine", fixed = TRUE)
+
+  # Via check_drm() the pointer is REVIVED before this row runs, so the row is
+  # computed for real. Asserted deliberately: it documents that the two paths
+  # differ, which is exactly the fact that made the early guard insufficient.
+  via <- check_drm(fit2)
+  expect_false(drm_tmb_pointer_is_dead(fit2$obj))
+  row <- via[via$check == "hessian_conditioning", ]
+  expect_equal(nrow(row), 1L)
+  expect_true(row$status %in% c("ok", "note", "warning"))
+})

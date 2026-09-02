@@ -720,6 +720,22 @@ check_hessian <- function(object) {
 # `check_drm()`. This is a stated absence, not a silent one, but it is an
 # absence: do not read a `note` row here as evidence that a random-effect
 # fit's Hessian is well- or ill-conditioned.
+# A TMB object survives saveRDS/readRDS as an R object, but its external pointer
+# does NOT: it comes back null. `obj$gr()` tolerates that (it returns, using cached
+# state), which is why the older gradient check never noticed. `obj$he()` does NOT --
+# it SEGFAULTS, and a segfault cannot be caught by tryCatch(), so it takes the whole
+# R session down. Measured 2026-09-01: the full suite aborted inside
+# test-reader-oldfit-compat.R ("a saveRDS/readRDS round trip kills the TMB pointer").
+# Detect the dead pointer BEFORE calling he(). Uses format() rather than
+# TMB:::isNullPointer() so no ::: call reaches package code and trips R CMD check.
+drm_tmb_pointer_is_dead <- function(obj) {
+  ptr <- tryCatch(obj$env$ADFun$ptr, error = function(e) NULL)
+  if (is.null(ptr) || !inherits(ptr, "externalptr")) {
+    return(TRUE)
+  }
+  identical(format(ptr), "<pointer: 0x0>")
+}
+
 check_hessian_conditioning <- function(object) {
   if (drm_is_mspl(object)) {
     eig <- object$mspl$numerical$hessian_eigenvalues
@@ -748,6 +764,19 @@ check_hessian_conditioning <- function(object) {
       )
     ))
   }
+  if (drm_tmb_pointer_is_dead(object$obj)) {
+    return(check_row(
+      "hessian_conditioning",
+      "note",
+      NA_character_,
+      paste(
+        "Hessian conditioning is unavailable because this fit's TMB pointer is no",
+        "longer live -- the object was serialized (saveRDS/readRDS) or restored from",
+        "a previous session. Refit in this session to evaluate it. This is NOT a",
+        "report that the Hessian is fine."
+      )
+    ))
+  }
   if (length(object$obj$env$random) > 0L) {
     return(check_row(
       "hessian_conditioning",
@@ -760,6 +789,24 @@ check_hessian_conditioning <- function(object) {
         "effects\"). This is a scope limit of the diagnostic, not a report",
         "that the fit is fine -- no minimum eigenvalue or condition number is",
         "computed for any random-effect or REML fit."
+      )
+    ))
+  }
+  # SECOND, CALL-SITE check. The early guard is necessary but NOT sufficient:
+  # check_drm() revives a serialized fit's TMB pointer before this function runs
+  # (measured -- the pointer reads dead on entry to check_drm and live afterwards),
+  # so the early guard never fires on that path. A revived-but-unsound pointer is
+  # what took the full suite down at exactly this line, and a segfault cannot be
+  # caught by tryCatch(), so the check must happen HERE, immediately before the call.
+  if (drm_tmb_pointer_is_dead(object$obj)) {
+    return(check_row(
+      "hessian_conditioning",
+      "note",
+      NA_character_,
+      paste(
+        "Hessian conditioning is unavailable because this fit's TMB pointer is not",
+        "live at evaluation time (typically a serialized or restored fit). Refit in",
+        "this session to evaluate it. This is NOT a report that the Hessian is fine."
       )
     ))
   }
