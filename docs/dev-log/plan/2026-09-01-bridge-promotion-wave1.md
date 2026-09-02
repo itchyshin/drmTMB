@@ -3,8 +3,12 @@
 CONDITIONS (both required before the PR is opened):
 1. drmTMB PR #1112 MERGED (non-interactive gate fix + honest controls — promoting a route that
    aborts in plain Rscript would be false).
-2. DRM.jl #575 resolved (fix landed with the P1.4 gate read from expected.meta.toml) — q4 joins
-   wave 1 only if its own gate passes; otherwise wave 1 ships without it.
+2. DRM.jl #575 is FIXED (PR #579, draft; panel-verified; full suite 9203/0/0) and its bridge
+   re-measure GATE-PASSED on the coef/logLik axes (1.9e-05 / 1.7e-04) — but the wave-1 bar also
+   requires a same-target SE receipt, which the re-measure did not produce, and the row's own
+   coverage evidence independently blocks a status move. **q4 stays OUT of wave 1** until a
+   same-target SE receipt exists AND #579 merges; wave 1 ships with the four rows below once
+   condition 1 (#1112 merge) fires.
 
 PROMOTION BAR (proposed to the maintainer; his sign-off IS the promotion authority):
 experimental → partial on the bridge axis requires (a) a same-target point+SE parity receipt on
