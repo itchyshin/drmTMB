@@ -1,0 +1,51 @@
+#!/bin/sh
+# Bake build provenance (git SHA + dirty flag) into inst/build-provenance.dcf
+# before inst/ is copied into the installed package. Runs plain `git` here,
+# directly, rather than depending on tools/drmtmb_provenance.R -- that script
+# lives under tools/, which is excluded from the built source tarball via
+# .Rbuildignore (it is a developer tool, per DRM.jl#473, not a shipped
+# component). Duplicating the few git-capture lines here keeps the shipped
+# `configure` self-contained instead of coupling it to an unshipped file.
+# See R/provenance.R (drm_provenance()) for the runtime reader.
+#
+# Never fatal: a source tree with no `.git`, or no `git` binary, must still
+# build. Write the DCF with a stated reason instead of failing.
+set -u
+OUT="inst/build-provenance.dcf"
+mkdir -p inst
+
+write_dcf() {
+  {
+    echo "GitSHA: $1"
+    echo "GitDirty: $2"
+    echo "GitReason: $3"
+    echo "BuildTimeUTC: $4"
+  } > "$OUT"
+}
+
+BUILDTIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo NA)
+
+if ! command -v git >/dev/null 2>&1; then
+  write_dcf "NA" "NA" "git executable not found on PATH" "$BUILDTIME"
+  exit 0
+fi
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  write_dcf "NA" "NA" "no .git directory found (not a git checkout, e.g. installed from a released tarball)" "$BUILDTIME"
+  exit 0
+fi
+
+SHA=$(git rev-parse HEAD 2>/dev/null)
+if [ -z "$SHA" ]; then
+  write_dcf "NA" "NA" "git rev-parse HEAD failed" "$BUILDTIME"
+  exit 0
+fi
+
+if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+  DIRTY="TRUE"
+else
+  DIRTY="FALSE"
+fi
+
+write_dcf "$SHA" "$DIRTY" "NA" "$BUILDTIME"
+exit 0
