@@ -34,7 +34,7 @@ all on origin. One DRAFT PR (#1114) exists and says it lands after #1112.
 | head that should replace it once #1112 merges | `claude/rev-parity-integration-post1112` @ 89bfd210a (+ guard: `start`/`multi_start` rejected under `engine="julia"`) |
 | label contract (ARC C2) | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 — design 258 §7, R half, repaired after Rose |
 | q4 SE receipt | `claude/rev-parity-q4-se-receipt` @ 996870366 — TMB SEs finite; Julia SE axis is the fixture fence (`wald_unavailable`, DRM.jl #495) |
-| A4/A5 cross-engine wrapper + #575 receipt | `claude/rev-parity-a4-objective-at-bridge` @ 1291772bc — internal `drm_julia_reml_objective_at()`, DRM.jl pinned `dc3ce190` (five private names, one block); receipt re-runnable, refuses any other ref |
+| A4/A5 cross-engine wrapper + #575 receipt | `claude/rev-parity-a4-objective-at-bridge` @ 7afa28b62 — internal `drm_julia_reml_objective_at()` now calls DRM.jl's SUPPORTED `drm_bridge_objective_at` (contract `bridge_objective_at_v1`), pinned DRM.jl main `e4647333`; zero private names; receipt re-runnable, refuses any other ref |
 | handoff to DRM.jl lane | `claude/rev-parity-drmjl-findings` @ b0b5577a6 — five items |
 | decisions | D-202 (vault) + `docs/dev-log/2026-09-02-rev-parity-owner-decisions.md`; relayed D-203 recorded as relayed |
 | shared page | vault `memory/TWIN-PARITY-SHARED-PAGE.md`, sent to all three sibling lanes, none disagreed |
@@ -69,22 +69,10 @@ from Shinichi for drmTMB.
    #1114 at it; then S6 promotion wave 1 exactly per
    `docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md` (on #1112's branch) — 4 rows
    `experimental → partial`, Rose forbidden-claim scan, draft PR; q4 stays out (SE axis fenced).
-   A4/A5 are DONE on `claude/rev-parity-a4-objective-at-bridge` (off the post-#1112 branch): merge that
-   branch into the integration head too. DRM.jl side (2026-09-02, Shinichi-approved, D-203 §5): the
-   primitive is DRM.jl draft PR #586 (`dc3ce190`), and a SUPPORTED entry `DRM.drm_bridge_objective_at(formula,
-   family, data, tree, options, beta, Lambda, rho12)` returning `contract = "bridge_objective_at_v1"` is being
-   built: DRM.jl draft PR #587 (stacked on #586). Signature, verbatim from that lane:
-   `DRM.drm_bridge_objective_at(formula, family, data, tree, options; beta, Lambda, rho12)` — positional
-   args are the SAME payload `drm_bridge` takes (`payload$formula`, family tag, `as.list(payload$data)`,
-   `payload$tree`, `payload$options`); keywords `Lambda = unname(Lambda)` (4x4), `rho12 = as.numeric(rho12)`,
-   `beta = list(mu1=, mu2=, sigma1=, sigma2=)` (no `beta_` prefix). Returns `contract =
-   "bridge_objective_at_v1"`, `objective` (= `reml_loglik`, normalised, same convention), `raw_reml_ll`,
-   `converged_inner`, plus the primitive's status fields; route-guarded (errors on non-q4 payloads, missing
-   tree, wrong-length beta, non-4x4 Lambda); its test pins our A5 numbers at 2e-4 and equality with the
-   private path at 1e-8. Full R replacement block: `docs/dev-log/2026-09-02-drmjl-objat-r-note.md`
-   (copied from that lane, on this branch). Once #586/#587 MERGE: replace the `julia_command`-defined shim
-   body with that one call, delete the five-private-names block, re-pin the ref to the merged SHA,
-   re-run leaf-a4/a5 (`OPENBLAS_NUM_THREADS=1`).
+   A4/A5 are DONE on `claude/rev-parity-a4-objective-at-bridge` @ 7afa28b62 (off the post-#1112 branch)
+   and ALREADY use DRM.jl's supported entry (`drm_bridge_objective_at`, merged in DRM.jl #590, pinned main
+   `e4647333`): merge that branch into the integration head too. Re-pin only when DRM.jl main moves
+   (e.g. after #577 merges): one SHA in `R/julia-bridge.R` + the receipt script, re-run leaf-a4/a5.
 2. **If #1112 is still OPEN:** nothing merges; do the two owner-independent items: project the
    `Non-Gaussian phylogenetic location-scale` row onto `docs/design/capability-status.md` as
    scope-limited (nbinom2, zero_one_beta implemented; ten families rejected by design — measured in
