@@ -49,7 +49,18 @@ evidence *could not report a failure* now can.
     build provenance                 = 558d240d074e
     anchor on a PENALIZED fit: diff  = 0.0e+00
 
-## ⚠ Read this first: the full suite CRASHED R, and the count said zero failures
+## RESOLVED overnight — but read it, because the failure mode is the lesson
+
+**Status: fixed and verified.** Run 3 of the full suite on the complete integration
+**completed with no abort**, and `reader-oldfit-compat` — the file that killed R twice — passes.
+Two failures remain and both are **proven pre-existing** (`test-reader-vignette-contracts.R:226/227`
+fail identically on an `origin/main` control with none of this lane's code). The run also
+confirmed `Julia bridge: 22 live tests ran` — D2's line firing where live Julia genuinely ran.
+
+**Ledger: 43 of 55 met.** The 12 unmet are 11 gates HELD behind PR #1112 plus the lease release.
+Every gate that *could* be met, is.
+
+## What happened, because the shape of it matters more than the fix
 
 The first full-suite run on the complete integration reported **0 test failures** and then
 aborted:
@@ -71,7 +82,7 @@ guard at the top of the function never fires on that path. Hence two guards, the
 immediately before the call. Detection uses `format(ptr)`, not `TMB:::isNullPointer()`, so no
 `:::` reaches package code.
 
-**The guard was DISPROVEN, not merely unproven.** The re-run crashed **again**, same line, with
+**The first fix was DISPROVEN, and that is the useful part.** The re-run crashed **again**, same line, with
 the guard in place — the inner frame is `f(x, type = "ADGrad", order = 1)`. `check_drm()` revives
 the pointer, so it is not null when any guard tests it, but the revived **ADGrad tape** is still
 unusable. Pointer-nullness is the wrong predicate and no guard of that kind can work.
