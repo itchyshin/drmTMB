@@ -5,9 +5,9 @@ chat context. This document, `AGENTS.md`, the decision map and the current git s
 authoritative. The earlier `2026-09-02-claude-handover.md` (reverse-parity) is superseded by this
 one for everything it listed as OWED; its facts stand.
 
-**#1112 is MERGED (13ac255a3, merged by this lane on Shinichi's word after its CI was fixed). D-164 still
-holds CRAN.** Two DRAFT PRs await the owner's merge: #1114 (the integrated reverse-parity head) and
-#1119 (bridge promotion wave 1).
+**ALL THREE MERGED on Shinichi's word (2026-09-02): #1112 (13ac255a3), #1114 (37ea93c47), #1119
+(8fda9b017 = main). D-164 still holds CRAN.** The reverse-parity lane, the coefficient-name contract,
+the A4/A5 wrapper, the q4 SE receipt, and promotion wave 1 are on main.
 
 ## FIRST ACTIONS
 
@@ -74,24 +74,22 @@ from Shinichi for drmTMB.
 
 ## Next immediate steps (OWED)
 
-1. **Owner merges** #1114 then #1119 (order matters: #1119 is off main and touches `R/julia-bridge.R`'s
-   registry rows; #1114 touches the same file elsewhere — if GitHub reports a conflict on whichever goes
-   second, rebase that one onto main and re-run `tools/write-julia-capability-comparison.R`; the
-   gate test will catch any TSV/registry drift).
-2. After both merge: delete the merged child branches on origin (keep `rev-parity-handover` until its
-   docs land on main via a docs PR), re-run `python3 DRM.jl/tools/parity_ledger.py --drmtmb . --ref origin/main`
-   (expect CLOSURE: PASS with four rows now `partial` on the bridge axis).
-3. Re-pin A4/A5 when DRM.jl main moves past #577 (one SHA in `R/julia-bridge.R` + the receipt script;
-   re-run leaf-a4/a5 with `OPENBLAS_NUM_THREADS=1`).
+1. Confirm main's CI on 8fda9b017 (a wake-up was armed at merge time; if red, read the job's own
+   remediation text first — the ledger guards print the exact command).
+2. Post-merge housekeeping: `python3 DRM.jl/tools/parity_ledger.py --drmtmb . --ref origin/main`
+   (re-run at merge time: CLOSURE PASS, four rows now `partial` on the bridge axis); delete the merged
+   child branches on origin when Shinichi says so (`claude/rev-parity-*` except `handover`, which
+   carries docs not yet on main — land those via a docs PR, then delete it too).
+3. Re-pin A4/A5 whenever DRM.jl main moves (one SHA in `R/julia-bridge.R` + the receipt script; re-run
+   leaf-a4/a5 with `OPENBLAS_NUM_THREADS=1`); regenerate the lss-tip-identity receipt LAST after any
+   R edit (it pins all of R/).
 4. Next engineering slices, each its own gate: extend `coef_labels` to the structured/joint/xfam payload
    builders and retire the legacy predict-time rewrite (design 258 §7.4); widen `objective_at()`/`start=`
-   labels to `rho12` and the q4 phylo covariance block; the reverse-gap issues #1115–#1118 (both-ways rule,
-   symbolic alignment table first); project the `Non-Gaussian phylogenetic location-scale` board row as
-   scope-limited.
+   labels to `rho12` and the q4 phylo covariance block; a deterministic indefinite-Hessian test for B2;
+   the reverse-gap issues #1115–#1118 (both-ways rule, symbolic alignment table first); project the
+   `Non-Gaussian phylogenetic location-scale` board row as scope-limited.
 5. P2–P5 arcs (G3 inference qualification on Totoro pilots, G4 threading, G5 warm grid on Totoro,
    G6/G7 docs) per the programme estimate, each behind its own D-139 gate.
-6. Do not re-run the full suite (~45 min) or `--as-cran` unless R/ code outside today's hunks changes;
-   the PR CI (PR-triggered) covers #1114 and #1119.
 
 ## Compute (Shinichi, 2026-09-02: "make good use of DRAC + Totoro")
 

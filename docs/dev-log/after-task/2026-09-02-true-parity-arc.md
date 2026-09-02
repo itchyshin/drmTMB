@@ -121,6 +121,11 @@ Repo (all on lane branches, none on main): the five slice branches above; `.unla
 Children: 3 Sonnet builds (S2, S3, S4), 1 Sonnet reconcile (S10), 1 Opus adversarial (S9), 1
 Explore scout (S0). Wall clock ≈ 5 h. No compute beyond local fits of seconds.
 
+## 10b. Merged
+
+On Shinichi's word, 2026-09-02 evening: #1114 merged as 37ea93c47, then #1119 as 8fda9b017 (main).
+Both had green CI at their heads; main's own run on the merge commit is the last check.
+
 ## 11. Handover
 
 LANE: CONTINUE HERE for S6/S7 once #1112 merges; otherwise START A FRESH TASK with:
