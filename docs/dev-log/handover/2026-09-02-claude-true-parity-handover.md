@@ -27,7 +27,7 @@ all on origin. One DRAFT PR (#1114) exists and says it lands after #1112.
 |---|---|
 | draft PR | #1114 from `claude/rev-parity-integration-all` @ 14035812f — "lands after #1112" |
 | head that should replace it once #1112 merges | `claude/rev-parity-integration-post1112` @ 89bfd210a (+ guard: `start`/`multi_start` rejected under `engine="julia"`) |
-| label contract (ARC C2) | `claude/rev-parity-c2-label-producer` @ af1790492 — design 258 §7, R half, repaired after Rose |
+| label contract (ARC C2) | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 — design 258 §7, R half, repaired after Rose |
 | q4 SE receipt | `claude/rev-parity-q4-se-receipt` @ 996870366 — TMB SEs finite; Julia SE axis is the fixture fence (`wald_unavailable`, DRM.jl #495) |
 | handoff to DRM.jl lane | `claude/rev-parity-drmjl-findings` @ b0b5577a6 — five items |
 | decisions | D-202 (vault) + `docs/dev-log/2026-09-02-rev-parity-owner-decisions.md`; relayed D-203 recorded as relayed |

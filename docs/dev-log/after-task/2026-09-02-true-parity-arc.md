@@ -19,7 +19,7 @@ still means. Julia files untouched.
 | S0 recon | rehydration reconciled; DRM.jl ledger `CLOSURE: PASS` at `origin/main` (10 covered · 1 partial by D-179 · 1 unsupported = #1112's row) | plan sweep receipt |
 | S1 land | 18 branches on origin (found already pushed by another session, SHAs identical, nothing forced); draft PR #1114 "lands after #1112"; D-202 in vault; decision record + decision map on `claude/rev-parity-handover` | `docs/dev-log/2026-09-02-rev-parity-owner-decisions.md`, `…-true-parity-decision-map.md` |
 | S2 guard | `drm_control(start=, multi_start=)` under `engine="julia"` now aborts; red control shown; filtered suites pass | `claude/rev-parity-integration-post1112` @ 89bfd210a |
-| S3 producer | design 258 §7; payload `coef_labels` (fixed-effect part only); existing validator wired; map-path cross-check against drmTMB's own names; no-vacuity rule; absent map fails closed; 10 constructs + Rose's 7 attacks green; legacy predict-time `gsub` kept and scoped | `claude/rev-parity-c2-label-producer` @ af1790492 |
+| S3 producer | design 258 §7; payload `coef_labels` (fixed-effect part only); existing validator wired; map-path cross-check against drmTMB's own names; no-vacuity rule; absent map fails closed; 10 constructs + Rose's 7 attacks green; legacy predict-time `gsub` kept and scoped | `claude/rev-parity-c2-label-producer` @ f0b7c4da9 |
 | S4 receipt | same-draw q4 REML receipt vs DRM.jl `cda42b8c`: coef/logLik agree (|Δ logLik| 1.9e-05), TMB SEs finite; Julia SE axis is the fixture's recorded fence (`wald_unavailable`, DRM.jl #495) | `claude/rev-parity-q4-se-receipt` @ 996870366 |
 | S5 handoff | five items to the DRM.jl lane, incl. the verbatim §7 contract and the SE-receipt correction | `claude/rev-parity-drmjl-findings` (HEAD) |
 | S9 Rose | see §4 | scratch verdict, summarised below |
@@ -49,7 +49,8 @@ Rose (fresh context, Opus, ~8 min): **7 refuted / 11 survived / 1 untestable her
 - **Action:** S3-G4 ABANDONED with reason; seven new gates (S3-G7..G13) written from Rose's own
   attack scripts before dispatch; repair loop sent to the same producer (fixed-effect-only label
   construction reusing the predict-time helper; map-path cross-check; no-vacuity rule; legacy
-  `gsub` restored and scoped; design 258 §7.1/§7.3/§7.4 corrected). Outcome: repaired at af1790492; my own re-run: 12/13 gates met, S3-G4 abandoned with reason; Rose's A2b/A2 scripts re-run by the coordinator now yield fixed-effect-only labels.
+  `gsub` restored and scoped; design 258 §7.1/§7.3/§7.4 corrected). Outcome: repaired at f0b7c4da9; my own re-run: 12/13 gates met, S3-G4 abandoned with reason; Rose's A2b/A2 scripts re-run by the coordinator now yield fixed-effect-only labels.
+- **Second finding, from the DRM.jl lane's measurement:** the `coef_labels` field was built into the payload but the Julia call carries only formula/family/data/tree/options, so it never reached the engine. Fixed at a17306295 (`options$coef_labels`), tests re-pinned (f0b7c4da9), gate S3-G14 added. Design 258 row 7 corrected to base R's six reduced-coding columns (both lanes measured), which makes DRM.jl#467's failures stale fixture keys, not a missing producer.
 - **Lesson recorded:** six green gates measured the tests the producer wrote, not the claim. The
   adversarial verifier is not optional (D-43, D-81).
 
@@ -66,7 +67,7 @@ as standing rule — a tension left for one sentence from Shinichi; promotion = 
 
 1. **`R/julia-bridge.R:4400` predict-time `gsub` removed by the coordinator** on the S3 branch
    (5b77eb691), outside the envelope's named hunks, on the premise it was dead code. Rose proved the
-   premise false (live structured-route callers). **Restored in the repair (af1790492)**, scoped as
+   premise false (live structured-route callers). **Restored in the repair (f0b7c4da9)**, scoped as
    the documented legacy path for routes not yet under §7; S3-G4 ABANDONED with that reason. Net
    effect on the tree: none beyond a comment. Lesson kept: a caller census, not a comment, decides
    whether code is dead.
