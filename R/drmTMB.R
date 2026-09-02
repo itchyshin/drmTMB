@@ -707,7 +707,8 @@ drm_fit_spec <- function(
     mspl = mspl,
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
-    optimizer_attempts = optimizer$attempts
+    optimizer_attempts = optimizer$attempts,
+    provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)

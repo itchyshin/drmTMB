@@ -5,6 +5,33 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Build provenance (`drm_provenance()`)
+
+* New exported `drm_provenance()` (DRM.jl#473) answers a question
+  `packageVersion("drmTMB")` cannot: which BUILD produced this attachment,
+  not just which release. Two builds can report the same version string
+  while differing by commits under `R/`, `src/`, or `NAMESPACE`.
+  `drm_provenance()` returns `package_version`, `git_sha`, `git_dirty`,
+  `build_time`, `source`, `reason`, and `queried_at`. Every fitted `drmTMB`
+  object now carries this record at `fit$provenance`.
+* The git SHA and working-tree dirty flag are captured once, at build time,
+  by `./configure`/`configure.win` (plain `git rev-parse`/`git status
+  --porcelain`, non-fatal) and baked into `inst/build-provenance.dcf`. An
+  installed package has no `.git` to consult, so `drm_provenance()` never
+  attempts a live git lookup at call time; when the baked file is absent
+  (e.g. `devtools::load_all()`, or a build whose `configure` step did not
+  run) it returns `source = "unavailable"` with a stated `reason`, and
+  `source = "baked-without-git"` when `configure` ran but git itself was
+  unavailable (no git binary, or no `.git`, as when installing from a
+  released tarball).
+* `tools/drmtmb_provenance.R` is a separate, unshipped developer/CI tool
+  (excluded from the built tarball via the pre-existing `.Rbuildignore`
+  `tools/` rule, same as every other script in that directory) for stamping
+  a build anchor into Julia-side fixture receipts. It duplicates rather than
+  shares the few git-capture lines with `configure`, deliberately: a shipped
+  `configure` must not depend on an unshipped file.
+* This is drmTMB-side only. DRM.jl has no equivalent provenance surface yet.
+
 ## Student-t response + one binary `mi()` predictor
 
 * A `student()` response can now carry **one** binary `mi()` predictor
