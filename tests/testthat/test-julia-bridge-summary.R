@@ -1,6 +1,6 @@
 # Issue #1081 option 1: a green test run must state its own boundary when the
 # Julia bridge glue was never exercised (NOT_CRAN / DRMTMB_JULIA_TESTS /
-# DRM_JL_PHYLO_PATH all unset). These tests exercise the counter/reporter
+# DRM_JL_PATH all unset). These tests exercise the counter/reporter
 # functions in helper-julia-bridge-path.R directly.
 
 test_that("summary reports skip count and says UNTESTED when nothing ran", {

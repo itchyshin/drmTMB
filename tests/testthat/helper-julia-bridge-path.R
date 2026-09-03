@@ -1,6 +1,19 @@
-drm_test_drmjl_path <- function(envvar = "DRM_JL_PHYLO_PATH") {
-  path <- Sys.getenv(envvar, "")
-  if (!nzchar(path) && !identical(envvar, "DRM_JL_PHYLO_PATH")) {
+# Issue #1127: DRM_JL_PATH is the source of truth for every test file's
+# Julia-engine path, with DRM_JL_PHYLO_PATH as a fallback (kept for callers
+# still using the older phylo-only env var). A legacy family-specific
+# `envvar` (e.g. "DRM_JL_XFAM_PATH") is honored first if set, so existing
+# opt-in overrides keep working, then falls through to DRM_JL_PATH and
+# finally DRM_JL_PHYLO_PATH. This is the only place DRM_JL_PHYLO_PATH is
+# read (gate N7-G3).
+drm_test_drmjl_path <- function(envvar = "DRM_JL_PATH") {
+  if (!identical(envvar, "DRM_JL_PATH") && !identical(envvar, "DRM_JL_PHYLO_PATH")) {
+    path <- Sys.getenv(envvar, "")
+    if (nzchar(path)) {
+      return(path)
+    }
+  }
+  path <- Sys.getenv("DRM_JL_PATH", "")
+  if (!nzchar(path)) {
     path <- Sys.getenv("DRM_JL_PHYLO_PATH", "")
   }
   path
