@@ -1269,6 +1269,55 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       labels[["resd"]] <- group
     }
   }
+  # N10 (2026-09-03): a NON-`mu` dpar carrying a bare, ORDINARY (non-phylo,
+  # non-structured) random-intercept term `(1 | g)` -- e.g. `sigma ~ (1 | g)`
+  # -- reaches DRM.jl's ordinary sparse-Laplace GLMM route directly:
+  # `drm_julia_formula_entry()` only strips the phylo tree and rewrites
+  # `meta_V()`, it does NOT strip lme4-style bars, so the unstripped term
+  # crosses the bridge as literal `"sigma ~ (1 | g)"` text and DRM.jl parses
+  # it itself. Confirmed empirically fitting `drmTMB_drm_bridge` directly
+  # against DRM.jl 77513aa0 on `("y ~ x", "sigma ~ (1 | g)")`: `coef_names`
+  # ends in `"resd_g_logsigma"` -- a BARE `"resd"` block key (unlike the
+  # phylo sigma-side case's dpar-qualified `"resd_sigma"`, S7.8 above), whose
+  # ONE label is a single compound term, UNDERSCORE-joined (not
+  # `drm_julia_recov_block_labels()`'s colon convention):
+  # `"<group>_<DRM.jl's own internal dpar name>"`, where DRM.jl's internal
+  # name for `sigma` is `"logsigma"` (its log-link working scale). Verified
+  # supplying `resd = list("g_logsigma")` reproduces `"resd_g_logsigma"`
+  # exactly and the fit proceeds (`coef_label_contract ==
+  # "bridge_formula_labels_v1"`, no echo error).
+  #
+  # Two neighbouring shapes were probed live and found to be DRM.jl-side
+  # REFUSALS, not labelling gaps, so they are explicitly left uncovered: a
+  # formula with an ordinary random term on BOTH `mu` and a non-`mu` dpar
+  # (same group, or two different groups) aborts DRM.jl's own solver with "a
+  # random effect on `sigma` must be the only random structure (the mean
+  # must be fixed effects)" regardless of what `coef_labels` supplies --
+  # confirmed fitting `("y ~ x + (1 | g)", "sigma ~ (1 | g)")` and
+  # `("y ~ x + (1 | g)", "sigma ~ (1 | h)")` directly, both refused before
+  # any coef_labels check is even reached. Nothing added here changes that
+  # refusal; it is a DRM.jl-side limitation, not addressed by this repair.
+  #
+  # Restricted to `sigma` (the only non-`mu` univariate dpar measured here --
+  # `mu1`/`mu2`/`sigma1`/`sigma2`/`rho12` are bivariate names, a different
+  # code path not reached by this check) and to a random-INTERCEPT term
+  # (`(1 | g)`, not `(1 + x | g)`) -- a random-SLOPE ordinary term on
+  # `sigma`, or the same bare-intercept shape on another non-`mu` dpar such
+  # as `nu`, is a different shape, not measured, and left alone rather than
+  # guessed at.
+  ordinary_nonmu_dpar_names <- c(sigma = "logsigma")
+  for (entry in formula$entries) {
+    if (!entry$dpar %in% names(ordinary_nonmu_dpar_names)) next
+    bars <- Filter(is_random_bar_call, flatten_plus_terms(entry$rhs))
+    if (length(bars) != 1L) next
+    bar <- strip_parens(bars[[1L]])
+    lhs <- strip_parens(bar[[2L]])
+    group <- strip_parens(bar[[3L]])
+    if (!identical(lhs, 1) || !is.name(group)) next
+    labels[["resd"]] <- paste0(
+      as.character(group), "_", ordinary_nonmu_dpar_names[[entry$dpar]]
+    )
+  }
   if (!is.null(family_type)) {
     labels <- drm_julia_bridge_default_dpar_labels(labels, formula, family_type)
   }
