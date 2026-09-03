@@ -1,5 +1,34 @@
 # drmTMB 0.7.0
 
+## Breaking: `engine = "julia"` now REFUSES unsupported `REML = TRUE` instead of quietly fitting ML
+
+* Asking for `REML = TRUE` on a cell the DRM.jl bridge cannot fit by restricted
+  maximum likelihood used to emit a warning and then **fit by maximum likelihood
+  anyway**. The same script on two engines therefore returned two different
+  estimators, separated only by a warning, and it did so on exactly the
+  quantities REML exists to correct: variance components, and every ratio built
+  from them (`heritability()`, `repeatability()`, `icc()`). Nothing in the
+  returned fit announced the substitution beyond `effective_REML`, which nobody
+  reads. It is now an error.
+* The error names the cell, says the Julia engine cannot fit it by REML, and
+  gives the two ways forward: `REML = FALSE` to ask for maximum likelihood
+  explicitly, or a documented Gaussian REML cell. The `engine = "tmb"` pointer
+  is deliberately **bounded** — TMB fits Gaussian cells by REML and has a
+  separate diagnostic-only binomial route, but it does not offer a general REML
+  fit for every cell the bridge refuses, and the error says so rather than
+  sending users to a route that will also decline.
+* The refusal fires **before** anything is marshalled to Julia, so an unsupported
+  request costs no fit.
+* Why this is not gated on finishing the support census: the two failure
+  directions are not symmetric. A gate that is too *narrow* produces a visible
+  error next to a route that works — recoverable in one line. A gate that is too
+  *wide* hands back ML labelled REML — not recoverable, because nothing tells
+  you to look. The refusal only ever affects the first direction; widening the
+  gate where the census shows DRM.jl is more capable than drmTMB assumes is a
+  separate, later change. Census batch 1 (4 cells) agrees with the current gate
+  on every cell and found no instance of the dangerous wide direction.
+
+
 First CRAN-targeted release candidate; not yet submitted to or accepted by
 CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
