@@ -645,15 +645,16 @@ round-trip (`tests/testthat/test-julia-phylo-count.R`, previously silently skipp
 mandated live env because it gates on the DIFFERENT `DRM_JL_PHYLO_PATH` variable, §7.7's next paragraph)
 now runs and passes too.
 
-**NOT fixed, measured, explicitly out of scope.** Two other phylo shapes were measured to need a
-DIFFERENT, dpar-qualified block key this repair does not attempt, and remain broken against the pinned
-echo exactly as they were before N1 touched anything (confirmed unchanged on the branch tip before and
-after this repair, same error text): a `sigma`-side phylo term (the "sigma-phylo REML" cluster,
-`drm_julia_locscale_phylo_families()`) reports `resd_sigma` with a COMPOUND term name
-(`"species:sd_sigma"`, not the bare group -- `tests/testthat/test-julia-sigma-phylo-reml.R`'s live fit
-errors `coef_labels is missing an entry for dpar "resd_sigma"`), and a correlated random-slope phylo term
-(`phylo(1 + x | g)`) is a separate, more complex shape again (likely `resd_<group>` plus a `recov_<group>`
-correlation block), neither measured here.
+**NOT fixed, measured, explicitly out of scope (at the time this paragraph was written -- see §7.8, all
+three are now fixed).** Two other phylo shapes were measured to need a DIFFERENT, dpar-qualified block key
+this repair does not attempt, and remain broken against the pinned echo exactly as they were before N1
+touched anything (confirmed unchanged on the branch tip before and after this repair, same error text): a
+`sigma`-side phylo term (the "sigma-phylo REML" cluster, `drm_julia_locscale_phylo_families()`) reports
+`resd_sigma` with a COMPOUND term name (`"species:sd_sigma"`, not the bare group --
+`tests/testthat/test-julia-sigma-phylo-reml.R`'s live fit errors `coef_labels is missing an entry for
+dpar "resd_sigma"`), and a correlated random-slope phylo term (`phylo(1 + x | g)`) is a separate, more
+complex shape again (likely `resd_<group>` plus a `recov_<group>` correlation block), neither measured
+here.
 
 **The neighbour hole, fixed.** A user-WRITTEN `sigma ~ ...` formula on a `drm_julia_dispersionless_families()`
 family (poisson, binomial -- no free dispersion parameter) aborted the echo in the OPPOSITE direction:
@@ -678,3 +679,68 @@ repair (new tests added), the SAME offline invocation
 filtered suite (`coefficient-labels|julia-bridge|julia-structured|julia-joint|xfam`) measures 646 passed +
 10 skipped, 0 failed/errors. Both numbers are freshly re-measured for this section, not carried over from
 either earlier claim.
+
+### 7.8 Amendment, 2026-09-03 (N9 -- the three §7.7 "NOT fixed" gaps closed, plus one neighbour §7.7 did
+not name)
+
+N9 (`docs/dev-log/after-task/2026-09-03-n9-label-gaps.md`) closes the three constructs §7.7 explicitly
+left broken -- a `sigma`-side phylo random-intercept term, a random-SLOPE phylo term on `mu`, and the
+`phylocov` block on the q=2 (not only q=4) bivariate phylo route -- and, while unskipping the live test
+that exercises the sigma-phylo shape end-to-end, found and closed a FOURTH gap §7.7 did not name: the
+coupled mu+sigma phylo-locscale route (`phylo_locscale` mode, both mu and sigma carrying a bare-intercept
+`phylo()` term on the SAME group) needs a block that depends on the ESTIMATOR (`method`), not only the
+formula shape. All four are measured against DRM.jl 77513aa0, empirically, by fitting `DRM.drm_bridge`
+directly and reading its own error text (never guessed from punctuation, per §3).
+
+- **`resd_<dpar>` for a non-`mu` phylo random-intercept term** (e.g. `sigma ~ phylo(1 | group, tree =
+  tree)`, family `gaussian`, sigma NOT also coupled to a mu-side phylo term on the same group) --
+  `coef_names` ends in `"resd_sigma_species:sd_sigma"`: a dpar-QUALIFIED block key (`"resd_<dpar>"`, e.g.
+  `"resd_sigma"`) whose ONE label is a COMPOUND term (`"<group>:sd_<dpar>"`, e.g. `"species:sd_sigma"`),
+  not the bare group `mu`-side phylo uses. Any non-`mu` dpar carrying a bare-intercept `phylo()` term gets
+  this rule, gated the same way the `mu` rule already is (skipped for a bivariate q2/q4 formula, and
+  skipped for a group that also carries a coupled `sd(group)`/`sd_phylo(group)` LSS dpar).
+- **`resd` for a random-SLOPE `phylo(1 + x | g)` term on `mu`** -- confirmed empirically that DRM.jl's
+  sparse-Laplace GLMM route reports EXACTLY ONE `resd_<group>` coefficient regardless of how many
+  random-effect columns the term has (`coef_names` ends in `"resd_species"`, "1 fixed-effect columns" per
+  the echo's own count) -- there is no separate intercept/slope SD split to label. The producer's existing
+  bare-group `resd` rule (previously restricted to `term$coef_names == "(Intercept)"`) now applies to any
+  `mu`-side phylo random-effect term regardless of column count.
+- **`phylocov` on the q=2 bivariate phylo route** (`mu1`/`mu2` sharing one `phylo()` term directly, no
+  sigma-side phylo axis -- distinct from the q=2 KNOWN-STRUCTURED (`relmat`/`animal`/`spatial`) route §7.6
+  already covers) -- `coef_names` ends in `"phylocov_Sigma_a:L11/L21/L22"`, the SAME lower-triangular
+  column-major convention `drm_julia_phylocov_block_labels(2L)` already generates for the known-structured
+  q2 route; only the ROUTE reaching it differs (`drm_julia_biv_phylo_dimension(formula) == "q2"`, not
+  `drm_julia_collect_structured_terms()`).
+- **`recov` vs `resd_mu`/`resd_sigma` for the coupled mu+sigma phylo-locscale route, gated on `method`**
+  (the fourth, unnamed-in-§7.7 gap) -- when the SAME group carries a bare-intercept `phylo()` term on BOTH
+  `mu` and another dpar (DRM.jl's `phylo_locscale` mode, `drm_julia_phylo_payload()`), which block DRM.jl
+  expects depends on the ESTIMATOR, not the formula: fitting the identical
+  `y ~ x + phylo(1 | species, tree = tree), sigma ~ phylo(1 | species, tree = tree)` formula through
+  `DRM.drm_bridge` directly under both `method = "ML"` and `method = "REML"` gives two different shapes.
+  - `method = "ML"` (DRM.jl's coupled route, `phylo_coupled = TRUE` in `drm_julia_bridge_options()`): ONE
+    2x2 mu/sigma-axis residual-correlation block, `coef_names` ending in `"recov_species:L11"`,
+    `"...L22"`, `"...L21"` -- a DIAG-then-OFFDIAG order, deliberately NOT `phylocov`'s lower-triangular
+    column-major order -- under dpar key `"recov"`. New helper `drm_julia_recov_block_labels(group)`
+    generates this (q=2 only; this route never reaches a larger axis count).
+  - `method = "REML"` (coupled mean-sigma phylo REML is not implemented in DRM.jl, so REML falls back to
+    the separate-block route): TWO dpar-qualified blocks, `"resd_mu"` (compound term `"<group>:sd_mu"`)
+    and `"resd_<dpar>"` (compound term `"<group>:sd_<dpar>"`) -- note the `mu` block is ALSO
+    dpar-qualified here, unlike the mu-only (no coupled sigma term) case, which keeps the bare `"resd"`
+    key.
+  `drm_julia_bridge_payload_coef_labels()` gained a `method = "ML"` parameter (threaded from the base
+  bridge's own `method` argument; the structured/known-structured payload builders never reach a `phylo()`
+  term at all, so they pass no `method` and keep the default) to make this determination -- the ONLY
+  signature change in this repair.
+
+**Why this was found, not assumed.** N9's brief named only the first three constructs (written against
+the ORIGINAL "measured broken" skip text in `tests/testthat/test-julia-tmb-parity.R`, which happened to
+describe the `resd_sigma` compound-name shape). Fixing that shape alone was not enough to make the live
+test AT that skip site pass: the SAME test also fits the coupled `mu_sigma` construct, which turned out to
+need the `recov`/`resd_mu` split above. This was discovered by running the live test after the first three
+fixes and reading DRM.jl's own abort text for the NEW failure, not by speculating about what else might be
+broken -- the same evidence discipline as every other row in this document.
+
+Test-count: `tests/testthat/test-coefficient-labels.R` gained four new offline unit tests (naming
+"resd_sigma", "random-slope", "phylocov" per this repair's own gate); the four live "measured broken"
+skips this section closes are removed from `test-julia-sigma-phylo-reml.R` (1),
+`test-julia-slope-nongaussian.R` (1), and `test-julia-tmb-parity.R` (2).
