@@ -163,15 +163,9 @@ test_that("Poisson phylo fit via engine = 'julia' is finite, sane, TMB-parity", 
     "DRM.jl phylo-count engine not available"
   )
 
-  res <- tryCatch(
-    drm_phylo_count_fit(n_tip = 24L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson phylo round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson phylo round-trip: run bare so an engine error is a test ERROR,
+  # not a swallowed skip (#1127).
+  res <- drm_phylo_count_fit(n_tip = 24L)
 
   # --- Finite-and-sane floor (always required if the fit ran) ---------------
   expect_true("drmTMB_julia" %in% res$class)

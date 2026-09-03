@@ -24,45 +24,37 @@ test_that("engine='julia' fits Gaussian response='include' (observed-data, desig
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    {
-      pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-      callr::r(
-        function(pkg, jl_path) {
-          julia_home <- Sys.getenv(
-            "DRM_JL_JULIA_HOME",
-            Sys.getenv("JULIA_HOME", "")
-          )
-          if (nzchar(julia_home)) {
-            Sys.setenv(JULIA_HOME = julia_home)
-          }
-          options(drmTMB.DRM.jl.path = jl_path)
-          suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
-          set.seed(1L)
-          n <- 60L
-          x <- stats::rnorm(n)
-          y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
-          y[1:6] <- NA
-          dat <- data.frame(y = y, x = x)
-          fj <- drmTMB::drmTMB(
-            drmTMB::bf(y ~ x, sigma ~ x),
-            family = stats::gaussian(),
-            data = dat,
-            engine = "julia",
-            missing = drmTMB::miss_control(response = "include")
-          )
-          list(ll = as.numeric(stats::logLik(fj)), nobs = stats::nobs(fj))
-        },
-        args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
-        error = "error"
+  # julia missing round-trip: run bare so an engine error is a test ERROR,
+  # not a swallowed skip (#1127).
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
       )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(1L)
+      n <- 60L
+      x <- stats::rnorm(n)
+      y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
+      y[1:6] <- NA
+      dat <- data.frame(y = y, x = x)
+      fj <- drmTMB::drmTMB(
+        drmTMB::bf(y ~ x, sigma ~ x),
+        family = stats::gaussian(),
+        data = dat,
+        engine = "julia",
+        missing = drmTMB::miss_control(response = "include")
+      )
+      list(ll = as.numeric(stats::logLik(fj)), nobs = stats::nobs(fj))
     },
-    error = function(e) {
-      testthat::skip(paste(
-        "julia missing round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
   )
 
   expect_true(is.finite(res$ll))
@@ -86,65 +78,56 @@ test_that("engine='julia' response='include' on Gaussian MEAN-phylo equals the d
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    {
-      pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-      callr::r(
-        function(pkg, jl_path) {
-          julia_home <- Sys.getenv(
-            "DRM_JL_JULIA_HOME",
-            Sys.getenv("JULIA_HOME", "")
-          )
-          if (nzchar(julia_home)) {
-            Sys.setenv(JULIA_HOME = julia_home)
-          }
-          options(drmTMB.DRM.jl.path = jl_path)
-          suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
-          set.seed(20260827L)
-          n_tip <- 12L
-          m <- 5L
-          tree <- ape::rcoal(n_tip)
-          tree$tip.label <- paste0("sp_", seq_len(n_tip))
-          A <- ape::vcv(tree, corr = TRUE)
-          u <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * 0.6
-          species <- factor(rep(tree$tip.label, each = m),
-                            levels = tree$tip.label)
-          n <- n_tip * m
-          x <- stats::rnorm(n)
-          y <- 0.3 + 0.5 * x + u[as.integer(species)] + 0.4 * stats::rnorm(n)
-          y[c(2L, 9L)] <- NA
-          y[(3L * m + 1L):(4L * m)] <- NA   # species 4 entirely masked
-          dat <- data.frame(y = y, x = x, species = species)
+  # julia mean-phylo include round-trip: run bare (#1127).
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+      set.seed(20260827L)
+      n_tip <- 12L
+      m <- 5L
+      tree <- ape::rcoal(n_tip)
+      tree$tip.label <- paste0("sp_", seq_len(n_tip))
+      A <- ape::vcv(tree, corr = TRUE)
+      u <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * 0.6
+      species <- factor(rep(tree$tip.label, each = m),
+                        levels = tree$tip.label)
+      n <- n_tip * m
+      x <- stats::rnorm(n)
+      y <- 0.3 + 0.5 * x + u[as.integer(species)] + 0.4 * stats::rnorm(n)
+      y[c(2L, 9L)] <- NA
+      y[(3L * m + 1L):(4L * m)] <- NA   # species 4 entirely masked
+      dat <- data.frame(y = y, x = x, species = species)
 
-          fit_one <- function(policy) {
-            drmTMB::drmTMB(
-              drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
-              family = stats::gaussian(),
-              data = dat,
-              engine = "julia",
-              missing = drmTMB::miss_control(response = policy)
-            )
-          }
-          fi <- fit_one("include")
-          fd <- fit_one("drop")
-          list(
-            ll_incl = as.numeric(stats::logLik(fi)),
-            ll_drop = as.numeric(stats::logLik(fd)),
-            coef_incl = as.numeric(unlist(drmTMB::fixef(fi))),
-            coef_drop = as.numeric(unlist(drmTMB::fixef(fd))),
-            nobs_incl = stats::nobs(fi)
-          )
-        },
-        args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
-        error = "error"
+      fit_one <- function(policy) {
+        drmTMB::drmTMB(
+          drmTMB::bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+          family = stats::gaussian(),
+          data = dat,
+          engine = "julia",
+          missing = drmTMB::miss_control(response = policy)
+        )
+      }
+      fi <- fit_one("include")
+      fd <- fit_one("drop")
+      list(
+        ll_incl = as.numeric(stats::logLik(fi)),
+        ll_drop = as.numeric(stats::logLik(fd)),
+        coef_incl = as.numeric(unlist(drmTMB::fixef(fi))),
+        coef_drop = as.numeric(unlist(drmTMB::fixef(fd))),
+        nobs_incl = stats::nobs(fi)
       )
     },
-    error = function(e) {
-      testthat::skip(paste(
-        "julia mean-phylo include round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
   )
 
   expect_true(is.finite(res$ll_incl))
@@ -255,21 +238,20 @@ test_that("engine='julia' count phylo fit with NA response drops rows, matches n
     "DRM.jl engine path not available"
   )
 
-  res <- tryCatch(
-    {
-      pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-      callr::r(
-        function(pkg, jl_path) {
-          julia_home <- Sys.getenv(
-            "DRM_JL_JULIA_HOME",
-            Sys.getenv("JULIA_HOME", "")
-          )
-          if (nzchar(julia_home)) {
-            Sys.setenv(JULIA_HOME = julia_home)
-          }
-          options(drmTMB.DRM.jl.path = jl_path)
-          Sys.setenv(DRM_JL_PATH = jl_path)
-          suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+  # julia count-phylo NA round-trip: run bare (#1127).
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRM.jl.path = jl_path)
+      Sys.setenv(DRM_JL_PATH = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
           set.seed(11L)
           N <- 40L
@@ -341,18 +323,9 @@ test_that("engine='julia' count phylo fit with NA response drops rows, matches n
             n_complete = nrow(dat_cc)
           )
         },
-        args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
-        error = "error"
-      )
-    },
-    error = function(e) {
-      testthat::skip(paste(
-        "julia count-phylo NA round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
+    args = list(pkg = pkg, jl_path = drm_miss_jl_path()),
+    error = "error"
   )
-  skip_if(is.null(res))
 
   if (isTRUE(res$jl_errored)) {
     # Explicit error is an acceptable contract (never a silent NaN).

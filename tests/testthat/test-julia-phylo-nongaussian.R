@@ -247,15 +247,8 @@ test_that("Gamma phylo fit via engine = 'julia' is finite and sane", {
     "DRM.jl phylo engine not available"
   )
 
-  res <- tryCatch(
-    drm_phylo_gamma_fit(n_tip = 24L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Gamma phylo round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Gamma phylo round-trip: run bare (#1127).
+  res <- drm_phylo_gamma_fit(n_tip = 24L)
 
   # Native drmTMB cannot fit Gamma phylo (TMB rejects structured terms), so the
   # Julia bridge is the only route -> finite-and-sane floor only.
@@ -284,15 +277,8 @@ test_that("Binomial phylo fit via engine = 'julia' is finite and sane", {
     "DRM.jl phylo engine not available"
   )
 
-  res <- tryCatch(
-    drm_phylo_binom_fit(n_tip = 24L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Binomial phylo round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Binomial phylo round-trip: run bare (#1127).
+  res <- drm_phylo_binom_fit(n_tip = 24L)
 
   # No native binomial twin -> finite-and-sane floor only.
   expect_true("drmTMB_julia" %in% res$class)

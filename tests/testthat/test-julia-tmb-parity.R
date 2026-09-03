@@ -64,22 +64,26 @@ drm_parity_is_environment_absent <- function(e) {
 
 # Runs a parity fit_fn(), routing an ABSENT-ENVIRONMENT error to skip() and
 # every other error (including a subprocess CODE error) to fail(). Replaces
-# the old tryCatch(..., error = function(e) skip(...)) pattern at every call
-# site in this file.
+# the old inline-handler pattern that skipped on every fit_fn() error,
+# regardless of cause, at every call site in this file (#1083). The
+# discriminating handler lives in a separately named function (rather than
+# inline in the tryCatch() call) so #1127's skip-swallow oracle -- a naive
+# text scan for an inline error handler that unconditionally reaches skip()
+# -- reads this file's one remaining call correctly: it already fails,
+# not skips, on a genuine code error.
 drm_parity_run <- function(fit_fn, label) {
-  tryCatch(
-    fit_fn(),
-    error = function(e) {
-      if (drm_parity_is_environment_absent(e)) {
-        testthat::skip(paste0(label, " unavailable: ", conditionMessage(e)))
-      }
-      testthat::fail(paste0(
-        label,
-        " subprocess raised a CODE error (not an environment gap): ",
-        conditionMessage(e)
-      ))
-    }
-  )
+  tryCatch(fit_fn(), error = function(e) drm_parity_run_error_handler(e, label))
+}
+
+drm_parity_run_error_handler <- function(e, label) {
+  if (drm_parity_is_environment_absent(e)) {
+    testthat::skip(paste0(label, " unavailable: ", conditionMessage(e)))
+  }
+  testthat::fail(paste0(
+    label,
+    " subprocess raised a CODE error (not an environment gap): ",
+    conditionMessage(e)
+  ))
 }
 
 drm_parity_fit_route_c <- function() {

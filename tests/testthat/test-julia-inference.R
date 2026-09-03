@@ -696,15 +696,9 @@ test_that("confint() profiles and bootstraps an ordinary fixed effect on a live 
     "DRM.jl phylo engine not available"
   )
 
-  res <- tryCatch(
-    drm_julia_fixef_fit(n_tip = 24L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Gaussian phylo fixef confint round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Gaussian phylo fixef confint round-trip: run bare so an engine error
+  # surfaces as a test ERROR, not a swallowed skip (#1127).
+  res <- drm_julia_fixef_fit(n_tip = 24L)
 
   wald <- res$wald
   profiled <- res$profiled
@@ -813,15 +807,8 @@ test_that("confint(method = 'bootstrap') works for a non-Gaussian (Poisson) fixe
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
 
-  res <- tryCatch(
-    drm_julia_fixef_poisson_fit(n = 60L, phylo = FALSE),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson fixed-effect bootstrap round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson fixed-effect bootstrap round-trip: run bare (#1127).
+  res <- drm_julia_fixef_poisson_fit(n = 60L, phylo = FALSE)
 
   expect_true(isTRUE(res$converged))
   expect_true(is.data.frame(res$boot))
@@ -843,15 +830,8 @@ test_that("confint(method = 'bootstrap') works for a phylo non-Gaussian fixed ef
     "DRM.jl phylo engine not available"
   )
 
-  res <- tryCatch(
-    drm_julia_fixef_poisson_fit(n = 15L, phylo = TRUE),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson phylo fixed-effect bootstrap round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson phylo fixed-effect bootstrap round-trip: run bare (#1127).
+  res <- drm_julia_fixef_poisson_fit(n = 15L, phylo = TRUE)
 
   expect_true(isTRUE(res$converged))
   expect_true(is.data.frame(res$boot))
@@ -935,15 +915,8 @@ test_that("confint() on a Poisson phylo Julia fit returns finite Wald CIs", {
     "DRM.jl phylo engine not available"
   )
 
-  res <- tryCatch(
-    drm_julia_inference_fit(n_tip = 24L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson phylo confint round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson phylo confint round-trip: run bare (#1127).
+  res <- drm_julia_inference_fit(n_tip = 24L)
 
   expect_equal(res$engine, "julia")
   expect_true(isTRUE(res$converged))
