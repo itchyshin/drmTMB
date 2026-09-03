@@ -3877,6 +3877,21 @@ profile_endpoint_evaluator <- function(object, target_position, control) {
     }
     solve_from <- function(start_values) {
       opt <- stats::nlminb(start_values, fn_free, gr_free, control = control)
+      # #1130 CI follow-up: the free (unconstrained) optimum is Newton-polished
+      # by default (`drm_fit_spec()`, `R/drmTMB.R`) to a gradient of ~1e-9-1e-14,
+      # but this constrained endpoint solve was left at whatever `nlminb` alone
+      # reached. Comparing a polished nll against an unpolished one biases the
+      # profile: the unpolished (constrained) side stops with a higher nll than
+      # its true constrained minimum, which narrows the reported interval (the
+      # `plot.window(): need finite 'xlim' values` vignette failure was the
+      # extreme case, where the endpoint's code-1 gradient exceeded
+      # `PROFILE_ENDPOINT_GRADIENT_TOL` and the solve was rejected outright).
+      # Polishing this side the same way keeps the comparison symmetric.
+      # `drm_control(newton_polish = FALSE)` skips both sides, not just the
+      # free fit, so the comparison stays symmetric in that direction too.
+      if (isTRUE(object$control$newton_polish)) {
+        opt <- drm_newton_polish(opt, fn_free, gr_free)
+      }
       opt_gradient <- tryCatch(
         gr_free(opt$par),
         error = function(err) rep(NA_real_, length(opt$par))
