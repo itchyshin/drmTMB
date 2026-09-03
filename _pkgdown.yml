@@ -184,6 +184,8 @@ reference:
       - corpairs
       - fitted.drmTMB
       - fixef
+      - heritability
+      - icc
       - imputed
       - model-fit-extractors
       - anova.drmTMB
@@ -192,6 +194,7 @@ reference:
       - predict_parameters
       - predict.drmTMB
       - ranef
+      - repeatability
       - residuals.drmTMB
       - rho12
       - sigma.drmTMB

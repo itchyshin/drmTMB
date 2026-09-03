@@ -104,7 +104,7 @@ axis with `structure_provider = phylo` in `cells.tsv`: `implemented` for
 | Variational (VA/ELBO) marginal estimator | planned |
 | Chi-bar-square boundary LRT p-value | planned |
 | Model comparison suite (LRT/anova/AICc/weights/update) | planned |
-| Heritability/repeatability/ICC accessors | planned |
+| Heritability/repeatability/ICC accessors | point-fit-recovery |
 
 Evidence for the REML rows: `cells.tsv` mc-0261/mc-0263 (fixed-effect Gaussian
 REML, `mu`/`sigma`) and mc-0265/mc-0267/mc-0269/mc-0271 (ordinary random
@@ -117,14 +117,22 @@ plain `implemented`. The q4 bivariate-phylogenetic REML row mixes
 cells -- there is no single verified claim that a REML correction reaches all
 four axes (`mu1`, `mu2`, `sigma1`, `sigma2`) together, hence `scope-limited`.
 
-`AGHQ`, chi-bar-square boundary tests, a named model-comparison suite
-(`anova`/`lrtest`/`aicc`/`weights`/`update`), and heritability/repeatability/ICC
-accessors have no implementation in `R/` and no exported symbol in
-`NAMESPACE`; AGHQ is explicitly named as a future remedy in ledger notes
-("AGHQ/REML remedies planned"), so `planned` is used rather than `rejected`.
-`profile.R` does cite Self & Liang (1987) / Stram & Lee (1994) for
-boundary-aware profile-CI flagging (`conf.status = "wald_at_boundary"`), which
-is related but not the same capability as a formal chi-bar-square LRT p-value.
+`AGHQ`, chi-bar-square boundary tests, and a named model-comparison suite
+(`anova`/`lrtest`/`aicc`/`weights`/`update`) have no implementation in `R/` and
+no exported symbol in `NAMESPACE`; AGHQ is explicitly named as a future remedy
+in ledger notes ("AGHQ/REML remedies planned"), so `planned` is used rather
+than `rejected`. `profile.R` does cite Self & Liang (1987) / Stram & Lee
+(1994) for boundary-aware profile-CI flagging
+(`conf.status = "wald_at_boundary"`), which is related but not the same
+capability as a formal chi-bar-square LRT p-value.
+
+`Heritability/repeatability/ICC accessors` moved to `point-fit-recovery`:
+`heritability()`/`icc()`/`repeatability()` (`R/heritability.R`,
+`docs/design/259-heritability-icc-repeatability.md`) fit a Gaussian
+structured-random-intercept model and recover the known variance ratio within
+tolerance across seeded simulations, and report a delta-method Wald interval,
+but that interval carries only a small-N sanity check, not a calibrated
+coverage study -- hence `point-fit-recovery` rather than plain `implemented`.
 
 ## Bivariate structure and missing data
 
