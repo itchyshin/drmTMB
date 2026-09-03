@@ -728,6 +728,114 @@ test_that("structured payload: the resd block for phylo, not just relmat/animal/
   expect_identical(labels_q4$phylocov, drmTMB:::drm_julia_phylocov_block_labels(4L))
 })
 
+test_that("resd_sigma: a sigma-side phylo() term is labelled with the compound Julia term name (unit, offline)", {
+  set.seed(1)
+  n <- 12
+  tr <- ape::rtree(n)
+  d <- data.frame(y = rnorm(n), x = rnorm(n), species = tr$tip.label)
+
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(y ~ x, sigma ~ phylo(1 | species, tree = tr)),
+    data = d,
+    env = environment(),
+    family_type = "gaussian"
+  )
+  # Measured against DRM.jl 77513aa0: `coef_names` ends in
+  # "resd_sigma_species:sd_sigma" -- block key "resd_sigma", term
+  # "species:sd_sigma" (the compound "<group>:sd_<dpar>" spelling, not the
+  # bare group DRM.jl uses for a mu-side phylo term).
+  expect_identical(labels$resd_sigma, "species:sd_sigma")
+  expect_null(labels[["resd"]])
+})
+
+test_that("resd_sigma coupled: a phylo() term on BOTH mu and sigma sharing one group needs a method-dependent label (recov for ML, resd_mu/resd_sigma for REML) (unit, offline)", {
+  set.seed(1)
+  n <- 12
+  tr <- ape::rtree(n)
+  d <- data.frame(y = rnorm(n), x = rnorm(n), species = tr$tip.label)
+  coupled_formula <- drmTMB::bf(
+    y ~ x + phylo(1 | species, tree = tr),
+    sigma ~ phylo(1 | species, tree = tr)
+  )
+
+  # Measured against DRM.jl 77513aa0 under `method = "ML"` (the default):
+  # DRM.jl's coupled mu+sigma phylo-locscale route reports ONE 2x2
+  # residual-correlation block, `coef_names` ending in "recov_species:L11",
+  # "...L22", "...L21" -- diag-then-offdiag order, distinct from
+  # `drm_julia_phylocov_block_labels()`'s lower-triangular column-major order
+  # -- under dpar key "recov", not separate "resd"/"resd_sigma" blocks.
+  labels_ml <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = coupled_formula, data = d, env = environment(),
+    family_type = "gaussian", method = "ML"
+  )
+  expect_identical(
+    labels_ml$recov,
+    drmTMB:::drm_julia_recov_block_labels("species")
+  )
+  expect_null(labels_ml[["resd"]])
+  expect_null(labels_ml[["resd_mu"]])
+  expect_null(labels_ml[["resd_sigma"]])
+
+  # Measured under `method = "REML"`: coupled mean-sigma phylo REML is not
+  # implemented in DRM.jl, so REML falls back to the separate-block route --
+  # TWO dpar-qualified blocks, "resd_mu" (compound term "species:sd_mu") and
+  # "resd_sigma" (compound term "species:sd_sigma"). The bare "resd" key
+  # (used when only mu carries the phylo term) does NOT apply here.
+  labels_reml <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = coupled_formula, data = d, env = environment(),
+    family_type = "gaussian", method = "REML"
+  )
+  expect_identical(labels_reml$resd_mu, "species:sd_mu")
+  expect_identical(labels_reml$resd_sigma, "species:sd_sigma")
+  expect_null(labels_reml[["resd"]])
+  expect_null(labels_reml[["recov"]])
+})
+
+test_that("random-slope: a mu-side phylo(1 + x | g) block is labelled with the bare group, same as an intercept-only phylo term (unit, offline)", {
+  set.seed(1)
+  n <- 15
+  tr <- ape::rtree(n)
+  d <- data.frame(y = rgamma(n, 5, 5), x = rnorm(n), species = tr$tip.label)
+
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(y ~ phylo(1 + x | species, tree = tr), sigma ~ 1),
+    data = d,
+    env = environment(),
+    family_type = "gamma"
+  )
+  # Measured against DRM.jl 77513aa0: the sparse-Laplace GLMM route reports
+  # EXACTLY ONE `resd_<group>` coefficient for a random-slope phylo term --
+  # no separate intercept/slope SD split -- so the label is the bare group,
+  # identical to the random-intercept-only case.
+  expect_identical(labels$resd, "species")
+  # The fixed-effect mu block is intercept-only: `x` lives only inside the
+  # phylo() random-slope marker, not as a separate fixed term.
+  expect_identical(labels$mu, "(Intercept)")
+})
+
+test_that("phylocov: a q=2 bivariate phylo() term (mu1/mu2, no sigma-side phylo axis) is labelled, not only q=4 (unit, offline)", {
+  set.seed(1)
+  n <- 12
+  tr <- ape::rtree(n)
+  d <- data.frame(
+    y1 = rnorm(n), y2 = rnorm(n), x = rnorm(n), species = tr$tip.label
+  )
+  q2_formula <- drmTMB::bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tr),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tr),
+    sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+  )
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = q2_formula, data = d, env = environment(), family_type = "biv_gaussian"
+  )
+  # Measured against DRM.jl 77513aa0: `coef_names` ends in
+  # "phylocov_Sigma_a:L11/L21/L22" -- the SAME q=2 lower-triangular
+  # convention the known-structured (relmat/animal/spatial) route already
+  # uses, just reached by a direct phylo() marker on mu1/mu2 instead.
+  expect_identical(labels$phylocov, drmTMB:::drm_julia_phylocov_block_labels(2L))
+  expect_null(labels$resd)
+})
+
 test_that("live echo, phylo: a univariate phylo() Julia fit reports base-R public names matching the TMB engine", {
   drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")

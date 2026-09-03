@@ -1007,7 +1007,7 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
 # only when building its (already-reduced) model matrix errors. `data` is the
 # SAME row-ordered, column-subset data the rest of the payload marshals, so
 # factor levels/contrasts match what DRM.jl receives.
-drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type = NULL) {
+drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type = NULL, method = "ML") {
   # N1 repair (2026-09-03, Rose adversarial pass, attack 2b): symmetric to
   # `drm_julia_bridge_default_dpar_labels()` ADDING a default `sigma` label
   # for families DRM.jl fits one for, a user-WRITTEN `sigma` formula on a
@@ -1097,8 +1097,20 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   # entry (it is not a user-facing distributional parameter formula could
   # ever name), so this block is built by name here rather than through the
   # per-entry loop above.
+  # N9 (2026-09-03): the SAME `phylocov` block also appears on the q=2
+  # bivariate phylo route (mu1/mu2 sharing one `phylo()` term, no sigma-side
+  # phylo axis) -- confirmed empirically fitting `DRM.drm_bridge` directly on
+  # the `gaussian_q2_mu1_mu2_phylo_residual_correlation` target
+  # (`tests/testthat/test-julia-tmb-parity.R`'s `drm_parity_fit_q2_phylo`):
+  # `coef_names` ends in "phylocov_Sigma_a:L11/L21/L22", the SAME
+  # lower-triangular q=2 convention `drm_julia_phylocov_block_labels(2L)`
+  # already generates for the known-structured (relmat/animal/spatial) q2
+  # route above -- this is the SAME block, a different route reaching it (a
+  # direct `phylo()` marker on mu1/mu2, not `drm_julia_collect_structured_terms()`).
   if (identical(drm_julia_biv_phylo_dimension(formula), "q4")) {
     labels[["phylocov"]] <- drm_julia_phylocov_block_labels(4L)
+  } else if (identical(drm_julia_biv_phylo_dimension(formula), "q2")) {
+    labels[["phylocov"]] <- drm_julia_phylocov_block_labels(2L)
   }
   # Two more routes report a block with no `formula$entries` counterpart,
   # discovered EMPIRICALLY the same way as `phylocov` above (N1, 2026-09-03,
@@ -1166,42 +1178,94 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   # fixture, which pairs a mean-side `phylo(1 | species)` term with
   # `sd_phylo(species) ~ z`, already passed the echo before this repair).
   #
-  # Restricted to a bare random-INTERCEPT phylo term on `mu`
-  # (`term$coef_names == "(Intercept)"`, `term$dpar == "mu"`), matching the
+  # Restricted to a bare random-effect phylo term on `mu` -- originally only
+  # a random-INTERCEPT (`term$coef_names == "(Intercept)"`), matching the
   # SAME restriction `drm_julia_structured_payload()` already applies to
-  # relmat/animal/spatial terms. TWO other phylo shapes are deliberately left
-  # alone here, confirmed by measurement (not assumption) to need a
-  # DIFFERENT, dpar-qualified block key this fix does not attempt: a
-  # `sigma`-side phylo term (the "sigma-phylo REML" cluster,
-  # `drm_julia_locscale_phylo_families()`) reports `resd_sigma` with a
-  # compound term name (e.g. `"species:sd_sigma"`, not the bare group), and a
-  # correlated random-slope phylo term (`phylo(1 + x | g)`) is a separate,
-  # more complex shape again (likely `resd_<group>` plus a `recov_<group>`
-  # correlation block). Both were ALREADY broken against the pinned echo
-  # before this repair (`tests/testthat/test-julia-sigma-phylo-reml.R`'s live
-  # fit errored `coef_labels is missing an entry for dpar "resd_sigma"` on
-  # this branch's own tip before this fix, unchanged in kind after it) --
-  # restricting to `dpar == "mu"` avoids sending a WRONG `resd` label that
-  # would turn that pre-existing "missing dpar" abort into a different
-  # "unknown dpar" one, and is left for a future arc rather than guessed at
-  # here.
+  # relmat/animal/spatial terms. N9 (2026-09-03) widens this to a correlated
+  # random-SLOPE phylo term too (`phylo(1 + x | g)`): confirmed empirically
+  # fitting `DRM.drm_bridge` directly on `y ~ phylo(1 + x | species, tree =
+  # tree)` (the Gamma cluster in `tests/testthat/test-julia-slope-nongaussian.R`)
+  # that DRM.jl's sparse-Laplace GLMM route reports EXACTLY ONE `resd_<group>`
+  # coefficient regardless of how many random-effect columns the term has
+  # (`coef_names` ends in `"resd_species"`, "1 fixed-effect columns" per the
+  # echo's own count) -- there is no separate intercept/slope SD split to
+  # label, so the SAME single-group-name rule below already covers it once
+  # the `coef_names == "(Intercept)"` restriction is dropped.
+  #
+  # A `sigma`-side (or other non-`mu`) phylo random-INTERCEPT term (the
+  # "sigma-phylo REML" cluster, `drm_julia_locscale_phylo_families()`) is a
+  # DIFFERENT shape, confirmed empirically fitting `DRM.drm_bridge` directly
+  # on `sigma ~ phylo(1 | species, tree = tree)`: `coef_names` ends in
+  # `"resd_sigma_species:sd_sigma"`, i.e. a dpar-QUALIFIED block key
+  # (`"resd_<dpar>"`) with a COMPOUND term name (`"<group>:sd_<dpar>"`, not
+  # the bare group). Restricted to a random-INTERCEPT term
+  # (`term$coef_names == "(Intercept)"`) -- a non-`mu` random-SLOPE phylo term
+  # is a separate shape again, not measured here, and left alone rather than
+  # guessed at.
+  #
+  # A THIRD shape when the SAME group carries a bare-intercept phylo() term
+  # on BOTH mu and the other dpar (DRM.jl's coupled "phylo_locscale" mode,
+  # `drm_julia_phylo_payload()`'s `locscale_mode`): which coef_labels block
+  # DRM.jl expects depends on the ESTIMATOR, not the formula shape, confirmed
+  # empirically fitting the SAME `y ~ x + phylo(1 | species), sigma ~
+  # phylo(1 | species)` formula through `DRM.drm_bridge` directly under both
+  # `method = "ML"` and `method = "REML"`:
+  # - ML (the coupled route, `phylo_coupled = TRUE` in `drm_julia_bridge_options()`):
+  #   ONE 2x2 residual-correlation block, `coef_names` ending in
+  #   `"recov_species:L11"`, `"...L22"`, `"...L21"` -- a diag-then-offdiag
+  #   order, NOT `phylocov`'s lower-triangular column-major order -- under
+  #   dpar key `"recov"`.
+  # - REML (the separate-block route -- coupled mean-sigma phylo REML is not
+  #   implemented, so REML falls back to the plain per-dpar route): TWO
+  #   dpar-qualified blocks, `"resd_mu"` (compound term `"<group>:sd_mu"`) and
+  #   `"resd_<dpar>"` (compound term `"<group>:sd_<dpar>"`) -- the bare `mu`
+  #   group is qualified here too, unlike the mu-only (no coupled sigma term)
+  #   case above.
   if (is.na(drm_julia_biv_phylo_dimension(formula))) {
     phylo_terms <- Filter(
-      function(term) {
-        identical(term$type, "phylo") &&
-          identical(term$coef_names, "(Intercept)") &&
-          identical(term$dpar, "mu")
-      },
+      function(term) identical(term$type, "phylo"),
       unlist(
         lapply(formula$entries, function(entry) entry$structured),
         recursive = FALSE
       )
     )
-    phylo_groups <- unique(vapply(phylo_terms, `[[`, character(1L), "group"))
     entry_dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
     is_lss_dpar <- grepl("^sd(_phylo)?\\([^()]+\\)$", entry_dpars)
     lss_groups <- sub("^sd(_phylo)?\\(([^()]+)\\)$", "\\2", entry_dpars[is_lss_dpar])
-    for (group in setdiff(phylo_groups, lss_groups)) {
+
+    mu_phylo_terms <- Filter(function(term) identical(term$dpar, "mu"), phylo_terms)
+    mu_ri_groups <- unique(vapply(
+      Filter(function(term) identical(term$coef_names, "(Intercept)"), mu_phylo_terms),
+      `[[`, character(1L), "group"
+    ))
+    mu_slope_groups <- unique(vapply(
+      Filter(function(term) !identical(term$coef_names, "(Intercept)"), mu_phylo_terms),
+      `[[`, character(1L), "group"
+    ))
+
+    other_phylo_terms <- Filter(
+      function(term) {
+        !identical(term$dpar, "mu") && identical(term$coef_names, "(Intercept)")
+      },
+      phylo_terms
+    )
+    coupled_groups <- character()
+    for (term in other_phylo_terms) {
+      if (term$group %in% mu_ri_groups) {
+        coupled_groups <- c(coupled_groups, term$group)
+        if (identical(family_type, "gaussian") && !identical(toupper(method), "REML")) {
+          labels[["recov"]] <- drm_julia_recov_block_labels(term$group)
+        } else {
+          labels[["resd_mu"]] <- paste0(term$group, ":sd_mu")
+          labels[[paste0("resd_", term$dpar)]] <- paste0(term$group, ":sd_", term$dpar)
+        }
+      } else if (!(term$group %in% lss_groups)) {
+        labels[[paste0("resd_", term$dpar)]] <- paste0(term$group, ":sd_", term$dpar)
+      }
+    }
+
+    excluded_groups <- union(lss_groups, coupled_groups)
+    for (group in setdiff(union(mu_ri_groups, mu_slope_groups), excluded_groups)) {
       labels[["resd"]] <- group
     }
   }
@@ -1267,6 +1331,19 @@ drm_julia_phylocov_block_labels <- function(q) {
     }
   }
   names
+}
+
+# `<group>:L11`/`<group>:L22`/`<group>:L21` labels for the coupled mu+sigma
+# phylo location-scale route's 2x2 mu/sigma-axis residual-correlation block
+# under `method = "ML"` (dpar key "recov") -- diag-then-offdiag order,
+# confirmed empirically against DRM.jl 77513aa0 (N9, 2026-09-03) and
+# deliberately NOT `drm_julia_phylocov_block_labels()`'s lower-triangular
+# column-major order (that convention orders `Sigma_a:L11/L21/L22`; this one
+# is `recov_<group>:L11/L22/L21`). Only q=2 is reachable through this route
+# (exactly one mu axis and one sigma axis share the group), so this helper
+# does not generalise to q like `drm_julia_phylocov_block_labels()` does.
+drm_julia_recov_block_labels <- function(group) {
+  c(paste0(group, ":L11"), paste0(group, ":L22"), paste0(group, ":L21"))
 }
 
 # Objective-At-A-Point, DRM.jl bridge counterpart (#575 follow-up; A4/A5,
@@ -1410,7 +1487,8 @@ drm_julia_bridge_payload <- function(
     formula = formula,
     data = data_out,
     env = env,
-    family_type = family_type
+    family_type = family_type,
+    method = method
   )
   options <- drm_julia_bridge_options(
     phylo_payload,
