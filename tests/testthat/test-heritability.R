@@ -192,7 +192,17 @@ test_that("documented label: the roxygen @examples phylo component label matches
   # in R/heritability.R itself, rather than hard-coding a second copy here,
   # so this test fails if the documented example label ever drifts from the
   # code again (Rose 2026-09-03 verdict, Attack 3 documentation finding).
-  src <- readLines(testthat::test_path("..", "..", "R", "heritability.R"), warn = FALSE)
+  # Under R CMD check the tests run from the built tarball, where R/ does
+  # not exist (CI failure on PR #1125, 2026-09-03), so fall back to the
+  # installed Rd's \\examples section, which carries the same literal text.
+  src_file <- testthat::test_path("..", "..", "R", "heritability.R")
+  src <- if (file.exists(src_file)) {
+    readLines(src_file, warn = FALSE)
+  } else {
+    rd <- tools::Rd_db("drmTMB")[["heritability.Rd"]]
+    ex <- Filter(function(x) identical(attr(x, "Rd_tag"), "\\examples"), rd)
+    unlist(lapply(ex, function(e) strsplit(paste(unlist(e), collapse = ""), "\n")[[1]]))
+  }
   example_line <- grep('icc\\(phylo_fit, component = "', src, value = TRUE, fixed = FALSE)
   expect_length(example_line, 1L)
   documented_label <- sub('.*component = "([^"]+)".*', "\\1", example_line)
