@@ -1,0 +1,7 @@
+M NEWS.md
+M R/drmTMB.R
+M R/objective-at.R
+M docs/design/35-optimizer-start-map-multistart.md
+M docs/dev-log/after-task/2026-09-03-n3-labels.md
+M tests/testthat/test-objective-at.R
+M tests/testthat/test-start-contract.R

@@ -358,3 +358,117 @@ test_that("a fixef:mu: start under REML errors instead of being silently accepte
   expect_s3_class(err, "error")
   expect_match(conditionMessage(err), "REML", ignore.case = FALSE)
 })
+
+# rho12 and phylo covariance block labels (design 35, "Phylo Covariance
+# Block"; A5 gap, N3 2026-09-03, corrected N3b 2026-09-03): `fixef:rho12:
+# <term>`, `phylo_sd:<axis>`, and `phylo_theta:<axis1>:<axis2>` now reach
+# `biv_gaussian`'s `rho12` fixed effect and the q4 dense phylogenetic
+# covariance block, closing the gap the A5 cross-engine receipt worked
+# around by addressing `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal
+# TMB parameter name. This fixture's phylo block is DENSE (a single shared
+# label across all four endpoints), so `theta_phylo` entries are raw
+# Cholesky-space working parameters, not pairwise correlations --
+# `phylo_theta:`, not `phylo_cor:`, is the honest family here.
+start_contract_biv_q4_phylo_fixture <- function() {
+  set.seed(575)
+  tree <- ape::rcoal(16L, tip.label = sprintf("sp%02d", seq_len(16L)))
+  species <- factor(rep(tree$tip.label, each = 3L), levels = tree$tip.label)
+  n <- length(species)
+  dat <- data.frame(
+    y1 = stats::rnorm(n),
+    y2 = stats::rnorm(n),
+    x = stats::rnorm(n),
+    species = species
+  )
+  form <- bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+    rho12 = ~1
+  )
+  list(data = dat, tree = tree, formula = form)
+}
+
+test_that("a start naming rho12 and the q4 phylo covariance block converges to the same optimum", {
+  fx <- start_contract_biv_q4_phylo_fixture()
+
+  cold <- suppressWarnings(drmTMB(
+    fx$formula,
+    family = biv_gaussian(),
+    data = fx$data,
+    engine = "tmb",
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust", keep_tmb_object = TRUE)
+  ))
+
+  par <- cold$opt$par
+  log_sd_phylo <- unname(par[names(par) == "log_sd_phylo"])
+  theta_phylo <- unname(par[names(par) == "theta_phylo"])
+  rho12_hat <- as.numeric(coef(cold)$rho12[["(Intercept)"]])
+  axes <- c("mu1", "mu2", "sigma1", "sigma2")
+  pairs <- list(
+    c("mu1", "mu2"), c("mu1", "sigma1"), c("mu2", "sigma1"),
+    c("mu1", "sigma2"), c("mu2", "sigma2"), c("sigma1", "sigma2")
+  )
+  start <- list("fixef:rho12:(Intercept)" = rho12_hat)
+  for (i in seq_along(axes)) {
+    start[[paste0("phylo_sd:", axes[[i]])]] <- exp(log_sd_phylo[[i]])
+  }
+  for (i in seq_along(pairs)) {
+    start[[paste0("phylo_theta:", pairs[[i]][[1L]], ":", pairs[[i]][[2L]])]] <- theta_phylo[[i]]
+  }
+
+  warm <- suppressWarnings(drmTMB(
+    fx$formula,
+    family = biv_gaussian(),
+    data = fx$data,
+    engine = "tmb",
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust", start = start)
+  ))
+
+  expect_equal(as.numeric(logLik(warm)), as.numeric(logLik(cold)), tolerance = 1e-6)
+})
+
+test_that("a phylo_cor: start refuses on the dense q4 phylo covariance block, pointing to phylo_theta:", {
+  fx <- start_contract_biv_q4_phylo_fixture()
+  err <- tryCatch(
+    drmTMB(
+      fx$formula,
+      family = biv_gaussian(),
+      data = fx$data,
+      engine = "tmb",
+      REML = TRUE,
+      control = drm_control(
+        optimizer_preset = "robust",
+        start = list("phylo_cor:mu1:mu2" = 0.3)
+      )
+    ),
+    error = function(e) e
+  )
+  expect_s3_class(err, "error")
+  expect_match(conditionMessage(err), "dense")
+  expect_match(conditionMessage(err), "phylo_theta:mu1:mu2")
+})
+
+test_that("phylo_cor: refuses values inside the unit interval that TMB's bounded map cannot reach", {
+  # Rose N3 pass (2026-09-03): TMB maps rho = 0.999999 * tanh(eta), so the
+  # start inverse atanh(value / 0.999999) is NaN for 0.999999 <= |value| < 1.
+  # Positive control first: the bare inverse really is NaN there.
+  expect_true(is.nan(suppressWarnings(atanh(0.9999995 / 0.999999))))
+  expect_error(
+    drmTMB:::drm_check_phylo_cor_start_value(0.9999995, "phylo_cor:mu:sigma", "a q = 2 phylogenetic block"),
+    regexp = "0.999999"
+  )
+  expect_error(
+    drmTMB:::drm_check_phylo_cor_start_value(-0.9999995, "phylo_cor:mu:sigma", "a q = 2 phylogenetic block"),
+    regexp = "0.999999"
+  )
+  expect_error(
+    drmTMB:::drm_check_phylo_cor_start_value(NA_real_, "phylo_cor:mu:sigma", "a q = 2 phylogenetic block"),
+    regexp = "0.999999"
+  )
+  expect_identical(drmTMB:::drm_check_phylo_cor_start_value(0.999, "phylo_cor:mu:sigma", "x"), 0.999)
+  expect_true(is.finite(atanh(0.999 / drmTMB:::drm_phylo_cor_bound)))
+})
