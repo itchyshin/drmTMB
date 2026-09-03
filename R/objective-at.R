@@ -1,8 +1,10 @@
 # Objective-At-A-Point (docs/design/35-optimizer-start-map-multistart.md,
 # "Objective At A Point"). `start=` and `objective_at()` share one public
 # label vocabulary ("fixef:<dpar>:<column>", "sd:<dpar>:<term>",
-# "cor:<dpar>:<term>"): the translation from label to internal TMB slot lives
-# in `drm_parse_public_start_label()` / `drm_resolve_public_start_target()`
+# "cor:<dpar>:<term>", "phylo_sd:<axis>", "phylo_cor:<axis1>:<axis2>",
+# "phylo_theta:<axis1>:<axis2>"): the translation from label to internal
+# TMB slot lives in `drm_parse_public_start_label()` /
+# `drm_resolve_public_start_target()`
 # (R/drmTMB.R), and is reused here rather than reimplemented. The evaluation
 # itself reuses the pattern already used for profile-CI endpoints
 # (`profile_endpoint_evaluator()`, `profile_lincomb()` in R/profile.R): pin
@@ -73,7 +75,7 @@ objective_at.drmTMB <- function(object, at, ...) {
     if (is.null(parsed) || identical(parsed$family, "u")) {
       cli::cli_abort(c(
         "Unknown {.arg at} label {.val {label}}.",
-        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, {.code phylo_cor:<axis1>:<axis2>}, or {.code phylo_theta:<axis1>:<axis2>} format."
       ))
     }
     resolved <- drm_resolve_public_start_target(spec, parsed, at[[i]], label)

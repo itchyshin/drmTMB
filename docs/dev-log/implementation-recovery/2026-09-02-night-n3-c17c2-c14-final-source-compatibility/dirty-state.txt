@@ -1,0 +1,4 @@
+M R/drmTMB.R
+M R/objective-at.R
+M tests/testthat/test-objective-at.R
+M tests/testthat/test-start-contract.R

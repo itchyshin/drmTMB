@@ -75,13 +75,20 @@ structure providers across the other families.
 | Gaussian animal-model random intercept (mean) | implemented |
 | Gaussian relmat random intercept (mean) | implemented |
 | Non-Gaussian phylogenetic random intercept (mean) | scope-limited |
+| Non-Gaussian phylogenetic location-scale (μ + log σ) | scope-limited |
 
 `Gaussian phylogenetic random intercept (mean)` is `scope-limited`: the
 per-family reference table records "phylo=scope-limited (implemented 4;
 rejected 1; not implemented 1)" for gaussian `mu`. `Non-Gaussian phylogenetic
 random intercept (mean)` mixes `scope-limited` (lognormal, gamma, poisson,
 nbinom2, beta) and `rejected` (student, binomial) cells across families, so it
-is reported at the coarser `scope-limited` level here.
+is reported at the coarser `scope-limited` level here. `Non-Gaussian
+phylogenetic location-scale (μ + log σ)` is `scope-limited` on the `sigma`
+axis with `structure_provider = phylo` in `cells.tsv`: `implemented` for
+`nbinom2` (`interval_feasible`, mc-0421) and `zero_one_beta`
+(`point_fit_recovery`, mc-0593), `rejected_by_design` for `beta`,
+`beta_binomial`, `gamma`, `hurdle_nbinom2`, `lognormal`, `skew_normal`,
+`student`, `truncated_nbinom2`, `tweedie`, and `zi_nbinom2`.
 
 ## Estimation and inference
 
@@ -144,7 +151,7 @@ NAMESPACE symbol used per-family for one binary missing predictor.
 
 ## Snapshot
 
-- 42 capabilities, all `implemented`/`scope-limited`/`point-fit-recovery`/
+- 43 capabilities, all `implemented`/`scope-limited`/`point-fit-recovery`/
   `rejected`/`planned` per the mapping above.
 - Sources read: `docs/dev-log/dashboard/capability-ledger/cells.tsv`,
   `docs/dev-log/dashboard/capability-ledger/schema.json`,
@@ -162,35 +169,33 @@ Compared against `DRM.jl` `origin/main:docs/design/capability-status.md`:
 
 | | count |
 |---|---:|
-| rows in this file | 42 |
+| rows in this file | 43 |
 | rows in DRM.jl's file | 46 |
-| **matched exactly (byte-for-byte row name)** | **42** |
+| **matched exactly (byte-for-byte row name)** | **43** |
 | near-misses (differ only by case, punctuation or spacing) | **0** |
 | present only in this file | **0** |
-| present only in DRM.jl's file | 4 |
+| present only in DRM.jl's file | 3 |
 
 **Every row in this file has an exact counterpart in the twin, and no row name
 differs only cosmetically.** The join is sound in the direction that matters for
 this file.
 
-The four DRM.jl-only rows are:
+The three DRM.jl-only rows are:
 
 - `Conjugate-EM Gaussian phylo-mean (`algorithm = :em`)`
 - `Natural-gradient EM (`algorithm = :natgrad`)`
 - `Fisher / observed-info metric (`lc_metric`)`
-- `Non-Gaussian phylogenetic location-scale (μ + log σ)`
 
-The first three name **Julia-side algorithm choices**, not model capabilities:
-they are alternative optimisers/metrics for problems drmTMB reaches by a
-different route, so they have no natural R counterpart and their absence here is
-correct rather than a gap.
+These name **Julia-side algorithm choices**, not model capabilities: they are
+alternative optimisers/metrics for problems drmTMB reaches by a different
+route, so they have no natural R counterpart and their absence here is correct
+rather than a gap.
 
-The fourth is different in kind. **`Non-Gaussian phylogenetic location-scale
-(μ + log σ)` is a model capability the twin lists and this board does not** — it
-is not resolvable as a naming difference. Whether drmTMB implements it, rejects
-it by design, or simply has not projected it onto this board is a question for
-the model-surface ledger, not for this landing. It is recorded here so the
-asymmetry is visible; **no status is asserted for it either way.**
+`Non-Gaussian phylogenetic location-scale (μ + log σ)` used to be a fourth
+DRM.jl-only row -- a model capability the twin lists that this board did not
+project. It is now added to the "Random-effect structure" table above at
+`scope-limited`, resolved from `cells.tsv` (`dpar = sigma`,
+`structure_provider = phylo`) rather than asserted from this section.
 
 This section is a name-match verification. It promotes nothing, and where this
 file and `docs/dev-log/dashboard/capability-ledger/cells.tsv` disagree, the

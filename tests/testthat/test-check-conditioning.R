@@ -62,6 +62,46 @@ test_that("check_drm() reports hessian_conditioning as a warning for a genuinely
   expect_false(attr(chk, "ok"))
 })
 
+test_that("check_drm() reports hessian_conditioning as a warning for a deterministic injected-indefinite covariance", {
+  # Platform-independent replacement for the resolvably-indefinite test
+  # above: rather than relying on a collinear design landing on the
+  # non-PD side of the boundary (Linux LAPACK vs macOS LAPACK disagree
+  # on that fit, hence the premise guard there), this injects a
+  # covariance matrix with one robustly negative eigenvalue directly
+  # into a COPY of an ordinary well-conditioned fit's sdr$cov.fixed.
+  # check_hessian_conditioning() (R/check.R) reads only
+  # object$sdr$cov.fixed for a non-MSPL fit, decomposes it with
+  # eigen(), and reports a "warning" whenever the smallest eigenvalue
+  # is negative well beyond the sqrt(.Machine$double.eps)-scaled
+  # roundoff floor -- it never calls obj$he() and never inspects
+  # sdr$pdHess, so this construction exercises the exact same code
+  # path deterministically on every platform.
+  set.seed(20260901)
+  dat <- data.frame(
+    y = stats::rnorm(80),
+    x = stats::rnorm(80)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat
+  )
+
+  fit2 <- fit
+  p <- nrow(fit2$sdr$cov.fixed)
+  indefinite_cov <- diag(c(-1, rep(1, p - 1)))
+  fit2$sdr$cov.fixed <- indefinite_cov
+  fit2$sdr$pdHess <- FALSE
+
+  chk <- suppressWarnings(check_drm(fit2))
+  row <- chk[chk$check == "hessian_conditioning", ]
+
+  expect_equal(nrow(row), 1L)
+  expect_equal(row$status, "warning")
+  expect_match(row$value, "min_eig=-")
+  expect_false(attr(chk, "ok"))
+})
+
 test_that("check_drm() reports a stable, non-warning hessian_conditioning row for round-off-scale near-singular collinearity", {
   # Reproduces the false-positive originally reported against B2-G3: two
   # predictors so close to collinear that a direct AD Hessian's smallest

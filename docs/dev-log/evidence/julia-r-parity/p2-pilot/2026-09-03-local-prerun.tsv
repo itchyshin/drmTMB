@@ -1,0 +1,8 @@
+row	coef	engine	method	seed	step	wall_seconds	ci_lower	ci_upper	converged
+plain_binomial_nonphylo	fit	tmb	fit	NA	fit	0.0640	NA	NA	TRUE
+plain_binomial_nonphylo	fit	julia	warmup	NA	warmup	24.4780	NA	NA	NA
+plain_binomial_nonphylo	fit	julia	fit	NA	fit	0.2510	NA	NA	TRUE
+plain_binomial_nonphylo	(Intercept)	tmb	profile	NA	ci	0.4150	-0.2997883823	-0.1077829373	TRUE
+plain_binomial_nonphylo	(Intercept)	julia	profile	NA	ci	8.2070	-0.2997906318	-0.1077818345	TRUE
+plain_binomial_nonphylo	x	tmb	profile	NA	ci	0.3580	0.3488908676	0.5490818066	TRUE
+plain_binomial_nonphylo	x	julia	profile	NA	ci	0.0670	0.348890774	0.5490841101	TRUE
