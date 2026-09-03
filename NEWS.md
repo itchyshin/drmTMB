@@ -1,5 +1,42 @@
 # drmTMB 0.7.0
 
+## Pinned DRM.jl clone moved from `77513aa0` to `e0a65f96b`
+
+* The `engine = "julia"` evidence and live tests are measured against a pinned
+  DRM.jl checkout. That pin moved. Measured on the **full** live-Julia suite (all
+  37 `test-julia*.R` files, one session): **1433 passed, 0 failed, 1 error**,
+  where the single error is the one intended behaviour change below. The clone's
+  `Project.toml` is identical across the two refs, so the previous pin's
+  `Manifest.toml` was carried over and **dependency versions are held fixed** —
+  only engine code differs between the measurements.
+* **`phylo(1 + x | g)` on a univariate route is now REFUSED by DRM.jl rather than
+  silently fitted.** At the old pin, DRM.jl's parser kept only the grouping symbol,
+  so it fitted an **intercept-only** model and quietly discarded `x` — the label was
+  correct for the model it actually fitted, not for the two-SD random slope the user
+  wrote. DRM.jl now fails closed. `tests/testthat/test-julia-slope-nongaussian.R`
+  asserts that specific refusal, with negative controls so that a `coef_labels`
+  regression, a precompile failure, or a missing-package error cannot pass as the
+  refusal. A genuine two-SD phylogenetic random slope on non-Gaussian families
+  remains unimplemented on both engines.
+* The new pin also carries DRM.jl's REML honesty work: the bridge now reports
+  `estim_method` on every fit, `ml_loglik` always, and `reml_loglik` only when the
+  fit really was restricted. A silent ML downgrade is therefore now directly
+  observable rather than inferred from a likelihood gap.
+* Reading that work surfaced a gap in the other direction: DRM.jl's rewritten
+  refusal message enumerates the cells it *can* fit by REML, and that list is wider
+  than `drm_julia_reml_supported()` in three places — bivariate structured q=2,
+  Poisson `(1 | g)`, and Poisson `phylo(1 | species)`. Since the Julia route now
+  refuses rather than downgrading, those three raise an avoidable error. Tracked as
+  #1152; deliberately **not** fixed here, because DRM.jl's message is its own claim
+  about itself and widening the gate on it, unverified, risks the more dangerous
+  opposite fault.
+* Provenance comments throughout the source and design notes that read "measured
+  against DRM.jl 77513aa0" are left standing: they are dated records of what was
+  verified then, and rewriting them would assert measurements never made at the new
+  pin. `docs/design/258` §7.8 records which of those statements a reader must carry
+  forward differently.
+
+
 ## Breaking: `engine = "julia"` now REFUSES unsupported `REML = TRUE` instead of quietly fitting ML
 
 * Asking for `REML = TRUE` on a cell the DRM.jl bridge cannot fit by restricted

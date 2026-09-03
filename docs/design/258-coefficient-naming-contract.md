@@ -749,6 +749,36 @@ of `phylo(<not 1> | group)` on its univariate routes; once drmTMB's pinned clone
 Gamma random-slope test in `test-julia-slope-nongaussian.R` must expect an engine refusal, and a two-SD
 random-slope label becomes a new row here (DRM.jl's S8 follow-up implements the Gaussian case).
 
+**THIS HAS NOW HAPPENED (2026-09-03 re-pin, 77513aa0 -> e0a65f96b).** The refusal is
+`_check_phylo_re_lhs` (`src/gaussian_ranef.jl`), verified read-only as present at the new pin and ABSENT
+at 77513aa0 — which is exactly why the old pin fitted `phylo(1 + x | g)` silently as an intercept-only
+model. `tests/testthat/test-julia-slope-nongaussian.R` now asserts DRM.jl's specific refusal text rather
+than a finite fit, with negative controls so that a `coef_labels` regression, a precompile failure, or a
+missing-package error cannot masquerade as the refusal. The two-SD random-slope label row is still
+unwritten and still waits on DRM.jl's S8 Gaussian implementation.
+
+### 7.8 Re-pin note, 2026-09-03: which statements in this document are dated
+
+The pinned DRM.jl clone moved from `77513aa0` to `e0a65f96b`. Every "measured against DRM.jl 77513aa0"
+line above is a DATED RECORD of what was verified then, and is left standing rather than rewritten —
+rewriting them to name the new pin would claim measurements that were never made there. Two consequences
+are NOT merely historical, and a reader should carry them forward:
+
+1. **The univariate-Gaussian REML refusal text quoted in §7 changed.** DRM.jl #624 replaced
+   *"method = :REML is currently implemented only for the fixed-effect Gaussian location–scale model and
+   for a single Gaussian mean random intercept `(1 | g)` ..."* with a message that instead ENUMERATES what
+   REML is available for: the fixed-effect Gaussian location–scale model; a single Gaussian mean random
+   intercept `(1 | g)`; every `sd()` LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the
+   multi-component `sd()` router); the bivariate structured routes (q=2 and q=4, native and via
+   `drm_bridge`); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Any test or prose matching the
+   OLD wording is matching a string the engine no longer emits.
+2. **That enumeration is WIDER than `drm_julia_reml_supported()`** in three cells — bivariate structured
+   q=2, Poisson `(1 | g)`, and Poisson `phylo(1 | species)`. Since drmTMB now REFUSES rather than
+   silently downgrading (#1149), those three raise an avoidable error. Tracked as drmTMB#1152, to be
+   verified with DRM.jl #625's `estim_method` field before the gate is widened — DRM.jl's message is its
+   own claim about itself, not a measurement, and widening on a docstring risks the opposite and more
+   dangerous fault.
+
 Test-count: `tests/testthat/test-coefficient-labels.R` gained four new offline unit tests (naming
 "resd_sigma", "random-slope", "phylocov" per this repair's own gate); the four live "measured broken"
 skips this section closes are removed from `test-julia-sigma-phylo-reml.R` (1),

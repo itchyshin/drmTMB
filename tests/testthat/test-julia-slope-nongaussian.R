@@ -51,23 +51,41 @@ drm_phylo_slope_gamma_fit <- function(n_tip = 40L) {
   )
 }
 
-test_that("Gamma phylo random-slope (1 + x | species) via engine = 'julia' is finite and sane", {
+test_that("Gamma phylo random-slope (1 + x | species) is REFUSED by DRM.jl, in its own words", {
   drm_skip_live_julia()
   testthat::skip_if_not_installed("JuliaCall")
   testthat::skip_if_not_installed("callr")
   testthat::skip_if_not_installed("ape")
-  # Engine availability is decided by drm_skip_live_julia() above; an engine
-  # error here is a test error, not a skip (#1127, Rose N7 pass 2026-09-03).
-  # Was measured broken live on 2026-09-03: DRM.jl 77513aa0 aborted with
-  # 'coef_labels is missing an entry for dpar "resd"' because the R-side
-  # producer only labelled the resd block of a random-INTERCEPT phylo term.
-  # Fixed by N9 (2026-09-03, design 258 S7.7 amendment): DRM.jl's
-  # sparse-Laplace GLMM route reports exactly one `resd_<group>` coefficient
-  # for a random-slope phylo term too (no separate intercept/slope split),
-  # so the same bare-group label now covers it -- see
-  # `drm_julia_bridge_payload_coef_labels()`, R/julia-bridge.R.
-  res <- drm_phylo_slope_gamma_fit()
-  expect_identical(res$engine, "julia")
-  expect_true(is.finite(res$loglik_julia))
-  expect_gt(res$nobs, 0L)
+  # CHANGED BY THE 2026-09-03 RE-PIN (77513aa0 -> e0a65f96b). DRM.jl #621 added
+  # `_check_phylo_re_lhs` (src/gaussian_ranef.jl), which REFUSES a phylogenetic
+  # random SLOPE on the univariate routes instead of fitting something it does
+  # not implement. So this cell no longer produces a fit, and asserting "finite
+  # and sane" would assert a number DRM.jl has stopped claiming to produce.
+  #
+  # The refusal is the CORRECT behaviour and this test now pins it. Verified
+  # read-only against both clones: `_check_phylo_re_lhs` exists at the new pin
+  # and does NOT exist at 77513aa0, which is exactly why the old pin fitted this
+  # silently.
+  #
+  # The #1127 principle is PRESERVED, not weakened: engine availability is still
+  # decided by drm_skip_live_julia() above, an engine error is still a test error
+  # rather than a skip, and this does not catch-and-ignore. It asserts DRM.jl's
+  # SPECIFIC refusal, so any OTHER engine failure -- a marshalling fault, a
+  # coef_labels gap, a numerical abort -- still fails the test rather than being
+  # absorbed by a bare expect_error().
+  cnd <- tryCatch(drm_phylo_slope_gamma_fit(), error = function(e) e)
+  expect_s3_class(cnd, "error")
+  msg <- conditionMessage(cnd)
+
+  # DRM.jl's own words, from src/gaussian_ranef.jl `_check_phylo_re_lhs`
+  expect_true(grepl("not implemented on the", msg, fixed = TRUE))
+  expect_true(grepl("univariate routes", msg, fixed = TRUE))
+  expect_true(grepl("only `phylo(1 | species)` (intercept) is", msg, fixed = TRUE))
+
+  # NEGATIVE CONTROLS: the failures this test must NOT silently pass on.
+  # `coef_labels` was the previous live breakage on this exact cell (N9,
+  # 2026-09-03); a regression there must not be mistaken for the refusal.
+  expect_false(grepl("coef_labels", msg, fixed = TRUE))
+  expect_false(grepl("Failed to precompile", msg, fixed = TRUE))
+  expect_false(grepl("Package DRM not found", msg, fixed = TRUE))
 })
