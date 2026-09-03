@@ -117,6 +117,16 @@ durable path and the others may have as well).
    N2 ported three DRM.jl-only accessors under a relayed "both-ways rule D-204" that was never
    confirmed in Shinichi's own words for drmTMB specifically. Do not re-derive these; ask them.
 
+7. **q4 Wald SEs across engines: an owner decision, not a bug (DRM.jl lane, 02:45 UTC).** DRM.jl #611
+    (merged 88493250) established that the all-NaN bridge `vcov()` recorded in the q4 SE-axis receipt is
+    the bridge's deliberate default `q4_vcov = false` for bivariate q4 phylogenetic fits
+    (`src/bridge.jl:458-464`); native REML and the bridge with `options[["q4_vcov"]] = TRUE` both return
+    a finite positive-definite `vcov` agreeing with an independent Hessian to below 1e-5. The seven Wald
+    SEs in the `biv-q4-phylo-reml` `[se]` block stay `not_comparable` while the default stands. Three
+    ways to make the block comparable, any one of which suffices: flip the bridge default in DRM.jl; add
+    a size heuristic there; or have drmTMB pass `q4_vcov = TRUE` when it wants Wald SEs (the R-side
+    option, which this lane could take without touching DRM.jl). Which?
+
 ## CARRIED-OVER (every branch not on main, why, and the resume command)
 
 | branch | why not landed | resume command |

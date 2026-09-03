@@ -142,3 +142,12 @@ second of those two lands.)
     (R workflows → Julia) or two-directional? N2 ported three DRM.jl-only accessors under the
     "both-ways rule D-204" cited in leaf-n2.md's OWNS line — confirm this is the intended standing
     interpretation, not a one-off exception.
+10. **q4 Wald SEs across engines: an owner decision, not a bug (DRM.jl lane, 02:45 UTC).** DRM.jl #611
+    (merged 88493250) established that the all-NaN bridge `vcov()` recorded in the q4 SE-axis receipt is
+    the bridge's deliberate default `q4_vcov = false` for bivariate q4 phylogenetic fits
+    (`src/bridge.jl:458-464`); native REML and the bridge with `options[["q4_vcov"]] = TRUE` both return
+    a finite positive-definite `vcov` agreeing with an independent Hessian to below 1e-5. The seven Wald
+    SEs in the `biv-q4-phylo-reml` `[se]` block stay `not_comparable` while the default stands. Three
+    ways to make the block comparable, any one of which suffices: flip the bridge default in DRM.jl; add
+    a size heuristic there; or have drmTMB pass `q4_vcov = TRUE` when it wants Wald SEs (the R-side
+    option, which this lane could take without touching DRM.jl). Which?
