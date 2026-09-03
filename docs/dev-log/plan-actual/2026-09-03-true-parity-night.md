@@ -151,3 +151,14 @@ second of those two lands.)
     ways to make the block comparable, any one of which suffices: flip the bridge default in DRM.jl; add
     a size heuristic there; or have drmTMB pass `q4_vcov = TRUE` when it wants Wald SEs (the R-side
     option, which this lane could take without touching DRM.jl). Which?
+
+## Follow-on arcs N7 and N8 (added after the 03:35 UTC close, inside the mission and envelope)
+
+Both are drmTMB-side bugs found during the night's own work; owner-decision items (#1129, #1130, promotion, `q4_vcov`) stayed in the morning queue. Each landed as a green PR with a ledger written before dispatch and a Rose pass before merge.
+
+- **N8, #1123, PR #1132 merged 208e0c903 (04:43 UTC).** Parametric bootstrap CIs aborted for every binomial fit written as `cbind(successes, failures)` because `response_name_from_model_frame()` returned `model.frame()`'s label `"cbind(s, f)"`, never a data column. `bootstrap_response_data()` now rebuilds both columns from the simulated successes and `trials - successes`, gated on the cbind encoding; Bernoulli and weights paths unchanged. RED test reproduced the exact error on main; a per-row trial-size invariant is tested; Rose's five attacks (other encodings, row alignment, edge rows, alternative spellings, regression) all survived. Ledger leaf-n8 all met.
+- **N7, #1127, PR #1133 MERGED: PENDING at the time of writing.** All 22 tryCatch-to-skip sites in the live Julia tests removed (a paren-aware oracle counted 21 plus, after Rose, one spelled as a NULL handler followed by `skip_if(is.null(...))`; the issue said 16). One helper resolves the DRM.jl path (`DRM_JL_PATH`, `DRM_JL_PHYLO_PATH` only as a fallback inside it). No assertion removed (Rose's census: identical `expect_` counts across 11 files); a fake DRM.jl directory now yields a test error, not a skip. Removing the swallows exposed four constructs measured broken at DRM.jl 77513aa0, each now a visible skip naming the cause: `resd_sigma` (sigma-side phylo, two sites), `phylocov` at `test-julia-tmb-parity.R:348`, and `resd` for a random-slope phylo block (`test-julia-slope-nongaussian.R`). The first and last are the holes design 258 S7.7 already lists; the `phylocov` site is new and narrower.
+
+**Added morning question 11.** The `coef_labels` producer has three remaining label gaps under DRM.jl's echo: `resd_sigma` (sigma-side phylo), `resd` for random-slope phylo blocks, and `phylocov` for the construct at `test-julia-tmb-parity.R:348`. Extend the producer (one arc, same pattern as N1's repair) or keep them as documented boundaries?
+
+**Oracle lesson of record.** A ledger gate whose file list comes from `git diff --name-only origin/main` breaks as soon as main moves (N8 landed a test file N7 does not have); use `--diff-filter=AM`. And a text oracle for "no swallow" needs the NULL-handler shape as well as the inline `skip()` shape; the widened script is `.unlazy/night/bin/count-skip-swallow.py`.
