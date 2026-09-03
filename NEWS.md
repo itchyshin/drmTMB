@@ -5,6 +5,19 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
+
+* `confint(fit, method = "bootstrap")` errored with "Bootstrap confidence
+  intervals require a stored response column in the fitted data" for
+  binomial fits whose response used trial-denominator syntax --
+  `bf(cbind(successes, failures) ~ x)` -- even though `method = "wald"` and
+  `method = "profile"` worked on the same fit. The internal resampler only
+  knew how to write a single simulated response column back into the
+  refit data, so a two-column `cbind()` response tripped its guard.
+  Bootstrap replicates now rebuild the two-column response from the
+  simulated successes and each row's original trial size; Bernoulli 0/1 and
+  proportion-with-weights binomial fits are unaffected.
+
 ## Fitted objects now store the final gradient (DRM.jl #569, R-side)
 
 * `drmTMB()` fits now carry `$gradient` (the final outer gradient at

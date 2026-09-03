@@ -2957,6 +2957,24 @@ bootstrap_response_data <- function(object, simulations, index) {
     data[[response_names[[2L]]]] <- simulations[[sim_y2]]
     return(data)
   }
+  if (identical(object$model$model_type, "binomial")) {
+    denominator <- object$model$denominator
+    if (
+      is.list(denominator) &&
+        identical(denominator$encoding, "cbind(successes, failures)")
+    ) {
+      sim_col <- paste0("sim_", index)
+      if (!sim_col %in% names(simulations)) {
+        cli::cli_abort(
+          "Internal error: bootstrap simulations are missing response column {.val {sim_col}}."
+        )
+      }
+      successes <- simulations[[sim_col]]
+      data[[denominator$success_name]] <- successes
+      data[[denominator$failure_name]] <- denominator$trials - successes
+      return(data)
+    }
+  }
   response <- response_name_from_model_frame(
     object,
     "mu",
