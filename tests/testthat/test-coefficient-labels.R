@@ -652,3 +652,99 @@ test_that("live predict on a structured Julia fit aligns factor and interaction 
   expect_length(pr, 5L)
   expect_true(all(is.finite(pr)))
 })
+
+# --- N1 repair (2026-09-03): Rose adversarial pass, "the WORST" refutation
+# and the "neighbour hole". A bare univariate `phylo(1 | group)` random
+# intercept aborted the echo on ALREADY-MERGED main (same class of gap as the
+# base-bridge default-sigma fix), and a user-written `sigma` formula on a
+# dispersionless family aborted it too, in the opposite direction.
+
+test_that("dispersionless sigma: a user-written sigma formula on poisson/binomial is refused, not silently sent to the echo", {
+  d <- data.frame(y = seq_len(12), x = seq_len(12) / 12)
+  for (fam in c("poisson", "binomial")) {
+    expect_error(
+      drmTMB:::drm_julia_bridge_payload_coef_labels(
+        formula = drmTMB::bf(y ~ x, sigma ~ 1),
+        data = d,
+        env = environment(),
+        family_type = fam
+      ),
+      "does not support a .sigma. formula"
+    )
+  }
+  # A formula with no sigma entry at all is unaffected -- only `sigma` itself
+  # is refused, not the mu block or the family.
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(y ~ x),
+    data = d,
+    env = environment(),
+    family_type = "poisson"
+  )
+  expect_identical(labels$mu, c("(Intercept)", "x"))
+  expect_null(labels$sigma)
+})
+
+test_that("structured payload: the resd block for phylo, not just relmat/animal/spatial, is labelled (unit, offline)", {
+  set.seed(1)
+  n <- 12
+  tr <- ape::rtree(n)
+  d <- data.frame(y = rnorm(n), x = rnorm(n), species = tr$tip.label)
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(y ~ x + phylo(1 | species, tree = tr), sigma ~ 1),
+    data = d,
+    env = environment(),
+    family_type = "gaussian"
+  )
+  expect_identical(labels$mu, c("(Intercept)", "x"))
+  expect_identical(labels$resd, "species")
+
+  # The coupled LSS route (a `sd(group)`/`sd_phylo(group)` dpar on the SAME
+  # group) reports the random-effect covariance through that block INSTEAD --
+  # no separate `resd` for that group.
+  labels_lss <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(
+      y ~ x + phylo(1 | species, tree = tr), sigma ~ x,
+      sd(species, level = "phylogenetic") ~ 1
+    ),
+    data = d,
+    env = environment(),
+    family_type = "gaussian"
+  )
+  expect_null(labels_lss$resd)
+  expect_identical(labels_lss$sd_phylo, "(Intercept)")
+
+  # A bivariate q4 phylo formula reports the covariance through `phylocov`
+  # instead -- `resd` must NOT be added there (it would itself abort the
+  # echo, "supplies names for unknown dpar").
+  q4_formula <- drmTMB::bf(
+    mu1 = y ~ x + phylo(1 | species, tree = tr),
+    mu2 = y ~ x + phylo(1 | species, tree = tr),
+    sigma1 = ~ phylo(1 | species, tree = tr), sigma2 = ~ phylo(1 | species, tree = tr)
+  )
+  labels_q4 <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = q4_formula, data = d, env = environment(), family_type = "biv_gaussian"
+  )
+  expect_null(labels_q4$resd)
+  expect_identical(labels_q4$phylocov, drmTMB:::drm_julia_phylocov_block_labels(4L))
+})
+
+test_that("live echo, phylo: a univariate phylo() Julia fit reports base-R public names matching the TMB engine", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(42)
+  n <- 24
+  tr <- ape::rcoal(n)
+  d <- data.frame(x = rnorm(n), species = tr$tip.label)
+  d$y <- 1 + 0.5 * d$x + rnorm(n, 0, 0.6)
+
+  form <- drmTMB::bf(y ~ x + phylo(1 | species, tree = tr), sigma ~ 1)
+  fj <- drmTMB(form, family = gaussian(), data = d, engine = "julia")
+  ft <- drmTMB(form, family = gaussian(), data = d)
+
+  expect_false(is.null(fj$bridge_public_coef_labels))
+  expect_identical(names(coef(fj, "mu")), names(coef(ft, "mu")))
+  expect_true("resd_species" %in% fj$bridge_public_coef_labels$public)
+})
