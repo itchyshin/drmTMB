@@ -340,12 +340,18 @@ test_that("q4 bivariate phylo location-scale corpairs surfaces among-axis correl
 # --- Live q=4 Wald SEs (D-213 #2, `q4_vcov`) --------------------------------
 
 # Fit the committed `biv-q4-phylo-reml` fixture (in the pinned DRM.jl checkout
-# at `test/parity/q4-reml/biv-q4-phylo-reml/`) ONCE with `engine = "julia"`
-# (REML, `q4_vcov` at its new default TRUE) and ONCE with `engine = "tmb"` on
-# the SAME data, in a clean subprocess, and compare `vcov()`. Before D-213 #2
-# the bridge sent no `q4_vcov` option, DRM.jl's own bridge default
-# (`q4_vcov = false`) applied, and `vcov()` on this route was all-NaN (see
-# `docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-02-q4-se-receipt.md`).
+# at `test/parity/q4-reml/biv-q4-phylo-reml/`) THREE ways in a clean
+# subprocess, on the SAME data: `engine = "tmb"` (the SE reference),
+# `engine = "julia"` with NO `q4_vcov` option (the default -- OPT-IN, owner
+# steer 2026-09-03: drmTMB no longer overrides DRM.jl's own `q4_vcov = false`
+# default, so `vcov()` here is all-NaN, DRM.jl's own behaviour, unless asked
+# otherwise), and `engine = "julia"` with `control = drm_control(optimizer =
+# list(q4_vcov = TRUE))` (the opt-in path this D-213 #2 slice adds). Before
+# D-213 #2 there was no `q4_vcov` option at all and `vcov()` on this route was
+# ALWAYS all-NaN (see
+# `docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-02-q4-se-receipt.md`);
+# now a user gets that same all-NaN default unless they explicitly ask for
+# the finite-difference pass.
 drm_phylo_q4_vcov_fit <- function() {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   jl_path <- drm_phylo_q4_path()
@@ -382,13 +388,25 @@ drm_phylo_q4_vcov_fit <- function() {
         engine = "tmb",
         REML = TRUE
       )
-      fj <- drmTMB::drmTMB(
+      fj_default <- drmTMB::drmTMB(
         form,
         family = drmTMB::biv_gaussian(),
         data = dat,
         engine = "julia",
         REML = TRUE
       )
+      fj <- drmTMB::drmTMB(
+        form,
+        family = drmTMB::biv_gaussian(),
+        data = dat,
+        engine = "julia",
+        REML = TRUE,
+        control = drmTMB::drm_control(optimizer = list(q4_vcov = TRUE))
+      )
+
+      Vj_default <- stats::vcov(fj_default)
+      default_all_nan <- all(is.nan(Vj_default))
+      default_any_finite <- any(is.finite(Vj_default))
 
       Vj <- stats::vcov(fj)
       finite_vcov <- all(is.finite(Vj))
@@ -409,6 +427,9 @@ drm_phylo_q4_vcov_fit <- function() {
       list(
         tmb_converged = drmTMB::is_converged(ft),
         julia_converged = drmTMB::is_converged(fj),
+        julia_default_converged = drmTMB::is_converged(fj_default),
+        default_all_nan = default_all_nan,
+        default_any_finite = default_any_finite,
         finite_vcov = finite_vcov,
         pd_vcov = pd_vcov,
         n_common = length(common),
@@ -444,9 +465,18 @@ test_that("q4 bivariate phylo REML vcov is finite, positive-definite, and matche
 
   expect_true(isTRUE(res$tmb_converged))
   expect_true(isTRUE(res$julia_converged))
+  expect_true(isTRUE(res$julia_default_converged))
 
-  # D-213 #2: with `q4_vcov = TRUE` sent by default, the bridge vcov() is no
-  # longer all-NaN.
+  # Owner steer (2026-09-03): `q4_vcov` is OPT-IN, not default-on. WITHOUT the
+  # option, `vcov()` on this route stays all-NaN -- this is DRM.jl's own
+  # bridge default (`src/bridge.jl`'s `_bridge_fit`), unmodified by drmTMB,
+  # and is now the permanent regression test for that default (formerly a
+  # RED CONTROL run by hand; f1-G2 in the ledger).
+  expect_true(res$default_all_nan)
+  expect_false(res$default_any_finite)
+
+  # WITH `control = drm_control(optimizer = list(q4_vcov = TRUE))`, the
+  # bridge vcov() is finite and positive-definite.
   expect_true(res$finite_vcov)
   expect_true(res$pd_vcov)
 

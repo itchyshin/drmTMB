@@ -730,10 +730,14 @@ drm_julia_translate_control <- function(control) {
       overrides$algorithm <- drm_julia_validate_algorithm(value)
     } else if (identical(name, "q4_vcov")) {
       # D-213 #2: the ONLY route that reads this key is the bivariate q = 4
-      # phylogenetic branch of `drm_julia_bridge_options()`, which defaults it
-      # to TRUE. A non-q4 route simply carries an unused `q4_vcov` entry in
-      # `control_overrides` -- harmless, since `drm_julia_merge_options()`
-      # only ever reaches DRM.jl via the q4 branch's own `q4_finish()`.
+      # phylogenetic branch of `drm_julia_bridge_options()`, where it is
+      # OPT-IN (owner steer, 2026-09-03: DRM.jl's own default is `false`, and
+      # drmTMB no longer overrides it -- REML-fit SEs answer a different
+      # question than TMB's, and the cost grows with fit size; see that
+      # branch's comment). A non-q4 route simply carries an unused `q4_vcov`
+      # entry in `control_overrides` -- harmless, since
+      # `drm_julia_merge_options()` only ever reaches DRM.jl via the q4
+      # branch's own `q4_finish()`.
       if (!isTRUE(value) && !isFALSE(value)) {
         cli::cli_abort(
           "{.code engine = \"julia\"} requires {.code optimizer$q4_vcov} to be {.code TRUE} or {.code FALSE}."
@@ -1814,32 +1818,47 @@ drm_julia_bridge_options <- function(
     # (src/bridge.jl, `_bridge_fit`) because its finite-difference Wald
     # covariance is a SEPARATE, auxiliary computation over the q4 fitted
     # point -- expensive at large q4 phylogenetic fits per its own comment,
-    # and can fail after a usable fit has already been found. Left at that
-    # default, `vcov()` on this route is all-NaN (DRM.jl issue #611's
-    # starting point). Issue #611 established that WITH the option on, the
-    # returned covariance is finite, positive definite, and agrees with an
-    # independent Hessian to within 1e-5.
+    # and can fail after a usable fit has already been found. drmTMB matches
+    # that default rather than overriding it: `q4_vcov` stays OPT-IN, via
+    # `drm_control(optimizer = list(q4_vcov = TRUE))`. Left unset, `vcov()`
+    # on this route is all-NaN -- DRM.jl's own behaviour, unchanged, unless
+    # the user asks for the finite-difference pass.
     #
-    # MEASURED (2026-09-03, this worktree, one warm Julia session, throwaway
-    # warm-up fit first; `docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/`
-    # `q4_vcov_cost.R`): on the committed 16-tip/128-row `biv-q4-phylo-reml`
-    # fixture (REML), q4_vcov=FALSE -> TRUE went 0.967s -> 1.110s (+0.143s,
-    # +14.8%). On a bigger simulated 60-tip/180-row fit (ML), it went 0.951s
-    # -> 3.708s (+2.757s, +289.9%) -- both fits converged and q4_vcov=TRUE
-    # returned a finite vcov() both times, but the cost is NOT a fixed
-    # overhead: it roughly quadrupled the fit's own wall time once the tree
-    # went from 16 to 60 tips, matching DRM.jl's own comment that the
-    # finite-difference Wald covariance is expensive at LARGE q4 phylogenetic
-    # fits (more tips -> a bigger finite-difference Hessian over the
-    # among-axis parameters). Decision: send `q4_vcov = TRUE` BY DEFAULT so
-    # `vcov()` stops being all-NaN out of the box (the D-213 #2 ask), but keep
-    # it OPT-OUT via `drm_control(optimizer = list(q4_vcov = FALSE))` for a
-    # user whose q4 fit is large enough that the measured ~3x-4x wall-time
-    # multiplier matters, or who hits a failure in the auxiliary
-    # finite-difference pass after an otherwise usable fit.
-    if (!"q4_vcov" %in% names(q4_overrides)) {
-      q4_overrides$q4_vcov <- TRUE
-    }
+    # OWNER STEER (2026-09-03, this worktree): a first cut of this arc sent
+    # `q4_vcov = TRUE` by default. Two measured facts changed that decision:
+    #
+    # (1) SEs answer a DIFFERENT QUESTION on a REML fit, not just a noisier
+    # one. DRM.jl's `q4_vcov` Hessian (`_q4_fd_vcov` in
+    # `src/gaussian_bivariate.jl`, read not edited) differentiates the
+    # ORDINARY (ML) marginal likelihood's score at the fitted point,
+    # REGARDLESS of whether that point came from an ML or a REML fit. On a
+    # REML fit -- the committed q4 parity fixture, and the only q4 route with
+    # a documented capability row -- this is a Hessian of a DIFFERENT
+    # objective than the one TMB's `sdreport()` differentiates (the
+    # REML-restricted likelihood), so the two engines' REML SEs are not
+    # expected to be comparable at all, only in the same ballpark: measured
+    # max relative delta ~10.5% on the committed 16-tip fixture (see the live
+    # test below). DRM.jl issue #611's "agrees with an independent Hessian
+    # below 1e-5" is a Julia-internal check (finite-difference vs analytic,
+    # both inside DRM.jl, both on the SAME ML-marginal objective) -- it does
+    # not transfer to a claim that Julia's REML-fit `q4_vcov` SEs match
+    # drmTMB's TMB REML SEs, and measurement confirms it does not.
+    #
+    # (2) The cost is real and grows with fit size, not fixed. MEASURED
+    # (`docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/q4_vcov_cost.R`,
+    # one warm Julia session): the committed 16-tip/128-row REML fixture went
+    # 0.967s -> 1.110s (+14.8%); a bigger simulated 60-tip/180-row ML fit went
+    # 0.954s -> 3.786s (+296.9%) -- the finite-difference pass roughly
+    # quadrupled the fit's own wall time once the tree went from 16 to 60
+    # tips, matching DRM.jl's own comment that it is expensive at LARGE q4
+    # phylogenetic fits.
+    #
+    # A default that silently pays an unbounded, size-dependent wall-time
+    # cost for SEs that answer a different question than expected on a REML
+    # fit is not a safe default. A user who wants Wald SEs on this route asks
+    # for them explicitly, and in doing so accepts BOTH: the wall-time cost
+    # (2) and that the REML-fit SEs are not the REML-restricted SEs TMB
+    # reports (1).
     if (reml) {
       return(q4_finish(list(method = "REML")))
     }

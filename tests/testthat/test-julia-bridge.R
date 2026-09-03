@@ -616,14 +616,12 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
     data = dat,
     env = environment()
   )
-  # q4 route: DRM.jl defaults (no g_tol override) plus `q4_vcov = TRUE`
-  # (D-213 #2, so `vcov()` on this route stops being all-NaN); the block
-  # label "p" is NOT a data column; the tree is marshalled as Newick; markers
-  # preserved per axis.
-  expect_equal(
-    drm_test_options_sans_labels(payload$options),
-    list(q4_vcov = TRUE)
-  )
+  # q4 route: DRM.jl defaults (no g_tol override, no `q4_vcov` -- D-213 #2,
+  # owner steer 2026-09-03: `q4_vcov` is OPT-IN, not sent unless requested via
+  # `drm_control(optimizer = list(q4_vcov = TRUE))`, so the default payload is
+  # byte-identical to pre-D-213 #2); the block label "p" is NOT a data
+  # column; the tree is marshalled as Newick; markers preserved per axis.
+  expect_equal(drm_test_options_sans_labels(payload$options), list())
   expect_true(is.list(payload$options$coef_labels))
   expect_equal(payload$formula$sigma1, "sigma1 ~ 1 + phylo(1 | species)")
   expect_false("p" %in% names(payload$data))
@@ -639,10 +637,39 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
   )
   expect_equal(
     drm_test_options_sans_labels(reml_payload$options),
-    list(method = "REML", q4_vcov = TRUE)
+    list(method = "REML")
   )
   expect_true(is.list(reml_payload$options$coef_labels))
   expect_true(drmTMB:::drm_julia_reml_supported(form, "biv_gaussian"))
+
+  # D-213 #2 plumbing, opt-in: `q4_vcov` reaches the payload options ONLY
+  # when explicitly requested via `control_overrides` (what
+  # `drm_julia_translate_control(drm_control(optimizer = list(q4_vcov =
+  # TRUE)))` produces) -- the same mechanism `g_tol`/`algorithm` already use.
+  q4_vcov_overrides <- drmTMB:::drm_julia_translate_control(
+    drm_control(optimizer = list(q4_vcov = TRUE))
+  )
+  expect_equal(q4_vcov_overrides, list(q4_vcov = TRUE))
+  q4_vcov_payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = form,
+    family_type = "biv_gaussian",
+    data = dat,
+    env = environment(),
+    method = "REML",
+    control_overrides = q4_vcov_overrides
+  )
+  expect_equal(
+    drm_test_options_sans_labels(q4_vcov_payload$options),
+    list(method = "REML", q4_vcov = TRUE)
+  )
+  # ...and requesting `q4_vcov = FALSE` explicitly is a no-op relative to the
+  # default (still absent from what DRM.jl actually reads as `false`, but
+  # sent explicitly rather than omitted) -- confirms the FALSE branch of the
+  # validator, not just TRUE.
+  q4_vcov_false_overrides <- drmTMB:::drm_julia_translate_control(
+    drm_control(optimizer = list(q4_vcov = FALSE))
+  )
+  expect_equal(q4_vcov_false_overrides, list(q4_vcov = FALSE))
 
   q2_form <- bf(
     mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
@@ -781,7 +808,7 @@ test_that("Julia q4 bridge admits bivariate response masks without R-side droppi
   expect_true(anyNA(captured$data$y2))
   expect_equal(
     drm_test_options_sans_labels(captured$options),
-    list(method = "REML", q4_vcov = TRUE)
+    list(method = "REML")
   )
   expect_true(is.list(captured$options$coef_labels))
   expect_equal(fit$estimator, "REML")
