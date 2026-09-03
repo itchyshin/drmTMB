@@ -360,11 +360,15 @@ test_that("a fixef:mu: start under REML errors instead of being silently accepte
 })
 
 # rho12 and phylo covariance block labels (design 35, "Phylo Covariance
-# Block"; A5 gap, N3 2026-09-03): `fixef:rho12:<term>`, `phylo_sd:<axis>`, and
-# `phylo_cor:<axis1>:<axis2>` now reach `biv_gaussian`'s `rho12` fixed effect
-# and the q4 dense phylogenetic covariance block, closing the gap the A5
-# cross-engine receipt worked around by addressing `beta_rho12`/
-# `log_sd_phylo`/`theta_phylo` by internal TMB parameter name.
+# Block"; A5 gap, N3 2026-09-03, corrected N3b 2026-09-03): `fixef:rho12:
+# <term>`, `phylo_sd:<axis>`, and `phylo_theta:<axis1>:<axis2>` now reach
+# `biv_gaussian`'s `rho12` fixed effect and the q4 dense phylogenetic
+# covariance block, closing the gap the A5 cross-engine receipt worked
+# around by addressing `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal
+# TMB parameter name. This fixture's phylo block is DENSE (a single shared
+# label across all four endpoints), so `theta_phylo` entries are raw
+# Cholesky-space working parameters, not pairwise correlations --
+# `phylo_theta:`, not `phylo_cor:`, is the honest family here.
 start_contract_biv_q4_phylo_fixture <- function() {
   set.seed(575)
   tree <- ape::rcoal(16L, tip.label = sprintf("sp%02d", seq_len(16L)))
@@ -412,7 +416,7 @@ test_that("a start naming rho12 and the q4 phylo covariance block converges to t
     start[[paste0("phylo_sd:", axes[[i]])]] <- exp(log_sd_phylo[[i]])
   }
   for (i in seq_along(pairs)) {
-    start[[paste0("phylo_cor:", pairs[[i]][[1L]], ":", pairs[[i]][[2L]])]] <- theta_phylo[[i]]
+    start[[paste0("phylo_theta:", pairs[[i]][[1L]], ":", pairs[[i]][[2L]])]] <- theta_phylo[[i]]
   }
 
   warm <- suppressWarnings(drmTMB(
@@ -425,4 +429,25 @@ test_that("a start naming rho12 and the q4 phylo covariance block converges to t
   ))
 
   expect_equal(as.numeric(logLik(warm)), as.numeric(logLik(cold)), tolerance = 1e-6)
+})
+
+test_that("a phylo_cor: start refuses on the dense q4 phylo covariance block, pointing to phylo_theta:", {
+  fx <- start_contract_biv_q4_phylo_fixture()
+  err <- tryCatch(
+    drmTMB(
+      fx$formula,
+      family = biv_gaussian(),
+      data = fx$data,
+      engine = "tmb",
+      REML = TRUE,
+      control = drm_control(
+        optimizer_preset = "robust",
+        start = list("phylo_cor:mu1:mu2" = 0.3)
+      )
+    ),
+    error = function(e) e
+  )
+  expect_s3_class(err, "error")
+  expect_match(conditionMessage(err), "dense")
+  expect_match(conditionMessage(err), "phylo_theta:mu1:mu2")
 })

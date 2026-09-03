@@ -212,11 +212,15 @@ objective_at_biv_q4_phylo_fit <- function() {
   ))
 }
 
-# Builds the `fixef:rho12:...`/`phylo_sd:...`/`phylo_cor:...` start from a
+# Builds the `fixef:rho12:...`/`phylo_sd:...`/`phylo_theta:...` start from a
 # fit's OWN optimum, matching the axis order `phylo_mu_endpoint_dpars()` uses
 # for `log_sd_phylo`/`report()$phylo_q4_covariance` (mu1, mu2, sigma1, sigma2)
 # and the `theta_phylo` Cholesky fill order documented at
-# `drm_phylo_mu_dense_theta_index()` (R/drmTMB.R).
+# `drm_phylo_mu_dense_theta_index()` (R/drmTMB.R). This fixture's phylo block
+# is DENSE (a single shared label across all four endpoints), so its
+# `theta_phylo` entries are raw Cholesky-space working parameters, not
+# pairwise correlations -- `phylo_theta:`, not `phylo_cor:`, is the honest
+# family here (design 35, "Phylo Covariance Block").
 objective_at_biv_q4_phylo_start_at_fit <- function(fit) {
   par <- fit$opt$par
   log_sd_phylo <- unname(par[names(par) == "log_sd_phylo"])
@@ -232,7 +236,7 @@ objective_at_biv_q4_phylo_start_at_fit <- function(fit) {
     at[[paste0("phylo_sd:", axes[[i]])]] <- exp(log_sd_phylo[[i]])
   }
   for (i in seq_along(pairs)) {
-    at[[paste0("phylo_cor:", pairs[[i]][[1L]], ":", pairs[[i]][[2L]])]] <- theta_phylo[[i]]
+    at[[paste0("phylo_theta:", pairs[[i]][[1L]], ":", pairs[[i]][[2L]])]] <- theta_phylo[[i]]
   }
   at
 }
@@ -269,4 +273,23 @@ test_that("objective_at rejects an unknown phylo block axis, listing the availab
     objective_at(fit, at = list("phylo_cor:mu1:bogus" = 0.1)),
     regexp = "Unknown public start label"
   )
+})
+
+test_that("phylo_cor: refuses on the dense q4 phylo block (phylo block), pointing to phylo_theta:", {
+  # design 35, "Phylo Covariance Block" (corrected N3b, 2026-09-03):
+  # `phylo_cor:<axis1>:<axis2>` must ALWAYS denote a correlation in
+  # (-1, 1). This fixture's phylo block is DENSE (a single shared label
+  # across mu1/mu2/sigma1/sigma2), so its `theta_phylo` entries are raw
+  # UNSTRUCTURED_CORR_t Cholesky-space working parameters with no
+  # correlation meaning in isolation -- `phylo_cor:` must refuse there,
+  # naming `phylo_theta:` as the honest alternative, rather than silently
+  # returning a value on a scale it does not have.
+  fit <- objective_at_biv_q4_phylo_fit()
+  err <- tryCatch(
+    objective_at(fit, at = list("phylo_cor:mu1:mu2" = 0.3)),
+    error = function(e) e
+  )
+  expect_s3_class(err, "error")
+  expect_match(conditionMessage(err), "dense")
+  expect_match(conditionMessage(err), "phylo_theta:mu1:mu2")
 })
