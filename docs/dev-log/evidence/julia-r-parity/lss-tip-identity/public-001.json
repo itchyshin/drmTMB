@@ -11,10 +11,10 @@
     "R/associate-pairs.R": "35c2f32a0a4f5789c97be437758331edd9acd783a83a121a3bd6c0ac9f57616c",
     "R/bf.R": "71dbc96868e020a4e32b7170989bd49142a7bddd0750d79875740283f7d5d43e",
     "R/check.R": "be2c88996b4deea0174107c874819c7ae04b30ca285b3abe73d6bc6afd37c0bc",
-    "R/control.R": "6d1b4c8099c482f6960c5c18e847ad6e6e090fde0f9745484f1291e9658fbbba",
+    "R/control.R": "84ff6c950d6faa6dbe0dd6d44da41eafb3d01ae325522bfa52da1cb549e287bb",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
-    "R/drmTMB.R": "f97c438a13718441f19c50f5e598ff72ed416d497e3fdedf607e90843d7921cc",
+    "R/drmTMB.R": "89d9566843d2d00283b9e16e8660fb315a9522b244e92dda89b500a8ed4bd495",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
@@ -600,10 +600,10 @@
     "direct_order": "tree",
     "outputs": {
       "native": {
-        "mu": [0.27501827895020792, 0.22373790875585847],
-        "sigma": [-0.93889016624883459, -0.0059594035781516197],
-        "sd_phylo": [-0.7685537072845865, -0.5056338532343253],
-        "loglik": -47.951068142388536,
+        "mu": [0.27501793136182762, 0.22373803708579493],
+        "sigma": [-0.93889050281293374, -0.0059595983003246653],
+        "sd_phylo": [-0.7685546170327725, -0.50563284680893139],
+        "loglik": -47.951068142352305,
         "converged": true
       },
       "bridge": {
@@ -682,21 +682,21 @@
       "drmjl_ref": "77513aa0663209b96e53a649d232558515f687fa",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpsXARl3/pkgload1713e64b38c39/drmTMB.so",
-          "sha256": "532258e848261a04036e37cecc5869908f0743e254f6c0076cd8117e3de13571"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpPGScFg/pkgload18020619f0a5b/drmTMB.so",
+          "sha256": "b8ebe645215ff7de290190ddae44b04abffcf70a44d5c53439ef202d7fe2a192"
         }
       }
     },
     "oracle_errors": {
-      "native": 6.3948846218409017e-14,
+      "native": 2.8421709430404007e-14,
       "bridge": 1.4210854715202004e-14,
       "direct": 1.4210854715202004e-14
     },
     "native_differences": {
-      "mu": 3.4758884787100541e-07,
-      "sigma": 3.3656390518999046e-07,
-      "sd_phylo": 1.0064176578783446e-06,
-      "loglik": 3.6251890378480311e-11
+      "mu": 4.6757042682088468e-13,
+      "sigma": 2.2438769592403318e-12,
+      "sd_phylo": 7.7360340355880908e-12,
+      "loglik": 2.1316282072803006e-14
     },
     "bridge_differences": {
       "mu": 0,
@@ -717,10 +717,10 @@
     "R/associate-pairs.R": "35c2f32a0a4f5789c97be437758331edd9acd783a83a121a3bd6c0ac9f57616c",
     "R/bf.R": "71dbc96868e020a4e32b7170989bd49142a7bddd0750d79875740283f7d5d43e",
     "R/check.R": "be2c88996b4deea0174107c874819c7ae04b30ca285b3abe73d6bc6afd37c0bc",
-    "R/control.R": "6d1b4c8099c482f6960c5c18e847ad6e6e090fde0f9745484f1291e9658fbbba",
+    "R/control.R": "84ff6c950d6faa6dbe0dd6d44da41eafb3d01ae325522bfa52da1cb549e287bb",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
-    "R/drmTMB.R": "f97c438a13718441f19c50f5e598ff72ed416d497e3fdedf607e90843d7921cc",
+    "R/drmTMB.R": "89d9566843d2d00283b9e16e8660fb315a9522b244e92dda89b500a8ed4bd495",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
@@ -850,6 +850,6 @@
     "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-objat/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 29.067,
+  "elapsed": 44.008000000000003,
   "status": "PASS"
 }
