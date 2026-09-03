@@ -70,6 +70,13 @@ repos/itchyshin/drmTMB/issues/{1123,1127,1129,1130}`; the 2026-09-02 reconcile
   finalised. The pattern is the one checkpoint.md flags for N1 and N2: a Rose repair moves the
   head after the entry was written.
 
+- **N2's first CI run failed on a source-tree read, fixed the same hour.** The roxygen-drift test
+  added in the Rose repair read `R/heritability.R` with `readLines`; under `R CMD check` the tests
+  run from the built tarball, where `R/` does not exist. The test is now tarball-safe (reads the
+  source when present, otherwise the installed Rd's examples; fallback verified against `man/`).
+  Lesson for the record: a test that reads the package source tree passes under
+  `devtools::test()` and fails under check; the CI-like local run does not catch it either.
+
 ## What this lane did NOT cover
 
 - No promotion of any capability row (`r_bridge_status`/`julia-capabilities.tsv` unchanged by
@@ -99,10 +106,10 @@ repos/itchyshin/drmTMB/issues/{1123,1127,1129,1130}`; the 2026-09-02 reconcile
 ## Merge log
 
 - #1122 claude/night-n5-prerun @ 4197bb1ed — CI: ubuntu release + os-matrix success — merged 2026-09-03T01:01:10Z as 5aa488259
-- #1124 claude/n1-label-contract-all-routes @ fc4690ea0e6ca5b0ba41b3eba696ae843f638151 — CI: PENDING — merged: PENDING
-- #1125 claude/night-n2-accessors @ 762ac950f486acb71b6fd7e61331aa849a40bf35 — CI: PENDING — merged: PENDING
+- #1124 claude/n1-label-contract-all-routes @ fc4690ea0 — CI: ubuntu release + os-matrix success on fc4690ea0 — then conflicted with main on the tip-identity receipt after #1128 landed; main merged in (da34e72bf) and the receipt regenerated last (4aa0c4600, checker PASS, no force-push) — CI on 4aa0c4600: PENDING — merged: PENDING
+- #1125 claude/night-n2-accessors @ 762ac950f — CI: ubuntu release FAILED (run 33699592016: test-heritability.R:195 read R/heritability.R, absent in the check tarball) — fixed on the branch at 21a6ae022 (fallback to the installed Rd examples; verified against man/ locally) — CI on 21a6ae022: PENDING — merged: PENDING
 - #1126 claude/night-n4-board-indefinite @ 804b10e15 — CI: ubuntu release + os-matrix success — merged 2026-09-03T00:58:16Z as ef796e7f9
-- #1128 claude/night-n3-labels @ 6def01c6d2538571ef95a7e25dcb0f36a1e40aa0 — CI: PENDING — merged: PENDING
+- #1128 claude/night-n3-labels @ 6def01c6d — CI: ubuntu release + os-matrix success — merged 2026-09-03T01:44:59Z as fa1ebf95b
 
 (Remaining PENDING lines are filled by the conductor as each lands, in the merge order checkpoint.md
 records: #1122 first — docs+tools only — then #1126 and #1125, both touching
