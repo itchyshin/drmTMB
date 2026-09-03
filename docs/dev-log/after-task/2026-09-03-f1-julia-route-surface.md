@@ -9,12 +9,34 @@ on branch `claude/followup-f1`, from `origin/main` @ `281863149`. DRM.jl pinned 
 @ `77513aa0` (read-only, never edited). Ledger:
 `.unlazy/followup/gates/leaf-f1.md`.
 
+## 0. OWNER STEER, same day: `q4_vcov` flipped from default-on to OPT-IN
+
+This report originally shipped with `q4_vcov = TRUE` sent by default (§2 below). The coordinator
+relayed an owner decision, made FROM this report's own §5 finding, to flip that: `q4_vcov` is now
+OPT-IN (`drm_control(optimizer = list(q4_vcov = TRUE))`), matching DRM.jl's own unmodified
+default. In the owner's terms, two measured facts made default-on the wrong call:
+
+1. **A REML fit's `q4_vcov` SEs answer a different question than TMB's, not just a noisier one.**
+   DRM.jl's `q4_vcov` Hessian differentiates the ML marginal likelihood's score regardless of
+   REML/ML, so on a REML fit (the documented `biv_q4_phylo_reml` capability) it is not the
+   REML-restricted objective TMB's `sdreport()` differentiates -- measured ~10.5% relative SE
+   delta on the committed fixture (§5).
+2. **The wall-time cost is real and grows with fit size**, from +14.8% (16 tips) to +296.9%
+   (60 tips) -- not a fixed, always-cheap overhead (§2).
+
+A default that silently pays a size-dependent wall-time cost for SEs that answer a different
+question than expected on a REML fit is not a safe default. A user who wants Wald SEs on this
+route now asks for them explicitly, and in doing so accepts both facts. Everything below this
+line is updated to the OPT-IN behaviour; §5's tolerance and mechanism analysis is UNCHANGED
+(it is the finding that drove the flip, not something the flip invalidated).
+
 ## 1. What changed (`R/julia-bridge.R` only, per f1-G6)
 
-**(a) D-213 #2, `q4_vcov`.** `drm_julia_bridge_options()`'s q4 branch now sends
-`q4_vcov = TRUE` by default, so a bivariate q4 phylogenetic fit's `vcov()` is no longer
-all-NaN. `drm_julia_translate_control()` gained a `q4_vcov` optimizer key so a user can opt
-out: `drm_control(optimizer = list(q4_vcov = FALSE))`.
+**(a) D-213 #2, `q4_vcov`.** `drm_julia_bridge_options()`'s q4 branch never sends `q4_vcov`
+unless asked: DRM.jl's own default (`q4_vcov = false`, so `vcov()` on this route is all-NaN)
+passes through unmodified. `drm_julia_translate_control()` gained a `q4_vcov` optimizer key so a
+user can opt IN: `drm_control(optimizer = list(q4_vcov = TRUE))`, which still produces a finite,
+positive-definite `vcov()` (verified live, §0/§2).
 
 **(b) Night question 14, two route-limit refusals.** `drm_julia_check_ordinary_sigma_ranef_route_limits()`
 (new helper, called from `drmTMB_julia_bridge()` right after `family_type` is computed) refuses,
@@ -34,17 +56,22 @@ Script and raw log: `docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/q4_vcov_c
 `.log`. One warm Julia session (throwaway warm-up fit first), `drm_control(optimizer =
 list(q4_vcov = ...))` toggled directly.
 
-| fixture | method | q4_vcov=FALSE | q4_vcov=TRUE | delta |
+| fixture | method | q4_vcov=FALSE (now the default) | q4_vcov=TRUE (opt-in) | delta |
 |---|---|---|---|---|
 | 16 tips / 128 rows (committed `biv-q4-phylo-reml`) | REML | 0.967s | 1.110s | +0.143s / +14.8% |
-| 60 tips / 180 rows (simulated) | ML | 0.951s | 3.708s | +2.757s / +289.9% |
+| 60 tips / 180 rows (simulated) | ML | 0.954s | 3.786s | +2.832s / +296.9% |
+
+(Re-measured after the flip, §0; the 60-tip fixture's absolute times moved slightly run-to-run --
+0.951s->3.708s originally, 0.954s->3.786s on re-measurement -- normal timing noise, same
+conclusion both times.)
 
 Both fits converged and returned a finite `vcov()` with the option on. The cost is NOT a fixed
 overhead -- it grew roughly 4x once tip count went from 16 to 60, consistent with DRM.jl's own
 `src/bridge.jl` comment that the finite-difference Wald covariance is "expensive at large q4
-phylogenetic fits". **Decision: on by default (the D-213 #2 ask), opt-out via
-`drm_control(optimizer = list(q4_vcov = FALSE))`** for a user whose q4 fit is large enough that
-the multiplier matters.
+phylogenetic fits". **Decision (owner steer, §0): OPT-IN via `drm_control(optimizer =
+list(q4_vcov = TRUE))`, matching DRM.jl's own default rather than overriding it** -- the cost
+grows with fit size and (§5) the resulting REML SEs answer a different question than TMB's, so a
+user pays both only when they ask for them.
 
 ## 3. Route-limit messages, verified live
 
@@ -102,7 +129,8 @@ measured numbers and mechanism recorded in the test's own comment.
 - No claim that `q4_vcov = TRUE` SEs are calibrated or trustworthy as REML standard errors --
   only that they are finite, positive-definite, and in the same ballpark (~10%) as TMB's. Interval
   coverage for this construct is untouched (the existing `biv_q4_phylo_reml` capability row's
-  coverage caveats stand).
+  coverage caveats stand). This is now explicit in the default itself: a user gets these SEs only
+  by asking, and asking means accepting both caveats (§0).
 - No change to `r_bridge_status` or the capability ledger (fenced, per the ledger's Scope line).
 - The route-limit refusal is scoped to `family_type == "gaussian"` and ordinary lme4 bars only --
   not verified (and not claimed) for `lognormal`, other one-response families, or bivariate
@@ -114,12 +142,15 @@ measured numbers and mechanism recorded in the test's own comment.
 ## 7. Files touched
 
 - `R/julia-bridge.R` (the only file under `R/`, per f1-G6)
-- `tests/testthat/test-julia-bridge.R` (2 new "route limit" unit tests, no Julia; 3 existing q4
-  option-payload assertions updated for the new `q4_vcov = TRUE` default)
-- `tests/testthat/test-julia-phylo-q4-corpairs.R` (1 new live "q4"+"vcov" test)
-- `docs/design/258-coefficient-naming-contract.md` (N10 follow-up line updated: the two route
-  limits are now pre-checked, not an open follow-up)
-- `docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/` (new: cost script + log)
+- `tests/testthat/test-julia-bridge.R` (2 new "route limit" unit tests, no Julia; 3 q4
+  option-payload assertions REVERTED to the pre-D-213-#2 default (no `q4_vcov` key) after the
+  owner steer; 1 new test proving the opt-in plumbing at the payload level)
+- `tests/testthat/test-julia-phylo-q4-corpairs.R` (1 live "q4"+"vcov" test, updated to fit the
+  opt-in path explicitly AND assert the default path is all-NaN -- the former RED CONTROL is now
+  a permanent regression assertion)
+- `docs/design/258-coefficient-naming-contract.md` (N10 follow-up line updated for the route
+  limits; a separate new paragraph records the `q4_vcov` opt-in decision in the owner's terms)
+- `docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/` (cost script + log, re-run post-flip)
 - `docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json` (regenerated last, per
   the ledger's ordering requirement; checker passes with `--self-test`)
 

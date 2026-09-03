@@ -32,20 +32,20 @@ drmTMB_mixed_family (generic function with 1 method)
   
 
 === Fixture A: 16 tips / 128 rows, REML ===
-q4_vcov=FALSE: 0.993s converged=TRUE finite_vcov=FALSE
-q4_vcov=TRUE:  1.103s converged=TRUE finite_vcov=TRUE
-delta: +0.110s (+11.1%)
+q4_vcov=FALSE: 0.923s converged=TRUE finite_vcov=FALSE
+q4_vcov=TRUE:  1.077s converged=TRUE finite_vcov=TRUE
+delta: +0.154s (+16.7%)
 
 === Fixture B: 60 tips / 180 rows, ML ===
-q4_vcov=FALSE: 0.954s converged=TRUE finite_vcov=FALSE
-q4_vcov=TRUE:  3.786s converged=TRUE finite_vcov=TRUE
-delta: +2.832s (+296.9%)
+q4_vcov=FALSE: 0.958s converged=TRUE finite_vcov=FALSE
+q4_vcov=TRUE:  3.620s converged=TRUE finite_vcov=TRUE
+delta: +2.662s (+277.9%)
 Julia exit.
   Activating project at `/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-objat`
 ┌ Error: Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions, use `Base.retry_load_extensions()` to retry.
 │   exception =
 │    1-element ExceptionStack:
-│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_WVGVO3".
+│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_dhmHJ0".
 │    Stacktrace:
 │      [1] error(s::String)
 │        @ Base ./error.jl:35

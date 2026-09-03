@@ -799,6 +799,20 @@ random effect or native `engine = "tmb"`. Live-verified against DRM.jl 77513aa0 
 match DRM.jl's own messages when the R-side pre-checks are temporarily removed (the f1-G4 RED CONTROL).
 Unit tests (no Julia): `tests/testthat/test-julia-bridge.R`, the two `"route limit"`-named tests.
 
+UNRELATED SIBLING DECISION on the SAME arc, recorded here for the same reader (2026-09-03, D-213 #2,
+owner steer): the q = 4 route's `vcov()` (this section's coefficient table's uncertainty, not its
+naming) is OPT-IN, not on by default. `drm_control(optimizer = list(q4_vcov = TRUE))` is required; left
+unset, `vcov()` on this route stays all-NaN, matching DRM.jl's own unmodified default. Two measured facts
+drove this, in the owner's terms: (1) DRM.jl's `q4_vcov` finite-difference Hessian differentiates the ML
+marginal likelihood's score REGARDLESS of whether the fit used REML, so on a REML fit -- the documented
+`biv_q4_phylo_reml` capability -- it answers a different question than TMB's `sdreport()` does, and the
+two are not comparable (measured ~10.5% relative SE delta on the committed fixture, NOT the 1e-3 a first
+cut assumed). (2) The wall-time cost is real and grows with fit size: 0.954s -> 3.786s (+296.9%) on a
+60-tip simulated fixture, versus +14.8% on the committed 16-tip one. A user who wants Wald SEs on this
+route asks for them explicitly and accepts both facts. Cost evidence:
+`docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/`. Permanent regression test for the all-NaN default:
+`tests/testthat/test-julia-phylo-q4-corpairs.R`, the `"(live q4 vcov)"`-named test.
+
 
 **A found-and-since-fixed downstream gap (2026-09-03, same day, OWNS widened by the lane coordinator to
 cover it).** Once the fit succeeds, `coef(fj, "mu")` and `coef(fj, "sigma")` are correct and match the
