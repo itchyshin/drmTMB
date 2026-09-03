@@ -299,16 +299,8 @@ test_that("q4 bivariate phylo location-scale corpairs surfaces among-axis correl
     "DRM.jl q4 engine not available"
   )
 
-  res <- tryCatch(
-    drm_phylo_q4_corpairs_fit(n_tip = 30L, m = 3L),
-    error = function(e) {
-      testthat::skip(paste(
-        "q4 phylo corpairs round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
-  skip_if(is.null(res))
+  # q4 phylo corpairs round-trip: run bare (#1127).
+  res <- drm_phylo_q4_corpairs_fit(n_tip = 30L, m = 3L)
 
   expect_true("drmTMB_julia" %in% res$class)
   expect_equal(res$engine, "julia")

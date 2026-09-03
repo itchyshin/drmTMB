@@ -1,6 +1,19 @@
-drm_test_drmjl_path <- function(envvar = "DRM_JL_PHYLO_PATH") {
-  path <- Sys.getenv(envvar, "")
-  if (!nzchar(path) && !identical(envvar, "DRM_JL_PHYLO_PATH")) {
+# Issue #1127: DRM_JL_PATH is the source of truth for every test file's
+# Julia-engine path, with DRM_JL_PHYLO_PATH as a fallback (kept for callers
+# still using the older phylo-only env var). A legacy family-specific
+# `envvar` (e.g. "DRM_JL_XFAM_PATH") is honored first if set, so existing
+# opt-in overrides keep working, then falls through to DRM_JL_PATH and
+# finally DRM_JL_PHYLO_PATH. This is the only place DRM_JL_PHYLO_PATH is
+# read (gate N7-G3).
+drm_test_drmjl_path <- function(envvar = "DRM_JL_PATH") {
+  if (!identical(envvar, "DRM_JL_PATH") && !identical(envvar, "DRM_JL_PHYLO_PATH")) {
+    path <- Sys.getenv(envvar, "")
+    if (nzchar(path)) {
+      return(path)
+    }
+  }
+  path <- Sys.getenv("DRM_JL_PATH", "")
+  if (!nzchar(path)) {
     path <- Sys.getenv("DRM_JL_PHYLO_PATH", "")
   }
   path
@@ -110,6 +123,14 @@ drm_skip_live_julia <- function() {
 }
 
 .drm_skip_live_julia_impl <- function() {
+  # Engine availability is decided HERE and nowhere else (#1127): a live Julia
+  # test needs a DRM.jl checkout. CI sets NOT_CRAN=true with no DRM.jl, and
+  # until 2026-09-03 the per-test tryCatch swallows hid that; now the gate
+  # skips with one reason. A path that exists but is not DRM.jl still
+  # proceeds and fails loudly (that is the point).
+  if (!dir.exists(drm_test_drmjl_path())) {
+    testthat::skip("DRM.jl engine not available (set DRM_JL_PATH)")
+  }
   if (identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
     return(invisible(TRUE))
   }

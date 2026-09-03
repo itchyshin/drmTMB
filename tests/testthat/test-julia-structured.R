@@ -457,15 +457,8 @@ test_that("Poisson relmat fit via engine = 'julia' is finite and sane", {
     "DRM.jl general-covariance engine not available"
   )
 
-  res <- tryCatch(
-    drm_structured_relmat_fit(n = 30L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Poisson relmat round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Poisson relmat round-trip: run bare (#1127).
+  res <- drm_structured_relmat_fit(n = 30L)
 
   expect_true("drmTMB_julia" %in% res$class)
   expect_equal(res$engine, "julia")

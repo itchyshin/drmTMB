@@ -71,15 +71,8 @@ test_that("private q2 phylo point-export bridge primitive returns diagnostic pay
     "DRM.jl q2 diagnostic engine path not available"
   )
 
-  out <- tryCatch(
-    drm_q2_phylo_point_export(),
-    error = function(e) {
-      testthat::skip(paste(
-        "q2 phylo point-export bridge primitive unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # q2 phylo point-export bridge primitive: run bare (#1127).
+  out <- drm_q2_phylo_point_export()
 
   expect_equal(
     out$target,

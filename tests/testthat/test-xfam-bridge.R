@@ -268,18 +268,9 @@ test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI",
   setup_state$ready <- NULL
   setup_state$path <- NULL
 
-  # Skip rather than fail when Julia / DRM cannot be brought up in this
-  # environment (e.g. no Julia, or the engine fails to precompile).
-  ready <- tryCatch(
-    {
-      drmTMB:::drm_julia_setup()
-      TRUE
-    },
-    error = function(e) {
-      testthat::skip(paste("Julia / DRM.jl unavailable:", conditionMessage(e)))
-    }
-  )
-  skip_if_not(isTRUE(ready), "Julia / DRM.jl unavailable")
+  # Julia / DRM.jl setup: run bare so a setup failure is a test ERROR, not a
+  # swallowed skip (#1127).
+  drmTMB:::drm_julia_setup()
 
   # Well-conditioned Gaussian x Poisson data with a shared latent: moderate
   # Poisson loading keeps counts small so the GHQ optimiser converges.
@@ -293,19 +284,12 @@ test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI",
     x = x
   )
 
-  fit <- tryCatch(
-    drmTMB(
-      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
-      family = c(gaussian(), poisson()),
-      data = dat,
-      engine = "julia"
-    ),
-    error = function(e) {
-      testthat::skip(paste(
-        "Cross-family round-trip failed:",
-        conditionMessage(e)
-      ))
-    }
+  # Cross-family round-trip: run bare (#1127).
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+    family = c(gaussian(), poisson()),
+    data = dat,
+    engine = "julia"
   )
 
   expect_s3_class(fit, "drmTMB_julia_xfam")
@@ -425,30 +409,23 @@ test_that("Gamma x Poisson cross-family fit returns latent rho + profile CI", {
     "DRM.jl Tier-2 engine not available"
   )
 
-  res <- tryCatch(
-    drm_xfam_tier2_fit(
-      fam_expr = c("Gamma(link = \"log\")", "poisson()"),
-      make_data = function(n) {
-        set.seed(20260610)
-        x <- stats::rnorm(n)
-        u <- stats::rnorm(n)
-        data.frame(
-          # Gamma mean exp(0.3 + 0.2 x + 0.4 u), shape 2 -> scale = mean / 2.
-          y1 = stats::rgamma(
-            n,
-            shape = 2,
-            scale = exp(0.3 + 0.2 * x + 0.4 * u) / 2
-          ),
-          y2 = stats::rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
-          x = x
-        )
-      }
-    ),
-    error = function(e) {
-      testthat::skip(paste(
-        "Gamma x Poisson round-trip unavailable:",
-        conditionMessage(e)
-      ))
+  # Gamma x Poisson round-trip: run bare (#1127).
+  res <- drm_xfam_tier2_fit(
+    fam_expr = c("Gamma(link = \"log\")", "poisson()"),
+    make_data = function(n) {
+      set.seed(20260610)
+      x <- stats::rnorm(n)
+      u <- stats::rnorm(n)
+      data.frame(
+        # Gamma mean exp(0.3 + 0.2 x + 0.4 u), shape 2 -> scale = mean / 2.
+        y1 = stats::rgamma(
+          n,
+          shape = 2,
+          scale = exp(0.3 + 0.2 * x + 0.4 * u) / 2
+        ),
+        y2 = stats::rpois(n, exp(0.4 + 0.3 * x + 0.4 * u)),
+        x = x
+      )
     }
   )
 
@@ -469,26 +446,19 @@ test_that("NB2 x Gaussian cross-family fit returns latent rho + profile CI", {
     "DRM.jl Tier-2 engine not available"
   )
 
-  res <- tryCatch(
-    drm_xfam_tier2_fit(
-      fam_expr = c("glmmTMB::nbinom2()", "gaussian()"),
-      make_data = function(n) {
-        set.seed(20260611)
-        x <- stats::rnorm(n)
-        u <- stats::rnorm(n)
-        data.frame(
-          # NB2 mean exp(0.4 + 0.3 x + 0.4 u), size 3 (overdispersed counts).
-          y1 = stats::rnbinom(n, size = 3, mu = exp(0.4 + 0.3 * x + 0.4 * u)),
-          y2 = 0.5 + 0.8 * x + 0.7 * u + stats::rnorm(n, sd = 0.5),
-          x = x
-        )
-      }
-    ),
-    error = function(e) {
-      testthat::skip(paste(
-        "NB2 x Gaussian round-trip unavailable:",
-        conditionMessage(e)
-      ))
+  # NB2 x Gaussian round-trip: run bare (#1127).
+  res <- drm_xfam_tier2_fit(
+    fam_expr = c("glmmTMB::nbinom2()", "gaussian()"),
+    make_data = function(n) {
+      set.seed(20260611)
+      x <- stats::rnorm(n)
+      u <- stats::rnorm(n)
+      data.frame(
+        # NB2 mean exp(0.4 + 0.3 x + 0.4 u), size 3 (overdispersed counts).
+        y1 = stats::rnbinom(n, size = 3, mu = exp(0.4 + 0.3 * x + 0.4 * u)),
+        y2 = 0.5 + 0.8 * x + 0.7 * u + stats::rnorm(n, sd = 0.5),
+        x = x
+      )
     }
   )
 
@@ -577,15 +547,8 @@ test_that("cross-family covariate sigma sub-model returns finite beta_sigma", {
     "DRM.jl covariate-sigma engine not available"
   )
 
-  res <- tryCatch(
-    drm_xfam_xsigma_fit(n = 150L),
-    error = function(e) {
-      testthat::skip(paste(
-        "Cross-family covariate-sigma round-trip unavailable:",
-        conditionMessage(e)
-      ))
-    }
-  )
+  # Cross-family covariate-sigma round-trip: run bare (#1127).
+  res <- drm_xfam_xsigma_fit(n = 150L)
 
   expect_true("drmTMB_julia_xfam" %in% res$class)
   expect_equal(res$families, c("gaussian", "poisson"))
