@@ -740,7 +740,71 @@ need the `recov`/`resd_mu` split above. This was discovered by running the live 
 fixes and reading DRM.jl's own abort text for the NEW failure, not by speculating about what else might be
 broken -- the same evidence discipline as every other row in this document.
 
+Caveat on the random-slope row (coordinator, 2026-09-03 08:45 UTC, from the DRM.jl lane's own finding,
+DRM.jl issue #620): at DRM.jl 77513aa0 the one-column `resd` label for `phylo(1 + x | g)` matches what the
+engine echoes because `_split_ranef` (`src/gaussian_ranef.jl:19`) keeps only the grouping symbol of a
+`phylo()` marker, so DRM.jl fits the INTERCEPT-ONLY model and silently discards `x`; the label is correct
+for the model DRM.jl actually fits, not for a two-SD random slope. DRM.jl is adding a fail-closed refusal
+of `phylo(<not 1> | group)` on its univariate routes; once drmTMB's pinned clone moves past it, the live
+Gamma random-slope test in `test-julia-slope-nongaussian.R` must expect an engine refusal, and a two-SD
+random-slope label becomes a new row here (DRM.jl's S8 follow-up implements the Gaussian case).
+
 Test-count: `tests/testthat/test-coefficient-labels.R` gained four new offline unit tests (naming
 "resd_sigma", "random-slope", "phylocov" per this repair's own gate); the four live "measured broken"
 skips this section closes are removed from `test-julia-sigma-phylo-reml.R` (1),
 `test-julia-slope-nongaussian.R` (1), and `test-julia-tmb-parity.R` (2).
+
+**N10 addendum, 2026-09-03 (an ORDINARY, non-phylo `sigma ~ (1 | g)` random intercept -- a different
+route than every rule above, all of which are phylo-only).** `bf(y ~ x, sigma ~ (1 | g))` --  a plain
+lme4-style random intercept on `sigma`, no `phylo()`/`relmat()`/`animal()`/`spatial()` marker anywhere
+-- aborted `engine = "julia"` with `coef_labels is missing an entry for dpar "resd" (1 fixed-effect
+columns; Julia names: ["resd_g_logsigma"])`. This is a DIFFERENT code path from every `resd`/`resd_<dpar>`
+rule above: `drm_julia_formula_entry()` only strips the phylo tree and rewrites `meta_V()` -- it does NOT
+strip lme4-style bars -- so the term crosses the bridge as literal text (`"sigma ~ (1 | g)"`) and DRM.jl's
+own ordinary sparse-Laplace GLMM route parses and fits it directly, with no `formula$entries$structured`
+record on the R side at all (the SAME "not even recorded" gap §7.1 already notes for a mu-side bar).
+Measured directly against DRM.jl 77513aa0 (`drmTMB_drm_bridge` called on `("y ~ x", "sigma ~ (1 | g)")`):
+`coef_names` ends in `"resd_g_logsigma"` -- a BARE `"resd"` block key (unlike the phylo sigma-side rule
+above, which is dpar-qualified `"resd_sigma"`), whose one label is a single compound term, UNDERSCORE-
+joined (not `drm_julia_recov_block_labels()`'s colon convention): `"<group>_<DRM.jl's own internal dpar
+name>"`, where DRM.jl's internal name for `sigma` is `"logsigma"` (its log-link working scale). Verified
+supplying `resd = list("g_logsigma")` reproduces the exact raw name and the fit proceeds under the echo.
+`drm_julia_bridge_payload_coef_labels()` gained a small, separate detection for this shape, restricted to
+`sigma` (the only non-`mu` dpar measured) and to a random-INTERCEPT term (a random-SLOPE ordinary term on
+`sigma`, or the same shape on another non-`mu` dpar such as `nu`, is not measured and left alone). Two
+neighbour shapes were probed live and found to be DRM.jl-side REFUSALS, not labelling gaps: an ordinary
+random term on BOTH `mu` and a non-`mu` dpar (same group, or two different groups) aborts DRM.jl's own
+solver ("a random effect on `sigma` must be the only random structure (the mean must be fixed effects)")
+before any `coef_labels` check is even reached -- confirmed fitting `("y ~ x + (1 | g)", "sigma ~ (1 | g)")`
+and `("y ~ x + (1 | g)", "sigma ~ (1 | h)")` directly; neither is addressed here, since there is no label
+this producer could supply that would change DRM.jl's own refusal.
+
+Scope of the N10 row, stated after the Rose pass (2026-09-03): under `engine = "julia"` the sigma-side
+non-phylo random intercept fits with `method = "ML"` only; DRM.jl 77513aa0 refuses `REML` for it
+(`ArgumentError: drm: method = :REML is currently implemented only for the fixed-effect Gaussian
+location-scale model`), whereas the TMB engine fits REML for the same formula. A random intercept on
+`sigma` must also be the only random structure on the Julia route: `bf(y ~ x + (1 | g), sigma ~ (1 | g))`
+and `sigma ~ (1 | h)` are refused by DRM.jl before any label check ("a random effect on `sigma` must be
+the only random structure"). drmTMB does not pre-check either limitation before starting Julia; that is a
+recorded follow-up, not a covered behaviour.
+
+
+**A found-and-since-fixed downstream gap (2026-09-03, same day, OWNS widened by the lane coordinator to
+cover it).** Once the fit succeeds, `coef(fj, "mu")` and `coef(fj, "sigma")` are correct and match the
+native TMB engine exactly (verified live) -- the fixed-effect coefficient table this section governs was
+always right. But `drm_julia_structured_parameters()` (`R/julia-bridge.R`, a SIBLING function this
+producer feeds, not one of its own helpers) initially mis-attributed the resulting `resd_g_logsigma`
+random-effect SD to `sdpars$mu` instead of `sdpars$sigma`: it falls back to a hard-coded `dpar <- "mu"`
+default whenever a bare `resd_` block has no matching `entry$structured` term record (true here, for the
+same "not recorded" reason above), a default written before any non-`mu` bare-`resd` shape existed. This
+was a real display bug for `sdpars()`/`ranef()`-style access on this construct, found while verifying this
+addendum live -- shipping it unfixed would have turned an honest abort into a fit whose `sdpars` were
+mislabelled, so the OWNS fence for this arc was widened to include `drm_julia_structured_parameters()`
+and it was fixed the same day: a new shared helper, `drm_julia_ordinary_nonmu_resd_map()` (factored out of
+the SAME detection `drm_julia_bridge_payload_coef_labels()` already used, so both call sites agree on
+exactly one rule), reattributes this specific fallback shape to the dpar it actually belongs to, with
+label `"(1 | <group>)"` -- `format_random_mu_label()`'s own spelling (`R/drmTMB.R`), the same name the
+native TMB engine's `sdpars$sigma` uses for this construct. Verified live: `fj$sdpars$sigma` now has one
+entry named `"(1 | g)"` (`fj$sdpars$mu` empty), matching a native TMB fit of the same formula exactly.
+Every OTHER bare-`resd` shape (phylo, relmat/animal/spatial) keeps its existing `entry$structured`-matched
+attribution unchanged -- only the previously-unhandled fallback default is touched.

@@ -836,6 +836,39 @@ test_that("phylocov: a q=2 bivariate phylo() term (mu1/mu2, no sigma-side phylo 
   expect_null(labels$resd)
 })
 
+test_that("sigma random intercept: an ordinary (non-phylo) sigma ~ (1 | g) term is labelled (unit, offline)", {
+  set.seed(1)
+  n <- 30
+  d <- data.frame(y = rnorm(n), x = rnorm(n), g = rep(letters[1:5], each = 6))
+
+  # Measured against DRM.jl 77513aa0 fitting `("y ~ x", "sigma ~ (1 | g)")`
+  # directly: `coef_names` ends in "resd_g_logsigma" -- a BARE "resd" block
+  # key (unlike the phylo sigma-side case's dpar-qualified "resd_sigma"),
+  # whose one label is the underscore-joined compound
+  # "<group>_<DRM.jl internal dpar name>" ("g_logsigma").
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(y ~ x, sigma ~ (1 | g)),
+    data = d,
+    env = environment(),
+    family_type = "gaussian"
+  )
+  expect_identical(labels$mu, c("(Intercept)", "x"))
+  expect_identical(labels$sigma, "(Intercept)")
+  expect_identical(labels$resd, "g_logsigma")
+
+  # A mu-side ordinary random intercept alone (no sigma random term) never
+  # reaches this "resd" detection: it is routed through the separate
+  # conditional-Gaussian-components bridge, not `drm_julia_bridge_payload_coef_labels()`'s
+  # plain-bridge path this addition covers.
+  labels_mu_only <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = drmTMB::bf(y ~ x + (1 | g)),
+    data = d,
+    env = environment(),
+    family_type = "gaussian"
+  )
+  expect_null(labels_mu_only$resd)
+})
+
 test_that("live echo, phylo: a univariate phylo() Julia fit reports base-R public names matching the TMB engine", {
   drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")

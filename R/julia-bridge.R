@@ -1269,10 +1269,84 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       labels[["resd"]] <- group
     }
   }
+  # N10 (2026-09-03): a NON-`mu` dpar carrying a bare, ORDINARY (non-phylo,
+  # non-structured) random-intercept term `(1 | g)` -- e.g. `sigma ~ (1 | g)`
+  # -- reaches DRM.jl's ordinary sparse-Laplace GLMM route directly:
+  # `drm_julia_formula_entry()` only strips the phylo tree and rewrites
+  # `meta_V()`, it does NOT strip lme4-style bars, so the unstripped term
+  # crosses the bridge as literal `"sigma ~ (1 | g)"` text and DRM.jl parses
+  # it itself. Confirmed empirically fitting `drmTMB_drm_bridge` directly
+  # against DRM.jl 77513aa0 on `("y ~ x", "sigma ~ (1 | g)")`: `coef_names`
+  # ends in `"resd_g_logsigma"` -- a BARE `"resd"` block key (unlike the
+  # phylo sigma-side case's dpar-qualified `"resd_sigma"`, S7.8 above), whose
+  # ONE label is a single compound term, UNDERSCORE-joined (not
+  # `drm_julia_recov_block_labels()`'s colon convention):
+  # `"<group>_<DRM.jl's own internal dpar name>"`, where DRM.jl's internal
+  # name for `sigma` is `"logsigma"` (its log-link working scale). Verified
+  # supplying `resd = list("g_logsigma")` reproduces `"resd_g_logsigma"`
+  # exactly and the fit proceeds (`coef_label_contract ==
+  # "bridge_formula_labels_v1"`, no echo error).
+  #
+  # Two neighbouring shapes were probed live and found to be DRM.jl-side
+  # REFUSALS, not labelling gaps, so they are explicitly left uncovered: a
+  # formula with an ordinary random term on BOTH `mu` and a non-`mu` dpar
+  # (same group, or two different groups) aborts DRM.jl's own solver with "a
+  # random effect on `sigma` must be the only random structure (the mean
+  # must be fixed effects)" regardless of what `coef_labels` supplies --
+  # confirmed fitting `("y ~ x + (1 | g)", "sigma ~ (1 | g)")` and
+  # `("y ~ x + (1 | g)", "sigma ~ (1 | h)")` directly, both refused before
+  # any coef_labels check is even reached. Nothing added here changes that
+  # refusal; it is a DRM.jl-side limitation, not addressed by this repair.
+  #
+  # Restricted to `sigma` (the only non-`mu` univariate dpar measured here --
+  # `mu1`/`mu2`/`sigma1`/`sigma2`/`rho12` are bivariate names, a different
+  # code path not reached by this check) and to a random-INTERCEPT term
+  # (`(1 | g)`, not `(1 + x | g)`) -- a random-SLOPE ordinary term on
+  # `sigma`, or the same bare-intercept shape on another non-`mu` dpar such
+  # as `nu`, is a different shape, not measured, and left alone rather than
+  # guessed at.
+  ordinary_resd <- drm_julia_ordinary_nonmu_resd_map(formula)
+  if (length(ordinary_resd) > 0L) {
+    labels[["resd"]] <- names(ordinary_resd)[[1L]]
+  }
   if (!is.null(family_type)) {
     labels <- drm_julia_bridge_default_dpar_labels(labels, formula, family_type)
   }
   labels
+}
+
+# N10 follow-up (2026-09-03): the SAME ordinary (non-phylo, non-structured)
+# random-INTERCEPT detection `drm_julia_bridge_payload_coef_labels()` uses to
+# label a non-mu dpar's bare `resd` block (design 258 S7.8 addendum) is also
+# needed by `drm_julia_structured_parameters()` to FILE the fitted SD under
+# the right dpar: `entry$structured` has no record for this shape at all
+# (the SAME "not even recorded" gap S7.1 already notes for a mu-side bar),
+# so without this a bare `resd_<group>_<internal-name>` coefficient always
+# fell back to that function's `dpar <- "mu"` default, even though the
+# random effect is on `sigma`. Shared here so both call sites agree on
+# exactly one detection. Returns a named list keyed by the Julia SUFFIX
+# (`"<group>_<internal-name>"`, e.g. `"g_logsigma"` -- everything after the
+# bare `"resd_"` prefix), each value `list(dpar, label)`; `label` matches
+# `format_random_mu_label()`'s own `"(1 | <group>)"` spelling
+# (`R/drmTMB.R`), the SAME name the native TMB engine's `sdpars$sigma` uses
+# for this construct, so a Julia fit's `sdpars` names the same random-effect
+# term identically to a TMB fit of the same formula.
+drm_julia_ordinary_nonmu_resd_map <- function(formula) {
+  ordinary_nonmu_dpar_names <- c(sigma = "logsigma")
+  map <- list()
+  for (entry in formula$entries) {
+    if (!entry$dpar %in% names(ordinary_nonmu_dpar_names)) next
+    bars <- Filter(is_random_bar_call, flatten_plus_terms(entry$rhs))
+    if (length(bars) != 1L) next
+    bar <- strip_parens(bars[[1L]])
+    lhs <- strip_parens(bar[[2L]])
+    group <- strip_parens(bar[[3L]])
+    if (!identical(lhs, 1) || !is.name(group)) next
+    group <- as.character(group)
+    suffix <- paste0(group, "_", ordinary_nonmu_dpar_names[[entry$dpar]])
+    map[[suffix]] <- list(dpar = entry$dpar, label = paste0("(1 | ", group, ")"))
+  }
+  map
 }
 
 # DRM.jl fits certain dispersion/shape dpars even when the R formula never
@@ -3288,6 +3362,25 @@ drm_julia_structured_parameters <- function(
   if (length(terms) == length(structured)) {
     labels <- vapply(terms, `[[`, character(1L), "label")
     dpars <- vapply(terms, `[[`, character(1L), "dpar")
+  } else {
+    # N10 follow-up (2026-09-03): a bare `resd_<group>_<internal-name>` block
+    # with no `entry$structured` counterpart at all (an ORDINARY, non-phylo
+    # random intercept on a non-`mu` dpar, e.g. `sigma ~ (1 | g)`) falls into
+    # this branch, not the `terms`-matched one above -- `drm_julia_ordinary_nonmu_resd_map()`
+    # (a helper shared with `drm_julia_bridge_payload_coef_labels()`) reattributes
+    # it from the hard-coded "mu" default to the dpar it actually belongs to,
+    # with the SAME "(1 | <group>)" label the native TMB engine's `sdpars`
+    # uses for this construct. Anything the map does not recognise (every
+    # OTHER bare-`resd` shape this file already handles some other way, or an
+    # unmeasured shape) keeps the pre-existing "mu" default unchanged.
+    ordinary_resd <- drm_julia_ordinary_nonmu_resd_map(formula)
+    for (i in seq_along(labels)) {
+      hit <- ordinary_resd[[labels[[i]]]]
+      if (!is.null(hit)) {
+        dpars[[i]] <- hit$dpar
+        labels[[i]] <- hit$label
+      }
+    }
   }
 
   sdpars <- empty_sdpars
