@@ -11,17 +11,17 @@
     "R/associate-pairs.R": "35c2f32a0a4f5789c97be437758331edd9acd783a83a121a3bd6c0ac9f57616c",
     "R/bf.R": "71dbc96868e020a4e32b7170989bd49142a7bddd0750d79875740283f7d5d43e",
     "R/check.R": "be2c88996b4deea0174107c874819c7ae04b30ca285b3abe73d6bc6afd37c0bc",
-    "R/control.R": "84ff6c950d6faa6dbe0dd6d44da41eafb3d01ae325522bfa52da1cb549e287bb",
+    "R/control.R": "6d1b4c8099c482f6960c5c18e847ad6e6e090fde0f9745484f1291e9658fbbba",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
-    "R/drmTMB.R": "6f1f5de146b59e882461fe27df835ffa5024ed24a29ced450a978478d2afbcb8",
+    "R/drmTMB.R": "f97c438a13718441f19c50f5e598ff72ed416d497e3fdedf607e90843d7921cc",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "c178a0d2665654f21fe2392e428c57442cc8d294bbca454a37392fe538d933f0",
-    "R/julia-bridge.R": "e9fc6b64fa39b35093e828bf95587d5a87ce4dcf06e2a5189bfea6c4b174c502",
+    "R/julia-bridge.R": "4851af8e9bf058fa895be4cb2a2cb509c772e8c1f942e9592725f191d6c1dc6d",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
@@ -42,7 +42,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "13c3bafaee98d08a938b0be921c049b158958cc47b8ac74ae405876986f4ca7e",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "b2a995033b4197d82a1cfe3f34f617c7226c2bbe0919349064765b557f422e1a",
+    "R/profile.R": "2a0c28ed12103f5269720bdb037fd347cbd8cf5419516dde43adaed43bef7b73",
     "R/provenance.R": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
     "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -600,10 +600,10 @@
     "direct_order": "tree",
     "outputs": {
       "native": {
-        "mu": [0.27501793136182762, 0.22373803708579493],
-        "sigma": [-0.93889050281293374, -0.0059595983003246653],
-        "sd_phylo": [-0.7685546170327725, -0.50563284680893139],
-        "loglik": -47.951068142352305,
+        "mu": [0.27501827895020792, 0.22373790875585847],
+        "sigma": [-0.93889016624883459, -0.0059594035781516197],
+        "sd_phylo": [-0.7685537072845865, -0.5056338532343253],
+        "loglik": -47.951068142388536,
         "converged": true
       },
       "bridge": {
@@ -682,21 +682,21 @@
       "drmjl_ref": "77513aa0663209b96e53a649d232558515f687fa",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpBfdqrm/pkgload368518ee2afe/drmTMB.so",
-          "sha256": "b8ebe645215ff7de290190ddae44b04abffcf70a44d5c53439ef202d7fe2a192"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpTunfcr/pkgload16be018eb1c93/drmTMB.so",
+          "sha256": "458bbb2df2830dd6ad36c680526158e6c8c9aac9991dab6933b08ac25e8b03d2"
         }
       }
     },
     "oracle_errors": {
-      "native": 2.8421709430404007e-14,
+      "native": 6.3948846218409017e-14,
       "bridge": 1.4210854715202004e-14,
       "direct": 1.4210854715202004e-14
     },
     "native_differences": {
-      "mu": 4.6757042682088468e-13,
-      "sigma": 2.2438769592403318e-12,
-      "sd_phylo": 7.7360340355880908e-12,
-      "loglik": 2.1316282072803006e-14
+      "mu": 3.4758884787100541e-07,
+      "sigma": 3.3656390518999046e-07,
+      "sd_phylo": 1.0064176578783446e-06,
+      "loglik": 3.6251890378480311e-11
     },
     "bridge_differences": {
       "mu": 0,
@@ -717,17 +717,17 @@
     "R/associate-pairs.R": "35c2f32a0a4f5789c97be437758331edd9acd783a83a121a3bd6c0ac9f57616c",
     "R/bf.R": "71dbc96868e020a4e32b7170989bd49142a7bddd0750d79875740283f7d5d43e",
     "R/check.R": "be2c88996b4deea0174107c874819c7ae04b30ca285b3abe73d6bc6afd37c0bc",
-    "R/control.R": "84ff6c950d6faa6dbe0dd6d44da41eafb3d01ae325522bfa52da1cb549e287bb",
+    "R/control.R": "6d1b4c8099c482f6960c5c18e847ad6e6e090fde0f9745484f1291e9658fbbba",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
-    "R/drmTMB.R": "6f1f5de146b59e882461fe27df835ffa5024ed24a29ced450a978478d2afbcb8",
+    "R/drmTMB.R": "f97c438a13718441f19c50f5e598ff72ed416d497e3fdedf607e90843d7921cc",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "c178a0d2665654f21fe2392e428c57442cc8d294bbca454a37392fe538d933f0",
-    "R/julia-bridge.R": "e9fc6b64fa39b35093e828bf95587d5a87ce4dcf06e2a5189bfea6c4b174c502",
+    "R/julia-bridge.R": "4851af8e9bf058fa895be4cb2a2cb509c772e8c1f942e9592725f191d6c1dc6d",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
@@ -748,7 +748,7 @@
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "13c3bafaee98d08a938b0be921c049b158958cc47b8ac74ae405876986f4ca7e",
     "R/prediction-grid.R": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
-    "R/profile.R": "b2a995033b4197d82a1cfe3f34f617c7226c2bbe0919349064765b557f422e1a",
+    "R/profile.R": "2a0c28ed12103f5269720bdb037fd347cbd8cf5419516dde43adaed43bef7b73",
     "R/provenance.R": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
     "R/random-effect-scale-formulas.R": "4fa4a0ad558fac45e294a4c1a20da87eb523c1f2de7e2a2741993750d0d53c8c",
     "R/reader-contracts.R": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
@@ -850,6 +850,6 @@
     "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-objat/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 46.371000000000002,
+  "elapsed": 33.432000000000002,
   "status": "PASS"
 }
