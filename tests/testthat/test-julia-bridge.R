@@ -751,3 +751,34 @@ test_that("sigma random intercept: a live Julia fit of sigma ~ (1 | g) reports b
   expect_identical(names(coef(fj, "mu")), names(coef(ft, "mu")))
   expect_identical(names(coef(fj, "sigma")), names(coef(ft, "sigma")))
 })
+
+test_that("sdpars, sigma random intercept: the sigma-side random-effect SD is filed under sdpars$sigma, matching the TMB engine (live)", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(1)
+  n <- 120
+  g <- factor(rep(1:12, each = 10))
+  x <- rnorm(n)
+  y <- 1 + 0.5 * x + rnorm(12, sd = 0.7)[g] + rnorm(n, sd = exp(0.2 * rnorm(12)[g]))
+  dat <- data.frame(y = y, x = x, g = g)
+
+  form <- bf(y ~ x, sigma ~ (1 | g))
+  fj <- drmTMB(form, data = dat, engine = "julia")
+  ft <- drmTMB(form, data = dat)
+
+  # TMB's own `split_tmb_sdpars()` (R/drmTMB.R) only adds a dpar's entry to
+  # `sdpars` when that dpar has a random effect at all -- `ft$sdpars` has no
+  # `mu` entry (this formula's mean is fixed-effects-only), while the Julia
+  # bridge always returns both slots from a fixed `empty_sdpars` template
+  # (possibly empty). Accessing the missing key on either object gives
+  # length 0 either way, so the comparison is on VALUES, not on which keys
+  # are literally present.
+  expect_identical(names(fj$sdpars$sigma), names(ft$sdpars$sigma))
+  expect_length(fj$sdpars$mu, 0L)
+  expect_length(ft$sdpars$mu, 0L)
+  expect_true("sigma" %in% names(fj$sdpars))
+  expect_true("sigma" %in% names(ft$sdpars))
+})
