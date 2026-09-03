@@ -404,8 +404,15 @@ two separate checks, and both must hold.
   table. For each such engine dpar:
   - If it has NO entry in the payload's `coef_labels`, that ABORTS (Rose S9
     attack A5; previously the loop iterated only `names(coef_labels)`, so an
-    engine dpar the payload never labelled -- exactly the phylo-mu case
-    §7.1 now fixes at the source -- passed by vacuity).
+    engine dpar the payload never labelled -- exactly the phylo-mu FIXED-
+    EFFECT case (the `mu` block's OWN `(Intercept)`/`x`/... columns) §7.1
+    now fixes at the source -- passed by vacuity). NOTE (a Rose adversarial
+    pass on N1, §7.7): this fixed the `mu` block's own labels, but a
+    SEPARATE block (`resd_<group>`, the phylo term's own random-effect SD,
+    no `formula$entries` counterpart at all) was still unlabelled and
+    aborted the echo before this check was ever reached, so a live
+    univariate phylo fit stayed broken end-to-end until §7.7's repair --
+    do not read this bullet as "the phylo route worked" before that.
   - If it has an entry, `drm_julia_split_coef_name(coef_names)$term` for that
     dpar must be `identical()` (exact strings, exact order) to
     `coef_labels[[dpar]]`.
@@ -433,51 +440,98 @@ order comparison of two already-final name vectors, never a `gsub()` on
 punctuation rewrite remaining anywhere in `R/` is the LEGACY predict-time path
 described in §7.4.
 
-### 7.4 What S3 does NOT cover
+### 7.4 Route coverage (widened by N1, 2026-09-03; corrected 2026-09-03 after a Rose adversarial pass -- see S7.7)
 
-- **DRM.jl's `src/bridge.jl`** does not implement `bridge_formula_labels_v1`
-  after this slice; §7.2 is a specification for that lane, not code landed by
-  it. Until DRM.jl echoes the map, EVERY one of §2's six/ten failing
-  constructs still fails closed via §7.3's abort path (an improvement over
-  today's silent wrong-name pass-through, but still a refusal, not a fix) --
-  a live round trip through an actual `engine = "julia"` fit of e.g.
-  `y ~ I(x^2)` is not exercised by this slice's tests (no live Julia
-  available in this worktree); only the R-side functions are unit-tested
-  against constructed `result`/payload fixtures.
-- **Routes NOT under this contract** -- their payload builders do not call
-  `drm_julia_bridge_payload()` and do not populate `coef_labels`, so §7.3's
-  check is a structural no-op for them (the field is absent, not merely
-  empty):
-  - `drm_julia_structured_payload()` -- structured (relmat/animal/spatial)
-    random-effect bridge fits.
-  - `drm_julia_biv_known_structured_payload()` -- bivariate known-structured
-    (q2 phylogenetic) fits.
-  - the cross-family `drm_julia_xfam_axes()` path.
-  - joint fits (`R/julia-joint-methods.R`), which never reach
-    `drm_julia_bridge_payload()` either.
+As of N1, every bridge payload builder that reaches a live Julia call sends or
+constructs base-R coefficient names, and `new_drmTMB_julia()`'s fail-closed
+check (§7.3) applies to every route that goes through it. This section used to
+list four routes as "not yet under this contract" (structured,
+bivariate-known-structured, joint, cross-family); that list is empty for those
+FOUR routes. It is NOT empty overall -- §7.7 corrects an overclaim a Rose
+adversarial pass caught: the univariate `phylo(1 | group)` route (a FIFTH,
+pre-existing route, not one of the four N1 widened) was ALSO failing the echo
+on already-merged main, is now fixed for the plain mean-side case, and TWO
+more phylo shapes (a `sigma`-side phylo term, and a correlated random-slope
+phylo term) remain measured-broken and are explicitly out of this repair's
+scope -- see §7.7 for what is and is not covered, precisely. Two different
+mechanisms close the four-route list, matched to how each route talks to
+DRM.jl:
 
-  These routes are out of THIS slice's touch scope
-  (`R/julia-bridge.R (drm_julia_bridge_payload and the post-call label step
-  only)`), and adopting `coef_labels` for them is deliberately deferred, not
-  done here.
-- **The LEGACY predict-time punctuation rewrite.** `drm_julia_predict_fixed_eta()`
-  (`R/julia-bridge.R`) retains a `gsub()`-based rewrite of `object$coefficients[[dpar]]`
-  names (`" & "` -> `":"`, `": "` -> `""`), guarded by
-  `is.null(object$bridge_public_coef_labels) && !inherits(object, "drmTMB_julia_joint")`.
-  It is dead for fits whose payload came from `drm_julia_bridge_payload()`
-  (those either carry a validated map or were fail-closed-checked against
-  base-R names at fit time, per §7.3, so `beta`'s names are already base-R
-  spelling by the time `predict()` runs) but LIVE for every route in the
-  bullet above: structured, bivariate-known-structured, and joint fits do not
-  populate `coef_labels` and are not checked at fit time, so their stored
-  coefficient names can still be DRM.jl's raw synthetic spelling. Removing it
-  (attempted once, in commit `5b77eb691`, on the mistaken premise that "every
-  other case aborts at fit time" -- Rose S9 attack A10 measured this false)
-  converts a previously-working structured/joint `predict()` call with
-  factor/interaction terms into a hard "could not align the design" error.
-  It is scheduled for removal once the structured/xfam/joint payload builders
-  above adopt `coef_labels` under this contract, and is documented at its
-  call site as such.
+- **Structured (relmat/animal/spatial, `drm_julia_structured_payload()`) and
+  bivariate known-structured (q2, `drm_julia_biv_known_structured_payload()`)**
+  both call `drmTMB_drm_bridge_structured(...)`, an R-registered Julia wrapper
+  that forwards straight to the SAME `DRM.drm_bridge(...)` the base bridge
+  calls -- so DRM.jl's `_bridge_echo_coef_labels` (§7.2/§7.5) applies to them
+  identically. Both payload builders now call the ONE producer,
+  `drm_julia_bridge_payload_coef_labels()`, exactly as the base bridge does,
+  and send the result inside `options$coef_labels` the same way. Two blocks
+  these routes report have no `formula$entries` counterpart at all and are
+  built by the producer directly from `drm_julia_collect_structured_terms()`
+  (empirically confirmed against DRM.jl 77513aa0, the pinned clone):
+  - **`resd`** (structured route only) -- DRM.jl's general-covariance sparse
+    Laplace names its one random-effect SD coefficient `"resd_<group>"`; the
+    label is simply the grouping column's own name (`term$group`), DRM.jl's
+    own synthetic name echoed back unchanged, not a base-R spelling to
+    translate.
+  - **`phylocov`** (known-structured route only) -- the shared relmat/animal/
+    spatial term's 2x2 among-axis covariance, SAME `Sigma_a:L<row><col>`
+    lower-triangular convention as the q4 phylogenetic case in §7.5, just for
+    q=2. `drm_julia_phylocov_block_labels(q)` now generates both sizes from
+    one function.
+- **Joint (`R/julia-joint-missing.R` / `drm_bridge_joint`, Julia side
+  `joint_missing_bridge.jl`) and cross-family (`drm_julia_xfam_axes()` /
+  `DRM.fit_mixed_family`)** never ask DRM.jl for a name at all, so there is no
+  round trip to widen: both build the coefficient vocabulary R-side, straight
+  from `colnames(stats::model.matrix(...))`, and DRM.jl's Julia function
+  returns only bare numeric vectors that R names itself
+  (`joint_missing_bridge.jl`'s `drm_bridge_joint()` builds `coef_names`
+  literally as `blocks .* "_" .* terms` from the `mu_names`/`sigma_names`/
+  `predictor_names` the R payload supplied; `drm_julia_xfam_axes()` sets
+  `coef_names = colnames(X)` directly). These two routes were under the
+  contract by CONSTRUCTION before N1 touched anything; N1 added the tests
+  that measure it (`tests/testthat/test-coefficient-labels.R`, "joint
+  payload"/"cross-family payload" and the two matching "live echo" tests),
+  not new production code.
+
+**A base-bridge gap N1 found and closed along the way** (not a new route, the
+SAME producer the base bridge already used): `drm_julia_bridge_payload_coef_labels()`
+only labelled dpars present in `formula$entries`. DRM.jl's echo (§7.5) demands
+a label for EVERY block it fits, including a dispersion/shape parameter the R
+formula never names (e.g. a bare `bf(mu = y ~ x)` Gaussian fit still has a
+`sigma` block, defaulting to an intercept-only design -- the SAME `~1` default
+`default_dpar_entry()` in `R/drmTMB.R` inserts for the native TMB engine's own
+family spec builders, without ever touching `formula$entries` itself). Before
+this fix, ANY Julia-engine fit whose formula omitted `sigma` (or, for
+`biv_gaussian`, `sigma1`/`sigma2`/`rho12`) aborted with `"coef_labels is
+missing an entry for dpar \"sigma\""` -- confirmed empirically on a plain
+`drmTMB(bf(mu = y ~ x), gaussian(), engine = "julia")` fit against DRM.jl
+77513aa0, i.e. this affected the ALREADY-MERGED base bridge, not only the two
+new routes. `drm_julia_bridge_default_dpar_labels()` (R/julia-bridge.R) now
+fills these in as `"(Intercept)"`, gated on `family_type` (threaded into the
+producer's call from all three payload builders that use it): dispersionless
+families (`poisson`, `binomial`, `drm_julia_dispersionless_families()`) get no
+default; `biv_gaussian` defaults `sigma1`/`sigma2`/`rho12`; every other
+admitted family (`gaussian`, `lognormal`, `beta`, `nbinom2`, `gamma`, and
+`student`, which ALSO defaults `nu`) defaults `sigma`. Measured against
+DRM.jl 77513aa0 directly (`DRM.drm_bridge(formula = "y ~ x", family = fam,
+...)` for every family `drm_julia_family_tag()` admits).
+
+**RETIRED 2026-09-03: the legacy predict-time rewrite.** `drm_julia_predict_fixed_eta()`
+(`R/julia-bridge.R`) used to retain a `gsub()`-based rewrite of
+`object$coefficients[[dpar]]` names (`" & "` -> `":"`, `": "` -> `""`), guarded
+by `is.null(object$bridge_public_coef_labels) && !inherits(object,
+"drmTMB_julia_joint")`, for the four routes listed above. Now that every route
+carries base-R spelling by construction (either checked at fit time via §7.3,
+or never translated at all per the joint/cross-family mechanism above), the
+guard's condition is never true for any live-reachable object, and the
+rewrite is deleted outright -- `grep -rEn 'gsub\([^)]*(__bridge_|& )'
+R/` returns nothing. This closes gate S3-G4 (previously ABANDONED) to MET;
+see `docs/dev-log/plan/2026-09-01-...` history and the N1 after-task note for
+the removal attempt this repairs (commit `5b77eb691`, reverted by Rose S9
+attack A10 for the mistaken premise "every other case aborts at fit time" --
+that premise is now actually true, verified live against all four routes
+before deletion, not merely assumed).
+
 - **Row 7's term-order disagreement** (§3, §6) is unchanged -- if DRM.jl ever
   echoes a syntactically valid but reordered map for that construct, §7.2's
   existing validator (unchanged) still refuses it via `"map order or
@@ -526,6 +580,101 @@ of single strings (JuliaCall unboxes a length-1 atomic vector to a scalar `Strin
 would iterate by character — "(Intercept)" read as 11 names). The R-side `coef_labels` copy stays a
 plain character vector per dpar; only `options$coef_labels` is list-wrapped.
 
-§7.4's "not covered" list is unchanged for the structured/joint/xfam payload builders; the two blocks
-above are now covered on the base bridge. Measured: the committed `biv-q4-phylo-reml` and
-`lss-tip-identity` fixtures fit through the echo at 77513aa0 (leaves a4/a5/s7).
+§7.4's "not covered" list at the time this amendment was first written listed the structured/known-
+structured/joint/xfam payload builders; the two blocks above were, at that time, covered on the base
+bridge only. Measured: the committed `biv-q4-phylo-reml` and `lss-tip-identity` fixtures fit through the
+echo at 77513aa0 (leaves a4/a5/s7).
+
+### 7.6 Amendment, 2026-09-03 (N1 -- block rules for the two remaining live-round-trip routes)
+
+Widening §7.1's producer to the structured and known-structured payload builders (§7.4) needed two more
+block rules, discovered the same way as §7.5's `phylocov`/`sd(group)` rules -- fitting `DRM.drm_bridge`
+directly against the pinned 77513aa0 clone and reading the echo's own error text:
+
+- **`resd`** (`drm_julia_structured_payload()`, relmat/animal/spatial on `mu`) -- `DRM.drm_bridge(formula
+  = "y ~ x + relmat(1 | g)", family = "gaussian", K = K, options = Dict())` reports `coef_names` ending
+  in `"resd_g"`; supplying `coef_labels` with only `mu`/`sigma` aborts `coef_labels is missing an entry
+  for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_g"])`. The label is simply the grouping
+  column's own name (`term$group}` on the R side) -- confirmed stable across all four
+  `drm_julia_structured_families()` (gaussian, poisson, nbinom2, gamma) and both `relmat`/`animal` marker
+  types. Poisson has no `sigma` block (dispersionless) but still has `resd`.
+- **`phylocov` at q=2** (`drm_julia_biv_known_structured_payload()`, relmat/animal/spatial shared by
+  `mu1`/`mu2`) -- a `biv_gaussian` fit with matching `relmat(1 | g)` terms on both mean axes reports
+  `coef_names` ending in `"phylocov_Sigma_a:L11"`, `"...L21"`, `"...L22"`; the echo demands exactly those
+  three names under dpar `"phylocov"`. SAME lower-triangular, column-major `Sigma_a:L<row><col>`
+  convention as the q4 case in §7.5, just for a 2x2 matrix -- `drm_julia_phylocov_block_labels(q)`
+  (R/julia-bridge.R) now generates both sizes from one function, refactoring §7.5's inline q4 loop to
+  call it too.
+
+A THIRD finding was not a new route's block at all, but a gap in the producer's EXISTING per-`formula$entries`
+loop that blocked both new routes AND the already-merged base bridge: DRM.jl's echo (§7.5) demands a label
+for every block it fits, including a dispersion/shape dpar the R formula never named (a bare `bf(mu = y ~
+x)` Gaussian fit still gets an intercept-only `sigma` block from DRM.jl, mirroring the SAME `~1` default
+`default_dpar_entry()` in `R/drmTMB.R` silently inserts for the native TMB engine, without ever writing
+that default into `formula$entries` for the Julia payload to see). Measured directly against 77513aa0 for
+every family the bridge admits: `gaussian`/`lognormal`/`beta`/`nbinom2`/`gamma` each default `sigma`;
+`student` ALSO defaults `nu`; `biv_gaussian` defaults `sigma1`/`sigma2`/`rho12`; `poisson`/`binomial`
+default nothing (no free dispersion parameter). `drm_julia_bridge_default_dpar_labels()` (R/julia-bridge.R)
+fills these as `"(Intercept)"`, gated on a new `family_type` parameter threaded into
+`drm_julia_bridge_payload_coef_labels()` from all three call sites that carry one (base bridge, structured,
+known-structured). §7.4 has the full writeup and the "RETIRED 2026-09-03" note on the legacy predict-time
+rewrite this closes out.
+
+### 7.7 Amendment, 2026-09-03 evening (N1 repair -- Rose adversarial pass refutation and neighbour hole)
+
+A Rose (fresh, adversarial) pass against N1's branch (`docs/dev-log/after-task/2026-09-03-n1-label-contract-all-routes.md`'s
+companion review) REFUTED the claim that "every bridge route" passes DRM.jl's echo. It found one WORST
+gap and one neighbour hole, both pre-existing on already-merged main (not introduced by N1), plus a prose
+overclaim this section corrects.
+
+**The WORST gap, fixed.** The univariate phylogenetic route -- `bf(y ~ x + phylo(1 | species, tree = tr),
+sigma ~ 1)`, gaussian, `engine = "julia"` -- aborted on BOTH `origin/main` and N1's branch:
+`coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_species"])`.
+Root cause: the producer's `resd` block (§7.6) was built only from `drm_julia_collect_structured_terms()`,
+whose marker types are `relmat`/`animal`/`spatial` -- `phylo` is deliberately excluded there (it gates
+ROUTING to a different code path), so the univariate phylo route's own `resd_<group>` block was never
+labelled. Fixed by a SEPARATE detection in the producer, gated to a bare random-intercept `phylo(1 | g)`
+term on `mu` specifically (`term$dpar == "mu"`, `term$coef_names == "(Intercept)"`), skipped when the
+formula is bivariate (`drm_julia_biv_phylo_dimension()` non-NA -- those routes use `phylocov` instead) or
+when the SAME group also carries a coupled `sd(group)`/`sd_phylo(group)` LSS dpar (that route reports the
+covariance through the `sd`/`sd_phylo` block instead, verified empirically no separate `resd` appears --
+the `lss-tip-identity` fixture already passed before this repair). Re-verified live after the fix: the
+mean-only phylo route now matches the native TMB engine's `mu` coefficient names exactly; the q4 bivariate
+phylo route (`phylocov`) and the LSS `sd()` route are unaffected (both still pass); a Poisson phylo
+round-trip (`tests/testthat/test-julia-phylo-count.R`, previously silently skipped under this arc's
+mandated live env because it gates on the DIFFERENT `DRM_JL_PHYLO_PATH` variable, §7.7's next paragraph)
+now runs and passes too.
+
+**NOT fixed, measured, explicitly out of scope.** Two other phylo shapes were measured to need a
+DIFFERENT, dpar-qualified block key this repair does not attempt, and remain broken against the pinned
+echo exactly as they were before N1 touched anything (confirmed unchanged on the branch tip before and
+after this repair, same error text): a `sigma`-side phylo term (the "sigma-phylo REML" cluster,
+`drm_julia_locscale_phylo_families()`) reports `resd_sigma` with a COMPOUND term name
+(`"species:sd_sigma"`, not the bare group -- `tests/testthat/test-julia-sigma-phylo-reml.R`'s live fit
+errors `coef_labels is missing an entry for dpar "resd_sigma"`), and a correlated random-slope phylo term
+(`phylo(1 + x | g)`) is a separate, more complex shape again (likely `resd_<group>` plus a `recov_<group>`
+correlation block), neither measured here.
+
+**The neighbour hole, fixed.** A user-WRITTEN `sigma ~ ...` formula on a `drm_julia_dispersionless_families()`
+family (poisson, binomial -- no free dispersion parameter) aborted the echo in the OPPOSITE direction:
+`coef_labels supplies names for unknown dpar "sigma"; the model has dpars: mu`. The native TMB engine
+already refuses this formula outright for the same reason (`drmTMB(bf(y ~ x, sigma ~ 1), poisson())` ->
+"Poisson models only support `mu` and optional `zi`. Unsupported parameter: \"sigma\".", verified live) --
+the fix makes `engine = "julia"` refuse the same formula the same way (a clear, drmTMB-authored
+`cli::cli_abort()`, not a silent drop of what the user wrote, and not the confusing DRM.jl-attributed
+echo message), rather than building a payload doomed to fail downstream.
+
+**Why the WORST gap went undetected.** Every live phylo test in the repo gates on `DRM_JL_PHYLO_PATH`, a
+DIFFERENT env var from the `DRM_JL_PATH` this lane's mandated live command sets, so the whole phylo family
+silently skipped under the standard live invocation; when the var IS set, several phylo test files wrap
+the fit in `tryCatch(..., error = function(e) skip(...))`, converting a hard bridge abort into a green
+skip (16 sites across 9 files, filed as a separate issue, explicitly OUT of this repair's scope -- not
+touched here).
+
+**Test-count correction.** The after-task's original §4 claimed "114 assertions" for the offline
+`test-coefficient-labels.R` run; Rose measured 94 passing + 4 skipped = 98 at that point. After this
+repair (new tests added), the SAME offline invocation
+(`env -u DRM_JL_PATH -u DRMTMB_JULIA_TESTS`) measures 104 passed + 5 skipped = 109 expectations; the
+filtered suite (`coefficient-labels|julia-bridge|julia-structured|julia-joint|xfam`) measures 646 passed +
+10 skipped, 0 failed/errors. Both numbers are freshly re-measured for this section, not carried over from
+either earlier claim.
