@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{summary.drmTMB_julia}
 \alias{summary.drmTMB_julia}
-\title{Summarise a legacy Julia-bridge \code{drmTMB} fit}
+\title{Summarise a Julia-bridge \code{drmTMB} fit}
 \usage{
 \method{summary}{drmTMB_julia}(
   object,
@@ -29,9 +29,10 @@ An object of class \code{summary.drmTMB_julia} with \code{coefficients},
 \code{random} (random-effect SDs), and fit-summary scalars.
 }
 \description{
-The Julia bridge is halted/deferred future work. This compatibility method
-inspects an existing \code{drmTMB_julia} object; it does not make Julia a current
-fitting or inference option. For new analyses, use native TMB fits.
+The optional Julia bridge is a current fitting route for documented admitted
+cells. This method reports the returned Julia fit and its available
+uncertainty; use native TMB for unsupported models, controls, and inference
+routes.
 }
 \details{
 Builds a fixed-effect coefficient table (estimate, standard error, z value,
