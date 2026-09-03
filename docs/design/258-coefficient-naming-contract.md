@@ -740,6 +740,15 @@ need the `recov`/`resd_mu` split above. This was discovered by running the live 
 fixes and reading DRM.jl's own abort text for the NEW failure, not by speculating about what else might be
 broken -- the same evidence discipline as every other row in this document.
 
+Caveat on the random-slope row (coordinator, 2026-09-03 08:45 UTC, from the DRM.jl lane's own finding,
+DRM.jl issue #620): at DRM.jl 77513aa0 the one-column `resd` label for `phylo(1 + x | g)` matches what the
+engine echoes because `_split_ranef` (`src/gaussian_ranef.jl:19`) keeps only the grouping symbol of a
+`phylo()` marker, so DRM.jl fits the INTERCEPT-ONLY model and silently discards `x`; the label is correct
+for the model DRM.jl actually fits, not for a two-SD random slope. DRM.jl is adding a fail-closed refusal
+of `phylo(<not 1> | group)` on its univariate routes; once drmTMB's pinned clone moves past it, the live
+Gamma random-slope test in `test-julia-slope-nongaussian.R` must expect an engine refusal, and a two-SD
+random-slope label becomes a new row here (DRM.jl's S8 follow-up implements the Gaussian case).
+
 Test-count: `tests/testthat/test-coefficient-labels.R` gained four new offline unit tests (naming
 "resd_sigma", "random-slope", "phylocov" per this repair's own gate); the four live "measured broken"
 skips this section closes are removed from `test-julia-sigma-phylo-reml.R` (1),
