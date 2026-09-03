@@ -106,13 +106,12 @@ repos/itchyshin/drmTMB/issues/{1123,1127,1129,1130}`; the 2026-09-02 reconcile
 ## Merge log
 
 - #1122 claude/night-n5-prerun @ 4197bb1ed — CI: ubuntu release + os-matrix success — merged 2026-09-03T01:01:10Z as 5aa488259
-- #1124 claude/n1-label-contract-all-routes @ fc4690ea0 — CI: ubuntu release + os-matrix success on fc4690ea0 — then conflicted with main on the tip-identity receipt after #1128 landed; main merged in (da34e72bf) and the receipt regenerated last (4aa0c4600, checker PASS, no force-push) — CI on 4aa0c4600: PENDING — merged: PENDING
+- #1124 claude/n1-label-contract-all-routes @ fc4690ea0 — CI: ubuntu release + os-matrix success on fc4690ea0 — then conflicted with main on the tip-identity receipt after #1128 landed; main merged in (da34e72bf) and the receipt regenerated last (4aa0c4600, checker PASS, no force-push) — CI on 4aa0c4600: ubuntu release + os-matrix success — merged 2026-09-03T02:23:10Z as d3d205486; S3-G4 in .unlazy/true-parity/gates/leaf-s3.md flipped ABANDONED to MET (oracle NO_GUESSING_OK, red control fails as designed)
 - #1125 claude/night-n2-accessors @ 762ac950f — CI: ubuntu release FAILED (run 33699592016: test-heritability.R:195 read R/heritability.R, absent in the check tarball) — fixed on the branch at 21a6ae022 (fallback to the installed Rd examples; verified against man/ locally) — CI on 21a6ae022: ubuntu release + os-matrix success — merged 2026-09-03T02:06:17Z as 9bc9db99f (closes #1115)
 - #1126 claude/night-n4-board-indefinite @ 804b10e15 — CI: ubuntu release + os-matrix success — merged 2026-09-03T00:58:16Z as ef796e7f9
 - #1128 claude/night-n3-labels @ 6def01c6d — CI: ubuntu release + os-matrix success — merged 2026-09-03T01:44:59Z as fa1ebf95b
 
-(Remaining PENDING lines are filled by the conductor as each lands, in the merge order checkpoint.md
-records: #1122 first — docs+tools only — then #1126 and #1125, both touching
+(All five landed, in the merge order checkpoint.md records: #1122 first — docs+tools only — then #1126 and #1125, both touching
 `capability-status.md`, rebase whichever is second, then #1128 and the repaired #1124, both
 touching `R/` and the tip-identity receipt, with the receipt regenerated on `main` after the
 second of those two lands.)

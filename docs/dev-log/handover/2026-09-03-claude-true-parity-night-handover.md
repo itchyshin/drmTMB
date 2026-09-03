@@ -70,23 +70,12 @@ durable path and the others may have as well).
 
 ## OWED Next Immediate Steps (smallest first)
 
-1. **Fill in merge SHAs once #1124/#1125/#1128 land.** `docs/dev-log/after-task/
-   2026-09-03-true-parity-night.md` section 10 (Merge log) and
-   `docs/dev-log/plan-actual/2026-09-03-true-parity-night.md`'s "Merge log" section both carry
-   `merged: PENDING` for these three PRs. Verify: `gh pr view 1124 1125 1128 --json state,mergedAt,
-   mergeCommit` each shows `MERGED` with a commit SHA; replace the `PENDING` lines with
-   `merged 2026-09-0Xtxx:xx:xxZ as <sha>` in both files, in the merge order checkpoint.md records
-   (#1122 and #1126 already landed; then whichever of #1125/#1126-class docs-touching PR is second;
-   then #1128 and #1124, both touching `R/` and the tip-identity receipt).
-2. **Flip S3-G4 from ABANDONED to MET after #1124 merges.** File:
-   `.unlazy/true-parity/gates/leaf-s3.md`, line ~25. Verify before flipping:
-   `! grep -rEn 'gsub\([^)]*(__bridge|& )' R/` on the post-merge `main` checkout exits with the
-   grep finding nothing (i.e. the pattern is absent) -- N1's PR body claims the legacy `gsub()` in
-   `drm_julia_predict_fixed_eta()` was deleted once every remaining route carries `coef_labels`.
-   Do not flip on the PR's word alone; re-run the CHECK line verbatim from the gate file against
-   `main`, then edit the `[ ]` to `[x]` and append a `RESOLVED 2026-09-0X: #1124 merged (<sha>);
-   legacy gsub confirmed absent` line under the existing `ABANDON:` note (keep the ABANDON note --
-   it is the historical record of why S3-G4 was abandoned in the first place).
+1. **(Done before close.) All five PRs merged.** #1126 ef796e7f9, #1122 5aa488259, #1128 fa1ebf95b,
+   #1125 9bc9db99f, #1124 d3d205486; merge log `.unlazy/night/merge-log.txt`; the after-task and
+   reconcile carry the SHAs. Verify: `gh pr view 1122 1124 1125 1126 1128 --json state,mergeCommit`.
+2. **(Done before close.) S3-G4 flipped ABANDONED to MET** in `.unlazy/true-parity/gates/leaf-s3.md`
+   after #1124 merged; oracle `NO_GUESSING_OK` re-run and red control recorded in the EVIDENCE line.
+
 3. **Regenerate the lss-tip-identity receipt on `main` LAST, after both #1124 and #1128 land**
    (both touch `R/julia-bridge.R`, and the receipt pins the whole file -- regenerating before both
    land would need a second regeneration). From the post-merge `main` checkout:
