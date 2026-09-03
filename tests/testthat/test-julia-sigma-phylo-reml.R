@@ -530,14 +530,11 @@ test_that("Gaussian sigma-phylo REML fit via engine = 'julia' is finite and sane
   # currently implemented only ...; the pinned engine now supports it, per
   # the R-side gate relax covered by the unit tests above.)
   #
-  # Measured broken under DRM.jl 77513aa0 (2026-09-03, #1127 live run): the
-  # coef_labels dpar "resd_sigma" (Julia name resd_sigma_species:sd_sigma)
-  # is not covered by the R-side coef_labels dict, so drm_bridge() errors
-  # with "coef_labels is missing an entry for dpar \"resd_sigma\"" before
-  # any fit summary comes back. See #1127 after-task.
-  testthat::skip(
-    "measured broken under DRM.jl 77513aa0: drm_bridge errors coef_labels is missing an entry for dpar \"resd_sigma\"; see #1127 after-task"
-  )
+  # Previously broken (DRM.jl clone 77513aa0, 2026-09-03, #1127 live run):
+  # the coef_labels dpar "resd_sigma" (Julia name
+  # resd_sigma_species:sd_sigma) was not covered by the R-side coef_labels
+  # dict. Fixed by N9 (2026-09-03, design 258 S7.7 amendment) -- see
+  # `drm_julia_bridge_payload_coef_labels()`, R/julia-bridge.R.
   res <- drm_sigma_phylo_reml_fits(n_tip = 32L)
 
   for (fit in res) {

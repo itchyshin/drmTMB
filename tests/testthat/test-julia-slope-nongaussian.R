@@ -58,14 +58,14 @@ test_that("Gamma phylo random-slope (1 + x | species) via engine = 'julia' is fi
   testthat::skip_if_not_installed("ape")
   # Engine availability is decided by drm_skip_live_julia() above; an engine
   # error here is a test error, not a skip (#1127, Rose N7 pass 2026-09-03).
-  # Measured live on 2026-09-03 once the swallow was removed: DRM.jl 77513aa0
-  # aborts with 'coef_labels is missing an entry for dpar "resd"' because the
-  # R-side producer does not label the resd block of a RANDOM-SLOPE phylo term
-  # (design 258 S7.7 names random-slope phylo blocks as outside the contract).
-  testthat::skip(paste(
-    "measured broken under DRM.jl 77513aa0: coef_labels lacks 'resd' for a",
-    "random-slope phylo block (design 258 S7.7); see #1127 after-task"
-  ))
+  # Was measured broken live on 2026-09-03: DRM.jl 77513aa0 aborted with
+  # 'coef_labels is missing an entry for dpar "resd"' because the R-side
+  # producer only labelled the resd block of a random-INTERCEPT phylo term.
+  # Fixed by N9 (2026-09-03, design 258 S7.7 amendment): DRM.jl's
+  # sparse-Laplace GLMM route reports exactly one `resd_<group>` coefficient
+  # for a random-slope phylo term too (no separate intercept/slope split),
+  # so the same bare-group label now covers it -- see
+  # `drm_julia_bridge_payload_coef_labels()`, R/julia-bridge.R.
   res <- drm_phylo_slope_gamma_fit()
   expect_identical(res$engine, "julia")
   expect_true(is.finite(res$loglik_julia))
