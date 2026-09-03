@@ -1362,7 +1362,7 @@ drm_translate_public_start_override <- function(spec, start) {
     if (is.null(parsed)) {
       cli::cli_abort(c(
         "Unknown public start label {.val {label}}.",
-        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, or {.code phylo_cor:<axis1>:<axis2>} format."
+        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, {.code phylo_cor:<axis1>:<axis2>}, or {.code phylo_theta:<axis1>:<axis2>} format."
       ))
     }
     if (identical(parsed$family, "u")) {
@@ -1443,13 +1443,15 @@ drm_parse_public_start_label <- function(label) {
     return(NULL)
   }
   # Phylo covariance block families (design 35, "Phylo Covariance Block"; N3,
-  # 2026-09-03): `phylo_sd:<axis>` (one axis) and `phylo_cor:<axis1>:<axis2>`
-  # (a pair) address the q>=2 phylogenetic location/scale covariance block's
-  # working parameters (`log_sd_phylo`/`eta_cor_phylo`/`theta_phylo`), which
-  # live outside `spec$random` and so cannot be named `<dpar>` the way an
-  # ordinary random-effect term can. These have their own arity (2 and 3
-  # segments respectively, vs. the generic family's fixed 3) so they are
-  # parsed before the generic `family:dpar:target` pattern.
+  # 2026-09-03; split N3b, 2026-09-03): `phylo_sd:<axis>` (one axis),
+  # `phylo_cor:<axis1>:<axis2>` (a pair, ALWAYS a bounded correlation), and
+  # `phylo_theta:<axis1>:<axis2>` (a pair, the DENSE-block-only raw Cholesky
+  # working parameter) address the q>=2 phylogenetic location/scale
+  # covariance block's working parameters (`log_sd_phylo`/`eta_cor_phylo`/
+  # `theta_phylo`), which live outside `spec$random` and so cannot be named
+  # `<dpar>` the way an ordinary random-effect term can. These have their own
+  # arity (2 and 3 segments respectively, vs. the generic family's fixed 3)
+  # so they are parsed before the generic `family:dpar:target` pattern.
   m <- regmatches(label, regexec("^phylo_sd:(.+)$", label))[[1L]]
   if (length(m) == 2L) {
     return(list(family = "phylo_sd", dpar = NA_character_, target = m[[2L]]))
@@ -1457,6 +1459,14 @@ drm_parse_public_start_label <- function(label) {
   m <- regmatches(label, regexec("^phylo_cor:([^:]+):(.+)$", label))[[1L]]
   if (length(m) == 3L) {
     return(list(family = "phylo_cor", dpar = m[[2L]], target = m[[3L]]))
+  }
+  # `phylo_theta:<axis1>:<axis2>` (N3b, 2026-09-03): the honest counterpart to
+  # `phylo_cor:` for a DENSE q > 2 phylo block, where the working parameter is
+  # a raw `UNSTRUCTURED_CORR_t` Cholesky entry with no correlation meaning in
+  # isolation. See `drm_resolve_public_start_target()` for the split.
+  m <- regmatches(label, regexec("^phylo_theta:([^:]+):(.+)$", label))[[1L]]
+  if (length(m) == 3L) {
+    return(list(family = "phylo_theta", dpar = m[[2L]], target = m[[3L]]))
   }
   m <- regmatches(label, regexec("^([^:]+):([^:]+):(.+)$", label))[[1L]]
   if (length(m) != 4L) {
@@ -1592,12 +1602,31 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
   }
 
   # Phylo covariance block families (design 35, "Phylo Covariance Block"; N3,
-  # 2026-09-03). `spec$structured$phylo_mu` is the q >= 2 structured
-  # location/scale block itself (`log_sd_phylo`, `eta_cor_phylo`/`theta_phylo`),
-  # which lives outside `spec$random` and outside the ordinary `<dpar>`
-  # vocabulary -- see `drm_phylo_mu_axis_labels()` and
-  # `drm_phylo_mu_dense_theta_index()` just above.
-  if (identical(family, "phylo_sd") || identical(family, "phylo_cor")) {
+  # 2026-09-03; split N3b, 2026-09-03). `spec$structured$phylo_mu` is the
+  # q >= 2 structured location/scale block itself (`log_sd_phylo`,
+  # `eta_cor_phylo`/`theta_phylo`), which lives outside `spec$random` and
+  # outside the ordinary `<dpar>` vocabulary -- see `drm_phylo_mu_axis_labels()`
+  # and `drm_phylo_mu_dense_theta_index()` just above.
+  #
+  # `phylo_cor:<axis1>:<axis2>` ALWAYS denotes a correlation strictly in
+  # (-1, 1): the q = 2 scalar `eta_cor_phylo`, or (for a block-diagonal
+  # q > 2 block) the one `theta_phylo` entry a labelled 2-endpoint block
+  # contributes directly (no Cholesky reconstruction needed). For a DENSE
+  # q > 2 block, `theta_phylo` entries are raw TMB `UNSTRUCTURED_CORR_t`
+  # Cholesky-space working parameters with no correlation meaning in
+  # isolation (the correlation matrix is the nonlinear `L %*% t(L)` ->
+  # `cov2cor()` of ALL entries together; see `tmb_unstructured_corr_matrix()`),
+  # so `phylo_cor:` REFUSES there and points at the honestly-named
+  # `phylo_theta:<axis1>:<axis2>` instead, which addresses the SAME
+  # `theta_phylo` position on its own raw, unconstrained scale -- no
+  # transform, and no bounded-correlation meaning claimed. `phylo_theta:` is
+  # the dense-only counterpart; it refuses for q = 2 or block-diagonal
+  # q > 2, where `phylo_cor:` is already the correct, honest family.
+  if (
+    identical(family, "phylo_sd") ||
+      identical(family, "phylo_cor") ||
+      identical(family, "phylo_theta")
+  ) {
     phylo_mu <- spec$structured$phylo_mu
     if (!isTRUE(phylo_mu$has)) {
       cli::cli_abort(c(
@@ -1629,9 +1658,9 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
       ))
     }
 
-    # phylo_cor: `dpar` and `target` hold the two axes (the parser captures
-    # the first axis as `dpar` and the rest of the label, greedily, as
-    # `target`).
+    # phylo_cor:/phylo_theta:: `dpar` and `target` hold the two axes (the
+    # parser captures the first axis as `dpar` and the rest of the label,
+    # greedily, as `target`).
     axis1 <- dpar
     axis2 <- target
     if (!(axis1 %in% axis_labels) || !(axis2 %in% axis_labels) || identical(axis1, axis2)) {
@@ -1642,6 +1671,40 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
       ))
     }
     q <- structured_mu_q(phylo_mu)
+    dense <- q > 2L && !phylo_mu_is_block_diagonal(phylo_mu)
+
+    if (identical(family, "phylo_theta")) {
+      if (!dense) {
+        cli::cli_abort(c(
+          "Start label {.val {label}} does not apply to this phylogenetic covariance block.",
+          "x" = "This block is q = 2 or block-diagonal, where its working parameter IS already a bounded correlation.",
+          "i" = "Use {.code phylo_cor:{axis1}:{axis2}} instead."
+        ))
+      }
+      pos <- drm_phylo_mu_dense_theta_index(phylo_mu, axis1, axis2)
+      if (is.na(pos)) {
+        cli::cli_abort(c(
+          "Unknown public start label {.val {label}}.",
+          "x" = "{.val {axis1}}:{.val {axis2}} could not be mapped to a {.code theta_phylo} working parameter."
+        ))
+      }
+      return(list(
+        component = "theta_phylo",
+        index = pos,
+        value = as.numeric(value)
+      ))
+    }
+
+    # phylo_cor: from here on -- ALWAYS a bounded correlation strictly in
+    # (-1, 1). A dense block has no honest value to offer here (see the
+    # header comment), so it refuses and points at `phylo_theta:` instead.
+    if (dense) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} cannot be honored: this phylogenetic covariance block is dense.",
+        "x" = "Its working parameters are raw {.code UNSTRUCTURED_CORR_t} Cholesky entries, not pairwise correlations, so no {.code phylo_cor:} value would be honest here.",
+        "i" = "Use {.code phylo_theta:{axis1}:{axis2}} to address the same working parameter on its own raw (unconstrained) scale."
+      ))
+    }
     if (q <= 2L) {
       # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
       # tanh scale as the ordinary `cor:` family (0.999999 * tanh(eta); see
@@ -1658,60 +1721,38 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
         value = atanh(value / 0.999999)
       ))
     }
-    if (phylo_mu_is_block_diagonal(phylo_mu)) {
-      # Each labelled 2-endpoint block contributes one `theta_phylo` entry
-      # that IS a bounded tanh-transformed correlation directly (no Cholesky
-      # reconstruction needed; see `split_tmb_corpars()`'s block-diagonal
-      # branch), so this stays on the same natural correlation scale as
-      # `cor:` and the q = 2 case above.
-      pairs <- phylo_mu_pair_table(phylo_mu)
-      pos <- which(
-        (pairs$from_dpar == axis1 & pairs$to_dpar == axis2) |
-          (pairs$from_dpar == axis2 & pairs$to_dpar == axis1)
-      )
-      if (length(pos) != 1L) {
-        cli::cli_abort(c(
-          "Unknown public start label {.val {label}}.",
-          "x" = "{.val {axis1}} and {.val {axis2}} are not in the same labelled phylogenetic covariance block."
-        ))
-      }
-      if (!(value > -1) || !(value < 1)) {
-        cli::cli_abort(c(
-          "Start label {.val {label}} must be strictly between -1 and 1.",
-          "x" = "{.code phylo_cor:} starts for a block-diagonal phylogenetic covariance are given on the natural correlation scale."
-        ))
-      }
-      return(list(
-        component = "theta_phylo",
-        index = pos,
-        value = atanh(value / 0.999999)
-      ))
-    }
-    # Dense (single unstructured q > 2 block): `theta_phylo` entries are raw
-    # TMB `UNSTRUCTURED_CORR_t` Cholesky-space working parameters, not
-    # individually a bounded correlation (the correlation matrix is a
-    # nonlinear function of ALL entries together via `L %*% t(L)` then
-    # `cov2cor()`; see `tmb_unstructured_corr_matrix()`). There is therefore
-    # no natural (-1, 1) scale for a single entry to decode from, unlike every
-    # other family here -- the supplied value IS the working parameter, taken
-    # on its own unconstrained real scale.
-    pos <- drm_phylo_mu_dense_theta_index(phylo_mu, axis1, axis2)
-    if (is.na(pos)) {
+    # Block-diagonal q > 2: each labelled 2-endpoint block contributes one
+    # `theta_phylo` entry that IS a bounded tanh-transformed correlation
+    # directly (no Cholesky reconstruction needed; see
+    # `split_tmb_corpars()`'s block-diagonal branch), so this stays on the
+    # same natural correlation scale as `cor:` and the q = 2 case above.
+    pairs <- phylo_mu_pair_table(phylo_mu)
+    pos <- which(
+      (pairs$from_dpar == axis1 & pairs$to_dpar == axis2) |
+        (pairs$from_dpar == axis2 & pairs$to_dpar == axis1)
+    )
+    if (length(pos) != 1L) {
       cli::cli_abort(c(
         "Unknown public start label {.val {label}}.",
-        "x" = "{.val {axis1}}:{.val {axis2}} could not be mapped to a {.code theta_phylo} working parameter."
+        "x" = "{.val {axis1}} and {.val {axis2}} are not in the same labelled phylogenetic covariance block."
+      ))
+    }
+    if (!(value > -1) || !(value < 1)) {
+      cli::cli_abort(c(
+        "Start label {.val {label}} must be strictly between -1 and 1.",
+        "x" = "{.code phylo_cor:} starts for a block-diagonal phylogenetic covariance are given on the natural correlation scale."
       ))
     }
     return(list(
       component = "theta_phylo",
       index = pos,
-      value = as.numeric(value)
+      value = atanh(value / 0.999999)
     ))
   }
 
   cli::cli_abort(c(
     "Unknown public start label {.val {label}}.",
-    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, or {.code phylo_cor:<axis1>:<axis2>} format."
+    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, {.code phylo_cor:<axis1>:<axis2>}, or {.code phylo_theta:<axis1>:<axis2>} format."
   ))
 }
 
