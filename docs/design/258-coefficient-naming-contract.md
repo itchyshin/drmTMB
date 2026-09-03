@@ -404,8 +404,15 @@ two separate checks, and both must hold.
   table. For each such engine dpar:
   - If it has NO entry in the payload's `coef_labels`, that ABORTS (Rose S9
     attack A5; previously the loop iterated only `names(coef_labels)`, so an
-    engine dpar the payload never labelled -- exactly the phylo-mu case
-    §7.1 now fixes at the source -- passed by vacuity).
+    engine dpar the payload never labelled -- exactly the phylo-mu FIXED-
+    EFFECT case (the `mu` block's OWN `(Intercept)`/`x`/... columns) §7.1
+    now fixes at the source -- passed by vacuity). NOTE (a Rose adversarial
+    pass on N1, §7.7): this fixed the `mu` block's own labels, but a
+    SEPARATE block (`resd_<group>`, the phylo term's own random-effect SD,
+    no `formula$entries` counterpart at all) was still unlabelled and
+    aborted the echo before this check was ever reached, so a live
+    univariate phylo fit stayed broken end-to-end until §7.7's repair --
+    do not read this bullet as "the phylo route worked" before that.
   - If it has an entry, `drm_julia_split_coef_name(coef_names)$term` for that
     dpar must be `identical()` (exact strings, exact order) to
     `coef_labels[[dpar]]`.
@@ -433,14 +440,22 @@ order comparison of two already-final name vectors, never a `gsub()` on
 punctuation rewrite remaining anywhere in `R/` is the LEGACY predict-time path
 described in §7.4.
 
-### 7.4 Route coverage (widened by N1, 2026-09-03 -- every route is now under the contract)
+### 7.4 Route coverage (widened by N1, 2026-09-03; corrected 2026-09-03 after a Rose adversarial pass -- see S7.7)
 
 As of N1, every bridge payload builder that reaches a live Julia call sends or
 constructs base-R coefficient names, and `new_drmTMB_julia()`'s fail-closed
 check (§7.3) applies to every route that goes through it. This section used to
 list four routes as "not yet under this contract" (structured,
-bivariate-known-structured, joint, cross-family); that list is now empty. Two
-different mechanisms close it, matched to how each route talks to DRM.jl:
+bivariate-known-structured, joint, cross-family); that list is empty for those
+FOUR routes. It is NOT empty overall -- §7.7 corrects an overclaim a Rose
+adversarial pass caught: the univariate `phylo(1 | group)` route (a FIFTH,
+pre-existing route, not one of the four N1 widened) was ALSO failing the echo
+on already-merged main, is now fixed for the plain mean-side case, and TWO
+more phylo shapes (a `sigma`-side phylo term, and a correlated random-slope
+phylo term) remain measured-broken and are explicitly out of this repair's
+scope -- see §7.7 for what is and is not covered, precisely. Two different
+mechanisms close the four-route list, matched to how each route talks to
+DRM.jl:
 
 - **Structured (relmat/animal/spatial, `drm_julia_structured_payload()`) and
   bivariate known-structured (q2, `drm_julia_biv_known_structured_payload()`)**
@@ -604,3 +619,62 @@ fills these as `"(Intercept)"`, gated on a new `family_type` parameter threaded 
 `drm_julia_bridge_payload_coef_labels()` from all three call sites that carry one (base bridge, structured,
 known-structured). §7.4 has the full writeup and the "RETIRED 2026-09-03" note on the legacy predict-time
 rewrite this closes out.
+
+### 7.7 Amendment, 2026-09-03 evening (N1 repair -- Rose adversarial pass refutation and neighbour hole)
+
+A Rose (fresh, adversarial) pass against N1's branch (`docs/dev-log/after-task/2026-09-03-n1-label-contract-all-routes.md`'s
+companion review) REFUTED the claim that "every bridge route" passes DRM.jl's echo. It found one WORST
+gap and one neighbour hole, both pre-existing on already-merged main (not introduced by N1), plus a prose
+overclaim this section corrects.
+
+**The WORST gap, fixed.** The univariate phylogenetic route -- `bf(y ~ x + phylo(1 | species, tree = tr),
+sigma ~ 1)`, gaussian, `engine = "julia"` -- aborted on BOTH `origin/main` and N1's branch:
+`coef_labels is missing an entry for dpar "resd" (1 fixed-effect columns; Julia names: ["resd_species"])`.
+Root cause: the producer's `resd` block (§7.6) was built only from `drm_julia_collect_structured_terms()`,
+whose marker types are `relmat`/`animal`/`spatial` -- `phylo` is deliberately excluded there (it gates
+ROUTING to a different code path), so the univariate phylo route's own `resd_<group>` block was never
+labelled. Fixed by a SEPARATE detection in the producer, gated to a bare random-intercept `phylo(1 | g)`
+term on `mu` specifically (`term$dpar == "mu"`, `term$coef_names == "(Intercept)"`), skipped when the
+formula is bivariate (`drm_julia_biv_phylo_dimension()` non-NA -- those routes use `phylocov` instead) or
+when the SAME group also carries a coupled `sd(group)`/`sd_phylo(group)` LSS dpar (that route reports the
+covariance through the `sd`/`sd_phylo` block instead, verified empirically no separate `resd` appears --
+the `lss-tip-identity` fixture already passed before this repair). Re-verified live after the fix: the
+mean-only phylo route now matches the native TMB engine's `mu` coefficient names exactly; the q4 bivariate
+phylo route (`phylocov`) and the LSS `sd()` route are unaffected (both still pass); a Poisson phylo
+round-trip (`tests/testthat/test-julia-phylo-count.R`, previously silently skipped under this arc's
+mandated live env because it gates on the DIFFERENT `DRM_JL_PHYLO_PATH` variable, §7.7's next paragraph)
+now runs and passes too.
+
+**NOT fixed, measured, explicitly out of scope.** Two other phylo shapes were measured to need a
+DIFFERENT, dpar-qualified block key this repair does not attempt, and remain broken against the pinned
+echo exactly as they were before N1 touched anything (confirmed unchanged on the branch tip before and
+after this repair, same error text): a `sigma`-side phylo term (the "sigma-phylo REML" cluster,
+`drm_julia_locscale_phylo_families()`) reports `resd_sigma` with a COMPOUND term name
+(`"species:sd_sigma"`, not the bare group -- `tests/testthat/test-julia-sigma-phylo-reml.R`'s live fit
+errors `coef_labels is missing an entry for dpar "resd_sigma"`), and a correlated random-slope phylo term
+(`phylo(1 + x | g)`) is a separate, more complex shape again (likely `resd_<group>` plus a `recov_<group>`
+correlation block), neither measured here.
+
+**The neighbour hole, fixed.** A user-WRITTEN `sigma ~ ...` formula on a `drm_julia_dispersionless_families()`
+family (poisson, binomial -- no free dispersion parameter) aborted the echo in the OPPOSITE direction:
+`coef_labels supplies names for unknown dpar "sigma"; the model has dpars: mu`. The native TMB engine
+already refuses this formula outright for the same reason (`drmTMB(bf(y ~ x, sigma ~ 1), poisson())` ->
+"Poisson models only support `mu` and optional `zi`. Unsupported parameter: \"sigma\".", verified live) --
+the fix makes `engine = "julia"` refuse the same formula the same way (a clear, drmTMB-authored
+`cli::cli_abort()`, not a silent drop of what the user wrote, and not the confusing DRM.jl-attributed
+echo message), rather than building a payload doomed to fail downstream.
+
+**Why the WORST gap went undetected.** Every live phylo test in the repo gates on `DRM_JL_PHYLO_PATH`, a
+DIFFERENT env var from the `DRM_JL_PATH` this lane's mandated live command sets, so the whole phylo family
+silently skipped under the standard live invocation; when the var IS set, several phylo test files wrap
+the fit in `tryCatch(..., error = function(e) skip(...))`, converting a hard bridge abort into a green
+skip (16 sites across 9 files, filed as a separate issue, explicitly OUT of this repair's scope -- not
+touched here).
+
+**Test-count correction.** The after-task's original §4 claimed "114 assertions" for the offline
+`test-coefficient-labels.R` run; Rose measured 94 passing + 4 skipped = 98 at that point. After this
+repair (new tests added), the SAME offline invocation
+(`env -u DRM_JL_PATH -u DRMTMB_JULIA_TESTS`) measures 104 passed + 5 skipped = 109 expectations; the
+filtered suite (`coefficient-labels|julia-bridge|julia-structured|julia-joint|xfam`) measures 646 passed +
+10 skipped, 0 failed/errors. Both numbers are freshly re-measured for this section, not carried over from
+either earlier claim.

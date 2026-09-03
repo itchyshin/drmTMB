@@ -89,10 +89,16 @@ lognormal, poisson, nbinom2, gamma, beta, binomial, biv_gaussian).
 ## 4. Verification
 
 - Offline (no Julia, `env -u DRM_JL_PATH -u DRMTMB_JULIA_TESTS`): full
-  `test-coefficient-labels.R` (114 assertions, 0 failures) and the filtered
+  `test-coefficient-labels.R` -- **CORRECTED 2026-09-03 (Rose adversarial
+  pass caught this number wrong; re-measured, not carried over)**: 104
+  passed + 5 skipped = 109 expectations, 0 failures, after the repair in
+  section 7 below (94 passed + 4 skipped = 98 before it). The filtered
   suite `coefficient-labels|julia-bridge|julia-structured|julia-joint|xfam`
-  (193 non-live assertions, 0 failures/errors, 20 live tests correctly
-  skipped).
+  measures 646 passed + 10 skipped, 0 failures/errors (this number was
+  ALSO previously misreported as "193 non-live assertions, 20 live tests"
+  -- that count was actually from a broader `filter = "julia"` run over
+  every Julia test file, conflated with this narrower filter in the
+  original write-up; both are now re-measured and reported separately).
 - Live (`DRM_JL_PATH` = the pinned 77513aa0 clone, `DRMTMB_JULIA_TESTS=true`):
   all 4 new live tests pass -- relmat structured fit (fixed-effect names
   identical to a same-formula native TMB fit), cross-family fit, joint fit,
@@ -113,6 +119,15 @@ lognormal, poisson, nbinom2, gamma, beta, binomial, biv_gaussian).
 
 ## 5. NOT covered / deferred
 
+- **A univariate `phylo(1 | group)` route with the phylo term on `sigma`
+  (the "sigma-phylo REML" cluster) or a correlated random-slope phylo
+  term (`phylo(1 + x | g)`)** -- measured broken against the pinned echo
+  both before and after section 7's repair (`coef_labels is missing an
+  entry for dpar "resd_sigma"`, a DIFFERENT, dpar-qualified, compound-term
+  block key the repair does not attempt); see section 7 and design 258
+  S7.7 for the measurement. This is a pre-existing gap on already-merged
+  main, not introduced by N1, and is explicitly out of this repair's
+  scope.
 - `student`'s `nu` default and `lognormal`/`beta`'s `sigma` default were
   verified against `DRM.drm_bridge` directly (Julia-side, bypassing R) but
   NOT exercised end-to-end through a live `drmTMB(..., engine = "julia")`
@@ -131,7 +146,49 @@ lognormal, poisson, nbinom2, gamma, beta, binomial, biv_gaussian).
   NOT re-run unless R/ code outside the guard changes" -- this arc's only
   code changes are inside `R/julia-bridge.R`, the Julia payload path).
 
-## 6. Gate summary (leaf-n1, `.unlazy/night/gates/leaf-n1.md`)
+## 6. Repair loop (2026-09-03, after a Rose adversarial pass)
+
+Rose (fresh, Opus) refuted this after-task's claim (a) "every bridge route ...
+passes DRM.jl's #599 echo": the univariate phylogenetic route (`phylo(1 | g)`)
+aborted the echo on BOTH `origin/main` and this branch, and a symmetric
+neighbour hole (a user-written `sigma ~ 1` on poisson/binomial) also aborted
+it, in the opposite direction. Full verdict:
+`/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/rose/2026-09-03-rose-n1-verdict.md`.
+Both are fixed; design 258 S7.7 has the full write-up (root cause, fix, what
+is deliberately NOT fixed, and why it went undetected -- a different env var
+gates the repo's live phylo tests, `DRM_JL_PHYLO_PATH` not `DRM_JL_PATH`, and
+several phylo test files swallow a hard bridge error into a green skip via
+`tryCatch(..., error = function(e) skip(...))`, a separate, filed, untouched
+issue).
+
+The phylo `resd` fix, one sentence: the producer's `resd` block was built
+only from `drm_julia_collect_structured_terms()` (relmat/animal/spatial),
+so a plain mean-side `phylo(1 | group)` intercept's OWN `resd_<group>` block
+was never labelled; a second, narrowly-gated detection now adds it (bare
+random-intercept phylo term on `mu`, skipped for bivariate q2/q4 formulas
+and for a phylo group that also carries a coupled `sd(group)`/
+`sd_phylo(group)` LSS dpar, both of which report the covariance through a
+DIFFERENT block already handled).
+
+The dispersionless decision: refuse, not silently drop -- a user-written
+`sigma` formula on poisson/binomial now aborts early with a drmTMB-authored
+message, matching the native TMB engine's own refusal for the identical
+formula (verified live: `drmTMB(bf(y ~ x, sigma ~ 1), poisson())` already
+refuses "Poisson models only support `mu` and optional `zi`."), rather than
+reaching DRM.jl's confusing "unknown dpar" echo abort.
+
+New tests: `test_that("dispersionless sigma: ...")` (unit, offline),
+`test_that("structured payload: the resd block for phylo, not just
+relmat/animal/spatial, is labelled ...")` (unit, offline, also pins that
+`resd` is correctly SKIPPED for the LSS and q4 shapes), and
+`test_that("live echo, phylo: a univariate phylo() Julia fit reports base-R
+public names matching the TMB engine")` (live). All three pass; the q4
+route, the LSS `sd()` route, and a Poisson phylo round-trip
+(`tests/testthat/test-julia-phylo-count.R`, previously silently skipped
+under this arc's mandated live env for the `DRM_JL_PATH`-vs-
+`DRM_JL_PHYLO_PATH` reason above) were re-checked live and pass.
+
+## 7. Gate summary (leaf-n1, `.unlazy/night/gates/leaf-n1.md`)
 
 G1-G7 verified directly (commands and output captured in this session);
 G8 (Rose adversarial pass) and G9 (PR merge + S3-G4 flip in
@@ -148,7 +205,7 @@ dispatch brief ("G1-G7 are yours (G8 Rose, G9 the coordinator)").
 | N1-G6 (CI-like + ledger guard) | `CI_LIKE_AND_GUARDS_OK` |
 | N1-G7 (lss-tip-identity receipt, regenerated last) | `TIP_RECEIPT_OK` |
 
-## 7. Commits (branch `claude/n1-label-contract-all-routes`, off `origin/main` @ `0ceb77eb0`)
+## 8. Commits (branch `claude/n1-label-contract-all-routes`, off `origin/main` @ `0ceb77eb0`)
 
 - `949a1ebf3` feat(julia-bridge): widen coef_labels producer to structured/known-structured routes; fix base-bridge default-dpar gap
 - `c4e6bbf66` test(julia-bridge): coef_labels contract on structured/known-structured/joint/xfam routes
