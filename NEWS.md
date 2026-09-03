@@ -5,7 +5,27 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
-<<<<<<< HEAD
+## Renamed: `summary()`'s derived "repeatability"/"phylogenetic_signal" rows
+
+* `summary()`'s `derived` component printed rows labelled `"repeatability"`
+  and `"phylogenetic_signal"` for structured `mu` random-effect components.
+  These rows divide by the TOTAL variance (every `mu` random-effect variance
+  in the fit, summed, plus the residual variance). The `icc()` /
+  `repeatability()` accessors, added separately, use a different
+  focal-vs-residual denominator (that one component's variance over itself
+  plus the residual only) under the same word "repeatability" -- the two
+  agreed on a fit with one structured `mu` component and silently disagreed
+  on a fit with two or more. `summary()`'s rows are renamed to
+  `"total_variance_share"` and `"phylo_total_variance_share"`, which state
+  their denominator; their arithmetic is unchanged. `icc()`, `repeatability()`,
+  and `heritability()` are unaffected -- they keep their existing names and
+  values. If you matched on the row name `"repeatability"` or
+  `"phylogenetic_signal"` in `summary(fit)$derived`, or on the profile-target
+  `parm` strings `"derived:repeatability(<group>)"` /
+  `"derived:phylogenetic_signal(<group>)"`, update to the new names. See
+  `docs/design/259-heritability-icc-repeatability.md` section 3 item 5 for
+  which function owns which denominator.
+
 ## Fixed: `nlminb` could report convergence short of the true optimum on flat surfaces (#1130)
 
 * `nlminb()`'s own `rel.tol`/`x.tol` stopping rules trigger on a relative
@@ -34,28 +54,6 @@ Template Model Builder.
   interval. The same polish now runs on the constrained endpoint solve too,
   keeping the comparison symmetric (and skipped on both sides together under
   `drm_control(newton_polish = FALSE)`).
-=======
-## Renamed: `summary()`'s derived "repeatability"/"phylogenetic_signal" rows
-
-* `summary()`'s `derived` component printed rows labelled `"repeatability"`
-  and `"phylogenetic_signal"` for structured `mu` random-effect components.
-  These rows divide by the TOTAL variance (every `mu` random-effect variance
-  in the fit, summed, plus the residual variance). The `icc()` /
-  `repeatability()` accessors, added separately, use a different
-  focal-vs-residual denominator (that one component's variance over itself
-  plus the residual only) under the same word "repeatability" -- the two
-  agreed on a fit with one structured `mu` component and silently disagreed
-  on a fit with two or more. `summary()`'s rows are renamed to
-  `"total_variance_share"` and `"phylo_total_variance_share"`, which state
-  their denominator; their arithmetic is unchanged. `icc()`, `repeatability()`,
-  and `heritability()` are unaffected -- they keep their existing names and
-  values. If you matched on the row name `"repeatability"` or
-  `"phylogenetic_signal"` in `summary(fit)$derived`, or on the profile-target
-  `parm` strings `"derived:repeatability(<group>)"` /
-  `"derived:phylogenetic_signal(<group>)"`, update to the new names. See
-  `docs/design/259-heritability-icc-repeatability.md` section 3 item 5 for
-  which function owns which denominator.
->>>>>>> origin/main
 
 ## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
 
