@@ -1494,13 +1494,31 @@ drm_phylo_mu_axis_labels <- function(phylo_mu) {
 # q > 2) phylo covariance's axis pair, matching TMB's `UNSTRUCTURED_CORR_t`
 # Cholesky fill order exactly as replicated by `tmb_unstructured_corr_matrix()`:
 # lower-triangle cells (row > col, 1-indexed axis positions) filled in
-# row-ascending, then column-ascending order. Verified empirically against
-# `density::UNSTRUCTURED_CORR_t` (src/drmTMB.cpp) by perturbing each
-# `theta_phylo` entry and checking which correlation-matrix cell moves (N3
-# after-task note, 2026-09-03): entry k fills cell (row, col) at position k
-# in that order, e.g. for q = 4 the order is
+# row-ascending, then column-ascending order, e.g. for q = 4 the order is
 # (mu1,mu2), (mu1,sigma1), (mu2,sigma1), (mu1,sigma2), (mu2,sigma2), (sigma1,sigma2).
-# Returns NA if the pair is not found among the axis labels.
+# The mapping was checked on a fitted fixture by confirming that
+# `tmb_unstructured_corr_matrix(theta_phylo)` reproduces
+# `cov2cor(report()$phylo_q4_covariance)` (N3 after-task note, 2026-09-03).
+# Entry k is the raw Cholesky-space coordinate of cell k, NOT that cell's
+# correlation: because each Cholesky row is renormalised, perturbing entry k
+# moves every correlation cell in the same row (Rose N3 pass, 2026-09-03),
+# which is why the public family is named `phylo_theta:` and carries no
+# transform. Returns NA if the pair is not found among the axis labels.
+# `phylo_cor:` starts invert TMB's bounded map rho = 0.999999 * tanh(eta)
+# (src/drmTMB.cpp), so the invertible range is |value| < 0.999999, not
+# |value| < 1: atanh(value / 0.999999) is NaN just inside the open unit interval
+# (Rose N3 pass, 2026-09-03). Refuse there instead of passing NaN to the optimizer.
+drm_phylo_cor_bound <- 0.999999
+drm_check_phylo_cor_start_value <- function(value, label, what) {
+  if (!is.finite(value) || !(abs(value) < drm_phylo_cor_bound)) {
+    cli::cli_abort(c(
+      "Start label {.val {label}} must be a correlation with |value| < {drm_phylo_cor_bound}.",
+      "x" = "{.code phylo_cor:} starts for {what} are given on the natural correlation scale, which drmTMB bounds at {drm_phylo_cor_bound} * tanh(eta)."
+    ))
+  }
+  invisible(value)
+}
+
 drm_phylo_mu_dense_theta_index <- function(phylo_mu, axis1, axis2) {
   axis_labels <- drm_phylo_mu_axis_labels(phylo_mu)
   a <- match(axis1, axis_labels)
@@ -1709,16 +1727,11 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
       # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
       # tanh scale as the ordinary `cor:` family (0.999999 * tanh(eta); see
       # `split_tmb_corpars()`).
-      if (!(value > -1) || !(value < 1)) {
-        cli::cli_abort(c(
-          "Start label {.val {label}} must be strictly between -1 and 1.",
-          "x" = "{.code phylo_cor:} starts for a q = 2 phylogenetic block are given on the natural correlation scale."
-        ))
-      }
+      drm_check_phylo_cor_start_value(value, label, "a q = 2 phylogenetic block")
       return(list(
         component = "eta_cor_phylo",
         index = 1L,
-        value = atanh(value / 0.999999)
+        value = atanh(value / drm_phylo_cor_bound)
       ))
     }
     # Block-diagonal q > 2: each labelled 2-endpoint block contributes one
@@ -1737,16 +1750,11 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
         "x" = "{.val {axis1}} and {.val {axis2}} are not in the same labelled phylogenetic covariance block."
       ))
     }
-    if (!(value > -1) || !(value < 1)) {
-      cli::cli_abort(c(
-        "Start label {.val {label}} must be strictly between -1 and 1.",
-        "x" = "{.code phylo_cor:} starts for a block-diagonal phylogenetic covariance are given on the natural correlation scale."
-      ))
-    }
+    drm_check_phylo_cor_start_value(value, label, "a block-diagonal phylogenetic covariance")
     return(list(
       component = "theta_phylo",
       index = pos,
-      value = atanh(value / 0.999999)
+      value = atanh(value / drm_phylo_cor_bound)
     ))
   }
 

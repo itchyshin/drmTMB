@@ -451,3 +451,24 @@ test_that("a phylo_cor: start refuses on the dense q4 phylo covariance block, po
   expect_match(conditionMessage(err), "dense")
   expect_match(conditionMessage(err), "phylo_theta:mu1:mu2")
 })
+
+test_that("phylo_cor: refuses values inside the unit interval that TMB's bounded map cannot reach", {
+  # Rose N3 pass (2026-09-03): TMB maps rho = 0.999999 * tanh(eta), so the
+  # start inverse atanh(value / 0.999999) is NaN for 0.999999 <= |value| < 1.
+  # Positive control first: the bare inverse really is NaN there.
+  expect_true(is.nan(suppressWarnings(atanh(0.9999995 / 0.999999))))
+  expect_error(
+    drmTMB:::drm_check_phylo_cor_start_value(0.9999995, "phylo_cor:mu:sigma", "a q = 2 phylogenetic block"),
+    regexp = "0.999999"
+  )
+  expect_error(
+    drmTMB:::drm_check_phylo_cor_start_value(-0.9999995, "phylo_cor:mu:sigma", "a q = 2 phylogenetic block"),
+    regexp = "0.999999"
+  )
+  expect_error(
+    drmTMB:::drm_check_phylo_cor_start_value(NA_real_, "phylo_cor:mu:sigma", "a q = 2 phylogenetic block"),
+    regexp = "0.999999"
+  )
+  expect_identical(drmTMB:::drm_check_phylo_cor_start_value(0.999, "phylo_cor:mu:sigma", "x"), 0.999)
+  expect_true(is.finite(atanh(0.999 / drmTMB:::drm_phylo_cor_bound)))
+})

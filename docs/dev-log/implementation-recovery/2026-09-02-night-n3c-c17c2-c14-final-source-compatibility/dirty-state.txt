@@ -1,0 +1,4 @@
+M R/drmTMB.R
+M docs/design/35-optimizer-start-map-multistart.md
+M docs/dev-log/after-task/2026-09-03-n3-labels.md
+M tests/testthat/test-start-contract.R

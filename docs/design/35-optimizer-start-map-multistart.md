@@ -519,11 +519,18 @@ counterpart: the raw, unconstrained `theta_phylo` working parameter, on its own
 scale, **no transform**. It REFUSES for q = 2 or block-diagonal q > 2, where
 `phylo_cor:` is already the correct, bounded-correlation family, pointing back at
 `phylo_cor:`. `drm_phylo_mu_dense_theta_index()` maps an axis pair to its
-`theta_phylo` position, matching the Cholesky fill order exactly (verified
-empirically by perturbing each `theta_phylo` entry one at a time and checking which
-correlation cell moves): for q = 4 the position order is
+`theta_phylo` position, matching the Cholesky fill order exactly (checked on a
+fitted fixture: `tmb_unstructured_corr_matrix(theta_phylo)` reproduces
+`cov2cor(report()$phylo_q4_covariance)`): for q = 4 the position order is
 `(mu1,mu2)`, `(mu1,sigma1)`, `(mu2,sigma1)`, `(mu1,sigma2)`, `(mu2,sigma2)`,
-`(sigma1,sigma2)`.
+`(sigma1,sigma2)`. Entry k is the raw Cholesky coordinate of cell k, not that cell's
+correlation: each Cholesky row is renormalised, so perturbing one entry moves every
+correlation cell sharing its row (Rose N3 pass, 2026-09-03). That is exactly why this
+family carries no transform and is not called `phylo_cor:`.
+
+`phylo_cor:` values must satisfy |value| < 0.999999, the invertible range of TMB's
+bounded map `rho = 0.999999 * tanh(eta)`; values in [0.999999, 1) are refused rather
+than becoming `NaN` starts.
 
 ```r
 objective_at(fit, at = list(
