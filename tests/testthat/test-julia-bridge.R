@@ -730,3 +730,24 @@ test_that("drm_julia_translate_control() rejects multi_start > 1", {
 test_that("drm_julia_translate_control() still accepts plain drm_control() defaults", {
   expect_equal(drmTMB:::drm_julia_translate_control(drm_control()), list())
 })
+
+test_that("sigma random intercept: a live Julia fit of sigma ~ (1 | g) reports base-R public names matching the TMB engine", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  jl_path <- Sys.getenv("DRM_JL_PATH", "")
+  skip_if_not(nzchar(jl_path) && dir.exists(jl_path), "DRM_JL_PATH not available")
+
+  set.seed(1)
+  n <- 120
+  g <- factor(rep(1:12, each = 10))
+  x <- rnorm(n)
+  y <- 1 + 0.5 * x + rnorm(12, sd = 0.7)[g] + rnorm(n, sd = exp(0.2 * rnorm(12)[g]))
+  dat <- data.frame(y = y, x = x, g = g)
+
+  form <- bf(y ~ x, sigma ~ (1 | g))
+  fj <- drmTMB(form, data = dat, engine = "julia")
+  ft <- drmTMB(form, data = dat)
+
+  expect_identical(names(coef(fj, "mu")), names(coef(ft, "mu")))
+  expect_identical(names(coef(fj, "sigma")), names(coef(ft, "sigma")))
+})
