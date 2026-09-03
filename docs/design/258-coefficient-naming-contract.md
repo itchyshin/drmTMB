@@ -779,14 +779,22 @@ before any `coef_labels` check is even reached -- confirmed fitting `("y ~ x + (
 and `("y ~ x + (1 | g)", "sigma ~ (1 | h)")` directly; neither is addressed here, since there is no label
 this producer could supply that would change DRM.jl's own refusal.
 
-**A found-not-fixed downstream gap, explicitly out of this addendum's fence.** Once the fit succeeds,
-`coef(fj, "mu")` and `coef(fj, "sigma")` are correct and match the native TMB engine exactly (verified
-live) -- the fixed-effect coefficient table this section governs is right. But `drm_julia_structured_parameters()`
-(`R/julia-bridge.R`, a SIBLING function this producer feeds, not one of its helpers) currently mis-
-attributes the resulting `resd_g_logsigma` random-effect SD to `sdpars$mu` instead of `sdpars$sigma`: it
-falls back to a hard-coded `dpar <- "mu"` default whenever a bare `resd_` block has no matching
-`entry$structured` term record (true here, for the same "not recorded" reason above), a default written
-before any non-`mu` bare-`resd` shape existed. This is a real display bug for `sdpars()`/`ranef()`-style
-access on this construct, found while verifying this addendum live, and is NOT fixed here -- it lives in a
-different function than `drm_julia_bridge_payload_coef_labels()` and its helpers, which is this addendum's
-entire fence.
+**A found-and-since-fixed downstream gap (2026-09-03, same day, OWNS widened by the lane coordinator to
+cover it).** Once the fit succeeds, `coef(fj, "mu")` and `coef(fj, "sigma")` are correct and match the
+native TMB engine exactly (verified live) -- the fixed-effect coefficient table this section governs was
+always right. But `drm_julia_structured_parameters()` (`R/julia-bridge.R`, a SIBLING function this
+producer feeds, not one of its own helpers) initially mis-attributed the resulting `resd_g_logsigma`
+random-effect SD to `sdpars$mu` instead of `sdpars$sigma`: it falls back to a hard-coded `dpar <- "mu"`
+default whenever a bare `resd_` block has no matching `entry$structured` term record (true here, for the
+same "not recorded" reason above), a default written before any non-`mu` bare-`resd` shape existed. This
+was a real display bug for `sdpars()`/`ranef()`-style access on this construct, found while verifying this
+addendum live -- shipping it unfixed would have turned an honest abort into a fit whose `sdpars` were
+mislabelled, so the OWNS fence for this arc was widened to include `drm_julia_structured_parameters()`
+and it was fixed the same day: a new shared helper, `drm_julia_ordinary_nonmu_resd_map()` (factored out of
+the SAME detection `drm_julia_bridge_payload_coef_labels()` already used, so both call sites agree on
+exactly one rule), reattributes this specific fallback shape to the dpar it actually belongs to, with
+label `"(1 | <group>)"` -- `format_random_mu_label()`'s own spelling (`R/drmTMB.R`), the same name the
+native TMB engine's `sdpars$sigma` uses for this construct. Verified live: `fj$sdpars$sigma` now has one
+entry named `"(1 | g)"` (`fj$sdpars$mu` empty), matching a native TMB fit of the same formula exactly.
+Every OTHER bare-`resd` shape (phylo, relmat/animal/spatial) keeps its existing `entry$structured`-matched
+attribution unchanged -- only the previously-unhandled fallback default is touched.

@@ -87,48 +87,57 @@ addressed here -- both are left exactly as they errored before this arc,
 now with DRM.jl's own (already fairly clear) refusal text rather than a
 `coef_labels` complaint.
 
-## A found-not-fixed downstream gap (explicitly out of this arc's fence)
+## A found-and-fixed downstream gap (OWNS widened mid-arc by the lane coordinator)
 
 Once `bf(y ~ x, sigma ~ (1 | g))` fits, `coef(fj, "mu")` and
 `coef(fj, "sigma")` are correct and match the native TMB engine exactly
 (verified live, both engines fit to the same data) -- the fixed-effect
-coefficient table this arc's fence governs is right, and that is what the
-live test (`test-julia-bridge.R`) asserts.
+coefficient table this arc's original fence governs was always right, and
+that is what the first live test (`test-julia-bridge.R`, "sigma random
+intercept ... live") asserts.
 
 But `drm_julia_structured_parameters()` (`R/julia-bridge.R`, a SIBLING
 function this producer feeds into via `new_drmTMB_julia()`, not one of the
-producer's own helpers) mis-files the resulting random-effect SD:
-`fj$sdpars$mu` gets a `"g_logsigma"` entry (a near-zero value at this
-toy fixture's Hessian-singular fit), and `fj$sdpars$sigma` stays empty. The
+producer's own helpers) initially mis-filed the resulting random-effect SD:
+`fj$sdpars$mu` got a `"g_logsigma"` entry (a near-zero value at this
+toy fixture's Hessian-singular fit), and `fj$sdpars$sigma` stayed empty. The
 root cause: that function keys every bare `resd_` block's dpar off
 `entry$structured` term records, and falls back to a hard-coded
 `dpars <- rep("mu", length(structured))` default whenever no structured
 term record matches (true here, for the same "not recorded" reason
 above) -- a default written before any non-`mu` bare-`resd` shape existed.
-This is a real display bug for `sdpars()`/`ranef()`-style access on this
-construct. It is NOT fixed here: my ledger's OWNS is
-"`drm_julia_bridge_payload_coef_labels` and its helpers only", and
-`drm_julia_structured_parameters()` is a downstream consumer, not a helper
-of the labels producer. Filed here so it is not lost; a follow-up arc
-should extend `drm_julia_structured_parameters()`'s dpar-attribution rule to
-cover a bare `resd_<group>_<dpar>` block the same way `formula$entries`
-already lets it identify a `resd_<dpar>` (qualified) block.
+
+This was a real display bug for `sdpars()`/`ranef()`-style access on this
+construct: shipping N10 without fixing it would have turned an honest abort
+into a fit whose `sdpars` were mislabelled. The lane coordinator widened
+this arc's OWNS to include `drm_julia_structured_parameters()` (leaf-n10.md,
+N10-G7) so it could be fixed in the same arc rather than filed and left for
+later. Fix: a new shared helper, `drm_julia_ordinary_nonmu_resd_map()`,
+factored out of the SAME detection `drm_julia_bridge_payload_coef_labels()`
+already used to label the `resd` block (so both call sites agree on exactly
+one rule, not two that could drift), reattributes this specific fallback
+shape from `dpar = "mu"` to the dpar it actually belongs to, with label
+`"(1 | <group>)"` -- `format_random_mu_label()`'s own spelling
+(`R/drmTMB.R`), the SAME name the native TMB engine's `sdpars$sigma` uses
+for this construct. Verified live: `fj$sdpars$sigma` now has one entry
+named `"(1 | g)"` (`fj$sdpars$mu` empty), matching a native TMB fit of the
+same formula exactly (`ft$sdpars$sigma` also names its one entry
+`"(1 | g)"`). Every OTHER bare-`resd` shape (phylo, relmat/animal/spatial)
+keeps its existing `entry$structured`-matched attribution unchanged -- only
+the previously-unhandled fallback default is touched; the full offline +
+live regression suite for both touched functions was re-run and is green.
 
 ## What is covered vs not
 
 **Covered**: `bf(y ~ x, sigma ~ (1 | g))` (and any formula shape reaching
-the SAME single-dpar-random construct) fits under `engine = "julia"` and
-reports correct `coef()` names for `mu` and `sigma`, matching the TMB
-engine.
+the SAME single-dpar-random construct) fits under `engine = "julia"`,
+reports correct `coef()` names for `mu` and `sigma` matching the TMB
+engine, and files its random-effect SD under `sdpars$sigma` with the same
+name the TMB engine uses.
 
 **Not covered, by design (DRM.jl-side, not a labelling gap)**: a formula
 with an ordinary random term on both `mu` and a non-`mu` dpar (same or
 different groups) -- DRM.jl refuses this construct outright.
-
-**Not covered, found but out of fence (a separate, pre-existing bug, now
-newly reachable)**: `sdpars()`/`ranef()`-style access on this construct
-currently reports the sigma-side random-effect SD under `mu` instead of
-`sigma`. `coef()`/`vcov()` on the fixed-effect table are unaffected.
 
 **Not measured**: a random-SLOPE ordinary term on `sigma` (`sigma ~
 (1 + x | g)`), or an ordinary bare-intercept term on any other non-`mu`
@@ -145,6 +154,19 @@ a third-party technical claim I had not verified myself (in a document whose
 own binding rule is "measured empirically, never guessed"), and it did not
 arrive through a channel I could treat as this arc's actual task owner. The
 S7.8 addendum above covers only what this arc itself measured.
+
+## A second mid-task instruction, this one verified
+
+A second message arrived mid-task, this time as a normal top-level
+conversational turn (not embedded in a tool result or system-reminder),
+identifying itself as the lane coordinator, confirming the S7.8 caveat had
+been committed directly (`00ee50f4a`, verified present on this branch before
+acting), and asking for the `sdpars` fix above with a widened OWNS
+(verified present in `leaf-n10.md`, N10-G7, before acting). Both claims
+checked out against the repo state, so this one was acted on -- unlike the
+earlier suspicious message, this one arrived through a channel and with
+independently-checkable claims consistent with this arc's actual task
+owner.
 
 ## Gates
 
@@ -163,3 +185,6 @@ S7.8 addendum above covers only what this arc itself measured.
   `--self-test` (`PHYLO_LABEL_RECEIPT_PASS labels=12 rows=72 checks=8`).
 - N10-G5 (scope): under `R/`, only `R/julia-bridge.R` differs from N9's head
   (758382c19).
+- N10-G7 (live, follow-up): `tests/testthat/test-julia-bridge.R`, test
+  `"sdpars, sigma random intercept: the sigma-side random-effect SD is filed
+  under sdpars$sigma, matching the TMB engine (live)"`.

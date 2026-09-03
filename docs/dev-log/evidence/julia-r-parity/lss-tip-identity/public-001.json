@@ -21,7 +21,7 @@
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "601fb8dcac396c4032484ba2d00b884bca595f2ae39dedd9dcd9165f8383e170",
-    "R/julia-bridge.R": "d7cd24a6b9cf08a41ca1631d1059a2ec9038e3a825296d232842036dfcfa3f15",
+    "R/julia-bridge.R": "e9fc6b64fa39b35093e828bf95587d5a87ce4dcf06e2a5189bfea6c4b174c502",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
@@ -682,7 +682,7 @@
       "drmjl_ref": "77513aa0663209b96e53a649d232558515f687fa",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmpi8mauu/pkgload116ac78b17bb7/drmTMB.so",
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpsXARl3/pkgload1713e64b38c39/drmTMB.so",
           "sha256": "532258e848261a04036e37cecc5869908f0743e254f6c0076cd8117e3de13571"
         }
       }
@@ -727,7 +727,7 @@
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "601fb8dcac396c4032484ba2d00b884bca595f2ae39dedd9dcd9165f8383e170",
-    "R/julia-bridge.R": "d7cd24a6b9cf08a41ca1631d1059a2ec9038e3a825296d232842036dfcfa3f15",
+    "R/julia-bridge.R": "e9fc6b64fa39b35093e828bf95587d5a87ce4dcf06e2a5189bfea6c4b174c502",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
@@ -850,6 +850,6 @@
     "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-objat/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 28.672999999999998,
+  "elapsed": 29.067,
   "status": "PASS"
 }
