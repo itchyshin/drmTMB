@@ -117,6 +117,16 @@ durable path and the others may have as well).
    N2 ported three DRM.jl-only accessors under a relayed "both-ways rule D-204" that was never
    confirmed in Shinichi's own words for drmTMB specifically. Do not re-derive these; ask them.
 
+7. **q4 Wald SEs across engines: an owner decision, not a bug (DRM.jl lane, 02:45 UTC).** DRM.jl #611
+    (merged 88493250) established that the all-NaN bridge `vcov()` recorded in the q4 SE-axis receipt is
+    the bridge's deliberate default `q4_vcov = false` for bivariate q4 phylogenetic fits
+    (`src/bridge.jl:458-464`); native REML and the bridge with `options[["q4_vcov"]] = TRUE` both return
+    a finite positive-definite `vcov` agreeing with an independent Hessian to below 1e-5. The seven Wald
+    SEs in the `biv-q4-phylo-reml` `[se]` block stay `not_comparable` while the default stands. Three
+    ways to make the block comparable, any one of which suffices: flip the bridge default in DRM.jl; add
+    a size heuristic there; or have drmTMB pass `q4_vcov = TRUE` when it wants Wald SEs (the R-side
+    option, which this lane could take without touching DRM.jl). Which?
+
 ## CARRIED-OVER (every branch not on main, why, and the resume command)
 
 | branch | why not landed | resume command |
@@ -173,3 +183,16 @@ reopening D-179/D-181/D-202/D-204; compute beyond the Totoro cap or beyond an es
 pre-run (D-139); or a surprise that invalidates this plan -- bring it back to Shinichi rather than
 improvising past it.
 ```
+
+## Acceptance ledger receipt (coordinator, 2026-09-03 02:43 UTC)
+
+`.unlazy/night/bin/reverify-all.sh` re-ran every leaf against the worktree holding its code (never the main checkout), with `DRM_JL_PATH` at the pinned DRM.jl clone (77513aa0) and single-threaded BLAS, and wrote `.unlazy/night/reverify-all.result`:
+
+- leaf-n1: ALL MET (12 met, reran 10)
+- leaf-n2: ALL MET (11 met, reran 9)
+- leaf-n3: ALL MET (5 met, reran 4)
+- leaf-n4: ALL MET (5 met, reran 4)
+- leaf-n5: ALL MET (4 met, 1 abandoned: N5-G2, Totoro cannot embed Julia; intent met by N5b)
+- leaf-n5b: ALL MET (4 met, reran 4)
+
+Pipeline `.unlazy/night/GATES.md`: N1 (every leaf re-verifies) PASS on that receipt; N2 (CI green at every merge) recorded from `merge-log.txt`; N3 (DRM.jl fence) PASS; N4 (docs landed) is met by the merge of the docs PR that carries this file. In `.unlazy/true-parity/`, S3-G4 flipped ABANDONED to MET and S3-G11 was superseded (zero legacy sites, not one), both with dated notes. After the receipt the arc worktrees and merged local branches were removed; re-running the runner needs the worktrees re-created at the merge SHAs listed in the merge log.
