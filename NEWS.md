@@ -5,6 +5,27 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Fixed: `nlminb` could report convergence short of the true optimum on flat surfaces (#1130)
+
+* `nlminb()`'s own `rel.tol`/`x.tol` stopping rules trigger on a relative
+  change in the objective or step, not on the gradient norm, so on a flat or
+  weakly-curved surface (for example a variance component identified by few
+  groups) it could report `convergence == 0` while the exact TMB gradient at
+  that point was still far from zero -- invisible at the training rows but
+  amplified at extrapolated `newdata`. `drmTMB()` now applies a Newton polish
+  by default after every `nlminb()` fit: a few Newton steps on the exact TMB
+  gradient and a finite-differenced Hessian of it, accepting a step only if
+  it does not increase the objective, until the gradient's max absolute
+  component is small. This does not change `nlminb`'s own tolerances
+  (tightening them was tried and found unreliable: see
+  `docs/design/260-nlminb-newton-polish-optimizer-tolerance.md`), costs a
+  handful of extra gradient evaluations at the reported optimum (skipped
+  entirely once the gradient is already small; measured negligible on a
+  small Gaussian, a location-scale, and a phylogenetic fit), and honestly
+  recomputes the reported `convergence` code and message from the polished
+  gradient rather than trusting `nlminb`'s own diagnostic. Opt out with
+  `drm_control(newton_polish = FALSE)`.
+
 ## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
 
 * `confint(fit, method = "bootstrap")` errored with "Bootstrap confidence
