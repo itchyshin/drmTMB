@@ -18,10 +18,12 @@
 #' single structured mean component (no other components to net out of the
 #' denominator).
 #'
-#' `summary()`'s existing derived "repeatability"/"phylogenetic_signal" rows
-#' use the total-variance (heritability-style) denominator for every row, so
-#' they can differ from `icc()`/`repeatability()` here whenever a fit has two
-#' or more structured components.
+#' `summary()`'s derived rows, named `total_variance_share` and
+#' `phylo_total_variance_share`, use the total-variance (heritability-style)
+#' denominator, so they can differ from `icc()`/`repeatability()` here whenever
+#' a fit has two or more structured components. Those rows were called
+#' `repeatability` and `phylogenetic_signal` until 2026-09-03; they were renamed
+#' so that one word no longer names two different quantities (D-213).
 #'
 #' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`), and
 #' have at least one structured mean random-effect component (`(1 | group)`,

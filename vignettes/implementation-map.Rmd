@@ -97,8 +97,8 @@ direct fitted targets when `TMB::sdreport()` supplies the optimized-parameter
 covariance. Direct SD intervals use the fitted log-SD scale before
 exponentiating, and direct correlation intervals use the guarded atanh
 correlation-link scale before returning to the correlation scale. Do not use
-Wald intervals as a shortcut for derived q=4 correlations, repeatability,
-phylogenetic signal, unavailable rows, or weak-Hessian fits that need
+Wald intervals as a shortcut for derived q=4 correlations, `total_variance_share`,
+`phylo_total_variance_share`, unavailable rows, or weak-Hessian fits that need
 fit-specific diagnostics. Direct profile targets can be mechanically available
 but still fail in a given fit. `confint(method = "bootstrap")` now provides a
 narrow public simulate/refit route for selected direct targets, while Phase 18

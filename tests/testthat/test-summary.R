@@ -168,7 +168,7 @@ test_that("summary() reports random-effect and correlation parameter tables", {
   expect_true("conf.status" %in% names(printed_parameters))
 })
 
-test_that("summary() reports derived repeatability and interval status", {
+test_that("summary() reports derived total_variance_share and interval status", {
   set.seed(20260631)
   n_id <- 18
   n_each <- 5
@@ -185,13 +185,13 @@ test_that("summary() reports derived repeatability and interval status", {
   )
   smry <- summary(fit)
   derived <- smry$derived
-  parm <- "derived:repeatability(id)"
+  parm <- "derived:total_variance_share(id)"
   sd_mu <- unname(fit$sdpars$mu[["(1 | id)"]])
   sigma <- unique(stats::sigma(fit))
   expected <- sd_mu^2 / (sd_mu^2 + sigma^2)
 
   expect_true(parm %in% rownames(derived))
-  expect_equal(derived[parm, "quantity"], "repeatability")
+  expect_equal(derived[parm, "quantity"], "total_variance_share")
   expect_equal(derived[parm, "level"], "group")
   expect_equal(derived[parm, "group"], "id")
   expect_equal(derived[parm, "estimate"], expected, tolerance = 1e-12)
@@ -214,7 +214,7 @@ test_that("derived ratios use total variance across multiple mu random effects",
   # ordinary grouping factor) each derived ratio must be a proportion of the
   # TOTAL variance (both random-effect variances + residual variance), not just
   # that single term's variance + residual. The per-term-only denominator used
-  # previously overstated repeatability and phylogenetic signal.
+  # previously overstated total_variance_share and phylo_total_variance_share.
   set.seed(20260703)
   n_tip <- 8L
   tree <- new_summary_balanced_tree(n_tip = n_tip)
@@ -252,8 +252,8 @@ test_that("derived ratios use total variance across multiple mu random effects",
   total_re_var <- sum(sd_vals^2)
   denom <- total_re_var + sigma^2
 
-  parm_phylo <- "derived:phylogenetic_signal(species)"
-  parm_grp <- "derived:repeatability(grp)"
+  parm_phylo <- "derived:phylo_total_variance_share(species)"
+  parm_grp <- "derived:total_variance_share(grp)"
   expect_true(all(c(parm_phylo, parm_grp) %in% rownames(derived)))
 
   # Every row shares the same total-variance denominator.
@@ -518,7 +518,7 @@ test_that("summary() separates bivariate group covariance from residual rho12", 
   )
 })
 
-test_that("summary() reports univariate phylogenetic signal as derived", {
+test_that("summary() reports univariate phylo_total_variance_share as derived", {
   set.seed(20260632)
   tree <- new_summary_balanced_tree(n_tip = 4L)
   species <- rep(tree$tip.label, each = 5L)
@@ -535,13 +535,13 @@ test_that("summary() reports univariate phylogenetic signal as derived", {
     data = dat
   )
   profiled <- summary(fit, conf.int = TRUE, method = "wald")
-  parm <- "derived:phylogenetic_signal(species)"
+  parm <- "derived:phylo_total_variance_share(species)"
   sd_phylo <- unname(fit$sdpars$mu[["phylo(1 | species)"]])
   sigma <- unique(stats::sigma(fit))
   expected <- sd_phylo^2 / (sd_phylo^2 + sigma^2)
 
   expect_true(parm %in% rownames(profiled$derived))
-  expect_equal(profiled$derived[parm, "quantity"], "phylogenetic_signal")
+  expect_equal(profiled$derived[parm, "quantity"], "phylo_total_variance_share")
   expect_equal(profiled$derived[parm, "level"], "phylogenetic")
   expect_equal(profiled$derived[parm, "estimate"], expected, tolerance = 1e-12)
   expect_equal(profiled$parameters["sigma", "conf.status"], "wald")

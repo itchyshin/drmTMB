@@ -4093,9 +4093,15 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' The covariance component reports currently fitted registry-backed rows and
 #' fitted bivariate phylogenetic covariance rows, including q=2 mean-mean and
 #' q=4 endpoint rows where present.
-#' The derived component reports simple point-estimate variance ratios, such as
-#' Gaussian random-intercept repeatability and phylogenetic signal, when the
-#' ingredients are unambiguous. Derived confidence intervals are marked as
+#' The derived component reports simple point-estimate variance ratios --
+#' `total_variance_share` for a Gaussian random-intercept mu component and
+#' `phylo_total_variance_share` for a phylogenetic mu component -- when the
+#' ingredients are unambiguous. Both divide by the TOTAL variance (every mu
+#' random-effect variance plus the residual variance), which is a different
+#' denominator from the `icc()`/`repeatability()` accessors (focal component
+#' variance over that component plus the residual only); see
+#' `?heritability` and `docs/design/259-heritability-icc-repeatability.md`
+#' for the distinction. Derived confidence intervals are marked as
 #' unavailable until a nonlinear interval method is implemented.
 #' When `TMB::sdreport()` succeeds, direct response-scale parameter rows also
 #' include delta-method standard errors; descriptive fitted ranges and derived
@@ -4509,11 +4515,15 @@ drm_derived_summary_rows <- function(object) {
     return(empty_derived_summary_parameters())
   }
 
-  # Repeatability/ICC and phylogenetic signal are defined against the TOTAL
-  # variance, so the denominator must include every mu random-effect variance
-  # plus the residual variance. Summing only the current term's variance
-  # overstates each ratio whenever multiple mu random effects are present
-  # (see issue #695).
+  # These rows ("total_variance_share" and "phylo_total_variance_share")
+  # are defined against the TOTAL variance, so the denominator must include
+  # every mu random-effect variance plus the residual variance. Summing only
+  # the current term's variance overstates each ratio whenever multiple mu
+  # random effects are present (see issue #695). This is a DIFFERENT
+  # denominator from the icc()/repeatability() accessors in
+  # R/heritability.R, which divide the focal component's variance by that
+  # component plus the residual only -- do not rename these rows back to
+  # "repeatability" (see docs/design/259-heritability-icc-repeatability.md).
   numeric_sd <- vapply(sd_values, function(v) unname(v)[[1L]], numeric(1))
   valid_sd <- is.finite(numeric_sd) & numeric_sd >= 0
   residual_variance <- sigma^2
@@ -4616,10 +4626,10 @@ derived_summary_random_effect_kind <- function(term) {
       return(NULL)
     }
     return(list(
-      quantity = "phylogenetic_signal",
+      quantity = "phylo_total_variance_share",
       level = "phylogenetic",
       group = group,
-      parm = paste0("derived:phylogenetic_signal(", group, ")")
+      parm = paste0("derived:phylo_total_variance_share(", group, ")")
     ))
   }
   group <- random_intercept_group_from_term(term)
@@ -4627,10 +4637,10 @@ derived_summary_random_effect_kind <- function(term) {
     return(NULL)
   }
   list(
-    quantity = "repeatability",
+    quantity = "total_variance_share",
     level = "group",
     group = group,
-    parm = paste0("derived:repeatability(", group, ")")
+    parm = paste0("derived:total_variance_share(", group, ")")
   )
 }
 
