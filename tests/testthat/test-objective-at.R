@@ -171,3 +171,102 @@ test_that("objective_at errors on MSPL fits, matching logLik()", {
     class = "drmTMB_mspl_inference_unsupported"
   )
 })
+
+# rho12 and phylo block labels (design 35, "Phylo Covariance Block"; A5 gap,
+# N3 2026-09-03). A5's cross-engine receipt found `objective_at()` could not
+# name `biv_gaussian`'s `rho12` fixed effect or the q4 dense phylogenetic
+# covariance block and had to substitute internal TMB parameter names
+# directly. This fixture is a small (16-tip, 3 obs/tip) synthetic dense-q4
+# biv_gaussian REML fit, matching the shape of the A5/DRM.jl parity fixture
+# but self-contained (no DRM.jl, no `DRM_JL_PATH`).
+objective_at_biv_q4_phylo_fixture <- function() {
+  set.seed(575)
+  tree <- ape::rcoal(16L, tip.label = sprintf("sp%02d", seq_len(16L)))
+  species <- factor(rep(tree$tip.label, each = 3L), levels = tree$tip.label)
+  n <- length(species)
+  dat <- data.frame(
+    y1 = stats::rnorm(n),
+    y2 = stats::rnorm(n),
+    x = stats::rnorm(n),
+    species = species
+  )
+  form <- bf(
+    mu1 = y1 ~ x + phylo(1 | p | species, tree = tree),
+    mu2 = y2 ~ x + phylo(1 | p | species, tree = tree),
+    sigma1 = ~ 1 + phylo(1 | p | species, tree = tree),
+    sigma2 = ~ 1 + phylo(1 | p | species, tree = tree),
+    rho12 = ~1
+  )
+  list(data = dat, tree = tree, formula = form)
+}
+
+objective_at_biv_q4_phylo_fit <- function() {
+  fx <- objective_at_biv_q4_phylo_fixture()
+  suppressWarnings(drmTMB(
+    fx$formula,
+    family = biv_gaussian(),
+    data = fx$data,
+    engine = "tmb",
+    REML = TRUE,
+    control = drm_control(optimizer_preset = "robust", keep_tmb_object = TRUE)
+  ))
+}
+
+# Builds the `fixef:rho12:...`/`phylo_sd:...`/`phylo_cor:...` start from a
+# fit's OWN optimum, matching the axis order `phylo_mu_endpoint_dpars()` uses
+# for `log_sd_phylo`/`report()$phylo_q4_covariance` (mu1, mu2, sigma1, sigma2)
+# and the `theta_phylo` Cholesky fill order documented at
+# `drm_phylo_mu_dense_theta_index()` (R/drmTMB.R).
+objective_at_biv_q4_phylo_start_at_fit <- function(fit) {
+  par <- fit$opt$par
+  log_sd_phylo <- unname(par[names(par) == "log_sd_phylo"])
+  theta_phylo <- unname(par[names(par) == "theta_phylo"])
+  rho12_hat <- as.numeric(coef(fit)$rho12[["(Intercept)"]])
+  axes <- c("mu1", "mu2", "sigma1", "sigma2")
+  pairs <- list(
+    c("mu1", "mu2"), c("mu1", "sigma1"), c("mu2", "sigma1"),
+    c("mu1", "sigma2"), c("mu2", "sigma2"), c("sigma1", "sigma2")
+  )
+  at <- list("fixef:rho12:(Intercept)" = rho12_hat)
+  for (i in seq_along(axes)) {
+    at[[paste0("phylo_sd:", axes[[i]])]] <- exp(log_sd_phylo[[i]])
+  }
+  for (i in seq_along(pairs)) {
+    at[[paste0("phylo_cor:", pairs[[i]][[1L]], ":", pairs[[i]][[2L]])]] <- theta_phylo[[i]]
+  }
+  at
+}
+
+test_that("objective_at reaches rho12 and the q4 phylo block: reproduces -logLik at the fit's own optimum", {
+  fit <- objective_at_biv_q4_phylo_fit()
+  at <- objective_at_biv_q4_phylo_start_at_fit(fit)
+
+  got <- objective_at(fit, at = at)
+  expect_equal(as.numeric(got), -as.numeric(stats::logLik(fit)), tolerance = 1e-8)
+})
+
+test_that("objective_at with a displaced rho12/phylo block start (phylo block) is finite and larger than the anchor", {
+  fit <- objective_at_biv_q4_phylo_fit()
+  at <- objective_at_biv_q4_phylo_start_at_fit(fit)
+  anchor <- objective_at(fit, at = at)
+
+  displaced <- at
+  displaced[["fixef:rho12:(Intercept)"]] <- displaced[["fixef:rho12:(Intercept)"]] + 0.3
+  displaced[["phylo_sd:mu1"]] <- displaced[["phylo_sd:mu1"]] * 1.5
+
+  got <- objective_at(fit, at = displaced)
+  expect_true(is.finite(got))
+  expect_gt(got, anchor)
+})
+
+test_that("objective_at rejects an unknown phylo block axis, listing the available axes", {
+  fit <- objective_at_biv_q4_phylo_fit()
+  expect_error(
+    objective_at(fit, at = list("phylo_sd:mu3" = 0.2)),
+    regexp = "Unknown public start label"
+  )
+  expect_error(
+    objective_at(fit, at = list("phylo_cor:mu1:bogus" = 0.1)),
+    regexp = "Unknown public start label"
+  )
+})
