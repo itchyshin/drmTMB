@@ -57,9 +57,15 @@ and fitted random-effect covariance quantities when they are present.
 The covariance component reports currently fitted registry-backed rows and
 fitted bivariate phylogenetic covariance rows, including q=2 mean-mean and
 q=4 endpoint rows where present.
-The derived component reports simple point-estimate variance ratios, such as
-Gaussian random-intercept repeatability and phylogenetic signal, when the
-ingredients are unambiguous. Derived confidence intervals are marked as
+The derived component reports simple point-estimate variance ratios --
+\code{total_variance_share} for a Gaussian random-intercept mu component and
+\code{phylo_total_variance_share} for a phylogenetic mu component -- when the
+ingredients are unambiguous. Both divide by the TOTAL variance (every mu
+random-effect variance plus the residual variance), which is a different
+denominator from the \code{icc()}/\code{repeatability()} accessors (focal component
+variance over that component plus the residual only); see
+\code{?heritability} and \code{docs/design/259-heritability-icc-repeatability.md}
+for the distinction. Derived confidence intervals are marked as
 unavailable until a nonlinear interval method is implemented.
 When \code{TMB::sdreport()} succeeds, direct response-scale parameter rows also
 include delta-method standard errors; descriptive fitted ranges and derived

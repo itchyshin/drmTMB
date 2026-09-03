@@ -4062,7 +4062,7 @@ test_that("profile target inventory marks derived variance ratios as unavailable
 
   targets <- profile_targets(fit)
   derived <- targets[targets$target_class == "derived-summary", ]
-  parm <- "derived:repeatability(ID)"
+  parm <- "derived:total_variance_share(ID)"
   smry <- summary(fit)
 
   expect_profile_target_contract(targets)
@@ -4128,7 +4128,7 @@ test_that("profile target inventory marks derived variance ratios as unavailable
     drop = FALSE
   ]
 
-  expect_equal(phylo_derived$parm, "derived:phylogenetic_signal(species)")
+  expect_equal(phylo_derived$parm, "derived:phylo_total_variance_share(species)")
   expect_equal(phylo_derived$transformation, "variance_ratio")
   expect_false(phylo_derived$profile_ready)
   expect_false(drmTMB:::bootstrap_supported_targets(phylo_derived))

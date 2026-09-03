@@ -247,8 +247,12 @@ summary(fit_site)
 In that output, the `sd:mu:(1 | site)` row is the fitted random-intercept
 standard deviation on the response scale. Squaring it gives the corresponding
 random-effect variance component. When the ingredients are unambiguous, the
-`derived` component also reports repeatability and shows both the
-random-effect variance and the residual variance used in that ratio.
+`derived` component also reports `total_variance_share` (that component's
+variance over the TOTAL variance, i.e. every mu random-effect variance plus
+the residual variance) and shows both the random-effect variance and the
+residual variance used in that ratio. This is a different denominator from
+the `icc()`/`repeatability()` accessors, which divide by that component's
+variance plus the residual only.
 
 Once you have more than one candidate model fitted to the same data — for
 example this random-intercept model against a simpler fixed-effect version —
@@ -518,8 +522,8 @@ Read `conf.status` as an action column:
 Bootstrap intervals are public only through `confint()` for selected direct
 targets. `summary(fit, conf.int = TRUE, method = "bootstrap")` and
 `corpairs(fit, conf.int = TRUE, method = "bootstrap")` still stop before
-interval work begins, and derived q4 covariance rows, repeatability, and
-phylogenetic signal still need separate interval designs. For long applied
+interval work begins, and derived q4 covariance rows, `total_variance_share`,
+and `phylo_total_variance_share` still need separate interval designs. For long applied
 models, the practical default is therefore: Wald for routine reporting,
 targeted `profile_precision = "fast"` profile checks for important SD or
 correlation rows, and bootstrap only when refit-based uncertainty is worth the

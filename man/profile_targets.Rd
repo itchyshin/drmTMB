@@ -45,8 +45,8 @@ direct point-estimate target that is deliberately unavailable to
 profiling: the zi-nbinom2 note covers the ordinary q1 scale route, and the
 zero-one-beta notes cover that bounded family's structured q1 mean route
 and its zero- and one-inflation routes.
-Derived variance-ratio summaries such as repeatability and phylogenetic
-signal are listed as point-estimate targets with
+Derived variance-ratio summaries such as \code{total_variance_share} and
+\code{phylo_total_variance_share} are listed as point-estimate targets with
 \code{profile_ready = FALSE}.
 }
 \description{
