@@ -193,25 +193,36 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
   )
 })
 
-test_that("unsupported Julia REML warning does not overclaim native TMB fallback", {
-  warnings <- character()
-  withCallingHandlers(
-    drmTMB:::drm_julia_warn_reml_unsupported(
-      TRUE,
-      "non-Gaussian (poisson)"
-    ),
-    warning = function(w) {
-      warnings <<- c(warnings, conditionMessage(w))
-      invokeRestart("muffleWarning")
-    }
-  )
-  warning_text <- paste(warnings, collapse = "\n")
+test_that("the unsupported-REML condition REFUSES and does not overclaim native TMB fallback", {
+  # Owner instruction 2026-09-03: the silent ML fallback becomes a refusal.
+  # REML = FALSE must stay silent -- the refusal fires only when REML was asked for.
+  expect_false(drmTMB:::drm_julia_refuse_reml_unsupported(FALSE, "non-Gaussian (poisson)"))
 
-  expect_match(warning_text, "non-Gaussian \\(poisson\\)")
-  expect_match(warning_text, "documented Gaussian cells")
-  expect_match(warning_text, "diagnostic-only binomial REML route")
-  expect_match(warning_text, "ordinary unlabelled `mu` random intercept or independent slope")
-  expect_false(grepl("for an REML fit of this cell", warning_text))
+  cnd <- tryCatch(
+    drmTMB:::drm_julia_refuse_reml_unsupported(TRUE, "non-Gaussian (poisson)"),
+    condition = function(c) c
+  )
+  expect_s3_class(cnd, "error")
+  expect_false(inherits(cnd, "warning"))
+  error_text <- paste(
+    c(conditionMessage(cnd), unlist(cnd$message), unlist(cnd$body)),
+    collapse = "\n"
+  )
+
+  # names the cell, and the two ways forward
+  expect_match(error_text, "non-Gaussian \\(poisson\\)")
+  expect_match(error_text, "cannot fit")
+  expect_match(error_text, "REML = FALSE")
+  expect_match(error_text, "documented Gaussian")
+
+  # the TMB pointer stays bounded: TMB does NOT REML-fit every refused cell
+  expect_match(error_text, "diagnostic-only binomial REML route")
+  expect_match(error_text, "ordinary unlabelled `mu` random intercept or independent slope")
+  expect_match(error_text, "does not offer a general REML fit")
+  expect_false(grepl("for an REML fit of this cell", error_text))
+
+  # and the old silent-downgrade promise is gone
+  expect_false(grepl("fitting by maximum likelihood \\(ML\\) instead", error_text))
 })
 
 test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", {
@@ -291,10 +302,14 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
   expect_true(fit_reml$requested_REML)
   expect_true(fit_reml$effective_REML)
 
-  # Mean-only phylo Gaussian REML: gate still rejects -> warns and forwards ML.
+  # Mean-only phylo Gaussian REML: the gate still rejects, and now REFUSES
+  # instead of forwarding ML. Nothing is fitted, so there is no fit object to
+  # inspect -- the absence of one IS the fix. What is still checked is that the
+  # bridge never reached Julia: `captured$options` stays NULL, so the refusal
+  # happens BEFORE any call is marshalled, not after a wasted fit.
   captured$options <- NULL
-  expect_warning(
-    fit_ml <- drmTMB:::drmTMB_julia_bridge(
+  expect_error(
+    drmTMB:::drmTMB_julia_bridge(
       formula = mean_only,
       family = stats::gaussian(),
       data = dat,
@@ -306,12 +321,9 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
       REML = TRUE,
       call = quote(drmTMB())
     ),
-    "does not support .*REML.*phylogenetic Gaussian"
+    "cannot fit .*phylogenetic Gaussian.*by"
   )
-  expect_false("method" %in% names(captured$options))
-  expect_equal(fit_ml$estimator, "ML")
-  expect_true(fit_ml$requested_REML)
-  expect_false(fit_ml$effective_REML)
+  expect_null(captured$options)
 })
 
 test_that("REML warning names non-Gaussian phylo cells as non-Gaussian", {
@@ -349,8 +361,11 @@ test_that("REML warning names non-Gaussian phylo cells as non-Gaussian", {
     .package = "drmTMB"
   )
 
-  expect_warning(
-    fit_ml <- drmTMB:::drmTMB_julia_bridge(
+  # Refuses instead of silently forwarding ML, and refuses BEFORE marshalling:
+  # `captured$options` stays NULL because the mocked bridge call is never reached.
+  captured$options <- NULL
+  expect_error(
+    drmTMB:::drmTMB_julia_bridge(
       formula = count_phylo,
       family = stats::poisson(),
       data = dat,
@@ -362,12 +377,9 @@ test_that("REML warning names non-Gaussian phylo cells as non-Gaussian", {
       REML = TRUE,
       call = quote(drmTMB())
     ),
-    "does not support .*REML.*non-Gaussian.*poisson"
+    "cannot fit .*non-Gaussian.*poisson.*by"
   )
-  expect_false("method" %in% names(captured$options))
-  expect_equal(fit_ml$estimator, "ML")
-  expect_true(fit_ml$requested_REML)
-  expect_false(fit_ml$effective_REML)
+  expect_null(captured$options)
 })
 
 test_that("REML stays gated for the phylo-only count family cell", {
@@ -405,8 +417,11 @@ test_that("REML stays gated for the phylo-only count family cell", {
     .package = "drmTMB"
   )
 
-  expect_warning(
-    fit_ml <- drmTMB:::drmTMB_julia_bridge(
+  # Refuses instead of silently forwarding ML, and refuses BEFORE marshalling:
+  # `captured$options` stays NULL because the mocked bridge call is never reached.
+  captured$options <- NULL
+  expect_error(
+    drmTMB:::drmTMB_julia_bridge(
       formula = count_phylo,
       family = stats::poisson(),
       data = dat,
@@ -418,12 +433,9 @@ test_that("REML stays gated for the phylo-only count family cell", {
       REML = TRUE,
       call = quote(drmTMB())
     ),
-    "does not support .*REML.*non-Gaussian.*poisson"
+    "cannot fit .*non-Gaussian.*poisson.*by"
   )
-  expect_false("method" %in% names(captured$options))
-  expect_equal(fit_ml$estimator, "ML")
-  expect_true(fit_ml$requested_REML)
-  expect_false(fit_ml$effective_REML)
+  expect_null(captured$options)
 })
 
 # --- Live σ-phylo REML round-trip (guarded) ---------------------------------

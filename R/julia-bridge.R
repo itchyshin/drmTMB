@@ -381,7 +381,7 @@ drmTMB_julia_bridge <- function(
     ))
   }
   if (drm_julia_is_cross_family(family)) {
-    drm_julia_warn_reml_unsupported(REML, "cross-family")
+    drm_julia_refuse_reml_unsupported(REML, "cross-family")
     return(drmTMB_julia_xfam_bridge(
       formula = formula,
       family = family,
@@ -405,7 +405,7 @@ drmTMB_julia_bridge <- function(
     identical(family_type, "biv_gaussian") &&
       drm_julia_has_structured_term(formula)
   ) {
-    drm_julia_warn_reml_unsupported(
+    drm_julia_refuse_reml_unsupported(
       REML,
       "bivariate q2 known-covariance structured-effect"
     )
@@ -423,7 +423,7 @@ drmTMB_julia_bridge <- function(
     ))
   }
   if (drm_julia_has_structured_term(formula)) {
-    drm_julia_warn_reml_unsupported(REML, "structured-effect")
+    drm_julia_refuse_reml_unsupported(REML, "structured-effect")
     return(drmTMB_julia_structured_bridge(
       formula = formula,
       family = family,
@@ -475,7 +475,7 @@ drmTMB_julia_bridge <- function(
     family_type = family_type
   )
   if (isTRUE(REML) && !reml_supported) {
-    drm_julia_warn_reml_unsupported(
+    drm_julia_refuse_reml_unsupported(
       REML,
       drm_julia_reml_cell_label(
         formula = formula,
@@ -1944,15 +1944,36 @@ drm_julia_merge_options <- function(base, overrides) {
 # Julia-engine cell that DRM.jl does not yet fit by restricted maximum
 # likelihood. The Julia bridge remains a Gaussian-only REML claim: unsupported cells fall back to
 # ML instead of implying that a nearby TMB or Julia path is a full REML fallback.
-drm_julia_warn_reml_unsupported <- function(REML, cell) {
+# REFUSAL, not a warning (owner instruction, 2026-09-03: "fix the silent ML
+# fallback -- make it refuse"). This used to warn and then fit by maximum
+# likelihood. That put the same script on two estimators across two engines,
+# separated only by a warning, and it did so on exactly the quantities REML
+# exists to protect: variance components, and every ratio built from them
+# (heritability, repeatability, ICC). A warning is the wrong instrument for a
+# change of estimator -- warnings are routinely not read, and nothing
+# downstream in the fit object announces that the number in front of you
+# answers a different question than the one you asked.
+#
+# The trade is deliberate and it is asymmetric. Refusing a cell that WOULD
+# have worked costs a visible error next to a route that does work. Allowing a
+# cell that silently downgrades hands over the wrong estimator invisibly. The
+# first is recoverable by the user in one line; the second is not recoverable
+# at all, because nothing tells them to try.
+#
+# The `engine = "tmb"` hint stays CAREFULLY bounded. TMB does not offer a
+# general REML fit for every cell this bridge refuses -- outside Gaussian it
+# has only a diagnostic-only binomial route -- and promising otherwise would
+# replace a silent wrong answer with a confident wrong pointer.
+drm_julia_refuse_reml_unsupported <- function(REML, cell) {
   if (!isTRUE(REML)) {
     return(invisible(FALSE))
   }
-  cli::cli_warn(c(
-    "{.code engine = \"julia\"} does not support {.code REML = TRUE} for {cell} models yet; fitting by maximum likelihood (ML) instead.",
-    i = "The DRM.jl bridge currently supports REML only for documented Gaussian cells. Use {.code REML = FALSE} for this bridge cell or simplify to a documented Gaussian REML cell; native {.code engine = \"tmb\"} also has a separate diagnostic-only binomial REML route for an ordinary unlabelled {.code mu} random intercept or independent slope."
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cannot fit {cell} models by {.code REML = TRUE}.",
+    x = "Refusing rather than fitting by maximum likelihood instead: ML and REML differ precisely on the variance components REML exists to correct, so a silent downgrade would move heritability, repeatability and ICC without saying so.",
+    i = "The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for maximum likelihood explicitly with {.code REML = FALSE}, or simplify to a documented Gaussian REML cell.",
+    i = "Native {.code engine = \"tmb\"} fits Gaussian cells by REML, and has a separate diagnostic-only binomial REML route for an ordinary unlabelled {.code mu} random intercept or independent slope. It does not offer a general REML fit for every cell this bridge refuses."
   ))
-  invisible(TRUE)
 }
 
 drm_julia_formula_spec <- function(formula, phylo_payload = NULL) {
