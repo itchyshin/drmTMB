@@ -5,6 +5,31 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Regression cover for the non-interactive `engine = "julia"` abort
+
+* `engine = "julia"` used to abort in an ordinary `Rscript` session with "Live
+  Julia setup is disabled on the CRAN check lane", because the CRAN-lane
+  predicate inferred "package check" from `!interactive()`. A scripted analysis
+  is a supported way to use the package, so this blocked real non-interactive
+  use (reported by an outside user working on a 10,970-species tree). The
+  behaviour was fixed on 2026-08-30 by requiring R's own
+  `_R_CHECK_PACKAGE_NAME_` marker; **this entry adds the regression test the fix
+  shipped without.** Reverting the fix left the existing CRAN-lane test file
+  fully green (32 passed, 0 failed), so the bug could have been reintroduced
+  without CI noticing; the new
+  `tests/testthat/test-julia-noninteractive-lane.R` fails against the pre-fix
+  predicate.
+* The marker choice is now backed by measurement rather than inference
+  (`docs/dev-log/evidence/julia-r-parity/check-lane-markers/`): probe packages
+  under `R CMD check` show `_R_CHECK_PACKAGE_NAME_` set in the examples lane,
+  in `tests/testthat.R`, and inside `test_check()`, but **absent from the
+  vignette rebuild subprocess**, which carries no check marker at all.
+  `TESTTHAT_IS_CHECKING` would have been the wrong marker: it is missing from
+  the examples lane, the lane the guard was originally written for. Because the
+  vignette lane is invisible to any marker, the new test file also scans every
+  vignette and fails if an *evaluated* chunk ever calls `engine = "julia"`, with
+  a positive control proving the scanner detects a planted chunk.
+
 ## Renamed: `summary()`'s derived "repeatability"/"phylogenetic_signal" rows
 
 * `summary()`'s `derived` component printed rows labelled `"repeatability"`
