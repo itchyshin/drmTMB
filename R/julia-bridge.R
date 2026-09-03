@@ -1008,6 +1008,31 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
 # SAME row-ordered, column-subset data the rest of the payload marshals, so
 # factor levels/contrasts match what DRM.jl receives.
 drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type = NULL) {
+  # N1 repair (2026-09-03, Rose adversarial pass, attack 2b): symmetric to
+  # `drm_julia_bridge_default_dpar_labels()` ADDING a default `sigma` label
+  # for families DRM.jl fits one for, a user-WRITTEN `sigma` formula on a
+  # `drm_julia_dispersionless_families()` family (poisson, binomial -- no free
+  # dispersion parameter) must be refused, not silently sent: DRM.jl has no
+  # `sigma` block to attach the label to, so sending one aborts at the echo
+  # with a confusing DRM.jl-attributed message
+  # (`coef_labels supplies names for unknown dpar "sigma"; the model has
+  # dpars: mu`) instead of naming the actual problem. The native TMB engine
+  # already refuses this formula outright for the SAME reason
+  # (`drmTMB(bf(y ~ x, sigma ~ 1), poisson())` -> "Poisson models only
+  # support `mu` and optional `zi`. Unsupported parameter: \"sigma\".",
+  # verified live) -- refusing here, not silently dropping the formula, keeps
+  # `engine = "julia"` consistent with that refusal rather than fitting a
+  # different model than the one the user wrote (the "silently ignored"
+  # failure mode this codebase's doctrine forbids).
+  if (!is.null(family_type) && family_type %in% drm_julia_dispersionless_families()) {
+    dpars_present <- vapply(formula$entries, `[[`, character(1L), "dpar")
+    if ("sigma" %in% dpars_present) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} does not support a {.code sigma} formula for a {.val {family_type}} model.",
+        i = "{.val {family_type}} has no dispersion parameter to fit -- drop the {.code sigma} formula; the native {.code engine = \"tmb\"} path refuses the same formula for the same reason."
+      ))
+    }
+  }
   labels <- list()
   for (entry in formula$entries) {
     dpar <- entry$dpar
@@ -1111,6 +1136,74 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     # "phylocov_Sigma_a:L11/L21/L22", and the echo demands exactly those three
     # names under dpar "phylocov").
     labels[["phylocov"]] <- drm_julia_phylocov_block_labels(2L)
+  }
+  # N1 repair (2026-09-03, Rose adversarial pass, "the WORST" refutation): a
+  # UNIVARIATE `phylo(1 | group)` random intercept -- the base bridge's
+  # flagship phylogenetic route -- reports a `resd_<group>` block with no
+  # `formula$entries` counterpart, the SAME synthetic-name convention as the
+  # relmat/animal/spatial `resd` block above, but `phylo` is deliberately
+  # excluded from `drm_julia_collect_structured_terms()`
+  # (`drm_julia_structured_marker_types()` gates ROUTING, not this block
+  # detection) so it was never reached. Verified empirically fitting
+  # `DRM.drm_bridge` directly on `y ~ x + phylo(1 | species, tree = tr)`
+  # (gaussian, sigma left default OR `sigma ~ x`): `coef_names` ends in
+  # `"resd_species"` either way. This broke EVERY univariate phylo fit on
+  # ALREADY-MERGED main (not only this arc's new routes) whenever
+  # `options$coef_labels` was supplied.
+  #
+  # This is SKIPPED for bivariate q2/q4 phylo formulas
+  # (`drm_julia_biv_phylo_dimension()` non-NA): those routes report the
+  # random-effect covariance through the `phylocov` block instead, and
+  # sending an unwanted `resd` label would itself abort the echo ("supplies
+  # names for unknown dpar") -- the SAME class of neighbour hole as the
+  # dispersionless-family `sigma` fix above, just in the other direction.
+  #
+  # It is also SKIPPED for a phylo group that ALSO carries a coupled
+  # `sd(group)`/`sd_phylo(group)` location-scale-scale dpar (the LSS route):
+  # verified empirically that DRM.jl reports the group's random-effect
+  # covariance through the `sd_phylo`/`sd` block INSTEAD in that shape --
+  # no separate `resd` block appears (the committed `lss-tip-identity`
+  # fixture, which pairs a mean-side `phylo(1 | species)` term with
+  # `sd_phylo(species) ~ z`, already passed the echo before this repair).
+  #
+  # Restricted to a bare random-INTERCEPT phylo term on `mu`
+  # (`term$coef_names == "(Intercept)"`, `term$dpar == "mu"`), matching the
+  # SAME restriction `drm_julia_structured_payload()` already applies to
+  # relmat/animal/spatial terms. TWO other phylo shapes are deliberately left
+  # alone here, confirmed by measurement (not assumption) to need a
+  # DIFFERENT, dpar-qualified block key this fix does not attempt: a
+  # `sigma`-side phylo term (the "sigma-phylo REML" cluster,
+  # `drm_julia_locscale_phylo_families()`) reports `resd_sigma` with a
+  # compound term name (e.g. `"species:sd_sigma"`, not the bare group), and a
+  # correlated random-slope phylo term (`phylo(1 + x | g)`) is a separate,
+  # more complex shape again (likely `resd_<group>` plus a `recov_<group>`
+  # correlation block). Both were ALREADY broken against the pinned echo
+  # before this repair (`tests/testthat/test-julia-sigma-phylo-reml.R`'s live
+  # fit errored `coef_labels is missing an entry for dpar "resd_sigma"` on
+  # this branch's own tip before this fix, unchanged in kind after it) --
+  # restricting to `dpar == "mu"` avoids sending a WRONG `resd` label that
+  # would turn that pre-existing "missing dpar" abort into a different
+  # "unknown dpar" one, and is left for a future arc rather than guessed at
+  # here.
+  if (is.na(drm_julia_biv_phylo_dimension(formula))) {
+    phylo_terms <- Filter(
+      function(term) {
+        identical(term$type, "phylo") &&
+          identical(term$coef_names, "(Intercept)") &&
+          identical(term$dpar, "mu")
+      },
+      unlist(
+        lapply(formula$entries, function(entry) entry$structured),
+        recursive = FALSE
+      )
+    )
+    phylo_groups <- unique(vapply(phylo_terms, `[[`, character(1L), "group"))
+    entry_dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
+    is_lss_dpar <- grepl("^sd(_phylo)?\\([^()]+\\)$", entry_dpars)
+    lss_groups <- sub("^sd(_phylo)?\\(([^()]+)\\)$", "\\2", entry_dpars[is_lss_dpar])
+    for (group in setdiff(phylo_groups, lss_groups)) {
+      labels[["resd"]] <- group
+    }
   }
   if (!is.null(family_type)) {
     labels <- drm_julia_bridge_default_dpar_labels(labels, formula, family_type)
