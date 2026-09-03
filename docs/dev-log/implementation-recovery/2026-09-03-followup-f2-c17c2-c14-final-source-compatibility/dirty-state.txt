@@ -1,0 +1,12 @@
+M NEWS.md
+M R/methods.R
+M R/profile.R
+M docs/design/259-heritability-icc-repeatability.md
+M docs/design/37-worked-example-inventory.md
+M man/profile_targets.Rd
+M man/summary.drmTMB.Rd
+M tests/testthat/test-profile-targets.R
+M tests/testthat/test-summary.R
+M vignettes/articles/model-workflow.Rmd
+M vignettes/implementation-map.Rmd
+?? tests/testthat/test-summary-derived-rows.R
