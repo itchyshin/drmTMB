@@ -183,3 +183,16 @@ reopening D-179/D-181/D-202/D-204; compute beyond the Totoro cap or beyond an es
 pre-run (D-139); or a surprise that invalidates this plan -- bring it back to Shinichi rather than
 improvising past it.
 ```
+
+## Acceptance ledger receipt (coordinator, 2026-09-03 02:43 UTC)
+
+`.unlazy/night/bin/reverify-all.sh` re-ran every leaf against the worktree holding its code (never the main checkout), with `DRM_JL_PATH` at the pinned DRM.jl clone (77513aa0) and single-threaded BLAS, and wrote `.unlazy/night/reverify-all.result`:
+
+- leaf-n1: ALL MET (12 met, reran 10)
+- leaf-n2: ALL MET (11 met, reran 9)
+- leaf-n3: ALL MET (5 met, reran 4)
+- leaf-n4: ALL MET (5 met, reran 4)
+- leaf-n5: ALL MET (4 met, 1 abandoned: N5-G2, Totoro cannot embed Julia; intent met by N5b)
+- leaf-n5b: ALL MET (4 met, reran 4)
+
+Pipeline `.unlazy/night/GATES.md`: N1 (every leaf re-verifies) PASS on that receipt; N2 (CI green at every merge) recorded from `merge-log.txt`; N3 (DRM.jl fence) PASS; N4 (docs landed) is met by the merge of the docs PR that carries this file. In `.unlazy/true-parity/`, S3-G4 flipped ABANDONED to MET and S3-G11 was superseded (zero legacy sites, not one), both with dated notes. After the receipt the arc worktrees and merged local branches were removed; re-running the runner needs the worktrees re-created at the merge SHAs listed in the merge log.
