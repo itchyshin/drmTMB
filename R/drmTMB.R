@@ -1362,7 +1362,7 @@ drm_translate_public_start_override <- function(spec, start) {
     if (is.null(parsed)) {
       cli::cli_abort(c(
         "Unknown public start label {.val {label}}.",
-        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+        "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, or {.code phylo_cor:<axis1>:<axis2>} format."
       ))
     }
     if (identical(parsed$family, "u")) {
@@ -1442,11 +1442,72 @@ drm_parse_public_start_label <- function(label) {
   if (!is.character(label) || length(label) != 1L || is.na(label)) {
     return(NULL)
   }
+  # Phylo covariance block families (design 35, "Phylo Covariance Block"; N3,
+  # 2026-09-03): `phylo_sd:<axis>` (one axis) and `phylo_cor:<axis1>:<axis2>`
+  # (a pair) address the q>=2 phylogenetic location/scale covariance block's
+  # working parameters (`log_sd_phylo`/`eta_cor_phylo`/`theta_phylo`), which
+  # live outside `spec$random` and so cannot be named `<dpar>` the way an
+  # ordinary random-effect term can. These have their own arity (2 and 3
+  # segments respectively, vs. the generic family's fixed 3) so they are
+  # parsed before the generic `family:dpar:target` pattern.
+  m <- regmatches(label, regexec("^phylo_sd:(.+)$", label))[[1L]]
+  if (length(m) == 2L) {
+    return(list(family = "phylo_sd", dpar = NA_character_, target = m[[2L]]))
+  }
+  m <- regmatches(label, regexec("^phylo_cor:([^:]+):(.+)$", label))[[1L]]
+  if (length(m) == 3L) {
+    return(list(family = "phylo_cor", dpar = m[[2L]], target = m[[3L]]))
+  }
   m <- regmatches(label, regexec("^([^:]+):([^:]+):(.+)$", label))[[1L]]
   if (length(m) != 4L) {
     return(NULL)
   }
   list(family = m[[2L]], dpar = m[[3L]], target = m[[4L]])
+}
+
+# Axis labels for a structured (phylogenetic/spatial/animal/relmat) mu
+# covariance block, in the SAME order as `log_sd_phylo` and the rows/columns
+# of `obj$report()$phylo_q4_covariance` (design 35, "Phylo Covariance Block").
+# For the common case (one axis per endpoint dpar, e.g. `mu1`, `mu2`,
+# `sigma1`, `sigma2`) the axis label is just the dpar name; if the same dpar
+# appears more than once (an intercept-and-slope block on one dpar) the
+# coefficient name is appended to disambiguate.
+drm_phylo_mu_axis_labels <- function(phylo_mu) {
+  dpars <- phylo_mu_endpoint_dpars(phylo_mu)
+  if (!anyDuplicated(dpars)) {
+    return(dpars)
+  }
+  paste0(dpars, ":", structured_mu_endpoint_coef_names(phylo_mu))
+}
+
+# Position of the `theta_phylo` working parameter for a dense (single-block,
+# q > 2) phylo covariance's axis pair, matching TMB's `UNSTRUCTURED_CORR_t`
+# Cholesky fill order exactly as replicated by `tmb_unstructured_corr_matrix()`:
+# lower-triangle cells (row > col, 1-indexed axis positions) filled in
+# row-ascending, then column-ascending order. Verified empirically against
+# `density::UNSTRUCTURED_CORR_t` (src/drmTMB.cpp) by perturbing each
+# `theta_phylo` entry and checking which correlation-matrix cell moves (N3
+# after-task note, 2026-09-03): entry k fills cell (row, col) at position k
+# in that order, e.g. for q = 4 the order is
+# (mu1,mu2), (mu1,sigma1), (mu2,sigma1), (mu1,sigma2), (mu2,sigma2), (sigma1,sigma2).
+# Returns NA if the pair is not found among the axis labels.
+drm_phylo_mu_dense_theta_index <- function(phylo_mu, axis1, axis2) {
+  axis_labels <- drm_phylo_mu_axis_labels(phylo_mu)
+  a <- match(axis1, axis_labels)
+  b <- match(axis2, axis_labels)
+  if (is.na(a) || is.na(b) || a == b) {
+    return(NA_integer_)
+  }
+  row <- max(a, b)
+  col <- min(a, b)
+  q <- length(axis_labels)
+  cells <- which(lower.tri(matrix(0, q, q)), arr.ind = TRUE)
+  cells <- cells[order(cells[, "row"], cells[, "col"]), , drop = FALSE]
+  pos <- which(cells[, "row"] == row & cells[, "col"] == col)
+  if (length(pos) != 1L) {
+    return(NA_integer_)
+  }
+  pos
 }
 
 drm_resolve_public_start_target <- function(spec, parsed, value, label) {
@@ -1530,9 +1591,127 @@ drm_resolve_public_start_target <- function(spec, parsed, value, label) {
     ))
   }
 
+  # Phylo covariance block families (design 35, "Phylo Covariance Block"; N3,
+  # 2026-09-03). `spec$structured$phylo_mu` is the q >= 2 structured
+  # location/scale block itself (`log_sd_phylo`, `eta_cor_phylo`/`theta_phylo`),
+  # which lives outside `spec$random` and outside the ordinary `<dpar>`
+  # vocabulary -- see `drm_phylo_mu_axis_labels()` and
+  # `drm_phylo_mu_dense_theta_index()` just above.
+  if (identical(family, "phylo_sd") || identical(family, "phylo_cor")) {
+    phylo_mu <- spec$structured$phylo_mu
+    if (!isTRUE(phylo_mu$has)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "This model has no phylogenetic (or other structured) location/scale covariance block."
+      ))
+    }
+    axis_labels <- drm_phylo_mu_axis_labels(phylo_mu)
+
+    if (identical(family, "phylo_sd")) {
+      axis <- target
+      if (!(axis %in% axis_labels)) {
+        cli::cli_abort(c(
+          "Unknown public start label {.val {label}}.",
+          "x" = "{.val {axis}} is not a phylogenetic covariance axis in this model.",
+          "i" = "Available axes: {.val {axis_labels}}."
+        ))
+      }
+      if (!(value > 0)) {
+        cli::cli_abort(c(
+          "Start label {.val {label}} must be a positive number.",
+          "x" = "{.code phylo_sd:} starts are given on the natural (positive) scale."
+        ))
+      }
+      return(list(
+        component = "log_sd_phylo",
+        index = match(axis, axis_labels),
+        value = log(value)
+      ))
+    }
+
+    # phylo_cor: `dpar` and `target` hold the two axes (the parser captures
+    # the first axis as `dpar` and the rest of the label, greedily, as
+    # `target`).
+    axis1 <- dpar
+    axis2 <- target
+    if (!(axis1 %in% axis_labels) || !(axis2 %in% axis_labels) || identical(axis1, axis2)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {axis1}}:{.val {axis2}} is not a phylogenetic covariance axis pair in this model.",
+        "i" = "Available axes: {.val {axis_labels}}."
+      ))
+    }
+    q <- structured_mu_q(phylo_mu)
+    if (q <= 2L) {
+      # Exactly one pair, a single scalar `eta_cor_phylo` on the SAME bounded
+      # tanh scale as the ordinary `cor:` family (0.999999 * tanh(eta); see
+      # `split_tmb_corpars()`).
+      if (!(value > -1) || !(value < 1)) {
+        cli::cli_abort(c(
+          "Start label {.val {label}} must be strictly between -1 and 1.",
+          "x" = "{.code phylo_cor:} starts for a q = 2 phylogenetic block are given on the natural correlation scale."
+        ))
+      }
+      return(list(
+        component = "eta_cor_phylo",
+        index = 1L,
+        value = atanh(value / 0.999999)
+      ))
+    }
+    if (phylo_mu_is_block_diagonal(phylo_mu)) {
+      # Each labelled 2-endpoint block contributes one `theta_phylo` entry
+      # that IS a bounded tanh-transformed correlation directly (no Cholesky
+      # reconstruction needed; see `split_tmb_corpars()`'s block-diagonal
+      # branch), so this stays on the same natural correlation scale as
+      # `cor:` and the q = 2 case above.
+      pairs <- phylo_mu_pair_table(phylo_mu)
+      pos <- which(
+        (pairs$from_dpar == axis1 & pairs$to_dpar == axis2) |
+          (pairs$from_dpar == axis2 & pairs$to_dpar == axis1)
+      )
+      if (length(pos) != 1L) {
+        cli::cli_abort(c(
+          "Unknown public start label {.val {label}}.",
+          "x" = "{.val {axis1}} and {.val {axis2}} are not in the same labelled phylogenetic covariance block."
+        ))
+      }
+      if (!(value > -1) || !(value < 1)) {
+        cli::cli_abort(c(
+          "Start label {.val {label}} must be strictly between -1 and 1.",
+          "x" = "{.code phylo_cor:} starts for a block-diagonal phylogenetic covariance are given on the natural correlation scale."
+        ))
+      }
+      return(list(
+        component = "theta_phylo",
+        index = pos,
+        value = atanh(value / 0.999999)
+      ))
+    }
+    # Dense (single unstructured q > 2 block): `theta_phylo` entries are raw
+    # TMB `UNSTRUCTURED_CORR_t` Cholesky-space working parameters, not
+    # individually a bounded correlation (the correlation matrix is a
+    # nonlinear function of ALL entries together via `L %*% t(L)` then
+    # `cov2cor()`; see `tmb_unstructured_corr_matrix()`). There is therefore
+    # no natural (-1, 1) scale for a single entry to decode from, unlike every
+    # other family here -- the supplied value IS the working parameter, taken
+    # on its own unconstrained real scale.
+    pos <- drm_phylo_mu_dense_theta_index(phylo_mu, axis1, axis2)
+    if (is.na(pos)) {
+      cli::cli_abort(c(
+        "Unknown public start label {.val {label}}.",
+        "x" = "{.val {axis1}}:{.val {axis2}} could not be mapped to a {.code theta_phylo} working parameter."
+      ))
+    }
+    return(list(
+      component = "theta_phylo",
+      index = pos,
+      value = as.numeric(value)
+    ))
+  }
+
   cli::cli_abort(c(
     "Unknown public start label {.val {label}}.",
-    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, or {.code cor:<dpar>:<term>} format."
+    "x" = "Labels must use the {.code fixef:<dpar>:<column>}, {.code sd:<dpar>:<term>}, {.code cor:<dpar>:<term>}, {.code phylo_sd:<axis>}, or {.code phylo_cor:<axis1>:<axis2>} format."
   ))
 }
 
@@ -19421,7 +19600,12 @@ biv_gaussian_start <- function(
   }
   rho <- max(min(rho, 0.8), -0.8)
 
-  beta_rho12 <- numeric(ncol(X_rho12))
+  # Named at build time (2026-09-03, N3) so the generic `fixef:rho12:<column>`
+  # public start label already reaches `beta_rho12` via
+  # `drm_resolve_public_start_target()`'s existing `fixef:` branch -- the same
+  # mechanism `beta_mu1`/`beta_mu2`/`beta_sigma1`/`beta_sigma2` already use
+  # (their names come from `lm.fit()`/`gaussian_sigma_fixed_start()` instead).
+  beta_rho12 <- stats::setNames(numeric(ncol(X_rho12)), colnames(X_rho12))
   beta_sigma1 <- gaussian_sigma_fixed_start(
     resid = resid1,
     X_sigma = X_sigma1,
