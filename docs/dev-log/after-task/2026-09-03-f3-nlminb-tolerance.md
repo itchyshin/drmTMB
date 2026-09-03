@@ -186,3 +186,77 @@ test file asserting a tolerance of 1e-6 or tighter) and found the one that matte
 broader 13-file sweep, including the full zero-one-beta suite, ran clean at 2054 assertions and 0
 failures, and the numeric blast radius claim itself held: the single failure was the attribute, not
 the shifted numbers.
+
+## 10. CI failure and the defect it caught (coordinator, 2026-09-03 ~12:10 UTC)
+
+CI failed rebuilding `vignettes/bivariate-nongaussian.Rmd` at chunk `penguin-intervals`:
+`plot.window(): need finite 'xlim' values`. The coordinator reproduced and diagnosed it: on this
+branch, `confint(fit_log, parm = "rho12", method = "profile", profile_engine = "endpoint")` returned
+`conf.status == "profile_failed"` with `NA` bounds; on `main` it returns `0.2613087` to `0.4482706`;
+with `drm_control(newton_polish = FALSE)` on this branch it works again.
+
+**Mechanism.** The profile compares the free (unconstrained) optimum's nll against a series of
+CONSTRAINED endpoint solves (`profile_endpoint_evaluator()`, `R/profile.R`). Only the free fit was
+Newton-polished (to a gradient of `~1e-9`-`1e-14`); the constrained endpoint solve was left at
+whatever `nlminb` alone reached. On the penguin `rho12` cell, one endpoint stopped with `nlminb` code
+1 and a maximum absolute free-parameter gradient of `0.002724` -- comfortably above
+`PROFILE_ENDPOINT_GRADIENT_TOL` (`1e-3`, issue #705) -- so
+`profile_endpoint_convergence_accepted()` correctly rejected it as not actually at a constrained
+minimum, and the profile crossing search had no finite endpoint to bracket.
+
+**The guard was correct; the two sides of the comparison were not.** `PROFILE_ENDPOINT_GRADIENT_TOL`
+exists precisely to catch a constrained solve that stopped short of its true minimum, because that
+inflates the profiled nll and narrows the interval (#705's own rationale). Polishing only the free
+side reproduces exactly that asymmetry from the other direction: the free side's nll is now lower
+than an honest, equally-converged constrained side would report, which is the same bias in reverse.
+**Fix: polish both sides**, not loosen the guard.
+
+**What changed.** `drm_newton_polish()` (`R/drmTMB.R`) was refactored to take `fn`/`gr` as plain
+functions (matching `obj$fn`/`obj$gr`'s signature) instead of an `obj`-shaped list, so the same
+tested polish can run on `profile_endpoint_evaluator()`'s free-parameter closures (`fn_free`/
+`gr_free`, `R/profile.R`) as well as the original full-parameter TMB objective. The endpoint's
+`solve_from()` now polishes its `nlminb` result the same way, gated on
+`object$control$newton_polish` so `drm_control(newton_polish = FALSE)` skips both sides and keeps
+the comparison symmetric in that direction too. `PROFILE_ENDPOINT_GRADIENT_TOL` is untouched at
+`1e-3`.
+
+**Verified.** Penguin `rho12` endpoint profile: `lower = 0.2613087`, `upper = 0.4482706`,
+`conf.status = "profile"` -- matching `main` exactly, with the default (polished) fit. With
+`drm_control(newton_polish = FALSE)` the same interval is reproduced (`0.2613087`, `0.4482706`),
+confirming both sides are symmetric whether polished or not. The full `test-profile-targets.R` suite
+(973 assertions), `test-profile-plots.R`, `test-profile-shape-boundary.R`, and
+`test-arc-d-profile-trace.R` all pass. The vignette re-renders end to end
+(`rmarkdown::render("vignettes/bivariate-nongaussian.Rmd", ...)`).
+
+**New test.** `tests/testthat/test-optimizer-tolerance.R`, "profile endpoint polish keeps the rho12
+interval finite and not narrowed (#1130 CI)": fits the penguin bivariate lognormal model
+(`palmerpenguins`, `skip_if_not_installed`), asserts a finite, `conf.status == "profile"` endpoint CI
+for `rho12`, and asserts its width is not more than `1e-4` narrower than the width from an otherwise
+identical fit with `newton_polish = FALSE` -- catching a future regression that silently re-narrows
+the interval by unpolishing only one side.
+
+**Scope note.** `R/profile.R` also has a second, structurally identical `stats::nlminb()` call inside
+`ordinal_cutpoint_profile_evaluator()` (constrained ordinal-cutpoint endpoint solves, also gated by
+`profile_endpoint_convergence_accepted()`), which is suspected to have the exact same asymmetry but
+was **not** touched here: the coordinator's widened OWNS names "R/profile.R (the constrained endpoint
+solve only)", and `profile_endpoint_evaluator()` -- the one the vignette actually exercises -- is
+that solve. Fixing `ordinal_cutpoint_profile_evaluator()` the same way is a natural, low-risk
+follow-up but is out of this leaf's scope; flagging it rather than fixing it silently.
+
+**Two defects, two authors, neither caught by the change's own author.** This is the second defect in
+this arc found by someone other than the engineer who wrote the fix: Rose's adversarial pass found
+the stray-attribute leak (a correctness defect invisible to every numeric-tolerance assertion because
+it was never a numeric difference, just an extra attribute nlminb's own `$objective` never carries);
+the coordinator's CI run found the profile asymmetry (a correctness defect invisible to
+`test-optimizer-tolerance.R` because that file only ever fit and inspected `drmTMB()` objects
+directly, never called `confint(..., method = "profile", profile_engine = "endpoint")`). For the
+regression sweep in ยง7/f3-G3 to have caught either on its own, it would have needed two properties
+neither the sweep nor the author selected for: (1) coverage by *consumer*, not by *file the author
+was editing* -- every public entry point that reads `opt$objective`/`opt$par` off a polished fit
+(`logLik()`, `confint(method = "profile")`, `check_drm()`, `predict()`, ...), not just the optimizer
+and control test files; and (2) at least one test per consumer whose assertion is sensitive to the
+*kind* of change the fix makes (an attribute leaking through, or one side of a two-sided comparison
+moving and not the other), not only to the *coefficient values* changing. A sweep built from
+"grep every file that calls `drmTMB()`" would still have missed both; a sweep built from "list every
+place downstream of `opt` that treats the free fit's polish level as an invariant" would have caught
+both before either report came back.

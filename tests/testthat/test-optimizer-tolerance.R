@@ -77,7 +77,8 @@ test_that("the reported optimum is a stationary point and further polish barely 
   # polish's own stopping tolerance.
   tighter <- drmTMB:::drm_newton_polish(
     fit$opt,
-    fit$obj,
+    fit$obj$fn,
+    fit$obj$gr,
     grad_tol = 1e-12,
     max_iter = 5L
   )
@@ -100,4 +101,68 @@ test_that("newton_polish = FALSE restores the raw nlminb optimum (#1130)", {
 
   # The two optima differ by the same order of magnitude as the #1130 shortfall.
   expect_gt(max(abs(fit_raw$opt$par - fit_polished$opt$par)), 1e-6)
+})
+
+# CI follow-up (2026-09-03): the Newton polish above ran on the free
+# (unconstrained) fit only. `confint(..., method = "profile", profile_engine
+# = "endpoint")` compares that free optimum's nll against a CONSTRAINED
+# endpoint solve (`profile_endpoint_evaluator()`, `R/profile.R`), which was
+# left unpolished -- comparing a polished nll against an unpolished one biases
+# the profile, since the unpolished (constrained) side stops short of its true
+# minimum and so reports a higher nll than it should. On the bivariate
+# lognormal penguin vignette (`vignettes/bivariate-nongaussian.Rmd`, chunk
+# `penguin-intervals`) this pushed the endpoint solve's reported gradient
+# (0.002724) past `PROFILE_ENDPOINT_GRADIENT_TOL` (1e-3), so the interval came
+# back `profile_failed` with NA bounds and the vignette's `plot.window()` call
+# errored ("need finite 'xlim' values"). The fix applies the same polish to
+# the constrained endpoint solve (`solve_from()`, same file), gated on
+# `object$control$newton_polish` so `drm_control(newton_polish = FALSE)`
+# leaves both sides unpolished and the comparison symmetric either way.
+test_that("profile endpoint polish keeps the rho12 interval finite and not narrowed (#1130 CI)", {
+  testthat::skip_if_not_installed("palmerpenguins")
+
+  penguins <- subset(
+    palmerpenguins::penguins,
+    stats::complete.cases(species, sex, year, flipper_length_mm, body_mass_g) &
+      flipper_length_mm > 0 & body_mass_g > 0
+  )
+  penguins$year_c <- penguins$year - mean(penguins$year)
+
+  form <- bf(
+    mu1 = flipper_length_mm ~ species + sex + year_c,
+    mu2 = body_mass_g ~ species + sex + year_c,
+    sigma1 = ~1, sigma2 = ~1, rho12 = ~1
+  )
+
+  fit_polished <- drmTMB(form, family = biv_lognormal(), data = penguins)
+  ci_polished <- confint(
+    fit_polished,
+    parm = "rho12",
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+
+  expect_true(is.finite(ci_polished$lower))
+  expect_true(is.finite(ci_polished$upper))
+  expect_identical(ci_polished$conf.status, "profile")
+
+  # Baseline: both sides unpolished (symmetric by construction), so this is
+  # not the pre-fix asymmetric bug -- it is the reference width a future
+  # regression that re-narrows the polished interval must be caught against.
+  fit_unpolished <- drmTMB(
+    form,
+    family = biv_lognormal(),
+    data = penguins,
+    control = drm_control(newton_polish = FALSE)
+  )
+  ci_unpolished <- confint(
+    fit_unpolished,
+    parm = "rho12",
+    method = "profile",
+    profile_engine = "endpoint"
+  )
+
+  width_polished <- ci_polished$upper - ci_polished$lower
+  width_unpolished <- ci_unpolished$upper - ci_unpolished$lower
+  expect_gt(width_polished, width_unpolished - 1e-4)
 })

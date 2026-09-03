@@ -163,3 +163,30 @@ non-converged result that the polish cannot rescue stays flagged.
 - Regression tests: `tests/testthat/test-optimizer-tolerance.R` (self-
   contained; no DRM.jl dependency). Fixture:
   `tests/testthat/fixtures/s10-varying-scale.csv`.
+
+## Addendum (2026-09-03): the profile-endpoint asymmetry
+
+Polishing only the free (unconstrained) fit creates a new asymmetry:
+`confint(..., method = "profile", profile_engine = "endpoint")` compares
+that free objective against a series of CONSTRAINED endpoint solves
+(`profile_endpoint_evaluator()`, `R/profile.R`, `solve_from()`), which were
+left unpolished. On `vignettes/bivariate-nongaussian.Rmd`'s penguin
+`rho12` cell this pushed a constrained endpoint's own gradient guard
+(`PROFILE_ENDPOINT_GRADIENT_TOL = 1e-3`, issue #705) to correctly reject a
+genuinely under-converged solve, and the profile interval came back
+`profile_failed` with `NA` bounds.
+
+`drm_newton_polish()` was refactored to take `fn`/`gr` as plain functions
+(the shape of `obj$fn`/`obj$gr`) rather than an `obj`-shaped list, so the
+same tested polish now runs on `solve_from()`'s free-parameter closures too,
+gated on `object$control$newton_polish` -- `drm_control(newton_polish =
+FALSE)` skips both sides, keeping the comparison symmetric either way.
+`PROFILE_ENDPOINT_GRADIENT_TOL` itself is unchanged: the guard was correct,
+only one side of the comparison it gates was under-converged.
+
+Not fixed here: `ordinal_cutpoint_profile_evaluator()` (`R/profile.R`) has a
+structurally identical unpolished `stats::nlminb()` call for constrained
+ordinal-cutpoint endpoint solves, gated by the same
+`profile_endpoint_convergence_accepted()`, and is suspected to have the same
+asymmetry. Left untouched because it sits outside "the constrained endpoint
+solve" scope of this leaf's widened `OWNS`.

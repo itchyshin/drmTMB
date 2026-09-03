@@ -25,6 +25,14 @@ Template Model Builder.
   recomputes the reported `convergence` code and message from the polished
   gradient rather than trusting `nlminb`'s own diagnostic. Opt out with
   `drm_control(newton_polish = FALSE)`.
+* `confint(..., method = "profile", profile_engine = "endpoint")` compares
+  the free fit's objective against a constrained endpoint solve; the polish
+  above originally ran on the free fit only, so a constrained endpoint could
+  stop short of its own minimum relative to the now-lower free objective and
+  get rejected by the existing gradient guard, narrowing or invalidating the
+  interval. The same polish now runs on the constrained endpoint solve too,
+  keeping the comparison symmetric (and skipped on both sides together under
+  `drm_control(newton_polish = FALSE)`).
 
 ## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
 

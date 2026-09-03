@@ -631,7 +631,7 @@ drm_fit_spec <- function(
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
   if (isTRUE(control$newton_polish)) {
-    opt <- drm_newton_polish(opt, obj)
+    opt <- drm_newton_polish(opt, obj$fn, obj$gr)
     optimizer$opt <- opt
     optimizer$selected$objective <- opt$objective
     optimizer$selected$convergence <- opt$convergence
@@ -1045,9 +1045,18 @@ drm_optimize_with_preset_retry <- function(
 # extra gradient evaluations) on top of the ordinary nlminb fit; skipped
 # entirely when the reported optimum is already inside `grad_tol`. Opt-out
 # via `drm_control(newton_polish = FALSE)`.
-drm_newton_polish <- function(opt, obj, grad_tol = 1e-8, max_iter = 3L) {
+#
+# `fn`/`gr` take the exact TMB `obj$fn`/`obj$gr` signature (a plain function of
+# the full or free parameter vector to a scalar objective / gradient vector) so
+# this same polish can be reused on a *constrained* endpoint solve's free
+# parameters (`R/profile.R`, `profile_endpoint_evaluator()`), not just the
+# unconstrained fit. Passing mismatched `fn`/`gr` -- one polished, one not --
+# would bias a profile-likelihood comparison between the two (#1130 CI
+# follow-up): the polished side reaches a lower nll for free, which the
+# unpolished side cannot match, artificially narrowing the interval.
+drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
   par <- opt$par
-  grad <- tryCatch(as.numeric(obj$gr(par)), error = function(e) NULL)
+  grad <- tryCatch(as.numeric(gr(par)), error = function(e) NULL)
   if (is.null(grad) || !all(is.finite(grad))) {
     return(opt)
   }
@@ -1058,7 +1067,7 @@ drm_newton_polish <- function(opt, obj, grad_tol = 1e-8, max_iter = 3L) {
   polished <- FALSE
   for (i in seq_len(max_iter)) {
     he <- tryCatch(
-      stats::optimHess(par, obj$fn, obj$gr),
+      stats::optimHess(par, fn, gr),
       error = function(e) NULL
     )
     if (is.null(he) || !all(is.finite(he))) {
@@ -1069,14 +1078,14 @@ drm_newton_polish <- function(opt, obj, grad_tol = 1e-8, max_iter = 3L) {
       break
     }
     par_new <- par - step
-    grad_new <- tryCatch(as.numeric(obj$gr(par_new)), error = function(e) NULL)
-    # `obj$fn()` returns TMB's value carrying a stray `logarithm` attribute that
-    # nlminb's own `$objective` never has. Assigning it unstripped leaked the
-    # attribute through `stored_loglik` into the public `logLik()` object and
-    # broke test-animal-relmat-gaussian.R (Rose f3 pass, 2026-09-03). Strip it
-    # at the source, where the value enters the polish.
+    grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
+    # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
+    # attribute that nlminb's own `$objective` never has. Assigning it
+    # unstripped leaked the attribute through `stored_loglik` into the public
+    # `logLik()` object and broke test-animal-relmat-gaussian.R (Rose f3 pass,
+    # 2026-09-03). Strip it at the source, where the value enters the polish.
     objective_new <- tryCatch(
-      as.numeric(obj$fn(par_new)),
+      as.numeric(fn(par_new)),
       error = function(e) NA_real_
     )
     if (
