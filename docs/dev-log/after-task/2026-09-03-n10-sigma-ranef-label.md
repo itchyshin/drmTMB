@@ -188,3 +188,17 @@ owner.
 - N10-G7 (live, follow-up): `tests/testthat/test-julia-bridge.R`, test
   `"sdpars, sigma random intercept: the sigma-side random-effect SD is filed
   under sdpars$sigma, matching the TMB engine (live)"`.
+
+## Qualification after the Rose pass (coordinator, 2026-09-03 09:00 UTC)
+
+Rose's verdict (`scratchpad/rose/2026-09-03-rose-n10-verdict.md`) refuted the unqualified "fits under
+`engine = "julia"`" claim above in one respect: the construct fits under the Julia engine with
+`method = "ML"` only. With `REML = TRUE` DRM.jl 77513aa0 refuses it before fitting
+(`ArgumentError: drm: method = :REML is currently implemented only for the fixed-effect Gaussian
+location-scale model ...`), forwarded verbatim through callr, while the TMB engine fits REML for the same
+formula. That asymmetry is a DRM.jl route boundary, not a labelling gap, and is now stated in design 258
+S7.8 next to the two-group limitation. Two further Rose notes, recorded not repaired: the same-model
+numeric check passed (fixed effects to 1e-4, sigma-side SD to 1e-3) on a fixture whose random-intercept
+SD sits near a boundary, so a sturdier fixture is a morning item; and no drmTMB-side pre-check refuses the
+two-group mu-and-sigma case before Julia boots (the user sees DRM.jl's own message after the engine starts),
+which is morning question 14.

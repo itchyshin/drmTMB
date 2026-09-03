@@ -779,6 +779,16 @@ before any `coef_labels` check is even reached -- confirmed fitting `("y ~ x + (
 and `("y ~ x + (1 | g)", "sigma ~ (1 | h)")` directly; neither is addressed here, since there is no label
 this producer could supply that would change DRM.jl's own refusal.
 
+Scope of the N10 row, stated after the Rose pass (2026-09-03): under `engine = "julia"` the sigma-side
+non-phylo random intercept fits with `method = "ML"` only; DRM.jl 77513aa0 refuses `REML` for it
+(`ArgumentError: drm: method = :REML is currently implemented only for the fixed-effect Gaussian
+location-scale model`), whereas the TMB engine fits REML for the same formula. A random intercept on
+`sigma` must also be the only random structure on the Julia route: `bf(y ~ x + (1 | g), sigma ~ (1 | g))`
+and `sigma ~ (1 | h)` are refused by DRM.jl before any label check ("a random effect on `sigma` must be
+the only random structure"). drmTMB does not pre-check either limitation before starting Julia; that is a
+recorded follow-up, not a covered behaviour.
+
+
 **A found-and-since-fixed downstream gap (2026-09-03, same day, OWNS widened by the lane coordinator to
 cover it).** Once the fit succeeds, `coef(fj, "mu")` and `coef(fj, "sigma")` are correct and match the
 native TMB engine exactly (verified live) -- the fixed-effect coefficient table this section governs was
