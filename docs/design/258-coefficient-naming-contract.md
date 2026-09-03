@@ -744,3 +744,40 @@ Test-count: `tests/testthat/test-coefficient-labels.R` gained four new offline u
 "resd_sigma", "random-slope", "phylocov" per this repair's own gate); the four live "measured broken"
 skips this section closes are removed from `test-julia-sigma-phylo-reml.R` (1),
 `test-julia-slope-nongaussian.R` (1), and `test-julia-tmb-parity.R` (2).
+
+**N10 addendum, 2026-09-03 (an ORDINARY, non-phylo `sigma ~ (1 | g)` random intercept -- a different
+route than every rule above, all of which are phylo-only).** `bf(y ~ x, sigma ~ (1 | g))` --  a plain
+lme4-style random intercept on `sigma`, no `phylo()`/`relmat()`/`animal()`/`spatial()` marker anywhere
+-- aborted `engine = "julia"` with `coef_labels is missing an entry for dpar "resd" (1 fixed-effect
+columns; Julia names: ["resd_g_logsigma"])`. This is a DIFFERENT code path from every `resd`/`resd_<dpar>`
+rule above: `drm_julia_formula_entry()` only strips the phylo tree and rewrites `meta_V()` -- it does NOT
+strip lme4-style bars -- so the term crosses the bridge as literal text (`"sigma ~ (1 | g)"`) and DRM.jl's
+own ordinary sparse-Laplace GLMM route parses and fits it directly, with no `formula$entries$structured`
+record on the R side at all (the SAME "not even recorded" gap §7.1 already notes for a mu-side bar).
+Measured directly against DRM.jl 77513aa0 (`drmTMB_drm_bridge` called on `("y ~ x", "sigma ~ (1 | g)")`):
+`coef_names` ends in `"resd_g_logsigma"` -- a BARE `"resd"` block key (unlike the phylo sigma-side rule
+above, which is dpar-qualified `"resd_sigma"`), whose one label is a single compound term, UNDERSCORE-
+joined (not `drm_julia_recov_block_labels()`'s colon convention): `"<group>_<DRM.jl's own internal dpar
+name>"`, where DRM.jl's internal name for `sigma` is `"logsigma"` (its log-link working scale). Verified
+supplying `resd = list("g_logsigma")` reproduces the exact raw name and the fit proceeds under the echo.
+`drm_julia_bridge_payload_coef_labels()` gained a small, separate detection for this shape, restricted to
+`sigma` (the only non-`mu` dpar measured) and to a random-INTERCEPT term (a random-SLOPE ordinary term on
+`sigma`, or the same shape on another non-`mu` dpar such as `nu`, is not measured and left alone). Two
+neighbour shapes were probed live and found to be DRM.jl-side REFUSALS, not labelling gaps: an ordinary
+random term on BOTH `mu` and a non-`mu` dpar (same group, or two different groups) aborts DRM.jl's own
+solver ("a random effect on `sigma` must be the only random structure (the mean must be fixed effects)")
+before any `coef_labels` check is even reached -- confirmed fitting `("y ~ x + (1 | g)", "sigma ~ (1 | g)")`
+and `("y ~ x + (1 | g)", "sigma ~ (1 | h)")` directly; neither is addressed here, since there is no label
+this producer could supply that would change DRM.jl's own refusal.
+
+**A found-not-fixed downstream gap, explicitly out of this addendum's fence.** Once the fit succeeds,
+`coef(fj, "mu")` and `coef(fj, "sigma")` are correct and match the native TMB engine exactly (verified
+live) -- the fixed-effect coefficient table this section governs is right. But `drm_julia_structured_parameters()`
+(`R/julia-bridge.R`, a SIBLING function this producer feeds, not one of its helpers) currently mis-
+attributes the resulting `resd_g_logsigma` random-effect SD to `sdpars$mu` instead of `sdpars$sigma`: it
+falls back to a hard-coded `dpar <- "mu"` default whenever a bare `resd_` block has no matching
+`entry$structured` term record (true here, for the same "not recorded" reason above), a default written
+before any non-`mu` bare-`resd` shape existed. This is a real display bug for `sdpars()`/`ranef()`-style
+access on this construct, found while verifying this addendum live, and is NOT fixed here -- it lives in a
+different function than `drm_julia_bridge_payload_coef_labels()` and its helpers, which is this addendum's
+entire fence.
