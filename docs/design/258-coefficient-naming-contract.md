@@ -785,8 +785,19 @@ non-phylo random intercept fits with `method = "ML"` only; DRM.jl 77513aa0 refus
 location-scale model`), whereas the TMB engine fits REML for the same formula. A random intercept on
 `sigma` must also be the only random structure on the Julia route: `bf(y ~ x + (1 | g), sigma ~ (1 | g))`
 and `sigma ~ (1 | h)` are refused by DRM.jl before any label check ("a random effect on `sigma` must be
-the only random structure"). drmTMB does not pre-check either limitation before starting Julia; that is a
-recorded follow-up, not a covered behaviour.
+the only random structure").
+
+UPDATE (2026-09-03, arc f1, night question 14): drmTMB now pre-checks BOTH limitations itself, before
+Julia is even started -- `drm_julia_check_ordinary_sigma_ranef_route_limits()` in `R/julia-bridge.R`,
+called from `drmTMB_julia_bridge()` right after `family_type` is computed. It scopes to an ORDINARY
+lme4-style bar (`is_random_bar_call()`) on `sigma`, so it leaves the phylo-coupled mu+sigma route (a
+DIFFERENT, already-supported code path) untouched. `REML = TRUE` with a sigma-side ordinary random bar
+now aborts with a drmTMB `cli_abort()` naming the limitation and pointing at `REML = FALSE` or native
+`engine = "tmb"`; an ordinary random bar on `sigma` together with one on `mu` (same or different group,
+any method) now aborts with a drmTMB condition naming the limitation and pointing at dropping the mu
+random effect or native `engine = "tmb"`. Live-verified against DRM.jl 77513aa0 that both refusals still
+match DRM.jl's own messages when the R-side pre-checks are temporarily removed (the f1-G4 RED CONTROL).
+Unit tests (no Julia): `tests/testthat/test-julia-bridge.R`, the two `"route limit"`-named tests.
 
 
 **A found-and-since-fixed downstream gap (2026-09-03, same day, OWNS widened by the lane coordinator to
