@@ -199,7 +199,7 @@ head, none merged to main except N4 and N5/N5b):
   `#1126 head=804b10e15 ci=[ubuntu-latest (release)=success os-matrix=success] merged=true
   ef796e7f9` and `#1122 head=4197bb1ed ci=[...=success ...=success] merged=true 5aa488259`.
   `gh pr view` on #1124/#1125/#1128 (this write): all three `state: OPEN`, `mergedAt: null`.
-- Merge status per PR, stated explicitly: #1126 MERGED ef796e7f9 (N4). #1122 MERGED 5aa488259 (N5/N5b receipts). #1124 MERGED: PENDING (CI running at draft time). #1125 MERGED: PENDING (CI running at draft time). #1128 MERGED as fa1ebf95b (2026-09-03T01:44:59Z, CI green). The conductor fills these in as CI completes and each lands.
+- Merge status per PR, stated explicitly: #1126 MERGED ef796e7f9 (N4). #1122 MERGED 5aa488259 (N5/N5b receipts). #1124 MERGED: PENDING (CI running at draft time). #1125 MERGED as 9bc9db99f (2026-09-03T02:06:17Z, CI green on the tarball-safe head 21a6ae022; closes #1115). #1128 MERGED as fa1ebf95b (2026-09-03T01:44:59Z, CI green). The conductor fills these in as CI completes and each lands.
 
 ## 6. Tests of the Tests
 
