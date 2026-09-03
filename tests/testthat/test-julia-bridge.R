@@ -502,6 +502,73 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
   )
 })
 
+# Night question 14: DRM.jl refuses these two ordinary-GLMM route limits only
+# AFTER the engine boots, with its own error forwarded through callr (verified
+# live at DRM.jl 77513aa0, `src/gaussian_core.jl:611-698`). drmTMB now refuses
+# them itself, before Julia is even started -- these tests run with
+# `DRM_JL_PATH` unset (see the ledger CHECK for this file) to prove no engine
+# is needed for the refusal.
+test_that("engine = 'julia' route limit: REML with a sigma-side random intercept refuses before Julia starts", {
+  dat <- data.frame(
+    y = rnorm(30),
+    x = rnorm(30),
+    g = factor(rep(1:5, each = 6))
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ (1 | g)),
+      data = dat,
+      engine = "julia",
+      REML = TRUE
+    ),
+    "does not support .*method = \"REML\".*random intercept on .*sigma"
+  )
+  # ML (the default) for the SAME formula is not this route limit -- it
+  # reaches the ordinary sparse-Laplace GLMM route unimpeded (a DIFFERENT
+  # already-live test, `test-julia-bridge.R:734`, covers that route with
+  # DRM_JL_PATH set).
+})
+
+test_that("engine = 'julia' route limit: a random intercept on sigma together with one on mu refuses before Julia starts", {
+  dat <- data.frame(
+    y = rnorm(30),
+    x = rnorm(30),
+    g = factor(rep(1:5, each = 6)),
+    h = factor(rep(1:6, times = 5))
+  )
+  # Same group on mu and sigma.
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | g), sigma ~ (1 | g)),
+      data = dat,
+      engine = "julia"
+    ),
+    "does not support a random intercept on .*sigma.*together with a random effect on .*mu"
+  )
+  # Different groups on mu and sigma -- the SAME DRM.jl limitation (a random
+  # effect on sigma must be the only random structure), not a group-matching
+  # rule.
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | g), sigma ~ (1 | h)),
+      data = dat,
+      engine = "julia"
+    ),
+    "does not support a random intercept on .*sigma.*together with a random effect on .*mu"
+  )
+  # This refusal fires independent of REML too (DRM.jl's "only random
+  # structure" check applies regardless of method).
+  expect_error(
+    drmTMB(
+      bf(y ~ x + (1 | g), sigma ~ (1 | g)),
+      data = dat,
+      engine = "julia",
+      REML = TRUE
+    ),
+    "does not support"
+  )
+})
+
 test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
   tree <- structure(
     list(
@@ -549,9 +616,14 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
     data = dat,
     env = environment()
   )
-  # q4 route: DRM.jl defaults (no g_tol override); the block label "p" is NOT a
-  # data column; the tree is marshalled as Newick; markers preserved per axis.
-  expect_equal(drm_test_options_sans_labels(payload$options), list())
+  # q4 route: DRM.jl defaults (no g_tol override) plus `q4_vcov = TRUE`
+  # (D-213 #2, so `vcov()` on this route stops being all-NaN); the block
+  # label "p" is NOT a data column; the tree is marshalled as Newick; markers
+  # preserved per axis.
+  expect_equal(
+    drm_test_options_sans_labels(payload$options),
+    list(q4_vcov = TRUE)
+  )
   expect_true(is.list(payload$options$coef_labels))
   expect_equal(payload$formula$sigma1, "sigma1 ~ 1 + phylo(1 | species)")
   expect_false("p" %in% names(payload$data))
@@ -565,7 +637,10 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
     env = environment(),
     method = "REML"
   )
-  expect_equal(drm_test_options_sans_labels(reml_payload$options), list(method = "REML"))
+  expect_equal(
+    drm_test_options_sans_labels(reml_payload$options),
+    list(method = "REML", q4_vcov = TRUE)
+  )
   expect_true(is.list(reml_payload$options$coef_labels))
   expect_true(drmTMB:::drm_julia_reml_supported(form, "biv_gaussian"))
 
@@ -704,7 +779,10 @@ test_that("Julia q4 bridge admits bivariate response masks without R-side droppi
   expect_equal(nrow(captured$data), nrow(dat))
   expect_true(anyNA(captured$data$y1))
   expect_true(anyNA(captured$data$y2))
-  expect_equal(drm_test_options_sans_labels(captured$options), list(method = "REML"))
+  expect_equal(
+    drm_test_options_sans_labels(captured$options),
+    list(method = "REML", q4_vcov = TRUE)
+  )
   expect_true(is.list(captured$options$coef_labels))
   expect_equal(fit$estimator, "REML")
   expect_true(fit$requested_REML)

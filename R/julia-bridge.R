@@ -396,6 +396,11 @@ drmTMB_julia_bridge <- function(
     ))
   }
   family_type <- drm_julia_bridge_family_type(family)
+  drm_julia_check_ordinary_sigma_ranef_route_limits(
+    formula = formula,
+    family_type = family_type,
+    REML = REML
+  )
   if (
     identical(family_type, "biv_gaussian") &&
       drm_julia_has_structured_term(formula)
@@ -723,6 +728,18 @@ drm_julia_translate_control <- function(control) {
       overrides$g_tol <- drm_julia_validate_g_tol(value)
     } else if (identical(name, "algorithm")) {
       overrides$algorithm <- drm_julia_validate_algorithm(value)
+    } else if (identical(name, "q4_vcov")) {
+      # D-213 #2: the ONLY route that reads this key is the bivariate q = 4
+      # phylogenetic branch of `drm_julia_bridge_options()`, which defaults it
+      # to TRUE. A non-q4 route simply carries an unused `q4_vcov` entry in
+      # `control_overrides` -- harmless, since `drm_julia_merge_options()`
+      # only ever reaches DRM.jl via the q4 branch's own `q4_finish()`.
+      if (!isTRUE(value) && !isFALSE(value)) {
+        cli::cli_abort(
+          "{.code engine = \"julia\"} requires {.code optimizer$q4_vcov} to be {.code TRUE} or {.code FALSE}."
+        )
+      }
+      overrides$q4_vcov <- value
     } else {
       unsupported <- c(unsupported, name)
     }
@@ -731,7 +748,7 @@ drm_julia_translate_control <- function(control) {
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
-      i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}.",
+      i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}. The bivariate q = 4 phylogenetic route also accepts {.code q4_vcov = TRUE/FALSE}.",
       i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, preset, start, or multi_start controls."
     ))
   }
@@ -957,6 +974,76 @@ drm_julia_biv_phylo_dimension <- function(formula) {
 drm_julia_has_sd_term <- function(formula) {
   dpars <- vapply(formula$entries, `[[`, character(1L), "dpar")
   any(grepl("^sd(_phylo)?\\([^()]+\\)$", dpars))
+}
+
+# TRUE when a formula's `dpar` entry (e.g. "mu", "sigma") carries an ORDINARY
+# lme4-style random bar (`(1 | g)`, `(1 + x | g)`, ...) directly in its rhs --
+# matched via `is_random_bar_call()` on the flattened `+`-separated terms, the
+# SAME extraction `drm_julia_conditional_gaussian_components_spec()` uses.
+# This deliberately does NOT match `phylo()` / `relmat()` / `spatial()` /
+# `animal()` structured markers (those are calls, not `|`-calls, so
+# `is_random_bar_call()` is FALSE for them) -- the two route-limit precondition
+# checks below are scoped to the ordinary sparse-Laplace GLMM route only, the
+# ONE construct verified live against DRM.jl (night question 14); the
+# already-supported phylo-coupled mu+sigma route is a different code path and
+# is left untouched.
+drm_julia_dpar_has_ordinary_bar <- function(formula, dpar) {
+  any(vapply(formula$entries, function(entry) {
+    if (!identical(entry$dpar, dpar)) {
+      return(FALSE)
+    }
+    terms <- flatten_plus_terms(entry$rhs)
+    any(vapply(terms, is_random_bar_call, logical(1L)))
+  }, logical(1L)))
+}
+
+# Night question 14: DRM.jl refuses two ordinary-GLMM constructs only AFTER
+# the engine boots, with its own `ArgumentError`/`error()` forwarded through
+# callr -- verified live at DRM.jl 77513aa0 (`src/gaussian_core.jl:611-698`)
+# fitting both formulas below through `drmTMB(..., engine = "julia")`
+# directly:
+#   (i)  `method = "REML"` with a `sigma`-side random intercept, e.g.
+#        `bf(y ~ x, sigma ~ (1 | g))`:
+#        "ArgumentError: drm: method = :REML is currently implemented only
+#        for the fixed-effect Gaussian location-scale model and for a single
+#        Gaussian mean random intercept `(1 | g)` (no random slopes, no
+#        random effect on sigma, no structured / phylo / meta terms). Use
+#        method = :ML (the default) for those models."
+#   (ii) a random intercept on `sigma` alongside one on `mu`, e.g.
+#        `bf(y ~ x + (1 | g), sigma ~ (1 | g))` or `sigma ~ (1 | h)`,
+#        REGARDLESS of method:
+#        "a random effect on `sigma` must be the only random structure (the
+#        mean must be fixed effects)"
+# DRM.jl's own gaussian_core.jl checks (i) before (ii) (the `method ===
+# :REML` branch runs before the `!isempty(sigma_re)` branch), so the R-side
+# precondition below mirrors that order: REML wins when both would apply.
+# Refusing here -- before Julia is even started (`env -u DRM_JL_PATH`
+# proves this in the unit tests) -- turns an opaque Julia stack trace into a
+# drmTMB condition naming the limitation and the alternative.
+drm_julia_check_ordinary_sigma_ranef_route_limits <- function(
+  formula,
+  family_type,
+  REML
+) {
+  if (!identical(family_type, "gaussian")) {
+    return(invisible(NULL))
+  }
+  if (!drm_julia_dpar_has_ordinary_bar(formula, "sigma")) {
+    return(invisible(NULL))
+  }
+  if (isTRUE(REML)) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support {.code method = \"REML\"} with a random intercept on {.code sigma}.",
+      i = "DRM.jl's REML route is implemented only for the fixed-effect Gaussian location-scale model, or a single mean random intercept with NO random effect on sigma. Use {.code REML = FALSE} for this bridge cell, or native {.code engine = \"tmb\"} for a sigma-side REML random effect."
+    ))
+  }
+  if (drm_julia_dpar_has_ordinary_bar(formula, "mu")) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} does not support a random intercept on {.code sigma} together with a random effect on {.code mu}.",
+      i = "DRM.jl requires a sigma random effect to be the only random structure in the model (the mean side must stay fixed effects). Drop the mu random effect, or use native {.code engine = \"tmb\"} for this combination."
+    ))
+  }
+  invisible(NULL)
 }
 
 drm_julia_reml_supported <- function(formula, family_type) {
@@ -1722,6 +1809,37 @@ drm_julia_bridge_options <- function(
     # The q=4 PLSM route uses DRM.jl's own optimizer defaults (no g_tol
     # override): the direct-fit parity check matched the bridge to 0 with
     # defaults. REML still has to be forwarded explicitly.
+    #
+    # D-213 #2: DRM.jl's own bridge defaults `q4_vcov = false` for this route
+    # (src/bridge.jl, `_bridge_fit`) because its finite-difference Wald
+    # covariance is a SEPARATE, auxiliary computation over the q4 fitted
+    # point -- expensive at large q4 phylogenetic fits per its own comment,
+    # and can fail after a usable fit has already been found. Left at that
+    # default, `vcov()` on this route is all-NaN (DRM.jl issue #611's
+    # starting point). Issue #611 established that WITH the option on, the
+    # returned covariance is finite, positive definite, and agrees with an
+    # independent Hessian to within 1e-5.
+    #
+    # MEASURED (2026-09-03, this worktree, one warm Julia session, throwaway
+    # warm-up fit first; `docs/dev-log/evidence/julia-r-parity/q4-vcov-cost/`
+    # `q4_vcov_cost.R`): on the committed 16-tip/128-row `biv-q4-phylo-reml`
+    # fixture (REML), q4_vcov=FALSE -> TRUE went 0.967s -> 1.110s (+0.143s,
+    # +14.8%). On a bigger simulated 60-tip/180-row fit (ML), it went 0.951s
+    # -> 3.708s (+2.757s, +289.9%) -- both fits converged and q4_vcov=TRUE
+    # returned a finite vcov() both times, but the cost is NOT a fixed
+    # overhead: it roughly quadrupled the fit's own wall time once the tree
+    # went from 16 to 60 tips, matching DRM.jl's own comment that the
+    # finite-difference Wald covariance is expensive at LARGE q4 phylogenetic
+    # fits (more tips -> a bigger finite-difference Hessian over the
+    # among-axis parameters). Decision: send `q4_vcov = TRUE` BY DEFAULT so
+    # `vcov()` stops being all-NaN out of the box (the D-213 #2 ask), but keep
+    # it OPT-OUT via `drm_control(optimizer = list(q4_vcov = FALSE))` for a
+    # user whose q4 fit is large enough that the measured ~3x-4x wall-time
+    # multiplier matters, or who hits a failure in the auxiliary
+    # finite-difference pass after an otherwise usable fit.
+    if (!"q4_vcov" %in% names(q4_overrides)) {
+      q4_overrides$q4_vcov <- TRUE
+    }
     if (reml) {
       return(q4_finish(list(method = "REML")))
     }
