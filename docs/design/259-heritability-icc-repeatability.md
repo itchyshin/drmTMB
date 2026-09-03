@@ -151,19 +151,34 @@ house style already used by `ranef.drmTMB()`/`drm_sdreport_cov_fixed()`.
    estimate; `corrected`/`bias` columns are not populated (documented, not
    silently dropped — a future slice can add them from the same Hessian
    quadrature already computed for the SE).
-5. **`summary()`'s existing derived rows are unchanged.** `R/methods.R`'s
-   `drm_derived_summary_rows()` (~L4499-4564) already prints rows labelled
-   `"repeatability"` and `"phylogenetic_signal"` in `summary()` output, but
-   its formula is `re_variance / (total_re_var + residual_variance)` for
-   **every** row — i.e. it uses the heritability-style *total*-variance
-   denominator even for rows it calls `"repeatability"`. The new `icc()` /
-   `repeatability()` accessors follow DRM.jl's *focal-vs-residual* definition
-   instead, so they will disagree with the `summary()` row of the same name
-   whenever a fit has two or more structured mean components. This is a
-   genuine naming collision between the pre-existing `summary()` surface and
-   the newly ported accessors, not a bug in either; it is not resolved here
-   (see the after-task note's question for the owner: rename one of the two,
-   or document the difference in both places). No `summary()` code changed.
+5. **`summary()`'s existing derived rows: renamed, not recomputed (D-213 #1,
+   arc f2, 2026-09-03).** `R/methods.R`'s `drm_derived_summary_rows()`
+   (~L4499-4570) prints one row per structured mu random-effect component,
+   with formula `re_variance / (total_re_var + residual_variance)` — i.e.
+   the denominator is the TOTAL variance (every mu random-effect variance in
+   the fit, summed, plus the residual variance), the same heritability-style
+   denominator `heritability()` uses. Before arc f2 these rows were labelled
+   `"repeatability"` (ordinary group term) and `"phylogenetic_signal"`
+   (phylo term), which collided with `icc()`/`repeatability()` below: those
+   accessors use the *focal-vs-residual* denominator (that one component's
+   variance over itself plus the residual only), so the two would silently
+   disagree whenever a fit has two or more structured mean components — a
+   genuine naming collision, not a bug in either side. Arc f2 resolved the
+   collision by renaming the `summary()` rows to state their denominator:
+   `"total_variance_share"` (ordinary group term) and
+   `"phylo_total_variance_share"` (phylo term); their arithmetic is
+   unchanged. **Denominator ownership after the rename:**
+   - `summary()`'s `total_variance_share` / `phylo_total_variance_share`
+     rows (`R/methods.R`, `drm_derived_summary_rows()`): TOTAL-variance
+     denominator, same as `heritability()`.
+   - `icc()` / `repeatability()` (`R/heritability.R`): focal-vs-residual
+     denominator only (that component's variance over itself plus the
+     residual).
+   - `heritability()` (`R/heritability.R`): TOTAL-variance denominator,
+     same as the `summary()` rows above.
+   No `icc()`/`repeatability()`/`heritability()` value or name changed; see
+   `docs/dev-log/after-task/2026-09-03-f2-summary-row-rename.md` for the
+   rename rationale and full before/after label table.
 
 ## 4. Not covered by this slice
 
