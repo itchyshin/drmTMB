@@ -18,6 +18,7 @@ drm_control(
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
+  newton_polish = TRUE,
   multi_start = 1L,
   fallback_optimizer = NULL,
   start = NULL
@@ -104,6 +105,25 @@ optimizer controls, \code{"careful"} sets \code{iter.max = 1000} and
 \code{eval.max = 1000}, and \code{"robust"} sets \code{iter.max = 5000} and
 \code{eval.max = 5000}. The optimizer escalates this ladder automatically when a
 preset does not converge.}
+
+\item{newton_polish}{Logical (default \code{TRUE}). \code{\link[stats:nlminb]{stats::nlminb()}}'s own
+\code{rel.tol}/\code{x.tol} stopping rules trigger on a relative change in the
+objective or the step, not on the gradient norm, so on a flat or
+weakly-curved surface (for example a variance component identified by
+few groups) \code{nlminb()} can report convergence while the true gradient at
+that point is still far from zero (issue #1130). Rather than tightening
+\code{rel.tol}/\code{x.tol} -- which on the same fixture instead produced a
+spurious "singular convergence" code without reliably landing closer to
+the true optimum -- the default fixed \code{rel.tol}/\code{x.tol} (\code{nlminb()}'s
+own) are left alone, and a Newton polish step is applied to whatever
+\code{nlminb()} returns: the exact TMB gradient plus a finite-differenced
+Hessian of that gradient (\code{stats::optimHess()}) drive a few Newton steps
+until the gradient's max absolute component is at or below a small
+threshold, accepting a step only if it does not increase the objective.
+Cost is a handful of extra gradient evaluations at the reported optimum
+(skipped entirely once the gradient is already small); set to \code{FALSE} to
+restore the pre-0.7.1 behaviour of reporting \code{nlminb()}'s raw optimum
+unpolished.}
 
 \item{multi_start}{Whole number \verb{>= 1} (default \code{1}). With \code{multi_start > 1},
 each optimizer preset is run from \code{multi_start} starting points -- the

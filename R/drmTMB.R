@@ -630,6 +630,13 @@ drm_fit_spec <- function(
 
   optimizer <- drm_optimize_with_preset_retry(obj, control)
   opt <- optimizer$opt
+  if (isTRUE(control$newton_polish)) {
+    opt <- drm_newton_polish(opt, obj$fn, obj$gr)
+    optimizer$opt <- opt
+    optimizer$selected$objective <- opt$objective
+    optimizer$selected$convergence <- opt$convergence
+    optimizer$selected$message <- opt$message
+  }
   drm_warn_if_not_converged(opt)
   drm_warn_if_nonfinite_objective(opt)
   drm_pin_tmb_object_to_optimum(obj, opt)
@@ -1011,6 +1018,105 @@ drm_optimize_with_preset_retry <- function(
     ),
     parent = last_error
   )
+}
+
+# #1130: nlminb's own stopping rules (`rel.tol`, `x.tol`) trigger on a
+# relative change in the objective or the step, not on the gradient norm. On
+# a flat or weakly-curved surface (for example a variance component
+# identified by few groups), nlminb can report "relative convergence" while
+# `obj$gr()` at that point is still nowhere near zero -- observed on the
+# #1130 fixture as coefficients ~1e-5 away from the true optimum, invisible
+# at the training rows but amplified at extrapolated newdata. Tightening
+# `rel.tol`/`x.tol` does not reliably fix this: pushed to 1e-14 on that same
+# fixture, nlminb instead reports "singular convergence" and moves the
+# estimate a *similar* distance, this time driven by finite-difference noise
+# in nlminb's own line search (docs/design/2026-09-03-nlminb-newton-polish.md
+# has the measurements).
+#
+# `drm_newton_polish()` instead uses the exact TMB outer gradient
+# (`obj$gr()`, already exact up to the inner Laplace solve) and a numerical
+# Hessian built by finite-differencing that exact gradient
+# (`stats::optimHess()`), then takes plain Newton steps until the gradient's
+# max absolute component is at or below `grad_tol` or `max_iter` is reached.
+# This is immune to the relative-objective stopping-rule pathology above: it
+# only stops when the actual gradient is small, and a step is accepted only
+# if it does not increase the objective (a guard against a bad local Hessian
+# estimate). Cost is `max_iter` extra Hessian builds (each ~`2 * length(par)`
+# extra gradient evaluations) on top of the ordinary nlminb fit; skipped
+# entirely when the reported optimum is already inside `grad_tol`. Opt-out
+# via `drm_control(newton_polish = FALSE)`.
+#
+# `fn`/`gr` take the exact TMB `obj$fn`/`obj$gr` signature (a plain function of
+# the full or free parameter vector to a scalar objective / gradient vector) so
+# this same polish can be reused on a *constrained* endpoint solve's free
+# parameters (`R/profile.R`, `profile_endpoint_evaluator()`), not just the
+# unconstrained fit. Passing mismatched `fn`/`gr` -- one polished, one not --
+# would bias a profile-likelihood comparison between the two (#1130 CI
+# follow-up): the polished side reaches a lower nll for free, which the
+# unpolished side cannot match, artificially narrowing the interval.
+drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
+  par <- opt$par
+  grad <- tryCatch(as.numeric(gr(par)), error = function(e) NULL)
+  if (is.null(grad) || !all(is.finite(grad))) {
+    return(opt)
+  }
+  if (max(abs(grad)) <= grad_tol) {
+    return(opt)
+  }
+  objective <- as.numeric(opt$objective)
+  polished <- FALSE
+  for (i in seq_len(max_iter)) {
+    he <- tryCatch(
+      stats::optimHess(par, fn, gr),
+      error = function(e) NULL
+    )
+    if (is.null(he) || !all(is.finite(he))) {
+      break
+    }
+    step <- tryCatch(solve(he, grad), error = function(e) NULL)
+    if (is.null(step) || !all(is.finite(step))) {
+      break
+    }
+    par_new <- par - step
+    grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
+    # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
+    # attribute that nlminb's own `$objective` never has. Assigning it
+    # unstripped leaked the attribute through `stored_loglik` into the public
+    # `logLik()` object and broke test-animal-relmat-gaussian.R (Rose f3 pass,
+    # 2026-09-03). Strip it at the source, where the value enters the polish.
+    objective_new <- tryCatch(
+      as.numeric(fn(par_new)),
+      error = function(e) NA_real_
+    )
+    if (
+      is.null(grad_new) ||
+        !all(is.finite(grad_new)) ||
+        !is.finite(objective_new) ||
+        objective_new > objective + 1e-8
+    ) {
+      break
+    }
+    par <- par_new
+    grad <- grad_new
+    objective <- objective_new
+    polished <- TRUE
+    if (max(abs(grad)) <= grad_tol) {
+      break
+    }
+  }
+  if (!polished) {
+    return(opt)
+  }
+  opt$par <- stats::setNames(par, names(opt$par))
+  opt$objective <- objective
+  if (max(abs(grad)) <= grad_tol) {
+    opt$convergence <- 0L
+    opt$message <- sprintf(
+      "converged (Newton polish; max |gradient| = %.3g)",
+      max(abs(grad))
+    )
+  }
+  opt
 }
 
 drm_optimizer_attempt_specs <- function(control) {

@@ -98,6 +98,24 @@
 #'   `eval.max = 1000`, and `"robust"` sets `iter.max = 5000` and
 #'   `eval.max = 5000`. The optimizer escalates this ladder automatically when a
 #'   preset does not converge.
+#' @param newton_polish Logical (default `TRUE`). [stats::nlminb()]'s own
+#'   `rel.tol`/`x.tol` stopping rules trigger on a relative change in the
+#'   objective or the step, not on the gradient norm, so on a flat or
+#'   weakly-curved surface (for example a variance component identified by
+#'   few groups) `nlminb()` can report convergence while the true gradient at
+#'   that point is still far from zero (issue #1130). Rather than tightening
+#'   `rel.tol`/`x.tol` -- which on the same fixture instead produced a
+#'   spurious "singular convergence" code without reliably landing closer to
+#'   the true optimum -- the default fixed `rel.tol`/`x.tol` (`nlminb()`'s
+#'   own) are left alone, and a Newton polish step is applied to whatever
+#'   `nlminb()` returns: the exact TMB gradient plus a finite-differenced
+#'   Hessian of that gradient (`stats::optimHess()`) drive a few Newton steps
+#'   until the gradient's max absolute component is at or below a small
+#'   threshold, accepting a step only if it does not increase the objective.
+#'   Cost is a handful of extra gradient evaluations at the reported optimum
+#'   (skipped entirely once the gradient is already small); set to `FALSE` to
+#'   restore the pre-0.7.1 behaviour of reporting `nlminb()`'s raw optimum
+#'   unpolished.
 #' @param multi_start Whole number `>= 1` (default `1`). With `multi_start > 1`,
 #'   each optimizer preset is run from `multi_start` starting points -- the
 #'   principled start plus reproducibly perturbed starts -- and the lowest-
@@ -152,11 +170,13 @@ drm_control <- function(
   logsigma_clamp = c(-12, 12),
   logsigma_clamp_margin = 3,
   optimizer_preset = c("default", "careful", "robust"),
+  newton_polish = TRUE,
   multi_start = 1L,
   fallback_optimizer = NULL,
   start = NULL
 ) {
   optimizer_preset <- match.arg(optimizer_preset)
+  newton_polish <- drm_control_flag(newton_polish, "newton_polish")
   if (
     !is.list(optimizer) ||
       (length(optimizer) > 0L &&
@@ -255,6 +275,7 @@ drm_control <- function(
       logsigma_clamp = logsigma_clamp,
       logsigma_clamp_margin = logsigma_clamp_margin,
       optimizer_preset = optimizer_preset,
+      newton_polish = newton_polish,
       multi_start = multi_start,
       fallback_optimizer = fallback_optimizer,
       start = start

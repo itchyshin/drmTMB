@@ -34,6 +34,31 @@ CRAN. drmTMB fits distributional regression models -- location, scale, shape,
 zero inflation, and residual correlation -- for one or two responses, using
 Template Model Builder.
 
+## Regression cover for the non-interactive `engine = "julia"` abort
+
+* `engine = "julia"` used to abort in an ordinary `Rscript` session with "Live
+  Julia setup is disabled on the CRAN check lane", because the CRAN-lane
+  predicate inferred "package check" from `!interactive()`. A scripted analysis
+  is a supported way to use the package, so this blocked real non-interactive
+  use (reported by an outside user working on a 10,970-species tree). The
+  behaviour was fixed on 2026-08-30 by requiring R's own
+  `_R_CHECK_PACKAGE_NAME_` marker; **this entry adds the regression test the fix
+  shipped without.** Reverting the fix left the existing CRAN-lane test file
+  fully green (32 passed, 0 failed), so the bug could have been reintroduced
+  without CI noticing; the new
+  `tests/testthat/test-julia-noninteractive-lane.R` fails against the pre-fix
+  predicate.
+* The marker choice is now backed by measurement rather than inference
+  (`docs/dev-log/evidence/julia-r-parity/check-lane-markers/`): probe packages
+  under `R CMD check` show `_R_CHECK_PACKAGE_NAME_` set in the examples lane,
+  in `tests/testthat.R`, and inside `test_check()`, but **absent from the
+  vignette rebuild subprocess**, which carries no check marker at all.
+  `TESTTHAT_IS_CHECKING` would have been the wrong marker: it is missing from
+  the examples lane, the lane the guard was originally written for. Because the
+  vignette lane is invisible to any marker, the new test file also scans every
+  vignette and fails if an *evaluated* chunk ever calls `engine = "julia"`, with
+  a positive control proving the scanner detects a planted chunk.
+
 ## Renamed: `summary()`'s derived "repeatability"/"phylogenetic_signal" rows
 
 * `summary()`'s `derived` component printed rows labelled `"repeatability"`
@@ -54,6 +79,35 @@ Template Model Builder.
   `"derived:phylogenetic_signal(<group>)"`, update to the new names. See
   `docs/design/259-heritability-icc-repeatability.md` section 3 item 5 for
   which function owns which denominator.
+
+## Fixed: `nlminb` could report convergence short of the true optimum on flat surfaces (#1130)
+
+* `nlminb()`'s own `rel.tol`/`x.tol` stopping rules trigger on a relative
+  change in the objective or step, not on the gradient norm, so on a flat or
+  weakly-curved surface (for example a variance component identified by few
+  groups) it could report `convergence == 0` while the exact TMB gradient at
+  that point was still far from zero -- invisible at the training rows but
+  amplified at extrapolated `newdata`. `drmTMB()` now applies a Newton polish
+  by default after every `nlminb()` fit: a few Newton steps on the exact TMB
+  gradient and a finite-differenced Hessian of it, accepting a step only if
+  it does not increase the objective, until the gradient's max absolute
+  component is small. This does not change `nlminb`'s own tolerances
+  (tightening them was tried and found unreliable: see
+  `docs/design/260-nlminb-newton-polish-optimizer-tolerance.md`), costs a
+  handful of extra gradient evaluations at the reported optimum (skipped
+  entirely once the gradient is already small; measured negligible on a
+  small Gaussian, a location-scale, and a phylogenetic fit), and honestly
+  recomputes the reported `convergence` code and message from the polished
+  gradient rather than trusting `nlminb`'s own diagnostic. Opt out with
+  `drm_control(newton_polish = FALSE)`.
+* `confint(..., method = "profile", profile_engine = "endpoint")` compares
+  the free fit's objective against a constrained endpoint solve; the polish
+  above originally ran on the free fit only, so a constrained endpoint could
+  stop short of its own minimum relative to the now-lower free objective and
+  get rejected by the existing gradient guard, narrowing or invalidating the
+  interval. The same polish now runs on the constrained endpoint solve too,
+  keeping the comparison symmetric (and skipped on both sides together under
+  `drm_control(newton_polish = FALSE)`).
 
 ## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
 
