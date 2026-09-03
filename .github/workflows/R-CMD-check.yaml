@@ -10,7 +10,14 @@ name: R-CMD-check
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded PR runs, but NEVER a run on main. A cancelled run on the
+  # default branch leaves that merge with no completed evidence, and GitHub logs
+  # it with the same "cancelled" string as a timeout -- so a merge sequence can
+  # read green BY ABSENCE. Measured here 2026-09-03: run 33757335131 on main was
+  # killed 2 min into each shard by the next merge, 6 minutes after it started.
+  # PR runs stay cancellable; the next push to that PR re-runs them.
+  # (gllvmTMB has had this since before the shard work; drmTMB had not.)
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Routine runs (pull_request, push to main) check Linux only to keep CI cheap.
