@@ -26,9 +26,17 @@ jobs:
         run: |
           FULL="${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}"
           if [ "$FULL" = "true" ]; then
-            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}]}' >> "$GITHUB_OUTPUT"
+            # A release/tag run is the CRAN-shaped one: each OS runs the whole
+            # suite in a single job (shard 0 == unsharded), exactly as before.
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}],"shard":[0]}' >> "$GITHUB_OUTPUT"
           else
-            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}]}' >> "$GITHUB_OUTPUT"
+            # Routine runs shard the suite 4 ways. Measured 2026-09-03 on this
+            # repo's own check log: of a 44 min check, `checking tests` alone was
+            # 30m56s (10:59:14 -> 11:30:10), against 209s to install, 49s of
+            # examples and 124s of vignettes. Tests are ~75% of the wall clock,
+            # so they are the only part worth splitting -- cutting vignettes
+            # would have bought about two minutes.
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}],"shard":[1,2,3,4]}' >> "$GITHUB_OUTPUT"
           fi
 
   R-CMD-check:
@@ -44,7 +52,7 @@ jobs:
     # hung job in half the time the interim 120 allowed.
     timeout-minutes: 75
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.shard != 0 && format(' shard {0}/4', matrix.shard) || '' }}
 
     strategy:
       fail-fast: false
@@ -54,6 +62,10 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
+      # "k/4" on routine runs, empty on the shard 0 (release/tag) combos above.
+      # tests/testthat.R treats an unset/empty value as "run everything", so a
+      # local devtools::test() and the CRAN lane are both unaffected.
+      DRMTMB_TEST_SHARD: ${{ matrix.shard != 0 && format('{0}/4', matrix.shard) || '' }}
 
     steps:
       - uses: actions/checkout@v6.0.2
