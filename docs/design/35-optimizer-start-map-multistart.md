@@ -407,7 +407,7 @@ by a bounded spike and not assumed.
 `r_bridge_status`, alters any capability-ledger claim, or resolves DRM.jl#575.
 They make the question answerable; they do not answer it.
 
-## Phylo Covariance Block (N3, 2026-09-03)
+## Phylo Covariance Block (N3, 2026-09-03; corrected N3b, 2026-09-03)
 
 **Why.** The A5 cross-engine receipt
 (`docs/dev-log/evidence/julia-r-parity/ayumi-target/2026-09-02-a5-cross-engine-receipt.R`)
@@ -420,6 +420,18 @@ block (`log_sd_phylo`, `eta_cor_phylo`/`theta_phylo`), which lives in
 ordinary `sd:`/`cor:` families could key on. The receipt worked around this by
 addressing `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal TMB parameter name.
 This section closes both gaps.
+
+**N3b correction (2026-09-03).** The first landing gave `phylo_cor:<axis1>:<axis2>`
+a dual meaning: a bounded `(-1, 1)` correlation for q = 2 and block-diagonal q > 2,
+but a raw, unbounded Cholesky-space working parameter for a dense q > 2 block. That
+violates the vocabulary's own naming discipline — a `_cor:` label should always mean
+a correlation. The families are now split: `phylo_cor:` ALWAYS denotes a correlation
+strictly in `(-1, 1)`, and REFUSES on a dense block; `phylo_theta:<axis1>:<axis2>` is
+the dense-only, honestly-named counterpart for the raw working parameter, and
+REFUSES everywhere `phylo_cor:` already applies. See CLAUDE.md: "Residual
+correlations must use a bounded transform such as tanh(eta)" — `phylo_cor:` now
+actually keeps that invariant unconditionally, rather than only when the block
+happens to be q = 2 or block-diagonal.
 
 ### `rho12` reaches the existing `fixef:` family
 
@@ -437,13 +449,13 @@ objective_at(fit, at = list("fixef:rho12:(Intercept)" = 0.12))
 `beta_mu2`, `beta_sigma1`, `beta_sigma2` are — see `drm_fit_df()`), so, unlike
 `fixef:mu:` under REML, this is honored under `REML = TRUE` too.
 
-### Two new families for the phylo covariance block
+### Three families for the phylo covariance block
 
-`phylo_sd:<axis>` and `phylo_cor:<axis1>:<axis2>` address
-`spec$structured$phylo_mu`'s working parameters. They have their own arity (2 and 3
-segments respectively) and are parsed by `drm_parse_public_start_label()` before the
-generic `family:dpar:target` pattern; both are resolved by new branches in
-`drm_resolve_public_start_target()` (R/drmTMB.R).
+`phylo_sd:<axis>`, `phylo_cor:<axis1>:<axis2>`, and `phylo_theta:<axis1>:<axis2>`
+address `spec$structured$phylo_mu`'s working parameters. They have their own arity
+(2, 3, and 3 segments respectively) and are parsed by `drm_parse_public_start_label()`
+before the generic `family:dpar:target` pattern; all three are resolved by branches
+in `drm_resolve_public_start_target()` (R/drmTMB.R).
 
 `<axis>` names come from `drm_phylo_mu_axis_labels()`, which is
 `phylo_mu_endpoint_dpars(phylo_mu)` (usually just the dpar, e.g. `mu1`, `mu2`,
@@ -464,62 +476,86 @@ objective_at(fit, at = list(
 ))
 ```
 
-**`phylo_cor:<axis1>:<axis2>`** — a pair of axes' phylogenetic correlation. Its
-target component and scale depend on how the block is parameterised, which is why
-this family does NOT decode uniformly to one transform the way `cor:` does:
+**`phylo_cor:<axis1>:<axis2>`** — a pair of axes' phylogenetic correlation, ALWAYS
+strictly in `(-1, 1)`, decoded exactly like `cor:`:
 
 - **q = 2** (a single pair, e.g. `mu1`/`mu2` location phylo): maps to the scalar
-  `eta_cor_phylo`, on the natural correlation scale, `(-1, 1)`, transform
-  `atanh(value / 0.999999)` — the exact inverse of `split_tmb_corpars()`'s
-  `0.999999 * tanh(eta)` decode.
+  `eta_cor_phylo`, transform `atanh(value / 0.999999)` — the exact inverse of
+  `split_tmb_corpars()`'s `0.999999 * tanh(eta)` decode.
 - **q > 2, block-diagonal** (e.g. a `mu1`/`mu2` block and a separate `sigma1`/
   `sigma2` block under distinct labels): each labelled 2-endpoint block
   contributes ONE `theta_phylo` entry that IS a bounded correlation directly (no
   Cholesky reconstruction — see the `block_size == 2` branch,
-  src/drmTMB.cpp:5071-5101). Same natural-scale, same `atanh(value / 0.999999)`
-  transform as q = 2.
+  src/drmTMB.cpp:5071-5101). Same `atanh(value / 0.999999)` transform as q = 2.
 - **q > 2, dense** (a single unstructured block spanning all `q` axes under one
-  shared label — the A5 fixture's shape): `theta_phylo` is TMB's
-  `UNSTRUCTURED_CORR_t` Cholesky-space parameterisation (`density::UNSTRUCTURED_CORR_t`,
-  src/drmTMB.cpp:215; replicated in R by `tmb_unstructured_corr_matrix()`). A single
-  entry is **not** algebraically one pair's correlation — the correlation matrix is
-  the nonlinear function `cov2cor(L %*% t(L))` of ALL entries together — so there is
-  no natural `(-1, 1)` scale for one entry to decode from. **The supplied value IS
-  the raw working parameter**, on its own unconstrained real scale, no transform.
-  `drm_phylo_mu_dense_theta_index()` maps an axis pair to its `theta_phylo`
-  position, matching the Cholesky fill order exactly (verified empirically by
-  perturbing each `theta_phylo` entry one at a time and checking which correlation
-  cell moves): for q = 4 the position order is
-  `(mu1,mu2)`, `(mu1,sigma1)`, `(mu2,sigma1)`, `(mu1,sigma2)`, `(mu2,sigma2)`,
-  `(sigma1,sigma2)`.
+  shared label — the A5 fixture's shape): **REFUSES**, pointing at `phylo_theta:`
+  instead. A dense block's `theta_phylo` entries are TMB's `UNSTRUCTURED_CORR_t`
+  Cholesky-space parameterisation (`density::UNSTRUCTURED_CORR_t`, src/drmTMB.cpp:215;
+  replicated in R by `tmb_unstructured_corr_matrix()`), and a single entry is
+  **not** algebraically one pair's correlation — the correlation matrix is the
+  nonlinear function `cov2cor(L %*% t(L))` of ALL entries together — so there is no
+  honest `(-1, 1)` value `phylo_cor:` could return there.
+
+On a q = 2 or block-diagonal q > 2 fit, this is a bounded correlation:
+
+```r
+objective_at(fit, at = list("phylo_cor:mu1:mu2" = 0.42))   # succeeds
+```
+
+On a DENSE q > 2 fit (this document's running example), the same call refuses:
+
+```r
+objective_at(fit, at = list("phylo_cor:mu1:mu2" = 0.42))
+#> Error: Start label "phylo_cor:mu1:mu2" cannot be honored: this phylogenetic
+#> covariance block is dense.
+#> x Its working parameters are raw `UNSTRUCTURED_CORR_t` Cholesky entries, not
+#>   pairwise correlations, so no `phylo_cor:` value would be honest here.
+#> i Use `phylo_theta:mu1:mu2` to address the same working parameter on its own
+#>   raw (unconstrained) scale.
+```
+
+**`phylo_theta:<axis1>:<axis2>`** — the dense-block-only, honestly-named
+counterpart: the raw, unconstrained `theta_phylo` working parameter, on its own
+scale, **no transform**. It REFUSES for q = 2 or block-diagonal q > 2, where
+`phylo_cor:` is already the correct, bounded-correlation family, pointing back at
+`phylo_cor:`. `drm_phylo_mu_dense_theta_index()` maps an axis pair to its
+`theta_phylo` position, matching the Cholesky fill order exactly (verified
+empirically by perturbing each `theta_phylo` entry one at a time and checking which
+correlation cell moves): for q = 4 the position order is
+`(mu1,mu2)`, `(mu1,sigma1)`, `(mu2,sigma1)`, `(mu1,sigma2)`, `(mu2,sigma2)`,
+`(sigma1,sigma2)`.
 
 ```r
 objective_at(fit, at = list(
-  "phylo_cor:mu1:mu2" = -6.2,       # dense q4: raw theta_phylo[1]
-  "phylo_cor:mu1:sigma1" = 0.4,     # dense q4: raw theta_phylo[2]
-  "phylo_cor:sigma1:sigma2" = 0.1   # dense q4: raw theta_phylo[6]
+  "phylo_theta:mu1:mu2" = -6.2,       # dense q4: raw theta_phylo[1]
+  "phylo_theta:mu1:sigma1" = 0.4,     # dense q4: raw theta_phylo[2]
+  "phylo_theta:sigma1:sigma2" = 0.1   # dense q4: raw theta_phylo[6]
 ))
 ```
 
-This departs from every other family here (`fixef:`, `sd:`, `cor:`, and
-`phylo_cor:` at q <= 2 or block-diagonal), which all decode from a natural,
-bounded, or otherwise interpretable scale. It is the honest choice given the
-parameterisation: labelling raw Cholesky-space working parameters, rather than
-inventing a natural-scale fiction that would not round-trip through
-`tmb_unstructured_corr_matrix()`. Reconstructing all q axes' `phylo_sd:`/
-`phylo_cor:` labels from a fit's own optimum (as `objective_at()`'s self-consistency
-anchor and `drm_control(start = ...)`'s warm-start test both do) is unaffected —
-the raw `theta_phylo` values ARE what a fit reports at `fit$opt$par`, so reading
-them back out and resupplying them round-trips exactly.
+This is the honest choice given the parameterisation: naming raw Cholesky-space
+working parameters under their own family, rather than inventing a natural-scale
+fiction under `phylo_cor:` that would not round-trip through
+`tmb_unstructured_corr_matrix()`, and rather than silently returning a value on a
+scale `phylo_cor:`'s own name does not promise. Reconstructing all q axes'
+`phylo_sd:`/`phylo_theta:` labels from a fit's own optimum (as `objective_at()`'s
+self-consistency anchor and `drm_control(start = ...)`'s warm-start test both do) is
+unaffected — the raw `theta_phylo` values ARE what a fit reports at `fit$opt$par`,
+so reading them back out and resupplying them round-trips exactly.
 
 Unknown axes error before evaluation, listing the available axes, on the same rule
-as every other label family.
+as every other label family. Using `phylo_cor:` on a dense block, or `phylo_theta:`
+on a q = 2/block-diagonal block, errors before evaluation too, naming the correct
+family to use instead.
 
 **Tests.** `tests/testthat/test-objective-at.R` (`objective_at reaches rho12 and
-the q4 phylo block: ...`, plus a displaced-point and an unknown-axis test) and
-`tests/testthat/test-start-contract.R` (`a start naming rho12 and the q4 phylo
-covariance block converges to the same optimum`) exercise both families end to end
-on a small (16-tip, 3 obs/tip) synthetic dense-q4 `biv_gaussian` REML fit.
+the q4 phylo block: ...`, a displaced-point test, an unknown-axis test, and
+`phylo_cor: refuses on the dense q4 phylo block (phylo block), pointing to
+phylo_theta:`) and `tests/testthat/test-start-contract.R` (`a start naming rho12
+and the q4 phylo covariance block converges to the same optimum` and `a phylo_cor:
+start refuses on the dense q4 phylo covariance block, pointing to phylo_theta:`)
+exercise all three families end to end on a small (16-tip, 3 obs/tip) synthetic
+dense-q4 `biv_gaussian` REML fit.
 
 ## Future Simpler-Fit Warm-Start Contract
 

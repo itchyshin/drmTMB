@@ -69,9 +69,16 @@ Template Model Builder.
 * `start=`/`objective_at()` labels now reach `biv_gaussian`'s `rho12` fixed
   effect (via the existing generic `fixef:rho12:<column>` label -- `beta_rho12`
   is now named at start-build time) and the phylogenetic location/scale
-  covariance block via two new families, `phylo_sd:<axis>` and
-  `phylo_cor:<axis1>:<axis2>` (design 35, "Phylo Covariance Block"). Closes
-  a gap the A5 cross-engine receipt had to work around by addressing
+  covariance block via three new families, `phylo_sd:<axis>`,
+  `phylo_cor:<axis1>:<axis2>`, and `phylo_theta:<axis1>:<axis2>` (design 35,
+  "Phylo Covariance Block"). `phylo_cor:` always denotes a correlation
+  strictly in `(-1, 1)` (q = 2 or block-diagonal q > 2); on a DENSE q > 2
+  block, where the working parameter is a raw `UNSTRUCTURED_CORR_t`
+  Cholesky-space entry with no correlation meaning in isolation, `phylo_cor:`
+  refuses and names `phylo_theta:` -- the honestly-named, unconstrained-scale
+  counterpart -- as the alternative, rather than returning a value on a
+  scale its own name does not promise. Closes a gap the A5 cross-engine
+  receipt had to work around by addressing
   `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal TMB parameter name.
 
 ## Build provenance (`drm_provenance()`)
