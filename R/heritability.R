@@ -18,6 +18,11 @@
 #' single structured mean component (no other components to net out of the
 #' denominator).
 #'
+#' `summary()`'s existing derived "repeatability"/"phylogenetic_signal" rows
+#' use the total-variance (heritability-style) denominator for every row, so
+#' they can differ from `icc()`/`repeatability()` here whenever a fit has two
+#' or more structured components.
+#'
 #' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`), and
 #' have at least one structured mean random-effect component (`(1 | group)`,
 #' `phylo(...)`, `animal(...)`, `relmat(...)`, or `spatial(...)`); a
@@ -250,6 +255,7 @@ drm_variance_ratio <- function(
   focal_position <- positions[[focal]]
 
   cov_fixed <- drm_sdreport_cov_fixed(object)
+  drm_variance_ratio_check_cov_alignment(object, cov_fixed, quantity)
 
   fit <- drm_variance_ratio_delta(
     theta_hat = object$opt$par,
@@ -365,6 +371,27 @@ drm_variance_ratio_positions <- function(object, sd_values) {
     }
   }
   positions
+}
+
+# Guard against a silent misalignment between object$opt$par positions
+# (what drm_variance_ratio_positions()/the residual-position lookup resolve
+# denom_positions against) and the row/column order of cov_fixed
+# (object$sdr$cov.fixed): drm_variance_ratio_delta() indexes cov_fixed by
+# those same integer positions, so if a future parameter-ordering change
+# ever made the two vectors disagree, the delta SE would silently mix up
+# variances/covariances instead of erroring. Verified identical today for
+# both ML and REML fits (docs/design/259-heritability-icc-repeatability.md
+# section 1), but asserted here rather than assumed (Rose's 2026-09-03
+# verdict, "concrete safeguards" 4).
+drm_variance_ratio_check_cov_alignment <- function(object, cov_fixed, quantity) {
+  cov_names <- dimnames(cov_fixed)[[1L]]
+  opt_names <- names(object$opt$par)
+  if (is.null(cov_names) || !identical(cov_names, opt_names)) {
+    cli::cli_abort(
+      "{.fn {quantity}}: the fixed-parameter covariance matrix's row names do not match {.code names(object$opt$par)}; refusing to index it by position rather than risk silently misaligning the delta-method standard error."
+    )
+  }
+  invisible(NULL)
 }
 
 # Numeric-gradient delta method for the ratio

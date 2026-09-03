@@ -82,6 +82,11 @@ signal" definition.
 single structured mean component (no other components to net out of the
 denominator).
 
+\code{summary()}'s existing derived "repeatability"/"phylogenetic_signal" rows
+use the total-variance (heritability-style) denominator for every row, so
+they can differ from \code{icc()}/\code{repeatability()} here whenever a fit has two
+or more structured components.
+
 Fits must be Gaussian, have a constant residual scale (\code{sigma ~ 1}), and
 have at least one structured mean random-effect component (\code{(1 | group)},
 \code{phylo(...)}, \code{animal(...)}, \code{relmat(...)}, or \code{spatial(...)}); a
