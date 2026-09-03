@@ -163,3 +163,26 @@ left untouched, so a genuinely non-converged fit still triggers
 Ledger: `.unlazy/followup/gates/leaf-f3.md`. f3-G1 through f3-G6 checked
 locally before running the ledger's own `gate-check.mjs`; see the assistant
 reply for the recorded PASS lines.
+
+## Rose pass and the defect it caught (coordinator, 2026-09-03 ~11:55 UTC)
+
+Verdict: `scratchpad/rose/2026-09-03-rose-f3-verdict.md`. Attacks 1 and 2 SURVIVED: the polish does
+guard its step (it is accepted only if the objective does not increase, so an indefinite or
+ill-conditioned Hessian cannot push the fit uphill), and it does not stamp convergence on a fit that
+genuinely fails, because nlminb's own code and message are left untouched when the polish cannot
+reach the gradient tolerance.
+
+Attack 3 REFUTED the branch, and the defect was real. `obj$fn()` returns TMB's value carrying a stray
+`logarithm` attribute that nlminb's own `$objective` never has. Assigning it unstripped into
+`opt$objective` leaked that attribute through `stored_loglik` into the object `logLik()` hands to
+users, and broke `tests/testthat/test-animal-relmat-gaussian.R:1096`, a real test that this arc's own
+regression sweep never ran. Fixed by stripping at both points where the value enters the polish.
+Verified directly: `opt$objective` now carries no attributes, `logLik()` carries exactly
+`df, nobs, estimator, class`, and that test passes (357 assertions, 0 failures).
+
+The lesson, recorded because it generalises: a regression sweep chosen by the author of the change
+tests the files the author was thinking about. Rose picked files by a property of the CODE (every
+test file asserting a tolerance of 1e-6 or tighter) and found the one that mattered. After the fix a
+broader 13-file sweep, including the full zero-one-beta suite, ran clean at 2054 assertions and 0
+failures, and the numeric blast radius claim itself held: the single failure was the attribute, not
+the shifted numbers.

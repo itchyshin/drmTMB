@@ -14,7 +14,7 @@
     "R/control.R": "84ff6c950d6faa6dbe0dd6d44da41eafb3d01ae325522bfa52da1cb549e287bb",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
-    "R/drmTMB.R": "89d9566843d2d00283b9e16e8660fb315a9522b244e92dda89b500a8ed4bd495",
+    "R/drmTMB.R": "d598005ee92118b0422f4146eed3b6000c1d0fa40d99f168859b28837128023b",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
@@ -682,7 +682,7 @@
       "drmjl_ref": "77513aa0663209b96e53a649d232558515f687fa",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpPGScFg/pkgload18020619f0a5b/drmTMB.so",
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpZTYbMN/pkgload2e9a3d06e66/drmTMB.so",
           "sha256": "b8ebe645215ff7de290190ddae44b04abffcf70a44d5c53439ef202d7fe2a192"
         }
       }
@@ -720,7 +720,7 @@
     "R/control.R": "84ff6c950d6faa6dbe0dd6d44da41eafb3d01ae325522bfa52da1cb549e287bb",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "25050f7f5002a26e1f9371ad01f6b5faf52af82d946f9ba46c484d83cd0f535f",
-    "R/drmTMB.R": "89d9566843d2d00283b9e16e8660fb315a9522b244e92dda89b500a8ed4bd495",
+    "R/drmTMB.R": "d598005ee92118b0422f4146eed3b6000c1d0fa40d99f168859b28837128023b",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "1b73f4cbd511f2c5c230e254f83a02483815029b725689a53031af8ba38f70ad",
     "R/family.R": "34bef8f5ae57f4e794b8a5788e1982f9ba61168fed74c38125722ba937a29959",
@@ -850,6 +850,6 @@
     "/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/7db7461b-e1ee-4ad0-a526-010c1c2e26a6/scratchpad/drmjl-objat/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 44.008000000000003,
+  "elapsed": 42.863,
   "status": "PASS"
 }

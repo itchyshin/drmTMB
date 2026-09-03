@@ -1054,7 +1054,7 @@ drm_newton_polish <- function(opt, obj, grad_tol = 1e-8, max_iter = 3L) {
   if (max(abs(grad)) <= grad_tol) {
     return(opt)
   }
-  objective <- opt$objective
+  objective <- as.numeric(opt$objective)
   polished <- FALSE
   for (i in seq_len(max_iter)) {
     he <- tryCatch(
@@ -1070,7 +1070,15 @@ drm_newton_polish <- function(opt, obj, grad_tol = 1e-8, max_iter = 3L) {
     }
     par_new <- par - step
     grad_new <- tryCatch(as.numeric(obj$gr(par_new)), error = function(e) NULL)
-    objective_new <- tryCatch(obj$fn(par_new), error = function(e) NA_real_)
+    # `obj$fn()` returns TMB's value carrying a stray `logarithm` attribute that
+    # nlminb's own `$objective` never has. Assigning it unstripped leaked the
+    # attribute through `stored_loglik` into the public `logLik()` object and
+    # broke test-animal-relmat-gaussian.R (Rose f3 pass, 2026-09-03). Strip it
+    # at the source, where the value enters the polish.
+    objective_new <- tryCatch(
+      as.numeric(obj$fn(par_new)),
+      error = function(e) NA_real_
+    )
     if (
       is.null(grad_new) ||
         !all(is.finite(grad_new)) ||
