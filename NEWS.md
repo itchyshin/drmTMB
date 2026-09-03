@@ -66,6 +66,14 @@ Template Model Builder.
   penalty is subtracted back out, so `objective_at(fit, <own optimum>) ==
   -logLik(fit)` holds for every fit type), and it errors for experimental
   MSPL fits exactly as `logLik()` does.
+* `start=`/`objective_at()` labels now reach `biv_gaussian`'s `rho12` fixed
+  effect (via the existing generic `fixef:rho12:<column>` label -- `beta_rho12`
+  is now named at start-build time) and the phylogenetic location/scale
+  covariance block via two new families, `phylo_sd:<axis>` and
+  `phylo_cor:<axis1>:<axis2>` (design 35, "Phylo Covariance Block"). Closes
+  a gap the A5 cross-engine receipt had to work around by addressing
+  `beta_rho12`/`log_sd_phylo`/`theta_phylo` by internal TMB parameter name.
+
 ## Build provenance (`drm_provenance()`)
 
 * New exported `drm_provenance()` (DRM.jl#473) answers a question
