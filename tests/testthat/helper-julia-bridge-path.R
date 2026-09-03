@@ -123,6 +123,14 @@ drm_skip_live_julia <- function() {
 }
 
 .drm_skip_live_julia_impl <- function() {
+  # Engine availability is decided HERE and nowhere else (#1127): a live Julia
+  # test needs a DRM.jl checkout. CI sets NOT_CRAN=true with no DRM.jl, and
+  # until 2026-09-03 the per-test tryCatch swallows hid that; now the gate
+  # skips with one reason. A path that exists but is not DRM.jl still
+  # proceeds and fails loudly (that is the point).
+  if (!dir.exists(drm_test_drmjl_path())) {
+    testthat::skip("DRM.jl engine not available (set DRM_JL_PATH)")
+  }
   if (identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
     return(invisible(TRUE))
   }
