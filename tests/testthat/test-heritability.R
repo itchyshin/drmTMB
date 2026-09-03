@@ -5,11 +5,15 @@
 # n_groups = 300 rather than an originally sketched 60: at n_groups = 60,
 # n_per = 10 the ML point estimate's sampling SD across 20 pilot seeds was
 # ~0.039 (max |diff| 0.092), so a strict per-seed 0.05 tolerance failed 2/5
-# of seeds 1:5 on a first run (real ML sampling noise, not an estimator bug --
-# the same 20-seed pilot at n_groups = 60 had mean bias -0.02, the expected ML
-# downward shrinkage). n_groups = 300 keeps the same DGP and 0.05 tolerance
-# but with a reliable margin (max |diff| 0.039 across a 10-seed pilot at this
-# size); fits remain sub-second.
+# of seeds 1:5 on a first run -- real ML sampling noise, not an estimator bug
+# and not a claim about bias: a fresh 150-replicate Monte Carlo at n_groups =
+# 60 (Rose, 2026-09-03 verdict) put the mean estimation error at -0.002 (MC SE
+# ~0.0032), an order of magnitude smaller than the earlier 20-seed pilot's
+# -0.02 and within one MC SE of zero, so that pilot number was noise, not a
+# known downward-shrinkage effect. n_groups = 300 was raised only to keep the
+# per-seed 0.05 tolerance clear of sampling noise (max |diff| 0.039 across a
+# 10-seed pilot at this size, ~22% headroom against 0.05); fits remain
+# sub-second. No bias claim is made either way.
 heritability_recovery_fits <- function() {
   n_groups <- 300
   n_per <- 10
@@ -142,4 +146,75 @@ test_that("delta-method se is finite and positive; Wald interval is a sanity che
   # Sanity check only, not a coverage claim: expect the Wald interval to
   # contain the truth in most (>= 3 of 5) seeds.
   expect_gte(hits, 3L)
+})
+
+test_that("refuse slope: correlated random slope (1 + x | g) on mu", {
+  set.seed(21)
+  n_blk <- 20
+  blk <- factor(rep(seq_len(n_blk), each = 10))
+  x <- rnorm(length(blk))
+  dat <- data.frame(
+    y = 1 + x + rnorm(n_blk)[blk] + rnorm(length(blk)),
+    x = x,
+    blk = blk
+  )
+  fit <- drmTMB(bf(y ~ 1 + x + (1 + x | blk), sigma ~ 1), data = dat)
+  # Sanity: this fit does carry a correlated random-slope term (the case
+  # heritability()/icc()/repeatability() must refuse).
+  expect_true("eta_cor_mu" %in% names(fit$opt$par))
+  expect_error(icc(fit), "random slope|correlated random effect")
+  expect_error(heritability(fit), "random slope|correlated random effect")
+  expect_error(repeatability(fit), "random slope|correlated random effect")
+})
+
+test_that("refuse slope: uncorrelated slope-only random effect (0 + x | g) on mu", {
+  set.seed(22)
+  n_blk <- 20
+  blk <- factor(rep(seq_len(n_blk), each = 10))
+  x <- rnorm(length(blk))
+  dat <- data.frame(
+    y = 1 + (rnorm(n_blk)[blk]) * x + rnorm(length(blk)),
+    x = x,
+    blk = blk
+  )
+  fit <- drmTMB(bf(y ~ 1 + x + (0 + x | blk), sigma ~ 1), data = dat)
+  # Sanity: no eta_cor_mu here (only one column, nothing to correlate), so
+  # this exercises the coef_names-based check independent of the eta_cor_mu
+  # safety net.
+  expect_false("eta_cor_mu" %in% names(fit$opt$par))
+  expect_error(icc(fit), "random slope")
+})
+
+test_that("documented label: the roxygen @examples phylo component label matches a real fit", {
+  skip_if_not_installed("ape")
+
+  # Read the literal component = "..." string out of the roxygen @examples
+  # in R/heritability.R itself, rather than hard-coding a second copy here,
+  # so this test fails if the documented example label ever drifts from the
+  # code again (Rose 2026-09-03 verdict, Attack 3 documentation finding).
+  src <- readLines(testthat::test_path("..", "..", "R", "heritability.R"), warn = FALSE)
+  example_line <- grep('icc\\(phylo_fit, component = "', src, value = TRUE, fixed = FALSE)
+  expect_length(example_line, 1L)
+  documented_label <- sub('.*component = "([^"]+)".*', "\\1", example_line)
+  expect_equal(documented_label, "phylo(1 | species)")
+
+  set.seed(20260601)
+  n_tip <- 20
+  tree <- ape::rcoal(n_tip)
+  tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE)
+  u <- as.vector(t(chol(A)) %*% rnorm(n_tip)) * 0.9
+  species <- factor(rep(tree$tip.label, each = 4), levels = tree$tip.label)
+  phylo_dat <- data.frame(
+    y = 2 + u[rep(seq_len(n_tip), each = 4)] + rnorm(length(species), sd = 0.6),
+    species = species
+  )
+  phylo_fit <- drmTMB(
+    bf(y ~ 1 + phylo(1 | species, tree = tree), sigma ~ 1),
+    data = phylo_dat
+  )
+
+  expect_equal(names(phylo_fit$sdpars$mu), documented_label)
+  r <- icc(phylo_fit, component = documented_label)
+  expect_true(is.finite(r$estimate))
 })

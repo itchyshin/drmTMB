@@ -86,12 +86,17 @@ All 5 seeds within 0.05; `heritability()` equals `icc()` in every seed
 ## 6. Deviation: DGP size (n_groups = 300, not 60)
 
 The task sketch specified `n_groups = 60, n_per = 10`. A 20-seed pilot at
-that size found the ML `icc()` point estimate has sampling SD ~= 0.039 (mean
-bias -0.02, the expected ML downward shrinkage of a variance-component
-estimate), so a strict `< 0.05` per-seed check failed 2 of the first 5 seeds
-purely from real sampling noise, not an estimator bug. Rather than loosen the
-tolerance or hand-pick seeds that happen to pass, `n_groups` was raised to
-300 (fits remain sub-second; a 10-seed pilot there had max |diff| = 0.039),
+that size found the ML `icc()` point estimate has sampling SD ~= 0.039, so a
+strict `< 0.05` per-seed check failed 2 of the first 5 seeds purely from real
+sampling noise, not an estimator bug. The 20-seed pilot's mean error, -0.02,
+was originally (wrongly) read as "expected ML downward shrinkage"; Rose's
+2026-09-03 verdict ran a 150-replicate Monte Carlo at the same `n_groups =
+60` and found the mean error is -0.002 (MC SE ~0.0032) -- within one MC SE of
+zero, so the -0.02 pilot number was noise, not a known bias mechanism. That
+attribution has been removed from the code comment and this note; no bias
+claim is made. Rather than loosen the tolerance or hand-pick seeds that
+happen to pass, `n_groups` was raised to 300 (fits remain sub-second; a
+10-seed pilot there had max |diff| = 0.039, about 22% headroom against 0.05),
 keeping the originally-specified 0.05 tolerance with a reliable margin. Full
 rationale is in a code comment at the top of `test-heritability.R`.
 
@@ -162,3 +167,78 @@ both places. No `summary()` code was touched.
 - Gate re-verification (`gate-check.mjs --reverify --approve
   .unlazy/night/gates/leaf-n2.md`): N2-G1 through N2-G8 all PASS. N2-G9
   (Rose review) and N2-G10 (PR merge) are outside this arc's scope.
+
+## 11. Repair loop (Rose adversarial review, 2026-09-03)
+
+Rose's fresh-Opus verdict
+(`scratchpad/rose/2026-09-03-rose-n2-verdict.md`) refuted 4 findings against
+the first slice. Fixed in this round:
+
+1. **REFUTED (most serious) — random slopes not gated.** A
+   `bf(y ~ 1 + x + (1 + x | blk), sigma ~ 1)` fit was silently accepted and
+   returned a confident number (estimate + SE + CI) that summed an
+   intercept-column variance and a per-unit-of-`x` slope-column variance
+   while dropping `eta_cor_mu`, the intercept-slope correlation. Fixed:
+   `drm_variance_ratio_reject_random_slopes()` (`R/heritability.R`) checks
+   (a) `"eta_cor_mu" %in% names(object$opt$par)` and (b)
+   `object$model$random$mu$coef_names` containing anything other than
+   `"(Intercept)"`, and aborts naming the term for all three accessors. Two
+   new "refuse slope" tests cover the correlated case (`(1 + x | blk)`) and
+   the uncorrelated slope-only case (`(0 + x | blk)`, which has no
+   `eta_cor_mu` so it exercises check (b) alone). See design doc section 2,
+   point 6 for the full derivation and probe evidence.
+2. **REFUTED (documentation) — wrong `component` label.** The roxygen
+   `@param`, design doc, and (implicitly) any future user copying
+   `"phylo(1 | species, tree = tree)"` from the docs would hit an abort: the
+   real `sdpars$mu` label drops non-grouping arguments and is
+   `"phylo(1 | species)"` (`"animal(1 | id)"` for `animal()`, etc.). Fixed:
+   `@param component` corrected, design doc section 1 and section 3 point 1
+   corrected, and a new runnable `\donttest{}` `@examples` block fits a real
+   `phylo()` model and calls `icc(phylo_fit, component = "phylo(1 | species)")`
+   so `R CMD check` exercises the documented label. A new "documented label"
+   test reads the literal `component = "..."` string out of
+   `R/heritability.R`'s own roxygen source (not a hand-duplicated second
+   copy) and asserts it equals a real fit's `sdpars$mu` name and that
+   `icc()` runs with it.
+3. **REFUTED (prose, minor) — unsupported "-0.02 ML shrinkage" claim.**
+   `test-heritability.R`'s top comment and this note's section 6 had
+   attributed the 20-seed pilot's mean error (-0.02) to "the expected ML
+   downward shrinkage." Rose's 150-replicate Monte Carlo at the same
+   `n_groups = 60` found the mean error is -0.002 (MC SE ~0.0032) — within
+   one MC SE of zero, so -0.02 was pilot noise, not a known bias mechanism.
+   Fixed: both places now state the honest fact (raised `n_groups` to keep
+   the per-seed tolerance clear of sampling noise) with no bias-mechanism
+   claim attached. The decision to raise `n_groups` is unchanged and still
+   correct — only the explanation attached to it was wrong.
+
+Not applied this round (recorded, not silently dropped — Rose's remaining
+"concrete safeguards" 3 and 4, and her "REFUTED in part" Attack 5 finding):
+
+- **Attack 5 (REFUTED in part) — the shared roxygen never mentions the
+  `summary()` naming collision**, only the design doc and after-task do.
+  Rose: "Escalating in a dev log while leaving the user-facing help silent
+  is the wrong end to fix first." Not fixed here because the coordinator's
+  repair-loop scope (items 1-3 plus gate N2-G11) did not list it and G11
+  does not check for it; flagged here as the next concrete, low-cost fix (one
+  sentence in the shared `@rdname heritability` roxygen block).
+- **Safeguard 4 — position indexing has no runtime assertion.**
+  `drm_variance_ratio_positions()` maps `sdpars$mu` names to `opt$par`
+  positions by prefix-regex + ordinal rank, and
+  `drm_variance_ratio_delta()` (`R/heritability.R:333`, pre-repair-loop line
+  numbering) indexes `cov_fixed[denom_positions, denom_positions]` with no
+  assertion that `dimnames(cov_fixed)[[1]]` matches `names(theta_hat)` in
+  the same order. Rose confirmed order invariance and correct mapping for
+  every route she probed (ordinary REs regardless of declaration order,
+  mixed iid+phylo, mixed LSS+phylo), and noted a `log_sd_phylo2` block would
+  fail safe (routes to `NA`, which already aborts) rather than silently
+  wrong — so this is a robustness hardening, not a known bug. Not applied
+  this round; a `stopifnot(identical(dimnames(cov_fixed)[[1]],
+  names(object$opt$par)))` guard would close it cheaply in a follow-up.
+- **UNTESTABLE-HERE (Rose's own label) — no cross-engine numeric comparison
+  against a live DRM.jl run, and `spatial()`/`relmat()`/
+  `phylo_interaction()` routes are still claimed in section 4 above but not
+  directly exercised by a test** (only `phylo()` and `animal()` were, both
+  by Rose and by the "documented label" test added here for `phylo()`).
+  Recorded as an open gap, not resolved — these routes share the same
+  `structured$phylo_mu$has` / `sdpars$mu` merge mechanism verified for
+  `phylo()`/`animal()`, but that is code-reading evidence, not a fit.

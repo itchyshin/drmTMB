@@ -40,9 +40,11 @@
 #' @param object A `drmTMB` fit.
 #' @param component Optional character string naming the structured mean
 #'   component (matching a name in `object$sdpars$mu`, e.g. `"(1 | id)"` or
-#'   `"phylo(1 | species, tree = tree)"`). Required when the fit has more
-#'   than one structured component; ignored (and unnecessary) when the fit
-#'   has exactly one.
+#'   `"phylo(1 | species)"`; structured markers drop their non-grouping
+#'   arguments such as `tree =`/`Ainv =`/`K =` from the label -- see the
+#'   `@examples` phylo case below). Required when the fit has more than one
+#'   structured component; ignored (and unnecessary) when the fit has exactly
+#'   one.
 #' @param level Confidence level for the Wald interval. Default `0.95`.
 #' @param method Either `"delta"` (default) or `"profile"`. `"profile"` is
 #'   accepted for signature parity only and always aborts in this slice.
@@ -65,6 +67,30 @@
 #' icc(fit)
 #' repeatability(fit)
 #' heritability(fit)
+#'
+#' \donttest{
+#' if (requireNamespace("ape", quietly = TRUE)) {
+#'   # A structured (phylo) component: its sdpars$mu / component label drops
+#'   # the tree argument entirely and is just "phylo(1 | species)".
+#'   set.seed(20260601)
+#'   n_tip <- 20
+#'   phy <- ape::rcoal(n_tip)
+#'   phy$tip.label <- paste0("sp_", seq_len(n_tip))
+#'   A <- ape::vcv(phy, corr = TRUE)
+#'   u <- as.vector(t(chol(A)) %*% rnorm(n_tip)) * 0.9
+#'   species <- factor(rep(phy$tip.label, each = 4), levels = phy$tip.label)
+#'   phylo_dat <- data.frame(
+#'     y = 2 + u[rep(seq_len(n_tip), each = 4)] +
+#'       rnorm(length(species), sd = 0.6),
+#'     species = species
+#'   )
+#'   phylo_fit <- drmTMB(
+#'     bf(y ~ 1 + phylo(1 | species, tree = phy), sigma ~ 1),
+#'     data = phylo_dat
+#'   )
+#'   icc(phylo_fit, component = "phylo(1 | species)")
+#' }
+#' }
 #'
 #' @name heritability
 NULL
@@ -186,6 +212,7 @@ drm_variance_ratio <- function(
       "i" = "This fit has {.val {object$model$model_type}}."
     ))
   }
+  drm_variance_ratio_reject_random_slopes(object, quantity)
   sigma <- drm_constant_residual_sigma(object)
   if (!is.finite(sigma)) {
     cli::cli_abort(c(
@@ -269,6 +296,44 @@ drm_variance_ratio_resolve_component <- function(sd_values, component, quantity)
     ))
   }
   match_idx
+}
+
+# Refuse random slopes / correlated random effects on mu: they are not a
+# variance share (an intercept-column SD and a per-unit-of-x slope-column SD
+# are in different units, and DRM.jl's src/heritability.jl has no
+# random-slope route to port here -- the correct behaviour is to refuse, not
+# to silently sum incompatible variances or drop the intercept-slope
+# correlation). Detected structurally from the fit's parameter structure, not
+# by regexing the sdpars$mu label text:
+#   (a) any `eta_cor_mu` entry in object$opt$par -- a correlated mu random
+#       effect exists somewhere in the fit;
+#   (b) object$model$random$mu$coef_names containing anything other than
+#       "(Intercept)" -- a multi-column (slope) mu random-effect term, even
+#       when uncorrelated (e.g. `(0 + x | g)`).
+# See docs/design/259-heritability-icc-repeatability.md section 2 for the
+# probe evidence behind (a)/(b) (object$model$random$mu$n_terms/coef_names/
+# n_cors on a fitted `(1 + x | blk)` and `(0 + x | blk)` model).
+drm_variance_ratio_reject_random_slopes <- function(object, quantity) {
+  if ("eta_cor_mu" %in% names(object$opt$par)) {
+    cli::cli_abort(c(
+      "{.fn {quantity}} does not support correlated random effects on {.field mu}.",
+      "i" = "Random slopes / correlated random effects are not a variance share; use scalar {.code (1 | g)} or structured intercepts."
+    ))
+  }
+  random_mu <- object$model$random$mu
+  if (is.list(random_mu) && isTRUE(random_mu$n_re > 0L)) {
+    coef_names <- random_mu$coef_names
+    slope_idx <- which(!is.na(coef_names) & coef_names != "(Intercept)")
+    if (length(slope_idx) > 0L) {
+      slope_terms <- unique(random_mu$labels[slope_idx])
+      cli::cli_abort(c(
+        "{.fn {quantity}} does not support random slopes on {.field mu}.",
+        "x" = "This fit has a random-slope term: {.val {slope_terms}}.",
+        "i" = "Random slopes / correlated random effects are not a variance share; use scalar {.code (1 | g)} or structured intercepts."
+      ))
+    }
+  }
+  invisible(NULL)
 }
 
 # Map each name in `sd_values` (== object$sdpars$mu) to its position in

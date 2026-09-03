@@ -46,9 +46,11 @@ repeatability(object, ...)
 
 \item{component}{Optional character string naming the structured mean
 component (matching a name in \code{object$sdpars$mu}, e.g. \code{"(1 | id)"} or
-\code{"phylo(1 | species, tree = tree)"}). Required when the fit has more
-than one structured component; ignored (and unnecessary) when the fit
-has exactly one.}
+\code{"phylo(1 | species)"}; structured markers drop their non-grouping
+arguments such as \verb{tree =}/\verb{Ainv =}/\verb{K =} from the label -- see the
+\verb{@examples} phylo case below). Required when the fit has more than one
+structured component; ignored (and unnecessary) when the fit has exactly
+one.}
 
 \item{level}{Confidence level for the Wald interval. Default \code{0.95}.}
 
@@ -112,5 +114,29 @@ fit <- drmTMB(bf(y ~ 1 + (1 | grp), sigma ~ 1), data = dat)
 icc(fit)
 repeatability(fit)
 heritability(fit)
+
+\donttest{
+if (requireNamespace("ape", quietly = TRUE)) {
+  # A structured (phylo) component: its sdpars$mu / component label drops
+  # the tree argument entirely and is just "phylo(1 | species)".
+  set.seed(20260601)
+  n_tip <- 20
+  phy <- ape::rcoal(n_tip)
+  phy$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(phy, corr = TRUE)
+  u <- as.vector(t(chol(A)) \%*\% rnorm(n_tip)) * 0.9
+  species <- factor(rep(phy$tip.label, each = 4), levels = phy$tip.label)
+  phylo_dat <- data.frame(
+    y = 2 + u[rep(seq_len(n_tip), each = 4)] +
+      rnorm(length(species), sd = 0.6),
+    species = species
+  )
+  phylo_fit <- drmTMB(
+    bf(y ~ 1 + phylo(1 | species, tree = phy), sigma ~ 1),
+    data = phylo_dat
+  )
+  icc(phylo_fit, component = "phylo(1 | species)")
+}
+}
 
 }

@@ -36,8 +36,13 @@ Source: `DRM.jl` `src/heritability.jl` at the pinned clone
   through the same `structured$phylo_mu$has` branch and lands in `out$mu` too
   (`R/drmTMB.R:21906,21916,21926`), confirming the "wherever it lives" open
   question from the alignment-inputs scout: **`log_sd_phylo` surfaces inside
-  `object$sdpars$mu`** on this path, named with the structured marker text
-  (e.g. `"phylo(1 | species, tree = tree)"`), not as a separate list element.
+  `object$sdpars$mu`** on this path, named with the structured marker text but
+  WITHOUT its non-grouping arguments -- verified directly (probe run
+  2026-09-03): a `phylo(1 | species, tree = tree)` formula term produces the
+  `sdpars$mu` name `"phylo(1 | species)"`, not `"phylo(1 | species, tree =
+  tree)"`; the same holds for `animal(1 | id, Ainv = Q)` -> `"animal(1 | id)"`.
+  This is not a separate list element, and the label drops `tree =`/`Ainv
+  =`/`K =`/etc. the same way it drops the group-varying-SD case below.
   A term modelled with `sd(group) ~ ...` (location-scale-scale / LSS) is
   routed to a *different*, dpar-named block instead
   (`R/drmTMB.R:21813-21826,21888-21896`) and never appears in `sdpars$mu` —
@@ -86,6 +91,33 @@ Matches the twin's structured-Gaussian gate (`src/heritability.jl:44-79`):
 5. `component` must name one entry of `object$sdpars$mu` when supplied;
    when omitted, there must be exactly one entry, else `cli_abort` names the
    available choices.
+6. No random slopes / correlated random effects on `mu`. DRM.jl's `:resd`
+   block (`heritability.jl`) is built only from ordinary/structured
+   *intercept* SDs; it has no random-slope route in this file at all. A
+   `(1 + x | g)` (or any `(0 + x | g)`, `(1 + x1 + x2 | g)`, ...) fit sums an
+   intercept-column variance and a per-unit-of-`x` slope-column variance --
+   different units -- and, when the slope is correlated with the intercept,
+   silently drops that correlation; the resulting ratio is not a variance
+   share of anything. Detected structurally (`R/heritability.R`,
+   `drm_variance_ratio_reject_random_slopes()`), not by regexing the
+   `sdpars$mu` label text: (a) `"eta_cor_mu" %in% names(object$opt$par)` --
+   a correlated mu random effect exists anywhere in the fit; (b)
+   `object$model$random$mu$coef_names` containing anything other than
+   `"(Intercept)"` -- a multi-column (slope) mu random-effect term, even when
+   uncorrelated. Verified directly (probe run 2026-09-03): a fitted
+   `bf(y ~ 1 + x + (1 + x | blk), sigma ~ 1)` has
+   `object$model$random$mu$n_terms == 2`,
+   `object$model$random$mu$coef_names == c("(Intercept)", "x")`,
+   `object$model$random$mu$n_cors == 1`, and `"eta_cor_mu" %in%
+   names(object$opt$par)`; a fitted `bf(y ~ 1 + x + (0 + x | blk), sigma ~
+   1)` (uncorrelated slope-only) has `coef_names == "x"`, `n_cors == 0`, and
+   no `eta_cor_mu` -- so check (b) alone catches it. Found by Rose's
+   adversarial review (`scratchpad/rose/2026-09-03-rose-n2-verdict.md`,
+   "Attack 3", the single REFUTED behavioural finding): before this fix the
+   gate only checked `length(object$sdpars$mu) >= 1`, so a random-slope fit
+   was silently accepted and returned a confident-looking estimate, SE, and
+   CI. `tests/testthat/test-heritability.R` has two "refuse slope" blocks
+   covering both cases above.
 
 Each failure aborts via `cli::cli_abort()` naming the reason, following the
 house style already used by `ranef.drmTMB()`/`drm_sdreport_cov_fixed()`.
@@ -96,10 +128,11 @@ house style already used by `ranef.drmTMB()`/`drm_sdreport_cov_fixed()`.
    factor `Symbol` (e.g. `:species`). drmTMB has no such symbol — the stable
    public handle for a structured mean component is the random-effect term
    label already used throughout the package (`"(1 | grp)"`,
-   `"phylo(1 | species, tree = tree)"`), so `component` in the R port takes
-   that label string instead of a bare grouping-factor name. This is a
-   necessary, not cosmetic, deviation: drmTMB does not carry a
-   `Dict{Symbol,Int}` component registry the way `DrmFit.blocks` does.
+   `"phylo(1 | species)"` -- see section 1 above: the label drops its
+   non-grouping arguments), so `component` in the R port takes that label
+   string instead of a bare grouping-factor name. This is a necessary, not
+   cosmetic, deviation: drmTMB does not carry a `Dict{Symbol,Int}` component
+   registry the way `DrmFit.blocks` does.
 2. **Delta gradient.** DRM.jl differentiates the ratio through ForwardDiff
    (exact AD). This port uses a numeric central-difference gradient over the
    (small, 2-4 element) working-scale parameter subvector, matching the
