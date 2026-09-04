@@ -2866,6 +2866,33 @@ drm_julia_threads_hint <- function(threads_requested, julia_threads) {
   invisible(NULL)
 }
 
+# The MIRROR of the hint above, and the one users actually needed. Setting
+# JULIA_NUM_THREADS is necessary for parallel refits but NOT sufficient: the
+# `threads` argument defaults to FALSE, so a user who sets the environment
+# variable and expects parallelism gets serial refits and, before this, no
+# indication whatever.
+#
+# That is not hypothetical. Our own setup guide labelled JULIA_NUM_THREADS "the
+# multicore switch", which it is not, so a reader who followed it literally paid
+# the memory cost of a threaded Julia and got none of the speed. Silence was the
+# worst possible response: the user cannot tell a serial refit from a parallel
+# one except by the clock.
+drm_julia_serial_hint <- function(threads_requested, julia_threads) {
+  jt <- suppressWarnings(as.integer(julia_threads[1L]))
+  if (isTRUE(threads_requested) || length(jt) == 0L || is.na(jt) || jt <= 1L) {
+    return(invisible(NULL))
+  }
+  if (isTRUE(drm_julia_setup_state$serial_hinted)) {
+    return(invisible(NULL))
+  }
+  drm_julia_setup_state$serial_hinted <- TRUE
+  cli::cli_inform(c(
+    i = "Julia has {jt} threads available, but refits are running SERIALLY because {.code threads} defaults to {.code FALSE}.",
+    i = "{.envvar JULIA_NUM_THREADS} alone does not parallelise refits -- pass {.code threads = TRUE} as well, e.g. {.code confint(fit, method = \"profile\", threads = TRUE)}."
+  ))
+  invisible(NULL)
+}
+
 drm_julia_conditional_gaussian_components_source <- function() {
   paste(
     sep = "\n",
@@ -3911,6 +3938,7 @@ confint.drmTMB_julia <- function(
       threads = threads
     )
     drm_julia_threads_hint(threads, result$julia_threads)
+    drm_julia_serial_hint(threads, result$julia_threads)
     return(drm_julia_fixef_inference_confint_row(
       target = target,
       result = result,
@@ -3942,6 +3970,7 @@ confint.drmTMB_julia <- function(
   }
   # Univariate path: single target row, scalar lower/upper.
   drm_julia_threads_hint(threads, result$julia_threads)
+  drm_julia_serial_hint(threads, result$julia_threads)
   drm_julia_inference_confint_row(
     target = targets[1L, , drop = FALSE],
     result = result,
