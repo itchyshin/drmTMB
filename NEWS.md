@@ -1,5 +1,31 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
+
+* drmTMB labelled a Julia fit `"REML"` purely from its own support gate. Nothing
+  checked what DRM.jl actually did, so a gate that was too permissive would have
+  returned a maximum-likelihood fit **labelled REML**, with nothing to reveal it.
+  DRM.jl #625 now reports `estim_method` on every fit, so the engine is the
+  authority: if it says it fitted ML while REML was asked for and believed
+  supported, the fit **aborts** and names it as a drmTMB gate defect rather than
+  mislabelling the result. This closes the one failure direction a user cannot
+  recover from.
+* `drm_julia_reml_supported()` admits Poisson `(1 | g)` and Poisson
+  `phylo(1 | species)`, which it previously refused. Since the refusal landed
+  these raised an avoidable error even though DRM.jl can restrict them. Widened
+  on MEASUREMENT, not on report: each was verified with the `estim_method`
+  oracle at pin `e0a65f96b` — `poisson_random_intercept` reports `:REML` with
+  ml `-123.1282` / reml `-128.6623`; `poisson_phylo_intercept` reports `:REML`
+  with ml `-74.6002` / reml `-79.3865`. Both restrictions are several
+  log-likelihood units, not convergence noise.
+* **Not** widened: the bivariate structured q=2 cell that DRM.jl's refusal text
+  also names. It was not verified, because drmTMB refuses that shape earlier and
+  for an unrelated reason — the Julia route supports one `phylo()` term, and a
+  q=2 spec carries one per mean axis. The REML question never arises there, so
+  admitting it would have meant trusting the engine's description of itself,
+  which is exactly what the measurement above exists to avoid.
+
+
 ## Pinned DRM.jl clone moved from `77513aa0` to `e0a65f96b`
 
 * The `engine = "julia"` evidence and live tests are measured against a pinned

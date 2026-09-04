@@ -1050,12 +1050,44 @@ drm_julia_check_ordinary_sigma_ranef_route_limits <- function(
   invisible(NULL)
 }
 
+# Which cells the DRM.jl bridge can genuinely fit by REML.
+#
+# WIDENED 2026-09-04 for Poisson, on MEASUREMENT rather than on report (#1152).
+# DRM.jl #624 rewrote its univariate refusal to ENUMERATE what it restricts, and
+# that list named two Poisson cells this gate refused. A docstring is the
+# engine's claim about itself, so each was verified with DRM.jl #625's oracle --
+# request REML, read back `estim_method` from the fit -- at pin e0a65f96b:
+#
+#   poisson_random_intercept  estim_method=REML  ml=-123.1282  reml=-128.6623
+#   poisson_phylo_intercept   estim_method=REML  ml= -74.6002  reml= -79.3865
+#
+# Both report :REML and carry a reml_loglik several units from the ML value, so
+# the restriction is real rather than a relabelled ML fit. Before this, both
+# raised (since #1149 refuses instead of silently downgrading) even though the
+# engine could fit them.
+#
+# NOT widened: the bivariate structured q=2 cell that #624 also names. It was
+# NOT verified -- drmTMB refuses that shape earlier, and for an unrelated
+# reason ("currently supports one `phylo()` term"), so the REML question never
+# arises. Widening it here would be widening on the engine's word alone, which
+# is the thing this comment exists to avoid.
 drm_julia_reml_supported <- function(formula, family_type) {
   has_phylo <- drm_julia_has_phylo_term(formula)
   sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
   has_sd <- drm_julia_has_sd_term(formula)
+  # Scoped by the terms this file can actually detect: no sigma-side phylo, no
+  # sd() submodel. There is no random-slope predicate here, so this admits a
+  # Poisson random SLOPE too, which was NOT among the two shapes measured. That
+  # residual width is deliberate and safe ONLY because of the engine-authority
+  # cross-check below: if DRM.jl restricts nothing on such a cell, the fit now
+  # ABORTS rather than being labelled REML. Narrow this the moment a slope
+  # predicate exists.
+  poisson_reml <- identical(family_type, "poisson") &&
+    !isTRUE(sigma_phylo) &&
+    !isTRUE(has_sd)
   (identical(family_type, "gaussian") &&
     (!isTRUE(has_phylo) || isTRUE(sigma_phylo) || isTRUE(has_sd))) ||
+    isTRUE(poisson_reml) ||
     (identical(family_type, "biv_gaussian") &&
       identical(drm_julia_biv_phylo_dimension(formula), "q4"))
 }
@@ -3202,6 +3234,30 @@ new_drmTMB_julia <- function(
   }
   if (is.null(requested_REML)) {
     requested_REML <- isTRUE(effective_REML)
+  }
+  # THE ENGINE IS THE AUTHORITY ON WHICH ESTIMATOR ACTUALLY RAN (#1152).
+  # Until now `estimator` was set purely from drmTMB's own gate: if the gate
+  # believed a cell supported REML, the fit was LABELLED "REML" whether or not
+  # DRM.jl had actually restricted it. Nothing checked. A gate that was too wide
+  # would therefore hand back ML wearing a REML label, silently -- the one
+  # failure direction a user cannot recover from, because nothing tells them.
+  #
+  # DRM.jl #625 makes the fit report `estim_method` unconditionally, so the
+  # claim is now checkable. If the engine says it fitted ML while we asked for
+  # and believed REML, that is a gate defect: fail closed rather than mislabel.
+  engine_method <- result$estim_method %||% NULL
+  if (!is.null(engine_method) && nzchar(as.character(engine_method)[1L])) {
+    engine_reml <- identical(toupper(as.character(engine_method)[1L]), "REML")
+    if (isTRUE(effective_REML) && !engine_reml) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} was asked for {.code REML = TRUE} and drmTMB believed this cell supported it, but DRM.jl reports it fitted by {.val {as.character(engine_method)[1L]}}.",
+        x = "Refusing to label an {.val ML} fit as {.val REML}. This is a drmTMB gate defect, not a problem with your model.",
+        i = "Use {.code REML = FALSE} to ask for maximum likelihood explicitly, or {.code engine = \"tmb\"}.",
+        i = "Please report this formula: it means {.fn drm_julia_reml_supported} admits a cell DRM.jl does not restrict."
+      ))
+    }
+    # engine restricted where we expected ML: trust the engine's own report
+    effective_REML <- engine_reml
   }
   estimator <- if (isTRUE(effective_REML)) "REML" else "ML"
   out <- list(
