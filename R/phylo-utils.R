@@ -111,9 +111,20 @@ validate_phylo_tree <- function(
   # well defined for non-ultrametric trees, so validation for that path only
   # rejects genuinely invalid depths (non-positive root-to-tip paths).
   if (require_ultrametric && !is_ultrametric) {
+    # The message used to report `tolerance` alone -- but the test on the line
+    # above is `<= tolerance * scale`, so the number shown was NOT the threshold
+    # being applied. On a phylogeny hundreds of My deep that understated the real
+    # bar by the tree height, and it misled a reader of this code into diagnosing
+    # the check as an ABSOLUTE tolerance (it is not; measured 2026-09-04: a 1e-6
+    # spread is rejected at height 1 and accepted at height 400). Report the
+    # threshold actually used, what was actually observed, and a way forward.
+    observed <- max(abs(tip_depths - height))
     cli::cli_abort(c(
       "{.arg tree} must be ultrametric.",
-      "x" = "Root-to-tip distances differ by more than {.val {tolerance}}."
+      "x" = "Root-to-tip distances differ by {.val {observed}}, above the tolerance of {.val {tolerance * scale}} for this tree.",
+      "i" = "That tolerance is {.val {tolerance}} scaled by the tree height ({.val {scale}}), so it is relative, not absolute.",
+      "i" = "Published trees often miss it by rounding or by Newick round-tripping alone. If the difference above is negligible for your tree, equalise the tip depths (for example {.code phytools::force.ultrametric()}) and refit.",
+      "i" = "Check what you have with {.code range(ape::node.depth.edgelength(tree)[seq_len(ape::Ntip(tree))])} before changing anything -- a large difference is a real problem with the tree, not a tolerance to relax."
     ))
   }
   if (any(tip_depths <= 0)) {
