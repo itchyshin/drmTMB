@@ -144,7 +144,14 @@ test_that("bridge options forward method = REML only when REML is requested", {
   )
 })
 
-test_that("Julia REML support matrix is Gaussian-only and explicit", {
+# WIDENED 2026-09-04 (#1152). This block used to assert the support matrix was
+# GAUSSIAN-ONLY. It is not any more: DRM.jl #624's rewritten refusal enumerates
+# what it restricts, and two Poisson cells on that list were verified with #625's
+# `estim_method` oracle at pin e0a65f96b -- Poisson `(1 | g)` and Poisson
+# `phylo(1 | species)` both report estim_method=:REML with a reml_loglik several
+# units from ML. The Gaussian rows below are UNCHANGED; the Poisson rows are new
+# and measured, and a genuinely-still-refused family is kept as a negative.
+test_that("Julia REML support matrix admits Gaussian and the two measured Poisson cells", {
   tree <- ape::rcoal(8)
 
   fixed_locscale <- drmTMB::bf(y ~ x, sigma ~ x)
@@ -186,7 +193,12 @@ test_that("Julia REML support matrix is Gaussian-only and explicit", {
   expect_true(drmTMB:::drm_julia_reml_supported(lss_phylo, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(q4, "biv_gaussian"))
   expect_false(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))
-  expect_false(drmTMB:::drm_julia_reml_supported(count_phylo, "poisson"))
+  # MEASURED SUPPORTED (#1152): estim_method=:REML, ml=-74.6002, reml=-79.3865
+  expect_true(drmTMB:::drm_julia_reml_supported(count_phylo, "poisson"))
+  # still refused, and NOT measured as supported -- keeps this a real matrix
+  # rather than a list of passes
+  expect_false(drmTMB:::drm_julia_reml_supported(count_phylo, "binomial"))
+  expect_false(drmTMB:::drm_julia_reml_supported(count_phylo, "gamma"))
   expect_identical(
     drmTMB:::drm_julia_reml_cell_label(count_phylo, "poisson"),
     "non-Gaussian (poisson)"
@@ -326,7 +338,11 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
   expect_null(captured$options)
 })
 
-test_that("REML warning names non-Gaussian phylo cells as non-Gaussian", {
+# SUPERSEDED 2026-09-04 (#1152): the poisson phylo cell this block asserted was
+# refused is now MEASURED as genuinely REML-capable, so it must be FORWARDED,
+# not refused. What is still worth pinning is that the request reaches the
+# engine as REML rather than being silently downgraded on the way.
+test_that("a measured-supported Poisson phylo cell FORWARDS REML rather than refusing", {
   tree <- ape::rcoal(8)
   sp <- tree$tip.label
   dat <- data.frame(
@@ -364,25 +380,26 @@ test_that("REML warning names non-Gaussian phylo cells as non-Gaussian", {
   # Refuses instead of silently forwarding ML, and refuses BEFORE marshalling:
   # `captured$options` stays NULL because the mocked bridge call is never reached.
   captured$options <- NULL
-  expect_error(
-    drmTMB:::drmTMB_julia_bridge(
-      formula = count_phylo,
-      family = stats::poisson(),
-      data = dat,
-      env = environment(),
-      weights_missing = TRUE,
-      control = NULL,
-      impute = NULL,
-      missing = drmTMB::miss_control(),
-      REML = TRUE,
-      call = quote(drmTMB())
-    ),
-    "cannot fit .*non-Gaussian.*poisson.*by"
+  fit <- drmTMB:::drmTMB_julia_bridge(
+    formula = count_phylo,
+    family = stats::poisson(),
+    data = dat,
+    env = environment(),
+    weights_missing = TRUE,
+    control = NULL,
+    impute = NULL,
+    missing = drmTMB::miss_control(),
+    REML = TRUE,
+    call = quote(drmTMB())
   )
-  expect_null(captured$options)
+  # the request must REACH the engine as REML, not be quietly turned into ML
+  expect_true("method" %in% names(captured$options))
+  expect_identical(captured$options$method, "REML")
+  expect_true(fit$requested_REML)
 })
 
-test_that("REML stays gated for the phylo-only count family cell", {
+# SUPERSEDED 2026-09-04 (#1152), same reason as above.
+test_that("the phylo-only count family cell forwards REML (measured supported)", {
   tree <- ape::rcoal(8)
   sp <- tree$tip.label
   dat <- data.frame(
@@ -420,22 +437,22 @@ test_that("REML stays gated for the phylo-only count family cell", {
   # Refuses instead of silently forwarding ML, and refuses BEFORE marshalling:
   # `captured$options` stays NULL because the mocked bridge call is never reached.
   captured$options <- NULL
-  expect_error(
-    drmTMB:::drmTMB_julia_bridge(
-      formula = count_phylo,
-      family = stats::poisson(),
-      data = dat,
-      env = environment(),
-      weights_missing = TRUE,
-      control = NULL,
-      impute = NULL,
-      missing = drmTMB::miss_control(),
-      REML = TRUE,
-      call = quote(drmTMB())
-    ),
-    "cannot fit .*non-Gaussian.*poisson.*by"
+  fit <- drmTMB:::drmTMB_julia_bridge(
+    formula = count_phylo,
+    family = stats::poisson(),
+    data = dat,
+    env = environment(),
+    weights_missing = TRUE,
+    control = NULL,
+    impute = NULL,
+    missing = drmTMB::miss_control(),
+    REML = TRUE,
+    call = quote(drmTMB())
   )
-  expect_null(captured$options)
+  # the request must REACH the engine as REML, not be quietly turned into ML
+  expect_true("method" %in% names(captured$options))
+  expect_identical(captured$options$method, "REML")
+  expect_true(fit$requested_REML)
 })
 
 # --- Live σ-phylo REML round-trip (guarded) ---------------------------------
