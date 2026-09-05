@@ -74,17 +74,23 @@ ArgumentError: fit-based bootstrap requires a univariate `DrmFit` created by
 
 ## 2. RED CONTROL (b) -- drmTMB: readiness change reverted
 
-The one changed expression in `drm_julia_wald_targets()` was replaced with the
-pre-A8b rule (`fixef_profile_ready <- !is_biv && !is.null(payload)`) and
-`tests/testthat/test-julia-biv-inference.R` re-run.
+RE-MEASURED 2026-09-05 against the shipped file (the earlier committed hashes
+here matched neither the shipped file nor `origin/main` and are replaced
+below with what was actually measured). The one changed expression in
+`drm_julia_wald_targets()` was replaced with the pre-A8b rule
+(`fixef_profile_ready <- !is_biv && !is.null(object$bridge_payload)`) and
+`tests/testthat/test-julia-biv-inference.R` re-run WITHOUT the live env
+(`DRMTMB_JULIA_TESTS`, `DRM_JL_PATH`, `DRM_JL_PHYLO_PATH` all unset), so the
+one live block is expected to SKIP rather than run, not fail or error.
 
 ```
-R_SHA_BEFORE = 9b02c25a68a6980708d61a4c9ec28c90c10cc7e34849e84e942c3679d4643681
-planted      = 28c1680347c04312d583a55b0880c504085751b776313baa1562bebd81383547
+R_SHA_BEFORE = ede62299f1044ba93ce443a20b9df0e82b2166bc64ae6484d309558d15884c0c
+planted      = 125e8e1df23deccdd993f5fa2b46c957cc6a17ac29740d170c593813fb1c2ec3
 ```
 
-Result with the pre-A8b rule in place: **3 failures and 3 errors** across the
-file (57 expectations pass with the change in place, 0 failures):
+Result with the pre-A8b rule in place, offline: **2 failures and 2 errors**
+across the file (19 expectations pass, 1 block skipped for the missing live
+env):
 
 | testthat block | expectations reached | failed | errored |
 |---|---|---|---|
@@ -94,10 +100,18 @@ file (57 expectations pass with the change in place, 0 failures):
 | residual bivariate route contributes no duplicate SD rows | 4 | 0 | **yes** |
 | target validator still refuses what the engine cannot profile | 4 | 0 | no |
 | confint() routes to the Julia fixef entry point | 0 | 0 | **yes** |
-| live: profiles and bootstraps the residual bivariate fixed effects | 2 | 1 | **yes** |
+| live: profiles and bootstraps the residual bivariate fixed effects | 0 | 0 | no (SKIPPED: DRM.jl engine not available) |
+
+For contrast, the SAME file with the shipped (post-A8b) rule in place and the
+SAME offline environment (no live env) reaches 37 passed expectations, 0
+failures, 0 errors, and the same one block skipped; with the live env set (as
+in the qualification run) it reaches 57 passed expectations, 0 failures, 0
+errors, 0 skipped -- the "57 expectations pass ... 0 failures" claim already
+in this document was correct, it was only the hash pair above and the
+"3 failures and 3 errors" planted-rule tally that were wrong.
 
 ```
-R_SHA_AFTER  = 9b02c25a68a6980708d61a4c9ec28c90c10cc7e34849e84e942c3679d4643681   (restored byte-identically)
+R_SHA_AFTER  = ede62299f1044ba93ce443a20b9df0e82b2166bc64ae6484d309558d15884c0c   (restored byte-identically; confirmed equal to R_SHA_BEFORE)
 ```
 
 ## 3. RED CONTROL -- DRM.jl: source change reverted

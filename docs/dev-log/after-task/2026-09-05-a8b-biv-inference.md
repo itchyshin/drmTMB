@@ -110,7 +110,7 @@ session, `threads = FALSE`, `OPENBLAS_NUM_THREADS=1`. Full receipt:
 | G4 bootstrap R = 99 | 0/99 failed on BOTH engines, both targets; OVERLAP = TRUE |
 | G5 estimator | `fit$estimator` == `fit$bridge$estim_method` == `ML` |
 | G6(a) red control | both targets FAIL at 1e-9 -- the comparison is live |
-| G6(b) red control | readiness reverted -> 3 failures + 3 errors; restored byte-identically |
+| G6(b) red control | readiness reverted, offline -> 2 failures + 2 errors (re-measured 2026-09-05 against the shipped file; the hash pair and "3 failures + 3 errors" first recorded here were wrong -- see a8b-biv-red-baseline.md); restored byte-identically |
 | DRM.jl red control | source reverted -> bootstrap testset errors with the baseline `ArgumentError`; profile testset still 27/27 |
 
 Test runs (all with the live bridge exercised, not mocked away):

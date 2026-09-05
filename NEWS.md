@@ -25,8 +25,20 @@
   `r_bridge_status` axis. NOT an interval-coverage claim (one fixture, one
   seed), and the bootstrap comparison is distributional overlap only -- the
   two engines draw from independent RNG streams, so the same `seed` does not
-  reproduce the same replicates. Receipts under
-  `docs/dev-log/evidence/julia-r-parity/p2-g3/`.
+  reproduce the same replicates. The `fixef:rho12:(Intercept)` agreement is
+  NOT solver agreement of the kind `fixef:mu1:x` shows: TMB guards `rho12`
+  with `0.999999` and DRM.jl with `0.99999999`, a deterministic guard-constant
+  reparameterisation of about `9.9e-07 * rho / (1 - rho^2)` on the
+  linear-predictor coefficient, predicted at `3.77138e-07` and measured at
+  `3.77151e-07` for this fixture's `|rho12| ~ 0.34`. The 1e-6 Wald bar on
+  `rho12` is therefore CONDITIONAL on this fixture's weak correlation, not a
+  general parity claim: the offset crosses 1e-6 near `|rho12| ~ 0.62` and
+  reaches `~4.9e-05` at `rho12 = 0.99`. Tracked cross-engine at
+  itchyshin/drmTMB#1190; aligning the three guard constants (TMB, DRM.jl, and
+  the bridge's own `atanh(rho)` back-transform in
+  `drm_julia_residual_rho12_corpair()`) changes numerics on every bivariate
+  receipt and is a deliberate cross-engine decision, not part of this leaf.
+  Receipts under `docs/dev-log/evidence/julia-r-parity/p2-g3/`.
 
 ## REML support tabled by route, measured across both engines (#1142)
 

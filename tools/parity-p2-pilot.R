@@ -497,6 +497,12 @@ run_g3_qualify_biv <- function() {
   boot_R <- 99L
   boot_seed <- 20260905L
   compare_targets <- c("fixef:mu1:x", "fixef:rho12:(Intercept)")
+  # rho12 guard constants (see a8b-biv-qualification-receipt.md, section
+  # "rho12 is compared across a guard-constant reparameterisation"):
+  # TMB src/drmTMB.cpp:679,4642 rho12 <- 0.999999*tanh(eta); DRM.jl
+  # src/sparse_aug_plsm.jl:23 RHO_GUARD = 0.99999999.
+  rho_guard_tmb <- 0.999999
+  rho_guard_jl <- 0.99999999
 
   dat <- load_row_data(row_name)
   log_line("route=%s fixture=%s n=%d", row_name,
@@ -570,6 +576,15 @@ run_g3_qualify_biv <- function() {
       abs(wald_t$lower[[1L]] - wald_j$lower[[1L]]),
       abs(wald_t$upper[[1L]] - wald_j$upper[[1L]])
     )
+    # Predicted guard-offset for the rho12 axis only: the same natural
+    # correlation reported on two different guarded atanh links.
+    pred_offset <- if (identical(p, "fixef:rho12:(Intercept)")) {
+      eta_hat <- (wald_t$lower[[1L]] + wald_t$upper[[1L]]) / 2
+      rho_hat <- rho_guard_tmb * tanh(eta_hat)
+      atanh(rho_hat / rho_guard_tmb) - atanh(rho_hat / rho_guard_jl)
+    } else {
+      NA_real_
+    }
     d_prof <- c(
       abs(prof_t$lower[[1L]] - prof_j$lower[[1L]]),
       abs(prof_t$upper[[1L]] - prof_j$upper[[1L]])
@@ -590,13 +605,15 @@ run_g3_qualify_biv <- function() {
     } else {
       NA
     }
-    log_line("  compare %-28s wald d=[%.3e, %.3e] profile d=[%.3e, %.3e] overlap=%s",
-      p, d_wald[[1L]], d_wald[[2L]], d_prof[[1L]], d_prof[[2L]], overlap)
+    log_line("  compare %-28s wald d=[%.3e, %.3e] profile d=[%.3e, %.3e] overlap=%s%s",
+      p, d_wald[[1L]], d_wald[[2L]], d_prof[[1L]], d_prof[[2L]], overlap,
+      if (is.na(pred_offset)) "" else sprintf(" pred_guard_offset=%.5e", pred_offset))
     list(
       parm = p,
       wald_t = c(wald_t$lower[[1L]], wald_t$upper[[1L]]),
       wald_j = c(wald_j$lower[[1L]], wald_j$upper[[1L]]),
       d_wald = d_wald,
+      pred_offset = pred_offset,
       prof_t = c(prof_t$lower[[1L]], prof_t$upper[[1L]]),
       prof_j = c(prof_j$lower[[1L]], prof_j$upper[[1L]]),
       d_prof = d_prof,
@@ -692,9 +709,10 @@ run_g3_qualify_biv <- function() {
   for (z in compare) {
     add("### `%s`", z$parm)
     add("")
-    add("- wald:    tmb [%.10f, %.10f]  julia [%.10f, %.10f]  delta [%.5e, %.5e]  PASS(%g) = %s",
+    add("- wald:    tmb [%.10f, %.10f]  julia [%.10f, %.10f]  delta [%.5e, %.5e]  PASS(%g) = %s%s",
       z$wald_t[[1L]], z$wald_t[[2L]], z$wald_j[[1L]], z$wald_j[[2L]],
-      z$d_wald[[1L]], z$d_wald[[2L]], tol_wald, z$wald_pass)
+      z$d_wald[[1L]], z$d_wald[[2L]], tol_wald, z$wald_pass,
+      if (is.na(z$pred_offset)) "" else sprintf("  pred_guard_offset = %.5e", z$pred_offset))
     add("- profile: tmb [%.10f, %.10f]  julia [%.10f, %.10f]  delta [%.5e, %.5e]  PASS(%g) = %s",
       z$prof_t[[1L]], z$prof_t[[2L]], z$prof_j[[1L]], z$prof_j[[2L]],
       z$d_prof[[1L]], z$d_prof[[2L]], tol_profile, z$prof_pass)
