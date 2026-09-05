@@ -866,6 +866,36 @@ attribution unchanged -- only the previously-unhandled fallback default is touch
 
 ## 8. Family addenda (A4 admissions, one family per PR)
 
+### 8.6 `zero_one_beta` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+*(Sub-section numbers follow the alphabetical order of the A4 ledgers -- beta_binomial,
+cumulative_logit, skew_normal, truncated_nbinom2, tweedie, zero_one_beta -- so sibling
+addenda landing in any order do not collide.)*
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("zero_one_beta", fe = TRUE)` -- puts the family on the fixed-effect (Workflow G)
+route. Nothing else in `R/` changed: `julia_bridge_supported_dpars()` and
+`drm_julia_bridge_blocks()` already carried `zoi` and `coi`, so the producer
+(`drm_julia_bridge_payload_coef_labels()`, §7.1) labels all four blocks generically,
+`drm_julia_split_coef_name()` splits `zoi_(Intercept)` / `coi_v` at the dpar boundary, and
+the fail-closed comparison (§7.3) applies unchanged.
+
+**dpars and parameterisation.** drmTMB's `zero_one_beta()` declares
+`dpars = c("mu", "sigma", "zoi", "coi")` with links `logit / log / logit / logit`
+(`R/family.R`). DRM.jl's `ZeroOneBeta` (`src/zeroonebeta.jl`) fits exactly the blocks
+`[:mu, :sigma, :zoi, :coi]` with the SAME three-part mixture -- `P(y=0) = zoi(1-coi)`,
+`P(y=1) = zoi coi`, `f(y in (0,1)) = (1-zoi) Beta(mu phi, (1-mu) phi)`, `phi = 1/sigma^2`
+(`phi = exp(-2 eta_sigma)` in the Julia source). One family-specific bridge rule lives on
+the DRM.jl side and needs no R counterpart: DRM.jl's `means[:mu]` is the UNCONDITIONAL mean
+`(1-zoi) mu + zoi coi` (what `fitted()` returns) while drmTMB's `mu` dpar is the INTERIOR
+beta mean `plogis(eta_mu)`; `_bridge_dpars()` (`src/bridge.jl`) ships the interior mean
+under `mu` and drops its internal `beta_mu` key, so `predict(fj, dpar = "mu")` is the
+dpar drmTMB expects. Measured: `max |d fitted| = 9.079e-12` and
+`max |d predict(dpar = .)|` of `3.05e-13` (mu), `2.52e-12` (sigma), `4.15e-13` (zoi),
+`1.91e-11` (coi) against native TMB.
+
+**Payload and echo**, measured live on the `tests/testthat/test-zero-one-beta.R` draw
+(`bf(prop ~ x, sigma ~ z, zoi ~ w, coi ~ v)`, n = 1600, seed 20260620):
 ### 8.1 `truncated_nbinom2` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc, worktree HEAD 67703f541)
 
 **What was admitted.** One row in `R/julia-family-registry.R` --
@@ -886,6 +916,51 @@ n = 300):
 | dpar | R sends (`coef_labels`) | DRM.jl echoes (`coef_names`) |
 |---|---|---|
 | `mu` | `"(Intercept)"`, `"x"` | `mu_(Intercept)`, `mu_x` |
+| `sigma` | `"(Intercept)"`, `"z"` | `sigma_(Intercept)`, `sigma_z` |
+| `zoi` | `"(Intercept)"`, `"w"` | `zoi_(Intercept)`, `zoi_w` |
+| `coi` | `"(Intercept)"`, `"v"` | `coi_(Intercept)`, `coi_v` |
+
+`fj$bridge_public_coef_labels$contract` is `"bridge_formula_labels_v1"`; the raw echo order
+is DRM.jl's block order (mu, sigma, zoi, coi). `fixef(fj)` lists the blocks alphabetically
+(coi, mu, sigma, zoi) -- a pre-existing `split()` order in `R/julia-bridge.R`, not a naming
+difference; every comparison below matches by name.
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, same draw,
+comparator code of the pin's tools/parity_fixture.R and tools/parity_se.R, rows appended
+to the pin clone's evidence TSVs):**
+`max_abs_coef_diff = 3.97868404888868e-11`, `loglik_tmb = -811.772322246398`,
+`loglik_julia = -811.772322246396`, `loglik_diff = 1.93267624126747e-12` (PARITY_PASS at
+tol 1e-4; `df` 8 on both engines); SE `max_abs_se_diff = 1.76288246708789e-08`,
+`max_rel_se_diff = 9.75879113856101e-07` over all 8 coefficients (SE_PASS at rtol 1e-3;
+the negative-control row `negative_control_perturbed_a4_zero_one_beta` with
+`se_julia[1] * 1.10` read NEGATIVE_CONTROL_OK, rel `9.0909e-02`). The fit's `estimator` is
+`"ML"` and equals DRM.jl's `estim_method` (`"ML"`); `fj$REML` is `FALSE`.
+
+**KNOWN HOLE, pinned by test and NOT closed here.** DRM.jl defaults an absent `sigma`,
+`zoi` or `coi` part to `~ 1` and fits the block; its echo then demands a label for every
+block it fitted. The R defaulter `drm_julia_bridge_default_dpar_labels()`
+(`R/julia-bridge.R`, outside this leaf's file set) supplies a default only for `sigma`
+(and `nu` for Student-t). So `bf(prop ~ x, sigma ~ z)` and the bare `bf(prop ~ x)` -- both
+of which native `engine = "tmb"` fits with intercept-only `zoi`/`coi` -- abort under
+`engine = "julia"` with `drm_bridge: coef_labels is missing an entry for dpar "zoi" (1
+fixed-effect columns; Julia names: ["zoi_(Intercept)"])`. Fail-closed, never a silent
+wrong model, but a usability gap: the user must write all four parts. The fix is one
+family-keyed `add_default("zoi"); add_default("coi")` in that defaulter, and
+`tests/testthat/test-julia-family-zero_one_beta.R` ("KNOWN HOLE") is written to FAIL the
+day it lands so the pin is replaced with a fit.
+
+**Other refusals, in DRM.jl's own words (post-boot, forwarded through JuliaCall):** a
+`(1 | g)` random intercept on any part -> `ZeroOneBeta() currently supports fixed effects
+only` (native TMB fits ordinary random intercepts on every zero_one_beta dpar). `REML = TRUE`
+is refused on the R side by the existing non-Gaussian REML rule before Julia starts. The
+refusal text in `drm_julia_family_tag()` still enumerates the pre-A4 family list; it is
+reached only by families that are still refused and lives in `R/julia-bridge.R`.
+
+**NOT admitted by this row:** phylogenetic, structured (`relmat()`/`animal()`/`spatial()`)
+and random-effect routes (all of which native TMB offers for this family); interval
+coverage. The capability-comparison TSV row for this route is NOT added here (the
+`drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`, outside this
+leaf's file set, and is the A3 leaf's row builder) and is left to the integrator.
 | `sigma` | `"(Intercept)"` | `sigma_(Intercept)` |
 
 A bare `bf(y ~ x)` (no `sigma` formula) is ALSO fine: the family is not in
