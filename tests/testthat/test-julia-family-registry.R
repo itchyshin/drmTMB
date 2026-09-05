@@ -1,0 +1,37 @@
+# A0.5 (2026-09-05): the six hand-maintained family lists in R/julia-bridge.R
+# became ONE registry. This file pins that the refactor changed NOTHING -- each
+# derived list is byte-identical to the vector it replaced. Behaviour change
+# (admitting a family) is A4's job and must fail these expectations on purpose,
+# one row at a time, with its own receipts.
+
+test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors exactly", {
+  expect_identical(drmTMB:::drm_julia_phylo_only_families(),
+                   c("poisson", "nbinom2", "gamma", "beta", "binomial"))
+  expect_identical(drmTMB:::drm_julia_locscale_phylo_families(),
+                   c("gaussian", "nbinom2", "gamma", "beta"))
+  expect_identical(sort(drmTMB:::drm_julia_slope_phylo_families()),
+                   sort(c("nbinom2", "gamma", "beta", "poisson")))
+  expect_identical(drmTMB:::drm_julia_dispersionless_families(),
+                   c("poisson", "binomial"))
+  expect_identical(drmTMB:::drm_julia_structured_families(),
+                   c("gaussian", "poisson", "nbinom2", "gamma"))
+  expect_identical(drmTMB:::drm_julia_registry_families("fe"),
+                   c("gaussian", "biv_gaussian", "student", "lognormal",
+                     "poisson", "nbinom2", "gamma", "beta", "binomial"))
+})
+
+test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
+  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial"))
+    expect_identical(drmTMB:::drm_julia_family_tag(f), f)
+  # refused outright (the A4 targets), same message class as before
+  for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta", "tweedie",
+              "cumulative_logit", "skew_normal"))
+    expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
+})
+
+test_that("every registry row has a unique family and a drmjl_tag", {
+  reg <- drmTMB:::drm_julia_family_registry()
+  fam <- vapply(reg, `[[`, character(1L), "family")
+  expect_false(anyDuplicated(fam) > 0)
+  expect_true(all(nzchar(vapply(reg, `[[`, character(1L), "drmjl_tag"))))
+})

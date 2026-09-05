@@ -852,7 +852,7 @@ drm_julia_bridge_family_type <- function(family) {
 # beta_binomial is deliberately excluded: DRM.jl's BetaBinomial `drm()` has no
 # `tree` kwarg, so a beta-binomial phylo fit has no Julia route yet.
 drm_julia_phylo_only_families <- function() {
-  c("poisson", "nbinom2", "gamma", "beta", "binomial")
+  drm_julia_registry_families("phylo_only")
 }
 
 # Families that support the coupled location-scale phylo route (cluster 4):
@@ -863,14 +863,14 @@ drm_julia_phylo_only_families <- function() {
 # Gaussian location-scale phylo Laplace engine (separate-block) -- the capability
 # the native TMB engine lacks (Ayumi #2).
 drm_julia_locscale_phylo_families <- function() {
-  c("gaussian", "nbinom2", "gamma", "beta")
+  drm_julia_registry_families("locscale_phylo")
 }
 
 # Families that support the structured slope phylo route (cluster 3):
 # phylo(1+x|g) on the mean, routed to DRM.jl's _fit_corr_locscale via the
 # `_parse_structured_slope` path. NB2, Gamma, Beta, and Poisson support this.
 drm_julia_slope_phylo_families <- function() {
-  c("nbinom2", "gamma", "beta", "poisson")
+  drm_julia_registry_families("slope_phylo")
 }
 
 # Map drmTMB family_type -> DRM.jl bridge family tag, gating which families the
@@ -881,17 +881,9 @@ drm_julia_slope_phylo_families <- function() {
 # for those same tags when a phylo() term is present. Everything else stays
 # native TMB until a separate bridge admission lands.
 drm_julia_family_tag <- function(family_type, has_phylo = FALSE) {
-  wfg_fe <- c(
-    "gaussian",
-    "biv_gaussian",
-    "student",
-    "lognormal",
-    "poisson",
-    "nbinom2",
-    "gamma",
-    "beta",
-    "binomial"
-  )
+  # The fixed-effect admission list now lives in R/julia-family-registry.R
+  # (A0.5); adding a family is one registry row, not an edit here.
+  wfg_fe <- drm_julia_registry_families("fe")
   if (family_type %in% wfg_fe) {
     return(family_type)
   }
@@ -1513,7 +1505,7 @@ drm_julia_bridge_default_dpar_labels <- function(labels, formula, family_type) {
 # `drm_julia_bridge_default_dpar_labels()` to default -- the SAME list
 # `drm_julia_xfam_sigma()` already uses for the cross-family route.
 drm_julia_dispersionless_families <- function() {
-  c("poisson", "binomial")
+  drm_julia_registry_families("dispersionless")
 }
 
 # Lower-triangular, column-major `Sigma_a:L<row><col>` labels for a q x q
@@ -5550,7 +5542,7 @@ predict.drmTMB_julia <- function(
 # covariance set and is DISTINCT from the phylo-only set: Beta and Binomial fit
 # phylo but have no relmat/animal/spatial `drm()` route, so they are excluded.
 drm_julia_structured_families <- function() {
-  c("gaussian", "poisson", "nbinom2", "gamma")
+  drm_julia_registry_families("structured")
 }
 
 # Structured-marker types this route marshals. Excludes "phylo" (its own
