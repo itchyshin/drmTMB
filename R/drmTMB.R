@@ -2950,6 +2950,25 @@ drm_reml_admits_biv_relmat_q2_intercept <- function(spec) {
   )
 }
 
+# leaf-biv-animal-reml (2026-09-05): the bivariate q2 exact-covariance REML
+# route is provider-agnostic in TMB (src/drmTMB.cpp has no branch on marker
+# identity for this route) and in DRM.jl's own REML implementation (kind ===
+# :animal and kind === :relmat both call the IDENTICAL
+# make_coevo_problem_from_covariance() path, bit-identical loglik measured on
+# a matched fixture). The prior refusal of animal() here was a recorded SCOPE
+# decision (docs/design/211-structured-reml-status.md), not a mathematical
+# objection, so this widens admission to the supplied-`A` representation
+# exactly as relmat's supplied-`K` representation is admitted. Precision
+# (`Ainv`) and pedigree-built (`pedigree`) animal representations stay
+# refused (representation != "A").
+drm_reml_admits_biv_animal_q2_intercept <- function(spec) {
+  drm_reml_admits_biv_exact_q2_intercept(
+    spec,
+    provider = "animal",
+    representation = "A"
+  )
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -3145,15 +3164,18 @@ drm_validate_reml_spec_biv <- function(spec) {
       drm_reml_admits_biv_spatial_q2_intercept(spec)
     relmat_q2_admitted <-
       drm_reml_admits_biv_relmat_q2_intercept(spec)
+    animal_q2_admitted <-
+      drm_reml_admits_biv_animal_q2_intercept(spec)
     if (
       !identical(structured_type, "phylo") &&
         !spatial_q2_admitted &&
-        !relmat_q2_admitted
+        !relmat_q2_admitted &&
+        !animal_q2_admitted
     ) {
       cli::cli_abort(c(
-        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and exact fixed-covariance spatial or supplied-{.code K} relmat q2 location blocks.",
+        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and exact fixed-covariance spatial, supplied-{.code K} relmat, or supplied-{.code A} animal q2 location blocks.",
         "i" = "The spatial exception requires matching labelled {.code spatial(1 | p | site, coords = coords)} intercepts in {.code mu1} and {.code mu2}, constant {.code sigma1}, {.code sigma2}, and {.code rho12}, complete response pairs, unit weights, and no other random-effect layer.",
-        "i" = "The relatedness exception has the same boundaries and requires matching labelled {.code relmat(1 | p | id, K = K)} intercepts; supplied precision {.code Q}, animal, slopes, q4+, and scale-side bivariate relmat REML routes remain deferred.",
+        "i" = "The relatedness exception has the same boundaries and requires matching labelled {.code relmat(1 | p | id, K = K)} or {.code animal(1 | p | id, A = A)} intercepts; supplied precision {.code Q}/{.code Ainv}, pedigree-built animal matrices, slopes, q4+, and scale-side bivariate relmat/animal REML routes remain deferred.",
         "i" = "Known covariance, missing or weighted response pairs, and additional random, direct-SD, or corpair layers remain outside both exact exceptions; use an admitted cell or set {.code REML = FALSE}."
       ))
     }

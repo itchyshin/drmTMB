@@ -1,5 +1,24 @@
 # drmTMB 0.7.0
 
+## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
+
+* `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
+  animal(1 | p | id, A = A), sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE)` now fits instead of refusing. The
+  bivariate q2 exact-covariance REML route was already provider-agnostic in
+  TMB's C++ (no branch on marker identity) and in DRM.jl's own REML
+  implementation (`animal` and `relmat` markers call the identical
+  `make_coevo_problem_from_covariance()` path, bit-identical loglik measured
+  on a matched fixture); the prior refusal was a recorded scope decision, not
+  a mathematical one. Measured this run: the new `animal()` REML fit agrees
+  with the `relmat()` control on the same matrix to `1e-8` (identical
+  mathematics), with the dense restricted-likelihood oracle, and with a direct
+  DRM.jl `method = :REML` call (`|d logLik| < 1e-4`, coefficients to `1e-4`);
+  see `docs/dev-log/evidence/julia-r-parity/reml/biv-animal-q2-receipt.md`.
+  Precision (`Ainv`) and pedigree-built animal representations, slopes, q4+,
+  and scale-side bivariate relmat/animal REML routes remain deferred and
+  refused.
+
 ## `engine = "julia"` admits `beta_binomial()` (fixed effects)
 
 * `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
