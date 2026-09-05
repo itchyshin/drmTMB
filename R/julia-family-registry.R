@@ -55,6 +55,12 @@ drm_julia_family_registry <- function() {
                          slope_phylo = TRUE),
     spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
     # ---- A4 admissions: one row per family, each its own PR -----------------
+    # truncated_nbinom2 (A4, 2026-09-05): fixed effects only, dpars mu + sigma,
+    # the SAME size = 1/sigma^2 parameterisation as nbinom2 on both sides
+    # (DRM.jl src/negbinomial.jl `TruncatedNegBinomial2`, pin 430ef64cc, which
+    # refuses random effects itself: "currently supports fixed effects only").
+    # No phylo/RE/structured admission here -- that is a later row.
+    spec("truncated_nbinom2", fe = TRUE)
     # zero_one_beta (A4, 2026-09-05): fixed effects only, dpars mu (logit) +
     # sigma (log, phi = 1/sigma^2) + zoi (logit) + coi (logit) -- the SAME
     # three-part mixture on both sides (DRM.jl src/zeroonebeta.jl
@@ -66,7 +72,7 @@ drm_julia_family_registry <- function() {
     spec("zero_one_beta", fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   truncated_nbinom2, beta_binomial, tweedie, cumulative_logit
+    #   beta_binomial, tweedie, cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )
