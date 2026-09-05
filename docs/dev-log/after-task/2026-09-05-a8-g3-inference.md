@@ -182,3 +182,9 @@ race was not re-exposed.
    1` on the `gaussian_response_mask` missing-response fixture despite a
    point estimate and profile CI that closely track `engine = "tmb"`, and why
    `bootstrap_result` fails all 99 replicates on the same fixture.
+
+## Reviewer corrections (Fisher, 2026-09-05)
+
+- The bootstrap comparison is overlap only (the Julia interval is nested inside the TMB interval); no same-seed design exists across engines, so G3 is partially met and the promotion rests on profile + Wald agreement.
+- G5: the #1155 abort is unreachable under ML; the evidence is the direct oracle read `fit$bridge$estim_method == "ML" == fit$estimator` on every cell.
+- gaussian_response_mask defects: DRM.jl #646.
