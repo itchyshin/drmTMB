@@ -149,6 +149,26 @@ it). Consequence: clean `origin/main` reports a spurious
 Not fixed here -- out of this leaf's OWNS and a separate defect -- and flagged
 as a follow-up task.
 
+## 5b. Neighbour probe -- where the widened rule stops
+
+Full record:
+`docs/dev-log/evidence/julia-r-parity/p2-g3/a8b-biv-neighbour-probe.md`.
+
+The obvious way the new rule could be wrong is a bivariate route with real
+random structure that stores no provider in its payload. Four live probes
+looked for one:
+
+| probe | result |
+|---|---|
+| bivariate + ordinary `(1 \| g)` | REFUSED by DRM.jl before any fit ("bivariate q=4 structured fits support only phylo/relmat/animal/spatial markers, not ordinary random effects"), so the predicate is never consulted |
+| REAL bivariate q4 phylo fit (12 tips, n = 60) | payload carries `tree`; 7 rows, **0 ready** -- the SPLIT verified on a live structured fit, not only on synthetic payloads |
+| bivariate `meta_V(V = ...)` | NOT REACHABLE through the bridge at all (a per-row 2x2 array cannot cross the `data.frame` marshalling) |
+| bivariate with 8 masked `y1` cells | 7 ready, profile and bootstrap both finite -- but `response = "drop"` removes those rows R-side, so it is a complete-case fit and no missing cell reaches Julia |
+
+The q2 known-covariance bivariate route was checked by reading
+`drm_julia_biv_known_structured_payload()`: it sets `matrix` and `kwarg`, so
+`has_covariance_provider` is TRUE and its fixed-effect rows stay not-ready.
+
 ## 6. Scope deviations, declared
 
 - **`tests/testthat/test-julia-gate-vs-engine.R` is NOT in the leaf's OWNS list
@@ -184,13 +204,21 @@ as a follow-up task.
   R's RNG and `engine = "julia"` from a Julia `MersenneTwister`; the same `seed`
   value does not produce the same replicates. The strongest honest claim from
   those two numbers is distributional overlap, and that is what is reported.
-- **`meta_V` (known-V) bivariate fits.** `_fit_bivariate_residual` takes a
-  different `nll` branch for them (`src/gaussian_bivariate.jl`, the
-  `meta_v !== nothing` arm) and this fixture never enters it.
-- **A partially observed bivariate response through the bridge.** The DRM.jl
-  side now preserves the observation pattern across bootstrap replicates and
-  that is unit-tested in Julia for both `NaN` and `Union{Missing,Float64}`
-  columns -- but no R-side end-to-end fit with a masked bivariate cell was run.
+- **`meta_V` (known-V) bivariate fits.** Probed and found NOT REACHABLE through
+  `engine = "julia"` at all: the bridge column-subsets a `data.frame`, so the
+  per-row 2x2 sampling-covariance array cannot cross, and the fit is refused
+  with `could not find model variable "Vk" in data`. That is true with or
+  without this leaf's change. DRM.jl's own `meta_v` `nll` branch is therefore
+  untouched and unexercised here.
+- **A masked bivariate likelihood.** An R-side fit with `y1[1:8] <- NA` DOES
+  now list 7 ready targets and profiles/bootstraps them (20/20 refits, 0
+  failed) -- but under the drmTMB default `response = "drop"` the bridge drops
+  those rows BEFORE marshalling, so it is a complete-case fit on 172 rows and
+  **no missing cell reaches Julia**. Consequently DRM.jl's new
+  `_bootstrap_keep_unobserved` (which keeps an unobserved cell unobserved
+  across replicates) is Julia-side correctness for direct callers and for a
+  future `response = "include"` bivariate route; it is unit-tested there, and
+  is NOT exercised through the R bridge today.
 - **The STRUCTURED (q = 4 / q = 2) bivariate route.** Its fixed-effect rows
   stay deliberately not-ready; only its four among-axis SDs are its target, and
   that is a different ledger row.
