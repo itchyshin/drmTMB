@@ -1,0 +1,100 @@
+{
+  "leaf": "A10-prerun (P4 warm-workflow PRE-RUN; the FULL GRID WAS NOT RUN)",
+  "design": "1 fixture cell (biv-q4-phylo-reml) x 2 NATIVE engines x (1 warm-up discarded + 3 timed reps), one process per engine, single core",
+  "host": {
+    "name": "totoro",
+    "R": "R version 4.5.3 (2026-03-11)",
+    "platform": "x86_64-pc-linux-gnu",
+    "julia": "1.12.6",
+    "OPENBLAS_NUM_THREADS": "1",
+    "JULIA_NUM_THREADS": 1,
+    "BLAS_threads_julia": 1
+  },
+  "packages": {
+    "drmTMB": {
+      "version": "0.7.0",
+      "sha": "d7eb81fe7f422af7563aa2199c34f62c96b35ffd",
+      "ref": "v0.7.0",
+      "built": "R 4.5.3; x86_64-pc-linux-gnu; 2026-09-05 02:34:41 UTC; unix",
+      "TMB": "1.9.21"
+    },
+    "DRM.jl": {
+      "sha": "430ef64ccca5642c5abebd72194e00895314dfc2"
+    }
+  },
+  "fixture": "DRM.jl test/parity/q4-reml/biv-q4-phylo-reml (data.csv + tree.newick, n = 128, 16 tips), biv_gaussian, REML",
+  "g2_same_optimum": {
+    "loglik_drmTMB": -219.613986302588,
+    "loglik_DRM_jl": -219.614005474459,
+    "abs_gap": 1.9171871002754415e-05,
+    "tolerance": 0.0001,
+    "coef_abs_diff": {
+      "mu1_(Intercept)": 5.655643212532091e-06,
+      "mu1_x": 1.782949476486495e-05,
+      "mu2_(Intercept)": 1.87088659815704e-05,
+      "mu2_x": 4.077743057107064e-05,
+      "sigma1_(Intercept)": 9.163068163808852e-05,
+      "sigma2_(Intercept)": 0.00016948115667664299,
+      "rho12_(Intercept)": 4.2889491914041566e-05
+    },
+    "max_coef_abs_diff": 0.00016948115667664299
+  },
+  "timings": {
+    "drmTMB_native_tmb": {
+      "warmup_wall_s_DISCARDED": 0.22,
+      "timed_wall_s": [
+        0.181,
+        0.179,
+        0.179
+      ],
+      "timed_cpu_s": [
+        0.18,
+        0.18,
+        0.18
+      ],
+      "median_wall_s": 0.179,
+      "median_cpu_s": 0.18,
+      "converged": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "loglik": -219.613986302588
+    },
+    "DRM_jl_native": {
+      "warmup_wall_s_DISCARDED": 35.227323055267334,
+      "timed_wall_s": [
+        0.38583803176879883,
+        0.3846099376678467,
+        0.3827831745147705
+      ],
+      "timed_cpu_s": [
+        0.3856660000000005,
+        0.38435799999999887,
+        0.38274599999999737
+      ],
+      "median_wall_s": 0.3846099376678467,
+      "median_cpu_s": 0.38435799999999887,
+      "converged": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "loglik": -219.614005474459
+    }
+  },
+  "ratio_DRM_jl_over_drmTMB": {
+    "median_wall": 2.148658869652775,
+    "median_cpu": 2.135322222222216
+  },
+  "caveats": [
+    "Julia 1.12.6 on Totoro (DRM.jl #629 reports 1.12 vs 1.10 timing differences); no 1.10 measurement here.",
+    "drmTMB's fit includes its default TMB::sdreport(); DRM.jl was called with q4_vcov = false (the fixture test's and the bridge's default for this route; its Wald vcov is fenced, #495). The Julia number therefore excludes an uncertainty step the R number includes.",
+    "Timings are for one tiny cell (n = 128, 7 fixed effects); they say nothing about scaling.",
+    "Thread pins were by environment variable (OPENBLAS/OMP/JULIA_NUM_THREADS = 1), not CPU affinity; /usr/bin/time reported 99-100% CPU for both processes.",
+    "Another lane's Pkg.test() (~/s7b_work, one core) was running on the 384-core host; load average ~1.0.",
+    "The FULL GRID WAS NOT RUN. It is the owner's D-139 gate."
+  ]
+}

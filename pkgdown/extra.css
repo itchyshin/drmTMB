@@ -28,6 +28,66 @@
   white-space: normal;
 }
 
+/* One compact route from the honest status material to a reportable result. */
+.drmtmb-first-actions {
+  background: #f2f7f8;
+  border: 1px solid #d6e3e6;
+  border-left: 0.35rem solid #087f8c;
+  border-radius: 0.45rem;
+  margin: 1.35rem 0 1.65rem;
+  padding: 0.9rem 1rem;
+}
+
+.drmtmb-first-actions p {
+  margin: 0;
+}
+
+.drmtmb-first-actions__eyebrow {
+  color: #496168;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.drmtmb-first-actions__primary {
+  font-size: 1.16rem;
+  font-weight: 700;
+  padding: 0.2rem 0 0.25rem;
+}
+
+.drmtmb-first-actions__secondary {
+  color: #37515a;
+  font-size: 0.92rem;
+}
+
+@media (min-width: 992px) and (max-width: 1359.98px) {
+  /* The ordinary package version already remains visible beside the brand. */
+  .drmtmb-version-note {
+    display: none;
+  }
+
+  .navbar #search-input {
+    min-width: 0;
+    width: 9.5rem;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1099.98px) {
+  .navbar .navbar-nav.me-auto {
+    font-size: 0.78rem;
+  }
+
+  .navbar .navbar-nav.me-auto .nav-link {
+    padding-left: 0.28rem;
+    padding-right: 0.28rem;
+  }
+
+  .navbar #search-input {
+    width: 8.5rem;
+  }
+}
+
 @media (min-width: 992px) {
   body > .container .row > main,
   body > .container .row > aside {
@@ -71,12 +131,19 @@
 }
 
 @media (max-width: 575.98px) {
+  .page-header img.logo,
   .template-home .page-header img.logo {
     display: block;
     float: none;
     margin: 0 auto 1rem;
     max-width: 50vw;
     width: 132px;
+  }
+
+  .template-article math[display="block"] {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 }
 
