@@ -11,6 +11,24 @@
   `Sigma_a` is rescaled to the unit-height convention, as `profile_targets()`
   already does). Ported term-for-term from DRM.jl `src/coevo_accessors.jl`
   and checked live against DRM.jl's own accessors at pin `430ef64cc`.
+## Boundary-corrected likelihood-ratio test for variance components (DRM.jl #1116 port)
+
+* New `chibar_pvalue(statistic, q)` and `lrt_boundary(full, reduced, q)`:
+  the chi-bar-square boundary-corrected likelihood-ratio test for `q` (1 or
+  2) variance components tested at zero, ported term-for-term from DRM.jl
+  `src/chibar.jl` (pin `430ef64cc`). Dropping a random effect tests a
+  variance on the boundary of its space, where the naive `chisq(q)` p-value
+  is conservative; `lrt_boundary()` reports both the corrected and the naive
+  p-value, refuses ML-vs-REML pairs, REML pairs with different mean
+  structures, and penalized (MAP) fits. Measured against DRM.jl's native
+  `lrt_boundary` on the same data (four fixtures, `q = 1` and `q = 2`): the
+  statistic agrees to `3.8e-10` (strong random intercept, stat 670.27),
+  `2.2e-11` (moderate, stat 2.2012, p 0.06895 vs 0.06895 to `9.7e-13`) and
+  `4.5e-11` (two crossed intercepts, `q = 2`, stat 94.418); at a variance
+  estimated at zero both engines return the boundary point mass `0.5`
+  (to `2.3e-7`). `chibar_pvalue()` agrees with `DRM.chibar_pvalue` to
+  `1e-12` relative on identical statistics
+  (`tests/testthat/test-lrt-boundary.R`).
 ## `engine = "julia"` admits `tweedie()` on the fixed-effect route
 
 * `tweedie()` (dpars `mu`, `sigma`, `nu`) now routes through `engine = "julia"`
