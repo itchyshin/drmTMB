@@ -75,10 +75,17 @@ drm_julia_family_registry <- function() {
     # R/family.R (log mu; sigma = sqrt(phi); nu = 1 + plogis(eta), the
     # "logit12" link), so no payload/label code is needed. No phylo, no RE,
     # no structured route here -- that is a later row.
-    spec("tweedie",      fe = TRUE)
+    spec("tweedie",      fe = TRUE),
+    # beta_binomial (A4, 2026-09-05): fixed-effect route ONLY. drmTMB dpars
+    # mu/sigma, response cbind(successes, failures); DRM.jl's BetaBinomial uses
+    # the SAME sigma mapping (phi = 1/sigma^2, src/betabinomial.jl at
+    # 430ef64cc), and its bridge ships `trials` as per-row context, not a
+    # dpar. phylo_only stays FALSE on purpose: DRM.jl's BetaBinomial phylo
+    # route is constant-sigma only and has no bridge receipt yet -- a later row.
+    spec("beta_binomial", fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   beta_binomial, cumulative_logit
+    #   cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )
