@@ -189,6 +189,7 @@ reference:
       - imputed
       - model-fit-extractors
       - anova.drmTMB
+      - model-comparison
       - marginal_parameters
       - prediction_grid
       - predict_parameters
