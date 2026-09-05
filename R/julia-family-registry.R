@@ -55,6 +55,21 @@ drm_julia_family_registry <- function() {
                          slope_phylo = TRUE),
     spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
     # ---- A4 admissions: one row per family, each its own PR -----------------
+    # truncated_nbinom2 (A4, 2026-09-05): fixed effects only, dpars mu + sigma,
+    # the SAME size = 1/sigma^2 parameterisation as nbinom2 on both sides
+    # (DRM.jl src/negbinomial.jl `TruncatedNegBinomial2`, pin 430ef64cc, which
+    # refuses random effects itself: "currently supports fixed effects only").
+    # No phylo/RE/structured admission here -- that is a later row.
+    spec("truncated_nbinom2", fe = TRUE),
+    # zero_one_beta (A4, 2026-09-05): fixed effects only, dpars mu (logit) +
+    # sigma (log, phi = 1/sigma^2) + zoi (logit) + coi (logit) -- the SAME
+    # three-part mixture on both sides (DRM.jl src/zeroonebeta.jl
+    # `ZeroOneBeta`, pin 430ef64cc, which refuses random effects itself:
+    # "currently supports fixed effects only"). No phylo/RE/structured
+    # admission here -- that is a later row. No family-specific payload or
+    # label code is needed: `julia_bridge_supported_dpars()` and
+    # `drm_julia_bridge_blocks()` already carry zoi/coi.
+    spec("zero_one_beta", fe = TRUE),
     # tweedie (A4, 2026-09-05): fixed effects ONLY (mu, sigma, nu). DRM.jl
     # src/tweedie.jl at pin 430ef64cc uses the same parameterisation as
     # R/family.R (log mu; sigma = sqrt(phi); nu = 1 + plogis(eta), the
@@ -63,7 +78,7 @@ drm_julia_family_registry <- function() {
     spec("tweedie",      fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   truncated_nbinom2, beta_binomial, zero_one_beta, cumulative_logit
+    #   beta_binomial, cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )
