@@ -1460,9 +1460,40 @@ interval_source_levels <- function() {
   c("wald", "profile", "bootstrap", "not_available")
 }
 
+# Target inventory for an `engine = "julia"` fit (#1156). `profile_targets()`
+# used to return only `drm_julia_profile_targets()` -- the phylogenetic SD
+# rows -- so a Julia fit of `y ~ x + phylo(1 | species), sigma ~ 1` listed one
+# target while the same TMB fit listed six, even though `confint()` accepted
+# the fixed-effect names in full (`drm_julia_confint()` already rbind()s the
+# SD inventory with `drm_julia_wald_targets()`). Discovery now reports the
+# same union the engine accepts, in the native row order: fixed-effect rows,
+# the response-scale `sigma` alias, then the random-effect SD rows.
+#
+# The union is built HERE, not inside `drm_julia_profile_targets()`, because
+# `drm_julia_confint()` and `drm_julia_bootstrap_confint()` rbind() that
+# function's rows with the fixed-effect rows themselves; widening it would
+# duplicate every fixed-effect row and make the one-target validator reject
+# a valid `parm`. The `sigma` alias row stays Wald-only (`profile_ready =
+# FALSE`, note `missing_tmb_parameter`), exactly as `drm_julia_wald_confint()`
+# reports it; the native TMB fit additionally lists a derived
+# `phylo_total_variance_share` row that the bridge has no counterpart for.
+drm_julia_profile_target_union <- function(object) {
+  out <- rbind(
+    drm_julia_wald_targets(object),
+    drm_julia_wald_scale_targets(object),
+    drm_julia_profile_targets(object)
+  )
+  out <- out[!duplicated(out$parm), , drop = FALSE]
+  row.names(out) <- NULL
+  if (nrow(out) == 0L) {
+    return(empty_profile_targets())
+  }
+  validate_profile_targets(out)
+}
+
 drm_profile_targets <- function(object) {
   if (inherits(object, "drmTMB_julia")) {
-    return(drm_julia_profile_targets(object))
+    return(drm_julia_profile_target_union(object))
   }
 
   rows <- list()
@@ -3658,6 +3689,17 @@ ordinal_cutpoint_profile_evaluator <- function(object, target, control) {
       out
     }
     opt <- stats::nlminb(start, fn_free, gr_free, control = control)
+    # #1144: the free optimum is Newton-polished (`drm_fit_spec()`), but this
+    # constrained cutpoint solve stopped wherever `nlminb` alone stopped -- on
+    # a random-intercept ordinal fit that is a gradient of ~1e-3 to 2e-3 at
+    # BOTH endpoints against ~1e-8 at the fitted optimum, the same asymmetry
+    # that biased the main endpoint solve (#1130, `profile_endpoint_evaluator`).
+    # Polish both endpoints the same way, under the same `newton_polish`
+    # control, so the constrained nll is compared like with like. The
+    # `PROFILE_ENDPOINT_GRADIENT_TOL` guard below is unchanged.
+    if (isTRUE(object$control$newton_polish)) {
+      opt <- drm_newton_polish(opt, fn_free, gr_free)
+    }
     if (is.finite(opt$objective) &&
       opt$objective < (object$opt$objective - 1e-3)) {
       cli::cli_abort(c(
