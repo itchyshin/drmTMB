@@ -863,3 +863,61 @@ native TMB engine's `sdpars$sigma` uses for this construct. Verified live: `fj$s
 entry named `"(1 | g)"` (`fj$sdpars$mu` empty), matching a native TMB fit of the same formula exactly.
 Every OTHER bare-`resd` shape (phylo, relmat/animal/spatial) keeps its existing `entry$structured`-matched
 attribution unchanged -- only the previously-unhandled fallback default is touched.
+
+## 8. Family addenda (A4 admissions, one family per PR)
+
+### 8.2 `beta_binomial` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("beta_binomial", fe = TRUE)` -- puts the family on the fixed-effect
+(Workflow G) route. Nothing else in `R/` changed: the producer
+(`drm_julia_bridge_payload_coef_labels()`, §7.1) and the defaulter already
+handle a two-dpar `mu` + `sigma` family generically, and the fail-closed
+comparison (§7.3) applies unchanged. No `R/julia-family-beta_binomial.R` was
+needed.
+
+**dpars, labels, and the denominator.** drmTMB's `beta_binomial()` declares
+`dpars = c("mu", "sigma")` (`R/family.R`); DRM.jl's `BetaBinomial` fits exactly
+the blocks `[:mu, :sigma]` (`src/betabinomial.jl`) with the SAME precision
+mapping `phi = 1 / sigma^2`. The response is `cbind(successes, failures)`; both
+columns are marshalled (`drm_julia_expand_response_columns()`), and the per-row
+denominator crosses back as its own payload key `trials` (DRM.jl
+`_bridge_trials`, `src/bridge.jl`), NOT as a dpar -- `_bridge_dpars` deletes it
+from the dpar dictionary on purpose, so the echo never sees a `trials` block.
+Payload and echo, measured live on the `tests/testthat/test-beta-binomial.R`
+draw (`bf(cbind(success, failure) ~ x, sigma ~ z)`, n = 1200, seed 20260510):
+
+| dpar | R sends (`coef_labels`) | DRM.jl echoes (`coef_names`) |
+|---|---|---|
+| `mu` | `"(Intercept)"`, `"x"` | `mu_(Intercept)`, `mu_x` |
+| `sigma` | `"(Intercept)"`, `"z"` | `sigma_(Intercept)`, `sigma_z` |
+
+`fj$bridge$trials` has length 1200 and equals `success + failure` row for row.
+`fj$model$dpars` is `c("mu", "sigma")`; `fj$df` is 4 on both engines.
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, same
+draw, comparator code taken verbatim from DRM.jl tools/parity_fixture.R and
+tools/parity_se.R at the pin):** `max_abs_coef_diff = 7.7715611723761e-15`
+(4/4 name-matched), `loglik_tmb = -2888.8513171557`,
+`loglik_julia = -2888.85131715596`, `loglik_diff = 2.57387000601739e-10`
+(PARITY_PASS at tol 1e-4); SE `max_abs_se_diff = 6.17653239665117e-09`,
+`max_rel_se_diff = 1.72530114732596e-07` over `mu_(Intercept)`, `mu_x`,
+`sigma_(Intercept)`, `sigma_z` (SE_PASS at rtol 1e-3). The table's own
+negative control (cell 1, `se_julia[1] * 1.10`) read NEGATIVE_CONTROL_OK at
+rel 9.0909e-02, and the same perturbation on this family's cell read SE_FAIL.
+The fit's `estimator` is `"ML"` and equals DRM.jl's `estim_method` (`"ML"`).
+Comparator build `drmtmb_code_hash 63d269e3` (the `load_all()` build at
+measurement time).
+
+**Scope fence (measured).** `bf(cbind(success, failure) ~ x + phylo(1 | sp,
+tree = tree), sigma ~ 1)` with this family still refuses BEFORE Julia starts
+(`can marshal `phylo()` only for ...`): the row sets `phylo_only = FALSE` on
+purpose, because DRM.jl's `BetaBinomial` phylo route is constant-`sigma` only
+and has no bridge receipt. Ordinary `(1 | g)` on `mu` is neither refused nor
+claimed here -- it is A5's measurement. No interval-coverage claim.
+
+**Red control.** With the registry row removed (the branch-base
+`R/julia-family-registry.R`), the same call refused with the Workflow G message
+(`currently supports Workflow G fixed-effect families (...)`) and the
+parity_fixture row came out `JULIA_FAILED`; the file was restored
+byte-identically (sha256 `d7a40a80...` before and after).

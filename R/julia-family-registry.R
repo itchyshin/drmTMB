@@ -53,10 +53,18 @@ drm_julia_family_registry <- function() {
                          slope_phylo = TRUE, structured = TRUE),
     spec("beta",         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE),
-    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE)
+    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
+    # ---- A4 admissions (one row per PR, each with its own receipts) ---------
+    # beta_binomial (A4, 2026-09-05): fixed-effect route ONLY. drmTMB dpars
+    # mu/sigma, response cbind(successes, failures); DRM.jl's BetaBinomial uses
+    # the SAME sigma mapping (phi = 1/sigma^2, src/betabinomial.jl at
+    # 430ef64cc), and its bridge ships `trials` as per-row context, not a
+    # dpar. phylo_only stays FALSE on purpose: DRM.jl's BetaBinomial phylo
+    # route is constant-sigma only and has no bridge receipt yet -- a later row.
+    spec("beta_binomial", fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   truncated_nbinom2, beta_binomial, zero_one_beta, tweedie, cumulative_logit
+    #   truncated_nbinom2, zero_one_beta, tweedie, cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )
