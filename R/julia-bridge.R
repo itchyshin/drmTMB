@@ -5673,6 +5673,126 @@ drm_julia_tag_linkinv <- function(tag) {
   )
 }
 
+# ---- predict(type = "quantile") through the bridge (drmTMB#1198) -----------
+#
+# NO NEW STATISTICS. This hands the fit to the SAME native
+# `drm_predict_quantile()` (R/distributional-outputs.R) that `engine = "tmb"`
+# uses, so the `prob` validation, the per-family {d,p,q} registry
+# (R/family-dpq.R), the percentage column labels, and the
+# `calibrated`/`prob`/`label` attributes keep ONE source of truth. Only the
+# per-row distributional parameters differ, and those come from this file's own
+# `predict.drmTMB_julia()` reconstruction -- so a bridge quantile inherits the
+# bridge's prediction scope (population-level for `newdata`, the earned
+# conditional routes for stored rows), not a second, parallel one.
+#
+# Two bridge-side adjustments make that reuse possible:
+#
+#   1. DISPATCH. The native chain calls three generics: `fitted_distribution()`,
+#      `predict_parameters()`, and `predict()`. A `drmTMB_julia` object has a
+#      method for the last only, so the first two would abort with "no
+#      applicable method". Appending "drmTMB" to the class for the duration of
+#      this call resolves those two to their native methods -- which read
+#      nothing but `object$model$model_type`, `names(object$coefficients)`, and
+#      whatever `predict()` returns -- while `predict()` still resolves to
+#      `predict.drmTMB_julia()` because that method is more specific. The
+#      extended class is local to this call and never reaches the user object.
+#   2. `trials`. `fitted_distribution_params()` reads `object$model$trials` for
+#      binomial / beta_binomial FITTED rows. The native engine stores it when
+#      it prepares the response; `new_drmTMB_julia()` does not (DRM.jl ships
+#      trials as per-row bridge context, not a dpar). It is rebuilt below from
+#      the retained response label and training data with the native
+#      `prepare_binomial_response()` / `prepare_betabinomial_response()` rule --
+#      the same "reconstruct from the retained formula + data" move
+#      `drm_julia_predict_fixed_eta()` already makes for the design matrix. NO
+#      DRM.jl change is involved. `newdata` rows carry their own `trials`
+#      column on both engines (native `drm_newdata_trials()`), unchanged here.
+drm_julia_predict_quantile <- function(object, newdata, dpar, prob) {
+  drm_julia_quantile_refuse_meta_v(object)
+  object <- drm_julia_quantile_trials(object, newdata)
+  class(object) <- c(class(object), "drmTMB")
+  drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob)
+}
+
+# THE ONE MEASURED HAZARD OF THE REUSE ABOVE, fenced (drmTMB#1198).
+# A gaussian quantile is taken at the TOTAL observation SD
+# `sqrt(V_known + sigma^2)` (`drm_gaussian_obs_sigma()`, R/family-dpq.R), and
+# `fitted_distribution_params()` reads `V_known` from `known_v_diag()`, i.e.
+# from `object$model$V_known_diag` / `$V_known`. A Julia-bridge fit retains
+# NEITHER, so `known_v_diag()` returns NULL, `V_known` silently becomes 0, and
+# a `meta_V()` fit's quantiles would come back too narrow -- WITHOUT any error.
+# Measured on the Workflow G meta cell (2026-09-05, n = 200, DRM.jl 430ef64cc):
+# 3.485e-01 absolute on stored rows and 2.731e-01 on newdata rows against
+# `engine = "tmb"`, versus <= 5e-11 for every non-meta family. Refuse instead:
+# a wrong interval the user cannot see is worse than a named boundary.
+# Reconstructing V_known from the retained formula is a separate change with
+# its own receipt, not this leaf's.
+drm_julia_quantile_refuse_meta_v <- function(object) {
+  entries <- object$formula$entries
+  has_meta <- length(entries) > 0L && any(vapply(
+    entries,
+    function(entry) {
+      formula_contains_call(entry$rhs, "meta_V") ||
+        formula_contains_call(entry$rhs, "meta_known_V")
+    },
+    logical(1L)
+  ))
+  if (!has_meta) {
+    return(invisible(FALSE))
+  }
+  cli::cli_abort(c(
+    "{.code predict(type = \"quantile\")} is not available for a {.fn meta_V} fit through {.code engine = \"julia\"}.",
+    "x" = "A Julia-bridge fit does not retain the per-row known sampling variance, so its quantiles would silently use {.code sigma} alone and be too narrow.",
+    i = "Use {.code engine = \"tmb\"} for meta-analysis quantiles; {.code type = \"response\"} and {.code type = \"link\"} on this fit are unaffected."
+  ))
+}
+
+# Rebuild `object$model$trials` for a binomial / beta_binomial bridge fit's
+# stored rows. Returns the object unchanged for every other family, for
+# `newdata` rows (the native newdata rule owns those), and when a caller-built
+# object already carries the slot.
+drm_julia_quantile_trials <- function(object, newdata) {
+  model_type <- object$model$model_type
+  if (!model_type %in% c("binomial", "beta_binomial")) {
+    return(object)
+  }
+  if (!is.null(newdata) || !is.null(object$model$trials)) {
+    return(object)
+  }
+  data <- object$data
+  if (!is.data.frame(data)) {
+    cli::cli_abort(
+      "{.fn predict} cannot rebuild the {.val {model_type}} trial denominators: this Julia-engine fit did not retain its training data."
+    )
+  }
+  entry <- drm_julia_predict_entry(object, "mu")
+  response <- entry$response
+  if (is.null(response) || length(response) != 1L || is.na(response)) {
+    cli::cli_abort(
+      "{.fn predict} cannot rebuild the {.val {model_type}} trial denominators: this Julia-engine fit did not retain a {.code mu} response."
+    )
+  }
+  response <- as.character(response)
+  columns <- drm_julia_expand_response_columns(response)
+  missing <- setdiff(columns, names(data))
+  if (length(missing) > 0L) {
+    cli::cli_abort(
+      "{.fn predict} could not find response column{?s} {.val {missing}} in this Julia-engine fit's training data."
+    )
+  }
+  y <- if (length(columns) == 2L) {
+    cbind(data[[columns[[1L]]]], data[[columns[[2L]]]])
+  } else {
+    data[[columns[[1L]]]]
+  }
+  prepared <- if (identical(model_type, "binomial")) {
+    prepare_binomial_response(y, response)
+  } else {
+    prepare_betabinomial_response(y, response)
+  }
+  object$model$trials <- prepared$trials
+  object
+}
+
 #' Predict from a Julia-bridge `drmTMB` fit
 #'
 #' This optional bridge method reconstructs predictions from the retained R
@@ -5696,29 +5816,59 @@ drm_julia_tag_linkinv <- function(tag) {
 #' parameters with a recognized native link. Random-effect scale components and
 #' other non-dpar coefficient blocks are refused.
 #'
+#' `type = "quantile"` returns per-row conditional quantiles of the fitted
+#' RESPONSE distribution, computed by the SAME native code the `engine = "tmb"`
+#' method uses ([predict.drmTMB()] -> `fitted_distribution()`'s `q()`), driven
+#' by this fit's own reconstructed distributional parameters. It therefore
+#' inherits that method's contract exactly: a matrix with one row per
+#' observation and one column per `prob`, columns named as percentages,
+#' `attr(., "calibrated") == FALSE` (a distributional plug-in interval at the
+#' point estimate, not a calibrated-coverage interval), and the
+#' `"spike"`/`"unimplemented"` family status gate. Because the parameters come
+#' from this method's own reconstruction, the quantiles are FIXED-EFFECT,
+#' population-level for `newdata` rows and carry the same conditional
+#' random-effect scope as `type = "response"` for stored rows. For a bivariate
+#' `biv_gaussian` fit, `dpar` selects which response's MARGINAL quantile to
+#' return (`"mu1"`/`"sigma1"` or `"mu2"`/`"sigma2"`); `rho12` is ignored. A
+#' `binomial` or `beta_binomial` `newdata` quantile needs a `trials` column, as
+#' it does natively.
+#'
+#' `type = "quantile"` is REFUSED on a `meta_V()` fit through this engine: a
+#' Julia-bridge fit does not retain the per-row known sampling variance, so its
+#' gaussian quantiles would silently use `sigma` alone instead of the total
+#' observation SD `sqrt(V + sigma^2)`. Use `engine = "tmb"` for meta-analysis
+#' quantiles; `type = "response"` and `type = "link"` are unaffected.
+#'
 #' A legacy cross-family object (`drmTMB_julia_xfam`) is narrower still: only
 #' `mu1` and `mu2` are available. Stored and new-data predictions are response
 #' means with the shared latent effect fixed at `u = 0`; they are not marginal
 #' means. Cross-family covariance, fixed-effect Wald inference, and scale-axis
 #' prediction are unavailable because that legacy bridge did not retain the
-#' required payload.
+#' required payload. It has no `type = "quantile"`.
 #'
 #' @param object A `drmTMB_julia` fit.
 #' @param newdata Optional data frame. When supplied, predictions are
 #'   population-level (random effects set to zero).
 #' @param dpar Distributional parameter to predict. Defaults to the first
-#'   retained fixed-effect dpar.
-#' @param type `"response"` (default) or `"link"`.
+#'   retained fixed-effect dpar. For `type = "quantile"` on a bivariate
+#'   `biv_gaussian` fit, `dpar` instead selects which response's marginal
+#'   quantile to compute.
+#' @param type `"response"` (default), `"link"`, or `"quantile"`.
+#' @param prob Numeric vector of probabilities in (0, 1), used only when
+#'   `type = "quantile"`.
 #' @param ... Reserved.
 #'
 #' @return A numeric vector of predictions, length `nrow(newdata)` when
-#'   `newdata` is supplied.
+#'   `newdata` is supplied. For `type = "quantile"`, a numeric matrix with one
+#'   row per observation and one column per `prob`, with
+#'   `attr(., "calibrated") == FALSE`.
 #' @export
 predict.drmTMB_julia <- function(
   object,
   newdata = NULL,
   dpar = NULL,
-  type = c("response", "link"),
+  type = c("response", "link", "quantile"),
+  prob = c(0.025, 0.5, 0.975),
   ...
 ) {
   type <- match.arg(type)
@@ -5728,6 +5878,14 @@ predict.drmTMB_julia <- function(
   }
   dpar <- match.arg(dpar, names(object$coefficients))
   drm_julia_predict_check_dpar(object, dpar)
+  if (identical(type, "quantile")) {
+    return(drm_julia_predict_quantile(
+      object,
+      newdata = newdata,
+      dpar = dpar,
+      prob = prob
+    ))
+  }
 
   if (!is.null(newdata)) {
     fixed <- drm_julia_predict_fixed_eta(object, dpar, newdata, "newdata")

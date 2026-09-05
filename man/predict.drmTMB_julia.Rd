@@ -5,7 +5,14 @@
 \alias{predict.drmTMB_julia_xfam}
 \title{Predict from a Julia-bridge \code{drmTMB} fit}
 \usage{
-\method{predict}{drmTMB_julia}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
+\method{predict}{drmTMB_julia}(
+  object,
+  newdata = NULL,
+  dpar = NULL,
+  type = c("response", "link", "quantile"),
+  prob = c(0.025, 0.5, 0.975),
+  ...
+)
 
 \method{predict}{drmTMB_julia_xfam}(object, newdata = NULL, dpar = NULL, type = c("response", "link"), ...)
 }
@@ -16,15 +23,22 @@
 population-level (random effects set to zero).}
 
 \item{dpar}{Distributional parameter to predict. Defaults to the first
-retained fixed-effect dpar.}
+retained fixed-effect dpar. For \code{type = "quantile"} on a bivariate
+\code{biv_gaussian} fit, \code{dpar} instead selects which response's marginal
+quantile to compute.}
 
-\item{type}{\code{"response"} (default) or \code{"link"}.}
+\item{type}{\code{"response"} (default), \code{"link"}, or \code{"quantile"}.}
+
+\item{prob}{Numeric vector of probabilities in (0, 1), used only when
+\code{type = "quantile"}.}
 
 \item{...}{Reserved.}
 }
 \value{
 A numeric vector of predictions, length \code{nrow(newdata)} when
-\code{newdata} is supplied.
+\code{newdata} is supplied. For \code{type = "quantile"}, a numeric matrix with one
+row per observation and one column per \code{prob}, with
+\code{attr(., "calibrated") == FALSE}.
 }
 \description{
 This optional bridge method reconstructs predictions from the retained R
@@ -49,10 +63,33 @@ Fresh-data support includes only retained fixed-effect distributional
 parameters with a recognized native link. Random-effect scale components and
 other non-dpar coefficient blocks are refused.
 
+\code{type = "quantile"} returns per-row conditional quantiles of the fitted
+RESPONSE distribution, computed by the SAME native code the \code{engine = "tmb"}
+method uses (\code{\link[=predict.drmTMB]{predict.drmTMB()}} -> \code{fitted_distribution()}'s \code{q()}), driven
+by this fit's own reconstructed distributional parameters. It therefore
+inherits that method's contract exactly: a matrix with one row per
+observation and one column per \code{prob}, columns named as percentages,
+\code{attr(., "calibrated") == FALSE} (a distributional plug-in interval at the
+point estimate, not a calibrated-coverage interval), and the
+\code{"spike"}/\code{"unimplemented"} family status gate. Because the parameters come
+from this method's own reconstruction, the quantiles are FIXED-EFFECT,
+population-level for \code{newdata} rows and carry the same conditional
+random-effect scope as \code{type = "response"} for stored rows. For a bivariate
+\code{biv_gaussian} fit, \code{dpar} selects which response's MARGINAL quantile to
+return (\code{"mu1"}/\code{"sigma1"} or \code{"mu2"}/\code{"sigma2"}); \code{rho12} is ignored. A
+\code{binomial} or \code{beta_binomial} \code{newdata} quantile needs a \code{trials} column, as
+it does natively.
+
+\code{type = "quantile"} is REFUSED on a \code{meta_V()} fit through this engine: a
+Julia-bridge fit does not retain the per-row known sampling variance, so its
+gaussian quantiles would silently use \code{sigma} alone instead of the total
+observation SD \code{sqrt(V + sigma^2)}. Use \code{engine = "tmb"} for meta-analysis
+quantiles; \code{type = "response"} and \code{type = "link"} are unaffected.
+
 A legacy cross-family object (\code{drmTMB_julia_xfam}) is narrower still: only
 \code{mu1} and \code{mu2} are available. Stored and new-data predictions are response
 means with the shared latent effect fixed at \code{u = 0}; they are not marginal
 means. Cross-family covariance, fixed-effect Wald inference, and scale-axis
 prediction are unavailable because that legacy bridge did not retain the
-required payload.
+required payload. It has no \code{type = "quantile"}.
 }

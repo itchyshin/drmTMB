@@ -1,5 +1,31 @@
 # drmTMB 0.7.0
 
+## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
+
+* `predict()` on an `engine = "julia"` fit accepted `type = c("response",
+  "link")` only, so `predict(fit, type = "quantile")` was refused by
+  `match.arg()` for EVERY family while `engine = "tmb"` has accepted it since
+  the distributional-output layer landed. The bridge method now takes
+  `type = "quantile"` and a `prob` argument, and hands the fit to the SAME
+  native quantile code the TMB engine uses: the per-family density/CDF/quantile
+  registry, the `prob` validation, the percentage column labels, and the
+  `calibrated`/`prob`/`label` attributes all keep one source of truth, with
+  only the per-row distributional parameters coming from the bridge's own
+  reconstruction. All 14 families the bridge admits on its fixed-effect route
+  qualify: gaussian, biv_gaussian, student, lognormal, poisson, nbinom2, gamma,
+  beta, binomial, truncated_nbinom2, zero_one_beta, tweedie, beta_binomial and
+  cumulative_logit. Measured against `engine = "tmb"` on the same fit at DRM.jl
+  pin `430ef64cc` (`tests/testthat/test-julia-predict-quantile.R`, prob = 0.1 /
+  0.5 / 0.9), identical dimensions, column names and attributes, and max |d
+  quantile| at most `4.93e-11` on stored rows and `2.34e-11` on fresh
+  `newdata` -- exactly `0` for the five discrete families. **NOT covered:** a
+  `meta_V()` fit refuses `type = "quantile"` on this engine, because a
+  Julia-bridge fit does not retain the per-row known sampling variance and its
+  quantiles would silently use `sigma` alone (measured `3.485e-01` too narrow
+  against `engine = "tmb"`); use `engine = "tmb"` there. This is a
+  distributional plug-in interval on both engines -- `attr(., "calibrated")` is
+  `FALSE` -- and it makes no interval-coverage claim.
+
 ## `engine = "julia"` admits `beta_binomial()` (fixed effects)
 
 * `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
@@ -48,7 +74,9 @@
   pin `430ef64cc`: max |d prediction| for stored data and fresh `newdata`,
   both types, all below `1.5e-13`. Thresholds are not read by `predict()`
   on either engine for this family -- they live in `fit$ordinal`, not in the
-  linear predictor. `type = "quantile"` is still unavailable on every `engine = "julia"` fit (drmTMB#1198).
+  linear predictor. `type = "quantile"` on `engine = "julia"` fits was
+  unavailable when this landed; it is added by the entry at the top of this
+  file (drmTMB#1198).
 
 ## REML support tabled by route, measured across both engines (#1142)
 
