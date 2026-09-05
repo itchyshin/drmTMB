@@ -9,8 +9,9 @@ Lauseker:
   for this helper. A regression test now checks both the generated and loaded
   namespace exports.
 * The commented-out calls in `?confint.drmTMB` and `?corpairs` are executable
-  examples. The 99-refit bootstrap call is wrapped in `\donttest{}`; the other
-  calls run as regular examples.
+  regular examples. The 99-refit bootstrap call also runs normally; the complete
+  `?confint.drmTMB` example block takes under 2 seconds in the exact-tarball
+  timing check.
 * The package contains no `\dontrun{}` examples. The association confidence-
   interval and streamlined association-prediction examples both run normally.
 
@@ -26,9 +27,10 @@ and bivariate residual correlation (`rho12`) to have separate predictors.
 These comments describe one identified artifact:
 
 * tarball `drmTMB_0.7.0.tar.gz`;
-* SHA-256 `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`;
-* size 4,368,396 bytes;
-* built from clean commit `6170fbeeea65f22444d7b0934f4e808c40744d22`.
+* SHA-256 `76e43f576fc3f651b97f95690f4aa7b1e0ed683c9c6fba544a923fa1d4c5da7c`;
+* size 5,546,561 bytes;
+* 949 archive entries;
+* built from clean commit `9abcc00b74a1286e6fa47156af7d84c249d2134c`.
 
 Results are separated into exact-byte checks and same-source checks. The
 local and win-builder checks used the tarball above. GitHub Actions and R-hub
@@ -37,7 +39,7 @@ checked the exact source commit but built their own archives.
 ## R CMD check results
 
 The exact tarball was checked locally with R 4.6.0 on macOS using
-`R CMD check --as-cran --run-donttest --no-manual`:
+`R CMD check --as-cran --run-donttest`:
 
 ```
 Status: 1 NOTE
@@ -52,39 +54,21 @@ Maintainer: 'Shinichi Nakagawa <itchyshin@gmail.com>'
 New submission
 ```
 
-The selected CRAN test lane completed in 45 seconds elapsed (54 seconds
+The selected CRAN test lane completed in 46 seconds elapsed (58 seconds
 reported) with `FAIL 0 / SKIP 30 / PASS 3501`. Installed size was 24.8 MB,
 including 13.7 MB of compiled libraries and 4.7 MB of documentation.
 
+The examples completed in 15 seconds elapsed (16 seconds reported), including
+the reviewer-named bootstrap, profile, and association examples. The PDF and
+HTML manuals were both rebuilt successfully.
+
 ## Test environments
 
-Exact-byte win-builder checks completed on all three Windows arms:
-
-* R-devel r90424: 1 NOTE, 0 errors, 0 warnings; tests 149 seconds;
-  `FAIL 0 / SKIP 30 / PASS 3501`.
-* R-release 4.6.1: 1 NOTE, 0 errors, 0 warnings; tests 152 seconds;
-  `FAIL 0 / SKIP 30 / PASS 3501`.
-* R-oldrelease 4.5.3: 1 NOTE, 0 errors, 0 warnings; tests 110 seconds;
-  `FAIL 0 / SKIP 30 / PASS 3501`.
-
-The incoming checks identify `centile`, `misspecification`, and `uncalibrated`
-as possible misspellings. These are intentional statistical terms: centile
-curves describe fitted distributional references; misspecification describes
-an incorrect model; and uncalibrated marks intervals without route-specific
-coverage calibration.
-
-R-devel and R-release also echoed a stale 404 for
-`function-map-cheatsheet.png` from earlier same-package/version checks. The
-final source and tarball contain neither that link nor the attributed installed
-HTML file, the returned Windows binary does not contain it, and a fresh
-network-enabled exact-tarball check while the URL returned 404 produced only
-the first-submission NOTE. No candidate URL is being excused by this comment.
-
-Same-source GitHub Actions checks succeeded on macOS, Ubuntu, and Windows with
-the full development suite. R-hub clang-ASAN, clang-UBSAN, and GCC-ASAN also
-succeeded with no sanitizer findings and `PASS 3501`. The R-hub rchk job
-remains visibly red: its protection findings are in installed TMB headers and
-none cites `drmTMB.cpp`.
+Fresh same-source GitHub Actions checks on macOS, Ubuntu, and Windows and R-hub
+clang-ASAN, clang-UBSAN, GCC-ASAN, and rchk checks were started for commit
+`9abcc00b74a1286e6fa47156af7d84c249d2134c`. Their final results will replace
+this sentence before upload. External results for predecessor artifacts are not
+attributed to this resubmission candidate.
 
 ## Test-suite design
 

@@ -1,0 +1,62 @@
+{
+  "package": "drmTMB",
+  "version": "0.7.0",
+  "release_type": "resubmission",
+  "note": "Exact candidate addressing Konstanze Lauseker's CRAN example review. The reviewer-named examples are ordinary executable examples, meta_vcov_bivariate is verified exported, and no dontrun remains. The claimed rung is tarball-clean only. Fresh 3-OS and R-hub checks are running; exact-byte win-builder upload awaits explicit permission. No CRAN upload is authorized or performed by this ledger.",
+  "profile": {
+    "compiled_code": true,
+    "reverse_dependencies": false,
+    "system_or_external_services": false,
+    "large_data_or_vignettes": true
+  },
+  "artifact": {
+    "path": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/drmTMB_0.7.0.tar.gz",
+    "sha256": "76e43f576fc3f651b97f95690f4aa7b1e0ed683c9c6fba544a923fa1d4c5da7c",
+    "size_bytes": 5546561,
+    "entry_count": 949,
+    "source_commit": "9abcc00b74a1286e6fa47156af7d84c249d2134c",
+    "clean_worktree": true,
+    "inventory_evidence": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/inventory.txt"
+    },
+    "forbidden_entries": []
+  },
+  "evidence": {
+    "product_contract": {
+      "kind": "file",
+      "value": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/codex-cran-examples-resubmission/DESCRIPTION"
+    },
+    "rights_and_consent": {
+      "kind": "file",
+      "value": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/codex-cran-examples-resubmission/inst/COPYRIGHTS"
+    },
+    "current_cran_policy": {
+      "kind": "url",
+      "value": "https://cran.r-project.org/web/packages/policies.html"
+    },
+    "rendered_site": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/pkgdown-source/pkgdown-site/reference/confint.drmTMB.html"
+    },
+    "local_as_cran": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/drmTMB.Rcheck/00check.log"
+    },
+    "incoming_feasibility": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/drmTMB.Rcheck/00check.log"
+    },
+    "installed_package": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/drmTMB.Rcheck/00check.log"
+    },
+    "timing": {
+      "kind": "file",
+      "value": "/Users/z3437171/local-scratch/drmTMB-0.7.0-candidates/candidate-76e43f576fc3-9abcc00b7/drmTMB.Rcheck/00check.log"
+    }
+  },
+  "panel": {},
+  "status_claim": "tarball-clean",
+  "submission": {}
+}
