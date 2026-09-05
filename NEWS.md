@@ -1,5 +1,28 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` admits `REML = TRUE` for the residual-only bivariate Gaussian cell
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE, engine = "julia")` now fits instead of
+  refusing. Native `engine = "tmb"` has always fitted this cell by REML, and
+  DRM.jl (PR itchyshin/DRM.jl#652) now fits the same restricted likelihood in
+  closed form: both engines integrate out exactly `beta_mu1` and `beta_mu2` and
+  both report the normalised Patterson-Thompson log-likelihood, so there is no
+  data-independent constant to remove before comparing. Same-target on the
+  committed fixture (n = 60, seed 1): `logLik` `-97.021205818372` on both engines
+  (difference `0.0`), 7/7 coefficient names identical with max scaled difference
+  `4.33e-07`, Wald SE max relative difference `6.54e-07`; the Julia fit's
+  `estimator` and DRM.jl's `estim_method` both read `"REML"`. The ML route is
+  unchanged (`-90.202703298791` on both engines). **This shape only**: the gate
+  requires all five bivariate dpars, no structured marker, no `meta_V()`, no
+  random bar, and intercept-only `sigma1`, `sigma2` and `rho12`. A
+  covariate-carrying `sigma`/`rho12` design keeps refusing even though DRM.jl's
+  closed form covers it, because nothing has measured it against a native
+  comparator. Receipt:
+  `docs/dev-log/evidence/julia-r-parity/reml/reml-biv-residual-receipt.md`;
+  `docs/design/261-reml-by-route.md` row `biv_gaussian_residual` now reads
+  FITS / FITS / FITS (drmTMB #1142, DRM.jl #624).
+
 ## `engine = "julia"` admits `beta_binomial()` (fixed effects)
 
 * `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),

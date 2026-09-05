@@ -1195,6 +1195,72 @@ drm_julia_check_ordinary_sigma_ranef_route_limits <- function(
 # reason ("currently supports one `phylo()` term"), so the REML question never
 # arises. Widening it here would be widening on the engine's word alone, which
 # is the thing this comment exists to avoid.
+# TRUE when `dpar` is present exactly once and its right-hand side is a bare
+# intercept with no structured marker -- the `sigma1 = ~1, sigma2 = ~1,
+# rho12 = ~1` shape the residual-only bivariate REML receipt covers.
+drm_julia_biv_intercept_only_dpar <- function(formula, dpar) {
+  entries <- Filter(function(e) identical(e$dpar, dpar), formula$entries)
+  if (length(entries) != 1L) {
+    return(FALSE)
+  }
+  entry <- entries[[1L]]
+  if (length(entry$structured) > 0L) {
+    return(FALSE)
+  }
+  rhs <- entry$rhs
+  is.numeric(rhs) && length(rhs) == 1L && identical(as.numeric(rhs), 1)
+}
+
+# WIDENED 2026-09-05 for the residual-only bivariate Gaussian cell (drmTMB #1142
+# / DRM.jl #624), on MEASUREMENT: DRM.jl now fits
+#   bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)
+# by `method = :REML`, integrating beta_mu1/beta_mu2 out of the Gaussian
+# likelihood under the row-wise 2x2 residual covariance -- the SAME set native
+# TMB marginalises for this cell (`drm_apply_estimator_spec()`:
+# `tmb_random_names = c("beta_mu1", "beta_mu2")`), on the SAME normalised
+# Patterson-Thompson convention. Verified same-target against
+# `engine = "tmb", REML = TRUE` on the committed fixture, not taken on the
+# engine's word: see
+# docs/dev-log/evidence/julia-r-parity/reml/reml-biv-residual-receipt.md.
+#
+# The predicate is deliberately NO WIDER than that receipt. It requires all five
+# bivariate dpars, no structured marker anywhere (a phylo/relmat/animal/spatial
+# marker routes to the q=2 / q=4 engines instead, and q=2 stays refused), no
+# `meta_V()` (that route marginalises nothing and DRM.jl refuses REML on it
+# permanently), no ordinary random bar, and intercept-only `sigma1`, `sigma2`
+# and `rho12`. DRM.jl's closed form does extend to covariate-carrying
+# sigma/rho designs, but nothing here has measured that, so those keep refusing.
+drm_julia_biv_residual_reml_supported <- function(formula) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(FALSE)
+  }
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  if (!setequal(dpars, c("mu1", "mu2", "sigma1", "sigma2", "rho12"))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(e) length(e$structured) > 0L, logical(1L)))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(e) {
+    formula_contains_call(e$rhs, "meta_V") ||
+      formula_contains_call(e$rhs, "meta_known_V") ||
+      formula_contains_call(e$rhs, "offset")
+  }, logical(1L)))) {
+    return(FALSE)
+  }
+  if (any(vapply(entries, function(e) {
+    any(vapply(flatten_plus_terms(e$rhs), is_random_bar_call, logical(1L)))
+  }, logical(1L)))) {
+    return(FALSE)
+  }
+  all(vapply(
+    c("sigma1", "sigma2", "rho12"),
+    function(d) drm_julia_biv_intercept_only_dpar(formula, d),
+    logical(1L)
+  ))
+}
+
 drm_julia_reml_supported <- function(formula, family_type) {
   has_phylo <- drm_julia_has_phylo_term(formula)
   sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
@@ -1213,7 +1279,8 @@ drm_julia_reml_supported <- function(formula, family_type) {
     (!isTRUE(has_phylo) || isTRUE(sigma_phylo) || isTRUE(has_sd))) ||
     isTRUE(poisson_reml) ||
     (identical(family_type, "biv_gaussian") &&
-      identical(drm_julia_biv_phylo_dimension(formula), "q4"))
+      (identical(drm_julia_biv_phylo_dimension(formula), "q4") ||
+        isTRUE(drm_julia_biv_residual_reml_supported(formula))))
 }
 
 drm_julia_reml_cell_label <- function(formula, family_type) {
