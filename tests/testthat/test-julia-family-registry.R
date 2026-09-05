@@ -12,7 +12,7 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
   expect_identical(sort(drmTMB:::drm_julia_slope_phylo_families()),
                    sort(c("nbinom2", "gamma", "beta", "poisson")))
   expect_identical(drmTMB:::drm_julia_dispersionless_families(),
-                   c("poisson", "binomial"))
+                   c("poisson", "binomial", "cumulative_logit"))
   expect_identical(drmTMB:::drm_julia_structured_families(),
                    c("gaussian", "poisson", "nbinom2", "gamma"))
   # A4 (2026-09-05): truncated_nbinom2 then zero_one_beta admitted AFTER the
@@ -20,15 +20,18 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
-                     "truncated_nbinom2", "zero_one_beta", "tweedie", "skew_normal"))
+                     "truncated_nbinom2", "zero_one_beta", "tweedie",
+                     "beta_binomial", "cumulative_logit", "skew_normal"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
-              "truncated_nbinom2", "zero_one_beta", "tweedie", "skew_normal"))  # A4 rows, 2026-09-05
+              "truncated_nbinom2", "zero_one_beta", "tweedie",
+              "beta_binomial", "cumulative_logit", "skew_normal"))  # A4 rows, 2026-09-05
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
-  # refused outright (the remaining A4 targets), same message class as before
-  for (f in c("beta_binomial", "cumulative_logit"))
+  # refused outright: no A4 target remains unadmitted after this merge (all six
+  # fixed-effect rows above are on the registry); this loop is intentionally empty.
+  for (f in character(0))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
 
