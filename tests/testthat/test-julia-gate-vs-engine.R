@@ -56,7 +56,6 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "base_control",
     "base_missing_predictor_model",
     "base_missing_response_nongaussian",
-    "base_unsupported_family",
     "biv_invalid_partial_phylo",
     "biv_rho12_phylo",
     "structured_unsupported_family",
@@ -196,7 +195,11 @@ test_that("Julia capability comparison artifact matches the registry", {
   # `expect_equal(binomial_row$r_bridge_status, "experimental")`; it is now
   # inverted rather than deleted, same pattern as the Phase 1.5 / Phase 1
   # inversions above, so an accidental reversion fails loudly.
-  expect_equal(binomial_row$r_bridge_status, "partial")
+  #
+  # A8 (2026-09-05): G3 bridge-side inference (profile/bootstrap through
+  # engine="julia") qualified on this route -- partial -> supported. Same
+  # inversion pattern: locked here, not deleted.
+  expect_equal(binomial_row$r_bridge_status, "supported")
   expect_match(binomial_row$claim_boundary, "Workflow G|expected\\.toml|#499")
 
   # The single-phylogeny LSS router has selected the sparse O(p) engine above
@@ -269,33 +272,43 @@ test_that("Julia capability comparison artifact matches the registry", {
   # claim_status/covered promotion and NOT an interval_status move. Asserted
   # rather than merely edited, same pattern as the inversions above, so an
   # accidental reversion fails loudly.
-  wave1_promoted <- registry[
-    registry$capability_id %in%
-      c(
-        "base_gaussian_location_scale",
-        "biv_gaussian_residual",
-        "plain_binomial_nonphylo",
-        "gaussian_response_mask"
-      ),
-  ]
-  expect_equal(nrow(wave1_promoted), 4L)
-  # biv_gaussian_residual left the wave-1 cohort on 2026-09-05 (leaf A8b):
-  # partial -> supported, because design/192 defines `partial` on this axis as
-  # "bridge-side inference (G3) still unqualified" and G3 is now qualified for
-  # that route (docs/dev-log/evidence/julia-r-parity/p2-g3/
-  # a8b-biv-qualification-receipt.md; DRM.jl PR #647). The assertion is SPLIT
-  # rather than loosened, so both the promotion and the three rows that did NOT
-  # move still fail loudly if either drifts.
-  expect_true(all(
-    wave1_promoted[
-      wave1_promoted$capability_id != "biv_gaussian_residual",
-    ]$r_bridge_status == "partial"
-  ))
+  #
+  # G3 (bridge-side profile/bootstrap inference) has since been measured on
+  # all four wave-1 rows, across two leaves. A8 (2026-09-05, docs/dev-log/
+  # evidence/julia-r-parity/p2-g3/) qualified base_gaussian_location_scale
+  # and plain_binomial_nonphylo -- partial -> supported -- and found
+  # gaussian_response_mask's Julia bootstrap fails all 99 replicates (its own
+  # opt$convergence flag reads FALSE), so that row stayed partial. A8b
+  # (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/
+  # a8b-biv-qualification-receipt.md; DRM.jl PR #647) then closed the gap A8
+  # found in biv_gaussian_residual (no profile/bootstrap target existed on
+  # that route for any parameter) and qualified it too -- partial ->
+  # supported. Three of the four wave-1 rows are now supported; one
+  # (gaussian_response_mask) stays partial. Asserted by name, not by count,
+  # so a silent status drift on any one row fails loudly.
   expect_equal(
-    wave1_promoted[
-      wave1_promoted$capability_id == "biv_gaussian_residual",
+    registry[
+      registry$capability_id == "base_gaussian_location_scale",
     ]$r_bridge_status,
     "supported"
+  )
+  expect_equal(
+    registry[
+      registry$capability_id == "plain_binomial_nonphylo",
+    ]$r_bridge_status,
+    "supported"
+  )
+  expect_equal(
+    registry[
+      registry$capability_id == "biv_gaussian_residual",
+    ]$r_bridge_status,
+    "supported"
+  )
+  expect_equal(
+    registry[
+      registry$capability_id == "gaussian_response_mask",
+    ]$r_bridge_status,
+    "partial"
   )
 
   # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
@@ -405,16 +418,9 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
     ),
     "missing.*route"
   )
-  expect_julia_gate(
-    "base_unsupported_family",
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = beta_binomial(),
-      data = dat,
-      engine = "julia"
-    ),
-    "Gaussian one-/two-response|Workflow G fixed-effect"
-  )
+  # base_unsupported_family RETIRED 2026-09-05 (A4): beta_binomial() is now a
+  # registry fe row; its admission receipts live in
+  # tests/testthat/test-julia-family-beta_binomial.R.
 })
 
 test_that("bivariate invalid phylo gates are intentional and pre-JuliaCall", {
