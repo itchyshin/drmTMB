@@ -1,5 +1,26 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` bridge-side profile/bootstrap inference qualified on two routes (G3)
+
+* `base_gaussian_location_scale` and `plain_binomial_nonphylo` promoted
+  `r_bridge_status` `partial` -> `supported`: profile and bootstrap
+  confidence intervals through `engine = "julia"` on a real fixed-effect
+  target agree with `engine = "tmb"` within `1e-4` (profile deltas measured
+  `2.8e-06`/`5.9e-07` and `9.4e-08`/`2.3e-06`), both engines converge, and
+  bootstrap (`R = 99`) intervals overlap with `0/99` failed replicates on
+  either side. `plain_binomial_nonphylo`'s bootstrap is enabled by
+  drmTMB#1123 (already fixed). Two related rows do NOT promote:
+  `biv_gaussian_residual` has no profile/bootstrap-ready target on the
+  Julia bridge for any parameter (a structural gap), and
+  `gaussian_response_mask`'s Julia bootstrap fails all 99 replicates while
+  its underlying fit's own optimizer convergence flag reads `FALSE` on the
+  missing-response fixture -- both newly measured, both left unqualified
+  rather than rounded up. A purpose-built quasi-complete-separation binomial
+  cell exercises DRM.jl's `#631` profile-endpoint-failure backstop through
+  the public `confint()` entry point for the first time: `engine = "julia"`
+  refuses rather than returning an infinite bound
+  (`docs/dev-log/evidence/julia-r-parity/p2-g3/`).
+
 ## `engine = "julia"` admits `beta_binomial()` (fixed effects)
 
 * `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
