@@ -21,16 +21,17 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
                      "truncated_nbinom2", "zero_one_beta", "tweedie",
-                     "beta_binomial", "cumulative_logit"))
+                     "beta_binomial", "cumulative_logit", "skew_normal"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
               "truncated_nbinom2", "zero_one_beta", "tweedie",
-              "beta_binomial", "cumulative_logit"))  # A4 rows, 2026-09-05
+              "beta_binomial", "cumulative_logit", "skew_normal"))  # A4 rows, 2026-09-05
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
-  # refused outright (the remaining A4 targets), same message class as before
-  for (f in c("skew_normal"))
+  # refused outright: no A4 target remains unadmitted after this merge (all six
+  # fixed-effect rows above are on the registry); this loop is intentionally empty.
+  for (f in character(0))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
 

@@ -950,6 +950,36 @@ single row `mu_x`; `fit$ordinal` has the native slot's five fields
 intercept-only `bf(score ~ 1)` sends an EMPTY `mu` label set (DRM.jl's `mu`
 block has zero columns) and fits at the native logLik (-986.400751 on this
 draw).
+
+### 8.3 `skew_normal` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc + the A4 bridge case)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("skew_normal", fe = TRUE)` -- puts the family on the fixed-effect
+(Workflow G) route. Nothing else under `R/` changed: the producer
+(`drm_julia_bridge_payload_coef_labels()`, §7.1) labels every dpar the
+formula bundle carries, and the fail-closed comparison (§7.3) applies
+unchanged. Unlike the other A4 families, DRM.jl's `_bridge_family()` had NO
+case for this tag at the pin (`SkewNormal()` existed in `src/skewnormal.jl`,
+but the R bridge could not reach it: `drm_bridge: unsupported family
+`skew_normal``), so the admission has a Julia half -- a five-line case in
+`src/bridge.jl` returning `SkewNormal()` for the tags `skew_normal` /
+`skewnormal`, its own DRM.jl PR (#641). At a DRM.jl checkout without that case the
+registry row alone gets a user to a Julia-attributed abort after the engine
+boots; the drmTMB side therefore cannot pass its live gate until the DRM.jl PR
+is merged and the pin re-taken.
+
+**dpars, links, and labels.** drmTMB's `skew_normal()` declares
+`dpars = c("mu", "sigma", "nu")` with links `identity`, `log`, `identity`
+(`R/family.R`): the PUBLIC moment form, `mu = E[y]`, `sigma = SD[y]`, `nu` =
+Azzalini's slant `alpha`, mapped internally to `(xi, omega, alpha)` via
+`delta = nu / sqrt(1 + nu^2)`, `omega = sigma / sqrt(1 - 2 delta^2 / pi)`,
+`xi = mu - omega delta sqrt(2 / pi)`. DRM.jl's `SkewNormal` (`src/skewnormal.jl`
+at the pin) fits the blocks `[:mu, :sigma, :nu]` with exactly that public
+parameterisation and exactly that internal map, so the coefficients compare
+directly with no transform. Payload and echo, measured live on the
+`tests/testthat/test-skew-normal-location-scale.R` draw
+(`skew_normal_test_data()` defaults: n = 500, seed 20260608, nu = 1.6,
+`bf(y ~ x, sigma ~ z, nu ~ 1)`):
 ### 8.2 `tweedie` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc)
 
 **What was admitted.** One row in `R/julia-family-registry.R` --
@@ -1053,6 +1083,65 @@ byte-identically (sha256 `d7a40a80...` before and after).
 | `nu` | `"(Intercept)"` | `nu_(Intercept)` |
 
 The echo validated (`bridge_public_coef_labels$contract ==
+"bridge_formula_labels_v1"`). The block ORDER differs between the two fit
+objects: native `fixef()` lists `mu, sigma, nu`; the Julia-engine object lists
+`mu, nu, sigma`. Compare by name, never by position (the test does).
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, same
+draw; the comparator code of DRM.jl `tools/parity_fixture.R` /
+`tools/parity_se.R`, rows appended to the pin clone's `docs/dev-log/evidence/`
+with a note naming the DRM.jl actually used -- pin 430ef64cc plus the bridge
+case, not the bare pin):** `max_abs_coef_diff = 1.88955517899103e-11`,
+`loglik_tmb = -532.154369983715`, `loglik_julia = -532.154369983717`,
+`loglik_diff = 2.1600499167107e-12` (PARITY_PASS at tol 1e-4); SE
+`max_abs_se_diff = 5.47777316839415e-08`,
+`max_rel_se_diff = 1.04475111899938e-06` over `mu_(Intercept)`, `mu_x`,
+`sigma_(Intercept)`, `sigma_z`, `nu_(Intercept)` (SE_PASS at rtol 1e-3; the
+negative-control row with `se_julia[1] * 1.10` read SE_FAIL ->
+NEGATIVE_CONTROL_OK, rel 0.0909090605888587). Point estimates on the draw
+(both engines, to 10 significant digits): `mu` 0.2087026132 / 0.4426714817,
+`sigma` -0.3537413966 / 0.1995579698, `nu` 1.579471574 (truth 0.20 / 0.45,
+-0.35 / 0.18, 1.6). The fit's `estimator` is `"ML"` and equals DRM.jl's
+`estim_method` (`"ML"`). Comparator build
+`drmtmb_code_hash = cc1f91b5303ac9b49aa351f90dd3c0a30cc29ea576ef291c07fa549da44dda5b`.
+
+**A usability gap the echo exposes for this family (measured; NOT fixed
+here; the same gap §8.2 records for `tweedie`).** A formula that omits `nu` --
+`bf(y ~ x, sigma ~ z)` -- fits natively (drmTMB defaults `nu ~ 1`; logLik
+-532.1544, the same optimum as the explicit `nu ~ 1` fit) but through
+`engine = "julia"` aborts AFTER the engine boots, at DRM.jl's echo:
+`drm_bridge: coef_labels is missing an entry for dpar "nu" (1 fixed-effect
+columns; Julia names: ["nu_(Intercept)"])`. Cause:
+`drm_julia_bridge_default_dpar_labels()` (`R/julia-bridge.R`) defaults `sigma`
+for every non-dispersionless family but `nu` only when
+`family_type == "student"`. The fix is one token in a file outside this
+leaf's set (`family_type %in% c("student", "tweedie", "skew_normal")`, or a
+registry column the defaulter reads); it is left to the integrator and
+recorded as a blocker, not claimed. `bf(y ~ x, nu ~ 1)` (sigma omitted) is
+fine: `sigma` is defaulted, the echo validates, and the Julia fit reaches
+logLik -553.161853496878 against the native -553.1619 (printed to 7
+significant digits). Until the defaulter is widened, users should write
+`nu ~ 1` explicitly.
+
+**Neighbours, measured.** `nu ~ z` (predictor-dependent slant): BOTH engines
+fit it -- native logLik -531.719807046535, Julia -531.719807046538, six
+coefficients including `nu:z` -- and the live test compares them by name at
+1e-4, so this row's parity claim covers a non-constant `nu` design too.
+`(1 | g)` on `mu` (50 groups x 10): the Julia route fails CLOSED, but
+DRM.jl-attributed and post-boot (`SkewNormal() supports fixed effects only
+(no random effect on the mean)`), not an R-side pre-refusal; this row does NOT
+widen to random effects. `REML = TRUE` is refused on the R side before Julia
+starts by the existing non-Gaussian REML rule (``engine = "julia"` cannot fit
+non-Gaussian (skew_normal) models by `REML = TRUE``).
+
+**NOT admitted by this row:** phylogenetic, structured
+(`relmat()`/`animal()`/`spatial()`), and random-effect routes (the native
+engine fits `(1 | id)` and `(0 + x | id)` on `mu`; DRM.jl's `SkewNormal()`
+refuses every random effect, so a later row needs Julia work first); interval
+coverage. The capability-comparison TSV row for this route is NOT added here
+(the `drm_julia_capability_comparison()` data frame lives in
+`R/julia-bridge.R`, outside this leaf's file set) and is left to the
+integrator, as in §8.1 / §8.2.
 "bridge_formula_labels_v1"`). Note the block ORDER differs between the two
 fit objects: native `fixef()` lists `mu, sigma, nu`; the Julia-engine object
 lists `mu, nu, sigma`. Compare by name, never by position (the test does).
