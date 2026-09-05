@@ -11,6 +11,24 @@
   `Sigma_a` is rescaled to the unit-height convention, as `profile_targets()`
   already does). Ported term-for-term from DRM.jl `src/coevo_accessors.jl`
   and checked live against DRM.jl's own accessors at pin `430ef64cc`.
+## `engine = "julia"` admits `zero_one_beta()` (fixed effects)
+
+* `drmTMB(bf(prop ~ x, sigma ~ z, zoi ~ w, coi ~ v), family = zero_one_beta(),
+  engine = "julia")` now routes to DRM.jl's `ZeroOneBeta` instead of refusing
+  with the Workflow G message. Both engines fit the same three-part mixture —
+  `mu` (logit, the interior beta mean), `sigma` (log, `phi = 1 / sigma^2`),
+  `zoi` (logit), `coi` (logit) — and all four dpars cross the design-258 label
+  contract. Measured 2026-09-05 at DRM.jl pin `430ef64cc` on the committed
+  fixture (the `tests/testthat/test-zero-one-beta.R` draw, n = 1600):
+  max |d coef| `3.98e-11`, |d logLik| `1.93e-12`, max |d fitted| `9.08e-12`,
+  per-coefficient Wald SE max relative difference `9.76e-07` over all 8
+  coefficients; the fit's `estimator` (`"ML"`) equals what DRM.jl reports as
+  `estim_method`. **Fixed effects only, and all four formula parts must be
+  written**: a `(1 | g)` term is refused by DRM.jl (`ZeroOneBeta() currently
+  supports fixed effects only`), and a formula that omits `zoi`/`coi` (which
+  native `engine = "tmb"` fits with intercept-only parts) aborts at the label
+  echo — use `engine = "tmb"` for either. Not a phylogenetic, structured, or
+  interval-coverage claim.
 ## Model comparison: `aicc()` and the nested likelihood-ratio test, ported from DRM.jl (#1117)
 
 * New `aicc()` returns the small-sample corrected AIC, `AIC + 2k(k + 1) / (n - k - 1)`,
@@ -200,6 +218,22 @@ Template Model Builder.
   `docs/design/259-heritability-icc-repeatability.md` section 3 item 5 for
   which function owns which denominator.
 
+## Fixed: `profile_targets()` on an `engine = "julia"` fit listed one target where `confint()` accepts five (#1156)
+
+* `profile_targets()` returned early for a Julia fit with only the phylogenetic
+  SD inventory, so `bf(y ~ x + phylo(1 | species), sigma ~ 1)` listed **1**
+  target (`sd:mu:phylo(1 | species)`) while the same TMB fit listed 6 -- even
+  though `confint(fit, parm = "fixef:mu:x", method = "profile")` on the Julia
+  fit already worked when the name was typed in full. Discovery now returns
+  the union the engine accepts, in the native row order: `fixef:mu:(Intercept)`,
+  `fixef:mu:x`, `fixef:sigma:(Intercept)`, `sigma`, `sd:mu:phylo(1 | species)`
+  (measured live against the pinned DRM.jl clone `430ef64cc`; each of the four
+  `profile_ready` rows returns a finite profile interval). The `sigma`
+  response-scale alias is listed as it is on the Wald path -- `profile_ready =
+  FALSE`, note `missing_tmb_parameter` -- and the native fit's derived
+  `phylo_total_variance_share` row has no bridge counterpart, so it remains
+  TMB-only.
+
 ## Fixed: `nlminb` could report convergence short of the true optimum on flat surfaces (#1130)
 
 * `nlminb()`'s own `rel.tol`/`x.tol` stopping rules trigger on a relative
@@ -228,6 +262,16 @@ Template Model Builder.
   interval. The same polish now runs on the constrained endpoint solve too,
   keeping the comparison symmetric (and skipped on both sides together under
   `drm_control(newton_polish = FALSE)`).
+* The constrained ordinal cutpoint profile (`confint(fit, parm =
+  "ordinal:cutpoint:<label>", method = "profile")`) had the same asymmetry
+  (#1144): its endpoint solve stopped wherever `nlminb` alone stopped. On the
+  committed random-intercept `cumulative_logit()` fixture that was a gradient
+  of 3.6e-4 to 1.9e-3 at the six endpoints (two above the 1e-3 acceptance
+  guard) against 8.5e-10 at the free optimum. Both endpoints of every cutpoint
+  are now polished the same way (measured 4e-14 to 7e-9 afterwards); the
+  gradient guard `PROFILE_ENDPOINT_GRADIENT_TOL` is unchanged at 1e-3, and on
+  that fixture the reported intervals move by less than 1e-9 -- the fix is
+  to the solve's consistency, not to a visibly wrong interval.
 
 ## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
 
