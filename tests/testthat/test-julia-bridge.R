@@ -499,16 +499,9 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
     ),
     "does not support .*control"
   )
-  # Beta-binomial remains outside the Workflow G FE Julia admission.
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = beta_binomial(),
-      data = dat,
-      engine = "julia"
-    ),
-    "Gaussian one-/two-response|Workflow G fixed-effect"
-  )
+  # beta_binomial() was admitted to the Workflow G FE route 2026-09-05 (A4,
+  # one registry row); the former refusal assertion here moved to
+  # tests/testthat/test-julia-family-beta_binomial.R as an admission receipt.
 })
 
 # Night question 14: DRM.jl refuses these two ordinary-GLMM route limits only
