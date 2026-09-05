@@ -34,7 +34,7 @@
   phylogenetic, structured, or random-effect ordinal routes are admitted;
   `(1 | g)` fails closed at DRM.jl's label echo.
 
-## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"` `type = "quantile"` is still unavailable on every `engine = "julia"` fit (drmTMB#1198).
+## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"`
 
 * Closes the gap the `cumulative_logit()` admission above recorded:
   `predict()` on an `engine = "julia"` `cumulative_logit()` fit no longer
@@ -48,7 +48,7 @@
   pin `430ef64cc`: max |d prediction| for stored data and fresh `newdata`,
   both types, all below `1.5e-13`. Thresholds are not read by `predict()`
   on either engine for this family -- they live in `fit$ordinal`, not in the
-  linear predictor.
+  linear predictor. `type = "quantile"` is still unavailable on every `engine = "julia"` fit (drmTMB#1198).
 
 ## REML support tabled by route, measured across both engines (#1142)
 
