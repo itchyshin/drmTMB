@@ -1,5 +1,27 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` default coefficient labels widened for the A4 family admissions
+
+* The Julia bridge's default coefficient labeller
+  (`drm_julia_bridge_default_dpar_labels()`) previously defaulted a `nu`
+  label only for `student()`; every other family with a native dpar beyond
+  `mu`/`sigma` -- `tweedie()`'s and `skew_normal()`'s `nu`, `zero_one_beta()`'s
+  `zoi`/`coi` -- was left unlabelled, so the SAME short formula forms
+  `engine = "tmb"` accepts (a bare `bf(y ~ x)`, or `bf(y ~ x, sigma ~ z)`)
+  aborted at DRM.jl's echo with `coef_labels is missing an entry for dpar
+  "nu"`. The defaulter now reads the extra dpars off each family's own
+  constructor. Measured live at DRM.jl pin `430ef64cc`: `tweedie()`'s bare
+  `bf(y ~ x)` and `bf(y ~ x, sigma ~ z)` now reach the SAME logLik as
+  `engine = "tmb"` exactly (`-479.8586143` and `-463.2274318`); a bare
+  `zero_one_beta()` formula that omits `zoi`/`coi` now fits instead of
+  aborting. A `nu` formula that native TMB refuses but DRM.jl fits (tweedie's
+  `nu ~ z`) is neither silently accepted nor pre-refused: `engine = "julia"`
+  now emits one informational message naming the shape and the native
+  refusal it has no cross-engine receipt against. This completes the
+  fixed-effect (Workflow G) admission of the six A4 families landed across
+  separate PRs: `tweedie()`, `zero_one_beta()`, `beta_binomial()`,
+  `truncated_nbinom2()`, `cumulative_logit()`, and `skew_normal()`.
+
 ## Coevolution accessors ported from DRM.jl (#1118)
 
 * New `coevolution_cor()`, `coevolution_vc()`, and `coevolution_summary()`

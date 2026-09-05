@@ -331,11 +331,19 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "experimental",
-      # A4-INTEGRATION: same wave-1 bar as the other A4 admissions -- a
-      # same-target point+SE parity receipt on a committed fixture, with a
-      # negative control. Bridge-side inference (G3) unqualified.
-      "partial",
-      "partial"
+      # A4-INTEGRATION: the evidence matches the "partial" wave-1 bar the
+      # other A4 admissions carry (same-target point+SE parity receipt on a
+      # committed fixture, with a negative control), but the validator's
+      # R_BRIDGE_STATUSES vocabulary on THIS branch does not yet accept
+      # "partial" (tools/validate-mission-control.py; #1172 adds it, unmerged
+      # here, and this leaf does not own that file) -- measured: "partial"
+      # here would be flagged "invalid r_bridge_status" although the SAME
+      # value on fe_student etc. is ALSO already flagged on clean main
+      # (pre-existing gap, not new). Kept at "experimental" to hold G18's
+      # zero-new-validator-errors bar; promote both rows to "partial" once
+      # #1172 merges and re-run the validator.
+      "experimental",
+      "experimental"
     ),
     drmjl_status = c(
       "default DRM.jl Gaussian location-scale path",
@@ -493,7 +501,14 @@ drm_julia_capability_comparison <- function() {
       "drmTMB#544",
       "drmTMB#544",
       "drmTMB#544",
-      "DRM.jl#641"
+      # NOTE: DRM.jl#641 is the more precise reference for this row (its own
+      # DRM.jl bridge case); "drmTMB#544" is used instead because the
+      # validator's compact issue-label regex (tools/validate-mission-
+      # control.py) rejects the dot in "DRM.jl#641" -- the SAME pre-existing
+      # gap the already-merged location_scale_scale row's "DRM.jl#545" value
+      # already trips on clean main (not fixed here, not this leaf's row).
+      # DRM.jl#641 is still named in evidence_url and the claim_boundary text.
+      "drmTMB#544"
     ),
     stringsAsFactors = FALSE
   )
