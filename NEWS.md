@@ -1,5 +1,16 @@
 # drmTMB 0.7.0
 
+## Model comparison: `aicc()` and the nested likelihood-ratio test, ported from DRM.jl (#1117)
+
+* New `aicc()` returns the small-sample corrected AIC, `AIC + 2k(k + 1) / (n - k - 1)`,
+  for a `drmTMB` fit on either engine (`Inf` when `n - k - 1 <= 0`, as in DRM.jl),
+  and the internal `drm_lrtest(reduced, full)` computes DRM.jl's `lrtest()`
+  (statistic, df, p-value) with its REML, MAP and boundary-variance guards.
+  Both are ports of DRM.jl `src/comparison.jl` at pin `430ef64cc`, measured
+  against DRM.jl's own values on two committed fixtures: every quantity agrees
+  to `1e-8` on the `engine = "julia"` object and to `2e-12` across engines.
+  `anova.drmTMB()` still refuses; wiring it to `drm_lrtest()` is a follow-up.
+
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
 * drmTMB labelled a Julia fit `"REML"` purely from its own support gate. Nothing
