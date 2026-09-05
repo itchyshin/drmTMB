@@ -106,7 +106,7 @@ drm_julia_intentional_gates <- function() {
       "gaussian+poisson",
       "gaussian+poisson",
       "gamma",
-      "student+lognormal+truncated_nbinom2+zero_one_beta+tweedie+beta_binomial"
+      paste(drm_julia_fe_only_fence_families(), collapse = "+")
     ),
     syntax = c(
       "weights = ...",
@@ -158,7 +158,14 @@ drm_julia_intentional_gates <- function() {
       "rho12.*not wired",
       "cannot fit .*sigma2.*dispersion",
       "cannot fit a random slope",
-      "only on the .fe. \\(fixed-effect\\)"
+      # `\\s+` (not a literal space) between the closing backtick and
+      # "(fixed-effect)": cli wraps the message at 80 columns for the three
+      # longest family names (truncated_nbinom2, zero_one_beta,
+      # cumulative_logit) and beta_binomial, replacing that space with a
+      # newline -- a literal space here matched only the short-name group
+      # (measured FALSE for the four above under Rscript at
+      # cli.condition_width = 80; TRUE at = Inf for all seven).
+      "only on the .fe.\\s+\\(fixed-effect\\)"
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
@@ -1150,9 +1157,10 @@ drm_julia_dpar_has_ordinary_bar <- function(formula, dpar) {
 # tag-level refusal was measured to break `biv_gaussian()`'s downstream q2/q4
 # phylo gates -- and EXEMPTS every `biv_*` tag by prefix and every family
 # with any of the four admitting columns set, so it only ever fires for the
-# fixed-effect-only cohort (student, lognormal, truncated_nbinom2,
-# zero_one_beta, tweedie, beta_binomial as of 2026-09-05; registry-driven, so
-# a later fe-only admission is covered without editing this function).
+# fixed-effect-only cohort, computed by `drm_julia_fe_only_fence_families()`
+# below (student, lognormal, truncated_nbinom2, zero_one_beta, tweedie,
+# beta_binomial, cumulative_logit as of 2026-09-05; registry-driven, so a
+# later fe-only admission is covered without editing this function).
 #
 # `phylo()` terms and `relmat()`/`animal()`/`spatial()` markers are NOT
 # checked here -- both are already refused, upstream of this fence, by
@@ -1174,21 +1182,34 @@ drm_julia_dpar_has_ordinary_bar <- function(formula, dpar) {
 #     Binomial, or bivariate Gaussian (q=4) fits" -- this fence runs before
 #     that check but does not intercept `phylo()`, so the existing message
 #     still fires).
+#
+# The cohort itself is computed once, here, by
+# `drm_julia_fe_only_fence_families()`, so this fence and the
+# `fe_only_random_effects` row's `family_type` field in
+# `drm_julia_intentional_gates()` cannot drift apart, and a later fe-only
+# registry admission (e.g. skew_normal) needs no edit to either.
+drm_julia_fe_only_fence_families <- function() {
+  reg <- drm_julia_family_registry()
+  fams <- vapply(reg, function(row) {
+    if (!isTRUE(row$fe)) {
+      return(NA_character_)
+    }
+    if (
+      isTRUE(row$phylo_only) || isTRUE(row$locscale_phylo) ||
+        isTRUE(row$slope_phylo) || isTRUE(row$structured)
+    ) {
+      return(NA_character_)
+    }
+    if (startsWith(row$family, "biv_")) {
+      return(NA_character_)
+    }
+    row$family
+  }, character(1L))
+  fams[!is.na(fams)]
+}
+
 drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
-  if (startsWith(family_type, "biv_")) {
-    return(invisible(NULL))
-  }
-  row <- Find(
-    function(spec) identical(spec$family, family_type),
-    drm_julia_family_registry()
-  )
-  if (is.null(row) || !isTRUE(row$fe)) {
-    return(invisible(NULL))
-  }
-  if (
-    isTRUE(row$phylo_only) || isTRUE(row$locscale_phylo) ||
-      isTRUE(row$slope_phylo) || isTRUE(row$structured)
-  ) {
+  if (!(family_type %in% drm_julia_fe_only_fence_families())) {
     return(invisible(NULL))
   }
 

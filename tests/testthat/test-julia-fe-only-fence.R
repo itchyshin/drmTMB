@@ -23,11 +23,27 @@
 # admission (cumulative_logit #1174, skew_normal #1176, ...) is picked up
 # automatically as long as its response fits the generic continuous-response
 # fixture below (`fe_only_fence_fixture()`); a family whose response needs a
-# genuinely different encoding (e.g. an ordinal factor) needs one line added
-# to `fe_only_fence_lhs_overrides` or the fixture builder, and the per-family
-# tests SKIP (rather than fail or silently pass) with a clear message if the
-# generic fixture does not parse for it, so a future admission cannot make
-# this file falsely green.
+# genuinely different encoding (e.g. an ordinal factor -- cumulative_logit,
+# handled below via `fe_only_fence_lhs_overrides`) needs one line added there
+# or to the fixture builder, and the per-family tests SKIP (rather than fail
+# or silently pass) with a clear message if the generic fixture does not
+# parse for it, so a future admission cannot make this file falsely green.
+# `fe_only_fence_families()` below is an INDEPENDENT re-derivation of the
+# registry filter (not a call into the fence's own implementation) -- the
+# first test in this file cross-checks it against
+# `drmTMB:::drm_julia_fe_only_fence_families()`, the shared helper the fence
+# and the gate registry's `family_type` field both use, so a divergence
+# between the two independent readings of the registry fails loudly instead
+# of both silently agreeing on a stale cohort.
+#
+# `engine\\s*=\\s*\"tmb\"` messages carry the fence's own registry-driven
+# `message_pattern` (R/julia-bridge.R `drm_julia_intentional_gates()`, row
+# `fe_only_random_effects`); that pattern must survive cli's 80-column
+# message wrap (a literal space between the closing backtick of `` `fe` ``
+# and `(fixed-effect)` becomes a newline for the four longest family names --
+# see the comment beside the pattern itself), so `expect_fe_only_fence()`
+# below asserts it against BOTH an unwrapped message
+# (`cli.condition_width = Inf`) and a wrapped one (`= 80`).
 #
 # Zero Julia throughout: every assertion here runs with DRM_JL_PATH unset.
 
@@ -58,7 +74,10 @@ fe_only_fence_families <- function() {
 # garbage `y` values for every family, matching the leaf's "build a call the
 # way a working native fit would" discipline in spirit while not requiring
 # response values that actually recover the family's parameters).
-fe_only_fence_lhs_overrides <- c(beta_binomial = "cbind(s, f)")
+fe_only_fence_lhs_overrides <- c(
+  beta_binomial = "cbind(s, f)",
+  cumulative_logit = "y"
+)
 
 fe_only_fence_fixture <- function(family_name, n = 40L) {
   set.seed(20260905L)
@@ -75,6 +94,15 @@ fe_only_fence_fixture <- function(family_name, n = 40L) {
     successes <- sample(0:5, n, replace = TRUE)
     dat$s <- pmin(successes, trials)
     dat$f <- trials - dat$s
+  } else if (identical(family_name, "cumulative_logit")) {
+    # Ordered-factor response (R/family.R cumulative_logit()): the fence
+    # fires on formula STRUCTURE alone, before any response-content check,
+    # so a garbage draw (not fitted to real cutpoints, like the generic `y`
+    # every other family gets) is enough -- see the header comment.
+    dat$y <- ordered(
+      sample(c("low", "medium", "high"), n, replace = TRUE),
+      levels = c("low", "medium", "high")
+    )
   }
   list(data = dat, lhs = lhs)
 }
@@ -123,38 +151,49 @@ fe_only_fence_second_dpar <- function(family_name) {
   dpars[[2L]]
 }
 
-# Shared assertion: `expr` must abort with the fence's own message, matching
-# the gate registry row `fe_only_random_effects` (G5), and naming the family
-# and the offending term.
-expect_fe_only_fence <- function(expr, family_name, term_regex) {
-  withr::local_envvar(DRM_JL_PATH = NA, DRM_JL_PHYLO_PATH = NA)
-  err <- tryCatch({
-    force(expr)
-    NULL
-  }, error = function(e) e)
-  expect_false(is.null(err), info = sprintf("%s: expected an error, got none", family_name))
-  if (is.null(err)) {
-    return(invisible(NULL))
-  }
-  msg <- conditionMessage(err)
+# Shared assertion: `make_call` (a zero-argument thunk, NOT a bare
+# expression -- it must run twice, once per cli wrap width below) must abort
+# with the fence's own message, matching the gate registry row
+# `fe_only_random_effects` (G5), and naming the family and the offending
+# term. Checked against BOTH an unwrapped message (`cli.condition_width =
+# Inf`) and cli's real 80-column wrap (`= 80`), because the pattern must
+# survive both -- see the header comment on why this matters.
+expect_fe_only_fence <- function(make_call, family_name, term_regex) {
   gates <- drmTMB:::drm_julia_intentional_gates()
   gate <- gates[gates$gate_id == "fe_only_random_effects", ]
   expect_equal(nrow(gate), 1L)
-  expect_match(msg, gate$message_pattern[[1L]], info = msg)
-  expect_match(msg, family_name, fixed = TRUE, info = msg)
-  expect_match(msg, term_regex, info = msg)
-  expect_match(msg, "engine\\s*=\\s*\"tmb\"", info = msg)
-  invisible(err)
+  pattern <- gate$message_pattern[[1L]]
+
+  check_one <- function(width) {
+    withr::local_envvar(DRM_JL_PATH = NA, DRM_JL_PHYLO_PATH = NA)
+    withr::local_options(cli.condition_width = width)
+    err <- tryCatch({
+      force(make_call())
+      NULL
+    }, error = function(e) e)
+    expect_false(
+      is.null(err),
+      info = sprintf("%s (width=%s): expected an error, got none", family_name, width)
+    )
+    if (is.null(err)) {
+      return(invisible(NULL))
+    }
+    msg <- conditionMessage(err)
+    expect_match(msg, pattern, info = msg)
+    expect_match(msg, family_name, fixed = TRUE, info = msg)
+    expect_match(msg, term_regex, info = msg)
+    expect_match(msg, "engine\\s*=\\s*\"tmb\"", info = msg)
+    invisible(err)
+  }
+
+  check_one(Inf)
+  check_one(80)
 }
 
-test_that("fe-only, non-exempt family set is exactly the registry-driven cohort", {
-  expect_setequal(
-    fe_only_fence_families(),
-    c(
-      "student", "lognormal", "truncated_nbinom2",
-      "zero_one_beta", "tweedie", "beta_binomial"
-    )
-  )
+test_that("fe-only, non-exempt family set is non-empty and matches the fence's own cohort helper", {
+  cohort <- fe_only_fence_families()
+  expect_gt(length(cohort), 0L)
+  expect_setequal(cohort, drmTMB:::drm_julia_fe_only_fence_families())
 })
 
 for (fam in fe_only_fence_families()) {
@@ -174,7 +213,7 @@ for (fam in fe_only_fence_families()) {
       }
       formula <- do.call(bf, args)
       expect_fe_only_fence(
-        drmTMB(formula, family = fam_obj, data = fixture$data, engine = "julia"),
+        function() drmTMB(formula, family = fam_obj, data = fixture$data, engine = "julia"),
         family_name,
         "`mu`"
       )
@@ -193,7 +232,7 @@ for (fam in fe_only_fence_families()) {
       }
       formula <- do.call(bf, args)
       expect_fe_only_fence(
-        drmTMB(formula, family = fam_obj, data = fixture$data, engine = "julia"),
+        function() drmTMB(formula, family = fam_obj, data = fixture$data, engine = "julia"),
         family_name,
         sprintf("`%s`", second_dpar)
       )
@@ -207,7 +246,7 @@ test_that("student(): a random slope (1 + x | g) also refuses with the fe-only f
   args[["mu"]] <- stats::as.formula(sprintf("%s ~ x + (1 + x | g)", fixture$lhs))
   formula <- do.call(bf, args)
   expect_fe_only_fence(
-    drmTMB(formula, family = student(), data = fixture$data, engine = "julia"),
+    function() drmTMB(formula, family = student(), data = fixture$data, engine = "julia"),
     "student",
     "`mu`"
   )
@@ -221,7 +260,7 @@ test_that("student(): an sd(g) scale submodel refuses with the fe-only fence", {
   )
   formula <- do.call(bf, args)
   expect_fe_only_fence(
-    drmTMB(formula, family = student(), data = fixture$data, engine = "julia"),
+    function() drmTMB(formula, family = student(), data = fixture$data, engine = "julia"),
     "student",
     "sd\\(\\)"
   )
