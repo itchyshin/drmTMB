@@ -606,6 +606,26 @@ drmTMB_julia_bridge <- function(
     formula = formula,
     family_type = family_type
   )
+  # The mean-only phylo Gaussian REML admission (see drm_julia_reml_supported())
+  # is DRM.jl's sparse location-only route, whose own REML gate excludes a model
+  # carrying missing responses. With the DEFAULT `missing = miss_control()` the
+  # bridge drops NA rows below, before marshalling, so nothing missing ever
+  # reaches that gate. With an explicit non-default response engine the NA rows
+  # ARE passed through and DRM.jl throws its own ArgumentError plus a JuliaCall
+  # trace -- so withdraw the admission here and refuse with drmTMB's message
+  # instead. Native `engine = "tmb"` refuses this same combination too
+  # ("`REML` is not implemented with explicit missing-data engines yet").
+  if (
+    isTRUE(reml_supported) &&
+      !identical(missing_control$response, "drop") &&
+      isTRUE(drm_julia_reml_phylo_mean_only(formula)) &&
+      identical(family_type, "gaussian") &&
+      isTRUE(drm_julia_has_phylo_term(formula)) &&
+      !isTRUE(drm_julia_has_sigma_phylo_term(formula)) &&
+      !isTRUE(drm_julia_has_sd_term(formula))
+  ) {
+    reml_supported <- FALSE
+  }
   if (isTRUE(REML) && !reml_supported) {
     drm_julia_refuse_reml_unsupported(
       REML,
@@ -1195,6 +1215,53 @@ drm_julia_check_ordinary_sigma_ranef_route_limits <- function(
 # reason ("currently supports one `phylo()` term"), so the REML question never
 # arises. Widening it here would be widening on the engine's word alone, which
 # is the thing this comment exists to avoid.
+#
+# WIDENED 2026-09-05 for the MEAN-ONLY phylogenetic Gaussian cell
+# `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)` -- DRM.jl #624 item
+# (c), the cell whose refusal this gate used to mirror. DRM.jl now fits it by
+# `drm(...; method = :REML)` on the sparse location-only spine, restricting the
+# SAME set native TMB restricts (`beta_mu` plus the phylo field) with the SAME
+# Patterson-Thompson constant. Verified with #625's estim_method oracle rather
+# than on the engine's word: the fit reports estim_method = REML and a
+# reml_loglik several units from its ml_loglik, and the receipt in
+# docs/dev-log/evidence/julia-r-parity/reml/reml-phylo-mean-receipt.md matches
+# native `engine = "tmb"` REML on the same draw.
+#
+# The admission is scoped to EXACTLY the shape DRM.jl's sparse route serves,
+# because everything adjacent to it still refuses inside the engine and would
+# surface as a raw Julia stack trace rather than a drmTMB refusal:
+#   * `sigma` must be intercept-only -- a `sigma ~ x` predictor sends DRM.jl to
+#     its DENSE structured fitter, which has no REML objective;
+#   * no ordinary `(1 | g)` bar on `mu` or `sigma` alongside the phylo term;
+#   * no sd() submodel and no sigma-side phylo (those are the older branches
+#     above, which stay exactly as they were).
+drm_julia_reml_phylo_mean_only <- function(formula) {
+  structured <- unlist(
+    lapply(formula$entries, function(entry) entry$structured),
+    recursive = FALSE
+  )
+  if (length(structured) != 1L) {
+    return(FALSE)
+  }
+  if (!identical(structured[[1L]]$type, "phylo") ||
+    !identical(structured[[1L]]$dpar, "mu")) {
+    return(FALSE)
+  }
+  sigma_entry <- Filter(
+    function(entry) identical(entry$dpar, "sigma"),
+    formula$entries
+  )
+  if (length(sigma_entry) != 1L) {
+    return(FALSE)
+  }
+  sigma_terms <- flatten_plus_terms(sigma_entry[[1L]]$rhs)
+  sigma_intercept_only <- length(sigma_terms) == 1L &&
+    identical(deparse(sigma_terms[[1L]]), "1")
+  sigma_intercept_only &&
+    !drm_julia_dpar_has_ordinary_bar(formula, "mu") &&
+    !drm_julia_dpar_has_ordinary_bar(formula, "sigma")
+}
+
 drm_julia_reml_supported <- function(formula, family_type) {
   has_phylo <- drm_julia_has_phylo_term(formula)
   sigma_phylo <- drm_julia_has_sigma_phylo_term(formula)
@@ -1209,8 +1276,14 @@ drm_julia_reml_supported <- function(formula, family_type) {
   poisson_reml <- identical(family_type, "poisson") &&
     !isTRUE(sigma_phylo) &&
     !isTRUE(has_sd)
+  phylo_mean_only_reml <- identical(family_type, "gaussian") &&
+    isTRUE(has_phylo) &&
+    !isTRUE(sigma_phylo) &&
+    !isTRUE(has_sd) &&
+    isTRUE(drm_julia_reml_phylo_mean_only(formula))
   (identical(family_type, "gaussian") &&
     (!isTRUE(has_phylo) || isTRUE(sigma_phylo) || isTRUE(has_sd))) ||
+    isTRUE(phylo_mean_only_reml) ||
     isTRUE(poisson_reml) ||
     (identical(family_type, "biv_gaussian") &&
       identical(drm_julia_biv_phylo_dimension(formula), "q4"))

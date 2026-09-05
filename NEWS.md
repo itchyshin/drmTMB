@@ -1,5 +1,44 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` fits the mean-only phylogenetic Gaussian cell by REML (#1142)
+
+* `drmTMB(bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1),
+  family = gaussian(), REML = TRUE, engine = "julia")` now fits instead of
+  refusing. DRM.jl #624 item (c) is closed on the engine side, so the bridge's
+  REML gate admits this one cell. Both engines integrate out the same set --
+  the phylogenetic field and `beta_mu` -- and both carry the same additive
+  `0.5 * p_mu * log(2 * pi)` from the Patterson-Thompson restriction, so the two
+  REML log-likelihoods are directly comparable with no constant removed:
+  drmTMB's REML construction folds `beta_mu` into TMB's `random=` vector, and
+  DRM.jl profiles it out exactly by GLS and adds
+  `0.5 * logdet(Xmu' V^-1 Xmu) - 0.5 * p_mu * log(2 * pi)`. Measured on the
+  committed fixture (`tests/testthat/test-reml-phylo-location.R` draw, n = 90,
+  30 tips) against native `engine = "tmb"` with `REML = TRUE`: logLik
+  `-76.000977125761` vs `-76.000977125105` (`6.56e-10`), max scaled coefficient
+  difference `3.71e-08`, identical coefficient names, identical `nobs` (90) and
+  `df` (4); the fit's `estimator` is `"REML"` and equals what DRM.jl reports as
+  `estim_method`. **One documented convention difference**: drmTMB's REML
+  standard errors for `beta_mu` come from TMB's `sdreport` over a random set
+  that contains it, so they propagate variance-parameter uncertainty, while
+  DRM.jl reports the canonical `(Xmu' Vhat^-1 Xmu)^-1` -- a hand-built GLS
+  oracle confirms DRM.jl to `4.5e-08`, and the two engines' SEs differ by
+  `4.84e-05`, `1.50e-03` and `1.42e-07` relative on the three coefficients.
+  This is a construction difference, not an error on either side: the test
+  asserts DRM.jl-vs-oracle agreement at rtol `~5e-7` and bounds the
+  cross-engine gap at rtol `2.5e-3`, not a bare rtol-`1e-3` cross-engine
+  match. Tracked in #1201.
+  **Scope**: `phylo()` with an intercept-only `sigma` only. A `sigma`
+  predictor, an ordinary `(1 | g)` bar alongside the phylo term, `relmat()` /
+  `animal()` / `spatial()`, and a non-default `missing` response engine all
+  still refuse before Julia starts, with drmTMB's own message. Receipt:
+  `docs/dev-log/evidence/julia-r-parity/reml/reml-phylo-mean-receipt.md`;
+  `docs/design/261-reml-by-route.md` row `gaussian_phylo_mean` now reads
+  FITS / FITS / FITS. `fit$bridge$gradient` is deliberately absent on a Julia
+  REML fit of this cell (it is present, and near zero, on the ML fit): the
+  route's analytic score belongs to the ML marginal and is `(1.01, 0.99)` on the
+  variance parameters at the REML optimum, so reporting it would have read as
+  "not converged" for a converged fit.
+
 ## `engine = "julia"` admits `beta_binomial()` (fixed effects)
 
 * `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
