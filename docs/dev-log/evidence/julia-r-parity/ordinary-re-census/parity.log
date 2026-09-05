@@ -1,0 +1,124 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+[91m[1mERROR: [22m[39mLoadError: UndefVarError: `loglogistic` not defined
+Stacktrace:
+ [1] top-level scope
+[90m   @[39m [90m~/.julia/packages/LogExpFunctions/LITgj/ext/[39m[90m[4mLogExpFunctionsInverseFunctionsExt.jl:19[24m[39m
+ [2] [0m[1minclude[22m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mBase.jl:495[24m[39m[90m [inlined][39m
+ [3] [0m[1minclude_package_for_output[22m[0m[1m([22m[90mpkg[39m::[0mBase.PkgId, [90minput[39m::[0mString, [90mdepot_path[39m::[0mVector[90m{String}[39m, [90mdl_load_path[39m::[0mVector[90m{String}[39m, [90mload_path[39m::[0mVector[90m{String}[39m, [90mconcrete_deps[39m::[0mVector[90m{Pair{Base.PkgId, UInt128}}[39m, [90msource[39m::[0mNothing[0m[1m)[22m
+[90m   @[39m [90mBase[39m [90m./[39m[90m[4mloading.jl:2216[24m[39m
+ [4] top-level scope
+[90m   @[39m [90m[4mstdin:3[24m[39m
+in expression starting at /Users/z3437171/.julia/packages/LogExpFunctions/LITgj/ext/LogExpFunctionsInverseFunctionsExt.jl:1
+in expression starting at stdin:3
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+ordre_gaussian_random_intercept_ml         PARITY_PASS    coef_diff=2.053e-11  loglik_diff=1.336e-12  sd_diff=7.177e-11 | SE_PASS                se_abs=2.028e-08 se_rel=3.333e-07
+ordre_gaussian_random_intercept_reml       PARITY_PASS    coef_diff=2.313e-09  loglik_diff=1.137e-12  sd_diff=4.635e-13 | SE_PASS                se_abs=2.036e-08 se_rel=3.333e-07
+ordre_gaussian_random_slope_ml             PARITY_PASS    coef_diff=4.122e-11  loglik_diff=2.046e-12  sd_diff=9.613e-11 | SE_PASS                se_abs=2.140e-08 se_rel=3.311e-07
+ordre_gaussian_sigma_random_intercept_ml   PARITY_FAIL    coef_diff=6.440e-04  loglik_diff=2.850e-02  sd_diff=4.056e-03 | SE_FAIL                se_abs=8.178e-04 se_rel=7.461e-03
+   note:  numeric tolerance exceeded; 3 coefficient(s) compared; 1 RE sd/cor value(s) compared; julia estim_method=ML; tmb estimator=ML 
+negative_control_perturbed                 NEGATIVE_CONTROL_OK    se_abs=1.586e-02 se_rel=9.091e-02
+
+wrote parity-fixtures-ordinary-re.tsv and parity-se-ordinary-re.tsv in docs/dev-log/evidence/julia-r-parity/ordinary-re-census
+drmTMB code hash: 588c1fdd0d39d6d8e23cafe029a6dc98898cccc1062b8022fe97ca3e81ffd84b
+DRM.jl ref: 430ef64ccca5642c5abebd72194e00895314dfc2
+OVERALL: SOME CELLS FAILED
+Julia exit.
+  Activating project at `~/local-scratch/parity-joint/drmjl-430ef64cc`
+┌ Error: Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions, use `Base.retry_load_extensions()` to retry.
+│   exception =
+│    1-element ExceptionStack:
+│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_IJoWHs".
+│    Stacktrace:
+│      [1] error(s::String)
+│        @ Base ./error.jl:35
+│      [2] compilecache(pkg::Base.PkgId, path::String, internal_stderr::IO, internal_stdout::IO, keep_loaded_modules::Bool)
+│        @ Base ./loading.jl:2462
+│      [3] compilecache(pkg::Base.PkgId, path::String, internal_stderr::IO, internal_stdout::IO, keep_loaded_modules::Bool)
+│        @ Base ./loading.jl:2334 [inlined]
+│      [4] (::Base.var"#968#969"{Base.PkgId})()
+│        @ Base ./loading.jl:1968
+│      [5] mkpidlock(f::Base.var"#968#969"{Base.PkgId}, at::String, pid::Int32; kwopts::@Kwargs{stale_age::Int64, wait::Bool})
+│        @ FileWatching.Pidfile ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:93
+│      [6] #mkpidlock#6
+│        @ FileWatching.Pidfile ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:88 [inlined]
+│      [7] trymkpidlock(::Function, ::Vararg{Any}; kwargs::@Kwargs{stale_age::Int64})
+│        @ FileWatching.Pidfile ~/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/share/julia/stdlib/v1.10/FileWatching/src/pidfile.jl:111
+│      [8] #invokelatest#2
+│        @ Base ./essentials.jl:889 [inlined]
+│      [9] invokelatest
+│        @ Base ./essentials.jl:884 [inlined]
+│     [10] maybe_cachefile_lock(f::Base.var"#968#969"{Base.PkgId}, pkg::Base.PkgId, srcpath::String; stale_age::Int64)
+│        @ Base ./loading.jl:2977
+│     [11] maybe_cachefile_lock
+│        @ Base ./loading.jl:2974 [inlined]
+│     [12] _require(pkg::Base.PkgId, env::Nothing)
+│        @ Base ./loading.jl:1964
+│     [13] __require_prelocked(uuidkey::Base.PkgId, env::Nothing)
+│        @ Base ./loading.jl:1806
+│     [14] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [15] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [16] _require_prelocked
+│        @ Base ./loading.jl:1797 [inlined]
+│     [17] _require_prelocked
+│        @ Base ./loading.jl:1796 [inlined]
+│     [18] run_extension_callbacks(extid::Base.ExtensionId)
+│        @ Base ./loading.jl:1289
+│     [19] run_extension_callbacks(pkgid::Base.PkgId)
+│        @ Base ./loading.jl:1324
+│     [20] run_package_callbacks(modkey::Base.PkgId)
+│        @ Base ./loading.jl:1158
+│     [21] _tryrequire_from_serialized(modkey::Base.PkgId, path::String, ocachepath::String, sourcepath::String, depmods::Vector{Any})
+│        @ Base ./loading.jl:1481
+│     [22] _require_search_from_serialized(pkg::Base.PkgId, sourcepath::String, build_id::UInt128)
+│        @ Base ./loading.jl:1568
+│     [23] _require(pkg::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1932
+│     [24] __require_prelocked(uuidkey::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1806
+│     [25] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [26] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [27] _require_prelocked(uuidkey::Base.PkgId, env::String)
+│        @ Base ./loading.jl:1797
+│     [28] macro expansion
+│        @ Base ./loading.jl:1784 [inlined]
+│     [29] macro expansion
+│        @ Base ./lock.jl:267 [inlined]
+│     [30] __require(into::Module, mod::Symbol)
+│        @ Base ./loading.jl:1747
+│     [31] #invoke_in_world#3
+│        @ Base ./essentials.jl:921 [inlined]
+│     [32] invoke_in_world
+│        @ Base ./essentials.jl:918 [inlined]
+│     [33] require(into::Module, mod::Symbol)
+│        @ Base ./loading.jl:1740
+│     [34] eval
+│        @ Core ./boot.jl:385 [inlined]
+│     [35] eval_string(x::String)
+│        @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:203
+│     [36] docall(call1::Ptr{Nothing})
+│        @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
+└ @ Base loading.jl:1295
+┌ Warning: aic on a REML fit: REML log-likelihoods are only comparable across models with the SAME fixed-effect (mean) structure (variance-only differences). For model selection across mean structures, refit with method = :ML.
+└ @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/gaussian_core.jl:1916
