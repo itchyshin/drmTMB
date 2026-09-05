@@ -77,7 +77,7 @@ different wording, and the `relmat()` case hits its own pre-existing uncondition
 (R/julia-bridge.R, `"currently supports only `relmat(1 | group, ...)`"`) — both catch some of these
 shapes today by accident of family/marker-specific code, which is exactly why #1146 asks for one
 purpose-built, capability-gated guard rather than relying on those to keep covering it. Restored the
-file from a pre-edit copy; `md5` before and after the round-trip: `88b6414f36416b676aec636bbad70cf9`
+file from a pre-edit copy; `md5` before and after the round-trip: `88b6414f36416b676aec636bbad70cf9 (PRE-REBASE hash of R/julia-bridge.R at the time of the red control; the file as landed after merging main hashes bd5edb03b8c49f8a056b1f947436bb76 — the restore claim is about the pre-rebase byte-identity, verified by Rose)`
 (identical). Re-ran `test-julia-marker-slope-guard.R` after restore: green again (24 assertions).
 
 **G5**: scope held — only `R/julia-bridge.R`, the new test file, both `julia-gates.tsv` copies,

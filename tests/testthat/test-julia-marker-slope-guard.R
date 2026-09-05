@@ -187,3 +187,50 @@ test_that("RED CONTROL: removing the guard call lets the marker-slope formula re
   expect_identical(terms[[1L]]$group, "species")
   expect_false(identical(terms[[1L]]$coef_names, "(Intercept)"))
 })
+
+test_that("animal() and spatial() follow the same rule: intercept-only passes, a slope is refused", {
+  # Rose's must-fix on #1180: drm_julia_marker_slope_guarded_types() names four
+  # markers, but the file above exercised only phylo() and relmat().
+  set.seed(1)
+  dat <- data.frame(
+    id = factor(rep(c("a", "b", "c"), each = 2)),
+    site = factor(rep(c("s1", "s2", "s3"), each = 2)),
+    x = stats::rnorm(6),
+    y = stats::rnorm(6)
+  )
+  A <- diag(3)
+  rownames(A) <- colnames(A) <- levels(dat$id)
+  co <- cbind(lon = c(0, 1, 2), lat = c(0, 1, 0))
+  rownames(co) <- levels(dat$site)
+
+  passes <- function(f) {
+    isFALSE(tryCatch(
+      {
+        drmTMB:::drm_julia_refuse_marker_slope_unsupported(f)
+        FALSE
+      },
+      error = function(e) TRUE
+    ))
+  }
+  # intercept-only: NOT caught
+  expect_true(passes(bf(y ~ x + animal(1 | id, A = A), sigma ~ 1)))
+  expect_true(passes(bf(y ~ x + spatial(1 | site, coords = co), sigma ~ 1)))
+
+  # non-intercept left side: refused, naming the marker and engine = "tmb"
+  for (f in list(
+    bf(y ~ x + animal(1 + x | id, A = A), sigma ~ 1),
+    bf(y ~ x + spatial(1 + x | site, coords = co), sigma ~ 1)
+  )) {
+    err <- tryCatch(drmTMB:::drm_julia_refuse_marker_slope_unsupported(f), error = function(e) e)
+    expect_s3_class(err, "error")
+    msg <- conditionMessage(err)
+    expect_match(msg, "cannot fit a random slope")
+    expect_match(msg, "engine = \"tmb\"", fixed = TRUE)
+  }
+  terms <- drmTMB:::drm_julia_collect_marker_slope_terms(bf(y ~ x + animal(1 + x | id, A = A), sigma ~ 1))
+  expect_length(terms, 1L)
+  expect_identical(terms[[1L]]$type, "animal")
+  terms <- drmTMB:::drm_julia_collect_marker_slope_terms(bf(y ~ x + spatial(1 + x | site, coords = co), sigma ~ 1))
+  expect_length(terms, 1L)
+  expect_identical(terms[[1L]]$type, "spatial")
+})
