@@ -77,3 +77,12 @@ process per engine per route. **The full grid still needs your explicit go (D-13
 - `prerun-receipt.json` — the receipt.
 
 Regenerate: `python3 make_receipt.py` (from this directory).
+
+## Integrator correction (2026-09-05, after adversarial review)
+
+The "~2× ratio" above is NOT a like-for-like comparison and must not be used to size the full grid as it stands:
+
+1. **Unmatched optima.** The two engines stopped at different points on the same cell: logLik gap 1.9e-5, max coefficient gap 1.7e-4, above the programme's 1e-4 parity bar. A ratio over unmatched fits is exactly what the P4 design forbids ("matched optima first"). The grid design must tighten both optimizers to a common tolerance and confirm the gap is under the bar before any cell is timed.
+2. **Asymmetric timed region.** The R arm's timed region includes `TMB::sdreport()`; the Julia arm ran with `q4_vcov = false`. The reviewer's quick local measurement put the sdreport share at roughly 30% of R's timed wall. The grid must fix ONE setting for every timed cell (both engines with covariance, or both without) and, before that, quantify the asymmetry on Totoro with a fourth arm (R with `se = FALSE`, or Julia with `q4_vcov = true`).
+
+Until both are done, the pre-run receipt establishes only that the pipeline runs end to end on Totoro (48 s, single core, both engines converge) — not a speed number.
