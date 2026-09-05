@@ -142,9 +142,19 @@
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
 #'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
 #' @param engine Computational engine. The default `"tmb"` uses the native
-#'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
-#'   deferred for future work; it is retained only so existing objects and code
-#'   can be inspected, not as a current fitting route.
+#'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRM.jl
+#'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
+#'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
+#'   an additional large-p `phylo()` or coupled location-scale phylo route),
+#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
+#'   `beta_binomial()` on the fixed-effect route only. Each admitted family
+#'   carries a same-target parity receipt against `engine = "tmb"`
+#'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
+#'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
+#'   the full family-by-route table, which capability-ledger row documents
+#'   each receipt, and current boundaries. `engine = "julia"` needs a local
+#'   DRM.jl checkout and the optional `JuliaCall` package, and it is not a
+#'   drop-in replacement for every native-TMB workflow.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -177,11 +187,15 @@
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
 #'   (`point_fit_recovery`).
-#'   The halted `engine = "julia"` compatibility bridge is not a supported
-#'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
-#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
-#'   different fixed-effect formulas, non-binomial non-Gaussian models, and
-#'   currently unsupported extensions.
+#'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
+#'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
+#'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
+#'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
+#'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
+#'   currently fit `REML = TRUE`; every other bridge route refuses it, some
+#'   with a raw DRM.jl error rather than a `drmTMB`-worded one. See
+#'   `docs/design/261-reml-by-route.md` for the full route-by-route table
+#'   before relying on bridge REML for a model not listed there.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that

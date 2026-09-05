@@ -211,6 +211,12 @@ drmTMB(
 )
 ```
 
+This fixed-effect-only call also fits through `engine = "julia"`, with a
+same-target parity receipt against `engine = "tmb"` (capability-ledger row
+`fe_beta_binomial`; see the family table in
+`vignette("julia-engine", package = "drmTMB")`). Adding the random intercept
+below is not admitted through `engine = "julia"` yet.
+
 If trays, plots, or subjects are repeatedly observed, the first fitted
 mixed-model slice is an ordinary `mu` random intercept, optionally paired with
 an independent numeric `mu` slope:
