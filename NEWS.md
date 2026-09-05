@@ -11,6 +11,19 @@
   `Sigma_a` is rescaled to the unit-height convention, as `profile_targets()`
   already does). Ported term-for-term from DRM.jl `src/coevo_accessors.jl`
   and checked live against DRM.jl's own accessors at pin `430ef64cc`.
+## `engine = "julia"` admits `tweedie()` on the fixed-effect route
+
+* `tweedie()` (dpars `mu`, `sigma`, `nu`) now routes through `engine = "julia"`
+  for fixed-effect models -- one row in the Julia family registry, no bridge
+  code. Same target as `engine = "tmb"` on the committed
+  `test-tweedie-location-scale.R` fixture at DRM.jl pin `430ef64cc`:
+  max |d coef| 2.77e-11, |d logLik| 0, per-coefficient Wald SE within 3.28e-06
+  relative; `estimator` reads `"ML"` and equals DRM.jl's `estim_method`. Write
+  `nu ~ 1` explicitly for now: a formula that omits `nu` aborts at DRM.jl's
+  label echo (`coef_labels is missing an entry for dpar "nu"`) because the
+  bridge's label defaulter fills `nu` only for `student()`; that one-line fix
+  sits outside this change. No phylogenetic, structured, or random-effect
+  tweedie routes are admitted; `(1 | g)` fails closed at the same echo.
 ## `engine = "julia"` admits `zero_one_beta()` (fixed effects)
 
 * `drmTMB(bf(prop ~ x, sigma ~ z, zoi ~ w, coi ~ v), family = zero_one_beta(),

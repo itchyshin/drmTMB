@@ -187,6 +187,12 @@ an SD ratio. If `gamma_temperature = 0.3`, then a one-unit temperature
 increase multiplies residual SD by `exp(0.3) = 1.35`. Squaring the ratio gives
 the residual-variance ratio, `exp(2 * 0.3) = 1.82`.
 
+Working directly in Julia? The
+[DRM.jl companion tutorial](https://itchyshin.github.io/DRM.jl/stable/tutorials/location-scale)
+uses the same explicit SD- and variance-ratio reporting scales with Julia
+syntax. DRM.jl has its own fitting and inference routes; Julia remains optional
+for `drmTMB` users.
+
 | Formula component | Report | Biological reading |
 |---|---|---|
 | `growth ~ temperature` | `beta_temperature` | additive change in expected growth |

@@ -69,10 +69,16 @@ drm_julia_family_registry <- function() {
     # admission here -- that is a later row. No family-specific payload or
     # label code is needed: `julia_bridge_supported_dpars()` and
     # `drm_julia_bridge_blocks()` already carry zoi/coi.
-    spec("zero_one_beta", fe = TRUE)
+    spec("zero_one_beta", fe = TRUE),
+    # tweedie (A4, 2026-09-05): fixed effects ONLY (mu, sigma, nu). DRM.jl
+    # src/tweedie.jl at pin 430ef64cc uses the same parameterisation as
+    # R/family.R (log mu; sigma = sqrt(phi); nu = 1 + plogis(eta), the
+    # "logit12" link), so no payload/label code is needed. No phylo, no RE,
+    # no structured route here -- that is a later row.
+    spec("tweedie",      fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   beta_binomial, tweedie, cumulative_logit
+    #   beta_binomial, cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )

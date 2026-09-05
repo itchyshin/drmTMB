@@ -866,6 +866,25 @@ attribution unchanged -- only the previously-unhandled fallback default is touch
 
 ## 8. Family addenda (A4 admissions, one family per PR)
 
+### 8.2 `tweedie` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("tweedie", fe = TRUE)` -- puts the family on the fixed-effect
+(Workflow G) route. Nothing else under `R/` changed: the producer
+(`drm_julia_bridge_payload_coef_labels()`, §7.1) labels every dpar the
+formula bundle carries, and the fail-closed comparison (§7.3) applies
+unchanged.
+
+**dpars, links, and labels.** drmTMB's `tweedie()` declares
+`dpars = c("mu", "sigma", "nu")` with links `log`, `log`, `logit12`
+(`nu = 1 + plogis(eta_nu)`, `phi = sigma^2`; `R/family.R`). DRM.jl's
+`Tweedie` (`src/tweedie.jl` at the pin) fits the blocks `[:mu, :sigma, :nu]`
+with `mu = exp(eta)`, `phi = exp(2 * eta_sigma)` (so `sigma = exp(eta_sigma)`),
+and `p = 1 + 1 / (1 + exp(-eta_nu))` -- the SAME parameterisation, so the
+coefficients compare directly with no transform. Payload and echo, measured
+live on the `tests/testthat/test-tweedie-location-scale.R` draw
+(`new_tweedie_data()` defaults: n = 500, seed 20260701,
+`bf(y ~ x, sigma ~ z, nu ~ 1)`):
 ### 8.6 `zero_one_beta` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc)
 
 *(Sub-section numbers follow the alphabetical order of the A4 ledgers -- beta_binomial,
@@ -917,6 +936,62 @@ n = 300):
 |---|---|---|
 | `mu` | `"(Intercept)"`, `"x"` | `mu_(Intercept)`, `mu_x` |
 | `sigma` | `"(Intercept)"`, `"z"` | `sigma_(Intercept)`, `sigma_z` |
+| `nu` | `"(Intercept)"` | `nu_(Intercept)` |
+
+The echo validated (`bridge_public_coef_labels$contract ==
+"bridge_formula_labels_v1"`). Note the block ORDER differs between the two
+fit objects: native `fixef()` lists `mu, sigma, nu`; the Julia-engine object
+lists `mu, nu, sigma`. Compare by name, never by position (the test does).
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, same
+draw; comparator code of DRM.jl `tools/parity_fixture.R` / `tools/parity_se.R`
+at the pin, rows appended to the pin clone's `docs/dev-log/evidence/`):**
+`max_abs_coef_diff = 2.76703104873377e-11`, `loglik_tmb = -463.227431798281`,
+`loglik_julia = -463.227431798281`, `loglik_diff = 0` (PARITY_PASS at tol
+1e-4); SE `max_abs_se_diff = 1.02859907577524e-07`,
+`max_rel_se_diff = 3.27322466018433e-06` over `mu_(Intercept)`, `mu_x`,
+`sigma_(Intercept)`, `sigma_z`, `nu_(Intercept)` (SE_PASS at rtol 1e-3; the
+negative-control row with `se_julia[1] * 1.10` read SE_FAIL ->
+NEGATIVE_CONTROL_OK, rel 9.09091231096348e-02). The fit's `estimator` is
+`"ML"` and equals DRM.jl's `estim_method` (`"ML"`). Comparator build
+`drmtmb_code_hash = f5ac6e47abc3f8ce76fecc37ecbe5ade1359f704a89b0b2a28c29129aacb28ca`.
+
+**A usability gap the echo exposes for this family (measured; NOT fixed
+here).** A formula that omits `nu` -- `bf(y ~ x)` or `bf(y ~ x, sigma ~ z)`
+-- fits natively (drmTMB defaults `nu ~ 1`; `bf(y ~ x)` gives logLik
+-479.8586143) but through `engine = "julia"` aborts AFTER the engine boots, at
+DRM.jl's echo: `drm_bridge: coef_labels is missing an entry for dpar "nu"
+(1 fixed-effect columns; Julia names: ["nu_(Intercept)"])`. Cause:
+`drm_julia_bridge_default_dpar_labels()` (`R/julia-bridge.R`) defaults
+`sigma` for every non-dispersionless family but `nu` only when
+`family_type == "student"`. The fix is one token -- `family_type %in%
+c("student", "tweedie")` -- in a file outside this leaf's set; it is left to
+the integrator and recorded as a blocker, not claimed. `bf(y ~ x, nu ~ 1)`
+(sigma omitted) is fine: `sigma` is defaulted, the echo validates, and the fit
+reaches the same logLik as the native `bf(y ~ x)` fit (-479.8586143). Until
+the defaulter is widened, users should write `nu ~ 1` explicitly.
+
+**Neighbours, measured at the pin.** `(1 | g)` on `mu` (50 groups x 10):
+native fits (logLik -479.7696225); the Julia route fails CLOSED at the echo
+(`coef_labels is missing an entry for dpar "resd" ... ["resd_g"]`) -- DRM.jl
+itself fits a Tweedie random intercept (#563), but the R side labels `resd`
+only on its Gaussian ordinary-RE route, so this row does NOT widen to random
+effects; the refusal is DRM.jl-attributed and post-boot rather than an R-side
+pre-refusal. `nu ~ z`: native REFUSES (`tweedie() currently supports only
+intercept-only nu ~ 1`); the Julia route FITS it (logLik -462.2769307, six
+coefficients including `nu_z`). That is a model the native engine cannot
+produce, so no same-target receipt exists and this row makes NO parity claim
+for it; whether the R side should pre-refuse it to keep the two engines'
+surfaces equal is an integrator decision (the hook would be in
+`R/julia-bridge.R`). `REML = TRUE` is refused on the R side before Julia
+starts by the existing non-Gaussian REML rule.
+
+**NOT admitted by this row:** phylogenetic, structured
+(`relmat()`/`animal()`/`spatial()`), and random-effect routes;
+predictor-dependent `nu` parity; interval coverage. The
+capability-comparison TSV row for this route is NOT added here (the
+`drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
+outside this leaf's file set) and is left to the integrator, as in §8.1.
 | `zoi` | `"(Intercept)"`, `"w"` | `zoi_(Intercept)`, `zoi_w` |
 | `coi` | `"(Intercept)"`, `"v"` | `coi_(Intercept)`, `coi_v` |
 
