@@ -166,6 +166,73 @@ jobs:
         run: |
           Rscript --no-init-file tools/check-evidence-citations.R
 
+      # Receipt staleness (#1150). Two whole-file receipts tie the committed
+      # Julia-parity numbers to the source that produced them -- C17 model-15
+      # (five pinned files) and lss-tip-identity (every R/*.R plus its runner)
+      # -- and until this step neither was checked at PR time, so a change to
+      # R/ that did not regenerate the receipt merged green with the receipt
+      # quietly meaning nothing. This DETECTS and names the drift; it never
+      # regenerates (that needs a live Julia and the pinned DRM.jl clone).
+      # Hash comparison only, seconds, no package load. Measured 2026-09-04:
+      # exit 0 at a3ddf2e2d (receipt fresh), exit 1 with one byte appended to
+      # R/julia-bridge.R, exit 1 on main ad8fc6524 where the receipt was
+      # already stale (R/julia-bridge.R, R/phylo-utils.R) -- that red is the
+      # point. The script header records why the R checker's own --current
+      # mode cannot run on a runner.
+      - name: Receipt staleness (detect, never regenerate)
+        if: runner.os == 'Linux'
+        run: |
+          bash tools/ci-receipt-staleness.sh
+
+      # Julia bridge glue, mock-driven (#1081). No runner has Julia, so every
+      # live engine test skips here and the suite's teardown line says the
+      # bridge is UNTESTED. That line counts LIVE tests only: the marshalling
+      # code paths (payload serialization, coef_labels, joint dispatch, xfam
+      # routing, structured-RE fixtures) ARE executed by mock-driven
+      # assertions in the files below -- measured 2026-09-04 without Julia:
+      # 1212 expectations passed across these 11 files in ~9 s. This step runs
+      # exactly those files, prints the tally, and FAILS unless > 0 passed
+      # with 0 failures and 0 errors, so a green run carries a counted claim
+      # about the glue rather than silence. It is NOT live-engine evidence:
+      # a mock that replaces the Julia call cannot see a signature mismatch
+      # with DRM.jl; that stays with the local DRM_JL_PATH lane.
+      # Runs after check-capability-runtime.R built the shared object, so
+      # pkgload::load_all() here does not recompile.
+      - name: Julia bridge glue executes (mock-driven, no Julia)
+        if: runner.os == 'Linux'
+        env:
+          NOT_CRAN: true
+        run: |
+          Rscript --no-init-file -e '
+            suppressMessages(pkgload::load_all(".", quiet = TRUE))
+            files <- c(
+              "test-julia-bridge.R", "test-bridge-payload-serialization.R",
+              "test-julia-joint-call.R", "test-julia-joint-dispatch.R",
+              "test-julia-bridge-coef-labels.R", "test-julia-inference.R",
+              "test-julia-structured-inference.R", "test-julia-joint-finite-prepare.R",
+              "test-structured-re-bridge-fixtures.R", "test-julia-objective-at-bridge.R",
+              "test-xfam-bridge.R"
+            )
+            tally <- c(passed = 0L, failed = 0L, error = 0L, skipped = 0L)
+            for (f in files) {
+              res <- as.data.frame(testthat::test_file(
+                file.path("tests/testthat", f), reporter = "silent", package = "drmTMB"
+              ))
+              row <- c(passed = sum(res$passed), failed = sum(res$failed),
+                       error = sum(res$error), skipped = sum(res$skipped))
+              cat(sprintf("%-42s passed=%4d failed=%d error=%d skipped=%d\n",
+                          f, row[["passed"]], row[["failed"]], row[["error"]], row[["skipped"]]))
+              tally <- tally + row
+            }
+            cat(sprintf(
+              "Julia bridge glue (mock-driven, no Julia): %d expectations passed, %d failed, %d errors, %d live skipped across %d files\n",
+              tally[["passed"]], tally[["failed"]], tally[["error"]], tally[["skipped"]], length(files)
+            ))
+            if (tally[["passed"]] == 0L || tally[["failed"]] > 0L || tally[["error"]] > 0L) {
+              stop("mock-driven bridge glue did not execute cleanly (see tally above)")
+            }
+          '
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
