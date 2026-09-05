@@ -262,6 +262,60 @@ test_that("native block-diagonal q = 4 phylo fit: cross-block correlations are e
   expect_equal(unname(s$cov), fit$obj$report()$phylo_q4_covariance, tolerance = 1e-10)
 })
 
+test_that("native animal() q = 4 fit: a non-phylo structured marker reads the same Sigma_a slot", {
+  skip_on_cran()
+  # Known precision matrix Q = K^-1 over 12 ids (AR(1)-like relatedness), the
+  # shape test-animal-relmat-gaussian.R fits; the accessors must read
+  # `animal()` blocks through the same phylo_mu slot as `phylo()` blocks.
+  set.seed(20260905)
+  n_id <- 12L
+  n_each <- 6L
+  ids <- paste0("id", seq_len(n_id))
+  K <- outer(seq_len(n_id), seq_len(n_id), function(i, j) 0.32^abs(i - j))
+  diag(K) <- diag(K) + 0.12
+  dimnames(K) <- list(ids, ids)
+  Q <- solve(K)
+  sds <- c(0.5, 0.4, 0.2, 0.2)
+  Cor <- diag(4L)
+  Cor[1, 2] <- Cor[2, 1] <- 0.4
+  Cor[3, 4] <- Cor[4, 3] <- 0.3
+  A <- t(chol(K)) %*% matrix(stats::rnorm(n_id * 4L), n_id, 4L) %*%
+    chol(diag(sds) %*% Cor %*% diag(sds))
+  id <- rep(ids, each = n_each)
+  x <- stats::rnorm(n_id * n_each)
+  dat <- data.frame(
+    id = id, x = x,
+    y1 = stats::rnorm(length(id), 0.2 + 0.3 * x + A[id, 1], exp(-1 + A[id, 3])),
+    y2 = stats::rnorm(length(id), -0.1 - 0.2 * x + A[id, 2], exp(-1.1 + A[id, 4])),
+    stringsAsFactors = FALSE
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      mu1 = y1 ~ x + animal(1 | p | id, Ainv = Q),
+      mu2 = y2 ~ x + animal(1 | p | id, Ainv = Q),
+      sigma1 = ~ 1 + animal(1 | p | id, Ainv = Q),
+      sigma2 = ~ 1 + animal(1 | p | id, Ainv = Q),
+      rho12 = ~1
+    ),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(se = FALSE, keep_tmb_object = TRUE)
+  ))
+  rc <- coevolution_cor(fit)
+  vc <- coevolution_vc(fit)
+  s <- coevolution_summary(fit)
+  expect_identical(rc$axes, coevo_axes)
+  expect_identical(dimnames(rc$cor), list(coevo_axes, coevo_axes))
+  expect_identical(unname(diag(rc$cor)), rep(1, 4L))
+  expect_true(all(is.finite(vc$variance)) && all(vc$variance > 0))
+  sd_labels <- paste0(coevo_axes, ":animal(1 | p | id)")
+  expect_equal(unname(vc$sd), unname(fit$sdpars$mu[sd_labels]), tolerance = 1e-12)
+  expect_equal(unname(vc$cov), fit$obj$report()$phylo_q4_covariance, tolerance = 1e-10)
+  pairs <- corpairs(fit, level = "animal")
+  expect_equal(nrow(pairs), 6L)
+  expect_equal(pairs$estimate, unname(s$correlation), tolerance = 1e-12)
+})
+
 test_that("guard: the accessors refuse fits that store no 4 x 4 Sigma_a (DRM.jl test_coevo_accessors.jl)", {
   skip_on_cran()
   skip_if_not_installed("ape")
