@@ -267,7 +267,7 @@ test_that("bivariate animal() A q2 REML unsupported representations still refuse
       ),
       family = biv_gaussian(), data = fx$data, REML = TRUE
     ),
-    "animal"
+    "precision"
   )
 })
 

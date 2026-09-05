@@ -112,21 +112,32 @@ comparison is repeated as a live testthat assertion in
 test, executed via a direct `JuliaCall::julia_call()` (bypassing the bridge,
 which refuses this cell unconditionally -- see below).
 
-| quantity | TMB (`engine = "tmb"`) | DRM.jl (direct, `method = :REML`) | \|difference\| |
+Recomputed as doubles from the stored fit
+(`scratchpad/2026-09-05-biv-animal-reml-g3-tmb-fit.rds`) and the DRM.jl
+17-significant-digit values in `probe_direct_julia.log`, not from the
+print-rounded (7-8 significant digit) values shown in `cat()`/`print()`
+output -- Fisher's must-fix: the print-rounded deltas below (`4.80e-09` for
+`mu1 (Intercept)`, etc.) understate agreement by ~2 orders of magnitude
+versus the true double-precision deltas.
+
+| quantity | TMB (`engine = "tmb"`, full double) | DRM.jl (direct, `method = :REML`, full double) | \|difference\| |
 |---|---|---|---|
 | estimator | `REML` | `REML` | agree |
-| logLik (restricted) | -65.2776470088 | -65.2776470082161 (`reml_loglik`) | `5.84e-10` |
-| mu1 `(Intercept)` | 0.09762791 | 0.09762790519861095 | `4.80e-09` |
-| mu1 `x` | 0.49095522 | 0.4909552240133248 | `4.01e-09` |
-| mu2 `(Intercept)` | 0.1370577 | 0.13705768319664452 | `1.68e-08` |
-| mu2 `x` | -0.2774525 | -0.27745253408106374 | `3.41e-08` |
-| sigma1 | 0.2756763 | 0.27567625828091463 | `4.17e-08` |
-| sigma2 | 0.3372765 | 0.33727647720924386 | `2.28e-08` |
-| rho12 | 0.09406757 | 0.09406749654270559 | `7.35e-08` |
+| logLik (restricted) | -65.277647008778374 | -65.277647008216107 (`reml_loglik`) | `5.622667e-10` |
+| mu1 `(Intercept)` | 0.097627905176396593 | 0.097627905198610962 | `2.221437e-11` |
+| mu1 `x` | 0.49095522411191628 | 0.49095522401332481 | `9.859147e-11` |
+| mu2 `(Intercept)` | 0.1370576832221668 | 0.13705768319664452 | `2.552228e-11` |
+| mu2 `x` | -0.27745253399273218 | -0.27745253408106374 | `8.833156e-11` |
+| sigma1 | 0.2756762572259901 | 0.27567625828091463 | `1.054925e-09` |
+| sigma2 | 0.3372764821405736 | 0.33727647720924386 | `4.931330e-09` |
+| rho12 | 0.094067574463678486 | 0.094067496542705603 | `7.792097e-08` |
 
 All differences are `<< 1e-4` (solver-precision level, not the statistical
-1e-4 bar the ledger asks for). Coefficient names agree exactly: both engines
-report `c("(Intercept)", "x")` for `mu1` and `mu2`.
+1e-4 bar the ledger asks for), and the mean/location coefficients (mu1/mu2
+intercepts and slopes) agree to ~1e-11 to ~1e-10 -- an order of magnitude
+tighter than the print-rounded `~1e-8`-`~1e-9` figures this receipt
+originally quoted. Coefficient names agree exactly: both engines report
+`c("(Intercept)", "x")` for `mu1` and `mu2`.
 
 **SE comparison -- NOT AVAILABLE, a pre-existing DRM.jl boundary, not a
 defect introduced by this leaf**: DRM.jl's bivariate q2 STRUCTURED route
@@ -139,6 +150,8 @@ this cell on EITHER marker, so the ledger's SE leg of G3 is recorded here as
 "not comparable, both sides equally" rather than skipped. This mirrors the
 already-documented `biv_q4_phylo_reml` row in `docs/design/261-reml-by-
 route.md` ("SE/vcov are NOT comparable"). Out of this leaf's Scope to fix.
+The G3(b) same-target comparison above is therefore point-estimate and
+logLik only, not point-plus-SE.
 
 ### (c) RED CONTROL: unsupported animal representation stays refused
 
