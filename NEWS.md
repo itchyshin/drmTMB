@@ -1,5 +1,51 @@
 # drmTMB 0.7.0
 
+## Model comparison: `aicc()` and the nested likelihood-ratio test, ported from DRM.jl (#1117)
+
+* New `aicc()` returns the small-sample corrected AIC, `AIC + 2k(k + 1) / (n - k - 1)`,
+  for a `drmTMB` fit on either engine (`Inf` when `n - k - 1 <= 0`, as in DRM.jl),
+  and the internal `drm_lrtest(reduced, full)` computes DRM.jl's `lrtest()`
+  (statistic, df, p-value) with its REML, MAP and boundary-variance guards.
+  Both are ports of DRM.jl `src/comparison.jl` at pin `430ef64cc`, measured
+  against DRM.jl's own values on two committed fixtures: every quantity agrees
+  to `1e-8` on the `engine = "julia"` object and to `2e-12` across engines.
+  `anova.drmTMB()` still refuses; wiring it to `drm_lrtest()` is a follow-up.
+## Pinned DRM.jl clone moved from `e0a65f96b` to `430ef64cc`
+
+* The pin advances 18 commits, carrying DRM.jl #630 (sparse LSS gradient
+  O(n+G) rather than O(G·n) — every warm-timing receipt taken at the old pin
+  is now pessimistic, not wrong), #631 (profile endpoints never return an
+  infinite bound; the sparse-LSS data race behind it is fixed), #632 (the
+  bridge forwards optimizer options and exposes the stored gradient) and
+  #633. Measured on the **full** live-Julia suite, all 37 `test-julia*.R`
+  files in one session: **1440 passed, 0 failed, 0 errors, 0 skipped.**
+  Dependency versions were held fixed (`Project.toml` identical across the
+  refs, so the previous pin's `Manifest.toml` was carried over) and the clone
+  was precompiled before measuring — the two controls whose absence
+  invalidated an earlier probe.
+* Compared file by file against the previous pin's sweep, **nothing
+  changed** — the one differing file is a test converted by the previous
+  re-pin, not an engine change. In particular #631's change to profile
+  endpoint numbers reaches no test in this suite, which is recorded as a gap
+  for the bridge-side inference qualification to close rather than as a pass.
+* Totoro's full-suite runner, which existed only on that host, is now
+  vendored in DRM.jl as `tools/totoro_run_suite.sh` (DRM.jl #638).
+
+## `engine = "julia"` admits `truncated_nbinom2()` (fixed effects)
+
+* `drmTMB(bf(y ~ x, sigma ~ 1), family = truncated_nbinom2(), engine = "julia")`
+  now routes to DRM.jl's `TruncatedNegBinomial2` instead of refusing with the
+  Workflow G message. Both engines fit the same zero-truncated NB2 target with
+  the same `size = 1 / sigma^2` parameterisation. Measured at DRM.jl pin
+  `430ef64cc` on the committed fixture (`tests/testthat/test-family-dpq-batchC.R`
+  draw, n = 300): max |d coef| `8.81e-11`, |d logLik| `2.84e-12`, per-coefficient
+  Wald SE max relative difference `2.71e-07`; the fit's `estimator` (`"ML"`)
+  equals what DRM.jl reports as `estim_method`. **Fixed effects only**: a
+  `(1 | g)` term or a `hu` hurdle formula is refused (by DRM.jl, and by the
+  design-258 label echo respectively), never silently dropped; use
+  `engine = "tmb"` for those. Not a phylogenetic, structured, or interval
+  coverage claim.
+
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
 * drmTMB labelled a Julia fit `"REML"` purely from its own support gate. Nothing
@@ -143,6 +189,22 @@ Template Model Builder.
   `docs/design/259-heritability-icc-repeatability.md` section 3 item 5 for
   which function owns which denominator.
 
+## Fixed: `profile_targets()` on an `engine = "julia"` fit listed one target where `confint()` accepts five (#1156)
+
+* `profile_targets()` returned early for a Julia fit with only the phylogenetic
+  SD inventory, so `bf(y ~ x + phylo(1 | species), sigma ~ 1)` listed **1**
+  target (`sd:mu:phylo(1 | species)`) while the same TMB fit listed 6 -- even
+  though `confint(fit, parm = "fixef:mu:x", method = "profile")` on the Julia
+  fit already worked when the name was typed in full. Discovery now returns
+  the union the engine accepts, in the native row order: `fixef:mu:(Intercept)`,
+  `fixef:mu:x`, `fixef:sigma:(Intercept)`, `sigma`, `sd:mu:phylo(1 | species)`
+  (measured live against the pinned DRM.jl clone `430ef64cc`; each of the four
+  `profile_ready` rows returns a finite profile interval). The `sigma`
+  response-scale alias is listed as it is on the Wald path -- `profile_ready =
+  FALSE`, note `missing_tmb_parameter` -- and the native fit's derived
+  `phylo_total_variance_share` row has no bridge counterpart, so it remains
+  TMB-only.
+
 ## Fixed: `nlminb` could report convergence short of the true optimum on flat surfaces (#1130)
 
 * `nlminb()`'s own `rel.tol`/`x.tol` stopping rules trigger on a relative
@@ -171,6 +233,16 @@ Template Model Builder.
   interval. The same polish now runs on the constrained endpoint solve too,
   keeping the comparison symmetric (and skipped on both sides together under
   `drm_control(newton_polish = FALSE)`).
+* The constrained ordinal cutpoint profile (`confint(fit, parm =
+  "ordinal:cutpoint:<label>", method = "profile")`) had the same asymmetry
+  (#1144): its endpoint solve stopped wherever `nlminb` alone stopped. On the
+  committed random-intercept `cumulative_logit()` fixture that was a gradient
+  of 3.6e-4 to 1.9e-3 at the six endpoints (two above the 1e-3 acceptance
+  guard) against 8.5e-10 at the free optimum. Both endpoints of every cutpoint
+  are now polished the same way (measured 4e-14 to 7e-9 afterwards); the
+  gradient guard `PROFILE_ENDPOINT_GRADIENT_TOL` is unchanged at 1e-3, and on
+  that fixture the reported intervals move by less than 1e-9 -- the fix is
+  to the solve's consistency, not to a visibly wrong interval.
 
 ## Fixed: bootstrap `confint()` failed for `cbind(successes, failures)` binomial fits (#1123)
 
