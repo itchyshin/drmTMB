@@ -15,16 +15,20 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("poisson", "binomial"))
   expect_identical(drmTMB:::drm_julia_structured_families(),
                    c("gaussian", "poisson", "nbinom2", "gamma"))
+  # A4 (2026-09-05): tweedie admitted on the fixed-effect route -- the one
+  # deliberate change to the 2026-09-05 pin; see test-julia-family-tweedie.R.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
-                     "poisson", "nbinom2", "gamma", "beta", "binomial"))
+                     "poisson", "nbinom2", "gamma", "beta", "binomial",
+                     "tweedie"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
-  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial"))
+  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
+              "tweedie"))  # tweedie: admitted by A4 (2026-09-05)
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
-  # refused outright (the A4 targets), same message class as before
-  for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta", "tweedie",
+  # refused outright (the remaining A4 targets), same message class as before
+  for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta",
               "cumulative_logit", "skew_normal"))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
