@@ -1,9 +1,15 @@
 cran_example_lines <- function(path) {
-  lines <- readLines(testthat::test_path("..", "..", path), warn = FALSE)
-  start <- grep("^\\\\examples\\{$", lines)
-  stopifnot(length(start) == 1L)
-  end <- which(seq_along(lines) > start & lines == "}")[1L]
-  lines[seq.int(start + 1L, end - 1L)]
+  rd <- tools::parse_Rd(testthat::test_path("..", "..", path))
+  examples <- Filter(
+    function(node) identical(attr(node, "Rd_tag"), "\\examples"),
+    rd
+  )
+  stopifnot(length(examples) == 1L)
+  strsplit(
+    paste0(unlist(examples[[1L]], use.names = FALSE), collapse = ""),
+    "\n",
+    fixed = TRUE
+  )[[1L]]
 }
 
 test_that("reviewed CRAN examples contain no commented-out code", {

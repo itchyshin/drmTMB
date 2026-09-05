@@ -367,10 +367,8 @@ confint(
   fit, parm = "sigma", method = "profile",
   profile_engine = "tmbprofile", profile_precision = "fast"
 )
-\donttest{
 set.seed(1)
 confint(fit, parm = "sigma", method = "bootstrap", R = 99)
-}
 }
 \references{
 The small-sample corrections applied by \code{small_sample_df} and \code{bias_correct}

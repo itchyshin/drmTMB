@@ -308,10 +308,8 @@
 #'   fit, parm = "sigma", method = "profile",
 #'   profile_engine = "tmbprofile", profile_precision = "fast"
 #' )
-#' \donttest{
 #' set.seed(1)
 #' confint(fit, parm = "sigma", method = "bootstrap", R = 99)
-#' }
 #' @references
 #' The small-sample corrections applied by `small_sample_df` and `bias_correct`
 #' (whether the default `"location"` scope or the broader `"group"` scope) are
