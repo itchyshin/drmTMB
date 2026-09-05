@@ -1,5 +1,25 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
+
+* Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
+  in the family registry, R/julia-family-registry.R) had a gap: nothing
+  pre-Julia checked an ordinary random-effect bar (`(1 | g)`, including random
+  slopes) or an `sd()`/`sd_phylo()` scale submodel against that family for a
+  family with none of phylo_only/locscale_phylo/slope_phylo/structured set.
+  Measured on origin/main with `DRM_JL_PATH` unset: `student() y ~ x + (1 | g)`,
+  `beta_binomial() cbind(s, f) ~ x + (1 | g)`, `lognormal() sigma ~ z + (1 | g)`,
+  `zero_one_beta() y ~ x + (1 | g)`, and `truncated_nbinom2() y ~ x + (1 + x | g)`
+  all reached `drm_julia_setup()` -- five of six fe-only families with no receipt.
+  A new `drm_julia_refuse_fe_only_random_effects()` gate, registry-driven (no
+  hard-coded family list, so a later fe-only admission is covered without an
+  edit here), now refuses these before Julia starts, naming the family, the
+  `fe` registry column that admitted it, and the offending term. `phylo()` and
+  `relmat()`/`animal()`/`spatial()` markers are untouched by this gate -- both
+  are already refused pre-Julia by existing gates. **No family admission or
+  removal, no DRM.jl change, no comparison-row change**: this closes a scope
+  gap only.
+
 ## `engine = "julia"` admits `beta_binomial()` (fixed effects)
 
 * `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
