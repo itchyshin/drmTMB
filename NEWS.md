@@ -1,5 +1,35 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` admits REML on the bivariate q = 2 structured routes
+
+* `drmTMB(bf(mu1 = y1 ~ x + phylo(1 | p | id, tree = tree), mu2 = y2 ~ x +
+  phylo(1 | p | id, tree = tree), sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  biv_gaussian(), engine = "julia", REML = TRUE)` now fits instead of refusing,
+  and likewise for matching `relmat(1 | p | id, K = K)` and
+  `spatial(1 | p | id, coords = coords)` markers. The bridge previously refused
+  this cell for EVERY provider -- through two different branches, one per
+  marker family -- while DRM.jl fits it (`fit_coevolution_q2_reml`) and native
+  `engine = "tmb"` has always admitted it. Measured at DRM.jl pin `430ef64cc`
+  against `engine = "tmb"` `REML = TRUE` on the same fixture: max |d coef|
+  `5.15e-05` (phylo), `5.29e-05` (relmat), `4.20e-05` (spatial); |d logLik|
+  `1.80e-04`, `3.70e-07`, `4.49e-08`; `estimator` and DRM.jl's own
+  `estim_method` read `REML` on all three, with the ML and REML
+  log-likelihoods about 6 units apart. phylo's `1.80e-04` is the one number
+  above `1e-4`, and it is a property of that route rather than of REML: the
+  already-shipped ML fit on the same fixture disagrees by `5.42e-04`, three
+  times wider.
+* **Point estimates only on these routes.** DRM.jl reports an all-NaN
+  covariance for the bivariate q = 2 structured cell, confirmed live
+  (`sqrt(diag(vcov(fit)))` is `NaN` throughout), so no standard error,
+  confidence interval, or coverage claim is made or possible here; use
+  `engine = "tmb"` when you need uncertainty on this model.
+* **`animal()` q = 2 stays refused.** DRM.jl fits it, but native
+  `engine = "tmb"` still refuses bivariate `animal()` q = 2 REML, so there is
+  no same-target comparator to measure against; the route is admitted only
+  once that receipt exists. Every other bivariate structured shape keeps its
+  existing refusal unchanged. Evidence:
+  `docs/dev-log/evidence/julia-r-parity/reml/biv-q2-bridge-receipt.md`.
+
 ## `engine = "julia"` bridge-side profile/bootstrap inference qualified on two routes (G3)
 
 * `base_gaussian_location_scale` and `plain_binomial_nonphylo` promoted
