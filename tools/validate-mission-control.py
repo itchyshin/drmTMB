@@ -12885,6 +12885,11 @@ MEMBER_ROLE_TO_AGENT = {
     "figure_reviewer": "figure-reviewer",
     "landscape_scout": "landscape-scout",
 }
+# "partial" was added to the r_bridge_status vocabulary on 2026-09-02 (wave-1 bridge
+# promotion; docs/design/192-capability-comparison-regeneration.md): it sits between
+# experimental and supported -- same-target point+SE parity receipt on the committed
+# fixture AND the route runs unopted non-interactively, with bridge-side inference (G3)
+# still unqualified.
 R_BRIDGE_STATUSES = {"supported", "partial", "experimental", "intentional_error", "planned", "unsupported"}
 STRUCTURED_RE_VOCABULARY_TERMS = {
     "covered",

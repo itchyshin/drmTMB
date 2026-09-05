@@ -221,7 +221,12 @@ drm_julia_capability_comparison <- function() {
       "gaussian_random_intercept_mu",
       "gaussian_random_slope_mu",
       "gaussian_sigma_random_intercept",
-      "fe_beta_binomial"
+      "fe_beta_binomial",
+      "fe_cumulative_logit",
+      "fe_skew_normal",
+      "fe_tweedie",
+      "fe_zero_one_beta",
+      "fe_truncated_nbinom2"
     ),
     route = c(
       "base",
@@ -248,6 +253,11 @@ drm_julia_capability_comparison <- function() {
       "base",
       "base",
 
+      "base",
+      "base",
+      "base",
+      "base",
+      "base",
       "base",
       "base"
     ),
@@ -276,7 +286,12 @@ drm_julia_capability_comparison <- function() {
       "bf(y ~ x + (1 | g), sigma ~ 1), family = gaussian(), engine = \"julia\"",
       "bf(y ~ x + (1 + x | g), sigma ~ 1), family = gaussian(), engine = \"julia\"",
       "bf(y ~ x, sigma ~ (1 | g)), family = gaussian(), engine = \"julia\"",
-      "bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(), engine = \"julia\""
+      "bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(), engine = \"julia\"",
+      "bf(score ~ x), family = cumulative_logit(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ z, nu ~ 1), family = skew_normal(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ z, nu ~ 1), family = tweedie(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ z, zoi ~ w, coi ~ v), family = zero_one_beta(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ 1), family = truncated_nbinom2(), engine = \"julia\""
     ),
     r_bridge_status = c(
       # Wave 1 bridge promotions 2026-08-29..09-02 (owner instruction, D-203/D-204;
@@ -327,6 +342,11 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "experimental",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
       "partial"
     ),
     drmjl_status = c(
@@ -354,7 +374,12 @@ drm_julia_capability_comparison <- function() {
       "Gaussian mean random intercept (Woodbury spine; ML and Patterson-Thompson REML, DRM.jl #439/#624)",
       "Gaussian correlated intercept+slope block on mu (_fit_correlated_ranef_gaussian, log-Cholesky recov_ block); ML only",
       "Gaussian random intercept on log-sigma with fixed-effect mean, integrated by 32-node Gauss-Hermite quadrature (_fit_sigma_ranef_gaussian); ML only",
-      "DRM.jl BetaBinomial fixed-effect path (src/betabinomial.jl; trials as per-row bridge context, src/bridge.jl _bridge_trials)"
+      "DRM.jl BetaBinomial fixed-effect path (src/betabinomial.jl; trials as per-row bridge context, src/bridge.jl _bridge_trials)",
+      "Workflow G FE bridge cell (cumulative_logit, ordinal cutpoints block) via drm_bridge",
+      "Workflow G FE bridge cell (skew_normal, mu/sigma/nu) via drm_bridge (DRM.jl PR #641 five-line _bridge_family case)",
+      "Workflow G FE bridge cell (tweedie, mu/sigma/nu dpars) via drm_bridge",
+      "Workflow G FE bridge cell (zero_one_beta, mu/sigma/zoi/coi dpars) via drm_bridge",
+      "Workflow G FE bridge cell (truncated_nbinom2, mu/sigma dpars) via drm_bridge"
     ),
     claim_status = c(
       # Phase 1.5 cap LIFTED 2026-08-25 by owner decision (Shinichi). These three
@@ -398,6 +423,11 @@ drm_julia_capability_comparison <- function() {
       "partial",
       "partial",
       "experimental",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
       "partial"
     ),
     evidence_url = c(
@@ -410,6 +440,11 @@ drm_julia_capability_comparison <- function() {
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/544",
 
+      "https://github.com/itchyshin/drmTMB/issues/544",
+      "https://github.com/itchyshin/drmTMB/issues/544",
+      "https://github.com/itchyshin/drmTMB/issues/544",
+      "https://github.com/itchyshin/DRM.jl/issues/641",
+      "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/544"
     ),
@@ -440,7 +475,12 @@ drm_julia_capability_comparison <- function() {
       "Ordinary (non-phylo) Gaussian random intercept on mu. ML: SUPPORTED (estim_method=ML, ml_loglik=-171.636217965634); same-target tmb-vs-julia parity coef 2.053e-11, logLik 1.336e-12, RE SD 7.177e-11 (0.574803 both engines), SE 2.028e-08 abs / 3.333e-07 rel (SE_PASS, 3 fixed-effect SEs). REML: SUPPORTED (estim_method=REML, ml_loglik=-171.655906399815, reml_loglik=-174.437057568359; the 2.78-unit ML/REML gap is a genuine restriction, not a relabelled ML fit); tmb-vs-julia REML parity coef 2.313e-09, logLik 1.137e-12, RE SD 4.635e-13 (0.5978 both engines), SE 2.036e-08 abs / 3.333e-07 rel (SE_PASS). Both engines fit the same Laplace-exact Gaussian marginal here. Julia's sdpars label is the bare group name (mu.g) where native uses mu.(1 | g); the SE table compares fixed-effect Wald SEs only, as tools/parity_se.R does. Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. The interval_status fences are unchanged.",
       "Ordinary Gaussian correlated (1 + x | g) on mu. ML: SUPPORTED (estim_method=ML, ml_loglik=-178.282455842465); same-target tmb-vs-julia parity coef 4.122e-11, logLik 2.046e-12, SE 2.140e-08 abs / 3.311e-07 rel (SE_PASS, 3 fixed-effect SEs), and the random-effect block agrees to 9.613e-11 (intercept SD 0.515495, slope SD 0.380979, correlation 0.312629 on both engines). REPORTING GAP: the Julia fit's sdpars and corpars are EMPTY for this shape -- the bridge returns the block as raw log-Cholesky coefficients recov_g:L11, recov_g:L22, recov_g:L21 and drm_julia_structured_parameters() translates a recov_ block only for the phylo mu+sigma pair; the block comparison above was derived from those raw coefficients (parity_ordinary_re.R, inspect_slope.log). REML: UNSUPPORTED -- refused by the ENGINE at the pin with: \"ArgumentError: drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker  --  phylo/relmat/animal/spatial  --  without a matching sd() submodel, and meta_V() all land here). REML IS available for: the fixed-effect Gaussian location-scale model; a single Gaussian mean random intercept `(1 | g)`; every sd() LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the multi-component sd() router); the bivariate structured routes (q=2 and q=4, both native and via drm_bridge); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Use method = :ML (the default) for this model.\" GATE DEFECT (report to #1155's follow-up, not fixed here): drm_julia_reml_supported() has no random-slope predicate, so the shipped bridge forwards method = \"REML\" and the user receives DRM.jl's raw ArgumentError plus a JuliaCall trace instead of a drmTMB refusal naming REML = FALSE / engine = \"tmb\". No ML fit was ever labelled REML (the engine throws rather than downgrading). Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. The interval_status fences are unchanged.",
       "Ordinary Gaussian random intercept on sigma. ML: SUPPORTED as a FIT (estim_method=ML, ml_loglik=-185.86575807551) but NOT same-target parity at the 1e-4 bar: tmb-vs-julia coef 6.440e-04, logLik 2.850e-02, sigma-RE SD 4.056e-03 (0.349674 tmb vs 0.35373 julia), SE 8.178e-04 abs / 7.461e-03 rel (PARITY_FAIL, SE_FAIL). CAUSE ESTABLISHED, NOT A DEFECT: the two engines integrate the sigma-side random intercept differently -- drmTMB by Laplace, DRM.jl by 32-node Gauss-Hermite quadrature (src/gaussian_ranef.jl). Both are converged (TMB max|outer gradient| 1.51e-12; Julia converged=TRUE and unchanged at g_tol = 1e-10), and an R transcription of DRM.jl's GHQ marginal evaluated at Julia's estimate reproduces Julia's logLik to 0 (-185.86575807551; K=64 moves it by 3.52e-06, so K=32 is converged in K) -- ghq_check.R / ghq-check.tsv. The gap is the approximation on the same model, not a wrong answer. REML: UNSUPPORTED. The shipped bridge refuses before Julia starts with drmTMB's own message: \"`engine = \"julia\"` does not support `method = \"REML\"` with a random intercept on `sigma`.\" With that pre-check disabled the ENGINE refuses with: \"ArgumentError: drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker  --  phylo/relmat/animal/spatial  --  without a matching sd() submodel, and meta_V() all land here). REML IS available for: the fixed-effect Gaussian location-scale model; a single Gaussian mean random intercept `(1 | g)`; every sd() LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the multi-component sd() router); the bivariate structured routes (q=2 and q=4, both native and via drm_bridge); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Use method = :ML (the default) for this model.\" Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. The interval_status fences are unchanged.",
-      "ADMITTED 2026-09-05 (A4, one registry row: spec(\"beta_binomial\", fe = TRUE)). Receipts measured on the A4 worktree (drmTMB 0.7.0 at c062a2285 == origin/main ea3156d73 content, load_all; drmtmb_code_hash 63d269e3 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, comparator code taken verbatim from DRM.jl tools/parity_fixture.R and tools/parity_se.R (rows in docs/dev-log/after-task/2026-09-05-a4-beta_binomial.md): engine='tmb' vs engine='julia' on the tests/testthat/test-beta-binomial.R draw (n=1200, seed 20260510, cbind(success, failure) ~ x, sigma ~ z), coefficients 7.772e-15 (4/4 name-matched), logLik -2888.851317 on both engines (diff 2.574e-10), SE 6.177e-09 abs / 1.725e-07 rel over 4 SEs; estimator ML on both (fit$estimator == DRM.jl estim_method). The negative control in the same table (cell 1 with se_julia[1]*1.10) reads NEGATIVE_CONTROL_OK at rel 9.091e-02. Same sigma parameterisation on both engines (phi = 1/sigma^2); trials cross as per-row context, not a dpar. BOUNDARY: fixed effects only, one fixture; phylo() with this family refuses before Julia (registry phylo_only = FALSE on purpose: DRM.jl BetaBinomial phylo is constant-sigma only, no receipt); no (1 | g) claim (A5), no structured markers, no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3)."
+      "ADMITTED 2026-09-05 (A4, one registry row: spec(\"beta_binomial\", fe = TRUE)). Receipts measured on the A4 worktree (drmTMB 0.7.0 at c062a2285 == origin/main ea3156d73 content, load_all; drmtmb_code_hash 63d269e3 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, comparator code taken verbatim from DRM.jl tools/parity_fixture.R and tools/parity_se.R (rows in docs/dev-log/after-task/2026-09-05-a4-beta_binomial.md): engine='tmb' vs engine='julia' on the tests/testthat/test-beta-binomial.R draw (n=1200, seed 20260510, cbind(success, failure) ~ x, sigma ~ z), coefficients 7.772e-15 (4/4 name-matched), logLik -2888.851317 on both engines (diff 2.574e-10), SE 6.177e-09 abs / 1.725e-07 rel over 4 SEs; estimator ML on both (fit$estimator == DRM.jl estim_method). The negative control in the same table (cell 1 with se_julia[1]*1.10) reads NEGATIVE_CONTROL_OK at rel 9.091e-02. Same sigma parameterisation on both engines (phi = 1/sigma^2); trials cross as per-row context, not a dpar. BOUNDARY: fixed effects only, one fixture; phylo() with this family refuses before Julia (registry phylo_only = FALSE on purpose: DRM.jl BetaBinomial phylo is constant-sigma only, no receipt); no (1 | g) claim (A5), no structured markers, no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3).",
+      "Fixed-effect route only, dpar mu (ordered-factor response, cutpoints kept out of coef()/vcov() in fit$ordinal). Receipts measured by the cumulative_logit leaf (#1174) on its worktree (drmTMB HEAD 67703f541) against the DRM.jl pin 430ef64cc on the tests/testthat/test-cumulative-logit.R draw (n=900, seed 20260509, bf(score ~ x), 3 ordered levels), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id cumulative_logit, carried into the G11 evidence PR as fe_cumulative_logit) and parity-se.tsv (cell_id se_cumulative_logit): engine='tmb' vs engine='julia', max|d coef| 2.198e-14 (1/1: mu_x, the intercept is dropped by design), logLik -903.275348750815 vs -903.275348750827 (diff 1.125e-11), cutpoints (fit$ordinal, not coef) max|d| 8.982e-13, theta_raw max|d| 6.242e-13, SE max|d| 3.988e-10 abs / 5.758e-09 rel over 1 SE; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash 2300400cb1bef76fedd0084d3cd23674b95c3c7f7d37f2489c2952297e96e1f0. KNOWN GAP, TRACKED NOT FIXED HERE: predict(fit, dpar = \"mu\", type = \"response\"/\"link\") on the Julia object aborts (\"could not align the `stored` design with the fitted `mu` coefficients\") because drm_julia_predict_fixed_eta() rebuilds mu's design with model.matrix(), which restores \"(Intercept)\", while the fitted block has only x -- the native engine's ordinal_mu_model_matrix() projection is not mirrored on the Julia predict path; closed by drmTMB#1195 (merges after this integration PR, not yet in this branch). predict(fit, type = \"quantile\") through the bridge is a separate, family-general gap tracked as drmTMB#1198, not specific to cumulative_logit. fitted() is unaffected (it comes from DRM.jl and matches native). BOUNDARY: fixed effects only; no phylogenetic, structured, or random-effect route (a bare (1 | g) on mu fails CLOSED at DRM.jl's echo, coef_labels missing dpar \"resd\"); no interval-coverage claim; predict() is a declared, unclaimed gap (see above); bridge-side profile/bootstrap inference is unqualified (G3).",
+      "Fixed-effect route only, dpars mu/sigma/nu (public moment parameterisation mu=mean, sigma=SD, nu=Azzalini slant, identical on both engines). DRM.jl's _bridge_family() case for this tag is DRM.jl PR #641 -- the pin 430ef64cc alone lacks it and aborts at the Julia boundary with \"drm_bridge: unsupported family `skew_normal`\"; measured with #641 applied (the A4 skew_normal leaf's DRM.jl worktree). Receipts measured by the skew_normal leaf (#1176) on the tests/testthat/test-skew-normal-location-scale.R draw (n=500, seed 20260608, nu=1.6, bf(y ~ x, sigma ~ z, nu ~ 1)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id skew_normal, carried into the G11 evidence PR as fe_skew_normal) and parity-se.tsv (cell_id se_skew_normal): engine='tmb' vs engine='julia', max|d coef| 1.890e-11 (5/5 name-matched), logLik -532.154369983715 vs -532.154369983717 (diff 2.160e-12), SE max|d| 5.478e-08 abs / 1.045e-06 rel over 5 SEs; estimator ML on both; negative control read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash cc1f91b5303ac9b49aa351f90dd3c0a30cc29ea576ef291c07fa549da44dda5b. A predictor-dependent nu ~ z shape ALSO parity-passes on the same fixture (native -531.719807046535, Julia -531.719807046538). THE NU-DEFAULTING GAP THIS ROW'S LEAF NAMED IS NOW CLOSED BY THIS SAME PR: drm_julia_bridge_default_dpar_labels() (G1/G2/G3 above) now defaults `nu` for skew_normal exactly as it does for tweedie and student, so bf(y ~ x, sigma ~ z) (nu omitted) also fits; re-measurement of that specific bare-nu shape against a live #641 DRM.jl checkout was attempted here and BLOCKED -- not by #641, but because the skew_normal registry row (#1176) is not yet merged into this branch and this leaf's OWNS does not include R/julia-family-registry.R, so drm_julia_family_tag() refuses the call before Julia is reached; the label-defaulting mechanism itself is verified offline (tests/testthat/test-julia-bridge-default-labels.R) and live end-to-end for the identical code path on tweedie (G2). BOUNDARY: fixed effects only; DRM.jl's SkewNormal() refuses every random effect (measured: \"SkewNormal() supports fixed effects only\", DRM.jl-attributed, post-boot, not an R-side pre-refusal); no phylogenetic or structured route; REML refused on the R side before Julia by the existing non-Gaussian REML rule; no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3).",
+      "Fixed-effect route only, dpars mu/sigma/nu (log mu, log sigma, logit12 nu link; the Tweedie power parameter is fixed, not a free dpar). Receipts measured by the tweedie leaf (#1169) on its worktree against the DRM.jl pin 430ef64cc on the tests/testthat/test-tweedie-location-scale.R draw (n=500, seed 20260701, bf(y ~ x, sigma ~ z, nu ~ 1)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_tweedie) and parity-se.tsv (cell_id se_tweedie_locscale_power): engine='tmb' vs engine='julia', max|d coef| 2.767e-11, logLik -463.227431798281 on both engines (diff 0), SE max|d| 1.029e-07 abs / 3.273e-06 rel over 5 SEs; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash f5ac6e47abc3f8ce76fecc37ecbe5ade1359f704a89b0b2a28c29129aacb28ca. R_BRIDGE_STATUS PROMOTED TO PARTIAL: tools/validate-mission-control.py's R_BRIDGE_STATUSES vocabulary gained \"partial\" via #1172, merged into main and carried into this integration; this row and the other four A4 rows (fe_cumulative_logit, fe_skew_normal, fe_zero_one_beta, fe_truncated_nbinom2) are promoted together, meeting the same wave-1 point+SE parity bar. KNOWN JULIA-AHEAD GAP, NOT FIXED HERE (outside this leaf's two-function OWNS; recorded as G16 in the integration ledger): a formula omitting nu previously aborted at DRM.jl's echo because drm_julia_bridge_default_dpar_labels() defaulted nu for student only; this leaf's default-label fix (G1-G3) closes that gap for tweedie too, so bf(y ~ x, sigma ~ z) (nu omitted) now also fits. A predictor-dependent nu ~ z shape ALSO fits through engine=\"julia\" while native drmTMB refuses it (\"tweedie currently supports only intercept-only nu ~ 1\", no native comparator); the bridge now emits one cli_inform naming that shape as Julia-ahead and unverified (G16) rather than accepting it silently. BOUNDARY: fixed effects only; no phylogenetic, structured, or random-effect route (a bare (1 | g) fails CLOSED at DRM.jl's echo, scope held); no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3).",
+      "Fixed-effect route only, dpars mu/sigma/zoi/coi (zero-one-inflated beta; zoi = zero-or-one inflation probability, coi = conditional one-vs-zero probability given inflation, identical parameterisation on both engines). Receipts measured by the zero_one_beta leaf (#1171) on its worktree against the DRM.jl pin 430ef64cc on the tests/testthat/test-zero-one-beta.R draw (n=1600, seed 20260620, bf(y ~ x, sigma ~ z, zoi ~ w, coi ~ v)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id zero_one_beta, carried into the G11 evidence PR as fe_zero_one_beta) and parity-se.tsv (cell_id se_zero_one_beta): engine='tmb' vs engine='julia', max|d coef| 3.979e-11 (8/8 name-matched), logLik -811.772322246398 vs -811.772322246396 (diff 1.933e-12), df 8/8, max|d fitted| 9.08e-12, SE max|d| 1.763e-08 abs / 9.759e-07 rel over 8 SEs; estimator ML on both; negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash 4f1641cf40009fc5d0577f7436a7e6f37a6462afdcc1719bff855bd8ce2279f4. R_BRIDGE_STATUS PROMOTED TO PARTIAL, for the identical validator-vocabulary reason recorded on the fe_tweedie row above (#1172 has landed the vocabulary fix). KNOWN HOLE CLOSED BY THIS SAME PR: the zero_one_beta leaf's own commit named an open hole -- omitting zoi/coi from the formula aborted at DRM.jl's label echo because the R-side defaulter only defaulted sigma; drm_julia_bridge_default_dpar_labels() (G1-G3 above) now defaults zoi and coi for this family too, so bf(prop ~ x, sigma ~ z) (zoi/coi omitted) fits through engine=\"julia\" (measured logLik -425.0937691, replacing tests/testthat/test-julia-family-zero_one_beta.R's stale KNOWN-HOLE test with a fit assertion in this same leaf). BOUNDARY: fixed effects only; DRM.jl refuses every random effect on this family; no phylogenetic or structured route; no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3).",
+      "Fixed-effect route only, dpars mu/sigma (zero-truncated NegBinomial2, log mu, log sigma). Receipts measured by the truncated_nbinom2 leaf (#1173) on its worktree (drmTMB HEAD 67703f541) against the DRM.jl pin 430ef64cc on the tests/testthat/test-family-dpq-batchC.R draw (n=300, bf(y ~ x, sigma ~ 1)), banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id truncated_nbinom2, carried into the G11 evidence PR as fe_truncated_nbinom2) and parity-se.tsv (cell_id se_truncated_nbinom2): engine='tmb' vs engine='julia', max|d coef| 8.812e-11 (3/3 name-matched), logLik -454.131353120582 vs -454.131353120584 (diff 2.842e-12), SE max|d| 2.938e-08 abs / 2.713e-07 rel over 3 SEs; estimator ML on both (fit$estimator \"ML\" == bridge$estim_method \"ML\"); negative control (se_julia[1]*1.10) read NEGATIVE_CONTROL_OK at rel 9.091e-02. Comparator build drmtmb_code_hash 5a16d04f124993b18cc2d84440e2f26d9a7300584813cad3026574d3941b8e92. R_BRIDGE_STATUS PROMOTED TO PARTIAL, for the identical validator-vocabulary reason recorded on the fe_tweedie row above (#1172 has landed the vocabulary fix). Bare bf(y ~ x) (sigma defaulted) also fits, logLik -454.131353120584. THE SPELLING ASYMMETRY NAMED BY THE hurdle_nbinom2 ROW REMAINS UNRESOLVED: engine=\"tmb\" fits truncated_nbinom2() + hu ~ 1 while engine=\"julia\" fits the same hurdle model only under the spelling nbinom2() + hu ~ 1 (DRM.jl's own hurdle route); truncated_nbinom2() + hu ~ 1 is refused by engine=\"julia\" (echo abort \"unknown dpar 'hu'\") -- no identical call fits both engines for the hurdle shape today. BOUNDARY: fixed effects only; (1 | g) refused (\"currently supports fixed effects only\"); zero responses refused (\"requires positive integer counts\"); REML refused on the R side before Julia is reached; no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3)."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads. Coefficient/logLik parity re-measured 2026-08-15 against DRM.jl (coef 4.564e-06, logLik 4.584e-09, tol 1e-4); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv. G3 QUALIFIED 2026-09-05 (leaf A8): keep the profile/bootstrap receipt (docs/dev-log/evidence/julia-r-parity/p2-g3/g3-qualification-receipt.md) re-runnable against future DRM.jl pins.",
@@ -468,7 +508,12 @@ drm_julia_capability_comparison <- function() {
       "Wave-1 bar for r_bridge_status experimental -> partial (design/192) needs the unopted non-interactive route check, not run here. Keep the census re-runnable against future DRM.jl pins (census.R); the REML cell is the one ordinary-RE shape DRM.jl #624 admits.",
       "Two defects to fix outside this row, then re-measure: (a) surface the recov_ block through sdpars/corpars in drm_julia_structured_parameters() with native labels; (b) add a random-slope predicate to drm_julia_reml_supported() so the REML refusal is drmTMB's own. Do not widen REML here (DRM.jl #624 scope).",
       "Do not promote on parity: a same-target comparison needs a matching integrator (a Laplace option in DRM.jl's sigma-RE route, or an AGHQ option in drmTMB's). Until then the honest claim is 'fits, different marginal approximation'; keep REML refused on both sides.",
-      "Keep the fe_beta_binomial receipt re-runnable (tests/testthat/test-julia-family-beta_binomial.R live test, same draw); do not promote beyond partial without a bridge-side inference (G3) receipt; a phylo() row for this family needs its own DRM.jl receipt first."
+      "Keep the fe_beta_binomial receipt re-runnable (tests/testthat/test-julia-family-beta_binomial.R live test, same draw); do not promote beyond partial without a bridge-side inference (G3) receipt; a phylo() row for this family needs its own DRM.jl receipt first.",
+      "predict() response/link for this family is closed by drmTMB#1195 (merges after this integration PR); re-verify the fix landed before promoting beyond partial. type = \"quantile\" through the bridge is the separate cross-family gap drmTMB#1198, not owned by this row. Keep the fe_cumulative_logit receipt re-runnable.",
+      "Re-run the bare bf(y ~ x, sigma ~ z) (nu omitted) shape end to end once #1176 merges (registry row) with a live #641 DRM.jl checkout, to close the loop this leaf could only verify offline/by proxy. Do not promote beyond partial without a G3 receipt.",
+      "Keep the fe_tweedie receipt re-runnable (DRM.jl docs/dev-log/evidence/parity-fixtures.tsv capability_id fe_tweedie, parity-se.tsv cell_id se_tweedie_locscale_power). r_bridge_status promoted to partial together with fe_cumulative_logit, fe_skew_normal, fe_zero_one_beta, and fe_truncated_nbinom2 now that #1172 has landed the R_BRIDGE_STATUSES vocabulary fix. Do not promote claim_status beyond partial without a bridge-side inference (G3) receipt.",
+      "Keep the fe_zero_one_beta receipt re-runnable (DRM.jl docs/dev-log/evidence/parity-fixtures.tsv capability_id zero_one_beta, parity-se.tsv cell_id se_zero_one_beta). r_bridge_status promoted to partial together with the other four A4 rows now that #1172 has landed the R_BRIDGE_STATUSES vocabulary fix. Do not promote claim_status beyond partial without a bridge-side inference (G3) receipt.",
+      "Keep the fe_truncated_nbinom2 receipt re-runnable (DRM.jl docs/dev-log/evidence/parity-fixtures.tsv capability_id truncated_nbinom2, parity-se.tsv cell_id se_truncated_nbinom2). r_bridge_status promoted to partial together with the other four A4 rows now that #1172 has landed the R_BRIDGE_STATUSES vocabulary fix; resolve the truncated_nbinom2/hu spelling asymmetry (also named on the hurdle_nbinom2 row) before any promotion beyond partial claim_status."
     ),
     issue = c(
       rep("drmTMB#544", 10),
@@ -478,6 +523,11 @@ drm_julia_capability_comparison <- function() {
       "drmTMB#544",
       "drmTMB#544",
 
+      "drmTMB#544",
+      "drmTMB#544",
+      "drmTMB#544",
+      "drmTMB#544",
+      "drmTMB#544",
       "drmTMB#544",
       "drmTMB#544"
     ),
@@ -1696,12 +1746,52 @@ drm_julia_bridge_default_dpar_labels <- function(labels, formula, family_type) {
       labels[[dpar]] <<- "(Intercept)"
     }
   }
+  # A4-INTEGRATION (2026-09-05, G1/G2/G3): every dpar a family declares
+  # NATIVELY beyond mu/sigma also needs a default label -- not only student's
+  # `nu` (the only case this function handled before). Read the extra dpars
+  # off the family's OWN constructor (`fam$dpars`, R/family.R) rather than
+  # hand-listing them here, so a short formula form native TMB accepts (e.g.
+  # bare `bf(y ~ x)`) also fits through `engine = "julia"` for tweedie/
+  # skew_normal (`nu`) and zero_one_beta (`zoi`, `coi`) -- previously these
+  # aborted at DRM.jl's echo with `coef_labels is missing an entry for dpar
+  # "nu"` (or "zoi"/"coi") because only `sigma` was defaulted.
+  extra_native_dpars <- function(ft) {
+    # These family types come from a base-R `family()` object (R/drmTMB.R
+    # `drm_family_type()`), not one of this package's own `drm_family`
+    # constructors, so there is no same-named function to introspect and
+    # nothing beyond mu/sigma to add.
+    base_r_mapped <- c("gaussian", "gamma", "poisson", "binomial")
+    if (ft %in% base_r_mapped) return(character(0L))
+    ctor <- tryCatch(get(ft, mode = "function"), error = function(e) NULL)
+    if (is.null(ctor)) return(character(0L))
+    fam <- tryCatch(ctor(), error = function(e) NULL)
+    if (!inherits(fam, "drm_family") || is.null(fam$dpars)) return(character(0L))
+    setdiff(fam$dpars, c("mu", "sigma"))
+  }
   if (identical(family_type, "biv_gaussian")) {
     for (dpar in c("sigma1", "sigma2", "rho12")) add_default(dpar)
   } else if (!(family_type %in% drm_julia_dispersionless_families())) {
     add_default("sigma")
-    if (identical(family_type, "student")) {
-      add_default("nu")
+    for (dpar in extra_native_dpars(family_type)) add_default(dpar)
+  }
+  # G16 (Rose, #1169 adversarial pass): a dpar formula shape that native
+  # drmTMB REFUSES but `engine = "julia"` fits (measured: tweedie's `nu` is
+  # native-restricted to intercept-only, R/drmTMB.R "currently supports only
+  # intercept-only nu ~ 1", while DRM.jl fits `nu ~ z`, logLik -462.2769307,
+  # no native comparator) must not pass silently. Refusing outright was
+  # rejected on usability (never take a working capability away); silence was
+  # rejected on honesty. ONE informational message, fired only for this
+  # measured shape: an explicit, non-intercept-only `nu` formula on tweedie.
+  if (identical(family_type, "tweedie")) {
+    nu_entry <- Find(function(e) identical(e$dpar, "nu"), formula$entries)
+    if (!is.null(nu_entry) && !identical(deparse(nu_entry$rhs), "1")) {
+      cli::cli_inform(c(
+        "i" = paste0(
+          "engine = \"julia\" fitted nu ~ ", deparse(nu_entry$rhs),
+          "; the TMB engine refuses this shape (tweedie currently supports ",
+          "only intercept-only nu ~ 1), so it has no cross-engine receipt."
+        )
+      ))
     }
   }
   labels
