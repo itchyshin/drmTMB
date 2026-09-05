@@ -29,13 +29,13 @@ drmTMB_drm_bridge_structured (generic function with 1 method)
   
 drmTMB_mixed_family (generic function with 1 method)
   
-PHYLO_LABEL_PUBLIC_PASS elapsed=57.872
+PHYLO_LABEL_PUBLIC_PASS elapsed=33.833
 Julia exit.
   Activating project at `~/local-scratch/parity-joint/drmjl-430ef64cc`
 ┌ Error: Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions, use `Base.retry_load_extensions()` to retry.
 │   exception =
 │    1-element ExceptionStack:
-│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_y2c28Q".
+│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_X0JllJ".
 │    Stacktrace:
 │      [1] error(s::String)
 │        @ Base ./error.jl:35
