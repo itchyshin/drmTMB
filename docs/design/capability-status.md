@@ -76,6 +76,29 @@ structure providers across the other families.
 | Gaussian relmat random intercept (mean) | implemented |
 | Non-Gaussian phylogenetic random intercept (mean) | scope-limited |
 | Non-Gaussian phylogenetic location-scale (μ + log σ) | scope-limited |
+| Tweedie random intercept (mean) | implemented |
+| Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
+
+`Tweedie random intercept (mean)` is `implemented`:
+`validate_tweedie_mu_random_terms()` (`R/drmTMB.R:11640-11662`) admits an
+ordinary `(1 | g)` random intercept and an independent `(0 + x | g)` random
+slope on `mu` for `tweedie()`, and
+`tests/testthat/test-tweedie-location-scale.R:456-483` fits and recovers one.
+This row was previously missing here even though DRM.jl lists it as
+`implemented`; the capability already existed natively (2026-09-05
+Julia-ahead census, `docs/dev-log/evidence/julia-r-parity/2026-09-05-julia-ahead-census.md`).
+
+`Gaussian phylogenetic random intercept + slope, two SDs (mean)` is
+`implemented`: `phylo(1 + x | species, tree = tree)` (`R/drmTMB.R:10819`)
+always fits the independent two-SD model for Gaussian `mu`, because
+`has_phylo_mu_q2_covariance` (`R/drmTMB.R:20063-20067`) is only set to 1 for
+`spec$model_type %in% c("nbinom2", "poisson")` -- every other family,
+Gaussian included, gets `has_phylo_mu_q2_covariance = 0`, which is the same
+five-free-parameter independent model DRM.jl's `#620` replicates. This row
+was also missing here (same 2026-09-05 census). The separate, already-known
+asymmetry -- Poisson/NegBinomial2 fitting a *correlated* two-SD model under
+the same formula (`has_phylo_mu_q2_covariance = 1`) -- is a different
+capability, not this row.
 
 `Gaussian phylogenetic random intercept (mean)` is `scope-limited`: the
 per-family reference table records "phylo=scope-limited (implemented 4;
@@ -159,7 +182,7 @@ NAMESPACE symbol used per-family for one binary missing predictor.
 
 ## Snapshot
 
-- 43 capabilities, all `implemented`/`scope-limited`/`point-fit-recovery`/
+- 45 capabilities, all `implemented`/`scope-limited`/`point-fit-recovery`/
   `rejected`/`planned` per the mapping above.
 - Sources read: `docs/dev-log/dashboard/capability-ledger/cells.tsv`,
   `docs/dev-log/dashboard/capability-ledger/schema.json`,
@@ -167,19 +190,29 @@ NAMESPACE symbol used per-family for one binary missing predictor.
   `grep` over `R/` (`julia-bridge.R`, `profile.R`, `missing-data.R`,
   `meta-vcov.R`, `methods.R`) to confirm exported symbols.
 
-## Row-name match against DRM.jl (verified 2026-09-01)
+## Row-name match against DRM.jl (verified 2026-09-05 at pin `d3efbad2f`)
 
 Matching by row name is this file's entire purpose — the mission-control server
 joins the two twins' boards on it, so a near-miss is silently as bad as an absent
-row. That match is therefore verified here rather than assumed.
+row. That match is therefore verified here rather than assumed, and it is now
+GENERATED: `tools/write-parity-matrix.R` re-derives the counts below from both
+files on every run and writes the full join, one row per capability with every
+cell cited, to `docs/design/parity-matrix.md` (see that file for the per-row
+bridge route, ledger status, and boundary). The numbers here are copied from
+that artefact; when the two disagree, regenerate the artefact and fix this
+section, in that order.
 
-Compared against `DRM.jl` `origin/main:docs/design/capability-status.md`:
+Compared against `DRM.jl` `docs/design/capability-status.md` at the parity pin
+`d3efbad2f402cffb01e08eaf4efb25888d5fed96` (read with `git show`, never a
+working tree; this is the pin the 2026-09-05 Julia-ahead census used and
+verified against `gh api repos/itchyshin/DRM.jl/commits/main`,
+`docs/dev-log/evidence/julia-r-parity/2026-09-05-julia-ahead-census.md`):
 
 | | count |
 |---|---:|
-| rows in this file | 43 |
-| rows in DRM.jl's file | 46 |
-| **matched exactly (byte-for-byte row name)** | **43** |
+| rows in this file | 45 |
+| rows in DRM.jl's file | 48 |
+| **matched exactly (byte-for-byte row name)** | **45** |
 | near-misses (differ only by case, punctuation or spacing) | **0** |
 | present only in this file | **0** |
 | present only in DRM.jl's file | 3 |
@@ -194,14 +227,29 @@ The three DRM.jl-only rows are:
 - `Natural-gradient EM (`algorithm = :natgrad`)`
 - `Fisher / observed-info metric (`lc_metric`)`
 
-These name **Julia-side algorithm choices**, not model capabilities: they are
-alternative optimisers/metrics for problems drmTMB reaches by a different
-route, so they have no natural R counterpart and their absence here is correct
-rather than a gap.
+All three name **Julia-side algorithm choices**, not model capabilities:
+they are alternative optimisers/metrics for problems drmTMB reaches by a
+different route, so they have no natural R counterpart and their absence here
+is correct rather than a gap.
 
-`Non-Gaussian phylogenetic location-scale (μ + log σ)` used to be a fourth
+The 2026-09-05 Julia-ahead census (same file) measured DRM.jl `origin/main`
+at 48 rows with **5** DRM.jl-only names at that time -- not this file's
+previous count of 47/4 (itself already a correction of an earlier stale
+46/3). Two of those five were not Julia-ahead at all: `Tweedie random
+intercept (mean)` and `Gaussian phylogenetic random intercept + slope, two
+SDs (mean)` are both capabilities drmTMB already fits natively, and the
+census traced each to live R source and a passing test (see the two new rows
+in the "Random-effect structure" table above, and their citations). Adding
+those two rows here brings this file's own row count from 43 to 45 and drops
+the DRM.jl-only count from 5 to 3, which is the row-match audit above.
+Earlier versions of this section counted 46/3, then 47/4, both stale as the
+twin's own row count grew; the "algorithm choices" sentence above is now
+scoped to exactly the three rows it is true of, with no unexplained
+DRM.jl-only row left.
+
+`Non-Gaussian phylogenetic location-scale (μ + log σ)` used to be a further
 DRM.jl-only row -- a model capability the twin lists that this board did not
-project. It is now added to the "Random-effect structure" table above at
+project. It is now in the "Random-effect structure" table above at
 `scope-limited`, resolved from `cells.tsv` (`dpar = sigma`,
 `structure_provider = phylo`) rather than asserted from this section.
 
