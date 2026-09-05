@@ -1,6 +1,25 @@
-{"created":"2026-09-05","lane":"parity-joint-20260905","session":"drmTMB2 7eceae",
- "drmjl_base":"430ef64cc","drmjl_base_note":"DRM.jl origin/main 2026-09-05; carries #630 #631 #632 #633 #636 #637",
- "drmtmb_base":"e455fa135","drmtmb_base_note":"drmTMB origin/main after #1149; #1159 #1161 merged since",
- "drmjl_prev_pin":"e0a65f96b","drmjl_prev_pin_receipt":"docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json",
- "julia_manifest_source":"copied from the e0a65f96b clone; Project.toml verified identical",
- "status":"A0 in progress","umbrella_issues":{"drmTMB":499,"DRM.jl":563}}
+{
+ "created": "2026-09-05",
+ "lane": "parity-joint-20260905",
+ "session": "drmTMB2 7eceae",
+ "drmjl_base": "430ef64cc",
+ "drmjl_base_note": "DRM.jl origin/main 2026-09-05; carries #630 #631 #632 #633 #636 #637",
+ "drmtmb_base": "e455fa135",
+ "drmtmb_base_note": "drmTMB origin/main after #1149; #1159 #1161 merged since",
+ "drmjl_prev_pin": "e0a65f96b",
+ "drmjl_prev_pin_receipt": "docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json",
+ "julia_manifest_source": "copied from the e0a65f96b clone; Project.toml verified identical",
+ "status": "A0 sweep CLEAN at 430ef64cc: 1440/0/0/0; receipt regen pending #1162 merge",
+ "umbrella_issues": {
+  "drmTMB": 499,
+  "DRM.jl": 563
+ },
+ "a0_sweep": {
+  "pass": 1440,
+  "fail": 0,
+  "err": 0,
+  "skip": 0,
+  "files": 37,
+  "log": "~/local-scratch/parity-joint/a0-sweep.log"
+ }
+}
