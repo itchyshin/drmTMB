@@ -1,5 +1,24 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` admits `zero_one_beta()` (fixed effects)
+
+* `drmTMB(bf(prop ~ x, sigma ~ z, zoi ~ w, coi ~ v), family = zero_one_beta(),
+  engine = "julia")` now routes to DRM.jl's `ZeroOneBeta` instead of refusing
+  with the Workflow G message. Both engines fit the same three-part mixture —
+  `mu` (logit, the interior beta mean), `sigma` (log, `phi = 1 / sigma^2`),
+  `zoi` (logit), `coi` (logit) — and all four dpars cross the design-258 label
+  contract. Measured 2026-09-05 at DRM.jl pin `430ef64cc` on the committed
+  fixture (the `tests/testthat/test-zero-one-beta.R` draw, n = 1600):
+  max |d coef| `3.98e-11`, |d logLik| `1.93e-12`, max |d fitted| `9.08e-12`,
+  per-coefficient Wald SE max relative difference `9.76e-07` over all 8
+  coefficients; the fit's `estimator` (`"ML"`) equals what DRM.jl reports as
+  `estim_method`. **Fixed effects only, and all four formula parts must be
+  written**: a `(1 | g)` term is refused by DRM.jl (`ZeroOneBeta() currently
+  supports fixed effects only`), and a formula that omits `zoi`/`coi` (which
+  native `engine = "tmb"` fits with intercept-only parts) aborts at the label
+  echo — use `engine = "tmb"` for either. Not a phylogenetic, structured, or
+  interval-coverage claim.
+
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
 * drmTMB labelled a Julia fit `"REML"` purely from its own support gate. Nothing
