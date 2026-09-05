@@ -59,6 +59,23 @@
   against DRM.jl's own values on two committed fixtures: every quantity agrees
   to `1e-8` on the `engine = "julia"` object and to `2e-12` across engines.
   `anova.drmTMB()` still refuses; wiring it to `drm_lrtest()` is a follow-up.
+## `check_drm()` now reads DRM.jl's route-aware gradient/convergence diagnostics (#1108 / DRM.jl #569)
+
+* DRM.jl #632 attaches the objective gradient at the optimum (`gradient`,
+  index-aligned `gradient_names`) to the bridge payload, but only for routes
+  whose internal fitter carries one; other routes correctly omit the field
+  rather than filling zeros/NaN. `check_drm()` on a `engine = "julia"` fit
+  previously errored with "no applicable method" even when that gradient was
+  sitting unread in `fit$bridge$gradient`. `check_drm.drmTMB_julia()` now
+  dispatches through the SAME generic a native TMB fit uses, reporting
+  `optimizer_convergence` and a route-aware `fixed_gradient` row: numeric
+  `max|gradient|` and its largest component when the route carries one, a
+  NOTE naming the route (never a fabricated number) when it does not.
+  Verified against DRM.jl `430ef64cc`: the bivariate structured q2/q4 route
+  and the sparse location-scale-scale ML route attach a gradient; the base
+  Gaussian/GLMM route and the non-Gaussian phylo Laplace route do not — both
+  directions are exercised by a live test, not just a mocked one.
+
 ## Pinned DRM.jl clone moved from `e0a65f96b` to `430ef64cc`
 
 * The pin advances 18 commits, carrying DRM.jl #630 (sparse LSS gradient
