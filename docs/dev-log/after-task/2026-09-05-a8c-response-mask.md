@@ -51,11 +51,34 @@ returns 60 rows with 0 NA, and the replicate refit reports `nobs = 60`. The
 reference engine does not preserve the mask, so matching it is what parity
 means here; re-masking would have made the engines disagree. Rejected.
 
-BOUNDARY, stated rather than silently "improved": because replicates refit on
-60 rows while the original fit used 54, a parametric bootstrap interval on a
-masked fit is slightly narrower than a mask-preserving one. That is pre-existing
-and shared by both engines. Changing it is a cross-engine design decision, not a
-parity fix, and is out of this leaf's scope.
+BOUNDARY, MEASURED (2026-09-05, Fisher must-fix round): because replicates
+refit on 60 rows regardless of how many rows the seed fit observed, the
+parametric bootstrap is anti-conservative and the narrowing GROWS with the
+missing fraction. Fitting the masked model via `engine = "julia"`, masking
+6, 18, and 30 of the 60 rows, taking the seed fit's Wald SE for `fixef mu:x`,
+and running the shipped bootstrap with `R = 199` and a fixed seed:
+
+| masked rows (fraction) | Wald SE | bootstrap sd | relative narrowing | implied nominal-95 coverage |
+| --- | --- | --- | --- | --- |
+| 6 (10%) | 0.1480 (Claude) | 0.1371 (Claude) | -7.4% (Claude) / -4.1% (Fisher) | 93.1% (Claude) |
+| 18 (30%) | 0.1920 (Claude) | 0.1411 (Claude) | -26.5% (Claude) / -28.6% (Fisher) | 85.0% (Claude) / ~83.9% (Fisher) |
+| 30 (50%) | 0.2291 (Claude) | 0.1374 (Claude) | -40.0% (Claude) / -35.8% (Fisher) | 76.0% (Claude) / ~79.1% (Fisher) |
+
+Fisher measured on the R-generated fixture (`set.seed(1)`); Claude
+independently re-measured on the DRM.jl-native fixture
+(`test/test_bridge_response_mask_inference.jl`'s `MersenneTwister(646)`
+generator, an independent RNG stream, same functional form). Both sets are
+recorded because they differ by up to 4.2 percentage points (still within
+the 5-point tolerance for this check). **The narrowing grows with the
+missing fraction because replicates are drawn over the FULL design
+regardless of how many rows were observed; this is shared by both engines.**
+At 50% missingness the bootstrap's nominal 95% interval covers roughly
+76-79% of the time -- not "slightly narrower" as an earlier draft of this
+report said. Full detail, including the by-hand mask-preserving check, is in
+`a8c-root-cause-receipt.md`. Fixing the underlying anti-conservatism (a
+mask-preserving bootstrap, drawing and then re-applying the original NA
+mask before refitting) is a cross-engine statistical-calibration change, out
+of this leaf's scope, and tracked as drmTMB issue #1188.
 
 **`opt$message`.** DRM.jl sends no optimiser message string. Rather than
 fabricate an Optim.jl message, the helper composes one from the two facts that
@@ -140,6 +163,12 @@ drmTMB:
 
 - DRM.jl #646 -- fixed by the DRM.jl PR; referenced by both PRs.
 - drmTMB A8 (#1184) -- this leaf clears the two blockers its receipt recorded.
+- drmTMB #1188 -- filed in the Fisher must-fix round: mask-preserving
+  bootstrap replicates for masked-response fits, both engines (the measured
+  anti-conservatism above).
+- drmTMB #1189 -- filed in the Fisher must-fix round: `R/check.R` mislabels
+  the optimizer message as "nlminb" on Julia-engine fits. Pre-existing,
+  unowned by this leaf, deliberately not fixed here.
 
 ## 8. Consistency Audit
 
@@ -170,14 +199,18 @@ drmTMB:
   top of #1184: move `"gaussian_response_mask"` from `wave1_still_partial` to
   `wave1_g3_qualified`, set `r_bridge_status` to `supported` in
   `drm_julia_capability_comparison()` and both TSVs, and rewrite that row's
-  `claim_boundary` to cite the two receipts here and DRM.jl #646.
+  `claim_boundary` to cite the two receipts here and DRM.jl #646, AND to
+  disclose the measured bootstrap anti-conservatism (see "Promotion condition
+  for gaussian_response_mask" in `a8c-root-cause-receipt.md` and drmTMB
+  issue #1188) in the user's own words.
 - Pre-existing DRM.jl failures, unrelated and NOT fixed here (identical on the
   clean worktree with the fix stashed): `test_bootstrap_marginal.jl`
   (`res.failed == 0` evaluates `1 == 0`; `res.used == 60` evaluates `59 == 60`)
   and `test_lss_missing_response.jl` (`Package StableRNGs not found`).
 - `R/check.R:392` prefixes the optimizer message with "nlminb convergence
   message:", which is wrong for a Julia fit. Pre-existing and unowned; now more
-  visible because `opt$message` is no longer empty.
+  visible because `opt$message` is no longer empty. Filed as drmTMB issue
+  #1189; not fixed here.
 
 ## 11. Team Learning
 

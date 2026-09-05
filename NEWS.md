@@ -32,6 +32,15 @@
   re-measured (wald delta 7.86e-08, profile delta 7.18e-06, bootstrap 0/99
   failed on both engines), but the status move belongs on top of #1184, which
   is concurrently rewriting that row and the guard that pins it.
+* MEASURED: the parametric bootstrap on a masked-response fit is
+  anti-conservative, and the narrowing GROWS with the missing fraction --
+  masking 10% / 30% / 50% of the rows gave relative narrowing of roughly
+  -7% / -27% / -40% against the seed fit's Wald SE, and an implied nominal-95
+  interval covering roughly 93% / 85% / 76% of the time. The narrowing grows
+  with the missing fraction because replicates are drawn over the FULL design
+  regardless of how many rows were observed; this is shared by both engines.
+  The fix (a mask-preserving bootstrap) is a cross-engine statistical
+  calibration change, out of scope here, and tracked as #1188.
 
 ## REML support tabled by route, measured across both engines (#1142)
 

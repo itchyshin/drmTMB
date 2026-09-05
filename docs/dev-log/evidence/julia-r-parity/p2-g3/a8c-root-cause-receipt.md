@@ -118,11 +118,40 @@ response spans the FULL design and the refit uses all rows; the missing
 pattern is deliberately not re-applied. Drawing at the mean-vector length
 therefore reproduces the reference engine exactly, and needs no re-masking.
 
-BOUNDARY, stated rather than silently "improved": because replicates refit on
-60 rows while the original fit used 54, a parametric bootstrap interval on a
-masked fit is very slightly narrower than one that preserved the mask. That is
-pre-existing, shared by both engines, and out of this leaf's scope -- changing
-it is a cross-engine design decision, not a parity fix.
+BOUNDARY, MEASURED (2026-09-05, must-fix item 1, Fisher review round): because
+replicates refit on 60 rows regardless of how many rows were masked, the
+parametric bootstrap's narrowing against the seed fit's Wald SE is
+anti-conservative and GROWS with the missing fraction, not "very slightly
+narrower" as an earlier draft of this receipt said. Two independent
+measurements, on the same generative model (`y = 0.3 + 0.5x + N(0,1) *
+exp(0.1x)`, `n = 60`, masking the first `k` rows), fitting the masked model
+via `engine = "julia"`, taking the seed fit's Wald SE for `fixef mu:x`, then
+running the shipped parametric bootstrap with `R = 199` and a fixed seed:
+
+| masked rows (fraction) | n observed | Wald SE (`mu:x`) | bootstrap sd | sd/WaldSE | relative narrowing | implied nominal-95 coverage |
+| --- | --- | --- | --- | --- | --- | --- |
+| 6 (10%) | 54 | 0.1480 (Claude) | 0.1371 (Claude) | 0.9265 | -7.4% (Claude) / -4.1% (Fisher) | 93.1% (Claude) |
+| 18 (30%) | 42 | 0.1920 (Claude) | 0.1411 (Claude) | 0.7346 | -26.5% (Claude) / -28.6% (Fisher) | 85.0% (Claude) / ~83.9% (Fisher) |
+| 30 (50%) | 30 | 0.2291 (Claude) | 0.1374 (Claude) | 0.5998 | -40.0% (Claude) / -35.8% (Fisher) | 76.0% (Claude) / ~79.1% (Fisher) |
+
+Fisher's bootstrap sd, quoted for comparison, was essentially constant across
+the three fractions (0.1412 / 0.1453 / 0.1416) on the R-generated fixture
+(`set.seed(1)` in R). Claude's independent re-measurement, run in this fixed
+DRM.jl worktree (`JULIA_NUM_THREADS=1`) on the DRM.jl-native inline generator
+from `test/test_bridge_response_mask_inference.jl`
+(`MersenneTwister(646)`, same functional form, an independent RNG stream from
+R's), found the same pattern -- bootstrap sd flat at 0.137-0.141 while the
+Wald SE grows from 0.148 to 0.229 -- and every fraction's relative-narrowing
+and coverage figure is within 5 percentage points of Fisher's (max difference
+4.2 points, at 50%). Both sets of numbers are recorded above rather than
+picking one.
+
+**The narrowing grows with the missing fraction because replicates are drawn
+over the FULL design regardless of how many rows were observed; this is
+shared by both engines.** At 50% missingness the parametric bootstrap
+understates uncertainty enough that a nominal 95% interval covers roughly
+76-79% of the time. This is pre-existing, shared by both engines, and out of
+this leaf's scope to fix -- see the cross-engine issue below.
 
 ## Third defect found while fixing these two
 
@@ -158,6 +187,30 @@ The other two qualifiable routes are numerically IDENTICAL to A8's receipt
 `plain_binomial_nonphylo` wald delta 5.18431e-09 / profile delta 9.35263e-08 /
 julia bootstrap [0.368069, 0.551723]). The fix changed the masked route and
 nothing else.
+
+## Promotion condition for gaussian_response_mask (partial -> supported)
+
+This leaf does NOT promote `gaussian_response_mask` from `partial` to
+`supported` -- that is #1184's job, on top of this branch (see "Known
+Residuals" in the after-task doc). Whoever does that promotion MUST carry the
+disclosure measured above into the row's `claim_boundary`, in the user's own
+words, stating that a parametric bootstrap on a masked-response fit draws
+replicates over the FULL design and therefore reports an interval calibrated
+to the complete-data sample size, on BOTH engines, together with the measured
+table:
+
+| masked rows (fraction) | relative narrowing | implied nominal-95 coverage |
+| --- | --- | --- |
+| 6 (10%) | -7.4% (Claude) / -4.1% (Fisher) | 93.1% (Claude) |
+| 18 (30%) | -26.5% (Claude) / -28.6% (Fisher) | 85.0% (Claude) / ~83.9% (Fisher) |
+| 30 (50%) | -40.0% (Claude) / -35.8% (Fisher) | 76.0% (Claude) / ~79.1% (Fisher) |
+
+The cross-engine fix for the underlying anti-conservatism (mask-preserving
+bootstrap replicates) is tracked as drmTMB issue #1188 and is NOT a
+precondition for the `partial -> supported` promotion -- it is a separate,
+larger statistical-calibration change that must land on both engines at
+once. The promotion's `claim_boundary` must disclose the boundary; it need
+not wait for #1188 to close.
 
 ## Red controls
 
