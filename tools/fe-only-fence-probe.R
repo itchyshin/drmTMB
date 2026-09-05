@@ -1,13 +1,14 @@
 #!/usr/bin/env Rscript
 # leaf-a4g17 scout probe (G0/G1). Ad hoc measurement script, NOT wired into
-# testthat's automatic collection (filename starts with "helper-" but this is
-# meant to be run directly via `Rscript`, not sourced by testthat itself,
-# since it calls devtools::load_all() and quit()). Left uncommitted for the
-# builder.
+# testthat's automatic collection: it lives under tools/ (which .Rbuildignore
+# excludes), is run directly via `Rscript`, and calls devtools::load_all(), so
+# it must NOT sit in tests/testthat/ -- R CMD check scans that directory and
+# reports an undeclared `devtools` import as a WARNING, which CI treats as a
+# failure (measured: run 33994398335, all four shards, 2026-09-05).
 #
 # Usage:
-#   Rscript tests/testthat/helper-fe-only-fence-probe.R --baseline
-#   Rscript tests/testthat/helper-fe-only-fence-probe.R --controls
+#   Rscript tools/fe-only-fence-probe.R --baseline
+#   Rscript tools/fe-only-fence-probe.R --controls
 
 args <- commandArgs(trailingOnly = TRUE)
 mode <- if ("--controls" %in% args) "controls" else "baseline"
@@ -22,7 +23,7 @@ run_requested <- any(c("--baseline", "--controls") %in% args)
 #     suite, `Rscript tools/write-julia-gate-registry.R`, R CMD check, ...).
 #     Without this flag check, the probe's model fits would fire as a silent
 #     side effect of every such load. The probe body below runs ONLY when
-#     invoked directly as `Rscript .../helper-fe-only-fence-probe.R
+#     invoked directly as `Rscript .../fe-only-fence-probe.R
 #     --baseline|--controls`.
 # (2) the option() sentinel: our own explicit `Rscript ... --baseline`
 #     invocation calls devtools::load_all() below, and pkgload's own helper
