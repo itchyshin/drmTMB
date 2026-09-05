@@ -272,33 +272,44 @@ test_that("Julia capability comparison artifact matches the registry", {
   # claim_status/covered promotion and NOT an interval_status move. Asserted
   # rather than merely edited, same pattern as the inversions above, so an
   # accidental reversion fails loudly.
-  # A8 (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/): G3
-  # (bridge-side profile/bootstrap inference) measured on all four wave 1
-  # rows. base_gaussian_location_scale and plain_binomial_nonphylo qualified
-  # -- partial -> supported. biv_gaussian_residual (no profile/bootstrap
-  # target exists on this route for any parameter) and gaussian_response_mask
-  # (Julia bootstrap fails all 99 replicates; the Julia fit's own
-  # opt$convergence flag is FALSE) stay partial -- never rounded up. Split the
-  # locked set accordingly rather than deleting it.
-  wave1_still_partial <- registry[
-    registry$capability_id %in%
-      c(
-        "biv_gaussian_residual",
-        "gaussian_response_mask"
-      ),
-  ]
-  expect_equal(nrow(wave1_still_partial), 2L)
-  expect_true(all(wave1_still_partial$r_bridge_status == "partial"))
-
-  wave1_g3_qualified <- registry[
-    registry$capability_id %in%
-      c(
-        "base_gaussian_location_scale",
-        "plain_binomial_nonphylo"
-      ),
-  ]
-  expect_equal(nrow(wave1_g3_qualified), 2L)
-  expect_true(all(wave1_g3_qualified$r_bridge_status == "supported"))
+  #
+  # G3 (bridge-side profile/bootstrap inference) has since been measured on
+  # all four wave-1 rows, across two leaves. A8 (2026-09-05, docs/dev-log/
+  # evidence/julia-r-parity/p2-g3/) qualified base_gaussian_location_scale
+  # and plain_binomial_nonphylo -- partial -> supported -- and found
+  # gaussian_response_mask's Julia bootstrap fails all 99 replicates (its own
+  # opt$convergence flag reads FALSE), so that row stayed partial. A8b
+  # (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/
+  # a8b-biv-qualification-receipt.md; DRM.jl PR #647) then closed the gap A8
+  # found in biv_gaussian_residual (no profile/bootstrap target existed on
+  # that route for any parameter) and qualified it too -- partial ->
+  # supported. Three of the four wave-1 rows are now supported; one
+  # (gaussian_response_mask) stays partial. Asserted by name, not by count,
+  # so a silent status drift on any one row fails loudly.
+  expect_equal(
+    registry[
+      registry$capability_id == "base_gaussian_location_scale",
+    ]$r_bridge_status,
+    "supported"
+  )
+  expect_equal(
+    registry[
+      registry$capability_id == "plain_binomial_nonphylo",
+    ]$r_bridge_status,
+    "supported"
+  )
+  expect_equal(
+    registry[
+      registry$capability_id == "biv_gaussian_residual",
+    ]$r_bridge_status,
+    "supported"
+  )
+  expect_equal(
+    registry[
+      registry$capability_id == "gaussian_response_mask",
+    ]$r_bridge_status,
+    "partial"
+  )
 
   # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
   # see the plan's CONDITIONS section). Locked so it cannot drift silently.

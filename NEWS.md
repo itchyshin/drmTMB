@@ -1,5 +1,46 @@
 # drmTMB 0.7.0
 
+## Profile and bootstrap intervals on the residual bivariate Gaussian Julia route (#544)
+
+* `confint(fit, parm = "fixef:mu1:x", method = "profile" | "bootstrap")` now
+  works for a residual-only bivariate Gaussian fit made with
+  `engine = "julia"` -- `bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1,
+  sigma2 = ~ 1, rho12 = ~ 1)`, `family = biv_gaussian()`. Previously
+  `profile_targets()` reported `profile_ready = FALSE` for EVERY row of EVERY
+  bivariate fit, so no parameter of this route -- including `rho12` -- had a
+  profile or bootstrap target, and the call was refused R-side before any
+  Julia call. The bivariate rule is now a SPLIT rather than a blanket
+  refusal: a bivariate fit carrying a covariance provider (a phylo tree, or a
+  `K` / `A` / `coords` matrix) is the structured route, whose inference target
+  is the four among-axis SDs, and its fixed-effect rows stay not-ready; a
+  bivariate fit carrying none is this residual route and is ready on the same
+  precondition every univariate route uses. Needs DRM.jl PR #647 for the
+  bootstrap half; profile needed no engine change. Measured on the committed
+  `gaussian-bivariate-rho12` fixture (n = 180): 7 profile-ready fixed-effect
+  targets where there were none, all seven profiling to a finite interval;
+  same-target agreement against `engine = "tmb"` of Wald 3.4e-14 / 3.0e-07 and
+  profile 2.1e-06 / 6.5e-06 on `fixef:mu1:x` and `fixef:rho12:(Intercept)`;
+  bootstrap `R = 99` with 0/99 failed on both engines. The capability row
+  `biv_gaussian_residual` moves `partial` -> `supported` on the
+  `r_bridge_status` axis. NOT an interval-coverage claim (one fixture, one
+  seed), and the bootstrap comparison is distributional overlap only -- the
+  two engines draw from independent RNG streams, so the same `seed` does not
+  reproduce the same replicates. The `fixef:rho12:(Intercept)` agreement is
+  NOT solver agreement of the kind `fixef:mu1:x` shows: TMB guards `rho12`
+  with `0.999999` and DRM.jl with `0.99999999`, a deterministic guard-constant
+  reparameterisation of about `9.9e-07 * rho / (1 - rho^2)` on the
+  linear-predictor coefficient, predicted at `3.77138e-07` and measured at
+  `3.77151e-07` for this fixture's `|rho12| ~ 0.34`. The 1e-6 Wald bar on
+  `rho12` is therefore CONDITIONAL on this fixture's weak correlation, not a
+  general parity claim: the offset crosses 1e-6 near `|rho12| ~ 0.62` and
+  reaches `~4.9e-05` at `rho12 = 0.99`. Tracked cross-engine at
+  itchyshin/drmTMB#1190; aligning the three guard constants (TMB, DRM.jl, and
+  the bridge's own `atanh(rho)` back-transform in
+  `drm_julia_residual_rho12_corpair()`) changes numerics on every bivariate
+  receipt and is a deliberate cross-engine decision, not part of this leaf.
+  Receipts under `docs/dev-log/evidence/julia-r-parity/p2-g3/`.
+
+
 ## `engine = "julia"` masked-response fits: convergence flag and bootstrap fixed upstream (DRM.jl #646)
 
 * A Gaussian fit with `missing = miss_control(response = "include")` through

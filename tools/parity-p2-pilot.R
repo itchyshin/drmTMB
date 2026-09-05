@@ -51,6 +51,30 @@
 #                    D-139) and .../g3-qualification-receipt.md (this run's
 #                    numbers).
 #
+#   --g3-qualify-biv Leaf A8b. G3 bridge-side inference qualification for the
+#                    ONE route leaf A8 measured as NOT COVERED:
+#                    biv_gaussian_residual, the residual-only bivariate
+#                    Gaussian route, which had no profile/bootstrap target on
+#                    ANY parameter through engine = "julia". UNLIKE the three
+#                    modes above, this mode COMPARES the two engines and
+#                    reports pass/fail against committed tolerances. Both
+#                    engines fit the committed gaussian-bivariate-rho12
+#                    fixture; every profile-ready fixed-effect target is
+#                    profiled through engine = "julia"; two named targets
+#                    (fixef:mu1:x and the rho12 intercept) are compared
+#                    target-for-target against engine = "tmb" -- Wald at
+#                    tol 1e-6, profile at tol 1e-4 -- and bootstrap
+#                    (R = 99) is reported as DISTRIBUTIONAL OVERLAP ONLY,
+#                    because the two engines draw from independent RNG
+#                    streams (R's Mersenne-Twister vs Julia's) and no
+#                    same-seed design exists. Writes an ASCII receipt and a
+#                    summary TSV next to DRMTMB_P2_OUT.
+#
+#                    This is a SIBLING of leaf A8's --g3-qualify above (it
+#                    covers the three univariate routes; this mode covers the
+#                    one bivariate route A8 found NOT COVERED). It is a
+#                    separate mode, not an edit of that one.
+#
 # Env vars:
 #   DRM_JL_PATH       -- path to the DRM.jl checkout providing the row
 #                         fixtures (test/parity/fixtures/<slug>/data.csv).
@@ -74,8 +98,13 @@ mode <- if ("--prerun" %in% args) {
   "full-pilot"
 } else if ("--g3-qualify" %in% args) {
   "g3-qualify"
+} else if ("--g3-qualify-biv" %in% args) {
+  "g3-qualify-biv"
 } else {
-  stop("pass one of --prerun, --local-prerun, --full-pilot, --g3-qualify", call. = FALSE)
+  stop(
+    "pass one of --prerun, --local-prerun, --full-pilot, --g3-qualify, --g3-qualify-biv",
+    call. = FALSE
+  )
 }
 
 drmjl_path <- Sys.getenv("DRM_JL_PATH", "")
@@ -476,6 +505,296 @@ run_full_pilot <- function() {
 }
 
 # ---------------------------------------------------------------------------
+# --g3-qualify-biv (leaf A8b) -- G3 bridge-side inference qualification for
+# biv_gaussian_residual. See docs/dev-log/evidence/julia-r-parity/p2-g3/
+# a8b-biv-manifest.md for the committed targets, tolerances and time estimate
+# (D-139). Every number written below is measured in the run that writes it.
+# ---------------------------------------------------------------------------
+
+run_g3_qualify_biv <- function() {
+  evidence_dir <- dirname(out_path)
+  dir.create(evidence_dir, recursive = TRUE, showWarnings = FALSE)
+  row_name <- "biv_gaussian_residual"
+  tol_profile <- 1e-4
+  tol_wald <- 1e-6
+  tol_red <- 1e-9 # G6 red control: a deliberately unattainable bar
+  boot_R <- 99L
+  boot_seed <- 20260905L
+  compare_targets <- c("fixef:mu1:x", "fixef:rho12:(Intercept)")
+  # rho12 guard constants (see a8b-biv-qualification-receipt.md, section
+  # "rho12 is compared across a guard-constant reparameterisation"):
+  # TMB src/drmTMB.cpp:679,4642 rho12 <- 0.999999*tanh(eta); DRM.jl
+  # src/sparse_aug_plsm.jl:23 RHO_GUARD = 0.99999999.
+  rho_guard_tmb <- 0.999999
+  rho_guard_jl <- 0.99999999
+
+  dat <- load_row_data(row_name)
+  log_line("route=%s fixture=%s n=%d", row_name,
+    drm_rows[[row_name]]$fixture, nrow(dat))
+
+  t0 <- proc.time()[["elapsed"]]
+  fit_t <- fit_row(row_name, dat, "tmb")
+  wall_t <- proc.time()[["elapsed"]] - t0
+  t0 <- proc.time()[["elapsed"]]
+  fit_j <- fit_row(row_name, dat, "julia")
+  wall_j <- proc.time()[["elapsed"]] - t0
+  conv_t <- isTRUE(is_converged(fit_t))
+  conv_j <- isTRUE(is_converged(fit_j))
+  log_line("fits: tmb %.2fs (converged=%s), julia %.2fs (converged=%s)",
+    wall_t, conv_t, wall_j, conv_j)
+
+  # G5 estimator honesty: the ORACLE read on both engines, not the absence of
+  # an abort. fit$bridge is the Julia-side report; fit$estimator is what
+  # drmTMB tells the user.
+  est_j <- if (is.null(fit_j$estimator)) NA_character_ else fit_j$estimator
+  est_bridge_j <- if (is.null(fit_j$bridge$estim_method)) {
+    NA_character_
+  } else {
+    fit_j$bridge$estim_method
+  }
+  est_t <- if (is.null(fit_t$estimator)) NA_character_ else fit_t$estimator
+  estimator_match <- identical(est_j, est_bridge_j)
+  log_line("estimator: julia fit$estimator=%s fit$bridge$estim_method=%s match=%s; tmb=%s",
+    est_j, est_bridge_j, estimator_match, est_t)
+
+  # G3 inventory: which targets the bridge now offers on this route.
+  targets_j <- profile_targets(fit_j)
+  ready_j <- targets_j[targets_j$profile_ready, , drop = FALSE]
+  ready_fixef <- ready_j[ready_j$target_class == "fixed-effect", , drop = FALSE]
+  log_line("julia targets: %d rows, %d ready (%d fixed-effect)",
+    nrow(targets_j), nrow(ready_j), nrow(ready_fixef))
+
+  # G3: EVERY ready fixed-effect target must actually profile through the
+  # engine. An empty ready set is a FAILURE, not a pass.
+  profile_all <- lapply(seq_len(nrow(ready_fixef)), function(i) {
+    p <- ready_fixef$parm[[i]]
+    t1 <- proc.time()[["elapsed"]]
+    ci <- tryCatch(
+      confint(fit_j, parm = p, method = "profile"),
+      error = function(e) e
+    )
+    el <- proc.time()[["elapsed"]] - t1
+    if (inherits(ci, "error")) {
+      log_line("  profile %-28s ERROR: %s", p, conditionMessage(ci))
+      return(list(parm = p, ok = FALSE, lower = NA_real_, upper = NA_real_,
+        status = NA_character_, error = conditionMessage(ci), wall = el))
+    }
+    ok <- is.finite(ci$lower[[1L]]) && is.finite(ci$upper[[1L]]) &&
+      ci$lower[[1L]] < ci$upper[[1L]]
+    log_line("  profile %-28s [%.10f, %.10f] status=%s finite=%s (%.2fs)",
+      p, ci$lower[[1L]], ci$upper[[1L]], ci$conf.status[[1L]], ok, el)
+    list(parm = p, ok = ok, lower = ci$lower[[1L]], upper = ci$upper[[1L]],
+      status = as.character(ci$conf.status[[1L]]), error = NA_character_,
+      wall = el)
+  })
+  g3_pass <- nrow(ready_fixef) > 0L &&
+    all(vapply(profile_all, function(z) isTRUE(z$ok), logical(1)))
+
+  # G4: same-target agreement against engine = "tmb" on two named targets.
+  compare <- lapply(compare_targets, function(p) {
+    wald_t <- confint(fit_t, parm = p, method = "wald")
+    wald_j <- confint(fit_j, parm = p, method = "wald")
+    prof_t <- confint(fit_t, parm = p, method = "profile")
+    prof_j <- confint(fit_j, parm = p, method = "profile")
+    d_wald <- c(
+      abs(wald_t$lower[[1L]] - wald_j$lower[[1L]]),
+      abs(wald_t$upper[[1L]] - wald_j$upper[[1L]])
+    )
+    # Predicted guard-offset for the rho12 axis only: the same natural
+    # correlation reported on two different guarded atanh links.
+    pred_offset <- if (identical(p, "fixef:rho12:(Intercept)")) {
+      eta_hat <- (wald_t$lower[[1L]] + wald_t$upper[[1L]]) / 2
+      rho_hat <- rho_guard_tmb * tanh(eta_hat)
+      atanh(rho_hat / rho_guard_tmb) - atanh(rho_hat / rho_guard_jl)
+    } else {
+      NA_real_
+    }
+    d_prof <- c(
+      abs(prof_t$lower[[1L]] - prof_j$lower[[1L]]),
+      abs(prof_t$upper[[1L]] - prof_j$upper[[1L]])
+    )
+    boot_t <- tryCatch(
+      confint(fit_t, parm = p, method = "bootstrap", R = boot_R, seed = boot_seed),
+      error = function(e) e
+    )
+    boot_j <- tryCatch(
+      confint(fit_j, parm = p, method = "bootstrap", R = boot_R, seed = boot_seed),
+      error = function(e) e
+    )
+    t_ok <- !inherits(boot_t, "error")
+    j_ok <- !inherits(boot_j, "error")
+    overlap <- if (t_ok && j_ok) {
+      max(boot_t$lower[[1L]], boot_j$lower[[1L]]) <=
+        min(boot_t$upper[[1L]], boot_j$upper[[1L]])
+    } else {
+      NA
+    }
+    log_line("  compare %-28s wald d=[%.3e, %.3e] profile d=[%.3e, %.3e] overlap=%s%s",
+      p, d_wald[[1L]], d_wald[[2L]], d_prof[[1L]], d_prof[[2L]], overlap,
+      if (is.na(pred_offset)) "" else sprintf(" pred_guard_offset=%.5e", pred_offset))
+    list(
+      parm = p,
+      wald_t = c(wald_t$lower[[1L]], wald_t$upper[[1L]]),
+      wald_j = c(wald_j$lower[[1L]], wald_j$upper[[1L]]),
+      d_wald = d_wald,
+      pred_offset = pred_offset,
+      prof_t = c(prof_t$lower[[1L]], prof_t$upper[[1L]]),
+      prof_j = c(prof_j$lower[[1L]], prof_j$upper[[1L]]),
+      d_prof = d_prof,
+      wald_pass = all(d_wald <= tol_wald),
+      prof_pass = all(is.finite(c(prof_t$lower[[1L]], prof_t$upper[[1L]],
+        prof_j$lower[[1L]], prof_j$upper[[1L]]))) && all(d_prof <= tol_profile),
+      prof_pass_red = all(d_prof <= tol_red),
+      boot_t = if (t_ok) c(boot_t$lower[[1L]], boot_t$upper[[1L]]) else c(NA_real_, NA_real_),
+      boot_j = if (j_ok) c(boot_j$lower[[1L]], boot_j$upper[[1L]]) else c(NA_real_, NA_real_),
+      boot_t_failed = if (t_ok) boot_t$bootstrap.failed[[1L]] else NA_integer_,
+      boot_j_failed = if (j_ok) boot_j$bootstrap.failed[[1L]] else NA_integer_,
+      boot_t_n = if (t_ok) boot_t$bootstrap.n[[1L]] else NA_integer_,
+      boot_j_n = if (j_ok) boot_j$bootstrap.n[[1L]] else NA_integer_,
+      boot_t_error = if (t_ok) NA_character_ else conditionMessage(boot_t),
+      boot_j_error = if (j_ok) NA_character_ else conditionMessage(boot_j),
+      overlap = overlap
+    )
+  })
+  names(compare) <- compare_targets
+
+  g4_wald_pass <- all(vapply(compare, function(z) isTRUE(z$wald_pass), logical(1)))
+  g4_prof_pass <- all(vapply(compare, function(z) isTRUE(z$prof_pass), logical(1)))
+  g6_red_live <- any(!vapply(compare, function(z) isTRUE(z$prof_pass_red), logical(1)))
+
+  # --- summary TSV -----------------------------------------------------------
+  tsv <- do.call(rbind, lapply(compare, function(z) {
+    data.frame(
+      route = row_name, parm = z$parm,
+      wald_tmb_lower = z$wald_t[[1L]], wald_tmb_upper = z$wald_t[[2L]],
+      wald_julia_lower = z$wald_j[[1L]], wald_julia_upper = z$wald_j[[2L]],
+      d_wald_lower = z$d_wald[[1L]], d_wald_upper = z$d_wald[[2L]],
+      wald_pass_1e6 = z$wald_pass,
+      profile_tmb_lower = z$prof_t[[1L]], profile_tmb_upper = z$prof_t[[2L]],
+      profile_julia_lower = z$prof_j[[1L]], profile_julia_upper = z$prof_j[[2L]],
+      d_profile_lower = z$d_prof[[1L]], d_profile_upper = z$d_prof[[2L]],
+      profile_pass_1e4 = z$prof_pass, profile_pass_1e9 = z$prof_pass_red,
+      boot_tmb_lower = z$boot_t[[1L]], boot_tmb_upper = z$boot_t[[2L]],
+      boot_julia_lower = z$boot_j[[1L]], boot_julia_upper = z$boot_j[[2L]],
+      boot_tmb_failed = z$boot_t_failed, boot_julia_failed = z$boot_j_failed,
+      boot_tmb_n = z$boot_t_n, boot_julia_n = z$boot_j_n,
+      boot_overlap = z$overlap,
+      estimator_julia = est_j, estimator_julia_bridge = est_bridge_j,
+      estimator_match = estimator_match,
+      stringsAsFactors = FALSE
+    )
+  }))
+  utils::write.table(tsv, out_path, sep = "\t", row.names = FALSE, quote = FALSE)
+  log_line("wrote %s", out_path)
+
+  # --- ASCII receipt ---------------------------------------------------------
+  receipt <- file.path(evidence_dir, "a8b-biv-qualification-receipt.md")
+  L <- character(0)
+  add <- function(...) L <<- c(L, sprintf(...))
+  add("# A8b G3 qualification receipt -- biv_gaussian_residual bridge inference")
+  add("")
+  add("Measured %s. Every number below is from this run.",
+    format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
+  add("")
+  add("- route: `%s`; fixture `%s` (n = %d), formula `bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)`, `family = biv_gaussian()`",
+    row_name, drm_rows[[row_name]]$fixture, nrow(dat))
+  add("- DRM.jl checkout: `%s`", drmjl_path)
+  add("- tolerances: Wald %g, profile %g; bootstrap R = %d, seed = %d",
+    tol_wald, tol_profile, boot_R, boot_seed)
+  add("- fits: tmb %.2f s (converged = %s); julia %.2f s (converged = %s)",
+    wall_t, conv_t, wall_j, conv_j)
+  add("")
+  add("## G5 -- estimator honesty (oracle read)")
+  add("")
+  add("- `fit_julia$estimator` = `%s`", est_j)
+  add("- `fit_julia$bridge$estim_method` = `%s`", est_bridge_j)
+  add("- identical: **%s**", estimator_match)
+  add("- `fit_tmb$estimator` = `%s`", est_t)
+  add("")
+  add("## G3 -- target inventory and per-target profile through engine = \"julia\"")
+  add("")
+  add("`profile_targets()` on the julia fit: %d rows, %d profile-ready, of which %d fixed-effect.",
+    nrow(targets_j), nrow(ready_j), nrow(ready_fixef))
+  add("")
+  add("| parm | profile lower | profile upper | conf.status | finite |")
+  add("|---|---|---|---|---|")
+  for (z in profile_all) {
+    add("| `%s` | %s | %s | %s | %s |", z$parm,
+      if (is.na(z$lower)) "ERROR" else sprintf("%.10f", z$lower),
+      if (is.na(z$upper)) "ERROR" else sprintf("%.10f", z$upper),
+      if (is.na(z$status)) z$error else z$status, z$ok)
+  }
+  add("")
+  add("G3 PASS (a non-empty ready set, every member profiling to a finite interval): **%s**",
+    g3_pass)
+  add("")
+  add("## G4 -- same-target agreement vs engine = \"tmb\"")
+  add("")
+  for (z in compare) {
+    add("### `%s`", z$parm)
+    add("")
+    add("- wald:    tmb [%.10f, %.10f]  julia [%.10f, %.10f]  delta [%.5e, %.5e]  PASS(%g) = %s%s",
+      z$wald_t[[1L]], z$wald_t[[2L]], z$wald_j[[1L]], z$wald_j[[2L]],
+      z$d_wald[[1L]], z$d_wald[[2L]], tol_wald, z$wald_pass,
+      if (is.na(z$pred_offset)) "" else sprintf("  pred_guard_offset = %.5e", z$pred_offset))
+    add("- profile: tmb [%.10f, %.10f]  julia [%.10f, %.10f]  delta [%.5e, %.5e]  PASS(%g) = %s",
+      z$prof_t[[1L]], z$prof_t[[2L]], z$prof_j[[1L]], z$prof_j[[2L]],
+      z$d_prof[[1L]], z$d_prof[[2L]], tol_profile, z$prof_pass)
+    if (is.na(z$boot_t[[1L]]) || is.na(z$boot_j[[1L]])) {
+      add("- bootstrap (R = %d): tmb_ok = %s julia_ok = %s -- NOT COVERED for this target",
+        boot_R, !is.na(z$boot_t[[1L]]), !is.na(z$boot_j[[1L]]))
+      if (!is.na(z$boot_t_error)) add("  - tmb error: %s", z$boot_t_error)
+      if (!is.na(z$boot_j_error)) add("  - julia error: %s", z$boot_j_error)
+    } else {
+      add("- bootstrap (R = %d): tmb [%.6f, %.6f] (failed %d/%d) julia [%.6f, %.6f] (failed %d/%d) -- OVERLAP ONLY = %s",
+        boot_R, z$boot_t[[1L]], z$boot_t[[2L]], z$boot_t_failed, boot_R,
+        z$boot_j[[1L]], z$boot_j[[2L]], z$boot_j_failed, boot_R, z$overlap)
+    }
+    add("")
+  }
+  add("G4 Wald PASS (all targets, tol %g): **%s**", tol_wald, g4_wald_pass)
+  add("")
+  add("G4 profile PASS (all targets, tol %g): **%s**", tol_profile, g4_prof_pass)
+  add("")
+  add("The bootstrap comparison is DISTRIBUTIONAL OVERLAP ONLY. There is no")
+  add("same-seed design: `engine = \"tmb\"` draws replicates from R's RNG and")
+  add("`engine = \"julia\"` from a Julia `MersenneTwister`, so the same `seed`")
+  add("value does not produce the same replicates. Overlap is the strongest")
+  add("claim these two numbers support.")
+  add("")
+  add("## G6(a) -- RED CONTROL: profile tolerance tightened to %g", tol_red)
+  add("")
+  for (z in compare) {
+    add("- `%s`: profile delta [%.5e, %.5e] -> PASS(%g) = %s",
+      z$parm, z$d_prof[[1L]], z$d_prof[[2L]], tol_red, z$prof_pass_red)
+  }
+  add("")
+  add("At least one target FAILS at %g: **%s** (the comparison is live, not vacuous).",
+    tol_red, g6_red_live)
+  add("`tol_red` is a script parameter, not committed state, so nothing was")
+  add("edited and nothing needs restoring for this control.")
+  add("")
+  add("## What this receipt does NOT claim")
+  add("")
+  add("- NOT interval coverage. One fixture, one seed, one target per block.")
+  add("- NOT a claim about the STRUCTURED (q = 4 / q = 2) bivariate route,")
+  add("  whose fixed-effect rows remain deliberately not-ready.")
+  add("- NOT a claim about `meta_V` bivariate fits or a partially observed")
+  add("  bivariate response: neither is exercised by this fixture.")
+  writeLines(L, receipt)
+  log_line("wrote %s", receipt)
+
+  cat(sprintf(
+    "G3_PASS=%s G4_WALD_PASS=%s G4_PROFILE_PASS=%s G5_ESTIMATOR_MATCH=%s G6_RED_LIVE=%s\n",
+    g3_pass, g4_wald_pass, g4_prof_pass, estimator_match, g6_red_live
+  ))
+  if (!(g3_pass && g4_wald_pass && g4_prof_pass && estimator_match && g6_red_live)) {
+    cat("G3_QUALIFY_BIV_FAILED\n")
+    quit(save = "no", status = 1)
+  }
+  cat("G3_QUALIFY_BIV_OK\n")
+}
+
 # --g3-qualify (leaf A8) -- G3 bridge-side inference qualification. For the
 # 3 routes with a ready profile/bootstrap target (base_gaussian_location_scale,
 # gaussian_response_mask, plain_binomial_nonphylo): fit both engines on the
@@ -818,4 +1137,6 @@ if (mode == "prerun") {
   run_full_pilot()
 } else if (mode == "g3-qualify") {
   run_g3_qualify()
+} else if (mode == "g3-qualify-biv") {
+  run_g3_qualify_biv()
 }
