@@ -60,7 +60,7 @@ drm_julia_family_registry <- function() {
     # (DRM.jl src/negbinomial.jl `TruncatedNegBinomial2`, pin 430ef64cc, which
     # refuses random effects itself: "currently supports fixed effects only").
     # No phylo/RE/structured admission here -- that is a later row.
-    spec("truncated_nbinom2", fe = TRUE)
+    spec("truncated_nbinom2", fe = TRUE),
     # zero_one_beta (A4, 2026-09-05): fixed effects only, dpars mu (logit) +
     # sigma (log, phi = 1/sigma^2) + zoi (logit) + coi (logit) -- the SAME
     # three-part mixture on both sides (DRM.jl src/zeroonebeta.jl
