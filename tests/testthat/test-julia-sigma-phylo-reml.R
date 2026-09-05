@@ -192,7 +192,13 @@ test_that("Julia REML support matrix admits Gaussian and the two measured Poisso
   expect_true(drmTMB:::drm_julia_reml_supported(lss_iid, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(lss_phylo, "gaussian"))
   expect_true(drmTMB:::drm_julia_reml_supported(q4, "biv_gaussian"))
-  expect_false(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))
+  # SUPERSEDED 2026-09-05 (drmTMB #1142 / DRM.jl #624 item (c)): the mean-only
+  # phylo Gaussian cell is now MEASURED as genuinely REML-capable on the DRM.jl
+  # side (sparse location-only Patterson-Thompson restriction; same-target
+  # receipt in docs/dev-log/evidence/julia-r-parity/reml/), so this gate must
+  # ADMIT it. See tests/testthat/test-julia-reml-phylo-mean.R for the parity
+  # assertions and for the adjacent shapes that still refuse.
+  expect_true(drmTMB:::drm_julia_reml_supported(mean_only, "gaussian"))
   # MEASURED SUPPORTED (#1152): estim_method=:REML, ml=-74.6002, reml=-79.3865
   expect_true(drmTMB:::drm_julia_reml_supported(count_phylo, "poisson"))
   # still refused, and NOT measured as supported -- keeps this a real matrix
@@ -314,11 +320,33 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
   expect_true(fit_reml$requested_REML)
   expect_true(fit_reml$effective_REML)
 
-  # Mean-only phylo Gaussian REML: the gate still rejects, and now REFUSES
-  # instead of forwarding ML. Nothing is fitted, so there is no fit object to
-  # inspect -- the absence of one IS the fix. What is still checked is that the
-  # bridge never reached Julia: `captured$options` stays NULL, so the refusal
-  # happens BEFORE any call is marshalled, not after a wasted fit.
+  # SUPERSEDED 2026-09-05 (drmTMB #1142 / DRM.jl #624 item (c)). This block used
+  # to pin that the mean-only phylo Gaussian cell was REFUSED before reaching
+  # Julia. DRM.jl now restricts that cell, so the bridge FORWARDS it, and what
+  # is worth pinning is that the request reaches the engine as REML rather than
+  # being silently downgraded to ML on the way -- the same shape the Poisson
+  # phylo block below took when its cell was admitted.
+  captured$options <- NULL
+  suppressWarnings(try(
+    drmTMB:::drmTMB_julia_bridge(
+      formula = mean_only,
+      family = stats::gaussian(),
+      data = dat,
+      env = environment(),
+      weights_missing = TRUE,
+      control = NULL,
+      impute = NULL,
+      missing = drmTMB::miss_control(),
+      REML = TRUE,
+      call = quote(drmTMB())
+    ),
+    silent = TRUE
+  ))
+  expect_true("method" %in% names(captured$options))
+  expect_identical(captured$options$method, "REML")
+
+  # The refusal that DOES still fire for this shape: an explicit non-default
+  # `missing` response engine, which DRM.jl's phylo-mean REML gate excludes.
   captured$options <- NULL
   expect_error(
     drmTMB:::drmTMB_julia_bridge(
@@ -329,7 +357,7 @@ test_that("REML gate admits Gaussian sigma-phylo, warns for other phylo cells", 
       weights_missing = TRUE,
       control = NULL,
       impute = NULL,
-      missing = drmTMB::miss_control(),
+      missing = drmTMB::miss_control(response = "include"),
       REML = TRUE,
       call = quote(drmTMB())
     ),
