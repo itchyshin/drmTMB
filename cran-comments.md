@@ -1,3 +1,20 @@
+## Resubmission
+
+This resubmission addresses the example issues identified by Konstanze
+Lauseker:
+
+* `meta_vcov_bivariate()` is exported in the generated `NAMESPACE` and its
+  executable example is kept on `?meta_vcov_bivariate`. The unrelated
+  `?drm_formula` and `?random_effect_scale_formulas` pages contain no examples
+  for this helper. A regression test now checks both the generated and loaded
+  namespace exports.
+* The commented-out calls in `?confint.drmTMB` and `?corpairs` are executable
+  examples. The 99-refit bootstrap call is wrapped in `\donttest{}`; the other
+  calls run as regular examples.
+* The package contains no `\dontrun{}` examples. The association confidence-
+  interval example runs normally, while the longer association-prediction
+  example is wrapped in `\donttest{}`.
+
 ## Submission summary
 
 This is the first CRAN submission of drmTMB, version 0.7.0.
