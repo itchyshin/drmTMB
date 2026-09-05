@@ -12885,7 +12885,7 @@ MEMBER_ROLE_TO_AGENT = {
     "figure_reviewer": "figure-reviewer",
     "landscape_scout": "landscape-scout",
 }
-R_BRIDGE_STATUSES = {"supported", "experimental", "intentional_error", "planned", "unsupported"}
+R_BRIDGE_STATUSES = {"supported", "partial", "experimental", "intentional_error", "planned", "unsupported"}
 STRUCTURED_RE_VOCABULARY_TERMS = {
     "covered",
     "partial",
