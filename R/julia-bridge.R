@@ -3399,6 +3399,31 @@ new_drmTMB_julia <- function(
     sigma = drm_julia_plain(result$sigma),
     corpairs = drm_julia_plain(result$corpairs),
     opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L),
+    # #1108 / DRM.jl #632: the bridge attaches "gradient" (index-aligned with
+    # "gradient_names") ONLY for routes whose fit carries `fit.nllgrad`
+    # (verified 2026-09-05 against DRM.jl 430ef64c: the bivariate structured
+    # q2/q4 route and the sparse LSS ML route do; the base Gaussian/GLMM
+    # route and the non-Gaussian phylo Laplace route do not) -- omitted,
+    # never zeros/NaN, on a route without one. `gradient_names` is
+    # index-aligned with `result$coef_names` by DRM.jl's own construction, so
+    # naming the vector with the (possibly public-relabelled) `coef_names`
+    # computed above keeps the gradient's component labels consistent with
+    # `coef(fit)` rather than the raw Julia spelling. `route` records which
+    # family/structure this fit went through. Both are kept in one
+    # self-contained slot so check_drm.drmTMB_julia() (R/julia-diagnostics.R)
+    # never has to reach into the rest of this list's shape.
+    diagnostics = list(
+      route = family_type,
+      gradient = if (!is.null(result$gradient)) {
+        stats::setNames(
+          as.numeric(unlist(result$gradient, use.names = FALSE)),
+          coef_names
+        )
+      } else {
+        NULL
+      },
+      converged = isTRUE(result$converged)
+    ),
     uncertainty = list(
       status = uncertainty_status,
       se = finite_vcov,
