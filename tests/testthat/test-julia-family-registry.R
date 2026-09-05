@@ -11,21 +11,26 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("gaussian", "nbinom2", "gamma", "beta"))
   expect_identical(sort(drmTMB:::drm_julia_slope_phylo_families()),
                    sort(c("nbinom2", "gamma", "beta", "poisson")))
+  # A4 (2026-09-05): cumulative_logit admitted on the fixed-effect route with
+  # `dispersionless = TRUE` (its only dpar is `mu`) -- the one deliberate
+  # change to the 2026-09-05 pin; see test-julia-family-cumulative_logit.R.
   expect_identical(drmTMB:::drm_julia_dispersionless_families(),
-                   c("poisson", "binomial"))
+                   c("poisson", "binomial", "cumulative_logit"))
   expect_identical(drmTMB:::drm_julia_structured_families(),
                    c("gaussian", "poisson", "nbinom2", "gamma"))
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
-                     "poisson", "nbinom2", "gamma", "beta", "binomial"))
+                     "poisson", "nbinom2", "gamma", "beta", "binomial",
+                     "cumulative_logit"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
-  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial"))
+  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
+              "cumulative_logit"))  # cumulative_logit: admitted by A4 (2026-09-05)
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
-  # refused outright (the A4 targets), same message class as before
+  # refused outright (the remaining A4 targets), same message class as before
   for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta", "tweedie",
-              "cumulative_logit", "skew_normal"))
+              "skew_normal"))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
 

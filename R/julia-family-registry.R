@@ -53,10 +53,18 @@ drm_julia_family_registry <- function() {
                          slope_phylo = TRUE, structured = TRUE),
     spec("beta",         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE),
-    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE)
+    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
+    # A4 (2026-09-05): cumulative_logit on the fixed-effect route. Its only dpar
+    # is `mu` (R/family.R), so it is `dispersionless` like poisson/binomial: the
+    # label defaulter must NOT invent a `sigma` block and a user-written
+    # `sigma ~` formula is refused. Cutpoints are NOT a dpar on the R side --
+    # R/julia-family-cumulative_logit.R moves DRM.jl's `cutpoints` block into
+    # `fit$ordinal` (design 258 section 8.9). Fixed effects only: no phylo, RE,
+    # or structured route (a later row's job).
+    spec("cumulative_logit", fe = TRUE, dispersionless = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   truncated_nbinom2, beta_binomial, zero_one_beta, tweedie, cumulative_logit
+    #   truncated_nbinom2, beta_binomial, zero_one_beta, tweedie
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )

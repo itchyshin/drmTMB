@@ -863,3 +863,113 @@ native TMB engine's `sdpars$sigma` uses for this construct. Verified live: `fj$s
 entry named `"(1 | g)"` (`fj$sdpars$mu` empty), matching a native TMB fit of the same formula exactly.
 Every OTHER bare-`resd` shape (phylo, relmat/animal/spatial) keeps its existing `entry$structured`-matched
 attribution unchanged -- only the previously-unhandled fallback default is touched.
+
+## 8. Family addenda (A4 admissions, one family per PR)
+
+### 8.9 `cumulative_logit` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("cumulative_logit", fe = TRUE, dispersionless = TRUE)` -- puts the
+family on the fixed-effect (Workflow G) route, plus a family-specific file
+`R/julia-family-cumulative_logit.R` reached from EXACTLY three guarded
+one-line hooks in `R/julia-bridge.R` (`if (identical(family_type,
+"cumulative_logit")) ...`): (a) in `drm_julia_bridge_payload()`, after the
+labels are built, the ordered response is replaced by its integer codes; (b)
+at the end of `drm_julia_bridge_payload_coef_labels()`, `"(Intercept)"` is
+dropped from `mu` and a `cutpoints` label block is added; (c) at the end of
+`new_drmTMB_julia()`, the `cutpoints` block is moved out of the fixed-effect
+surface into `fit$ordinal`. The generic producer (§7.1) and the fail-closed
+comparison (§7.3) are otherwise unchanged; `"cutpoints"` was already in
+`drm_julia_bridge_blocks()`.
+
+**Why this family needs family code where `tweedie` (§8.2) needed none.**
+Three measured facts, each probed live before the code was written:
+
+1. *Data.* drmTMB's response is an ordered factor. Sent as is, JuliaCall
+   marshals it as a CategoricalArray and DRM.jl's `_coerce_response_column`
+   aborts (`no method matching Float64(::CategoricalValue{String})`). DRM.jl's
+   `drm(::CumulativeLogit)` wants integer categories `1..K`
+   (`src/cumulative.jl`), the SAME coding the native engine's
+   `prepare_ordinal_response()` builds, so that function is reused unchanged:
+   an unordered factor, a non-integer score, fewer than three categories, or
+   an empty category is refused with the native engine's own message before
+   Julia starts.
+2. *Labels.* DRM.jl drops the location intercept (the cutpoints absorb it;
+   `src/bridge.jl` `_bridge_public_to_raw_coef_map` makes the same projection)
+   and reports a SECOND block, `cutpoints`, with raw names `theta1..theta{K-1}`.
+   The echo (§7.5) demands exactly one label per column of EVERY block, so `mu`
+   is sent WITHOUT `"(Intercept)"` and `cutpoints` is labelled with drmTMB's own
+   `ordinal_cutpoint_names()` spelling, `"<level_k>|<level_k+1>"`.
+3. *Fit object.* Cutpoints are NOT a dpar on the R side: the native engine keeps
+   them in `fit$ordinal` (`ordinal_fit_info()`), never in `coef()` or `vcov()`.
+   DRM.jl returns the raw increment coordinates (`theta_1 = delta_1`,
+   `theta_k = theta_{k-1} + exp(delta_k)`, `_cumulative_cuts`) -- the SAME
+   parameterisation as TMB's `theta_ord` -- so `ordinal_cutpoints_from_raw()`
+   is the one transform, and `theta_raw` compares directly.
+
+**dpars, links, and labels.** drmTMB's `cumulative_logit()` declares
+`dpars = "mu"` only, link identity on the latent scale
+(`Pr(y <= k) = plogis(theta_k - eta)`; `R/family.R`). The row is therefore
+`dispersionless`: the label defaulter (§7.7) adds no `sigma` block, and a
+user-written `sigma ~ 1` is refused on the R side (`does not support a
+\`sigma\` formula for a "cumulative_logit" model`) -- the native engine refuses
+the same formula (`support only a \`mu\` location formula`). Payload and echo,
+measured live on the `tests/testthat/test-cumulative-logit.R` draw
+(`new_ordinal_data()` defaults: n = 900, seed 20260509, `bf(score ~ x)`,
+levels `low < medium < high`):
+
+| block | R sends (`coef_labels`) | DRM.jl echoes (`coef_names`) | lands in |
+|---|---|---|---|
+| `mu` | `"x"` (intercept dropped) | `mu_x` | `coef(fit)$mu`, `vcov(fit)` |
+| `cutpoints` | `"low|medium"`, `"medium|high"` | `cutpoints_low|medium`, `cutpoints_medium|high` | `fit$ordinal` only |
+
+The echo validated (`bridge_public_coef_labels$contract ==
+"bridge_formula_labels_v1"`). `fit$model$dpars` is `"mu"`; `vcov(fit)` has the
+single row `mu_x`; `fit$ordinal` has the native slot's five fields
+(`response`, `levels`, `n_categories`, `cutpoints`, `theta_raw`). An
+intercept-only `bf(score ~ 1)` sends an EMPTY `mu` label set (DRM.jl's `mu`
+block has zero columns) and fits at the native logLik (-986.400751 on this
+draw).
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, same
+draw; comparator code of DRM.jl `tools/parity_fixture.R` / `tools/parity_se.R`
+at the pin, rows appended to the pin clone's `docs/dev-log/evidence/`):**
+`max_abs_coef_diff = 2.19824158875781e-14`, `loglik_tmb = -903.275348750815`,
+`loglik_julia = -903.275348750827`, `loglik_diff = 1.125499693444e-11`
+(PARITY_PASS at tol 1e-4); cutpoints (natural scale) max |d|
+`8.982e-13`, `theta_raw` max |d| `6.242e-13`; SE
+`max_abs_se_diff = 3.9883545077668e-10`, `max_rel_se_diff =
+5.75751857877831e-09` over `mu_x` (SE_PASS at rtol 1e-3; the negative-control
+row with `se_julia[1] * 1.10` read SE_FAIL -> NEGATIVE_CONTROL_OK, rel
+`9.09090856749832e-02`). The fit's `estimator` is `"ML"` and equals DRM.jl's
+`estim_method` (`"ML"`). `fitted()` (expected category score) agrees to
+printed precision. Comparator build `drmtmb_code_hash =
+2300400cb1bef76fedd0084d3cd23674b95c3c7f7d37f2489c2952297e96e1f0`.
+
+**A gap the admission exposes (measured; NOT fixed here).** `predict(fit,
+dpar = "mu", type = "link")` on the Julia object aborts: `could not align the
+\`stored\` design with the fitted \`mu\` coefficients`. Cause:
+`drm_julia_predict_fixed_eta()` (`R/julia-bridge.R`) rebuilds `mu`'s design
+with `model.matrix()`, which carries `"(Intercept)"`, while the fitted block
+has only `x`. The native engine drops that column in
+`ordinal_mu_model_matrix()`; the Julia predict path needs the same projection
+for this family. That function is outside this leaf's three-hook grant, so it
+is left to the integrator and recorded as a blocker, not claimed. `fitted()`
+is unaffected (it comes from DRM.jl and matches native).
+
+**Neighbours, measured at the pin.** `(1 | g)` on `mu` (30 groups): native
+fits (logLik -902.894971); the Julia route fails CLOSED at the echo
+(`coef_labels is missing an entry for dpar "resd" ... ["resd_g"]`) -- DRM.jl
+fits an ordinal random intercept itself, but the R side labels a mu-side
+`resd` block only on its phylo/structured routes, so this row does NOT widen
+to random effects. An integer-coded response (`as.integer(score)`) fits on
+both engines at the same logLik (-903.275349). `bf(score ~ x + z)` fits on
+both at logLik -903.143692. `REML = TRUE` is refused on the R side before
+Julia starts by the existing non-Gaussian REML rule.
+
+**NOT admitted by this row:** phylogenetic, structured
+(`relmat()`/`animal()`/`spatial()`), and random-effect routes; `predict()` on
+the Julia object (see the gap above); interval coverage. The
+capability-comparison TSV row for this route is NOT added here (the
+`drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`
+and belongs to A3) and is left to the integrator, as in §8.2.

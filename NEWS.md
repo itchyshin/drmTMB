@@ -1,5 +1,24 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` admits `cumulative_logit()` on the fixed-effect route
+
+* `cumulative_logit()` (dpar `mu`; ordered-factor response) now routes through
+  `engine = "julia"` for fixed-effect models -- one row in the Julia family
+  registry plus a small family file that integer-codes the ordered response,
+  sends `mu` without its intercept, labels DRM.jl's `cutpoints` block with
+  drmTMB's own `"low|medium"` spelling, and moves that block into
+  `fit$ordinal` (the native engine's slot; cutpoints never appear in `coef()`
+  or `vcov()`). Same target as `engine = "tmb"` on the committed
+  `test-cumulative-logit.R` fixture at DRM.jl pin `430ef64cc`: max |d coef|
+  2.20e-14, |d logLik| 1.13e-11, cutpoints within 8.98e-13, Wald SE within
+  5.76e-09 relative; `estimator` reads `"ML"` and equals DRM.jl's
+  `estim_method`. A `sigma ~` formula and an unordered factor are refused
+  before Julia starts with the native engine's own reasons. Known gap, not
+  fixed here: `predict()` on the Julia object aborts for this family (its
+  design rebuild keeps the `mu` intercept); `fitted()` is unaffected. No
+  phylogenetic, structured, or random-effect ordinal routes are admitted;
+  `(1 | g)` fails closed at DRM.jl's label echo.
+
 ## Pinned DRM.jl clone moved from `e0a65f96b` to `430ef64cc`
 
 * The pin advances 18 commits, carrying DRM.jl #630 (sparse LSS gradient

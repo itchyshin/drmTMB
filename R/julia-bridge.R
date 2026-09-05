@@ -1427,6 +1427,7 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   if (!is.null(family_type)) {
     labels <- drm_julia_bridge_default_dpar_labels(labels, formula, family_type)
   }
+  if (identical(family_type, "cumulative_logit")) labels <- drm_julia_cumulative_logit_coef_labels(labels, formula, data)
   labels
 }
 
@@ -1679,6 +1680,7 @@ drm_julia_bridge_payload <- function(
     family_type = family_type,
     method = method
   )
+  if (identical(family_type, "cumulative_logit")) data_out <- drm_julia_cumulative_logit_bridge_data(data_out, formula)
   options <- drm_julia_bridge_options(
     phylo_payload,
     method = method,
@@ -3333,6 +3335,7 @@ new_drmTMB_julia <- function(
       }
     )
   )
+  if (identical(family_type, "cumulative_logit")) out <- drm_julia_cumulative_logit_ordinal_slot(out)
   class(out) <- "drmTMB_julia"
   out
 }
