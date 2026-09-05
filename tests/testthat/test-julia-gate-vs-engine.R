@@ -203,7 +203,11 @@ test_that("Julia capability comparison artifact matches the registry", {
   # `expect_equal(binomial_row$r_bridge_status, "experimental")`; it is now
   # inverted rather than deleted, same pattern as the Phase 1.5 / Phase 1
   # inversions above, so an accidental reversion fails loudly.
-  expect_equal(binomial_row$r_bridge_status, "partial")
+  #
+  # A8 (2026-09-05): G3 bridge-side inference (profile/bootstrap through
+  # engine="julia") qualified on this route -- partial -> supported. Same
+  # inversion pattern: locked here, not deleted.
+  expect_equal(binomial_row$r_bridge_status, "supported")
   expect_match(binomial_row$claim_boundary, "Workflow G|expected\\.toml|#499")
 
   # The single-phylogeny LSS router has selected the sparse O(p) engine above
@@ -276,17 +280,33 @@ test_that("Julia capability comparison artifact matches the registry", {
   # claim_status/covered promotion and NOT an interval_status move. Asserted
   # rather than merely edited, same pattern as the inversions above, so an
   # accidental reversion fails loudly.
-  wave1_promoted <- registry[
+  # A8 (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/): G3
+  # (bridge-side profile/bootstrap inference) measured on all four wave 1
+  # rows. base_gaussian_location_scale and plain_binomial_nonphylo qualified
+  # -- partial -> supported. biv_gaussian_residual (no profile/bootstrap
+  # target exists on this route for any parameter) and gaussian_response_mask
+  # (Julia bootstrap fails all 99 replicates; the Julia fit's own
+  # opt$convergence flag is FALSE) stay partial -- never rounded up. Split the
+  # locked set accordingly rather than deleting it.
+  wave1_still_partial <- registry[
     registry$capability_id %in%
       c(
-        "base_gaussian_location_scale",
         "biv_gaussian_residual",
-        "plain_binomial_nonphylo",
         "gaussian_response_mask"
       ),
   ]
-  expect_equal(nrow(wave1_promoted), 4L)
-  expect_true(all(wave1_promoted$r_bridge_status == "partial"))
+  expect_equal(nrow(wave1_still_partial), 2L)
+  expect_true(all(wave1_still_partial$r_bridge_status == "partial"))
+
+  wave1_g3_qualified <- registry[
+    registry$capability_id %in%
+      c(
+        "base_gaussian_location_scale",
+        "plain_binomial_nonphylo"
+      ),
+  ]
+  expect_equal(nrow(wave1_g3_qualified), 2L)
+  expect_true(all(wave1_g3_qualified$r_bridge_status == "supported"))
 
   # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
   # see the plan's CONDITIONS section). Locked so it cannot drift silently.
