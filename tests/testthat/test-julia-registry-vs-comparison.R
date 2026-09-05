@@ -21,17 +21,13 @@ drm_julia_fe_family_capability_map <- function() {
     gamma = "fe_gamma",
     beta = "fe_beta",
     binomial = "plain_binomial_nonphylo",
-    # KNOWN GAPS (2026-09-05): each family's OWN leaf PR (#1173, #1171, #1169)
-    # added the registry row; the capability_comparison() row is
-    # A4-INTEGRATION's OWNS, and this integration PR was instructed to add
-    # rows ONLY for cumulative_logit and skew_normal (the launcher's own
-    # message: "the others exist or arrive with #1172") -- but truncated_nbinom2
-    # and zero_one_beta do NOT in fact exist, and tweedie's row does not
-    # arrive with #1172 either. Reported as a blocker in this leaf's
-    # after-task; not fixed here (outside this run's given scope).
-    truncated_nbinom2 = NA_character_,
-    zero_one_beta = NA_character_,
-    tweedie = NA_character_
+    # A4-INTEGRATION follow-up (2026-09-05): each family's OWN leaf PR
+    # (#1173, #1171, #1169) added the registry row; the missing
+    # capability_comparison() rows this comment used to name as a gap are
+    # now added (fe_truncated_nbinom2, fe_zero_one_beta, fe_tweedie).
+    truncated_nbinom2 = "fe_truncated_nbinom2",
+    zero_one_beta = "fe_zero_one_beta",
+    tweedie = "fe_tweedie"
   )
 }
 
