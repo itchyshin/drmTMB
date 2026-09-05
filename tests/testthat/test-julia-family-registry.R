@@ -11,26 +11,24 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("gaussian", "nbinom2", "gamma", "beta"))
   expect_identical(sort(drmTMB:::drm_julia_slope_phylo_families()),
                    sort(c("nbinom2", "gamma", "beta", "poisson")))
-  # A4 (2026-09-05): cumulative_logit admitted on the fixed-effect route with
-  # `dispersionless = TRUE` (its only dpar is `mu`) -- the one deliberate
-  # change to the 2026-09-05 pin; see test-julia-family-cumulative_logit.R.
   expect_identical(drmTMB:::drm_julia_dispersionless_families(),
                    c("poisson", "binomial", "cumulative_logit"))
   expect_identical(drmTMB:::drm_julia_structured_families(),
                    c("gaussian", "poisson", "nbinom2", "gamma"))
+  # A4 (2026-09-05): truncated_nbinom2 then zero_one_beta admitted AFTER the
+  # 2026-09-05 pin -- fixed-effect route only, so they appear in this one list.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
-                     "cumulative_logit"))
+                     "truncated_nbinom2", "zero_one_beta", "tweedie", "cumulative_logit"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
-              "cumulative_logit"))  # cumulative_logit: admitted by A4 (2026-09-05)
+              "truncated_nbinom2", "zero_one_beta", "tweedie", "cumulative_logit"))  # A4 rows, 2026-09-05
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
   # refused outright (the remaining A4 targets), same message class as before
-  for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta", "tweedie",
-              "skew_normal"))
+  for (f in c("beta_binomial", "skew_normal"))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
 
