@@ -1,5 +1,16 @@
 # drmTMB 0.7.0
 
+## Coevolution accessors ported from DRM.jl (#1118)
+
+* New `coevolution_cor()`, `coevolution_vc()`, and `coevolution_summary()`
+  read the among-axis structure of a q = 4 structured bivariate
+  location-scale fit -- the 4 x 4 correlation matrix over `mu1`, `mu2`,
+  `sigma1`, `sigma2`, the per-axis variance components, and a tidy long form
+  over the six axis pairs -- from the covariance the fit already stores,
+  for both the native engine and `engine = "julia"` (whose raw-branch-length
+  `Sigma_a` is rescaled to the unit-height convention, as `profile_targets()`
+  already does). Ported term-for-term from DRM.jl `src/coevo_accessors.jl`
+  and checked live against DRM.jl's own accessors at pin `430ef64cc`.
 ## Boundary-corrected likelihood-ratio test for variance components (DRM.jl #1116 port)
 
 * New `chibar_pvalue(statistic, q)` and `lrt_boundary(full, reduced, q)`:
