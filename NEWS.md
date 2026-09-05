@@ -34,7 +34,7 @@
   phylogenetic, structured, or random-effect ordinal routes are admitted;
   `(1 | g)` fails closed at DRM.jl's label echo.
 
-## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"`
+## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"` `type = "quantile"` is still unavailable on every `engine = "julia"` fit (drmTMB#1198).
 
 * Closes the gap the `cumulative_logit()` admission above recorded:
   `predict()` on an `engine = "julia"` `cumulative_logit()` fit no longer
