@@ -126,8 +126,13 @@ not a hypothetical: the numbers above were measured before the fix.
 | `sigma_(Intercept)` | 0.081104007507 | 0.081103996010 | 1.417555e-07 |
 
 Two of three are inside `tools/parity_se.R`'s 1e-3 relative bar; `mu_x` is at
-**1.500971e-03**, just past it. That is not a defect in either engine, and it is
-recorded rather than tolerated away.
+**1.500971e-03**, past it. That is not a defect in either engine, and it is
+recorded rather than tolerated away. The bar this leaf actually asserts and
+defends for the mean block is not a bare cross-engine rtol-1e-3 match (which
+`mu_x` does not meet): it is DRM.jl's agreement with an independent GLS oracle
+at rtol ~5e-7, plus a cross-engine bound of rtol 2.5e-3 that a further
+widening of the by-construction gap below would fail (both asserted in
+`tests/testthat/test-julia-reml-phylo-mean.R`).
 
 The cause was established with an independent oracle: the textbook REML
 fixed-effect covariance `(Xmu' Vhat^-1 Xmu)^-1`, assembled by hand in R from

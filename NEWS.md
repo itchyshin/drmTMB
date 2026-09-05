@@ -23,6 +23,10 @@
   DRM.jl reports the canonical `(Xmu' Vhat^-1 Xmu)^-1` -- a hand-built GLS
   oracle confirms DRM.jl to `4.5e-08`, and the two engines' SEs differ by
   `4.84e-05`, `1.50e-03` and `1.42e-07` relative on the three coefficients.
+  This is a construction difference, not an error on either side: the test
+  asserts DRM.jl-vs-oracle agreement at rtol `~5e-7` and bounds the
+  cross-engine gap at rtol `2.5e-3`, not a bare rtol-`1e-3` cross-engine
+  match. Tracked in #1201.
   **Scope**: `phylo()` with an intercept-only `sigma` only. A `sigma`
   predictor, an ordinary `(1 | g)` bar alongside the phylo term, `relmat()` /
   `animal()` / `spatial()`, and a non-default `missing` response engine all
