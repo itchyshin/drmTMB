@@ -1314,11 +1314,72 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     label_key <- if (is_sd_dpar) sub("\\(.*$", "", dpar) else dpar
     rhs <- drm_strip_structured_terms(entry$rhs)
     f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
+    mf <- tryCatch(stats::model.frame(f, data = data), error = function(e) NULL)
+    if (is.null(mf)) next
+    # A6 (2026-09-05, design 258): the names built below are only as good as
+    # the DESIGN they label. DRM.jl codes every factor with treatment
+    # contrasts against its first level, so when R would code a factor
+    # differently -- an ordered factor (contr.poly), an explicit `contrasts`
+    # attribute (e.g. contr.sum), or a non-default options("contrasts") --
+    # both engines return coefficients under IDENTICAL names for DIFFERENT
+    # parameters, and nothing downstream can tell (measured at DRM.jl
+    # 430ef64cc: ordered factor max|coef diff| = 1.180, contr.sum 1.757,
+    # names identical, no error). Compare R's actual design against the
+    # treatment-coded design of the same model frame and refuse up front,
+    # naming the columns, before Julia starts. DRM.jl's own coef_labels
+    # fidelity check (`_bridge_check_coef_labels_fidelity`) is the second
+    # line of defence, for a disagreement the R data cannot show -- e.g. a
+    # character column whose locale-collated R level order is not Julia's
+    # codepoint order.
+    coded <- vapply(
+      mf,
+      function(col) is.factor(col) || is.character(col) || is.logical(col),
+      logical(1L)
+    )
+    if (any(coded)) {
+      tt <- stats::terms(mf)
+      treat <- stats::setNames(
+        as.list(rep("contr.treatment", sum(coded))),
+        names(mf)[coded]
+      )
+      X_actual <- tryCatch(stats::model.matrix(tt, mf), error = function(e) NULL)
+      X_treat <- tryCatch(
+        suppressWarnings(stats::model.matrix(tt, mf, contrasts.arg = treat)),
+        error = function(e) NULL
+      )
+      if (
+        !is.null(X_actual) && !is.null(X_treat) &&
+          !isTRUE(all.equal(X_actual, X_treat, check.attributes = FALSE))
+      ) {
+        why <- vapply(names(mf)[coded], function(nm) {
+          col <- mf[[nm]]
+          if (is.ordered(col)) {
+            "an ordered factor (R codes it with contr.poly)"
+          } else if (!is.null(attr(col, "contrasts"))) {
+            "a factor with an explicit `contrasts` attribute"
+          } else {
+            NA_character_
+          }
+        }, character(1L))
+        if (all(is.na(why))) {
+          why[] <- sprintf(
+            "coded with options(\"contrasts\") = \"%s\"",
+            as.character(getOption("contrasts"))[[1L]]
+          )
+        }
+        why <- why[!is.na(why)]
+        detail <- paste0(names(why), ": ", why)
+        names(detail) <- rep_len("*", length(detail))
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} fits every factor with treatment contrasts ({.fn contr.treatment}: dummy columns against the first level), but R would code the {.code {dpar}} formula's design differently:",
+          detail,
+          x = "The two engines would then return different coefficients under identical names.",
+          i = "Refit with plain treatment-coded factors ({.code factor(x, levels = ...)} with {.code ordered = FALSE}, no {.code contrasts} attribute, default {.code options(\"contrasts\")}), or use {.code engine = \"tmb\"}."
+        ))
+      }
+    }
     cols <- tryCatch(
-      {
-        mf <- stats::model.frame(f, data = data)
-        colnames(stats::model.matrix(stats::terms(mf), mf))
-      },
+      colnames(stats::model.matrix(stats::terms(mf), mf)),
       error = function(e) NULL
     )
     if (!is.null(cols)) {
