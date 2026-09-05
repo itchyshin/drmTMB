@@ -7,7 +7,7 @@ downgrade"). DRM.jl pin `430ef64cc`. Measured 2026-09-05 (arc A9f).
 
 ## Scope and how to read this
 
-30 routes, drawn from two sources: the 21 rows of the committed
+30 routes, drawn from two sources: the 24 rows of the committed
 `inst/extdata/julia-capabilities.tsv` (which already carries A3's nine
 fixed-effect routes, PR #1168), plus A5's three ordinary-random-effect
 shapes (PR #1170), which are bridge-admitted routes with no TSV row yet

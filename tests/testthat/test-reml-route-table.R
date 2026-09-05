@@ -8,10 +8,20 @@
 # test-julia-gate-vs-engine.R checks the capability TSV against its registry
 # function rather than shelling out.
 
-pkg_root <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
-source(file.path(pkg_root, "tools", "write-reml-route-table.R"), local = (gen_env <- new.env()))
+pkg_root <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
+gen_path <- file.path(pkg_root, "tools", "write-reml-route-table.R")
+# Under R CMD check the tests run from the INSTALLED package, where tools/ and
+# docs/design/ are not shipped: the generator cannot be sourced there, so the
+# regeneration checks run in the source tree only (devtools::test()) and skip
+# under check rather than erroring at file level.
+gen_env <- NULL
+if (file.exists(gen_path)) {
+  gen_env <- new.env()
+  source(gen_path, local = gen_env)
+}
 
 test_that("the REML-by-route table regenerates byte-identically", {
+  skip_if(is.null(gen_env), "tools/write-reml-route-table.R is not shipped in the package (source tree only)")
   doc_path <- file.path(pkg_root, "docs", "design", "261-reml-by-route.md")
   skip_if_not(file.exists(doc_path), "docs/design/261-reml-by-route.md not committed yet")
 
@@ -25,6 +35,7 @@ test_that("the REML-by-route table regenerates byte-identically", {
 })
 
 test_that("every TSV-sourced route in the generator exists in the committed capabilities TSV", {
+  skip_if(is.null(gen_env), "tools/write-reml-route-table.R is not shipped in the package (source tree only)")
   # Positive check: the real, unmodified generator must build without error
   # against the real TSV (the RED CONTROL for this gate -- planting a bogus
   # capability_id and confirming this same call `stop()`s -- is run manually
