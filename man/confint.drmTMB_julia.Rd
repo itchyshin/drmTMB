@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{confint.drmTMB_julia}
 \alias{confint.drmTMB_julia}
-\title{Inspect legacy interval output from a halted Julia bridge}
+\title{Confidence intervals for an \code{engine = "julia"} fit}
 \usage{
 \method{confint}{drmTMB_julia}(
   object,
@@ -45,12 +45,13 @@ A confidence-interval data frame with the shared \code{parm}, \code{level},
 \code{method}, and \code{conf.status} columns.
 }
 \description{
-The Julia bridge is halted/deferred future work and is not a current fitting
-or inference route. This method is retained only for inspecting existing
-\code{drmTMB_julia} objects; use native TMB fits for new analyses.
+\code{engine = "julia"} is a current, actively-admitted fitting route (see
+\code{R/julia-family-registry.R} and \code{vignettes/julia-engine.Rmd} for which
+families and routes it covers). This method computes intervals for an
+existing \code{drmTMB_julia} object.
 }
 \details{
-For a legacy \code{engine = "julia"} fit, \code{confint()} exposes two interval families:
+For a \code{drmTMB_julia} fit, \code{confint()} exposes two interval families:
 \itemize{
 \item \code{method = "wald"} (the default) builds symmetric Wald intervals for the
 fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
