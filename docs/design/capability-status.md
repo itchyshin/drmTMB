@@ -167,41 +167,64 @@ NAMESPACE symbol used per-family for one binary missing predictor.
   `grep` over `R/` (`julia-bridge.R`, `profile.R`, `missing-data.R`,
   `meta-vcov.R`, `methods.R`) to confirm exported symbols.
 
-## Row-name match against DRM.jl (verified 2026-09-01)
+## Row-name match against DRM.jl (verified 2026-09-05 at pin `430ef64cc`)
 
 Matching by row name is this file's entire purpose — the mission-control server
 joins the two twins' boards on it, so a near-miss is silently as bad as an absent
-row. That match is therefore verified here rather than assumed.
+row. That match is therefore verified here rather than assumed, and it is now
+GENERATED: `tools/write-parity-matrix.R` re-derives the counts below from both
+files on every run and writes the full join, one row per capability with every
+cell cited, to `docs/design/parity-matrix.md` (see that file for the per-row
+bridge route, ledger status, and boundary). The numbers here are copied from
+that artefact; when the two disagree, regenerate the artefact and fix this
+section, in that order.
 
-Compared against `DRM.jl` `origin/main:docs/design/capability-status.md`:
+Compared against `DRM.jl` `docs/design/capability-status.md` at the parity pin
+`430ef64ccca5642c5abebd72194e00895314dfc2` (read with `git show`, never a
+working tree):
 
 | | count |
 |---|---:|
 | rows in this file | 43 |
-| rows in DRM.jl's file | 46 |
+| rows in DRM.jl's file | 47 |
 | **matched exactly (byte-for-byte row name)** | **43** |
 | near-misses (differ only by case, punctuation or spacing) | **0** |
 | present only in this file | **0** |
-| present only in DRM.jl's file | 3 |
+| present only in DRM.jl's file | 4 |
 
 **Every row in this file has an exact counterpart in the twin, and no row name
 differs only cosmetically.** The join is sound in the direction that matters for
 this file.
 
-The three DRM.jl-only rows are:
+The four DRM.jl-only rows are:
 
+- `Tweedie random intercept (mean)`
 - `Conjugate-EM Gaussian phylo-mean (`algorithm = :em`)`
 - `Natural-gradient EM (`algorithm = :natgrad`)`
 - `Fisher / observed-info metric (`lc_metric`)`
 
-These name **Julia-side algorithm choices**, not model capabilities: they are
-alternative optimisers/metrics for problems drmTMB reaches by a different
-route, so they have no natural R counterpart and their absence here is correct
-rather than a gap.
+The last three name **Julia-side algorithm choices**, not model capabilities:
+they are alternative optimisers/metrics for problems drmTMB reaches by a
+different route, so they have no natural R counterpart and their absence here
+is correct rather than a gap.
 
-`Non-Gaussian phylogenetic location-scale (μ + log σ)` used to be a fourth
+`Tweedie random intercept (mean)` is different in kind: it is a **model
+capability** (an ordinary `(1 | g)` random intercept, and an independent
+`(0 + x | g)` random slope, on `mu` for `tweedie()`), which DRM.jl lists as
+`implemented` and same-target checked against drmTMB 0.7.0. drmTMB fits the same
+cells natively (`validate_tweedie_mu_random_terms()` admits exactly that scope),
+but this board folds them into the `Tweedie (compound Poisson-Gamma)` family row
+rather than projecting a separate structure row. The earlier version of this
+section counted 46 DRM.jl rows and 3 DRM.jl-only rows and described all of them
+as algorithm choices; that was stale once the twin added this row, and the
+"algorithm choices" sentence above is now scoped to the three rows it is true of.
+Whether to add a matching `Tweedie random intercept (mean)` row here is an owner
+call; until then it stays a named, explained DRM.jl-only row, not an unexplained
+count.
+
+`Non-Gaussian phylogenetic location-scale (μ + log σ)` used to be a further
 DRM.jl-only row -- a model capability the twin lists that this board did not
-project. It is now added to the "Random-effect structure" table above at
+project. It is now in the "Random-effect structure" table above at
 `scope-limited`, resolved from `cells.tsv` (`dpar = sigma`,
 `structure_provider = phylo`) rather than asserted from this section.
 
