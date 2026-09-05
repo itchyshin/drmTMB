@@ -543,9 +543,8 @@ fitted.drm_pair_association <- function(object, ...) {
 #' @export
 #' @importFrom stats fitted
 #' @examples
-#' \donttest{
 #' set.seed(20260801)
-#' n <- 160
+#' n <- 30
 #' dat <- data.frame(
 #'   x1 = seq(-1.2, 1.2, length.out = n),
 #'   x2 = rep(c(-0.5, 0.5), length.out = n)
@@ -571,13 +570,9 @@ fitted.drm_pair_association <- function(object, ...) {
 #' eta_prediction <- predict(
 #'   assoc,
 #'   newdata = new_dat,
-#'   type = "eta",
-#'   se.fit = TRUE,
-#'   interval = "confidence"
+#'   type = "eta"
 #' )
-#' eta_prediction$fit
-#' eta_prediction$se.fit
-#' }
+#' eta_prediction
 predict.drm_pair_association <- function(
   object,
   newdata = NULL,

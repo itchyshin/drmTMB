@@ -53,9 +53,8 @@ alias for \code{"eta"}. The beta Bernoulli x ordinary-NB2 route also admits
 new-data prediction from its fixed-effect association formula.
 }
 \examples{
-\donttest{
 set.seed(20260801)
-n <- 160
+n <- 30
 dat <- data.frame(
   x1 = seq(-1.2, 1.2, length.out = n),
   x2 = rep(c(-0.5, 0.5), length.out = n)
@@ -81,13 +80,9 @@ new_dat <- data.frame(x1 = c(-1, 0, 1), x2 = 0)
 eta_prediction <- predict(
   assoc,
   newdata = new_dat,
-  type = "eta",
-  se.fit = TRUE,
-  interval = "confidence"
+  type = "eta"
 )
-eta_prediction$fit
-eta_prediction$se.fit
-}
+eta_prediction
 }
 \seealso{
 \code{\link[=vcov.drm_pair_association]{vcov.drm_pair_association()}}, \code{\link[=confint.drm_pair_association]{confint.drm_pair_association()}}

@@ -12,8 +12,7 @@ Lauseker:
   examples. The 99-refit bootstrap call is wrapped in `\donttest{}`; the other
   calls run as regular examples.
 * The package contains no `\dontrun{}` examples. The association confidence-
-  interval example runs normally, while the longer association-prediction
-  example is wrapped in `\donttest{}`.
+  interval and streamlined association-prediction examples both run normally.
 
 ## Submission summary
 
