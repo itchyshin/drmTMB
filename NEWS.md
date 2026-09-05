@@ -10,6 +10,26 @@
   against DRM.jl's own values on two committed fixtures: every quantity agrees
   to `1e-8` on the `engine = "julia"` object and to `2e-12` across engines.
   `anova.drmTMB()` still refuses; wiring it to `drm_lrtest()` is a follow-up.
+## Pinned DRM.jl clone moved from `e0a65f96b` to `430ef64cc`
+
+* The pin advances 18 commits, carrying DRM.jl #630 (sparse LSS gradient
+  O(n+G) rather than O(G·n) — every warm-timing receipt taken at the old pin
+  is now pessimistic, not wrong), #631 (profile endpoints never return an
+  infinite bound; the sparse-LSS data race behind it is fixed), #632 (the
+  bridge forwards optimizer options and exposes the stored gradient) and
+  #633. Measured on the **full** live-Julia suite, all 37 `test-julia*.R`
+  files in one session: **1440 passed, 0 failed, 0 errors, 0 skipped.**
+  Dependency versions were held fixed (`Project.toml` identical across the
+  refs, so the previous pin's `Manifest.toml` was carried over) and the clone
+  was precompiled before measuring — the two controls whose absence
+  invalidated an earlier probe.
+* Compared file by file against the previous pin's sweep, **nothing
+  changed** — the one differing file is a test converted by the previous
+  re-pin, not an engine change. In particular #631's change to profile
+  endpoint numbers reaches no test in this suite, which is recorded as a gap
+  for the bridge-side inference qualification to close rather than as a pass.
+* Totoro's full-suite runner, which existed only on that host, is now
+  vendored in DRM.jl as `tools/totoro_run_suite.sh` (DRM.jl #638).
 
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
