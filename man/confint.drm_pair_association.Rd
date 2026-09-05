@@ -37,7 +37,6 @@ retained Bernoulli x ordinary-NB2 intercept domain to inference-ready with
 caveats; other routes receive an experimental-coverage warning.
 }
 \examples{
-\dontrun{
 set.seed(20260801)
 dat <- data.frame(x = rnorm(100))
 z_1 <- rnorm(100)
@@ -50,7 +49,6 @@ assoc <- biv_associate(
   family = list(gaussian(), binomial()), data = dat
 )
 confint(assoc, type = "eta")
-}
 }
 \seealso{
 \code{\link[=vcov]{vcov()}}, \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}}

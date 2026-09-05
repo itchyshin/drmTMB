@@ -928,9 +928,7 @@ rho12.drmTMB <- function(
 #' pairs <- corpairs(fit)
 #' pairs
 #' corpairs(fit, level = "residual")
-#'
-#' # Profile intervals are opt-in and can be slow for large models.
-#' # corpairs(fit, level = "residual", conf.int = TRUE)
+#' corpairs(fit, level = "residual", conf.int = TRUE)
 #' @export
 corpairs <- function(object, ...) {
   UseMethod("corpairs")

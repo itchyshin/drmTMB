@@ -53,7 +53,7 @@ alias for \code{"eta"}. The beta Bernoulli x ordinary-NB2 route also admits
 new-data prediction from its fixed-effect association formula.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(20260801)
 n <- 160
 dat <- data.frame(

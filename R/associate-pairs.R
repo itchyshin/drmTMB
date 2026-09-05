@@ -543,7 +543,7 @@ fitted.drm_pair_association <- function(object, ...) {
 #' @export
 #' @importFrom stats fitted
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(20260801)
 #' n <- 160
 #' dat <- data.frame(
@@ -849,7 +849,6 @@ profile.drm_pair_association <- function(fitted, ...) {
 #' @seealso [vcov()], [predict.drm_pair_association()]
 #' @export
 #' @examples
-#' \dontrun{
 #' set.seed(20260801)
 #' dat <- data.frame(x = rnorm(100))
 #' z_1 <- rnorm(100)
@@ -862,7 +861,6 @@ profile.drm_pair_association <- function(fitted, ...) {
 #'   family = list(gaussian(), binomial()), data = dat
 #' )
 #' confint(assoc, type = "eta")
-#' }
 confint.drm_pair_association <- function(
   object,
   parm = NULL,

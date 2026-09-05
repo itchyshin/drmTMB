@@ -304,13 +304,14 @@
 #' confint(fit)
 #' confint(fit, parm = "variance_components")
 #' confint(fit, parm = "sigma", method = "profile")
-#' # Use the full-profile engine when you need the older tmbprofile route:
-#' # confint(fit, parm = "sigma", method = "profile",
-#' #   profile_engine = "tmbprofile", profile_precision = "fast")
-#' # Direct-target parametric bootstrap is available when refit cost is worth it:
-#' # confint(fit, parm = "sigma", method = "bootstrap", R = 99)
-#' # Bootstrap intervals for positive scale and SD targets use link-scale
-#' # percentiles before back-transforming to the response scale.
+#' confint(
+#'   fit, parm = "sigma", method = "profile",
+#'   profile_engine = "tmbprofile", profile_precision = "fast"
+#' )
+#' \donttest{
+#' set.seed(1)
+#' confint(fit, parm = "sigma", method = "bootstrap", R = 99)
+#' }
 #' @references
 #' The small-sample corrections applied by `small_sample_df` and `bias_correct`
 #' (whether the default `"location"` scope or the broader `"group"` scope) are
