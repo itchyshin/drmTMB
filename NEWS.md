@@ -15,6 +15,17 @@
   family is still refused before Julia starts, and no `(1 | g)` route, structured
   marker, or interval-coverage claim is made; use `engine = "tmb"` for those.
 
+## Coevolution accessors ported from DRM.jl (#1118)
+
+* New `coevolution_cor()`, `coevolution_vc()`, and `coevolution_summary()`
+  read the among-axis structure of a q = 4 structured bivariate
+  location-scale fit -- the 4 x 4 correlation matrix over `mu1`, `mu2`,
+  `sigma1`, `sigma2`, the per-axis variance components, and a tidy long form
+  over the six axis pairs -- from the covariance the fit already stores,
+  for both the native engine and `engine = "julia"` (whose raw-branch-length
+  `Sigma_a` is rescaled to the unit-height convention, as `profile_targets()`
+  already does). Ported term-for-term from DRM.jl `src/coevo_accessors.jl`
+  and checked live against DRM.jl's own accessors at pin `430ef64cc`.
 ## Boundary-corrected likelihood-ratio test for variance components (DRM.jl #1116 port)
 
 * New `chibar_pvalue(statistic, q)` and `lrt_boundary(full, reduced, q)`:
@@ -74,6 +85,23 @@
   against DRM.jl's own values on two committed fixtures: every quantity agrees
   to `1e-8` on the `engine = "julia"` object and to `2e-12` across engines.
   `anova.drmTMB()` still refuses; wiring it to `drm_lrtest()` is a follow-up.
+## `check_drm()` now reads DRM.jl's route-aware gradient/convergence diagnostics (#1108 / DRM.jl #569)
+
+* DRM.jl #632 attaches the objective gradient at the optimum (`gradient`,
+  index-aligned `gradient_names`) to the bridge payload, but only for routes
+  whose internal fitter carries one; other routes correctly omit the field
+  rather than filling zeros/NaN. `check_drm()` on a `engine = "julia"` fit
+  previously errored with "no applicable method" even when that gradient was
+  sitting unread in `fit$bridge$gradient`. `check_drm.drmTMB_julia()` now
+  dispatches through the SAME generic a native TMB fit uses, reporting
+  `optimizer_convergence` and a route-aware `fixed_gradient` row: numeric
+  `max|gradient|` and its largest component when the route carries one, a
+  NOTE naming the route (never a fabricated number) when it does not.
+  Verified against DRM.jl `430ef64cc`: the bivariate structured q2/q4 route
+  and the sparse location-scale-scale ML route attach a gradient; the base
+  Gaussian/GLMM route and the non-Gaussian phylo Laplace route do not — both
+  directions are exercised by a live test, not just a mocked one.
+
 ## Pinned DRM.jl clone moved from `e0a65f96b` to `430ef64cc`
 
 * The pin advances 18 commits, carrying DRM.jl #630 (sparse LSS gradient
@@ -109,6 +137,24 @@
   design-258 label echo respectively), never silently dropped; use
   `engine = "tmb"` for those. Not a phylogenetic, structured, or interval
   coverage claim.
+## `engine = "julia"`: a structured marker with a non-intercept left side of the bar is refused before Julia boots
+
+* `phylo(1 + x | g)`, `phylo(0 + x | g)`, and the same shapes on `relmat()`,
+  `animal()`, and `spatial()` are now refused by an R-side capability gate
+  the moment `drmTMB(..., engine = "julia")` is called, rather than reaching
+  the JuliaCall subprocess and being refused there. At the pinned DRM.jl
+  (`430ef64cc`, carrying DRM.jl #621's `_check_phylo_re_lhs`), every such
+  construct is already refused live — verified for a Gamma
+  `phylo(1 + x | species)` slope, which DRM.jl throws as `phylo(1 + x |
+  species) is not implemented on the univariate routes -- only phylo(1 |
+  species) (intercept) is` after booting Julia. This gate moves the same
+  refusal in front of that boot (defense-in-depth, drmTMB#1146), so it holds
+  even if a future DRM.jl refactor narrows one of the more specific
+  admission checks that also catch some of these shapes today. The gate is
+  capability-gated, not a permanent ban: `drm_julia_marker_slope_pin_supports()`
+  is the single switch to flip when a future pin fits one of these
+  constructs. `engine = "tmb"` is unaffected and keeps fitting, for example,
+  the two-SD Gaussian phylogenetic random slope.
 
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
