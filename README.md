@@ -31,6 +31,12 @@ The design rule is that larger `sigma` should mean larger modelled
 variability, even when another package or textbook writes the same likelihood
 with a precision parameter such as `phi` or `theta`.
 
+<div class="drmtmb-first-actions" role="navigation" aria-label="First actions">
+  <p class="drmtmb-first-actions__eyebrow">A clear first path</p>
+  <p class="drmtmb-first-actions__primary"><a href="https://itchyshin.github.io/drmTMB/articles/location-scale.html">Fit a Gaussian location-scale model</a></p>
+  <p class="drmtmb-first-actions__secondary">Before reporting, check <a href="https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html">Can I fit and report this?</a> <span aria-hidden="true">·</span> Prefer to work directly in Julia? Open the optional <a href="https://itchyshin.github.io/DRM.jl/stable/tutorials/location-scale">DRM.jl companion</a>.</p>
+</div>
+
 ## Start here
 
 - New to the package? Read
