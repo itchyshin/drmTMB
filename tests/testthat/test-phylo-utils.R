@@ -1421,3 +1421,36 @@ test_that("q>2 phylo separable covariance stays finite as covariance -> singular
   expect_true(is.finite(res$fn))
   expect_true(all(is.finite(res$gr)))
 })
+
+test_that("known relatedness precision accepts solver roundoff only", {
+  labels <- paste0("id_", seq_len(4L))
+  relatedness <- outer(seq_along(labels), seq_along(labels), function(i, j) {
+    0.4^abs(i - j)
+  })
+  diag(relatedness) <- diag(relatedness) + 0.1
+  dimnames(relatedness) <- list(labels, labels)
+
+  precision <- solve(relatedness)
+  precision[2L, 1L] <- precision[2L, 1L] + 1.1 * sqrt(.Machine$double.eps)
+  expect_gt(max(abs(precision - t(precision))), sqrt(.Machine$double.eps))
+  expect_no_error(
+    drmTMB:::drm_known_relatedness_precision(
+      precision,
+      group = rep(labels, each = 2L),
+      marker = "animal",
+      object = "Ainv"
+    )
+  )
+
+  materially_asymmetric <- precision
+  materially_asymmetric[2L, 1L] <- materially_asymmetric[2L, 1L] + 1e-4
+  expect_error(
+    drmTMB:::drm_known_relatedness_precision(
+      materially_asymmetric,
+      group = rep(labels, each = 2L),
+      marker = "animal",
+      object = "Ainv"
+    ),
+    "must be symmetric"
+  )
+})

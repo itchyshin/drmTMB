@@ -81,7 +81,7 @@ simulate_spatial_guide_data <- function(seed = 20260534) {
   )
 }
 
-simulate_spatial_q2_guide_data <- function(seed = 20260803) {
+simulate_spatial_q2_guide_data <- function(seed = 260805001L) {
   set.seed(seed)
   sites <- paste0("site_", seq_len(36))
   theta <- seq(0, 1.5 * pi, length.out = length(sites))
@@ -479,11 +479,18 @@ fit_spatial_q2_example <- drmTMB(
     sigma2 = ~ 1,
     rho12 = ~ 1
   ),
-  family = c(gaussian(), gaussian()),
+  family = biv_gaussian(),
   data = spatial_q2_dat,
-  REML = TRUE
+  REML = TRUE,
+  control = drm_control(
+    optimizer = list(eval.max = 1000L, iter.max = 1000L),
+    fallback_optimizer = "BFGS"
+  )
 )
 ```
+
+The fixed seed is the first retained M-rung baseline-ring smoke dataset. It
+keeps this tutorial fit reproducible without re-running the coverage campaign.
 
 The prospective campaign retained every attempted dataset. At M, all-attempt
 coverage was 0.938, 0.932, and 0.938 for the first spatial SD, second spatial

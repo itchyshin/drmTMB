@@ -374,13 +374,16 @@ drm_known_relatedness_precision <- function(
   }
 
   mat <- mat[labels, labels, drop = FALSE]
-  mat_sparse <- Matrix::Matrix(mat, sparse = TRUE)
-  if (!Matrix::isSymmetric(mat_sparse, tol = tolerance)) {
+  symmetry_error <- max(abs(mat - t(mat)))
+  symmetry_scale <- max(abs(mat))
+  symmetry_tolerance <- max(tolerance * symmetry_scale, tolerance)
+  if (!is.finite(symmetry_error) || symmetry_error > symmetry_tolerance) {
     cli::cli_abort(c(
       "{.fn {marker}} matrix {.field {object}} must be symmetric.",
       "x" = "Rows and columns should use the same relatedness scale and labels."
     ))
   }
+  mat_sparse <- Matrix::Matrix(mat, sparse = TRUE)
 
   precision <- if (identical(matrix_type, "precision")) {
     drm_validate_known_precision_matrix(
