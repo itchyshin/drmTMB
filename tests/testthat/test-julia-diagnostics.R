@@ -48,6 +48,22 @@ drm_test_julia_diag_fit <- function(...) {
   )
 }
 
+# Builds the fit from a caller-supplied (possibly corrupted) `result` list,
+# so a test can tamper with result$gradient_names / result$gradient AFTER
+# drm_test_julia_diag_result() built them index-aligned, rather than through
+# drm_test_julia_diag_fit()'s arguments, which have no way to desynchronize
+# the two.
+drm_test_julia_diag_fit_from_result <- function(result) {
+  drmTMB:::new_drmTMB_julia(
+    result = result,
+    call = quote(drmTMB(bf(y ~ x, sigma ~ 1), data = dat, engine = "julia")),
+    formula = bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = data.frame(y = rep(1, 50), x = rep(1, 50)),
+    family_type = "gaussian"
+  )
+}
+
 test_that("check_drm() dispatches on a Julia fit and reports max|gradient|, route, and convergence (G2)", {
   fit <- drm_test_julia_diag_fit()
   expect_s3_class(fit, "drmTMB_julia")
@@ -84,6 +100,26 @@ test_that("check_drm() reports a warning gradient row when max|gradient| exceeds
   expect_identical(grad_row$status, "warning")
   expect_match(grad_row$value, "component=mu_x", fixed = TRUE)
   expect_false(attr(dc, "ok"))
+})
+
+test_that("new_drmTMB_julia() refuses to mislabel a gradient when gradient_names is permuted relative to coef_names", {
+  # drm_test_julia_diag_result() sets result$gradient_names <- coef_names,
+  # so mislabel this deliberately: same set, different order.
+  result <- drm_test_julia_diag_result()
+  result$gradient_names <- rev(result$coef_names)
+  expect_error(
+    drm_test_julia_diag_fit_from_result(result),
+    "gradient_names.*do not match.*coef_names|refusing to mislabel gradient entries"
+  )
+})
+
+test_that("new_drmTMB_julia() refuses to mislabel a gradient when the gradient vector is shorter than coef_names", {
+  result <- drm_test_julia_diag_result()
+  result$gradient <- result$gradient[-1]
+  expect_error(
+    drm_test_julia_diag_fit_from_result(result),
+    "refusing to mislabel gradient entries"
+  )
 })
 
 test_that("check_drm() reports NOT converged as a warning on the convergence row", {

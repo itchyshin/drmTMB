@@ -3415,10 +3415,23 @@ new_drmTMB_julia <- function(
     diagnostics = list(
       route = family_type,
       gradient = if (!is.null(result$gradient)) {
-        stats::setNames(
-          as.numeric(unlist(result$gradient, use.names = FALSE)),
-          coef_names
-        )
+        if (!identical(
+          as.character(result$gradient_names),
+          as.character(result$coef_names)
+        )) {
+          cli::cli_abort(paste0(
+            "DRM.jl bridge returned `gradient_names` that do not match ",
+            "`coef_names`; refusing to mislabel gradient entries."
+          ))
+        }
+        gradient_values <- as.numeric(unlist(result$gradient, use.names = FALSE))
+        if (length(gradient_values) != length(coef_names)) {
+          cli::cli_abort(paste0(
+            "DRM.jl bridge returned a `gradient` vector whose length does ",
+            "not match `coef_names`; refusing to mislabel gradient entries."
+          ))
+        }
+        stats::setNames(gradient_values, coef_names)
       } else {
         NULL
       },
