@@ -53,12 +53,21 @@ drm_julia_family_registry <- function() {
                          slope_phylo = TRUE, structured = TRUE),
     spec("beta",         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE),
-    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE)
+    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
+    # ---- A4 admissions, one row per PR ---------------------------------------
+    # skew_normal (dpars mu, sigma, nu): fixed effects only -- DRM.jl's
+    # SkewNormal() refuses every random effect and structured marker, and the
+    # public moment parameterisation (mu = E[y], sigma = SD[y], nu = slant)
+    # is the same on both sides, so bridged coefficients are the native ones.
+    # DRM.jl's _bridge_family() case for the "skew_normal" tag is DRM.jl
+    # PR #641 (A4, 2026-09-05); pin 430ef64cc lacks it and refuses at the
+    # Julia boundary ("drm_bridge: unsupported family `skew_normal`").
+    spec("skew_normal",  fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
     #   truncated_nbinom2, beta_binomial, zero_one_beta, tweedie, cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
-    #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
+    #   zi_poisson, zi_nbinom2, hurdle_nbinom2
   )
 }
 

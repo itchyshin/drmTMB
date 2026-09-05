@@ -15,17 +15,21 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("poisson", "binomial"))
   expect_identical(drmTMB:::drm_julia_structured_families(),
                    c("gaussian", "poisson", "nbinom2", "gamma"))
+  # A4 skew_normal (2026-09-05): the ONE row this leaf adds. Everything else
+  # in this pin is still the 2026-09-05 hand-maintained vector.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
-                     "poisson", "nbinom2", "gamma", "beta", "binomial"))
+                     "poisson", "nbinom2", "gamma", "beta", "binomial",
+                     "skew_normal"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
-  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial"))
+  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
+              "skew_normal"))  # skew_normal admitted by A4 (2026-09-05)
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
-  # refused outright (the A4 targets), same message class as before
+  # refused outright (the remaining A4 targets), same message class as before
   for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta", "tweedie",
-              "cumulative_logit", "skew_normal"))
+              "cumulative_logit"))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
 
