@@ -1425,11 +1425,72 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     label_key <- if (is_sd_dpar) sub("\\(.*$", "", dpar) else dpar
     rhs <- drm_strip_structured_terms(entry$rhs)
     f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
+    mf <- tryCatch(stats::model.frame(f, data = data), error = function(e) NULL)
+    if (is.null(mf)) next
+    # A6 (2026-09-05, design 258): the names built below are only as good as
+    # the DESIGN they label. DRM.jl codes every factor with treatment
+    # contrasts against its first level, so when R would code a factor
+    # differently -- an ordered factor (contr.poly), an explicit `contrasts`
+    # attribute (e.g. contr.sum), or a non-default options("contrasts") --
+    # both engines return coefficients under IDENTICAL names for DIFFERENT
+    # parameters, and nothing downstream can tell (measured at DRM.jl
+    # 430ef64cc: ordered factor max|coef diff| = 1.180, contr.sum 1.757,
+    # names identical, no error). Compare R's actual design against the
+    # treatment-coded design of the same model frame and refuse up front,
+    # naming the columns, before Julia starts. DRM.jl's own coef_labels
+    # fidelity check (`_bridge_check_coef_labels_fidelity`) is the second
+    # line of defence, for a disagreement the R data cannot show -- e.g. a
+    # character column whose locale-collated R level order is not Julia's
+    # codepoint order.
+    coded <- vapply(
+      mf,
+      function(col) is.factor(col) || is.character(col) || is.logical(col),
+      logical(1L)
+    )
+    if (any(coded)) {
+      tt <- stats::terms(mf)
+      treat <- stats::setNames(
+        as.list(rep("contr.treatment", sum(coded))),
+        names(mf)[coded]
+      )
+      X_actual <- tryCatch(stats::model.matrix(tt, mf), error = function(e) NULL)
+      X_treat <- tryCatch(
+        suppressWarnings(stats::model.matrix(tt, mf, contrasts.arg = treat)),
+        error = function(e) NULL
+      )
+      if (
+        !is.null(X_actual) && !is.null(X_treat) &&
+          !isTRUE(all.equal(X_actual, X_treat, check.attributes = FALSE))
+      ) {
+        why <- vapply(names(mf)[coded], function(nm) {
+          col <- mf[[nm]]
+          if (is.ordered(col)) {
+            "an ordered factor (R codes it with contr.poly)"
+          } else if (!is.null(attr(col, "contrasts"))) {
+            "a factor with an explicit `contrasts` attribute"
+          } else {
+            NA_character_
+          }
+        }, character(1L))
+        if (all(is.na(why))) {
+          why[] <- sprintf(
+            "coded with options(\"contrasts\") = \"%s\"",
+            as.character(getOption("contrasts"))[[1L]]
+          )
+        }
+        why <- why[!is.na(why)]
+        detail <- paste0(names(why), ": ", why)
+        names(detail) <- rep_len("*", length(detail))
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} fits every factor with treatment contrasts ({.fn contr.treatment}: dummy columns against the first level), but R would code the {.code {dpar}} formula's design differently:",
+          detail,
+          x = "The two engines would then return different coefficients under identical names.",
+          i = "Refit with plain treatment-coded factors ({.code factor(x, levels = ...)} with {.code ordered = FALSE}, no {.code contrasts} attribute, default {.code options(\"contrasts\")}), or use {.code engine = \"tmb\"}."
+        ))
+      }
+    }
     cols <- tryCatch(
-      {
-        mf <- stats::model.frame(f, data = data)
-        colnames(stats::model.matrix(stats::terms(mf), mf))
-      },
+      colnames(stats::model.matrix(stats::terms(mf), mf)),
       error = function(e) NULL
     )
     if (!is.null(cols)) {
@@ -3648,7 +3709,7 @@ new_drmTMB_julia <- function(
     residuals = drm_julia_plain(result$residuals),
     sigma = drm_julia_plain(result$sigma),
     corpairs = drm_julia_plain(result$corpairs),
-    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L),
+    opt = drm_julia_opt_slot(result),
     # #1108 / DRM.jl #632: the bridge attaches "gradient" (index-aligned with
     # "gradient_names") ONLY for routes whose fit carries `fit.nllgrad`
     # (verified 2026-09-05 against DRM.jl 430ef64c: the bivariate structured
@@ -4079,6 +4140,43 @@ drm_julia_vcov <- function(x, coef_names) {
   }
   dimnames(out) <- list(coef_names, coef_names)
   out
+}
+
+# Build the `opt` slot for a Julia-engine fit from what the DRM.jl bridge
+# actually reports. It used to be `list(convergence = <0/1>)` -- a bare integer
+# with no message and no iteration count, so `summary()` and any user asking
+# "why is convergence 1?" had nothing to read (DRM.jl #646, drmTMB A8c).
+#
+# DRM.jl sends a `converged` Bool (its `is_converged()`: the raw optimiser flag
+# AND a non-degenerate optimum) and an `iterations` Int whose -1 means "this
+# route does not record it" -- NOT zero. There is no Optim.jl message string on
+# the wire, so `message` is composed here from the two facts that did cross, and
+# says so; it is never presented as a verbatim optimiser message.
+drm_julia_opt_slot <- function(result) {
+  converged <- isTRUE(result$converged)
+  iterations <- suppressWarnings(as.integer(result$iterations %||% NA_integer_))
+  if (length(iterations) != 1L || is.na(iterations) || iterations < 0L) {
+    iterations <- NA_integer_
+  }
+  message <- if (converged) {
+    "DRM.jl reported a converged, non-degenerate optimum."
+  } else {
+    paste(
+      "DRM.jl reported no convergence, or an optimum it judged degenerate.",
+      "Check the fitted scale parameters and the log-likelihood before using",
+      "this fit."
+    )
+  }
+  message <- if (is.na(iterations)) {
+    paste(message, "Optimiser iterations were not recorded by this route.")
+  } else {
+    paste0(message, " Optimiser iterations: ", iterations, ".")
+  }
+  list(
+    convergence = if (converged) 0L else 1L,
+    iterations = iterations,
+    message = message
+  )
 }
 
 drm_julia_plain <- function(x) {
@@ -5447,6 +5545,14 @@ drm_julia_predict_entry <- function(object, dpar) {
 # is built, so the returned columns exactly match
 # `object$coefficients[[dpar]]`. Random effects are held at zero -- a newdata
 # row need not belong to any fitted group.
+#
+# `cumulative_logit`'s `mu` is the one dpar whose *fitted* coefficient block
+# never carries "(Intercept)" (the cutpoints absorb it -- design 258 section
+# 8.9 / `R/julia-family-cumulative_logit.R`), while its retained R formula is
+# an ordinary intercept formula. `stats::model.matrix()` always restores that
+# column, so it is dropped here the same way the native engine's own
+# `ordinal_mu_model_matrix()` (R/drmTMB.R) drops it -- scoped to this one
+# family and dpar so every other family's design is untouched.
 drm_julia_predict_design <- function(object, entry, newdata) {
   rhs <- drm_strip_structured_terms(entry$rhs)
   train <- object$data
@@ -5469,7 +5575,14 @@ drm_julia_predict_design <- function(object, entry, newdata) {
     na.action = stats::na.pass,
     xlev = xlev
   )
-  stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+  X <- stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+  if (
+    identical(object$model$model_type, "cumulative_logit") &&
+      identical(entry$dpar, "mu")
+  ) {
+    X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+  }
+  X
 }
 
 # Drop structured markers, ordinary random-effect bars, and model-level known
@@ -7005,7 +7118,7 @@ new_drmTMB_julia_xfam <- function(
     bic = bic,
     df = df,
     nobs = length(axes$mu1$y),
-    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L),
+    opt = drm_julia_opt_slot(result),
     uncertainty = list(
       status = "unavailable",
       se = FALSE,
