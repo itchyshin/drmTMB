@@ -535,7 +535,7 @@ pm_capability_entries <- function(ctx) {
         boundary = sprintf("%s; logit link only through the bridge (%s); NOT interval coverage.", rec("se", "cell_id", "se_binomial_trials"), binomial_logit),
         next_action = g3),
 
-    # ---- Random-effect structure (9) ---------------------------------------
+    # ---- Random-effect structure (11) --------------------------------------
     st("Gaussian random intercept (mean)", tsv_ids = "gaussian_random_intercept_mu",
        route_note = sprintf("ordinary `(1 \\| g)` marshalled by the conditional-Gaussian RI route (%s)", ri_spec),
        boundary = "ML and REML both fit with same-target coef/logLik/SE parity (SE_PASS both methods); the REML gap between methods (2.78 logLik units) is a genuine restriction, not a relabelled ML fit;"),
@@ -569,6 +569,12 @@ pm_capability_entries <- function(ctx) {
        route_note = sprintf("coupled mu+sigma phylo route admitted for the registry's locscale_phylo families (%s; %s) and the slope route (%s); NO TSV row names either", locscale_phylo, r("registry", "spec(\"nbinom2\""), slope_phylo),
        boundary = sprintf("native R is scope-limited: implemented for nbinom2 only, rejected for the rest (%s); the bridge admits nbinom2/gamma/beta on this route without a ledger row -- an admitted-without-row class the fixed-effect test does NOT cover.", rs("`Non-Gaussian")),
        next_action = "ledger the coupled and slope phylo routes with receipts, or fence them"),
+    st("Tweedie random intercept (mean)",
+       route_note = "no bridge route: fits natively on both sides, nothing to marshal",
+       boundary = sprintf("native R admits an ordinary `(1 \\| g)` intercept and an independent `(0 + x \\| g)` slope on `mu` for tweedie() (%s), fit and recovered by tests/testthat/test-tweedie-location-scale.R:456-483; DRM.jl fits the same shape independently (%s). Not Julia-ahead: identified as a drmTMB documentation gap by the 2026-09-05 Julia-ahead census (docs/dev-log/evidence/julia-r-parity/2026-09-05-julia-ahead-census.md), not a missing route.", r("drmtmb", "validate_tweedie_mu_random_terms <- function("), jsl("Tweedie random intercept (mean)"))),
+    st("Gaussian phylogenetic random intercept + slope, two SDs (mean)",
+       route_note = "no bridge route: fits natively on both sides, nothing to marshal",
+       boundary = sprintf("`phylo(1 + x | species, tree = tree)` (%s) fits the independent two-SD model for Gaussian mu because `has_phylo_mu_q2_covariance` is only set for `nbinom2`/`poisson` (%s), the same five-free-parameter model DRM.jl's `#620` replicates (%s). Not Julia-ahead: also identified as a drmTMB documentation gap by the 2026-09-05 Julia-ahead census (docs/dev-log/evidence/julia-r-parity/2026-09-05-julia-ahead-census.md); the Poisson/NegBinomial2 CORRELATED two-SD model under the same formula is a separate, already-known asymmetry.", r("drmtmb", "phylo = \"phylo(1 + x | species, tree = tree)\""), r("drmtmb", "has_phylo_mu_q2_covariance = as.integer("), jsl("Gaussian phylogenetic random intercept + slope, two SDs (mean)"))),
 
     # ---- Estimation and inference (11) -------------------------------------
     st("REML (Gaussian fixed-effect location-scale)",
