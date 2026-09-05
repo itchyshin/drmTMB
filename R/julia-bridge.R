@@ -5324,6 +5324,14 @@ drm_julia_predict_entry <- function(object, dpar) {
 # is built, so the returned columns exactly match
 # `object$coefficients[[dpar]]`. Random effects are held at zero -- a newdata
 # row need not belong to any fitted group.
+#
+# `cumulative_logit`'s `mu` is the one dpar whose *fitted* coefficient block
+# never carries "(Intercept)" (the cutpoints absorb it -- design 258 section
+# 8.9 / `R/julia-family-cumulative_logit.R`), while its retained R formula is
+# an ordinary intercept formula. `stats::model.matrix()` always restores that
+# column, so it is dropped here the same way the native engine's own
+# `ordinal_mu_model_matrix()` (R/drmTMB.R) drops it -- scoped to this one
+# family and dpar so every other family's design is untouched.
 drm_julia_predict_design <- function(object, entry, newdata) {
   rhs <- drm_strip_structured_terms(entry$rhs)
   train <- object$data
@@ -5346,7 +5354,14 @@ drm_julia_predict_design <- function(object, entry, newdata) {
     na.action = stats::na.pass,
     xlev = xlev
   )
-  stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+  X <- stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+  if (
+    identical(object$model$model_type, "cumulative_logit") &&
+      identical(entry$dpar, "mu")
+  ) {
+    X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+  }
+  X
 }
 
 # Drop structured markers, ordinary random-effect bars, and model-level known
