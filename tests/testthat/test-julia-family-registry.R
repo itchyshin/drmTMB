@@ -15,16 +15,20 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("poisson", "binomial"))
   expect_identical(drmTMB:::drm_julia_structured_families(),
                    c("gaussian", "poisson", "nbinom2", "gamma"))
+  # A4 (2026-09-05): truncated_nbinom2 is the first row admitted AFTER the
+  # 2026-09-05 pin -- fixed-effect route only, so it appears in this one list.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
-                     "poisson", "nbinom2", "gamma", "beta", "binomial"))
+                     "poisson", "nbinom2", "gamma", "beta", "binomial",
+                     "truncated_nbinom2"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
-  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial"))
+  for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
+              "truncated_nbinom2"))  # A4 row, 2026-09-05
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
-  # refused outright (the A4 targets), same message class as before
-  for (f in c("truncated_nbinom2", "beta_binomial", "zero_one_beta", "tweedie",
+  # refused outright (the remaining A4 targets), same message class as before
+  for (f in c("beta_binomial", "zero_one_beta", "tweedie",
               "cumulative_logit", "skew_normal"))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
