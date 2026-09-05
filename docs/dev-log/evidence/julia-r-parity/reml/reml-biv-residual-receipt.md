@@ -107,6 +107,50 @@ The restricted value is genuinely restricted rather than ML relabelled:
 `|logLik_REML_tmb - logLik_ML_tmb| = 6.8185` and the REML value is the lower of
 the two, as it must be.
 
+## The `rho12` link-guard convention (drmTMB#1190)
+
+The one coefficient with a non-trivial gap is `rho12:(Intercept)`
+(`4.329e-07`, still inside the `1e-4` bar), and that gap is entirely a
+**link-guard convention difference**, not model disagreement. Native TMB
+bounds the correlation away from +/-1 with a different constant than DRM.jl:
+
+* `src/drmTMB.cpp:679` - `vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);`
+* `src/sparse_aug_plsm.jl:23` - `const RHO_GUARD = 0.99999999` (natural
+  `rho = RHO_GUARD * tanh(eta_rho12)`)
+
+Because the guard constant differs, `rho12:(Intercept)` (the link-scale
+`eta_rho12`) is **not the same parameter** on the two engines for a given
+natural correlation. Recomputed here from the receipt's own fitted values:
+
+```
+tmb   eta_rho12 = 0.3949364684136  ->  natural rho = 0.999999   * tanh(eta) = 0.3756077184011080
+julia eta_rho12 = 0.3949360354878  ->  natural rho = 0.99999999 * tanh(eta) = 0.3756077184050597
+natural-rho agreement: |diff| = 3.95e-12
+```
+
+On the natural (bounded) correlation scale the two engines agree to
+`3.95e-12`; the `4.329e-07` on the link scale is the guard-constant mismatch
+alone. Confirmed the other way: re-expressing the `tmb` natural rho under
+DRM.jl's guard, `atanh(0.3756077184011080 / 0.99999999) = 0.3949360354832`,
+reproduces the julia-reported link value (`0.3949360354878`) to `4.6e-12`.
+
+**This convention gap is not a fixed offset -- it grows with `|rho|`.** At
+`rho = 0.999`:
+
+```
+atanh(0.999 / 0.999999)   = 3.8007011672918836
+atanh(0.999 / 0.99999999) = 3.8002061647739795
+gap                       = 4.950025e-04
+```
+
+That is `4.95e-04` on the link (coefficient) scale -- large enough to
+**break the `1e-4` same-target coefficient bar even with both engines exactly
+correct**, purely because they parameterise `rho12` on slightly different
+bounded scales. See drmTMB#1190 for the cross-engine link-guard-constant
+discussion; this receipt is the first parity measurement to actually hit it.
+Neither engine is wrong: `0.999999` and `0.99999999` are both independently
+chosen numerical safety margins, and this leaf does not reconcile them.
+
 ## Estimator honesty (read off the objects)
 
 ```
@@ -213,3 +257,11 @@ REML_PARITY_TESTS failed=0 skipped=0 passed=19
   permanent DRM.jl refusal.
 * Other bivariate families (LogNormal, Student) still refuse REML on the
   residual-only route; this leaf touched only `biv_gaussian`.
+* **The `rho12` link-guard constant differs between engines** (TMB
+  `0.999999`, DRM.jl `0.99999999`; drmTMB#1190) -- see "The `rho12` link-guard
+  convention" above. `rho12:(Intercept)` is therefore not exactly the same
+  parameter across engines; the coefficient bar passes here only because
+  `|rho|` is modest on this fixture (natural rho ~= 0.376). At `rho = 0.999`
+  the convention alone produces a `4.95e-04` link-scale gap, which would fail
+  the `1e-4` coefficient bar with both engines correct. This receipt does not
+  reconcile the two guard constants.

@@ -13,7 +13,15 @@
   (difference `0.0`), 7/7 coefficient names identical with max scaled difference
   `4.33e-07`, Wald SE max relative difference `6.54e-07`; the Julia fit's
   `estimator` and DRM.jl's `estim_method` both read `"REML"`. The ML route is
-  unchanged (`-90.202703298791` on both engines). **This shape only**: the gate
+  unchanged (`-90.202703298791` on both engines). **The `rho12` max coefficient
+  gap (`4.33e-07`) is entirely a link-guard convention difference, not model
+  disagreement**: native TMB bounds `rho12` via `0.999999 * tanh(eta)`
+  (`src/drmTMB.cpp`) while DRM.jl uses `0.99999999 * tanh(eta)`
+  (`src/sparse_aug_plsm.jl`), so `rho12:(Intercept)` is not the same parameter
+  on the two engines; on the natural (bounded) rho scale the two engines agree
+  to `3.95e-12`. The gap grows with `|rho|` and reaches `4.95e-04` at
+  `rho = 0.999`, which would break the `1e-4` coefficient bar with both engines
+  exactly correct (drmTMB#1190). **This shape only**: the gate
   requires all five bivariate dpars, no structured marker, no `meta_V()`, no
   random bar, and intercept-only `sigma1`, `sigma2` and `rho12`. A
   covariate-carrying `sigma`/`rho12` design keeps refusing even though DRM.jl's
