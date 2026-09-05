@@ -27,7 +27,12 @@ drm_julia_fe_family_capability_map <- function() {
     # now added (fe_truncated_nbinom2, fe_zero_one_beta, fe_tweedie).
     truncated_nbinom2 = "fe_truncated_nbinom2",
     zero_one_beta = "fe_zero_one_beta",
-    tweedie = "fe_tweedie"
+    tweedie = "fe_tweedie",
+    # Re-merge (2026-09-05): #1172 and #1174 landed on main after this leaf
+    # was built, adding both the registry row and the comparison row for
+    # each family in the same PR -- no gap to name.
+    beta_binomial = "fe_beta_binomial",
+    cumulative_logit = "fe_cumulative_logit"
   )
 }
 
