@@ -45,7 +45,10 @@ drm_test_local_julia_home <- function(.local_envir = parent.frame()) {
 
 # Issue #1081 option 1: a green run states its own boundary. Every path
 # through drm_skip_live_julia() records itself here, and a teardown file
-# prints the tally so silence about the untested bridge is no longer silent.
+# prints the tally so silence about the unexercised live engine is no longer
+# silent. The contract runs both ways (tests/testthat/test-julia-bridge-summary.R):
+# zero live tests => the line says the LIVE ENGINE was not exercised;
+# any live test => it says the bridge was exercised and never claims otherwise.
 drm_julia_bridge_summary_env <- new.env(parent = emptyenv())
 drm_julia_bridge_summary_env$ran <- 0L
 drm_julia_bridge_summary_env$skipped <- 0L
@@ -85,9 +88,17 @@ drm_julia_bridge_summary_line <- function() {
       )
     }
   } else {
+    # Zero live tests: the LIVE ENGINE was not exercised. This line used to say
+    # "bridge glue is UNTESTED", which over-claimed: the mock-driven marshalling
+    # tests (local_mocked_bindings() around drm_julia_call_*) run in this very
+    # configuration. This tally only sees drm_skip_live_julia(), so it reports
+    # the ENGINE boundary and nothing more; CI counts the mock-driven tests in
+    # the step "Julia bridge glue executes (mock-driven, no Julia)"
+    # (.github/workflows/R-CMD-check.yaml, issue #1081), whose measured tally
+    # lives in that step's comment.
     sprintf(
-      "Julia bridge: %d live test%s skipped; bridge glue is UNTESTED in this configuration.",
-      skipped, if (skipped == 1L) "" else "s"
+      "Julia bridge: 0 live tests ran, %d skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).",
+      skipped
     )
   }
 }

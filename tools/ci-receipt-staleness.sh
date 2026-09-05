@@ -80,7 +80,7 @@ status=0
 
 # --- 1. lss-tip-identity: R/ hashes + runner hash against this checkout -----
 python3 - "$RUNNER" "${RECEIPTS[@]}" <<'PY' || status=1
-import hashlib, json, os, sys
+import glob, hashlib, json, os, sys
 
 runner, receipts = sys.argv[1], sys.argv[2:]
 drm_jl = os.environ.get("DRM_JL_PATH", "")
@@ -125,19 +125,26 @@ for receipt in receipts:
                 jl_bad += 1
             else:
                 jl_ok += 1
-    if sha256(runner) != r["runner_sha256"]:
+    # A file added under R/ since the receipt was written is in no manifest
+    # entry, so the loop above cannot see it; the runner globs R/*.R, so an
+    # unrecorded file means the receipt predates it.
+    unrecorded = [p for p in sorted(glob.glob("R/*.R")) if p not in before]
+    for path in unrecorded:
+        print(f"STALE  {receipt}: R/ file not recorded in receipt (added since): {path}")
+    runner_ok = sha256(runner) == r["runner_sha256"]
+    if not runner_ok:
         print(f"STALE  {receipt}: current runner hash differs from receipt: {runner}")
-        r_bad += 1
-    else:
-        r_ok += 1
+    r_bad += len(unrecorded) + (0 if runner_ok else 1)
     stale += r_bad + jl_bad
     jl_note = (
         f"{jl_ok} of {jl_ok + jl_bad} DRM.jl-side entries match DRM_JL_PATH={drm_jl}" if drm_jl
         else f"{jl_unverified} DRM.jl-side entries NOT verified (DRM_JL_PATH unset)"
     )
     verdict = "STALE " if (r_bad + jl_bad) else "FRESH "
-    print(f"{verdict} {receipt}: {r_ok} of {r_ok + r_bad} R/ files + runner match this checkout; {jl_note}")
-
+    print(
+        f"{verdict} {receipt}: {r_ok} of {r_ok + r_bad - len(unrecorded) - (0 if runner_ok else 1)} recorded R/ files match, "
+        f"{len(unrecorded)} unrecorded R/ file(s), runner {'matches' if runner_ok else 'DIFFERS'}; {jl_note}"
+    )
 sys.exit(1 if stale else 0)
 PY
 
