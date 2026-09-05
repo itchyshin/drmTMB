@@ -147,6 +147,14 @@ jobs:
         run: |
           Rscript --no-init-file tools/check-evidence-citations.R
 
+      # The reviewer-specific static checks need a source checkout: R CMD
+      # check executes examples but does not retain README.md or source Rd/R
+      # files in the installed test layout.
+      - name: CRAN resubmission source assertions
+        if: runner.os == 'Linux'
+        run: |
+          Rscript --no-init-file tools/check-cran-resubmission-source.R
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true

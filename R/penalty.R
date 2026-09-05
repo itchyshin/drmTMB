@@ -172,7 +172,6 @@ drm_apply_phylo_penalty_spec <- function(spec, penalty) {
 #' @export
 #'
 #' @examples
-#' \donttest{
 #' if (requireNamespace("ape", quietly = TRUE)) {
 #'   set.seed(20260601)
 #'   n_tip <- 10
@@ -189,8 +188,6 @@ drm_apply_phylo_penalty_spec <- function(spec, penalty) {
 #'     species = species
 #'   )
 #'
-#'   # A coupled location-scale phylo model has two phylogenetic SDs, so the
-#'   # cor_sd sweep is informative (see drm_phylo_penalty()).
 #'   out <- drm_phylo_penalty_sweep(
 #'     bf(
 #'       y ~ x + phylo(1 | species, tree = tree),
@@ -201,7 +198,6 @@ drm_apply_phylo_penalty_spec <- function(spec, penalty) {
 #'     cor_sd = c(0.5, 1)
 #'   )
 #'   out$summary
-#' }
 #' }
 drm_phylo_penalty_sweep <- function(
   formula,

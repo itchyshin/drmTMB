@@ -1,9 +1,10 @@
 # drmTMB 0.7.0
 
-First CRAN-targeted release candidate; not yet submitted to or accepted by
-CRAN. drmTMB fits distributional regression models -- location, scale, shape,
-zero inflation, and residual correlation -- for one or two responses, using
-Template Model Builder.
+First CRAN-targeted release candidate. It was first submitted to CRAN on 24
+August 2026; this resubmission candidate follows CRAN's example feedback and is
+not yet accepted or available on CRAN. drmTMB fits distributional regression
+models -- location, scale, shape, zero inflation, and residual correlation --
+for one or two responses, using Template Model Builder.
 
 ## Lognormal ordinary correlated slope
 

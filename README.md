@@ -63,11 +63,12 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Release status
 
-`drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
-documentation was built, it had not yet been submitted to or accepted by
-CRAN. The package remains intentionally bounded: use it for the implemented
-one-response and two-response workflows listed below, and treat unsupported
-model classes as future work rather than hidden features.
+`drmTMB` 0.7.0 is the first CRAN-targeted release. It was first submitted to
+CRAN on 24 August 2026; this resubmission candidate responds to CRAN's example
+feedback and is not yet accepted or available on CRAN. The package remains
+intentionally bounded: use it for the implemented one-response and two-response
+workflows listed below, and treat unsupported model classes as future work rather
+than hidden features.
 
 The first CRAN release is targeted at **0.7.0**, not 1.0 — an honest reflection
 that much of the family and inference surface is still scaffolded or

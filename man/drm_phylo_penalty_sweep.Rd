@@ -40,7 +40,6 @@ informative for coupled location-scale or bivariate phylogenetic models that
 actually estimate a phylogenetic correlation.
 }
 \examples{
-\donttest{
 if (requireNamespace("ape", quietly = TRUE)) {
   set.seed(20260601)
   n_tip <- 10
@@ -57,8 +56,6 @@ if (requireNamespace("ape", quietly = TRUE)) {
     species = species
   )
 
-  # A coupled location-scale phylo model has two phylogenetic SDs, so the
-  # cor_sd sweep is informative (see drm_phylo_penalty()).
   out <- drm_phylo_penalty_sweep(
     bf(
       y ~ x + phylo(1 | species, tree = tree),
@@ -69,6 +66,5 @@ if (requireNamespace("ape", quietly = TRUE)) {
     cor_sd = c(0.5, 1)
   )
   out$summary
-}
 }
 }
