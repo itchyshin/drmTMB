@@ -64,7 +64,10 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "structured_precision_slot",
     "xfam_missing_route",
     "xfam_rho12_formula",
-    "xfam_dispersionless_sigma"
+    "xfam_dispersionless_sigma",
+    # drmTMB#1146 (DRM.jl#620/#621): non-intercept lhs on a structured marker
+    # (phylo/relmat/animal/spatial) refused pre-Julia, defense-in-depth.
+    "structured_marker_slope"
   )
 
   expect_s3_class(gates, "data.frame")

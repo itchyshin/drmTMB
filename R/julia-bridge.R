@@ -63,13 +63,15 @@ drm_julia_intentional_gates <- function() {
       "structured_precision_slot",
       "xfam_missing_route",
       "xfam_rho12_formula",
-      "xfam_dispersionless_sigma"
+      "xfam_dispersionless_sigma",
+      "structured_marker_slope"
     ),
     route = c(
       rep("base", 6),
       rep("bivariate_phylo", 2),
       rep("structured", 3),
-      rep("cross_family", 3)
+      rep("cross_family", 3),
+      "structured"
     ),
     guard = c(
       "weights",
@@ -85,7 +87,8 @@ drm_julia_intentional_gates <- function() {
       "structured matrix slot",
       "cross-family missing",
       "cross-family rho12",
-      "cross-family dispersion"
+      "cross-family dispersion",
+      "structured marker non-intercept slope"
     ),
     family_type = c(
       "gaussian",
@@ -101,7 +104,8 @@ drm_julia_intentional_gates <- function() {
       "gaussian",
       "gaussian+poisson",
       "gaussian+poisson",
-      "gaussian+poisson"
+      "gaussian+poisson",
+      "gamma"
     ),
     syntax = c(
       "weights = ...",
@@ -117,7 +121,8 @@ drm_julia_intentional_gates <- function() {
       "relmat(..., Q = Q)",
       "cross-family response missingness",
       "cross-family rho12 formula",
-      "cross-family sigma formula on dispersionless axis"
+      "cross-family sigma formula on dispersionless axis",
+      "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)"
     ),
     r_bridge_status = "intentional_error",
     drmjl_status = c(
@@ -134,7 +139,8 @@ drm_julia_intentional_gates <- function() {
       "covariance matrix route only",
       "cross-family route requires complete axes",
       "latent rho route only",
-      "dispersionless axis"
+      "dispersionless axis",
+      "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)"
     ),
     message_pattern = c(
       "weights",
@@ -150,12 +156,14 @@ drm_julia_intentional_gates <- function() {
       "only with a covariance matrix supplied as .*K",
       "missing.*routes",
       "rho12.*not wired",
-      "cannot fit .*sigma2.*dispersion"
+      "cannot fit .*sigma2.*dispersion",
+      "cannot fit a random slope"
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 11),
-      rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3)
+      rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3),
+      "https://github.com/itchyshin/drmTMB/issues/1146"
     ),
     action = "error",
     evidence = c(
@@ -172,7 +180,8 @@ drm_julia_intentional_gates <- function() {
       "DRM.jl bridge consumes covariance/relatedness matrices, not precision slots.",
       "Cross-family bridge currently drops missing rows and requires complete axes.",
       "Cross-family dependence is latent rho from the engine, not an R rho12 formula.",
-      "Poisson and Binomial cross-family axes have no dispersion sub-model."
+      "Poisson and Binomial cross-family axes have no dispersion sub-model.",
+      "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap."
     ),
     issue = "drmTMB#544",
     stringsAsFactors = FALSE
@@ -457,6 +466,7 @@ drmTMB_julia_bridge <- function(
   call
 ) {
   REML <- drm_control_flag(REML, "REML")
+  drm_julia_refuse_marker_slope_unsupported(formula)
   if (drm_julia_joint_requested(formula, impute, missing)) {
     return(drmTMB_julia_joint_bridge(
       formula = formula, family = family, data = data, env = env,
@@ -2081,6 +2091,83 @@ drm_julia_refuse_reml_unsupported <- function(REML, cell) {
     x = "Refusing rather than fitting by maximum likelihood instead: ML and REML differ precisely on the variance components REML exists to correct, so a silent downgrade would move heritability, repeatability and ICC without saying so.",
     i = "The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for maximum likelihood explicitly with {.code REML = FALSE}, or simplify to a documented Gaussian REML cell.",
     i = "Native {.code engine = \"tmb\"} fits Gaussian cells by REML, and has a separate diagnostic-only binomial REML route for an ordinary unlabelled {.code mu} random intercept or independent slope. It does not offer a general REML fit for every cell this bridge refuses."
+  ))
+}
+
+# Capability gate for drmTMB#1146 (DRM.jl#620/#621): refuse a structured
+# marker (phylo/relmat/animal/spatial) written with a NON-INTERCEPT left side
+# of the bar -- `phylo(1 + x | g)`, `phylo(0 + x | g)`, and the same shapes on
+# relmat/animal/spatial -- BEFORE any Julia interaction.
+#
+# WHY THIS EXISTS ALONGSIDE THE MORE SPECIFIC CHECKS BELOW. relmat/animal/
+# spatial slopes are already refused unconditionally inside
+# `drm_julia_structured_payload()`, and a Gaussian phylo slope is already
+# refused inside the cluster-3 admission check further down (Gaussian is not
+# in `drm_julia_slope_phylo_families()`). The one gap those checks leave open:
+# families DRM.jl's structured-slope route WAS meant to admit (Poisson, NB2,
+# Gamma, Beta phylo -- `drm_julia_slope_phylo_families()`) pass those checks
+# and only get refused after Julia boots, by DRM.jl's own `_check_phylo_re_lhs`
+# (DRM.jl#621). Verified live at the pin (430ef64cc, 2026-09-05):
+# `bf(y ~ phylo(1 + x | species, tree = tree))`, `family = Gamma(link =
+# "log")`, `engine = "julia"` reaches the JuliaCall subprocess and DRM.jl
+# throws `ArgumentError: drm: \`phylo(1 + x | species)\` is not implemented on
+# the univariate routes -- only \`phylo(1 | species)\` (intercept) is;
+# drmTMB fits a two-SD phylogenetic random slope on Gaussian only, tracked as
+# a follow-up.` -- correct, but paid for by booting Julia every time, and not
+# guaranteed to survive an unrelated DRM.jl refactor. This guard makes the
+# same refusal a pure-R, pre-Julia check, so it runs (and is tested) with no
+# Julia install.
+#
+# CAPABILITY-GATED, not a permanent ban. `drm_julia_marker_slope_pin_supports()`
+# is the single switch: FALSE today because the pin cannot fit ANY of these
+# constructs (leaf A9c is implementing DRM.jl's Gaussian two-SD phylogenetic
+# random-slope model right now, DRM.jl#620's S8 follow-up). When a future pin
+# lands a family/marker that fits, flip that function (or narrow its
+# condition to the families it now supports) -- a one-row registry change,
+# not a rewrite of this guard.
+drm_julia_marker_slope_pin_supports <- function() {
+  FALSE
+}
+
+# Structured-marker types whose slope form this guard polices. Excludes
+# "phylo_interaction" -- its parser already forces an intercept-only pair
+# effect (`parse_phylo_interaction_bar_term()`), so a non-intercept lhs can
+# never reach here for that marker.
+drm_julia_marker_slope_guarded_types <- function() {
+  c("phylo", "relmat", "animal", "spatial")
+}
+
+drm_julia_collect_marker_slope_terms <- function(formula) {
+  marker_types <- drm_julia_marker_slope_guarded_types()
+  unlist(
+    lapply(formula$entries, function(entry) {
+      Filter(
+        function(term) {
+          term$type %in% marker_types &&
+            !identical(term$coef_names, "(Intercept)")
+        },
+        entry$structured
+      )
+    }),
+    recursive = FALSE
+  )
+}
+
+drm_julia_refuse_marker_slope_unsupported <- function(formula) {
+  if (isTRUE(drm_julia_marker_slope_pin_supports())) {
+    return(invisible(FALSE))
+  }
+  terms <- drm_julia_collect_marker_slope_terms(formula)
+  if (length(terms) == 0L) {
+    return(invisible(FALSE))
+  }
+  term <- terms[[1L]]
+  slope_vars <- term$variables[!is.na(term$variables)]
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cannot fit a random slope inside a {.fn {term$type}} marker.",
+    x = "{.code {term$label}} asks for slope{?s} {.val {slope_vars}} on the {.field {term$dpar}} {.fn {term$type}} covariance structure, and the pinned DRM.jl engine refuses this construct rather than fitting it (DRM.jl#620/#621).",
+    i = "Use native {.code engine = \"tmb\"} for structured random slopes.",
+    i = "Only an intercept-only marker routes through {.code engine = \"julia\"} today: {.code {term$type}(1 | {term$group}, ...)}."
   ))
 }
 

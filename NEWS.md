@@ -63,6 +63,24 @@
   design-258 label echo respectively), never silently dropped; use
   `engine = "tmb"` for those. Not a phylogenetic, structured, or interval
   coverage claim.
+## `engine = "julia"`: a structured marker with a non-intercept left side of the bar is refused before Julia boots
+
+* `phylo(1 + x | g)`, `phylo(0 + x | g)`, and the same shapes on `relmat()`,
+  `animal()`, and `spatial()` are now refused by an R-side capability gate
+  the moment `drmTMB(..., engine = "julia")` is called, rather than reaching
+  the JuliaCall subprocess and being refused there. At the pinned DRM.jl
+  (`430ef64cc`, carrying DRM.jl #621's `_check_phylo_re_lhs`), every such
+  construct is already refused live — verified for a Gamma
+  `phylo(1 + x | species)` slope, which DRM.jl throws as `phylo(1 + x |
+  species) is not implemented on the univariate routes -- only phylo(1 |
+  species) (intercept) is` after booting Julia. This gate moves the same
+  refusal in front of that boot (defense-in-depth, drmTMB#1146), so it holds
+  even if a future DRM.jl refactor narrows one of the more specific
+  admission checks that also catch some of these shapes today. The gate is
+  capability-gated, not a permanent ban: `drm_julia_marker_slope_pin_supports()`
+  is the single switch to flip when a future pin fits one of these
+  constructs. `engine = "tmb"` is unaffected and keeps fitting, for example,
+  the two-SD Gaussian phylogenetic random slope.
 
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
