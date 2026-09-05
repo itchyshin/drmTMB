@@ -29,8 +29,8 @@ drmTMB_drm_bridge_structured (generic function with 1 method)
   
 drmTMB_mixed_family (generic function with 1 method)
   
-== base_gaussian_location_scale, REML=TRUE (bridge) (31.4s) ==
- outcome=FITS estim_method=NA ml_loglik=NA reml_loglik=NA
+== base_gaussian_location_scale, REML=TRUE (bridge) (35.7s) ==
+ outcome=FITS estim_method=REML estimator=REML effective_REML=TRUE
  message=
 
 $label
@@ -40,19 +40,19 @@ $outcome
 [1] "FITS"
 
 $estim_method
-[1] NA
+[1] "REML"
 
-$ml_loglik
-[1] NA
+$estimator
+[1] "REML"
 
-$reml_loglik
-[1] NA
+$effective_REML
+[1] TRUE
 
 $message
 [1] NA
 
 == biv_gaussian_residual, REML=TRUE (bridge) (0.2s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=`engine = "julia"` cannot fit bivariate Gaussian models by `REML = | TRUE`. | ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML |   differ precisely on the variance components REML exists to correct, so a |   silent downgrade would move heritability, repeatability and ICC without |   saying so. | ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for |   maximum likelihood explicitly with `REML = FALSE`, or simplify to a |   documented Gaussian REML cell. | ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate |   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random |   intercept or independent slope. It does not offer a general REML fit for |   every cell this bridge refuses.
 
 $label
@@ -64,17 +64,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "`engine = \"julia\"` cannot fit bivariate Gaussian models by `REML =\nTRUE`.\n✖ Refusing rather than fitting by maximum likelihood instead: ML and REML\n  differ precisely on the variance components REML exists to correct, so a\n  silent downgrade would move heritability, repeatability and ICC without\n  saying so.\nℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for\n  maximum likelihood explicitly with `REML = FALSE`, or simplify to a\n  documented Gaussian REML cell.\nℹ Native `engine = \"tmb\"` fits Gaussian cells by REML, and has a separate\n  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random\n  intercept or independent slope. It does not offer a general REML fit for\n  every cell this bridge refuses."
 
 == gaussian_phylo_mean (mean-only phylo, sigma~1), REML=TRUE (bridge) (0.0s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=`engine = "julia"` cannot fit mean-only phylogenetic Gaussian models by | `REML = TRUE`. | ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML |   differ precisely on the variance components REML exists to correct, so a |   silent downgrade would move heritability, repeatability and ICC without |   saying so. | ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for |   maximum likelihood explicitly with `REML = FALSE`, or simplify to a |   documented Gaussian REML cell. | ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate |   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random |   intercept or independent slope. It does not offer a general REML fit for |   every cell this bridge refuses.
 
 $label
@@ -86,17 +86,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "`engine = \"julia\"` cannot fit mean-only phylogenetic Gaussian models by\n`REML = TRUE`.\n✖ Refusing rather than fitting by maximum likelihood instead: ML and REML\n  differ precisely on the variance components REML exists to correct, so a\n  silent downgrade would move heritability, repeatability and ICC without\n  saying so.\nℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for\n  maximum likelihood explicitly with `REML = FALSE`, or simplify to a\n  documented Gaussian REML cell.\nℹ Native `engine = \"tmb\"` fits Gaussian cells by REML, and has a separate\n  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random\n  intercept or independent slope. It does not offer a general REML fit for\n  every cell this bridge refuses."
 
 == gaussian_response_mask (phylo mean, response='include'), REML=TRUE (bridge) (0.1s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=`engine = "julia"` cannot fit mean-only phylogenetic Gaussian models by | `REML = TRUE`. | ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML |   differ precisely on the variance components REML exists to correct, so a |   silent downgrade would move heritability, repeatability and ICC without |   saying so. | ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for |   maximum likelihood explicitly with `REML = FALSE`, or simplify to a |   documented Gaussian REML cell. | ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate |   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random |   intercept or independent slope. It does not offer a general REML fit for |   every cell this bridge refuses.
 
 $label
@@ -108,17 +108,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "`engine = \"julia\"` cannot fit mean-only phylogenetic Gaussian models by\n`REML = TRUE`.\n✖ Refusing rather than fitting by maximum likelihood instead: ML and REML\n  differ precisely on the variance components REML exists to correct, so a\n  silent downgrade would move heritability, repeatability and ICC without\n  saying so.\nℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for\n  maximum likelihood explicitly with `REML = FALSE`, or simplify to a\n  documented Gaussian REML cell.\nℹ Native `engine = \"tmb\"` fits Gaussian cells by REML, and has a separate\n  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random\n  intercept or independent slope. It does not offer a general REML fit for\n  every cell this bridge refuses."
 
-== phylo_count_large_p: poisson + phylo(1|species), REML=TRUE (bridge, re-verify at 430ef64cc) (6.3s) ==
- outcome=FITS estim_method=NA ml_loglik=NA reml_loglik=NA
+== phylo_count_large_p: poisson + phylo(1|species), REML=TRUE (bridge, re-verify at 430ef64cc) (6.8s) ==
+ outcome=FITS estim_method=REML estimator=REML effective_REML=TRUE
  message=
 
 $label
@@ -128,19 +128,19 @@ $outcome
 [1] "FITS"
 
 $estim_method
-[1] NA
+[1] "REML"
 
-$ml_loglik
-[1] NA
+$estimator
+[1] "REML"
 
-$reml_loglik
-[1] NA
+$effective_REML
+[1] TRUE
 
 $message
 [1] NA
 
 == fe_poisson (fixed-effect only, zero RE), REML=TRUE (bridge) (0.7s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=Error happens in Julia. | ArgumentError: drm (Poisson): `method = :REML` is not available with no random effect (fixed-effects-only / `zi` / `hu`). Restricted (Cox–Reid) estimation on non-Gaussian families is currently wired for Poisson scalar `(1 | g)` (#443) and Poisson phylo/relmat/animal Laplace (#450). ML is the default and is available here: omit `method` or pass `method = :ML`. | Stacktrace: |  [1] _reject_reml_route(fam::Poisson, what::String) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/variational.jl:132 |  [2] drm(f::DrmFormula, fam::Poisson; data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, g_tol::Float64, se::Bool, marginal::Symbol, method::Symbol, nAGQ::Int64) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/poisson.jl:195 |  [3] _bridge_fit(bundle::DrmFormula, fam::Poisson, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}; tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, options::Dict{Symbol, Any}) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:545 |  [4] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:59 |  [5] drm_bridge |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined] |  [6] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) |    @ Main ./none:1 |  [7] docall(call1::Ptr{Nothing}) |    @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
 
 $label
@@ -152,17 +152,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "Error happens in Julia.\nArgumentError: drm (Poisson): `method = :REML` is not available with no random effect (fixed-effects-only / `zi` / `hu`). Restricted (Cox–Reid) estimation on non-Gaussian families is currently wired for Poisson scalar `(1 | g)` (#443) and Poisson phylo/relmat/animal Laplace (#450). ML is the default and is available here: omit `method` or pass `method = :ML`.\nStacktrace:\n [1] _reject_reml_route(fam::Poisson, what::String)\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/variational.jl:132\n [2] drm(f::DrmFormula, fam::Poisson; data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, g_tol::Float64, se::Bool, marginal::Symbol, method::Symbol, nAGQ::Int64)\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/poisson.jl:195\n [3] _bridge_fit(bundle::DrmFormula, fam::Poisson, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}; tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, options::Dict{Symbol, Any})\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:545\n [4] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:59\n [5] drm_bridge\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined]\n [6] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})\n   @ Main ./none:1\n [7] docall(call1::Ptr{Nothing})\n   @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0"
 
 == fe_poisson (fixed-effect only, zero RE), REML=FALSE (bridge, for ml_loglik reference) (0.6s) ==
- outcome=FITS estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=FITS estim_method=ML estimator=ML effective_REML=FALSE
  message=
 
 $label
@@ -172,19 +172,19 @@ $outcome
 [1] "FITS"
 
 $estim_method
-[1] NA
+[1] "ML"
 
-$ml_loglik
-[1] NA
+$estimator
+[1] "ML"
 
-$reml_loglik
-[1] NA
+$effective_REML
+[1] FALSE
 
 $message
 [1] NA
 
 == zi_poisson (fixed-effect only, zero RE), REML=TRUE (bridge) (0.0s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=Error happens in Julia. | ArgumentError: drm (Poisson): `method = :REML` is not available with no random effect (fixed-effects-only / `zi` / `hu`). Restricted (Cox–Reid) estimation on non-Gaussian families is currently wired for Poisson scalar `(1 | g)` (#443) and Poisson phylo/relmat/animal Laplace (#450). ML is the default and is available here: omit `method` or pass `method = :ML`. | Stacktrace: |  [1] _reject_reml_route(fam::Poisson, what::String) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/variational.jl:132 |  [2] drm(f::DrmFormula, fam::Poisson; data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, g_tol::Float64, se::Bool, marginal::Symbol, method::Symbol, nAGQ::Int64) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/poisson.jl:195 |  [3] _bridge_fit(bundle::DrmFormula, fam::Poisson, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}; tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, options::Dict{Symbol, Any}) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:545 |  [4] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:59 |  [5] drm_bridge |    @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined] |  [6] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any}) |    @ Main ./none:1 |  [7] docall(call1::Ptr{Nothing}) |    @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
 
 $label
@@ -196,17 +196,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "Error happens in Julia.\nArgumentError: drm (Poisson): `method = :REML` is not available with no random effect (fixed-effects-only / `zi` / `hu`). Restricted (Cox–Reid) estimation on non-Gaussian families is currently wired for Poisson scalar `(1 | g)` (#443) and Poisson phylo/relmat/animal Laplace (#450). ML is the default and is available here: omit `method` or pass `method = :ML`.\nStacktrace:\n [1] _reject_reml_route(fam::Poisson, what::String)\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/variational.jl:132\n [2] drm(f::DrmFormula, fam::Poisson; data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, g_tol::Float64, se::Bool, marginal::Symbol, method::Symbol, nAGQ::Int64)\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/poisson.jl:195\n [3] _bridge_fit(bundle::DrmFormula, fam::Poisson, data::@NamedTuple{y::Vector{Int64}, x::Vector{Float64}}; tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, options::Dict{Symbol, Any})\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:545\n [4] drm_bridge(; formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, K::Nothing, A::Nothing, coords::Nothing, newdata::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:59\n [5] drm_bridge\n   @ DRM ~/local-scratch/parity-joint/drmjl-430ef64cc/src/bridge.jl:51 [inlined]\n [6] drmTMB_drm_bridge(formula::OrderedCollections.OrderedDict{Symbol, Any}, family::String, data::OrderedCollections.OrderedDict{Symbol, Any}, tree::Nothing, options::OrderedCollections.OrderedDict{Symbol, Any})\n   @ Main ./none:1\n [7] docall(call1::Ptr{Nothing})\n   @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0"
 
 == general_covariance_structured Gaussian relmat(1|g,K=K), REML=TRUE (bridge) (0.0s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=`engine = "julia"` cannot fit structured-effect models by `REML = TRUE`. | ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML |   differ precisely on the variance components REML exists to correct, so a |   silent downgrade would move heritability, repeatability and ICC without |   saying so. | ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for |   maximum likelihood explicitly with `REML = FALSE`, or simplify to a |   documented Gaussian REML cell. | ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate |   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random |   intercept or independent slope. It does not offer a general REML fit for |   every cell this bridge refuses.
 
 $label
@@ -218,17 +218,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "`engine = \"julia\"` cannot fit structured-effect models by `REML = TRUE`.\n✖ Refusing rather than fitting by maximum likelihood instead: ML and REML\n  differ precisely on the variance components REML exists to correct, so a\n  silent downgrade would move heritability, repeatability and ICC without\n  saying so.\nℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for\n  maximum likelihood explicitly with `REML = FALSE`, or simplify to a\n  documented Gaussian REML cell.\nℹ Native `engine = \"tmb\"` fits Gaussian cells by REML, and has a separate\n  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random\n  intercept or independent slope. It does not offer a general REML fit for\n  every cell this bridge refuses."
 
 == plain_binomial_nonphylo (fixed-effect only cbind trials), REML=TRUE (bridge) (0.0s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=`engine = "julia"` cannot fit non-Gaussian (binomial) models by `REML = | TRUE`. | ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML |   differ precisely on the variance components REML exists to correct, so a |   silent downgrade would move heritability, repeatability and ICC without |   saying so. | ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for |   maximum likelihood explicitly with `REML = FALSE`, or simplify to a |   documented Gaussian REML cell. | ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate |   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random |   intercept or independent slope. It does not offer a general REML fit for |   every cell this bridge refuses.
 
 $label
@@ -240,17 +240,17 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "`engine = \"julia\"` cannot fit non-Gaussian (binomial) models by `REML =\nTRUE`.\n✖ Refusing rather than fitting by maximum likelihood instead: ML and REML\n  differ precisely on the variance components REML exists to correct, so a\n  silent downgrade would move heritability, repeatability and ICC without\n  saying so.\nℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for\n  maximum likelihood explicitly with `REML = FALSE`, or simplify to a\n  documented Gaussian REML cell.\nℹ Native `engine = \"tmb\"` fits Gaussian cells by REML, and has a separate\n  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random\n  intercept or independent slope. It does not offer a general REML fit for\n  every cell this bridge refuses."
 
 == cross_family_latent c(gaussian(),poisson()), REML=TRUE (bridge) (0.0s) ==
- outcome=REFUSES estim_method=NA ml_loglik=NA reml_loglik=NA
+ outcome=REFUSES estim_method=NA estimator=NA effective_REML=NA
  message=`engine = "julia"` cannot fit cross-family models by `REML = TRUE`. | ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML |   differ precisely on the variance components REML exists to correct, so a |   silent downgrade would move heritability, repeatability and ICC without |   saying so. | ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for |   maximum likelihood explicitly with `REML = FALSE`, or simplify to a |   documented Gaussian REML cell. | ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate |   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random |   intercept or independent slope. It does not offer a general REML fit for |   every cell this bridge refuses.
 
 $label
@@ -262,23 +262,23 @@ $outcome
 $estim_method
 [1] NA
 
-$ml_loglik
+$estimator
 [1] NA
 
-$reml_loglik
+$effective_REML
 [1] NA
 
 $message
 [1] "`engine = \"julia\"` cannot fit cross-family models by `REML = TRUE`.\n✖ Refusing rather than fitting by maximum likelihood instead: ML and REML\n  differ precisely on the variance components REML exists to correct, so a\n  silent downgrade would move heritability, repeatability and ICC without\n  saying so.\nℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for\n  maximum likelihood explicitly with `REML = FALSE`, or simplify to a\n  documented Gaussian REML cell.\nℹ Native `engine = \"tmb\"` fits Gaussian cells by REML, and has a separate\n  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random\n  intercept or independent slope. It does not offer a general REML fit for\n  every cell this bridge refuses."
 
-TOTAL WALL TIME: 39.4s
+TOTAL WALL TIME: 44.4s
 ALL BRIDGE PROBES DONE
 Julia exit.
   Activating project at `~/local-scratch/parity-joint/drmjl-430ef64cc`
 ┌ Error: Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions, use `Base.retry_load_extensions()` to retry.
 │   exception =
 │    1-element ExceptionStack:
-│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_fPgvVK".
+│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_tLMFP2".
 │    Stacktrace:
 │      [1] error(s::String)
 │        @ Base ./error.jl:35

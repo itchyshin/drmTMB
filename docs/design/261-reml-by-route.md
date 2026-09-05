@@ -71,7 +71,7 @@ every disagreement below is recorded as a finding, not fixed.
 - **Formula**: `bf(y ~ x, sigma ~ x), gaussian()`
 - **Native TMB**: FITS -- measured this run: logLik=-50.3636628254 (native_reml_probe.R, row 1)
 - **Native DRM.jl**: FITS -- DRM.jl #624 census (14-fit list, item 1: "univariate fixed-effect Gaussian location-scale")
-- **Bridge (`engine = "julia"`)**: FITS -- measured this run: bridge fit succeeded, 31.4s incl. Julia boot (bridge_reml_probe.R, row 1)
+- **Bridge (`engine = "julia"`)**: FITS -- RE-MEASURED this run with the fixed estim_method oracle read (fit$bridge$estim_method, DRM.jl #625): bridge fit succeeded, estim_method=REML (fit$estimator=REML, fit$effective_REML=TRUE -- all three agree), 35.7s incl. Julia boot (bridge_reml_probe.R, row 1)
 - **Agree?**: YES
 
 ### biv_gaussian_residual
@@ -116,7 +116,7 @@ every disagreement below is recorded as a finding, not fixed.
 - **Formula**: `bf(y ~ x + phylo(1|species, tree=tree)), poisson()`
 - **Native TMB**: REFUSES -- measured this run: `REML is implemented for univariate/bivariate Gaussian and binomial models` (native_reml_probe.R, row 9)
 - **Native DRM.jl**: FITS -- DRM.jl test suite test_cox_reid_poisson_phylo.jl (#450, "Cox-Reid REML on Poisson phylo/relmat Laplace"); DRM.jl #624 census (14-fit list): "Poisson phylo(1|species) Laplace"
-- **Bridge (`engine = "julia"`)**: FITS -- RE-VERIFIED this run at pin 430ef64cc (prior citation in R/julia-bridge.R was at pin e0a65f96b): bridge fit succeeded, 6.3s (bridge_reml_probe.R, row 5)
+- **Bridge (`engine = "julia"`)**: FITS -- RE-VERIFIED this run at pin 430ef64cc (prior citation in R/julia-bridge.R was at pin e0a65f96b) with the fixed estim_method oracle read: bridge fit succeeded, estim_method=REML (fit$estimator=REML, fit$effective_REML=TRUE -- all three agree), 6.8s (bridge_reml_probe.R, row 5)
 - **Agree?**: NO -- Not a defect: this is "REML wherever possible" working -- DRM.jl/the bridge offer a genuine REML route (Cox-Reid Laplace) that native TMB's REML implementation (Gaussian/binomial only) does not have. Documents the asymmetric REML surface drmTMB #1142 item 4 asks about.
 
 ### phylo_count_large_p -- nbinom2
@@ -159,7 +159,7 @@ every disagreement below is recorded as a finding, not fixed.
 
 - **Source**: TSV (`inst/extdata/julia-capabilities.tsv`)
 - **Formula**: `bf(y ~ x + relmat(1|g, K=K), sigma ~ 1), gaussian()`
-- **Native TMB**: FITS -- measured this run: logLik=-51.6093435424 (native_reml_probe.R, row 8) -- matches the ordinary-random-intercept logLik exactly because the toy K used (compound-symmetric) is mathematically equivalent to an exchangeable random intercept, confirming the fit is genuine, not a fallback
+- **Native TMB**: FITS -- measured this run: logLik=-51.6093435424 (native_reml_probe.R, row 8) -- agrees with the ordinary-random-intercept logLik to about 12 significant figures, not identically (abs diff ~1.4e-14 at full double precision -- two different TMB templates converging to the same optimum, not one falling back to the other), because the toy K used (compound-symmetric) is mathematically equivalent to an exchangeable random intercept, confirming the fit is genuine, not a fallback
 - **Native DRM.jl**: REFUSES -- DRM.jl #624 comment 2, 16-refuse list: "Gaussian mean-only structured markers (phylo/relmat) with no sd() submodel"
 - **Bridge (`engine = "julia"`)**: REFUSES -- measured this run: `engine="julia" cannot fit structured-effect models by REML=TRUE` (bridge_reml_probe.R, row 7) -- drm_julia_has_structured_term() (relmat/animal/spatial) is checked BEFORE any family dispatch and refuses unconditionally
 - **Agree?**: NO -- Same asymmetry as gaussian_phylo_mean (DRM.jl #624 item (c)-adjacent), for relmat instead of phylo. Not a new issue number; recorded alongside item (c).

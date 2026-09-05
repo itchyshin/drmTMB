@@ -7,22 +7,58 @@ suppressMessages(library(ape))
 
 probe <- function(label, expr) {
   t0 <- Sys.time()
-  res <- tryCatch(
-    {
-      fit <- force(expr)
-      list(label = label, outcome = "FITS",
-           estim_method = fit$estim_method %||% NA_character_,
-           ml_loglik = fit$ml_loglik %||% NA_real_,
-           reml_loglik = fit$reml_loglik %||% NA_real_,
-           message = NA_character_)
-    },
-    error = function(e) list(label = label, outcome = "REFUSES",
-                              estim_method = NA_character_, ml_loglik = NA_real_,
-                              reml_loglik = NA_real_, message = conditionMessage(e))
+  # The fit call itself is the only thing allowed to turn into a REFUSES row
+  # (drmTMB's own gate declining the request). Reading the oracle fields off a
+  # SUCCESSFUL fit is deliberately kept OUTSIDE this tryCatch: a NULL there
+  # means a field was renamed, and that must halt the script, not silently
+  # relabel a FITS cell as if the model had refused.
+  fit_result <- tryCatch(
+    list(ok = TRUE, fit = force(expr)),
+    error = function(e) list(ok = FALSE, message = conditionMessage(e))
   )
   secs <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
-  cat(sprintf("== %s (%.1fs) ==\n outcome=%s estim_method=%s ml_loglik=%s reml_loglik=%s\n message=%s\n\n",
-              res$label, secs, res$outcome, res$estim_method, res$ml_loglik, res$reml_loglik,
+  if (fit_result$ok) {
+    fit <- fit_result$fit
+    # THE ORACLE (DRM.jl #625): `fit$bridge` is the raw list DRM.jl itself
+    # returned, and `estim_method` is the engine's own unconditional report of
+    # which estimator actually ran -- not drmTMB's belief about it. The
+    # R-side belief is `fit$estimator` / `fit$effective_REML` (see
+    # R/julia-bridge.R's "THE ENGINE IS THE AUTHORITY" comment). A drmTMB
+    # Julia fit object has no top-level `fit$estim_method` field; reading
+    # that (as this probe used to) silently returns NULL every time.
+    engine_estim_method <- fit$bridge$estim_method
+    if (is.null(engine_estim_method)) {
+      stop(sprintf(
+        "probe '%s': fit$bridge$estim_method is NULL -- the DRM.jl estim_method oracle field (DRM.jl #625) is missing or has been renamed on this fit object.",
+        label
+      ))
+    }
+    r_estimator <- fit$estimator
+    if (is.null(r_estimator)) {
+      stop(sprintf(
+        "probe '%s': fit$estimator is NULL -- the R-side estimator-belief field has been renamed on this fit object.",
+        label
+      ))
+    }
+    r_effective_REML <- fit$effective_REML
+    if (is.null(r_effective_REML)) {
+      stop(sprintf(
+        "probe '%s': fit$effective_REML is NULL -- the R-side effective_REML-belief field has been renamed on this fit object.",
+        label
+      ))
+    }
+    res <- list(label = label, outcome = "FITS",
+                estim_method = as.character(engine_estim_method)[1L],
+                estimator = as.character(r_estimator)[1L],
+                effective_REML = isTRUE(r_effective_REML),
+                message = NA_character_)
+  } else {
+    res <- list(label = label, outcome = "REFUSES",
+                estim_method = NA_character_, estimator = NA_character_,
+                effective_REML = NA, message = fit_result$message)
+  }
+  cat(sprintf("== %s (%.1fs) ==\n outcome=%s estim_method=%s estimator=%s effective_REML=%s\n message=%s\n\n",
+              label, secs, res$outcome, res$estim_method, res$estimator, res$effective_REML,
               gsub("\n", " | ", res$message %||% "")))
   res
 }
