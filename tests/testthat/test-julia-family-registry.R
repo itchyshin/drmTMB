@@ -20,15 +20,15 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
-                     "truncated_nbinom2", "zero_one_beta", "tweedie"))
+                     "truncated_nbinom2", "zero_one_beta", "tweedie", "beta_binomial"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
-              "truncated_nbinom2", "zero_one_beta", "tweedie"))  # A4 rows, 2026-09-05
+              "truncated_nbinom2", "zero_one_beta", "tweedie", "beta_binomial"))  # A4 rows, 2026-09-05
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
   # refused outright (the remaining A4 targets), same message class as before
-  for (f in c("beta_binomial",
+  for (f in c(
               "cumulative_logit", "skew_normal"))
     expect_error(drmTMB:::drm_julia_family_tag(f), "currently supports Workflow G")
 })
