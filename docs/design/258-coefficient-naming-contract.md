@@ -863,3 +863,69 @@ native TMB engine's `sdpars$sigma` uses for this construct. Verified live: `fj$s
 entry named `"(1 | g)"` (`fj$sdpars$mu` empty), matching a native TMB fit of the same formula exactly.
 Every OTHER bare-`resd` shape (phylo, relmat/animal/spatial) keeps its existing `entry$structured`-matched
 attribution unchanged -- only the previously-unhandled fallback default is touched.
+
+## 8. Family addenda (A4 admissions, one family per PR)
+
+### 8.1 `truncated_nbinom2` (A4, 2026-09-05; measured at DRM.jl pin 430ef64cc, worktree HEAD 67703f541)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("truncated_nbinom2", fe = TRUE)` -- puts the family on the fixed-effect
+(Workflow G) route. Nothing else in `R/` changed: the producer
+(`drm_julia_bridge_payload_coef_labels()`, §7.1) and the defaulter
+(`drm_julia_bridge_default_dpar_labels()`) already handle a two-dpar
+`mu` + `sigma` family generically, and the fail-closed comparison (§7.3) applies
+unchanged.
+
+**dpars and labels.** drmTMB's `truncated_nbinom2()` declares `dpars = c("mu",
+"sigma")` (`R/family.R`); DRM.jl's `TruncatedNegBinomial2` fits exactly the
+blocks `[:mu, :sigma]` (`src/negbinomial.jl`, `_fit_truncated_negbin2`) with the
+SAME `size = 1/sigma^2` parameterisation as `nbinom2`. Payload and echo, measured
+live on the `tests/testthat/test-family-dpq-batchC.R` draw (`bf(y ~ x, sigma ~ 1)`,
+n = 300):
+
+| dpar | R sends (`coef_labels`) | DRM.jl echoes (`coef_names`) |
+|---|---|---|
+| `mu` | `"(Intercept)"`, `"x"` | `mu_(Intercept)`, `mu_x` |
+| `sigma` | `"(Intercept)"` | `sigma_(Intercept)` |
+
+A bare `bf(y ~ x)` (no `sigma` formula) is ALSO fine: the family is not in
+`drm_julia_dispersionless_families()`, so the defaulter labels DRM.jl's
+intercept-only `sigma` block and the echo validates (measured: fit completes,
+`sigma.(Intercept)` reported).
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, same draw,
+tools/parity_fixture.R and tools/parity_se.R comparator code at the pin):**
+`max_abs_coef_diff = 8.81172357303228e-11`, `loglik_tmb = -454.131353120582`,
+`loglik_julia = -454.131353120584`, `loglik_diff = 2.8421709430404e-12`
+(PARITY_PASS at tol 1e-4); SE `max_abs_se_diff = 2.93777928789263e-08`,
+`max_rel_se_diff = 2.71330456989773e-07` over `mu_(Intercept)`, `mu_x`,
+`sigma_(Intercept)` (SE_PASS at rtol 1e-3; the negative-control row with
+`se_julia[1] * 1.10` read NEGATIVE_CONTROL_OK, rel 9.09e-02). The fit's
+`estimator` is `"ML"` and equals DRM.jl's `estim_method` (`"ML"`).
+
+**What the echo catches for this family (fail-closed, measured).** drmTMB's
+native engine fits a HURDLE NB2 when the formula carries `hu ~ ...`; DRM.jl's
+`TruncatedNegBinomial2` reads only `mu` and `sigma` from the formula bundle.
+Without §7 the `hu` part would have crossed and been SILENTLY DROPPED (a
+different model, no message). With it, the R side sends a `hu` label and DRM.jl
+aborts at the echo: `drm_bridge: coef_labels supplies names for unknown dpar
+"hu"; the model has dpars: mu, sigma`. That is the contract doing its job, but
+the message is DRM.jl-attributed and reaches the user only after the engine
+boots -- an R-side pre-refusal ("engine = \"julia\" fits truncated_nbinom2
+without a hurdle; use engine = \"tmb\" for `hu`") would be better and needs a
+hook in `R/julia-bridge.R`, which this leaf does not own. Recorded here as the
+next improvement, not claimed.
+
+**Other refusals, in DRM.jl's own words (post-boot, forwarded through
+JuliaCall):** a `(1 | g)` random intercept -> `TruncatedNegBinomial2() currently
+supports fixed effects only` (native TMB fits it); a response containing zero
+-> `TruncatedNegBinomial2() requires positive integer counts (>= 1) as the
+response` (native TMB refuses the same data with its own message). `REML = TRUE`
+is refused on the R side by the existing non-Gaussian REML rule before Julia
+starts.
+
+**NOT admitted by this row:** phylogenetic, structured (`relmat()`/`animal()`/
+`spatial()`), random-effect, and hurdle routes; interval coverage. The
+capability-comparison TSV row for this route is NOT added here (the
+`drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
+outside this leaf's file set) and is left to the integrator.

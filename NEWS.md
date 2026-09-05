@@ -21,6 +21,21 @@
 * Totoro's full-suite runner, which existed only on that host, is now
   vendored in DRM.jl as `tools/totoro_run_suite.sh` (DRM.jl #638).
 
+## `engine = "julia"` admits `truncated_nbinom2()` (fixed effects)
+
+* `drmTMB(bf(y ~ x, sigma ~ 1), family = truncated_nbinom2(), engine = "julia")`
+  now routes to DRM.jl's `TruncatedNegBinomial2` instead of refusing with the
+  Workflow G message. Both engines fit the same zero-truncated NB2 target with
+  the same `size = 1 / sigma^2` parameterisation. Measured at DRM.jl pin
+  `430ef64cc` on the committed fixture (`tests/testthat/test-family-dpq-batchC.R`
+  draw, n = 300): max |d coef| `8.81e-11`, |d logLik| `2.84e-12`, per-coefficient
+  Wald SE max relative difference `2.71e-07`; the fit's `estimator` (`"ML"`)
+  equals what DRM.jl reports as `estim_method`. **Fixed effects only**: a
+  `(1 | g)` term or a `hu` hurdle formula is refused (by DRM.jl, and by the
+  design-258 label echo respectively), never silently dropped; use
+  `engine = "tmb"` for those. Not a phylogenetic, structured, or interval
+  coverage claim.
+
 ## `engine = "julia"`: the ENGINE now decides which estimator ran, and two Poisson REML cells are admitted
 
 * drmTMB labelled a Julia fit `"REML"` purely from its own support gate. Nothing
