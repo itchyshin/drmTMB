@@ -279,7 +279,24 @@ test_that("Julia capability comparison artifact matches the registry", {
       ),
   ]
   expect_equal(nrow(wave1_promoted), 4L)
-  expect_true(all(wave1_promoted$r_bridge_status == "partial"))
+  # biv_gaussian_residual left the wave-1 cohort on 2026-09-05 (leaf A8b):
+  # partial -> supported, because design/192 defines `partial` on this axis as
+  # "bridge-side inference (G3) still unqualified" and G3 is now qualified for
+  # that route (docs/dev-log/evidence/julia-r-parity/p2-g3/
+  # a8b-biv-qualification-receipt.md; DRM.jl PR #647). The assertion is SPLIT
+  # rather than loosened, so both the promotion and the three rows that did NOT
+  # move still fail loudly if either drifts.
+  expect_true(all(
+    wave1_promoted[
+      wave1_promoted$capability_id != "biv_gaussian_residual",
+    ]$r_bridge_status == "partial"
+  ))
+  expect_equal(
+    wave1_promoted[
+      wave1_promoted$capability_id == "biv_gaussian_residual",
+    ]$r_bridge_status,
+    "supported"
+  )
 
   # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
   # see the plan's CONDITIONS section). Locked so it cannot drift silently.
