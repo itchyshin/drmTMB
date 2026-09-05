@@ -31,6 +31,9 @@ fc_data <- function(n = 150L, seed = 20260905L) {
     stringsAsFactors = FALSE
   )
   d$y <- 0.3 + 0.8 * x + 0.4 * x^2 + eff[g_chr] + stats::rnorm(n, 0, 0.5)
+  # A logical covariate: R codes it as a two-level factor (column `flagTRUE`);
+  # DRM.jl keeps the Bool vector continuous (the same 0/1 column).
+  d$flag <- d$x > 0
   d
 }
 
@@ -50,7 +53,8 @@ fc_constructs <- function() {
     poly_x_2           = list(form = bf(y ~ poly(x, 2), sigma ~ 1), mu = ~ poly(x, 2), sigma = ~1),
     power_xz_2         = list(form = bf(y ~ (x + z)^2, sigma ~ 1), mu = ~ (x + z)^2, sigma = ~1),
     minus_term         = list(form = bf(y ~ x + z - z, sigma ~ 1), mu = ~ x + z - z, sigma = ~1),
-    sigma_factor       = list(form = bf(y ~ x, sigma ~ g_fac), mu = ~x, sigma = ~g_fac)
+    sigma_factor       = list(form = bf(y ~ x, sigma ~ g_fac), mu = ~x, sigma = ~g_fac),
+    logical_covariate  = list(form = bf(y ~ x * flag, sigma ~ 1), mu = ~ x * flag, sigma = ~1)
   )
 }
 
@@ -114,7 +118,6 @@ test_that("producer refuses a non-default options(\"contrasts\") for plain facto
 
 test_that("producer: a logical covariate under default contrasts is treatment-coded and accepted", {
   d <- fc_data()
-  d$flag <- d$x > 0
   expect_identical(
     fc_labels(bf(y ~ x + flag, sigma ~ 1), d)$mu,
     c("(Intercept)", "x", "flagTRUE")
