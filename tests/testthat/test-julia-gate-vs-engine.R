@@ -56,7 +56,6 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "base_control",
     "base_missing_predictor_model",
     "base_missing_response_nongaussian",
-    "base_unsupported_family",
     "biv_invalid_partial_phylo",
     "biv_rho12_phylo",
     "structured_unsupported_family",
@@ -385,16 +384,9 @@ test_that("base Julia bridge gates are intentional and pre-JuliaCall", {
     ),
     "missing.*route"
   )
-  expect_julia_gate(
-    "base_unsupported_family",
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = beta_binomial(),
-      data = dat,
-      engine = "julia"
-    ),
-    "Gaussian one-/two-response|Workflow G fixed-effect"
-  )
+  # base_unsupported_family RETIRED 2026-09-05 (A4): beta_binomial() is now a
+  # registry fe row; its admission receipts live in
+  # tests/testthat/test-julia-family-beta_binomial.R.
 })
 
 test_that("bivariate invalid phylo gates are intentional and pre-JuliaCall", {

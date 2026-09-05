@@ -379,7 +379,16 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   expect_equal(fit$uncertainty$se, FALSE)
 
   targets <- profile_targets(fit)
-  expect_equal(targets$parm, "sd:mu:phylo(1 | species)")
+  # #1156: discovery lists the union the engine accepts -- fixed effects, the
+  # response-scale sigma alias, and the phylogenetic SD -- not the SD alone.
+  expect_equal(
+    targets$parm,
+    c(
+      "fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)",
+      "sigma", "sd:mu:phylo(1 | species)"
+    )
+  )
+  targets <- targets[targets$parm == "sd:mu:phylo(1 | species)", , drop = FALSE]
   expect_equal(targets$tmb_parameter, "resd")
   expect_equal(targets$estimate, 1.7 * sqrt(2), tolerance = 1e-12)
   expect_equal(targets$link_estimate, log(1.7), tolerance = 1e-12)
@@ -490,16 +499,9 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
     ),
     "does not support .*control"
   )
-  # Beta-binomial remains outside the Workflow G FE Julia admission.
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = beta_binomial(),
-      data = dat,
-      engine = "julia"
-    ),
-    "Gaussian one-/two-response|Workflow G fixed-effect"
-  )
+  # beta_binomial() was admitted to the Workflow G FE route 2026-09-05 (A4,
+  # one registry row); the former refusal assertion here moved to
+  # tests/testthat/test-julia-family-beta_binomial.R as an admission receipt.
 })
 
 # Night question 14: DRM.jl refuses these two ordinary-GLMM route limits only

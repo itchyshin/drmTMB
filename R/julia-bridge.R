@@ -55,7 +55,6 @@ drm_julia_intentional_gates <- function() {
       "base_control",
       "base_missing_predictor_model",
       "base_missing_response_nongaussian",
-      "base_unsupported_family",
       "biv_invalid_partial_phylo",
       "biv_rho12_phylo",
       "structured_unsupported_family",
@@ -66,7 +65,7 @@ drm_julia_intentional_gates <- function() {
       "xfam_dispersionless_sigma"
     ),
     route = c(
-      rep("base", 6),
+      rep("base", 5),
       rep("bivariate_phylo", 2),
       rep("structured", 3),
       rep("cross_family", 3)
@@ -77,7 +76,6 @@ drm_julia_intentional_gates <- function() {
       "control",
       "missing predictor",
       "missing response",
-      "family",
       "invalid partial bivariate phylo",
       "rho12 phylo",
       "structured family",
@@ -93,7 +91,6 @@ drm_julia_intentional_gates <- function() {
       "gaussian",
       "gaussian",
       "poisson",
-      "beta_binomial",
       "biv_gaussian",
       "biv_gaussian",
       "beta",
@@ -109,7 +106,6 @@ drm_julia_intentional_gates <- function() {
       "control = drm_control(optimizer = list(iter.max = ...))",
       "missing = miss_control(predictor = \"model\") without a matching impute model",
       "missing = miss_control(response = \"include\") with poisson()",
-      "family = beta_binomial() through engine = \"julia\"",
       "bivariate phylo on only one axis or on three axes",
       "phylo() term in rho12",
       "relmat() with beta()",
@@ -126,7 +122,6 @@ drm_julia_intentional_gates <- function() {
       "Julia supports only g_tol and algorithm controls",
       "joint payload requires an explicit matching impute model",
       "not audited for non-Gaussian masks",
-      "no BetaBinomial tree/FE R bridge claim",
       "bivariate phylo route admits q2 mu1/mu2 or q4 all four axes only",
       "unsupported q4 PLSM axis",
       "general-covariance route is narrower than R grammar",
@@ -142,7 +137,6 @@ drm_julia_intentional_gates <- function() {
       "does not support .*control",
       "impute",
       "missing.*route",
-      "Gaussian one-/two-response|Workflow G fixed-effect",
       "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis",
       "Unsupported phylogenetic axis",
       "only for univariate Gaussian, Poisson, NB2, or Gamma",
@@ -154,7 +148,7 @@ drm_julia_intentional_gates <- function() {
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
-      rep("https://github.com/itchyshin/drmTMB/issues/544", 11),
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 10),
       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3)
     ),
     action = "error",
@@ -164,7 +158,6 @@ drm_julia_intentional_gates <- function() {
       "The public Julia bridge accepts drm_control(optimizer = list(g_tol = ..., algorithm = ...)); TMB-only controls and iteration caps refuse before JuliaCall.",
       "Modelled predictors require a matching impute entry; unsupported families remain separate gaps.",
       "Observed-response masks are admitted only for Gaussian bridge cells.",
-      "BetaBinomial has no Workflow G R bridge admission; use native TMB.",
       "DRM.jl bivariate phylo bridge expects either q2 terms on mu1/mu2 or q4 terms on mu1, mu2, sigma1, and sigma2.",
       "DRM.jl q4 PLSM does not take a phylogenetic residual-correlation axis.",
       "DRM.jl general-covariance bridge is limited to Gaussian, Poisson, NB2, and Gamma.",
@@ -204,7 +197,18 @@ drm_julia_capability_comparison <- function() {
       "cross_family_latent",
       "engine_control_surface",
       "plain_binomial_nonphylo",
-      "location_scale_scale"
+      "location_scale_scale",
+      # A3 (2026-09-05): the nine fixed-effect routes the bridge ALREADY admitted
+      # (registry fe rows + the zi/hu count dpars) but which had no ledger row.
+      "fe_student",
+      "fe_lognormal",
+      "fe_gamma",
+      "fe_poisson",
+      "fe_nbinom2",
+      "fe_beta",
+      "zi_poisson",
+      "zi_nbinom2",
+      "hurdle_nbinom2"
     ),
     route = c(
       "base",
@@ -218,7 +222,16 @@ drm_julia_capability_comparison <- function() {
       "cross_family",
       "base",
       "base",
-      "phylo"
+      "phylo",
+      "base",
+      "base",
+      "base",
+      "base",
+      "base",
+      "base",
+      "base",
+      "base",
+      "base"
     ),
     syntax = c(
       "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
@@ -232,7 +245,16 @@ drm_julia_capability_comparison <- function() {
       "c(gaussian(), poisson()) cross-family latent-rho route",
       "drm_control(optimizer = list(g_tol = ..., algorithm = ...))",
       "stats::binomial() without phylo() through engine = \"julia\"",
-      "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\""
+      "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ 1, nu ~ 1), family = student(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ 1), family = lognormal(), engine = \"julia\"",
+      "bf(y ~ x), family = Gamma(link = \"log\"), engine = \"julia\"",
+      "bf(y ~ x), family = poisson(), engine = \"julia\"",
+      "bf(y ~ x), family = nbinom2(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ 1), family = beta(), engine = \"julia\"",
+      "bf(y ~ x, zi ~ x), family = poisson(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ 1, zi ~ 1), family = nbinom2(), engine = \"julia\"",
+      "bf(y ~ x, sigma ~ 1, hu ~ 1), family = nbinom2(), engine = \"julia\" (bridge spelling; native spelling is truncated_nbinom2())"
     ),
     r_bridge_status = c(
       # Wave 1 bridge promotions 2026-08-29..09-02 (owner instruction, D-203/D-204;
@@ -252,6 +274,19 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       "experimental",
       "partial",
+      "experimental",
+      # A3 rows: partial on the wave-1 bar (same-target point+SE receipt on the
+      # committed fixture, DRM.jl parity-fixtures.tsv/parity-se.tsv); bridge-side
+      # inference (G3) unqualified. hurdle_nbinom2 stays experimental: no
+      # identical-call comparator exists (see its claim_boundary).
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
       "experimental"
     ),
     drmjl_status = c(
@@ -266,7 +301,16 @@ drm_julia_capability_comparison <- function() {
       "latent-rho mixed-family path; API drift is tracked in tests",
       "Julia-native g_tol and algorithm controls on the base bridge; unsupported TMB controls refuse before JuliaCall",
       "Workflow G FE bridge cell (binomial-trials) via drm_bridge",
-      "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)"
+      "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)",
+      "Workflow G FE bridge cell (student, nu dpar) via drm_bridge",
+      "Workflow G FE bridge cell (lognormal) via drm_bridge",
+      "Workflow G FE bridge cell (gamma, log link) via drm_bridge",
+      "Workflow G FE bridge cell (poisson) via drm_bridge",
+      "Workflow G FE bridge cell (nbinom2) via drm_bridge",
+      "Workflow G FE bridge cell (beta) via drm_bridge",
+      "Workflow G FE bridge cell (poisson + zi dpar) via drm_bridge",
+      "Workflow G FE bridge cell (nbinom2 + zi dpar) via drm_bridge",
+      "Workflow G FE bridge cell (nbinom2 + hu dpar; DRM.jl reads hu as the hurdle model) via drm_bridge"
     ),
     claim_status = c(
       # Phase 1.5 cap LIFTED 2026-08-25 by owner decision (Shinichi). These three
@@ -295,14 +339,26 @@ drm_julia_capability_comparison <- function() {
       "partial",
       "experimental",
       "covered",
-      "covered"
+      "covered",
+      # A3 rows: claim_status partial -- one committed fixture, one seed, point+SE
+      # receipt only; no interval evidence, no bridge-side inference receipt.
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial",
+      "partial"
     ),
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
       "https://github.com/itchyshin/gllvmTMB/issues/488",
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/569",
-      "https://github.com/itchyshin/DRM.jl/issues/545"
+      "https://github.com/itchyshin/DRM.jl/issues/545",
+      rep("https://github.com/itchyshin/drmTMB/issues/544", 9)
     ),
     claim_boundary = c(
       "Route C Gaussian location-scale. All four design/168 limbs met: implementation; focused tests (test/parity/runparity_bridge.jl gaussian-locscale); public docs (docs/src/r-julia-bridge.md); and interval evidence (parity-se.tsv se_gaussian_location_scale, 1.499e-07 abs / 2.169e-06 rel, with a negative control in the same table). The live TMB parity remains OPT-IN by design -- its gate is CRAN-safety motivated (an unguarded live-Julia test once hung win-builder ~10,448s) -- but it is no longer an unverified assumption: measured 2026-08-24, |d_loglik| = 6.257e-09, max|d_coef| = 5.456e-06. NOT interval COVERAGE. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands. PROMOTED experimental -> partial on the bridge axis 2026-09-02 (docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): same-target SE parity 1.498725653859e-07 abs / 2.169e-06 rel (SE_PASS), route runs unopted non-interactively post-#1112. partial, NOT covered: bridge-side inference (profile/bootstrap through engine=\"julia\") remains unqualified (G3).",
@@ -318,6 +374,16 @@ drm_julia_capability_comparison <- function() {
       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects. PROMOTED experimental -> partial on the bridge axis 2026-09-02 (docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): 1.26789215931788e-09 abs / 2.482e-08 rel, comparator hash f3e754a4. partial, NOT covered: bridge-side inference (profile/bootstrap through engine=\"julia\") remains unqualified (G3)."
 ,
       "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: for one phylogenetic LSS component, DRM.jl selects the sparse O(p) engine automatically above 500 species (or on explicit sparse request). The forced dense fallback and current multi-component route remain capped at 5000 observations; repeated observations can reach that dense limit before 5000 species. NOT interval coverage."
+,
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_student) and parity-se.tsv (cell_id se_student_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.118e-12 (4/4 name-matched), logLik -185.889991 on both engines (diff 1.421e-13), SE 3.945e-07 abs / 5.843e-07 rel over 4 SEs; estimator ML on both. The negative control in the same table (cell negative_control_perturbed_a3, this cell with se_julia[1]*1.10) reads NEGATIVE_CONTROL_OK at rel 9.091e-02. BOUNDARY: fixed effects only, nu ~ 1 only, one fixture (n=150, seed 4242); no random effects, no structured markers, no interval coverage claim, and bridge-side profile/bootstrap inference is unqualified (G3). This row LEDGERS a route that was already admitted (registry fe row) -- no bridge behaviour changed.",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_lognormal) and parity-se.tsv (cell_id se_lognormal_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 2.631e-14 (3/3), logLik -173.635565 on both engines (diff 1.705e-12), SE 1.925e-08 abs / 3.333e-07 rel over 3 SEs; estimator ML on both. BOUNDARY: fixed effects, sigma ~ 1, one fixture (n=150, seed 4242); no random effects or structured markers; no interval claim; bridge-side inference unqualified (G3). Ledgers an already-admitted route; no bridge behaviour changed.",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_gamma) and parity-se.tsv (cell_id se_gamma_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.911e-11 (3/3), logLik -172.781769 on both engines (diff 8.527e-13), SE 1.838e-08 abs / 3.316e-07 rel over 3 SEs; estimator ML on both. The fixture is byte-identical to the fe_gamma cell of DRM.jl tools/parity_fixture.R (its 0.7.0 row: coef 3.91e-06), so this is a re-bank of the same cell on the pinned build, not a new draw. BOUNDARY: fixed effects, log link, default sigma ~ 1, one fixture; the phylo() Gamma route is the SEPARATE phylo_gamma_beta_binomial row; no interval claim; bridge-side inference unqualified (G3).",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_poisson) and parity-se.tsv (cell_id se_poisson_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.029e-12 (2/2), logLik -244.763153 on both engines (diff 1.705e-13), SE 1.782e-08 abs / 3.319e-07 rel over 2 SEs; estimator ML on both. Byte-identical fixture to the fe_poisson cell of DRM.jl tools/parity_fixture.R (re-bank, not a new draw). BOUNDARY: fixed effects, no zi (that is the zi_poisson row), one fixture; the phylo() Poisson route is the SEPARATE phylo_count_large_p row; no interval claim; bridge-side inference unqualified (G3).",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_nbinom2) and parity-se.tsv (cell_id se_nbinom2_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.704e-11 (3/3), logLik -259.886626 on both engines (diff 9.095e-13), SE 7.255e-09 abs / 4.731e-08 rel over 3 SEs; estimator ML on both. Byte-identical fixture to the fe_nbinom2 cell of DRM.jl tools/parity_fixture.R (re-bank). BOUNDARY: fixed effects, default sigma ~ 1, no zi/hu (separate rows), one fixture; no interval claim; bridge-side inference unqualified (G3).",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_beta) and parity-se.tsv (cell_id se_beta_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.172e-11 (3/3), logLik 90.719135 on both engines (diff 4.405e-13), SE 1.656e-08 abs / 2.978e-07 rel over 3 SEs; estimator ML on both. BOUNDARY: fixed effects, logit mu, sigma ~ 1, one fixture (n=150, seed 4242, phi=10); the phylo() Beta route is the SEPARATE phylo_gamma_beta_binomial row; no interval claim; bridge-side inference unqualified (G3).",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id zi_poisson) and parity-se.tsv (cell_id se_zi_poisson): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.286e-11 (4/4: mu and zi blocks), logLik -176.954999 on both engines (diff 2.842e-14; the -176.9550 quoted in the A3 ledger reproduced), SE 3.527e-08 abs / 1.649e-07 rel over 4 SEs; estimator ML on both. The bridge carries zi as a dpar in its formula vocabulary (julia_bridge_supported_dpars; DRM.jl src/bridge.jl mu/sigma/nu/zi/hu/zoi/coi) rather than as a family, so this route was admitted by the poisson registry row without a ledger row of its own. BOUNDARY: fixed effects on mu and zi, one fixture (n=120, seed 3); no random effects, no structured markers, no interval claim; bridge-side inference unqualified (G3).",
+      "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id zi_nbinom2) and parity-se.tsv (cell_id se_zi_nbinom2): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.003e-12 (4/4: mu, sigma, zi), logLik -351.976191 on both engines (diff 1.648e-12), SE 6.109e-08 abs / 2.638e-07 rel over 4 SEs; estimator ML on both. Same dpar-vocabulary admission as zi_poisson. BOUNDARY: fixed effects, zi ~ 1, one fixture (n=200, seed 4242); no random effects or structured markers; no interval claim; bridge-side inference unqualified (G3).",
+      "EXPERIMENTAL BY MEASUREMENT, not pending paperwork. The hurdle likelihood is the same on both engines -- Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id hurdle_nbinom2) and parity-se.tsv (cell_id se_hurdle_nbinom2): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.125e-12 (4/4: mu, sigma, hu), logLik -351.426966 on both (diff 2.558e-12), SE 1.718e-08 abs / 1.209e-07 rel over 4 SEs; estimator ML on both -- BUT the two engines accept DIFFERENT SPELLINGS of the same model, so no identical call fits on both: native engine='tmb' fits truncated_nbinom2() + hu ~ 1 and refuses nbinom2() + hu ~ 1 ('nbinom2() models only support mu, sigma, and optional zi. Unsupported parameter: hu', measured 2026-09-05), while engine='julia' fits nbinom2() + hu ~ 1 (DRM.jl reads hu as the hurdle model) and refuses truncated_nbinom2() (not a registry fe row; A4's truncated_nbinom2 leaf owns that). The receipt is therefore a CROSS-SPELLING same-target comparison, recorded as such in both TSV notes. A user cannot switch engine= on one call today; that admission asymmetry is the defect this row names, and it is NOT fixed here (A3 changes no bridge behaviour). BOUNDARY: fixed effects, hu ~ 1, one fixture (n=200, seed 4242); no interval claim; bridge-side inference unqualified (G3)."
     ),
     next_action = c(
       "Keep coefficient and likelihood parity tests tied to exact bridge payloads. Coefficient/logLik parity re-measured 2026-08-15 against DRM.jl (coef 4.564e-06, logLik 4.584e-09, tol 1e-4); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv. Qualify bridge-side inference (G3) before any further move.",
@@ -332,11 +398,22 @@ drm_julia_capability_comparison <- function() {
       "Design engine_control explicitly before relaxing the gate.",
       "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv. Qualify bridge-side inference (G3) before any further move.",
       "Keep location-scale-scale parity tests green across ML, REML, and missing-response routes. The forced dense fallback and current multi-component route remain capped at 5000 observations; use the sparse single-component route for whole-tree scale."
+,
+      "Keep the fe_student receipt re-runnable (fixture in the A3 driver, docs/dev-log/after-task/2026-09-05-a3-unledgered-routes.md); do not promote beyond partial without a bridge-side inference (G3) receipt.",
+      "Keep the fe_lognormal receipt re-runnable; do not promote beyond partial without a G3 receipt.",
+      "Keep the fe_gamma cell green in DRM.jl tools/parity_fixture.R (same fixture); do not promote beyond partial without a G3 receipt.",
+      "Keep the fe_poisson cell green in DRM.jl tools/parity_fixture.R (same fixture); do not promote beyond partial without a G3 receipt.",
+      "Keep the fe_nbinom2 cell green in DRM.jl tools/parity_fixture.R (same fixture); do not promote beyond partial without a G3 receipt.",
+      "Keep the fe_beta receipt re-runnable; do not promote beyond partial without a G3 receipt.",
+      "Keep the zi_poisson receipt re-runnable; the zi/hu dpar routes are admitted by dpar vocabulary, not the family registry, so any registry-driven ledger test must enumerate them explicitly. Do not promote beyond partial without a G3 receipt.",
+      "Keep the zi_nbinom2 receipt re-runnable; same dpar-vocabulary note as zi_poisson. Do not promote beyond partial without a G3 receipt.",
+      "Resolve the spelling asymmetry before any promotion: either the bridge maps truncated_nbinom2() + hu to DRM.jl's hurdle (A4's truncated_nbinom2 registry row is the natural place) or the bridge refuses nbinom2() + hu the way native does. Then re-measure on ONE identical call and move to partial."
     ),
     issue = c(
       rep("drmTMB#544", 10),
       "drmTMB#499",
-      "DRM.jl#545"
+      "DRM.jl#545",
+      rep("drmTMB#544", 9)
     ),
     stringsAsFactors = FALSE
   )

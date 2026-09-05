@@ -1,0 +1,171 @@
+diff a/R/julia-bridge.R b/R/julia-bridge.R	(rejected hunks)
+@@ -55,7 +55,6 @@ drm_julia_intentional_gates <- function() {
+       "base_control",
+       "base_missing_predictor_model",
+       "base_missing_response_nongaussian",
+-      "base_unsupported_family",
+       "biv_invalid_partial_phylo",
+       "biv_rho12_phylo",
+       "structured_unsupported_family",
+@@ -66,7 +65,7 @@ drm_julia_intentional_gates <- function() {
+       "xfam_dispersionless_sigma"
+     ),
+     route = c(
+-      rep("base", 6),
++      rep("base", 5),
+       rep("bivariate_phylo", 2),
+       rep("structured", 3),
+       rep("cross_family", 3)
+@@ -77,7 +76,6 @@ drm_julia_intentional_gates <- function() {
+       "control",
+       "missing predictor",
+       "missing response",
+-      "family",
+       "invalid partial bivariate phylo",
+       "rho12 phylo",
+       "structured family",
+@@ -93,7 +91,6 @@ drm_julia_intentional_gates <- function() {
+       "gaussian",
+       "gaussian",
+       "poisson",
+-      "beta_binomial",
+       "biv_gaussian",
+       "biv_gaussian",
+       "beta",
+@@ -109,7 +106,6 @@ drm_julia_intentional_gates <- function() {
+       "control = drm_control(optimizer = list(iter.max = ...))",
+       "missing = miss_control(predictor = \"model\") without a matching impute model",
+       "missing = miss_control(response = \"include\") with poisson()",
+-      "family = beta_binomial() through engine = \"julia\"",
+       "bivariate phylo on only one axis or on three axes",
+       "phylo() term in rho12",
+       "relmat() with beta()",
+@@ -126,7 +122,6 @@ drm_julia_intentional_gates <- function() {
+       "Julia supports only g_tol and algorithm controls",
+       "joint payload requires an explicit matching impute model",
+       "not audited for non-Gaussian masks",
+-      "no BetaBinomial tree/FE R bridge claim",
+       "bivariate phylo route admits q2 mu1/mu2 or q4 all four axes only",
+       "unsupported q4 PLSM axis",
+       "general-covariance route is narrower than R grammar",
+@@ -142,7 +137,6 @@ drm_julia_intentional_gates <- function() {
+       "does not support .*control",
+       "impute",
+       "missing.*route",
+-      "Gaussian one-/two-response|Workflow G fixed-effect",
+       "requires either q2.*mu1/mu2|q4 all-four-axis|Missing phylogenetic axis",
+       "Unsupported phylogenetic axis",
+       "only for univariate Gaussian, Poisson, NB2, or Gamma",
+@@ -154,7 +148,7 @@ drm_julia_intentional_gates <- function() {
+     ),
+     review_due = "before 0.2.0 bridge promotion",
+     evidence_url = c(
+-      rep("https://github.com/itchyshin/drmTMB/issues/544", 11),
++      rep("https://github.com/itchyshin/drmTMB/issues/544", 10),
+       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3)
+     ),
+     action = "error",
+@@ -164,7 +158,6 @@ drm_julia_intentional_gates <- function() {
+       "The public Julia bridge accepts drm_control(optimizer = list(g_tol = ..., algorithm = ...)); TMB-only controls and iteration caps refuse before JuliaCall.",
+       "Modelled predictors require a matching impute entry; unsupported families remain separate gaps.",
+       "Observed-response masks are admitted only for Gaussian bridge cells.",
+-      "BetaBinomial has no Workflow G R bridge admission; use native TMB.",
+       "DRM.jl bivariate phylo bridge expects either q2 terms on mu1/mu2 or q4 terms on mu1, mu2, sigma1, and sigma2.",
+       "DRM.jl q4 PLSM does not take a phylogenetic residual-correlation axis.",
+       "DRM.jl general-covariance bridge is limited to Gaussian, Poisson, NB2, and Gamma.",
+@@ -204,7 +197,8 @@ drm_julia_capability_comparison <- function() {
+       "cross_family_latent",
+       "engine_control_surface",
+       "plain_binomial_nonphylo",
+-      "location_scale_scale"
++      "location_scale_scale",
++      "fe_beta_binomial"
+     ),
+     route = c(
+       "base",
+@@ -218,7 +212,8 @@ drm_julia_capability_comparison <- function() {
+       "cross_family",
+       "base",
+       "base",
+-      "phylo"
++      "phylo",
++      "base"
+     ),
+     syntax = c(
+       "bf(y ~ x, sigma ~ z), family = gaussian(), engine = \"julia\"",
+@@ -232,7 +227,8 @@ drm_julia_capability_comparison <- function() {
+       "c(gaussian(), poisson()) cross-family latent-rho route",
+       "drm_control(optimizer = list(g_tol = ..., algorithm = ...))",
+       "stats::binomial() without phylo() through engine = \"julia\"",
+-      "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\""
++      "bf(y ~ x + phylo(1 | sp, tree = tr), sigma ~ x, sd(sp, level = \"phylogenetic\") ~ x), engine = \"julia\"",
++      "bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(), engine = \"julia\""
+     ),
+     r_bridge_status = c(
+       # Wave 1 bridge promotions 2026-08-29..09-02 (owner instruction, D-203/D-204;
+@@ -252,7 +248,8 @@ drm_julia_capability_comparison <- function() {
+       "experimental",
+       "experimental",
+       "partial",
+-      "experimental"
++      "experimental",
++      "partial"
+     ),
+     drmjl_status = c(
+       "default DRM.jl Gaussian location-scale path",
+@@ -266,7 +263,8 @@ drm_julia_capability_comparison <- function() {
+       "latent-rho mixed-family path; API drift is tracked in tests",
+       "Julia-native g_tol and algorithm controls on the base bridge; unsupported TMB controls refuse before JuliaCall",
+       "Workflow G FE bridge cell (binomial-trials) via drm_bridge",
+-      "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)"
++      "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)",
++      "DRM.jl BetaBinomial fixed-effect path (src/betabinomial.jl; trials as per-row bridge context, src/bridge.jl _bridge_trials)"
+     ),
+     claim_status = c(
+       # Phase 1.5 cap LIFTED 2026-08-25 by owner decision (Shinichi). These three
+@@ -295,14 +293,16 @@ drm_julia_capability_comparison <- function() {
+       "partial",
+       "experimental",
+       "covered",
+-      "covered"
++      "covered",
++      "partial"
+     ),
+     evidence_url = c(
+       rep("https://github.com/itchyshin/drmTMB/issues/544", 8),
+       "https://github.com/itchyshin/gllvmTMB/issues/488",
+       "https://github.com/itchyshin/drmTMB/issues/544",
+       "https://github.com/itchyshin/drmTMB/issues/569",
+-      "https://github.com/itchyshin/DRM.jl/issues/545"
++      "https://github.com/itchyshin/DRM.jl/issues/545",
++      "https://github.com/itchyshin/drmTMB/issues/544"
+     ),
+     claim_boundary = c(
+       "Route C Gaussian location-scale. All four design/168 limbs met: implementation; focused tests (test/parity/runparity_bridge.jl gaussian-locscale); public docs (docs/src/r-julia-bridge.md); and interval evidence (parity-se.tsv se_gaussian_location_scale, 1.499e-07 abs / 2.169e-06 rel, with a negative control in the same table). The live TMB parity remains OPT-IN by design -- its gate is CRAN-safety motivated (an unguarded live-Julia test once hung win-builder ~10,448s) -- but it is no longer an unverified assumption: measured 2026-08-24, |d_loglik| = 6.257e-09, max|d_coef| = 5.456e-06. NOT interval COVERAGE. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands. PROMOTED experimental -> partial on the bridge axis 2026-09-02 (docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): same-target SE parity 1.498725653859e-07 abs / 2.169e-06 rel (SE_PASS), route runs unopted non-interactively post-#1112. partial, NOT covered: bridge-side inference (profile/bootstrap through engine=\"julia\") remains unqualified (G3).",
+@@ -317,7 +317,8 @@ drm_julia_capability_comparison <- function() {
+       "The base Julia bridge accepts only drm_control(optimizer = list(g_tol = ..., algorithm = ...)). These are Julia-native controls, not an attempt to match TMB presets or iteration budgets; unsupported controls refuse before JuliaCall. The translation and route-option tests are local only; no performance or interval claim moves.",
+       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects. PROMOTED experimental -> partial on the bridge axis 2026-09-02 (docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): 1.26789215931788e-09 abs / 2.482e-08 rel, comparator hash f3e754a4. partial, NOT covered: bridge-side inference (profile/bootstrap through engine=\"julia\") remains unqualified (G3)."
+ ,
+-      "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: for one phylogenetic LSS component, DRM.jl selects the sparse O(p) engine automatically above 500 species (or on explicit sparse request). The forced dense fallback and current multi-component route remain capped at 5000 observations; repeated observations can reach that dense limit before 5000 species. NOT interval coverage."
++      "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: for one phylogenetic LSS component, DRM.jl selects the sparse O(p) engine automatically above 500 species (or on explicit sparse request). The forced dense fallback and current multi-component route remain capped at 5000 observations; repeated observations can reach that dense limit before 5000 species. NOT interval coverage.",
++      "ADMITTED 2026-09-05 (A4, one registry row: spec(\"beta_binomial\", fe = TRUE)). Receipts measured on the A4 worktree (drmTMB 0.7.0 at c062a2285 == origin/main ea3156d73 content, load_all; drmtmb_code_hash 63d269e3 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, comparator code taken verbatim from DRM.jl tools/parity_fixture.R and tools/parity_se.R (rows in docs/dev-log/after-task/2026-09-05-a4-beta_binomial.md): engine='tmb' vs engine='julia' on the tests/testthat/test-beta-binomial.R draw (n=1200, seed 20260510, cbind(success, failure) ~ x, sigma ~ z), coefficients 7.772e-15 (4/4 name-matched), logLik -2888.851317 on both engines (diff 2.574e-10), SE 6.177e-09 abs / 1.725e-07 rel over 4 SEs; estimator ML on both (fit$estimator == DRM.jl estim_method). The negative control in the same table (cell 1 with se_julia[1]*1.10) reads NEGATIVE_CONTROL_OK at rel 9.091e-02. Same sigma parameterisation on both engines (phi = 1/sigma^2); trials cross as per-row context, not a dpar. BOUNDARY: fixed effects only, one fixture; phylo() with this family refuses before Julia (registry phylo_only = FALSE on purpose: DRM.jl BetaBinomial phylo is constant-sigma only, no receipt); no (1 | g) claim (A5), no structured markers, no interval-coverage claim; bridge-side profile/bootstrap inference is unqualified (G3)."
+     ),
+     next_action = c(
+       "Keep coefficient and likelihood parity tests tied to exact bridge payloads. Coefficient/logLik parity re-measured 2026-08-15 against DRM.jl (coef 4.564e-06, logLik 4.584e-09, tol 1e-4); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv. Qualify bridge-side inference (G3) before any further move.",
+@@ -331,12 +332,14 @@ drm_julia_capability_comparison <- function() {
+       "BOUNDARY IS PERMANENT (D-179 #3). Keep tests/testthat/test-xfam-bridge.R and DRM.jl's cross-family tests green; do not spend simulation-recovery compute here unless the owner reopens the boundary. The r_bridge_status re-examination named earlier is CLOSED: the route is reachable from R (drmTMB_julia_xfam_bridge) and `experimental` is fair.",
+       "Design engine_control explicitly before relaxing the gate.",
+       "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv. Qualify bridge-side inference (G3) before any further move.",
+-      "Keep location-scale-scale parity tests green across ML, REML, and missing-response routes. The forced dense fallback and current multi-component route remain capped at 5000 observations; use the sparse single-component route for whole-tree scale."
++      "Keep location-scale-scale parity tests green across ML, REML, and missing-response routes. The forced dense fallback and current multi-component route remain capped at 5000 observations; use the sparse single-component route for whole-tree scale.",
++      "Keep the fe_beta_binomial receipt re-runnable (tests/testthat/test-julia-family-beta_binomial.R live test, same draw); do not promote beyond partial without a bridge-side inference (G3) receipt; a phylo() row for this family needs its own DRM.jl receipt first."
+     ),
+     issue = c(
+       rep("drmTMB#544", 10),
+       "drmTMB#499",
+-      "DRM.jl#545"
++      "DRM.jl#545",
++      "drmTMB#544"
+     ),
+     stringsAsFactors = FALSE
+   )

@@ -54,7 +54,28 @@ drm_julia_family_registry <- function() {
     spec("beta",         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE),
     spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
-    # ---- A4 admissions (one row per PR, each with its own receipts) ---------
+    # ---- A4 admissions: one row per family, each its own PR -----------------
+    # truncated_nbinom2 (A4, 2026-09-05): fixed effects only, dpars mu + sigma,
+    # the SAME size = 1/sigma^2 parameterisation as nbinom2 on both sides
+    # (DRM.jl src/negbinomial.jl `TruncatedNegBinomial2`, pin 430ef64cc, which
+    # refuses random effects itself: "currently supports fixed effects only").
+    # No phylo/RE/structured admission here -- that is a later row.
+    spec("truncated_nbinom2", fe = TRUE),
+    # zero_one_beta (A4, 2026-09-05): fixed effects only, dpars mu (logit) +
+    # sigma (log, phi = 1/sigma^2) + zoi (logit) + coi (logit) -- the SAME
+    # three-part mixture on both sides (DRM.jl src/zeroonebeta.jl
+    # `ZeroOneBeta`, pin 430ef64cc, which refuses random effects itself:
+    # "currently supports fixed effects only"). No phylo/RE/structured
+    # admission here -- that is a later row. No family-specific payload or
+    # label code is needed: `julia_bridge_supported_dpars()` and
+    # `drm_julia_bridge_blocks()` already carry zoi/coi.
+    spec("zero_one_beta", fe = TRUE),
+    # tweedie (A4, 2026-09-05): fixed effects ONLY (mu, sigma, nu). DRM.jl
+    # src/tweedie.jl at pin 430ef64cc uses the same parameterisation as
+    # R/family.R (log mu; sigma = sqrt(phi); nu = 1 + plogis(eta), the
+    # "logit12" link), so no payload/label code is needed. No phylo, no RE,
+    # no structured route here -- that is a later row.
+    spec("tweedie",      fe = TRUE),
     # beta_binomial (A4, 2026-09-05): fixed-effect route ONLY. drmTMB dpars
     # mu/sigma, response cbind(successes, failures); DRM.jl's BetaBinomial uses
     # the SAME sigma mapping (phi = 1/sigma^2, src/betabinomial.jl at
@@ -64,7 +85,7 @@ drm_julia_family_registry <- function() {
     spec("beta_binomial", fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   truncated_nbinom2, zero_one_beta, tweedie, cumulative_logit
+    #   cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
   )
