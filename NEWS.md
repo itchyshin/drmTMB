@@ -1,5 +1,29 @@
 # drmTMB 0.7.0
 
+## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
+
+* `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
+  animal(1 | p | id, A = A), sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE)` now fits instead of refusing. The
+  bivariate q2 exact-covariance REML route was already provider-agnostic in
+  TMB's C++ (no branch on marker identity) and in DRM.jl's own REML
+  implementation (`animal` and `relmat` markers call the identical
+  `make_coevo_problem_from_covariance()` path, bit-identical loglik measured
+  on a matched fixture); the prior refusal was a recorded scope decision, not
+  a mathematical one. Measured this run: the new `animal()` REML fit agrees
+  with the `relmat()` control on the same matrix to machine precision
+  (identical mathematics), with the dense restricted-likelihood oracle, and
+  with a direct DRM.jl `method = :REML` call (`|d logLik| < 1e-4`,
+  coefficients to `1e-7`); see
+  `docs/dev-log/evidence/julia-r-parity/reml/biv-animal-q2-receipt.md`. That
+  DRM.jl comparison is point-estimate and logLik only: DRM.jl's bivariate q2
+  structured route returns `vcov = NaN` for every provider and both
+  estimators, so there is no Julia SE to compare. `engine = "julia"` itself
+  is untouched by this change and still refuses `REML = TRUE` on every
+  bivariate q2 structured route (phylo, spatial, relmat, animal alike); the
+  fit above is native TMB (`engine = "tmb"`) only. Precision (`Ainv`) and
+  pedigree-built animal representations, slopes, q4+, and scale-side
+  bivariate relmat/animal REML routes remain deferred and refused.
 ## `engine = "julia"` masked-response fits: convergence flag and bootstrap fixed upstream (DRM.jl #646)
 
 * A Gaussian fit with `missing = miss_control(response = "include")` through

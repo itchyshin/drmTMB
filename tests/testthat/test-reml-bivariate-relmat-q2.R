@@ -562,7 +562,7 @@ test_that("bivariate relmat K q2 REML keeps K ordering and neighbours exact", {
       ),
       family = biv_gaussian(), data = dat, REML = TRUE
     ),
-    "animal"
+    "precision"
   )
 
   K_no_names <- unname(K)
