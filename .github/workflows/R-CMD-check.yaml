@@ -240,3 +240,64 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+
+  # THE BLIND SPOT THIS CLOSES. Every job above checks the built TARBALL, and
+  # .Rbuildignore removes tools/, docs/, pkgdown/, bench/, _pkgdown.yml and the
+  # simulation-results tree under inst/sim. A test whose premise is such a path hits
+  # its own skip_if(!file.exists(...)) and SKIPS -- and testthat prints a skip
+  # inside the same green summary as a pass. The premise is absent because of
+  # the BUILD, not the environment, so that skip is permanent: those tests have
+  # never once run in CI.
+  #
+  # Measured at origin/main df1aca4a6 by running the affected files twice, once
+  # in the source tree and once inside the extracted `R CMD build` tarball:
+  # 35 files change behaviour, 24,348 passing assertions collapse to 855, and
+  # 24 of the 35 contribute ZERO assertions to the tarball run. Two user-facing
+  # defects reached main inside that gap -- the reader-contract linter had
+  # silently stopped policing six vignettes (#1207) and nine exported functions
+  # were missing from the printable cheatsheets (#1208) -- and both were found
+  # by a full source-tree run, not by CI.
+  #
+  # This is deliberately NOT a fifth shard and NOT a second `R CMD check`: it is
+  # one ubuntu job that loads the package in place with pkgload::load_all() and
+  # runs only the derived subset. Measured locally (macOS, R 4.6.0, warm object
+  # files): 3m42s for all 35 files. The runner also pays a dependency install
+  # and one TMB compile, so budget well under the 75 the shards get.
+  #
+  # The file set is DERIVED from .Rbuildignore at run time and cross-checked
+  # against tools/source-tree-tests.txt, so a new test with a build-excluded
+  # premise cannot quietly join the blind spot, and an existing one cannot
+  # quietly leave the lane.
+  source-tree-tests:
+    runs-on: ubuntu-latest
+    name: source-tree tests (blind spot)
+    timeout-minutes: 45
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgload, any::testthat
+          needs: check
+
+      # Fails in milliseconds, before the compile, if the derived set and the
+      # committed manifest disagree -- a stale manifest is how this guard would
+      # rot, and it should not cost a build to say so.
+      - name: Source-tree test manifest is current
+        run: Rscript --no-init-file tools/run-source-tree-tests.R --check
+
+      - name: Run the tests R CMD check cannot reach
+        run: Rscript --no-init-file tools/run-source-tree-tests.R

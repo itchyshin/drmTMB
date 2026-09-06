@@ -25,42 +25,83 @@
 #   drmjl_tag     the string DRM.jl's _bridge_family() accepts (NA = the Julia
 #                 bridge has no case for it yet; the family CANNOT be admitted
 #                 on the R side until it does)
+#   predictor_dpars  (character, REQUIRED -- no default) which dpars this family
+#                 may carry a PREDICTOR on through `engine = "julia"`. The
+#                 sentinel "*" means "every dpar the family has"; any other value
+#                 enumerates the admitted dpars, and every dpar outside the list
+#                 must be intercept-only or the bridge refuses BEFORE Julia
+#                 starts (`drm_julia_refuse_unadmitted_predictor_dpars()`).
+#                 See the block comment on `drm_julia_family_predictor_dpars()`
+#                 for the measurements that made this column necessary (#1224).
+#   fe_fence_exempt  exempt from the A4.G17 fixed-effect-only random-effect
+#                 fence. Replaces the `startsWith(family, "biv_")` PREFIX test
+#                 that used to grant this exemption, which every future `biv_*`
+#                 admission inherited without earning it (#1224).
 #
 # INVARIANT: every list function below must return EXACTLY what its
 # hand-maintained predecessor returned on 2026-09-05 (pinned by
 # tests/testthat/test-julia-family-registry.R). Behaviour change is A4's job,
 # one family per PR, never this file's.
 drm_julia_family_registry <- function() {
-  spec <- function(family, fe = FALSE, phylo_only = FALSE, locscale_phylo = FALSE,
-                   slope_phylo = FALSE, dispersionless = FALSE, structured = FALSE,
-                   drmjl_tag = family) {
+  spec <- function(family, predictor_dpars, fe = FALSE, phylo_only = FALSE,
+                   locscale_phylo = FALSE, slope_phylo = FALSE,
+                   dispersionless = FALSE, structured = FALSE,
+                   fe_fence_exempt = FALSE, drmjl_tag = family) {
+    # `predictor_dpars` has NO DEFAULT on purpose (#1224). The defect this
+    # column closes was a scope exemption inherited SILENTLY by a new row; a
+    # default would reinstate exactly that. A row added without it aborts here,
+    # at registry-build time, which every gate and every test trips on at once.
+    if (missing(predictor_dpars)) {
+      cli::cli_abort(c(
+        "Julia family registry row {.val {family}} does not declare {.arg predictor_dpars}.",
+        i = "State {.val *} if every dpar of this family may carry a predictor on the Julia route, or enumerate the dpars that may. A dpar outside the list must be intercept-only.",
+        i = "The declaration is per-FAMILY on purpose: it used to be inferred from the {.val biv_} name prefix, so every new bivariate family inherited an exemption it had not earned."
+      ))
+    }
     list(family = family, fe = fe, phylo_only = phylo_only,
          locscale_phylo = locscale_phylo, slope_phylo = slope_phylo,
          dispersionless = dispersionless, structured = structured,
+         predictor_dpars = predictor_dpars, fe_fence_exempt = fe_fence_exempt,
          drmjl_tag = drmjl_tag)
   }
   list(
     # ---- admitted today (byte-for-byte the 2026-09-05 lists) ----------------
-    spec("gaussian",     fe = TRUE, locscale_phylo = TRUE, structured = TRUE),
-    spec("biv_gaussian", fe = TRUE),
-    spec("student",      fe = TRUE),
-    spec("lognormal",    fe = TRUE),
-    spec("poisson",      fe = TRUE, phylo_only = TRUE, slope_phylo = TRUE,
+    spec("gaussian",     predictor_dpars = "*",
+                         fe = TRUE, locscale_phylo = TRUE, structured = TRUE),
+    # biv_gaussian is the ONE family that has EARNED a predictor on every
+    # bivariate dpar, and it earned it by measurement, not by its name.
+    # Measured 2026-09-05 on this branch's base (drmTMB 2fcbb0fbf, DRM.jl
+    # aee371cc9, n = 200, seed 20260905): `sigma1 = ~ z` fits on BOTH engines
+    # at logLik -560.53957076 (identical to 8 dp), and `rho12 = ~ z` fits
+    # through engine = "julia" at -561.91857503. Enumerated rather than "*"
+    # so that a LATER bivariate family cannot acquire this by copying a row.
+    spec("biv_gaussian", predictor_dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12"),
+                         fe = TRUE, fe_fence_exempt = TRUE),
+    # student: measured 2026-09-05, `nu ~ z` FITS on both engines
+    # (tmb -276.48331601, julia -276.48331602), so nothing to fence.
+    spec("student",      predictor_dpars = "*", fe = TRUE),
+    spec("lognormal",    predictor_dpars = "*", fe = TRUE),
+    spec("poisson",      predictor_dpars = "*",
+                         fe = TRUE, phylo_only = TRUE, slope_phylo = TRUE,
                          dispersionless = TRUE, structured = TRUE),
-    spec("nbinom2",      fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
+    spec("nbinom2",      predictor_dpars = "*",
+                         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE, structured = TRUE),
-    spec("gamma",        fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
+    spec("gamma",        predictor_dpars = "*",
+                         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE, structured = TRUE),
-    spec("beta",         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
+    spec("beta",         predictor_dpars = "*",
+                         fe = TRUE, phylo_only = TRUE, locscale_phylo = TRUE,
                          slope_phylo = TRUE),
-    spec("binomial",     fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
+    spec("binomial",     predictor_dpars = "*",
+                         fe = TRUE, phylo_only = TRUE, dispersionless = TRUE),
     # ---- A4 admissions: one row per family, each its own PR -----------------
     # truncated_nbinom2 (A4, 2026-09-05): fixed effects only, dpars mu + sigma,
     # the SAME size = 1/sigma^2 parameterisation as nbinom2 on both sides
     # (DRM.jl src/negbinomial.jl `TruncatedNegBinomial2`, pin 430ef64cc, which
     # refuses random effects itself: "currently supports fixed effects only").
     # No phylo/RE/structured admission here -- that is a later row.
-    spec("truncated_nbinom2", fe = TRUE),
+    spec("truncated_nbinom2", predictor_dpars = "*", fe = TRUE),
     # zero_one_beta (A4, 2026-09-05): fixed effects only, dpars mu (logit) +
     # sigma (log, phi = 1/sigma^2) + zoi (logit) + coi (logit) -- the SAME
     # three-part mixture on both sides (DRM.jl src/zeroonebeta.jl
@@ -69,18 +110,53 @@ drm_julia_family_registry <- function() {
     # admission here -- that is a later row. No family-specific payload or
     # label code is needed: `julia_bridge_supported_dpars()` and
     # `drm_julia_bridge_blocks()` already carry zoi/coi.
-    spec("zero_one_beta", fe = TRUE),
+    # zero_one_beta: measured 2026-09-05, `zoi ~ z` FITS on both engines at
+    # logLik -80.36706785 (identical), so no dpar needs fencing.
+    spec("zero_one_beta", predictor_dpars = "*", fe = TRUE),
     # tweedie (A4, 2026-09-05): fixed effects ONLY (mu, sigma, nu). DRM.jl
     # src/tweedie.jl at pin 430ef64cc uses the same parameterisation as
     # R/family.R (log mu; sigma = sqrt(phi); nu = 1 + plogis(eta), the
     # "logit12" link), so no payload/label code is needed. No phylo, no RE,
     # no structured route here -- that is a later row.
-    spec("tweedie",      fe = TRUE)
+    # NARROWED 2026-09-05 (#1224), on a MEASUREMENT taken while building this
+    # column: `nu` is intercept-only on the native route
+    # ("`tweedie()` currently supports only intercept-only `nu ~ 1`",
+    # drm_build_tweedie_spec(), R/drmTMB.R), but `bf(y ~ x, sigma ~ 1, nu ~ z)`
+    # FIT through engine = "julia" at logLik -259.84074955 while engine = "tmb"
+    # REFUSED it (drmTMB 2fcbb0fbf, DRM.jl aee371cc9, n = 200, seed 20260905).
+    # `nu ~ 1` still fits (-260.40627451), so the fence does not over-fire.
+    # This is the same defect the bivariate prefix exemption produced, on a
+    # UNIVARIATE family -- which is why the fix is a registry column and not a
+    # bivariate special case.
+    spec("tweedie",      predictor_dpars = c("mu", "sigma"), fe = TRUE),
+    # beta_binomial (A4, 2026-09-05): fixed-effect route ONLY. drmTMB dpars
+    # mu/sigma, response cbind(successes, failures); DRM.jl's BetaBinomial uses
+    # the SAME sigma mapping (phi = 1/sigma^2, src/betabinomial.jl at
+    # 430ef64cc), and its bridge ships `trials` as per-row context, not a
+    # dpar. phylo_only stays FALSE on purpose: DRM.jl's BetaBinomial phylo
+    # route is constant-sigma only and has no bridge receipt yet -- a later row.
+    spec("beta_binomial", predictor_dpars = "*", fe = TRUE),
+    # A4 (2026-09-05): cumulative_logit on the fixed-effect route. Its only dpar
+    # is `mu` (R/family.R), so it is `dispersionless` like poisson/binomial: the
+    # label defaulter must NOT invent a `sigma` block and a user-written
+    # `sigma ~` formula is refused. Cutpoints are NOT a dpar on the R side --
+    # R/julia-family-cumulative_logit.R moves DRM.jl's `cutpoints` block into
+    # `fit$ordinal` (design 258 section 8.9). Fixed effects only: no phylo, RE,
+    # or structured route (a later row's job).
+    spec("cumulative_logit", predictor_dpars = "*",
+                         fe = TRUE, dispersionless = TRUE),
+    # ---- A4 admissions, one row per PR ---------------------------------------
+    # skew_normal (dpars mu, sigma, nu): fixed effects only -- DRM.jl's
+    # SkewNormal() refuses every random effect and structured marker, and the
+    # public moment parameterisation (mu = E[y], sigma = SD[y], nu = slant)
+    # is the same on both sides, so bridged coefficients are the native ones.
+    # DRM.jl's _bridge_family() case for the "skew_normal" tag is DRM.jl
+    # PR #641 (A4, 2026-09-05); pin 430ef64cc lacks it and refuses at the
+    # Julia boundary ("drm_bridge: unsupported family `skew_normal`").
+    spec("skew_normal",  predictor_dpars = "*", fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
-    # Julia bridge ALREADY accepts (drmTMB refuses alone):
-    #   beta_binomial, cumulative_logit
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
-    #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
+    #   zi_poisson, zi_nbinom2, hurdle_nbinom2
   )
 }
 
@@ -88,4 +164,110 @@ drm_julia_registry_families <- function(column) {
   reg <- drm_julia_family_registry()
   vapply(reg[vapply(reg, function(s) isTRUE(s[[column]]), logical(1L))],
          `[[`, character(1L), "family")
+}
+
+# The `predictor_dpars` declaration for one family, or NULL when the family has
+# no registry row at all (nothing is admitted, so nothing needs a scope fence).
+#
+# WHY THIS COLUMN EXISTS (#1224). The A4.G17 fixed-effect-only fence used to
+# exempt bivariate families by TESTING THEIR NAME PREFIX -- `startsWith(family,
+# "biv_")` -- because `biv_gaussian` legitimately fits predictor-driven
+# `sigma1`/`sigma2`/`rho12` cells. A name prefix is not a capability, so every
+# later `biv_*` admission inherited an exemption it had not earned, and the
+# failure was SILENT: the bridge fit a shape `engine = "tmb"` refuses,
+# converged, and returned plausible numbers. Two families hit this
+# independently within an hour on 2026-09-05 (`biv_student` #1217:
+# `sigma1 = ~ z` fit at logLik -466.43141436; `biv_lognormal` #1216:
+# `sigma1 = ~ x` fit at -71.4056477; both refused by `engine = "tmb"`), and
+# each wrote its own hand-written refusal function.
+#
+# Measuring the neighbours while building this column found a THIRD instance,
+# on a family with no `biv_` prefix at all: `tweedie()` `nu ~ z` fit through
+# `engine = "julia"` (logLik -259.84074955) while `engine = "tmb"` refused it.
+# So the defect was never about bivariate-ness; it was about the bridge's
+# reachable dpar surface being wider than the native engine's, with nothing
+# declaring the difference. This column declares it, per family, once.
+drm_julia_family_predictor_dpars <- function(family) {
+  reg <- drm_julia_family_registry()
+  row <- Find(function(s) identical(s$family, family), reg)
+  if (is.null(row)) {
+    return(NULL)
+  }
+  row$predictor_dpars
+}
+
+# Registry invariants that a `spec()` default could not enforce, checked by
+# tests/testthat/test-julia-family-registry.R rather than on every registry
+# read. Returns a character vector of problems (empty when the registry is
+# well formed) so a failure names every offending row at once.
+#
+# The bivariate rule is keyed on the FAMILY OBJECT's `n_response`, not on the
+# family's name: `"*"` ("every dpar may carry a predictor") is a claim no
+# two-response family may make implicitly, because the native bivariate spec
+# builders are narrower than the bridge's reach for every bivariate family
+# except `biv_gaussian`. A row must therefore enumerate.
+drm_julia_family_registry_problems <- function() {
+  reg <- drm_julia_family_registry()
+  problems <- character(0L)
+  for (row in reg) {
+    declared <- row$predictor_dpars
+    if (!is.character(declared) || length(declared) == 0L ||
+        anyNA(declared) || any(!nzchar(declared))) {
+      problems <- c(problems, sprintf(
+        "%s: predictor_dpars must be a non-empty character vector", row$family
+      ))
+      next
+    }
+    if ("*" %in% declared && length(declared) != 1L) {
+      problems <- c(problems, sprintf(
+        "%s: the \"*\" sentinel cannot be mixed with named dpars", row$family
+      ))
+      next
+    }
+    fam <- drm_julia_registry_family_object(row$family)
+    if (is.null(fam)) {
+      # No drmTMB `drm_family` constructor of this name -- the stats-family
+      # rows (gaussian, poisson, binomial, gamma via Gamma(link = "log")).
+      # All univariate; nothing further to check.
+      next
+    }
+    n_response <- fam$n_response %||% 1L
+    if (n_response >= 2L && identical(declared, "*")) {
+      problems <- c(problems, sprintf(
+        "%s: a %d-response family may not declare predictor_dpars = \"*\"; enumerate the dpars it has earned",
+        row$family, as.integer(n_response)
+      ))
+      next
+    }
+    if (!identical(declared, "*") && !is.null(fam$dpars)) {
+      unknown <- setdiff(declared, fam$dpars)
+      if (length(unknown) > 0L) {
+        problems <- c(problems, sprintf(
+          "%s: predictor_dpars names dpar(s) the family does not have: %s",
+          row$family, paste(unknown, collapse = ", ")
+        ))
+      }
+    }
+  }
+  problems
+}
+
+# The `drm_family` object behind a registry row, or NULL when the row names a
+# stats family (gaussian / poisson / binomial / gamma) rather than a drmTMB
+# constructor. Looked up with `inherits = FALSE` so `gamma` resolves to nothing
+# instead of to `base::gamma`.
+drm_julia_registry_family_object <- function(family) {
+  ctor <- tryCatch(
+    get0(family, envir = asNamespace("drmTMB"), mode = "function",
+         inherits = FALSE),
+    error = function(e) NULL
+  )
+  if (is.null(ctor)) {
+    return(NULL)
+  }
+  obj <- tryCatch(ctor(), error = function(e) NULL)
+  if (!inherits(obj, "drm_family")) {
+    return(NULL)
+  }
+  obj
 }

@@ -499,16 +499,9 @@ test_that("engine = 'julia' guardrails fail before JuliaCall setup", {
     ),
     "does not support .*control"
   )
-  # Beta-binomial remains outside the Workflow G FE Julia admission.
-  expect_error(
-    drmTMB(
-      bf(y ~ x, sigma ~ 1),
-      family = beta_binomial(),
-      data = dat,
-      engine = "julia"
-    ),
-    "Gaussian one-/two-response|Workflow G fixed-effect"
-  )
+  # beta_binomial() was admitted to the Workflow G FE route 2026-09-05 (A4,
+  # one registry row); the former refusal assertion here moved to
+  # tests/testthat/test-julia-family-beta_binomial.R as an admission receipt.
 })
 
 # Night question 14: DRM.jl refuses these two ordinary-GLMM route limits only
@@ -700,7 +693,13 @@ test_that("Julia bridge marshals the q4 PLSM bivariate phylo route", {
   expect_equal(q2_payload$bivariate_dimension, "q2")
   expect_equal(drm_test_options_sans_labels(q2_payload$options), list(g_tol = 1e-4))
   expect_true(is.list(q2_payload$options$coef_labels))
-  expect_false(drmTMB:::drm_julia_reml_supported(q2_form, "biv_gaussian"))
+  # FLIPPED 2026-09-05 (drmTMB #1142): the q=2 phylogenetic bivariate cell is
+  # now an admitted REML route -- DRM.jl fits it with `fit_coevolution_q2_reml`
+  # and native `engine = "tmb"` has always admitted it, so the bridge no longer
+  # refuses. The same-target receipt and the full provider set live in
+  # tests/testthat/test-julia-biv-q2-reml.R. The `method = "ML"` payload shape
+  # asserted just above is deliberately unchanged.
+  expect_true(drmTMB:::drm_julia_reml_supported(q2_form, "biv_gaussian"))
 
   expect_error(
     drmTMB:::drm_julia_phylo_payload(

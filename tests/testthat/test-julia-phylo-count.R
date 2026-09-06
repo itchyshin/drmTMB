@@ -50,10 +50,13 @@ test_that("family-tag gating admits Workflow G FE tags and phylo counts", {
       fam
     )
   }
-  # beta_binomial stays outside the R Julia bridge admission.
-  expect_error(
+  # A4 (2026-09-05): beta_binomial is admitted on the fixed-effect route, so
+  # the family TAG no longer refuses it; the phylo() shape is refused further
+  # down, before Julia, by the scope fence pinned in
+  # tests/testthat/test-julia-family-beta_binomial.R.
+  expect_equal(
     drmTMB:::drm_julia_family_tag("beta_binomial", has_phylo = TRUE),
-    "Workflow G fixed-effect|Gaussian one-/two-response"
+    "beta_binomial"
   )
 })
 

@@ -1,4 +1,448 @@
+# drmTMB 0.7.1
+
+Version bump only -- tagging, release and CRAN submission remain the
+maintainer's ceremonies. This heading summarizes, at a glance, the
+`engine = "julia"` bridge work already recorded in detail under the 0.7.0
+section below:
+
+* `engine = "julia"` masked-response fits: the `is_converged()` and
+  bootstrap defects are fixed upstream in DRM.jl (#646).
+* `engine = "julia"` bridge-side profile/bootstrap inference is qualified
+  (G3) on two routes: `base_gaussian_location_scale` and
+  `plain_binomial_nonphylo`.
+* `engine = "julia"` admits `beta_binomial()` and `cumulative_logit()` on
+  fixed-effect routes, and `predict()` on `cumulative_logit()` Julia fits
+  now matches `engine = "tmb"`.
+* REML support is tabled by route and measured across both engines
+  (#1142), and `drm_julia_reml_supported()` now also covers
+  Location-Scale-Scale `sd(...)` models, promoting Capability Row 12
+  (`location_scale_scale`) from `partial` to `covered` (DRM.jl #558).
+
+See the 0.7.0 section immediately below for the full, measured detail on
+every item above.
+
 # drmTMB 0.7.0
+
+## `engine = "julia"` admits REML on the bivariate q = 2 structured routes
+
+* `drmTMB(bf(mu1 = y1 ~ x + phylo(1 | p | id, tree = tree), mu2 = y2 ~ x +
+  phylo(1 | p | id, tree = tree), sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  biv_gaussian(), engine = "julia", REML = TRUE)` now fits instead of refusing,
+  and likewise for matching `relmat(1 | p | id, K = K)` and
+  `spatial(1 | p | id, coords = coords)` markers. The bridge previously refused
+  this cell for EVERY provider -- through two different branches, one per
+  marker family -- while DRM.jl fits it (`fit_coevolution_q2_reml`) and native
+  `engine = "tmb"` has always admitted it. Measured at DRM.jl pin `430ef64cc`
+  against `engine = "tmb"` `REML = TRUE` on the same fixture: max |d coef|
+  `5.15e-05` (phylo), `5.29e-05` (relmat), `4.20e-05` (spatial); |d logLik|
+  `1.80e-04`, `3.70e-07`, `4.49e-08`; `estimator` and DRM.jl's own
+  `estim_method` read `REML` on all three, with the ML and REML
+  log-likelihoods about 6 units apart. phylo's `1.80e-04` is the one number
+  above `1e-4`, and it is a property of that route rather than of REML: the
+  already-shipped ML fit on the same fixture disagrees by `5.42e-04`, three
+  times wider.
+* **Point estimates only on these routes.** No standard error, confidence
+  interval, or coverage claim is made here. When the receipt was measured
+  DRM.jl reported an all-NaN covariance for the bivariate q = 2 structured
+  cell; DRM.jl has since started returning a finite one, confirmed live at pin
+  `0edb916a5` alongside an exact reproduction of every point number above. The
+  receipt stays point-only regardless: that covariance is the ML
+  observed-information curvature evaluated at the REML point, which is not the
+  quantity `engine = "tmb"` reports for a REML fit, and no comparison of the
+  two has been measured. Use `engine = "tmb"` when you need uncertainty on this
+  model.
+* **`animal()` q = 2 stays refused.** DRM.jl fits it, but native
+  `engine = "tmb"` still refuses bivariate `animal()` q = 2 REML, so there is
+  no same-target comparator to measure against; the route is admitted only
+  once that receipt exists. Every other bivariate structured shape keeps its
+  existing refusal unchanged. Evidence:
+  `docs/dev-log/evidence/julia-r-parity/reml/biv-q2-bridge-receipt.md`.
+
+## The formula-construct battery extended off its one Gaussian fixture, and a silently mislabelled `sd(<group>)` block found there (DRM.jl #467/#609/#730)
+
+* PR #1227 ran 58 formula constructs through `engine = "julia"` on **one**
+  Gaussian location-scale fixture and recorded two of them as silently
+  mislabelled at the standing DRM.jl pin `430ef64cc`: a character column whose
+  R locale-collated level order is not Julia's code-point order, and a factor
+  level no row uses. Re-measured at drmTMB `2fcbb0fbf` against a live DRM.jl
+  (`aee371cc9`), **neither is silent any more on a `mu` or `sigma` block** --
+  DRM.jl's own `_bridge_check_coef_labels_fidelity` refuses both, on every
+  family tried (poisson, nbinom2, binomial, gamma, cumulative_logit) and on
+  both dpar sides, while a properly declared factor stays faithful to
+  `1.05e-11` (poisson), `1.07e-11` (nbinom2) and `5.58e-12` (cumulative_logit).
+  The silence was a property of the dead pin.
+* **It is not gone everywhere.** That check iterates
+  `_bridge_rendered_regression_blocks`, which skips every location-scale-scale
+  `sd_<group>` / `sdphy_<group>` block by construction, so the group-level SD
+  formula was echoed with R's names and never compared against the design
+  DRM.jl built. Measured at `2fcbb0fbf` + `aee371cc9`:
+  `bf(y ~ x + (1 | study), sigma ~ z, sd(study) ~ s_chr)` converged on both
+  engines to an **identical** `logLik` (`-69.917488`, diff `2.98e-13`) under
+  identical coefficient names, with `mu` and `sigma` faithful to `2.12e-11`
+  and the `sd` block off by **`1.3853`** -- `s_chrBeta` reported as `0.692648`
+  by `engine = "tmb"` and `-0.692648` by `engine = "julia"`, the baseline
+  having moved from `alpha` to `Beta`. Declaring the same column as a factor
+  in R makes the identical model faithful to `1.46e-10`, which identifies the
+  level order rather than the fit as the mechanism.
+* `tests/testthat/test-julia-formula-constructs-nongaussian.R` pins the
+  contract that matters here: a construct must be either FAITHFUL (identical
+  base-R names AND coefficients within tolerance) or REFUSED, never the third
+  thing -- converging, returning identical names, and reporting a coefficient
+  that means something other than its label says. It sets a Latin collation
+  explicitly, because testthat's default `LC_COLLATE = "C"` is exactly Julia's
+  code-point order and every case would otherwise skip while reading green.
+  31 pass / 0 fail / 0 skip live.
+* Two independent fixes close the `sd()` cell and both were verified here:
+  drmTMB's own `drm_julia_check_factor_level_fidelity()` (PR #1227) refuses it
+  before Julia starts -- a route #1227 never claimed -- and DRM.jl #730's
+  `_bridge_check_lss_coef_labels_fidelity` refuses it in the engine. **NOT
+  covered:** the multi-IID `sd` route, `sdphy_<group>` live, and random-effect
+  routes generally, where DRM.jl supplies no `bridge_formula_labels_v1` at all
+  and so refuses *every* factor, declared or not -- honest, but a separate gap.
+
+## `engine = "julia"` default coefficient labels widened for the A4 family admissions
+
+* The Julia bridge's default coefficient labeller
+  (`drm_julia_bridge_default_dpar_labels()`) previously defaulted a `nu`
+  label only for `student()`; every other family with a native dpar beyond
+  `mu`/`sigma` -- `tweedie()`'s and `skew_normal()`'s `nu`, `zero_one_beta()`'s
+  `zoi`/`coi` -- was left unlabelled, so the SAME short formula forms
+  `engine = "tmb"` accepts (a bare `bf(y ~ x)`, or `bf(y ~ x, sigma ~ z)`)
+  aborted at DRM.jl's echo with `coef_labels is missing an entry for dpar
+  "nu"`. The defaulter now reads the extra dpars off each family's own
+  constructor. Measured live at DRM.jl pin `430ef64cc`: `tweedie()`'s bare
+  `bf(y ~ x)` and `bf(y ~ x, sigma ~ z)` now reach the SAME logLik as
+  `engine = "tmb"` exactly (`-479.8586143` and `-463.2274318`); a bare
+  `zero_one_beta()` formula that omits `zoi`/`coi` now fits instead of
+  aborting. A `nu` formula that native TMB refuses but DRM.jl fits (tweedie's
+  `nu ~ z`) is neither silently accepted nor pre-refused: `engine = "julia"`
+  now emits one informational message naming the shape and the native
+  refusal it has no cross-engine receipt against. This completes the
+  fixed-effect (Workflow G) admission of the six A4 families landed across
+  separate PRs: `tweedie()`, `zero_one_beta()`, `beta_binomial()`,
+  `truncated_nbinom2()`, `cumulative_logit()`, and `skew_normal()`.
+
+## `engine = "julia"` target discovery closes over what `confint()` accepts (#1156)
+
+* `profile_targets()` on a Julia fit and `confint()` on the same fit disagreed
+  in two ways that #1156's own fix did not reach. Measured at DRM.jl pin
+  430ef64cc on one Gaussian 32-tip fit of
+  `bf(y ~ x + phylo(1 | species, tree), sigma ~ 1, sd(species, level = "phylogenetic") ~ z)`
+  fitted on both engines. **(1) The two engines name the same estimand
+  differently**: native TMB reports `fixef:sd_phylo(species):z`, the bridge
+  reports `fixef:sd_phylo:z`, the Wald intervals agree to six significant
+  figures (`[0.1548584, 0.5961240]` vs `[0.1548585, 0.5961239]`), and each
+  engine refused the other's spelling -- so a script could not be moved between
+  engines by changing `engine =` alone. The native spelling is now documented as
+  CANONICAL (docs/design/258-coefficient-naming-contract.md section 9) and the
+  bridge ACCEPTS it, resolving it to the row it reports; the bridge's own short
+  form is still what `coef()`, `vcov()` and `profile_targets()` print.
+  **(2) A listed target was called unknown**: `sigma` is listed by
+  `profile_targets()` (`profile_ready = FALSE`, note `missing_tmb_parameter`)
+  but `confint(fit, "sigma", method = "profile")` answered
+  `Unknown confidence-interval target: "sigma"`. It now says the row is listed,
+  gives its inventory note, names the profile-ready alias to use instead, and
+  lists the profile-ready targets. The union #1156 introduced was measured
+  CLOSED at this pin (nothing `confint()` accepted was unlisted) and is now
+  pinned by tests that fail if it regresses.
+
+## `engine = "julia"` admits `REML = TRUE` for the residual-only bivariate Gaussian cell
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE, engine = "julia")` now fits instead of
+  refusing. Native `engine = "tmb"` has always fitted this cell by REML, and
+  DRM.jl (PR itchyshin/DRM.jl#652) now fits the same restricted likelihood in
+  closed form: both engines integrate out exactly `beta_mu1` and `beta_mu2` and
+  both report the normalised Patterson-Thompson log-likelihood, so there is no
+  data-independent constant to remove before comparing. Same-target on the
+  committed fixture (n = 60, seed 1): `logLik` `-97.021205818372` on both engines
+  (difference `0.0`), 7/7 coefficient names identical with max scaled difference
+  `4.33e-07`, Wald SE max relative difference `6.54e-07`; the Julia fit's
+  `estimator` and DRM.jl's `estim_method` both read `"REML"`. The ML route is
+  unchanged (`-90.202703298791` on both engines). **The `rho12` max coefficient
+  gap (`4.33e-07`) is entirely a link-guard convention difference, not model
+  disagreement**: native TMB bounds `rho12` via `0.999999 * tanh(eta)`
+  (`src/drmTMB.cpp`) while DRM.jl uses `0.99999999 * tanh(eta)`
+  (`src/sparse_aug_plsm.jl`), so `rho12:(Intercept)` is not the same parameter
+  on the two engines; on the natural (bounded) rho scale the two engines agree
+  to `3.95e-12`. The gap grows with `|rho|` and reaches `4.95e-04` at
+  `rho = 0.999`, which would break the `1e-4` coefficient bar with both engines
+  exactly correct (drmTMB#1190). **This shape only**: the gate
+  requires all five bivariate dpars, no structured marker, no `meta_V()`, no
+  random bar, and intercept-only `sigma1`, `sigma2` and `rho12`. A
+  covariate-carrying `sigma`/`rho12` design keeps refusing even though DRM.jl's
+  closed form covers it, because nothing has measured it against a native
+  comparator. Receipt:
+  `docs/dev-log/evidence/julia-r-parity/reml/reml-biv-residual-receipt.md`;
+  `docs/design/261-reml-by-route.md` row `biv_gaussian_residual` now reads
+  FITS / FITS / FITS (drmTMB #1142, DRM.jl #624).
+## Bridge-side profile and bootstrap inference qualified on the masked-response Julia route (#544)
+
+* `gaussian_response_mask` is promoted `partial` -> `supported` on the
+  `r_bridge_status` axis. On a Gaussian location-scale fit with
+  `missing = miss_control(response = "include")`, `confint()` through
+  `engine = "julia"` now agrees with `engine = "tmb"` on the same fit and the
+  same target: Wald to 7.9e-08, profile to 5.1e-06/7.2e-06 (against a 1e-4
+  bar stated before measuring), and a 99-replicate parametric bootstrap
+  completes with 0 failures on both engines. This closes the
+  "bridge-side inference remains unqualified (G3)" fence for this route.
+* **This requires DRM.jl at or after #646.** Against an older DRM.jl the same
+  fit reports `is_converged()` `FALSE` and its bootstrap loses every
+  replicate; both were DRM.jl defects, not drmTMB ones.
+* **Disclosed, and it affects `engine = "tmb"` equally:** a parametric
+  bootstrap on a masked-response fit draws each replicate response over the
+  FULL design and refits on every row, so the interval is calibrated to the
+  complete-data sample size and is narrower than the observed-data Wald
+  interval by an amount that grows with the missing fraction (measured
+  bootstrap/Wald width ratio at 10%/30%/50% masked: 0.82/0.67/0.65 on
+  `engine = "julia"`, 0.83/0.68/0.68 on `engine = "tmb"`). If you bootstrap a
+  heavily masked fit on either engine, treat the interval as
+  anti-conservative. A cross-engine fix is tracked as #1188.
+## Ordered cutpoints through `engine = "julia"`: discoverable, and refused by name (#1144)
+
+* #1144 polished the constrained `stats::nlminb()` solve behind the native
+  ordinal cutpoint profile, so `engine = "tmb"` reports honest
+  `"ordinal:cutpoint:<label>"` intervals. `cumulative_logit()` is an admitted
+  bridge family, so the same question needed an answer on the other engine.
+  Measured on the committed fixture at DRM.jl pin 430ef64cc: the Julia fit's
+  `fit$ordinal$cutpoints` already agreed with the native slot to 8.98e-13, but
+  `profile_targets()` listed no ordinal row at all, and
+  `confint(fit, parm = "ordinal:cutpoint:low|medium")` answered
+  `Unknown confidence-interval target` for `method = "wald"`, `"profile"` and
+  `"bootstrap"` alike -- a typo diagnosis for a target plainly on the fit.
+  DRM.jl's bridge inference accepts only fixed-effect and random-effect-SD
+  targets at that pin, so the cutpoint interval genuinely cannot be routed.
+  `profile_targets()` now lists the ordinal rows for a Julia-engine
+  `cumulative_logit()` fit -- the same names, in the same order, as the native
+  fit -- with the public cutpoint rows `profile_ready = FALSE` and note
+  `julia_ordinal_cutpoint_native_only`, and `confint()` refuses a cutpoint
+  target for every `method`, naming the cutpoint, `engine = "tmb"`, and
+  `fit$ordinal$cutpoints`. **No numbers changed on either engine**: this is a
+  discovery-and-diagnosis fix plus an explicit engine boundary.
+
+## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
+
+* `predict()` on an `engine = "julia"` fit accepted `type = c("response",
+  "link")` only, so `predict(fit, type = "quantile")` was refused by
+  `match.arg()` for EVERY family while `engine = "tmb"` has accepted it since
+  the distributional-output layer landed. The bridge method now takes
+  `type = "quantile"` and a `prob` argument, and hands the fit to the SAME
+  native quantile code the TMB engine uses: the per-family density/CDF/quantile
+  registry, the `prob` validation, the percentage column labels, and the
+  `calibrated`/`prob`/`label` attributes all keep one source of truth, with
+  only the per-row distributional parameters coming from the bridge's own
+  reconstruction. All 14 families the bridge admits on its fixed-effect route
+  qualify: gaussian, biv_gaussian, student, lognormal, poisson, nbinom2, gamma,
+  beta, binomial, truncated_nbinom2, zero_one_beta, tweedie, beta_binomial and
+  cumulative_logit. Measured against `engine = "tmb"` on the same fit at DRM.jl
+  pin `430ef64cc` (`tests/testthat/test-julia-predict-quantile.R`, prob = 0.1 /
+  0.5 / 0.9), identical dimensions, column names and attributes, and max |d
+  quantile| at most `4.93e-11` on stored rows and `2.34e-11` on fresh
+  `newdata` -- exactly `0` for the five discrete families. **NOT covered:** a
+  `meta_V()` fit refuses `type = "quantile"` on this engine, because a
+  Julia-bridge fit does not retain the per-row known sampling variance and its
+  quantiles would silently use `sigma` alone (measured `3.485e-01` too narrow
+  against `engine = "tmb"`); use `engine = "tmb"` there. This is a
+  distributional plug-in interval on both engines -- `attr(., "calibrated")` is
+  `FALSE` -- and it makes no interval-coverage claim.
+## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
+
+* `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
+  animal(1 | p | id, A = A), sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE)` now fits instead of refusing. The
+  bivariate q2 exact-covariance REML route was already provider-agnostic in
+  TMB's C++ (no branch on marker identity) and in DRM.jl's own REML
+  implementation (`animal` and `relmat` markers call the identical
+  `make_coevo_problem_from_covariance()` path, bit-identical loglik measured
+  on a matched fixture); the prior refusal was a recorded scope decision, not
+  a mathematical one. Measured this run: the new `animal()` REML fit agrees
+  with the `relmat()` control on the same matrix to machine precision
+  (identical mathematics), with the dense restricted-likelihood oracle, and
+  with a direct DRM.jl `method = :REML` call (`|d logLik| < 1e-4`,
+  coefficients to `1e-7`); see
+  `docs/dev-log/evidence/julia-r-parity/reml/biv-animal-q2-receipt.md`. That
+  DRM.jl comparison is point-estimate and logLik only: DRM.jl's bivariate q2
+  structured route returns `vcov = NaN` for every provider and both
+  estimators, so there is no Julia SE to compare. `engine = "julia"` itself
+  is untouched by this change and still refuses `REML = TRUE` on every
+  bivariate q2 structured route (phylo, spatial, relmat, animal alike); the
+  fit above is native TMB (`engine = "tmb"`) only. Precision (`Ainv`) and
+  pedigree-built animal representations, slopes, q4+, and scale-side
+  bivariate relmat/animal REML routes remain deferred and refused.
+## `engine = "julia"` zero-inflated NB2: `fitted()` and `residuals()` now agree with the native engine (DRM.jl bridge fix)
+
+* A zero-inflated negative-binomial model (`family = nbinom2()` with a `zi ~ `
+  formula part, native `model_type` `"zi_nbinom2"`) already routed through
+  `engine = "julia"`, but nothing tested or documented it -- and it carried a
+  silent disagreement. `fitted()` and `residuals()` differed between the two
+  engines on the SAME converged fit, because DRM.jl's `fitted()` is the
+  count-component mean `mu` while drmTMB's is the unconditional mean
+  `(1 - zi) * mu`. Measured on the package's own
+  `tests/testthat/test-zi-nbinom2.R` fixture (n = 1800): coefficients agreed to
+  4.56745752330789e-13 and logLik to 1.72803993336856e-11, while `fitted()`
+  disagreed by 1.3665229755584 -- invisible to any coefficient or likelihood
+  check. Fixed on the DRM.jl bridge boundary (`_bridge_fitted_marginal`), which
+  leaves DRM.jl's own `fitted`/`simulate`/`marginal_parameters` and the bridge's
+  `mu` dpar untouched; after the fix the difference is 4.83169060316868e-13. The
+  same repair covers zero-inflated Poisson; hurdle fits are deliberately not
+  repaired (their mean also divides by `1 - P(0)` and has no bridge receipt).
+  A new `tests/testthat/test-julia-family-zi_nbinom2.R` pins the route: coef,
+  logLik and Wald-SE parity, the coefficient-naming contract for all three dpar
+  blocks (design 258 section 8.10), the engine's own refusals, and two KNOWN
+  GAPS that are pinned rather than claimed -- `predict(dpar = "zi")` is refused
+  on a Julia-engine fit (the bridge tags it `"nbinom2"`, whose link table has no
+  `zi` row), and `sigma()` returns a list rather than the numeric vector the
+  native engine returns. **No registry row and no family admission**: the route
+  was already reachable through the existing `nbinom2` row.
+
+## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
+
+* Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
+  in the family registry, R/julia-family-registry.R) had a gap: nothing
+  pre-Julia checked an ordinary random-effect bar (`(1 | g)`, including random
+  slopes) or an `sd()`/`sd_phylo()` scale submodel against that family for a
+  family with none of phylo_only/locscale_phylo/slope_phylo/structured set.
+  Measured on origin/main with `DRM_JL_PATH` unset: `student() y ~ x + (1 | g)`,
+  `beta_binomial() cbind(s, f) ~ x + (1 | g)`, `lognormal() sigma ~ z + (1 | g)`,
+  `zero_one_beta() y ~ x + (1 | g)`, and `truncated_nbinom2() y ~ x + (1 + x | g)`
+  all reached `drm_julia_setup()` -- five of six fe-only families with no receipt.
+  A new `drm_julia_refuse_fe_only_random_effects()` gate, registry-driven (no
+  hard-coded family list, so a later fe-only admission is covered without an
+  edit here), now refuses these before Julia starts, naming the family, the
+  `fe` registry column that admitted it, and the offending term. `phylo()` and
+  `relmat()`/`animal()`/`spatial()` markers are untouched by this gate -- both
+  are already refused pre-Julia by existing gates. **No family admission or
+  removal, no DRM.jl change, no comparison-row change**: this closes a scope
+  gap only.
+## `engine = "julia"` masked-response fits: convergence flag and bootstrap fixed upstream (DRM.jl #646)
+
+* A Gaussian fit with `missing = miss_control(response = "include")` through
+  `engine = "julia"` reported `is_converged()` FALSE and failed all bootstrap
+  replicates, even though its coefficients and profile interval agreed with
+  `engine = "tmb"` to ~7e-06 on the same fixture. Both defects were DRM.jl's
+  and are fixed there (DRM.jl #646): the degeneracy check took `std()` of a
+  response vector still carrying NaN in the masked rows (so its bar was NaN and
+  every comparison against it false), and the replicate simulator drew
+  `fit.nobs` values against full-design mean and scale vectors, throwing
+  `DimensionMismatch` on every replicate. MEASURED on the fixture: raw
+  `Optim.converged` TRUE, `|grad|inf` 6.41e-12 against a `g_tol` of 1e-8, and a
+  parameter vector bit-identical to the complete-case fit -- a wrong
+  return-code mapping, not a hard optimisation surface.
+* `fit$opt` for a Julia-engine fit is no longer a bare
+  `list(convergence = <0/1>)`. It now also carries `iterations` (the
+  optimiser's own count, `NA_integer_` on a route that does not record one --
+  never 0) and a `message` describing what DRM.jl reported. DRM.jl sends no
+  optimiser message string, so `message` is composed from the facts that did
+  cross the bridge and says so; it is not presented as a verbatim optimiser
+  message.
+* `tests/testthat/test-julia-missing.R` gains a live assertion block on the
+  masked fixture: `is_converged()` TRUE, `opt$convergence` 0, `opt` carrying
+  `iterations` and `message`, and `confint(method = "bootstrap", R = 19)` with
+  0 failed replicates. Receipts, including the per-hunk red controls and the
+  re-qualification against the fixed DRM.jl, are under
+  `docs/dev-log/evidence/julia-r-parity/p2-g3/`.
+* NOT promoted here. The `gaussian_response_mask` capability row stays
+  `partial`: the two defects that blocked its G3 qualification are fixed and
+  re-measured (wald delta 7.86e-08, profile delta 7.18e-06, bootstrap 0/99
+  failed on both engines), but the status move belongs on top of #1184, which
+  is concurrently rewriting that row and the guard that pins it.
+* MEASURED: the parametric bootstrap on a masked-response fit is
+  anti-conservative, and the narrowing GROWS with the missing fraction --
+  masking 10% / 30% / 50% of the rows gave relative narrowing of roughly
+  -7% / -27% / -40% against the seed fit's Wald SE, and an implied nominal-95
+  interval covering roughly 93% / 85% / 76% of the time. The narrowing grows
+  with the missing fraction because replicates are drawn over the FULL design
+  regardless of how many rows were observed; this is shared by both engines.
+  The fix (a mask-preserving bootstrap) is a cross-engine statistical
+  calibration change, out of scope here, and tracked as #1188.
+## `engine = "julia"` bridge-side profile/bootstrap inference qualified on two routes (G3)
+
+* `base_gaussian_location_scale` and `plain_binomial_nonphylo` promoted
+  `r_bridge_status` `partial` -> `supported`: profile and bootstrap
+  confidence intervals through `engine = "julia"` on a real fixed-effect
+  target agree with `engine = "tmb"` within `1e-4` (profile deltas measured
+  `2.8e-06`/`5.9e-07` and `9.4e-08`/`2.3e-06`), both engines converge, and
+  bootstrap (`R = 99`) intervals overlap with `0/99` failed replicates on
+  either side. `plain_binomial_nonphylo`'s bootstrap is enabled by
+  drmTMB#1123 (already fixed). Two related rows do NOT promote:
+  `biv_gaussian_residual` has no profile/bootstrap-ready target on the
+  Julia bridge for any parameter (a structural gap), and
+  `gaussian_response_mask`'s Julia bootstrap fails all 99 replicates while
+  its underlying fit's own optimizer convergence flag reads `FALSE` on the
+  missing-response fixture -- both newly measured, both left unqualified
+  rather than rounded up. A purpose-built quasi-complete-separation binomial
+  cell exercises DRM.jl's `#631` profile-endpoint-failure backstop through
+  the public `confint()` entry point for the first time: `engine = "julia"`
+  refuses rather than returning an infinite bound
+  (`docs/dev-log/evidence/julia-r-parity/p2-g3/`).
+
+## `engine = "julia"` admits `beta_binomial()` (fixed effects)
+
+* `drmTMB(bf(cbind(successes, failures) ~ x, sigma ~ z), family = beta_binomial(),
+  engine = "julia")` now routes to DRM.jl's `BetaBinomial` instead of refusing
+  with the Workflow G message. Both engines fit the same target with the same
+  `sigma` parameterisation (precision `phi = 1 / sigma^2`); the per-row
+  denominator crosses as `trials` context, not as a distributional parameter.
+  Measured at DRM.jl pin `430ef64cc` on the committed fixture
+  (`tests/testthat/test-beta-binomial.R` draw, n = 1200): max |d coef|
+  `7.77e-15`, |d logLik| `2.57e-10`, per-coefficient Wald SE max relative
+  difference `1.73e-07`; the fit's `estimator` (`"ML"`) equals what DRM.jl
+  reports as `estim_method`. **Fixed effects only**: a `phylo()` term with this
+  family is still refused before Julia starts, and no `(1 | g)` route, structured
+  marker, or interval-coverage claim is made; use `engine = "tmb"` for those.
+
+## `engine = "julia"` admits `cumulative_logit()` on the fixed-effect route
+
+* `cumulative_logit()` (dpar `mu`; ordered-factor response) now routes through
+  `engine = "julia"` for fixed-effect models -- one row in the Julia family
+  registry plus a small family file that integer-codes the ordered response,
+  sends `mu` without its intercept, labels DRM.jl's `cutpoints` block with
+  drmTMB's own `"low|medium"` spelling, and moves that block into
+  `fit$ordinal` (the native engine's slot; cutpoints never appear in `coef()`
+  or `vcov()`). Same target as `engine = "tmb"` on the committed
+  `test-cumulative-logit.R` fixture at DRM.jl pin `430ef64cc`: max |d coef|
+  2.20e-14, |d logLik| 1.13e-11, cutpoints within 8.98e-13, Wald SE within
+  5.76e-09 relative; `estimator` reads `"ML"` and equals DRM.jl's
+  `estim_method`. A `sigma ~` formula and an unordered factor are refused
+  before Julia starts with the native engine's own reasons. Known gap, not
+  fixed here: `predict()` on the Julia object aborts for this family (its
+  design rebuild keeps the `mu` intercept); `fitted()` is unaffected. No
+  phylogenetic, structured, or random-effect ordinal routes are admitted;
+  `(1 | g)` fails closed at DRM.jl's label echo.
+
+## `engine = "julia"` admits `skew_normal()` on the fixed-effect route
+
+* `skew_normal()` (dpars `mu`, `sigma`, `nu`) now routes through
+  `engine = "julia"` for fixed-effect models -- one row in the Julia family
+  registry on the R side, plus a five-line `_bridge_family()` case in DRM.jl
+  (`SkewNormal()` existed there but the R bridge had no tag for it; that case
+  is DRM.jl PR #641, so a DRM.jl checkout without it still aborts at the
+  Julia boundary with `drm_bridge: unsupported family`). Same target as
+  `engine = "tmb"` on the committed `test-skew-normal-location-scale.R`
+  fixture at DRM.jl pin `430ef64cc` + that case: max |d coef| 1.89e-11,
+  |d logLik| 2.16e-12, per-coefficient Wald SE within 1.04e-06 relative;
+  `estimator` reads `"ML"` and equals DRM.jl's `estim_method`. The public
+  moment parameterisation (`mu` = mean, `sigma` = SD, `nu` = Azzalini slant)
+  is the same on both engines, so the bridged coefficients are the native
+  ones; a predictor-dependent `nu ~ z` agrees to the same tolerance. Write
+
+## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"`
+
+* Closes the gap the `cumulative_logit()` admission above recorded:
+  `predict()` on an `engine = "julia"` `cumulative_logit()` fit no longer
+  aborts. The reconstructed `mu` design dropped the fitted coefficient block's
+  intercept but kept restoring "(Intercept)" via `stats::model.matrix()`;
+  the design rebuild now drops it too, scoped to `cumulative_logit()`'s `mu`
+  dpar so no other family's Julia prediction path is touched. `mu`'s link is
+  identity, so `type = "response"` and `type = "link"` are identical on both
+  engines. Measured on the committed
+  `tests/testthat/test-julia-cumlogit-predict.R` fixture (n = 900) at DRM.jl
+  pin `430ef64cc`: max |d prediction| for stored data and fresh `newdata`,
+  both types, all below `1.5e-13`. Thresholds are not read by `predict()`
+  on either engine for this family -- they live in `fit$ordinal`, not in the
+  linear predictor. `type = "quantile"` on `engine = "julia"` fits was
+  unavailable when this landed; it is added by the entry at the top of this
+  file (drmTMB#1198).
 
 ## REML support tabled by route, measured across both engines (#1142)
 
@@ -60,6 +504,7 @@
   label echo (`coef_labels is missing an entry for dpar "nu"`) because the
   bridge's label defaulter fills `nu` only for `student()`; that one-line fix
   sits outside this change. No phylogenetic, structured, or random-effect
+  skew-normal routes are admitted; `(1 | g)` fails closed at DRM.jl.
   tweedie routes are admitted; `(1 | g)` fails closed at the same echo.
 ## `engine = "julia"` admits `zero_one_beta()` (fixed effects)
 
