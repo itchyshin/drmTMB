@@ -1781,6 +1781,119 @@ drm_julia_reml_cell_label <- function(formula, family_type) {
   "Gaussian"
 }
 
+# A7 (2026-09-05, DRM.jl #467 / #609): the level SET and level ORDER behind a
+# coded column must survive the bridge, not only its contrast scheme. Two
+# shapes reach Julia as a design R never built, and the contrast comparison
+# above sees neither, because both engines agree on the coding RULE and
+# disagree only about the levels it is applied to. Both were measured through
+# drmTMB on 2026-09-05 against the pinned DRM.jl 430ef64cc, with the
+# marshalled columns probed directly from the live Julia session:
+#
+# (1) A FACTOR level that no row uses. `model.matrix()` gives every declared
+#     level a column, including an all-zero one. The factor crosses as a
+#     `CategoricalVector` whose pool KEEPS that level (probed: pool
+#     `["a", "b", "c", "zz"]`), but DRM.jl's schema codes only the levels it
+#     OBSERVES, so it builds one column fewer. Measured: `y ~ gempty` with
+#     `levels = c("a", "b", "c", "zz")` gave DRM.jl
+#     `["(Intercept)", "gempty: b", "gempty: c"]` against R's four names and
+#     aborted inside Julia with a raw count error ("the R side must send
+#     exactly one name per column") naming neither the column nor the fix.
+#
+# (2) A CHARACTER column whose level order is not code-point order. R builds
+#     levels with `sort()` under the session collation (`LC_COLLATE`), so
+#     `c("a", "B", "c")` gives levels a, B, c and codes against "a". A
+#     character column crosses as a plain `Vector{String}` -- no pool, no
+#     order -- and DRM.jl sorts it by code point, giving levels B, a, c and
+#     coding against "B". Same column COUNT, different baseline. Measured on
+#     the pin: identical coefficient names, `max|coef diff| = 0.1785`, and no
+#     error at all. `factor(<character column>)` is the same hazard: the
+#     bridge materialises the ORIGINAL values and sorts those.
+#     A FACTOR COLUMN is immune -- its level order crosses intact in the
+#     `CategoricalVector` pool (probed for `levels = c("c", "b", "a")`) --
+#     which is why the advice below is to declare the factor in R.
+#
+# DRM.jl's own `_bridge_check_coef_labels_fidelity` refuses (2) on DRM.jl
+# main, and that stays the second line of defence for a disagreement the R
+# data cannot show. It is not in every build drmTMB is asked to drive (it is
+# absent from the pin above), and a refusal that exists only downstream still
+# lets an older engine report the wrong parameter under the right name. This
+# guard refuses both shapes here, before Julia starts, naming the column, the
+# two level orders, and the fix.
+#
+# `data` is the same row-ordered, column-subset frame the payload marshals,
+# so the source column read here is the one that reaches Julia.
+drm_julia_predicted_julia_levels <- function(src) {
+  # The level order DRM.jl will build for a column, by marshalled type.
+  # Logical columns stay CONTINUOUS in Julia (the same 0/1 column, rendered
+  # `<col>TRUE`) and are deliberately not compared here.
+  if (is.logical(src)) {
+    return(NULL)
+  }
+  values <- src[!is.na(src)]
+  if (is.factor(src)) {
+    # Crosses as a `CategoricalVector`: pool order, observed levels only.
+    return(levels(droplevels(values)))
+  }
+  if (is.character(src)) {
+    # Crosses as a plain `Vector{String}`, which Julia sorts by code point.
+    # R's radix method sorts character vectors in the C locale, i.e. the same
+    # byte order (verified against the marshalled column on 2026-09-05).
+    return(sort(unique(values), method = "radix"))
+  }
+  if (is.numeric(src)) {
+    # `factor(<numeric>)`: the bridge materialises the ORIGINAL values, so
+    # Julia sorts them numerically -- exactly R's own `factor()` order.
+    return(as.character(sort(unique(values))))
+  }
+  NULL
+}
+
+drm_julia_check_factor_level_fidelity <- function(mf, coded, dpar, data) {
+  for (nm in names(mf)[coded]) {
+    col <- mf[[nm]]
+    if (is.logical(col)) next
+    # The source column DRM.jl will read: the model-frame column name is
+    # either a bare column or a `factor(<column>)` call the bridge
+    # materialises from the ORIGINAL values.
+    inner <- sub("^factor\\((.*)\\)$", "\\1", nm)
+    src <- if (nm %in% names(data)) {
+      data[[nm]]
+    } else if (!identical(inner, nm) && inner %in% names(data)) {
+      data[[inner]]
+    } else {
+      NULL
+    }
+    if (is.null(src)) next
+    r_levels <- levels(if (is.factor(col)) col else factor(col))
+    # An unused level is checked against the MODEL FRAME, not `data`: R codes
+    # every declared level, so a level left empty by the rows `model.frame()`
+    # kept still gets an all-zero column here while DRM.jl -- reading the full
+    # marshalled column -- builds a non-zero one under the same name.
+    if (is.factor(col)) {
+      unused <- r_levels[tabulate(as.integer(col), nbins = length(r_levels)) == 0L]
+      if (length(unused) > 0L) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} cannot reproduce R's design for the {.code {dpar}} formula: {.val {nm}} declares {length(unused)} factor level{?s} that no row uses.",
+          "*" = "unused level{?s}: {.val {unused}}",
+          x = "R's {.fn model.matrix} gives an unused level an all-zero column; DRM.jl codes only the levels it observes, so the two engines would build different designs.",
+          i = "Drop the unused levels before fitting ({.code data <- droplevels(data)}), or use {.code engine = \"tmb\"}."
+        ))
+      }
+    }
+    julia_levels <- drm_julia_predicted_julia_levels(src)
+    if (is.null(julia_levels)) next
+    if (identical(r_levels, julia_levels)) next
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cannot reproduce R's design for the {.code {dpar}} formula: {.val {nm}} would be coded against a different baseline level.",
+      "*" = "R orders its levels {.val {r_levels}} and codes against {.val {r_levels[[1L]]}}.",
+      "*" = "DRM.jl orders them {.val {julia_levels}} and codes against {.val {julia_levels[[1L]]}}.",
+      x = "The two engines would then fit different designs, and could report different coefficients under identical names.",
+      i = "Declare the level order in R before fitting -- store the column as {.code factor(x, levels = c(...))} in {.arg data} -- because a factor column's level order crosses the bridge intact; or use {.code engine = \"tmb\"}."
+    ))
+  }
+  invisible(NULL)
+}
+
 # Base-R public coefficient-name labels drmTMB sends alongside the payload,
 # one character vector per dpar, in `model.matrix()` column order (design 258
 # S7's `coef_labels` field). The right-hand side is reduced to its
@@ -1917,6 +2030,7 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
           i = "Refit with plain treatment-coded factors ({.code factor(x, levels = ...)} with {.code ordered = FALSE}, no {.code contrasts} attribute, default {.code options(\"contrasts\")}), or use {.code engine = \"tmb\"}."
         ))
       }
+      drm_julia_check_factor_level_fidelity(mf, coded, dpar, data)
     }
     cols <- tryCatch(
       colnames(stats::model.matrix(stats::terms(mf), mf)),
