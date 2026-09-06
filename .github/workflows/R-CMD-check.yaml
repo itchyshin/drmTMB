@@ -178,9 +178,9 @@ jobs:
   # the BUILD, not the environment, so that skip is permanent: those tests have
   # never once run in CI.
   #
-  # Measured at f8f11699c by running the affected files twice, once in the
-  # source tree and once inside the extracted `R CMD build` tarball:
-  # 35 files change behaviour, 24,341 passing assertions collapse to 854, and
+  # Measured at origin/main eccb10299 by running the affected files twice, once
+  # in the source tree and once inside the extracted `R CMD build` tarball:
+  # 35 files change behaviour, 24,348 passing assertions collapse to 855, and
   # 24 of the 35 contribute ZERO assertions to the tarball run. Two user-facing
   # defects reached main inside that gap -- the reader-contract linter had
   # silently stopped policing six vignettes (#1207) and nine exported functions

@@ -10,13 +10,13 @@
 # not a fact about the code under test; it is a fact about the build, so the
 # skip is unconditional and permanent, not environmental.
 #
-# Measured on this repository at f8f11699c (macOS, R 4.6.0) by running the
-# affected files twice -- once with the working directory in the source tree,
-# once inside the extracted `R CMD build` tarball:
+# Measured on this repository at origin/main eccb10299 (macOS, R 4.6.0) by
+# running the affected files twice -- once with the working directory in the
+# source tree, once inside the extracted `R CMD build` tarball:
 #
 #   35 test files change behaviour between the two trees
-#   24,341 passing assertions in the source tree -> 854 in the tarball
-#   23,487 assertions (96.5%) are structurally unreachable under R CMD check
+#   24,348 passing assertions in the source tree -> 855 in the tarball
+#   23,493 assertions (96.5%) are structurally unreachable under R CMD check
 #   24 of the 35 files contribute ZERO assertions to the tarball run
 #
 # Two user-facing defects reached main inside that blind spot and were found

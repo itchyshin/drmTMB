@@ -49,20 +49,31 @@ it is not this slice.
 
 ## 5. Checks Run
 
-Measured on macOS, R 4.6.0, at merge commit `f8f11699c`.
+Measured on macOS, R 4.6.0. `main` moved twice during this slice, so the
+inventory was measured twice; the later numbers are the ones reported.
+
+- First measurement, at merge commit `f8f11699c` (both #1207 and #1208 open):
+  35 files, **24,341** source assertions to **854** in the tarball,
+  lane `[ FAIL 11 | WARN 0 | SKIP 4 | PASS 24341 ]` in 3m42s -- 9 cheatsheet
+  failures (#1208) plus 2 reader-contract failures (#1207).
+- Second measurement, at `origin/main` **`eccb10299`**, after #1207 merged
+  (merged into this branch at `50c8c6f31`). This is the reported inventory.
 
 Two-mode run of every candidate file -- once with the working directory in the
 source tree, once inside the extracted `R CMD build --no-build-vignettes`
-tarball:
+tarball -- at `eccb10299`:
 
-- **35** test files change behaviour between the two trees.
-- **24,341** passing assertions in the source tree; **854** in the tarball.
-- **23,487** assertions (96.5%) are structurally unreachable under `R CMD check`.
+- **35** test files change behaviour between the two trees (all 35; the scanner
+  produced no false positives).
+- **24,348** passing assertions in the source tree; **855** in the tarball.
+- **23,493** assertions (96.5%) are structurally unreachable under `R CMD check`.
 - **24** of the 35 files contribute **zero** assertions to the tarball run.
+- Skips rise from **4** to **278** between the two trees.
 
-Lane command on the source tree: `[ FAIL 11 | WARN 0 | SKIP 4 | PASS 24341 ]`
-in 3m42s. The 11 failures are the two live defects PR #1207 and PR #1208 fix;
-both PRs were still open at `f8f11699c`.
+Lane command on the source tree at `eccb10299`:
+`[ FAIL 9 | WARN 0 | SKIP 4 | PASS 24348 ]`. The 9 failures are the live #1208
+defect, which was still open when this was written. The manifest did not drift
+across the #1207 merge: still 35 files.
 
 Existing guards re-run and green with the change: `capability_ledger.py
 --check`, the five wired `tools/tests/*.py` unittests, `check-evidence-citations.R`,
@@ -75,7 +86,8 @@ Three red controls, each restored byte-identically afterwards.
 1. **Cheatsheet row removed.** The brief proposed deleting the `aicc()` row from
    `tools/function-cheatsheet-source.Rmd`; that row is *already missing* -- it is
    one of the nine live #1208 defects -- so the control used `objective_at()`
-   instead. Lane went `FAIL 11` to `FAIL 12` with a new named expectation,
+   instead. Lane went `FAIL 11` to `FAIL 12` (measured at `f8f11699c`) with a new named
+   expectation,
    "Expected `source` to match string \"objective_at()\"". Restored; md5
    `ea05294eaea641ce130e6307a2366092` before and after.
 2. **New build-excluded test, manifest not updated.** `--check` failed, naming
@@ -105,9 +117,9 @@ proposed planting was already live on `main`.
 
 ## 10. Known Residuals
 
-The lane is **red on `main` today**, by 11 assertions, because #1207 and #1208
-are open. That redness is the evidence the lane works; it is also why this PR
-should land after them.
+The lane is **red on `main` today**, by 9 assertions, because #1208 is still
+open. That redness is the evidence the lane works; it is also why this PR should
+land after #1208.
 
 ## 11. Team Learning
 
@@ -121,5 +133,5 @@ Not applicable; no family-by-structure surface changed.
 
 ## Next Actions
 
-Merge #1207 and #1208, then this. Consider de-duplicating the four existing
-source-tree steps out of the shard matrix.
+Merge #1208, then this (#1207 has landed). Consider de-duplicating the four
+existing source-tree steps out of the shard matrix.
