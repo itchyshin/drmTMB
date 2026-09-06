@@ -63,14 +63,16 @@ drm_julia_intentional_gates <- function() {
       "xfam_missing_route",
       "xfam_rho12_formula",
       "xfam_dispersionless_sigma",
-      "structured_marker_slope"
+      "structured_marker_slope",
+      "fe_only_random_effects"
     ),
     route = c(
       rep("base", 5),
       rep("bivariate_phylo", 2),
       rep("structured", 3),
       rep("cross_family", 3),
-      "structured"
+      "structured",
+      "fe_only"
     ),
     guard = c(
       "weights",
@@ -86,7 +88,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family missing",
       "cross-family rho12",
       "cross-family dispersion",
-      "structured marker non-intercept slope"
+      "structured marker non-intercept slope",
+      "fe-only random effect / sd submodel"
     ),
     family_type = c(
       "gaussian",
@@ -102,7 +105,8 @@ drm_julia_intentional_gates <- function() {
       "gaussian+poisson",
       "gaussian+poisson",
       "gaussian+poisson",
-      "gamma"
+      "gamma",
+      paste(drm_julia_fe_only_fence_families(), collapse = "+")
     ),
     syntax = c(
       "weights = ...",
@@ -118,7 +122,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family response missingness",
       "cross-family rho12 formula",
       "cross-family sigma formula on dispersionless axis",
-      "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)"
+      "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)",
+      "(1 | g) / (1 + x | g) / sd(g) ~ ... on a fe = TRUE, non-phylo_only/locscale_phylo/slope_phylo/structured registry family"
     ),
     r_bridge_status = "intentional_error",
     drmjl_status = c(
@@ -135,7 +140,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family route requires complete axes",
       "latent rho route only",
       "dispersionless axis",
-      "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)"
+      "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)",
+      "fixed-effect-only family; no random-effect or sd()/sd_phylo() route in the R bridge yet"
     ),
     message_pattern = c(
       "weights",
@@ -151,13 +157,22 @@ drm_julia_intentional_gates <- function() {
       "missing.*routes",
       "rho12.*not wired",
       "cannot fit .*sigma2.*dispersion",
-      "cannot fit a random slope"
+      "cannot fit a random slope",
+      # `\\s+` (not a literal space) between the closing backtick and
+      # "(fixed-effect)": cli wraps the message at 80 columns for the three
+      # longest family names (truncated_nbinom2, zero_one_beta,
+      # cumulative_logit) and beta_binomial, replacing that space with a
+      # newline -- a literal space here matched only the short-name group
+      # (measured FALSE for the four above under Rscript at
+      # cli.condition_width = 80; TRUE at = Inf for all seven).
+      "only on the .fe.\\s+\\(fixed-effect\\)"
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 10),
       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3),
-      "https://github.com/itchyshin/drmTMB/issues/1146"
+      "https://github.com/itchyshin/drmTMB/issues/1146",
+      "https://github.com/itchyshin/drmTMB/issues/544"
     ),
     action = "error",
     evidence = c(
@@ -174,7 +189,8 @@ drm_julia_intentional_gates <- function() {
       "Cross-family bridge currently drops missing rows and requires complete axes.",
       "Cross-family dependence is latent rho from the engine, not an R rho12 formula.",
       "Poisson and Binomial cross-family axes have no dispersion sub-model.",
-      "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap."
+      "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap.",
+      "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs)."
     ),
     issue = "drmTMB#544",
     stringsAsFactors = FALSE
@@ -610,6 +626,7 @@ drmTMB_julia_bridge <- function(
 
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
+  drm_julia_refuse_fe_only_random_effects(formula, family_type)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for univariate
   # Gaussian cells: the fixed-effect location-scale model, Gaussian
   # location-scale models with a phylo term on sigma (with or without a matching
@@ -1143,6 +1160,100 @@ drm_julia_dpar_has_ordinary_bar <- function(formula, dpar) {
   }, logical(1L)))
 }
 
+# A4.G17 scope fence: admitting a family with `fe = TRUE` in
+# R/julia-family-registry.R (the Workflow G fixed-effect cohort) widens the
+# bridge's REACHABLE surface to any random-effect or structured term that the
+# registry's OTHER columns (phylo_only / locscale_phylo / slope_phylo /
+# structured) do not separately admit -- `drm_julia_family_tag()` returns the
+# tag for any `fe = TRUE` family before it ever checks those columns, so an
+# ordinary `(1 | g)` bar (incl. random slopes) or an `sd()`/`sd_phylo()` scale
+# submodel on such a family passes every gate upstream of this one and
+# dispatches to DRM.jl with no receipt (measured 2026-09-05: `student()
+# y ~ x + (1 | g)`, `beta_binomial()`, `lognormal()`, `zero_one_beta()`, and
+# `truncated_nbinom2()` random-effect shapes all reach `drm_julia_setup()`
+# on origin/main). This fence runs AFTER `drm_julia_family_tag()` -- a
+# tag-level refusal was measured to break `biv_gaussian()`'s downstream q2/q4
+# phylo gates -- and EXEMPTS every `biv_*` tag by prefix and every family
+# with any of the four admitting columns set, so it only ever fires for the
+# fixed-effect-only cohort, computed by `drm_julia_fe_only_fence_families()`
+# below (student, lognormal, truncated_nbinom2, zero_one_beta, tweedie,
+# beta_binomial, cumulative_logit as of 2026-09-05; registry-driven, so a
+# later fe-only admission is covered without editing this function).
+#
+# `phylo()` terms and `relmat()`/`animal()`/`spatial()` markers are NOT
+# checked here -- both are already refused, upstream of this fence, by
+# EXISTING gates that this fence must not shadow (their pinned messages are
+# tested by name in tests/testthat/test-julia-family-beta_binomial.R and
+# siblings):
+#   * `relmat()`/`animal()`/`spatial()`: `drm_julia_has_structured_term()`
+#     dispatches to `drmTMB_julia_structured_bridge()` -> its own
+#     `drm_julia_structured_family_tag()` gate BEFORE `drm_julia_family_tag()`
+#     ever runs, so a structured marker on an fe-only family never reaches
+#     this function (measured 2026-09-05: `student() + relmat(1 | g, K = K)`
+#     aborts with "routes `relmat()` / `animal()` / `spatial()` structured
+#     terms only for univariate Gaussian, Poisson, NB2, or Gamma fits").
+#   * `phylo()`: `drm_julia_bridge_payload()` unconditionally calls
+#     `drm_julia_phylo_payload()`, whose family allowlist already aborts for
+#     any fe-only family with a `phylo()` term (measured 2026-09-05:
+#     `student() y ~ x + phylo(1 | sp, tree = tr)` aborts with "can marshal
+#     `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta,
+#     Binomial, or bivariate Gaussian (q=4) fits" -- this fence runs before
+#     that check but does not intercept `phylo()`, so the existing message
+#     still fires).
+#
+# The cohort itself is computed once, here, by
+# `drm_julia_fe_only_fence_families()`, so this fence and the
+# `fe_only_random_effects` row's `family_type` field in
+# `drm_julia_intentional_gates()` cannot drift apart, and a later fe-only
+# registry admission (e.g. skew_normal) needs no edit to either.
+drm_julia_fe_only_fence_families <- function() {
+  reg <- drm_julia_family_registry()
+  fams <- vapply(reg, function(row) {
+    if (!isTRUE(row$fe)) {
+      return(NA_character_)
+    }
+    if (
+      isTRUE(row$phylo_only) || isTRUE(row$locscale_phylo) ||
+        isTRUE(row$slope_phylo) || isTRUE(row$structured)
+    ) {
+      return(NA_character_)
+    }
+    if (startsWith(row$family, "biv_")) {
+      return(NA_character_)
+    }
+    row$family
+  }, character(1L))
+  fams[!is.na(fams)]
+}
+
+drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
+  if (!(family_type %in% drm_julia_fe_only_fence_families())) {
+    return(invisible(NULL))
+  }
+
+  dpars <- unique(vapply(formula$entries, `[[`, character(1L), "dpar"))
+  offending_dpar <- Find(
+    function(dpar) drm_julia_dpar_has_ordinary_bar(formula, dpar),
+    dpars
+  )
+  offense <- if (!is.null(offending_dpar)) {
+    sprintf("a random-effect bar term in the `%s` formula", offending_dpar)
+  } else if (drm_julia_has_sd_term(formula)) {
+    "an `sd()`/`sd_phylo()` scale-submodel entry"
+  } else {
+    NULL
+  }
+  if (is.null(offense)) {
+    return(invisible(NULL))
+  }
+
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} admits {.val {family_type}} only on the {.code fe} (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet.",
+    x = "Found {offense}.",
+    i = "Use native {.code engine = \"tmb\"} for {.val {family_type}} random-effect models."
+  ))
+}
+
 # Night question 14: DRM.jl refuses two ordinary-GLMM constructs only AFTER
 # the engine boots, with its own `ArgumentError`/`error()` forwarded through
 # callr -- verified live at DRM.jl 77513aa0 (`src/gaussian_core.jl:611-698`)
@@ -1379,11 +1490,72 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
     label_key <- if (is_sd_dpar) sub("\\(.*$", "", dpar) else dpar
     rhs <- drm_strip_structured_terms(entry$rhs)
     f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
+    mf <- tryCatch(stats::model.frame(f, data = data), error = function(e) NULL)
+    if (is.null(mf)) next
+    # A6 (2026-09-05, design 258): the names built below are only as good as
+    # the DESIGN they label. DRM.jl codes every factor with treatment
+    # contrasts against its first level, so when R would code a factor
+    # differently -- an ordered factor (contr.poly), an explicit `contrasts`
+    # attribute (e.g. contr.sum), or a non-default options("contrasts") --
+    # both engines return coefficients under IDENTICAL names for DIFFERENT
+    # parameters, and nothing downstream can tell (measured at DRM.jl
+    # 430ef64cc: ordered factor max|coef diff| = 1.180, contr.sum 1.757,
+    # names identical, no error). Compare R's actual design against the
+    # treatment-coded design of the same model frame and refuse up front,
+    # naming the columns, before Julia starts. DRM.jl's own coef_labels
+    # fidelity check (`_bridge_check_coef_labels_fidelity`) is the second
+    # line of defence, for a disagreement the R data cannot show -- e.g. a
+    # character column whose locale-collated R level order is not Julia's
+    # codepoint order.
+    coded <- vapply(
+      mf,
+      function(col) is.factor(col) || is.character(col) || is.logical(col),
+      logical(1L)
+    )
+    if (any(coded)) {
+      tt <- stats::terms(mf)
+      treat <- stats::setNames(
+        as.list(rep("contr.treatment", sum(coded))),
+        names(mf)[coded]
+      )
+      X_actual <- tryCatch(stats::model.matrix(tt, mf), error = function(e) NULL)
+      X_treat <- tryCatch(
+        suppressWarnings(stats::model.matrix(tt, mf, contrasts.arg = treat)),
+        error = function(e) NULL
+      )
+      if (
+        !is.null(X_actual) && !is.null(X_treat) &&
+          !isTRUE(all.equal(X_actual, X_treat, check.attributes = FALSE))
+      ) {
+        why <- vapply(names(mf)[coded], function(nm) {
+          col <- mf[[nm]]
+          if (is.ordered(col)) {
+            "an ordered factor (R codes it with contr.poly)"
+          } else if (!is.null(attr(col, "contrasts"))) {
+            "a factor with an explicit `contrasts` attribute"
+          } else {
+            NA_character_
+          }
+        }, character(1L))
+        if (all(is.na(why))) {
+          why[] <- sprintf(
+            "coded with options(\"contrasts\") = \"%s\"",
+            as.character(getOption("contrasts"))[[1L]]
+          )
+        }
+        why <- why[!is.na(why)]
+        detail <- paste0(names(why), ": ", why)
+        names(detail) <- rep_len("*", length(detail))
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} fits every factor with treatment contrasts ({.fn contr.treatment}: dummy columns against the first level), but R would code the {.code {dpar}} formula's design differently:",
+          detail,
+          x = "The two engines would then return different coefficients under identical names.",
+          i = "Refit with plain treatment-coded factors ({.code factor(x, levels = ...)} with {.code ordered = FALSE}, no {.code contrasts} attribute, default {.code options(\"contrasts\")}), or use {.code engine = \"tmb\"}."
+        ))
+      }
+    }
     cols <- tryCatch(
-      {
-        mf <- stats::model.frame(f, data = data)
-        colnames(stats::model.matrix(stats::terms(mf), mf))
-      },
+      colnames(stats::model.matrix(stats::terms(mf), mf)),
       error = function(e) NULL
     )
     if (!is.null(cols)) {
@@ -3609,7 +3781,7 @@ new_drmTMB_julia <- function(
     residuals = drm_julia_plain(result$residuals),
     sigma = drm_julia_plain(result$sigma),
     corpairs = drm_julia_plain(result$corpairs),
-    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L),
+    opt = drm_julia_opt_slot(result),
     # #1108 / DRM.jl #632: the bridge attaches "gradient" (index-aligned with
     # "gradient_names") ONLY for routes whose fit carries `fit.nllgrad`
     # (verified 2026-09-05 against DRM.jl 430ef64c: the bivariate structured
@@ -4042,6 +4214,43 @@ drm_julia_vcov <- function(x, coef_names) {
   out
 }
 
+# Build the `opt` slot for a Julia-engine fit from what the DRM.jl bridge
+# actually reports. It used to be `list(convergence = <0/1>)` -- a bare integer
+# with no message and no iteration count, so `summary()` and any user asking
+# "why is convergence 1?" had nothing to read (DRM.jl #646, drmTMB A8c).
+#
+# DRM.jl sends a `converged` Bool (its `is_converged()`: the raw optimiser flag
+# AND a non-degenerate optimum) and an `iterations` Int whose -1 means "this
+# route does not record it" -- NOT zero. There is no Optim.jl message string on
+# the wire, so `message` is composed here from the two facts that did cross, and
+# says so; it is never presented as a verbatim optimiser message.
+drm_julia_opt_slot <- function(result) {
+  converged <- isTRUE(result$converged)
+  iterations <- suppressWarnings(as.integer(result$iterations %||% NA_integer_))
+  if (length(iterations) != 1L || is.na(iterations) || iterations < 0L) {
+    iterations <- NA_integer_
+  }
+  message <- if (converged) {
+    "DRM.jl reported a converged, non-degenerate optimum."
+  } else {
+    paste(
+      "DRM.jl reported no convergence, or an optimum it judged degenerate.",
+      "Check the fitted scale parameters and the log-likelihood before using",
+      "this fit."
+    )
+  }
+  message <- if (is.na(iterations)) {
+    paste(message, "Optimiser iterations were not recorded by this route.")
+  } else {
+    paste0(message, " Optimiser iterations: ", iterations, ".")
+  }
+  list(
+    convergence = if (converged) 0L else 1L,
+    iterations = iterations,
+    message = message
+  )
+}
+
 drm_julia_plain <- function(x) {
   if (is.null(x)) {
     return(NULL)
@@ -4147,13 +4356,14 @@ vcov.drmTMB_julia <- function(object, ...) {
   object$vcov
 }
 
-#' Inspect legacy interval output from a halted Julia bridge
+#' Confidence intervals for an `engine = "julia"` fit
 #'
-#' The Julia bridge is halted/deferred future work and is not a current fitting
-#' or inference route. This method is retained only for inspecting existing
-#' `drmTMB_julia` objects; use native TMB fits for new analyses.
+#' `engine = "julia"` is a current, actively-admitted fitting route (see
+#' `R/julia-family-registry.R` and `vignettes/julia-engine.Rmd` for which
+#' families and routes it covers). This method computes intervals for an
+#' existing `drmTMB_julia` object.
 #'
-#' For a legacy `engine = "julia"` fit, `confint()` exposes two interval families:
+#' For a `drmTMB_julia` fit, `confint()` exposes two interval families:
 #'
 #' * `method = "wald"` (the default) builds symmetric Wald intervals for the
 #'   fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
@@ -4853,11 +5063,11 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   out
 }
 
-#' Summarise a legacy Julia-bridge `drmTMB` fit
+#' Summarise an `engine = "julia"` `drmTMB` fit
 #'
-#' The Julia bridge is halted/deferred future work. This compatibility method
-#' inspects an existing `drmTMB_julia` object; it does not make Julia a current
-#' fitting or inference option. For new analyses, use native TMB fits.
+#' `engine = "julia"` is a current, actively-admitted fitting route (see
+#' `R/julia-family-registry.R`). This method summarises a `drmTMB_julia`
+#' object it produced.
 #'
 #' Builds a fixed-effect coefficient table (estimate, standard error, z value,
 #' and two-sided p value, all on the linear-predictor / link scale) from the
@@ -5408,6 +5618,14 @@ drm_julia_predict_entry <- function(object, dpar) {
 # is built, so the returned columns exactly match
 # `object$coefficients[[dpar]]`. Random effects are held at zero -- a newdata
 # row need not belong to any fitted group.
+#
+# `cumulative_logit`'s `mu` is the one dpar whose *fitted* coefficient block
+# never carries "(Intercept)" (the cutpoints absorb it -- design 258 section
+# 8.9 / `R/julia-family-cumulative_logit.R`), while its retained R formula is
+# an ordinary intercept formula. `stats::model.matrix()` always restores that
+# column, so it is dropped here the same way the native engine's own
+# `ordinal_mu_model_matrix()` (R/drmTMB.R) drops it -- scoped to this one
+# family and dpar so every other family's design is untouched.
 drm_julia_predict_design <- function(object, entry, newdata) {
   rhs <- drm_strip_structured_terms(entry$rhs)
   train <- object$data
@@ -5430,7 +5648,14 @@ drm_julia_predict_design <- function(object, entry, newdata) {
     na.action = stats::na.pass,
     xlev = xlev
   )
-  stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+  X <- stats::model.matrix(train_terms, newdata_frame, xlev = xlev)
+  if (
+    identical(object$model$model_type, "cumulative_logit") &&
+      identical(entry$dpar, "mu")
+  ) {
+    X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+  }
+  X
 }
 
 # Drop structured markers, ordinary random-effect bars, and model-level known
@@ -6982,7 +7207,7 @@ new_drmTMB_julia_xfam <- function(
     bic = bic,
     df = df,
     nobs = length(axes$mu1$y),
-    opt = list(convergence = if (isTRUE(result$converged)) 0L else 1L),
+    opt = drm_julia_opt_slot(result),
     uncertainty = list(
       status = "unavailable",
       se = FALSE,
@@ -7067,12 +7292,16 @@ df.residual.drmTMB_julia_xfam <- function(object, ...) {
   object$nobs - object$df
 }
 
-#' Summary for a legacy Julia cross-family fit
+#' Summary for a cross-family Julia fit
 #'
-#' The cross-family Julia bridge is halted/deferred future work. This
-#' compatibility summary reports point estimates only: the bridge does not
-#' retain a named covariance matrix, so standard errors and Wald intervals are
-#' deliberately unavailable.
+#' The cross-family route (`drmTMB(bf(...), c(fam1, fam2), engine = "julia")`,
+#' via `drm_julia_call_xfam()` -> DRM.fit_mixed_family) is reachable from R
+#' and tested (`tests/testthat/test-xfam-bridge.R`), but its
+#' capability-ledger status is `experimental`/`partial`
+#' (`inst/extdata/julia-capabilities.tsv`, `cross_family_latent`). This
+#' summary reports point estimates only: the bridge does not retain a named
+#' covariance matrix, so standard errors and Wald intervals are deliberately
+#' unavailable.
 #'
 #' @param object A `drmTMB_julia_xfam` cross-family fit.
 #' @param conf.int Logical; requesting intervals errors because the bridge did
@@ -7173,14 +7402,15 @@ is_converged.drmTMB_julia_xfam <- function(
   isTRUE(object$opt$convergence == 0L)
 }
 
-#' Extract a latent-scale correlation from a legacy Julia-bridge fit
+#' Extract a latent-scale correlation from a cross-family Julia fit
 #'
-#' The cross-family Julia bridge is halted/deferred future work. This
-#' compatibility extractor is retained only for an existing
-#' `drmTMB_julia_xfam` object; it does not establish a current cross-family
-#' fitting or inference capability.
+#' The cross-family route is reachable from R (`engine = "julia"` with a
+#' `c(family1, family2)` pair) and tested, but its capability-ledger status
+#' is `experimental`/`partial` (`inst/extdata/julia-capabilities.tsv`,
+#' `cross_family_latent`). This extractor reads `rho_latent` off an existing
+#' `drmTMB_julia_xfam` object.
 #'
-#' @param object A legacy `drmTMB_julia_xfam` cross-family fit.
+#' @param object A `drmTMB_julia_xfam` cross-family fit.
 #' @param ... Unused.
 #' @return The latent / link-scale correlation between the two responses.
 #' @export

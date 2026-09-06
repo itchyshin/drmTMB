@@ -2,12 +2,12 @@
 % Please edit documentation in R/julia-bridge.R
 \name{rho_latent}
 \alias{rho_latent}
-\title{Extract a latent-scale correlation from a legacy Julia-bridge fit}
+\title{Extract a latent-scale correlation from a cross-family Julia fit}
 \usage{
 rho_latent(object, ...)
 }
 \arguments{
-\item{object}{A legacy \code{drmTMB_julia_xfam} cross-family fit.}
+\item{object}{A \code{drmTMB_julia_xfam} cross-family fit.}
 
 \item{...}{Unused.}
 }
@@ -15,8 +15,9 @@ rho_latent(object, ...)
 The latent / link-scale correlation between the two responses.
 }
 \description{
-The cross-family Julia bridge is halted/deferred future work. This
-compatibility extractor is retained only for an existing
-\code{drmTMB_julia_xfam} object; it does not establish a current cross-family
-fitting or inference capability.
+The cross-family route is reachable from R (\code{engine = "julia"} with a
+\code{c(family1, family2)} pair) and tested, but its capability-ledger status
+is \code{experimental}/\code{partial} (\code{inst/extdata/julia-capabilities.tsv},
+\code{cross_family_latent}). This extractor reads \code{rho_latent} off an existing
+\code{drmTMB_julia_xfam} object.
 }

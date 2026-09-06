@@ -30,6 +30,66 @@
   existing refusal unchanged. Evidence:
   `docs/dev-log/evidence/julia-r-parity/reml/biv-q2-bridge-receipt.md`.
 
+## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
+
+* Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
+  in the family registry, R/julia-family-registry.R) had a gap: nothing
+  pre-Julia checked an ordinary random-effect bar (`(1 | g)`, including random
+  slopes) or an `sd()`/`sd_phylo()` scale submodel against that family for a
+  family with none of phylo_only/locscale_phylo/slope_phylo/structured set.
+  Measured on origin/main with `DRM_JL_PATH` unset: `student() y ~ x + (1 | g)`,
+  `beta_binomial() cbind(s, f) ~ x + (1 | g)`, `lognormal() sigma ~ z + (1 | g)`,
+  `zero_one_beta() y ~ x + (1 | g)`, and `truncated_nbinom2() y ~ x + (1 + x | g)`
+  all reached `drm_julia_setup()` -- five of six fe-only families with no receipt.
+  A new `drm_julia_refuse_fe_only_random_effects()` gate, registry-driven (no
+  hard-coded family list, so a later fe-only admission is covered without an
+  edit here), now refuses these before Julia starts, naming the family, the
+  `fe` registry column that admitted it, and the offending term. `phylo()` and
+  `relmat()`/`animal()`/`spatial()` markers are untouched by this gate -- both
+  are already refused pre-Julia by existing gates. **No family admission or
+  removal, no DRM.jl change, no comparison-row change**: this closes a scope
+  gap only.
+## `engine = "julia"` masked-response fits: convergence flag and bootstrap fixed upstream (DRM.jl #646)
+
+* A Gaussian fit with `missing = miss_control(response = "include")` through
+  `engine = "julia"` reported `is_converged()` FALSE and failed all bootstrap
+  replicates, even though its coefficients and profile interval agreed with
+  `engine = "tmb"` to ~7e-06 on the same fixture. Both defects were DRM.jl's
+  and are fixed there (DRM.jl #646): the degeneracy check took `std()` of a
+  response vector still carrying NaN in the masked rows (so its bar was NaN and
+  every comparison against it false), and the replicate simulator drew
+  `fit.nobs` values against full-design mean and scale vectors, throwing
+  `DimensionMismatch` on every replicate. MEASURED on the fixture: raw
+  `Optim.converged` TRUE, `|grad|inf` 6.41e-12 against a `g_tol` of 1e-8, and a
+  parameter vector bit-identical to the complete-case fit -- a wrong
+  return-code mapping, not a hard optimisation surface.
+* `fit$opt` for a Julia-engine fit is no longer a bare
+  `list(convergence = <0/1>)`. It now also carries `iterations` (the
+  optimiser's own count, `NA_integer_` on a route that does not record one --
+  never 0) and a `message` describing what DRM.jl reported. DRM.jl sends no
+  optimiser message string, so `message` is composed from the facts that did
+  cross the bridge and says so; it is not presented as a verbatim optimiser
+  message.
+* `tests/testthat/test-julia-missing.R` gains a live assertion block on the
+  masked fixture: `is_converged()` TRUE, `opt$convergence` 0, `opt` carrying
+  `iterations` and `message`, and `confint(method = "bootstrap", R = 19)` with
+  0 failed replicates. Receipts, including the per-hunk red controls and the
+  re-qualification against the fixed DRM.jl, are under
+  `docs/dev-log/evidence/julia-r-parity/p2-g3/`.
+* NOT promoted here. The `gaussian_response_mask` capability row stays
+  `partial`: the two defects that blocked its G3 qualification are fixed and
+  re-measured (wald delta 7.86e-08, profile delta 7.18e-06, bootstrap 0/99
+  failed on both engines), but the status move belongs on top of #1184, which
+  is concurrently rewriting that row and the guard that pins it.
+* MEASURED: the parametric bootstrap on a masked-response fit is
+  anti-conservative, and the narrowing GROWS with the missing fraction --
+  masking 10% / 30% / 50% of the rows gave relative narrowing of roughly
+  -7% / -27% / -40% against the seed fit's Wald SE, and an implied nominal-95
+  interval covering roughly 93% / 85% / 76% of the time. The narrowing grows
+  with the missing fraction because replicates are drawn over the FULL design
+  regardless of how many rows were observed; this is shared by both engines.
+  The fix (a mask-preserving bootstrap) is a cross-engine statistical
+  calibration change, out of scope here, and tracked as #1188.
 ## `engine = "julia"` bridge-side profile/bootstrap inference qualified on two routes (G3)
 
 * `base_gaussian_location_scale` and `plain_binomial_nonphylo` promoted
@@ -84,6 +144,22 @@
   design rebuild keeps the `mu` intercept); `fitted()` is unaffected. No
   phylogenetic, structured, or random-effect ordinal routes are admitted;
   `(1 | g)` fails closed at DRM.jl's label echo.
+
+## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"`
+
+* Closes the gap the `cumulative_logit()` admission above recorded:
+  `predict()` on an `engine = "julia"` `cumulative_logit()` fit no longer
+  aborts. The reconstructed `mu` design dropped the fitted coefficient block's
+  intercept but kept restoring "(Intercept)" via `stats::model.matrix()`;
+  the design rebuild now drops it too, scoped to `cumulative_logit()`'s `mu`
+  dpar so no other family's Julia prediction path is touched. `mu`'s link is
+  identity, so `type = "response"` and `type = "link"` are identical on both
+  engines. Measured on the committed
+  `tests/testthat/test-julia-cumlogit-predict.R` fixture (n = 900) at DRM.jl
+  pin `430ef64cc`: max |d prediction| for stored data and fresh `newdata`,
+  both types, all below `1.5e-13`. Thresholds are not read by `predict()`
+  on either engine for this family -- they live in `fit$ordinal`, not in the
+  linear predictor. `type = "quantile"` is still unavailable on every `engine = "julia"` fit (drmTMB#1198).
 
 ## REML support tabled by route, measured across both engines (#1142)
 
