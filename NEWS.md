@@ -23,6 +23,47 @@ every item above.
 
 # drmTMB 0.7.0
 
+## The formula-construct battery extended off its one Gaussian fixture, and a silently mislabelled `sd(<group>)` block found there (DRM.jl #467/#609/#730)
+
+* PR #1227 ran 58 formula constructs through `engine = "julia"` on **one**
+  Gaussian location-scale fixture and recorded two of them as silently
+  mislabelled at the standing DRM.jl pin `430ef64cc`: a character column whose
+  R locale-collated level order is not Julia's code-point order, and a factor
+  level no row uses. Re-measured at drmTMB `2fcbb0fbf` against a live DRM.jl
+  (`aee371cc9`), **neither is silent any more on a `mu` or `sigma` block** --
+  DRM.jl's own `_bridge_check_coef_labels_fidelity` refuses both, on every
+  family tried (poisson, nbinom2, binomial, gamma, cumulative_logit) and on
+  both dpar sides, while a properly declared factor stays faithful to
+  `1.05e-11` (poisson), `1.07e-11` (nbinom2) and `5.58e-12` (cumulative_logit).
+  The silence was a property of the dead pin.
+* **It is not gone everywhere.** That check iterates
+  `_bridge_rendered_regression_blocks`, which skips every location-scale-scale
+  `sd_<group>` / `sdphy_<group>` block by construction, so the group-level SD
+  formula was echoed with R's names and never compared against the design
+  DRM.jl built. Measured at `2fcbb0fbf` + `aee371cc9`:
+  `bf(y ~ x + (1 | study), sigma ~ z, sd(study) ~ s_chr)` converged on both
+  engines to an **identical** `logLik` (`-69.917488`, diff `2.98e-13`) under
+  identical coefficient names, with `mu` and `sigma` faithful to `2.12e-11`
+  and the `sd` block off by **`1.3853`** -- `s_chrBeta` reported as `0.692648`
+  by `engine = "tmb"` and `-0.692648` by `engine = "julia"`, the baseline
+  having moved from `alpha` to `Beta`. Declaring the same column as a factor
+  in R makes the identical model faithful to `1.46e-10`, which identifies the
+  level order rather than the fit as the mechanism.
+* `tests/testthat/test-julia-formula-constructs-nongaussian.R` pins the
+  contract that matters here: a construct must be either FAITHFUL (identical
+  base-R names AND coefficients within tolerance) or REFUSED, never the third
+  thing -- converging, returning identical names, and reporting a coefficient
+  that means something other than its label says. It sets a Latin collation
+  explicitly, because testthat's default `LC_COLLATE = "C"` is exactly Julia's
+  code-point order and every case would otherwise skip while reading green.
+  31 pass / 0 fail / 0 skip live.
+* Two independent fixes close the `sd()` cell and both were verified here:
+  drmTMB's own `drm_julia_check_factor_level_fidelity()` (PR #1227) refuses it
+  before Julia starts -- a route #1227 never claimed -- and DRM.jl #730's
+  `_bridge_check_lss_coef_labels_fidelity` refuses it in the engine. **NOT
+  covered:** the multi-IID `sd` route, `sdphy_<group>` live, and random-effect
+  routes generally, where DRM.jl supplies no `bridge_formula_labels_v1` at all
+  and so refuses *every* factor, declared or not -- honest, but a separate gap.
 ## `engine = "julia"` default coefficient labels widened for the A4 family admissions
 
 * The Julia bridge's default coefficient labeller
@@ -192,6 +233,32 @@ every item above.
   fit above is native TMB (`engine = "tmb"`) only. Precision (`Ainv`) and
   pedigree-built animal representations, slopes, q4+, and scale-side
   bivariate relmat/animal REML routes remain deferred and refused.
+## `engine = "julia"` zero-inflated NB2: `fitted()` and `residuals()` now agree with the native engine (DRM.jl bridge fix)
+
+* A zero-inflated negative-binomial model (`family = nbinom2()` with a `zi ~ `
+  formula part, native `model_type` `"zi_nbinom2"`) already routed through
+  `engine = "julia"`, but nothing tested or documented it -- and it carried a
+  silent disagreement. `fitted()` and `residuals()` differed between the two
+  engines on the SAME converged fit, because DRM.jl's `fitted()` is the
+  count-component mean `mu` while drmTMB's is the unconditional mean
+  `(1 - zi) * mu`. Measured on the package's own
+  `tests/testthat/test-zi-nbinom2.R` fixture (n = 1800): coefficients agreed to
+  4.56745752330789e-13 and logLik to 1.72803993336856e-11, while `fitted()`
+  disagreed by 1.3665229755584 -- invisible to any coefficient or likelihood
+  check. Fixed on the DRM.jl bridge boundary (`_bridge_fitted_marginal`), which
+  leaves DRM.jl's own `fitted`/`simulate`/`marginal_parameters` and the bridge's
+  `mu` dpar untouched; after the fix the difference is 4.83169060316868e-13. The
+  same repair covers zero-inflated Poisson; hurdle fits are deliberately not
+  repaired (their mean also divides by `1 - P(0)` and has no bridge receipt).
+  A new `tests/testthat/test-julia-family-zi_nbinom2.R` pins the route: coef,
+  logLik and Wald-SE parity, the coefficient-naming contract for all three dpar
+  blocks (design 258 section 8.10), the engine's own refusals, and two KNOWN
+  GAPS that are pinned rather than claimed -- `predict(dpar = "zi")` is refused
+  on a Julia-engine fit (the bridge tags it `"nbinom2"`, whose link table has no
+  `zi` row), and `sigma()` returns a list rather than the numeric vector the
+  native engine returns. **No registry row and no family admission**: the route
+  was already reachable through the existing `nbinom2` row.
+
 ## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
 
 * Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
