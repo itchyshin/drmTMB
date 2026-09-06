@@ -116,6 +116,15 @@ zoib_live <- function() {
       err_of <- function(expr) tryCatch({ expr; "" }, error = function(e) conditionMessage(e))
       dat2 <- gen(n = 400)
       dat2$g <- factor(rep(seq_len(20L), length.out = nrow(dat2)))
+      # A4-INTEGRATION (2026-09-05): the default-label fix (G1-G3,
+      # drm_julia_bridge_default_dpar_labels() in R/julia-bridge.R) now
+      # defaults zoi/coi the same way it always defaulted sigma, so this
+      # short formula (zoi/coi omitted) FITS through engine = "julia" today
+      # -- it used to abort at DRM.jl's label echo (the file's former
+      # "KNOWN HOLE" test, replaced below).
+      fj_omit <- drmTMB::drmTMB(
+        drmTMB::bf(prop ~ x, sigma ~ z),
+        family = drmTMB::zero_one_beta(), data = dat2, engine = "julia")
       list(
         class = class(fj),
         engine = fj$engine,
@@ -137,9 +146,9 @@ zoib_live <- function() {
         err_ranef = err_of(drmTMB::drmTMB(
           drmTMB::bf(prop ~ x + (1 | g), sigma ~ z, zoi ~ w, coi ~ v),
           family = drmTMB::zero_one_beta(), data = dat2, engine = "julia")),
-        err_omit = err_of(drmTMB::drmTMB(
-          drmTMB::bf(prop ~ x, sigma ~ z),
-          family = drmTMB::zero_one_beta(), data = dat2, engine = "julia"))
+        omit_loglik = as.numeric(stats::logLik(fj_omit)),
+        omit_estimator = fj_omit$estimator,
+        omit_fixef_names = names(unlist(drmTMB::fixef(fj_omit)))
       )
     },
     args = list(pkg = pkg, jl_path = jl_path, gen = zoib_bridge_data, fml_fun = zoib_bridge_formula),
@@ -204,18 +213,21 @@ test_that("zero_one_beta through engine = 'julia' stays fixed-effect only (DRM.j
   expect_match(res$err_ranef, "ZeroOneBeta\\(\\) currently supports fixed effects only")
 })
 
-test_that("KNOWN HOLE (A4, not closed here): a zero_one_beta formula that omits zoi/coi aborts at the label echo", {
-  # DRM.jl defaults an absent sigma/zoi/coi part to `~ 1` and fits the block,
-  # and its coef_labels echo demands a label for EVERY block it fits; the R
-  # producer only defaults a `sigma` label (drm_julia_bridge_default_dpar_labels,
-  # R/julia-bridge.R -- outside this leaf's OWNS). Until that defaulter learns
-  # zoi/coi, the user must write all four parts (native engine = "tmb" fits the
-  # short form). This test pins the hole so its closure is noticed: when it
-  # closes, replace this expectation with a fit.
+test_that("A4-INTEGRATION: the default-label fix closes zero_one_beta's known hole -- a formula omitting zoi/coi now fits", {
+  # Formerly a KNOWN HOLE (A4, #1171): DRM.jl defaults an absent sigma/zoi/coi
+  # part to `~ 1` and fits the block, and its coef_labels echo demands a
+  # label for EVERY block it fits, but the R producer only defaulted a
+  # `sigma` label (drm_julia_bridge_default_dpar_labels(), R/julia-bridge.R).
+  # This leaf widens that defaulter to read every dpar a family declares
+  # beyond mu/sigma (G1-G3), so bf(prop ~ x, sigma ~ z) (zoi/coi omitted) now
+  # fits through engine = "julia" too, matching engine = "tmb" (measured
+  # logLik -425.0937691 on this fixture; A4-INTEGRATION after-task 3.1).
   drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
   res <- zoib_live()
-  expect_match(res$err_omit, 'coef_labels is missing an entry for dpar "zoi"', fixed = TRUE)
+  expect_true(is.finite(res$omit_loglik))
+  expect_identical(res$omit_estimator, "ML")
+  expect_true(all(c("zoi.(Intercept)", "coi.(Intercept)") %in% res$omit_fixef_names))
 })
