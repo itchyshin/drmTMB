@@ -1,6 +1,14 @@
 on:
+  # NO push-to-branch trigger (owner decision, 2026-09-06). Every merge to main was
+  # running the full sharded check again: MEASURED 25 push-to-main runs in one day,
+  # on top of the pull_request run that had already checked the same content. The
+  # house rule is `[pull_request, workflow_dispatch]`; this workflow predated it.
+  #
+  # `tags: ["v*"]` is DELIBERATELY KEPT. It is not the per-merge cost -- it is what
+  # runs the full ubuntu + macOS + Windows matrix for a release tag, which is the
+  # one time cross-OS coverage actually matters. Dropping `push:` wholesale would
+  # have removed that too.
   push:
-    branches: [main, master]
     tags: ["v*"]
   pull_request:
     branches: [main, master]
@@ -10,17 +18,17 @@ name: R-CMD-check
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Cancel superseded PR runs, but NEVER a run on main. A cancelled run on the
-  # default branch leaves that merge with no completed evidence, and GitHub logs
-  # it with the same "cancelled" string as a timeout -- so a merge sequence can
-  # read green BY ABSENCE. Measured here 2026-09-03: run 33757335131 on main was
-  # killed 2 min into each shard by the next merge, 6 minutes after it started.
-  # PR runs stay cancellable; the next push to that PR re-runs them.
-  # (gllvmTMB has had this since before the shard work; drmTMB had not.)
+  # Cancel superseded PR runs, never a tag run. This guard was written when merges
+  # to main also ran here and could be cancelled by the next merge, leaving that
+  # merge with no completed evidence -- green BY ABSENCE (measured 2026-09-03: run
+  # 33757335131 on main killed 2 min into each shard, 6 minutes in). Since
+  # 2026-09-06 there is no push-to-branch trigger, so that specific hole is closed
+  # by the trigger rather than by this expression; the expression is kept because a
+  # tag run must still never be cancelled.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Routine runs (pull_request, push to main) check Linux only to keep CI cheap.
+  # Routine runs (pull_request) check Linux only to keep CI cheap.
   # The full ubuntu + macOS + windows matrix runs only for release tags (v*) and
   # on demand via workflow_dispatch -- e.g. before a CRAN submission, or to
   # exercise cross-OS portability of compiled TMB code on a specific branch.
