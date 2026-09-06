@@ -32,7 +32,12 @@ drm_julia_fe_family_capability_map <- function() {
     # was built, adding both the registry row and the comparison row for
     # each family in the same PR -- no gap to name.
     beta_binomial = "fe_beta_binomial",
-    cumulative_logit = "fe_cumulative_logit"
+    cumulative_logit = "fe_cumulative_logit",
+    # Re-merge (2026-09-06): #1176 added the skew_normal registry row and THIS PR
+    # adds its comparison row (fe_skew_normal), so the pair closes here with no gap
+    # to name -- verified by reading the id out of drm_julia_capability_comparison()
+    # rather than assuming its spelling.
+    skew_normal = "fe_skew_normal"
   )
 }
 
