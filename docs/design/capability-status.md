@@ -125,8 +125,8 @@ axis with `structure_provider = phylo` in `cells.tsv`: `implemented` for
 | Parametric bootstrap CIs | implemented |
 | AGHQ adaptive-quadrature marginal estimator | planned |
 | Variational (VA/ELBO) marginal estimator | planned |
-| Chi-bar-square boundary LRT p-value | planned |
-| Model comparison suite (LRT/anova/AICc/weights/update) | planned |
+| Chi-bar-square boundary LRT p-value | implemented |
+| Model comparison suite (LRT/anova/AICc/weights/update) | scope-limited |
 | Heritability/repeatability/ICC accessors | point-fit-recovery |
 
 Evidence for the REML rows: `cells.tsv` mc-0261/mc-0263 (fixed-effect Gaussian
@@ -140,14 +140,45 @@ plain `implemented`. The q4 bivariate-phylogenetic REML row mixes
 cells -- there is no single verified claim that a REML correction reaches all
 four axes (`mu1`, `mu2`, `sigma1`, `sigma2`) together, hence `scope-limited`.
 
-`AGHQ`, chi-bar-square boundary tests, and a named model-comparison suite
-(`anova`/`lrtest`/`aicc`/`weights`/`update`) have no implementation in `R/` and
-no exported symbol in `NAMESPACE`; AGHQ is explicitly named as a future remedy
-in ledger notes ("AGHQ/REML remedies planned"), so `planned` is used rather
-than `rejected`. `profile.R` does cite Self & Liang (1987) / Stram & Lee
+`AGHQ adaptive-quadrature marginal estimator` stays `planned`, but not because
+nothing is written. `R/aghq-coxreid.R` (added 2026-07-18, commit `1ed90599b`)
+implements a nested AGHQ inner marginalisation with a Cox-Reid outer adjustment
+over a scalar random effect per cluster, validated in
+`tests/testthat/test-aghq-coxreid.R`. That file marks itself "Internal; not
+exported" and contributes no symbol to `NAMESPACE`, so there is no estimator a
+user can select from `drmTMB()` -- which is what `planned` records here. The
+accurate boundary is "implemented internally, not exposed", not "no
+implementation in `R/`" as this paragraph previously said. AGHQ is also named as
+a future remedy in ledger notes ("AGHQ/REML remedies planned"), so `planned`
+remains the right word rather than `rejected`.
+
+`Chi-bar-square boundary LRT p-value` moved from `planned` to `implemented` on
+2026-09-05 (`#1116`, commit `b76d46537`). `R/lrt-boundary.R` ports DRM.jl's
+`src/chibar.jl` and exports `chibar_pvalue()` and `lrt_boundary()`; both are in
+`NAMESPACE`, documented in `man/lrt-boundary.Rd` and tested in
+`tests/testthat/test-lrt-boundary.R`, carrying DRM.jl's REML and MAP guards plus
+R-side additions (reported `df` checked against `q`, and refusal of ML-vs-REML
+pairs, different-`nobs` pairs and MSPL fits). Evidence tier is that PR's own
+live receipt at DRM.jl pin `430ef64cc`, quoted rather than restated: four
+fixtures with `|dstat|` at most `4.84e-09`, and `chibar_pvalue()` against
+`DRM.chibar_pvalue` agreeing to `1e-12` relative and `1e-10` on log p for `q = 1`
+and `q = 2`. `profile.R` separately cites Self & Liang (1987) / Stram & Lee
 (1994) for boundary-aware profile-CI flagging
-(`conf.status = "wald_at_boundary"`), which is related but not the same
-capability as a formal chi-bar-square LRT p-value.
+(`conf.status = "wald_at_boundary"`); that flag is related but is a different
+capability, and before this port it was all the package had.
+
+`Model comparison suite (LRT/anova/AICc/weights/update)` moved from `planned` to
+`scope-limited` on the same day (`#1117`, commit `b21581f95`).
+`R/model-comparison.R` ports DRM.jl's `src/comparison.jl`, and `aicc()` is
+exported with `default` and `drmTMB` methods. The word is `scope-limited` rather
+than `implemented` because the rest of the named suite is deliberately absent:
+`drm_lrtest()` is implemented but neither exported nor wired in, and
+`anova.drmTMB()` (`R/methods.R`, which predates the port) still aborts with
+"`anova()` likelihood-ratio comparisons are not implemented for `drmTMB` fits";
+there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
+returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
+`weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
+rather than an R-side gap.
 
 `Heritability/repeatability/ICC accessors` moved to `point-fit-recovery`:
 `heritability()`/`icc()`/`repeatability()` (`R/heritability.R`,
