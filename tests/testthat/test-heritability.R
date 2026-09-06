@@ -228,3 +228,36 @@ test_that("documented label: the roxygen @examples phylo component label matches
   r <- icc(phylo_fit, component = documented_label)
   expect_true(is.finite(r$estimate))
 })
+
+# ---- BRIDGE AXIS: heritability/icc/repeatability are FENCED for engine="julia"
+#
+# These are delta-method ratios on the WORKING (log-SD) scale: drm_variance_ratio()
+# reads object$opt$par and the TMB sdreport covariance of those working
+# parameters. A drmTMB_julia fit carries neither -- drm_julia_opt_slot() stores
+# only convergence/iterations/message, and the public $vcov is subset to the
+# fixed-effect coefficients, dropping the structured `resd_*` log-SD rows.
+#
+# Before this fence the call failed with a bare UseMethod dispatch error that
+# named nothing. Measured 2026-09-05 (DRM.jl aee371cc9, n = 360, G = 30,
+# bf(y ~ x + (1 | g), sigma ~ 1)) the ingredients ARE present one layer down --
+# drm_julia_vcov(fit$bridge$vcov, fit$bridge$coef_names) is the full 4 x 4
+# working-scale covariance whose resd_g entry matches TMB's sdreport log_sd_mu
+# (1.824454e-02 vs 1.824453e-02), and the h2 point formed by hand from the
+# julia fit's sdpars/sigma() matches heritability(tmb_fit)$estimate to 2.5e-12.
+# So this is "not wired", not "not possible"; the refusal says so and says what
+# to do instead. Evidence:
+# docs/dev-log/evidence/julia-r-parity/uncited-accessors/.
+test_that("heritability/icc/repeatability refuse an engine = 'julia' fit by name", {
+  stub <- structure(list(nobs = 10L, df = 4L), class = "drmTMB_julia")
+  for (fn in list(heritability, icc, repeatability)) {
+    expect_error(fn(stub), class = "drmTMB_variance_ratio_julia_unsupported")
+  }
+  # The message must name the engine to use instead, not just say "no".
+  msg <- tryCatch(heritability(stub), error = conditionMessage)
+  expect_match(msg, "engine", fixed = TRUE)
+  # RED CONTROL: without these methods, dispatch found nothing at all. A class
+  # with no method still produces the bare UseMethod error, which is exactly
+  # what heritability(julia_fit) used to do.
+  bare <- structure(list(), class = "drm_not_a_fit")
+  expect_error(heritability(bare), "no applicable method")
+})

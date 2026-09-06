@@ -193,3 +193,127 @@ test_that("aicc()/drm_lrtest() agree with native DRM.jl on two committed fixture
     expect_lt(abs(tt$p.value - native$p.value), 1e-8)
   }
 })
+
+# ---- BRIDGE AXIS: the suite's four verbs on an engine = "julia" fit ---------
+#
+# The live block above already fits with engine = "julia" and shows aicc() and
+# drm_lrtest() agree with DRM.jl's own on two fixed-effect fixtures. What was
+# never checked is the rest of the suite. Measured 2026-09-05 against DRM.jl
+# aee371cc9 on a Gaussian random-intercept pair (n = 360, G = 30):
+#
+#   aicc(julia_fit)  856.6308350330 == DRM.jl aicc      |d| = 0.000e+00
+#                                   vs aicc(tmb_fit)    |d| = 1.899e-11
+#   drm_lrtest       stat 277.6900074326, df 1, p 2.393265e-62 == DRM.jl lrtest
+#   anova(julia)     had NO method -> bare UseMethod error, while anova(tmb)
+#                    gave drmTMB's own refusal. Now the same refusal on both.
+#   weights(julia)   returned NULL SILENTLY via stats:::weights.default, while
+#                    weights(tmb) on the same unweighted model returns 360 ones
+#                    and DRM.jl's weights(fit) returns ones(nobs) (measured:
+#                    length 360, all one). Now ones on both.
+#
+# These three assertions need no Julia: they are dispatch on the class.
+drm_mc_stub_julia <- function(nobs = 7L) {
+  structure(list(nobs = nobs, df = 3L), class = "drmTMB_julia")
+}
+
+test_that("anova() refuses an engine = 'julia' fit with drmTMB's own message", {
+  stub <- drm_mc_stub_julia()
+  expect_error(
+    stats::anova(stub),
+    "not implemented for <drmTMB_julia> fits"
+  )
+  # The native engine's refusal is unchanged, so the message is engine-shaped
+  # but the behaviour is not: neither engine offers an anova LRT.
+  expect_error(
+    stats::anova(drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())),
+    "not implemented for <drmTMB> fits"
+  )
+})
+
+test_that("weights() on an engine = 'julia' fit returns ones, not NULL", {
+  stub <- drm_mc_stub_julia(nobs = 7L)
+  w <- stats::weights(stub)
+  expect_type(w, "double")
+  expect_length(w, 7L)
+  expect_true(all(w == 1))
+  # RED CONTROL for the defect this closes: without the method, dispatch falls
+  # through to stats:::weights.default, which reads `object$weights` -- absent
+  # here -- and returns NULL silently.
+  expect_null(stats:::weights.default(stub))
+  # The native engine on an unweighted fit: ones, the same answer.
+  ft <- drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())
+  expect_true(all(stats::weights(ft) == 1))
+  expect_length(stats::weights(ft), stats::nobs(ft))
+})
+
+# DRM.jl oracle for the random-intercept pair: `g` crosses as an integer
+# grouping key, not a Float64 covariate.
+drm_mc_julia_ri_native <- function(dat) {
+  JuliaCall::julia_assign("drm_mc_ri_y", dat$y)
+  JuliaCall::julia_assign("drm_mc_ri_x", dat$x)
+  JuliaCall::julia_assign("drm_mc_ri_g", as.integer(dat$g))
+  JuliaCall::julia_command(
+    "drm_mc_ri_d = (; y = drm_mc_ri_y, x = drm_mc_ri_x, g = drm_mc_ri_g);"
+  )
+  JuliaCall::julia_command(paste0(
+    "drm_mc_ri_full = DRM.drm(DRM.bf(DRM.@formula(y ~ 1 + x + (1 | g)), ",
+    "DRM.@formula(sigma ~ 1)), DRM.Gaussian(); data = drm_mc_ri_d);"
+  ))
+  JuliaCall::julia_command(paste0(
+    "drm_mc_ri_red = DRM.drm(DRM.bf(DRM.@formula(y ~ 1 + x), ",
+    "DRM.@formula(sigma ~ 1)), DRM.Gaussian(); data = drm_mc_ri_d);"
+  ))
+  out <- JuliaCall::julia_eval(paste0(
+    "let t = DRM.lrtest(drm_mc_ri_red, drm_mc_ri_full); ",
+    "[DRM.aicc(drm_mc_ri_full), DRM.aicc(drm_mc_ri_red), t.statistic, ",
+    "Float64(t.dof), t.pvalue] end"
+  ))
+  list(aicc_full = out[[1]], aicc_red = out[[2]], statistic = out[[3]],
+       df = out[[4]], p.value = out[[5]])
+}
+
+test_that("aicc() reaches an engine = 'julia' fit and matches tmb and DRM.jl", {
+  drm_skip_live_julia()
+  drmTMB:::drm_julia_setup()
+  set.seed(20260905)
+  G <- 30L
+  m <- 12L
+  g <- rep(seq_len(G), each = m)
+  x <- stats::rnorm(G * m)
+  b <- 0.8 * stats::rnorm(G)
+  dat <- data.frame(
+    y = 0.5 - 0.4 * x + b[g] + 0.7 * stats::rnorm(G * m),
+    x = x, g = factor(g)
+  )
+  full <- bf(y ~ x + (1 | g), sigma ~ 1)
+  red <- bf(y ~ x, sigma ~ 1)
+  fj_full <- drm_mc_fit(full, dat, engine = "julia")
+  fj_red <- drm_mc_fit(red, dat, engine = "julia")
+  ft_full <- drm_mc_fit(full, dat, engine = "tmb")
+  ft_red <- drm_mc_fit(red, dat, engine = "tmb")
+
+  # aicc() has no drmTMB_julia method: it reaches the bridge object through
+  # aicc.default(), which needs logLik() to report df and nobs. It does.
+  ll <- stats::logLik(fj_full)
+  expect_false(is.null(attr(ll, "df")))
+  expect_false(is.null(attr(ll, "nobs")))
+  expect_lt(abs(aicc(fj_full) - aicc(ft_full)), 1e-6)
+  expect_lt(abs(aicc(fj_red) - aicc(ft_red)), 1e-6)
+  # Strictly above AIC, as DRM.jl documents.
+  expect_gt(aicc(fj_full), stats::AIC(fj_full))
+
+  # DRM.jl's own aicc/lrtest on the same data: the oracle. drm_mc_julia_native()
+  # maps every column through Float64, which a grouping factor cannot survive,
+  # so the random-intercept oracle passes `g` as an integer of its own.
+  native <- drm_mc_julia_ri_native(dat)
+  expect_lt(abs(aicc(fj_full) - native$aicc_full), 1e-8)
+  expect_lt(abs(aicc(fj_red) - native$aicc_red), 1e-8)
+  tj <- suppressWarnings(drm_lrtest(fj_red, fj_full))
+  expect_lt(abs(tj$statistic - native$statistic), 1e-8)
+  expect_identical(tj$df, native$df)
+  cat(sprintf(
+    "\n[aicc BRIDGE] julia=%.10f tmb=%.10f DRM.jl=%.10f | |d julia-tmb|=%.2e |d julia-DRM.jl|=%.2e\n",
+    aicc(fj_full), aicc(ft_full), native$aicc_full,
+    abs(aicc(fj_full) - aicc(ft_full)), abs(aicc(fj_full) - native$aicc_full)
+  ))
+})

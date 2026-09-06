@@ -5,6 +5,7 @@
 \alias{aicc}
 \alias{aicc.default}
 \alias{aicc.drmTMB}
+\alias{anova.drmTMB_julia}
 \title{Corrected Akaike information criterion (AICc)}
 \usage{
 aicc(object, ...)
@@ -12,6 +13,8 @@ aicc(object, ...)
 \method{aicc}{default}(object, ...)
 
 \method{aicc}{drmTMB}(object, ...)
+
+\method{anova}{drmTMB_julia}(object, ..., test = NULL)
 }
 \arguments{
 \item{object}{A fitted \code{drmTMB} model (either engine), or any object whose

@@ -224,3 +224,59 @@ drm_lrtest_boundary_warn <- function(reduced, full, df) {
   )
   invisible(NULL)
 }
+
+# ---------------------------------------------------------------------------
+# engine = "julia" methods (parity leaf `uncited-accessors`, 2026-09-05).
+#
+# What was MEASURED on the bridge axis for this suite (DRM.jl aee371cc9, one
+# Gaussian random-intercept pair, n = 360, G = 30; see
+# docs/dev-log/evidence/julia-r-parity/uncited-accessors/):
+#
+#   * `aicc()`   REACHES an `engine = "julia"` fit through `aicc.default()`,
+#                because `logLik.drmTMB_julia()` reports both `df` and `nobs`.
+#                It equals DRM.jl's own `aicc(fit)` on the same payload to
+#                0.000e+00 (856.6308350330), and `aicc(tmb_fit)` to 1.9e-11.
+#                No method is needed here; the default is correct.
+#   * `lrtest`   `drm_lrtest()` likewise runs on two `drmTMB_julia` fits and
+#                reproduces DRM.jl's `lrtest(reduced, full)` exactly
+#                (statistic 277.6900074326, df 1, p 2.393265e-62). It stays
+#                unexported and unwired, as the file header says.
+#   * `anova()`  had NO method for `drmTMB_julia`, so it failed with a bare
+#                `UseMethod` error while `anova(tmb_fit)` gave drmTMB's own
+#                refusal. Same refusal now, whichever engine fitted the model.
+#   * `weights()` fell through to `stats:::weights.default`, which returns
+#                `object$weights` -- absent on a bridge fit -- so it returned
+#                NULL SILENTLY, where `weights(tmb_fit)` on the same unweighted
+#                model returns a length-360 vector of ones and DRM.jl's own
+#                `weights(fit)` returns `ones(nobs(fit))` (measured: length
+#                360, all one). That silent divergence is what the method below
+#                closes.
+
+#' @rdname model-comparison
+#' @export
+anova.drmTMB_julia <- function(object, ..., test = NULL) {
+  cli::cli_abort(
+    "{.fn anova} likelihood-ratio comparisons are not implemented for {.cls drmTMB_julia} fits."
+  )
+}
+
+#' Prior weights of an `engine = "julia"` fit
+#'
+#' `engine = "julia"` refuses the `weights` argument at fit time
+#' (`drmTMB_julia_bridge()` and its structured counterparts in
+#' `R/julia-bridge.R` abort on a non-missing `weights`), so a bridge fit is unweighted by construction and its
+#' prior weights are all one. Without this method `weights()` fell through to
+#' `stats:::weights.default()` and returned `NULL` silently, while
+#' `weights()` on the same model fitted with `engine = "tmb"` returns a vector
+#' of ones. This reports the ones, matching both the native engine and
+#' `DRM.jl`'s own `weights(fit) = ones(nobs(fit))` (`src/comparison.jl`).
+#'
+#' These are PRIOR (per-observation) weights, not Akaike model weights.
+#'
+#' @param object A `drmTMB_julia` fit.
+#' @param ... Unused; present for S3 consistency.
+#' @return A numeric vector of ones, one per observation.
+#' @export
+weights.drmTMB_julia <- function(object, ...) {
+  rep(1, object$nobs)
+}

@@ -125,8 +125,8 @@ axis with `structure_provider = phylo` in `cells.tsv`: `implemented` for
 | Parametric bootstrap CIs | implemented |
 | AGHQ adaptive-quadrature marginal estimator | planned |
 | Variational (VA/ELBO) marginal estimator | planned |
-| Chi-bar-square boundary LRT p-value | planned |
-| Model comparison suite (LRT/anova/AICc/weights/update) | planned |
+| Chi-bar-square boundary LRT p-value | implemented |
+| Model comparison suite (LRT/anova/AICc/weights/update) | scope-limited |
 | Heritability/repeatability/ICC accessors | point-fit-recovery |
 
 Evidence for the REML rows: `cells.tsv` mc-0261/mc-0263 (fixed-effect Gaussian
@@ -140,14 +140,36 @@ plain `implemented`. The q4 bivariate-phylogenetic REML row mixes
 cells -- there is no single verified claim that a REML correction reaches all
 four axes (`mu1`, `mu2`, `sigma1`, `sigma2`) together, hence `scope-limited`.
 
-`AGHQ`, chi-bar-square boundary tests, and a named model-comparison suite
-(`anova`/`lrtest`/`aicc`/`weights`/`update`) have no implementation in `R/` and
-no exported symbol in `NAMESPACE`; AGHQ is explicitly named as a future remedy
-in ledger notes ("AGHQ/REML remedies planned"), so `planned` is used rather
-than `rejected`. `profile.R` does cite Self & Liang (1987) / Stram & Lee
-(1994) for boundary-aware profile-CI flagging
-(`conf.status = "wald_at_boundary"`), which is related but not the same
-capability as a formal chi-bar-square LRT p-value.
+`AGHQ` has no implementation in `R/` and no exported symbol in `NAMESPACE`;
+it is explicitly named as a future remedy in ledger notes ("AGHQ/REML remedies
+planned"), so `planned` is used rather than `rejected`.
+
+`Chi-bar-square boundary LRT p-value` moved to `implemented` (2026-09-05):
+`chibar_pvalue()` and `lrt_boundary()` (`R/lrt-boundary.R`) are exported and
+ported term-for-term from DRM.jl `src/chibar.jl`. `profile.R` separately cites
+Self & Liang (1987) / Stram & Lee (1994) for boundary-aware profile-CI flagging
+(`conf.status = "wald_at_boundary"`), which is related but weaker -- a flag on
+an interval, not a p-value. Both verbs also accept an `engine = "julia"` fit:
+measured 2026-09-05 against DRM.jl `aee371cc9`, `lrt_boundary()` on a pair of
+bridge fits reproduces DRM.jl's own `lrt_boundary` on the same payload to
+`0.000e+00` on the statistic and `1.986e-76` on the p-value
+(docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
+
+`Model comparison suite (LRT/anova/AICc/weights/update)` moved to
+`scope-limited` (2026-09-05) -- part of the suite ships, part is deliberately
+refused, and one part is internal. `aicc()` (`R/model-comparison.R`) is
+exported and reaches BOTH engines: on a `drmTMB_julia` fit it dispatches
+through `aicc.default()`, which works because `logLik.drmTMB_julia()` reports
+`df` and `nobs`, and it equals DRM.jl's own `aicc(fit)` to `0.000e+00`
+(measured 2026-09-05, DRM.jl `aee371cc9`). `drm_lrtest()` is implemented and
+matches DRM.jl's `lrtest` exactly, but is deliberately NOT exported and NOT
+wired into `anova()`. `anova()` refuses a likelihood-ratio comparison on both
+engines, by design. `weights()` returns PRIOR observation weights on both
+engines (all ones for a bridge fit, which refuses the `weights` argument at fit
+time), not Akaike model weights -- DRM.jl's `weights` member is the same
+quantity. `update()` is base R's refit verb and needs no port. The suite is
+therefore `scope-limited`, not `implemented`: no exported LRT and no model
+weights.
 
 `Heritability/repeatability/ICC accessors` moved to `point-fit-recovery`:
 `heritability()`/`icc()`/`repeatability()` (`R/heritability.R`,
@@ -156,6 +178,20 @@ structured-random-intercept model and recover the known variance ratio within
 tolerance across seeded simulations, and report a delta-method Wald interval,
 but that interval carries only a small-N sanity check, not a calibrated
 coverage study -- hence `point-fit-recovery` rather than plain `implemented`.
+That native-axis status was re-checked on 2026-09-05 and still holds. On the
+BRIDGE axis the three accessors are FENCED: they are delta-method ratios on the
+working (log-SD) scale and a `drmTMB_julia` fit exposes neither the working
+parameter vector (`fit$opt$par`) nor the covariance of its structured SDs
+(`fit$vcov` keeps fixed-effect coefficients only), so
+`heritability.drmTMB_julia()` and its two siblings abort with an actionable
+message naming `engine = "tmb"` instead of the bare `UseMethod` dispatch error
+that preceded them. This is "not wired", not "not possible": measured
+2026-09-05 (DRM.jl `aee371cc9`) the full bridge covariance one layer down
+(`fit$bridge$vcov`) IS the working-scale matrix, matching TMB's `sdreport`
+`log_sd_mu` entry to `1.824454e-02` vs `1.824453e-02`, and the h2 point formed
+by hand from the bridge fit's `sdpars`/`sigma()` matches
+`heritability(tmb_fit)$estimate` to `2.5e-12`
+(docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
 
 ## Bivariate structure and missing data
 
