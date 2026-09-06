@@ -17,17 +17,22 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("gaussian", "poisson", "nbinom2", "gamma"))
   # A4 (2026-09-05): truncated_nbinom2 then zero_one_beta admitted AFTER the
   # 2026-09-05 pin -- fixed-effect route only, so they appear in this one list.
+  # biv_lognormal (2026-09-05) is the second BIVARIATE fe row; it is deliberately
+  # in no other list -- native drm_build_biv_lognormal_spec() admits no phylo,
+  # random-effect or structured cell for it, so there is nothing else to admit.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
                      "truncated_nbinom2", "zero_one_beta", "tweedie",
-                     "beta_binomial", "cumulative_logit", "skew_normal"))
+                     "beta_binomial", "cumulative_logit", "skew_normal",
+                     "biv_lognormal"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
               "truncated_nbinom2", "zero_one_beta", "tweedie",
-              "beta_binomial", "cumulative_logit", "skew_normal"))  # A4 rows, 2026-09-05
+              "beta_binomial", "cumulative_logit", "skew_normal",  # A4 rows, 2026-09-05
+              "biv_lognormal"))
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
   # refused outright: no A4 target remains unadmitted after this merge (all six
   # fixed-effect rows above are on the registry); this loop is intentionally empty.

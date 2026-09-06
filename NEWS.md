@@ -163,6 +163,40 @@ every item above.
   return the untruncated count mean through the bridge rather than the hurdle
   mean; every dpar is correct, so `hurdle_nbinom2_mean()` reproduces the native
   `fitted()` from them exactly.
+## `biv_lognormal()` on the `engine = "julia"` fixed-effect route
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  family = biv_lognormal(), engine = "julia")` now fits instead of refusing with
+  "currently supports Workflow G fixed-effect families". One registry row
+  (`spec("biv_lognormal", fe = TRUE)`) admits it, and the bridge's default
+  label branch now matches the `biv_` prefix rather than the single literal
+  `"biv_gaussian"` -- without that, the registry row alone left BOTH the full
+  and the short `bf(mu1 = y1 ~ x, mu2 = y2 ~ x)` form aborting inside DRM.jl
+  (`coef_labels supplies names for unknown dpar "sigma"`), because a scalar
+  `sigma` label was being sent to a model whose blocks are
+  `sigma1`/`sigma2`/`rho12`. The scale contract is unchanged from the native
+  engine and was measured, not assumed: both engines take `y1`/`y2` on the raw
+  positive scale, `mu1`/`mu2` are means of `log y`, `sigma1`/`sigma2` are SDs
+  of `log y`, and both carry the change-of-variables Jacobian, so both match
+  the independent raw-scale oracle in `tests/testthat/test-biv-lognormal.R`
+  (logLik -164.673669588 on both, agreeing with the oracle to 4e-13). Measured
+  same-target receipts on an n = 600 draw at DRM.jl pin 430ef64cc: coefficients
+  9.288083e-07 (7/7 name-matched), logLik -1124.208196846248 vs
+  -1124.208196846242, Wald SE 1.707768e-06 relative. **Scope: fixed-effect
+  `mu1`/`mu2` with intercept-only `sigma1`/`sigma2`/`rho12` only** -- the same
+  cell the native engine admits; no random effects, no phylogenetic or
+  structured route, no interval-coverage claim.
+* The admission needed a scope fence to hold that boundary, and this is the
+  part worth reading twice. Bivariate families are exempt from the A4.G17
+  fixed-effect-only random-effect fence because `biv_gaussian` legitimately
+  fits predictor-driven `sigma1`/`sigma2`/`rho12` -- so the new registry row
+  inherited an exemption `biv_lognormal` has not earned. Measured at the pin
+  before the fence existed: `sigma1 = ~ x` FIT through `engine = "julia"`
+  (logLik -71.4056477) and so did `rho12 = ~ x` (logLik -70.64289338), while
+  `engine = "tmb"` refused both. `engine = "julia"` now refuses a predictor on
+  `sigma1`/`sigma2`/`rho12` and an ordinary random-effect bar for this family
+  on the R side, before Julia starts, in the same words the native engine uses.
+  `biv_gaussian()` is untouched.
 ## Bootstrap replicates keep a masked fit's response mask (#1188)
 
 * `confint(method = "bootstrap")` on a fit made with
