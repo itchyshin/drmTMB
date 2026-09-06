@@ -116,3 +116,165 @@ drm_julia_cumulative_logit_ordinal_slot <- function(out) {
   out$uncertainty$finite_dpars <- setdiff(out$uncertainty$finite_dpars, "cutpoints")
   out
 }
+
+# ---- ordinal targets and the cutpoint-interval engine boundary (#1144) -----
+#
+# #1144 polished the constrained `stats::nlminb()` solve in
+# `ordinal_cutpoint_profile_evaluator()` (R/profile.R) so a NATIVE
+# `cumulative_logit()` fit reports honest `"ordinal:cutpoint:<label>"` profile
+# intervals. `cumulative_logit` is an admitted bridge family, so the same
+# question has to have an answer through `engine = "julia"`. Measured on the
+# committed fixture at DRM.jl pin 430ef64cc, 2026-09-05, BEFORE this code:
+#
+#   * `fj$ordinal` already carried the right numbers -- cutpoints
+#     (-0.9909812, 0.6237335), identical to the native slot;
+#   * `profile_targets(fj)` listed ONLY `fixef:mu:x`, so neither ordinal row
+#     was discoverable at all; and
+#   * `confint(fj, parm = "ordinal:cutpoint:low|medium", ...)` answered
+#     `Unknown confidence-interval target: "ordinal:cutpoint:low|medium".`
+#     for method = "wald", "profile" AND "bootstrap" -- a name-not-found
+#     diagnosis for a target that plainly exists on the fit, pointing the
+#     user at `fixef:mu:x` as though they had made a typo.
+#
+# The interval itself cannot be routed: DRM.jl's `_bridge_parse_inference_parm`
+# (src/bridge.jl at the pin) accepts only `fixef:<dpar>:<coef>` and
+# `sd:<dpar>` targets, so there is no cutpoint inference target on the Julia
+# side to call. The honest fix is therefore the one design 168 asks for -- be
+# DISCOVERABLE and REFUSE EXPLICITLY -- not to invent a number:
+#
+#   (a) `drm_julia_cumulative_logit_targets()` puts the ordinal rows back into
+#       the Julia inventory with `profile_ready = FALSE`, so `profile_targets()`
+#       reports the same public rows as the native fit and says why they are
+#       not ready (the `sigma` response-scale alias row, #460 item 3, is the
+#       existing precedent for a discoverable not-ready row); and
+#   (b) `drm_julia_ordinal_interval_refusal()` turns the "unknown target" reply
+#       into a refusal that names ordered cutpoints and points at the engine
+#       that does have them.
+
+# The ordinal inventory rows for a Julia-engine fit, mirroring the native
+# `drm_profile_targets()` block (R/profile.R) row for row: the internal
+# `theta_ord` coordinates first, then the public cumulative cutpoints. Both
+# are NOT ready, for different reasons -- the internal coordinates are not a
+# public interval target on EITHER engine (`internal_ordinal_parameter`,
+# the native note), and the public cutpoints have no bridge route
+# (`julia_ordinal_cutpoint_native_only`). Returns an empty inventory for any
+# fit without an `ordinal` slot, so the union call site stays unguarded.
+drm_julia_cumulative_logit_targets <- function(object) {
+  ordinal <- object$ordinal
+  if (is.null(ordinal) || length(ordinal$theta_raw) == 0L) {
+    return(empty_profile_targets())
+  }
+  theta <- ordinal$theta_raw
+  cutpoints <- ordinal$cutpoints
+  if (length(cutpoints) != length(theta)) {
+    cli::cli_abort(
+      "Internal error: Julia-engine ordinal slot has {length(cutpoints)} cutpoint{?s} for {length(theta)} raw coordinate{?s}."
+    )
+  }
+  internal_rows <- lapply(seq_along(theta), function(i) {
+    new_profile_target_row(
+      parm = paste0("ordinal:theta_ord:", names(theta)[[i]]),
+      target_class = "ordinal-cutpoint-internal",
+      dpar = "ordinal",
+      term = names(theta)[[i]],
+      tmb_parameter = "theta_ord",
+      index = i,
+      estimate = unname(theta[[i]]),
+      link_estimate = unname(theta[[i]]),
+      scale = "internal",
+      transformation = "ordered_cutpoint",
+      target_type = "direct",
+      profile_ready = FALSE,
+      profile_note = "internal_ordinal_parameter"
+    )
+  })
+  cutpoint_rows <- lapply(seq_along(cutpoints), function(i) {
+    new_profile_target_row(
+      parm = paste0("ordinal:cutpoint:", names(cutpoints)[[i]]),
+      target_class = "ordinal-cutpoint",
+      dpar = "ordinal",
+      term = names(cutpoints)[[i]],
+      tmb_parameter = "theta_ord",
+      index = i,
+      estimate = unname(cutpoints[[i]]),
+      link_estimate = unname(theta[[i]]),
+      scale = "cutpoint",
+      transformation = "ordered_cutpoint",
+      target_type = "constrained",
+      profile_ready = FALSE,
+      profile_note = "julia_ordinal_cutpoint_native_only"
+    )
+  })
+  out <- do.call(rbind, c(internal_rows, cutpoint_rows))
+  row.names(out) <- NULL
+  out
+}
+
+# TRUE when `parm` names any ordinal target of this fit. Matched against the
+# fit's OWN inventory rather than by string prefix, so a fit with no ordinal
+# slot never triggers the refusal and a mistyped cutpoint label still gets the
+# ordinary unknown-target message.
+drm_julia_is_ordinal_parm <- function(object, parm) {
+  if (!is.character(parm) || length(parm) == 0L) {
+    return(FALSE)
+  }
+  inventory <- drm_julia_cumulative_logit_targets(object)
+  any(parm %in% inventory$parm)
+}
+
+# The refusal itself. Called from ONE guarded line at the top of
+# `confint.drmTMB_julia()`, so every method -- "wald", "profile" and
+# "bootstrap" -- gives the same answer instead of three different ways of
+# saying "unknown target".
+drm_julia_ordinal_interval_refusal <- function(object, parm, method) {
+  inventory <- drm_julia_cumulative_logit_targets(object)
+  requested <- intersect(parm, inventory$parm)
+  public <- inventory$parm[inventory$target_class == "ordinal-cutpoint"]
+  internal_only <- setdiff(
+    requested,
+    inventory$parm[inventory$target_class == "ordinal-cutpoint"]
+  )
+  detail <- if (length(internal_only) == length(requested)) {
+    # Every requested row is a raw `theta_ord` coordinate. That is refused on
+    # BOTH engines (R/profile.R), so say so rather than blaming the bridge.
+    paste0(
+      "Raw \"ordinal:theta_ord:<label>\" coordinates are internal ordinal ",
+      "diagnostics on either engine, not interval targets."
+    )
+  } else {
+    paste0(
+      "engine = \"julia\" has no cutpoint interval route: DRM.jl's bridge ",
+      "inference accepts only fixed-effect and random-effect-SD targets, so ",
+      "there is nothing to constrain the cutpoint against."
+    )
+  }
+  # Each dynamic part is collapsed to ONE length-1 string and handed to cli as
+  # a bare {var} interpolation. Two reasons, both measured on 2026-09-05:
+  #
+  #  * `requested` and `public` have different lengths, so leaving both as
+  #    cli interpolations of VECTORS in one message aborts with "Multiple
+  #    quantities for pluralization" -- an internal cli error would have
+  #    replaced the very refusal this function exists to give; and
+  #  * pasting the collapsed text into the format string instead is not safe
+  #    either, because cli glue-expands the format string. An ordered factor
+  #    level may legally contain a brace, and with the text pasted in, a
+  #    "a{1}|b" cutpoint came back as "a1|b" -- the refusal quoted a target
+  #    name that does not exist and told the user to use it. Interpolating the
+  #    VARIABLE inserts its content literally and is expanded only once.
+  requested_text <- paste0("\"", requested, "\"", collapse = ", ")
+  public_text <- paste0("\"", public, "\"", collapse = ", ")
+  requested_line <- paste0(
+    "Requested: ", requested_text, " with method = \"", method, "\"."
+  )
+  native_line <- paste0(
+    "Refit with engine = \"tmb\" and use method = \"profile\" -- the native ",
+    "engine solves the constrained cutpoint profile (", public_text, ")."
+  )
+  cli::cli_abort(c(
+    "Ordered-cutpoint confidence intervals are not available for {.code engine = \"julia\"} fits.",
+    x = "{requested_line}",
+    i = "{detail}",
+    i = "{native_line}",
+    i = "The fitted cutpoints themselves are already on this fit, in `fit$ordinal$cutpoints`."
+  ))
+}
