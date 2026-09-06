@@ -27,7 +27,8 @@ test-b1-breadth-dispatch.R	build-premise	build	skips	1
 test-b1-dispatch-self-location.R	build-premise	build	skips	2
 test-b1-dispatch-self-location.R	cran-lane	environment	runs	2
 test-b1-dispatch-self-location.R	external-tool	environment	runs	1
-test-b2-q6-serial-proof-receipt-audit.R	build-premise	build	skips	1
+test-b2-q6-serial-proof-receipt-audit.R	build-premise	build	skips	2
+test-b2-q6-serial-proof-receipt-audit.R	history-premise	build	skips	1
 test-beta-location-scale.R	suggests-package	environment	runs	2
 test-beta-phylo-direct-sd.R	suggests-package	environment	runs	5
 test-beta-phylo-q1-recovery-runner.R	build-premise	build	skips	1

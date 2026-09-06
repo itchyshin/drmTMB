@@ -144,6 +144,13 @@ drm_classify_skip <- function(fn, call, guard = "") {
   if (grepl("DRMTMB_[A-Z_]+|Sys\\.getenv", call)) return("env-var-optin")
   if (grepl("collat|locale|Sys\\.setlocale", call, ignore.case = TRUE)) return("locale")
   if (grepl("LAPACK|BLAS|pdHess|eigen", call)) return("platform-numeric")
+  # Blind spot #1's sibling: the premise is a git OBJECT the published history
+  # does not contain, so no clone can supply it and no runner setting can fix
+  # it. Kept off the "environment" axis deliberately -- a runner cannot install
+  # its way out of this one.
+  if (grepl("never pushed|absent from this clone|unpushed commit", call)) {
+    return("history-premise")
+  }
   if (grepl(paste0(
     "file\\.exists|dir\\.exists|system\\.file|test_path|\\.Rbuildignore|tarball|",
     "source checkout|source tree|source package|source-only|installed[- ]package|",
@@ -163,7 +170,7 @@ drm_skip_axis <- function(gate_class) {
       "env-var-optin", "engine-drm-jl", "external-tool", "locale"
     ),
     "environment",
-    ifelse(gate_class == "build-premise", "build", "runtime")
+    ifelse(gate_class %in% c("build-premise", "history-premise"), "build", "runtime")
   )
 }
 
@@ -200,6 +207,11 @@ drm_skip_axis <- function(gate_class) {
 #                     skips reported with that reason.
 #   build-premise     Blind spot #1, measured in PR #1222: `.Rbuildignore`
 #                     removes the premise from the tarball CI checks.
+#   history-premise   The premise is a git object the published history does not
+#                     contain, so every clone lacks it and no runner setting
+#                     helps. Measured in PR #1222: the q6 audit's frozen
+#                     runner_source_sha a8d068e64 returns 422 from the GitHub
+#                     API and is on no remote ref.
 #   locale            The runner collates as C.UTF-8, not en_US.UTF-8, so the
 #                     two sites disagree in opposite senses; on this runner
 #                     both are masked by an upstream engine-drm-jl gate.
@@ -213,6 +225,7 @@ drm_skip_ci_status <- function(gate_class) {
     "env-var-optin" = "skips",
     "ci-permanent" = "skips",
     "build-premise" = "skips",
+    "history-premise" = "skips",
     "locale" = "depends",
     "platform-numeric" = "depends",
     "runtime-conditional" = "depends"

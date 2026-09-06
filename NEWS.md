@@ -233,6 +233,32 @@ every item above.
   fit above is native TMB (`engine = "tmb"`) only. Precision (`Ainv`) and
   pedigree-built animal representations, slopes, q4+, and scale-side
   bivariate relmat/animal REML routes remain deferred and refused.
+## `engine = "julia"` zero-inflated NB2: `fitted()` and `residuals()` now agree with the native engine (DRM.jl bridge fix)
+
+* A zero-inflated negative-binomial model (`family = nbinom2()` with a `zi ~ `
+  formula part, native `model_type` `"zi_nbinom2"`) already routed through
+  `engine = "julia"`, but nothing tested or documented it -- and it carried a
+  silent disagreement. `fitted()` and `residuals()` differed between the two
+  engines on the SAME converged fit, because DRM.jl's `fitted()` is the
+  count-component mean `mu` while drmTMB's is the unconditional mean
+  `(1 - zi) * mu`. Measured on the package's own
+  `tests/testthat/test-zi-nbinom2.R` fixture (n = 1800): coefficients agreed to
+  4.56745752330789e-13 and logLik to 1.72803993336856e-11, while `fitted()`
+  disagreed by 1.3665229755584 -- invisible to any coefficient or likelihood
+  check. Fixed on the DRM.jl bridge boundary (`_bridge_fitted_marginal`), which
+  leaves DRM.jl's own `fitted`/`simulate`/`marginal_parameters` and the bridge's
+  `mu` dpar untouched; after the fix the difference is 4.83169060316868e-13. The
+  same repair covers zero-inflated Poisson; hurdle fits are deliberately not
+  repaired (their mean also divides by `1 - P(0)` and has no bridge receipt).
+  A new `tests/testthat/test-julia-family-zi_nbinom2.R` pins the route: coef,
+  logLik and Wald-SE parity, the coefficient-naming contract for all three dpar
+  blocks (design 258 section 8.10), the engine's own refusals, and two KNOWN
+  GAPS that are pinned rather than claimed -- `predict(dpar = "zi")` is refused
+  on a Julia-engine fit (the bridge tags it `"nbinom2"`, whose link table has no
+  `zi` row), and `sigma()` returns a list rather than the numeric vector the
+  native engine returns. **No registry row and no family admission**: the route
+  was already reachable through the existing `nbinom2` row.
+
 ## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
 
 * Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
