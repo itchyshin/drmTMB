@@ -1,3 +1,26 @@
+# drmTMB 0.7.1
+
+Version bump only -- tagging, release and CRAN submission remain the
+maintainer's ceremonies. This heading summarizes, at a glance, the
+`engine = "julia"` bridge work already recorded in detail under the 0.7.0
+section below:
+
+* `engine = "julia"` masked-response fits: the `is_converged()` and
+  bootstrap defects are fixed upstream in DRM.jl (#646).
+* `engine = "julia"` bridge-side profile/bootstrap inference is qualified
+  (G3) on two routes: `base_gaussian_location_scale` and
+  `plain_binomial_nonphylo`.
+* `engine = "julia"` admits `beta_binomial()` and `cumulative_logit()` on
+  fixed-effect routes, and `predict()` on `cumulative_logit()` Julia fits
+  now matches `engine = "tmb"`.
+* REML support is tabled by route and measured across both engines
+  (#1142), and `drm_julia_reml_supported()` now also covers
+  Location-Scale-Scale `sd(...)` models, promoting Capability Row 12
+  (`location_scale_scale`) from `partial` to `covered` (DRM.jl #558).
+
+See the 0.7.0 section immediately below for the full, measured detail on
+every item above.
+
 # drmTMB 0.7.0
 
 ## `engine = "julia"` masked-response fits: convergence flag and bootstrap fixed upstream (DRM.jl #646)
