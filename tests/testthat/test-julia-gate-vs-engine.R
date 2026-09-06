@@ -74,7 +74,15 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     # out-of-OWNS-but-necessary exception, called out in the leaf-a4g17
     # ledger's EVIDENCE -- because this is a hard-coded literal vector this
     # test file exists specifically to keep in sync with the registry.
-    "fe_only_random_effects"
+    "fe_only_random_effects",
+    # drmTMB#1224 (2026-09-05): a predictor on a dpar outside the family's
+    # registry `predictor_dpars` declaration is refused pre-Julia. Measured
+    # cause: the fe-only fence exempted bivariate families by NAME PREFIX, so
+    # every new `biv_*` row inherited the exemption -- and the same class was
+    # then found on `tweedie` (`nu ~ z` fit through the bridge at logLik
+    # -259.84074955 while `engine = "tmb"` refused it), which has no prefix at
+    # all. Same reason as the row above for editing this literal vector.
+    "unadmitted_predictor_dpar"
   )
 
   expect_s3_class(gates, "data.frame")
@@ -544,4 +552,41 @@ test_that("cross-family Julia bridge gates are intentional and pre-JuliaCall", {
     ),
     "cannot fit .*sigma2.*dispersion"
   )
+})
+
+test_that("unadmitted_predictor_dpar: tweedie nu ~ z is gated before Julia starts", {
+  withr::local_envvar(DRM_JL_PATH = NA, DRM_JL_PHYLO_PATH = NA)
+  # Every family the fence actually narrows must be exercised, not just the one
+  # that happened to be measured -- an empty loop would be a silent pass.
+  narrowed <- drmTMB:::drm_julia_narrowed_predictor_dpar_families()
+  expect_gt(length(narrowed), 0L)
+  expect_true("tweedie" %in% narrowed)
+
+  set.seed(20260905L)
+  n <- 60L
+  dat <- data.frame(
+    y = stats::rgamma(n, shape = 2, rate = 1),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  expect_julia_gate(
+    "unadmitted_predictor_dpar",
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, nu ~ z),
+      family = tweedie(),
+      data = dat,
+      engine = "julia"
+    )
+  )
+  # The gate must not over-fire on the intercept-only spelling the native
+  # engine DOES admit: that call gets past this fence and fails later, on the
+  # missing engine, which is a different message entirely.
+  err <- tryCatch(
+    drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = tweedie(),
+           data = dat, engine = "julia"),
+    error = function(e) e
+  )
+  expect_s3_class(err, "error")
+  expect_false(grepl("must\\s+be\\s+intercept-only",
+                     conditionMessage(err)))
 })
