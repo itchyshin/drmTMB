@@ -142,9 +142,19 @@
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
 #'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
 #' @param engine Computational engine. The default `"tmb"` uses the native
-#'   `drmTMB` TMB backend. The `"julia"` compatibility bridge is halted and
-#'   deferred for future work; it is retained only so existing objects and code
-#'   can be inspected, not as a current fitting route.
+#'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRM.jl
+#'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
+#'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
+#'   an additional large-p `phylo()` or coupled location-scale phylo route),
+#'   plus `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, and
+#'   `beta_binomial()` on the fixed-effect route only. Each admitted family
+#'   carries a same-target parity receipt against `engine = "tmb"`
+#'   (coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
+#'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
+#'   the full family-by-route table, which capability-ledger row documents
+#'   each receipt, and current boundaries. `engine = "julia"` needs a local
+#'   DRM.jl checkout and the optional `JuliaCall` package, and it is not a
+#'   drop-in replacement for every native-TMB workflow.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -177,11 +187,15 @@
 #'   not a `drmTMB()` argument and is not what `REML = TRUE` runs. Public
 #'   cumulative-logit random-slope fits remain maximum likelihood
 #'   (`point_fit_recovery`).
-#'   The halted `engine = "julia"` compatibility bridge is not a supported
-#'   estimator or REML route. Use native `engine = "tmb"` for fitting and use
-#'   `REML = FALSE` for likelihood-ratio tests, AIC/BIC comparisons across
-#'   different fixed-effect formulas, non-binomial non-Gaussian models, and
-#'   currently unsupported extensions.
+#'   `engine = "julia"` fits `REML = TRUE` on a route-by-route basis, not
+#'   uniformly: the fixed-effect Gaussian location-scale model, the bivariate
+#'   q = 4 phylogenetic route, the location-scale-scale `sd()`/`sd_phylo()`
+#'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
+#'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
+#'   currently fit `REML = TRUE`; every other bridge route refuses it, some
+#'   with a raw DRM.jl error rather than a `drmTMB`-worded one. See
+#'   `docs/design/261-reml-by-route.md` for the full route-by-route table
+#'   before relying on bridge REML for a model not listed there.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that
@@ -2950,6 +2964,25 @@ drm_reml_admits_biv_relmat_q2_intercept <- function(spec) {
   )
 }
 
+# leaf-biv-animal-reml (2026-09-05): the bivariate q2 exact-covariance REML
+# route is provider-agnostic in TMB (src/drmTMB.cpp has no branch on marker
+# identity for this route) and in DRM.jl's own REML implementation (kind ===
+# :animal and kind === :relmat both call the IDENTICAL
+# make_coevo_problem_from_covariance() path, bit-identical loglik measured on
+# a matched fixture). The prior refusal of animal() here was a recorded SCOPE
+# decision (docs/design/211-structured-reml-status.md), not a mathematical
+# objection, so this widens admission to the supplied-`A` representation
+# exactly as relmat's supplied-`K` representation is admitted. Precision
+# (`Ainv`) and pedigree-built (`pedigree`) animal representations stay
+# refused (representation != "A").
+drm_reml_admits_biv_animal_q2_intercept <- function(spec) {
+  drm_reml_admits_biv_exact_q2_intercept(
+    spec,
+    provider = "animal",
+    representation = "A"
+  )
+}
+
 drm_validate_reml_spec <- function(spec) {
   if (identical(spec$model_type, "biv_gaussian")) {
     return(drm_validate_reml_spec_biv(spec))
@@ -3145,15 +3178,18 @@ drm_validate_reml_spec_biv <- function(spec) {
       drm_reml_admits_biv_spatial_q2_intercept(spec)
     relmat_q2_admitted <-
       drm_reml_admits_biv_relmat_q2_intercept(spec)
+    animal_q2_admitted <-
+      drm_reml_admits_biv_animal_q2_intercept(spec)
     if (
       !identical(structured_type, "phylo") &&
         !spatial_q2_admitted &&
-        !relmat_q2_admitted
+        !relmat_q2_admitted &&
+        !animal_q2_admitted
     ) {
       cli::cli_abort(c(
-        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and exact fixed-covariance spatial or supplied-{.code K} relmat q2 location blocks.",
+        "For bivariate models, {.arg REML} supports phylogenetic ({.fn phylo}) structured effects and exact fixed-covariance spatial, supplied-{.code K} relmat, or supplied-{.code A} animal q2 location blocks.",
         "i" = "The spatial exception requires matching labelled {.code spatial(1 | p | site, coords = coords)} intercepts in {.code mu1} and {.code mu2}, constant {.code sigma1}, {.code sigma2}, and {.code rho12}, complete response pairs, unit weights, and no other random-effect layer.",
-        "i" = "The relatedness exception has the same boundaries and requires matching labelled {.code relmat(1 | p | id, K = K)} intercepts; supplied precision {.code Q}, animal, slopes, q4+, and scale-side bivariate relmat REML routes remain deferred.",
+        "i" = "The relatedness exception has the same boundaries and requires matching labelled {.code relmat(1 | p | id, K = K)} or {.code animal(1 | p | id, A = A)} intercepts; supplied precision {.code Q}/{.code Ainv}, pedigree-built animal matrices, slopes, q4+, and scale-side bivariate relmat/animal REML routes remain deferred.",
         "i" = "Known covariance, missing or weighted response pairs, and additional random, direct-SD, or corpair layers remain outside both exact exceptions; use an admitted cell or set {.code REML = FALSE}."
       ))
     }
