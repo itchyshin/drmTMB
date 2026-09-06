@@ -397,7 +397,7 @@ drm_julia_capability_comparison <- function() {
       "guarded non-Gaussian phylo path",
       "general-covariance path for Gaussian, Poisson, NB2, and Gamma",
       "latent-rho mixed-family path; API drift is tracked in tests",
-      "Julia-native g_tol and algorithm controls on the base bridge; unsupported TMB controls refuse before JuliaCall",
+      "Julia-native g_tol / algorithm (plus q4_vcov on the bivariate q4 route) on the base bridge; EVERY other drm_control() field refuses before JuliaCall, from a set derived from drm_control() itself",
       "Workflow G FE bridge cell (binomial-trials) via drm_bridge",
       "DRM.jl sd(group)/sd(group, phylogenetic) location-scale-scale routes (DRM.jl #544/#545)",
       "Workflow G FE bridge cell (student, nu dpar) via drm_bridge",
@@ -496,7 +496,7 @@ drm_julia_capability_comparison <- function() {
       "PROMOTED experimental -> covered 2026-08-27 (Phase 1 of the promotion arc, owner instruction). All four design/168 limbs: implementation (DRM.jl non-Gaussian sparse-Laplace phylo route, src/sparse_laplace_glmm.jl); focused tests in DRM.jl's DEFAULT suite (test/test_gamma_beta_phylo_laplace.jl, test/test_binomial_phylo_laplace.jl); public docs (DRM.jl docs/src/capabilities.md non-Gaussian phylo table); and native-vs-native parity WITH SEs in DRM.jl docs/dev-log/evidence/parity-phylo-nongaussian.tsv, all THREE members on one stamped comparator build (f3e754a4): coefficients Gamma 6.26e-08 / Binomial 2.18e-08 / Beta 5.02e-07, logLik <= 2.9e-05, mu-block relative SE 1.49e-05 / 2.17e-07 / 1.87e-04 -- inside the 1e-3 SE bar tools/parity_se.R argues from measured headroom. HISTORY THAT MATTERS: the Binomial member was NO_NATIVE_COMPARATOR until drmTMB gained native binomial phylo() on 2026-08-17 (d30841491); re-measured 2026-08-26 it is the TIGHTEST of the three. The comparator moving made this row MORE evidenced invisibly -- caught by the #473 provenance stamping on its first real run -- and it removes the per-member evidence boundary the promotion plan expected to need. BOUNDARY: one fixture (12 tips x 6 obs, one seed); the tree is normalised to unit height because the engines' scale conventions differ by sqrt(height); the Binomial cell's phylo-SD coordinate sits at a variance boundary (DRM.jl vcov_guard flags it and uses a pseudo-inverse -- the mu-block SEs compared are unaffected, and the boundary is why the mu-only comparison is the honest one there); the evidence route is native-engine-vs-native-engine via JuliaCall, NOT the R bridge, which is why r_bridge_status stays experimental. NOT interval COVERAGE -- no interval_status fence moves here.",
       "PROMOTED partial -> covered 2026-08-27 (Phase 1 of the promotion arc, owner instruction). Supplied covariance/relatedness K with sigma ~ 1. All FOUR claimed families measured against native drmTMB and re-banked twice on stamped comparator builds (f3e754a4 on 2026-08-26, re-measured to identical values on 19ecb005 in the 2026-08-27 Phase 2 re-bank, which is the build the current parity-classc.tsv stamps): relative SE Gaussian 3.38e-07, Poisson 2.17e-06, NB2 4.79e-06, Gamma 2.17e-07; coefficients 1.6e-08..1.6e-06. THE EARLIER SE NUMBERS ON THIS ROW (Poisson 4.65e-03, NB2 6.79e-03, Gamma 4.08e-02) WERE SOLVE NOISE, NOT A CONVENTION DIFFERENCE: the promotion plan's SE-divergence diagnostic showed the Julia SE converging toward native as the inner Newton tolerance tightened, and DRM.jl#513 (newton_tol 1e-8 -> 1e-10; vcov-guard rtol recalibrated 1e-12 -> 3e-8 on 1,970 instrumented calls per arm) closed the gap -- Gamma improved 188,216x. Four limbs: implementation; focused tests in DRM.jl's default suite (test/test_relmat_counts.jl, test_relmat_counts_nb2.jl, test_relmat_counts_beta.jl); public docs (DRM.jl docs/src/capabilities.md structured-effects table); and the SE evidence above, with a negative control in parity-se.tsv from the same program. BOUNDARY UNCHANGED AND STILL VISIBLE: ONE seed/fixture per family; beta has NO_NATIVE_COMPARATOR (drmTMB refuses relmat on plain beta()) and is an excluded NEIGHBOUR -- the row claims exactly the four families measured; precision Q and sigma predictors remain GATED and unmeasured. NOT interval coverage.",
       "PERMANENT CLAIM_BOUNDARY (owner decision D-179 #3, 2026-08-27): this row stays `partial` by DESIGN, on the engine_control_surface pattern -- an owner-signed boundary, not a pending promotion. WHY IT CANNOT REACH `covered` ON THE PARITY BAR: drmTMB's native TMB engine accepts only c(gaussian(), gaussian()), so no native comparator for a mixed pair can exist; the only evidence route is multi-seed simulation recovery, which is deliberately NOT being spent here (one family pair, one fixture is what exists). RETRACTION OF THE PREVIOUS TEXT'S CLAIM (1): the route IS reachable from R. drmTMB(bf(...), c(gaussian(), poisson()), engine = \"julia\") dispatches through drmTMB_julia_xfam_bridge -> drm_julia_call_xfam -> DRM.fit_mixed_family, exercised by tests/testthat/test-xfam-bridge.R (54 passing assertions incl. a live Gaussian x Poisson round-trip). The earlier \"NOT reachable through the R bridge at all\" verdict inspected DRM.jl's src/bridge.jl -- the wrong LAYER: drmTMB's own marshalling reaches the engine without it. Consequently r_bridge_status = experimental is FAIR, not generous, and stands. WHAT THE ROUTE REFUSES, as excluded NEIGHBOURS (a rho12 formula would be a different model -- the correlation here is a latent scalar): rho12 formulas, random effects, structured markers, meta_V, weights, impute, non-drop missing routes. Smoke evidence: rho_latent 0.5336 on n=300 shared-latent fixture, DRM.jl formula-route == matrix-route equivalence tested (test_cross_family_formula.jl, 18 assertions (a 24 was recorded earlier and corrected by the 2026-08-27 audit)). NOT interval coverage. Revisiting this boundary is an owner decision; simulation-recovery evidence would be the price of `covered`.",
-      "The base Julia bridge accepts only drm_control(optimizer = list(g_tol = ..., algorithm = ...)). These are Julia-native controls, not an attempt to match TMB presets or iteration budgets; unsupported controls refuse before JuliaCall. The translation and route-option tests are local only; no performance or interval claim moves.",
+      "PERMANENT CLAIM_BOUNDARY (drmTMB#1108, resolved 2026-09-05; supersedes the next_action that used to read 'Design engine_control explicitly before relaxing the gate'). THE TWO CONTROL SURFACES ARE NOT RECONCILABLE, and this row records that rather than pending work. drm_control() describes an nlminb/TMB program; DRM.jl's drm() is a different program that runs none of it, so for most of the surface there is no counterpart to forward to and no native comparator against which a parity claim could ever be measured. WHAT CROSSES, exhaustively: optimizer$g_tol -> DRM.jl drm(; g_tol =), optimizer$algorithm -> drm(; algorithm =) (auto, gls, lbfgs, em, sparse, sparse_lbfgs), and optimizer$q4_vcov -> drm(; q4_vcov =) on the bivariate q = 4 phylogenetic route only. RENAME, on that q4 route only: optimizer$g_tol is forwarded as DRM.jl q4_g_tol (its outer-gradient tolerance) and optimizer$algorithm is refused, because that route's optimiser has no solver-selection setting. WHAT DOES NOT CROSS, by name and permanently: se, se_report_covariance, se_skip_delta_method, se_group_sd, keep_data, keep_model_frame, keep_tmb_object, sparse_fixed, aggregate_gaussian, logsigma_clamp, logsigma_clamp_margin, optimizer_preset, newton_polish, multi_start, fallback_optimizer, start, and every nlminb name inside optimizer (iter.max, eval.max, rel.tol, trace, ...). WHAT A USER SHOULD DO INSTEAD: use engine = \"tmb\" for any of them -- they are TMB-engine controls and the TMB engine is the engine that honours them. DEFECT FIXED HERE (measured live at DRM.jl pin 430ef64cc, 2026-09-05): seven of those names -- se_report_covariance, se_skip_delta_method, se_group_sd, logsigma_clamp, logsigma_clamp_margin, newton_polish, fallback_optimizer -- were SILENTLY DROPPED, not refused, because the refusal list was hand-written and named 9 of 16 non-optimizer fields. drmTMB(bf(y ~ x, sigma ~ x), engine = \"julia\", control = drm_control(newton_polish = FALSE)) returned a fit byte-identical to the default one (logLik -199.0299845089, same four coefficients): the user got neither the setting nor an error. The list is now DERIVED from drm_control() (drm_julia_unsupported_control_fields()), so a field added to drm_control() refuses without an edit to the bridge, and tests/testthat/test-julia-optimizer-controls.R asserts the classification is TOTAL over names(drm_control()). EVIDENCE THAT THE TWO ADMITTED KNOBS REACH THE ENGINE, same run: g_tol = 1 moved the fit to logLik -199.0364652191 (from -199.0299845089); algorithm = \"em\" reached DRM.jl and threw its own ArgumentError from gaussian_core.jl naming :em. algorithm = \"lbfgs\" / \"gls\" / \"sparse\" returned the same optimum as the default on this fixed-effect fixture -- the option crosses, the route converges to the same point. ROUTE ASYMMETRY, unchanged and deliberate: the structured, bivariate q2 structured, and cross-family routes accept only a DEFAULT control (drm_julia_default_control(), identical() against drm_control()), so even g_tol is refused there. NOT CLAIMED: no performance claim, no interval or coverage claim, no claim that a Julia g_tol is equivalent to any TMB tolerance. claim_status stays experimental PERMANENTLY -- it records a deliberately narrow Julia-native surface with no TMB equivalent, not unfinished work; there is no parity receipt to earn here because there is nothing to compare against.",
       "Live R Workflow G binomial-trials cell (cbind(successes, failures) ~ x) vs DRM.jl: logLik/coefficient agreement 2.48e-13, and SE agreement 1.268e-09 abs / 2.482e-08 rel (parity-se.tsv cell se_binomial_trials, measured 2026-08-24, comparator build recorded via drmtmb_code_hash) -- tighter than any of the three Gaussian SE cells. Evidence is result-shape and point/SE parity on a fixed-effect cell: NOT interval COVERAGE, no phylo, no random effects. PROMOTED experimental -> partial on the bridge axis 2026-09-02 (docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): 1.26789215931788e-09 abs / 2.482e-08 rel, comparator hash f3e754a4. PROMOTED r_bridge_status partial -> supported 2026-09-05 (leaf A8, G3 bridge-side inference qualification, docs/dev-log/evidence/julia-r-parity/p2-g3/g3-qualification-receipt.md): engine=\"julia\" vs engine=\"tmb\" on the committed binomial-trials fixture, target fixef:mu:x -- both converged; wald delta 5.184e-09 (both bounds); profile delta 9.353e-08/2.303e-06 (tol 1e-4, both PASS); bootstrap (R=99; drmTMB#1123's fix, already on this branch, confirmed live -- both engines now reconstruct the cbind(successes, failures) response for every replicate) tmb=[0.340906,0.529445] julia=[0.368069,0.551723], both 0/99 replicates failed, intervals OVERLAP; julia estimator=ML (the #1155 estimator-authority cross-check passed on every cell in this receipt). Bridge-side profile/bootstrap inference (G3) is QUALIFIED for this route on this cell -- one fixture, one target; not a coverage claim. BOOTSTRAP CAVEAT (Fisher review 2026-09-05): the bootstrap comparison is OVERLAP ONLY, not agreement within tolerance -- the Julia interval sits nested inside the TMB interval (R = 99, 0/99 failed on both engines) and no same-seed design exists across engines; the promotion rests on the profile and Wald agreement (<= 7.2e-06)."
 ,
       "PROMOTED partial -> covered 2026-08-28 (Phase 4 of LSS arc). All four design/168 limbs met: implementation (DRM.jl location-scale-scale engine, src/gaussian_lss.jl); focused tests across plain iid LSS, single-component phylo LSS (sd_phylo), and multi-component LSS (test_lss_group.jl, test_lss_phylo.jl, test_lsss_multi.jl, test_lss_reml.jl, test_lss_missing_response.jl); public docs in DRM.jl; and exact likelihood/coefficient agreement across the entire Mizuno M2-M6q ladder (DRM.jl docs/dev-log/evidence/2026-08-28-lss-mladder-cross-engine.md, Delta logLik = 0.000000 on all cells). Full REML support (DRM.jl#558) and missing response inclusion (DRM.jl#559) wired and verified. CAPACITY BOUNDARY: for one phylogenetic LSS component, DRM.jl selects the sparse O(p) engine automatically above 500 species (or on explicit sparse request). The forced dense fallback and current multi-component route remain capped at 5000 observations; repeated observations can reach that dense limit before 5000 species. NOT interval coverage."
@@ -530,7 +530,7 @@ drm_julia_capability_comparison <- function() {
       "Keep the three-member parity harness (tools/parity_phylo_nongaussian.R, SE columns included since 2026-08-27) green against future comparator builds; widen beyond one fixture/seed only if a claim needs it. Interval_status does not move without a coverage campaign.",
       "Compare current DRM.jl accepted families with the R gate before widening. DRM.jl-vs-gate comparison now exists and is re-runnable: DRM.jl tools/parity_ledger.py against a pinned drmTMB ref, with docs/dev-log/evidence/2026-08-14-drmtmb-parity-ledger.md. PROMOTION 2026-08-27: keep the four family cells green in DRM.jl tools/parity_classc.R; beta stays an excluded neighbour until drmTMB itself admits relmat on beta().",
       "BOUNDARY IS PERMANENT (D-179 #3). Keep tests/testthat/test-xfam-bridge.R and DRM.jl's cross-family tests green; do not spend simulation-recovery compute here unless the owner reopens the boundary. The r_bridge_status re-examination named earlier is CLOSED: the route is reachable from R (drmTMB_julia_xfam_bridge) and `experimental` is fair.",
-      "Design engine_control explicitly before relaxing the gate.",
+      "BOUNDARY IS PERMANENT (drmTMB#1108, 2026-09-05). Do NOT design a wider engine_control: the earlier next_action advertised work that cannot be finished, because most of drm_control() has no DRM.jl counterpart to forward to. Keep the totality test in tests/testthat/test-julia-optimizer-controls.R green -- it asserts that every field of drm_control() other than optimizer refuses, so the contract cannot silently fall behind the constructor. Widening the whitelist means adding a DRM.jl drm() kwarg to _BRIDGE_KNOWN_OPTION_KEYS on that side first, then one named entry here.",
       "Keep Workflow G live R gate green; do not claim CRAN-default Julia. Independent coefficient/logLik parity for FE Poisson/NB2/Gamma(log) measured through engine='julia' on 0.7.0 (1.03e-12 / 6.89e-08 / 5.32e-06); see DRM.jl docs/dev-log/evidence/parity-fixtures.tsv. G3 QUALIFIED 2026-09-05 (leaf A8), including the #1123 bootstrap fix: keep the profile/bootstrap receipt (docs/dev-log/evidence/julia-r-parity/p2-g3/g3-qualification-receipt.md) re-runnable against future DRM.jl pins.",
       "Keep location-scale-scale parity tests green across ML, REML, and missing-response routes. The forced dense fallback and current multi-component route remain capped at 5000 observations; use the sparse single-component route for whole-tree scale."
 ,
@@ -963,22 +963,50 @@ drm_julia_supported_algorithms <- function() {
   c("auto", "gls", "lbfgs", "em", "sparse", "sparse_lbfgs")
 }
 
-# Translate a user `control` into the subset of optimizer settings the Julia
-# engine honours, instead of the old all-or-nothing gate. DRM.jl's bridge fit
-# (`_bridge_fit`) reads only `options$g_tol` (gradient tolerance) and
-# `options$algorithm` (solver) from `drm()`'s signature, so those are the two
-# knobs an `engine = "julia"` user can tune. They travel in the `optimizer`
-# named list of `drm_control(optimizer = list(g_tol = ..., algorithm = ...))`.
+# Every `drm_control()` field that does NOT cross to DRM.jl, derived from
+# `drm_control()` itself so the set can never fall behind the constructor.
+# `optimizer` is excluded because its named entries are classified one by one
+# by `drm_julia_translate_control()`.
+drm_julia_unsupported_control_fields <- function() {
+  setdiff(names(drm_control()), "optimizer")
+}
+
+# THE ENGINE-CONTROL CONTRACT for `engine = "julia"` (drmTMB#1108). The two
+# control surfaces are NOT reconcilable and are not being reconciled: TMB's
+# `drm_control()` describes an nlminb/TMB program (iteration budgets, storage
+# of the TMB object, delta-method SE shaping, log-sigma clamps, Newton polish,
+# multi-start, an optim fallback), and DRM.jl's `drm()` is a different program
+# that has none of those. The contract is therefore a WHITELIST of what
+# crosses, plus a promise that everything else refuses.
 #
-# Everything else `drm_control()` carries is TMB-only and has no effect on the
-# Julia path, so we abort (rather than silently drop) when a non-default value
-# is supplied: the storage flags (`se`, `keep_data`, `keep_model_frame`,
-# `keep_tmb_object`), the sparse / aggregate fixed-effect flags (`sparse_fixed`,
-# `aggregate_gaussian`), the `optimizer_preset` budgets, and any nlminb
-# iteration caps (`iter.max`, `eval.max`) -- DRM.jl's `drm()` exposes no
-# iteration-cap kwarg on the bridge path, so honouring one would mislead.
+# WHAT CROSSES, and nothing else:
+#   * `optimizer$g_tol`     -> DRM.jl `drm(...; g_tol =)`   (gradient tolerance)
+#   * `optimizer$algorithm` -> DRM.jl `drm(...; algorithm =)` (solver symbol)
+#   * `optimizer$q4_vcov`   -> DRM.jl `drm(...; q4_vcov =)`, bivariate q4 only
+# On the bivariate q = 4 phylogenetic route `g_tol` is RENAMED to DRM.jl's
+# `q4_g_tol` (the outer-gradient tolerance of that route's own optimiser) and
+# `algorithm` is refused, both in `drm_julia_bridge_options()`.
 #
-# Returns a (possibly empty) named list with `g_tol` and/or `algorithm`.
+# WHAT REFUSES: every other field of `drm_control()`. The field list is DERIVED
+# from `drm_control()` itself (`drm_julia_unsupported_control_fields()`), not
+# hand-written, so a field added to `drm_control()` tomorrow refuses tomorrow
+# without an edit here. That derivation is the fix for a measured fail-OPEN
+# defect: the hand-written list this replaced named 9 of the then-16
+# non-optimizer fields, so `se_report_covariance`, `se_skip_delta_method`,
+# `se_group_sd`, `logsigma_clamp`, `logsigma_clamp_margin`, `newton_polish`
+# and `fallback_optimizer` were SILENTLY DROPPED -- the user got neither the
+# setting nor an error. Measured live at DRM.jl pin 430ef64cc (2026-09-05),
+# `drmTMB(bf(y ~ x, sigma ~ x), data, engine = "julia", control = ...)`:
+# each of those seven returned a fit byte-identical to the default one
+# (logLik -199.0299845089, same four coefficients), while `g_tol = 1` moved it
+# to -199.0364652191. The same fail-closed shape is what DRM.jl's own
+# `_bridge_fit` does with `_BRIDGE_KNOWN_OPTION_KEYS` (`setdiff`, then throw).
+#
+# Unknown names INSIDE `optimizer` (`iter.max`, `eval.max`, `rel.tol`, ...)
+# refuse too: DRM.jl's `drm()` exposes no iteration-cap kwarg on the bridge
+# path, so honouring one would mislead.
+#
+# Returns a (possibly empty) named list with `g_tol`, `algorithm`, `q4_vcov`.
 drm_julia_translate_control <- function(control) {
   if (is.null(control)) {
     return(list())
@@ -999,17 +1027,7 @@ drm_julia_translate_control <- function(control) {
 
   default <- drm_control()
   unsupported <- character()
-  for (field in c(
-    "se",
-    "keep_data",
-    "keep_model_frame",
-    "keep_tmb_object",
-    "sparse_fixed",
-    "aggregate_gaussian",
-    "optimizer_preset",
-    "start",
-    "multi_start"
-  )) {
+  for (field in drm_julia_unsupported_control_fields()) {
     if (!identical(control[[field]], default[[field]])) {
       unsupported <- c(unsupported, field)
     }
@@ -1051,7 +1069,7 @@ drm_julia_translate_control <- function(control) {
     cli::cli_abort(c(
       "{.code engine = \"julia\"} does not support {.arg control} setting{?s} {.val {unsupported}}.",
       i = "Tune the Julia optimizer with {.code drm_control(optimizer = list(g_tol = ..., algorithm = ...))}; supported solvers are {.val {drm_julia_supported_algorithms()}}. The bivariate q = 4 phylogenetic route also accepts {.code q4_vcov = TRUE/FALSE}.",
-      i = "Use the native {.code engine = \"tmb\"} path for storage, sparse, aggregation, iteration-cap, preset, start, or multi_start controls."
+      i = "Every other {.fn drm_control} setting is TMB-only: it describes an nlminb/TMB program that {.pkg DRM.jl} does not run, so it is refused here rather than silently dropped. Use the native {.code engine = \"tmb\"} path for it."
     ))
   }
   overrides

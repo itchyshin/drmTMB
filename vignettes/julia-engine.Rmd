@@ -422,6 +422,32 @@ control = drm_control(optimizer = list(g_tol = 1e-6, algorithm = "lbfgs"))
 
 These settings control DRM.jl's gradient tolerance and solver choice. They do
 not make its optimizer equivalent to TMB's `nlminb()` presets or iteration
-budgets. TMB-only controls, including `iter.max`, `eval.max`, storage flags and
-`optimizer_preset`, are rejected before Julia starts; use `engine = "tmb"` for
-those controls.
+budgets.
+
+The forwarded set is a **closed whitelist**, and it is short:
+
+| `drm_control()` setting | reaches DRM.jl as | where |
+|---|---|---|
+| `optimizer$g_tol` | `drm(; g_tol =)` | every base / phylo / bivariate route |
+| `optimizer$algorithm` | `drm(; algorithm =)`, one of `"auto"`, `"gls"`, `"lbfgs"`, `"em"`, `"sparse"`, `"sparse_lbfgs"` | as above, except q = 4 |
+| `optimizer$q4_vcov` | `drm(; q4_vcov =)` | bivariate q = 4 phylogenetic only |
+
+On the bivariate q = 4 phylogenetic route `optimizer$g_tol` is forwarded as
+DRM.jl's `q4_g_tol` (that route's *outer*-gradient tolerance) and
+`optimizer$algorithm` is refused, because its optimiser has no
+solver-selection setting.
+
+Everything else `drm_control()` carries is rejected before Julia starts, with
+an error naming the setting -- it is never silently ignored. That includes the
+storage flags (`se`, `keep_data`, `keep_model_frame`, `keep_tmb_object`), the
+SE-shaping flags (`se_report_covariance`, `se_skip_delta_method`,
+`se_group_sd`), `sparse_fixed`, `aggregate_gaussian`, `logsigma_clamp`,
+`logsigma_clamp_margin`, `optimizer_preset`, `newton_polish`, `multi_start`,
+`fallback_optimizer`, `start`, and any `nlminb()` name inside `optimizer`
+(`iter.max`, `eval.max`, `rel.tol`, ...). Each of these describes an
+`nlminb()`/TMB program that DRM.jl does not run, so there is nothing to
+forward it to: **use `engine = "tmb"` when you need one of them.**
+
+The structured, bivariate q2 structured, and cross-family Julia routes are
+narrower again: they accept only a default `control`, so even
+`optimizer$g_tol` is refused there.
