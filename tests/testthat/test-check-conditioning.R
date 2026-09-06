@@ -22,15 +22,16 @@ test_that("check_drm() reports hessian_conditioning as an ok row for a well-cond
 })
 
 test_that("check_drm() reports hessian_conditioning as a warning for a genuinely (resolvably) indefinite fit", {
-  # Deterministic-enough real construction: two predictors so close to
-  # collinear that TMB's own sdreport() does not reach a positive-definite
-  # Hessian (pdHess = FALSE), so sdr$cov.fixed carries a robustly, hugely
-  # negative eigenvalue (not roundoff dust -- see
-  # docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 13 for
-  # the measured value, ~ -2.1e11 against a normal-scale ~600 elsewhere in
-  # the same matrix). hessian_conditioning must still catch this via
-  # sdr$cov.fixed's own most negative eigenvalue, without ever calling
-  # obj$he().
+  # Real (not injected) construction: two predictors close enough to
+  # collinear that on SOME platforms TMB's own sdreport() does not reach a
+  # positive-definite Hessian (pdHess = FALSE) and sdr$cov.fixed carries a
+  # robustly, hugely negative eigenvalue rather than roundoff dust -- on
+  # this Mac, -2.1014056e+11 against a positive spectrum of 6.2536453e-03,
+  # 2.8825706e-03 and 1.6295414e-03 (measured 2026-09-05). Where that
+  # happens, hessian_conditioning must catch it via sdr$cov.fixed's own most
+  # negative eigenvalue, without ever calling obj$he(). Whether it happens
+  # is a platform question, which the premise guard below settles; see also
+  # docs/dev-log/after-task/2026-09-01-b2-check-conditioning.md sec 13.
   set.seed(20260901)
   n <- 80
   x1 <- stats::rnorm(n)
@@ -43,14 +44,91 @@ test_that("check_drm() reports hessian_conditioning as a warning for a genuinely
     family = gaussian(),
     data = dat
   ))
-  # Premise guard: the 1e-7 collinearity is non-PD on macOS (and on some Linux
-  # runners) but Linux LAPACK has also resolved this exact seeded fit as PD with
-  # min_eig ~ +2e-12 (observed on the 2026-09-02 CI run). The property under
-  # test is "a resolvably indefinite fit earns a warning"; where the platform
-  # does not produce the indefinite fit, the premise is absent, not the property.
+  # Premise guard. The property under test is "a fit whose sdreport()
+  # fixed-effect covariance is genuinely, resolvably indefinite earns a
+  # hessian_conditioning warning". Whether THIS seeded near-collinear design
+  # lands there is decided by the platform's LAPACK, and three distinct
+  # outcomes exist for this exact seed:
+  #
+  #   * macOS (R 4.6.0, reference libRblas/libRlapack): pdHess = FALSE and
+  #     cov.fixed is finite with eigenvalues 6.2536453e-03, 2.8825706e-03,
+  #     1.6295414e-03 and -2.1014056e+11. The premise holds; this test runs
+  #     and asserts (measured 2026-09-05).
+  #   * Totoro (R 4.5.3, Linux, /usr/lib/x86_64-linux-gnu reference
+  #     BLAS/LAPACK): pdHess = FALSE AND sdr$cov.fixed is entirely NaN, 16 of
+  #     16 entries (measured 2026-09-05).
+  #   * A GitHub Actions Linux runner resolved this same fit as positive
+  #     definite (pdHess = TRUE), which is why a premise guard exists at all
+  #     (reported on the 2026-09-02 CI run; not re-measured here).
+  #
+  # The Totoro outcome is a separate LAPACK verdict, not a shade of the
+  # GitHub-Actions one: TMB::sdreport() sets pdHess from a Cholesky of the
+  # fixed-effect Hessian but cov.fixed from a solve of it, and on a failure
+  # there it leaves cov.fixed as the Hessian times NaN. So the Hessian can be
+  # non-PD AND too singular to invert, leaving no covariance for the
+  # indefinite premise to hold of. check_drm() then correctly reports
+  # "note"/NA for this row, and the assertions below are inapplicable rather
+  # than violated.
+  #
+  # The earlier guard tested pdHess alone, so it caught the GitHub-Actions
+  # outcome and not the Totoro one: there the test proceeded to assert a
+  # warning the fit does not justify, and failed twice (measured 2026-09-05
+  # by reproducing the all-NaN cov.fixed: row$status was "note", not
+  # "warning"; row$value was NA, not matching "min_eig=-"; the two
+  # attr(chk, "ok") and nrow() assertions still held).
+  # check_hessian_conditioning() (R/check.R) never reads pdHess -- for a
+  # non-MSPL fit it reads sdr$cov.fixed and nothing else -- so the premise
+  # has to be established on cov.fixed itself, which is what the two guards
+  # below do.
+  #
+  # Nothing is given up by skipping here: the "warning" property itself is
+  # covered unconditionally on every platform by the injected-indefinite
+  # covariance test immediately below, which drives the identical code path
+  # deterministically. What only this test can add is that a REAL fit can
+  # reach that state, so it stays a real fit and skips honestly.
+  cov_fixed <- fit$sdr$cov.fixed
   testthat::skip_if(
-    isTRUE(fit$sdr$pdHess),
-    "platform LAPACK resolved the 1e-7 collinearity as PD; the indefinite premise is not reproducible here"
+    is.null(cov_fixed) ||
+      !is.matrix(cov_fixed) ||
+      nrow(cov_fixed) == 0L ||
+      !all(is.finite(cov_fixed)),
+    paste(
+      "platform LAPACK left TMB::sdreport() unable to invert this fit's",
+      "Hessian, so sdr$cov.fixed is absent, empty, or non-finite and there is",
+      "no covariance for the indefinite premise to hold of; the resolvably",
+      "indefinite fit is not reproducible here"
+    )
+  )
+  cov_eigen <- eigen(
+    (cov_fixed + t(cov_fixed)) / 2,
+    symmetric = TRUE,
+    only.values = TRUE
+  )$values
+  # "Resolvably indefinite" is stated here independently of the package,
+  # rather than read back out of it, so that establishing the premise cannot
+  # become the same act as asserting the conclusion. A symmetric eigensolver
+  # is backward stable, so its eigenvalue error is bounded by a small
+  # multiple of .Machine$double.eps times the matrix norm, which for a
+  # symmetric matrix is max|mu|; requiring the most negative eigenvalue to
+  # clear 1e-6 * max(max|mu|, 1) therefore leaves no roundoff story that
+  # explains its sign. That margin is deliberately about 67x stricter than
+  # the sqrt(.Machine$double.eps)-scaled floor check_drm() itself uses, so
+  # wherever this guard passes "warning" is the unambiguously correct answer
+  # and the assertions below keep their teeth -- the guard cannot make the
+  # test vacuous, and a regression that stopped warning here would still
+  # fail it.
+  testthat::skip_if_not(
+    min(cov_eigen) < -1e-6 * max(abs(cov_eigen), 1),
+    paste0(
+      "platform LAPACK did not resolve the 1e-7 collinearity into a robustly ",
+      "indefinite sdr$cov.fixed (pdHess = ",
+      format(isTRUE(fit$sdr$pdHess)),
+      ", smallest covariance eigenvalue = ",
+      format(min(cov_eigen), digits = 4),
+      " against max|eigenvalue| = ",
+      format(max(abs(cov_eigen)), digits = 4),
+      "); the indefinite premise is not reproducible here"
+    )
   )
 
   chk <- check_drm(fit)

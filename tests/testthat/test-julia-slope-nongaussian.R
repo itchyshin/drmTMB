@@ -1,7 +1,37 @@
 # Non-Gaussian phylogenetic random-SLOPE route via engine = "julia" (cluster 3).
-# `phylo(1 + x | species)` — a phylogenetic random slope — is fit by DRM.jl's sparse
-# q=2 correlated-locscale Laplace engine; drmTMB's native TMB path rejects structured
-# slopes. So the Julia bridge is the only route, and we assert a finite-and-sane floor.
+#
+# HEADER CORRECTED 2026-09-05 (leaf jl-620-two-sd, verifying DRM.jl#620's closure).
+# The previous header claimed "drmTMB's native TMB path rejects structured slopes.
+# So the Julia bridge is the only route, and we assert a finite-and-sane floor."
+# Both halves are false at this main, and the first half was the stated REASON this
+# file settles for a floor instead of a cross-engine same-target receipt -- which is
+# exactly how a parity cell stays unmeasured. Measured on this worktree,
+# engine = "tmb", 40-tip `ape::rcoal` tree, seed 7, using the call shapes the
+# package's own passing native tests build:
+#
+#   gaussian  bf(y ~ x + phylo(1 + x | species, tree), sigma ~ 1)  FITS, logLik -21.148924
+#   poisson   bf(y ~ x + phylo(1 + x | species, tree))             FITS, logLik -68.436705
+#   nbinom2   bf(y ~ x + phylo(1 + x | species, tree), sigma ~ 1)  FITS, logLik -73.445994
+#   Gamma     bf(y ~ x + phylo(1 + x | species, tree), sigma ~ 1)  REFUSES:
+#             "Gamma `phylo()` `mu` effects are intercept-only in this q=1 route."
+#
+# All three fitting families report TWO SD terms, `phylo(1 | species)` and
+# `phylo(0 + x | species)`. The native shapes live at
+# tests/testthat/test-count-structured-mu.R:781 (poisson) and :807 (nbinom2), and
+# tests/testthat/test-julia-marker-slope-guard.R:137 (gaussian).
+#
+# The second half is stale rather than wrong-from-birth: since drmTMB#1146 this file
+# asserts a REFUSAL, not a finite-and-sane floor (see the block comment below).
+#
+# WHAT IS ACTUALLY TRUE of the one cell this file exercises. Gamma
+# `phylo(1 + x | species)` is refused by BOTH engines -- natively by drmTMB's q=1
+# structured route (message above), and by `engine = "julia"` at the R bridge before
+# Julia boots. There is therefore no Gamma same-target receipt available here and none
+# is claimed. NOT COVERED, and worth a follow-up now that the header no longer hides
+# it: the gaussian / poisson / nbinom2 cells above DO have a native twin, so a real
+# cross-engine comparison is possible for them the moment the pinned DRM.jl engine
+# admits the construct (DRM.jl#620's Gaussian route landed on DRM.jl main at 1a041d089,
+# AFTER the pin 430ef64cc this suite runs against).
 
 drm_slope_ng_path <- function() {
   drm_test_drmjl_path()
