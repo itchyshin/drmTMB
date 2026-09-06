@@ -1232,3 +1232,110 @@ starts.
 capability-comparison TSV row for this route is NOT added here (the
 `drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
 outside this leaf's file set) and is left to the integrator.
+
+### 8.10 `biv_lognormal` (2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("biv_lognormal", fe = TRUE)` -- puts the family on the fixed-effect
+bivariate-residual route, plus ONE widening in
+`drm_julia_bridge_default_dpar_labels()`: the bivariate branch now matches the
+`biv_` PREFIX instead of the single literal `"biv_gaussian"`.
+
+That second change is not cosmetic and was not assumed. With the registry row
+alone, **both** the full and the short formula abort inside DRM.jl:
+
+```
+drm_bridge: coef_labels supplies names for unknown dpar "sigma";
+the model has dpars: mu1, mu2, sigma1, sigma2, rho12
+```
+
+The univariate branch was adding a scalar `sigma` label to a model whose blocks
+are `sigma1`/`sigma2`/`rho12`, and section 7.3's fail-closed echo -- correctly --
+refused it. The prefix is the same convention
+`drm_julia_fe_only_fence_families()` already uses for the bivariate exemption,
+so it also covers the short form `bf(mu1 = y1 ~ x, mu2 = y2 ~ x)`, which native
+TMB accepts and which now fits identically through the bridge. A bivariate
+family with an EXTRA dpar (a shared `nu`, say) still needs its own default.
+
+**dpars and labels.** drmTMB's `biv_lognormal()` declares
+`dpars = c("mu1", "mu2", "sigma1", "sigma2", "rho12")` with links identity,
+identity, log, log, guarded `atanh` (`R/family.R`). DRM.jl's `_bridge_family()`
+maps the tag `biv_lognormal` to `LogNormal()` (`src/bridge.jl`) and
+`src/bivariate_lognormal.jl` fits it; bivariate-ness is a property of the
+FORMULA there, exactly as for `biv_gaussian`. Payload and echo, measured live on
+the n = 600 seed-20260905 draw:
+
+| dpar | R sends (`coef_labels`) | DRM.jl echoes (`coef_names`) |
+|---|---|---|
+| `mu1` | `"(Intercept)"`, `"x"` | `mu1_(Intercept)`, `mu1_x` |
+| `mu2` | `"(Intercept)"`, `"x"` | `mu2_(Intercept)`, `mu2_x` |
+| `sigma1` | `"(Intercept)"` | `sigma1_(Intercept)` |
+| `sigma2` | `"(Intercept)"` | `sigma2_(Intercept)` |
+| `rho12` | `"(Intercept)"` | `rho12_(Intercept)` |
+
+**The scale contract, and why it needed its own evidence.** A lognormal bridge
+fit that disagreed with native TMB about which scale the response lives on would
+still return finite, ordinary-looking coefficients. Engine-vs-engine agreement
+alone therefore cannot settle it, so the contract is pinned against an
+independent oracle instead.
+
+Both engines take `y1`/`y2` on the **raw positive scale** and log them
+internally -- native drmTMB in `drm_build_biv_lognormal_spec()`, DRM.jl in
+`src/bivariate_lognormal.jl` -- and the bridge passes the response through
+untouched (`identical(payload$data$y1, dat$y1)`, pinned in
+`tests/testthat/test-julia-family-biv_lognormal.R`). So `mu1`/`mu2` are means of
+`log y`, `sigma1`/`sigma2` are SDs of `log y` reported on the response scale as
+`exp()` of their log-link coefficients, and `rho12` is the LOG-residual
+correlation. Both engines also add the parameter-free change-of-variables
+Jacobian `-sum(log y1) - sum(log y2)`.
+
+Measured on the n = 80 seed-6301 draw of `tests/testthat/test-biv-lognormal.R`:
+`exp(sigma1_(Intercept)) = 0.452813735` equals both engines'
+`predict(dpar = "sigma1")`; the fitted `mu1` averages to `mean(log y1)`
+(0.22974856), not to `mean(y1)`; and **both** engines' `logLik`
+(-164.673669588) equals that file's independent raw-scale oracle to 4e-13, so
+both carry the Jacobian (-22.18410807 on this draw). Two discriminating
+controls show the oracle check could have failed: `biv_gaussian()` on the RAW
+responses through the same route gives -218.285077361 (53.6 away), while
+`biv_gaussian()` on the LOGGED responses gives -142.489561522 -- which equals
+the `biv_lognormal` logLik minus that Jacobian exactly.
+
+**Same-target receipts (native `engine = "tmb"` vs `engine = "julia"`, n = 600
+seed-20260905 draw, comparator code taken verbatim from DRM.jl
+`tools/parity_fixture.R` and `tools/parity_se.R` at the pin):**
+`max_abs_coef_diff = 9.288083e-07` (7/7 name-matched),
+`loglik_tmb = -1124.208196846248`, `loglik_julia = -1124.208196846242`,
+`loglik_diff = 6.139e-12` (PARITY_PASS at tol 1e-4); SE
+`max_abs_se_diff = 6.971947e-08`, `max_rel_se_diff = 1.707768e-06` over the
+seven coefficients (SE_PASS at rtol 1e-3), with this cell's own negative
+control (`se_julia[1] * 1.10`) reading NEGATIVE_CONTROL_OK at rel 9.090909e-02.
+The fit's `estimator` is `"ML"` and equals DRM.jl's `estim_method`. Comparator
+build `drmtmb_code_hash 1299a15b` (the `load_all()` build at measurement time).
+
+**Scope fence, and a third change the admission turned out to need.** The cell
+is fixed-effect `mu1`/`mu2` with intercept-only `sigma1`/`sigma2`/`rho12` and
+nothing else, because native `drm_build_biv_lognormal_spec()` itself refuses
+random effects, structured markers, `meta_V`, offsets, `weights` and
+predictor-driven `sigma1`/`sigma2`/`rho12` -- so no other cell has a native
+comparator to be measured against.
+
+The registry row alone did not respect that. Measured at the pin with the row
+in place and no fence: `bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ x)` FIT
+through `engine = "julia"` (logLik -71.4056477), and so did the `rho12 = ~ x`
+spelling (logLik -70.64289338), while `engine = "tmb"` refused both. The
+`biv_` prefix that `drm_julia_fe_only_fence_families()` uses to exempt
+bivariate families from the A4.G17 random-effect fence exists because
+`biv_gaussian` legitimately fits those cells -- but `biv_lognormal` does not,
+so it inherited an exemption it had not earned. A dedicated, deliberately
+family-specific gate, `drm_julia_refuse_biv_lognormal_unsupported()`, now
+refuses a predictor on `sigma1`/`sigma2`/`rho12` and an ordinary random-effect
+bar on the R side, in drmTMB's own wording, before Julia starts. (DRM.jl does
+refuse the bar itself, but only after the engine boots and with a message about
+"bivariate q=4 structured fits", a route this fit is not on.)
+
+No phylogenetic route, no interval-coverage claim, and bridge-side
+profile/bootstrap inference stays unqualified -- structurally absent for any
+bivariate fit, the same blocker already recorded on `biv_gaussian_residual`.
+`offset()` still surfaces DRM.jl's own `UndefVarError` rather than a drmTMB
+refusal; that is a bridge-wide gap, not specific to this family, and is left
+where it was.

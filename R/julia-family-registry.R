@@ -90,7 +90,28 @@ drm_julia_family_registry <- function() {
     # R/julia-family-cumulative_logit.R moves DRM.jl's `cutpoints` block into
     # `fit$ordinal` (design 258 section 8.9). Fixed effects only: no phylo, RE,
     # or structured route (a later row's job).
-    spec("cumulative_logit", fe = TRUE, dispersionless = TRUE)
+    spec("cumulative_logit", fe = TRUE, dispersionless = TRUE),
+    # biv_lognormal (2026-09-05): the bivariate residual route only, dpars
+    # mu1 + mu2 + sigma1 + sigma2 + rho12, fixed-effect mu1/mu2 with
+    # intercept-only sigma1/sigma2/rho12 -- exactly the cell
+    # drm_build_biv_lognormal_spec() (R/drmTMB.R) admits natively; it refuses
+    # random, structured, meta_V, offset, and sigma/rho predictor terms itself,
+    # so no phylo/structured column is set here.
+    #
+    # SCALE CONTRACT, the thing this row rests on. Both engines take the two
+    # responses on the RAW positive scale and log them internally, so mu1/mu2
+    # are means of log y (identity link), sigma1/sigma2 are SDs of log y (log
+    # link), and rho12 is the LOG-residual correlation. Both also add the
+    # parameter-free change-of-variables Jacobian -sum(log y1) - sum(log y2)
+    # to the log-likelihood: drmTMB's TMB kernel does it in src/drmTMB.cpp
+    # (model_type 19 adds weights(i) * (y1(i) + y2(i)) to the nll AFTER
+    # spec$y1/spec$y2 have been logged), and DRM.jl does it in
+    # src/bivariate_lognormal.jl `_lognormal_jacobian_shift` after delegating
+    # the whole fit to the bivariate Gaussian kernel on logged data. The tag
+    # `biv_lognormal` reaches DRM.jl's `_bridge_family` unchanged
+    # (src/bridge.jl:634 at pin 430ef64cc -> `LogNormal()`; bivariate-ness is
+    # a property of the FORMULA there, as for biv_gaussian).
+    spec("biv_lognormal", fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
     #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
