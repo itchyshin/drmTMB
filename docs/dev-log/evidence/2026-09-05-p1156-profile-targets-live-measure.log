@@ -232,3 +232,26 @@ Julia exit.
 │     [36] docall(call1::Ptr{Nothing})
 │        @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
 └ @ Base loading.jl:1295
+
+################################################################################
+### REGRESSION SURFACE, LIVE AT DRM.jl PIN 430ef64cc, NOT_CRAN=true, ZERO SKIPS
+### (rerun after the hardening pass; every live test RAN, none skipped)
+################################################################################
+RESULT test-profile-targets-julia.R FAIL 0 ERR 0 SKIP 0 PASS 92
+RESULT test-julia-inference.R FAIL 0 ERR 0 SKIP 0 PASS 175
+RESULT test-profile-targets.R FAIL 0 ERR 0 SKIP 0 PASS 986
+RESULT test-julia-bridge.R FAIL 0 ERR 0 SKIP 0 PASS 146
+RESULT test-julia-sigma-phylo-reml.R FAIL 0 ERR 0 SKIP 0 PASS 76
+RESULT test-coefficient-labels.R FAIL 0 ERR 0 SKIP 0 PASS 135
+RESULT test-julia-tmb-parity.R FAIL 0 ERR 0 SKIP 0 PASS 126
+RESULT test-summary.R FAIL 0 ERR 0 SKIP 0 PASS 200
+RESULT test-control.R FAIL 0 ERR 0 SKIP 0 PASS 156
+RESULT TOTAL PASS 2092
+
+### RED CONTROLS (each planted, measured, then restored byte-identically)
+RC-A drop drm_julia_wald_scale_targets() from the union      -> FAIL 15 ERR 0 PASS 33
+RC-B remove both drm_julia_canonicalise_parm() calls         -> FAIL 1  ERR 1 PASS 38
+RC-C remove the drm_julia_listed_not_dispatchable() call     -> FAIL 3  ERR 0 PASS 45
+RC-D remove the ambiguous-key fail-closed guard              -> FAIL 1  ERR 0 PASS 47
+RESTORED sha256 R/julia-bridge.R 3e37782c15b0c992fb2cef28e38fff88330f02218701d05bacbcdf589cb09af6
+RESTORED sha256 R/profile.R      ee3213a504120a427db95432acb29631b02f65b9541b99d48e13c6d82ce5dea7
