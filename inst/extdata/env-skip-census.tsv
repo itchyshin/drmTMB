@@ -105,6 +105,8 @@ test-julia-family-tweedie.R	engine-drm-jl	environment	skips	1
 test-julia-family-tweedie.R	suggests-package	environment	runs	3
 test-julia-family-zero_one_beta.R	engine-drm-jl	environment	skips	3
 test-julia-family-zero_one_beta.R	suggests-package	environment	runs	9
+test-julia-family-zi_nbinom2.R	engine-drm-jl	environment	skips	3
+test-julia-family-zi_nbinom2.R	suggests-package	environment	runs	6
 test-julia-fe-only-fence.R	runtime-conditional	runtime	depends	3
 test-julia-fe-only-fence.R	suggests-package	environment	runs	4
 test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
