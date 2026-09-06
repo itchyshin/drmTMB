@@ -4284,13 +4284,14 @@ vcov.drmTMB_julia <- function(object, ...) {
   object$vcov
 }
 
-#' Inspect legacy interval output from a halted Julia bridge
+#' Confidence intervals for an `engine = "julia"` fit
 #'
-#' The Julia bridge is halted/deferred future work and is not a current fitting
-#' or inference route. This method is retained only for inspecting existing
-#' `drmTMB_julia` objects; use native TMB fits for new analyses.
+#' `engine = "julia"` is a current, actively-admitted fitting route (see
+#' `R/julia-family-registry.R` and `vignettes/julia-engine.Rmd` for which
+#' families and routes it covers). This method computes intervals for an
+#' existing `drmTMB_julia` object.
 #'
-#' For a legacy `engine = "julia"` fit, `confint()` exposes two interval families:
+#' For a `drmTMB_julia` fit, `confint()` exposes two interval families:
 #'
 #' * `method = "wald"` (the default) builds symmetric Wald intervals for the
 #'   fixed-effect coefficients (mu, sigma, ...) on the linear-predictor (link)
@@ -4990,11 +4991,11 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   out
 }
 
-#' Summarise a legacy Julia-bridge `drmTMB` fit
+#' Summarise an `engine = "julia"` `drmTMB` fit
 #'
-#' The Julia bridge is halted/deferred future work. This compatibility method
-#' inspects an existing `drmTMB_julia` object; it does not make Julia a current
-#' fitting or inference option. For new analyses, use native TMB fits.
+#' `engine = "julia"` is a current, actively-admitted fitting route (see
+#' `R/julia-family-registry.R`). This method summarises a `drmTMB_julia`
+#' object it produced.
 #'
 #' Builds a fixed-effect coefficient table (estimate, standard error, z value,
 #' and two-sided p value, all on the linear-predictor / link scale) from the
@@ -7203,12 +7204,16 @@ df.residual.drmTMB_julia_xfam <- function(object, ...) {
   object$nobs - object$df
 }
 
-#' Summary for a legacy Julia cross-family fit
+#' Summary for a cross-family Julia fit
 #'
-#' The cross-family Julia bridge is halted/deferred future work. This
-#' compatibility summary reports point estimates only: the bridge does not
-#' retain a named covariance matrix, so standard errors and Wald intervals are
-#' deliberately unavailable.
+#' The cross-family route (`drmTMB(bf(...), c(fam1, fam2), engine = "julia")`,
+#' via `drm_julia_call_xfam()` -> DRM.fit_mixed_family) is reachable from R
+#' and tested (`tests/testthat/test-xfam-bridge.R`), but its
+#' capability-ledger status is `experimental`/`partial`
+#' (`inst/extdata/julia-capabilities.tsv`, `cross_family_latent`). This
+#' summary reports point estimates only: the bridge does not retain a named
+#' covariance matrix, so standard errors and Wald intervals are deliberately
+#' unavailable.
 #'
 #' @param object A `drmTMB_julia_xfam` cross-family fit.
 #' @param conf.int Logical; requesting intervals errors because the bridge did
@@ -7309,14 +7314,15 @@ is_converged.drmTMB_julia_xfam <- function(
   isTRUE(object$opt$convergence == 0L)
 }
 
-#' Extract a latent-scale correlation from a legacy Julia-bridge fit
+#' Extract a latent-scale correlation from a cross-family Julia fit
 #'
-#' The cross-family Julia bridge is halted/deferred future work. This
-#' compatibility extractor is retained only for an existing
-#' `drmTMB_julia_xfam` object; it does not establish a current cross-family
-#' fitting or inference capability.
+#' The cross-family route is reachable from R (`engine = "julia"` with a
+#' `c(family1, family2)` pair) and tested, but its capability-ledger status
+#' is `experimental`/`partial` (`inst/extdata/julia-capabilities.tsv`,
+#' `cross_family_latent`). This extractor reads `rho_latent` off an existing
+#' `drmTMB_julia_xfam` object.
 #'
-#' @param object A legacy `drmTMB_julia_xfam` cross-family fit.
+#' @param object A `drmTMB_julia_xfam` cross-family fit.
 #' @param ... Unused.
 #' @return The latent / link-scale correlation between the two responses.
 #' @export
