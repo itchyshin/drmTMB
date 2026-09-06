@@ -4337,6 +4337,14 @@ vcov.drmTMB_julia <- function(object, ...) {
 #'     available for the bivariate q = 4 route (`biv_gaussian`), whose fixed
 #'     effects are not individually profiled here.
 #'
+#' Ordered cutpoints of a [cumulative_logit()] fit are the documented
+#' exception. [profile_targets()] lists them (`"ordinal:cutpoint:<label>"`)
+#' so they are discoverable, and the fitted values are on the object in
+#' `fit$ordinal$cutpoints`, but no interval method routes them: DRM.jl's
+#' bridge inference accepts only fixed-effect and SD targets, so `confint()`
+#' refuses a cutpoint target for every `method` and points at
+#' `engine = "tmb"`, whose constrained cutpoint profile does solve them.
+#'
 #' @param object A `drmTMB_julia` fit.
 #' @param parm Optional target selection. For `"wald"`, compact coefficient
 #'   labels (`"mu:x"`) or full names (`"fixef:mu:x"`); for `"profile"` /
@@ -4379,6 +4387,17 @@ confint.drmTMB_julia <- function(
     "confint()"
   )
   validate_profile_level(level)
+
+  # #1144: an ordered-cutpoint target of a `cumulative_logit()` bridge fit.
+  # Refused HERE, before the method branch, so "wald", "profile" and
+  # "bootstrap" all give the same answer -- and so the answer names the
+  # cutpoint and the engine that has it, instead of the "Unknown
+  # confidence-interval target" typo diagnosis every method used to give for
+  # a target that is plainly on the fit
+  # (R/julia-family-cumulative_logit.R).
+  if (drm_julia_is_ordinal_parm(object, parm)) {
+    drm_julia_ordinal_interval_refusal(object, parm, method)
+  }
 
   if (identical(method, "wald")) {
     return(drm_julia_wald_confint(object, parm = parm, level = level))
