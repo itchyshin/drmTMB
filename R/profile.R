@@ -1481,7 +1481,14 @@ drm_julia_profile_target_union <- function(object) {
   out <- rbind(
     drm_julia_wald_targets(object),
     drm_julia_wald_scale_targets(object),
-    drm_julia_profile_targets(object)
+    drm_julia_profile_targets(object),
+    # #1144: the ordinal rows of a `cumulative_logit()` bridge fit. Same
+    # discoverable-but-not-ready treatment as the `sigma` alias row above --
+    # the cutpoints are on the fit (`object$ordinal`) and the native engine
+    # profiles them, but DRM.jl's bridge inference has no cutpoint target, so
+    # discovery must list them and `confint()` must refuse them by name.
+    # Empty for every family without an `ordinal` slot.
+    drm_julia_cumulative_logit_targets(object)
   )
   out <- out[!duplicated(out$parm), , drop = FALSE]
   row.names(out) <- NULL
@@ -4680,7 +4687,12 @@ validate_profile_targets <- function(targets) {
     "mesh_field_scale_intervals_unvalidated",
     "derived_target",
     "derived_unstructured_correlation",
-    "internal_ordinal_parameter"
+    "internal_ordinal_parameter",
+    # #1144: a public ordinal cutpoint on an `engine = "julia"` fit. Listed by
+    # `profile_targets()` so it is discoverable, never ready -- DRM.jl's
+    # bridge inference has no cutpoint target, so `confint()` refuses it and
+    # names `engine = "tmb"` (R/julia-family-cumulative_logit.R).
+    "julia_ordinal_cutpoint_native_only"
   )
   bad_note <- !targets$profile_note %in% allowed_notes
   if (any(bad_note)) {
