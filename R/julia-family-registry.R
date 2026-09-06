@@ -145,6 +145,18 @@ drm_julia_family_registry <- function() {
     # or structured route (a later row's job).
     spec("cumulative_logit", predictor_dpars = "*",
                          fe = TRUE, dispersionless = TRUE),
+    # biv_student (A4, 2026-09-05): drmTMB's exact shared-nu bivariate
+    # Student-t, fixed-effect route ONLY. dpars mu1, mu2, sigma1, sigma2, one
+    # shared nu, rho12 -- the SAME parameterisation on both sides: identity
+    # mu1/mu2, log sigma1/sigma2 (SCALES, not marginal SDs), nu on the "logm2"
+    # link nu = 2 + exp(eta), and a guarded-atanh rho12 SCATTER correlation
+    # (R/family.R `biv_student()`; DRM.jl src/bivariate_student.jl at pin
+    # 430ef64cc). Bivariate-ness is a FORMULA property in DRM.jl, so its
+    # `_bridge_family()` maps this tag to `Student()` and the keyed mu1/mu2
+    # parts select the bivariate route (src/bridge.jl). No phylo, RE, or
+    # structured column: DRM.jl refuses structured markers on this route by
+    # design ("residual-only"), and native drmTMB defers them too.
+    spec("biv_student", predictor_dpars = c("mu1", "mu2"), fe = TRUE),
     # ---- A4 admissions, one row per PR ---------------------------------------
     # skew_normal (dpars mu, sigma, nu): fixed effects only -- DRM.jl's
     # SkewNormal() refuses every random effect and structured marker, and the

@@ -20,12 +20,17 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
   # biv_lognormal (2026-09-05) is the second BIVARIATE fe row; it is deliberately
   # in no other list -- native drm_build_biv_lognormal_spec() admits no phylo,
   # random-effect or structured cell for it, so there is nothing else to admit.
+  # biv_student joins them (fam-biv-student leaf, same date): fixed-effect route
+  # only, and it moves NO other list -- it is not dispersionless (it has
+  # sigma1/sigma2/nu), and it has no phylo, slope, or structured admission.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
                      "truncated_nbinom2", "zero_one_beta", "tweedie",
                      "beta_binomial", "cumulative_logit", "skew_normal",
                      "biv_lognormal"))
+                     "beta_binomial", "cumulative_logit",
+                     "biv_student", "skew_normal"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
@@ -33,6 +38,12 @@ test_that("drm_julia_family_tag() admits and refuses exactly what it did before"
               "truncated_nbinom2", "zero_one_beta", "tweedie",
               "beta_binomial", "cumulative_logit", "skew_normal",  # A4 rows, 2026-09-05
               "biv_lognormal"))
+              "beta_binomial", "cumulative_logit",
+              # fam-biv-student leaf (2026-09-05): DRM.jl needed no change --
+              # `_bridge_family("biv_student")` already returned Student() at
+              # pin 430ef64cc and the keyed mu1/mu2 parts select the bivariate
+              # route, so the admission is this one registry row.
+              "biv_student", "skew_normal"))
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
   # refused outright: no A4 target remains unadmitted after this merge (all six
   # fixed-effect rows above are on the registry); this loop is intentionally empty.
