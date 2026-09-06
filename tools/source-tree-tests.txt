@@ -1,0 +1,38 @@
+# Test files whose premise is a path .Rbuildignore removes from the
+# tarball, so R CMD check can only ever SKIP them. Derived by
+# tools/run-source-tree-tests.R --update; do not hand-edit.
+test-arc1b-s2r-relmat-q2-recovery-runner.R
+test-arc1b-spatial-q2-reml-recovery.R
+test-arc4c-drac-dispatch.R
+test-arc4c-mu-slope-coverage-runner.R
+test-arc6-f3-provenance-smoke-runner.R
+test-b1-breadth-adapters.R
+test-b1-breadth-contract.R
+test-b1-breadth-dispatch.R
+test-b1-dispatch-self-location.R
+test-b2-q6-serial-proof-receipt-audit.R
+test-beta-phylo-q1-recovery-runner.R
+test-beta-phylo-q1-sd-coverage-runner.R
+test-beta-phylo-q1-sd-interior-recovery-runner.R
+test-beta-phylo-q1-sd-regression-runner.R
+test-beta-phylo-q1-successor-runners.R
+test-biv-lognormal-rho12-coverage-docs.R
+test-estimator-surface-conformance.R
+test-function-map-cheatsheet.R
+test-julia-gate-vs-engine.R
+test-mesh-recovery-v3-contract.R
+test-missing-predictor-prediction.R
+test-nongaussian-structured-boundary.R
+test-parity-matrix.R
+test-phase18-actions-runner.R
+test-pkgdown-reference-index.R
+test-positive-continuous-structured-mu.R
+test-profile-shape-boundary.R
+test-provenance.R
+test-reader-journeys.R
+test-reader-vignette-contracts.R
+test-release-identity.R
+test-reml-route-table.R
+test-spatial-q2-confidence-eye-contract.R
+test-structured-re-ademp-scaffold.R
+test-structured-re-conversion-contracts.R
