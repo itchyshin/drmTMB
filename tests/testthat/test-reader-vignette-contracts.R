@@ -146,6 +146,35 @@ test_that("the manifest is complete and has no duplicate or stale article rows",
   )
 })
 
+test_that("pkgdown-only articles are discovered and policed, not skipped", {
+  # Regression guard: moving a reader document into `vignettes/articles/` must
+  # keep it under the contract.  A non-recursive scan reports it as an absent
+  # manifest row and stops reading it altogether.
+  root <- contract_fixture()
+  dir.create(file.path(root, "vignettes", "articles"))
+  file.remove(file.path(root, "vignettes", "reader.Rmd"))
+  writeLines(
+    "arbitrary_name$sdpars$mu",
+    file.path(root, "vignettes", "articles", "reader.Rmd")
+  )
+  problems <- paste(contract_linter$reader_contract_lint(root), collapse = "\n")
+  expect_match(problems, "Undeclared private access in reader.Rmd.*sdpars")
+  expect_no_match(problems, "Manifest references absent vignette")
+})
+
+test_that("a vignette basename used in two directories fails closed", {
+  root <- contract_fixture()
+  dir.create(file.path(root, "vignettes", "articles"))
+  writeLines(
+    "summary(fit)$parameters",
+    file.path(root, "vignettes", "articles", "reader.Rmd")
+  )
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Ambiguous vignette basename.*reader[.]Rmd"
+  )
+})
+
 test_that("reader exceptions are clause-bound and stale exceptions fail", {
   exceptions <- data.frame(
     vignette = "reader.Rmd",
@@ -220,8 +249,14 @@ test_that("the live corpus has the complete immutable manifest", {
     file.path(project_root, "inst", "reader-contracts", "vignette-manifest.csv"),
     c("vignette", "audience", "permitted_private_fields", "rationale")
   )
-  source_vignettes <- basename(list.files(file.path(project_root, "vignettes"), pattern = "[.]Rmd$"))
+  # Discovery comes from the linter itself so the corpus the test asserts over
+  # and the corpus the linter polices cannot drift apart again.
+  source_paths <- contract_linter$reader_contract_source_paths(
+    file.path(project_root, "vignettes")
+  )
+  source_vignettes <- names(source_paths)
   expect_equal(nrow(manifest), 38L)
+  expect_equal(sum(grepl("/articles/", source_paths, fixed = TRUE)), 6L)
   expect_identical(anyDuplicated(manifest$vignette), 0L)
   expect_setequal(manifest$vignette, source_vignettes)
   expect_length(contract_linter$reader_contract_lint(project_root), 0L)
