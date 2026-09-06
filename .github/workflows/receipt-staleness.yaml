@@ -1,0 +1,54 @@
+# Receipt staleness on MAIN — relocated from the R-CMD-check shards (#1150 guard,
+# added in #1163; moved 2026-09-06 on the owner's instruction).
+#
+# WHY IT MOVED, measured rather than assumed.
+#
+# The guard hashes EVERY R/*.R against the committed receipts. On a pull_request it
+# ran against the MERGE PREVIEW, so ANY merge to main re-staled EVERY open PR --
+# including PRs that touch no R/ file at all (#1296 changed one test file and went
+# red on it). With 16 merges to main in one afternoon and four live PRs, that is up
+# to 64 regenerate-plus-CI cycles, each ~40 minutes of runner time, to keep a
+# certificate current against a base the PR never touched.
+#
+# The guard's actual claim is "a receipt must not drift from the source it
+# certifies". MAIN is where that matters and where drift enters. Blocking a PR on
+# the state of a base it did not change is a false positive by construction.
+#
+# WHAT IS NOT LOST. Drift is still caught, on every merge, within ~2 minutes -- and
+# a stale receipt on main is now VISIBLE as a red run on main rather than as N red
+# PRs. What IS given up: a PR can no longer be told at review time that it forgot to
+# regenerate. That is the trade, and it is deliberate: the same information arrives
+# one merge later, at a fraction of the cost, without blocking unrelated work.
+#
+# Cheap on purpose: the checker needs only jsonlite + digest, no compiled package,
+# no TMB, no Julia. It never regenerates -- that needs a live Julia and the pinned
+# DRM.jl clone (tools/run-julia-phylo-labels-public.R).
+name: receipt-staleness
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: receipt-staleness-${{ github.ref }}
+  # Never cancel: a cancelled run on main reports nothing, and "green by absence"
+  # is the exact failure mode this whole family of guards exists to prevent.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  receipt-staleness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install the checker's only dependencies
+        run: install.packages(c("jsonlite", "digest"))
+        shell: Rscript {0}
+      - name: Detect stale receipts (never regenerate)
+        run: bash tools/ci-receipt-staleness.sh

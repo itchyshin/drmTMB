@@ -54,8 +54,33 @@ test_that("Arc 6.8 matrix preserves one post-fit contract across admitted pairs"
     expect_identical(fit$components$pair_class, case$class)
     expect_equal(fit$margins$fit_1$coefficients, left$coefficients)
     expect_equal(fit$margins$fit_2$coefficients, right$coefficients)
-    expect_equal(fit$logLik, reverse$logLik, tolerance = 1e-7)
-    expect_equal(fit$eta, reverse$eta, tolerance = 1e-7)
+    # Forward/reverse symmetry, MEASURED 2026-09-06 on origin/main (2f59b7ba7).
+    #
+    # WHAT THE ASYMMETRY IS. Swapping the pair must reach the same fit. Measured
+    # across the five cases, |d eta| relative: 0, 0, 3.6e-8, 0, 1.6e-7 -- the three
+    # MIXED-family pairs are BIT-IDENTICAL, and only the two SAME-family pairs
+    # differ, because swapping those reorders an equivalent problem and the
+    # optimizer takes a different path to the same place. A structurally asymmetric
+    # term would move every pair, not two of five.
+    #
+    # It is optimizer convergence, not a wrong answer. On the worst case
+    # (count/count): |d eta| = 3.44e-08 against SE(eta) = 0.1157, i.e. 3.0e-07 OF
+    # ONE STANDARD ERROR; |d logLik| = 4.0e-13 on a logLik of -352.3, so both
+    # directions sit at the same optimum to numerical precision; and the implied
+    # curvature H = 671 confirms eta is well identified rather than flat.
+    #
+    # WHY 1e-6 ON ETA. It is 2.18e-07 in absolute eta -- 6.3x the measured noise.
+    # That is deliberately modest headroom: the eta bar IS the detector here, so it
+    # is kept as tight as the measurement allows rather than rounded up.
+    #
+    # WHY 1e-10 ON logLik, AND WHAT IT IS *NOT*. Tightened from 1e-7; it clears the
+    # worst measured case (4.0e-13) by ~250x. But do NOT read it as the guard that
+    # backstops the eta bar -- it is far LESS sensitive to an eta asymmetry, not
+    # more. Via d(logLik) = 0.5*H*d(eta)^2, a 1e-10 relative logLik bar only catches
+    # |d eta| >= 1.03e-05, which is 47x COARSER than the eta bar's 2.18e-07. The
+    # tightening is worth having on its own terms; it is not a substitute.
+    expect_equal(fit$logLik, reverse$logLik, tolerance = 1e-10)
+    expect_equal(fit$eta, reverse$eta, tolerance = 1e-6)
     expect_identical(names(fitted(fit)), unlist(c(left$model$response_name, right$model$response_name), use.names = FALSE))
     expect_equal(predict(fit), fitted(fit))
     expect_warning(
