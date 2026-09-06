@@ -24,6 +24,53 @@
   CLOSED at this pin (nothing `confint()` accepted was unlisted) and is now
   pinned by tests that fail if it regresses.
 
+## Ordered cutpoints through `engine = "julia"`: discoverable, and refused by name (#1144)
+
+* #1144 polished the constrained `stats::nlminb()` solve behind the native
+  ordinal cutpoint profile, so `engine = "tmb"` reports honest
+  `"ordinal:cutpoint:<label>"` intervals. `cumulative_logit()` is an admitted
+  bridge family, so the same question needed an answer on the other engine.
+  Measured on the committed fixture at DRM.jl pin 430ef64cc: the Julia fit's
+  `fit$ordinal$cutpoints` already agreed with the native slot to 8.98e-13, but
+  `profile_targets()` listed no ordinal row at all, and
+  `confint(fit, parm = "ordinal:cutpoint:low|medium")` answered
+  `Unknown confidence-interval target` for `method = "wald"`, `"profile"` and
+  `"bootstrap"` alike -- a typo diagnosis for a target plainly on the fit.
+  DRM.jl's bridge inference accepts only fixed-effect and random-effect-SD
+  targets at that pin, so the cutpoint interval genuinely cannot be routed.
+  `profile_targets()` now lists the ordinal rows for a Julia-engine
+  `cumulative_logit()` fit -- the same names, in the same order, as the native
+  fit -- with the public cutpoint rows `profile_ready = FALSE` and note
+  `julia_ordinal_cutpoint_native_only`, and `confint()` refuses a cutpoint
+  target for every `method`, naming the cutpoint, `engine = "tmb"`, and
+  `fit$ordinal$cutpoints`. **No numbers changed on either engine**: this is a
+  discovery-and-diagnosis fix plus an explicit engine boundary.
+
+## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
+
+* `predict()` on an `engine = "julia"` fit accepted `type = c("response",
+  "link")` only, so `predict(fit, type = "quantile")` was refused by
+  `match.arg()` for EVERY family while `engine = "tmb"` has accepted it since
+  the distributional-output layer landed. The bridge method now takes
+  `type = "quantile"` and a `prob` argument, and hands the fit to the SAME
+  native quantile code the TMB engine uses: the per-family density/CDF/quantile
+  registry, the `prob` validation, the percentage column labels, and the
+  `calibrated`/`prob`/`label` attributes all keep one source of truth, with
+  only the per-row distributional parameters coming from the bridge's own
+  reconstruction. All 14 families the bridge admits on its fixed-effect route
+  qualify: gaussian, biv_gaussian, student, lognormal, poisson, nbinom2, gamma,
+  beta, binomial, truncated_nbinom2, zero_one_beta, tweedie, beta_binomial and
+  cumulative_logit. Measured against `engine = "tmb"` on the same fit at DRM.jl
+  pin `430ef64cc` (`tests/testthat/test-julia-predict-quantile.R`, prob = 0.1 /
+  0.5 / 0.9), identical dimensions, column names and attributes, and max |d
+  quantile| at most `4.93e-11` on stored rows and `2.34e-11` on fresh
+  `newdata` -- exactly `0` for the five discrete families. **NOT covered:** a
+  `meta_V()` fit refuses `type = "quantile"` on this engine, because a
+  Julia-bridge fit does not retain the per-row known sampling variance and its
+  quantiles would silently use `sigma` alone (measured `3.485e-01` too narrow
+  against `engine = "tmb"`); use `engine = "tmb"` there. This is a
+  distributional plug-in interval on both engines -- `attr(., "calibrated")` is
+  `FALSE` -- and it makes no interval-coverage claim.
 ## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
 
 * `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
@@ -163,6 +210,22 @@
   phylogenetic, structured, or random-effect ordinal routes are admitted;
   `(1 | g)` fails closed at DRM.jl's label echo.
 
+## `engine = "julia"` admits `skew_normal()` on the fixed-effect route
+
+* `skew_normal()` (dpars `mu`, `sigma`, `nu`) now routes through
+  `engine = "julia"` for fixed-effect models -- one row in the Julia family
+  registry on the R side, plus a five-line `_bridge_family()` case in DRM.jl
+  (`SkewNormal()` existed there but the R bridge had no tag for it; that case
+  is DRM.jl PR #641, so a DRM.jl checkout without it still aborts at the
+  Julia boundary with `drm_bridge: unsupported family`). Same target as
+  `engine = "tmb"` on the committed `test-skew-normal-location-scale.R`
+  fixture at DRM.jl pin `430ef64cc` + that case: max |d coef| 1.89e-11,
+  |d logLik| 2.16e-12, per-coefficient Wald SE within 1.04e-06 relative;
+  `estimator` reads `"ML"` and equals DRM.jl's `estim_method`. The public
+  moment parameterisation (`mu` = mean, `sigma` = SD, `nu` = Azzalini slant)
+  is the same on both engines, so the bridged coefficients are the native
+  ones; a predictor-dependent `nu ~ z` agrees to the same tolerance. Write
+
 ## `predict()` on `cumulative_logit()` Julia fits now matches `engine = "tmb"`
 
 * Closes the gap the `cumulative_logit()` admission above recorded:
@@ -177,7 +240,9 @@
   pin `430ef64cc`: max |d prediction| for stored data and fresh `newdata`,
   both types, all below `1.5e-13`. Thresholds are not read by `predict()`
   on either engine for this family -- they live in `fit$ordinal`, not in the
-  linear predictor. `type = "quantile"` is still unavailable on every `engine = "julia"` fit (drmTMB#1198).
+  linear predictor. `type = "quantile"` on `engine = "julia"` fits was
+  unavailable when this landed; it is added by the entry at the top of this
+  file (drmTMB#1198).
 
 ## REML support tabled by route, measured across both engines (#1142)
 
@@ -239,6 +304,7 @@
   label echo (`coef_labels is missing an entry for dpar "nu"`) because the
   bridge's label defaulter fills `nu` only for `student()`; that one-line fix
   sits outside this change. No phylogenetic, structured, or random-effect
+  skew-normal routes are admitted; `(1 | g)` fails closed at DRM.jl.
   tweedie routes are admitted; `(1 | g)` fails closed at the same echo.
 ## `engine = "julia"` admits `zero_one_beta()` (fixed effects)
 
