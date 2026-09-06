@@ -489,6 +489,15 @@ pm_capability_entries <- function(ctx) {
   slope_phylo <- r("bridge", "drm_julia_slope_phylo_families <- function(")
   wald_confint <- r("bridge", "drm_julia_wald_confint <- function(")
   interval_targets <- r("bridge", "Julia-engine profile and bootstrap intervals currently support one fixed-effect coefficient")
+  # The full assignment, not the prefix: the prefix also occurs inside the
+  # capability-ledger prose at R/julia-bridge.R:434, and `which = 1L` would
+  # cite the sentence about the code instead of the code.
+  biv_profile_fence <- r("bridge", "fixef_profile_ready <- !is_biv && !is.null(object$bridge_payload)")
+  # Leaf `uncited-inference` (2026-09-05): the one place the three inference
+  # capabilities' own two-engine numbers live. Measured at DRM.jl aee371cc9,
+  # drmTMB 2fcbb0fbf, on the committed `gaussian-locscale` fixture.
+  inf_receipt <- "docs/dev-log/evidence/julia-r-parity/p2-g3/uncited-inference-receipt.md"
+  wald_scale_alias <- r("bridge", "Wald-only: not wired into the profile / bootstrap inventory")
   binomial_logit <- r("bridge", "drm_julia_bridge_family_type <- function(")
   hurdle_msg <- r("drmtmb", "hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula")
   nb2_hu_refusal <- r("drmtmb", "{.fn nbinom2} models only support {.code mu}, {.code sigma}, and optional {.code zi}")
@@ -625,17 +634,19 @@ pm_capability_entries <- function(ctx) {
     st("REML bivariate phylogenetic location-scale (q4, all axes)", tsv_ids = "biv_q4_phylo_reml",
        boundary = sprintf("native R is scope-limited (%s); the bridge row is covered on coef/logLik and carries a documented coverage split (claim_boundary at %s);", rs("no single verified claim that a REML correction"), tsv_line("biv_q4_phylo_reml"))),
     st("Wald SEs and CIs (observed information)",
-       route_note = sprintf("Wald intervals through the bridge come from drm_julia_wald_confint() (%s); receipts live in DRM.jl's parity-se.tsv per row; NO dedicated TSV row", wald_confint),
-       boundary = sprintf("%s; %s.", rec("se", "cell_id", "se_gaussian_location_scale"), rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "wald"))),
+       tsv_ids = "base_gaussian_location_scale",
+       route_note = sprintf("Wald intervals through the bridge come from drm_julia_wald_confint() (%s); receipts live in DRM.jl's parity-se.tsv per row", wald_confint),
+       boundary = sprintf("%s; %s; MEASURED 2026-09-05 at DRM.jl aee371cc9 (%s): same fixture, same call, both engines -- coefficients 1.317e-12 (4/4 name-matched, 0 only-tmb, 0 only-julia), logLik 5.684e-14, SE 6.406e-08 abs / 1.256e-06 rel (4/4), Wald endpoints on `fixef:mu:x` 6.698e-09 (lower) / 6.695e-09 (upper). ONE fixture draw on ONE route; NOT interval coverage (D-181 #2);", rec("se", "cell_id", "se_gaussian_location_scale"), rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "wald")), inf_receipt),
+       green_override = "the ledgered row is the Gaussian location-scale cell alone; Wald coverage on every other route rests on that row's own SE receipt, not on this capability row",
        next_action = "none pending on this axis; per-row SE receipts are the next_action of each family row"),
     st("Profile-likelihood CIs",
        route_note = sprintf("bridge profile intervals support one fixed-effect coefficient, one Gaussian phylo SD target, or all four q4 axes (%s)", interval_targets),
-       boundary = sprintf("%s -- the pinned receipt predates the per-coefficient route and no coverage claim exists on the bridge.", rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "profile"))),
-       next_action = g3),
+       boundary = sprintf("MEASURED 2026-09-05 at DRM.jl aee371cc9 (%s): `base_gaussian_location_scale`, target `fixef:mu:x`, both engines converged -- profile endpoints agree to 2.797e-06 (lower) / 5.889e-07 (upper), inside the committed 1e-4 bar, with a red control that FAILS the same two deltas at 1e-9 (the check can fail). TWO STANDING BOUNDARIES, neither closed by that receipt. (1) STRUCTURAL, bivariate: a live `biv_gaussian_residual` fit reports profile_ready=FALSE on ALL 9 inventory rows (profile_note=\"missing_tmb_parameter\") and confint() refuses before any Julia round-trip. Two mechanisms, both cited: drm_julia_wald_targets() sets `fixef_profile_ready <- !is_biv && ...` (%s), unconditionally FALSE for `model_type = \"biv_gaussian\"`, which fences the 7 fixed-effect rows -- a red control that flips only that token turns exactly those 7 ready and makes confint(method = \"profile\") return an interval; the remaining 2 rows are the response-scale `sigma1`/`sigma2` display aliases, Wald-only by design (%s). Open PR #1187 supplies the missing route. (2) UPSTREAM RECEIPT STALE AND UNJOINABLE: %s was written at drmtmb_version 0.7.0, before the per-coefficient route existed, so it understates the engine; and DRM.jl's interval table is keyed by `cell_id` with no `capability_id` column, so no capability_id-keyed receipt for this method can exist upstream at all. NOT interval coverage (D-181 #2).", inf_receipt, biv_profile_fence, wald_scale_alias, rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "profile"))),
+       next_action = "give DRM.jl's docs/dev-log/evidence/parity-intervals.tsv a capability_id column and regenerate it against a current drmTMB, so the profile receipt becomes joinable upstream; until #1187 lands, a user wanting an interval on a bivariate Julia fit should use method = \"wald\""),
     st("Parametric bootstrap CIs",
        route_note = sprintf("bridge bootstrap intervals support one fixed-effect coefficient, one Gaussian phylo SD target, or all four q4 axes (%s)", interval_targets),
-       boundary = sprintf("%s -- the pinned receipt predates the per-coefficient route and no coverage claim exists on the bridge.", rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "bootstrap"))),
-       next_action = g3),
+       boundary = sprintf("MEASURED 2026-09-05 at DRM.jl aee371cc9 (%s): `base_gaussian_location_scale`, target `fixef:mu:x`, R = 99, seed = 20260905 -- tmb [-0.753364, -0.538943] and julia [-0.739446, -0.544052], 0 of 99 replicates failed on EITHER engine, intervals overlap. The two engines draw from independent RNG streams, so this is a distributional-overlap check, not an endpoint-equality one. THREE STANDING BOUNDARIES. (1) STRUCTURAL, bivariate: the same `fixef_profile_ready <- !is_biv && ...` line (%s) fences bootstrap as well as profile -- confint(method = \"bootstrap\") on a `biv_gaussian_residual` fit is refused with the identical \"not ready for profile or bootstrap intervals\" message; open PR #1187 supplies the route. (2) MASKED RESPONSES: drmTMB #1188 -- bootstrap replicates do not preserve a response mask under `missing = miss_control(response = \"include\")`; the default `response = \"drop\"` is unaffected (open PR #1226). (3) UPSTREAM RECEIPT STALE AND UNJOINABLE: %s was written at drmtmb_version 0.7.0 and DRM.jl's interval table carries no `capability_id` column. NOT interval coverage (D-181 #2).", inf_receipt, biv_profile_fence, rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "bootstrap"))),
+       next_action = "land #1226 (mask-preserving replicates) and #1187 (bivariate route), then give DRM.jl's parity-intervals.tsv a capability_id column so the bootstrap receipt becomes joinable upstream"),
     st("AGHQ adaptive-quadrature marginal estimator",
        route_note = "no bridge route: nothing to marshal on the R side",
        boundary = sprintf("native R has an INTERNAL implementation with no exported symbol (R/aghq-coxreid.R, tests/testthat/test-aghq-coxreid.R), so no estimator a user can select from drmTMB() -- `planned` records the exposure gap, not an empty R/ (%s); DRM.jl's is Poisson `(1 \\| g)` only (%s).", rs("`R/aghq-coxreid.R` (added 2026-07-18"), jsl("Poisson `(1 | g)` only")),
