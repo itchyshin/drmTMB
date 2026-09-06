@@ -180,3 +180,116 @@ test_that("a bare optimizer list is translated via the drm_control parser", {
     list(g_tol = 1e-6)
   )
 })
+
+# ---------------------------------------------------------------------------
+# The engine-control contract (drmTMB#1108): exactly `optimizer$g_tol`,
+# `optimizer$algorithm` and (q4 only) `optimizer$q4_vcov` cross to DRM.jl.
+# Everything else `drm_control()` carries must REFUSE, never silently drop.
+# ---------------------------------------------------------------------------
+
+# One non-default value per `drm_control()` field. The totality test below
+# fails if `drm_control()` grows a field this table does not name, so the
+# contract cannot fall behind the constructor unnoticed.
+julia_control_nondefault_probes <- function() {
+  list(
+    se = drm_control(se = FALSE),
+    se_report_covariance = drm_control(se_report_covariance = FALSE),
+    se_skip_delta_method = drm_control(se_skip_delta_method = TRUE),
+    se_group_sd = drm_control(se_group_sd = TRUE),
+    keep_data = drm_control(keep_data = FALSE),
+    keep_model_frame = drm_control(keep_model_frame = FALSE),
+    keep_tmb_object = drm_control(keep_tmb_object = FALSE),
+    sparse_fixed = drm_control(sparse_fixed = TRUE),
+    aggregate_gaussian = drm_control(aggregate_gaussian = TRUE),
+    logsigma_clamp = drm_control(logsigma_clamp = c(-20, 20)),
+    logsigma_clamp_margin = drm_control(logsigma_clamp_margin = 6),
+    optimizer_preset = drm_control(optimizer_preset = "careful"),
+    newton_polish = drm_control(newton_polish = FALSE),
+    multi_start = drm_control(multi_start = 5L),
+    fallback_optimizer = drm_control(fallback_optimizer = "BFGS"),
+    start = drm_control(start = list(`fixef:mu:(Intercept)` = 0.5))
+  )
+}
+
+test_that("the refused-field set is DERIVED from drm_control(), not hand-listed", {
+  # The fail-open defect this replaced was a hand-written list that named 9 of
+  # the then-16 non-optimizer fields. Deriving the set is what makes the
+  # contract fail closed when `drm_control()` grows.
+  expect_equal(
+    sort(drm_julia_unsupported_control_fields()),
+    sort(setdiff(names(drm_control()), "optimizer"))
+  )
+  expect_false("optimizer" %in% drm_julia_unsupported_control_fields())
+})
+
+test_that("every non-optimizer drm_control() field refuses on the Julia path", {
+  probes <- julia_control_nondefault_probes()
+  fields <- setdiff(names(drm_control()), "optimizer")
+  # Totality: the probe table must cover the constructor exactly. A new
+  # `drm_control()` field with no probe here fails this expectation.
+  expect_equal(sort(names(probes)), sort(fields))
+  for (field in fields) {
+    expect_error(
+      drm_julia_translate_control(probes[[field]]),
+      field,
+      fixed = TRUE,
+      label = paste0("drm_control(", field, " = <non-default>)")
+    )
+  }
+})
+
+test_that("the seven fields that used to be silently dropped now refuse", {
+  # Regression pin on the exact defect measured 2026-09-05 at DRM.jl pin
+  # 430ef64cc: each of these returned a fit byte-identical to the default one
+  # (logLik -199.0299845089) with no error, so the user got neither the
+  # setting nor a refusal. Named individually so a future refactor that
+  # re-introduces a hand-written list cannot quietly re-open them.
+  dropped <- c(
+    "se_report_covariance",
+    "se_skip_delta_method",
+    "se_group_sd",
+    "logsigma_clamp",
+    "logsigma_clamp_margin",
+    "newton_polish",
+    "fallback_optimizer"
+  )
+  probes <- julia_control_nondefault_probes()
+  for (field in dropped) {
+    expect_error(
+      drm_julia_translate_control(probes[[field]]),
+      field,
+      fixed = TRUE,
+      label = paste0("silently-dropped field ", field)
+    )
+  }
+  # `logsigma_clamp = NULL` is a non-default value too (the default is
+  # c(-12, 12)) and was dropped by the same hole.
+  expect_error(
+    drm_julia_translate_control(drm_control(logsigma_clamp = NULL)),
+    "logsigma_clamp",
+    fixed = TRUE
+  )
+})
+
+test_that("the whitelist is exactly g_tol, algorithm and q4_vcov", {
+  expect_equal(
+    drm_julia_translate_control(
+      drm_control(optimizer = list(g_tol = 1e-9, algorithm = "gls"))
+    ),
+    list(g_tol = 1e-9, algorithm = "gls")
+  )
+  expect_equal(
+    drm_julia_translate_control(drm_control(optimizer = list(q4_vcov = TRUE))),
+    list(q4_vcov = TRUE)
+  )
+  # Anything else inside `optimizer` refuses by name.
+  for (nm in c("rel.tol", "trace", "abs.tol", "step.min")) {
+    ctrl <- drm_control(optimizer = stats::setNames(list(1), nm))
+    expect_error(
+      drm_julia_translate_control(ctrl),
+      nm,
+      fixed = TRUE,
+      label = paste0("optimizer$", nm)
+    )
+  }
+})

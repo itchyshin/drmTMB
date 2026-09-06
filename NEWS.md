@@ -23,6 +23,42 @@ every item above.
 
 # drmTMB 0.7.0
 
+## `engine = "julia"` control surface: no silent drops, boundary made permanent (leaf-engine-control-surface)
+
+* `drmTMB(..., engine = "julia")` no longer silently ignores a `drm_control()`
+  setting. Seven fields -- `se_report_covariance`, `se_skip_delta_method`,
+  `se_group_sd`, `logsigma_clamp`, `logsigma_clamp_margin`, `newton_polish`
+  and `fallback_optimizer` -- reached the bridge, were dropped, and the fit
+  came back as if nothing had been asked for. Measured live at DRM.jl pin
+  `430ef64cc`: `drmTMB(bf(y ~ x, sigma ~ x), data, engine = "julia", control =
+  drm_control(newton_polish = FALSE))` returned a fit byte-identical to the
+  default one (`logLik -199.0299845089`, same four coefficients) with no
+  error. They now abort with an error naming the setting, like the nine
+  settings that already did. The refused set is derived from `drm_control()`
+  itself rather than hand-listed, so a control added to `drm_control()` is
+  refused on the Julia path without a matching bridge edit; a totality test
+  asserts the classification covers `names(drm_control())` exactly.
+* **Behaviour change.** A script that passed one of those seven settings with
+  `engine = "julia"` used to run and now errors. It was never honoured, so no
+  result changes -- what changes is that the mismatch is now visible. Use
+  `engine = "tmb"` for those controls.
+* The forwarded set is documented as a closed whitelist in `?drm_control` and
+  the Julia-engine vignette: `optimizer$g_tol` and `optimizer$algorithm` on
+  the base bridge, plus `optimizer$q4_vcov` on the bivariate q = 4
+  phylogenetic route, where `optimizer$g_tol` is forwarded as DRM.jl's
+  `q4_g_tol` and `optimizer$algorithm` is refused. Both admitted knobs were
+  confirmed to reach the engine in the same run: `g_tol = 1` moved the fit to
+  `logLik -199.0364652191`, and `algorithm = "em"` reached DRM.jl and threw
+  its own `ArgumentError` from `gaussian_core.jl`.
+* The `engine_control_surface` capability row is no longer ambiguous. Its
+  `next_action` used to read "Design `engine_control` explicitly before
+  relaxing the gate", advertising work that cannot be finished: most of
+  `drm_control()` describes an `nlminb()`/TMB program that DRM.jl does not
+  run, so there is nothing to forward it to and no native comparator against
+  which a parity claim could be measured. The row now carries a permanent
+  claim boundary naming every setting that does not cross and what to do
+  instead, and `claim_status` stays `experimental` permanently -- it records a
+  deliberately narrow Julia-native surface, not unfinished work.
 ## Bootstrap replicates keep a masked fit's response mask (#1188)
 
 * `confint(method = "bootstrap")` on a fit made with
