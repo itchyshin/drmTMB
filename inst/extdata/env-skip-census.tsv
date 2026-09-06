@@ -27,7 +27,8 @@ test-b1-breadth-dispatch.R	build-premise	build	skips	1
 test-b1-dispatch-self-location.R	build-premise	build	skips	2
 test-b1-dispatch-self-location.R	cran-lane	environment	runs	2
 test-b1-dispatch-self-location.R	external-tool	environment	runs	1
-test-b2-q6-serial-proof-receipt-audit.R	build-premise	build	skips	1
+test-b2-q6-serial-proof-receipt-audit.R	build-premise	build	skips	2
+test-b2-q6-serial-proof-receipt-audit.R	history-premise	build	skips	1
 test-beta-location-scale.R	suggests-package	environment	runs	2
 test-beta-phylo-direct-sd.R	suggests-package	environment	runs	5
 test-beta-phylo-q1-recovery-runner.R	build-premise	build	skips	1
@@ -80,6 +81,8 @@ test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
+test-julia-biv-q2-reml.R	engine-drm-jl	environment	skips	1
+test-julia-biv-q2-reml.R	suggests-package	environment	runs	3
 test-julia-bootstrap-tree.R	suggests-package	environment	runs	6
 test-julia-bridge-coef-labels.R	suggests-package	environment	runs	1
 test-julia-bridge-summary.R	engine-drm-jl	environment	skips	2
@@ -102,8 +105,13 @@ test-julia-family-tweedie.R	engine-drm-jl	environment	skips	1
 test-julia-family-tweedie.R	suggests-package	environment	runs	3
 test-julia-family-zero_one_beta.R	engine-drm-jl	environment	skips	3
 test-julia-family-zero_one_beta.R	suggests-package	environment	runs	9
+test-julia-family-zi_nbinom2.R	engine-drm-jl	environment	skips	3
+test-julia-family-zi_nbinom2.R	suggests-package	environment	runs	6
 test-julia-fe-only-fence.R	runtime-conditional	runtime	depends	3
 test-julia-fe-only-fence.R	suggests-package	environment	runs	4
+test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
+test-julia-formula-constructs-nongaussian.R	locale	environment	depends	4
+test-julia-formula-constructs-nongaussian.R	suggests-package	environment	runs	4
 test-julia-formula-constructs.R	engine-drm-jl	environment	skips	3
 test-julia-formula-constructs.R	locale	environment	depends	2
 test-julia-formula-constructs.R	suggests-package	environment	runs	3
@@ -116,6 +124,7 @@ test-julia-noninteractive-lane.R	build-premise	build	skips	1
 test-julia-noninteractive-lane.R	runtime-conditional	runtime	depends	1
 test-julia-objective-at-bridge.R	engine-drm-jl	environment	skips	3
 test-julia-objective-at-bridge.R	suggests-package	environment	runs	4
+test-julia-payload-exact-extraction.R	build-premise	build	skips	1
 test-julia-phylo-count.R	engine-drm-jl	environment	skips	2
 test-julia-phylo-count.R	suggests-package	environment	runs	4
 test-julia-phylo-labels.R	suggests-package	environment	runs	5
@@ -130,6 +139,7 @@ test-julia-predict-quantile.R	engine-drm-jl	environment	skips	1
 test-julia-predict-quantile.R	suggests-package	environment	runs	3
 test-julia-q2-phylo-point-export.R	engine-drm-jl	environment	skips	2
 test-julia-q2-phylo-point-export.R	suggests-package	environment	runs	4
+test-julia-reml-biv-residual.R	engine-drm-jl	environment	skips	1
 test-julia-sigma-phylo-reml.R	engine-drm-jl	environment	skips	2
 test-julia-sigma-phylo-reml.R	suggests-package	environment	runs	4
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
@@ -220,8 +230,8 @@ test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1
 test-profile-shape-boundary.R	suggests-package	environment	runs	2
-test-profile-targets-julia.R	engine-drm-jl	environment	skips	1
-test-profile-targets-julia.R	suggests-package	environment	runs	2
+test-profile-targets-julia.R	engine-drm-jl	environment	skips	2
+test-profile-targets-julia.R	suggests-package	environment	runs	4
 test-profile-targets.R	cran-lane	environment	runs	1
 test-profile-targets.R	os	environment	runs	4
 test-profile-targets.R	suggests-package	environment	runs	1
