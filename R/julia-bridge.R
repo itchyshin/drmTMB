@@ -897,6 +897,64 @@ drm_julia_default_control <- function(control) {
   is.null(control) || (is.list(control) && length(control) == 0L)
 }
 
+# Which `drm_control()` settings did the caller actually change? Derived from
+# `drm_control()` itself -- never a hand-written list -- so a field added to the
+# constructor is reported without an edit here. `optimizer` sub-settings are
+# reported as `optimizer$<name>` because that is how a user wrote them.
+#
+# The all-or-nothing routes below (structured, bivariate q2 structured,
+# cross-family, and the joint missing-predictor adapter) accept only a default
+# `control`. They were already fail-CLOSED -- nothing was silently dropped --
+# but their refusal named no field, so a caller who set several settings had to
+# bisect to learn which one the route would not take. This names them.
+drm_julia_nondefault_control_fields <- function(control) {
+  if (!inherits(control, "drm_control")) {
+    if (is.null(control) || !is.list(control) || length(control) == 0L) {
+      return(character())
+    }
+    # A bare list is optimizer-only, the same reading `drm_parse_control()` uses.
+    control <- drm_control(optimizer = control)
+  }
+  default <- drm_control()
+  changed <- character()
+  for (field in setdiff(names(default), "optimizer")) {
+    if (!identical(control[[field]], default[[field]])) {
+      changed <- c(changed, field)
+    }
+  }
+  optimizer <- control$optimizer
+  if (!is.list(optimizer)) {
+    optimizer <- list()
+  }
+  default_optimizer <- default$optimizer
+  if (!is.list(default_optimizer)) {
+    default_optimizer <- list()
+  }
+  for (name in names(optimizer)) {
+    if (!identical(optimizer[[name]], default_optimizer[[name]])) {
+      changed <- c(changed, paste0("optimizer$", name))
+    }
+  }
+  changed
+}
+
+# Shared refusal for the all-or-nothing routes, so every one of them names the
+# offending settings in the same words.
+drm_julia_abort_nondefault_control <- function(route, advice, control) {
+  changed <- drm_julia_nondefault_control_fields(control)
+  bullets <- c(
+    "{.code engine = \"julia\"} {route} currently accept only default {.arg control}."
+  )
+  if (length(changed) > 0L) {
+    bullets <- c(
+      bullets,
+      "x" = "Non-default {.arg control} setting{?s}: {.val {changed}}."
+    )
+  }
+  bullets <- c(bullets, "i" = advice)
+  cli::cli_abort(bullets)
+}
+
 # Optimizer-solver names DRM.jl's `drm()` accepts on the bridge path. The Julia
 # bridge turns `options$algorithm` into a `Symbol` and `drm()` validates it
 # (src/gaussian_core.jl). Keeping the list here lets the R side reject an
@@ -6835,10 +6893,11 @@ drmTMB_julia_biv_known_structured_bridge <- function(
     ))
   }
   if (!drm_julia_default_control(control)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} bivariate q2 structured models currently accept only default {.arg control}.",
-      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
-    ))
+    drm_julia_abort_nondefault_control(
+      route = "bivariate q2 structured models",
+      advice = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls.",
+      control = control
+    )
   }
 
   # The caller (`drmTMB_julia_bridge()`) has already refused `REML = TRUE` for
@@ -7086,10 +7145,11 @@ drmTMB_julia_structured_bridge <- function(
     ))
   }
   if (!drm_julia_default_control(control)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} structured models currently accept only default {.arg control}.",
-      i = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
-    ))
+    drm_julia_abort_nondefault_control(
+      route = "structured models",
+      advice = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls.",
+      control = control
+    )
   }
 
   family_tag <- drm_julia_structured_family_tag(family_type)
@@ -7479,10 +7539,11 @@ drmTMB_julia_xfam_bridge <- function(
     ))
   }
   if (!drm_julia_default_control(control)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family models currently accept only default {.arg control}.",
-      i = "TMB optimizer / storage / sparse controls do not apply to the cross-family latent engine."
-    ))
+    drm_julia_abort_nondefault_control(
+      route = "cross-family models",
+      advice = "TMB optimizer / storage / sparse controls do not apply to the cross-family latent engine.",
+      control = control
+    )
   }
 
   composed <- drm_composed_families(family)
