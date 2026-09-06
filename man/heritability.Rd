@@ -7,6 +7,9 @@
 \alias{icc.drmTMB}
 \alias{repeatability}
 \alias{repeatability.drmTMB}
+\alias{heritability.drmTMB_julia}
+\alias{icc.drmTMB_julia}
+\alias{repeatability.drmTMB_julia}
 \title{Heritability, ICC, and repeatability accessors}
 \usage{
 heritability(object, ...)
@@ -38,6 +41,12 @@ repeatability(object, ...)
   method = c("delta", "profile"),
   ...
 )
+
+\method{heritability}{drmTMB_julia}(object, ...)
+
+\method{icc}{drmTMB_julia}(object, ...)
+
+\method{repeatability}{drmTMB_julia}(object, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}

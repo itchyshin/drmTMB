@@ -239,7 +239,10 @@ sb_refusal_patterns <- function() {
     # pm_family_entry(): the family is not in the registry `fe` list.
     "REFUSED at drm_julia_family_tag\\(\\)",
     # pm_struct_entry(): a registered gate refuses the route pre-Julia.
-    "the bridge REFUSES this route before Julia starts, at [A-Za-z0-9_.]+\\(\\)"
+    "the bridge REFUSES this route before Julia starts, at [A-Za-z0-9_.]+\\(\\)",
+    # accessor-level FENCE (leaf `uncited-accessors`): the route exists but a
+    # named accessor refuses on a `drmTMB_julia` object, cited at any R/*.R line.
+    "FENCED at R/[A-Za-z0-9_.-]+\\.R:[0-9]+"
   )
 }
 
@@ -253,7 +256,7 @@ sb_is_refused <- function(bridge_route) {
 # cell carries a file:line of its own rather than borrowing the matrix's prose.
 sb_refusal_cite <- function(bridge_route) {
   m <- regmatches(bridge_route,
-                  regexpr("R/julia-bridge\\.R:[0-9]+", bridge_route, perl = TRUE))
+                  regexpr("R/[A-Za-z0-9_.-]+\\.R:[0-9]+", bridge_route, perl = TRUE))
   if (!length(m) || !nzchar(m)) "" else m
 }
 

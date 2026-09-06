@@ -83,6 +83,121 @@ every item above.
 * `tests/testthat/test-julia-control-refusal-names.R` enumerates
   `names(drm_control())`, so a new control field that the naming layer does not
   cover fails the suite instead of going unnamed.
+
+## `engine = "julia"` refuses a factor design it cannot reproduce, before Julia starts (DRM.jl #467, #609)
+
+* The A6 guard already compared CODING SCHEMES (ordered factors, an explicit
+  `contrasts` attribute, a non-default `options("contrasts")`). Two shapes
+  agree on the scheme and disagree about the LEVELS it is applied to, so they
+  went straight past it. Both were measured this run, driving 58
+  formula-construct cases end to end through `engine = "julia"` against
+  `engine = "tmb"` and probing the marshalled columns in the live Julia
+  session: 46 faithful, 10 refused, and 2 SILENTLY MISLABELLED.
+
+* **A character column whose R level order is not code-point order now
+  refuses.** R builds levels with `sort()` under the session collation, so
+  `c("a", "B", "c")` gives levels a, B, c and codes against `"a"`. A character
+  column crosses the bridge as a plain Julia `Vector{String}` -- no pool, no
+  order -- and DRM.jl sorts it by code point, giving levels B, a, c and coding
+  against `"B"`. Same column COUNT, so no count check fires. Measured at the
+  standing pin DRM.jl 430ef64cc: the fit SUCCEEDED, both engines returned
+  IDENTICAL coefficient names, and `max|coef diff|` was 0.1785 (n = 120) and
+  1.1036 (n = 150) -- `engine = "julia"`'s intercept was the mean of the wrong
+  baseline group. `factor(<character column>)` is the same hazard, because the
+  bridge materialises the ORIGINAL values and sorts those. A FACTOR column is
+  immune: its level order crosses intact in the `CategoricalVector` pool
+  (probed for `levels = c("c", "b", "a")`), which is why the refusal tells you
+  to store the column as a factor with an explicit level order.
+
+* **A factor level that no row uses now refuses.** `model.matrix()` gives every
+  DECLARED level a column, including an all-zero one; DRM.jl codes only the
+  levels it observes, so it builds one column fewer. This was already
+  fail-closed, but only deep inside Julia and with a message that named neither
+  the column nor the fix (`the R side must send exactly one name per column`,
+  plus a Julia stack trace). drmTMB now names the unused level and points at
+  `droplevels()`.
+
+* Newer DRM.jl builds carry their own echo check
+  (`_bridge_check_coef_labels_fidelity`) that refuses the first shape from the
+  Julia side. That check does NOT exist at the pin above, which is why this
+  guard is upstream of it: a refusal that lives only in the engine still lets
+  an older build report the wrong parameter under the right name. The engine
+  check remains the second line of defence, and DRM.jl's count message gained
+  the unused-level explanation in a companion change.
+
+* Scope, measured, NOT derived: the other 46 cases in the battery
+  (`factor()`, a bare factor column, reversed declared levels, mixed-case
+  factor LEVELS, `factor()` over an integer column with 2/9/10 ordering,
+  character columns whose order already agrees, logical columns, factor:factor
+  and numeric:factor interactions, `I(x^2)`, `I(x*z)`, `I(x^2 + z)`,
+  `poly(x, 2)`, `poly(x, 3)`, `poly(x, 2) * g`, `scale(x)`, `(x + z)^2`,
+  `(x + z + g)^3`, `x - 1`, `0 + x`, `x:z`, `x + z + x:z - z`,
+  `(x + z)^2 - x:z`, `log(x + 2)`, `sqrt(x + 2)`, and the sigma-side repeats)
+  were FAITHFUL: identical coefficient names and `max|coef diff| <= 2.675e-10`
+  against `engine = "tmb"`. An independent design oracle went further and
+  compared VALUES: for 37 constructs DRM.jl's own design matrix is element-wise
+  identical to R's `model.matrix()` (31 at exactly 0; `poly(x, 2)` 8.33e-16,
+  `poly(x, 3)` 8.26e-16, `scale(x)` 4.44e-16 -- so DRM.jl reproduces R's
+  ORTHOGONAL `raw = FALSE` polynomial basis, #467's flagged high-risk case).
+  `I(log(x + 2))`, `x * z - x:z` (a `-` removal over an unexpanded `*`) and a
+  single-level factor keep their existing refusals. This is one Gaussian
+  location-scale fixture per construct, not a coverage study; the receipts are
+  in `docs/dev-log/evidence/julia-r-parity/formula-construct-fidelity/`.
+## Hurdle NB2 through `engine = "julia"`: ONE call now fits on both engines
+
+* `drmTMB(bf(y ~ x, sigma ~ z, hu ~ w), family = truncated_nbinom2())` -- drmTMB's
+  spelling of the hurdle negative binomial, since there is no
+  `hurdle_nbinom2()` constructor -- previously fitted on `engine = "tmb"` and
+  ABORTED on `engine = "julia"`, while the bridge instead accepted
+  `family = nbinom2()` with `hu`, which the native engine refuses. A user could
+  not switch `engine =` on one call. DRM.jl PR #662 makes
+  `TruncatedNegBinomial2()` accept an `hu` part (delegating to its existing
+  NegBinomial2 hurdle kernel), and the bridge fit now reports the native
+  `model_type` `"hurdle_nbinom2"` instead of `"truncated_nbinom2"`, so
+  `predict(fit, dpar = "hu")` resolves its logit link the way it does natively.
+  Measured on the native test suite's own hurdle fixture (n = 1800, 486 zeros),
+  both engines on the same call: coefficients agree to 9.4e-12 over 8
+  coefficients, logLik -2941.45558666655 vs -2941.45558666657, Wald SEs to
+  1.1e-06 relative, estimator `"ML"` on both. Fixed effects only -- no
+  phylogenetic, random-effect or structured hurdle route, and no interval
+  claim. Known gap, declared not fixed: `fitted()`/`residuals()` on this route
+  return the untruncated count mean through the bridge rather than the hurdle
+  mean; every dpar is correct, so `hurdle_nbinom2_mean()` reproduces the native
+  `fitted()` from them exactly.
+## `biv_lognormal()` on the `engine = "julia"` fixed-effect route
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  family = biv_lognormal(), engine = "julia")` now fits instead of refusing with
+  "currently supports Workflow G fixed-effect families". One registry row
+  (`spec("biv_lognormal", fe = TRUE)`) admits it, and the bridge's default
+  label branch now matches the `biv_` prefix rather than the single literal
+  `"biv_gaussian"` -- without that, the registry row alone left BOTH the full
+  and the short `bf(mu1 = y1 ~ x, mu2 = y2 ~ x)` form aborting inside DRM.jl
+  (`coef_labels supplies names for unknown dpar "sigma"`), because a scalar
+  `sigma` label was being sent to a model whose blocks are
+  `sigma1`/`sigma2`/`rho12`. The scale contract is unchanged from the native
+  engine and was measured, not assumed: both engines take `y1`/`y2` on the raw
+  positive scale, `mu1`/`mu2` are means of `log y`, `sigma1`/`sigma2` are SDs
+  of `log y`, and both carry the change-of-variables Jacobian, so both match
+  the independent raw-scale oracle in `tests/testthat/test-biv-lognormal.R`
+  (logLik -164.673669588 on both, agreeing with the oracle to 4e-13). Measured
+  same-target receipts on an n = 600 draw at DRM.jl pin 430ef64cc: coefficients
+  9.288083e-07 (7/7 name-matched), logLik -1124.208196846248 vs
+  -1124.208196846242, Wald SE 1.707768e-06 relative. **Scope: fixed-effect
+  `mu1`/`mu2` with intercept-only `sigma1`/`sigma2`/`rho12` only** -- the same
+  cell the native engine admits; no random effects, no phylogenetic or
+  structured route, no interval-coverage claim.
+* The admission needed a scope fence to hold that boundary, and this is the
+  part worth reading twice. Bivariate families are exempt from the A4.G17
+  fixed-effect-only random-effect fence because `biv_gaussian` legitimately
+  fits predictor-driven `sigma1`/`sigma2`/`rho12` -- so the new registry row
+  inherited an exemption `biv_lognormal` has not earned. Measured at the pin
+  before the fence existed: `sigma1 = ~ x` FIT through `engine = "julia"`
+  (logLik -71.4056477) and so did `rho12 = ~ x` (logLik -70.64289338), while
+  `engine = "tmb"` refused both. `engine = "julia"` now refuses a predictor on
+  `sigma1`/`sigma2`/`rho12` and an ordinary random-effect bar for this family
+  on the R side, before Julia starts, in the same words the native engine uses.
+  `biv_gaussian()` is untouched.
 ## Bootstrap replicates keep a masked fit's response mask (#1188)
 
 * `confint(method = "bootstrap")` on a fit made with
@@ -340,6 +455,33 @@ every item above.
   `docs/design/261-reml-by-route.md`, and the ledger note claiming the
   `engine = "julia"` path for the q4 cell was "halted by design" is corrected --
   it fits.
+
+## `biv_student()` admitted through `engine = "julia"` (leaf fam-biv-student)
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1,
+  rho12 = ~1), family = biv_student(), engine = "julia")` now fits instead of
+  refusing. DRM.jl needed no change: at pin `430ef64cc` its
+  `_bridge_family("biv_student")` already routed the tag to the bivariate
+  Student-t model in `src/bivariate_student.jl`, so the admission is one row in
+  the Julia family registry plus the retirement of a family-specific abort in
+  `drmTMB()` that fired before the registry was ever consulted. Measured this
+  run against `engine = "tmb"` on the `tests/testthat/test-biv-student.R` draw
+  (n = 400, seed 6401): coefficients agree to `3.771e-07` (8/8 matched by
+  name), logLik `-928.707976` on both engines (diff `2.569e-11`), and
+  per-coefficient Wald standard errors agree to `9.013e-07` relative, with the
+  comparator's own negative control still failing as it must. `sigma1`/`sigma2`
+  are Student-t **scales** (marginal `SD = sigma * sqrt(nu / (nu - 2))`), `nu`
+  is one **shared** degrees-of-freedom parameter, and `rho12` is the
+  **scatter** correlation -- zero `rho12` is not independence at finite `nu` --
+  identically on both engines.
+* The Julia route is fenced to exactly the shape native `engine = "tmb"` fits.
+  Random-effect bars and non-intercept `sigma1`, `sigma2`, `nu` or `rho12`
+  formulas are refused with the native wording before Julia starts, and
+  `confint()` is deferred for this family on both engines as it always was
+  natively. Each of these fitted or returned intervals through
+  `engine = "julia"` before this release while `engine = "tmb"` refused them;
+  a shape the native engine refuses has no same-target comparator and so can
+  carry no parity receipt. No interval-coverage claim is made.
 
 ## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
 
