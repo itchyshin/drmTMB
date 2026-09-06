@@ -612,7 +612,19 @@ test_that("RED CONTROL: without the ordinal predicate the typo diagnosis returns
       parm = "ordinal:cutpoint:low|medium", method = "profile"
     )
   )
-  expect_match(conditionMessage(err), "Unknown confidence-interval target", fixed = TRUE)
+  # The generic matcher's wording was IMPROVED by #1156/#1218 -- it went from a bare
+  # "Unknown confidence-interval target" to naming the target, the inventory note, the
+  # method to use instead, and the valid targets. The control's INTENT is unchanged and
+  # still discriminating: with the predicate mocked off you get the GENERIC path, and with
+  # it active you get the ordinal-specific diagnosis. Both were measured side by side
+  # before this assertion was rewritten -- the active path returns "Ordered-cutpoint
+  # confidence intervals are not available for `engine = \"julia\"` fits.", which is why
+  # the expect_false() below is the half that carries the control.
+  expect_match(
+    conditionMessage(err),
+    "is listed by `profile_targets()` but is not a profile or bootstrap target",
+    fixed = TRUE
+  )
   expect_false(
     grepl("Ordered-cutpoint confidence intervals", conditionMessage(err), fixed = TRUE)
   )

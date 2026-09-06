@@ -4478,6 +4478,11 @@ confint.drmTMB_julia <- function(
       i = drm_julia_inference_parm_hint(full_targets)
     ))
   }
+  # #1156: accept the canonical native target name for a location-scale-scale
+  # dpar, then answer accurately for a name `profile_targets()` lists but this
+  # method cannot dispatch, before the generic matcher calls it unknown.
+  parm <- drm_julia_canonicalise_parm(object, parm, full_targets)
+  drm_julia_listed_not_dispatchable(object, parm, full_targets)
   targets <- profile_match_confint_targets(full_targets, parm, fixed_only = FALSE)
   drm_julia_validate_inference_targets(targets)
 
@@ -4552,6 +4557,8 @@ drm_julia_wald_confint <- function(object, parm = NULL, level = 0.95) {
     drm_julia_wald_targets(object),
     drm_julia_wald_scale_targets(object)
   )
+  # #1156: same canonical-name acceptance as the profile/bootstrap path.
+  parm <- drm_julia_canonicalise_parm(object, parm, targets)
   targets <- profile_match_confint_targets(targets, parm, fixed_only = FALSE)
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "wald"))
@@ -4713,6 +4720,179 @@ drm_julia_wald_scale_targets <- function(object) {
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   validate_profile_targets(out)
+}
+
+# Cross-engine target names for a location-scale-scale (LSS) dpar (#1156).
+#
+# An `sd(group, level = ...)` / `sd_phylo(group)` submodel is ONE dpar
+# carrying TWO spellings. The native engine names the coefficient block after
+# the formula dpar itself -- `sd_phylo(species)` -- so its targets read
+# `fixef:sd_phylo(species):z`. DRM.jl returns that block under the key the
+# bridge payload sends it as, which is everything before the first `(`, so
+# the bridge's targets read `fixef:sd_phylo:z`.
+#
+# MEASURED 2026-09-05 at DRM.jl pin 430ef64cc, one Gaussian fit of
+# `bf(y ~ x + phylo(1 | species, tree), sigma ~ 1, sd(species, level =
+# "phylogenetic") ~ z)` on 32 tips, fitted on both engines:
+#
+#   confint(julia, "fixef:sd_phylo:z",         "wald") -> [0.1548585, 0.5961239]
+#   confint(tmb,   "fixef:sd_phylo(species):z","wald") -> [0.1548584, 0.5961240]
+#   confint(julia, "fixef:sd_phylo(species):z")        -> Unknown ... target
+#   confint(tmb,   "fixef:sd_phylo:z")                 -> Unknown ... target
+#
+# Same estimand, same interval to six significant figures, and each engine
+# refused the other's name -- so a script could not be moved between engines
+# by changing `engine =` alone.
+#
+# The NATIVE form is CANONICAL (docs/design/258-coefficient-naming-contract.md
+# section 9): it carries the grouping factor that the bridge's block key drops.
+# The bridge keeps REPORTING its own short form -- that is the name in
+# `coef(fit)`, `vcov(fit)` and `profile_targets(fit)`, and renaming those is a
+# far wider change than a target-name alias -- but it now ACCEPTS the
+# canonical form wherever a target name is taken, and resolves it to the row
+# it reports. This returns the map from canonical native dpar to bridge block
+# key, derived from the fit's own formula rather than guessed.
+drm_julia_lss_dpar_aliases <- function(object) {
+  entries <- object$formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(character(0))
+  }
+  dpars <- vapply(
+    entries,
+    function(entry) {
+      value <- entry$dpar
+      if (is.null(value) || length(value) == 0L) {
+        return(NA_character_)
+      }
+      as.character(value)[[1L]]
+    },
+    character(1L)
+  )
+  canonical <- dpars[!is.na(dpars) & grepl("^sd(_phylo)?\\([^()]+\\)$", dpars)]
+  canonical <- canonical[!duplicated(canonical)]
+  if (length(canonical) == 0L) {
+    return(character(0))
+  }
+  keys <- sub("\\(.*$", "", canonical)
+  keep <- keys %in% names(object$coefficients) & keys != canonical
+  # Fail closed on an AMBIGUOUS key. Two submodels on different groups --
+  # `sd(g1) ~ z` and `sd(g2) ~ z` -- both reduce to the block key `sd`, so a
+  # canonical name could not be resolved to one coefficient. Drop those rather
+  # than silently answer for whichever group came first.
+  keep <- keep & !(keys %in% keys[duplicated(keys)])
+  if (!any(keep)) {
+    return(character(0))
+  }
+  stats::setNames(keys[keep], canonical[keep])
+}
+
+# Rewrite any canonical native-engine LSS target name in `parm` to the
+# bridge's own spelling -- but ONLY where the rewrite lands on a real target
+# of this fit. A name that is a target under neither spelling is left
+# untouched, so the "Unknown confidence-interval target" message still quotes
+# what the user actually typed rather than a rewritten variant of it.
+drm_julia_canonicalise_parm <- function(object, parm, targets) {
+  if (!is.character(parm) || length(parm) == 0L) {
+    return(parm)
+  }
+  aliases <- drm_julia_lss_dpar_aliases(object)
+  if (length(aliases) == 0L || is.null(targets) || nrow(targets) == 0L) {
+    return(parm)
+  }
+  known <- targets$parm
+  for (i in seq_along(aliases)) {
+    from <- paste0("fixef:", names(aliases)[[i]], ":")
+    to <- paste0("fixef:", aliases[[i]], ":")
+    hit <- which(!is.na(parm) & startsWith(parm, from))
+    if (length(hit) == 0L) {
+      next
+    }
+    rewritten <- paste0(to, substring(parm[hit], nchar(from) + 1L))
+    ok <- rewritten %in% known & !(parm[hit] %in% known)
+    if (any(ok)) {
+      parm[hit[ok]] <- rewritten[ok]
+    }
+  }
+  parm
+}
+
+# `profile_targets()` reports the UNION of the Wald and profile/bootstrap
+# inventories (`drm_julia_profile_target_union()`, R/profile.R), but
+# `method = "profile"` / `"bootstrap"` can only dispatch the subset DRM.jl has
+# an inference entry point for. The response-scale `sigma` alias is listed
+# there -- with `profile_ready = FALSE` and note `missing_tmb_parameter` --
+# yet is absent from the dispatch table, so `profile_match_confint_targets()`
+# reported it as an UNKNOWN target.
+#
+# MEASURED 2026-09-05 at DRM.jl pin 430ef64cc on the fit described above:
+# `profile_targets(fit)$parm` lists "sigma", and
+# `confint(fit, parm = "sigma", method = "profile")` answered
+#   Unknown confidence-interval target: "sigma".
+# -- the documented discovery route naming a target the inference route then
+# calls unknown. That is #1156's mismatch in the opposite direction. Catch it
+# before the generic matcher and say what is actually true.
+drm_julia_listed_not_dispatchable <- function(object, parm, dispatchable) {
+  if (!is.character(parm) || length(parm) == 0L) {
+    return(invisible(NULL))
+  }
+  matchable <- c(
+    dispatchable$parm,
+    paste0(dispatchable$dpar, ":", dispatchable$term)
+  )
+  unmatched <- setdiff(parm, matchable)
+  if (length(unmatched) == 0L) {
+    return(invisible(NULL))
+  }
+  inventory <- tryCatch(
+    drm_julia_profile_target_union(object),
+    error = function(cnd) NULL
+  )
+  if (is.null(inventory) || nrow(inventory) == 0L) {
+    return(invisible(NULL))
+  }
+  listed <- intersect(unmatched, inventory$parm)
+  if (length(listed) == 0L) {
+    return(invisible(NULL))
+  }
+  bad <- listed[[1L]]
+  row <- inventory[match(bad, inventory$parm), , drop = FALSE]
+  note <- row$profile_note[[1L]]
+  ready <- dispatchable$parm[dispatchable$profile_ready]
+  hint <- if (length(ready) > 0L) {
+    paste0(
+      "Profile and bootstrap targets on this fit: ",
+      paste0("\"", ready, "\"", collapse = ", "),
+      "."
+    )
+  } else {
+    "No target on this fit is profile or bootstrap-ready."
+  }
+  listed_tmb_parameter <- row$tmb_parameter[[1L]]
+  alias_of <- if (is.na(listed_tmb_parameter)) {
+    character(0)
+  } else {
+    dispatchable$parm[which(
+      dispatchable$target_class == "fixed-effect" &
+        !is.na(dispatchable$tmb_parameter) &
+        dispatchable$tmb_parameter == listed_tmb_parameter
+    )]
+  }
+  alias_of <- alias_of[!is.na(alias_of)]
+  msg <- c(
+    "Julia-engine target {.val {bad}} is listed by {.fn profile_targets} but is not a profile or bootstrap target.",
+    i = "Inventory note: {.val {note}}."
+  )
+  if (length(alias_of) > 0L) {
+    alias_name <- alias_of[[1L]]
+    msg <- c(
+      msg,
+      i = "It is a Wald-only display alias of {.val {alias_name}}; use that name for a profile or bootstrap interval, or {.code method = \"wald\"} for this one."
+    )
+  } else {
+    msg <- c(msg, i = "Use {.code method = \"wald\"} for this target.")
+  }
+  msg <- c(msg, i = "{hint}")
+  cli::cli_abort(msg)
 }
 
 drm_julia_validate_threads <- function(threads) {

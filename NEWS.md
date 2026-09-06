@@ -1,5 +1,29 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` target discovery closes over what `confint()` accepts (#1156)
+
+* `profile_targets()` on a Julia fit and `confint()` on the same fit disagreed
+  in two ways that #1156's own fix did not reach. Measured at DRM.jl pin
+  430ef64cc on one Gaussian 32-tip fit of
+  `bf(y ~ x + phylo(1 | species, tree), sigma ~ 1, sd(species, level = "phylogenetic") ~ z)`
+  fitted on both engines. **(1) The two engines name the same estimand
+  differently**: native TMB reports `fixef:sd_phylo(species):z`, the bridge
+  reports `fixef:sd_phylo:z`, the Wald intervals agree to six significant
+  figures (`[0.1548584, 0.5961240]` vs `[0.1548585, 0.5961239]`), and each
+  engine refused the other's spelling -- so a script could not be moved between
+  engines by changing `engine =` alone. The native spelling is now documented as
+  CANONICAL (docs/design/258-coefficient-naming-contract.md section 9) and the
+  bridge ACCEPTS it, resolving it to the row it reports; the bridge's own short
+  form is still what `coef()`, `vcov()` and `profile_targets()` print.
+  **(2) A listed target was called unknown**: `sigma` is listed by
+  `profile_targets()` (`profile_ready = FALSE`, note `missing_tmb_parameter`)
+  but `confint(fit, "sigma", method = "profile")` answered
+  `Unknown confidence-interval target: "sigma"`. It now says the row is listed,
+  gives its inventory note, names the profile-ready alias to use instead, and
+  lists the profile-ready targets. The union #1156 introduced was measured
+  CLOSED at this pin (nothing `confint()` accepted was unlisted) and is now
+  pinned by tests that fail if it regresses.
+
 ## `engine = "julia"` admits `REML = TRUE` for the residual-only bivariate Gaussian cell
 
 * `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),

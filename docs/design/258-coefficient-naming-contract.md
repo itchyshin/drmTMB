@@ -1322,6 +1322,93 @@ widen to random effects. `REML = TRUE` is refused on the R side before Julia
 starts by the existing non-Gaussian REML rule (``engine = "julia"` cannot fit
 non-Gaussian (skew_normal) models by `REML = TRUE``).
 
+**NOT admitted by this row:** phylogenetic, structured (`relmat()`/`animal()`/
+`spatial()`), random-effect, and hurdle routes; interval coverage. The
+capability-comparison TSV row for this route is NOT added here (the
+`drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
+outside this leaf's file set) and is left to the integrator.
+
+## 9. Location-scale-scale target names: which spelling is canonical (drmTMB #1156, 2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+An `sd(group, level = ...)` / `sd_phylo(group)` submodel is one distributional
+parameter that the two engines REPORT under two different names. This section
+settles which is canonical and states exactly what each engine accepts, so a
+script can move between engines by changing `engine =` alone.
+
+**What was measured.** One Gaussian 32-tip fit of
+
+```r
+bf(y ~ x + phylo(1 | species, tree = tree),
+   sigma ~ 1,
+   sd(species, level = "phylogenetic") ~ z)
+```
+
+fitted on both engines (raw log:
+`docs/dev-log/evidence/2026-09-05-p1156-profile-targets-live-measure.log`):
+
+| call | result |
+| --- | --- |
+| `profile_targets(tmb)` | includes `fixef:sd_phylo(species):(Intercept)`, `fixef:sd_phylo(species):z` |
+| `profile_targets(julia)` | includes `fixef:sd_phylo:(Intercept)`, `fixef:sd_phylo:z` |
+| `confint(tmb, "fixef:sd_phylo(species):z", method = "wald")` | `[0.1548584, 0.5961240]` |
+| `confint(julia, "fixef:sd_phylo:z", method = "wald")` | `[0.1548585, 0.5961239]` |
+| `confint(julia, "fixef:sd_phylo(species):z")` | *(before this change)* `Unknown confidence-interval target` |
+| `confint(tmb, "fixef:sd_phylo:z")` | `Unknown confidence-interval target` |
+
+Same estimand, same interval to six significant figures, two names, and each
+engine refused the other's.
+
+**Why they differ.** The native engine names the coefficient block after the
+formula dpar itself, which carries the grouping factor: `sd_phylo(species)`.
+DRM.jl receives that block under the key `drm_julia_bridge_payload_coef_labels()`
+sends -- everything before the first `(`, i.e. `sd_phylo` -- and returns it under
+that key, so the grouping factor is not recoverable from the Julia reply alone.
+
+**Decision.**
+
+1. **The native spelling is CANONICAL**: `fixef:sd_phylo(species):z`. It carries
+   the grouping factor the bridge's block key drops, it disambiguates a fit with
+   two `sd()` submodels on different groups, and it is what every vignette and
+   every `engine = "tmb"` `profile_targets()` row already prints.
+2. **The bridge keeps REPORTING its own short form.** `coef(fit)`, `vcov(fit)`
+   and `profile_targets(fit)` on a Julia fit continue to say `sd_phylo`.
+   Renaming those is a far wider change than a target-name alias and would
+   break every banked Julia coefficient-label pin; it is NOT done here.
+3. **The bridge ACCEPTS the canonical form wherever a target name is taken**
+   (`confint()`, Wald and profile/bootstrap), and resolves it to the row it
+   reports. `drm_julia_lss_dpar_aliases()` derives the map from the fit's own
+   formula, so the alias set is enumerable rather than guessed; the rewrite
+   fires only when it lands on a real target of that fit, so a
+   canonical-shaped name with a bogus term is still refused and the error
+   quotes what the user typed.
+4. **Ambiguity fails closed.** `bf()` accepts two `sd()` submodels on different
+   grouping factors -- `bf(y ~ x + (1 | g1) + (1 | g2), sigma ~ 1, sd(g1) ~ z,
+   sd(g2) ~ w)` yields dpars `mu | sigma | sd(g1) | sd(g2)` -- and BOTH reduce
+   to the block key `sd`, so no canonical name could be resolved to one
+   coefficient. `drm_julia_lss_dpar_aliases()` returns NO alias for a
+   duplicated key rather than answering for whichever group came first.
+
+**Consequence for discovery.** `profile_targets()` lists exactly ONE name per
+target -- the reported one. The accepted-input set is a documented superset:
+listed names plus the canonical aliases above. `tests/testthat/test-profile-targets-julia.R`
+asserts both halves, live and on synthetic fixtures: every name `confint()`
+reports back is listed, and every name it ACCEPTS is either listed or a
+documented alias.
+
+**Related, same issue, opposite direction.** `sigma` (the response-scale alias
+of `fixef:sigma:(Intercept)`) is listed by `profile_targets()` with
+`profile_ready = FALSE` and note `missing_tmb_parameter`, but DRM.jl has no
+profile entry point for it. Before this change,
+`confint(julia, "sigma", method = "profile")` answered `Unknown
+confidence-interval target: "sigma"` -- the documented discovery route naming a
+target the inference route then called unknown. It now says the row is listed,
+gives the inventory note, names the profile-ready alias to use instead, and
+lists the profile-ready targets.
+
+**NOT covered by this section.** Bivariate (`sd1`/`sd2`) LSS spellings; any
+change to `coef()`/`vcov()`/`summary()` names on a Julia fit; the per-tip
+`sd:sd_phylo(species):...:tN` rows the native engine additionally lists on this
+model, which the bridge has no counterpart for.
 **NOT admitted by this row:** phylogenetic, structured
 (`relmat()`/`animal()`/`spatial()`), and random-effect routes (the native
 engine fits `(1 | id)` and `(0 + x | id)` on `mu`; DRM.jl's `SkewNormal()`
