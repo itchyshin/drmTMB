@@ -157,7 +157,7 @@ test-lognormal-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-logsigma-clamp.R	cran-lane	environment	runs	2
 test-logsigma-clamp.R	suggests-package	environment	runs	2
 test-lrt-boundary.R	cran-lane	environment	runs	1
-test-lrt-boundary.R	engine-drm-jl	environment	skips	1
+test-lrt-boundary.R	engine-drm-jl	environment	skips	2
 test-mesh-contract.R	suggests-package	environment	runs	8
 test-mesh-helpers.R	suggests-package	environment	runs	5
 test-mesh-recovery-v3-contract.R	build-premise	build	skips	1
@@ -165,7 +165,7 @@ test-meta-v-lss-comparator.R	suggests-package	environment	runs	1
 test-missing-predictor-beta-binomial.R	cran-lane	environment	runs	3
 test-missing-predictor-prediction.R	build-premise	build	skips	1
 test-missing-response-g4g5-foundation.R	cran-lane	environment	runs	1
-test-model-comparison.R	engine-drm-jl	environment	skips	1
+test-model-comparison.R	engine-drm-jl	environment	skips	2
 test-mspl-estimator.R	suggests-package	environment	runs	3
 test-mspl-link-dispatch.R	suggests-package	environment	runs	1
 test-mspl-link-general.R	suggests-package	environment	runs	1

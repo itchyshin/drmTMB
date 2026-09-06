@@ -167,6 +167,21 @@ and `q = 2`. `profile.R` separately cites Self & Liang (1987) / Stram & Lee
 (`conf.status = "wald_at_boundary"`); that flag is related but is a different
 capability, and before this port it was all the package had.
 
+BRIDGE AXIS for this pair (leaf `uncited-accessors`, 2026-09-05): the receipt
+quoted above fits the R side NATIVELY, so it says nothing about
+`engine = "julia"`. Measured against DRM.jl `aee371cc9` (the programme pin
+`430ef64cc` is unusable -- it predates DRM.jl #646/#648), both verbs DO reach a
+bridge fit. `chibar_pvalue()` is a pure function of `(statistic, q)` and needs
+no fit at all, so it is engine-independent by construction. `lrt_boundary()`
+admits a `drmTMB_julia` fit, and on a Gaussian random-intercept pair
+(`n = 360`, `G = 30`) it reproduces DRM.jl's own `lrt_boundary` on the same
+payload to `0.000e+00` on the statistic and `1.986e-76` on the p-value, and
+agrees with the same pair fitted `engine = "tmb"` to `2.012e-11` across all
+five reported fields. Ledgered `partial`, not `covered`: one fixture, ML only,
+`q = 2` and REML still native-only
+(`inst/extdata/julia-capabilities.tsv` `accessor_chibar_boundary`;
+docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
+
 `Model comparison suite (LRT/anova/AICc/weights/update)` moved from `planned` to
 `scope-limited` on the same day (`#1117`, commit `b21581f95`).
 `R/model-comparison.R` ports DRM.jl's `src/comparison.jl`, and `aicc()` is
@@ -180,6 +195,24 @@ returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
 rather than an R-side gap.
 
+BRIDGE AXIS for this suite (leaf `uncited-accessors`, 2026-09-05), measured
+against DRM.jl `aee371cc9`. `aicc()` reaches an `engine = "julia"` fit even
+though it has no `drmTMB_julia` method: it dispatches through `aicc.default()`,
+which works because `logLik.drmTMB_julia()` reports both `df` and `nobs`. On
+the Gaussian random-intercept fixture it equals DRM.jl's own `aicc(fit)` to
+`0.000e+00` and `aicc(tmb_fit)` to `1.899e-11`. `drm_lrtest()` likewise runs on
+two bridge fits and reproduces DRM.jl's `lrtest` exactly. Two bridge-side
+defects were found and fixed: `anova()` had no `drmTMB_julia` method and failed
+with a bare `UseMethod` error where the native engine gave drmTMB's own
+refusal, and `weights()` fell through to `stats:::weights.default` and returned
+`NULL` SILENTLY where the native engine returns a vector of ones. Since
+`engine = "julia"` refuses the `weights` argument at fit time, a bridge fit is
+unweighted by construction, so `weights.drmTMB_julia()` now returns the ones --
+matching both the native engine and DRM.jl's `ones(nobs(fit))`
+(`inst/extdata/julia-capabilities.tsv` `accessor_model_comparison`;
+docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
+
+
 `Heritability/repeatability/ICC accessors` moved to `point-fit-recovery`:
 `heritability()`/`icc()`/`repeatability()` (`R/heritability.R`,
 `docs/design/259-heritability-icc-repeatability.md`) fit a Gaussian
@@ -187,6 +220,20 @@ structured-random-intercept model and recover the known variance ratio within
 tolerance across seeded simulations, and report a delta-method Wald interval,
 but that interval carries only a small-N sanity check, not a calibrated
 coverage study -- hence `point-fit-recovery` rather than plain `implemented`.
+That native-axis status was re-checked on 2026-09-05 and still holds. On the
+BRIDGE axis the three accessors are FENCED: they are delta-method ratios on the
+working (log-SD) scale and a `drmTMB_julia` fit exposes neither the working
+parameter vector (`fit$opt$par`) nor the covariance of its structured SDs
+(`fit$vcov` keeps fixed-effect coefficients only), so
+`heritability.drmTMB_julia()` and its two siblings abort with an actionable
+message naming `engine = "tmb"` instead of the bare `UseMethod` dispatch error
+that preceded them. This is "not wired", not "not possible": measured
+2026-09-05 (DRM.jl `aee371cc9`) the full bridge covariance one layer down
+(`fit$bridge$vcov`) IS the working-scale matrix, matching TMB's `sdreport`
+`log_sd_mu` entry to `1.824454e-02` vs `1.824453e-02`, and the h2 point formed
+by hand from the bridge fit's `sdpars`/`sigma()` matches
+`heritability(tmb_fit)$estimate` to `2.5e-12`
+(docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
 
 ## Bivariate structure and missing data
 
