@@ -83,6 +83,7 @@ every item above.
 * `tests/testthat/test-julia-control-refusal-names.R` enumerates
   `names(drm_control())`, so a new control field that the naming layer does not
   cover fails the suite instead of going unnamed.
+
 ## `engine = "julia"` refuses a factor design it cannot reproduce, before Julia starts (DRM.jl #467, #609)
 
 * The A6 guard already compared CODING SCHEMES (ordered factors, an explicit
