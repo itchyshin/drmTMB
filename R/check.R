@@ -94,6 +94,65 @@
 #' `"warning"`, or `"error"`. Its `"ok"` attribute is `TRUE` exactly when
 #' no row has status `"warning"` or `"error"`.
 #'
+#' @section Fits from `engine = "julia"`:
+#'
+#' A fit produced by the DRM.jl bridge (`engine = "julia"`, class
+#' `drmTMB_julia`) dispatches through this same generic and returns the same
+#' four-column `drm_check` schema, but it reports a deliberately **different
+#' and much shorter** set of rows. Almost every check listed above reads a
+#' `TMB` object or a [TMB::sdreport()] that a bridge fit does not have, so a
+#' clean `engine = "julia"` table is a narrower claim than a clean
+#' `engine = "tmb"` table on the same model. The rows are:
+#'
+#' \describe{
+#'   \item{`engine_route`}{Always a `note`. Names the engine, the DRM.jl
+#'     route, and the estimator (`"engine=julia; route=<route>;
+#'     estimator=<ML|REML>"`), and its message lists the native
+#'     `engine = "tmb"` checks that did not run. Being a `note`, it never
+#'     flips `attr(x, "ok")`: reporting which machinery ran is not itself a
+#'     fault.}
+#'   \item{`optimizer_convergence`}{Whether DRM.jl reported convergence. This
+#'     is DRM.jl's own convergence flag, not `nlminb()`'s `convergence` code,
+#'     and the two are not claimed to agree.}
+#'   \item{`fixed_gradient`}{Route-aware. Only some DRM.jl routes store a
+#'     gradient callback, and the bridge omits the gradient entirely rather
+#'     than sending a fabricated one on a route without it; on such a route
+#'     this row is a `note` naming the route, stationarity is **not** scored,
+#'     and `attr(x, "ok")` does not reflect it. When a gradient is present the
+#'     row reports `max|gradient|` and the largest component. In both cases the
+#'     value string carries `source=`, naming which producer made the number in
+#'     DRM.jl's own `grad_source` vocabulary (`"locscale"`, `"stored"`,
+#'     `"forward"`, `"finite"`, `"none"`, `"unavailable"`) so that an exact
+#'     analytic gradient, an automatic-differentiation gradient, and a finite
+#'     difference accurate only to roughly `1e-6` relative do not print
+#'     identically. The current bridge payload has exactly one gradient
+#'     producer, the fit's own stored callback, so a gradient that crossed the
+#'     bridge is reported as `source=stored`. When no gradient crossed, the
+#'     bridge does not report which of the remaining five cases applies, so the
+#'     row records `source=unknown` -- deliberately not one of DRM.jl's six
+#'     values -- and points you at DRM.jl's own `check_drm(fit)` in Julia,
+#'     whose `grad_source` field tells them apart. This is not TMB's
+#'     `sdreport()` gradient and the two engines are not claimed to agree
+#'     numerically. A source outside that vocabulary, or one that contradicts
+#'     the payload (a producer named when no gradient crossed, or `"none"` /
+#'     `"unavailable"` alongside one that did), aborts rather than being
+#'     printed.}
+#'   \item{`bridge_covariance`}{The DRM.jl analogue of `sdreport_status`:
+#'     whether the fixed-effect covariance the bridge marshalled back is
+#'     complete (`ok`), partial (some distributional parameters finite, others
+#'     not, which some structured routes produce by design), or unavailable.
+#'     [TMB::sdreport()] is not run for a bridge fit.}
+#'   \item{`bridge_standard_errors`}{The DRM.jl analogue of
+#'     `standard_errors_finite`: whether every fixed-effect standard error
+#'     implied by that covariance is a finite real number. A complete
+#'     covariance can still carry a negative variance on the diagonal, which
+#'     `bridge_covariance` cannot see.}
+#' }
+#'
+#' The `gradient_tolerance` argument applies as it does for a native fit; the
+#' `rho_boundary` and `sd_boundary` arguments do not, because the
+#' corresponding rows are not computed for a bridge fit.
+#'
 #' @param object A `drmTMB` fit.
 #' @param gradient_tolerance Maximum absolute fixed-parameter gradient treated
 #'   as acceptable.
