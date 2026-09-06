@@ -177,6 +177,68 @@ repeatability.drmTMB <- function(
   )
 }
 
+# ---------------------------------------------------------------------------
+# engine = "julia" fence (parity leaf `uncited-accessors`, 2026-09-05).
+#
+# `drm_variance_ratio()` is a delta-method ratio on the WORKING scale: it reads
+# the optimiser's parameter vector `object$opt$par` (which carries `log_sd_mu`
+# and `beta_sigma`, i.e. log SDs) and the TMB `sdreport` joint covariance of
+# those working parameters, then applies the Jacobian of
+# `exp(2*log_sd) / (sum exp(2*log_sd) + exp(2*beta_sigma))`. A `drmTMB_julia`
+# fit has NEITHER slot: `drm_julia_opt_slot()` (R/julia-bridge.R) stores only
+# `convergence`, `iterations` and `message`, and the public `object$vcov` is
+# SUBSET to the fixed-effect coefficients -- the structured `resd_*` log-SD
+# rows and columns are dropped on the way out.
+#
+# Without a method, `heritability(julia_fit)` failed with a bare `UseMethod`
+# dispatch error that named nothing and suggested nothing. These three methods
+# make the fence visible and actionable instead. They are a REFUSAL, not an
+# approximation: the point estimate would be computable from `sdpars` and
+# `sigma()`, but the delta-method SE and interval -- the whole reason the
+# accessor exists -- would not be.
+#
+# MEASURED, not assumed (DRM.jl aee371cc9, 2026-09-05, n = 360, G = 30,
+# `bf(y ~ x + (1 | g), sigma ~ 1)`, gaussian): the ingredients ARE present one
+# layer down. `drm_julia_vcov(fit$bridge$vcov, fit$bridge$coef_names)` returns
+# the FULL 4 x 4 working-scale covariance whose `resd_g` row/column matches
+# TMB's `sdreport` `log_sd_mu` entry (1.824454e-02 vs 1.824453e-02), and the
+# h2 point estimate formed by hand from the julia fit's `sdpars`/`sigma()`
+# agrees with `heritability(tmb_fit)$estimate` to 2.5e-12. So this fence is
+# "not wired", not "not possible"; wiring it needs a name map from drmTMB's
+# component labels to DRM.jl's `resd_*` spelling, the structured-SD scale
+# conversion the bridge already applies elsewhere (tree height, #693), and the
+# same random-slope / non-constant-sigma guards the native path carries.
+# See docs/dev-log/evidence/julia-r-parity/uncited-accessors/.
+drm_variance_ratio_julia_fence <- function(quantity) {
+  cli::cli_abort(
+    c(
+      "{.fn {quantity}} is not available for an {.code engine = \"julia\"} fit.",
+      "x" = "It is a delta-method ratio of working-scale (log-SD) variance components, and a {.cls drmTMB_julia} fit exposes neither the working-scale parameter vector ({.code fit$opt$par}) nor the covariance of its structured SDs ({.code fit$vcov} keeps fixed-effect coefficients only).",
+      "i" = "Refit the same model with {.code engine = \"tmb\"} and call {.fn {quantity}} on that fit; the two engines agree on the underlying variance components (measured to 4e-12 on a Gaussian {.code (1 | g)} fixture, DRM.jl aee371cc9).",
+      "i" = "For the among-axis structure of a q = 4 bivariate location-scale fit, {.fn coevolution_vc} and {.fn coevolution_summary} DO read an {.code engine = \"julia\"} fit."
+    ),
+    class = "drmTMB_variance_ratio_julia_unsupported"
+  )
+}
+
+#' @rdname heritability
+#' @export
+heritability.drmTMB_julia <- function(object, ...) {
+  drm_variance_ratio_julia_fence("heritability")
+}
+
+#' @rdname heritability
+#' @export
+icc.drmTMB_julia <- function(object, ...) {
+  drm_variance_ratio_julia_fence("icc")
+}
+
+#' @rdname heritability
+#' @export
+repeatability.drmTMB_julia <- function(object, ...) {
+  drm_variance_ratio_julia_fence("repeatability")
+}
+
 #' @export
 print.drm_heritability <- function(x, ...) {
   cli::cli_text(
