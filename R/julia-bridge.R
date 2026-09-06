@@ -63,14 +63,16 @@ drm_julia_intentional_gates <- function() {
       "xfam_missing_route",
       "xfam_rho12_formula",
       "xfam_dispersionless_sigma",
-      "structured_marker_slope"
+      "structured_marker_slope",
+      "fe_only_random_effects"
     ),
     route = c(
       rep("base", 5),
       rep("bivariate_phylo", 2),
       rep("structured", 3),
       rep("cross_family", 3),
-      "structured"
+      "structured",
+      "fe_only"
     ),
     guard = c(
       "weights",
@@ -86,7 +88,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family missing",
       "cross-family rho12",
       "cross-family dispersion",
-      "structured marker non-intercept slope"
+      "structured marker non-intercept slope",
+      "fe-only random effect / sd submodel"
     ),
     family_type = c(
       "gaussian",
@@ -102,7 +105,8 @@ drm_julia_intentional_gates <- function() {
       "gaussian+poisson",
       "gaussian+poisson",
       "gaussian+poisson",
-      "gamma"
+      "gamma",
+      paste(drm_julia_fe_only_fence_families(), collapse = "+")
     ),
     syntax = c(
       "weights = ...",
@@ -118,7 +122,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family response missingness",
       "cross-family rho12 formula",
       "cross-family sigma formula on dispersionless axis",
-      "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)"
+      "phylo(1 + x | g) / relmat(1 + x | g) / animal(1 + x | g) / spatial(1 + x | g)",
+      "(1 | g) / (1 + x | g) / sd(g) ~ ... on a fe = TRUE, non-phylo_only/locscale_phylo/slope_phylo/structured registry family"
     ),
     r_bridge_status = "intentional_error",
     drmjl_status = c(
@@ -135,7 +140,8 @@ drm_julia_intentional_gates <- function() {
       "cross-family route requires complete axes",
       "latent rho route only",
       "dispersionless axis",
-      "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)"
+      "univariate routes refuse a non-intercept marker lhs (DRM.jl#621)",
+      "fixed-effect-only family; no random-effect or sd()/sd_phylo() route in the R bridge yet"
     ),
     message_pattern = c(
       "weights",
@@ -151,13 +157,22 @@ drm_julia_intentional_gates <- function() {
       "missing.*routes",
       "rho12.*not wired",
       "cannot fit .*sigma2.*dispersion",
-      "cannot fit a random slope"
+      "cannot fit a random slope",
+      # `\\s+` (not a literal space) between the closing backtick and
+      # "(fixed-effect)": cli wraps the message at 80 columns for the three
+      # longest family names (truncated_nbinom2, zero_one_beta,
+      # cumulative_logit) and beta_binomial, replacing that space with a
+      # newline -- a literal space here matched only the short-name group
+      # (measured FALSE for the four above under Rscript at
+      # cli.condition_width = 80; TRUE at = Inf for all seven).
+      "only on the .fe.\\s+\\(fixed-effect\\)"
     ),
     review_due = "before 0.2.0 bridge promotion",
     evidence_url = c(
       rep("https://github.com/itchyshin/drmTMB/issues/544", 10),
       rep("https://github.com/itchyshin/gllvmTMB/issues/488", 3),
-      "https://github.com/itchyshin/drmTMB/issues/1146"
+      "https://github.com/itchyshin/drmTMB/issues/1146",
+      "https://github.com/itchyshin/drmTMB/issues/544"
     ),
     action = "error",
     evidence = c(
@@ -174,7 +189,8 @@ drm_julia_intentional_gates <- function() {
       "Cross-family bridge currently drops missing rows and requires complete axes.",
       "Cross-family dependence is latent rho from the engine, not an R rho12 formula.",
       "Poisson and Binomial cross-family axes have no dispersion sub-model.",
-      "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap."
+      "Verified live at the pin (430ef64cc, 2026-09-05): bf(y ~ phylo(1 + x | species, tree = tree)), family = Gamma(link = \"log\"), engine = \"julia\" reaches DRM.jl and DRM.jl's own _check_phylo_re_lhs throws \"phylo(1 + x | species) is not implemented on the univariate routes -- only phylo(1 | species) (intercept) is\" (DRM.jl#620/#621). This R-side gate moves that same refusal before Julia boots, defense-in-depth (drmTMB#1146), so it holds even if a future change to the more specific per-route checks reopens the gap.",
+      "Measured 2026-09-05 with DRM_JL_PATH unset: student(), lognormal(), truncated_nbinom2(), zero_one_beta(), and beta_binomial() random-effect shapes (a mean-side and a scale-side (1 | g), and truncated_nbinom2's (1 + x | g) slope) all reached drm_julia_setup() on origin/main -- the fe = TRUE registry column admits the family before phylo_only/locscale_phylo/slope_phylo/structured are ever checked, so those columns being FALSE for this cohort did not stop the family tag. relmat()/animal()/spatial() markers are NOT part of this gate: they are already refused upstream by drm_julia_structured_family_tag() (measured: student() + relmat(1 | g, K = K) aborts there, before this fence's call site, since drm_julia_has_structured_term() dispatches before drm_julia_family_tag() runs)."
     ),
     issue = "drmTMB#544",
     stringsAsFactors = FALSE
@@ -604,6 +620,7 @@ drmTMB_julia_bridge <- function(
 
   has_phylo <- drm_julia_has_phylo_term(formula)
   family_tag <- drm_julia_family_tag(family_type, has_phylo = has_phylo)
+  drm_julia_refuse_fe_only_random_effects(formula, family_type)
   # REML forwards to DRM.jl's `drm(...; method = :REML)` for univariate
   # Gaussian cells: the fixed-effect location-scale model, Gaussian
   # location-scale models with a phylo term on sigma (with or without a matching
@@ -1135,6 +1152,100 @@ drm_julia_dpar_has_ordinary_bar <- function(formula, dpar) {
     terms <- flatten_plus_terms(entry$rhs)
     any(vapply(terms, is_random_bar_call, logical(1L)))
   }, logical(1L)))
+}
+
+# A4.G17 scope fence: admitting a family with `fe = TRUE` in
+# R/julia-family-registry.R (the Workflow G fixed-effect cohort) widens the
+# bridge's REACHABLE surface to any random-effect or structured term that the
+# registry's OTHER columns (phylo_only / locscale_phylo / slope_phylo /
+# structured) do not separately admit -- `drm_julia_family_tag()` returns the
+# tag for any `fe = TRUE` family before it ever checks those columns, so an
+# ordinary `(1 | g)` bar (incl. random slopes) or an `sd()`/`sd_phylo()` scale
+# submodel on such a family passes every gate upstream of this one and
+# dispatches to DRM.jl with no receipt (measured 2026-09-05: `student()
+# y ~ x + (1 | g)`, `beta_binomial()`, `lognormal()`, `zero_one_beta()`, and
+# `truncated_nbinom2()` random-effect shapes all reach `drm_julia_setup()`
+# on origin/main). This fence runs AFTER `drm_julia_family_tag()` -- a
+# tag-level refusal was measured to break `biv_gaussian()`'s downstream q2/q4
+# phylo gates -- and EXEMPTS every `biv_*` tag by prefix and every family
+# with any of the four admitting columns set, so it only ever fires for the
+# fixed-effect-only cohort, computed by `drm_julia_fe_only_fence_families()`
+# below (student, lognormal, truncated_nbinom2, zero_one_beta, tweedie,
+# beta_binomial, cumulative_logit as of 2026-09-05; registry-driven, so a
+# later fe-only admission is covered without editing this function).
+#
+# `phylo()` terms and `relmat()`/`animal()`/`spatial()` markers are NOT
+# checked here -- both are already refused, upstream of this fence, by
+# EXISTING gates that this fence must not shadow (their pinned messages are
+# tested by name in tests/testthat/test-julia-family-beta_binomial.R and
+# siblings):
+#   * `relmat()`/`animal()`/`spatial()`: `drm_julia_has_structured_term()`
+#     dispatches to `drmTMB_julia_structured_bridge()` -> its own
+#     `drm_julia_structured_family_tag()` gate BEFORE `drm_julia_family_tag()`
+#     ever runs, so a structured marker on an fe-only family never reaches
+#     this function (measured 2026-09-05: `student() + relmat(1 | g, K = K)`
+#     aborts with "routes `relmat()` / `animal()` / `spatial()` structured
+#     terms only for univariate Gaussian, Poisson, NB2, or Gamma fits").
+#   * `phylo()`: `drm_julia_bridge_payload()` unconditionally calls
+#     `drm_julia_phylo_payload()`, whose family allowlist already aborts for
+#     any fe-only family with a `phylo()` term (measured 2026-09-05:
+#     `student() y ~ x + phylo(1 | sp, tree = tr)` aborts with "can marshal
+#     `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta,
+#     Binomial, or bivariate Gaussian (q=4) fits" -- this fence runs before
+#     that check but does not intercept `phylo()`, so the existing message
+#     still fires).
+#
+# The cohort itself is computed once, here, by
+# `drm_julia_fe_only_fence_families()`, so this fence and the
+# `fe_only_random_effects` row's `family_type` field in
+# `drm_julia_intentional_gates()` cannot drift apart, and a later fe-only
+# registry admission (e.g. skew_normal) needs no edit to either.
+drm_julia_fe_only_fence_families <- function() {
+  reg <- drm_julia_family_registry()
+  fams <- vapply(reg, function(row) {
+    if (!isTRUE(row$fe)) {
+      return(NA_character_)
+    }
+    if (
+      isTRUE(row$phylo_only) || isTRUE(row$locscale_phylo) ||
+        isTRUE(row$slope_phylo) || isTRUE(row$structured)
+    ) {
+      return(NA_character_)
+    }
+    if (startsWith(row$family, "biv_")) {
+      return(NA_character_)
+    }
+    row$family
+  }, character(1L))
+  fams[!is.na(fams)]
+}
+
+drm_julia_refuse_fe_only_random_effects <- function(formula, family_type) {
+  if (!(family_type %in% drm_julia_fe_only_fence_families())) {
+    return(invisible(NULL))
+  }
+
+  dpars <- unique(vapply(formula$entries, `[[`, character(1L), "dpar"))
+  offending_dpar <- Find(
+    function(dpar) drm_julia_dpar_has_ordinary_bar(formula, dpar),
+    dpars
+  )
+  offense <- if (!is.null(offending_dpar)) {
+    sprintf("a random-effect bar term in the `%s` formula", offending_dpar)
+  } else if (drm_julia_has_sd_term(formula)) {
+    "an `sd()`/`sd_phylo()` scale-submodel entry"
+  } else {
+    NULL
+  }
+  if (is.null(offense)) {
+    return(invisible(NULL))
+  }
+
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} admits {.val {family_type}} only on the {.code fe} (fixed-effect) route of the Julia family registry, with no random-effect or scale-submodel support yet.",
+    x = "Found {offense}.",
+    i = "Use native {.code engine = \"tmb\"} for {.val {family_type}} random-effect models."
+  ))
 }
 
 # Night question 14: DRM.jl refuses two ordinary-GLMM constructs only AFTER
