@@ -515,14 +515,17 @@ item stays open after 0.7.0, a `sigma`-slope start-value correction (issue
 #710.2), but it does not touch the certified profile-CI cells described
 above.
 
-**Julia cross-family fitting is deferred.** Legacy Julia-bridge objects may
-still be readable for compatibility, but they are not a current analysis route
-and do not establish cross-family inference. Their compatibility extractors
-return only `u = 0` response-scale means and response residuals for `mu1` /
-`mu2`; `vcov()` and fixed-effect Wald intervals explicitly report unavailable
-rather than returning an empty value. What to try next: use the native TMB
-engine, `drmTMB`'s default, for current supported models. For the bounded
-post-0.7 development association route, see the frozen-margin article; it is a
+**Julia cross-family fitting is reachable but experimental.**
+`drmTMB(bf(...), c(fam1, fam2), engine = "julia")` reaches DRM.jl's
+`fit_mixed_family` and is tested, but its capability-ledger status is
+`experimental`/`partial` (`inst/extdata/julia-capabilities.tsv`,
+`cross_family_latent`) -- one family pair, one fixture, no simulation-recovery
+evidence yet. Its extractors return only `u = 0` response-scale means and
+response residuals for `mu1` / `mu2`; `vcov()` and fixed-effect Wald intervals
+explicitly report unavailable rather than returning an empty value. What to
+try next: for models this route does not cover, use the native TMB engine,
+`drmTMB`'s default. For the bounded post-0.7 development association route,
+see the frozen-margin article; it is a
 separate staged interface and is not a Julia fit.
 
 ### Frozen-margin association intervals

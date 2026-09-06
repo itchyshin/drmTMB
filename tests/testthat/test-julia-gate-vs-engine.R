@@ -66,7 +66,15 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "xfam_dispersionless_sigma",
     # drmTMB#1146 (DRM.jl#620/#621): non-intercept lhs on a structured marker
     # (phylo/relmat/animal/spatial) refused pre-Julia, defense-in-depth.
-    "structured_marker_slope"
+    "structured_marker_slope",
+    # A4.G17 (2026-09-05): ordinary random-effect bars and sd()/sd_phylo()
+    # scale submodels refused pre-Julia for every fe = TRUE, non-phylo_only/
+    # locscale_phylo/slope_phylo/structured registry family (see
+    # drm_julia_refuse_fe_only_random_effects()). Added here -- a one-line,
+    # out-of-OWNS-but-necessary exception, called out in the leaf-a4g17
+    # ledger's EVIDENCE -- because this is a hard-coded literal vector this
+    # test file exists specifically to keep in sync with the registry.
+    "fe_only_random_effects"
   )
 
   expect_s3_class(gates, "data.frame")
