@@ -252,7 +252,24 @@ test_that("the julia route refuses exactly the cells native biv_lognormal refuse
   refuse(drmTMB::bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ x))
   refuse(drmTMB::bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma2 = ~ x))
   refuse(drmTMB::bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~ x))
-  refuse(drmTMB::bf(mu1 = y1 ~ x + (1 | id), mu2 = y2 ~ x))
+  # MERGE NOTE (main, 2026-09-06): the random-effect bar is now caught by the
+  # registry-wide drm_julia_refuse_fe_only_random_effects(), which fires ahead of
+  # this family's own fence and does not use the word "intercept-only", so it
+  # cannot go through refuse() above. The properties that matter are unchanged:
+  # the Julia route refuses the bar BEFORE Julia starts and points at engine =
+  # "tmb", and the native engine refuses the same cell.
+  re_form <- drmTMB::bf(mu1 = y1 ~ x + (1 | id), mu2 = y2 ~ x)
+  re_msg <- tryCatch(
+    drmTMB::drmTMB(re_form, family = drmTMB::biv_lognormal(), data = dat, engine = "julia"),
+    error = function(e) conditionMessage(e)
+  )
+  expect_true(is.character(re_msg))
+  expect_match(re_msg, "random-effect")
+  expect_match(re_msg, 'engine = "tmb"', fixed = TRUE)
+  expect_error(
+    drmTMB::drmTMB(re_form, family = drmTMB::biv_lognormal(), data = dat, engine = "tmb"),
+    "fixed-effect|intercept-only"
+  )
 
   # The fence is family-specific ON PURPOSE: biv_gaussian legitimately fits
   # every one of these cells, and must be untouched by it.
