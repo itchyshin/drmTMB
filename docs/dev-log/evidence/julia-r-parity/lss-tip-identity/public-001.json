@@ -22,7 +22,7 @@
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "c178a0d2665654f21fe2392e428c57442cc8d294bbca454a37392fe538d933f0",
-    "R/julia-bridge.R": "7809ea3a72ff8610cc8e041e1d0238d6027bce028846b529c00c8cda1c827665",
+    "R/julia-bridge.R": "8e9b394347c9aaa181bb8a5e3a6a94b5a5263635773c2bbb61e5f2917b869e44",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-diagnostics.R": "dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799",
     "R/julia-family-cumulative_logit.R": "710d63606946196a81f111fd1d609a19aa54a494b564ee68e2f7aba1587d27dd",
@@ -30,7 +30,7 @@
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
     "R/julia-joint-methods.R": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
-    "R/julia-joint-missing.R": "4f3fde9be5b7579de6d5e74e5f4710d7fb83bb2cb8b59c7d4a7b4f37978e858e",
+    "R/julia-joint-missing.R": "a5abe5f84f9776ee552436e9cc03648e150426123b3ab89130f75724d3b48539",
     "R/lrt-boundary.R": "93cb314b6d5eda399d560c8037e8195a021caae389222456b0b20f7a2e341c66",
     "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
@@ -88,7 +88,7 @@
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/fit_q4_sparse_tmb.jl": "51c0d6e982d53b0d2d448b2ed05d979f780cdb36bc27e71f4b47ebb25b8b18a2",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gamma.jl": "a22a3c4cbbb5ce37ffa41025118646b722df195d490a22926e03c7be0d1bd4c7",
-    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_bivariate.jl": "490803f94921391fd84af4b803baa89b727083413f257bdfd40d1bbcd769a06d",
+    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_bivariate.jl": "f279cccca62736888da1f0a3a9797aa7a76e59d0cf3ea050af6e07d7d910504b",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_core.jl": "216e1716f9d0950e3b18062e7be9ee0ea306802a17317dcc7f09035721b821d0",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_locscale_phylo.jl": "78fcaecf0a8d6fe2055321d68071101039772f71263a456cbbabbb5edbf9a39d",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_lss.jl": "40fe8281db95bd4da020e4d688ea8f6284e51879aea9f401a1a65c0384b7440d",
@@ -97,7 +97,7 @@
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_sparse_lss.jl": "383b124c3aee88167eb7a9b5347e0e7f46b3ffe0238699305aa7481206b69a25",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_structured.jl": "1273313dd6fec59f1b087065cb808a07bdb03a0ced7fb52aae058715e40cd77d",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/heritability.jl": "524ac27831a0b7ac13575f43c0f4c62da7d96759c8d26f4c44392da915d7e24a",
-    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/inference.jl": "d52a14d1325976f0ede499a4705dc90bd50875d1dda9ceb31279ff20a3f2e75f",
+    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/inference.jl": "d1204367597025ed34c0b5f709178b45ba8ba192524e8e79f2be210bda3b5935",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/introspection.jl": "546b64e0273da4530c1d1f5208b2728c001fe9466eaec1f9b5527c6730860535",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/joint_missing_bridge.jl": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/joint_missing_finite_bridge.jl": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a",
@@ -685,11 +685,11 @@
     "runtime": {
       "R": "R version 4.6.0 (2026-04-24)",
       "drmTMB": "0.7.1",
-      "drmjl_ref": "99a52c6bb34c21435576a8fda089a636a736a2c3",
+      "drmjl_ref": "21b033028bbe36662b53357dae0db5e0e43aecf1",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpLMy5r7/pkgloadb62f5b2e3250/drmTMB.so",
-          "sha256": "f30c66b734571fc32caca554acc01310a0696e84619d8f1172f3fa2ed64db00f"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpBheWD7/pkgloadb3df48b9093a/drmTMB.so",
+          "sha256": "6f2fed1d21808e28007c52e2220deded8f2e8feeb99f1cd1b3574c2491d4b642"
         }
       }
     },
@@ -734,7 +734,7 @@
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "c178a0d2665654f21fe2392e428c57442cc8d294bbca454a37392fe538d933f0",
-    "R/julia-bridge.R": "7809ea3a72ff8610cc8e041e1d0238d6027bce028846b529c00c8cda1c827665",
+    "R/julia-bridge.R": "8e9b394347c9aaa181bb8a5e3a6a94b5a5263635773c2bbb61e5f2917b869e44",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-diagnostics.R": "dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799",
     "R/julia-family-cumulative_logit.R": "710d63606946196a81f111fd1d609a19aa54a494b564ee68e2f7aba1587d27dd",
@@ -742,7 +742,7 @@
     "R/julia-joint-call.R": "adc8d4790b0a5322cac5cfd91c8867d6ac324c038ff51f7c1757b33e9df95205",
     "R/julia-joint-finite.R": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
     "R/julia-joint-methods.R": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
-    "R/julia-joint-missing.R": "4f3fde9be5b7579de6d5e74e5f4710d7fb83bb2cb8b59c7d4a7b4f37978e858e",
+    "R/julia-joint-missing.R": "a5abe5f84f9776ee552436e9cc03648e150426123b3ab89130f75724d3b48539",
     "R/lrt-boundary.R": "93cb314b6d5eda399d560c8037e8195a021caae389222456b0b20f7a2e341c66",
     "R/marginal-parameters.R": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
     "R/mesh.R": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
@@ -800,7 +800,7 @@
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/fit_ml_q4.jl": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/fit_q4_sparse_tmb.jl": "51c0d6e982d53b0d2d448b2ed05d979f780cdb36bc27e71f4b47ebb25b8b18a2",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gamma.jl": "a22a3c4cbbb5ce37ffa41025118646b722df195d490a22926e03c7be0d1bd4c7",
-    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_bivariate.jl": "490803f94921391fd84af4b803baa89b727083413f257bdfd40d1bbcd769a06d",
+    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_bivariate.jl": "f279cccca62736888da1f0a3a9797aa7a76e59d0cf3ea050af6e07d7d910504b",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_core.jl": "216e1716f9d0950e3b18062e7be9ee0ea306802a17317dcc7f09035721b821d0",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_locscale_phylo.jl": "78fcaecf0a8d6fe2055321d68071101039772f71263a456cbbabbb5edbf9a39d",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_lss.jl": "40fe8281db95bd4da020e4d688ea8f6284e51879aea9f401a1a65c0384b7440d",
@@ -809,7 +809,7 @@
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_sparse_lss.jl": "383b124c3aee88167eb7a9b5347e0e7f46b3ffe0238699305aa7481206b69a25",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/gaussian_structured.jl": "1273313dd6fec59f1b087065cb808a07bdb03a0ced7fb52aae058715e40cd77d",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/heritability.jl": "524ac27831a0b7ac13575f43c0f4c62da7d96759c8d26f4c44392da915d7e24a",
-    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/inference.jl": "d52a14d1325976f0ede499a4705dc90bd50875d1dda9ceb31279ff20a3f2e75f",
+    "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/inference.jl": "d1204367597025ed34c0b5f709178b45ba8ba192524e8e79f2be210bda3b5935",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/introspection.jl": "546b64e0273da4530c1d1f5208b2728c001fe9466eaec1f9b5527c6730860535",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/joint_missing_bridge.jl": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553",
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/joint_missing_finite_bridge.jl": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a",
@@ -862,6 +862,6 @@
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 38.740000000000002,
+  "elapsed": 41.238,
   "status": "PASS"
 }
