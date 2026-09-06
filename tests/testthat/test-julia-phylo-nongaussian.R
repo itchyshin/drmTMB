@@ -112,11 +112,29 @@ drm_phylo_ng_path <- function() {
   drm_test_drmjl_path()
 }
 
-# Fit a Gamma phylo model via engine = "julia" in a clean subprocess. drmTMB's
+# Fit a Gamma phylo model via engine = "julia" in a clean subprocess.
+#
+# CORRECTED 2026-09-05 (leaf jl-620-two-sd). This comment used to say drmTMB's
 # native TMB engine REJECTS phylo() for Gamma (`drm_reject_phase1_terms`:
 # "Structured-effect syntax is planned, not implemented"), so there is no TMB
-# twin -- the Julia bridge is the only route, and we assert a finite-and-sane
-# floor. Returns a list, or NULL if the child errored.
+# twin. That is false at this main and it is the stated reason this file settles
+# for a floor: MEASURED on this worktree, `engine = "tmb"`, 24-tip `ape::rcoal`
+# tree, seed 3, on THIS function's own call shape
+# `bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ 1)` with
+# `family = Gamma(link = "log")` -- native FITS, logLik -10.515634,
+# `opt$convergence` 0. A native twin exists.
+#
+# The floor is kept here anyway, but for a DIFFERENT and narrower reason that is
+# now written down rather than assumed: this file's job is the bridge round-trip
+# in a clean subprocess, and the cross-engine same-target receipt for the
+# non-Gaussian phylo cells is banked separately, native-engine-vs-native-engine,
+# in DRM.jl docs/dev-log/evidence/parity-phylo-nongaussian.tsv (Gamma 6.26e-08,
+# Binomial 2.18e-08, Beta 5.02e-07; cited in R/julia-bridge.R's
+# phylo_gamma_beta_binomial row). NOT COVERED: that receipt does not run through
+# the R bridge, so an `engine = "tmb"` vs `engine = "julia"` comparison on this
+# exact cell remains available and untaken.
+#
+# Returns a list, or NULL if the child errored.
 drm_phylo_gamma_fit <- function(n_tip = 24L) {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   jl_path <- drm_phylo_ng_path()
@@ -172,9 +190,20 @@ drm_phylo_gamma_fit <- function(n_tip = 24L) {
   )
 }
 
-# Fit a Binomial phylo model via engine = "julia" in a clean subprocess. drmTMB
-# native has no plain binomial() classifier, so there is no TMB twin here -- the
-# bridge is the only route, and we assert a finite-and-sane floor.
+# Fit a Binomial phylo model via engine = "julia" in a clean subprocess.
+#
+# CORRECTED 2026-09-05 (leaf jl-620-two-sd). This comment used to say drmTMB
+# native has no plain binomial() classifier, so there is no TMB twin here. False
+# at this main, and the package already said so elsewhere: R/julia-bridge.R's
+# phylo_gamma_beta_binomial row records that drmTMB gained native binomial
+# phylo() on 2026-08-17 (d30841491). MEASURED here on this function's own call
+# shape `bf(y ~ x + phylo(1 | species, tree = tree))` with
+# `family = stats::binomial()`, 24-tip `ape::rcoal` tree, seed 3, engine = "tmb"
+# -- native FITS, logLik -14.533481, `opt$convergence` 0.
+#
+# The floor is kept for the same narrower reason as the Gamma helper above (this
+# file tests the bridge round-trip; the same-target receipt is the separate
+# native-vs-native one), and the untaken bridge-side comparison is declared there.
 drm_phylo_binom_fit <- function(n_tip = 24L) {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   jl_path <- drm_phylo_ng_path()
@@ -250,8 +279,11 @@ test_that("Gamma phylo fit via engine = 'julia' is finite and sane", {
   # Gamma phylo round-trip: run bare (#1127).
   res <- drm_phylo_gamma_fit(n_tip = 24L)
 
-  # Native drmTMB cannot fit Gamma phylo (TMB rejects structured terms), so the
-  # Julia bridge is the only route -> finite-and-sane floor only.
+  # Floor only -- NOT because native drmTMB cannot fit Gamma phylo (it can:
+  # measured logLik -10.515634 on this exact cell, see the helper's header), but
+  # because this file's assertion target is the bridge round-trip. The
+  # cross-engine receipt for this family is the separate native-vs-native one
+  # banked in DRM.jl parity-phylo-nongaussian.tsv.
   expect_true("drmTMB_julia" %in% res$class)
   expect_equal(res$engine, "julia")
   expect_equal(res$nobs, 24L)
