@@ -641,8 +641,8 @@ pm_capability_entries <- function(ctx) {
     st("R to Julia bridge (engine=julia)",
        tsv_ids = "engine_control_surface",
        route_note = sprintf("the whole bridge ledger: %d TSV rows (%s) and %d gates (%s)", nrow(ctx$tsv), ctx$files$tsv, nrow(ctx$gates), ctx$files$gates),
-       boundary = sprintf("the bridge exists on both sides (%s); its control surface stays experimental by design;", js("R to Julia bridge (engine=julia)")),
-       next_action = "design engine_control explicitly before relaxing the gate (TSV next_action)")
+       boundary = sprintf("the bridge exists on both sides (%s); its control surface is a PERMANENTLY narrow whitelist -- only `optimizer$g_tol`, `optimizer$algorithm` and (q4 only) `optimizer$q4_vcov` cross to DRM.jl, and every other `drm_control()` field refuses before JuliaCall; the two surfaces are not reconcilable, so no parity claim exists for this row;", js("R to Julia bridge (engine=julia)")),
+       next_action = "none: the boundary is permanent (drmTMB#1108, 2026-09-05); keep the totality test green (tests/testthat/test-julia-optimizer-controls.R)")
   )
 }
 
