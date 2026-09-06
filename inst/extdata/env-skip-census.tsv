@@ -104,6 +104,9 @@ test-julia-family-zero_one_beta.R	engine-drm-jl	environment	skips	3
 test-julia-family-zero_one_beta.R	suggests-package	environment	runs	9
 test-julia-fe-only-fence.R	runtime-conditional	runtime	depends	3
 test-julia-fe-only-fence.R	suggests-package	environment	runs	4
+test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
+test-julia-formula-constructs-nongaussian.R	locale	environment	depends	4
+test-julia-formula-constructs-nongaussian.R	suggests-package	environment	runs	4
 test-julia-formula-constructs.R	engine-drm-jl	environment	skips	3
 test-julia-formula-constructs.R	locale	environment	depends	2
 test-julia-formula-constructs.R	suggests-package	environment	runs	3
@@ -116,6 +119,7 @@ test-julia-noninteractive-lane.R	build-premise	build	skips	1
 test-julia-noninteractive-lane.R	runtime-conditional	runtime	depends	1
 test-julia-objective-at-bridge.R	engine-drm-jl	environment	skips	3
 test-julia-objective-at-bridge.R	suggests-package	environment	runs	4
+test-julia-payload-exact-extraction.R	build-premise	build	skips	1
 test-julia-phylo-count.R	engine-drm-jl	environment	skips	2
 test-julia-phylo-count.R	suggests-package	environment	runs	4
 test-julia-phylo-labels.R	suggests-package	environment	runs	5
@@ -130,6 +134,7 @@ test-julia-predict-quantile.R	engine-drm-jl	environment	skips	1
 test-julia-predict-quantile.R	suggests-package	environment	runs	3
 test-julia-q2-phylo-point-export.R	engine-drm-jl	environment	skips	2
 test-julia-q2-phylo-point-export.R	suggests-package	environment	runs	4
+test-julia-reml-biv-residual.R	engine-drm-jl	environment	skips	1
 test-julia-sigma-phylo-reml.R	engine-drm-jl	environment	skips	2
 test-julia-sigma-phylo-reml.R	suggests-package	environment	runs	4
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
@@ -220,8 +225,8 @@ test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1
 test-profile-shape-boundary.R	suggests-package	environment	runs	2
-test-profile-targets-julia.R	engine-drm-jl	environment	skips	1
-test-profile-targets-julia.R	suggests-package	environment	runs	2
+test-profile-targets-julia.R	engine-drm-jl	environment	skips	2
+test-profile-targets-julia.R	suggests-package	environment	runs	4
 test-profile-targets.R	cran-lane	environment	runs	1
 test-profile-targets.R	os	environment	runs	4
 test-profile-targets.R	suggests-package	environment	runs	1
