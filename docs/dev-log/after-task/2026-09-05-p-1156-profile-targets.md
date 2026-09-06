@@ -48,6 +48,24 @@ breaks 15 assertions, 3 of them the closure gates this leaf exists to add.
 - Two call sites: `confint.drmTMB_julia()` (canonicalise + listed-check) and
   `drm_julia_wald_confint()` (canonicalise).
 
+Three further defects were found in the adversarial re-read pass and fixed
+before the PR:
+
+- **Ambiguous block key.** `bf()` accepts two `sd()` submodels on different
+  grouping factors -- verified this run: `bf(y ~ x + (1 | g1) + (1 | g2),
+  sigma ~ 1, sd(g1) ~ z, sd(g2) ~ w)` yields dpars `mu | sigma | sd(g1) |
+  sd(g2)` -- and BOTH reduce to the bridge block key `sd`. Without a guard a
+  canonical name would have silently resolved to whichever group came first.
+  The alias map now fails closed and returns no alias for a duplicated key
+  (red control 4).
+- **`NA` tmb_parameter.** A logical subset containing `NA` returns `NA`
+  elements, so a listed row with `tmb_parameter = NA` would have made the error
+  message name `NA` as the alias to use. Guarded with an explicit `is.na()`
+  branch and `which()`.
+- **Width-dependent assertion.** cli wraps its hint at console width, so a
+  target name can be split across lines; the message assertions now match a
+  whitespace-normalised copy rather than the width this suite happens to use.
+
 Documentation: `docs/design/258-coefficient-naming-contract.md` section 9 (which
 spelling is canonical and why); `NEWS.md` (one entry); this report.
 
@@ -111,37 +129,40 @@ set is a documented superset: listed names plus enumerable aliases.
 
 ## 6. RED CONTROL
 
-Three planted defects, one per negative gate. Restored byte-identically with
-`cp` from a pre-planting copy (never `git stash`); sha256 before and after match
-(`R/profile.R ee3213a5...`, `R/julia-bridge.R a1d1afa8...`).
-
+Four planted defects, one per negative gate. Restored byte-identically (never
+`git stash`); sha256 before and after match: `R/julia-bridge.R
+3e37782c15b0c992fb2cef28e38fff88330f02218701d05bacbcdf589cb09af6`,
+`R/profile.R ee3213a504120a427db95432acb29631b02f65b9541b99d48e13c6d82ce5dea7`.
 | # | Defect planted | Result |
 | --- | --- | --- |
-| 1 | drop `drm_julia_wald_scale_targets()` from `drm_julia_profile_target_union()` (the earlier dispatch's leftover hunk) | `RC1 FAIL 15 ERR 0 PASS 30`, including `Expected setdiff(seen$reported, listed) to equal character(0)` at lines 345, 374 and `setdiff(seen$inputs, listed)` at 349 |
-| 2 | remove both `drm_julia_canonicalise_parm()` calls | `RC2 FAIL 1 ERR 1 PASS 35`; `Error ... Unknown confidence-interval target: "fixef:sd_phylo(species):z"` |
-| 3 | remove the `drm_julia_listed_not_dispatchable()` call | `RC3 FAIL 3 ERR 0 PASS 42`; `Expected grepl("Unknown confidence-interval target", msg) to be FALSE` |
+| 1 | drop `drm_julia_wald_scale_targets()` from `drm_julia_profile_target_union()` (the earlier dispatch's leftover hunk) | `RC-A FAIL 15 ERR 0 PASS 33`, including `Expected setdiff(seen$reported, listed) to equal character(0)` and `setdiff(seen$inputs, listed)` |
+| 2 | remove both `drm_julia_canonicalise_parm()` calls | `RC-B FAIL 1 ERR 1 PASS 38`; `Error ... Unknown confidence-interval target: "fixef:sd_phylo(species):z"` |
+| 3 | remove the `drm_julia_listed_not_dispatchable()` call | `RC-C FAIL 3 ERR 0 PASS 45`; `Expected grepl("Unknown confidence-interval target", flat) to be FALSE` |
+| 4 | remove the ambiguous-key fail-closed guard | `RC-D FAIL 1 ERR 0 PASS 47` |
 
 ## 7. Checks run
 
 All with `NOT_CRAN=true` so skips cannot masquerade as passes.
 
 - `tests/testthat/test-profile-targets-julia.R`, no Julia env:
-  `FAIL 0 ERR 0 SKIP 2 PASS 45`.
-- Same file, LIVE at the pin: `FAIL 0 ERR 0 SKIP 0 PASS 89` -- both live tests
+  `FAIL 0 ERR 0 SKIP 2 PASS 48`.
+- Same file, LIVE at the pin: `FAIL 0 ERR 0 SKIP 0 PASS 92` -- both live tests
   RAN (`Julia bridge: 2 live tests ran; bridge glue was exercised`).
-- Seven-file neighbour surface, LIVE at the pin, zero skips:
+- Nine-file neighbour surface, LIVE at the pin, zero skips:
 
 | file | result |
 | --- | --- |
-| test-profile-targets-julia.R | FAIL 0 ERR 0 SKIP 0 PASS 89 |
+| test-profile-targets-julia.R | FAIL 0 ERR 0 SKIP 0 PASS 92 |
 | test-julia-inference.R | FAIL 0 ERR 0 SKIP 0 PASS 175 |
 | test-profile-targets.R | FAIL 0 ERR 0 SKIP 0 PASS 986 |
 | test-julia-bridge.R | FAIL 0 ERR 0 SKIP 0 PASS 146 |
 | test-julia-sigma-phylo-reml.R | FAIL 0 ERR 0 SKIP 0 PASS 76 |
 | test-coefficient-labels.R | FAIL 0 ERR 0 SKIP 0 PASS 135 |
 | test-julia-tmb-parity.R | FAIL 0 ERR 0 SKIP 0 PASS 126 |
+| test-summary.R | FAIL 0 ERR 0 SKIP 0 PASS 200 |
+| test-control.R | FAIL 0 ERR 0 SKIP 0 PASS 156 |
 
-Total 1733 passing assertions, 0 failures, 0 errors, 0 skips.
+Total 2092 passing assertions, 0 failures, 0 errors, 0 skips.
 
 - Non-ASCII bytes on added lines of `R/` and `tests/`: 0 and 0.
 
@@ -150,6 +171,10 @@ Total 1733 passing assertions, 0 failures, 0 errors, 0 skips.
 - **Bivariate LSS spellings.** `sd1`/`sd2` submodels on a `biv_gaussian` fit were
   not measured; the alias map's regex would match `sd(id)` but no bivariate LSS
   fit was fitted, so nothing is claimed for that route.
+- **The ambiguous-key case is guarded, not supported.** A fit with two `sd()`
+  submodels on different groups now gets NO alias (fail closed). Whether the
+  bridge can fit such a model at all was not measured -- the guard is tested at
+  the helper level only.
 - **`coef()` / `vcov()` / `summary()` names on a Julia fit are UNCHANGED.** This
   leaf makes the canonical name ACCEPTED as an interval target only. A user
   reading coefficient names off `summary(fit)` still sees `sd_phylo`.

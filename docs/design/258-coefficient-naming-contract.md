@@ -1286,6 +1286,12 @@ that key, so the grouping factor is not recoverable from the Julia reply alone.
    fires only when it lands on a real target of that fit, so a
    canonical-shaped name with a bogus term is still refused and the error
    quotes what the user typed.
+4. **Ambiguity fails closed.** `bf()` accepts two `sd()` submodels on different
+   grouping factors -- `bf(y ~ x + (1 | g1) + (1 | g2), sigma ~ 1, sd(g1) ~ z,
+   sd(g2) ~ w)` yields dpars `mu | sigma | sd(g1) | sd(g2)` -- and BOTH reduce
+   to the block key `sd`, so no canonical name could be resolved to one
+   coefficient. `drm_julia_lss_dpar_aliases()` returns NO alias for a
+   duplicated key rather than answering for whichever group came first.
 
 **Consequence for discovery.** `profile_targets()` lists exactly ONE name per
 target -- the reported one. The accepted-input set is a documented superset:

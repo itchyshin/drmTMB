@@ -4679,6 +4679,11 @@ drm_julia_lss_dpar_aliases <- function(object) {
   }
   keys <- sub("\\(.*$", "", canonical)
   keep <- keys %in% names(object$coefficients) & keys != canonical
+  # Fail closed on an AMBIGUOUS key. Two submodels on different groups --
+  # `sd(g1) ~ z` and `sd(g2) ~ z` -- both reduce to the block key `sd`, so a
+  # canonical name could not be resolved to one coefficient. Drop those rather
+  # than silently answer for whichever group came first.
+  keep <- keep & !(keys %in% keys[duplicated(keys)])
   if (!any(keep)) {
     return(character(0))
   }
@@ -4766,11 +4771,17 @@ drm_julia_listed_not_dispatchable <- function(object, parm, dispatchable) {
   } else {
     "No target on this fit is profile or bootstrap-ready."
   }
-  alias_of <- dispatchable$parm[
-    dispatchable$target_class == "fixed-effect" &
-      !is.na(dispatchable$tmb_parameter) &
-      dispatchable$tmb_parameter == row$tmb_parameter[[1L]]
-  ]
+  listed_tmb_parameter <- row$tmb_parameter[[1L]]
+  alias_of <- if (is.na(listed_tmb_parameter)) {
+    character(0)
+  } else {
+    dispatchable$parm[which(
+      dispatchable$target_class == "fixed-effect" &
+        !is.na(dispatchable$tmb_parameter) &
+        dispatchable$tmb_parameter == listed_tmb_parameter
+    )]
+  }
+  alias_of <- alias_of[!is.na(alias_of)]
   msg <- c(
     "Julia-engine target {.val {bad}} is listed by {.fn profile_targets} but is not a profile or bootstrap target.",
     i = "Inventory note: {.val {note}}."

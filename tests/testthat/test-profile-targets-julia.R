@@ -425,6 +425,36 @@ test_that("the canonical native location-scale-scale name is accepted on a Julia
   )
 })
 
+test_that("an ambiguous location-scale-scale block key yields no alias", {
+  # bf() accepts two sd() submodels on different grouping factors, and BOTH
+  # reduce to the bridge block key `sd` -- so a canonical name could not be
+  # resolved to one coefficient. The alias map must fail closed rather than
+  # answer for whichever group came first. Unit test of the pure helper: it
+  # reads only $formula$entries and $coefficients.
+  ambiguous <- bf(y ~ x + (1 | g1) + (1 | g2), sigma ~ 1, sd(g1) ~ z, sd(g2) ~ w)
+  expect_equal(
+    vapply(ambiguous$entries, function(e) as.character(e$dpar)[[1L]], character(1L)),
+    c("mu", "sigma", "sd(g1)", "sd(g2)")
+  )
+  probe <- list(
+    formula = ambiguous,
+    coefficients = list(
+      mu = c("(Intercept)" = 0.1, x = 0.2),
+      sigma = c("(Intercept)" = -0.3),
+      sd = c("(Intercept)" = -0.4, z = 0.5)
+    )
+  )
+  expect_equal(drmTMB:::drm_julia_lss_dpar_aliases(probe), character(0))
+
+  # One unambiguous submodel on the same shape still maps.
+  single <- bf(y ~ x + (1 | g1), sigma ~ 1, sd(g1) ~ z)
+  probe$formula <- single
+  expect_equal(
+    drmTMB:::drm_julia_lss_dpar_aliases(probe),
+    c("sd(g1)" = "sd")
+  )
+})
+
 test_that("a listed-but-not-dispatchable target is not reported as unknown", {
   fit <- drm_profile_targets_julia_fixture()
 
@@ -438,12 +468,16 @@ test_that("a listed-but-not-dispatchable target is not reported as unknown", {
     error = conditionMessage
   )
   expect_type(msg, "character")
-  expect_false(grepl("Unknown confidence-interval target", msg, fixed = TRUE))
-  expect_match(msg, "profile_targets", fixed = TRUE)
-  expect_match(msg, "missing_tmb_parameter", fixed = TRUE)
+  # cli wraps the hint at console width, so a target name can be split across
+  # lines; match against a whitespace-normalised copy rather than pinning the
+  # width this suite happens to run at.
+  flat <- gsub("[[:space:]]+", " ", paste(msg, collapse = " "))
+  expect_false(grepl("Unknown confidence-interval target", flat, fixed = TRUE))
+  expect_match(flat, "profile_targets", fixed = TRUE)
+  expect_match(flat, "missing_tmb_parameter", fixed = TRUE)
   # It names the profile-ready alias to use instead, and lists the valid names.
-  expect_match(msg, "fixef:sigma:(Intercept)", fixed = TRUE)
-  expect_match(msg, "fixef:mu:x", fixed = TRUE)
+  expect_match(flat, "fixef:sigma:(Intercept)", fixed = TRUE)
+  expect_match(flat, "fixef:mu:x", fixed = TRUE)
 
   # A name that really is in no inventory keeps the unknown-target message,
   # which already lists the valid names.
