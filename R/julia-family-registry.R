@@ -93,7 +93,26 @@ drm_julia_family_registry <- function() {
     spec("cumulative_logit", fe = TRUE, dispersionless = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
-    #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
+    #   skew_normal
+    #
+    # NOT FAMILIES, AND SO NOT ROWS (corrected 2026-09-05, measured). This list
+    # previously also named zi_poisson, zi_nbinom2 and hurdle_nbinom2 as
+    # families the Julia bridge had "NO case" for. That was wrong on both
+    # halves. They are `model_type` values, not `family_type` values --
+    # `drm_family_type()` (R/drmTMB.R) never returns any of them; a
+    # zero-inflated Poisson is spelled `family = poisson()` plus a `zi ~`
+    # formula part, and drmTMB records "zi_poisson" only AFTER the fit. The
+    # bridge therefore routes them today through the `poisson` / `nbinom2` rows
+    # above plus the `zi` / `hu` entries in `julia_bridge_supported_dpars()`,
+    # exactly as DRM.jl spells them (`family = "poisson"` + a keyed `zi`
+    # formula entry, src/bridge.jl at pin 430ef64cc). All three carry banked
+    # same-target receipts (capability_ids zi_poisson, zi_nbinom2,
+    # hurdle_nbinom2). A registry row keyed on any of those three names would
+    # admit a family tag drmTMB never emits -- dead code -- and DRM.jl
+    # deliberately refuses such a tag rather than aliasing it to Poisson(),
+    # because an alias would fit a PLAIN Poisson without error whenever the
+    # `zi ~` part was omitted.
+    # Focused tests for the route: tests/testthat/test-julia-zi-poisson.R.
   )
 }
 
