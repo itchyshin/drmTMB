@@ -1,0 +1,23 @@
+construct	fixture_route	dpar_block	drmtmb_commit	drmjl_commit	verdict	max_abs_coef_diff	note
+character column, locale order != codepoint	gaussian location-scale	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	DRM.jl _bridge_check_coef_labels_fidelity
+character column, locale order != codepoint	poisson (dispersionless)	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+character column, locale order != codepoint	nbinom2	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+character column, locale order != codepoint	binomial	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+character column, locale order != codepoint	gamma (log link)	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+character column, locale order != codepoint	cumulative_logit	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	intercept absorbed by cutpoints; still refused
+character column, locale order != codepoint	gaussian location-scale	sigma	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+character column, locale order != codepoint	nbinom2	sigma	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+character column, locale order != codepoint	gaussian LSS sd(study)	sd	2fcbb0fbf	aee371cc9	MISLABELLED_SILENT	1.3853	block skipped by _bridge_rendered_regression_blocks
+character column, locale order != codepoint	gaussian LSS sd(study)	sd	2fcbb0fbf	claude/parity-mislabelled-constructs-drmjl	REFUSED	NA	DRM.jl #730
+character column, locale order != codepoint	gaussian LSS sd(study)	sd	claude/parity-jl-467-factors	aee371cc9	REFUSED	NA	drmTMB #1227 guard, before Julia starts
+factor level no row uses	gaussian location-scale	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	count error, names neither column nor fix
+factor level no row uses	poisson (dispersionless)	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+factor level no row uses	nbinom2	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+factor level no row uses	cumulative_logit	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+factor level no row uses	gaussian location-scale	sigma	2fcbb0fbf	aee371cc9	REFUSED	NA	same
+CONTROL declared factor	poisson (dispersionless)	mu	2fcbb0fbf	aee371cc9	FAITHFUL	1.04943e-11	
+CONTROL declared factor	nbinom2	mu+sigma	2fcbb0fbf	aee371cc9	FAITHFUL	1.07389e-11	
+CONTROL declared factor	cumulative_logit	mu	2fcbb0fbf	aee371cc9	FAITHFUL	5.57598e-12	
+CONTROL declared factor	gaussian LSS sd(study)	sd	2fcbb0fbf	aee371cc9	FAITHFUL	1.46144e-10	identifies level order as the mechanism
+CONTROL intercept-only sd	gaussian LSS sd(study)	sd	2fcbb0fbf	aee371cc9	FAITHFUL	3.47833e-13	
+CONTROL declared factor	gaussian + (1 | grp)	mu	2fcbb0fbf	aee371cc9	REFUSED	NA	pre-existing: no bridge_formula_labels_v1 on the RE route
