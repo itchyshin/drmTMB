@@ -413,7 +413,11 @@ pm_family_entry <- function(ctx, name, family, modifier = NULL, boundary = "",
         sprintf("ADMITTED WITHOUT A LEDGER ROW: route `%s` fits through engine = \"julia\" and neither ledger records it (tests/testthat/test-parity-matrix.R fails on it by design).", route_id),
         boundary
       ))
-      if (!nzchar(next_action)) next_action <- sprintf("ledger the route with receipts (%s)", pm_plan_leaf(ctx, "A3"))
+      # A3 (merged) ledgered the SIX pre-A4 routes only (Student-t, LogNormal,
+      # FE Gamma/Poisson/NB2/Beta -- ultra-plan.md's A3 row names them). Every
+      # route that reaches this branch today was admitted by an A4 family leaf,
+      # so its ledger row arrives with the A4 integration PR, not with A3.
+      if (!nzchar(next_action)) next_action <- sprintf("ledger the route with receipts (%s); A3 covered the six PRE-A4 routes only, so an A4-admitted family's row arrives with the A4 integration PR (drmTMB #1184, open)", pm_plan_leaf(ctx, "A4.1\u2013A4.9"))
     }
   } else {
     no_row_cite <- pm_cite_r(ctx, "registry", "NOT admitted today")
@@ -490,7 +494,6 @@ pm_capability_entries <- function(ctx) {
   nb2_hu_refusal <- r("drmtmb", "{.fn nbinom2} models only support {.code mu}, {.code sigma}, and optional {.code zi}")
   g3 <- sprintf("bridge-side profile/bootstrap inference is unqualified (G3) on every promoted TSV row (claim_boundary at %s)", tsv_line("base_gaussian_location_scale"))
   a5 <- pm_plan_leaf(ctx, "A5")
-  a7 <- function(x) sprintf("port to native R (%s)", pm_plan_leaf(ctx, x))
 
   list(
     # ---- Response families (18) --------------------------------------------
@@ -515,17 +518,30 @@ pm_capability_entries <- function(ctx) {
     fam("Beta proportions", "beta",
         boundary = sprintf("fixed-effect beta() only here; the phylo Beta cell is ledgered on the non-Gaussian phylo row (%s); relmat on beta() is refused (%s);", pm_cite_tsv(ctx, "phylo_gamma_beta_binomial"), pm_cite_gates(ctx, "structured_unsupported_family"))),
     fam("Truncated NB2 (zero-truncated counts)", "truncated_nbinom2"),
+    # RE-MEASURED 2026-09-05 live at DRM.jl 430ef64cc
+    # (docs/dev-log/evidence/julia-r-parity/docs-staleness/hurdle-cross-spelling-probe.R):
+    # A4 (#1173) admitted truncated_nbinom2 at the family tag, so the old
+    # "the bridge refuses truncated_nbinom2()" clause is no longer true. The
+    # CONCLUSION survives for a DIFFERENT, now-Julia-side reason.
     fam("Hurdle NB2", "nbinom2", modifier = "hu",
         boundary = sprintf(paste0(
           "CROSS-SPELLING: native drmTMB spells hurdle NB2 as truncated_nbinom2() + `hu ~` (%s) and refuses nbinom2() + `hu` (%s); ",
-          "the bridge refuses truncated_nbinom2() and reaches DRM.jl only as nbinom2() + `hu ~`, so no identical call fits on both engines;"),
+          "the bridge reaches DRM.jl only as nbinom2() + `hu ~`, so no identical call fits on both engines. ",
+          "UPDATED 2026-09-05: the bridge no longer refuses truncated_nbinom2() -- A4 (drmTMB #1173) admitted it at the family tag -- but the native spelling still does not fit, ",
+          "now failing INSIDE Julia rather than in R: measured live at DRM.jl 430ef64cc, `truncated_nbinom2() + bf(y ~ x, sigma ~ 1, hu ~ 1)` aborts with ",
+          "`drm_bridge: coef_labels supplies names for unknown dpar \"hu\"; the model has dpars: mu, sigma` ",
+          "(docs/dev-log/evidence/julia-r-parity/docs-staleness/hurdle-cross-spelling-probe.log);"),
           hurdle_msg, nb2_hu_refusal),
-        next_action = sprintf("admit truncated_nbinom2 through the bridge so the native spelling works on both engines (%s)", pm_plan_leaf(ctx, "A4.1\u2013A4.9")),
+        next_action = "DRM.jl-side: give TruncatedNegBinomial2 a `hu` dpar (or state that it never will); R-side: refuse truncated_nbinom2() + `hu ~` BEFORE Julia so the user sees a drmTMB message, not a Julia stack trace. Neither is on a leaf today",
         green_override = "no identical call fits on both engines"),
     fam("Cumulative logit (ordinal)", "cumulative_logit",
         refused_note = "Cutpoints need a coefficient-label contract before the bridge can return them (docs/design/258-coefficient-naming-contract.md)."),
+    # No refused_note: `base_unsupported_family` -- the gate this row used to
+    # cite -- was RETIRED from the gate registry when #1172 admitted the family
+    # (0 occurrences in inst/extdata/julia-gates.tsv today). Citing a retired
+    # gate id here would abort generation the moment anything re-refused
+    # beta_binomial, so the stale citation is removed rather than carried.
     fam("Beta-binomial proportions", "beta_binomial",
-        refused_note = sprintf("The refusal is also a registered gate: %s.", pm_cite_gates(ctx, "base_unsupported_family")),
         boundary = sprintf("NAMING TRAP: TSV row `phylo_gamma_beta_binomial` (%s) evidences Gamma/Beta/Binomial phylo cells, not beta_binomial; this matrix joins on `syntax`, never on `capability_id`.", tsv_line("phylo_gamma_beta_binomial"))),
     fam("Zero-one-inflated beta", "zero_one_beta",
         refused_note = sprintf("The bridge already marshals the `zoi`/`coi` dpars (%s); the family itself is unadmitted.", r("bridge", "julia_bridge_supported_dpars <- function("))),
@@ -565,10 +581,21 @@ pm_capability_entries <- function(ctx) {
     st("Non-Gaussian phylogenetic random intercept (mean)",
        tsv_ids = c("phylo_count_large_p", "phylo_gamma_beta_binomial"),
        boundary = sprintf("native R is scope-limited (%s); %s; %s; NOT interval coverage;", rs("mixes `scope-limited` (lognormal, gamma, poisson"), rec("classc", "cell_id", "poisson_phylo_p3000"), rec("phylo_ng", "cell_id", "phylo_gamma"))),
+    # RE-MEASURED 2026-09-05 on origin/main: the SLOPE half of this row is no
+    # longer admitted-without-a-row. drmTMB #1146 (commit d240e3515) registered
+    # the `structured_marker_slope` gate, and drm_julia_marker_slope_pin_supports()
+    # is FALSE at the pin, so `phylo(1 + x | g)` is refused BEFORE Julia for every
+    # family in drm_julia_slope_phylo_families() -- measured with nbinom2:
+    # "engine = \"julia\" cannot fit a random slope inside a phylo() marker."
+    # The COUPLED mu+sigma route still reaches DRM.jl with no ledger row.
     st("Non-Gaussian phylogenetic location-scale (\u03bc + log \u03c3)",
-       route_note = sprintf("coupled mu+sigma phylo route admitted for the registry's locscale_phylo families (%s; %s) and the slope route (%s); NO TSV row names either", locscale_phylo, r("registry", "spec(\"nbinom2\""), slope_phylo),
-       boundary = sprintf("native R is scope-limited: implemented for nbinom2 only, rejected for the rest (%s); the bridge admits nbinom2/gamma/beta on this route without a ledger row -- an admitted-without-row class the fixed-effect test does NOT cover.", rs("`Non-Gaussian")),
-       next_action = "ledger the coupled and slope phylo routes with receipts, or fence them"),
+       # NOT gate_ids = "structured_marker_slope": that would report the whole
+       # row as a gated refusal, but only the SLOPE half is gated -- the coupled
+       # mu+sigma half is still admitted and unledgered. The gate is cited in
+       # the route note instead.
+       route_note = sprintf("coupled mu+sigma phylo route admitted for the registry's locscale_phylo families (%s; %s); the SLOPE route's families are declared (%s) but %s refuses `phylo(1 + x | g)` before Julia today; NO TSV row names either", locscale_phylo, r("registry", "spec(\"nbinom2\""), slope_phylo, pm_cite_gates(ctx, "structured_marker_slope")),
+       boundary = sprintf("native R is scope-limited: implemented for nbinom2 only, rejected for the rest (%s); the COUPLED route still admits nbinom2/gamma/beta without a ledger row -- an admitted-without-row class the fixed-effect test does NOT cover. The SLOPE route is no longer in that class: it is a registered refusal as of drmTMB #1146, measured pre-Julia for nbinom2.", rs("`Non-Gaussian")),
+       next_action = "ledger the COUPLED phylo route with receipts, or fence it; the slope route needs no fence (it has one) but its gate lifts only when the pin can fit the construct"),
     st("Tweedie random intercept (mean)",
        route_note = "no bridge route: fits natively on both sides, nothing to marshal",
        boundary = sprintf("native R admits an ordinary `(1 \\| g)` intercept and an independent `(0 + x \\| g)` slope on `mu` for tweedie() (%s), fit and recovered by tests/testthat/test-tweedie-location-scale.R:456-483; DRM.jl fits the same shape independently (%s). Not Julia-ahead: identified as a drmTMB documentation gap by the 2026-09-05 Julia-ahead census (docs/dev-log/evidence/julia-r-parity/2026-09-05-julia-ahead-census.md), not a missing route.", r("drmtmb", "validate_tweedie_mu_random_terms <- function("), jsl("Tweedie random intercept (mean)"))),
@@ -584,7 +611,11 @@ pm_capability_entries <- function(ctx) {
     st("REML with ordinary random effects (Gaussian mean)",
        route_note = sprintf("`(1 \\| g)` + REML reaches DRM.jl; sigma-RE + REML refused before Julia (%s); NO TSV row", sigma_ranef_limits),
        boundary = sprintf("native R is point-fit-recovery (%s); DRM.jl admits REML for a single mean intercept only (%s).", rs("mc-0265/mc-0267"), jsl("admits a single Gaussian mean intercept")),
-       next_action = sprintf("measure with the estim_method oracle (%s)", a5)),
+       # A5 MERGED 2026-09-05 (commit e5cbbc5db) and DID the estim_method-oracle
+       # measurement -- its result is quoted on the `Gaussian random intercept
+       # (mean)` row above (SE_PASS on both methods). What is still missing is a
+       # TSV row for the REML cell itself, not the measurement.
+       next_action = sprintf("A5 (%s) has MEASURED this with the estim_method oracle -- see the `Gaussian random intercept (mean)` row; what is still missing is a TSV row for the REML cell itself", a5)),
     st("REML bivariate phylogenetic location-scale (q4, all axes)", tsv_ids = "biv_q4_phylo_reml",
        boundary = sprintf("native R is scope-limited (%s); the bridge row is covered on coef/logLik and carries a documented coverage split (claim_boundary at %s);", rs("no single verified claim that a REML correction"), tsv_line("biv_q4_phylo_reml"))),
     st("Wald SEs and CIs (observed information)",
@@ -601,24 +632,24 @@ pm_capability_entries <- function(ctx) {
        next_action = g3),
     st("AGHQ adaptive-quadrature marginal estimator",
        route_note = "no bridge route: nothing to marshal on the R side",
-       boundary = sprintf("native R has no implementation (%s); DRM.jl's is Poisson `(1 \\| g)` only (%s).", rs("`AGHQ`, chi-bar-square boundary tests"), jsl("Poisson `(1 | g)` only")),
-       next_action = "owner decision: port or fence (not on any leaf)"),
+       boundary = sprintf("native R has an INTERNAL implementation with no exported symbol (R/aghq-coxreid.R, tests/testthat/test-aghq-coxreid.R), so no estimator a user can select from drmTMB() -- `planned` records the exposure gap, not an empty R/ (%s); DRM.jl's is Poisson `(1 \\| g)` only (%s).", rs("`R/aghq-coxreid.R` (added 2026-07-18"), jsl("Poisson `(1 | g)` only")),
+       next_action = "owner decision: expose or fence (not on any leaf)"),
     st("Variational (VA/ELBO) marginal estimator",
        route_note = "no bridge route: nothing to marshal on the R side",
        boundary = sprintf("planned on both sides (%s; %s).", rs("| Variational (VA/ELBO) marginal estimator |"), js("Variational (VA/ELBO) marginal estimator")),
        next_action = "owner decision: not on any leaf"),
     st("Chi-bar-square boundary LRT p-value",
-       route_note = "no bridge route: nothing to marshal on the R side",
-       boundary = sprintf("native R only flags wald_at_boundary (%s); DRM.jl exports chibar_pvalue/lrt_boundary (%s).", rs("`conf.status = \"wald_at_boundary\"`"), jsl("exports `chibar_pvalue`/`lrt_boundary`")),
-       next_action = a7("A7")),
+       route_note = "no bridge route: both engines compute it on their own fit objects",
+       boundary = sprintf("PORTED 2026-09-05 (drmTMB #1116): R/lrt-boundary.R exports chibar_pvalue()/lrt_boundary(), so both sides are `implemented` (%s; %s). The port is a deterministic map of two fitted logLik values, so there is no bridge cell and neither capability TSV can ledger one; the cross-engine evidence is the port's own live receipt against DRM.jl at the pin (tests/testthat/test-lrt-boundary.R), not a bridge row.", rs("`Chi-bar-square boundary LRT p-value` moved from `planned` to `implemented` on"), jsl("exports `chibar_pvalue`/`lrt_boundary`")),
+       next_action = "none pending on this axis: a bridge row would have nothing to marshal. NOT claimed: coverage or calibration of the boundary p-value on either side"),
     st("Model comparison suite (LRT/anova/AICc/weights/update)",
        route_note = "no bridge route: nothing to marshal on the R side",
-       boundary = sprintf("no exported symbol in R (%s); DRM.jl's `weights` member is prior weights, not model weights (%s).", rs("no exported symbol in `NAMESPACE`"), jsl("It is **not** Akaike / model weights")),
-       next_action = a7("A7")),
+       boundary = sprintf("PARTIALLY PORTED 2026-09-05 (drmTMB #1117), hence `scope-limited` and not `implemented`: aicc() is exported, drm_lrtest() is implemented but unexported, anova.drmTMB() still aborts, and there is no update.drmTMB() method (%s); DRM.jl's `weights` member is prior weights, not model weights (%s).", rs("`Model comparison suite (LRT/anova/AICc/weights/update)` moved from `planned` to"), jsl("It is **not** Akaike / model weights")),
+       next_action = "export drm_lrtest() and wire anova.drmTMB() to it, then re-word this row (tests/testthat/test-model-comparison.R already covers the function)"),
     st("Heritability/repeatability/ICC accessors",
        route_note = "no bridge route: accessors run on native fit objects",
-       boundary = sprintf("native R is point-fit-recovery (%s): delta-method Wald interval with a small-N sanity check, no coverage study.", rs("`Heritability/repeatability/ICC accessors` moved to")),
-       next_action = sprintf("coverage campaign (owner decision D-139); DRM.jl-side coevolution accessors are ported under %s", pm_plan_leaf(ctx, "A7"))),
+       boundary = sprintf("native R is point-fit-recovery (%s): delta-method Wald interval with a small-N sanity check, no coverage study. SEPARATE CAPABILITY, no row here: DRM.jl's coevolution accessors were ported to native R on 2026-09-05 (drmTMB #1118 -- coevolution_cor/vc/summary, tests/testthat/test-coevolution-accessors.R); neither twin's capability-status.md names them, so this matrix cannot join them.", rs("`Heritability/repeatability/ICC accessors` moved to")),
+       next_action = "coverage campaign (owner decision D-139); give the coevolution accessors a capability row on BOTH sides so they join this table"),
 
     # ---- Bivariate structure and missing data (5) --------------------------
     st("Bivariate structured random effect on all four axes (q4 PLSM)",

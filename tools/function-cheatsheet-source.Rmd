@@ -388,12 +388,15 @@ correlations returned by `corpairs()`.
 | [`rho12()`](../reference/rho12.html) | Extract within-observation residual correlation for bivariate Gaussian fits. |
 | [`corpairs()`](../reference/corpairs.html) | Extract labelled ordinary or structured latent-correlation summaries. |
 | [`structured_effects()`](../reference/structured_effects.html) | List fitted structured-effect terms and their model roles. |
+| [`heritability()` / `icc()` / `repeatability()`](../reference/heritability.html) | Report the share of total variance carried by one structured random-effect component, on the working (log-SD) scale. The three differ only in their denominator. |
+| [`coevolution_cor()` / `coevolution_vc()` / `coevolution_summary()`](../reference/coevolution-accessors.html) | Read the among-axis structure of a q = 4 coevolution fit, where `mu1`, `mu2`, `sigma1` and `sigma2` share one structured effect with a dense 4 x 4 among-axis covariance. |
 | [`imputed()`](../reference/imputed.html) | Summarize fitted values for a modelled missing predictor. |
 | [`fitted()`](../reference/fitted.drmTMB.html) | Extract fitted response means for the original fitted rows. |
 | [`residuals()`](../reference/residuals.drmTMB.html) | Compute the documented response, Pearson, or randomized-quantile residuals. |
 | [`weights()`](../reference/weights.drmTMB.html) | Recover fitted likelihood weights. |
 | [`logLik()`](../reference/model-fit-extractors.html) | Extract the unpenalized fitted log likelihood. |
 | [`AIC()` / `BIC()`](../reference/model-fit-extractors.html) | Compare appropriate maximum-likelihood fits using information criteria. |
+| [`aicc()`](../reference/model-comparison.html) | Second-order small-sample correction to `AIC()`. Prefer it when the fitted-row count is small relative to the number of parameters. |
 | [`vcov()`](../reference/model-fit-extractors.html) | Extract the fixed-effect covariance matrix when the Hessian is usable. |
 | [`nobs()` / `df.residual()` / `deviance()`](../reference/model-fit-extractors.html) | Extract fitted-row count, residual degrees of freedom, or absolute negative twice log likelihood. |
 
@@ -405,6 +408,7 @@ correlations returned by `corpairs()`.
 | [`confint()`](../reference/confint.drmTMB.html) | Compute available Wald, profile-likelihood, or parametric-bootstrap intervals. |
 | [`profile()`](../reference/profile.drmTMB.html) | Compute likelihood-ratio profiles for explicit targets. |
 | [`plot()` for a profile](../reference/plot.profile.drmTMB.html) | Plot the likelihood-ratio curve, cutoff, estimate, and interval endpoints. |
+| [`chibar_pvalue()` / `lrt_boundary()`](../reference/lrt-boundary.html) | Test `q` variance components = 0 against the correct chi-bar-square mixture. The ordinary chi-squared reference is wrong at a boundary and conservative, so it loses power. |
 
 Profile and bootstrap support is target-specific. Use `profile_targets(fit)` and
 read the returned status instead of assuming that every printed parameter has a
