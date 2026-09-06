@@ -254,3 +254,13 @@ All measured in this run.
 * The first dispatch's draft prose restated `#1116`'s parity numbers loosely
   ("1e-8 on the statistic"); the PR's own receipt says `|dstat|` at most
   `4.84e-09` and `1e-12` relative on `chibar_pvalue`. Corrected and attributed.
+* An acceptance-gate `CHECK` used `grep -c 'A$\|B$\|C$'`. That returns 3 under
+  the interactive shell's `grep` (a `ugrep` function) and **1** under
+  `/usr/bin/grep` in `/bin/sh`, where BSD BRE has no `\|`. The gate failed and
+  exposed it. Rewritten as portable `grep -cE '^export\(coevolution_(cor|vc|summary)\)$'`,
+  and the one affected claim (three coevolution exports) re-verified with
+  `/usr/bin/grep -cE` -> `3`. Every other count in this report is a literal
+  fixed-string match, unaffected by the two greps' differing dialects.
+* Two more gate `CHECK`s chained `grep -c` with `&&`: a legitimate count of `0`
+  exits 1, so the chain reported failure on a passing condition. Rewritten to
+  emit one success-only token and exit 0.
