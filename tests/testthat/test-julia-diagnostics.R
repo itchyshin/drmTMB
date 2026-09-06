@@ -390,11 +390,12 @@ test_that("a gradient_source sent by a future bridge is honoured, colon-prefixed
       )
       expect_identical(drmTMB:::drm_julia_gradient_source(fit), src)
       dc <- check_drm(fit)
-      expect_match(
-        dc[dc$check == "fixed_gradient", ]$value,
-        paste0("source=", src),
-        fixed = TRUE
-      )
+      row <- dc[dc$check == "fixed_gradient", ]
+      expect_match(row$value, paste0("source=", src), fixed = TRUE)
+      # The printed message must reflect the DECLARED source, not the generic
+      # "we cannot tell" paragraph the unknown case gets.
+      expect_match(row$message, paste0("grad_source \"", src, "\""), fixed = TRUE)
+      expect_false(grepl("records the source as", row$message, fixed = TRUE))
     }
   }
   # DRM.jl's own report field is spelled `grad_source`; a bridge that used

@@ -67,7 +67,7 @@ check_drm.drmTMB_julia <- function(
 # The engine/route/estimator header row. Always a NOTE, never a warning: it
 # reports WHICH machinery ran, which is not by itself a fault, and a note does
 # not flip `attr(x, "ok")` (the same register `check_fixed_gradient()` uses for
-# `keep_tmb_object = FALSE`). Its job is to stop a two-row green bridge table
+# `keep_tmb_object = FALSE`). Its job is to stop a five-row green bridge table
 # from reading like a forty-row green native one.
 check_julia_engine_route <- function(object) {
   route <- object$diagnostics$route %||% object$model$model_type %||% NA_character_
@@ -214,12 +214,10 @@ check_julia_fixed_gradient <- function(object, gradient_tolerance) {
         "callback send one across the bridge (the bivariate structured q2/q4 ",
         "route and the sparse location-scale-scale ML route currently do; the ",
         "base Gaussian/GLMM and non-Gaussian phylogenetic Laplace routes do ",
-        "not). DRM.jl may still be able to produce one internally by ",
-        "automatic differentiation, a finite difference, or an analytic ",
-        "location-scale formula, or may have none at all; the bridge does not ",
-        "report which, so drmTMB records the source as \"unknown\" rather ",
-        "than guessing. Call DRM.jl's own check_drm(fit) in Julia to see its ",
-        "grad_source."
+        "not). ",
+        # When the bridge itself declared a source, say what it said; only
+        # fall back to the "we cannot tell" paragraph when it did not.
+        drm_julia_gradient_source_gloss(source)
       )
     ))
   }
@@ -288,8 +286,12 @@ drm_julia_gradient_source_gloss <- function(source) {
       "no finite derivative came out of it."
     ),
     paste0(
-      "The producer of this value is not reported across the bridge; call ",
-      "DRM.jl's own check_drm(fit) in Julia to see its grad_source."
+      "DRM.jl may still be able to produce a gradient internally by ",
+      "automatic differentiation, a finite difference, or an analytic ",
+      "location-scale formula, or may have none at all; the bridge does not ",
+      "report which, so drmTMB records the source as \"unknown\" rather than ",
+      "guessing. Call DRM.jl's own check_drm(fit) in Julia to see its ",
+      "grad_source."
     )
   )
 }
