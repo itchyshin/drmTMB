@@ -93,7 +93,18 @@ drm_julia_family_registry <- function() {
     spec("cumulative_logit", fe = TRUE, dispersionless = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
-    #   zi_poisson, zi_nbinom2, hurdle_nbinom2, skew_normal
+    #   zi_poisson, zi_nbinom2, skew_normal
+    #
+    # hurdle_nbinom2 is NOT on that list and needs NO row of its own: it is a
+    # post-fit `model_type`, not a family_type. There is no `hurdle_nbinom2()`
+    # constructor -- the native spelling is `family = truncated_nbinom2()` plus
+    # an `hu ~ ...` entry, so the `truncated_nbinom2` row above already admits
+    # it and `hu` is already in `julia_bridge_supported_dpars()`. The bridge
+    # fit's model_type is corrected to "hurdle_nbinom2" by
+    # `drm_julia_bridge_model_type()` (R/julia-bridge.R). The same is true of
+    # zi_poisson / zi_nbinom2, which are `poisson()` / `nbinom2()` plus a
+    # `zi ~ ...` entry; the line above names the tags the bridge has no case
+    # for, not models it cannot fit.
   )
 }
 

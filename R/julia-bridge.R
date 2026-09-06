@@ -288,7 +288,7 @@ drm_julia_capability_comparison <- function() {
       "bf(y ~ x, sigma ~ 1), family = beta(), engine = \"julia\"",
       "bf(y ~ x, zi ~ x), family = poisson(), engine = \"julia\"",
       "bf(y ~ x, sigma ~ 1, zi ~ 1), family = nbinom2(), engine = \"julia\"",
-      "bf(y ~ x, sigma ~ 1, hu ~ 1), family = nbinom2(), engine = \"julia\" (bridge spelling; native spelling is truncated_nbinom2())",
+      "bf(y ~ x, sigma ~ 1, hu ~ 1), family = truncated_nbinom2(), engine = \"julia\" -- ONE call on both engines since 2026-09-05; the bridge also still accepts the older nbinom2() + hu spelling, which native refuses",
       "bf(y ~ x + (1 | g), sigma ~ 1), family = gaussian(), engine = \"julia\"",
       "bf(y ~ x + (1 + x | g), sigma ~ 1), family = gaussian(), engine = \"julia\"",
       "bf(y ~ x, sigma ~ (1 | g)), family = gaussian(), engine = \"julia\"",
@@ -327,8 +327,11 @@ drm_julia_capability_comparison <- function() {
       "experimental",
       # A3 rows: partial on the wave-1 bar (same-target point+SE receipt on the
       # committed fixture, DRM.jl parity-fixtures.tsv/parity-se.tsv); bridge-side
-      # inference (G3) unqualified. hurdle_nbinom2 stays experimental: no
-      # identical-call comparator exists (see its claim_boundary).
+      # inference (G3) unqualified. hurdle_nbinom2 was held at experimental
+      # because no identical-call comparator existed; DRM.jl PR #662 built one
+      # (TruncatedNegBinomial2() now accepts `hu`), so it joins the others at
+      # partial on the SAME bar -- see its claim_boundary for what that does
+      # and does not cover.
       "partial",
       "partial",
       "partial",
@@ -337,7 +340,7 @@ drm_julia_capability_comparison <- function() {
       "partial",
       "partial",
       "partial",
-      "experimental",
+      "partial",
       # Parity leaf A5 (2026-09-05): three ordinary-RE shapes measured with the
       # #625 estim_method oracle; evidence in the rows' claim_boundary.
       "experimental",
@@ -366,7 +369,7 @@ drm_julia_capability_comparison <- function() {
       "Workflow G FE bridge cell (beta) via drm_bridge",
       "Workflow G FE bridge cell (poisson + zi dpar) via drm_bridge",
       "Workflow G FE bridge cell (nbinom2 + zi dpar) via drm_bridge",
-      "Workflow G FE bridge cell (nbinom2 + hu dpar; DRM.jl reads hu as the hurdle model) via drm_bridge",
+      "Workflow G FE bridge cell (truncated_nbinom2 + hu dpar; DRM.jl's TruncatedNegBinomial2() delegates an `hu` part to its NegBinomial2 hurdle kernel _fit_negbin2_hu) via drm_bridge",
       "Gaussian mean random intercept (Woodbury spine; ML and Patterson-Thompson REML, DRM.jl #439/#624)",
       "Gaussian correlated intercept+slope block on mu (_fit_correlated_ranef_gaussian, log-Cholesky recov_ block); ML only",
       "Gaussian random intercept on log-sigma with fixed-effect mean, integrated by 32-node Gauss-Hermite quadrature (_fit_sigma_ranef_gaussian); ML only",
@@ -452,7 +455,7 @@ drm_julia_capability_comparison <- function() {
       "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id fe_beta) and parity-se.tsv (cell_id se_beta_fe): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.172e-11 (3/3), logLik 90.719135 on both engines (diff 4.405e-13), SE 1.656e-08 abs / 2.978e-07 rel over 3 SEs; estimator ML on both. BOUNDARY: fixed effects, logit mu, sigma ~ 1, one fixture (n=150, seed 4242, phi=10); the phylo() Beta route is the SEPARATE phylo_gamma_beta_binomial row; no interval claim; bridge-side inference unqualified (G3).",
       "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id zi_poisson) and parity-se.tsv (cell_id se_zi_poisson): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.286e-11 (4/4: mu and zi blocks), logLik -176.954999 on both engines (diff 2.842e-14; the -176.9550 quoted in the A3 ledger reproduced), SE 3.527e-08 abs / 1.649e-07 rel over 4 SEs; estimator ML on both. The bridge carries zi as a dpar in its formula vocabulary (julia_bridge_supported_dpars; DRM.jl src/bridge.jl mu/sigma/nu/zi/hu/zoi/coi) rather than as a family, so this route was admitted by the poisson registry row without a ledger row of its own. BOUNDARY: fixed effects on mu and zi, one fixture (n=120, seed 3); no random effects, no structured markers, no interval claim; bridge-side inference unqualified (G3).",
       "Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id zi_nbinom2) and parity-se.tsv (cell_id se_zi_nbinom2): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.003e-12 (4/4: mu, sigma, zi), logLik -351.976191 on both engines (diff 1.648e-12), SE 6.109e-08 abs / 2.638e-07 rel over 4 SEs; estimator ML on both. Same dpar-vocabulary admission as zi_poisson. BOUNDARY: fixed effects, zi ~ 1, one fixture (n=200, seed 4242); no random effects or structured markers; no interval claim; bridge-side inference unqualified (G3).",
-      "EXPERIMENTAL BY MEASUREMENT, not pending paperwork. The hurdle likelihood is the same on both engines -- Receipts measured 2026-09-05 on the A3 worktree (drmTMB 0.7.0 at ea3156d73, load_all; drmtmb_code_hash 1a263412 = the load_all build at measurement time) against the DRM.jl pin 430ef64cc, banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id hurdle_nbinom2) and parity-se.tsv (cell_id se_hurdle_nbinom2): engine='tmb' vs engine='julia' on the committed fixture, coefficients 1.125e-12 (4/4: mu, sigma, hu), logLik -351.426966 on both (diff 2.558e-12), SE 1.718e-08 abs / 1.209e-07 rel over 4 SEs; estimator ML on both -- BUT the two engines accept DIFFERENT SPELLINGS of the same model, so no identical call fits on both: native engine='tmb' fits truncated_nbinom2() + hu ~ 1 and refuses nbinom2() + hu ~ 1 ('nbinom2() models only support mu, sigma, and optional zi. Unsupported parameter: hu', measured 2026-09-05), while engine='julia' fits nbinom2() + hu ~ 1 (DRM.jl reads hu as the hurdle model) and refuses truncated_nbinom2() (not a registry fe row; A4's truncated_nbinom2 leaf owns that). The receipt is therefore a CROSS-SPELLING same-target comparison, recorded as such in both TSV notes. A user cannot switch engine= on one call today; that admission asymmetry is the defect this row names, and it is NOT fixed here (A3 changes no bridge behaviour). BOUNDARY: fixed effects, hu ~ 1, one fixture (n=200, seed 4242); no interval claim; bridge-side inference unqualified (G3).",
+      "SAME CALL ON BOTH ENGINES since 2026-09-05. drmTMB has no hurdle_nbinom2() constructor: the native spelling is family = truncated_nbinom2() plus an hu ~ ... entry (R/drmTMB.R sets model_type = if (has_hu) \"hurdle_nbinom2\"). DRM.jl PR #662 made TruncatedNegBinomial2() accept an hu part by delegating to its NegBinomial2 hurdle kernel, so the cross-spelling asymmetry the A3 receipt recorded is closed and ONE identical call now fits on both engines. Receipts measured 2026-09-05 with drmTMB 0.7.0 (worktree claude/parity-fam-hurdle-nbinom2, devtools::load_all; drmtmb_code_hash bd4159e3) against DRM.jl branch claude/parity-fam-hurdle-nbinom2-drmjl -- NOT the 430ef64cc pin, which refuses this call ('TruncatedNegBinomial2() requires positive integer counts (>= 1) as the response', measured) -- and banked in DRM.jl docs/dev-log/evidence/parity-fixtures.tsv (capability_id hurdle_nbinom2) and parity-se.tsv (cell_id se_hurdle_nbinom2). Fixture: the native suite's own hurdle DGP (tests/testthat/test-hurdle-nbinom2.R, n = 1800, seed 20260623, 486 zeros and 1314 positive counts), bf(count ~ x + habitat, sigma ~ z, hu ~ w + habitat) -- covariates on all three dpars, not intercepts only. engine='tmb' vs engine='julia': coefficients 9.429e-12 (8/8: mu, sigma, hu), logLik -2941.45558666655 vs -2941.45558666657 (diff 2.183e-11), SE 1.537e-07 abs / 1.101e-06 rel over 8 SEs with the comparator's negative control reading NEGATIVE_CONTROL_OK (rel 0.0909); estimator ML on both (fit$estimator == bridge estim_method); REML = TRUE still refused R-side. The bridge fit now also reports model_type \"hurdle_nbinom2\" (drm_julia_bridge_model_type()), so predict(fit, dpar = \"hu\") resolves the logit link and agrees with native to 7.3e-13; all three dpars agree to <= 3.5e-11. BOUNDARY, MEASURED NOT ASSUMED: fixed effects only, one fixture, one seed; no random effects, phylo or structured markers; no interval claim; bridge-side inference unqualified (G3). fitted() and residuals() DIVERGE on this route (max abs 1.094 on this fixture): DRM.jl's fitted() returns means[:mu], the untruncated NB2 mean, where native returns the hurdle mean (1 - hu) * mu / (1 - P0). Every dpar the bridge returns is correct -- native fitted() is reproduced from the bridge dpars to 4.0e-11 by hurdle_nbinom2_mean() -- so this is an aggregation gap in DRM.jl's fitted(), shared with every zi/hu fit, and is owned by the zi_nbinom2 leaf (_bridge_fitted_marginal), not fixed here. sigma() also returns a list on the bridge and a numeric natively for these mixture routes, and coef() block ORDER is alphabetical on the bridge (hu, mu, sigma) vs native mu, sigma, hu -- both pre-existing and family-general.",
       "Ordinary (non-phylo) Gaussian random intercept on mu. ML: SUPPORTED (estim_method=ML, ml_loglik=-171.636217965634); same-target tmb-vs-julia parity coef 2.053e-11, logLik 1.336e-12, RE SD 7.177e-11 (0.574803 both engines), SE 2.028e-08 abs / 3.333e-07 rel (SE_PASS, 3 fixed-effect SEs). REML: SUPPORTED (estim_method=REML, ml_loglik=-171.655906399815, reml_loglik=-174.437057568359; the 2.78-unit ML/REML gap is a genuine restriction, not a relabelled ML fit); tmb-vs-julia REML parity coef 2.313e-09, logLik 1.137e-12, RE SD 4.635e-13 (0.5978 both engines), SE 2.036e-08 abs / 3.333e-07 rel (SE_PASS). Both engines fit the same Laplace-exact Gaussian marginal here. Julia's sdpars label is the bare group name (mu.g) where native uses mu.(1 | g); the SE table compares fixed-effect Wald SEs only, as tools/parity_se.R does. Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. The interval_status fences are unchanged.",
       "Ordinary Gaussian correlated (1 + x | g) on mu. ML: SUPPORTED (estim_method=ML, ml_loglik=-178.282455842465); same-target tmb-vs-julia parity coef 4.122e-11, logLik 2.046e-12, SE 2.140e-08 abs / 3.311e-07 rel (SE_PASS, 3 fixed-effect SEs), and the random-effect block agrees to 9.613e-11 (intercept SD 0.515495, slope SD 0.380979, correlation 0.312629 on both engines). REPORTING GAP: the Julia fit's sdpars and corpars are EMPTY for this shape -- the bridge returns the block as raw log-Cholesky coefficients recov_g:L11, recov_g:L22, recov_g:L21 and drm_julia_structured_parameters() translates a recov_ block only for the phylo mu+sigma pair; the block comparison above was derived from those raw coefficients (parity_ordinary_re.R, inspect_slope.log). REML: UNSUPPORTED -- refused by the ENGINE at the pin with: \"ArgumentError: drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker  --  phylo/relmat/animal/spatial  --  without a matching sd() submodel, and meta_V() all land here). REML IS available for: the fixed-effect Gaussian location-scale model; a single Gaussian mean random intercept `(1 | g)`; every sd() LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the multi-component sd() router); the bivariate structured routes (q=2 and q=4, both native and via drm_bridge); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Use method = :ML (the default) for this model.\" GATE DEFECT (report to #1155's follow-up, not fixed here): drm_julia_reml_supported() has no random-slope predicate, so the shipped bridge forwards method = \"REML\" and the user receives DRM.jl's raw ArgumentError plus a JuliaCall trace instead of a drmTMB refusal naming REML = FALSE / engine = \"tmb\". No ML fit was ever labelled REML (the engine throws rather than downgrading). Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. The interval_status fences are unchanged.",
       "Ordinary Gaussian random intercept on sigma. ML: SUPPORTED as a FIT (estim_method=ML, ml_loglik=-185.86575807551) but NOT same-target parity at the 1e-4 bar: tmb-vs-julia coef 6.440e-04, logLik 2.850e-02, sigma-RE SD 4.056e-03 (0.349674 tmb vs 0.35373 julia), SE 8.178e-04 abs / 7.461e-03 rel (PARITY_FAIL, SE_FAIL). CAUSE ESTABLISHED, NOT A DEFECT: the two engines integrate the sigma-side random intercept differently -- drmTMB by Laplace, DRM.jl by 32-node Gauss-Hermite quadrature (src/gaussian_ranef.jl). Both are converged (TMB max|outer gradient| 1.51e-12; Julia converged=TRUE and unchanged at g_tol = 1e-10), and an R transcription of DRM.jl's GHQ marginal evaluated at Julia's estimate reproduces Julia's logLik to 0 (-185.86575807551; K=64 moves it by 3.52e-06, so K=32 is converged in K) -- ghq_check.R / ghq-check.tsv. The gap is the approximation on the same model, not a wrong answer. REML: UNSUPPORTED. The shipped bridge refuses before Julia starts with drmTMB's own message: \"`engine = \"julia\"` does not support `method = \"REML\"` with a random intercept on `sigma`.\" With that pre-check disabled the ENGINE refuses with: \"ArgumentError: drm: method = :REML is not implemented for this model on the generic univariate Gaussian route (random slopes, a random effect on sigma, a structured mean marker  --  phylo/relmat/animal/spatial  --  without a matching sd() submodel, and meta_V() all land here). REML IS available for: the fixed-effect Gaussian location-scale model; a single Gaussian mean random intercept `(1 | g)`; every sd() LSS route (`sd(g)`, `sd_phylo` dense and sparse, and the multi-component sd() router); the bivariate structured routes (q=2 and q=4, both native and via drm_bridge); and Poisson `(1 | g)` and Poisson `phylo(1 | species)`. Use method = :ML (the default) for this model.\" Measured 2026-09-05 through drmTMB(engine = \"julia\") at DRM.jl 430ef64ccca5642c5abebd72194e00895314dfc2 with the #625 estim_method oracle (docs/dev-log/evidence/julia-r-parity/ordinary-re-census/: census.tsv, parity-fixtures-ordinary-re.tsv, parity-se-ordinary-re.tsv; comparator build stamped in those TSVs' drmtmb_code_hash column -- the digest deparses this very function, so it cannot be quoted here without moving). One draw per shape (n=150, 15 groups x 10, seed 20260904); result-shape and point/SE parity only, NOT interval coverage. The interval_status fences are unchanged.",
@@ -480,7 +483,7 @@ drm_julia_capability_comparison <- function() {
       "Keep the fe_beta receipt re-runnable; do not promote beyond partial without a G3 receipt.",
       "Keep the zi_poisson receipt re-runnable; the zi/hu dpar routes are admitted by dpar vocabulary, not the family registry, so any registry-driven ledger test must enumerate them explicitly. Do not promote beyond partial without a G3 receipt.",
       "Keep the zi_nbinom2 receipt re-runnable; same dpar-vocabulary note as zi_poisson. Do not promote beyond partial without a G3 receipt.",
-      "Resolve the spelling asymmetry before any promotion: either the bridge maps truncated_nbinom2() + hu to DRM.jl's hurdle (A4's truncated_nbinom2 registry row is the natural place) or the bridge refuses nbinom2() + hu the way native does. Then re-measure on ONE identical call and move to partial.",
+      "Three follow-ups, none of them blocking this row at partial. (1) fitted()/residuals() on this route return the count-component mean, not the hurdle mean -- the zi_nbinom2 leaf owns the DRM.jl-side _bridge_fitted_marginal fix; re-measure FITTED_MAXDIFF (1.094 today) when it lands. (2) engine = \"julia\" is still MORE PERMISSIVE than native about count modifiers: nbinom2() + hu and poisson() + hu route through the bridge and are refused natively ('nbinom2() models only support mu, sigma, and optional zi. Unsupported parameter: hu', measured 2026-09-05). Fencing that needs tests/testthat/test-parity-matrix.R and tools/write-parity-matrix.R to drop their bridge_family = nbinom2 pin for this route, so it is an integrator change, not a family leaf's. (3) G3: no profile/bootstrap receipt through engine = \"julia\" on this route, so promotion beyond partial is not open.",
       "Wave-1 bar for r_bridge_status experimental -> partial (design/192) needs the unopted non-interactive route check, not run here. Keep the census re-runnable against future DRM.jl pins (census.R); the REML cell is the one ordinary-RE shape DRM.jl #624 admits.",
       "Two defects to fix outside this row, then re-measure: (a) surface the recov_ block through sdpars/corpars in drm_julia_structured_parameters() with native labels; (b) add a random-slope predicate to drm_julia_reml_supported() so the REML refusal is drmTMB's own. Do not widen REML here (DRM.jl #624 scope).",
       "Do not promote on parity: a same-target comparison needs a matching integrator (a Laplace option in DRM.jl's sigma-RE route, or an AGHQ option in drmTMB's). Until then the honest claim is 'fits, different marginal approximation'; keep REML refused on both sides.",
@@ -1000,6 +1003,44 @@ drm_julia_bridge_family_type <- function(family) {
     ))
   }
   drm_family_type(family)
+}
+
+# The NATIVE model_type for a bridge fit, which is not always the family tag.
+#
+# drmTMB has no `hurdle_nbinom2()` constructor. Its hurdle NB2 is spelled
+# `family = truncated_nbinom2()` PLUS an `hu ~ ...` entry, and R/drmTMB.R sets
+# `model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2"` on the
+# native fit. `family_type` is `truncated_nbinom2` for both, so storing it
+# unchanged would label a bridge hurdle fit as the plain zero-truncated model.
+# That is not cosmetic: `drm_dpar_link()` (R/methods.R) is keyed on model_type
+# and the `truncated_nbinom2` row has no `hu` entry, so `predict(fit, dpar =
+# "hu")` aborts on a bridge fit while it works natively -- and `summary()` would
+# print "truncated negative binomial 2" for a model that is not one.
+#
+# Only the hurdle case differs today; every other family's model_type IS its
+# family_type, so the fall-through returns `family_type` unchanged.
+drm_julia_bridge_model_type <- function(family_type, formula) {
+  if (
+    identical(family_type, "truncated_nbinom2") &&
+      drm_julia_formula_has_dpar(formula, "hu")
+  ) {
+    return("hurdle_nbinom2")
+  }
+  family_type
+}
+
+# TRUE when the parsed formula carries an entry for `dpar` (e.g. "hu", "zi").
+# Reads `entry$dpar`, the same field `drm_julia_dpar_has_ordinary_bar()` reads.
+drm_julia_formula_has_dpar <- function(formula, dpar) {
+  entries <- formula$entries
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(FALSE)
+  }
+  any(vapply(
+    entries,
+    function(entry) identical(entry$dpar, dpar),
+    logical(1L)
+  ))
 }
 
 # Families that route through the Julia engine ONLY with a phylo(1 | group)
@@ -3685,7 +3726,7 @@ new_drmTMB_julia <- function(
     requested_REML = isTRUE(requested_REML),
     effective_REML = isTRUE(effective_REML),
     model = list(
-      model_type = family_type,
+      model_type = drm_julia_bridge_model_type(family_type, formula),
       dpars = names(coefficient_blocks),
       data = data
     ),

@@ -1206,18 +1206,19 @@ tools/parity_fixture.R and tools/parity_se.R comparator code at the pin):**
 `se_julia[1] * 1.10` read NEGATIVE_CONTROL_OK, rel 9.09e-02). The fit's
 `estimator` is `"ML"` and equals DRM.jl's `estim_method` (`"ML"`).
 
-**What the echo catches for this family (fail-closed, measured).** drmTMB's
-native engine fits a HURDLE NB2 when the formula carries `hu ~ ...`; DRM.jl's
-`TruncatedNegBinomial2` reads only `mu` and `sigma` from the formula bundle.
-Without §7 the `hu` part would have crossed and been SILENTLY DROPPED (a
-different model, no message). With it, the R side sends a `hu` label and DRM.jl
-aborts at the echo: `drm_bridge: coef_labels supplies names for unknown dpar
-"hu"; the model has dpars: mu, sigma`. That is the contract doing its job, but
-the message is DRM.jl-attributed and reaches the user only after the engine
-boots -- an R-side pre-refusal ("engine = \"julia\" fits truncated_nbinom2
-without a hurdle; use engine = \"tmb\" for `hu`") would be better and needs a
-hook in `R/julia-bridge.R`, which this leaf does not own. Recorded here as the
-next improvement, not claimed.
+**What the echo catches for this family (fail-closed, measured).** When this
+addendum was written, DRM.jl's `TruncatedNegBinomial2` read only `mu` and
+`sigma` from the formula bundle, so an `hu ~ ...` part would have crossed and
+been SILENTLY DROPPED; §7 turned that into an echo abort, `drm_bridge:
+coef_labels supplies names for unknown dpar "hu"; the model has dpars: mu,
+sigma`.
+
+**SUPERSEDED 2026-09-05 by §8.10.** DRM.jl PR #662 made `TruncatedNegBinomial2()`
+accept an `hu` part -- it IS drmTMB's hurdle NB2 -- so `hu` is no longer an
+unknown dpar on this family and the echo no longer fires for it. The
+silent-drop risk moved to the parts the family genuinely does not consume
+(`zi`, and anything else), which DRM.jl now refuses by name in the fitter
+itself. See §8.10.
 
 **Other refusals, in DRM.jl's own words (post-boot, forwarded through
 JuliaCall):** a `(1 | g)` random intercept -> `TruncatedNegBinomial2() currently
@@ -1232,3 +1233,87 @@ starts.
 capability-comparison TSV row for this route is NOT added here (the
 `drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
 outside this leaf's file set) and is left to the integrator.
+
+### 8.10 `hurdle_nbinom2` (parity leaf fam-hurdle-nbinom2, 2026-09-05; measured against DRM.jl branch `claude/parity-fam-hurdle-nbinom2-drmjl`, PR #662, NOT the 430ef64cc pin)
+
+**`hurdle_nbinom2` is a model_type, not a family.** drmTMB has no
+`hurdle_nbinom2()` constructor. The native spelling is `family =
+truncated_nbinom2()` plus an `hu ~ ...` entry in `bf()`, and `R/drmTMB.R` sets
+`model_type = if (has_hu) "hurdle_nbinom2" else "truncated_nbinom2"`. So this
+route needs no row in `R/julia-family-registry.R`: the merged
+`spec("truncated_nbinom2", fe = TRUE)` row admits the family, and `hu` was
+already in `julia_bridge_supported_dpars()`.
+
+**dpars and links.** `mu` (log), `sigma` (log, NB2 size `theta = 1/sigma^2`),
+`hu` (logit, and `hu` is `P(y = 0)`). Both engines fit the same HURDLE: the
+zeros carry their own logit-linked mass and the positive counts follow the
+ZERO-TRUNCATED NB2. Read off both likelihoods rather than off the names --
+drmTMB `src/drmTMB.cpp` model_type 12 does `y == 0 -> nll -= w * log_hu` and
+`y > 0 -> nll -= w * (log_one_minus_hu + log NB2(y) - log1mexp(log NB2(0)))`;
+DRM.jl `src/negbinomial.jl` `_fit_negbin2_hu` has the same two branches. The
+zero-INFLATED neighbours (`zi`) mix a point mass with an UNTRUNCATED count and
+are a different model on both sides.
+
+**Coefficient labels.** All three blocks are labelled from the formula, in the
+§7.1 payload: `mu = c("(Intercept)", "x", "habitatopen")`, `sigma =
+c("(Intercept)", "z")`, `hu = c("(Intercept)", "w", "habitatopen")`, echoed by
+DRM.jl as `mu_*`, `sigma_*`, `hu_*`. Nothing family-specific is needed --
+`hu` was already in the bridge's dpar vocabulary and in
+`drm_julia_bridge_blocks()`.
+
+**The one R-side change: `model_type`, not the family tag.**
+`new_drmTMB_julia()` stored `model_type = family_type`, which for this route is
+`truncated_nbinom2`. That is the WRONG model_type for a hurdle fit, and it is
+not cosmetic: `drm_dpar_link()` (R/methods.R) is keyed on model_type and the
+`truncated_nbinom2` row has no `hu` entry, so `predict(fit, dpar = "hu")`
+aborted with "`predict()` has no canonical prediction link for Julia-engine
+`hu`" (measured). `drm_julia_bridge_model_type()` now returns
+`"hurdle_nbinom2"` when a `truncated_nbinom2` formula carries an `hu` entry and
+`family_type` unchanged otherwise.
+
+**Measured (drmTMB worktree `claude/parity-fam-hurdle-nbinom2`,
+`devtools::load_all`; fixture = the native suite's own hurdle DGP,
+`tests/testthat/test-hurdle-nbinom2.R`, n = 1800, seed 20260623, 486 zeros and
+1314 positive counts; `bf(count ~ x + habitat, sigma ~ z, hu ~ w + habitat)`,
+`family = truncated_nbinom2()` -- ONE call, both engines):**
+
+- coefficients: `max|d| = 9.4286800589316e-12` over 8 coefficients
+  (`tools/parity_fixture.R` comparator, PARITY_PASS at tol 1e-4);
+- logLik: `-2941.45558666655` (tmb) vs `-2941.45558666657` (julia), `|d| =
+  2.18278728425503e-11`;
+- Wald SE: `max_abs 1.53664662161379e-07`, `max_rel 1.10121323025882e-06` over
+  8 SEs (`tools/parity_se.R`, SE_PASS at rtol 1e-3; the negative-control row,
+  `se_julia[1] * 1.10`, read NEGATIVE_CONTROL_OK, rel 0.0909094167932065);
+- `fit$estimator` `"ML"` equals DRM.jl's `estim_method` `"ML"`; `REML = TRUE`
+  is refused R-side before Julia boots;
+- `predict(fit, dpar = "hu")` agrees with native to `7.295e-13` and equals
+  `plogis(predict(fit, dpar = "hu", type = "link"))`; all three dpars agree to
+  `<= 3.5e-11`.
+
+**RED FIRST, both halves, measured before the change.** `truncated_nbinom2() +
+hu` through `engine = "julia"` aborted at the pin with `TruncatedNegBinomial2()
+requires positive integer counts (>= 1) as the response`; the same `bf()` with
+`family = nbinom2()` is refused NATIVELY with "`nbinom2()` models only support
+`mu`, `sigma`, and optional `zi`. Unsupported parameter: \"hu\"." while fitting
+through `engine = "julia"` (logLik `-2941.45558666657`, the same value the
+native `truncated_nbinom2()` fit reaches) -- the cross-spelling asymmetry this
+addendum closes.
+
+**Refusals, measured.** `zi ~ ...` on this family -> DRM.jl's
+`TruncatedNegBinomial2() supports `mu`, `sigma`, and an optional `hu` hurdle
+part; got an unsupported formula part `zi`. ...` (before PR #662 the `zi` part
+was dropped from the likelihood without a word). A `(1 | g)` bar -> drmTMB's
+A4.G17 fe-only fence, R-side, before Julia boots. `REML = TRUE` -> the existing
+non-Gaussian REML rule.
+
+**NOT claimed by this addendum.** Fixed effects only: no phylogenetic, random-
+effect, or structured (`relmat()`/`animal()`/`spatial()`) hurdle routes; one
+fixture, one seed; no interval coverage; bridge-side inference (profile /
+bootstrap through `engine = "julia"`) unqualified. And a DECLARED divergence:
+`fitted()` / `residuals()` differ between the engines on this route (max abs
+1.094 on this fixture) because DRM.jl's `fitted()` returns `means[:mu]`, the
+UNTRUNCATED NB2 mean, where native returns the hurdle mean `(1 - hu) * mu /
+(1 - P0)`. Every dpar the bridge returns is correct -- native `fitted()` is
+reproduced from them to `4.045e-11` by `hurdle_nbinom2_mean()` -- so this is an
+aggregation gap in DRM.jl shared with every `zi`/`hu` fit, owned by the
+zi_nbinom2 leaf (`_bridge_fitted_marginal`), not fixed here.
