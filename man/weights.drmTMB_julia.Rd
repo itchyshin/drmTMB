@@ -7,7 +7,8 @@
 \method{weights}{drmTMB_julia}(object, ...)
 }
 \arguments{
-\item{object}{A \code{drmTMB_julia} fit.}
+\item{object}{A \code{drmTMB_julia} fit (including the \verb{_xfam} and \verb{_joint}
+subclasses, which inherit this method).}
 
 \item{...}{Unused; present for S3 consistency.}
 }
@@ -26,4 +27,9 @@ of ones. This reports the ones, matching both the native engine and
 }
 \details{
 These are PRIOR (per-observation) weights, not Akaike model weights.
+
+The length comes from \code{\link[=nobs]{nobs()}}, not from \code{object$nobs}: a joint
+(\code{drmTMB_julia_joint}) fit counts only its OBSERVED rows
+(\code{nobs.drmTMB_julia_joint()} is \code{sum(observed_y)}), so reading the raw field
+would return a weight vector longer than the data the fit actually used.
 }

@@ -244,6 +244,19 @@ test_that("weights() on an engine = 'julia' fit returns ones, not NULL", {
   ft <- drm_mc_fit(bf(y ~ x, sigma ~ 1), drm_mc_fixture_2())
   expect_true(all(stats::weights(ft) == 1))
   expect_length(stats::weights(ft), stats::nobs(ft))
+
+  # The length must come from nobs(), not from the raw `nobs` field: a joint
+  # fit counts only its OBSERVED rows (nobs.drmTMB_julia_joint() is
+  # sum(observed_y)), so reading object$nobs would hand back a weight vector
+  # longer than the data the fit used. The _joint and _xfam subclasses inherit
+  # weights.drmTMB_julia, so this is the shape that would break.
+  joint <- structure(
+    list(nobs = 12L, bridge_payload = list(observed_y = c(rep(1, 7), rep(0, 5)))),
+    class = c("drmTMB_julia_joint", "drmTMB_julia")
+  )
+  expect_identical(stats::nobs(joint), 7L)
+  expect_length(stats::weights(joint), 7L)
+  expect_true(all(stats::weights(joint) == 1))
 })
 
 # DRM.jl oracle for the random-intercept pair: `g` crosses as an integer

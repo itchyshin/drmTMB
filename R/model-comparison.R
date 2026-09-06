@@ -273,10 +273,16 @@ anova.drmTMB_julia <- function(object, ..., test = NULL) {
 #'
 #' These are PRIOR (per-observation) weights, not Akaike model weights.
 #'
-#' @param object A `drmTMB_julia` fit.
+#' The length comes from [nobs()], not from `object$nobs`: a joint
+#' (`drmTMB_julia_joint`) fit counts only its OBSERVED rows
+#' (`nobs.drmTMB_julia_joint()` is `sum(observed_y)`), so reading the raw field
+#' would return a weight vector longer than the data the fit actually used.
+#'
+#' @param object A `drmTMB_julia` fit (including the `_xfam` and `_joint`
+#'   subclasses, which inherit this method).
 #' @param ... Unused; present for S3 consistency.
 #' @return A numeric vector of ones, one per observation.
 #' @export
 weights.drmTMB_julia <- function(object, ...) {
-  rep(1, object$nobs)
+  rep(1, stats::nobs(object))
 }
