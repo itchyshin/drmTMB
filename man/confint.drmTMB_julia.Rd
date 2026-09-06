@@ -72,4 +72,12 @@ available for the bivariate q = 4 route (\code{biv_gaussian}), whose fixed
 effects are not individually profiled here.
 }
 }
+
+Ordered cutpoints of a \code{\link[=cumulative_logit]{cumulative_logit()}} fit are the documented
+exception. \code{\link[=profile_targets]{profile_targets()}} lists them (\code{"ordinal:cutpoint:<label>"})
+so they are discoverable, and the fitted values are on the object in
+\code{fit$ordinal$cutpoints}, but no interval method routes them: DRM.jl's
+bridge inference accepts only fixed-effect and SD targets, so \code{confint()}
+refuses a cutpoint target for every \code{method} and points at
+\code{engine = "tmb"}, whose constrained cutpoint profile does solve them.
 }
