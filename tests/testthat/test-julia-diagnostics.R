@@ -7,17 +7,25 @@
 # end to end -- one on a route confirmed to omit the gradient, one on a
 # route confirmed to carry it (see the R/julia-diagnostics.R header comment
 # for how those routes were verified against DRM.jl 430ef64c).
+#
+# The engine_route / gradient-source / bridge-covariance rows below are the
+# p-route-diagnostics leaf: check_drm() on a DRM.jl fit must say WHICH engine
+# and route ran, WHICH producer made the gradient it prints (DRM.jl PR #656's
+# grad_source vocabulary), and whether the covariance DRM.jl marshalled back is
+# usable at all -- the last of which was previously never read, so a fit with
+# no covariance passed check_drm() green.
 
 drm_test_julia_diag_result <- function(
   with_gradient = TRUE,
   converged = TRUE,
-  gradient = c(0.0002, -0.0005, 0.0001)
+  gradient = c(0.0002, -0.0005, 0.0001),
+  vcov = diag(c(0.01, 0.02, 0.03))
 ) {
   coef_names <- c("mu_(Intercept)", "mu_x", "sigma_(Intercept)")
   result <- list(
     coef_names = coef_names,
     coefficients = c(0.5, 1.2, -0.3),
-    vcov = diag(c(0.01, 0.02, 0.03)),
+    vcov = vcov,
     loglik = -20,
     aic = 46,
     bic = 49,
@@ -71,7 +79,16 @@ test_that("check_drm() dispatches on a Julia fit and reports max|gradient|, rout
   dc <- check_drm(fit)
   expect_s3_class(dc, "drm_check")
   expect_true(attr(dc, "ok"))
-  expect_setequal(dc$check, c("optimizer_convergence", "fixed_gradient"))
+  expect_setequal(
+    dc$check,
+    c(
+      "engine_route",
+      "optimizer_convergence",
+      "fixed_gradient",
+      "bridge_covariance",
+      "bridge_standard_errors"
+    )
+  )
 
   grad_row <- dc[dc$check == "fixed_gradient", ]
   # The raw value this must match: max(abs(.)) of the EXACT vector the mocked
@@ -87,6 +104,9 @@ test_that("check_drm() dispatches on a Julia fit and reports max|gradient|, rout
     fixed = TRUE
   )
   expect_match(grad_row$value, "component=mu_x", fixed = TRUE)
+  # The bridge's ONLY producer of a "gradient" key is `fit.nllgrad`
+  # (DRM.jl 430ef64c src/bridge.jl:1497), which is DRM.jl's own `:stored`.
+  expect_match(grad_row$value, "source=stored", fixed = TRUE)
   expect_identical(grad_row$status, "ok")
 
   conv_row <- dc[dc$check == "optimizer_convergence", ]
@@ -139,6 +159,14 @@ test_that("check_drm() is route-aware: a fit whose route carries no gradient get
   expect_identical(grad_row$status, "note")
   expect_match(grad_row$value, "route=gaussian", fixed = TRUE)
   expect_false(grepl("max=", grad_row$value, fixed = TRUE))
+  # "unknown" is deliberately NOT one of DRM.jl's six grad_source values: the
+  # bridge sends no source field, so R must not name one of the five it cannot
+  # distinguish.
+  expect_match(grad_row$value, "source=unknown", fixed = TRUE)
+  expect_false(any(grepl(
+    paste0("source=", drmTMB:::drm_julia_grad_source_vocabulary(), collapse = "|"),
+    grad_row$value
+  )))
   expect_match(grad_row$message, "did not attach a gradient")
   # A note does not flip the overall "ok" attribute (matches TMB's own
   # keep_tmb_object = FALSE note in check_fixed_gradient()).
@@ -153,8 +181,8 @@ test_that("check_drm() on a Julia fit prints the same drm_check summary-line sha
     type = "message"
   )
   combined <- paste(c(messages, printed), collapse = "\n")
-  expect_match(combined, "<drm_check: 2 checks>", fixed = TRUE)
-  expect_match(combined, "ok: 2; notes: 0; warnings: 0; errors: 0", fixed = TRUE)
+  expect_match(combined, "<drm_check: 5 checks>", fixed = TRUE)
+  expect_match(combined, "ok: 4; notes: 1; warnings: 0; errors: 0", fixed = TRUE)
 })
 
 test_that("check_drm.drmTMB_julia validates gradient_tolerance and rejects extra dots, like check_drm.drmTMB", {
@@ -189,11 +217,28 @@ test_that("live: a real engine = \"julia\" fit on a route WITHOUT a stored gradi
 
   dc <- check_drm(fj)
   expect_s3_class(dc, "drm_check")
-  expect_setequal(dc$check, c("optimizer_convergence", "fixed_gradient"))
+  expect_setequal(
+    dc$check,
+    c(
+      "engine_route",
+      "optimizer_convergence",
+      "fixed_gradient",
+      "bridge_covariance",
+      "bridge_standard_errors"
+    )
+  )
   grad_row <- dc[dc$check == "fixed_gradient", ]
   expect_identical(grad_row$status, "note")
   expect_match(grad_row$value, "route=gaussian", fixed = TRUE)
   expect_false(grepl("max=", grad_row$value, fixed = TRUE))
+  expect_match(grad_row$value, "source=unknown", fixed = TRUE)
+
+  route_row <- dc[dc$check == "engine_route", ]
+  expect_identical(route_row$status, "note")
+  expect_identical(
+    route_row$value,
+    "engine=julia; route=gaussian; estimator=ML"
+  )
 })
 
 test_that("live: a real engine = \"julia\" fit on a route WITH a stored gradient reaches max|gradient| through check_drm(), matching the raw bridge gradient exactly (G2/G3)", {
@@ -239,14 +284,179 @@ test_that("live: a real engine = \"julia\" fit on a route WITH a stored gradient
 
   dc <- check_drm(fj)
   expect_s3_class(dc, "drm_check")
-  expect_setequal(dc$check, c("optimizer_convergence", "fixed_gradient"))
+  expect_setequal(
+    dc$check,
+    c(
+      "engine_route",
+      "optimizer_convergence",
+      "fixed_gradient",
+      "bridge_covariance",
+      "bridge_standard_errors"
+    )
+  )
+  route_row <- dc[dc$check == "engine_route", ]
+  expect_identical(
+    route_row$value,
+    "engine=julia; route=biv_gaussian; estimator=REML"
+  )
   grad_row <- dc[dc$check == "fixed_gradient", ]
   # Real fit, real gradient -- this must NOT be the route-aware "note" branch.
   expect_true(grad_row$status %in% c("ok", "warning"))
   expect_match(grad_row$value, "route=biv_gaussian", fixed = TRUE)
+  expect_match(grad_row$value, "source=stored", fixed = TRUE)
   expect_match(
     grad_row$value,
     paste0("max=", drmTMB:::format_check_number(max(abs(raw_gradient)))),
     fixed = TRUE
+  )
+})
+
+# ---------------------------------------------------------------------------
+# p-route-diagnostics: the fit must not present as a TMB fit
+# ---------------------------------------------------------------------------
+
+test_that("check_drm() names the engine, route and estimator before any other row", {
+  fit <- drm_test_julia_diag_fit()
+  dc <- check_drm(fit)
+  expect_identical(dc$check[[1L]], "engine_route")
+  route_row <- dc[dc$check == "engine_route", ]
+  expect_identical(route_row$status, "note")
+  expect_identical(
+    route_row$value,
+    "engine=julia; route=gaussian; estimator=ML"
+  )
+  expect_match(route_row$message, "DRM.jl", fixed = TRUE)
+  expect_match(route_row$message, "not by TMB", fixed = TRUE)
+  # It must name the native checks that did NOT run, or a clean bridge table
+  # reads like a clean native one.
+  expect_match(route_row$message, "sdreport status", fixed = TRUE)
+  expect_match(route_row$message, "narrower claim", fixed = TRUE)
+  # A note never flips the overall verdict.
+  expect_true(attr(dc, "ok"))
+})
+
+test_that("the engine_route row reports REML when the fit is REML", {
+  result <- drm_test_julia_diag_result()
+  result$estim_method <- "REML"
+  fit <- drm_test_julia_diag_fit_from_result(result)
+  dc <- check_drm(fit)
+  expect_identical(
+    dc[dc$check == "engine_route", ]$value,
+    "engine=julia; route=gaussian; estimator=REML"
+  )
+})
+
+test_that("the gradient source vocabulary is exactly DRM.jl PR #656's six symbols", {
+  expect_identical(
+    drmTMB:::drm_julia_grad_source_vocabulary(),
+    c("locscale", "stored", "forward", "finite", "none", "unavailable")
+  )
+})
+
+test_that("a gradient that crossed the bridge is reported as DRM.jl's :stored", {
+  fit <- drm_test_julia_diag_fit()
+  expect_identical(drmTMB:::drm_julia_gradient_source(fit), "stored")
+})
+
+test_that("an absent gradient is reported as \"unknown\", never as one of DRM.jl's five undistinguishable sources", {
+  fit <- drm_test_julia_diag_fit(with_gradient = FALSE)
+  expect_identical(drmTMB:::drm_julia_gradient_source(fit), "unknown")
+  expect_false("unknown" %in% drmTMB:::drm_julia_grad_source_vocabulary())
+})
+
+test_that("a gradient_source sent by a future bridge is honoured, colon-prefixed or not", {
+  for (src in drmTMB:::drm_julia_grad_source_vocabulary()) {
+    result <- drm_test_julia_diag_result()
+    result$gradient_source <- src
+    fit <- drm_test_julia_diag_fit_from_result(result)
+    expect_identical(drmTMB:::drm_julia_gradient_source(fit), src)
+    dc <- check_drm(fit)
+    expect_match(
+      dc[dc$check == "fixed_gradient", ]$value,
+      paste0("source=", src),
+      fixed = TRUE
+    )
+  }
+  # Julia spells these as symbols; tolerate the ":stored" rendering.
+  result <- drm_test_julia_diag_result()
+  result$gradient_source <- ":finite"
+  fit <- drm_test_julia_diag_fit_from_result(result)
+  expect_identical(drmTMB:::drm_julia_gradient_source(fit), "finite")
+  expect_match(
+    check_drm(fit)[check_drm(fit)$check == "fixed_gradient", ]$message,
+    "FINITE DIFFERENCE",
+    fixed = TRUE
+  )
+})
+
+test_that("an out-of-vocabulary gradient source aborts instead of being echoed into a diagnostic", {
+  result <- drm_test_julia_diag_result()
+  result$gradient_source <- "vibes"
+  fit <- drm_test_julia_diag_fit_from_result(result)
+  expect_error(
+    check_drm(fit),
+    "unrecognised gradient source"
+  )
+})
+
+test_that("check_drm() flags a Julia fit whose bridge covariance came back wholly non-finite (it used to pass green)", {
+  fit <- drm_test_julia_diag_fit(vcov = matrix(NaN, 3L, 3L))
+  # The state the bridge constructor itself builds for this case.
+  expect_identical(fit$uncertainty$status, "unavailable")
+
+  dc <- check_drm(fit)
+  cov_row <- dc[dc$check == "bridge_covariance", ]
+  expect_identical(cov_row$status, "warning")
+  expect_identical(cov_row$value, "status=unavailable")
+  expect_match(cov_row$message, "did not return finite fixed-effect covariance")
+  expect_match(cov_row$message, "TMB::sdreport() was not run", fixed = TRUE)
+
+  se_row <- dc[dc$check == "bridge_standard_errors", ]
+  expect_identical(se_row$status, "warning")
+  expect_identical(se_row$value, "n=3; nonfinite=3")
+
+  # The point of the row: the overall verdict is no longer silently TRUE.
+  expect_false(attr(dc, "ok"))
+})
+
+test_that("a complete covariance with a negative variance is caught by the standard-error row, which the completeness status cannot see", {
+  fit <- drm_test_julia_diag_fit(vcov = diag(c(0.01, -0.02, 0.03)))
+  # Every entry is finite, so the constructor's own completeness check is "ok".
+  expect_identical(fit$uncertainty$status, "ok")
+  dc <- check_drm(fit)
+  expect_identical(dc[dc$check == "bridge_covariance", ]$status, "ok")
+
+  se_row <- dc[dc$check == "bridge_standard_errors", ]
+  expect_identical(se_row$status, "warning")
+  expect_match(se_row$value, "nonfinite=1", fixed = TRUE)
+  expect_match(se_row$message, "mu_x", fixed = TRUE)
+  expect_false(attr(dc, "ok"))
+})
+
+test_that("a healthy covariance reports an ok bridge_covariance row and the range of the implied standard errors", {
+  fit <- drm_test_julia_diag_fit()
+  dc <- check_drm(fit)
+  expect_identical(dc[dc$check == "bridge_covariance", ]$status, "ok")
+  se_row <- dc[dc$check == "bridge_standard_errors", ]
+  expect_identical(se_row$status, "ok")
+  # Raw values: sqrt(c(0.01, 0.02, 0.03)) -> 0.1, 0.1414214, 0.1732051.
+  expect_identical(
+    se_row$value,
+    paste0(
+      "n=3; nonfinite=0; range=[",
+      drmTMB:::format_check_number(sqrt(0.01)), ",",
+      drmTMB:::format_check_number(sqrt(0.03)), "]"
+    )
+  )
+})
+
+test_that("the stable drm_check reader schema still holds for a Julia fit", {
+  dc <- check_drm(drm_test_julia_diag_fit())
+  expect_identical(names(dc), c("check", "status", "value", "message"))
+  expect_true(all(vapply(dc, is.character, logical(1L))))
+  expect_true(all(dc$status %in% c("ok", "note", "warning", "error")))
+  expect_identical(
+    attr(dc, "ok"),
+    !any(dc$status %in% c("warning", "error"))
   )
 })
