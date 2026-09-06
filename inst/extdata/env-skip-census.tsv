@@ -81,6 +81,8 @@ test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
+test-julia-biv-q2-reml.R	engine-drm-jl	environment	skips	1
+test-julia-biv-q2-reml.R	suggests-package	environment	runs	3
 test-julia-bootstrap-tree.R	suggests-package	environment	runs	6
 test-julia-bridge-coef-labels.R	suggests-package	environment	runs	1
 test-julia-bridge-summary.R	engine-drm-jl	environment	skips	2

@@ -635,10 +635,16 @@ drmTMB_julia_bridge <- function(
     identical(family_type, "biv_gaussian") &&
       drm_julia_has_structured_term(formula)
   ) {
-    drm_julia_refuse_reml_unsupported(
-      REML,
-      "bivariate q2 known-covariance structured-effect"
-    )
+    # Widened 2026-09-05: DRM.jl's q=2 structured route fits `method = :REML`
+    # for the providers in `drm_julia_biv_q2_reml_providers()`; every other q2
+    # structured shape (animal today, and any layout the provider list does not
+    # name) keeps this refusal unchanged.
+    if (!drm_julia_biv_q2_reml_supported(formula)) {
+      drm_julia_refuse_reml_unsupported(
+        REML,
+        "bivariate q2 known-covariance structured-effect"
+      )
+    }
     return(drmTMB_julia_biv_known_structured_bridge(
       formula = formula,
       family = family,
@@ -1439,11 +1445,16 @@ drm_julia_check_ordinary_sigma_ranef_route_limits <- function(
 # raised (since #1149 refuses instead of silently downgrading) even though the
 # engine could fit them.
 #
-# NOT widened: the bivariate structured q=2 cell that #624 also names. It was
-# NOT verified -- drmTMB refuses that shape earlier, and for an unrelated
-# reason ("currently supports one `phylo()` term"), so the REML question never
-# arises. Widening it here would be widening on the engine's word alone, which
-# is the thing this comment exists to avoid.
+# WIDENED AGAIN 2026-09-05 for the bivariate structured q=2 cell that #624 also
+# names. This gate used to carry a "NOT widened" note for that cell: drmTMB
+# refused the shape earlier for an unrelated reason ("currently supports one
+# `phylo()` term"), so the REML question never arose and the engine's word was
+# the only evidence available. The shape now routes, and each admitted provider
+# carries a live same-target receipt against `engine = "tmb"` REML, so the note
+# is replaced by the measurement it asked for. See
+# `drm_julia_biv_q2_reml_providers()` below for the measured set and for why
+# `animal` stays out.
+
 # TRUE when `dpar` is present exactly once and its right-hand side is a bare
 # intercept with no structured marker -- the `sigma1 = ~1, sigma2 = ~1,
 # rho12 = ~1` shape the residual-only bivariate REML receipt covers.
@@ -1529,7 +1540,64 @@ drm_julia_reml_supported <- function(formula, family_type) {
     isTRUE(poisson_reml) ||
     (identical(family_type, "biv_gaussian") &&
       (identical(drm_julia_biv_phylo_dimension(formula), "q4") ||
+        drm_julia_biv_q2_reml_supported(formula) ||
         isTRUE(drm_julia_biv_residual_reml_supported(formula))))
+}
+
+# Bivariate q = 2 structured MEAN markers (matching intercept markers on `mu1`
+# and `mu2` only, intercept-only sigma1/sigma2/rho12) that DRM.jl fits by
+# Patterson-Thompson restricted likelihood: `src/reml_q2.jl`, dispatched from
+# `src/gaussian_bivariate.jl` `_fit_bivariate_q2_structured()`
+# (`method === :REML` -> `fit_coevolution_q2_reml`). DRM.jl's own q=2 marker
+# allow-list is `(:phylo, :relmat, :animal)` (`_bivariate_q4_marker()`), and
+# drmTMB's bridge rewrites a q2 `spatial()` marker to `relmat` + `K` before the
+# call (`drm_julia_biv_known_structured_payload()`), so `spatial` reaches that
+# same engine route.
+#
+# WIDENED 2026-09-05 on MEASUREMENT, not on the engine's word. Each provider
+# below was fitted live through `engine = "julia"` with `REML = TRUE` at DRM.jl
+# pin 430ef64cc and compared against `engine = "tmb"` `REML = TRUE` on the same
+# fixture; the receipt is
+# docs/dev-log/evidence/julia-r-parity/reml/biv-q2-bridge-receipt.md.
+#
+# `animal` is DELIBERATELY EXCLUDED even though DRM.jl fits it. Native
+# `engine = "tmb"` still REFUSES bivariate animal q2 REML
+# (`drm_validate_reml_spec_biv()` -> `drm_reml_admits_biv_exact_q2_intercept()`
+# admits only the phylo, spatial and supplied-K relmat providers), measured in
+# this run: "The relatedness exception ... supplied precision `Q`, animal,
+# slopes, q4+, and scale-side bivariate relmat REML routes remain deferred."
+# With no native REML fit there is no same-target comparator, so admitting
+# animal here would widen on the engine's word alone -- the exact thing the
+# Poisson comment above exists to prevent. drmTMB PR #1200 adds the native
+# route; widen this list in the leaf that MEASURES that receipt, not before.
+drm_julia_biv_q2_reml_providers <- function() {
+  c("phylo", "relmat", "spatial")
+}
+
+# TRUE when `formula` is a bivariate q = 2 structured mean-marker shape whose
+# provider is in `drm_julia_biv_q2_reml_providers()`. Covers BOTH bridge routes
+# into DRM.jl's q=2 cell: the phylo route (which reaches the main
+# `drmTMB_julia_bridge()` payload, because `drm_julia_has_structured_term()`
+# excludes `phylo`) and the known-covariance route (relmat / animal / spatial,
+# which reaches `drmTMB_julia_biv_known_structured_bridge()`). Shape checks
+# beyond the marker layout are left to the two payload builders and to DRM.jl,
+# which already refuse a non-intercept marker, a mismatched mu1/mu2 fixed-effect
+# design, or a predictor-dependent sigma1/sigma2/rho12.
+drm_julia_biv_q2_reml_supported <- function(formula) {
+  providers <- drm_julia_biv_q2_reml_providers()
+  if (identical(drm_julia_biv_phylo_dimension(formula), "q2")) {
+    return("phylo" %in% providers)
+  }
+  terms <- drm_julia_collect_structured_terms(formula)
+  if (length(terms) != 2L) {
+    return(FALSE)
+  }
+  dpars <- vapply(terms, `[[`, character(1L), "dpar")
+  if (!setequal(dpars, c("mu1", "mu2"))) {
+    return(FALSE)
+  }
+  type <- unique(vapply(terms, `[[`, character(1L), "type"))
+  length(type) == 1L && type %in% providers
 }
 
 drm_julia_reml_cell_label <- function(formula, family_type) {
@@ -2366,6 +2434,13 @@ drm_julia_bridge_options <- function(
   }
   if (isTRUE(phylo_payload$bivariate)) {
     if (identical(phylo_payload$bivariate_dimension, "q2")) {
+      # The q=2 phylogenetic route reaches DRM.jl's
+      # `_fit_bivariate_q2_structured()`, which dispatches
+      # `fit_coevolution_q2_reml` on `method = :REML`. Forward it; `"ML"` leaves
+      # the payload byte-identical to the parity-tested baseline.
+      if (reml) {
+        return(finish(list(g_tol = 1e-4, method = "REML")))
+      }
       return(finish(list(g_tol = 1e-4)))
     }
     # The q = 4 route has its own outer optimiser. Its `drm()` method accepts
@@ -6689,11 +6764,18 @@ drmTMB_julia_biv_known_structured_bridge <- function(
     ))
   }
 
+  # The caller (`drmTMB_julia_bridge()`) has already refused `REML = TRUE` for
+  # every q2 structured provider outside `drm_julia_biv_q2_reml_providers()`,
+  # so `REML` reaching here TRUE means DRM.jl's `fit_coevolution_q2_reml` route
+  # is the intended target. `new_drmTMB_julia()` still cross-checks the label
+  # against the engine's own `estim_method` before the fit is called REML.
+  reml_effective <- isTRUE(REML) && drm_julia_biv_q2_reml_supported(formula)
   payload <- drm_julia_biv_known_structured_payload(
     formula = formula,
     family_type = family_type,
     data = data,
-    env = env
+    env = env,
+    method = if (reml_effective) "REML" else "ML"
   )
   result <- drm_julia_call_structured(
     formula = payload$formula,
@@ -6713,7 +6795,7 @@ drmTMB_julia_biv_known_structured_bridge <- function(
     structured_sd_scales = payload$structured_sd_scales,
     bridge_payload = payload,
     requested_REML = isTRUE(REML),
-    effective_REML = FALSE
+    effective_REML = reml_effective
   )
 }
 
@@ -6721,7 +6803,8 @@ drm_julia_biv_known_structured_payload <- function(
   formula,
   family_type,
   data,
-  env
+  env,
+  method = "ML"
 ) {
   if (!identical(family_type, "biv_gaussian")) {
     cli::cli_abort(
@@ -6864,6 +6947,14 @@ drm_julia_biv_known_structured_payload <- function(
     family_type = family_type
   )
   options <- list(g_tol = 1e-4)
+  # `method = "REML"` crosses through `DRM.drm_bridge()`'s `options[:method]`
+  # hook (DRM.jl src/bridge.jl `_bridge_fit`) and selects
+  # `fit_coevolution_q2_reml` inside `_fit_bivariate_q2_structured()`. The
+  # default "ML" leaves this payload byte-identical to the parity-tested
+  # baseline.
+  if (identical(method, "REML")) {
+    options$method <- "REML"
+  }
   if (length(coef_labels) > 0L) {
     # Wire form only, same reasoning as the base bridge: a list of single
     # strings so JuliaCall never unboxes a length-1 vector to a scalar String.
