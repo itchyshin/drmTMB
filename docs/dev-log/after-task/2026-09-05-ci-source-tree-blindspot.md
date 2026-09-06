@@ -56,12 +56,14 @@ inventory was measured twice; the later numbers are the ones reported.
   35 files, **24,341** source assertions to **854** in the tarball,
   lane `[ FAIL 11 | WARN 0 | SKIP 4 | PASS 24341 ]` in 3m42s -- 9 cheatsheet
   failures (#1208) plus 2 reader-contract failures (#1207).
-- Second measurement, at `origin/main` **`eccb10299`**, after #1207 merged
-  (merged into this branch at `50c8c6f31`). This is the reported inventory.
+- Second measurement, at `origin/main` `eccb10299`, after #1207 merged.
+- Third measurement, at `origin/main` **`df1aca4a6`**, after #1204 merged.
+  Byte-for-byte identical to the second on every figure below, which is why the
+  reported inventory is pinned to `df1aca4a6`.
 
 Two-mode run of every candidate file -- once with the working directory in the
 source tree, once inside the extracted `R CMD build --no-build-vignettes`
-tarball -- at `eccb10299`:
+tarball -- at `df1aca4a6`:
 
 - **35** test files change behaviour between the two trees (all 35; the scanner
   produced no false positives).
@@ -70,10 +72,11 @@ tarball -- at `eccb10299`:
 - **24** of the 35 files contribute **zero** assertions to the tarball run.
 - Skips rise from **4** to **278** between the two trees.
 
-Lane command on the source tree at `eccb10299`:
+Lane command on the source tree at `df1aca4a6`:
 `[ FAIL 9 | WARN 0 | SKIP 4 | PASS 24348 ]`. The 9 failures are the live #1208
 defect, which was still open when this was written. The manifest did not drift
-across the #1207 merge: still 35 files.
+across either merge: still 35 files, and #1204's new
+`test-julia-predict-quantile.R` correctly does not join it.
 
 Existing guards re-run and green with the change: `capability_ledger.py
 --check`, the five wired `tools/tests/*.py` unittests, `check-evidence-citations.R`,

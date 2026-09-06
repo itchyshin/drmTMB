@@ -10,7 +10,7 @@
 # not a fact about the code under test; it is a fact about the build, so the
 # skip is unconditional and permanent, not environmental.
 #
-# Measured on this repository at origin/main eccb10299 (macOS, R 4.6.0) by
+# Measured on this repository at origin/main df1aca4a6 (macOS, R 4.6.0) by
 # running the affected files twice -- once with the working directory in the
 # source tree, once inside the extracted `R CMD build` tarball:
 #
