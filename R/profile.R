@@ -2856,6 +2856,21 @@ profile_parallel_plan <- function(n_task, parallel, workers) {
   bootstrap_parallel_plan(n_task, parallel = parallel, workers = workers)
 }
 
+bootstrap_refit_missing_control <- function(object) {
+  missing_data <- object$model$missing_data
+  if (!is.list(missing_data)) {
+    return(NULL)
+  }
+  if (!identical(missing_data$response_policy, "include")) {
+    return(NULL)
+  }
+  engine <- missing_data$engine
+  if (!is.character(engine) || length(engine) != 1L || is.na(engine)) {
+    engine <- "laplace"
+  }
+  miss_control(response = "include", predictor = "fail", engine = engine)
+}
+
 bootstrap_refit_control <- function(refit_control) {
   if (is.null(refit_control)) {
     return(drm_control(
@@ -2901,6 +2916,15 @@ bootstrap_refit_one <- function(
       )
       if (!object$model$model_type %in% c("biv_lognormal", "biv_student")) {
         arguments$weights <- bootstrap_weights
+      }
+      # Replicates now carry the seed fit's response NA mask (#1188), so they
+      # must also be refitted under the seed fit's response policy. Under the
+      # default `"drop"` an `"include"` fit's replicates would silently change
+      # estimand: `"include"` keeps a masked row inside any latent structure
+      # spanning rows, `"drop"` removes the row entirely.
+      refit_missing <- bootstrap_refit_missing_control(object)
+      if (!is.null(refit_missing)) {
+        arguments$missing <- refit_missing
       }
       do.call(drmTMB, arguments)
     },
@@ -2980,6 +3004,21 @@ bootstrap_uses_link_percentiles <- function(target) {
   identical(target$transformation[[1L]], "exp")
 }
 
+# Re-apply the seed fit's response NA mask to a simulated replicate draw
+# (#1188). `simulate()` draws over the FULL design, so a replicate built by
+# overwriting the response column wholesale carries no missing values at all
+# and refits on MORE rows than the seed fit ever observed. A bootstrap whose
+# replicates are richer than the original necessarily understates uncertainty,
+# and the narrowing grows with the missing fraction. Restoring the mask keeps
+# every replicate on the seed fit's observed row count.
+bootstrap_restore_response_mask <- function(values, missing_mask) {
+  if (length(missing_mask) != length(values)) {
+    return(values)
+  }
+  values[missing_mask] <- NA
+  values
+}
+
 bootstrap_response_data <- function(object, simulations, index) {
   data <- object$data
   if (object$model$model_type %in% c("biv_gaussian", "biv_lognormal")) {
@@ -2991,8 +3030,16 @@ bootstrap_response_data <- function(object, simulations, index) {
         "Internal error: bivariate bootstrap simulations are missing response columns."
       )
     }
-    data[[response_names[[1L]]]] <- simulations[[sim_y1]]
-    data[[response_names[[2L]]]] <- simulations[[sim_y2]]
+    mask_y1 <- is.na(data[[response_names[[1L]]]])
+    mask_y2 <- is.na(data[[response_names[[2L]]]])
+    data[[response_names[[1L]]]] <- bootstrap_restore_response_mask(
+      simulations[[sim_y1]],
+      mask_y1
+    )
+    data[[response_names[[2L]]]] <- bootstrap_restore_response_mask(
+      simulations[[sim_y2]],
+      mask_y2
+    )
     return(data)
   }
   if (identical(object$model$model_type, "binomial")) {
@@ -3007,7 +3054,15 @@ bootstrap_response_data <- function(object, simulations, index) {
           "Internal error: bootstrap simulations are missing response column {.val {sim_col}}."
         )
       }
-      successes <- simulations[[sim_col]]
+      # A cbind() response is missing when EITHER cell is missing, so the mask
+      # is the union of the two columns' original NA patterns; the failure
+      # column then inherits it through NA arithmetic.
+      response_mask <- is.na(data[[denominator$success_name]]) |
+        is.na(data[[denominator$failure_name]])
+      successes <- bootstrap_restore_response_mask(
+        simulations[[sim_col]],
+        response_mask
+      )
       data[[denominator$success_name]] <- successes
       data[[denominator$failure_name]] <- denominator$trials - successes
       return(data)
@@ -3034,7 +3089,10 @@ bootstrap_response_data <- function(object, simulations, index) {
       "Internal error: bootstrap simulations are missing response column {.val {sim_col}}."
     )
   }
-  data[[response]] <- simulations[[sim_col]]
+  data[[response]] <- bootstrap_restore_response_mask(
+    simulations[[sim_col]],
+    is.na(data[[response]])
+  )
   data
 }
 
