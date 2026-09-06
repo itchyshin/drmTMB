@@ -51,8 +51,10 @@
 #
 # Verdict precedence on the bridge axis, highest first:
 #
-#   REFUSED             the matrix says the bridge REFUSES the route at
-#                       drm_julia_family_tag(). A refusal is a determination
+#   REFUSED             the matrix says the bridge REFUSES the route -- either
+#                       at drm_julia_family_tag() (the family is unadmitted) or
+#                       at a named pre-Julia guard backed by a registered gate.
+#                       A refusal is a determination
 #                       with a file:line, so it is NOT uncited. A refusal wins
 #                       over a receipt: when DRM.jl carries a receipt for a
 #                       route drmTMB still refuses, the row reads
@@ -133,10 +135,16 @@ sb_receipt_tables <- function() c("se", "fixtures", "classc", "phylo_ng")
 # to the capability. Every id here is verified at generation time. Adding an
 # entry is a claim a reader can check against the receipt's printed label.
 sb_receipt_aliases <- function() {
+  # PRUNED 2026-09-06. Three entries died when their families gained committed ledger
+  # rows -- fe_cumulative_logit, fe_skew_normal and fe_tweedie -- and this function's own
+  # rule at the alias check below is that an alias must ADD something: "if a ledger row
+  # already reaches the same id the alias is dead weight and should be deleted, not
+  # carried". The generator ABORTED on the first of them, so the scoreboard could not be
+  # regenerated on main at all. All five were checked against
+  # drm_julia_capability_comparison() rather than only the one that happened to abort.
+  # The two below still earn their place: DRM.jl carries their receipts under ids with no
+  # `fe_` prefix, and no ledger row reaches them.
   list(
-    `Cumulative logit (ordinal)` = "fe_cumulative_logit",
-    `Skew-normal location-scale` = "fe_skew_normal",
-    `Tweedie (compound Poisson-Gamma)` = "fe_tweedie",
     `Truncated NB2 (zero-truncated counts)` = "truncated_nbinom2",
     `Zero-one-inflated beta` = "zero_one_beta"
   )
@@ -217,8 +225,28 @@ sb_all_receipt_ids <- function(ctx) {
   sort(unique(ids))
 }
 
+# WIDENED 2026-09-05 (leaf uncited-random-effects). Until this change the only
+# refusal this file could see was the family-tag one, so a capability the
+# bridge refuses at a REGISTERED GATE -- with the guard named, the
+# `R/julia-bridge.R:<line>` printed, and a measured receipt row behind it --
+# still counted as UNCITED. That is the opposite of what this file is for: its
+# own rule is that "a refusal is a determination with a file:line, so it is NOT
+# uncited", and a gated refusal is exactly that. Both phrasings are emitted by
+# `tools/write-parity-matrix.R` and nowhere else, so this predicate stays a
+# match on the generator's own words rather than a guess about prose.
+sb_refusal_patterns <- function() {
+  c(
+    # pm_family_entry(): the family is not in the registry `fe` list.
+    "REFUSED at drm_julia_family_tag\\(\\)",
+    # pm_struct_entry(): a registered gate refuses the route pre-Julia.
+    "the bridge REFUSES this route before Julia starts, at [A-Za-z0-9_.]+\\(\\)"
+  )
+}
+
 sb_is_refused <- function(bridge_route) {
-  grepl("REFUSED at drm_julia_family_tag\\(\\)", bridge_route, perl = TRUE)
+  any(vapply(sb_refusal_patterns(),
+             function(p) grepl(p, bridge_route, perl = TRUE),
+             logical(1L)))
 }
 
 # The `R/julia-bridge.R:<line>` the matrix gives for a refusal, so a REFUSED
@@ -471,7 +499,7 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "| `RECEIPT` | a passing receipt row in a DRM.jl evidence table, reached through a committed `inst/extdata/julia-capabilities.tsv` row the matrix cites |",
     "| `RECEIPT-NOT-LEDGERED` | a passing receipt exists, but NO committed drmTMB ledger row connects it to this capability; the link is a declared alias in the generator |",
     "| `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |",
-    "| `REFUSED` | drmTMB's bridge refuses the route at `drm_julia_family_tag()`, with the line |",
+    "| `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |",
     "| `REFUSED+UPSTREAM-RECEIPT` | refused by drmTMB, yet DRM.jl carries a receipt -- a contradiction, counted above |",
     "| `UNCITED` | no receipt and no cited refusal. Includes every row whose `bridge_route` only ASSERTS \"no bridge route\" with no file:line behind it |",
     "",
