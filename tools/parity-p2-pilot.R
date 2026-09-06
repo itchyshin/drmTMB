@@ -166,12 +166,17 @@ emit <- function(row, coef, engine, method, seed, step, wall_seconds,
 # Row registry -- the four partial rows in inst/extdata/julia-capabilities.tsv
 # ---------------------------------------------------------------------------
 
-row_gaussian_response_mask_data <- function() {
+# n_masked defaults to 6, which reproduces byte-for-byte the fixture
+# tests/testthat/test-julia-missing.R and A8's --g3-qualify run both use.
+# --g3-mask-boundary sweeps it to measure how the bootstrap narrowing grows
+# with the missing fraction; x and y are drawn from the SAME seed regardless,
+# so only the mask differs between sweep points.
+row_gaussian_response_mask_data <- function(n_masked = 6L) {
   set.seed(1L)
   n <- 60L
   x <- stats::rnorm(n)
   y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
-  y[1:6] <- NA
+  y[seq_len(n_masked)] <- NA
   data.frame(y = y, x = x)
 }
 
@@ -886,22 +891,12 @@ run_g3_mask_boundary <- function() {
   target <- "fixef:mu:x"
   z <- stats::qnorm(0.975)
 
-  # Same generative model as row_gaussian_response_mask_data(), with the
-  # number of masked rows swept instead of fixed at 6.
-  masked_data <- function(k) {
-    set.seed(1L)
-    x <- stats::rnorm(n)
-    y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
-    y[seq_len(k)] <- NA
-    data.frame(y = y, x = x)
-  }
-
+  # Reuse the row's committed spec (drm_rows + fit_row) rather than
+  # re-declaring the formula/family/missing-control here: an inline copy would
+  # silently drift if the committed row spec ever changed.
   measure <- function(k, engine) {
-    dat <- masked_data(k)
-    fit <- drmTMB(
-      bf(y ~ x, sigma ~ x), family = stats::gaussian(), data = dat,
-      engine = engine, missing = drmTMB::miss_control(response = "include")
-    )
+    dat <- row_gaussian_response_mask_data(n_masked = k)
+    fit <- fit_row("gaussian_response_mask", dat, engine)
     wald <- confint(fit, parm = target, method = "wald")
     boot <- tryCatch(
       confint(fit, parm = target, method = "bootstrap", R = boot_R, seed = boot_seed),

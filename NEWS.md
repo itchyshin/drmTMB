@@ -1,5 +1,28 @@
 # drmTMB 0.7.0
 
+## Bridge-side profile and bootstrap inference qualified on the masked-response Julia route (#544)
+
+* `gaussian_response_mask` is promoted `partial` -> `supported` on the
+  `r_bridge_status` axis. On a Gaussian location-scale fit with
+  `missing = miss_control(response = "include")`, `confint()` through
+  `engine = "julia"` now agrees with `engine = "tmb"` on the same fit and the
+  same target: Wald to 7.9e-08, profile to 5.1e-06/7.2e-06 (against a 1e-4
+  bar stated before measuring), and a 99-replicate parametric bootstrap
+  completes with 0 failures on both engines. This closes the
+  "bridge-side inference remains unqualified (G3)" fence for this route.
+* **This requires DRM.jl at or after #646.** Against an older DRM.jl the same
+  fit reports `is_converged()` `FALSE` and its bootstrap loses every
+  replicate; both were DRM.jl defects, not drmTMB ones.
+* **Disclosed, and it affects `engine = "tmb"` equally:** a parametric
+  bootstrap on a masked-response fit draws each replicate response over the
+  FULL design and refits on every row, so the interval is calibrated to the
+  complete-data sample size and is narrower than the observed-data Wald
+  interval by an amount that grows with the missing fraction (measured
+  bootstrap/Wald width ratio at 10%/30%/50% masked: 0.82/0.67/0.65 on
+  `engine = "julia"`, 0.83/0.68/0.68 on `engine = "tmb"`). If you bootstrap a
+  heavily masked fit on either engine, treat the interval as
+  anti-conservative. A cross-engine fix is tracked as #1188.
+
 ## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
 
 * `predict()` on an `engine = "julia"` fit accepted `type = c("response",
