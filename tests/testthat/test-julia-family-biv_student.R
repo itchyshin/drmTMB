@@ -174,11 +174,22 @@ test_that("the Julia route refuses every biv_student shape native engine = 'tmb'
   jfit <- function(f) {
     drmTMB::drmTMB(f, family = drmTMB::biv_student(), data = dat, engine = "julia")
   }
-  expect_error(
+  # MERGE NOTE (main, 2026-09-06): the random-effect case is now refused by the
+  # registry-wide `drm_julia_refuse_fe_only_random_effects()`, which fires ahead
+  # of this family's own fence and answers for EVERY `fe`-route family in one
+  # wording. That supersedes the native-wording echo this leaf originally
+  # pinned. The two properties that actually matter are unchanged and are what
+  # this now asserts: the bar is refused BEFORE Julia is started, and the
+  # message sends the user to native `engine = "tmb"`.
+  re_err <- tryCatch(
     jfit(drmTMB::bf(mu1 = y1 ~ x + (1 | g), mu2 = y2 ~ x,
                     sigma1 = ~ 1, sigma2 = ~ 1, nu = ~ 1, rho12 = ~ 1)),
-    "currently allows fixed-effect formulas only"
+    error = function(e) conditionMessage(e)
   )
+  expect_true(is.character(re_err))
+  expect_match(re_err, "fixed-effect", fixed = FALSE)
+  expect_match(re_err, "random-effect bar", fixed = FALSE)
+  expect_match(re_err, 'engine = "tmb"', fixed = TRUE)
   for (part in c("sigma1", "sigma2", "nu", "rho12")) {
     args <- list(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~ 1, sigma2 = ~ 1,
                  nu = ~ 1, rho12 = ~ 1)
