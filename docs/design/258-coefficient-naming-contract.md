@@ -1232,3 +1232,99 @@ starts.
 capability-comparison TSV row for this route is NOT added here (the
 `drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
 outside this leaf's file set) and is left to the integrator.
+
+### 8.10 `zi_nbinom2` (NOT an A4 admission -- an existing route with no evidence; measured at DRM.jl pin 430ef64cc plus DRM.jl PR "bridge fitted/residuals for zero-inflated count fits")
+
+**Why this section is not an admission.** `zi_nbinom2` is not a family in the
+registry's sense on either side. drmTMB reaches it as `family = nbinom2()` plus
+a `zi ~ ...` formula part (`R/drmTMB.R`:
+`model_type = if (has_zi) "zi_nbinom2" else "nbinom2"`), and DRM.jl reaches it
+as `NegBinomial2()` plus a keyed `zi` formula part (`src/negbinomial.jl`,
+`_fit_negbin2_zi`). The `nbinom2` `fe` registry row already admits the family,
+and `zi` is already in `julia_bridge_supported_dpars()` and in DRM.jl's keyed
+univariate vocabulary (`src/bridge.jl`: `mu, sigma, nu, zi, hu, zoi, coi`), so
+the route was already reachable -- with no registry row, no focused test, no
+documentation, and one silent defect. This section and
+`tests/testthat/test-julia-family-zi_nbinom2.R` are the missing evidence.
+
+**Coefficient naming.** Three blocks, base-R spelling, in R's `model.matrix()`
+order, exactly as §7.1 requires. Measured on drmTMB's own
+`tests/testthat/test-zi-nbinom2.R` fixture (`new_zi_nbinom2_data()`, n = 1800,
+seed 20260613) with `bf(count ~ x + habitat, sigma ~ z, zi ~ w + habitat)`:
+
+| dpar | `coef_labels` sent | public `coef_names` echoed back |
+| --- | --- | --- |
+| `mu` | `(Intercept)`, `x`, `habitatopen` | `mu_(Intercept)`, `mu_x`, `mu_habitatopen` |
+| `sigma` | `(Intercept)`, `z` | `sigma_(Intercept)`, `sigma_z` |
+| `zi` | `(Intercept)`, `w`, `habitatopen` | `zi_(Intercept)`, `zi_w`, `zi_habitatopen` |
+
+`sigma` omitted from the formula still gets an intercept-only label from
+`drm_julia_bridge_default_dpar_labels()`; `zi` is never defaulted, because a
+model without a `zi ~` part is not zero-inflated at all.
+
+**Parameterisation, checked for the ZERO-INFLATED variant rather than inherited
+from plain `nbinom2`.** drmTMB (`src/drm_count_kernels.h`,
+`drm_nbinom2_log_density`) uses `alpha = exp(2 * log_sigma)`, i.e.
+size = 1 / sigma^2, and its mixture (`src/drmTMB.cpp`) is
+`logspace_add(log_zi, log1m_zi + log_density)` at `y == 0` and
+`log1m_zi + log_density` otherwise, with `zi = 1 / (1 + exp(-eta_zi))`. DRM.jl
+(`src/negbinomial.jl`, `_fit_negbin2_zi`) uses `r = exp(-2 * eta_sigma)`, i.e.
+size = 1 / sigma^2 as well, `p = r / (r + mu)`, and the mixture
+`_logaddexp(log_pi, log1m_pi + nb)` / `log1m_pi + nb`, with
+`pi = logistic(X_zi * beta_zi)`. Identical size mapping, identical mixture
+algebra, identical logit link.
+
+**Same-target receipt (measured 2026-09-05, this fixture, drmTMB 0.7.0):**
+max |d_coef| = 4.56745752330789e-13 over all 8 coefficients; logLik
+-2886.32364387789 (tmb) vs -2886.32364387791 (julia), |d| =
+1.72803993336856e-11; per-coefficient Wald SE max relative difference
+1.60915216580772e-06 over 8 SEs, with the comparator's negative control
+(`se_julia[1] * 1.10`) rejecting at `SE_FAIL`; `estimator` "ML" equal to
+DRM.jl's own `estim_method` "ML".
+
+**The defect this route carried, and the repair.** DRM.jl's `fitted(fit)` is
+`means[:mu]`, and for a zero-inflated count fit that slot deliberately holds the
+COUNT-COMPONENT mean `exp(Xmu*betahat)` -- `simulate`, `marginal_parameters` and
+`_bridge_dpars` all read the component mean from it. drmTMB's `fitted()` for
+`zi_nbinom2` is the UNCONDITIONAL mean `(1 - zi) * mu` (`R/methods.R`,
+`drm_fitted_response`) and its `residuals()` is `y - fitted`. On the fixture
+above the two engines' `fitted()` therefore disagreed by 1.3665229755584 while
+their coefficients agreed to 4.6e-13 -- a gap no coefficient or likelihood check
+can see. Repaired on the DRM.jl **bridge boundary** by `_bridge_fitted_marginal`
+(`src/bridge.jl`), which returns `(1 - pi) * mu` and `y - (1 - pi) * mu` for a
+fit whose `scales` carry `:zi`, and DRM.jl's own values for everything else;
+`dpars["mu"]` keeps the component mean, unchanged. After the repair
+max |d_fitted| = max |d_residuals| = 4.83169060316868e-13. The same repair
+covers `zi_poisson`, whose drmTMB mean is also `(1 - zi) * mu`. Hurdle
+(`hu ~ ...`) fits store `scales[:hu]` and are deliberately untouched: drmTMB's
+hurdle mean also divides by `1 - P(0)`, and that route has no bridge receipt.
+
+**Refusals, in DRM.jl's own words (post-boot, forwarded through JuliaCall):** a
+random-effect bar -> `NegBinomial2() random effects cannot be combined with
+`zi`/`hu` yet`; `zi` and `hu` together -> ``zi` and `hu` cannot both be
+specified (zero-inflation vs hurdle)`. `REML = TRUE` is refused on the R side by
+the existing non-Gaussian REML rule before Julia starts.
+
+**KNOWN GAPS, pinned by the test file rather than claimed.** Both follow from
+the bridge tagging this fit `"nbinom2"` (the classifier
+`drm_julia_bridge_family_type()` sees only the family OBJECT, which knows
+nothing about the `zi` formula part), and both live in files this leaf does not
+own:
+
+1. `predict(fit, dpar = "zi")` on a Julia-engine fit aborts with ``predict()`
+   has no canonical prediction link for Julia-engine `zi`; this is not a
+   retained fixed-effect distributional parameter`, because `drm_dpar_link()`
+   (`R/methods.R`) looks up `nbinom2`, whose link table has no `zi` row --
+   although a `zi_nbinom2` row with `zi = "logit"` already sits beside it. The
+   native engine answers the same call. Fixing this means making the Julia
+   route's `model_type` zi-aware, which also changes the family tag string sent
+   to DRM.jl for refits (`drm_julia_call_fixef_inference()` passes
+   `object$model$model_type` straight to `_bridge_family`), so it needs its own
+   PR with a `_bridge_family` alias on the Julia side.
+2. `sigma()` on a Julia-engine fit returns a LIST with elements `sigma` and
+   `zi`, where the native engine returns the numeric `sigma` vector. DRM.jl's
+   `sigma(fit)` returns the whole `scales` Dict once it holds more than
+   `:sigma` (`src/gaussian_core.jl`). This one is loud rather than silent
+   (`sigma(ft) - sigma(fj)` errors), and repairing it on the bridge boundary
+   would touch every family whose `scales` carry an extra key, so it is
+   recorded, not fixed.
