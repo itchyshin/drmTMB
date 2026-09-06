@@ -101,9 +101,19 @@ fixed-effect Gaussian \code{impute_model()} for a continuous missing
 predictor (k = 1; no grouped/structured predictor model, no k = 2).}
 
 \item{engine}{Computational engine. The default \code{"tmb"} uses the native
-\code{drmTMB} TMB backend. The \code{"julia"} compatibility bridge is halted and
-deferred for future work; it is retained only so existing objects and code
-can be inspected, not as a current fitting route.}
+\code{drmTMB} TMB backend. \code{"julia"} routes an admitted model to the DRM.jl
+bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
+NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
+an additional large-p \code{phylo()} or coupled location-scale phylo route),
+plus \code{truncated_nbinom2()}, \code{zero_one_beta()}, \code{tweedie()}, and
+\code{beta_binomial()} on the fixed-effect route only. Each admitted family
+carries a same-target parity receipt against \code{engine = "tmb"}
+(coefficients and log-likelihood within 1e-4, Wald SEs within 1e-3
+relative); see \code{vignette("julia-engine", package = "drmTMB")} for
+the full family-by-route table, which capability-ledger row documents
+each receipt, and current boundaries. \code{engine = "julia"} needs a local
+DRM.jl checkout and the optional \code{JuliaCall} package, and it is not a
+drop-in replacement for every native-TMB workflow.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} restricts the likelihood by
@@ -137,11 +147,15 @@ evidence. Every other non-Gaussian family rejects \code{REML = TRUE}; use
 not a \code{drmTMB()} argument and is not what \code{REML = TRUE} runs. Public
 cumulative-logit random-slope fits remain maximum likelihood
 (\code{point_fit_recovery}).
-The halted \code{engine = "julia"} compatibility bridge is not a supported
-estimator or REML route. Use native \code{engine = "tmb"} for fitting and use
-\code{REML = FALSE} for likelihood-ratio tests, AIC/BIC comparisons across
-different fixed-effect formulas, non-binomial non-Gaussian models, and
-currently unsupported extensions.}
+\code{engine = "julia"} fits \code{REML = TRUE} on a route-by-route basis, not
+uniformly: the fixed-effect Gaussian location-scale model, the bivariate
+q = 4 phylogenetic route, the location-scale-scale \code{sd()}/\code{sd_phylo()}
+routes, an ordinary Gaussian \code{mu} random intercept, and large-p Poisson
+\code{phylo()} (a Cox-Reid Laplace route native \code{engine = "tmb"} does not have)
+currently fit \code{REML = TRUE}; every other bridge route refuses it, some
+with a raw DRM.jl error rather than a \code{drmTMB}-worded one. See
+\code{docs/design/261-reml-by-route.md} for the full route-by-route table
+before relying on bridge REML for a model not listed there.}
 
 \item{penalty}{Optional penalty / prior built by \code{\link[=drm_phylo_penalty]{drm_phylo_penalty()}}, or
 \code{NULL} (default) for plain maximum likelihood. A non-\code{NULL} penalty
