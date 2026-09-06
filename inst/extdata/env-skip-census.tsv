@@ -112,8 +112,8 @@ test-julia-fe-only-fence.R	suggests-package	environment	runs	4
 test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
 test-julia-formula-constructs-nongaussian.R	locale	environment	depends	4
 test-julia-formula-constructs-nongaussian.R	suggests-package	environment	runs	4
-test-julia-formula-constructs.R	engine-drm-jl	environment	skips	3
-test-julia-formula-constructs.R	locale	environment	depends	2
+test-julia-formula-constructs.R	engine-drm-jl	environment	skips	4
+test-julia-formula-constructs.R	locale	environment	depends	4
 test-julia-formula-constructs.R	suggests-package	environment	runs	3
 test-julia-gate-vs-engine.R	build-premise	build	skips	1
 test-julia-inference.R	engine-drm-jl	environment	skips	7
