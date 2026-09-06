@@ -142,6 +142,27 @@ every item above.
   single-level factor keep their existing refusals. This is one Gaussian
   location-scale fixture per construct, not a coverage study; the receipts are
   in `docs/dev-log/evidence/julia-r-parity/formula-construct-fidelity/`.
+## Hurdle NB2 through `engine = "julia"`: ONE call now fits on both engines
+
+* `drmTMB(bf(y ~ x, sigma ~ z, hu ~ w), family = truncated_nbinom2())` -- drmTMB's
+  spelling of the hurdle negative binomial, since there is no
+  `hurdle_nbinom2()` constructor -- previously fitted on `engine = "tmb"` and
+  ABORTED on `engine = "julia"`, while the bridge instead accepted
+  `family = nbinom2()` with `hu`, which the native engine refuses. A user could
+  not switch `engine =` on one call. DRM.jl PR #662 makes
+  `TruncatedNegBinomial2()` accept an `hu` part (delegating to its existing
+  NegBinomial2 hurdle kernel), and the bridge fit now reports the native
+  `model_type` `"hurdle_nbinom2"` instead of `"truncated_nbinom2"`, so
+  `predict(fit, dpar = "hu")` resolves its logit link the way it does natively.
+  Measured on the native test suite's own hurdle fixture (n = 1800, 486 zeros),
+  both engines on the same call: coefficients agree to 9.4e-12 over 8
+  coefficients, logLik -2941.45558666655 vs -2941.45558666657, Wald SEs to
+  1.1e-06 relative, estimator `"ML"` on both. Fixed effects only -- no
+  phylogenetic, random-effect or structured hurdle route, and no interval
+  claim. Known gap, declared not fixed: `fitted()`/`residuals()` on this route
+  return the untruncated count mean through the bridge rather than the hurdle
+  mean; every dpar is correct, so `hurdle_nbinom2_mean()` reproduces the native
+  `fitted()` from them exactly.
 ## Bootstrap replicates keep a masked fit's response mask (#1188)
 
 * `confint(method = "bootstrap")` on a fit made with
