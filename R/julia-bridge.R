@@ -2570,16 +2570,32 @@ drm_julia_bridge_default_dpar_labels <- function(labels, formula, family_type) {
     if (!inherits(fam, "drm_family") || is.null(fam$dpars)) return(character(0L))
     setdiff(fam$dpars, c("mu", "sigma"))
   }
-  if (identical(family_type, "biv_lognormal")) {
-    # MERGE NOTE (main, 2026-09-06): this family has NO scalar `sigma`; its
-    # dispersion is sigma1/sigma2 on the log scale. The generic path below
-    # defaults a `sigma` label, which DRM.jl's echo then rejects, so the
-    # bivariate families need their own branch. biv_student carries the same
-    # branch (#1217) -- once both land these three cases should collapse into
-    # one bivariate-aware rule rather than a third copy.
-    for (dpar in c("sigma1", "sigma2", "rho12")) add_default(dpar)
-  } else if (identical(family_type, "biv_gaussian")) {
-    for (dpar in c("sigma1", "sigma2", "rho12")) add_default(dpar)
+  # BIVARIATE families, ONE rule (2026-09-06). biv_gaussian, biv_lognormal and
+  # biv_student each had a near-identical branch here; #1216 and #1217 added the
+  # last two independently, and the integration dropped biv_student's, which put a
+  # spurious scalar `sigma` label on every biv_student payload. Collapsed into one
+  # rule so a fourth bivariate family cannot repeat it.
+  #
+  # Dispatch is on the family's OWN declared dpars, never on the `biv_` NAME
+  # PREFIX: R/julia-family-registry.R records that prefix inference is exactly how
+  # a bivariate family once inherited a scope exemption it had not earned, and that
+  # mistake is not worth repeating in a different file.
+  #
+  # mu1/mu2 are excluded because they come from the formula; everything else the
+  # family declares needs a default label or DRM.jl's echo aborts. That reproduces
+  # all three previous branches exactly: {sigma1,sigma2,rho12} for the two Gaussian
+  # -shaped ones, and those plus the shared `nu` for biv_student.
+  bivariate_dpars <- function(ft) {
+    ctor <- tryCatch(get(ft, mode = "function"), error = function(e) NULL)
+    if (is.null(ctor)) return(character(0L))
+    fam <- tryCatch(ctor(), error = function(e) NULL)
+    if (!inherits(fam, "drm_family") || is.null(fam$dpars)) return(character(0L))
+    if (!all(c("mu1", "mu2") %in% fam$dpars)) return(character(0L))
+    setdiff(fam$dpars, c("mu1", "mu2"))
+  }
+  biv <- bivariate_dpars(family_type)
+  if (length(biv)) {
+    for (dpar in biv) add_default(dpar)
   } else if (!(family_type %in% drm_julia_dispersionless_families())) {
     add_default("sigma")
     for (dpar in extra_native_dpars(family_type)) add_default(dpar)
