@@ -27,7 +27,8 @@ test-b1-breadth-dispatch.R	build-premise	build	skips	1
 test-b1-dispatch-self-location.R	build-premise	build	skips	2
 test-b1-dispatch-self-location.R	cran-lane	environment	runs	2
 test-b1-dispatch-self-location.R	external-tool	environment	runs	1
-test-b2-q6-serial-proof-receipt-audit.R	build-premise	build	skips	1
+test-b2-q6-serial-proof-receipt-audit.R	build-premise	build	skips	2
+test-b2-q6-serial-proof-receipt-audit.R	history-premise	build	skips	1
 test-beta-location-scale.R	suggests-package	environment	runs	2
 test-beta-phylo-direct-sd.R	suggests-package	environment	runs	5
 test-beta-phylo-q1-recovery-runner.R	build-premise	build	skips	1
@@ -130,6 +131,7 @@ test-julia-predict-quantile.R	engine-drm-jl	environment	skips	1
 test-julia-predict-quantile.R	suggests-package	environment	runs	3
 test-julia-q2-phylo-point-export.R	engine-drm-jl	environment	skips	2
 test-julia-q2-phylo-point-export.R	suggests-package	environment	runs	4
+test-julia-reml-biv-residual.R	engine-drm-jl	environment	skips	1
 test-julia-sigma-phylo-reml.R	engine-drm-jl	environment	skips	2
 test-julia-sigma-phylo-reml.R	suggests-package	environment	runs	4
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
@@ -220,8 +222,8 @@ test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1
 test-profile-shape-boundary.R	suggests-package	environment	runs	2
-test-profile-targets-julia.R	engine-drm-jl	environment	skips	1
-test-profile-targets-julia.R	suggests-package	environment	runs	2
+test-profile-targets-julia.R	engine-drm-jl	environment	skips	2
+test-profile-targets-julia.R	suggests-package	environment	runs	4
 test-profile-targets.R	cran-lane	environment	runs	1
 test-profile-targets.R	os	environment	runs	4
 test-profile-targets.R	suggests-package	environment	runs	1
