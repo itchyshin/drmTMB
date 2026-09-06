@@ -148,6 +148,24 @@ reader_contract_private_accesses <- function(path) {
   records[c("line", "field", "text")]
 }
 
+# The reader corpus lives in two directories, not one: `vignettes/` holds the
+# vignettes shipped in the tarball, and `vignettes/articles/` holds the
+# pkgdown-only articles.  Both are reader-facing prose, so both are policed and
+# discovery is recursive.  It is keyed on basename because that is the key the
+# manifest and the exception records already use; a basename that occurs in more
+# than one directory makes that key ambiguous and is reported rather than
+# silently resolved to whichever file sorted first.
+reader_contract_source_paths <- function(vignette_dir) {
+  paths <- sort(list.files(
+    vignette_dir,
+    pattern = "\\.Rmd$",
+    recursive = TRUE,
+    full.names = TRUE
+  ))
+  names(paths) <- basename(paths)
+  paths
+}
+
 reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "inst", "reader-contracts")) {
   root <- normalizePath(root, mustWork = TRUE)
   vignette_dir <- file.path(root, "vignettes")
@@ -159,8 +177,20 @@ reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "ins
     file.path(contract_dir, "private-access-exceptions.csv"),
     c("vignette", "field", "clause", "rationale")
   )
-  source_vignettes <- sort(basename(list.files(vignette_dir, pattern = "\\.Rmd$", full.names = TRUE)))
+  source_paths <- reader_contract_source_paths(vignette_dir)
+  source_vignettes <- sort(unique(names(source_paths)))
   problems <- character()
+
+  ambiguous_names <- unique(names(source_paths)[duplicated(names(source_paths))])
+  if (length(ambiguous_names)) {
+    problems <- reader_contract_problem(
+      problems,
+      paste0(
+        "Ambiguous vignette basename(s) under vignettes/: ",
+        paste(ambiguous_names, collapse = ", ")
+      )
+    )
+  }
 
   if (anyDuplicated(manifest$vignette)) {
     duplicated_names <- unique(manifest$vignette[duplicated(manifest$vignette)])
@@ -305,7 +335,7 @@ reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "ins
 
   for (vignette in intersect(source_vignettes, manifest_names)) {
     manifest_row <- manifest[match(vignette, manifest$vignette), , drop = FALSE]
-    accesses <- reader_contract_private_accesses(file.path(vignette_dir, vignette))
+    accesses <- reader_contract_private_accesses(source_paths[[vignette]])
     declared <- reader_contract_split_fields(manifest_row$permitted_private_fields[[1L]])
     used_declared <- character()
 
