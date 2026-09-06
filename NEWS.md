@@ -1,5 +1,30 @@
 # drmTMB 0.7.0
 
+## Julia routes that refuse a whole `control` now name the offending settings (#1108)
+
+* The four `engine = "julia"` routes that accept only a default `drm_control()`
+  -- structured, bivariate q2 structured, cross-family, and the joint
+  missing-predictor adapter -- refused without saying WHICH setting they
+  refused. A caller who passed `drm_control(newton_polish = FALSE,
+  se_group_sd = TRUE, optimizer = list(iter.max = 500))` to a cross-family
+  model was told only that "cross-family models currently accept only default
+  `control`" and had to bisect their own call to find out why. Those routes
+  were already fail-CLOSED -- nothing was silently dropped on them -- so this is
+  a message defect, not a behaviour one, and the fitting behaviour is unchanged.
+* The refusal now adds a line naming every non-default setting, derived from
+  `drm_control()` itself (`drm_julia_nondefault_control_fields()`) rather than
+  hand-listed, and reports `optimizer` entries the way a user wrote them
+  (`optimizer$iter.max`). Measured on this branch, the same call now reports
+  `Non-default control settings: "se_group_sd", "newton_polish", and
+  "optimizer$iter.max"`.
+* `optimizer_preset` is a macro that also rewrites the nlminb iteration
+  budgets, so it reports `optimizer_preset`, `optimizer$iter.max` and
+  `optimizer$eval.max` together. That is measured behaviour and is pinned by a
+  test rather than hidden.
+* `tests/testthat/test-julia-control-refusal-names.R` enumerates
+  `names(drm_control())`, so a new control field that the naming layer does not
+  cover fails the suite instead of going unnamed.
+
 ## `predict(type = "quantile")` now works through `engine = "julia"` (#1198)
 
 * `predict()` on an `engine = "julia"` fit accepted `type = c("response",
