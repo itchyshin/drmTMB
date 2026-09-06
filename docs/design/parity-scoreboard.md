@@ -8,7 +8,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `51706a075febcfcf30a58385d827ef449ca9dc2a` |
+| drmTMB (this repo, HEAD at generation) | `4a4dd59bf6237289d33b19b4b5a5b8d1c013aaee` |
 | DRM.jl (read with `git show`, never the working tree) | `99a52c6bb34c21435576a8fda089a636a736a2c3` |
 
 Both numbers below and every citation in the table are functions of those
@@ -20,10 +20,10 @@ two commits and nothing else. Quote the shas whenever you quote the counts.
 `docs/design/capability-status.md` (45 rows), each matched byte-for-byte to a row of DRM.jl's file
 (48 rows).
 
-**UNCITED cells: 17 of 135** (45 capabilities x 3 axes). 17 of the 45 capabilities
+**UNCITED cells: 15 of 135** (45 capabilities x 3 axes). 15 of the 45 capabilities
 carry at least one UNCITED cell.
 
-Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 17 UNCITED**.
+Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 15 UNCITED**.
 
 **25 of 45** capabilities are reachable through `engine = "julia"` with a
 PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).
@@ -46,7 +46,7 @@ of that name in that file.
 | `RECEIPT` | a passing receipt row in a DRM.jl evidence table, reached through a committed `inst/extdata/julia-capabilities.tsv` row the matrix cites |
 | `RECEIPT-NOT-LEDGERED` | a passing receipt exists, but NO committed drmTMB ledger row connects it to this capability; the link is a declared alias in the generator |
 | `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |
-| `REFUSED` | drmTMB's bridge refuses the route at `drm_julia_family_tag()`, with the line |
+| `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |
 | `REFUSED+UPSTREAM-RECEIPT` | refused by drmTMB, yet DRM.jl carries a receipt -- a contradiction, counted above |
 | `UNCITED` | no receipt and no cited refusal. Includes every row whose `bridge_route` only ASSERTS "no bridge route" with no file:line behind it |
 
@@ -66,7 +66,8 @@ the programme cannot point at.
 | bridge | `RECEIPT` | 25 |
 | bridge | `RECEIPT-NOT-LEDGERED` | 2 |
 | bridge | `RECEIPT-NOT-PASS` | 1 |
-| bridge | `UNCITED` | 17 |
+| bridge | `REFUSED` | 2 |
+| bridge | `UNCITED` | 15 |
 
 ## The scoreboard
 
@@ -99,8 +100,8 @@ the programme cannot point at.
 | `Gaussian relmat random intercept (mean)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:76, `implemented`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:81, `implemented`) | receipt capability_id=general_covariance_structured status=PARITY_PASS "Gaussian, relmat(1 \| id, K = K) mean intercept, sigma ~ 1" (DRM.jl@99a52c6b:docs/dev-log/evidence/parity-classc.tsv:5); receipt capability_id=general_covariance_structured status=PARITY_PASS "Poisson, relmat(1 \| id, K = K) mean intercept" (DRM.jl@99a52c6b:docs/dev-log/evidence/parity-classc.tsv:6); receipt capability_id=general_covariance_structured status=PARITY_PASS "NegBinomial2, relmat(1 \| id, K = K) mean intercept, sigma ~ 1" (DRM.jl@99a52c6b:docs/dev-log/evidence/parity-classc.tsv:7); +1 more receipt row(s) |
 | `Non-Gaussian phylogenetic random intercept (mean)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:77, `scope-limited`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:82, `implemented`) | receipt capability_id=phylo_count_large_p status=PARITY_PASS "Poisson, phylo(1 \| species) mean intercept, smoke p=20" (DRM.jl@99a52c6b:docs/dev-log/evidence/parity-classc.tsv:2); receipt capability_id=phylo_count_large_p status=PARITY_PASS "Poisson, phylo(1 \| species) mean intercept, p=300" (DRM.jl@99a52c6b:docs/dev-log/evidence/parity-classc.tsv:3); receipt capability_id=phylo_count_large_p status=PARITY_PASS "NegBinomial2, phylo(1 \| species) mean intercept, p=300" (DRM.jl@99a52c6b:docs/dev-log/evidence/parity-classc.tsv:4); +5 more receipt row(s) |
 | `Non-Gaussian phylogenetic location-scale (μ + log σ)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:78, `scope-limited`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:83, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Tweedie random intercept (mean)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:79, `implemented`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:84, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Gaussian phylogenetic random intercept + slope, two SDs (mean)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:80, `implemented`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:78, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
+| `Tweedie random intercept (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:79, `implemented`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:84, `implemented`) | refused at R/julia-bridge.R:1417 |
+| `Gaussian phylogenetic random intercept + slope, two SDs (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:80, `implemented`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:78, `implemented`) | refused at R/julia-bridge.R:2764 |
 | `REML (Gaussian fixed-effect location-scale)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:120, `point-fit-recovery`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:175, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `REML with ordinary random effects (Gaussian mean)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:121, `point-fit-recovery`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:176, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `REML bivariate phylogenetic location-scale (q4, all axes)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:122, `scope-limited`) | FITS (DRM.jl@99a52c6b:docs/design/capability-status.md:177, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `biv_q4_phylo_reml` carry no receipt row at the ref) |
@@ -120,11 +121,9 @@ the programme cannot point at.
 
 ## Every UNCITED bridge cell, with what is missing
 
-17 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
+15 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
 
 - `Non-Gaussian phylogenetic location-scale (μ + log σ)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Tweedie random intercept (mean)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Gaussian phylogenetic random intercept + slope, two SDs (mean)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `REML (Gaussian fixed-effect location-scale)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `REML with ordinary random effects (Gaussian mean)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `REML bivariate phylogenetic location-scale (q4, all axes)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `biv_q4_phylo_reml` carry no receipt row at the ref)
