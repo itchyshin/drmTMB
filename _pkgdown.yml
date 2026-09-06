@@ -4,7 +4,7 @@ template:
   bootstrap: 5
   bootswatch: flatly
   includes:
-    before_navbar: '<span class="drmtmb-version-note">0.7.0 pre-CRAN</span>'
+    before_navbar: '<span class="drmtmb-version-note">0.7.1 pre-CRAN</span>'
   bslib:
     primary: "#0f7887"
     headings-color: "#112638"
