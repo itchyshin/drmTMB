@@ -8,7 +8,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `06218f4594a8d873859fff2a119a76d4cdc1a8d0` |
+| drmTMB (this repo, HEAD at generation) | `24eebba949a0e69b2402ac013e58e0d697087852` |
 | DRM.jl (read with `git show`, never the working tree) | `21b033028bbe36662b53357dae0db5e0e43aecf1` |
 
 Both numbers below and every citation in the table are functions of those
@@ -20,12 +20,12 @@ two commits and nothing else. Quote the shas whenever you quote the counts.
 `docs/design/capability-status.md` (45 rows), each matched byte-for-byte to a row of DRM.jl's file
 (48 rows).
 
-**UNCITED cells: 15 of 135** (45 capabilities x 3 axes). 15 of the 45 capabilities
+**UNCITED cells: 12 of 135** (45 capabilities x 3 axes). 12 of the 45 capabilities
 carry at least one UNCITED cell.
 
-Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 15 UNCITED**.
+Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 12 UNCITED**.
 
-**25 of 45** capabilities are reachable through `engine = "julia"` with a
+**27 of 45** capabilities are reachable through `engine = "julia"` with a
 PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).
 That is the number a closure may quote as bridge coverage. Every other
 verdict is something weaker, and is named below.
@@ -63,11 +63,11 @@ the programme cannot point at.
 | native_Julia | `FITS` | 41 |
 | native_Julia | `PARTIAL` | 1 |
 | native_Julia | `NO` | 3 |
-| bridge | `RECEIPT` | 25 |
+| bridge | `RECEIPT` | 27 |
 | bridge | `RECEIPT-NOT-LEDGERED` | 2 |
 | bridge | `RECEIPT-NOT-PASS` | 1 |
-| bridge | `REFUSED` | 2 |
-| bridge | `UNCITED` | 15 |
+| bridge | `REFUSED` | 3 |
+| bridge | `UNCITED` | 12 |
 
 ## The scoreboard
 
@@ -100,8 +100,8 @@ the programme cannot point at.
 | `Gaussian relmat random intercept (mean)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:76, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:81, `implemented`) | receipt capability_id=general_covariance_structured status=PARITY_PASS "Gaussian, relmat(1 \| id, K = K) mean intercept, sigma ~ 1" (DRM.jl@21b03302:docs/dev-log/evidence/parity-classc.tsv:5); receipt capability_id=general_covariance_structured status=PARITY_PASS "Poisson, relmat(1 \| id, K = K) mean intercept" (DRM.jl@21b03302:docs/dev-log/evidence/parity-classc.tsv:6); receipt capability_id=general_covariance_structured status=PARITY_PASS "NegBinomial2, relmat(1 \| id, K = K) mean intercept, sigma ~ 1" (DRM.jl@21b03302:docs/dev-log/evidence/parity-classc.tsv:7); +1 more receipt row(s) |
 | `Non-Gaussian phylogenetic random intercept (mean)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:77, `scope-limited`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:82, `implemented`) | receipt capability_id=phylo_count_large_p status=PARITY_PASS "Poisson, phylo(1 \| species) mean intercept, smoke p=20" (DRM.jl@21b03302:docs/dev-log/evidence/parity-classc.tsv:2); receipt capability_id=phylo_count_large_p status=PARITY_PASS "Poisson, phylo(1 \| species) mean intercept, p=300" (DRM.jl@21b03302:docs/dev-log/evidence/parity-classc.tsv:3); receipt capability_id=phylo_count_large_p status=PARITY_PASS "NegBinomial2, phylo(1 \| species) mean intercept, p=300" (DRM.jl@21b03302:docs/dev-log/evidence/parity-classc.tsv:4); +5 more receipt row(s) |
 | `Non-Gaussian phylogenetic location-scale (μ + log σ)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:78, `scope-limited`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:83, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Tweedie random intercept (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:79, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:84, `implemented`) | refused at R/julia-bridge.R:1493 |
-| `Gaussian phylogenetic random intercept + slope, two SDs (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:80, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:78, `implemented`) | refused at R/julia-bridge.R:2840 |
+| `Tweedie random intercept (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:79, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:84, `implemented`) | refused at R/julia-bridge.R:1640 |
+| `Gaussian phylogenetic random intercept + slope, two SDs (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:80, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:78, `implemented`) | refused at R/julia-bridge.R:3206 |
 | `REML (Gaussian fixed-effect location-scale)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:120, `point-fit-recovery`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:175, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `REML with ordinary random effects (Gaussian mean)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:121, `point-fit-recovery`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:176, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `REML bivariate phylogenetic location-scale (q4, all axes)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:122, `scope-limited`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:177, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `biv_q4_phylo_reml` carry no receipt row at the ref) |
@@ -110,18 +110,18 @@ the programme cannot point at.
 | `Parametric bootstrap CIs` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:125, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:183, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `AGHQ adaptive-quadrature marginal estimator` | NO | FITS | UNCITED | NO (docs/design/capability-status.md:126, `planned`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:184, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `Variational (VA/ELBO) marginal estimator` | NO | NO | UNCITED | NO (docs/design/capability-status.md:127, `planned`) | NO (DRM.jl@21b03302:docs/design/capability-status.md:185, `planned`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Chi-bar-square boundary LRT p-value` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:128, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:186, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Model comparison suite (LRT/anova/AICc/weights/update)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:129, `scope-limited`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:187, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Heritability/repeatability/ICC accessors` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:130, `point-fit-recovery`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:188, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Bivariate structured random effect on all four axes (q4 PLSM)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:195, `point-fit-recovery`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:290, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `biv_q4_phylo_reml` carry no receipt row at the ref) |
-| `Cross-family bivariate (different families for y1 y2)` | NO | NO | UNCITED | NO (docs/design/capability-status.md:196, `planned`) | NO (DRM.jl@21b03302:docs/design/capability-status.md:291, `missing`) | UNCITED -- no receipt reaches this capability (ledger row(s) `cross_family_latent` carry no receipt row at the ref) |
-| `Missing-response handling (native, per fitted route)` | FITS | NO | RECEIPT | FITS (docs/design/capability-status.md:197, `implemented`) | NO (DRM.jl@21b03302:docs/design/capability-status.md:292, `missing`) | receipt capability_id=gaussian_response_mask status=PARITY_PASS "Gaussian observed-response mask (miss_control(response = 'include'))" (DRM.jl@21b03302:docs/dev-log/evidence/parity-fixtures.tsv:32) |
-| `Missing-predictor imputation (mi())` | FITS | PARTIAL | UNCITED | FITS (docs/design/capability-status.md:198, `implemented`) | PARTIAL (DRM.jl@21b03302:docs/design/capability-status.md:293, `experimental`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `R to Julia bridge (engine=julia)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:199, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:294, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `engine_control_surface` carry no receipt row at the ref) |
+| `Chi-bar-square boundary LRT p-value` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:128, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:186, `implemented`) | receipt capability_id=accessor_chibar_boundary status=PARITY_PASS "lrt_boundary/chibar_pvalue on two engine=julia fits (Gaussian random intercept, n=360, G=30)" (DRM.jl@21b03302:docs/dev-log/evidence/parity-fixtures.tsv:30) |
+| `Model comparison suite (LRT/anova/AICc/weights/update)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:129, `scope-limited`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:187, `implemented`) | receipt capability_id=accessor_model_comparison status=PARITY_PASS "aicc/lrtest on an engine=julia fit (Gaussian random intercept, n=360, G=30)" (DRM.jl@21b03302:docs/dev-log/evidence/parity-fixtures.tsv:31) |
+| `Heritability/repeatability/ICC accessors` | PARTIAL | FITS | REFUSED | PARTIAL (docs/design/capability-status.md:130, `point-fit-recovery`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:188, `implemented`) | refused at R/heritability.R:212 |
+| `Bivariate structured random effect on all four axes (q4 PLSM)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:242, `point-fit-recovery`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:290, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `biv_q4_phylo_reml` carry no receipt row at the ref) |
+| `Cross-family bivariate (different families for y1 y2)` | NO | NO | UNCITED | NO (docs/design/capability-status.md:243, `planned`) | NO (DRM.jl@21b03302:docs/design/capability-status.md:291, `missing`) | UNCITED -- no receipt reaches this capability (ledger row(s) `cross_family_latent` carry no receipt row at the ref) |
+| `Missing-response handling (native, per fitted route)` | FITS | NO | RECEIPT | FITS (docs/design/capability-status.md:244, `implemented`) | NO (DRM.jl@21b03302:docs/design/capability-status.md:292, `missing`) | receipt capability_id=gaussian_response_mask status=PARITY_PASS "Gaussian observed-response mask (miss_control(response = 'include'))" (DRM.jl@21b03302:docs/dev-log/evidence/parity-fixtures.tsv:32) |
+| `Missing-predictor imputation (mi())` | FITS | PARTIAL | UNCITED | FITS (docs/design/capability-status.md:245, `implemented`) | PARTIAL (DRM.jl@21b03302:docs/design/capability-status.md:293, `experimental`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
+| `R to Julia bridge (engine=julia)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:246, `implemented`) | FITS (DRM.jl@21b03302:docs/design/capability-status.md:294, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `engine_control_surface` carry no receipt row at the ref) |
 
 ## Every UNCITED bridge cell, with what is missing
 
-15 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
+12 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
 
 - `Non-Gaussian phylogenetic location-scale (μ + log σ)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `REML (Gaussian fixed-effect location-scale)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
@@ -131,9 +131,6 @@ the programme cannot point at.
 - `Parametric bootstrap CIs` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `AGHQ adaptive-quadrature marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `Variational (VA/ELBO) marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Chi-bar-square boundary LRT p-value` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Model comparison suite (LRT/anova/AICc/weights/update)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Heritability/repeatability/ICC accessors` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `Bivariate structured random effect on all four axes (q4 PLSM)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `biv_q4_phylo_reml` carry no receipt row at the ref)
 - `Cross-family bivariate (different families for y1 y2)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `cross_family_latent` carry no receipt row at the ref)
 - `Missing-predictor imputation (mi())` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
@@ -151,10 +148,8 @@ the table they live in is not joinable by `capability_id`. They are listed so
 the UNCITED count above cannot be read as "no evidence exists"; it means no
 evidence is CONNECTED.
 
-`capability_id`s with receipt rows that no capability row reaches (16):
+`capability_id`s with receipt rows that no capability row reaches (14):
 
-- `accessor_chibar_boundary`
-- `accessor_model_comparison`
 - `base_gaussian_intercept_only`
 - `biv_lognormal`
 - `biv_student`

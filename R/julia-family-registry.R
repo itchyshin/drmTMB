@@ -145,6 +145,18 @@ drm_julia_family_registry <- function() {
     # or structured route (a later row's job).
     spec("cumulative_logit", predictor_dpars = "*",
                          fe = TRUE, dispersionless = TRUE),
+    # biv_student (A4, 2026-09-05): drmTMB's exact shared-nu bivariate
+    # Student-t, fixed-effect route ONLY. dpars mu1, mu2, sigma1, sigma2, one
+    # shared nu, rho12 -- the SAME parameterisation on both sides: identity
+    # mu1/mu2, log sigma1/sigma2 (SCALES, not marginal SDs), nu on the "logm2"
+    # link nu = 2 + exp(eta), and a guarded-atanh rho12 SCATTER correlation
+    # (R/family.R `biv_student()`; DRM.jl src/bivariate_student.jl at pin
+    # 430ef64cc). Bivariate-ness is a FORMULA property in DRM.jl, so its
+    # `_bridge_family()` maps this tag to `Student()` and the keyed mu1/mu2
+    # parts select the bivariate route (src/bridge.jl). No phylo, RE, or
+    # structured column: DRM.jl refuses structured markers on this route by
+    # design ("residual-only"), and native drmTMB defers them too.
+    spec("biv_student", predictor_dpars = c("mu1", "mu2"), fe = TRUE),
     # ---- A4 admissions, one row per PR ---------------------------------------
     # skew_normal (dpars mu, sigma, nu): fixed effects only -- DRM.jl's
     # SkewNormal() refuses every random effect and structured marker, and the
@@ -153,29 +165,42 @@ drm_julia_family_registry <- function() {
     # DRM.jl's _bridge_family() case for the "skew_normal" tag is DRM.jl
     # PR #641 (A4, 2026-09-05); pin 430ef64cc lacks it and refuses at the
     # Julia boundary ("drm_bridge: unsupported family `skew_normal`").
-    spec("skew_normal",  predictor_dpars = "*", fe = TRUE)
+    spec("skew_normal",  predictor_dpars = "*", fe = TRUE),
+    # biv_lognormal (2026-09-05): the bivariate residual route only, dpars
+    # mu1 + mu2 + sigma1 + sigma2 + rho12, fixed-effect mu1/mu2 with
+    # intercept-only sigma1/sigma2/rho12 -- exactly the cell
+    # drm_build_biv_lognormal_spec() (R/drmTMB.R) admits natively; it refuses
+    # random, structured, meta_V, offset, and sigma/rho predictor terms itself,
+    # so no phylo/structured column is set here.
+    #
+    # SCALE CONTRACT, the thing this row rests on. Both engines take the two
+    # responses on the RAW positive scale and log them internally, so mu1/mu2
+    # are means of log y (identity link), sigma1/sigma2 are SDs of log y (log
+    # link), and rho12 is the LOG-residual correlation. Both also add the
+    # parameter-free change-of-variables Jacobian -sum(log y1) - sum(log y2)
+    # to the log-likelihood: drmTMB's TMB kernel does it in src/drmTMB.cpp
+    # (model_type 19 adds weights(i) * (y1(i) + y2(i)) to the nll AFTER
+    # spec$y1/spec$y2 have been logged), and DRM.jl does it in
+    # src/bivariate_lognormal.jl `_lognormal_jacobian_shift` after delegating
+    # the whole fit to the bivariate Gaussian kernel on logged data. The tag
+    # `biv_lognormal` reaches DRM.jl's `_bridge_family` unchanged
+    # (src/bridge.jl:634 at pin 430ef64cc -> `LogNormal()`; bivariate-ness is
+    # a property of the FORMULA there, as for biv_gaussian).
+    spec("biv_lognormal", predictor_dpars = c("mu1", "mu2"), fe = TRUE)
     # ---- NOT admitted today: A4 adds one row per family, each its own PR ----
     # Julia bridge has NO case yet (needs DRM.jl src/bridge.jl too):
-    #   skew_normal
+    #   zi_poisson, zi_nbinom2, hurdle_nbinom2
     #
-    # NOT FAMILIES, AND SO NOT ROWS (corrected 2026-09-05, measured). This list
-    # previously also named zi_poisson, zi_nbinom2 and hurdle_nbinom2 as
-    # families the Julia bridge had "NO case" for. That was wrong on both
-    # halves. They are `model_type` values, not `family_type` values --
-    # `drm_family_type()` (R/drmTMB.R) never returns any of them; a
-    # zero-inflated Poisson is spelled `family = poisson()` plus a `zi ~`
-    # formula part, and drmTMB records "zi_poisson" only AFTER the fit. The
-    # bridge therefore routes them today through the `poisson` / `nbinom2` rows
-    # above plus the `zi` / `hu` entries in `julia_bridge_supported_dpars()`,
-    # exactly as DRM.jl spells them (`family = "poisson"` + a keyed `zi`
-    # formula entry, src/bridge.jl at pin 430ef64cc). All three carry banked
-    # same-target receipts (capability_ids zi_poisson, zi_nbinom2,
-    # hurdle_nbinom2). A registry row keyed on any of those three names would
-    # admit a family tag drmTMB never emits -- dead code -- and DRM.jl
-    # deliberately refuses such a tag rather than aliasing it to Poisson(),
-    # because an alias would fit a PLAIN Poisson without error whenever the
-    # `zi ~` part was omitted.
-    # Focused tests for the route: tests/testthat/test-julia-zi-poisson.R.
+    # hurdle_nbinom2 is NOT on that list and needs NO row of its own: it is a
+    # post-fit `model_type`, not a family_type. There is no `hurdle_nbinom2()`
+    # constructor -- the native spelling is `family = truncated_nbinom2()` plus
+    # an `hu ~ ...` entry, so the `truncated_nbinom2` row above already admits
+    # it and `hu` is already in `julia_bridge_supported_dpars()`. The bridge
+    # fit's model_type is corrected to "hurdle_nbinom2" by
+    # `drm_julia_bridge_model_type()` (R/julia-bridge.R). The same is true of
+    # zi_poisson / zi_nbinom2, which are `poisson()` / `nbinom2()` plus a
+    # `zi ~ ...` entry; the line above names the tags the bridge has no case
+    # for, not models it cannot fit.
   )
 }
 

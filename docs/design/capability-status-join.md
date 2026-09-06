@@ -9,7 +9,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `df1aca4a60f9f450629238f241392d11f44d2d3a` |
+| drmTMB (this repo, HEAD at generation) | `f906356a2e855419f321b549faa8b3790750e70d` |
 | DRM.jl `aee371cc9627c24945859f4caa749e0d5b691782`, read with `git show` -- never its working tree | `aee371cc9627c24945859f4caa749e0d5b691782` |
 
 The canonical DRM.jl clone normally sits on some lane's branch. Reading its
@@ -25,7 +25,7 @@ this file reads a named ref and records the sha it resolved to.
 | matched byte-for-byte on the row name | 45 |
 | **present only in drmTMB's file** | **0** |
 | **present only in DRM.jl's file** | **3** |
-| matched but the status WORD differs | 14 |
+| matched but the status WORD differs | 13 |
 
 ## Rows only in drmTMB's file
 
@@ -60,13 +60,12 @@ between the twins that a closure statement would otherwise average away.
 | `REML with ordinary random effects (Gaussian mean)` | `point-fit-recovery` (docs/design/capability-status.md:121) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:165) |
 | `REML bivariate phylogenetic location-scale (q4, all axes)` | `scope-limited` (docs/design/capability-status.md:122) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:166) |
 | `AGHQ adaptive-quadrature marginal estimator` | `planned` (docs/design/capability-status.md:126) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:173) |
-| `Chi-bar-square boundary LRT p-value` | `planned` (docs/design/capability-status.md:128) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:175) |
-| `Model comparison suite (LRT/anova/AICc/weights/update)` | `planned` (docs/design/capability-status.md:129) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:176) |
+| `Model comparison suite (LRT/anova/AICc/weights/update)` | `scope-limited` (docs/design/capability-status.md:129) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:176) |
 | `Heritability/repeatability/ICC accessors` | `point-fit-recovery` (docs/design/capability-status.md:130) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:177) |
-| `Bivariate structured random effect on all four axes (q4 PLSM)` | `point-fit-recovery` (docs/design/capability-status.md:164) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:279) |
-| `Cross-family bivariate (different families for y1 y2)` | `planned` (docs/design/capability-status.md:165) | `missing` (DRM.jl@aee371cc:docs/design/capability-status.md:280) |
-| `Missing-response handling (native, per fitted route)` | `implemented` (docs/design/capability-status.md:166) | `missing` (DRM.jl@aee371cc:docs/design/capability-status.md:281) |
-| `Missing-predictor imputation (mi())` | `implemented` (docs/design/capability-status.md:167) | `experimental` (DRM.jl@aee371cc:docs/design/capability-status.md:282) |
+| `Bivariate structured random effect on all four axes (q4 PLSM)` | `point-fit-recovery` (docs/design/capability-status.md:242) | `implemented` (DRM.jl@aee371cc:docs/design/capability-status.md:279) |
+| `Cross-family bivariate (different families for y1 y2)` | `planned` (docs/design/capability-status.md:243) | `missing` (DRM.jl@aee371cc:docs/design/capability-status.md:280) |
+| `Missing-response handling (native, per fitted route)` | `implemented` (docs/design/capability-status.md:244) | `missing` (DRM.jl@aee371cc:docs/design/capability-status.md:281) |
+| `Missing-predictor imputation (mi())` | `implemented` (docs/design/capability-status.md:245) | `experimental` (DRM.jl@aee371cc:docs/design/capability-status.md:282) |
 
 ## What this file does NOT claim
 

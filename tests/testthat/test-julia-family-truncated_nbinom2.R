@@ -119,8 +119,13 @@ drm_tnb2_live <- function() {
         # the engine's own refusals: nothing is dropped silently
         err_ranef = err_of(drmTMB::drmTMB(
           drmTMB::bf(y ~ x + (1 | g), sigma ~ 1), family = fam, data = dat, engine = "julia")),
-        err_hurdle = err_of(drmTMB::drmTMB(
-          drmTMB::bf(y ~ x, sigma ~ 1, hu ~ 1), family = fam, data = dat, engine = "julia")),
+        # `hu` is no longer refused here: since DRM.jl PR #662 an `hu` part on
+        # this family IS the hurdle NB2, drmTMB's own spelling of it, and it is
+        # covered by tests/testthat/test-julia-family-hurdle_nbinom2.R. The
+        # "nothing is dropped silently" probe moves to the part this family
+        # genuinely does not consume.
+        err_zi = err_of(drmTMB::drmTMB(
+          drmTMB::bf(y ~ x, sigma ~ 1, zi ~ 1), family = fam, data = dat, engine = "julia")),
         err_zero = err_of(drmTMB::drmTMB(fml, family = fam, data = dat_zero, engine = "julia"))
       )
     },
@@ -164,10 +169,16 @@ test_that("truncated_nbinom2 through engine = \"julia\": same target as native T
   expect_true(all(is.finite(a)) && all(is.finite(b)) && all(a > 1e-6) && all(b > 1e-6))
   expect_lt(max(abs(a - b) / pmax(abs(a), abs(b))), 1e-3)
 
-  # Refusals, in DRM.jl's own words (measured at pin 430ef64cc): the route is
-  # fixed effects only, the hurdle dpar is caught by the design-258 echo rather
-  # than dropped, and zeros are rejected as they are natively
-  expect_match(res$err_ranef, "TruncatedNegBinomial2\\(\\) currently supports fixed effects only")
-  expect_match(res$err_hurdle, "coef_labels supplies names for unknown dpar \"hu\"")
+  # Refusals, in DRM.jl's own words: the route is fixed effects only, a formula
+  # part this family does not consume is refused rather than dropped (DRM.jl PR
+  # #662; before it, `zi` was deleted from the likelihood without a word), and
+  # zeros are rejected as they are natively
+  # Was DRM.jl's "TruncatedNegBinomial2() currently supports fixed effects only"
+  # until the A4.G17 fe-only fence landed in R/julia-bridge.R: the fence runs
+  # BEFORE Julia boots, so the R-side message is now the one a user sees. Found
+  # red on origin/main by the fam-hurdle-nbinom2 leaf's live run, 2026-09-05.
+  expect_match(res$err_ranef, "only on the `fe`")
+  expect_match(res$err_ranef, "random-effect bar term")
+  expect_match(res$err_zi, "unsupported formula part `zi`")
   expect_match(res$err_zero, "requires positive integer counts")
 })

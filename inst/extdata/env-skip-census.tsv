@@ -95,8 +95,14 @@ test-julia-diagnostics.R	engine-drm-jl	environment	skips	4
 test-julia-diagnostics.R	suggests-package	environment	runs	3
 test-julia-family-beta_binomial.R	engine-drm-jl	environment	skips	1
 test-julia-family-beta_binomial.R	suggests-package	environment	runs	1
+test-julia-family-biv_lognormal.R	engine-drm-jl	environment	skips	1
+test-julia-family-biv_lognormal.R	suggests-package	environment	runs	3
+test-julia-family-biv_student.R	engine-drm-jl	environment	skips	1
+test-julia-family-biv_student.R	suggests-package	environment	runs	3
 test-julia-family-cumulative_logit.R	engine-drm-jl	environment	skips	1
 test-julia-family-cumulative_logit.R	suggests-package	environment	runs	3
+test-julia-family-hurdle_nbinom2.R	engine-drm-jl	environment	skips	3
+test-julia-family-hurdle_nbinom2.R	suggests-package	environment	runs	6
 test-julia-family-skew_normal.R	engine-drm-jl	environment	skips	1
 test-julia-family-skew_normal.R	suggests-package	environment	runs	3
 test-julia-family-truncated_nbinom2.R	engine-drm-jl	environment	skips	1
@@ -112,8 +118,8 @@ test-julia-fe-only-fence.R	suggests-package	environment	runs	4
 test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
 test-julia-formula-constructs-nongaussian.R	locale	environment	depends	4
 test-julia-formula-constructs-nongaussian.R	suggests-package	environment	runs	4
-test-julia-formula-constructs.R	engine-drm-jl	environment	skips	3
-test-julia-formula-constructs.R	locale	environment	depends	2
+test-julia-formula-constructs.R	engine-drm-jl	environment	skips	4
+test-julia-formula-constructs.R	locale	environment	depends	4
 test-julia-formula-constructs.R	suggests-package	environment	runs	3
 test-julia-gate-vs-engine.R	build-premise	build	skips	1
 test-julia-inference.R	engine-drm-jl	environment	skips	7
@@ -159,7 +165,7 @@ test-lognormal-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-logsigma-clamp.R	cran-lane	environment	runs	2
 test-logsigma-clamp.R	suggests-package	environment	runs	2
 test-lrt-boundary.R	cran-lane	environment	runs	1
-test-lrt-boundary.R	engine-drm-jl	environment	skips	1
+test-lrt-boundary.R	engine-drm-jl	environment	skips	2
 test-mesh-contract.R	suggests-package	environment	runs	8
 test-mesh-helpers.R	suggests-package	environment	runs	5
 test-mesh-recovery-v3-contract.R	build-premise	build	skips	1
@@ -167,7 +173,7 @@ test-meta-v-lss-comparator.R	suggests-package	environment	runs	1
 test-missing-predictor-beta-binomial.R	cran-lane	environment	runs	3
 test-missing-predictor-prediction.R	build-premise	build	skips	1
 test-missing-response-g4g5-foundation.R	cran-lane	environment	runs	1
-test-model-comparison.R	engine-drm-jl	environment	skips	1
+test-model-comparison.R	engine-drm-jl	environment	skips	2
 test-mspl-estimator.R	suggests-package	environment	runs	3
 test-mspl-link-dispatch.R	suggests-package	environment	runs	1
 test-mspl-link-general.R	suggests-package	environment	runs	1
@@ -185,6 +191,7 @@ test-nongaussian-structured-recovery.R	suggests-package	environment	runs	8
 test-objective-at.R	cran-lane	environment	runs	2
 test-offset-families.R	cran-lane	environment	runs	4
 test-optimizer-tolerance.R	suggests-package	environment	runs	1
+test-parity-fenced-boundaries.R	build-premise	build	skips	2
 test-parity-matrix.R	build-premise	build	skips	2
 test-parity-matrix.R	engine-drm-jl	environment	skips	2
 test-parity-matrix.R	runtime-conditional	runtime	depends	1
