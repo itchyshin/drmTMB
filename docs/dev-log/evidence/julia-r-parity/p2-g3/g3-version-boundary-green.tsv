@@ -1,0 +1,4 @@
+route	target	tmb_converged	julia_converged	julia_estimator	d_wald_lower	d_wald_upper	d_profile_lower	d_profile_upper	profile_pass_tol_1e4	profile_fail_tol_1e9	bootstrap_t_ok	bootstrap_j_ok	bootstrap_overlap	bootstrap_t_failed	bootstrap_j_failed
+base_gaussian_location_scale	fixef:mu:x	TRUE	TRUE	ML	6.69773858597011e-09	6.69542021825009e-09	2.79653965495896e-06	5.88862664074874e-07	TRUE	TRUE	TRUE	TRUE	TRUE	0	0
+gaussian_response_mask	fixef:mu:x	TRUE	TRUE	ML	7.85573329165068e-08	7.8542513604063e-08	5.12880198670629e-06	7.17584030396345e-06	TRUE	TRUE	TRUE	TRUE	TRUE	0	0
+plain_binomial_nonphylo	fixef:mu:x	TRUE	TRUE	ML	5.18430864904218e-09	5.18429821294575e-09	9.35263279600029e-08	2.30343608764727e-06	TRUE	TRUE	TRUE	TRUE	TRUE	0	0
