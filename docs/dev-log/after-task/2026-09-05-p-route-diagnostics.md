@@ -103,13 +103,32 @@ consumer changed.
 ### G6 -- red control on the provenance claim
 
 Planted `stored` -> `forward` in `drm_julia_gradient_source()` (claiming an AD
-gradient where the bridge handed over the fit's own callback). Verbatim, from
-`tools-scratch/redctl-g6.txt`; the full file is committed with this report's
-run and reproduced by `bash tools-scratch/redctl-g6.sh`.
+gradient where the bridge handed over the fit's own callback). The verbatim
+transcript -- baseline suite, the planted source line, the two testthat
+failures with their actual/expected text, the `sha256` before and after
+restore, and the suite passing again -- is quoted in full in the ledger's G6
+EVIDENCE block. The driver (`tools-scratch/redctl-g6.sh`) is a worktree-local
+scratch script and is deliberately NOT committed; the ledger carries its
+output, which is the evidence.
 
 ### Suites
 
-Full counts are in the ledger's `MEASURED` block.
+- Mocked bridge, final commit: `passed=123 failed=0 error=0 skipped=2` (the 2
+  skips are the live pair).
+- Live, DRM.jl pin `430ef64cc`: `LIVE passed=145 failed=0 error=0 skipped=0`
+  over 22 tests -- **zero** skips, so no live test masqueraded as a pass.
+- Live neighbours, 16 files that build a `drmTMB_julia` object or exercise
+  native `check_drm()`, engine attached: `TOTAL pass=1431 failures+errors=0
+  skipped=0`, `NEIGHBOURS_OK`. This one matters specifically: the new
+  `bridge_covariance` row is a *warning* on a partial or unavailable
+  covariance, which flips `attr(,"ok")` for any structured Julia route whose
+  vcov comes back incomplete. Running it live with 0 skips is what proves no
+  existing test relied on those fits reporting green.
+- `test-pkgdown-reference-index.R passed=2 failed=0 error=0 skipped=0`;
+  `tools::checkRd("man/check_drm.Rd")` returns 0 findings; non-ASCII bytes on
+  the added lines of `R/`, `NEWS.md`, `man/`: `0`.
+
+Full per-gate detail is in the ledger.
 
 ## Defect found and NOT fixed here (out of OWNS)
 
