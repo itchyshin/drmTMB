@@ -1,5 +1,65 @@
 # drmTMB 0.7.0
 
+## `engine = "julia"` refuses a factor design it cannot reproduce, before Julia starts (DRM.jl #467, #609)
+
+* The A6 guard already compared CODING SCHEMES (ordered factors, an explicit
+  `contrasts` attribute, a non-default `options("contrasts")`). Two shapes
+  agree on the scheme and disagree about the LEVELS it is applied to, so they
+  went straight past it. Both were measured this run, driving 58
+  formula-construct cases end to end through `engine = "julia"` against
+  `engine = "tmb"` and probing the marshalled columns in the live Julia
+  session: 46 faithful, 10 refused, and 2 SILENTLY MISLABELLED.
+
+* **A character column whose R level order is not code-point order now
+  refuses.** R builds levels with `sort()` under the session collation, so
+  `c("a", "B", "c")` gives levels a, B, c and codes against `"a"`. A character
+  column crosses the bridge as a plain Julia `Vector{String}` -- no pool, no
+  order -- and DRM.jl sorts it by code point, giving levels B, a, c and coding
+  against `"B"`. Same column COUNT, so no count check fires. Measured at the
+  standing pin DRM.jl 430ef64cc: the fit SUCCEEDED, both engines returned
+  IDENTICAL coefficient names, and `max|coef diff|` was 0.1785 (n = 120) and
+  1.1036 (n = 150) -- `engine = "julia"`'s intercept was the mean of the wrong
+  baseline group. `factor(<character column>)` is the same hazard, because the
+  bridge materialises the ORIGINAL values and sorts those. A FACTOR column is
+  immune: its level order crosses intact in the `CategoricalVector` pool
+  (probed for `levels = c("c", "b", "a")`), which is why the refusal tells you
+  to store the column as a factor with an explicit level order.
+
+* **A factor level that no row uses now refuses.** `model.matrix()` gives every
+  DECLARED level a column, including an all-zero one; DRM.jl codes only the
+  levels it observes, so it builds one column fewer. This was already
+  fail-closed, but only deep inside Julia and with a message that named neither
+  the column nor the fix (`the R side must send exactly one name per column`,
+  plus a Julia stack trace). drmTMB now names the unused level and points at
+  `droplevels()`.
+
+* Newer DRM.jl builds carry their own echo check
+  (`_bridge_check_coef_labels_fidelity`) that refuses the first shape from the
+  Julia side. That check does NOT exist at the pin above, which is why this
+  guard is upstream of it: a refusal that lives only in the engine still lets
+  an older build report the wrong parameter under the right name. The engine
+  check remains the second line of defence, and DRM.jl's count message gained
+  the unused-level explanation in a companion change.
+
+* Scope, measured, NOT derived: the other 46 cases in the battery
+  (`factor()`, a bare factor column, reversed declared levels, mixed-case
+  factor LEVELS, `factor()` over an integer column with 2/9/10 ordering,
+  character columns whose order already agrees, logical columns, factor:factor
+  and numeric:factor interactions, `I(x^2)`, `I(x*z)`, `I(x^2 + z)`,
+  `poly(x, 2)`, `poly(x, 3)`, `poly(x, 2) * g`, `scale(x)`, `(x + z)^2`,
+  `(x + z + g)^3`, `x - 1`, `0 + x`, `x:z`, `x + z + x:z - z`,
+  `(x + z)^2 - x:z`, `log(x + 2)`, `sqrt(x + 2)`, and the sigma-side repeats)
+  were FAITHFUL: identical coefficient names and `max|coef diff| <= 2.675e-10`
+  against `engine = "tmb"`. An independent design oracle went further and
+  compared VALUES: for 37 constructs DRM.jl's own design matrix is element-wise
+  identical to R's `model.matrix()` (31 at exactly 0; `poly(x, 2)` 8.33e-16,
+  `poly(x, 3)` 8.26e-16, `scale(x)` 4.44e-16 -- so DRM.jl reproduces R's
+  ORTHOGONAL `raw = FALSE` polynomial basis, #467's flagged high-risk case).
+  `I(log(x + 2))`, `x * z - x:z` (a `-` removal over an unexpanded `*`) and a
+  single-level factor keep their existing refusals. This is one Gaussian
+  location-scale fixture per construct, not a coverage study; the receipts are
+  in `docs/dev-log/evidence/julia-r-parity/formula-construct-fidelity/`.
+
 ## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
 
 * `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
