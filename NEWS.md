@@ -1,5 +1,27 @@
 # drmTMB 0.7.0
 
+## Ordered cutpoints through `engine = "julia"`: discoverable, and refused by name (#1144)
+
+* #1144 polished the constrained `stats::nlminb()` solve behind the native
+  ordinal cutpoint profile, so `engine = "tmb"` reports honest
+  `"ordinal:cutpoint:<label>"` intervals. `cumulative_logit()` is an admitted
+  bridge family, so the same question needed an answer on the other engine.
+  Measured on the committed fixture at DRM.jl pin 430ef64cc: the Julia fit's
+  `fit$ordinal$cutpoints` already agreed with the native slot to 8.98e-13, but
+  `profile_targets()` listed no ordinal row at all, and
+  `confint(fit, parm = "ordinal:cutpoint:low|medium")` answered
+  `Unknown confidence-interval target` for `method = "wald"`, `"profile"` and
+  `"bootstrap"` alike -- a typo diagnosis for a target plainly on the fit.
+  DRM.jl's bridge inference accepts only fixed-effect and random-effect-SD
+  targets at that pin, so the cutpoint interval genuinely cannot be routed.
+  `profile_targets()` now lists the ordinal rows for a Julia-engine
+  `cumulative_logit()` fit -- the same names, in the same order, as the native
+  fit -- with the public cutpoint rows `profile_ready = FALSE` and note
+  `julia_ordinal_cutpoint_native_only`, and `confint()` refuses a cutpoint
+  target for every `method`, naming the cutpoint, `engine = "tmb"`, and
+  `fit$ordinal$cutpoints`. **No numbers changed on either engine**: this is a
+  discovery-and-diagnosis fix plus an explicit engine boundary.
+
 ## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
 
 * Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
