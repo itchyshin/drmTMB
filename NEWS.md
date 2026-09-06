@@ -24,6 +24,58 @@
   CLOSED at this pin (nothing `confint()` accepted was unlisted) and is now
   pinned by tests that fail if it regresses.
 
+## `engine = "julia"` admits `REML = TRUE` for the residual-only bivariate Gaussian cell
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+  family = biv_gaussian(), REML = TRUE, engine = "julia")` now fits instead of
+  refusing. Native `engine = "tmb"` has always fitted this cell by REML, and
+  DRM.jl (PR itchyshin/DRM.jl#652) now fits the same restricted likelihood in
+  closed form: both engines integrate out exactly `beta_mu1` and `beta_mu2` and
+  both report the normalised Patterson-Thompson log-likelihood, so there is no
+  data-independent constant to remove before comparing. Same-target on the
+  committed fixture (n = 60, seed 1): `logLik` `-97.021205818372` on both engines
+  (difference `0.0`), 7/7 coefficient names identical with max scaled difference
+  `4.33e-07`, Wald SE max relative difference `6.54e-07`; the Julia fit's
+  `estimator` and DRM.jl's `estim_method` both read `"REML"`. The ML route is
+  unchanged (`-90.202703298791` on both engines). **The `rho12` max coefficient
+  gap (`4.33e-07`) is entirely a link-guard convention difference, not model
+  disagreement**: native TMB bounds `rho12` via `0.999999 * tanh(eta)`
+  (`src/drmTMB.cpp`) while DRM.jl uses `0.99999999 * tanh(eta)`
+  (`src/sparse_aug_plsm.jl`), so `rho12:(Intercept)` is not the same parameter
+  on the two engines; on the natural (bounded) rho scale the two engines agree
+  to `3.95e-12`. The gap grows with `|rho|` and reaches `4.95e-04` at
+  `rho = 0.999`, which would break the `1e-4` coefficient bar with both engines
+  exactly correct (drmTMB#1190). **This shape only**: the gate
+  requires all five bivariate dpars, no structured marker, no `meta_V()`, no
+  random bar, and intercept-only `sigma1`, `sigma2` and `rho12`. A
+  covariate-carrying `sigma`/`rho12` design keeps refusing even though DRM.jl's
+  closed form covers it, because nothing has measured it against a native
+  comparator. Receipt:
+  `docs/dev-log/evidence/julia-r-parity/reml/reml-biv-residual-receipt.md`;
+  `docs/design/261-reml-by-route.md` row `biv_gaussian_residual` now reads
+  FITS / FITS / FITS (drmTMB #1142, DRM.jl #624).
+## Bridge-side profile and bootstrap inference qualified on the masked-response Julia route (#544)
+
+* `gaussian_response_mask` is promoted `partial` -> `supported` on the
+  `r_bridge_status` axis. On a Gaussian location-scale fit with
+  `missing = miss_control(response = "include")`, `confint()` through
+  `engine = "julia"` now agrees with `engine = "tmb"` on the same fit and the
+  same target: Wald to 7.9e-08, profile to 5.1e-06/7.2e-06 (against a 1e-4
+  bar stated before measuring), and a 99-replicate parametric bootstrap
+  completes with 0 failures on both engines. This closes the
+  "bridge-side inference remains unqualified (G3)" fence for this route.
+* **This requires DRM.jl at or after #646.** Against an older DRM.jl the same
+  fit reports `is_converged()` `FALSE` and its bootstrap loses every
+  replicate; both were DRM.jl defects, not drmTMB ones.
+* **Disclosed, and it affects `engine = "tmb"` equally:** a parametric
+  bootstrap on a masked-response fit draws each replicate response over the
+  FULL design and refits on every row, so the interval is calibrated to the
+  complete-data sample size and is narrower than the observed-data Wald
+  interval by an amount that grows with the missing fraction (measured
+  bootstrap/Wald width ratio at 10%/30%/50% masked: 0.82/0.67/0.65 on
+  `engine = "julia"`, 0.83/0.68/0.68 on `engine = "tmb"`). If you bootstrap a
+  heavily masked fit on either engine, treat the interval as
+  anti-conservative. A cross-engine fix is tracked as #1188.
 ## Ordered cutpoints through `engine = "julia"`: discoverable, and refused by name (#1144)
 
 * #1144 polished the constrained `stats::nlminb()` solve behind the native
