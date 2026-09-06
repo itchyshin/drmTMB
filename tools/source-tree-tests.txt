@@ -23,6 +23,7 @@ test-julia-gate-vs-engine.R
 test-mesh-recovery-v3-contract.R
 test-missing-predictor-prediction.R
 test-nongaussian-structured-boundary.R
+test-parity-fenced-boundaries.R
 test-parity-matrix.R
 test-phase18-actions-runner.R
 test-pkgdown-reference-index.R
