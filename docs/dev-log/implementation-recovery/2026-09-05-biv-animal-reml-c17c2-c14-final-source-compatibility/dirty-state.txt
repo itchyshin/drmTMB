@@ -1,0 +1,5 @@
+M NEWS.md
+M docs/design/211-structured-reml-status.md
+M docs/dev-log/evidence/julia-r-parity/reml/biv-animal-q2-receipt.md
+M tests/testthat/test-reml-biv-animal.R
+M tests/testthat/test-reml-bivariate-relmat-q2.R
