@@ -27,23 +27,19 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
                      "truncated_nbinom2", "zero_one_beta", "tweedie",
-                     "beta_binomial", "cumulative_logit", "skew_normal",
-                     "biv_lognormal"))
-                     "beta_binomial", "cumulative_logit",
-                     "biv_student", "skew_normal"))
+                     "beta_binomial", "cumulative_logit", "biv_student",
+                     "skew_normal", "biv_lognormal"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
               "truncated_nbinom2", "zero_one_beta", "tweedie",
               "beta_binomial", "cumulative_logit", "skew_normal",  # A4 rows, 2026-09-05
-              "biv_lognormal"))
-              "beta_binomial", "cumulative_logit",
-              # fam-biv-student leaf (2026-09-05): DRM.jl needed no change --
-              # `_bridge_family("biv_student")` already returned Student() at
-              # pin 430ef64cc and the keyed mu1/mu2 parts select the bivariate
-              # route, so the admission is this one registry row.
-              "biv_student", "skew_normal"))
+              # the two BIVARIATE fe admissions, both 2026-09-05. Neither needed a
+              # DRM.jl change: `_bridge_family()` already mapped each tag, and the
+              # keyed mu1/mu2 parts select the bivariate route, so each admission is
+              # one registry row.
+              "biv_lognormal", "biv_student"))
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
   # refused outright: no A4 target remains unadmitted after this merge (all six
   # fixed-effect rows above are on the registry); this loop is intentionally empty.

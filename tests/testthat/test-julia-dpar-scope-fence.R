@@ -74,7 +74,8 @@ test_that("replacing the prefix with a declared column changes NO family's cohor
   expect_identical(
     drmTMB:::drm_julia_fe_only_fence_families(),
     c("student", "lognormal", "truncated_nbinom2", "zero_one_beta",
-      "tweedie", "beta_binomial", "cumulative_logit", "skew_normal")
+      "tweedie", "beta_binomial", "cumulative_logit", "biv_student",
+                     "skew_normal", "biv_lognormal")
   )
   exempt <- vapply(registry_rows(), function(row) {
     if (isTRUE(row$fe_fence_exempt)) row$family else NA_character_
@@ -240,9 +241,15 @@ test_that("biv_gaussian keeps every predictor cell it earned", {
 })
 
 test_that("a family with no registry row is not fenced by this function", {
-  expect_null(drmTMB:::drm_julia_family_predictor_dpars("biv_lognormal"))
+  # Integration (2026-09-06): this testset used "biv_lognormal" as its example of
+  # an UNREGISTERED family. That is no longer true -- #1216 admits it with
+  # predictor_dpars = c("mu1", "mu2"), so the fence correctly fires on sigma1 and
+  # the example inverted the thing it was written to demonstrate. Switched to
+  # "zi_poisson", which the registry's own "NOT admitted today" note names as
+  # having no row and no DRM.jl bridge case. The testset's INTENT is unchanged.
+  expect_null(drmTMB:::drm_julia_family_predictor_dpars("zi_poisson"))
   expect_silent(fence(
-    drm_formula(y ~ x, sigma1 = ~ z), "biv_lognormal"
+    drm_formula(y ~ x, sigma1 = ~ z), "zi_poisson"
   ))
 })
 

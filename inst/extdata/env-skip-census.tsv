@@ -97,8 +97,12 @@ test-julia-family-beta_binomial.R	engine-drm-jl	environment	skips	1
 test-julia-family-beta_binomial.R	suggests-package	environment	runs	1
 test-julia-family-biv_lognormal.R	engine-drm-jl	environment	skips	1
 test-julia-family-biv_lognormal.R	suggests-package	environment	runs	3
+test-julia-family-biv_student.R	engine-drm-jl	environment	skips	1
+test-julia-family-biv_student.R	suggests-package	environment	runs	3
 test-julia-family-cumulative_logit.R	engine-drm-jl	environment	skips	1
 test-julia-family-cumulative_logit.R	suggests-package	environment	runs	3
+test-julia-family-hurdle_nbinom2.R	engine-drm-jl	environment	skips	3
+test-julia-family-hurdle_nbinom2.R	suggests-package	environment	runs	6
 test-julia-family-skew_normal.R	engine-drm-jl	environment	skips	1
 test-julia-family-skew_normal.R	suggests-package	environment	runs	3
 test-julia-family-truncated_nbinom2.R	engine-drm-jl	environment	skips	1
