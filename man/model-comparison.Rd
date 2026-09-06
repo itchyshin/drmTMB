@@ -21,6 +21,9 @@ aicc(object, ...)
 \code{\link[=logLik]{logLik()}} method reports \code{"df"} and \code{"nobs"} attributes.}
 
 \item{...}{Unused; present for S3 consistency.}
+
+\item{test}{Present only so \code{anova.drmTMB_julia()} matches the signature of
+\code{\link[stats:anova]{stats::anova()}}; it is never consulted, because that method refuses.}
 }
 \value{
 A single number. When \eqn{n - k - 1 \le 0} (too few observations

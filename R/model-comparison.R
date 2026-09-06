@@ -37,6 +37,8 @@
 #' @param object A fitted `drmTMB` model (either engine), or any object whose
 #'   [logLik()] method reports `"df"` and `"nobs"` attributes.
 #' @param ... Unused; present for S3 consistency.
+#' @param test Present only so `anova.drmTMB_julia()` matches the signature of
+#'   [stats::anova()]; it is never consulted, because that method refuses.
 #'
 #' @return A single number. When \eqn{n - k - 1 \le 0} (too few observations
 #'   for the correction to be defined -- a saturated or near-saturated model)
