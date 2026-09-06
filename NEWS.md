@@ -23,6 +23,41 @@ every item above.
 
 # drmTMB 0.7.0
 
+## `engine = "julia"` admits REML on the bivariate q = 2 structured routes
+
+* `drmTMB(bf(mu1 = y1 ~ x + phylo(1 | p | id, tree = tree), mu2 = y2 ~ x +
+  phylo(1 | p | id, tree = tree), sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  biv_gaussian(), engine = "julia", REML = TRUE)` now fits instead of refusing,
+  and likewise for matching `relmat(1 | p | id, K = K)` and
+  `spatial(1 | p | id, coords = coords)` markers. The bridge previously refused
+  this cell for EVERY provider -- through two different branches, one per
+  marker family -- while DRM.jl fits it (`fit_coevolution_q2_reml`) and native
+  `engine = "tmb"` has always admitted it. Measured at DRM.jl pin `430ef64cc`
+  against `engine = "tmb"` `REML = TRUE` on the same fixture: max |d coef|
+  `5.15e-05` (phylo), `5.29e-05` (relmat), `4.20e-05` (spatial); |d logLik|
+  `1.80e-04`, `3.70e-07`, `4.49e-08`; `estimator` and DRM.jl's own
+  `estim_method` read `REML` on all three, with the ML and REML
+  log-likelihoods about 6 units apart. phylo's `1.80e-04` is the one number
+  above `1e-4`, and it is a property of that route rather than of REML: the
+  already-shipped ML fit on the same fixture disagrees by `5.42e-04`, three
+  times wider.
+* **Point estimates only on these routes.** No standard error, confidence
+  interval, or coverage claim is made here. When the receipt was measured
+  DRM.jl reported an all-NaN covariance for the bivariate q = 2 structured
+  cell; DRM.jl has since started returning a finite one, confirmed live at pin
+  `0edb916a5` alongside an exact reproduction of every point number above. The
+  receipt stays point-only regardless: that covariance is the ML
+  observed-information curvature evaluated at the REML point, which is not the
+  quantity `engine = "tmb"` reports for a REML fit, and no comparison of the
+  two has been measured. Use `engine = "tmb"` when you need uncertainty on this
+  model.
+* **`animal()` q = 2 stays refused.** DRM.jl fits it, but native
+  `engine = "tmb"` still refuses bivariate `animal()` q = 2 REML, so there is
+  no same-target comparator to measure against; the route is admitted only
+  once that receipt exists. Every other bivariate structured shape keeps its
+  existing refusal unchanged. Evidence:
+  `docs/dev-log/evidence/julia-r-parity/reml/biv-q2-bridge-receipt.md`.
+
 ## The formula-construct battery extended off its one Gaussian fixture, and a silently mislabelled `sd(<group>)` block found there (DRM.jl #467/#609/#730)
 
 * PR #1227 ran 58 formula constructs through `engine = "julia"` on **one**
@@ -64,6 +99,7 @@ every item above.
   covered:** the multi-IID `sd` route, `sdphy_<group>` live, and random-effect
   routes generally, where DRM.jl supplies no `bridge_formula_labels_v1` at all
   and so refuses *every* factor, declared or not -- honest, but a separate gap.
+
 ## `engine = "julia"` default coefficient labels widened for the A4 family admissions
 
 * The Julia bridge's default coefficient labeller
