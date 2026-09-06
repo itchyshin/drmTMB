@@ -59,6 +59,36 @@ every item above.
   claim boundary naming every setting that does not cross and what to do
   instead, and `claim_status` stays `experimental` permanently -- it records a
   deliberately narrow Julia-native surface, not unfinished work.
+## Bootstrap replicates keep a masked fit's response mask (#1188)
+
+* `confint(method = "bootstrap")` on a fit made with
+  `missing = miss_control(response = "include")` drew every replicate over the
+  full design and refitted on all rows, regardless of how many rows the seed
+  fit actually observed. A bootstrap whose replicates are richer than the
+  original understates uncertainty, and the shortfall grew with the missing
+  fraction. `bootstrap_response_data()` now re-applies the seed fit's response
+  `NA` mask to each simulated draw, and the replicate is refitted under the
+  seed fit's own response policy, so every replicate uses the same rows the
+  seed fit did.
+* Measured this run on `y = 0.3 + 0.5x + N(0,1) exp(0.1x)`, `n = 60`,
+  `bf(y ~ x, sigma ~ x)`, Gaussian, target `fixef:mu:x` with truth `0.5`;
+  `S = 200` datasets per cell, `B = 99` replicates each, nominal 95%
+  percentile interval, both arms on the same datasets and bootstrap seeds.
+  Coverage at 10% / 30% / 50% of responses masked was 0.895 / 0.820 / 0.720
+  before and 0.910 / 0.895 / 0.910 after, against a Wald reference of
+  0.920 / 0.925 / 0.915 on the same datasets. Monte Carlo standard errors are
+  0.020-0.032; the paired improvement is significant at 30% masking
+  (p = 2.75e-04) and 50% masking (p = 7.28e-12) but **not** at 10%
+  (p = 0.375), so this release does not claim the 10% cell. Receipt:
+  `docs/dev-log/evidence/julia-r-parity/p2-g3/1188-bootstrap-mask-receipt.md`.
+* The default `missing = miss_control(response = "drop")` policy is untouched:
+  a drop fit stores complete-cased data, so it never had a mask to lose and
+  the restoration is a measured no-op there. Post-fix bootstrap coverage is
+  still slightly below nominal on this `n = 60` location-scale fixture, but so
+  is Wald on the same datasets; that residual is small-sample behaviour, not a
+  missing-data effect, and is not claimed fixed.
+* The matching DRM.jl change (`_bootstrap_data`) lands separately, so
+  `engine = "julia"` and `engine = "tmb"` keep the same replicate semantics.
 ## `engine = "julia"` admits REML on the bivariate q = 2 structured routes
 
 * `drmTMB(bf(mu1 = y1 ~ x + phylo(1 | p | id, tree = tree), mu2 = y2 ~ x +
