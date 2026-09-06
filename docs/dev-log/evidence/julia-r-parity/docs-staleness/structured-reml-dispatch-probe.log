@@ -1,0 +1,42 @@
+---- UNIVARIATE gaussian + relmat(1 | id, K = K), REML = TRUE
+`engine = "julia"` cannot fit structured-effect models by `REML = TRUE`.
+✖ Refusing rather than fitting by maximum likelihood instead: ML and REML
+  differ precisely on the variance components REML exists to correct, so a
+  silent downgrade would move heritability, repeatability and ICC without
+  saying so.
+ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for
+  maximum likelihood explicitly with `REML = FALSE`, or simplify to a
+  documented Gaussian REML cell.
+ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate
+  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random
+  intercept or independent slope. It does not offer a general REML fit for
+  every cell this bridge refuses.
+
+---- BIVARIATE biv_gaussian + relmat(1 | p | id, K = K), REML = TRUE
+`engine = "julia"` cannot fit bivariate q2 known-covariance
+structured-effect models by `REML = TRUE`.
+✖ Refusing rather than fitting by maximum likelihood instead: ML and REML
+  differ precisely on the variance components REML exists to correct, so a
+  silent downgrade would move heritability, repeatability and ICC without
+  saying so.
+ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for
+  maximum likelihood explicitly with `REML = FALSE`, or simplify to a
+  documented Gaussian REML cell.
+ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate
+  diagnostic-only binomial REML route for an ordinary unlabelled `mu` random
+  intercept or independent slope. It does not offer a general REML fit for
+  every cell this bridge refuses.
+
+==== MEASURED ====
+drm_julia_structured_marker_types(): relmat, animal, spatial
+univariate cell label is 'structured-effect'            : TRUE
+bivariate cell label is 'bivariate q2 known-covariance' : TRUE
+the two refusals are DISTINCT messages                  : TRUE
+a relmat() term counts as a structured term            : TRUE
+a phylo() term counts as a structured term             : FALSE
+
+==== VERDICT ====
+The family IS dispatched before the generic structured branch
+(biv_gaussian takes its own branch one step earlier), and the gate
+covers relmat/animal/spatial only -- phylo is governed elsewhere.
+DISPATCH_ORDER_CONFIRMED
