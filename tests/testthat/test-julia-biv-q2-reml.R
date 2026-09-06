@@ -138,7 +138,12 @@ test_that("both q2 payload builders forward method = REML, and only then", {
   fx <- drm_biv_q2_reml_fixture("relmat")
 
   phylo_form <- drm_biv_q2_reml_formula("phylo", fx)
-  phylo_env <- environment(phylo_form$entries[[1L]]$formula)
+  # Resolve the formula environment exactly as `drmTMB()` does
+  # (`drm_formula_env()`, R/bf.R): `bf()` entries carry `$expr`, never
+  # `$formula`, so `environment(entry$formula)` silently degraded to
+  # `environment(NULL)` -- the caller's frame -- and the fixture's `tree`,
+  # `K` and `coords` were invisible to the payload builders.
+  phylo_env <- drmTMB:::drm_formula_env(phylo_form, environment())
   ml <- drmTMB:::drm_julia_bridge_payload(
     formula = phylo_form,
     family_type = "biv_gaussian",
@@ -162,7 +167,7 @@ test_that("both q2 payload builders forward method = REML, and only then", {
   )
 
   relmat_form <- drm_biv_q2_reml_formula("relmat", fx)
-  relmat_env <- environment(relmat_form$entries[[1L]]$formula)
+  relmat_env <- drmTMB:::drm_formula_env(relmat_form, environment())
   ml_k <- drmTMB:::drm_julia_biv_known_structured_payload(
     formula = relmat_form,
     family_type = "biv_gaussian",
