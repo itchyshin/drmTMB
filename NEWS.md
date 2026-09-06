@@ -1,5 +1,40 @@
 # drmTMB 0.7.0
 
+## Route-aware `check_drm()` for `engine = "julia"` fits (leaf-p-route-diagnostics)
+
+* `check_drm()` on a DRM.jl bridge fit (class `drmTMB_julia`) no longer
+  presents that fit as though TMB had produced it. It now leads with an
+  `engine_route` note reporting `engine=julia`, the DRM.jl route, and the
+  estimator, whose message names the native `engine = "tmb"` checks that did
+  not run -- so a short green bridge table is not mistaken for a clean
+  forty-row native one. The note never flips `attr(x, "ok")`.
+* The `fixed_gradient` row now names WHICH producer made the number it
+  reports, in DRM.jl's own `grad_source` vocabulary (`locscale`, `stored`,
+  `forward`, `finite`, `none`, `unavailable`), so an exact analytic gradient,
+  an automatic-differentiation gradient, and a central finite difference
+  accurate only to roughly `1e-6` relative no longer print identically. The
+  bridge payload has exactly one gradient producer (the fit's own stored
+  callback), so a gradient that crossed the bridge is reported as
+  `source=stored`. When no gradient crossed, the bridge does not say which of
+  the remaining five cases applies, so drmTMB records `source=unknown` --
+  deliberately not one of DRM.jl's six values -- and points at DRM.jl's own
+  `check_drm(fit)` rather than guessing. A source outside that vocabulary,
+  or one that contradicts the payload (a producer named when no gradient
+  crossed, or `none` / `unavailable` alongside one that did), aborts instead
+  of being echoed into a diagnostic.
+* New `bridge_covariance` and `bridge_standard_errors` rows read the
+  covariance DRM.jl actually marshalled back, which nothing previously did.
+  Measured before this change: a bridge fit whose covariance came back wholly
+  non-finite -- a state the bridge constructor itself labels
+  `uncertainty$status == "unavailable"` -- returned
+  `attr(check_drm(fit), "ok") == TRUE` over two green rows. It now returns
+  `FALSE`. A complete covariance carrying a negative variance on the diagonal
+  (which the completeness status cannot see) is caught by the standard-error
+  row, which names the affected coefficient. These are the bridge analogues of
+  the native `sdreport_status` and `standard_errors_finite` rows;
+  `TMB::sdreport()` is not run for a bridge fit and no numerical agreement
+  between the engines is claimed.
+
 ## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
 
 * `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +

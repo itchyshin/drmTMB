@@ -152,7 +152,19 @@ drm_julia_grad_source_vocabulary <- function() {
 # than being echoed into a diagnostic, because a diagnostic that reports an
 # unknown provenance as though it understood it is worse than one that stops.
 drm_julia_gradient_source <- function(object) {
-  declared <- object$bridge$gradient_source
+  # Both spellings a future bridge could plausibly use: the payload's own
+  # "gradient"/"gradient_names" convention would name it `gradient_source`,
+  # while DRM.jl's report field is `grad_source`. Accepting either costs two
+  # lines; accepting neither would silently report "unknown" for a fit whose
+  # provenance the engine had in fact just told us.
+  #
+  # `[[` not `$`: `$` on a list PARTIALLY matches, so on a payload that has
+  # `gradient_source` but no `gradient`, `payload$gradient` returns the source
+  # string. Exact extraction here, and anywhere else that reads a raw DRM.jl
+  # payload by a `gradient`-prefixed name, is what keeps a provenance label
+  # from being read as a gradient.
+  declared <- object$bridge[["gradient_source"]] %||% object$bridge[["grad_source"]]
+  has_gradient <- !is.null(object$diagnostics[["gradient"]])
   if (!is.null(declared) && length(declared) > 0L) {
     declared <- sub("^:", "", as.character(declared)[[1L]])
     if (!declared %in% drm_julia_grad_source_vocabulary()) {
@@ -162,9 +174,23 @@ drm_julia_gradient_source <- function(object) {
         i = "Refusing to report a gradient whose provenance drmTMB does not understand."
       ))
     }
+    # The declared source and the payload must tell the same story. DRM.jl
+    # spells "no gradient was produced" as :none or :unavailable, and the
+    # bridge omits the "gradient" key in exactly that case. A payload that
+    # carries a number while declaring one of those two -- or that omits the
+    # number while declaring a producer -- is self-contradictory, and echoing
+    # either half would attach a provenance sentence to the wrong fact.
+    produced <- !declared %in% c("none", "unavailable")
+    if (!identical(produced, has_gradient)) {
+      cli::cli_abort(c(
+        "DRM.jl reported gradient source {.val {declared}} but {if (has_gradient) 'did send' else 'sent no'} gradient across the bridge.",
+        x = "These contradict each other: {.val none} and {.val unavailable} mean no gradient was produced, and every other source means one was.",
+        i = "Refusing to print a gradient provenance that does not match the payload."
+      ))
+    }
     return(declared)
   }
-  if (is.null(object$diagnostics$gradient)) "unknown" else "stored"
+  if (has_gradient) "stored" else "unknown"
 }
 
 # Route-aware (DRM.jl #632): a missing gradient is a NOTE naming the route,
@@ -174,7 +200,7 @@ drm_julia_gradient_source <- function(object) {
 # gradient is never confused with an approximation.
 check_julia_fixed_gradient <- function(object, gradient_tolerance) {
   route <- object$diagnostics$route %||% NA_character_
-  gradient <- object$diagnostics$gradient
+  gradient <- object$diagnostics[["gradient"]]
   source <- drm_julia_gradient_source(object)
   if (is.null(gradient)) {
     return(check_row(

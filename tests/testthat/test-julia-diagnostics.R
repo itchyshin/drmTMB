@@ -72,6 +72,20 @@ drm_test_julia_diag_fit_from_result <- function(result) {
   )
 }
 
+# Attaches a `grad_source`-style provenance field to an ALREADY-CONSTRUCTED
+# fit's stored payload, rather than to the `result` list new_drmTMB_julia()
+# consumes. Reason, measured: `$` on a list partially matches, so a payload
+# carrying `gradient_source` and no `gradient` makes new_drmTMB_julia()'s
+# `result$gradient` return the provenance STRING and abort on the
+# gradient_names comparison (R/julia-bridge.R). That hazard is in the bridge
+# constructor, not in the consumer under test here, and is reported rather
+# than fixed by this leaf; injecting post-construction reproduces exactly the
+# payload state the consumer would see without tripping it.
+drm_test_julia_diag_with_source <- function(fit, source, field = "gradient_source") {
+  fit$bridge[[field]] <- source
+  fit
+}
+
 test_that("check_drm() dispatches on a Julia fit and reports max|gradient|, route, and convergence (G2)", {
   fit <- drm_test_julia_diag_fit()
   expect_s3_class(fit, "drmTMB_julia")
@@ -366,35 +380,69 @@ test_that("an absent gradient is reported as \"unknown\", never as one of DRM.jl
 
 test_that("a gradient_source sent by a future bridge is honoured, colon-prefixed or not", {
   for (src in drmTMB:::drm_julia_grad_source_vocabulary()) {
-    result <- drm_test_julia_diag_result()
-    result$gradient_source <- src
-    fit <- drm_test_julia_diag_fit_from_result(result)
-    expect_identical(drmTMB:::drm_julia_gradient_source(fit), src)
-    dc <- check_drm(fit)
-    expect_match(
-      dc[dc$check == "fixed_gradient", ]$value,
-      paste0("source=", src),
-      fixed = TRUE
-    )
+    # DRM.jl spells "no gradient was produced" as :none / :unavailable, and
+    # the bridge omits the "gradient" key in exactly that case; build the
+    # payload that matches each source rather than a contradictory one.
+    produced <- !src %in% c("none", "unavailable")
+    for (spelling in c(src, paste0(":", src))) {
+      fit <- drm_test_julia_diag_with_source(
+        drm_test_julia_diag_fit(with_gradient = produced), spelling
+      )
+      expect_identical(drmTMB:::drm_julia_gradient_source(fit), src)
+      dc <- check_drm(fit)
+      expect_match(
+        dc[dc$check == "fixed_gradient", ]$value,
+        paste0("source=", src),
+        fixed = TRUE
+      )
+    }
   }
-  # Julia spells these as symbols; tolerate the ":stored" rendering.
-  result <- drm_test_julia_diag_result()
-  result$gradient_source <- ":finite"
-  fit <- drm_test_julia_diag_fit_from_result(result)
-  expect_identical(drmTMB:::drm_julia_gradient_source(fit), "finite")
+  # DRM.jl's own report field is spelled `grad_source`; a bridge that used
+  # that spelling instead must be honoured too, not silently read as unknown.
+  expect_identical(
+    drmTMB:::drm_julia_gradient_source(
+      drm_test_julia_diag_with_source(
+        drm_test_julia_diag_fit(), ":locscale", field = "grad_source"
+      )
+    ),
+    "locscale"
+  )
+  # The precision caveat must reach the printed message, not just the value.
   expect_match(
-    check_drm(fit)[check_drm(fit)$check == "fixed_gradient", ]$message,
+    check_drm(drm_test_julia_diag_with_source(
+      drm_test_julia_diag_fit(), ":finite"
+    ))[["message"]][
+      check_drm(drm_test_julia_diag_with_source(
+        drm_test_julia_diag_fit(), ":finite"
+      ))$check == "fixed_gradient"
+    ],
     "FINITE DIFFERENCE",
     fixed = TRUE
   )
 })
 
+test_that("a gradient source that contradicts the payload aborts rather than mislabelling it", {
+  # A number crossed the bridge, but the engine says none was produced.
+  for (src in c("none", "unavailable")) {
+    expect_error(
+      check_drm(drm_test_julia_diag_with_source(drm_test_julia_diag_fit(), src)),
+      "did send"
+    )
+  }
+  # No number crossed, but the engine names a producer.
+  for (src in c("locscale", "stored", "forward", "finite")) {
+    expect_error(
+      check_drm(drm_test_julia_diag_with_source(
+        drm_test_julia_diag_fit(with_gradient = FALSE), src
+      )),
+      "sent no"
+    )
+  }
+})
+
 test_that("an out-of-vocabulary gradient source aborts instead of being echoed into a diagnostic", {
-  result <- drm_test_julia_diag_result()
-  result$gradient_source <- "vibes"
-  fit <- drm_test_julia_diag_fit_from_result(result)
   expect_error(
-    check_drm(fit),
+    check_drm(drm_test_julia_diag_with_source(drm_test_julia_diag_fit(), "vibes")),
     "unrecognised gradient source"
   )
 })
