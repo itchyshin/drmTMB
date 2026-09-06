@@ -140,36 +140,78 @@ plain `implemented`. The q4 bivariate-phylogenetic REML row mixes
 cells -- there is no single verified claim that a REML correction reaches all
 four axes (`mu1`, `mu2`, `sigma1`, `sigma2`) together, hence `scope-limited`.
 
-`AGHQ` has no implementation in `R/` and no exported symbol in `NAMESPACE`;
-it is explicitly named as a future remedy in ledger notes ("AGHQ/REML remedies
-planned"), so `planned` is used rather than `rejected`.
+`AGHQ adaptive-quadrature marginal estimator` stays `planned`, but not because
+nothing is written. `R/aghq-coxreid.R` (added 2026-07-18, commit `1ed90599b`)
+implements a nested AGHQ inner marginalisation with a Cox-Reid outer adjustment
+over a scalar random effect per cluster, validated in
+`tests/testthat/test-aghq-coxreid.R`. That file marks itself "Internal; not
+exported" and contributes no symbol to `NAMESPACE`, so there is no estimator a
+user can select from `drmTMB()` -- which is what `planned` records here. The
+accurate boundary is "implemented internally, not exposed", not "no
+implementation in `R/`" as this paragraph previously said. AGHQ is also named as
+a future remedy in ledger notes ("AGHQ/REML remedies planned"), so `planned`
+remains the right word rather than `rejected`.
 
-`Chi-bar-square boundary LRT p-value` moved to `implemented` (2026-09-05):
-`chibar_pvalue()` and `lrt_boundary()` (`R/lrt-boundary.R`) are exported and
-ported term-for-term from DRM.jl `src/chibar.jl`. `profile.R` separately cites
-Self & Liang (1987) / Stram & Lee (1994) for boundary-aware profile-CI flagging
-(`conf.status = "wald_at_boundary"`), which is related but weaker -- a flag on
-an interval, not a p-value. Both verbs also accept an `engine = "julia"` fit:
-measured 2026-09-05 against DRM.jl `aee371cc9`, `lrt_boundary()` on a pair of
-bridge fits reproduces DRM.jl's own `lrt_boundary` on the same payload to
-`0.000e+00` on the statistic and `1.986e-76` on the p-value
-(docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
+`Chi-bar-square boundary LRT p-value` moved from `planned` to `implemented` on
+2026-09-05 (`#1116`, commit `b76d46537`). `R/lrt-boundary.R` ports DRM.jl's
+`src/chibar.jl` and exports `chibar_pvalue()` and `lrt_boundary()`; both are in
+`NAMESPACE`, documented in `man/lrt-boundary.Rd` and tested in
+`tests/testthat/test-lrt-boundary.R`, carrying DRM.jl's REML and MAP guards plus
+R-side additions (reported `df` checked against `q`, and refusal of ML-vs-REML
+pairs, different-`nobs` pairs and MSPL fits). Evidence tier is that PR's own
+live receipt at DRM.jl pin `430ef64cc`, quoted rather than restated: four
+fixtures with `|dstat|` at most `4.84e-09`, and `chibar_pvalue()` against
+`DRM.chibar_pvalue` agreeing to `1e-12` relative and `1e-10` on log p for `q = 1`
+and `q = 2`. `profile.R` separately cites Self & Liang (1987) / Stram & Lee
+(1994) for boundary-aware profile-CI flagging
+(`conf.status = "wald_at_boundary"`); that flag is related but is a different
+capability, and before this port it was all the package had.
 
-`Model comparison suite (LRT/anova/AICc/weights/update)` moved to
-`scope-limited` (2026-09-05) -- part of the suite ships, part is deliberately
-refused, and one part is internal. `aicc()` (`R/model-comparison.R`) is
-exported and reaches BOTH engines: on a `drmTMB_julia` fit it dispatches
-through `aicc.default()`, which works because `logLik.drmTMB_julia()` reports
-`df` and `nobs`, and it equals DRM.jl's own `aicc(fit)` to `0.000e+00`
-(measured 2026-09-05, DRM.jl `aee371cc9`). `drm_lrtest()` is implemented and
-matches DRM.jl's `lrtest` exactly, but is deliberately NOT exported and NOT
-wired into `anova()`. `anova()` refuses a likelihood-ratio comparison on both
-engines, by design. `weights()` returns PRIOR observation weights on both
-engines (all ones for a bridge fit, which refuses the `weights` argument at fit
-time), not Akaike model weights -- DRM.jl's `weights` member is the same
-quantity. `update()` is base R's refit verb and needs no port. The suite is
-therefore `scope-limited`, not `implemented`: no exported LRT and no model
-weights.
+BRIDGE AXIS for this pair (leaf `uncited-accessors`, 2026-09-05): the receipt
+quoted above fits the R side NATIVELY, so it says nothing about
+`engine = "julia"`. Measured against DRM.jl `aee371cc9` (the programme pin
+`430ef64cc` is unusable -- it predates DRM.jl #646/#648), both verbs DO reach a
+bridge fit. `chibar_pvalue()` is a pure function of `(statistic, q)` and needs
+no fit at all, so it is engine-independent by construction. `lrt_boundary()`
+admits a `drmTMB_julia` fit, and on a Gaussian random-intercept pair
+(`n = 360`, `G = 30`) it reproduces DRM.jl's own `lrt_boundary` on the same
+payload to `0.000e+00` on the statistic and `1.986e-76` on the p-value, and
+agrees with the same pair fitted `engine = "tmb"` to `2.012e-11` across all
+five reported fields. Ledgered `partial`, not `covered`: one fixture, ML only,
+`q = 2` and REML still native-only
+(`inst/extdata/julia-capabilities.tsv` `accessor_chibar_boundary`;
+docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
+
+`Model comparison suite (LRT/anova/AICc/weights/update)` moved from `planned` to
+`scope-limited` on the same day (`#1117`, commit `b21581f95`).
+`R/model-comparison.R` ports DRM.jl's `src/comparison.jl`, and `aicc()` is
+exported with `default` and `drmTMB` methods. The word is `scope-limited` rather
+than `implemented` because the rest of the named suite is deliberately absent:
+`drm_lrtest()` is implemented but neither exported nor wired in, and
+`anova.drmTMB()` (`R/methods.R`, which predates the port) still aborts with
+"`anova()` likelihood-ratio comparisons are not implemented for `drmTMB` fits";
+there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
+returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
+`weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
+rather than an R-side gap.
+
+BRIDGE AXIS for this suite (leaf `uncited-accessors`, 2026-09-05), measured
+against DRM.jl `aee371cc9`. `aicc()` reaches an `engine = "julia"` fit even
+though it has no `drmTMB_julia` method: it dispatches through `aicc.default()`,
+which works because `logLik.drmTMB_julia()` reports both `df` and `nobs`. On
+the Gaussian random-intercept fixture it equals DRM.jl's own `aicc(fit)` to
+`0.000e+00` and `aicc(tmb_fit)` to `1.899e-11`. `drm_lrtest()` likewise runs on
+two bridge fits and reproduces DRM.jl's `lrtest` exactly. Two bridge-side
+defects were found and fixed: `anova()` had no `drmTMB_julia` method and failed
+with a bare `UseMethod` error where the native engine gave drmTMB's own
+refusal, and `weights()` fell through to `stats:::weights.default` and returned
+`NULL` SILENTLY where the native engine returns a vector of ones. Since
+`engine = "julia"` refuses the `weights` argument at fit time, a bridge fit is
+unweighted by construction, so `weights.drmTMB_julia()` now returns the ones --
+matching both the native engine and DRM.jl's `ones(nobs(fit))`
+(`inst/extdata/julia-capabilities.tsv` `accessor_model_comparison`;
+docs/dev-log/evidence/julia-r-parity/uncited-accessors/).
+
 
 `Heritability/repeatability/ICC accessors` moved to `point-fit-recovery`:
 `heritability()`/`icc()`/`repeatability()` (`R/heritability.R`,
