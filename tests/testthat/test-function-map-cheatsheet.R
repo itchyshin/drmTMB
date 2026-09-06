@@ -3,9 +3,16 @@ test_that("original function-map sources cover the current public API", {
   namespace_path <- file.path(root, "NAMESPACE")
   source_path <- file.path(root, "tools", "function-cheatsheet-source.Rmd")
   generator_path <- file.path(root, "tools", "build-function-pdfs.py")
+  absent <- c(namespace_path, source_path, generator_path)
+  absent <- absent[!file.exists(absent)]
   skip_if(
-    !all(file.exists(c(namespace_path, source_path, generator_path))),
-    "source-only function-map inputs are unavailable"
+    length(absent) > 0L,
+    paste0(
+      "function-map export coverage NOT CHECKED -- missing ",
+      paste(basename(absent), collapse = ", "),
+      ". tools/ is stripped by .Rbuildignore, so a tarball check cannot see ",
+      "this gate; run it from a git checkout to verify export coverage."
+    )
   )
 
   namespace_lines <- readLines(namespace_path, warn = FALSE)
@@ -55,9 +62,17 @@ test_that("article restores the audited map and original printable downloads", {
     "cheatsheets",
     c("drmTMB-function-map.pdf", "drmTMB-function-cheatsheet.pdf")
   )
+  absent <- c(article_path, image_path, assets)
+  absent <- absent[!file.exists(absent)]
   skip_if(
-    !file.exists(article_path) || !dir.exists(file.path(root, "pkgdown")),
-    "source-only function-map article and assets are unavailable"
+    length(absent) > 0L || !dir.exists(file.path(root, "pkgdown")),
+    paste0(
+      "printable function-map downloads NOT CHECKED -- missing ",
+      paste(c(basename(absent), if (!dir.exists(file.path(root, "pkgdown"))) "pkgdown/"),
+            collapse = ", "),
+      ". pkgdown/ is stripped by .Rbuildignore, so a tarball check cannot see ",
+      "this gate; run it from a git checkout to verify the shipped PDFs."
+    )
   )
 
   article <- paste(readLines(article_path, warn = FALSE), collapse = "\n")

@@ -69,6 +69,8 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Release status
 
+This documentation describes `drmTMB` 0.7.1, the current pre-CRAN version.
+
 `drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
 documentation was built, it had not yet been submitted to or accepted by
 CRAN. The package remains intentionally bounded: use it for the implemented
