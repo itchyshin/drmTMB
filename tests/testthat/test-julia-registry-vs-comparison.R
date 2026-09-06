@@ -37,7 +37,14 @@ drm_julia_fe_family_capability_map <- function() {
     # adds its comparison row (fe_skew_normal), so the pair closes here with no gap
     # to name -- verified by reading the id out of drm_julia_capability_comparison()
     # rather than assuming its spelling.
-    skew_normal = "fe_skew_normal"
+    skew_normal = "fe_skew_normal",
+    # Integration (2026-09-06): the two BIVARIATE fe admissions. Neither family
+    # branch could add these -- this G13 map arrived from a later PR, so on each
+    # branch alone the guard did not yet exist and the gap only appears once they
+    # are combined. Both capability_ids were read out of the regenerated
+    # inst/extdata/julia-capabilities.tsv rather than assumed.
+    biv_lognormal = "fe_biv_lognormal",
+    biv_student = "fe_biv_student"
   )
 }
 

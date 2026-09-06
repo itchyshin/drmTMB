@@ -227,6 +227,7 @@ reference:
       - confint.drmTMB_julia
       - predict.drmTMB_julia
       - summary.drmTMB_julia
+      - weights.drmTMB_julia
       - julia-joint-methods
       - rho_latent
       - summary.drmTMB_julia_xfam

@@ -124,6 +124,15 @@ fe_only_fence_formula_args <- function(family_name, fixture, bar_dpar = NULL,
     return(NULL)
   }
   dpars <- fam_obj$dpars
+  # A requested bar_dpar this family does not HAVE means the generic fixture cannot
+  # express the cell. Returning NULL makes the caller skip; without this the helper
+  # built a formula with NO bar at all and the test then asserted a refusal that
+  # could never fire -- it silently tested nothing. Hit 2026-09-06 when the two
+  # bivariate families joined the fe cohort: they carry mu1/mu2, never `mu`.
+  # Their own fences are covered in test-julia-family-biv_{student,lognormal}.R.
+  if (!is.null(bar_dpar) && !(bar_dpar %in% dpars)) {
+    return(NULL)
+  }
   args <- vector("list", length(dpars))
   names(args) <- dpars
   for (dpar in dpars) {

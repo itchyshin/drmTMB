@@ -292,3 +292,90 @@ test_that("lrt_boundary matches DRM.jl's native lrt_boundary on committed fixtur
     ))
   }
 })
+
+# ---- BRIDGE AXIS: lrt_boundary on two engine = "julia" fits -----------------
+#
+# The block above compares this R port to DRM.jl's own `lrt_boundary` with the
+# R side fitted NATIVELY (engine = "tmb"). That leaves the bridge axis
+# uncited: nothing showed that `lrt_boundary()` is reachable at all when the
+# two fits came back through `engine = "julia"`. It is --
+# `drm_validate_lrt_boundary_fit()` admits `drmTMB_julia`, and every field the
+# test reads (`logLik`, `df`, `nobs`, `estimator`, `REML`, `coefficients`) is
+# on the bridge object. This banks that.
+#
+# Measured 2026-09-05 against DRM.jl aee371cc9 (the programme pin 430ef64cc is
+# unusable: it predates DRM.jl #646/#648). On the fixture below, n = 360:
+#   coef  tmb vs julia   max|d| = 3.949e-12 (full), 6.911e-15 (reduced)
+#   logLik tmb vs julia      |d| = 9.493e-12 (full), 5.684e-13 (reduced)
+#   SE    tmb vs julia   compared on the three shared fixed-effect targets
+#   lrt_boundary tmb vs julia   max|d| over all five fields = 2.012e-11
+#   lrt_boundary julia vs DRM.jl's own, same payload:
+#     statistic 277.6900074326 vs 277.6900074326, |d| = 0.000e+00
+#     pvalue    1.1966327035e-62, |d| = 1.986e-76
+#     pvalue_naive 2.3932654071e-62, |d| = 3.973e-76
+# Evidence: docs/dev-log/evidence/julia-r-parity/uncited-accessors/.
+test_that("lrt_boundary reaches engine = 'julia' fits and agrees with tmb and DRM.jl", {
+  drm_skip_live_julia()
+  drmTMB:::drm_julia_setup()
+
+  dat <- random_intercept_data(seed = 20260905, G = 30, m = 12, sd_b = 0.8)
+  fj_full <- drmTMB(bf(y ~ x + (1 | g), sigma ~ 1), family = gaussian(),
+                    data = dat, engine = "julia")
+  fj_red <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(),
+                   data = dat, engine = "julia")
+  tmb <- fit_ri_pair(dat)
+
+  expect_s3_class(fj_full, "drmTMB_julia")
+  expect_true(isTRUE(is_converged(fj_full)) && isTRUE(is_converged(fj_red)))
+
+  # (a) same-target: the two engines found the same optimum on both models.
+  flat <- function(f) {
+    cf <- stats::coef(f)
+    unlist(lapply(names(cf), function(d) {
+      stats::setNames(as.numeric(cf[[d]]), paste0(d, ":", names(cf[[d]])))
+    }))
+  }
+  for (pair in list(list(tmb$full, fj_full), list(tmb$reduced, fj_red))) {
+    ct <- flat(pair[[1L]])
+    cj <- flat(pair[[2L]])
+    expect_identical(sort(names(ct)), sort(names(cj)))
+    expect_lt(max(abs(ct - cj[names(ct)])), 1e-6)
+    expect_lt(abs(as.numeric(stats::logLik(pair[[1L]])) -
+                    as.numeric(stats::logLik(pair[[2L]]))), 1e-6)
+    expect_identical(as.integer(pair[[1L]]$df), as.integer(pair[[2L]]$df))
+    expect_identical(as.integer(stats::nobs(pair[[1L]])),
+                     as.integer(stats::nobs(pair[[2L]])))
+  }
+  # SEs, where both engines report them. The two engines spell vcov dimnames
+  # differently ("mu:x" natively, "mu_x" through the bridge), so compare by
+  # position after checking the two orderings agree term for term.
+  se_t <- sqrt(diag(stats::vcov(tmb$full)))
+  se_j <- sqrt(diag(stats::vcov(fj_full)))
+  expect_identical(length(se_t), length(se_j))
+  expect_identical(gsub("[:_]", "", names(se_t)), gsub("[:_]", "", names(se_j)))
+  expect_lt(max(abs(unname(se_t) - unname(se_j))), 1e-6)
+
+  # (b) the accessor itself, through the bridge and natively.
+  lj <- lrt_boundary(fj_full, fj_red, q = 1)
+  lt <- lrt_boundary(tmb$full, tmb$reduced, q = 1)
+  expect_s3_class(lj, "drm_lrt_boundary")
+  fields <- c("statistic", "pvalue", "pvalue_naive", "df")
+  for (f in fields) expect_lt(abs(lj[[f]] - lt[[f]]), 1e-6, label = f)
+  expect_identical(lj$q, 1L)
+
+  # (c) DRM.jl's own lrt_boundary on the same data: the oracle.
+  native <- lrt_boundary_julia(dat, "x + (1 | g)", "x", 1L)
+  expect_lt(abs(lj$statistic - native$statistic), 1e-8)
+  expect_lt(abs(lj$pvalue - native$pvalue), 1e-8)
+  expect_lt(abs(lj$pvalue_naive - native$pvalue_naive), 1e-8)
+  # Absolute tolerances are vacuous at p ~ 1e-62; the log scale is not.
+  expect_lt(abs(log(lj$pvalue) - log(native$pvalue)), 1e-8)
+  expect_lt(abs(log(lj$pvalue_naive) - log(native$pvalue_naive)), 1e-8)
+
+  cat(sprintf(
+    "\n[lrt_boundary BRIDGE] julia stat=%.10f p=%.12g | tmb stat=%.10f p=%.12g | DRM.jl stat=%.10f p=%.12g | |dstat| julia-tmb=%.2e julia-DRM.jl=%.2e\n",
+    lj$statistic, lj$pvalue, lt$statistic, lt$pvalue,
+    native$statistic, native$pvalue,
+    abs(lj$statistic - lt$statistic), abs(lj$statistic - native$statistic)
+  ))
+})

@@ -1,0 +1,36 @@
+
+############  A. random intercept on mu1  bf(mu1 = y1 ~ x + (1|g), mu2 = y2 ~ x, ...) 
+  tmb   :  REFUSED: `biv_student()` currently allows fixed-effect formulas only; random and structured effects are deferred. 
+  julia :  REFUSED: `biv_student()` currently allows fixed-effect formulas only; random and structured effects are deferred. ✖ Found a random-effect bar term in the `mu1` formula. ℹ Native `engine = "tmb"` refuses the same shape, so no same-target parity   receipt can cover it; use `engine = "tmb"` once the native route admits   random effects. 
+
+############  B. phylo() on mu1/mu2 
+  tmb   :  REFUSED: `biv_student()` currently allows fixed-effect formulas only; random and structured effects are deferred. 
+  julia :  REFUSED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has   parity tests. 
+
+############  C. relmat() marker on mu1 
+  tmb   :  REFUSED: `biv_student()` currently allows fixed-effect formulas only; random and structured effects are deferred. 
+  julia :  REFUSED: `engine = "julia"` routes `relmat()` / `animal()` / `spatial()` structured terms only for univariate Gaussian, Poisson, NB2, or Gamma fits. ℹ DRM.jl fits these general-covariance random intercepts for those families;   use `engine = "tmb"` for "biv_student" structured models. 
+
+############  D. non-intercept sigma1 ~ z 
+  tmb   :  REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho   predictors are deferred. 
+  julia :  REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ✖ Non-intercept formula on "sigma1". ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho   predictors are deferred on `engine = "julia"` exactly as they are on `engine   = "tmb"`. 
+
+############  E. non-intercept rho12 ~ z 
+  tmb   :  REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho   predictors are deferred. 
+  julia :  REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ✖ Non-intercept formula on "rho12". ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho   predictors are deferred on `engine = "julia"` exactly as they are on `engine   = "tmb"`. 
+
+############  F. non-intercept nu ~ z 
+  tmb   :  REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho   predictors are deferred. 
+  julia :  REFUSED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. ✖ Non-intercept formula on "nu". ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho   predictors are deferred on `engine = "julia"` exactly as they are on `engine   = "tmb"`. 
+
+############  G. weights = w 
+  tmb   :  REFUSED: "biv_student()" does not support a `weights` argument; implicit likelihood weights are one. 
+  julia :  REFUSED: `engine = "julia"` does not support `weights` yet. ℹ Use native `engine = "tmb"` for weighted fits until the bridge has a weights   payload. 
+
+############  H. REML = TRUE 
+  tmb   :  REFUSED: `REML` is implemented for univariate/bivariate Gaussian and binomial models. ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML =   FALSE`. 
+  julia :  REFUSED: `engine = "julia"` cannot fit non-Gaussian (biv_student) models by `REML = TRUE`. ✖ Refusing rather than fitting by maximum likelihood instead: ML and REML   differ precisely on the variance components REML exists to correct, so a   silent downgrade would move heritability, repeatability and ICC without   saying so. ℹ The DRM.jl bridge supports REML only for documented Gaussian cells. Ask for   maximum likelihood explicitly with `REML = FALSE`, or simplify to a   documented Gaussian REML cell. ℹ Native `engine = "tmb"` fits Gaussian cells by REML, and has a separate   diagnostic-only binomial REML route for an ordinary unlabelled `mu` random   intercept or independent slope. It does not offer a general REML fit for   every cell this bridge refuses. 
+
+############  I. penalty = drm_phylo_penalty() 
+  tmb   :  REFUSED: unused argument (lambda = 1) 
+  julia :  REFUSED: unused argument (lambda = 1) 
