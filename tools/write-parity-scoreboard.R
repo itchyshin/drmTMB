@@ -133,10 +133,16 @@ sb_receipt_tables <- function() c("se", "fixtures", "classc", "phylo_ng")
 # to the capability. Every id here is verified at generation time. Adding an
 # entry is a claim a reader can check against the receipt's printed label.
 sb_receipt_aliases <- function() {
+  # PRUNED 2026-09-06. Three entries died when their families gained committed ledger
+  # rows -- fe_cumulative_logit, fe_skew_normal and fe_tweedie -- and this function's own
+  # rule at the alias check below is that an alias must ADD something: "if a ledger row
+  # already reaches the same id the alias is dead weight and should be deleted, not
+  # carried". The generator ABORTED on the first of them, so the scoreboard could not be
+  # regenerated on main at all. All five were checked against
+  # drm_julia_capability_comparison() rather than only the one that happened to abort.
+  # The two below still earn their place: DRM.jl carries their receipts under ids with no
+  # `fe_` prefix, and no ledger row reaches them.
   list(
-    `Cumulative logit (ordinal)` = "fe_cumulative_logit",
-    `Skew-normal location-scale` = "fe_skew_normal",
-    `Tweedie (compound Poisson-Gamma)` = "fe_tweedie",
     `Truncated NB2 (zero-truncated counts)` = "truncated_nbinom2",
     `Zero-one-inflated beta` = "zero_one_beta"
   )
