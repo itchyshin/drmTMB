@@ -2117,16 +2117,16 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
       sigma2 = as.numeric(beta$beta_sigma2)
     )
   )
-  if (!identical(result$contract, "bridge_objective_at_v1")) {
+  if (!identical(result[["contract"]], "bridge_objective_at_v1")) {
     cli::cli_abort(c(
       "{.code DRM.drm_bridge_objective_at} returned an unrecognised contract tag.",
-      i = "Expected {.val bridge_objective_at_v1}; got {.val {result$contract}}. The DRM.jl-side return shape may have changed incompatibly."
+      i = "Expected {.val bridge_objective_at_v1}; got {.val {result[['contract']]}}. The DRM.jl-side return shape may have changed incompatibly."
     ))
   }
   list(
-    reml_loglik = as.numeric(result$reml_loglik),
-    raw_reml_ll = as.numeric(result$raw_reml_ll),
-    converged = isTRUE(result$converged_inner)
+    reml_loglik = as.numeric(result[["reml_loglik"]]),
+    raw_reml_ll = as.numeric(result[["raw_reml_ll"]]),
+    converged = isTRUE(result[["converged_inner"]])
   )
 }
 
@@ -3732,7 +3732,7 @@ new_drmTMB_julia <- function(
 ) {
   result <- as.list(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
-  coef_names <- as.character(result$coef_names)
+  coef_names <- as.character(result[["coef_names"]])
   if (!is.null(public_coef_labels)) {
     coef_names <- public_coef_labels$public
   }
@@ -3744,7 +3744,7 @@ new_drmTMB_julia <- function(
     bridge_payload = bridge_payload
   )
   coefficients <- stats::setNames(
-    as.numeric(unlist(result$coefficients, use.names = FALSE)),
+    as.numeric(unlist(result[["coefficients"]], use.names = FALSE)),
     coef_names
   )
   structured_parameters <- drm_julia_structured_parameters(
@@ -3784,7 +3784,7 @@ new_drmTMB_julia <- function(
   coefficient_blocks <- lapply(coefficient_blocks, function(x) {
     stats::setNames(x, drm_julia_split_coef_name(names(x))$term)
   })
-  V_full <- drm_julia_vcov(result$vcov, coef_names)
+  V_full <- drm_julia_vcov(result[["vcov"]], coef_names)
   V <- V_full[fixed, fixed, drop = FALSE]
   finite_vcov <- length(V) > 0L && all(is.finite(V))
   finite_diag <- if (length(V) > 0L) {
@@ -3826,7 +3826,7 @@ new_drmTMB_julia <- function(
   # DRM.jl #625 makes the fit report `estim_method` unconditionally, so the
   # claim is now checkable. If the engine says it fitted ML while we asked for
   # and believed REML, that is a gate defect: fail closed rather than mislabel.
-  engine_method <- result$estim_method %||% NULL
+  engine_method <- result[["estim_method"]] %||% NULL
   if (!is.null(engine_method) && nzchar(as.character(engine_method)[1L])) {
     engine_reml <- identical(toupper(as.character(engine_method)[1L]), "REML")
     if (isTRUE(effective_REML) && !engine_reml) {
@@ -3866,16 +3866,16 @@ new_drmTMB_julia <- function(
     structured_sd_scales = structured_sd_scales,
     corpars = structured_parameters$corpars,
     vcov = V,
-    logLik = as.numeric(result$loglik),
-    aic = as.numeric(result$aic),
-    bic = as.numeric(result$bic),
-    df = as.integer(result$df),
-    nobs = as.integer(result$nobs),
-    fitted = drm_julia_plain(result$fitted),
-    conditional_re = drm_julia_conditional_re_plain(result$conditional_re),
-    residuals = drm_julia_plain(result$residuals),
-    sigma = drm_julia_plain(result$sigma),
-    corpairs = drm_julia_plain(result$corpairs),
+    logLik = as.numeric(result[["loglik"]]),
+    aic = as.numeric(result[["aic"]]),
+    bic = as.numeric(result[["bic"]]),
+    df = as.integer(result[["df"]]),
+    nobs = as.integer(result[["nobs"]]),
+    fitted = drm_julia_plain(result[["fitted"]]),
+    conditional_re = drm_julia_conditional_re_plain(result[["conditional_re"]]),
+    residuals = drm_julia_plain(result[["residuals"]]),
+    sigma = drm_julia_plain(result[["sigma"]]),
+    corpairs = drm_julia_plain(result[["corpairs"]]),
     opt = drm_julia_opt_slot(result),
     # #1108 / DRM.jl #632: the bridge attaches "gradient" (index-aligned with
     # "gradient_names") ONLY for routes whose fit carries `fit.nllgrad`
@@ -3883,7 +3883,7 @@ new_drmTMB_julia <- function(
     # q2/q4 route and the sparse LSS ML route do; the base Gaussian/GLMM
     # route and the non-Gaussian phylo Laplace route do not) -- omitted,
     # never zeros/NaN, on a route without one. `gradient_names` is
-    # index-aligned with `result$coef_names` by DRM.jl's own construction, so
+    # index-aligned with `result[["coef_names"]]` by DRM.jl's own construction, so
     # naming the vector with the (possibly public-relabelled) `coef_names`
     # computed above keeps the gradient's component labels consistent with
     # `coef(fit)` rather than the raw Julia spelling. `route` records which
@@ -3892,17 +3892,17 @@ new_drmTMB_julia <- function(
     # never has to reach into the rest of this list's shape.
     diagnostics = list(
       route = family_type,
-      gradient = if (!is.null(result$gradient)) {
+      gradient = if (!is.null(result[["gradient"]])) {
         if (!identical(
-          as.character(result$gradient_names),
-          as.character(result$coef_names)
+          as.character(result[["gradient_names"]]),
+          as.character(result[["coef_names"]])
         )) {
           cli::cli_abort(paste0(
             "DRM.jl bridge returned `gradient_names` that do not match ",
             "`coef_names`; refusing to mislabel gradient entries."
           ))
         }
-        gradient_values <- as.numeric(unlist(result$gradient, use.names = FALSE))
+        gradient_values <- as.numeric(unlist(result[["gradient"]], use.names = FALSE))
         if (length(gradient_values) != length(coef_names)) {
           cli::cli_abort(paste0(
             "DRM.jl bridge returned a `gradient` vector whose length does ",
@@ -3913,7 +3913,7 @@ new_drmTMB_julia <- function(
       } else {
         NULL
       },
-      converged = isTRUE(result$converged)
+      converged = isTRUE(result[["converged"]])
     ),
     uncertainty = list(
       status = uncertainty_status,
@@ -4320,8 +4320,8 @@ drm_julia_vcov <- function(x, coef_names) {
 # the wire, so `message` is composed here from the two facts that did cross, and
 # says so; it is never presented as a verbatim optimiser message.
 drm_julia_opt_slot <- function(result) {
-  converged <- isTRUE(result$converged)
-  iterations <- suppressWarnings(as.integer(result$iterations %||% NA_integer_))
+  converged <- isTRUE(result[["converged"]])
+  iterations <- suppressWarnings(as.integer(result[["iterations"]] %||% NA_integer_))
   if (length(iterations) != 1L || is.na(iterations) || iterations < 0L) {
     iterations <- NA_integer_
   }
@@ -4592,8 +4592,8 @@ confint.drmTMB_julia <- function(
       seed = seed,
       threads = threads
     )
-    drm_julia_threads_hint(threads, result$julia_threads)
-    drm_julia_serial_hint(threads, result$julia_threads)
+    drm_julia_threads_hint(threads, result[["julia_threads"]])
+    drm_julia_serial_hint(threads, result[["julia_threads"]])
     return(drm_julia_fixef_inference_confint_row(
       target = target,
       result = result,
@@ -4611,11 +4611,11 @@ confint.drmTMB_julia <- function(
     seed = seed,
     threads = threads
   )
-  # Multi-row (bivariate) path: DRM.jl returns result$multi == TRUE with
+  # Multi-row (bivariate) path: DRM.jl returns result[["multi"]] == TRUE with
   # equal-length vectors for param/estimate/lower/upper/etc. Map each Julia
   # param name ("sd_mu1", ...) to the matching target row by dpar, then build
   # one confint row per axis and rbind them.
-  if (isTRUE(as.logical(result$multi))) {
+  if (isTRUE(as.logical(result[["multi"]]))) {
     return(drm_julia_inference_confint_multi(
       targets = targets,
       result = result,
@@ -4624,8 +4624,8 @@ confint.drmTMB_julia <- function(
     ))
   }
   # Univariate path: single target row, scalar lower/upper.
-  drm_julia_threads_hint(threads, result$julia_threads)
-  drm_julia_serial_hint(threads, result$julia_threads)
+  drm_julia_threads_hint(threads, result[["julia_threads"]])
+  drm_julia_serial_hint(threads, result[["julia_threads"]])
   drm_julia_inference_confint_row(
     target = targets[1L, , drop = FALSE],
     result = result,
@@ -5108,8 +5108,8 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
   result <- as.list(result)
   scale <- target$estimate[[1L]] / exp(target$link_estimate[[1L]])
   interval <- exp(c(
-    as.numeric(result$lower),
-    as.numeric(result$upper)
+    as.numeric(result[["lower"]]),
+    as.numeric(result[["upper"]])
   )) *
     scale
   diagnostics <- profile_interval_diagnostics(
@@ -5131,29 +5131,29 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
     } else {
       NA_character_
     },
-    conf.status = as.character(result$status),
+    conf.status = as.character(result[["status"]]),
     profile.boundary = diagnostics$boundary,
-    profile.message = if (nzchar(as.character(result$message))) {
-      as.character(result$message)
+    profile.message = if (nzchar(as.character(result[["message"]]))) {
+      as.character(result[["message"]])
     } else {
       diagnostics$message
     },
-    julia.threaded = isTRUE(result$threaded),
-    julia.workers = as.integer(result$worker_threads),
-    julia.threads = as.integer(result$julia_threads),
-    julia.blas_threads = as.integer(result$blas_threads),
-    julia.elapsed = as.numeric(result$elapsed),
+    julia.threaded = isTRUE(result[["threaded"]]),
+    julia.workers = as.integer(result[["worker_threads"]]),
+    julia.threads = as.integer(result[["julia_threads"]]),
+    julia.blas_threads = as.integer(result[["blas_threads"]]),
+    julia.elapsed = as.numeric(result[["elapsed"]]),
     stringsAsFactors = FALSE
   )
   if (identical(method, "bootstrap")) {
-    out$bootstrap.n <- as.integer(result$used)
-    out$bootstrap.failed <- as.integer(result$failed)
-    out$bootstrap.parallel <- if (isTRUE(result$threaded)) {
+    out$bootstrap.n <- as.integer(result[["used"]])
+    out$bootstrap.failed <- as.integer(result[["failed"]])
+    out$bootstrap.parallel <- if (isTRUE(result[["threaded"]])) {
       "julia_threads"
     } else {
       "none"
     }
-    out$bootstrap.workers <- as.integer(result$worker_threads)
+    out$bootstrap.workers <- as.integer(result[["worker_threads"]])
   }
   row.names(out) <- NULL
   out
@@ -5167,7 +5167,7 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
 # SD-specific step.
 drm_julia_fixef_inference_confint_row <- function(target, result, level, method) {
   result <- as.list(result)
-  interval <- c(as.numeric(result$lower), as.numeric(result$upper))
+  interval <- c(as.numeric(result[["lower"]]), as.numeric(result[["upper"]]))
   diagnostics <- profile_interval_diagnostics(
     interval,
     transformation = target$transformation[[1L]]
@@ -5187,29 +5187,29 @@ drm_julia_fixef_inference_confint_row <- function(target, result, level, method)
     } else {
       NA_character_
     },
-    conf.status = as.character(result$status),
+    conf.status = as.character(result[["status"]]),
     profile.boundary = diagnostics$boundary,
-    profile.message = if (nzchar(as.character(result$message))) {
-      as.character(result$message)
+    profile.message = if (nzchar(as.character(result[["message"]]))) {
+      as.character(result[["message"]])
     } else {
       diagnostics$message
     },
-    julia.threaded = isTRUE(result$threaded),
-    julia.workers = as.integer(result$worker_threads),
-    julia.threads = as.integer(result$julia_threads),
-    julia.blas_threads = as.integer(result$blas_threads),
-    julia.elapsed = as.numeric(result$elapsed),
+    julia.threaded = isTRUE(result[["threaded"]]),
+    julia.workers = as.integer(result[["worker_threads"]]),
+    julia.threads = as.integer(result[["julia_threads"]]),
+    julia.blas_threads = as.integer(result[["blas_threads"]]),
+    julia.elapsed = as.numeric(result[["elapsed"]]),
     stringsAsFactors = FALSE
   )
   if (identical(method, "bootstrap")) {
-    out$bootstrap.n <- as.integer(result$used)
-    out$bootstrap.failed <- as.integer(result$failed)
-    out$bootstrap.parallel <- if (isTRUE(result$threaded)) {
+    out$bootstrap.n <- as.integer(result[["used"]])
+    out$bootstrap.failed <- as.integer(result[["failed"]])
+    out$bootstrap.parallel <- if (isTRUE(result[["threaded"]])) {
       "julia_threads"
     } else {
       "none"
     }
-    out$bootstrap.workers <- as.integer(result$worker_threads)
+    out$bootstrap.workers <- as.integer(result[["worker_threads"]])
   }
   row.names(out) <- NULL
   out
@@ -5217,7 +5217,7 @@ drm_julia_fixef_inference_confint_row <- function(target, result, level, method)
 
 # Bivariate multi-row confint builder.
 #
-# DRM.jl returns a multi-row payload (result$multi == TRUE) with equal-length
+# DRM.jl returns a multi-row payload (result[["multi"]] == TRUE) with equal-length
 # vectors: param ("sd_mu1", "sd_mu2", "sd_sigma1", "sd_sigma2"), lower, upper,
 # estimate, std_error (NaN for profile), bounded (profile only), status,
 # message, elapsed (scalar). We join by dpar: "sd_mu1" -> dpar "mu1", etc.
@@ -5227,16 +5227,16 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   result <- as.list(result)
 
   # Julia returns param names like "sd_mu1"; strip leading "sd_" to get dpar.
-  julia_params <- as.character(unlist(result$param, use.names = FALSE))
+  julia_params <- as.character(unlist(result[["param"]], use.names = FALSE))
   julia_dpar <- sub("^sd_", "", julia_params)
-  julia_lower <- as.numeric(unlist(result$lower, use.names = FALSE))
-  julia_upper <- as.numeric(unlist(result$upper, use.names = FALSE))
-  julia_estimate <- as.numeric(unlist(result$estimate, use.names = FALSE))
-  julia_status <- as.character(unlist(result$status, use.names = FALSE))
-  julia_message <- as.character(unlist(result$message, use.names = FALSE))
+  julia_lower <- as.numeric(unlist(result[["lower"]], use.names = FALSE))
+  julia_upper <- as.numeric(unlist(result[["upper"]], use.names = FALSE))
+  julia_estimate <- as.numeric(unlist(result[["estimate"]], use.names = FALSE))
+  julia_status <- as.character(unlist(result[["status"]], use.names = FALSE))
+  julia_message <- as.character(unlist(result[["message"]], use.names = FALSE))
   # bounded is profile-only; may be absent for bootstrap.
-  julia_bounded <- if (!is.null(result$bounded)) {
-    as.logical(unlist(result$bounded, use.names = FALSE))
+  julia_bounded <- if (!is.null(result[["bounded"]])) {
+    as.logical(unlist(result[["bounded"]], use.names = FALSE))
   } else {
     rep(TRUE, length(julia_params))
   }
@@ -5250,13 +5250,13 @@ drm_julia_inference_confint_multi <- function(targets, result, level, method) {
   .num1 <- function(v) {
     if (is.null(v) || length(v) == 0L) NA_real_ else as.numeric(v)[[1L]]
   }
-  elapsed <- .num1(result$elapsed)
-  threaded <- isTRUE(result$threaded)
-  worker_threads <- .int1(result$worker_threads)
-  julia_threads <- .int1(result$julia_threads)
-  blas_threads <- .int1(result$blas_threads)
-  bootstrap_used <- .int1(result$used)
-  bootstrap_failed <- .int1(result$failed)
+  elapsed <- .num1(result[["elapsed"]])
+  threaded <- isTRUE(result[["threaded"]])
+  worker_threads <- .int1(result[["worker_threads"]])
+  julia_threads <- .int1(result[["julia_threads"]])
+  blas_threads <- .int1(result[["blas_threads"]])
+  bootstrap_used <- .int1(result[["used"]])
+  bootstrap_failed <- .int1(result[["failed"]])
 
   rows <- vector("list", nrow(targets))
   for (i in seq_len(nrow(targets))) {
@@ -7529,23 +7529,23 @@ new_drmTMB_julia_xfam <- function(
 ) {
   result <- as.list(result)
   scalar <- function(x) as.numeric(x)[[1L]]
-  rho_latent <- scalar(result$rho_latent)
+  rho_latent <- scalar(result[["rho_latent"]])
   rho_ci_wald <- c(
-    lower = scalar(result$rho_ci_wald_lower),
-    upper = scalar(result$rho_ci_wald_upper)
+    lower = scalar(result[["rho_ci_wald_lower"]]),
+    upper = scalar(result[["rho_ci_wald_upper"]])
   )
   rho_ci_profile <- c(
-    lower = scalar(result$rho_ci_prof_lower),
-    upper = scalar(result$rho_ci_prof_upper)
+    lower = scalar(result[["rho_ci_prof_lower"]]),
+    upper = scalar(result[["rho_ci_prof_upper"]])
   )
 
   coefficients <- list(
     mu1 = stats::setNames(
-      as.numeric(unlist(result$beta1, use.names = FALSE)),
+      as.numeric(unlist(result[["beta1"]], use.names = FALSE)),
       axes$mu1$coef_names
     ),
     mu2 = stats::setNames(
-      as.numeric(unlist(result$beta2, use.names = FALSE)),
+      as.numeric(unlist(result[["beta2"]], use.names = FALSE)),
       axes$mu2$coef_names
     )
   )
@@ -7563,8 +7563,8 @@ new_drmTMB_julia_xfam <- function(
     }
   }
   sigma_coef <- list(
-    sigma1 = sigma_coef_axis(result$sigma_coef1, axes$sigma1$coef_names),
-    sigma2 = sigma_coef_axis(result$sigma_coef2, axes$sigma2$coef_names)
+    sigma1 = sigma_coef_axis(result[["sigma_coef1"]], axes$sigma1$coef_names),
+    sigma2 = sigma_coef_axis(result[["sigma_coef2"]], axes$sigma2$coef_names)
   )
   fitted_link <- list(
     mu1 = as.numeric(axes$mu1$X %*% coefficients$mu1),
@@ -7598,7 +7598,7 @@ new_drmTMB_julia_xfam <- function(
   # linear-predictor coefficients. rho_latent is derived from those loadings
   # and the fitted dispersion, so it is not an additional free parameter.
   df <- length(coef_vector) + 2L
-  logLik <- scalar(result$loglik)
+  logLik <- scalar(result[["loglik"]])
   aic <- -2 * logLik + 2 * df
   bic <- -2 * logLik + log(length(axes$mu1$y)) * df
 
@@ -7628,12 +7628,12 @@ new_drmTMB_julia_xfam <- function(
     fitted = fitted,
     residuals = residuals,
     loadings = c(
-      lambda1 = scalar(result$lambda1),
-      lambda2 = scalar(result$lambda2)
+      lambda1 = scalar(result[["lambda1"]]),
+      lambda2 = scalar(result[["lambda2"]])
     ),
     sigma = c(
-      sigma1 = scalar(result$sigma1),
-      sigma2 = scalar(result$sigma2)
+      sigma1 = scalar(result[["sigma1"]]),
+      sigma2 = scalar(result[["sigma2"]])
     ),
     rho_latent = rho_latent,
     rho_ci_wald = rho_ci_wald,
