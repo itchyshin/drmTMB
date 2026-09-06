@@ -44,6 +44,41 @@ every item above.
   return the untruncated count mean through the bridge rather than the hurdle
   mean; every dpar is correct, so `hurdle_nbinom2_mean()` reproduces the native
   `fitted()` from them exactly.
+## `engine = "julia"` admits REML on the bivariate q = 2 structured routes
+
+* `drmTMB(bf(mu1 = y1 ~ x + phylo(1 | p | id, tree = tree), mu2 = y2 ~ x +
+  phylo(1 | p | id, tree = tree), sigma1 = ~ 1, sigma2 = ~ 1, rho12 = ~ 1),
+  biv_gaussian(), engine = "julia", REML = TRUE)` now fits instead of refusing,
+  and likewise for matching `relmat(1 | p | id, K = K)` and
+  `spatial(1 | p | id, coords = coords)` markers. The bridge previously refused
+  this cell for EVERY provider -- through two different branches, one per
+  marker family -- while DRM.jl fits it (`fit_coevolution_q2_reml`) and native
+  `engine = "tmb"` has always admitted it. Measured at DRM.jl pin `430ef64cc`
+  against `engine = "tmb"` `REML = TRUE` on the same fixture: max |d coef|
+  `5.15e-05` (phylo), `5.29e-05` (relmat), `4.20e-05` (spatial); |d logLik|
+  `1.80e-04`, `3.70e-07`, `4.49e-08`; `estimator` and DRM.jl's own
+  `estim_method` read `REML` on all three, with the ML and REML
+  log-likelihoods about 6 units apart. phylo's `1.80e-04` is the one number
+  above `1e-4`, and it is a property of that route rather than of REML: the
+  already-shipped ML fit on the same fixture disagrees by `5.42e-04`, three
+  times wider.
+* **Point estimates only on these routes.** No standard error, confidence
+  interval, or coverage claim is made here. When the receipt was measured
+  DRM.jl reported an all-NaN covariance for the bivariate q = 2 structured
+  cell; DRM.jl has since started returning a finite one, confirmed live at pin
+  `0edb916a5` alongside an exact reproduction of every point number above. The
+  receipt stays point-only regardless: that covariance is the ML
+  observed-information curvature evaluated at the REML point, which is not the
+  quantity `engine = "tmb"` reports for a REML fit, and no comparison of the
+  two has been measured. Use `engine = "tmb"` when you need uncertainty on this
+  model.
+* **`animal()` q = 2 stays refused.** DRM.jl fits it, but native
+  `engine = "tmb"` still refuses bivariate `animal()` q = 2 REML, so there is
+  no same-target comparator to measure against; the route is admitted only
+  once that receipt exists. Every other bivariate structured shape keeps its
+  existing refusal unchanged. Evidence:
+  `docs/dev-log/evidence/julia-r-parity/reml/biv-q2-bridge-receipt.md`.
+
 ## The formula-construct battery extended off its one Gaussian fixture, and a silently mislabelled `sd(<group>)` block found there (DRM.jl #467/#609/#730)
 
 * PR #1227 ran 58 formula constructs through `engine = "julia"` on **one**
@@ -85,6 +120,7 @@ every item above.
   covered:** the multi-IID `sd` route, `sdphy_<group>` live, and random-effect
   routes generally, where DRM.jl supplies no `bridge_formula_labels_v1` at all
   and so refuses *every* factor, declared or not -- honest, but a separate gap.
+
 ## `engine = "julia"` default coefficient labels widened for the A4 family admissions
 
 * The Julia bridge's default coefficient labeller
@@ -254,6 +290,32 @@ every item above.
   fit above is native TMB (`engine = "tmb"`) only. Precision (`Ainv`) and
   pedigree-built animal representations, slopes, q4+, and scale-side
   bivariate relmat/animal REML routes remain deferred and refused.
+## `engine = "julia"` zero-inflated NB2: `fitted()` and `residuals()` now agree with the native engine (DRM.jl bridge fix)
+
+* A zero-inflated negative-binomial model (`family = nbinom2()` with a `zi ~ `
+  formula part, native `model_type` `"zi_nbinom2"`) already routed through
+  `engine = "julia"`, but nothing tested or documented it -- and it carried a
+  silent disagreement. `fitted()` and `residuals()` differed between the two
+  engines on the SAME converged fit, because DRM.jl's `fitted()` is the
+  count-component mean `mu` while drmTMB's is the unconditional mean
+  `(1 - zi) * mu`. Measured on the package's own
+  `tests/testthat/test-zi-nbinom2.R` fixture (n = 1800): coefficients agreed to
+  4.56745752330789e-13 and logLik to 1.72803993336856e-11, while `fitted()`
+  disagreed by 1.3665229755584 -- invisible to any coefficient or likelihood
+  check. Fixed on the DRM.jl bridge boundary (`_bridge_fitted_marginal`), which
+  leaves DRM.jl's own `fitted`/`simulate`/`marginal_parameters` and the bridge's
+  `mu` dpar untouched; after the fix the difference is 4.83169060316868e-13. The
+  same repair covers zero-inflated Poisson; hurdle fits are deliberately not
+  repaired (their mean also divides by `1 - P(0)` and has no bridge receipt).
+  A new `tests/testthat/test-julia-family-zi_nbinom2.R` pins the route: coef,
+  logLik and Wald-SE parity, the coefficient-naming contract for all three dpar
+  blocks (design 258 section 8.10), the engine's own refusals, and two KNOWN
+  GAPS that are pinned rather than claimed -- `predict(dpar = "zi")` is refused
+  on a Julia-engine fit (the bridge tags it `"nbinom2"`, whose link table has no
+  `zi` row), and `sigma()` returns a list rather than the numeric vector the
+  native engine returns. **No registry row and no family admission**: the route
+  was already reachable through the existing `nbinom2` row.
+
 ## `engine = "julia"` scope fence for the fixed-effect-only family cohort (A4.G17)
 
 * Admitting a family on the `engine = "julia"` fixed-effect route (`fe = TRUE`
