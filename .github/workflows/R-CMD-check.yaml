@@ -219,24 +219,13 @@ jobs:
             }
           '
 
-      # Receipt staleness (#1150). Two whole-file receipts tie the committed
-      # Julia-parity numbers to the source that produced them -- C17 model-15
-      # (five pinned files) and lss-tip-identity (every R/*.R plus its runner)
-      # -- and until this step neither was checked at PR time, so a change to
-      # R/ that did not regenerate the receipt merged green with the receipt
-      # quietly meaning nothing. This DETECTS and names the drift; it never
-      # regenerates (that needs a live Julia and the pinned DRM.jl clone).
-      # Hash comparison only, seconds, no package load. Measured 2026-09-04:
-      # exit 0 at a3ddf2e2d (receipt fresh), exit 1 with one byte appended to
-      # R/julia-bridge.R, exit 1 on main ad8fc6524 where the receipt was
-      # already stale (R/julia-bridge.R, R/phylo-utils.R) -- that red is the
-      # point. The script header records why the R checker's own --current
-      # mode cannot run on a runner.
-      - name: Receipt staleness (detect, never regenerate)
-        if: runner.os == 'Linux'
-        run: |
-          bash tools/ci-receipt-staleness.sh
-
+      # Receipt staleness MOVED 2026-09-06 to .github/workflows/receipt-staleness.yaml,
+      # which runs on push to main. It ran here, on the PR merge preview, and so
+      # re-staled EVERY open PR whenever main moved -- including PRs touching no R/
+      # file (#1296 changed one test and went red on it). Measured: 16 merges in one
+      # afternoon against four live PRs. The guard's claim -- "a receipt must not
+      # drift from the source it certifies" -- is about MAIN, which is where drift
+      # enters and where it is now checked, on every merge, in ~2 minutes.
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
