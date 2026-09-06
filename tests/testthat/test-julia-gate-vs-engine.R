@@ -291,30 +291,52 @@ test_that("Julia capability comparison artifact matches the registry", {
   # A8 (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/): G3
   # (bridge-side profile/bootstrap inference) measured on all four wave 1
   # rows. base_gaussian_location_scale and plain_binomial_nonphylo qualified
-  # -- partial -> supported. biv_gaussian_residual (no profile/bootstrap
-  # target exists on this route for any parameter) and gaussian_response_mask
-  # (Julia bootstrap fails all 99 replicates; the Julia fit's own
-  # opt$convergence flag is FALSE) stay partial -- never rounded up. Split the
-  # locked set accordingly rather than deleting it.
+  # -- partial -> supported.
+  #
+  # G3 leaf (2026-09-05, .../p2-g3/g3-drmjl-version-boundary-receipt.md):
+  # gaussian_response_mask MOVED from the still-partial set to the qualified
+  # set. A8's two blockers on that row were both DRM.jl defects, fixed by
+  # DRM.jl#646/#648; re-measured against DRM.jl main both engines converge,
+  # the profile CIs agree to 5.1e-06/7.2e-06 (bar 1e-4), and both bootstraps
+  # complete 0/99 failed. The promotion carries a DRM.jl version floor, and
+  # tests/testthat/test-julia-missing.R's #646 block is the live tripwire for
+  # it; this assertion is the ledger-side half.
+  #
+  # biv_gaussian_residual stays partial: no profile/bootstrap target exists on
+  # that route for ANY parameter (fixef_profile_ready is unconditionally FALSE
+  # for a bivariate fit), re-confirmed live against DRM.jl main. Never rounded
+  # up to 4/4 -- keep the split, and move a row between the two sets only with
+  # a measured receipt.
   wave1_still_partial <- registry[
     registry$capability_id %in%
       c(
-        "biv_gaussian_residual",
-        "gaussian_response_mask"
+        "biv_gaussian_residual"
       ),
   ]
-  expect_equal(nrow(wave1_still_partial), 2L)
+  expect_equal(nrow(wave1_still_partial), 1L)
   expect_true(all(wave1_still_partial$r_bridge_status == "partial"))
 
   wave1_g3_qualified <- registry[
     registry$capability_id %in%
       c(
         "base_gaussian_location_scale",
-        "plain_binomial_nonphylo"
+        "plain_binomial_nonphylo",
+        "gaussian_response_mask"
       ),
   ]
-  expect_equal(nrow(wave1_g3_qualified), 2L)
+  expect_equal(nrow(wave1_g3_qualified), 3L)
   expect_true(all(wave1_g3_qualified$r_bridge_status == "supported"))
+
+  # The two sets must stay a PARTITION of the four wave-1 rows: a row silently
+  # dropped from both sets would make each assertion above vacuously narrower
+  # without failing anything.
+  expect_setequal(
+    c(wave1_still_partial$capability_id, wave1_g3_qualified$capability_id),
+    c(
+      "base_gaussian_location_scale", "biv_gaussian_residual",
+      "gaussian_response_mask", "plain_binomial_nonphylo"
+    )
+  )
 
   # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
   # see the plan's CONDITIONS section). Locked so it cannot drift silently.

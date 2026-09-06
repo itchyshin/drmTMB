@@ -132,7 +132,12 @@ test_that("skew_normal payload labels all three dpars in base-R spelling (design
     data = dat,
     env = environment()
   )
-  expect_false("nu" %in% names(payload3$options$coef_labels))
+  # FLIPPED 2026-09-06. #1176 wrote this as expect_false because the default-label
+  # gap was open then: the payload carried no entry for skew_normal's third dpar and
+  # DRM.jl's echo rejected the fit with `coef_labels is missing an entry for dpar
+  # "nu"`. THIS PR closes that hole (drm_julia_bridge_default_dpar_labels), so the
+  # entry is now present by design and asserting its absence would re-pin the bug.
+  expect_true("nu" %in% names(payload3$options$coef_labels))
 })
 
 # ---- live round trip (opt-in; skips only when the engine is absent) --------
