@@ -102,7 +102,7 @@ drm_julia_family_registry <- function() {
     # parts select the bivariate route (src/bridge.jl). No phylo, RE, or
     # structured column: DRM.jl refuses structured markers on this route by
     # design ("residual-only"), and native drmTMB defers them too.
-    spec("biv_student", fe = TRUE)
+    spec("biv_student", fe = TRUE),
     # ---- A4 admissions, one row per PR ---------------------------------------
     # skew_normal (dpars mu, sigma, nu): fixed effects only -- DRM.jl's
     # SkewNormal() refuses every random effect and structured marker, and the

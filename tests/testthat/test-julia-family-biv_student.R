@@ -93,10 +93,20 @@ test_that("the family-specific engine = 'julia' abort in drmTMB() is gone", {
   # `engine = \"tmb\"`; the Julia route is deferred." -- a hard gate that fired
   # BEFORE the registry was consulted, so the registry row alone could never
   # have admitted this family. The registry is now the single authority.
+  # Read the LOADED NAMESPACE, not R/drmTMB.R. Under R CMD check the tests run
+  # against the installed package, where R/ does not exist as source files, so
+  # readLines() ERRORS rather than skipping -- the same CI failure PR #1125 hit
+  # on 2026-09-03. The namespace is present in every environment this test can
+  # run in, so this asserts the same thing without depending on the source tree.
+  ns <- asNamespace("drmTMB")
   src <- paste(
-    readLines(testthat::test_path("..", "..", "R", "drmTMB.R"), warn = FALSE),
+    unlist(lapply(ls(ns, all.names = TRUE), function(nm) {
+      obj <- get(nm, envir = ns)
+      if (is.function(obj)) deparse(obj) else character(0)
+    })),
     collapse = "\n"
   )
+  expect_gt(nchar(src), 100000L) # the search corpus is real, not empty
   expect_false(grepl("the Julia route is deferred", src, fixed = TRUE))
 })
 
