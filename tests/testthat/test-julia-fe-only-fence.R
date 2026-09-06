@@ -59,7 +59,13 @@ fe_only_fence_families <- function() {
     ) {
       return(NA_character_)
     }
-    if (startsWith(row$family, "biv_")) {
+    # #1224: this re-derivation used to read `startsWith(row$family, "biv_")`,
+    # mirroring a PREFIX test in the implementation. The exemption is now a
+    # declared per-family column, so the independent reading reads the column.
+    # It stays independent of `drm_julia_fe_only_fence_families()` -- it walks
+    # the registry rows itself rather than calling the helper -- which is the
+    # point of the `expect_setequal()` below.
+    if (isTRUE(row$fe_fence_exempt)) {
       return(NA_character_)
     }
     row$family
