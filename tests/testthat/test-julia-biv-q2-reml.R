@@ -210,10 +210,22 @@ test_that("both q2 payload builders forward method = REML, and only then", {
 # optimiser slack; and relmat/spatial, which share the REML code path but not
 # the phylo covariance construction, agree to 3.7e-07 and 4.5e-08.
 #
-# SEs ARE NOT COMPARED. DRM.jl's q=2 structured route stores an all-NaN
-# covariance (`V = fill(NaN, ...)` in `_fit_bivariate_q2_structured`), so this
-# receipt is POINT-ONLY on every provider. That is asserted below rather than
-# passed over in silence.
+# SEs ARE NOT COMPARED; this receipt is POINT-ONLY on every provider, and that
+# is asserted below rather than passed over in silence.
+#
+# The REASON changed on 2026-09-06 and the change is recorded rather than
+# quietly absorbed. At the pin this receipt was measured against (430ef64cc)
+# DRM.jl's q=2 structured route stored an all-NaN covariance
+# (`V = fill(NaN, ...)` in `_fit_bivariate_q2_structured`), so there was no SE
+# to compare. DRM.jl f68991591 ("standard errors on the q=2 structured route
+# (was all-NaN)") filled that hole; re-measured here at DRM.jl pin 0edb916a5,
+# all three providers return a finite covariance. The receipt stays point-only
+# because nothing here has MEASURED those SEs: DRM.jl's own note says that V is
+# the ML observed-information curvature evaluated at the REML point, with the
+# restricted-penalty term omitted, so it is not the quantity `engine = "tmb"`
+# reports for a REML fit, and the two engines do not even name their vcov rows
+# alike. Use `engine = "tmb"` for uncertainty on this model until an SE receipt
+# exists.
 # ---------------------------------------------------------------------------
 
 test_that("engine='julia' fits bivariate q2 phylo/relmat/spatial by REML, same target as engine='tmb'", {
@@ -274,9 +286,15 @@ test_that("engine='julia' fits bivariate q2 phylo/relmat/spatial by REML, same t
       tol_coef
     )
 
-    # POINT-ONLY: DRM.jl reports no usable covariance on this route, so no SE
-    # claim is made or could be made here.
-    expect_true(all(!is.finite(sqrt(diag(stats::vcov(fj))))), info = kind)
+    # FLIPPED 2026-09-06 with the reason beside it (see the header note): this
+    # was `all(!is.finite(...))` when DRM.jl stored an all-NaN covariance here.
+    # DRM.jl f68991591 closed that hole, so keeping the old assertion would
+    # re-pin a gap the engine has filled. The flip asserts the covariance is
+    # now real and usable-shaped -- it is NOT an SE parity claim, and none is
+    # made anywhere in this file.
+    se_j <- sqrt(diag(stats::vcov(fj)))
+    expect_gt(length(se_j), 0L)
+    expect_true(all(is.finite(se_j)), info = kind)
   }
 })
 

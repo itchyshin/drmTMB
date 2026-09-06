@@ -41,11 +41,16 @@ every item above.
   above `1e-4`, and it is a property of that route rather than of REML: the
   already-shipped ML fit on the same fixture disagrees by `5.42e-04`, three
   times wider.
-* **Point estimates only on these routes.** DRM.jl reports an all-NaN
-  covariance for the bivariate q = 2 structured cell, confirmed live
-  (`sqrt(diag(vcov(fit)))` is `NaN` throughout), so no standard error,
-  confidence interval, or coverage claim is made or possible here; use
-  `engine = "tmb"` when you need uncertainty on this model.
+* **Point estimates only on these routes.** No standard error, confidence
+  interval, or coverage claim is made here. When the receipt was measured
+  DRM.jl reported an all-NaN covariance for the bivariate q = 2 structured
+  cell; DRM.jl has since started returning a finite one, confirmed live at pin
+  `0edb916a5` alongside an exact reproduction of every point number above. The
+  receipt stays point-only regardless: that covariance is the ML
+  observed-information curvature evaluated at the REML point, which is not the
+  quantity `engine = "tmb"` reports for a REML fit, and no comparison of the
+  two has been measured. Use `engine = "tmb"` when you need uncertainty on this
+  model.
 * **`animal()` q = 2 stays refused.** DRM.jl fits it, but native
   `engine = "tmb"` still refuses bivariate `animal()` q = 2 REML, so there is
   no same-target comparator to measure against; the route is admitted only

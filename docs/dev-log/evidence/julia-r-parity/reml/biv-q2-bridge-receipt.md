@@ -183,6 +183,29 @@ missing side is DRM.jl's, not drmTMB's. Leaf `jl-q2-vcov` owns whether that is
 fixable. The test asserts the all-NaN condition so the gap cannot be
 quietly closed without someone noticing.
 
+### ADDENDUM 2026-09-06: the gap closed, and the test noticed
+
+That is exactly what happened. DRM.jl commit `f68991591`, "standard errors on
+the q=2 structured route (was all-NaN)", from the `claude/parity-jl-q2-vcov`
+leaf named above, filled the hole. Re-running this fixture at DRM.jl pin
+`0edb916a5` reproduces every POINT number in the table above to the digit --
+max |d coef| `5.15226e-05` / `5.29408e-05` / `4.20176e-05` and |d logLik|
+`1.80259588568e-04` / `3.70414401374e-07` / `4.49301005290e-08` for
+phylo / relmat / spatial -- and now returns a FINITE 7x7 covariance on all
+three providers (phylo SEs: `0.382259, 0.039701, 0.670405, 0.050225,
+0.142779, 0.150325, 0.218806`). The all-NaN assertion was therefore flipped,
+with the reason written beside it, rather than left to re-pin a closed gap.
+
+**This receipt is still POINT-ONLY.** The flip asserts only that a real
+covariance now comes back; it is not an SE parity claim and nothing here
+measures one. Two reasons to be careful before someone reads it as one:
+DRM.jl's own comment on that `V` says it is the ML observed-information
+curvature evaluated at the REML point, with the restricted-penalty term
+(`-0.5 * d^2 logdet S / d theta^2`) omitted, so it is not the quantity native
+`engine = "tmb"` reports for a REML fit; and the two engines do not name their
+vcov rows alike, so even a naive comparison needs a name map first. Anyone
+wanting SE parity on this cell should measure it in its own leaf.
+
 Also NOT claimed: interval coverage, more than one draw per provider, any
 non-Gaussian family, q4, scale-side markers, non-intercept markers,
 predictor-dependent `sigma1`/`sigma2`/`rho12`, and mismatched `mu1`/`mu2`
