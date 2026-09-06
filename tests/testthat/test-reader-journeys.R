@@ -164,7 +164,20 @@ test_that("check_drm() makes a boundary warning visible to reader workflows", {
 })
 
 test_that("reader vignettes do not depend on private missing-data slots", {
-  vignette_files <- list.files("vignettes", pattern = "\\.Rmd$", full.names = TRUE)
+  # `list.files("vignettes")` resolves against the testthat working directory,
+  # where no such directory exists, so this scan used to read zero files and
+  # pass unconditionally.  Resolve from the project root, include the
+  # pkgdown-only articles, and assert the corpus is non-empty so an empty scan
+  # fails instead of passing.
+  vignette_dir <- testthat::test_path("..", "..", "vignettes")
+  skip_if_not(dir.exists(vignette_dir), "Vignette sources are not installed with drmTMB")
+  vignette_files <- list.files(
+    vignette_dir,
+    pattern = "\\.Rmd$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  expect_gt(length(vignette_files), 0L)
   vignette_text <- unlist(lapply(vignette_files, readLines, warn = FALSE), use.names = FALSE)
   expect_false(any(grepl("fit$missing_data", vignette_text, fixed = TRUE)))
 })
