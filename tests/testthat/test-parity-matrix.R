@@ -125,7 +125,15 @@ test_that("every route the bridge admits has a TSV row (RED until the ledgering 
   # fe_cumulative_logit/fe_skew_normal alongside the existing fe_beta_binomial,
   # 30 rows total). beta_binomial is NOT pending here: it already has a real
   # TSV row (#1172, already in this branch's history).
-  pending_1184 <- c("truncated_nbinom2", "zero_one_beta", "tweedie", "cumulative_logit")
+  # skew_normal added 2026-09-06: the comment above already named `fe_skew_normal`
+  # as one of the FIVE rows #1184 carries, but the vector listed only four, so the
+  # first branch to add the skew_normal registry row (this one) tripped a guard that
+  # was meant to let it through. Verified rather than assumed: #1184's diff carries
+  # the fe_skew_normal row.
+  pending_1184 <- c(
+    "truncated_nbinom2", "zero_one_beta", "tweedie", "cumulative_logit",
+    "skew_normal"
+  )
   new_gaps <- setdiff(missing, pending_1184)
   skip_if(
     length(missing) > 0L && length(new_gaps) == 0L,
