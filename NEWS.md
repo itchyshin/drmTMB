@@ -1,5 +1,32 @@
 # drmTMB 0.7.0
 
+## `biv_student()` admitted through `engine = "julia"` (leaf fam-biv-student)
+
+* `drmTMB(bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1,
+  rho12 = ~1), family = biv_student(), engine = "julia")` now fits instead of
+  refusing. DRM.jl needed no change: at pin `430ef64cc` its
+  `_bridge_family("biv_student")` already routed the tag to the bivariate
+  Student-t model in `src/bivariate_student.jl`, so the admission is one row in
+  the Julia family registry plus the retirement of a family-specific abort in
+  `drmTMB()` that fired before the registry was ever consulted. Measured this
+  run against `engine = "tmb"` on the `tests/testthat/test-biv-student.R` draw
+  (n = 400, seed 6401): coefficients agree to `3.771e-07` (8/8 matched by
+  name), logLik `-928.707976` on both engines (diff `2.569e-11`), and
+  per-coefficient Wald standard errors agree to `9.013e-07` relative, with the
+  comparator's own negative control still failing as it must. `sigma1`/`sigma2`
+  are Student-t **scales** (marginal `SD = sigma * sqrt(nu / (nu - 2))`), `nu`
+  is one **shared** degrees-of-freedom parameter, and `rho12` is the
+  **scatter** correlation -- zero `rho12` is not independence at finite `nu` --
+  identically on both engines.
+* The Julia route is fenced to exactly the shape native `engine = "tmb"` fits.
+  Random-effect bars and non-intercept `sigma1`, `sigma2`, `nu` or `rho12`
+  formulas are refused with the native wording before Julia starts, and
+  `confint()` is deferred for this family on both engines as it always was
+  natively. Each of these fitted or returned intervals through
+  `engine = "julia"` before this release while `engine = "tmb"` refused them;
+  a shape the native engine refuses has no same-target comparator and so can
+  carry no parity receipt. No interval-coverage claim is made.
+
 ## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
 
 * `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +

@@ -17,17 +17,25 @@ test_that("registry-derived lists equal the 2026-09-05 hand-maintained vectors e
                    c("gaussian", "poisson", "nbinom2", "gamma"))
   # A4 (2026-09-05): truncated_nbinom2 then zero_one_beta admitted AFTER the
   # 2026-09-05 pin -- fixed-effect route only, so they appear in this one list.
+  # biv_student joins them (fam-biv-student leaf, same date): fixed-effect route
+  # only, and it moves NO other list -- it is not dispersionless (it has
+  # sigma1/sigma2/nu), and it has no phylo, slope, or structured admission.
   expect_identical(drmTMB:::drm_julia_registry_families("fe"),
                    c("gaussian", "biv_gaussian", "student", "lognormal",
                      "poisson", "nbinom2", "gamma", "beta", "binomial",
                      "truncated_nbinom2", "zero_one_beta", "tweedie",
-                     "beta_binomial", "cumulative_logit"))
+                     "beta_binomial", "cumulative_logit", "biv_student"))
 })
 
 test_that("drm_julia_family_tag() admits and refuses exactly what it did before", {
   for (f in c("gaussian", "student", "lognormal", "poisson", "nbinom2", "gamma", "beta", "binomial",
               "truncated_nbinom2", "zero_one_beta", "tweedie",
-              "beta_binomial", "cumulative_logit"))  # A4 rows, 2026-09-05
+              "beta_binomial", "cumulative_logit",
+              # fam-biv-student leaf (2026-09-05): DRM.jl needed no change --
+              # `_bridge_family("biv_student")` already returned Student() at
+              # pin 430ef64cc and the keyed mu1/mu2 parts select the bivariate
+              # route, so the admission is this one registry row.
+              "biv_student"))
     expect_identical(drmTMB:::drm_julia_family_tag(f), f)
   # refused outright (the remaining A4 targets), same message class as before
   for (f in c("skew_normal"))

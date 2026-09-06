@@ -284,15 +284,14 @@ drmTMB <- function(
   }
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
-  if (
-    identical(engine, "julia") &&
-      inherits(family, "drm_family") &&
-      identical(family$name, "biv_student")
-  ) {
-    cli::cli_abort(
-      "{.fn biv_student} is implemented only for {.code engine = \"tmb\"}; the Julia route is deferred."
-    )
-  }
+  # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route
+  # is deferred"), a family-specific gate that fired BEFORE the Julia family
+  # registry was ever consulted. It is retired (A4, 2026-09-05): the registry
+  # row in R/julia-family-registry.R is now the single admission authority for
+  # this family, exactly as it is for every other one, and DRM.jl's
+  # `_bridge_family("biv_student")` (src/bridge.jl) plus its bivariate Student-t
+  # route (src/bivariate_student.jl) fit the same target -- measured at pin
+  # 430ef64cc, see tests/testthat/test-julia-family-biv_student.R.
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())

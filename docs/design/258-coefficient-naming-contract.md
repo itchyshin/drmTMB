@@ -1232,3 +1232,76 @@ starts.
 capability-comparison TSV row for this route is NOT added here (the
 `drm_julia_capability_comparison()` data frame lives in `R/julia-bridge.R`,
 outside this leaf's file set) and is left to the integrator.
+
+### 8.10 `biv_student` (fam-biv-student leaf, 2026-09-05; measured at DRM.jl pin 430ef64cc)
+
+**What was admitted.** One row in `R/julia-family-registry.R` --
+`spec("biv_student", fe = TRUE)` -- puts the family on the fixed-effect
+(Workflow G) route, plus the retirement of a family-specific abort in
+`drmTMB()` that refused `engine = "julia"` for this family *before* the
+registry was consulted, so the registry row alone could never have admitted
+it. DRM.jl needed **no** change: at the pin `_bridge_family("biv_student")`
+already returns `Student()` (`src/bridge.jl`), and bivariate-ness is a
+property of the FORMULA there -- the keyed `mu1`/`mu2` parts select
+`src/bivariate_student.jl`. That was probed directly, before any R change,
+and confirmed to route (returned dpars: `mu1`, `mu2`, `nu`, `rho12`,
+`sigma1`, `sigma2`).
+
+**dpars, links, and labels.** drmTMB's `biv_student()` declares
+`dpars = c("mu1", "mu2", "sigma1", "sigma2", "nu", "rho12")` with links
+`identity`, `identity`, `log`, `log`, `logm2`, `atanh_guarded`
+(`R/family.R`). DRM.jl's bivariate Student route uses the SAME
+parameterisation (`src/bivariate_student.jl` at the pin): `sigma1`/`sigma2`
+are **scale** parameters, not marginal SDs (the marginal
+`SD = sigma * sqrt(nu / (nu - 2))`); `nu` is ONE **shared** degrees-of-freedom
+parameter on the `logm2` link `nu = 2 + exp(eta)`, structurally shared because
+the scale mixture uses a single scalar mixing variable; and `rho12` is the
+**scatter** correlation, which at finite `nu` does **not** make the margins
+independent when it is zero. So the coefficients compare directly, with no
+transform.
+
+Payload and echo, measured live on the `tests/testthat/test-biv-student.R`
+draw (`simulate_biv_student_truth`, n = 400, seed 6401,
+`bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)`):
+public labels
+`mu1_(Intercept)`, `mu1_x`, `mu2_(Intercept)`, `mu2_x`,
+`sigma1_(Intercept)`, `sigma2_(Intercept)`, `nu_(Intercept)`,
+`rho12_(Intercept)`, contract `bridge_formula_labels_v1`.
+
+**One label change was needed (§7.1 defaulter).**
+`drm_julia_bridge_default_dpar_labels()` gains a `biv_student` branch that
+defaults `sigma1`, `sigma2`, **`nu`**, and `rho12`. The existing
+`biv_gaussian` branch defaults only the first, second and fourth, so the short
+form `bf(mu1 = y1 ~ x, mu2 = y2 ~ x)` -- which native `engine = "tmb"` accepts,
+inserting a default `nu ~ 1` in `drm_build_biv_student_spec()` -- would reach
+DRM.jl with no `nu` entry and abort at the coef_labels echo. With the branch,
+the short form reaches the same optimum as the fully written formula.
+
+**Same-target receipt.** `engine = "tmb"` vs `engine = "julia"` on the draw
+above, comparator code from the pin's `tools/parity_fixture.R` and
+`tools/parity_se.R`: coefficients `3.770973e-07` (8/8 name-matched), logLik
+`-928.707976349488` vs `-928.707976349514` (diff `2.569323e-11`), per-
+coefficient Wald SE `2.045530e-07` absolute / `9.013340e-07` relative over 8
+SEs. PARITY_PASS and SE_PASS; the negative control in the same table
+(`se_julia[1] * 1.10`) reads NEGATIVE_CONTROL_OK at relative `9.090897e-02`.
+Rows banked in the pin clone's `docs/dev-log/evidence/parity-fixtures.tsv`
+(`fe_biv_student`) and `parity-se.tsv` (`se_biv_student`).
+
+**NOT admitted by this row, and actively fenced.** The A4.G17 fixed-effect
+fence exempts every `biv_*` tag by prefix, so admitting this family did not by
+itself narrow it to the shape native TMB fits. Measured before the fence
+existed, all through `engine = "julia"`: `sigma1 = ~ z`, `rho12 = ~ z`,
+`nu = ~ z` and `sigma1 = ~ 0 + z` each **fitted** while `engine = "tmb"`
+refused them, and an ordinary `(1 | g)` bar came back as a raw Julia stack
+trace naming the q=4 structured route. `confint()` returned a 10-row Wald
+table on the Julia route while the native route refused it outright
+(`R/profile.R`: "interval and profile claims are deferred"). A shape the
+native engine refuses has no same-target comparator and so can carry no parity
+receipt, and SE agreement is not an interval-coverage claim. All of these are
+now refused on the Julia route with the native wording, before Julia is
+started: `drm_julia_refuse_biv_student_beyond_native()` for the formula
+shapes, and a `biv_student` guard at the head of `confint.drmTMB_julia()`.
+`phylo()` and `relmat()`/`animal()`/`spatial()` were already refused upstream
+by existing gates and are left to those messages. No interval-coverage claim
+is made; bridge-side profile/bootstrap inference remains unqualified for every
+bivariate fit.
