@@ -59,15 +59,15 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "bf(y ~ x, sigma ~ x), gaussian()",
         "FITS", "measured this run: logLik=-50.3636628254 (native_reml_probe.R, row 1)",
         "FITS", "DRM.jl #624 census (14-fit list, item 1: \"univariate fixed-effect Gaussian location-scale\")",
-        "FITS", "RE-MEASURED this run with the fixed estim_method oracle read (fit$bridge$estim_method, DRM.jl #625): bridge fit succeeded, estim_method=REML (fit$estimator=REML, fit$effective_REML=TRUE -- all three agree), 35.7s incl. Julia boot (bridge_reml_probe.R, row 1)",
-        "YES", ""),
+        "FITS", "RE-MEASURED this run with the fixed estim_method oracle read (fit$bridge$estim_method, DRM.jl #625): bridge fit succeeded, estim_method=REML (fit$estimator=REML, fit$effective_REML=TRUE -- all three agree), 35.7s incl. Julia boot (bridge_reml_probe.R, row 1). SAME-TARGET RECEIPT ADDED 2026-09-05 (leaf uncited-reml, DRM.jl aee371cc, n=60 seed=1): the probe above showed only that the bridge FITS; this shows it fits the SAME model. coef 9.46698275328099e-12 (4/4 name-matched), REML logLik -72.4399503028797 on both engines (7.105e-14), ML/REML gap 2.817878864306 on BOTH engines. SEs do NOT agree at the 1e-3 bar: mean-block 3.086e-03 relative while scale-block agrees to 3.148e-07; a sigma ~ 1 control makes the mean block agree exactly, so the gap is carried by the sigma covariate. docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md",
+        "YES", "Agree on FITTING and on the point estimate. The SE axis does NOT agree on the heteroscedastic cell (mean block, 3.086e-03 relative) -- documented, not fixed; no interval claim on this route."),
 
     row("biv_gaussian_residual", "", "TSV", "inst/extdata/julia-capabilities.tsv",
         "bf(mu1=y1~x, mu2=y2~x, sigma1=~1, sigma2=~1, rho12=~1), biv_gaussian()",
-        "FITS", "measured this run: logLik=-97.0212058184 (native_reml_probe.R, row 2); no abort branch in drm_validate_reml_spec_biv() triggers for a fixed-effect-only bivariate model",
-        "REFUSES", "DRM.jl #624 comment 2, 16-refuse list: \"bivariate residual-only Gaussian/LogNormal/Student\"",
-        "REFUSES", "measured this run: `engine=\"julia\" cannot fit bivariate Gaussian models by REML=TRUE` (bridge_reml_probe.R, row 2); drm_julia_reml_supported() requires biv_phylo_dimension()==\"q4\", which a plain residual model never has",
-        "NO", "NEW finding (drmTMB #1142 / DRM.jl #624, \"REML wherever possible\" half): native TMB fits a plain fixed-effect bivariate Gaussian REML that neither DRM.jl native nor the bridge admits. Not one of #624's three named items."),
+        "FITS", "RE-MEASURED 2026-09-05 on the same committed fixture: logLik=-97.021205818372, fit$estimator=REML, nobs=60, df=7; no abort branch in drm_validate_reml_spec_biv() triggers for a fixed-effect-only bivariate model, and drm_apply_estimator_spec() hands TMB tmb_random_names=c(\"beta_mu1\",\"beta_mu2\") -- a Laplace step that is EXACT because the likelihood is quadratic in that block",
+        "FITS", "WAS REFUSES at pin 430ef64cc. Now measured at DRM.jl claude/parity-reml-biv-residual-drmjl 3a87fe385 (PR itchyshin/DRM.jl#652): native drm(...; method=:REML) fits, estimation_method=:REML, reml_loglik=-97.021205818372, ml_loglik=-90.236796399337. src/gaussian_bivariate.jl `_fit_bivariate_residual_reml` profiles beta_mu1/beta_mu2 by GLS and adds -0.5*logdet(sum_i Z_i S_i^-1 Z_i) plus the (p_beta/2)*log(2*pi) normalised Patterson-Thompson constant (DRM.jl #477) -- the SAME set TMB marginalises on the SAME constant, so there is no offset to remove before comparing",
+        "FITS", "WAS REFUSES. Now measured this run through drmTMB(..., engine=\"julia\", REML=TRUE): logLik=-97.021205818372, fit$estimator=REML, fit$bridge$estim_method=REML, fit$effective_REML=TRUE. Same-target vs engine=\"tmb\" REML on the committed fixture: 7/7 coefficient NAMES identical, max coef diff 4.329e-07 (bar 1e-4), logLik diff 0.000e+00, max SE 6.540e-07 relative (bar 1e-3). ML route untouched: -90.202703298791 on both engines (diff 4.8e-13). tests/testthat/test-julia-reml-biv-residual.R (failed=0 skipped=0 passed=19); receipt docs/dev-log/evidence/julia-r-parity/reml/reml-biv-residual-receipt.md. NOTE: the entire max coef diff (4.329e-07) is a rho12 LINK-GUARD CONVENTION difference, not model disagreement -- TMB bounds rho12 via 0.999999*tanh(eta) (src/drmTMB.cpp:679), DRM.jl via 0.99999999*tanh(eta) (src/sparse_aug_plsm.jl:23 RHO_GUARD), so rho12:(Intercept) is not the same parameter on the two engines; on the natural (bounded) rho scale the two engines agree to 3.95e-12. The gap grows with |rho| and reaches 4.95e-04 at rho=0.999, which would break the 1e-4 coefficient bar with both engines exactly correct (drmTMB#1190).",
+        "YES", "GAP CLOSED 2026-09-05 (drmTMB #1142 / DRM.jl #624, \"REML wherever possible\" half; drmTMB PR for the gate + receipt, DRM.jl PR #652 for the objective). This row read FITS/REFUSES/REFUSES: native TMB fitted a plain fixed-effect bivariate Gaussian REML that neither DRM.jl native nor the bridge admitted. BOUNDARY, deliberately narrower than DRM.jl's code: drm_julia_biv_residual_reml_supported() admits ONLY this shape -- no structured marker, no meta_V, no random bar, and intercept-only sigma1/sigma2/rho12. DRM.jl's closed form extends to covariate-carrying sigma/rho designs but nothing has MEASURED those, so the bridge keeps refusing them. meta_V + REML remains a permanent DRM.jl refusal (that route marginalises nothing). ALSO NOT COVERED: the rho12 link-guard constant differs between engines (TMB 0.999999, DRM.jl 0.99999999; drmTMB#1190), so rho12:(Intercept) is not exactly the same parameter across engines -- this leaf does not reconcile the two guard constants."),
 
     row("gaussian_phylo_mean", "", "TSV", "inst/extdata/julia-capabilities.tsv",
         "bf(y ~ x + phylo(1|species, tree=tree), sigma ~ 1), gaussian()",
@@ -87,8 +87,8 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "biv_gaussian() q4 phylo on mu1,mu2,sigma1,sigma2, REML=TRUE",
         "FITS", "existing evidence, not re-run (expensive fixture): R/julia-bridge.R capability-comparison comment block; max|d_coef|=0.002889, loglik constant residual 0.001938",
         "FITS", "DRM.jl #624 census (14-fit list): \"bivariate q=4 phylo native AND through drm_bridge\"",
-        "FITS", "existing evidence, not re-run: same comment block, PARITY_PASS 33/33",
-        "YES", "Agree on FITTING, but SE/vcov are NOT comparable: DRM.jl #624 item 3 (`_q4_fd_vcov` finite-differences the ML objective on a REML fit; 10.5% SE gap on the committed biv-q4-phylo-reml fixture). Explicitly named out of scope by this leaf's brief (\"the q4_vcov-on-REML question\" remains unresolved for A11)."),
+        "FITS", "MEASURED THROUGH THE BRIDGE 2026-09-05 (leaf uncited-reml, DRM.jl aee371cc), which had never been done: the prior citation was native-vs-native and the TSV row asserted the engine=\"julia\" path for this cell was halted by design -- it is not. On the DENSE q4 layout (100 tips x 5 = 500, seed 3, the fixture of tests/testthat/test-reml-bivariate.R): coef 7.470441383797e-04 (5/5 name-matched), REML logLik -930.145130378492 (tmb) vs -930.165353375125 (julia), |d| 2.0223e-02, inside this row's own recorded atol_loglik 0.03; estimator REML on both sides; tmb REML convergence=0. POINT-ONLY: neither engine reports usable fixed-effect SEs on this fit. docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md",
+        "YES", "Agree on FITTING and on the point estimate for the DENSE layout. TWO boundaries, both measured. (1) SE/vcov are NOT comparable: DRM.jl #624 item 3 (`_q4_fd_vcov` finite-differences the ML objective on a REML fit; 10.5% SE gap on the committed biv-q4-phylo-reml fixture), and on the 500-obs fixture measured here NEITHER engine returns usable fixed-effect SEs at all. (2) NEW DEFECT: a BLOCK-DIAGONAL q4 call -- two distinct phylo labels, `phylo(1 | p | sp)` on the means and `phylo(1 | ps | sp)` on the scales -- is silently marshalled onto the DENSE model. On the same data, native block-diagonal REML gives logLik -934.738393347 (df 11) while the bridge given the block-diagonal formula returns -930.165353375 (df 15), which is the DENSE answer to within 0.0202. engine=\"julia\" should refuse that layout rather than answer a different question."),
 
     row("phylo_count_large_p", "poisson", "TSV", "inst/extdata/julia-capabilities.tsv",
         "bf(y ~ x + phylo(1|species, tree=tree)), poisson()",
@@ -129,7 +129,7 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "bf(y ~ x + relmat(1|g, K=K), sigma ~ 1), gaussian()",
         "FITS", "measured this run: logLik=-51.6093435424 (native_reml_probe.R, row 8) -- agrees with the ordinary-random-intercept logLik to about 12 significant figures, not identically (abs diff ~1.4e-14 at full double precision -- two different TMB templates converging to the same optimum, not one falling back to the other), because the toy K used (compound-symmetric) is mathematically equivalent to an exchangeable random intercept, confirming the fit is genuine, not a fallback",
         "REFUSES", "DRM.jl #624 comment 2, 16-refuse list: \"Gaussian mean-only structured markers (phylo/relmat) with no sd() submodel\"",
-        "REFUSES", "measured this run: `engine=\"julia\" cannot fit structured-effect models by REML=TRUE` (bridge_reml_probe.R, row 7) -- drm_julia_has_structured_term() (relmat/animal/spatial) is checked BEFORE any family dispatch and refuses unconditionally",
+        "REFUSES", "measured this run: `engine=\"julia\" cannot fit structured-effect models by REML=TRUE` (bridge_reml_probe.R, row 7). RE-MEASURED 2026-09-05 on origin/main (docs/dev-log/evidence/julia-r-parity/docs-staleness/structured-reml-dispatch-probe.R): the refusal still fires for THIS cell, but the earlier gloss -- \"checked BEFORE any family dispatch and refuses unconditionally\" -- was over-broad on two counts. (i) The family type is resolved FIRST: biv_gaussian carrying the same relmat marker takes its own branch one step earlier and raises a different message (`cannot fit bivariate q2 known-covariance structured-effect models by REML=TRUE`); the two refusals are distinct, measured. (ii) \"Unconditionally\" is scoped to drm_julia_structured_marker_types() = relmat/animal/spatial: drm_julia_has_structured_term() is FALSE for a phylo() term (measured), so phylo REML is governed by drm_julia_reml_supported(), not by this gate. What IS unconditional: within the univariate structured branch the refusal ignores the family entirely.",
         "NO", "Same asymmetry as gaussian_phylo_mean (DRM.jl #624 item (c)-adjacent), for relmat instead of phylo. Not a new issue number; recorded alongside item (c)."),
 
     row("general_covariance_structured", "poisson", "TSV", "inst/extdata/julia-capabilities.tsv",
@@ -248,8 +248,8 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "bf(y ~ x + (1|g), sigma ~ 1), gaussian()",
         "FITS", "measured this run: logLik=-51.6093435424 (native_reml_probe.R, row 3)",
         "FITS", "A5 census.tsv, layer=engine-direct: ml_loglik=-171.636217965634 reml_loglik=-174.437057568359 (cited verbatim, a5-census-verbatim.tsv row 6)",
-        "FITS", "A5 census.tsv, layer=shipped: identical ml_loglik/reml_loglik (a5-census-verbatim.tsv row 2)",
-        "YES", ""),
+        "FITS", "A5 census.tsv, layer=shipped: identical ml_loglik/reml_loglik (a5-census-verbatim.tsv row 2). SAME-TARGET RECEIPT ADDED 2026-09-05 (leaf uncited-reml, DRM.jl aee371cc, n=150 = 15 groups x 10, seed 11): A5's census compared DRM.jl with DRM.jl, not with native TMB. Against engine=\"tmb\" on one fixture: coef 9.36275501572915e-11 (3/3 name-matched), REML logLik -127.153393170864 vs -127.153393170863 (1.066e-12), SEs 2.036e-08 abs / 3.333e-07 rel over 3 SEs (SE_PASS at rtol 1e-3, with a +10% negative control), ML/REML gap 3.111474508349 / 3.111474508348. docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md",
+        "YES", "Agree on FITTING, on the point estimate and on the SEs. NOT covered: a random SLOPE `(1 + x | g)` (the row below), a sigma-side random effect, and interval coverage."),
 
     row("gaussian_random_slope", "", "A5-census", "PR #1170, docs/dev-log/evidence/julia-r-parity/ordinary-re-census/census.tsv",
         "bf(y ~ x + (1+x|g), sigma ~ 1), gaussian()",
@@ -304,12 +304,9 @@ drm_reml_route_table_lines <- function(pkg_root = ".") {
   add("GENERATED by `tools/write-reml-route-table.R`. Do not hand-edit; re-run the")
   add("script to regenerate. drmTMB #1142 / DRM.jl #624 (\"Capability parity between")
   add("engines: ML everywhere, REML where possible, and no silent REML-to-ML")
-  add("downgrade\"). DRM.jl pin `430ef64cc` for every row EXCEPT")
-  add("`gaussian_phylo_mean`, whose DRM.jl and bridge cells were re-measured")
-  add("2026-09-05 against the DRM.jl branch `claude/parity-reml-phylo-mean-drmjl`")
-  add("(the change that closes #624 item (c)); the sibling `gaussian_response_mask`")
-  add("row was re-measured on the same build and did NOT flip. Measured 2026-09-05")
-  add("(arc A9f; the two phylo-mean rows re-measured by leaf reml-phylo-mean).")
+  add("downgrade\"). Table first measured 2026-09-05 (arc A9f) at DRM.jl pin")
+  add("`430ef64cc`. Rows measured after a fix landed name their own DRM.jl sha in")
+  add("their evidence cell.")
   add("")
   add("## Scope and how to read this")
   add("")
@@ -332,12 +329,11 @@ drm_reml_route_table_lines <- function(pkg_root = ".") {
   add("THIS run (script + log path under")
   add(paste0("`", evidence_dir, "/`), or a citation to an existing receipt (A3/A5's own"))
   add("PRs, a DRM.jl issue, or DRM.jl's own committed test suite) reproduced")
-  add("verbatim rather than re-measured. A9f's own \"Do NOT implement REML")
-  add("anywhere\" scope held for that arc: every disagreement was recorded as a")
-  add("finding, not fixed. ONE row has since been fixed by a later, separately")
-  add("scoped leaf -- `gaussian_phylo_mean` (DRM.jl #624 item (c)) now reads")
-  add("FITS / FITS / FITS with a same-target receipt. Every other row is")
-  add("unchanged.")
+  add("verbatim rather than re-measured. The A9f census that built this table")
+  add("held \"Do NOT implement REML anywhere\": it recorded every disagreement as a")
+  add("finding rather than fixing it. Later leaves DO close individual rows -- a")
+  add("row whose gap note says GAP CLOSED was fixed after that census, and its")
+  add("evidence cell names the PRs and the build the new numbers came from.")
   add("")
   add("## Summary")
   add("")

@@ -69,6 +69,8 @@ with a precision parameter such as `phi` or `theta`.
 
 ## Release status
 
+This documentation describes `drmTMB` 0.7.1, the current pre-CRAN version.
+
 `drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
 documentation was built, it had not yet been submitted to or accepted by
 CRAN. The package remains intentionally bounded: use it for the implemented
@@ -206,8 +208,12 @@ head(sigma(fit)^2) # fitted residual variances
   Fixed-only, multiple-term, correlated, labelled, structured, and
   missing-response binomial REML routes are unavailable. Correlated or
   labelled binomial random slopes, structured
-  effects, `sigma` formulas, bivariate or mixed responses, and non-phylogenetic
-  `engine = "julia"` binomial fits remain unsupported. Ordinary
+  effects, `sigma` formulas, and bivariate or mixed responses remain
+  unsupported. `engine = "julia"` fits fixed-effect-only
+  `stats::binomial(link = "logit")` and, with a large-p `phylo()` term,
+  mean-only phylogenetic binomial; non-phylogenetic binomial random
+  intercepts, slopes, or structured effects through `engine = "julia"` remain
+  unsupported. Ordinary
   repeated-measure beta-binomial random intercepts in `mu` are fitted as a
   first slice with syntax such as
   `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`.

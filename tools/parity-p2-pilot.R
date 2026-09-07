@@ -32,6 +32,25 @@
 #                    eligible method. Parallelised over seeds with
 #                    parallel::mclapply(), <= 6 cores.
 #
+#   --g3-qualify     Leaf A8. UNLIKE the three modes above, THIS mode DOES
+#                    feed a capability-ledger promotion: for the 3 rows with a
+#                    ready profile/bootstrap target (base_gaussian_location_
+#                    scale, gaussian_response_mask, plain_binomial_nonphylo),
+#                    wald + profile CI parity on ONE fixed-effect target
+#                    (fixef:mu:x, tol 1e-4) plus bootstrap distributional
+#                    overlap (R = 99); for biv_gaussian_residual, records the
+#                    bridge's own refusal (no ready target exists on that
+#                    route -- NOT COVERED, not promoted); one purpose-built
+#                    quasi-separation binomial cell exercises the DRM.jl#631
+#                    profile-endpoint-failure backstop through the public
+#                    confint.drmTMB_julia() entry point; and a red control
+#                    re-checks the measured profile deltas at a tightened
+#                    1e-9 tolerance. See
+#                    docs/dev-log/evidence/julia-r-parity/p2-g3/manifest.md
+#                    (targets/tolerances/time estimate, committed first per
+#                    D-139) and .../g3-qualification-receipt.md (this run's
+#                    numbers).
+#
 # Env vars:
 #   DRM_JL_PATH       -- path to the DRM.jl checkout providing the row
 #                         fixtures (test/parity/fixtures/<slug>/data.csv).
@@ -45,6 +64,12 @@
 #   DRMTMB_P2_SEED     -- pre-run bootstrap/profile seed (default 20260903).
 #   DRMTMB_P2_CORES    -- --full-pilot mclapply core count (default 4, cap 6).
 #   DRMTMB_P2_SEEDS    -- --full-pilot seed count (default 5).
+#   DRMTMB_P2_RECEIPT  -- --g3-qualify/--g3-mask-boundary markdown receipt
+#                         path. For --g3-qualify it defaults to
+#                         g3-qualification-receipt.md beside DRMTMB_P2_OUT;
+#                         --g3-mask-boundary requires it explicitly.
+#                         Set it when re-running the mode so a fresh run
+#                         cannot overwrite an already-committed receipt.
 
 args <- commandArgs(trailingOnly = TRUE)
 mode <- if ("--prerun" %in% args) {
@@ -53,8 +78,18 @@ mode <- if ("--prerun" %in% args) {
   "local-prerun"
 } else if ("--full-pilot" %in% args) {
   "full-pilot"
+} else if ("--g3-qualify" %in% args) {
+  "g3-qualify"
+} else if ("--g3-mask-boundary" %in% args) {
+  "g3-mask-boundary"
 } else {
-  stop("pass one of --prerun, --local-prerun, --full-pilot", call. = FALSE)
+  stop(
+    paste(
+      "pass one of --prerun, --local-prerun, --full-pilot, --g3-qualify,",
+      "--g3-mask-boundary"
+    ),
+    call. = FALSE
+  )
 }
 
 drmjl_path <- Sys.getenv("DRM_JL_PATH", "")
@@ -131,12 +166,17 @@ emit <- function(row, coef, engine, method, seed, step, wall_seconds,
 # Row registry -- the four partial rows in inst/extdata/julia-capabilities.tsv
 # ---------------------------------------------------------------------------
 
-row_gaussian_response_mask_data <- function() {
+# n_masked defaults to 6, which reproduces byte-for-byte the fixture
+# tests/testthat/test-julia-missing.R and A8's --g3-qualify run both use.
+# --g3-mask-boundary sweeps it to measure how the bootstrap narrowing grows
+# with the missing fraction; x and y are drawn from the SAME seed regardless,
+# so only the mask differs between sweep points.
+row_gaussian_response_mask_data <- function(n_masked = 6L) {
   set.seed(1L)
   n <- 60L
   x <- stats::rnorm(n)
   y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
-  y[1:6] <- NA
+  y[seq_len(n_masked)] <- NA
   data.frame(y = y, x = x)
 }
 
@@ -165,8 +205,12 @@ drm_rows <- list(
     family = quote(stats::binomial()),
     fixture = "binomial-trials",
     coefs = c("fixef:mu:(Intercept)", "fixef:mu:x"),
-    bootstrap_ok = FALSE, # drmTMB#1123: bootstrap_response_data() cannot
-    # reconstruct a two-column cbind(successes, failures) response.
+    bootstrap_ok = TRUE, # drmTMB#1123 (bootstrap_response_data() could not
+    # reconstruct a two-column cbind(successes, failures) response) was FIXED
+    # on commit 6a4a05894, already an ancestor of this branch. A8 (2026-09-05)
+    # re-probed directly: bootstrap now completes on both engines (5/5
+    # successful refits at R=5 in ~8s on engine="julia"). Corrected from
+    # FALSE; see docs/dev-log/evidence/julia-r-parity/p2-g3/manifest.md.
     missing_ctrl = NULL
   ),
   gaussian_response_mask = list(
@@ -450,10 +494,480 @@ run_full_pilot <- function() {
   cat("FULL_PILOT_OK\n")
 }
 
+# ---------------------------------------------------------------------------
+# --g3-qualify (leaf A8) -- G3 bridge-side inference qualification. For the
+# 3 routes with a ready profile/bootstrap target (base_gaussian_location_scale,
+# gaussian_response_mask, plain_binomial_nonphylo): fit both engines on the
+# COMMITTED fixture, compare wald + profile CIs on ONE named fixed-effect
+# target (fixef:mu:x) at tol_ci = 1e-4, and compare bootstrap CIs (R = 99)
+# by distributional overlap (independent RNG streams -- see the G1 manifest).
+# For biv_gaussian_residual: attempt profile and record the bridge's own
+# refusal (no ready target exists on this route -- a structural gap, not a
+# numerical fluke). Then one purpose-built quasi-separation binomial cell
+# exercises the DRM.jl#631 profile-endpoint-failure backstop through the
+# ACTUAL public confint.drmTMB_julia() entry point (G4 boundary honesty /
+# G8 regression test), and a G6 red control re-checks the measured profile
+# deltas against a tightened 1e-9 tolerance. See
+# docs/dev-log/evidence/julia-r-parity/p2-g3/manifest.md for the committed
+# targets/tolerances/time estimate (D-139).
+# ---------------------------------------------------------------------------
+
+run_g3_qualify <- function() {
+  evidence_dir <- dirname(out_path)
+  # Which DRM.jl commit produced these numbers is load-bearing: the pin
+  # 430ef64cc predates DRM.jl#646, and this mode's verdict for
+  # gaussian_response_mask flips between those two commits. Record it.
+  drmjl_head <- tryCatch(
+    {
+      h <- suppressWarnings(system2(
+        "git", c("-C", drmjl_path, "rev-parse", "HEAD"),
+        stdout = TRUE, stderr = FALSE
+      ))
+      if (length(h) == 1L && nzchar(h)) h else "unknown"
+    },
+    error = function(e) "unknown"
+  )
+  dir.create(evidence_dir, recursive = TRUE, showWarnings = FALSE)
+  tol_ci <- 1e-4
+  boot_R <- 99L
+  boot_seed <- 20260905L
+  qualifiable <- c(
+    "base_gaussian_location_scale", "gaussian_response_mask",
+    "plain_binomial_nonphylo"
+  )
+
+  fixef_x_target <- function(row_name) {
+    spec <- drm_rows[[row_name]]
+    spec$coefs[grepl(":x$", spec$coefs)][[1L]]
+  }
+
+  qualify_route <- function(row_name) {
+    spec <- drm_rows[[row_name]]
+    dat <- load_row_data(row_name)
+    target <- fixef_x_target(row_name)
+    log_line("=== route=%s target=%s ===", row_name, target)
+
+    t0 <- proc.time()[["elapsed"]]
+    fit_t <- fit_row(row_name, dat, "tmb")
+    wall_fit_t <- proc.time()[["elapsed"]] - t0
+    t0 <- proc.time()[["elapsed"]]
+    fit_j <- fit_row(row_name, dat, "julia")
+    wall_fit_j <- proc.time()[["elapsed"]] - t0
+
+    conv_t <- isTRUE(is_converged(fit_t))
+    conv_j <- isTRUE(is_converged(fit_j))
+    estimator_j <- if (is.null(fit_j$estimator)) NA_character_ else fit_j$estimator
+
+    wald_t <- confint(fit_t, parm = target, method = "wald")
+    wald_j <- confint(fit_j, parm = target, method = "wald")
+    d_wald_lower <- abs(wald_t$lower[[1L]] - wald_j$lower[[1L]])
+    d_wald_upper <- abs(wald_t$upper[[1L]] - wald_j$upper[[1L]])
+
+    prof_t <- confint(fit_t, parm = target, method = "profile")
+    prof_j <- confint(fit_j, parm = target, method = "profile")
+    prof_t_finite <- is.finite(prof_t$lower[[1L]]) && is.finite(prof_t$upper[[1L]])
+    prof_j_finite <- is.finite(prof_j$lower[[1L]]) && is.finite(prof_j$upper[[1L]])
+    d_prof_lower <- abs(prof_t$lower[[1L]] - prof_j$lower[[1L]])
+    d_prof_upper <- abs(prof_t$upper[[1L]] - prof_j$upper[[1L]])
+    prof_pass <- prof_t_finite && prof_j_finite &&
+      d_prof_lower <= tol_ci && d_prof_upper <= tol_ci
+
+    boot <- NULL
+    if (isTRUE(spec$bootstrap_ok)) {
+      boot_t <- tryCatch(
+        confint(fit_t, parm = target, method = "bootstrap", R = boot_R, seed = boot_seed),
+        error = function(e) e
+      )
+      boot_j <- tryCatch(
+        confint(fit_j, parm = target, method = "bootstrap", R = boot_R, seed = boot_seed),
+        error = function(e) e
+      )
+      t_ok <- !inherits(boot_t, "error")
+      j_ok <- !inherits(boot_j, "error")
+      overlap <- if (t_ok && j_ok) {
+        max(boot_t$lower[[1L]], boot_j$lower[[1L]]) <=
+          min(boot_t$upper[[1L]], boot_j$upper[[1L]])
+      } else {
+        NA
+      }
+      boot <- list(
+        t_ok = t_ok, j_ok = j_ok,
+        t_error = if (t_ok) NA_character_ else conditionMessage(boot_t),
+        j_error = if (j_ok) NA_character_ else conditionMessage(boot_j),
+        t_lower = if (t_ok) boot_t$lower[[1L]] else NA_real_,
+        t_upper = if (t_ok) boot_t$upper[[1L]] else NA_real_,
+        j_lower = if (j_ok) boot_j$lower[[1L]] else NA_real_,
+        j_upper = if (j_ok) boot_j$upper[[1L]] else NA_real_,
+        overlap = overlap,
+        t_failed = if (t_ok) boot_t$bootstrap.failed[[1L]] else NA_integer_,
+        j_failed = if (j_ok) boot_j$bootstrap.failed[[1L]] else NA_integer_,
+        t_used = if (t_ok) boot_t$bootstrap.n[[1L]] else NA_integer_,
+        j_used = if (j_ok) boot_j$bootstrap.n[[1L]] else NA_integer_
+      )
+    }
+
+    list(
+      row = row_name, target = target, conv_t = conv_t, conv_j = conv_j,
+      estimator_j = estimator_j,
+      wald_t_lower = wald_t$lower[[1L]], wald_t_upper = wald_t$upper[[1L]],
+      wald_j_lower = wald_j$lower[[1L]], wald_j_upper = wald_j$upper[[1L]],
+      d_wald_lower = d_wald_lower, d_wald_upper = d_wald_upper,
+      prof_t_lower = prof_t$lower[[1L]], prof_t_upper = prof_t$upper[[1L]],
+      prof_j_lower = prof_j$lower[[1L]], prof_j_upper = prof_j$upper[[1L]],
+      d_prof_lower = d_prof_lower, d_prof_upper = d_prof_upper,
+      prof_pass = prof_pass, boot = boot,
+      wall_fit_t = wall_fit_t, wall_fit_j = wall_fit_j
+    )
+  }
+
+  route_results <- lapply(qualifiable, qualify_route)
+  names(route_results) <- qualifiable
+
+  # --- biv_gaussian_residual: attempt and record the bridge's own refusal. ---
+  log_line("=== route=biv_gaussian_residual (expect: no ready target) ===")
+  biv_dat <- load_row_data("biv_gaussian_residual")
+  biv_fit_j <- fit_row("biv_gaussian_residual", biv_dat, "julia")
+  biv_targets <- profile_targets(biv_fit_j)
+  biv_all_not_ready <- all(!biv_targets$profile_ready)
+  biv_refusal_msg <- tryCatch(
+    {
+      confint(biv_fit_j, parm = "fixef:mu1:x", method = "profile")
+      NA_character_
+    },
+    error = function(e) conditionMessage(e)
+  )
+  log_line("biv_gaussian_residual: all targets not-ready=%s, refusal=%s",
+    biv_all_not_ready, biv_refusal_msg)
+
+  # --- G4 boundary honesty / G8 #631 regression cell -------------------------
+  log_line("=== boundary cell: quasi-complete-separation binomial ===")
+  set.seed(99L)
+  n_sep <- 40L
+  x_sep <- c(rep(-2, n_sep / 2L), rep(2, n_sep / 2L))
+  trials_sep <- rep(8L, n_sep)
+  p_sep <- ifelse(x_sep < 0, 0.02, 0.98)
+  successes_sep <- stats::rbinom(n_sep, trials_sep, p_sep)
+  dat_sep <- data.frame(
+    successes = successes_sep, failures = trials_sep - successes_sep, x = x_sep
+  )
+  fit_sep_j <- drmTMB(
+    bf(cbind(successes, failures) ~ x), family = stats::binomial(),
+    data = dat_sep, engine = "julia"
+  )
+  fit_sep_t <- drmTMB(
+    bf(cbind(successes, failures) ~ x), family = stats::binomial(),
+    data = dat_sep, engine = "tmb"
+  )
+  sep_j_coef <- coef(fit_sep_j)$mu[["x"]]
+  sep_t_coef <- coef(fit_sep_t)$mu[["x"]]
+  sep_j_profile <- tryCatch(
+    confint(fit_sep_j, parm = "fixef:mu:x", method = "profile"),
+    error = function(e) e
+  )
+  sep_t_profile <- tryCatch(
+    confint(fit_sep_t, parm = "fixef:mu:x", method = "profile"),
+    error = function(e) e
+  )
+  sep_j_errored <- inherits(sep_j_profile, "error")
+  sep_j_msg <- if (sep_j_errored) conditionMessage(sep_j_profile) else NA_character_
+  # G8: the #631 backstop must fire -- confint() must NEVER hand back a
+  # non-finite bound on this coefficient. Either it errors (the backstop
+  # refused, as designed) or it returns a fully finite interval. A silently
+  # returned Inf/-Inf is the ONE outcome that fails this check.
+  sep_j_never_infinite <- if (sep_j_errored) {
+    TRUE
+  } else {
+    is.finite(sep_j_profile$lower[[1L]]) && is.finite(sep_j_profile$upper[[1L]])
+  }
+  if (!isTRUE(sep_j_never_infinite)) {
+    stop(
+      "G8 FAILED: engine=\"julia\" profile confint() returned a non-finite ",
+      "bound on the quasi-separation fixture instead of erroring or ",
+      "flagging -- the DRM.jl#631 backstop did not fire.",
+      call. = FALSE
+    )
+  }
+  g8_pass <- TRUE
+
+  # Diagnostic-only: read the raw per-endpoint flags DRM.jl computed for this
+  # coefficient, via a temporary mirror of the registered bridge glue that
+  # returns DRM.profile_result()'s auditable row instead of the flattened,
+  # backstop-guarded one. Never part of the public API; failure here does not
+  # fail the leaf (G8's pass/fail is decided above, from the public API only).
+  raw_flags <- tryCatch(
+    {
+      drm_julia_setup()
+      payload_sep <- fit_sep_j$bridge_payload
+      JuliaCall::julia_command(paste(
+        sep = "\n",
+        "function drmTMB_probe_raw_stats(formula, family, data, tree, options, dpar, coefname)",
+        "    dat = DRM._bridge_data(data)",
+        "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
+        "    fam = DRM._bridge_family(family)",
+        "    opts = DRM._bridge_options(options)",
+        "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
+        "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
+        "    blockparm = Symbol(dpar)",
+        "    result = DRM.profile_result(fit; level = 0.95, parm = blockparm => String(coefname))",
+        "    row = filter(r -> r.param === blockparm && r.coef == coefname, result.ci)[1]",
+        "    s = filter(r -> r.param === blockparm && r.coef == coefname, result.stats)[1]",
+        "    return Dict{String,Any}(\"lower\" => row.lower, \"upper\" => row.upper,",
+        "        \"lower_endpoint_failed\" => s.lower_endpoint_failed,",
+        "        \"upper_endpoint_failed\" => s.upper_endpoint_failed,",
+        "        \"lower_unbounded\" => s.lower_unbounded,",
+        "        \"upper_unbounded\" => s.upper_unbounded)",
+        "end"
+      ))
+      JuliaCall::julia_call(
+        "drmTMB_probe_raw_stats",
+        payload_sep$formula, fit_sep_j$model$model_type, as.list(payload_sep$data),
+        payload_sep$tree,
+        if (length(payload_sep$options) == 0L) NULL else payload_sep$options,
+        "mu", "x"
+      )
+    },
+    error = function(e) list(error = conditionMessage(e))
+  )
+  log_line("boundary cell: julia coef=%.3f tmb coef=%.3f julia_errored=%s",
+    sep_j_coef, sep_t_coef, sep_j_errored)
+
+  # --- G6 red control: tighten tolerance to 1e-9, expect >= 1 route to FAIL --
+  tol_red <- 1e-9
+  red_fail <- vapply(qualifiable, function(rn) {
+    r <- route_results[[rn]]
+    isTRUE(r$d_prof_lower > tol_red || r$d_prof_upper > tol_red)
+  }, logical(1L))
+  g6_live <- any(red_fail)
+  log_line("G6 red control (tol=1e-9): routes failing = %s (live=%s)",
+    paste(qualifiable[red_fail], collapse = ", "), g6_live)
+
+  # --- write receipts ---------------------------------------------------
+  summary_rows <- do.call(rbind, lapply(qualifiable, function(rn) {
+    r <- route_results[[rn]]
+    data.frame(
+      route = rn, target = r$target, tmb_converged = r$conv_t,
+      julia_converged = r$conv_j, julia_estimator = r$estimator_j,
+      d_wald_lower = r$d_wald_lower, d_wald_upper = r$d_wald_upper,
+      d_profile_lower = r$d_prof_lower, d_profile_upper = r$d_prof_upper,
+      profile_pass_tol_1e4 = r$prof_pass,
+      profile_fail_tol_1e9 = isTRUE(red_fail[[rn]]),
+      bootstrap_t_ok = if (is.null(r$boot)) NA else r$boot$t_ok,
+      bootstrap_j_ok = if (is.null(r$boot)) NA else r$boot$j_ok,
+      bootstrap_overlap = if (is.null(r$boot)) NA else r$boot$overlap,
+      bootstrap_t_failed = if (is.null(r$boot)) NA_integer_ else r$boot$t_failed,
+      bootstrap_j_failed = if (is.null(r$boot)) NA_integer_ else r$boot$j_failed,
+      stringsAsFactors = FALSE
+    )
+  }))
+  utils::write.table(
+    summary_rows, out_path, sep = "\t", row.names = FALSE, quote = FALSE
+  )
+
+  receipt_path <- Sys.getenv("DRMTMB_P2_RECEIPT", "")
+  if (!nzchar(receipt_path)) {
+    receipt_path <- file.path(evidence_dir, "g3-qualification-receipt.md")
+  }
+  dir.create(dirname(receipt_path), recursive = TRUE, showWarnings = FALSE)
+  con_r <- file(receipt_path, open = "wt")
+  wl <- function(...) writeLines(sprintf(...), con_r)
+  wl("# A8 G3 qualification receipt -- measured %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
+  wl("")
+  wl("tol_ci (wald/profile, both bounds) = %.0e; bootstrap R = %d, seed = %d", tol_ci, boot_R, boot_seed)
+  wl("")
+  wl("DRM.jl checkout measured against: `%s`", drmjl_path)
+  wl("DRM.jl git HEAD: `%s`", drmjl_head)
+  wl("drmTMB source tree: `%s`", if (nzchar(worktree)) worktree else "installed library")
+  wl("")
+  wl("## G2 (profile) / G5 (estimator) per route")
+  wl("")
+  for (rn in qualifiable) {
+    r <- route_results[[rn]]
+    wl("### %s (target `%s`)", rn, r$target)
+    wl("- converged: tmb=%s julia=%s; julia estimator=%s", r$conv_t, r$conv_j, r$estimator_j)
+    wl("- wald: tmb=[%.10g, %.10g] julia=[%.10g, %.10g] delta=[%.6g, %.6g]",
+      r$wald_t_lower, r$wald_t_upper, r$wald_j_lower, r$wald_j_upper, r$d_wald_lower, r$d_wald_upper)
+    wl("- profile: tmb=[%.10g, %.10g] julia=[%.10g, %.10g] delta=[%.6g, %.6g] PASS(tol=1e-4)=%s",
+      r$prof_t_lower, r$prof_t_upper, r$prof_j_lower, r$prof_j_upper,
+      r$d_prof_lower, r$d_prof_upper, r$prof_pass)
+    if (!is.null(r$boot)) {
+      if (r$boot$t_ok && r$boot$j_ok) {
+        wl("- bootstrap (R=%d): tmb=[%.6g, %.6g] (failed=%d/%d) julia=[%.6g, %.6g] (failed=%d/%d) OVERLAP=%s",
+          boot_R, r$boot$t_lower, r$boot$t_upper, r$boot$t_failed, boot_R,
+          r$boot$j_lower, r$boot$j_upper, r$boot$j_failed, boot_R, r$boot$overlap)
+      } else {
+        wl("- bootstrap (R=%d): tmb_ok=%s julia_ok=%s -- NOT COVERED for this route",
+          boot_R, r$boot$t_ok, r$boot$j_ok)
+        if (!r$boot$t_ok) wl("  tmb error: %s", r$boot$t_error)
+        if (!r$boot$j_ok) wl("  julia error: %s", r$boot$j_error)
+      }
+    } else {
+      wl("- bootstrap: not attempted (bootstrap_ok=FALSE for this row)")
+    }
+    wl("")
+  }
+  wl("## biv_gaussian_residual -- NOT COVERED (no ready target)")
+  wl("")
+  wl("profile_targets() reports profile_ready=FALSE for all %d rows (all-not-ready=%s).",
+    nrow(biv_targets), biv_all_not_ready)
+  wl("confint(method=\"profile\") on fixef:mu1:x raised:")
+  wl("")
+  wl("> %s", biv_refusal_msg)
+  wl("")
+  wl("## G4/G8 -- boundary honesty / #631 regression cell")
+  wl("")
+  wl("Quasi-complete-separation binomial (n=%d, x in {-2,2}, p in {0.02,0.98}, trials=8).",
+    n_sep)
+  wl("- julia coef(mu:x)=%.6g; tmb coef(mu:x)=%.6g", sep_j_coef, sep_t_coef)
+  wl("- julia profile confint(): errored=%s", sep_j_errored)
+  if (sep_j_errored) wl("  message: %s", sep_j_msg)
+  wl("- G8 (never a non-finite bound reaches the caller): PASS=%s", g8_pass)
+  if (is.null(raw_flags$error)) {
+    wl("- raw DRM.jl profile_result() stats for mu:x (diagnostic, bypasses the R flatten): lower=%s upper=%s lower_endpoint_failed=%s upper_endpoint_failed=%s lower_unbounded=%s upper_unbounded=%s",
+      raw_flags$lower, raw_flags$upper, raw_flags$lower_endpoint_failed,
+      raw_flags$upper_endpoint_failed, raw_flags$lower_unbounded, raw_flags$upper_unbounded)
+  } else {
+    wl("- raw-flags diagnostic probe failed (non-fatal, does not affect G8): %s", raw_flags$error)
+  }
+  if (!inherits(sep_t_profile, "error")) {
+    wl("- tmb profile confint() on the same fixture: [%.6g, %.6g], boundary=%s (context only; TMB's optimizer does not land at the same boundary on this fixture)",
+      sep_t_profile$lower[[1L]], sep_t_profile$upper[[1L]], sep_t_profile$profile.boundary[[1L]])
+  }
+  wl("")
+  wl("## G6 -- RED CONTROL (tolerance tightened to 1e-9)")
+  wl("")
+  for (rn in qualifiable) {
+    r <- route_results[[rn]]
+    wl("- %s: profile delta=[%.6g, %.6g] -> %s at tol=1e-9",
+      rn, r$d_prof_lower, r$d_prof_upper, if (isTRUE(red_fail[[rn]])) "FAILS" else "passes")
+  }
+  wl("")
+  wl("Comparison is LIVE (not vacuous): %s", if (g6_live) "at least one route fails at tol=1e-9, as expected a priori." else "UNEXPECTED -- no route failed at tol=1e-9; investigate before promoting.")
+  wl("Tolerance restored to the committed 1e-4 bar above (no code change was made -- tol_ci is a script parameter, not hardcoded state).")
+  close(con_r)
+
+  log_line("wrote %s", out_path)
+  log_line("wrote %s", receipt_path)
+  cat("G3_QUALIFY_OK\n")
+}
+
+# ---------------------------------------------------------------------------
+# --g3-mask-boundary -- the boundary disclosure the gaussian_response_mask
+# partial -> supported promotion is required to carry. A parametric bootstrap
+# on a masked-response fit draws each replicate response over the FULL design
+# and refits on every row, regardless of how many rows were actually observed
+# (measured on BOTH engines; see the A8c root-cause receipt). The replicate
+# distribution is therefore calibrated to the complete-data sample size, so
+# the interval narrows relative to the observed-data Wald interval, and the
+# narrowing GROWS with the missing fraction.
+#
+# This mode measures that narrowing through the PUBLIC API only, so the
+# disclosure is reproducible rather than a one-off probe. For each masked
+# fraction it reports, for `fixef:mu:x` on an engine = "julia" fit:
+#
+#   wald_width  -- width of confint(method = "wald")
+#   boot_width  -- width of confint(method = "bootstrap", R, seed)
+#   ratio       -- boot_width / wald_width
+#   implied nominal-95 coverage = 2 * pnorm(qnorm(0.975) * ratio) - 1
+#
+# The ratio, not a bootstrap standard deviation, is the measured quantity:
+# DRM.jl's bridge returns a flattened interval and does not hand replicate
+# draws back to R, so a CI-width ratio is what the public surface can
+# honestly support. It answers the same question (how much narrower is the
+# resampled interval than the observed-data Wald interval).
+# ---------------------------------------------------------------------------
+
+run_g3_mask_boundary <- function() {
+  receipt_path <- Sys.getenv("DRMTMB_P2_RECEIPT", "")
+  if (!nzchar(receipt_path)) {
+    stop("set DRMTMB_P2_RECEIPT for --g3-mask-boundary", call. = FALSE)
+  }
+  dir.create(dirname(receipt_path), recursive = TRUE, showWarnings = FALSE)
+  dir.create(dirname(out_path), recursive = TRUE, showWarnings = FALSE)
+
+  boot_R <- as.integer(Sys.getenv("DRMTMB_P2_R", "199"))
+  boot_seed <- as.integer(Sys.getenv("DRMTMB_P2_SEED", "20260905"))
+  n <- 60L
+  n_masked <- c(6L, 18L, 30L)
+  target <- "fixef:mu:x"
+  z <- stats::qnorm(0.975)
+
+  # Reuse the row's committed spec (drm_rows + fit_row) rather than
+  # re-declaring the formula/family/missing-control here: an inline copy would
+  # silently drift if the committed row spec ever changed.
+  measure <- function(k, engine) {
+    dat <- row_gaussian_response_mask_data(n_masked = k)
+    fit <- fit_row("gaussian_response_mask", dat, engine)
+    wald <- confint(fit, parm = target, method = "wald")
+    boot <- tryCatch(
+      confint(fit, parm = target, method = "bootstrap", R = boot_R, seed = boot_seed),
+      error = function(e) e
+    )
+    boot_ok <- !inherits(boot, "error")
+    wald_width <- wald$upper[[1L]] - wald$lower[[1L]]
+    boot_width <- if (boot_ok) boot$upper[[1L]] - boot$lower[[1L]] else NA_real_
+    ratio <- boot_width / wald_width
+    data.frame(
+      engine = engine, masked = k, n_observed = n - k,
+      converged = isTRUE(is_converged(fit)),
+      wald_width = wald_width, boot_width = boot_width,
+      boot_ok = boot_ok,
+      boot_failed = if (boot_ok) boot$bootstrap.failed[[1L]] else NA_integer_,
+      ratio = ratio,
+      relative_narrowing = ratio - 1,
+      implied_coverage_95 = 2 * stats::pnorm(z * ratio) - 1,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  rows <- list()
+  for (engine in c("julia", "tmb")) {
+    for (k in n_masked) {
+      log_line("mask-boundary: engine=%s masked=%d", engine, k)
+      rows[[length(rows) + 1L]] <- measure(k, engine)
+    }
+  }
+  out <- do.call(rbind, rows)
+  utils::write.table(out, out_path, sep = "\t", row.names = FALSE, quote = FALSE)
+
+  con_r <- file(receipt_path, open = "wt")
+  wl <- function(...) writeLines(sprintf(...), con_r)
+  wl("# gaussian_response_mask -- bootstrap boundary disclosure, measured %s",
+    format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
+  wl("")
+  wl("DRM.jl checkout: `%s`", drmjl_path)
+  wl("bootstrap R = %d, seed = %d; target = `%s`; n = %d", boot_R, boot_seed, target, n)
+  wl("")
+  wl("ratio = bootstrap CI width / Wald CI width on the SAME fit;")
+  wl("implied nominal-95 coverage = 2 * pnorm(qnorm(0.975) * ratio) - 1.")
+  wl("")
+  wl("| engine | masked rows (fraction) | n observed | wald width | bootstrap width | ratio | relative narrowing | implied nominal-95 coverage |")
+  wl("| --- | --- | --- | --- | --- | --- | --- | --- |")
+  for (i in seq_len(nrow(out))) {
+    r <- out[i, ]
+    wl("| %s | %d (%.0f%%) | %d | %.4f | %.4f | %.4f | %+.1f%% | %.1f%% |",
+      r$engine, r$masked, 100 * r$masked / n, r$n_observed,
+      r$wald_width, r$boot_width, r$ratio,
+      100 * r$relative_narrowing, 100 * r$implied_coverage_95)
+  }
+  wl("")
+  wl("Narrowing GROWS with the missing fraction on BOTH engines: this is a")
+  wl("shared, pre-existing property of drawing replicates over the full")
+  wl("design, not an engine-parity defect and not introduced by DRM.jl#646.")
+  close(con_r)
+
+  log_line("wrote %s", out_path)
+  log_line("wrote %s", receipt_path)
+  cat("G3_MASK_BOUNDARY_OK\n")
+}
+
 if (mode == "prerun") {
   run_prerun_totoro()
 } else if (mode == "local-prerun") {
   run_local_prerun()
 } else if (mode == "full-pilot") {
   run_full_pilot()
+} else if (mode == "g3-qualify") {
+  run_g3_qualify()
+} else if (mode == "g3-mask-boundary") {
+  run_g3_mask_boundary()
 }

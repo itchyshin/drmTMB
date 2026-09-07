@@ -1,6 +1,14 @@
 on:
+  # NO push-to-branch trigger (owner decision, 2026-09-06). Every merge to main was
+  # running the full sharded check again: MEASURED 25 push-to-main runs in one day,
+  # on top of the pull_request run that had already checked the same content. The
+  # house rule is `[pull_request, workflow_dispatch]`; this workflow predated it.
+  #
+  # `tags: ["v*"]` is DELIBERATELY KEPT. It is not the per-merge cost -- it is what
+  # runs the full ubuntu + macOS + Windows matrix for a release tag, which is the
+  # one time cross-OS coverage actually matters. Dropping `push:` wholesale would
+  # have removed that too.
   push:
-    branches: [main, master]
     tags: ["v*"]
   pull_request:
     branches: [main, master]
@@ -10,17 +18,17 @@ name: R-CMD-check
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Cancel superseded PR runs, but NEVER a run on main. A cancelled run on the
-  # default branch leaves that merge with no completed evidence, and GitHub logs
-  # it with the same "cancelled" string as a timeout -- so a merge sequence can
-  # read green BY ABSENCE. Measured here 2026-09-03: run 33757335131 on main was
-  # killed 2 min into each shard by the next merge, 6 minutes after it started.
-  # PR runs stay cancellable; the next push to that PR re-runs them.
-  # (gllvmTMB has had this since before the shard work; drmTMB had not.)
+  # Cancel superseded PR runs, never a tag run. This guard was written when merges
+  # to main also ran here and could be cancelled by the next merge, leaving that
+  # merge with no completed evidence -- green BY ABSENCE (measured 2026-09-03: run
+  # 33757335131 on main killed 2 min into each shard, 6 minutes in). Since
+  # 2026-09-06 there is no push-to-branch trigger, so that specific hole is closed
+  # by the trigger rather than by this expression; the expression is kept because a
+  # tag run must still never be cancelled.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Routine runs (pull_request, push to main) check Linux only to keep CI cheap.
+  # Routine runs (pull_request) check Linux only to keep CI cheap.
   # The full ubuntu + macOS + windows matrix runs only for release tags (v*) and
   # on demand via workflow_dispatch -- e.g. before a CRAN submission, or to
   # exercise cross-OS portability of compiled TMB code on a specific branch.
@@ -166,6 +174,127 @@ jobs:
         run: |
           Rscript --no-init-file tools/check-evidence-citations.R
 
+      # Julia bridge glue, mock-driven (#1081). No runner has Julia, so every
+      # live engine test skips here and the suite's teardown line says the
+      # bridge is UNTESTED. That line counts LIVE tests only: the marshalling
+      # code paths (payload serialization, coef_labels, joint dispatch, xfam
+      # routing, structured-RE fixtures) ARE executed by mock-driven
+      # assertions in the files below -- measured 2026-09-04 without Julia:
+      # 1212 expectations passed across these 11 files in 11.4 s. This step runs
+      # exactly those files, prints the tally, and FAILS unless > 0 passed
+      # with 0 failures and 0 errors, so a green run carries a counted claim
+      # about the glue rather than silence. It is NOT live-engine evidence:
+      # a mock that replaces the Julia call cannot see a signature mismatch
+      # with DRM.jl; that stays with the local DRM_JL_PATH lane.
+      # Runs after check-capability-runtime.R built the shared object, so
+      # pkgload::load_all() here does not recompile. Placed BEFORE the receipt
+      # step so a designed-red receipt (see below) never hides whether the
+      # glue step ran. suppressMessages() drops the per-file teardown line
+      # (tests/testthat/teardown-julia-bridge-summary.R) that would otherwise
+      # print eleven times; the tally below is the one counted claim.
+      - name: Julia bridge glue executes (mock-driven, no Julia)
+        if: runner.os == 'Linux'
+        env:
+          NOT_CRAN: true
+        run: |
+          Rscript --no-init-file -e '
+            suppressMessages(pkgload::load_all(".", quiet = TRUE))
+            files <- c(
+              "test-julia-bridge.R", "test-bridge-payload-serialization.R",
+              "test-julia-joint-call.R", "test-julia-joint-dispatch.R",
+              "test-julia-bridge-coef-labels.R", "test-julia-inference.R",
+              "test-julia-structured-inference.R", "test-julia-joint-finite-prepare.R",
+              "test-structured-re-bridge-fixtures.R", "test-julia-objective-at-bridge.R",
+              "test-xfam-bridge.R"
+            )
+            tally <- c(passed = 0L, failed = 0L, error = 0L, skipped = 0L)
+            for (f in files) {
+              res <- as.data.frame(suppressMessages(testthat::test_file(
+                file.path("tests/testthat", f), reporter = "silent", package = "drmTMB"
+              )))
+              row <- c(passed = sum(res$passed), failed = sum(res$failed),
+                       error = sum(res$error), skipped = sum(res$skipped))
+              cat(sprintf("%-42s passed=%4d failed=%d error=%d skipped=%d\n",
+                          f, row[["passed"]], row[["failed"]], row[["error"]], row[["skipped"]]))
+              tally <- tally + row
+            }
+            cat(sprintf(
+              "Julia bridge glue (mock-driven, no Julia): %d expectations passed, %d failed, %d errors, %d live skipped across %d files\n",
+              tally[["passed"]], tally[["failed"]], tally[["error"]], tally[["skipped"]], length(files)
+            ))
+            if (tally[["passed"]] == 0L || tally[["failed"]] > 0L || tally[["error"]] > 0L) {
+              stop("mock-driven bridge glue did not execute cleanly (see tally above)")
+            }
+          '
+
+      # Receipt staleness MOVED 2026-09-06 to .github/workflows/receipt-staleness.yaml,
+      # which runs on push to main. It ran here, on the PR merge preview, and so
+      # re-staled EVERY open PR whenever main moved -- including PRs touching no R/
+      # file (#1296 changed one test and went red on it). Measured: 16 merges in one
+      # afternoon against four live PRs. The guard's claim -- "a receipt must not
+      # drift from the source it certifies" -- is about MAIN, which is where drift
+      # enters and where it is now checked, on every merge, in ~2 minutes.
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+
+  # THE BLIND SPOT THIS CLOSES. Every job above checks the built TARBALL, and
+  # .Rbuildignore removes tools/, docs/, pkgdown/, bench/, _pkgdown.yml and the
+  # simulation-results tree under inst/sim. A test whose premise is such a path hits
+  # its own skip_if(!file.exists(...)) and SKIPS -- and testthat prints a skip
+  # inside the same green summary as a pass. The premise is absent because of
+  # the BUILD, not the environment, so that skip is permanent: those tests have
+  # never once run in CI.
+  #
+  # Measured at origin/main df1aca4a6 by running the affected files twice, once
+  # in the source tree and once inside the extracted `R CMD build` tarball:
+  # 35 files change behaviour, 24,348 passing assertions collapse to 855, and
+  # 24 of the 35 contribute ZERO assertions to the tarball run. Two user-facing
+  # defects reached main inside that gap -- the reader-contract linter had
+  # silently stopped policing six vignettes (#1207) and nine exported functions
+  # were missing from the printable cheatsheets (#1208) -- and both were found
+  # by a full source-tree run, not by CI.
+  #
+  # This is deliberately NOT a fifth shard and NOT a second `R CMD check`: it is
+  # one ubuntu job that loads the package in place with pkgload::load_all() and
+  # runs only the derived subset. Measured locally (macOS, R 4.6.0, warm object
+  # files): 3m42s for all 35 files. The runner also pays a dependency install
+  # and one TMB compile, so budget well under the 75 the shards get.
+  #
+  # The file set is DERIVED from .Rbuildignore at run time and cross-checked
+  # against tools/source-tree-tests.txt, so a new test with a build-excluded
+  # premise cannot quietly join the blind spot, and an existing one cannot
+  # quietly leave the lane.
+  source-tree-tests:
+    runs-on: ubuntu-latest
+    name: source-tree tests (blind spot)
+    timeout-minutes: 45
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgload, any::testthat
+          needs: check
+
+      # Fails in milliseconds, before the compile, if the derived set and the
+      # committed manifest disagree -- a stale manifest is how this guard would
+      # rot, and it should not cost a build to say so.
+      - name: Source-tree test manifest is current
+        run: Rscript --no-init-file tools/run-source-tree-tests.R --check
+
+      - name: Run the tests R CMD check cannot reach
+        run: Rscript --no-init-file tools/run-source-tree-tests.R

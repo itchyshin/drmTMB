@@ -223,9 +223,21 @@ drm_julia_joint_prepare <- function(
     )
   }
   if (!drm_julia_joint_default_control(control)) {
-    cli::cli_abort(
-      "The Julia joint missing-predictor adapter requires the default drm_control()."
+    changed <- drm_julia_nondefault_control_fields(control)
+    bullets <- c(
+      "The Julia joint missing-predictor adapter requires the default {.fn drm_control}."
     )
+    if (length(changed) > 0L) {
+      bullets <- c(
+        bullets,
+        "x" = "Non-default {.arg control} setting{?s}: {.val {changed}}."
+      )
+    }
+    bullets <- c(
+      bullets,
+      "i" = "Use the native {.code engine = \"tmb\"} path for TMB optimizer, storage, sparse, or aggregation controls."
+    )
+    cli::cli_abort(bullets)
   }
   control <- if (inherits(control, "drm_control")) control else drm_control()
   missing <- drm_parse_missing_control(missing)

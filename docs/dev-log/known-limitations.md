@@ -3,6 +3,13 @@
 Read this ledger together with
 `docs/design/168-r-julia-finish-capability-matrix.md`; when a status boundary
 differs, the stricter fitted, planned, or unsupported row governs public claims.
+For the six capabilities whose `engine = "julia"` bridge cell reads `UNCITED`
+on `docs/design/parity-scoreboard.md` -- AGHQ, VA/ELBO, the q4 PLSM bivariate
+structured effect, cross-family bivariate, missing-response handling and
+`mi()` -- the boundary is written out in
+`docs/design/parity-fenced-capabilities.md`: which decision fences each, what
+to use instead today, and whether the fence is permanent or carries a stated
+revisit condition.
 
 - The Q-Series v1.0 release boundary is generated in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates
