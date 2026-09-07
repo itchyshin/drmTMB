@@ -622,20 +622,39 @@ pm_capability_entries <- function(ctx) {
        next_action = "lifting the fence is a route-widening, not a switch flip: make drm_julia_marker_slope_pin_supports() family- and marker-aware, admit gaussian to the slope shape in drm_julia_phylo_payload() (today gated to drm_julia_slope_phylo_families(), which route to DRM.jl's CORRELATED _fit_corr_locscale rather than the INDEPENDENT two-SD model), and translate the two-SD block back into sdpars"),
 
     # ---- Estimation and inference (11) -------------------------------------
-    st("REML (Gaussian fixed-effect location-scale)",
-       route_note = sprintf("REML is marshalled for documented Gaussian cells and refused elsewhere (%s); NO dedicated TSV row", refuse_reml),
-       boundary = sprintf("native R is point-fit-recovery (%s): no interval claim on either side.", rs("mc-0261/mc-0263")),
-       next_action = "a same-target REML receipt on the fixed-effect Gaussian cell would ledger the bridge axis"),
-    st("REML with ordinary random effects (Gaussian mean)",
-       route_note = sprintf("`(1 \\| g)` + REML reaches DRM.jl; sigma-RE + REML refused before Julia (%s); NO TSV row", sigma_ranef_limits),
-       boundary = sprintf("native R is point-fit-recovery (%s); DRM.jl admits REML for a single mean intercept only (%s).", rs("mc-0265/mc-0267"), jsl("admits a single Gaussian mean intercept")),
+    # LEDGERED 2026-09-05 (leaf uncited-reml). This row read UNCITED on the
+    # bridge axis with no TSV row at all; `gaussian_reml_location_scale` is its
+    # own capability_id, NOT the ML `base_gaussian_location_scale` row, because
+    # an ML receipt is not evidence for a REML claim.
+    st("REML (Gaussian fixed-effect location-scale)", tsv_ids = "gaussian_reml_location_scale",
+       route_note = sprintf("REML is marshalled for documented Gaussian cells and refused elsewhere (%s)", refuse_reml),
+       # The receipt rows themselves are NOT cited with rec() here: they land in
+       # DRM.jl AFTER the pin this artefact is generated at, and rec() verifies
+       # its citation against that pin (it aborts otherwise -- verified). The
+       # capability_id -> receipt join is the SCOREBOARD's, and tsv_ids above is
+       # all that join needs; the numbers are quoted so this row stands alone.
+       boundary = sprintf("native R is point-fit-recovery (%s): no interval claim on either side; same-target receipt measured 2026-09-05 at DRM.jl aee371cc (n = 60, seed 1) -- coefficients 9.467e-12 (4/4), REML logLik -72.4399503028797 on both engines (7.105e-14), ML/REML gap 2.817878864306 on both, estimator REML on both sides; the SE receipt does NOT pass (mean-block 3.086e-03 relative, past the 1e-3 bar) and a sigma ~ 1 control shows the gap is carried by the sigma covariate, not by REML;", rs("mc-0261/mc-0263")),
+       next_action = "settle which covariance engine = \"julia\" reports for a REML fit; until then the mean-block SE difference is documented, not fixed, and no interval claim may be made here"),
+    # LEDGERED 2026-09-05 (leaf uncited-reml): same story as the row above --
+    # A5 had measured that the cell FITS, but an engine-direct census is not a
+    # same-target comparison and no TSV row connected the capability to one.
+    st("REML with ordinary random effects (Gaussian mean)", tsv_ids = "gaussian_reml_random_intercept_mu",
+       route_note = sprintf("`(1 \\| g)` + REML reaches DRM.jl; sigma-RE + REML refused before Julia (%s)", sigma_ranef_limits),
+       boundary = sprintf("native R is point-fit-recovery (%s); DRM.jl admits REML for a single mean intercept only (%s); same-target receipt measured 2026-09-05 at DRM.jl aee371cc (n = 150, seed 11) -- coefficients 9.363e-11 (3/3), REML logLik 1.066e-12, SEs 3.333e-07 relative (SE_PASS at rtol 1e-3), ML/REML gap 3.111474508349 / 3.111474508348, estimator REML on both sides; NOT interval coverage, and a random SLOPE `(1 + x | g)` is NOT covered -- DRM.jl refuses it and the bridge still forwards it as a raw Julia error.", rs("mc-0265/mc-0267"), jsl("admits a single Gaussian mean intercept")),
        # A5 MERGED 2026-09-05 (commit e5cbbc5db) and DID the estim_method-oracle
        # measurement -- its result is quoted on the `Gaussian random intercept
        # (mean)` row above (SE_PASS on both methods). What is still missing is a
        # TSV row for the REML cell itself, not the measurement.
        next_action = sprintf("A5 (%s) has MEASURED this with the estim_method oracle -- see the `Gaussian random intercept (mean)` row; what is still missing is a TSV row for the REML cell itself", a5)),
+    # RE-MEASURED 2026-09-05 (leaf uncited-reml). The ledger row asserted the
+    # engine = "julia" path for this cell was "halted by design"; it is not --
+    # the DENSE q4 call fits through the bridge and now carries a same-target
+    # receipt. The BLOCK-DIAGONAL layout is the boundary, and it is a defect,
+    # not merely an unmeasured corner: see the route note.
     st("REML bivariate phylogenetic location-scale (q4, all axes)", tsv_ids = "biv_q4_phylo_reml",
-       boundary = sprintf("native R is scope-limited (%s); the bridge row is covered on coef/logLik and carries a documented coverage split (claim_boundary at %s);", rs("no single verified claim that a REML correction"), tsv_line("biv_q4_phylo_reml"))),
+       route_note = sprintf("the DENSE q4 layout (one shared phylo label on all four axes) reaches DRM.jl and fits; a BLOCK-DIAGONAL q4 call (two distinct labels) is silently marshalled onto the SAME dense model -- measured, %s", "docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md"),
+       boundary = sprintf("native R is scope-limited (%s); the bridge row is covered on coef/logLik and carries a documented coverage split (claim_boundary at %s); FIRST same-target BRIDGE receipt measured 2026-09-05 at DRM.jl aee371cc (100 tips x 5 = 500, seed 3) -- coefficients 7.470e-04 (5/5), REML logLik -930.145130378492 vs -930.165353375125 (2.022e-02, inside this row's own recorded atol 0.03), estimator REML on both sides. POINT-ONLY: NEITHER engine reports usable fixed-effect SEs on this fit. The BLOCK-DIAGONAL q4 layout is NOT covered by it;", rs("no single verified claim that a REML correction"), tsv_line("biv_q4_phylo_reml")),
+       next_action = "refuse the block-diagonal q4 layout through engine = \"julia\" instead of collapsing it onto the dense model (docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md)"),
     st("Wald SEs and CIs (observed information)",
        tsv_ids = "base_gaussian_location_scale",
        route_note = sprintf("Wald intervals through the bridge come from drm_julia_wald_confint() (%s); receipts live in DRM.jl's parity-se.tsv per row", wald_confint),
