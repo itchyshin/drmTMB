@@ -288,43 +288,48 @@ test_that("Julia capability comparison artifact matches the registry", {
   # claim_status/covered promotion and NOT an interval_status move. Asserted
   # rather than merely edited, same pattern as the inversions above, so an
   # accidental reversion fails loudly.
-  # A8 (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/): G3
-  # (bridge-side profile/bootstrap inference) measured on all four wave 1
-  # rows. base_gaussian_location_scale and plain_binomial_nonphylo qualified
-  # -- partial -> supported.
+  # G3 (bridge-side profile/bootstrap inference) is now measured and QUALIFIED on
+  # ALL FOUR wave-1 rows. Neither side of this merge could say that alone, and the
+  # two halves fit together exactly:
   #
-  # G3 leaf (2026-09-05, .../p2-g3/g3-drmjl-version-boundary-receipt.md):
-  # gaussian_response_mask MOVED from the still-partial set to the qualified
-  # set. A8's two blockers on that row were both DRM.jl defects, fixed by
-  # DRM.jl#646/#648; re-measured against DRM.jl main both engines converge,
-  # the profile CIs agree to 5.1e-06/7.2e-06 (bar 1e-4), and both bootstraps
-  # complete 0/99 failed. The promotion carries a DRM.jl version floor, and
-  # tests/testthat/test-julia-missing.R's #646 block is the live tripwire for
-  # it; this assertion is the ledger-side half.
+  #   * A8 (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/) qualified
+  #     base_gaussian_location_scale and plain_binomial_nonphylo, partial ->
+  #     supported.
+  #   * The G3 leaf (.../p2-g3/g3-drmjl-version-boundary-receipt.md) then moved
+  #     gaussian_response_mask across: A8's two blockers on that row were both
+  #     DRM.jl defects, fixed by DRM.jl#646/#648. Re-measured against DRM.jl main,
+  #     both engines converge, the profile CIs agree to 5.1e-06/7.2e-06 (bar 1e-4),
+  #     and both bootstraps complete 0/99 failed. That promotion carries a DRM.jl
+  #     VERSION FLOOR, and tests/testthat/test-julia-missing.R's #646 block is the
+  #     live tripwire for it; this assertion is the ledger-side half.
+  #   * A8b (docs/dev-log/evidence/julia-r-parity/p2-g3/a8b-biv-qualification-
+  #     receipt.md; DRM.jl PR #647, merged 2026-09-07) closes the last one. The G3
+  #     leaf recorded biv_gaussian_residual as staying partial because "no
+  #     profile/bootstrap target exists on that route for ANY parameter"
+  #     (fixef_profile_ready was unconditionally FALSE for a bivariate fit). A8b IS
+  #     the work that supplies one, so that reason no longer holds and the row
+  #     qualifies.
   #
-  # biv_gaussian_residual stays partial: no profile/bootstrap target exists on
-  # that route for ANY parameter (fixef_profile_ready is unconditionally FALSE
-  # for a bivariate fit), re-confirmed live against DRM.jl main. Never rounded
-  # up to 4/4 -- keep the split, and move a row between the two sets only with
-  # a measured receipt.
+  # The wave-1 split is therefore EMPTY on the partial side. It is kept as an
+  # explicit empty set rather than deleted, so that a regression which demotes any
+  # row fails here loudly instead of silently shrinking a list nobody reads.
+  # Asserted BY NAME, never by count: 4/4 is a measurement, not a target, and a row
+  # moves between these sets only with a receipt.
   wave1_still_partial <- registry[
-    registry$capability_id %in%
-      c(
-        "biv_gaussian_residual"
-      ),
+    registry$capability_id %in% character(0),
   ]
-  expect_equal(nrow(wave1_still_partial), 1L)
-  expect_true(all(wave1_still_partial$r_bridge_status == "partial"))
+  expect_equal(nrow(wave1_still_partial), 0L)
 
   wave1_g3_qualified <- registry[
     registry$capability_id %in%
       c(
         "base_gaussian_location_scale",
         "plain_binomial_nonphylo",
-        "gaussian_response_mask"
+        "gaussian_response_mask",
+        "biv_gaussian_residual"
       ),
   ]
-  expect_equal(nrow(wave1_g3_qualified), 3L)
+  expect_equal(nrow(wave1_g3_qualified), 4L)
   expect_true(all(wave1_g3_qualified$r_bridge_status == "supported"))
 
   # The two sets must stay a PARTITION of the four wave-1 rows: a row silently
