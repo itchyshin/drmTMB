@@ -8,7 +8,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `cd7e9455f069e879a2cfe00a7d090afae970a04d` |
+| drmTMB (this repo, HEAD at generation) | `7a8fb40c47d83a292ad2a4b3d1586e451572bd75` |
 | DRM.jl (read with `git show`, never the working tree) | `21b033028bbe36662b53357dae0db5e0e43aecf1` |
 
 Both numbers below and every citation in the table are functions of those

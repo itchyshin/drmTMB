@@ -162,6 +162,8 @@ test-julia-tmb-parity.R	suggests-package	environment	runs	30
 test-julia-workflow-g.R	build-premise	build	skips	1
 test-julia-workflow-g.R	engine-drm-jl	environment	skips	3
 test-julia-workflow-g.R	suggests-package	environment	runs	3
+test-julia-zi-poisson.R	engine-drm-jl	environment	skips	1
+test-julia-zi-poisson.R	suggests-package	environment	runs	3
 test-lognormal-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-logsigma-clamp.R	cran-lane	environment	runs	2
 test-logsigma-clamp.R	suggests-package	environment	runs	2

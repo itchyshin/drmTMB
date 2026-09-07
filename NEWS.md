@@ -508,6 +508,36 @@ every item above.
   against `engine = "tmb"`); use `engine = "tmb"` there. This is a
   distributional plug-in interval on both engines -- `attr(., "calibrated")` is
   `FALSE` -- and it makes no interval-coverage claim.
+## Zero-inflated Poisson through `engine = "julia"`: focused tests, and a corrected registry note (leaf-fam-zi-poisson)
+
+* The `zi_poisson` capability row has carried a same-target parity receipt
+  since 2026-09-05, but no test drove a `zi ~` formula part through
+  `engine = "julia"` -- measured that day, of the `tests/testthat` files
+  matching `engine = "julia"`, none also matched a `zi ~` formula. Of design
+  168's four limbs of "covered", the focused-test limb was missing.
+  `tests/testthat/test-julia-zi-poisson.R` now supplies it
+  (`[ FAIL 0 | WARN 0 | SKIP 0 | PASS 39 ]`, 1 live test): the admission
+  mechanism, the payload and coefficient labels for both dpar blocks, the live
+  same-target round trip, and a plain-Poisson contrast on the same data
+  proving the `zi` part reaches the engine rather than being dropped in
+  marshalling. Re-measured in that run on its own fixture (`n = 600`,
+  seed 20260905, `bf(count ~ x, zi ~ z)`, DRM.jl pin 430ef64cc, comparison code
+  from DRM.jl `tools/parity_numeric.R` and `tools/parity_se.R`): coefficients
+  `5.776934e-12` (4/4 matched by name), logLik `-786.1016601045` on both
+  engines (diff `1.136868e-12`), Wald SE `1.317571e-08` absolute /
+  `2.373401e-07` relative over 4 SEs, negative control `NEGATIVE_CONTROL_OK`
+  at rel `9.090911e-02`, estimator `ML` on both. This closes a limb; it does
+  **not** move `r_bridge_status`, which stays `partial` pending a bridge-side
+  inference (G3) receipt.
+* `R/julia-family-registry.R` listed `zi_poisson`, `zi_nbinom2` and
+  `hurdle_nbinom2` among families "the Julia bridge has NO case yet" for. That
+  was wrong on both halves, and the note is corrected. They are `model_type`
+  values, not `family_type` values: `drm_family_type()` never returns any of
+  them, a zero-inflated Poisson is spelled `family = poisson()` plus a `zi ~`
+  formula part, and the bridge already routes all three through the
+  `poisson` / `nbinom2` registry rows plus the `zi` / `hu` entries in
+  `julia_bridge_supported_dpars()`. No registry row is added: one keyed on
+  those names would admit a family tag drmTMB never emits.
 ## Bivariate `animal()` q2 REML admitted (leaf-biv-animal-reml)
 
 * `drmTMB(bf(mu1 = y1 ~ x1 + animal(1 | p | id, A = A), mu2 = y2 ~ x2 +
