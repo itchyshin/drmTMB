@@ -132,8 +132,145 @@ test_that("RED control of the refusal: the same ordered factor is accepted by dr
 })
 
 # ---------------------------------------------------------------------------
+# A7 (DRM.jl #467 / #609): level SET and level ORDER fidelity, no Julia.
+#
+# The contrast guard above compares CODING SCHEMES. These two shapes agree on
+# the scheme and disagree about the levels it is applied to, so they slipped
+# past it: measured through drmTMB against DRM.jl 430ef64cc on 2026-09-05, an
+# unused factor level aborted inside Julia with a raw count error naming
+# neither the column nor the fix, and a character column whose locale-collated
+# level order is not code-point order fitted SILENTLY with identical
+# coefficient names and `max|coef diff| = 0.1785`.
+# ---------------------------------------------------------------------------
+
+test_that("predicted Julia level order matches what each marshalled column type builds", {
+  # Probed directly from the live Julia session on 2026-09-05: an R factor
+  # crosses as a CategoricalVector (pool order, observed levels only), a
+  # character column as a plain Vector{String} Julia sorts by code point, and
+  # `factor(<numeric>)` is materialised from the ORIGINAL values (numeric
+  # order). A logical column stays continuous and is not compared.
+  expect_identical(
+    drmTMB:::drm_julia_predicted_julia_levels(factor(c("a", "b", "c"), levels = c("c", "b", "a"))),
+    c("c", "b", "a")
+  )
+  expect_identical(
+    drmTMB:::drm_julia_predicted_julia_levels(
+      factor(c("a", "b"), levels = c("a", "b", "zz"))
+    ),
+    c("a", "b")
+  )
+  expect_identical(
+    drmTMB:::drm_julia_predicted_julia_levels(c("a", "B", "c")),
+    sort(c("a", "B", "c"), method = "radix")
+  )
+  expect_identical(
+    drmTMB:::drm_julia_predicted_julia_levels(c(10L, 2L, 9L)),
+    c("2", "9", "10")
+  )
+  expect_null(drmTMB:::drm_julia_predicted_julia_levels(c(TRUE, FALSE)))
+})
+
+test_that("producer refuses a factor level no row uses, naming the level and droplevels()", {
+  d <- fc_data()
+  d$g_empty <- factor(as.character(d$g_fac), levels = c(levels(d$g_fac), "unused"))
+  expect_error(fc_labels(bf(y ~ x + g_empty, sigma ~ 1), d), "g_empty")
+  expect_error(fc_labels(bf(y ~ x + g_empty, sigma ~ 1), d), "no row uses")
+  expect_error(fc_labels(bf(y ~ x + g_empty, sigma ~ 1), d), "unused")
+  expect_error(fc_labels(bf(y ~ x + g_empty, sigma ~ 1), d), "droplevels")
+  expect_error(fc_labels(bf(y ~ x, sigma ~ g_empty), d), "sigma")
+  # RED control: the refusal is engine-specific, not a formula error. R itself
+  # builds the design happily -- with an all-zero column for the unused level,
+  # which is precisely the column DRM.jl never builds.
+  X <- stats::model.matrix(~ x + g_empty, d)
+  expect_true("g_emptyunused" %in% colnames(X))
+  expect_true(all(X[, "g_emptyunused"] == 0))
+  ft <- drmTMB(bf(y ~ x + g_empty, sigma ~ 1), family = gaussian(), data = d, engine = "tmb")
+  expect_true("g_emptyunused" %in% names(coef(ft, "mu")))
+  # Dropping the unused level restores the label producer.
+  d2 <- d
+  d2$g_empty <- droplevels(d2$g_empty)
+  expect_identical(
+    fc_labels(bf(y ~ x + g_empty, sigma ~ 1), d2)$mu,
+    colnames(stats::model.matrix(~ x + g_empty, d2))
+  )
+})
+
+test_that("producer accepts every level shape whose order the bridge preserves", {
+  d <- fc_data()
+  # Factor with a NON-alphabetical declared order: the pool carries it.
+  expect_identical(
+    fc_labels(bf(y ~ x + g_fac, sigma ~ 1), d)$mu,
+    colnames(stats::model.matrix(~ x + g_fac, d))
+  )
+  # `factor(<integer>)` whose numeric order is not its string order.
+  d$g_num <- rep(c(2L, 9L, 10L), length.out = nrow(d))
+  expect_identical(
+    fc_labels(bf(y ~ x + factor(g_num), sigma ~ 1), d)$mu,
+    colnames(stats::model.matrix(~ x + factor(g_num), d))
+  )
+  # A logical column: continuous in Julia, `flagTRUE` in R, not compared.
+  expect_identical(
+    fc_labels(bf(y ~ x + flag, sigma ~ 1), d)$mu,
+    c("(Intercept)", "x", "flagTRUE")
+  )
+  # A character column whose locale order IS code-point order: no refusal.
+  expect_identical(
+    fc_labels(bf(y ~ x + g_chr, sigma ~ 1), d)$mu,
+    colnames(stats::model.matrix(~ x + g_chr, d))
+  )
+})
+
+test_that("producer refuses a character column whose R level order is not the order Julia will build", {
+  ok <- tryCatch({ withr::local_collate("en_US.UTF-8"); TRUE }, error = function(e) FALSE,
+                 warning = function(w) FALSE)
+  skip_if_not(ok, "en_US.UTF-8 collation not available")
+  d <- fc_data()
+  d$m_chr <- rep(c("alpha", "Beta", "gamma"), length.out = nrow(d))
+  skip_if_not(
+    !identical(levels(factor(d$m_chr)), sort(unique(d$m_chr), method = "radix")),
+    "collation here is code-point order; nothing to disagree about"
+  )
+  expect_error(fc_labels(bf(y ~ x + m_chr, sigma ~ 1), d), "different baseline level")
+  expect_error(fc_labels(bf(y ~ x + m_chr, sigma ~ 1), d), "alpha")
+  expect_error(fc_labels(bf(y ~ x + m_chr, sigma ~ 1), d), "Beta")
+  # `factor(<character>)` is the SAME hazard: the bridge materialises the
+  # ORIGINAL values and sorts those, so wrapping the column does not fix it.
+  expect_error(
+    fc_labels(bf(y ~ x + factor(m_chr), sigma ~ 1), d),
+    "different baseline level"
+  )
+  # RED control: R itself builds this design without complaint, against its
+  # own (locale) baseline -- the disagreement is with the engine, not R.
+  expect_identical(
+    colnames(stats::model.matrix(~m_chr, d)),
+    c("(Intercept)", "m_chrBeta", "m_chrgamma")
+  )
+  # Declaring the factor in R restores the producer: a factor's level order
+  # crosses the bridge intact.
+  d$m_fac <- factor(d$m_chr)
+  expect_identical(
+    fc_labels(bf(y ~ x + m_fac, sigma ~ 1), d)$mu,
+    colnames(stats::model.matrix(~ x + m_fac, d))
+  )
+})
+
+# ---------------------------------------------------------------------------
 # Part 2: live Julia.
 # ---------------------------------------------------------------------------
+
+# The G5 RED control below drives DRM.jl's OWN echo check
+# (`_bridge_check_coef_labels_fidelity`, DRM.jl #467 A6) by corrupting the
+# marshalled payload, so it can only run on an engine build that HAS that
+# check. Measured 2026-09-05: against the standing pin DRM.jl 430ef64cc the
+# function does not exist, the corrupted payload fits silently, and the test
+# failed with "Expected ... to throw a error" -- an engine-version landmine,
+# not a drmTMB defect. Probe for it and skip with a reason instead.
+fc_engine_has_fidelity_check <- function() {
+  drmTMB:::drm_julia_setup()
+  isTRUE(JuliaCall::julia_eval(
+    "isdefined(DRM, :_bridge_check_coef_labels_fidelity)"
+  ))
+}
 
 fc_compare <- function(form, d, tol = 1e-4) {
   ft <- drmTMB(form, family = gaussian(), data = d, engine = "tmb")
@@ -163,6 +300,10 @@ test_that("live G3/G4: engine = 'julia' name-matches engine = 'tmb' and agrees <
 test_that("live G5 RED control: level order reversed on the Julia side only FAILS by name, not silently by number", {
   drm_skip_live_julia()
   skip_if_not_installed("JuliaCall")
+  skip_if_not(
+    fc_engine_has_fidelity_check(),
+    "engine build has no DRM._bridge_check_coef_labels_fidelity (DRM.jl #467 A6)"
+  )
   d <- fc_data()
   form <- bf(y ~ x + g_fac, sigma ~ 1)
   payload <- drmTMB:::drm_julia_bridge_payload(
@@ -203,13 +344,18 @@ test_that("live: a character column whose R (locale) level order differs from Ju
     "collation here is codepoint order; nothing to disagree about"
   )
   expect_identical(r_levels, c("alpha", "Beta", "gamma"))
+  # A7 moved this refusal upstream: drmTMB now recognises the divergent level
+  # order itself and refuses before Julia starts, so the message is drmTMB's,
+  # not DRM.jl's `does not match the design DRM.jl built` echo check (which
+  # remains the second line of defence, and is absent from older engine
+  # builds such as the 430ef64cc pin).
   expect_error(
     drmTMB(bf(y ~ x + m_chr, sigma ~ 1), family = gaussian(), data = d, engine = "julia"),
-    "does not match the design DRM.jl built"
+    "would be coded against a different baseline level"
   )
   expect_error(
     drmTMB(bf(y ~ x + factor(m_chr), sigma ~ 1), family = gaussian(), data = d, engine = "julia"),
-    "does not match the design DRM.jl built"
+    "would be coded against a different baseline level"
   )
   d$m_fac <- factor(d$m_chr)
   res <- fc_compare(bf(y ~ x + m_fac, sigma ~ 1), d)

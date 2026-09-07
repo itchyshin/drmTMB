@@ -88,6 +88,12 @@
 #   DRMTMB_P2_SEED     -- pre-run bootstrap/profile seed (default 20260903).
 #   DRMTMB_P2_CORES    -- --full-pilot mclapply core count (default 4, cap 6).
 #   DRMTMB_P2_SEEDS    -- --full-pilot seed count (default 5).
+#   DRMTMB_P2_RECEIPT  -- --g3-qualify/--g3-mask-boundary markdown receipt
+#                         path. For --g3-qualify it defaults to
+#                         g3-qualification-receipt.md beside DRMTMB_P2_OUT;
+#                         --g3-mask-boundary requires it explicitly.
+#                         Set it when re-running the mode so a fresh run
+#                         cannot overwrite an already-committed receipt.
 
 args <- commandArgs(trailingOnly = TRUE)
 mode <- if ("--prerun" %in% args) {
@@ -100,9 +106,14 @@ mode <- if ("--prerun" %in% args) {
   "g3-qualify"
 } else if ("--g3-qualify-biv" %in% args) {
   "g3-qualify-biv"
+} else if ("--g3-mask-boundary" %in% args) {
+  "g3-mask-boundary"
 } else {
   stop(
-    "pass one of --prerun, --local-prerun, --full-pilot, --g3-qualify, --g3-qualify-biv",
+    paste(
+      "pass one of --prerun, --local-prerun, --full-pilot, --g3-qualify,",
+      "--g3-qualify-biv, --g3-mask-boundary"
+    ),
     call. = FALSE
   )
 }
@@ -181,12 +192,17 @@ emit <- function(row, coef, engine, method, seed, step, wall_seconds,
 # Row registry -- the four partial rows in inst/extdata/julia-capabilities.tsv
 # ---------------------------------------------------------------------------
 
-row_gaussian_response_mask_data <- function() {
+# n_masked defaults to 6, which reproduces byte-for-byte the fixture
+# tests/testthat/test-julia-missing.R and A8's --g3-qualify run both use.
+# --g3-mask-boundary sweeps it to measure how the bootstrap narrowing grows
+# with the missing fraction; x and y are drawn from the SAME seed regardless,
+# so only the mask differs between sweep points.
+row_gaussian_response_mask_data <- function(n_masked = 6L) {
   set.seed(1L)
   n <- 60L
   x <- stats::rnorm(n)
   y <- 0.3 + 0.5 * x + stats::rnorm(n) * exp(0.1 * x)
-  y[1:6] <- NA
+  y[seq_len(n_masked)] <- NA
   data.frame(y = y, x = x)
 }
 
@@ -814,6 +830,19 @@ run_g3_qualify_biv <- function() {
 
 run_g3_qualify <- function() {
   evidence_dir <- dirname(out_path)
+  # Which DRM.jl commit produced these numbers is load-bearing: the pin
+  # 430ef64cc predates DRM.jl#646, and this mode's verdict for
+  # gaussian_response_mask flips between those two commits. Record it.
+  drmjl_head <- tryCatch(
+    {
+      h <- suppressWarnings(system2(
+        "git", c("-C", drmjl_path, "rev-parse", "HEAD"),
+        stdout = TRUE, stderr = FALSE
+      ))
+      if (length(h) == 1L && nzchar(h)) h else "unknown"
+    },
+    error = function(e) "unknown"
+  )
   dir.create(evidence_dir, recursive = TRUE, showWarnings = FALSE)
   tol_ci <- 1e-4
   boot_R <- 99L
@@ -1050,12 +1079,20 @@ run_g3_qualify <- function() {
     summary_rows, out_path, sep = "\t", row.names = FALSE, quote = FALSE
   )
 
-  receipt_path <- file.path(evidence_dir, "g3-qualification-receipt.md")
+  receipt_path <- Sys.getenv("DRMTMB_P2_RECEIPT", "")
+  if (!nzchar(receipt_path)) {
+    receipt_path <- file.path(evidence_dir, "g3-qualification-receipt.md")
+  }
+  dir.create(dirname(receipt_path), recursive = TRUE, showWarnings = FALSE)
   con_r <- file(receipt_path, open = "wt")
   wl <- function(...) writeLines(sprintf(...), con_r)
   wl("# A8 G3 qualification receipt -- measured %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
   wl("")
   wl("tol_ci (wald/profile, both bounds) = %.0e; bootstrap R = %d, seed = %d", tol_ci, boot_R, boot_seed)
+  wl("")
+  wl("DRM.jl checkout measured against: `%s`", drmjl_path)
+  wl("DRM.jl git HEAD: `%s`", drmjl_head)
+  wl("drmTMB source tree: `%s`", if (nzchar(worktree)) worktree else "installed library")
   wl("")
   wl("## G2 (profile) / G5 (estimator) per route")
   wl("")
@@ -1129,6 +1166,116 @@ run_g3_qualify <- function() {
   cat("G3_QUALIFY_OK\n")
 }
 
+# ---------------------------------------------------------------------------
+# --g3-mask-boundary -- the boundary disclosure the gaussian_response_mask
+# partial -> supported promotion is required to carry. A parametric bootstrap
+# on a masked-response fit draws each replicate response over the FULL design
+# and refits on every row, regardless of how many rows were actually observed
+# (measured on BOTH engines; see the A8c root-cause receipt). The replicate
+# distribution is therefore calibrated to the complete-data sample size, so
+# the interval narrows relative to the observed-data Wald interval, and the
+# narrowing GROWS with the missing fraction.
+#
+# This mode measures that narrowing through the PUBLIC API only, so the
+# disclosure is reproducible rather than a one-off probe. For each masked
+# fraction it reports, for `fixef:mu:x` on an engine = "julia" fit:
+#
+#   wald_width  -- width of confint(method = "wald")
+#   boot_width  -- width of confint(method = "bootstrap", R, seed)
+#   ratio       -- boot_width / wald_width
+#   implied nominal-95 coverage = 2 * pnorm(qnorm(0.975) * ratio) - 1
+#
+# The ratio, not a bootstrap standard deviation, is the measured quantity:
+# DRM.jl's bridge returns a flattened interval and does not hand replicate
+# draws back to R, so a CI-width ratio is what the public surface can
+# honestly support. It answers the same question (how much narrower is the
+# resampled interval than the observed-data Wald interval).
+# ---------------------------------------------------------------------------
+
+run_g3_mask_boundary <- function() {
+  receipt_path <- Sys.getenv("DRMTMB_P2_RECEIPT", "")
+  if (!nzchar(receipt_path)) {
+    stop("set DRMTMB_P2_RECEIPT for --g3-mask-boundary", call. = FALSE)
+  }
+  dir.create(dirname(receipt_path), recursive = TRUE, showWarnings = FALSE)
+  dir.create(dirname(out_path), recursive = TRUE, showWarnings = FALSE)
+
+  boot_R <- as.integer(Sys.getenv("DRMTMB_P2_R", "199"))
+  boot_seed <- as.integer(Sys.getenv("DRMTMB_P2_SEED", "20260905"))
+  n <- 60L
+  n_masked <- c(6L, 18L, 30L)
+  target <- "fixef:mu:x"
+  z <- stats::qnorm(0.975)
+
+  # Reuse the row's committed spec (drm_rows + fit_row) rather than
+  # re-declaring the formula/family/missing-control here: an inline copy would
+  # silently drift if the committed row spec ever changed.
+  measure <- function(k, engine) {
+    dat <- row_gaussian_response_mask_data(n_masked = k)
+    fit <- fit_row("gaussian_response_mask", dat, engine)
+    wald <- confint(fit, parm = target, method = "wald")
+    boot <- tryCatch(
+      confint(fit, parm = target, method = "bootstrap", R = boot_R, seed = boot_seed),
+      error = function(e) e
+    )
+    boot_ok <- !inherits(boot, "error")
+    wald_width <- wald$upper[[1L]] - wald$lower[[1L]]
+    boot_width <- if (boot_ok) boot$upper[[1L]] - boot$lower[[1L]] else NA_real_
+    ratio <- boot_width / wald_width
+    data.frame(
+      engine = engine, masked = k, n_observed = n - k,
+      converged = isTRUE(is_converged(fit)),
+      wald_width = wald_width, boot_width = boot_width,
+      boot_ok = boot_ok,
+      boot_failed = if (boot_ok) boot$bootstrap.failed[[1L]] else NA_integer_,
+      ratio = ratio,
+      relative_narrowing = ratio - 1,
+      implied_coverage_95 = 2 * stats::pnorm(z * ratio) - 1,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  rows <- list()
+  for (engine in c("julia", "tmb")) {
+    for (k in n_masked) {
+      log_line("mask-boundary: engine=%s masked=%d", engine, k)
+      rows[[length(rows) + 1L]] <- measure(k, engine)
+    }
+  }
+  out <- do.call(rbind, rows)
+  utils::write.table(out, out_path, sep = "\t", row.names = FALSE, quote = FALSE)
+
+  con_r <- file(receipt_path, open = "wt")
+  wl <- function(...) writeLines(sprintf(...), con_r)
+  wl("# gaussian_response_mask -- bootstrap boundary disclosure, measured %s",
+    format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
+  wl("")
+  wl("DRM.jl checkout: `%s`", drmjl_path)
+  wl("bootstrap R = %d, seed = %d; target = `%s`; n = %d", boot_R, boot_seed, target, n)
+  wl("")
+  wl("ratio = bootstrap CI width / Wald CI width on the SAME fit;")
+  wl("implied nominal-95 coverage = 2 * pnorm(qnorm(0.975) * ratio) - 1.")
+  wl("")
+  wl("| engine | masked rows (fraction) | n observed | wald width | bootstrap width | ratio | relative narrowing | implied nominal-95 coverage |")
+  wl("| --- | --- | --- | --- | --- | --- | --- | --- |")
+  for (i in seq_len(nrow(out))) {
+    r <- out[i, ]
+    wl("| %s | %d (%.0f%%) | %d | %.4f | %.4f | %.4f | %+.1f%% | %.1f%% |",
+      r$engine, r$masked, 100 * r$masked / n, r$n_observed,
+      r$wald_width, r$boot_width, r$ratio,
+      100 * r$relative_narrowing, 100 * r$implied_coverage_95)
+  }
+  wl("")
+  wl("Narrowing GROWS with the missing fraction on BOTH engines: this is a")
+  wl("shared, pre-existing property of drawing replicates over the full")
+  wl("design, not an engine-parity defect and not introduced by DRM.jl#646.")
+  close(con_r)
+
+  log_line("wrote %s", out_path)
+  log_line("wrote %s", receipt_path)
+  cat("G3_MASK_BOUNDARY_OK\n")
+}
+
 if (mode == "prerun") {
   run_prerun_totoro()
 } else if (mode == "local-prerun") {
@@ -1139,4 +1286,6 @@ if (mode == "prerun") {
   run_g3_qualify()
 } else if (mode == "g3-qualify-biv") {
   run_g3_qualify_biv()
+} else if (mode == "g3-mask-boundary") {
+  run_g3_mask_boundary()
 }

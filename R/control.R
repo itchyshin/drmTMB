@@ -11,11 +11,19 @@
 #' For optimizer-only settings, `control = list(eval.max = 1000)` remains
 #' valid. When using `drm_control()`, put optimizer arguments inside
 #' `optimizer = list(...)`; do not pass `eval.max` directly to `drm_control()`.
-#' For `engine = "julia"` base bridge fits, only `optimizer$g_tol` and
-#' `optimizer$algorithm` are forwarded to DRM.jl. TMB-specific optimizer
-#' budgets, presets and storage controls are rejected rather than ignored.
-#' `start` and `multi_start` are likewise rejected under `engine = "julia"`
-#' rather than silently ignored.
+#' Under `engine = "julia"` the forwarded set is a closed whitelist:
+#' `optimizer$g_tol` and `optimizer$algorithm` on the base bridge, plus
+#' `optimizer$q4_vcov` on the bivariate q = 4 phylogenetic route. On that q4
+#' route `optimizer$g_tol` becomes DRM.jl's outer-gradient tolerance
+#' (`q4_g_tol`) and `optimizer$algorithm` is refused, because that route's
+#' optimiser has no solver-selection setting. *Every* other `drm_control()`
+#' field is rejected with an error naming it -- never silently ignored --
+#' because it describes an `nlminb()`/TMB program that DRM.jl does not run;
+#' use `engine = "tmb"` for those. The rejected set is derived from
+#' `drm_control()` itself, so a control added here is rejected on the Julia
+#' path without a matching edit to the bridge. The structured, bivariate q2
+#' structured, and cross-family Julia routes are narrower still: they accept
+#' only a default `control`, so even `optimizer$g_tol` is refused there.
 #' Presets `"careful"` and `"robust"` expand to explicit `iter.max` and
 #' `eval.max` controls for `nlminb()`. Values in `optimizer` override values from
 #' the selected preset.

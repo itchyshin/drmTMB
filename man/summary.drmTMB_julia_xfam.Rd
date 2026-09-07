@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia-bridge.R
 \name{summary.drmTMB_julia_xfam}
 \alias{summary.drmTMB_julia_xfam}
-\title{Summary for a legacy Julia cross-family fit}
+\title{Summary for a cross-family Julia fit}
 \usage{
 \method{summary}{drmTMB_julia_xfam}(object, conf.int = FALSE, ...)
 }
@@ -19,8 +19,12 @@ An object of class \code{summary.drmTMB_julia} containing point estimates
 and an explicit unavailable-uncertainty status.
 }
 \description{
-The cross-family Julia bridge is halted/deferred future work. This
-compatibility summary reports point estimates only: the bridge does not
-retain a named covariance matrix, so standard errors and Wald intervals are
-deliberately unavailable.
+The cross-family route (\code{drmTMB(bf(...), c(fam1, fam2), engine = "julia")},
+via \code{drm_julia_call_xfam()} -> DRM.fit_mixed_family) is reachable from R
+and tested (\code{tests/testthat/test-xfam-bridge.R}), but its
+capability-ledger status is \code{experimental}/\code{partial}
+(\code{inst/extdata/julia-capabilities.tsv}, \code{cross_family_latent}). This
+summary reports point estimates only: the bridge does not retain a named
+covariance matrix, so standard errors and Wald intervals are deliberately
+unavailable.
 }

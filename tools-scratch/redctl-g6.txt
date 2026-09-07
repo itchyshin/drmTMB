@@ -1,0 +1,31 @@
+BASELINE sha256=dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799
+=== BASELINE SUITE ===
+passed=123 failed=0 error=0 skipped=2
+=== PLANTED (stored -> forward) ===
+186:        "DRM.jl reported gradient source {.val {declared}} but {if (has_gradient) 'did send' else 'sent no'} gradient across the bridge.",
+193:  if (has_gradient) "forward" else "unknown"
+passed=121 failed=2 error=0 skipped=2
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-diagnostics.R:123:3'): check_drm() dispatches on a Ju
+Expected `grad_row$value` to match string "source=stored".
+Actual text:
+x | route=gaussian; source=forward; max=0.0005000; component=mu_x
+
+── 2. Failure ('test-julia-diagnostics.R:372:3'): a gradient that crossed the br
+Expected `drmTMB:::drm_julia_gradient_source(fit)` to be identical to "stored".
+Differences:
+`actual`:   "forward"
+`expected`: "stored" 
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+vocab-check.R under the plant: exit=1
+Error: identical(drmTMB:::drm_julia_gradient_source(drm_redctl_fit()),  .... is not TRUE
+Execution halted
+PLANTED_FAILED failures=2
+RESTORED sha256=dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799
+RESTORED_IDENTICAL
+=== SUITE AFTER RESTORE ===
+passed=123 failed=0 error=0 skipped=2
+=== git status (expect only the intended paths) ===
+?? tools-scratch/

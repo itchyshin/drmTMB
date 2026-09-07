@@ -66,7 +66,23 @@ test_that("Julia bridge intentional-gate registry is complete and unique", {
     "xfam_dispersionless_sigma",
     # drmTMB#1146 (DRM.jl#620/#621): non-intercept lhs on a structured marker
     # (phylo/relmat/animal/spatial) refused pre-Julia, defense-in-depth.
-    "structured_marker_slope"
+    "structured_marker_slope",
+    # A4.G17 (2026-09-05): ordinary random-effect bars and sd()/sd_phylo()
+    # scale submodels refused pre-Julia for every fe = TRUE, non-phylo_only/
+    # locscale_phylo/slope_phylo/structured registry family (see
+    # drm_julia_refuse_fe_only_random_effects()). Added here -- a one-line,
+    # out-of-OWNS-but-necessary exception, called out in the leaf-a4g17
+    # ledger's EVIDENCE -- because this is a hard-coded literal vector this
+    # test file exists specifically to keep in sync with the registry.
+    "fe_only_random_effects",
+    # drmTMB#1224 (2026-09-05): a predictor on a dpar outside the family's
+    # registry `predictor_dpars` declaration is refused pre-Julia. Measured
+    # cause: the fe-only fence exempted bivariate families by NAME PREFIX, so
+    # every new `biv_*` row inherited the exemption -- and the same class was
+    # then found on `tweedie` (`nu ~ z` fit through the bridge at logLik
+    # -259.84074955 while `engine = "tmb"` refused it), which has no prefix at
+    # all. Same reason as the row above for editing this literal vector.
+    "unadmitted_predictor_dpar"
   )
 
   expect_s3_class(gates, "data.frame")
@@ -272,43 +288,59 @@ test_that("Julia capability comparison artifact matches the registry", {
   # claim_status/covered promotion and NOT an interval_status move. Asserted
   # rather than merely edited, same pattern as the inversions above, so an
   # accidental reversion fails loudly.
+  # G3 (bridge-side profile/bootstrap inference) is now measured and QUALIFIED on
+  # ALL FOUR wave-1 rows. Neither side of this merge could say that alone, and the
+  # two halves fit together exactly:
   #
-  # G3 (bridge-side profile/bootstrap inference) has since been measured on
-  # all four wave-1 rows, across two leaves. A8 (2026-09-05, docs/dev-log/
-  # evidence/julia-r-parity/p2-g3/) qualified base_gaussian_location_scale
-  # and plain_binomial_nonphylo -- partial -> supported -- and found
-  # gaussian_response_mask's Julia bootstrap fails all 99 replicates (its own
-  # opt$convergence flag reads FALSE), so that row stayed partial. A8b
-  # (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/
-  # a8b-biv-qualification-receipt.md; DRM.jl PR #647) then closed the gap A8
-  # found in biv_gaussian_residual (no profile/bootstrap target existed on
-  # that route for any parameter) and qualified it too -- partial ->
-  # supported. Three of the four wave-1 rows are now supported; one
-  # (gaussian_response_mask) stays partial. Asserted by name, not by count,
-  # so a silent status drift on any one row fails loudly.
-  expect_equal(
-    registry[
-      registry$capability_id == "base_gaussian_location_scale",
-    ]$r_bridge_status,
-    "supported"
-  )
-  expect_equal(
-    registry[
-      registry$capability_id == "plain_binomial_nonphylo",
-    ]$r_bridge_status,
-    "supported"
-  )
-  expect_equal(
-    registry[
-      registry$capability_id == "biv_gaussian_residual",
-    ]$r_bridge_status,
-    "supported"
-  )
-  expect_equal(
-    registry[
-      registry$capability_id == "gaussian_response_mask",
-    ]$r_bridge_status,
-    "partial"
+  #   * A8 (2026-09-05, docs/dev-log/evidence/julia-r-parity/p2-g3/) qualified
+  #     base_gaussian_location_scale and plain_binomial_nonphylo, partial ->
+  #     supported.
+  #   * The G3 leaf (.../p2-g3/g3-drmjl-version-boundary-receipt.md) then moved
+  #     gaussian_response_mask across: A8's two blockers on that row were both
+  #     DRM.jl defects, fixed by DRM.jl#646/#648. Re-measured against DRM.jl main,
+  #     both engines converge, the profile CIs agree to 5.1e-06/7.2e-06 (bar 1e-4),
+  #     and both bootstraps complete 0/99 failed. That promotion carries a DRM.jl
+  #     VERSION FLOOR, and tests/testthat/test-julia-missing.R's #646 block is the
+  #     live tripwire for it; this assertion is the ledger-side half.
+  #   * A8b (docs/dev-log/evidence/julia-r-parity/p2-g3/a8b-biv-qualification-
+  #     receipt.md; DRM.jl PR #647, merged 2026-09-07) closes the last one. The G3
+  #     leaf recorded biv_gaussian_residual as staying partial because "no
+  #     profile/bootstrap target exists on that route for ANY parameter"
+  #     (fixef_profile_ready was unconditionally FALSE for a bivariate fit). A8b IS
+  #     the work that supplies one, so that reason no longer holds and the row
+  #     qualifies.
+  #
+  # The wave-1 split is therefore EMPTY on the partial side. It is kept as an
+  # explicit empty set rather than deleted, so that a regression which demotes any
+  # row fails here loudly instead of silently shrinking a list nobody reads.
+  # Asserted BY NAME, never by count: 4/4 is a measurement, not a target, and a row
+  # moves between these sets only with a receipt.
+  wave1_still_partial <- registry[
+    registry$capability_id %in% character(0),
+  ]
+  expect_equal(nrow(wave1_still_partial), 0L)
+
+  wave1_g3_qualified <- registry[
+    registry$capability_id %in%
+      c(
+        "base_gaussian_location_scale",
+        "plain_binomial_nonphylo",
+        "gaussian_response_mask",
+        "biv_gaussian_residual"
+      ),
+  ]
+  expect_equal(nrow(wave1_g3_qualified), 4L)
+  expect_true(all(wave1_g3_qualified$r_bridge_status == "supported"))
+
+  # The two sets must stay a PARTITION of the four wave-1 rows: a row silently
+  # dropped from both sets would make each assertion above vacuously narrower
+  # without failing anything.
+  expect_setequal(
+    c(wave1_still_partial$capability_id, wave1_g3_qualified$capability_id),
+    c(
+      "base_gaussian_location_scale", "biv_gaussian_residual",
+      "gaussian_response_mask", "plain_binomial_nonphylo"
+    )
   )
 
   # q4 stays OUT of wave 1 (its Julia SE axis is the fixture's recorded fence;
@@ -547,4 +579,41 @@ test_that("cross-family Julia bridge gates are intentional and pre-JuliaCall", {
     ),
     "cannot fit .*sigma2.*dispersion"
   )
+})
+
+test_that("unadmitted_predictor_dpar: tweedie nu ~ z is gated before Julia starts", {
+  withr::local_envvar(DRM_JL_PATH = NA, DRM_JL_PHYLO_PATH = NA)
+  # Every family the fence actually narrows must be exercised, not just the one
+  # that happened to be measured -- an empty loop would be a silent pass.
+  narrowed <- drmTMB:::drm_julia_narrowed_predictor_dpar_families()
+  expect_gt(length(narrowed), 0L)
+  expect_true("tweedie" %in% narrowed)
+
+  set.seed(20260905L)
+  n <- 60L
+  dat <- data.frame(
+    y = stats::rgamma(n, shape = 2, rate = 1),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  expect_julia_gate(
+    "unadmitted_predictor_dpar",
+    drmTMB(
+      bf(y ~ x, sigma ~ 1, nu ~ z),
+      family = tweedie(),
+      data = dat,
+      engine = "julia"
+    )
+  )
+  # The gate must not over-fire on the intercept-only spelling the native
+  # engine DOES admit: that call gets past this fence and fails later, on the
+  # missing engine, which is a different message entirely.
+  err <- tryCatch(
+    drmTMB(bf(y ~ x, sigma ~ 1, nu ~ 1), family = tweedie(),
+           data = dat, engine = "julia"),
+    error = function(e) e
+  )
+  expect_s3_class(err, "error")
+  expect_false(grepl("must\\s+be\\s+intercept-only",
+                     conditionMessage(err)))
 })

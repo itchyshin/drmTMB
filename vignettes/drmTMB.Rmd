@@ -55,6 +55,8 @@ written as one formula for the mean and one formula for the residual scale.
 
 ## Install the pre-CRAN release
 
+This vignette describes `drmTMB` 0.7.1, the current pre-CRAN version.
+
 `drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
 documentation was built, it had not yet been accepted by CRAN. Install the
 current development source from GitHub with `pak`:

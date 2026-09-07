@@ -167,11 +167,19 @@ automatic-differentiation object are expensive to retain.
 For optimizer-only settings, \code{control = list(eval.max = 1000)} remains
 valid. When using \code{drm_control()}, put optimizer arguments inside
 \code{optimizer = list(...)}; do not pass \code{eval.max} directly to \code{drm_control()}.
-For \code{engine = "julia"} base bridge fits, only \code{optimizer$g_tol} and
-\code{optimizer$algorithm} are forwarded to DRM.jl. TMB-specific optimizer
-budgets, presets and storage controls are rejected rather than ignored.
-\code{start} and \code{multi_start} are likewise rejected under \code{engine = "julia"}
-rather than silently ignored.
+Under \code{engine = "julia"} the forwarded set is a closed whitelist:
+\code{optimizer$g_tol} and \code{optimizer$algorithm} on the base bridge, plus
+\code{optimizer$q4_vcov} on the bivariate q = 4 phylogenetic route. On that q4
+route \code{optimizer$g_tol} becomes DRM.jl's outer-gradient tolerance
+(\code{q4_g_tol}) and \code{optimizer$algorithm} is refused, because that route's
+optimiser has no solver-selection setting. \emph{Every} other \code{drm_control()}
+field is rejected with an error naming it -- never silently ignored --
+because it describes an \code{nlminb()}/TMB program that DRM.jl does not run;
+use \code{engine = "tmb"} for those. The rejected set is derived from
+\code{drm_control()} itself, so a control added here is rejected on the Julia
+path without a matching edit to the bridge. The structured, bivariate q2
+structured, and cross-family Julia routes are narrower still: they accept
+only a default \code{control}, so even \code{optimizer$g_tol} is refused there.
 Presets \code{"careful"} and \code{"robust"} expand to explicit \code{iter.max} and
 \code{eval.max} controls for \code{nlminb()}. Values in \code{optimizer} override values from
 the selected preset.

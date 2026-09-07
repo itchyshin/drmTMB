@@ -5,6 +5,7 @@
 \alias{aicc}
 \alias{aicc.default}
 \alias{aicc.drmTMB}
+\alias{anova.drmTMB_julia}
 \title{Corrected Akaike information criterion (AICc)}
 \usage{
 aicc(object, ...)
@@ -12,12 +13,17 @@ aicc(object, ...)
 \method{aicc}{default}(object, ...)
 
 \method{aicc}{drmTMB}(object, ...)
+
+\method{anova}{drmTMB_julia}(object, ..., test = NULL)
 }
 \arguments{
 \item{object}{A fitted \code{drmTMB} model (either engine), or any object whose
 \code{\link[=logLik]{logLik()}} method reports \code{"df"} and \code{"nobs"} attributes.}
 
 \item{...}{Unused; present for S3 consistency.}
+
+\item{test}{Present only so \code{anova.drmTMB_julia()} matches the signature of
+\code{\link[stats:anova]{stats::anova()}}; it is never consulted, because that method refuses.}
 }
 \value{
 A single number. When \eqn{n - k - 1 \le 0} (too few observations
