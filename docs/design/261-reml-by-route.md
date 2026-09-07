@@ -37,7 +37,7 @@ evidence cell names the PRs and the build the new numbers came from.
 |---|---|---|---|---|
 | base_gaussian_location_scale | FITS | FITS | FITS | YES |
 | biv_gaussian_residual | FITS | FITS | FITS | YES |
-| gaussian_phylo_mean | FITS | REFUSES | REFUSES | NO |
+| gaussian_phylo_mean | FITS | FITS | FITS | YES |
 | gaussian_response_mask | REFUSES | REFUSES | REFUSES | YES |
 | biv_q4_phylo_reml | FITS | FITS | FITS | YES |
 | phylo_count_large_p (poisson) | REFUSES | FITS | FITS | NO |
@@ -66,7 +66,7 @@ evidence cell names the PRs and the build the new numbers came from.
 | gaussian_random_slope | FITS | REFUSES | REFUSES (via a RAW Julia stack trace) | NO |
 | gaussian_sigma_random_intercept | FITS | REFUSES | REFUSES | NO |
 
-30 rows: 23 agree (all three engines/layers land the same way), 6 disagree, 1 not classified (orthogonal to REML/ML, or the model does not exist under any estimator).
+30 rows: 24 agree (all three engines/layers land the same way), 5 disagree, 1 not classified (orthogonal to REML/ML, or the model does not exist under any estimator).
 
 ## Detail, one row per route
 
@@ -92,19 +92,19 @@ evidence cell names the PRs and the build the new numbers came from.
 
 - **Source**: TSV (`inst/extdata/julia-capabilities.tsv`)
 - **Formula**: `bf(y ~ x + phylo(1|species, tree=tree), sigma ~ 1), gaussian()`
-- **Native TMB**: FITS -- measured this run: logLik=-14.6046181690 (native_reml_probe.R, row 6); corroborated by tests/testthat/test-reml-phylo-location.R (existing suite, not re-run here)
-- **Native DRM.jl**: REFUSES -- DRM.jl #624 item (c) verbatim: "a Gaussian mean-only phylo(1|species) model refuses REML, while the same tree with an sd() submodel fits it... certainly possible; that asymmetry is a capability gap"
-- **Bridge (`engine = "julia"`)**: REFUSES -- measured this run: `engine="julia" cannot fit mean-only phylogenetic Gaussian models by REML=TRUE` (bridge_reml_probe.R, row 3)
-- **Agree?**: NO -- DRM.jl #624 item (c) -- explicitly OUT OF SCOPE for this leaf per the task brief; recorded verbatim, not re-litigated.
+- **Native TMB**: FITS -- measured this run: logLik=-14.6046181690 (native_reml_probe.R, row 6 fixture, re-measured 2026-09-05 on the leaf-reml-phylo-mean worktree); corroborated by tests/testthat/test-reml-phylo-location.R
+- **Native DRM.jl**: FITS -- CLOSED 2026-09-05 (DRM.jl #624 item (c)): drm(...; method = :REML) now fits this cell on the sparse location-only spine, nll_REML = nll_ML + 0.5*logdet(Xmu' V^-1 Xmu) - 0.5*p_mu*log(2*pi) via _loconly_reml_components; estim_method = :REML, ML untouched (test/test_reml_reml_phylo_mean.jl)
+- **Bridge (`engine = "julia"`)**: FITS -- measured this run: bridge fit succeeded on the row-6 fixture, estim_method=REML, logLik=-14.6046181684 (6.0e-10 from native TMB). Same-target receipt on the committed test fixture (n=90, 30 tips): logLik -76.000977125105 vs -76.000977125761 (6.56e-10), coefficients to 3.71e-08, SEs 4.84e-05 / 1.50e-03 / 1.42e-07 relative -- docs/dev-log/evidence/julia-r-parity/reml/reml-phylo-mean-receipt.md
+- **Agree?**: YES -- AGREE, all three FIT. Same integrated-out set {u_phylo, beta_mu} and the same +0.5*p_mu*log(2*pi) constant on both engines, so the REML log-likelihoods are directly comparable with no offset removed. Coefficients, logLik, nobs and df agree. ONE documented convention difference remains, engine-dependent BY CONSTRUCTION, not by error: drmTMB's REML SEs for the mean block come from TMB sdreport over a random set containing beta_mu, so they propagate variance-parameter uncertainty; DRM.jl reports the canonical GLS oracle (Xmu' Vhat^-1 Xmu)^-1 directly. DRM.jl matches an independent hand-built GLS oracle to rtol ~5e-7 (4.5e-08 measured on mu_x); drmTMB's mean-block SEs deviate from that SAME oracle by 1.50e-03 on mu_x. The bar this leaf's test actually asserts and passes is DRM.jl-vs-oracle at rtol 1e-5 and a cross-engine bound of rtol 2.5e-3 (not a bare rtol-1e-3 cross-engine match, which mu_x does not meet and which is not the claim made here).
 
 ### gaussian_response_mask
 
 - **Source**: TSV (`inst/extdata/julia-capabilities.tsv`)
 - **Formula**: `same phylo-mean cell as above, missing=miss_control(response="include")`
 - **Native TMB**: REFUSES -- measured this run: `REML is not implemented with explicit missing-data engines yet` (native_reml_probe.R, row 7) -- a DIFFERENT refusal reason than the phylo-mean gate above; response="include" itself trips a generic missing-data-engine gate for ANY family
-- **Native DRM.jl**: REFUSES -- same underlying cell as gaussian_phylo_mean (DRM.jl #624 item (c)); no separate native call corresponds to "include" outside the bridge
-- **Bridge (`engine = "julia"`)**: REFUSES -- measured this run: same mean-only-phylo refusal text as gaussian_phylo_mean (bridge_reml_probe.R, row 4) -- the missing-data mask does not change which REML gate fires first
-- **Agree?**: YES -- Agree on REFUSE, but for two DIFFERENT reasons across engines (TMB: missing-data-engine gate; bridge: mean-only-phylo gate). Noted, not a defect.
+- **Native DRM.jl**: REFUSES -- DRM.jl's sparse phylo-mean REML gate excludes a model carrying missing responses (has_missing_response), so the cell that now fits at gaussian_phylo_mean does not fit with an explicit response engine
+- **Bridge (`engine = "julia"`)**: REFUSES -- measured this run (2026-09-05, after the gaussian_phylo_mean widening): still the drmTMB-side mean-only-phylo refusal, because the bridge withdraws the new REML admission when `missing` requests a non-default response engine -- so the user gets drmTMB's message, not DRM.jl's raw ArgumentError
+- **Agree?**: YES -- Agree on REFUSE, for two DIFFERENT reasons across engines (TMB: missing-data-engine gate; bridge: the phylo-mean REML admission is withdrawn under a non-default response engine). Noted, not a defect. This row did NOT flip when gaussian_phylo_mean did.
 
 ### biv_q4_phylo_reml
 
@@ -342,24 +342,34 @@ evidence cell names the PRs and the build the new numbers came from.
 
 ## Gaps (every disagreement, with its issue)
 
-1. **gaussian_phylo_mean**: DRM.jl #624 item (c) -- explicitly OUT OF SCOPE for this leaf per the task brief; recorded verbatim, not re-litigated.
-2. **phylo_count_large_p (poisson)**: Not a defect: this is "REML wherever possible" working -- DRM.jl/the bridge offer a genuine REML route (Cox-Reid Laplace) that native TMB's REML implementation (Gaussian/binomial only) does not have. Documents the asymmetric REML surface drmTMB #1142 item 4 asks about.
-3. **general_covariance_structured (gaussian)**: Same asymmetry as gaussian_phylo_mean (DRM.jl #624 item (c)-adjacent), for relmat instead of phylo. Not a new issue number; recorded alongside item (c).
-4. **general_covariance_structured (poisson)**: NEW FINDING (drmTMB #1142 / DRM.jl #624, opposite direction from the fe_poisson gap below): the bridge UNDER-admits relative to DRM.jl's own real capability. DRM.jl natively fits Poisson+relmat/animal REML (#450, its own passing test), but engine="julia" can never reach it because the R-side structured-term gate fires first for every family, not just the ones (Gaussian) that gate is meant to police. Not filed as a GitHub issue in this leaf; flagged for A11/follow-up.
-5. **gaussian_random_slope**: drmTMB #1142 / DRM.jl #624's OWN central example (item 2, 16-refuse list: "Gaussian random slopes"). Not new as a capability gap, but the INTERFACE half (raw Julia stack trace instead of drm_julia_refuse_reml_unsupported()) is the same unfiled defect class as fe_poisson/zi_poisson/general_covariance_structured-poisson above -- four cells now, all sharing one root cause: drm_julia_reml_supported() only screens for phylo/sd/structured-term presence, never for "is the random-effect shape itself one DRM.jl actually restricts."
-6. **gaussian_sigma_random_intercept**: drmTMB #1142's own motivating example (the ArgumentError quoted in the issue body is this exact cell). Not new; the interface here is HONEST (clean R-side refusal, no raw stack trace) because this is the one case the maintainers already special-cased ("Night question 14" comment in R/julia-bridge.R).
+1. **phylo_count_large_p (poisson)**: Not a defect: this is "REML wherever possible" working -- DRM.jl/the bridge offer a genuine REML route (Cox-Reid Laplace) that native TMB's REML implementation (Gaussian/binomial only) does not have. Documents the asymmetric REML surface drmTMB #1142 item 4 asks about.
+2. **general_covariance_structured (gaussian)**: Same asymmetry as gaussian_phylo_mean (DRM.jl #624 item (c)-adjacent), for relmat instead of phylo. Not a new issue number; recorded alongside item (c).
+3. **general_covariance_structured (poisson)**: NEW FINDING (drmTMB #1142 / DRM.jl #624, opposite direction from the fe_poisson gap below): the bridge UNDER-admits relative to DRM.jl's own real capability. DRM.jl natively fits Poisson+relmat/animal REML (#450, its own passing test), but engine="julia" can never reach it because the R-side structured-term gate fires first for every family, not just the ones (Gaussian) that gate is meant to police. Not filed as a GitHub issue in this leaf; flagged for A11/follow-up.
+4. **gaussian_random_slope**: drmTMB #1142 / DRM.jl #624's OWN central example (item 2, 16-refuse list: "Gaussian random slopes"). Not new as a capability gap, but the INTERFACE half (raw Julia stack trace instead of drm_julia_refuse_reml_unsupported()) is the same unfiled defect class as fe_poisson/zi_poisson/general_covariance_structured-poisson above -- four cells now, all sharing one root cause: drm_julia_reml_supported() only screens for phylo/sd/structured-term presence, never for "is the random-effect shape itself one DRM.jl actually restricts."
+5. **gaussian_sigma_random_intercept**: drmTMB #1142's own motivating example (the ArgumentError quoted in the issue body is this exact cell). Not new; the interface here is HONEST (clean R-side refusal, no raw stack trace) because this is the one case the maintainers already special-cased ("Night question 14" comment in R/julia-bridge.R).
 
 ## Not covered by this leaf
 
 - The q4_vcov-on-REML question (DRM.jl #624 item 3): SE/vcov correctness
   on the one route where all three columns already agree the model FITS.
-- DRM.jl #624 item (c), mean-only phylogenetic Gaussian REML: recorded as a
-  gap on two rows above (`gaussian_phylo_mean`, and the Gaussian sub-row of
-  `general_covariance_structured`); not implemented here.
+- DRM.jl #624 item (c), mean-only phylogenetic Gaussian REML: CLOSED for
+  `gaussian_phylo_mean` (the `phylo()` cell) by the leaf reml-phylo-mean,
+  which is why that row now reads FITS / FITS / FITS. It is NOT closed for
+  the Gaussian sub-row of `general_covariance_structured` -- `relmat()` /
+  `animal()` / `spatial()` are served by DRM.jl's DENSE structured fitter,
+  which has no restricted objective and still refuses. That row is
+  unchanged and remains an open gap.
+- SE convention under REML on the phylo-mean cell: drmTMB reports TMB
+  sdreport SEs over a random set containing `beta_mu` (so variance-parameter
+  uncertainty is propagated into that block); DRM.jl reports the canonical
+  `(Xmu' Vhat^-1 Xmu)^-1`. Measured gap 1.50e-03 relative on `mu_x`.
+  Documented, not reconciled -- neither engine is wrong, and no coverage
+  claim is made either way.
 - The four cells sharing the drm_julia_reml_supported() honesty-of-interface
   gap (`fe_poisson`, `zi_poisson`, `general_covariance_structured`/poisson,
   `gaussian_random_slope`) are recorded, not fixed. No GitHub issue was
   filed for this in this leaf; it is flagged for A11 or a follow-up leaf.
-- No REML implementation changed anywhere in this leaf (scope: MEASURE and
-  TABLE only).
+- No REML implementation changed anywhere in arc A9f (scope: MEASURE and
+  TABLE only). The single implementation change reflected in this table
+  came from the later leaf reml-phylo-mean, scoped to ONE cell.
 

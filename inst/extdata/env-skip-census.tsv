@@ -148,6 +148,8 @@ test-julia-predict-quantile.R	suggests-package	environment	runs	3
 test-julia-q2-phylo-point-export.R	engine-drm-jl	environment	skips	2
 test-julia-q2-phylo-point-export.R	suggests-package	environment	runs	4
 test-julia-reml-biv-residual.R	engine-drm-jl	environment	skips	1
+test-julia-reml-phylo-mean.R	engine-drm-jl	environment	skips	2
+test-julia-reml-phylo-mean.R	suggests-package	environment	runs	3
 test-julia-reml-uncited.R	build-premise	build	skips	1
 test-julia-reml-uncited.R	engine-drm-jl	environment	skips	2
 test-julia-reml-uncited.R	suggests-package	environment	runs	3
