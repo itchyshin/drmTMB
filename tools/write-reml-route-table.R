@@ -59,8 +59,8 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "bf(y ~ x, sigma ~ x), gaussian()",
         "FITS", "measured this run: logLik=-50.3636628254 (native_reml_probe.R, row 1)",
         "FITS", "DRM.jl #624 census (14-fit list, item 1: \"univariate fixed-effect Gaussian location-scale\")",
-        "FITS", "RE-MEASURED this run with the fixed estim_method oracle read (fit$bridge$estim_method, DRM.jl #625): bridge fit succeeded, estim_method=REML (fit$estimator=REML, fit$effective_REML=TRUE -- all three agree), 35.7s incl. Julia boot (bridge_reml_probe.R, row 1)",
-        "YES", ""),
+        "FITS", "RE-MEASURED this run with the fixed estim_method oracle read (fit$bridge$estim_method, DRM.jl #625): bridge fit succeeded, estim_method=REML (fit$estimator=REML, fit$effective_REML=TRUE -- all three agree), 35.7s incl. Julia boot (bridge_reml_probe.R, row 1). SAME-TARGET RECEIPT ADDED 2026-09-05 (leaf uncited-reml, DRM.jl aee371cc, n=60 seed=1): the probe above showed only that the bridge FITS; this shows it fits the SAME model. coef 9.46698275328099e-12 (4/4 name-matched), REML logLik -72.4399503028797 on both engines (7.105e-14), ML/REML gap 2.817878864306 on BOTH engines. SEs do NOT agree at the 1e-3 bar: mean-block 3.086e-03 relative while scale-block agrees to 3.148e-07; a sigma ~ 1 control makes the mean block agree exactly, so the gap is carried by the sigma covariate. docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md",
+        "YES", "Agree on FITTING and on the point estimate. The SE axis does NOT agree on the heteroscedastic cell (mean block, 3.086e-03 relative) -- documented, not fixed; no interval claim on this route."),
 
     row("biv_gaussian_residual", "", "TSV", "inst/extdata/julia-capabilities.tsv",
         "bf(mu1=y1~x, mu2=y2~x, sigma1=~1, sigma2=~1, rho12=~1), biv_gaussian()",
@@ -87,8 +87,8 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "biv_gaussian() q4 phylo on mu1,mu2,sigma1,sigma2, REML=TRUE",
         "FITS", "existing evidence, not re-run (expensive fixture): R/julia-bridge.R capability-comparison comment block; max|d_coef|=0.002889, loglik constant residual 0.001938",
         "FITS", "DRM.jl #624 census (14-fit list): \"bivariate q=4 phylo native AND through drm_bridge\"",
-        "FITS", "existing evidence, not re-run: same comment block, PARITY_PASS 33/33",
-        "YES", "Agree on FITTING, but SE/vcov are NOT comparable: DRM.jl #624 item 3 (`_q4_fd_vcov` finite-differences the ML objective on a REML fit; 10.5% SE gap on the committed biv-q4-phylo-reml fixture). Explicitly named out of scope by this leaf's brief (\"the q4_vcov-on-REML question\" remains unresolved for A11)."),
+        "FITS", "MEASURED THROUGH THE BRIDGE 2026-09-05 (leaf uncited-reml, DRM.jl aee371cc), which had never been done: the prior citation was native-vs-native and the TSV row asserted the engine=\"julia\" path for this cell was halted by design -- it is not. On the DENSE q4 layout (100 tips x 5 = 500, seed 3, the fixture of tests/testthat/test-reml-bivariate.R): coef 7.470441383797e-04 (5/5 name-matched), REML logLik -930.145130378492 (tmb) vs -930.165353375125 (julia), |d| 2.0223e-02, inside this row's own recorded atol_loglik 0.03; estimator REML on both sides; tmb REML convergence=0. POINT-ONLY: neither engine reports usable fixed-effect SEs on this fit. docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md",
+        "YES", "Agree on FITTING and on the point estimate for the DENSE layout. TWO boundaries, both measured. (1) SE/vcov are NOT comparable: DRM.jl #624 item 3 (`_q4_fd_vcov` finite-differences the ML objective on a REML fit; 10.5% SE gap on the committed biv-q4-phylo-reml fixture), and on the 500-obs fixture measured here NEITHER engine returns usable fixed-effect SEs at all. (2) NEW DEFECT: a BLOCK-DIAGONAL q4 call -- two distinct phylo labels, `phylo(1 | p | sp)` on the means and `phylo(1 | ps | sp)` on the scales -- is silently marshalled onto the DENSE model. On the same data, native block-diagonal REML gives logLik -934.738393347 (df 11) while the bridge given the block-diagonal formula returns -930.165353375 (df 15), which is the DENSE answer to within 0.0202. engine=\"julia\" should refuse that layout rather than answer a different question."),
 
     row("phylo_count_large_p", "poisson", "TSV", "inst/extdata/julia-capabilities.tsv",
         "bf(y ~ x + phylo(1|species, tree=tree)), poisson()",
@@ -248,8 +248,8 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "bf(y ~ x + (1|g), sigma ~ 1), gaussian()",
         "FITS", "measured this run: logLik=-51.6093435424 (native_reml_probe.R, row 3)",
         "FITS", "A5 census.tsv, layer=engine-direct: ml_loglik=-171.636217965634 reml_loglik=-174.437057568359 (cited verbatim, a5-census-verbatim.tsv row 6)",
-        "FITS", "A5 census.tsv, layer=shipped: identical ml_loglik/reml_loglik (a5-census-verbatim.tsv row 2)",
-        "YES", ""),
+        "FITS", "A5 census.tsv, layer=shipped: identical ml_loglik/reml_loglik (a5-census-verbatim.tsv row 2). SAME-TARGET RECEIPT ADDED 2026-09-05 (leaf uncited-reml, DRM.jl aee371cc, n=150 = 15 groups x 10, seed 11): A5's census compared DRM.jl with DRM.jl, not with native TMB. Against engine=\"tmb\" on one fixture: coef 9.36275501572915e-11 (3/3 name-matched), REML logLik -127.153393170864 vs -127.153393170863 (1.066e-12), SEs 2.036e-08 abs / 3.333e-07 rel over 3 SEs (SE_PASS at rtol 1e-3, with a +10% negative control), ML/REML gap 3.111474508349 / 3.111474508348. docs/dev-log/evidence/julia-r-parity/reml-uncited/receipt.md",
+        "YES", "Agree on FITTING, on the point estimate and on the SEs. NOT covered: a random SLOPE `(1 + x | g)` (the row below), a sigma-side random effect, and interval coverage."),
 
     row("gaussian_random_slope", "", "A5-census", "PR #1170, docs/dev-log/evidence/julia-r-parity/ordinary-re-census/census.tsv",
         "bf(y ~ x + (1+x|g), sigma ~ 1), gaussian()",

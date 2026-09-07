@@ -424,6 +424,37 @@ every item above.
   target for every `method`, naming the cutpoint, `engine = "tmb"`, and
   `fit$ordinal$cutpoints`. **No numbers changed on either engine**: this is a
   discovery-and-diagnosis fix plus an explicit engine boundary.
+## Same-target REML receipts for three capabilities the parity scoreboard read UNCITED (#1142)
+
+* `docs/design/parity-scoreboard.md` reported 23 of 45 drmTMB-native
+  capabilities UNCITED on its bridge axis -- reachable through
+  `engine = "julia"`, but with no receipt a reader could check. Three were REML
+  cells, and no REML row existed in any of DRM.jl's four evidence tables at
+  all. All three now carry a same-target comparison against `engine = "tmb"`,
+  measured at DRM.jl `aee371cc9`: the fixed-effect Gaussian location-scale cell
+  (coefficients `9.47e-12`, REML logLik `7.11e-14`), the Gaussian mean ordinary
+  random intercept `(1 | g)` (coefficients `9.36e-11`, logLik `1.07e-12`, SEs
+  `3.33e-07` relative), and the bivariate dense q4 phylogenetic location-scale
+  cell (coefficients `7.47e-04`, logLik `2.02e-02`, inside that row's own
+  recorded `atol_loglik` of 0.03). Estimator honesty is read from both sides on
+  every fit -- drmTMB's `fit$estimator` and DRM.jl's own `estim_method` -- and
+  the ML/REML logLik gap is asserted non-zero, so an ML fit wearing a REML
+  label would fail the tests rather than pass them. `engine = "julia"` gains no
+  new route here; only evidence.
+* Two boundaries are recorded rather than papered over. **(a)** On the
+  heteroscedastic fixed-effect cell the two mean-block Wald SEs differ by
+  `3.09e-03` relative, past the `1e-3` bar, while the scale block agrees to
+  `3.1e-07`; a control refitting the same data with `sigma ~ 1` makes the mean
+  block agree exactly, so the gap is carried by the sigma covariate, not by
+  REML. **(b)** A *block-diagonal* q4 call -- two distinct phylo labels, one on
+  the means and one on the scales -- is silently fitted as the *dense* q4 model
+  by `engine = "julia"`: on one fixture the native block-diagonal REML fit gives
+  logLik `-934.738` at `df = 11` while the bridge returns `-930.165` at
+  `df = 15`, the dense answer. Use `engine = "tmb"` for a block-diagonal q4 REML
+  fit until the bridge refuses that layout. Both are in
+  `docs/design/261-reml-by-route.md`, and the ledger note claiming the
+  `engine = "julia"` path for the q4 cell was "halted by design" is corrected --
+  it fits.
 
 ## `biv_student()` admitted through `engine = "julia"` (leaf fam-biv-student)
 

@@ -22,7 +22,7 @@
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "2e759412917f22c31abd7d9dcd4553e3bdb44a712e0ef8548bb0ee90a6a0a842",
-    "R/julia-bridge.R": "242dd5d1bb4bc4262ccca137ec2667e181c62a6da3b22cd3ee3f163903c48c8e",
+    "R/julia-bridge.R": "e7f7d13b921712631e4c8ac23f2f55e99c46e1f05fcc7f4ebfaef0541cd551c1",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-diagnostics.R": "dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799",
     "R/julia-family-cumulative_logit.R": "710d63606946196a81f111fd1d609a19aa54a494b564ee68e2f7aba1587d27dd",
@@ -688,8 +688,8 @@
       "drmjl_ref": "21b033028bbe36662b53357dae0db5e0e43aecf1",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmp2IxOFs/pkgload5409664e722a/drmTMB.so",
-          "sha256": "eaf39681978af31c0f5c7152d682796c1d76a061ff2f098bbbb2f54446439ff5"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmpryduwz/pkgload41944124b100/drmTMB.so",
+          "sha256": "6f2fed1d21808e28007c52e2220deded8f2e8feeb99f1cd1b3574c2491d4b642"
         }
       }
     },
@@ -734,7 +734,7 @@
     "R/formula-markers.R": "298d1f7344308668485043c633413067560a7e02c92cbb08caf84614d91f8e02",
     "R/gaussian-aggregation.R": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
     "R/heritability.R": "2e759412917f22c31abd7d9dcd4553e3bdb44a712e0ef8548bb0ee90a6a0a842",
-    "R/julia-bridge.R": "242dd5d1bb4bc4262ccca137ec2667e181c62a6da3b22cd3ee3f163903c48c8e",
+    "R/julia-bridge.R": "e7f7d13b921712631e4c8ac23f2f55e99c46e1f05fcc7f4ebfaef0541cd551c1",
     "R/julia-coefficient-labels.R": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
     "R/julia-diagnostics.R": "dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799",
     "R/julia-family-cumulative_logit.R": "710d63606946196a81f111fd1d609a19aa54a494b564ee68e2f7aba1587d27dd",
@@ -862,6 +862,6 @@
     "/Users/z3437171/local-scratch/parity-joint/drmjl-main-now/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 43.529000000000003,
+  "elapsed": 41.539000000000001,
   "status": "PASS"
 }
