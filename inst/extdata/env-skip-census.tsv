@@ -199,7 +199,7 @@ test-objective-at.R	cran-lane	environment	runs	2
 test-offset-families.R	cran-lane	environment	runs	4
 test-optimizer-tolerance.R	suggests-package	environment	runs	1
 test-parity-fenced-boundaries.R	build-premise	build	skips	2
-test-parity-matrix.R	build-premise	build	skips	2
+test-parity-matrix.R	build-premise	build	skips	3
 test-parity-matrix.R	engine-drm-jl	environment	skips	2
 test-parity-matrix.R	runtime-conditional	runtime	depends	1
 test-phase18-actions-runner.R	build-premise	build	skips	3

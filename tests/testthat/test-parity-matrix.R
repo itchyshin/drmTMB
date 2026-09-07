@@ -261,3 +261,72 @@ test_that("the test's matcher twin agrees with the tool's matcher", {
     }
   }
 })
+
+# Why this test exists (2026-09-07). `pm_grep_line()` aborts when a citation
+# anchor is missing -- it fails CLOSED, which is right. But the only test that
+# exercised the generator end-to-end skips without `DRM_JL_PATH`, so CI never
+# runs it, and #1187 landed a rewrite of
+#   fixef_profile_ready <- !is_biv && !is.null(object$bridge_payload)
+# into
+#   fixef_profile_ready <- !is.null(payload) && !is_biv_structured
+# leaving `tools/write-parity-matrix.R` broken on main with nothing red. This
+# test resolves every anchor with NO DRM.jl clone, so it runs in CI, where the
+# breakage would have surfaced on #1187's own PR.
+test_that("every citation anchor in write-parity-matrix.R still resolves in its source file", {
+  tool <- pm_test_tool_path()
+  skip_if(!nzchar(tool), "tools/write-parity-matrix.R is not reachable (installed package)")
+  root <- normalizePath(testthat::test_path("..", ".."))
+  src <- readLines(tool, warn = FALSE)
+
+  # The file-key -> path map, read from the tool rather than duplicated here, so
+  # a renamed source file cannot make this test pass by disagreeing with it.
+  key_paths <- c(
+    r_status = "docs/design/capability-status.md",
+    registry = "R/julia-family-registry.R",
+    bridge = "R/julia-bridge.R",
+    drmtmb = "R/drmTMB.R",
+    heritability = "R/heritability.R",
+    plan = "docs/dev-log/loop/parity-joint-20260905/ultra-plan.md"
+  )
+  for (k in names(key_paths)) {
+    expect_true(
+      any(grepl(sprintf('%s = "%s"', k, key_paths[[k]]), src, fixed = TRUE)),
+      info = sprintf("file-key '%s' no longer maps to %s in the tool", k, key_paths[[k]])
+    )
+  }
+
+  # Every `r("<key>", "<literal>")` call. The literal may contain escaped quotes.
+  calls <- regmatches(src, gregexpr('\\br\\("[a-z_]+", "(\\\\.|[^"\\\\])*"', src))
+  calls <- unlist(calls, use.names = FALSE)
+  expect_gt(length(calls), 15L)   # a regex that silently matched nothing would pass vacuously
+
+  keys <- sub('^\\br\\("([a-z_]+)".*$', "\\1", calls)
+  lits <- sub('^\\br\\("[a-z_]+", "(.*)"$', "\\1", calls)
+  # Undo the R source-level escaping by letting the R parser do it rather than by
+  # hand: a hand-rolled gsub pair got the backslash-quote case wrong on the first
+  # run and reported two anchors missing that were in fact present -- exactly the
+  # false alarm this test exists to avoid producing.
+  lits <- vapply(lits, function(x) eval(parse(text = paste0('"', x, '"'))), character(1), USE.NAMES = FALSE)
+
+  cache <- list()
+  missing <- character()
+  for (i in seq_along(calls)) {
+    k <- keys[[i]]
+    expect_true(k %in% names(key_paths), info = sprintf("unknown file key '%s'", k))
+    if (is.null(cache[[k]])) {
+      cache[[k]] <- readLines(file.path(root, key_paths[[k]]), warn = FALSE)
+    }
+    if (!any(grepl(lits[[i]], cache[[k]], fixed = TRUE))) {
+      missing <- c(missing, sprintf("%s: %s", key_paths[[k]], lits[[i]]))
+    }
+  }
+  expect_identical(
+    missing, character(),
+    info = paste0("citation anchors that no longer resolve:\n  ", paste(missing, collapse = "\n  "))
+  )
+
+  # RED CONTROL: a checker that can only ever say "fine" is worthless. An anchor
+  # that is genuinely absent must be reported absent.
+  expect_false(any(grepl("fixef_profile_ready <- !is_biv && !is.null(object$bridge_payload)",
+                         cache[["bridge"]], fixed = TRUE)))
+})
