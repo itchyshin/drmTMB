@@ -1,6 +1,13 @@
 # After-plan handover: temporal AR1
 
 Status: **AWAITING USER APPROVAL; NO IMPLEMENTATION STARTED**.
+Update after the explicit Ultra Plan + Unlazy request: read the
+[execution supplement](unlazy/README.md) first. Committed templates and a checked
+test runner now accompany the original plan. Ignored `.unlazy/temporal-ar1/` run
+state is staged here with **16 unmet, 0 met**, and no approved or executed model
+checks. In a fresh execution worktree, run the supplement's one-time staging step;
+never copy stale checked boxes from another run. The original JSON is a requirements
+map; execution evidence belongs to the actual Unlazy ledgers.
 Read [plan.md](plan.md), [acceptance.json](acceptance.json), and
 [after-plan report](../../after-task/2026-09-08-temporal-ar1-plan.md).
 
@@ -11,6 +18,7 @@ Read [plan.md](plan.md), [acceptance.json](acceptance.json), and
 | CARRIED-OVER, local planning artifacts only | `codex/temporal-ar1-plan-20260908`; this directory plus dated after-plan report | User forbids push. Resume from this local branch after approval; `git log -1 codex/temporal-ar1-plan-20260908` resolves the final planning commit. Do not fetch a plan from origin: it is intentionally absent there. |
 | PROTECTED FOREIGN | 494 unpushed commits on other branches reported by the hub landing gate, including `codex/drm-twin-stage1-r-20260908`, `codex/drm-twin-issue-programme` and historical Claude/Cursor branches | No cleanup, staging, checkout switch, push or merge of those branches is authorised. Their owners resume them. See `docs/dev-log/coordination-board.md`, `active-lane-split.md` and fresh preflight for each lane's pointer. |
 | OWED after approval | all G0–G15 gates | Fresh Terra task; remeasure source and obtain exact shared-file leases before implementation. |
+| CARRIED-OVER, ignored pending run state | `.unlazy/temporal-ar1/` | All 16 gates deliberately unmet. Recreate from committed `unlazy/` templates in the new approved execution worktree; do not treat this planning scope as implementation evidence. |
 | DONE for planning | prior-work/source recon; model and alignment table; proposed files; test/compute estimates | Reuse this packet. Recheck only drift and unresolved ownership. |
 
 FINDINGS-OF-RECORD: none
@@ -57,12 +65,22 @@ dynamic native phi instead of fixed-Q reuse, and downstream guard ownership made
 visible. Shared board/check-log edits were avoided in favour of the granted lease
 and this scoped report. No numbered design slot was allocated amid duplicate IDs.
 
+The later explicit Ultra Plan + Unlazy request exposed a missing operational piece:
+the original JSON was not executable by Unlazy. The supplement now supplies seven
+ledger files (scope G0 plus six leaves), a strict runner, immutable-template staging
+and exact re-verification commands. Six leaves preserve all 16 original gates.
+Scientific scope did not change. Re-verification adds an explicit 20–45-minute
+closure allowance; budget is now about 7–12 agent-hours. A Terra high planning
+review checked gate coverage and risks. No package or model run was used to
+validate this planning update.
+
 ## Copy-paste prompt for a FRESH Terra medium/high task
 
 ```text
 Execute the approved Gaussian temporal AR1 plan in a fresh Terra medium/high task.
 Approval must be explicit; this handover itself is not approval. Read:
   docs/dev-log/plans/2026-09-08-temporal-ar1/plan.md
+  docs/dev-log/plans/2026-09-08-temporal-ar1/unlazy/README.md
   docs/dev-log/plans/2026-09-08-temporal-ar1/acceptance.json
   docs/dev-log/after-task/2026-09-08-temporal-ar1-plan.md
 Local plan branch: codex/temporal-ar1-plan-20260908.
@@ -82,6 +100,10 @@ State a time estimate before each compilation/fit/simulation. A recovery total o
 OU is only a mathematical correspondence check, not fitting scope. No phi/SD
 regression, random phi, non-Gaussian, bivariate, mixed providers or new inference.
 Complete the acceptance gates, authored/generated documentation and scoped review.
+After approval, continue the safe reversible arc through the final Unlazy
+re-verification and independent review. Check every future test and recovery
+script before approving its bound CHECK command. Never treat a passing runner
+self-test or --status output as temporal implementation evidence.
 No push, GitHub API/device login, external messages, merge, release or deployment
 unless the user separately authorises them. Do not continue this Astra task.
 ```

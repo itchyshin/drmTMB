@@ -134,3 +134,58 @@ recovery campaign, CRAN readiness, site deployment or a public support claim.
 
 Approve or revise the plan, then open a fresh Terra medium/high task using the
 handover prompt. This Astra planning task stops after its local commit.
+
+## Ultra Plan + Unlazy planning amendment
+
+The user explicitly requested the two skills together after the first planning
+commit. The original `acceptance.json` was an honest requirements list but could
+not drive Unlazy. Added the [execution supplement](../plans/2026-09-08-temporal-ar1/unlazy/README.md),
+scope and six leaf gate templates, `check-tests.R`, and `stage.mjs` under the existing
+planning directory. Updated the plan, requirements map and handover to point there.
+No package source or model tests were implemented. The R runner is verification
+orchestration, not an implementation of temporal correlation.
+
+Reused the prior source map; fresh preflight again found foreign Claude and Codex
+lanes. Renewed only the planning/ignored-scope lease. `.unlazy/` is already ignored
+by the repository's common `.git/info/exclude`; no ignore-file edit was required.
+The local runtime contains pending copies. Committed templates are not rewritten
+by status or future runs. Tests will be authored per numbered gate after approval.
+
+Checks: the R runner parsed and its self-test passed one positive and ten negative
+controls (empty/missing/duplicate cases, failure/error/skip/warning, zero assertions,
+zero passing assertions and missing results). The installed Unlazy parser accepted
+the scope: **16 unmet, 0 met**; all fourteen command-backed and two manual gates
+are preserved. This is the expected result for an unapproved/unimplemented arc.
+No model CHECK, compilation, fitting, recovery, approval binding or Stop hook ran.
+The full model acceptance verifier is deliberately not a planning-document check:
+calling the report's structure function alone cannot pass the model acceptance gates.
+
+Plan review suggested one leaf per gate; the planner retained six meaningful work
+slices instead, with each original gate uniquely assigned, because shared source
+paths require sequential ownership and the recovery/docs pair can be disjoint.
+Added stale-DLL, case-completeness and raw-attempt safeguards, and explicit G11
+pre-run requirements before the recovery runner may draw G12 data. No significance,
+coverage or supported-feature claim is derived from these orchestration checks.
+
+The repair review identified four remaining weaknesses: advisory prerequisites,
+incomplete input fingerprints, no persisted G14 receipt, and no enforced DLL-free
+pure-test boundary. The runner now checks G0 and prerequisite receipts before work,
+hashes source/tests/references, retains package-check logs and source/DLL fingerprints,
+and rejects drmTMB DLL loading in G1/G2/G6. Changed inputs require prerequisite
+re-verification. These fixes received local checks, not another independent review.
+Leaf 06 also adds an explicit `.unlazy` package-build exclusion before G14; this is
+a planned implementation edit, not a package change made during planning.
+
+Final runner checks passed: the original ten negative controls, a real pending-G0
+refusal, and isolated fixtures for missing/stale/valid prerequisite receipts and
+the runner's actual native-load guard. The first guard probe failed because its
+test wrapper removed the trace before calling the loader; rerunning the same
+runner statements in a function with the correct lifetime passed and restored the
+loader. Neither probe loaded a library. This was a verification-fixture error;
+it did not require a model or runner behaviour change.
+
+Reconciliation: scope preserved; evidence strengthened from JSON to real pending
+Unlazy gates; explicit Terra high planning review; no new external authority;
+local-only templates and ignored runtime declared in the handover. Final
+re-verification adds about 20–45 minutes to the former estimate, for approximately
+7–12 agent-hours total. Approval and a fresh Terra execution task remain next.

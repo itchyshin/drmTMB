@@ -12,6 +12,11 @@ DISCIPLINE: verify=source-grounded plan audit; compute=none now; closure=local a
 # Gaussian temporal provider: proposed implementation contract
 
 Status: **AWAITING USER APPROVAL**. This is a design proposal, not implemented capability.
+The [Ultra Plan + Unlazy execution supplement](unlazy/README.md) now supplies
+command-backed gate templates, named test cases, exact leaf ownership and final
+re-verification. Its test-file subdivision supersedes the three broad proposed
+test filenames below; the mathematical scope and original G0–G15 requirements stay
+the same. The JSON file is the requirements map, not an executable completion proof.
 Reader: the fresh Terra medium/high implementer and an applied scientist approving the model.
 Base: `1ae582c9fc9060071bb147ea4aa7206744392419`, equal to locally recorded `origin/main`
 on 2026-09-08; no fetch or claim about the current remote tip. Planning branch:
@@ -329,9 +334,11 @@ after approval; changing the model in this Astra task is not a handover.
 | S5 docs + generated/rendered output | Terra medium | S3; can overlap S4 on disjoint files | 1–2 h |
 | MECHANICAL-VERIFY + RECONCILE | Terra medium; independent bounded review | S3–S5 | 30–60 min |
 
-Implementation/validation estimate: **6–11 agent-hours**, roughly **5–10 elapsed
+Implementation/validation estimate before final re-verification: **6–11 agent-hours**, roughly **5–10 elapsed
 hours** with a disjoint documentation lane; ownership waits and toolchain repair
 excluded. Estimates are planning hypotheses, not measured temporal performance.
+Budget about **7–12 agent-hours** including the explicit final re-verification pass
+in the Unlazy supplement.
 Compile estimate 3–10 min; pure checks <1 min; dense identity <3 min; one fit pre-run
 1–3 min; six-dataset/two-start recovery estimate 5–15 min serial after compile; targeted integration
 suite 5–15 min; package check 10–30 min. The executor must announce/refine each run's

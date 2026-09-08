@@ -1,6 +1,10 @@
 {
   "schema": "drmTMB-temporal-plan-acceptance-v1",
   "status": "AWAITING_USER_APPROVAL",
+  "execution_status_authority": ".unlazy/temporal-ar1/GATES.md and gates/leaf-*.md in the approved execution worktree",
+  "committed_unlazy_templates": "docs/dev-log/plans/2026-09-08-temporal-ar1/unlazy/",
+  "execution_supplement": "docs/dev-log/plans/2026-09-08-temporal-ar1/unlazy/README.md",
+  "status_note": "This JSON retains the original requirement IDs. It is not consumed by gate-check. All execution gates remain unrun; staging and parser/self-test checks do not certify the temporal model.",
   "base_sha": "1ae582c9fc9060071bb147ea4aa7206744392419",
   "worktree": "/Users/z3437171/.codex/worktrees/f6e8/drmTMB",
   "plan": "docs/dev-log/plans/2026-09-08-temporal-ar1/plan.md",
