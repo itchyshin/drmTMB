@@ -5,6 +5,31 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-08 — NOTICE for whichever lane owns repeatability: scale-naming audit requested
+  ([#1301](https://github.com/itchyshin/drmTMB/issues/1301)).** Filed by Claude on Shinichi's
+  instruction; **no drmTMB source touched, no lane claimed** — this is a heads-up, not a lane.
+  **Context.** `HSquared.jl` and `hsquared` were both found to refuse a latent-scale heritability
+  for Poisson-log — the Julia twin returns `NaN`, the R twin `stop()`s — each justified by *"no
+  latent residual"* / *"V_link = 0 gives no latent residual"*. **Both premises are false.** Under
+  **de Villemereuil, Schielzeth, Nakagawa & Morrissey 2016, *Genetics* 204:1281–1294** (Shinichi
+  is an author), **Eq 4** is `h²_lat = V_A,ℓ/(V_A,ℓ + V_RE + V_O)` — the latent residual is the
+  **overdispersion** `V_O`, and `V_link` does not appear in Eq 4 at all. Separately, adding π²/3
+  and calling the result *latent* gives **Eq 24, the liability scale**; the paper states at p1287
+  that liability *"is not the same as the latent scale"*.
+  **What to check here:** `R/methods.R` (~L4080, L4613) exposes a `repeatability` derived
+  quantity, and `R/profile.R` carries related machinery. Which scale is it on; is that documented;
+  is any link/distribution variance in the denominator named *latent* when it is *liability*; and
+  is a latent-scale value ever refused where Eq 4 is defined? Phylogenetic signal shares the
+  denominator and inherits the same question.
+  **Eq 28 is the exact Poisson-log observed-scale ICC / repeatability:**
+  `H²_obs = λ(exp(V_A,ℓ) − 1) / (λ[exp(V_A,ℓ+V_RE+V_O) − 1] + 1)`, `λ = exp(μ + (V_A,ℓ+V_RE+V_O)/2)`.
+  **Exact — so the `ln(1 + 1/λ)` approximation (Nakagawa & Schielzeth 2010) is not needed here.**
+  **Do not accept `ln(1+1/λ)` as a latent-scale quantity** — three independent LLM reviews all
+  proposed it and all were wrong; only one flagged it as an approximation.
+  Decision: [[DECISIONS#D-252]]. Siblings: itchyshin/gllvmTMB#1276 · itchyshin/hsquared#201 ·
+  `HSquared.jl` branch `claude/h2-three-scale-naming-20260908`.
+  **`DRM.jl` should be audited with this repo** so the parity apparatus does not certify agreement
+  on a mislabelled quantity.
 - **2026-09-02 (written 05:0x MDT; work ran from 2026-09-01 evening) — Claude parity lane HANDED OVER to a fresh Claude session.**
   START HERE for this lane: [`handover/2026-09-02-claude-handover-575-fixed.md`](handover/2026-09-02-claude-handover-575-fixed.md).
   #575 FIXED (exact REML gradient; DRM.jl PR #579 draft; suite 9203/0/0; D-43 panel verified).
