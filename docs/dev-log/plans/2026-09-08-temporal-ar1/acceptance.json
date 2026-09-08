@@ -1,0 +1,133 @@
+{
+  "schema": "drmTMB-temporal-plan-acceptance-v1",
+  "status": "AWAITING_USER_APPROVAL",
+  "base_sha": "1ae582c9fc9060071bb147ea4aa7206744392419",
+  "worktree": "/Users/z3437171/.codex/worktrees/f6e8/drmTMB",
+  "plan": "docs/dev-log/plans/2026-09-08-temporal-ar1/plan.md",
+  "rule": "Every execution gate requires exact source SHA, command, outcome and retained evidence; NOT_RUN is not PASS. No failure deletion or post-hoc threshold adjustment.",
+  "plan_gates": [
+    {
+      "id": "P1",
+      "requirement": "Orientation, source map, prior work and narrow lease recorded",
+      "status": "MET",
+      "evidence": "plan.md sections 1, 2, 5, 7; handover.md"
+    },
+    {
+      "id": "P2",
+      "requirement": "Model, complete alignment table, gap/NA contract, OU boundary and exact proposed files",
+      "status": "MET",
+      "evidence": "plan.md sections 2-7"
+    },
+    {
+      "id": "P3",
+      "requirement": "Independent oracle, reductions, negative tests, replicated fixture, estimates and approval gate specified",
+      "status": "MET",
+      "evidence": "plan.md sections 8-10"
+    },
+    {
+      "id": "P4",
+      "requirement": "Artifact validation, scope diff, local commit and after-plan handover",
+      "status": "MET",
+      "evidence": "handover.md Verification; after-plan report; local planning branch commit (resolve with git log -1)"
+    }
+  ],
+  "execution_gates": [
+    {
+      "id": "G0",
+      "requirement": "Explicit plan approval; fresh Terra medium/high task; new source/lease preflight; protected guard path coordination; entry-point behaviour/guard-file/owner table complete",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G1",
+      "requirement": "Marker/parser metadata and exact admitted/rejected product cells",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G2",
+      "requirement": "Integer time, sorting, gaps, duplicates, missingness and lag-design tests",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G3",
+      "requirement": "Dynamic phi on AD tape; normalized stationary prior; no extra parameters for non-temporal fits; defaults/start/maps present on every TMB call; dedicated-block exclusivity; both optimisation attempts retained and chosen-object identity tested",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G4",
+      "requirement": "Dense marginal-MVN fixed-parameter identity and finite-difference gradients at plan tolerances",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G5",
+      "requirement": "phi=0 iid total-variance equivalence; singleton prior and nonidentifiability boundary tests",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G6",
+      "requirement": "Analytic regular-time AR1/OU correspondence; OU fitting remains rejected",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G7",
+      "requirement": "Independent-series sum, permutation inverse mapping, integer-gap and disconnected-block checks",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G8",
+      "requirement": "Separate process SD/residual sigma/phi extraction, structured metadata and dense conditional-mode identity; report-to-object state/SD/phi/node contract verified",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G9",
+      "requirement": "Conditional/marginal simulation and in-sample outputs; RNG contract; unsupported-method refusals",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G10",
+      "requirement": "Intentional oracle mutations fail; ordinary/phylo/spatial/relmat regression checks unchanged",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G11",
+      "requirement": "Timed full-fixture pre-run; retained non-empty output; refined <=30-min estimate or separate campaign approval",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G12",
+      "requirement": "Six frozen replicated recovery fixtures with all attempts, labels, diagnostics and frozen thresholds",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G13",
+      "requirement": "Authored/generated docs, exported workflow, rendered article inspection and capability limits consistent",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G14",
+      "requirement": "Targeted suite and package check; regression defaults/zero-length TMB parameters verified",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "G15",
+      "requirement": "Independent mathematical/API/user review; after-task report; check-log and plan-vs-actual reconciliation",
+      "status": "NOT_RUN"
+    }
+  ],
+  "deferred": [
+    "OU implementation",
+    "non-Gaussian",
+    "bivariate",
+    "phi regression",
+    "random phi",
+    "process SD regression",
+    "mixed providers",
+    "REML",
+    "interval calibration",
+    "bootstrap",
+    "repeatability",
+    "forecasting",
+    "Julia/bridge",
+    "release/deployment",
+    "remote recovery campaigns"
+  ]
+}
