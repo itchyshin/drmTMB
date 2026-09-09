@@ -94589,3 +94589,14 @@ dense-oracle validation, bounded NotebookLM source mapping, a local timing pilot
 any campaign, Totoro retention and separately authorized DRAC/Fir evidence. It does not
 claim any new supported model. Planning closeout:
 `docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-plan.md`.
+
+## 2026-09-09 — temporal covariance Ultra Master Plan
+
+The former temporal roadmap is now an execution-grade master plan: six dependent phases,
+named agents with Astra/Terra/Sol effort routing, file-ownership transfers, canonical
+homtoep/hetar1/hettoep grammar, 12/12/8 common-level limits, response-omission rules,
+predeclared calibration cells, source-map bootstrap, compute authority and 33 master
+gates. Formula review accepted all repairs. Integration review required the plan revision
+to be committed and fingerprinted before M00 approval; that requirement remains explicit.
+No temporal implementation or campaign occurred. Closeout:
+`docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-master-plan.md`.
