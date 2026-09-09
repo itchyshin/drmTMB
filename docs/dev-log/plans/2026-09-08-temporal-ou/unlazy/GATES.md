@@ -63,7 +63,7 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G12: R CMD build and R CMD check pass at the final exact source
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G12
   EXPECT: TEMPORAL_OU_G12_PASS
-  EVIDENCE: Reverified for the exact profile-interface working tree on 2026-09-09: `R CMD check --no-manual drmTMB_0.7.1.tar.gz` returned `Status: OK` on macOS after build.
+  EVIDENCE: Reverified at clean source `4d1fcc10055ea3f619afc36169e4d91dd28fac32` on 2026-09-09: `R CMD check --no-manual drmTMB_0.7.1.tar.gz` returned `Status: OK` on macOS after build.
 
 - [x] G13: Independent mathematical and reader-workflow reviews find no unresolved blocking defect
   EVIDENCE: The independent mathematical review found two public-profile boundary defects: generic `profile()` bypassed the mean-only target restriction, and it did not report an irregular fitted Hessian. Both are now covered by the public target validator, `profile_targets()` metadata, the Hessian warning, and focused tests. The independent reader review requested neutral irregular-likelihood wording and a nearby reporting condition; both are in the vignette and diagnostic. Reviewers found no unresolved blocker after these repairs, 2026-09-09.
