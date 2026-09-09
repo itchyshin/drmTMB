@@ -495,6 +495,16 @@ test_that("S7 engine fit factory forwards Laplace only to the Julia engine", {
   expect_identical(julia_args$marginal, "Laplace")
 })
 
+test_that("S7 coupled NB2 fixture explicitly selects the Julia Laplace target", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-campaign-fixture.R"), envir = env)
+  suppressPackageStartupMessages(library(drmTMB))
+  fixture <- env$r071_s7_make_fixture("nb2_coupled", 71014001L)
+  expect_identical(fixture$marginal, "Laplace")
+})
+
 test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
   worker <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                                 "julia-r-parity", "071-ordinary-laplace", "s7-fir-worker.sh")

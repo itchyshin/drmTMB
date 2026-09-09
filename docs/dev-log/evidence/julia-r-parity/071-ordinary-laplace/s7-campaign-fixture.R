@@ -70,6 +70,6 @@ r071_s7_make_fixture <- function(fixture, seed) {
       x, z, group
     ),
     formula = bf(count ~ x + (1 | p | group), sigma ~ z + (1 | p | group)),
-    family = nbinom2(), marginal = NULL, target_truths = targets
+    family = nbinom2(), marginal = "Laplace", target_truths = targets
   )
 }
