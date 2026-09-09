@@ -55,7 +55,7 @@ if (identical(gate, 'G1')) {
   source_commit <- provenance$value[provenance$key == 'source_commit']
   if (length(source_commit) != 1L || system2('git', c('cat-file', '-e', paste0(source_commit, '^{commit}'))) != 0L) fail('G8 recovery provenance does not name a valid source commit.')
   if (!identical(provenance$value[provenance$key == 'runner_md5'], runner_hash)) fail('G8 recovery runner hash does not match the retained source.')
-  if (!all(criteria$pass) || nrow(attempts) != 24L || any(table(attempts$fixture) != 2L) || any(!is.finite(attempts$decay_start) | attempts$decay_start <= 0)) fail('G8 retained OU recovery criteria or start records are incomplete.')
+  if (!all(c('convergence', 'warning', 'error') %in% names(attempts)) || !all(criteria$pass) || nrow(attempts) != 24L || any(table(attempts$fixture) != 2L) || any(!is.finite(attempts$decay_start) | attempts$decay_start <= 0)) fail('G8 retained OU recovery criteria or start records are incomplete.')
   success <- TRUE
 } else if (identical(gate, 'G10')) {
   source <- paste(readLines('vignettes/temporal-random-effects.Rmd', warn = FALSE), collapse = '\n')

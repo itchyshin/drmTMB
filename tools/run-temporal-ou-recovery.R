@@ -91,11 +91,19 @@ fit_fixture <- function(dat, ordinary_intercept) {
 
 safe_fit <- function(dat, ordinary_intercept) {
   started <- proc.time()[["elapsed"]]
-  result <- tryCatch(
-    list(fit = fit_fixture(dat, ordinary_intercept), error = NA_character_),
-    error = function(e) list(fit = NULL, error = conditionMessage(e))
+  warning_text <- character()
+  result <- withCallingHandlers(
+    tryCatch(
+      list(fit = fit_fixture(dat, ordinary_intercept), error = NA_character_),
+      error = function(e) list(fit = NULL, error = conditionMessage(e))
+    ),
+    warning = function(w) {
+      warning_text <<- c(warning_text, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
   )
   result$elapsed_sec <- proc.time()[["elapsed"]] - started
+  result$warning <- paste(warning_text, collapse = " | ")
   result
 }
 
@@ -104,7 +112,7 @@ extract_selected <- function(result, model, condition, ordinary_intercept) {
   if (is.null(result$fit)) {
     return(data.frame(
       fixture = fixture, model = model, condition = condition, selected = FALSE,
-      error = result$error, elapsed_sec = result$elapsed_sec, objective = NA_real_,
+      warning = result$warning, error = result$error, elapsed_sec = result$elapsed_sec, objective = NA_real_,
       beta_intercept = NA_real_, beta_between = NA_real_, beta_within = NA_real_,
       sd_ordinary = NA_real_, sd_temporal = NA_real_, decay = NA_real_,
       sigma = NA_real_, stringsAsFactors = FALSE
@@ -114,7 +122,7 @@ extract_selected <- function(result, model, condition, ordinary_intercept) {
   temporal_label <- temporal_mu_sd_label(fit$model$structured$temporal_mu)
   data.frame(
     fixture = fixture, model = model, condition = condition, selected = TRUE,
-    error = NA_character_, elapsed_sec = result$elapsed_sec,
+    warning = result$warning, error = NA_character_, elapsed_sec = result$elapsed_sec,
     objective = -as.numeric(stats::logLik(fit)),
     beta_intercept = unname(fit$coefficients$mu[["(Intercept)"]]),
     beta_between = unname(fit$coefficients$mu[["between"]]),
@@ -134,17 +142,22 @@ extract_attempts <- function(result, model, condition) {
       fixture = fixture, model = model, condition = condition, start = NA_character_,
       decay_start = NA_real_, status = "error", convergence = NA_integer_,
       objective = NA_real_, elapsed_sec = result$elapsed_sec, selected = FALSE,
-      error = result$error, stringsAsFactors = FALSE
+      warning = result$warning, error = result$error, stringsAsFactors = FALSE
     ))
   }
   attempts <- result$fit$temporal_start_attempts
   attempts$fixture <- fixture
   attempts$model <- model
   attempts$condition <- condition
+  attempts$status <- ifelse(
+    is.finite(attempts$convergence) & attempts$convergence != 0L,
+    "nonconverged", attempts$status
+  )
+  attempts$warning <- result$warning
   attempts$error <- NA_character_
   attempts[, c(
     "fixture", "model", "condition", "start", "decay_start", "status",
-    "convergence", "objective", "elapsed_sec", "selected", "error"
+    "convergence", "objective", "elapsed_sec", "selected", "warning", "error"
   )]
 }
 
@@ -243,7 +256,7 @@ writeLines(sub("[[:space:]]+$", "", capture.output(sessionInfo())),
            file.path(out_dir, "session-info.txt"))
 writeLines(c(
   "# Temporal OU local recovery results", "",
-  "This bounded fixture has six predeclared decay conditions and both admitted Gaussian OU forms. It retains two optimizer starts per fit and evaluates point recovery only. It does not establish Wald interval calibration, profile-interval validity, or coverage."
+  "This bounded fixture has six predeclared decay conditions and both admitted Gaussian OU forms. It retains two optimizer starts, optimizer convergence codes, and warnings per fit and evaluates point recovery only. It does not establish Wald interval calibration, profile-interval validity, or coverage."
 ), file.path(out_dir, "RESULTS.md"))
 
 if (!all(criteria$pass)) {
