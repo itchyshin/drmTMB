@@ -24,3 +24,12 @@ Checks run on 2026-09-09:
 
 This is receipt-infrastructure evidence only. No current-pin point/profile
 receipt, parity matrix, cost estimate, or coverage result has been produced.
+
+The writer/validator schema-order regression was found by the first complete
+Binomial reconciliation and repaired before widening. Its current-pin receipt
+then reconciled all six engine--target tasks: both fixed-effect profiles were
+finite and close (intercept endpoint differences about `1.3e-5`; slope about
+`3.3e-5` lower and `2.5e-5` upper), while native `sd:mu:(1 | group)` returned
+`nonfinite_endpoint` and Julia returned `[0, 1.1270975]`. This is an adverse,
+retained target classification, not a Binomial profile-parity pass; the other
+three fixtures, matrix, cost probe, and coverage campaign remain unrun.

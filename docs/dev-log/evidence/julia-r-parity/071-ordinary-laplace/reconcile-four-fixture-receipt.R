@@ -58,8 +58,8 @@ expected_drmtmb <- stamp(root)
 expected_drm_jl <- stamp(jl)
 validate_provenance <- function(x, target, engine, fit_status) {
   required <- c(
-    "fixture", "engine", "parm", "drmtmb_commit", "drm_jl_commit",
-    "drmtmb_tree_clean", "drm_jl_tree_clean", "r_runtime", "tmb_version",
+    "fixture", "engine", "parm", "drmtmb_commit", "drmtmb_tree_clean",
+    "drm_jl_commit", "drm_jl_tree_clean", "r_runtime", "tmb_version",
     "juliacall_version", "julia_runtime", "julia_project", "julia_threads",
     "blas_threads", "requested_marginal", "effective_marginal",
     "effective_integrator", "objective_convention", "runner_sha256"
