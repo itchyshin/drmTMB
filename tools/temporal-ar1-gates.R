@@ -18,8 +18,27 @@ files <- switch(
   G8 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G9 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G10 = "tests/testthat/test-temporal-gaussian-smoke.R",
+  G11 = NULL,
   NULL
 )
+if (identical(gate, "G11")) {
+  artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-local-recovery"
+  required <- file.path(artifact_dir, c(
+    "raw-attempts.csv", "recovery-estimates.csv", "criteria.csv",
+    "provenance.csv", "recovery-results.rds"
+  ))
+  if (!all(file.exists(required))) {
+    stop("G11 recovery artifacts are missing; run tools/run-temporal-ar1-recovery.R.", call. = FALSE)
+  }
+  attempts <- utils::read.csv(file.path(artifact_dir, "raw-attempts.csv"))
+  criteria <- utils::read.csv(file.path(artifact_dir, "criteria.csv"))
+  if (nrow(attempts) != 24L || !all(table(attempts$fixture) == 2L) ||
+      nrow(criteria) != 5L || !all(criteria$pass)) {
+    stop("G11 retained recovery artifacts do not meet their predeclared checks.", call. = FALSE)
+  }
+  cat("TEMPORAL_G11_PASS\n")
+  quit(save = "no", status = 0L)
+}
 if (is.null(files)) {
   stop(
     sprintf("%s has no implemented executable check yet; its gate remains pending.", gate),
