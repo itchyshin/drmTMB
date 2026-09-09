@@ -437,3 +437,60 @@ test_that("S7 per-fit receipt classifies finite, failed, and truth-outside profi
   expect_identical(failed$fit_status, "fit_failed")
   expect_identical(failed$hessian_status, "fit_failed")
 })
+
+test_that("S7 task dispatcher retains every planned target after an individual fit failure", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R",
+                 "s7-fit-diagnostics.R", "s7-fit-attempt.R", "s7-run-task.R",
+                 "s7-task-dispatch.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  bundle <- list(manifest = env$r071_s7_manifest(), profile_plan = env$r071_s7_profile_plan())
+  task <- env$r071_s7_task(bundle$manifest, 1L)
+  plan <- bundle$profile_plan[bundle$profile_plan$fixture == task$fixture[[1L]], , drop = FALSE]
+  plan <- transform(
+    plan, logical_task_id = task$logical_task_id[[1L]],
+    dgp_seed = task$dgp_seed[[1L]]
+  )[, c("logical_task_id", "fixture", "dgp_seed", "engine", "parm", "truth")]
+  make_fixture <- function(fixture, seed) list(fixture = fixture, seed = seed)
+  fit_factory <- function(spec, fixture) {
+    if (identical(spec$parm[[1L]], "sd:mu:(1 | group)")) stop("deliberate fit failure")
+    list(
+      target = data.frame(
+        parm = spec$parm, estimate = spec$truth, link_estimate = spec$truth,
+        tmb_parameter = "beta_mu", index = 1L, transformation = "linear_predictor"
+      ),
+      opt = list(convergence = 0L, par = c(beta_mu = spec$truth)),
+      sdr = list(cov.fixed = matrix(0.04, 1, 1), pdHess = TRUE),
+      gradient_max_component = 0.001, truth = spec$truth
+    )
+  }
+  out <- env$r071_s7_dispatch_task(
+    plan, make_fixture, fit_factory,
+    target_inventory = function(fit) fit$target,
+    profile_fun = function(object, ...) data.frame(lower = object$truth - 1, upper = object$truth + 1)
+  )
+  expect_identical(nrow(out), 6L)
+  expect_identical(sum(out$fit_status == "fit_failed"), 2L)
+  expect_identical(sum(out$profile_status == "profile"), 4L)
+  expect_silent(env$r071_s7_validate_task_attempts(plan, out))
+})
+
+test_that("S7 engine fit factory forwards Laplace only to the Julia engine", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-live-fit-factory.R"), envir = env)
+  fixture <- list(formula = quote(y ~ x), family = "family", data = data.frame(y = 1), marginal = "Laplace")
+  capture <- function(...) list(...)
+  tmb_spec <- data.frame(engine = "tmb")
+  julia_spec <- data.frame(engine = "julia")
+  tmb_args <- env$r071_s7_engine_fit(tmb_spec, fixture, drm_fit = capture)
+  julia_args <- env$r071_s7_engine_fit(julia_spec, fixture, drm_fit = capture)
+  expect_identical(tmb_args$engine, "tmb")
+  expect_false("marginal" %in% names(tmb_args))
+  expect_identical(julia_args$engine, "julia")
+  expect_identical(julia_args$marginal, "Laplace")
+})

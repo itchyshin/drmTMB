@@ -78,7 +78,8 @@ r071_s7_task_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   helper_dir <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
   for (file in c(
     "prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
-    "s7-attempt-contract.R", "s7-fit-diagnostics.R", "s7-fit-attempt.R"
+    "s7-attempt-contract.R", "s7-fit-diagnostics.R", "s7-fit-attempt.R",
+    "s7-task-dispatch.R", "s7-campaign-fixture.R", "s7-live-fit-factory.R"
   )) {
     path <- file.path(helper_dir, file)
     if (!file.exists(path)) stop("missing S7 helper: ", path, call. = FALSE)
