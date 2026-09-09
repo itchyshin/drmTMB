@@ -340,3 +340,65 @@ test_that("S7 task dry-run expands one immutable array task to its complete atte
   expect_identical(as.integer(table(planned$engine)), c(7L, 7L))
   expect_false(file.exists(file.path(out, "attempts.tsv")))
 })
+
+test_that("S7 task receipt validator refuses a partially classified task", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  sys.source(file.path(base, "s7-run-task.R"), envir = env)
+  bundle <- list(manifest = env$r071_s7_manifest(), profile_plan = env$r071_s7_profile_plan())
+  plan <- env$r071_s7_task_attempt_plan(bundle, 1501L)
+  attempts <- do.call(rbind, lapply(seq_len(nrow(plan)), function(i) {
+    row <- plan[i, , drop = FALSE]
+    env$r071_s7_complete_attempt(
+      logical_task_id = row$logical_task_id, fixture = row$fixture, dgp_seed = row$dgp_seed,
+      engine = row$engine, parm = row$parm, truth = row$truth,
+      estimate = row$truth, link_estimate = row$truth,
+      std_error = NA_real_, std_error_status = "unavailable",
+      convergence_status = "converged", gradient_max_abs = NA_real_,
+      gradient_status = "unavailable", hessian_status = "unavailable",
+      fit_status = "returned", profile_status = "profile",
+      lower = row$truth - 1, upper = row$truth + 1
+    )
+  }))
+  expect_silent(env$r071_s7_validate_task_attempts(plan, attempts))
+  expect_error(env$r071_s7_validate_task_attempts(plan, attempts[-1L, ]), "count")
+})
+
+test_that("S7 fit diagnostics distinguish finite native SEs from unavailable Julia Hessians", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-fit-diagnostics.R"), envir = env)
+  native <- list(
+    opt = list(convergence = 0L, par = c(beta_mu = 0.1)),
+    sdr = list(cov.fixed = matrix(0.04, 1, 1), pdHess = TRUE),
+    gradient_max_component = 0.001
+  )
+  target <- data.frame(tmb_parameter = "beta_mu", index = 1L,
+                       link_estimate = 0.1, transformation = "linear_predictor")
+  native_out <- env$r071_s7_fit_diagnostics(native, target, engine = "tmb")
+  expect_equal(native_out$std_error, 0.2)
+  expect_identical(native_out$std_error_status, "finite")
+  expect_identical(native_out$convergence_status, "converged")
+  expect_identical(native_out$gradient_status, "finite")
+  expect_identical(native_out$hessian_status, "positive_definite")
+  julia <- list(
+    opt = list(convergence = 0L), diagnostics = list(gradient = NULL),
+    vcov = matrix(0.09, 1, 1, dimnames = list("mu_(Intercept)", "mu_(Intercept)"))
+  )
+  julia_target <- data.frame(tmb_parameter = "mu_(Intercept)", index = 1L,
+                             link_estimate = 0.2, transformation = "linear_predictor")
+  julia_out <- env$r071_s7_fit_diagnostics(julia, julia_target, engine = "julia")
+  expect_equal(julia_out$std_error, 0.3)
+  expect_identical(julia_out$std_error_status, "finite")
+  expect_identical(julia_out$gradient_status, "unavailable")
+  expect_identical(julia_out$hessian_status, "unavailable")
+  native$gradient_max_component <- NULL
+  native$gradient <- c(-0.05, 0.12)
+  native_fallback <- env$r071_s7_fit_diagnostics(native, target, engine = "tmb")
+  expect_equal(native_fallback$gradient_max_abs, 0.12)
+  expect_identical(native_fallback$gradient_status, "finite")
+})

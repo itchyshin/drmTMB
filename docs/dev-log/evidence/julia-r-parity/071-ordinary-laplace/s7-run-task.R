@@ -28,6 +28,32 @@ r071_s7_task_attempt_plan <- function(bundle, task) {
   out
 }
 
+r071_s7_validate_task_attempts <- function(plan, attempts) {
+  required_plan <- c("logical_task_id", "fixture", "dgp_seed", "engine", "parm", "truth")
+  if (!is.data.frame(plan) || !all(required_plan %in% names(plan)) ||
+      !is.data.frame(attempts)) {
+    stop("S7 task receipt needs planned and observed attempt tables", call. = FALSE)
+  }
+  if (nrow(attempts) != nrow(plan)) {
+    stop("S7 task receipt count does not match the frozen task plan", call. = FALSE)
+  }
+  lapply(seq_len(nrow(attempts)), function(i) r071_s7_validate_attempt(attempts[i, , drop = FALSE]))
+  expected_key <- vapply(seq_len(nrow(plan)), function(i) {
+    r071_s7_attempt_key(plan[i, , drop = FALSE])
+  }, character(1L))
+  observed_key <- vapply(seq_len(nrow(attempts)), function(i) {
+    r071_s7_attempt_key(attempts[i, , drop = FALSE])
+  }, character(1L))
+  if (anyDuplicated(observed_key) || !setequal(observed_key, expected_key)) {
+    stop("S7 task receipt keys do not match the frozen task plan", call. = FALSE)
+  }
+  ordered <- attempts[match(expected_key, observed_key), , drop = FALSE]
+  if (!isTRUE(all.equal(as.numeric(ordered$truth), as.numeric(plan$truth), tolerance = 1e-12))) {
+    stop("S7 task receipt truth does not match the frozen task plan", call. = FALSE)
+  }
+  invisible(ordered)
+}
+
 r071_s7_task_args <- function(args) {
   if (any(!grepl("^--[A-Za-z][A-Za-z-]*=.+$", args))) {
     stop("S7 task arguments must use --name=value syntax", call. = FALSE)
@@ -50,7 +76,7 @@ r071_s7_task_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   out <- normalizePath(a[["out"]], mustWork = FALSE)
   if (!dir.exists(out)) dir.create(out, recursive = TRUE, showWarnings = FALSE)
   helper_dir <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
-  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R")) {
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R", "s7-attempt-contract.R")) {
     path <- file.path(helper_dir, file)
     if (!file.exists(path)) stop("missing S7 helper: ", path, call. = FALSE)
     sys.source(path, envir = .GlobalEnv)
