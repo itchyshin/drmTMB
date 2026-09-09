@@ -4,6 +4,9 @@
 # It never calls drmTMB or starts a fit.
 
 args <- commandArgs(trailingOnly = TRUE)
+script_file <- sub("^--file=", "", commandArgs(trailingOnly = FALSE)[grep("^--file=", commandArgs(trailingOnly = FALSE))])
+if (length(script_file) != 1L) stop("Cannot locate the campaign summarizer script.", call. = FALSE)
+sys.source(file.path(dirname(normalizePath(script_file)), "temporal-ou-profile-campaign-assessment.R"))
 value <- function(name) {
   hit <- grep(paste0('^--', name, '='), args, value = TRUE)
   if (length(hit) != 1L) stop(sprintf('Require exactly one --%s=<path>.', name), call. = FALSE)
@@ -67,6 +70,7 @@ summary <- do.call(rbind, lapply(split(rows, interaction(rows$cell, rows$parm, d
     source_commit=x$source_commit[[1L]], runner_md5=x$runner_md5[[1L]], stringsAsFactors=FALSE)
 }))
 summary <- summary[order(summary$cell, summary$parm), ]; row.names(summary) <- NULL
+summary <- temporal_ou_profile_campaign_assess(summary)
 if (mode == 'write') {
   dir.create(output_dir, recursive=TRUE, showWarnings=FALSE)
   if (file.exists(summary_file)) fail('Refuse to overwrite retained campaign summary.')
@@ -77,3 +81,8 @@ if (mode == 'write') {
   if (!isTRUE(all.equal(old, summary, check.attributes=FALSE))) fail('Retained campaign summary does not reproduce from immutable shards.')
 }
 cat('TEMPORAL_OU_PROFILE_CAMPAIGN_SUMMARY_PASS\n')
+if (all(summary$qualification == "qualified_in_simulated_cell")) {
+  cat('TEMPORAL_OU_PROFILE_CAMPAIGN_QUALIFIED\n')
+} else {
+  cat('TEMPORAL_OU_PROFILE_CAMPAIGN_UNQUALIFIED\n')
+}

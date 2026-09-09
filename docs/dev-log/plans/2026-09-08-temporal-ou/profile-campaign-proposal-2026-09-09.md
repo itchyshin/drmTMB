@@ -22,10 +22,16 @@ separately. The campaign retains every optimizer start, fit/profile error,
 Hessian state, profile warning, estimate, interval, and elapsed time.
 
 The primary engineering criteria are interval availability at least 0.99,
-coverage within 0.925--0.975, absolute bias at most 0.10 empirical SD, and
-mean reported profile-SE analogue assessed through interval width against
-empirical SD. These are calibration criteria, not a public guarantee beyond
-the simulated cells.
+coverage plus or minus one Monte Carlo SE wholly within 0.925--0.975,
+absolute bias at most 0.10 empirical SD, and a profile-SE analogue between
+0.90 and 1.10 times the empirical SD. The profile-SE analogue is the mean
+95% profile-interval width divided by `2 * qnorm(0.975)`; it is a reporting
+calibration, not a claim that profile likelihood supplies a literal standard
+error. These are calibration criteria, not a public guarantee beyond the
+simulated cells. The immutable-output verifier writes each criterion and its
+qualification status into the retained campaign summary. A failed criterion
+does not erase the campaign evidence or make G15's integrity check fail; it
+requires a diagnosis and a revised scientific decision.
 
 ## Measured cost and routing
 
