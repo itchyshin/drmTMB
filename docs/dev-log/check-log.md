@@ -94621,3 +94621,4 @@ Closeout report:
   non-overwriting, checksum-first route for campaign artifacts.
 
 | 2026-09-09 | Temporal OU G15 standalone-verifier repair | Focused assessment suite PASS; standalone missing-input invocation now reaches its documented fail-closed diagnostic | The summarizer now sources its pure assessment helper in the script environment rather than R's base environment. This prevents a startup crash before immutable-shard verification. | Codex |
+| 2026-09-09 | Temporal OU retained profile campaign | Fir array `58908599`: 60 sealed shards, 180 `COMPLETED|0:0` Slurm records; Totoro checksum mirror and G15 reverify PASS | All nine 1,000-data-set cell-coefficient rows meet availability, MCSE-bounded coverage, bias, and profile-width SE-analogue criteria. The durable immutable-summary SHA-256 is `e303d8c3c688baf5ea3655a459d8f8215d8e85326eb6db86aa5dfb353b191cc5`; U1 retains 999/1,000 availability rather than omitting its one unavailable interval. | Codex |
