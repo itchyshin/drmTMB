@@ -94619,3 +94619,5 @@ Closeout report:
   verified Fir smoke directory was then removed. The reusable
   `tools/mirror-temporal-ou-shard-to-totoro.sh` helper implements the same
   non-overwriting, checksum-first route for campaign artifacts.
+
+| 2026-09-09 | Temporal OU G15 standalone-verifier repair | Focused assessment suite PASS; standalone missing-input invocation now reaches its documented fail-closed diagnostic | The summarizer now sources its pure assessment helper in the script environment rather than R's base environment. This prevents a startup crash before immutable-shard verification. | Codex |

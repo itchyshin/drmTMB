@@ -6,7 +6,10 @@
 args <- commandArgs(trailingOnly = TRUE)
 script_file <- sub("^--file=", "", commandArgs(trailingOnly = FALSE)[grep("^--file=", commandArgs(trailingOnly = FALSE))])
 if (length(script_file) != 1L) stop("Cannot locate the campaign summarizer script.", call. = FALSE)
-sys.source(file.path(dirname(normalizePath(script_file)), "temporal-ou-profile-campaign-assessment.R"))
+sys.source(
+  file.path(dirname(normalizePath(script_file)), "temporal-ou-profile-campaign-assessment.R"),
+  envir = globalenv()
+)
 value <- function(name) {
   hit <- grep(paste0('^--', name, '='), args, value = TRUE)
   if (length(hit) != 1L) stop(sprintf('Require exactly one --%s=<path>.', name), call. = FALSE)

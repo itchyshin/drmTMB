@@ -41,3 +41,23 @@ test_that("temporal OU campaign assessment fails closed for incomplete summaries
     "lacks fields"
   )
 })
+
+test_that("campaign summarizer reaches input validation when run as a script", {
+  summarizer_path <- testthat::test_path(
+    "..", "..", "tools", "summarize-temporal-ou-profile-campaign.R"
+  )
+  absent_input <- tempfile("temporal-ou-absent-input-")
+  result <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"),
+    c(
+      "--vanilla", summarizer_path,
+      paste0("--input-dir=", absent_input),
+      paste0("--output-dir=", tempfile("temporal-ou-output-")),
+      "--reverify"
+    ),
+    stdout = TRUE,
+    stderr = TRUE
+  ))
+  expect_equal(attr(result, "status"), 1L)
+  expect_match(paste(result, collapse = "\n"), "Campaign input directory is absent")
+})
