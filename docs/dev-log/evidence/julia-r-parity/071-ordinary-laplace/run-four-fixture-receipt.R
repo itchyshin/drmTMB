@@ -8,13 +8,64 @@ suppressMessages(devtools::load_all(".", quiet = TRUE))
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1L || !identical(args[[1L]], "--write")) stop("usage: Rscript run-four-fixture-receipt.R --write [fixture]", call. = FALSE)
 root <- normalizePath(".")
-out <- file.path(root, "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/receipt")
-dir.create(out, recursive = TRUE, showWarnings = FALSE)
+receipt_rel <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/receipt/"
+out <- file.path(root, sub("/$", "", receipt_rel))
 jl <- Sys.getenv("DRM_JL_PATH", "")
 if (!nzchar(jl) || !dir.exists(jl)) stop("DRM_JL_PATH must name the committed DRM.jl lane", call. = FALSE)
 hash <- function(x) unname(tools::md5sum(x)[[1L]])
 stamp <- function(repo) system2("git", c("-C", shQuote(repo), "rev-parse", "HEAD"), stdout = TRUE)
+tree_clean <- function(repo, exclude_receipts = FALSE) {
+  status <- system2("git", c("-C", shQuote(repo), "status", "--porcelain"), stdout = TRUE)
+  if (exclude_receipts) status <- status[!grepl(paste0("^\\?\\? ", receipt_rel), status)]
+  identical(status, character())
+}
+pkg_version <- function(package) {
+  if (!requireNamespace(package, quietly = TRUE)) return(NA_character_)
+  as.character(utils::packageVersion(package))
+}
+runner_path <- sub("^--file=", "", commandArgs()[grepl("^--file=", commandArgs())][[1L]])
+runner_sha256 <- unname(tools::sha256sum(runner_path)[[1L]])
+drmtmb_tree_clean_at_start <- tree_clean(root, exclude_receipts = TRUE)
+drm_jl_tree_clean_at_start <- tree_clean(jl)
+dir.create(out, recursive = TRUE, showWarnings = FALSE)
 one_line_error <- function(x) if (inherits(x, "error")) gsub("[\r\n]+", " | ", conditionMessage(x)) else NA_character_
+runtime_identity <- function(command, args = "--version") {
+  path <- Sys.which(command)
+  if (!nzchar(path)) return(NA_character_)
+  out <- tryCatch(system2(path, args, stdout = TRUE, stderr = TRUE), error = function(e) character())
+  if (length(out) == 0L) NA_character_ else paste(out, collapse = " | ")
+}
+
+receipt_provenance <- function(fit, id, engine, target, spec, drm_jl_path) {
+  julia <- identical(engine, "julia")
+  coupled <- identical(id, "nb2_coupled")
+  requested <- if (julia) fit$requested_marginal %||% if (coupled) "default" else "Laplace" else "none"
+  effective <- if (julia) fit$effective_marginal %||% NA_character_ else "not_applicable"
+  integrator <- if (julia) fit$effective_integrator %||% NA_character_ else "tmb_joint_laplace"
+  convention <- if (!julia) "tmb_makeadfun_random_joint_laplace_ml" else if (coupled) "q2_augmented_state_laplace_ml_native_covariance" else "scalar_mode_curvature_laplace_ml"
+  data.frame(
+    fixture = id,
+    engine = engine,
+    parm = target,
+    drmtmb_commit = stamp(root),
+    drmtmb_tree_clean = drmtmb_tree_clean_at_start,
+    drm_jl_commit = stamp(drm_jl_path),
+    drm_jl_tree_clean = drm_jl_tree_clean_at_start,
+    r_runtime = R.version.string,
+    tmb_version = pkg_version("TMB"),
+    juliacall_version = pkg_version("JuliaCall"),
+    julia_runtime = if (julia) runtime_identity("julia") else NA_character_,
+    julia_project = if (julia) normalizePath(drm_jl_path) else NA_character_,
+    julia_threads = if (julia) Sys.getenv("JULIA_NUM_THREADS", "unset") else NA_character_,
+    blas_threads = if (julia) Sys.getenv("OPENBLAS_NUM_THREADS", "unset") else NA_character_,
+    requested_marginal = as.character(requested),
+    effective_marginal = as.character(effective),
+    effective_integrator = as.character(integrator),
+    objective_convention = convention,
+    runner_sha256 = runner_sha256,
+    stringsAsFactors = FALSE
+  )
+}
 
 make_fixture <- function(id) {
   set.seed(switch(id, binomial_ri = 71011L, poisson_ri = 71012L, nb2_ri = 71013L, nb2_coupled = 71014L))
@@ -109,6 +160,28 @@ for (id in fixtures) {
   full_inventory$target_scope <- ifelse(full_inventory$parm %in% declared$parm, "common", "engine_only")
   write.table(full_inventory[, c("fixture", "engine", "parm", "target_class", "profile_ready", "target_scope")], file.path(out, paste0(id, sidecar, "-target-inventory.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   write.table(point_rows[[1L]], file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  provenance <- if (inherits(fit, "error")) {
+    julia <- identical(requested_engine, "julia")
+    coupled <- identical(id, "nb2_coupled")
+    data.frame(
+      fixture = id, engine = requested_engine, parm = requested_target,
+      drmtmb_commit = stamp(root), drmtmb_tree_clean = drmtmb_tree_clean_at_start,
+      drm_jl_commit = stamp(jl), drm_jl_tree_clean = drm_jl_tree_clean_at_start,
+      r_runtime = R.version.string,
+      tmb_version = pkg_version("TMB"), juliacall_version = pkg_version("JuliaCall"),
+      julia_runtime = if (julia) runtime_identity("julia") else NA_character_,
+      julia_project = if (julia) normalizePath(jl) else NA_character_,
+      julia_threads = if (julia) Sys.getenv("JULIA_NUM_THREADS", "unset") else NA_character_,
+      blas_threads = if (julia) Sys.getenv("OPENBLAS_NUM_THREADS", "unset") else NA_character_,
+      requested_marginal = if (julia) if (coupled) "default" else "Laplace" else "none",
+      effective_marginal = NA_character_, effective_integrator = NA_character_,
+      objective_convention = if (!julia) "tmb_makeadfun_random_joint_laplace_ml" else if (coupled) "q2_augmented_state_laplace_ml_native_covariance" else "scalar_mode_curvature_laplace_ml",
+      runner_sha256 = runner_sha256, stringsAsFactors = FALSE
+    )
+  } else {
+    receipt_provenance(fit, id, requested_engine, requested_target, spec, jl)
+  }
+  write.table(provenance, file.path(out, paste0(id, sidecar, "-provenance.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   # Leave a conservative terminal classification before entering the profile
   # engine.  If a JuliaCall teardown kills this R process, reconciliation sees
   # an attempted, failed profile rather than a silently absent denominator.

@@ -54,8 +54,58 @@ same_target_declaration <- function(x, y) {
   identical(unname(unlist(x[keep], use.names = FALSE)), unname(unlist(y[keep], use.names = FALSE))) &&
     is.logical(x$profile_ready) && length(x$profile_ready) == 1L
 }
+expected_drmtmb <- stamp(root)
+expected_drm_jl <- stamp(jl)
+validate_provenance <- function(x, target, engine, fit_status) {
+  required <- c(
+    "fixture", "engine", "parm", "drmtmb_commit", "drm_jl_commit",
+    "drmtmb_tree_clean", "drm_jl_tree_clean", "r_runtime", "tmb_version",
+    "juliacall_version", "julia_runtime", "julia_project", "julia_threads",
+    "blas_threads", "requested_marginal", "effective_marginal",
+    "effective_integrator", "objective_convention", "runner_sha256"
+  )
+  if (!identical(names(x), required)) {
+    stop("provenance schema drift for ", engine, " ", target, call. = FALSE)
+  }
+  if (!identical(x$fixture[[1L]], id) || !identical(x$engine[[1L]], engine) ||
+      !identical(x$parm[[1L]], target)) {
+    stop("provenance identity drift for ", engine, " ", target, call. = FALSE)
+  }
+  if (!identical(x$drmtmb_commit[[1L]], expected_drmtmb) ||
+      !identical(x$drm_jl_commit[[1L]], expected_drm_jl) ||
+      !isTRUE(x$drmtmb_tree_clean[[1L]]) || !isTRUE(x$drm_jl_tree_clean[[1L]])) {
+    stop("stale or mixed source pin for ", engine, " ", target, call. = FALSE)
+  }
+  if (!nzchar(x$r_runtime[[1L]]) || !nzchar(x$tmb_version[[1L]]) ||
+      !nzchar(x$runner_sha256[[1L]])) {
+    stop("incomplete objective/runtime provenance for ", engine, " ", target, call. = FALSE)
+  }
+  coupled <- identical(id, "nb2_coupled")
+  expected <- if (identical(engine, "tmb")) {
+    c("none", "not_applicable", "tmb_joint_laplace", "tmb_makeadfun_random_joint_laplace_ml")
+  } else if (coupled) {
+    c("default", "LA", "coupled_locscale_laplace", "q2_augmented_state_laplace_ml_native_covariance")
+  } else {
+    c("Laplace", "Laplace", "scalar_laplace", "scalar_mode_curvature_laplace_ml")
+  }
+  observed <- unlist(x[c("requested_marginal", "effective_marginal", "effective_integrator", "objective_convention")], use.names = FALSE)
+  if (identical(fit_status, "fit_failed")) {
+    if (!identical(as.character(observed[c(1L, 4L)]), expected[c(1L, 4L)]) ||
+        !all(is.na(observed[c(2L, 3L)]))) {
+      stop("failed-fit provenance must retain request and convention without inventing an effective route for ", engine, " ", target, call. = FALSE)
+    }
+  } else if (!identical(as.character(observed), expected)) {
+    stop("integrator/objective provenance drift for ", engine, " ", target, call. = FALSE)
+  }
+  if (identical(engine, "julia") &&
+      (!nzchar(x$juliacall_version[[1L]]) || !nzchar(x$julia_runtime[[1L]]) ||
+       !nzchar(x$julia_project[[1L]]) || !nzchar(x$julia_threads[[1L]]) || !nzchar(x$blas_threads[[1L]]))) {
+    stop("incomplete Julia runtime provenance for ", target, call. = FALSE)
+  }
+  invisible(TRUE)
+}
 
-profile_rows <- list(); point_rows <- list(); target_rows <- list(); fixture_rows <- list()
+profile_rows <- list(); point_rows <- list(); target_rows <- list(); fixture_rows <- list(); provenance_rows <- list()
 for (i in seq_len(nrow(targets))) {
   target <- targets$parm[[i]]
   target_rows[[i]] <- targets[i, , drop = FALSE]
@@ -73,6 +123,12 @@ for (i in seq_len(nrow(targets))) {
   if (!identical(tmb_point$engine[[1L]], "tmb") || !identical(julia_point$engine[[1L]], "julia")) stop("point engine label drift for ", target, call. = FALSE)
   point_rows[[length(point_rows) + 1L]] <- tmb_point
   point_rows[[length(point_rows) + 1L]] <- julia_point
+  tmb_provenance <- read_one(file.path(out, paste0(id, tmb_suffix, "-provenance.tsv")), "TMB provenance")
+  julia_provenance <- read_one(file.path(out, paste0(id, julia_suffix, "-provenance.tsv")), "Julia provenance")
+  validate_provenance(tmb_provenance, target, "tmb", tmb_point$fit_status[[1L]])
+  validate_provenance(julia_provenance, target, "julia", julia_point$fit_status[[1L]])
+  provenance_rows[[length(provenance_rows) + 1L]] <- tmb_provenance
+  provenance_rows[[length(provenance_rows) + 1L]] <- julia_provenance
   tmb_target <- read_one(file.path(out, paste0(id, tmb_suffix, "-target-manifest.tsv")), "TMB target manifest")
   julia_target <- read_one(file.path(out, paste0(id, julia_suffix, "-target-manifest.tsv")), "Julia target manifest")
   expected_target <- data.frame(fixture = id, targets[i, , drop = FALSE], stringsAsFactors = FALSE)
@@ -84,11 +140,13 @@ fixture_ref <- fixture_rows[[1L]]
 if (!all(vapply(fixture_rows, identical, logical(1), fixture_ref))) stop("fixture bytes or dimensions drifted across engine-target tasks", call. = FALSE)
 profile <- do.call(rbind, profile_rows)
 point <- do.call(rbind, point_rows)
+provenance <- do.call(rbind, provenance_rows)
 target <- do.call(rbind, target_rows)
-if (nrow(profile) != 2L * nrow(target) || nrow(point) != 2L * nrow(target)) stop("aggregate denominator is incomplete", call. = FALSE)
+if (nrow(profile) != 2L * nrow(target) || nrow(point) != 2L * nrow(target) || nrow(provenance) != 2L * nrow(target)) stop("aggregate denominator is incomplete", call. = FALSE)
 write.table(fixture_ref, file.path(out, paste0(id, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(target, file.path(out, paste0(id, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(point, file.path(out, paste0(id, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(profile, file.path(out, paste0(id, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(provenance, file.path(out, paste0(id, "-provenance.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
 writeLines(c("# 0.7.1 four-fixture receipt", "", paste0("- drmTMB: `", stamp(root), "`"), paste0("- DRM.jl: `", stamp(jl), "`"), "- This is one frozen fixture per family; it is not coverage evidence."), file.path(out, "README.md"))
 cat("FOUR_FIXTURE_RECONCILED\n")

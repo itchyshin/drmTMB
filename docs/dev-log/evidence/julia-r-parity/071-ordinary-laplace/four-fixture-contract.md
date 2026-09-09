@@ -3,12 +3,15 @@
 ## Scope and pins
 
 This contract is the bridge-side prerequisite for the 0.7.1 ordinary-Laplace
-parity programme. The current source pins are drmTMB `d24a30d09` and DRM.jl
-`ded85602a`, both descended from the starting pins `1ae582c9` and `26f4c4dd`.
-A valid receipt must record those exact commits, runtime identities, requested
-and effective marginal integrators, objective convention, fixture-byte digest,
-and target manifest. A receipt from an earlier source pin is debugging material,
-not parity evidence.
+parity programme. It began at drmTMB `1ae582c9` and DRM.jl `26f4c4dd`; the
+guarded-covariance technical checkpoints are drmTMB `d24a30d09` and DRM.jl
+`ded85602a`. The receipt runner records the exact clean heads at task start,
+and reconciliation accepts only sidecars matching the heads used to invoke it.
+Every task must record source cleanliness, R/TMB/JuliaCall/Julia identities,
+Julia project and thread settings, requested and effective marginal integrators,
+the family-specific objective convention, a fixture-byte digest, the runner
+digest, and the target manifest. A receipt from an earlier source pin is
+debugging material, not parity evidence.
 
 ## Frozen fixture table
 
