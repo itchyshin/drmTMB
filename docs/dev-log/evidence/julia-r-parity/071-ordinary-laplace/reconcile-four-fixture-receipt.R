@@ -20,9 +20,11 @@ declared_targets <- function(id) {
   if (identical(id, "nb2_ri")) {
     return(rbind(
       common,
-      data.frame(parm = c("fixef:sigma:(Intercept)", "sigma", "sd:mu:(1 | group)"),
-                 target_class = c("fixed-effect", "distributional-scale", "random-effect-sd"),
-                 profile_ready = c(TRUE, FALSE, TRUE))
+      # `sigma` is exp(fixef:sigma:(Intercept)), not a second outer
+      # parameter.  The frozen manifest compares the free log-link coordinate.
+      data.frame(parm = c("fixef:sigma:(Intercept)", "sd:mu:(1 | group)"),
+                 target_class = c("fixed-effect", "random-effect-sd"),
+                 profile_ready = c(TRUE, TRUE))
     ))
   }
   if (!identical(id, "nb2_coupled")) stop("unknown frozen fixture: ", id, call. = FALSE)
