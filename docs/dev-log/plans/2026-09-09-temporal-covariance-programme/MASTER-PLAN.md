@@ -259,7 +259,9 @@ The exact P1 gates remain those in the existing phylo-temporal-OU ledger: G2 gra
 G3 dense covariance, G4 likelihood/score/Hessian, G5 reductions, G6 mutations, G7
 methods/simulation, G8 profile target, G9 recovery, G10 pilot, G11 campaign contract,
 G12 manual campaign approval, G13 retained campaign reverify, G14-G15 reader evidence,
-G16 package check, G17 review and G18 closure.
+G16 package check, G17 review and G18 closure. At the current execution checkpoint,
+G2-G8 and G14-G15 pass; G9 is a retained recovery failure, and G10-G13/G16-G18
+remain open. The programme must not advance to P2 on the basis of the reader article.
 
 ### Simulation and compute
 

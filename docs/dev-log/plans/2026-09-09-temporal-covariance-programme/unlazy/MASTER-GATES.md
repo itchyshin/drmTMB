@@ -1,8 +1,8 @@
 # Temporal covariance Ultra Master Plan — execution ledger
 
 Scope: Master orchestration contract. Each model creates and re-verifies its own executable
-ledger. A checked master gate needs a non-pending evidence line. There are 34 gates:
-28 runnable and five manual. Nothing below authorizes a remote campaign, push, merge,
+ledger. A checked master gate needs a non-pending evidence line. There are 36 gates:
+31 runnable and five manual. Nothing below authorizes a remote campaign, push, merge,
 release, deployment or external message.
 
 ## Phase 0
@@ -48,6 +48,14 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G8
   EXPECT: PHYLO_TEMPORAL_OU_G8_PASS
   EVIDENCE: 2026-09-09 execution commit b9af2fd4b: direct G8 returned PHYLO_TEMPORAL_OU_G8_PASS. A direct dense Cholesky likelihood re-optimized every nuisance parameter and found 90% slope endpoints 0.17577 and 0.59428, matching public endpoints within 0.0004; decay/SD/bootstrap/newdata/endpoint-engine routes remain rejected and non-PD-Hessian warning behavior is tested.
+- [ ] P1-recovery: The 24-fixture point-recovery contract meets its predeclared finite-fit and error criteria without seed or threshold changes.
+  CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9
+  EXPECT: PHYLO_TEMPORAL_OU_G9_PASS
+  EVIDENCE: 2026-09-09 FAILED and retained at execution commit 7e98c709c. Both corrected 50-species (mean fixed-effect error 0.182) and same-seed 80-species diagnostic (0.165) denominators exceeded the 0.150 criterion, although SD/decay criteria passed. This blocks promotion but does not erase deterministic-method or reader evidence.
+- [x] P1-reader: The development-marked reader article, component labels, design/limitation documentation and source render agree with the retained recovery boundary.
+  CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G14 && Rscript --vanilla tools/phylo-temporal-ou-gates.R G15
+  EXPECT: PHYLO_TEMPORAL_OU_G14_PASS and PHYLO_TEMPORAL_OU_G15_PASS
+  EVIDENCE: 2026-09-09 execution commit bb6813fcd: both direct gates passed. The article renders a genuine irregular-time paired workflow, keeps `sd_phylo_stable`, `sd_temporal`, `decay_temporal` and `sigma` distinct, and states that the failed recovery gate makes this development-only rather than inference-qualified.
 - [ ] P1-pilot: Five-seed pilot has complete denominators and a measured resource estimate.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS
