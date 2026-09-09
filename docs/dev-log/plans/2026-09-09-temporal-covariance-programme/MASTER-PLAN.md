@@ -62,6 +62,40 @@ does routine implementation, tests, documentation and integration. Sol is used o
 the bounded source map. At most two production children run at once. Parser, likelihood
 and public-method work remain sequential within an arc.
 
+### Dispatch board: phases, agents and hand-offs
+
+Every covariance arc follows the same seven work packages. This is the execution order,
+not a menu of optional perspectives. S4 and S5 may overlap only after S3 is green; all
+other packages are sequential. A named owner accepts a path lease, writes the specified
+artifact, runs its gate, and hands the recorded artifact to the next owner.
+
+| Slice | Owner — model / effort | May start only when | Required product | Gate family | Handoff to |
+| --- | --- | --- | --- | --- | --- |
+| S0 contract and source freeze | Ada — Terra / high; Ranga — Sol / high | parent arc is admitted | source pin, child Unlazy ledger, cited source note, explicit exclusions | M00–M03 / child G0–G1 | Boole |
+| S1 formula and layout | Boole — Astra / high | S0 gate is green | canonical `temporal()` call, admissibility code, raw-data diagnostics, parser tests, formula-grammar update | grammar gate | Gauss |
+| S2 native likelihood | Gauss — Astra / high; Noether — Astra / high review | S1 is green | transform/start table, TMB provider, likelihood tests, likelihood-design update | native gate | Emmy and Curie |
+| S3 public methods and inference boundary | Emmy — Terra / high; Fisher — Astra / high review | S2 native objective is green | labels, modes, fitted/residual/simulation behavior, interval boundary and diagnostics | methods gate | Curie |
+| S4 oracle, mutations and recovery/pilot | Curie — Terra / medium; Fisher — Astra / high | S2 and S3 are green | independent dense reference, mutation tests, immutable fixtures, recovery/pilot receipt and compute estimate | oracle, recovery, pilot gates | Rose and Pat |
+| S5 reader workflow | Pat — Terra / medium; Darwin — Terra / medium review | S3 is green | rendered vignette section with one ecological question, model-choice table and recovery guidance | render gate | Rose |
+| S6 integration and close | Ada + Rose — Terra / high; Noether and Pat/Darwin independent reviews | S4 and S5 are green | package checks, review receipts, after-task report, plan-versus-actual and exact local commit | close gate | next child arc or explicit deferral |
+
+The named model and effort are a routing recommendation, not a claim that a particular
+agent is already running. Ada may substitute an equivalent available model only if the
+record says why; the mathematical-review effort may not be lowered without a recorded
+reason. Noether plus Pat or Darwin must independently review every structure before its
+close gate can pass.
+
+### Parent-to-child launch rule
+
+P2, P3, P4 and any Phase-5 candidate are **not** implicitly authorised merely because
+they appear in this master plan. Ada opens a child arc only after its parent close gate
+is green and the following child receipt is committed: current source pin; exact public
+interface check against the parent; S0–S6 file ownership; a fresh executable Unlazy
+ledger; named oracle/mutation set; compute estimate; and a reader question. For P4 and
+P5 it also records the concrete scientific data/use case. A later child may strengthen
+this master plan but cannot weaken its gates or change a frozen campaign after results
+are seen.
+
 ## Shared implementation architecture
 
 | Layer | Shared responsibility | Required rule |
@@ -73,6 +107,34 @@ and public-method work remain sequential within an arc.
 | Methods | labels, modes, simulation, fitted values and residuals | Report process SD, stable SD and residual sigma separately. |
 | Evidence | deterministic fixture, mutation suite, recovery and pilot | Preserve every attempt, failure, seed, fingerprint and denominator. |
 | Reader article | one biological question per structure | Explain why a simpler structure was inadequate. |
+
+### Cross-arc parser and omission contract
+
+Every temporal layout stores the same metadata: `id`; raw time/occasion values; sorted
+internal values; retained-to-original row map; per-series offsets; genuine gaps;
+structure keyword; level labels; and the error class/message used for rejection. The
+parser validates raw id/time/tree metadata and duplicate keys **before** response
+omission. It then applies the package's listwise omission rule, rebuilds the retained
+layout, preserves real gaps, and rejects retained singleton temporal paths. Discrete
+models additionally require every retained id to have the complete common schedule.
+Methods and dense oracles consume this stored layout, rather than independently ranking
+or reconstructing times. Each closeout updates
+`docs/design/01-formula-grammar.md` with the admitted marker and early errors, and
+`docs/design/03-likelihoods.md` with the matching covariance equation.
+
+### Formula, parameter and output matrix
+
+| Arc | Canonical call and time | Native parameters and transform | Start policy | Public labels and diagnostic | Early rejection |
+| --- | --- | --- | --- | --- | --- |
+| P1 phylo + OU | `phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = "ou")`; finite elapsed numeric time | `log(sd_phylo_stable)`, `log(sd_temporal)`, `log(decay_temporal)`, `log(sigma)` | fixed-only residual variance divided across positive variance components; two positive decay starts; retain every attempt | `sd_phylo_stable`, `sd_temporal`, `decay_temporal`, `sigma`; boundary and weak-identification diagnostics | unmatched tips, duplicate species-time keys, singleton retained paths, ordinary intercept, slopes, REML, newdata |
+| P2 homtoep | `temporal(1 | id, time = occasion, structure = "homtoep")`; common equally spaced integer levels, at most 12 | `log(sd_temporal)`, chosen unconstrained valid-Toeplitz map, `log(sigma)`; P2.0 selects and tests the map before native code | fixed-only variance split; deterministic map starts recorded with P2.0 | `sd_temporal`, `cor_lag1`, …, `cor_lagK`, `sigma`; invalid-map/weak-information diagnostics | irregular time, aliases, partial schedule, duplicate id-level key, temporal scale formula |
+| P3 hetar1 | `temporal(1 | id, time = occasion, structure = "hetar1")`; common equally spaced integer levels, at most 12 | `log(sd_level_k)` for each level, `atanh(phi)`, `log(sigma)`; `phi = tanh(eta)` permits both signs | fixed-only variance split across level SDs and sigma; `phi` starts at -0.3 and 0.3 | `phi`, `sd_temporal[level]`, `sigma`; level-specific boundary diagnostics | P2 discrete-layout failures plus unmatched level labels |
+| P4 hettoep | `temporal(1 | id, time = occasion, structure = "hettoep")`; common equally spaced integer levels, at most 8 | `log(sd_level_k)`, P2.0's proven valid-Toeplitz map, `log(sigma)` | fixed-only variance split; fixed valid-correlation starts frozen before recovery | `sd_temporal[level]`, `cor_lag1`, …, `cor_lagK`, `sigma`; parameter-to-information warning | P2 discrete-layout failures, aliases and any invalid correlation map |
+
+`sd_temporal` always denotes a stationary process SD, never an innovation SD. The map
+used by P2 and P4 must be named and documented only after P2.0's positive-definiteness,
+reconstruction and derivative gates pass; the plan does not pretend that choice is
+already settled.
 
 All execution arcs use one fresh worktree. The entry source is currently
 a1d01dab3dbcd6e12bec0486ac0425f939f20c2d. G00 records the immutable source hash,
@@ -91,6 +153,18 @@ source has landed on origin/main.
 No worker claims the whole row. Ada transfers a single path group after its predecessor
 is verified; a path-specific lease is mandatory before every write. The first P1
 implementation cannot start on this planning branch.
+
+### Gate-to-artifact map
+
+| Slice | Runner and fixture owner | Retained artifacts | Gate proves |
+| --- | --- | --- | --- |
+| S0 | Emmy owns runner self-tests; Ranga owns source receipt | child ledger, source fingerprint, source map, negative-control receipt | the runner fails closed and the source basis is traceable |
+| S1 | Boole owns parser test file | accepted/rejected formula fixtures, stored-layout inspection and grammar doc edit | an admitted call maps to the intended layout before native fitting |
+| S2 | Gauss owns native test hooks; Noether reviews | transform/start table, native code receipt and likelihood doc edit | parameters remain differentiable and match the stated model |
+| S3 | Emmy owns methods test file | labelled extractor/mode/simulation/profile tests and limitation entry | public methods expose only what the evidence supports |
+| S4 | Curie owns independent helper and gate runner; Fisher reviews recovery | dense V/NLL/score/Hessian, mutations, frozen seeds, pilot/campaign receipt | likelihood identity and claimed inference/recovery evidence hold |
+| S5 | Pat owns vignette/render check | runnable biological example, rendered HTML/PDF inspection and reader review | a scientist can choose, fit and interpret the structure |
+| S6 | Rose owns reconciliation runner; Ada integrates | package-check record, Noether and Pat/Darwin reviews, after-task and plan-actual report | no unstated evidence, documentation or handoff gap remains |
 
 ## Phase 0 — freeze, source map and execution foundation
 

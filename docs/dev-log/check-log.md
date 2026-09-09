@@ -94600,3 +94600,13 @@ gates. Formula review accepted all repairs. Integration review required the plan
 to be committed and fingerprinted before M00 approval; that requirement remains explicit.
 No temporal implementation or campaign occurred. Closeout:
 `docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-master-plan.md`.
+
+## 2026-09-09 — temporal covariance master-plan detail repair
+
+The temporal covariance Ultra Master Plan now exposes the operational detail at its
+front: S0–S6 sequence, named owner/model/effort, start gates, artifacts, hand-offs,
+formula/parameter/output matrix, shared raw-to-retained layout contract and a
+parent-to-child launch receipt. `git diff --check` passed. The Unlazy status parser
+counted 33 gates and truthfully retained 25 unfinished gates; status mode executed no
+checks and no model code, simulation or campaign was launched. Detail repair report:
+`docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-master-detail.md`.
