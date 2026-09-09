@@ -45,10 +45,10 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
   EXPECT: TEMPORAL_OU_G8_PASS
   EVIDENCE: `Rscript --vanilla tools/run-temporal-ou-recovery.R` emitted `TEMPORAL_OU_RECOVERY_PASS` and G8 emitted `TEMPORAL_OU_G8_PASS` at source `5eada6c03a41ecaed0f96b98224c9511f9ae6a4e`. The retained 12-fixture, 24-start point-recovery run met all predeclared criteria: mean absolute fixed-effect error `0.0758`, median absolute SD error `0.0374`, and median absolute decay error `0.0400`. Ordinary-plus-OU O05 selected a false-convergence start because it had the lower finite objective; its warning and both starts remain in `raw-attempts.csv` and it is not treated as interval evidence.
 
-- [ ] G9: A bounded timed pilot records runtime, memory, interval availability, and output completeness
+- [x] G9: A bounded timed pilot records runtime, memory, interval availability, and output completeness
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G9
   EXPECT: TEMPORAL_OU_G9_PASS
-  EVIDENCE: pending
+  EVIDENCE: At source `565cd663c`, five seeds each for three predeclared irregular-time cells produced 15 finite selected fits and 30 retained starts. The resource replay took `30.33` seconds wall time with `569,245,696` bytes maximum resident size; summed fit time was `27.441` seconds. All 15 fits had positive-definite Hessians. Public Wald availability was `0/15`, with all 15 explicitly guarded as unqualified rather than numerically unavailable. `Rscript --vanilla tools/temporal-ou-gates.R G9` emitted `TEMPORAL_OU_G9_PASS`.
 
 - [x] G10: The reader vignette explains irregular time, positive-only persistence, aggregation of duplicate keys, and simulation conditioning
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G10

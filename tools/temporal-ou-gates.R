@@ -73,7 +73,7 @@ if (identical(gate, 'G1')) {
   resource <- paste(readLines(file.path(out_dir, 'resource-replay.txt'), warn = FALSE), collapse = '\n')
   if (length(source_commit) != 1L || system2('git', c('cat-file', '-e', paste0(source_commit, '^{commit}'))) != 0L) fail('G9 pilot provenance does not name a valid source commit.')
   if (!identical(provenance$value[provenance$key == 'runner_md5'], runner_hash)) fail('G9 pilot runner hash does not match the retained source.')
-  if (nrow(results) != 15L || nrow(attempts) != 30L || any(table(attempts$fixture) != 2L) || !all(results$selected & is.finite(results$objective)) || !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0) || !grepl('maximum resident set size', resource, fixed = TRUE)) fail('G9 retained OU pilot outputs are incomplete.')
+  if (!all(c('pd_hessian', 'n_intervals', 'interval_available', 'interval_status', 'warning', 'error') %in% names(results)) || nrow(results) != 15L || nrow(attempts) != 30L || any(table(attempts$fixture) != 2L) || !all(results$selected & is.finite(results$objective)) || !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0) || !grepl('maximum resident set size', resource, fixed = TRUE)) fail('G9 retained OU pilot outputs are incomplete.')
   success <- TRUE
 } else if (identical(gate, 'G10')) {
   source <- paste(readLines('vignettes/temporal-random-effects.Rmd', warn = FALSE), collapse = '\n')
