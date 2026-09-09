@@ -170,3 +170,48 @@ test_that("S7 campaign fixture factory is deterministic and preserves scalar-RI 
     env$r071_s7_make_fixture("poisson_ri", 71011002L)$data
   ))
 })
+
+test_that("S7 attempt receipts are keyed, terminal, and truth-matched", {
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "s7-attempt-contract.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  manifest_tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                       "julia-r-parity", "071-ordinary-laplace",
+                                       "prepare-s7-campaign-manifest.R")
+  sys.source(manifest_tool, envir = env)
+  sys.source(tool, envir = env)
+  row <- data.frame(
+    logical_task_id = 1501L, fixture = "nb2_coupled", dgp_seed = 71014001L,
+    engine = "julia", parm = "cholesky:recov:L22", truth = log(0.125),
+    fit_status = "returned", profile_status = "nonfinite_endpoint",
+    stringsAsFactors = FALSE
+  )
+  expect_identical(env$r071_s7_attempt_key(row),
+                   "1501-nb2_coupled-71014001-julia-cholesky_recov_L22")
+  expect_silent(env$r071_s7_validate_attempt(row))
+  row$truth <- 0.125
+  expect_error(env$r071_s7_validate_attempt(row), "truth does not match frozen profile plan")
+  row$truth <- log(0.125)
+  row$profile_status <- "started"
+  expect_error(env$r071_s7_validate_attempt(row), "terminal")
+})
+
+test_that("S7 reconciliation requires all 17000 planned terminal attempts", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  expected <- env$r071_s7_expected_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan())
+  expect_identical(nrow(expected), 17000L)
+  attempts <- transform(expected, fit_status = "returned", profile_status = "profile")
+  reconciled <- env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts)
+  expect_identical(reconciled$attempt_count, 17000L)
+  expect_identical(reconciled$profile_count, 17000L)
+  expect_error(
+    env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts[-1L, ]),
+    "missing or duplicate"
+  )
+})
