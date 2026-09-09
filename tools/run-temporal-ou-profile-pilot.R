@@ -47,7 +47,8 @@ out_dir <- if (campaign_mode) {
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 evidence_files <- file.path(out_dir, c(
   "raw-attempts.csv", "profile-pilot-results.csv", "profile-pilot-summary.csv",
-  "provenance.csv", "profile-pilot-results.rds", "session-info.txt", "RESULTS.md"
+  "profile-intervals.csv", "provenance.csv", "profile-pilot-results.rds",
+  "session-info.txt", "RESULTS.md"
 ))
 if (any(file.exists(evidence_files))) {
   stop("Retained OU profile-pilot evidence already exists; do not overwrite it.", call. = FALSE)
@@ -68,6 +69,40 @@ elapsed_sets <- list(
   short = c(0, 0.5, 1.5, 3, 5, 8),
   long = c(0, 0.5, 1.5, 3, 5, 8, 12, 17, 23, 30, 38, 47)
 )
+
+interval_rows_unavailable <- function(fixture, cell, seed, reason, estimates = NULL) {
+  terms <- paste0("fixef:mu:", names(truth))
+  estimate <- rep(NA_real_, length(terms))
+  if (!is.null(estimates)) {
+    matched <- match(names(truth), names(estimates))
+    estimate[!is.na(matched)] <- unname(estimates[matched[!is.na(matched)]])
+  }
+  data.frame(
+    fixture = fixture, cell = cell, seed = seed, parm = terms,
+    coefficient = names(truth), truth = unname(truth), estimate = estimate,
+    lower = NA_real_, upper = NA_real_, interval_available = FALSE,
+    covered = FALSE, conf.status = reason, stringsAsFactors = FALSE
+  )
+}
+
+interval_rows_from_confint <- function(fixture, cell, seed, intervals, estimates) {
+  expected <- paste0("fixef:mu:", names(truth))
+  if (inherits(intervals, "error") || !all(expected %in% intervals$parm)) {
+    reason <- if (inherits(intervals, "error")) conditionMessage(intervals) else "missing_mean_profile_targets"
+    return(interval_rows_unavailable(fixture, cell, seed, reason, estimates))
+  }
+  rows <- intervals[match(expected, intervals$parm), , drop = FALSE]
+  available <- rows$conf.status == "profile" &
+    is.finite(rows$lower) & is.finite(rows$upper)
+  data.frame(
+    fixture = fixture, cell = cell, seed = seed, parm = expected,
+    coefficient = names(truth), truth = unname(truth),
+    estimate = unname(estimates[names(truth)]), lower = rows$lower, upper = rows$upper,
+    interval_available = available,
+    covered = available & rows$lower <= unname(truth) & unname(truth) <= rows$upper,
+    conf.status = rows$conf.status, stringsAsFactors = FALSE
+  )
+}
 
 simulate_cell <- function(cell, seed) {
   set.seed(seed)
@@ -144,7 +179,10 @@ run_one <- function(cell, seed) {
       objective = NA_real_, elapsed_sec = fit_elapsed_sec, selected = FALSE,
       warning = warning, error = result$error, stringsAsFactors = FALSE
     )
-    return(list(selected = selected, attempts = attempts))
+    return(list(
+      selected = selected, attempts = attempts,
+      intervals = interval_rows_unavailable(fixture, cell$cell, seed, "fit_error")
+    ))
   }
   fit <- result$fit
   profile_warnings <- character()
@@ -199,11 +237,17 @@ run_one <- function(cell, seed) {
     "fixture", "cell", "seed", "start", "decay_start", "status",
     "convergence", "objective", "elapsed_sec", "selected", "warning", "error"
   )]
-  list(selected = selected, attempts = attempts)
+  list(
+    selected = selected, attempts = attempts,
+    intervals = interval_rows_from_confint(
+      fixture, cell$cell, seed, intervals, fixef(fit, "mu")
+    )
+  )
 }
 
 result_rows <- list()
 attempt_rows <- list()
+interval_rows <- list()
 index <- 1L
 if (campaign_mode) {
   campaign_cell <- (campaign_task - 1L) %/% 1000L + 1L
@@ -219,11 +263,13 @@ for (i in seq_len(nrow(run_cells))) {
     result <- run_one(run_cells[i, , drop = FALSE], seed)
     result_rows[[index]] <- result$selected
     attempt_rows[[index]] <- result$attempts
+    interval_rows[[index]] <- result$intervals
     index <- index + 1L
   }
 }
 results <- do.call(rbind, result_rows)
 attempts <- do.call(rbind, attempt_rows)
+intervals <- do.call(rbind, interval_rows)
 summary <- do.call(rbind, lapply(split(results, results$cell), function(x) {
   data.frame(
     cell = x$cell[[1L]], role = x$role[[1L]], n_datasets = nrow(x),
@@ -241,6 +287,7 @@ summary <- do.call(rbind, lapply(split(results, results$cell), function(x) {
 write.csv(attempts, file.path(out_dir, "raw-attempts.csv"), row.names = FALSE)
 write.csv(results, file.path(out_dir, "profile-pilot-results.csv"), row.names = FALSE)
 write.csv(summary, file.path(out_dir, "profile-pilot-summary.csv"), row.names = FALSE)
+write.csv(intervals, file.path(out_dir, "profile-intervals.csv"), row.names = FALSE)
 provenance <- data.frame(
   key = c("source_commit", "runner_md5", "run_utc", "mode", "campaign_task", "n_datasets", "n_attempts"),
   value = c(
@@ -252,15 +299,15 @@ provenance <- data.frame(
   ), stringsAsFactors = FALSE
 )
 write.csv(provenance, file.path(out_dir, "provenance.csv"), row.names = FALSE)
-saveRDS(list(cells = cells, results = results, attempts = attempts, summary = summary,
-             provenance = provenance), file.path(out_dir, "profile-pilot-results.rds"))
+saveRDS(list(cells = cells, results = results, attempts = attempts, intervals = intervals,
+             summary = summary, provenance = provenance), file.path(out_dir, "profile-pilot-results.rds"))
 writeLines(sub("[[:space:]]+$", "", capture.output(sessionInfo())),
            file.path(out_dir, "session-info.txt"))
 writeLines(c(
   if (campaign_mode) "# Temporal OU fixed-effect profile campaign task" else "# Temporal OU fixed-effect profile pilot", "",
   sprintf("The pilot retained %d data sets and %d optimizer starts.", nrow(results), nrow(attempts)),
   sprintf("Total elapsed fit time: %.3f seconds; total profile time: %.3f seconds.", sum(results$fit_elapsed_sec), sum(results$profile_elapsed_sec)),
-  sprintf("Fixed-effect profile interval availability: %d/%d.", sum(results$interval_available), nrow(results)),
+  sprintf("Fixed-effect profile interval availability: %d/%d data sets and %d/%d coefficient intervals.", sum(results$interval_available), nrow(results), sum(intervals$interval_available), nrow(intervals)),
   sprintf("Regular fitted Hessians: %d/%d; irregular-Hessian profile warnings: %d/%d.", sum(results$pd_hessian %in% TRUE), nrow(results), sum(grepl("base_hessian_non_pd", results$profile_hessian_status, fixed = TRUE)), nrow(results)),
   if (campaign_mode) "This is one retained all-attempt campaign task." else "This records timing and output completeness only. It does not qualify interval calibration or authorize a campaign."
 ), file.path(out_dir, "RESULTS.md"))
@@ -268,7 +315,10 @@ writeLines(c(
 expected_datasets <- if (preflight || campaign_mode) 1L else 15L
 expected_attempts <- 2L * expected_datasets
 if (nrow(results) != expected_datasets || nrow(attempts) != expected_attempts ||
+    nrow(intervals) != 3L * expected_datasets ||
     !all(table(attempts$fixture) == 2L) ||
+    !all(table(intervals$fixture) == 3L) ||
+    !all(intervals$parm == paste0("fixef:mu:", rep(names(truth), expected_datasets))) ||
     !all(results$selected & is.finite(results$objective)) ||
     !all(is.finite(results$fit_elapsed_sec) & results$fit_elapsed_sec > 0) ||
     !all(is.finite(results$profile_elapsed_sec) & results$profile_elapsed_sec > 0)) {

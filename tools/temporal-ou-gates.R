@@ -159,8 +159,12 @@ if (identical(gate, 'G1')) {
   results <- read.csv(file.path(out_dir, 'profile-pilot-results.csv'), stringsAsFactors = FALSE)
   attempts <- read.csv(file.path(out_dir, 'raw-attempts.csv'), stringsAsFactors = FALSE)
   provenance <- read.csv(file.path(out_dir, 'provenance.csv'), stringsAsFactors = FALSE)
-  runner_hash <- unname(tools::md5sum('tools/run-temporal-ou-profile-pilot.R'))
   source_commit <- provenance$value[provenance$key == 'source_commit']
+  source_runner <- tempfile('temporal-ou-g16-runner-', fileext = '.R')
+  source_runner_status <- if (length(source_commit) == 1L) {
+    system2('git', c('show', paste0(source_commit, ':tools/run-temporal-ou-profile-pilot.R')), stdout = source_runner, stderr = FALSE)
+  } else 1L
+  runner_hash <- if (identical(source_runner_status, 0L) && file.exists(source_runner)) unname(tools::md5sum(source_runner)) else NA_character_
   resource <- paste(readLines(file.path(out_dir, 'resource-replay.txt'), warn = FALSE), collapse = '\n')
   required_columns <- c(
     'fit_elapsed_sec', 'profile_elapsed_sec', 'pd_hessian',
