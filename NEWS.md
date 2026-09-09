@@ -21,6 +21,20 @@ section below:
 See the 0.7.0 section immediately below for the full, measured detail on
 every item above.
 
+## Gaussian temporal AR1 random effects
+
+* Native ML now fits one univariate Gaussian stationary temporal AR1 intercept
+  field with real integer occasion gaps through
+  `temporal(1 | id, time = occasion, structure = "ar1")`. It can be paired
+  with one ordinary `(1 | id)` random intercept using the same ID, separating
+  stable differences, temporal persistence, and residual `sigma`.
+* `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
+  mean-coefficient uncertainty only when the full observed Hessian supports
+  it. Variance/persistence intervals, profile/bootstrap inference, forecasts,
+  and `newdata` prediction remain unavailable. The retained pilot found one
+  unavailable primary-cell interval, so this release contains no calibrated
+  coverage claim.
+
 # drmTMB 0.7.0
 
 ## `engine = "julia"` control surface: no silent drops, boundary made permanent (leaf-engine-control-surface)
