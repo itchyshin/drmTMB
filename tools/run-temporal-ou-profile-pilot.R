@@ -6,8 +6,19 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 preflight <- identical(args, "--preflight")
-if (length(args) > 0L && !preflight) {
-  stop("Usage: Rscript --vanilla tools/run-temporal-ou-profile-pilot.R [--preflight]", call. = FALSE)
+campaign_arg <- grep("^--campaign-task=[0-9]+$", args, value = TRUE)
+campaign_task <- if (length(campaign_arg) == 1L) {
+  as.integer(sub("^--campaign-task=", "", campaign_arg))
+} else NA_integer_
+campaign_mode <- !is.na(campaign_task)
+if ((length(args) > 0L && !preflight && !campaign_mode) || length(args) > 1L) {
+  stop("Usage: Rscript --vanilla tools/run-temporal-ou-profile-pilot.R [--preflight | --campaign-task=<1..3000>]", call. = FALSE)
+}
+if (campaign_mode && (campaign_task < 1L || campaign_task > 3000L)) {
+  stop("Campaign task must be an integer from 1 through 3000.", call. = FALSE)
+}
+if (campaign_mode && !identical(Sys.getenv("DRMTMB_TEMPORAL_OU_CAMPAIGN_AUTHORIZED"), "1")) {
+  stop("Campaign mode requires DRMTMB_TEMPORAL_OU_CAMPAIGN_AUTHORIZED=1.", call. = FALSE)
 }
 root <- normalizePath(".", mustWork = TRUE)
 if (!file.exists(file.path(root, "DESCRIPTION"))) {
@@ -15,12 +26,20 @@ if (!file.exists(file.path(root, "DESCRIPTION"))) {
 }
 pkgload::load_all(root, quiet = TRUE)
 
-out_dir <- Sys.getenv(
-  "DRMTMB_TEMPORAL_OU_PILOT_OUT",
-  unset = file.path(root, "docs/dev-log/simulation-artifacts", if (preflight) {
-    "2026-09-09-temporal-ou-profile-preflight"
-  } else "2026-09-09-temporal-ou-profile-pilot")
-)
+out_dir <- if (campaign_mode) {
+  campaign_root <- Sys.getenv("DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT")
+  if (!nzchar(campaign_root)) {
+    stop("Campaign mode requires DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT.", call. = FALSE)
+  }
+  file.path(campaign_root, sprintf("task-%04d", campaign_task))
+} else {
+  Sys.getenv(
+    "DRMTMB_TEMPORAL_OU_PILOT_OUT",
+    unset = file.path(root, "docs/dev-log/simulation-artifacts", if (preflight) {
+      "2026-09-09-temporal-ou-profile-preflight"
+    } else "2026-09-09-temporal-ou-profile-pilot")
+  )
+}
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 evidence_files <- file.path(out_dir, c(
   "raw-attempts.csv", "profile-pilot-results.csv", "profile-pilot-summary.csv",
@@ -182,8 +201,15 @@ run_one <- function(cell, seed) {
 result_rows <- list()
 attempt_rows <- list()
 index <- 1L
-run_cells <- if (preflight) cells[1L, , drop = FALSE] else cells
-run_seeds <- if (preflight) seeds[1L] else seeds
+if (campaign_mode) {
+  campaign_cell <- (campaign_task - 1L) %/% 1000L + 1L
+  campaign_rep <- (campaign_task - 1L) %% 1000L + 1L
+  run_cells <- cells[campaign_cell, , drop = FALSE]
+  run_seeds <- 2026100000L + campaign_rep - 1L
+} else {
+  run_cells <- if (preflight) cells[1L, , drop = FALSE] else cells
+  run_seeds <- if (preflight) seeds[1L] else seeds
+}
 for (i in seq_len(nrow(run_cells))) {
   for (seed in run_seeds) {
     result <- run_one(run_cells[i, , drop = FALSE], seed)
@@ -212,11 +238,13 @@ write.csv(attempts, file.path(out_dir, "raw-attempts.csv"), row.names = FALSE)
 write.csv(results, file.path(out_dir, "profile-pilot-results.csv"), row.names = FALSE)
 write.csv(summary, file.path(out_dir, "profile-pilot-summary.csv"), row.names = FALSE)
 provenance <- data.frame(
-  key = c("source_commit", "runner_md5", "run_utc", "n_datasets", "n_attempts"),
+  key = c("source_commit", "runner_md5", "run_utc", "mode", "campaign_task", "n_datasets", "n_attempts"),
   value = c(
     system2("git", c("rev-parse", "HEAD"), stdout = TRUE),
     unname(tools::md5sum(file.path(root, "tools/run-temporal-ou-profile-pilot.R"))),
-    format(Sys.time(), tz = "UTC", usetz = TRUE), nrow(results), nrow(attempts)
+    format(Sys.time(), tz = "UTC", usetz = TRUE),
+    if (campaign_mode) "campaign" else if (preflight) "preflight" else "pilot",
+    if (campaign_mode) campaign_task else NA_integer_, nrow(results), nrow(attempts)
   ), stringsAsFactors = FALSE
 )
 write.csv(provenance, file.path(out_dir, "provenance.csv"), row.names = FALSE)
@@ -225,15 +253,15 @@ saveRDS(list(cells = cells, results = results, attempts = attempts, summary = su
 writeLines(sub("[[:space:]]+$", "", capture.output(sessionInfo())),
            file.path(out_dir, "session-info.txt"))
 writeLines(c(
-  "# Temporal OU fixed-effect profile pilot", "",
+  if (campaign_mode) "# Temporal OU fixed-effect profile campaign task" else "# Temporal OU fixed-effect profile pilot", "",
   sprintf("The pilot retained %d data sets and %d optimizer starts.", nrow(results), nrow(attempts)),
   sprintf("Total elapsed fit time: %.3f seconds; total profile time: %.3f seconds.", sum(results$fit_elapsed_sec), sum(results$profile_elapsed_sec)),
   sprintf("Fixed-effect profile interval availability: %d/%d.", sum(results$interval_available), nrow(results)),
   sprintf("Regular fitted Hessians: %d/%d; irregular-Hessian profile warnings: %d/%d.", sum(results$pd_hessian %in% TRUE), nrow(results), sum(grepl("base_hessian_non_pd", results$profile_hessian_status, fixed = TRUE)), nrow(results)),
-  "This records timing and output completeness only. It does not qualify interval calibration or authorize a campaign."
+  if (campaign_mode) "This is one retained all-attempt campaign task." else "This records timing and output completeness only. It does not qualify interval calibration or authorize a campaign."
 ), file.path(out_dir, "RESULTS.md"))
 
-expected_datasets <- if (preflight) 1L else 15L
+expected_datasets <- if (preflight || campaign_mode) 1L else 15L
 expected_attempts <- 2L * expected_datasets
 if (nrow(results) != expected_datasets || nrow(attempts) != expected_attempts ||
     !all(table(attempts$fixture) == 2L) ||
@@ -242,4 +270,4 @@ if (nrow(results) != expected_datasets || nrow(attempts) != expected_attempts ||
     !all(is.finite(results$profile_elapsed_sec) & results$profile_elapsed_sec > 0)) {
   stop("Temporal OU profile-pilot completeness checks failed; retained outputs were written for diagnosis.", call. = FALSE)
 }
-cat("TEMPORAL_OU_PROFILE_PILOT_PASS\n")
+cat(if (campaign_mode) "TEMPORAL_OU_PROFILE_CAMPAIGN_TASK_PASS\n" else "TEMPORAL_OU_PROFILE_PILOT_PASS\n")
