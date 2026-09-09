@@ -118,7 +118,7 @@ extract_rows <- function(result, fixture, condition, layout) {
     sd_phylo_estimate = unname(fit$sdpars$mu[[phylo_label]]),
     sd_temporal_estimate = unname(fit$sdpars$mu[[temporal_mu_sd_label(temporal)]]),
     sigma_estimate = exp(unname(fit$coefficients$sigma[['(Intercept)']])),
-    decay_estimate = unname(fit$decaypars$temporal[[temporal$label]])
+    decay_estimate = unname(fit$decaypars$temporal[[temporal_mu_decay_label(temporal)]])
   )
   attempts <- fit$temporal_start_attempts
   attempts$fixture <- fixture

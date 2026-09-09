@@ -94668,3 +94668,13 @@ uses irregular elapsed times and separates `sd_phylo_stable`, `sd_temporal`,
 interval or forecasting claim is made. The G15 runner loads the local package,
 renders the article in an isolated temporary directory, and verifies the
 rendered reader-facing boundary text.
+
+## 2026-09-09 — phylogenetic-temporal OU recovery diagnosis and runner repair
+
+The retained G9 denominators isolate the failure to intercept MAE: v4 has
+intercept/between/within MAEs 0.339/0.131/0.077 and v6 has
+0.336/0.104/0.055. The current aggregate criterion remains failed. The future
+recovery runner now reads the paired public `decay_temporal` label through its
+helper; a disposable six-species, 24-fixture smoke retained 24 finite decay
+estimates, then was removed because it is not evidence. A revised recovery
+contract still requires an explicit decision.

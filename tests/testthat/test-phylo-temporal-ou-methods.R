@@ -15,6 +15,10 @@ test_that("paired phylogenetic-OU modes retain distinct labelled components", {
 
   expect_named(fit$sdpars$mu, c("sd_temporal", "sd_phylo_stable"))
   expect_named(fit$decaypars$temporal, "decay_temporal")
+  expect_equal(
+    unname(fit$decaypars$temporal[[temporal_mu_decay_label(temporal)]]),
+    unname(fit$decaypars$temporal[["decay_temporal"]])
+  )
   expect_true(isTRUE(phylo$paired_temporal_ou))
   expect_setequal(names(fit$random_effects), c("phylo_mu", "temporal"))
   expect_named(fit$random_effects$temporal, c("values", "latent", "terms"))
