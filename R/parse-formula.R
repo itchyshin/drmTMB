@@ -711,7 +711,7 @@ collect_structured_effects <- function(rhs, dpar) {
 }
 
 structured_marker_names <- function() {
-  c("animal", "phylo", "phylo_interaction", "spatial", "relmat")
+  c("animal", "phylo", "phylo_interaction", "spatial", "relmat", "temporal")
 }
 
 structured_marker_call_name <- function(expr) {
@@ -754,6 +754,55 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   }
   marker_args <- args[-term_pos]
   marker_arg_names <- arg_names[-term_pos]
+
+  if (identical(marker, "temporal")) {
+    bad <- setdiff(marker_arg_names, c("time", "structure"))
+    if (
+      length(marker_args) != 2L ||
+        length(bad) > 0L ||
+        !all(c("time", "structure") %in% marker_arg_names)
+    ) {
+      cli::cli_abort(c(
+        "{.fn temporal} requires named {.arg time} and {.arg structure} arguments.",
+        "x" = "Use syntax like {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    if (
+      !identical(term$coef_names, "(Intercept)") ||
+        !is.null(term$covariance_label)
+    ) {
+      cli::cli_abort(c(
+        "{.fn temporal} currently supports one intercept-only unlabelled random effect.",
+        "x" = "Temporal slopes and covariance-block labels are not implemented.",
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    time_arg <- marker_args[[match("time", marker_arg_names)]]
+    structure_arg <- marker_args[[match("structure", marker_arg_names)]]
+    if (!is.symbol(time_arg)) {
+      cli::cli_abort(c(
+        "{.arg time} in {.fn temporal} must name an occasion variable.",
+        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    if (
+      !is.character(structure_arg) ||
+        length(structure_arg) != 1L ||
+        is.na(structure_arg) ||
+        !identical(structure_arg, "ar1")
+    ) {
+      cli::cli_abort(c(
+        "{.arg structure} in {.fn temporal} must be {.val ar1}.",
+        "x" = "OU temporal fitting is not implemented.",
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      ))
+    }
+    return(c(
+      list(type = "temporal", dpar = dpar),
+      term,
+      list(time = as.character(time_arg), structure = structure_arg)
+    ))
+  }
 
   if (identical(marker, "animal")) {
     selected <- marker_arg_names %in% c("pedigree", "A", "Ainv")

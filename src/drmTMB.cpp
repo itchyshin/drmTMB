@@ -74,6 +74,18 @@ Type drm_log_sech(Type eta) {
   return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
 }
 
+// Integer AR1 gaps must preserve a negative persistence sign for odd gaps.
+// Repeated multiplication is AD-safe and avoids log(phi), which is undefined
+// for the admitted negative-persistence half of the parameter space.
+template<class Type>
+Type drm_integer_power(Type base, int exponent) {
+  Type out = Type(1.0);
+  for (int k = 0; k < exponent; ++k) {
+    out *= base;
+  }
+  return out;
+}
+
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
 // [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
 template<class Type>
@@ -421,6 +433,10 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(has_phylo_mu_q2_covariance);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(has_temporal_mu);
+  DATA_IVECTOR(temporal_mu_node_index);
+  DATA_IVECTOR(temporal_mu_series_start);
+  DATA_IVECTOR(temporal_mu_gap);
   // Scoped second structured location field (M5 row 105): its own group
   // precision (spatial coordinate kernel vs relatedness Q), always q = 1
   // intercept-only, so no among-endpoint theta is needed.
@@ -502,6 +518,9 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_coi);
   PARAMETER_VECTOR(log_sd_coi);
   PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_temporal);
+  PARAMETER_VECTOR(log_sd_temporal);
+  PARAMETER_VECTOR(theta_temporal);
   PARAMETER_VECTOR(u_re_cov);
   PARAMETER_VECTOR(log_sd_re_cov);
   PARAMETER_VECTOR(theta_re_cov);
@@ -951,7 +970,7 @@ Type objective_function<Type>::operator()()
         }
       }
 
-    if (n_sigma_re_terms > 0) {
+      if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
       // Same-dpar residual-scale correlations: a correlated intercept+slope block
       // such as `sigma ~ x + (1 + x | id)`. Mirrors the bivariate loop's ordering.
@@ -997,6 +1016,34 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < u_sigma.size(); ++j) {
         nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
       }
+      }
+
+    if (has_temporal_mu == 1) {
+      Type phi_temporal = tanh(theta_temporal(0));
+      Type sd_temporal = exp(log_sd_temporal(0));
+      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+        int first = temporal_mu_series_start(series);
+        int last_exclusive = temporal_mu_series_start(series + 1);
+        nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
+        for (int node = first + 1; node < last_exclusive; ++node) {
+          Type transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
+          Type transition_sd = sqrt(Type(1.0) - transition * transition);
+          nll -= dnorm(
+            u_temporal(node),
+            transition * u_temporal(node - 1),
+            transition_sd,
+            true
+          );
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += sd_temporal * u_temporal(temporal_mu_node_index(i));
+      }
+      REPORT(u_temporal);
+      REPORT(log_sd_temporal);
+      REPORT(theta_temporal);
+      REPORT(phi_temporal);
+      REPORT(sd_temporal);
     }
 
     if (has_phylo_mu == 1) {

@@ -2388,6 +2388,10 @@ vcov.drmTMB <- function(object, ...) {
   if (isTRUE(object$REML) && anyNA(diag(out))) {
     out <- fill_from(out, object$sdr$cov.fixed, names(object$opt$par))
   }
+  if (drm_has_temporal_mu(object)) {
+    mean_labels <- labels[startsWith(labels, "mu:")]
+    return(out[mean_labels, mean_labels, drop = FALSE])
+  }
   out
 }
 
@@ -2830,6 +2834,12 @@ predict.drmTMB <- function(
     dpar <- object$model$dpars[[1L]]
   }
   dpar <- match.arg(dpar, names(object$coefficients))
+  if (drm_has_temporal_mu(object) && !is.null(newdata)) {
+    cli::cli_abort(c(
+      "Temporal AR1 prediction is currently available only for the fitted observations.",
+      "i" = "Forecasting and {.arg newdata} prediction are deferred because they require an explicit temporal-state convention."
+    ))
+  }
   type <- match.arg(type)
   if (identical(type, "quantile")) {
     return(drm_predict_quantile(object, newdata = newdata, dpar = dpar, prob = prob))
@@ -2850,6 +2860,13 @@ predict.drmTMB <- function(
       has_ordinary_mu_random_effects(object)
   ) {
     eta <- eta + mu_random_effect_contribution(object, dpar = dpar)
+  }
+  if (
+    is.null(newdata) &&
+      identical(dpar, "mu") &&
+      drm_has_temporal_mu(object)
+  ) {
+    eta <- eta + temporal_mu_contribution(object)
   }
   if (
     is.null(newdata) &&
@@ -4191,6 +4208,15 @@ summary.drmTMB <- function(
   validate_summary_trace(trace)
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
+  if (drm_has_temporal_mu(object) && conf.int) {
+    if (!identical(method, "wald")) {
+      cli::cli_abort(c(
+        "Temporal AR1 summary intervals currently support mean-coefficient Wald intervals only.",
+        "i" = "Use {.code summary(fit, conf.int = TRUE, method = \"wald\")}."
+      ))
+    }
+    ci_parm <- validate_temporal_wald_parm(object, ci_parm)
+  }
   profile_precision <- resolve_profile_precision(
     profile_precision,
     missing_arg = profile_precision_missing
@@ -6079,6 +6105,7 @@ coefficient_labels <- function(object) {
 
 has_mu_random_effects <- function(object) {
   has_ordinary_mu_random_effects(object) ||
+    drm_has_temporal_mu(object) ||
     (has_structured_mu_effect(object) &&
       any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
         object$model$structured$phylo_mu
@@ -6567,7 +6594,8 @@ drm_ordinary_random_effect_draws <- function(object) {
   has_mu <- has_ordinary_mu_random_effects(object)
   has_sig <- has_sigma_random_effects(object)
   has_structured <- isTRUE(object$model$structured$phylo_mu$has)
-  if (!has_mu && !has_sig && !has_structured) {
+  has_temporal <- drm_has_temporal_mu(object)
+  if (!has_mu && !has_sig && !has_structured && !has_temporal) {
     return(out)
   }
   mu_latent <- NULL
@@ -6634,6 +6662,10 @@ drm_ordinary_random_effect_draws <- function(object) {
         out[[dpar]] + structured_draws[[dpar]]
       }
     }
+  }
+  if (has_temporal) {
+    temporal_draw <- drm_fresh_temporal_mu_values(object)
+    out$mu <- if (is.null(out$mu)) temporal_draw else out$mu + temporal_draw
   }
   out
 }

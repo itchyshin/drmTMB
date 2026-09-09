@@ -197,6 +197,29 @@ phylo <- function(term, tree) {
   invisible(NULL)
 }
 
+#' Temporal random-effect marker
+#'
+#' `temporal()` adds a stationary Gaussian AR1 deviation for repeated
+#' observations within a sampled individual or site.  The first temporal slice
+#' is deliberately narrow: it accepts one intercept-only term, finite integer
+#' occasions, and the `"ar1"` structure.  An ordinary `(1 | id)` may accompany
+#' the marker to represent stable between-series differences separately from
+#' persistent within-series deviations.
+#'
+#' @param term Temporal random-effect term, currently `1 | id`.
+#' @param time Name of the integer occasion variable.
+#' @param structure Temporal covariance structure, currently `"ar1"`.
+#'
+#' @return A formula marker; never evaluated by users.
+#' @export
+#'
+#' @examples
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
+#'    sigma ~ 1)
+temporal <- function(term, time, structure = "ar1") {
+  invisible(NULL)
+}
+
 #' Bipartite phylogenetic interaction marker
 #'
 #' `phylo_interaction()` marks a pair-level phylogenetic interaction between two

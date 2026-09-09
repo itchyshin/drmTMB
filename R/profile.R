@@ -441,6 +441,29 @@ confint.drmTMB <- function(
     c("wald", "profile", "bootstrap"),
     "confint()"
   )
+  if (drm_has_temporal_mu(object)) {
+    if (!identical(method, "wald")) {
+      cli::cli_abort(c(
+        "Temporal AR1 confidence intervals currently support mean-coefficient Wald intervals only.",
+        "i" = "Profile, bootstrap, variance-component, and persistence intervals are deferred."
+      ))
+    }
+    if (!is.null(newdata)) {
+      cli::cli_abort(
+        "Temporal AR1 confidence intervals do not support {.arg newdata}."
+      )
+    }
+    temporal_parm <- validate_temporal_wald_parm(object, parm)
+    return(drm_wald_confint(
+      object,
+      parm = temporal_parm,
+      level = level,
+      sd_boundary = sd_boundary,
+      rho_boundary = rho_boundary,
+      small_sample_df = small_sample_df,
+      bias_correct = bias_correct
+    ))
+  }
   if (!is.null(newdata) && method_missing) {
     method <- "profile"
   }
