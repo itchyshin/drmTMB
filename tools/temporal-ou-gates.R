@@ -188,7 +188,12 @@ if (identical(gate, 'G1')) {
   }
   success <- TRUE
 } else if (identical(gate, 'G15') && reverify) {
-  fail('G15 requires authorized, retained OU campaign outputs; reverify never launches a campaign.')
+  campaign_dir <- Sys.getenv('DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT')
+  if (!nzchar(campaign_dir)) fail('G15 requires DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT naming retained campaign outputs; reverify never launches a campaign.')
+  status <- system2('Rscript', c('--vanilla', 'tools/summarize-temporal-ou-profile-campaign.R',
+    paste0('--input-dir=', campaign_dir), paste0('--output-dir=', campaign_dir), '--reverify'))
+  if (!identical(status, 0L)) fail('G15 retained temporal OU campaign outputs do not reproduce.')
+  success <- TRUE
 } else {
   fail(sprintf('%s has no executable evidence yet; the gate remains pending.', gate))
 }

@@ -1,0 +1,61 @@
+#!/usr/bin/env Rscript
+
+# Read-only verifier/summarizer for immutable temporal OU profile campaign shards.
+# It never calls drmTMB or starts a fit.
+
+args <- commandArgs(trailingOnly = TRUE)
+value <- function(name) {
+  hit <- grep(paste0('^--', name, '='), args, value = TRUE)
+  if (length(hit) != 1L) stop(sprintf('Require exactly one --%s=<path>.', name), call. = FALSE)
+  sub(paste0('^--', name, '='), '', hit)
+}
+input_dir <- value('input-dir')
+mode <- if (any(args == '--reverify')) 'reverify' else if (any(args == '--write-summary')) 'write' else stop('Choose --reverify or --write-summary.', call. = FALSE)
+if (length(args) != 3L) stop('Usage: ... --input-dir=<dir> --output-dir=<dir> [--reverify|--write-summary]', call. = FALSE)
+output_dir <- value('output-dir')
+summary_file <- file.path(output_dir, 'temporal-ou-profile-campaign-summary.csv')
+
+fail <- function(...) stop(..., call. = FALSE)
+read_task <- function(path, task) {
+  needed <- c('raw-attempts.csv', 'profile-pilot-results.csv', 'profile-intervals.csv', 'provenance.csv', 'RESULTS.md')
+  if (!all(file.exists(file.path(path, needed)))) fail('Incomplete campaign task ', task, '.')
+  p <- read.csv(file.path(path, 'provenance.csv'), stringsAsFactors = FALSE)
+  source_commit <- p$value[p$key == 'source_commit']; runner_md5 <- p$value[p$key == 'runner_md5']
+  if (length(source_commit) != 1L || length(runner_md5) != 1L ||
+      !grepl('^[0-9a-f]{40}$', source_commit) || !grepl('^[0-9a-f]{32}$', runner_md5)) fail('Invalid provenance in task ', task, '.')
+  results <- read.csv(file.path(path, 'profile-pilot-results.csv'), stringsAsFactors = FALSE)
+  attempts <- read.csv(file.path(path, 'raw-attempts.csv'), stringsAsFactors = FALSE)
+  intervals <- read.csv(file.path(path, 'profile-intervals.csv'), stringsAsFactors = FALSE)
+  required <- c('fixture','cell','seed','parm','coefficient','truth','estimate','lower','upper','interval_available','covered','conf.status')
+  if (nrow(results) != 1L || nrow(attempts) != 2L || nrow(intervals) != 3L || !all(required %in% names(intervals)) ||
+      !identical(sort(intervals$parm), sort(c('fixef:mu:(Intercept)', 'fixef:mu:between', 'fixef:mu:within'))) ||
+      anyDuplicated(intervals$parm) || any(intervals$cell != results$cell[[1L]]) || any(intervals$seed != results$seed[[1L]])) fail('Malformed retained rows in task ', task, '.')
+  intervals$task <- task; intervals$source_commit <- source_commit; intervals$runner_md5 <- runner_md5
+  intervals
+}
+paths <- file.path(input_dir, sprintf('task-%04d', 1:3000))
+if (!dir.exists(input_dir) || !all(dir.exists(paths))) fail('Require immutable task-0001 through task-3000 campaign directories.')
+rows <- do.call(rbind, Map(read_task, paths, 1:3000))
+if (length(unique(rows$source_commit)) != 1L || length(unique(rows$runner_md5)) != 1L) fail('Campaign shards do not share one frozen source and worker fingerprint.')
+if (anyDuplicated(paste(rows$cell, rows$seed, rows$parm)) || any(table(rows$cell) != 3000L) || any(table(rows$cell, rows$parm) != 1000L)) fail('Campaign denominator is not exactly 1,000 data sets per cell and coefficient.')
+summary <- do.call(rbind, lapply(split(rows, interaction(rows$cell, rows$parm, drop = TRUE)), function(x) {
+  available <- as.logical(x$interval_available); covered <- as.logical(x$covered)
+  coverage <- mean(covered); mcse <- sqrt(coverage * (1 - coverage) / nrow(x)); empirical_sd <- stats::sd(x$estimate, na.rm = TRUE)
+  data.frame(cell=x$cell[[1L]], parm=x$parm[[1L]], n_attempted=nrow(x), n_available=sum(available),
+    availability=mean(available), coverage_all=coverage,
+    coverage_conditional=if (any(available)) mean(covered[available]) else NA_real_, coverage_mcse=mcse,
+    bias=mean(x$estimate-x$truth, na.rm=TRUE), empirical_sd=empirical_sd,
+    mean_interval_width=mean(x$upper[available]-x$lower[available]),
+    source_commit=x$source_commit[[1L]], runner_md5=x$runner_md5[[1L]], stringsAsFactors=FALSE)
+}))
+summary <- summary[order(summary$cell, summary$parm), ]; row.names(summary) <- NULL
+if (mode == 'write') {
+  dir.create(output_dir, recursive=TRUE, showWarnings=FALSE)
+  if (file.exists(summary_file)) fail('Refuse to overwrite retained campaign summary.')
+  write.csv(summary, summary_file, row.names=FALSE)
+} else {
+  if (!file.exists(summary_file)) fail('G15 requires a retained campaign summary; reverify will not write one.')
+  old <- read.csv(summary_file, stringsAsFactors=FALSE)
+  if (!isTRUE(all.equal(old, summary, check.attributes=FALSE))) fail('Retained campaign summary does not reproduce from immutable shards.')
+}
+cat('TEMPORAL_OU_PROFILE_CAMPAIGN_SUMMARY_PASS\n')
