@@ -34,7 +34,18 @@ read_task <- function(path, task) {
   intervals
 }
 paths <- file.path(input_dir, sprintf('task-%04d', 1:3000))
-if (!dir.exists(input_dir) || !all(dir.exists(paths))) fail('Require immutable task-0001 through task-3000 campaign directories.')
+cleanup_root <- NULL
+if (!dir.exists(input_dir)) fail('Campaign input directory is absent.')
+if (!all(dir.exists(paths))) {
+  shards <- file.path(input_dir, sprintf('shard-%03d.tar.gz', 1:60))
+  if (!all(file.exists(shards))) fail('Require task-0001 through task-3000 directories or 60 immutable shard tarballs.')
+  cleanup_root <- tempfile('temporal-ou-campaign-shards-')
+  dir.create(cleanup_root)
+  on.exit(unlink(cleanup_root, recursive = TRUE), add = TRUE)
+  for (shard in shards) utils::untar(shard, exdir = cleanup_root)
+  paths <- file.path(cleanup_root, sprintf('task-%04d', 1:3000))
+  if (!all(dir.exists(paths))) fail('Immutable shard tarballs do not contain every task-0001 through task-3000 directory.')
+}
 rows <- do.call(rbind, Map(read_task, paths, 1:3000))
 if (length(unique(rows$source_commit)) != 1L || length(unique(rows$runner_md5)) != 1L) fail('Campaign shards do not share one frozen source and worker fingerprint.')
 source_commit <- unique(rows$source_commit)

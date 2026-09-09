@@ -54,3 +54,22 @@ change a coverage claim, or satisfy G14. G14 requires Shinichi's explicit
 approval of this exact target, 3,000-replicate denominator, Fir routing, and
 resource ceiling. After submission, G15 will recompute summaries from immutable
 outputs without launching another campaign.
+
+## Storage-consolidating alternative — pending revised authorization
+
+Fir currently has no free project inodes (`500K / 500K`). The prepared
+alternative stages one immutable `tar.gz` source archive, runs 50 data sets per
+array task in node-local storage, then publishes one atomic `tar.gz` evidence
+shard. It preserves every original per-data-set CSV, RDS, session record, worker
+log, and task status inside the shard. G15 can extract and recompute the same
+3,000-data-set denominator from all 60 shards. This follows earlier drmTMB
+campaign practice, where formal shard archives were later independently audited
+and aggregated.
+
+It reduces durable inode demand from roughly 24,000 loose worker files and
+6,000 Slurm logs to 62 files: one source archive, 60 immutable shards, and one
+recomputed summary. It changes the predeclared one-dataset array grain to 60
+batches of 50, the array concurrency to 10, and the requested wall time to 90
+minutes. It therefore requires a revised G14 authorization before submission.
+It also still requires roughly 100 free project inodes; no script can create an
+artifact in a full allocation.
