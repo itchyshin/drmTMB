@@ -94578,3 +94578,14 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+
+## 2026-09-09 — temporal covariance programme plan
+
+A plan-only master programme now sequences the completed AR1/OU provider, the planned
+phylogenetic-stable-plus-independent-OU slice, homogeneous Toeplitz, heterogeneous AR1,
+heterogeneous Toeplitz, and science-triggered seasonal/random-walk/ARMA/temporal-Matérn
+candidates. The plan requires positive-definite Toeplitz parameterisation, independent
+dense-oracle validation, bounded NotebookLM source mapping, a local timing pilot before
+any campaign, Totoro retention and separately authorized DRAC/Fir evidence. It does not
+claim any new supported model. Planning closeout:
+`docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-plan.md`.
