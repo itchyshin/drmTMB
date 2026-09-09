@@ -38,7 +38,7 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [ ] G7: Mean-coefficient covariance and Wald intervals are available only after the AR1 prerequisite and match independent references
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G7
   EXPECT: TEMPORAL_OU_G7_PASS
-  EVIDENCE: pending
+  EVIDENCE: The retained original C1 pilot had 4/5 available intervals. A disjoint five-seed current-source C1 replication (`2026091101`--`2026091105`) had 4/5 available intervals; seed `2026091101` had residual SD `0.000338`, a non-positive-definite full Hessian, and unavailable covariance. The combined 8/10 bounded result is diagnostic only, but it rules out treating the original failure as an isolated optimizer accident and is incompatible with the predeclared C1 availability criterion of at least 0.99. See `c1-wald-availability-replication-2026-09-09.md`. The current free-sigma full-Hessian Wald route remains unqualified.
 
 - [x] G8: Retained OU recovery preserves every start, failure, source fingerprint, and predeclared threshold
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G8
