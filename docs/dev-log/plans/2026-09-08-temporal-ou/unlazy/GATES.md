@@ -8,7 +8,7 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G1: The inherited AR1 source and C1 interval blocker are reconciled before public OU interval claims
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G1
   EXPECT: TEMPORAL_OU_G1_PASS
-  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G1` emitted `TEMPORAL_OU_G1_PASS`; retained C1 boundary diagnosis and OU Wald guard inspected 2026-09-08.
+  EVIDENCE: Retained C1 diagnosis and OU Wald guard inspected 2026-09-08. Exact C1 replay found active-boundary behavior: production-control starts at residual SD 0.4, 0.1, 0.01, 1e-4, and 1e-6 produced objectives 618.883549324, 618.883549221, 618.883548969, 618.883548215, and 618.880626547 respectively; the two lowest-scale attempts did not converge. See `c1-variance-start-profile-2026-09-08.md`. This rules out treating the higher pdHess candidate as the ML inference repair; G7 remains closed.
 
 - [x] G2: OU grammar admits numeric elapsed time and rejects duplicate, missing, unordered, or nonpositive-gap keys
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G2
