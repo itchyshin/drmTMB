@@ -207,6 +207,20 @@ test_that("S7 reconciliation requires all 17000 planned terminal attempts", {
   expected <- env$r071_s7_expected_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan())
   expect_identical(nrow(expected), 17000L)
   attempts <- transform(expected, fit_status = "returned", profile_status = "profile")
+  expect_error(
+    env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts),
+    "diagnostic"
+  )
+  attempts$estimate <- attempts$truth
+  attempts$link_estimate <- attempts$truth
+  attempts$std_error <- NA_real_
+  attempts$std_error_status <- "unavailable"
+  attempts$convergence_status <- "converged"
+  attempts$gradient_max_abs <- NA_real_
+  attempts$gradient_status <- "unavailable"
+  attempts$hessian_status <- "unavailable"
+  attempts$lower <- attempts$truth - 1
+  attempts$upper <- attempts$truth + 1
   reconciled <- env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts)
   expect_identical(reconciled$attempt_count, 17000L)
   expect_identical(reconciled$profile_count, 17000L)
@@ -254,4 +268,49 @@ test_that("S7 worker dry-run writes only its immutable planned sidecar", {
   expect_identical(planned$dgp_seed, 71014001L)
   expect_equal(planned$truth, log(0.125))
   expect_false(file.exists(file.path(out, "profile-receipt.tsv")))
+})
+
+test_that("S7 campaign bundle materializes and hashes the frozen denominators", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "prepare-s7-campaign-bundle.R"), envir = env)
+  bundle <- tempfile("071-s7-bundle-")
+  dir.create(bundle)
+  receipt <- env$r071_s7_write_campaign_bundle(bundle)
+  expect_identical(receipt$manifest_rows, 2000L)
+  expect_identical(receipt$profile_plan_rows, 34L)
+  expect_true(file.exists(file.path(bundle, "s7-manifest.tsv")))
+  expect_true(file.exists(file.path(bundle, "s7-profile-plan.tsv")))
+  expect_true(file.exists(file.path(bundle, "campaign.json")))
+  expect_match(receipt$manifest_sha256, "^[0-9a-f]{64}$")
+  expect_match(receipt$profile_plan_sha256, "^[0-9a-f]{64}$")
+  expect_match(receipt$campaign_sha256, "^[0-9a-f]{64}$")
+  expect_identical(
+    env$r071_s7_read_campaign_bundle(bundle)$manifest,
+    env$r071_s7_manifest()
+  )
+})
+
+test_that("S7 attempt diagnostics classify unavailable uncertainty explicitly", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  attempt <- env$r071_s7_complete_attempt(
+    logical_task_id = 1501L, fixture = "nb2_coupled", dgp_seed = 71014001L,
+    engine = "julia", parm = "cholesky:recov:L22", truth = log(0.125),
+    estimate = log(0.11), link_estimate = log(0.11),
+    std_error = NA_real_, std_error_status = "unavailable",
+    convergence_status = "converged", gradient_max_abs = NA_real_,
+    gradient_status = "unavailable", hessian_status = "unavailable",
+    fit_status = "returned", profile_status = "nonfinite_endpoint",
+    lower = NA_real_, upper = Inf
+  )
+  expect_silent(env$r071_s7_validate_attempt(attempt))
+  expect_identical(attempt$std_error_status, "unavailable")
+  attempt$std_error_status <- ""
+  expect_error(env$r071_s7_validate_attempt(attempt), "diagnostic classification")
 })
