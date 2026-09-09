@@ -19,25 +19,25 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G2_PASS
   EVIDENCE: 2026-09-09 direct worker returned PHYLO_TEMPORAL_OU_G2_PASS. Focused paired tests passed 13 assertions, including mismatched IDs, ordinary-intercept exclusion, raw duplicate keys, insufficient species, retained singleton series, and mismatched tree tips.
 
-- [ ] G3: An independently coded dense marginal covariance oracle covers non-diagonal phylogeny, irregular elapsed time, unbalanced species sampling and shuffled rows, including a cross-species nonzero-lag entry with selected `A_ij != 0`, `s_a > 0` and finite positive decay that equals stable phylogenetic covariance only.
+- [x] G3: An independently coded dense marginal covariance oracle covers non-diagonal phylogeny, irregular elapsed time, unbalanced species sampling and shuffled rows, including a cross-species nonzero-lag entry with selected `A_ij != 0`, `s_a > 0` and finite positive decay that equals stable phylogenetic covariance only.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G3
   EXPECT: PHYLO_TEMPORAL_OU_G3_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G3_PASS. Independent `ape::vcv()` dense likelihood on a 12-species unbalanced, shuffled fixture matched the native objective to 1e-7 and asserted the stable-only cross-species nonzero-lag entry.
 
-- [ ] G4: Native likelihood, score and observed Hessian agree with the dense oracle at two finite-difference steps.
+- [x] G4: Native likelihood, score and observed Hessian agree with the dense oracle at two finite-difference steps.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G4
   EXPECT: PHYLO_TEMPORAL_OU_G4_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G4_PASS. Dense finite-difference score used 1e-6; Hessians at 1e-4 and 1e-5 agreed and matched inverse `sdr$cov.fixed` at 1e-4.
 
-- [ ] G5: The four reductions agree with current independent OU when the stable phylogenetic SD is zero, ordinary phylogenetic intercept when the temporal SD is zero, ordinary-intercept-plus-OU when phylogeny is identity, and the complete unit-spaced covariance `s_b^2 A_ij + I(i=j) s_a^2 phi^|k-l| + I(r=q) sigma^2` with `phi = exp(-decay)`.
+- [x] G5: The four reductions agree with current independent OU when the stable phylogenetic SD is zero, ordinary phylogenetic intercept when the temporal SD is zero, ordinary-intercept-plus-OU when phylogeny is identity, and the complete unit-spaced covariance `s_b^2 A_ij + I(i=j) s_a^2 phi^|k-l| + I(r=q) sigma^2` with `phi = exp(-decay)`.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G5
   EXPECT: PHYLO_TEMPORAL_OU_G5_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G5_PASS. The independent covariance test exercises all four reductions with `phi = 0.5` at unit spacing.
 
-- [ ] G6: On the G3 fixture with selected `A_ij != 0`, `s_a > 0`, finite positive decay and nonzero cross-species lag, mutation tests detect a missing phylogenetic off-diagonal and the wrong separable phylogeny-by-OU covariance; they also detect a shared OU state across species, a wrong OU transition normalizer, a dropped stable intercept and a misaligned tree tip.
+- [x] G6: On the G3 fixture with selected `A_ij != 0`, `s_a > 0`, finite positive decay and nonzero cross-species lag, mutation tests detect a missing phylogenetic off-diagonal and the wrong separable phylogeny-by-OU covariance; they also detect a shared OU state across species, a wrong OU transition normalizer, a dropped stable intercept and a misaligned tree tip.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G6
   EXPECT: PHYLO_TEMPORAL_OU_G6_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G6_PASS. All six named covariance or normalized-transition mutations differ from the independent reference.
 
 - [ ] G7: Conditional modes, fitted values, residuals, fresh simulation and conditional simulation agree with dense references and retain component labels.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G7

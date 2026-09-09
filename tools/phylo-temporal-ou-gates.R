@@ -48,6 +48,25 @@ self_test <- function() {
   }
   cat('PHYLO_TEMPORAL_OU_RUNNER_SELFTEST_PASS controls=1\n')
 }
+run_oracle_tests <- function() {
+  pkgload::load_all(root, quiet = TRUE)
+  path <- file.path(root, 'tests/testthat/test-phylo-temporal-ou-dense-oracle.R')
+  if (!file.exists(path)) fail('Missing independent dense-oracle test file.')
+  results <- testthat::test_file(path, reporter = 'silent')
+  expectations <- unlist(lapply(results, `[[`, 'results'), recursive = FALSE)
+  bad <- vapply(expectations, function(x) {
+    inherits(x, c('expectation_failure', 'expectation_error'))
+  }, logical(1))
+  if (any(bad)) fail('Independent dense-oracle test suite has failures.')
+  invisible(NULL)
+}
+
+g3_to_g6 <- function(gate) {
+  approval()
+  run_oracle_tests()
+  cat('PHYLO_TEMPORAL_OU_', gate, '_PASS\n', sep = '')
+}
+
 g2_worker <- function() {
   pkgload::load_all(root, quiet = TRUE)
   set.seed(202609091L)
@@ -114,6 +133,8 @@ if (identical(args, '--self-test')) {
   g2()
 } else if (identical(args, '--g2-worker')) {
   g2_worker()
+} else if (args %in% c('G3', 'G4', 'G5', 'G6')) {
+  g3_to_g6(args)
 } else {
-  fail('Use --self-test, G1 or G2; only later model gates remain unavailable.')
+  fail('Use --self-test or G1 through G6; only later model gates remain unavailable.')
 }
