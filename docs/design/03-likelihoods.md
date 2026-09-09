@@ -58,6 +58,40 @@ In mathematical prose, `Normal(a, b)` uses variance as the second argument.
 The corresponding R density call uses standard deviation, as in
 `dnorm(y, mean = a, sd = sqrt(b), log = TRUE)`.
 
+## Gaussian temporal AR1 effects
+
+The first temporal route is a univariate Gaussian location model with optional
+ordinary, stable series differences:
+
+\[
+y_{it} = x_{it}^{T}\beta + b_i + a_{it} + \epsilon_{it},
+\qquad
+b_i \sim N(0, s_b^2),\quad
+\epsilon_{it} \sim N(0, \sigma^2).
+\]
+
+For the temporal field, `temporal(1 | id, time = occasion, structure =
+"ar1")` estimates a stationary process SD `s_a` and one-occasion persistence
+`phi`:
+
+\[
+\operatorname{Cov}(a_{it}, a_{is}) = s_a^2\phi^{|t-s|}.
+\]
+
+Thus, within one series, the marginal covariance is
+\(s_b^2\mathbf{1}\mathbf{1}^{T} + s_a^2R(\phi) + \sigma^2I\). The native
+likelihood uses the stationary first-state density and, for an observed integer
+gap \(d\), the standardized transition \(u_t \mid u_{t-d}\sim
+N(\phi^d u_{t-d}, 1-\phi^{2d})\). It preserves the supplied integer times:
+it never converts them to ranks. The unconstrained persistence coordinate is
+transformed by `tanh()`, so both negative and positive persistence are
+possible.
+
+`s_a` is the stationary temporal-process SD, not an innovation SD. When an
+ordinary intercept is included, `s_b` describes stable differences between
+series; `sigma` remains independent observation-level residual SD. These three
+sources of variability are mutually independent.
+
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,

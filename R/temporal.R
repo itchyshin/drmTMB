@@ -22,6 +22,20 @@ empty_temporal_mu_structure <- function() {
   )
 }
 
+drm_formula_has_temporal <- function(formula) {
+  any(vapply(
+    formula$entries,
+    function(entry) {
+      any(vapply(
+        entry$structured,
+        function(term) identical(term$type, "temporal"),
+        logical(1)
+      ))
+    },
+    logical(1)
+  ))
+}
+
 extract_gaussian_mu_temporal_term <- function(entry, dpar = entry$dpar) {
   terms <- flatten_plus_terms(entry$rhs)
   is_temporal <- vapply(

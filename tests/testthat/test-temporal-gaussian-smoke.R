@@ -107,6 +107,35 @@ test_that("combined temporal AR1 enforces its same-ID and multiple-series contra
   )
 })
 
+test_that("temporal AR1 rejects deferred family, estimator, and scale combinations explicitly", {
+  dat <- temporal_smoke_data()
+  expect_error(
+    drmTMB(
+      bf(y ~ temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = dat, family = poisson()
+    ),
+    "only for univariate Gaussian"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = dat, family = gaussian(), REML = TRUE
+    ),
+    "maximum likelihood"
+  )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ temporal(1 | id, time = occasion, structure = "ar1"),
+        sigma ~ 1,
+        sd(id) ~ 1
+      ),
+      data = dat, family = gaussian(), REML = FALSE
+    ),
+    "additional modelling feature"
+  )
+})
+
 test_that("temporal AR1 exposes labelled components and mean-only Wald inference", {
   dat <- temporal_smoke_data()
   dat <- dat[rep(seq_len(nrow(dat)), 3L), , drop = FALSE]

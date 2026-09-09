@@ -29,6 +29,35 @@ spatial, and derived-inference phases should build on.
 
 ## Initial Syntax
 
+### Temporal intercepts
+
+For repeated observations of the same individual or site, a Gaussian location
+model can separate stable differences, persistent deviations, and independent
+residual noise:
+
+```r
+bf(
+  y ~ treatment + occasion +
+    (1 | id) +
+    temporal(1 | id, time = occasion, structure = "ar1"),
+  sigma ~ 1
+)
+```
+
+The ordinary `(1 | id)` term is optional. It is a stable between-ID intercept;
+the `temporal()` term is a within-ID stationary AR1 process with its own SD and
+one-occasion persistence. Both use the same ID because this first route has
+one temporal field and, at most, one matching ordinary intercept. Occasions
+are finite integers and are not rank-compressed, so an interval from occasion
+1 to 3 is a two-occasion transition. Duplicate ID--occasion records are
+rejected before response omission.
+
+This route is native Gaussian maximum likelihood with constant `sigma`. It
+supports fixed-effect Wald intervals, in-sample fitted values, residuals, and
+simulation. It does not yet support REML, temporal slopes, an OU process,
+forecasting or `newdata` prediction, or confidence intervals for process SD,
+persistence, ordinary-intercept SD, or residual SD.
+
 Implemented:
 
 ```r

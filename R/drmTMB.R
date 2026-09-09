@@ -295,6 +295,12 @@ drmTMB <- function(
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
+  if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
+    cli::cli_abort(c(
+      "Temporal AR1 effects are implemented only by the native TMB Gaussian route.",
+      "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
+    ))
+  }
   if (identical(engine, "julia")) {
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
@@ -332,6 +338,18 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  if (drm_formula_has_temporal(formula) && !identical(family_type, "gaussian")) {
+    cli::cli_abort(c(
+      "Temporal AR1 effects are implemented only for univariate Gaussian models.",
+      "i" = "Use {.code family = gaussian()} with a temporal term in the {.code mu} formula."
+    ))
+  }
+  if (drm_formula_has_temporal(formula) && isTRUE(REML)) {
+    cli::cli_abort(c(
+      "Temporal AR1 Gaussian models currently use maximum likelihood.",
+      "i" = "Set {.code REML = FALSE}."
+    ))
+  }
   drm_validate_mspl_request(
     estimator = estimator,
     engine = engine,
@@ -3931,6 +3949,21 @@ drm_build_gaussian_ls_spec <- function(
   mu_temporal <- extract_gaussian_mu_temporal_term(mu_entry)
   mu_entry$rhs <- mu_temporal$rhs
   validate_temporal_raw_data(mu_temporal$term, data)
+  if (!is.null(mu_temporal$term) && (
+    !is.null(meta$V) ||
+      length(sd_mu_entries) > 0L ||
+      length(sd_phylo_entries) > 0L ||
+      !is.null(impute) ||
+      include_missing_response ||
+      identical(missing$predictor, "model") ||
+      isTRUE(control$sparse_fixed) ||
+      isTRUE(control$aggregate_gaussian)
+  )) {
+    cli::cli_abort(c(
+      "Temporal AR1 Gaussian models do not support this additional modelling feature yet.",
+      "i" = "Use fixed mean predictors and offsets, {.code sigma ~ 1}, and at most one matching {.code (1 | id)} intercept."
+    ))
+  }
   if (any(vapply(
     sigma_entry$structured,
     function(term) identical(term$type, "temporal"),
