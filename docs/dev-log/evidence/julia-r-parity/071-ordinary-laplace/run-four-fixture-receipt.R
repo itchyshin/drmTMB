@@ -196,7 +196,9 @@ for (id in fixtures) {
   write.table(provisional_profile, file.path(out, paste0(id, sidecar, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   marker <- file.path(out, paste0(id, "-profile-boundary.log"))
   cat(sprintf("START\t%s\t%s\n", requested_engine, requested_target), file = marker, append = TRUE)
-  profile_args <- if (identical(requested_engine, "tmb") && startsWith(requested_target, "cholesky:recov:")) {
+  profile_args <- if (identical(requested_engine, "tmb")) {
+    # `threads` is a Julia bridge control.  Forwarding `threads = FALSE` into
+    # native TMB selects a distinct profile path that fails on RI boundaries.
     list(object = fit, parm = requested_target, method = "profile")
   } else {
     list(object = fit, parm = requested_target, method = "profile", threads = FALSE)
