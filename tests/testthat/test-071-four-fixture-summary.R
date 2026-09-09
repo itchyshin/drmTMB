@@ -566,6 +566,8 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
   expect_match(text, "R_LIBS_USER", fixed = TRUE)
   expect_match(text, "Pkg.instantiate", fixed = TRUE)
   expect_match(text, "SLURM_ARRAY_TASK_ID=1501", fixed = TRUE)
+  expect_match(text, "dependencies = NA", fixed = TRUE)
+  expect_false(grepl("dependencies = TRUE", text, fixed = TRUE))
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
 })
 

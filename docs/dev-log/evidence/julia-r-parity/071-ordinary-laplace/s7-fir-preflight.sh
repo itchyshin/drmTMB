@@ -47,7 +47,7 @@ Rscript -e '
   needed <- c("cli", "lifecycle", "TMB", "JuliaCall")
   missing <- needed[!vapply(needed, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) {
-    install.packages(missing, lib = lib, repos = "https://cloud.r-project.org", dependencies = TRUE, Ncpus = 1L)
+    install.packages(missing, lib = lib, repos = "https://cloud.r-project.org", dependencies = NA, Ncpus = 1L)
   }
   unavailable <- needed[!vapply(needed, requireNamespace, logical(1), quietly = TRUE)]
   if (length(unavailable)) stop("missing required R package(s): ", paste(unavailable, collapse = ", "))
