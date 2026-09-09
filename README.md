@@ -308,9 +308,11 @@ head(sigma(fit)^2) # fitted residual variances
   `temporal(1 | id, time = elapsed, structure = "ou")`. These temporal routes
   are univariate Gaussian ML models with constant `sigma`, one temporal
   intercept process, and an optional ordinary `(1 | id)` intercept using the
-  same ID. Its Wald intervals cover mean coefficients only when the full
-  observed Hessian is positive definite; process, persistence, and residual
-  intervals, forecasts, and `newdata` prediction remain unavailable. For the
+  same ID. AR1 Wald intervals cover mean coefficients only when the full
+  observed Hessian is positive definite. OU reports point estimates while its
+  inherited calibration prerequisite remains unresolved. Process, persistence,
+  decay, and residual intervals, forecasts, and `newdata` prediction remain
+  unavailable. For the
   other Gaussian structured effects,
   those markers fit documented `mu` and `sigma` intercept routes, one numeric
   `mu` slope, q=2 bivariate mean-mean intercept and slope-only blocks, and

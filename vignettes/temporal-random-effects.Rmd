@@ -13,10 +13,10 @@ library(drmTMB)
 ```
 
 Repeated measurements can vary for three different reasons. Individuals or
-sites may have stable baseline differences, their deviations may persist from
-one occasion to the next, and each observation has independent residual noise.
-The Gaussian temporal AR1 model separates those components while estimating
-the effects of treatments or other predictors.
+sites may have stable baseline differences, their deviations may persist through
+time, and each observation has independent residual noise. Gaussian temporal
+AR1 and OU models separate those components while estimating the effects of
+treatments or other predictors.
 
 For observation \\(t\\) in series \\(i\\), the model is
 
@@ -136,17 +136,44 @@ Use an OU field when elapsed intervals carry meaning, such as visits at 0, 0.5,
 a positive decay rate, so correlation over a gap `d` is `exp(-decay * d)`. It
 cannot represent alternating negative temporal correlation.
 
-```{r, eval = FALSE}
+```{r}
+set.seed(20260909)
+elapsed_values <- c(0, 0.5, 2.5, 5)
+n_ou_site <- 24
+site_ou <- factor(rep(paste0("ou_site_", seq_len(n_ou_site)), each = length(elapsed_values)))
+elapsed_days <- rep(elapsed_values, n_ou_site)
+treatment_ou <- rep(rep(c(0, 1), length.out = length(elapsed_values)), n_ou_site)
+
+R_ou <- exp(-0.45 * abs(outer(elapsed_values, elapsed_values, "-")))
+ou_effect <- unlist(lapply(seq_len(n_ou_site), function(i) {
+  as.vector(t(chol(R_ou)) %*% rnorm(length(elapsed_values), sd = 0.65))
+}), use.names = FALSE)
+dat_irregular <- data.frame(
+  y = 0.8 + 0.35 * treatment_ou +
+    rep(rnorm(n_ou_site, sd = 0.45), each = length(elapsed_values)) +
+    ou_effect + rnorm(n_ou_site * length(elapsed_values), sd = 0.40),
+  treatment = treatment_ou,
+  site = site_ou,
+  elapsed_days = elapsed_days
+)
+
 ou_fit <- drmTMB(
   bf(y ~ treatment + (1 | site) +
        temporal(1 | site, time = elapsed_days, structure = "ou"), sigma ~ 1),
   data = dat_irregular, family = gaussian(), REML = FALSE
 )
-summary(ou_fit) # point estimates; OU Wald intervals are not yet qualified
+summary(ou_fit)
+ou_fit$decaypars$temporal
+head(fitted(ou_fit))
+simulate(ou_fit, nsim = 2)
 ```
 
 For OU, `elapsed_days` must be finite numeric, genuine gaps are retained, and
 duplicate site--time records must be aggregated before fitting. Input order may
 be shuffled. In-sample fitted values, residuals, and conditional or fresh
 simulation follow the AR1 conventions. Forecasting and `newdata` prediction
-remain unavailable.
+remain unavailable. `ou_fit$decaypars$temporal` is the positive decay rate in
+the units of `elapsed_days`: if you change days to hours, the numerical rate
+changes by the inverse factor while the fitted correlation over a physical gap
+does not. `vcov()`, `confint()`, and `summary(..., conf.int = TRUE)` deliberately
+refuse OU Wald inference until the inherited AR1 calibration issue is resolved.

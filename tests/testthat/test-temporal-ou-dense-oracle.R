@@ -89,7 +89,7 @@ test_that("temporal OU score, Hessian, and coefficient covariance match dense re
     expect_equal(unname(observed_hessian), unname(hessian_1), tolerance = 1e-4)
     beta_index <- which(names(opt_par) == "beta_mu")
     expect_equal(
-      unname(stats::vcov(fit)),
+      unname(fit$sdr$cov.fixed[beta_index, beta_index, drop = FALSE]),
       unname(solve(observed_hessian)[beta_index, beta_index, drop = FALSE]),
       tolerance = 1e-7
     )

@@ -58,7 +58,7 @@ In mathematical prose, `Normal(a, b)` uses variance as the second argument.
 The corresponding R density call uses standard deviation, as in
 `dnorm(y, mean = a, sd = sqrt(b), log = TRUE)`.
 
-## Gaussian temporal AR1 effects
+## Gaussian temporal AR1 and OU effects
 
 The first temporal route is a univariate Gaussian location model with optional
 ordinary, stable series differences:
@@ -109,7 +109,7 @@ normalizers remain in the native likelihood. Rows may be supplied in any order;
 the fit sorts states within series and returns fitted values in the supplied row
 order. Duplicate series--time keys are rejected before response omission.
 
-OU cannot express negative correlation. Its reported temporal correlation
+OU cannot express negative correlation. Its reported temporal decay
 parameter is the positive decay rate, not a one-unit correlation or an
 innovation SD. `vcov()`, `confint()`, and summary Wald intervals are currently
 deferred for OU because the inherited AR1 interval calibration prerequisite is

@@ -297,7 +297,7 @@ drmTMB <- function(
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
     cli::cli_abort(c(
-      "Temporal AR1 effects are implemented only by the native TMB Gaussian route.",
+      "Temporal AR1 and OU effects are implemented only by the native TMB Gaussian route.",
       "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
     ))
   }
@@ -340,13 +340,13 @@ drmTMB <- function(
   family_type <- drm_family_type(family)
   if (drm_formula_has_temporal(formula) && !identical(family_type, "gaussian")) {
     cli::cli_abort(c(
-      "Temporal AR1 effects are implemented only for univariate Gaussian models.",
+      "Temporal AR1 and OU effects are implemented only for univariate Gaussian models.",
       "i" = "Use {.code family = gaussian()} with a temporal term in the {.code mu} formula."
     ))
   }
   if (drm_formula_has_temporal(formula) && isTRUE(REML)) {
     cli::cli_abort(c(
-      "Temporal AR1 Gaussian models currently use maximum likelihood.",
+      "Temporal AR1 and OU Gaussian models currently use maximum likelihood.",
       "i" = "Set {.code REML = FALSE}."
     ))
   }
@@ -626,7 +626,7 @@ drm_fit_spec <- function(
       isTRUE(spec$structured$temporal_mu$has)
   ) {
     cli::cli_abort(c(
-      "Temporal AR1 models are currently implemented with maximum likelihood only.",
+      "Temporal AR1 and OU models are currently implemented with maximum likelihood only.",
       "i" = "Use {.code REML = FALSE}."
     ))
   }
@@ -790,6 +790,7 @@ drm_fit_spec <- function(
     coefficients = par,
     sdpars = split_tmb_sdpars(par_list, spec),
     corpars = split_tmb_corpars(par_list, spec),
+    decaypars = split_tmb_decaypars(par_list, spec),
     random_effects = split_tmb_random_effects(par_list, spec),
     ordinal = ordinal_fit_info(par_list, spec),
     missing_data = missing_data,
@@ -3973,7 +3974,7 @@ drm_build_gaussian_ls_spec <- function(
   validate_temporal_raw_data(mu_temporal$term, data)
   if (!is.null(mu_temporal$term) && !is.null(weights) && any(weights != 1)) {
     cli::cli_abort(c(
-      "Temporal AR1 Gaussian models currently require unit likelihood weights.",
+      "Temporal AR1 and OU Gaussian models currently require unit likelihood weights.",
       "i" = "Remove {.arg weights} or supply one weight for every observation while the unweighted marginal covariance route is fitted."
     ))
   }
@@ -3988,7 +3989,7 @@ drm_build_gaussian_ls_spec <- function(
       isTRUE(control$aggregate_gaussian)
   )) {
     cli::cli_abort(c(
-      "Temporal AR1 Gaussian models do not support this additional modelling feature yet.",
+      "Temporal AR1 and OU Gaussian models do not support this additional modelling feature yet.",
       "i" = "Use fixed mean predictors and offsets, {.code sigma ~ 1}, and at most one matching {.code (1 | id)} intercept."
     ))
   }
@@ -3998,8 +3999,8 @@ drm_build_gaussian_ls_spec <- function(
     logical(1)
   ))) {
     cli::cli_abort(c(
-      "Temporal AR1 effects are only implemented for the Gaussian {.code mu} formula.",
-      "i" = "Use {.code y ~ temporal(1 | id, time = occasion, structure = \"ar1\")} and {.code sigma ~ 1}."
+      "Temporal AR1 and OU effects are only implemented for the Gaussian {.code mu} formula.",
+      "i" = "Use {.code y ~ temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code y ~ temporal(1 | id, time = elapsed, structure = \"ou\")}, with {.code sigma ~ 1}."
     ))
   }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
@@ -4056,9 +4057,9 @@ drm_build_gaussian_ls_spec <- function(
   }
   if (!is.null(mu_temporal$term) && length(active_structured) > 0L) {
     cli::cli_abort(c(
-      "Temporal AR1 models cannot be combined with another structured effect in this first slice.",
+      "Temporal AR1 and OU models cannot be combined with another structured effect in this first slice.",
       "x" = "The model also contains {.val {active_structured}}.",
-      "i" = "Fit one temporal AR1 effect with an optional ordinary {.code (1 | id)} intercept."
+      "i" = "Fit one temporal effect with an optional ordinary {.code (1 | id)} intercept."
     ))
   }
   structured_terms <- lapply(
@@ -22646,14 +22647,11 @@ split_tmb_corpars <- function(par, spec) {
   }
   if (
     is.list(spec$structured$temporal_mu) &&
-      isTRUE(spec$structured$temporal_mu$has)
+      isTRUE(spec$structured$temporal_mu$has) &&
+      identical(spec$structured$temporal_mu$structure, "ar1")
   ) {
     temporal <- spec$structured$temporal_mu
-    temporal_parameter <- if (identical(temporal$structure, "ar1")) {
-      tanh(unname(par$theta_temporal[[1L]]))
-    } else {
-      exp(unname(par$theta_temporal[[1L]]))
-    }
+    temporal_parameter <- tanh(unname(par$theta_temporal[[1L]]))
     out$temporal <- stats::setNames(temporal_parameter, temporal$label)
   }
   if (is.list(spec$random$covariance_blocks)) {
@@ -22719,6 +22717,19 @@ split_tmb_corpars <- function(par, spec) {
   }
 
   out
+}
+
+# OU has a positive decay rate, rather than a correlation parameter.  Keep it
+# out of `corpars` so generic correlation methods cannot silently apply tanh.
+split_tmb_decaypars <- function(par, spec) {
+  temporal <- spec$structured$temporal_mu
+  if (!is.list(temporal) || !isTRUE(temporal$has) ||
+      !identical(temporal$structure, "ou")) {
+    return(list())
+  }
+  list(temporal = stats::setNames(
+    exp(unname(par$theta_temporal[[1L]])), temporal$label
+  ))
 }
 
 modelled_corpair_values <- function(par, spec) {

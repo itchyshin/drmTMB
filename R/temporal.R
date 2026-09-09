@@ -22,6 +22,10 @@ empty_temporal_mu_structure <- function() {
   )
 }
 
+temporal_structure_name <- function(term) {
+  paste("Temporal", toupper(term$structure))
+}
+
 drm_formula_has_temporal <- function(formula) {
   any(vapply(
     formula$entries,
@@ -49,8 +53,8 @@ extract_gaussian_mu_temporal_term <- function(entry, dpar = entry$dpar) {
   }
   if (sum(is_temporal) > 1L) {
     cli::cli_abort(c(
-      "Only one temporal AR1 effect is implemented in {.code {dpar}}.",
-      "x" = "Use one term such as {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      "Only one temporal effect is implemented in {.code {dpar}}.",
+      "x" = "Use one term such as {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
     ))
   }
   temporal_terms <- Filter(
@@ -71,7 +75,7 @@ validate_temporal_raw_data <- function(term, data) {
   missing_columns <- setdiff(required, names(data))
   if (length(missing_columns) > 0L) {
     cli::cli_abort(c(
-      "Temporal AR1 inputs must be columns in {.arg data}.",
+      "{temporal_structure_name(term)} inputs must be columns in {.arg data}.",
       "x" = "Missing temporal column{?s}: {.val {missing_columns}}."
     ))
   }
@@ -79,7 +83,7 @@ validate_temporal_raw_data <- function(term, data) {
   occasion <- data[[term$time]]
   if (anyNA(id) || anyNA(occasion)) {
     cli::cli_abort(c(
-      "Temporal AR1 identifiers and occasions must be complete before response omission.",
+      "{temporal_structure_name(term)} identifiers and times must be complete before response omission.",
       "x" = "Column{?s} {.val {required}} contain missing value{?s}.",
       "i" = "Repair {.arg id} and {.arg time} metadata before fitting."
     ))
@@ -106,7 +110,7 @@ validate_temporal_raw_data <- function(term, data) {
   ))
   if (any(duplicate_key)) {
     cli::cli_abort(c(
-      "Temporal AR1 series-occasion keys must be unique before response omission.",
+      "{temporal_structure_name(term)} series-time keys must be unique before response omission.",
       "x" = "{sum(duplicate_key)} duplicated {.code ({term$group}, {term$time})} key{?s} found.",
       "i" = "Use one response per series and occasion, or aggregate the data before fitting."
     ))
@@ -126,13 +130,13 @@ validate_temporal_gaussian_terms <- function(
   }
   if (!is_intercept_one(sigma_rhs) || length(sigma_re$terms) > 0L) {
     cli::cli_abort(c(
-      "Temporal AR1 Gaussian models currently require {.code sigma ~ 1}.",
-      "i" = "Use a constant residual SD while temporal AR1 effects are fitted."
+      "{temporal_structure_name(term)} Gaussian models currently require {.code sigma ~ 1}.",
+      "i" = "Use a constant residual SD while temporal effects are fitted."
     ))
   }
   if (length(mu_re$terms) > 1L) {
     cli::cli_abort(c(
-      "Temporal AR1 models allow at most one ordinary random intercept.",
+      "{temporal_structure_name(term)} models allow at most one ordinary random intercept.",
       "x" = "Additional ordinary random effects are not implemented with {.fn temporal}."
     ))
   }
@@ -151,8 +155,8 @@ validate_temporal_gaussian_terms <- function(
     }
     if (length(unique(as.character(data[[term$group]]))) < 2L) {
       cli::cli_abort(c(
-        "A temporal AR1 model with an ordinary random intercept requires multiple series.",
-        "i" = "Fit AR1-only for one series, or provide observations from at least two IDs."
+        "A {tolower(temporal_structure_name(term))} model with an ordinary random intercept requires multiple series.",
+        "i" = "Fit the temporal process without an ordinary intercept for one series, or provide observations from at least two IDs."
       ))
     }
   }
@@ -207,8 +211,8 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   }
   if (has_ordinary_intercept && n_series < 2L) {
     cli::cli_abort(c(
-      "A temporal AR1 model with an ordinary random intercept requires multiple series.",
-      "i" = "Fit AR1-only for one series, or provide observations from at least two IDs."
+      "A {tolower(temporal_structure_name(term))} model with an ordinary random intercept requires multiple series.",
+      "i" = "Fit the temporal process without an ordinary intercept for one series, or provide observations from at least two IDs."
     ))
   }
   observation_node_index <- integer(nrow(data))
@@ -301,7 +305,11 @@ temporal_mu_contribution <- function(object) {
 drm_fresh_temporal_mu_values <- function(object) {
   temporal <- object$model$structured$temporal_mu
   sd <- unname(object$sdpars$mu[[temporal_mu_sd_label(temporal)]])
-  temporal_parameter <- unname(object$corpars$temporal[[temporal$label]])
+  temporal_parameter <- if (identical(temporal$structure, "ar1")) {
+    unname(object$corpars$temporal[[temporal$label]])
+  } else {
+    unname(object$decaypars$temporal[[temporal$label]])
+  }
   latent <- numeric(temporal$n_re)
   starts <- temporal$series_start0 + 1L
   for (series in seq_len(temporal$n_series)) {
@@ -316,7 +324,11 @@ drm_fresh_temporal_mu_values <- function(object) {
           exp(-temporal_parameter * temporal$gap[[node]])
         }
         latent[[node]] <- transition * latent[[node - 1L]] +
-          sqrt(1 - transition^2) * stats::rnorm(1L)
+          sqrt(if (identical(temporal$structure, "ou")) {
+            -expm1(-2 * temporal_parameter * temporal$gap[[node]])
+          } else {
+            1 - transition^2
+          }) * stats::rnorm(1L)
       }
     }
   }

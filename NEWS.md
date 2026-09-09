@@ -23,11 +23,12 @@ every item above.
 
 ## Gaussian temporal AR1 and OU random effects
 
-* Native ML now fits one univariate Gaussian stationary temporal AR1 intercept
-  field with real integer occasion gaps through
+* Native ML now fits univariate Gaussian stationary temporal intercept fields:
+  AR1 with real integer occasion gaps through
   `temporal(1 | id, time = occasion, structure = "ar1")`. It can be paired
   with one ordinary `(1 | id)` random intercept using the same ID, separating
-  stable differences, temporal persistence, and residual `sigma`.
+  stable differences, temporal persistence, and residual `sigma`. The OU route
+  uses finite numeric elapsed time and a positive exponential decay rate.
 * `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
   mean-coefficient uncertainty only when the full observed Hessian supports
   it. The new OU elapsed-time point-fit route uses `structure = "ou"` with a positive decay rate; its Wald intervals remain deferred behind the AR1 calibration blocker. Variance/persistence intervals, profile/bootstrap inference, forecasts,

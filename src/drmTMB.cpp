@@ -103,6 +103,17 @@ Type drm_ar1_transition_sd(Type theta, Type phi, int gap) {
   return exp(drm_log_sech(theta) + Type(0.5) * log(geometric_sum));
 }
 
+// `1 - exp(-x)` loses its positive difference when x is much smaller than
+// machine precision.  CppAD does not provide an AD overload of `expm1`, so
+// use its stable Taylor representation near zero and the direct expression
+// elsewhere.  Temporal gaps are positive after the R-side key check.
+template<class Type>
+Type drm_one_minus_exp_neg(Type x) {
+  Type direct = Type(1.0) - exp(-x);
+  Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
+  return CppAD::CondExpLt(x, Type(1e-5), series, direct);
+}
+
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
 // [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
 template<class Type>
@@ -1055,7 +1066,9 @@ Type objective_function<Type>::operator()()
             );
           } else {
             transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
-            transition_sd = sqrt(Type(1.0) - transition * transition);
+            transition_sd = sqrt(drm_one_minus_exp_neg(
+              Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
+            ));
           }
           nll -= dnorm(
             u_temporal(node),

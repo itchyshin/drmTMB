@@ -36,8 +36,9 @@ test_that("temporal OU labels and reports a positive decay rate", {
 
   temporal <- fit$model$structured$temporal_mu
   expect_match(temporal$label, 'structure = "ou"', fixed = TRUE)
-  expect_true(is.finite(unname(fit$corpars$temporal[[temporal$label]])))
-  expect_gt(unname(fit$corpars$temporal[[temporal$label]]), 0)
+  expect_null(fit$corpars$temporal)
+  expect_true(is.finite(unname(fit$decaypars$temporal[[temporal$label]])))
+  expect_gt(unname(fit$decaypars$temporal[[temporal$label]]), 0)
 })
 
 test_that("temporal OU defers Wald intervals until the inherited calibration prerequisite is met", {
@@ -52,6 +53,40 @@ test_that("temporal OU defers Wald intervals until the inherited calibration pre
     stats::confint(fit, method = "wald"),
     "OU mean-coefficient Wald intervals are not yet qualified"
   )
+})
+
+test_that("temporal OU keeps covariance and decay intervals unavailable", {
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = temporal_ou_data(), family = gaussian(), REML = FALSE
+  )
+  temporal <- fit$model$structured$temporal_mu
+  expect_error(stats::vcov(fit), "OU coefficient covariance is not yet qualified")
+  summary_fit <- summary(fit)
+  expect_true(all(is.na(summary_fit$coefficients$std_error)))
+  expect_identical(
+    summary_fit$coefficients$std_error.status,
+    rep("temporal_wald_unqualified", nrow(summary_fit$coefficients))
+  )
+  targets <- drmTMB:::profile_targets(fit)
+  decay <- targets[targets$target_class == "temporal-decay", , drop = FALSE]
+  expect_equal(nrow(decay), 1L)
+  expect_match(decay$parm, "^decay:temporal:")
+  expect_identical(decay$tmb_parameter, "theta_temporal")
+  expect_identical(decay$transformation, "exp")
+  expect_false(decay$profile_ready)
+  expect_identical(decay$profile_note, "temporal_decay_intervals_deferred")
+  expect_equal(decay$estimate, unname(fit$decaypars$temporal[[temporal$label]]))
+})
+
+test_that("temporal OU has finite objective for extremely small positive decay", {
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = temporal_ou_data(), family = gaussian(), REML = FALSE
+  )
+  par <- fit$obj$par
+  par[[match("theta_temporal", names(par))]] <- -37
+  expect_true(is.finite(fit$obj$fn(par)))
 })
 
 test_that("temporal OU uses positive, gap-scaled decay starts", {

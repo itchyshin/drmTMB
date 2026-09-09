@@ -1694,6 +1694,26 @@ drm_profile_targets <- function(object) {
   registry_cor_rows <- profile_registry_cor_targets(object)
   add_rows(registry_cor_rows)
   add_rows(profile_derived_summary_targets(object))
+  temporal <- object$model$structured$temporal_mu
+  if (is.list(temporal) && isTRUE(temporal$has) &&
+      identical(temporal$structure, "ou")) {
+    value <- object$decaypars$temporal[[temporal$label]]
+    add_rows(list(new_profile_target_row(
+      parm = paste0("decay:temporal:", temporal$label),
+      target_class = "temporal-decay",
+      dpar = "temporal",
+      term = temporal$label,
+      tmb_parameter = "theta_temporal",
+      index = 1L,
+      estimate = unname(value),
+      link_estimate = log(unname(value)),
+      scale = "response",
+      transformation = "exp",
+      target_type = "direct",
+      profile_ready = FALSE,
+      profile_note = "temporal_decay_intervals_deferred"
+    )))
+  }
   registry_cor_keys <- covariance_block_corpars_keys(
     object$model$random$covariance_blocks
   )
@@ -4716,7 +4736,8 @@ validate_profile_targets <- function(targets) {
     # `profile_targets()` so it is discoverable, never ready -- DRM.jl's
     # bridge inference has no cutpoint target, so `confint()` refuses it and
     # names `engine = "tmb"` (R/julia-family-cumulative_logit.R).
-    "julia_ordinal_cutpoint_native_only"
+    "julia_ordinal_cutpoint_native_only",
+    "temporal_decay_intervals_deferred"
   )
   bad_note <- !targets$profile_note %in% allowed_notes
   if (any(bad_note)) {

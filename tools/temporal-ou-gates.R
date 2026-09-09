@@ -54,6 +54,14 @@ if (identical(gate, 'G1')) {
   html <- paste(readLines(rendered, warn = FALSE), collapse = '\n')
   if (!grepl('Irregular elapsed time with OU', html, fixed = TRUE)) fail('G11 rendered tutorial omits the OU section.')
   success <- TRUE
+} else if (identical(gate, 'G12')) {
+  build_status <- system2('R', c('--vanilla', 'CMD', 'build', '.'), stdout = '', stderr = '')
+  if (!identical(build_status, 0L)) fail('G12 package build failed.')
+  archive <- 'drmTMB_0.7.1.tar.gz'
+  if (!file.exists(archive)) fail('G12 build did not create the source archive.')
+  check_status <- system2('R', c('CMD', 'check', '--no-manual', archive), stdout = '', stderr = '')
+  if (!identical(check_status, 0L)) fail('G12 package check failed.')
+  success <- TRUE
 } else if (identical(gate, 'G15') && reverify) {
   fail('G15 requires authorized, retained OU campaign outputs; reverify never launches a campaign.')
 } else {

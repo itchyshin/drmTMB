@@ -10,10 +10,10 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
   EXPECT: TEMPORAL_OU_G1_PASS
   EVIDENCE: Retained C1 diagnosis and OU Wald guard inspected 2026-09-08. Exact C1 replay found active-boundary behavior: production-control starts at residual SD 0.4, 0.1, 0.01, 1e-4, and 1e-6 produced objectives 618.883549324, 618.883549221, 618.883548969, 618.883548215, and 618.880626547 respectively; the two lowest-scale attempts did not converge. See `c1-variance-start-profile-2026-09-08.md`. This rules out treating the higher pdHess candidate as the ML inference repair; G7 remains closed.
 
-- [x] G2: OU grammar admits numeric elapsed time and rejects duplicate, missing, unordered, or nonpositive-gap keys
+- [x] G2: OU grammar admits finite numeric elapsed time, preserves shuffled input order, and rejects duplicate or missing metadata
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G2
   EXPECT: TEMPORAL_OU_G2_PASS
-  EVIDENCE: `devtools::test(filter = "temporal-ou", reporter = "location")` passed grammar, irregular-gap, label, and start assertions 2026-09-08.
+  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G2` emitted `TEMPORAL_OU_G2_PASS` after shuffled-row, duplicate, missing, non-numeric, decay-extraction, and small-decay regressions 2026-09-08.
 
 - [x] G3: Fixed-parameter OU likelihood, score, and Hessian agree with an independent dense marginal Gaussian oracle
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G3
@@ -53,20 +53,20 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G10: The reader vignette explains irregular time, positive-only persistence, aggregation of duplicate keys, and simulation conditioning
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G10
   EXPECT: TEMPORAL_OU_G10_PASS
-  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G10` emitted `TEMPORAL_OU_G10_PASS` 2026-09-08.
+  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G10` emitted `TEMPORAL_OU_G10_PASS` after the runnable irregular-time OU workflow and decay-unit interpretation were added 2026-09-08.
 
-- [ ] G11: Documentation and package integration are synchronized and a source-built temporal vignette renders
+- [x] G11: Documentation and package integration are synchronized and a source-built temporal vignette renders
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G11
   EXPECT: TEMPORAL_OU_G11_PASS
-  EVIDENCE: pending
+  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G11` emitted `TEMPORAL_OU_G11_PASS` 2026-09-08.
 
-- [ ] G12: R CMD build and R CMD check pass at the final exact source
+- [x] G12: R CMD build and R CMD check pass at the final exact source
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G12
   EXPECT: TEMPORAL_OU_G12_PASS
-  EVIDENCE: pending
+  EVIDENCE: `R --vanilla CMD build .` built `drmTMB_0.7.1.tar.gz`; `R CMD check --no-manual drmTMB_0.7.1.tar.gz` returned `Status: OK` 2026-09-08.
 
-- [ ] G13: Independent mathematical and reader-workflow reviews find no unresolved blocking defect
-  EVIDENCE: pending
+- [x] G13: Independent mathematical and reader-workflow reviews find no unresolved blocking defect
+  EVIDENCE: Independent mathematical review approved the AD-safe small-decay transition, decay target registry, and explicit unavailable-inference summary diagnostic; independent reader review approved `decaypars`, structure-aware errors, the corrected G2 contract, and the runnable irregular-time vignette, 2026-09-08.
 
 - [ ] G14: The measured campaign design, target, cost, and denominator are explicitly authorized
   EVIDENCE: pending

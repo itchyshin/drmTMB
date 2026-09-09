@@ -59,7 +59,14 @@ print.drmTMB <- function(x, ...) {
     }
   } else {
     uncertainty <- drm_uncertainty_status(x)
-    if (!identical(uncertainty, "ok")) {
+    temporal_wald_deferred <- is.data.frame(x$coefficients) &&
+      "std_error.status" %in% names(x$coefficients) &&
+      any(x$coefficients$std_error.status == "temporal_wald_unqualified")
+    if (temporal_wald_deferred) {
+      cli::cli_text(
+        "standard errors: unavailable; OU coefficient table is point estimates only (OU Wald inference is deferred pending the inherited AR1 calibration prerequisite)"
+      )
+    } else if (!identical(uncertainty, "ok")) {
       cli::cli_text(
         "  standard errors: unavailable; point estimates only ({drm_uncertainty_message(x)})"
       )
@@ -2332,6 +2339,14 @@ vcov.drmTMB <- function(object, ...) {
   if (drm_is_mspl(object)) {
     return(drm_mspl_vcov(object))
   }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "ou"
+  )) {
+    cli::cli_abort(c(
+      "OU coefficient covariance is not yet qualified.",
+      "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald inference is deferred."
+    ))
+  }
   cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
@@ -2516,6 +2531,11 @@ drm_uncertainty_check_status <- function(object) {
 }
 
 drm_standard_error_status <- function(object) {
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "ou"
+  )) {
+    return("temporal_wald_unqualified")
+  }
   if (
     identical(drm_uncertainty_status(object), "ok") &&
       !is.null(object$sdr) &&
@@ -4210,6 +4230,12 @@ summary.drmTMB <- function(
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
   if (drm_has_temporal_mu(object) && conf.int) {
+    if (identical(object$model$structured$temporal_mu$structure, "ou")) {
+      cli::cli_abort(c(
+        "OU summary Wald intervals are not yet qualified.",
+        "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald inference is deferred."
+      ))
+    }
     if (!identical(method, "wald")) {
       cli::cli_abort(c(
         "Temporal AR1 summary intervals currently support mean-coefficient Wald intervals only.",
@@ -4329,6 +4355,7 @@ summary.drmTMB <- function(
     derived = derived,
     sdpars = object$sdpars,
     corpars = object$corpars,
+    decaypars = object$decaypars,
     ordinal = object$ordinal,
     uncertainty = object$uncertainty,
     logLik = if (drm_is_mspl(object)) NA_real_ else stats::logLik(object),
@@ -4367,7 +4394,14 @@ print.summary.drmTMB <- function(x, ...) {
     }
   } else {
     uncertainty <- drm_uncertainty_status(x)
-    if (!identical(uncertainty, "ok")) {
+    temporal_wald_deferred <- is.data.frame(x$coefficients) &&
+      "std_error.status" %in% names(x$coefficients) &&
+      any(x$coefficients$std_error.status == "temporal_wald_unqualified")
+    if (temporal_wald_deferred) {
+      cli::cli_text(
+        "standard errors: unavailable; OU coefficient table is point estimates only (OU Wald inference is deferred pending the inherited AR1 calibration prerequisite)"
+      )
+    } else if (!identical(uncertainty, "ok")) {
       cli::cli_text(
         "standard errors: unavailable; coefficient and parameter tables are point estimates only ({drm_uncertainty_message(x)})"
       )
@@ -4714,7 +4748,8 @@ drm_summary_direct_parameters <- function(object) {
       "distributional-scale",
       "residual-correlation",
       "random-effect-sd",
-      "random-effect-correlation"
+      "random-effect-correlation",
+      "temporal-decay"
     )
   targets <- targets[keep, , drop = FALSE]
   if (nrow(targets) == 0L) {
@@ -4829,6 +4864,9 @@ drm_summary_add_parameter_standard_errors <- function(object, parameters) {
       next
     }
     target <- targets[target_row, , drop = FALSE]
+    if (identical(target$target_class[[1L]], "temporal-decay")) {
+      next
+    }
     if (!identical(target$target_type[[1L]], "direct")) {
       next
     }
