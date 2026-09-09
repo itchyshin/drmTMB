@@ -527,3 +527,18 @@ test_that("S7 task runner requires explicit approval for a live fit", {
   approved <- env$r071_s7_task_args(c(common, "--dry-run=false", "--approved=true"))
   expect_true(env$r071_s7_task_execution_allowed(approved))
 })
+
+test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
+  preflight <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                   "julia-r-parity", "071-ordinary-laplace", "s7-fir-preflight.sh")
+  expect_true(file.exists(preflight))
+  expect_identical(system2("bash", c("-n", preflight)), 0L)
+  text <- paste(readLines(preflight, warn = FALSE), collapse = "\n")
+  expect_match(text, "#SBATCH --account=def-snakagaw_cpu", fixed = TRUE)
+  expect_match(text, "#SBATCH --partition=cpubase_bycore_b1", fixed = TRUE)
+  expect_match(text, "JULIA_DEPOT_PATH", fixed = TRUE)
+  expect_match(text, "R_LIBS_USER", fixed = TRUE)
+  expect_match(text, "Pkg.instantiate", fixed = TRUE)
+  expect_match(text, "SLURM_ARRAY_TASK_ID=1501", fixed = TRUE)
+  expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
+})
