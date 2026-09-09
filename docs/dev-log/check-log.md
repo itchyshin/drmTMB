@@ -94578,3 +94578,4 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+| 2026-09-08 | Gaussian temporal AR1 implementation | Unlazy G1--G14 met; dense objective/score/Hessian/covariance oracle; retained final-source 12-fit recovery and 25-fit pilot; isolated `R CMD check` Status OK | Implemented native ML AR1 with optional same-ID intercept and fixed-effect Wald path. G16--G18 remain pending: C1 pilot interval availability 4/5, no campaign or coverage claim. | Codex / Noether / Pat / Rose |
