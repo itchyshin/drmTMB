@@ -9,7 +9,7 @@ usage() {
 Usage:
   tools/mirror-temporal-ou-shard-to-totoro.sh \
     --fir-root=/home/.../campaign --totoro-root=/home/.../campaign \
-    [--source-archive | --shard=001]
+    [--source-archive | --shard=1]
 
 Transfers exactly one immutable source archive or sealed shard, then compares
 SHA-256 values at Fir and Totoro. It refuses to overwrite a non-identical
@@ -25,7 +25,15 @@ for argument in "$@"; do
     --fir-root=*) fir_root=${argument#--fir-root=} ;;
     --totoro-root=*) totoro_root=${argument#--totoro-root=} ;;
     --source-archive) kind=source.tar.gz ;;
-    --shard=[0-9][0-9][0-9]) kind=shard-${argument#--shard=}.tar.gz ;;
+    --shard=*)
+      shard=${argument#--shard=}
+      if ! [[ "$shard" =~ ^[0-9]{1,3}$ ]] || [ "$((10#$shard))" -lt 1 ] || [ "$((10#$shard))" -gt 60 ]; then
+        echo "--shard must be an integer from 1 through 60." >&2
+        exit 2
+      fi
+      printf -v shard '%03d' "$((10#$shard))"
+      kind=shard-${shard}.tar.gz
+      ;;
     --help|-h) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac

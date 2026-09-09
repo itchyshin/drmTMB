@@ -103,3 +103,7 @@ deletes Fir content. Its first use copied the smoke source archive (SHA-256
 smoke shard with matching hashes to
 `/home/snakagaw/hsq_work/temporal-ou-profile-fir-e46bf2e7-smoke` on Totoro.
 Only then was the verified Fir smoke directory removed.
+
+The helper accepts `--shard=1`, `--shard=01`, and `--shard=001` as the same
+first shard, normalizes them to the immutable three-digit filename, and rejects
+values outside 1--60.
