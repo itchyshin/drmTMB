@@ -1,0 +1,33 @@
+"fixture","model","condition","start","decay_start","status","convergence","objective","elapsed_sec","selected","warning","error"
+"ou_only_O01","ou_only","O01",1,0.802648536217291,"ok",0,492.86167929344,0.351,FALSE,"",NA
+"ou_only_O01","ou_only","O01",2,0.237783295959155,"ok",0,492.861679288844,0.263,TRUE,"",NA
+"ou_only_O02","ou_only","O02",1,0.802648536217291,"ok",0,559.083638716564,0.3,TRUE,"",NA
+"ou_only_O02","ou_only","O02",2,0.237783295959155,"ok",0,559.083638734658,0.245,FALSE,"",NA
+"ou_only_O03","ou_only","O03",1,0.802648536217291,"ok",0,565.974234976594,0.319,TRUE,"",NA
+"ou_only_O03","ou_only","O03",2,0.237783295959155,"ok",0,565.974234978765,0.287,FALSE,"",NA
+"ou_only_O04","ou_only","O04",1,0.802648536217291,"ok",0,566.002053741143,0.339,FALSE,"",NA
+"ou_only_O04","ou_only","O04",2,0.237783295959155,"ok",0,566.002053734971,0.348999999999999,TRUE,"",NA
+"ou_only_O05","ou_only","O05",1,0.802648536217291,"ok",0,621.985953490095,0.351,FALSE,"",NA
+"ou_only_O05","ou_only","O05",2,0.237783295959155,"ok",0,621.985953490092,0.329,TRUE,"",NA
+"ou_only_O06","ou_only","O06",1,0.802648536217291,"ok",0,635.437243792774,0.327,TRUE,"",NA
+"ou_only_O06","ou_only","O06",2,0.237783295959155,"ok",0,635.437243795933,0.382999999999999,FALSE,"",NA
+"ordinary_plus_ou_O01","ordinary_plus_ou","O01",1,0.802648536217291,"ok",0,540.906232549721,0.353,TRUE,"",NA
+"ordinary_plus_ou_O01","ordinary_plus_ou","O01",2,0.237783295959155,"ok",0,540.906232550402,0.332000000000001,FALSE,"",NA
+"ordinary_plus_ou_O02","ordinary_plus_ou","O02",1,0.802648536217291,"ok",0,544.373529930612,0.334,TRUE,"",NA
+"ordinary_plus_ou_O02","ordinary_plus_ou","O02",2,0.237783295959155,"ok",0,544.373529932459,0.311,FALSE,"",NA
+"ordinary_plus_ou_O03","ordinary_plus_ou","O03",1,0.802648536217291,"ok",0,591.989767537307,0.334,TRUE,"",NA
+"ordinary_plus_ou_O03","ordinary_plus_ou","O03",2,0.237783295959155,"ok",0,591.989767538278,0.345000000000001,FALSE,"",NA
+"ordinary_plus_ou_O04","ordinary_plus_ou","O04",1,0.802648536217291,"ok",0,622.442366416096,0.321,TRUE,"",NA
+"ordinary_plus_ou_O04","ordinary_plus_ou","O04",2,0.237783295959155,"ok",0,622.442366417856,0.364000000000001,FALSE,"",NA
+"ordinary_plus_ou_O05","ordinary_plus_ou","O05",1,0.802648536217291,"ok",0,657.285112855666,0.502000000000001,FALSE,"`drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit.",NA
+"ordinary_plus_ou_O05","ordinary_plus_ou","O05",2,0.237783295959155,"nonconverged",1,657.174929554794,0.686999999999999,TRUE,"`drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit.",NA
+"ordinary_plus_ou_O06","ordinary_plus_ou","O06",1,0.802648536217291,"ok",0,652.216716655087,0.342000000000002,FALSE,"",NA
+"ordinary_plus_ou_O06","ordinary_plus_ou","O06",2,0.237783295959155,"ok",0,652.216716653214,0.355999999999998,TRUE,"",NA

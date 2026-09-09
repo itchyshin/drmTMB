@@ -40,10 +40,10 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
   EXPECT: TEMPORAL_OU_G7_PASS
   EVIDENCE: pending
 
-- [ ] G8: Retained OU recovery preserves every start, failure, source fingerprint, and predeclared threshold
+- [x] G8: Retained OU recovery preserves every start, failure, source fingerprint, and predeclared threshold
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G8
   EXPECT: TEMPORAL_OU_G8_PASS
-  EVIDENCE: pending
+  EVIDENCE: `Rscript --vanilla tools/run-temporal-ou-recovery.R` emitted `TEMPORAL_OU_RECOVERY_PASS` and G8 emitted `TEMPORAL_OU_G8_PASS` at source `5eada6c03a41ecaed0f96b98224c9511f9ae6a4e`. The retained 12-fixture, 24-start point-recovery run met all predeclared criteria: mean absolute fixed-effect error `0.0758`, median absolute SD error `0.0374`, and median absolute decay error `0.0400`. Ordinary-plus-OU O05 selected a false-convergence start because it had the lower finite objective; its warning and both starts remain in `raw-attempts.csv` and it is not treated as interval evidence.
 
 - [ ] G9: A bounded timed pilot records runtime, memory, interval availability, and output completeness
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G9
