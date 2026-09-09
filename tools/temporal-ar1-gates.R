@@ -19,6 +19,7 @@ files <- switch(
   G9 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G10 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G11 = NULL,
+  G12 = NULL,
   NULL
 )
 if (identical(gate, "G11")) {
@@ -37,6 +38,26 @@ if (identical(gate, "G11")) {
     stop("G11 retained recovery artifacts do not meet their predeclared checks.", call. = FALSE)
   }
   cat("TEMPORAL_G11_PASS\n")
+  quit(save = "no", status = 0L)
+}
+if (identical(gate, "G12")) {
+  artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot"
+  required <- file.path(artifact_dir, c(
+    "raw-attempts.csv", "pilot-results.csv", "pilot-summary.csv",
+    "provenance.csv", "pilot-results.rds", "resource.txt"
+  ))
+  if (!all(file.exists(required))) {
+    stop("G12 pilot artifacts are missing; run tools/run-temporal-ar1-pilot.R through /usr/bin/time -l.", call. = FALSE)
+  }
+  attempts <- utils::read.csv(file.path(artifact_dir, "raw-attempts.csv"))
+  results <- utils::read.csv(file.path(artifact_dir, "pilot-results.csv"))
+  if (nrow(results) != 25L || nrow(attempts) != 50L ||
+      !all(table(attempts$fixture) == 2L) ||
+      !all(results$selected & is.finite(results$objective)) ||
+      !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0)) {
+    stop("G12 retained pilot artifacts do not meet their completeness checks.", call. = FALSE)
+  }
+  cat("TEMPORAL_G12_PASS\n")
   quit(save = "no", status = 0L)
 }
 if (is.null(files)) {
