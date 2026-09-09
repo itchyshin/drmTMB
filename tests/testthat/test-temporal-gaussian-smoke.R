@@ -21,6 +21,8 @@ test_that("Gaussian AR1 temporal random effects fit with and without a stable in
   )
   expect_s3_class(ar1_only, "drmTMB")
   expect_true(is.finite(stats::logLik(ar1_only)))
+  expect_equal(sort(ar1_only$temporal_start_attempts$persistence_start), c(-0.3, 0.3))
+  expect_equal(sum(ar1_only$temporal_start_attempts$selected), 1L)
 
   combined <- drmTMB(
     bf(y ~ treatment + (1 | id) + temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),

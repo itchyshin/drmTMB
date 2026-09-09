@@ -653,7 +653,27 @@ drm_fit_spec <- function(
     silent = TRUE
   )
 
-  optimizer <- drm_optimize_with_preset_retry(obj, control)
+  temporal_starts <- if (
+    is.list(spec$structured) &&
+      is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    drm_temporal_persistence_starts(obj)
+  } else {
+    NULL
+  }
+  optimizer <- drm_optimize_with_preset_retry(
+    obj,
+    control,
+    starts = temporal_starts
+  )
+  if (!is.null(temporal_starts) && is.data.frame(optimizer$start_attempts)) {
+    optimizer$start_attempts$persistence_start <- vapply(
+      temporal_starts,
+      function(start) tanh(start[[match("theta_temporal", names(start))]]),
+      numeric(1L)
+    )
+  }
   opt <- optimizer$opt
   if (isTRUE(control$newton_polish)) {
     opt <- drm_newton_polish(opt, obj$fn, obj$gr)
@@ -755,6 +775,7 @@ drm_fit_spec <- function(
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
     optimizer_attempts = optimizer$attempts,
+    temporal_start_attempts = optimizer$start_attempts,
     gradient = fit_gradient$gradient,
     gradient_max_component = fit_gradient$max_component,
     provenance = drm_provenance()
@@ -819,11 +840,22 @@ drm_perturbed_starts <- function(par, n_start) {
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
 # last error is re-raised for the caller's tryCatch to record.
-drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
-  starts <- drm_perturbed_starts(obj$par, n_start)
+drm_optimize_multistart <- function(
+  obj,
+  optimizer,
+  control_opt,
+  n_start,
+  starts = NULL
+) {
+  if (is.null(starts)) {
+    starts <- drm_perturbed_starts(obj$par, n_start)
+  }
   best <- NULL
   last_error <- NULL
-  for (start in starts) {
+  start_rows <- vector("list", length(starts))
+  for (start_index in seq_along(starts)) {
+    start <- starts[[start_index]]
+    elapsed_start <- proc.time()[["elapsed"]]
     res <- tryCatch(
       optimizer(
         start = start,
@@ -833,8 +865,18 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
       ),
       error = function(e) e
     )
+    elapsed <- proc.time()[["elapsed"]] - elapsed_start
     if (inherits(res, "error")) {
       last_error <- res
+      start_rows[[start_index]] <- data.frame(
+        start = as.integer(start_index),
+        status = "error",
+        convergence = NA_integer_,
+        objective = NA_real_,
+        elapsed_sec = elapsed,
+        selected = FALSE,
+        stringsAsFactors = FALSE
+      )
       next
     }
     obj_value <- if (length(res$objective) == 1L && is.finite(res$objective)) {
@@ -842,14 +884,37 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
     } else {
       Inf
     }
+    start_rows[[start_index]] <- data.frame(
+      start = as.integer(start_index),
+      status = "ok",
+      convergence = as.integer(res$convergence),
+      objective = as.numeric(res$objective),
+      elapsed_sec = elapsed,
+      selected = FALSE,
+      stringsAsFactors = FALSE
+    )
     if (is.null(best) || obj_value < best$value) {
-      best <- list(opt = res, value = obj_value)
+      best <- list(opt = res, value = obj_value, index = start_index)
     }
   }
   if (is.null(best)) {
     stop(last_error)
   }
+  start_rows[[best$index]]$selected <- TRUE
+  attr(best$opt, "drm_start_attempts") <- do.call(rbind, start_rows)
   best$opt
+}
+
+drm_temporal_persistence_starts <- function(obj) {
+  position <- match("theta_temporal", names(obj$par))
+  if (is.na(position)) {
+    cli::cli_abort("Internal temporal AR1 start error: theta_temporal is not an outer TMB parameter.")
+  }
+  positive <- obj$par
+  negative <- obj$par
+  positive[[position]] <- atanh(0.3)
+  negative[[position]] <- -atanh(0.3)
+  list(positive, negative)
 }
 
 drm_optimize_with_preset_retry <- function(
@@ -857,7 +922,8 @@ drm_optimize_with_preset_retry <- function(
   control,
   optimizer = stats::nlminb,
   fallback_fn = stats::optim,
-  warn = TRUE
+  warn = TRUE,
+  starts = NULL
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
@@ -875,7 +941,8 @@ drm_optimize_with_preset_retry <- function(
           obj,
           optimizer,
           spec$control,
-          n_start
+          n_start,
+          starts = starts
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -908,7 +975,12 @@ drm_optimize_with_preset_retry <- function(
             "i" = "An earlier preset errored or did not converge; inspect {.code fit$optimizer_attempts}."
           ))
         }
-        return(list(opt = opt, selected = selected, attempts = attempts))
+        return(list(
+          opt = opt,
+          selected = selected,
+          attempts = attempts,
+          start_attempts = attr(opt, "drm_start_attempts")
+        ))
       }
       # A non-converged result (false convergence or non-finite objective) is not
       # accepted: escalate to the next preset in the ladder, keeping this attempt
@@ -1028,7 +1100,12 @@ drm_optimize_with_preset_retry <- function(
     attempts <- drm_optimizer_attempts_frame(rows)
     selected_row <- attempts[attempts$attempt == best_i, , drop = FALSE]
     selected <- drm_optimizer_selected_record(selected_row)
-    return(list(opt = opts[[best_i]], selected = selected, attempts = attempts))
+    return(list(
+      opt = opts[[best_i]],
+      selected = selected,
+      attempts = attempts,
+      start_attempts = attr(opts[[best_i]], "drm_start_attempts")
+    ))
   }
 
   attempts <- drm_optimizer_attempts_frame(rows)

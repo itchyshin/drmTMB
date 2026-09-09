@@ -1,14 +1,14 @@
 temporal_oracle_data <- function(with_intercept, seed = 20260908L) {
   set.seed(seed)
   occasion <- c(0L, 1L, 3L, 4L, 7L, 9L)
-  ids <- paste0("site_", seq_len(24L))
+  ids <- paste0("site_", seq_len(48L))
   dat <- do.call(rbind, lapply(ids, function(id) {
     data.frame(id = id, occasion = occasion, x = stats::rnorm(length(occasion)))
   }))
   beta <- c(`(Intercept)` = 0.2, x = 0.5)
-  sd_between <- if (with_intercept) 0.6 else 0
-  sd_temporal <- 0.8
-  sigma <- 0.4
+  sd_between <- if (with_intercept) 0.55 else 0
+  sd_temporal <- 0.65
+  sigma <- 0.7
   phi <- if (with_intercept) -0.35 else 0.45
   dat$y <- NA_real_
   for (id in ids) {
