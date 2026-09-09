@@ -2,11 +2,15 @@
 
 ## Scope and pins
 
-This contract is the bridge-side prerequisite for the 0.7.1 ordinary-Laplace
-parity programme. It began at drmTMB `1ae582c9` and DRM.jl `26f4c4dd`; the
-guarded-covariance technical checkpoints are drmTMB `d24a30d09` and DRM.jl
-`ded85602a`. The receipt runner records the exact clean heads at task start,
-and reconciliation accepts only sidecars matching the heads used to invoke it.
+This contract records the bridge-side four-fixture classification prerequisite
+for the 0.7.1 ordinary-Laplace parity programme. The frozen receipts were run
+at drmTMB `9939ace07967af9a9b6e23a4d021080d5d7d76a7` and DRM.jl
+`b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c`; their compact authoritative
+reconciliation is [`reconciled-summary.tsv`](reconciled-summary.tsv). Earlier
+pins (`1ae582c9`, `26f4c4dd`, `d24a30d09`, and `ded85602a`) are technical
+history, not substitute evidence. The receipt runner records the exact clean
+heads at task start, and reconciliation accepts only sidecars matching the
+heads used to invoke it.
 Every task must record source cleanliness, R/TMB/JuliaCall/Julia identities,
 Julia project and thread settings, requested and effective marginal integrators,
 the family-specific objective convention, a fixture-byte digest, the runner
@@ -17,10 +21,10 @@ debugging material, not parity evidence.
 
 | Fixture | R formula | Julia target | Current bridge evidence | Admission condition |
 | --- | --- | --- | --- | --- |
-| Binomial RI | `y ~ x + (1 | id)` | `Binomial(); marginal = :Laplace` | current-pin receipt pending | one ordinary mean RI |
-| Poisson RI | `y ~ x + (1 | id)` | `Poisson(); marginal = :Laplace` | current-pin receipt pending | one ordinary mean RI |
-| NB2 RI | `count ~ x + (1 | id), sigma ~ 1` | `NegBinomial2(); marginal = :Laplace` | current-pin receipt pending | one ordinary mean RI, constant `sigma` |
-| coupled NB2 location--scale | `count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)` | matching q=2 location--scale Laplace route | bridge admitted; current-pin receipt pending | one matching labelled intercept pair |
+| Binomial RI | `y ~ x + (1 | id)` | `Binomial(); marginal = :Laplace` | classified; 6 finite engine-target profiles | one ordinary mean RI |
+| Poisson RI | `y ~ x + (1 | id)` | `Poisson(); marginal = :Laplace` | classified; 6 finite engine-target profiles | one ordinary mean RI |
+| NB2 RI | `count ~ x + (1 | id), sigma ~ 1` | `NegBinomial2(); marginal = :Laplace` | classified; 8 finite engine-target profiles | one ordinary mean RI, constant `sigma` |
+| coupled NB2 location--scale | `count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)` | matching q=2 location--scale Laplace route | classified; 12 finite profiles and 2 retained L22 non-finite endpoints | one matching labelled intercept pair |
 
 The target manifest, not an ad-hoc coefficient vector, will define all common,
 free outer parameters on named link/transformed scales. Inner modes never enter
@@ -45,22 +49,23 @@ guarded covariance domain as native TMB; it also rejects non-finite raw
 coordinates and treats `L21 = 0` as an unconstrained native-covariance case.
 Those source-level checks do not replace a current-pin point or profile receipt.
 
-The remaining gate is inference rather than admission: each raw Cholesky
-coordinate must retain a profile status. The R bridge profiles these coordinates
-as `cholesky:recov:L11/L22/L21` on their declared working scale. It does not
-relabel those endpoints as response-SD or correlation intervals; that would be
-a different reparameterized profile. A non-finite or failed endpoint remains a
-classified outcome.
+The inference gate is met as a classification exercise: each raw Cholesky
+coordinate retained a terminal profile status. The R bridge profiles these
+coordinates as `cholesky:recov:L11/L22/L21` on their declared working scale. It
+does not relabel those endpoints as response-SD or correlation intervals; that
+would be a different reparameterized profile. Both L22 endpoints are
+non-finite and remain retained classifications, not successful intervals.
 
 ## Campaign boundary
 
-An earlier receipt was generated before the guarded coupled-covariance repair.
-It is retained only for diagnosis and must not be reconciled or used to claim
-point or endpoint parity. G4 remains open: the current-pin run must classify
-every shared outer target, including an explicit status for each profile arm.
-The next diagnostic, if an arm fails, retains profile NLL, likelihood-ratio
-residual, nuisance gradient, and distance from the native correlation guard.
+An earlier receipt generated before the guarded coupled-covariance repair is
+retained only for diagnosis and must not be reconciled or used to support this
+classification. The current-source reconciliation classifies all 34
+engine-target profile attempts: 32 finite profiles and two matched L22
+non-finite endpoints. That completes the four-fixture same-target
+classification and matrix-regeneration prerequisites.
 
-Consequently there are no coverage, cost, or DRAC claims. Matrix regeneration
-and the paired 500-seed-per-fixture campaign remain blocked until same-target
-profile parity is re-established and a separate cost-probe approval is given.
+These receipts are not interval-coverage evidence. The separate
+[`cost probe`](cost-probe.md) estimates the retained campaign at 275 CPU-hours;
+the paired 500-seed-per-fixture DRAC campaign remains unsent until the
+post-probe approval gate is explicitly reopened.
