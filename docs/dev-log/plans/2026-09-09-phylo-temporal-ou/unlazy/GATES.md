@@ -6,13 +6,13 @@ Scope: The first phylogenetic-temporal Gaussian ML slice is a phylogenetically c
 
 There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable gate uses the exact future runner `tools/phylo-temporal-ou-gates.R`; its implementation and failure controls are themselves checked by G1 before any execution gate is trusted. All evidence is pending because this is a plan-only ledger.
 
-- [ ] G0: The user approved this exact first-slice grammar, source pin and campaign boundary.
-  EVIDENCE: pending
+- [x] G0: The user approved this exact first-slice grammar, source pin and campaign boundary.
+  EVIDENCE: 2026-09-09 user authorized execution of the detailed master plan at e751f9239; execution source pinned at a1d01dab3 on codex/phylo-temporal-ou-exec-v1-20260909. Campaign authority remains G12.
 
-- [ ] G1: The frozen execution source, plan contract and gate runner agree and fail closed on a missing fixture.
+- [x] G1: The frozen execution source, plan contract and gate runner agree and fail closed on a missing fixture.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G1
   EXPECT: PHYLO_TEMPORAL_OU_G1_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G1_PASS; runner self-test rejected a missing fixture.
 
 - [ ] G2: The paired `phylo()` plus OU grammar accepts only same-species IDs and valid tree/time metadata, preserving unbalanced rows and input order.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G2
