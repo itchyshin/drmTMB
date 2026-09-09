@@ -198,6 +198,36 @@ test_that("ordinary coupled NB2 recov coordinates reconstruct native targets", {
   expect_identical(fit$effective_integrator, "coupled_locscale_laplace")
 })
 
+test_that("native coupled NB2 declares the Julia working-Cholesky target map", {
+  set.seed(71014L)
+  groups <- factor(rep(seq_len(12L), each = 10L))
+  x <- rep(seq(-1, 1, length.out = 10L), 12L)
+  z <- rep(seq(1, -1, length.out = 10L), 12L)
+  b_mu <- rnorm(12L, 0, 0.45)
+  b_sigma <- 0.45 * b_mu + rnorm(12L, 0, 0.25)
+  dat <- data.frame(
+    y = rnbinom(120L, mu = exp(0.2 + 0.35 * x + b_mu[groups]), size = exp(-0.3 + 0.2 * z + b_sigma[groups])),
+    x = x, z = z, groups = groups
+  )
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | groups), sigma ~ z + (1 | p | groups)),
+    family = nbinom2(), data = dat, engine = "tmb"
+  )
+  targets <- profile_targets(fit)
+  raw <- targets[targets$target_class == "covariance-coordinate", , drop = FALSE]
+  expect_identical(raw$parm, c("cholesky:recov:L11", "cholesky:recov:L22", "cholesky:recov:L21"))
+  expect_identical(raw$target_type, rep("constrained", 3L))
+  expect_true(all(raw$profile_ready))
+  expect_equal(raw$estimate, drmTMB:::drm_native_coupled_cholesky_values(fit), tolerance = 1e-10)
+  l11 <- confint(fit, parm = "cholesky:recov:L11", method = "profile")
+  l21 <- confint(fit, parm = "cholesky:recov:L21", method = "profile")
+  l22 <- confint(fit, parm = "cholesky:recov:L22", method = "profile")
+  expect_identical(l11$profile.engine, "coupled_cholesky_constrained")
+  expect_identical(l21$conf.status, "profile")
+  expect_true(all(is.finite(c(l11$lower, l11$upper, l21$lower, l21$upper))))
+  expect_identical(l22$conf.status, "profile_failed")
+})
+
 test_that("Julia bridge marshals one phylogenetic tree", {
   tree <- structure(
     list(

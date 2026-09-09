@@ -87,7 +87,14 @@ for (id in fixtures) {
       fit <- if (identical(engine, "tmb")) ft else fj
       marker <- file.path(out, paste0(id, "-profile-boundary.log"))
       cat(sprintf("START\t%s\t%s\n", engine, target), file = marker, append = TRUE)
-      ans <- if (!inherits(fit, "error") && (identical(engine, "tmb") || ready)) tryCatch(confint(fit, parm = target, method = "profile", threads = FALSE), error = identity) else NULL
+      profile_args <- if (identical(engine, "tmb") && startsWith(target, "cholesky:recov:")) {
+        # Native L22/L21 are nonlinear constrained working coordinates; their
+        # dedicated endpoint engine must not receive a tmbprofile-only control.
+        list(object = fit, parm = target, method = "profile")
+      } else {
+        list(object = fit, parm = target, method = "profile", threads = FALSE)
+      }
+      ans <- if (!inherits(fit, "error") && (identical(engine, "tmb") || ready)) tryCatch(do.call(confint, profile_args), error = identity) else NULL
       cat(sprintf("RETURN\t%s\t%s\n", engine, target), file = marker, append = TRUE)
       status <- if (inherits(fit, "error")) "fit_failed" else if (is.null(ans)) "not_profile_ready" else if (inherits(ans, "error")) "profile_failed" else if (!all(is.finite(c(ans$lower[[1L]], ans$upper[[1L]]))) ) "nonfinite_endpoint" else "profile"
       profile_rows[[length(profile_rows) + 1L]] <- data.frame(fixture = id, engine = engine, parm = target, profile_status = status, lower = if (is.data.frame(ans)) ans$lower[[1L]] else NA_real_, upper = if (is.data.frame(ans)) ans$upper[[1L]] else NA_real_, error = one_line_error(ans), stringsAsFactors = FALSE)
