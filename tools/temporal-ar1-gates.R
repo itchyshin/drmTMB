@@ -113,6 +113,28 @@ if (identical(gate, "G13")) {
   cat("TEMPORAL_G13_PASS\n")
   quit(save = "no", status = 0L)
 }
+if (identical(gate, "G14")) {
+  source_root <- normalizePath(".", mustWork = TRUE)
+  check_root <- tempfile("temporal-ar1-package-check-")
+  dir.create(check_root)
+  on.exit(unlink(check_root, recursive = TRUE, force = TRUE), add = TRUE)
+  old_wd <- getwd()
+  on.exit(setwd(old_wd), add = TRUE)
+  setwd(check_root)
+  build_status <- system2("R", c("CMD", "build", source_root))
+  tarballs <- list.files(check_root, pattern = "^drmTMB_.*\\.tar\\.gz$", full.names = TRUE)
+  if (build_status != 0L || length(tarballs) != 1L) {
+    stop("G14 could not build a clean temporal-AR1 source tarball.", call. = FALSE)
+  }
+  check_status <- system2("R", c("CMD", "check", tarballs[[1L]]))
+  check_log <- file.path(check_root, "drmTMB.Rcheck", "00check.log")
+  check_text <- if (file.exists(check_log)) readLines(check_log, warn = FALSE) else character()
+  if (check_status != 0L || !any(grepl("^Status: OK$", check_text))) {
+    stop("G14 package check did not report Status: OK.", call. = FALSE)
+  }
+  cat("TEMPORAL_G14_PASS\n")
+  quit(save = "no", status = 0L)
+}
 if (is.null(files)) {
   stop(
     sprintf("%s has no implemented executable check yet; its gate remains pending.", gate),
