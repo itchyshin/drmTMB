@@ -29,88 +29,98 @@ make_fixture <- function(id) {
 }
 
 all_fixtures <- c("binomial_ri", "poisson_ri", "nb2_ri", "nb2_coupled")
+declared_targets <- function(id) {
+  common <- data.frame(
+    parm = c("fixef:mu:(Intercept)", "fixef:mu:x"),
+    target_class = "fixed-effect", profile_ready = TRUE,
+    stringsAsFactors = FALSE
+  )
+  if (id %in% c("binomial_ri", "poisson_ri")) {
+    return(rbind(common, data.frame(parm = "sd:mu:(1 | group)", target_class = "random-effect-sd", profile_ready = TRUE)))
+  }
+  if (identical(id, "nb2_ri")) {
+    return(rbind(
+      common,
+      data.frame(parm = c("fixef:sigma:(Intercept)", "sigma", "sd:mu:(1 | group)"),
+                 target_class = c("fixed-effect", "distributional-scale", "random-effect-sd"),
+                 profile_ready = c(TRUE, FALSE, TRUE))
+    ))
+  }
+  rbind(
+    common,
+    data.frame(parm = c("fixef:sigma:(Intercept)", "fixef:sigma:z", "cholesky:recov:L11", "cholesky:recov:L22", "cholesky:recov:L21"),
+               target_class = c("fixed-effect", "fixed-effect", "covariance-coordinate", "covariance-coordinate", "covariance-coordinate"),
+               profile_ready = TRUE)
+  )
+}
+same_manifest <- function(observed, declared) {
+  identical(
+    observed[order(observed$parm), c("parm", "target_class", "profile_ready"), drop = FALSE],
+    declared[order(declared$parm), c("parm", "target_class", "profile_ready"), drop = FALSE]
+  )
+}
 fixtures <- args[-1L]
 if (length(fixtures) == 0L) fixtures <- all_fixtures
 if (length(fixtures) != 1L || !fixtures %in% all_fixtures) stop("run exactly one named fixture per R process", call. = FALSE)
 requested_target <- Sys.getenv("DRMTMB_071_TARGET", "")
 requested_engine <- Sys.getenv("DRMTMB_071_ENGINE", "")
-stream_all <- identical(Sys.getenv("DRMTMB_071_STREAM_ALL", ""), "true")
-if (!stream_all && (!nzchar(requested_target) || !nzchar(requested_engine))) {
+if (identical(Sys.getenv("DRMTMB_071_STREAM_ALL", ""), "true")) {
+  stop("stream-all mode is retired: run exactly one fixture-engine-target task and reconcile the durable sidecars", call. = FALSE)
+}
+if (!nzchar(requested_target) || !nzchar(requested_engine)) {
   stop(
     "set both DRMTMB_071_TARGET and DRMTMB_071_ENGINE; profile receipts are intentionally one engine-target task at a time and must be reconciled explicitly",
     call. = FALSE
   )
 }
 receipt_suffix <- function(engine, target) paste0("-", sub("_+$", "", gsub("[^A-Za-z0-9]+", "_", paste(engine, target, sep = "-"))))
-run_suffix <- if (stream_all) "" else receipt_suffix(requested_engine, requested_target)
 target_rows <- list(); point_rows <- list(); profile_rows <- list(); fixture_rows <- list()
 for (id in fixtures) {
   spec <- make_fixture(id); data_path <- file.path(out, paste0(id, ".csv")); write.csv(spec$data, data_path, row.names = FALSE)
   fixture_rows[[id]] <- data.frame(fixture = id, bytes_md5 = hash(data_path), n = nrow(spec$data), stringsAsFactors = FALSE)
-  ft <- tryCatch(drmTMB(spec$formula, spec$family, spec$data, engine = "tmb"), error = identity)
-  fj_args <- list(formula = spec$formula, family = spec$family, data = spec$data, engine = "julia")
-  if (!is.null(spec$marginal)) fj_args$marginal <- spec$marginal
-  fj <- tryCatch(do.call(drmTMB, fj_args), error = identity)
-  native_ok <- !inherits(ft, "error"); julia_ok <- !inherits(fj, "error")
-  targets <- if (julia_ok) profile_targets(fj) else data.frame(parm = "<fit_failed>", target_class = "fit", profile_ready = FALSE)
-  # Persist the denominator and target inventory BEFORE the first profile
-  # call.  A JuliaCall/profile crash is an outcome, never a reason to lose an
-  # attempted fixture from the evidence bank.
-  write.table(data.frame(
-    fixture = id, engine = c("tmb", "julia"),
-    fit_status = c(if (native_ok) "returned" else "fit_failed", if (julia_ok) "returned" else "fit_failed"),
-    converged = c(if (native_ok) is_converged(ft) else FALSE, if (julia_ok) is_converged(fj) else FALSE),
-    loglik = c(if (native_ok) as.numeric(logLik(ft)) else NA_real_, if (julia_ok) as.numeric(logLik(fj)) else NA_real_),
+  if (!requested_engine %in% c("tmb", "julia")) stop("DRMTMB_071_ENGINE must be tmb or julia", call. = FALSE)
+  fit <- if (identical(requested_engine, "tmb")) {
+    tryCatch(drmTMB(spec$formula, spec$family, spec$data, engine = "tmb"), error = identity)
+  } else {
+    fj_args <- list(formula = spec$formula, family = spec$family, data = spec$data, engine = "julia")
+    if (!is.null(spec$marginal)) fj_args$marginal <- spec$marginal
+    tryCatch(do.call(drmTMB, fj_args), error = identity)
+  }
+  declared <- declared_targets(id)
+  observed <- if (inherits(fit, "error")) declared else profile_targets(fit)
+  if (!same_manifest(observed, declared)) stop("generated target manifest disagrees with frozen declaration for ", id, " on ", requested_engine, call. = FALSE)
+  target <- declared[declared$parm == requested_target, , drop = FALSE]
+  if (nrow(target) != 1L) stop("requested target is absent from the declared manifest: ", requested_target, call. = FALSE)
+  ready <- isTRUE(target$profile_ready[[1L]])
+  target_rows[[1L]] <- data.frame(fixture = id, target, stringsAsFactors = FALSE)
+  point_rows[[1L]] <- data.frame(fixture = id, engine = requested_engine, parm = requested_target, fit_status = if (inherits(fit, "error")) "fit_failed" else "returned", converged = if (inherits(fit, "error")) FALSE else is_converged(fit), loglik = if (inherits(fit, "error")) NA_real_ else as.numeric(logLik(fit)), error = one_line_error(fit), stringsAsFactors = FALSE)
+  sidecar <- receipt_suffix(requested_engine, requested_target)
+  # Persist the denominator and manifest before profiling.  Each task owns one
+  # engine only, avoiding JuliaCall teardown coupling with the native engine.
+  write.table(fixture_rows[[id]], file.path(out, paste0(id, sidecar, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  write.table(target_rows[[1L]], file.path(out, paste0(id, sidecar, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  write.table(point_rows[[1L]], file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  # Leave a conservative terminal classification before entering the profile
+  # engine.  If a JuliaCall teardown kills this R process, reconciliation sees
+  # an attempted, failed profile rather than a silently absent denominator.
+  provisional_profile <- data.frame(
+    fixture = id, engine = requested_engine, parm = requested_target,
+    profile_status = "profile_failed", lower = NA_real_, upper = NA_real_,
+    error = "profile attempt did not return after its durable checkpoint",
     stringsAsFactors = FALSE
-  ), file.path(out, paste0(id, "-fit-checkpoint.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  write.table(data.frame(fixture = id, parm = targets$parm, target_class = targets$target_class, profile_ready = targets$profile_ready, stringsAsFactors = FALSE), file.path(out, paste0(id, "-target-checkpoint.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  if (!stream_all) {
-    targets <- targets[targets$parm == requested_target, , drop = FALSE]
-    if (nrow(targets) != 1L) stop("requested target is absent from the generated manifest: ", requested_target, call. = FALSE)
+  )
+  write.table(provisional_profile, file.path(out, paste0(id, sidecar, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  marker <- file.path(out, paste0(id, "-profile-boundary.log"))
+  cat(sprintf("START\t%s\t%s\n", requested_engine, requested_target), file = marker, append = TRUE)
+  profile_args <- if (identical(requested_engine, "tmb") && startsWith(requested_target, "cholesky:recov:")) {
+    list(object = fit, parm = requested_target, method = "profile")
+  } else {
+    list(object = fit, parm = requested_target, method = "profile", threads = FALSE)
   }
-  engines <- if (stream_all) c("tmb", "julia") else requested_engine
-  if (!all(engines %in% c("tmb", "julia"))) stop("DRMTMB_071_ENGINE must be tmb or julia", call. = FALSE)
-  for (i in seq_len(nrow(targets))) {
-    target <- targets$parm[[i]]; ready <- isTRUE(targets$profile_ready[[i]])
-    target_rows[[length(target_rows) + 1L]] <- data.frame(fixture = id, parm = target, target_class = targets$target_class[[i]], profile_ready = ready, stringsAsFactors = FALSE)
-    point_rows[[length(point_rows) + 1L]] <- data.frame(fixture = id, engine = "tmb", parm = target, fit_status = if (native_ok) "returned" else "fit_failed", converged = if (native_ok) is_converged(ft) else FALSE, loglik = if (native_ok) as.numeric(logLik(ft)) else NA_real_, error = one_line_error(ft), stringsAsFactors = FALSE)
-    point_rows[[length(point_rows) + 1L]] <- data.frame(fixture = id, engine = "julia", parm = target, fit_status = if (julia_ok) "returned" else "fit_failed", converged = if (julia_ok) is_converged(fj) else FALSE, loglik = if (julia_ok) as.numeric(logLik(fj)) else NA_real_, error = one_line_error(fj), stringsAsFactors = FALSE)
-    # Persist fixture, target and point rows before the profile call.  JuliaCall
-    # can tear down a process after a completed profile, so every terminal
-    # profile marker must have its own already-durable denominator.
-    sidecar_engines <- if (stream_all) c("tmb", "julia") else requested_engine
-    for (sidecar_engine in sidecar_engines) {
-      sidecar <- receipt_suffix(sidecar_engine, target)
-      write.table(fixture_rows[[id]], file.path(out, paste0(id, sidecar, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-      write.table(target_rows[[length(target_rows)]], file.path(out, paste0(id, sidecar, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-      write.table(do.call(rbind, tail(point_rows, 2L)), file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-    }
-    for (engine in engines) {
-      fit <- if (identical(engine, "tmb")) ft else fj
-      marker <- file.path(out, paste0(id, "-profile-boundary.log"))
-      cat(sprintf("START\t%s\t%s\n", engine, target), file = marker, append = TRUE)
-      profile_args <- if (identical(engine, "tmb") && startsWith(target, "cholesky:recov:")) {
-        # Native L22/L21 are nonlinear constrained working coordinates; their
-        # dedicated endpoint engine must not receive a tmbprofile-only control.
-        list(object = fit, parm = target, method = "profile")
-      } else {
-        list(object = fit, parm = target, method = "profile", threads = FALSE)
-      }
-      ans <- if (!inherits(fit, "error") && (identical(engine, "tmb") || ready)) tryCatch(do.call(confint, profile_args), error = identity) else NULL
-      status <- if (inherits(fit, "error")) "fit_failed" else if (is.null(ans)) "not_profile_ready" else if (inherits(ans, "error")) "profile_failed" else if (!all(is.finite(c(ans$lower[[1L]], ans$upper[[1L]]))) ) "nonfinite_endpoint" else "profile"
-      profile_rows[[length(profile_rows) + 1L]] <- data.frame(fixture = id, engine = engine, parm = target, profile_status = status, lower = if (is.data.frame(ans)) ans$lower[[1L]] else NA_real_, upper = if (is.data.frame(ans)) ans$upper[[1L]] else NA_real_, error = one_line_error(ans), stringsAsFactors = FALSE)
-      write.table(profile_rows[[length(profile_rows)]], file.path(out, paste0(id, receipt_suffix(engine, target), "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-      cat(sprintf("RETURN\t%s\t%s\n", engine, target), file = marker, append = TRUE)
-    }
-  }
+  ans <- if (!inherits(fit, "error") && (identical(requested_engine, "tmb") || ready)) tryCatch(do.call(confint, profile_args), error = identity) else NULL
+  status <- if (inherits(fit, "error")) "fit_failed" else if (is.null(ans)) "not_profile_ready" else if (inherits(ans, "error")) "profile_failed" else if (!all(is.finite(c(ans$lower[[1L]], ans$upper[[1L]])))) "nonfinite_endpoint" else "profile"
+  profile_rows[[1L]] <- data.frame(fixture = id, engine = requested_engine, parm = requested_target, profile_status = status, lower = if (is.data.frame(ans)) ans$lower[[1L]] else NA_real_, upper = if (is.data.frame(ans)) ans$upper[[1L]] else NA_real_, error = one_line_error(ans), stringsAsFactors = FALSE)
+  write.table(profile_rows[[1L]], file.path(out, paste0(id, sidecar, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  cat(sprintf("RETURN\t%s\t%s\n", requested_engine, requested_target), file = marker, append = TRUE)
 }
-if (!stream_all) {
-  write.table(do.call(rbind, fixture_rows), file.path(out, paste0(id, run_suffix, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  write.table(do.call(rbind, target_rows), file.path(out, paste0(id, run_suffix, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  write.table(do.call(rbind, point_rows), file.path(out, paste0(id, run_suffix, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  write.table(do.call(rbind, profile_rows), file.path(out, paste0(id, run_suffix, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  writeLines(c("# 0.7.1 four-fixture receipt", "", paste0("- drmTMB: `", stamp(root), "`"), paste0("- DRM.jl: `", stamp(jl), "`"), "- This is one frozen fixture per family; it is not coverage evidence."), file.path(out, "README.md"))
-  cat("FOUR_FIXTURE_RECEIPT_WRITTEN\n")
-} else {
-  cat("FOUR_FIXTURE_SIDECARS_WRITTEN\n")
-}
+cat("FOUR_FIXTURE_RECEIPT_WRITTEN\n")

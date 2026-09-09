@@ -8,10 +8,32 @@ if (length(args) != 1L) stop("usage: Rscript reconcile-four-fixture-receipt.R <f
 id <- args[[1L]]
 root <- normalizePath(".")
 out <- file.path(root, "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/receipt")
-target_path <- file.path(out, paste0(id, "-target-checkpoint.tsv"))
-if (!file.exists(target_path)) stop("missing generated target checkpoint: ", target_path, call. = FALSE)
-targets <- read.delim(target_path, check.names = FALSE, stringsAsFactors = FALSE)
-if (!nrow(targets) || anyDuplicated(targets$parm)) stop("target checkpoint must contain unique declared targets", call. = FALSE)
+declared_targets <- function(id) {
+  common <- data.frame(
+    parm = c("fixef:mu:(Intercept)", "fixef:mu:x"),
+    target_class = "fixed-effect", profile_ready = TRUE,
+    stringsAsFactors = FALSE
+  )
+  if (id %in% c("binomial_ri", "poisson_ri")) {
+    return(rbind(common, data.frame(parm = "sd:mu:(1 | group)", target_class = "random-effect-sd", profile_ready = TRUE)))
+  }
+  if (identical(id, "nb2_ri")) {
+    return(rbind(
+      common,
+      data.frame(parm = c("fixef:sigma:(Intercept)", "sigma", "sd:mu:(1 | group)"),
+                 target_class = c("fixed-effect", "distributional-scale", "random-effect-sd"),
+                 profile_ready = c(TRUE, FALSE, TRUE))
+    ))
+  }
+  if (!identical(id, "nb2_coupled")) stop("unknown frozen fixture: ", id, call. = FALSE)
+  rbind(
+    common,
+    data.frame(parm = c("fixef:sigma:(Intercept)", "fixef:sigma:z", "cholesky:recov:L11", "cholesky:recov:L22", "cholesky:recov:L21"),
+               target_class = c("fixed-effect", "fixed-effect", "covariance-coordinate", "covariance-coordinate", "covariance-coordinate"),
+               profile_ready = TRUE)
+  )
+}
+targets <- declared_targets(id)
 stamp <- function(repo) system2("git", c("-C", shQuote(repo), "rev-parse", "HEAD"), stdout = TRUE)
 jl <- Sys.getenv("DRM_JL_PATH", "")
 if (!nzchar(jl) || !dir.exists(jl)) stop("DRM_JL_PATH must name the committed DRM.jl lane", call. = FALSE)
@@ -21,6 +43,11 @@ read_one <- function(path, what) {
   x <- read.delim(path, check.names = FALSE, stringsAsFactors = FALSE)
   if (nrow(x) != 1L) stop(what, " receipt must contain exactly one row: ", path, call. = FALSE)
   x
+}
+same_row <- function(x, y) {
+  row.names(x) <- NULL
+  row.names(y) <- NULL
+  identical(x, y)
 }
 
 profile_rows <- list(); point_rows <- list(); target_rows <- list(); fixture_rows <- list()
@@ -35,11 +62,18 @@ for (i in seq_len(nrow(targets))) {
   if (!identical(tmb_profile$engine[[1L]], "tmb") || !identical(julia_profile$engine[[1L]], "julia")) stop("profile engine label drift for ", target, call. = FALSE)
   profile_rows[[length(profile_rows) + 1L]] <- tmb_profile
   profile_rows[[length(profile_rows) + 1L]] <- julia_profile
-  tmb_point <- read.delim(file.path(out, paste0(id, tmb_suffix, "-point-receipt.tsv")), check.names = FALSE, stringsAsFactors = FALSE)
-  julia_point <- read.delim(file.path(out, paste0(id, julia_suffix, "-point-receipt.tsv")), check.names = FALSE, stringsAsFactors = FALSE)
-  if (nrow(tmb_point) != 2L || nrow(julia_point) != 2L || !identical(tmb_point, julia_point)) stop("point receipts disagree for ", target, call. = FALSE)
-  point_rows[[i]] <- tmb_point
-  fixture_rows[[i]] <- read_one(file.path(out, paste0(id, tmb_suffix, "-fixture-manifest.tsv")), "fixture manifest")
+  tmb_point <- read_one(file.path(out, paste0(id, tmb_suffix, "-point-receipt.tsv")), "TMB point")
+  julia_point <- read_one(file.path(out, paste0(id, julia_suffix, "-point-receipt.tsv")), "Julia point")
+  if (!identical(tmb_point$parm[[1L]], target) || !identical(julia_point$parm[[1L]], target)) stop("point target label drift for ", target, call. = FALSE)
+  if (!identical(tmb_point$engine[[1L]], "tmb") || !identical(julia_point$engine[[1L]], "julia")) stop("point engine label drift for ", target, call. = FALSE)
+  point_rows[[length(point_rows) + 1L]] <- tmb_point
+  point_rows[[length(point_rows) + 1L]] <- julia_point
+  tmb_target <- read_one(file.path(out, paste0(id, tmb_suffix, "-target-manifest.tsv")), "TMB target manifest")
+  julia_target <- read_one(file.path(out, paste0(id, julia_suffix, "-target-manifest.tsv")), "Julia target manifest")
+  expected_target <- data.frame(fixture = id, targets[i, , drop = FALSE], stringsAsFactors = FALSE)
+  if (!same_row(tmb_target, expected_target) || !same_row(julia_target, expected_target)) stop("engine target manifests disagree with the frozen declaration for ", target, call. = FALSE)
+  fixture_rows[[length(fixture_rows) + 1L]] <- read_one(file.path(out, paste0(id, tmb_suffix, "-fixture-manifest.tsv")), "TMB fixture manifest")
+  fixture_rows[[length(fixture_rows) + 1L]] <- read_one(file.path(out, paste0(id, julia_suffix, "-fixture-manifest.tsv")), "Julia fixture manifest")
 }
 fixture_ref <- fixture_rows[[1L]]
 if (!all(vapply(fixture_rows, identical, logical(1), fixture_ref))) stop("fixture bytes or dimensions drifted across engine-target tasks", call. = FALSE)
