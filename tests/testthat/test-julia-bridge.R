@@ -566,7 +566,8 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
       worker_threads = 1L,
       julia_threads = 1L,
       blas_threads = 1L,
-      elapsed = 0.25
+      elapsed = 0.25,
+      profile_audit = list(lower = list(candidate = -0.1))
     ),
     level = 0.80,
     method = "profile"
@@ -575,6 +576,7 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   expect_equal(ci$upper, 2.1 * sqrt(2), tolerance = 1e-12)
   expect_equal(ci$profile.engine, "julia_profile_result")
   expect_equal(ci$julia.workers, 1L)
+  expect_equal(ci$julia.profile.audit[[1L]]$lower$candidate, -0.1)
   testthat::local_mocked_bindings(
     drm_julia_call_inference = function(
       object,

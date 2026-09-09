@@ -4509,7 +4509,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "            attempted = result.attempted, used = result.used, failed = result.failed,",
       "            elapsed = result.elapsed, threaded = result.threaded, worker_threads = result.worker_threads,",
       "            julia_threads = result.julia_threads, blas_threads = result.blas_threads,",
-      "            message = outcome.message)",
+      "            message = outcome.message, profile_audit = DRM._bridge_profile_audit(result, row))",
       "    elseif method == \"bootstrap\"",
       "        rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(Int(seed))",
       "        result = if fit isa DRM.DrmFit{<:DRM.Gaussian}",
@@ -6154,6 +6154,7 @@ drm_julia_inference_confint_row <- function(target, result, level, method) {
     julia.threads = as.integer(result[["julia_threads"]]),
     julia.blas_threads = as.integer(result[["blas_threads"]]),
     julia.elapsed = as.numeric(result[["elapsed"]]),
+    julia.profile.audit = I(list(result[["profile_audit"]] %||% NULL)),
     stringsAsFactors = FALSE
   )
   if (identical(method, "bootstrap")) {
@@ -6210,6 +6211,7 @@ drm_julia_fixef_inference_confint_row <- function(target, result, level, method)
     julia.threads = as.integer(result[["julia_threads"]]),
     julia.blas_threads = as.integer(result[["blas_threads"]]),
     julia.elapsed = as.numeric(result[["elapsed"]]),
+    julia.profile.audit = I(list(result[["profile_audit"]] %||% NULL)),
     stringsAsFactors = FALSE
   )
   if (identical(method, "bootstrap")) {
