@@ -62,3 +62,48 @@ test_that("temporal layout maps shuffled observations to sorted latent states", 
   expect_identical(layout$gap, c(0L, 1L, 2L, 0L, 1L, 3L))
   expect_identical(layout$observation_node_index, c(3L, 6L, 1L, 4L, 5L, 2L))
 })
+
+test_that("reference checks reject deliberate temporal covariance and normalizer mutations", {
+  series <- c("a", "a", "a", "b", "b", "b")
+  occasion <- c(0L, 1L, 4L, 0L, 1L, 4L)
+  phi <- -0.5
+  correct <- temporal_reference_covariance(
+    series, occasion, sd_between = 0.6, sd_temporal = 0.8, sigma = 0.4, phi = phi
+  )
+  compressed_gaps <- temporal_reference_covariance(
+    series, ave(occasion, series, FUN = rank), sd_between = 0.6,
+    sd_temporal = 0.8, sigma = 0.4, phi = phi
+  )
+  shared_series <- outer(
+    occasion, occasion,
+    function(left, right) 0.6^2 + 0.8^2 * phi^abs(left - right)
+  )
+  diag(shared_series) <- diag(shared_series) + 0.4^2
+  innovation_sd <- 0.8 * sqrt(1 - phi^2)
+  innovation_scale <- temporal_reference_covariance(
+    series, occasion, sd_between = 0.6, sd_temporal = innovation_sd,
+    sigma = 0.4, phi = phi
+  )
+  omitted_intercept <- temporal_reference_covariance(
+    series, occasion, sd_between = 0, sd_temporal = 0.8, sigma = 0.4, phi = phi
+  )
+  expect_false(isTRUE(all.equal(correct, compressed_gaps)))
+  expect_false(isTRUE(all.equal(correct, shared_series)))
+  expect_false(isTRUE(all.equal(correct, innovation_scale)))
+  expect_false(isTRUE(all.equal(correct, omitted_intercept)))
+
+  latent <- c(0.4, -0.2, 0.7)
+  gap <- c(0L, 1L, 3L)
+  normalized <- -stats::dnorm(latent[[1L]], log = TRUE)
+  unnormalized <- latent[[1L]]^2 / 2
+  for (node in 2:3) {
+    transition <- phi^gap[[node]]
+    transition_sd <- sqrt(1 - transition^2)
+    normalized <- normalized - stats::dnorm(
+      latent[[node]], transition * latent[[node - 1L]], transition_sd, log = TRUE
+    )
+    unnormalized <- unnormalized +
+      (latent[[node]] - transition * latent[[node - 1L]])^2 / (2 * transition_sd^2)
+  }
+  expect_false(isTRUE(all.equal(normalized, unnormalized)))
+})

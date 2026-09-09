@@ -187,3 +187,35 @@ test_that("temporal AR1 exposes labelled components and mean-only Wald inference
     c(nrow(dat), 2L)
   )
 })
+
+test_that("temporal fitted values, residuals, and simulation modes use the intended latent effects", {
+  dat <- temporal_smoke_data()
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ treatment + (1 | id) + temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+    data = dat, family = gaussian(), REML = FALSE
+  ))
+  fixed_mu <- as.vector(fit$model$X$mu %*% fit$coefficients$mu)
+  conditional_mu <- fixed_mu +
+    mu_random_effect_contribution(fit, dpar = "mu") +
+    temporal_mu_contribution(fit)
+  expect_equal(stats::fitted(fit), conditional_mu)
+  expect_equal(stats::residuals(fit), fit$model$y - conditional_mu)
+
+  set.seed(918)
+  expected_conditional <- conditional_mu + stats::rnorm(
+    nrow(dat), sd = observation_sigma(fit)
+  )
+  expect_equal(
+    unname(stats::simulate(fit, nsim = 1L, seed = 918, re.form = NA)[[1L]]),
+    expected_conditional
+  )
+
+  set.seed(919)
+  fresh_draws <- drm_ordinary_random_effect_draws(fit)
+  fresh_mu <- drm_marginal_predict(fit, "mu", fresh_draws)
+  expected_fresh <- stats::rnorm(nrow(dat), mean = fresh_mu, sd = observation_sigma(fit))
+  expect_equal(
+    unname(stats::simulate(fit, nsim = 1L, seed = 919)[[1L]]),
+    expected_fresh
+  )
+})
