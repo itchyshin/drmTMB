@@ -5,7 +5,10 @@
 # campaign.
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) > 0L) stop("This runner takes no arguments.", call. = FALSE)
+preflight <- identical(args, "--preflight")
+if (length(args) > 0L && !preflight) {
+  stop("Usage: Rscript --vanilla tools/run-temporal-ou-profile-pilot.R [--preflight]", call. = FALSE)
+}
 root <- normalizePath(".", mustWork = TRUE)
 if (!file.exists(file.path(root, "DESCRIPTION"))) {
   stop("Run this script from the drmTMB repository root.", call. = FALSE)
@@ -14,10 +17,9 @@ pkgload::load_all(root, quiet = TRUE)
 
 out_dir <- Sys.getenv(
   "DRMTMB_TEMPORAL_OU_PILOT_OUT",
-  unset = file.path(
-    root,
-    "docs/dev-log/simulation-artifacts/2026-09-09-temporal-ou-profile-pilot"
-  )
+  unset = file.path(root, "docs/dev-log/simulation-artifacts", if (preflight) {
+    "2026-09-09-temporal-ou-profile-preflight"
+  } else "2026-09-09-temporal-ou-profile-pilot")
 )
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 evidence_files <- file.path(out_dir, c(
@@ -180,9 +182,11 @@ run_one <- function(cell, seed) {
 result_rows <- list()
 attempt_rows <- list()
 index <- 1L
-for (i in seq_len(nrow(cells))) {
-  for (seed in seeds) {
-    result <- run_one(cells[i, , drop = FALSE], seed)
+run_cells <- if (preflight) cells[1L, , drop = FALSE] else cells
+run_seeds <- if (preflight) seeds[1L] else seeds
+for (i in seq_len(nrow(run_cells))) {
+  for (seed in run_seeds) {
+    result <- run_one(run_cells[i, , drop = FALSE], seed)
     result_rows[[index]] <- result$selected
     attempt_rows[[index]] <- result$attempts
     index <- index + 1L
@@ -229,7 +233,9 @@ writeLines(c(
   "This records timing and output completeness only. It does not qualify interval calibration or authorize a campaign."
 ), file.path(out_dir, "RESULTS.md"))
 
-if (nrow(results) != 15L || nrow(attempts) != 30L ||
+expected_datasets <- if (preflight) 1L else 15L
+expected_attempts <- 2L * expected_datasets
+if (nrow(results) != expected_datasets || nrow(attempts) != expected_attempts ||
     !all(table(attempts$fixture) == 2L) ||
     !all(results$selected & is.finite(results$objective)) ||
     !all(is.finite(results$fit_elapsed_sec) & results$fit_elapsed_sec > 0) ||
