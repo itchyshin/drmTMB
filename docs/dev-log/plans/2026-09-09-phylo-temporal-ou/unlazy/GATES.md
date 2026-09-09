@@ -52,7 +52,7 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
 - [ ] G9: Retained recovery uses the 24 predeclared phylogenetic-signal, OU-decay and imbalance fixtures, preserves all 48 starts and failures, and meets the stated finite-fit and error thresholds without changing seeds.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9
   EXPECT: PHYLO_TEMPORAL_OU_G9_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 FAILED, retained for diagnosis. The corrected 50-species 24-fixture denominator at `docs/dev-log/simulation-artifacts/2026-09-09-phylo-temporal-ou-local-recovery-v4/` retained 24 finite selected fits and 48 starts; log-SD (0.153) and log-decay (0.276) criteria passed, but mean fixed-effect error was 0.182 > 0.150. A separate 80-species diagnostic with the same seeds and thresholds at `...-v6-high-information/` also retained 24/48 and passed SD/decay criteria but fixed-effect error was 0.165 > 0.150. Earlier v1/v2 artifacts retain runner-interface failures; v3 retains the ordered-treatment confounding diagnosis. No seed/threshold change or promotion occurred; a revised decision is required before G9 can pass.
 
 - [ ] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10

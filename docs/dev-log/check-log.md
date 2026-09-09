@@ -94648,3 +94648,13 @@ mean slope values. Its 90% likelihood-ratio endpoints (0.17577, 0.59428) agree w
 public TMB-profile endpoints (0.17544, 0.59399), and the gate also fences deferred
 interval targets plus the irregular-Hessian warning. `PHYLO_TEMPORAL_OU_G8_PASS` is
 retained in `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-profile.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU G9 retained recovery failure
+
+G9 is unmet. The corrected 50-species 24-fixture denominator retained all 24 selected
+fits and 48 starts, and passed SD/decay criteria, but fixed-effect error was 0.182 >
+0.150. A separate 80-species diagnostic under the same seeds/thresholds reduced it to
+0.165 but also failed. Earlier immutable directories retain formula/list/provenance
+runner failures and the ordered-treatment confounding diagnosis. No threshold, seed or
+failure was changed or suppressed. See
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-recovery-failure.md`.
