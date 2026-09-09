@@ -94596,3 +94596,20 @@ Closeout report:
 | 2026-09-09 | Temporal OU campaign provenance verifier | Parser PASS; fail-closed missing-shard test PASS; each reverify now requires all shards to share a commit and an MD5 that matches the worker extracted from that commit | G15 cannot accept agreeing but fabricated provenance. It remains read-only and awaits retained Fir outputs. | Codex |
 | 2026-09-09 | Temporal OU storage-consolidating shard route | `bash -n` passed for source stager and 60-shard Fir template; G15 shard-reader parsed; temporary source archive contained `DESCRIPTION` and the campaign worker | Keeps raw CSV/RDS evidence inside immutable tarballs. It reduces inode use but changes array granularity and remains pending revised G14 authorization plus freed project inodes. | Codex |
 | 2026-09-09 | Temporal OU 50-task shard contract | Synthetic node-local worker completed 50 task calls, wrote one immutable `shard-001.tar.gz`, and retained the status ledger plus worker log; `TEMPORAL_OU_SHARD_CONTRACT_PASS` | Validates batch staging and atomic publication only; it does not fit a model or revise G14 authority. | Codex |
+
+
+## 2026-09-09: Temporal OU Fir sealed-shard smoke and node-local build
+
+- Fir project storage was inode-full and nearline was not visible from a compute
+  node. The campaign route therefore uses Fir home only as transient staging and
+  checksum-verified Totoro copies as durable evidence.
+- Smoke job `58907593` at source `e46bf2e702c08383e1883de34b07163a5d9ba896`
+  completed one U1 campaign data set after a node-local `R CMD INSTALL`; it took
+  2:30 elapsed, used 4,183,676 KiB peak RSS, and sealed
+  `shard-001.tar.gz` (SHA-256
+  `20a6bf2fa205fb3815cf4746850cba3c26cfd6684266e37b5a3bfcd58ff8b49d`).
+- The archive contains the package-install log, runtime receipt, task status
+  `1,0`, all two starts, three finite fixed-effect profile intervals, and exact
+  source/runner provenance. The preceding 2 GiB smoke failed during C++
+  compilation, so the production script now requests 6 GiB and builds once per
+  shard before 50 worker calls.

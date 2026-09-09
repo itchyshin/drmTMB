@@ -5,9 +5,9 @@
 # 3,000 data sets while reducing persistent file demand.
 
 #SBATCH --account=def-snakagaw_cpu
-#SBATCH --time=01:30:00
+#SBATCH --time=02:30:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem=6G
 #SBATCH --array=1-60%10
 #SBATCH --job-name=drmtmb-ou-shard
 #SBATCH --output=/dev/null

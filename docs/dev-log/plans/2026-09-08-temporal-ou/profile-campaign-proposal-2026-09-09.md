@@ -55,7 +55,7 @@ approval of this exact target, 3,000-replicate denominator, Fir routing, and
 resource ceiling. After submission, G15 will recompute summaries from immutable
 outputs without launching another campaign.
 
-## Storage-consolidating alternative — pending revised authorization
+## Storage-consolidating campaign — approved and smoke-tested
 
 Fir currently has no free project inodes (`500K / 500K`). The prepared
 alternative stages one immutable `tar.gz` source archive, runs 50 data sets per
@@ -68,8 +68,29 @@ and aggregated.
 
 It reduces durable inode demand from roughly 24,000 loose worker files and
 6,000 Slurm logs to 62 files: one source archive, 60 immutable shards, and one
-recomputed summary. It changes the predeclared one-dataset array grain to 60
-batches of 50, the array concurrency to 10, and the requested wall time to 90
-minutes. It therefore requires a revised G14 authorization before submission.
-It also still requires roughly 100 free project inodes; no script can create an
-artifact in a full allocation.
+recomputed summary. It changes the predeclared one-dataset array grain to 60 batches of 50 and
+the array concurrency to 10. Shinichi approved this revised route on 2026-09-09
+(`merge files as you go`; retain keepers on Totoro and keep DRAC relatively
+clean). Fir project storage remains unavailable because its inode allocation is
+full, and Fir nearline is not mounted on compute nodes. The live route therefore
+uses Fir home only as transient staging: one source archive and at most 60 sealed
+shards. Each completed shard is checksum-verified after transfer to Totoro before
+any Fir cleanup. Totoro is the durable campaign store.
+
+A one-dataset scheduled Fir smoke, job `58907593`, completed at source
+`e46bf2e702c08383e1883de34b07163a5d9ba896`. It used one CPU, 2 minutes 30
+seconds elapsed, and 4,183,676 KiB peak RSS. Its sealed shard
+`shard-001.tar.gz` has SHA-256
+`20a6bf2fa205fb3815cf4746850cba3c26cfd6684266e37b5a3bfcd58ff8b49d` and
+contains an exact source/runner provenance record, a successful node-local
+package-install log, `task,status` = `1,0`, two starts, and three finite profile
+intervals. The prior 2 GiB request failed during package compilation; the
+production script now compiles `drmTMB` once per shard into node-local storage,
+reuses that binary for all 50 data sets, requests 6 GiB and 2.5 hours, and never
+writes intermediate task files to Fir.
+
+The retained local U1--U3 pilot gives median profile times of 34.764, 47.133,
+and 64.638 seconds. With the measured one-time installation, 20 50-data-set
+shards per cell project to roughly 43 single-core CPU-hours and about 5 hours of
+array wall time at concurrency 10, before queue delay. The 2.5-hour task ceiling
+leaves deliberate tail room; it is a ceiling, not an expected duration.
