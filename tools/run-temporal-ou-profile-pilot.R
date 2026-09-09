@@ -20,6 +20,10 @@ if (campaign_mode && (campaign_task < 1L || campaign_task > 3000L)) {
 if (campaign_mode && !identical(Sys.getenv("DRMTMB_TEMPORAL_OU_CAMPAIGN_AUTHORIZED"), "1")) {
   stop("Campaign mode requires DRMTMB_TEMPORAL_OU_CAMPAIGN_AUTHORIZED=1.", call. = FALSE)
 }
+source_commit <- Sys.getenv("DRMTMB_TEMPORAL_OU_SOURCE_COMMIT")
+if (campaign_mode && !grepl("^[0-9a-f]{40}$", source_commit)) {
+  stop("Campaign mode requires a 40-character DRMTMB_TEMPORAL_OU_SOURCE_COMMIT.", call. = FALSE)
+}
 root <- normalizePath(".", mustWork = TRUE)
 if (!file.exists(file.path(root, "DESCRIPTION"))) {
   stop("Run this script from the drmTMB repository root.", call. = FALSE)
@@ -240,7 +244,7 @@ write.csv(summary, file.path(out_dir, "profile-pilot-summary.csv"), row.names = 
 provenance <- data.frame(
   key = c("source_commit", "runner_md5", "run_utc", "mode", "campaign_task", "n_datasets", "n_attempts"),
   value = c(
-    system2("git", c("rev-parse", "HEAD"), stdout = TRUE),
+    if (nzchar(source_commit)) source_commit else system2("git", c("rev-parse", "HEAD"), stdout = TRUE),
     unname(tools::md5sum(file.path(root, "tools/run-temporal-ou-profile-pilot.R"))),
     format(Sys.time(), tz = "UTC", usetz = TRUE),
     if (campaign_mode) "campaign" else if (preflight) "preflight" else "pilot",
