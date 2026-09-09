@@ -5133,6 +5133,7 @@ interval_status_from_profile_note <- function(profile_ready, profile_note) {
     derived_target = "derived_interval_unavailable",
     derived_unstructured_correlation = "derived_interval_unavailable",
     fitted_range_only = "target_unavailable",
+    temporal_nonmean_intervals_deferred = "temporal_nonmean_intervals_deferred",
     profile_note
   )
 }

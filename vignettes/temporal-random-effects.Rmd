@@ -126,7 +126,7 @@ summary(fit, conf.int = TRUE, method = "profile", ci_parm = "mu:treatment")
 Omit `parm` or `ci_parm` to profile every mean coefficient. Variance-component,
 persistence or decay, bootstrap, forecasting, and `newdata` intervals remain
 unavailable. `check_drm(fit)` labels a non-positive-definite fitted Hessian as
-an irregular nuisance-parameter situation: a mean-coefficient profile can
+an irregular fitted-likelihood situation: a mean-coefficient profile can
 still be finite there, but it is not coverage-calibrated. The first calibration
 pilot found a residual-SD boundary in a primary short-series case, so neither
 the Wald nor profile route is yet a general coverage claim.
@@ -190,4 +190,6 @@ does not. OU Wald inference through `vcov()`, `confint(..., method = "wald")`,
 and `summary(..., conf.int = TRUE, method = "wald")` remains unavailable.
 Use `confint(..., parm = "mu:<coefficient>", method = "profile")` for a mean
 effect, read its `conf.status`, and inspect `check_drm(ou_fit)` before
-reporting it. OU decay and variance-component intervals remain unavailable.
+reporting it. Report it only when `check_drm(ou_fit)` has no
+`temporal_mean_profile` warning; finite endpoints alone are not calibration
+evidence. OU decay and variance-component intervals remain unavailable.

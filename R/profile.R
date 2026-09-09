@@ -196,8 +196,8 @@
 #'     remains restricted or deferred, and temporal variance, persistence,
 #'     decay, bootstrap, and \code{newdata} intervals are unavailable.
 #'     Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
-#'     not prevent a finite profile endpoint, but it makes nuisance-parameter
-#'     uncertainty irregular and the interval is not coverage-calibrated.
+#'     not prevent a finite profile endpoint, but it makes the fitted likelihood
+#'     locally irregular and the interval is not coverage-calibrated.
 #'   \item Random-effect SDs and other direct variance-component targets: prefer
 #'     \code{confint(fit, parm = ..., method = "profile")} after
 #'     \code{profile_targets(fit)} shows the row is profile-ready. Profile
@@ -762,6 +762,10 @@ confint.drmTMB <- function(
 #'   profiling: the zi-nbinom2 note covers the ordinary q1 scale route, and the
 #'   zero-one-beta notes cover that bounded family's structured q1 mean route
 #'   and its zero- and one-inflation routes.
+#'   Gaussian temporal AR1 and OU fits use
+#'   `"temporal_nonmean_intervals_deferred"` for every non-mean target and
+#'   `"temporal_decay_intervals_deferred"` for the OU decay target; only their
+#'   mean regression coefficients are profile-ready.
 #'   Derived variance-ratio summaries such as `total_variance_share` and
 #'   `phylo_total_variance_share` are listed as point-estimate targets with
 #'   `profile_ready = FALSE`.
@@ -815,7 +819,8 @@ profile_targets <- function(object, ready_only = FALSE) {
 #'
 #' @param fitted A `drmTMB` fit.
 #' @param parm Character or integer vector selecting direct profile targets.
-#'   Use [profile_targets()] to inspect available names. Unlike
+#'   Use [profile_targets()] to inspect available names. Gaussian temporal AR1
+#'   and OU fits accept mean-model coefficient targets only. Unlike
 #'   [confint.drmTMB()], this helper always uses the full
 #'   [TMB::tmbprofile()] curve because the curve itself is the diagnostic.
 #' @param level Confidence level used for the likelihood-ratio cutoff and
@@ -904,7 +909,14 @@ profile.drmTMB <- function(
     ytol = first_pass_ytol
   )
 
-  targets <- profile_match_targets(drm_profile_targets(fitted), parm)
+  targets <- if (drm_has_temporal_mu(fitted)) {
+    profile_match_targets(
+      drm_profile_targets(fitted),
+      validate_temporal_profile_parm(fitted, parm)
+    )
+  } else {
+    profile_match_targets(drm_profile_targets(fitted), parm)
+  }
   if (any(targets$target_class == "ordinal-cutpoint")) {
     cli::cli_abort(c(
       "Full profile curves for ordered cutpoints are not yet exported.",
@@ -964,6 +976,7 @@ profile.drmTMB <- function(
   row.names(out) <- NULL
   attr(out, "level") <- level
   class(out) <- c("profile.drmTMB", class(out))
+  warn_temporal_profile_hessian(fitted)
   out
 }
 
@@ -1917,7 +1930,22 @@ drm_profile_targets <- function(object) {
     empty_profile_targets()
   }
   row.names(out) <- NULL
+  out <- restrict_temporal_profile_targets(object, out)
   validate_profile_targets(out)
+}
+
+restrict_temporal_profile_targets <- function(object, targets) {
+  if (!drm_has_temporal_mu(object) || nrow(targets) == 0L) {
+    return(targets)
+  }
+  mean_targets <- targets$target_class == "fixed-effect" &
+    targets$dpar == "mu"
+  deferred <- !mean_targets
+  targets$profile_ready[deferred] <- FALSE
+  non_decay <- deferred & targets$target_class != "temporal-decay"
+  targets$profile_note[non_decay] <-
+    "temporal_nonmean_intervals_deferred"
+  targets
 }
 
 drm_profile_confint <- function(
@@ -2193,7 +2221,7 @@ warn_temporal_profile_hessian <- function(object) {
     cli::cli_warn(
       c(
         "The temporal fit has no positive-definite full observed Hessian.",
-        "!" = "Mean-coefficient profile endpoints can still be finite, but nuisance-parameter uncertainty is irregular and coverage is unqualified.",
+        "!" = "Mean-coefficient profile endpoints can still be finite, but the fitted likelihood is locally irregular and coverage is unqualified.",
         "i" = "Inspect {.code check_drm(fit)} and the profile curve before reporting this interval."
       ),
       class = "drmTMB_temporal_profile_hessian_warning"
@@ -4811,7 +4839,8 @@ validate_profile_targets <- function(targets) {
     # bridge inference has no cutpoint target, so `confint()` refuses it and
     # names `engine = "tmb"` (R/julia-family-cumulative_logit.R).
     "julia_ordinal_cutpoint_native_only",
-    "temporal_decay_intervals_deferred"
+    "temporal_decay_intervals_deferred",
+    "temporal_nonmean_intervals_deferred"
   )
   bad_note <- !targets$profile_note %in% allowed_notes
   if (any(bad_note)) {

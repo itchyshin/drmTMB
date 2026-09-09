@@ -21,7 +21,8 @@
 \item{fitted}{A \code{drmTMB} fit.}
 
 \item{parm}{Character or integer vector selecting direct profile targets.
-Use \code{\link[=profile_targets]{profile_targets()}} to inspect available names. Unlike
+Use \code{\link[=profile_targets]{profile_targets()}} to inspect available names. Gaussian temporal AR1
+and OU fits accept mean-model coefficient targets only. Unlike
 \code{\link[=confint.drmTMB]{confint.drmTMB()}}, this helper always uses the full
 \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} curve because the curve itself is the diagnostic.}
 

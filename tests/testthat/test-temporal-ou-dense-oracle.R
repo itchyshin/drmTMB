@@ -124,11 +124,15 @@ test_that("temporal OU fixed-effect profile curve matches an independent dense p
     data = ou_oracle_data(with_intercept = FALSE, seed = 20260912L),
     family = gaussian(), REML = FALSE
   ))
-  curve <- stats::profile(
-    fit,
-    parm = "fixef:mu:x",
-    ystep = 0.5,
-    ytol = 2
+  fit$sdr$pdHess <- FALSE
+  expect_warning(
+    curve <- stats::profile(
+      fit,
+      parm = "fixef:mu:x",
+      ystep = 0.5,
+      ytol = 2
+    ),
+    class = "drmTMB_temporal_profile_hessian_warning"
   )
   beta_x <- unname(fit$opt$par[which(names(fit$opt$par) == "beta_mu")[[2L]]])
   targets <- c(

@@ -38,7 +38,7 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G7: Temporal mean-coefficient profile intervals agree with independent dense profiles, reject deferred targets, and warn about an irregular fitted Hessian
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G7
   EXPECT: TEMPORAL_OU_G7_PASS
-  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G7` emitted `TEMPORAL_OU_G7_PASS` 2026-09-09. The public route profiles only `mu` fixed-effect targets, supports coefficient aliases such as `mu:x`, rejects decay, variance, bootstrap, `newdata`, and scalar-endpoint requests, and warns when the base fitted Hessian is not positive definite. `test-temporal-ou-dense-oracle.R` independently re-optimizes the dense marginal covariance likelihood at three fixed-effect profile locations. This establishes deterministic agreement and an honest per-fit diagnostic; it is not a coverage calibration claim. The free-sigma full-Hessian Wald route remains unqualified.
+  EVIDENCE: Reverified 2026-09-09. The public route profiles only `mu` fixed-effect targets, supports coefficient aliases such as `mu:x`, rejects decay, every non-mean target (including the stable intercept SD in a combined fit), bootstrap, `newdata`, and scalar-endpoint requests, and warns when the base fitted Hessian is not positive definite. `profile_targets(fit, ready_only = TRUE)` reports the same boundary. `test-temporal-ou-dense-oracle.R` independently re-optimizes the dense marginal covariance likelihood at three fixed-effect profile locations. This establishes deterministic agreement and an honest per-fit diagnostic; it is not a coverage calibration claim. The free-sigma full-Hessian Wald route remains unqualified.
 
 - [x] G8: Retained OU recovery preserves every start, failure, source fingerprint, and predeclared threshold
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G8
@@ -58,15 +58,15 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G11: Documentation and package integration are synchronized and a source-built temporal vignette renders
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G11
   EXPECT: TEMPORAL_OU_G11_PASS
-  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G11` emitted `TEMPORAL_OU_G11_PASS` 2026-09-08.
+  EVIDENCE: Reverified after the profile-target clarification on 2026-09-09: the source-built temporal vignette rendered and includes the irregular-time OU profile workflow and `check_drm()` condition.
 
 - [x] G12: R CMD build and R CMD check pass at the final exact source
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G12
   EXPECT: TEMPORAL_OU_G12_PASS
-  EVIDENCE: `R --vanilla CMD build .` built `drmTMB_0.7.1.tar.gz`; `R CMD check --no-manual drmTMB_0.7.1.tar.gz` returned `Status: OK` 2026-09-08.
+  EVIDENCE: Reverified for the exact profile-interface working tree on 2026-09-09: `R CMD check --no-manual drmTMB_0.7.1.tar.gz` returned `Status: OK` on macOS after build.
 
 - [x] G13: Independent mathematical and reader-workflow reviews find no unresolved blocking defect
-  EVIDENCE: Independent mathematical review approved the AD-safe small-decay transition, decay target registry, and explicit unavailable-inference summary diagnostic; independent reader review approved `decaypars`, structure-aware errors, the corrected G2 contract, and the runnable irregular-time vignette, 2026-09-08.
+  EVIDENCE: The independent mathematical review found two public-profile boundary defects: generic `profile()` bypassed the mean-only target restriction, and it did not report an irregular fitted Hessian. Both are now covered by the public target validator, `profile_targets()` metadata, the Hessian warning, and focused tests. The independent reader review requested neutral irregular-likelihood wording and a nearby reporting condition; both are in the vignette and diagnostic. Reviewers found no unresolved blocker after these repairs, 2026-09-09.
 
 - [ ] G16: A bounded fixed-effect profile pilot records runtime, output completeness, regular and irregular-Hessian diagnostics, and interval availability
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G16

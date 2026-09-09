@@ -248,8 +248,8 @@ fitted-object route when \code{TMB::sdreport()} succeeded.
 remains restricted or deferred, and temporal variance, persistence,
 decay, bootstrap, and \code{newdata} intervals are unavailable.
 Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
-not prevent a finite profile endpoint, but it makes nuisance-parameter
-uncertainty irregular and the interval is not coverage-calibrated.
+not prevent a finite profile endpoint, but it makes the fitted likelihood
+locally irregular and the interval is not coverage-calibrated.
 \item Random-effect SDs and other direct variance-component targets: prefer
 \code{confint(fit, parm = ..., method = "profile")} after
 \code{profile_targets(fit)} shows the row is profile-ready. Profile

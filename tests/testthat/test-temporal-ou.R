@@ -112,6 +112,28 @@ test_that("temporal OU profiles mean coefficients and rejects deferred targets",
     "mean regression coefficients only"
   )
   expect_error(
+    stats::profile(fit, parm = decay),
+    "mean regression coefficients only"
+  )
+  combined_fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + (1 | id) + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = temporal_ou_data(), family = gaussian(), REML = FALSE
+  )
+  combined_targets <- drmTMB::profile_targets(combined_fit)
+  temporal_sd_label <- drmTMB:::temporal_mu_sd_label(combined_fit$model$structured$temporal_mu)
+  temporal_sd <- combined_targets[
+    combined_targets$parm == paste0("sd:mu:", temporal_sd_label),
+    ,
+    drop = FALSE
+  ]
+  expect_equal(nrow(temporal_sd), 1L)
+  expect_false(temporal_sd$profile_ready)
+  expect_identical(temporal_sd$profile_note, "temporal_nonmean_intervals_deferred")
+  expect_error(
+    stats::profile(combined_fit, parm = temporal_sd$parm),
+    "mean regression coefficients only"
+  )
+  expect_error(
     stats::confint(fit, method = "bootstrap"),
     "do not support.*bootstrap"
   )

@@ -1403,7 +1403,7 @@ check_temporal_mean_profile <- function(object) {
       "temporal_mean_profile",
       "warning",
       "available_with_caution; reason=base_hessian_non_pd",
-      "Temporal mean-coefficient profile intervals can be finite, but the fitted full observed Hessian is not positive definite. Treat nuisance-parameter uncertainty as irregular; inspect the profile curve and do not treat the interval as coverage-calibrated."
+      "Temporal mean-coefficient profile intervals can be finite, but the fitted full observed Hessian is not positive definite. Treat the fitted likelihood as locally irregular; inspect the profile curve and do not treat the interval as coverage-calibrated."
     ))
   }
   check_row(

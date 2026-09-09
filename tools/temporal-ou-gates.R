@@ -79,13 +79,15 @@ if (identical(gate, 'G1')) {
   check_source <- paste(readLines('R/check.R', warn = FALSE), collapse = '\n')
   needed <- c(
     'validate_temporal_profile_parm',
+    'restrict_temporal_profile_targets',
     'warn_temporal_profile_hessian',
     'temporal_mean_profile'
   )
   present <- c(
     grepl(needed[[1L]], temporal_source, fixed = TRUE),
     grepl(needed[[2L]], profile_source, fixed = TRUE),
-    grepl(needed[[3L]], check_source, fixed = TRUE)
+    grepl(needed[[3L]], profile_source, fixed = TRUE),
+    grepl(needed[[4L]], check_source, fixed = TRUE)
   )
   if (!all(present)) fail('G7 temporal fixed-effect profile interface or irregular-Hessian diagnostic is absent.')
   run_file('tests/testthat/test-temporal-ou.R')
@@ -145,6 +147,41 @@ if (identical(gate, 'G1')) {
   if (!file.exists(archive)) fail('G12 build did not create the source archive.')
   check_status <- system2('R', c('CMD', 'check', '--no-manual', archive), stdout = '', stderr = '')
   if (!identical(check_status, 0L)) fail('G12 package check failed.')
+  success <- TRUE
+} else if (identical(gate, 'G16')) {
+  out_dir <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ou-profile-pilot'
+  required <- file.path(out_dir, c(
+    'raw-attempts.csv', 'profile-pilot-results.csv', 'profile-pilot-summary.csv',
+    'provenance.csv', 'profile-pilot-results.rds', 'session-info.txt',
+    'RESULTS.md', 'resource-replay.txt'
+  ))
+  if (!all(file.exists(required))) fail('G16 requires retained temporal OU profile-pilot outputs.')
+  results <- read.csv(file.path(out_dir, 'profile-pilot-results.csv'), stringsAsFactors = FALSE)
+  attempts <- read.csv(file.path(out_dir, 'raw-attempts.csv'), stringsAsFactors = FALSE)
+  provenance <- read.csv(file.path(out_dir, 'provenance.csv'), stringsAsFactors = FALSE)
+  runner_hash <- unname(tools::md5sum('tools/run-temporal-ou-profile-pilot.R'))
+  source_commit <- provenance$value[provenance$key == 'source_commit']
+  resource <- paste(readLines(file.path(out_dir, 'resource-replay.txt'), warn = FALSE), collapse = '\n')
+  required_columns <- c(
+    'fit_elapsed_sec', 'profile_elapsed_sec', 'pd_hessian',
+    'profile_hessian_status', 'n_intervals', 'interval_available',
+    'interval_status', 'warning', 'error'
+  )
+  if (length(source_commit) != 1L ||
+      system2('git', c('cat-file', '-e', paste0(source_commit, '^{commit}'))) != 0L ||
+      !identical(provenance$value[provenance$key == 'runner_md5'], runner_hash) ||
+      !all(required_columns %in% names(results)) ||
+      nrow(results) != 15L || nrow(attempts) != 30L ||
+      any(table(attempts$fixture) != 2L) ||
+      !all(results$selected & is.finite(results$objective)) ||
+      !all(is.finite(results$fit_elapsed_sec) & results$fit_elapsed_sec > 0) ||
+      !all(is.finite(results$profile_elapsed_sec) & results$profile_elapsed_sec > 0) ||
+      any(is.na(results$profile_hessian_status) | !nzchar(results$profile_hessian_status)) ||
+      any(is.na(results$interval_status) | !nzchar(results$interval_status)) ||
+      any(!is.na(results$error) & nzchar(results$error)) ||
+      !grepl('maximum resident set size', resource, fixed = TRUE)) {
+    fail('G16 profile-pilot completeness, provenance, or resource evidence is incomplete.')
+  }
   success <- TRUE
 } else if (identical(gate, 'G15') && reverify) {
   fail('G15 requires authorized, retained OU campaign outputs; reverify never launches a campaign.')
