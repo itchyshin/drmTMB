@@ -75,13 +75,15 @@ for (id in fixtures) {
     target_rows[[length(target_rows) + 1L]] <- data.frame(fixture = id, parm = target, target_class = targets$target_class[[i]], profile_ready = ready, stringsAsFactors = FALSE)
     point_rows[[length(point_rows) + 1L]] <- data.frame(fixture = id, engine = "tmb", parm = target, fit_status = if (native_ok) "returned" else "fit_failed", converged = if (native_ok) is_converged(ft) else FALSE, loglik = if (native_ok) as.numeric(logLik(ft)) else NA_real_, error = one_line_error(ft), stringsAsFactors = FALSE)
     point_rows[[length(point_rows) + 1L]] <- data.frame(fixture = id, engine = "julia", parm = target, fit_status = if (julia_ok) "returned" else "fit_failed", converged = if (julia_ok) is_converged(fj) else FALSE, loglik = if (julia_ok) as.numeric(logLik(fj)) else NA_real_, error = one_line_error(fj), stringsAsFactors = FALSE)
-    if (stream_all) {
-      for (sidecar_engine in c("tmb", "julia")) {
-        sidecar <- receipt_suffix(sidecar_engine, target)
-        write.table(fixture_rows[[id]], file.path(out, paste0(id, sidecar, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-        write.table(target_rows[[length(target_rows)]], file.path(out, paste0(id, sidecar, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-        write.table(do.call(rbind, tail(point_rows, 2L)), file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-      }
+    # Persist fixture, target and point rows before the profile call.  JuliaCall
+    # can tear down a process after a completed profile, so every terminal
+    # profile marker must have its own already-durable denominator.
+    sidecar_engines <- if (stream_all) c("tmb", "julia") else requested_engine
+    for (sidecar_engine in sidecar_engines) {
+      sidecar <- receipt_suffix(sidecar_engine, target)
+      write.table(fixture_rows[[id]], file.path(out, paste0(id, sidecar, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+      write.table(target_rows[[length(target_rows)]], file.path(out, paste0(id, sidecar, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+      write.table(do.call(rbind, tail(point_rows, 2L)), file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
     }
     for (engine in engines) {
       fit <- if (identical(engine, "tmb")) ft else fj
@@ -95,10 +97,10 @@ for (id in fixtures) {
         list(object = fit, parm = target, method = "profile", threads = FALSE)
       }
       ans <- if (!inherits(fit, "error") && (identical(engine, "tmb") || ready)) tryCatch(do.call(confint, profile_args), error = identity) else NULL
-      cat(sprintf("RETURN\t%s\t%s\n", engine, target), file = marker, append = TRUE)
       status <- if (inherits(fit, "error")) "fit_failed" else if (is.null(ans)) "not_profile_ready" else if (inherits(ans, "error")) "profile_failed" else if (!all(is.finite(c(ans$lower[[1L]], ans$upper[[1L]]))) ) "nonfinite_endpoint" else "profile"
       profile_rows[[length(profile_rows) + 1L]] <- data.frame(fixture = id, engine = engine, parm = target, profile_status = status, lower = if (is.data.frame(ans)) ans$lower[[1L]] else NA_real_, upper = if (is.data.frame(ans)) ans$upper[[1L]] else NA_real_, error = one_line_error(ans), stringsAsFactors = FALSE)
-      if (stream_all) write.table(profile_rows[[length(profile_rows)]], file.path(out, paste0(id, receipt_suffix(engine, target), "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+      write.table(profile_rows[[length(profile_rows)]], file.path(out, paste0(id, receipt_suffix(engine, target), "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+      cat(sprintf("RETURN\t%s\t%s\n", engine, target), file = marker, append = TRUE)
     }
   }
 }
