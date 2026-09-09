@@ -155,6 +155,12 @@
 #'   each receipt, and current boundaries. `engine = "julia"` needs a local
 #'   DRM.jl checkout and the optional `JuliaCall` package, and it is not a
 #'   drop-in replacement for every native-TMB workflow.
+#' @param marginal Optional Julia marginal-integrator selector. The only
+#'   admitted value is `"Laplace"`, which requests DRM.jl's explicit
+#'   mode-and-curvature scalar route for an ordinary `(1 | group)` Binomial,
+#'   Poisson, or NB2 (`sigma ~ 1`) model. It is unavailable on the native TMB
+#'   engine and on coupled NB2 location-scale random effects, which use their
+#'   own q=2 Laplace route.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
 #'   marginalising the admitted fixed-effect mean coefficients. Validated
@@ -264,6 +270,7 @@ drmTMB <- function(
   impute = NULL,
   missing = miss_control(),
   engine = c("tmb", "julia"),
+  marginal = NULL,
   REML = FALSE,
   penalty = NULL,
   estimator = c("ml", "mspl"),
@@ -315,8 +322,15 @@ drmTMB <- function(
       control = control,
       impute = impute,
       missing = missing,
+      marginal = marginal,
       REML = drm_control_flag(REML, "REML"),
       call = match.call()
+    ))
+  }
+  if (!is.null(marginal)) {
+    cli::cli_abort(c(
+      "{.arg marginal} is available only with {.code engine = \"julia\"}.",
+      i = "Native TMB already uses its own Laplace objective; no alternate marginal-integrator selector is exposed on that engine."
     ))
   }
   control <- drm_parse_control(control)

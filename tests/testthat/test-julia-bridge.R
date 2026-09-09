@@ -67,6 +67,137 @@ test_that("bivariate parameter aliases are not required data columns", {
   expect_equal(marshalled, dat[, c("y1", "x", "y2")])
 })
 
+test_that("scalar Laplace is an explicit Julia-only bridge selector", {
+  dat <- data.frame(
+    y = c(0L, 1L, 2L, 1L, 3L, 2L, 4L, 3L),
+    x = seq(-1, 1, length.out = 8L),
+    g = rep(c("a", "b"), each = 4L)
+  )
+  scalar <- bf(y ~ x + (1 | g))
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = scalar,
+    family_type = "poisson",
+    data = dat,
+    env = environment(),
+    marginal = "Laplace"
+  )
+  expect_identical(payload$options$marginal, "Laplace")
+  expect_identical(payload$coef_labels$resd, "g")
+  scalar_parameters <- drmTMB:::drm_julia_structured_parameters(
+    coefficients = c(resd_g = log(0.7)),
+    formula = scalar
+  )
+  expect_equal(
+    unname(scalar_parameters$sdpars$mu[["(1 | g)"]]),
+    0.7
+  )
+  scalar_fit <- drmTMB:::new_drmTMB_julia(
+    result = list(
+      coef_names = c("mu_(Intercept)", "mu_x", "resd_g"),
+      coefficients = c(0.2, 0.5, log(0.7)), vcov = diag(3L),
+      loglik = -10, aic = 26, bic = 29, df = 3L, nobs = 8L,
+      converged = TRUE, marginal = "Laplace", fitted = rep(1, 8L),
+      residuals = rep(0, 8L), sigma = rep(1, 8L), corpairs = list()
+    ),
+    call = quote(drmTMB()), formula = scalar, family = poisson(), data = dat,
+    family_type = "poisson", bridge_payload = payload,
+    requested_marginal = "Laplace"
+  )
+  scalar_targets <- profile_targets(scalar_fit)
+  scalar_sd <- scalar_targets[scalar_targets$parm == "sd:mu:(1 | g)", , drop = FALSE]
+  expect_equal(nrow(scalar_sd), 1L)
+  expect_true(scalar_sd$profile_ready)
+  expect_identical(scalar_sd$tmb_parameter, "resd")
+  expect_identical(
+    drmTMB:::drm_julia_bridge_payload(
+      formula = scalar,
+      family_type = "poisson",
+      data = dat,
+      env = environment()
+    )$options$marginal,
+    NULL
+  )
+
+  coupled <- bf(y ~ x + (1 | p | g), sigma ~ 1 + (1 | p | g))
+  expect_error(
+    drmTMB:::drm_julia_validate_marginal("Laplace", coupled, "nbinom2"),
+    "scalar ordinary"
+  )
+  expect_error(
+    drmTMB(scalar, family = poisson(), data = dat, marginal = "Laplace"),
+    "engine = \"julia\""
+  )
+})
+
+test_that("ordinary coupled NB2 recov coordinates reconstruct native targets", {
+  dat <- data.frame(
+    y = c(0L, 1L, 2L, 1L, 3L, 2L, 4L, 3L),
+    x = seq(-1, 1, length.out = 8L),
+    z = seq(1, -1, length.out = 8L),
+    id = rep(c("a", "b"), each = 4L)
+  )
+  form <- bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id))
+  expect_identical(
+    drmTMB:::drm_julia_needed_columns(form),
+    c("y", "x", "id", "z")
+  )
+  expect_identical(
+    names(drmTMB:::drm_julia_bridge_data(dat, form)),
+    c("y", "x", "id", "z")
+  )
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = form,
+    data = dat,
+    env = environment(),
+    family_type = "nbinom2"
+  )
+  expect_identical(labels$recov, c("id:L11", "id:L22", "id:L21"))
+
+  result <- list(
+    coef_names = c(
+      "mu_(Intercept)", "mu_x", "sigma_(Intercept)", "sigma_z",
+      "recov_id:L11", "recov_id:L22", "recov_id:L21"
+    ),
+    coefficients = c(0.2, 0.5, -1.1, 0.3, log(0.6), log(0.8), 0.24),
+    vcov = diag(7L),
+    loglik = -10,
+    aic = 34,
+    bic = 36,
+    df = 7L,
+    nobs = 8L,
+    converged = TRUE,
+    marginal = "LA",
+    fitted = rep(1, 8L),
+    residuals = rep(0, 8L),
+    sigma = rep(1, 8L),
+    corpairs = list()
+  )
+  fit <- drmTMB:::new_drmTMB_julia(
+    result = result,
+    call = quote(drmTMB()),
+    formula = form,
+    family = nbinom2(),
+    data = dat,
+    family_type = "nbinom2"
+  )
+
+  expected_sigma_sd <- sqrt(0.24^2 + 0.8^2)
+  expect_equal(unname(fit$sdpars$mu[["(1 | p | id)"]]), 0.6)
+  expect_equal(unname(fit$sdpars$sigma[["(1 | p | id)"]]), expected_sigma_sd)
+  expect_equal(
+    unname(fit$corpars$mu_sigma[["cor(mu:(Intercept),sigma:(Intercept) | p | id)"]]),
+    0.24 / expected_sigma_sd
+  )
+  fit$bridge_payload <- list(formula = list(), data = dat, tree = NULL, options = list())
+  covariance_targets <- profile_targets(fit)
+  expect_equal(
+    covariance_targets$parm[covariance_targets$target_class == "covariance-coordinate"],
+    c("cholesky:recov:L11", "cholesky:recov:L22", "cholesky:recov:L21")
+  )
+  expect_true(all(covariance_targets$profile_ready[covariance_targets$target_class == "covariance-coordinate"]))
+  expect_identical(fit$effective_integrator, "coupled_locscale_laplace")
+})
+
 test_that("Julia bridge marshals one phylogenetic tree", {
   tree <- structure(
     list(

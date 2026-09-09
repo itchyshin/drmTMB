@@ -613,6 +613,7 @@ drmTMB_julia_bridge <- function(
   control,
   impute,
   missing,
+  marginal = NULL,
   REML = FALSE,
   call
 ) {
@@ -641,6 +642,13 @@ drmTMB_julia_bridge <- function(
     ))
   }
   family_type <- drm_julia_bridge_family_type(family)
+  marginal <- drm_julia_validate_marginal(marginal, formula, family_type)
+  if (!is.null(marginal) && isTRUE(REML)) {
+    cli::cli_abort(c(
+      "{.code marginal = \"Laplace\"} is not available with {.code REML = TRUE}.",
+      i = "The bounded scalar bridge route is maximum-likelihood only. Use {.code REML = FALSE}, or omit {.arg marginal} for an established Julia route."
+    ))
+  }
   drm_julia_check_ordinary_sigma_ranef_route_limits(
     formula = formula,
     family_type = family_type,
@@ -772,7 +780,8 @@ drmTMB_julia_bridge <- function(
     data = data,
     env = env,
     method = if (isTRUE(REML) && reml_supported) "REML" else "ML",
-    control_overrides = control_overrides
+    control_overrides = control_overrides,
+    marginal = marginal
   )
 
   conditional_components <- drm_julia_conditional_gaussian_components_spec(
@@ -811,8 +820,103 @@ drmTMB_julia_bridge <- function(
     structured_sd_scales = bridge_payload$structured_sd_scales,
     bridge_payload = bridge_payload,
     requested_REML = isTRUE(REML),
-    effective_REML = isTRUE(REML) && isTRUE(reml_supported)
+    effective_REML = isTRUE(REML) && isTRUE(reml_supported),
+    requested_marginal = marginal
   )
+}
+
+# The explicit `:Laplace` selector is deliberately narrower than the broad
+# Julia family registry. `:LA` remains the legacy GHQ-32 ordinary-RI default;
+# this selector asks only for the scalar mode-and-curvature implementation that
+# has the same target convention as the native TMB Laplace fit.
+drm_julia_scalar_laplace_formula <- function(formula, family_type) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  mu <- entries[dpars == "mu"]
+  if (length(mu) != 1L) return(FALSE)
+  bars <- Filter(is_random_bar_call, flatten_plus_terms(mu[[1L]]$rhs))
+  if (length(bars) != 1L) return(FALSE)
+  bar <- strip_parens(bars[[1L]])
+  lhs <- strip_parens(bar[[2L]])
+  group <- strip_parens(bar[[3L]])
+  if (!identical(lhs, 1) || !is.name(group) || length(mu[[1L]]$structured) > 0L) {
+    return(FALSE)
+  }
+  other_dpars <- setdiff(dpars, "mu")
+  if (family_type %in% c("binomial", "poisson")) {
+    return(length(other_dpars) == 0L)
+  }
+  if (!identical(family_type, "nbinom2") || !identical(other_dpars, "sigma")) {
+    return(FALSE)
+  }
+  sigma <- entries[[which(dpars == "sigma")[[1L]]]]
+  drm_julia_rhs_is_intercept_only(sigma$rhs) &&
+    !drm_julia_dpar_has_ordinary_bar(formula, "sigma") &&
+    length(sigma$structured) == 0L
+}
+
+# The ordinary scalar route reports its variance component as `resd_<group>`.
+# Return the one intercept group only when that raw engine coordinate has the
+# same one-bar shape; slopes and multiple components remain unlabelled here.
+drm_julia_ordinary_mu_intercept_group <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  if (sum(dpars == "mu") != 1L) return(NULL)
+  mu <- entries[[which(dpars == "mu")[[1L]]]]
+  bars <- Filter(is_random_bar_call, flatten_plus_terms(mu$rhs))
+  if (length(bars) != 1L || length(mu$structured) > 0L) return(NULL)
+  bar <- strip_parens(bars[[1L]])
+  lhs <- strip_parens(bar[[2L]])
+  group <- strip_parens(bar[[3L]])
+  if (!identical(lhs, 1) || !is.name(group)) return(NULL)
+  as.character(group)
+}
+
+# Return the shared tag/group of the one ordinary `(1 | tag | group)` pair,
+# or NULL. This is deliberately a recogniser, not a general covariance parser:
+# it supports the one NB2 parity fixture only and leaves slopes, unmatched
+# labels/groups, and additional bars outside the bridge contract.
+drm_julia_coupled_ordinary_mu_sigma <- function(formula) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1L), "dpar")
+  if (sum(dpars == "mu") != 1L || sum(dpars == "sigma") != 1L) return(NULL)
+  read_term <- function(entry) {
+    bars <- Filter(is_random_bar_call, flatten_plus_terms(entry$rhs))
+    if (length(bars) != 1L || length(entry$structured) > 0L) return(NULL)
+    outer <- strip_parens(bars[[1L]])
+    inner <- strip_parens(outer[[2L]])
+    group <- strip_parens(outer[[3L]])
+    if (!is.call(inner) || !identical(inner[[1L]], as.name("|")) || !is.name(group)) return(NULL)
+    lhs <- strip_parens(inner[[2L]])
+    tag <- strip_parens(inner[[3L]])
+    if (!identical(lhs, 1) || !is.name(tag)) return(NULL)
+    list(tag = as.character(tag), group = as.character(group))
+  }
+  mu <- read_term(entries[[which(dpars == "mu")[[1L]]]])
+  sigma <- read_term(entries[[which(dpars == "sigma")[[1L]]]])
+  if (is.null(mu) || is.null(sigma) || !identical(mu, sigma)) return(NULL)
+  mu
+}
+
+drm_julia_validate_marginal <- function(marginal, formula, family_type) {
+  if (is.null(marginal)) return(NULL)
+  if (!is.character(marginal) || length(marginal) != 1L || is.na(marginal)) {
+    cli::cli_abort("{.arg marginal} must be {.code \"Laplace\"} or {.code NULL} for {.code engine = \"julia\"}.")
+  }
+  if (!identical(toupper(marginal), "LAPLACE")) {
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} currently admits only {.code marginal = \"Laplace\"}.",
+      i = "Omit {.arg marginal} to retain DRM.jl's established route default."
+    ))
+  }
+  if (!family_type %in% c("binomial", "poisson", "nbinom2") ||
+      !drm_julia_scalar_laplace_formula(formula, family_type)) {
+    cli::cli_abort(c(
+      "{.code marginal = \"Laplace\"} is available only for a scalar ordinary random intercept on {.code mu}.",
+      i = "Use exactly one unlabelled {.code (1 | group)} mean term for Binomial or Poisson, or NB2 with {.code sigma ~ 1}. Coupled location-scale NB2 uses its separate q=2 Laplace route; omit {.arg marginal}."
+    ))
+  }
+  "Laplace"
 }
 
 ## The conditional payload is admitted only for Gaussian mean components whose
@@ -2495,6 +2599,18 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       labels[["resd"]] <- group
     }
   }
+  # The ordinary coupled NB2 route has no structured marker to enter the
+  # phylo block above, but DRM.jl reports the same q=2 Cholesky coordinates as
+  # `recov_<group>:L11/L22/L21`. Supply their exact echo labels here rather
+  # than treating this as two independent `resd` terms.
+  ordinary_coupled <- drm_julia_coupled_ordinary_mu_sigma(formula)
+  if (!is.null(ordinary_coupled)) {
+    labels[["recov"]] <- drm_julia_recov_block_labels(ordinary_coupled$group)
+  }
+  ordinary_mu_group <- drm_julia_ordinary_mu_intercept_group(formula)
+  if (!is.null(ordinary_mu_group) && is.null(ordinary_coupled)) {
+    labels[["resd"]] <- ordinary_mu_group
+  }
   # N10 (2026-09-03): a NON-`mu` dpar carrying a bare, ORDINARY (non-phylo,
   # non-structured) random-intercept term `(1 | g)` -- e.g. `sigma ~ (1 | g)`
   # -- reaches DRM.jl's ordinary sparse-Laplace GLMM route directly:
@@ -2828,7 +2944,8 @@ drm_julia_bridge_payload <- function(
   data,
   env,
   method = "ML",
-  control_overrides = list()
+  control_overrides = list(),
+  marginal = NULL
 ) {
   phylo_payload <- drm_julia_phylo_payload(
     formula = formula,
@@ -2859,7 +2976,8 @@ drm_julia_bridge_payload <- function(
   options <- drm_julia_bridge_options(
     phylo_payload,
     method = method,
-    control_overrides = control_overrides
+    control_overrides = control_overrides,
+    marginal = marginal
   )
   # Design 258 section 7.1: the Julia call carries only formula/family/data/
   # tree/options, so `coef_labels` travels INSIDE `options` (the bridge's
@@ -2925,6 +3043,14 @@ drm_julia_needed_columns <- function(formula, phylo_payload = NULL) {
   if (!is.null(phylo_payload)) {
     needed <- unique(c(needed, phylo_payload$group))
   }
+  # In the bounded coupled-NB2 ordinary-RI grammar, the middle symbol in
+  # `(1 | label | group)` names a covariance block; it is not a column in the
+  # modelling data.  Keep the group column while excluding that label from the
+  # marshalled data and the missing-row rule.
+  ordinary_coupled <- drm_julia_coupled_ordinary_mu_sigma(formula)
+  if (!is.null(ordinary_coupled)) {
+    needed <- setdiff(needed, ordinary_coupled$tag)
+  }
   needed
 }
 
@@ -2974,7 +3100,8 @@ drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
 drm_julia_bridge_options <- function(
   phylo_payload,
   method = "ML",
-  control_overrides = list()
+  control_overrides = list(),
+  marginal = NULL
 ) {
   # `method = "REML"` reaches DRM.jl's `drm(...; method = :REML)` via
   # bridge.jl's `options[:method]` hook (src/bridge.jl:118-120). It is forwarded
@@ -2983,7 +3110,10 @@ drm_julia_bridge_options <- function(
   # the default "ML" leaves the non-REML payload byte-identical to the
   # parity-tested baseline.
   reml <- identical(method, "REML")
-  finish <- function(base) drm_julia_merge_options(base, control_overrides)
+  finish <- function(base) {
+    if (!is.null(marginal)) base$marginal <- marginal
+    drm_julia_merge_options(base, control_overrides)
+  }
   if (is.null(phylo_payload)) {
     if (reml) {
       return(finish(list(method = "REML")))
@@ -3478,10 +3608,10 @@ drm_julia_call_inference <- function(
     ))
   }
   payload <- object$bridge_payload
-  if (is.null(payload) || is.null(payload$tree)) {
+  if (is.null(payload)) {
     cli::cli_abort(c(
       "Julia-engine profile and bootstrap intervals require a stored bridge payload.",
-      i = "Refit the Gaussian phylogenetic model with {.code engine = \"julia\"} before calling {.fn confint}."
+      i = "Refit the model with {.code engine = \"julia\"} before calling {.fn confint}."
     ))
   }
 
@@ -3548,9 +3678,17 @@ drm_julia_call_fixef_inference <- function(
       i = "Refit the model with {.code engine = \"julia\"} before calling {.fn confint}."
     ))
   }
-  target$term[[1L]] <- drm_julia_public_inference_term(
-    object, target$dpar[[1L]], target$term[[1L]]
-  )
+  if (identical(target$target_class[[1L]], "fixed-effect")) {
+    target$term[[1L]] <- drm_julia_public_inference_term(
+      object, target$dpar[[1L]], target$term[[1L]]
+    )
+  } else if (identical(target$target_class[[1L]], "covariance-coordinate")) {
+    coupled <- drm_julia_coupled_ordinary_mu_sigma(object$formula)
+    if (is.null(coupled)) {
+      cli::cli_abort("Julia covariance-coordinate inference requires the bounded coupled ordinary-NB2 formula.")
+    }
+    target$term[[1L]] <- paste0(coupled$group, ":", target$term[[1L]])
+  }
   K <- if (identical(payload$kwarg, "K")) payload$matrix else NULL
   A <- if (identical(payload$kwarg, "A")) payload$matrix else NULL
   coords <- if (identical(payload$kwarg, "coords")) payload$matrix else NULL
@@ -4452,7 +4590,8 @@ new_drmTMB_julia <- function(
   structured_sd_scales = NULL,
   bridge_payload = NULL,
   requested_REML = NULL,
-  effective_REML = NULL
+  effective_REML = NULL,
+  requested_marginal = NULL
 ) {
   result <- as.list(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
@@ -4565,6 +4704,27 @@ new_drmTMB_julia <- function(
     effective_REML <- engine_reml
   }
   estimator <- if (isTRUE(effective_REML)) "REML" else "ML"
+  engine_marginal <- result[["marginal"]] %||% NULL
+  if (!is.null(engine_marginal)) {
+    engine_marginal <- as.character(engine_marginal)[[1L]]
+  }
+  if (!is.null(requested_marginal) && !identical(engine_marginal, requested_marginal)) {
+    cli::cli_abort(c(
+      "DRM.jl did not report the requested {.code marginal = \"{requested_marginal}\"} integrator.",
+      x = "The engine reported {.val {engine_marginal %||% '<missing>'}}; refusing to claim same-target Laplace parity.",
+      i = "This is a bridge-contract defect. Retry with a DRM.jl source pin that exports the effective marginal."
+    ))
+  }
+  effective_integrator <- if (identical(engine_marginal, "Laplace")) {
+    "scalar_laplace"
+  } else if (
+    identical(family_type, "nbinom2") &&
+      !is.null(drm_julia_coupled_ordinary_mu_sigma(formula))
+  ) {
+    "coupled_locscale_laplace"
+  } else {
+    engine_marginal %||% NA_character_
+  }
   out <- list(
     call = call,
     formula = formula,
@@ -4575,6 +4735,9 @@ new_drmTMB_julia <- function(
     REML = isTRUE(effective_REML),
     requested_REML = isTRUE(requested_REML),
     effective_REML = isTRUE(effective_REML),
+    requested_marginal = requested_marginal %||% "default",
+    effective_marginal = engine_marginal %||% NA_character_,
+    effective_integrator = effective_integrator,
     model = list(
       model_type = drm_julia_bridge_model_type(family_type, formula),
       dpars = names(coefficient_blocks),
@@ -4760,6 +4923,48 @@ drm_julia_profile_targets <- function(object) {
       )
     }
   }
+  # Scalar ordinary mean random intercepts use DRM.jl's unprefixed `resd`
+  # block.  It has the same log-SD coordinate as the bridge's existing
+  # phylogenetic SD route, but does not need a tree payload.
+  ordinary_group <- drm_julia_ordinary_mu_intercept_group(object$formula)
+  ordinary_name <- if (is.null(ordinary_group)) NULL else paste0("resd_", ordinary_group)
+  bridge_coef <- stats::setNames(
+    as.numeric(unlist(object$bridge$coefficients, use.names = FALSE)),
+    as.character(object$bridge$coef_names)
+  )
+  if (!is.null(ordinary_name) && ordinary_name %in% names(bridge_coef)) {
+    raw <- unname(bridge_coef[[ordinary_name]])
+    label <- format_random_mu_label("1", ordinary_group)
+    rows[[length(rows) + 1L]] <- new_profile_target_row(
+      parm = paste0("sd:mu:", label), target_class = "random-effect-sd",
+      dpar = "mu", term = label, tmb_parameter = "resd", index = 1L,
+      estimate = exp(raw), link_estimate = raw, scale = "response",
+      transformation = "exp", target_type = "direct",
+      profile_ready = !is.null(object$bridge_payload),
+      profile_note = if (!is.null(object$bridge_payload)) "ready" else "julia_bridge_payload_required"
+    )
+  }
+  # Coupled ordinary NB2 retains its three outer covariance coordinates in
+  # DRM.jl's public `recov` order.  These are deliberately reported on their
+  # working Cholesky scale: a profile in one raw coordinate is not an endpoint
+  # for the derived response-SD or correlation transform.
+  coupled <- drm_julia_coupled_ordinary_mu_sigma(object$formula)
+  if (!is.null(coupled)) {
+    for (coord in c("L11", "L22", "L21")) {
+      raw_name <- paste0("recov_", coupled$group, ":", coord)
+      if (!raw_name %in% names(bridge_coef)) next
+      raw <- unname(bridge_coef[[raw_name]])
+      rows[[length(rows) + 1L]] <- new_profile_target_row(
+        parm = paste0("cholesky:recov:", coord),
+        target_class = "covariance-coordinate", dpar = "recov", term = coord,
+        tmb_parameter = raw_name, index = match(coord, c("L11", "L22", "L21")),
+        estimate = raw, link_estimate = raw, scale = "working",
+        transformation = "linear_predictor", target_type = "direct",
+        profile_ready = !is.null(object$bridge_payload),
+        profile_note = if (!is.null(object$bridge_payload)) "ready" else "julia_bridge_payload_required"
+      )
+    }
+  }
   length(rows) == 0L && return(empty_profile_targets())
   out <- do.call(rbind, rows); row.names(out) <- NULL; validate_profile_targets(out)
 }
@@ -4941,11 +5146,15 @@ drm_julia_structured_parameters <- function(
     # OTHER bare-`resd` shape this file already handles some other way, or an
     # unmeasured shape) keeps the pre-existing "mu" default unchanged.
     ordinary_resd <- drm_julia_ordinary_nonmu_resd_map(formula)
+    ordinary_mu_group <- drm_julia_ordinary_mu_intercept_group(formula)
     for (i in seq_along(labels)) {
       hit <- ordinary_resd[[labels[[i]]]]
       if (!is.null(hit)) {
         dpars[[i]] <- hit$dpar
         labels[[i]] <- hit$label
+      } else if (!is.null(ordinary_mu_group) &&
+                 identical(labels[[i]], ordinary_mu_group)) {
+        labels[[i]] <- format_random_mu_label("1", ordinary_mu_group)
       }
     }
   }
@@ -4978,6 +5187,23 @@ drm_julia_structured_parameters <- function(
     log_l11 <- recov_value("L11")
     log_l22 <- recov_value("L22")
     l21 <- recov_value("L21")
+    ordinary_coupled <- drm_julia_coupled_ordinary_mu_sigma(formula)
+    if (!is.null(ordinary_coupled) &&
+        all(is.finite(c(log_l11, log_l22, l21)))) {
+      sd_mu <- exp(log_l11)
+      sd_sigma <- sqrt(l21^2 + exp(log_l22)^2)
+      rho <- l21 / sd_sigma
+      label <- format_random_mu_label(
+        "1", ordinary_coupled$group, ordinary_coupled$tag
+      )
+      sdpars$mu[[label]] <- sd_mu
+      sdpars$sigma[[label]] <- sd_sigma
+      cor_name <- paste0(
+        "cor(mu:(Intercept),sigma:(Intercept) | ", ordinary_coupled$tag,
+        " | ", ordinary_coupled$group, ")"
+      )
+      corpars$mu_sigma <- stats::setNames(rho, cor_name)
+    }
     phylo_terms <- Filter(
       function(term) identical(term$type, "phylo"),
       terms
@@ -4990,7 +5216,7 @@ drm_julia_structured_parameters <- function(
       function(term) identical(term$dpar, "sigma"),
       phylo_terms
     )
-    if (
+    if (is.null(ordinary_coupled) &&
       length(mu_terms) == 1L &&
         length(sigma_terms) == 1L &&
         all(is.finite(c(log_l11, log_l22, l21)))
@@ -5329,7 +5555,7 @@ confint.drmTMB_julia <- function(
   # drm_julia_call_inference() / drm_julia_inference_confint_row(), which stay
   # exactly as they were for the SD target (no change to already-verified
   # numerics).
-  if (identical(targets$target_class[[1L]], "fixed-effect")) {
+  if (targets$target_class[[1L]] %in% c("fixed-effect", "covariance-coordinate")) {
     target <- targets[1L, , drop = FALSE]
     result <- drm_julia_call_fixef_inference(
       object = object,
@@ -5819,17 +6045,32 @@ drm_julia_validate_inference_targets <- function(targets) {
     return(invisible(NULL))
   }
 
-  # Univariate SD case: exactly one phylogenetic mean or scale axis.
+  is_covariance_coordinate <- nrow(targets) == 1L &&
+    identical(targets$target_class[[1L]], "covariance-coordinate") &&
+    identical(targets$dpar[[1L]], "recov") &&
+    targets$term[[1L]] %in% c("L11", "L22", "L21")
+  if (is_covariance_coordinate) {
+    if (!isTRUE(targets$profile_ready[[1L]])) {
+      cli::cli_abort(c(
+        "Julia-engine target {.val {targets$parm[[1L]]}} is not ready for profile or bootstrap intervals.",
+        i = "Inventory note: {.val {targets$profile_note[[1L]]}}."
+      ))
+    }
+    return(invisible(NULL))
+  }
+
+  # Univariate SD case: exactly one phylogenetic mean/scale axis or the
+  # bounded scalar ordinary mean-RI `resd` axis.
   if (
     nrow(targets) != 1L ||
       !identical(targets$target_class[[1L]], "random-effect-sd") ||
       !targets$dpar[[1L]] %in% c("mu", "sigma") ||
-      !startsWith(targets$term[[1L]], "phylo(") ||
-      !targets$tmb_parameter[[1L]] %in% c("resd", "resd_mu", "resd_sigma")
+      !targets$tmb_parameter[[1L]] %in% c("resd", "resd_mu", "resd_sigma") ||
+      !(startsWith(targets$term[[1L]], "phylo(") ||
+        identical(targets$tmb_parameter[[1L]], "resd"))
   ) {
     cli::cli_abort(c(
-      "Julia-engine profile and bootstrap intervals currently support one fixed-effect coefficient ({.code fixef:<dpar>:<coef>}), one Gaussian phylogenetic SD target (univariate), or all four axes (bivariate biv_gaussian).",
-      i = "Use {.code parm = \"fixef:mu:x\"} for an ordinary fixed-effect coefficient, {.code parm = \"sd:mu:phylo(1 | species)\"} or {.code parm = \"sd:sigma:phylo(1 | species)\"} for an admitted univariate SD bridge slice, or one of {.code sd:mu1:*}, {.code sd:mu2:*}, {.code sd:sigma1:*}, or {.code sd:sigma2:*} for a bivariate q = 4 bridge fit."
+      "Julia-engine profile and bootstrap intervals currently support one fixed-effect coefficient ({.code fixef:<dpar>:<coef>}), one bounded scalar ordinary-RI or Gaussian phylogenetic SD target (univariate), or all four axes (bivariate biv_gaussian)."
     ))
   }
   if (!isTRUE(targets$profile_ready[[1L]])) {

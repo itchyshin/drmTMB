@@ -5,7 +5,7 @@
 This contract is the bridge-side prerequisite for the 0.7.1 ordinary-Laplace
 parity programme. The R source pin is drmTMB
 `1ae582c9fc9060071bb147ea4aa7206744392419`; the native Julia scalar-Laplace
-checkpoint is DRM.jl `262df3990` (built from `26f4c4ddc`). A receipt must record
+checkpoint is DRM.jl `621356a319a4fef9fa5c7acb3f8ff2d4d981f59a` (built from `26f4c4ddc`). A receipt must record
 both exact commits, runtime identities, requested and effective marginal
 integrators, objective convention, fixture-byte digest, and target manifest.
 
@@ -16,7 +16,7 @@ integrators, objective convention, fixture-byte digest, and target manifest.
 | Binomial RI | `y ~ x + (1 | id)` | `Binomial(); marginal = :Laplace` | not generated | one ordinary mean RI |
 | Poisson RI | `y ~ x + (1 | id)` | `Poisson(); marginal = :Laplace` | not generated | one ordinary mean RI |
 | NB2 RI | `count ~ x + (1 | id), sigma ~ 1` | `NegBinomial2(); marginal = :Laplace` | not generated | one ordinary mean RI, constant `sigma` |
-| coupled NB2 location--scale | `count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)` | a matching two-axis Julia route | **not admissible** | native R correlation must be modeled and tested first |
+| coupled NB2 location--scale | `count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)` | matching q=2 location--scale Laplace route | bridge admitted; one frozen receipt in progress | one matching labelled intercept pair |
 
 The target manifest, not an ad-hoc coefficient vector, will define all common,
 free outer parameters on named link/transformed scales. Inner modes never enter
@@ -24,20 +24,21 @@ the comparison. Every requested target must receive point, SE, convergence,
 gradient/Hessian, and profile-endpoint statuses; absence and non-finiteness are
 classified outcomes, never dropped rows.
 
-## Current coupled-NB2 blocker
+## Coupled-NB2 admission closure and remaining inference gate
 
-At this R source pin, `validate_nbinom2_sigma_random_terms()` refuses both a
-simultaneous mean random effect and the labelled covariance term. More
-importantly, the NB2 TMB payload sends zero mean--scale covariance metadata and
-the likelihood adds `u_sigma` independently. Therefore a generated data frame
-with the intended correlated latent pair would not have the same fitted model.
+The native prerequisite is now implemented for one complete-data, non-ZI,
+ordinary NB2 cell with exactly one matching labelled intercept pair. The bridge
+marshals `p` as a covariance label rather than a data column, reconstructs the
+three `recov_group:L11/L22/L21` coordinates, and reports the corresponding
+native-scale SD/correlation summaries. The frozen receipt records matching
+point objectives before any profile comparison.
 
-The smallest truthful prerequisite is one complete-data, non-ZI, ordinary NB2
-cell with exactly one matching labelled intercept pair. It must build the shared
-mean--scale covariance metadata, expose its correlation parameter and targets,
-pass it to TMB, and condition the sigma latent effect on its matched mean latent
-effect. This is a feature implementation and validation slice, not a bridge
-serialization relaxation.
+The remaining gate is inference rather than admission: each raw Cholesky
+coordinate must retain a profile status. The R bridge profiles these coordinates
+as `cholesky:recov:L11/L22/L21` on their declared working scale. It does not
+relabel those endpoints as response-SD or correlation intervals; that would be
+a different reparameterized profile. A non-finite or failed endpoint remains a
+classified outcome.
 
 ## Campaign boundary
 
