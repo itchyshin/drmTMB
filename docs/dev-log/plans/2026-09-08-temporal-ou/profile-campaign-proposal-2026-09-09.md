@@ -42,6 +42,11 @@ node computation and no GitHub Actions. Start with one scheduled smoke task,
 read `seff`, then submit the bounded array only if the measured DRAC resource
 use fits the request.
 
+`tools/slurm/temporal-ou-profile-fir.sbatch` is a non-submitting template. It
+maps array task IDs 1--3,000 to the worker and refuses to run until the
+submission environment names an immutable `/project` source directory, durable
+output root, and frozen source commit.
+
 ## Authority and closure
 
 This document is a proposal only. It does not authorize a job submission,
