@@ -39,10 +39,10 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G6_PASS
   EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G6_PASS. All six named covariance or normalized-transition mutations differ from the independent reference.
 
-- [ ] G7: Conditional modes, fitted values, residuals, fresh simulation and conditional simulation agree with dense references and retain component labels.
+- [x] G7: Conditional modes, fitted values, residuals, fresh simulation and conditional simulation agree with dense references and retain component labels.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G7
   EXPECT: PHYLO_TEMPORAL_OU_G7_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct G7 returned PHYLO_TEMPORAL_OU_G7_PASS. The focused 25-assertion methods suite reconstructed fitted values and residuals from fixed, phylogenetic and OU components; reconstructed conditional and fresh simulations using the corresponding component draw helpers; retained nested component labels; and asserted that OU Wald covariance, non-mean intervals and newdata prediction remain unavailable.
 
 - [ ] G8: Fixed-mean profile endpoints agree with an independently coded dense-profile reference, reject all deferred targets and warn when the fitted Hessian is irregular.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G8

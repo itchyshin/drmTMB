@@ -67,6 +67,25 @@ g3_to_g6 <- function(gate) {
   cat('PHYLO_TEMPORAL_OU_', gate, '_PASS\n', sep = '')
 }
 
+run_methods_tests <- function() {
+  pkgload::load_all(root, quiet = TRUE)
+  path <- file.path(root, 'tests/testthat/test-phylo-temporal-ou-methods.R')
+  if (!file.exists(path)) fail('Missing paired phylo-temporal OU methods test file.')
+  results <- testthat::test_file(path, reporter = 'silent')
+  expectations <- unlist(lapply(results, `[[`, 'results'), recursive = FALSE)
+  bad <- vapply(expectations, function(x) {
+    inherits(x, c('expectation_failure', 'expectation_error'))
+  }, logical(1))
+  if (any(bad)) fail('Paired phylo-temporal OU methods test suite has failures.')
+  invisible(NULL)
+}
+
+g7 <- function() {
+  approval()
+  run_methods_tests()
+  cat('PHYLO_TEMPORAL_OU_G7_PASS\n')
+}
+
 g2_worker <- function() {
   pkgload::load_all(root, quiet = TRUE)
   set.seed(202609091L)
@@ -135,6 +154,8 @@ if (identical(args, '--self-test')) {
   g2_worker()
 } else if (args %in% c('G3', 'G4', 'G5', 'G6')) {
   g3_to_g6(args)
+} else if (identical(args, 'G7')) {
+  g7()
 } else {
-  fail('Use --self-test or G1 through G6; only later model gates remain unavailable.')
+  fail('Use --self-test or G1 through G7; only later model gates remain unavailable.')
 }

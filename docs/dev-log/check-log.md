@@ -94630,3 +94630,13 @@ Closeout report:
 | 2026-09-09 | Phylogenetic stable-intercept plus independent OU parser/layout | G2 PASS; paired parser 13 assertions; existing temporal parser 6; OU 64; runner 6 | Admits only same-ID `phylo(1 | species, tree = tree)` plus OU and checks raw and retained support. A successful point fit is not oracle or inference evidence. | Codex |
 
 | 2026-09-09 | Phylogenetic stable-intercept plus independent OU dense oracle | G3-G6 PASS; 19 independent dense-oracle assertions; 6 gate-runner assertions | Direct `ape::vcv()` covariance matches objective, score and Hessian; reductions and all six wrong-model mutations are retained. This is deterministic evidence, not inference or campaign evidence. | Codex |
+
+## 2026-09-09 — phylogenetic-temporal OU methods gate
+
+G7 now reconstructs the combined model's conditional fitted values/residuals and both
+simulation modes from separate phylogenetic-stable and independent OU contributions.
+The runner returned `PHYLO_TEMPORAL_OU_G7_PASS`; focused paired parser, dense oracle,
+methods, existing temporal parser/OU, and runner tests passed. The suite uses a
+non-boundary deterministic fixture and keeps Wald covariance, non-mean intervals and
+newdata prediction unavailable. Evidence:
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-methods.md`.
