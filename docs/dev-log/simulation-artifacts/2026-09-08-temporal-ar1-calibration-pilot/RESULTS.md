@@ -23,6 +23,12 @@ pilot exposes a numerical-inference issue that must be diagnosed before G17
 can be requested. No seed was changed, result was removed, or threshold was
 relaxed.
 
+The exact C1 seed diagnosis is retained in
+`C1-SEED-2026091002-DIAGNOSIS.md`: residual `sigma` collapsed to a near-zero
+boundary and made the observed Hessian indefinite. The public unavailable-
+inference diagnostic therefore behaved as intended, but the frequency of this
+boundary is incompatible with moving straight to a claim-bearing campaign.
+
 `resource-replay.txt` is the macOS `/usr/bin/time -l` report for the exact
 source and seed configuration. The first wrapper left an empty resource file
 because it used a GNU-only `-o` option; the replay was required solely to

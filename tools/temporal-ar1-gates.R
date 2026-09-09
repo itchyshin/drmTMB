@@ -20,6 +20,7 @@ files <- switch(
   G10 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G11 = NULL,
   G12 = NULL,
+  G13 = NULL,
   NULL
 )
 if (identical(gate, "G11")) {
@@ -44,7 +45,8 @@ if (identical(gate, "G12")) {
   artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot"
   required <- file.path(artifact_dir, c(
     "raw-attempts.csv", "pilot-results.csv", "pilot-summary.csv",
-    "provenance.csv", "pilot-results.rds", "resource-replay.txt", "RESULTS.md"
+    "provenance.csv", "pilot-results.rds", "resource-replay.txt", "RESULTS.md",
+    "C1-SEED-2026091002-DIAGNOSIS.md"
   ))
   if (!all(file.exists(required))) {
     stop("G12 pilot artifacts are missing; run tools/run-temporal-ar1-pilot.R through /usr/bin/time -l.", call. = FALSE)
@@ -60,6 +62,26 @@ if (identical(gate, "G12")) {
     stop("G12 retained pilot artifacts do not meet their completeness checks.", call. = FALSE)
   }
   cat("TEMPORAL_G12_PASS\n")
+  quit(save = "no", status = 0L)
+}
+if (identical(gate, "G13")) {
+  pkgload::load_all(".", quiet = TRUE)
+  output_dir <- tempfile("temporal-ar1-render-")
+  dir.create(output_dir)
+  rendered <- rmarkdown::render(
+    "vignettes/temporal-random-effects.Rmd",
+    output_dir = output_dir,
+    quiet = TRUE
+  )
+  if (!file.exists(rendered)) {
+    stop("G13 did not create the temporal AR1 tutorial HTML.", call. = FALSE)
+  }
+  html <- paste(readLines(rendered, warn = FALSE), collapse = "\n")
+  required_text <- c("Temporal AR1 random effects", "What the intervals cover")
+  if (!all(vapply(required_text, grepl, logical(1), x = html, fixed = TRUE))) {
+    stop("G13 rendered tutorial is missing required reader-facing sections.", call. = FALSE)
+  }
+  cat("TEMPORAL_G13_PASS\n")
   quit(save = "no", status = 0L)
 }
 if (is.null(files)) {
