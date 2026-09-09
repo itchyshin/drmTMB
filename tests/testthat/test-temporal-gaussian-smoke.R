@@ -134,6 +134,13 @@ test_that("temporal AR1 rejects deferred family, estimator, and scale combinatio
     ),
     "additional modelling feature"
   )
+  expect_error(
+    drmTMB(
+      bf(y ~ temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = dat, family = gaussian(), REML = FALSE, weights = rep(2, nrow(dat))
+    ),
+    "unit likelihood weights"
+  )
 })
 
 test_that("temporal AR1 exposes labelled components and mean-only Wald inference", {

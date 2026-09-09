@@ -65,7 +65,9 @@ dat <- data.frame(
 
 Fit an ordinary random intercept and the temporal process together. Both terms
 use `site`; the first captures stable site-to-site differences and the second
-captures deviations through time within each site.
+captures deviations through time within each site. Here `treatment` compares
+treated and untreated visits within sites after accounting for a linear
+occasion trend.
 
 ```{r}
 fit <- drmTMB(
@@ -84,9 +86,9 @@ summary(fit, conf.int = TRUE, method = "wald")
 confint(fit, method = "wald")
 ```
 
-The coefficient rows report treatment and occasion effects with normal-reference
-Wald intervals. `fit$sdpars$mu` contains separate ordinary-intercept and temporal
-process SDs, while `fit$corpars$temporal` contains persistence. Read a positive
+The mean-model coefficient rows report the intercept, treatment, and occasion
+effects with normal-reference Wald intervals. `fit$sdpars$mu` contains separate
+ordinary-intercept and temporal process SDs, while `fit$corpars$temporal` contains persistence. Read a positive
 persistence estimate as deviations tending to continue in the same direction
 over adjacent occasions; read a negative value as alternating deviations.
 
@@ -96,7 +98,14 @@ fit$corpars$temporal
 head(fitted(fit))
 head(residuals(fit))
 simulate(fit, nsim = 2)
+simulate(fit, nsim = 2, re.form = NA)
 ```
+
+`fitted()` and `residuals()` are conditional on the estimated site and temporal
+deviations. The default `simulate()` call draws fresh stable and temporal
+effects, while `re.form = NA` retains the fitted conditional effects. Use the
+first for a new realization from the fitted model and the second to simulate
+around the observations' fitted latent structure.
 
 ## What the intervals cover
 
@@ -107,8 +116,15 @@ variance and persistence parameters. The process SD, ordinary-intercept SD,
 persistence, and residual SD are point estimates in this release. Profile and
 bootstrap intervals for temporal fits are not available.
 
+Wald output is available only when the full observed marginal-likelihood
+Hessian is positive definite. If that check fails, `vcov()` and `confint()`
+give an explicit unavailable-inference diagnostic instead of an interval. The
+first calibration pilot found such a residual-SD boundary in a primary short-
+series case, so these intervals are not yet a general coverage claim.
+
 The fit supports in-sample predictions, fitted values, residuals, and
 simulation. It does not support forecasting or `newdata` prediction. Supply a
 finite integer time column, retain its real gaps, and ensure that every
-site--occasion pair is unique. An AR1-only fit omits `(1 | site)` but keeps the
+site--occasion pair is unique. If a site was measured more than once at an
+occasion, aggregate those records before fitting. An AR1-only fit omits `(1 | site)` but keeps the
 same `temporal()` term.

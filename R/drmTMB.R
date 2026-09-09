@@ -3949,6 +3949,12 @@ drm_build_gaussian_ls_spec <- function(
   mu_temporal <- extract_gaussian_mu_temporal_term(mu_entry)
   mu_entry$rhs <- mu_temporal$rhs
   validate_temporal_raw_data(mu_temporal$term, data)
+  if (!is.null(mu_temporal$term) && !is.null(weights) && any(weights != 1)) {
+    cli::cli_abort(c(
+      "Temporal AR1 Gaussian models currently require unit likelihood weights.",
+      "i" = "Remove {.arg weights} or supply one weight for every observation while the unweighted marginal covariance route is fitted."
+    ))
+  }
   if (!is.null(mu_temporal$term) && (
     !is.null(meta$V) ||
       length(sd_mu_entries) > 0L ||

@@ -86,6 +86,23 @@ Type drm_integer_power(Type base, int exponent) {
   return out;
 }
 
+// The transition variance is 1 - tanh(theta)^(2 * gap).  Computing that
+// subtraction directly loses all precision when tanh(theta) rounds to one.
+// Factor it as sech(theta)^2 times a finite geometric sum instead.  This is
+// algebraically identical for every interior theta and remains positive when
+// the transformed persistence reaches a floating-point boundary.
+template<class Type>
+Type drm_ar1_transition_sd(Type theta, Type phi, int gap) {
+  Type phi_squared = phi * phi;
+  Type power = Type(1.0);
+  Type geometric_sum = Type(0.0);
+  for (int k = 0; k < gap; ++k) {
+    geometric_sum += power;
+    power *= phi_squared;
+  }
+  return exp(drm_log_sech(theta) + Type(0.5) * log(geometric_sum));
+}
+
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
 // [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
 template<class Type>
@@ -1027,7 +1044,9 @@ Type objective_function<Type>::operator()()
         nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
         for (int node = first + 1; node < last_exclusive; ++node) {
           Type transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
-          Type transition_sd = sqrt(Type(1.0) - transition * transition);
+          Type transition_sd = drm_ar1_transition_sd(
+            theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+          );
           nll -= dnorm(
             u_temporal(node),
             transition * u_temporal(node - 1),
