@@ -53,6 +53,11 @@ test_that("temporal OU defers Wald intervals until the inherited calibration pre
     stats::confint(fit, method = "wald"),
     "OU mean-coefficient Wald intervals are not yet qualified"
   )
+  temporal_check <- drmTMB::check_drm(fit)
+  temporal_wald <- temporal_check[temporal_check$check == "temporal_mean_wald", , drop = FALSE]
+  expect_identical(temporal_wald$status, "note")
+  expect_match(temporal_wald$value, "reason=calibration_deferred")
+  expect_match(temporal_wald$message, "intentionally unavailable")
 })
 
 test_that("temporal OU keeps covariance and decay intervals unavailable", {

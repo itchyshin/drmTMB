@@ -118,7 +118,11 @@ fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available. If a fit used
 \code{drm_control(se = FALSE)}, the \code{sdreport_status}, Hessian, and
 finite-standard-error checks are reported as notes. If \code{sdreport()} was
-requested but failed, those rows are warnings.
+requested but failed, those rows are warnings. For Gaussian temporal fits,
+\code{temporal_mean_wald} separately records whether mean-coefficient Wald
+inference is available for this fit, unavailable because its full observed
+Hessian is not usable, or intentionally deferred for the OU route while the
+AR1 calibration prerequisite remains open.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
