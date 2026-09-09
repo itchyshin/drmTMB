@@ -17,9 +17,20 @@ Added two retained diagnostic runners. The first fixes residual SD in the native
 
 The dense marginal profile is the deciding diagnostic because the native fits at the smallest fixed SD did not converge. It reproduces the native objective at converged `sigma = 0.1` and converges at every declared fixed SD. A higher positive-definite candidate near the boundary was not adopted for inference: it has a larger objective and would change the ML fit. No public inference rule or arbitrary near-zero warning threshold was added. The existing temporal Wald guard remains the honest interface until a boundary-inference method is separately designed and validated.
 
+## 3b. Cross-Package Check
+
+Installed `glmmTMB` 1.1.14 documents the same OU rate form and treats
+near-zero dispersion plus a non-positive-definite Hessian as a nonregular
+likelihood, rather than a Wald repair. Its profile-interval examples are
+precedent for a future, separately calibrated boundary-inference slice, not
+support for the present full-Hessian mean-coefficient Wald target. The source
+map records the interface and boundary lessons without importing code.
+
 ## 4. Files Touched
 
 `tools/diagnose-temporal-ar1-c1-boundary.R` retains the original native fixed-scale attempts. `tools/diagnose-temporal-ar1-c1-dense-profile.R` and `docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-c1-dense-marginal-profile/` retain the independent calculation, inputs, attempts, results, provenance, and R session. The OU gate ledger, check log, and dense-profile interpretation record the consequence.
+
+`docs/dev-log/plans/2026-09-08-temporal-ou/glmmtmb-temporal-boundary-source-map-2026-09-09.md` records the installed-package comparison.
 
 ## 5. Checks Run
 
