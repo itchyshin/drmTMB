@@ -41,8 +41,21 @@ bundle=${DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT}/shard-$(printf '%03d' "$shard_id").tar
 partial=${bundle}.partial-${SLURM_JOB_ID}
 
 cleanup() { rm -rf "$node_root"; }
-trap cleanup EXIT
+on_exit() {
+  code=$?
+  trap - EXIT
+  if [ "$code" -ne 0 ] && [ -d "$node_out" ] && [ ! -e "$bundle" ]; then
+    printf 'exit_code,%s\n' "$code" > "$node_out/SHARD-FAILURE.csv"
+    tar -C "$node_out" -czf "$partial" . 2>/dev/null && mv "$partial" "$bundle" || true
+  fi
+  cleanup
+  exit "$code"
+}
+trap on_exit EXIT
 mkdir -p "$node_source" "$node_out"
+: > "$node_out/worker.log"
+module load StdEnv/2023 r/4.4.0
+Rscript --version > "$node_out/r-runtime.txt" 2>&1
 tar -xzf "$DRMTMB_TEMPORAL_OU_SOURCE_ARCHIVE" -C "$node_source"
 printf 'task,status\n' > "$node_out/task-status.csv"
 
