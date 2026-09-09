@@ -34,13 +34,15 @@ if (length(fixtures) == 0L) fixtures <- all_fixtures
 if (length(fixtures) != 1L || !fixtures %in% all_fixtures) stop("run exactly one named fixture per R process", call. = FALSE)
 requested_target <- Sys.getenv("DRMTMB_071_TARGET", "")
 requested_engine <- Sys.getenv("DRMTMB_071_ENGINE", "")
-if (!nzchar(requested_target) || !nzchar(requested_engine)) {
+stream_all <- identical(Sys.getenv("DRMTMB_071_STREAM_ALL", ""), "true")
+if (!stream_all && (!nzchar(requested_target) || !nzchar(requested_engine))) {
   stop(
     "set both DRMTMB_071_TARGET and DRMTMB_071_ENGINE; profile receipts are intentionally one engine-target task at a time and must be reconciled explicitly",
     call. = FALSE
   )
 }
-run_suffix <- paste0("-", sub("_+$", "", gsub("[^A-Za-z0-9]+", "_", paste(requested_engine, requested_target, sep = "-"))))
+receipt_suffix <- function(engine, target) paste0("-", sub("_+$", "", gsub("[^A-Za-z0-9]+", "_", paste(engine, target, sep = "-"))))
+run_suffix <- if (stream_all) "" else receipt_suffix(requested_engine, requested_target)
 target_rows <- list(); point_rows <- list(); profile_rows <- list(); fixture_rows <- list()
 for (id in fixtures) {
   spec <- make_fixture(id); data_path <- file.path(out, paste0(id, ".csv")); write.csv(spec$data, data_path, row.names = FALSE)
@@ -62,15 +64,25 @@ for (id in fixtures) {
     stringsAsFactors = FALSE
   ), file.path(out, paste0(id, "-fit-checkpoint.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   write.table(data.frame(fixture = id, parm = targets$parm, target_class = targets$target_class, profile_ready = targets$profile_ready, stringsAsFactors = FALSE), file.path(out, paste0(id, "-target-checkpoint.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  targets <- targets[targets$parm == requested_target, , drop = FALSE]
-  if (nrow(targets) != 1L) stop("requested target is absent from the generated manifest: ", requested_target, call. = FALSE)
-  engines <- requested_engine
+  if (!stream_all) {
+    targets <- targets[targets$parm == requested_target, , drop = FALSE]
+    if (nrow(targets) != 1L) stop("requested target is absent from the generated manifest: ", requested_target, call. = FALSE)
+  }
+  engines <- if (stream_all) c("tmb", "julia") else requested_engine
   if (!all(engines %in% c("tmb", "julia"))) stop("DRMTMB_071_ENGINE must be tmb or julia", call. = FALSE)
   for (i in seq_len(nrow(targets))) {
     target <- targets$parm[[i]]; ready <- isTRUE(targets$profile_ready[[i]])
     target_rows[[length(target_rows) + 1L]] <- data.frame(fixture = id, parm = target, target_class = targets$target_class[[i]], profile_ready = ready, stringsAsFactors = FALSE)
     point_rows[[length(point_rows) + 1L]] <- data.frame(fixture = id, engine = "tmb", parm = target, fit_status = if (native_ok) "returned" else "fit_failed", converged = if (native_ok) is_converged(ft) else FALSE, loglik = if (native_ok) as.numeric(logLik(ft)) else NA_real_, error = one_line_error(ft), stringsAsFactors = FALSE)
     point_rows[[length(point_rows) + 1L]] <- data.frame(fixture = id, engine = "julia", parm = target, fit_status = if (julia_ok) "returned" else "fit_failed", converged = if (julia_ok) is_converged(fj) else FALSE, loglik = if (julia_ok) as.numeric(logLik(fj)) else NA_real_, error = one_line_error(fj), stringsAsFactors = FALSE)
+    if (stream_all) {
+      for (sidecar_engine in c("tmb", "julia")) {
+        sidecar <- receipt_suffix(sidecar_engine, target)
+        write.table(fixture_rows[[id]], file.path(out, paste0(id, sidecar, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+        write.table(target_rows[[length(target_rows)]], file.path(out, paste0(id, sidecar, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+        write.table(do.call(rbind, tail(point_rows, 2L)), file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+      }
+    }
     for (engine in engines) {
       fit <- if (identical(engine, "tmb")) ft else fj
       marker <- file.path(out, paste0(id, "-profile-boundary.log"))
@@ -79,12 +91,17 @@ for (id in fixtures) {
       cat(sprintf("RETURN\t%s\t%s\n", engine, target), file = marker, append = TRUE)
       status <- if (inherits(fit, "error")) "fit_failed" else if (is.null(ans)) "not_profile_ready" else if (inherits(ans, "error")) "profile_failed" else if (!all(is.finite(c(ans$lower[[1L]], ans$upper[[1L]]))) ) "nonfinite_endpoint" else "profile"
       profile_rows[[length(profile_rows) + 1L]] <- data.frame(fixture = id, engine = engine, parm = target, profile_status = status, lower = if (is.data.frame(ans)) ans$lower[[1L]] else NA_real_, upper = if (is.data.frame(ans)) ans$upper[[1L]] else NA_real_, error = one_line_error(ans), stringsAsFactors = FALSE)
+      if (stream_all) write.table(profile_rows[[length(profile_rows)]], file.path(out, paste0(id, receipt_suffix(engine, target), "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
     }
   }
 }
-write.table(do.call(rbind, fixture_rows), file.path(out, paste0(id, run_suffix, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(do.call(rbind, target_rows), file.path(out, paste0(id, run_suffix, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(do.call(rbind, point_rows), file.path(out, paste0(id, run_suffix, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(do.call(rbind, profile_rows), file.path(out, paste0(id, run_suffix, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-writeLines(c("# 0.7.1 four-fixture receipt", "", paste0("- drmTMB: `", stamp(root), "`"), paste0("- DRM.jl: `", stamp(jl), "`"), "- This is one frozen fixture per family; it is not coverage evidence."), file.path(out, "README.md"))
-cat("FOUR_FIXTURE_RECEIPT_WRITTEN\n")
+if (!stream_all) {
+  write.table(do.call(rbind, fixture_rows), file.path(out, paste0(id, run_suffix, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  write.table(do.call(rbind, target_rows), file.path(out, paste0(id, run_suffix, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  write.table(do.call(rbind, point_rows), file.path(out, paste0(id, run_suffix, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  write.table(do.call(rbind, profile_rows), file.path(out, paste0(id, run_suffix, "-profile-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  writeLines(c("# 0.7.1 four-fixture receipt", "", paste0("- drmTMB: `", stamp(root), "`"), paste0("- DRM.jl: `", stamp(jl), "`"), "- This is one frozen fixture per family; it is not coverage evidence."), file.path(out, "README.md"))
+  cat("FOUR_FIXTURE_RECEIPT_WRITTEN\n")
+} else {
+  cat("FOUR_FIXTURE_SIDECARS_WRITTEN\n")
+}
