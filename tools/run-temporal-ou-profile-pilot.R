@@ -28,7 +28,11 @@ root <- normalizePath(".", mustWork = TRUE)
 if (!file.exists(file.path(root, "DESCRIPTION"))) {
   stop("Run this script from the drmTMB repository root.", call. = FALSE)
 }
-pkgload::load_all(root, quiet = TRUE)
+if (identical(Sys.getenv("DRMTMB_TEMPORAL_OU_USE_INSTALLED"), "1")) {
+  suppressPackageStartupMessages(library(drmTMB))
+} else {
+  pkgload::load_all(root, quiet = TRUE)
+}
 
 out_dir <- if (campaign_mode) {
   campaign_root <- Sys.getenv("DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT")

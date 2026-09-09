@@ -1,13 +1,13 @@
 #!/bin/bash
 # Storage-consolidating alternative to temporal-ou-profile-fir.sbatch.
 # Each array task runs 50 datasets in node-local storage, then atomically writes
-# one immutable tar.gz shard. Submit only after a new G14 authorization because
-# it changes the array granularity while preserving all 3,000 data sets.
+# one immutable tar.gz shard. The approved 60-by-50 campaign preserves all
+# 3,000 data sets while reducing persistent file demand.
 
 #SBATCH --account=def-snakagaw_cpu
 #SBATCH --time=01:30:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=2G
+#SBATCH --mem=4G
 #SBATCH --array=1-60%10
 #SBATCH --job-name=drmtmb-ou-shard
 #SBATCH --output=/dev/null
@@ -37,6 +37,7 @@ fi
 node_root=${SLURM_TMPDIR:-/tmp}/drmtmb-ou-shard-${SLURM_JOB_ID}-${shard_id}
 node_source=${node_root}/source
 node_out=${node_root}/artifacts
+node_lib=${node_root}/Rlib
 bundle=${DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT}/shard-$(printf '%03d' "$shard_id").tar.gz
 partial=${bundle}.partial-${SLURM_JOB_ID}
 
@@ -52,11 +53,12 @@ on_exit() {
   exit "$code"
 }
 trap on_exit EXIT
-mkdir -p "$node_source" "$node_out"
+mkdir -p "$node_source" "$node_out" "$node_lib"
 : > "$node_out/worker.log"
 module load StdEnv/2023 r/4.4.0
 Rscript --version > "$node_out/r-runtime.txt" 2>&1
 tar -xzf "$DRMTMB_TEMPORAL_OU_SOURCE_ARCHIVE" -C "$node_source"
+R CMD INSTALL --library="$node_lib" "$node_source" > "$node_out/package-install.log" 2>&1
 printf 'task,status\n' > "$node_out/task-status.csv"
 
 failed=0
@@ -65,6 +67,8 @@ for task in $(seq "$first_task" "$last_task"); do
   (
     cd "$node_source"
     DRMTMB_TEMPORAL_OU_CAMPAIGN_OUT="$node_out" \
+      DRMTMB_TEMPORAL_OU_USE_INSTALLED=1 \
+      R_LIBS="$node_lib${R_LIBS:+:$R_LIBS}" \
       Rscript --vanilla tools/run-temporal-ou-profile-pilot.R --campaign-task="$task"
   ) >> "$node_out/worker.log" 2>&1
   code=$?
