@@ -402,3 +402,38 @@ test_that("S7 fit diagnostics distinguish finite native SEs from unavailable Jul
   expect_equal(native_fallback$gradient_max_abs, 0.12)
   expect_identical(native_fallback$gradient_status, "finite")
 })
+
+test_that("S7 per-fit receipt classifies finite, failed, and truth-outside profiles", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  sys.source(file.path(base, "s7-fit-diagnostics.R"), envir = env)
+  sys.source(file.path(base, "s7-fit-attempt.R"), envir = env)
+  spec <- data.frame(
+    logical_task_id = 1L, fixture = "binomial_ri", dgp_seed = 71011001L,
+    engine = "tmb", parm = "fixef:mu:(Intercept)", truth = -0.1
+  )
+  target <- data.frame(
+    parm = "fixef:mu:(Intercept)", estimate = -0.12, link_estimate = -0.12,
+    tmb_parameter = "beta_mu", index = 1L, transformation = "linear_predictor"
+  )
+  fit <- list(
+    opt = list(convergence = 0L, par = c(beta_mu = -0.12)),
+    sdr = list(cov.fixed = matrix(0.04, 1, 1), pdHess = TRUE),
+    gradient_max_component = 0.002
+  )
+  inventory <- function(object) target
+  finite_profile <- function(...) data.frame(lower = -0.5, upper = 0.3)
+  out <- env$r071_s7_attempt_from_fit(fit, spec, inventory, finite_profile)
+  expect_identical(out$profile_status, "profile")
+  expect_equal(out$std_error, 0.2)
+  expect_equal(out$lower, -0.5)
+  outside_profile <- function(...) data.frame(lower = 0.1, upper = 0.3)
+  outside <- env$r071_s7_attempt_from_fit(fit, spec, inventory, outside_profile)
+  expect_identical(outside$profile_status, "truth_outside")
+  failed <- env$r071_s7_fit_failed_attempt(spec)
+  expect_identical(failed$fit_status, "fit_failed")
+  expect_identical(failed$hessian_status, "fit_failed")
+})
