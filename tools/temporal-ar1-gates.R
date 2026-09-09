@@ -25,7 +25,7 @@ if (identical(gate, "G11")) {
   artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-local-recovery"
   required <- file.path(artifact_dir, c(
     "raw-attempts.csv", "recovery-estimates.csv", "criteria.csv",
-    "provenance.csv", "recovery-results.rds"
+    "provenance.csv", "recovery-results.rds", "RESULTS.md"
   ))
   if (!all(file.exists(required))) {
     stop("G11 recovery artifacts are missing; run tools/run-temporal-ar1-recovery.R.", call. = FALSE)
