@@ -1,0 +1,2 @@
+"fixture","cell","role","seed","n_id","n_time","decay_truth","ordinary_intercept","selected","objective","convergence","fit_elapsed_sec","profile_elapsed_sec","pd_hessian","profile_hessian_status","n_intervals","interval_available","interval_status","warning","error"
+"U1_2026091201","U1","combined_short",2026091201,80,6,0.4,TRUE,TRUE,570.841880729252,0,1.078,37.502,TRUE,"available_for_this_fit; calibration=unqualified",3,TRUE,"profile;profile;profile","",NA

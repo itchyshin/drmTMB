@@ -68,10 +68,10 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G13: Independent mathematical and reader-workflow reviews find no unresolved blocking defect
   EVIDENCE: The independent mathematical review found two public-profile boundary defects: generic `profile()` bypassed the mean-only target restriction, and it did not report an irregular fitted Hessian. Both are now covered by the public target validator, `profile_targets()` metadata, the Hessian warning, and focused tests. The independent reader review requested neutral irregular-likelihood wording and a nearby reporting condition; both are in the vignette and diagnostic. Reviewers found no unresolved blocker after these repairs, 2026-09-09.
 
-- [ ] G16: A bounded fixed-effect profile pilot records runtime, output completeness, regular and irregular-Hessian diagnostics, and interval availability
+- [x] G16: A bounded fixed-effect profile pilot records runtime, output completeness, regular and irregular-Hessian diagnostics, and interval availability
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G16
   EXPECT: TEMPORAL_OU_G16_PASS
-  EVIDENCE: pending
+  EVIDENCE: At source `01e16f23d33e3b7c1bc0c9ebea3ff54dcb8c6433`, five deterministic seeds in each of U1, U2, and U3 produced 15 finite selected fits and 30 retained starts. All 15 fixed-effect profile requests produced three finite intervals and all fitted Hessians were positive definite. The local resource replay took `759.24` seconds wall time with `663,764,992` bytes maximum resident size. Median profile times were 34.764 seconds (U1), 47.133 seconds (U2), and 64.638 seconds (U3). `Rscript --vanilla tools/temporal-ou-gates.R G16` emitted `TEMPORAL_OU_G16_PASS`. This is timing and output-completeness evidence, not coverage calibration or campaign authority.
 
 - [ ] G14: The measured fixed-effect profile campaign design, target, cost, and all-attempt denominator are explicitly authorized
   EVIDENCE: pending
