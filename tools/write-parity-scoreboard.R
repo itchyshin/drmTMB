@@ -129,7 +129,7 @@ sb_ordinary_laplace_source_drift <- function(root, from, to) {
     "^R/", "^src/", "^(DESCRIPTION|NAMESPACE)$",
     "^inst/extdata/julia-capabilities\\.tsv$",
     "^tools/write-parity-matrix\\.R$",
-    "^docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/(four-fixture-contract\\.md|reconcile-four-fixture-(receipt|summary)\\.R|run-four-fixture-receipt\\.R)$"
+    "^docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/(reconcile-four-fixture-(receipt|summary)\\.R|run-four-fixture-receipt\\.R)$"
   )
   any(grepl(paste(protected, collapse = "|"), changed))
 }

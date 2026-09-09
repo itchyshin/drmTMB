@@ -93,3 +93,51 @@ test_that("scoreboard renders ordinary-Laplace source provenance separately", {
   rendered <- readLines(out, warn = FALSE)
   expect_true(any(grepl("ordinary-Laplace reconciliation source pin", rendered, fixed = TRUE)))
 })
+
+test_that("S7 manifest freezes all four 500-seed fixture denominators", {
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "prepare-s7-campaign-manifest.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  manifest <- env$r071_s7_manifest()
+  expect_identical(nrow(manifest), 2000L)
+  expect_identical(manifest$array_index, seq_len(2000L))
+  expect_identical(manifest$logical_task_id, seq_len(2000L))
+  expect_identical(names(table(manifest$fixture)), c(
+    "binomial_ri", "nb2_coupled", "nb2_ri", "poisson_ri"
+  ))
+  expect_true(all(as.integer(table(manifest$fixture)) == 500L))
+  expect_true(all(vapply(split(manifest$dgp_seed, manifest$fixture),
+                         function(x) length(unique(x)) == 500L, logical(1))))
+  fixture_info <- env$r071_s7_fixture_table()
+  for (i in seq_len(nrow(fixture_info))) {
+    rows <- manifest[manifest$fixture == fixture_info$fixture[[i]], , drop = FALSE]
+    expect_identical(rows$fixture_index, rep.int(fixture_info$fixture_index[[i]], 500L))
+    expect_identical(rows$dgp_seed, fixture_info$seed_base[[i]] + seq_len(500L))
+  }
+  expect_identical(env$r071_s7_task(manifest, 1L), manifest[1L, , drop = FALSE])
+  expect_error(env$r071_s7_task(manifest, 2001L), "outside the frozen 1..2000 array")
+})
+
+test_that("S7 profile plan freezes all target truths on their profile scales", {
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "prepare-s7-campaign-manifest.R")
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  plan <- env$r071_s7_profile_plan()
+  expect_identical(nrow(plan), 34L)
+  expect_identical(as.integer(table(plan$fixture)), c(6L, 14L, 8L, 6L))
+  expect_identical(anyDuplicated(plan[c("fixture", "engine", "parm")]), 0L)
+  expect_true(all(is.finite(plan$truth)))
+  coupled <- plan[plan$fixture == "nb2_coupled" & plan$engine == "tmb", , drop = FALSE]
+  expect_identical(coupled$parm, c(
+    "fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)",
+    "fixef:sigma:z", "cholesky:recov:L11", "cholesky:recov:L22",
+    "cholesky:recov:L21"
+  ))
+  expect_equal(coupled$truth, c(0.2, 0.35, 0.15, -0.1,
+                                 log(0.45), log(0.125), -0.10125))
+})
