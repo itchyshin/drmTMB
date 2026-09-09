@@ -13,6 +13,11 @@ files <- switch(
   G3 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G4 = "tests/testthat/test-temporal-dense-oracle.R",
   G5 = "tests/testthat/test-temporal-identities.R",
+  G6 = "tests/testthat/test-temporal-gaussian-smoke.R",
+  G7 = "tests/testthat/test-temporal-gaussian-smoke.R",
+  G8 = "tests/testthat/test-temporal-gaussian-smoke.R",
+  G9 = "tests/testthat/test-temporal-gaussian-smoke.R",
+  G10 = "tests/testthat/test-temporal-gaussian-smoke.R",
   NULL
 )
 if (is.null(files)) {

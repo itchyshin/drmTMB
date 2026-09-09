@@ -32,6 +32,13 @@ test_that("Gaussian AR1 temporal random effects fit with and without a stable in
   )
   expect_s3_class(combined, "drmTMB")
   expect_true(is.finite(stats::logLik(combined)))
+  temporal_label <- temporal_mu_sd_label(combined$model$structured$temporal_mu)
+  expect_setequal(names(combined$sdpars$mu), c("(1 | id)", temporal_label))
+  expect_named(
+    combined$corpars$temporal,
+    combined$model$structured$temporal_mu$label
+  )
+  expect_true(is.finite(exp(unname(combined$coefficients$sigma))))
 })
 
 test_that("temporal AR1 data checks preserve the intended admission boundary", {
@@ -121,6 +128,16 @@ test_that("temporal AR1 exposes labelled components and mean-only Wald inference
   )
   intervals <- stats::confint(fit, method = "wald")
   expect_setequal(intervals$parm, c("fixef:mu:(Intercept)", "fixef:mu:treatment"))
+  summary_wald <- summary(fit, conf.int = TRUE, method = "wald")
+  expect_setequal(summary_wald$confint$parm, intervals$parm)
+  expect_error(
+    summary(fit, conf.int = TRUE, method = "profile"),
+    "Wald intervals only"
+  )
+  expect_error(
+    stats::confint(fit, parm = "sigma", method = "wald"),
+    "mean regression coefficients"
+  )
   expect_error(stats::confint(fit, method = "profile"), "Wald intervals only")
   expect_error(stats::confint(fit, method = "bootstrap"), "Wald intervals only")
   expect_length(stats::fitted(fit), nrow(dat))

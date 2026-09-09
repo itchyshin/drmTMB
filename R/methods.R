@@ -4481,7 +4481,14 @@ drm_summary_coefficients <- function(object) {
     attr(out, "std_error.message") <- conditionMessage(vcov)
     return(out)
   }
-  variances <- diag(vcov)
+  variances <- rep(NA_real_, length(est))
+  if (drm_has_temporal_mu(object)) {
+    matched <- match(labels, rownames(vcov))
+    available <- !is.na(matched)
+    variances[available] <- diag(vcov)[matched[available]]
+  } else {
+    variances <- diag(vcov)
+  }
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= 0
   se[ok] <- sqrt(variances[ok])
