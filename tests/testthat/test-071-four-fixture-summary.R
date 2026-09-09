@@ -314,3 +314,29 @@ test_that("S7 attempt diagnostics classify unavailable uncertainty explicitly", 
   attempt$std_error_status <- ""
   expect_error(env$r071_s7_validate_attempt(attempt), "diagnostic classification")
 })
+
+test_that("S7 task dry-run expands one immutable array task to its complete attempt set", {
+  root <- normalizePath(testthat::test_path("..", ".."))
+  base <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "prepare-s7-campaign-bundle.R"), envir = env)
+  bundle <- tempfile("071-s7-task-bundle-")
+  out <- tempfile("071-s7-task-out-")
+  dir.create(bundle)
+  dir.create(out)
+  env$r071_s7_write_campaign_bundle(bundle)
+  tool <- file.path(base, "s7-run-task.R")
+  status <- system2("Rscript", c(
+    tool, paste0("--root=", root), paste0("--bundle=", bundle), "--task=1501",
+    paste0("--out=", out), "--dry-run=true"
+  ))
+  expect_identical(status, 0L)
+  planned <- utils::read.delim(file.path(out, "planned-task.tsv"),
+                               stringsAsFactors = FALSE, check.names = FALSE)
+  expect_identical(nrow(planned), 14L)
+  expect_identical(unique(planned$fixture), "nb2_coupled")
+  expect_identical(unique(planned$logical_task_id), 1501L)
+  expect_identical(as.integer(table(planned$engine)), c(7L, 7L))
+  expect_false(file.exists(file.path(out, "attempts.tsv")))
+})
