@@ -54,10 +54,11 @@ declared_targets <- function(id) {
   )
 }
 same_manifest <- function(observed, declared) {
-  identical(
-    observed[order(observed$parm), c("parm", "target_class"), drop = FALSE],
-    declared[order(declared$parm), c("parm", "target_class"), drop = FALSE]
-  )
+  observed <- observed[order(observed$parm), c("parm", "target_class"), drop = FALSE]
+  declared <- declared[order(declared$parm), c("parm", "target_class"), drop = FALSE]
+  row.names(observed) <- NULL
+  row.names(declared) <- NULL
+  identical(observed, declared)
 }
 fixtures <- args[-1L]
 if (length(fixtures) == 0L) fixtures <- all_fixtures
@@ -87,7 +88,10 @@ for (id in fixtures) {
     tryCatch(do.call(drmTMB, fj_args), error = identity)
   }
   declared <- declared_targets(id)
-  observed <- if (inherits(fit, "error")) declared else profile_targets(fit)
+  observed_full <- if (inherits(fit, "error")) declared else profile_targets(fit)
+  missing_common <- setdiff(declared$parm, observed_full$parm)
+  if (length(missing_common)) stop("generated target manifest omits common targets for ", id, " on ", requested_engine, ": ", paste(missing_common, collapse = ", "), call. = FALSE)
+  observed <- observed_full[observed_full$parm %in% declared$parm, , drop = FALSE]
   if (!same_manifest(observed, declared)) stop("generated target manifest disagrees with frozen declaration for ", id, " on ", requested_engine, call. = FALSE)
   target <- observed[observed$parm == requested_target, c("parm", "target_class", "profile_ready"), drop = FALSE]
   if (nrow(target) != 1L) stop("requested target is absent from the declared manifest: ", requested_target, call. = FALSE)
@@ -99,6 +103,11 @@ for (id in fixtures) {
   # engine only, avoiding JuliaCall teardown coupling with the native engine.
   write.table(fixture_rows[[id]], file.path(out, paste0(id, sidecar, "-fixture-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   write.table(target_rows[[1L]], file.path(out, paste0(id, sidecar, "-target-manifest.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
+  full_inventory <- observed_full[, c("parm", "target_class", "profile_ready"), drop = FALSE]
+  full_inventory$fixture <- id
+  full_inventory$engine <- requested_engine
+  full_inventory$target_scope <- ifelse(full_inventory$parm %in% declared$parm, "common", "engine_only")
+  write.table(full_inventory[, c("fixture", "engine", "parm", "target_class", "profile_ready", "target_scope")], file.path(out, paste0(id, sidecar, "-target-inventory.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   write.table(point_rows[[1L]], file.path(out, paste0(id, sidecar, "-point-receipt.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   # Leave a conservative terminal classification before entering the profile
   # engine.  If a JuliaCall teardown kills this R process, reconciliation sees

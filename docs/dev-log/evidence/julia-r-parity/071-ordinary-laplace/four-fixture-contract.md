@@ -24,6 +24,12 @@ the comparison. Every requested target must receive point, SE, convergence,
 gradient/Hessian, and profile-endpoint statuses; absence and non-finiteness are
 classified outcomes, never dropped rows.
 
+For the coupled fixture, the common covariance coordinates are explicitly the
+three raw Cholesky entries `L11`, `L22`, and `L21`, because they are the shared
+working-scale interface. Native R also exposes derived SD and correlation
+targets; these are recorded as `engine_only` inventory rows, never profiled as
+pretended same-target quantities or silently discarded from the receipt.
+
 ## Coupled-NB2 admission closure and remaining inference gate
 
 The native prerequisite is now implemented for one complete-data, non-ZI,
