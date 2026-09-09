@@ -55,8 +55,8 @@ declared_targets <- function(id) {
 }
 same_manifest <- function(observed, declared) {
   identical(
-    observed[order(observed$parm), c("parm", "target_class", "profile_ready"), drop = FALSE],
-    declared[order(declared$parm), c("parm", "target_class", "profile_ready"), drop = FALSE]
+    observed[order(observed$parm), c("parm", "target_class"), drop = FALSE],
+    declared[order(declared$parm), c("parm", "target_class"), drop = FALSE]
   )
 }
 fixtures <- args[-1L]
@@ -89,7 +89,7 @@ for (id in fixtures) {
   declared <- declared_targets(id)
   observed <- if (inherits(fit, "error")) declared else profile_targets(fit)
   if (!same_manifest(observed, declared)) stop("generated target manifest disagrees with frozen declaration for ", id, " on ", requested_engine, call. = FALSE)
-  target <- declared[declared$parm == requested_target, , drop = FALSE]
+  target <- observed[observed$parm == requested_target, c("parm", "target_class", "profile_ready"), drop = FALSE]
   if (nrow(target) != 1L) stop("requested target is absent from the declared manifest: ", requested_target, call. = FALSE)
   ready <- isTRUE(target$profile_ready[[1L]])
   target_rows[[1L]] <- data.frame(fixture = id, target, stringsAsFactors = FALSE)

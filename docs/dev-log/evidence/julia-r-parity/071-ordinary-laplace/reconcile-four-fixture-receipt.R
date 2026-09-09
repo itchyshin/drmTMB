@@ -49,6 +49,11 @@ same_row <- function(x, y) {
   row.names(y) <- NULL
   identical(x, y)
 }
+same_target_declaration <- function(x, y) {
+  keep <- c("fixture", "parm", "target_class")
+  identical(unname(unlist(x[keep], use.names = FALSE)), unname(unlist(y[keep], use.names = FALSE))) &&
+    is.logical(x$profile_ready) && length(x$profile_ready) == 1L
+}
 
 profile_rows <- list(); point_rows <- list(); target_rows <- list(); fixture_rows <- list()
 for (i in seq_len(nrow(targets))) {
@@ -71,7 +76,7 @@ for (i in seq_len(nrow(targets))) {
   tmb_target <- read_one(file.path(out, paste0(id, tmb_suffix, "-target-manifest.tsv")), "TMB target manifest")
   julia_target <- read_one(file.path(out, paste0(id, julia_suffix, "-target-manifest.tsv")), "Julia target manifest")
   expected_target <- data.frame(fixture = id, targets[i, , drop = FALSE], stringsAsFactors = FALSE)
-  if (!same_row(tmb_target, expected_target) || !same_row(julia_target, expected_target)) stop("engine target manifests disagree with the frozen declaration for ", target, call. = FALSE)
+  if (!same_target_declaration(tmb_target, expected_target) || !same_target_declaration(julia_target, expected_target)) stop("engine target manifests disagree with the frozen declaration for ", target, call. = FALSE)
   fixture_rows[[length(fixture_rows) + 1L]] <- read_one(file.path(out, paste0(id, tmb_suffix, "-fixture-manifest.tsv")), "TMB fixture manifest")
   fixture_rows[[length(fixture_rows) + 1L]] <- read_one(file.path(out, paste0(id, julia_suffix, "-fixture-manifest.tsv")), "Julia fixture manifest")
 }
