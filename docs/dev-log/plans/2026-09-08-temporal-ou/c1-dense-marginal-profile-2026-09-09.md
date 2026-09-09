@@ -24,14 +24,16 @@ eliminates latent-state optimization as the explanation. The evidence supports
 an active or practically flat residual-variance boundary: it does not establish
 a finite regular MLE at the chosen numerical stopping tolerance.
 
-The free-sigma full observed-Hessian Wald covariance remains invalid for this
-dataset. Selecting a nearby positive-definite candidate would change the
-objective and is not an inference repair. The remaining decision is scientific
-and methodological: retain unavailable intervals at such boundaries and treat
-them as uncovered in calibration; introduce a separately justified boundary
-method; or alter the scientific model to fix residual scale and revalidate that
-different estimand. Until then, G7 stays closed and OU Wald inference remains
-guarded.
+The current-source fit for this historical data now reports a
+positive-definite Hessian and finite fixed-effect covariance at residual SD
+`0.000224`; its objective agrees with this dense oracle. Thus this particular
+historical non-PD result was a numerical artifact of the earlier AR1 transition
+calculation, even though its marginal likelihood remains very flat at the
+residual boundary. It is not evidence that the interval route is calibrated.
+
+A disjoint current-source C1 seed has both unavailable covariance and an
+independent dense profile that reaches the residual boundary. That is the live
+G7 blocker; see `c1-current-source-reconciliation-2026-09-09.md`.
 
 The raw attempts, selected profile, free fits, provenance, and session details
 are retained under

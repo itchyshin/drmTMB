@@ -2,9 +2,9 @@
 
 The first retained five-seed AR1 pilot showed four available fixed-effect Wald
 intervals in primary cell C1 and one unavailable interval at seed `2026091002`.
-The independent dense marginal profile for that seed established an active or
-practically flat residual-variance boundary, rather than a latent-state
-optimizer artifact.
+That pilot predates the AR1 transition-stability repair. A later current-source
+recheck finds all five historical seeds available, so the historical rate must
+not be pooled with this current-source replication.
 
 This bounded current-source replication used five new fixed seeds
 `2026091101`--`2026091105` with the same C1 data-generating process and the
@@ -17,12 +17,13 @@ seed `2026091101`, estimated residual SD `0.000338`, reported a non-positive-
 definite Hessian, and correctly left covariance and intervals unavailable.
 All five fits and all ten signed-persistence starts were retained.
 
-Together with the original pilot, C1 has 8 available current-route interval
-sets among 10 bounded datasets. This does not estimate a campaign rate with
-useful precision, but it shows that the original failure is not an isolated
-optimizer accident. It is already incompatible with the predeclared primary
-availability requirement of at least 0.99, so a campaign under the present
-free-sigma full-Hessian Wald contract cannot qualify that interval method.
+Together with the current-source historical-seed recheck, C1 has 9 available
+current-route interval sets among 10 bounded datasets. This does not estimate a
+campaign rate with useful precision, but the one current failure is not an
+isolated optimizer accident: its independent dense profile reaches the
+residual-variance boundary. The bounded evidence therefore cannot establish
+the predeclared primary availability requirement of at least 0.99 or qualify
+the free-sigma full-Hessian Wald method.
 
 The retained files are under
 `docs/dev-log/simulation-artifacts/2026-09-09-temporal-ar1-c1-wald-replication/`.

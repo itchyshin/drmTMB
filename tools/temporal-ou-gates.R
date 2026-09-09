@@ -23,10 +23,42 @@ run_file <- function(path) {
 success <- FALSE
 if (identical(gate, 'G1')) {
   files <- file.path('docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot', c('RESULTS.md', 'C1-SEED-2026091002-DIAGNOSIS.md'))
-  if (!all(file.exists(files))) fail('G1 cannot find the retained AR1 C1 diagnostic evidence.')
+  current_recheck <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ar1-c1-current-source-recheck'
+  fresh_replication <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ar1-c1-wald-replication'
+  current_boundary <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ar1-c1-current-boundary'
+  current_files <- c(
+    file.path(current_recheck, c('replications.csv', 'raw-attempts.csv', 'provenance.csv')),
+    file.path(fresh_replication, c('replications.csv', 'raw-attempts.csv', 'provenance.csv')),
+    file.path(current_boundary, c('profile-summary.csv', 'free-attempts.csv', 'provenance.csv')),
+    'docs/dev-log/plans/2026-09-08-temporal-ou/c1-current-source-reconciliation-2026-09-09.md'
+  )
+  if (!all(file.exists(c(files, current_files)))) fail('G1 cannot find the retained AR1 C1 diagnostic evidence.')
   text <- paste(unlist(lapply(files, readLines, warn = FALSE)), collapse = '\n')
   guard <- paste(readLines('R/temporal.R', warn = FALSE), collapse = '\n')
   if (!grepl('residual SD approximately', text, fixed = TRUE) || !grepl('OU mean-coefficient Wald intervals are not yet qualified', guard, fixed = TRUE)) fail('G1 requires the retained C1 diagnosis and the public OU interval guard.')
+  recheck <- read.csv(file.path(current_recheck, 'replications.csv'), stringsAsFactors = FALSE)
+  fresh <- read.csv(file.path(fresh_replication, 'replications.csv'), stringsAsFactors = FALSE)
+  profile <- read.csv(file.path(current_boundary, 'profile-summary.csv'), stringsAsFactors = FALSE)
+  free <- read.csv(file.path(current_boundary, 'free-attempts.csv'), stringsAsFactors = FALSE)
+  verify_provenance <- function(directory, runner) {
+    provenance <- read.csv(file.path(directory, 'provenance.csv'), stringsAsFactors = FALSE)
+    source_commit <- provenance$value[provenance$key == 'source_commit']
+    runner_hash <- provenance$value[provenance$key == 'runner_md5']
+    length(source_commit) == 1L && length(runner_hash) == 1L &&
+      system2('git', c('cat-file', '-e', paste0(source_commit, '^{commit}'))) == 0L &&
+      identical(runner_hash, unname(tools::md5sum(runner)))
+  }
+  if (nrow(recheck) != 5L || !all(recheck$selected & recheck$pd_hessian & recheck$vcov_available & recheck$interval_available) ||
+      nrow(fresh) != 5L || sum(fresh$interval_available) != 4L ||
+      !any(!fresh$interval_available & fresh$sigma < 0.001) ||
+      nrow(profile) != 10L || nrow(free) != 4L ||
+      profile$objective[profile$sigma_fixed == 0.1][[1L]] - min(profile$objective) < 0.005 ||
+      any(free$sigma >= 0.001) ||
+      !verify_provenance(current_recheck, 'tools/diagnose-temporal-ar1-c1-current-source-recheck.R') ||
+      !verify_provenance(fresh_replication, 'tools/diagnose-temporal-ar1-c1-wald-replication.R') ||
+      !verify_provenance(current_boundary, 'tools/diagnose-temporal-ar1-c1-current-boundary.R')) {
+    fail('G1 current-source C1 reconciliation evidence does not reproduce the historical repair and fresh boundary case.')
+  }
   success <- TRUE
 } else if (identical(gate, 'G2')) {
   run_file('tests/testthat/test-temporal-ou.R'); success <- TRUE

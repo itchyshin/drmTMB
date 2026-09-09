@@ -12,18 +12,16 @@ residual log-SD. It did not overwrite the retained pilot or initiate a campaign.
 | 1e-4 | 618.883548215 | 1 |
 | 1e-6 | 618.880626547 | 1 |
 
-The objective decreases as the residual scale start approaches zero. This is
-consistent with an active residual-variance boundary, not a missed interior
-solution. Selecting the higher, positive-definite interior candidate would not
-be maximum likelihood. The Gaussian AR1 model remains a valid point-fit route,
-but the plan's full observed-Hessian Wald covariance is unavailable in this
-case.
+This start probe predates the current AR1 transition-stability repair. Its
+lowest recorded objective does not agree with the independent dense marginal
+oracle and must not be treated as the current ML value. The current source
+reproducibly selects the oracle-matched positive-definite candidate for this
+historical seed. The table remains retained as an explanation of the former
+numerical failure, not as current inference evidence.
 
-The next method decision must choose one of the following explicitly: retain
-unavailable intervals at active variance boundaries and revise the availability
-criterion; adopt a justified constrained-boundary inference method; or change
-the scientific model to impose a residual-scale lower bound and revalidate the
-resulting estimand. No choice is implemented here.
+The current method decision instead rests on a separate current-source seed
+whose independent dense profile reaches the residual boundary with unavailable
+covariance; see `c1-current-source-reconciliation-2026-09-09.md`.
 
 ## Cross-package precedent
 

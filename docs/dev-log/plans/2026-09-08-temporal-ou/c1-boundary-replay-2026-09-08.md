@@ -7,9 +7,13 @@ OU source selected a nearby higher candidate (`618.883549`, residual SD
 `2.24e-04`, `pdHess = TRUE`). Both use the same generated data and two signed
 AR1 starts.
 
-This is optimizer sensitivity near the residual-variance boundary, not evidence
-that interval availability has been repaired. The lower objective remains the
-relevant ML candidate, so G7 stays closed and OU Wald intervals remain guarded.
-The next repair must make optimisation reliably select and diagnose the global
-solution, then reassess interval availability; it must not prefer a higher
-objective solely because its Hessian is positive definite.
+The independent dense marginal oracle subsequently established that the current
+candidate matches the marginal objective (`618.883549144532` at its smallest
+grid value), whereas the older lower objective does not. The older objective is
+therefore a pre-repair numerical artifact, not an ML improvement. Current source
+reproducibly returns the positive-definite candidate.
+
+This corrects the historical C1 numerical failure but does not qualify temporal
+Wald coverage. A separate current-source seed still has a genuine
+residual-variance boundary and unavailable covariance; see
+`c1-current-source-reconciliation-2026-09-09.md`.

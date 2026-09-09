@@ -78,3 +78,14 @@ This work covers only Gaussian AR1 C1 free-sigma, full-Hessian Wald
 availability. It does not cover coverage calibration, variance-component
 intervals, OU inference, REML, non-Gaussian families, forecasts, new-data
 prediction, other temporal structures, or gllvmTMB.
+
+## Post-task source-revision correction
+
+The original C1 pilot preceded the AR1 transition-stability repair. A
+current-source replay subsequently found 5/5 available historical-seed fits,
+so this report's former 8/10 pooled availability statement must not be read as
+a current-source denominator. The five fresh fits documented here remain valid
+current-source evidence: one has unavailable covariance. Its independent dense
+profile confirms a residual-variance boundary. The reconciled current-source
+denominator is 9/10 and is documented in
+`c1-current-source-reconciliation-2026-09-09.md`.
