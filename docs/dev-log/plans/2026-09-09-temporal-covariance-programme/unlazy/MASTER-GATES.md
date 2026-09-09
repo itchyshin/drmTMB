@@ -1,8 +1,8 @@
 # Temporal covariance Ultra Master Plan — execution ledger
 
 Scope: Master orchestration contract. Each model creates and re-verifies its own executable
-ledger. A checked master gate needs a non-pending evidence line. There are 36 gates:
-31 runnable and five manual. Nothing below authorizes a remote campaign, push, merge,
+ledger. A checked master gate needs a non-pending evidence line. There are 37 gates:
+31 runnable and six manual. Nothing below authorizes a remote campaign, push, merge,
 release, deployment or external message.
 
 ## Phase 0
@@ -52,6 +52,8 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9
   EXPECT: PHYLO_TEMPORAL_OU_G9_PASS
   EVIDENCE: 2026-09-09 FAILED and retained at execution commit 7e98c709c. Both corrected 50-species (mean fixed-effect error 0.182) and same-seed 80-species diagnostic (0.165) denominators exceeded the 0.150 criterion, although SD/decay criteria passed. This blocks promotion but does not erase deterministic-method or reader evidence.
+- [ ] P1-recovery-revision: The user explicitly approves the draft G9b contract before any new fixture, seed manifest, pilot, or campaign action.
+  EVIDENCE: pending. Review `G9B-RECOVERY-PROPOSAL.md`; G9 remains failed even if G9b is later approved.
 - [x] P1-reader: The development-marked reader article, component labels, design/limitation documentation and source render agree with the retained recovery boundary.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G14 && Rscript --vanilla tools/phylo-temporal-ou-gates.R G15
   EXPECT: PHYLO_TEMPORAL_OU_G14_PASS and PHYLO_TEMPORAL_OU_G15_PASS
