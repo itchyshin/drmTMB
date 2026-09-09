@@ -141,3 +141,32 @@ test_that("S7 profile plan freezes all target truths on their profile scales", {
   expect_equal(coupled$truth, c(0.2, 0.35, 0.15, -0.1,
                                  log(0.45), log(0.125), -0.10125))
 })
+
+test_that("S7 campaign fixture factory is deterministic and preserves scalar-RI shapes", {
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "s7-campaign-fixture.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  manifest_tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                       "julia-r-parity", "071-ordinary-laplace",
+                                       "prepare-s7-campaign-manifest.R")
+  manifest_env <- new.env(parent = globalenv())
+  sys.source(manifest_tool, envir = manifest_env)
+  profile_plan <- manifest_env$r071_s7_profile_plan()
+  for (fixture in manifest_env$r071_s7_fixture_table()$fixture) {
+    one <- env$r071_s7_make_fixture(fixture, 71011001L)
+    again <- env$r071_s7_make_fixture(fixture, 71011001L)
+    expect_identical(one$data, again$data, info = fixture)
+    expect_identical(one$formula, again$formula, info = fixture)
+    expected_truths <- profile_plan[profile_plan$fixture == fixture & profile_plan$engine == "tmb",
+                                   c("parm", "target_class", "truth"), drop = FALSE]
+    row.names(expected_truths) <- NULL
+    expect_identical(one$target_truths, expected_truths, info = fixture)
+  }
+  expect_false(identical(
+    env$r071_s7_make_fixture("poisson_ri", 71011001L)$data,
+    env$r071_s7_make_fixture("poisson_ri", 71011002L)$data
+  ))
+})
