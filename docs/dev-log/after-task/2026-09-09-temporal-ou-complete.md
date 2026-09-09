@@ -151,3 +151,12 @@ labelled temporal blocks, temporal correlation across responses, missing-data
 extensions, Julia/gllvmTMB bridges, forecasts, or prediction on `newdata`.
 Those combinations require their own formula, likelihood, extractor, and
 calibration evidence rather than inheriting this OU result.
+
+## Post-closeout calibration wording correction
+
+After the retained campaign was recomputed from all 60 immutable Fir shards,
+three public scope statements still described *both* temporal structures as
+coverage-uncalibrated. They now distinguish the qualified OU fixed-`mu` profile
+result in its exact U1--U3 cells from the still-uncalibrated AR1 and broader
+temporal cases. This is a documentation-only correction: no estimator,
+campaign artifact, threshold, or public Wald boundary changed.

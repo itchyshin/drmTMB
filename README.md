@@ -311,9 +311,11 @@ head(sigma(fit)^2) # fitted residual variances
   same ID. AR1 Wald intervals cover mean coefficients only when the full
   observed Hessian is positive definite. AR1 and OU both provide
   mean-coefficient likelihood profiles through
-  `confint(fit, parm = "mu:<coefficient>", method = "profile")`; their
-  coverage remains uncalibrated, and `check_drm()` marks irregular fitted
-  Hessians. OU Wald inference remains deferred. Process, persistence, decay,
+  `confint(fit, parm = "mu:<coefficient>", method = "profile")`. A retained
+  3,000-fit OU campaign qualified those fixed-`mu` profiles in its exact U1--U3
+  cells; this is not a general temporal coverage claim. AR1 profile coverage
+  remains uncalibrated, and `check_drm()` marks irregular fitted Hessians. OU
+  Wald inference remains deferred. Process, persistence, decay,
   residual, bootstrap, forecast, and `newdata` intervals remain unavailable. For the
   other Gaussian structured effects,
   those markers fit documented `mu` and `sigma` intercept routes, one numeric

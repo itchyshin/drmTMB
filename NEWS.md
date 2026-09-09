@@ -34,12 +34,14 @@ every item above.
   it. Both temporal structures also profile fixed mean coefficients through
   `confint(..., parm = "mu:<coefficient>", method = "profile")`; profile
   endpoints can remain finite when a fitted Hessian is irregular, so
-  `check_drm()` records that situation and no coverage claim is made. The OU
-  elapsed-time route uses `structure = "ou"` with a positive decay rate; its
-  Wald intervals remain deferred behind the AR1 calibration blocker.
-  Variance/persistence, bootstrap, forecast, and `newdata` intervals remain
-  unavailable. The retained pilot found one unavailable primary-cell Wald
-  interval, so this release contains no calibrated coverage claim.
+  `check_drm()` records that situation. A retained 3,000-fit OU campaign
+  qualified fixed-`mu` profile intervals in its exact U1--U3 cells; this is
+  not a general temporal coverage claim. The OU elapsed-time route uses
+  `structure = "ou"` with a positive decay rate; its Wald intervals remain
+  deferred behind the AR1 calibration blocker. Variance/persistence,
+  bootstrap, forecast, and `newdata` intervals remain unavailable. The
+  retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
+  has no calibrated coverage claim.
 
 # drmTMB 0.7.0
 

@@ -129,7 +129,7 @@ if (identical(gate, 'G1')) {
   success <- TRUE
 } else if (identical(gate, 'G10')) {
   source <- paste(readLines('vignettes/temporal-random-effects.Rmd', warn = FALSE), collapse = '\n')
-  needed <- c('Irregular elapsed time with OU', 'positive decay rate', 'duplicate site--time records', 'method = "profile"', 'check_drm(ou_fit)')
+  needed <- c('Irregular elapsed time with OU', 'positive decay rate', 'duplicate site--time records', 'method = "profile"', 'check_drm(ou_fit)', '1,000-data-set scenarios')
   if (!all(vapply(needed, grepl, logical(1L), x = source, fixed = TRUE))) fail('G10 temporal OU reader guidance is incomplete.')
   success <- TRUE
 } else if (identical(gate, 'G11')) {

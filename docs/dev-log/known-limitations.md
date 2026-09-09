@@ -61,11 +61,12 @@ revisit condition.
   when the full observed Hessian is positive definite; temporal SD,
   persistence, ordinary-intercept SD, and residual-SD intervals, forecasting,
   and `newdata` prediction remain unsupported. The final-source five-seed
-  pilot had 4/5 interval availability in primary C1, so no coverage or
-  scientific-interval calibration claim is available yet. Both structures
-  provide fixed-`mu` profile intervals with an irregular-Hessian warning;
-  their coverage remains uncalibrated. OU blocks Wald covariance and Wald
-  intervals until the shared AR1 calibration prerequisite is resolved.
+  pilot had 4/5 interval availability in primary C1, so AR1 has no coverage
+  or scientific-interval calibration claim yet. Both structures provide
+  fixed-`mu` profile intervals with an irregular-Hessian warning. A retained
+  3,000-fit OU campaign qualified those profiles in the exact U1--U3 cells;
+  it is not a general temporal coverage claim. OU blocks Wald covariance and
+  Wald intervals until the shared AR1 calibration prerequisite is resolved.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
