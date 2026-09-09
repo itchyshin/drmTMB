@@ -34,7 +34,13 @@ if (length(fixtures) == 0L) fixtures <- all_fixtures
 if (length(fixtures) != 1L || !fixtures %in% all_fixtures) stop("run exactly one named fixture per R process", call. = FALSE)
 requested_target <- Sys.getenv("DRMTMB_071_TARGET", "")
 requested_engine <- Sys.getenv("DRMTMB_071_ENGINE", "")
-run_suffix <- if (nzchar(requested_target) || nzchar(requested_engine)) paste0("-", gsub("[^A-Za-z0-9]+", "_", paste(requested_engine, requested_target, sep = "-"))) else ""
+if (!nzchar(requested_target) || !nzchar(requested_engine)) {
+  stop(
+    "set both DRMTMB_071_TARGET and DRMTMB_071_ENGINE; profile receipts are intentionally one engine-target task at a time and must be reconciled explicitly",
+    call. = FALSE
+  )
+}
+run_suffix <- paste0("-", sub("_+$", "", gsub("[^A-Za-z0-9]+", "_", paste(requested_engine, requested_target, sep = "-"))))
 target_rows <- list(); point_rows <- list(); profile_rows <- list(); fixture_rows <- list()
 for (id in fixtures) {
   spec <- make_fixture(id); data_path <- file.path(out, paste0(id, ".csv")); write.csv(spec$data, data_path, row.names = FALSE)
@@ -56,11 +62,9 @@ for (id in fixtures) {
     stringsAsFactors = FALSE
   ), file.path(out, paste0(id, "-fit-checkpoint.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
   write.table(data.frame(fixture = id, parm = targets$parm, target_class = targets$target_class, profile_ready = targets$profile_ready, stringsAsFactors = FALSE), file.path(out, paste0(id, "-target-checkpoint.tsv")), sep = "\t", row.names = FALSE, quote = FALSE)
-  if (nzchar(requested_target)) {
-    targets <- targets[targets$parm == requested_target, , drop = FALSE]
-    if (nrow(targets) != 1L) stop("requested target is absent from the generated manifest: ", requested_target, call. = FALSE)
-  }
-  engines <- if (nzchar(requested_engine)) requested_engine else c("tmb", "julia")
+  targets <- targets[targets$parm == requested_target, , drop = FALSE]
+  if (nrow(targets) != 1L) stop("requested target is absent from the generated manifest: ", requested_target, call. = FALSE)
+  engines <- requested_engine
   if (!all(engines %in% c("tmb", "julia"))) stop("DRMTMB_071_ENGINE must be tmb or julia", call. = FALSE)
   for (i in seq_len(nrow(targets))) {
     target <- targets$parm[[i]]; ready <- isTRUE(targets$profile_ready[[i]])
