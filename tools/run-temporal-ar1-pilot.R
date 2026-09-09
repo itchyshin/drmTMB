@@ -11,9 +11,12 @@ if (!file.exists(file.path(root, "DESCRIPTION"))) {
 }
 pkgload::load_all(root, quiet = TRUE)
 
-out_dir <- file.path(
-  root,
-  "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot"
+out_dir <- Sys.getenv(
+  "DRMTMB_TEMPORAL_AR1_PILOT_OUT",
+  unset = file.path(
+    root,
+    "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot"
+  )
 )
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 evidence_files <- file.path(out_dir, c(
@@ -181,6 +184,7 @@ provenance <- data.frame(
 write.csv(provenance, file.path(out_dir, "provenance.csv"), row.names = FALSE)
 saveRDS(list(cells = cells, results = results, attempts = attempts, summary = summary,
              provenance = provenance), file.path(out_dir, "pilot-results.rds"))
+capture.output(sessionInfo(), file = file.path(out_dir, "session-info.txt"))
 
 if (nrow(results) != 25L || nrow(attempts) != 50L ||
     !all(table(attempts$fixture) == 2L) ||

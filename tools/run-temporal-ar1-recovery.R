@@ -15,9 +15,12 @@ if (!file.exists(file.path(root, "DESCRIPTION"))) {
 }
 pkgload::load_all(root, quiet = TRUE)
 
-out_dir <- file.path(
-  root,
-  "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-local-recovery"
+out_dir <- Sys.getenv(
+  "DRMTMB_TEMPORAL_AR1_RECOVERY_OUT",
+  unset = file.path(
+    root,
+    "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-local-recovery"
+  )
 )
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 evidence_files <- file.path(out_dir, c(
@@ -237,6 +240,7 @@ write.csv(provenance, file.path(out_dir, "provenance.csv"), row.names = FALSE)
 saveRDS(list(conditions = conditions, truth = truth_rows, attempts = attempts,
              recovery = recovery, criteria = criteria, provenance = provenance),
         file.path(out_dir, "recovery-results.rds"))
+capture.output(sessionInfo(), file = file.path(out_dir, "session-info.txt"))
 
 if (!all(criteria$pass)) {
   stop("Temporal AR1 recovery criteria failed; retained outputs were written for diagnosis.", call. = FALSE)

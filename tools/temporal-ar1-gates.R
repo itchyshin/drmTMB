@@ -24,17 +24,32 @@ files <- switch(
   NULL
 )
 if (identical(gate, "G11")) {
-  artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-local-recovery"
+  artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-local-recovery-final-source"
   required <- file.path(artifact_dir, c(
     "raw-attempts.csv", "recovery-estimates.csv", "criteria.csv",
-    "provenance.csv", "recovery-results.rds", "RESULTS.md"
+    "provenance.csv", "recovery-results.rds", "session-info.txt", "RESULTS.md"
   ))
   if (!all(file.exists(required))) {
     stop("G11 recovery artifacts are missing; run tools/run-temporal-ar1-recovery.R.", call. = FALSE)
   }
   attempts <- utils::read.csv(file.path(artifact_dir, "raw-attempts.csv"))
   criteria <- utils::read.csv(file.path(artifact_dir, "criteria.csv"))
-  if (nrow(attempts) != 24L || !all(table(attempts$fixture) == 2L) ||
+  provenance <- utils::read.csv(file.path(artifact_dir, "provenance.csv"), stringsAsFactors = FALSE)
+  source_commit <- provenance$value[provenance$key == "source_commit"]
+  runner_md5 <- provenance$value[provenance$key == "runner_md5"]
+  implementation_changed <- system2(
+    "git", c("diff", "--name-only", paste0(source_commit, "..HEAD"), "--", "R", "src", "DESCRIPTION", "NAMESPACE"),
+    stdout = TRUE
+  )
+  expected_fixtures <- as.vector(outer(c("ar1_only", "ordinary_plus_ar1"), sprintf("P%02d", 1:6), paste, sep = "_"))
+  expected_starts <- sort(rep(c(-0.3, 0.3), length(expected_fixtures)))
+  if (length(source_commit) != 1L || length(runner_md5) != 1L ||
+      !identical(runner_md5, unname(tools::md5sum("tools/run-temporal-ar1-recovery.R"))) ||
+      length(implementation_changed) != 0L ||
+      nrow(attempts) != 24L || !identical(sort(unique(attempts$fixture)), sort(expected_fixtures)) ||
+      !all(table(attempts$fixture) == 2L) ||
+      !identical(sort(attempts$persistence_start), expected_starts) ||
+      !all(tapply(attempts$selected, attempts$fixture, sum) == 1L) ||
       nrow(criteria) != 5L || !all(criteria$pass)) {
     stop("G11 retained recovery artifacts do not meet their predeclared checks.", call. = FALSE)
   }
@@ -42,10 +57,10 @@ if (identical(gate, "G11")) {
   quit(save = "no", status = 0L)
 }
 if (identical(gate, "G12")) {
-  artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot"
+  artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot-final-source"
   required <- file.path(artifact_dir, c(
     "raw-attempts.csv", "pilot-results.csv", "pilot-summary.csv",
-    "provenance.csv", "pilot-results.rds", "resource-replay.txt", "RESULTS.md",
+    "provenance.csv", "pilot-results.rds", "session-info.txt", "resource-replay.txt", "RESULTS.md",
     "C1-SEED-2026091002-DIAGNOSIS.md"
   ))
   if (!all(file.exists(required))) {
@@ -53,9 +68,23 @@ if (identical(gate, "G12")) {
   }
   attempts <- utils::read.csv(file.path(artifact_dir, "raw-attempts.csv"))
   results <- utils::read.csv(file.path(artifact_dir, "pilot-results.csv"))
+  provenance <- utils::read.csv(file.path(artifact_dir, "provenance.csv"), stringsAsFactors = FALSE)
+  source_commit <- provenance$value[provenance$key == "source_commit"]
+  runner_md5 <- provenance$value[provenance$key == "runner_md5"]
+  implementation_changed <- system2(
+    "git", c("diff", "--name-only", paste0(source_commit, "..HEAD"), "--", "R", "src", "DESCRIPTION", "NAMESPACE"),
+    stdout = TRUE
+  )
   resource <- readLines(file.path(artifact_dir, "resource-replay.txt"), warn = FALSE)
-  if (nrow(results) != 25L || nrow(attempts) != 50L ||
+  expected_fixtures <- as.vector(outer(c("C1", "C2", "C3", "C4", "C5"), 2026091001:2026091005, paste, sep = "_"))
+  expected_starts <- sort(rep(c(-0.3, 0.3), length(expected_fixtures)))
+  if (length(source_commit) != 1L || length(runner_md5) != 1L ||
+      !identical(runner_md5, unname(tools::md5sum("tools/run-temporal-ar1-pilot.R"))) ||
+      length(implementation_changed) != 0L ||
+      nrow(results) != 25L || !identical(sort(results$fixture), sort(expected_fixtures)) || nrow(attempts) != 50L ||
       !all(table(attempts$fixture) == 2L) ||
+      !identical(sort(attempts$persistence_start), expected_starts) ||
+      !all(tapply(attempts$selected, attempts$fixture, sum) == 1L) ||
       !all(results$selected & is.finite(results$objective)) ||
       !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0) ||
       !any(grepl("maximum resident set size", resource, fixed = TRUE))) {
