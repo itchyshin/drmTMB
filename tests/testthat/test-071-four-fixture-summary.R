@@ -494,3 +494,18 @@ test_that("S7 engine fit factory forwards Laplace only to the Julia engine", {
   expect_identical(julia_args$engine, "julia")
   expect_identical(julia_args$marginal, "Laplace")
 })
+
+test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
+  worker <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                "julia-r-parity", "071-ordinary-laplace", "s7-fir-worker.sh")
+  expect_true(file.exists(worker))
+  expect_identical(system2("bash", c("-n", worker)), 0L)
+  text <- paste(readLines(worker, warn = FALSE), collapse = "\n")
+  expect_match(text, "#SBATCH --cpus-per-task=1", fixed = TRUE)
+  expect_match(text, "#SBATCH --time=02:00:00", fixed = TRUE)
+  expect_match(text, "SLURM_JOB_ID", fixed = TRUE)
+  expect_match(text, "1..2000", fixed = TRUE)
+  expect_match(text, "OPENBLAS_NUM_THREADS=1", fixed = TRUE)
+  expect_match(text, "JULIA_NUM_THREADS=1", fixed = TRUE)
+  expect_false(grepl("\\bsbatch\\b", text))
+})
