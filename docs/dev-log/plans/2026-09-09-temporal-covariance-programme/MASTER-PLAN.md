@@ -262,6 +262,9 @@ G12 manual campaign approval, G13 retained campaign reverify, G14-G15 reader evi
 G16 package check, G17 review and G18 closure. At the current execution checkpoint,
 G2-G8 and G14-G15 pass; G9 is a retained recovery failure, and G10-G13/G16-G18
 remain open. The programme must not advance to P2 on the basis of the reader article.
+A reviewable but unadopted replacement is at `G9B-RECOVERY-PROPOSAL.md`; it
+separates treatment-contrast recovery from ensemble intercept bias and needs
+explicit approval before any fixture, seed, pilot, or campaign action.
 
 ### Simulation and compute
 
