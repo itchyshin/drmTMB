@@ -236,3 +236,22 @@ test_that("S7 worker specification resolves a task against the frozen plan", {
     "absent from the frozen profile plan"
   )
 })
+
+test_that("S7 worker dry-run writes only its immutable planned sidecar", {
+  root <- normalizePath(testthat::test_path("..", ".."))
+  tool <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                    "071-ordinary-laplace", "s7-run-attempt.R")
+  out <- tempfile("071-s7-worker-")
+  dir.create(out)
+  status <- system2("Rscript", c(
+    tool, paste0("--root=", root), "--task=1501", "--engine=julia",
+    "--parm=cholesky:recov:L22", paste0("--out=", out), "--dry-run=true"
+  ))
+  expect_identical(status, 0L)
+  planned <- utils::read.delim(file.path(out, "planned-attempt.tsv"),
+                               stringsAsFactors = FALSE, check.names = FALSE)
+  expect_identical(planned$fixture, "nb2_coupled")
+  expect_identical(planned$dgp_seed, 71014001L)
+  expect_equal(planned$truth, log(0.125))
+  expect_false(file.exists(file.path(out, "profile-receipt.tsv")))
+})

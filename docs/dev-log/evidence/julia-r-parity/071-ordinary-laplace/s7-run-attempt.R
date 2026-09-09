@@ -26,3 +26,42 @@ r071_s7_worker_spec <- function(manifest, profile_plan, task, engine, parm) {
     truth = as.numeric(target$truth[[1L]])
   )
 }
+
+r071_s7_worker_args <- function(args) {
+  if (any(!grepl("^--[A-Za-z][A-Za-z-]*=.+$", args))) {
+    stop("S7 worker arguments must use --name=value syntax", call. = FALSE)
+  }
+  key <- sub("^--([^=]+)=.*$", "\\1", args)
+  if (anyDuplicated(key)) stop("duplicate S7 worker argument", call. = FALSE)
+  out <- stats::setNames(sub("^--[^=]+=", "", args), key)
+  required <- c("root", "task", "engine", "parm", "out", "dry-run")
+  if (!identical(sort(names(out)), sort(required))) {
+    stop("S7 worker needs exactly --root, --task, --engine, --parm, --out, and --dry-run", call. = FALSE)
+  }
+  if (!out[["dry-run"]] %in% c("true", "false")) stop("--dry-run must be true or false", call. = FALSE)
+  out
+}
+
+r071_s7_worker_main <- function(args = commandArgs(trailingOnly = TRUE)) {
+  a <- r071_s7_worker_args(args)
+  root <- normalizePath(a[["root"]], mustWork = TRUE)
+  out <- normalizePath(a[["out"]], mustWork = FALSE)
+  if (!dir.exists(out)) dir.create(out, recursive = TRUE, showWarnings = FALSE)
+  helper_dir <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R")) {
+    path <- file.path(helper_dir, file)
+    if (!file.exists(path)) stop("missing S7 helper: ", path, call. = FALSE)
+    sys.source(path, envir = .GlobalEnv)
+  }
+  spec <- r071_s7_worker_spec(
+    manifest = r071_s7_manifest(), profile_plan = r071_s7_profile_plan(),
+    task = as.integer(a[["task"]]), engine = a[["engine"]], parm = a[["parm"]]
+  )
+  planned <- as.data.frame(spec, stringsAsFactors = FALSE)
+  utils::write.table(planned, file.path(out, "planned-attempt.tsv"),
+                     sep = "\t", quote = FALSE, row.names = FALSE)
+  if (identical(a[["dry-run"]], "true")) return(invisible(spec))
+  stop("S7 fitting worker is not enabled until the post-cost approval gate is recorded", call. = FALSE)
+}
+
+if (sys.nframe() == 0L) r071_s7_worker_main()
