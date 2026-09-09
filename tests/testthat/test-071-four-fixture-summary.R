@@ -509,3 +509,17 @@ test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
   expect_match(text, "JULIA_NUM_THREADS=1", fixed = TRUE)
   expect_false(grepl("\\bsbatch\\b", text))
 })
+
+test_that("S7 task runner requires explicit approval for a live fit", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-run-task.R"), envir = env)
+  common <- c("--root=/tmp", "--bundle=/tmp", "--task=1", "--out=/tmp")
+  dry <- env$r071_s7_task_args(c(common, "--dry-run=true"))
+  expect_false(env$r071_s7_task_execution_allowed(dry))
+  refused <- env$r071_s7_task_args(c(common, "--dry-run=false"))
+  expect_error(env$r071_s7_task_execution_allowed(refused), "approved=true")
+  approved <- env$r071_s7_task_args(c(common, "--dry-run=false", "--approved=true"))
+  expect_true(env$r071_s7_task_execution_allowed(approved))
+})

@@ -62,11 +62,22 @@ r071_s7_task_args <- function(args) {
   if (anyDuplicated(key)) stop("duplicate S7 task argument", call. = FALSE)
   out <- stats::setNames(sub("^--[^=]+=", "", args), key)
   required <- c("root", "bundle", "task", "out", "dry-run")
-  if (!identical(sort(names(out)), sort(required))) {
-    stop("S7 task runner needs exactly --root, --bundle, --task, --out, and --dry-run", call. = FALSE)
+  allowed <- c(required, "approved")
+  if (!all(required %in% names(out)) || any(!names(out) %in% allowed)) {
+    stop("S7 task runner needs --root, --bundle, --task, --out, --dry-run, and optional --approved", call. = FALSE)
   }
   if (!out[["dry-run"]] %in% c("true", "false")) stop("--dry-run must be true or false", call. = FALSE)
+  if (!"approved" %in% names(out)) out[["approved"]] <- "false"
+  if (!out[["approved"]] %in% c("true", "false")) stop("--approved must be true or false", call. = FALSE)
   out
+}
+
+r071_s7_task_execution_allowed <- function(args) {
+  if (identical(args[["dry-run"]], "true")) return(FALSE)
+  if (!identical(args[["approved"]], "true")) {
+    stop("S7 live fitting requires --approved=true after the G7 approval gate", call. = FALSE)
+  }
+  TRUE
 }
 
 r071_s7_task_main <- function(args = commandArgs(trailingOnly = TRUE)) {
@@ -91,8 +102,18 @@ r071_s7_task_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   r071_s7_atomic_write(file.path(out, "planned-task.tsv"), function(file) {
     utils::write.table(plan, file, sep = "\t", quote = FALSE, row.names = FALSE)
   })
-  if (identical(a[["dry-run"]], "true")) return(invisible(plan))
-  stop("S7 fitting task runner is not enabled until the post-cost approval gate is recorded", call. = FALSE)
+  if (!r071_s7_task_execution_allowed(a)) return(invisible(plan))
+  if (!requireNamespace("drmTMB", quietly = TRUE)) {
+    stop("S7 live worker requires the preflight-installed drmTMB package", call. = FALSE)
+  }
+  suppressPackageStartupMessages(library(drmTMB))
+  attempts <- r071_s7_dispatch_task(
+    plan, r071_s7_make_fixture, r071_s7_engine_fit
+  )
+  r071_s7_atomic_write(file.path(out, "attempts.tsv"), function(file) {
+    utils::write.table(attempts, file, sep = "\t", quote = FALSE, row.names = FALSE)
+  })
+  invisible(attempts)
 }
 
 if (sys.nframe() == 0L) r071_s7_task_main()

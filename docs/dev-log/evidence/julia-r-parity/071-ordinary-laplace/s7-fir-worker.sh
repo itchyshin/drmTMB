@@ -43,6 +43,7 @@ Rscript "${S7_SOURCE_ROOT}/docs/dev-log/evidence/julia-r-parity/071-ordinary-lap
   "--bundle=${S7_BUNDLE}" \
   "--task=${task_id}" \
   "--out=${task_out}" \
-  "--dry-run=false"
+  "--dry-run=false" \
+  "--approved=true"
 
 printf '%s\n' "S7 task ${task_id} completed its guarded R worker" >&2
