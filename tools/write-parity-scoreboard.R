@@ -102,6 +102,38 @@ sb_head_sha <- function(repo) {
   as.character(out)[[1L]]
 }
 
+# A receipt summary necessarily predates the commit that adds the tracked
+# summary and generated Markdown.  Accept that fixed point only when the
+# interval from the receipt pin to the current source has not touched an input
+# that could change the classified evidence or how it is interpreted.
+sb_ordinary_laplace_source_drift <- function(root, from, to) {
+  valid_sha <- function(x) is.character(x) && length(x) == 1L &&
+    grepl("^[0-9a-f]{40}$", x)
+  if (!valid_sha(from) || !valid_sha(to)) {
+    stop("ordinary-Laplace source-drift check needs full git shas", call. = FALSE)
+  }
+  ancestor <- suppressWarnings(system2(
+    "git", c("-C", shQuote(root), "merge-base", "--is-ancestor", from, to),
+    stdout = FALSE, stderr = FALSE
+  ))
+  if (!identical(ancestor, 0L)) return(TRUE)
+  changed <- suppressWarnings(system2(
+    "git", c("-C", shQuote(root), "diff", "--name-only", paste0(from, "..", to)),
+    stdout = TRUE, stderr = FALSE
+  ))
+  status <- attr(changed, "status")
+  if (!is.null(status) && status != 0L) {
+    stop("git diff failed in ordinary-Laplace source-drift check", call. = FALSE)
+  }
+  protected <- c(
+    "^R/", "^src/", "^(DESCRIPTION|NAMESPACE)$",
+    "^inst/extdata/julia-capabilities\\.tsv$",
+    "^tools/write-parity-matrix\\.R$",
+    "^docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/(four-fixture-contract\\.md|reconcile-four-fixture-(receipt|summary)\\.R|run-four-fixture-receipt\\.R)$"
+  )
+  any(grepl(paste(protected, collapse = "|"), changed))
+}
+
 # ---- axis vocabularies -----------------------------------------------------
 
 # The status word each twin's capability-status.md gives a row, mapped to a
@@ -253,8 +285,10 @@ sb_ordinary_laplace_summary <- function(root, ctx, drmtmb_sha) {
     stringsAsFactors = FALSE
   )
   tab <- tab[match(expected$capability_id, tab$capability_id), , drop = FALSE]
-  if (!identical(tab[names(expected)], expected) ||
-      any(tab$drmtmb_commit != drmtmb_sha) || any(tab$drm_jl_commit != ctx$pin)) {
+  summary_sha <- unique(tab$drmtmb_commit)
+  if (!identical(tab[names(expected)], expected) || length(summary_sha) != 1L ||
+      sb_ordinary_laplace_source_drift(root, summary_sha, drmtmb_sha) ||
+      any(tab$drm_jl_commit != ctx$pin)) {
     stop("0.7.1 ordinary-Laplace summary is stale or changes the frozen denominator", call. = FALSE)
   }
   runner <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
@@ -458,7 +492,7 @@ sb_count_table <- function(values, levels_order) {
              stringsAsFactors = FALSE)
 }
 
-sb_render <- function(env, ctx, sb, drmtmb_sha) {
+sb_render <- function(env, ctx, sb, drmtmb_sha, ordinary_summary) {
   n <- nrow(sb)
   uncited <- c(
     sum(sb$native_R == "UNCITED"),
@@ -516,10 +550,15 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "|---|---|",
     sprintf("| drmTMB (this repo, HEAD at generation) | `%s` |", drmtmb_sha),
     sprintf("| DRM.jl (read with `git show`, never the working tree) | `%s` |", ctx$pin),
-    "| ordinary-Laplace reconciliation | `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` (validated against both shas) |",
+    if (nrow(ordinary_summary)) sprintf(
+      "| ordinary-Laplace reconciliation source pin | `%s` in `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` |",
+      ordinary_summary$drmtmb_commit[[1L]]
+    ) else "| ordinary-Laplace reconciliation source pin | no committed summary |",
     "",
-    "The ordinary-Laplace summary is accepted only when its two shas and receipt-runner hash",
-    "equal the inputs above. Quote the shas whenever you quote the counts.",
+    "The ordinary-Laplace summary retains its own source pin, DRM.jl pin, and receipt-runner hash.",
+    "It is rejected when a protected evidence input changed after that source pin; later documentation",
+    "and scoreboard-compiler commits do not rewrite the retained receipt evidence. Quote both drmTMB shas",
+    "whenever you quote the ordinary-Laplace counts.",
     "",
     "## THE DENOMINATOR",
     "",
@@ -656,7 +695,7 @@ sb_write <- function(root, drmjl_path,
   drmtmb_sha <- sb_head_sha(root)
   ordinary_summary <- sb_ordinary_laplace_summary(root, ctx, drmtmb_sha)
   sb <- sb_build(env, ctx, mat, ordinary_summary)
-  lines <- sb_render(env, ctx, sb, drmtmb_sha)
+  lines <- sb_render(env, ctx, sb, drmtmb_sha, ordinary_summary)
   dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
   writeLines(lines, out, useBytes = TRUE)
   message("wrote ", nrow(sb), " scoreboard rows to ", out,

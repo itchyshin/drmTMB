@@ -8,12 +8,14 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `9939ace07967af9a9b6e23a4d021080d5d7d76a7` |
+| drmTMB (this repo, HEAD at generation) | `704e2fe25d21d1d7a066f89ace66e9bddc572071` |
 | DRM.jl (read with `git show`, never the working tree) | `b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c` |
-| ordinary-Laplace reconciliation | `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` (validated against both shas) |
+| ordinary-Laplace reconciliation source pin | `9939ace07967af9a9b6e23a4d021080d5d7d76a7` in `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` |
 
-The ordinary-Laplace summary is accepted only when its two shas and receipt-runner hash
-equal the inputs above. Quote the shas whenever you quote the counts.
+The ordinary-Laplace summary retains its own source pin, DRM.jl pin, and receipt-runner hash.
+It is rejected when a protected evidence input changed after that source pin; later documentation
+and scoreboard-compiler commits do not rewrite the retained receipt evidence. Quote both drmTMB shas
+whenever you quote the ordinary-Laplace counts.
 
 ## THE DENOMINATOR
 
