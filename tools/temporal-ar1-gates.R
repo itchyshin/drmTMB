@@ -12,6 +12,7 @@ files <- switch(
   G2 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G3 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G4 = "tests/testthat/test-temporal-dense-oracle.R",
+  G5 = "tests/testthat/test-temporal-identities.R",
   NULL
 )
 if (is.null(files)) {
