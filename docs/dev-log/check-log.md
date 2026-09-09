@@ -94640,3 +94640,11 @@ methods, existing temporal parser/OU, and runner tests passed. The suite uses a
 non-boundary deterministic fixture and keeps Wald covariance, non-mean intervals and
 newdata prediction unavailable. Evidence:
 `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-methods.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU dense profile gate
+
+G8 independently re-optimized the paired model's dense marginal likelihood under fixed
+mean slope values. Its 90% likelihood-ratio endpoints (0.17577, 0.59428) agree with the
+public TMB-profile endpoints (0.17544, 0.59399), and the gate also fences deferred
+interval targets plus the irregular-Hessian warning. `PHYLO_TEMPORAL_OU_G8_PASS` is
+retained in `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-profile.md`.

@@ -67,3 +67,63 @@ phylo_temporal_ou_separable_covariance <- function(
     exp(-decay * abs(outer(elapsed, elapsed, "-")))
   stable + field + diag(sigma^2, length(species))
 }
+
+# Independently profile one fixed mean coefficient by optimizing the dense
+# marginal Cholesky likelihood over every other parameter. This deliberately
+# does not call TMB::tmbprofile() or drmTMB's profile helpers.
+phylo_temporal_ou_dense_profile_at <- function(
+  fit, tree, value, parameter = "beta_mu", index = 2L, start = fit$opt$par
+) {
+  positions <- which(names(start) == parameter)
+  position <- positions[[index]]
+  free <- setdiff(seq_along(start), position)
+  objective <- function(nuisance) {
+    par <- start
+    par[[position]] <- value
+    par[free] <- nuisance
+    phylo_temporal_ou_dense_nll_at(fit, par, tree)
+  }
+  opt <- stats::nlminb(
+    start = start[free], objective = objective,
+    control = list(eval.max = 1000L, iter.max = 1000L)
+  )
+  if (!identical(opt$convergence, 0L) || !is.finite(opt$objective)) {
+    stop("Dense constrained profile optimization failed.", call. = FALSE)
+  }
+  list(value = value, objective = opt$objective, nuisance = opt$par)
+}
+
+phylo_temporal_ou_dense_profile_ci <- function(
+  fit, tree, level = 0.90, parameter = "beta_mu", index = 2L
+) {
+  base <- stats::nlminb(
+    start = fit$opt$par,
+    objective = function(par) phylo_temporal_ou_dense_nll_at(fit, par, tree),
+    control = list(eval.max = 1000L, iter.max = 1000L)
+  )
+  if (!identical(base$convergence, 0L) || !is.finite(base$objective)) {
+    stop("Dense unconstrained profile optimization failed.", call. = FALSE)
+  }
+  positions <- which(names(base$par) == parameter)
+  position <- positions[[index]]
+  centre <- base$par[[position]]
+  cutoff <- stats::qchisq(level, df = 1L) / 2
+  profile_gap <- function(value) {
+    phylo_temporal_ou_dense_profile_at(
+      fit = fit, tree = tree, value = value,
+      parameter = parameter, index = index, start = base$par
+    )$objective - base$objective - cutoff
+  }
+  endpoint <- function(direction) {
+    step <- 0.1
+    outer <- centre + direction * step
+    while (profile_gap(outer) < 0) {
+      step <- step * 2
+      outer <- centre + direction * step
+      if (step > 10) stop("Could not bracket dense profile endpoint.", call. = FALSE)
+    }
+    interval <- sort(c(centre, outer))
+    stats::uniroot(profile_gap, interval = interval, tol = 1e-6)$root
+  }
+  c(lower = endpoint(-1), upper = endpoint(1))
+}

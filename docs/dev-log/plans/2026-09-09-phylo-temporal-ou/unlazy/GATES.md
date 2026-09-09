@@ -44,10 +44,10 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G7_PASS
   EVIDENCE: 2026-09-09 direct G7 returned PHYLO_TEMPORAL_OU_G7_PASS. The focused 25-assertion methods suite reconstructed fitted values and residuals from fixed, phylogenetic and OU components; reconstructed conditional and fresh simulations using the corresponding component draw helpers; retained nested component labels; and asserted that OU Wald covariance, non-mean intervals and newdata prediction remain unavailable.
 
-- [ ] G8: Fixed-mean profile endpoints agree with an independently coded dense-profile reference, reject all deferred targets and warn when the fitted Hessian is irregular.
+- [x] G8: Fixed-mean profile endpoints agree with an independently coded dense-profile reference, reject all deferred targets and warn when the fitted Hessian is irregular.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G8
   EXPECT: PHYLO_TEMPORAL_OU_G8_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct G8 returned PHYLO_TEMPORAL_OU_G8_PASS. The dense Cholesky profile re-optimizes all nuisance parameters under fixed beta_x without calling the production profile engine. Its 90% endpoints (0.17577, 0.59428) matched public TMB-profile endpoints within 0.0004; the suite rejects decay/phylogenetic-SD/bootstrap/newdata/endpoint-engine routes and verifies the non-PD-Hessian warning.
 
 - [ ] G9: Retained recovery uses the 24 predeclared phylogenetic-signal, OU-decay and imbalance fixtures, preserves all 48 starts and failures, and meets the stated finite-fit and error thresholds without changing seeds.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9
