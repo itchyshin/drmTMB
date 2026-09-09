@@ -42,7 +42,7 @@ Public convenience methods must share the target registry used by `confint()`. A
 
 ## 10. Known Residuals
 
-This is not a coverage-calibrated interval method. G16 now has retained timing and completeness evidence; G14 campaign authorization and G15 retained campaign recheck remain open. AR1 and OU variance, persistence/decay, bootstrap, forecast, and `newdata` intervals remain unavailable. OU accepts positive continuous decay only and cannot represent alternating negative correlation.
+This is not a coverage-calibrated interval method. G16 has retained timing and completeness evidence, and G14 authorizes the predeclared campaign. G15 retained campaign recheck remains open because DRAC/Fir access is unavailable from this session. AR1 and OU variance, persistence/decay, bootstrap, forecast, and `newdata` intervals remain unavailable. OU accepts positive continuous decay only and cannot represent alternating negative correlation.
 
 The one-fixture preflight and five-seed-per-cell G16 pilot now provide retained timing evidence. Obtain explicit G14 authorization for the profile calibration campaign and select its target and resource limit from the observed 759-second local pilot. The later temporal-correlation roadmap remains separate from this OU goal.
 

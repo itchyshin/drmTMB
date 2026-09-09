@@ -73,8 +73,8 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
   EXPECT: TEMPORAL_OU_G16_PASS
   EVIDENCE: At source `01e16f23d33e3b7c1bc0c9ebea3ff54dcb8c6433`, five deterministic seeds in each of U1, U2, and U3 produced 15 finite selected fits and 30 retained starts. All 15 fixed-effect profile requests produced three finite intervals and all fitted Hessians were positive definite. The local resource replay took `759.24` seconds wall time with `663,764,992` bytes maximum resident size. Median profile times were 34.764 seconds (U1), 47.133 seconds (U2), and 64.638 seconds (U3). `Rscript --vanilla tools/temporal-ou-gates.R G16` emitted `TEMPORAL_OU_G16_PASS`. This is timing and output-completeness evidence, not coverage calibration or campaign authority.
 
-- [ ] G14: The measured fixed-effect profile campaign design, target, cost, and all-attempt denominator are explicitly authorized
-  EVIDENCE: pending
+- [x] G14: The measured fixed-effect profile campaign design, target, cost, and all-attempt denominator are explicitly authorized
+  EVIDENCE: User authorized execution on 2026-09-09 after reviewing `profile-campaign-proposal-2026-09-09.md`: U1--U3, 1,000 deterministic replicates per cell, 3,000 all-attempt denominators, DRAC/Fir retained array, one core and 2 GB per task, 10-minute task wall time, and a smoke task before array submission. A live capacity probe found DRAC unavailable because no existing ControlMaster socket was present, while Totoro had 384 cores, load 1.13, and 561 GiB available. Totoro is the smoke fallback; Fir remains the retained-evidence target and no DRAC login or submission has occurred.
 
 - [ ] G15: Retained fixed-effect profile campaign outputs are recomputed without launching another campaign
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G15 --reverify
