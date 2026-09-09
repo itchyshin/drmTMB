@@ -215,3 +215,24 @@ test_that("S7 reconciliation requires all 17000 planned terminal attempts", {
     "missing or duplicate"
   )
 })
+
+test_that("S7 worker specification resolves a task against the frozen plan", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  sys.source(file.path(base, "s7-run-attempt.R"), envir = env)
+  spec <- env$r071_s7_worker_spec(
+    manifest = env$r071_s7_manifest(), profile_plan = env$r071_s7_profile_plan(),
+    task = 1501L, engine = "julia", parm = "cholesky:recov:L22"
+  )
+  expect_identical(spec$fixture, "nb2_coupled")
+  expect_identical(spec$dgp_seed, 71014001L)
+  expect_equal(spec$truth, log(0.125))
+  expect_error(
+    env$r071_s7_worker_spec(env$r071_s7_manifest(), env$r071_s7_profile_plan(),
+                             task = 1L, engine = "tmb", parm = "cholesky:recov:L22"),
+    "absent from the frozen profile plan"
+  )
+})
