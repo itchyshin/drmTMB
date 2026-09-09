@@ -78,6 +78,44 @@ new_nbinom2_sigma_random_intercept_data <- function(
   )
 }
 
+new_nbinom2_mu_sigma_cov_data <- function(
+  n_id = 48,
+  n_each = 24,
+  seed = 20260909,
+  sd_mu_id = 0.42,
+  sd_sigma_id = 0.36,
+  rho_mu_sigma = 0.35
+) {
+  set.seed(seed)
+  n <- n_id * n_each
+  dat <- data.frame(
+    id = factor(rep(seq_len(n_id), each = n_each)),
+    x = stats::rnorm(n),
+    z = stats::rnorm(n)
+  )
+  beta_mu <- c(`(Intercept)` = 0.45, x = -0.20)
+  beta_sigma <- c(`(Intercept)` = -0.80, z = 0.15)
+  latent_mu <- stats::rnorm(n_id)
+  latent_sigma <- rho_mu_sigma * latent_mu +
+    sqrt(1 - rho_mu_sigma^2) * stats::rnorm(n_id)
+  a_mu <- sd_mu_id * latent_mu
+  a_sigma <- sd_sigma_id * latent_sigma
+  eta_mu <- beta_mu[[1L]] + beta_mu[[2L]] * dat$x + a_mu[dat$id]
+  eta_sigma <- beta_sigma[[1L]] + beta_sigma[[2L]] * dat$z + a_sigma[dat$id]
+  sigma <- exp(eta_sigma)
+  dat$count <- stats::rnbinom(n, size = 1 / sigma^2, mu = exp(eta_mu))
+  list(
+    data = dat,
+    beta_mu = beta_mu,
+    beta_sigma = beta_sigma,
+    sd_mu_id = sd_mu_id,
+    sd_sigma_id = sd_sigma_id,
+    rho_mu_sigma = rho_mu_sigma,
+    a_mu = a_mu,
+    a_sigma = a_sigma
+  )
+}
+
 nbinom2_balanced_ultrametric_tree <- function(n_tip = 8L) {
   stopifnot(n_tip >= 2L, log2(n_tip) == floor(log2(n_tip)))
   edges <- matrix(integer(), ncol = 2L)
@@ -342,6 +380,59 @@ test_that("nbinom2 sigma random intercepts keep planned neighbours closed", {
       data = dat
     ),
     "Only independent NB2.*sigma.*random intercepts"
+  )
+})
+
+test_that("nbinom2 fits one labelled ordinary mu/sigma random-intercept covariance block", {
+  sim <- new_nbinom2_mu_sigma_cov_data()
+
+  fit <- drmTMB(
+    bf(count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)),
+    family = nbinom2(),
+    data = sim$data,
+    control = list(eval.max = 800, iter.max = 800)
+  )
+  pairs <- corpairs(fit, class = "mean-scale")
+  targets <- profile_targets(fit)
+  par_full <- fit$obj$env$parList(
+    fit$opt$par,
+    par = fit$tmb_state$last.par.best
+  )
+  native_report <- fit$obj$report(fit$tmb_state$last.par.best)
+  rho <- 0.999999 * tanh(par_full$eta_cor_mu_sigma[[1L]])
+  sigma_values <- drmTMB:::transform_sigma_random_effects(
+    latent = par_full$u_sigma,
+    par = par_full,
+    re_sigma = fit$model$random$sigma,
+    re_mu_sigma = fit$model$random$mu_sigma
+  )
+  sigma_sd <- exp(par_full$log_sd_sigma[fit$model$random$sigma$term_id0 + 1L])
+  mu_index <- fit$model$random$mu_sigma$sigma_cross_mu_index0 + 1L
+  expected_sigma_values <- sigma_sd * (
+    rho * par_full$u_mu[mu_index] +
+      sqrt(1 - rho^2) * par_full$u_sigma
+  )
+
+  expect_s3_class(fit, "drmTMB")
+  expect_equal(fit$opt$convergence, 0)
+  expect_true(fit$sdr$pdHess)
+  expect_named(fit$sdpars$mu, "(1 | p | id)")
+  expect_named(fit$sdpars$sigma, "(1 | p | id)")
+  expect_named(
+    fit$corpars$mu_sigma,
+    "cor(mu:(Intercept),sigma:(Intercept) | p | id)"
+  )
+  expect_equal(fit$model$random$mu_sigma$n_cors, 1L)
+  expect_equal(fit$model$tmb_data$n_mu_sigma_re_cors, 1L)
+  expect_equal(nrow(pairs), 1L)
+  expect_equal(pairs$class, "mean-scale")
+  expect_equal(unname(fit$corpars$mu_sigma), rho, tolerance = 1e-12)
+  expect_equal(native_report$rho_mu_sigma_re, rho, tolerance = 1e-12)
+  expect_equal(sigma_values, expected_sigma_values, tolerance = 1e-12)
+  expect_equal(pairs$estimate, unname(fit$corpars$mu_sigma), tolerance = 1e-12)
+  expect_true(
+    "cor:mu_sigma:cor(mu:(Intercept),sigma:(Intercept) | p | id)" %in%
+      targets$parm
   )
 })
 

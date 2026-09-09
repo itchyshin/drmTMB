@@ -8538,12 +8538,6 @@ drm_build_nbinom2_spec <- function(
   }
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
-  validate_poisson_mu_random_terms(
-    mu_re$terms,
-    has_zi = !is.null(zi_entry),
-    family_label = "NB2",
-    inflated_label = "Zero-inflated NB2"
-  )
   if (include_missing_response) {
     has_ordinary_correlated <- any(vapply(
       mu_re$terms,
@@ -8582,6 +8576,24 @@ drm_build_nbinom2_spec <- function(
   }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+  include_missing_predictor <- isTRUE(mi_setup$enabled)
+  nbinom2_joint_mu_sigma <- nbinom2_joint_mu_sigma_covariance_is_admissible(
+    mu_re$terms, sigma_re$terms,
+    has_zi = !is.null(zi_entry),
+    include_missing_response = include_missing_response,
+    include_missing_predictor = include_missing_predictor,
+    mu_structured_term = mu_structured_term,
+    sigma_structured_term = sigma_structured_term
+  )
+  if (!nbinom2_joint_mu_sigma) {
+    validate_poisson_mu_random_terms(
+      mu_re$terms,
+      has_zi = !is.null(zi_entry),
+      family_label = "NB2",
+      inflated_label = "Zero-inflated NB2"
+    )
+  }
   zi_is_intercept_only <- !is.null(zi_entry) &&
     identical(deparse1(zi_entry$rhs), "1")
   sigma_is_intercept_only <- identical(deparse1(sigma_entry$rhs), "1")
@@ -8602,11 +8614,10 @@ drm_build_nbinom2_spec <- function(
     structured_term = mu_structured_term,
     has_zi = !is.null(zi_entry),
     zi_is_intercept_only = zi_is_intercept_only,
-    sigma_is_intercept_only = sigma_is_intercept_only
+    sigma_is_intercept_only = sigma_is_intercept_only,
+    allow_joint_mu_sigma = nbinom2_joint_mu_sigma
   )
 
-  mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
-  include_missing_predictor <- isTRUE(mi_setup$enabled)
   if (
     include_missing_predictor &&
       !identical(mi_setup$family, "bernoulli") &&
@@ -8812,6 +8823,7 @@ drm_build_nbinom2_spec <- function(
   has_zi <- !is.null(X_zi)
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
   re_sigma <- build_random_sigma_structure(sigma_re$terms, data_model)
+  re_mu_sigma <- build_mu_sigma_random_covariance(re_mu, re_sigma)
   sd_mu <- empty_sd_mu_structure(re_mu$n_re)
   count_structured_term <- if (!is.null(sigma_structured_term)) {
     sigma_structured_term
@@ -8865,7 +8877,8 @@ drm_build_nbinom2_spec <- function(
     },
     random = list(
       mu = re_mu,
-      sigma = re_sigma
+      sigma = re_sigma,
+      mu_sigma = re_mu_sigma
     ),
     random_scale = list(mu = sd_mu, phylo = empty_sd_phylo_structure()),
     structured = list(phylo_mu = phylo_mu, phylo_mu2 = phylo_mu2),
@@ -8905,6 +8918,7 @@ drm_build_nbinom2_spec <- function(
         },
         re_mu = re_mu,
         re_sigma = re_sigma,
+        re_mu_sigma = re_mu_sigma,
         phylo_mu = phylo_mu
       )
     } else {
@@ -8915,13 +8929,14 @@ drm_build_nbinom2_spec <- function(
         offset_mu,
         re_mu = re_mu,
         re_sigma = re_sigma,
+        re_mu_sigma = re_mu_sigma,
         phylo_mu = phylo_mu
       )
     },
     map = if (has_zi) {
       zi_nbinom2_map(phylo_mu, re_sigma = re_sigma)
     } else {
-      nbinom2_map(re_mu, phylo_mu, re_sigma)
+      nbinom2_map(re_mu, phylo_mu, re_sigma, re_mu_sigma)
     },
     random_names = c(
       if (re_mu$n_re > 0L) "u_mu",
@@ -10921,7 +10936,8 @@ validate_nbinom2_sigma_random_terms <- function(
   structured_term = NULL,
   has_zi = FALSE,
   zi_is_intercept_only = FALSE,
-  sigma_is_intercept_only = FALSE
+  sigma_is_intercept_only = FALSE,
+  allow_joint_mu_sigma = FALSE
 ) {
   if (length(terms) == 0L) {
     return(invisible(terms))
@@ -10940,7 +10956,8 @@ validate_nbinom2_sigma_random_terms <- function(
       "i" = "Remove sigma slopes, labels, structured terms, and mu random effects."
     ))
   }
-  if (length(mu_terms) > 0L || !is.null(structured_term)) {
+  if (!isTRUE(allow_joint_mu_sigma) &&
+      (length(mu_terms) > 0L || !is.null(structured_term))) {
     cli::cli_abort(c(
       "NB2 {.code sigma} random intercepts cannot be combined with {.code mu} random effects in this first gate.",
       "x" = "The formula contains a {.code sigma} random effect plus an ordinary or structured {.code mu} random effect.",
@@ -10955,7 +10972,7 @@ validate_nbinom2_sigma_random_terms <- function(
     },
     logical(1L)
   )
-  if (any(unsupported)) {
+  if (any(unsupported) && !isTRUE(allow_joint_mu_sigma)) {
     labels <- vapply(terms[unsupported], `[[`, character(1L), "label")
     cli::cli_abort(c(
       "Only independent NB2 {.code sigma} random intercepts are implemented in this slice.",
@@ -10965,6 +10982,41 @@ validate_nbinom2_sigma_random_terms <- function(
     ))
   }
   invisible(terms)
+}
+
+nbinom2_joint_mu_sigma_covariance_is_admissible <- function(
+  mu_terms, sigma_terms, has_zi = FALSE, include_missing_response = FALSE,
+  include_missing_predictor = FALSE, mu_structured_term = NULL,
+  sigma_structured_term = NULL
+) {
+  mu_has_label <- any(vapply(mu_terms, function(term) {
+    !is.null(term$covariance_label)
+  }, logical(1L)))
+  sigma_has_label <- any(vapply(sigma_terms, function(term) {
+    !is.null(term$covariance_label)
+  }, logical(1L)))
+  # A labelled sigma-only term is still rejected by the established sigma
+  # validator below, and a labelled mu-only term by the established mu
+  # validator. This narrow admission route begins only with labels on both
+  # sides so it cannot change either public refusal contract.
+  if (!mu_has_label || !sigma_has_label) return(FALSE)
+  valid <- !isTRUE(has_zi) && !isTRUE(include_missing_response) &&
+    !isTRUE(include_missing_predictor) && is.null(mu_structured_term) &&
+    is.null(sigma_structured_term) && length(mu_terms) == 1L &&
+    length(sigma_terms) == 1L &&
+    identical(mu_terms[[1L]]$type, "intercept") &&
+    identical(sigma_terms[[1L]]$type, "intercept") &&
+    !is.null(mu_terms[[1L]]$covariance_label) &&
+    identical(mu_terms[[1L]]$covariance_label, sigma_terms[[1L]]$covariance_label) &&
+    identical(mu_terms[[1L]]$group, sigma_terms[[1L]]$group)
+  if (!valid) {
+    cli::cli_abort(c(
+      "The NB2 mean--scale covariance route supports exactly one matching labelled ordinary random intercept.",
+      "x" = "Use {.code bf(count ~ x + (1 | p | id), sigma ~ z + (1 | p | id))} with complete data and no {.code zi} or structured terms.",
+      "i" = "Slopes, multiple blocks, unmatched labels, missing-data integration, zero inflation, and structured effects remain unsupported."
+    ))
+  }
+  TRUE
 }
 
 validate_truncated_nbinom2_mu_random_terms <- function(
@@ -19040,6 +19092,7 @@ nbinom2_start <- function(
   offset_mu = rep(0, length(y)),
   re_mu = empty_random_mu_structure(length(y)),
   re_sigma = empty_random_sigma_structure(length(y)),
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
   phylo_mu = empty_phylo_mu_structure()
 ) {
   poisson <- poisson_start(
@@ -19077,7 +19130,7 @@ nbinom2_start <- function(
       u_mu = poisson$u_mu,
       log_sd_mu = poisson$log_sd_mu,
       eta_cor_mu = poisson$eta_cor_mu,
-      eta_cor_mu_sigma = 0,
+      eta_cor_mu_sigma = rep(0, max(1L, re_mu_sigma$n_cors)),
       eta_cor_sigma = sigma_re_start$eta_cor_sigma,
       u_sigma = sigma_re_start$u_sigma,
       log_sd_sigma = sigma_re_start$log_sd_sigma,
@@ -19096,12 +19149,14 @@ nbinom2_start <- function(
 nbinom2_map <- function(
   re_mu = empty_random_mu_structure(1L),
   phylo_mu = empty_phylo_mu_structure(),
-  re_sigma = empty_random_sigma_structure(1L)
+  re_sigma = empty_random_sigma_structure(1L),
+  re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re)
 ) {
   out <- gaussian_ls_map(
     re_mu = re_mu,
     re_sigma = re_sigma,
-    phylo_mu = phylo_mu
+    phylo_mu = phylo_mu,
+    re_mu_sigma = re_mu_sigma
   )
   if (re_mu$n_re > 0L) {
     out$u_mu <- NULL
@@ -21423,6 +21478,7 @@ make_tmb_data_core <- function(spec) {
   if (identical(spec$model_type, "nbinom2")) {
     re_mu <- spec$random$mu
     re_sigma <- spec$random$sigma
+    re_mu_sigma <- spec$random$mu_sigma
     sd_mu <- spec$random_scale$mu
     phylo_mu <- spec$structured$phylo_mu
     return(list(
@@ -21466,15 +21522,15 @@ make_tmb_data_core <- function(spec) {
       mu_re_sd_row = sd_mu$re_sd_row0,
       n_sigma_re_terms = re_sigma$n_terms,
       n_sigma_re_cors = re_sigma$n_cors,
-      n_mu_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = re_mu_sigma$n_cors,
       sigma_re_index = re_sigma$index0,
       sigma_re_value = re_sigma$value,
       sigma_re_term = re_sigma$term_id0,
       sigma_re_dpar = re_sigma$dpar_id0,
       sigma_re_cor_id = re_sigma$re_cor_id0,
       sigma_re_pair_index = re_sigma$re_pair_index0,
-      sigma_re_cross_cor = 0L,
-      sigma_re_cross_mu = 0L,
+      sigma_re_cross_cor = re_mu_sigma$sigma_cross_cor_id0,
+      sigma_re_cross_mu = re_mu_sigma$sigma_cross_mu_index0,
       has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
       phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {

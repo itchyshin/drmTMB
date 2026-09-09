@@ -253,7 +253,12 @@ head(sigma(fit)^2) # fitted residual variances
   or `bf(count ~ x + phylo_interaction(1 | plant:pollinator, tree1 = plant_tree, tree2 = pollinator_tree), sigma ~ z)`
   for two partner phylogenies, when exactly one structured effect belongs on
   the log-mean scale. Ordinary NB2 also fits the first grouped overdispersion
-  slice, `bf(count ~ x, sigma ~ z + (1 | id))`; the Q-Series v1.0 surface
+  slice, `bf(count ~ x, sigma ~ z + (1 | id))`. The bounded ordinary NB2
+  mean--scale prerequisite also accepts one complete-data matching labelled
+  intercept pair, `bf(count ~ x + (1 | p | id), sigma ~ z + (1 | p | id))`;
+  it supports the checked R--Julia parity route, not an interval or
+  general-covariance claim.
+  The Q-Series v1.0 surface
   also has exact local fit-only gates for a scalar labelled spatial count tag,
   `bf(count ~ x + spatial(1 | p | site, coords = coords))`, and a hurdle
   route, `bf(count ~ x, sigma ~ 1, hu ~ relmat(1 | id, Q = Q))`.
