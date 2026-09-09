@@ -7,24 +7,24 @@ release, deployment or external message.
 
 ## Phase 0
 
-- [ ] M00: User approval, exact source pin, fresh execution worktree and path lease are recorded.
-  EVIDENCE: pending
-- [ ] M01-bootstrap: P1 and source-map gate runners are materialized, self-tested and fail their negative controls.
+- [x] M00: User approval, exact source pin, fresh execution worktree and path lease are recorded.
+  EVIDENCE: 2026-09-09 user approved execution of master revision e751f9239. P1 starts from a1d01dab3dbcd6e12bec0486ac0425f939f20c2d in /Users/z3437171/local-scratch/lanes/drmTMB-phylo-temporal-ou-exec-v1 on codex/phylo-temporal-ou-exec-v1-20260909; lease codex-phylo-temporal-ou-exec-v1-20260909 is active.
+- [x] M01-bootstrap: P1 and source-map gate runners are materialized, self-tested and fail their negative controls.
   CHECK: Rscript --vanilla tools/temporal-source-map-gates.R M01-bootstrap
   EXPECT: TEMPORAL_SOURCE_MAP_M01_BOOTSTRAP_PASS
-  EVIDENCE: pending
-- [ ] M01: P1 source, runner and plan agree; the P1 runner rejects a missing fixture.
+  EVIDENCE: 2026-09-09 execution commit 405b40bbd: direct command returned TEMPORAL_SOURCE_MAP_M01_BOOTSTRAP_PASS after both runner self-tests rejected their intended controls.
+- [x] M01: P1 source, runner and plan agree; the P1 runner rejects a missing fixture.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G1
   EXPECT: PHYLO_TEMPORAL_OU_G1_PASS
-  EVIDENCE: pending
-- [ ] M02: A cited NotebookLM source-map distillation separates verified sources from leads.
+  EVIDENCE: 2026-09-09 execution commit 405b40bbd: direct command returned PHYLO_TEMPORAL_OU_G1_PASS; its deleted-fixture negative control failed as required.
+- [x] M02: A cited NotebookLM source-map distillation separates verified sources from leads.
   CHECK: Rscript --vanilla tools/temporal-source-map-gates.R M02
   EXPECT: TEMPORAL_SOURCE_MAP_M02_PASS
-  EVIDENCE: pending
-- [ ] M03: The source fingerprint, native library, R/TMB versions and worktree state are retained.
+  EVIDENCE: 2026-09-09 execution commit 405b40bbd: cited map at docs/dev-log/plans/2026-09-09-phylo-temporal-ou/source-map.md returned TEMPORAL_SOURCE_MAP_M02_PASS and labels the inaccessible Pourahmadi record as an unverified lead.
+- [x] M03: The source fingerprint, native library, R/TMB versions and worktree state are retained.
   CHECK: Rscript --vanilla tools/temporal-source-map-gates.R M03
   EXPECT: TEMPORAL_SOURCE_MAP_M03_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 execution commit 405b40bbd: source-fingerprint.md records a1d01dab3, R 4.6.0, TMB 1.9.21, src/drmTMB.cpp SHA-256 and the truthful no-build native-library status; direct M03 returned TEMPORAL_SOURCE_MAP_M03_PASS.
 
 ## Phase 1
 
