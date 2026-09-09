@@ -225,6 +225,46 @@ sb_all_receipt_ids <- function(ctx) {
   sort(unique(ids))
 }
 
+# The 0.7.1 ordinary-Laplace arc is deliberately NOT a generic PARITY_PASS/
+# SE_PASS receipt.  Its retained evidence is a source-pinned reconciliation of
+# profile terminal classifications, including the coupled L22 non-finite
+# endpoint.  Read the tiny committed summary, never the raw sidecars, and
+# fail closed if it is absent, stale, or changes the frozen denominator.
+sb_ordinary_laplace_summary <- function(root, ctx, drmtmb_sha) {
+  path <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                    "071-ordinary-laplace", "reconciled-summary.tsv")
+  empty <- data.frame(capability_id = character(), stringsAsFactors = FALSE)
+  if (!file.exists(path)) return(empty)
+  tab <- utils::read.delim(path, stringsAsFactors = FALSE, check.names = FALSE)
+  required <- c("capability_id", "fixtures", "fixture_count", "declared_target_count",
+                "engine_target_count", "finite_profile_count", "nonfinite_endpoint_count",
+                "other_terminal_count", "classification", "drmtmb_commit", "drm_jl_commit",
+                "runner_sha256")
+  if (!identical(names(tab), required) || nrow(tab) != 2L || anyDuplicated(tab$capability_id)) {
+    stop("0.7.1 ordinary-Laplace summary schema drift: ", path, call. = FALSE)
+  }
+  expected <- data.frame(
+    capability_id = c("ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace"),
+    fixtures = c("binomial_ri,poisson_ri,nb2_ri", "nb2_coupled"),
+    fixture_count = c(3L, 1L), declared_target_count = c(10L, 7L),
+    engine_target_count = c(20L, 14L), finite_profile_count = c(20L, 12L),
+    nonfinite_endpoint_count = c(0L, 2L), other_terminal_count = c(0L, 0L),
+    classification = c("CLASSIFIED_FINITE", "CLASSIFIED_WITH_RETAINED_NONFINITE_ENDPOINT"),
+    stringsAsFactors = FALSE
+  )
+  tab <- tab[match(expected$capability_id, tab$capability_id), , drop = FALSE]
+  if (!identical(tab[names(expected)], expected) ||
+      any(tab$drmtmb_commit != drmtmb_sha) || any(tab$drm_jl_commit != ctx$pin)) {
+    stop("0.7.1 ordinary-Laplace summary is stale or changes the frozen denominator", call. = FALSE)
+  }
+  runner <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                      "071-ordinary-laplace", "run-four-fixture-receipt.R")
+  if (!file.exists(runner) || any(tab$runner_sha256 != unname(tools::sha256sum(runner)[[1L]]))) {
+    stop("0.7.1 ordinary-Laplace summary runner hash is stale", call. = FALSE)
+  }
+  tab
+}
+
 # WIDENED 2026-09-05 (leaf uncited-random-effects). Until this change the only
 # refusal this file could see was the family-tag one, so a capability the
 # bridge refuses at a REGISTERED GATE -- with the guard named, the
@@ -260,9 +300,12 @@ sb_refusal_cite <- function(bridge_route) {
   if (!length(m) || !nzchar(m)) "" else m
 }
 
-sb_bridge_cell <- function(env, ctx, name, bridge_route) {
+sb_bridge_cell <- function(env, ctx, name, bridge_route, ordinary_summary) {
   ledger_ids <- sb_cited_tsv_ids(ctx, bridge_route)
   ledger_rec <- sb_receipts(env, ctx, ledger_ids)
+
+  ordinary <- ordinary_summary[ordinary_summary$capability_id %in% ledger_ids, , drop = FALSE]
+  if (nrow(ordinary) > 1L) stop("multiple ordinary-Laplace summaries reach ", name, call. = FALSE)
 
   alias <- sb_receipt_aliases()[[name]]
   alias_rec <- if (is.null(alias)) {
@@ -307,6 +350,19 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
                 reached = reached))
   }
 
+  if (nrow(ordinary)) {
+    x <- ordinary[1L, , drop = FALSE]
+    return(list(
+      verdict = "ORDINARY-LAPLACE-CLASSIFIED", tier = "reconciled-summary",
+      cell = sprintf("0.7.1 frozen reconciliation: %s; %d fixture(s), %d declared outer target(s), %d retained engine-target attempts; %d finite profile(s), %d retained non-finite endpoint(s), %d other terminal classification(s) (docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv:%d)",
+                     x$classification[[1L]], x$fixture_count[[1L]], x$declared_target_count[[1L]],
+                     x$engine_target_count[[1L]], x$finite_profile_count[[1L]],
+                     x$nonfinite_endpoint_count[[1L]], x$other_terminal_count[[1L]],
+                     which(ordinary_summary$capability_id == x$capability_id[[1L]]) + 1L),
+      contradiction = FALSE, reached = reached
+    ))
+  }
+
   if (has_pass) {
     tier <- if (any(ledger_rec$status %in% sb_pass_statuses())) "ledgered" else "alias"
     return(list(
@@ -337,7 +393,7 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
 
 # ---- build -----------------------------------------------------------------
 
-sb_build <- function(env, ctx, mat) {
+sb_build <- function(env, ctx, mat, ordinary_summary) {
   j_label <- ctx$drmjl_label(ctx$files$j_status)
   rows <- lapply(seq_len(nrow(mat)), function(i) {
     name <- mat$capability[[i]]
@@ -359,7 +415,7 @@ sb_build <- function(env, ctx, mat) {
                         env$pm_cite(j_label, ctx$j_status$line[[j_i]]), j_status)
     }
 
-    b <- sb_bridge_cell(env, ctx, name, mat$bridge_route[[i]])
+    b <- sb_bridge_cell(env, ctx, name, mat$bridge_route[[i]], ordinary_summary)
 
     data.frame(
       capability = name,
@@ -415,6 +471,7 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
                               sb$bridge == "UNCITED")
   n_contra <- sum(sb$contradiction)
   n_receipt <- sum(sb$bridge == "RECEIPT")
+  n_ordinary_laplace <- sum(sb$bridge == "ORDINARY-LAPLACE-CLASSIFIED")
 
   md <- function(x) {
     x <- gsub("\r?\n", " ", x)
@@ -436,7 +493,7 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
   }, character(1L))
 
   bridge_counts <- sb_count_table(sb$bridge,
-    c("RECEIPT", "RECEIPT-NOT-LEDGERED", "RECEIPT-NOT-PASS",
+    c("RECEIPT", "ORDINARY-LAPLACE-CLASSIFIED", "RECEIPT-NOT-LEDGERED", "RECEIPT-NOT-PASS",
       "REFUSED", "REFUSED+UPSTREAM-RECEIPT", "UNCITED"))
   native_r_counts <- sb_count_table(sb$native_R, c("FITS", "PARTIAL", "NO", "UNCITED"))
   native_j_counts <- sb_count_table(sb$native_Julia, c("FITS", "PARTIAL", "NO", "UNCITED"))
@@ -459,9 +516,10 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "|---|---|",
     sprintf("| drmTMB (this repo, HEAD at generation) | `%s` |", drmtmb_sha),
     sprintf("| DRM.jl (read with `git show`, never the working tree) | `%s` |", ctx$pin),
+    "| ordinary-Laplace reconciliation | `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` (validated against both shas) |",
     "",
-    "Both numbers below and every citation in the table are functions of those",
-    "two commits and nothing else. Quote the shas whenever you quote the counts.",
+    "The ordinary-Laplace summary is accepted only when its two shas and receipt-runner hash",
+    "equal the inputs above. Quote the shas whenever you quote the counts.",
     "",
     "## THE DENOMINATOR",
     "",
@@ -481,6 +539,8 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).",
     "That is the number a closure may quote as bridge coverage. Every other",
     "verdict is something weaker, and is named below.",
+    sprintf("**%d of %d** capability rows carry a separately classified 0.7.1 ordinary-Laplace", n_ordinary_laplace, n),
+    "frozen receipt. This is not included in the generic point/SE-parity `RECEIPT` count.",
     "",
     if (n_contra > 0L) {
       c(sprintf("**%d CONTRADICTION(S)**: drmTMB's bridge refuses a route for which DRM.jl", n_contra),
@@ -500,6 +560,7 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "| verdict | meaning |",
     "|---|---|",
     "| `RECEIPT` | a passing receipt row in a DRM.jl evidence table, reached through a committed `inst/extdata/julia-capabilities.tsv` row the matrix cites |",
+    "| `ORDINARY-LAPLACE-CLASSIFIED` | a source-pinned, committed 0.7.1 four-fixture profile-classification summary reached through a ledger row; it is NOT a generic point/SE-parity receipt and NOT interval coverage |",
     "| `RECEIPT-NOT-LEDGERED` | a passing receipt exists, but NO committed drmTMB ledger row connects it to this capability; the link is a declared alias in the generator |",
     "| `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |",
     "| `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |",
@@ -592,8 +653,10 @@ sb_write <- function(root, drmjl_path,
   env <- sb_matrix_env(root)
   ctx <- env$pm_load_context(root, drmjl_path)
   mat <- env$pm_build_matrix(ctx)
-  sb <- sb_build(env, ctx, mat)
-  lines <- sb_render(env, ctx, sb, sb_head_sha(root))
+  drmtmb_sha <- sb_head_sha(root)
+  ordinary_summary <- sb_ordinary_laplace_summary(root, ctx, drmtmb_sha)
+  sb <- sb_build(env, ctx, mat, ordinary_summary)
+  lines <- sb_render(env, ctx, sb, drmtmb_sha)
   dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
   writeLines(lines, out, useBytes = TRUE)
   message("wrote ", nrow(sb), " scoreboard rows to ", out,

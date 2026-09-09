@@ -76,6 +76,8 @@ structure providers across the other families.
 | Gaussian relmat random intercept (mean) | implemented |
 | Non-Gaussian phylogenetic random intercept (mean) | scope-limited |
 | Non-Gaussian phylogenetic location-scale (μ + log σ) | scope-limited |
+| Non-Gaussian ordinary random intercept (scalar Laplace) | implemented |
+| Coupled NB2 ordinary location-scale random intercept (Laplace) | implemented |
 | Tweedie random intercept (mean) | implemented |
 | Gaussian phylogenetic random intercept + slope, two SDs (mean) | implemented |
 
