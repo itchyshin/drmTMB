@@ -44,17 +44,19 @@ if (identical(gate, "G12")) {
   artifact_dir <- "docs/dev-log/simulation-artifacts/2026-09-08-temporal-ar1-calibration-pilot"
   required <- file.path(artifact_dir, c(
     "raw-attempts.csv", "pilot-results.csv", "pilot-summary.csv",
-    "provenance.csv", "pilot-results.rds", "resource.txt"
+    "provenance.csv", "pilot-results.rds", "resource-replay.txt", "RESULTS.md"
   ))
   if (!all(file.exists(required))) {
     stop("G12 pilot artifacts are missing; run tools/run-temporal-ar1-pilot.R through /usr/bin/time -l.", call. = FALSE)
   }
   attempts <- utils::read.csv(file.path(artifact_dir, "raw-attempts.csv"))
   results <- utils::read.csv(file.path(artifact_dir, "pilot-results.csv"))
+  resource <- readLines(file.path(artifact_dir, "resource-replay.txt"), warn = FALSE)
   if (nrow(results) != 25L || nrow(attempts) != 50L ||
       !all(table(attempts$fixture) == 2L) ||
       !all(results$selected & is.finite(results$objective)) ||
-      !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0)) {
+      !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0) ||
+      !any(grepl("maximum resident set size", resource, fixed = TRUE))) {
     stop("G12 retained pilot artifacts do not meet their completeness checks.", call. = FALSE)
   }
   cat("TEMPORAL_G12_PASS\n")

@@ -11,7 +11,7 @@ term is present, temporal-process SD `0.8`, and residual SD `0.4`. The data
 generator uses a dense Cholesky AR1 covariance independently for every series.
 
 The runner retains all two-start attempts, selected-fit diagnostics, interval
-availability for all three mean coefficients, and elapsed times. The enclosing
-`/usr/bin/time -l` command writes peak-memory information to `resource.txt`.
+availability for all three mean coefficients, and elapsed times. The labelled
+resource-only replay records peak memory in `resource-replay.txt`.
 This pilot tests output completeness and measures resources; it makes no
 coverage decision and cannot substitute for G17 authorization of the campaign.
