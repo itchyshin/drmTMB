@@ -8,11 +8,12 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `64c3c1fc7f24bde9d57dc18ae33e4c6d4e65a7e2` |
+| drmTMB (this repo, HEAD at generation) | `9939ace07967af9a9b6e23a4d021080d5d7d76a7` |
 | DRM.jl (read with `git show`, never the working tree) | `b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c` |
+| ordinary-Laplace reconciliation | `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` (validated against both shas) |
 
-Both numbers below and every citation in the table are functions of those
-two commits and nothing else. Quote the shas whenever you quote the counts.
+The ordinary-Laplace summary is accepted only when its two shas and receipt-runner hash
+equal the inputs above. Quote the shas whenever you quote the counts.
 
 ## THE DENOMINATOR
 
@@ -20,15 +21,17 @@ two commits and nothing else. Quote the shas whenever you quote the counts.
 `docs/design/capability-status.md` (47 rows), each matched byte-for-byte to a row of DRM.jl's file
 (50 rows).
 
-**UNCITED cells: 10 of 141** (47 capabilities x 3 axes). 10 of the 47 capabilities
+**UNCITED cells: 8 of 141** (47 capabilities x 3 axes). 8 of the 47 capabilities
 carry at least one UNCITED cell.
 
-Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 10 UNCITED**.
+Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 8 UNCITED**.
 
 **31 of 47** capabilities are reachable through `engine = "julia"` with a
 PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).
 That is the number a closure may quote as bridge coverage. Every other
 verdict is something weaker, and is named below.
+**2 of 47** capability rows carry a separately classified 0.7.1 ordinary-Laplace
+frozen receipt. This is not included in the generic point/SE-parity `RECEIPT` count.
 
 No contradictions: no capability is refused by drmTMB's bridge while DRM.jl carries a receipt for it.
 
@@ -44,6 +47,7 @@ of that name in that file.
 | verdict | meaning |
 |---|---|
 | `RECEIPT` | a passing receipt row in a DRM.jl evidence table, reached through a committed `inst/extdata/julia-capabilities.tsv` row the matrix cites |
+| `ORDINARY-LAPLACE-CLASSIFIED` | a source-pinned, committed 0.7.1 four-fixture profile-classification summary reached through a ledger row; it is NOT a generic point/SE-parity receipt and NOT interval coverage |
 | `RECEIPT-NOT-LEDGERED` | a passing receipt exists, but NO committed drmTMB ledger row connects it to this capability; the link is a declared alias in the generator |
 | `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |
 | `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |
@@ -64,10 +68,11 @@ the programme cannot point at.
 | native_Julia | `PARTIAL` | 1 |
 | native_Julia | `NO` | 3 |
 | bridge | `RECEIPT` | 31 |
+| bridge | `ORDINARY-LAPLACE-CLASSIFIED` | 2 |
 | bridge | `RECEIPT-NOT-LEDGERED` | 2 |
 | bridge | `RECEIPT-NOT-PASS` | 1 |
 | bridge | `REFUSED` | 3 |
-| bridge | `UNCITED` | 10 |
+| bridge | `UNCITED` | 8 |
 
 ## The scoreboard
 
@@ -100,8 +105,8 @@ the programme cannot point at.
 | `Gaussian relmat random intercept (mean)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:76, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:81, `implemented`) | receipt capability_id=general_covariance_structured status=PARITY_PASS "Gaussian, relmat(1 \| id, K = K) mean intercept, sigma ~ 1" (DRM.jl@b877f513:docs/dev-log/evidence/parity-classc.tsv:5); receipt capability_id=general_covariance_structured status=PARITY_PASS "Poisson, relmat(1 \| id, K = K) mean intercept" (DRM.jl@b877f513:docs/dev-log/evidence/parity-classc.tsv:6); receipt capability_id=general_covariance_structured status=PARITY_PASS "NegBinomial2, relmat(1 \| id, K = K) mean intercept, sigma ~ 1" (DRM.jl@b877f513:docs/dev-log/evidence/parity-classc.tsv:7); +1 more receipt row(s) |
 | `Non-Gaussian phylogenetic random intercept (mean)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:77, `scope-limited`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:82, `implemented`) | receipt capability_id=phylo_count_large_p status=PARITY_PASS "Poisson, phylo(1 \| species) mean intercept, smoke p=20" (DRM.jl@b877f513:docs/dev-log/evidence/parity-classc.tsv:2); receipt capability_id=phylo_count_large_p status=PARITY_PASS "Poisson, phylo(1 \| species) mean intercept, p=300" (DRM.jl@b877f513:docs/dev-log/evidence/parity-classc.tsv:3); receipt capability_id=phylo_count_large_p status=PARITY_PASS "NegBinomial2, phylo(1 \| species) mean intercept, p=300" (DRM.jl@b877f513:docs/dev-log/evidence/parity-classc.tsv:4); +5 more receipt row(s) |
 | `Non-Gaussian phylogenetic location-scale (μ + log σ)` | PARTIAL | FITS | UNCITED | PARTIAL (docs/design/capability-status.md:78, `scope-limited`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:83, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Non-Gaussian ordinary random intercept (scalar Laplace)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:79, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:84, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `ordinary_ri_scalar_laplace` carry no receipt row at the ref) |
-| `Coupled NB2 ordinary location-scale random intercept (Laplace)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:80, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:85, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `ordinary_nb2_coupled_laplace` carry no receipt row at the ref) |
+| `Non-Gaussian ordinary random intercept (scalar Laplace)` | FITS | FITS | ORDINARY-LAPLACE-CLASSIFIED | FITS (docs/design/capability-status.md:79, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:84, `implemented`) | 0.7.1 frozen reconciliation: CLASSIFIED_FINITE; 3 fixture(s), 10 declared outer target(s), 20 retained engine-target attempts; 20 finite profile(s), 0 retained non-finite endpoint(s), 0 other terminal classification(s) (docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv:2) |
+| `Coupled NB2 ordinary location-scale random intercept (Laplace)` | FITS | FITS | ORDINARY-LAPLACE-CLASSIFIED | FITS (docs/design/capability-status.md:80, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:85, `implemented`) | 0.7.1 frozen reconciliation: CLASSIFIED_WITH_RETAINED_NONFINITE_ENDPOINT; 1 fixture(s), 7 declared outer target(s), 14 retained engine-target attempts; 12 finite profile(s), 2 retained non-finite endpoint(s), 0 other terminal classification(s) (docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv:3) |
 | `Tweedie random intercept (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:81, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:86, `implemented`) | refused at R/julia-bridge.R:1724 |
 | `Gaussian phylogenetic random intercept + slope, two SDs (mean)` | FITS | FITS | REFUSED | FITS (docs/design/capability-status.md:82, `implemented`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:78, `implemented`) | refused at R/julia-bridge.R:3390 |
 | `REML (Gaussian fixed-effect location-scale)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:122, `point-fit-recovery`) | FITS (DRM.jl@b877f513:docs/design/capability-status.md:177, `implemented`) | receipt capability_id=gaussian_reml_location_scale status=PARITY_PASS "REML Gaussian location-scale, fixed effects (bf(y ~ x, sigma ~ z), REML = TRUE)" (DRM.jl@b877f513:docs/dev-log/evidence/parity-fixtures.tsv:32) |
@@ -123,11 +128,9 @@ the programme cannot point at.
 
 ## Every UNCITED bridge cell, with what is missing
 
-10 of 47 capabilities have no receipt and no cited refusal on the bridge axis:
+8 of 47 capabilities have no receipt and no cited refusal on the bridge axis:
 
 - `Non-Gaussian phylogenetic location-scale (μ + log σ)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Non-Gaussian ordinary random intercept (scalar Laplace)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `ordinary_ri_scalar_laplace` carry no receipt row at the ref)
-- `Coupled NB2 ordinary location-scale random intercept (Laplace)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `ordinary_nb2_coupled_laplace` carry no receipt row at the ref)
 - `Profile-likelihood CIs` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `Parametric bootstrap CIs` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `AGHQ adaptive-quadrature marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
