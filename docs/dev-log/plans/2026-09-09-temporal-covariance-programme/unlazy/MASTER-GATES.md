@@ -28,10 +28,10 @@ release, deployment or external message.
 
 ## Phase 1
 
-- [ ] P1-grammar: Paired phylo plus independent OU grammar and metadata pass only their admitted combinations.
+- [x] P1-grammar: Paired phylo plus independent OU grammar and metadata pass only their admitted combinations.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G2
   EXPECT: PHYLO_TEMPORAL_OU_G2_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 execution commit 35b17c9b1: direct G2 returned PHYLO_TEMPORAL_OU_G2_PASS; 13 focused paired-layout assertions and standalone temporal regressions passed. This is grammar/layout evidence only, not dense-oracle or inference evidence.
 - [ ] P1-oracle: Dense covariance, likelihood, score/Hessian and four reductions agree.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G3
   EXPECT: PHYLO_TEMPORAL_OU_G3_PASS
