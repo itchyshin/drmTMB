@@ -41,6 +41,22 @@ if (identical(gate, 'G1')) {
   run_file('tests/testthat/test-temporal-ou-dense-oracle.R'); success <- TRUE
 } else if (identical(gate, 'G6')) {
   run_file('tests/testthat/test-temporal-ou.R'); success <- TRUE
+} else if (identical(gate, 'G8')) {
+  out_dir <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ou-local-recovery'
+  required <- file.path(out_dir, c(
+    'raw-attempts.csv', 'recovery-estimates.csv', 'criteria.csv',
+    'provenance.csv', 'recovery-results.rds', 'session-info.txt', 'RESULTS.md'
+  ))
+  if (!all(file.exists(required))) fail('G8 requires retained OU recovery outputs.')
+  criteria <- read.csv(file.path(out_dir, 'criteria.csv'), stringsAsFactors = FALSE)
+  attempts <- read.csv(file.path(out_dir, 'raw-attempts.csv'), stringsAsFactors = FALSE)
+  provenance <- read.csv(file.path(out_dir, 'provenance.csv'), stringsAsFactors = FALSE)
+  runner_hash <- unname(tools::md5sum('tools/run-temporal-ou-recovery.R'))
+  source_commit <- provenance$value[provenance$key == 'source_commit']
+  if (length(source_commit) != 1L || system2('git', c('cat-file', '-e', paste0(source_commit, '^{commit}'))) != 0L) fail('G8 recovery provenance does not name a valid source commit.')
+  if (!identical(provenance$value[provenance$key == 'runner_md5'], runner_hash)) fail('G8 recovery runner hash does not match the retained source.')
+  if (!all(criteria$pass) || nrow(attempts) != 24L || any(table(attempts$fixture) != 2L) || any(!is.finite(attempts$decay_start) | attempts$decay_start <= 0)) fail('G8 retained OU recovery criteria or start records are incomplete.')
+  success <- TRUE
 } else if (identical(gate, 'G10')) {
   source <- paste(readLines('vignettes/temporal-random-effects.Rmd', warn = FALSE), collapse = '\n')
   needed <- c('Irregular elapsed time with OU', 'positive decay rate', 'duplicate site--time records')
