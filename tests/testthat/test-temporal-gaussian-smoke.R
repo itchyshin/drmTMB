@@ -11,6 +11,23 @@ temporal_smoke_data <- function(with_intercept = FALSE) {
   dat
 }
 
+test_that("ordinary Gaussian fixed-effect fits retain their established estimates", {
+  dat <- temporal_smoke_data()
+  fit <- drmTMB(
+    bf(y ~ treatment, sigma ~ 1),
+    data = dat,
+    family = gaussian(),
+    REML = FALSE
+  )
+  reference <- stats::lm(y ~ treatment, data = dat)
+  expect_equal(unname(fit$coefficients$mu), unname(stats::coef(reference)), tolerance = 1e-7)
+  expect_equal(
+    unname(exp(fit$coefficients$sigma)),
+    unname(stats::sigma(reference) * sqrt(stats::df.residual(reference) / nrow(dat))),
+    tolerance = 1e-7
+  )
+})
+
 test_that("Gaussian AR1 temporal random effects fit with and without a stable intercept", {
   dat <- temporal_smoke_data()
   ar1_only <- drmTMB(
