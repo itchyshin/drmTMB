@@ -524,6 +524,22 @@ test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
   expect_false(grepl("\\bsbatch\\b", text))
 })
 
+test_that("S7 Fir array payload initializes the pinned runtime before the worker", {
+  array <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                               "julia-r-parity", "071-ordinary-laplace", "s7-fir-array.sh")
+  expect_true(file.exists(array))
+  expect_identical(system2("bash", c("-n", array)), 0L)
+  text <- paste(readLines(array, warn = FALSE), collapse = "\n")
+  expect_match(text, "--account=def-snakagaw_cpu", fixed = TRUE)
+  expect_match(text, "--partition=cpubase_bycore_b1", fixed = TRUE)
+  expect_match(text, "module load StdEnv/2023 r/4.6.1 julia/1.12.5", fixed = TRUE)
+  expect_match(text, "R_LIBS_USER", fixed = TRUE)
+  expect_match(text, "JULIA_DEPOT_PATH", fixed = TRUE)
+  expect_match(text, "DRM_JL_PATH", fixed = TRUE)
+  expect_match(text, "s7-fir-worker.sh", fixed = TRUE)
+  expect_false(grepl("\\bsbatch\\b", text))
+})
+
 test_that("S7 task runner requires explicit approval for a live fit", {
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
