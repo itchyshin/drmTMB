@@ -32,14 +32,14 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G2
   EXPECT: PHYLO_TEMPORAL_OU_G2_PASS
   EVIDENCE: 2026-09-09 execution commit 35b17c9b1: direct G2 returned PHYLO_TEMPORAL_OU_G2_PASS; 13 focused paired-layout assertions and standalone temporal regressions passed. This is grammar/layout evidence only, not dense-oracle or inference evidence.
-- [ ] P1-oracle: Dense covariance, likelihood, score/Hessian and four reductions agree.
+- [x] P1-oracle: Dense covariance, likelihood, score/Hessian and four reductions agree.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G3
   EXPECT: PHYLO_TEMPORAL_OU_G3_PASS
-  EVIDENCE: pending
-- [ ] P1-mutation: Non-separable, off-diagonal, state-sharing and normalizer mutations fail.
+  EVIDENCE: 2026-09-09 execution commit 3c600263b: G3-G5 passed against an independent `ape::vcv()` dense likelihood on an unbalanced, shuffled 12-species fixture. The objective, score, two Hessian steps, and four reductions are covered; no public inference claim follows.
+- [x] P1-mutation: Non-separable, off-diagonal, state-sharing and normalizer mutations fail.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G6
   EXPECT: PHYLO_TEMPORAL_OU_G6_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 execution commit 3c600263b: G6 passed; missing phylogenetic off-diagonal, separable field, shared OU state, missing stable term, omitted normalizer, and misaligned tree each differ from the reference.
 - [ ] P1-methods: Modes, simulation, fitted values, residuals and profile boundary agree.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G7
   EXPECT: PHYLO_TEMPORAL_OU_G7_PASS
