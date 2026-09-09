@@ -1,8 +1,8 @@
 ---
-title: "Temporal AR1 random effects"
+title: "Temporal AR1 and OU random effects"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Temporal AR1 random effects}
+  %\VignetteIndexEntry{Temporal AR1 and OU random effects}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -128,3 +128,25 @@ finite integer time column, retain its real gaps, and ensure that every
 site--occasion pair is unique. If a site was measured more than once at an
 occasion, aggregate those records before fitting. An AR1-only fit omits `(1 | site)` but keeps the
 same `temporal()` term.
+
+## Irregular elapsed time with OU
+
+Use an OU field when elapsed intervals carry meaning, such as visits at 0, 0.5,
+2.5, and 5 days. It keeps the same three-way variance separation but estimates
+a positive decay rate, so correlation over a gap `d` is `exp(-decay * d)`. It
+cannot represent alternating negative temporal correlation.
+
+```{r, eval = FALSE}
+ou_fit <- drmTMB(
+  bf(y ~ treatment + (1 | site) +
+       temporal(1 | site, time = elapsed_days, structure = "ou"), sigma ~ 1),
+  data = dat_irregular, family = gaussian(), REML = FALSE
+)
+summary(ou_fit) # point estimates; OU Wald intervals are not yet qualified
+```
+
+For OU, `elapsed_days` must be finite numeric, genuine gaps are retained, and
+duplicate site--time records must be aggregated before fitting. Input order may
+be shuffled. In-sample fitted values, residuals, and conditional or fresh
+simulation follow the AR1 conventions. Forecasting and `newdata` prediction
+remain unavailable.

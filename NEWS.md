@@ -21,7 +21,7 @@ section below:
 See the 0.7.0 section immediately below for the full, measured detail on
 every item above.
 
-## Gaussian temporal AR1 random effects
+## Gaussian temporal AR1 and OU random effects
 
 * Native ML now fits one univariate Gaussian stationary temporal AR1 intercept
   field with real integer occasion gaps through
@@ -30,7 +30,7 @@ every item above.
   stable differences, temporal persistence, and residual `sigma`.
 * `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
   mean-coefficient uncertainty only when the full observed Hessian supports
-  it. Variance/persistence intervals, profile/bootstrap inference, forecasts,
+  it. The new OU elapsed-time point-fit route uses `structure = "ou"` with a positive decay rate; its Wald intervals remain deferred behind the AR1 calibration blocker. Variance/persistence intervals, profile/bootstrap inference, forecasts,
   and `newdata` prediction remain unavailable. The retained pilot found one
   unavailable primary-cell interval, so this release contains no calibrated
   coverage claim.

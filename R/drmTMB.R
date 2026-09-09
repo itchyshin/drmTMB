@@ -676,7 +676,7 @@ drm_fit_spec <- function(
       is.list(spec$structured$temporal_mu) &&
       isTRUE(spec$structured$temporal_mu$has)
   ) {
-    drm_temporal_persistence_starts(obj)
+    drm_temporal_persistence_starts(obj, spec$structured$temporal_mu)
   } else {
     NULL
   }
@@ -686,11 +686,21 @@ drm_fit_spec <- function(
     starts = temporal_starts
   )
   if (!is.null(temporal_starts) && is.data.frame(optimizer$start_attempts)) {
-    optimizer$start_attempts$persistence_start <- vapply(
-      temporal_starts,
-      function(start) tanh(start[[match("theta_temporal", names(start))]]),
-      numeric(1L)
-    )
+    temporal_structure <- spec$structured$temporal_mu$structure
+    theta_position <- match("theta_temporal", names(obj$par))
+    if (identical(temporal_structure, "ar1")) {
+      optimizer$start_attempts$persistence_start <- vapply(
+        temporal_starts,
+        function(start) tanh(start[[theta_position]]),
+        numeric(1L)
+      )
+    } else {
+      optimizer$start_attempts$decay_start <- vapply(
+        temporal_starts,
+        function(start) exp(start[[theta_position]]),
+        numeric(1L)
+      )
+    }
   }
   opt <- optimizer$opt
   if (isTRUE(control$newton_polish)) {
@@ -923,16 +933,28 @@ drm_optimize_multistart <- function(
   best$opt
 }
 
-drm_temporal_persistence_starts <- function(obj) {
+drm_temporal_persistence_starts <- function(obj, temporal) {
   position <- match("theta_temporal", names(obj$par))
   if (is.na(position)) {
-    cli::cli_abort("Internal temporal AR1 start error: theta_temporal is not an outer TMB parameter.")
+    cli::cli_abort("Internal temporal start error: theta_temporal is not an outer TMB parameter.")
   }
-  positive <- obj$par
-  negative <- obj$par
-  positive[[position]] <- atanh(0.3)
-  negative[[position]] <- -atanh(0.3)
-  list(positive, negative)
+  if (identical(temporal$structure, "ar1")) {
+    positive <- obj$par
+    negative <- obj$par
+    positive[[position]] <- atanh(0.3)
+    negative[[position]] <- -atanh(0.3)
+    return(list(positive, negative))
+  }
+  positive_gaps <- temporal$gap[temporal$gap > 0]
+  reference_gap <- stats::median(positive_gaps)
+  if (!is.finite(reference_gap) || reference_gap <= 0) {
+    cli::cli_abort("Internal temporal OU start error: a positive elapsed-time gap is required.")
+  }
+  lapply(c(0.3, 0.7), function(reference_correlation) {
+    start <- obj$par
+    start[[position]] <- log(-log(reference_correlation) / reference_gap)
+    start
+  })
 }
 
 drm_optimize_with_preset_retry <- function(
@@ -22627,10 +22649,12 @@ split_tmb_corpars <- function(par, spec) {
       isTRUE(spec$structured$temporal_mu$has)
   ) {
     temporal <- spec$structured$temporal_mu
-    out$temporal <- stats::setNames(
-      tanh(unname(par$theta_temporal[[1L]])),
-      temporal$label
-    )
+    temporal_parameter <- if (identical(temporal$structure, "ar1")) {
+      tanh(unname(par$theta_temporal[[1L]]))
+    } else {
+      exp(unname(par$theta_temporal[[1L]]))
+    }
+    out$temporal <- stats::setNames(temporal_parameter, temporal$label)
   }
   if (is.list(spec$random$covariance_blocks)) {
     rho_re_cov <- covariance_block_correlations_from_par(
@@ -22888,7 +22912,7 @@ split_tmb_random_effects <- function(par, spec) {
     out$temporal <- list(
       values = values,
       latent = latent,
-      terms = list(ar1 = values)
+      terms = stats::setNames(list(values), temporal$structure)
     )
   }
   if (

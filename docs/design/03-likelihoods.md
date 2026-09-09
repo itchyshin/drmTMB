@@ -92,6 +92,30 @@ ordinary intercept is included, `s_b` describes stable differences between
 series; `sigma` remains independent observation-level residual SD. These three
 sources of variability are mutually independent.
 
+### Ornstein--Uhlenbeck elapsed-time effects
+
+`temporal(1 | id, time = elapsed, structure = "ou")` uses the same Gaussian
+location model and variance components, but treats `elapsed` as finite numeric
+time. It estimates a positive decay rate `lambda` and has covariance
+
+\[
+\operatorname{Cov}(a_{it}, a_{is}) = s_a^2\exp(-\lambda |t-s|).
+\]
+
+For an observed positive gap \(d\), its standardized stationary transition is
+\(u_t \mid u_{t-d}\sim N(\exp(-\lambda d)u_{t-d},
+1-\exp(-2\lambda d))\). The first-state density and all transition
+normalizers remain in the native likelihood. Rows may be supplied in any order;
+the fit sorts states within series and returns fitted values in the supplied row
+order. Duplicate series--time keys are rejected before response omission.
+
+OU cannot express negative correlation. Its reported temporal correlation
+parameter is the positive decay rate, not a one-unit correlation or an
+innovation SD. `vcov()`, `confint()`, and summary Wald intervals are currently
+deferred for OU because the inherited AR1 interval calibration prerequisite is
+unresolved; OU therefore reports point estimates and explicit unsupported-
+inference diagnostics rather than unqualified intervals.
+
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,

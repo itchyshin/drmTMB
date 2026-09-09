@@ -51,8 +51,9 @@ revisit condition.
   q > 2 SDs are direct profile targets, but q > 2 correlations are not direct
   profile interval targets yet.
 - The first temporal route is univariate Gaussian ML only:
-  `temporal(1 | id, time = occasion, structure = "ar1")` fits one stationary
-  temporal intercept process with genuine finite integer gaps, constant
+  `temporal(1 | id, time = occasion, structure = "ar1")` and
+  `temporal(1 | id, time = elapsed, structure = "ou")` fit one stationary
+  temporal intercept process with genuine gaps (integer for AR1, numeric for OU), constant
   residual `sigma`, and optionally one same-ID ordinary `(1 | id)` intercept.
   It rejects duplicate ID--occasion keys, weights other than one, REML,
   non-Gaussian families, temporal slopes, additional random effects, and other
@@ -61,7 +62,7 @@ revisit condition.
   persistence, ordinary-intercept SD, and residual-SD intervals, forecasting,
   and `newdata` prediction remain unsupported. The final-source five-seed
   pilot had 4/5 interval availability in primary C1, so no coverage or
-  scientific-interval calibration claim is available yet.
+  scientific-interval calibration claim is available yet. OU therefore exposes point estimates only until that shared interval prerequisite is repaired.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the

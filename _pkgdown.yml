@@ -82,7 +82,7 @@ navbar:
           href: articles/structural-dependence.html
         - text: Animal models and relatedness
           href: articles/animal-models.html
-        - text: Temporal AR1 random effects
+        - text: Temporal AR1 and OU random effects
           href: articles/temporal-random-effects.html
         - text: Phylogenetic structured effects
           href: articles/phylogenetic-models.html

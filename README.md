@@ -303,9 +303,10 @@ head(sigma(fit)^2) # fitted residual variances
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
   `sd(group) ~ x`, and fitted Gaussian structured routes for `phylo()`,
-  `spatial()`, `animal()`, `relmat()`, and the first temporal route
-  `temporal(1 | id, time = occasion, structure = "ar1")`. The temporal route
-  is a univariate Gaussian ML model with constant `sigma`, one temporal
+  `spatial()`, `animal()`, `relmat()`, and temporal AR1 or OU routes
+  `temporal(1 | id, time = occasion, structure = "ar1")` or
+  `temporal(1 | id, time = elapsed, structure = "ou")`. These temporal routes
+  are univariate Gaussian ML models with constant `sigma`, one temporal
   intercept process, and an optional ordinary `(1 | id)` intercept using the
   same ID. Its Wald intervals cover mean coefficients only when the full
   observed Hessian is positive definite; process, persistence, and residual
@@ -320,7 +321,7 @@ head(sigma(fit)^2) # fitted residual variances
   `task = "all"`, and do not by themselves establish recovery, coverage, or
   power. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
-  Read [Temporal AR1 random effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html).
+  Read [Temporal AR1 and OU random effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html).
 
 For strict `(0, 1)` Beta responses, one narrower phylogenetic exception has
 point-fit recovery evidence: an unlabelled q1 intercept-only `phylo()` effect in

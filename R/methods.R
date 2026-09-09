@@ -2835,8 +2835,9 @@ predict.drmTMB <- function(
   }
   dpar <- match.arg(dpar, names(object$coefficients))
   if (drm_has_temporal_mu(object) && !is.null(newdata)) {
+    temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
     cli::cli_abort(c(
-      "Temporal AR1 prediction is currently available only for the fitted observations.",
+      "Temporal {temporal_structure} prediction is currently available only for the fitted observations.",
       "i" = "Forecasting and {.arg newdata} prediction are deferred because they require an explicit temporal-state convention."
     ))
   }
