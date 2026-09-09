@@ -31,12 +31,37 @@ export JULIA_NUM_THREADS=1
 scratch_base="${SLURM_TMPDIR:-${TMPDIR:-/tmp}}"
 task_scratch="${scratch_base}/s7-${SLURM_JOB_ID}-${task_id}"
 mkdir -p "${task_scratch}"
-cleanup() {
-  rm -rf "${task_scratch}"
-}
-trap cleanup EXIT INT TERM
-
 task_out="${task_scratch}/receipt"
+published=0
+
+publish_failed_worker() {
+  local status="$1"
+  local failed_root
+  if (( status == 0 || published == 1 )); then
+    return
+  fi
+  failed_root="${S7_CAMPAIGN_ROOT}/incoming/${task_id}/failed-${SLURM_JOB_ID}-${task_id}"
+  (
+    set +e
+    mkdir -p "${failed_root}"
+    if [[ -d "${task_out}" ]]; then
+      cp -a "${task_out}/." "${failed_root}/"
+    fi
+    printf 'exit_status=%s\nslurm_job_id=%s\nlogical_task_id=%s\n' \
+      "${status}" "${SLURM_JOB_ID}" "${task_id}" > "${failed_root}/WORKER_FAILED"
+  )
+}
+
+cleanup() {
+  local status="$?"
+  trap - EXIT INT TERM
+  publish_failed_worker "${status}"
+  rm -rf "${task_scratch}"
+  exit "${status}"
+}
+trap cleanup EXIT
+trap 'exit 143' INT TERM
+
 mkdir -p "${task_out}"
 Rscript "${S7_SOURCE_ROOT}/docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-run-task.R" \
   "--root=${S7_SOURCE_ROOT}" \
@@ -45,5 +70,33 @@ Rscript "${S7_SOURCE_ROOT}/docs/dev-log/evidence/julia-r-parity/071-ordinary-lap
   "--out=${task_out}" \
   "--dry-run=false" \
   "--approved=true"
+
+for receipt in planned-task.tsv attempts.tsv; do
+  if [[ ! -f "${task_out}/${receipt}" ]]; then
+    printf '%s\n' "S7 worker did not receive required ${receipt} receipt" >&2
+    exit 65
+  fi
+done
+
+stage_root="${S7_CAMPAIGN_ROOT}/incoming/${task_id}/${SLURM_JOB_ID}-${task_id}"
+final_root="${S7_CAMPAIGN_ROOT}/tasks/${task_id}"
+if [[ -e "${final_root}" ]]; then
+  printf '%s\n' "S7 worker refuses to overwrite committed task ${task_id}" >&2
+  exit 66
+fi
+mkdir -p "$(dirname "${stage_root}")" "${S7_CAMPAIGN_ROOT}/tasks"
+if [[ -e "${stage_root}" ]]; then
+  printf '%s\n' "S7 worker stage already exists for task ${task_id}" >&2
+  exit 67
+fi
+mkdir "${stage_root}"
+cp -a "${task_out}/planned-task.tsv" "${task_out}/attempts.tsv" "${stage_root}/"
+(
+  cd "${stage_root}"
+  sha256sum planned-task.tsv attempts.tsv > SHA256SUMS
+)
+mv "${stage_root}" "${final_root}"
+: > "${final_root}/COMMITTED"
+published=1
 
 printf '%s\n' "S7 task ${task_id} completed its guarded R worker" >&2

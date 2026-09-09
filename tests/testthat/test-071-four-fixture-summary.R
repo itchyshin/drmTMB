@@ -507,6 +507,10 @@ test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
   expect_match(text, "1..2000", fixed = TRUE)
   expect_match(text, "OPENBLAS_NUM_THREADS=1", fixed = TRUE)
   expect_match(text, "JULIA_NUM_THREADS=1", fixed = TRUE)
+  expect_match(text, "attempts.tsv", fixed = TRUE)
+  expect_match(text, "SHA256SUMS", fixed = TRUE)
+  expect_match(text, "COMMITTED", fixed = TRUE)
+  expect_match(text, "incoming", fixed = TRUE)
   expect_false(grepl("\\bsbatch\\b", text))
 })
 
