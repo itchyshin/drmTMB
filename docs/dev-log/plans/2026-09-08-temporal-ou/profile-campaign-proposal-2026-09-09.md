@@ -94,3 +94,12 @@ and 64.638 seconds. With the measured one-time installation, 20 50-data-set
 shards per cell project to roughly 43 single-core CPU-hours and about 5 hours of
 array wall time at concurrency 10, before queue delay. The 2.5-hour task ceiling
 leaves deliberate tail room; it is a ceiling, not an expected duration.
+
+The reusable `tools/mirror-temporal-ou-shard-to-totoro.sh` helper transfers one
+source archive or completed shard through the existing Fir and Totoro sockets,
+compares SHA-256 at both ends, refuses a non-identical overwrite, and never
+deletes Fir content. Its first use copied the smoke source archive (SHA-256
+`75c62050400259fa2c90163f92c96378bc23ff3c66e317376dc6f86d969d4d6d`) and
+smoke shard with matching hashes to
+`/home/snakagaw/hsq_work/temporal-ou-profile-fir-e46bf2e7-smoke` on Totoro.
+Only then was the verified Fir smoke directory removed.

@@ -94613,3 +94613,8 @@ Closeout report:
   source/runner provenance. The preceding 2 GiB smoke failed during C++
   compilation, so the production script now requests 6 GiB and builds once per
   shard before 50 worker calls.
+- The smoke source and shard were streamed through existing ControlMaster
+  sockets to Totoro, where their SHA-256 values matched their Fir values. The
+  verified Fir smoke directory was then removed. The reusable
+  `tools/mirror-temporal-ou-shard-to-totoro.sh` helper implements the same
+  non-overwriting, checksum-first route for campaign artifacts.
