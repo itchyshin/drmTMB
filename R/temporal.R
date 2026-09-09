@@ -94,7 +94,13 @@ validate_temporal_raw_data <- function(term, data) {
   invisible(NULL)
 }
 
-validate_temporal_gaussian_terms <- function(term, mu_re, sigma_re, sigma_rhs) {
+validate_temporal_gaussian_terms <- function(
+  term,
+  mu_re,
+  sigma_re,
+  sigma_rhs,
+  data
+) {
   if (is.null(term)) {
     return(invisible(NULL))
   }
@@ -121,6 +127,12 @@ validate_temporal_gaussian_terms <- function(term, mu_re, sigma_re, sigma_rhs) {
         "The ordinary random effect paired with {.fn temporal} must be {.code (1 | id)} using the same ID.",
         "x" = "Temporal group is {.val {term$group}}; requested ordinary term is {.code {ordinary$label}}.",
         "i" = "Use either no ordinary random effect or {.code (1 | {term$group})}."
+      ))
+    }
+    if (length(unique(as.character(data[[term$group]]))) < 2L) {
+      cli::cli_abort(c(
+        "A temporal AR1 model with an ordinary random intercept requires multiple series.",
+        "i" = "Fit AR1-only for one series, or provide observations from at least two IDs."
       ))
     }
   }

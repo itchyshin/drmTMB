@@ -9,6 +9,7 @@ gate <- args[[1L]]
 files <- switch(
   gate,
   G1 = "tests/testthat/test-temporal-parser.R",
+  G2 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G3 = "tests/testthat/test-temporal-gaussian-smoke.R",
   G4 = "tests/testthat/test-temporal-dense-oracle.R",
   NULL

@@ -52,6 +52,52 @@ test_that("temporal AR1 data checks preserve the intended admission boundary", {
     ),
     "finite integers"
   )
+  dat <- temporal_smoke_data()
+  dat$occasion <- 2L * (match(dat$occasion, c(0L, 1L, 3L, 4L)) - 1L)
+  expect_error(
+    drmTMB(
+      bf(y ~ temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = dat, family = gaussian(), REML = FALSE
+    ),
+    "lag variation"
+  )
+  dat <- temporal_smoke_data()
+  dat$y[1L] <- NA_real_
+  dat$occasion[2L] <- NA_integer_
+  expect_error(
+    drmTMB(
+      bf(y ~ temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = dat, family = gaussian(), REML = FALSE
+    ),
+    "before response omission"
+  )
+})
+
+test_that("combined temporal AR1 enforces its same-ID and multiple-series contract", {
+  dat <- temporal_smoke_data()
+  dat$other <- rep(c("a", "b"), length.out = nrow(dat))
+  expect_error(
+    drmTMB(
+      bf(y ~ (1 | other) + temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = dat, family = gaussian(), REML = FALSE
+    ),
+    "same ID"
+  )
+  one_series <- dat[dat$id == dat$id[[1L]], , drop = FALSE]
+  expect_error(
+    drmTMB(
+      bf(y ~ (1 | id) + temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ 1),
+      data = one_series, family = gaussian(), REML = FALSE
+    ),
+    "multiple series"
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ temporal(1 | id, time = occasion, structure = "ar1"), sigma ~ treatment),
+      data = dat, family = gaussian(), REML = FALSE
+    ),
+    "sigma ~ 1"
+  )
 })
 
 test_that("temporal AR1 exposes labelled components and mean-only Wald inference", {

@@ -4042,7 +4042,8 @@ drm_build_gaussian_ls_spec <- function(
     mu_temporal$term,
     mu_re,
     sigma_re,
-    sigma_entry$rhs
+    sigma_entry$rhs,
+    data
   )
   if (!is.null(mesh_spatial_term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(
