@@ -542,3 +542,78 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
   expect_match(text, "SLURM_ARRAY_TASK_ID=1501", fixed = TRUE)
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
 })
+
+test_that("S7 campaign collector refuses an incomplete retained denominator", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
+                 "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  campaign <- tempfile("071-s7-campaign-")
+  dir.create(campaign)
+  dir.create(file.path(campaign, "bundle"))
+  dir.create(file.path(campaign, "tasks"))
+  env$r071_s7_write_campaign_bundle(file.path(campaign, "bundle"))
+  expect_error(env$r071_s7_collect_campaign(campaign), "missing committed S7 task receipts")
+})
+
+test_that("S7 coverage summary retains failures in its unconditional denominator", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R",
+                 "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  expected <- env$r071_s7_expected_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan())
+  attempts <- transform(
+    expected,
+    estimate = truth,
+    link_estimate = truth,
+    std_error = NA_real_,
+    std_error_status = "unavailable",
+    convergence_status = "unavailable",
+    gradient_max_abs = NA_real_,
+    gradient_status = "unavailable",
+    hessian_status = "unavailable",
+    fit_status = "returned",
+    profile_status = "profile",
+    lower = truth - 1,
+    upper = truth + 1
+  )
+  attempts$profile_status[attempts$fixture == "binomial_ri" & attempts$engine == "tmb" &
+                            attempts$parm == "fixef:mu:(Intercept)" & attempts$dgp_seed == 71011001L] <- "truth_outside"
+  summary <- env$r071_s7_coverage_summary(attempts)
+  row <- summary[summary$fixture == "binomial_ri" & summary$engine == "tmb" &
+                   summary$parm == "fixef:mu:(Intercept)", , drop = FALSE]
+  expect_identical(nrow(row), 1L)
+  expect_identical(row$attempt_count, 500L)
+  expect_identical(row$unconditional_covered, 499L)
+  expect_identical(row$finite_endpoint_count, 500L)
+  expect_identical(row$conditional_covered, 499L)
+  expect_identical(row$truth_outside_count, 1L)
+})
+
+test_that("S7 campaign collector verifies task receipt checksums", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
+                 "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  task <- tempfile("071-s7-task-")
+  dir.create(task)
+  writeLines("planned", file.path(task, "planned-task.tsv"))
+  writeLines("attempts", file.path(task, "attempts.tsv"))
+  checksums <- vapply(c("planned-task.tsv", "attempts.tsv"), function(file) {
+    paste(env$r071_s7_sha256(file.path(task, file)), file)
+  }, character(1L))
+  writeLines(checksums, file.path(task, "SHA256SUMS"))
+  file.create(file.path(task, "COMMITTED"))
+  expect_silent(env$r071_s7_verify_task_checksums(task))
+  writeLines("tampered", file.path(task, "attempts.tsv"))
+  expect_error(env$r071_s7_verify_task_checksums(task), "checksum mismatch")
+})
