@@ -1765,7 +1765,7 @@ drm_profile_targets <- function(object) {
   temporal <- object$model$structured$temporal_mu
   if (is.list(temporal) && isTRUE(temporal$has) &&
       identical(temporal$structure, "ou")) {
-    value <- object$decaypars$temporal[[temporal$label]]
+    value <- object$decaypars$temporal[[temporal_mu_decay_label(temporal)]]
     add_rows(list(new_profile_target_row(
       parm = paste0("decay:temporal:", temporal$label),
       target_class = "temporal-decay",

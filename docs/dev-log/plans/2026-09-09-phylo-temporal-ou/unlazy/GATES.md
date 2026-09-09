@@ -72,15 +72,15 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G13_PASS
   EVIDENCE: pending
 
-- [ ] G14: The reader article distinguishes evolutionary baseline, independent temporal deviation and residual noise; reference/design documentation and pkgdown navigation synchronize.
+- [x] G14: The reader article distinguishes evolutionary baseline, independent temporal deviation and residual noise; reference/design documentation and pkgdown navigation synchronize.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G14
   EXPECT: PHYLO_TEMPORAL_OU_G14_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G14_PASS. `vignettes/phylogenetic-temporal-effects.Rmd`, formula grammar, likelihood design documentation, limitation register and development-marked pkgdown navigation all distinguish stable tree-correlated variation from independent within-species OU departures. The article visibly retains G9's unqualified recovery status.
 
-- [ ] G15: The source-built phylogenetic-temporal article renders and includes a runnable irregular-time workflow and the profile-inference boundary.
+- [x] G15: The source-built phylogenetic-temporal article renders and includes a runnable irregular-time workflow and the profile-inference boundary.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G15
   EXPECT: PHYLO_TEMPORAL_OU_G15_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G15_PASS. The gate loads the development package, renders the Rmd into an isolated temporary directory, verifies the HTML title/development status/irregular-time workflow, and fails on missing output or contract text.
 
 - [ ] G16: The final exact source passes `R CMD build` and `R CMD check --no-manual`.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G16

@@ -353,7 +353,19 @@ drm_has_temporal_mu <- function(object) {
 }
 
 temporal_mu_sd_label <- function(temporal) {
+  if (isTRUE(temporal$paired_phylo_stable)) {
+    return("sd_temporal")
+  }
   paste0("temporal_sd: ", temporal$label)
+}
+
+# The paired phylogenetic-temporal OU fit names the rate by its scientific
+# meaning. Other OU fits retain their formula-derived label for compatibility.
+temporal_mu_decay_label <- function(temporal) {
+  if (isTRUE(temporal$paired_phylo_stable)) {
+    return("decay_temporal")
+  }
+  temporal$label
 }
 
 drm_temporal_mean_target_parm <- function(object) {
@@ -417,7 +429,7 @@ drm_fresh_temporal_mu_values <- function(object) {
   temporal_parameter <- if (identical(temporal$structure, "ar1")) {
     unname(object$corpars$temporal[[temporal$label]])
   } else {
-    unname(object$decaypars$temporal[[temporal$label]])
+    unname(object$decaypars$temporal[[temporal_mu_decay_label(temporal)]])
   }
   latent <- numeric(temporal$n_re)
   starts <- temporal$series_start0 + 1L

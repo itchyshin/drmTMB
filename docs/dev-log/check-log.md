@@ -94658,3 +94658,13 @@ fits and 48 starts, and passed SD/decay criteria, but fixed-effect error was 0.1
 runner failures and the ordered-treatment confounding diagnosis. No threshold, seed or
 failure was changed or suppressed. See
 `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-recovery-failure.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU reader workflow
+
+G14 and G15 now pass. The source-built article `phylogenetic-temporal-effects.Rmd`
+uses irregular elapsed times and separates `sd_phylo_stable`, `sd_temporal`,
+`decay_temporal`, and residual `sigma`. It is deliberately navigation-marked
+**development**: the retained G9 recovery failure means that no paired-model
+interval or forecasting claim is made. The G15 runner loads the local package,
+renders the article in an isolated temporary directory, and verifies the
+rendered reader-facing boundary text.

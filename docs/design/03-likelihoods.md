@@ -120,6 +120,34 @@ route excludes decay and variance parameters, warns if the fitted Hessian is
 irregular, and has deterministic dense-oracle checks but no general coverage
 claim.
 
+### Phylogenetic stable intercept plus independent OU deviations
+
+The development-only paired route combines `phylo(1 | species, tree = tree)`
+with `temporal(1 | species, time = elapsed, structure = "ou")` in the same
+univariate Gaussian ML location formula. Its marginal covariance for rows
+\(r,q\) is
+
+\[
+V_{rq}=s_b^2A_{i_ri_q}+\mathbb{1}_{i_r=i_q}s_a^2
+\exp\{-\lambda|t_r-t_q|\}+\mathbb{1}_{r=q}\sigma^2.
+\]
+
+The phylogenetic term therefore represents stable, tree-correlated differences
+among species; the OU term represents independent temporal paths within each
+species. This is additive, not the later separable field
+\(s_a^2A_{ij}\exp\{-\lambda|t-s|\}\). The parser enforces a shared species ID,
+matching tree tips, finite numeric time, unique raw species--time keys, at
+least three species, at least two times per species, and three positive distinct
+lags. It rejects ordinary intercepts, slopes, other structured terms, REML,
+non-Gaussian families, non-unit weights, forecasting, and `newdata`.
+
+Independent dense likelihood, score, Hessian, conditional-mode, simulation,
+and fixed-mean profile tests pass. The retained 24-fixture point-recovery
+study did not meet its predeclared mean fixed-effect error threshold. Until a
+revised recovery design and a successful interval-calibration campaign are
+retained, this is a point-fit development route: all interval methods,
+variance/decay inference, forecast, and `newdata` prediction are unavailable.
+
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,

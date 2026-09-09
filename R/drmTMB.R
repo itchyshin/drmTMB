@@ -4467,6 +4467,9 @@ drm_build_gaussian_ls_spec <- function(
     data_model
   )
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
+  if (isTRUE(paired_phylo_temporal_ou)) {
+    phylo_mu$paired_temporal_ou <- TRUE
+  }
   temporal_mu <- build_temporal_mu_structure(
     mu_temporal$term,
     data_model,
@@ -13331,6 +13334,12 @@ phylo_mu_has_labelled_mu_intercept_slope_q2 <- function(phylo_mu) {
 }
 
 phylo_mu_sd_labels <- function(phylo_mu, model_type) {
+  # The paired phylogenetic-temporal OU model exposes scientific component
+  # names rather than a formula echo: it is a stable phylogenetic SD, distinct
+  # from the within-species temporal SD.
+  if (isTRUE(phylo_mu$paired_temporal_ou)) {
+    return("sd_phylo_stable")
+  }
   if (identical(model_type, "biv_gaussian")) {
     return(paste0(
       phylo_mu_dpars(phylo_mu),
@@ -22734,7 +22743,7 @@ split_tmb_decaypars <- function(par, spec) {
     return(list())
   }
   list(temporal = stats::setNames(
-    exp(unname(par$theta_temporal[[1L]])), temporal$label
+    exp(unname(par$theta_temporal[[1L]])), temporal_mu_decay_label(temporal)
   ))
 }
 

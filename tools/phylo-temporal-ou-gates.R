@@ -105,6 +105,75 @@ g8 <- function() {
   cat('PHYLO_TEMPORAL_OU_G8_PASS\n')
 }
 
+g14 <- function() {
+  approval()
+  article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
+  grammar <- file.path(root, 'docs/design/01-formula-grammar.md')
+  likelihood <- file.path(root, 'docs/design/03-likelihoods.md')
+  pkgdown <- file.path(root, '_pkgdown.yml')
+  need_text(article, c(
+    'Development status.',
+    'phylogenetic--OU model',
+    'not as an inference-qualified routine analysis',
+    'phylo(1 | species, tree = tree)',
+    'temporal(1 | species, time = elapsed_days, structure = "ou")',
+    'The model is additive.',
+    'A separable phylogeny-by-time field is a different future',
+    'genuinely irregular elapsed times',
+    'do not use `confint()`'
+  ))
+  need_text(grammar, c(
+    'Implemented paired point-fit development slice',
+    'retained 24-fixture point recovery missed',
+    'not an inference-qualified interval workflow'
+  ))
+  need_text(likelihood, c(
+    'Phylogenetic stable intercept plus independent OU deviations',
+    'This is additive, not the later separable field',
+    'point-fit development route'
+  ))
+  need_text(pkgdown, c(
+    'Phylogenetic stable effects and OU deviations (development)',
+    'articles/phylogenetic-temporal-effects.html'
+  ))
+  cat('PHYLO_TEMPORAL_OU_G14_PASS\n')
+}
+
+g15 <- function() {
+  approval()
+  article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
+  need_text(article, c(
+    'genuinely irregular elapsed times',
+    'elapsed_values <- c(0, 0.5, 2.5, 5)',
+    'phylo(1 | species, tree = tree)',
+    'temporal(1 | species, time = elapsed_days, structure = "ou")',
+    'do not use `confint()`'
+  ))
+  if (!requireNamespace('rmarkdown', quietly = TRUE)) {
+    fail('G15 requires rmarkdown to render the reader workflow.')
+  }
+  pkgload::load_all(root, quiet = TRUE)
+  render_dir <- file.path(tempdir(), 'phylo-temporal-ou-g15-render')
+  dir.create(render_dir, recursive = TRUE, showWarnings = FALSE)
+  rendered <- rmarkdown::render(
+    article,
+    output_dir = render_dir,
+    intermediates_dir = render_dir,
+    envir = globalenv(),
+    quiet = TRUE
+  )
+  if (!file.exists(rendered)) {
+    fail('G15 render did not produce an HTML article.')
+  }
+  need_text(rendered, c(
+    'Phylogenetic stable effects and temporal OU deviations',
+    'Development status.',
+    'genuinely irregular elapsed times',
+    'inference-qualified routine analysis'
+  ))
+  cat('PHYLO_TEMPORAL_OU_G15_PASS\n')
+}
+
 g2_worker <- function() {
   pkgload::load_all(root, quiet = TRUE)
   set.seed(202609091L)
@@ -177,6 +246,10 @@ if (identical(args, '--self-test')) {
   g7()
 } else if (identical(args, 'G8')) {
   g8()
+} else if (identical(args, 'G14')) {
+  g14()
+} else if (identical(args, 'G15')) {
+  g15()
 } else {
-  fail('Use --self-test or G1 through G8; only later model gates remain unavailable.')
+  fail('Use --self-test, G1 through G8, G14, or G15; other model gates remain unavailable.')
 }

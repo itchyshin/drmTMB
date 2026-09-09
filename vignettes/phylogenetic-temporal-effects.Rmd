@@ -1,0 +1,164 @@
+---
+title: "Phylogenetic stable effects and temporal OU deviations"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Phylogenetic stable effects and temporal OU deviations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+has_ape <- requireNamespace("ape", quietly = TRUE)
+```
+
+> **Development status.** This paired phylogenetic--OU model has passed its
+> parser, dense-likelihood, method, and fixed-mean profile checks. Its retained
+> point-recovery gate has not met the predeclared fixed-effect threshold.
+> Treat the syntax below as a development workflow for checking a model and its
+> diagnostics, not as an inference-qualified routine analysis. In particular,
+> do not report confidence intervals from this paired model until its recovery
+> and calibration gates are repaired and passed.
+
+A comparative time-series data set can contain three different kinds of
+variation. Closely related species can have similar *stable* baselines because
+of shared evolutionary history. Each species can also make a short-lived
+departure from its baseline that persists across nearby observation times.
+Finally, observations have independent residual noise. The first paired
+phylogenetic-temporal route keeps these quantities separate.
+
+For observation time \(t\) in species \(i\), it fits
+
+\[
+y_{it}=\mathbf{x}_{it}^{T}\boldsymbol{\beta}+b_i+a_{it}+\epsilon_{it},
+\]
+
+\[
+\mathbf b\sim\mathcal N(\mathbf 0,s_b^2A),\qquad
+\operatorname{Cov}(a_{it},a_{js})=\mathbb{1}_{i=j}s_a^2
+\exp\{-\lambda|t-s|\},\qquad
+\epsilon_{it}\sim\mathcal N(0,\sigma^2).
+\]
+
+Here \(A\) is the covariance derived from the phylogenetic tree.
+`sd_phylo_stable` describes stable between-species variation that follows this
+tree. `sd_temporal` describes the stationary SD of an OU departure *within the
+same species*, and `decay_temporal` is its positive decay rate in the units of
+the elapsed-time column. `sigma` is independent observation-level noise.
+
+The model is additive. It does **not** say that a temporal departure is shared
+between related species. In particular, for two different species, their
+covariance is \(s_b^2A_{ij}\), even when their observations occur close
+together in time. A separable phylogeny-by-time field is a different future
+model with a different scientific question.
+
+## A small comparative time-series example
+
+The example uses genuinely irregular elapsed times. The gap from 0.5 to 2.5
+is two time units; `drmTMB` retains that gap and does not replace these values
+with ranks.
+
+```{r simulate, eval = has_ape}
+library(ape)
+set.seed(20260909)
+
+n_species <- 8L
+elapsed_values <- c(0, 0.5, 2.5, 5)
+tree <- rcoal(n_species, tip.label = paste0("sp", seq_len(n_species)))
+
+# Simulate the stable phylogenetic component once per species.
+A <- drmTMB:::drm_phylo_tip_covariance(tree)
+stable <- drop(t(chol(A)) %*% rnorm(n_species, sd = 0.45))
+names(stable) <- tree$tip.label
+
+# Simulate independent OU departures for each species.
+R_ou <- exp(-0.45 * abs(outer(elapsed_values, elapsed_values, "-")))
+ou_by_species <- lapply(tree$tip.label, function(species) {
+  drop(t(chol(R_ou)) %*% rnorm(length(elapsed_values), sd = 0.55))
+})
+names(ou_by_species) <- tree$tip.label
+
+dat <- do.call(rbind, lapply(tree$tip.label, function(species) {
+  treatment <- rep(c(-0.5, 0.5), length.out = length(elapsed_values))
+  data.frame(
+    species = species,
+    elapsed_days = elapsed_values,
+    treatment = treatment,
+    y = 1 + 0.4 * treatment + stable[[species]] +
+      ou_by_species[[species]] + rnorm(length(elapsed_values), sd = 0.35)
+  )
+}))
+dat$species <- factor(dat$species, levels = tree$tip.label)
+head(dat)
+```
+
+Fit the phylogenetic stable intercept and OU process with the same `species`
+column. The `tree` object is supplied by name, so its tips can be checked
+against the observed species before the response is analysed.
+
+```{r fit, eval = has_ape}
+fit <- drmTMB(
+  bf(
+    y ~ treatment +
+      phylo(1 | species, tree = tree) +
+      temporal(1 | species, time = elapsed_days, structure = "ou"),
+    sigma ~ 1
+  ),
+  data = dat,
+  family = gaussian(),
+  REML = FALSE
+)
+
+summary(fit)
+check_drm(fit)
+```
+
+The paired route is intentionally narrow: it needs a univariate Gaussian ML
+model, `sigma ~ 1`, finite numeric elapsed times, one response for every
+species--time key, at least three observed species, at least two distinct times
+per species, and at least three positive distinct lags across the data. It
+rejects an ordinary `(1 | species)` intercept, different IDs for `phylo()` and
+`temporal()`, temporal slopes, a second structured term, non-Gaussian families,
+REML, non-unit weights, forecasts, and `newdata` prediction.
+
+## Read the three sources of variation separately
+
+The fit keeps the phylogenetic and temporal components distinct in its
+structured metadata. The exact labels are intended to prevent a temporal SD
+from being read as evolutionary variation, or vice versa.
+
+```{r components, eval = has_ape}
+fit$sdpars$mu
+fit$decaypars$temporal
+fit$sigma
+```
+
+`fitted(fit)` and `residuals(fit)` use the estimated stable and temporal
+conditional deviations for these observed rows. `simulate(fit)` draws a new
+phylogenetic stable vector and a new independent OU path for each species;
+`simulate(fit, re.form = NA)` instead retains the fitted conditional latent
+components. These are in-sample tools only.
+
+```{r in-sample-tools, eval = has_ape}
+head(fitted(fit))
+head(residuals(fit))
+simulate(fit, nsim = 2)
+simulate(fit, nsim = 2, re.form = NA)
+```
+
+## What can be reported now
+
+This development slice has an independently checked fixed-mean likelihood
+profile calculation, but its recovery evidence is not yet sufficient to qualify
+an interval workflow. For now, use the example to inspect the fitted covariance
+components and the diagnostics; do not use `confint()`, Wald covariance,
+bootstrap intervals, decay or variance-component intervals, forecasts, or
+`newdata` prediction as a reported paired-model result. `check_drm(fit)` is a
+necessary diagnostic but cannot turn an unqualified recovery result into
+calibrated inference.
+
+The existing [temporal AR1 and OU guide](temporal-random-effects.html) remains
+the supported guide for independent-series temporal models. A later
+phylogeny-by-OU field will require a separate formula, likelihood, simulation
+study, and reader guide because it represents a different covariance model.

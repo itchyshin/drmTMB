@@ -31,7 +31,7 @@ test_that("paired phylogenetic-OU profile rejects deferred targets and flags irr
   targets <- profile_targets(fit)
   decay <- targets$parm[targets$target_class == "temporal-decay"]
   phylo_sd <- targets$parm[
-    targets$target_class == "random-effect-sd" & targets$term == "phylo(1 | species)"
+    targets$target_class == "random-effect-sd" & targets$term == "sd_phylo_stable"
   ]
 
   expect_error(stats::confint(fit, parm = decay, method = "profile"),
