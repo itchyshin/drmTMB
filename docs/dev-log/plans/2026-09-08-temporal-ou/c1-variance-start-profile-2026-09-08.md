@@ -24,3 +24,17 @@ unavailable intervals at active variance boundaries and revise the availability
 criterion; adopt a justified constrained-boundary inference method; or change
 the scientific model to impose a residual-scale lower bound and revalidate the
 resulting estimand. No choice is implemented here.
+
+## Cross-package precedent
+
+The locally installed `glmmTMB` troubleshooting vignette identifies near-zero
+dispersion and random-effect variances as common causes of a non-positive-
+definite Hessian and `NaN` standard errors. It advises treating the model as
+poorly fitted rather than silently using the objective for inference. Its
+covariance vignette sets dispersion to a small controlled value only for models
+that intentionally specify `dispformula = ~0`; that is a different estimand
+from the current model, which includes residual `sigma`.
+
+This supports retaining the unavailable-inference diagnostic at an active
+residual boundary. It does not choose between revising the coverage-availability
+criterion and adding a separately validated constrained-boundary method.
