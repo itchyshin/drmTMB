@@ -48,6 +48,45 @@ self_test <- function() {
   }
   cat('PHYLO_TEMPORAL_OU_RUNNER_SELFTEST_PASS controls=1\n')
 }
+g2_worker <- function() {
+  pkgload::load_all(root, quiet = TRUE)
+  set.seed(202609091L)
+  tree <- ape::rcoal(4L)
+  tree$tip.label <- paste0('sp', seq_len(ape::Ntip(tree)))
+  data <- expand.grid(species = tree$tip.label, elapsed = c(0, 1, 3, 6),
+                      KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  data$x <- stats::rnorm(nrow(data))
+  data$y <- 0.2 + 0.4 * data$x + stats::rnorm(nrow(data), sd = 0.4)
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + drmTMB::phylo(1 | species, tree = tree) +
+                 drmTMB::temporal(1 | species, time = elapsed, structure = 'ou'),
+               sigma ~ 1),
+    data = data[sample.int(nrow(data)), , drop = FALSE], family = stats::gaussian(), REML = FALSE
+  )
+  temporal <- fit$model$structured$temporal_mu
+  if (!isTRUE(fit$model$structured$phylo_mu$has) || !isTRUE(temporal$paired_phylo_stable) ||
+      !identical(temporal$group, 'species') || !identical(temporal$minimum_distinct_lags, 3L)) {
+    fail('Paired phylo-plus-OU layout is incomplete.')
+  }
+  bad <- try(drmTMB::drmTMB(
+    drmTMB::bf(y ~ drmTMB::phylo(1 | species, tree = tree) +
+                 drmTMB::temporal(1 | other, time = elapsed, structure = 'ou'), sigma ~ 1),
+    data = transform(data, other = species), family = stats::gaussian(), REML = FALSE
+  ), silent = TRUE)
+  if (!inherits(bad, 'try-error')) fail('Mismatched phylo/temporal IDs were accepted.')
+  cat('PHYLO_TEMPORAL_OU_G2_WORKER_PASS\n')
+}
+
+g2 <- function() {
+  approval()
+  output <- system2('Rscript', c('--vanilla', runner, '--g2-worker'), stdout = TRUE, stderr = TRUE)
+  if (!is.null(attr(output, 'status')) ||
+      !any(grepl('PHYLO_TEMPORAL_OU_G2_WORKER_PASS', output, fixed = TRUE))) {
+    fail('P1 paired parser/layout worker failed.')
+  }
+  cat('PHYLO_TEMPORAL_OU_G2_PASS\n')
+}
+
 g1 <- function() {
   approval()
   need_text(plan, c('stable phylogenetic intercept plus independent OU',
@@ -71,6 +110,10 @@ if (identical(args, '--self-test')) {
   self_test()
 } else if (identical(args, 'G1')) {
   g1()
+} else if (identical(args, 'G2')) {
+  g2()
+} else if (identical(args, '--g2-worker')) {
+  g2_worker()
 } else {
-  fail('Only --self-test and G1 are available before model fixtures are implemented.')
+  fail('Use --self-test, G1 or G2; only later model gates remain unavailable.')
 }

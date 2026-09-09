@@ -1,4 +1,4 @@
-test_that('Phase-0 gate runners fail closed and pass their self-tests', {
+test_that('temporal gate runners fail closed and pass their self-tests', {
   runner <- normalizePath(file.path('..', '..', 'tools', 'phylo-temporal-ou-gates.R'))
   source_runner <- normalizePath(file.path('..', '..', 'tools', 'temporal-source-map-gates.R'))
   expect_match(system2('Rscript', c('--vanilla', runner, '--self-test'), stdout = TRUE),
@@ -12,6 +12,6 @@ test_that('Phase-0 gate runners fail closed and pass their self-tests', {
                'TEMPORAL_SOURCE_MAP_M02_PASS')
   expect_match(system2('Rscript', c('--vanilla', source_runner, 'M03'), stdout = TRUE),
                'TEMPORAL_SOURCE_MAP_M03_PASS')
-  bad <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G2'), stdout = TRUE, stderr = TRUE))
+  bad <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G3'), stdout = TRUE, stderr = TRUE))
   expect_false(is.null(attr(bad, 'status')))
 })

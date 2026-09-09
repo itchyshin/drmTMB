@@ -118,12 +118,83 @@ validate_temporal_raw_data <- function(term, data) {
   invisible(NULL)
 }
 
+# The first phylogenetic-temporal provider is additive: a stable phylogenetic
+# intercept plus independent OU paths within each species.  It is intentionally
+# distinct from the later separable phylogeny-by-OU field.
+validate_phylo_temporal_ou_pair <- function(temporal_term, phylo_term, data, env) {
+  if (is.null(temporal_term) || is.null(phylo_term)) {
+    return(FALSE)
+  }
+  if (!identical(temporal_term$structure, "ou")) {
+    cli::cli_abort(c(
+      "The paired {.fn phylo} plus {.fn temporal} provider requires {.code structure = \"ou\"}.",
+      "i" = "Use independent AR1 without {.fn phylo}, or use {.code phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = \"ou\")} for this first combined slice."
+    ))
+  }
+  if (!identical(phylo_term$type, "phylo") ||
+      !identical(phylo_term$coef_names, "(Intercept)") ||
+      !is.null(phylo_term$covariance_label)) {
+    cli::cli_abort(c(
+      "The paired phylogenetic-temporal provider requires an unlabelled {.code phylo(1 | species, tree = tree)} intercept.",
+      "i" = "Phylogenetic slopes and covariance-block labels are deferred for this combined slice."
+    ))
+  }
+  if (!identical(temporal_term$group, phylo_term$group)) {
+    cli::cli_abort(c(
+      "Paired {.fn phylo} and {.fn temporal} terms must use the same grouping ID.",
+      "x" = "The phylogenetic group is {.val {phylo_term$group}} but the temporal group is {.val {temporal_term$group}}.",
+      "i" = "Use {.code phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = \"ou\")} with the same {.code species} column."
+    ))
+  }
+  validate_temporal_raw_data(temporal_term, data)
+  species <- as.character(data[[temporal_term$group]])
+  if (length(unique(species)) < 3L) {
+    cli::cli_abort(c(
+      "The paired phylogenetic-temporal OU model requires at least three observed species.",
+      "i" = "Supply repeated observations from at least three tree tips."
+    ))
+  }
+  tree <- evaluate_phylo_tree(phylo_term$tree, env)
+  tree_info <- validate_phylo_tree(tree, species = species)
+  if (!setequal(tree_info$tip_label, unique(species)) ||
+      length(tree_info$tip_label) != length(unique(species))) {
+    cli::cli_abort(c(
+      "The paired phylogenetic-temporal OU model requires tree tips to match the observed species.",
+      "i" = "Prune the tree or supply data for the matching set of tips before fitting."
+    ))
+  }
+  elapsed <- as.numeric(data[[temporal_term$time]])
+  by_species <- split(elapsed, species)
+  n_times <- vapply(by_species, function(x) length(unique(x)), integer(1))
+  if (any(n_times < 2L)) {
+    bad <- names(n_times)[n_times < 2L]
+    cli::cli_abort(c(
+      "Each species in the paired phylogenetic-temporal OU model needs at least two distinct times.",
+      "x" = "Insufficient time variation for {.val {bad}}."
+    ))
+  }
+  lags <- unlist(lapply(by_species, function(x) {
+    x <- sort(unique(x))
+    abs(outer(x, x, "-"))[upper.tri(outer(x, x, "-"), diag = FALSE)]
+  }), use.names = FALSE)
+  lags <- sort(unique(lags[lags > 0]))
+  if (length(lags) < 3L) {
+    cli::cli_abort(c(
+      "The paired phylogenetic-temporal OU model requires at least three distinct positive lags.",
+      "x" = "Found {.val {lags}}.",
+      "i" = "Keep genuine elapsed-time gaps and collect more distinct within-species intervals."
+    ))
+  }
+  TRUE
+}
+
 validate_temporal_gaussian_terms <- function(
   term,
   mu_re,
   sigma_re,
   sigma_rhs,
-  data
+  data,
+  paired_phylo_stable = FALSE
 ) {
   if (is.null(term)) {
     return(invisible(NULL))
@@ -132,6 +203,12 @@ validate_temporal_gaussian_terms <- function(
     cli::cli_abort(c(
       "{temporal_structure_name(term)} Gaussian models currently require {.code sigma ~ 1}.",
       "i" = "Use a constant residual SD while temporal effects are fitted."
+    ))
+  }
+  if (isTRUE(paired_phylo_stable) && length(mu_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "The paired phylogenetic-temporal OU model does not allow an ordinary random intercept.",
+      "i" = "The stable between-species component is already {.code phylo(1 | species, tree = tree)}."
     ))
   }
   if (length(mu_re$terms) > 1L) {
@@ -163,7 +240,7 @@ validate_temporal_gaussian_terms <- function(
   invisible(NULL)
 }
 
-build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FALSE) {
+build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FALSE, paired_phylo_stable = FALSE) {
   if (is.null(term)) {
     return(empty_temporal_mu_structure())
   }
@@ -198,7 +275,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     gap <- as.integer(gap)
   }
   distinct_lags <- sort(unique(pairwise_lags[pairwise_lags > 0]))
-  required_lags <- if (has_ordinary_intercept) 3L else 2L
+  required_lags <- if (isTRUE(paired_phylo_stable)) 3L else if (has_ordinary_intercept) 3L else 2L
   has_required_lags <- length(distinct_lags) >= required_lags && (
     identical(term$structure, "ou") || any(distinct_lags %% 2L == 1L)
   )
@@ -208,6 +285,15 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
       "x" = "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}.",
       "i" = "Keep genuine sampling gaps and collect more distinct within-series occasions."
     ))
+  }
+  if (isTRUE(paired_phylo_stable) && n_series < 3L) {
+    cli::cli_abort("The paired phylogenetic-temporal OU model requires at least three retained species after response omission.")
+  }
+  if (isTRUE(paired_phylo_stable)) {
+    series_size <- tabulate(ordered_series, nbins = n_series)
+    if (any(series_size < 2L)) {
+      cli::cli_abort("Each species in the paired phylogenetic-temporal OU model needs at least two retained observations after response omission.")
+    }
   }
   if (has_ordinary_intercept && n_series < 2L) {
     cli::cli_abort(c(
@@ -224,6 +310,8 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     group = term$group,
     time = term$time,
     structure = term$structure,
+    paired_phylo_stable = isTRUE(paired_phylo_stable),
+    minimum_distinct_lags = as.integer(required_lags),
     n_series = as.integer(n_series),
     n_re = as.integer(nrow(data)),
     series_levels = series_levels,

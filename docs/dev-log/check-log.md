@@ -86137,7 +86137,7 @@ Evidence:
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
   then passed with 4,096 assertions, 0 failures, 0 warnings, and 0 skips.
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
-  passed with 4,812 assertions, 0 failures, 0 warnings, and 0 skips.
+  passed with 4,813 assertions, 0 failures, 0 warnings, and 0 skips.
 - `python3 -m py_compile tools/validate-mission-control.py` passed.
 - `python3 tools/validate-mission-control.py` passed and reported 16
   structured RE q4 intercept denominator-precheck rows.
@@ -94626,3 +94626,5 @@ Closeout report:
 | 2026-09-09 | Phylogenetic stable-intercept plus independent-OU Ultra Plan | Prior-work sweep, official glmmTMB covariance source map, NotebookLM connection preflight, two independent plan reviews, and Unlazy ledger parse completed | First slice is explicitly `phylo()` stable intercept plus independent same-species OU. The wrong separable field is mutation-gated; profile calibration is predeclared but not authorized or run. | Codex / Noether / Pat / Rose |
 
 | 2026-09-09 | Phylogenetic-temporal OU Phase 0 bootstrap | P1 and source-map runner self-tests; G1; M01-bootstrap; M02; M03; focused testthat 6 passes | P1 execution is anchored to a1d01dab3. Source map is cited and separates a blocked Toeplitz parameterisation lead; no estimator, fit, campaign, or public capability changed. | Codex |
+
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU parser/layout | G2 PASS; paired parser 13 assertions; existing temporal parser 6; OU 64; runner 6 | Admits only same-ID `phylo(1 | species, tree = tree)` plus OU and checks raw and retained support. A successful point fit is not oracle or inference evidence. | Codex |

@@ -14,10 +14,10 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G1_PASS
   EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G1_PASS; runner self-test rejected a missing fixture.
 
-- [ ] G2: The paired `phylo()` plus OU grammar accepts only same-species IDs and valid tree/time metadata, preserving unbalanced rows and input order.
+- [x] G2: The paired `phylo()` plus OU grammar accepts only same-species IDs and valid tree/time metadata, preserving unbalanced rows and input order.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G2
   EXPECT: PHYLO_TEMPORAL_OU_G2_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 direct worker returned PHYLO_TEMPORAL_OU_G2_PASS. Focused paired tests passed 13 assertions, including mismatched IDs, ordinary-intercept exclusion, raw duplicate keys, insufficient species, retained singleton series, and mismatched tree tips.
 
 - [ ] G3: An independently coded dense marginal covariance oracle covers non-diagonal phylogeny, irregular elapsed time, unbalanced species sampling and shuffled rows, including a cross-species nonzero-lag entry with selected `A_ij != 0`, `s_a > 0` and finite positive decay that equals stable phylogenetic covariance only.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G3

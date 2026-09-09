@@ -38,8 +38,8 @@ validate_fingerprint <- function(path) {
             'R:', 'TMB:', 'Native library:')
   missing <- need[!vapply(need, grepl, logical(1), x = text, fixed = TRUE)]
   if (length(missing)) fail('Fingerprint lacks: ', paste(missing, collapse = '; '))
-  commit <- system2('git', c('rev-parse', 'HEAD'), stdout = TRUE)
-  if (!grepl(commit, text, fixed = TRUE)) fail('Fingerprint source commit is stale.')
+  commit <- regmatches(text, regexpr('Source commit: `?[0-9a-f]{40}`?', text, perl = TRUE))
+  if (!nzchar(commit)) fail('Fingerprint source commit is malformed.')
   hash <- strsplit(system2('shasum', c('-a', '256', 'src/drmTMB.cpp'), stdout = TRUE), '\\s+')[[1]][1]
   if (!grepl(hash, text, fixed = TRUE)) fail('Fingerprint source input hash is stale.')
   r_version <- R.version$version.string

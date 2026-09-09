@@ -4055,11 +4055,15 @@ drm_build_gaussian_ls_spec <- function(
       "i" = "Fit one structured layer at a time until multiple structured layers have their own identifiability checks."
     ))
   }
-  if (!is.null(mu_temporal$term) && length(active_structured) > 0L) {
+  paired_phylo_temporal_ou <- validate_phylo_temporal_ou_pair(
+    mu_temporal$term, mu_phylo$term, data, env
+  )
+  if (!is.null(mu_temporal$term) && length(active_structured) > 0L &&
+      !isTRUE(paired_phylo_temporal_ou)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU models cannot be combined with another structured effect in this first slice.",
+      "Temporal AR1 and OU models cannot be combined with another structured effect in this slice.",
       "x" = "The model also contains {.val {active_structured}}.",
-      "i" = "Fit one temporal effect with an optional ordinary {.code (1 | id)} intercept."
+      "i" = "The only admitted combined route is {.code phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = \"ou\")}."
     ))
   }
   structured_terms <- lapply(
@@ -4105,7 +4109,8 @@ drm_build_gaussian_ls_spec <- function(
     mu_re,
     sigma_re,
     sigma_entry$rhs,
-    data
+    data,
+    paired_phylo_stable = paired_phylo_temporal_ou
   )
   if (!is.null(mesh_spatial_term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(
@@ -4465,7 +4470,8 @@ drm_build_gaussian_ls_spec <- function(
   temporal_mu <- build_temporal_mu_structure(
     mu_temporal$term,
     data_model,
-    has_ordinary_intercept = length(mu_re$terms) == 1L
+    has_ordinary_intercept = length(mu_re$terms) == 1L,
+    paired_phylo_stable = paired_phylo_temporal_ou
   )
   if (!is.null(mesh_spatial_term) &&
       (include_missing_response || include_missing_predictor)) {
