@@ -4230,19 +4230,11 @@ summary.drmTMB <- function(
   validate_profile_level(level)
   method <- validate_interval_method(method, c("wald", "profile"), "summary()")
   if (drm_has_temporal_mu(object) && conf.int) {
-    if (identical(object$model$structured$temporal_mu$structure, "ou")) {
-      cli::cli_abort(c(
-        "OU summary Wald intervals are not yet qualified.",
-        "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald inference is deferred."
-      ))
+    ci_parm <- if (identical(method, "wald")) {
+      validate_temporal_wald_parm(object, ci_parm)
+    } else {
+      validate_temporal_profile_parm(object, ci_parm)
     }
-    if (!identical(method, "wald")) {
-      cli::cli_abort(c(
-        "Temporal AR1 summary intervals currently support mean-coefficient Wald intervals only.",
-        "i" = "Use {.code summary(fit, conf.int = TRUE, method = \"wald\")}."
-      ))
-    }
-    ci_parm <- validate_temporal_wald_parm(object, ci_parm)
   }
   profile_precision <- resolve_profile_precision(
     profile_precision,
@@ -4290,6 +4282,9 @@ summary.drmTMB <- function(
         profile_precision = profile_precision,
         ...
       )
+      if (drm_has_temporal_mu(object)) {
+        warn_temporal_profile_hessian(object)
+      }
       coefficient_ci <- summary_profile_coefficient_ci(
         object,
         parameter_ci,

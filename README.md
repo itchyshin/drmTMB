@@ -309,10 +309,12 @@ head(sigma(fit)^2) # fitted residual variances
   are univariate Gaussian ML models with constant `sigma`, one temporal
   intercept process, and an optional ordinary `(1 | id)` intercept using the
   same ID. AR1 Wald intervals cover mean coefficients only when the full
-  observed Hessian is positive definite. OU reports point estimates while its
-  inherited calibration prerequisite remains unresolved. Process, persistence,
-  decay, and residual intervals, forecasts, and `newdata` prediction remain
-  unavailable. For the
+  observed Hessian is positive definite. AR1 and OU both provide
+  mean-coefficient likelihood profiles through
+  `confint(fit, parm = "mu:<coefficient>", method = "profile")`; their
+  coverage remains uncalibrated, and `check_drm()` marks irregular fitted
+  Hessians. OU Wald inference remains deferred. Process, persistence, decay,
+  residual, bootstrap, forecast, and `newdata` intervals remain unavailable. For the
   other Gaussian structured effects,
   those markers fit documented `mu` and `sigma` intercept routes, one numeric
   `mu` slope, q=2 bivariate mean-mean intercept and slope-only blocks, and

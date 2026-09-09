@@ -33,8 +33,10 @@
 
 \item{parm}{Optional character or integer vector selecting interval targets.
 \code{NULL} selects all direct Wald-ready targets for Wald intervals. Profile
-intervals require explicit target names or target-set shortcuts. Supported
-shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
+intervals usually require explicit target names or target-set shortcuts;
+for a Gaussian temporal AR1 or OU fit, \code{NULL} selects every mean-model
+coefficient. Temporal profile intervals admit mean coefficients only.
+Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
 \code{"variance_components"}, and \code{"correlations"}.}
 
 \item{level}{Confidence level.}
@@ -240,6 +242,14 @@ behaviour and does \strong{not} claim nominal coverage on every route.
 \item Fixed effects and other routine Wald-ready targets: start with
 \code{confint(fit)} (\code{method = "wald"}). It is the fastest
 fitted-object route when \code{TMB::sdreport()} succeeded.
+\item Gaussian temporal AR1 and OU mean effects: use
+\code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
+(or omit \code{parm} for every mean coefficient). Temporal Wald output
+remains restricted or deferred, and temporal variance, persistence,
+decay, bootstrap, and \code{newdata} intervals are unavailable.
+Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
+not prevent a finite profile endpoint, but it makes nuisance-parameter
+uncertainty irregular and the interval is not coverage-calibrated.
 \item Random-effect SDs and other direct variance-component targets: prefer
 \code{confint(fit, parm = ..., method = "profile")} after
 \code{profile_targets(fit)} shows the row is profile-ready. Profile

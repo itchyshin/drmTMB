@@ -111,10 +111,14 @@ order. Duplicate series--time keys are rejected before response omission.
 
 OU cannot express negative correlation. Its reported temporal decay
 parameter is the positive decay rate, not a one-unit correlation or an
-innovation SD. `vcov()`, `confint()`, and summary Wald intervals are currently
-deferred for OU because the inherited AR1 interval calibration prerequisite is
-unresolved; OU therefore reports point estimates and explicit unsupported-
-inference diagnostics rather than unqualified intervals.
+innovation SD. OU Wald inference through `vcov()`, `confint(method = "wald")`,
+and `summary(..., method = "wald")` remains deferred because the inherited AR1
+interval calibration prerequisite is unresolved. Fixed `mu` coefficients can
+instead use likelihood profiles through
+`confint(..., parm = "mu:<coefficient>", method = "profile")`. The profile
+route excludes decay and variance parameters, warns if the fitted Hessian is
+irregular, and has deterministic dense-oracle checks but no general coverage
+claim.
 
 ## Implemented TMB Routing
 

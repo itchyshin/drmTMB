@@ -54,6 +54,28 @@ ou_dense_nll_at <- function(fit, par) {
   out
 }
 
+ou_dense_profile_nll <- function(fit, beta_index, beta_value) {
+  par <- fit$opt$par
+  beta_positions <- which(names(par) == "beta_mu")
+  position <- beta_positions[[beta_index]]
+  nuisance_positions <- setdiff(seq_along(par), position)
+  objective <- function(nuisance) {
+    candidate <- par
+    candidate[[position]] <- beta_value
+    candidate[nuisance_positions] <- nuisance
+    ou_dense_nll_at(fit, candidate)
+  }
+  optimized <- stats::nlminb(
+    start = par[nuisance_positions],
+    objective = objective,
+    control = list(eval.max = 1000L, iter.max = 1000L)
+  )
+  if (optimized$convergence != 0L || !is.finite(optimized$objective)) {
+    stop("Independent dense OU profile optimization failed.", call. = FALSE)
+  }
+  optimized$objective
+}
+
 test_that("Gaussian temporal OU likelihood matches an independent dense covariance oracle", {
   for (with_intercept in c(FALSE, TRUE)) {
     dat <- ou_oracle_data(with_intercept)
@@ -94,6 +116,37 @@ test_that("temporal OU score, Hessian, and coefficient covariance match dense re
       tolerance = 1e-7
     )
   }
+})
+
+test_that("temporal OU fixed-effect profile curve matches an independent dense profile", {
+  fit <- suppressWarnings(drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = ou_oracle_data(with_intercept = FALSE, seed = 20260912L),
+    family = gaussian(), REML = FALSE
+  ))
+  curve <- stats::profile(
+    fit,
+    parm = "fixef:mu:x",
+    ystep = 0.5,
+    ytol = 2
+  )
+  beta_x <- unname(fit$opt$par[which(names(fit$opt$par) == "beta_mu")[[2L]]])
+  targets <- c(
+    beta_x - 0.1,
+    beta_x,
+    beta_x + 0.1
+  )
+  rows <- vapply(targets, function(value) {
+    which.min(abs(curve$profile_value - value))
+  }, integer(1L))
+  dense <- vapply(rows, function(row) {
+    ou_dense_profile_nll(
+      fit,
+      beta_index = 2L,
+      beta_value = curve$profile_value[[row]]
+    )
+  }, numeric(1L))
+  expect_equal(curve$objective[rows], dense, tolerance = 1e-6)
 })
 
 test_that("OU reference mutations detect lost elapsed-time and series structure", {

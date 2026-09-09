@@ -58,6 +58,80 @@ test_that("temporal OU defers Wald intervals until the inherited calibration pre
   expect_identical(temporal_wald$status, "note")
   expect_match(temporal_wald$value, "reason=calibration_deferred")
   expect_match(temporal_wald$message, "intentionally unavailable")
+  temporal_profile <- temporal_check[temporal_check$check == "temporal_mean_profile", , drop = FALSE]
+  expect_identical(temporal_profile$status, "note")
+  expect_match(temporal_profile$value, "available_for_this_fit")
+  expect_match(temporal_profile$message, "coverage calibration remains unresolved")
+})
+
+test_that("temporal OU profiles mean coefficients and rejects deferred targets", {
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = temporal_ou_data(), family = gaussian(), REML = FALSE
+  )
+  profile_ci <- stats::confint(fit, parm = "mu:x", method = "profile")
+  expect_equal(profile_ci$parm, "fixef:mu:x")
+  expect_identical(profile_ci$method, "profile")
+  expect_identical(profile_ci$conf.status, "profile")
+  expect_true(is.finite(profile_ci$lower))
+  expect_true(is.finite(profile_ci$upper))
+
+  irregular <- fit
+  irregular$sdr$pdHess <- FALSE
+  expect_warning(
+    irregular_ci <- stats::confint(irregular, parm = "mu:x", method = "profile"),
+    class = "drmTMB_temporal_profile_hessian_warning"
+  )
+  expect_identical(irregular_ci$conf.status, "profile")
+  irregular_check <- drmTMB::check_drm(irregular)
+  irregular_profile <- irregular_check[
+    irregular_check$check == "temporal_mean_profile",
+    ,
+    drop = FALSE
+  ]
+  expect_identical(irregular_profile$status, "warning")
+  expect_match(irregular_profile$value, "base_hessian_non_pd")
+
+  summary_fit <- summary(
+    fit,
+    conf.int = TRUE,
+    method = "profile",
+    ci_parm = "mu:x"
+  )
+  x_row <- summary_fit$coefficients["mu:x", , drop = FALSE]
+  expect_identical(x_row$conf.method, "profile")
+  expect_identical(x_row$conf.status, "profile")
+  expect_true(is.finite(x_row$conf.low))
+  expect_true(is.finite(x_row$conf.high))
+
+  decay <- drmTMB:::profile_targets(fit)$parm[
+    drmTMB:::profile_targets(fit)$target_class == "temporal-decay"
+  ]
+  expect_error(
+    stats::confint(fit, parm = decay, method = "profile"),
+    "mean regression coefficients only"
+  )
+  expect_error(
+    stats::confint(fit, method = "bootstrap"),
+    "do not support.*bootstrap"
+  )
+  expect_error(
+    stats::confint(
+      fit,
+      parm = "mu:x",
+      method = "profile",
+      newdata = temporal_ou_data()[1, , drop = FALSE]
+    ),
+    "do not support.*newdata"
+  )
+  expect_error(
+    stats::confint(fit, parm = "mu:x", method = "profile", profile_engine = "endpoint"),
+    "require.*tmbprofile"
+  )
+  expect_error(
+    stats::confint(fit, parm = "mu:x", method = "profile", profile_endpoint_max_eval = 10L),
+    "do not use.*profile_endpoint_max_eval"
+  )
 })
 
 test_that("temporal OU keeps covariance and decay intervals unavailable", {

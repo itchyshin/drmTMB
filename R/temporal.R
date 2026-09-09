@@ -296,6 +296,27 @@ validate_temporal_wald_parm <- function(object, parm) {
   requested
 }
 
+validate_temporal_profile_parm <- function(object, parm) {
+  targets <- drm_profile_targets(object)
+  allowed <- drm_temporal_mean_target_parm(object)
+  selected <- if (is.null(parm)) {
+    targets[match(allowed, targets$parm), , drop = FALSE]
+  } else {
+    profile_match_confint_targets(targets, parm, fixed_only = FALSE)
+  }
+  bad <- selected$parm[!selected$parm %in% allowed]
+  if (length(bad) > 0L) {
+    temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
+    cli::cli_abort(c(
+      "Temporal {temporal_structure} profile intervals currently support mean regression coefficients only.",
+      "x" = "Unsupported temporal profile target{?s}: {.val {bad}}.",
+      "i" = "Use {.val {allowed}} or compact coefficient labels such as {.val mu:x} with {.code method = \"profile\"}.",
+      "i" = "Variance components and persistence or decay intervals remain deferred."
+    ))
+  }
+  selected$parm
+}
+
 temporal_mu_contribution <- function(object) {
   temporal <- object$model$structured$temporal_mu
   values <- object$random_effects$temporal$values

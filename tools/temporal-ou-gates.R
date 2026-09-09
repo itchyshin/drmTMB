@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 1L || length(args) > 2L || !grepl('^G([1-9]|1[0-5])$', args[[1L]])) {
+if (length(args) < 1L || length(args) > 2L || !grepl('^G([1-9]|1[0-6])$', args[[1L]])) {
   stop('Usage: Rscript --vanilla tools/temporal-ou-gates.R G<number> [--reverify]', call. = FALSE)
 }
 gate <- args[[1L]]
@@ -73,6 +73,24 @@ if (identical(gate, 'G1')) {
   run_file('tests/testthat/test-temporal-ou-dense-oracle.R'); success <- TRUE
 } else if (identical(gate, 'G6')) {
   run_file('tests/testthat/test-temporal-ou.R'); success <- TRUE
+} else if (identical(gate, 'G7')) {
+  profile_source <- paste(readLines('R/profile.R', warn = FALSE), collapse = '\n')
+  temporal_source <- paste(readLines('R/temporal.R', warn = FALSE), collapse = '\n')
+  check_source <- paste(readLines('R/check.R', warn = FALSE), collapse = '\n')
+  needed <- c(
+    'validate_temporal_profile_parm',
+    'warn_temporal_profile_hessian',
+    'temporal_mean_profile'
+  )
+  present <- c(
+    grepl(needed[[1L]], temporal_source, fixed = TRUE),
+    grepl(needed[[2L]], profile_source, fixed = TRUE),
+    grepl(needed[[3L]], check_source, fixed = TRUE)
+  )
+  if (!all(present)) fail('G7 temporal fixed-effect profile interface or irregular-Hessian diagnostic is absent.')
+  run_file('tests/testthat/test-temporal-ou.R')
+  run_file('tests/testthat/test-temporal-ou-dense-oracle.R')
+  success <- TRUE
 } else if (identical(gate, 'G8')) {
   out_dir <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ou-local-recovery'
   required <- file.path(out_dir, c(
@@ -109,7 +127,7 @@ if (identical(gate, 'G1')) {
   success <- TRUE
 } else if (identical(gate, 'G10')) {
   source <- paste(readLines('vignettes/temporal-random-effects.Rmd', warn = FALSE), collapse = '\n')
-  needed <- c('Irregular elapsed time with OU', 'positive decay rate', 'duplicate site--time records')
+  needed <- c('Irregular elapsed time with OU', 'positive decay rate', 'duplicate site--time records', 'method = "profile"', 'check_drm(ou_fit)')
   if (!all(vapply(needed, grepl, logical(1L), x = source, fixed = TRUE))) fail('G10 temporal OU reader guidance is incomplete.')
   success <- TRUE
 } else if (identical(gate, 'G11')) {

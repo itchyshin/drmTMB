@@ -31,10 +31,15 @@ every item above.
   uses finite numeric elapsed time and a positive exponential decay rate.
 * `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
   mean-coefficient uncertainty only when the full observed Hessian supports
-  it. The new OU elapsed-time point-fit route uses `structure = "ou"` with a positive decay rate; its Wald intervals remain deferred behind the AR1 calibration blocker. Variance/persistence intervals, profile/bootstrap inference, forecasts,
-  and `newdata` prediction remain unavailable. The retained pilot found one
-  unavailable primary-cell interval, so this release contains no calibrated
-  coverage claim.
+  it. Both temporal structures also profile fixed mean coefficients through
+  `confint(..., parm = "mu:<coefficient>", method = "profile")`; profile
+  endpoints can remain finite when a fitted Hessian is irregular, so
+  `check_drm()` records that situation and no coverage claim is made. The OU
+  elapsed-time route uses `structure = "ou"` with a positive decay rate; its
+  Wald intervals remain deferred behind the AR1 calibration blocker.
+  Variance/persistence, bootstrap, forecast, and `newdata` intervals remain
+  unavailable. The retained pilot found one unavailable primary-cell Wald
+  interval, so this release contains no calibrated coverage claim.
 
 # drmTMB 0.7.0
 

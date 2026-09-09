@@ -121,8 +121,10 @@ finite-standard-error checks are reported as notes. If \code{sdreport()} was
 requested but failed, those rows are warnings. For Gaussian temporal fits,
 \code{temporal_mean_wald} separately records whether mean-coefficient Wald
 inference is available for this fit, unavailable because its full observed
-Hessian is not usable, or intentionally deferred for the OU route while the
-AR1 calibration prerequisite remains open.
+Hessian is not usable, or intentionally deferred for OU. The separate
+\code{temporal_mean_profile} row records whether fixed-effect profile intervals
+can be computed and whether the fitted Hessian makes their nuisance
+parameters locally irregular.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as

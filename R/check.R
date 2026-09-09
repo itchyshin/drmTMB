@@ -79,8 +79,10 @@
 #' requested but failed, those rows are warnings. For Gaussian temporal fits,
 #' `temporal_mean_wald` separately records whether mean-coefficient Wald
 #' inference is available for this fit, unavailable because its full observed
-#' Hessian is not usable, or intentionally deferred for the OU route while the
-#' AR1 calibration prerequisite remains open.
+#' Hessian is not usable, or intentionally deferred for OU. The separate
+#' `temporal_mean_profile` row records whether fixed-effect profile intervals
+#' can be computed and whether the fitted Hessian makes their nuisance
+#' parameters locally irregular.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -296,6 +298,7 @@ check_drm.drmTMB <- function(
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_interval_reliability_scope(object),
     check_temporal_mean_wald(object),
+    check_temporal_mean_profile(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
@@ -1346,8 +1349,9 @@ check_interval_reliability_scope <- function(object) {
 # This row states the separate public temporal-inference consequence without
 # changing point-estimate diagnostics or inventing a boundary threshold. A
 # positive-definite AR1 Hessian is sufficient for that fit's existing mean-only
-# Wald method, but not a general coverage claim. OU is deliberately deferred at
-# the public interface until the inherited AR1 calibration question is resolved.
+# Wald method, but not a general coverage claim. OU keeps that Wald route
+# deferred; it exposes fixed-effect likelihood profiles through the separately
+# labelled temporal_mean_profile row below.
 check_temporal_mean_wald <- function(object) {
   if (!drm_has_temporal_mu(object)) {
     return(NULL)
@@ -1376,6 +1380,37 @@ check_temporal_mean_wald <- function(object) {
     "note",
     "available_for_this_fit; calibration=unqualified",
     "Temporal AR1 mean-coefficient Wald intervals are available for this fit. Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
+  )
+}
+
+check_temporal_mean_profile <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(NULL)
+  }
+  structure <- toupper(object$model$structured$temporal_mu$structure)
+  if (is.null(object$obj)) {
+    return(check_row(
+      "temporal_mean_profile",
+      "warning",
+      "unavailable; reason=tmb_object_missing",
+      "Temporal mean-coefficient profile intervals require the retained TMB object. Refit with drm_control(keep_tmb_object = TRUE)."
+    ))
+  }
+  hessian_regular <- identical(drm_uncertainty_status(object), "ok") &&
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  if (!hessian_regular) {
+    return(check_row(
+      "temporal_mean_profile",
+      "warning",
+      "available_with_caution; reason=base_hessian_non_pd",
+      "Temporal mean-coefficient profile intervals can be finite, but the fitted full observed Hessian is not positive definite. Treat nuisance-parameter uncertainty as irregular; inspect the profile curve and do not treat the interval as coverage-calibrated."
+    ))
+  }
+  check_row(
+    "temporal_mean_profile",
+    "note",
+    "available_for_this_fit; calibration=unqualified",
+    "Temporal mean-coefficient profile intervals are available for this fit. Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
   )
 }
 

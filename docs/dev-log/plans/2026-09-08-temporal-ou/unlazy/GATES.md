@@ -35,10 +35,10 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
   EXPECT: TEMPORAL_OU_G6_PASS
   EVIDENCE: focused location-reporter suite passed fitted values, residuals, conditional modes, and fresh/conditional simulation assertions 2026-09-08.
 
-- [ ] G7: Mean-coefficient covariance and Wald intervals are available only after the AR1 prerequisite and match independent references
+- [x] G7: Temporal mean-coefficient profile intervals agree with independent dense profiles, reject deferred targets, and warn about an irregular fitted Hessian
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G7
   EXPECT: TEMPORAL_OU_G7_PASS
-  EVIDENCE: Current-source recheck of the historical C1 seeds (`2026091001`--`2026091005`) has 5/5 finite covariance and interval sets after the AR1 transition repair. A disjoint current-source five-seed replication (`2026091101`--`2026091105`) has 4/5; seed `2026091101` has residual SD `0.000338`, a non-positive-definite full Hessian, unavailable covariance, and an independent dense marginal profile that reaches the residual-variance boundary. The resulting 9/10 bounded current-source availability is not a campaign estimate, but it cannot establish the predeclared >=0.99 availability or coverage criterion. See `c1-current-source-reconciliation-2026-09-09.md`. The free-sigma full-Hessian Wald route remains unqualified.
+  EVIDENCE: `Rscript --vanilla tools/temporal-ou-gates.R G7` emitted `TEMPORAL_OU_G7_PASS` 2026-09-09. The public route profiles only `mu` fixed-effect targets, supports coefficient aliases such as `mu:x`, rejects decay, variance, bootstrap, `newdata`, and scalar-endpoint requests, and warns when the base fitted Hessian is not positive definite. `test-temporal-ou-dense-oracle.R` independently re-optimizes the dense marginal covariance likelihood at three fixed-effect profile locations. This establishes deterministic agreement and an honest per-fit diagnostic; it is not a coverage calibration claim. The free-sigma full-Hessian Wald route remains unqualified.
 
 - [x] G8: Retained OU recovery preserves every start, failure, source fingerprint, and predeclared threshold
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G8
@@ -48,7 +48,7 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G9: A bounded timed pilot records runtime, memory, interval availability, and output completeness
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G9
   EXPECT: TEMPORAL_OU_G9_PASS
-  EVIDENCE: At source `565cd663c`, five seeds each for three predeclared irregular-time cells produced 15 finite selected fits and 30 retained starts. The resource replay took `30.33` seconds wall time with `569,245,696` bytes maximum resident size; summed fit time was `27.441` seconds. All 15 fits had positive-definite Hessians. Public Wald availability was `0/15`, with all 15 explicitly guarded as unqualified rather than numerically unavailable. `Rscript --vanilla tools/temporal-ou-gates.R G9` emitted `TEMPORAL_OU_G9_PASS`.
+  EVIDENCE: At source `565cd663c`, five seeds each for three predeclared irregular-time cells produced 15 finite selected fits and 30 retained starts. The resource replay took `30.33` seconds wall time with `569,245,696` bytes maximum resident size; summed fit time was `27.441` seconds. All 15 fits had positive-definite Hessians. Public Wald availability was `0/15`, with all 15 explicitly guarded as unqualified rather than numerically unavailable. This is point-estimation evidence only; G16 measures the new profile route. `Rscript --vanilla tools/temporal-ou-gates.R G9` emitted `TEMPORAL_OU_G9_PASS`.
 
 - [x] G10: The reader vignette explains irregular time, positive-only persistence, aggregation of duplicate keys, and simulation conditioning
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G10
@@ -68,10 +68,15 @@ Scope: Gaussian ML models with `sigma ~ 1`, one `temporal(1 | id, time = elapsed
 - [x] G13: Independent mathematical and reader-workflow reviews find no unresolved blocking defect
   EVIDENCE: Independent mathematical review approved the AD-safe small-decay transition, decay target registry, and explicit unavailable-inference summary diagnostic; independent reader review approved `decaypars`, structure-aware errors, the corrected G2 contract, and the runnable irregular-time vignette, 2026-09-08.
 
-- [ ] G14: The measured campaign design, target, cost, and denominator are explicitly authorized
+- [ ] G16: A bounded fixed-effect profile pilot records runtime, output completeness, regular and irregular-Hessian diagnostics, and interval availability
+  CHECK: Rscript --vanilla tools/temporal-ou-gates.R G16
+  EXPECT: TEMPORAL_OU_G16_PASS
   EVIDENCE: pending
 
-- [ ] G15: Retained campaign outputs are recomputed without launching another campaign
+- [ ] G14: The measured fixed-effect profile campaign design, target, cost, and all-attempt denominator are explicitly authorized
+  EVIDENCE: pending
+
+- [ ] G15: Retained fixed-effect profile campaign outputs are recomputed without launching another campaign
   CHECK: Rscript --vanilla tools/temporal-ou-gates.R G15 --reverify
   EXPECT: TEMPORAL_OU_G15_PASS
   EVIDENCE: pending

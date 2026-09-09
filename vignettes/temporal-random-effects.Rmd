@@ -109,18 +109,27 @@ around the observations' fitted latent structure.
 
 ## What the intervals cover
 
-For this first temporal route, `vcov()` and `confint()` deliberately expose
-uncertainty for the fixed mean coefficients only. Their covariance comes from
-the full observed marginal-likelihood Hessian, including the estimated
-variance and persistence parameters. The process SD, ordinary-intercept SD,
-persistence, and residual SD are point estimates in this release. Profile and
-bootstrap intervals for temporal fits are not available.
+For temporal fits, `vcov()` and Wald `confint()` deliberately expose only mean
+coefficients, and only for AR1. Their covariance comes from the full observed
+marginal-likelihood Hessian, including estimated variance and persistence
+parameters. The process SD, ordinary-intercept SD, persistence or decay, and
+residual SD are point estimates in this release.
 
-Wald output is available only when the full observed marginal-likelihood
-Hessian is positive definite. If that check fails, `vcov()` and `confint()`
-give an explicit unavailable-inference diagnostic instead of an interval. The
-first calibration pilot found such a residual-SD boundary in a primary short-
-series case, so these intervals are not yet a general coverage claim.
+Likelihood profiles are available for temporal mean coefficients in both AR1
+and OU models. Use them when reporting a treatment or other regression effect:
+
+```{r, eval = FALSE}
+confint(fit, parm = "mu:treatment", method = "profile")
+summary(fit, conf.int = TRUE, method = "profile", ci_parm = "mu:treatment")
+```
+
+Omit `parm` or `ci_parm` to profile every mean coefficient. Variance-component,
+persistence or decay, bootstrap, forecasting, and `newdata` intervals remain
+unavailable. `check_drm(fit)` labels a non-positive-definite fitted Hessian as
+an irregular nuisance-parameter situation: a mean-coefficient profile can
+still be finite there, but it is not coverage-calibrated. The first calibration
+pilot found a residual-SD boundary in a primary short-series case, so neither
+the Wald nor profile route is yet a general coverage claim.
 
 The fit supports in-sample predictions, fitted values, residuals, and
 simulation. It does not support forecasting or `newdata` prediction. Supply a
@@ -164,6 +173,8 @@ ou_fit <- drmTMB(
 )
 summary(ou_fit)
 ou_fit$decaypars$temporal
+confint(ou_fit, parm = "mu:treatment", method = "profile")
+check_drm(ou_fit)
 head(fitted(ou_fit))
 simulate(ou_fit, nsim = 2)
 ```
@@ -175,5 +186,8 @@ simulation follow the AR1 conventions. Forecasting and `newdata` prediction
 remain unavailable. `ou_fit$decaypars$temporal` is the positive decay rate in
 the units of `elapsed_days`: if you change days to hours, the numerical rate
 changes by the inverse factor while the fitted correlation over a physical gap
-does not. `vcov()`, `confint()`, and `summary(..., conf.int = TRUE)` deliberately
-refuse OU Wald inference until the inherited AR1 calibration issue is resolved.
+does not. OU Wald inference through `vcov()`, `confint(..., method = "wald")`,
+and `summary(..., conf.int = TRUE, method = "wald")` remains unavailable.
+Use `confint(..., parm = "mu:<coefficient>", method = "profile")` for a mean
+effect, read its `conf.status`, and inspect `check_drm(ou_fit)` before
+reporting it. OU decay and variance-component intervals remain unavailable.
