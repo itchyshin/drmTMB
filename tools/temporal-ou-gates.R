@@ -57,6 +57,24 @@ if (identical(gate, 'G1')) {
   if (!identical(provenance$value[provenance$key == 'runner_md5'], runner_hash)) fail('G8 recovery runner hash does not match the retained source.')
   if (!all(c('convergence', 'warning', 'error') %in% names(attempts)) || !all(criteria$pass) || nrow(attempts) != 24L || any(table(attempts$fixture) != 2L) || any(!is.finite(attempts$decay_start) | attempts$decay_start <= 0)) fail('G8 retained OU recovery criteria or start records are incomplete.')
   success <- TRUE
+} else if (identical(gate, 'G9')) {
+  out_dir <- 'docs/dev-log/simulation-artifacts/2026-09-09-temporal-ou-pilot'
+  required <- file.path(out_dir, c(
+    'raw-attempts.csv', 'pilot-results.csv', 'pilot-summary.csv',
+    'provenance.csv', 'pilot-results.rds', 'session-info.txt', 'RESULTS.md',
+    'resource-replay.txt'
+  ))
+  if (!all(file.exists(required))) fail('G9 requires retained OU pilot and resource outputs.')
+  results <- read.csv(file.path(out_dir, 'pilot-results.csv'), stringsAsFactors = FALSE)
+  attempts <- read.csv(file.path(out_dir, 'raw-attempts.csv'), stringsAsFactors = FALSE)
+  provenance <- read.csv(file.path(out_dir, 'provenance.csv'), stringsAsFactors = FALSE)
+  runner_hash <- unname(tools::md5sum('tools/run-temporal-ou-pilot.R'))
+  source_commit <- provenance$value[provenance$key == 'source_commit']
+  resource <- paste(readLines(file.path(out_dir, 'resource-replay.txt'), warn = FALSE), collapse = '\n')
+  if (length(source_commit) != 1L || system2('git', c('cat-file', '-e', paste0(source_commit, '^{commit}'))) != 0L) fail('G9 pilot provenance does not name a valid source commit.')
+  if (!identical(provenance$value[provenance$key == 'runner_md5'], runner_hash)) fail('G9 pilot runner hash does not match the retained source.')
+  if (nrow(results) != 15L || nrow(attempts) != 30L || any(table(attempts$fixture) != 2L) || !all(results$selected & is.finite(results$objective)) || !all(is.finite(results$elapsed_sec) & results$elapsed_sec > 0) || !grepl('maximum resident set size', resource, fixed = TRUE)) fail('G9 retained OU pilot outputs are incomplete.')
+  success <- TRUE
 } else if (identical(gate, 'G10')) {
   source <- paste(readLines('vignettes/temporal-random-effects.Rmd', warn = FALSE), collapse = '\n')
   needed <- c('Irregular elapsed time with OU', 'positive decay rate', 'duplicate site--time records')
