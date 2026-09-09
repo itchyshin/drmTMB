@@ -498,5 +498,5 @@ Run the detailed ledger parser before P0 dispatch:
   docs/dev-log/plans/2026-09-09-temporal-covariance-programme/unlazy/MASTER-GATES.md
 ~~~
 
-The 33-gate ledger specifies phase/arc commands and manual authority points. Its status
+The 34-gate ledger specifies phase/arc commands and manual authority points. Its status
 is evidence, not permission to run an unchecked command.

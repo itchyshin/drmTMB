@@ -1,7 +1,7 @@
 # Temporal covariance Ultra Master Plan — execution ledger
 
 Scope: Master orchestration contract. Each model creates and re-verifies its own executable
-ledger. A checked master gate needs a non-pending evidence line. There are 33 gates:
+ledger. A checked master gate needs a non-pending evidence line. There are 34 gates:
 28 runnable and five manual. Nothing below authorizes a remote campaign, push, merge,
 release, deployment or external message.
 
@@ -40,10 +40,14 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G6
   EXPECT: PHYLO_TEMPORAL_OU_G6_PASS
   EVIDENCE: 2026-09-09 execution commit 3c600263b: G6 passed; missing phylogenetic off-diagonal, separable field, shared OU state, missing stable term, omitted normalizer, and misaligned tree each differ from the reference.
-- [x] P1-methods: Modes, simulation, fitted values, residuals and profile boundary agree.
+- [x] P1-methods: Modes, fitted values, residuals, simulations and public profile-target boundary agree.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G7
   EXPECT: PHYLO_TEMPORAL_OU_G7_PASS
-  EVIDENCE: 2026-09-09 execution commit 039f84739: direct G7 returned PHYLO_TEMPORAL_OU_G7_PASS. The 25-assertion suite reconstructs fixed, phylogenetic-stable and independent-OU components for conditional fitted values/residuals and both simulation modes; it retains nested labels and fences off unqualified Wald/non-mean/newdata inference. Dense profile endpoints remain G8.
+  EVIDENCE: 2026-09-09 execution commit 039f84739: direct G7 returned PHYLO_TEMPORAL_OU_G7_PASS. The 25-assertion suite reconstructs fixed, phylogenetic-stable and independent-OU components for conditional fitted values/residuals and both simulation modes; it retains nested labels and fences off unqualified Wald/non-mean/newdata inference.
+- [x] P1-profile: Fixed-mean profile endpoints agree with an independent dense likelihood, while deferred targets and irregular-Hessian warnings remain explicit.
+  CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G8
+  EXPECT: PHYLO_TEMPORAL_OU_G8_PASS
+  EVIDENCE: 2026-09-09 execution commit b9af2fd4b: direct G8 returned PHYLO_TEMPORAL_OU_G8_PASS. A direct dense Cholesky likelihood re-optimized every nuisance parameter and found 90% slope endpoints 0.17577 and 0.59428, matching public endpoints within 0.0004; decay/SD/bootstrap/newdata/endpoint-engine routes remain rejected and non-PD-Hessian warning behavior is tested.
 - [ ] P1-pilot: Five-seed pilot has complete denominators and a measured resource estimate.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS

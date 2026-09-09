@@ -94618,3 +94618,10 @@ receipt. The new evidence reconstructs every stable-phylogenetic and independent
 contribution through public fitted/residual/simulation behavior, without promoting any
 Wald, non-mean or `newdata` inference claim. Dense profile endpoints remain a separate
 G8 requirement.
+
+## 2026-09-09 — master ledger adds explicit P1 dense-profile gate
+
+P1's prior single methods row did not separately expose its G8 dense-profile proof even
+though P1.4 depends on G7–G8. The master ledger now has `P1-profile`, tied to execution
+commit `b9af2fd4b`; it records the independent nuisance-reoptimized likelihood-ratio
+endpoint check and the retained deferred-target/Hessian-warning boundaries.
