@@ -94610,3 +94610,11 @@ parent-to-child launch receipt. `git diff --check` passed. The Unlazy status par
 counted 33 gates and truthfully retained 25 unfinished gates; status mode executed no
 checks and no model code, simulation or campaign was launched. Detail repair report:
 `docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-master-detail.md`.
+
+## 2026-09-09 — master ledger reconciles P1 methods evidence
+
+Master P1-methods now points to execution commit `039f84739` and its passing G7
+receipt. The new evidence reconstructs every stable-phylogenetic and independent-OU
+contribution through public fitted/residual/simulation behavior, without promoting any
+Wald, non-mean or `newdata` inference claim. Dense profile endpoints remain a separate
+G8 requirement.

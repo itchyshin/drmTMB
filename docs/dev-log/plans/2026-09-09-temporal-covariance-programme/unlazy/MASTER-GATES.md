@@ -40,10 +40,10 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G6
   EXPECT: PHYLO_TEMPORAL_OU_G6_PASS
   EVIDENCE: 2026-09-09 execution commit 3c600263b: G6 passed; missing phylogenetic off-diagonal, separable field, shared OU state, missing stable term, omitted normalizer, and misaligned tree each differ from the reference.
-- [ ] P1-methods: Modes, simulation, fitted values, residuals and profile boundary agree.
+- [x] P1-methods: Modes, simulation, fitted values, residuals and profile boundary agree.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G7
   EXPECT: PHYLO_TEMPORAL_OU_G7_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-09 execution commit 039f84739: direct G7 returned PHYLO_TEMPORAL_OU_G7_PASS. The 25-assertion suite reconstructs fixed, phylogenetic-stable and independent-OU components for conditional fitted values/residuals and both simulation modes; it retains nested labels and fences off unqualified Wald/non-mean/newdata inference. Dense profile endpoints remain G8.
 - [ ] P1-pilot: Five-seed pilot has complete denominators and a measured resource estimate.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS
