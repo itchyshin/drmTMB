@@ -35,7 +35,7 @@ qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
 | Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
 | Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
 | Independent review | Noether cleared the marginal likelihood, PACF map, normalization, and profile/Wald boundary after the repair. Pat cleared the applied workflow, retained scope, label-aware error, and rendered help. |
-| Local package verification | The repaired source built with `R CMD build --no-build-vignettes`. `R CMD check --no-manual --no-vignettes` passed installation, examples, documentation, and all tests; its two warnings are the expected missing generated `inst/doc` outputs in this deliberately no-vignette mode. The full no-manual check also reached green tests but did not finish its unrelated all-vignette rebuild, so T3-12 remains open. |
+| Local package verification | The repaired source built with `R CMD build .`. The final `R CMD check --no-manual` completed installation, examples, documentation, full tests, and vignette rebuilding. Its two warnings are the known source-layout result of omitting generated `inst/doc` outputs from the tarball; they are retained as warnings rather than described as clean verification. |
 
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 

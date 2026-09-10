@@ -3,8 +3,8 @@
 args <- commandArgs(trailingOnly = TRUE)
 reverify <- length(args) == 2L && identical(args[[2L]], "--reverify")
 if (!((length(args) == 1L && args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "T3-8", "T3-11", "M3")) ||
-      (length(args) == 2L && identical(args[[1L]], "T3-10") && reverify))) {
-  stop("Only implemented deterministic and retained-evidence gates are accepted. T3-10 requires --reverify; other gates remain pending.", call. = FALSE)
+      (length(args) == 2L && args[[1L]] %in% c("T3-10", "T3-12") && reverify))) {
+  stop("Only implemented deterministic and retained-evidence gates are accepted. T3-10 and T3-12 require --reverify; other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
@@ -28,7 +28,38 @@ run_test_file <- function(path, compile = TRUE) {
   }
 }
 
-if (identical(gate, "T3-10")) {
+if (identical(gate, "T3-12")) {
+  closeout <- "docs/dev-log/evidence/temporal-homtoep/2026-09-10-p2-closeout.md"
+  after_task <- "docs/dev-log/after-task/2026-09-10-temporal-homtoep-p2-closeout.md"
+  required <- list(
+    closeout = c(
+      "Noether rechecked", "Pat rechecked", "R CMD build .",
+      "R CMD check --no-manual", "two package-wide warnings",
+      "not presented as a clean warning-free check"
+    ),
+    after_task = c(
+      "## Goal", "## Mathematical Contract", "## Checks Run",
+      "## Tests Of The Tests", "## Known Limitations", "## Next Actions",
+      "temporal `sigma` (scale) capability"
+    )
+  )
+  paths <- c(closeout = closeout, after_task = after_task)
+  for (name in names(paths)) {
+    if (!file.exists(paths[[name]])) {
+      stop(sprintf("T3-12 is missing its %s receipt.", name), call. = FALSE)
+    }
+    text <- gsub("\\s+", " ", paste(readLines(paths[[name]], warn = FALSE), collapse = "\n"))
+    if (!all(vapply(required[[name]], grepl, logical(1L), x = text, fixed = TRUE))) {
+      stop(sprintf("T3-12 %s receipt is incomplete.", name), call. = FALSE)
+    }
+  }
+  # T3-12 reuses the already-built native library: this closeout reverify
+  # checks the current R interface and retained evidence, not compilation.
+  run_test_file("tests/testthat/test-temporal-homtoep-parser.R", compile = FALSE)
+  run_test_file("tests/testthat/test-temporal-homtoep-native.R", compile = FALSE)
+  run_test_file("tests/testthat/test-temporal-homtoep-intervals.R", compile = FALSE)
+  cat("TEMPORAL_HOMTOEP_T3_12_PASS\n")
+} else if (identical(gate, "T3-10")) {
   campaign_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT")
   if (!nzchar(campaign_dir)) {
     stop("T3-10 requires DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT naming retained campaign outputs; reverify never launches a campaign.", call. = FALSE)
