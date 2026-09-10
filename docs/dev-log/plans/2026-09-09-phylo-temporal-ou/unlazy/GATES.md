@@ -54,6 +54,11 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G9_PASS
   EVIDENCE: 2026-09-09 FAILED, retained for diagnosis. The corrected 50-species 24-fixture denominator at `docs/dev-log/simulation-artifacts/2026-09-09-phylo-temporal-ou-local-recovery-v4/` retained 24 finite selected fits and 48 starts; log-SD (0.153) and log-decay (0.276) criteria passed, but mean fixed-effect error was 0.182 > 0.150. A separate 80-species diagnostic with the same seeds and thresholds at `...-v6-high-information/` also retained 24/48 and passed SD/decay criteria but fixed-effect error was 0.165 > 0.150. Earlier v1/v2 artifacts retain runner-interface failures; v3 retains the ordered-treatment confounding diagnosis. No seed/threshold change or promotion occurred; a revised decision is required before G9 can pass.
 
+- [x] G9b: Approved five-fixture recovery pilot retains new seeds, contrast/intercept metrics, two starts, wall time and valid provenance without changing G9.
+  CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b
+  EXPECT: PHYLO_TEMPORAL_OU_G9B_PILOT_PASS
+  EVIDENCE: 2026-09-10 v2 retained five selected fixtures and ten starts at seeds 2026091301--2026091305; all contrast and decay estimates were finite, total fit time was 4.909 seconds, and provenance includes runner MD5 416b4e0bdb9bcabc7de466d6d5731ca6. v1 is retained with its NA-MD5 runner defect.
+
 - [ ] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS

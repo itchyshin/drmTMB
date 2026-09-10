@@ -139,6 +139,16 @@ g14 <- function() {
   cat('PHYLO_TEMPORAL_OU_G14_PASS\n')
 }
 
+g9b <- function() {
+  approval()
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-09-phylo-temporal-ou-g9b-pilot-v2')
+  criteria <- utils::read.csv(file.path(d, 'criteria.csv'), check.names = FALSE)
+  provenance <- utils::read.csv(file.path(d, 'provenance.csv'), check.names = FALSE)
+  if (nrow(criteria) != 4L || !all(criteria$pass) ||
+      !any(provenance$key == 'runner_md5' & !is.na(provenance$value) & nzchar(provenance$value))) fail('G9b pilot artifacts are incomplete or lack provenance.')
+  cat('PHYLO_TEMPORAL_OU_G9B_PILOT_PASS\n')
+}
+
 g15 <- function() {
   approval()
   article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
@@ -246,6 +256,8 @@ if (identical(args, '--self-test')) {
   g7()
 } else if (identical(args, 'G8')) {
   g8()
+} else if (identical(args, 'G9b')) {
+  g9b()
 } else if (identical(args, 'G14')) {
   g14()
 } else if (identical(args, 'G15')) {
