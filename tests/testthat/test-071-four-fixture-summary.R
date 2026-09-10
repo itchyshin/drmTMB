@@ -681,6 +681,48 @@ test_that("S7 coverage writer retains one pinned 500-seed row per target", {
   expect_true(all(tab$collector_sha256 == paste(rep("f", 64L), collapse = "")))
 })
 
+test_that("scoreboard keeps S7 coverage outside the generic receipt tier", {
+  root <- normalizePath(testthat::test_path("..", ".."))
+  base <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                    "071-ordinary-laplace")
+  s7 <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R",
+                 "s7-reconcile-campaign.R", "s7-write-coverage-summary.R")) {
+    sys.source(file.path(base, file), envir = s7)
+  }
+  manifest <- s7$r071_s7_manifest()
+  profile_plan <- s7$r071_s7_profile_plan()
+  attempts <- transform(
+    s7$r071_s7_expected_attempts(manifest, profile_plan),
+    estimate = truth, link_estimate = truth, std_error = NA_real_,
+    std_error_status = "unavailable", convergence_status = "unavailable",
+    gradient_max_abs = NA_real_, gradient_status = "unavailable",
+    hessian_status = "unavailable", fit_status = "returned",
+    profile_status = "profile", lower = truth - 1, upper = truth + 1
+  )
+  coverage <- s7$r071_s7_coverage_table(
+    attempts, profile_plan,
+    list(
+      drmtmb_commit = "764ceaf9b1b688b98fc4143656cc4ed08ec0a8c6",
+      drm_jl_commit = "b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c",
+      campaign_metadata_sha256 = paste(rep("a", 64L), collapse = ""),
+      drmtmb_archive_sha256 = paste(rep("b", 64L), collapse = ""),
+      drm_jl_archive_sha256 = paste(rep("c", 64L), collapse = ""),
+      source_pins_sha256 = paste(rep("d", 64L), collapse = ""),
+      runtime_sha256 = paste(rep("e", 64L), collapse = ""),
+      collector_sha256 = paste(rep("f", 64L), collapse = ""),
+      contract_sha256 = paste(rep("0", 64L), collapse = "")
+    )
+  )
+  scoreboard <- new.env(parent = globalenv())
+  sys.source(file.path(root, "tools", "write-parity-scoreboard.R"), envir = scoreboard)
+  aggregated <- scoreboard$sb_ordinary_laplace_s7_aggregate(coverage)
+  expect_identical(nrow(aggregated), 2L)
+  expect_identical(sort(aggregated$attempt_count), c(7000L, 10000L))
+  expect_true(all(aggregated$per_target_attempt_count == 500L))
+  expect_true(all(aggregated$classification == "S7_COVERAGE_CLASSIFIED"))
+})
+
 test_that("S7 campaign collector verifies task receipt checksums", {
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
