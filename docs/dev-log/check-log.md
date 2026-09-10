@@ -34,6 +34,7 @@ qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
 | Focused test | `tests/testthat/test-temporal-homtoep-intervals.R` passes, including covariance re-optimization, finite public endpoints, summary attachment, `check_drm()` qualification label, and negative target checks. |
 | Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
 | Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
+| Local package verification | `R CMD build --no-build-vignettes` succeeded. `R CMD check --no-manual --no-vignettes` passed installation, examples, and all tests; its two warnings are the expected missing generated `inst/doc` outputs in this deliberately no-vignette mode. The full no-manual check also reached green tests but did not finish its unrelated all-vignette rebuild, so T3-12 remains open. |
 
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
