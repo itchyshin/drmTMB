@@ -10,7 +10,7 @@ if (!file.exists(file.path(root, 'DESCRIPTION'))) stop('Run from the drmTMB root
 pkgload::load_all(root, quiet = TRUE)
 
 out_dir <- Sys.getenv('DRMTMB_PHYLO_TEMPORAL_OU_G9B_FULL_OUT', unset = file.path(
-  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v4'
+  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v5'
 ))
 required <- c(
   'manifest.csv', 'contrast-estimates.csv', 'contrast-attempts.csv', 'contrast-summary.csv',
@@ -70,8 +70,9 @@ simulate_fixture <- function(seed, sd_phylo, decay, layout, n_species = 50L) {
 fit_fixture <- function(generated) {
   started <- proc.time()[['elapsed']]
   answer <- tryCatch({
+    tree <- generated$tree
     fit <- drmTMB(
-      bf(y ~ between + within + phylo(1 | species, tree = generated$tree) +
+      bf(y ~ between + within + phylo(1 | species, tree = tree) +
            temporal(1 | species, time = elapsed, structure = 'ou'), sigma ~ 1),
       data = generated$data, family = gaussian(), REML = FALSE
     )
