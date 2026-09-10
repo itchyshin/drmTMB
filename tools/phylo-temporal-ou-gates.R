@@ -151,7 +151,7 @@ g9b <- function() {
 
 g9b_full <- function() {
   approval()
-  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v3')
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v4')
   criteria_path <- file.path(d, 'criteria.csv')
   provenance_path <- file.path(d, 'provenance.csv')
   manifest_path <- file.path(d, 'manifest.csv')
