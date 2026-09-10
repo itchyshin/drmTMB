@@ -68,8 +68,12 @@ else
   [[ -n "$dep_dir" ]] || { echo 'Dependency archive has no source directory.' >&2; exit 2; }
   for source_pkg in "${packages[@]}"; do
     pkg_name=${source_pkg%%_*}
-    [[ ! -d "$campaign_rlib/$pkg_name" ]] || { echo "Refuse to replace provisioned package: $pkg_name" >&2; exit 2; }
-    R CMD INSTALL --library="$campaign_rlib" "$dep_dir/$source_pkg"
+    if [[ -d "$campaign_rlib/$pkg_name" ]]; then
+      Rscript --vanilla -e "loadNamespace('$pkg_name')"
+      printf 'Reusing verified provisioned package: %s\n' "$pkg_name"
+    else
+      R CMD INSTALL --library="$campaign_rlib" "$dep_dir/$source_pkg"
+    fi
   done
 fi
 
