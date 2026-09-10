@@ -13,7 +13,6 @@ set -euo pipefail
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE:?Set the immutable source archive on /project}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT:?Set the durable /project campaign root}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT:?Set the frozen 40-character source commit}"
-: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_RLIB:?Set the read-only R library with drmTMB dependencies}"
 
 if [[ "${SLURM_CLUSTER_NAME:-}" != "rorqual" || -z "${SLURM_JOB_ID:-}" ]]; then
   echo 'Refusing execution outside a scheduled Rorqual job.' >&2
@@ -36,7 +35,7 @@ export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export TMB_NTHREADS=1
 campaign_rlib="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT/Rlib"
-export R_LIBS="$campaign_rlib:$DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_RLIB${R_LIBS:+:$R_LIBS}"
+export R_LIBS="$campaign_rlib${R_LIBS:+:$R_LIBS}"
 
 source_archive="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE"
 run_root="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT"
@@ -60,6 +59,9 @@ source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
 if [[ "${DRMTMB_PHYLO_TEMPORAL_OU_G12_INITIALIZE_RLIB:-0}" == "1" ]]; then
   [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace an existing frozen G12 R library.' >&2; exit 2; }
   mkdir -p "$campaign_rlib"
+  export DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB_INSTALL="$campaign_rlib"
+  Rscript --vanilla -e 'options(repos = c(CRAN = "https://cloud.r-project.org")); install.packages(c("cli", "lifecycle", "TMB", "ape", "numDeriv", "tmbprofile"), lib = Sys.getenv("DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB_INSTALL"), quiet = TRUE)' \
+    > "$node_artifact/dependency-install.log" 2>&1
   R CMD INSTALL --library="$campaign_rlib" "$source_dir" > "$node_artifact/package-install.log" 2>&1
 elif [[ ! -d "$campaign_rlib/drmTMB" ]]; then
   echo 'G12 campaign library is missing; only the scheduled smoke may initialise it.' >&2
@@ -76,7 +78,6 @@ printf "%s\n" "$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" > "$source_dir/SOURC
   echo "source_archive=$source_archive"
   echo "source_archive_sha256=$(sha256sum "$source_archive" | awk '{print $1}')"
   echo "campaign_rlib=$campaign_rlib"
-  echo "dependency_rlib=$DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_RLIB"
 } > "$node_artifact/slurm-provenance.txt"
 Rscript --version >> "$node_artifact/slurm-provenance.txt" 2>&1
 (
