@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6")) {
-  stop("Only `T3-1`, `T3-2`, `T3-3`, `T3-4`, `T3-5`, and `T3-6` are implemented in this runner. Other gates remain pending.", call. = FALSE)
+if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7")) {
+  stop("Only `T3-1` through `T3-7` are implemented in this runner. Other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
@@ -58,7 +58,7 @@ if (identical(gate, "T3-1")) {
 } else if (identical(gate, "T3-5")) {
   run_test_file("tests/testthat/test-temporal-homtoep-reductions.R")
   cat("TEMPORAL_HOMTOEP_T3_5_PASS\n")
-} else {
+} else if (identical(gate, "T3-6")) {
   out_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_RECOVERY_OUT", unset =
     "docs/dev-log/simulation-artifacts/2026-09-10-temporal-homtoep-local-recovery-final-source")
   required <- file.path(out_dir, c("raw-attempts.csv", "recovery-estimates.csv", "criteria.csv", "provenance.csv", "recovery-results.rds", "session-info.txt", "RESULTS.md"))
@@ -79,4 +79,26 @@ if (identical(gate, "T3-1")) {
     stop("T3-6 retained recovery evidence fails its source, denominator, or frozen criteria checks.", call. = FALSE)
   }
   cat("TEMPORAL_HOMTOEP_T3_6_PASS\n")
+} else {
+  out_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_PILOT_OUT", unset =
+    "docs/dev-log/simulation-artifacts/2026-09-10-temporal-homtoep-pilot-final-source")
+  required <- file.path(out_dir, c("raw-attempts.csv", "pilot-results.csv", "pilot-summary.csv", "provenance.csv", "pilot-results.rds", "session-info.txt", "RESULTS.md", "resource-replay.txt"))
+  if (!all(file.exists(required))) stop("T3-7 cannot find the retained final-source pilot evidence.", call. = FALSE)
+  attempts <- read.csv(file.path(out_dir, "raw-attempts.csv"), stringsAsFactors = FALSE)
+  results <- read.csv(file.path(out_dir, "pilot-results.csv"), stringsAsFactors = FALSE)
+  provenance <- read.csv(file.path(out_dir, "provenance.csv"), stringsAsFactors = FALSE)
+  source_commit <- provenance$value[provenance$key == "source_commit"]
+  runner_hash <- provenance$value[provenance$key == "runner_md5"]
+  resource <- paste(readLines(file.path(out_dir, "resource-replay.txt"), warn = FALSE), collapse = "\n")
+  if (length(source_commit) != 1L || length(runner_hash) != 1L ||
+      system2("git", c("cat-file", "-e", paste0(source_commit, "^{commit}"))) != 0L ||
+      system2("git", c("cat-file", "-e", paste0(source_commit, ":tools/run-temporal-homtoep-pilot.R"))) != 0L ||
+      !identical(runner_hash, unname(tools::md5sum("tools/run-temporal-homtoep-pilot.R"))) ||
+      nrow(results) != 15L || nrow(attempts) != 15L || !all(table(attempts$fixture) == 1L) ||
+      !all(results$selected & is.finite(results$objective) & is.finite(results$elapsed_sec) & results$elapsed_sec > 0) ||
+      !all(!results$profile_available & results$n_profile_intervals == 0L & grepl("not yet qualified", results$profile_status, fixed = TRUE)) ||
+      !grepl("maximum resident set size", resource, fixed = TRUE)) {
+    stop("T3-7 retained pilot evidence fails its source, denominator, profile-guard, or resource checks.", call. = FALSE)
+  }
+  cat("TEMPORAL_HOMTOEP_T3_7_PASS\n")
 }
