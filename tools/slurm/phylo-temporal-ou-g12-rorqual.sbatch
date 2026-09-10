@@ -49,7 +49,6 @@ partial="${archive}.partial-${SLURM_JOB_ID}"
 node_root="${SLURM_TMPDIR:-/tmp}/drmtmb-phylo-ou-g12-${SLURM_JOB_ID}-${task_id}"
 node_artifact="$node_root/$task_label"
 node_source="$node_root/source"
-node_deps="$node_root/deps"
 
 [[ -f "$source_archive" ]] || { echo 'Immutable source archive is absent.' >&2; exit 2; }
 [[ -f "$dep_archive" ]] || { echo 'Offline dependency archive is absent.' >&2; exit 2; }
@@ -68,9 +67,8 @@ on_exit() {
   exit "$code"
 }
 trap on_exit EXIT
-mkdir -p "$node_artifact" "$node_source" "$node_deps" "$(dirname "$archive")" "$stage_root/metadata"
+mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$stage_root/metadata"
 tar -xzf "$source_archive" -C "$node_source"
-tar -xzf "$dep_archive" -C "$node_deps"
 source_dir="$node_source"
 if [[ ! -f "$source_dir/DESCRIPTION" ]]; then source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1); fi
 [[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }

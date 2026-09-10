@@ -56,14 +56,14 @@ printf 'source_archive_sha256=%s\ndependency_archive_sha256=%s\n' "$(sha256sum "
 
 if [[ "$stage" == drmTMB ]]; then
   [[ -d "$campaign_rlib/TMB" ]] || { echo 'TMB must be provisioned before drmTMB.' >&2; exit 2; }
-  tar -xzf "$source_archive" -C "$node_root/source"
+  tar --warning=no-unknown-keyword -xzf "$source_archive" -C "$node_root/source"
   source_dir="$node_root/source"
   [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_root/source" -mindepth 1 -maxdepth 1 -type d | head -1)
   [[ -f "$source_dir/DESCRIPTION" ]] || { echo 'Source archive does not contain drmTMB DESCRIPTION.' >&2; exit 2; }
   [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace a provisioned drmTMB library.' >&2; exit 2; }
   R CMD INSTALL --library="$campaign_rlib" "$source_dir"
 else
-  tar -xzf "$dep_archive" -C "$node_root/deps"
+  tar --warning=no-unknown-keyword -xzf "$dep_archive" -C "$node_root/deps"
   dep_dir=$(find "$node_root/deps" -mindepth 1 -maxdepth 1 -type d ! -name '._*' | head -1)
   [[ -n "$dep_dir" ]] || { echo 'Dependency archive has no source directory.' >&2; exit 2; }
   for source_pkg in "${packages[@]}"; do
