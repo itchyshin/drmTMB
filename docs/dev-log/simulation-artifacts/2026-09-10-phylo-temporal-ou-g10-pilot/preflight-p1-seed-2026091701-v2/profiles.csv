@@ -1,0 +1,4 @@
+"id","cell","replicate","parm","available","conf_status","lower","upper","elapsed_sec","error"
+"P1_01","P1",1,"fixef:mu:(Intercept)",TRUE,"profile",-0.866922389995873,0.860109921603484,6.661,NA
+"P1_01","P1",1,"fixef:mu:between",TRUE,"profile",0.27537071087992,0.76625935691243,3.775,NA
+"P1_01","P1",1,"fixef:mu:within",TRUE,"profile",0.297617871119608,0.536303515670005,3.531,NA

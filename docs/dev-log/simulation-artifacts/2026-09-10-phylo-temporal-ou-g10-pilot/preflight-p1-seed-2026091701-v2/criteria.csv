@@ -1,0 +1,7 @@
+"criterion","observed","expected","pass"
+"complete generated-dataset denominator",1,1,TRUE
+"complete selected-fit records",1,1,TRUE
+"complete configured two-start denominator",2,2,TRUE
+"complete fixed-mean profile records",3,3,TRUE
+"complete diagnostics records",1,1,TRUE
+"recorded source and runner provenance",2,2,TRUE

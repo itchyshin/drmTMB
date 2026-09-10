@@ -1,0 +1,21 @@
+"id","convergence","pd_hess","optimizer_message","profile_available","fit_warning_count","profile_warning_count"
+"P1_01",0,TRUE,"converged (Newton polish; max |gradient| = 3.47e-11)",3,0,0
+"P1_02",0,TRUE,"converged (Newton polish; max |gradient| = 1.07e-12)",3,0,0
+"P1_03",0,TRUE,"converged (Newton polish; max |gradient| = 1.2e-11)",3,0,0
+"P1_04",0,TRUE,"converged (Newton polish; max |gradient| = 1.86e-10)",3,0,0
+"P1_05",0,TRUE,"converged (Newton polish; max |gradient| = 1.08e-10)",3,0,0
+"P2_01",0,TRUE,"converged (Newton polish; max |gradient| = 1.02e-10)",3,0,0
+"P2_02",0,TRUE,"converged (Newton polish; max |gradient| = 1.54e-11)",3,0,0
+"P2_03",0,TRUE,"converged (Newton polish; max |gradient| = 1.61e-11)",3,0,0
+"P2_04",0,TRUE,"converged (Newton polish; max |gradient| = 1.07e-11)",3,0,0
+"P2_05",0,TRUE,"converged (Newton polish; max |gradient| = 7.23e-10)",3,0,0
+"P3_01",0,TRUE,"converged (Newton polish; max |gradient| = 1.72e-10)",3,0,0
+"P3_02",0,TRUE,"converged (Newton polish; max |gradient| = 9.88e-11)",3,0,0
+"P3_03",0,TRUE,"relative convergence (4)",3,0,0
+"P3_04",0,TRUE,"converged (Newton polish; max |gradient| = 2.45e-09)",3,0,0
+"P3_05",0,TRUE,"converged (Newton polish; max |gradient| = 1.29e-10)",3,0,0
+"P4_01",0,TRUE,"converged (Newton polish; max |gradient| = 6.98e-13)",3,0,0
+"P4_02",0,TRUE,"converged (Newton polish; max |gradient| = 4.41e-12)",3,0,0
+"P4_03",0,TRUE,"converged (Newton polish; max |gradient| = 8.51e-09)",3,0,0
+"P4_04",0,TRUE,"converged (Newton polish; max |gradient| = 4e-09)",3,0,0
+"P4_05",0,TRUE,"converged (Newton polish; max |gradient| = 5.15e-09)",3,0,0

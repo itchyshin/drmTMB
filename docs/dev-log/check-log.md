@@ -94683,3 +94683,17 @@ contract still requires an explicit decision.
 ## 2026-09-10 — G9b full phylogenetic-stable plus independent OU point recovery
 
 `Rscript --vanilla -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-phylo-temporal-ou-gate-runner.R", reporter="summary")'` passed before the frozen v5 runner checkpoint. `Rscript --vanilla tools/run-phylo-temporal-ou-g9b-full.R` retained 24 contrast fits/48 starts and 300 independent-tree fits/600 starts. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full` returned `PHYLO_TEMPORAL_OU_G9B_FULL_PASS`. The v5 criteria passed between/within contrast MAE 0.123/0.071, median absolute log-SD/decay errors 0.163/0.280, and standardized ensemble intercept bias 0.032/0.072/0.063. G9 remains failed; G10--G13 and all interval claims remain pending.
+
+## 2026-09-10 — phylogenetic-temporal OU G10 timing and diagnostics pilot
+
+After the approved limited G9c decision, the retained checkpointed G10 v2 pilot
+at source `d274753a122ce1710e6674170cfa5b95259c88f1` completed all P1--P4
+cells with five deterministic seeds each: 20 selected fits, 40 configured
+starts, 60 fixed-mean profiles, and 20 diagnostic rows. All 20 fits converged
+with positive-definite Hessians, every one of the 60 profiles was available,
+and no warning was retained. Fit and profile work took 24.826 and 310.254
+seconds, respectively; peak R allocation was 371.1 MB. The immutable verifier
+returned `PHYLO_TEMPORAL_OU_G10_PASS`. The earlier v1 bookkeeping preflight and
+non-checkpointed manifest-only attempt remain in the evidence directory. This
+is operational evidence only: it neither establishes coverage nor authorizes
+the G12 campaign.

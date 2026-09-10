@@ -67,10 +67,10 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
 - [x] G9c: G9b-full is accepted only as the alternative point-recovery prerequisite for the five-seed-per-cell G10 timing and diagnostics pilot; G9 remains failed.
   EVIDENCE: 2026-09-10 user approved G9c in this Codex task. This permits G10 only; it does not qualify profile coverage, Wald covariance, forecasts, `newdata`, a separable phylogeny-by-OU field, or a campaign.
 
-- [ ] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
+- [x] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 checkpointed v2 at source `d274753a122ce1710e6674170cfa5b95259c88f1` retained 20/20 generated and selected fits, 40/40 configured starts, 60/60 fixed-mean profile attempts, and 20/20 diagnostics. Every fit converged with a positive-definite Hessian; every profile was available; no warnings were retained. Total fit/profile elapsed time was 24.826/310.254 seconds and peak R allocation was 371.1 MB. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G10` returned `PHYLO_TEMPORAL_OU_G10_PASS`. The initial v1 preflight bookkeeping failure and non-checkpointed manifest-only attempt remain retained beside the successful v2; G10 does not qualify coverage or authorize G12.
 
 - [ ] G11: The predeclared 95% profile-calibration contract fixes P1–P4, targets, all-attempt denominators, unavailable-endpoint policy, lower/upper-tail reporting, acceptance bounds and Monte Carlo precision; its worker and assessment helper reject incomplete denominators, forged provenance and a known failing coverage fixture.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G11
