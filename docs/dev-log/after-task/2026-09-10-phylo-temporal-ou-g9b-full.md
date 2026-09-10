@@ -31,7 +31,7 @@ The gate-runner test asserts that G9b-full fails closed before artifacts exist. 
 
 ## 7a. Issue Ledger
 
-No matching gllvmTMB GitHub issue was found locally. GitHub's API was unreachable when this report was written, so no external issue was created. The requested ready-to-post handoff is retained at `docs/dev-log/handover/2026-09-10-gllvmtmb-phylo-temporal-ou.md`.
+No matching gllvmTMB GitHub issue was found locally. GitHub's API was initially unreachable. A later external-post attempt was declined by automatic approval review because the exact destination and detailed payload need explicit confirmation; no external issue was created. The requested ready-to-post handoff is retained at `docs/dev-log/handover/2026-09-10-gllvmtmb-phylo-temporal-ou.md`.
 
 ## 8. Consistency Audit
 
