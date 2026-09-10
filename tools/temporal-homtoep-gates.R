@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a")) {
-  stop("Only `T3-1` through `T3-7a` are implemented in this runner. Other gates remain pending.", call. = FALSE)
+if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c")) {
+  stop("Only `T3-1` through `T3-7c` are implemented in this runner. Other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
@@ -85,6 +85,13 @@ if (identical(gate, "T3-1")) {
     # native rebuild keeps this diagnostic independent of compiler state.
     run_test_file("tests/testthat/test-temporal-homtoep-identifiability.R", compile = FALSE)
     cat("TEMPORAL_HOMTOEP_T3_7A_PASS\n")
+    quit(status = 0L)
+  }
+  if (identical(gate, "T3-7c")) {
+    status <- system2(file.path(R.home("bin"), "Rscript"),
+      c("--vanilla", "tools/temporal-homtoep-marginal-spike.R"))
+    if (!identical(status, 0L)) stop("T3-7c marginal Toeplitz spike failed.", call. = FALSE)
+    cat("TEMPORAL_HOMTOEP_T3_7C_PASS\n")
     quit(status = 0L)
   }
   out_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_PILOT_OUT", unset =

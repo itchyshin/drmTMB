@@ -50,6 +50,11 @@ equal discrete lags depart from an AR1/OU decay pattern?* It is suited to the
 ordinary one-row-per-series--occasion CSV layout. AR1 and OU remain the routes
 for a latent-process plus residual-noise decomposition.
 
+An independent 80-series by six-occasion pure-R spike fits this exact
+marginal likelihood with a positive numerical observed-information matrix (minimum
+eigenvalue 47.77). It is retained as an M-candidate feasibility check, not as
+recovery, interval, or production-provider evidence.
+
 The redesign must use a distinct public marker (provisionally
 `temporal_cov(1 | id, time = occasion, structure = "homtoep")`) so a covariance
 model cannot be mistaken for a temporal random effect. The exact name remains a

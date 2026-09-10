@@ -94808,3 +94808,14 @@ key. It recommends M while preserving AR1/OU as the routes that separately
 interpret temporal and residual variance. T3-7b is a manual semantic-interface
 gate; it must be selected explicitly before T3-8 calibration, a campaign, or
 reader-facing promotion proceeds.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7c marginal candidate spike
+
+An independent pure-R marginal Toeplitz likelihood was fitted to one simulated
+80-series by six-occasion panel. The likelihood uses one total within-series SD
+and free PACF-derived lag correlations, with no separately estimated residual
+SD. It converged with objective 507.260020 and a minimum numerical observed-
+information eigenvalue of 47.771361. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7c` emitted
+`TEMPORAL_HOMTOEP_T3_7C_PASS`. This supports M as an identified candidate design;
+it is not a public interface, recovery, interval, calibration, or campaign claim.

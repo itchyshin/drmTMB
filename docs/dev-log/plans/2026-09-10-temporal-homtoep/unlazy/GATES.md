@@ -45,6 +45,11 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_7A_PASS
   EVIDENCE: 2026-09-10: the dense covariance and likelihood remain unchanged when temporal variance is rescaled, every free lag correlation is inversely rescaled, and residual variance absorbs the diagonal difference. This proves the direct one-observation-per-series--occasion provider cannot separately identify `sd_temporal`, `sigma`, and a fully free homogeneous Toeplitz correlation matrix. T3-8 through T3-10 remain pending behind an explicit model-redesign decision.
 
+- [x] T3-7c: Independent marginal-Toeplitz candidate spike has finite, positive observed information.
+  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-7c
+  EXPECT: TEMPORAL_HOMTOEP_T3_7C_PASS
+  EVIDENCE: 2026-09-10 pure-R 80-series by 6-occasion spike: an identified total-covariance Toeplitz likelihood converged and had a minimum numerical-Hessian eigenvalue of 47.77. This supports M as a candidate contract; it is not an implementation, calibration, or user-interface decision.
+
 - [ ] T3-7b: User selects an identified Toeplitz contract after reviewing `T3-8-REDESIGN-DECISION.md`.
   EVIDENCE: pending — choose M (marginal covariance for ordinary panels) or R (replicated latent process). This is a semantic interface decision; no code or campaign can select it implicitly.
 
