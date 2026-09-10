@@ -10,7 +10,7 @@ if (!file.exists(file.path(root, 'DESCRIPTION'))) stop('Run from the drmTMB root
 pkgload::load_all(root, quiet = TRUE)
 
 out_dir <- Sys.getenv('DRMTMB_PHYLO_TEMPORAL_OU_G9B_FULL_OUT', unset = file.path(
-  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v2'
+  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v3'
 ))
 required <- c(
   'manifest.csv', 'contrast-estimates.csv', 'contrast-attempts.csv', 'contrast-summary.csv',
@@ -188,7 +188,8 @@ contrast_sd_error <- unlist(lapply(c('phylo', 'temporal', 'sigma'), function(nam
 contrast_decay_error <- abs(log(contrast_selected$decay / contrast_selected$decay_truth))
 finite_ensemble_counts <- table(factor(ensemble_selected$sd_phylo_truth[finite_ensemble], levels = c(0.3, 0.6, 1.0)))
 ensemble_attempt_counts <- table(factor(ensemble$attempts$id, levels = ensemble_manifest$id))
-standardized_bias <- setNames(ensemble_summary$standardized_signed_bias, ensemble_summary$sd_phylo_truth)
+standardized_bias <- setNames(rep(NA_real_, 3L), c('0.3', '0.6', '1'))
+if (nrow(ensemble_summary)) standardized_bias[names(setNames(ensemble_summary$standardized_signed_bias, ensemble_summary$sd_phylo_truth))] <- ensemble_summary$standardized_signed_bias
 criteria <- data.frame(
   criterion = c('G9b-A at least 22 finite selected fits',
                 'G9b-A exactly 48 retained starts, two per fixture',
