@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c")) {
-  stop("Only `T3-1` through `T3-7c` are implemented in this runner. Other gates remain pending.", call. = FALSE)
+if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "M3")) {
+  stop("Only implemented deterministic and retained-evidence gates are accepted. Other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
@@ -26,7 +26,30 @@ run_test_file <- function(path, compile = TRUE) {
   }
 }
 
-if (identical(gate, "T3-1")) {
+if (identical(gate, "M3")) {
+  out_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_MARGINAL_RECOVERY_OUT", unset =
+    "docs/dev-log/simulation-artifacts/2026-09-10-temporal-homtoep-marginal-recovery-v1")
+  required <- file.path(out_dir, c("raw-attempts.csv", "recovery-estimates.csv", "criteria.csv", "provenance.csv", "recovery-results.rds", "session-info.txt", "RESULTS.md"))
+  if (!all(file.exists(required))) stop("M3 cannot find the retained marginal-Toeplitz recovery evidence.", call. = FALSE)
+  criteria <- read.csv(file.path(out_dir, "criteria.csv"), stringsAsFactors = FALSE)
+  attempts <- read.csv(file.path(out_dir, "raw-attempts.csv"), stringsAsFactors = FALSE)
+  recovery <- read.csv(file.path(out_dir, "recovery-estimates.csv"), stringsAsFactors = FALSE)
+  provenance <- read.csv(file.path(out_dir, "provenance.csv"), stringsAsFactors = FALSE)
+  source_commit <- provenance$value[provenance$key == "source_commit"]
+  runner_hash <- provenance$value[provenance$key == "runner_md5"]
+  runner <- "tools/run-temporal-homtoep-marginal-recovery.R"
+  primary <- recovery$cell %in% c("A_ar1", "B_nonexponential", "C_negative_lag")
+  if (length(source_commit) != 1L || length(runner_hash) != 1L ||
+      system2("git", c("cat-file", "-e", paste0(source_commit, "^{commit}"))) != 0L ||
+      system2("git", c("cat-file", "-e", paste0(source_commit, ":", runner))) != 0L ||
+      !identical(runner_hash, unname(tools::md5sum(runner))) ||
+      nrow(recovery) != 12L || nrow(attempts) != 12L ||
+      sum(recovery$selected & primary) != 9L ||
+      !all(table(attempts$fixture) == 1L) || !all(criteria$pass)) {
+    stop("M3 retained marginal-Toeplitz recovery evidence fails its source, denominator, or frozen criteria checks.", call. = FALSE)
+  }
+  cat("TEMPORAL_HOMTOEP_M3_PASS\n")
+} else if (identical(gate, "T3-1")) {
   run_test_file("tests/testthat/test-temporal-homtoep-parser.R")
   cat("TEMPORAL_HOMTOEP_T3_1_PASS\n")
 } else if (identical(gate, "T3-2")) {

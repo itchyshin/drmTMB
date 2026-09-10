@@ -63,10 +63,10 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EXPECT: TEMPORAL_HOMTOEP_T3_1_PASS and TEMPORAL_HOMTOEP_T3_4_PASS
   EVIDENCE: 2026-09-10 exact reverify command emitted both stated receipts after the M-provider rebuild.
 
-- [ ] M3: Frozen marginal-Toeplitz recovery runner retains all attempts, denominators, source fingerprint, and predefined point-recovery criteria.
-  CHECK: Rscript --vanilla tools/run-temporal-homtoep-marginal-recovery.R
-  EXPECT: TEMPORAL_HOMTOEP_MARGINAL_RECOVERY_PASS
-  EVIDENCE: pending
+- [x] M3: Frozen marginal-Toeplitz recovery runner retains all attempts, denominators, source fingerprint, and predefined point-recovery criteria.
+  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R M3
+  EXPECT: TEMPORAL_HOMTOEP_M3_PASS
+  EVIDENCE: 2026-09-10: the committed runner `tools/run-temporal-homtoep-marginal-recovery.R` emitted `TEMPORAL_HOMTOEP_MARGINAL_RECOVERY_PASS` for 12 retained fixtures and 12 attempts. The reverify gate checks the immutable source commit, runner MD5, all 12 outputs, nine primary selected fits, one attempt per fixture, and every frozen criterion without launching fits.
 
 - [ ] M4: Timed marginal-Toeplitz pilot records runtime, memory, point-estimate diagnostics, and denominator completeness.
   CHECK: pending runner path; must be committed before evidence is produced.
