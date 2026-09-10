@@ -64,6 +64,9 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G9B_FULL_PASS
   EVIDENCE: 2026-09-10 v5 at source `8918a9ae03e3e16ac796bc1b30280a901fc81675`, runner MD5 `39cbadd821d8a9f801d596462c29bf5c`, retained 24/48 contrast fixtures/starts and 300/600 independent-tree selected fits/starts. G9b-A passed contrast MAE 0.123 (between) and 0.071 (within), median absolute log-SD error 0.163, and median absolute log-decay error 0.280. G9b-B had 100 finite fits per phylogenetic SD and standardized signed intercept bias 0.032, 0.072, and 0.063 for SD 0.3, 0.6, and 1.0. Earlier v1--v4 setup and parser failures remain retained beside v5; none were overwritten. This repairs point-recovery evidence only: G9 stays failed and G10--G13 remain pending.
 
+- [x] G9c: G9b-full is accepted only as the alternative point-recovery prerequisite for the five-seed-per-cell G10 timing and diagnostics pilot; G9 remains failed.
+  EVIDENCE: 2026-09-10 user approved G9c in this Codex task. This permits G10 only; it does not qualify profile coverage, Wald covariance, forecasts, `newdata`, a separable phylogeny-by-OU field, or a campaign.
+
 - [ ] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS

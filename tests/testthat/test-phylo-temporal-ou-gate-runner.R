@@ -16,8 +16,10 @@ test_that('temporal gate runners fail closed and pass their self-tests', {
                'PHYLO_TEMPORAL_OU_G14_PASS')
   expect_match(system2('Rscript', c('--vanilla', runner, 'G15'), stdout = TRUE),
                'PHYLO_TEMPORAL_OU_G15_PASS')
-  bad_full <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G9b-full'), stdout = TRUE, stderr = TRUE))
-  expect_false(is.null(attr(bad_full, 'status')))
+  expect_match(system2('Rscript', c('--vanilla', runner, 'G9b-full'), stdout = TRUE),
+               'PHYLO_TEMPORAL_OU_G9B_FULL_PASS')
   bad <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G9'), stdout = TRUE, stderr = TRUE))
   expect_false(is.null(attr(bad, 'status')))
+  bad_g10 <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G10'), stdout = TRUE, stderr = TRUE))
+  expect_false(is.null(attr(bad_g10, 'status')))
 })

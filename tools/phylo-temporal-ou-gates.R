@@ -169,6 +169,48 @@ g9b_full <- function() {
   cat('PHYLO_TEMPORAL_OU_G9B_FULL_PASS\n')
 }
 
+g9c <- function() {
+  need_file(ledger)
+  text <- readLines(ledger, warn = FALSE)
+  at <- grep('^- \\[x\\] G9c:', text)
+  evidence <- if (length(at) == 1L && at < length(text)) text[[at + 1L]] else ''
+  if (length(at) != 1L || !grepl('^  EVIDENCE: ', evidence) ||
+      !grepl('user approved G9c', evidence, fixed = TRUE)) {
+    fail('G9c limited-pilot approval is absent.')
+  }
+}
+
+g10 <- function() {
+  approval()
+  g9c()
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g10-pilot')
+  required <- c('manifest.csv', 'selected-fits.csv', 'attempts.csv', 'profiles.csv', 'diagnostics.csv',
+                'warnings.csv', 'criteria.csv', 'provenance.csv', 'g10-pilot-results.rds', 'session-info.txt', 'RESULTS.md')
+  for (path in file.path(d, required)) need_file(path)
+  manifest <- utils::read.csv(file.path(d, 'manifest.csv'), check.names = FALSE)
+  selected <- utils::read.csv(file.path(d, 'selected-fits.csv'), check.names = FALSE)
+  attempts <- utils::read.csv(file.path(d, 'attempts.csv'), check.names = FALSE)
+  profiles <- utils::read.csv(file.path(d, 'profiles.csv'), check.names = FALSE)
+  diagnostics <- utils::read.csv(file.path(d, 'diagnostics.csv'), check.names = FALSE)
+  criteria <- utils::read.csv(file.path(d, 'criteria.csv'), check.names = FALSE)
+  provenance <- utils::read.csv(file.path(d, 'provenance.csv'), check.names = FALSE)
+  expected_cells <- c('P1', 'P2', 'P3', 'P4')
+  expected_parm <- paste0('fixef:mu:', c('(Intercept)', 'between', 'within'))
+  complete <- nrow(manifest) == 20L && identical(sort(unique(manifest$cell)), expected_cells) &&
+    all(table(manifest$cell) == 5L) && length(unique(manifest$seed)) == 20L &&
+    nrow(selected) == 20L && all(manifest$id %in% selected$id) &&
+    nrow(attempts) == 40L && all(table(attempts$id) == 2L) && all(manifest$id %in% attempts$id) &&
+    nrow(profiles) == 60L && all(table(profiles$id) == 3L) && all(manifest$id %in% profiles$id) &&
+    setequal(unique(profiles$parm), expected_parm) && nrow(diagnostics) == 20L &&
+    all(manifest$id %in% diagnostics$id) && nrow(criteria) == 6L && all(criteria$pass) &&
+    all(c('source_commit', 'runner_md5', 'profile_engine', 'profile_precision', 'profile_level') %in% provenance$key) &&
+    identical(provenance$value[provenance$key == 'profile_engine'], 'tmbprofile') &&
+    identical(provenance$value[provenance$key == 'profile_precision'], 'fast') &&
+    identical(provenance$value[provenance$key == 'profile_level'], '0.95')
+  if (!complete) fail('G10 pilot artifacts are incomplete, malformed, or lack complete denominators.')
+  cat('PHYLO_TEMPORAL_OU_G10_PASS\n')
+}
+
 g15 <- function() {
   approval()
   article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
@@ -280,10 +322,12 @@ if (identical(args, '--self-test')) {
   g9b()
 } else if (identical(args, 'G9b-full')) {
   g9b_full()
+} else if (identical(args, 'G10')) {
+  g10()
 } else if (identical(args, 'G14')) {
   g14()
 } else if (identical(args, 'G15')) {
   g15()
 } else {
-  fail('Use --self-test, G1 through G8, G14, or G15; other model gates remain unavailable.')
+  fail('Use --self-test, G1 through G8, G10, G14, or G15; other model gates remain unavailable.')
 }
