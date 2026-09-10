@@ -94678,3 +94678,8 @@ recovery runner now reads the paired public `decay_temporal` label through its
 helper; a disposable six-species, 24-fixture smoke retained 24 finite decay
 estimates, then was removed because it is not evidence. A revised recovery
 contract still requires an explicit decision.
+
+
+## 2026-09-10 — G9b full phylogenetic-stable plus independent OU point recovery
+
+`Rscript --vanilla -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-phylo-temporal-ou-gate-runner.R", reporter="summary")'` passed before the frozen v5 runner checkpoint. `Rscript --vanilla tools/run-phylo-temporal-ou-g9b-full.R` retained 24 contrast fits/48 starts and 300 independent-tree fits/600 starts. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full` returned `PHYLO_TEMPORAL_OU_G9B_FULL_PASS`. The v5 criteria passed between/within contrast MAE 0.123/0.071, median absolute log-SD/decay errors 0.163/0.280, and standardized ensemble intercept bias 0.032/0.072/0.063. G9 remains failed; G10--G13 and all interval claims remain pending.

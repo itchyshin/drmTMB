@@ -1,0 +1,49 @@
+"id","start","decay_start","status","convergence","objective","elapsed_sec","selected","error"
+"balanced_C01",NA,NA,"error",NA,NA,0.044,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C02",NA,NA,"error",NA,NA,0.108,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C03",NA,NA,"error",NA,NA,0.0110000000000001,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C04",NA,NA,"error",NA,NA,0.0100000000000002,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C05",NA,NA,"error",NA,NA,0.0109999999999997,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C06",NA,NA,"error",NA,NA,0.0150000000000001,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C07",NA,NA,"error",NA,NA,0.012,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C08",NA,NA,"error",NA,NA,0.012,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C09",NA,NA,"error",NA,NA,0.0100000000000002,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C10",NA,NA,"error",NA,NA,0.0100000000000002,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C11",NA,NA,"error",NA,NA,0.0140000000000002,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"balanced_C12",NA,NA,"error",NA,NA,0.00999999999999979,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C01",NA,NA,"error",NA,NA,0.012,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C02",NA,NA,"error",NA,NA,0.0110000000000001,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C03",NA,NA,"error",NA,NA,0.0100000000000002,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C04",NA,NA,"error",NA,NA,0.012,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C05",NA,NA,"error",NA,NA,0.0109999999999997,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C06",NA,NA,"error",NA,NA,0.00999999999999979,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C07",NA,NA,"error",NA,NA,0.0110000000000001,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C08",NA,NA,"error",NA,NA,0.0089999999999999,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C09",NA,NA,"error",NA,NA,0.0100000000000002,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C10",NA,NA,"error",NA,NA,0.0150000000000001,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C11",NA,NA,"error",NA,NA,0.0109999999999997,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."
+"unbalanced_C12",NA,NA,"error",NA,NA,0.0110000000000001,FALSE,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`."

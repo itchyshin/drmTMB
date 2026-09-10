@@ -59,10 +59,10 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G9B_PILOT_PASS
   EVIDENCE: 2026-09-10 v2 retained five selected fixtures and ten starts at seeds 2026091301--2026091305; all contrast and decay estimates were finite, total fit time was 4.909 seconds, and provenance includes runner MD5 416b4e0bdb9bcabc7de466d6d5731ca6. v1 is retained with its NA-MD5 runner defect.
 
-- [ ] G9b-full: New frozen 24-fixture contrast recovery and 300-tree ensemble intercept study meet the separate G9b-A and G9b-B criteria without replacing failed G9.
+- [x] G9b-full: New frozen 24-fixture contrast recovery and 300-tree ensemble intercept study meet the separate G9b-A and G9b-B criteria without replacing failed G9.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full
   EXPECT: PHYLO_TEMPORAL_OU_G9B_FULL_PASS
-  EVIDENCE: 2026-09-10 v1 stopped before criteria with a runner residual-SD lookup defect after writing only its frozen manifest. The manifest remains retained at `...-g9b-full/`; v2 uses the same new predeclared seeds and a repaired source commit, but stopped in criteria assembly before writing results. v3 confirmed that the ensemble summary was empty but stopped before retaining raw results. v4 retained the decisive parser failure: the harness supplied `generated$tree` instead of the required named `tree` object, so all 324 fits were rejected before fitting. v5 binds that existing tree to the required local name, retains all earlier artifacts, and uses the unchanged manifest seeds.
+  EVIDENCE: 2026-09-10 v5 at source `8918a9ae03e3e16ac796bc1b30280a901fc81675`, runner MD5 `39cbadd821d8a9f801d596462c29bf5c`, retained 24/48 contrast fixtures/starts and 300/600 independent-tree selected fits/starts. G9b-A passed contrast MAE 0.123 (between) and 0.071 (within), median absolute log-SD error 0.163, and median absolute log-decay error 0.280. G9b-B had 100 finite fits per phylogenetic SD and standardized signed intercept bias 0.032, 0.072, and 0.063 for SD 0.3, 0.6, and 1.0. Earlier v1--v4 setup and parser failures remain retained beside v5; none were overwritten. This repairs point-recovery evidence only: G9 stays failed and G10--G13 remain pending.
 
 - [ ] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10

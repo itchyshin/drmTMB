@@ -1,0 +1,49 @@
+"stream","id","condition","layout","replicate","seed","sd_phylo_truth","decay_truth","elapsed_sec","selected","objective","error","beta_intercept","beta_between","beta_within","sd_phylo","sd_temporal","sigma","decay"
+"contrast","balanced_C01","C01","balanced",NA,2026091501,0.3,0.15,0.044,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C02","C02","balanced",NA,2026091502,0.6,0.15,0.108,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C03","C03","balanced",NA,2026091503,1,0.15,0.0110000000000001,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C04","C04","balanced",NA,2026091504,0.3,0.4,0.0100000000000002,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C05","C05","balanced",NA,2026091505,0.6,0.4,0.0109999999999997,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C06","C06","balanced",NA,2026091506,1,0.4,0.0150000000000001,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C07","C07","balanced",NA,2026091507,0.3,0.7,0.012,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C08","C08","balanced",NA,2026091508,0.6,0.7,0.012,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C09","C09","balanced",NA,2026091509,1,0.7,0.0100000000000002,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C10","C10","balanced",NA,2026091510,0.3,0.7,0.0100000000000002,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C11","C11","balanced",NA,2026091511,0.6,0.4,0.0140000000000002,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","balanced_C12","C12","balanced",NA,2026091512,1,0.15,0.00999999999999979,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C01","C01","unbalanced",NA,2026091601,0.3,0.15,0.012,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C02","C02","unbalanced",NA,2026091602,0.6,0.15,0.0110000000000001,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C03","C03","unbalanced",NA,2026091603,1,0.15,0.0100000000000002,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C04","C04","unbalanced",NA,2026091604,0.3,0.4,0.012,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C05","C05","unbalanced",NA,2026091605,0.6,0.4,0.0109999999999997,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C06","C06","unbalanced",NA,2026091606,1,0.4,0.00999999999999979,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C07","C07","unbalanced",NA,2026091607,0.3,0.7,0.0110000000000001,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C08","C08","unbalanced",NA,2026091608,0.6,0.7,0.0089999999999999,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C09","C09","unbalanced",NA,2026091609,1,0.7,0.0100000000000002,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C10","C10","unbalanced",NA,2026091610,0.3,0.7,0.0150000000000001,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C11","C11","unbalanced",NA,2026091611,0.6,0.4,0.0109999999999997,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
+"contrast","unbalanced_C12","C12","unbalanced",NA,2026091612,1,0.15,0.0110000000000001,FALSE,NA,"`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree)`.",NA,NA,NA,NA,NA,NA,NA
