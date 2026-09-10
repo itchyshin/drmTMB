@@ -62,7 +62,7 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
 - [ ] G9b-full: New frozen 24-fixture contrast recovery and 300-tree ensemble intercept study meet the separate G9b-A and G9b-B criteria without replacing failed G9.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full
   EXPECT: PHYLO_TEMPORAL_OU_G9B_FULL_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 v1 stopped before criteria with a runner residual-SD lookup defect after writing only its frozen manifest. The manifest remains retained at `...-g9b-full/`; v2 uses the same new predeclared seeds and a repaired source commit, with no results reused.
 
 - [ ] G10: A five-seed per-cell timed pilot records wall time, memory, profile availability, diagnostics and complete denominators.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G10

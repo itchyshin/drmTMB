@@ -10,7 +10,7 @@ if (!file.exists(file.path(root, 'DESCRIPTION'))) stop('Run from the drmTMB root
 pkgload::load_all(root, quiet = TRUE)
 
 out_dir <- Sys.getenv('DRMTMB_PHYLO_TEMPORAL_OU_G9B_FULL_OUT', unset = file.path(
-  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full'
+  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full-v2'
 ))
 required <- c(
   'manifest.csv', 'contrast-estimates.csv', 'contrast-attempts.csv', 'contrast-summary.csv',
@@ -182,7 +182,7 @@ ensemble_summary <- do.call(rbind, lapply(split(ensemble_selected[finite_ensembl
 
 contrast_sd_error <- unlist(lapply(c('phylo', 'temporal', 'sigma'), function(name) {
   estimate <- contrast_selected[[paste0('sd_', name)]]
-  expected <- if (identical(name, 'phylo')) contrast_selected$sd_phylo_truth else truth[[paste0('sd_', name)]]
+  expected <- switch(name, phylo = contrast_selected$sd_phylo_truth, temporal = truth[['sd_temporal']], sigma = truth[['sigma']])
   abs(log(estimate / expected))
 }))
 contrast_decay_error <- abs(log(contrast_selected$decay / contrast_selected$decay_truth))
