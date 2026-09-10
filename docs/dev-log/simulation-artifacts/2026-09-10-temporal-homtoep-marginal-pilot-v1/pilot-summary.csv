@@ -1,0 +1,4 @@
+"cell","elapsed_sec.median","elapsed_sec.maximum","rss_kb.median","rss_kb.maximum"
+"P1_ar1",0.054,1.577,436752,439296
+"P2_nonexponential",0.057,0.064,444016,445664
+"P3_negative_lag",0.066,0.084,445872,449040
