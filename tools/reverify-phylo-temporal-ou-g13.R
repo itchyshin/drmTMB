@@ -4,7 +4,7 @@ args <- commandArgs(trailingOnly = TRUE)
 script_arg <- grep('^--file=', commandArgs(FALSE), value = TRUE)
 if (length(script_arg) != 1L) stop('Run with Rscript.', call. = FALSE)
 script_path <- normalizePath(sub('^--file=', '', script_arg))
-root <- normalizePath('.', mustWork = TRUE)
+root <- normalizePath(file.path(dirname(script_path), '..'), mustWork = TRUE)
 source(file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R'))
 value <- function(prefix) { x <- grep(paste0('^', prefix), args, value = TRUE); if (length(x) != 1L) return(NULL); sub(prefix, '', x) }
 self_test <- identical(args, '--self-test')
