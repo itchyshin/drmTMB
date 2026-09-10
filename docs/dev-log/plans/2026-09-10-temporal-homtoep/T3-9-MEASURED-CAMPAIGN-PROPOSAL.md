@@ -1,4 +1,4 @@
-# T3-9 — measured marginal Toeplitz profile campaign proposal
+# T3-9 — measured marginal Toeplitz profile campaign proposal and execution receipt
 
 The frozen T3-8 contract requires 4,000 profiles: 1,000 each in P1, P2, P3,
 and descriptive stress cell S1. The retained five-seed pre-run completed all 15
@@ -34,3 +34,29 @@ release, a push, or a merge.
 
 Before submission, verify Fir capacity and the current durable project path,
 then obtain explicit authorization for this exact 4,000-task campaign.
+
+## Executed route
+
+The user approved the exact Fir array and later authorised using another computer
+when Fir capacity became intermittent. Fir completed immutable task IDs 1--965
+before its remaining elements were held. Totoro then ran IDs 966--4000 from the
+same clean source commit, deterministic task/seed map, and worker checksum. The
+full archive set, source bundle, host-transition record, scheduler receipt, and
+reproducible assessment are retained on Totoro at:
+
+```text
+/home/snakagaw/drmtmb-temporal-homtoep-b3a117edec97-totoro/
+```
+
+The host split is an execution fact, not a performance equivalence claim: retain
+Fir and Totoro denominators separately. Task 966 measured 1.72 seconds and
+241980 KiB maximum resident memory on Totoro. The user authorised a combined
+250-core ceiling across Codex, Claude, and Cursor; automatic approval review
+kept the actual Totoro continuation at 150 single-threaded workers.
+
+The retained reverify found all 4,000 task archives, one attempt per task, one
+frozen source commit and worker fingerprint, and all nine primary
+coefficient--cell criteria qualified. The S1 stress intercept coverage was
+0.916 and remains descriptive rather than a primary qualification failure.
+Temporary Fir staging was removed only after the complete Totoro archive set and
+its no-write reverify passed.

@@ -148,10 +148,18 @@ process/residual interpretation because their restricted correlation functions
 identify it.
 
 The current provider has deterministic dense-covariance, score, two-step
-Hessian, residual-whitening, and correlated-residual simulation agreement. It is not yet an inference-qualified
-workflow: profile and Wald intervals, prediction on `newdata`, forecasting,
-ordinary-intercept composition, and all calibration claims remain unavailable
-until their dedicated Toeplitz gates pass.
+Hessian, residual-whitening, and correlated-residual simulation agreement. A
+retained 4,000-fit campaign qualified likelihood-profile intervals for mean
+regression coefficients in its three predeclared primary cells: 80 series on
+six common occasions with AR1-shaped, non-exponential, and negative first-lag
+correlations. Use
+`confint(fit, parm = "mu:<coefficient>", method = "profile")` for that
+profile-only route. The retained 20-series stress cell had lower intercept
+coverage (0.916), and the campaign does not establish coverage for arbitrary
+panel sizes or correlation patterns.
+
+Wald, total-scale, and lag-correlation intervals remain unavailable. So do
+prediction on `newdata`, forecasting, and ordinary-intercept composition.
 
 For fitted observations, `fitted()` returns the marginal mean and `residuals()`
 returns `y - fitted`. Pearson residuals use the Cholesky whitening of the

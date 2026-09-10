@@ -1396,14 +1396,6 @@ check_temporal_mean_profile <- function(object) {
     return(NULL)
   }
   structure <- toupper(object$model$structured$temporal_mu$structure)
-  if (identical(structure, "HOMTOEP")) {
-    return(check_row(
-      "temporal_mean_profile",
-      "note",
-      "unavailable; reason=toeplitz_calibration_deferred",
-      "Homogeneous Toeplitz mean-coefficient profile intervals are intentionally unavailable until Toeplitz recovery and calibration evidence are retained."
-    ))
-  }
   if (is.null(object$obj)) {
     return(check_row(
       "temporal_mean_profile",
@@ -1422,11 +1414,21 @@ check_temporal_mean_profile <- function(object) {
       "Temporal mean-coefficient profile intervals can be finite, but the fitted full observed Hessian is not positive definite. Treat the fitted likelihood as locally irregular; inspect the profile curve and do not treat the interval as coverage-calibrated."
     ))
   }
+  calibration <- if (identical(structure, "HOMTOEP")) {
+    "qualified_primary_cells"
+  } else {
+    "unqualified"
+  }
+  qualification_note <- if (identical(structure, "HOMTOEP")) {
+    "A retained 4,000-fit campaign qualified mean-coefficient profile intervals in its three predeclared 80-series, six-occasion primary cells; this fit-level status does not extend that result to other panel designs."
+  } else {
+    "Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
+  }
   check_row(
     "temporal_mean_profile",
     "note",
-    "available_for_this_fit; calibration=unqualified",
-    "Temporal mean-coefficient profile intervals are available for this fit. Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
+    paste0("available_for_this_fit; calibration=", calibration),
+    paste("Temporal mean-coefficient profile intervals are available for this fit.", qualification_note)
   )
 }
 

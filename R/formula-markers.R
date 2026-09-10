@@ -210,7 +210,9 @@ phylo <- function(term, tree) {
 #' residual SD or temporal conditional mode. An ordinary `(1 | id)` may
 #' accompany AR1 or OU to represent stable between-series differences separately
 #' from persistent within-series deviations; it is deferred for homogeneous
-#' Toeplitz covariance.
+#' Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
+#' intervals for mean regression coefficients only. Scale and lag-correlation
+#' intervals remain unavailable.
 #'
 #' @param term Temporal structure term, currently `1 | id`.
 #' @param time Name of the integer occasion (`"ar1"` or `"homtoep"`) or

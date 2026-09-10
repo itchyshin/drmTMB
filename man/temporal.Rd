@@ -30,7 +30,9 @@ correlation for each discrete lag. It is a marginal covariance model: its
 residual SD or temporal conditional mode. An ordinary \code{(1 | id)} may
 accompany AR1 or OU to represent stable between-series differences separately
 from persistent within-series deviations; it is deferred for homogeneous
-Toeplitz covariance.
+Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
+intervals for mean regression coefficients only. Scale and lag-correlation
+intervals remain unavailable.
 }
 \examples{
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),

@@ -2,7 +2,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 reverify <- length(args) == 2L && identical(args[[2L]], "--reverify")
-if (!((length(args) == 1L && args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "T3-8", "M3")) ||
+if (!((length(args) == 1L && args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "T3-8", "T3-11", "M3")) ||
       (length(args) == 2L && identical(args[[1L]], "T3-10") && reverify))) {
   stop("Only implemented deterministic and retained-evidence gates are accepted. T3-10 requires --reverify; other gates remain pending.", call. = FALSE)
 }
@@ -46,6 +46,71 @@ if (identical(gate, "T3-10")) {
     stop("T3-10 retained campaign does not meet every frozen primary calibration criterion.", call. = FALSE)
   }
   cat("TEMPORAL_HOMTOEP_T3_10_PASS\n")
+} else if (identical(gate, "T3-11")) {
+  reader <- "vignettes/temporal-random-effects.Rmd"
+  grammar <- "docs/design/01-formula-grammar.md"
+  likelihood <- "docs/design/03-likelihoods.md"
+  reference <- "man/temporal.Rd"
+  needed <- list(
+    reader = c(
+      "Free correlation by discrete lag with homogeneous Toeplitz",
+      "complete, equally spaced",
+      "profile_engine = \"tmbprofile\"",
+      "If elapsed gaps are genuinely irregular, use OU instead."
+    ),
+    grammar = c(
+      "Implemented marginal-covariance profile slice",
+      "4,000-fit campaign",
+      "Wald, scale, and lag-correlation intervals remain unavailable"
+    ),
+    likelihood = c(
+      "4,000-fit campaign qualified likelihood-profile intervals",
+      "intercept coverage (0.916)",
+      "Wald, total-scale, and lag-correlation intervals remain unavailable"
+    ),
+    reference = c(
+      "Homogeneous Toeplitz fits provide likelihood-profile",
+      "Scale and lag-correlation"
+    )
+  )
+  paths <- c(reader = reader, grammar = grammar, likelihood = likelihood, reference = reference)
+  for (name in names(paths)) {
+    if (!file.exists(paths[[name]])) {
+      stop(sprintf("T3-11 missing %s documentation.", name), call. = FALSE)
+    }
+    text <- gsub("\\s+", " ", paste(readLines(paths[[name]], warn = FALSE), collapse = "\n"))
+    if (!all(vapply(needed[[name]], grepl, logical(1L), x = text, fixed = TRUE))) {
+      stop(sprintf("T3-11 %s documentation is incomplete.", name), call. = FALSE)
+    }
+  }
+  if (!requireNamespace("rmarkdown", quietly = TRUE) || !rmarkdown::pandoc_available()) {
+    stop("T3-11 requires rmarkdown and Pandoc to render the temporal reader workflow.", call. = FALSE)
+  }
+  pkgload::load_all(".", compile = TRUE, quiet = TRUE)
+  render_dir <- tempfile("temporal-homtoep-reader-")
+  dir.create(render_dir)
+  rendered <- rmarkdown::render(
+    reader,
+    output_dir = render_dir,
+    intermediates_dir = render_dir,
+    quiet = TRUE
+  )
+  if (!file.exists(rendered)) {
+    stop("T3-11 did not create the temporal reader HTML.", call. = FALSE)
+  }
+  html <- gsub(
+    "\\s+", " ",
+    gsub("<[^>]+>", " ", paste(readLines(rendered, warn = FALSE), collapse = "\n"))
+  )
+  rendered_needed <- c(
+    "Temporal AR1, OU, and Toeplitz effects",
+    "Free correlation by discrete lag with homogeneous Toeplitz",
+    "If elapsed gaps are genuinely irregular, use OU instead."
+  )
+  if (!all(vapply(rendered_needed, grepl, logical(1L), x = html, fixed = TRUE))) {
+    stop("T3-11 rendered reader workflow is incomplete.", call. = FALSE)
+  }
+  cat("TEMPORAL_HOMTOEP_T3_11_PASS\n")
 } else if (identical(gate, "T3-8")) {
   contract <- "docs/dev-log/plans/2026-09-10-temporal-homtoep/T3-8-MARGINAL-CALIBRATION-CONTRACT.md"
   required <- c("likelihood-profile", "P1", "P2", "P3", "S1", "1,000", "0.925", "0.975", "0.99", "all-attempt", "DRAC/Fir", "explicit approval")

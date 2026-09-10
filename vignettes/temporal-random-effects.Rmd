@@ -1,8 +1,8 @@
 ---
-title: "Temporal AR1 and OU random effects"
+title: "Temporal AR1, OU, and Toeplitz effects"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Temporal AR1 and OU random effects}
+  %\VignetteIndexEntry{Temporal AR1, OU, and Toeplitz effects}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -141,6 +141,51 @@ finite integer time column, retain its real gaps, and ensure that every
 site--occasion pair is unique. If a site was measured more than once at an
 occasion, aggregate those records before fitting. An AR1-only fit omits `(1 | site)` but keeps the
 same `temporal()` term.
+
+## Free correlation by discrete lag with homogeneous Toeplitz
+
+Use homogeneous Toeplitz covariance when every site is measured at the same
+complete, equally spaced set of discrete occasions and the scientific question
+is whether correlation departs from AR1's exponential pattern. It estimates a
+separate correlation for each lag: visits one occasion apart share
+`cor_lag1`, visits two occasions apart share `cor_lag2`, and so on. This is
+more flexible than AR1, so it needs a common panel rather than the irregular
+or incomplete schedules accepted by AR1 and OU.
+
+```{r, eval = FALSE}
+toeplitz_fit <- drmTMB(
+  bf(
+    y ~ treatment + temporal(1 | site, time = occasion, structure = "homtoep"),
+    sigma ~ 1
+  ),
+  data = complete_regular_panel,
+  family = gaussian(),
+  REML = FALSE
+)
+
+confint(
+  toeplitz_fit,
+  parm = "mu:treatment",
+  method = "profile",
+  profile_engine = "tmbprofile"
+)
+check_drm(toeplitz_fit)
+```
+
+Here `sigma` is the total within-site SD of the Toeplitz covariance. The model
+does not separately estimate a temporal-process SD, an independent residual
+SD, or an ordinary `(1 | site)` intercept, because those components are not
+separately identifiable when the correlation at every lag is free. The profile
+interval applies only to mean regression effects such as `mu:treatment`.
+Wald, total-scale, and lag-correlation intervals remain unavailable.
+
+A retained 4,000-fit campaign qualified these mean-effect profiles in three
+predeclared 80-site, six-occasion panels: AR1-shaped, non-exponential, and
+negative first-lag correlation patterns. The 20-site stress panel had lower
+intercept coverage, so this is evidence for those primary panel designs, not a
+coverage claim for every Toeplitz analysis. Use `check_drm(toeplitz_fit)` and
+inspect the profile before reporting an interval. If elapsed gaps are genuinely
+irregular, use OU instead.
 
 ## Irregular elapsed time with OU
 

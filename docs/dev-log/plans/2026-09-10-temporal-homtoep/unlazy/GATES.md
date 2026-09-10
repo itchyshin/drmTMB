@@ -89,17 +89,17 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EVIDENCE: 2026-09-10: 15/15 fits returned all three finite profile intervals. Elapsed times were 2.08--4.01 s per data set (median 2.35 s); source and runner hash are retained with the outputs. This measures the profile workload, not coverage.
 
 - [x] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
-  EVIDENCE: 2026-09-10 explicit authorization: “I authorize submission of the 4,000-task DRAC/Fir marginal Toeplitz profile campaign exactly as proposed.” The approved route is one dataset per task, `1-4000%50`, one CPU, 2 GB, 10 minutes, durable DRAC storage and a Totoro mirror after completion. Live Fir inspection found `/project` at its 500K file quota and `/nearline` unavailable on compute nodes, so the retained compact artifacts use backed-up Fir home storage as recorded in `T3-9-MEASURED-CAMPAIGN-PROPOSAL.md`.
+  EVIDENCE: 2026-09-10 explicit authorization: “I authorize submission of the 4,000-task DRAC/Fir marginal Toeplitz profile campaign exactly as proposed.” Fir completed IDs 1--965 with the approved one-CPU, 2-GB, 10-minute array. After Fir capacity became intermittent, the user authorised another computer; Totoro completed IDs 966--4000 from the same frozen source, task/seed map, and worker checksum. The complete evidence root and host-transition record are retained on Totoro as recorded in `T3-9-MEASURED-CAMPAIGN-PROPOSAL.md`.
 
-- [ ] T3-10: Retained campaign artifacts reverify source, denominator and each frozen criterion without launching new fits.
-  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-10 --reverify
+- [x] T3-10: Retained campaign artifacts reverify source, denominator and each frozen criterion without launching new fits.
+  CHECK: On Totoro, `cd /home/snakagaw/drmtmb-temporal-homtoep-b3a117edec97-totoro/source && DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT=/home/snakagaw/drmtmb-temporal-homtoep-b3a117edec97-totoro/artifacts Rscript --vanilla tools/temporal-homtoep-gates.R T3-10 --reverify`
   EXPECT: TEMPORAL_HOMTOEP_T3_10_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10: two independently written summaries from the immutable archive set were byte-identical; the no-write T3-10 reverify passed. It checked exactly 4,000 one-attempt artifacts, 1,000 data sets per cell, one frozen source commit (`b3a117edec97f6ad43d26a190e086c7451604cde`), worker MD5 `e01521b817f1c38c5acd2cf148e92b40`, and all nine primary qualifications. The S1 stress intercept coverage was 0.916 and remains descriptive. Receipt: `docs/dev-log/evidence/temporal-homtoep/2026-09-10-marginal-profile-campaign.md`.
 
-- [ ] T3-11: The reader article, formula grammar and likelihood documentation render and direct irregular time to OU.
+- [x] T3-11: The reader article, formula grammar and likelihood documentation render and direct irregular time to OU.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-11
   EXPECT: TEMPORAL_HOMTOEP_T3_11_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10: the public `confint()` and `summary()` profile routes now admit homogeneous Toeplitz mean coefficients only; Wald, total-scale, and lag-correlation intervals remain refused. `test-temporal-homtoep-intervals.R` verifies the public profile, summary attachment, diagnostic status, and excluded targets. The T3-11 gate rendered `vignettes/temporal-random-effects.Rmd`, checked the regenerated `man/temporal.Rd`, formula grammar, and likelihood documentation, and emitted its exact receipt. The tutorial distinguishes the common complete discrete schedule from genuinely irregular elapsed time, which it directs to OU.
 
 - [ ] T3-12: Package build/check and independent Noether plus Pat reviews close P2 with a complete after-task report.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-12 --reverify

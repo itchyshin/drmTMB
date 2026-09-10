@@ -20,6 +20,21 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 
 # Check Log
 
+## 2026-09-10 — homogeneous Toeplitz calibrated mean-profile interface
+
+Lane: Codex, `codex/temporal-homtoep-v1-20260910`. The retained 4,000-fit
+campaign qualifies likelihood-profile intervals for mean regression effects in
+the three predeclared 80-series, six-occasion primary cells. It does not
+qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
+`newdata` inference.
+
+| Check | Result |
+| --- | --- |
+| Public interval surface | `confint(..., parm = "mu:<coefficient>", method = "profile")` and the matching `summary(..., method = "profile")` route now work for homogeneous Toeplitz mean coefficients only; Wald and non-mean profile targets still fail clearly. |
+| Focused test | `tests/testthat/test-temporal-homtoep-intervals.R` passes, including covariance re-optimization, finite public endpoints, summary attachment, `check_drm()` qualification label, and negative target checks. |
+| Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
+| Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
+
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
 Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree

@@ -522,12 +522,6 @@ validate_temporal_wald_parm <- function(object, parm) {
 
 validate_temporal_profile_parm <- function(object, parm) {
   temporal <- object$model$structured$temporal_mu
-  if (identical(temporal$structure, "homtoep")) {
-    cli::cli_abort(c(
-      "Homogeneous Toeplitz profile intervals are not yet qualified.",
-      "i" = "Toeplitz recovery and profile calibration are pending; profile intervals are deferred."
-    ))
-  }
   targets <- drm_profile_targets(object)
   allowed <- drm_temporal_mean_target_parm(object)
   selected <- if (is.null(parm)) {
@@ -542,7 +536,7 @@ validate_temporal_profile_parm <- function(object, parm) {
       "Temporal {temporal_structure} profile intervals currently support mean regression coefficients only.",
       "x" = "Unsupported temporal profile target{?s}: {.val {bad}}.",
       "i" = "Use {.val {allowed}} or compact coefficient labels such as {.val mu:x} with {.code method = \"profile\"}.",
-      "i" = "Variance components and persistence or decay intervals remain deferred."
+      "i" = "Scale, correlation, variance-component, persistence, and decay intervals remain deferred."
     ))
   }
   selected$parm

@@ -12,7 +12,7 @@ homtoep_profile_fit <- function() {
   )
 }
 
-test_that('homtoep internal mean-effect profile reoptimizes covariance parameters', {
+test_that('homtoep fixed-mean profiles are available through the public interface', {
   fit <- homtoep_profile_fit()
   profile <- drmTMB:::drm_profile_confint(
     fit, parm = 'fixef:mu:x', level = 0.95,
@@ -25,5 +25,32 @@ test_that('homtoep internal mean-effect profile reoptimizes covariance parameter
   expect_true(is.finite(profile$lower) && is.finite(profile$upper))
   expect_lt(profile$lower, unname(stats::coef(fit)$mu[['x']]))
   expect_gt(profile$upper, unname(stats::coef(fit)$mu[['x']]))
-  expect_error(stats::confint(fit, method = 'profile'), 'Toeplitz profile intervals')
+
+  public <- stats::confint(
+    fit, parm = 'mu:x', method = 'profile',
+    profile_precision = 'fast', profile_maxit = 50L
+  )
+  expect_identical(public$parm, 'fixef:mu:x')
+  expect_identical(public$method, 'profile')
+  expect_identical(public$conf.status, 'profile')
+  expect_true(is.finite(public$lower) && is.finite(public$upper))
+
+  check <- drmTMB::check_drm(fit)
+  profile_check <- check[check$check == 'temporal_mean_profile', , drop = FALSE]
+  expect_identical(profile_check$status, 'note')
+  expect_identical(profile_check$value, 'available_for_this_fit; calibration=qualified_primary_cells')
+
+  summary_profile <- summary(
+    fit, conf.int = TRUE, method = 'profile', ci_parm = 'mu:x',
+    profile_precision = 'fast', profile_maxit = 50L
+  )
+  summary_x <- summary_profile$coefficients['mu:x', , drop = FALSE]
+  expect_identical(summary_x$conf.status, 'profile')
+  expect_true(is.finite(summary_x$conf.low) && is.finite(summary_x$conf.high))
+
+  expect_error(
+    stats::confint(fit, parm = 'sigma', method = 'profile'),
+    'mean regression coefficients only'
+  )
+  expect_error(stats::confint(fit, method = 'wald'), 'Wald intervals are not yet qualified')
 })
