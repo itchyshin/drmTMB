@@ -260,11 +260,7 @@ G3 dense covariance, G4 likelihood/score/Hessian, G5 reductions, G6 mutations, G
 methods/simulation, G8 profile target, G9 recovery, G10 pilot, G11 campaign contract,
 G12 manual campaign approval, G13 retained campaign reverify, G14-G15 reader evidence,
 G16 package check, G17 review and G18 closure. At the current execution checkpoint,
-G2-G8 and G14-G15 pass; G9 is a retained recovery failure, and G10-G13/G16-G18
-remain open. The programme must not advance to P2 on the basis of the reader article.
-A reviewable but unadopted replacement is at `G9B-RECOVERY-PROPOSAL.md`; it
-separates treatment-contrast recovery from ensemble intercept bias and needs
-explicit approval before any fixture, seed, pilot, or campaign action.
+G2-G8, G14-G15 and the separately approved G9b-full point-recovery study pass; G9 remains a retained historical failure, and G10-G13/G16-G18 remain open. G9b-full retained 24/48 contrast fixtures/starts and 300/600 independent-tree selected fits/starts, separating reportable treatment contrasts from ensemble intercept bias. It does not qualify profile-calibration, interval, forecast, `newdata`, or P2 Toeplitz claims. The programme must not advance to P2 on the basis of reader or point-recovery evidence alone.
 
 ### Simulation and compute
 

@@ -52,8 +52,8 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G9
   EXPECT: PHYLO_TEMPORAL_OU_G9_PASS
   EVIDENCE: 2026-09-09 FAILED and retained at execution commit 7e98c709c. Both corrected 50-species (mean fixed-effect error 0.182) and same-seed 80-species diagnostic (0.165) denominators exceeded the 0.150 criterion, although SD/decay criteria passed. This blocks promotion but does not erase deterministic-method or reader evidence.
-- [ ] P1-recovery-revision: The user explicitly approves the draft G9b contract before any new fixture, seed manifest, pilot, or campaign action.
-  EVIDENCE: pending. Review `G9B-RECOVERY-PROPOSAL.md`; G9 remains failed even if G9b is later approved.
+- [x] P1-recovery-revision: The user explicitly approved the G9b contract and full retained local study, while original G9 remains failed.
+  EVIDENCE: 2026-09-10 explicit user authorization; execution commits 5135e0c6b, d7aaff925, 358a4ddf1, b04b97b9b, 8918a9ae0, and 42117e821 retain the new manifest, all setup failures, and successful v5 evidence. G9b-full passed 24/48 contrast fits/starts plus 300/600 independent-tree selected fits/starts, but it repairs point-recovery only and does not qualify G10--G13 interval/calibration gates.
 - [x] P1-reader: The development-marked reader article, component labels, design/limitation documentation and source render agree with the retained recovery boundary.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G14 && Rscript --vanilla tools/phylo-temporal-ou-gates.R G15
   EXPECT: PHYLO_TEMPORAL_OU_G14_PASS and PHYLO_TEMPORAL_OU_G15_PASS
