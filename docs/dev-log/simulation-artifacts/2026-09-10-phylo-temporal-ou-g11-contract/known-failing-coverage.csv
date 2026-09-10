@@ -1,0 +1,2 @@
+"cell","parm","coverage_all","coverage_mcse","expected_qualification"
+"P1","fixef:mu:(Intercept)",0.9,0.00948683298050514,"unqualified_in_simulated_cell"

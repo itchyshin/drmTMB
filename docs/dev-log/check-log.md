@@ -94697,3 +94697,14 @@ returned `PHYLO_TEMPORAL_OU_G10_PASS`. The earlier v1 bookkeeping preflight and
 non-checkpointed manifest-only attempt remain in the evidence directory. This
 is operational evidence only: it neither establishes coverage nor authorizes
 the G12 campaign.
+
+## 2026-09-10 — phylogenetic-temporal OU G11 calibration contract
+
+At source `26c4b05c58fb2eae115ca8b0611d67f8244fc6cf`, G11 retained a frozen
+3,500-row P1--P4 manifest, 12 cell-coefficient targets, all-attempt and
+conditional coverage fields, primary acceptance bounds, a stress-only P4 rule,
+and matching worker/helper fingerprints. The pure assessment and worker
+self-test both reject incomplete denominators and forged provenance; the
+known 0.90-coverage P1 fixture remains unqualified. The gate returned
+`PHYLO_TEMPORAL_OU_G11_PASS`. This is a no-fit contract and does not authorize
+G12 or establish calibration.

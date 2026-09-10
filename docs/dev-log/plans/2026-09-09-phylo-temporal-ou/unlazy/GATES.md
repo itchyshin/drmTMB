@@ -72,10 +72,10 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
   EXPECT: PHYLO_TEMPORAL_OU_G10_PASS
   EVIDENCE: 2026-09-10 checkpointed v2 at source `d274753a122ce1710e6674170cfa5b95259c88f1` retained 20/20 generated and selected fits, 40/40 configured starts, 60/60 fixed-mean profile attempts, and 20/20 diagnostics. Every fit converged with a positive-definite Hessian; every profile was available; no warnings were retained. Total fit/profile elapsed time was 24.826/310.254 seconds and peak R allocation was 371.1 MB. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G10` returned `PHYLO_TEMPORAL_OU_G10_PASS`. The initial v1 preflight bookkeeping failure and non-checkpointed manifest-only attempt remain retained beside the successful v2; G10 does not qualify coverage or authorize G12.
 
-- [ ] G11: The predeclared 95% profile-calibration contract fixes P1–P4, targets, all-attempt denominators, unavailable-endpoint policy, lower/upper-tail reporting, acceptance bounds and Monte Carlo precision; its worker and assessment helper reject incomplete denominators, forged provenance and a known failing coverage fixture.
+- [x] G11: The predeclared 95% profile-calibration contract fixes P1–P4, targets, all-attempt denominators, unavailable-endpoint policy, lower/upper-tail reporting, acceptance bounds and Monte Carlo precision; its worker and assessment helper reject incomplete denominators, forged provenance and a known failing coverage fixture.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G11
   EXPECT: PHYLO_TEMPORAL_OU_G11_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 contract source `26c4b05c58fb2eae115ca8b0611d67f8244fc6cf` retained a 3,500-row manifest (P1--P3: 1,000; P4: 500), 12 fixed-mean cell-target rows, a known 0.90-coverage failure fixture, and matching contract-worker/helper MD5s. The pure assessment test rejects incomplete 12-row summaries and forged provenance, and labels the known P1 coverage failure unqualified while retaining P4 as stress-only. The worker self-test independently rejects incomplete manifests, forged provenance and the failing coverage fixture. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G11` returned `PHYLO_TEMPORAL_OU_G11_PASS`. This freezes criteria only; G12 remains the separate campaign authorization.
 
 - [ ] G12: The measured campaign design, target, resource ceiling, storage route and all-attempt denominator are explicitly authorized.
   EVIDENCE: pending
