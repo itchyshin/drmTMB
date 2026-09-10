@@ -2,8 +2,8 @@
 
 Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. The runner path is intentionally reserved until S0 freezes the valid map. Every runnable gate starts pending and must have exact source/provenance evidence before it can pass.
 
-- [ ] T3-0: User approves this child plan and its source fingerprint before P2 implementation.
-  EVIDENCE: pending
+- [x] T3-0: User approves this child plan and its source fingerprint before P2 implementation.
+  EVIDENCE: 2026-09-10 explicit user approval after review of `PLAN.md`, `source-fingerprint.md`, and this ledger. S0 begins with the map decision only; no grammar or TMB provider code is authorized until T3-2 passes.
 
 - [ ] T3-1: Homtoep grammar validates common integer schedules, raw keys before omission, complete retained schedules and all early errors.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-1
