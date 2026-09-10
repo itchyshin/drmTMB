@@ -1,0 +1,76 @@
+#!/bin/bash
+# Build the Linux R library before the G12 one-dataset smoke/array tasks.
+# Submit each stage in this order: foundation, eigen, remaining, drmTMB.
+# Each stage uses the same fixed 1 CPU, 2 GiB, 30 minute envelope as G12.
+# Logs are written under the shared stage root so a scheduler timeout remains
+# diagnosable even if node-local scratch is removed.
+#SBATCH --account=def-snakagaw_cpu
+#SBATCH --time=00:30:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+#SBATCH --job-name=drmtmb-phylo-ou-g12-provision
+
+set -euo pipefail
+
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_AUTHORIZED:?G12 user authorization token is required}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_ARCHIVE:?Set the sealed offline dependency archive in /scratch}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE:?Set the immutable source archive in /scratch}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_STAGE_ROOT:?Set the /scratch campaign staging root}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_PROVISION_STAGE:?Set foundation, eigen, remaining, or drmTMB}"
+
+if [[ "${SLURM_CLUSTER_NAME:-}" != "rorqual" || -z "${SLURM_JOB_ID:-}" ]]; then
+  echo 'Refusing execution outside a scheduled Rorqual job.' >&2
+  exit 2
+fi
+
+module load StdEnv/2023 r/4.4.0
+export R_PROFILE_USER=/dev/null
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export TMB_NTHREADS=1
+
+stage_root="$DRMTMB_PHYLO_TEMPORAL_OU_G12_STAGE_ROOT"
+[[ "$stage_root" == /scratch/* ]] || { echo 'G12 staging must be under /scratch.' >&2; exit 2; }
+campaign_rlib="$stage_root/Rlib"
+export R_LIBS="$campaign_rlib${R_LIBS:+:$R_LIBS}"
+dep_archive="$DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_ARCHIVE"
+source_archive="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE"
+[[ -f "$dep_archive" && -f "$source_archive" ]] || { echo 'Provisioning input archive is absent.' >&2; exit 2; }
+
+stage="$DRMTMB_PHYLO_TEMPORAL_OU_G12_PROVISION_STAGE"
+case "$stage" in
+  foundation) packages=(cli_3.6.6.tar.gz rlang_1.3.0.tar.gz lifecycle_1.0.5.tar.gz lattice_0.23-1.tar.gz Matrix_1.7-6.tar.gz Rcpp_1.1.2.tar.gz) ;;
+  eigen) packages=(RcppEigen_0.3.4.0.2.tar.gz) ;;
+  remaining) packages=(TMB_1.9.25.tar.gz nlme_3.1-171.tar.gz digest_0.6.39.tar.gz ape_5.8-1.tar.gz numDeriv_2016.8-1.1.tar.gz) ;;
+  drmTMB) packages=() ;;
+  *) echo 'Provision stage must be foundation, eigen, remaining, or drmTMB.' >&2; exit 2 ;;
+esac
+
+node_root="${SLURM_TMPDIR:-/tmp}/drmtmb-phylo-ou-g12-provision-${SLURM_JOB_ID}"
+log_dir="$stage_root/provision/$stage"
+mkdir -p "$node_root/deps" "$node_root/source" "$campaign_rlib" "$log_dir"
+exec > >(tee -a "$log_dir/job-${SLURM_JOB_ID}.log") 2>&1
+printf 'run_utc=%s\nstage=%s\njob_id=%s\n' "$(date -Iseconds)" "$stage" "$SLURM_JOB_ID" > "$log_dir/job-${SLURM_JOB_ID}.provenance"
+printf 'source_archive_sha256=%s\ndependency_archive_sha256=%s\n' "$(sha256sum "$source_archive" | awk '{print $1}')" "$(sha256sum "$dep_archive" | awk '{print $1}')" >> "$log_dir/job-${SLURM_JOB_ID}.provenance"
+
+if [[ "$stage" == drmTMB ]]; then
+  [[ -d "$campaign_rlib/TMB" ]] || { echo 'TMB must be provisioned before drmTMB.' >&2; exit 2; }
+  tar -xzf "$source_archive" -C "$node_root/source"
+  source_dir="$node_root/source"
+  [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_root/source" -mindepth 1 -maxdepth 1 -type d | head -1)
+  [[ -f "$source_dir/DESCRIPTION" ]] || { echo 'Source archive does not contain drmTMB DESCRIPTION.' >&2; exit 2; }
+  [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace a provisioned drmTMB library.' >&2; exit 2; }
+  R CMD INSTALL --library="$campaign_rlib" "$source_dir"
+else
+  tar -xzf "$dep_archive" -C "$node_root/deps"
+  dep_dir=$(find "$node_root/deps" -mindepth 1 -maxdepth 1 -type d ! -name '._*' | head -1)
+  [[ -n "$dep_dir" ]] || { echo 'Dependency archive has no source directory.' >&2; exit 2; }
+  for source_pkg in "${packages[@]}"; do
+    pkg_name=${source_pkg%%_*}
+    [[ ! -d "$campaign_rlib/$pkg_name" ]] || { echo "Refuse to replace provisioned package: $pkg_name" >&2; exit 2; }
+    R CMD INSTALL --library="$campaign_rlib" "$dep_dir/$source_pkg"
+  done
+fi
+
+printf 'PHYLO_TEMPORAL_OU_G12_PROVISION_PASS %s\n' "$stage"

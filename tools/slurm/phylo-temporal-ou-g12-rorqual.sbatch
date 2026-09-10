@@ -74,17 +74,8 @@ tar -xzf "$dep_archive" -C "$node_deps"
 source_dir="$node_source"
 if [[ ! -f "$source_dir/DESCRIPTION" ]]; then source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1); fi
 [[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }
-if [[ "${DRMTMB_PHYLO_TEMPORAL_OU_G12_INITIALIZE_RLIB:-0}" == "1" ]]; then
-  [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace an existing frozen G12 R library.' >&2; exit 2; }
-  mkdir -p "$campaign_rlib"
-  dep_dir=$(find "$node_deps" -mindepth 1 -maxdepth 1 -type d | head -1)
-  [[ -f "$dep_dir/install-order.txt" ]] || { echo 'Offline dependency bundle lacks install order.' >&2; exit 2; }
-  while IFS= read -r source_pkg; do
-    R CMD INSTALL --library="$campaign_rlib" "$dep_dir/$source_pkg" >> "$node_artifact/dependency-install.log" 2>&1
-  done < "$dep_dir/install-order.txt"
-  R CMD INSTALL --library="$campaign_rlib" "$source_dir" > "$node_artifact/package-install.log" 2>&1
-elif [[ ! -d "$campaign_rlib/drmTMB" ]]; then
-  echo 'G12 campaign library is missing; only the scheduled smoke may initialise it.' >&2
+if [[ ! -d "$campaign_rlib/drmTMB" ]]; then
+  echo 'G12 campaign library is missing; complete the separately logged Rorqual provisioning stages first.' >&2
   exit 2
 fi
 printf "%s\n" "$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" > "$source_dir/SOURCE_COMMIT"
