@@ -11,7 +11,7 @@ set -euo pipefail
 
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_AUTHORIZED:?G12 user authorization token is required}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE:?Set the immutable source archive on /project}"
-: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT:?Set the durable /project campaign root}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_STAGE_ROOT:?Set an empty /scratch campaign staging root}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT:?Set the frozen 40-character source commit}"
 
 if [[ "${SLURM_CLUSTER_NAME:-}" != "rorqual" || -z "${SLURM_JOB_ID:-}" ]]; then
@@ -34,14 +34,15 @@ export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export TMB_NTHREADS=1
-campaign_rlib="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT/Rlib"
+campaign_rlib="$stage_root/Rlib"
 export R_LIBS="$campaign_rlib${R_LIBS:+:$R_LIBS}"
 
 source_archive="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE"
-run_root="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT"
+stage_root="$DRMTMB_PHYLO_TEMPORAL_OU_G12_STAGE_ROOT"
+[[ "$stage_root" == /scratch/* ]] || { echo 'G12 staging must be under /scratch.' >&2; exit 2; }
 task_id="$SLURM_ARRAY_TASK_ID"
 task_label=$(printf 'task-%04d' "$task_id")
-archive="$run_root/artifacts/${task_label}.tar.gz"
+archive="$stage_root/artifacts/${task_label}.tar.gz"
 partial="${archive}.partial-${SLURM_JOB_ID}"
 node_root="${SLURM_TMPDIR:-/tmp}/drmtmb-phylo-ou-g12-${SLURM_JOB_ID}-${task_id}"
 node_artifact="$node_root/$task_label"
@@ -52,7 +53,7 @@ node_source="$node_root/source"
 
 cleanup() { rm -rf "$node_root"; }
 trap cleanup EXIT
-mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$run_root/metadata"
+mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$stage_root/metadata"
 tar -xzf "$source_archive" -C "$node_source"
 source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
 [[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }
