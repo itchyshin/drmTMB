@@ -42,7 +42,7 @@ base_out <- Sys.getenv(
   'DRMTMB_PHYLO_TEMPORAL_OU_G10_OUT',
   unset = file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g10-pilot')
 )
-out_dir <- if (identical(mode, 'preflight')) file.path(base_out, 'preflight-p1-seed-2026091701') else base_out
+out_dir <- if (identical(mode, 'preflight')) file.path(base_out, 'preflight-p1-seed-2026091701-v2') else base_out
 required <- c(
   'manifest.csv', 'selected-fits.csv', 'attempts.csv', 'profiles.csv', 'diagnostics.csv',
   'warnings.csv', 'criteria.csv', 'provenance.csv', 'g10-pilot-results.rds', 'session-info.txt', 'RESULTS.md'
@@ -205,8 +205,9 @@ run_one <- function(meta) {
   }
   warning_table <- if (length(collector$rows)) do.call(rbind, collector$rows) else data.frame(id = character(), stage = character(), warning = character())
   diagnostics <- data.frame(
-    id = meta$id, convergence = fitted$fit$convergence, pd_hess = isTRUE(fitted$sdr$pdHess),
-    optimizer_message = if (is.null(fitted$fit$message)) NA_character_ else as.character(fitted$fit$message),
+    id = meta$id, convergence = if (length(fitted$opt$convergence) == 1L) fitted$opt$convergence else NA_integer_,
+    pd_hess = isTRUE(fitted$sdr$pdHess),
+    optimizer_message = if (length(fitted$opt$message) == 1L) as.character(fitted$opt$message) else NA_character_,
     profile_available = sum(profiles$available), fit_warning_count = sum(warning_table$stage == 'fit'),
     profile_warning_count = sum(grepl('^profile:', warning_table$stage)), stringsAsFactors = FALSE
   )
