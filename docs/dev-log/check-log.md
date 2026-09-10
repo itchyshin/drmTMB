@@ -94779,3 +94779,19 @@ tools/temporal-homtoep-gates.R T3-7` emitted
 denominator completeness, not inferential qualification. Those diagnostics
 block T3-8/T3-9 campaign progression until a bounded inference diagnosis and
 qualification slice resolves them.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7a identifiability diagnosis
+
+The pilot's false Hessians arise from an exact covariance ridge. For a free
+Toeplitz correlation matrix, `V = s_a^2 R + sigma^2 I` is unchanged by choosing
+an admissible scale factor `c`, setting `s_a,new^2 = c s_a^2`,
+`rho_new(d) = rho(d) / c` for every positive lag, and
+`sigma_new^2 = sigma^2 + (1 - c) s_a^2`. The new correlation matrix remains
+positive definite for an open range of `c`; the executable test confirms exact
+dense covariance and likelihood equality and valid inverse-Levinson
+coordinates. Thus one response per series--occasion cannot separately identify
+the temporal SD, residual SD, and all free lag correlations. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7a` emitted
+`TEMPORAL_HOMTOEP_T3_7A_PASS`. The current direct provider is retained as a
+point-fit research artifact only; calibration and campaign gates require a
+model-redesign decision.

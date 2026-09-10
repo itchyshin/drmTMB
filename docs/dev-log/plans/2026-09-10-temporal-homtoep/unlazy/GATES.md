@@ -40,6 +40,11 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_7_PASS
   EVIDENCE: 2026-09-10 final-source pilot at `0cb70fe7f`: 15/15 finite selected fits and 15 retained starts across three five-seed cells; 39.42 s wall time, 438 MB peak memory, 15/15 explicit profile guards and 15 `NaNs produced` warnings. All 15 `pd_hessian` values are false, so this is a measured diagnosis and blocks profile-calibration/campaign advancement until inference qualification is separately resolved.
 
+- [x] T3-7a: An exact covariance-preserving transformation proves whether the pilot Hessian failure is a free-Toeplitz residual/process ridge.
+  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-7a
+  EXPECT: TEMPORAL_HOMTOEP_T3_7A_PASS
+  EVIDENCE: 2026-09-10: the dense covariance and likelihood remain unchanged when temporal variance is rescaled, every free lag correlation is inversely rescaled, and residual variance absorbs the diagonal difference. This proves the direct one-observation-per-series--occasion provider cannot separately identify `sd_temporal`, `sigma`, and a fully free homogeneous Toeplitz correlation matrix. T3-8 through T3-10 remain pending behind an explicit model-redesign decision.
+
 - [ ] T3-8: Profile-calibration contract fixes cells, targets, all-attempt treatment of unavailable intervals, tail summaries and acceptance criteria.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-8
   EXPECT: TEMPORAL_HOMTOEP_T3_8_PASS

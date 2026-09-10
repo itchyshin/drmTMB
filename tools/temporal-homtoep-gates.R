@@ -1,14 +1,14 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7")) {
-  stop("Only `T3-1` through `T3-7` are implemented in this runner. Other gates remain pending.", call. = FALSE)
+if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a")) {
+  stop("Only `T3-1` through `T3-7a` are implemented in this runner. Other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
-run_test_file <- function(path) {
+run_test_file <- function(path, compile = TRUE) {
   code <- paste(
-    "pkgload::load_all('.', compile = TRUE, quiet = TRUE)",
+    sprintf("pkgload::load_all('.', compile = %s, quiet = TRUE)", if (compile) "TRUE" else "FALSE"),
     sprintf("result <- testthat::test_file(%s, reporter = 'silent')", deparse(path)),
     "expectations <- unlist(lapply(result, `[[`, 'results'), recursive = FALSE)",
     "failed <- vapply(expectations, function(x) inherits(x, 'expectation_failure') || inherits(x, 'expectation_error'), logical(1))",
@@ -80,6 +80,13 @@ if (identical(gate, "T3-1")) {
   }
   cat("TEMPORAL_HOMTOEP_T3_6_PASS\n")
 } else {
+  if (identical(gate, "T3-7a")) {
+    # The exact dense covariance identity is pure R; avoiding an unnecessary
+    # native rebuild keeps this diagnostic independent of compiler state.
+    run_test_file("tests/testthat/test-temporal-homtoep-identifiability.R", compile = FALSE)
+    cat("TEMPORAL_HOMTOEP_T3_7A_PASS\n")
+    quit(status = 0L)
+  }
   out_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_PILOT_OUT", unset =
     "docs/dev-log/simulation-artifacts/2026-09-10-temporal-homtoep-pilot-final-source")
   required <- file.path(out_dir, c("raw-attempts.csv", "pilot-results.csv", "pilot-summary.csv", "provenance.csv", "pilot-results.rds", "session-info.txt", "RESULTS.md", "resource-replay.txt"))
