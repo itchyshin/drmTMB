@@ -25,10 +25,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_4_PASS
   EVIDENCE: 2026-09-10 S3: the native test asserts original-row temporal contributions, labelled extraction, fitted values, residuals, unsupported newdata and interval surfaces, and seeded conditional plus independently rebuilt fresh Toeplitz simulations. The isolated T3-4 runner emitted its pass receipt.
 
-- [ ] T3-5: AR1 and diagonal reductions plus invalid-map, compressed-schedule, cross-ID and omitted-normalizer mutations fail as designed.
+- [x] T3-5: AR1 and diagonal reductions plus invalid-map, compressed-schedule, cross-ID and omitted-normalizer mutations fail as designed.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-5
   EXPECT: TEMPORAL_HOMTOEP_T3_5_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10: `test-temporal-homtoep-reductions.R` compares native AR1 and diagonal reductions against independent dense likelihoods, rejects an indefinite direct-lag matrix and irregular schedule, and detects shared-series covariance plus an omitted MVN normalizer. The isolated T3-5 runner emitted its pass receipt.
 
 - [ ] T3-6: New fixtures recover AR1, non-exponential and negative-lag valid Toeplitz cells with all starts and failures retained.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-6

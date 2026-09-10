@@ -94740,3 +94740,14 @@ path for each series before residual noise. Seeded conditional and fresh draws
 match an independent dense Cholesky construction. `vcov()`, Wald summaries, and
 both Wald and profile interval entry points now reject this uncalibrated
 provider explicitly; `check_drm()` records the same calibration-deferred reason.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-5 reductions and mutations
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-5` emitted
+`TEMPORAL_HOMTOEP_T3_5_PASS`. With only the first partial autocorrelation
+nonzero, the native provider matches the independent dense AR1 covariance; with
+all partial autocorrelations zero, it matches the diagonal temporal covariance.
+The deterministic mutation test rejects an indefinite direct-lag matrix and an
+irregular schedule, and distinguishes the correct independent-series covariance
+and normalized likelihood from deliberately shared-series and no-normalizer
+variants.
