@@ -3510,6 +3510,18 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
   }
 
   if (identical(object$model$model_type, "gaussian")) {
+    if (drm_has_temporal_mu(object) && identical(
+      object$model$structured$temporal_mu$structure, "homtoep"
+    )) {
+      mu <- predict(object, dpar = "mu")
+      sims <- replicate(
+        nsim,
+        temporal_homtoep_marginal_draw(object, mu)
+      )
+      sims <- as.data.frame(sims)
+      names(sims) <- paste0("sim_", seq_len(nsim))
+      return(sims)
+    }
     if (marginal) {
       if (identical(object$model$V_known_type, "matrix")) {
         sims <- replicate(nsim, {
@@ -3983,6 +3995,14 @@ residuals.drmTMB <- function(
     if (type == "response") {
       return(drm_mask_missing_response_values(object, response))
     }
+    if (drm_has_temporal_mu(object) && identical(
+      object$model$structured$temporal_mu$structure, "homtoep"
+    )) {
+      return(drm_mask_missing_response_values(
+        object,
+        temporal_homtoep_marginal_whiten(object, response)
+      ))
+    }
     if (identical(object$model$V_known_type, "matrix")) {
       return(drm_mask_missing_response_values(
         object,
@@ -4048,7 +4068,9 @@ residuals.drmTMB <- function(
 #' Student-t scale parameter; when `nu > 2`, the residual standard deviation is
 #' `sigma * sqrt(nu / (nu - 2))`. For skew-normal models this is the response
 #' standard deviation under the public moment parameterization, not the native
-#' Azzalini scale `omega`. For lognormal models this is the fitted
+#' Azzalini scale `omega`. For a Gaussian homogeneous Toeplitz temporal model,
+#' it is the total within-series standard deviation of the marginal covariance
+#' `sigma^2 R`, rather than an independent residual SD. For lognormal models this is the fitted
 #' standard deviation of `log(y)`. For Gamma models this is the fitted
 #' coefficient of variation. For Tweedie models this is the public scale
 #' parameter where internal dispersion is `phi = sigma^2`. For beta,
@@ -4781,6 +4803,15 @@ drm_summary_direct_parameters <- function(object) {
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
+  temporal <- object$model$structured$temporal_mu
+  if (is.list(temporal) && isTRUE(temporal$has) &&
+      identical(temporal$structure, "homtoep")) {
+    toeplitz_rows <- out$dpar == "temporal" &
+      out$component == "random-effect-correlation"
+    out$component[toeplitz_rows] <- "temporal-correlation"
+    out$profile_ready[toeplitz_rows] <- FALSE
+    out$profile_note[toeplitz_rows] <- "toeplitz_correlation_intervals_deferred"
+  }
   row.names(out) <- NULL
   out
 }

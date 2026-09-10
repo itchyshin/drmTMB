@@ -4548,12 +4548,18 @@ drm_build_gaussian_ls_spec <- function(
       temporal_var <- 1
     }
     component_sd <- sqrt(temporal_var / temporal_components)
-    start$beta_sigma[[1L]] <- log(component_sd)
-    if (length(mu_re$terms) == 1L) {
-      start$log_sd_mu[] <- log(component_sd)
+    if (identical(temporal_mu$structure, "homtoep")) {
+      # Kept at their declared dimensions so TMB can apply the fixed map.
+      start$u_temporal <- numeric(temporal_mu$n_re)
+      start$log_sd_temporal <- 0
+    } else {
+      start$beta_sigma[[1L]] <- log(component_sd)
+      if (length(mu_re$terms) == 1L) {
+        start$log_sd_mu[] <- log(component_sd)
+      }
+      start$u_temporal <- numeric(temporal_mu$n_re)
+      start$log_sd_temporal <- log(component_sd)
     }
-    start$u_temporal <- numeric(temporal_mu$n_re)
-    start$log_sd_temporal <- log(component_sd)
     start$theta_temporal <- if (identical(temporal_mu$structure, "homtoep")) {
       rep(atanh(0.3), temporal_mu$n_occasions - 1L)
     } else {
@@ -4713,7 +4719,7 @@ drm_build_gaussian_ls_spec <- function(
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo",
       if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
-      if (isTRUE(temporal_mu$has)) "u_temporal",
+      if (isTRUE(temporal_mu$has) && !identical(temporal_mu$structure, "homtoep")) "u_temporal",
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "gaussian")
@@ -20172,6 +20178,13 @@ gaussian_ls_map <- function(
     out$log_sd_temporal <- factor(NA)
     out$theta_temporal <- factor(NA)
   }
+  if (isTRUE(temporal_mu$has) && identical(temporal_mu$structure, "homtoep")) {
+    # Homogeneous Toeplitz is a direct marginal covariance. Its total SD is
+    # beta_sigma; latent states and a second temporal SD would recreate the
+    # residual/process non-identifiability that this route avoids.
+    out$u_temporal <- factor(rep(NA, temporal_mu$n_re))
+    out$log_sd_temporal <- factor(NA)
+  }
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(NA)
   }
@@ -22490,7 +22503,8 @@ split_tmb_sdpars <- function(par, spec) {
   }
   if (
     is.list(spec$structured$temporal_mu) &&
-      isTRUE(spec$structured$temporal_mu$has)
+      isTRUE(spec$structured$temporal_mu$has) &&
+      !identical(spec$structured$temporal_mu$structure, "homtoep")
   ) {
     temporal <- spec$structured$temporal_mu
     out$mu <- c(
@@ -22962,7 +22976,8 @@ split_tmb_random_effects <- function(par, spec) {
   }
   if (
     is.list(spec$structured$temporal_mu) &&
-      isTRUE(spec$structured$temporal_mu$has)
+      isTRUE(spec$structured$temporal_mu$has) &&
+      !identical(spec$structured$temporal_mu$structure, "homtoep")
   ) {
     temporal <- spec$structured$temporal_mu
     latent <- unname(par$u_temporal[seq_len(temporal$n_re)])

@@ -21,6 +21,23 @@ homtoep_dense_gaussian_nll <- function(y, X, beta, id, occasion, sd_temporal, si
     sum(forwardsolve(t(chol_V), residual)^2))
 }
 
+homtoep_dense_marginal_nll <- function(y, X, beta, id, occasion, sd_total, rho) {
+  id <- as.character(id)
+  occasion <- as.numeric(occasion)
+  schedule <- sort(unique(occasion))
+  R <- stats::toeplitz(rho)
+  root <- chol(sd_total^2 * R)
+  total <- 0
+  for (series in unique(id)) {
+    rows <- which(id == series)
+    rows <- rows[order(match(occasion[rows], schedule))]
+    residual <- y[rows] - as.vector(X[rows, , drop = FALSE] %*% beta)
+    total <- total + sum(log(diag(root))) +
+      0.5 * sum(forwardsolve(t(root), residual)^2)
+  }
+  0.5 * length(y) * log(2 * pi) + total
+}
+
 # Independent inverse-Levinson recursion: this deliberately does not call the
 # package's transform so the native likelihood is checked against a separate
 # implementation of the admissible Toeplitz covariance.
@@ -61,6 +78,22 @@ homtoep_dense_nll_at <- function(fit, par) {
     occasion = fit$data[[fit$model$structured$temporal_mu$time]],
     sd_temporal = sd_temporal,
     sigma = sigma,
+    rho = rho
+  )
+}
+
+homtoep_dense_marginal_nll_at <- function(fit, par) {
+  parameter_names <- names(par)
+  beta <- unname(par[parameter_names == "beta_mu"])
+  sd_total <- exp(unname(par[match("beta_sigma", parameter_names)]))
+  rho <- homtoep_reference_correlations(unname(par[parameter_names == "theta_temporal"]))
+  homtoep_dense_marginal_nll(
+    y = fit$model$y,
+    X = as.matrix(fit$model$X$mu),
+    beta = beta,
+    id = fit$data[[fit$model$structured$temporal_mu$group]],
+    occasion = fit$data[[fit$model$structured$temporal_mu$time]],
+    sd_total = sd_total,
     rho = rho
   )
 }

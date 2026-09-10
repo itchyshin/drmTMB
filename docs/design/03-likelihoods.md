@@ -123,14 +123,13 @@ claim.
 ### Homogeneous Toeplitz discrete-occasion effects
 
 `temporal(1 | id, time = occasion, structure = "homtoep")` is a direct
-Gaussian ML provider for a common, complete, equally spaced integer schedule
-with 3--12 occasions. It has no ordinary random intercept in this first slice.
-For every series its standardized latent path has covariance
+Gaussian ML **marginal covariance** provider for a common, complete, equally
+spaced integer schedule with 3--12 occasions. It has no ordinary random
+intercept in this first slice. For every series,
 
 \[
-u_i \sim N(0, R),\qquad
-R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}),\qquad
-\operatorname{Cov}(a_{ik}, a_{il}) = s_a^2 r_{|k-l|}.
+y_i \sim N(X_i\beta, \sigma^2 R),\qquad
+R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}).
 \]
 
 The fitted `cor_lag1`, ..., `cor_lag(K-1)` values are correlations, not free
@@ -141,16 +140,23 @@ for each independent series, including its normalizer. This is a discrete-lag
 model: irregular time and unequal retained schedules are rejected and directed
 to OU.
 
+`sigma` is the total within-series SD. A latent process SD plus an independently
+estimated iid residual SD is intentionally absent: with one response per
+series--occasion and a free lag correlation at every distance, those components
+have an exact covariance-preserving ridge. AR1 and OU retain that separate
+process/residual interpretation because their restricted correlation functions
+identify it.
+
 The current provider has deterministic dense-covariance, score, two-step
-Hessian, and conditional-mode agreement. It is not yet an inference-qualified
+Hessian, residual-whitening, and correlated-residual simulation agreement. It is not yet an inference-qualified
 workflow: profile and Wald intervals, prediction on `newdata`, forecasting,
 ordinary-intercept composition, and all calibration claims remain unavailable
 until their dedicated Toeplitz gates pass.
 
-For fitted observations, `fitted()` and `residuals()` use the conditional
-temporal modes in the input row order. `simulate(re.form = NA)` holds those
-modes fixed, while the default simulation redraws one correlated Toeplitz path
-per series from the fitted covariance before drawing residual noise.
+For fitted observations, `fitted()` returns the marginal mean and `residuals()`
+returns `y - fitted`. Pearson residuals use the Cholesky whitening of the
+block Toeplitz covariance. Both simulation modes draw one correlated residual
+vector per series because this model has no conditional temporal random effect.
 
 ### Phylogenetic stable intercept plus independent OU deviations
 

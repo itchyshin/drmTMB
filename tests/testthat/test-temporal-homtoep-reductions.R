@@ -17,7 +17,7 @@ homtoep_reduction_fit <- function() {
   ))
 }
 
-test_that("homtoep native provider reduces to AR1 and diagonal temporal covariance", {
+test_that("homtoep marginal provider reduces to AR1 and diagonal covariance", {
   fit <- homtoep_reduction_fit()
   par <- fit$opt$par
   theta <- which(names(par) == "theta_temporal")
@@ -26,28 +26,26 @@ test_that("homtoep native provider reduces to AR1 and diagonal temporal covarian
   ar1_par <- par
   ar1_par[theta] <- c(atanh(phi), rep(0, length(theta) - 1L))
   ar1_rho <- c(1, phi^seq_len(length(theta)))
-  ar1_dense <- homtoep_dense_gaussian_nll(
+  ar1_dense <- homtoep_dense_marginal_nll(
     y = fit$model$y,
     X = as.matrix(fit$model$X$mu),
     beta = unname(ar1_par[names(ar1_par) == "beta_mu"]),
     id = fit$data$id,
     occasion = fit$data$occasion,
-    sd_temporal = exp(unname(ar1_par[match("log_sd_temporal", names(ar1_par))])),
-    sigma = exp(unname(ar1_par[match("beta_sigma", names(ar1_par))])),
+    sd_total = exp(unname(ar1_par[match("beta_sigma", names(ar1_par))])),
     rho = ar1_rho
   )
   expect_equal(as.numeric(fit$obj$fn(ar1_par)), ar1_dense, tolerance = 1e-7)
 
   diagonal_par <- par
   diagonal_par[theta] <- 0
-  diagonal_dense <- homtoep_dense_gaussian_nll(
+  diagonal_dense <- homtoep_dense_marginal_nll(
     y = fit$model$y,
     X = as.matrix(fit$model$X$mu),
     beta = unname(diagonal_par[names(diagonal_par) == "beta_mu"]),
     id = fit$data$id,
     occasion = fit$data$occasion,
-    sd_temporal = exp(unname(diagonal_par[match("log_sd_temporal", names(diagonal_par))])),
-    sigma = exp(unname(diagonal_par[match("beta_sigma", names(diagonal_par))])),
+    sd_total = exp(unname(diagonal_par[match("beta_sigma", names(diagonal_par))])),
     rho = c(1, rep(0, length(theta)))
   )
   expect_equal(as.numeric(fit$obj$fn(diagonal_par)), diagonal_dense, tolerance = 1e-7)
@@ -55,14 +53,16 @@ test_that("homtoep native provider reduces to AR1 and diagonal temporal covarian
 
 test_that("homtoep mutations expose invalid maps, compressed schedules, shared IDs, and missing normalizers", {
   fit <- homtoep_reduction_fit()
-  temporal <- fit$model$structured$temporal_mu
   par <- fit$opt$par
   rho <- homtoep_reference_correlations(unname(par[names(par) == "theta_temporal"]))
-  sd_temporal <- unname(fit$sdpars$mu[[temporal_mu_sd_label(temporal)]])
-  sigma <- stats::sigma(fit)[[1L]]
-  V <- homtoep_dense_covariance(
-    fit$data$id, fit$data$occasion, sd_temporal, sigma, rho
-  )
+  sd_total <- stats::sigma(fit)[[1L]]
+  block <- sd_total^2 * stats::toeplitz(rho)
+  V <- matrix(0, nrow(fit$data), nrow(fit$data))
+  for (series in unique(as.character(fit$data$id))) {
+    rows <- which(as.character(fit$data$id) == series)
+    rows <- rows[order(fit$data$occasion[rows])]
+    V[rows, rows] <- block
+  }
 
   expect_lt(min(eigen(toeplitz(c(1, 0.9, -0.9, 0.9)), symmetric = TRUE, only.values = TRUE)$values), 0)
   expect_true(all(eigen(toeplitz(rho), symmetric = TRUE, only.values = TRUE)$values > 0))
@@ -79,19 +79,18 @@ test_that("homtoep mutations expose invalid maps, compressed schedules, shared I
   schedule <- sort(unique(fit$data$occasion))
   shared_lag <- abs(outer(match(fit$data$occasion, schedule), match(fit$data$occasion, schedule), "-"))
   shared <- matrix(
-    sd_temporal^2 * rho[shared_lag + 1L],
+    sd_total^2 * rho[shared_lag + 1L],
     nrow = nrow(V), ncol = ncol(V)
   )
-  diag(shared) <- diag(shared) + sigma^2
   cross_series <- outer(fit$data$id, fit$data$id, `!=`)
   expect_true(all(V[cross_series] == 0))
   expect_true(any(shared[cross_series] != 0))
   expect_false(isTRUE(all.equal(V, shared)))
 
   residual <- fit$model$y - as.vector(fit$model$X$mu %*% unname(par[names(par) == "beta_mu"]))
-  normalized <- homtoep_dense_gaussian_nll(
+  normalized <- homtoep_dense_marginal_nll(
     fit$model$y, as.matrix(fit$model$X$mu), unname(par[names(par) == "beta_mu"]),
-    fit$data$id, fit$data$occasion, sd_temporal, sigma, rho
+    fit$data$id, fit$data$occasion, sd_total, rho
   )
   unnormalized <- 0.5 * sum(forwardsolve(t(chol(V)), residual)^2)
   expect_gt(abs(normalized - unnormalized), 1e-6)

@@ -419,6 +419,50 @@ temporal_homtoep_correlations <- function(theta) {
   rho
 }
 
+temporal_homtoep_marginal_block <- function(object) {
+  temporal <- object$model$structured$temporal_mu
+  if (!identical(temporal$structure, "homtoep")) {
+    cli::cli_abort("Internal error: homogeneous Toeplitz covariance was requested for a different temporal structure.")
+  }
+  sigma <- as.numeric(stats::sigma(object))
+  if (length(sigma) == 0L || any(!is.finite(sigma)) ||
+      max(abs(sigma - sigma[[1L]])) > sqrt(.Machine$double.eps)) {
+    cli::cli_abort("Internal homogeneous Toeplitz error: the total covariance SD must be finite and constant.")
+  }
+  rho <- c(1, unname(object$corpars$temporal))
+  sigma[[1L]]^2 * stats::toeplitz(rho)
+}
+
+temporal_homtoep_series_rows <- function(object) {
+  temporal <- object$model$structured$temporal_mu
+  ordered_rows <- order(temporal$observation_node_index)
+  lapply(seq_len(temporal$n_series), function(series) {
+    nodes <- seq.int(
+      temporal$series_start0[[series]] + 1L,
+      temporal$series_start0[[series + 1L]]
+    )
+    ordered_rows[nodes]
+  })
+}
+
+temporal_homtoep_marginal_draw <- function(object, mu) {
+  root <- chol(temporal_homtoep_marginal_block(object))
+  out <- numeric(length(mu))
+  for (rows in temporal_homtoep_series_rows(object)) {
+    out[rows] <- mu[rows] + as.vector(t(root) %*% stats::rnorm(length(rows)))
+  }
+  out
+}
+
+temporal_homtoep_marginal_whiten <- function(object, response) {
+  root <- chol(temporal_homtoep_marginal_block(object))
+  out <- numeric(length(response))
+  for (rows in temporal_homtoep_series_rows(object)) {
+    out[rows] <- as.vector(forwardsolve(t(root), response[rows]))
+  }
+  out
+}
+
 drm_has_temporal_mu <- function(object) {
   is.list(object$model) &&
     is.list(object$model$structured) &&
@@ -506,26 +550,19 @@ validate_temporal_profile_parm <- function(object, parm) {
 
 temporal_mu_contribution <- function(object) {
   temporal <- object$model$structured$temporal_mu
+  if (identical(temporal$structure, "homtoep")) {
+    return(numeric(nrow(object$data)))
+  }
   values <- object$random_effects$temporal$values
   unname(values[temporal$observation_node_index])
 }
 
 drm_fresh_temporal_mu_values <- function(object) {
   temporal <- object$model$structured$temporal_mu
-  sd <- unname(object$sdpars$mu[[temporal_mu_sd_label(temporal)]])
   if (identical(temporal$structure, "homtoep")) {
-    rho <- c(1, unname(object$corpars$temporal))
-    root <- chol(stats::toeplitz(rho))
-    latent <- numeric(temporal$n_re)
-    starts <- temporal$series_start0 + 1L
-    for (series in seq_len(temporal$n_series)) {
-      first <- starts[[series]]
-      last <- starts[[series + 1L]] - 1L
-      latent[first:last] <- as.vector(t(root) %*% stats::rnorm(length(rho)))
-    }
-    values <- sd * latent
-    return(unname(values[temporal$observation_node_index]))
+    return(numeric(nrow(object$data)))
   }
+  sd <- unname(object$sdpars$mu[[temporal_mu_sd_label(temporal)]])
   temporal_parameter <- if (identical(temporal$structure, "ar1")) {
     unname(object$corpars$temporal[[temporal$label]])
   } else {

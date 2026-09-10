@@ -197,21 +197,22 @@ phylo <- function(term, tree) {
   invisible(NULL)
 }
 
-#' Temporal random-effect marker
+#' Temporal structure marker
 #'
-#' `temporal()` adds a stationary Gaussian deviation for repeated observations
+#' `temporal()` adds a Gaussian temporal structure for repeated observations
 #' within a sampled individual or site. `structure = "ar1"` uses finite integer
 #' occasions and permits signed one-occasion persistence. `structure = "ou"`
 #' uses finite numeric elapsed time and estimates a positive decay rate, so
 #' correlation at a gap `d` is `exp(-decay * d)`. `structure = "homtoep"`
 #' uses a common, complete, equally spaced integer schedule and estimates one
-#' correlation for each discrete lag. Its parser and schedule checks are available
-#' now; fitting begins when the native provider is enabled. An ordinary `(1 | id)` may
+#' correlation for each discrete lag. It is a marginal covariance model: its
+#' `sigma` is the total within-series SD, with no separately estimated iid
+#' residual SD or temporal conditional mode. An ordinary `(1 | id)` may
 #' accompany AR1 or OU to represent stable between-series differences separately
-#' from persistent within-series deviations; it is deferred for the first
-#' homogeneous Toeplitz provider.
+#' from persistent within-series deviations; it is deferred for homogeneous
+#' Toeplitz covariance.
 #'
-#' @param term Temporal random-effect term, currently `1 | id`.
+#' @param term Temporal structure term, currently `1 | id`.
 #' @param time Name of the integer occasion (`"ar1"` or `"homtoep"`) or
 #'   numeric elapsed-time (`"ou"`) variable.
 #' @param structure Temporal covariance structure: `"ar1"`, `"ou"`, or
