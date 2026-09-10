@@ -213,6 +213,47 @@ g10 <- function() {
   cat('PHYLO_TEMPORAL_OU_G10_PASS\n')
 }
 
+g11 <- function() {
+  approval()
+  g10()
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-contract')
+  required <- c('manifest.csv', 'targets.csv', 'known-failing-coverage.csv', 'provenance.csv', 'RESULTS.md')
+  for (path in file.path(d, required)) need_file(path)
+  helper <- file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R')
+  worker <- file.path(root, 'tools', 'run-phylo-temporal-ou-g11-contract.R')
+  need_file(helper); need_file(worker)
+  source(helper, local = environment())
+  manifest <- utils::read.csv(file.path(d, 'manifest.csv'), stringsAsFactors = FALSE)
+  targets <- utils::read.csv(file.path(d, 'targets.csv'), stringsAsFactors = FALSE)
+  failing <- utils::read.csv(file.path(d, 'known-failing-coverage.csv'), stringsAsFactors = FALSE)
+  provenance <- utils::read.csv(file.path(d, 'provenance.csv'), stringsAsFactors = FALSE)
+  phylo_temporal_ou_g11_validate_manifest(manifest)
+  expected_targets <- phylo_temporal_ou_g11_targets()
+  if (!identical(targets, expected_targets) || nrow(failing) != 1L ||
+      !identical(failing$cell[[1L]], 'P1') || !identical(failing$parm[[1L]], 'fixef:mu:(Intercept)') ||
+      !isTRUE(all.equal(failing$coverage_all[[1L]], 0.90))) {
+    fail('G11 target or known-failing fixture is malformed.')
+  }
+  value <- function(key) provenance$value[provenance$key == key]
+  if (length(value('source_commit')) != 1L || !grepl('^[0-9a-f]{40}$', value('source_commit')) ||
+      !identical(value('contract_worker_md5'), unname(tools::md5sum(worker))) ||
+      !identical(value('assessment_helper_md5'), unname(tools::md5sum(helper))) ||
+      !identical(value('campaign_datasets'), '3500') || !identical(value('primary_datasets'), '3000') ||
+      !identical(value('stress_datasets'), '500') || !identical(value('profile_level'), '0.95')) {
+    fail('G11 contract provenance is incomplete or forged.')
+  }
+  output <- system2('Rscript', c('--vanilla', worker, '--self-test'), stdout = TRUE, stderr = TRUE)
+  if (!is.null(attr(output, 'status')) || !any(grepl('PHYLO_TEMPORAL_OU_G11_CONTRACT_SELFTEST_PASS', output, fixed = TRUE))) {
+    fail('G11 contract worker self-test failed.')
+  }
+  test_path <- file.path(root, 'tests/testthat/test-phylo-temporal-ou-g11.R')
+  results <- testthat::test_file(test_path, reporter = 'silent')
+  expectations <- unlist(lapply(results, `[[`, 'results'), recursive = FALSE)
+  bad <- vapply(expectations, function(x) inherits(x, c('expectation_failure', 'expectation_error')), logical(1))
+  if (any(bad)) fail('G11 assessment tests failed.')
+  cat('PHYLO_TEMPORAL_OU_G11_PASS\n')
+}
+
 g15 <- function() {
   approval()
   article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
@@ -326,10 +367,12 @@ if (identical(args, '--self-test')) {
   g9b_full()
 } else if (identical(args, 'G10')) {
   g10()
+} else if (identical(args, 'G11')) {
+  g11()
 } else if (identical(args, 'G14')) {
   g14()
 } else if (identical(args, 'G15')) {
   g15()
 } else {
-  fail('Use --self-test, G1 through G8, G10, G14, or G15; other model gates remain unavailable.')
+  fail('Use --self-test, G1 through G8, G10, G11, G14, or G15; other model gates remain unavailable.')
 }
