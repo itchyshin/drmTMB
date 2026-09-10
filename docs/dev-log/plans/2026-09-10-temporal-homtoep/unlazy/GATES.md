@@ -83,6 +83,11 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EXPECT: HOMTOEP_PROFILE_TEST_FAILURES=0
   EVIDENCE: 2026-09-10: `test-temporal-homtoep-intervals.R` profiles `mu:x` through `tmbprofile`, confirms finite bracketing endpoints and full covariance re-optimization, and confirms public `confint()` remains deferred.
 
+- [x] M6: Frozen five-seed-per-primary-cell profile pre-run measures endpoint availability and runtime.
+  CHECK: Rscript --vanilla tools/run-temporal-homtoep-marginal-profile-prerun.R
+  EXPECT: TEMPORAL_HOMTOEP_PROFILE_PRERUN_PASS
+  EVIDENCE: 2026-09-10: 15/15 fits returned all three finite profile intervals. Elapsed times were 2.08--4.01 s per data set (median 2.35 s); source and runner hash are retained with the outputs. This measures the profile workload, not coverage.
+
 - [ ] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
   EVIDENCE: pending
 
