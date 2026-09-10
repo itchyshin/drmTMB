@@ -34,12 +34,11 @@ export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export TMB_NTHREADS=1
-campaign_rlib="$stage_root/Rlib"
-export R_LIBS="$campaign_rlib${R_LIBS:+:$R_LIBS}"
-
 source_archive="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE"
 stage_root="$DRMTMB_PHYLO_TEMPORAL_OU_G12_STAGE_ROOT"
 [[ "$stage_root" == /scratch/* ]] || { echo 'G12 staging must be under /scratch.' >&2; exit 2; }
+campaign_rlib="$stage_root/Rlib"
+export R_LIBS="$campaign_rlib${R_LIBS:+:$R_LIBS}"
 task_id="$SLURM_ARRAY_TASK_ID"
 task_label=$(printf 'task-%04d' "$task_id")
 archive="$stage_root/artifacts/${task_label}.tar.gz"
