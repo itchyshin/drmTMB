@@ -570,6 +570,18 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
 })
 
+test_that("S7 reconciliation payload verifies source trees on a compute node", {
+  reconcile <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                   "julia-r-parity", "071-ordinary-laplace", "s7-fir-reconcile.sh")
+  expect_true(file.exists(reconcile))
+  text <- paste(readLines(reconcile, warn = FALSE), collapse = "\n")
+  expect_match(text, "#SBATCH --cpus-per-task=1", fixed = TRUE)
+  expect_match(text, "source-tree-archive-compare", fixed = TRUE)
+  expect_match(text, "diff -qr", fixed = TRUE)
+  expect_match(text, "s7-coverage-summary.tsv", fixed = TRUE)
+  expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
+})
+
 test_that("S7 source-pinned install declares its compiled TMB shared object", {
   description <- testthat::test_path("..", "..", "DESCRIPTION")
   fields <- read.dcf(description, fields = "NeedsCompilation")
@@ -665,6 +677,7 @@ test_that("S7 coverage writer retains one pinned 500-seed row per target", {
       drm_jl_archive_sha256 = paste(rep("c", 64L), collapse = ""),
       source_pins_sha256 = paste(rep("d", 64L), collapse = ""),
       runtime_sha256 = paste(rep("e", 64L), collapse = ""),
+      source_tree_check_sha256 = paste(rep("1", 64L), collapse = ""),
       collector_sha256 = paste(rep("f", 64L), collapse = ""),
       contract_sha256 = paste(rep("0", 64L), collapse = "")
     )
@@ -710,6 +723,7 @@ test_that("scoreboard keeps S7 coverage outside the generic receipt tier", {
       drm_jl_archive_sha256 = paste(rep("c", 64L), collapse = ""),
       source_pins_sha256 = paste(rep("d", 64L), collapse = ""),
       runtime_sha256 = paste(rep("e", 64L), collapse = ""),
+      source_tree_check_sha256 = paste(rep("1", 64L), collapse = ""),
       collector_sha256 = paste(rep("f", 64L), collapse = ""),
       contract_sha256 = paste(rep("0", 64L), collapse = "")
     )
@@ -721,6 +735,15 @@ test_that("scoreboard keeps S7 coverage outside the generic receipt tier", {
   expect_identical(sort(aggregated$attempt_count), c(7000L, 10000L))
   expect_true(all(aggregated$per_target_attempt_count == 500L))
   expect_true(all(aggregated$classification == "S7_COVERAGE_CLASSIFIED"))
+  expect_silent(scoreboard$sb_ordinary_laplace_s7_validate_plan(root, coverage))
+  tampered_target <- coverage
+  tampered_target$parm[[1L]] <- "fixef:mu:not-a-frozen-target"
+  expect_error(scoreboard$sb_ordinary_laplace_s7_validate_plan(root, tampered_target),
+               "frozen profile plan")
+  tampered_value <- coverage
+  tampered_value$unconditional_coverage[[1L]] <- 0.9
+  expect_error(scoreboard$sb_ordinary_laplace_s7_validate_numeric(tampered_value),
+               "inconsistent numeric evidence")
 })
 
 test_that("S7 campaign collector verifies task receipt checksums", {
