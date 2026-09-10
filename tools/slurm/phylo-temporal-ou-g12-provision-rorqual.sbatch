@@ -1,7 +1,10 @@
 #!/bin/bash
 # Build the Linux R library before the G12 one-dataset smoke/array tasks.
 # Submit each stage in this order: foundation, eigen, remaining, drmTMB.
-# Each stage uses the same fixed 1 CPU, 2 GiB, 30 minute envelope as G12.
+# Dependency stages use the fixed G12 1 CPU, 2 GiB, 30 minute envelope. The
+# separately authorised drmTMB build may override only its time limit at
+# submission. It compiles with a local low-memory C++ profile, recorded in its
+# provenance, because the default Rorqual -O2 profile exceeds the 2 GiB cgroup.
 # Logs are written under the shared stage root so a scheduler timeout remains
 # diagnosable even if node-local scratch is removed.
 #SBATCH --account=def-snakagaw_cpu
@@ -56,12 +59,34 @@ printf 'source_archive_sha256=%s\ndependency_archive_sha256=%s\n' "$(sha256sum "
 
 if [[ "$stage" == drmTMB ]]; then
   [[ -d "$campaign_rlib/TMB" ]] || { echo 'TMB must be provisioned before drmTMB.' >&2; exit 2; }
+  # A scheduler-killed staged install leaves an empty package directory and a
+  # 00LOCK-source directory. Preserve either as evidence, but never replace a
+  # loadable installation.
+  if [[ -d "$campaign_rlib/drmTMB" ]]; then
+    if Rscript --vanilla -e "p <- tryCatch(find.package('drmTMB'), error = function(e) ''); if (!identical(normalizePath(p), normalizePath('$campaign_rlib/drmTMB'))) quit(status = 1); loadNamespace('drmTMB')" >/dev/null 2>&1; then
+      echo 'Refuse to replace a loadable provisioned drmTMB library.' >&2
+      exit 2
+    fi
+    partial_dir="$log_dir/partial-before-job-${SLURM_JOB_ID}"
+    mkdir -p "$partial_dir"
+    mv "$campaign_rlib/drmTMB" "$partial_dir/drmTMB"
+    [[ -d "$campaign_rlib/00LOCK-source" ]] && mv "$campaign_rlib/00LOCK-source" "$partial_dir/00LOCK-source"
+    printf 'Preserved incomplete drmTMB staged install at %s\n' "$partial_dir"
+  elif [[ -d "$campaign_rlib/00LOCK-source" ]]; then
+    partial_dir="$log_dir/partial-before-job-${SLURM_JOB_ID}"
+    mkdir -p "$partial_dir"
+    mv "$campaign_rlib/00LOCK-source" "$partial_dir/00LOCK-source"
+    printf 'Preserved incomplete drmTMB install lock at %s\n' "$partial_dir"
+  fi
   tar --warning=no-unknown-keyword -xzf "$source_archive" -C "$node_root/source"
   source_dir="$node_root/source"
   [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_root/source" -mindepth 1 -maxdepth 1 -type d | head -1)
   [[ -f "$source_dir/DESCRIPTION" ]] || { echo 'Source archive does not contain drmTMB DESCRIPTION.' >&2; exit 2; }
-  [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace a provisioned drmTMB library.' >&2; exit 2; }
-  R CMD INSTALL --library="$campaign_rlib" "$source_dir"
+  cat > "$node_root/Makevars" <<'EOF'
+CXX17FLAGS = -O0 -g0 -fpic
+EOF
+  printf 'build_profile=low-memory-cxx17-o0\n' >> "$log_dir/job-${SLURM_JOB_ID}.provenance"
+  R_MAKEVARS_USER="$node_root/Makevars" R CMD INSTALL --library="$campaign_rlib" "$source_dir"
 else
   tar --warning=no-unknown-keyword -xzf "$dep_archive" -C "$node_root/deps"
   dep_dir=$(find "$node_root/deps" -mindepth 1 -maxdepth 1 -type d ! -name '._*' | head -1)
