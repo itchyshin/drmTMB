@@ -9,9 +9,13 @@ out=$1
 root=$(git rev-parse --show-toplevel)
 [[ -d "$root" && ! -e "$out" ]] || { echo 'Output exists or repository is unavailable.' >&2; exit 2; }
 cd "$root"
-tar --exclude='._*' --exclude='*/._*' --exclude='*.o' --exclude='*.so' --exclude='*.dylib' --exclude='*.dll' \
-  -czf "$out" DESCRIPTION NAMESPACE R src inst \
+# `tar` on macOS serializes extended attributes that GNU tar materializes as
+# AppleDouble `._*` files on Linux.  `git archive` uses the committed file
+# tree, so the Rorqual worker receives source only, with neither local build
+# products nor platform metadata.
+git archive --format=tar HEAD -- DESCRIPTION NAMESPACE R src inst \
   tools/run-phylo-temporal-ou-g12-task.R tools/assess-phylo-temporal-ou-g11.R \
-  docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-contract/manifest.csv
+  docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-contract/manifest.csv \
+  | gzip -n > "$out"
 tar -tzf "$out" | grep -E '(^|/)\._|\.(o|so|dylib|dll)$' && { echo 'Refusing archive with platform artifacts.' >&2; exit 1; } || true
 sha256sum "$out"
