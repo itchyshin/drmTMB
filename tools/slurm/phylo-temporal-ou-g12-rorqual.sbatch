@@ -1,6 +1,7 @@
 #!/bin/bash
 # G12: one array task = one frozen G11 data set. Submit `--array=1%1` for
-# the required smoke, then `--array=1-3500%60` only after its retained receipt.
+# the required smoke, then retain that valid task-1 receipt as the first of the
+# 3,500 frozen tasks and submit `--array=2-3500%60` only after its receipt.
 #SBATCH --account=def-snakagaw_cpu
 #SBATCH --time=00:30:00
 #SBATCH --cpus-per-task=1
