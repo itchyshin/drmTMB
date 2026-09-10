@@ -457,6 +457,12 @@ validate_temporal_wald_parm <- function(object, parm) {
       "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald intervals are deferred."
     ))
   }
+  if (identical(temporal$structure, "homtoep")) {
+    cli::cli_abort(c(
+      "Homogeneous Toeplitz mean-coefficient Wald intervals are not yet qualified.",
+      "i" = "Toeplitz recovery and interval calibration are pending; Wald intervals are deferred."
+    ))
+  }
   allowed <- drm_temporal_mean_target_parm(object)
   requested <- if (is.null(parm)) allowed else as.character(parm)
   bad <- setdiff(requested, allowed)
@@ -471,6 +477,13 @@ validate_temporal_wald_parm <- function(object, parm) {
 }
 
 validate_temporal_profile_parm <- function(object, parm) {
+  temporal <- object$model$structured$temporal_mu
+  if (identical(temporal$structure, "homtoep")) {
+    cli::cli_abort(c(
+      "Homogeneous Toeplitz profile intervals are not yet qualified.",
+      "i" = "Toeplitz recovery and profile calibration are pending; profile intervals are deferred."
+    ))
+  }
   targets <- drm_profile_targets(object)
   allowed <- drm_temporal_mean_target_parm(object)
   selected <- if (is.null(parm)) {
@@ -500,6 +513,19 @@ temporal_mu_contribution <- function(object) {
 drm_fresh_temporal_mu_values <- function(object) {
   temporal <- object$model$structured$temporal_mu
   sd <- unname(object$sdpars$mu[[temporal_mu_sd_label(temporal)]])
+  if (identical(temporal$structure, "homtoep")) {
+    rho <- c(1, unname(object$corpars$temporal))
+    root <- chol(stats::toeplitz(rho))
+    latent <- numeric(temporal$n_re)
+    starts <- temporal$series_start0 + 1L
+    for (series in seq_len(temporal$n_series)) {
+      first <- starts[[series]]
+      last <- starts[[series + 1L]] - 1L
+      latent[first:last] <- as.vector(t(root) %*% stats::rnorm(length(rho)))
+    }
+    values <- sd * latent
+    return(unname(values[temporal$observation_node_index]))
+  }
   temporal_parameter <- if (identical(temporal$structure, "ar1")) {
     unname(object$corpars$temporal[[temporal$label]])
   } else {

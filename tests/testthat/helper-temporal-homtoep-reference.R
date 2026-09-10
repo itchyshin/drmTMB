@@ -90,3 +90,19 @@ homtoep_dense_conditional_modes <- function(fit) {
   }
   stats::setNames(out, temporal$node_labels)
 }
+
+homtoep_dense_fresh_values <- function(fit) {
+  temporal <- fit$model$structured$temporal_mu
+  rho <- homtoep_reference_correlations(unname(fit$opt$par[names(fit$opt$par) == "theta_temporal"]))
+  root <- chol(toeplitz(rho))
+  out <- numeric(temporal$n_re)
+  for (series_index in seq_along(temporal$series_levels)) {
+    node <- seq.int(
+      temporal$series_start0[[series_index]] + 1L,
+      temporal$series_start0[[series_index + 1L]]
+    )
+    out[node] <- as.vector(t(root) %*% stats::rnorm(length(rho)))
+  }
+  sd_temporal <- unname(fit$sdpars$mu[[temporal_mu_sd_label(temporal)]])
+  unname((sd_temporal * out)[temporal$observation_node_index])
+}

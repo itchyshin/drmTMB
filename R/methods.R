@@ -2347,6 +2347,14 @@ vcov.drmTMB <- function(object, ...) {
       "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald inference is deferred."
     ))
   }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "homtoep"
+  )) {
+    cli::cli_abort(c(
+      "Homogeneous Toeplitz coefficient covariance is not yet qualified.",
+      "i" = "Toeplitz recovery and interval calibration are pending; Wald inference is deferred."
+    ))
+  }
   cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
@@ -2535,6 +2543,11 @@ drm_standard_error_status <- function(object) {
     object$model$structured$temporal_mu$structure, "ou"
   )) {
     return("temporal_wald_unqualified")
+  }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "homtoep"
+  )) {
+    return("temporal_inference_deferred")
   }
   if (
     identical(drm_uncertainty_status(object), "ok") &&

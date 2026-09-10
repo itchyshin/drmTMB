@@ -20,10 +20,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_3_PASS
   EVIDENCE: 2026-09-10 S2: `test-temporal-homtoep-native.R` independently constructs dense Toeplitz covariance, inverse-Levinson correlations, score, 1e-4 and 1e-5 finite-difference Hessians, and Gaussian conditional modes. The isolated T3-3 runner emitted its pass receipt; T3-1 and T3-2 were reverified after provider enablement.
 
-- [ ] T3-4: Row reconstruction, labelled extraction, fitted values, residuals and fresh/conditional simulation agree with the oracle.
+- [x] T3-4: Row reconstruction, labelled extraction, fitted values, residuals and fresh/conditional simulation agree with the oracle.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-4
   EXPECT: TEMPORAL_HOMTOEP_T3_4_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 S3: the native test asserts original-row temporal contributions, labelled extraction, fitted values, residuals, unsupported newdata and interval surfaces, and seeded conditional plus independently rebuilt fresh Toeplitz simulations. The isolated T3-4 runner emitted its pass receipt.
 
 - [ ] T3-5: AR1 and diagonal reductions plus invalid-map, compressed-schedule, cross-ID and omitted-normalizer mutations fail as designed.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-5

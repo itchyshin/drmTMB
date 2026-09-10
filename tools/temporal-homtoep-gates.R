@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3")) {
-  stop("Only `T3-1`, `T3-2`, and `T3-3` are implemented in this runner. Other gates remain pending.", call. = FALSE)
+if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4")) {
+  stop("Only `T3-1`, `T3-2`, `T3-3`, and `T3-4` are implemented in this runner. Other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
@@ -49,7 +49,10 @@ if (identical(gate, "T3-1")) {
   }
 
   cat("TEMPORAL_HOMTOEP_T3_2_PASS\n")
-} else {
+} else if (identical(gate, "T3-3")) {
   run_test_file("tests/testthat/test-temporal-homtoep-native.R")
   cat("TEMPORAL_HOMTOEP_T3_3_PASS\n")
+} else {
+  run_test_file("tests/testthat/test-temporal-homtoep-native.R")
+  cat("TEMPORAL_HOMTOEP_T3_4_PASS\n")
 }

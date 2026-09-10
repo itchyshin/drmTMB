@@ -64,3 +64,62 @@ test_that("homtoep score, Hessian, and conditional modes match independent dense
     tolerance = 1e-6
   )
 })
+
+test_that("homtoep methods preserve row order and distinguish conditional from fresh simulation", {
+  dat <- homtoep_native_data()
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = occasion, structure = "homtoep"), sigma ~ 1),
+    data = dat, family = gaussian(), REML = FALSE
+  )
+  temporal <- fit$model$structured$temporal_mu
+  fixed_mu <- as.vector(fit$model$X$mu %*% fit$coefficients$mu)
+  conditional_mu <- fixed_mu + drmTMB:::temporal_mu_contribution(fit)
+
+  expect_named(fit$random_effects, "temporal")
+  expect_named(fit$random_effects$temporal, c("values", "latent", "terms"))
+  expect_named(fit$random_effects$temporal$terms, "homtoep")
+  expect_equal(
+    unname(drmTMB:::temporal_mu_contribution(fit)),
+    unname(fit$random_effects$temporal$values[temporal$observation_node_index])
+  )
+  expect_equal(stats::fitted(fit), conditional_mu, tolerance = 1e-10)
+  expect_equal(stats::residuals(fit), fit$model$y - conditional_mu, tolerance = 1e-10)
+  expect_error(
+    stats::predict(fit, newdata = dat[1L, , drop = FALSE]),
+    "fitted observations"
+  )
+  expect_error(stats::vcov(fit), "Toeplitz coefficient covariance is not yet qualified")
+  expect_error(stats::confint(fit, method = "wald"), "Toeplitz mean-coefficient Wald intervals")
+  expect_error(stats::confint(fit, method = "profile"), "Toeplitz profile intervals")
+  expect_error(
+    summary(fit, conf.int = TRUE, method = "wald"),
+    "Toeplitz mean-coefficient Wald intervals"
+  )
+  temporal_check <- drmTMB::check_drm(fit)
+  temporal_wald <- temporal_check[temporal_check$check == "temporal_mean_wald", , drop = FALSE]
+  temporal_profile <- temporal_check[temporal_check$check == "temporal_mean_profile", , drop = FALSE]
+  expect_identical(temporal_wald$status, "note")
+  expect_match(temporal_wald$value, "toeplitz_calibration_deferred")
+  expect_identical(temporal_profile$status, "note")
+  expect_match(temporal_profile$value, "toeplitz_calibration_deferred")
+
+  set.seed(202609101L)
+  expected_conditional <- conditional_mu + stats::rnorm(nrow(dat), sd = stats::sigma(fit))
+  expect_equal(
+    unname(stats::simulate(fit, nsim = 1L, seed = 202609101L, re.form = NA)[[1L]]),
+    expected_conditional,
+    tolerance = 1e-10
+  )
+
+  set.seed(202609102L)
+  expected_fresh <- stats::rnorm(
+    nrow(dat),
+    mean = fixed_mu + homtoep_dense_fresh_values(fit),
+    sd = stats::sigma(fit)
+  )
+  expect_equal(
+    unname(stats::simulate(fit, nsim = 1L, seed = 202609102L)[[1L]]),
+    expected_fresh,
+    tolerance = 1e-10
+  )
+})

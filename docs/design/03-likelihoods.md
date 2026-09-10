@@ -147,6 +147,11 @@ workflow: profile and Wald intervals, prediction on `newdata`, forecasting,
 ordinary-intercept composition, and all calibration claims remain unavailable
 until their dedicated Toeplitz gates pass.
 
+For fitted observations, `fitted()` and `residuals()` use the conditional
+temporal modes in the input row order. `simulate(re.form = NA)` holds those
+modes fixed, while the default simulation redraws one correlated Toeplitz path
+per series from the fitted covariance before drawing residual noise.
+
 ### Phylogenetic stable intercept plus independent OU deviations
 
 The development-only paired route combines `phylo(1 | species, tree = tree)`

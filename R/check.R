@@ -1365,6 +1365,14 @@ check_temporal_mean_wald <- function(object) {
       "OU mean-coefficient Wald intervals are intentionally unavailable while the inherited AR1 calibration prerequisite remains unresolved."
     ))
   }
+  if (identical(structure, "homtoep")) {
+    return(check_row(
+      "temporal_mean_wald",
+      "note",
+      "unavailable; reason=toeplitz_calibration_deferred",
+      "Homogeneous Toeplitz mean-coefficient Wald intervals are intentionally unavailable until Toeplitz recovery and calibration evidence are retained."
+    ))
+  }
   covariance_ready <- identical(drm_uncertainty_status(object), "ok") &&
     !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
   if (!covariance_ready) {
@@ -1388,6 +1396,14 @@ check_temporal_mean_profile <- function(object) {
     return(NULL)
   }
   structure <- toupper(object$model$structured$temporal_mu$structure)
+  if (identical(structure, "HOMTOEP")) {
+    return(check_row(
+      "temporal_mean_profile",
+      "note",
+      "unavailable; reason=toeplitz_calibration_deferred",
+      "Homogeneous Toeplitz mean-coefficient profile intervals are intentionally unavailable until Toeplitz recovery and calibration evidence are retained."
+    ))
+  }
   if (is.null(object$obj)) {
     return(check_row(
       "temporal_mean_profile",

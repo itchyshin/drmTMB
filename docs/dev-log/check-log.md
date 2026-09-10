@@ -94729,3 +94729,14 @@ The provider now reports `cor_lag*` correlations and correctly labels its one
 starting vector as partial autocorrelations rather than an OU decay. It is
 still a point-fit validation slice: recovery, simulation, prediction, reader
 workflow, and all interval or calibration claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S3 methods and simulation
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-4` emitted
+`TEMPORAL_HOMTOEP_T3_4_PASS`. `fitted()` and `residuals()` use the conditional
+Toeplitz modes in original input-row order. `simulate(re.form = NA)` holds those
+modes fixed, while the default simulation redraws an independent dense Toeplitz
+path for each series before residual noise. Seeded conditional and fresh draws
+match an independent dense Cholesky construction. `vcov()`, Wald summaries, and
+both Wald and profile interval entry points now reject this uncalibrated
+provider explicitly; `check_drm()` records the same calibration-deferred reason.
