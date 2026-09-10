@@ -88,8 +88,8 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EXPECT: TEMPORAL_HOMTOEP_PROFILE_PRERUN_PASS
   EVIDENCE: 2026-09-10: 15/15 fits returned all three finite profile intervals. Elapsed times were 2.08--4.01 s per data set (median 2.35 s); source and runner hash are retained with the outputs. This measures the profile workload, not coverage.
 
-- [ ] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
-  EVIDENCE: pending
+- [x] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
+  EVIDENCE: 2026-09-10 explicit authorization: “I authorize submission of the 4,000-task DRAC/Fir marginal Toeplitz profile campaign exactly as proposed.” The approved route is one dataset per task, `1-4000%50`, one CPU, 2 GB, 10 minutes, durable DRAC project storage and a Totoro mirror after completion.
 
 - [ ] T3-10: Retained campaign artifacts reverify source, denominator and each frozen criterion without launching new fits.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-10 --reverify

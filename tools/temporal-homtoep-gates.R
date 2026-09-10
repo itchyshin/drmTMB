@@ -1,8 +1,10 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "T3-8", "M3")) {
-  stop("Only implemented deterministic and retained-evidence gates are accepted. Other gates remain pending.", call. = FALSE)
+reverify <- length(args) == 2L && identical(args[[2L]], "--reverify")
+if (!((length(args) == 1L && args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "T3-8", "M3")) ||
+      (length(args) == 2L && identical(args[[1L]], "T3-10") && reverify))) {
+  stop("Only implemented deterministic and retained-evidence gates are accepted. T3-10 requires --reverify; other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
 
@@ -26,7 +28,25 @@ run_test_file <- function(path, compile = TRUE) {
   }
 }
 
-if (identical(gate, "T3-8")) {
+if (identical(gate, "T3-10")) {
+  campaign_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT")
+  if (!nzchar(campaign_dir)) {
+    stop("T3-10 requires DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT naming retained campaign outputs; reverify never launches a campaign.", call. = FALSE)
+  }
+  status <- system2("Rscript", c(
+    "--vanilla", "tools/summarize-temporal-homtoep-marginal-profile-campaign.R",
+    paste0("--input-dir=", campaign_dir), paste0("--output-dir=", campaign_dir), "--reverify"
+  ))
+  if (!identical(status, 0L)) {
+    stop("T3-10 retained campaign outputs do not reproduce.", call. = FALSE)
+  }
+  summary <- read.csv(file.path(campaign_dir, "temporal-homtoep-profile-campaign-summary.csv"), stringsAsFactors = FALSE)
+  primary <- summary$role == "primary"
+  if (nrow(summary) != 12L || !all(summary$qualification[primary] == "qualified_in_simulated_cell")) {
+    stop("T3-10 retained campaign does not meet every frozen primary calibration criterion.", call. = FALSE)
+  }
+  cat("TEMPORAL_HOMTOEP_T3_10_PASS\n")
+} else if (identical(gate, "T3-8")) {
   contract <- "docs/dev-log/plans/2026-09-10-temporal-homtoep/T3-8-MARGINAL-CALIBRATION-CONTRACT.md"
   required <- c("likelihood-profile", "P1", "P2", "P3", "S1", "1,000", "0.925", "0.975", "0.99", "all-attempt", "DRAC/Fir", "explicit approval")
   if (!file.exists(contract)) stop("T3-8 calibration contract is missing.", call. = FALSE)
