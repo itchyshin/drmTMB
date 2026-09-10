@@ -291,9 +291,10 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     series_schedule <- split(ordered_time, ordered_series)
     complete <- vapply(series_schedule, identical, logical(1), y = occasion_levels)
     if (!all(complete)) {
+      incomplete_series <- series_levels[which(!complete)]
       cli::cli_abort(c(
         "Temporal HOMTOEP requires every ID to retain the complete retained schedule.",
-        "x" = "Incomplete series: {.val {names(series_schedule)[!complete]}}.",
+        "x" = "Incomplete series: {.val {incomplete_series}}.",
         "i" = "Use OU or AR1 for incomplete repeated records, or retain a common complete panel."
       ))
     }
@@ -504,7 +505,7 @@ validate_temporal_wald_parm <- function(object, parm) {
   if (identical(temporal$structure, "homtoep")) {
     cli::cli_abort(c(
       "Homogeneous Toeplitz mean-coefficient Wald intervals are not yet qualified.",
-      "i" = "Toeplitz recovery and interval calibration are pending; Wald intervals are deferred."
+      "i" = "Mean-coefficient likelihood profiles are qualified in the retained primary panel cells; Wald covariance and intervals remain deferred."
     ))
   }
   allowed <- drm_temporal_mean_target_parm(object)

@@ -1370,7 +1370,7 @@ check_temporal_mean_wald <- function(object) {
       "temporal_mean_wald",
       "note",
       "unavailable; reason=toeplitz_calibration_deferred",
-      "Homogeneous Toeplitz mean-coefficient Wald intervals are intentionally unavailable until Toeplitz recovery and calibration evidence are retained."
+      "Homogeneous Toeplitz mean-coefficient Wald intervals remain unavailable. Fixed-mean likelihood profiles are qualified in the retained primary cells; Wald covariance remains unavailable."
     ))
   }
   covariance_ready <- identical(drm_uncertainty_status(object), "ok") &&

@@ -54,6 +54,14 @@ test_that("homtoep rejects irregular, incomplete, and oversized retained schedul
     "complete retained schedule"
   )
 
+  labelled <- homtoep_panel(ids = c("alpha-site", "beta-site"))
+  labelled$id <- factor(labelled$id)
+  labelled <- labelled[!(labelled$id == "alpha-site" & labelled$occasion == 0L), , drop = FALSE]
+  expect_error(
+    drmTMB:::build_temporal_mu_structure(term, labelled),
+    "alpha-site"
+  )
+
   oversized <- homtoep_panel(0:12)
   expect_error(
     drmTMB:::build_temporal_mu_structure(term, oversized),

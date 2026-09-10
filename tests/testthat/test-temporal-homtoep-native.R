@@ -61,13 +61,22 @@ test_that("homtoep methods use marginal means and correlated residual draws", {
     stats::predict(fit, newdata = dat[1L, , drop = FALSE]),
     "fitted observations"
   )
-  expect_error(stats::vcov(fit), "Toeplitz coefficient covariance is not yet qualified")
+  expect_error(stats::vcov(fit), "Toeplitz Wald coefficient covariance is unavailable")
   expect_error(stats::confint(fit, method = "wald"), "Toeplitz mean-coefficient Wald intervals")
-  expect_error(stats::confint(fit, method = "profile"), "Toeplitz profile intervals")
+  profile <- stats::confint(
+    fit, parm = "mu:x", method = "profile",
+    profile_precision = "fast", profile_maxit = 50L
+  )
+  expect_identical(profile$parm, "fixef:mu:x")
+  expect_identical(profile$conf.status, "profile")
+  expect_true(is.finite(profile$lower) && is.finite(profile$upper))
   temporal_check <- drmTMB::check_drm(fit)
   temporal_wald <- temporal_check[temporal_check$check == "temporal_mean_wald", , drop = FALSE]
   expect_identical(temporal_wald$status, "note")
   expect_match(temporal_wald$value, "toeplitz_calibration_deferred")
+  expect_match(temporal_wald$message, "likelihood profiles are qualified")
+  standard_errors <- temporal_check[temporal_check$check == "standard_errors_finite", , drop = FALSE]
+  expect_match(standard_errors$message, "likelihood profiles are qualified")
   direct <- drmTMB:::drm_summary_direct_parameters(fit)
   toeplitz_rows <- direct[direct$dpar == "temporal", , drop = FALSE]
   expect_true(all(toeplitz_rows$component == "temporal-correlation"))

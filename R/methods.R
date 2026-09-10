@@ -2351,8 +2351,8 @@ vcov.drmTMB <- function(object, ...) {
     object$model$structured$temporal_mu$structure, "homtoep"
   )) {
     cli::cli_abort(c(
-      "Homogeneous Toeplitz coefficient covariance is not yet qualified.",
-      "i" = "Toeplitz recovery and interval calibration are pending; Wald inference is deferred."
+      "Homogeneous Toeplitz Wald coefficient covariance is unavailable.",
+      "i" = "Mean-coefficient likelihood profiles are qualified in the retained primary panel cells; Wald covariance and intervals remain deferred."
     ))
   }
   cov_primary <- drm_sdreport_cov_coefficients(object)

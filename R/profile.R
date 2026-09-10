@@ -190,7 +190,7 @@
 #'   \item Fixed effects and other routine Wald-ready targets: start with
 #'     \code{confint(fit)} (\code{method = "wald"}). It is the fastest
 #'     fitted-object route when \code{TMB::sdreport()} succeeded.
-#'   \item Gaussian temporal AR1 and OU mean effects: use
+#'   \item Gaussian temporal AR1, OU, and homogeneous Toeplitz mean effects: use
 #'     \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
 #'     (or omit \code{parm} for every mean coefficient). Temporal Wald output
 #'     remains restricted or deferred, and temporal variance, persistence,
@@ -762,7 +762,7 @@ confint.drmTMB <- function(
 #'   profiling: the zi-nbinom2 note covers the ordinary q1 scale route, and the
 #'   zero-one-beta notes cover that bounded family's structured q1 mean route
 #'   and its zero- and one-inflation routes.
-#'   Gaussian temporal AR1 and OU fits use
+#'   Gaussian temporal AR1, OU, and homogeneous Toeplitz fits use
 #'   `"temporal_nonmean_intervals_deferred"` for every non-mean target and
 #'   `"temporal_decay_intervals_deferred"` for the OU decay target; only their
 #'   mean regression coefficients are profile-ready.

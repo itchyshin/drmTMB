@@ -31,10 +31,11 @@ qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
 | Check | Result |
 | --- | --- |
 | Public interval surface | `confint(..., parm = "mu:<coefficient>", method = "profile")` and the matching `summary(..., method = "profile")` route now work for homogeneous Toeplitz mean coefficients only; Wald and non-mean profile targets still fail clearly. |
-| Focused test | `tests/testthat/test-temporal-homtoep-intervals.R` passes, including covariance re-optimization, finite public endpoints, summary attachment, `check_drm()` qualification label, and negative target checks. |
+| Review repairs and focused tests | Independent Noether and Pat review found stale profile-refusal expectations, ambiguous Wald-deferral text, and numeric internal IDs in incomplete-panel errors. The repaired native, parser, and profile tests pass: public fixed-mean profiles return finite endpoints; `vcov()` and Wald intervals remain unavailable with an explicit profile/Wald distinction; incomplete factor IDs retain their supplied labels. |
 | Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
 | Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
-| Local package verification | `R CMD build --no-build-vignettes` succeeded. `R CMD check --no-manual --no-vignettes` passed installation, examples, and all tests; its two warnings are the expected missing generated `inst/doc` outputs in this deliberately no-vignette mode. The full no-manual check also reached green tests but did not finish its unrelated all-vignette rebuild, so T3-12 remains open. |
+| Independent review | Noether cleared the marginal likelihood, PACF map, normalization, and profile/Wald boundary after the repair. Pat cleared the applied workflow, retained scope, label-aware error, and rendered help. |
+| Local package verification | The repaired source built with `R CMD build --no-build-vignettes`. `R CMD check --no-manual --no-vignettes` passed installation, examples, documentation, and all tests; its two warnings are the expected missing generated `inst/doc` outputs in this deliberately no-vignette mode. The full no-manual check also reached green tests but did not finish its unrelated all-vignette rebuild, so T3-12 remains open. |
 
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 

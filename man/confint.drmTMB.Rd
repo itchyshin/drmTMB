@@ -242,7 +242,7 @@ behaviour and does \strong{not} claim nominal coverage on every route.
 \item Fixed effects and other routine Wald-ready targets: start with
 \code{confint(fit)} (\code{method = "wald"}). It is the fastest
 fitted-object route when \code{TMB::sdreport()} succeeded.
-\item Gaussian temporal AR1 and OU mean effects: use
+\item Gaussian temporal AR1, OU, and homogeneous Toeplitz mean effects: use
 \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
 (or omit \code{parm} for every mean coefficient). Temporal Wald output
 remains restricted or deferred, and temporal variance, persistence,
