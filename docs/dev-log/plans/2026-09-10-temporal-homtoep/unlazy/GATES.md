@@ -64,8 +64,8 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EVIDENCE: 2026-09-10 exact reverify command emitted both stated receipts after the M-provider rebuild.
 
 - [ ] M3: Frozen marginal-Toeplitz recovery runner retains all attempts, denominators, source fingerprint, and predefined point-recovery criteria.
-  CHECK: pending runner path; must be committed before evidence is produced.
-  EXPECT: pending
+  CHECK: Rscript --vanilla tools/run-temporal-homtoep-marginal-recovery.R
+  EXPECT: TEMPORAL_HOMTOEP_MARGINAL_RECOVERY_PASS
   EVIDENCE: pending
 
 - [ ] M4: Timed marginal-Toeplitz pilot records runtime, memory, point-estimate diagnostics, and denominator completeness.
