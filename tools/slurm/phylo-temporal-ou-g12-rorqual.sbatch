@@ -65,7 +65,8 @@ on_exit() {
 trap on_exit EXIT
 mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$stage_root/metadata"
 tar -xzf "$source_archive" -C "$node_source"
-source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
+source_dir="$node_source"
+if [[ ! -f "$source_dir/DESCRIPTION" ]]; then source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1); fi
 [[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }
 if [[ "${DRMTMB_PHYLO_TEMPORAL_OU_G12_INITIALIZE_RLIB:-0}" == "1" ]]; then
   [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace an existing frozen G12 R library.' >&2; exit 2; }
