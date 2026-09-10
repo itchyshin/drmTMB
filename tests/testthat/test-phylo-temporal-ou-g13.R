@@ -5,7 +5,7 @@ test_that('phylo OU G13 re-verifier is manifest-bound and refuses incomplete art
   expect_true(any(grepl('PHYLO_TEMPORAL_OU_G13_REVERIFY_SELFTEST_PASS', self, fixed = TRUE)))
   input <- tempfile('g13-incomplete-'); output <- tempfile('g13-output-'); dir.create(input)
   on.exit(unlink(c(input, output), recursive = TRUE, force = TRUE), add = TRUE)
-  incomplete <- system2('Rscript', c('--vanilla', worker, paste0('--campaign-dir=', input), paste0('--output-dir=', output)), stdout = TRUE, stderr = TRUE)
+  incomplete <- suppressWarnings(system2('Rscript', c('--vanilla', worker, paste0('--campaign-dir=', input), paste0('--output-dir=', output)), stdout = TRUE, stderr = TRUE))
   expect_false(is.null(attr(incomplete, 'status')))
   expect_true(file.exists(file.path(output, 'task-inventory.csv')))
 })
