@@ -149,6 +149,26 @@ g9b <- function() {
   cat('PHYLO_TEMPORAL_OU_G9B_PILOT_PASS\n')
 }
 
+g9b_full <- function() {
+  approval()
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g9b-full')
+  criteria_path <- file.path(d, 'criteria.csv')
+  provenance_path <- file.path(d, 'provenance.csv')
+  manifest_path <- file.path(d, 'manifest.csv')
+  for (path in c(criteria_path, provenance_path, manifest_path,
+                 file.path(d, 'contrast-estimates.csv'), file.path(d, 'contrast-attempts.csv'),
+                 file.path(d, 'ensemble-estimates.csv'), file.path(d, 'ensemble-attempts.csv'))) need_file(path)
+  criteria <- utils::read.csv(criteria_path, check.names = FALSE)
+  provenance <- utils::read.csv(provenance_path, check.names = FALSE)
+  manifest <- utils::read.csv(manifest_path, check.names = FALSE)
+  if (nrow(criteria) != 12L || !all(criteria$pass) ||
+      sum(manifest$stream == 'contrast') != 24L || sum(manifest$stream == 'ensemble') != 300L ||
+      !any(provenance$key == 'runner_md5' & !is.na(provenance$value) & nzchar(provenance$value))) {
+    fail('G9b full-study artifacts are incomplete, failed, or lack provenance.')
+  }
+  cat('PHYLO_TEMPORAL_OU_G9B_FULL_PASS\n')
+}
+
 g15 <- function() {
   approval()
   article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
@@ -258,6 +278,8 @@ if (identical(args, '--self-test')) {
   g8()
 } else if (identical(args, 'G9b')) {
   g9b()
+} else if (identical(args, 'G9b-full')) {
+  g9b_full()
 } else if (identical(args, 'G14')) {
   g14()
 } else if (identical(args, 'G15')) {
