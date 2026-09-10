@@ -52,7 +52,18 @@ node_source="$node_root/source"
 [[ ! -e "$archive" && ! -e "$partial" ]] || { echo "Refuse to overwrite retained artifact: $archive" >&2; exit 2; }
 
 cleanup() { rm -rf "$node_root"; }
-trap cleanup EXIT
+on_exit() {
+  code=$?
+  trap - EXIT
+  if [[ "$code" -ne 0 && -d "$node_artifact" && ! -e "$archive" ]]; then
+    printf 'exit_code=%s\n' "$code" > "$node_artifact/SLURM_FAILURE.txt"
+    tar -C "$node_root" -czf "$partial" "$task_label" 2>/dev/null && \
+      { sha256sum "$partial" > "$partial.sha256"; mv "$partial" "$archive"; mv "$partial.sha256" "$archive.sha256"; } || true
+  fi
+  cleanup
+  exit "$code"
+}
+trap on_exit EXIT
 mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$stage_root/metadata"
 tar -xzf "$source_archive" -C "$node_source"
 source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
