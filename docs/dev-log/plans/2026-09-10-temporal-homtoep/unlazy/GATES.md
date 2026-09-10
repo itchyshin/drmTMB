@@ -69,8 +69,8 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EVIDENCE: 2026-09-10: the committed runner `tools/run-temporal-homtoep-marginal-recovery.R` emitted `TEMPORAL_HOMTOEP_MARGINAL_RECOVERY_PASS` for 12 retained fixtures and 12 attempts. The reverify gate checks the immutable source commit, runner MD5, all 12 outputs, nine primary selected fits, one attempt per fixture, and every frozen criterion without launching fits.
 
 - [ ] M4: Timed marginal-Toeplitz pilot records runtime, memory, point-estimate diagnostics, and denominator completeness.
-  CHECK: pending runner path; must be committed before evidence is produced.
-  EXPECT: pending
+  CHECK: Rscript --vanilla tools/run-temporal-homtoep-marginal-pilot.R
+  EXPECT: TEMPORAL_HOMTOEP_MARGINAL_PILOT_PASS
   EVIDENCE: pending
 
 - [ ] T3-8: Profile-calibration contract fixes cells, targets, all-attempt treatment of unavailable intervals, tail summaries and acceptance criteria.
