@@ -89,7 +89,7 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EVIDENCE: 2026-09-10: 15/15 fits returned all three finite profile intervals. Elapsed times were 2.08--4.01 s per data set (median 2.35 s); source and runner hash are retained with the outputs. This measures the profile workload, not coverage.
 
 - [x] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
-  EVIDENCE: 2026-09-10 explicit authorization: “I authorize submission of the 4,000-task DRAC/Fir marginal Toeplitz profile campaign exactly as proposed.” The approved route is one dataset per task, `1-4000%50`, one CPU, 2 GB, 10 minutes, durable DRAC storage and a Totoro mirror after completion. Live Fir inspection found `/project` at its 500K file quota, so the retained artifacts use backed-up `/nearline/def-snakagaw` as recorded in `T3-9-MEASURED-CAMPAIGN-PROPOSAL.md`.
+  EVIDENCE: 2026-09-10 explicit authorization: “I authorize submission of the 4,000-task DRAC/Fir marginal Toeplitz profile campaign exactly as proposed.” The approved route is one dataset per task, `1-4000%50`, one CPU, 2 GB, 10 minutes, durable DRAC storage and a Totoro mirror after completion. Live Fir inspection found `/project` at its 500K file quota and `/nearline` unavailable on compute nodes, so the retained compact artifacts use backed-up Fir home storage as recorded in `T3-9-MEASURED-CAMPAIGN-PROPOSAL.md`.
 
 - [ ] T3-10: Retained campaign artifacts reverify source, denominator and each frozen criterion without launching new fits.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-10 --reverify

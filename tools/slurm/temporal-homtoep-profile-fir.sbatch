@@ -2,7 +2,7 @@
 # Submit after the one-time build receipt and a live Fir capacity check. One
 # array task is one frozen data set: task IDs 1--4000 map to P1--P3 and S1,
 # each with 1,000 replicates. Each task writes exactly one tar.gz artifact to
-# durable nearline project storage; its expanded CSV evidence exists only node-locally.
+# backed-up Fir home storage; its expanded CSV evidence exists only node-locally.
 
 #SBATCH --account=def-snakagaw_cpu
 #SBATCH --time=00:10:00
@@ -12,13 +12,13 @@
 #SBATCH --job-name=drmtmb-homtoep-profile
 
 set -euo pipefail
-: "${DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR:?Set immutable /nearline source directory}"
-: "${DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT:?Set durable campaign output root on /nearline}"
-: "${DRMTMB_TEMPORAL_HOMTOEP_R_LIBS:?Set immutable installed R library on /nearline}"
+: "${DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR:?Set immutable source directory under /home/snakagaw}"
+: "${DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT:?Set campaign output root under /home/snakagaw}"
+: "${DRMTMB_TEMPORAL_HOMTOEP_R_LIBS:?Set immutable installed R library under /home/snakagaw}"
 : "${DRMTMB_TEMPORAL_HOMTOEP_SOURCE_COMMIT:?Set frozen source commit}"
-case "$DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR" in /nearline/* ) ;; * ) echo "Campaign source must be under /nearline" >&2; exit 2 ;; esac
-case "$DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT" in /nearline/* ) ;; * ) echo "Campaign output must be under /nearline" >&2; exit 2 ;; esac
-case "$DRMTMB_TEMPORAL_HOMTOEP_R_LIBS" in /nearline/* ) ;; * ) echo "Campaign R library must be under /nearline" >&2; exit 2 ;; esac
+case "$DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR" in /home/snakagaw/* ) ;; * ) echo "Campaign source must be under /home/snakagaw" >&2; exit 2 ;; esac
+case "$DRMTMB_TEMPORAL_HOMTOEP_CAMPAIGN_OUT" in /home/snakagaw/* ) ;; * ) echo "Campaign output must be under /home/snakagaw" >&2; exit 2 ;; esac
+case "$DRMTMB_TEMPORAL_HOMTOEP_R_LIBS" in /home/snakagaw/* ) ;; * ) echo "Campaign R library must be under /home/snakagaw" >&2; exit 2 ;; esac
 case "$DRMTMB_TEMPORAL_HOMTOEP_SOURCE_COMMIT" in ???????????????????????????????????????? ) ;; * ) echo "Source commit must have 40 characters" >&2; exit 2 ;; esac
 
 export OPENBLAS_NUM_THREADS=1

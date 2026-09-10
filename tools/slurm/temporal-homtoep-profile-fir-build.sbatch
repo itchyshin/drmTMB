@@ -9,11 +9,11 @@
 #SBATCH --job-name=drmtmb-homtoep-build
 
 set -euo pipefail
-: "${DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR:?Set immutable /nearline source directory}"
-: "${DRMTMB_TEMPORAL_HOMTOEP_R_LIBS:?Set immutable campaign R library under /nearline}"
+: "${DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR:?Set immutable source directory under /home/snakagaw}"
+: "${DRMTMB_TEMPORAL_HOMTOEP_R_LIBS:?Set immutable campaign R library under /home/snakagaw}"
 : "${DRMTMB_TEMPORAL_HOMTOEP_SOURCE_COMMIT:?Set frozen source commit}"
-case "$DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR" in /nearline/* ) ;; * ) echo "Source must be under /nearline" >&2; exit 2 ;; esac
-case "$DRMTMB_TEMPORAL_HOMTOEP_R_LIBS" in /nearline/* ) ;; * ) echo "R library must be under /nearline" >&2; exit 2 ;; esac
+case "$DRMTMB_TEMPORAL_HOMTOEP_SOURCE_DIR" in /home/snakagaw/* ) ;; * ) echo "Source must be under /home/snakagaw" >&2; exit 2 ;; esac
+case "$DRMTMB_TEMPORAL_HOMTOEP_R_LIBS" in /home/snakagaw/* ) ;; * ) echo "R library must be under /home/snakagaw" >&2; exit 2 ;; esac
 
 export OPENBLAS_NUM_THREADS=1
 export OMP_NUM_THREADS=1

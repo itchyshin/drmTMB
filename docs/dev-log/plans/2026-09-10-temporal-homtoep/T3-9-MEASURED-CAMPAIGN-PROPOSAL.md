@@ -15,11 +15,12 @@ set (median 2.35 seconds).
   scheduler and restart allowance. The 10-minute limit gives substantial room
   for the observed 4.01-second maximum without creating a long-running task.
 - **Storage:** live Fir inspection found `/project` already at its 500K file
-  quota despite ample space. Each task therefore writes one compressed immutable
-  artifact under the backed-up `/nearline/def-snakagaw` project filesystem;
+  quota, and compute nodes do not mount `/nearline`. Each task therefore writes
+  one compressed immutable artifact under the backed-up Fir home filesystem;
   expanded CSV evidence is node-local only. Mirror the completed immutable
-  artifacts to Totoro and do not store them in the package working tree until
-  the reverify step selects the complete retained set.
+  artifacts to Totoro, then remove the temporary Fir staging after retained
+  evidence is verified. Do not store campaign outputs in the package working
+  tree until the reverify step selects the complete retained set.
 - **Failure policy:** every array index writes one result record. A timeout,
   fit failure, or missing endpoint remains in the all-attempt denominator;
   reruns use the same deterministic index/seed only for infrastructure failure,
