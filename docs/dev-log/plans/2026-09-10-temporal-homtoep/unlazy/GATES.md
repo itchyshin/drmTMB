@@ -73,10 +73,10 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EXPECT: TEMPORAL_HOMTOEP_MARGINAL_PILOT_PASS
   EVIDENCE: 2026-09-10: 15/15 selected finite fits and 15/15 positive-definite Hessians across three five-seed cells, with one retained attempt per fixture and no warnings. Post-load median fit times were 0.054--0.066 s and observed post-fit resident memory was 437--449 MB. The immutable artifacts preserve full denominators and source provenance; this is sizing and point-estimate evidence, not interval calibration.
 
-- [ ] T3-8: Profile-calibration contract fixes cells, targets, all-attempt treatment of unavailable intervals, tail summaries and acceptance criteria.
+- [x] T3-8: Profile-calibration contract fixes cells, targets, all-attempt treatment of unavailable intervals, tail summaries, and acceptance criteria.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-8
   EXPECT: TEMPORAL_HOMTOEP_T3_8_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 `T3-8-MARGINAL-CALIBRATION-CONTRACT.md` freezes primary and stress cells, 1,000-replicate denominators, profile-only target scope, all-attempt coverage treatment, thresholds, pre-run design, and the separate DRAC/Fir authorization boundary.
 
 - [ ] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
   EVIDENCE: pending

@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "M3")) {
+if (length(args) != 1L || !args[[1L]] %in% c("T3-1", "T3-2", "T3-3", "T3-4", "T3-5", "T3-6", "T3-7", "T3-7a", "T3-7c", "T3-8", "M3")) {
   stop("Only implemented deterministic and retained-evidence gates are accepted. Other gates remain pending.", call. = FALSE)
 }
 gate <- args[[1L]]
@@ -26,7 +26,16 @@ run_test_file <- function(path, compile = TRUE) {
   }
 }
 
-if (identical(gate, "M3")) {
+if (identical(gate, "T3-8")) {
+  contract <- "docs/dev-log/plans/2026-09-10-temporal-homtoep/T3-8-MARGINAL-CALIBRATION-CONTRACT.md"
+  required <- c("likelihood-profile", "P1", "P2", "P3", "S1", "1,000", "0.925", "0.975", "0.99", "all-attempt", "DRAC/Fir", "explicit approval")
+  if (!file.exists(contract)) stop("T3-8 calibration contract is missing.", call. = FALSE)
+  text <- paste(readLines(contract, warn = FALSE), collapse = "\n")
+  if (!all(vapply(required, grepl, logical(1), x = text, fixed = TRUE))) {
+    stop("T3-8 calibration contract is incomplete.", call. = FALSE)
+  }
+  cat("TEMPORAL_HOMTOEP_T3_8_PASS\n")
+} else if (identical(gate, "M3")) {
   out_dir <- Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_MARGINAL_RECOVERY_OUT", unset =
     "docs/dev-log/simulation-artifacts/2026-09-10-temporal-homtoep-marginal-recovery-v1")
   required <- file.path(out_dir, c("raw-attempts.csv", "recovery-estimates.csv", "criteria.csv", "provenance.csv", "recovery-results.rds", "session-info.txt", "RESULTS.md"))
