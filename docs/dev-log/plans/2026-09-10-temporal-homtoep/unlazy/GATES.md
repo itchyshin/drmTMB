@@ -78,6 +78,11 @@ Scope: identified **marginal** Gaussian homogeneous Toeplitz covariance after th
   EXPECT: TEMPORAL_HOMTOEP_T3_8_PASS
   EVIDENCE: 2026-09-10 `T3-8-MARGINAL-CALIBRATION-CONTRACT.md` freezes primary and stress cells, 1,000-replicate denominators, profile-only target scope, all-attempt coverage treatment, thresholds, pre-run design, and the separate DRAC/Fir authorization boundary.
 
+- [x] M5: Internal fixed-mean Toeplitz profile has deterministic finite-endpoint evidence while the public interval guard remains closed.
+  CHECK: Rscript --vanilla -e 'testthat::test_file("tests/testthat/test-temporal-homtoep-intervals.R")'
+  EXPECT: HOMTOEP_PROFILE_TEST_FAILURES=0
+  EVIDENCE: 2026-09-10: `test-temporal-homtoep-intervals.R` profiles `mu:x` through `tmbprofile`, confirms finite bracketing endpoints and full covariance re-optimization, and confirms public `confint()` remains deferred.
+
 - [ ] T3-9: User explicitly approves the measured retained campaign target, storage route and resource ceiling.
   EVIDENCE: pending
 
