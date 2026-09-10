@@ -579,7 +579,38 @@ test_that("S7 reconciliation payload verifies source trees on a compute node", {
   expect_match(text, "source-tree-archive-compare", fixed = TRUE)
   expect_match(text, "diff -qr", fixed = TRUE)
   expect_match(text, "s7-coverage-summary.tsv", fixed = TRUE)
+  expect_match(text, "--drmjl-source-root=${S7_DRMJL_ROOT}", fixed = TRUE)
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
+})
+
+test_that("S7 coverage writer binds the source-tree comparison to frozen archives", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-write-coverage-summary.R"), envir = env)
+  drmtmb <- tempfile("071-s7-drmtmb-")
+  drmjl <- tempfile("071-s7-drmjl-")
+  dir.create(drmtmb)
+  dir.create(drmjl)
+  drmtmb_sha <- paste(rep("a", 64L), collapse = "")
+  drmjl_sha <- paste(rep("b", 64L), collapse = "")
+  receipt <- tempfile("071-s7-source-tree-")
+  writeLines(c(
+    "source_tree_archive_compare=PASS",
+    paste0("drmtmb_source=", normalizePath(drmtmb)),
+    paste0("drmjl_source=", normalizePath(drmjl)),
+    paste0("drmtmb_archive_sha256=", drmtmb_sha),
+    paste0("drmjl_archive_sha256=", drmjl_sha)
+  ), receipt)
+  expect_silent(env$r071_s7_read_source_tree_check(
+    receipt, drmtmb, drmjl, drmtmb_sha, drmjl_sha
+  ))
+  writeLines(c(readLines(receipt, warn = FALSE),
+               "drmjl_archive_sha256=unverified"), receipt)
+  expect_error(
+    env$r071_s7_read_source_tree_check(receipt, drmtmb, drmjl, drmtmb_sha, drmjl_sha),
+    "source-tree archive comparison is invalid"
+  )
 })
 
 test_that("S7 source-pinned install declares its compiled TMB shared object", {

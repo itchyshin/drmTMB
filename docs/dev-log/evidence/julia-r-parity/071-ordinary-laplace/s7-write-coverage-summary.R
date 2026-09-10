@@ -100,7 +100,27 @@ r071_s7_file_sha256 <- function(path) {
   unname(tools::sha256sum(path)[[1L]])
 }
 
-r071_s7_campaign_provenance <- function(campaign_root, source_root, collector_path, source_tree_check) {
+r071_s7_read_source_tree_check <- function(path, source_root, drmjl_source_root,
+                                            drmtmb_archive_sha256, drmjl_archive_sha256) {
+  if (!file.exists(path)) stop("S7 coverage writer needs a source-tree archive comparison", call. = FALSE)
+  lines <- readLines(path, warn = FALSE)
+  keys <- c("source_tree_archive_compare", "drmtmb_source", "drmjl_source",
+            "drmtmb_archive_sha256", "drmjl_archive_sha256")
+  fields <- strsplit(lines, "=", fixed = TRUE)
+  observed_keys <- vapply(fields, function(x) if (length(x) == 2L) x[[1L]] else NA_character_, character(1L))
+  values <- vapply(fields, function(x) if (length(x) == 2L) x[[2L]] else NA_character_, character(1L))
+  if (!identical(observed_keys, keys) || anyNA(values) ||
+      !identical(values[[1L]], "PASS") ||
+      !identical(normalizePath(values[[2L]], mustWork = TRUE), normalizePath(source_root, mustWork = TRUE)) ||
+      !identical(normalizePath(values[[3L]], mustWork = TRUE), normalizePath(drmjl_source_root, mustWork = TRUE)) ||
+      !identical(values[[4L]], drmtmb_archive_sha256) ||
+      !identical(values[[5L]], drmjl_archive_sha256)) {
+    stop("S7 coverage source-tree archive comparison is invalid", call. = FALSE)
+  }
+  invisible(path)
+}
+
+r071_s7_campaign_provenance <- function(campaign_root, source_root, drmjl_source_root, collector_path, source_tree_check) {
   pins_path <- file.path(campaign_root, "source-staging", "source-pins-final.tsv")
   pins <- r071_s7_read_source_pins(pins_path)
   pick <- function(component, column) pins[[column]][match(component, pins$component)]
@@ -126,7 +146,8 @@ r071_s7_campaign_provenance <- function(campaign_root, source_root, collector_pa
   }
   runtime <- list.files(file.path(campaign_root, "preflight"), pattern = "^runtime-[0-9]+\\.txt$", full.names = TRUE)
   if (length(runtime) != 1L) stop("S7 coverage writer needs exactly one preflight runtime receipt", call. = FALSE)
-  if (!file.exists(source_tree_check)) stop("S7 coverage writer needs a source-tree archive comparison", call. = FALSE)
+  r071_s7_read_source_tree_check(source_tree_check, source_root, drmjl_source_root,
+                                 pick("drmTMB", "sha256"), pick("DRM.jl", "sha256"))
   contract <- file.path(source_root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace", "s7-attempt-contract.R")
   list(
     drmtmb_commit = pick("drmTMB", "git_commit"),
@@ -142,9 +163,10 @@ r071_s7_campaign_provenance <- function(campaign_root, source_root, collector_pa
   )
 }
 
-r071_s7_write_coverage_summary <- function(campaign_root, source_root, out, collector_path, source_tree_check) {
+r071_s7_write_coverage_summary <- function(campaign_root, source_root, drmjl_source_root, out, collector_path, source_tree_check) {
   campaign_root <- normalizePath(campaign_root, mustWork = TRUE)
   source_root <- normalizePath(source_root, mustWork = TRUE)
+  drmjl_source_root <- normalizePath(drmjl_source_root, mustWork = TRUE)
   helper_dir <- file.path(source_root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
   for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
                  "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
@@ -156,7 +178,8 @@ r071_s7_write_coverage_summary <- function(campaign_root, source_root, out, coll
   bundle <- r071_s7_read_campaign_bundle(file.path(campaign_root, "bundle"))
   tab <- r071_s7_coverage_table(
     attempts = collected$attempts, profile_plan = bundle$profile_plan,
-    provenance = r071_s7_campaign_provenance(campaign_root, source_root, collector_path, source_tree_check)
+    provenance = r071_s7_campaign_provenance(campaign_root, source_root, drmjl_source_root,
+                                               collector_path, source_tree_check)
   )
   sidecar <- paste0(out, ".sha256")
   if (file.exists(out) || file.exists(sidecar)) {
@@ -176,9 +199,9 @@ r071_s7_coverage_args <- function(args) {
   if (any(!grepl("^--[a-z-]+=.+$", args))) stop("S7 coverage writer arguments must use --name=value", call. = FALSE)
   key <- sub("^--([^=]+)=.*$", "\\1", args)
   out <- stats::setNames(sub("^--[^=]+=", "", args), key)
-  required <- c("campaign-root", "source-root", "out", "source-tree-check")
+  required <- c("campaign-root", "source-root", "drmjl-source-root", "out", "source-tree-check")
   if (anyDuplicated(key) || !identical(sort(names(out)), sort(required))) {
-    stop("S7 coverage writer needs exactly --campaign-root, --source-root, --out, and --source-tree-check", call. = FALSE)
+    stop("S7 coverage writer needs exactly --campaign-root, --source-root, --drmjl-source-root, --out, and --source-tree-check", call. = FALSE)
   }
   out
 }
@@ -186,7 +209,7 @@ r071_s7_coverage_args <- function(args) {
 if (sys.nframe() == 0L) {
   args <- r071_s7_coverage_args(commandArgs(trailingOnly = TRUE))
   script <- sub("^--file=", "", commandArgs(FALSE)[grepl("^--file=", commandArgs(FALSE))][[1L]])
-  r071_s7_write_coverage_summary(args[["campaign-root"]], args[["source-root"]],
+  r071_s7_write_coverage_summary(args[["campaign-root"]], args[["source-root"]], args[["drmjl-source-root"]],
                                  args[["out"]], normalizePath(script, mustWork = TRUE),
                                  args[["source-tree-check"]])
   cat("S7_COVERAGE_SUMMARY_WRITTEN\n")

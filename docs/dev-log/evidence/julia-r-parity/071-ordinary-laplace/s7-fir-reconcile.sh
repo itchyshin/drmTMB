@@ -54,6 +54,7 @@ mv "${tmp_check}" "${check_path}"
 Rscript "${S7_COLLECTOR}" \
   "--campaign-root=${S7_CAMPAIGN_ROOT}" \
   "--source-root=${S7_SOURCE_ROOT}" \
+  "--drmjl-source-root=${S7_DRMJL_ROOT}" \
   "--source-tree-check=${check_path}" \
   "--out=${S7_CAMPAIGN_ROOT}/postprocess/s7-coverage-summary.tsv"
 
