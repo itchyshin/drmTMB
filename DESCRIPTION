@@ -42,6 +42,7 @@ Imports:
 LinkingTo:
     RcppEigen,
     TMB
+NeedsCompilation: yes
 Suggests:
     ape,
     callr,

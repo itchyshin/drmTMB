@@ -577,6 +577,12 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
 })
 
+test_that("S7 source-pinned install declares its compiled TMB shared object", {
+  description <- testthat::test_path("..", "..", "DESCRIPTION")
+  fields <- read.dcf(description, fields = "NeedsCompilation")
+  expect_identical(unname(fields[[1L]]), "yes")
+})
+
 test_that("S7 campaign collector refuses an incomplete retained denominator", {
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
