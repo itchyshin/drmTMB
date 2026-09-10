@@ -94751,3 +94751,16 @@ The deterministic mutation test rejects an indefinite direct-lag matrix and an
 irregular schedule, and distinguishes the correct independent-series covariance
 and normalized likelihood from deliberately shared-series and no-normalizer
 variants.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-6 retained point recovery
+
+`Rscript --vanilla tools/run-temporal-homtoep-recovery.R` emitted
+`TEMPORAL_HOMTOEP_RECOVERY_PASS` under committed source `b9dacf42d`; the
+read-only verifier then emitted `TEMPORAL_HOMTOEP_T3_6_PASS`. The final-source
+artifact retains twelve frozen fits and twelve starts: three AR1, three
+non-exponential, three negative-lag primary fits, and three low-information
+stress fits. All nine primary fits were finite. Primary mean absolute
+fixed-effect error was 0.0611, median absolute SD error 0.0933, and median lag
+RMSE 0.1098, all within their frozen point-recovery criteria. The stress cell is
+retained but excluded from those primary thresholds. This is not interval or
+coverage evidence.

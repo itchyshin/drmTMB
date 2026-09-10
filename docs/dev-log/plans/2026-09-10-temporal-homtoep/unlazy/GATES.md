@@ -30,10 +30,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_5_PASS
   EVIDENCE: 2026-09-10: `test-temporal-homtoep-reductions.R` compares native AR1 and diagonal reductions against independent dense likelihoods, rejects an indefinite direct-lag matrix and irregular schedule, and detects shared-series covariance plus an omitted MVN normalizer. The isolated T3-5 runner emitted its pass receipt.
 
-- [ ] T3-6: New fixtures recover AR1, non-exponential and negative-lag valid Toeplitz cells with all starts and failures retained.
+- [x] T3-6: New fixtures recover AR1, non-exponential and negative-lag valid Toeplitz cells with all starts and failures retained.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-6
   EXPECT: TEMPORAL_HOMTOEP_T3_6_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 final-source recovery at `b9dacf42d`: 12 frozen fixtures (three AR1, three non-exponential, three negative-lag primary fits; three low-information stress fits), 12 retained attempts, and all five primary recovery criteria pass. `T3-6` verifies the runner MD5, source commit, denominators, and immutable outputs without rerunning fits.
 
 - [ ] T3-7: Timed pilot records runtime, memory, profile availability, warnings and denominator completeness.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-7
