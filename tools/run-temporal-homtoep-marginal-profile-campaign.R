@@ -129,7 +129,11 @@ started <- proc.time()[["elapsed"]]
 load_error <- NULL
 fit_result <- NULL
 tryCatch(
-  suppressPackageStartupMessages(pkgload::load_all(root, compile = TRUE, quiet = TRUE)),
+  if (identical(Sys.getenv("DRMTMB_TEMPORAL_HOMTOEP_USE_INSTALLED"), "1")) {
+    suppressPackageStartupMessages(library(drmTMB))
+  } else {
+    suppressPackageStartupMessages(pkgload::load_all(root, compile = TRUE, quiet = TRUE))
+  },
   error = function(e) load_error <<- conditionMessage(e)
 )
 if (is.null(load_error)) {

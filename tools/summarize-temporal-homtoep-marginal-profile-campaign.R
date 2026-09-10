@@ -56,17 +56,22 @@ read_attempt <- function(path, task) {
   intervals
 }
 
-task_dirs <- file.path(input_dir, sprintf("task-%04d", 1:4000))
-if (!all(dir.exists(task_dirs))) fail("Require task-0001 through task-4000 directories.")
-attempt_dirs <- lapply(task_dirs, function(path) {
-  found <- list.dirs(path, full.names = TRUE, recursive = FALSE)
+archives <- file.path(input_dir, sprintf("task-%04d.tar.gz", 1:4000))
+if (!all(file.exists(archives))) fail("Require one immutable task-0001.tar.gz through task-4000.tar.gz artifact.")
+read_archive <- function(archive, task) {
+  extracted <- tempfile("temporal-homtoep-campaign-task-")
+  dir.create(extracted)
+  on.exit(unlink(extracted, recursive = TRUE), add = TRUE)
+  utils::untar(archive, exdir = extracted)
+  task_dir <- file.path(extracted, sprintf("task-%04d", task))
+  found <- list.dirs(task_dir, full.names = TRUE, recursive = FALSE)
   found <- found[grepl("/attempt-[0-9]{3}$", found)]
   if (length(found) != 1L) {
-    fail("Each task must have exactly one retained initial attempt; retry selection requires a separate recorded decision.")
+    fail("Each task archive must retain exactly one initial attempt; retry selection requires a separate recorded decision.")
   }
-  found
-})
-rows <- do.call(rbind, Map(function(path, task) read_attempt(path[[1L]], task), attempt_dirs, 1:4000))
+  read_attempt(found[[1L]], task)
+}
+rows <- do.call(rbind, Map(read_archive, archives, 1:4000))
 if (length(unique(rows$source_commit)) != 1L || length(unique(rows$runner_md5)) != 1L) {
   fail("Campaign tasks do not share one frozen source and worker fingerprint.")
 }
