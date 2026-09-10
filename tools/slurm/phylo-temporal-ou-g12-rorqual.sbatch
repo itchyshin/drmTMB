@@ -54,17 +54,17 @@ node_source="$node_root/source"
 cleanup() { rm -rf "$node_root"; }
 trap cleanup EXIT
 mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$run_root/metadata"
+tar -xzf "$source_archive" -C "$node_source"
+source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
+[[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }
 if [[ "${DRMTMB_PHYLO_TEMPORAL_OU_G12_INITIALIZE_RLIB:-0}" == "1" ]]; then
   [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace an existing frozen G12 R library.' >&2; exit 2; }
   mkdir -p "$campaign_rlib"
-  R CMD INSTALL --library="$campaign_rlib" "$node_source"/* > "$node_artifact/package-install.log" 2>&1
+  R CMD INSTALL --library="$campaign_rlib" "$source_dir" > "$node_artifact/package-install.log" 2>&1
 elif [[ ! -d "$campaign_rlib/drmTMB" ]]; then
   echo 'G12 campaign library is missing; only the scheduled smoke may initialise it.' >&2
   exit 2
 fi
-tar -xzf "$source_archive" -C "$node_source"
-source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
-[[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }
 printf "%s\n" "$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" > "$source_dir/SOURCE_COMMIT"
 {
   echo "run_utc=$(date -Iseconds)"
