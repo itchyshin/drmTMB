@@ -120,6 +120,33 @@ route excludes decay and variance parameters, warns if the fitted Hessian is
 irregular, and has deterministic dense-oracle checks but no general coverage
 claim.
 
+### Homogeneous Toeplitz discrete-occasion effects
+
+`temporal(1 | id, time = occasion, structure = "homtoep")` is a direct
+Gaussian ML provider for a common, complete, equally spaced integer schedule
+with 3--12 occasions. It has no ordinary random intercept in this first slice.
+For every series its standardized latent path has covariance
+
+\[
+u_i \sim N(0, R),\qquad
+R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}),\qquad
+\operatorname{Cov}(a_{ik}, a_{il}) = s_a^2 r_{|k-l|}.
+\]
+
+The fitted `cor_lag1`, ..., `cor_lag(K-1)` values are correlations, not free
+unconstrained parameters. The native provider maps unconstrained partial
+autocorrelations through `tanh()` and the inverse-Levinson recursion, which
+keeps `R` positive definite. It evaluates the full multivariate-normal density
+for each independent series, including its normalizer. This is a discrete-lag
+model: irregular time and unequal retained schedules are rejected and directed
+to OU.
+
+The current provider has deterministic dense-covariance, score, two-step
+Hessian, and conditional-mode agreement. It is not yet an inference-qualified
+workflow: profile and Wald intervals, prediction on `newdata`, forecasting,
+ordinary-intercept composition, and all calibration claims remain unavailable
+until their dedicated Toeplitz gates pass.
+
 ### Phylogenetic stable intercept plus independent OU deviations
 
 The development-only paired route combines `phylo(1 | species, tree = tree)`

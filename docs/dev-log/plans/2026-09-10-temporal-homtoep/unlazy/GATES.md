@@ -15,10 +15,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_2_PASS
   EVIDENCE: 2026-09-10 S0: inverse-Levinson reflection map selected; 480 deterministic K=1..12 draws, reconstruction, finite-difference and dense-reference tests retained in `S0-PARAMETERISATION.md`, `tools/temporal-homtoep-map-study.R`, and `tests/testthat/test-temporal-homtoep-map.R`.
 
-- [ ] T3-3: Native likelihood, independent dense V, score, Hessian and conditional modes agree at two finite-difference step sizes.
+- [x] T3-3: Native likelihood, independent dense V, score, Hessian and conditional modes agree at two finite-difference step sizes.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-3
   EXPECT: TEMPORAL_HOMTOEP_T3_3_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 S2: `test-temporal-homtoep-native.R` independently constructs dense Toeplitz covariance, inverse-Levinson correlations, score, 1e-4 and 1e-5 finite-difference Hessians, and Gaussian conditional modes. The isolated T3-3 runner emitted its pass receipt; T3-1 and T3-2 were reverified after provider enablement.
 
 - [ ] T3-4: Row reconstruction, labelled extraction, fitted values, residuals and fresh/conditional simulation agree with the oracle.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-4

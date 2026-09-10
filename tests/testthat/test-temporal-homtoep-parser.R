@@ -61,7 +61,7 @@ test_that("homtoep rejects irregular, incomplete, and oversized retained schedul
   )
 })
 
-test_that("homtoep validates raw keys before omission and cannot fall through to OU", {
+test_that("homtoep validates raw keys before omission and selects its provider", {
   term <- list(group = "id", time = "occasion", structure = "homtoep")
   duplicate <- homtoep_panel()
   a_rows <- which(duplicate$id == "a")
@@ -71,12 +71,13 @@ test_that("homtoep validates raw keys before omission and cannot fall through to
     "keys must be unique before response omission"
   )
 
-  expect_error(
-    drmTMB::drmTMB(
-      drmTMB::bf(y ~ temporal(1 | id, time = occasion, structure = "homtoep"), sigma ~ 1),
-      data = homtoep_panel(), family = gaussian(), REML = FALSE
-    ),
-    "native covariance provider is not yet enabled"
+  layout <- drmTMB:::build_temporal_mu_structure(term, homtoep_panel())
+  tmb_data <- drmTMB:::temporal_mu_tmb_data(list(
+    structured = list(temporal_mu = layout)
+  ))
+  expect_identical(
+    tmb_data$temporal_mu_structure,
+    3L
   )
 })
 

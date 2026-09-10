@@ -94712,3 +94712,20 @@ native provider, preventing an accidental fall-through to OU. Targeted regressio
 passed for `test-temporal-parser.R`, `test-temporal-gaussian-smoke.R`,
 `test-temporal-identities.R`, `test-temporal-ou.R`,
 `test-temporal-ou-dense-oracle.R`, the Toeplitz map, and the new parser suite.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S2 native provider
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-3` emitted
+`TEMPORAL_HOMTOEP_T3_3_PASS`; T3-1 and T3-2 were then reverified with their
+expected receipts. The provider represents every standardized series path with
+a positive-definite Toeplitz covariance built from inverse-Levinson
+partial-autocorrelation coordinates, and applies a full normalized MVN density
+per independent series. The independent dense oracle matches the optimized
+objective, score, two finite-difference Hessian steps (1e-4 and 1e-5), and
+conditional temporal modes. The oracle initially used the wrong triangular
+Cholesky solve; the corrected `forwardsolve(t(chol(V)), residual)` calculation
+was independently reconciled with the native objective before the gate passed.
+The provider now reports `cor_lag*` correlations and correctly labels its one
+starting vector as partial autocorrelations rather than an OU decay. It is
+still a point-fit validation slice: recovery, simulation, prediction, reader
+workflow, and all interval or calibration claims remain pending.

@@ -384,20 +384,39 @@ temporal_mu_tmb_data <- function(spec) {
       temporal_mu_structure = 0L
     ))
   }
-  if (identical(temporal$structure, "homtoep")) {
-    cli::cli_abort(c(
-      "Temporal HOMTOEP grammar is available, but its native covariance provider is not yet enabled.",
-      "i" = "This development checkpoint accepts and validates the schedule; fitting begins after the native-provider gate."
-    ))
-  }
   list(
     has_temporal_mu = 1L,
     temporal_mu_node_index = temporal$observation_node_index0,
     temporal_mu_series_start = temporal$series_start0,
     temporal_mu_gap = as.integer(round(temporal$gap)),
     temporal_mu_elapsed_gap = as.numeric(temporal$gap),
-    temporal_mu_structure = if (identical(temporal$structure, "ar1")) 1L else 2L
+    temporal_mu_structure = switch(
+      temporal$structure,
+      ar1 = 1L,
+      ou = 2L,
+      homtoep = 3L
+    )
   )
+}
+
+temporal_homtoep_correlations <- function(theta) {
+  theta <- as.numeric(theta)
+  K <- length(theta) + 1L
+  rho <- numeric(K)
+  rho[[1L]] <- 1
+  ar <- numeric()
+  innovation_var <- 1
+  for (m in seq_along(theta)) {
+    reflection <- tanh(theta[[m]])
+    prediction <- if (m == 1L) 0 else sum(ar * rho[m:2L])
+    rho[[m + 1L]] <- prediction + reflection * innovation_var
+    ar_new <- numeric(m)
+    ar_new[[m]] <- reflection
+    if (m > 1L) ar_new[seq_len(m - 1L)] <- ar - reflection * rev(ar)
+    ar <- ar_new
+    innovation_var <- innovation_var * (1 - reflection^2)
+  }
+  rho
 }
 
 drm_has_temporal_mu <- function(object) {
