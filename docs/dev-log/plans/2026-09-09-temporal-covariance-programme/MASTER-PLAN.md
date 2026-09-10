@@ -88,8 +88,7 @@ close gate can pass.
 ### Parent-to-child launch rule
 
 P2, P3, P4 and any Phase-5 candidate are **not** implicitly authorised merely because
-they appear in this master plan. Ada opens a child arc only after its parent close gate
-is green and the following child receipt is committed: current source pin; exact public
+they appear in this master plan. The direct temporal OU parent closed at `0d66e62f3`; the optional phylogenetic-stable plus OU composition remains a separate extension whose pending calibration does not block P2. Ada opens a child arc only after its parent close gate is green and the following child receipt is committed: current source pin; exact public
 interface check against the parent; S0–S6 file ownership; a fresh executable Unlazy
 ledger; named oracle/mutation set; compute estimate; and a reader question. For P4 and
 P5 it also records the concrete scientific data/use case. A later child may strengthen
@@ -260,7 +259,7 @@ G3 dense covariance, G4 likelihood/score/Hessian, G5 reductions, G6 mutations, G
 methods/simulation, G8 profile target, G9 recovery, G10 pilot, G11 campaign contract,
 G12 manual campaign approval, G13 retained campaign reverify, G14-G15 reader evidence,
 G16 package check, G17 review and G18 closure. At the current execution checkpoint,
-G2-G8, G14-G15 and the separately approved G9b-full point-recovery study pass; G9 remains a retained historical failure, and G10-G13/G16-G18 remain open. G9b-full retained 24/48 contrast fixtures/starts and 300/600 independent-tree selected fits/starts, separating reportable treatment contrasts from ensemble intercept bias. It does not qualify profile-calibration, interval, forecast, `newdata`, or P2 Toeplitz claims. The programme must not advance to P2 on the basis of reader or point-recovery evidence alone.
+The direct temporal OU parent is fully qualified: its grammar, dense oracle, methods, rendered tutorial, package check and 3,000-data-set profile campaign all closed at `0d66e62f3` and campaign source `e57ed8c1`. The separately approved phylogenetic-stable plus OU G9b-full point-recovery study also passes, while its extension-specific G10-G13/G16-G18 calibration gates remain open. Those extension gates do not qualify a separable field and do not block the direct temporal P2 child. P2 remains blocked only until its own committed child receipt receives explicit approval; `docs/dev-log/plans/2026-09-10-temporal-homtoep/` is that receipt.
 
 ### Simulation and compute
 
