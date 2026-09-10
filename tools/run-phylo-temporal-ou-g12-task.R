@@ -46,7 +46,11 @@ meta$schedule <- c('6_irregular' = 'p1', '12_irregular' = 'p2', '4_to_12_irregul
 if (is.null(meta$schedule) || is.na(meta$schedule)) stop('Frozen manifest contains an unsupported occasion schedule.', call. = FALSE)
 meta$sd_phylo_truth <- meta$sd_phylo
 meta$decay_truth <- meta$decay
-pkgload::load_all(root, quiet = TRUE)
+if (identical(Sys.getenv('DRMTMB_PHYLO_TEMPORAL_OU_G12_USE_INSTALLED'), '1')) {
+  library(drmTMB)
+} else {
+  pkgload::load_all(root, quiet = TRUE)
+}
 truth <- c(intercept = 0, between = 0.5, within = 0.5, sd_temporal = meta$sd_temporal, sigma = meta$sigma)
 make_schedule <- function(kind, n_species) {
   if (identical(kind, 'p1')) return(rep(list(c(0, 0.5, 2, 4.5, 7, 11)), n_species))

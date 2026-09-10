@@ -13,7 +13,7 @@ set -euo pipefail
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE:?Set the immutable source archive on /project}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT:?Set the durable /project campaign root}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT:?Set the frozen 40-character source commit}"
-: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB:?Set the read-only R library with drmTMB dependencies}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_RLIB:?Set the read-only R library with drmTMB dependencies}"
 
 if [[ "${SLURM_CLUSTER_NAME:-}" != "rorqual" || -z "${SLURM_JOB_ID:-}" ]]; then
   echo 'Refusing execution outside a scheduled Rorqual job.' >&2
@@ -35,7 +35,8 @@ export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export TMB_NTHREADS=1
-export R_LIBS="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB${R_LIBS:+:$R_LIBS}"
+campaign_rlib="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT/Rlib"
+export R_LIBS="$campaign_rlib:$DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_RLIB${R_LIBS:+:$R_LIBS}"
 
 source_archive="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_ARCHIVE"
 run_root="$DRMTMB_PHYLO_TEMPORAL_OU_G12_RUN_ROOT"
@@ -53,6 +54,14 @@ node_source="$node_root/source"
 cleanup() { rm -rf "$node_root"; }
 trap cleanup EXIT
 mkdir -p "$node_artifact" "$node_source" "$(dirname "$archive")" "$run_root/metadata"
+if [[ "${DRMTMB_PHYLO_TEMPORAL_OU_G12_INITIALIZE_RLIB:-0}" == "1" ]]; then
+  [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace an existing frozen G12 R library.' >&2; exit 2; }
+  mkdir -p "$campaign_rlib"
+  R CMD INSTALL --library="$campaign_rlib" "$node_source"/* > "$node_artifact/package-install.log" 2>&1
+elif [[ ! -d "$campaign_rlib/drmTMB" ]]; then
+  echo 'G12 campaign library is missing; only the scheduled smoke may initialise it.' >&2
+  exit 2
+fi
 tar -xzf "$source_archive" -C "$node_source"
 source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
 [[ -n "$source_dir" && -f "$source_dir/tools/run-phylo-temporal-ou-g12-task.R" ]] || { echo 'G12 worker is absent from source archive.' >&2; exit 2; }
@@ -66,12 +75,13 @@ printf "%s\n" "$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" > "$source_dir/SOURC
   echo "source_commit=$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT"
   echo "source_archive=$source_archive"
   echo "source_archive_sha256=$(sha256sum "$source_archive" | awk '{print $1}')"
-  echo "rlib=$DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB"
+  echo "campaign_rlib=$campaign_rlib"
+  echo "dependency_rlib=$DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_RLIB"
 } > "$node_artifact/slurm-provenance.txt"
 Rscript --version >> "$node_artifact/slurm-provenance.txt" 2>&1
 (
   cd "$source_dir"
-  DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" Rscript --vanilla tools/run-phylo-temporal-ou-g12-task.R \
+  DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" DRMTMB_PHYLO_TEMPORAL_OU_G12_USE_INSTALLED=1 Rscript --vanilla tools/run-phylo-temporal-ou-g12-task.R \
     --task="$task_id" \
     --output-dir="$node_artifact/model-artifact" \
     --source-commit="$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT"
