@@ -40,12 +40,12 @@ if (identical(mode, 'preflight') && (!identical(selected_cells, 'P1') || replica
 pkgload::load_all(root, quiet = TRUE)
 base_out <- Sys.getenv(
   'DRMTMB_PHYLO_TEMPORAL_OU_G10_OUT',
-  unset = file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g10-pilot')
+  unset = file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g10-pilot-v2')
 )
 out_dir <- if (identical(mode, 'preflight')) file.path(base_out, 'preflight-p1-seed-2026091701-v2') else base_out
 required <- c(
   'manifest.csv', 'selected-fits.csv', 'attempts.csv', 'profiles.csv', 'diagnostics.csv',
-  'warnings.csv', 'criteria.csv', 'provenance.csv', 'g10-pilot-results.rds', 'session-info.txt', 'RESULTS.md'
+  'warnings.csv', 'progress.csv', 'criteria.csv', 'provenance.csv', 'g10-pilot-results.rds', 'session-info.txt', 'RESULTS.md'
 )
 if (any(file.exists(file.path(out_dir, required)))) {
   stop('G10 pilot artifacts already exist; do not overwrite retained evidence.', call. = FALSE)
@@ -214,7 +214,24 @@ run_one <- function(meta) {
   list(selected = selected, attempts = attempts, profiles = profiles, diagnostics = diagnostics, warnings = warning_table)
 }
 
-rows <- lapply(seq_len(nrow(manifest)), function(i) run_one(manifest[i, , drop = FALSE]))
+rows <- vector('list', nrow(manifest))
+progress <- data.frame(id = character(), cell = character(), replicate = integer(), completed_utc = character(),
+                       selected = logical(), fit_elapsed_sec = numeric(), profile_elapsed_sec = numeric(),
+                       profile_available = integer(), error = character(), stringsAsFactors = FALSE)
+for (i in seq_len(nrow(manifest))) {
+  rows[[i]] <- run_one(manifest[i, , drop = FALSE])
+  selected_row <- rows[[i]]$selected
+  profile_row <- rows[[i]]$profiles
+  diagnostic_row <- rows[[i]]$diagnostics
+  progress <- rbind(progress, data.frame(
+    id = selected_row$id, cell = selected_row$cell, replicate = selected_row$replicate,
+    completed_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE), selected = selected_row$selected,
+    fit_elapsed_sec = selected_row$elapsed_sec, profile_elapsed_sec = sum(profile_row$elapsed_sec, na.rm = TRUE),
+    profile_available = diagnostic_row$profile_available, error = selected_row$error,
+    stringsAsFactors = FALSE
+  ))
+  utils::write.csv(progress, file.path(out_dir, 'progress.csv'), row.names = FALSE)
+}
 selected <- do.call(rbind, lapply(rows, `[[`, 'selected'))
 attempts <- do.call(rbind, lapply(rows, `[[`, 'attempts'))
 profiles <- do.call(rbind, lapply(rows, `[[`, 'profiles'))

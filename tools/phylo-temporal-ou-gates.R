@@ -183,15 +183,16 @@ g9c <- function() {
 g10 <- function() {
   approval()
   g9c()
-  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g10-pilot')
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g10-pilot-v2')
   required <- c('manifest.csv', 'selected-fits.csv', 'attempts.csv', 'profiles.csv', 'diagnostics.csv',
-                'warnings.csv', 'criteria.csv', 'provenance.csv', 'g10-pilot-results.rds', 'session-info.txt', 'RESULTS.md')
+                'warnings.csv', 'progress.csv', 'criteria.csv', 'provenance.csv', 'g10-pilot-results.rds', 'session-info.txt', 'RESULTS.md')
   for (path in file.path(d, required)) need_file(path)
   manifest <- utils::read.csv(file.path(d, 'manifest.csv'), check.names = FALSE)
   selected <- utils::read.csv(file.path(d, 'selected-fits.csv'), check.names = FALSE)
   attempts <- utils::read.csv(file.path(d, 'attempts.csv'), check.names = FALSE)
   profiles <- utils::read.csv(file.path(d, 'profiles.csv'), check.names = FALSE)
   diagnostics <- utils::read.csv(file.path(d, 'diagnostics.csv'), check.names = FALSE)
+  progress <- utils::read.csv(file.path(d, 'progress.csv'), check.names = FALSE)
   criteria <- utils::read.csv(file.path(d, 'criteria.csv'), check.names = FALSE)
   provenance <- utils::read.csv(file.path(d, 'provenance.csv'), check.names = FALSE)
   expected_cells <- c('P1', 'P2', 'P3', 'P4')
@@ -202,7 +203,8 @@ g10 <- function() {
     nrow(attempts) == 40L && all(table(attempts$id) == 2L) && all(manifest$id %in% attempts$id) &&
     nrow(profiles) == 60L && all(table(profiles$id) == 3L) && all(manifest$id %in% profiles$id) &&
     setequal(unique(profiles$parm), expected_parm) && nrow(diagnostics) == 20L &&
-    all(manifest$id %in% diagnostics$id) && nrow(criteria) == 6L && all(criteria$pass) &&
+    all(manifest$id %in% diagnostics$id) && nrow(progress) == 20L && all(manifest$id %in% progress$id) &&
+    nrow(criteria) == 6L && all(criteria$pass) &&
     all(c('source_commit', 'runner_md5', 'profile_engine', 'profile_precision', 'profile_level') %in% provenance$key) &&
     identical(provenance$value[provenance$key == 'profile_engine'], 'tmbprofile') &&
     identical(provenance$value[provenance$key == 'profile_precision'], 'fast') &&
