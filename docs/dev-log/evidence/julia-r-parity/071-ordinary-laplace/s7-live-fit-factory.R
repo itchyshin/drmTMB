@@ -16,10 +16,11 @@ r071_s7_engine_fit <- function(spec, fixture, drm_fit = drmTMB) {
     engine = spec$engine[[1L]]
   )
   if (identical(spec$engine[[1L]], "julia")) {
-    if (!identical(fixture$marginal, "Laplace")) {
-      stop("S7 scalar Julia fixture must explicitly request marginal = Laplace", call. = FALSE)
+    if (identical(fixture$marginal, "Laplace")) {
+      args$marginal <- "Laplace"
+    } else if (!is.null(fixture$marginal)) {
+      stop("S7 Julia fixture marginal must be NULL or explicit Laplace", call. = FALSE)
     }
-    args$marginal <- "Laplace"
   }
   do.call(drm_fit, args)
 }
