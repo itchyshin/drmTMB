@@ -18,7 +18,10 @@ empty_temporal_mu_structure <- function() {
     observation_node_index = integer(),
     observation_node_index0 = 0L,
     series_start0 = 0L,
-    gap = 0L
+    gap = 0L,
+    occasion_levels = numeric(),
+    occasion_index = integer(),
+    n_occasions = 0L
   )
 }
 
@@ -96,11 +99,11 @@ validate_temporal_raw_data <- function(term, data) {
       "x" = "{.arg {term$time}} cannot be a factor, date-time value, or non-finite value."
     ))
   }
-  if (identical(term$structure, "ar1") && any(occasion != round(occasion))) {
+  if (term$structure %in% c("ar1", "homtoep") && any(occasion != round(occasion))) {
     cli::cli_abort(c(
-      "Temporal AR1 occasions must be finite integers.",
-      "x" = "{.arg {term$time}} cannot be fractional for {.val ar1}.",
-      "i" = "Use the original integer sampling occasion; its gaps are part of the AR1 model."
+      paste0("Temporal ", toupper(term$structure), " occasions must be finite integers."),
+      "x" = "{.arg {term$time}} cannot be fractional for {.val {term$structure}}.",
+      "i" = if (identical(term$structure, "homtoep")) "Use an integer occasion; homogeneous Toeplitz is defined by discrete lag." else "Use the original integer sampling occasion; its gaps are part of the AR1 model."
     ))
   }
   duplicate_key <- duplicated(data.frame(
@@ -205,6 +208,12 @@ validate_temporal_gaussian_terms <- function(
       "i" = "Use a constant residual SD while temporal effects are fitted."
     ))
   }
+  if (identical(term$structure, "homtoep") && length(mu_re$terms) > 0L) {
+    cli::cli_abort(c(
+      "Temporal HOMTOEP currently does not allow an ordinary random intercept.",
+      "i" = "Fit the direct temporal process alone while the first Toeplitz provider is validated."
+    ))
+  }
   if (isTRUE(paired_phylo_stable) && length(mu_re$terms) > 0L) {
     cli::cli_abort(c(
       "The paired phylogenetic-temporal OU model does not allow an ordinary random intercept.",
@@ -253,6 +262,43 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   ordering <- order(series_index, occasion, original_row, method = "radix")
   ordered_series <- series_index[ordering]
   ordered_time <- occasion[ordering]
+  occasion_levels <- numeric()
+  occasion_index <- integer(length(occasion))
+  if (identical(term$structure, "homtoep")) {
+    occasion_levels <- sort(unique(occasion))
+    n_occasions <- length(occasion_levels)
+    if (n_occasions > 12L) {
+      cli::cli_abort(c(
+        "Temporal HOMTOEP supports at most 12 common occasions.",
+        "x" = "Found {n_occasions} distinct retained occasions.",
+        "i" = "Use AR1 or OU for a longer time series, or predeclare a coarser common schedule."
+      ))
+    }
+    if (n_occasions < 3L) {
+      cli::cli_abort(c(
+        "Temporal HOMTOEP needs at least three common occasions.",
+        "x" = "Found {n_occasions} retained occasions.",
+        "i" = "Use AR1 or OU when the design has fewer than three repeated occasions."
+      ))
+    }
+    if (length(unique(diff(occasion_levels))) != 1L) {
+      cli::cli_abort(c(
+        "Temporal HOMTOEP occasions must be equally spaced.",
+        "x" = "Retained occasions are {.val {occasion_levels}}.",
+        "i" = "Use OU for irregular elapsed time."
+      ))
+    }
+    series_schedule <- split(ordered_time, ordered_series)
+    complete <- vapply(series_schedule, identical, logical(1), y = occasion_levels)
+    if (!all(complete)) {
+      cli::cli_abort(c(
+        "Temporal HOMTOEP requires every ID to retain the complete retained schedule.",
+        "x" = "Incomplete series: {.val {names(series_schedule)[!complete]}}.",
+        "i" = "Use OU or AR1 for incomplete repeated records, or retain a common complete panel."
+      ))
+    }
+    occasion_index <- match(occasion, occasion_levels)
+  }
   starts <- c(which(!duplicated(ordered_series)), length(ordering) + 1L)
   n_series <- length(series_levels)
   gap <- if (identical(term$structure, "ar1")) integer(length(ordering)) else numeric(length(ordering))
@@ -277,7 +323,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   distinct_lags <- sort(unique(pairwise_lags[pairwise_lags > 0]))
   required_lags <- if (isTRUE(paired_phylo_stable)) 3L else if (has_ordinary_intercept) 3L else 2L
   has_required_lags <- length(distinct_lags) >= required_lags && (
-    identical(term$structure, "ou") || any(distinct_lags %% 2L == 1L)
+    term$structure %in% c("ou", "homtoep") || any(distinct_lags %% 2L == 1L)
   )
   if (!has_required_lags) {
     cli::cli_abort(c(
@@ -319,7 +365,10 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     observation_node_index = observation_node_index,
     observation_node_index0 = observation_node_index - 1L,
     series_start0 = as.integer(starts - 1L),
-    gap = gap
+    gap = gap,
+    occasion_levels = as.numeric(occasion_levels),
+    occasion_index = as.integer(occasion_index),
+    n_occasions = as.integer(length(occasion_levels))
   )
 }
 
@@ -333,6 +382,12 @@ temporal_mu_tmb_data <- function(spec) {
       temporal_mu_gap = 0L,
       temporal_mu_elapsed_gap = 0,
       temporal_mu_structure = 0L
+    ))
+  }
+  if (identical(temporal$structure, "homtoep")) {
+    cli::cli_abort(c(
+      "Temporal HOMTOEP grammar is available, but its native covariance provider is not yet enabled.",
+      "i" = "This development checkpoint accepts and validates the schedule; fitting begins after the native-provider gate."
     ))
   }
   list(

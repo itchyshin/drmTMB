@@ -75,10 +75,10 @@ release, deployment or external message.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-2
   EXPECT: TEMPORAL_HOMTOEP_T3_2_PASS
   EVIDENCE: 2026-09-10 S0 inverse-Levinson reflection map; 480 deterministic positive-definiteness draws, reconstruction, finite-difference and `stats::toeplitz()` agreement are retained in the P2 child receipt.
-- [ ] P2-grammar: Canonical homtoep grammar, 12-level boundary, common-schedule errors and row reconstruction pass.
+- [x] P2-grammar: Canonical homtoep grammar, 12-level boundary, common-schedule errors and row reconstruction pass.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-1
   EXPECT: TEMPORAL_HOMTOEP_T3_1_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 S1: `test-temporal-homtoep-parser.R` covers raw keys, discrete equally spaced complete schedules, aliases, 12-level maximum, retained row mapping, and the explicit pre-provider fit boundary.
 - [ ] P2-oracle: Dense V, likelihood, score and Hessian agree with the native provider.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-3
   EXPECT: TEMPORAL_HOMTOEP_T3_3_PASS

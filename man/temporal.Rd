@@ -9,10 +9,11 @@ temporal(term, time, structure = "ar1")
 \arguments{
 \item{term}{Temporal random-effect term, currently \code{1 | id}.}
 
-\item{time}{Name of the integer occasion (\code{"ar1"}) or numeric elapsed-time
-(\code{"ou"}) variable.}
+\item{time}{Name of the integer occasion (\code{"ar1"} or \code{"homtoep"}) or
+numeric elapsed-time (\code{"ou"}) variable.}
 
-\item{structure}{Temporal covariance structure: \code{"ar1"} or \code{"ou"}.}
+\item{structure}{Temporal covariance structure: \code{"ar1"}, \code{"ou"}, or
+\code{"homtoep"}.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -22,13 +23,19 @@ A formula marker; never evaluated by users.
 within a sampled individual or site. \code{structure = "ar1"} uses finite integer
 occasions and permits signed one-occasion persistence. \code{structure = "ou"}
 uses finite numeric elapsed time and estimates a positive decay rate, so
-correlation at a gap \code{d} is \code{exp(-decay * d)}. An ordinary \code{(1 | id)} may
-accompany either structure to represent stable between-series differences
-separately from persistent within-series deviations.
+correlation at a gap \code{d} is \code{exp(-decay * d)}. \code{structure = "homtoep"}
+uses a common, complete, equally spaced integer schedule and estimates one
+correlation for each discrete lag. Its parser and schedule checks are available
+now; fitting begins when the native provider is enabled. An ordinary \code{(1 | id)} may
+accompany AR1 or OU to represent stable between-series differences separately
+from persistent within-series deviations; it is deferred for the first
+homogeneous Toeplitz provider.
 }
 \examples{
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
    sigma ~ 1)
 bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
+   sigma ~ 1)
+bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
    sigma ~ 1)
 }

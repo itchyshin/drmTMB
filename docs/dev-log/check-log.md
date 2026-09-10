@@ -94698,3 +94698,17 @@ independent `stats::toeplitz()` construction and the local dense construction, a
 retains counterexamples for lag-wise squashing (indefinite R) and generic Cholesky
 (non-Toeplitz R). No formula grammar, native provider, public documentation, or
 calibration claim changed; T3-1 remains the next gate.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S1 grammar and layout
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-1` returned
+`TEMPORAL_HOMTOEP_T3_1_PASS`. `homtoep` is now the sole admitted new temporal
+keyword: it requires finite integer occasions, a common complete equally spaced
+retained schedule of 3--12 occasions, and stores both schedule levels and the
+original-row-to-occasion index mapping. Raw duplicate ID--occasion keys still fail
+before response omission. Irregular or incomplete panels receive an error directing
+the user to OU or AR1. The direct fit path stops explicitly until T3-3 supplies the
+native provider, preventing an accidental fall-through to OU. Targeted regressions
+passed for `test-temporal-parser.R`, `test-temporal-gaussian-smoke.R`,
+`test-temporal-identities.R`, `test-temporal-ou.R`,
+`test-temporal-ou-dense-oracle.R`, the Toeplitz map, and the new parser suite.

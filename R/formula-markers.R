@@ -203,14 +203,19 @@ phylo <- function(term, tree) {
 #' within a sampled individual or site. `structure = "ar1"` uses finite integer
 #' occasions and permits signed one-occasion persistence. `structure = "ou"`
 #' uses finite numeric elapsed time and estimates a positive decay rate, so
-#' correlation at a gap `d` is `exp(-decay * d)`. An ordinary `(1 | id)` may
-#' accompany either structure to represent stable between-series differences
-#' separately from persistent within-series deviations.
+#' correlation at a gap `d` is `exp(-decay * d)`. `structure = "homtoep"`
+#' uses a common, complete, equally spaced integer schedule and estimates one
+#' correlation for each discrete lag. Its parser and schedule checks are available
+#' now; fitting begins when the native provider is enabled. An ordinary `(1 | id)` may
+#' accompany AR1 or OU to represent stable between-series differences separately
+#' from persistent within-series deviations; it is deferred for the first
+#' homogeneous Toeplitz provider.
 #'
 #' @param term Temporal random-effect term, currently `1 | id`.
-#' @param time Name of the integer occasion (`"ar1"`) or numeric elapsed-time
-#'   (`"ou"`) variable.
-#' @param structure Temporal covariance structure: `"ar1"` or `"ou"`.
+#' @param time Name of the integer occasion (`"ar1"` or `"homtoep"`) or
+#'   numeric elapsed-time (`"ou"`) variable.
+#' @param structure Temporal covariance structure: `"ar1"`, `"ou"`, or
+#'   `"homtoep"`.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -219,6 +224,8 @@ phylo <- function(term, tree) {
 #' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
 #'    sigma ~ 1)
 #' bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
+#'    sigma ~ 1)
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
 #'    sigma ~ 1)
 temporal <- function(term, time, structure = "ar1") {
   invisible(NULL)

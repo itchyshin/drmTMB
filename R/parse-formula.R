@@ -774,7 +774,7 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       cli::cli_abort(c(
         "{.fn temporal} currently supports one intercept-only unlabelled random effect.",
         "x" = "Temporal slopes and covariance-block labels are not implemented.",
-        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")}, {.code temporal(1 | id, time = elapsed, structure = \"ou\")}, or {.code temporal(1 | id, time = occasion, structure = \"homtoep\")}."
       ))
     }
     time_arg <- marker_args[[match("time", marker_arg_names)]]
@@ -789,10 +789,10 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       !is.character(structure_arg) ||
         length(structure_arg) != 1L ||
         is.na(structure_arg) ||
-        !structure_arg %in% c("ar1", "ou")
+        !structure_arg %in% c("ar1", "ou", "homtoep")
     ) {
       cli::cli_abort(c(
-        "{.arg structure} in {.fn temporal} must be {.val ar1} or {.val ou}.",
+        "{.arg structure} in {.fn temporal} must be {.val ar1}, {.val ou}, or {.val homtoep}.",
         "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
       ))
     }

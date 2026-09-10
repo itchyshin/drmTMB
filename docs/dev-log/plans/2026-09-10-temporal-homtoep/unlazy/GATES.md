@@ -5,10 +5,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
 - [x] T3-0: User approves this child plan and its source fingerprint before P2 implementation.
   EVIDENCE: 2026-09-10 explicit user approval after review of `PLAN.md`, `source-fingerprint.md`, and this ledger. S0 begins with the map decision only; no grammar or TMB provider code is authorized until T3-2 passes.
 
-- [ ] T3-1: Homtoep grammar validates common integer schedules, raw keys before omission, complete retained schedules and all early errors.
+- [x] T3-1: Homtoep grammar validates common integer schedules, raw keys before omission, complete retained schedules and all early errors.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-1
   EXPECT: TEMPORAL_HOMTOEP_T3_1_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 S1: canonical parser, raw-key validation, common complete equally spaced K=3..12 layout, output-row mapping, aliases and pre-provider fitting boundary pass in `tests/testthat/test-temporal-homtoep-parser.R`.
 
 - [x] T3-2: One differentiable valid-Toeplitz map passes random-draw positive-definiteness, reconstruction, derivative and dense-reference tests.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-2
