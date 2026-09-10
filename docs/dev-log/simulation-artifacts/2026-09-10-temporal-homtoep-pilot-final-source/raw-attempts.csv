@@ -1,0 +1,16 @@
+"fixture","cell","seed","start","status","convergence","objective","elapsed_sec","selected","warning","error"
+"P1_ar1_shaped_2026091301","P1_ar1_shaped",2026091301,1,"ok",0,594.460715621629,0.366,TRUE,"NaNs produced",NA
+"P1_ar1_shaped_2026091302","P1_ar1_shaped",2026091302,1,"ok",0,596.85867726979,0.385999999999999,TRUE,"NaNs produced",NA
+"P1_ar1_shaped_2026091303","P1_ar1_shaped",2026091303,1,"ok",0,568.07099827365,0.581,TRUE,"NaNs produced",NA
+"P1_ar1_shaped_2026091304","P1_ar1_shaped",2026091304,1,"ok",0,615.985037888172,0.344999999999999,TRUE,"NaNs produced",NA
+"P1_ar1_shaped_2026091305","P1_ar1_shaped",2026091305,1,"ok",0,575.981853159618,0.324999999999999,TRUE,"NaNs produced",NA
+"P2_nonexponential_2026091301","P2_nonexponential",2026091301,1,"ok",0,600.45798619728,0.423000000000002,TRUE,"NaNs produced",NA
+"P2_nonexponential_2026091302","P2_nonexponential",2026091302,1,"ok",0,609.009214595632,0.301000000000002,TRUE,"NaNs produced",NA
+"P2_nonexponential_2026091303","P2_nonexponential",2026091303,1,"ok",0,570.925149106713,0.361000000000004,TRUE,"NaNs produced",NA
+"P2_nonexponential_2026091304","P2_nonexponential",2026091304,1,"ok",0,626.101895384823,0.345000000000006,TRUE,"NaNs produced",NA
+"P2_nonexponential_2026091305","P2_nonexponential",2026091305,1,"ok",0,591.149444138298,0.378999999999998,TRUE,"NaNs produced",NA
+"P3_negative_lag_2026091301","P3_negative_lag",2026091301,1,"ok",0,607.789584118581,0.395999999999994,TRUE,"NaNs produced",NA
+"P3_negative_lag_2026091302","P3_negative_lag",2026091302,1,"ok",0,598.99187914607,0.43,TRUE,"NaNs produced",NA
+"P3_negative_lag_2026091303","P3_negative_lag",2026091303,1,"ok",0,577.533721266449,0.463999999999999,TRUE,"NaNs produced",NA
+"P3_negative_lag_2026091304","P3_negative_lag",2026091304,1,"ok",0,618.509859678818,0.469999999999999,TRUE,"NaNs produced",NA
+"P3_negative_lag_2026091305","P3_negative_lag",2026091305,1,"ok",0,582.161446506589,0.443000000000005,TRUE,"NaNs produced",NA

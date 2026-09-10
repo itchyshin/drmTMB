@@ -94764,3 +94764,18 @@ fixed-effect error was 0.0611, median absolute SD error 0.0933, and median lag
 RMSE 0.1098, all within their frozen point-recovery criteria. The stress cell is
 retained but excluded from those primary thresholds. This is not interval or
 coverage evidence.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7 timed pilot
+
+The source-faithful five-seed-per-cell pilot at `0cb70fe7f` retained 15 finite
+selected fits and 15 starts across AR1-shaped, non-exponential, and negative-lag
+six-occasion cells. `/usr/bin/time -l` measured 39.42 seconds wall time and
+438 MB peak memory; total fitting time inside the runner was 13.538 seconds.
+All 15 profile requests produced the deliberate not-yet-qualified error and no
+profile intervals. All fits converged but each recorded `NaNs produced` and a
+non-positive-definite Hessian flag. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7` emitted
+`TEMPORAL_HOMTOEP_T3_7_PASS` because the gate checks retained measurement and
+denominator completeness, not inferential qualification. Those diagnostics
+block T3-8/T3-9 campaign progression until a bounded inference diagnosis and
+qualification slice resolves them.

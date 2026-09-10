@@ -35,10 +35,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_6_PASS
   EVIDENCE: 2026-09-10 final-source recovery at `b9dacf42d`: 12 frozen fixtures (three AR1, three non-exponential, three negative-lag primary fits; three low-information stress fits), 12 retained attempts, and all five primary recovery criteria pass. `T3-6` verifies the runner MD5, source commit, denominators, and immutable outputs without rerunning fits.
 
-- [ ] T3-7: Timed pilot records runtime, memory, profile availability, warnings and denominator completeness.
+- [x] T3-7: Timed pilot records runtime, memory, profile availability, warnings and denominator completeness.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-7
   EXPECT: TEMPORAL_HOMTOEP_T3_7_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 final-source pilot at `0cb70fe7f`: 15/15 finite selected fits and 15 retained starts across three five-seed cells; 39.42 s wall time, 438 MB peak memory, 15/15 explicit profile guards and 15 `NaNs produced` warnings. All 15 `pd_hessian` values are false, so this is a measured diagnosis and blocks profile-calibration/campaign advancement until inference qualification is separately resolved.
 
 - [ ] T3-8: Profile-calibration contract fixes cells, targets, all-attempt treatment of unavailable intervals, tail summaries and acceptance criteria.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-8
