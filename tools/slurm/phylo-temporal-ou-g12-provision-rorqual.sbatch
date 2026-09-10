@@ -82,11 +82,14 @@ if [[ "$stage" == drmTMB ]]; then
   source_dir="$node_root/source"
   [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_root/source" -mindepth 1 -maxdepth 1 -type d | head -1)
   [[ -f "$source_dir/DESCRIPTION" ]] || { echo 'Source archive does not contain drmTMB DESCRIPTION.' >&2; exit 2; }
-  cat > "$node_root/Makevars" <<'EOF'
-CXX17FLAGS = -O0 -g0 -fpic
+  # R's external Makevars hook is read before the module Makeconf on Rorqual.
+  # An injected package Makevars is read at the final package-build layer and
+  # therefore replaces the -O2 setting that exceeded the 2 GiB cgroup.
+  cat > "$source_dir/src/Makevars" <<'EOF'
+CXX17FLAGS = -O0 -g0
 EOF
   printf 'build_profile=low-memory-cxx17-o0\n' >> "$log_dir/job-${SLURM_JOB_ID}.provenance"
-  R_MAKEVARS_USER="$node_root/Makevars" R CMD INSTALL --library="$campaign_rlib" "$source_dir"
+  R CMD INSTALL --library="$campaign_rlib" "$source_dir"
 else
   tar --warning=no-unknown-keyword -xzf "$dep_archive" -C "$node_root/deps"
   dep_dir=$(find "$node_root/deps" -mindepth 1 -maxdepth 1 -type d ! -name '._*' | head -1)
