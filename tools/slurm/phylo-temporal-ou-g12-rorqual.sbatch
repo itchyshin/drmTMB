@@ -60,7 +60,7 @@ if [[ "${DRMTMB_PHYLO_TEMPORAL_OU_G12_INITIALIZE_RLIB:-0}" == "1" ]]; then
   [[ ! -d "$campaign_rlib/drmTMB" ]] || { echo 'Refuse to replace an existing frozen G12 R library.' >&2; exit 2; }
   mkdir -p "$campaign_rlib"
   export DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB_INSTALL="$campaign_rlib"
-  Rscript --vanilla -e 'options(repos = c(CRAN = "https://cloud.r-project.org")); install.packages(c("cli", "lifecycle", "TMB", "ape", "numDeriv", "tmbprofile"), lib = Sys.getenv("DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB_INSTALL"), quiet = TRUE)' \
+  Rscript --vanilla -e 'options(repos = c(CRAN = "https://cloud.r-project.org")); install.packages(c("cli", "lifecycle", "TMB", "ape", "numDeriv"), lib = Sys.getenv("DRMTMB_PHYLO_TEMPORAL_OU_G12_RLIB_INSTALL"), quiet = TRUE)' \
     > "$node_artifact/dependency-install.log" 2>&1
   R CMD INSTALL --library="$campaign_rlib" "$source_dir" > "$node_artifact/package-install.log" 2>&1
 elif [[ ! -d "$campaign_rlib/drmTMB" ]]; then
