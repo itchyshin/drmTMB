@@ -74,10 +74,33 @@ test_that("ordinary-Laplace source-drift guard rejects semantic input changes", 
   expect_true(env$sb_ordinary_laplace_source_drift(root, base, source_change))
 })
 
-test_that("scoreboard renders ordinary-Laplace source provenance separately", {
+test_that("scoreboard requires materialized S7 evidence before current ordinary-Laplace rendering", {
   drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
   skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH is not set to a DRM.jl clone")
   root <- normalizePath(testthat::test_path("..", ".."))
+  tool <- file.path(root, "tools", "write-parity-scoreboard.R")
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  out <- tempfile(fileext = ".md")
+  coverage <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                        "071-ordinary-laplace", "s7-coverage-summary.tsv")
+  if (!file.exists(coverage)) {
+    expect_error(
+      suppressMessages(env$sb_write(root, drmjl, out)),
+      "stale or changes the frozen denominator"
+    )
+  } else {
+    expect_no_error(suppressMessages(env$sb_write(root, drmjl, out)))
+  }
+})
+
+test_that("scoreboard renders ordinary-Laplace source provenance after S7 materialization", {
+  drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
+  skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH is not set to a DRM.jl clone")
+  root <- normalizePath(testthat::test_path("..", ".."))
+  coverage <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                        "071-ordinary-laplace", "s7-coverage-summary.tsv")
+  skip_if(!file.exists(coverage), "S7 coverage receipt is not materialized yet")
   tool <- file.path(root, "tools", "write-parity-scoreboard.R")
   env <- new.env(parent = globalenv())
   sys.source(tool, envir = env)
