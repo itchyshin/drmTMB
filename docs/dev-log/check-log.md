@@ -94795,3 +94795,16 @@ tools/temporal-homtoep-gates.R T3-7a` emitted
 `TEMPORAL_HOMTOEP_T3_7A_PASS`. The current direct provider is retained as a
 point-fit research artifact only; calibration and campaign gates require a
 model-redesign decision.
+
+## 2026-09-10 — temporal homogeneous Toeplitz redesign decision brief
+
+T3-7a's exact covariance ridge changes the next delivery action. The original
+provider cannot separately estimate `sd_temporal`, `sigma`, and all free
+Toeplitz lag correlations with one row per series--occasion. The scoped brief
+`T3-8-REDESIGN-DECISION.md` records the two identified replacements: M, a
+marginal Toeplitz covariance with one total within-series SD for ordinary CSV
+panels; or R, a replicated latent Toeplitz process with an explicit replicate
+key. It recommends M while preserving AR1/OU as the routes that separately
+interpret temporal and residual variance. T3-7b is a manual semantic-interface
+gate; it must be selected explicitly before T3-8 calibration, a campaign, or
+reader-facing promotion proceeds.

@@ -1,5 +1,16 @@
 # P2 child plan — homogeneous temporal Toeplitz
 
+## Status correction — 2026-09-10
+
+T3-7 and T3-7a established that the direct latent-process contract below is
+not identifiable when it estimates a free Toeplitz correlation, temporal SD,
+and residual SD from one response per series--occasion. It is retained as a
+non-public prototype and evidence record, not a promotable provider. The next
+action is the explicit choice in `T3-8-REDESIGN-DECISION.md`: an identified
+marginal covariance model for ordinary panels, or a replicated latent-process
+model. No profile, campaign, documentation, or release gate may treat the
+prototype as a completed feature.
+
 ## Goal
 
 Implement the next **direct temporal** covariance structure after calibrated OU:
@@ -12,7 +23,11 @@ fit <- drmTMB(
 )
 ```
 
-Deliver a Gaussian ML homogeneous Toeplitz process with fixed-effect profile intervals only after new Toeplitz-specific calibration. It answers whether equally spaced repeated observations require a free lag-by-lag correlation rather than OU or AR1 exponential decay.
+The original direct Gaussian ML homogeneous Toeplitz process is retained as a
+prototype only. Its replacement contract will be selected before any
+Toeplitz-specific calibration. The scientific question remains whether equally
+spaced repeated observations require a free lag-by-lag correlation rather than
+OU or AR1 exponential decay.
 
 The completed direct temporal OU parent is the prerequisite. The additive phylogenetic-stable plus OU development slice is an optional composition test and does not govern this temporal progression.
 
