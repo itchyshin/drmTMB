@@ -71,10 +71,10 @@ release, deployment or external message.
 
 ## Phase 2
 
-- [ ] P2-parameterisation: A positive-definite Toeplitz map is selected with derivative and reconstruction evidence.
+- [x] P2-parameterisation: A positive-definite Toeplitz map is selected with derivative and reconstruction evidence.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-2
   EXPECT: TEMPORAL_HOMTOEP_T3_2_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 S0 inverse-Levinson reflection map; 480 deterministic positive-definiteness draws, reconstruction, finite-difference and `stats::toeplitz()` agreement are retained in the P2 child receipt.
 - [ ] P2-grammar: Canonical homtoep grammar, 12-level boundary, common-schedule errors and row reconstruction pass.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-1
   EXPECT: TEMPORAL_HOMTOEP_T3_1_PASS

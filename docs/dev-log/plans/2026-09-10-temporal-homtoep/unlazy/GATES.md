@@ -10,10 +10,10 @@ Scope: direct Gaussian temporal Toeplitz after the qualified direct OU parent. T
   EXPECT: TEMPORAL_HOMTOEP_T3_1_PASS
   EVIDENCE: pending
 
-- [ ] T3-2: One differentiable valid-Toeplitz map passes random-draw positive-definiteness, reconstruction, derivative and dense-reference tests.
+- [x] T3-2: One differentiable valid-Toeplitz map passes random-draw positive-definiteness, reconstruction, derivative and dense-reference tests.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-2
   EXPECT: TEMPORAL_HOMTOEP_T3_2_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 S0: inverse-Levinson reflection map selected; 480 deterministic K=1..12 draws, reconstruction, finite-difference and dense-reference tests retained in `S0-PARAMETERISATION.md`, `tools/temporal-homtoep-map-study.R`, and `tests/testthat/test-temporal-homtoep-map.R`.
 
 - [ ] T3-3: Native likelihood, independent dense V, score, Hessian and conditional modes agree at two finite-difference step sizes.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-3
