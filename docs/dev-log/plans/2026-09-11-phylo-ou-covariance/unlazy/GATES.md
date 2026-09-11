@@ -28,10 +28,10 @@
   EXPECT: PHYLO_OU_COVARIANCE_PO5_PASS
   EVIDENCE: 2026-09-11: normalized root-plus-edge density matched the dense all-node covariance. Omitted-root, wrong-transition-variance, and compressed-branch mutations disagreed; BM, row-order temporal kernel, and shared-tree-state mutations also disagreed. The small- and large-decay limits were retained as explicit OU limits, never BM limits.
 
-- [ ] PO6: Extraction, diagnostics, conditional modes, fitted values, residuals and seeded simulations expose labelled phylogenetic decay and retain their inference boundary.
+- [x] PO6: Extraction, diagnostics, conditional modes, fitted values, residuals and seeded simulations expose labelled phylogenetic decay and retain their inference boundary.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO6
   EXPECT: PHYLO_OU_COVARIANCE_PO6_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: the focused compiled test gate emitted `PHYLO_OU_COVARIANCE_PO6_PASS`. `decay_phylo` is labelled in extraction and target inspection as a positive point estimate with Wald, profile and bootstrap intervals deferred. Fresh simulation now uses the stationary root-plus-edge OU draw, and deterministic seeded checks distinguish it from the generic Brownian draw.
 
 - [ ] PO7: Frozen local point-recovery fixtures retain starts and failures; their predeclared thresholds are assessed without a coverage claim.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO7

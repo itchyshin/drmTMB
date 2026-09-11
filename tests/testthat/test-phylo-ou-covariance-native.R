@@ -233,3 +233,97 @@ test_that("OU-tree reductions and mutations expose the intended mechanisms", {
     tolerance = 1e-7
   )
 })
+
+test_that("fresh phylogenetic OU draws use the stationary root and every branch", {
+  skip_if_not_installed("ape")
+  set.seed(2026091109)
+  tree <- ape::rcoal(7)
+  tree$tip.label <- paste0("sp", seq_len(7))
+  layout <- drmTMB:::drm_phylo_ou_augmented_layout(tree)
+  phylo_mu <- list(model = "ou", precision = layout)
+  sd <- 0.7
+  decay <- 0.6
+
+  set.seed(2026091110)
+  expected <- numeric(layout$n_re)
+  expected[[layout$root_index0 + 1L]] <- stats::rnorm(1L, sd = sd)
+  for (edge_id in layout$edge_order) {
+    parent <- layout$edge_parent_index0[[edge_id]] + 1L
+    child <- layout$edge_child_index0[[edge_id]] + 1L
+    rho <- exp(-decay * layout$edge_length[[edge_id]])
+    expected[[child]] <- stats::rnorm(
+      1L,
+      mean = rho * expected[[parent]],
+      sd = sd * sqrt(-expm1(-2 * decay * layout$edge_length[[edge_id]]))
+    )
+  }
+  set.seed(2026091110)
+  actual <- drmTMB:::drm_phylo_ou_fresh_values(phylo_mu, sd, decay)
+  set.seed(2026091110)
+  wrong_independent_draw <- stats::rnorm(layout$n_re, sd = sd)
+
+  expect_equal(actual, expected, tolerance = 1e-12)
+  expect_false(isTRUE(all.equal(actual, wrong_independent_draw)))
+})
+
+phylo_ou_methods_fit <- function(seed = 2026091111) {
+  skip_if_not_installed("ape")
+  set.seed(seed)
+  tree <- ape::rcoal(8)
+  tree$tip.label <- paste0("sp", seq_len(8))
+  species <- rep(tree$tip.label, each = 6)
+  x <- rep(c(-0.75, -0.25, 0.25, 0.75, -0.4, 0.4), length.out = length(species))
+  correlation <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 0.75)
+  effect <- as.vector(t(chol(correlation)) %*% stats::rnorm(8, sd = 0.65))
+  y <- 0.2 + 0.45 * x + effect[match(species, tree$tip.label)] +
+    stats::rnorm(length(species), sd = 0.3)
+  list(
+    fit = drmTMB(
+      bf(y ~ x + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
+      data = data.frame(y, x, species), family = gaussian()
+    ),
+    tree = tree
+  )
+}
+
+test_that("phylogenetic OU exposes a point decay estimate and no decay interval", {
+  built <- phylo_ou_methods_fit()
+  fit <- built$fit
+  targets <- drmTMB:::profile_targets(fit)
+  decay <- targets[targets$target_class == "phylogenetic-decay", , drop = FALSE]
+  summary_rows <- drmTMB:::drm_summary_direct_parameters(fit)
+  diagnostic <- check_drm(fit)
+
+  expect_named(fit$decaypars$phylo, "decay_phylo")
+  expect_true(is.finite(unname(fit$decaypars$phylo[["decay_phylo"]])))
+  expect_gt(unname(fit$decaypars$phylo[["decay_phylo"]]), 0)
+  expect_equal(nrow(decay), 1L)
+  expect_match(decay$parm, "^decay:phylo:")
+  expect_false(decay$profile_ready)
+  expect_identical(decay$profile_note, "phylogenetic_ou_decay_intervals_deferred")
+  expect_true(any(summary_rows$component == "phylogenetic-decay"))
+  expect_true(any(diagnostic$check == "phylo_ou_decay"))
+})
+
+test_that("phylogenetic OU fitted values, residuals, and seeded simulations use OU draws", {
+  built <- phylo_ou_methods_fit()
+  fit <- built$fit
+  fixed_mu <- as.vector(fit$model$X$mu %*% fit$coefficients$mu)
+  conditional_mu <- fixed_mu + phylo_mu_contribution(fit, dpar = "mu")
+  sigma <- exp(unname(fit$coefficients$sigma[["(Intercept)"]]))
+
+  expect_equal(stats::fitted(fit), conditional_mu, tolerance = 1e-10)
+  expect_equal(stats::residuals(fit), fit$model$y - conditional_mu, tolerance = 1e-10)
+
+  set.seed(2026091112)
+  expected_conditional <- conditional_mu + stats::rnorm(length(conditional_mu), sd = sigma)
+  conditional <- stats::simulate(fit, nsim = 1L, seed = 2026091112, re.form = NA)
+  expect_equal(unname(conditional[[1L]]), expected_conditional, tolerance = 1e-10)
+
+  set.seed(2026091113)
+  fresh_effect <- drmTMB:::drm_structured_mu_random_effect_draws(fit)$mu
+  expected_fresh <- stats::rnorm(length(fixed_mu), mean = fixed_mu + fresh_effect, sd = sigma)
+  fresh <- stats::simulate(fit, nsim = 1L, seed = 2026091113)
+  expect_equal(unname(fresh[[1L]]), expected_fresh, tolerance = 1e-10)
+  expect_false(isTRUE(all.equal(unname(fresh[[1L]]), unname(conditional[[1L]]))))
+})

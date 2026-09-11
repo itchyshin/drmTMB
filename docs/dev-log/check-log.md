@@ -94917,3 +94917,9 @@ P1 G13 coverage rows.
 - **Axis separation:** the evolutionary tip covariance differs from the Brownian tree covariance, a row-order elapsed-time kernel, and a covariance that shares a latent tree state across independent trees.
 - **Limits:** small positive decay approaches the all-ones stationary OU correlation and large decay approaches independent tips. Neither is labelled or tested as a Brownian limit.
 - **Gate:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO5` emitted `PHYLO_OU_COVARIANCE_PO5_PASS`.
+
+## 2026-09-11 — phylogenetic OU covariance PO6 public point-estimate interface
+
+- **Extraction and boundary:** the fitted positive tree-decay value is now exposed as `decay_phylo`, and target inspection lists it as `phylogenetic-decay`. Its Wald, profile and bootstrap intervals are deliberately unavailable pending recovery evidence; `check_drm()` reports that status beside the ordinary Hessian and phylogenetic-field diagnostics.
+- **Simulation repair:** a fresh marginal draw now follows the fitted stationary root-plus-edge OU process in root-distance order. It no longer uses the generic precision-matrix draw, which would have incorrectly treated the OU layout's identity plumbing matrix as a Brownian covariance.
+- **Behaviour evidence:** deterministic seeded tests cover the root draw, each branch transition, fitted values, residuals, conditional simulation, and fresh simulation. `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO6` emitted `PHYLO_OU_COVARIANCE_PO6_PASS`.

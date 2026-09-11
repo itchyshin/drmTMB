@@ -299,6 +299,7 @@ check_drm.drmTMB <- function(
     check_interval_reliability_scope(object),
     check_temporal_mean_wald(object),
     check_temporal_mean_profile(object),
+    check_phylo_ou_decay(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
@@ -1439,6 +1440,33 @@ check_temporal_mean_profile <- function(object) {
     "note",
     paste0("available_for_this_fit; calibration=", calibration),
     paste("Temporal mean-coefficient profile intervals are available for this fit.", qualification_note)
+  )
+}
+
+# Tree-OU decay is intentionally a point estimate in its first location-side
+# release. This keeps the no-interval boundary visible beside the usual
+# Hessian and phylogenetic-field diagnostics.
+check_phylo_ou_decay <- function(object) {
+  phylo <- object$model$structured$phylo_mu
+  if (!is.list(phylo) || !isTRUE(phylo$has) || !identical(phylo$model, "ou")) {
+    return(NULL)
+  }
+  decay <- unname(object$decaypars$phylo[["decay_phylo"]])
+  regular <- identical(drm_uncertainty_status(object), "ok") &&
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  check_row(
+    "phylo_ou_decay",
+    if (regular && is.finite(decay) && decay > 0) "note" else "warning",
+    paste0(
+      "estimate=", format_check_number(decay),
+      "; interval=deferred",
+      if (regular) "" else "; full_hessian_unavailable"
+    ),
+    if (regular && is.finite(decay) && decay > 0) {
+      "The phylogenetic OU decay is a positive point estimate. Its Wald, profile, and bootstrap intervals are intentionally deferred pending recovery evidence."
+    } else {
+      "The phylogenetic OU decay is a point estimate only, and the full observed Hessian is unavailable or irregular. Do not interpret an uncertainty interval for this decay."
+    }
   )
 }
 

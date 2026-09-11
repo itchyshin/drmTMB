@@ -22858,14 +22858,22 @@ split_tmb_corpars <- function(par, spec) {
 # OU has a positive decay rate, rather than a correlation parameter.  Keep it
 # out of `corpars` so generic correlation methods cannot silently apply tanh.
 split_tmb_decaypars <- function(par, spec) {
+  out <- list()
   temporal <- spec$structured$temporal_mu
-  if (!is.list(temporal) || !isTRUE(temporal$has) ||
-      !identical(temporal$structure, "ou")) {
-    return(list())
+  if (is.list(temporal) && isTRUE(temporal$has) &&
+      identical(temporal$structure, "ou")) {
+    out$temporal <- stats::setNames(
+      exp(unname(par$theta_temporal[[1L]])), temporal_mu_decay_label(temporal)
+    )
   }
-  list(temporal = stats::setNames(
-    exp(unname(par$theta_temporal[[1L]])), temporal_mu_decay_label(temporal)
-  ))
+  phylo <- spec$structured$phylo_mu
+  if (is.list(phylo) && isTRUE(phylo$has) &&
+      identical(phylo$model, "ou")) {
+    out$phylo <- stats::setNames(
+      exp(unname(par$log_decay_phylo[[1L]])), "decay_phylo"
+    )
+  }
+  out
 }
 
 modelled_corpair_values <- function(par, spec) {

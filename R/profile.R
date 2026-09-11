@@ -1782,6 +1782,25 @@ drm_profile_targets <- function(object) {
       profile_note = "temporal_decay_intervals_deferred"
     )))
   }
+  phylo <- object$model$structured$phylo_mu
+  if (is.list(phylo) && isTRUE(phylo$has) && identical(phylo$model, "ou")) {
+    value <- object$decaypars$phylo[["decay_phylo"]]
+    add_rows(list(new_profile_target_row(
+      parm = paste0("decay:phylo:", phylo$label),
+      target_class = "phylogenetic-decay",
+      dpar = "phylo",
+      term = phylo$label,
+      tmb_parameter = "log_decay_phylo",
+      index = 1L,
+      estimate = unname(value),
+      link_estimate = log(unname(value)),
+      scale = "response",
+      transformation = "exp",
+      target_type = "direct",
+      profile_ready = FALSE,
+      profile_note = "phylogenetic_ou_decay_intervals_deferred"
+    )))
+  }
   registry_cor_keys <- covariance_block_corpars_keys(
     object$model$random$covariance_blocks
   )
@@ -4840,7 +4859,8 @@ validate_profile_targets <- function(targets) {
     # names `engine = "tmb"` (R/julia-family-cumulative_logit.R).
     "julia_ordinal_cutpoint_native_only",
     "temporal_decay_intervals_deferred",
-    "temporal_nonmean_intervals_deferred"
+    "temporal_nonmean_intervals_deferred",
+    "phylogenetic_ou_decay_intervals_deferred"
   )
   bad_note <- !targets$profile_note %in% allowed_notes
   if (any(bad_note)) {

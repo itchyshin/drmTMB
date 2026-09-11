@@ -467,8 +467,35 @@ drm_phylo_ou_augmented_layout <- function(
     edge_parent_index0 = as.integer(edge[, 1L] - 1L),
     edge_child_index0 = as.integer(edge[, 2L] - 1L),
     edge_length = edge_length,
+    edge_order = order(info$node_depth[edge[, 1L]], info$node_depth[edge[, 2L]]),
     height = info$height
   )
+}
+
+# Draw from the same stationary root-plus-edge parameterisation used by the
+# native phylogenetic OU provider. The order is based on root distance because
+# valid `phylo` objects need not list each parent before its descendants.
+drm_phylo_ou_fresh_values <- function(phylo_mu, sd, decay) {
+  layout <- phylo_mu$precision
+  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0) {
+    cli::cli_abort("The fitted phylogenetic OU SD must be one finite positive number.")
+  }
+  if (!is.numeric(decay) || length(decay) != 1L || !is.finite(decay) || decay <= 0) {
+    cli::cli_abort("The fitted phylogenetic OU decay must be one finite positive number.")
+  }
+  values <- numeric(layout$n_re)
+  values[[layout$root_index0 + 1L]] <- stats::rnorm(1L, sd = sd)
+  for (edge_id in layout$edge_order) {
+    parent <- layout$edge_parent_index0[[edge_id]] + 1L
+    child <- layout$edge_child_index0[[edge_id]] + 1L
+    rho <- exp(-decay * layout$edge_length[[edge_id]])
+    values[[child]] <- stats::rnorm(
+      1L,
+      mean = rho * values[[parent]],
+      sd = sd * sqrt(-expm1(-2 * decay * layout$edge_length[[edge_id]]))
+    )
+  }
+  values
 }
 
 drm_known_relatedness_precision <- function(

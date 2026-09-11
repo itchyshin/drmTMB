@@ -4779,7 +4779,8 @@ drm_summary_direct_parameters <- function(object) {
       "residual-correlation",
       "random-effect-sd",
       "random-effect-correlation",
-      "temporal-decay"
+      "temporal-decay",
+      "phylogenetic-decay"
     )
   targets <- targets[keep, , drop = FALSE]
   if (nrow(targets) == 0L) {
@@ -4903,7 +4904,7 @@ drm_summary_add_parameter_standard_errors <- function(object, parameters) {
       next
     }
     target <- targets[target_row, , drop = FALSE]
-    if (identical(target$target_class[[1L]], "temporal-decay")) {
+    if (target$target_class[[1L]] %in% c("temporal-decay", "phylogenetic-decay")) {
       next
     }
     if (!identical(target$target_type[[1L]], "direct")) {
@@ -6621,7 +6622,11 @@ drm_structured_mu_marginal_unsupported <- function(object) {
 # of `Q` (`t(R) %*% R == Q`) and a triangular solve rather than an explicit
 # inverse: if `z ~ N(0, I)` and `R %*% u = z`, then `u = R^-1 %*% z` has
 # covariance `R^-1 %*% t(R^-1) == (t(R) %*% R)^-1 == Q^-1`.
-drm_fresh_structured_mu_values <- function(phylo_mu, sd) {
+drm_fresh_structured_mu_values <- function(phylo_mu, sd, decay = NULL) {
+  if (identical(structured_mu_type(phylo_mu), "phylo") &&
+      identical(phylo_mu$model, "ou")) {
+    return(drm_phylo_ou_fresh_values(phylo_mu, sd = sd, decay = decay))
+  }
   root <- chol(as.matrix(phylo_mu$precision$precision))
   z <- stats::rnorm(phylo_mu$n_re)
   backsolve(root, z) * sd
@@ -6655,10 +6660,17 @@ drm_structured_mu_random_effect_draws <- function(object) {
     ))
   }
   key <- structured_mu_random_effect_key(phylo_mu, model_type)
+  decay <- if (identical(structured_mu_type(phylo_mu), "phylo") &&
+      identical(phylo_mu$model, "ou")) {
+    unname(object$decaypars$phylo[["decay_phylo"]])
+  } else {
+    NULL
+  }
   draw_object <- object
   draw_object$random_effects[[key]]$values <- drm_fresh_structured_mu_values(
     phylo_mu,
-    sd_val
+    sd_val,
+    decay = decay
   )
   stats::setNames(
     lapply(dpar, function(d) phylo_mu_contribution(draw_object, dpar = d)),
