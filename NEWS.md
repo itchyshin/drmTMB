@@ -21,6 +21,28 @@ section below:
 See the 0.7.0 section immediately below for the full, measured detail on
 every item above.
 
+## Gaussian temporal AR1 and OU random effects
+
+* Native ML now fits univariate Gaussian stationary temporal intercept fields:
+  AR1 with real integer occasion gaps through
+  `temporal(1 | id, time = occasion, structure = "ar1")`. It can be paired
+  with one ordinary `(1 | id)` random intercept using the same ID, separating
+  stable differences, temporal persistence, and residual `sigma`. The OU route
+  uses finite numeric elapsed time and a positive exponential decay rate.
+* `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
+  mean-coefficient uncertainty only when the full observed Hessian supports
+  it. Both temporal structures also profile fixed mean coefficients through
+  `confint(..., parm = "mu:<coefficient>", method = "profile")`; profile
+  endpoints can remain finite when a fitted Hessian is irregular, so
+  `check_drm()` records that situation. A retained 3,000-fit OU campaign
+  qualified fixed-`mu` profile intervals in its exact U1--U3 cells; this is
+  not a general temporal coverage claim. The OU elapsed-time route uses
+  `structure = "ou"` with a positive decay rate; its Wald intervals remain
+  deferred behind the AR1 calibration blocker. Variance/persistence,
+  bootstrap, forecast, and `newdata` intervals remain unavailable. The
+  retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
+  has no calibrated coverage claim.
+
 # drmTMB 0.7.0
 
 ## `engine = "julia"` control surface: no silent drops, boundary made permanent (leaf-engine-control-surface)

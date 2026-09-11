@@ -1,0 +1,4 @@
+"cell","role","n_datasets","selected_finite","interval_available","interval_availability","interval_guarded","median_elapsed_sec","max_elapsed_sec","pd_hessian","warnings","errors"
+"U1","combined_short",5,5,0,0,5,0.948,2.651,5,0,0
+"U2","combined_persistent",5,5,0,0,5,1.973,2.111,5,0,0
+"U3","ou_only",5,5,0,0,5,2.028,2.908,5,0,0

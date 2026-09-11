@@ -1,54 +1,24 @@
-# GOAL — S6 A7 family gate (IMMUTABLE — re-read at the top of EVERY arc)
+# GOAL — deliver useful Gaussian temporal AR1 random effects in drmTMB
 
-## Mission
-
-Ship drmTMB item 1 (#962) **one family at a time**: C++ `has_mi`
-marginalisation for a response family that currently has none, plus an
-R-side spec wire, a known-DGP recovery test, and one honest
-`missing_predictor` ledger row. This is **not** a whitelist-only edit.
-
-## Headline
-
-**First family = Gamma response × one Bernoulli `mi()` predictor.**
-Poisson is already wired (binary predictor only). #962's first unwired
-row is Gamma (`model_type` 5).
-
-## Invariants
-
-- ONE lane: `cursor/lane-s6-family-gate` at
-  `~/local-scratch/lanes/drmTMB-s6-family-gate` from `origin/main`.
-  Do **not** edit the dirty drmTMB primary checkout. Do **not** touch
-  MAG-completeness, MAG-wire, S3-grouping, or `drmTMB-s6-multi-mi`.
-- C++ `has_mi` + `drm_response_log_density` leaf **before** adding
-  `"gamma"` to `drm_missing_predictor_families()`.
-- One family only this slice. Not lognormal, student, beta_binomial,
-  or zi-*.
-- One binary predictor only (sibling of poisson/binomial/nbinom2/beta).
-- Not FIML across a SEM. Not `impute_joint`. Not k ≥ 2 on Gamma.
-- Never claim capability-status `"covered"`.
-- Explicit paths on every `git add`. NEVER `git add -A`.
-
-## Authoritative WHAT
-
-`LOOP/ultra-plan.md`. Charter:
-drmSEM `docs/memory/2026-08-26-next-arc-s6-imputation.md` A7.
-Issue: itchyshin/drmTMB#962.
+Implement the approved temporal AR1 provider in an isolated worktree.  The supported
+first slice is a univariate Gaussian mean model with `temporal(1 | id, time =
+occasion, structure = "ar1")`, optionally alongside exactly one ordinary `(1 | id)`
+random intercept.  It estimates a shared temporal process SD and persistence, retains
+separate residual `sigma`, and exposes fixed-effect Wald intervals only.
 
 ## Definition of done
 
-- Gamma response accepts one `mi()` + Bernoulli `impute_model()`.
-- Manual 2-point-sum logLik identity (G2) and MCAR + MAR recovery
-  smoke (G3, honest tier).
-- Ledger row `mp-gamma-bernoulli` on the existing `missing_predictor`
-  axis.
-- Gate test `predictor_validated` updated in the same commit.
-- drmSEM consumer **not** this slice unless the engine is already
-  merged and the lift is trivial.
+- [ ] Parser, native likelihood, methods, tests, documentation, and generated files implement the approved API.
+- [ ] Unlazy gates prove deterministic likelihood identities, output behavior, recovery evidence, and package integration.
+- [ ] A timed calibration pilot is retained; no 5,000-dataset campaign is submitted before recorded G17 approval.
+- [ ] Independent review, after-task evidence, plan-versus-actual reconciliation, and a local commit are complete.
 
-## Out of scope
+## Invariants
 
-- FIML / `impute_joint` / k ≥ 2 on a non-Gaussian response
-- Continuous missing predictor under Gamma
-- Lognormal / student / beta_binomial / zi-* (next families)
-- drmSEM capability `"covered"`
-- MAG / S3 grouping / dirty primary checkout
+- Preserve true integer gaps, independent series, and separate random-intercept, temporal-process, and residual variation.
+- Allow Wald intervals only for fixed mean effects. Refuse profile/bootstrap/variance-component intervals, `newdata` prediction, forecasting, OU, temporal slopes, wider families, and unapproved random-effect combinations.
+- Do not push, merge, release, publish, send external messages, alter credentials, or submit remote computation without its named authority.
+
+## Pre-authorisation
+
+Scoped edits, local builds/tests/renders, checkpoints, local commits, and a bounded timing pilot are authorised. Stop for an actual campaign submission, an estimate above the approved pilot boundary, an ownership collision, or evidence that changes this model contract.

@@ -58,6 +58,142 @@ In mathematical prose, `Normal(a, b)` uses variance as the second argument.
 The corresponding R density call uses standard deviation, as in
 `dnorm(y, mean = a, sd = sqrt(b), log = TRUE)`.
 
+## Gaussian temporal AR1 and OU effects
+
+The first temporal route is a univariate Gaussian location model with optional
+ordinary, stable series differences:
+
+\[
+y_{it} = x_{it}^{T}\beta + b_i + a_{it} + \epsilon_{it},
+\qquad
+b_i \sim N(0, s_b^2),\quad
+\epsilon_{it} \sim N(0, \sigma^2).
+\]
+
+For the temporal field, `temporal(1 | id, time = occasion, structure =
+"ar1")` estimates a stationary process SD `s_a` and one-occasion persistence
+`phi`:
+
+\[
+\operatorname{Cov}(a_{it}, a_{is}) = s_a^2\phi^{|t-s|}.
+\]
+
+Thus, within one series, the marginal covariance is
+\(s_b^2\mathbf{1}\mathbf{1}^{T} + s_a^2R(\phi) + \sigma^2I\). The native
+likelihood uses the stationary first-state density and, for an observed integer
+gap \(d\), the standardized transition \(u_t \mid u_{t-d}\sim
+N(\phi^d u_{t-d}, 1-\phi^{2d})\). It preserves the supplied integer times:
+it never converts them to ranks. The unconstrained persistence coordinate is
+transformed by `tanh()`, so both negative and positive persistence are
+possible.
+
+`s_a` is the stationary temporal-process SD, not an innovation SD. When an
+ordinary intercept is included, `s_b` describes stable differences between
+series; `sigma` remains independent observation-level residual SD. These three
+sources of variability are mutually independent.
+
+### Ornstein--Uhlenbeck elapsed-time effects
+
+`temporal(1 | id, time = elapsed, structure = "ou")` uses the same Gaussian
+location model and variance components, but treats `elapsed` as finite numeric
+time. It estimates a positive decay rate `lambda` and has covariance
+
+\[
+\operatorname{Cov}(a_{it}, a_{is}) = s_a^2\exp(-\lambda |t-s|).
+\]
+
+For an observed positive gap \(d\), its standardized stationary transition is
+\(u_t \mid u_{t-d}\sim N(\exp(-\lambda d)u_{t-d},
+1-\exp(-2\lambda d))\). The first-state density and all transition
+normalizers remain in the native likelihood. Rows may be supplied in any order;
+the fit sorts states within series and returns fitted values in the supplied row
+order. Duplicate series--time keys are rejected before response omission.
+
+OU cannot express negative correlation. Its reported temporal decay
+parameter is the positive decay rate, not a one-unit correlation or an
+innovation SD. OU Wald inference through `vcov()`, `confint(method = "wald")`,
+and `summary(..., method = "wald")` remains deferred because the inherited AR1
+interval calibration prerequisite is unresolved. Fixed `mu` coefficients can
+instead use likelihood profiles through
+`confint(..., parm = "mu:<coefficient>", method = "profile")`. The profile
+route excludes decay and variance parameters, warns if the fitted Hessian is
+irregular, and has deterministic dense-oracle checks but no general coverage
+claim.
+
+### Homogeneous Toeplitz discrete-occasion effects
+
+`temporal(1 | id, time = occasion, structure = "homtoep")` is a direct
+Gaussian ML **marginal covariance** provider for a common, complete, equally
+spaced integer schedule with 3--12 occasions. It has no ordinary random
+intercept in this first slice. For every series,
+
+\[
+y_i \sim N(X_i\beta, \sigma^2 R),\qquad
+R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}).
+\]
+
+The fitted `cor_lag1`, ..., `cor_lag(K-1)` values are correlations, not free
+unconstrained parameters. The native provider maps unconstrained partial
+autocorrelations through `tanh()` and the inverse-Levinson recursion, which
+keeps `R` positive definite. It evaluates the full multivariate-normal density
+for each independent series, including its normalizer. This is a discrete-lag
+model: irregular time and unequal retained schedules are rejected and directed
+to OU.
+
+`sigma` is the total within-series SD. A latent process SD plus an independently
+estimated iid residual SD is intentionally absent: with one response per
+series--occasion and a free lag correlation at every distance, those components
+have an exact covariance-preserving ridge. AR1 and OU retain that separate
+process/residual interpretation because their restricted correlation functions
+identify it.
+
+The current provider has deterministic dense-covariance, score, two-step
+Hessian, residual-whitening, and correlated-residual simulation agreement. A
+retained 4,000-fit campaign qualified likelihood-profile intervals for mean
+regression coefficients in its three predeclared primary cells: 80 series on
+six common occasions with AR1-shaped, non-exponential, and negative first-lag
+correlations. Use
+`confint(fit, parm = "mu:<coefficient>", method = "profile")` for that
+profile-only route. The retained 20-series stress cell had lower intercept
+coverage (0.916), and the campaign does not establish coverage for arbitrary
+panel sizes or correlation patterns.
+
+Wald, total-scale, and lag-correlation intervals remain unavailable. So do
+prediction on `newdata`, forecasting, and ordinary-intercept composition.
+
+For fitted observations, `fitted()` returns the marginal mean and `residuals()`
+returns `y - fitted`. Pearson residuals use the Cholesky whitening of the
+block Toeplitz covariance. Both simulation modes draw one correlated residual
+vector per series because this model has no conditional temporal random effect.
+
+### Phylogenetic stable intercept plus independent OU deviations
+
+The development-only paired route combines `phylo(1 | species, tree = tree)`
+with `temporal(1 | species, time = elapsed, structure = "ou")` in the same
+univariate Gaussian ML location formula. Its marginal covariance for rows
+\(r,q\) is
+
+\[
+V_{rq}=s_b^2A_{i_ri_q}+\mathbb{1}_{i_r=i_q}s_a^2
+\exp\{-\lambda|t_r-t_q|\}+\mathbb{1}_{r=q}\sigma^2.
+\]
+
+The phylogenetic term therefore represents stable, tree-correlated differences
+among species; the OU term represents independent temporal paths within each
+species. This is additive, not the later separable field
+\(s_a^2A_{ij}\exp\{-\lambda|t-s|\}\). The parser enforces a shared species ID,
+matching tree tips, finite numeric time, unique raw species--time keys, at
+least three species, at least two times per species, and three positive distinct
+lags. It rejects ordinary intercepts, slopes, other structured terms, REML,
+non-Gaussian families, non-unit weights, forecasting, and `newdata`.
+
+Independent dense likelihood, score, Hessian, conditional-mode, simulation,
+and fixed-mean profile tests pass. The retained 24-fixture point-recovery
+study did not meet its predeclared mean fixed-effect error threshold. Until a
+revised recovery design and a successful interval-calibration campaign are
+retained, this is a point-fit development route: all interval methods,
+variance/decay inference, forecast, and `newdata` prediction are unavailable.
+
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,

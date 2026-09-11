@@ -1,0 +1,25 @@
+"fixture","condition","layout","seed","sd_phylo_truth","sd_temporal_truth","sigma_truth","decay_truth","beta_intercept_truth","beta_between_truth","beta_within_truth","selected","error","elapsed_sec","objective","beta_intercept_estimate","beta_between_estimate","beta_within_estimate","sd_phylo_estimate","sd_temporal_estimate","sigma_estimate","decay_estimate"
+"balanced_C01","C01","balanced",2026091201,0.3,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.0790000000000002,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C02","C02","balanced",2026091202,0.6,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00800000000000001,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C03","C03","balanced",2026091203,1,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00499999999999989,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C04","C04","balanced",2026091204,0.3,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00999999999999979,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C05","C05","balanced",2026091205,0.6,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C06","C06","balanced",2026091206,1,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C07","C07","balanced",2026091207,0.3,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C08","C08","balanced",2026091208,0.6,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C09","C09","balanced",2026091209,1,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00499999999999989,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C10","C10","balanced",2026091210,0.3,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C11","C11","balanced",2026091211,0.6,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"balanced_C12","C12","balanced",2026091212,1,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C01","C01","unbalanced",2026091201,0.3,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C02","C02","unbalanced",2026091202,0.6,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C03","C03","unbalanced",2026091203,1,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C04","C04","unbalanced",2026091204,0.3,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C05","C05","unbalanced",2026091205,0.6,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00499999999999989,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C06","C06","unbalanced",2026091206,1,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00499999999999989,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C07","C07","unbalanced",2026091207,0.3,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00499999999999989,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C08","C08","unbalanced",2026091208,0.6,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.00700000000000012,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C09","C09","unbalanced",2026091209,1,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C10","C10","unbalanced",2026091210,0.3,0.8,0.4,0.7,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C11","C11","unbalanced",2026091211,0.6,0.8,0.4,0.4,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA
+"unbalanced_C12","C12","unbalanced",2026091212,1,0.8,0.4,0.15,0,0.5,0.5,FALSE,"unused argument (use.names = FALSE)",0.004,NA,NA,NA,NA,NA,NA,NA,NA

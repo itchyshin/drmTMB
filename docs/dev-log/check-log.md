@@ -20,6 +20,23 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 
 # Check Log
 
+## 2026-09-10 — homogeneous Toeplitz calibrated mean-profile interface
+
+Lane: Codex, `codex/temporal-homtoep-v1-20260910`. The retained 4,000-fit
+campaign qualifies likelihood-profile intervals for mean regression effects in
+the three predeclared 80-series, six-occasion primary cells. It does not
+qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
+`newdata` inference.
+
+| Check | Result |
+| --- | --- |
+| Public interval surface | `confint(..., parm = "mu:<coefficient>", method = "profile")` and the matching `summary(..., method = "profile")` route now work for homogeneous Toeplitz mean coefficients only; Wald and non-mean profile targets still fail clearly. |
+| Review repairs and focused tests | Independent Noether and Pat review found stale profile-refusal expectations, ambiguous Wald-deferral text, and numeric internal IDs in incomplete-panel errors. The repaired native, parser, and profile tests pass: public fixed-mean profiles return finite endpoints; `vcov()` and Wald intervals remain unavailable with an explicit profile/Wald distinction; incomplete factor IDs retain their supplied labels. |
+| Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
+| Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
+| Independent review | Noether cleared the marginal likelihood, PACF map, normalization, and profile/Wald boundary after the repair. Pat cleared the applied workflow, retained scope, label-aware error, and rendered help. |
+| Local package verification | The repaired source built with `R CMD build .`. The final `R CMD check --no-manual` completed installation, examples, documentation, full tests, and vignette rebuilding. Its two warnings are the known source-layout result of omitting generated `inst/doc` outputs from the tarball; they are retained as warnings rather than described as clean verification. |
+
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
 Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree
@@ -86137,7 +86154,7 @@ Evidence:
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
   then passed with 4,096 assertions, 0 failures, 0 warnings, and 0 skips.
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
-  passed with 4,812 assertions, 0 failures, 0 warnings, and 0 skips.
+  passed with 4,813 assertions, 0 failures, 0 warnings, and 0 skips.
 - `python3 -m py_compile tools/validate-mission-control.py` passed.
 - `python3 tools/validate-mission-control.py` passed and reported 16
   structured RE q4 intercept denominator-precheck rows.
@@ -94578,50 +94595,255 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+| 2026-09-08 | Gaussian temporal AR1 implementation | Unlazy G1--G14 met; dense objective/score/Hessian/covariance oracle; retained final-source 12-fit recovery and 25-fit pilot; isolated `R CMD check` Status OK | Implemented native ML AR1 with optional same-ID intercept and fixed-effect Wald path. G16--G18 remain pending: C1 pilot interval availability 4/5, no campaign or coverage claim. | Codex / Noether / Pat / Rose |
+| 2026-09-08 | Gaussian temporal OU review repairs | Temporal suites pass; G2/G10/G11 pass; source build and `R CMD check --no-manual` Status OK; independent mathematical and reader reviews approved | OU is an elapsed-time positive-decay point-fit route. `decaypars$temporal` replaces the misleading correlation extractor; public OU covariance and Wald inference remain deliberately unavailable while the inherited AR1 C1 boundary is unresolved. No campaign launched. | Codex / Noether / Pat |
+| 2026-09-09 | AR1 C1 residual-boundary diagnosis | Independent dense marginal likelihood: all 40 fixed-SD profile fits and 4 free-SD fits converged; native and dense objective agree at fixed `sigma = 0.1`; installed glmmTMB 1.1.14 boundary guidance cross-checked | The frozen C1 likelihood is active or practically flat at residual SD zero. The non-PD covariance is not a latent-state TMB artifact, and no nearby positive-definite candidate is an ML inference repair. glmmTMB supports the diagnostic posture, but its profile examples do not qualify drmTMB mean-effect Wald intervals. G7 remains closed; OU Wald inference stays guarded. | Codex |
+| 2026-09-09 | Gaussian temporal OU point-recovery fixture | 12 predeclared irregular-time OU data sets, 24 retained optimizer starts; mean absolute fixed-effect error 0.0758, median SD error 0.0374, median decay error 0.0400; G8 PASS | OU point recovery passes for both admitted forms. One ordinary-plus-OU selection has false convergence but remains explicitly retained; this does not qualify covariance, Wald intervals, or coverage. | Codex |
+| 2026-09-09 | Gaussian temporal OU timed pilot | 15 finite selected fits, 30 retained starts, 30.33 s wall time, 569 MB peak resident memory, no optimizer warnings; G9 PASS | Every pilot Hessian was positive definite, but public Wald availability was intentionally 0/15 because the shared AR1 calibration prerequisite remains open. This is timing and completeness evidence, not campaign authority. | Codex |
+| 2026-09-09 | Temporal Wald-status diagnostic | Focused temporal suite PASS; roxygen regenerated; AR1 regular/non-PD and OU deferred states each asserted | `check_drm()` now makes the temporal interval consequence explicit without presenting a fit-level PD Hessian as a general coverage claim. G7 remains open. | Codex |
+| 2026-09-09 | AR1 C1 Wald-availability replication | Five new fixed-seed C1 fits and ten retained starts; 4/5 finite covariance and Wald interval sets; one near-zero residual-SD non-PD boundary | The original pilot predates the transition-stability repair and is not pooled here. The fresh failure remains current-source evidence, pending dense confirmation. | Codex |
+| 2026-09-09 | AR1 C1 current-source reconciliation | Historical five-seed recheck: 5/5 covariance and interval sets; fresh-seed dense oracle: 40 fixed and 4 free fits, flat through residual SD 1e-4 | Historical seed `2026091002` non-PD was numerical and is repaired. Fresh seed `2026091101` remains a real residual-variance boundary. Current-source bounded availability is 9/10, not a calibration estimate; G7 stays open. | Codex |
+| 2026-09-09 | Temporal AR1/OU fixed-effect profile interface | Focused temporal OU suite passed; public profile aliases, deferred-target rejections, irregular-Hessian warning, and three independent dense profile locations asserted; G7 PASS | Gaussian temporal AR1 and OU now profile fixed `mu` effects only. A finite endpoint is not a coverage claim; variance, persistence/decay, bootstrap, forecast, and `newdata` intervals remain deferred, while OU Wald inference remains guarded. | Codex |
+| 2026-09-09 | Temporal profile interface review repairs | Focused temporal OU suite passed after independent mathematical and reader review; G7, G10, G11, and G12 reverified; `R CMD check --no-manual` Status: OK | Generic `profile()` and `profile_targets()` now enforce the same mean-`mu` boundary as `confint()`, including combined ordinary-intercept-plus-temporal fits. An irregular fitted Hessian warns at both public entry points; finite profile endpoints still carry no coverage claim. The retained profile pilot was stopped after exceeding its 5–10 minute estimate before it wrote artifacts. | Codex / Noether / Pat |
+| 2026-09-09 | Temporal OU fixed-effect profile pilot | G16 PASS: 15 finite selected fits, 30 retained starts, 15/15 three-coefficient profile interval sets, all positive-definite fitted Hessians; 759.24 s wall and 664 MB maximum resident memory | This measured timing and output-completeness pilot is not coverage evidence and does not authorize a campaign. G14/G15 remain open. | Codex |
+| 2026-09-09 | Temporal OU campaign-worker Totoro smoke | Archived source `0e3c792c` task 1 passed with two retained starts and a valid source/runner provenance record under one BLAS thread and a 10-minute timeout | Validates staging and fail-closed worker inputs only. Fir remains the retained 3,000-task campaign target; no coverage denominator was claimed. | Codex |
 
-## 2026-09-09 — temporal covariance programme plan
+| 2026-09-09 | Temporal OU campaign verifier and exact-source check | G8, G9, G10, G16 PASS; native/provider gates G2--G7 passed in one continuous run; `R CMD check --no-manual` returned `Status: OK` at `4d1fcc10055ea3f619afc36169e4d91dd28fac32` | G15 now re-verifies immutable 3,000-task campaign shards without running fits. It remains pending until retained Fir outputs exist. | Codex |
+| 2026-09-09 | Temporal OU endpoint-artifact worker smoke | Totoro archived-source task 1 passed at `e6387ce9`; two starts and three finite retained profile endpoint rows carry matching source and worker fingerprints | Confirms the Fir worker artifact contract. This one-task smoke is not a calibration denominator; G15 remains pending retained Fir outputs. | Codex |
+| 2026-09-09 | Temporal OU campaign provenance verifier | Parser PASS; fail-closed missing-shard test PASS; each reverify now requires all shards to share a commit and an MD5 that matches the worker extracted from that commit | G15 cannot accept agreeing but fabricated provenance. It remains read-only and awaits retained Fir outputs. | Codex |
+| 2026-09-09 | Temporal OU campaign calibration assessment | Focused assessment test PASS: one qualified reference row and four distinct criterion failures; campaign summarizer parser PASS | The immutable campaign summary now records availability, MCSE-bounded coverage, bias, and profile-width SE-analogue qualification for every cell-coefficient. G15 remains an integrity gate; failed calibration stays retained and requires an explicit decision. | Codex |
+| 2026-09-09 | Temporal OU storage-consolidating shard route | `bash -n` passed for source stager and 60-shard Fir template; G15 shard-reader parsed; temporary source archive contained `DESCRIPTION` and the campaign worker | Keeps raw CSV/RDS evidence inside immutable tarballs. It reduces inode use but changes array granularity and remains pending revised G14 authorization plus freed project inodes. | Codex |
+| 2026-09-09 | Temporal OU 50-task shard contract | Synthetic node-local worker completed 50 task calls, wrote one immutable `shard-001.tar.gz`, and retained the status ledger plus worker log; `TEMPORAL_OU_SHARD_CONTRACT_PASS` | Validates batch staging and atomic publication only; it does not fit a model or revise G14 authority. | Codex |
 
-A plan-only master programme now sequences the completed AR1/OU provider, the planned
-phylogenetic-stable-plus-independent-OU slice, homogeneous Toeplitz, heterogeneous AR1,
-heterogeneous Toeplitz, and science-triggered seasonal/random-walk/ARMA/temporal-Matérn
-candidates. The plan requires positive-definite Toeplitz parameterisation, independent
-dense-oracle validation, bounded NotebookLM source mapping, a local timing pilot before
-any campaign, Totoro retention and separately authorized DRAC/Fir evidence. It does not
-claim any new supported model. Planning closeout:
-`docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-plan.md`.
 
-## 2026-09-09 — temporal covariance Ultra Master Plan
+## 2026-09-09: Temporal OU Fir sealed-shard smoke and node-local build
 
-The former temporal roadmap is now an execution-grade master plan: six dependent phases,
-named agents with Astra/Terra/Sol effort routing, file-ownership transfers, canonical
-homtoep/hetar1/hettoep grammar, 12/12/8 common-level limits, response-omission rules,
-predeclared calibration cells, source-map bootstrap, compute authority and 33 master
-gates. Formula review accepted all repairs. Integration review required the plan revision
-to be committed and fingerprinted before M00 approval; that requirement remains explicit.
-No temporal implementation or campaign occurred. Closeout:
-`docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-master-plan.md`.
+- Fir project storage was inode-full and nearline was not visible from a compute
+  node. The campaign route therefore uses Fir home only as transient staging and
+  checksum-verified Totoro copies as durable evidence.
+- Smoke job `58907593` at source `e46bf2e702c08383e1883de34b07163a5d9ba896`
+  completed one U1 campaign data set after a node-local `R CMD INSTALL`; it took
+  2:30 elapsed, used 4,183,676 KiB peak RSS, and sealed
+  `shard-001.tar.gz` (SHA-256
+  `20a6bf2fa205fb3815cf4746850cba3c26cfd6684266e37b5a3bfcd58ff8b49d`).
+- The archive contains the package-install log, runtime receipt, task status
+  `1,0`, all two starts, three finite fixed-effect profile intervals, and exact
+  source/runner provenance. The preceding 2 GiB smoke failed during C++
+  compilation, so the production script now requests 6 GiB and builds once per
+  shard before 50 worker calls.
+- The smoke source and shard were streamed through existing ControlMaster
+  sockets to Totoro, where their SHA-256 values matched their Fir values. The
+  verified Fir smoke directory was then removed. The reusable
+  `tools/mirror-temporal-ou-shard-to-totoro.sh` helper implements the same
+  non-overwriting, checksum-first route for campaign artifacts.
 
-## 2026-09-09 — temporal covariance master-plan detail repair
+| 2026-09-09 | Temporal OU G15 standalone-verifier repair | Focused assessment suite PASS; standalone missing-input invocation now reaches its documented fail-closed diagnostic | The summarizer now sources its pure assessment helper in the script environment rather than R's base environment. This prevents a startup crash before immutable-shard verification. | Codex |
+| 2026-09-09 | Temporal OU retained profile campaign | Fir array `58908599`: 60 sealed shards, 180 `COMPLETED|0:0` Slurm records; Totoro checksum mirror and G15 reverify PASS | All nine 1,000-data-set cell-coefficient rows meet availability, MCSE-bounded coverage, bias, and profile-width SE-analogue criteria. The durable immutable-summary SHA-256 is `e303d8c3c688baf5ea3655a459d8f8215d8e85326eb6db86aa5dfb353b191cc5`; U1 retains 999/1,000 availability rather than omitting its one unavailable interval. | Codex |
+| 2026-09-09 | Temporal OU calibration wording synchronization | G10 reader-content and G11 source-faithful vignette render pass; documentation scope rechecked | Public temporal documentation now distinguishes the qualified 3,000-fit OU fixed-`mu` profile campaign (exact U1--U3 scenarios) from uncalibrated AR1 and broader temporal claims. No estimator, campaign artifact, threshold, or Wald-inference boundary changed. | Codex |
+| 2026-09-09 | Phylogenetic stable-intercept plus independent-OU Ultra Plan | Prior-work sweep, official glmmTMB covariance source map, NotebookLM connection preflight, two independent plan reviews, and Unlazy ledger parse completed | First slice is explicitly `phylo()` stable intercept plus independent same-species OU. The wrong separable field is mutation-gated; profile calibration is predeclared but not authorized or run. | Codex / Noether / Pat / Rose |
 
-The temporal covariance Ultra Master Plan now exposes the operational detail at its
-front: S0–S6 sequence, named owner/model/effort, start gates, artifacts, hand-offs,
-formula/parameter/output matrix, shared raw-to-retained layout contract and a
-parent-to-child launch receipt. `git diff --check` passed. The Unlazy status parser
-counted 33 gates and truthfully retained 25 unfinished gates; status mode executed no
-checks and no model code, simulation or campaign was launched. Detail repair report:
-`docs/dev-log/after-task/2026-09-09-temporal-covariance-programme-master-detail.md`.
+| 2026-09-09 | Phylogenetic-temporal OU Phase 0 bootstrap | P1 and source-map runner self-tests; G1; M01-bootstrap; M02; M03; focused testthat 6 passes | P1 execution is anchored to a1d01dab3. Source map is cited and separates a blocked Toeplitz parameterisation lead; no estimator, fit, campaign, or public capability changed. | Codex |
 
-## 2026-09-09 — master ledger reconciles P1 methods evidence
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU parser/layout | G2 PASS; paired parser 13 assertions; existing temporal parser 6; OU 64; runner 6 | Admits only same-ID `phylo(1 | species, tree = tree)` plus OU and checks raw and retained support. A successful point fit is not oracle or inference evidence. | Codex |
 
-Master P1-methods now points to execution commit `039f84739` and its passing G7
-receipt. The new evidence reconstructs every stable-phylogenetic and independent-OU
-contribution through public fitted/residual/simulation behavior, without promoting any
-Wald, non-mean or `newdata` inference claim. Dense profile endpoints remain a separate
-G8 requirement.
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU dense oracle | G3-G6 PASS; 19 independent dense-oracle assertions; 6 gate-runner assertions | Direct `ape::vcv()` covariance matches objective, score and Hessian; reductions and all six wrong-model mutations are retained. This is deterministic evidence, not inference or campaign evidence. | Codex |
 
-## 2026-09-09 — master ledger adds explicit P1 dense-profile gate
+## 2026-09-09 — phylogenetic-temporal OU methods gate
 
-P1's prior single methods row did not separately expose its G8 dense-profile proof even
-though P1.4 depends on G7–G8. The master ledger now has `P1-profile`, tied to execution
-commit `b9af2fd4b`; it records the independent nuisance-reoptimized likelihood-ratio
-endpoint check and the retained deferred-target/Hessian-warning boundaries.
+G7 now reconstructs the combined model's conditional fitted values/residuals and both
+simulation modes from separate phylogenetic-stable and independent OU contributions.
+The runner returned `PHYLO_TEMPORAL_OU_G7_PASS`; focused paired parser, dense oracle,
+methods, existing temporal parser/OU, and runner tests passed. The suite uses a
+non-boundary deterministic fixture and keeps Wald covariance, non-mean intervals and
+newdata prediction unavailable. Evidence:
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-methods.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU dense profile gate
+
+G8 independently re-optimized the paired model's dense marginal likelihood under fixed
+mean slope values. Its 90% likelihood-ratio endpoints (0.17577, 0.59428) agree with the
+public TMB-profile endpoints (0.17544, 0.59399), and the gate also fences deferred
+interval targets plus the irregular-Hessian warning. `PHYLO_TEMPORAL_OU_G8_PASS` is
+retained in `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-profile.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU G9 retained recovery failure
+
+G9 is unmet. The corrected 50-species 24-fixture denominator retained all 24 selected
+fits and 48 starts, and passed SD/decay criteria, but fixed-effect error was 0.182 >
+0.150. A separate 80-species diagnostic under the same seeds/thresholds reduced it to
+0.165 but also failed. Earlier immutable directories retain formula/list/provenance
+runner failures and the ordered-treatment confounding diagnosis. No threshold, seed or
+failure was changed or suppressed. See
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-recovery-failure.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU reader workflow
+
+G14 and G15 now pass. The source-built article `phylogenetic-temporal-effects.Rmd`
+uses irregular elapsed times and separates `sd_phylo_stable`, `sd_temporal`,
+`decay_temporal`, and residual `sigma`. It is deliberately navigation-marked
+**development**: the retained G9 recovery failure means that no paired-model
+interval or forecasting claim is made. The G15 runner loads the local package,
+renders the article in an isolated temporary directory, and verifies the
+rendered reader-facing boundary text.
+
+## 2026-09-09 — phylogenetic-temporal OU recovery diagnosis and runner repair
+
+The retained G9 denominators isolate the failure to intercept MAE: v4 has
+intercept/between/within MAEs 0.339/0.131/0.077 and v6 has
+0.336/0.104/0.055. The current aggregate criterion remains failed. The future
+recovery runner now reads the paired public `decay_temporal` label through its
+helper; a disposable six-species, 24-fixture smoke retained 24 finite decay
+estimates, then was removed because it is not evidence. A revised recovery
+contract still requires an explicit decision.
+
+
+## 2026-09-10 — G9b full phylogenetic-stable plus independent OU point recovery
+
+`Rscript --vanilla -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-phylo-temporal-ou-gate-runner.R", reporter="summary")'` passed before the frozen v5 runner checkpoint. `Rscript --vanilla tools/run-phylo-temporal-ou-g9b-full.R` retained 24 contrast fits/48 starts and 300 independent-tree fits/600 starts. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full` returned `PHYLO_TEMPORAL_OU_G9B_FULL_PASS`. The v5 criteria passed between/within contrast MAE 0.123/0.071, median absolute log-SD/decay errors 0.163/0.280, and standardized ensemble intercept bias 0.032/0.072/0.063. G9 remains failed; G10--G13 and all interval claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S0 parameter map
+
+The approved P2 lane was corrected before provider work because its first base named
+but did not contain the direct-OU gate runner required by the child fingerprint. The
+new lane base `c6ff7c47e` contains direct-OU closeout `73a440c3b`; fresh calls to
+`Rscript --vanilla tools/temporal-ou-gates.R` for G1--G11 and G16 each emitted its
+expected pass receipt. `Rscript --vanilla tools/temporal-homtoep-gates.R T3-2` now
+returns `TEMPORAL_HOMTOEP_T3_2_PASS`. It selects the inverse-Levinson
+reflection-coefficient map, validates 480 deterministic matrices for K=1--12,
+checks inverse reconstruction and two finite-difference steps, matches both the
+independent `stats::toeplitz()` construction and the local dense construction, and
+retains counterexamples for lag-wise squashing (indefinite R) and generic Cholesky
+(non-Toeplitz R). No formula grammar, native provider, public documentation, or
+calibration claim changed; T3-1 remains the next gate.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S1 grammar and layout
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-1` returned
+`TEMPORAL_HOMTOEP_T3_1_PASS`. `homtoep` is now the sole admitted new temporal
+keyword: it requires finite integer occasions, a common complete equally spaced
+retained schedule of 3--12 occasions, and stores both schedule levels and the
+original-row-to-occasion index mapping. Raw duplicate ID--occasion keys still fail
+before response omission. Irregular or incomplete panels receive an error directing
+the user to OU or AR1. The direct fit path stops explicitly until T3-3 supplies the
+native provider, preventing an accidental fall-through to OU. Targeted regressions
+passed for `test-temporal-parser.R`, `test-temporal-gaussian-smoke.R`,
+`test-temporal-identities.R`, `test-temporal-ou.R`,
+`test-temporal-ou-dense-oracle.R`, the Toeplitz map, and the new parser suite.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S2 native provider
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-3` emitted
+`TEMPORAL_HOMTOEP_T3_3_PASS`; T3-1 and T3-2 were then reverified with their
+expected receipts. The provider represents every standardized series path with
+a positive-definite Toeplitz covariance built from inverse-Levinson
+partial-autocorrelation coordinates, and applies a full normalized MVN density
+per independent series. The independent dense oracle matches the optimized
+objective, score, two finite-difference Hessian steps (1e-4 and 1e-5), and
+conditional temporal modes. The oracle initially used the wrong triangular
+Cholesky solve; the corrected `forwardsolve(t(chol(V)), residual)` calculation
+was independently reconciled with the native objective before the gate passed.
+The provider now reports `cor_lag*` correlations and correctly labels its one
+starting vector as partial autocorrelations rather than an OU decay. It is
+still a point-fit validation slice: recovery, simulation, prediction, reader
+workflow, and all interval or calibration claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S3 methods and simulation
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-4` emitted
+`TEMPORAL_HOMTOEP_T3_4_PASS`. `fitted()` and `residuals()` use the conditional
+Toeplitz modes in original input-row order. `simulate(re.form = NA)` holds those
+modes fixed, while the default simulation redraws an independent dense Toeplitz
+path for each series before residual noise. Seeded conditional and fresh draws
+match an independent dense Cholesky construction. `vcov()`, Wald summaries, and
+both Wald and profile interval entry points now reject this uncalibrated
+provider explicitly; `check_drm()` records the same calibration-deferred reason.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-5 reductions and mutations
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-5` emitted
+`TEMPORAL_HOMTOEP_T3_5_PASS`. With only the first partial autocorrelation
+nonzero, the native provider matches the independent dense AR1 covariance; with
+all partial autocorrelations zero, it matches the diagonal temporal covariance.
+The deterministic mutation test rejects an indefinite direct-lag matrix and an
+irregular schedule, and distinguishes the correct independent-series covariance
+and normalized likelihood from deliberately shared-series and no-normalizer
+variants.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-6 retained point recovery
+
+`Rscript --vanilla tools/run-temporal-homtoep-recovery.R` emitted
+`TEMPORAL_HOMTOEP_RECOVERY_PASS` under committed source `b9dacf42d`; the
+read-only verifier then emitted `TEMPORAL_HOMTOEP_T3_6_PASS`. The final-source
+artifact retains twelve frozen fits and twelve starts: three AR1, three
+non-exponential, three negative-lag primary fits, and three low-information
+stress fits. All nine primary fits were finite. Primary mean absolute
+fixed-effect error was 0.0611, median absolute SD error 0.0933, and median lag
+RMSE 0.1098, all within their frozen point-recovery criteria. The stress cell is
+retained but excluded from those primary thresholds. This is not interval or
+coverage evidence.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7 timed pilot
+
+The source-faithful five-seed-per-cell pilot at `0cb70fe7f` retained 15 finite
+selected fits and 15 starts across AR1-shaped, non-exponential, and negative-lag
+six-occasion cells. `/usr/bin/time -l` measured 39.42 seconds wall time and
+438 MB peak memory; total fitting time inside the runner was 13.538 seconds.
+All 15 profile requests produced the deliberate not-yet-qualified error and no
+profile intervals. All fits converged but each recorded `NaNs produced` and a
+non-positive-definite Hessian flag. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7` emitted
+`TEMPORAL_HOMTOEP_T3_7_PASS` because the gate checks retained measurement and
+denominator completeness, not inferential qualification. Those diagnostics
+block T3-8/T3-9 campaign progression until a bounded inference diagnosis and
+qualification slice resolves them.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7a identifiability diagnosis
+
+The pilot's false Hessians arise from an exact covariance ridge. For a free
+Toeplitz correlation matrix, `V = s_a^2 R + sigma^2 I` is unchanged by choosing
+an admissible scale factor `c`, setting `s_a,new^2 = c s_a^2`,
+`rho_new(d) = rho(d) / c` for every positive lag, and
+`sigma_new^2 = sigma^2 + (1 - c) s_a^2`. The new correlation matrix remains
+positive definite for an open range of `c`; the executable test confirms exact
+dense covariance and likelihood equality and valid inverse-Levinson
+coordinates. Thus one response per series--occasion cannot separately identify
+the temporal SD, residual SD, and all free lag correlations. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7a` emitted
+`TEMPORAL_HOMTOEP_T3_7A_PASS`. The current direct provider is retained as a
+point-fit research artifact only; calibration and campaign gates require a
+model-redesign decision.
+
+## 2026-09-10 — temporal homogeneous Toeplitz redesign decision brief
+
+T3-7a's exact covariance ridge changes the next delivery action. The original
+provider cannot separately estimate `sd_temporal`, `sigma`, and all free
+Toeplitz lag correlations with one row per series--occasion. The scoped brief
+`T3-8-REDESIGN-DECISION.md` records the two identified replacements: M, a
+marginal Toeplitz covariance with one total within-series SD for ordinary CSV
+panels; or R, a replicated latent Toeplitz process with an explicit replicate
+key. It recommends M while preserving AR1/OU as the routes that separately
+interpret temporal and residual variance. T3-7b is a manual semantic-interface
+gate; it must be selected explicitly before T3-8 calibration, a campaign, or
+reader-facing promotion proceeds.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7c marginal candidate spike
+
+An independent pure-R marginal Toeplitz likelihood was fitted to one simulated
+80-series by six-occasion panel. The likelihood uses one total within-series SD
+and free PACF-derived lag correlations, with no separately estimated residual
+SD. It converged with objective 507.260020 and a minimum numerical observed-
+information eigenvalue of 47.771361. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7c` emitted
+`TEMPORAL_HOMTOEP_T3_7C_PASS`. This supports M as an identified candidate design;
+it is not a public interface, recovery, interval, calibration, or campaign claim.
+
+## 2026-09-11 — temporal P2 integration and programme reconciliation
+
+The completed homogeneous-Toeplitz branch was integrated into the temporal programme
+lane. A fresh native rebuild succeeded, then T3-1 through T3-5, T3-11 and T3-12
+reverified the parser, map, native likelihood, behavior, reductions, rendered reader
+workflow and closeout. The programme G18 reverify also passed. The master ledger now
+records P2 as closed with its identified marginal covariance `sigma_T^2 R`; it no
+longer represents the nonidentified latent Toeplitz prototype as the delivered model.
+The 2026-09-11 interval-feasibility amendment remains in force and preserves the failed
+P1 G13 coverage rows.

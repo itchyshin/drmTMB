@@ -1,0 +1,6 @@
+"cell","role","n_datasets","selected_finite","interval_available","interval_availability","median_elapsed_sec","max_elapsed_sec","pd_hessian","warnings","errors"
+"C1","primary_short",5,5,4,0.8,1.492,6.661,4,1,0
+"C2","primary_persistent",5,5,5,1,4.705,4.984,5,0,0
+"C3","primary_negative",5,5,5,1,2.425,3.096,5,0,0
+"C4","primary_ar1_only",5,5,5,1,2.688,3.316,5,0,0
+"C5","stress",5,5,5,1,0.468999999999994,0.552999999999997,5,0,0

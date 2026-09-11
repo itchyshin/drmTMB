@@ -264,7 +264,7 @@ G3 dense covariance, G4 likelihood/score/Hessian, G5 reductions, G6 mutations, G
 methods/simulation, G8 profile target, G9 recovery, G10 pilot, G11 campaign contract,
 G12 manual campaign approval, G13 retained campaign reverify, G14-G15 reader evidence,
 G16 package check, G17 review and G18 closure. At the current execution checkpoint,
-The direct temporal OU parent is fully qualified: its grammar, dense oracle, methods, rendered tutorial, package check and 3,000-data-set profile campaign all closed at `0d66e62f3` and campaign source `e57ed8c1`. The separately approved phylogenetic-stable plus OU G9b-full point-recovery study also passes. Its G10 timing pilot, G11 calibration contract and G12 campaign authorization are retained; G13 fails for three intercept-profile coverage rows. On 2026-09-11 the user explicitly reclassified this arc as interval-feasible, not inference-ready. Those extension results do not qualify a separable field and do not block the direct temporal P2 child. P2 remains blocked only until its own committed child receipt receives explicit approval; `docs/dev-log/plans/2026-09-10-temporal-homtoep/` is that receipt.
+The direct temporal OU parent is fully qualified: its grammar, dense oracle, methods, rendered tutorial, package check and 3,000-data-set profile campaign all closed at `0d66e62f3` and campaign source `e57ed8c1`. The separately approved phylogenetic-stable plus OU G9b-full point-recovery study also passes. Its G10 timing pilot, G11 calibration contract and G12 campaign authorization are retained; G13 fails for three intercept-profile coverage rows. On 2026-09-11 the user explicitly reclassified this arc as interval-feasible, not inference-ready. Those extension results do not qualify a separable field and do not block the direct temporal P2 child. P2 closed at `ceff79d53` after its own deterministic, retained point-recovery, timed-pilot, profile-campaign, reader, review and package-check gates.
 
 ### Simulation and compute
 
@@ -281,69 +281,30 @@ thread limits. No login-node compute or GitHub Actions campaign.
 
 Expected implementation effort: 35 to 53 agent-hours plus measured campaign time.
 
-## Phase 2 — homogeneous Toeplitz
+## Phase 2 — homogeneous Toeplitz (closed)
 
-### Model contract and parameter decision
-
-For common discrete levels k and l:
+P2 closed at `ceff79d53` on 2026-09-10. The original latent-process form,
+`V = s_a^2 R + sigma^2 I`, is retained as a non-public diagnostic because a
+one-response-per-ID--occasion panel cannot separately identify free Toeplitz lag
+correlations, process scale, and residual scale. The delivered model is the identified
+marginal covariance
 
 \[
-\operatorname{Cov}(a_{ik},a_{il})=s_a^2r_{|k-l|},\qquad r_0=1.
+y_i \sim N(X_i\beta, \sigma_T^2R),
 \]
 
-AR1 is nested when r_d equals phi to the power d. A free lag vector is invalid unless
-its Toeplitz correlation matrix is positive definite. Before native code, P2.0 compares
-a partial-autocorrelation recursion, a constrained Cholesky construction and an
-equivalent differentiable form. It selects one by four executable tests: positive
-definiteness over random unconstrained draws; reconstructable reported lag correlations;
-stable derivatives; and agreement with an independently constructed dense matrix.
+where `R` is a positive-definite homogeneous Toeplitz correlation matrix using the
+inverse-Levinson partial-autocorrelation map. `sigma()` is the total within-series SD;
+it is not an independent residual SD. The provider admits complete, common, equally
+spaced integer panels of three through twelve occasions, preserves row order, supports
+mean-effect profile intervals in its frozen panel scope, and directs irregular time to
+OU. It does not provide a temporal process in `sigma`.
 
-### Initial admission
-
-Common, equally spaced integer occasion levels, no duplicate id-level keys, and enough
-series/pairs to estimate every included lag. The first recovery suite is balanced.
-Irregular elapsed time is refused and directed to OU. An implementation must report the
-number of levels, supported lag count, process SD and lag correlations. It may not call
-the process SD an innovation SD.
-
-The canonical public form is:
-
-~~~r
-bf(y ~ x + temporal(1 | id, time = occasion, structure = "homtoep"), sigma ~ 1)
-~~~
-
-The first release allows at most 12 common levels. It rejects toep, hom_toep, aliases,
-temporal parameter formulae, unequal grids and unsupported structures before response
-omission with the package's unsupported-temporal-structure error. Raw metadata and
-duplicates are validated before omission; retained ids must have the complete common
-schedule after omission. Tests assert an instruction to use OU for irregular elapsed time.
-
-### Work packages and gates
-
-| Package | Agent/model | Key evidence |
-| --- | --- | --- |
-| P2.0 parameterisation decision | Gauss + Noether, Astra high | comparison memo, deterministic positive-definite stress test |
-| P2.1 grammar/layout | Boole, Astra high | common-schedule diagnostics and useful rejection messages |
-| P2.2 native/oracle | Gauss + Curie, Astra high/Terra medium | likelihood, score/Hessian, modes and dense V |
-| P2.3 methods | Emmy, Terra high | labelled lags, fresh/conditional simulation and no unsupported forecasts |
-| P2.4 recovery | Curie + Fisher | nested AR1, diagonal and non-AR1 Toeplitz cells; retained failures |
-| P2.5 article | Pat, Terra medium | example asking whether data support exponential decay |
-| P2.6 close | Rose + Noether | review, package check and reconciliation |
-
-The future exact runner is tools/temporal-homtoep-gates.R. It must cover:
-T3-1 grammar/admission; T3-2 positive-definite map; T3-3 dense V and likelihood;
-T3-4 two-step score/Hessian; T3-5 AR1 and diagonal reductions; T3-6 invalid-map,
-compressed-gap, shared-series and missing-normalizer mutations; T3-7 methods and
-simulation; T3-8 recovery; T3-9 pilot; T3-10 manual campaign authorization;
-T3-11 retained campaign; T3-12 article/render; T3-13 package check; T3-14 review and
-close.
-
-The interval-feasibility design is frozen only after the parameterisation is chosen. It
-needs one AR1-generated cell, one non-exponential valid-Toeplitz cell and one
-low-information stress cell. It retains a small, predeclared fixture set, all starts,
-warnings, finite public interval/profile availability and covariance recovery. It does
-not claim coverage. A later coverage study is a separately authorized promotion arc.
-Expected effort: 35 to 55 agent-hours plus measured campaign time.
+Its closeout includes deterministic likelihood, derivative, reduction and mutation
+evidence; retained point recovery and timing pilot; a separately authorised, retained
+profile campaign; rendered reader workflow; independent Noether and Pat reviews; and a
+package check. See `docs/dev-log/plans/2026-09-10-temporal-homtoep/unlazy/GATES.md` and
+`docs/dev-log/evidence/temporal-homtoep/2026-09-10-p2-closeout.md`.
 
 ## Phase 3 — heterogeneous AR1
 
@@ -376,8 +337,8 @@ schedule. P3-grammar fixes that maximum in parameter, label, oracle and error te
 
 P3 reuses P2 layout but not P2 evidence. Boole owns grammar; Gauss owns the D R D TMB
 block; Curie owns dense V and mutations; Fisher fixes recovery and interval feasibility;
-Emmy owns methods; Pat owns the reader workflow; Noether and Rose review/close. The runner is
-tools/temporal-hetar1-gates.R.
+Emmy owns methods; Pat owns the reader workflow; Noether and Rose review/close. The
+runner is tools/temporal-hetar1-gates.R.
 
 Required reductions: all s_k equal gives homogeneous AR1; phi equal to zero gives a
 diagonal latent process; s_k zero for one level is a boundary diagnostic, not dropped

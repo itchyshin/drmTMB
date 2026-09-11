@@ -1,5 +1,25 @@
 # P2 child plan — homogeneous temporal Toeplitz
 
+## Status correction — 2026-09-10
+
+T3-7 and T3-7a established that the direct latent-process contract below is
+not identifiable when it estimates a free Toeplitz correlation, temporal SD,
+and residual SD from one response per series--occasion. It is retained as a
+non-public prototype and evidence record, not a promotable provider. The next
+action is the explicit choice in `T3-8-REDESIGN-DECISION.md`: an identified
+marginal covariance model for ordinary panels, or a replicated latent-process
+model. No profile, campaign, documentation, or release gate may treat the
+prototype as a completed feature.
+
+## Closure update — 2026-09-10
+
+The identified marginal provider selected by `T3-8-REDESIGN-DECISION.md` is complete
+at `ceff79d53`. It fits `y_i ~ N(X_i beta, sigma_T^2 R)` with one total within-series
+SD and a valid homogeneous Toeplitz correlation. The original latent provider remains
+retained evidence of the identifiability failure and does not qualify the delivered
+model. See the executable close gate `T3-12` and
+`docs/dev-log/evidence/temporal-homtoep/2026-09-10-p2-closeout.md`.
+
 ## Goal
 
 Implement the next **direct temporal** covariance structure after calibrated OU:
@@ -12,11 +32,15 @@ fit <- drmTMB(
 )
 ```
 
-Deliver a Gaussian ML homogeneous Toeplitz process with fixed-effect profile intervals only after new Toeplitz-specific calibration. It answers whether equally spaced repeated observations require a free lag-by-lag correlation rather than OU or AR1 exponential decay.
+The delivered model is the identified marginal covariance selected in
+`T3-8-REDESIGN-DECISION.md`. The discarded latent process remains below as a
+historical record of the identifiability diagnosis. The scientific question remains
+whether equally spaced repeated observations require a free lag-by-lag correlation
+rather than OU or AR1 exponential decay.
 
 The completed direct temporal OU parent is the prerequisite. The additive phylogenetic-stable plus OU development slice is an optional composition test and does not govern this temporal progression.
 
-## Statistical contract
+## Historical latent-prototype contract (retained)
 
 For every ID on common discrete occasions `k,l`:
 
@@ -30,7 +54,22 @@ y_{ik}=x_{ik}^{T}\beta+a_{ik}+\epsilon_{ik},\quad
 
 Initial scope: univariate Gaussian ML, fixed `mu` predictors and offsets, constant `sigma`, exactly one temporal intercept, no ordinary random intercept, no slopes, no REML, no `newdata`, no forecast, no variance/correlation intervals, and no unequal schedules. A later composition arc may add ordinary or phylogenetic stable intercepts only after this direct provider closes.
 
-## Admissions and public interface
+## Delivered marginal provider
+
+For each ID, the public model is
+
+\[
+y_i \sim N(X_i\beta, \sigma_T^2 R),
+\]
+
+where `R` is a positive-definite homogeneous Toeplitz correlation matrix and
+`sigma()` reports the total within-series SD. It therefore has no separate iid
+residual SD, no temporal conditional mode, and no temporal `sigma` effect. The
+delivered provider admits complete common equally spaced integer schedules of three
+through twelve occasions, preserves original row order, and supports fixed mean-effect
+profile intervals only in the retained qualified panel cells.
+
+## Historical prototype admissions and interface
 
 - `occasion` is finite integer metadata with a common equally spaced schedule in every retained ID; at most 12 levels.
 - Validate raw ID/occasion duplicates and metadata before response omission. After omission, reject any ID lacking the complete retained schedule.
@@ -38,7 +77,7 @@ Initial scope: univariate Gaussian ML, fixed `mu` predictors and offsets, consta
 - Report `sd_temporal`, `cor_lag1` through `cor_lag(K-1)`, and `sigma` with clear weak-information and boundary diagnostics.
 - Preserve input row order in public output while storing sorted schedule metadata and retained-row mapping.
 
-## S0–S6 delivery slices
+## Historical S0–S6 delivery slices
 
 | Slice | Owner and model/effort | Owned files | Required evidence |
 | --- | --- | --- | --- |
@@ -52,14 +91,14 @@ Initial scope: univariate Gaussian ML, fixed `mu` predictors and offsets, consta
 
 S1–S3 are sequential. S4 and S5 may overlap only after the public interface is frozen. No more than two production children may write concurrently.
 
-## Required deterministic and simulation tests
+## Historical prototype test plan
 
 The dense oracle must independently construct every Toeplitz covariance matrix. Test likelihood, score, two finite-difference Hessian step sizes, conditional modes, input shuffling, multiple IDs, and unequal variance components. Mutation controls must detect invalid correlation maps, compressed schedules, omitted normalizers, cross-ID state sharing, and swapped process/residual scales.
 
 Predeclare recovery cells before results: AR1-generated lags, a non-exponential positive-definite Toeplitz matrix, a valid negative first-lag matrix, and a low-information stress cell. Report coefficient recovery separately from correlation recovery. Interval calibration requires a separate predeclared 95% profile campaign; direct OU coverage cannot transfer.
 
-## Compute and closure
+## Historical compute and closure plan
 
 S0 map stress tests and S1 parser tests are expected below 30 minutes locally. The recovery pilot supplies the campaign estimate. Any campaign above 30 minutes requires its measured plan, target, storage route, thread ceiling, and explicit approval; use DRAC/Fir arrays and Totoro durable mirrors, never login nodes or GitHub Actions.
 
-The expected total is 35–55 agent-hours plus measured campaign compute. No P2 code has been started by this plan. The first execution action after approval is S0, not parser or TMB code.
+Historical planning estimate: 35–55 agent-hours plus measured campaign compute. The delivery and closure evidence now supersede this initial execution paragraph.

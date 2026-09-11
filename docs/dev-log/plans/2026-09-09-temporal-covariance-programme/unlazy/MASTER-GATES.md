@@ -71,30 +71,30 @@ release, deployment or external message.
 
 ## Phase 2
 
-- [ ] P2-parameterisation: A positive-definite Toeplitz map is selected with derivative and reconstruction evidence.
+- [x] P2-parameterisation: A positive-definite Toeplitz map is selected with derivative and reconstruction evidence.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-2
   EXPECT: TEMPORAL_HOMTOEP_T3_2_PASS
-  EVIDENCE: pending
-- [ ] P2-grammar: Canonical homtoep grammar, 12-level boundary, common-schedule errors and row reconstruction pass.
+  EVIDENCE: 2026-09-10 S0 inverse-Levinson reflection map; 480 deterministic positive-definiteness draws, reconstruction, finite differences and dense agreement.
+- [x] P2-grammar: Canonical homtoep grammar, 12-level boundary, common-schedule errors and row reconstruction pass.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-1
   EXPECT: TEMPORAL_HOMTOEP_T3_1_PASS
-  EVIDENCE: pending
-- [ ] P2-oracle: Dense V, likelihood, score and Hessian agree with the native provider.
+  EVIDENCE: 2026-09-10 S1 parser/layout receipt.
+- [x] P2-oracle: Dense marginal covariance, likelihood, score and Hessian agree with the native provider.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-3
   EXPECT: TEMPORAL_HOMTOEP_T3_3_PASS
-  EVIDENCE: pending
-- [ ] P2-nesting: AR1 and diagonal reductions, invalid-map and time-layout mutations pass.
+  EVIDENCE: 2026-09-10 marginal-provider native oracle reverify.
+- [x] P2-nesting: AR1 and diagonal reductions, invalid-map and time-layout mutations pass.
   CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-5
   EXPECT: TEMPORAL_HOMTOEP_T3_5_PASS
-  EVIDENCE: pending
-- [ ] P2-evidence: Recovery, measured pilot and any campaign meet their predeclared contract.
-  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-11 --reverify
-  EXPECT: TEMPORAL_HOMTOEP_T3_11_PASS
-  EVIDENCE: pending
-- [ ] P2-close: Article, package check and independent reviews are complete.
-  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-14 --reverify
-  EXPECT: TEMPORAL_HOMTOEP_T3_14_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-10 marginal-provider reductions reverify.
+- [x] P2-evidence: Retained point-recovery, timed pilot and authorised profile-campaign artifacts reverify without launching fits.
+  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-10 --reverify
+  EXPECT: TEMPORAL_HOMTOEP_T3_10_PASS
+  EVIDENCE: 2026-09-10 immutable 4,000-task profile-campaign archive, with all denominators retained; its fixed-primary-cell profile qualification is not a general inference claim.
+- [x] P2-close: Article, package check and independent reviews are complete.
+  CHECK: Rscript --vanilla tools/temporal-homtoep-gates.R T3-12 --reverify
+  EXPECT: TEMPORAL_HOMTOEP_T3_12_PASS
+  EVIDENCE: 2026-09-10 closeout at `ceff79d53`; Noether and Pat reviews plus package-check receipt retained.
 
 ## Phase 3
 

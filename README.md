@@ -303,7 +303,21 @@ head(sigma(fit)^2) # fitted residual variances
 - **Structured Gaussian effects.** Use ordinary random effects,
   residual-scale random intercepts or independent random slopes in `sigma`,
   `sd(group) ~ x`, and fitted Gaussian structured routes for `phylo()`,
-  `spatial()`, `animal()`, and `relmat()`. For Gaussian structured effects,
+  `spatial()`, `animal()`, `relmat()`, and temporal AR1 or OU routes
+  `temporal(1 | id, time = occasion, structure = "ar1")` or
+  `temporal(1 | id, time = elapsed, structure = "ou")`. These temporal routes
+  are univariate Gaussian ML models with constant `sigma`, one temporal
+  intercept process, and an optional ordinary `(1 | id)` intercept using the
+  same ID. AR1 Wald intervals cover mean coefficients only when the full
+  observed Hessian is positive definite. AR1 and OU both provide
+  mean-coefficient likelihood profiles through
+  `confint(fit, parm = "mu:<coefficient>", method = "profile")`. A retained
+  3,000-fit OU campaign qualified those fixed-`mu` profiles in its exact U1--U3
+  cells; this is not a general temporal coverage claim. AR1 profile coverage
+  remains uncalibrated, and `check_drm()` marks irregular fitted Hessians. OU
+  Wald inference remains deferred. Process, persistence, decay,
+  residual, bootstrap, forecast, and `newdata` intervals remain unavailable. For the
+  other Gaussian structured effects,
   those markers fit documented `mu` and `sigma` intercept routes, one numeric
   `mu` slope, q=2 bivariate mean-mean intercept and slope-only blocks, and
   constant q=4 location-scale blocks where marked. Artifact routing is narrower
@@ -313,6 +327,7 @@ head(sigma(fit)^2) # fitted residual variances
   `task = "all"`, and do not by themselves establish recovery, coverage, or
   power. Read
   [Phylogenetic and spatial structured effects](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
+  Read [Temporal AR1 and OU random effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html).
 
 For strict `(0, 1)` Beta responses, one narrower phylogenetic exception has
 point-fit recovery evidence: an unlabelled q1 intercept-only `phylo()` effect in
