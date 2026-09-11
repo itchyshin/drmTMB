@@ -94746,3 +94746,6 @@ that supplies the progress loop's filename list, and consumed the remaining labe
 The progress loop now invokes that helper with stdin detached. The live rerun mirrored
 the completed batch, and the Rorqual and Totoro four-digit task-archive counts both
 verified as 21.
+## 2026-09-10 — G12 batched manifest mirror after first array chunk
+
+The one-artifact-at-a-time progress helper was correct but could not finish a large active array promptly enough: each remote transfer paid its own connection and archive overhead. The replacement obtains strict source and Totoro SHA-256 manifests, refuses an existing mismatched artifact, transfers only missing four-digit task archives in bounded tar batches, verifies each batch in Totoro staging before it becomes visible, then checks the resulting destination manifest against the source. It passed `bash -n`, an initial live 236-archive batch transfer, and a terminal no-op dry run. After Rorqual job 20889483 reached `999 COMPLETED` elements, both hosts retained exactly 1,000 task archives with aggregate manifest SHA-256 `79bb2296bf0b4b4cb8b8f7abf61c56235db37021622bf72f3cdccddc62957696`. This establishes chunk-1 artifact parity only; G12 remains running until all 3,500 configured tasks and the later immutable summary verification are complete.
