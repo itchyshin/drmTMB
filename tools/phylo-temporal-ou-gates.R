@@ -254,6 +254,39 @@ g11 <- function() {
   cat('PHYLO_TEMPORAL_OU_G11_PASS\n')
 }
 
+g13 <- function() {
+  approval()
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g13-truthfix')
+  required <- c('RECEIPT.md', 'RESULTS.md', 'task-inventory.csv', 'summary.csv', 'assessment.csv', 'slurm-provenance.txt')
+  for (path in file.path(d, required)) need_file(path)
+  need_text(file.path(d, 'RECEIPT.md'), c(
+    'The Rorqual re-verifier consumed the 3,500 sealed G12 task archives',
+    'It did not load `drmTMB` or launch a model fit.',
+    'Totoro independently reran the same no-refit verifier'
+  ))
+  source(file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R'), local = environment())
+  inventory <- utils::read.csv(file.path(d, 'task-inventory.csv'), stringsAsFactors = FALSE)
+  summary <- utils::read.csv(file.path(d, 'summary.csv'), stringsAsFactors = FALSE, check.names = FALSE)
+  retained <- utils::read.csv(file.path(d, 'assessment.csv'), stringsAsFactors = FALSE, check.names = FALSE)
+  if (nrow(inventory) != 3500L || !all(inventory$complete) ||
+      nrow(summary) != 12L || nrow(retained) != 12L) {
+    fail('G13 retained output has an incomplete immutable denominator.')
+  }
+  assessed <- phylo_temporal_ou_g11_assess(summary)
+  checked <- c('cell', 'parm', 'qualification', 'criterion_availability', 'criterion_coverage',
+               'criterion_bias', 'criterion_profile_se')
+  if (!identical(retained[, checked], assessed[, checked])) {
+    fail('G13 retained assessment does not reproduce from its immutable summary.')
+  }
+  primary <- assessed$primary
+  if (!all(assessed$qualification[primary] == 'qualified_in_simulated_cell')) {
+    failed <- paste(assessed$cell[primary & assessed$qualification != 'qualified_in_simulated_cell'],
+                    assessed$parm[primary & assessed$qualification != 'qualified_in_simulated_cell'], sep = '/')
+    fail('G13 primary calibration criteria are unmet: ', paste(failed, collapse = ', '))
+  }
+  cat('PHYLO_TEMPORAL_OU_G13_PASS\n')
+}
+
 g15 <- function() {
   approval()
   article <- file.path(root, 'vignettes/phylogenetic-temporal-effects.Rmd')
@@ -355,7 +388,7 @@ if (identical(args, '--self-test')) {
   g2()
 } else if (identical(args, '--g2-worker')) {
   g2_worker()
-} else if (args %in% c('G3', 'G4', 'G5', 'G6')) {
+} else if (length(args) == 1L && args %in% c('G3', 'G4', 'G5', 'G6')) {
   g3_to_g6(args)
 } else if (identical(args, 'G7')) {
   g7()
@@ -369,10 +402,12 @@ if (identical(args, '--self-test')) {
   g10()
 } else if (identical(args, 'G11')) {
   g11()
+} else if (identical(args, c('G13', '--reverify'))) {
+  g13()
 } else if (identical(args, 'G14')) {
   g14()
 } else if (identical(args, 'G15')) {
   g15()
 } else {
-  fail('Use --self-test, G1 through G8, G10, G11, G14, or G15; other model gates remain unavailable.')
+  fail('Use --self-test, G1 through G8, G10, G11, G13 --reverify, G14, or G15; other model gates remain unavailable.')
 }

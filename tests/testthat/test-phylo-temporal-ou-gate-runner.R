@@ -25,4 +25,7 @@ test_that('temporal gate runners fail closed and pass their self-tests', {
   expect_true(any(grepl('PHYLO_TEMPORAL_OU_G11_PASS',
                         system2('Rscript', c('--vanilla', runner, 'G11'), stdout = TRUE),
                         fixed = TRUE)))
+  g13 <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G13', '--reverify'), stdout = TRUE, stderr = TRUE))
+  expect_false(is.null(attr(g13, 'status')))
+  expect_true(any(grepl('G13 primary calibration criteria are unmet', g13, fixed = TRUE)))
 })
