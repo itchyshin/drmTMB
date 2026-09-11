@@ -83,3 +83,61 @@ test_that("native OU-tree marginal likelihood matches the independent dense cova
 
   expect_equal(-as.numeric(logLik(fit)), dense_nll, tolerance = 1e-7)
 })
+
+phylo_ou_dense_nll_at <- function(fit, par, tree) {
+  parameter_names <- names(par)
+  beta <- unname(par[parameter_names == "beta_mu"])
+  sigma <- exp(unname(par[match("beta_sigma", parameter_names)]))
+  sd_phylo <- exp(unname(par[match("log_sd_phylo", parameter_names)]))
+  decay <- exp(unname(par[match("log_decay_phylo", parameter_names)]))
+  phylo <- fit$model$structured$phylo_mu
+  species <- as.character(fit$data[[phylo$group]])
+  tip_correlation <- drmTMB:::drm_phylo_ou_tip_covariance(
+    tree, species = species, decay = decay
+  )
+  observation_correlation <- tip_correlation[
+    match(species, rownames(tip_correlation)),
+    match(species, colnames(tip_correlation))
+  ]
+  covariance <- sd_phylo^2 * observation_correlation +
+    diag(sigma^2, length(species))
+  root <- chol(covariance)
+  residual <- fit$model$y - as.vector(fit$model$X$mu %*% beta)
+  0.5 * (
+    length(species) * log(2 * pi) +
+      2 * sum(log(diag(root))) +
+      sum(forwardsolve(t(root), residual)^2)
+  )
+}
+
+test_that("OU-tree score and observed Hessian match the dense covariance oracle", {
+  skip_if_not_installed("ape")
+  skip_if_not_installed("numDeriv")
+  set.seed(2026091107)
+  tree <- ape::rcoal(15)
+  tree$tip.label <- paste0("sp", seq_len(15))
+  species <- rep(tree$tip.label, each = 8)
+  x <- rep(c(-0.75, -0.25, 0.25, 0.75, 0, 0.5, -0.5, 0.1),
+    length.out = length(species)
+  )
+  truth_correlation <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 0.8)
+  phylo_effect <- as.vector(t(chol(truth_correlation)) %*%
+    stats::rnorm(length(tree$tip.label))) * 0.8
+  y <- 0.15 + 0.45 * x + phylo_effect[match(species, tree$tip.label)] +
+    stats::rnorm(length(species), sd = 0.25)
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
+    data = data.frame(y, x, species), family = gaussian()
+  )
+  expect_true(isTRUE(fit$sdr$pdHess))
+  objective <- function(par) phylo_ou_dense_nll_at(fit, par, tree)
+  opt_par <- fit$opt$par
+  score <- numDeriv::grad(objective, opt_par, method.args = list(eps = 1e-6))
+  hessian_1 <- numDeriv::hessian(objective, opt_par, method.args = list(eps = 1e-4))
+  hessian_2 <- numDeriv::hessian(objective, opt_par, method.args = list(eps = 1e-5))
+  observed_hessian <- solve(fit$sdr$cov.fixed)
+
+  expect_equal(unname(fit$obj$gr(opt_par)), score, tolerance = 1e-5)
+  expect_equal(hessian_1, hessian_2, tolerance = 1e-4)
+  expect_equal(unname(observed_hessian), unname(hessian_1), tolerance = 1e-4)
+})

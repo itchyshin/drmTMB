@@ -94904,3 +94904,9 @@ P1 G13 coverage rows.
 - **Native contract:** the provider gives the root a stationary normal density and every branch the transition `exp(-decay * length)` with variance factor `1 - exp(-2 * decay * length)`. It retains every tree node, including the root, in the sparse latent layout.
 - **Evidence:** the internal dense kernel matched `ape::corMartins`; a native OU fit was finite; the PO3 gate passed after a clean native rebuild. Existing `test-phylo-utils.R` (186 expectations) and `test-phylo-gaussian.R` (354 expectations, two established CRAN skips) passed, preserving BM behaviour.
 - **Boundary:** this is native-provider evidence only. Dense marginal likelihood/score/Hessian checks, public decay extraction, simulations, recovery, reader documentation, intervals and scale-side `sigma ~ phylo(..., model = "ou")` remain pending their separate gates.
+
+## 2026-09-11 — phylogenetic OU covariance PO4 dense oracle
+
+- **Independent comparison:** an `ape::corMartins`-matched dense covariance, `s_phylo^2 exp(-decay * d_ij) + sigma^2 I`, reproduced the fitted native marginal likelihood.
+- **Derivative evidence:** at a simulated 15-tip, 120-row Gaussian panel, the native automatic score matched the independently evaluated dense score. The native observed Hessian matched each dense finite-difference Hessian (`eps = 1e-4` and `1e-5`), which also agreed with one another.
+- **Gate:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO4` emitted `PHYLO_OU_COVARIANCE_PO4_PASS`. This closes numerical equivalence for the initial location-side provider; it does not establish recovery, interval calibration, public decay extraction, scale-side support, or a broader family scope.

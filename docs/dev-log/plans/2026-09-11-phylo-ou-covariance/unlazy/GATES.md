@@ -18,10 +18,10 @@
   EXPECT: PHYLO_OU_COVARIANCE_PO3_PASS
   EVIDENCE: 2026-09-11: native focused tests exercised the root and every edge, fit a Gaussian OU-tree model, and retained Brownian-default regression coverage in the parser fixture.
 
-- [ ] PO4: Dense `ape::corMartins` covariance, native likelihood, score and two Hessian steps agree.
+- [x] PO4: Dense `ape::corMartins` covariance, native likelihood, score and two Hessian steps agree.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO4
   EXPECT: PHYLO_OU_COVARIANCE_PO4_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: native likelihood, automatic score and observed Hessian agreed with an independent dense covariance oracle; finite-difference Hessians at 1e-4 and 1e-5 agreed.
 
 - [ ] PO5: Tree-OU reductions and named mutations fail in the intended direction; BM is an explicit alternative, not an OU boundary.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO5
