@@ -94769,3 +94769,18 @@ The frozen G12 worker at `384048d7eb6be3950dcf28a4aef91a3fb616184a` generates in
 ## 2026-09-10 — G13 corrected-truth immutable re-verification
 
 Rorqual job `20895722` used one CPU, a 4 GiB limit, and a two-hour ceiling to inspect the complete 3,500-archive denominator from frozen estimator source `384048d7eb6be3950dcf28a4aef91a3fb616184a`; it completed in 71 seconds with 486,216 KiB maximum RSS and launched no fit. Corrected G13 truths agree with the task worker in every cell. Six of nine primary coefficient-cell rows qualify, but fixed-intercept profile coverage is 0.870 in P1, 0.922 in P2, and 0.895 in P3, all below the predeclared Monte-Carlo-SE-bounded range. Totoro independently replayed the no-fit verifier against its durable archives, reproducing `RESULTS.md`, inventory, summary, and assessment byte-for-byte. The local `G13 --reverify` gate now recalculates the assessment and fails closed with those three rows. The evidence is retained under `simulation-artifacts/2026-09-10-phylo-temporal-ou-g13-truthfix/`; no later temporal structure can advance until this intercept-interval failure is diagnosed and a revised decision is recorded.
+
+## 2026-09-10 — G13 fixed-tree known-covariance GLS mechanism diagnostic
+
+A no-fit, independently regenerated comparison used the exact generating
+phylogenetic-plus-independent-OU covariance for the 15 retained fixed-tree
+pilot datasets. The self-tested calculation ran in 1.76 seconds at one thread
+and retained all inputs/outputs under
+`simulation-artifacts/2026-09-10-phylo-temporal-ou-g13-fixed-tree-truth-gls-r2/`.
+For five draws per cell, known-covariance GLS intercept coverage was 4/5, 5/5,
+and 5/5 for P1--P3, versus the default-profile pilot's 3/5, 4/5, and 5/5;
+mean interval widths were 1.370/2.438/1.235 for GLS and 1.253/1.983/1.601 for
+profiles. This small mechanism diagnostic is not a calibration result. Along
+with the prior dense-profile and fast/default checks, it leaves estimated
+covariance parameters as the leading hypothesis for the failed G13 intercept
+intervals, without establishing causality or changing their unqualified scope.
