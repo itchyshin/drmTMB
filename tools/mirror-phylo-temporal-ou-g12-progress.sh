@@ -42,7 +42,7 @@ mirror_available() {
     [[ "$label" =~ ^task-([0-9]{4})\.tar\.gz$ ]] || { echo "Unexpected artifact name: $label" >&2; exit 1; }
     task=$((10#${BASH_REMATCH[1]}))
     (( task >= 1 && task <= 3500 )) || { echo "Task outside frozen denominator: $label" >&2; exit 1; }
-    "$mirror_one" --stage-root="$stage_root" --totoro-root="$totoro_root" --task="$task"
+    "$mirror_one" --stage-root="$stage_root" --totoro-root="$totoro_root" --task="$task" </dev/null
     count=$((count + 1))
   done <<< "$listing"
   printf 'PHYLO_TEMPORAL_OU_G12_PROGRESS_MIRROR_PASS available=%s\n' "$count"

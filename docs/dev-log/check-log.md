@@ -94737,3 +94737,12 @@ progress mirror originally selected every `task-*.tar.gz`, so its strict four-di
 artifact validator rejected that receipt. The selector now admits only
 `task-0001.tar.gz` through `task-3500.tar.gz`; the live one-pass mirror returned
 `PHYLO_TEMPORAL_OU_G12_PROGRESS_MIRROR_PASS available=1` while preserving the receipt.
+
+## 2026-09-10 — G12 incremental mirror stdin isolation
+
+A one-pass mirror after the selector repair still retained only task 1 while Rorqual
+contained tasks 1--21. The nested one-task SSH helper had inherited the here-string
+that supplies the progress loop's filename list, and consumed the remaining labels.
+The progress loop now invokes that helper with stdin detached. The live rerun mirrored
+the completed batch, and the Rorqual and Totoro four-digit task-archive counts both
+verified as 21.
