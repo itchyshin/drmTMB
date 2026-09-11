@@ -30,20 +30,20 @@ Every runnable gate has a reviewed command, a success-only receipt and initially
   EXPECT: TEMPORAL_HETAR1_T4_5_PASS
   EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-5` emitted `TEMPORAL_HETAR1_T4_5_PASS`; homogeneous-AR1 and diagonal reductions, independent-series blocks and unequal-SD D-factor mutation pass.
 
-- [ ] T4-6: Frozen interval-feasibility fixtures retain both starts, all failures and full denominators; public fixed-mean Wald intervals are assessed without a coverage claim.
+- [x] T4-6: Frozen interval-feasibility fixtures retain both starts, all failures and full denominators; public fixed-mean Wald intervals are assessed without a coverage claim.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-6
   EXPECT: TEMPORAL_HETAR1_T4_6_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-6` emitted `TEMPORAL_HETAR1_T4_6_PASS`. The immutable 20-fixture panel retained 40 signed-start attempts; all selected fits had finite objectives and all 60 fixed-mean Wald rows had finite ordered endpoints. This is interval feasibility only, not coverage or SE-calibration evidence.
 
 - [x] T4-7: Five-seed timing pilot records time, memory, interval availability and output completeness before any longer run.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-7
   EXPECT: TEMPORAL_HETAR1_T4_7_PASS
   EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-7` emitted `TEMPORAL_HETAR1_T4_7_PASS`. The immutable C1 pilot retained five fixtures and ten signed-start attempts; all fifteen primary fixed-mean Wald intervals were finite. Median selected-fit time was 2.362 seconds and the maximum was 5.418 seconds (against the already rebuilt native library, recorded in provenance).
 
-- [ ] T4-11: Immutable interval-feasibility outputs reverify without launching fits.
+- [x] T4-11: Immutable interval-feasibility outputs reverify without launching fits.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-11 --reverify
   EXPECT: TEMPORAL_HETAR1_T4_11_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-11 --reverify` emitted `TEMPORAL_HETAR1_T4_11_PASS` without launching fits. The retained pilot uses its pre-repair runner hash; the full panel uses the repaired hash. Both source boundaries and denominators reverify.
 
 - [x] T4-12: Formula grammar, likelihood documentation and reader workflow render; the article makes no coverage or scale-side claim.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-12

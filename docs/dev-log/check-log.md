@@ -94879,3 +94879,8 @@ P1 G13 coverage rows.
 
 - **Reader receipt:** the temporal article now distinguishes heterogeneous AR1 from ordinary AR1, OU and homogeneous Toeplitz. It defines occasion-specific process SDs through `D R(phi) D + sigma^2 I`, preserves the separate residual-scale boundary, and names the common schedule and odd-lag rules.
 - **Render evidence:** `T4-12` passed. The rendered HTML carries the heterogeneity section and says explicitly that finite Wald intervals are fit-level calculations, not coverage or standard-error-calibration evidence.
+
+## 2026-09-11 — P3 `hetar1` retained interval-feasibility panel
+
+- **Full-panel receipt:** the frozen 20-fixture panel retained 40 signed-start attempts. All selected fits had finite objectives and positive-definite observed information. All 60 fixed-mean Wald rows had finite ordered endpoints and finite reported standard errors. T4-6 and the no-refit T4-11 reverify passed.
+- **Retained correction:** the first full output is preserved under `full-reporter-error-20260911/`; its fits and intervals are unchanged but its optional SE column was `NA` because of a CSV covariance-label mismatch. The repaired runner used the identical frozen data, seeds, likelihood and selection rule and wrote the corrected `full/` receipt. Neither result is a coverage or standard-error-calibration claim.
