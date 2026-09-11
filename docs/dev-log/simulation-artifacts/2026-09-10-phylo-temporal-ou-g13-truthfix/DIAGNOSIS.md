@@ -27,3 +27,26 @@ endpoints differ from the dense marginal-likelihood endpoints by at most
 0.00073. The regression test now checks both intercept and slope targets. This
 rules out a basic endpoint discrepancy on that fixture, but does not establish
 calibration in the larger campaign cells.
+
+The fixed-tree pre-run then held one deterministic phylogeny per primary cell,
+regenerated five independent responses, and compared fast with default public
+profiles. Their mean endpoint differences were 0.00044--0.00065. Profile
+coverage in those five draws was 3/5, 4/5, and 5/5 for P1--P3, so holding the
+tree fixed provides no evidence that tree resampling removes the P1/P2
+shortfall. This is a mechanism signal, not a coverage estimate.
+
+An independent no-fit calculation regenerated those same 15 datasets and used
+the known generating phylogenetic-plus-independent-OU covariance in ordinary
+Gaussian GLS. Its five-draw intercept coverage was 4/5, 5/5, and 5/5, versus
+3/5, 4/5, and 5/5 for the retained default profiles. Mean GLS/profile interval
+widths were 1.370/1.253 (P1), 2.438/1.983 (P2), and 1.235/1.601 (P3). These
+small comparisons make finite-sample uncertainty from estimated covariance
+parameters the leading remaining hypothesis. They do not establish that cause
+or demonstrate calibrated replacement intervals.
+
+A paired, model-matched reference implementation has not yet been run. Thus
+neither this diagnosis nor the G13 coverage failure is evidence of a drmTMB
+implementation defect. The revised decision is to retain the present
+point-fitting and unqualified-profile scope, block later temporal structures,
+and prepare a separately approved comparative-calibration campaign only after
+specifying a model-matched reference or documenting why none is available.
