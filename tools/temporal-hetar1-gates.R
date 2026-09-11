@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% c("T4-1", "T4-2", "T4-3", "T4-4", "T4-5", "T4-6", "T4-7", "T4-11") ||
+if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% c("T4-1", "T4-2", "T4-3", "T4-4", "T4-5", "T4-6", "T4-7", "T4-11", "T4-12") ||
     (length(args) == 2L && !identical(args[[2L]], "--reverify"))) {
-  stop("Usage: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1|...|T4-7|T4-11 [--reverify]", call. = FALSE)
+  stop("Usage: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1|...|T4-7|T4-11|T4-12 [--reverify]", call. = FALSE)
 }
 
 gate <- args[[1L]]
@@ -86,6 +86,25 @@ if (identical(gate, "T4-6")) {
   verify_artifact("pilot", expected_fixtures = 5L)
   verify_artifact("full", expected_fixtures = 20L)
   cat("TEMPORAL_HETAR1_T4_11_PASS\n")
+} else if (identical(gate, "T4-12")) {
+  if (reverify) stop("T4-12 does not accept --reverify.", call. = FALSE)
+  pkgload::load_all(".", compile = FALSE, quiet = TRUE)
+  output_dir <- tempfile("temporal-hetar1-render-")
+  dir.create(output_dir)
+  rendered <- rmarkdown::render(
+    "vignettes/temporal-random-effects.Rmd", output_dir = output_dir, quiet = TRUE
+  )
+  html <- paste(readLines(rendered, warn = FALSE), collapse = "\n")
+  required <- c(
+    "Different temporal process SDs at different occasions",
+    "temporal-process",
+    "coverage",
+    "standard-error"
+  )
+  if (!file.exists(rendered) || !all(vapply(required, grepl, logical(1), x = html, fixed = TRUE))) {
+    stop("T4-12 reader workflow render is incomplete.", call. = FALSE)
+  }
+  cat("TEMPORAL_HETAR1_T4_12_PASS\n")
 } else if (reverify) {
   stop("--reverify is implemented only for T4-11.", call. = FALSE)
 } else if (identical(gate, "T4-1")) {

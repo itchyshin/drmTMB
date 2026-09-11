@@ -94874,3 +94874,8 @@ P1 G13 coverage rows.
 
 - **Pilot receipt:** the frozen C1 five-seed local pilot retained five fits, ten signed-start attempts and all fifteen fixed-mean Wald intervals. `T4-7` passed. All selected objectives and interval endpoints were finite; median selected-fit time was 2.362 seconds and the maximum 5.418 seconds.
 - **Compute interpretation:** the pilot used the already rebuilt native library, disclosed as `native_compile = FALSE` in provenance. The 20-fixture panel is therefore estimated at about 50 seconds once built, which is above the programme's 30-second escalation threshold. No full panel has started.
+
+## 2026-09-11 — P3 `hetar1` reader workflow
+
+- **Reader receipt:** the temporal article now distinguishes heterogeneous AR1 from ordinary AR1, OU and homogeneous Toeplitz. It defines occasion-specific process SDs through `D R(phi) D + sigma^2 I`, preserves the separate residual-scale boundary, and names the common schedule and odd-lag rules.
+- **Render evidence:** `T4-12` passed. The rendered HTML carries the heterogeneity section and says explicitly that finite Wald intervals are fit-level calculations, not coverage or standard-error-calibration evidence.
