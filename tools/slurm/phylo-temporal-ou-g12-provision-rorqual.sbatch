@@ -82,14 +82,11 @@ if [[ "$stage" == drmTMB ]]; then
   source_dir="$node_root/source"
   [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_root/source" -mindepth 1 -maxdepth 1 -type d | head -1)
   [[ -f "$source_dir/DESCRIPTION" ]] || { echo 'Source archive does not contain drmTMB DESCRIPTION.' >&2; exit 2; }
-  # R's external Makevars hook is read before the module Makeconf on Rorqual.
-  # An injected package Makevars is read at the final package-build layer and
-  # therefore replaces the -O2 setting that exceeded the 2 GiB cgroup.
-  cat > "$source_dir/src/Makevars" <<'EOF'
-CXX17FLAGS = -O0 -g0
-EOF
+  # On Rorqual, both user and package Makevars are superseded by the module
+  # Makeconf. GNU make's environment-override mode is the final layer, so it
+  # is the only one that can replace its memory-heavy -O2 C++17 flags.
   printf 'build_profile=low-memory-cxx17-o0\n' >> "$log_dir/job-${SLURM_JOB_ID}.provenance"
-  R CMD INSTALL --library="$campaign_rlib" "$source_dir"
+  CXX17FLAGS='-O0 -g0' MAKEFLAGS=-e R CMD INSTALL --library="$campaign_rlib" "$source_dir"
 else
   tar --warning=no-unknown-keyword -xzf "$dep_archive" -C "$node_root/deps"
   dep_dir=$(find "$node_root/deps" -mindepth 1 -maxdepth 1 -type d ! -name '._*' | head -1)
