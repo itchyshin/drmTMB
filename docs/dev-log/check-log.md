@@ -94854,3 +94854,9 @@ P1 G13 coverage rows.
 - **Decision:** P3 estimates a D-R-D temporal-process covariance with constant residual `sigma`, not temporal residual scale. Its evidence target is interval feasibility, with at most 24 frozen fixtures and no coverage claim.
 - **Cross-package lesson:** glmmTMB’s covariance vignette confirms that heterogeneous refers to marginal variances and that structured covariance needs a full time-level design; it is comparison evidence, not copied implementation.
 - **Next gate:** direct child-plan approval `T4-0`, then S1 grammar/layout.
+
+## 2026-09-11 — P3 `hetar1` S0 source map
+
+- **Scope:** read-only mapping of current AR1, OU and homogeneous-Toeplitz seams at `bc905199f`; no model source, test, fixture, fitting or compute change.
+- **Nesting decision:** P3 preserves original integer AR1 gaps and adds only a complete common-schedule level index for the process-SD vector. Equal level SDs will therefore reduce exactly to existing AR1 rather than a rank-compressed variant.
+- **Boundary:** P3 remains a latent temporal process with separately estimated `sigma`; it must not reuse the homogeneous-Toeplitz marginal branch, which deliberately has no separate iid residual scale.

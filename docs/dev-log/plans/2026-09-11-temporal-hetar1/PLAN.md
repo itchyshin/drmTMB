@@ -41,6 +41,10 @@ The conditions are a supported-design rule, not an identification guarantee. Emi
 
 Report `phi`, labelled `sd_temporal[occasion]`, and `sigma`. Support fitted values, residuals, simulation, `VarCorr`, structured metadata and the established fixed-mean `vcov()` / Wald interval surface only when its information diagnostic is valid. Defer variance/persistence intervals, `newdata`, forecasting, REML and all scale-side temporal terms.
 
+## Verified source map
+
+The read-only implementation map is [S0-SOURCE-MAP.md](S0-SOURCE-MAP.md). It fixes the essential nesting rule: preserve raw integer gaps, using the common schedule only to index level-specific process SDs.
+
 ## Required reductions and mutations
 
 - Equal `s_k` must reproduce the existing latent AR1 marginal covariance with residual sigma.
