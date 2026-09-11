@@ -35,7 +35,7 @@ The provider must admit exactly one temporal intercept, fixed mean predictors an
 
 ## Admission, identification and public behaviour
 
-Validate finite integer `time`, non-missing ID/time metadata and duplicate ID--occasion keys before response omission. After the package's ordinary listwise omission, every retained ID must have the same complete equally spaced schedule of 3 through 12 levels, with support at every level. Reject irregular elapsed time, partial schedules, aliases and an `sd` formula; direct irregular time to OU.
+Validate finite integer `time`, non-missing ID/time metadata and duplicate ID--occasion keys before response omission. After the package's ordinary listwise omission, every retained ID must have the same complete equally spaced schedule of 3 through 12 levels, with support at every level and at least one odd integer lag so the sign of persistence is identifiable. Reject irregular elapsed time, partial schedules, aliases and an `sd` formula; direct irregular time to OU.
 
 The conditions are a supported-design rule, not an identification guarantee. Emit diagnostics for level-specific process SDs at the boundary, persistence near either boundary, a non-positive-definite observed-information matrix, conflicting starts, and weak support at a level. Do not silently collapse near-equal SDs to homogeneous AR1.
 

@@ -98,18 +98,18 @@ release, deployment or external message.
 
 ## Phase 3
 
-- [ ] P3-grammar: Canonical hetar1 grammar, 12-level boundary, common-level admissions and labels pass.
+- [x] P3-grammar: Canonical hetar1 grammar, 12-level boundary, common-level admissions and labels pass.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1
   EXPECT: TEMPORAL_HETAR1_T4_1_PASS
-  EVIDENCE: pending
-- [ ] P3-oracle: D R D covariance and native likelihood agree with the dense oracle.
+  EVIDENCE: 2026-09-11 `T4-1` receipt: `TEMPORAL_HETAR1_T4_1_PASS`.
+- [x] P3-oracle: D R D covariance and native likelihood agree with the dense oracle.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-3
   EXPECT: TEMPORAL_HETAR1_T4_3_PASS
-  EVIDENCE: pending
-- [ ] P3-nesting: Homogeneous-AR1 and diagonal reductions plus SD-label mutations pass.
+  EVIDENCE: 2026-09-11 `T4-3` receipt: `TEMPORAL_HETAR1_T4_3_PASS`.
+- [x] P3-nesting: Homogeneous-AR1 and diagonal reductions plus SD-label mutations pass.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-5
   EXPECT: TEMPORAL_HETAR1_T4_5_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11 `T4-5` receipt: `TEMPORAL_HETAR1_T4_5_PASS`.
 - [ ] P3-evidence: Recovery/pilot/campaign contract is retained and reverified.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-11 --reverify
   EXPECT: TEMPORAL_HETAR1_T4_11_PASS

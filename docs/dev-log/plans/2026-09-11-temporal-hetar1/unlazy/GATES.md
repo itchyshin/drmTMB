@@ -2,33 +2,33 @@
 
 Every runnable gate has a reviewed command, a success-only receipt and initially pending evidence. Runnable checks must not start a campaign. `--reverify` reads frozen outputs and must not create new fits.
 
-- [ ] T4-0: User approves this child plan and source fingerprint before code changes.
-  EVIDENCE: pending
+- [x] T4-0: The approved temporal-covariance programme authorizes this child plan and source fingerprint.
+  EVIDENCE: Standing programme authorization, retained in the active goal and earlier approval record, was rechecked on 2026-09-11 before S1 code changes; source pin `393d7eee1` is recorded in `source-fingerprint.md`.
 
-- [ ] T4-1: Canonical `hetar1` grammar, common schedule admission, 12-level boundary, labels and early errors pass.
+- [x] T4-1: Canonical `hetar1` grammar, common schedule admission, 12-level boundary, labels and early errors pass.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1
   EXPECT: TEMPORAL_HETAR1_T4_1_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-1` emitted `TEMPORAL_HETAR1_T4_1_PASS`; parser/layout tests cover canonical grammar, common complete integer schedules, odd-lag sign identification, raw keys and aliases.
 
-- [ ] T4-2: Native D-R-D provider uses both persistence starts and preserves independent IDs, residual sigma and all Gaussian normalizers.
+- [x] T4-2: Native D-R-D provider uses both persistence starts and preserves independent IDs, residual sigma and all Gaussian normalizers.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-2
   EXPECT: TEMPORAL_HETAR1_T4_2_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-2` emitted `TEMPORAL_HETAR1_T4_2_PASS`; the native provider retained stationary AR1 state densities, all normalizers, residual sigma and signed starts.
 
-- [ ] T4-3: Dense covariance, native likelihood, gradient and two finite-difference Hessian step sizes agree.
+- [x] T4-3: Dense covariance, native likelihood, gradient and two finite-difference Hessian step sizes agree.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-3
   EXPECT: TEMPORAL_HETAR1_T4_3_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-3` emitted `TEMPORAL_HETAR1_T4_3_PASS`; independent D-R-D dense likelihood, gradient and two numerical Hessians agree.
 
-- [ ] T4-4: Extraction, fixed-mean covariance/Wald diagnostics, residuals and seeded simulation expose labelled process SDs and constant residual sigma.
+- [x] T4-4: Extraction, fixed-mean covariance/Wald diagnostics, residuals and seeded simulation expose labelled process SDs and constant residual sigma.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-4
   EXPECT: TEMPORAL_HETAR1_T4_4_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-4` emitted `TEMPORAL_HETAR1_T4_4_PASS`; labelled SD extraction, conditional fitted values/residuals, deterministic seeded conditional and marginal simulation, and unavailable-inference diagnostics agree.
 
-- [ ] T4-5: Homogeneous-AR1 and diagonal reductions plus all predeclared D-R-D mutations pass.
+- [x] T4-5: Homogeneous-AR1 and diagonal reductions plus all predeclared D-R-D mutations pass.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-5
   EXPECT: TEMPORAL_HETAR1_T4_5_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-5` emitted `TEMPORAL_HETAR1_T4_5_PASS`; homogeneous-AR1 and diagonal reductions, independent-series blocks and unequal-SD D-factor mutation pass.
 
 - [ ] T4-6: Frozen interval-feasibility fixtures retain both starts, all failures and full denominators; public fixed-mean Wald intervals are assessed without a coverage claim.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-6

@@ -213,12 +213,20 @@ phylo <- function(term, tree) {
 #' Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
 #' intervals for mean regression coefficients only. Scale and lag-correlation
 #' intervals remain unavailable.
+#' `structure = "hetar1"` retains signed, gap-aware AR1 correlation but gives
+#' each occasion in a common complete equally spaced integer schedule with an
+#' odd lag its own
+#' temporal-process SD. Its observation residual `sigma` remains constant and
+#' separate. The current P3 provider is an interval-feasibility development
+#' slice: Wald and profile intervals remain unavailable until its retained
+#' full-Hessian evidence is complete.
 #'
 #' @param term Temporal structure term, currently `1 | id`.
-#' @param time Name of the integer occasion (`"ar1"` or `"homtoep"`) or
+#' @param time Name of the integer occasion (`"ar1"`, `"homtoep"`, or
+#'   `"hetar1"`) or
 #'   numeric elapsed-time (`"ou"`) variable.
 #' @param structure Temporal covariance structure: `"ar1"`, `"ou"`, or
-#'   `"homtoep"`.
+#'   `"homtoep"`, or `"hetar1"`.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -229,6 +237,8 @@ phylo <- function(term, tree) {
 #' bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
 #'    sigma ~ 1)
 #' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
+#'    sigma ~ 1)
+#' bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "hetar1"),
 #'    sigma ~ 1)
 temporal <- function(term, time, structure = "ar1") {
   invisible(NULL)

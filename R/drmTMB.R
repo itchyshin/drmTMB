@@ -688,7 +688,7 @@ drm_fit_spec <- function(
   if (!is.null(temporal_starts) && is.data.frame(optimizer$start_attempts)) {
     temporal_structure <- spec$structured$temporal_mu$structure
     theta_position <- match("theta_temporal", names(obj$par))
-    if (identical(temporal_structure, "ar1")) {
+    if (temporal_structure %in% c("ar1", "hetar1")) {
       optimizer$start_attempts$persistence_start <- vapply(
         temporal_starts,
         function(start) tanh(start[[theta_position]]),
@@ -948,7 +948,7 @@ drm_temporal_persistence_starts <- function(obj, temporal) {
   if (is.na(position)) {
     cli::cli_abort("Internal temporal start error: theta_temporal is not an outer TMB parameter.")
   }
-  if (identical(temporal$structure, "ar1")) {
+  if (temporal$structure %in% c("ar1", "hetar1")) {
     positive <- obj$par
     negative <- obj$par
     positive[[position]] <- atanh(0.3)
@@ -4558,7 +4558,11 @@ drm_build_gaussian_ls_spec <- function(
         start$log_sd_mu[] <- log(component_sd)
       }
       start$u_temporal <- numeric(temporal_mu$n_re)
-      start$log_sd_temporal <- log(component_sd)
+      start$log_sd_temporal <- if (identical(temporal_mu$structure, "hetar1")) {
+        rep(log(component_sd), temporal_mu$n_occasions)
+      } else {
+        log(component_sd)
+      }
     }
     start$theta_temporal <- if (identical(temporal_mu$structure, "homtoep")) {
       rep(atanh(0.3), temporal_mu$n_occasions - 1L)
@@ -22510,7 +22514,7 @@ split_tmb_sdpars <- function(par, spec) {
     out$mu <- c(
       out$mu,
       stats::setNames(
-        exp(unname(par$log_sd_temporal[[1L]])),
+        exp(unname(par$log_sd_temporal)),
         temporal_mu_sd_label(temporal)
       )
     )
@@ -22699,7 +22703,7 @@ split_tmb_corpars <- function(par, spec) {
   if (
     is.list(spec$structured$temporal_mu) &&
       isTRUE(spec$structured$temporal_mu$has) &&
-      identical(spec$structured$temporal_mu$structure, "ar1")
+      spec$structured$temporal_mu$structure %in% c("ar1", "hetar1")
   ) {
     temporal <- spec$structured$temporal_mu
     temporal_parameter <- tanh(unname(par$theta_temporal[[1L]]))
@@ -22982,7 +22986,13 @@ split_tmb_random_effects <- function(par, spec) {
     temporal <- spec$structured$temporal_mu
     latent <- unname(par$u_temporal[seq_len(temporal$n_re)])
     names(latent) <- temporal$node_labels
-    values <- exp(unname(par$log_sd_temporal[[1L]])) * latent
+    sd_temporal <- exp(unname(par$log_sd_temporal))
+    values <- if (identical(temporal$structure, "hetar1")) {
+      ordered_level <- temporal$occasion_index[order(temporal$observation_node_index)]
+      sd_temporal[ordered_level] * latent
+    } else {
+      sd_temporal[[1L]] * latent
+    }
     names(values) <- names(latent)
     out$temporal <- list(
       values = values,

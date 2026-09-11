@@ -789,10 +789,10 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       !is.character(structure_arg) ||
         length(structure_arg) != 1L ||
         is.na(structure_arg) ||
-        !structure_arg %in% c("ar1", "ou", "homtoep")
+        !structure_arg %in% c("ar1", "ou", "homtoep", "hetar1")
     ) {
       cli::cli_abort(c(
-        "{.arg structure} in {.fn temporal} must be {.val ar1}, {.val ou}, or {.val homtoep}.",
+        "{.arg structure} in {.fn temporal} must be {.val ar1}, {.val ou}, {.val homtoep}, or {.val hetar1}.",
         "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
       ))
     }

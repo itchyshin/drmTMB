@@ -1351,7 +1351,8 @@ check_interval_reliability_scope <- function(object) {
 # positive-definite AR1 Hessian is sufficient for that fit's existing mean-only
 # Wald method, but not a general coverage claim. OU keeps that Wald route
 # deferred; it exposes fixed-effect likelihood profiles through the separately
-# labelled temporal_mean_profile row below.
+# labelled temporal_mean_profile row below. Heterogeneous AR1 is withheld until
+# its P3 interval-feasibility evidence closes.
 check_temporal_mean_wald <- function(object) {
   if (!drm_has_temporal_mu(object)) {
     return(NULL)
@@ -1371,6 +1372,14 @@ check_temporal_mean_wald <- function(object) {
       "note",
       "unavailable; reason=toeplitz_calibration_deferred",
       "Homogeneous Toeplitz mean-coefficient Wald intervals remain unavailable. Fixed-mean likelihood profiles are qualified in the retained primary cells; Wald covariance remains unavailable."
+    ))
+  }
+  if (identical(structure, "hetar1")) {
+    return(check_row(
+      "temporal_mean_wald",
+      "note",
+      "unavailable; reason=hetar1_interval_feasibility_pending",
+      "Heterogeneous AR1 mean-coefficient Wald intervals remain unavailable while the P3 full-Hessian interval-feasibility evidence is completed."
     ))
   }
   covariance_ready <- identical(drm_uncertainty_status(object), "ok") &&
@@ -1396,6 +1405,14 @@ check_temporal_mean_profile <- function(object) {
     return(NULL)
   }
   structure <- toupper(object$model$structured$temporal_mu$structure)
+  if (identical(structure, "HETAR1")) {
+    return(check_row(
+      "temporal_mean_profile",
+      "note",
+      "unavailable; reason=hetar1_interval_feasibility_pending",
+      "Heterogeneous AR1 mean-coefficient profile intervals remain unavailable while the P3 interval-feasibility evidence is completed."
+    ))
+  }
   if (is.null(object$obj)) {
     return(check_row(
       "temporal_mean_profile",

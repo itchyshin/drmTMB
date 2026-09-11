@@ -194,16 +194,15 @@ test_that("temporal AR1 exposes labelled components and mean-only Wald inference
   expect_setequal(intervals$parm, c("fixef:mu:(Intercept)", "fixef:mu:treatment"))
   summary_wald <- summary(fit, conf.int = TRUE, method = "wald")
   expect_setequal(summary_wald$confint$parm, intervals$parm)
-  expect_error(
-    summary(fit, conf.int = TRUE, method = "profile"),
-    "Wald intervals only"
-  )
+  summary_profile <- summary(fit, conf.int = TRUE, method = "profile")
+  expect_setequal(summary_profile$confint$parm, c("fixef:mu:(Intercept)", "fixef:mu:treatment"))
   expect_error(
     stats::confint(fit, parm = "sigma", method = "wald"),
     "mean regression coefficients"
   )
-  expect_error(stats::confint(fit, method = "profile"), "Wald intervals only")
-  expect_error(stats::confint(fit, method = "bootstrap"), "Wald intervals only")
+  profile_intervals <- stats::confint(fit, method = "profile")
+  expect_setequal(profile_intervals$parm, c("fixef:mu:(Intercept)", "fixef:mu:treatment"))
+  expect_error(stats::confint(fit, method = "bootstrap"), "do not support")
   expect_length(stats::fitted(fit), nrow(dat))
   expect_error(
     stats::predict(fit, newdata = dat[1L, , drop = FALSE]),

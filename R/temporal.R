@@ -99,7 +99,7 @@ validate_temporal_raw_data <- function(term, data) {
       "x" = "{.arg {term$time}} cannot be a factor, date-time value, or non-finite value."
     ))
   }
-  if (term$structure %in% c("ar1", "homtoep") && any(occasion != round(occasion))) {
+  if (term$structure %in% c("ar1", "homtoep", "hetar1") && any(occasion != round(occasion))) {
     cli::cli_abort(c(
       paste0("Temporal ", toupper(term$structure), " occasions must be finite integers."),
       "x" = "{.arg {term$time}} cannot be fractional for {.val {term$structure}}.",
@@ -208,10 +208,10 @@ validate_temporal_gaussian_terms <- function(
       "i" = "Use a constant residual SD while temporal effects are fitted."
     ))
   }
-  if (identical(term$structure, "homtoep") && length(mu_re$terms) > 0L) {
+  if (term$structure %in% c("homtoep", "hetar1") && length(mu_re$terms) > 0L) {
     cli::cli_abort(c(
-      "Temporal HOMTOEP currently does not allow an ordinary random intercept.",
-      "i" = "Fit the direct temporal process alone while the first Toeplitz provider is validated."
+      "Temporal {toupper(term$structure)} currently does not allow an ordinary random intercept.",
+      "i" = "Fit the direct temporal process alone while this first heterogeneous covariance provider is validated."
     ))
   }
   if (isTRUE(paired_phylo_stable) && length(mu_re$terms) > 0L) {
@@ -264,26 +264,27 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   ordered_time <- occasion[ordering]
   occasion_levels <- numeric()
   occasion_index <- integer(length(occasion))
-  if (identical(term$structure, "homtoep")) {
+  if (term$structure %in% c("homtoep", "hetar1")) {
+    structure_label <- toupper(term$structure)
     occasion_levels <- sort(unique(occasion))
     n_occasions <- length(occasion_levels)
     if (n_occasions > 12L) {
       cli::cli_abort(c(
-        "Temporal HOMTOEP supports at most 12 common occasions.",
+        "Temporal {structure_label} supports at most 12 common occasions.",
         "x" = "Found {n_occasions} distinct retained occasions.",
         "i" = "Use AR1 or OU for a longer time series, or predeclare a coarser common schedule."
       ))
     }
     if (n_occasions < 3L) {
       cli::cli_abort(c(
-        "Temporal HOMTOEP needs at least three common occasions.",
+        "Temporal {structure_label} needs at least three common occasions.",
         "x" = "Found {n_occasions} retained occasions.",
         "i" = "Use AR1 or OU when the design has fewer than three repeated occasions."
       ))
     }
     if (length(unique(diff(occasion_levels))) != 1L) {
       cli::cli_abort(c(
-        "Temporal HOMTOEP occasions must be equally spaced.",
+        "Temporal {structure_label} occasions must be equally spaced.",
         "x" = "Retained occasions are {.val {occasion_levels}}.",
         "i" = "Use OU for irregular elapsed time."
       ))
@@ -293,7 +294,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     if (!all(complete)) {
       incomplete_series <- series_levels[which(!complete)]
       cli::cli_abort(c(
-        "Temporal HOMTOEP requires every ID to retain the complete retained schedule.",
+        "Temporal {structure_label} requires every ID to retain the complete retained schedule.",
         "x" = "Incomplete series: {.val {incomplete_series}}.",
         "i" = "Use OU or AR1 for incomplete repeated records, or retain a common complete panel."
       ))
@@ -302,7 +303,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   }
   starts <- c(which(!duplicated(ordered_series)), length(ordering) + 1L)
   n_series <- length(series_levels)
-  gap <- if (identical(term$structure, "ar1")) integer(length(ordering)) else numeric(length(ordering))
+  gap <- if (term$structure %in% c("ar1", "hetar1")) integer(length(ordering)) else numeric(length(ordering))
   pairwise_lags <- numeric()
   for (series in seq_len(n_series)) {
     from <- starts[[series]]
@@ -318,7 +319,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
       )
     }
   }
-  if (identical(term$structure, "ar1")) {
+  if (term$structure %in% c("ar1", "hetar1")) {
     gap <- as.integer(gap)
   }
   distinct_lags <- sort(unique(pairwise_lags[pairwise_lags > 0]))
@@ -382,6 +383,7 @@ temporal_mu_tmb_data <- function(spec) {
       temporal_mu_series_start = 0L,
       temporal_mu_gap = 0L,
       temporal_mu_elapsed_gap = 0,
+      temporal_mu_level_index = 0L,
       temporal_mu_structure = 0L
     ))
   }
@@ -391,11 +393,13 @@ temporal_mu_tmb_data <- function(spec) {
     temporal_mu_series_start = temporal$series_start0,
     temporal_mu_gap = as.integer(round(temporal$gap)),
     temporal_mu_elapsed_gap = as.numeric(temporal$gap),
+    temporal_mu_level_index = as.integer(temporal$occasion_index - 1L),
     temporal_mu_structure = switch(
       temporal$structure,
       ar1 = 1L,
       ou = 2L,
-      homtoep = 3L
+      homtoep = 3L,
+      hetar1 = 4L
     )
   )
 }
@@ -472,6 +476,9 @@ drm_has_temporal_mu <- function(object) {
 }
 
 temporal_mu_sd_label <- function(temporal) {
+  if (identical(temporal$structure, "hetar1")) {
+    return(paste0("temporal_sd[", temporal$occasion_levels, "]: ", temporal$label))
+  }
   if (isTRUE(temporal$paired_phylo_stable)) {
     return("sd_temporal")
   }
@@ -508,6 +515,12 @@ validate_temporal_wald_parm <- function(object, parm) {
       "i" = "Mean-coefficient likelihood profiles are qualified in the retained primary panel cells; Wald covariance and intervals remain deferred."
     ))
   }
+  if (identical(temporal$structure, "hetar1")) {
+    cli::cli_abort(c(
+      "Heterogeneous AR1 mean-coefficient Wald intervals are not yet qualified.",
+      "i" = "The P3 interval-feasibility gate must validate the full-Hessian covariance before Wald inference is exposed."
+    ))
+  }
   allowed <- drm_temporal_mean_target_parm(object)
   requested <- if (is.null(parm)) allowed else as.character(parm)
   bad <- setdiff(requested, allowed)
@@ -523,6 +536,12 @@ validate_temporal_wald_parm <- function(object, parm) {
 
 validate_temporal_profile_parm <- function(object, parm) {
   temporal <- object$model$structured$temporal_mu
+  if (identical(temporal$structure, "hetar1")) {
+    cli::cli_abort(c(
+      "Heterogeneous AR1 mean-coefficient profile intervals are not yet qualified.",
+      "i" = "The P3 interval-feasibility gate must retain finite endpoints and diagnostics before profiles are exposed."
+    ))
+  }
   targets <- drm_profile_targets(object)
   allowed <- drm_temporal_mean_target_parm(object)
   selected <- if (is.null(parm)) {
@@ -557,8 +576,8 @@ drm_fresh_temporal_mu_values <- function(object) {
   if (identical(temporal$structure, "homtoep")) {
     return(numeric(nrow(object$data)))
   }
-  sd <- unname(object$sdpars$mu[[temporal_mu_sd_label(temporal)]])
-  temporal_parameter <- if (identical(temporal$structure, "ar1")) {
+  sd <- unname(object$sdpars$mu[temporal_mu_sd_label(temporal)])
+  temporal_parameter <- if (temporal$structure %in% c("ar1", "hetar1")) {
     unname(object$corpars$temporal[[temporal$label]])
   } else {
     unname(object$decaypars$temporal[[temporal_mu_decay_label(temporal)]])
@@ -571,7 +590,7 @@ drm_fresh_temporal_mu_values <- function(object) {
     latent[[first]] <- stats::rnorm(1L)
     if (last > first) {
       for (node in (first + 1L):last) {
-        transition <- if (identical(temporal$structure, "ar1")) {
+        transition <- if (temporal$structure %in% c("ar1", "hetar1")) {
           temporal_parameter^temporal$gap[[node]]
         } else {
           exp(-temporal_parameter * temporal$gap[[node]])
@@ -585,6 +604,11 @@ drm_fresh_temporal_mu_values <- function(object) {
       }
     }
   }
-  values <- sd * latent
+  values <- if (identical(temporal$structure, "hetar1")) {
+    ordered_level <- temporal$occasion_index[order(temporal$observation_node_index)]
+    sd[ordered_level] * latent
+  } else {
+    sd * latent
+  }
   unname(values[temporal$observation_node_index])
 }

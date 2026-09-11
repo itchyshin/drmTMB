@@ -2355,6 +2355,14 @@ vcov.drmTMB <- function(object, ...) {
       "i" = "Mean-coefficient likelihood profiles are qualified in the retained primary panel cells; Wald covariance and intervals remain deferred."
     ))
   }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "hetar1"
+  )) {
+    cli::cli_abort(c(
+      "Heterogeneous AR1 Wald coefficient covariance is unavailable.",
+      "i" = "The P3 interval-feasibility gate has not yet qualified the full-Hessian covariance."
+    ))
+  }
   cov_primary <- drm_sdreport_cov_coefficients(object)
   labels <- coefficient_labels(object)
   targets <- drm_profile_targets(object)
@@ -2546,6 +2554,11 @@ drm_standard_error_status <- function(object) {
   }
   if (drm_has_temporal_mu(object) && identical(
     object$model$structured$temporal_mu$structure, "homtoep"
+  )) {
+    return("temporal_inference_deferred")
+  }
+  if (drm_has_temporal_mu(object) && identical(
+    object$model$structured$temporal_mu$structure, "hetar1"
   )) {
     return("temporal_inference_deferred")
   }

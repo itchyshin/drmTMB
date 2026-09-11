@@ -6,7 +6,7 @@
 
 Existing AR1 already supplies independent standardized paths, stationary first-state densities, gap-aware transitions, two signed persistence starts, a separate residual `sigma`, random-effect extraction and conditional simulation.
 
-P3 must preserve its actual integer gaps. If every occasion SD is equal, the P3 covariance must be exactly the existing AR1 covariance for the same raw times. The new common schedule supplies only an `occasion_index` selecting \(s_k\); it must not compress time into ranks. Thus a common schedule `0, 2, 4` has correlations \(\phi^2\) and \(\phi^4\), matching AR1, while its level labels remain `0`, `2`, and `4`.
+P3 must preserve its actual integer gaps. If every occasion SD is equal, the P3 covariance must be exactly the existing AR1 covariance for the same raw times. The new common schedule supplies only an `occasion_index` selecting \(s_k\); it must not compress time into ranks. A schedule such as `0, 3, 6` therefore has correlations \(\phi^3\) and \(\phi^6\), matching AR1. A schedule with only even gaps, such as `0, 2, 4`, is rejected because it cannot distinguish the signs of \(\phi\).
 
 ## R boundary
 

@@ -9,11 +9,12 @@ temporal(term, time, structure = "ar1")
 \arguments{
 \item{term}{Temporal structure term, currently \code{1 | id}.}
 
-\item{time}{Name of the integer occasion (\code{"ar1"} or \code{"homtoep"}) or
+\item{time}{Name of the integer occasion (\code{"ar1"}, \code{"homtoep"}, or
+\code{"hetar1"}) or
 numeric elapsed-time (\code{"ou"}) variable.}
 
 \item{structure}{Temporal covariance structure: \code{"ar1"}, \code{"ou"}, or
-\code{"homtoep"}.}
+\code{"homtoep"}, or \code{"hetar1"}.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -33,6 +34,13 @@ from persistent within-series deviations; it is deferred for homogeneous
 Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
 intervals for mean regression coefficients only. Scale and lag-correlation
 intervals remain unavailable.
+\code{structure = "hetar1"} retains signed, gap-aware AR1 correlation but gives
+each occasion in a common complete equally spaced integer schedule with an
+odd lag its own
+temporal-process SD. Its observation residual \code{sigma} remains constant and
+separate. The current P3 provider is an interval-feasibility development
+slice: Wald and profile intervals remain unavailable until its retained
+full-Hessian evidence is complete.
 }
 \examples{
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
@@ -40,5 +48,7 @@ bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),
 bf(y ~ treatment + temporal(1 | id, time = elapsed, structure = "ou"),
    sigma ~ 1)
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "homtoep"),
+   sigma ~ 1)
+bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "hetar1"),
    sigma ~ 1)
 }

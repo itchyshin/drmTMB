@@ -94860,3 +94860,12 @@ P1 G13 coverage rows.
 - **Scope:** read-only mapping of current AR1, OU and homogeneous-Toeplitz seams at `bc905199f`; no model source, test, fixture, fitting or compute change.
 - **Nesting decision:** P3 preserves original integer AR1 gaps and adds only a complete common-schedule level index for the process-SD vector. Equal level SDs will therefore reduce exactly to existing AR1 rather than a rank-compressed variant.
 - **Boundary:** P3 remains a latent temporal process with separately estimated `sigma`; it must not reuse the homogeneous-Toeplitz marginal branch, which deliberately has no separate iid residual scale.
+
+## 2026-09-11 — P3 `hetar1` S1–S3 deterministic provider
+
+- **Authorization:** the already approved temporal covariance programme was recorded as P3 gate T4-0; no remote work, campaign, push or release occurred.
+- **Implementation:** added `temporal(..., structure = "hetar1")` for complete common 3--12-level integer panels with an odd lag. It fits a latent D-R-D covariance `D R(phi) D + sigma^2 I`, preserves raw AR1 gaps, returns labelled occasion process SDs, and explicitly withholds Wald/profile intervals pending P3 evidence.
+- **Evidence:** parser, native likelihood and reduction gates emitted `TEMPORAL_HETAR1_T4_1_PASS`, `TEMPORAL_HETAR1_T4_2_PASS`, `TEMPORAL_HETAR1_T4_3_PASS`, and `TEMPORAL_HETAR1_T4_5_PASS`. Independent dense likelihood, score, two numerical Hessians, AR1 nesting, diagonal limit, ID independence and D-factor mutation checks passed.
+- **Regression repair:** synchronized the older AR1 smoke expectation with its already-implemented mean-profile interface; the focused AR1 smoke test then passed.
+- **Methods receipt:** T4-4 also passed after synchronizing `check_drm()` with the deliberately unavailable pre-feasibility Wald surface. The package now presents labelled process SDs, constant residual `sigma`, fitted values, residuals and seeded simulation without suggesting that fixed-mean intervals have been qualified.
+- **Next:** freeze the no-coverage interval-feasibility fixtures, estimate and run the five-fit timing pilot, then decide from its retained outputs whether the public fixed-mean Wald surface can be opened.

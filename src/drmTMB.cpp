@@ -466,6 +466,7 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(temporal_mu_series_start);
   DATA_IVECTOR(temporal_mu_gap);
   DATA_VECTOR(temporal_mu_elapsed_gap);
+  DATA_IVECTOR(temporal_mu_level_index);
   DATA_INTEGER(temporal_mu_structure);
   // Scoped second structured location field (M5 row 105): its own group
   // precision (spatial coordinate kernel vs relatedness Q), always q = 1
@@ -1054,7 +1055,7 @@ Type objective_function<Type>::operator()()
     // at one observation per series--occasion, so it is evaluated directly in
     // the Gaussian likelihood below.
     if (has_temporal_mu == 1 && temporal_mu_structure != 3) {
-      Type sd_temporal = exp(log_sd_temporal(0));
+      vector<Type> sd_temporal = exp(log_sd_temporal);
       Type phi_temporal = tanh(theta_temporal(0));
       Type decay_temporal = exp(theta_temporal(0));
       {
@@ -1065,7 +1066,7 @@ Type objective_function<Type>::operator()()
           for (int node = first + 1; node < last_exclusive; ++node) {
             Type transition;
             Type transition_sd;
-            if (temporal_mu_structure == 1) {
+            if (temporal_mu_structure == 1 || temporal_mu_structure == 4) {
               transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
               transition_sd = drm_ar1_transition_sd(
                 theta_temporal(0), phi_temporal, temporal_mu_gap(node)
@@ -1086,12 +1087,15 @@ Type objective_function<Type>::operator()()
         }
       }
       for (int i = 0; i < y.size(); ++i) {
-        mu(i) += sd_temporal * u_temporal(temporal_mu_node_index(i));
+        int node = temporal_mu_node_index(i);
+        Type node_sd = temporal_mu_structure == 4 ?
+          sd_temporal(temporal_mu_level_index(i)) : sd_temporal(0);
+        mu(i) += node_sd * u_temporal(node);
       }
       REPORT(u_temporal);
       REPORT(log_sd_temporal);
       REPORT(theta_temporal);
-      if (temporal_mu_structure == 1) REPORT(phi_temporal);
+      if (temporal_mu_structure == 1 || temporal_mu_structure == 4) REPORT(phi_temporal);
       if (temporal_mu_structure == 2) REPORT(decay_temporal);
       REPORT(sd_temporal);
     }

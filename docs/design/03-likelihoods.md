@@ -166,6 +166,35 @@ returns `y - fitted`. Pearson residuals use the Cholesky whitening of the
 block Toeplitz covariance. Both simulation modes draw one correlated residual
 vector per series because this model has no conditional temporal random effect.
 
+### Heterogeneous AR1 discrete-occasion effects
+
+`temporal(1 | id, time = occasion, structure = "hetar1")` uses a latent
+Gaussian temporal process with a common complete equally spaced integer schedule of
+3--12 occasions containing an odd lag. The odd-lag rule keeps positive and negative
+persistence distinct. Let `k(i)` select observation `i`'s retained occasion level. The
+provider uses
+
+\[
+y_{ik}=x_{ik}^{T}\beta+a_{ik}+\epsilon_{ik},\qquad
+\operatorname{Cov}(a_{ik},a_{il})=s_k s_l\phi^{|t_k-t_l|},\qquad
+\epsilon_{ik}\sim N(0,\sigma^2).
+\]
+
+It estimates every positive \(s_k\) on the log scale and maps signed persistence
+through \(\phi=\tanh(\theta)\). The standardized latent path has a stationary
+first-state density and gap-aware AR1 transitions; all transition and observation
+normalizers are retained. The level index selects only the process SD; the correlation
+exponent retains original integer sampling gaps. Thus equal `s_k` values reproduce
+ordinary AR1 exactly, and \(\phi=0\) gives a diagonal occasion-specific process
+covariance plus \(\sigma^2 I\).
+
+This is not a temporal residual-scale model. Its `s_k` values describe latent
+location-process variation, while `sigma` remains a constant independent observation
+residual SD. The P3 development slice has deterministic dense likelihood, score,
+Hessian and reduction checks. Its interval-feasibility fixtures have not yet closed,
+so Wald and profile intervals are explicitly unavailable and no coverage claim is
+made.
+
 ### Phylogenetic stable intercept plus independent OU deviations
 
 The development-only paired route combines `phylo(1 | species, tree = tree)`
