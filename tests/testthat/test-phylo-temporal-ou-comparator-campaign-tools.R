@@ -1,0 +1,13 @@
+test_that('paired comparator campaign shell tools are bounded and source-only', {
+  root <- testthat::test_path('..', '..')
+  archive <- file.path(root, 'tools', 'create-phylo-temporal-ou-comparator-source-archive.sh')
+  wrapper <- file.path(root, 'tools', 'slurm', 'phylo-temporal-ou-comparator-rorqual.sbatch')
+  expect_equal(system2('bash', c('-n', archive)), 0L)
+  expect_equal(system2('bash', c('-n', wrapper)), 0L)
+  archive_text <- paste(readLines(archive, warn = FALSE), collapse = '\n')
+  wrapper_text <- paste(readLines(wrapper, warn = FALSE), collapse = '\n')
+  expect_true(grepl('run-phylo-temporal-ou-comparator-task.R', archive_text, fixed = TRUE))
+  expect_true(grepl('--mem=4G', wrapper_text, fixed = TRUE))
+  expect_true(grepl('1 && "$SLURM_ARRAY_TASK_ID" -le 3000', wrapper_text, fixed = TRUE))
+  expect_true(grepl('glmmTMB', wrapper_text, fixed = TRUE))
+})
