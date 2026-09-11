@@ -75,7 +75,7 @@ for (i in seq_len(nrow(cells))) {
   }
 }
 results <- do.call(rbind, rows)
-summary <- do.call(rbind, lapply(split(results, interaction(results$cell, results$precision, drop = TRUE)), function(x) data.frame(cell=x$cell[1], precision=x$precision[1], n=nrow(x), available=sum(x$available), coverage=mean(x$available & x$lower <= 0 & x$upper >= 0), mean_fit_sec=mean(x$fit_elapsed_sec), mean_profile_sec=mean(x$profile_elapsed_sec, na.rm=TRUE), mean_endpoint_difference=NA_real_, stringsAsFactors=FALSE)))
+summary <- do.call(rbind, lapply(split(results, interaction(results$cell, results$precision, drop = TRUE)), function(x) data.frame(cell=x$cell[1], precision=x$precision[1], n=nrow(x), available=sum(x$available), coverage=mean(x$available & x$lower <= 0 & x$upper >= 0), mean_fit_sec=mean(x$fit_elapsed_sec), mean_profile_sec=mean(x$elapsed_sec, na.rm=TRUE), mean_endpoint_difference=NA_real_, stringsAsFactors=FALSE)))
 for (cell in unique(results$cell)) {
   a <- results[results$cell == cell & results$precision == 'fast', ]; b <- results[results$cell == cell & results$precision == 'default', ]
   delta <- mean(abs(a$lower - b$lower) + abs(a$upper - b$upper), na.rm=TRUE) / 2
