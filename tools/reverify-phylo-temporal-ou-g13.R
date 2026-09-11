@@ -25,7 +25,9 @@ if (self_test) {
   stopifnot(identical(validate_task_cells(fixture, m, 'fixture')$cell, fixture$cell))
   bad <- fixture; bad$cell <- 'P2'
   stopifnot(inherits(try(validate_task_cells(bad, m, 'fixture'), silent = TRUE), 'try-error'))
-  stopifnot(nrow(m) == 3500L, nrow(phylo_temporal_ou_g11_targets()) == 12L)
+  targets <- phylo_temporal_ou_g11_targets()
+  stopifnot(nrow(m) == 3500L, nrow(targets) == 12L,
+            identical(targets$truth, rep(c(0, 0.5, 0.5), times = 4L)))
   cat('PHYLO_TEMPORAL_OU_G13_REVERIFY_SELFTEST_PASS\n'); quit(save = 'no')
 }
 if (length(args) != 2L || any(!grepl('^--(campaign-dir|output-dir)=', args))) {

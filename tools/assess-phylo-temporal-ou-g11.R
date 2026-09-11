@@ -48,9 +48,15 @@ phylo_temporal_ou_g11_targets <- function() {
     KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE
   )
   out$primary <- out$cell %in% c('P1', 'P2', 'P3')
-  out$truth <- rep(c(0, 0.5, 0.5), times = 4L)
   out <- out[order(out$cell, out$parm), , drop = FALSE]
   row.names(out) <- NULL
+  truth_by_parm <- c(
+    'fixef:mu:(Intercept)' = 0,
+    'fixef:mu:between' = 0.5,
+    'fixef:mu:within' = 0.5
+  )
+  out$truth <- unname(truth_by_parm[out$parm])
+  if (anyNA(out$truth)) stop('G11 target registry contains an unsupported mean coefficient.', call. = FALSE)
   out
 }
 

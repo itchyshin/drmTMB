@@ -9,11 +9,15 @@ if (!file.exists(file.path(root, 'DESCRIPTION'))) stop('Run from the drmTMB root
 source(file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R'))
 
 out_dir <- Sys.getenv('DRMTMB_PHYLO_TEMPORAL_OU_G11_OUT', unset = file.path(
-  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-contract'
+  root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-corrected-target-contract'
 ))
 self_test <- function() {
   manifest <- phylo_temporal_ou_g11_manifest()
   phylo_temporal_ou_g11_validate_manifest(manifest)
+  targets <- phylo_temporal_ou_g11_targets()
+  if (!identical(targets$truth, rep(c(0, 0.5, 0.5), times = 4L))) {
+    stop('The G11 target registry does not match the common fixed-effect data-generating values.', call. = FALSE)
+  }
   if (!inherits(try(phylo_temporal_ou_g11_validate_manifest(manifest[-1L, , drop = FALSE]), silent = TRUE), 'try-error')) {
     stop('Incomplete-denominator negative control passed.', call. = FALSE)
   }

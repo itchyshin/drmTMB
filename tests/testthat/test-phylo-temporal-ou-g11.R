@@ -28,6 +28,14 @@ test_that("phylo OU G11 assessment applies the frozen primary and stress rules",
   expect_true(all(assessed$criterion_coverage[assessed$cell %in% c("P1", "P2", "P3")]))
 })
 
+test_that("phylo OU G11 target registry retains the shared generating coefficients", {
+  targets <- assessment_environment$phylo_temporal_ou_g11_targets()
+  expect_equal(
+    targets$truth,
+    rep(c(0, 0.5, 0.5), times = 4L)
+  )
+})
+
 test_that("phylo OU G11 assessment rejects incomplete and forged campaign summaries", {
   reference <- make_phylo_temporal_ou_g11_summary()
   expect_error(

@@ -216,7 +216,7 @@ g10 <- function() {
 g11 <- function() {
   approval()
   g10()
-  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-contract')
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-10-phylo-temporal-ou-g11-corrected-target-contract')
   required <- c('manifest.csv', 'targets.csv', 'known-failing-coverage.csv', 'provenance.csv', 'RESULTS.md')
   for (path in file.path(d, required)) need_file(path)
   helper <- file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R')
