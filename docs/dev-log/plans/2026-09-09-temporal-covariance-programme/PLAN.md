@@ -51,6 +51,24 @@ public interval/profile checks, but do not inherit an automatic coverage-calibra
 campaign. A later calibration or coverage claim needs its own predeclared contract,
 campaign authorization, and promotion decision.
 
+### 2026-09-11 programme checkpoint
+
+The programme now stops at a deliberate decision boundary. The direct temporal OU
+parent, homogeneous Toeplitz (P2) and heterogeneous AR1 (P3) have separate completed
+closeouts. The evolutionary tree-OU covariance provider is also complete as a distinct
+phylogenetic covariance choice; it is neither temporal OU nor a phylogeny-by-time
+field. The optional phylogenetically stable-intercept plus independent temporal-OU
+composition remains in its owner lane as an interval-feasibility result with its failed
+G13 coverage rows retained.
+
+P4 heterogeneous Toeplitz is deferred. It needs an identified ecological data set with
+a common regular schedule, enough replicated series to support both lag correlations
+and occasion-specific temporal SDs, and a scientific reason that both simpler P2 and
+P3 structures are inadequate. P5 candidates remain deferred until a named question
+requires cycles, nonstationarity, moving-average shocks, or different smoothness. A
+future restart opens a new child receipt; it does not reuse this programme's campaign
+authority or reinterpret P1's coverage failures.
+
 ## Scientific language shared by every arc
 
 For a repeated series, distinguish the predictable mean, stable series difference,

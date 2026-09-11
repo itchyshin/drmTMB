@@ -94947,3 +94947,9 @@ P1 G13 coverage rows.
 - **Final focused evidence:** PO3--PO6 and PO9 were rerun from the final source and passed. They retain the independently constructed dense likelihood and derivative checks, tree-OU reductions, public interface, and rendered reader route.
 - **Source package:** the retained `--no-tests --no-manual --no-build-vignettes` source-package check ran all examples and vignettes, including `formula-grammar.Rmd`, with 0 errors. Its one top-level warning (`checkbashisms` unavailable and existing `tools-scratch`) and two environment notes (system clock and `xcrun_db`) are recorded rather than hidden. A full test attempt was stopped after no output progress at an unrelated Julia test stage; it is not used as a passing receipt.
 - **Immutable reverify:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO11 --reverify` returned `PHYLO_OU_COVARIANCE_PO11_PASS` and only inspected retained evidence.
+
+## 2026-09-11 — temporal covariance programme checkpoint
+
+- **Decision:** P2 homogeneous Toeplitz and P3 heterogeneous AR1 have closed at their documented boundaries. P1 remains interval-feasible only: its failed G13 intercept-profile coverage rows are retained and do not support a calibrated-inference claim. The separately completed tree-OU covariance provider remains a phylogenetic choice, not a temporal or phylogeny-by-time implementation.
+- **Deferral:** heterogeneous Toeplitz and every item-6 candidate remain deferred until an identified ecological use case supplies the data and scientific need. No campaign authority or inference claim transfers from the completed arcs.
+- **Reverify:** `Rscript --vanilla docs/dev-log/plans/2026-09-09-temporal-covariance-programme/unlazy/check-programme.R G18 --reverify` returned `TEMPORAL_PROGRAMME_G18_PASS REVERIFY`; it only inspected the programme contract and did not launch computation.

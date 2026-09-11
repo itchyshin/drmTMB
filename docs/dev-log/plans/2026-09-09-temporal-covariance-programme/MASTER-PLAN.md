@@ -472,3 +472,27 @@ Run the detailed ledger parser before P0 dispatch:
 
 The 34-gate ledger specifies phase/arc commands and manual authority points. Its status
 is evidence, not permission to run an unchecked command.
+
+## 2026-09-11 programme checkpoint
+
+This is a stop-and-record checkpoint, not an assertion that every listed covariance
+structure is implemented. P2 homogeneous Toeplitz closed at `ceff79d53`; P3
+heterogeneous AR1 closed at `0788c78b5`; and the separate evolutionary tree-OU
+covariance arc closed at `84bd42133`. Direct temporal AR1 and OU remain their qualified
+predecessors. The phylogenetically stable-intercept plus independent temporal-OU
+extension has retained point-recovery and interval-feasibility evidence in its active
+owner lane, including its failed G13 intercept-profile coverage rows. That failure
+cannot support a calibrated-inference claim and does not become a pass.
+
+P4 is explicitly deferred because no concrete ecological use case currently requires
+both flexible discrete-lag correlation and occasion-specific temporal process SDs. It
+may reopen only with a child receipt naming a common regular schedule, sufficiently
+replicated series, a comparison showing why P2 and P3 are inadequate, and the full T5
+oracle/mutation/recovery contract. P5 is likewise deferred: seasonal, trend/random
+walk, ARMA and temporal Matern each require a named scientific process that the
+implemented structures cannot express. No campaign authority, calibration threshold or
+inference claim transfers to a future child.
+
+The programme reverify command returned `TEMPORAL_PROGRAMME_G18_PASS REVERIFY` at this
+checkpoint. It verifies the programme contract without launching computation; it does
+not close pending child-ledger work or convert deferred structures into fitted models.
