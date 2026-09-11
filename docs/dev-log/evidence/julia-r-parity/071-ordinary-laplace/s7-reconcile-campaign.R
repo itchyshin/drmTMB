@@ -77,12 +77,26 @@ r071_s7_verify_task_checksums <- function(path) {
   fields <- strsplit(trimws(lines), "[[:space:]]+", perl = TRUE)
   hashes <- vapply(fields, function(x) if (length(x) == 2L) x[[1L]] else NA_character_, character(1L))
   files <- vapply(fields, function(x) if (length(x) == 2L) x[[2L]] else NA_character_, character(1L))
-  expected_files <- c("planned-task.tsv", "attempts.tsv")
-  if (length(lines) != 2L || anyNA(hashes) || anyNA(files) || anyDuplicated(files) ||
-      !setequal(files, expected_files) || any(!grepl("^[0-9a-fA-F]{64}$", hashes))) {
+  required_files <- c("planned-task.tsv", "attempts.tsv")
+  safe_relative_path <- function(x) {
+    grepl("^[A-Za-z0-9][A-Za-z0-9._/-]*$", x) &&
+      !grepl("(^|/)\\.\\.(/|$)", x) && !grepl("//", x)
+  }
+  # Older retained tasks checksum only their aggregate plan and attempts.  New
+  # workers also checksum the shared fixture, runtime provenance, and every
+  # per-target receipt.  Require the aggregate pair in both formats and
+  # verify every declared, safe relative file; never silently ignore extras.
+  if (length(lines) < length(required_files) || anyNA(hashes) || anyNA(files) ||
+      anyDuplicated(files) || !all(required_files %in% files) ||
+      any(!vapply(files, safe_relative_path, logical(1L))) ||
+      any(!grepl("^[0-9a-fA-F]{64}$", hashes))) {
     stop("S7 committed task checksum schema drift: ", basename(path), call. = FALSE)
   }
-  observed <- vapply(files, function(file) r071_s7_sha256(file.path(path, file)), character(1L))
+  resolved <- file.path(path, files)
+  if (any(!file.exists(resolved))) {
+    stop("S7 committed task checksum references an absent file: ", basename(path), call. = FALSE)
+  }
+  observed <- vapply(resolved, r071_s7_sha256, character(1L))
   if (!identical(tolower(unname(hashes)), tolower(unname(observed)))) {
     stop("S7 committed task checksum mismatch: ", basename(path), call. = FALSE)
   }

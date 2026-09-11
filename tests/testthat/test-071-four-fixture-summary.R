@@ -832,3 +832,31 @@ test_that("S7 campaign collector verifies task receipt checksums", {
   writeLines("tampered", file.path(task, "attempts.tsv"))
   expect_error(env$r071_s7_verify_task_checksums(task), "checksum mismatch")
 })
+
+test_that("S7 campaign collector verifies every declared retained checksum", {
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
+                 "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  task <- tempfile("071-s7-extended-task-")
+  dir.create(task)
+  dir.create(file.path(task, "profiles"))
+  for (file in c("planned-task.tsv", "attempts.tsv", "fixture.rds", "runtime-provenance.tsv",
+                 file.path("profiles", "1-attempt.tsv"))) {
+    writeLines(file, file.path(task, file))
+  }
+  files <- c("planned-task.tsv", "attempts.tsv", "fixture.rds", "runtime-provenance.tsv",
+             file.path("profiles", "1-attempt.tsv"))
+  checksums <- vapply(files, function(file) {
+    paste(env$r071_s7_sha256(file.path(task, file)), file)
+  }, character(1L))
+  writeLines(checksums, file.path(task, "SHA256SUMS"))
+  file.create(file.path(task, "COMMITTED"))
+  expect_silent(env$r071_s7_verify_task_checksums(task))
+  writeLines(c(checksums, paste(rep("a", 64L), collapse = ""), "../outside"),
+             file.path(task, "SHA256SUMS"))
+  expect_error(env$r071_s7_verify_task_checksums(task), "checksum schema drift")
+})
