@@ -15,7 +15,10 @@ listed preliminary receipts remain useful diagnostics and fixture/target
 design inputs, but they are not current same-target parity, matrix, or coverage
 evidence. A new campaign may use only a commit-proven source staging receipt:
 each source archive must equal `git archive` of its declared commit contained
-in a staged Git bundle. Earlier pins (`1ae582c9`, `26f4c4dd`, `d24a30d09`, and
+in a staged Git bundle. The active retained campaign is pinned to drmTMB
+`453cff782900aa55211d3f5971c229fc485d291e` and DRM.jl
+`b2caf00f23f080fe89028966a4bfb098ef095510`; its remote source-staging receipt
+is authoritative. Earlier pins (`1ae582c9`, `26f4c4dd`, `d24a30d09`, and
 `ded85602a`) are technical history, not substitute evidence.
 Every task must record source cleanliness, R/TMB/JuliaCall/Julia identities,
 Julia project and thread settings, requested and effective marginal integrators,
