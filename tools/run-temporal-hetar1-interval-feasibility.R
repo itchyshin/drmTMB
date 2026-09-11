@@ -174,7 +174,7 @@ extract_intervals <- function(row, result) {
     ))
   }
   coefficient_names <- names(fit$coefficients$mu)
-  covariance_names <- paste0("mu_", coefficient_names)
+  covariance_names <- paste0("mu:", coefficient_names)
   data.frame(
     fixture = row$fixture, cell = row$cell, role = row$role, seed = row$seed,
     parm = target_names, truth = unname(truth),
