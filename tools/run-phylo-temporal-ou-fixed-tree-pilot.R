@@ -19,7 +19,11 @@ if (length(replicates) != 1L || is.na(replicates) || replicates < 1L || !nzchar(
   stop('Replicates must be positive and output directory must be new.', call. = FALSE)
 }
 Sys.setenv(OMP_NUM_THREADS = '1', OPENBLAS_NUM_THREADS = '1')
-pkgload::load_all(root, quiet = TRUE)
+if (identical(Sys.getenv('DRMTMB_PHYLO_TEMPORAL_OU_FIXED_TREE_USE_INSTALLED'), '1')) {
+  library(drmTMB)
+} else {
+  pkgload::load_all(root, quiet = TRUE)
+}
 source(file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R'))
 manifest <- phylo_temporal_ou_g11_manifest()
 cells <- manifest[match(c('P1', 'P2', 'P3'), manifest$cell), , drop = FALSE]
