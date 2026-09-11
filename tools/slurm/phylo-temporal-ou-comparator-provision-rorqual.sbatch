@@ -61,7 +61,7 @@ for (round in seq_len(length(remaining) + 1L)) {
     unlink(td, recursive = TRUE, force = TRUE)
     available <- vapply(deps, requireNamespace, logical(1L), quietly = TRUE)
     if (all(available)) {
-      status <- system2(file.path(R.home('bin'), 'R'), c('CMD', 'INSTALL', '--library', lib, remaining[[pkg]]), env = c('CXXFLAGS=-O0 -g0', 'MAKEFLAGS=-e'))
+      status <- system2(file.path(R.home('bin'), 'R'), c('CMD', 'INSTALL', '--library', lib, remaining[[pkg]]), env = c('CXXFLAGS=-O0', 'MAKEFLAGS=-e'))
       if (!identical(status, 0L)) stop('Installation failed for ', pkg, call. = FALSE)
       remaining[[pkg]] <- NULL
       progressed <- TRUE

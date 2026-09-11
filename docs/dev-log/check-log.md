@@ -94814,3 +94814,4 @@ and excluded platform artifacts. No remote staging or submission occurred.
 
 - Added an offline `glmmTMB` dependency-archive builder and a Rorqual-only provisioning job. It starts from the retained, verified G12 Linux R library in a fresh campaign root, validates every newly sealed source tarball, then installs the required `glmmTMB` closure without a network repository.
 - Added shell-boundary checks for the provisioning job. This is campaign plumbing only; it does not change the failed G13 interval verdict or qualify a temporal covariance method.
+- Provisioning attempt `20912135` retained a source-pinned drmTMB build under 2.6 GiB but stopped before `ape` because the R `system2()` environment passed `CXXFLAGS=-O0 -g0` as two shell tokens. The retry changes that environment to the single safe `CXXFLAGS=-O0` token, adds a regression assertion, and uses a fresh stage root; no task fit or G13 result was affected.
