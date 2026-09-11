@@ -94809,3 +94809,8 @@ minutes and task IDs 1--3000; its scheduler submission must cap concurrency at
 60. Source-only archive validation at `477f2e6ab64819f4a25a1f19cc9b6c4263ab353c`
 returned SHA-256 `77d3c948b85e0fd4645c2ef429fea43d09def37bce3740a9bfee4fa9fda7be28`
 and excluded platform artifacts. No remote staging or submission occurred.
+
+## 2026-09-11 — paired phylogenetic-OU comparator provisioning
+
+- Added an offline `glmmTMB` dependency-archive builder and a Rorqual-only provisioning job. It starts from the retained, verified G12 Linux R library in a fresh campaign root, validates every newly sealed source tarball, then installs the required `glmmTMB` closure without a network repository.
+- Added shell-boundary checks for the provisioning job. This is campaign plumbing only; it does not change the failed G13 interval verdict or qualify a temporal covariance method.
