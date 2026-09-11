@@ -7,9 +7,24 @@ script_path <- normalizePath(sub('^--file=', '', script_arg))
 root <- normalizePath(file.path(dirname(script_path), '..'), mustWork = TRUE)
 source(file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R'))
 value <- function(prefix) { x <- grep(paste0('^', prefix), args, value = TRUE); if (length(x) != 1L) return(NULL); sub(prefix, '', x) }
+validate_task_cells <- function(x, manifest, label) {
+  if (!all(c('id', 'cell') %in% names(x))) {
+    stop(sprintf('G13 %s table lacks id or cell.', label), call. = FALSE)
+  }
+  x$task_id <- as.integer(sub('^G12_', '', x$id))
+  expected <- manifest$cell[match(x$task_id, manifest$task_id)]
+  if (anyNA(x$task_id) || anyNA(expected) || !identical(as.character(x$cell), as.character(expected))) {
+    stop(sprintf('G13 %s table does not agree with the frozen task-cell mapping.', label), call. = FALSE)
+  }
+  x
+}
 self_test <- identical(args, '--self-test')
 if (self_test) {
   m <- phylo_temporal_ou_g11_manifest(); phylo_temporal_ou_g11_validate_manifest(m)
+  fixture <- data.frame(id = 'G12_0001', cell = 'P1', stringsAsFactors = FALSE)
+  stopifnot(identical(validate_task_cells(fixture, m, 'fixture')$cell, fixture$cell))
+  bad <- fixture; bad$cell <- 'P2'
+  stopifnot(inherits(try(validate_task_cells(bad, m, 'fixture'), silent = TRUE), 'try-error'))
   stopifnot(nrow(m) == 3500L, nrow(phylo_temporal_ou_g11_targets()) == 12L)
   cat('PHYLO_TEMPORAL_OU_G13_REVERIFY_SELFTEST_PASS\n'); quit(save = 'no')
 }
@@ -64,8 +79,8 @@ prov <- lapply(keys, function(k) unique(provenance$value[provenance$key == k]));
 if (any(vapply(prov, length, integer(1)) != 1L) || !grepl('^[0-9a-f]{40}$', prov$source_commit) ||
     !grepl('^[0-9a-f]{32}$', prov$worker_md5) || !identical(prov$profile_engine, 'tmbprofile') ||
     !identical(prov$profile_precision, 'fast') || !identical(prov$profile_level, '0.95')) stop('G13 provenance is malformed or mixed.', call. = FALSE)
-profiles$task_id <- as.integer(sub('^G12_', '', profiles$id)); profiles <- merge(profiles, manifest[, c('task_id', 'cell')], by = 'task_id', all.x = TRUE, sort = FALSE)
-selected$task_id <- as.integer(sub('^G12_', '', selected$id)); selected <- merge(selected, manifest[, c('task_id', 'cell')], by = 'task_id', all.x = TRUE, sort = FALSE)
+profiles <- validate_task_cells(profiles, manifest, 'profiles')
+selected <- validate_task_cells(selected, manifest, 'selected fits')
 truth_for <- setNames(targets$truth, targets$parm)
 beta_for <- c('fixef:mu:(Intercept)' = 'beta_intercept', 'fixef:mu:between' = 'beta_between', 'fixef:mu:within' = 'beta_within')
 summary <- do.call(rbind, lapply(seq_len(nrow(targets)), function(i) {
