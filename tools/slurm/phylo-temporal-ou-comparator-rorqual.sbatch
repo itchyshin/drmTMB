@@ -29,7 +29,7 @@ node_root="${SLURM_TMPDIR:-/tmp}/drmtmb-phylo-ou-cmp-${SLURM_JOB_ID}-${task}"; n
 cleanup() { rm -rf "$node_root"; }
 on_exit() { code=$?; trap - EXIT; if [[ "$code" -ne 0 && -d "$node_artifact" && ! -e "$archive" ]]; then printf 'exit_code=%s\n' "$code" > "$node_artifact/SLURM_FAILURE.txt"; tar -C "$node_root" -czf "$partial" "$label" 2>/dev/null && mv "$partial" "$archive" || true; fi; cleanup; exit "$code"; }
 trap on_exit EXIT
-mkdir -p "$node_source" "$node_artifact/model-artifact" "$(dirname "$archive")"
+mkdir -p "$node_source" "$node_artifact" "$(dirname "$archive")"
 tar -xzf "$source_archive" -C "$node_source"; source_dir="$node_source"
 [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_source" -mindepth 1 -maxdepth 1 -type d | head -1)
 [[ -f "$source_dir/tools/run-phylo-temporal-ou-comparator-task.R" ]] || { echo 'Comparator worker absent from source archive.' >&2; exit 2; }
