@@ -19,6 +19,12 @@ required <- c(
   'sandwich', 'scales', 'stringi', 'stringr', 'tibble', 'tidyr', 'tidyselect',
   'timeDate', 'TMB', 'urca', 'utf8', 'vctrs', 'viridisLite', 'withr', 'zoo'
 )
+lock_path <- file.path(dirname(source_dir), 'LOCKED-PACKAGES.csv')
+if (file.exists(lock_path)) {
+  locked <- read.csv(lock_path, stringsAsFactors = FALSE)
+  if (!identical(names(locked), c('package', 'version')) || anyDuplicated(locked$package)) stop('Malformed LOCKED-PACKAGES.csv.', call. = FALSE)
+  required <- locked$package
+}
 source_files <- list.files(source_dir, pattern = '\\.tar\\.gz$', full.names = TRUE)
 pick_source <- function(pkg) {
   candidates <- source_files[startsWith(basename(source_files), paste0(pkg, '_'))]
