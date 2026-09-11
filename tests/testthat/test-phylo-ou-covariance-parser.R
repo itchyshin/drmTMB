@@ -25,7 +25,7 @@ test_that("phylo covariance model rejects malformed choices before fitting", {
   )
 })
 
-test_that("an accepted phylogenetic OU marker cannot silently fit Brownian covariance", {
+test_that("phylogenetic OU rejects unsupported model combinations before fitting", {
   skip_if_not_installed("ape")
   set.seed(2026091101)
   tree <- ape::rcoal(3)
@@ -36,10 +36,10 @@ test_that("an accepted phylogenetic OU marker cannot silently fit Brownian covar
   )
   expect_error(
     drmTMB(
-      bf(y ~ phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
+      bf(y ~ (1 | species) + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
       data = dat, family = gaussian()
     ),
-    "native tree provider"
+    "Gaussian ML location intercept only"
   )
 })
 

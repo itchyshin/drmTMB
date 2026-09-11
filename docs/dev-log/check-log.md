@@ -94896,3 +94896,11 @@ P1 G13 coverage rows.
 - **Independent review:** Noether found the D-R-D contract, raw integer gaps, signed-persistence transform, reductions and full-Hessian fixed-mean covariance consistent. Pat's reader review led to the corrected profile wording, usable regular-panel vignette construction and clearer parser guidance.
 - **Package evidence:** final-source `R CMD build` plus `R CMD check --no-manual` completed with `Status: 2 WARNINGs`, both the established absence of installed `inst/doc` vignette outputs. Installation, code, examples, tests and vignette rebuilding passed.
 - **Close boundary:** T4-14 records interval feasibility only. It does not support a coverage, reported-SE calibration, variance/persistence/residual interval, profile, forecast, irregular-time, ordinary-intercept or scale-side claim. Open issue #1302 is the next separate phylogenetic OU arc.
+
+## 2026-09-11 — phylogenetic OU covariance PO2--PO3
+
+- **Scope:** began the separate evolutionary-tree OU arc after temporal P3 closeout. The new `phylo(1 | species, tree = tree, model = "ou")` is a phylogenetic covariance choice, not the existing Brownian-intercept-plus-temporal-OU work.
+- **Implementation:** the omitted `model` remains Brownian motion. The initial OU route is univariate Gaussian ML with one location intercept field, at least three observed species, positive branch lengths, no other random or structured field, and no REML. It estimates positive `decay_phylo` internally through `log_decay_phylo`.
+- **Native contract:** the provider gives the root a stationary normal density and every branch the transition `exp(-decay * length)` with variance factor `1 - exp(-2 * decay * length)`. It retains every tree node, including the root, in the sparse latent layout.
+- **Evidence:** the internal dense kernel matched `ape::corMartins`; a native OU fit was finite; the PO3 gate passed after a clean native rebuild. Existing `test-phylo-utils.R` (186 expectations) and `test-phylo-gaussian.R` (354 expectations, two established CRAN skips) passed, preserving BM behaviour.
+- **Boundary:** this is native-provider evidence only. Dense marginal likelihood/score/Hessian checks, public decay extraction, simulations, recovery, reader documentation, intervals and scale-side `sigma ~ phylo(..., model = "ou")` remain pending their separate gates.

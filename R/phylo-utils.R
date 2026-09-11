@@ -352,6 +352,125 @@ drm_phylo_augmented_precision <- function(
   out
 }
 
+# Stationary evolutionary OU correlation on a tree.  This intentionally uses
+# the tree itself rather than a temporal coordinate: distance is the patristic
+# branch-length distance between two tips.  The native provider below evaluates
+# the equivalent root-and-edge Markov representation without a dense inverse.
+drm_phylo_ou_tip_covariance <- function(
+  tree,
+  species = NULL,
+  decay,
+  tolerance = sqrt(.Machine$double.eps)
+) {
+  if (!is.numeric(decay) || length(decay) != 1L ||
+      is.na(decay) || !is.finite(decay) || decay <= 0) {
+    cli::cli_abort("{.arg decay} must be one finite positive number.")
+  }
+  info <- validate_phylo_tree(
+    tree,
+    species = species,
+    tolerance = tolerance,
+    require_ultrametric = TRUE
+  )
+  edge <- matrix(as.integer(tree$edge), ncol = 2L)
+  n_total <- info$n_tip + info$n_node
+  parent <- integer(n_total)
+  parent[edge[, 2L]] <- edge[, 1L]
+  nodes <- if (is.null(info$species_index)) {
+    seq_len(info$n_tip)
+  } else {
+    info$species_index
+  }
+  labels <- if (is.null(info$species_levels)) {
+    info$tip_label
+  } else {
+    info$species_levels
+  }
+  ancestors <- lapply(nodes, phylo_node_ancestors, parent = parent)
+  covariance <- matrix(0, nrow = length(nodes), ncol = length(nodes))
+  for (i in seq_along(nodes)) {
+    for (j in seq_len(i)) {
+      shared <- intersect(ancestors[[i]], ancestors[[j]])
+      shared_depth <- max(info$node_depth[shared])
+      distance <- info$node_depth[[nodes[[i]]]] +
+        info$node_depth[[nodes[[j]]]] - 2 * shared_depth
+      covariance[i, j] <- covariance[j, i] <- exp(-decay * distance)
+    }
+  }
+  dimnames(covariance) <- list(labels, labels)
+  covariance
+}
+
+# Sparse stationary-OU tree layout.  Unlike the Brownian precision, the
+# stationary root is a latent node with a proper N(0, 1) prior, so every tree
+# node, including the root, receives a latent-state index.
+drm_phylo_ou_augmented_layout <- function(
+  tree,
+  species = NULL,
+  tolerance = sqrt(.Machine$double.eps)
+) {
+  info <- validate_phylo_tree(
+    tree,
+    species = species,
+    tolerance = tolerance,
+    require_ultrametric = TRUE
+  )
+  edge <- matrix(as.integer(tree$edge), ncol = 2L)
+  edge_length <- as.numeric(tree$edge.length)
+  if (any(edge_length <= 0)) {
+    cli::cli_abort(
+      "{.arg tree} branch lengths must be positive for phylogenetic OU covariance."
+    )
+  }
+  n_total <- info$n_tip + info$n_node
+  node_id <- seq_len(n_total)
+  node_labels <- phylo_augmented_node_labels(node_id, info$tip_label)
+  tip_node_index <- seq_len(info$n_tip)
+  names(tip_node_index) <- info$tip_label
+  species_node_index <- if (is.null(info$species_index)) {
+    NULL
+  } else {
+    out <- tip_node_index[info$species_index]
+    names(out) <- info$species_levels
+    out
+  }
+  observation_node_index <- if (is.null(info$observation_species_index)) {
+    NULL
+  } else {
+    species_node_index[info$observation_species_index]
+  }
+  if (!is.null(observation_node_index) && anyNA(observation_node_index)) {
+    cli::cli_abort(
+      "Internal error: failed to align observations with phylogenetic OU tip nodes."
+    )
+  }
+  list(
+    # A harmless dimension carrier for existing generic structured-effect
+    # plumbing. The OU prior itself is evaluated from root and edge data in
+    # the TMB template, never from this identity matrix.
+    precision = Matrix::Diagonal(n_total),
+    log_det_precision = 0,
+    n_re = n_total,
+    node_id = node_id,
+    node_index = node_id,
+    node_labels = node_labels,
+    tip_label = info$tip_label,
+    tip_node_index = tip_node_index,
+    species_levels = info$species_levels,
+    species_tip_index = info$species_index,
+    species_node_index = species_node_index,
+    observation_species_index = info$observation_species_index,
+    observation_node_index = unname(as.integer(observation_node_index)),
+    observation_node_index0 = unname(as.integer(observation_node_index - 1L)),
+    root = info$root,
+    root_index0 = as.integer(info$root - 1L),
+    edge_parent_index0 = as.integer(edge[, 1L] - 1L),
+    edge_child_index0 = as.integer(edge[, 2L] - 1L),
+    edge_length = edge_length,
+    height = info$height
+  )
+}
+
 drm_known_relatedness_precision <- function(
   matrix,
   group,

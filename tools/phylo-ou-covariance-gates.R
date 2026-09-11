@@ -12,9 +12,9 @@ if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% allowed ||
 
 gate <- args[[1L]]
 reverify <- length(args) == 2L
-run_test_file <- function(path) {
+run_test_file <- function(path, compile = FALSE) {
   code <- paste(
-    "pkgload::load_all('.', compile = FALSE, quiet = TRUE)",
+    sprintf("pkgload::load_all('.', compile = %s, quiet = TRUE)", if (compile) "TRUE" else "FALSE"),
     sprintf("result <- testthat::test_file(%s, reporter = 'silent')", deparse(path)),
     "expectations <- unlist(lapply(result, `[[`, 'results'), recursive = FALSE)",
     "failed <- vapply(expectations, function(x) inherits(x, 'expectation_failure') || inherits(x, 'expectation_error'), logical(1))",
@@ -48,6 +48,11 @@ if (identical(gate, "PO1")) {
   if (reverify) stop("PO2 does not accept --reverify.", call. = FALSE)
   run_test_file("tests/testthat/test-phylo-ou-covariance-parser.R")
   cat("PHYLO_OU_COVARIANCE_PO2_PASS\n")
+} else if (identical(gate, "PO3")) {
+  if (reverify) stop("PO3 does not accept --reverify.", call. = FALSE)
+  run_test_file("tests/testthat/test-phylo-ou-covariance-parser.R", compile = TRUE)
+  run_test_file("tests/testthat/test-phylo-ou-covariance-native.R")
+  cat("PHYLO_OU_COVARIANCE_PO3_PASS\n")
 } else {
   stop(
     sprintf("%s is pending: its gate has no accepted implementation evidence yet.", gate),

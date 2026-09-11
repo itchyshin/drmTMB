@@ -153,6 +153,23 @@ phylo_prior_tmb_data <- function(precision) {
       phylo_mu_n_blocks = 0L,
       Q_phylo = precision$precision,
       log_det_Q_phylo = precision$log_det_precision,
+      # Inert stationary-OU tree fields.  This hand-built probe deliberately
+      # exercises the unchanged Brownian branches of the shared template.
+      phylo_ou_model = 0L,
+      phylo_ou_n_nodes = 0L,
+      phylo_ou_root_index = 0L,
+      phylo_ou_edge_parent = 0L,
+      phylo_ou_edge_child = 0L,
+      phylo_ou_edge_length = 0,
+      # Inert temporal provider fields, also globally declared by the shared
+      # TMB template.
+      has_temporal_mu = 0L,
+      temporal_mu_node_index = 0L,
+      temporal_mu_series_start = c(0L, 1L),
+      temporal_mu_gap = 0L,
+      temporal_mu_elapsed_gap = 0,
+      temporal_mu_level_index = 0L,
+      temporal_mu_structure = 0L,
       has_phylo_mu2 = 0L,
       phylo_mu2_node_index = 0L,
       phylo_mu2_value = dummy_matrix,
@@ -221,6 +238,9 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     u_coi = 0,
     log_sd_coi = 0,
     u_phylo = unname(effect),
+    u_temporal = 0,
+    log_sd_temporal = 0,
+    theta_temporal = 0,
     u_re_cov = 0,
     log_sd_re_cov = 0,
     theta_re_cov = 0,
@@ -229,7 +249,8 @@ phylo_prior_tmb_parameters <- function(effect, log_sd) {
     u_phylo2 = 0,
     log_sd_phylo2 = 0,
     theta_phylo = 0,
-    eta_cor_phylo = 0
+    eta_cor_phylo = 0,
+    log_decay_phylo = 0
   )
 }
 

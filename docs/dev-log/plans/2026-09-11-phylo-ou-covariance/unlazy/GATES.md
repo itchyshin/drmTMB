@@ -13,10 +13,10 @@
   EXPECT: PHYLO_OU_COVARIANCE_PO2_PASS
   EVIDENCE: 2026-09-11: the focused parser gate returned `PHYLO_OU_COVARIANCE_PO2_PASS`. It also confirms an OU marker aborts until its native provider exists, so it cannot silently use Brownian covariance.
 
-- [ ] PO3: Native stationary-root OU tree transitions estimate one positive evolutionary-decay parameter while BM is unchanged.
+- [x] PO3: Native stationary-root OU tree transitions estimate one positive evolutionary-decay parameter while BM is unchanged.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO3
   EXPECT: PHYLO_OU_COVARIANCE_PO3_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: native focused tests exercised the root and every edge, fit a Gaussian OU-tree model, and retained Brownian-default regression coverage in the parser fixture.
 
 - [ ] PO4: Dense `ape::corMartins` covariance, native likelihood, score and two Hessian steps agree.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO4

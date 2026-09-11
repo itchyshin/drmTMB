@@ -461,6 +461,14 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(has_phylo_mu_q2_covariance);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  // Stationary evolutionary OU tree provider. These are inert for Brownian
+  // phylogenies and every non-phylogenetic model.
+  DATA_INTEGER(phylo_ou_model);
+  DATA_INTEGER(phylo_ou_n_nodes);
+  DATA_INTEGER(phylo_ou_root_index);
+  DATA_IVECTOR(phylo_ou_edge_parent);
+  DATA_IVECTOR(phylo_ou_edge_child);
+  DATA_VECTOR(phylo_ou_edge_length);
   DATA_INTEGER(has_temporal_mu);
   DATA_IVECTOR(temporal_mu_node_index);
   DATA_IVECTOR(temporal_mu_series_start);
@@ -559,6 +567,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(log_sd_phylo);
   PARAMETER_VECTOR(theta_phylo);
   PARAMETER(eta_cor_phylo);
+  PARAMETER(log_decay_phylo);
   PARAMETER_VECTOR(u_phylo2);
   PARAMETER_VECTOR(log_sd_phylo2);
 
@@ -1118,7 +1127,7 @@ Type objective_function<Type>::operator()()
             sd_logscale_overflow_guard_hit);
         }
       }
-      int n_phylo = Q_phylo.rows();
+      int n_phylo = phylo_ou_model == 1 ? phylo_ou_n_nodes : Q_phylo.rows();
       int q_phylo = log_sd_phylo.size();
       bool has_cross_dpar_phylo =
         q_phylo == 2 && phylo_mu_dpar(0) != phylo_mu_dpar(1);
@@ -1138,7 +1147,40 @@ Type objective_function<Type>::operator()()
         }
       }
       Type quadratic = Type(0.0);
-      if (has_cross_dpar_phylo && has_sd_phylo_model == 0) {
+      if (phylo_ou_model == 1) {
+        // Stationary OU on the phylogenetic tree.  The root carries the
+        // stationary N(0, sd_phylo^2) density; each edge carries the
+        // normalized transition with correlation exp(-decay * branch_length).
+        // This is algebraically the same covariance as ape::corMartins, but
+        // stays sparse and differentiable in the estimated positive decay.
+        Type decay_phylo = exp(log_decay_phylo);
+        Type root_sd = sd_phylo(0);
+        Type root_z = u_phylo(phylo_ou_root_index) / root_sd;
+        quadratic += root_z * root_z;
+        nll -= dnorm(
+          u_phylo(phylo_ou_root_index), Type(0.0), root_sd, true
+        );
+        for (int edge_id = 0; edge_id < phylo_ou_edge_length.size(); ++edge_id) {
+          Type correlation = exp(-decay_phylo * phylo_ou_edge_length(edge_id));
+          Type transition_sd = root_sd * sqrt(drm_one_minus_exp_neg(
+            Type(2.0) * decay_phylo * phylo_ou_edge_length(edge_id)
+          ));
+          Type residual = u_phylo(phylo_ou_edge_child(edge_id)) -
+            correlation * u_phylo(phylo_ou_edge_parent(edge_id));
+          Type transition_z = residual / transition_sd;
+          quadratic += transition_z * transition_z;
+          nll -= dnorm(
+            u_phylo(phylo_ou_edge_child(edge_id)),
+            correlation * u_phylo(phylo_ou_edge_parent(edge_id)),
+            transition_sd,
+            true
+          );
+        }
+        REPORT(log_decay_phylo);
+        REPORT(decay_phylo);
+        ADREPORT(log_decay_phylo);
+        ADREPORT(decay_phylo);
+      } else if (has_cross_dpar_phylo && has_sd_phylo_model == 0) {
         Type rho_phylo = Type(0.999999) * tanh(eta_cor_phylo);
         vector<Type> u1(n_phylo);
         vector<Type> u2(n_phylo);

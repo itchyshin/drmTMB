@@ -632,6 +632,7 @@ drm_fit_spec <- function(
   }
 
   spec$response_names <- drm_spec_response_names(spec)
+  drm_validate_phylo_ou_scope(spec, REML = REML)
   spec <- add_covariance_probe_parameter(spec)
   drm_validate_binomial_q2_context(spec, REML = REML)
   spec <- drm_apply_estimator_spec(
@@ -14148,6 +14149,7 @@ empty_phylo_mu_structure <- function() {
     q = 0L,
     coef_names = character(),
     tree = NA_character_,
+    model = "bm",
     n_re = 0L,
     precision = NULL,
     value = matrix(0, nrow = 0L, ncol = 0L),
@@ -14181,12 +14183,6 @@ build_phylo_mu_structure <- function(term, data, env) {
     return(empty_phylo_mu_structure())
   }
   model <- term$model %||% "bm"
-  if (identical(model, "ou")) {
-    cli::cli_abort(c(
-      "Phylogenetic OU covariance is not available until its native tree provider is installed.",
-      "i" = "Use the default {.code phylo(1 | species, tree = tree)} Brownian model for now."
-    ))
-  }
   value <- structured_mu_design_matrix(term, data, marker = "phylo")
   dpars <- if (is.null(term$dpars)) {
     "mu"
@@ -14248,7 +14244,11 @@ build_phylo_mu_structure <- function(term, data, env) {
   }
 
   tree <- evaluate_phylo_tree(term$tree, env)
-  precision <- drm_phylo_augmented_precision(tree, species = species)
+  precision <- if (identical(model, "ou")) {
+    drm_phylo_ou_augmented_layout(tree, species = species)
+  } else {
+    drm_phylo_augmented_precision(tree, species = species)
+  }
   observation_node_index <- precision$species_node_index[
     precision$observation_species_index
   ]
@@ -14284,6 +14284,38 @@ build_phylo_mu_structure <- function(term, data, env) {
     species_levels = precision$species_levels,
     group_levels = precision$species_levels
   )
+}
+
+drm_validate_phylo_ou_scope <- function(spec, REML = FALSE) {
+  phylo_mu <- spec$structured$phylo_mu
+  if (!is.list(phylo_mu) || !isTRUE(phylo_mu$has) ||
+      !identical(phylo_mu$model, "ou")) {
+    return(invisible(spec))
+  }
+  supported <- identical(spec$model_type, "gaussian") &&
+    identical(phylo_mu$dpars, "mu") &&
+    identical(phylo_mu$q, 1L) &&
+    identical(phylo_mu$coef_names, "(Intercept)") &&
+    identical(spec$random$mu$n_terms, 0L) &&
+    identical(spec$random$sigma$n_terms, 0L) &&
+    identical(spec$random_scale$phylo$n_models, 0L) &&
+    !isTRUE(spec$structured$temporal_mu$has) &&
+    !isTRUE(spec$structured$mesh_spatial_mu$has) &&
+    !isTRUE(REML)
+  if (!supported) {
+    cli::cli_abort(c(
+      "The first phylogenetic OU route supports a univariate Gaussian ML location intercept only.",
+      "i" = "Use {.code bf(y ~ x + phylo(1 | species, tree = tree, model = \"ou\"), sigma ~ 1)} with no other random or structured effects.",
+      "i" = "Scale-side OU, slopes, temporal combinations, and non-Gaussian models have separate planned evidence gates."
+    ))
+  }
+  if (length(phylo_mu$species_levels) < 3L) {
+    cli::cli_abort(c(
+      "Phylogenetic OU covariance needs at least three observed species.",
+      "i" = "Use the Brownian default for a two-species analysis, or add independently observed species."
+    ))
+  }
+  invisible(spec)
 }
 
 build_phylo_interaction_mu_structure <- function(term, data, env) {
@@ -20578,6 +20610,10 @@ add_covariance_probe_parameter <- function(spec) {
   has_temporal_mu <- is.list(spec$structured) &&
     is.list(spec$structured$temporal_mu) &&
     isTRUE(spec$structured$temporal_mu$has)
+  has_phylo_ou <- is.list(spec$structured) &&
+    is.list(spec$structured$phylo_mu) &&
+    isTRUE(spec$structured$phylo_mu$has) &&
+    identical(spec$structured$phylo_mu$model, "ou")
   if (is.null(spec$start$u_re_cov)) {
     spec$start$u_re_cov <- 0
   }
@@ -20651,6 +20687,12 @@ add_covariance_probe_parameter <- function(spec) {
   }
   if (is.null(spec$start$theta_phylo)) {
     spec$start$theta_phylo <- 0
+  }
+  if (is.null(spec$start$log_decay_phylo)) {
+    spec$start$log_decay_phylo <- log(0.5)
+  }
+  if (is.null(spec$map$log_decay_phylo) && !has_phylo_ou) {
+    spec$map$log_decay_phylo <- factor(NA)
   }
   if (is.null(spec$map$theta_phylo) && !has_qgt2_phylo_cov) {
     spec$map$theta_phylo <- factor(NA)
@@ -22118,11 +22160,30 @@ make_tmb_data <- function(spec) {
   # The TMB template declares mesh fields globally, so every builder-level
   # data contract must carry them. This also protects tracked low-level tools
   # that intentionally call MakeADFun() without passing through drm_fit_spec().
-  out <- add_mesh_spatial_tmb_data(make_tmb_data_core(spec), spec)
+  out <- add_phylo_ou_tmb_data(make_tmb_data_core(spec), spec)
+  out <- add_mesh_spatial_tmb_data(out, spec)
   out$use_mspl <- 0L
   out$mspl_c_n <- 0
   out$mspl_q <- 0L
   out
+}
+
+# Fields are global in the compiled template. Brownian and non-phylogenetic
+# fits receive inert values; the OU path receives the augmented root-and-edge
+# layout evaluated by the stationary native tree prior.
+add_phylo_ou_tmb_data <- function(tmb_data, spec) {
+  phylo_mu <- if (is.list(spec$structured)) spec$structured$phylo_mu else NULL
+  is_ou <- is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+    identical(phylo_mu$model, "ou")
+  layout <- if (is_ou) phylo_mu$precision else NULL
+  c(tmb_data, list(
+    phylo_ou_model = as.integer(is_ou),
+    phylo_ou_n_nodes = if (is_ou) as.integer(layout$n_re) else 0L,
+    phylo_ou_root_index = if (is_ou) as.integer(layout$root_index0) else 0L,
+    phylo_ou_edge_parent = if (is_ou) layout$edge_parent_index0 else 0L,
+    phylo_ou_edge_child = if (is_ou) layout$edge_child_index0 else 0L,
+    phylo_ou_edge_length = if (is_ou) layout$edge_length else 0
+  ))
 }
 
 split_tmb_parameters <- function(par, spec) {
