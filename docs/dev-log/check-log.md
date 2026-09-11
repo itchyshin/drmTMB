@@ -94720,3 +94720,12 @@ focused exact-function regression fixture returned `G12_CHECKSUM_SIDECAR_PASS`.
 Task 1's unchanged archive retains its original invalid sidecar separately;
 its corrected sidecar will be documented and reverified before its Totoro
 mirror is accepted.
+
+## 2026-09-10 — G12 wrapper fingerprint before array release
+
+Task 1's durable receipt contains the exact wrapper that ran, but future task artifacts
+need their operational wrapper as a first-class configuration input. The task wrapper
+now requires a lowercase SHA-256 environment value, writes it into each task's
+`slurm-provenance.txt`, and rejects a malformed or absent value before work begins.
+This preserves the immutable source/dependency fingerprints while making the post-smoke
+checksum repair auditable for every released array task.

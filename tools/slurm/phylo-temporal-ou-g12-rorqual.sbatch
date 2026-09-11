@@ -15,6 +15,7 @@ set -euo pipefail
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_DEP_ARCHIVE:?Set the sealed offline R dependency archive in /scratch}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_STAGE_ROOT:?Set an empty /scratch campaign staging root}"
 : "${DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT:?Set the frozen 40-character source commit}"
+: "${DRMTMB_PHYLO_TEMPORAL_OU_G12_TASK_WRAPPER_SHA256:?Set the exact 64-character task wrapper SHA-256}"
 
 if [[ "${SLURM_CLUSTER_NAME:-}" != "rorqual" || -z "${SLURM_JOB_ID:-}" ]]; then
   echo 'Refusing execution outside a scheduled Rorqual job.' >&2
@@ -26,6 +27,10 @@ if ! [[ "${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-9]+$ ]] || (( SLURM_ARRAY_TASK_ID < 1 
 fi
 if ! [[ "$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
   echo 'G12 source commit must be a 40-character lowercase SHA.' >&2
+  exit 2
+fi
+if ! [[ "$DRMTMB_PHYLO_TEMPORAL_OU_G12_TASK_WRAPPER_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+  echo 'G12 task wrapper hash must be a 64-character lowercase SHA-256.' >&2
   exit 2
 fi
 
@@ -91,6 +96,7 @@ printf "%s\n" "$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT" > "$source_dir/SOURC
   echo "cluster=$SLURM_CLUSTER_NAME"
   echo "node=${SLURMD_NODENAME:-$(hostname)}"
   echo "source_commit=$DRMTMB_PHYLO_TEMPORAL_OU_G12_SOURCE_COMMIT"
+  echo "task_wrapper_sha256=$DRMTMB_PHYLO_TEMPORAL_OU_G12_TASK_WRAPPER_SHA256"
   echo "source_archive=$source_archive"
   echo "source_archive_sha256=$(sha256sum "$source_archive" | awk '{print $1}')"
   echo "dependency_archive=$dep_archive"
