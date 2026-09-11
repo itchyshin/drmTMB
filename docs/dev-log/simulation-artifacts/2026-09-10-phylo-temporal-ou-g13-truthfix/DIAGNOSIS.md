@@ -21,3 +21,9 @@ profile widths. It does not by itself identify the cause. The next diagnostic
 must separate conditional-on-tree behaviour from nuisance variance-component
 and profile-approximation effects before changing the estimator, interval
 method, thresholds, or temporal scope.
+
+On the independent small dense-oracle fixture, the fast full-profile intercept
+endpoints differ from the dense marginal-likelihood endpoints by at most
+0.00073. The regression test now checks both intercept and slope targets. This
+rules out a basic endpoint discrepancy on that fixture, but does not establish
+calibration in the larger campaign cells.
