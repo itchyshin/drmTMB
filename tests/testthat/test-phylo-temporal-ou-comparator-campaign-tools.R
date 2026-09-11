@@ -11,6 +11,8 @@ test_that('paired comparator campaign shell tools are bounded and source-only', 
   wrapper_text <- paste(readLines(wrapper, warn = FALSE), collapse = '\n')
   expect_true(grepl('run-phylo-temporal-ou-comparator-task.R', archive_text, fixed = TRUE))
   expect_true(grepl('DRMTMB_PHYLO_TEMPORAL_OU_COMPARATOR_BASE_RLIB', provision_text, fixed = TRUE))
+  expect_true(grepl('DRMTMB_PHYLO_TEMPORAL_OU_COMPARATOR_SOURCE_ARCHIVE', provision_text, fixed = TRUE))
+  expect_true(grepl('R CMD INSTALL --library', provision_text, fixed = TRUE))
   expect_true(grepl('glmmTMB', provision_text, fixed = TRUE))
   expect_true(grepl('--mem=4G', provision_text, fixed = TRUE))
   expect_true(grepl('--mem=4G', wrapper_text, fixed = TRUE))
