@@ -197,6 +197,33 @@ coefficients only. Profile, process-SD, persistence and residual-SD intervals re
 unavailable. This fit-level feasibility result makes no coverage or standard-error
 calibration claim.
 
+### Stationary phylogenetic OU covariance
+
+`phylo(1 | species, tree = tree, model = "ou")` is a covariance choice for an
+evolutionary random intercept, not a temporal or spatial process. For observed
+species tips \(i,j\), it uses
+
+\[
+\operatorname{Cov}(b_i,b_j)=s_{phylo}^2\exp(-\alpha d_{ij}),\qquad \alpha>0,
+\]
+
+where \(d_{ij}\) is patristic branch distance. Native evaluation retains every
+tree node: the root has a stationary normal density and a branch of length
+\(l\) has transition coefficient \(\exp(-\alpha l)\) and variance factor
+\(1-\exp(-2\alpha l)\). It is distinct from Brownian covariance; neither
+small nor large positive decay is a Brownian limit.
+
+The first route is univariate Gaussian ML with one phylogenetic location
+intercept, fixed mean effects and offsets, constant residual `sigma`, and at
+least three observed species. It reports a positive `decay_phylo` point
+estimate, conditional modes, in-sample fitted values, residuals and seeded
+simulation. Slopes, scale-side phylogenetic OU, ordinary or other structured
+effects, temporal terms, REML, non-Gaussian families, new-data prediction and
+forecasts are deferred. Wald, profile and bootstrap intervals for decay are
+also deferred. The retained local recovery panel found that an overall intercept
+can be weakly separated from one realised tree field, so it makes no
+point-recovery or interval claim.
+
 ### Phylogenetic stable intercept plus independent OU deviations
 
 The development-only paired route combines `phylo(1 | species, tree = tree)`

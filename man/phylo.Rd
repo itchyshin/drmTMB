@@ -4,13 +4,16 @@
 \alias{phylo}
 \title{Phylogenetic structured-effect marker}
 \usage{
-phylo(term, tree)
+phylo(term, tree, model = "bm")
 }
 \arguments{
 \item{term}{Structured random-effect term, currently \code{1 | species} or
 \code{1 + x | species}.}
 
 \item{tree}{Ultrametric phylogeny input with branch lengths.}
+
+\item{model}{Phylogenetic covariance model: \code{"bm"} (the default) or
+\code{"ou"}.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -20,7 +23,13 @@ A formula marker; never evaluated by users.
 fitted paths support Gaussian location and residual-scale effects,
 response-specific direct-SD formulas for location effects, labelled
 bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
-and NB2 q=1 location effects. Use \code{phylo(1 | species, tree = tree)} in
+and NB2 q=1 location effects. \code{model = "bm"} is the default Brownian
+covariance. The first evolutionary OU route is
+\code{phylo(1 | species, tree = tree, model = "ou")} in a univariate Gaussian
+location formula with \code{sigma ~ 1}: it estimates a positive decay rate over
+phylogenetic branch distance. It is separate from temporal OU and does not
+yet support slopes, residual-scale effects, other random effects, REML,
+non-Gaussian families, or decay intervals. Use \code{phylo(1 | species, tree = tree)} in
 univariate Gaussian \code{mu}, univariate Gaussian \code{sigma}, ordinary Poisson \code{mu},
 or ordinary NB2 \code{mu}, \code{phylo(1 + x | species, tree = tree)} for the
 unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate

@@ -94923,3 +94923,16 @@ P1 G13 coverage rows.
 - **Extraction and boundary:** the fitted positive tree-decay value is now exposed as `decay_phylo`, and target inspection lists it as `phylogenetic-decay`. Its Wald, profile and bootstrap intervals are deliberately unavailable pending recovery evidence; `check_drm()` reports that status beside the ordinary Hessian and phylogenetic-field diagnostics.
 - **Simulation repair:** a fresh marginal draw now follows the fitted stationary root-plus-edge OU process in root-distance order. It no longer uses the generic precision-matrix draw, which would have incorrectly treated the OU layout's identity plumbing matrix as a Brownian covariance.
 - **Behaviour evidence:** deterministic seeded tests cover the root draw, each branch transition, fitted values, residuals, conditional simulation, and fresh simulation. `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO6` emitted `PHYLO_OU_COVARIANCE_PO6_PASS`.
+
+## 2026-09-11 — phylogenetic OU covariance PO7 retained recovery assessment
+
+- **Runner repair retained:** the first runner receipt is retained under `recovery-script-contract-error-20260911/`. It failed before a fit because the formula grammar correctly requires `tree = tree`, not `tree = fixture$tree`; the runner was corrected without changing any fixture seed, data-generating values, or thresholds.
+- **Frozen assessment:** the corrected 12-fixture local panel completed all fits with finite objectives and positive-definite Hessians. Median fit time was 0.208 seconds, median absolute log-SD error 0.3108, and median absolute log-decay error 0.6880, all within their predeclared aggregate criteria.
+- **Retained failure:** the predeclared every-fixture intercept error limit of 0.20 failed in several single-tree draws. The within-species treatment effect cleared its limit, but the intercept is weakly separable from one phylogenetic random-field realization. No threshold was relaxed and this provider receives neither a point-recovery nor an interval claim from this panel.
+- **Gate:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO7` verifies the complete denominator and the recorded failure without rerunning a fit.
+
+## 2026-09-11 — phylogenetic OU covariance PO8--PO9 timing and reader workflow
+
+- **Measured local timing:** the first five frozen fixtures took 3.193 seconds total (median 0.240 seconds; maximum 2.144 seconds), all with positive-definite Hessians. This is a local timing receipt only; it does not authorize a longer run.
+- **Reader contract:** the formula reference, formula grammar, likelihood design and a locally rendered formula-grammar article now present phylo(..., model = "ou") as evolutionary tree covariance. They retain BM as the default and distinguish this work from temporal OU, spatial OU, the existing phylogeny-plus-temporal-OU route, and future scale-side phylogenetic OU.
+- **Boundary:** the reader material reports decay_phylo as a point estimate with no Wald, profile or bootstrap interval. It records the failed intercept-recovery criterion rather than promoting the new provider beyond its local-fit evidence.

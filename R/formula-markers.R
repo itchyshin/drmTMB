@@ -160,8 +160,12 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' response-specific direct-SD formulas for location effects, labelled
 #' bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
 #' and NB2 q=1 location effects. `model = "bm"` is the default Brownian
-#' covariance; `model = "ou"` names the planned evolutionary OU covariance
-#' route. Use `phylo(1 | species, tree = tree)` in
+#' covariance. The first evolutionary OU route is
+#' `phylo(1 | species, tree = tree, model = "ou")` in a univariate Gaussian
+#' location formula with `sigma ~ 1`: it estimates a positive decay rate over
+#' phylogenetic branch distance. It is separate from temporal OU and does not
+#' yet support slopes, residual-scale effects, other random effects, REML,
+#' non-Gaussian families, or decay intervals. Use `phylo(1 | species, tree = tree)` in
 #' univariate Gaussian `mu`, univariate Gaussian `sigma`, ordinary Poisson `mu`,
 #' or ordinary NB2 `mu`, `phylo(1 + x | species, tree = tree)` for the
 #' unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate

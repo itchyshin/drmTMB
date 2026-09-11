@@ -33,20 +33,20 @@
   EXPECT: PHYLO_OU_COVARIANCE_PO6_PASS
   EVIDENCE: 2026-09-11: the focused compiled test gate emitted `PHYLO_OU_COVARIANCE_PO6_PASS`. `decay_phylo` is labelled in extraction and target inspection as a positive point estimate with Wald, profile and bootstrap intervals deferred. Fresh simulation now uses the stationary root-plus-edge OU draw, and deterministic seeded checks distinguish it from the generic Brownian draw.
 
-- [ ] PO7: Frozen local point-recovery fixtures retain starts and failures; their predeclared thresholds are assessed without a coverage claim.
+- [x] PO7: Frozen local point-recovery fixtures retain starts and failures; their predeclared thresholds are assessed without a coverage claim.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO7
   EXPECT: PHYLO_OU_COVARIANCE_PO7_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: all 12 finite local fits and their timings are retained. The predeclared all-fixture intercept threshold failed, while treatment-effect, median phylogenetic-SD and median decay thresholds passed. This failure is retained as an intercept-versus-tree-field separation limitation, so the provider earns no point-recovery or interval claim.
 
-- [ ] PO8: Five-fixture timing and feasibility pilot records time, memory and denominator completeness before any longer proposal.
+- [x] PO8: Five-fixture timing and feasibility pilot records time, memory and denominator completeness before any longer proposal.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO8
   EXPECT: PHYLO_OU_COVARIANCE_PO8_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: the first five retained fixtures completed in 3.193 seconds total (median 0.240 seconds; maximum 2.144 seconds), with 5/5 positive-definite Hessians. No longer proposal or campaign is made.
 
-- [ ] PO9: Formula reference, likelihood design and reader workflow render with the BM default, OU interpretation and scale-side deferral clear.
+- [x] PO9: Formula reference, likelihood design and reader workflow render with the BM default, OU interpretation and scale-side deferral clear.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO9
   EXPECT: PHYLO_OU_COVARIANCE_PO9_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: man/phylo.Rd, the formula grammar, likelihood design and a locally rendered formula-grammar article now distinguish Brownian default from evolutionary tree OU, explicitly separate it from temporal OU, and retain the no-interval and no-scale-side boundary.
 
 - [ ] PO10: Independent Noether mathematical review and Pat reader review have no unresolved blocking defect.
   EVIDENCE: pending

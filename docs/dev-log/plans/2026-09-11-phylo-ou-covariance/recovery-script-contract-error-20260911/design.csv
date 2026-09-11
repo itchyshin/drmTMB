@@ -1,0 +1,13 @@
+"decay","layout","order","fixture_id","seed"
+0.2,"balanced","ordered","F01",2026091201
+0.8,"balanced","ordered","F02",2026091202
+2,"balanced","ordered","F03",2026091203
+0.2,"unbalanced","ordered","F04",2026091204
+0.8,"unbalanced","ordered","F05",2026091205
+2,"unbalanced","ordered","F06",2026091206
+0.2,"balanced","shuffled","F07",2026091207
+0.8,"balanced","shuffled","F08",2026091208
+2,"balanced","shuffled","F09",2026091209
+0.2,"unbalanced","shuffled","F10",2026091210
+0.8,"unbalanced","shuffled","F11",2026091211
+2,"unbalanced","shuffled","F12",2026091212

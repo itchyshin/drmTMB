@@ -65,6 +65,55 @@ if (identical(gate, "PO1")) {
   if (reverify) stop("PO6 does not accept --reverify.", call. = FALSE)
   run_test_file("tests/testthat/test-phylo-ou-covariance-native.R", compile = TRUE)
   cat("PHYLO_OU_COVARIANCE_PO6_PASS\n")
+} else if (identical(gate, "PO7")) {
+  if (reverify) stop("PO7 does not accept --reverify.", call. = FALSE)
+  result_path <- "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/recovery/RESULTS.md"
+  data_path <- "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/recovery/results.csv"
+  if (!file.exists(result_path) || !file.exists(data_path)) {
+    stop("PO7 retained recovery output is missing.", call. = FALSE)
+  }
+  results <- utils::read.csv(data_path, stringsAsFactors = FALSE)
+  report <- paste(readLines(result_path, warn = FALSE), collapse = "\n")
+  if (nrow(results) != 12L || !all(results$status == "fit") ||
+      !all(is.finite(results$objective)) ||
+      !grepl("all_fixed_effect_errors_le_0_20: FAIL", report, fixed = TRUE)) {
+    stop("PO7 retained recovery assessment is incomplete or its failed intercept criterion was not retained.", call. = FALSE)
+  }
+  cat("PHYLO_OU_COVARIANCE_PO7_PASS\n")
+} else if (identical(gate, "PO8")) {
+  if (reverify) stop("PO8 does not accept --reverify.", call. = FALSE)
+  pilot_path <- "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/pilot/RESULTS.md"
+  if (!file.exists(pilot_path)) stop("PO8 timing receipt is missing.", call. = FALSE)
+  pilot <- paste(readLines(pilot_path, warn = FALSE), collapse = "\n")
+  required <- c("Fixtures | 5 / 5 complete", "Median elapsed time | 0.240 seconds",
+    "Positive-definite Hessians | 5 / 5")
+  if (!all(vapply(required, grepl, logical(1), x = pilot, fixed = TRUE))) {
+    stop("PO8 timing receipt is incomplete.", call. = FALSE)
+  }
+  cat("PHYLO_OU_COVARIANCE_PO8_PASS\n")
+} else if (identical(gate, "PO9")) {
+  if (reverify) stop("PO9 does not accept --reverify.", call. = FALSE)
+  required_files <- c(
+    "man/phylo.Rd",
+    "docs/design/01-formula-grammar.md",
+    "docs/design/03-likelihoods.md",
+    "vignettes/formula-grammar.Rmd",
+    "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/render/formula-grammar.html"
+  )
+  if (!all(file.exists(required_files))) stop("PO9 required reader artifacts are missing.", call. = FALSE)
+  all_text <- paste(vapply(required_files, function(path) {
+    paste(readLines(path, warn = FALSE), collapse = "\n")
+  }, character(1)), collapse = "\n")
+  required_text <- c(
+    "model = \"ou\"",
+    "decay_phylo",
+    "separate from temporal OU",
+    "interval"
+  )
+  if (!all(vapply(required_text, grepl, logical(1), x = all_text, fixed = TRUE))) {
+    stop("PO9 reader artifacts do not state the OU-tree boundary.", call. = FALSE)
+  }
+  cat("PHYLO_OU_COVARIANCE_PO9_PASS\n")
 } else {
   stop(
     sprintf("%s is pending: its gate has no accepted implementation evidence yet.", gate),

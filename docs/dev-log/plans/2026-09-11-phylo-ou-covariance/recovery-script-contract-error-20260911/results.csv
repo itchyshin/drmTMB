@@ -1,0 +1,37 @@
+"fixture_id","seed","decay_truth","layout","order","n","elapsed_seconds","status","message","convergence","pd_hess","objective","beta0","beta_x","sd_phylo","decay_phylo","beta0_error","beta_x_error","log_sd_error","log_decay_error"
+"F01",2026091201,0.2,"balanced","ordered",288,0.024,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F02",2026091202,0.8,"balanced","ordered",288,0.112,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F03",2026091203,2,"balanced","ordered",288,0.0089999999999999,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F04",2026091204,0.2,"unbalanced","ordered",264,0.00800000000000001,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F05",2026091205,0.8,"unbalanced","ordered",264,0.00800000000000001,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F06",2026091206,2,"unbalanced","ordered",264,0.00900000000000034,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F07",2026091207,0.2,"balanced","shuffled",288,0.0089999999999999,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F08",2026091208,0.8,"balanced","shuffled",288,0.00900000000000034,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F09",2026091209,2,"balanced","shuffled",288,0.0100000000000002,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F10",2026091210,0.2,"unbalanced","shuffled",264,0.0089999999999999,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F11",2026091211,0.8,"unbalanced","shuffled",264,0.00800000000000001,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+"F12",2026091212,2,"unbalanced","shuffled",264,0.00800000000000001,"error","`tree` must be the name of a phylogeny object.
+✖ Use syntax like `phylo(1 | species, tree = tree, model = ""bm"")` or `phylo(1 |
+  species, tree = tree, model = ""ou"")` .",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
