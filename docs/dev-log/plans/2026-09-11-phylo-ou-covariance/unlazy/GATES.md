@@ -23,10 +23,10 @@
   EXPECT: PHYLO_OU_COVARIANCE_PO4_PASS
   EVIDENCE: 2026-09-11: native likelihood, automatic score and observed Hessian agreed with an independent dense covariance oracle; finite-difference Hessians at 1e-4 and 1e-5 agreed.
 
-- [ ] PO5: Tree-OU reductions and named mutations fail in the intended direction; BM is an explicit alternative, not an OU boundary.
+- [x] PO5: Tree-OU reductions and named mutations fail in the intended direction; BM is an explicit alternative, not an OU boundary.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO5
   EXPECT: PHYLO_OU_COVARIANCE_PO5_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: normalized root-plus-edge density matched the dense all-node covariance. Omitted-root, wrong-transition-variance, and compressed-branch mutations disagreed; BM, row-order temporal kernel, and shared-tree-state mutations also disagreed. The small- and large-decay limits were retained as explicit OU limits, never BM limits.
 
 - [ ] PO6: Extraction, diagnostics, conditional modes, fitted values, residuals and seeded simulations expose labelled phylogenetic decay and retain their inference boundary.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO6

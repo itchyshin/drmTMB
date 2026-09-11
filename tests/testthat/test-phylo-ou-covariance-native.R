@@ -141,3 +141,95 @@ test_that("OU-tree score and observed Hessian match the dense covariance oracle"
   expect_equal(hessian_1, hessian_2, tolerance = 1e-4)
   expect_equal(unname(observed_hessian), unname(hessian_1), tolerance = 1e-4)
 })
+
+phylo_ou_markov_nll <- function(layout, state, sd, decay,
+                                include_root = TRUE,
+                                edge_length = layout$edge_length,
+                                transition_variance = c("stationary", "wrong")) {
+  transition_variance <- match.arg(transition_variance)
+  out <- 0
+  if (include_root) {
+    out <- out - stats::dnorm(state[[layout$root_index0 + 1L]], 0, sd, log = TRUE)
+  }
+  for (edge_id in seq_along(edge_length)) {
+    rho <- exp(-decay * edge_length[[edge_id]])
+    variance_factor <- if (identical(transition_variance, "stationary")) {
+      1 - rho^2
+    } else {
+      1 - rho
+    }
+    parent <- state[[layout$edge_parent_index0[[edge_id]] + 1L]]
+    child <- state[[layout$edge_child_index0[[edge_id]] + 1L]]
+    out <- out - stats::dnorm(child, rho * parent, sd * sqrt(variance_factor),
+      log = TRUE
+    )
+  }
+  out
+}
+
+phylo_ou_all_node_correlation <- function(tree, decay) {
+  info <- drmTMB:::validate_phylo_tree(tree)
+  edge <- tree$edge
+  n_node <- info$n_tip + info$n_node
+  parent <- integer(n_node)
+  parent[edge[, 2L]] <- edge[, 1L]
+  ancestor <- lapply(seq_len(n_node), drmTMB:::phylo_node_ancestors,
+    parent = parent
+  )
+  out <- matrix(0, n_node, n_node)
+  for (i in seq_len(n_node)) for (j in seq_len(n_node)) {
+    mrca_depth <- max(info$node_depth[intersect(ancestor[[i]], ancestor[[j]])])
+    distance <- info$node_depth[[i]] + info$node_depth[[j]] - 2 * mrca_depth
+    out[i, j] <- exp(-decay * distance)
+  }
+  out
+}
+
+test_that("OU-tree reductions and mutations expose the intended mechanisms", {
+  skip_if_not_installed("ape")
+  set.seed(2026091108)
+  tree <- ape::rcoal(6)
+  tree$tip.label <- paste0("sp", seq_len(6))
+  layout <- drmTMB:::drm_phylo_ou_augmented_layout(tree)
+  decay <- 0.7
+  sd <- 0.65
+  state <- stats::rnorm(layout$n_re)
+  correlation <- phylo_ou_all_node_correlation(tree, decay)
+  covariance <- sd^2 * correlation
+  root <- chol(covariance)
+  dense_nll <- 0.5 * (
+    length(state) * log(2 * pi) + 2 * sum(log(diag(root))) +
+      sum(forwardsolve(t(root), state)^2)
+  )
+  correct <- phylo_ou_markov_nll(layout, state, sd, decay)
+  missing_root <- phylo_ou_markov_nll(layout, state, sd, decay,
+    include_root = FALSE
+  )
+  wrong_variance <- phylo_ou_markov_nll(layout, state, sd, decay,
+    transition_variance = "wrong"
+  )
+  compressed <- phylo_ou_markov_nll(layout, state, sd, decay,
+    edge_length = rep(mean(layout$edge_length), length(layout$edge_length))
+  )
+  tip_ou <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = decay)
+  tip_bm <- drmTMB:::drm_phylo_tip_covariance(tree)
+  large_decay <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 100)
+  small_decay <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 1e-8)
+  temporal_kernel <- exp(-decay * abs(outer(seq_len(nrow(tip_ou)),
+    seq_len(nrow(tip_ou)), "-"
+  )))
+  independent_trees <- Matrix::bdiag(tip_ou, tip_ou)
+  shared_tree_state <- rbind(cbind(tip_ou, tip_ou), cbind(tip_ou, tip_ou))
+
+  expect_equal(correct, dense_nll, tolerance = 1e-10)
+  expect_false(isTRUE(all.equal(missing_root, dense_nll)))
+  expect_false(isTRUE(all.equal(wrong_variance, dense_nll)))
+  expect_false(isTRUE(all.equal(compressed, dense_nll)))
+  expect_false(isTRUE(all.equal(tip_ou, tip_bm)))
+  expect_false(isTRUE(all.equal(tip_ou, temporal_kernel)))
+  expect_false(isTRUE(all.equal(as.matrix(independent_trees), shared_tree_state)))
+  expect_lt(max(large_decay[row(large_decay) != col(large_decay)]), 1e-6)
+  expect_equal(unname(small_decay), matrix(1, nrow(small_decay), ncol(small_decay)),
+    tolerance = 1e-7
+  )
+})

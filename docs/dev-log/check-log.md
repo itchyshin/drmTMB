@@ -94910,3 +94910,10 @@ P1 G13 coverage rows.
 - **Independent comparison:** an `ape::corMartins`-matched dense covariance, `s_phylo^2 exp(-decay * d_ij) + sigma^2 I`, reproduced the fitted native marginal likelihood.
 - **Derivative evidence:** at a simulated 15-tip, 120-row Gaussian panel, the native automatic score matched the independently evaluated dense score. The native observed Hessian matched each dense finite-difference Hessian (`eps = 1e-4` and `1e-5`), which also agreed with one another.
 - **Gate:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO4` emitted `PHYLO_OU_COVARIANCE_PO4_PASS`. This closes numerical equivalence for the initial location-side provider; it does not establish recovery, interval calibration, public decay extraction, scale-side support, or a broader family scope.
+
+## 2026-09-11 — phylogenetic OU covariance PO5 reductions and mutations
+
+- **Normalized process:** the root-plus-edge stationary density equals the dense all-node OU covariance. Dropping the root density, using `1 - exp(-decay * length)` in place of `1 - exp(-2 * decay * length)`, or replacing the observed branch lengths by a common mean changes the likelihood.
+- **Axis separation:** the evolutionary tip covariance differs from the Brownian tree covariance, a row-order elapsed-time kernel, and a covariance that shares a latent tree state across independent trees.
+- **Limits:** small positive decay approaches the all-ones stationary OU correlation and large decay approaches independent tips. Neither is labelled or tested as a Brownian limit.
+- **Gate:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO5` emitted `PHYLO_OU_COVARIANCE_PO5_PASS`.

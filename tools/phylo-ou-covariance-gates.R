@@ -57,6 +57,10 @@ if (identical(gate, "PO1")) {
   if (reverify) stop("PO4 does not accept --reverify.", call. = FALSE)
   run_test_file("tests/testthat/test-phylo-ou-covariance-native.R", compile = TRUE)
   cat("PHYLO_OU_COVARIANCE_PO4_PASS\n")
+} else if (identical(gate, "PO5")) {
+  if (reverify) stop("PO5 does not accept --reverify.", call. = FALSE)
+  run_test_file("tests/testthat/test-phylo-ou-covariance-native.R", compile = TRUE)
+  cat("PHYLO_OU_COVARIANCE_PO5_PASS\n")
 } else {
   stop(
     sprintf("%s is pending: its gate has no accepted implementation evidence yet.", gate),
