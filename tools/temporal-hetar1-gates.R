@@ -94,7 +94,7 @@ if (identical(gate, "T4-6")) {
   report <- file.path("docs", "dev-log", "after-task", "2026-09-11-temporal-hetar1-closeout.md")
   report_text <- if (file.exists(report)) paste(readLines(report, warn = FALSE), collapse = "\n") else ""
   required_report_text <- c(
-    "## Goal", "## Checks Run", "R CMD check", "Noether", "Pat", "#1302", "## Known Limitations"
+    "## 1. Goal", "## 5. Checks Run", "R CMD check", "Noether", "Pat", "#1302", "## 10. Known Residuals", "does NOT cover"
   )
   clean_tree <- length(system2("git", c("status", "--porcelain"), stdout = TRUE)) == 0L
   if (!all(vapply(required_report_text, grepl, logical(1), x = report_text, fixed = TRUE)) || !clean_tree) {
