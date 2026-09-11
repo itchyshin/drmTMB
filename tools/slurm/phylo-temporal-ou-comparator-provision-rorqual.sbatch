@@ -63,7 +63,7 @@ for (round in seq_len(length(remaining) + 1L)) {
     if (all(available)) {
       status <- system2(file.path(R.home('bin'), 'R'), c('CMD', 'INSTALL', '--library', lib, remaining[[pkg]]), env = c('CXXFLAGS=-O0', 'MAKEFLAGS=-e'))
       if (!identical(status, 0L)) stop('Installation failed for ', pkg, call. = FALSE)
-      remaining[[pkg]] <- NULL
+      remaining <- remaining[names(remaining) != pkg]
       progressed <- TRUE
     }
   }

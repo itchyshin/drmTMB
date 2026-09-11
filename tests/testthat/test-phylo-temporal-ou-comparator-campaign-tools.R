@@ -14,6 +14,7 @@ test_that('paired comparator campaign shell tools are bounded and source-only', 
   expect_true(grepl('DRMTMB_PHYLO_TEMPORAL_OU_COMPARATOR_SOURCE_ARCHIVE', provision_text, fixed = TRUE))
   expect_true(grepl('R CMD INSTALL --library', provision_text, fixed = TRUE))
   expect_false(grepl("CXXFLAGS=-O0 -g0", provision_text, fixed = TRUE))
+  expect_true(grepl("remaining <- remaining[names(remaining) != pkg]", provision_text, fixed = TRUE))
   expect_true(grepl('glmmTMB', provision_text, fixed = TRUE))
   expect_true(grepl('--mem=4G', provision_text, fixed = TRUE))
   expect_true(grepl('--mem=4G', wrapper_text, fixed = TRUE))
