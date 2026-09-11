@@ -190,10 +190,12 @@ covariance plus \(\sigma^2 I\).
 
 This is not a temporal residual-scale model. Its `s_k` values describe latent
 location-process variation, while `sigma` remains a constant independent observation
-residual SD. The P3 development slice has deterministic dense likelihood, score,
-Hessian and reduction checks. Its interval-feasibility fixtures have not yet closed,
-so Wald and profile intervals are explicitly unavailable and no coverage claim is
-made.
+residual SD. The P3 slice has deterministic dense likelihood, score, Hessian and
+reduction checks plus retained full-Hessian interval-feasibility fixtures. When the
+observed Hessian is positive definite, Wald intervals are available for fixed mean
+coefficients only. Profile, process-SD, persistence and residual-SD intervals remain
+unavailable. This fit-level feasibility result makes no coverage or standard-error
+calibration claim.
 
 ### Phylogenetic stable intercept plus independent OU deviations
 

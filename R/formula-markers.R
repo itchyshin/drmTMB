@@ -217,9 +217,10 @@ phylo <- function(term, tree) {
 #' each occasion in a common complete equally spaced integer schedule with an
 #' odd lag its own
 #' temporal-process SD. Its observation residual `sigma` remains constant and
-#' separate. The current P3 provider is an interval-feasibility development
-#' slice: Wald and profile intervals remain unavailable until its retained
-#' full-Hessian evidence is complete.
+#' separate. Fixed-mean Wald intervals use the full observed marginal-likelihood
+#' Hessian when it is positive definite. Profile, process-SD, persistence and
+#' residual-SD intervals remain unavailable; finite Wald intervals are
+#' interval-feasibility evidence, not coverage or standard-error calibration.
 #'
 #' @param term Temporal structure term, currently `1 | id`.
 #' @param time Name of the integer occasion (`"ar1"`, `"homtoep"`, or

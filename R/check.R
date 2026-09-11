@@ -1401,8 +1401,8 @@ check_temporal_mean_profile <- function(object) {
     return(check_row(
       "temporal_mean_profile",
       "note",
-      "unavailable; reason=hetar1_interval_feasibility_pending",
-      "Heterogeneous AR1 mean-coefficient profile intervals remain unavailable while the P3 interval-feasibility evidence is completed."
+      "unavailable; reason=hetar1_profile_deferred",
+      "Heterogeneous AR1 interval feasibility qualifies fixed-mean Wald intervals only; mean-coefficient profiles remain unavailable."
     ))
   }
   if (is.null(object$obj)) {

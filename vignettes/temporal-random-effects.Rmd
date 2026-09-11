@@ -210,6 +210,17 @@ residual SD. Setting every \(s_k\) equal gives the ordinary AR1 model. The
 formula must not include an ordinary `(1 | site)` term in this first provider.
 
 ```{r, eval = FALSE}
+set.seed(20260911)
+regular_times <- 0:3
+n_regular_site <- 24
+complete_regular_panel <- expand.grid(
+  site = factor(paste0("regular_site_", seq_len(n_regular_site))),
+  occasion = regular_times
+)
+complete_regular_panel$treatment <- rep(c(0, 1), length.out = nrow(complete_regular_panel))
+complete_regular_panel$y <- 0.4 + 0.5 * complete_regular_panel$treatment +
+  rnorm(nrow(complete_regular_panel), sd = 0.8)
+
 hetar1_fit <- drmTMB(
   bf(
     y ~ treatment +
@@ -224,18 +235,23 @@ hetar1_fit <- drmTMB(
 summary(hetar1_fit, conf.int = TRUE, method = "wald")
 confint(hetar1_fit, method = "wald")
 hetar1_fit$sdpars$mu
+sigma(hetar1_fit)
 check_drm(hetar1_fit)
 ```
 
 The provider requires three through twelve common occasion levels, complete
 data for each retained series, and at least one odd raw integer lag so positive
-and negative persistence can be distinguished. It preserves the original
+and negative persistence can be distinguished (`0, 1, 2, 3` qualifies, while
+`0, 2, 4, 6` does not). It preserves the original
 integer gaps rather than ranking the occasions. It returns a labelled process
 SD for every occasion and supports in-sample fitted values, residuals and
 simulation. It does not support an ordinary intercept, irregular elapsed time,
 `newdata`, forecasting, profile intervals, or intervals for `temporal_sd`,
 `phi`, or `sigma`. Use OU when elapsed time is irregular; temporal variation
-in `sigma` is a separate future model.
+in `sigma` is a separate future model. Before reporting a mean-effect Wald
+interval, inspect `check_drm(hetar1_fit)`: `random_effect_sd_boundary` warns
+when a process SD is at its lower boundary, and no interval is supplied for
+that SD, `phi`, or residual `sigma`.
 
 ## Irregular elapsed time with OU
 

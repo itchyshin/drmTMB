@@ -211,7 +211,7 @@ validate_temporal_gaussian_terms <- function(
   if (term$structure %in% c("homtoep", "hetar1") && length(mu_re$terms) > 0L) {
     cli::cli_abort(c(
       "Temporal {toupper(term$structure)} currently does not allow an ordinary random intercept.",
-      "i" = "Fit the direct temporal process alone while this first heterogeneous covariance provider is validated."
+      "i" = "For stable between-series differences alongside a temporal process, use AR1 or OU with one {.code (1 | id)} term."
     ))
   }
   if (isTRUE(paired_phylo_stable) && length(mu_re$terms) > 0L) {
@@ -533,7 +533,7 @@ validate_temporal_profile_parm <- function(object, parm) {
   if (identical(temporal$structure, "hetar1")) {
     cli::cli_abort(c(
       "Heterogeneous AR1 mean-coefficient profile intervals are not yet qualified.",
-      "i" = "The P3 interval-feasibility gate must retain finite endpoints and diagnostics before profiles are exposed."
+      "i" = "P3 interval feasibility qualifies fixed-mean Wald intervals only; profiles remain unavailable."
     ))
   }
   targets <- drm_profile_targets(object)
