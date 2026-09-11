@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% c("T4-1", "T4-2", "T4-3", "T4-4", "T4-5", "T4-6", "T4-7", "T4-11", "T4-12") ||
+if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% c("T4-1", "T4-2", "T4-3", "T4-4", "T4-5", "T4-6", "T4-7", "T4-11", "T4-12", "T4-14") ||
     (length(args) == 2L && !identical(args[[2L]], "--reverify"))) {
-  stop("Usage: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1|...|T4-7|T4-11|T4-12 [--reverify]", call. = FALSE)
+  stop("Usage: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1|...|T4-7|T4-11|T4-12|T4-14 [--reverify]", call. = FALSE)
 }
 
 gate <- args[[1L]]
@@ -87,6 +87,20 @@ if (identical(gate, "T4-6")) {
   verify_artifact("pilot", expected_fixtures = 5L)
   verify_artifact("full", expected_fixtures = 20L)
   cat("TEMPORAL_HETAR1_T4_11_PASS\n")
+} else if (identical(gate, "T4-14")) {
+  if (!reverify) stop("T4-14 requires --reverify and never launches fits.", call. = FALSE)
+  verify_artifact("pilot", expected_fixtures = 5L)
+  verify_artifact("full", expected_fixtures = 20L)
+  report <- file.path("docs", "dev-log", "after-task", "2026-09-11-temporal-hetar1-closeout.md")
+  report_text <- if (file.exists(report)) paste(readLines(report, warn = FALSE), collapse = "\n") else ""
+  required_report_text <- c(
+    "## Goal", "## Checks Run", "R CMD check", "Noether", "Pat", "#1302", "## Known Limitations"
+  )
+  clean_tree <- length(system2("git", c("status", "--porcelain"), stdout = TRUE)) == 0L
+  if (!all(vapply(required_report_text, grepl, logical(1), x = report_text, fixed = TRUE)) || !clean_tree) {
+    stop("T4-14 requires the complete closeout report and a clean committed tree.", call. = FALSE)
+  }
+  cat("TEMPORAL_HETAR1_T4_14_PASS\n")
 } else if (identical(gate, "T4-12")) {
   if (reverify) stop("T4-12 does not accept --reverify.", call. = FALSE)
   pkgload::load_all(".", compile = FALSE, quiet = TRUE)
@@ -107,7 +121,7 @@ if (identical(gate, "T4-6")) {
   }
   cat("TEMPORAL_HETAR1_T4_12_PASS\n")
 } else if (reverify) {
-  stop("--reverify is implemented only for T4-11.", call. = FALSE)
+  stop("--reverify is implemented only for T4-11 and T4-14.", call. = FALSE)
 } else if (identical(gate, "T4-1")) {
   run_test_file("tests/testthat/test-temporal-hetar1-parser.R")
   cat("TEMPORAL_HETAR1_T4_1_PASS\n")

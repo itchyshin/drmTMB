@@ -50,7 +50,7 @@ Every runnable gate has a reviewed command, a success-only receipt and initially
   EXPECT: TEMPORAL_HETAR1_T4_12_PASS
   EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-12` emitted `TEMPORAL_HETAR1_T4_12_PASS`. The rendered workflow names D-R-D process heterogeneity, the common-schedule and odd-lag admission rules, and the boundary between fit-level Wald feasibility and coverage or scale-side claims.
 
-- [ ] T4-14: Package check, independent Noether and Pat reviews, after-task report and final reverify close P3.
+- [x] T4-14: Package check, independent Noether and Pat reviews, after-task report and final reverify close P3.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-14 --reverify
   EXPECT: TEMPORAL_HETAR1_T4_14_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: exact-source `R CMD build` plus `R CMD check --no-manual` completed with the two established source-vignette warnings and all substantive checks passing. Independent Noether and Pat reviews were incorporated, the after-task report records their outcomes, and final T4-14 reverify emitted `TEMPORAL_HETAR1_T4_14_PASS` without launching a fit.

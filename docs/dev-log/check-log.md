@@ -94889,3 +94889,10 @@ P1 G13 coverage rows.
 
 - **Reason:** independent review found stale public wording. The final closeout source corrects that wording, defines a runnable regular-panel reader example, and keeps profile and variance-parameter intervals explicitly unavailable. The likelihood, parameter transforms, fixture generator, seeds and start-selection rule did not change.
 - **Final receipts:** the same five-seed pilot and 20-fixture panel were rerun from source `7a59bc729`. The pilot retained 10 starts and 15 finite fixed-mean intervals; the panel retained 40 starts and 60 finite fixed-mean intervals with finite SEs. All T4-1 through T4-7, T4-11 and T4-12 gates pass; the superseded prior-source outputs remain retained alongside the final receipts.
+
+## 2026-09-11 — P3 heterogeneous AR1 closeout
+
+- **Final source and evidence:** source `81e5232` refreshes only the public interval-status wording. The retained five-fixture pilot recorded 10 signed starts and 15/15 finite fixed-mean Wald rows; the retained 20-fixture panel recorded 40 starts and 60/60 finite rows. T4-6, T4-7 and T4-11 reverified the final immutable outputs without creating a fit.
+- **Independent review:** Noether found the D-R-D contract, raw integer gaps, signed-persistence transform, reductions and full-Hessian fixed-mean covariance consistent. Pat's reader review led to the corrected profile wording, usable regular-panel vignette construction and clearer parser guidance.
+- **Package evidence:** final-source `R CMD build` plus `R CMD check --no-manual` completed with `Status: 2 WARNINGs`, both the established absence of installed `inst/doc` vignette outputs. Installation, code, examples, tests and vignette rebuilding passed.
+- **Close boundary:** T4-14 records interval feasibility only. It does not support a coverage, reported-SE calibration, variance/persistence/residual interval, profile, forecast, irregular-time, ordinary-intercept or scale-side claim. Open issue #1302 is the next separate phylogenetic OU arc.
