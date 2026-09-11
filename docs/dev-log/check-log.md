@@ -94798,3 +94798,14 @@ CPU-hours; the written proposal uses Rorqual at 60 single-core, 4 GiB tasks and
 requires source-pinned archives, no-fit closure, and a fresh explicit campaign
 authorization. It does not change the failed G13 calibration verdict or begin a
 later temporal covariance structure.
+
+## 2026-09-10 — paired phylogenetic-OU comparator campaign tooling prepared
+
+Local source-pinned task and no-fit re-verifier tools now retain two ordered
+engine rows per original varying-tree P1--P3 task, reject malformed task IDs,
+missing archives, invalid SHA-256 sidecars, mixed provenance, duplicates and
+incomplete denominators. The Rorqual wrapper is fixed at one CPU, 4 GiB, 30
+minutes and task IDs 1--3000; its scheduler submission must cap concurrency at
+60. Source-only archive validation at `477f2e6ab64819f4a25a1f19cc9b6c4263ab353c`
+returned SHA-256 `77d3c948b85e0fd4645c2ef429fea43d09def37bce3740a9bfee4fa9fda7be28`
+and excluded platform artifacts. No remote staging or submission occurred.

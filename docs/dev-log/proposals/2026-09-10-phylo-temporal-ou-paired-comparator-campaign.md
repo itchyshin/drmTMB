@@ -93,3 +93,15 @@ Implementation of the source-pinned worker and no-fit verifier may proceed
 locally. Submission requires explicit authorization for the stated 3,000-task
 Rorqual/60-core envelope after those tools and their smoke controls are
 reviewable.
+
+## Prepared local implementation
+
+The source-pinned task worker, no-fit archive verifier, source-only archive
+builder, and Rorqual wrapper are committed at
+`477f2e6ab64819f4a25a1f19cc9b6c4263ab353c` (with worker/re-verifier parent
+commits `3f497d142` and `07316623e`). Their focused self-tests and malformed
+archive/task controls pass. A disposable source archive from this revision had
+SHA-256 `77d3c948b85e0fd4645c2ef429fea43d09def37bce3740a9bfee4fa9fda7be28`
+and contains the worker, verifier, helper, R source, and C++ source with no
+platform build artifacts. The actual campaign archive must be freshly made
+from this exact commit and fingerprinted again at staging.
