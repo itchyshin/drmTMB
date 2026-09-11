@@ -49,3 +49,37 @@ test_that("Gaussian phylogenetic OU fits a native stationary tree provider", {
   expect_true("log_decay_phylo" %in% names(fit$tmb_state$opt.par))
   expect_true(is.finite(unname(fit$tmb_state$opt.par[["log_decay_phylo"]])))
 })
+
+test_that("native OU-tree marginal likelihood matches the independent dense covariance", {
+  skip_if_not_installed("ape")
+  set.seed(2026091106)
+  tree <- ape::rcoal(5)
+  tree$tip.label <- paste0("sp", seq_len(5))
+  species <- rep(tree$tip.label, each = 5)
+  x <- rep(c(-0.5, 0.5), length.out = length(species))
+  y <- -0.1 + 0.5 * x + stats::rnorm(length(species), sd = 0.3)
+  fit <- drmTMB(
+    bf(y ~ x + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
+    data = data.frame(y, x, species), family = gaussian()
+  )
+  decay <- exp(unname(fit$tmb_state$opt.par[["log_decay_phylo"]]))
+  sd_phylo <- unname(fit$sdpars$mu[["phylo(1 | species)"]])
+  sigma <- exp(unname(fit$par$sigma[["(Intercept)"]]))
+  tip_correlation <- drmTMB:::drm_phylo_ou_tip_covariance(
+    tree, species = species, decay = decay
+  )
+  observation_correlation <- tip_correlation[
+    match(species, rownames(tip_correlation)),
+    match(species, colnames(tip_correlation))
+  ]
+  covariance <- sd_phylo^2 * observation_correlation +
+    diag(sigma^2, length(y))
+  residual <- y - as.vector(cbind(`(Intercept)` = 1, x = x) %*% fit$par$mu)
+  dense_nll <- 0.5 * (
+    length(y) * log(2 * pi) +
+      as.numeric(determinant(covariance, logarithm = TRUE)$modulus) +
+      drop(crossprod(residual, solve(covariance, residual)))
+  )
+
+  expect_equal(-as.numeric(logLik(fit)), dense_nll, tolerance = 1e-7)
+})
