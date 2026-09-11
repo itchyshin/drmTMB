@@ -8,10 +8,10 @@
   EXPECT: PHYLO_OU_COVARIANCE_PO1_PASS
   EVIDENCE: 2026-09-11 preflight found live `codex/phylo-ou-g12-prep-20260910`; its plan and G13 evidence were read without touching its files.
 
-- [ ] PO2: `phylo()` parses `model = "bm"` and `model = "ou"`; omitted model is existing BM, and malformed values fail early.
+- [x] PO2: `phylo()` parses `model = "bm"` and `model = "ou"`; omitted model is existing BM, and malformed values fail early.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO2
   EXPECT: PHYLO_OU_COVARIANCE_PO2_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: the focused parser gate returned `PHYLO_OU_COVARIANCE_PO2_PASS`. It also confirms an OU marker aborts until its native provider exists, so it cannot silently use Brownian covariance.
 
 - [ ] PO3: Native stationary-root OU tree transitions estimate one positive evolutionary-decay parameter while BM is unchanged.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO3

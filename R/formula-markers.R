@@ -159,7 +159,9 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' fitted paths support Gaussian location and residual-scale effects,
 #' response-specific direct-SD formulas for location effects, labelled
 #' bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
-#' and NB2 q=1 location effects. Use `phylo(1 | species, tree = tree)` in
+#' and NB2 q=1 location effects. `model = "bm"` is the default Brownian
+#' covariance; `model = "ou"` names the planned evolutionary OU covariance
+#' route. Use `phylo(1 | species, tree = tree)` in
 #' univariate Gaussian `mu`, univariate Gaussian `sigma`, ordinary Poisson `mu`,
 #' or ordinary NB2 `mu`, `phylo(1 + x | species, tree = tree)` for the
 #' unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate
@@ -185,6 +187,8 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' @param term Structured random-effect term, currently `1 | species` or
 #'   `1 + x | species`.
 #' @param tree Ultrametric phylogeny input with branch lengths.
+#' @param model Phylogenetic covariance model: `"bm"` (the default) or
+#'   `"ou"`.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -193,7 +197,7 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 #' bf(count ~ x + phylo(1 | species, tree = tree))
 #' bf(count ~ x + phylo(1 + x | species, tree = tree))
-phylo <- function(term, tree) {
+phylo <- function(term, tree, model = "bm") {
   invisible(NULL)
 }
 

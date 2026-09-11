@@ -830,28 +830,43 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   }
 
   if (identical(marker, "phylo")) {
-    extra <- setdiff(marker_arg_names, "tree")
+    extra <- setdiff(marker_arg_names, c("tree", "model"))
     if (
-      length(marker_args) != 1L ||
-        !identical(marker_arg_names, "tree") ||
+      !identical(sum(marker_arg_names == "tree"), 1L) ||
+        sum(marker_arg_names == "model") > 1L ||
         length(extra) > 0L
     ) {
       cli::cli_abort(c(
-        "{.fn phylo} requires a single named {.arg tree} argument.",
-        "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}.",
+        "{.fn phylo} requires one named {.arg tree} argument and an optional {.arg model}.",
+        "x" = "Use {.code phylo(1 | species, tree = tree)} or {.code phylo(1 | species, tree = tree, model = \"ou\")}.",
         "i" = "The public phylogeny API will build a sparse A-inverse from an ultrametric tree with branch lengths."
       ))
     }
-    if (!is.symbol(marker_args[[1L]])) {
+    tree_arg <- marker_args[[match("tree", marker_arg_names)]]
+    if (!is.symbol(tree_arg)) {
       cli::cli_abort(c(
         "{.arg tree} must be the name of a phylogeny object.",
-        "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}."
+        "x" = "Use syntax like {.code phylo(1 | species, tree = tree, model = \"bm\")} or {.code phylo(1 | species, tree = tree, model = \"ou\")} ."
+      ))
+    }
+    model <- if (!"model" %in% marker_arg_names) {
+      "bm"
+    } else {
+      marker_args[[match("model", marker_arg_names)]]
+    }
+    if (
+      !is.character(model) || length(model) != 1L || is.na(model) ||
+        !model %in% c("bm", "ou")
+    ) {
+      cli::cli_abort(c(
+        "{.arg model} in {.fn phylo} must be {.val bm} or {.val ou}.",
+        "i" = "Use {.code phylo(1 | species, tree = tree, model = \"bm\")} or {.code phylo(1 | species, tree = tree, model = \"ou\")} ."
       ))
     }
     return(c(
       list(type = "phylo", dpar = dpar),
       term,
-      list(tree = as.character(marker_args[[1L]]))
+      list(tree = as.character(tree_arg), model = model)
     ))
   }
 

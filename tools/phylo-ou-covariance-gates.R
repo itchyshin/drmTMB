@@ -12,6 +12,21 @@ if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% allowed ||
 
 gate <- args[[1L]]
 reverify <- length(args) == 2L
+run_test_file <- function(path) {
+  code <- paste(
+    "pkgload::load_all('.', compile = FALSE, quiet = TRUE)",
+    sprintf("result <- testthat::test_file(%s, reporter = 'silent')", deparse(path)),
+    "expectations <- unlist(lapply(result, `[[`, 'results'), recursive = FALSE)",
+    "failed <- vapply(expectations, function(x) inherits(x, 'expectation_failure') || inherits(x, 'expectation_error'), logical(1))",
+    "quit(status = as.integer(any(failed)))",
+    sep = "; "
+  )
+  status <- system2(file.path(R.home("bin"), "Rscript"), c("--vanilla", "-e", shQuote(code)))
+  if (!identical(status, 0L)) {
+    stop(sprintf("%s failed in its isolated R process.", path), call. = FALSE)
+  }
+}
+
 if (identical(gate, "PO1")) {
   if (reverify) stop("PO1 does not accept --reverify.", call. = FALSE)
   plan <- "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/PLAN.md"
@@ -29,6 +44,10 @@ if (identical(gate, "PO1")) {
     stop("PO1 plan or ledger contract is incomplete.", call. = FALSE)
   }
   cat("PHYLO_OU_COVARIANCE_PO1_PASS\n")
+} else if (identical(gate, "PO2")) {
+  if (reverify) stop("PO2 does not accept --reverify.", call. = FALSE)
+  run_test_file("tests/testthat/test-phylo-ou-covariance-parser.R")
+  cat("PHYLO_OU_COVARIANCE_PO2_PASS\n")
 } else {
   stop(
     sprintf("%s is pending: its gate has no accepted implementation evidence yet.", gate),

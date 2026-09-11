@@ -14180,6 +14180,13 @@ build_phylo_mu_structure <- function(term, data, env) {
   if (is.null(term)) {
     return(empty_phylo_mu_structure())
   }
+  model <- term$model %||% "bm"
+  if (identical(model, "ou")) {
+    cli::cli_abort(c(
+      "Phylogenetic OU covariance is not available until its native tree provider is installed.",
+      "i" = "Use the default {.code phylo(1 | species, tree = tree)} Brownian model for now."
+    ))
+  }
   value <- structured_mu_design_matrix(term, data, marker = "phylo")
   dpars <- if (is.null(term$dpars)) {
     "mu"
@@ -14267,6 +14274,7 @@ build_phylo_mu_structure <- function(term, data, env) {
     q = q,
     coef_names = colnames(value),
     tree = term$tree,
+    model = model,
     n_re = nrow(precision$precision),
     precision = precision,
     value = value,
