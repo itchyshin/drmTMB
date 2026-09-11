@@ -54,6 +54,13 @@ node_source="$node_root/source"
 [[ -f "$dep_archive" ]] || { echo 'Offline dependency archive is absent.' >&2; exit 2; }
 [[ ! -e "$archive" && ! -e "$partial" ]] || { echo "Refuse to overwrite retained artifact: $archive" >&2; exit 2; }
 
+seal_artifact() {
+  local checksum
+  checksum=$(sha256sum "$partial" | awk '{print $1}')
+  mv "$partial" "$archive"
+  printf '%s  %s\n' "$checksum" "$(basename "$archive")" > "$archive.sha256"
+}
+
 cleanup() { rm -rf "$node_root"; }
 on_exit() {
   code=$?
@@ -61,7 +68,7 @@ on_exit() {
   if [[ "$code" -ne 0 && -d "$node_artifact" && ! -e "$archive" ]]; then
     printf 'exit_code=%s\n' "$code" > "$node_artifact/SLURM_FAILURE.txt"
     tar -C "$node_root" -czf "$partial" "$task_label" 2>/dev/null && \
-      { sha256sum "$partial" > "$partial.sha256"; mv "$partial" "$archive"; mv "$partial.sha256" "$archive.sha256"; } || true
+      seal_artifact || true
   fi
   cleanup
   exit "$code"
@@ -100,7 +107,9 @@ Rscript --version >> "$node_artifact/slurm-provenance.txt" 2>&1
 ) > "$node_artifact/worker.stdout" 2> "$node_artifact/worker.stderr"
 test -f "$node_artifact/model-artifact/TASK_COMPLETE"
 tar -C "$node_root" -czf "$partial" "$task_label"
-sha256sum "$partial" > "$partial.sha256"
-mv "$partial" "$archive"
-mv "$partial.sha256" "$archive.sha256"
+seal_artifact
+(
+  cd "$(dirname "$archive")"
+  sha256sum -c "$(basename "$archive").sha256"
+)
 printf 'PHYLO_TEMPORAL_OU_G12_SLURM_TASK_PASS %s %s\n' "$task_id" "$(awk '{print $1}' "$archive.sha256")"

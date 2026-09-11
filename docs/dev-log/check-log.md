@@ -94708,3 +94708,15 @@ self-test both reject incomplete denominators and forged provenance; the
 known 0.90-coverage P1 fixture remains unqualified. The gate returned
 `PHYLO_TEMPORAL_OU_G11_PASS`. This is a no-fit contract and does not authorize
 G12 or establish calibration.
+
+## 2026-09-10 — G12 artifact checksum sidecar repair
+
+The task wrapper originally wrote a checksum against its temporary
+`task-XXXX.tar.gz.partial-<job>` name and then renamed the sidecar with the
+artifact, so `sha256sum -c task-XXXX.tar.gz.sha256` could not find its named
+file. The wrapper now records the digest after the atomic rename against the
+final archive basename and verifies it before reporting task success. The
+focused exact-function regression fixture returned `G12_CHECKSUM_SIDECAR_PASS`.
+Task 1's unchanged archive retains its original invalid sidecar separately;
+its corrected sidecar will be documented and reverified before its Totoro
+mirror is accepted.
