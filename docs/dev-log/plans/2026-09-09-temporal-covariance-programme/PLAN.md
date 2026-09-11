@@ -39,6 +39,18 @@ After that slice, homogeneous Toeplitz is the next temporal model. We plan the w
 route through item 6 now, but only implement an item-6 model after a named scientific
 use case chooses it.
 
+### 2026-09-11 evidence amendment
+
+The retained phylogenetically stable-intercept plus independent temporal-OU campaign
+is **interval-feasible, not inference-ready**. Its G13 re-verification inspected all
+3,500 sealed campaign tasks and retained three failed intercept-profile coverage rows;
+those failures remain evidence and are not reclassified as passes. The user authorized
+this programme-level amendment on 2026-09-11: subsequent temporal arcs need dense
+oracles, mutation tests, retained point-recovery fixtures, a timed pilot, and finite
+public interval/profile checks, but do not inherit an automatic coverage-calibration
+campaign. A later calibration or coverage claim needs its own predeclared contract,
+campaign authorization, and promotion decision.
+
 ## Scientific language shared by every arc
 
 For a repeated series, distinguish the predictable mean, stable series difference,
@@ -56,9 +68,10 @@ changes covariance among spatial effects. Neither is a synonym for a temporal ke
 
 All first releases stay univariate Gaussian ML with fixed mean predictors, offsets and
 `sigma ~ 1`. They use native TMB likelihoods, structured output, in-sample fitted
-values/residuals, conditional modes and simulation. Each arc decides its own fixed-effect
-inference only after an independent full-Hessian or profile target is validated; no
-interval result transfers between covariance structures.
+values/residuals, conditional modes and simulation. Each arc may report an
+**interval-feasibility** result only after an independent full-Hessian or profile target
+is validated and its finite, public interval behavior is checked. A calibrated
+fixed-effect inference claim requires a separate approved coverage study. No interval result transfers between covariance structures.
 
 ## The programme order
 

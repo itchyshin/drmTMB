@@ -93,7 +93,10 @@ interface check against the parent; S0–S6 file ownership; a fresh executable U
 ledger; named oracle/mutation set; compute estimate; and a reader question. For P4 and
 P5 it also records the concrete scientific data/use case. A later child may strengthen
 this master plan but cannot weaken its gates or change a frozen campaign after results
-are seen.
+are seen. The sole recorded exception is the 2026-09-11 user-authorized P1 evidence
+amendment: it preserves the frozen G13 campaign and its failed coverage rows, while
+changing the programme's promotion target from calibrated inference to interval
+feasibility. It does not turn failed rows into passes or license a coverage claim.
 
 ## Shared implementation architecture
 
@@ -238,9 +241,11 @@ mapping. Reject a species with fewer than two retained observations; P1 does not
 singleton temporal path. Minimum species, time and lag support is checked after omission.
 G2 exercises each stage and its diagnostic.
 
-Report sd_phylo_stable, sd_temporal, decay_temporal and sigma. First uncertainty target
-is fixed-mean profile endpoints only when dense agreement and calibration pass. Variance
-and decay intervals, forecasts and newdata remain unavailable.
+Report sd_phylo_stable, sd_temporal, decay_temporal and sigma. The first uncertainty
+target is fixed-mean profile endpoints only after dense agreement and finite-endpoint
+checks pass. This is interval feasibility, not calibrated inference: the retained G13
+coverage failures remain visible. Variance and decay intervals, forecasts and newdata
+remain unavailable.
 
 ### Work packages
 
@@ -259,7 +264,7 @@ G3 dense covariance, G4 likelihood/score/Hessian, G5 reductions, G6 mutations, G
 methods/simulation, G8 profile target, G9 recovery, G10 pilot, G11 campaign contract,
 G12 manual campaign approval, G13 retained campaign reverify, G14-G15 reader evidence,
 G16 package check, G17 review and G18 closure. At the current execution checkpoint,
-The direct temporal OU parent is fully qualified: its grammar, dense oracle, methods, rendered tutorial, package check and 3,000-data-set profile campaign all closed at `0d66e62f3` and campaign source `e57ed8c1`. The separately approved phylogenetic-stable plus OU G9b-full point-recovery study also passes, while its extension-specific G10-G13/G16-G18 calibration gates remain open. Those extension gates do not qualify a separable field and do not block the direct temporal P2 child. P2 remains blocked only until its own committed child receipt receives explicit approval; `docs/dev-log/plans/2026-09-10-temporal-homtoep/` is that receipt.
+The direct temporal OU parent is fully qualified: its grammar, dense oracle, methods, rendered tutorial, package check and 3,000-data-set profile campaign all closed at `0d66e62f3` and campaign source `e57ed8c1`. The separately approved phylogenetic-stable plus OU G9b-full point-recovery study also passes. Its G10 timing pilot, G11 calibration contract and G12 campaign authorization are retained; G13 fails for three intercept-profile coverage rows. On 2026-09-11 the user explicitly reclassified this arc as interval-feasible, not inference-ready. Those extension results do not qualify a separable field and do not block the direct temporal P2 child. P2 remains blocked only until its own committed child receipt receives explicit approval; `docs/dev-log/plans/2026-09-10-temporal-homtoep/` is that receipt.
 
 ### Simulation and compute
 
@@ -333,10 +338,12 @@ simulation; T3-8 recovery; T3-9 pilot; T3-10 manual campaign authorization;
 T3-11 retained campaign; T3-12 article/render; T3-13 package check; T3-14 review and
 close.
 
-The campaign design is frozen only after the parameterisation is chosen. It needs one
-cell generated from AR1, one from a non-exponential valid Toeplitz correlation and one
-low-information stress cell. It reports coefficient coverage separately from covariance
-recovery. Expected effort: 35 to 55 agent-hours plus measured campaign time.
+The interval-feasibility design is frozen only after the parameterisation is chosen. It
+needs one AR1-generated cell, one non-exponential valid-Toeplitz cell and one
+low-information stress cell. It retains a small, predeclared fixture set, all starts,
+warnings, finite public interval/profile availability and covariance recovery. It does
+not claim coverage. A later coverage study is a separately authorized promotion arc.
+Expected effort: 35 to 55 agent-hours plus measured campaign time.
 
 ## Phase 3 — heterogeneous AR1
 
@@ -368,8 +375,8 @@ schedule. P3-grammar fixes that maximum in parameter, label, oracle and error te
 ### Work packages
 
 P3 reuses P2 layout but not P2 evidence. Boole owns grammar; Gauss owns the D R D TMB
-block; Curie owns dense V and mutations; Fisher fixes recovery/calibration; Emmy owns
-methods; Pat owns the reader workflow; Noether and Rose review/close. The runner is
+block; Curie owns dense V and mutations; Fisher fixes recovery and interval feasibility;
+Emmy owns methods; Pat owns the reader workflow; Noether and Rose review/close. The runner is
 tools/temporal-hetar1-gates.R.
 
 Required reductions: all s_k equal gives homogeneous AR1; phi equal to zero gives a
@@ -411,22 +418,24 @@ rule or reduce the model invisibly.
 
 The runner is tools/temporal-hettoep-gates.R. It must prove valid D R D construction,
 recover T3 when all process SDs are equal, recover T4 when r_d equals phi to power d,
-and reject a non-positive-definite R matrix. Its calibration includes a primary
-well-informed panel, a near-homogeneous panel and one explicitly non-promotional
-low-information stress panel.
+and reject a non-positive-definite R matrix. Its interval-feasibility fixtures include a
+primary well-informed panel, a near-homogeneous panel and one explicitly
+non-promotional low-information stress panel. Coverage calibration is deferred to a
+separate promotion arc.
 
 Expected effort: 50 to 80 agent-hours plus measured campaign time. It may be deferred
 after P3 if users do not present a use case with the required panel design.
 
 ## Predeclared evidence design for P2–P4
 
-These are planning primary cells, not universal user data thresholds. Every campaign
-uses the production two-start engine, independent dense-Cholesky data generation, frozen
-seeds and one dataset per task. All generated data sets remain in the denominator;
-unavailable intervals count as unavailable and uncovered. Primary mean-coefficient rows
-need interval availability at least 0.99, coverage plus or minus one Monte Carlo SE
-inside 0.925 to 0.975, absolute bias at most 0.10 empirical SD, and mean reported SE
-divided by empirical SD between 0.90 and 1.10. A stress cell is reported, never promoted.
+These are planning primary cells, not universal user data thresholds. Each
+interval-feasibility run uses the production two-start engine, independent
+dense-Cholesky data generation, frozen seeds and a small predeclared set of at most 24
+fixtures. All generated data sets remain in the denominator. It records convergence,
+Hessian status, finite public interval/profile availability, endpoint ordering,
+diagnostics, recovery error, runtime and retained warnings. A stress cell is reported,
+never promoted. This evidence does not estimate coverage, calibrate reported standard
+errors or support an inference-ready claim; those require a separate approved campaign.
 
 | Arc | Primary cells | Stress cell | Main non-mean estimands |
 | --- | --- | --- | --- |
@@ -434,12 +443,11 @@ divided by empirical SD between 0.90 and 1.10. A stress cell is reported, never 
 | P3 heterogeneous AR1 | 80 by 8 with monotone SDs and phi 0.5; 80 by 12 with U-shaped SDs and phi 0.8; 80 by 8 with unequal SDs and phi -0.5 | 20 by 6 with one sparse high-variance occasion | SD-pattern recovery, phi bias and process-versus-sigma separation |
 | P4 heterogeneous Toeplitz | 120 by 6 with non-exponential R and three SD bands; 120 by 8 with near-homogeneous SDs; 120 by 6 with weak but valid long lags | 30 by 6, deliberately high parameter-to-information ratio | valid-R frequency, covariance reconstruction and information-warning rate |
 
-Each primary cell has 1,000 generated data sets unless the measured pilot shows a
-resource estimate that requires a new user decision. The pilot uses five disjoint seeds
-per cell, stops at its announced budget and records wall time, memory, convergence,
-interval availability and artifact completeness. A campaign can reduce or revise the
-number of cells only through a documented decision before campaign approval; it cannot
-change seeds or thresholds after outcomes are seen.
+The fixture set uses two starts per generated data set. A five-seed timing pilot may
+measure wall time, memory, convergence, interval availability and artifact completeness
+before the full feasibility set. A coverage campaign can be added only through a
+documented decision before campaign approval; it cannot change seeds or thresholds after
+outcomes are seen.
 
 ## Phase 5 — item-6 decision laboratory
 
@@ -483,8 +491,9 @@ require implementation of an item-6 candidate with no scientific trigger.
 | P5 | P4 close or a compelling submitted use case | one chosen candidate plan or defer receipt | 8-16 h planning |
 | P6 | each arc closes | synchronized article and programme closeout | 3-6 h per arc |
 
-No phase starts only because time passed. A failed primary calibration freezes promotion
-of that structure until a diagnosis and revised, approved decision exist. A campaign
+No phase starts only because time passed. A failed primary calibration freezes
+inference-promotion of that structure until a diagnosis and revised, approved decision
+exist; it does not erase a separately documented interval-feasibility result. A campaign
 approval never transfers to a later arc. Remote push, merge, release, deployment and
 external messages are excluded from this programme.
 

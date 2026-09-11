@@ -9,10 +9,13 @@ Toeplitz, heterogeneous AR1, heterogeneous Toeplitz, seasonal, random-walk, ARMA
 temporal Matérn is implemented. Each implementation arc must supply its own ledger.
 There are 19 gates: 16 runnable and three manual (G0, G12, G17). Implementation and
 campaign evidence remains pending until the exact plan is approved; G17 records the
-completed independent review of this planning artifact.
+completed independent review of this planning artifact. The 2026-09-11 amendment
+requires interval-feasibility evidence by default. Coverage calibration is a separate,
+explicitly authorized promotion activity; a failed calibration result stays retained and
+does not become a passing interval-feasibility result.
 
-- [ ] G0: The user approved this programme order, its independent phylogeny-plus-OU first slice, and the item-6 scientific-trigger boundary.
-  EVIDENCE: pending
+- [x] G0: The user approved this programme order, its independent phylogeny-plus-OU historical first slice, the item-6 scientific-trigger boundary, and the 2026-09-11 interval-feasibility amendment.
+  EVIDENCE: 2026-09-09 programme approval; 2026-09-11 explicit authorization to retain failed G13 coverage evidence while changing the promotion boundary to interval feasibility.
 
 - [ ] G1: The programme ledger, plan and runner agree on all 19 IDs, and the runner rejects a malformed plan fixture.
   CHECK: Rscript --vanilla docs/dev-log/plans/2026-09-09-temporal-covariance-programme/unlazy/check-programme.R G1
@@ -69,10 +72,10 @@ completed independent review of this planning artifact.
   EXPECT: TEMPORAL_PROGRAMME_G11_PASS
   EVIDENCE: pending
 
-- [ ] G12: A campaign has a measured pilot, DRAC/Fir resource ceiling, Totoro retention route and all-attempt denominators, and the user authorizes it.
+- [ ] G12: A campaign, if an arc seeks calibration beyond interval feasibility, has a measured pilot, DRAC/Fir resource ceiling, Totoro retention route and all-attempt denominators, and the user authorizes it.
   EVIDENCE: pending
 
-- [ ] G13: Every model arc requires independent dense covariance, likelihood, score/Hessian where supported, modes and simulation checks before inference claims.
+- [ ] G13: Every model arc requires independent dense covariance, likelihood, score/Hessian where supported, modes, finite public interval/profile checks and retained simulation fixtures before an interval-feasibility claim. Calibrated inference requires a separate promotion gate.
   CHECK: Rscript --vanilla docs/dev-log/plans/2026-09-09-temporal-covariance-programme/unlazy/check-programme.R G13
   EXPECT: TEMPORAL_PROGRAMME_G13_PASS
   EVIDENCE: pending
