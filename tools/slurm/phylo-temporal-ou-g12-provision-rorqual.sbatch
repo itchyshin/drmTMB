@@ -82,11 +82,12 @@ if [[ "$stage" == drmTMB ]]; then
   source_dir="$node_root/source"
   [[ -f "$source_dir/DESCRIPTION" ]] || source_dir=$(find "$node_root/source" -mindepth 1 -maxdepth 1 -type d | head -1)
   [[ -f "$source_dir/DESCRIPTION" ]] || { echo 'Source archive does not contain drmTMB DESCRIPTION.' >&2; exit 2; }
-  # On Rorqual, both user and package Makevars are superseded by the module
-  # Makeconf. GNU make's environment-override mode is the final layer, so it
-  # is the only one that can replace its memory-heavy -O2 C++17 flags.
-  printf 'build_profile=low-memory-cxx17-o0\n' >> "$log_dir/job-${SLURM_JOB_ID}.provenance"
-  CXX17FLAGS='-O0 -g0' MAKEFLAGS=-e R CMD INSTALL --library="$campaign_rlib" "$source_dir"
+  # Rorqual's R 4.4.0 Makeconf compiles this package through CXX/CXXFLAGS
+  # (CXX already provides -std=gnu++17), rather than CXX17FLAGS. GNU make's
+  # environment-override mode is the final layer that can replace its
+  # memory-heavy -O2 setting.
+  printf 'build_profile=low-memory-cxx-o0\n' >> "$log_dir/job-${SLURM_JOB_ID}.provenance"
+  CXXFLAGS='-O0 -g0' MAKEFLAGS=-e R CMD INSTALL --library="$campaign_rlib" "$source_dir"
 else
   tar --warning=no-unknown-keyword -xzf "$dep_archive" -C "$node_root/deps"
   dep_dir=$(find "$node_root/deps" -mindepth 1 -maxdepth 1 -type d ! -name '._*' | head -1)
