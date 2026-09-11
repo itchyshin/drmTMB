@@ -50,3 +50,12 @@ implementation defect. The revised decision is to retain the present
 point-fitting and unqualified-profile scope, block later temporal structures,
 and prepare a separately approved comparative-calibration campaign only after
 specifying a model-matched reference or documenting why none is available.
+
+A later 15-dataset paired pre-run did fit the same additive Gaussian model in
+drmTMB and glmmTMB 1.1.14, using `propto` for the phylogenetic stable effect
+and `ou` for independent within-species deviations. All profiles were
+available, all paired cover/not-cover outcomes agreed, and the largest paired
+differences were 0.000010 for the estimate and 0.001795/0.001701 for lower and
+upper endpoints. This rules out an appreciable drmTMB-versus-glmmTMB profile
+mismatch in the tested P1--P3 draws. It is not a calibration result and does
+not prove either implementation is nominally calibrated.

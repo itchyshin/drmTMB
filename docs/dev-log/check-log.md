@@ -94784,3 +94784,7 @@ profiles. This small mechanism diagnostic is not a calibration result. Along
 with the prior dense-profile and fast/default checks, it leaves estimated
 covariance parameters as the leading hypothesis for the failed G13 intercept
 intervals, without establishing causality or changing their unqualified scope.
+
+## 2026-09-10 — paired glmmTMB phylogenetic-OU comparator pilot
+
+The retained five-draw P1--P3 comparator pilot at source `60165971414bf84d13b6b3ac232335a7ba0feddb` fit the additive phylogenetic-stable plus independent-OU Gaussian model in drmTMB and installed glmmTMB 1.1.14. All 30 fits had positive-definite Hessians and all 30 intercept profiles were available. Paired cover/not-cover results agreed for all 15 generated datasets; maximum absolute estimate/lower/upper differences were `9.11e-06`/`0.001794`/`0.001700`. The measured total was about 2.5 CPU minutes at one thread. This is a feasibility and implementation-comparison pre-run only: glmmTMB documents `propto` and `ou` as experimental structures, so the evidence supports no appreciable drmTMB-specific numerical mismatch in these draws but cannot establish interval calibration. Complete evidence is retained in `simulation-artifacts/2026-09-10-phylo-temporal-ou-comparator-pilot-601659714-r5/`.
