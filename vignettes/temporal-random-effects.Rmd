@@ -1,8 +1,8 @@
 ---
-title: "Temporal AR1, OU, and Toeplitz effects"
+title: "Temporal AR1, heterogeneous AR1, OU, and Toeplitz effects"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Temporal AR1, OU, and Toeplitz effects}
+  %\VignetteIndexEntry{Temporal AR1, heterogeneous AR1, OU, and Toeplitz effects}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -109,11 +109,13 @@ around the observations' fitted latent structure.
 
 ## What the intervals cover
 
-For temporal fits, `vcov()` and Wald `confint()` deliberately expose only mean
-coefficients, and only for AR1. Their covariance comes from the full observed
+For AR1 and heterogeneous AR1 fits, `vcov()` and Wald `confint()` deliberately
+expose only mean coefficients. Their covariance comes from the full observed
 marginal-likelihood Hessian, including estimated variance and persistence
 parameters. The process SD, ordinary-intercept SD, persistence or decay, and
-residual SD are point estimates in this release.
+residual SD are point estimates in this release. A finite Wald interval means
+that calculation succeeded for the fitted data; it is not a coverage or
+standard-error-calibration result.
 
 Likelihood profiles are available for temporal mean coefficients in both AR1
 and OU models. Use them when reporting a treatment or other regression effect:
@@ -186,6 +188,54 @@ intercept coverage, so this is evidence for those primary panel designs, not a
 coverage claim for every Toeplitz analysis. Use `check_drm(toeplitz_fit)` and
 inspect the profile before reporting an interval. If elapsed gaps are genuinely
 irregular, use OU instead.
+
+## Different temporal process SDs at different occasions
+
+Use heterogeneous AR1 when every series has the same complete, equally spaced
+integer occasions, AR1 persistence remains scientifically plausible, and the
+amount of **temporal-process** variation may change by occasion. For example,
+an organism's short-term deviations may be more variable during a breeding
+season than at its beginning or end. This is not a model for a changing
+observation-level residual SD.
+
+For ordered occasions \(k\) and \(l\), heterogeneous AR1 uses
+
+\[
+\operatorname{Cov}(a_{ik},a_{il})=s_k s_l\phi^{|k-l|},
+\]
+
+so `temporal_sd[k]` is the process SD at occasion \(k\), \(\phi\) is the
+shared signed persistence, and `sigma` remains the constant independent
+residual SD. Setting every \(s_k\) equal gives the ordinary AR1 model. The
+formula must not include an ordinary `(1 | site)` term in this first provider.
+
+```{r, eval = FALSE}
+hetar1_fit <- drmTMB(
+  bf(
+    y ~ treatment +
+      temporal(1 | site, time = occasion, structure = "hetar1"),
+    sigma ~ 1
+  ),
+  data = complete_regular_panel,
+  family = gaussian(),
+  REML = FALSE
+)
+
+summary(hetar1_fit, conf.int = TRUE, method = "wald")
+confint(hetar1_fit, method = "wald")
+hetar1_fit$sdpars$mu
+check_drm(hetar1_fit)
+```
+
+The provider requires three through twelve common occasion levels, complete
+data for each retained series, and at least one odd raw integer lag so positive
+and negative persistence can be distinguished. It preserves the original
+integer gaps rather than ranking the occasions. It returns a labelled process
+SD for every occasion and supports in-sample fitted values, residuals and
+simulation. It does not support an ordinary intercept, irregular elapsed time,
+`newdata`, forecasting, profile intervals, or intervals for `temporal_sd`,
+`phi`, or `sigma`. Use OU when elapsed time is irregular; temporal variation
+in `sigma` is a separate future model.
 
 ## Irregular elapsed time with OU
 
