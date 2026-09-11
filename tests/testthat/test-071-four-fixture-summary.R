@@ -16,6 +16,17 @@ test_that("four-fixture summary fails closed when a fixture receipt is absent", 
   )
 })
 
+test_that("source staging proves the declared commit and rejects substitute bytes", {
+  root <- normalizePath(testthat::test_path("..", ".."))
+  script <- file.path(root, "docs", "dev-log", "evidence",
+                      "julia-r-parity", "071-ordinary-laplace",
+                      "test-source-commit-proof.sh")
+  expect_true(file.exists(script))
+  result <- system2("bash", script, stdout = TRUE, stderr = TRUE)
+  expect_identical(attr(result, "status"), NULL)
+  expect_true(any(grepl("SOURCE_COMMIT_PROOF_TEST_PASS", result, fixed = TRUE)))
+})
+
 test_that("the scoreboard has a distinct ordinary-Laplace classification path", {
   tool <- testthat::test_path("..", "..", "tools", "write-parity-scoreboard.R")
   env <- new.env(parent = globalenv())
