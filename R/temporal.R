@@ -532,7 +532,7 @@ validate_temporal_profile_parm <- function(object, parm) {
   temporal <- object$model$structured$temporal_mu
   if (identical(temporal$structure, "hetar1")) {
     cli::cli_abort(c(
-      "Heterogeneous AR1 mean-coefficient profile intervals are not yet qualified.",
+      "Heterogeneous AR1 mean-coefficient profile intervals are unavailable.",
       "i" = "P3 interval feasibility qualifies fixed-mean Wald intervals only; profiles remain unavailable."
     ))
   }

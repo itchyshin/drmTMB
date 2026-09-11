@@ -1351,8 +1351,9 @@ check_interval_reliability_scope <- function(object) {
 # positive-definite AR1 Hessian is sufficient for that fit's existing mean-only
 # Wald method, but not a general coverage claim. OU keeps that Wald route
 # deferred; it exposes fixed-effect likelihood profiles through the separately
-# labelled temporal_mean_profile row below. Heterogeneous AR1 is withheld until
-# its P3 interval-feasibility evidence closes.
+# labelled temporal_mean_profile row below. Heterogeneous AR1 exposes fixed-mean
+# Wald intervals after retained interval-feasibility fixtures pass; profiles
+# remain deferred.
 check_temporal_mean_wald <- function(object) {
   if (!drm_has_temporal_mu(object)) {
     return(NULL)
