@@ -94847,3 +94847,10 @@ records P2 as closed with its identified marginal covariance `sigma_T^2 R`; it n
 longer represents the nonidentified latent Toeplitz prototype as the delivered model.
 The 2026-09-11 interval-feasibility amendment remains in force and preserves the failed
 P1 G13 coverage rows.
+
+## 2026-09-11 — P3 heterogeneous AR1 child receipt
+
+- **Scope:** prepared the P3 `hetar1` child plan after integrated P2 closeout; no P3 source code, fixtures, model fits, remote work or campaign was run.
+- **Decision:** P3 estimates a D-R-D temporal-process covariance with constant residual `sigma`, not temporal residual scale. Its evidence target is interval feasibility, with at most 24 frozen fixtures and no coverage claim.
+- **Cross-package lesson:** glmmTMB’s covariance vignette confirms that heterogeneous refers to marginal variances and that structured covariance needs a full time-level design; it is comparison evidence, not copied implementation.
+- **Next gate:** direct child-plan approval `T4-0`, then S1 grammar/layout.

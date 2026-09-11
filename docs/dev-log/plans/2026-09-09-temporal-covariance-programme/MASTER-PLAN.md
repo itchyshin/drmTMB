@@ -340,6 +340,8 @@ block; Curie owns dense V and mutations; Fisher fixes recovery and interval feas
 Emmy owns methods; Pat owns the reader workflow; Noether and Rose review/close. The
 runner is tools/temporal-hetar1-gates.R.
 
+The executable P3 child receipt is `docs/dev-log/plans/2026-09-11-temporal-hetar1/`. It freezes interval feasibility rather than coverage calibration, retains P1's failed G13 coverage evidence as historical evidence, and requires direct child approval before source changes.
+
 Required reductions: all s_k equal gives homogeneous AR1; phi equal to zero gives a
 diagonal latent process; s_k zero for one level is a boundary diagnostic, not dropped
 data. Required mutations: swapped process and residual SDs, a mislabelled level, use of
