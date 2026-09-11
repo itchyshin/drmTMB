@@ -213,6 +213,12 @@ tree node: the root has a stationary normal density and a branch of length
 \(1-\exp(-2\alpha l)\). It is distinct from Brownian covariance; neither
 small nor large positive decay is a Brownian limit.
 
+The reported `decay_phylo` is \(\alpha\), with inverse branch-length units.
+Small positive values retain similarity across longer tree distances; larger
+values make it decline more quickly. If an analyst rescales tree branch lengths,
+the numerical decay changes inversely while the implied covariance pattern is
+unchanged. It is a point estimate only in this first slice.
+
 The first route is univariate Gaussian ML with one phylogenetic location
 intercept, fixed mean effects and offsets, constant residual `sigma`, and at
 least three observed species. It reports a positive `decay_phylo` point

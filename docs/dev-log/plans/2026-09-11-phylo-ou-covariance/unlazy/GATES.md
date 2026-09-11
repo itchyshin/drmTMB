@@ -46,15 +46,15 @@
 - [x] PO9: Formula reference, likelihood design and reader workflow render with the BM default, OU interpretation and scale-side deferral clear.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO9
   EXPECT: PHYLO_OU_COVARIANCE_PO9_PASS
-  EVIDENCE: 2026-09-11: man/phylo.Rd, the formula grammar, likelihood design and a locally rendered formula-grammar article now distinguish Brownian default from evolutionary tree OU, explicitly separate it from temporal OU, and retain the no-interval and no-scale-side boundary.
+  EVIDENCE: 2026-09-11: man/phylo.Rd, the formula grammar, likelihood design and a locally rendered formula-grammar article now distinguish Brownian default from evolutionary tree OU, explicitly separate it from temporal OU, and retain the no-interval and no-scale-side boundary. The rendered vignette includes a concrete ecology example, `fit$decaypars$phylo[["decay_phylo"]]`, and the inverse-branch-length interpretation.
 
-- [ ] PO10: Independent Noether mathematical review and Pat reader review have no unresolved blocking defect.
-  EVIDENCE: pending
+- [x] PO10: Independent Noether mathematical review and Pat reader review have no unresolved blocking defect.
+  EVIDENCE: 2026-09-11: Noether independently reran the focused parser/native tests and found the stationary root-plus-edge likelihood, exponential transform, dense likelihood/derivative oracle, scope and seeded simulation consistent. Pat initially identified missing reader guidance; after the repair, Pat confirmed the ecological example, extraction, inverse branch-length interpretation and current scope are clear, with no blocking defect.
 
-- [ ] PO11: Exact-source package check, after-task report, immutable reverify and local closeout commit complete the location-side OU arc.
+- [x] PO11: Exact-source package check, after-task report, immutable reverify and local closeout commit complete the location-side OU arc.
   CHECK: Rscript --vanilla tools/phylo-ou-covariance-gates.R PO11 --reverify
   EXPECT: PHYLO_OU_COVARIANCE_PO11_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: final-source PO3--PO6 and PO9 reruns passed. The retained source-package check ran all examples and vignettes, including formula grammar, and reported 0 errors; its single established top-level warning and two environment notes are recorded in `closeout/package-check-no-tests.log`. `PO11 --reverify` returned `PHYLO_OU_COVARIANCE_PO11_PASS` without launching a new check.
 
 - [ ] PO12: A separate scale-side child specifies `sigma ~ phylo(..., model = "ou")`, its own decay parameter, identification tests and evidence gates before any implementation.
   EVIDENCE: pending

@@ -148,6 +148,40 @@ new distribution enters the package.
 | p8 endpoint blocks, q8 variants beyond the first matching all-four ordinary endpoint slice, labelled or cross-formula residual-scale slope blocks, broader bivariate residual-scale blocks beyond the matching q2 `sigma1`/`sigma2` scale-slope slice, non-Gaussian cross-parameter covariance, predictor-dependent q=4 phylogenetic/spatial correlations, or `rho12` random effects | Planned | These need a larger covariance parameterization, simulation, and naming checks before fitting. Unlabelled ordinary univariate correlated `sigma` blocks are already fitted. Intercept-slope `corpair()` rows are distant-future; broader slope-correlation regressions need coefficient-aware syntax. |
 | `corpairs(fit)` | Implemented for current fitted correlations | Reports residual `rho12`, ordinary and bivariate group-level covariance rows including ordinary q=4 blocks, bivariate phylogenetic mean-mean or q=4 rows, bivariate coordinate-spatial q=2 or constant q=4 rows, and the animal/`relmat()` q=2 or constant q=4 rows. |
 
+## Evolutionary OU tree covariance
+
+Use evolutionary OU when a species-level response may retain some similarity
+along an ultrametric tree but Brownian covariance is too restrictive. For
+example, this model asks whether habitat predicts seed mass while species retain
+a stable tree-correlated deviation:
+
+```r
+fit <- drmTMB(
+  bf(
+    seed_mass ~ habitat +
+      phylo(1 | species, tree = bird_tree, model = "ou"),
+    sigma ~ 1
+  ),
+  data = bird_data,
+  family = gaussian(),
+  REML = FALSE
+)
+
+fit$decaypars$phylo[["decay_phylo"]]
+```
+
+`decay_phylo` is the positive \(\alpha\) in
+\(\exp(-\alpha d)\), where \(d\) is phylogenetic branch distance. Smaller
+values mean that similarity persists over longer branch distances; larger values
+mean that similarity falls more quickly. Its units are the inverse of the tree's
+branch-length units. Rescaling branch lengths therefore rescales the numerical
+decay estimate, without changing the fitted covariance interpretation.
+
+This is evolutionary tree covariance, separate from temporal OU and spatial
+models. The current route is a local-fit Gaussian ML slice: it supplies a point
+estimate but no decay interval, profile, bootstrap, or recovery claim. Brownian
+motion remains the default (`model = "bm"`).
+
 ## Offsets
 
 Every univariate family accepts a standard R `offset()` term in its `mu`

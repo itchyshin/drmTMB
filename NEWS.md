@@ -43,6 +43,18 @@ every item above.
   retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
   has no calibrated coverage claim.
 
+## Phylogenetic OU tree covariance (local-fit slice)
+
+* `phylo(1 | species, tree = tree, model = "ou")` now fits a stationary
+  evolutionary OU covariance for one univariate Gaussian ML location field;
+  omitting `model` continues to use Brownian motion. The reported positive
+  `decay_phylo` is a point estimate over phylogenetic branch distance. Slopes,
+  scale-side phylogenetic OU, other latent effects, temporal terms, REML,
+  non-Gaussian families, prediction for new data, and decay intervals remain
+  unavailable. The retained local recovery fixtures found weak global-
+  intercept versus tree-field separation, so this slice makes no recovery or
+  coverage claim.
+
 # drmTMB 0.7.0
 
 ## `engine = "julia"` control surface: no silent drops, boundary made permanent (leaf-engine-control-surface)

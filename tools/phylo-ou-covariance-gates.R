@@ -107,6 +107,8 @@ if (identical(gate, "PO1")) {
   required_text <- c(
     "model = \"ou\"",
     "decay_phylo",
+    "fit$decaypars$phylo[[\"decay_phylo\"]]",
+    "inverse",
     "separate from temporal OU",
     "interval"
   )
@@ -114,6 +116,28 @@ if (identical(gate, "PO1")) {
     stop("PO9 reader artifacts do not state the OU-tree boundary.", call. = FALSE)
   }
   cat("PHYLO_OU_COVARIANCE_PO9_PASS\n")
+} else if (identical(gate, "PO11")) {
+  if (!reverify) stop("PO11 requires --reverify and never launches a new check.", call. = FALSE)
+  ledger_path <- "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/unlazy/GATES.md"
+  check_path <- "docs/dev-log/plans/2026-09-11-phylo-ou-covariance/closeout/package-check-no-tests.log"
+  report_path <- "docs/dev-log/after-task/2026-09-11-phylogenetic-ou-covariance.md"
+  if (!all(file.exists(c(ledger_path, check_path, report_path)))) {
+    stop("PO11 closeout artifacts are missing.", call. = FALSE)
+  }
+  ledger <- paste(readLines(ledger_path, warn = FALSE), collapse = "\n")
+  check <- paste(readLines(check_path, warn = FALSE), collapse = "\n")
+  required_ledger <- sprintf("- [x] PO%d", 0:10)
+  required_check <- c(
+    "0 errors",
+    "formula-grammar.Rmd’ using ‘UTF-8’... OK",
+    "checking examples ...",
+    "checking package vignettes ... OK"
+  )
+  if (!all(vapply(required_ledger, grepl, logical(1), x = ledger, fixed = TRUE)) ||
+      !all(vapply(required_check, grepl, logical(1), x = check, fixed = TRUE))) {
+    stop("PO11 final-source package receipt or prerequisite ledger is incomplete.", call. = FALSE)
+  }
+  cat("PHYLO_OU_COVARIANCE_PO11_PASS\n")
 } else {
   stop(
     sprintf("%s is pending: its gate has no accepted implementation evidence yet.", gate),

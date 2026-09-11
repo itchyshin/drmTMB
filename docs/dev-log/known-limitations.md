@@ -76,6 +76,18 @@ revisit condition.
   interval, forecast, `newdata`, variance, or decay-inference claim while the
   recovery design and calibration evidence are repaired. It is not the future
   separable phylogeny-by-OU field.
+- `phylo(1 | species, tree = tree, model = "ou")` is a separate stationary
+  evolutionary tree-covariance choice, with a positive `decay_phylo` point
+  estimate over phylogenetic branch distance. Brownian motion remains the
+  default when `model` is omitted. The first route is univariate Gaussian ML
+  with one location intercept field, fixed mean effects, constant residual
+  `sigma`, and at least three observed species. It does not yet allow slopes,
+  scale-side phylogenetic OU, ordinary or other structured effects, temporal
+  terms, REML, non-Gaussian families, `newdata`, forecasts, or decay intervals.
+  Its retained local panel found weak separation between a global intercept and
+  one realised tree field, so it makes no point-recovery, interval, or coverage
+  claim. It is not temporal OU, spatial OU, the paired phylogeny-plus-temporal
+  OU route above, or a separable phylogeny-by-time field.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the

@@ -94936,3 +94936,14 @@ P1 G13 coverage rows.
 - **Measured local timing:** the first five frozen fixtures took 3.193 seconds total (median 0.240 seconds; maximum 2.144 seconds), all with positive-definite Hessians. This is a local timing receipt only; it does not authorize a longer run.
 - **Reader contract:** the formula reference, formula grammar, likelihood design and a locally rendered formula-grammar article now present phylo(..., model = "ou") as evolutionary tree covariance. They retain BM as the default and distinguish this work from temporal OU, spatial OU, the existing phylogeny-plus-temporal-OU route, and future scale-side phylogenetic OU.
 - **Boundary:** the reader material reports decay_phylo as a point estimate with no Wald, profile or bootstrap interval. It records the failed intercept-recovery criterion rather than promoting the new provider beyond its local-fit evidence.
+
+## 2026-09-11 — phylogenetic OU covariance independent review
+
+- **Mathematical review:** Noether independently reran the focused parser and native tests. The stationary root-plus-edge density, `exp(log_decay_phylo)` transform, dense likelihood and derivative oracle, parser scope, extraction, and seeded OU simulation were consistent. No mathematical blocking defect was found.
+- **Reader review:** Pat first identified a missing ecological model example, public decay extraction, and branch-length interpretation. The repaired reference, vignette and rendered page now include `seed_mass ~ habitat + phylo(1 | species, tree = bird_tree, model = "ou")`, `fit$decaypars$phylo[["decay_phylo"]]`, the positive decay interpretation, inverse branch-length units, rescaling guidance, and the point-estimate-only boundary. Pat's re-review found no blocking defect.
+
+## 2026-09-11 — phylogenetic OU covariance closeout
+
+- **Final focused evidence:** PO3--PO6 and PO9 were rerun from the final source and passed. They retain the independently constructed dense likelihood and derivative checks, tree-OU reductions, public interface, and rendered reader route.
+- **Source package:** the retained `--no-tests --no-manual --no-build-vignettes` source-package check ran all examples and vignettes, including `formula-grammar.Rmd`, with 0 errors. Its one top-level warning (`checkbashisms` unavailable and existing `tools-scratch`) and two environment notes (system clock and `xcrun_db`) are recorded rather than hidden. A full test attempt was stopped after no output progress at an unrelated Julia test stage; it is not used as a passing receipt.
+- **Immutable reverify:** `Rscript --vanilla tools/phylo-ou-covariance-gates.R PO11 --reverify` returned `PHYLO_OU_COVARIANCE_PO11_PASS` and only inspected retained evidence.

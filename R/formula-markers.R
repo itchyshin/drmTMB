@@ -199,6 +199,15 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #'
 #' @examples
 #' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
+#' # Evolutionary OU tree covariance (with a supplied ultrametric `tree`):
+#' # bf(y ~ habitat + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1)
+#' #
+#' # A fitted OU-tree model reports its positive decay point estimate at:
+#' # fit$decaypars$phylo[["decay_phylo"]]
+#' # Smaller decay means that similarity persists over longer branch distances;
+#' # larger decay means that it falls more quickly. Decay has inverse tree
+#' # branch-length units, so rescaling the tree rescales its numeric value.
+#' # Decay intervals are not yet available.
 #' bf(count ~ x + phylo(1 | species, tree = tree))
 #' bf(count ~ x + phylo(1 + x | species, tree = tree))
 phylo <- function(term, tree, model = "bm") {

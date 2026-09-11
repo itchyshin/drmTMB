@@ -1322,6 +1322,36 @@ q=4 rows.</td>
 </tbody>
 </table>
 </div>
+<div id="evolutionary-ou-tree-covariance" class="section level2">
+<h2>Evolutionary OU tree covariance</h2>
+<p>Use evolutionary OU when a species-level response may retain some
+similarity along an ultrametric tree but Brownian covariance is too
+restrictive. For example, this model asks whether habitat predicts seed
+mass while species retain a stable tree-correlated deviation:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">drmTMB</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="fu">bf</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    seed_mass <span class="sc">~</span> habitat <span class="sc">+</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>      <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> bird_tree, <span class="at">model =</span> <span class="st">&quot;ou&quot;</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    sigma <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  ),</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">data =</span> bird_data,</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="at">REML =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>fit<span class="sc">$</span>decaypars<span class="sc">$</span>phylo[[<span class="st">&quot;decay_phylo&quot;</span>]]</span></code></pre></div>
+<p><code>decay_phylo</code> is the positive <span class="math inline">\(\alpha\)</span> in <span class="math inline">\(\exp(-\alpha d)\)</span>, where <span class="math inline">\(d\)</span> is phylogenetic branch distance.
+Smaller values mean that similarity persists over longer branch
+distances; larger values mean that similarity falls more quickly. Its
+units are the inverse of the tree’s branch-length units. Rescaling
+branch lengths therefore rescales the numerical decay estimate, without
+changing the fitted covariance interpretation.</p>
+<p>This is evolutionary tree covariance, separate from temporal OU and
+spatial models. The current route is a local-fit Gaussian ML slice: it
+supplies a point estimate but no decay interval, profile, bootstrap, or
+recovery claim. Brownian motion remains the default
+(<code>model = &quot;bm&quot;</code>).</p>
+</div>
 <div id="offsets" class="section level2">
 <h2>Offsets</h2>
 <p>Every univariate family accepts a standard R <code>offset()</code>
@@ -1334,8 +1364,8 @@ family’s link.</p>
 is the familiar exposure or effort model. Use it when counts or amounts
 accumulate over unequal observation windows; the coefficients then
 describe a rate:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">drmTMB</span>(<span class="fu">bf</span>(<span class="at">mu =</span> count <span class="sc">~</span> habitat <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(trap_nights))),</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>       <span class="at">data =</span> surveys, <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">drmTMB</span>(<span class="fu">bf</span>(<span class="at">mu =</span> count <span class="sc">~</span> habitat <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(trap_nights))),</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>       <span class="at">data =</span> surveys, <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>))</span></code></pre></div>
 <p>For <strong>identity-link</strong> families — Gaussian,
 <code>student()</code>, <code>lognormal()</code>, and
 <code>skew_normal()</code> — an offset is a known additive shift of the
@@ -1395,27 +1425,27 @@ exposure in the formula as a log-scale covariate and interpret the
 estimated coefficient instead of fixing it at one.</p>
 <p>Current implemented univariate Gaussian random-effect forms
 include:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> x <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id), sigma <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> w <span class="sc">|</span> id))</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x, sigma <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> w <span class="sc">|</span> id))</span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> id), sigma <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> id))</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id), sigma <span class="sc">~</span> z, <span class="fu">sd</span>(id) <span class="sc">~</span> x_group)</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">animal</span>(<span class="dv">1</span> <span class="sc">|</span> id, <span class="at">Ainv =</span> Ainv), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">relmat</span>(<span class="dv">1</span> <span class="sc">|</span> line, <span class="at">Q =</span> Q), sigma <span class="sc">~</span> z)</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> site),</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  sigma <span class="sc">~</span> z,</span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  <span class="fu">sd</span>(id) <span class="sc">~</span> x_group,</span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="fu">sd</span>(site) <span class="sc">~</span> site_type</span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> x <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> id), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id), sigma <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> w <span class="sc">|</span> id))</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x, sigma <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> w <span class="sc">|</span> id))</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> id), sigma <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> id))</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id), sigma <span class="sc">~</span> z, <span class="fu">sd</span>(id) <span class="sc">~</span> x_group)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">animal</span>(<span class="dv">1</span> <span class="sc">|</span> id, <span class="at">Ainv =</span> Ainv), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">relmat</span>(<span class="dv">1</span> <span class="sc">|</span> line, <span class="at">Q =</span> Q), sigma <span class="sc">~</span> z)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> site),</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  sigma <span class="sc">~</span> z,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="fu">sd</span>(id) <span class="sc">~</span> x_group,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="fu">sd</span>(site) <span class="sc">~</span> site_type</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>)</span></code></pre></div>
 <p>Current implemented Student-t form:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x, sigma <span class="sc">~</span> z, nu <span class="sc">~</span> <span class="dv">1</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x, sigma <span class="sc">~</span> z, nu <span class="sc">~</span> x)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> x <span class="sc">|</span> id), sigma <span class="sc">~</span> z, nu <span class="sc">~</span> <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x, sigma <span class="sc">~</span> z, nu <span class="sc">~</span> <span class="dv">1</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x, sigma <span class="sc">~</span> z, nu <span class="sc">~</span> x)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> x <span class="sc">|</span> id), sigma <span class="sc">~</span> z, nu <span class="sc">~</span> <span class="dv">1</span>)</span></code></pre></div>
 <p>Student-t ordinary <code>mu</code> random intercepts and independent
 numeric slopes are a first location slice, joined by a
 <code>spatial(1 | id, coords = coords)</code> structured <code>mu</code>
@@ -1437,17 +1467,17 @@ latent-effect spelling such as <code>skew(id) ~ x_group</code> would ask
 a different question about the distribution of group effects and should
 not be taught as an alias for residual <code>nu</code>.</p>
 <p>Current implemented lognormal form:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">drm_formula</span>(biomass <span class="sc">~</span> habitat, sigma <span class="sc">~</span> treatment)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">drm_formula</span>(biomass <span class="sc">~</span> habitat, sigma <span class="sc">~</span> treatment)</span></code></pre></div>
 <p>paired with:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>family <span class="ot">=</span> <span class="fu">lognormal</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>family <span class="ot">=</span> <span class="fu">lognormal</span>()</span></code></pre></div>
 <p>The response must be positive and finite. <code>mu</code> and
 <code>sigma</code> are defined on the log-response scale, and
 <code>fitted()</code> returns the arithmetic response mean
 <code>exp(mu + sigma^2 / 2)</code>.</p>
 <p>Current implemented Gamma form:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">drm_formula</span>(biomass <span class="sc">~</span> habitat, sigma <span class="sc">~</span> treatment)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">drm_formula</span>(biomass <span class="sc">~</span> habitat, sigma <span class="sc">~</span> treatment)</span></code></pre></div>
 <p>paired with:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>family <span class="ot">=</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>family <span class="ot">=</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>)</span></code></pre></div>
 <p>Here <code>mu</code> is the response mean and <code>sigma</code> is
 the coefficient of variation. Gamma <code>mu</code> random intercepts
 and independent numeric slopes are an implemented first slice at
@@ -1468,54 +1498,54 @@ Matching <code>(1 | p | id)</code> terms in univariate Gaussian
 covariance block; larger cross-formula blocks with slopes remain future
 work.</p>
 <p>Current implemented bivariate form:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x1,</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> x1,</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x1,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> x1,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>)</span></code></pre></div>
 <p>When both responses share the same location predictors, the shorter
 form is also implemented:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">mvbind</span>(y1, y2) <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> x1,</span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">mvbind</span>(y1, y2) <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> x1,</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>)</span></code></pre></div>
 <p>This expands internally to <code>mu1 = y1 ~ x1 + x2</code> and
 <code>mu2 = y2 ~ x1 + x2</code>. Use the explicit <code>mu1</code> and
 <code>mu2</code> formulas when the two responses need different location
 predictors.</p>
 <p>The first fitted structured-effect marker examples are phylogenetic
 location effects:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span></code></pre></div>
 <p><code>phylo()</code> uses an ultrametric branch-length tree and adds
 tree-structured Gaussian random intercept and one-slope fields to the
 <code>mu</code> predictor. Matching intercept-only <code>phylo()</code>
 terms in bivariate <code>mu1</code> and <code>mu2</code> formulas fit
 the first phylogenetic mean-mean correlation slice:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> <span class="dv">1</span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>)</span></code></pre></div>
 <p>Matching labelled <code>phylo()</code> terms across all four
 bivariate Gaussian endpoints fit the constant q=4 phylogenetic
 location-scale block. A single shared label estimates one full q4 tree
 block; using one label for <code>mu1</code>/<code>mu2</code> and another
 for <code>sigma1</code>/<code>sigma2</code> estimates the block-diagonal
 fallback:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> pl <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> pl <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> z <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> ps <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> z <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> ps <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> <span class="dv">1</span></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> pl <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> pl <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> z <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> ps <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> z <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">|</span> ps <span class="sc">|</span> species, <span class="at">tree =</span> tree),</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>)</span></code></pre></div>
 <p>Additional multiple or labelled phylogenetic-slope layouts outside
 the exact fitted ledger cells, richer residual-scale structured slopes
 beyond the exact q1 routes, partial or mismatched bivariate phylogenetic
@@ -1523,28 +1553,28 @@ scale terms, structured effects in <code>rho12</code>, multiple
 animal-model slopes, multiple lower-level <code>relmat()</code> slopes,
 multiple spatial slopes, and mesh-based spatial terms are still
 planned:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># planned; drmTMB() will currently reject these</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">+</span> x1 <span class="sc">+</span> x2 <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">animal</span>(<span class="dv">1</span> <span class="sc">+</span> x1 <span class="sc">+</span> x2 <span class="sc">|</span> id, <span class="at">pedigree =</span> ped), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">animal</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> id, <span class="at">pedigree =</span> ped), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">relmat</span>(<span class="dv">1</span> <span class="sc">+</span> x1 <span class="sc">+</span> x2 <span class="sc">|</span> id, <span class="at">K =</span> K), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">relmat</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> id, <span class="at">K =</span> K), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> site, <span class="at">coords =</span> coords), sigma <span class="sc">~</span> z)</span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">|</span> site, <span class="at">mesh =</span> mesh), sigma <span class="sc">~</span> z)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># planned; drmTMB() will currently reject these</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">+</span> x1 <span class="sc">+</span> x2 <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">phylo</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> species, <span class="at">tree =</span> tree), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">animal</span>(<span class="dv">1</span> <span class="sc">+</span> x1 <span class="sc">+</span> x2 <span class="sc">|</span> id, <span class="at">pedigree =</span> ped), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">animal</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> id, <span class="at">pedigree =</span> ped), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">relmat</span>(<span class="dv">1</span> <span class="sc">+</span> x1 <span class="sc">+</span> x2 <span class="sc">|</span> id, <span class="at">K =</span> K), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">relmat</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> id, <span class="at">K =</span> K), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> p <span class="sc">|</span> site, <span class="at">coords =</span> coords), sigma <span class="sc">~</span> z)</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="fu">drm_formula</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">|</span> site, <span class="at">mesh =</span> mesh), sigma <span class="sc">~</span> z)</span></code></pre></div>
 <p>The first fitted <code>spatial()</code> paths use coordinates
 directly for univariate Gaussian <code>mu</code> coefficient fields:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">drmTMB</span>(</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">bf</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">|</span> site, <span class="at">coords =</span> coords), sigma <span class="sc">~</span> z),</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">data =</span> dat</span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>)</span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="fu">drmTMB</span>(</span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="fu">bf</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> site, <span class="at">coords =</span> coords), sigma <span class="sc">~</span> z),</span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
-<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>  <span class="at">data =</span> dat</span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">drmTMB</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">bf</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">|</span> site, <span class="at">coords =</span> coords), sigma <span class="sc">~</span> z),</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">data =</span> dat</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>)</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="fu">drmTMB</span>(</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="fu">bf</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">spatial</span>(<span class="dv">1</span> <span class="sc">+</span> x <span class="sc">|</span> site, <span class="at">coords =</span> coords), sigma <span class="sc">~</span> z),</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">gaussian</span>(),</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>  <span class="at">data =</span> dat</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>)</span></code></pre></div>
 <p><code>coords</code> can have one row per site or one row per
 observation, but coordinates must be constant within each site. A
 precomputed <code>mesh</code> is fitted only for the fixed-kappa
@@ -1564,13 +1594,13 @@ for the same covariates across responses.</p>
 <p>The first bivariate group-level covariance syntax is explicit about
 the distinction between group-level covariance labels and residual
 <code>rho12</code>:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x1      <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> q <span class="sc">|</span> ID),</span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> x1      <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> q <span class="sc">|</span> ID),</span>
-<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2</span>
-<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x1      <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> q <span class="sc">|</span> ID),</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> x1      <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> q <span class="sc">|</span> ID),</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> x1 <span class="sc">+</span> x2</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>)</span></code></pre></div>
 <p>The shared <code>p</code> label fits a group-level random-intercept
 covariance block for the two response means. The shared <code>q</code>
 label fits a separate scale-scale block for the two residual-scale
@@ -1581,13 +1611,13 @@ response-1 mean-scale row, while a different shared label in
 <code>mu2</code> and <code>sigma2</code> gives a separate response-2
 mean-scale row. Reusing the same label and group in all four bivariate
 formulas fits the first ordinary q=4 location-scale block:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
-<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
-<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
-<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> w</span>
-<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">drm_formula</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="at">mu1 =</span> y1 <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="at">mu2 =</span> y2 <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">sigma1 =</span> <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="at">sigma2 =</span> <span class="sc">~</span> z <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> ID),</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>  <span class="at">rho12 =</span> <span class="sc">~</span> w</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>)</span></code></pre></div>
 <p>That q=4 block reports one location-location row, four location-scale
 rows, and one scale-scale row in <code>corpairs()</code>. Fitted rows
 still use the older <code>mean-mean</code> and <code>mean-scale</code>
