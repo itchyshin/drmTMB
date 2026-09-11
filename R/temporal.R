@@ -515,12 +515,6 @@ validate_temporal_wald_parm <- function(object, parm) {
       "i" = "Mean-coefficient likelihood profiles are qualified in the retained primary panel cells; Wald covariance and intervals remain deferred."
     ))
   }
-  if (identical(temporal$structure, "hetar1")) {
-    cli::cli_abort(c(
-      "Heterogeneous AR1 mean-coefficient Wald intervals are not yet qualified.",
-      "i" = "The P3 interval-feasibility gate must validate the full-Hessian covariance before Wald inference is exposed."
-    ))
-  }
   allowed <- drm_temporal_mean_target_parm(object)
   requested <- if (is.null(parm)) allowed else as.character(parm)
   bad <- setdiff(requested, allowed)

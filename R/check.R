@@ -1374,14 +1374,6 @@ check_temporal_mean_wald <- function(object) {
       "Homogeneous Toeplitz mean-coefficient Wald intervals remain unavailable. Fixed-mean likelihood profiles are qualified in the retained primary cells; Wald covariance remains unavailable."
     ))
   }
-  if (identical(structure, "hetar1")) {
-    return(check_row(
-      "temporal_mean_wald",
-      "note",
-      "unavailable; reason=hetar1_interval_feasibility_pending",
-      "Heterogeneous AR1 mean-coefficient Wald intervals remain unavailable while the P3 full-Hessian interval-feasibility evidence is completed."
-    ))
-  }
   covariance_ready <- identical(drm_uncertainty_status(object), "ok") &&
     !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
   if (!covariance_ready) {
@@ -1395,8 +1387,8 @@ check_temporal_mean_wald <- function(object) {
   check_row(
     "temporal_mean_wald",
     "note",
-    "available_for_this_fit; calibration=unqualified",
-    "Temporal AR1 mean-coefficient Wald intervals are available for this fit. Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
+    if (identical(structure, "hetar1")) "available_for_this_fit; coverage=unassessed" else "available_for_this_fit; calibration=unqualified",
+    if (identical(structure, "hetar1")) "Heterogeneous AR1 mean-coefficient Wald intervals are available for this fit from the full observed marginal-likelihood Hessian. Their coverage and standard-error calibration are unassessed; this fit-level status is interval feasibility only." else "Temporal AR1 mean-coefficient Wald intervals are available for this fit. Their general coverage calibration remains unresolved; do not treat this fit-level status as a coverage claim."
   )
 }
 

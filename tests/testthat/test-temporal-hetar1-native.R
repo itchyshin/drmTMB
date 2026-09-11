@@ -1,4 +1,4 @@
-pkgload::load_all(".", compile = TRUE, quiet = TRUE)
+pkgload::load_all(".", compile = FALSE, quiet = TRUE)
 source(testthat::test_path("helper-temporal-hetar1-reference.R"))
 
 hetar1_native_data <- function() {
@@ -37,13 +37,16 @@ test_that("hetar1 uses a labelled D-R-D covariance with signed AR1 starts", {
     temporal$occasion_index[order(temporal$observation_node_index)]
   ] * unname(fit$random_effects$temporal$latent)
   expect_equal(unname(fit$random_effects$temporal$values), expected_values)
-  expect_error(stats::vcov(fit), "Heterogeneous AR1 Wald coefficient covariance")
-  expect_error(stats::confint(fit, method = "wald"), "not yet qualified")
+  covariance <- stats::vcov(fit)
+  expect_equal(covariance, fit$sdr$cov.fixed[seq_len(2L), seq_len(2L)], tolerance = 1e-8)
+  intervals <- stats::confint(fit, method = "wald")
+  expect_true(all(is.finite(intervals$lower) & is.finite(intervals$upper)))
+  expect_true(all(intervals$lower < intervals$upper))
   expect_error(stats::confint(fit, method = "profile"), "not yet qualified")
   diagnostics <- drmTMB::check_drm(fit)
   wald_row <- diagnostics[diagnostics$check == "temporal_mean_wald", , drop = FALSE]
   profile_row <- diagnostics[diagnostics$check == "temporal_mean_profile", , drop = FALSE]
-  expect_identical(wald_row$value, "unavailable; reason=hetar1_interval_feasibility_pending")
+  expect_identical(wald_row$value, "available_for_this_fit; coverage=unassessed")
   expect_identical(profile_row$value, "unavailable; reason=hetar1_interval_feasibility_pending")
   expect_equal(
     -as.numeric(stats::logLik(fit)),

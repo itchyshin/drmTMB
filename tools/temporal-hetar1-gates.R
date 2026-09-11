@@ -1,11 +1,13 @@
 #!/usr/bin/env Rscript
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 1L || !args[[1L]] %in% c("T4-1", "T4-2", "T4-3", "T4-4", "T4-5")) {
-  stop("Implemented gates are T4-1 through T4-5. Evidence, documentation, and close gates remain pending.", call. = FALSE)
+if (length(args) < 1L || length(args) > 2L || !args[[1L]] %in% c("T4-1", "T4-2", "T4-3", "T4-4", "T4-5", "T4-6", "T4-7", "T4-11") ||
+    (length(args) == 2L && !identical(args[[2L]], "--reverify"))) {
+  stop("Usage: Rscript --vanilla tools/temporal-hetar1-gates.R T4-1|...|T4-7|T4-11 [--reverify]", call. = FALSE)
 }
 
 gate <- args[[1L]]
+reverify <- length(args) == 2L
 run_test_file <- function(path) {
   code <- paste(
     "pkgload::load_all('.', compile = TRUE, quiet = TRUE)",
@@ -24,7 +26,69 @@ run_test_file <- function(path) {
   }
 }
 
-if (identical(gate, "T4-1")) {
+artifact_root <- file.path(
+  "docs", "dev-log", "simulation-artifacts",
+  "2026-09-11-temporal-hetar1-interval-feasibility"
+)
+verify_artifact <- function(mode, expected_fixtures) {
+  out_dir <- file.path(artifact_root, mode)
+  required <- file.path(out_dir, c(
+    "configuration.csv", "raw-attempts.csv", "fixture-results.csv",
+    "interval-results.csv", "summary.csv", "provenance.csv", "results.rds",
+    "session-info.txt", "RESULTS.md"
+  ))
+  if (!all(file.exists(required))) {
+    stop(sprintf("%s interval-feasibility artifacts are missing.", mode), call. = FALSE)
+  }
+  configuration <- utils::read.csv(file.path(out_dir, "configuration.csv"), stringsAsFactors = FALSE)
+  attempts <- utils::read.csv(file.path(out_dir, "raw-attempts.csv"), stringsAsFactors = FALSE)
+  results <- utils::read.csv(file.path(out_dir, "fixture-results.csv"), stringsAsFactors = FALSE)
+  intervals <- utils::read.csv(file.path(out_dir, "interval-results.csv"), stringsAsFactors = FALSE)
+  provenance <- utils::read.csv(file.path(out_dir, "provenance.csv"), stringsAsFactors = FALSE)
+  source_commit <- provenance$value[provenance$key == "source_commit"]
+  runner_md5 <- provenance$value[provenance$key == "runner_md5"]
+  implementation_changed <- system2(
+    "git", c("diff", "--name-only", paste0(source_commit, "..HEAD"), "--", "R", "src", "DESCRIPTION", "NAMESPACE"),
+    stdout = TRUE
+  )
+  expected_starts <- sort(rep(c(-0.3, 0.3), expected_fixtures))
+  if (length(source_commit) != 1L || length(runner_md5) != 1L ||
+      !identical(runner_md5, unname(tools::md5sum("tools/run-temporal-hetar1-interval-feasibility.R"))) ||
+      length(implementation_changed) != 0L ||
+      nrow(configuration) != expected_fixtures || nrow(results) != expected_fixtures ||
+      nrow(attempts) != 2L * expected_fixtures ||
+      !all(table(attempts$fixture) == 2L) ||
+      !identical(sort(attempts$persistence_start), expected_starts) ||
+      !all(tapply(attempts$selected, attempts$fixture, sum) == 1L) ||
+      nrow(intervals) != 3L * expected_fixtures ||
+      !identical(sort(unique(intervals$fixture)), sort(configuration$fixture))) {
+    stop(sprintf("%s interval-feasibility artifacts fail their immutable-output contract.", mode), call. = FALSE)
+  }
+  invisible(list(results = results, intervals = intervals))
+}
+
+if (identical(gate, "T4-6")) {
+  if (reverify) stop("T4-6 creates no fits; use T4-11 --reverify for immutable-output verification.", call. = FALSE)
+  full <- verify_artifact("full", expected_fixtures = 20L)
+  if (!any(full$intervals$finite_interval)) {
+    stop("T4-6 retained no finite fixed-mean Wald interval to assess.", call. = FALSE)
+  }
+  cat("TEMPORAL_HETAR1_T4_6_PASS\n")
+} else if (identical(gate, "T4-7")) {
+  if (reverify) stop("T4-7 does not accept --reverify.", call. = FALSE)
+  pilot <- verify_artifact("pilot", expected_fixtures = 5L)
+  if (!all(is.finite(pilot$results$elapsed_sec) & pilot$results$elapsed_sec > 0)) {
+    stop("T4-7 pilot is missing elapsed-time measurements.", call. = FALSE)
+  }
+  cat("TEMPORAL_HETAR1_T4_7_PASS\n")
+} else if (identical(gate, "T4-11")) {
+  if (!reverify) stop("T4-11 requires --reverify and never launches fits.", call. = FALSE)
+  verify_artifact("pilot", expected_fixtures = 5L)
+  verify_artifact("full", expected_fixtures = 20L)
+  cat("TEMPORAL_HETAR1_T4_11_PASS\n")
+} else if (reverify) {
+  stop("--reverify is implemented only for T4-11.", call. = FALSE)
+} else if (identical(gate, "T4-1")) {
   run_test_file("tests/testthat/test-temporal-hetar1-parser.R")
   cat("TEMPORAL_HETAR1_T4_1_PASS\n")
 } else if (identical(gate, "T4-2")) {
