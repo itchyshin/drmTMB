@@ -66,7 +66,7 @@ test_that("public label mapping reaches raw inference and refuses before setup",
   skip_if_not_installed("JuliaCall")
   object <- list(bridge_public_coef_labels=drmTMB:::drm_julia_bridge_coef_labels(label_fixture()),
     model=list(model_type="gaussian"),bridge_payload=list(formula="y ~ x",data=data.frame(y=1,x=1),options=list()))
-  target <- data.frame(dpar="mu",term="I(x^2)")
+  target <- data.frame(dpar="mu", term="I(x^2)", target_class="fixed-effect")
   setup_calls <- 0L
   local_mocked_bindings(drm_julia_setup=function(...) {setup_calls<<-setup_calls+1L},.package="drmTMB")
   local_mocked_bindings(julia_call=function(...)list(...),.package="JuliaCall")
