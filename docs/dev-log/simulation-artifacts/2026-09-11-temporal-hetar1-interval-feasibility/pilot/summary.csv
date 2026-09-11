@@ -1,0 +1,11 @@
+"metric","value"
+"n_fixtures",5
+"n_attempts",10
+"n_selected",5
+"n_selected_finite",5
+"n_primary_interval_rows",15
+"n_primary_finite_intervals",15
+"n_stress_interval_rows",0
+"n_stress_finite_intervals",0
+"median_elapsed_sec",2.362
+"max_elapsed_sec",5.418

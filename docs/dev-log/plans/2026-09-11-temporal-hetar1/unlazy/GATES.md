@@ -35,10 +35,10 @@ Every runnable gate has a reviewed command, a success-only receipt and initially
   EXPECT: TEMPORAL_HETAR1_T4_6_PASS
   EVIDENCE: pending
 
-- [ ] T4-7: Five-seed timing pilot records time, memory, interval availability and output completeness before any longer run.
+- [x] T4-7: Five-seed timing pilot records time, memory, interval availability and output completeness before any longer run.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-7
   EXPECT: TEMPORAL_HETAR1_T4_7_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11: `Rscript --vanilla tools/temporal-hetar1-gates.R T4-7` emitted `TEMPORAL_HETAR1_T4_7_PASS`. The immutable C1 pilot retained five fixtures and ten signed-start attempts; all fifteen primary fixed-mean Wald intervals were finite. Median selected-fit time was 2.362 seconds and the maximum was 5.418 seconds (against the already rebuilt native library, recorded in provenance).
 
 - [ ] T4-11: Immutable interval-feasibility outputs reverify without launching fits.
   CHECK: Rscript --vanilla tools/temporal-hetar1-gates.R T4-11 --reverify

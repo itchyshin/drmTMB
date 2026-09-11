@@ -94869,3 +94869,8 @@ P1 G13 coverage rows.
 - **Regression repair:** synchronized the older AR1 smoke expectation with its already-implemented mean-profile interface; the focused AR1 smoke test then passed.
 - **Methods receipt:** T4-4 also passed after synchronizing `check_drm()` with the deliberately unavailable pre-feasibility Wald surface. The package now presents labelled process SDs, constant residual `sigma`, fitted values, residuals and seeded simulation without suggesting that fixed-mean intervals have been qualified.
 - **Next:** freeze the no-coverage interval-feasibility fixtures, estimate and run the five-fit timing pilot, then decide from its retained outputs whether the public fixed-mean Wald surface can be opened.
+
+## 2026-09-11 — P3 `hetar1` interval-feasibility pilot
+
+- **Pilot receipt:** the frozen C1 five-seed local pilot retained five fits, ten signed-start attempts and all fifteen fixed-mean Wald intervals. `T4-7` passed. All selected objectives and interval endpoints were finite; median selected-fit time was 2.362 seconds and the maximum 5.418 seconds.
+- **Compute interpretation:** the pilot used the already rebuilt native library, disclosed as `native_compile = FALSE` in provenance. The 20-fixture panel is therefore estimated at about 50 seconds once built, which is above the programme's 30-second escalation threshold. No full panel has started.
