@@ -94729,3 +94729,11 @@ now requires a lowercase SHA-256 environment value, writes it into each task's
 `slurm-provenance.txt`, and rejects a malformed or absent value before work begins.
 This preserves the immutable source/dependency fingerprints while making the post-smoke
 checksum repair auditable for every released array task.
+
+## 2026-09-10 — G12 incremental mirror receipt exclusion
+
+The bounded-array release stores `task-0001-receipt.tar.gz` beside task archives. The
+progress mirror originally selected every `task-*.tar.gz`, so its strict four-digit
+artifact validator rejected that receipt. The selector now admits only
+`task-0001.tar.gz` through `task-3500.tar.gz`; the live one-pass mirror returned
+`PHYLO_TEMPORAL_OU_G12_PROGRESS_MIRROR_PASS available=1` while preserving the receipt.

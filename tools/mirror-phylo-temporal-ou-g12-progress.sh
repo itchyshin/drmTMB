@@ -35,7 +35,7 @@ rorqual=(ssh -o ControlMaster=no -o ControlPath="$HOME/.ssh/cm-snakagaw@rorqual.
 
 mirror_available() {
   local listing label task
-  listing=$("${rorqual[@]}" "find '$stage_root/artifacts' -maxdepth 1 -type f -name 'task-*.tar.gz' -printf '%f\\n' 2>/dev/null | sort")
+  listing=$("${rorqual[@]}" "find '$stage_root/artifacts' -maxdepth 1 -type f -name 'task-[0-9][0-9][0-9][0-9].tar.gz' -printf '%f\\n' 2>/dev/null | sort")
   local count=0
   while IFS= read -r label; do
     [[ -z "$label" ]] && continue
