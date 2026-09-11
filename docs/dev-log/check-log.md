@@ -94884,3 +94884,8 @@ P1 G13 coverage rows.
 
 - **Full-panel receipt:** the frozen 20-fixture panel retained 40 signed-start attempts. All selected fits had finite objectives and positive-definite observed information. All 60 fixed-mean Wald rows had finite ordered endpoints and finite reported standard errors. T4-6 and the no-refit T4-11 reverify passed.
 - **Retained correction:** the first full output is preserved under `full-reporter-error-20260911/`; its fits and intervals are unchanged but its optional SE column was `NA` because of a CSV covariance-label mismatch. The repaired runner used the identical frozen data, seeds, likelihood and selection rule and wrote the corrected `full/` receipt. Neither result is a coverage or standard-error-calibration claim.
+
+## 2026-09-11 — P3 final-source evidence refresh
+
+- **Reason:** independent review found stale public wording. The final closeout source corrects that wording, defines a runnable regular-panel reader example, and keeps profile and variance-parameter intervals explicitly unavailable. The likelihood, parameter transforms, fixture generator, seeds and start-selection rule did not change.
+- **Final receipts:** the same five-seed pilot and 20-fixture panel were rerun from source `7a59bc729`. The pilot retained 10 starts and 15 finite fixed-mean intervals; the panel retained 40 starts and 60 finite fixed-mean intervals with finite SEs. All T4-1 through T4-7, T4-11 and T4-12 gates pass; the superseded prior-source outputs remain retained alongside the final receipts.

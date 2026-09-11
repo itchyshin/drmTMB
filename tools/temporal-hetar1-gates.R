@@ -47,13 +47,7 @@ verify_artifact <- function(mode, expected_fixtures) {
   provenance <- utils::read.csv(file.path(out_dir, "provenance.csv"), stringsAsFactors = FALSE)
   source_commit <- provenance$value[provenance$key == "source_commit"]
   runner_md5 <- provenance$value[provenance$key == "runner_md5"]
-  allowed_runner_md5 <- if (identical(mode, "pilot")) {
-    # The pilot preceded the reporting-only SE label repair. Retaining its
-    # original hash makes that difference explicit rather than rewriting it.
-    "a313f16ffba6d7f059f8ab462687758c"
-  } else {
-    unname(tools::md5sum("tools/run-temporal-hetar1-interval-feasibility.R"))
-  }
+  allowed_runner_md5 <- unname(tools::md5sum("tools/run-temporal-hetar1-interval-feasibility.R"))
   implementation_changed <- system2(
     "git", c("diff", "--name-only", paste0(source_commit, "..HEAD"), "--", "R", "src", "DESCRIPTION", "NAMESPACE"),
     stdout = TRUE
