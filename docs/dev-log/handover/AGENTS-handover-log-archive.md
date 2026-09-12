@@ -19,6 +19,23 @@ Newest first, exactly as they appeared.
 
 ---
 
+> **▶ Latest — start here (2026-08-19, CODEX; exact 0.7.0 evidence closeout).**
+> Shinichi selected current `main` and the final immutable candidate is source
+> `6170fbeeea65f22444d7b0934f4e808c40744d22`, SHA-256
+> `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
+> 4,368,396 bytes. Exact-byte local `--as-cran` and all three win-builder arms
+> pass with the expected first-submission NOTE; exact-source 3-OS CI and three
+> sanitizer jobs pass, while the red `rchk` findings remain honestly confined
+> to installed TMB headers. Grace, Rose, and Pat are READY and the executable
+> ledger proves `submission-ready`; this does not authorize submission.
+> `5153ae7e…` and
+> `6b45164b…` are predecessor evidence only. No `submit_cran()`, no submission
+> on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes. Current
+> status: evidence PR #1076 merged as `7fd86d031` and its real Ubuntu release
+> job passed; [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+
+---
+
 > **▶ Latest — start here (2026-08-18, → CODEX; Ligges wait/file lane only).**
 > #1072 merged as `6152aaef1`; exact julia-skip-2 bytes `5153ae7e…`
 > (10,098,642 B) have a filed R-oldrelease 1-NOTE result
@@ -1058,4 +1075,3 @@ Newest first, exactly as they appeared.
 > [`docs/dev-log/codex-handover-2026-06-14-ayumi-arc-closeout.md`](docs/dev-log/codex-handover-2026-06-14-ayumi-arc-closeout.md).
 > **Top open task: #544** (bridge-gate-drift audit + a gate-vs-engine CI guard; sister
 > mirror gllvmTMB#488). **No CRAN.** Decisions pending the maintainer: DRM.jl#280, #270.
-

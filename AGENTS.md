@@ -3,20 +3,16 @@
 `drmTMB` is an R package for fast univariate and bivariate distributional
 regression using Template Model Builder.
 
-> **▶ Latest — start here (2026-08-19, CODEX; exact 0.7.0 evidence closeout).**
-> Shinichi selected current `main` and the final immutable candidate is source
-> `6170fbeeea65f22444d7b0934f4e808c40744d22`, SHA-256
-> `1d6445db583d4e4586d177ce9a6ada78b27373e104a2f6754926b61a188ed9f3`,
-> 4,368,396 bytes. Exact-byte local `--as-cran` and all three win-builder arms
-> pass with the expected first-submission NOTE; exact-source 3-OS CI and three
-> sanitizer jobs pass, while the red `rchk` findings remain honestly confined
-> to installed TMB headers. Grace, Rose, and Pat are READY and the executable
-> ledger proves `submission-ready`; this does not authorize submission.
-> `5153ae7e…` and
-> `6b45164b…` are predecessor evidence only. No `submit_cran()`, no submission
-> on 19 August, and no #1033 or `_julia_skip2_artifacts/` changes. Current
-> status: evidence PR #1076 merged as `7fd86d031` and its real Ubuntu release
-> job passed; [`docs/dev-log/coordination-board.md`](docs/dev-log/coordination-board.md).
+> **▶ Latest — start here (2026-09-12, CODEX; phylogenetic OU evidence lane).**
+> This is a multi-lane repository: first read the
+> [`Active-Lane Split`](docs/dev-log/active-lane-split.md), then the row for the
+> lane you own. The completed temporal covariance programme is at
+> `475b5e065`; its P4 heterogeneous-Toeplitz and P5 seasonal/ARMA/temporal-Matérn
+> items remain protected deferred work. The next phylogenetic lane must start from
+> the existing local-fit-only `phylo(..., model = "ou")` provider and its retained
+> weak intercept--tree-field separation evidence; it must not reimplement that
+> provider or touch P4/P5. START HERE:
+> [`docs/dev-log/handover/2026-09-12-codex-handover.md`](docs/dev-log/handover/2026-09-12-codex-handover.md).
 >
 
 > **Older handover entries (2026-07-22 .. 2026-08-18) are archived verbatim in
