@@ -95182,3 +95182,7 @@ The requested exact 1,000-tip OU-plus-climate-scale preflight completed in
 `sysctl` call used by `/usr/bin/time -l`, so no RSS could be recorded. It is
 therefore retained as negative feasibility evidence; the sparse-memory gate
 remains open and no scalability claim is made.
+
+An independent direct process sampler was also denied `ps` access by the same
+sandbox. It reproduced the fit result but recorded no resident-memory value,
+confirming that a resource-capable external preflight is required for G6.

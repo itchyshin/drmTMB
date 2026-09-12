@@ -94,6 +94,10 @@ restrictions prevented `/usr/bin/time -l` from querying RSS. The source-lane
 lease registry was also unavailable for a durable write, although the isolated
 worktree and preflight found no active file overlap.
 
+An independent direct process sampler was then denied `ps` access by the same
+sandbox and reproduced the numerical fit without an RSS value. This rules out
+the two local telemetry paths used here; it does not establish a memory bound.
+
 ## Known limitations and open gates
 
 G0 remains open because the lane lease could not be durably persisted. G6 remains
