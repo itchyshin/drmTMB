@@ -110,6 +110,13 @@ The inspected preflight was finally run outside that sandbox and completed in
 footprint 569,082,912 bytes. It retains its BFGS fallback, `pdHess = FALSE`, and
 large gradient, so this closes only the sparse-resource measurement gate.
 
+A source-current replay then ran each Ayumi ladder cell in its own process under
+`/usr/bin/time -l`. The retained receipt records per-fit elapsed time, RSS,
+peak-memory footprint, fixed effects, optimizer warning counts, and short
+reconstructed OU alpha-profile diagnostics. Both OU fits again select alpha
+near zero and have nearly flat local profiles; these observations are boundary
+evidence only, not decay intervals or a BM-versus-OU choice.
+
 ## Known limitations and open gates
 
 G0 remains open because the initial lane lease was not durably persisted before

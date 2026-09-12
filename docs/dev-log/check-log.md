@@ -95229,3 +95229,17 @@ The raw CSV checksum remains
 It retains variable clean-design alpha estimates and weak-design Hessian
 failures as negative evidence only; it does not widen the local-fit/oracle
 claim.
+
+## 2026-09-12 — Ayumi ladder resource and alpha-boundary receipt
+
+The source-current four-cell Ayumi replay was run one cell per process under
+`/usr/bin/time -l`, retaining elapsed time and peak RSS instead of inferring
+memory from an in-process object. `fit-summary.csv` in
+`docs/dev-log/evidence/2026-09-12-ayumi-phylo-ou-resource-profile/` records
+the four resource/diagnostic rows, and `fixed-effects.csv` retains their fixed
+coefficients. Both OU cells converge with positive Hessians but retain one
+warning, near-zero decay, and maximum gradients 0.01566132 (constant residual
+scale) and 0.00120992 (climate residual scale). Their rebuilt four-row TMB
+profiles take 43.928 and 53.453 seconds and are locally flat (objective spans
+4.71e-05 and 2.62e-05). The profile CSVs explicitly label this as a boundary
+diagnostic, not an interval, recovery, or model-preference result.

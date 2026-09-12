@@ -7,16 +7,28 @@
 #
 # Usage:
 #   Rscript tools/phylo-ou-ayumi-bodymass-ladder.R /path/to/LS_ecogeographical-rules /output/path
+#   Rscript tools/phylo-ou-ayumi-bodymass-ladder.R /path/to/LS_ecogeographical-rules /output/path --cell=ou_climate
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2L) {
+if (!(length(args) %in% c(2L, 3L))) {
   stop(
-    "Usage: Rscript tools/phylo-ou-ayumi-bodymass-ladder.R <Ayumi-repo> <output-dir>",
+    paste(
+      "Usage: Rscript tools/phylo-ou-ayumi-bodymass-ladder.R",
+      "<Ayumi-repo> <output-dir> [--cell={bm_constant|ou_constant|bm_climate|ou_climate}]"
+    ),
     call. = FALSE
   )
 }
 source_repo <- normalizePath(args[[1L]], mustWork = TRUE)
 output_dir <- args[[2L]]
+cell_filter <- if (length(args) == 3L) sub("^--cell=", "", args[[3L]]) else NULL
+if (!is.null(cell_filter) && !startsWith(args[[3L]], "--cell=")) {
+  stop("The optional third argument must be --cell=<model>_<residual-scale>.", call. = FALSE)
+}
+valid_cells <- c("bm_constant", "ou_constant", "bm_climate", "ou_climate")
+if (!is.null(cell_filter) && !(cell_filter %in% valid_cells)) {
+  stop("Unknown cell. Choose one of: ", paste(valid_cells, collapse = ", "), call. = FALSE)
+}
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 source_commit <- tryCatch(
   system2("git", c("-C", source_repo, "rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE),
@@ -110,6 +122,10 @@ cells <- expand.grid(
   model = c("bm", "ou"), residual_scale = c("constant", "climate"),
   stringsAsFactors = FALSE
 )
+if (!is.null(cell_filter)) {
+  keep <- paste(cells$model, cells$residual_scale, sep = "_") == cell_filter
+  cells <- cells[keep, , drop = FALSE]
+}
 rows <- vector("list", nrow(cells))
 for (i in seq_len(nrow(cells))) {
   id <- paste(cells$model[[i]], cells$residual_scale[[i]], sep = "_")

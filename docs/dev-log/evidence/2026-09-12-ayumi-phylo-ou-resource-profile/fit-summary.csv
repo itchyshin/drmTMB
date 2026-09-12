@@ -1,0 +1,5 @@
+model,residual_scale,fit_seconds,process_seconds,peak_rss_bytes,peak_memory_footprint_bytes,convergence,pdHess,max_gradient,logLik,decay_phylo,check_drm_warning_count,check_drm_error_count,alpha_profile_seconds,alpha_profile_objective_span
+bm,constant,39.79959,85.59,2353201152,1361020584,0,TRUE,3.587067e-10,-62.12207,NA,0,0,NA,NA
+ou,constant,636.1187,682.26,2340143104,1541261040,0,TRUE,0.01566132,-61.61329,7.586196e-07,1,0,43.928,4.705121745e-05
+bm,climate,63.33702,110.78,2343895040,1363084992,0,TRUE,9.942165e-11,-47.34005,NA,0,0,NA,NA
+ou,climate,173.2083,217.62,2372386816,1449035432,0,TRUE,0.00120992,-46.70916,3.125338e-07,1,0,53.453,2.62045365e-05

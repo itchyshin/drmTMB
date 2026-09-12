@@ -1,0 +1,5 @@
+log_decay_phylo,value,alpha_mu,profile_seconds,fit_source_commit,claim_boundary
+-14.0918653551779,61.6132416156979,7.58543753802173e-07,43.928,b5219000845e5d4e74f8843740caadb45f54eb78,Short local profile diagnostic only; not a confidence interval or a general inference result.
+-14.0917653551779,61.6132875792755,7.58619611970398e-07,43.928,b5219000845e5d4e74f8843740caadb45f54eb78,Short local profile diagnostic only; not a confidence interval or a general inference result.
+-14.0917653551779,61.6132875792755,7.58619611970398e-07,43.928,b5219000845e5d4e74f8843740caadb45f54eb78,Short local profile diagnostic only; not a confidence interval or a general inference result.
+-14.0916653551779,61.6132405280587,7.5869547772482e-07,43.928,b5219000845e5d4e74f8843740caadb45f54eb78,Short local profile diagnostic only; not a confidence interval or a general inference result.
