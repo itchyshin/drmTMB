@@ -16,6 +16,17 @@ if (length(missing)) stop("Receipt lacks: ", paste(missing, collapse = ", "), ca
 if (!identical(receipt$receipt_schema_version, 1L) || !isTRUE(receipt$REML)) {
   stop("Receipt has an unexpected schema or REML setting.", call. = FALSE)
 }
+if (!is.character(receipt$source_commit) || length(receipt$source_commit) != 1L ||
+    !grepl("^[0-9a-f]{40}$", receipt$source_commit)) {
+  stop("Receipt has no valid 40-character source commit.", call. = FALSE)
+}
+source_head <- tryCatch(
+  system2("git", c("-C", receipt$source_repo, "rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE),
+  error = function(e) character()
+)
+if (length(source_head) != 1L || !identical(source_head, receipt$source_commit)) {
+  stop("Receipt source commit does not match the current source checkout.", call. = FALSE)
+}
 if (!requireNamespace("digest", quietly = TRUE)) stop("This verifier needs digest.", call. = FALSE)
 if (!identical(digest::digest(file = receipt$data_file, algo = "sha256"), receipt$data_sha256) ||
     !identical(digest::digest(file = receipt$tree_file, algo = "sha256"), receipt$tree_sha256)) {
@@ -30,6 +41,12 @@ if (!identical(as.character(cells$model), as.character(expected$model)) ||
 }
 if (!all(cells$convergence == 0L) || !all(cells$pdHess)) {
   stop("A required cell lacks convergence code zero or a positive-definite Hessian.", call. = FALSE)
+}
+diagnostic_columns <- c("check_drm_warning_count", "check_drm_error_count")
+if (!all(diagnostic_columns %in% names(cells)) ||
+    anyNA(cells[diagnostic_columns]) ||
+    any(vapply(cells[diagnostic_columns], function(x) any(!is.finite(x) | x < 0), logical(1)))) {
+  stop("Receipt lacks valid check_drm diagnostic counts.", call. = FALSE)
 }
 cat(sprintf("AYUMI_BODYMASS_PHYLO_OU_RECEIPT_PASS rows=%d tips=%d commit=%s\n",
   receipt$rows, receipt$tips, receipt$source_commit

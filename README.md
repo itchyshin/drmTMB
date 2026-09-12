@@ -395,6 +395,14 @@ The native-REML admissions for matching labelled non-phylogenetic bivariate q2
 location-intercept cells are narrower than their broader ML rows. The exact
 cells are fixed-covariance `spatial(1 | p | site, coords = coords)` and
 supplied-relatedness `relmat(1 | p | id, K = K)` in both `mu1` and `mu2`.
+
+For a different evolutionary covariance assumption, BM remains the default and
+`phylo(..., model = "ou")` is an explicit local-fit/oracle alternative for one
+univariate Gaussian location intercept. It estimates `decay_phylo`
+(`alpha_mu`); fixed-effect `sigma ~ ...` still describes independent residual
+variation, not `alpha_sigma`. This route has no decay interval, recovery, or
+model-preference claim, and phylogenetic `sigma`/`alpha_sigma` is deliberately
+deferred.
 Both require complete response pairs, unit weights, intercept-only `sigma1`,
 `sigma2`, and `rho12`, no known `meta_V()` covariance, and no additional
 ordinary random effect, direct-SD formula, or `corpair()` regression. The

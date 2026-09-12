@@ -95175,3 +95175,10 @@ claim boundary. The indexed provider now allocates `log_decay_phylo` as a
 vector selected by its field's stored index; the current public slice still
 has one `mu` field at index zero, while a future sigma-side OU field must add
 its own provider, index, `alpha_sigma`, and validation arc.
+
+The requested exact 1,000-tip OU-plus-climate-scale preflight completed in
+55.97 seconds with convergence code zero after the BFGS fallback, but had
+`pdHess = FALSE` and maximum gradient 5.2566678. The sandbox denied the
+`sysctl` call used by `/usr/bin/time -l`, so no RSS could be recorded. It is
+therefore retained as negative feasibility evidence; the sparse-memory gate
+remains open and no scalability claim is made.

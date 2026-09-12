@@ -57,6 +57,18 @@ read the [structural-dependence overview](structural-dependence.html) first.
 When observations belong to a *pair* of species drawn from two different trees,
 read [two-tree phylogenetic interactions](bipartite-phylogenetic-interactions.html).
 
+## Evolutionary covariance choice: BM by default, local OU alternative
+
+`phylo()` uses Brownian-motion (BM) covariance unless told otherwise.  A narrow
+Gaussian location-intercept OU route is also available with
+`phylo(1 | species, tree = tree, model = "ou")`. It estimates one location-side
+rate, printed as `decay_phylo` for compatibility (`alpha_mu` in the model
+description). This local-fit/oracle slice permits fixed-effect `sigma` and a
+direct phylogenetic-SD surface, but it does not create `alpha_sigma`, support a
+phylogenetic field in `sigma`, or provide decay intervals, recovery, or a
+general BM-versus-OU preference claim. See the formula grammar for its exact
+admission boundary.
+
 ## The phylogenetic covariance
 
 A `phylo()` term adds a vector of species-level location deviations $u$ with a
