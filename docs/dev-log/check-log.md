@@ -95254,3 +95254,16 @@ earlier receipt, BFGS fallback occurred, `pdHess = FALSE`, and maximum gradient
 was 5.2566678. This renews G6's sparse resource evidence only; it does not
 promote numerical stability, alpha inference, recovery, coverage, or model
 preference.
+
+## 2026-09-12 — Unlazy controlled OU gate re-verification
+
+Unlazy reverified G1--G4 through current-path approval bindings; every command
+exited zero and matched its expected pass marker. The first controlled G6 run
+also exited zero and emitted `PHYLO_OU_1000_PREFLIGHT_PASS`, but exposed a
+ledger defect: the `EXPECT:` field had included explanatory prose rather than
+the stable marker. After changing `EXPECT:` to that marker alone, Unlazy
+reran G6 with a recorded approval and passed it. `gate-check --status` now
+reports eight met gates and only G0/G9 unmet. G0 remains intentionally open
+because its required pre-edit historical lease cannot be recreated; G9 follows
+from that process condition, not a failed mathematical, empirical, or
+inference check.

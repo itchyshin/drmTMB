@@ -176,3 +176,6 @@ resource preflight. The next mathematically distinct arc is sigma-side
 phylogeny with a separate `alpha_sigma`; it must not reuse `alpha_mu`
 implicitly. A retained recovery or calibration campaign requires a fresh
 estimate and approval if the preflight shows it will exceed 30 minutes.
+
+The controlled Unlazy re-verification has passed every runnable gate. Formal
+closure remains held only by the documented historical G0/G9 condition.
