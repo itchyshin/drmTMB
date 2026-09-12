@@ -1,24 +1,26 @@
-# GOAL — deliver useful Gaussian temporal AR1 random effects in drmTMB
+# GOAL — reusable predictor-aware phylogenetic OU foundation
 
-Implement the approved temporal AR1 provider in an isolated worktree.  The supported
-first slice is a univariate Gaussian mean model with `temporal(1 | id, time =
-occasion, structure = "ar1")`, optionally alongside exactly one ordinary `(1 | id)`
-random intercept.  It estimates a shared temporal process SD and persistence, retains
-separate residual `sigma`, and exposes fixed-effect Wald intervals only.
+Implement and validate a reusable phylogenetic OU provider foundation in an
+isolated worktree. Brownian motion remains the default; the first public route
+is an explicit `phylo(..., model = "ou")` univariate Gaussian location
+intercept with fixed-effect residual `sigma` and optional direct phylogenetic
+SD amplitude. Ayumi's all-species body-mass model is the empirical feasibility
+acceptance example.
 
 ## Definition of done
 
-- [ ] Parser, native likelihood, methods, tests, documentation, and generated files implement the approved API.
-- [ ] Unlazy gates prove deterministic likelihood identities, output behavior, recovery evidence, and package integration.
-- [ ] A timed calibration pilot is retained; no 5,000-dataset campaign is submitted before recorded G17 approval.
-- [ ] Independent review, after-task evidence, plan-versus-actual reconciliation, and a local commit are complete.
+- [x] A field-keyed OU provider allocates a separate positive alpha per latent field without silently sharing a rate.
+- [x] Parser, native likelihood, independent oracle/mutations, BM parity, source-pinned empirical ladder, and sparse-resource preflight are retained.
+- [x] Public wording says `decay_phylo` is `alpha_mu`, distinguishes fixed residual `sigma`, and defers sigma-side phylogeny/`alpha_sigma`.
+- [ ] Independent mathematical, inference, and systems review plus an after-task reconciliation establish the earned scope.
 
 ## Invariants
 
-- Preserve true integer gaps, independent series, and separate random-intercept, temporal-process, and residual variation.
-- Allow Wald intervals only for fixed mean effects. Refuse profile/bootstrap/variance-component intervals, `newdata` prediction, forecasting, OU, temporal slopes, wider families, and unapproved random-effect combinations.
-- Do not push, merge, release, publish, send external messages, alter credentials, or submit remote computation without its named authority.
+- `model = "bm"` and an omitted model remain Brownian covariance.
+- Fixed-effect `sigma ~ x` changes independent residual variation, not the OU covariance process.
+- Do not admit sigma-side OU, bivariate/missing-response OU, temporal work, recovery/coverage, intervals, or an OU-preference claim without a separate validated arc.
+- Preserve the all-node sparse tree representation; do not build all-tip dense covariance for the empirical or scalability fit.
 
 ## Pre-authorisation
 
-Scoped edits, local builds/tests/renders, checkpoints, local commits, and a bounded timing pilot are authorised. Stop for an actual campaign submission, an estimate above the approved pilot boundary, an ownership collision, or evidence that changes this model contract.
+Scoped edits, local tests, source-pinned local feasibility fits, resource preflights, documentation, and local commits are authorised. A retained simulation/calibration campaign over 30 minutes, remote computation, merge, push, release, external messaging, or the deferred `alpha_sigma` arc requires separate authority.

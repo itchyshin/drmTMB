@@ -112,9 +112,10 @@ large gradient, so this closes only the sparse-resource measurement gate.
 
 ## Known limitations and open gates
 
-G0 remains open because the lane lease could not be durably persisted. G6 remains
-open because no RSS was recorded and the 1,000-tip fit is numerically weak. G9
-remains open. The provider has field-specific allocation, native loops, and
+G0 remains open because the initial lane lease was not durably persisted before
+the first edits; a later scoped lease protects this continuation but cannot
+rewrite that history. G6 is met as a resource measurement while its weak
+Hessian/gradient stay visible. G9 remains open. The provider has field-specific allocation, native loops, and
 named extraction/profile seams, but it is not public multi-field OU support: a
 future sigma-side field still needs its own formula/data layout, `alpha_sigma`,
 and validation arc. There is no bivariate, missing-response, temporal, slope,
