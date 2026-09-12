@@ -143,10 +143,11 @@ evidence only, not decay intervals or a BM-versus-OU choice.
 
 ## 10. Known Residuals
 
-G0 remains open because the initial lane lease was not durably persisted before
-the first edits; a later scoped lease protects this continuation but cannot
-rewrite that history. G6 is met as a resource measurement while its weak
-Hessian/gradient stay visible. G9 remains open. The provider has field-specific allocation, native loops, and
+The initial lane lease was not durably persisted before the first edits; a
+later scoped lease protects the continuation but cannot rewrite that history.
+On 2026-09-12 the user explicitly authorized retaining this fact as an audited
+G0 exception and closing the dependent G9 gate. G6 is met as a resource
+measurement while its weak Hessian/gradient stay visible. The provider has field-specific allocation, native loops, and
 named extraction/profile seams, but it is not public multi-field OU support: a
 future sigma-side field still needs its own formula/data layout, `alpha_sigma`,
 and validation arc. There is no bivariate, missing-response, temporal, slope,
@@ -177,5 +178,6 @@ phylogeny with a separate `alpha_sigma`; it must not reuse `alpha_mu`
 implicitly. A retained recovery or calibration campaign requires a fresh
 estimate and approval if the preflight shows it will exceed 30 minutes.
 
-The controlled Unlazy re-verification has passed every runnable gate. Formal
-closure remains held only by the documented historical G0/G9 condition.
+The controlled Unlazy re-verification has passed every runnable gate. The
+user-authorized G0 exception is documented above, so the bounded OU arc is
+closed without claiming that the original lease ordering occurred.

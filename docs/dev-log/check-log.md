@@ -95267,3 +95267,15 @@ reports eight met gates and only G0/G9 unmet. G0 remains intentionally open
 because its required pre-edit historical lease cannot be recreated; G9 follows
 from that process condition, not a failed mathematical, empirical, or
 inference check.
+
+## 2026-09-12 — user-authorized OU G0 exception and closeout
+
+The user explicitly authorized: "the late lease protected continuation but
+cannot prove pre-edit ordering; retain G0 as an audited exception and close
+G9." The G0 ledger is therefore closed as an exception, not rewritten as a
+successful original pre-edit lease. G9 closes on the existing controlled gate
+records, independent mathematical/systems/inference reviews, durable empirical
+provenance receipt, and structurally valid after-task report. The earned public
+scope remains the bounded univariate Gaussian location-side OU route; none of
+the deferred `alpha_sigma`, bivariate, missing-response, or temporal work is
+promoted by this closeout.

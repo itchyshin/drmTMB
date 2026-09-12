@@ -12,7 +12,7 @@ acceptance example.
 - [x] A field-keyed OU provider allocates a separate positive alpha per latent field without silently sharing a rate.
 - [x] Parser, native likelihood, independent oracle/mutations, BM parity, source-pinned empirical ladder, and sparse-resource preflight are retained.
 - [x] Public wording says `decay_phylo` is `alpha_mu`, distinguishes fixed residual `sigma`, and defers sigma-side phylogeny/`alpha_sigma`.
-- [ ] Independent mathematical, inference, and systems review plus an after-task reconciliation establish the earned scope.
+- [x] Independent mathematical, inference, and systems review plus an after-task reconciliation establish the earned scope; the original G0 ordering failure remains an explicitly user-authorized audited exception.
 
 ## Invariants
 
