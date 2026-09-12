@@ -55,6 +55,89 @@ test_that("Gaussian phylogenetic OU fits a native stationary tree provider", {
   )
   expect_identical(fit$model$structured$phylo_mu$provider$alpha_index0, 0L)
   expect_identical(fit$model$structured$phylo_mu$provider$field_id, "phylo_mu")
+  fields <- drmTMB:::phylo_ou_provider_fields(fit$model$structured$phylo_mu)
+  expect_length(fields, 1L)
+  expect_identical(fields[[1L]]$field_id, "phylo_mu")
+  expect_identical(fields[[1L]]$latent_index0, 0L)
+  expect_identical(fields[[1L]]$alpha_index0, 0L)
+  expect_identical(fit$model$tmb_data$phylo_ou_latent_index, 0L)
+  expect_identical(fit$model$tmb_data$phylo_ou_alpha_index, 0L)
+})
+
+test_that("phylogenetic OU provider registry allocates one rate per latent field", {
+  phylo <- list(
+    has = TRUE,
+    model = "ou",
+    dpars = c("mu", "sigma"),
+    provider = list(fields = list(
+      phylo_mu = list(
+        field_id = "phylo_mu", dpar = "mu", latent_index0 = 0L,
+        alpha_parameter = "log_decay_phylo", alpha_index0 = 0L
+      ),
+      phylo_sigma = list(
+        field_id = "phylo_sigma", dpar = "sigma", latent_index0 = 1L,
+        alpha_parameter = "log_decay_phylo", alpha_index0 = 1L
+      )
+    ))
+  )
+  spec <- list(structured = list(phylo_mu = phylo))
+  fields <- drmTMB:::phylo_ou_provider_fields(phylo)
+  expect_identical(unname(vapply(fields, `[[`, integer(1L), "alpha_index0")), c(0L, 1L))
+  decay <- drmTMB:::split_tmb_decaypars(
+    list(log_decay_phylo = log(c(0.4, 1.2))), spec
+  )
+  expect_equal(unname(decay$phylo), c(0.4, 1.2))
+  expect_named(decay$phylo, c("decay_phylo", "decay_phylo:sigma"))
+
+  phylo$provider$fields[[2L]]$alpha_index0 <- 0L
+  expect_error(drmTMB:::phylo_ou_provider_fields(phylo), "non-contiguous")
+})
+
+test_that("native OU prior evaluates separate alpha slots for two latent fields", {
+  skip_if_not_installed("ape")
+  set.seed(2026091205)
+  tree <- ape::rcoal(4)
+  tree$tip.label <- paste0("sp", seq_len(4))
+  dat <- data.frame(y = stats::rnorm(20), species = rep(tree$tip.label, each = 5))
+  fit <- drmTMB(
+    bf(y ~ phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
+    data = dat, family = gaussian()
+  )
+  data <- fit$model$tmb_data
+  parameters <- fit$model$start
+  n_node <- length(parameters$u_phylo)
+  # This is deliberately a TMB-level provider test, not public sigma-side OU
+  # admission. The second endpoint proves that the native prior consumes a
+  # distinct field and alpha index before that grammar is made public.
+  data$phylo_mu_value <- cbind(data$phylo_mu_value, rep(0.15, nrow(dat)))
+  data$phylo_mu_dpar <- c(0L, 1L)
+  data$phylo_ou_latent_index <- c(0L, 1L)
+  data$phylo_ou_alpha_index <- c(0L, 1L)
+  parameters$u_phylo <- rep(0, 2L * n_node)
+  parameters$log_sd_phylo <- log(c(0.25, 0.12))
+  parameters$log_decay_phylo <- log(c(0.4, 1.2))
+  obj <- TMB::MakeADFun(
+    data = data, parameters = parameters, map = fit$model$map,
+    random = fit$model$tmb_random_names, DLL = "drmTMB", silent = TRUE
+  )
+  alpha <- which(names(obj$par) == "log_decay_phylo")
+  expect_length(alpha, 2L)
+  expect_true(is.finite(obj$fn(obj$par)))
+  expect_true(all(is.finite(obj$gr(obj$par))))
+  shifted <- obj$par
+  shifted[alpha[[2L]]] <- shifted[alpha[[2L]]] + log(1.3)
+  expect_false(isTRUE(all.equal(obj$fn(shifted), obj$fn(obj$par))))
+
+  # A registry may be ordered for display rather than latent storage.  The
+  # native provider must follow each recorded offset, not its list position.
+  permuted_data <- data
+  permuted_data$phylo_ou_latent_index <- c(1L, 0L)
+  permuted_data$phylo_ou_alpha_index <- c(1L, 0L)
+  permuted_obj <- TMB::MakeADFun(
+    data = permuted_data, parameters = parameters, map = fit$model$map,
+    random = fit$model$tmb_random_names, DLL = "drmTMB", silent = TRUE
+  )
+  expect_equal(permuted_obj$fn(permuted_obj$par), obj$fn(obj$par), tolerance = 1e-10)
 })
 
 test_that("phylogenetic OU admits fixed sigma and direct phylogenetic-SD regressions", {

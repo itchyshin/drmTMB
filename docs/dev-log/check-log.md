@@ -95186,3 +95186,19 @@ remains open and no scalability claim is made.
 An independent direct process sampler was also denied `ps` access by the same
 sandbox. It reproduced the fit result but recorded no resident-memory value,
 confirming that a resource-capable external preflight is required for G6.
+
+## 2026-09-12 — phylogenetic OU field-registry foundation
+
+The provider now owns an explicit ordered field registry rather than relying on
+the first `log_decay_phylo` element. Each field records its latent offset and
+rate index; starts, TMB data, decay extraction, profile targets, and
+`check_drm()` consume that registry. The native root-and-edge prior now loops
+over registered fields. A TMB-level two-field contract test allocates alpha
+slots zero and one and verifies that changing the second changes the objective;
+the public parser continues to reject sigma-side OU, so this is foundation
+evidence rather than an `alpha_sigma` capability claim. Focused G1 and G2
+reran successfully after the refactor. Independent review then found that a
+permuted registry would have bound rate slots by list order. The TMB contract
+now carries each field's latent index as well as its alpha index; the native
+prior binds both its node offset and latent SD to that index. A permutation
+mutation now gives the same native objective as the canonical order.

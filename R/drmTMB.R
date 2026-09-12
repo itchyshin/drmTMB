@@ -14294,7 +14294,22 @@ build_phylo_mu_structure <- function(term, data, env) {
         seq_along(dpars) - 1L
       } else {
         rep(NA_integer_, length(dpars))
-      }
+      },
+      # This registry is the provider seam.  The current public grammar admits
+      # one mu field, but every latent endpoint records its own TMB slot now so
+      # a later admitted field cannot inherit alpha by accident.
+      fields = stats::setNames(
+        lapply(seq_along(dpars), function(i) {
+          list(
+            field_id = paste0("phylo_", dpars[[i]]),
+            dpar = dpars[[i]],
+            latent_index0 = i - 1L,
+            alpha_parameter = if (identical(model, "ou")) "log_decay_phylo" else NA_character_,
+            alpha_index0 = if (identical(model, "ou")) i - 1L else NA_integer_
+          )
+        }),
+        paste0("phylo_", dpars)
+      )
     ),
     n_re = nrow(precision$precision),
     precision = precision,
@@ -14305,6 +14320,37 @@ build_phylo_mu_structure <- function(term, data, env) {
     species_levels = precision$species_levels,
     group_levels = precision$species_levels
   )
+}
+
+# Return the field registry for an OU phylogenetic provider.  Keep this
+# internal contract strict: consumers must not reconstruct alpha allocation
+# from endpoint order, which was the source of the earlier one-field coupling.
+phylo_ou_provider_fields <- function(phylo_mu) {
+  if (!is.list(phylo_mu) || !isTRUE(phylo_mu$has) ||
+      !identical(phylo_mu$model, "ou")) {
+    return(list())
+  }
+  fields <- phylo_mu$provider$fields
+  if (!is.list(fields) || length(fields) != length(phylo_mu$dpars)) {
+    cli::cli_abort("Internal error: phylogenetic OU provider has no field registry.")
+  }
+  required <- c("field_id", "dpar", "latent_index0", "alpha_parameter", "alpha_index0")
+  valid <- vapply(fields, function(field) {
+    is.list(field) && all(required %in% names(field)) &&
+      identical(field$alpha_parameter, "log_decay_phylo") &&
+      is.integer(field$latent_index0) && length(field$latent_index0) == 1L &&
+      is.integer(field$alpha_index0) && length(field$alpha_index0) == 1L
+  }, logical(1L))
+  if (!all(valid)) {
+    cli::cli_abort("Internal error: phylogenetic OU field registry is malformed.")
+  }
+  latent_index <- vapply(fields, `[[`, integer(1L), "latent_index0")
+  alpha_index <- vapply(fields, `[[`, integer(1L), "alpha_index0")
+  if (!identical(unname(sort(latent_index)), seq_along(fields) - 1L) ||
+      !identical(unname(sort(alpha_index)), seq_along(fields) - 1L)) {
+    cli::cli_abort("Internal error: phylogenetic OU field registry has non-contiguous indices.")
+  }
+  fields
 }
 
 drm_validate_phylo_ou_scope <- function(spec, REML = FALSE) {
@@ -20640,6 +20686,11 @@ add_covariance_probe_parameter <- function(spec) {
     is.list(spec$structured$phylo_mu) &&
     isTRUE(spec$structured$phylo_mu$has) &&
     identical(spec$structured$phylo_mu$model, "ou")
+  phylo_ou_rate_count <- if (has_phylo_ou) {
+    length(phylo_ou_provider_fields(spec$structured$phylo_mu))
+  } else {
+    1L
+  }
   if (is.null(spec$start$u_re_cov)) {
     spec$start$u_re_cov <- 0
   }
@@ -20715,7 +20766,11 @@ add_covariance_probe_parameter <- function(spec) {
     spec$start$theta_phylo <- 0
   }
   if (is.null(spec$start$log_decay_phylo)) {
-    spec$start$log_decay_phylo <- log(0.5)
+    spec$start$log_decay_phylo <- rep(log(0.5), phylo_ou_rate_count)
+  } else if (has_phylo_ou && length(spec$start$log_decay_phylo) != phylo_ou_rate_count) {
+    cli::cli_abort(
+      "Internal error: phylogenetic OU rate starts do not match the provider field registry."
+    )
   }
   if (is.null(spec$map$log_decay_phylo) && !has_phylo_ou) {
     spec$map$log_decay_phylo <- factor(NA)
@@ -22202,6 +22257,7 @@ add_phylo_ou_tmb_data <- function(tmb_data, spec) {
   is_ou <- is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
     identical(phylo_mu$model, "ou")
   layout <- if (is_ou) phylo_mu$precision else NULL
+  fields <- if (is_ou) phylo_ou_provider_fields(phylo_mu) else list()
   c(tmb_data, list(
     phylo_ou_model = as.integer(is_ou),
     phylo_ou_n_nodes = if (is_ou) as.integer(layout$n_re) else 0L,
@@ -22209,8 +22265,13 @@ add_phylo_ou_tmb_data <- function(tmb_data, spec) {
     phylo_ou_edge_parent = if (is_ou) layout$edge_parent_index0 else 0L,
     phylo_ou_edge_child = if (is_ou) layout$edge_child_index0 else 0L,
     phylo_ou_edge_length = if (is_ou) layout$edge_length else 0,
+    phylo_ou_latent_index = if (is_ou) {
+      unname(vapply(fields, `[[`, integer(1L), "latent_index0"))
+    } else {
+      0L
+    },
     phylo_ou_alpha_index = if (is_ou) {
-      as.integer(phylo_mu$provider$alpha_index0[[1L]])
+      unname(vapply(fields, `[[`, integer(1L), "alpha_index0"))
     } else {
       0L
     }
@@ -22900,9 +22961,11 @@ split_tmb_decaypars <- function(par, spec) {
   phylo <- spec$structured$phylo_mu
   if (is.list(phylo) && isTRUE(phylo$has) &&
       identical(phylo$model, "ou")) {
-    out$phylo <- stats::setNames(
-      exp(unname(par$log_decay_phylo[[1L]])), "decay_phylo"
-    )
+    fields <- phylo_ou_provider_fields(phylo)
+    alpha_index <- vapply(fields, `[[`, integer(1L), "alpha_index0") + 1L
+    dpars <- vapply(fields, `[[`, character(1L), "dpar")
+    labels <- ifelse(dpars == "mu", "decay_phylo", paste0("decay_phylo:", dpars))
+    out$phylo <- stats::setNames(exp(unname(par$log_decay_phylo[alpha_index])), labels)
   }
   out
 }

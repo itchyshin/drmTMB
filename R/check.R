@@ -1460,23 +1460,27 @@ check_phylo_ou_decay <- function(object) {
   if (!is.list(phylo) || !isTRUE(phylo$has) || !identical(phylo$model, "ou")) {
     return(NULL)
   }
-  decay <- unname(object$decaypars$phylo[["decay_phylo"]])
+  fields <- phylo_ou_provider_fields(phylo)
   regular <- identical(drm_uncertainty_status(object), "ok") &&
     !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
-  check_row(
-    "phylo_ou_decay",
-    if (regular && is.finite(decay) && decay > 0) "note" else "warning",
-    paste0(
-      "estimate=", format_check_number(decay),
-      "; interval=deferred",
-      if (regular) "" else "; full_hessian_unavailable"
-    ),
-    if (regular && is.finite(decay) && decay > 0) {
-      "The phylogenetic OU decay is a positive point estimate. Its Wald, profile, and bootstrap intervals are intentionally deferred pending recovery evidence."
-    } else {
-      "The phylogenetic OU decay is a point estimate only, and the full observed Hessian is unavailable or irregular. Do not interpret an uncertainty interval for this decay."
-    }
-  )
+  do.call(rbind, lapply(fields, function(field) {
+    label <- if (identical(field$dpar, "mu")) "decay_phylo" else paste0("decay_phylo:", field$dpar)
+    decay <- unname(object$decaypars$phylo[[label]])
+    check_row(
+      if (identical(field$dpar, "mu")) "phylo_ou_decay" else paste0("phylo_ou_decay:", field$dpar),
+      if (regular && is.finite(decay) && decay > 0) "note" else "warning",
+      paste0(
+        "estimate=", format_check_number(decay),
+        "; interval=deferred",
+        if (regular) "" else "; full_hessian_unavailable"
+      ),
+      if (regular && is.finite(decay) && decay > 0) {
+        "The phylogenetic OU decay is a positive point estimate. Its Wald, profile, and bootstrap intervals are intentionally deferred pending recovery evidence."
+      } else {
+        "The phylogenetic OU decay is a point estimate only, and the full observed Hessian is unavailable or irregular. Do not interpret an uncertainty interval for this decay."
+      }
+    )
+  }))
 }
 
 check_rho12_boundary <- function(object, rho_boundary) {

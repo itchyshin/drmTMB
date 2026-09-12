@@ -16,7 +16,14 @@ location rate is reported as `decay_phylo` (the compatibility name for
 `alpha_mu`). Provider metadata now records a field identifier and an
 `alpha_index0`; the compiled template holds `log_decay_phylo` as a vector and
 selects the field's rate through that index. The current public route contains
-one field at index zero.
+one field at index zero. The follow-up hardening made that registry executable:
+starts, TMB data, native root-and-edge prior, extraction, profile targets, and
+diagnostics all read field-specific rate slots. A low-level two-field contract
+proves separate slots affect the native objective while the public parser still
+rejects that unadmitted configuration. Independent review found and the
+permutation test repaired an ordering defect: native offsets and latent SDs now
+both follow each field's recorded latent index, rather than registry position.
+Noether's re-review found no remaining field-mapping mismatch.
 
 The portable Ayumi runner and its fail-closed verifier retain the four-cell
 BM/OU by constant/climate-residual-scale ladder, exact source commit and
@@ -102,10 +109,10 @@ the two local telemetry paths used here; it does not establish a memory bound.
 
 G0 remains open because the lane lease could not be durably persisted. G6 remains
 open because no RSS was recorded and the 1,000-tip fit is numerically weak. G9
-remains open. The provider indexing is a safe one-field allocation seam, not
-multi-field OU support: a future sigma-side field needs distinct provider/data
-plumbing, field loops, named extraction/profile targets, `alpha_sigma`, and its
-own validation arc. There is no bivariate, missing-response, temporal, slope,
+remains open. The provider has field-specific allocation, native loops, and
+named extraction/profile seams, but it is not public multi-field OU support: a
+future sigma-side field still needs its own formula/data layout, `alpha_sigma`,
+and validation arc. There is no bivariate, missing-response, temporal, slope,
 forecast, `newdata`, recovery, interval, coverage, or BM-preference claim.
 
 ## Next actions

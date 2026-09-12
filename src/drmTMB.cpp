@@ -469,7 +469,8 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(phylo_ou_edge_parent);
   DATA_IVECTOR(phylo_ou_edge_child);
   DATA_VECTOR(phylo_ou_edge_length);
-  DATA_INTEGER(phylo_ou_alpha_index);
+  DATA_IVECTOR(phylo_ou_latent_index);
+  DATA_IVECTOR(phylo_ou_alpha_index);
   DATA_INTEGER(has_temporal_mu);
   DATA_IVECTOR(temporal_mu_node_index);
   DATA_IVECTOR(temporal_mu_series_start);
@@ -1154,31 +1155,35 @@ Type objective_function<Type>::operator()()
         // normalized transition with correlation exp(-decay * branch_length).
         // This is algebraically the same covariance as ape::corMartins, but
         // stays sparse and differentiable in the estimated positive decay.
-        Type decay_phylo = exp(log_decay_phylo(phylo_ou_alpha_index));
-        // Direct phylogenetic-SD models apply their fitted amplitude at the
-        // tips, so their latent OU field must be unit scale.  Otherwise this
-        // prior and the observation mapping would introduce two scales.
-        Type root_sd = has_sd_phylo_model == 1 ? Type(1.0) : sd_phylo(0);
-        Type root_z = u_phylo(phylo_ou_root_index) / root_sd;
-        quadratic += root_z * root_z;
-        nll -= dnorm(
-          u_phylo(phylo_ou_root_index), Type(0.0), root_sd, true
-        );
-        for (int edge_id = 0; edge_id < phylo_ou_edge_length.size(); ++edge_id) {
-          Type correlation = exp(-decay_phylo * phylo_ou_edge_length(edge_id));
-          Type transition_sd = root_sd * sqrt(drm_one_minus_exp_neg(
-            Type(2.0) * decay_phylo * phylo_ou_edge_length(edge_id)
-          ));
-          Type residual = u_phylo(phylo_ou_edge_child(edge_id)) -
-            correlation * u_phylo(phylo_ou_edge_parent(edge_id));
-          Type transition_z = residual / transition_sd;
-          quadratic += transition_z * transition_z;
-          nll -= dnorm(
-            u_phylo(phylo_ou_edge_child(edge_id)),
-            correlation * u_phylo(phylo_ou_edge_parent(edge_id)),
-            transition_sd,
-            true
-          );
+        vector<Type> decay_phylo(phylo_ou_alpha_index.size());
+        for (int field = 0; field < phylo_ou_alpha_index.size(); ++field) {
+          // One latent endpoint gets one alpha slot. The present public route
+          // has one endpoint, but this loop prevents later admitted fields
+          // from silently borrowing its rate.
+          Type field_decay = exp(log_decay_phylo(phylo_ou_alpha_index(field)));
+          decay_phylo(field) = field_decay;
+          // Direct phylogenetic-SD models apply their fitted amplitude at the
+          // tips, so their latent OU field must be unit scale. Otherwise this
+          // prior and the observation mapping would introduce two scales.
+          int latent_index = phylo_ou_latent_index(field);
+          Type root_sd = has_sd_phylo_model == 1 ? Type(1.0) : sd_phylo(latent_index);
+          int field_offset = latent_index * n_phylo;
+          int root = field_offset + phylo_ou_root_index;
+          Type root_z = u_phylo(root) / root_sd;
+          quadratic += root_z * root_z;
+          nll -= dnorm(u_phylo(root), Type(0.0), root_sd, true);
+          for (int edge_id = 0; edge_id < phylo_ou_edge_length.size(); ++edge_id) {
+            Type correlation = exp(-field_decay * phylo_ou_edge_length(edge_id));
+            Type transition_sd = root_sd * sqrt(drm_one_minus_exp_neg(
+              Type(2.0) * field_decay * phylo_ou_edge_length(edge_id)
+            ));
+            int child = field_offset + phylo_ou_edge_child(edge_id);
+            int parent = field_offset + phylo_ou_edge_parent(edge_id);
+            Type residual = u_phylo(child) - correlation * u_phylo(parent);
+            Type transition_z = residual / transition_sd;
+            quadratic += transition_z * transition_z;
+            nll -= dnorm(u_phylo(child), correlation * u_phylo(parent), transition_sd, true);
+          }
         }
         REPORT(log_decay_phylo);
         REPORT(decay_phylo);

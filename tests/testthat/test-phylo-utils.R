@@ -161,6 +161,8 @@ phylo_prior_tmb_data <- function(precision) {
       phylo_ou_edge_parent = 0L,
       phylo_ou_edge_child = 0L,
       phylo_ou_edge_length = 0,
+      phylo_ou_latent_index = 0L,
+      phylo_ou_alpha_index = 0L,
       # Inert temporal provider fields, also globally declared by the shared
       # TMB template.
       has_temporal_mu = 0L,

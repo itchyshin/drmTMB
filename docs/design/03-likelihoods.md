@@ -245,6 +245,15 @@ validation arc. The current field is fitted under ML and native Gaussian REML,
 but its evidence is point-fit/oracle evidence only: it does not establish
 recovery, interval, or coverage performance.
 
+Internally, an OU provider carries a field registry: each latent endpoint has
+its own field identifier, latent offset, and `log_decay_phylo` index. The
+native root-and-edge likelihood loops over those registered fields, so a later
+admitted same-tree endpoint cannot silently share `alpha_mu`. This is an
+allocation foundation, not public multi-field support: formula admission,
+field-specific data layouts, extractors, and validation remain configuration
+specific, and a sigma-side field must be introduced as `alpha_sigma` in its
+own arc.
+
 It reports a positive `decay_phylo` point estimate, conditional modes,
 in-sample fitted values, residuals and seeded conditional simulation. A
 direct-SD model has no marginal phylogenetic redraw because its scalar

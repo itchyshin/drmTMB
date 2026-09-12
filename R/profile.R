@@ -1799,22 +1799,30 @@ drm_profile_targets <- function(object) {
   }
   phylo <- object$model$structured$phylo_mu
   if (is.list(phylo) && isTRUE(phylo$has) && identical(phylo$model, "ou")) {
-    value <- object$decaypars$phylo[["decay_phylo"]]
-    add_rows(list(new_profile_target_row(
-      parm = paste0("decay:phylo:", phylo$label),
-      target_class = "phylogenetic-decay",
-      dpar = "phylo",
-      term = phylo$label,
-      tmb_parameter = "log_decay_phylo",
-      index = 1L,
-      estimate = unname(value),
-      link_estimate = log(unname(value)),
-      scale = "response",
-      transformation = "exp",
-      target_type = "direct",
-      profile_ready = FALSE,
-      profile_note = "phylogenetic_ou_decay_intervals_deferred"
-    )))
+    fields <- phylo_ou_provider_fields(phylo)
+    add_rows(lapply(fields, function(field) {
+      label <- if (identical(field$dpar, "mu")) {
+        "decay_phylo"
+      } else {
+        paste0("decay_phylo:", field$dpar)
+      }
+      value <- object$decaypars$phylo[[label]]
+      new_profile_target_row(
+        parm = paste0("decay:phylo:", field$field_id),
+        target_class = "phylogenetic-decay",
+        dpar = field$dpar,
+        term = phylo$label,
+        tmb_parameter = "log_decay_phylo",
+        index = field$alpha_index0 + 1L,
+        estimate = unname(value),
+        link_estimate = log(unname(value)),
+        scale = "response",
+        transformation = "exp",
+        target_type = "direct",
+        profile_ready = FALSE,
+        profile_note = "phylogenetic_ou_decay_intervals_deferred"
+      )
+    }))
   }
   registry_cor_keys <- covariance_block_corpars_keys(
     object$model$random$covariance_blocks
