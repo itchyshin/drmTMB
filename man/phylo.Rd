@@ -24,18 +24,19 @@ fitted paths support Gaussian location and residual-scale effects,
 response-specific direct-SD formulas for location effects, labelled
 bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
 and NB2 q=1 location effects. \code{model = "bm"} is the default Brownian
-covariance. The first evolutionary OU route is
-\code{phylo(1 | species, tree = tree, model = "ou")} in a univariate Gaussian
-location formula: it estimates a positive location-field decay rate over
-phylogenetic branch distance. The first admitted slice permits a fixed-effect
-Gaussian \code{sigma} formula and one direct
-\code{sd(species, level = "phylogenetic") ~ predictors} amplitude formula. These
-are distinct: \code{sigma} models independent residual variation and does not add
-an OU parameter, while the direct-SD formula supplies the location field's
-predictor-dependent amplitude. The rate is reported as \code{decay_phylo} for
-compatibility (conceptually \code{alpha_mu}). It is separate from temporal OU and
-does not yet support slopes, a phylogenetic \code{sigma} field or \code{alpha_sigma},
-other random effects, non-Gaussian families, or decay intervals. Use
+covariance. The evolutionary OU route has a location-only Gaussian slice and
+an ML-only joint Gaussian intercept slice. In the joint slice, matching
+\code{phylo(1 | species, tree = tree, model = "ou")} terms in \code{mu} and \code{sigma}
+define independent location and residual-log-scale tree fields, with separate
+positive rates reported as \code{decay_phylo} (\code{alpha_mu}) and
+\code{decay_phylo:sigma} (\code{alpha_sigma}). Fixed \code{sigma} predictors remain
+independent residual-scale regressors; they do not introduce \code{alpha_sigma}.
+The joint route has no phylogenetic mu--sigma correlation, and does not
+support slopes, direct phylogenetic-SD formulas, ordinary random effects,
+REML, non-Gaussian families, or decay intervals. The location-only slice may
+instead use one direct \code{sd(species, level = "phylogenetic") ~ predictors}
+amplitude formula. All phylogenetic OU rates are separate from temporal OU.
+Use
 \code{phylo(1 | species, tree = tree)} in
 univariate Gaussian \code{mu}, univariate Gaussian \code{sigma}, ordinary Poisson \code{mu},
 or ordinary NB2 \code{mu}, \code{phylo(1 + x | species, tree = tree)} for the
@@ -71,6 +72,12 @@ bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 # larger decay means that it falls more quickly. Decay has inverse tree
 # branch-length units, so rescaling the tree rescales its numeric value.
 # Decay intervals are not yet available.
+#
+# ML-only independent location and log-scale OU fields:
+# bf(y ~ temperature + phylo(1 | species, tree = tree, model = "ou"),
+#    sigma ~ precipitation + phylo(1 | species, tree = tree, model = "ou"))
+# # alpha_mu:    fit$decaypars$phylo[["decay_phylo"]]
+# # alpha_sigma: fit$decaypars$phylo[["decay_phylo:sigma"]]
 bf(count ~ x + phylo(1 | species, tree = tree))
 bf(count ~ x + phylo(1 + x | species, tree = tree))
 }

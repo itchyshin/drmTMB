@@ -59,15 +59,18 @@ read [two-tree phylogenetic interactions](bipartite-phylogenetic-interactions.ht
 
 ## Evolutionary covariance choice: BM by default, local OU alternative
 
-`phylo()` uses Brownian-motion (BM) covariance unless told otherwise.  A narrow
-Gaussian location-intercept OU route is also available with
-`phylo(1 | species, tree = tree, model = "ou")`. It estimates one location-side
-rate, printed as `decay_phylo` for compatibility (`alpha_mu` in the model
-description). This local-fit/oracle slice permits fixed-effect `sigma` and a
-direct phylogenetic-SD surface, but it does not create `alpha_sigma`, support a
-phylogenetic field in `sigma`, or provide decay intervals, recovery, or a
-general BM-versus-OU preference claim. See the formula grammar for its exact
-admission boundary.
+`phylo()` uses Brownian-motion (BM) covariance unless told otherwise. A narrow
+Gaussian OU route is available with `phylo(1 | species, tree = tree, model =
+"ou")`. The location-only slice reports `decay_phylo` (`alpha_mu`). A separate
+ML-only joint slice matches unlabelled OU intercepts in `mu` and `sigma`,
+independently reporting `decay_phylo` (`alpha_mu`) and
+`decay_phylo:sigma` (`alpha_sigma`). Fixed `sigma` predictors remain
+deterministic residual-scale regression. The joint route has no phylogenetic
+mu--sigma correlation, and it excludes slopes, labels, direct-SD formulas,
+known sampling covariance, REML, new data, forecasts, and decay intervals. Its
+Laplace-approximated ML preflight is feasibility/negative-identification
+evidence, not recovery or a general BM-versus-OU preference claim. See the
+formula grammar for the exact admission boundary.
 
 ## The phylogenetic covariance
 

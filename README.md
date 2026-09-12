@@ -397,12 +397,17 @@ cells are fixed-covariance `spatial(1 | p | site, coords = coords)` and
 supplied-relatedness `relmat(1 | p | id, K = K)` in both `mu1` and `mu2`.
 
 For a different evolutionary covariance assumption, BM remains the default and
-`phylo(..., model = "ou")` is an explicit local-fit/oracle alternative for one
-univariate Gaussian location intercept. It estimates `decay_phylo`
-(`alpha_mu`); fixed-effect `sigma ~ ...` still describes independent residual
-variation, not `alpha_sigma`. This route has no decay interval, recovery, or
-model-preference claim, and phylogenetic `sigma`/`alpha_sigma` is deliberately
-deferred.
+`phylo(..., model = "ou")` is explicit. Alongside the location-only OU slice,
+the exact univariate Gaussian ML formula with matching unlabelled intercepts in
+`mu` and `sigma` fits **independent** location and residual-log-scale OU fields.
+It reports `decay_phylo` (`alpha_mu`) and `decay_phylo:sigma`
+(`alpha_sigma`); fixed `sigma ~ ...` predictors remain deterministic residual
+scale regression and do not add a third rate. The joint route maps out BM's
+cross-field correlation and has no `corpairs()` phylogenetic correlation. It
+does not support slopes, labels, direct-SD formulas, REML, known sampling
+covariance, new data, forecasts, intervals, recovery, or OU-preference claims.
+Its fit is Laplace-approximated ML, and the retained preflight is negative
+identifiability evidence rather than recovery evidence.
 Both require complete response pairs, unit weights, intercept-only `sigma1`,
 `sigma2`, and `rho12`, no known `meta_V()` covariance, and no additional
 ordinary random effect, direct-SD formula, or `corpair()` regression. The

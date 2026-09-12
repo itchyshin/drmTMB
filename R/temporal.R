@@ -43,6 +43,20 @@ drm_formula_has_temporal <- function(formula) {
   ))
 }
 
+drm_formula_has_phylo_ou <- function(formula) {
+  any(vapply(
+    formula$entries,
+    function(entry) {
+      any(vapply(
+        entry$structured,
+        function(term) identical(term$type, "phylo") && identical(term$model, "ou"),
+        logical(1)
+      ))
+    },
+    logical(1)
+  ))
+}
+
 extract_gaussian_mu_temporal_term <- function(entry, dpar = entry$dpar) {
   terms <- flatten_plus_terms(entry$rhs)
   is_temporal <- vapply(

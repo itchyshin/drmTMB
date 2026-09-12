@@ -72,10 +72,13 @@ conditional-mode estimate, the behaviour this function had before
 \code{re.form} was added). Marginal simulation also redraws a single-endpoint
 (\code{q == 1}) phylogenetic, spatial, relatedness-matrix (\code{relmat}),
 animal-model, or \code{phylo_interaction} structured \code{mu} random effect from its
-fitted covariance \code{sd^2 * Q^-1}. It does not yet support a structured mu
-random effect correlated across more than one trait or distributional
-parameter (\code{q > 1}, including a multi-endpoint \code{phylo_interaction} term),
-correlated covariance-block random effects, predictor-dependent
+fitted covariance \code{sd^2 * Q^-1}. The admitted univariate Gaussian joint OU
+intercept route is the one multi-endpoint exception: it redraws independent
+location and residual-log-scale phylogenetic fields, each with its own
+fitted decay. It does not yet support other structured mu random effects
+across more than one trait or distributional parameter (\code{q > 1}, including
+a multi-endpoint \code{phylo_interaction} term), correlated covariance-block
+random effects, predictor-dependent
 random-effect correlation (\code{corpair}) regression, or a modelled
 (heteroscedastic) random-effect scale; \code{simulate()} throws an informative
 error naming the unsupported structure for those models and directs the

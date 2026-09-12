@@ -423,6 +423,214 @@ phylo_ou_markov_nll <- function(layout, state, sd, decay,
   out
 }
 
+phylo_ou_dense_all_node_nll <- function(layout, state, sd, decay) {
+  n_node <- length(state)
+  parent <- rep(NA_integer_, n_node)
+  edge_length <- numeric(n_node)
+  child <- layout$edge_child_index0 + 1L
+  parent[child] <- layout$edge_parent_index0 + 1L
+  edge_length[child] <- layout$edge_length
+  root <- layout$root_index0 + 1L
+  depth <- rep(NA_real_, n_node)
+  depth[[root]] <- 0
+  while (anyNA(depth)) {
+    unresolved <- which(is.na(depth))
+    progressed <- FALSE
+    for (node in unresolved) {
+      parent_node <- parent[[node]]
+      if (!is.na(parent_node) && !is.na(depth[[parent_node]])) {
+        depth[[node]] <- depth[[parent_node]] + edge_length[[node]]
+        progressed <- TRUE
+      }
+    }
+    if (!progressed) stop("Invalid OU tree layout for dense oracle.", call. = FALSE)
+  }
+  ancestors <- lapply(seq_len(n_node), function(node) {
+    out <- node
+    while (!is.na(parent[[node]])) {
+      node <- parent[[node]]
+      out <- c(out, node)
+    }
+    out
+  })
+  correlation <- matrix(0, n_node, n_node)
+  for (i in seq_len(n_node)) for (j in seq_len(n_node)) {
+    mrca <- intersect(ancestors[[i]], ancestors[[j]])
+    mrca <- mrca[[which.max(depth[mrca])]]
+    distance <- depth[[i]] + depth[[j]] - 2 * depth[[mrca]]
+    correlation[i, j] <- exp(-decay * distance)
+  }
+  covariance <- sd^2 * correlation
+  factor <- chol(covariance)
+  0.5 * (n_node * log(2 * pi) + 2 * sum(log(diag(factor))) +
+    sum(forwardsolve(t(factor), state)^2))
+}
+
+# Dense conditional oracle for the admitted joint OU surface. It intentionally
+# reconstructs the observation density and the two stationary tree priors in R
+# from TMB data rather than calling the native sparse evaluator.
+phylo_ou_joint_conditional_nll <- function(
+    obj, data, phylo, par,
+    include_sigma_field = TRUE,
+    alpha_index = NULL,
+    include_root = TRUE,
+    transition_variance = "stationary",
+    prior_engine = c("dense", "markov")
+) {
+  prior_engine <- match.arg(prior_engine)
+  p <- obj$env$parList(par)
+  n_node <- data$phylo_ou_n_nodes
+  fields <- drmTMB:::phylo_ou_provider_fields(phylo)
+  layout <- list(
+    root_index0 = data$phylo_ou_root_index,
+    edge_parent_index0 = data$phylo_ou_edge_parent,
+    edge_child_index0 = data$phylo_ou_edge_child,
+    edge_length = data$phylo_ou_edge_length
+  )
+  mu <- as.vector(data$X_mu %*% p$beta_mu) + data$offset_mu
+  log_sigma <- as.vector(data$X_sigma %*% p$beta_sigma)
+  prior <- 0
+  for (field_id in seq_along(fields)) {
+    field <- fields[[field_id]]
+    state_index <- seq_len(n_node) + field$latent_index0 * n_node
+    state <- p$u_phylo[state_index]
+    endpoint <- field$latent_index0 + 1L
+    contribution <- data$phylo_mu_value[, endpoint] *
+      state[data$phylo_mu_node_index + 1L]
+    if (data$phylo_mu_dpar[[endpoint]] == 1L) {
+      if (include_sigma_field) log_sigma <- log_sigma + contribution
+    } else {
+      mu <- mu + contribution
+    }
+    field_alpha <- if (is.null(alpha_index)) field$alpha_index0 else alpha_index[[field_id]]
+    field_sd <- exp(p$log_sd_phylo[[field$latent_index0 + 1L]])
+    field_decay <- exp(p$log_decay_phylo[[field_alpha + 1L]])
+    prior <- prior + if (identical(prior_engine, "dense")) {
+      phylo_ou_dense_all_node_nll(layout, state, field_sd, field_decay)
+    } else {
+      phylo_ou_markov_nll(
+        layout = layout, state = state, sd = field_sd, decay = field_decay,
+        include_root = include_root, transition_variance = transition_variance
+      )
+    }
+  }
+  log_sigma <- drmTMB:::drm_softclamp_log_sd(log_sigma, data)
+  observation <- -sum(stats::dnorm(data$y, mean = mu, sd = exp(log_sigma), log = TRUE))
+  prior + observation
+}
+
+test_that("joint OU conditional objective, score, and Hessian match an independent dense oracle", {
+  skip_if_not_installed("ape")
+  skip_if_not_installed("numDeriv")
+  set.seed(2026091214)
+  tree <- ape::rcoal(4)
+  tree$tip.label <- paste0("sp", seq_len(4))
+  species <- rep(tree$tip.label, each = 4)
+  x <- rep(seq(-0.6, 0.6, length.out = 4), times = 4)
+  dat <- data.frame(
+    y = 0.2 + 0.3 * x + stats::rnorm(length(species), sd = exp(-0.8 + 0.15 * x)),
+    x, species
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree, model = "ou"),
+      sigma ~ x + phylo(1 | species, tree = tree, model = "ou")
+    ),
+    data = dat, family = gaussian()
+  ))
+  obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    random = NULL,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  objective <- function(par) phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, fit$model$structured$phylo_mu, par
+  )
+  par <- obj$par
+  score <- numDeriv::grad(objective, par, method.args = list(eps = 1e-6))
+  hessian <- numDeriv::hessian(objective, par, method.args = list(eps = 1e-4))
+  expect_equal(obj$fn(par), objective(par), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(par)), score, tolerance = 2e-5)
+  expect_equal(unname(obj$he(par)), unname(hessian), tolerance = 3e-4)
+
+  # The oracle must also cover the configured nonlinear log-sigma clamp,
+  # rather than matching native TMB only inside its identity band.
+  clamped <- par
+  beta_sigma <- grep("^beta_sigma", names(clamped))
+  expect_true(length(beta_sigma) >= 1L)
+  clamped[beta_sigma[[1L]]] <- 13
+  clamped_score <- numDeriv::grad(objective, clamped, method.args = list(eps = 1e-6))
+  clamped_hessian <- numDeriv::hessian(objective, clamped, method.args = list(eps = 1e-4))
+  expect_equal(obj$fn(clamped), objective(clamped), tolerance = 1e-8)
+  expect_equal(as.numeric(obj$gr(clamped)), clamped_score, tolerance = 2e-5)
+  expect_equal(unname(obj$he(clamped)), unname(clamped_hessian), tolerance = 3e-4)
+})
+
+test_that("joint OU dense oracle rejects the named implementation mutations", {
+  skip_if_not_installed("ape")
+  set.seed(2026091215)
+  tree <- ape::rcoal(4)
+  tree$tip.label <- paste0("sp", seq_len(4))
+  species <- rep(tree$tip.label, each = 4)
+  x <- rep(seq(-0.5, 0.5, length.out = 4), times = 4)
+  dat <- data.frame(y = 0.25 + stats::rnorm(length(species)), x, species)
+  fit <- suppressWarnings(drmTMB(
+    bf(
+      y ~ x + phylo(1 | species, tree = tree, model = "ou"),
+      sigma ~ x + phylo(1 | species, tree = tree, model = "ou")
+    ),
+    data = dat, family = gaussian()
+  ))
+  obj <- TMB::MakeADFun(
+    data = fit$model$tmb_data,
+    parameters = fit$model$start,
+    map = fit$model$map,
+    random = NULL,
+    DLL = "drmTMB",
+    silent = TRUE
+  )
+  p <- obj$par
+  alpha <- which(names(p) == "log_decay_phylo")
+  p[alpha[[1L]]] <- log(0.25)
+  p[alpha[[2L]]] <- log(1.75)
+  u <- which(names(p) == "u_phylo")
+  p[u] <- seq(-0.2, 0.2, length.out = length(u))
+  observed <- obj$fn(p)
+  oracle <- phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, fit$model$structured$phylo_mu, p
+  )
+  swapped_rate <- phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, fit$model$structured$phylo_mu, p,
+    alpha_index = c(1L, 0L)
+  )
+  missing_root <- phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, fit$model$structured$phylo_mu, p,
+    include_root = FALSE, prior_engine = "markov"
+  )
+  wrong_transition <- phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, fit$model$structured$phylo_mu, p,
+    transition_variance = "wrong", prior_engine = "markov"
+  )
+  missing_sigma <- phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, fit$model$structured$phylo_mu, p,
+    include_sigma_field = FALSE
+  )
+  permuted_phylo <- fit$model$structured$phylo_mu
+  permuted_phylo$provider$fields <- rev(permuted_phylo$provider$fields)
+  permuted_registry <- phylo_ou_joint_conditional_nll(
+    obj, fit$model$tmb_data, permuted_phylo, p
+  )
+  expect_equal(observed, oracle, tolerance = 1e-8)
+  expect_equal(observed, permuted_registry, tolerance = 1e-8)
+  expect_false(isTRUE(all.equal(observed, swapped_rate)))
+  expect_false(isTRUE(all.equal(observed, missing_root)))
+  expect_false(isTRUE(all.equal(observed, wrong_transition)))
+  expect_false(isTRUE(all.equal(observed, missing_sigma)))
+})
+
 phylo_ou_all_node_correlation <- function(tree, decay) {
   info <- drmTMB:::validate_phylo_tree(tree)
   edge <- tree$edge

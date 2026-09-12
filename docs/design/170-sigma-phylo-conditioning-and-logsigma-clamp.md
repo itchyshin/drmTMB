@@ -31,7 +31,8 @@ the inner Laplace solve diverge:
 - At random effects = 0 the surface is healthy (`log_sigma` in [-2.46, 1.47]),
   but the per-tip residuals are heavy-tailed: `z = (y-mu)/sigma` has `max z = 22.6`,
   `max z^2 = 512.85`; 776 tips have `|z| > 3`.
-- The sigma-field gradient at a tip is exactly `z^2 - 1`, so the field is yanked
+- The unclamped Gaussian observation-score contribution to a sigma-field value
+  at a tip is `z^2 - 1`, so the field is yanked
   to absorb single extreme residuals (`max sigma-half random gradient = 511.85 =
   max(z^2) - 1`).
 - The first inner Newton step overshoots `log_sigma` to about +26 (`sigma`
@@ -75,7 +76,7 @@ the Gaussian likelihood branches:
 > covariance-block prelude (`model_type == 96`) are not yet wrapped.
 
 ```cpp
-// EXACTLY identity inside [lo, hi]; C1-smooth tanh saturation within a margin
+// EXACTLY identity inside [lo, hi]; C2-smooth tanh saturation within a margin
 // beyond each bound (overall range (lo - margin, hi + margin)).
 template<class Type>
 void drm_softclamp_log_sigma(vector<Type>& v, Type lo, Type hi, Type margin) {
@@ -139,9 +140,9 @@ effect on the inner solve:
    is non-binding for essentially all realistic regression scales while still
    bounding the runaway. (Gauss's earlier exploration used [-7, 7]; the wider band
    is preferred so the guard does not silently regularize a legitimate
-   large-variance fit.) The clamp is C1 but not C2 at the band edge; the saturated
+   large-variance fit.) The clamp is C2 at the band edge; the saturated
    tail -- where a runaway iterate actually settles (the beak binds at
-   `log_sigma -> -14.96`) -- is smooth, so the inner Newton solve crosses the C1
+   `log_sigma -> -14.96`) -- is smooth, so the inner Newton solve crosses the C2
    knot only transiently. The band and margin are single named constants, easy to
    audit and change.
 2. **It is formally a likelihood change** (a smooth truncation of the scale in the
@@ -185,6 +186,9 @@ effect on the inner solve:
 
 ## Status
 
-The clamp in this branch is a proposal for review (draft PR, not merged). It is
-validated on the real data and guarded by tests; the band value and the formal
-likelihood change are the maintainer's decision.
+The identity-in-band clamp described above is implemented in the native
+likelihood and covered by the listed tests. It prevents numerical overflow; it
+does not make a one-observation-per-tip scale field identifiable. A retained
+replicated simulation campaign is required before primary inference evidence;
+the current fixed-seed preflight is negative engineering evidence. The Ayumi
+one-row-per-species fit is a feasibility/boundary diagnostic only.

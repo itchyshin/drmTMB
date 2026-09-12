@@ -301,6 +301,12 @@ drmTMB <- function(
       "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
     ))
   }
+  if (identical(engine, "julia") && drm_formula_has_phylo_ou(formula)) {
+    cli::cli_abort(c(
+      "Phylogenetic OU effects are implemented only by the native TMB Gaussian route.",
+      "i" = "Use {.code engine = \"tmb\"}; the experimental Julia bridge has no phylogenetic OU provider."
+    ))
+  }
   if (identical(engine, "julia")) {
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
@@ -14275,9 +14281,9 @@ build_phylo_mu_structure <- function(term, data, env) {
     coef_names = colnames(value),
     tree = term$tree,
     model = model,
-    # Keep covariance choice and its parameter identity with the latent field.
-    # The admitted OU route has one location field; future multi-field slices
-    # extend these vectors rather than sharing an alpha by convention.
+    # Keep covariance choice and its parameter identity with each latent field.
+    # The admitted joint OU route has independent location and log-scale
+    # fields, while future fields extend these vectors without sharing alpha.
     provider = list(
       covariance = model,
       field_id = paste0("phylo_", dpars),
@@ -14286,18 +14292,15 @@ build_phylo_mu_structure <- function(term, data, env) {
       } else {
         rep(NA_character_, length(dpars))
       },
-      # TMB owns a vector of OU rates.  The first public slice has exactly one
-      # location field at index zero; storing the index here means a later
-      # field (for example, sigma-side OU) gets its own rate rather than
-      # accidentally sharing this one.
+      # TMB owns a vector of OU rates. Storing an index per field prevents the
+      # admitted location and scale fields (or future fields) sharing a rate.
       alpha_index0 = if (identical(model, "ou")) {
         seq_along(dpars) - 1L
       } else {
         rep(NA_integer_, length(dpars))
       },
-      # This registry is the provider seam.  The current public grammar admits
-      # one mu field, but every latent endpoint records its own TMB slot now so
-      # a later admitted field cannot inherit alpha by accident.
+      # This registry is the provider seam. Every latent endpoint records its
+      # own TMB slot so no field can inherit another field's alpha by accident.
       fields = stats::setNames(
         lapply(seq_along(dpars), function(i) {
           list(
@@ -14360,25 +14363,44 @@ drm_validate_phylo_ou_scope <- function(spec, REML = FALSE) {
     return(invisible(spec))
   }
   direct_phylo_sd <- spec$random_scale$phylo
-  direct_phylo_sd_admitted <- is.list(direct_phylo_sd) &&
+  direct_phylo_sd_location_admitted <- is.list(direct_phylo_sd) &&
     direct_phylo_sd$n_models %in% c(0L, 1L) &&
     (direct_phylo_sd$n_models == 0L ||
       identical(unname(direct_phylo_sd$target_dpar[[1L]]), "mu"))
-  supported <- identical(spec$model_type, "gaussian") &&
+  common <- identical(spec$model_type, "gaussian") &&
+    identical(spec$random$mu$n_terms, 0L) &&
+    identical(spec$random$sigma$n_terms, 0L) &&
+    !isTRUE(spec$structured$temporal_mu$has) &&
+    !isTRUE(spec$structured$mesh_spatial_mu$has)
+  location_only <- common &&
     identical(phylo_mu$dpars, "mu") &&
     identical(phylo_mu$q, 1L) &&
     identical(phylo_mu$coef_names, "(Intercept)") &&
-    identical(spec$random$mu$n_terms, 0L) &&
-    identical(spec$random$sigma$n_terms, 0L) &&
-    direct_phylo_sd_admitted &&
-    !isTRUE(spec$structured$temporal_mu$has) &&
-    !isTRUE(spec$structured$mesh_spatial_mu$has)
-  if (!supported) {
+    direct_phylo_sd_location_admitted
+  joint_location_scale <- common &&
+    identical(phylo_mu$dpars, c("mu", "sigma")) &&
+    identical(phylo_mu$q, 2L) &&
+    identical(phylo_mu$coef_names, c("(Intercept)", "(Intercept)")) &&
+    is.null(phylo_mu$covariance_label) &&
+    identical(direct_phylo_sd$n_models, 0L) &&
+    identical(spec$random$mu$cor_model$n_models, 0L) &&
+    identical(spec$V_known_type, "none") &&
+    isTRUE(all(spec$weights == 1)) &&
+    isTRUE(all(spec$missing_data$observed_y)) &&
+    !isTRUE(spec$missing_predictor$enabled) &&
+    !isTRUE(spec$missing_predictor2$enabled)
+  if (joint_location_scale && isTRUE(REML)) {
     cli::cli_abort(c(
-      "The admitted phylogenetic OU route supports a univariate Gaussian location intercept only.",
-      "i" = "Use {.code bf(y ~ x + phylo(1 | species, tree = tree, model = \"ou\"), sigma ~ z)}; {.code sigma} may have fixed climate predictors.",
-      "i" = "A single {.code sd(..., level = \"phylogenetic\") ~ ...} model may set the climate-dependent amplitude of this location field.",
-      "i" = "Scale-side OU, slopes, temporal combinations, additional random effects, and non-Gaussian models have separate planned evidence gates."
+      "Joint phylogenetic OU location-and-scale fields are ML only in this first slice.",
+      "i" = "Use {.code REML = FALSE}; restricted likelihood for this two-field OU model needs its own evidence programme."
+    ))
+  }
+  if (!location_only && !joint_location_scale) {
+    cli::cli_abort(c(
+      "The admitted phylogenetic OU route supports either one univariate Gaussian location intercept, or joint location and residual-scale intercepts.",
+      "i" = "For the joint ML-only route, use matching {.code phylo(1 | species, tree = tree, model = \"ou\")} terms in {.code mu} and {.code sigma}; fixed predictors remain allowed in both formulas.",
+      "i" = "The joint route estimates independent {.code alpha_mu} and {.code alpha_sigma}, exposed as {.code decay_phylo} and {.code decay_phylo:sigma}; it has no phylogenetic mu--sigma correlation.",
+      "i" = "Slopes, labels/coupled covariance blocks, unmatched sigma-only OU, direct phylogenetic-SD formulas, known sampling covariance, temporal combinations, ordinary random effects, {.fn corpair} formulas, non-unit weights, missingness, REML, and non-Gaussian models have separate evidence gates."
     ))
   }
   if (length(phylo_mu$species_levels) < 3L) {
@@ -20310,6 +20332,12 @@ gaussian_ls_map <- function(
   ) {
     out$eta_cor_phylo <- factor(NA)
   }
+  if (isTRUE(phylo_mu$has) && identical(phylo_mu$model, "ou")) {
+    # Joint OU fields are independent by contract. The Brownian q2 coordinate
+    # remains in the global TMB parameter list for compatibility, but must be
+    # removed from this fit rather than left flat and falsely extractable.
+    out$eta_cor_phylo <- factor(NA)
+  }
   if (re_mu$n_re == 0L) {
     out$u_mu <- factor(NA)
     out$log_sd_mu <- factor(NA)
@@ -22935,7 +22963,8 @@ split_tmb_corpars <- function(par, spec) {
   } else if (
     identical(spec$model_type, "gaussian") &&
       isTRUE(spec$structured$phylo_mu$has) &&
-      phylo_mu_has_cross_dpar(spec$structured$phylo_mu)
+      phylo_mu_has_cross_dpar(spec$structured$phylo_mu) &&
+      !identical(spec$structured$phylo_mu$model, "ou")
   ) {
     phylo_pairs <- phylo_mu_pair_table(spec$structured$phylo_mu)
     cor_key <- structured_mu_correlation_key(spec$structured$phylo_mu)

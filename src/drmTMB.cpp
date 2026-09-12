@@ -1157,9 +1157,9 @@ Type objective_function<Type>::operator()()
         // stays sparse and differentiable in the estimated positive decay.
         vector<Type> decay_phylo(phylo_ou_alpha_index.size());
         for (int field = 0; field < phylo_ou_alpha_index.size(); ++field) {
-          // One latent endpoint gets one alpha slot. The present public route
-          // has one endpoint, but this loop prevents later admitted fields
-          // from silently borrowing its rate.
+          // One latent endpoint gets one alpha slot. The admitted joint
+          // location-plus-scale OU route has two independent endpoints, so
+          // this loop prevents either field from silently borrowing a rate.
           Type field_decay = exp(log_decay_phylo(phylo_ou_alpha_index(field)));
           decay_phylo(field) = field_decay;
           // Direct phylogenetic-SD models apply their fitted amplitude at the

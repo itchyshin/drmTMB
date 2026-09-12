@@ -3002,10 +3002,13 @@ predict.drmTMB <- function(
 #' `re.form` was added). Marginal simulation also redraws a single-endpoint
 #' (`q == 1`) phylogenetic, spatial, relatedness-matrix (`relmat`),
 #' animal-model, or `phylo_interaction` structured `mu` random effect from its
-#' fitted covariance `sd^2 * Q^-1`. It does not yet support a structured mu
-#' random effect correlated across more than one trait or distributional
-#' parameter (`q > 1`, including a multi-endpoint `phylo_interaction` term),
-#' correlated covariance-block random effects, predictor-dependent
+#' fitted covariance `sd^2 * Q^-1`. The admitted univariate Gaussian joint OU
+#' intercept route is the one multi-endpoint exception: it redraws independent
+#' location and residual-log-scale phylogenetic fields, each with its own
+#' fitted decay. It does not yet support other structured mu random effects
+#' across more than one trait or distributional parameter (`q > 1`, including
+#' a multi-endpoint `phylo_interaction` term), correlated covariance-block
+#' random effects, predictor-dependent
 #' random-effect correlation (`corpair`) regression, or a modelled
 #' (heteroscedastic) random-effect scale; `simulate()` throws an informative
 #' error naming the unsupported structure for those models and directs the
@@ -6598,7 +6601,9 @@ drm_random_effect_contribution_from_values <- function(values, re, dpar) {
 # for every other type) and the fitted SD is a single scalar. Left
 # unsupported: any term with `q > 1` (a trait/dpar correlation this slice did
 # not reconstruct), including a `phylo_interaction` term with more than one
-# endpoint.
+# endpoint. The sole exception is the explicitly independent, unlabelled
+# Gaussian phylogenetic OU `mu`/`sigma` intercept pair: its two fields are
+# redrawn separately, each with its own fitted SD and decay.
 drm_structured_mu_marginal_unsupported <- function(object) {
   phylo_mu <- object$model$structured$phylo_mu
   if (!isTRUE(phylo_mu$has)) {
@@ -6608,7 +6613,12 @@ drm_structured_mu_marginal_unsupported <- function(object) {
   if (!type %in% c("phylo", "spatial", "relmat", "animal", "phylo_interaction")) {
     return("phylogenetic-interaction structured mu random effects")
   }
-  if (structured_mu_q(phylo_mu) > 1L) {
+  joint_independent_ou <- identical(object$model$model_type, "gaussian") &&
+    identical(type, "phylo") &&
+    identical(phylo_mu$model, "ou") &&
+    identical(phylo_mu$dpars, c("mu", "sigma")) &&
+    identical(phylo_mu$coef_names, c("(Intercept)", "(Intercept)"))
+  if (structured_mu_q(phylo_mu) > 1L && !joint_independent_ou) {
     return(
       "structured mu random effects correlated across more than one trait or distributional parameter"
     )
@@ -6632,8 +6642,8 @@ drm_fresh_structured_mu_values <- function(phylo_mu, sd, decay = NULL) {
   backsolve(root, z) * sd
 }
 
-# Draws ONE fresh realization of the (single-endpoint) structured mu random
-# effect this object has, returning a named list keyed by dpar of
+# Draws ONE fresh realization of the supported structured random effect this
+# object has, returning a named list keyed by dpar of
 # per-observation link-scale contributions -- mirroring
 # `drm_ordinary_random_effect_draws()` below. Reuses `phylo_mu_contribution()`
 # for the observation mapping (design multiply and node index) by substituting
@@ -6649,29 +6659,58 @@ drm_structured_mu_random_effect_draws <- function(object) {
   }
   model_type <- object$model$model_type
   dpar <- unique(phylo_mu_endpoint_dpars(phylo_mu))
-  sd_key <- if (identical(model_type, "biv_gaussian")) "mu" else dpar
   label <- phylo_mu_sd_labels(phylo_mu, model_type)
-  sd_val <- unname(object$sdpars[[sd_key]][label])
-  if (anyNA(sd_val)) {
-    cli::cli_abort(c(
-      "Marginal simulation could not find a fitted structured-effect SD for {.field {label}}.",
-      "i" = "This usually means the structured random-effect scale is itself modelled (heteroscedastic).",
-      "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
-    ))
-  }
   key <- structured_mu_random_effect_key(phylo_mu, model_type)
-  decay <- if (identical(structured_mu_type(phylo_mu), "phylo") &&
-      identical(phylo_mu$model, "ou")) {
-    unname(object$decaypars$phylo[["decay_phylo"]])
-  } else {
-    NULL
-  }
+  joint_independent_ou <- identical(model_type, "gaussian") &&
+    identical(structured_mu_type(phylo_mu), "phylo") &&
+    identical(phylo_mu$model, "ou") &&
+    identical(dpar, c("mu", "sigma")) &&
+    identical(phylo_mu$coef_names, c("(Intercept)", "(Intercept)"))
   draw_object <- object
-  draw_object$random_effects[[key]]$values <- drm_fresh_structured_mu_values(
-    phylo_mu,
-    sd_val,
-    decay = decay
-  )
+  if (joint_independent_ou) {
+    fields <- phylo_ou_provider_fields(phylo_mu)
+    values <- numeric(length(fields) * phylo_mu$n_re)
+    for (field in fields) {
+      endpoint <- field$latent_index0 + 1L
+      sd_val <- unname(object$sdpars[[field$dpar]][label[[endpoint]]])
+      decay_label <- if (identical(field$dpar, "mu")) {
+        "decay_phylo"
+      } else {
+        paste0("decay_phylo:", field$dpar)
+      }
+      decay <- unname(object$decaypars$phylo[[decay_label]])
+      if (!is.finite(sd_val) || sd_val <= 0 || !is.finite(decay) || decay <= 0) {
+        cli::cli_abort(c(
+          "Marginal simulation could not find finite positive OU parameters for {.field {field$field_id}}.",
+          "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+        ))
+      }
+      index <- seq_len(phylo_mu$n_re) + field$latent_index0 * phylo_mu$n_re
+      values[index] <- drm_fresh_structured_mu_values(
+        phylo_mu, sd = sd_val, decay = decay
+      )
+    }
+    draw_object$random_effects[[key]]$values <- values
+  } else {
+    sd_key <- if (identical(model_type, "biv_gaussian")) "mu" else dpar
+    sd_val <- unname(object$sdpars[[sd_key]][label])
+    if (anyNA(sd_val)) {
+      cli::cli_abort(c(
+        "Marginal simulation could not find a fitted structured-effect SD for {.field {label}}.",
+        "i" = "This usually means the structured random-effect scale is itself modelled (heteroscedastic).",
+        "i" = "Pass {.code re.form = NA} to simulate conditionally on the fitted random effects instead."
+      ))
+    }
+    decay <- if (identical(structured_mu_type(phylo_mu), "phylo") &&
+        identical(phylo_mu$model, "ou")) {
+      unname(object$decaypars$phylo[["decay_phylo"]])
+    } else {
+      NULL
+    }
+    draw_object$random_effects[[key]]$values <- drm_fresh_structured_mu_values(
+      phylo_mu, sd_val, decay = decay
+    )
+  }
   stats::setNames(
     lapply(dpar, function(d) phylo_mu_contribution(draw_object, dpar = d)),
     dpar

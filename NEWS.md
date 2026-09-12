@@ -43,18 +43,21 @@ every item above.
   retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
   has no calibrated coverage claim.
 
-## Phylogenetic OU tree covariance (local-fit slice)
+## Phylogenetic OU tree covariance (local-fit/oracle slices)
 
-* `phylo(1 | species, tree = tree, model = "ou")` now fits a stationary
-  evolutionary OU covariance for one univariate Gaussian location intercept;
-  omitting `model` continues to use Brownian motion. Native ML and REML admit
-  fixed-effect residual-scale formulas and one direct phylogenetic-SD amplitude
-  formula. The positive `decay_phylo` is the location-field point estimate
-  (`alpha_mu`). Slopes, a phylogenetic residual-scale OU field (`alpha_sigma`),
-  other latent effects, temporal terms, non-Gaussian families, prediction for
-  new data, and decay intervals remain unavailable. Retained local recovery
-  fixtures found weak global-intercept versus tree-field separation, so this
-  slice makes no recovery, interval, coverage, or OU-preference claim.
+* `phylo(1 | species, tree = tree, model = "ou")` fits stationary evolutionary
+  OU covariance while omitted `model` continues to use Brownian motion. The
+  new exact univariate Gaussian ML joint-intercept slice matches unlabelled OU
+  terms in `mu` and `sigma`, fitting independent location (`alpha_mu`, reported
+  as `decay_phylo`) and residual-log-scale (`alpha_sigma`, reported as
+  `decay_phylo:sigma`) fields. BM's cross-field correlation is mapped out and
+  unavailable from `corpairs()`. Fixed `sigma` predictors remain independent
+  residual-scale regression. Slopes, labels, direct-SD formulas, known sampling
+  covariance, REML, other latent effects, temporal terms, non-Gaussian families,
+  new-data prediction, decay intervals, cross-field OU correlation, recovery,
+  coverage, and OU-preference claims remain unavailable. The fitted objective is
+  Laplace-approximated ML; retained preflight fixtures are negative
+  identifiability evidence, not recovery evidence.
 
 # drmTMB 0.7.0
 

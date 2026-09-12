@@ -95279,3 +95279,22 @@ provenance receipt, and structurally valid after-task report. The earned public
 scope remains the bounded univariate Gaussian location-side OU route; none of
 the deferred `alpha_sigma`, bivariate, missing-response, or temporal work is
 promoted by this closeout.
+
+## 2026-09-12 — G13 joint independent OU location-scale local-fit/oracle slice
+
+G13 adds the exact univariate Gaussian ML formula with matching unlabelled
+phylogenetic OU intercepts in `mu` and `sigma`. It uses field-specific rates
+`decay_phylo`/`decay_phylo:sigma`, maps out BM's cross-field correlation, and
+keeps BM the omitted-model default. Native TMB and an independent dense
+all-node conditional oracle agree on objective, score, and Hessian, including
+the configured log-sigma clamp and a permuted field registry. Parser tests close
+labels, known sampling covariance, bridge routing, REML, direct-SD, and other
+unadmitted neighbours. The 1,000-tip sparse receipt is resource evidence only.
+
+The fixed-seed two-field simulation preflight retained weak and boundary
+outcomes, so G13 is documented only as a Laplace-approximated-ML
+local-fit/oracle capability. Its 10,440-tip Ayumi feasibility receipt records
+the exact data/tree hashes, source commit, ML controls, convergence, gradient,
+warnings, Hessian state, likelihood, AIC, and both rate estimates; it makes no
+OU-versus-BM or recovery claim. A separate approved replicated campaign is
+required for recovery, intervals, coverage, or model-selection promotion.

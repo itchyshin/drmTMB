@@ -247,12 +247,11 @@ recovery, interval, or coverage performance.
 
 Internally, an OU provider carries a field registry: each latent endpoint has
 its own field identifier, latent offset, and `log_decay_phylo` index. The
-native root-and-edge likelihood loops over those registered fields, so a later
-admitted same-tree endpoint cannot silently share `alpha_mu`. This is an
-allocation foundation, not public multi-field support: formula admission,
-field-specific data layouts, extractors, and validation remain configuration
-specific, and a sigma-side field must be introduced as `alpha_sigma` in its
-own arc.
+native root-and-edge likelihood loops over those registered fields. The first
+public multi-field admission is the independent univariate Gaussian `mu` plus
+`sigma` intercept configuration documented below; any additional endpoint,
+covariance, family, or response structure still needs its own admission and
+validation arc.
 
 It reports a positive `decay_phylo` point estimate, conditional modes,
 in-sample fitted values, residuals and seeded conditional simulation. A
@@ -263,6 +262,48 @@ terms, non-Gaussian families, new-data prediction and forecasts are deferred.
 Wald, profile and bootstrap intervals for decay are also deferred. The retained
 local recovery panel found that an overall intercept can be weakly separated
 from one realised tree field, so it makes no point-recovery or interval claim.
+
+#### Independent location-plus-log-scale OU intercepts
+
+The ML-only joint Gaussian form uses matching unlabelled OU intercepts in
+`mu` and `sigma` on the same observed tree layout:
+
+\[
+y_i \mid u,v \sim N\{X_i\beta_\mu + u_{s(i)},
+  \exp[2C\{H_i\kappa+v_{s(i)}\}]\},
+\]
+
+\[
+u \sim OU(\alpha_\mu,s_\mu),\qquad
+v \sim OU(\alpha_\sigma,s_\sigma),\qquad u\perp v.
+\]
+
+Here \(C\) is the configured smooth log-\(\sigma\) clamp. It is exactly the
+identity inside its band and is applied only before exponentiating the combined
+fixed scale predictor and scale-side OU contribution; it therefore preserves
+ordinary interior fits while keeping runaway scales finite.
+
+The fitted objective integrates the two latent fields with TMB's Laplace
+approximation, so this is Laplace-approximated marginal ML. The dense oracle
+checks the conditional observation density and both latent priors, including
+their score and Hessian; it is not a claim of exact marginal-likelihood or
+recovery validation.
+
+Each field has the stationary root density and normalized edge transition
+above, using its own registry offset and rate. `decay_phylo` remains the
+compatibility output for \(\alpha_\mu\); `decay_phylo:sigma` is
+\(\alpha_\sigma\). The BM cross-field coordinate `eta_cor_phylo` is mapped
+out for this explicit OU configuration, so there is no hidden flat parameter,
+`corpars$phylo`, correlation profile target, or `corpairs()` result.
+
+This joint form is not a residual-scale regression alone: fixed predictors in
+`sigma` contribute \(H_i\kappa\), while the sigma-side OU field contributes
+\(v_{s(i)}\) and therefore has its own rate. It requires adequate
+within-species replication for the scale field to be informative. REML,
+slopes, direct-SD amplitudes, cross-field correlation, new-data prediction,
+and interval inference are deferred. A one-row-per-species dataset can be a
+feasibility diagnostic but cannot establish preference for OU or recovery of
+the scale-side field.
 
 ### Phylogenetic stable intercept plus independent OU deviations
 
