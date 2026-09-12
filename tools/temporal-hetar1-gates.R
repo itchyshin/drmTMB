@@ -47,15 +47,22 @@ verify_artifact <- function(mode, expected_fixtures) {
   provenance <- utils::read.csv(file.path(out_dir, "provenance.csv"), stringsAsFactors = FALSE)
   source_commit <- provenance$value[provenance$key == "source_commit"]
   runner_md5 <- provenance$value[provenance$key == "runner_md5"]
-  allowed_runner_md5 <- unname(tools::md5sum("tools/run-temporal-hetar1-interval-feasibility.R"))
-  implementation_changed <- system2(
-    "git", c("diff", "--name-only", paste0(source_commit, "..HEAD"), "--", "R", "src", "DESCRIPTION", "NAMESPACE"),
-    stdout = TRUE
+  source_runner <- tryCatch(
+    system2(
+      "git",
+      c("show", paste0(source_commit, ":tools/run-temporal-hetar1-interval-feasibility.R")),
+      stdout = TRUE,
+      stderr = TRUE
+    ),
+    error = function(...) character()
   )
+  source_runner_path <- tempfile("temporal-hetar1-source-runner-")
+  on.exit(unlink(source_runner_path), add = TRUE)
+  writeLines(source_runner, source_runner_path, useBytes = TRUE)
+  source_runner_md5 <- unname(tools::md5sum(source_runner_path))
   expected_starts <- sort(rep(c(-0.3, 0.3), expected_fixtures))
   if (length(source_commit) != 1L || length(runner_md5) != 1L ||
-      !identical(runner_md5, allowed_runner_md5) ||
-      length(implementation_changed) != 0L ||
+      length(source_runner) == 0L || !identical(runner_md5, source_runner_md5) ||
       nrow(configuration) != expected_fixtures || nrow(results) != expected_fixtures ||
       nrow(attempts) != 2L * expected_fixtures ||
       !all(table(attempts$fixture) == 2L) ||

@@ -764,7 +764,7 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     ) {
       cli::cli_abort(c(
         "{.fn temporal} requires named {.arg time} and {.arg structure} arguments.",
-        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")}, {.code temporal(1 | id, time = elapsed, structure = \"ou\")}, or {.code temporal(1 | id, time = occasion, structure = \"hetar1\").}"
+        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")}, {.code temporal(1 | id, time = elapsed, structure = \"ou\")}, {.code temporal(1 | id, time = occasion, structure = \"homtoep\")}, or {.code temporal(1 | id, time = occasion, structure = \"hetar1\").}"
       ))
     }
     if (
@@ -782,7 +782,7 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     if (!is.symbol(time_arg)) {
       cli::cli_abort(c(
         "{.arg time} in {.fn temporal} must name an occasion variable.",
-        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")}, {.code temporal(1 | id, time = elapsed, structure = \"ou\")}, or {.code temporal(1 | id, time = occasion, structure = \"hetar1\").}"
+        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")}, {.code temporal(1 | id, time = elapsed, structure = \"ou\")}, {.code temporal(1 | id, time = occasion, structure = \"homtoep\")}, or {.code temporal(1 | id, time = occasion, structure = \"hetar1\").}"
       ))
     }
     if (

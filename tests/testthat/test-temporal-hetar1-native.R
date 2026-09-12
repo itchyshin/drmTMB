@@ -46,7 +46,10 @@ test_that("hetar1 uses a labelled D-R-D covariance with signed AR1 starts", {
   intervals <- stats::confint(fit, method = "wald")
   expect_true(all(is.finite(intervals$lower) & is.finite(intervals$upper)))
   expect_true(all(intervals$lower < intervals$upper))
-  expect_error(stats::confint(fit, method = "profile"), "not yet qualified")
+  expect_error(
+    stats::confint(fit, method = "profile"),
+    "mean-coefficient profile intervals are unavailable"
+  )
   diagnostics <- drmTMB::check_drm(fit)
   wald_row <- diagnostics[diagnostics$check == "temporal_mean_wald", , drop = FALSE]
   profile_row <- diagnostics[diagnostics$check == "temporal_mean_profile", , drop = FALSE]

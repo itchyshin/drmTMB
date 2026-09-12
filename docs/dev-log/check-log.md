@@ -94953,3 +94953,9 @@ P1 G13 coverage rows.
 - **Decision:** P2 homogeneous Toeplitz and P3 heterogeneous AR1 have closed at their documented boundaries. P1 remains interval-feasible only: its failed G13 intercept-profile coverage rows are retained and do not support a calibrated-inference claim. The separately completed tree-OU covariance provider remains a phylogenetic choice, not a temporal or phylogeny-by-time implementation.
 - **Deferral:** heterogeneous Toeplitz and every item-6 candidate remain deferred until an identified ecological use case supplies the data and scientific need. No campaign authority or inference claim transfers from the completed arcs.
 - **Reverify:** `Rscript --vanilla docs/dev-log/plans/2026-09-09-temporal-covariance-programme/unlazy/check-programme.R G18 --reverify` returned `TEMPORAL_PROGRAMME_G18_PASS REVERIFY`; it only inspected the programme contract and did not launch computation.
+
+## 2026-09-11 — heterogeneous AR1 reader and reverify repair
+
+- **Reader boundary:** `?confint.drmTMB` and `?profile_targets` now distinguish heterogeneous AR1's mean-coefficient Wald route from AR1/OU/homogeneous-Toeplitz profiles. It is fit-level interval feasibility only; profiles and non-mean intervals remain unavailable.
+- **Artifact identity:** `T4-11 --reverify` now rebuilds the runner checksum from the evidence's recorded source commit rather than rejecting later unrelated phylogenetic-OU changes in shared files. The gate-runner test verifies that provenance binding and the no-refit reverify.
+- **Focused checks:** regenerated Rd pages; the gate-runner, parser, and native heterogeneous-AR1 tests passed; `Rscript --vanilla tools/temporal-hetar1-gates.R T4-11 --reverify` returned `TEMPORAL_HETAR1_T4_11_PASS`.

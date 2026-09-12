@@ -34,8 +34,10 @@
 \item{parm}{Optional character or integer vector selecting interval targets.
 \code{NULL} selects all direct Wald-ready targets for Wald intervals. Profile
 intervals usually require explicit target names or target-set shortcuts;
-for a Gaussian temporal AR1 or OU fit, \code{NULL} selects every mean-model
-coefficient. Temporal profile intervals admit mean coefficients only.
+for a Gaussian temporal AR1, OU, or homogeneous Toeplitz fit, \code{NULL}
+selects every mean-model coefficient. Temporal profile intervals admit mean
+coefficients only. Heterogeneous AR1 supports mean-coefficient Wald
+intervals only, rather than profile intervals.
 Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
 \code{"variance_components"}, and \code{"correlations"}.}
 
@@ -244,9 +246,12 @@ behaviour and does \strong{not} claim nominal coverage on every route.
 fitted-object route when \code{TMB::sdreport()} succeeded.
 \item Gaussian temporal AR1, OU, and homogeneous Toeplitz mean effects: use
 \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
-(or omit \code{parm} for every mean coefficient). Temporal Wald output
-remains restricted or deferred, and temporal variance, persistence,
-decay, bootstrap, and \code{newdata} intervals are unavailable.
+(or omit \code{parm} for every mean coefficient). Heterogeneous AR1 uses
+\code{confint(fit, parm = "mu:<coefficient>", method = "wald")} when
+the full observed Hessian is positive definite. That route is
+interval-feasibility evidence for the fitted data, not coverage or
+standard-error calibration. Temporal variance, persistence, decay,
+bootstrap, and \code{newdata} intervals are unavailable.
 Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
 not prevent a finite profile endpoint, but it makes the fitted likelihood
 locally irregular and the interval is not coverage-calibrated.
