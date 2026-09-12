@@ -7,7 +7,7 @@ diagnostic, not a recovery, coverage, or interval-calibration campaign.
 The clean design has 24 species with 8 observations each and truth
 `alpha_mu = 0.8`; all six fits have a positive-definite Hessian but their
 alpha estimates range from 0.211 to 5.188.  The deliberately weak design has
-12 species with one observation each and truth `alpha_mu = 0.05`; three of
+12 species with one observation each and truth `alpha_mu = 0.05`; four of
 six fits have a non-positive-definite Hessian and all estimates are far from
 the truth.  These failures are retained as negative evidence: they prohibit a
 point-recovery, interval, coverage, or general inferential claim for this OU
