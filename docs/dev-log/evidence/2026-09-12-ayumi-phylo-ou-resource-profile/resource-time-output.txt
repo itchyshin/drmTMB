@@ -1,0 +1,79 @@
+--- bm_constant ---
+       85.59 real        77.15 user         3.87 sys
+          2353201152  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              416871  page reclaims
+                2045  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                1532  messages sent
+                  31  messages received
+                  87  signals received
+                4239  voluntary context switches
+               62098  involuntary context switches
+        727891333780  instructions retired
+        186291383319  cycles elapsed
+          1361020584  peak memory footprint
+
+--- ou_constant ---
+      682.26 real       666.96 user         6.48 sys
+          2340143104  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              449603  page reclaims
+                2387  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                1532  messages sent
+                  31  messages received
+                  79  signals received
+                4422  voluntary context switches
+              364492  involuntary context switches
+       8009149172196  instructions retired
+       2044723455903  cycles elapsed
+          1541261040  peak memory footprint
+
+--- bm_climate ---
+      110.78 real       101.46 user         4.87 sys
+          2343895040  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              415169  page reclaims
+                2915  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                1532  messages sent
+                  31  messages received
+                  70  signals received
+                5360  voluntary context switches
+               89441  involuntary context switches
+       1015797062403  instructions retired
+        260935582074  cycles elapsed
+          1363084992  peak memory footprint
+
+--- ou_climate ---
+      217.62 real       209.44 user         4.01 sys
+          2372386816  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              428369  page reclaims
+                1479  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                1532  messages sent
+                  31  messages received
+                  81  signals received
+                2288  voluntary context switches
+               88990  involuntary context switches
+       2415609068948  instructions retired
+        605585342221  cycles elapsed
+          1449035432  peak memory footprint

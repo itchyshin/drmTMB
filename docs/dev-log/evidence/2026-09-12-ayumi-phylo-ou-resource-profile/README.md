@@ -10,6 +10,14 @@ source is `Ayumi-495/LS_ecogeographical-rules` commit
 `b5219000845e5d4e74f8843740caadb45f54eb78` plus the uncommitted receipt-tool
 helpers that do not change the estimator.
 
+`provenance-manifest.csv` binds each retained row to the Ayumi input commit and
+hashes, the source-current model commit, the exact resource command, and the
+SHA-256 values of the external cell RDS/receipt/time-log files. Those large
+RDS files remain outside Git, but their identity is therefore auditable.
+`resource-time-output.txt` preserves the raw relevant lines emitted by
+`/usr/bin/time -l`, and `warnings-and-optimizers.csv` preserves exact warning
+meaning and every optimizer escalation path.
+
 `fit-summary.csv` records each fit's elapsed time, process peak RSS, process
 peak-memory-footprint field, convergence/Hessian/gradient diagnostics, and the
 bounded OU profile timing/span. `fixed-effects.csv` retains every fitted
@@ -23,3 +31,8 @@ objective and runs a four-row, one-step `TMB::tmbprofile` diagnostic.  Both
 profiles are locally flat around an alpha near zero.  They are boundary
 diagnostics, not confidence intervals, recovery evidence, or a reason to
 prefer OU over BM.
+
+The earlier four-cell source-pinned receipt was made at model source
+`9d78f85d5fe736b9faae7a0afa304cb15e441a05`. This resource/profile replay is a
+separate current-source receipt at `b5219000845e5d4e74f8843740caadb45f54eb78`;
+the input source commit and hashes are identical in both receipts.

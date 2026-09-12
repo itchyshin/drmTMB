@@ -1,13 +1,13 @@
 # After-task report: predictor-aware phylogenetic OU local slice
 
-## Goal
+## 1. Goal
 
 Add an explicit OU alternative to the Brownian-motion default for the admitted
 univariate Gaussian phylogenetic location intercept, and test the requested
 location--scale--direct-SD body-mass form on Ayumi's all-species data without
 claiming recovery, intervals, or a general BM-versus-OU preference.
 
-## Implemented
+## 2. Implemented
 
 `phylo(..., model = "ou")` is explicit; omitted `model` remains BM. The admitted
 route has one Gaussian `mu` phylogenetic intercept, fixed effects in `mu` and
@@ -29,7 +29,7 @@ The portable Ayumi runner and its fail-closed verifier retain the four-cell
 BM/OU by constant/climate-residual-scale ladder, exact source commit and
 checksums, model diagnostics, and the explicit claim boundary.
 
-## Mathematical contract
+## 3. Mathematical Contract
 
 For a positive location-side rate alpha and edge length ell,
 `rho = exp(-alpha * ell)` and the stationary root-and-edge tree construction
@@ -39,7 +39,18 @@ ordinary scalar phylogenetic scale instead of multiplying it. Fixed-effect
 `sigma ~ temperature + precipitation` changes independent residual variation
 and creates neither a second phylogenetic field nor `alpha_sigma`.
 
-## Files changed
+## 3a. Decisions and Rejected Alternatives
+
+BM remains the default and OU is explicit. The first public slice is limited to
+one univariate Gaussian location intercept; it deliberately rejects OU slopes,
+sigma-side OU, bivariate/missing-response OU, temporal combinations, and new
+data or forecast workflows. Fixed residual `sigma` and direct phylogenetic-SD
+predictors are admitted because they are distinct from a second phylogenetic
+OU field. A shared alpha and a sum-to-zero repair for intercept--field
+separation were rejected because both would change the model rather than test
+its identifiability honestly.
+
+## 4. Files Touched
 
 The implementation is in `R/drmTMB.R` and `src/drmTMB.cpp`; the independent
 native-oracle and parser guards are in
@@ -52,7 +63,7 @@ capability wording was reconciled in the R help, `NEWS.md`, `README.md`,
 `docs/design/01-formula-grammar.md`, `docs/design/03-likelihoods.md`,
 `docs/dev-log/known-limitations.md`, and the phylogenetic/model-map vignettes.
 
-## Checks run
+## 5. Checks Run
 
 Focused gates G1--G4 all emitted their required `PHYLO_OU_G*_PASS` markers
 after the indexed-vector change. `devtools::document()` passed. The receipt
@@ -61,7 +72,7 @@ at Ayumi source commit `6c52a46f67d9d86842ae5476dee828684f64a464` with 10,440
 rows/tips and all four REML cells. `git diff --check` passed after the final
 documentation and verifier changes.
 
-## Tests of tests
+## 6. Tests of the Tests
 
 The dense independent covariance oracle compares objective, gradient, and
 observed Hessian against the native sparse tree likelihood. Its mutations reject
@@ -72,7 +83,15 @@ suite. The receipt verifier checks schema, current source commit, source
 checksums, four required cells, convergence/Hessian status, and `check_drm()`
 diagnostic counts.
 
-## Empirical and recovery evidence
+## 7a. Issue Ledger
+
+Ayumi's public issue list was inspected read-only. Issue #12 is the
+all-species location--scale--direct-SD body-mass specification; issue #2
+describes future sigma-side phylogeny. No issue was opened, closed, or
+commented on because this isolated implementation/evidence arc does not change
+Ayumi's tracker state.
+
+## 7b. Empirical and Recovery Evidence
 
 The exact Ayumi ladder converged for all cells. BM constant/climate max gradients
 were approximately `3.6e-10` and `9.9e-11`; OU constant/climate were `0.0157`
@@ -82,16 +101,15 @@ estimates and frequent weak-design non-positive-definite Hessians. These are
 negative inference findings, so the public boundary remains local fit/oracle
 only.
 
-## Consistency and issue audit
+## 8. Consistency Audit
 
 The formula grammar, likelihood design, README, model map, phylogenetic reader
 article, NEWS, and limitations consistently distinguish `alpha_mu`, deterministic
-residual `sigma`, direct-SD amplitude, and deferred `alpha_sigma`. The public
-Ayumi issue list was inspected read-only: issue #12 is the all-species
-location-scale-scale specification and issue #2 is the future sigma-side
-phylogeny question. Neither was modified.
+residual `sigma`, direct-SD amplitude, and deferred `alpha_sigma`. The source
+and generated reader surfaces therefore agree with the explicit boundaries in
+the issue ledger.
 
-## What did not go smoothly
+## 9. What Did Not Go Smoothly
 
 The receipt verifier originally checked the stored commit and diagnostics too
 weakly; it now verifies the current source HEAD and required diagnostic columns.
@@ -117,7 +135,7 @@ reconstructed OU alpha-profile diagnostics. Both OU fits again select alpha
 near zero and have nearly flat local profiles; these observations are boundary
 evidence only, not decay intervals or a BM-versus-OU choice.
 
-## Known limitations and open gates
+## 10. Known Residuals
 
 G0 remains open because the initial lane lease was not durably persisted before
 the first edits; a later scoped lease protects this continuation but cannot
@@ -128,7 +146,24 @@ future sigma-side field still needs its own formula/data layout, `alpha_sigma`,
 and validation arc. There is no bivariate, missing-response, temporal, slope,
 forecast, `newdata`, recovery, interval, coverage, or BM-preference claim.
 
-## Next actions
+## 11. Team Learning
+
+The initial field registry was not sufficient on its own: native code must use
+stored latent indices as well as alpha indices, and the permutation contract
+is now retained to detect that class of mapping error. Empirical fit objects
+cannot safely be profiled after a compiled-template data-layout change; the
+profile helper therefore refuses a provenance mismatch and rebuilds a current
+objective from a fresh compatible fit.
+
+## 12. Cross-Product Coverage
+
+This arc changes the formula parser, R-to-TMB provider metadata, native tree
+prior, extraction/diagnostic/profile seams, mutation tests, user reference and
+vignettes, reproducibility tools, empirical receipts, and the after-task/check
+log. It does not cover the deferred sigma-side OU/`alpha_sigma` field,
+bivariate or missing-response layouts, other families, or temporal P4/P5.
+
+## Next Actions
 
 Do not broaden this slice on the basis of the empirical fit or the completed
 resource preflight. The next mathematically distinct arc is sigma-side

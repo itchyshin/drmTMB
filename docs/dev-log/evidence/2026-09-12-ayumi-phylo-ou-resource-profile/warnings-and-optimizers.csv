@@ -1,0 +1,5 @@
+cell,warning_text,selected_optimizer,selected_preset,selected_attempt,optimizer_attempts
+bm_constant,"",nlminb,default,1,"1: nlminb/default/convergence=0/selected"
+ou_constant,"drmTMB converged with the BFGS fallback optimizer after nlminb presets did not.",nlminb,fallback:BFGS,4,"1: nlminb/default/convergence=1; 2: nlminb/careful/convergence=1; 3: nlminb/robust/convergence=1; 4: nlminb/fallback:BFGS/convergence=0/selected"
+bm_climate,"",nlminb,default,1,"1: nlminb/default/convergence=0/selected"
+ou_climate,"drmTMB escalated nlminb to the careful optimizer preset to reach convergence.",nlminb,careful,2,"1: nlminb/default/convergence=1; 2: nlminb/careful/convergence=0/selected"
