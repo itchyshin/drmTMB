@@ -123,10 +123,8 @@ forecast, `newdata`, recovery, interval, coverage, or BM-preference claim.
 
 ## Next actions
 
-Do not broaden this slice on the basis of the empirical fit. First obtain a
-resource-capable sparse preflight that records RSS, then decide whether the
-one-field local-fit/oracle slice should be promoted or remain developer-facing.
-The next mathematically distinct arc is sigma-side phylogeny with a separate
-`alpha_sigma`; it must not reuse `alpha_mu` implicitly. A retained recovery or
-calibration campaign requires a fresh estimate and approval if the preflight
-shows it will exceed 30 minutes.
+Do not broaden this slice on the basis of the empirical fit or the completed
+resource preflight. The next mathematically distinct arc is sigma-side
+phylogeny with a separate `alpha_sigma`; it must not reuse `alpha_mu`
+implicitly. A retained recovery or calibration campaign requires a fresh
+estimate and approval if the preflight shows it will exceed 30 minutes.

@@ -95209,3 +95209,23 @@ permuted registry would have bound rate slots by list order. The TMB contract
 now carries each field's latent index as well as its alpha index; the native
 prior binds both its node offset and latent SD to that index. A permutation
 mutation now gives the same native objective as the canonical order.
+
+## 2026-09-12 — predictor-aware phylogenetic OU re-verification and durable negative evidence
+
+From a clean local debug rebuild, `tools/phylo-ou-general-gates.R` emitted
+`PHYLO_OU_G1_PASS`, `PHYLO_OU_G2_PASS`, `PHYLO_OU_G3_PASS`, and
+`PHYLO_OU_G4_PASS`. The first G2 invocation exposed a transient stale-DLL
+loader failure before any assertion; rebuilding via `pkgload::load_all()` and
+rerunning produced the pass marker, so only the clean-build pass is used as
+evidence. The source-pinned Ayumi verifier again emitted
+`AYUMI_BODYMASS_PHYLO_OU_RECEIPT_PASS rows=10440 tips=10440` at source
+`6c52a46f67d9d86842ae5476dee828684f64a464`.
+
+The 12-row clean-versus-weak preflight output previously retained under
+`/private/tmp` is now versioned at
+`docs/dev-log/implementation-recovery/2026-09-12-phylo-ou-preflight/`.
+The raw CSV checksum remains
+`de283bc17a178d5830953748ba78f9a0bfd5686e30ba496b180107098e25e64a`.
+It retains variable clean-design alpha estimates and weak-design Hessian
+failures as negative evidence only; it does not widen the local-fit/oracle
+claim.
