@@ -128,6 +128,12 @@ The inspected preflight was finally run outside that sandbox and completed in
 footprint 569,082,912 bytes. It retains its BFGS fallback, `pdHess = FALSE`, and
 large gradient, so this closes only the sparse-resource measurement gate.
 
+The same inspected 1,000-tip script was rerun at the final current source. It
+again emitted `PHYLO_OU_1000_PREFLIGHT_PASS` in 57.12 seconds, with maximum RSS
+605,798,400 bytes and peak memory footprint 580,125,704 bytes. The BFGS
+fallback, `pdHess = FALSE`, and max gradient 5.2566678 were unchanged; the
+renewed result is resource evidence only.
+
 A source-current replay then ran each Ayumi ladder cell in its own process under
 `/usr/bin/time -l`. The retained receipt records per-fit elapsed time, RSS,
 peak-memory footprint, fixed effects, optimizer warning counts, and short

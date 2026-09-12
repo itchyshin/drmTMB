@@ -95243,3 +95243,14 @@ scale) and 0.00120992 (climate residual scale). Their rebuilt four-row TMB
 profiles take 43.928 and 53.453 seconds and are locally flat (objective spans
 4.71e-05 and 2.62e-05). The profile CSVs explicitly label this as a boundary
 diagnostic, not an interval, recovery, or model-preference result.
+
+## 2026-09-12 — G6 final current-source sparse re-verification
+
+The exact inspected 1,000-tip preflight script was rerun under
+`/usr/bin/time -l` at the final current source. It emitted
+`PHYLO_OU_1000_PREFLIGHT_PASS` in 57.12 seconds, with maximum resident set
+size 605,798,400 bytes and peak memory footprint 580,125,704 bytes. As in the
+earlier receipt, BFGS fallback occurred, `pdHess = FALSE`, and maximum gradient
+was 5.2566678. This renews G6's sparse resource evidence only; it does not
+promote numerical stability, alpha inference, recovery, coverage, or model
+preference.
