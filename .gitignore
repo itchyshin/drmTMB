@@ -96,3 +96,6 @@ rsconnect/
 # scratchpad: evidence scripts ARE committed (see handover); logs and caches are not
 scratchpad/*.log
 scratchpad/*.rds
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
