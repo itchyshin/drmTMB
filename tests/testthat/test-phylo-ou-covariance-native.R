@@ -53,6 +53,8 @@ test_that("Gaussian phylogenetic OU fits a native stationary tree provider", {
     fit$model$structured$phylo_mu$provider$alpha_parameter,
     "log_decay_phylo"
   )
+  expect_identical(fit$model$structured$phylo_mu$provider$alpha_index0, 0L)
+  expect_identical(fit$model$structured$phylo_mu$provider$field_id, "phylo_mu")
 })
 
 test_that("phylogenetic OU admits fixed sigma and direct phylogenetic-SD regressions", {

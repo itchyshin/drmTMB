@@ -14285,6 +14285,15 @@ build_phylo_mu_structure <- function(term, data, env) {
         rep("log_decay_phylo", length(dpars))
       } else {
         rep(NA_character_, length(dpars))
+      },
+      # TMB owns a vector of OU rates.  The first public slice has exactly one
+      # location field at index zero; storing the index here means a later
+      # field (for example, sigma-side OU) gets its own rate rather than
+      # accidentally sharing this one.
+      alpha_index0 = if (identical(model, "ou")) {
+        seq_along(dpars) - 1L
+      } else {
+        rep(NA_integer_, length(dpars))
       }
     ),
     n_re = nrow(precision$precision),
@@ -22199,7 +22208,12 @@ add_phylo_ou_tmb_data <- function(tmb_data, spec) {
     phylo_ou_root_index = if (is_ou) as.integer(layout$root_index0) else 0L,
     phylo_ou_edge_parent = if (is_ou) layout$edge_parent_index0 else 0L,
     phylo_ou_edge_child = if (is_ou) layout$edge_child_index0 else 0L,
-    phylo_ou_edge_length = if (is_ou) layout$edge_length else 0
+    phylo_ou_edge_length = if (is_ou) layout$edge_length else 0,
+    phylo_ou_alpha_index = if (is_ou) {
+      as.integer(phylo_mu$provider$alpha_index0[[1L]])
+    } else {
+      0L
+    }
   ))
 }
 

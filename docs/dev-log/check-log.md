@@ -95166,3 +95166,12 @@ location-scale OU recovery claim. A 12-seed clean-versus-weak local preflight
 also retained the expected warning: small clean simulations converge but have
 variable alpha estimates, while one-observation-per-species weak simulations
 often have a non-positive-definite Hessian and extreme alpha estimates.
+
+The reproducible runner was rerun from source at Ayumi repository commit
+`6c52a46f67d9d86842ae5476dee828684f64a464` and passed its fail-closed receipt
+verifier. The resulting receipt retains source hashes, the four required
+REML cells, optimizer and `check_drm()` warning counts, and the explicit
+claim boundary. The indexed provider now allocates `log_decay_phylo` as a
+vector selected by its field's stored index; the current public slice still
+has one `mu` field at index zero, while a future sigma-side OU field must add
+its own provider, index, `alpha_sigma`, and validation arc.

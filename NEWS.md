@@ -46,14 +46,15 @@ every item above.
 ## Phylogenetic OU tree covariance (local-fit slice)
 
 * `phylo(1 | species, tree = tree, model = "ou")` now fits a stationary
-  evolutionary OU covariance for one univariate Gaussian ML location field;
-  omitting `model` continues to use Brownian motion. The reported positive
-  `decay_phylo` is a point estimate over phylogenetic branch distance. Slopes,
-  scale-side phylogenetic OU, other latent effects, temporal terms, REML,
-  non-Gaussian families, prediction for new data, and decay intervals remain
-  unavailable. The retained local recovery fixtures found weak global-
-  intercept versus tree-field separation, so this slice makes no recovery or
-  coverage claim.
+  evolutionary OU covariance for one univariate Gaussian location intercept;
+  omitting `model` continues to use Brownian motion. Native ML and REML admit
+  fixed-effect residual-scale formulas and one direct phylogenetic-SD amplitude
+  formula. The positive `decay_phylo` is the location-field point estimate
+  (`alpha_mu`). Slopes, a phylogenetic residual-scale OU field (`alpha_sigma`),
+  other latent effects, temporal terms, non-Gaussian families, prediction for
+  new data, and decay intervals remain unavailable. Retained local recovery
+  fixtures found weak global-intercept versus tree-field separation, so this
+  slice makes no recovery, interval, coverage, or OU-preference claim.
 
 # drmTMB 0.7.0
 

@@ -469,6 +469,7 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(phylo_ou_edge_parent);
   DATA_IVECTOR(phylo_ou_edge_child);
   DATA_VECTOR(phylo_ou_edge_length);
+  DATA_INTEGER(phylo_ou_alpha_index);
   DATA_INTEGER(has_temporal_mu);
   DATA_IVECTOR(temporal_mu_node_index);
   DATA_IVECTOR(temporal_mu_series_start);
@@ -567,7 +568,7 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(log_sd_phylo);
   PARAMETER_VECTOR(theta_phylo);
   PARAMETER(eta_cor_phylo);
-  PARAMETER(log_decay_phylo);
+  PARAMETER_VECTOR(log_decay_phylo);
   PARAMETER_VECTOR(u_phylo2);
   PARAMETER_VECTOR(log_sd_phylo2);
 
@@ -1153,7 +1154,7 @@ Type objective_function<Type>::operator()()
         // normalized transition with correlation exp(-decay * branch_length).
         // This is algebraically the same covariance as ape::corMartins, but
         // stays sparse and differentiable in the estimated positive decay.
-        Type decay_phylo = exp(log_decay_phylo);
+        Type decay_phylo = exp(log_decay_phylo(phylo_ou_alpha_index));
         // Direct phylogenetic-SD models apply their fitted amplitude at the
         // tips, so their latent OU field must be unit scale.  Otherwise this
         // prior and the observation mapping would introduce two scales.

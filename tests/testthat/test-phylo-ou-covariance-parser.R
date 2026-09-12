@@ -41,6 +41,16 @@ test_that("phylogenetic OU rejects unsupported model combinations before fitting
     ),
     "univariate Gaussian location intercept"
   )
+  expect_error(
+    drmTMB(
+      bf(
+        y ~ phylo(1 | species, tree = tree, model = "ou"),
+        sigma ~ phylo(1 | species, tree = tree, model = "ou")
+      ),
+      data = dat, family = gaussian()
+    ),
+    "univariate Gaussian location intercept"
+  )
 })
 
 test_that("explicit Brownian model reproduces the omitted-model fit", {

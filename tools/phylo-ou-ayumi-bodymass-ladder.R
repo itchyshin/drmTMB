@@ -18,6 +18,15 @@ if (length(args) != 2L) {
 source_repo <- normalizePath(args[[1L]], mustWork = TRUE)
 output_dir <- args[[2L]]
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+source_commit <- tryCatch(
+  system2("git", c("-C", source_repo, "rev-parse", "HEAD"), stdout = TRUE, stderr = TRUE),
+  error = function(e) NA_character_
+)
+source_commit <- if (length(source_commit) == 1L && grepl("^[0-9a-f]{40}$", source_commit)) {
+  source_commit
+} else {
+  NA_character_
+}
 
 required <- c("ape", "digest", "pkgload")
 missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
@@ -81,6 +90,7 @@ fit_one <- function(model, residual_scale) {
       fit = NULL, warnings = warnings
     ))
   }
+  diagnostics <- check_drm(fit)
   list(
     receipt = data.frame(
       model, residual_scale, elapsed_seconds = elapsed, fit_ok = TRUE,
@@ -88,6 +98,8 @@ fit_one <- function(model, residual_scale) {
       max_gradient = max(abs(fit$obj$gr(fit$opt$par))),
       logLik = as.numeric(logLik(fit)),
       decay_phylo = if (identical(model, "ou")) fit$decaypars$phylo[["decay_phylo"]] else NA_real_,
+      check_drm_warning_count = sum(diagnostics$status == "warning"),
+      check_drm_error_count = sum(diagnostics$status == "error"),
       stringsAsFactors = FALSE
     ),
     fit = fit, warnings = warnings
@@ -107,12 +119,14 @@ for (i in seq_len(nrow(cells))) {
 }
 receipt <- list(
   source_repo = source_repo,
+  source_commit = source_commit,
   data_file = data_file,
   tree_file = tree_file,
   data_sha256 = digest::digest(file = data_file, algo = "sha256"),
   tree_sha256 = digest::digest(file = tree_file, algo = "sha256"),
   rows = nrow(dat), tips = length(tree$tip.label), REML = TRUE,
   formula = "log_mass_z ~ temperature + temperature^2 + precipitation + precipitation^2 + phylo; sigma constant or climate; direct phylogenetic SD climate",
+  receipt_schema_version = 1L,
   results = do.call(rbind, rows),
   claim_boundary = "Empirical feasibility only: no recovery, interval, or universal BM-versus-OU claim."
 )

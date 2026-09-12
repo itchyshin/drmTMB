@@ -207,11 +207,14 @@ species tips \(i,j\), it uses
 \operatorname{Cov}(b_i,b_j)=s_{phylo}^2\exp(-\alpha d_{ij}),\qquad \alpha>0,
 \]
 
-where \(d_{ij}\) is patristic branch distance. Native evaluation retains every
-tree node: the root has a stationary normal density and a branch of length
-\(l\) has transition coefficient \(\exp(-\alpha l)\) and variance factor
-\(1-\exp(-2\alpha l)\). It is distinct from Brownian covariance; neither
-small nor large positive decay is a Brownian limit.
+where \(d_{ij}\) is patristic branch distance and \(s_{phylo}\) is the
+constant phylogenetic SD when no direct-SD formula is supplied. The supplied
+tree must be rooted, ultrametric, and have finite positive branch lengths.
+Native evaluation retains every tree node: the root has a stationary normal
+density and a branch of length \(l\) has transition coefficient
+\(\exp(-\alpha l)\) and variance factor \(1-\exp(-2\alpha l)\). It is
+distinct from Brownian covariance; neither small nor large positive decay is a
+Brownian limit.
 
 The reported `decay_phylo` is \(\alpha\), with inverse branch-length units.
 Small positive values retain similarity across longer tree distances; larger
@@ -224,7 +227,10 @@ fixed mean effects and offsets, a fixed-effect residual-scale formula, and at
 least three observed species. Its optional direct-SD formula has the form
 `sd(species, level = "phylogenetic") ~ W`; it gives the location field a
 species-level amplitude \(\gamma=\exp(W\delta)\), while the residual scale is
-\(\sigma_i=\exp(H_i\kappa)\). The marginal covariance is therefore
+\(\sigma_i=\exp(H_i\kappa)\). This direct-SD amplitude replaces the scalar
+\(s_{phylo}\) above; it is not multiplied by a second scalar phylogenetic SD.
+Here \(C_{OU}\) is the unit-variance OU correlation matrix, so the marginal
+covariance is therefore
 
 \[
 V=D_\gamma C_{OU}(\alpha_\mu)D_\gamma+
@@ -240,7 +246,9 @@ but its evidence is point-fit/oracle evidence only: it does not establish
 recovery, interval, or coverage performance.
 
 It reports a positive `decay_phylo` point estimate, conditional modes,
-in-sample fitted values, residuals and seeded simulation. Slopes,
+in-sample fitted values, residuals and seeded conditional simulation. A
+direct-SD model has no marginal phylogenetic redraw because its scalar
+phylogenetic SD is replaced by the predictor-dependent amplitude. Slopes,
 scale-side phylogenetic OU, ordinary or other structured effects, temporal
 terms, non-Gaussian families, new-data prediction and forecasts are deferred.
 Wald, profile and bootstrap intervals for decay are also deferred. The retained
