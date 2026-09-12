@@ -448,6 +448,25 @@ sb_ordinary_laplace_s7_source_drift <- function(root, from, to) {
   any(grepl(s7_inputs, changed))
 }
 
+# The campaign normally records the frozen writer's digest.  Its successful
+# reconciliation used one explicitly retained orchestration wrapper to source
+# the collector into the global environment; that wrapper is admissible only
+# when its exact, versioned bytes match the digest carried by the coverage row.
+sb_ordinary_laplace_s7_collectors <- function(root) {
+  evidence <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                        "071-ordinary-laplace")
+  paths <- c(
+    writer = file.path(evidence, "s7-write-coverage-summary.R"),
+    scopefix = file.path(evidence, "s7-write-coverage-summary-scopefix.R")
+  )
+  absent <- names(paths)[!file.exists(paths)]
+  if (length(absent)) {
+    stop("S7 coverage collector provenance is incomplete: ",
+         paste(absent, collapse = ", "), call. = FALSE)
+  }
+  vapply(paths, function(path) unname(tools::sha256sum(path)[[1L]]), character(1L))
+}
+
 sb_ordinary_laplace_s7_summary <- function(root, ctx, drmtmb_sha) {
   path <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
                     "071-ordinary-laplace", "s7-coverage-summary.tsv")
@@ -466,12 +485,11 @@ sb_ordinary_laplace_s7_summary <- function(root, ctx, drmtmb_sha) {
       sb_ordinary_laplace_s7_source_drift(root, aggregated$drmtmb_commit[[1L]], drmtmb_sha)) {
     stop("S7 ordinary-Laplace coverage summary is stale or changes campaign inputs", call. = FALSE)
   }
-  writer <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
-                      "071-ordinary-laplace", "s7-write-coverage-summary.R")
   contract <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
                         "071-ordinary-laplace", "s7-attempt-contract.R")
-  if (!file.exists(writer) || !file.exists(contract) ||
-      any(aggregated$collector_sha256 != unname(tools::sha256sum(writer)[[1L]])) ||
+  collectors <- sb_ordinary_laplace_s7_collectors(root)
+  if (!file.exists(contract) ||
+      any(!aggregated$collector_sha256 %in% unname(collectors)) ||
       any(aggregated$contract_sha256 != unname(tools::sha256sum(contract)[[1L]]))) {
     stop("S7 ordinary-Laplace coverage summary collector or contract hash is stale", call. = FALSE)
   }

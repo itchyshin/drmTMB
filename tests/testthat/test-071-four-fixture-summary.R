@@ -34,6 +34,19 @@ test_that("the scoreboard has a distinct ordinary-Laplace classification path", 
   expect_true(is.function(env$sb_ordinary_laplace_summary))
 })
 
+test_that("S7 coverage accepts only the declared original writer or scope-fix collector", {
+  root <- normalizePath(testthat::test_path("..", ".."))
+  tool <- file.path(root, "tools", "write-parity-scoreboard.R")
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  collectors <- env$sb_ordinary_laplace_s7_collectors(root)
+  expect_identical(names(collectors), c("writer", "scopefix"))
+  expect_identical(
+    unname(collectors[["scopefix"]]),
+    "2ae57d3fee9eab48698343c9a87ab903d7d0ff7560cdfa757b9b942fd6a9cf59"
+  )
+})
+
 test_that("ordinary-Laplace summary rejects a semantic successor commit", {
   root <- normalizePath(testthat::test_path("..", ".."))
   tool <- file.path(root, "tools", "write-parity-scoreboard.R")
