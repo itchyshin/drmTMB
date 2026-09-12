@@ -97,3 +97,4 @@ rsconnect/
 scratchpad/*.log
 scratchpad/*.rds
 .unlazy/
+docs/dev-log/empirical-results/

@@ -95123,3 +95123,20 @@ this is a feasibility receipt only: no retained recovery campaign, four-fit
 empirical ladder, general recovery/interval claim, sigma-side OU field,
 `alpha_sigma`, bivariate/missing-response extension, or temporal P4/P5 work was
 started.
+
+## 2026-09-12 — Ayumi all-passerine proxy ladder: feasibility passes, climate comparison held
+
+The local `eco-climatic-rules` checkout supplies a reproducible 5,809-row,
+5,809-tip all-passerine proxy rather than the 10,440-row issue dataset. Its
+source and tree SHA-256 values, 139-branch positive-length repair, formulas,
+optimizer attempts, fixed effects, warnings, and `check_drm()` output are
+retained under ignored `docs/dev-log/empirical-results/2026-09-12-ayumi-5809-phylo-ou-robust/`.
+All four ML fits use the same rows, tree, location climate quadratics, direct
+phylogenetic-SD climate amplitude, and default-to-robust `nlminb` ladder with a
+BFGS fallback. The constant-residual BM and OU fits pass all numerical checks.
+The climate-residual BM and OU fits have convergence code zero and positive
+Hessians but fixed gradients 0.120 and 0.046, respectively, above the
+`check_drm()` 0.001 threshold. A stricter direct BFGS polish did not lower the
+BM climate gradient. These fits are retained as feasibility and negative
+numerical evidence; they do not support a like-for-like likelihood comparison,
+recovery claim, or public climate-scale OU capability claim.
