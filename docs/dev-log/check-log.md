@@ -95100,3 +95100,26 @@ and excluded platform artifacts. No remote staging or submission occurred.
 The paired phylogenetic stable-intercept plus independent OU route remains a development slice. The retained G13 campaign is still red: it qualified six of nine primary profile rows, while intercept coverage was 0.870, 0.922, and 0.895 in P1--P3. Closeout made that boundary consistent in `check_drm()`, `confint()` help, the reader vignette, and the formula/likelihood design notes: fixed-mean profiles are calculable interval-feasibility diagnostics, not inference-ready results.
 
 Noether's independent mathematical review confirmed the additive covariance and found that the old no-fit verifier did not recompute archive SHA-256 values or bind arbitrary-looking provenance to the frozen worker. The verifier now recalculates each sidecar checksum and requires source `384048d7eb6be3950dcf28a4aef91a3fb616184a` and its exact worker MD5. Pat's reader review found the public profile wording ambiguous; the revised prose preserves the authorized diagnostic calculation while prohibiting an inference claim. The G13 self-test, focused verifier test, paired methods test, G14 and G15 all passed. The exact source `R CMD build` plus `R CMD check --no-manual` completed with `Status: OK`, retained in `simulation-artifacts/2026-09-11-phylo-temporal-ou-closeout/`. G18 passed while requiring G13 to remain red; no campaign task was rerun.
+
+## 2026-09-12 — predictor-aware phylogenetic OU foundation, local evidence
+
+The first admitted evolutionary OU location field now accepts a fixed-effect
+Gaussian residual-scale formula and one direct phylogenetic-SD amplitude formula.
+The direct-SD branch uses a unit-scale latent OU tree field, then applies its
+species-level amplitude at the observation mapping; this avoids an otherwise
+hidden second scale from the mapped-out scalar phylogenetic SD. The independent
+dense oracle checks the marginal covariance
+`D_gamma C_OU(alpha_mu) D_gamma + diag(sigma_i^2)`, its score, and observed
+Hessian, including repeated tips and a no-intercept direct-SD formula. The native
+OU suite passed (`PHYLO_OU_G2_PASS`), the parser suite passed
+(`PHYLO_OU_PARSER_PASS`), and `devtools::document()` regenerated `man/phylo.Rd`.
+
+The local Ayumi repository has 5,809 complete matching rows, not the 10,440-row
+issue dataset. After applying that repository's documented repair for 139
+nonpositive/missing branch lengths, the exact requested 1,000-tip OU formula
+converged with a positive-definite Hessian in 39.81 seconds
+(`logLik = -747.87457942`). The sandbox timing utility could not report RSS, so
+this is a feasibility receipt only: no retained recovery campaign, four-fit
+empirical ladder, general recovery/interval claim, sigma-side OU field,
+`alpha_sigma`, bivariate/missing-response extension, or temporal P4/P5 work was
+started.

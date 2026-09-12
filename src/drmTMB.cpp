@@ -1154,7 +1154,10 @@ Type objective_function<Type>::operator()()
         // This is algebraically the same covariance as ape::corMartins, but
         // stays sparse and differentiable in the estimated positive decay.
         Type decay_phylo = exp(log_decay_phylo);
-        Type root_sd = sd_phylo(0);
+        // Direct phylogenetic-SD models apply their fitted amplitude at the
+        // tips, so their latent OU field must be unit scale.  Otherwise this
+        // prior and the observation mapping would introduce two scales.
+        Type root_sd = has_sd_phylo_model == 1 ? Type(1.0) : sd_phylo(0);
         Type root_z = u_phylo(phylo_ou_root_index) / root_sd;
         quadratic += root_z * root_z;
         nll -= dnorm(

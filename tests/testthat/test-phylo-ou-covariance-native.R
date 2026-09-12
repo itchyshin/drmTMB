@@ -48,6 +48,102 @@ test_that("Gaussian phylogenetic OU fits a native stationary tree provider", {
   expect_true(is.finite(as.numeric(logLik(fit))))
   expect_true("log_decay_phylo" %in% names(fit$tmb_state$opt.par))
   expect_true(is.finite(unname(fit$tmb_state$opt.par[["log_decay_phylo"]])))
+  expect_identical(fit$model$structured$phylo_mu$provider$covariance, "ou")
+  expect_identical(
+    fit$model$structured$phylo_mu$provider$alpha_parameter,
+    "log_decay_phylo"
+  )
+})
+
+test_that("phylogenetic OU admits fixed sigma and direct phylogenetic-SD regressions", {
+  skip_if_not_installed("ape")
+  set.seed(2026091201)
+  tree <- ape::rcoal(6)
+  species_levels <- tree$tip.label
+  n_each <- 8L
+  species <- rep(species_levels, each = n_each)
+  temperature_species <- stats::setNames(
+    as.numeric(scale(stats::rnorm(length(species_levels)))), species_levels
+  )
+  unit_covariance <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 0.8)
+  unit_field <- stats::setNames(
+    as.numeric(t(chol(unit_covariance)) %*% stats::rnorm(length(species_levels))),
+    species_levels
+  )
+  temperature <- temperature_species[species]
+  precipitation <- stats::rnorm(length(species))
+  gamma <- exp(-1 + 0.25 * temperature)
+  sigma <- exp(-1.1 + 0.12 * precipitation)
+  dat <- data.frame(
+    y = 0.3 + 0.35 * temperature + gamma * unit_field[species] +
+      stats::rnorm(length(species), sd = sigma),
+    temperature = unname(temperature),
+    precipitation,
+    species
+  )
+
+  fit <- drmTMB(
+    bf(
+      y ~ temperature + phylo(1 | species, tree = tree, model = "ou"),
+      sigma ~ precipitation,
+      sd(species, level = "phylogenetic") ~ temperature
+    ),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(optimizer = list(eval.max = 1000, iter.max = 1000))
+  )
+
+  expect_equal(fit$opt$convergence, 0L)
+  expect_true(fit$sdr$pdHess)
+  expect_identical(fit$model$structured$phylo_mu$model, "ou")
+  expect_equal(fit$model$random_scale$phylo$n_models, 1L)
+  expect_true(is.finite(fit$decaypars$phylo[["decay_phylo"]]))
+  expect_true(all(is.finite(coef(fit, "sigma"))))
+  expect_true(all(is.finite(coef(fit, "sd_phylo(species)"))))
+
+  fit_reml <- drmTMB(
+    bf(
+      y ~ temperature + phylo(1 | species, tree = tree, model = "ou"),
+      sigma ~ precipitation,
+      sd(species, level = "phylogenetic") ~ temperature
+    ),
+    family = gaussian(),
+    data = dat,
+    REML = TRUE,
+    control = drm_control(optimizer = list(eval.max = 1000, iter.max = 1000))
+  )
+  expect_true(isTRUE(fit_reml$REML))
+  expect_true(is.finite(as.numeric(logLik(fit_reml))))
+})
+
+test_that("phylogenetic OU direct-SD keeps a no-intercept amplitude identifiable", {
+  skip_if_not_installed("ape")
+  set.seed(2026091203)
+  tree <- ape::rcoal(7)
+  species_levels <- tree$tip.label
+  species <- rep(species_levels, each = 7L)
+  climate_by_species <- stats::setNames(
+    seq(-0.7, 0.7, length.out = length(species_levels)), species_levels
+  )
+  climate <- unname(climate_by_species[species])
+  precipitation <- stats::rnorm(length(species))
+  correlation <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 0.75)
+  field <- as.vector(t(chol(correlation)) %*% stats::rnorm(length(species_levels)))
+  gamma <- exp(0.35 * climate)
+  y <- 0.2 + gamma * field[match(species, species_levels)] +
+    stats::rnorm(length(species), sd = exp(-1 + 0.08 * precipitation))
+  fit <- drmTMB(
+    bf(
+      y ~ phylo(1 | species, tree = tree, model = "ou"),
+      sigma ~ precipitation,
+      sd(species, level = "phylogenetic") ~ 0 + climate
+    ),
+    family = gaussian(), data = data.frame(y, climate, precipitation, species),
+    control = drm_control(optimizer = list(eval.max = 1000, iter.max = 1000))
+  )
+  expect_equal(fit$opt$convergence, 0L)
+  expect_true(is.finite(as.numeric(logLik(fit))))
+  expect_equal(names(coef(fit, "sd_phylo(species)")), "climate")
 })
 
 test_that("native OU-tree marginal likelihood matches the independent dense covariance", {
@@ -109,6 +205,81 @@ phylo_ou_dense_nll_at <- function(fit, par, tree) {
       sum(forwardsolve(t(root), residual)^2)
   )
 }
+
+# This oracle deliberately integrates the latent field out.  It is therefore
+# independent of the sparse all-node Markov representation used by TMB, while
+# retaining the fitted, predictor-dependent phylogenetic amplitude exactly as
+# the user specifies it.
+phylo_ou_direct_sd_dense_nll_at <- function(fit, par, tree) {
+  parameter_names <- names(par)
+  beta_mu <- unname(par[parameter_names == "beta_mu"])
+  beta_sigma <- unname(par[parameter_names == "beta_sigma"])
+  beta_sd <- unname(par[parameter_names == "beta_sd_mu"])
+  decay <- exp(unname(par[match("log_decay_phylo", parameter_names)]))
+  phylo <- fit$model$structured$phylo_mu
+  species <- as.character(fit$data[[phylo$group]])
+  tip_correlation <- drmTMB:::drm_phylo_ou_tip_covariance(
+    tree, species = species, decay = decay
+  )
+  observation_correlation <- tip_correlation[
+    match(species, rownames(tip_correlation)),
+    match(species, colnames(tip_correlation))
+  ]
+  gamma_by_species <- exp(as.vector(fit$model$tmb_data$X_sd_phylo %*% beta_sd))
+  gamma <- gamma_by_species[fit$model$random_scale$phylo$observation_sd_row0 + 1L]
+  sigma <- exp(as.vector(fit$model$tmb_data$X_sigma %*% beta_sigma))
+  covariance <- tcrossprod(gamma) * observation_correlation +
+    diag(sigma^2, length(species))
+  root <- chol(covariance)
+  residual <- fit$model$y - as.vector(fit$model$X$mu %*% beta_mu)
+  0.5 * (
+    length(species) * log(2 * pi) +
+      2 * sum(log(diag(root))) +
+      sum(forwardsolve(t(root), residual)^2)
+  )
+}
+
+test_that("direct phylogenetic-SD OU matches a dense predictor-aware oracle", {
+  skip_if_not_installed("ape")
+  skip_if_not_installed("numDeriv")
+  set.seed(2026091202)
+  tree <- ape::rcoal(5)
+  species_levels <- tree$tip.label
+  species <- rep(species_levels, each = 6L)
+  temperature_by_species <- stats::setNames(
+    as.numeric(scale(stats::rnorm(length(species_levels)))), species_levels
+  )
+  temperature <- unname(temperature_by_species[species])
+  precipitation <- stats::rnorm(length(species))
+  correlation <- drmTMB:::drm_phylo_ou_tip_covariance(tree, decay = 0.65)
+  unit_field <- as.vector(t(chol(correlation)) %*%
+    stats::rnorm(length(species_levels)))
+  gamma <- exp(-0.9 + 0.2 * temperature)
+  sigma <- exp(-1.2 + 0.1 * precipitation)
+  y <- -0.15 + 0.3 * temperature + gamma * unit_field[match(species, species_levels)] +
+    stats::rnorm(length(species), sd = sigma)
+  fit <- drmTMB(
+    bf(
+      y ~ temperature + phylo(1 | species, tree = tree, model = "ou"),
+      sigma ~ precipitation,
+      sd(species, level = "phylogenetic") ~ temperature
+    ),
+    family = gaussian(), data = data.frame(y, temperature, precipitation, species),
+    control = drm_control(optimizer = list(eval.max = 1000, iter.max = 1000))
+  )
+  expect_true(isTRUE(fit$sdr$pdHess))
+  expect_true(is.na(fit$model$map$log_sd_phylo[[1L]]))
+
+  objective <- function(par) phylo_ou_direct_sd_dense_nll_at(fit, par, tree)
+  opt_par <- fit$opt$par
+  score <- numDeriv::grad(objective, opt_par, method.args = list(eps = 1e-6))
+  hessian <- numDeriv::hessian(objective, opt_par, method.args = list(eps = 1e-4))
+  observed_hessian <- solve(fit$sdr$cov.fixed)
+
+  expect_equal(-as.numeric(logLik(fit)), objective(opt_par), tolerance = 1e-6)
+  expect_equal(unname(fit$obj$gr(opt_par)), score, tolerance = 2e-5)
+  expect_equal(unname(observed_hessian), unname(hessian), tolerance = 3e-4)
+})
 
 test_that("OU-tree score and observed Hessian match the dense covariance oracle", {
   skip_if_not_installed("ape")

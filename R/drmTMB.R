@@ -14275,6 +14275,18 @@ build_phylo_mu_structure <- function(term, data, env) {
     coef_names = colnames(value),
     tree = term$tree,
     model = model,
+    # Keep covariance choice and its parameter identity with the latent field.
+    # The admitted OU route has one location field; future multi-field slices
+    # extend these vectors rather than sharing an alpha by convention.
+    provider = list(
+      covariance = model,
+      field_id = paste0("phylo_", dpars),
+      alpha_parameter = if (identical(model, "ou")) {
+        rep("log_decay_phylo", length(dpars))
+      } else {
+        rep(NA_character_, length(dpars))
+      }
+    ),
     n_re = nrow(precision$precision),
     precision = precision,
     value = value,
@@ -14292,21 +14304,26 @@ drm_validate_phylo_ou_scope <- function(spec, REML = FALSE) {
       !identical(phylo_mu$model, "ou")) {
     return(invisible(spec))
   }
+  direct_phylo_sd <- spec$random_scale$phylo
+  direct_phylo_sd_admitted <- is.list(direct_phylo_sd) &&
+    direct_phylo_sd$n_models %in% c(0L, 1L) &&
+    (direct_phylo_sd$n_models == 0L ||
+      identical(unname(direct_phylo_sd$target_dpar[[1L]]), "mu"))
   supported <- identical(spec$model_type, "gaussian") &&
     identical(phylo_mu$dpars, "mu") &&
     identical(phylo_mu$q, 1L) &&
     identical(phylo_mu$coef_names, "(Intercept)") &&
     identical(spec$random$mu$n_terms, 0L) &&
     identical(spec$random$sigma$n_terms, 0L) &&
-    identical(spec$random_scale$phylo$n_models, 0L) &&
+    direct_phylo_sd_admitted &&
     !isTRUE(spec$structured$temporal_mu$has) &&
-    !isTRUE(spec$structured$mesh_spatial_mu$has) &&
-    !isTRUE(REML)
+    !isTRUE(spec$structured$mesh_spatial_mu$has)
   if (!supported) {
     cli::cli_abort(c(
-      "The first phylogenetic OU route supports a univariate Gaussian ML location intercept only.",
-      "i" = "Use {.code bf(y ~ x + phylo(1 | species, tree = tree, model = \"ou\"), sigma ~ 1)} with no other random or structured effects.",
-      "i" = "Scale-side OU, slopes, temporal combinations, and non-Gaussian models have separate planned evidence gates."
+      "The admitted phylogenetic OU route supports a univariate Gaussian location intercept only.",
+      "i" = "Use {.code bf(y ~ x + phylo(1 | species, tree = tree, model = \"ou\"), sigma ~ z)}; {.code sigma} may have fixed climate predictors.",
+      "i" = "A single {.code sd(..., level = \"phylogenetic\") ~ ...} model may set the climate-dependent amplitude of this location field.",
+      "i" = "Scale-side OU, slopes, temporal combinations, additional random effects, and non-Gaussian models have separate planned evidence gates."
     ))
   }
   if (length(phylo_mu$species_levels) < 3L) {

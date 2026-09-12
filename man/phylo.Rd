@@ -26,10 +26,17 @@ bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
 and NB2 q=1 location effects. \code{model = "bm"} is the default Brownian
 covariance. The first evolutionary OU route is
 \code{phylo(1 | species, tree = tree, model = "ou")} in a univariate Gaussian
-location formula with \code{sigma ~ 1}: it estimates a positive decay rate over
-phylogenetic branch distance. It is separate from temporal OU and does not
-yet support slopes, residual-scale effects, other random effects, REML,
-non-Gaussian families, or decay intervals. Use \code{phylo(1 | species, tree = tree)} in
+location formula: it estimates a positive location-field decay rate over
+phylogenetic branch distance. The first admitted slice permits a fixed-effect
+Gaussian \code{sigma} formula and one direct
+\code{sd(species, level = "phylogenetic") ~ predictors} amplitude formula. These
+are distinct: \code{sigma} models independent residual variation and does not add
+an OU parameter, while the direct-SD formula supplies the location field's
+predictor-dependent amplitude. The rate is reported as \code{decay_phylo} for
+compatibility (conceptually \code{alpha_mu}). It is separate from temporal OU and
+does not yet support slopes, a phylogenetic \code{sigma} field or \code{alpha_sigma},
+other random effects, non-Gaussian families, or decay intervals. Use
+\code{phylo(1 | species, tree = tree)} in
 univariate Gaussian \code{mu}, univariate Gaussian \code{sigma}, ordinary Poisson \code{mu},
 or ordinary NB2 \code{mu}, \code{phylo(1 + x | species, tree = tree)} for the
 unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate
@@ -54,7 +61,9 @@ A-inverse sparse-precision path internally.
 \examples{
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 # Evolutionary OU tree covariance (with a supplied ultrametric `tree`):
-# bf(y ~ habitat + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1)
+# bf(y ~ temperature + phylo(1 | species, tree = tree, model = "ou"),
+#    sigma ~ precipitation,
+#    sd(species, level = "phylogenetic") ~ temperature)
 #
 # A fitted OU-tree model reports its positive decay point estimate at:
 # fit$decaypars$phylo[["decay_phylo"]]

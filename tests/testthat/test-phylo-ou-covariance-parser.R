@@ -39,7 +39,7 @@ test_that("phylogenetic OU rejects unsupported model combinations before fitting
       bf(y ~ (1 | species) + phylo(1 | species, tree = tree, model = "ou"), sigma ~ 1),
       data = dat, family = gaussian()
     ),
-    "Gaussian ML location intercept only"
+    "univariate Gaussian location intercept"
   )
 })
 

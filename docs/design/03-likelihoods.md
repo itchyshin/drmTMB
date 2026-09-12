@@ -219,16 +219,33 @@ values make it decline more quickly. If an analyst rescales tree branch lengths,
 the numerical decay changes inversely while the implied covariance pattern is
 unchanged. It is a point estimate only in this first slice.
 
-The first route is univariate Gaussian ML with one phylogenetic location
-intercept, fixed mean effects and offsets, constant residual `sigma`, and at
-least three observed species. It reports a positive `decay_phylo` point
-estimate, conditional modes, in-sample fitted values, residuals and seeded
-simulation. Slopes, scale-side phylogenetic OU, ordinary or other structured
-effects, temporal terms, REML, non-Gaussian families, new-data prediction and
-forecasts are deferred. Wald, profile and bootstrap intervals for decay are
-also deferred. The retained local recovery panel found that an overall intercept
-can be weakly separated from one realised tree field, so it makes no
-point-recovery or interval claim.
+The first admitted field is one univariate Gaussian location intercept with
+fixed mean effects and offsets, a fixed-effect residual-scale formula, and at
+least three observed species. Its optional direct-SD formula has the form
+`sd(species, level = "phylogenetic") ~ W`; it gives the location field a
+species-level amplitude \(\gamma=\exp(W\delta)\), while the residual scale is
+\(\sigma_i=\exp(H_i\kappa)\). The marginal covariance is therefore
+
+\[
+V=D_\gamma C_{OU}(\alpha_\mu)D_\gamma+
+  \operatorname{diag}(\sigma_i^2).
+\]
+
+The fitted rate is `decay_phylo` (the compatibility name for
+\(\alpha_\mu\)). A predictor in `sigma` changes independent residual variation;
+it neither changes the OU process nor creates `alpha_sigma`. A future
+phylogenetic residual-scale field would need its own `alpha_sigma` and its own
+validation arc. The current field is fitted under ML and native Gaussian REML,
+but its evidence is point-fit/oracle evidence only: it does not establish
+recovery, interval, or coverage performance.
+
+It reports a positive `decay_phylo` point estimate, conditional modes,
+in-sample fitted values, residuals and seeded simulation. Slopes,
+scale-side phylogenetic OU, ordinary or other structured effects, temporal
+terms, non-Gaussian families, new-data prediction and forecasts are deferred.
+Wald, profile and bootstrap intervals for decay are also deferred. The retained
+local recovery panel found that an overall intercept can be weakly separated
+from one realised tree field, so it makes no point-recovery or interval claim.
 
 ### Phylogenetic stable intercept plus independent OU deviations
 

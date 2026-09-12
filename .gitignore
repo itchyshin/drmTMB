@@ -96,3 +96,4 @@ rsconnect/
 # scratchpad: evidence scripts ARE committed (see handover); logs and caches are not
 scratchpad/*.log
 scratchpad/*.rds
+.unlazy/
