@@ -95148,3 +95148,21 @@ careful optimizer escalation. The proxy's climate warning is therefore not
 caused by the new direct-SD OU amplitude mapping. Its one-observation-per-species
 configuration remains a numerical feasibility diagnostic only; the exact issue
 dataset is required for the requested empirical acceptance result.
+
+The exact issue-repository inputs are now available in
+`Ayumi-495/LS_ecogeographical-rules`: 10,440 finite `log_mass_z` rows aligned
+one-to-one to its ultrametric `ecogeo_tree_main_v1.rds` tree. Their SHA-256
+values are `60f2ec750f6c6a16f08232e61000c8debddcb1a43dceeb9d282c97f93ff795d1`
+and `f5fcc706abf4799bbf942f5649211fa6493216673d03e28efeee2c2d9e5506f8`.
+The portable runner `tools/phylo-ou-ayumi-bodymass-ladder.R` fixes the rows,
+tree, standardized climate covariates, formula, REML setting, and optimizer
+controls across four fits. The retained 2026-09-12 run took 39.9, 642.7, 62.1,
+and 176.1 seconds for BM/OU crossed with constant/climate residual scale.
+Both BM cells pass `check_drm()`; OU constant-scale has maximum gradient
+0.0157 and OU climate-scale has maximum gradient 0.00121 after BFGS fallback.
+Thus the real-data ladder establishes that the requested model can be fit, but
+does not support alpha intervals, an OU-preference claim, or a general
+location-scale OU recovery claim. A 12-seed clean-versus-weak local preflight
+also retained the expected warning: small clean simulations converge but have
+variable alpha estimates, while one-observation-per-species weak simulations
+often have a non-positive-definite Hessian and extreme alpha estimates.
