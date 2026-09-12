@@ -19,7 +19,7 @@ not evidence that every model should be fitted or implemented now.
 | Arc | Status at this checkpoint | Receipt |
 | --- | --- | --- |
 | Direct temporal AR1 and OU | qualified predecessor work | direct OU parent closeout `0d66e62f3` as recorded in the master plan |
-| P1 stable phylogeny plus independent temporal OU | interval-feasible only; retained G13 intercept-profile coverage failures prevent a calibrated-inference claim | active owner lane `codex/phylo-ou-g12-prep-20260910`; source `5bd43b3ba487b18e6e1c69e8a5ff7e6a01b4c792` at checkpoint |
+| P1 stable phylogeny plus independent temporal OU | closed as interval feasibility only; retained G13 intercept-profile coverage failures prevent a calibrated-inference claim | merged closeout `875bdf305` from P1 commit `1285d41ae`; `docs/dev-log/after-task/2026-09-11-phylo-temporal-ou-closeout.md` |
 | P2 homogeneous Toeplitz | closed | `ceff79d53`; `docs/dev-log/after-task/2026-09-10-temporal-homtoep-p2-closeout.md` |
 | P3 heterogeneous AR1 | closed as interval feasibility, not coverage calibration | `0788c78b5`; `docs/dev-log/after-task/2026-09-11-temporal-hetar1-closeout.md` |
 | Evolutionary tree OU | closed as a separate phylogenetic covariance choice | `84bd42133`; `docs/dev-log/after-task/2026-09-11-phylogenetic-ou-covariance.md` |
@@ -58,6 +58,5 @@ push, merge, release or external message.
 
 ## Next action
 
-The P1 owner may independently close its interval-feasibility ledger while preserving
-the G13 failure. Otherwise, the next programme action is a fresh, use-case-led child
-receipt rather than an automatic P4 or P5 implementation.
+P1 is closed without promoting its failed G13 calibration. The next programme action
+is a fresh, use-case-led child receipt rather than an automatic P4 or P5 implementation.
