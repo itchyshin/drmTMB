@@ -48,9 +48,11 @@ and its zero- and one-inflation routes.
 Gaussian temporal AR1, OU, and homogeneous Toeplitz fits use
 \code{"temporal_nonmean_intervals_deferred"} for every non-mean target and
 \code{"temporal_decay_intervals_deferred"} for the OU decay target; only their
-mean regression coefficients are profile-ready. Heterogeneous AR1 uses
-\code{"hetar1_profile_deferred"} for its mean effects because only its Wald
-route is available.
+mean regression coefficients are profile-ready. The paired
+phylogenetic-stable plus temporal-OU route labels its profile-ready fixed
+effects as interval-feasible rather than inference-ready. Heterogeneous
+AR1 uses \code{"hetar1_profile_deferred"} for its mean effects because only its
+Wald route is available.
 Derived variance-ratio summaries such as \code{total_variance_share} and
 \code{phylo_total_variance_share} are listed as point-estimate targets with
 \code{profile_ready = FALSE}.

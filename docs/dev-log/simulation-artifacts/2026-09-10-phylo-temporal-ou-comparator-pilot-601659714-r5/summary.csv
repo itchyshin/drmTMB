@@ -1,0 +1,7 @@
+"cell","engine","n","n_selected","n_pd_hess","n_profile","coverage","mean_elapsed_sec"
+"P1","drmTMB",5,5,5,5,0.6,6.444
+"P2","drmTMB",5,5,5,5,0.8,11.1722
+"P3","drmTMB",5,5,5,5,1,7.2254
+"P1","glmmTMB",5,5,5,5,0.6,1.1694
+"P2","glmmTMB",5,5,5,5,0.8,2.0236
+"P3","glmmTMB",5,5,5,5,1,1.6276

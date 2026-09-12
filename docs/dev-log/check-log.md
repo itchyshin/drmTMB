@@ -94959,3 +94959,144 @@ P1 G13 coverage rows.
 - **Reader boundary:** `?confint.drmTMB` and `?profile_targets` now distinguish heterogeneous AR1's mean-coefficient Wald route from AR1/OU/homogeneous-Toeplitz profiles. It is fit-level interval feasibility only; profiles and non-mean intervals remain unavailable.
 - **Artifact identity:** `T4-11 --reverify` now rebuilds the runner checksum from the evidence's recorded source commit rather than rejecting later unrelated phylogenetic-OU changes in shared files. The gate-runner test verifies that provenance binding and the no-refit reverify.
 - **Focused checks:** regenerated Rd pages; the gate-runner, parser, and native heterogeneous-AR1 tests passed; `Rscript --vanilla tools/temporal-hetar1-gates.R T4-11 --reverify` returned `TEMPORAL_HETAR1_T4_11_PASS`.
+
+## 2026-09-10 — phylogenetic-temporal OU G10 timing and diagnostics pilot
+
+After the approved limited G9c decision, the retained checkpointed G10 v2 pilot
+at source `d274753a122ce1710e6674170cfa5b95259c88f1` completed all P1--P4
+cells with five deterministic seeds each: 20 selected fits, 40 configured
+starts, 60 fixed-mean profiles, and 20 diagnostic rows. All 20 fits converged
+with positive-definite Hessians, every one of the 60 profiles was available,
+and no warning was retained. Fit and profile work took 24.826 and 310.254
+seconds, respectively; peak R allocation was 371.1 MB. The immutable verifier
+returned `PHYLO_TEMPORAL_OU_G10_PASS`. The earlier v1 bookkeeping preflight and
+non-checkpointed manifest-only attempt remain in the evidence directory. This
+is operational evidence only: it neither establishes coverage nor authorizes
+the G12 campaign.
+
+## 2026-09-10 — phylogenetic-temporal OU G11 calibration contract
+
+At source `26c4b05c58fb2eae115ca8b0611d67f8244fc6cf`, G11 retained a frozen
+3,500-row P1--P4 manifest, 12 cell-coefficient targets, all-attempt and
+conditional coverage fields, primary acceptance bounds, a stress-only P4 rule,
+and matching worker/helper fingerprints. The pure assessment and worker
+self-test both reject incomplete denominators and forged provenance; the
+known 0.90-coverage P1 fixture remains unqualified. The gate returned
+`PHYLO_TEMPORAL_OU_G11_PASS`. This is a no-fit contract and does not authorize
+G12 or establish calibration.
+
+## 2026-09-10 — G12 artifact checksum sidecar repair
+
+The task wrapper originally wrote a checksum against its temporary
+`task-XXXX.tar.gz.partial-<job>` name and then renamed the sidecar with the
+artifact, so `sha256sum -c task-XXXX.tar.gz.sha256` could not find its named
+file. The wrapper now records the digest after the atomic rename against the
+final archive basename and verifies it before reporting task success. The
+focused exact-function regression fixture returned `G12_CHECKSUM_SIDECAR_PASS`.
+Task 1's unchanged archive retains its original invalid sidecar separately;
+its corrected sidecar will be documented and reverified before its Totoro
+mirror is accepted.
+
+## 2026-09-10 — G12 wrapper fingerprint before array release
+
+Task 1's durable receipt contains the exact wrapper that ran, but future task artifacts
+need their operational wrapper as a first-class configuration input. The task wrapper
+now requires a lowercase SHA-256 environment value, writes it into each task's
+`slurm-provenance.txt`, and rejects a malformed or absent value before work begins.
+This preserves the immutable source/dependency fingerprints while making the post-smoke
+checksum repair auditable for every released array task.
+
+## 2026-09-10 — G12 incremental mirror receipt exclusion
+
+The bounded-array release stores `task-0001-receipt.tar.gz` beside task archives. The
+progress mirror originally selected every `task-*.tar.gz`, so its strict four-digit
+artifact validator rejected that receipt. The selector now admits only
+`task-0001.tar.gz` through `task-3500.tar.gz`; the live one-pass mirror returned
+`PHYLO_TEMPORAL_OU_G12_PROGRESS_MIRROR_PASS available=1` while preserving the receipt.
+
+## 2026-09-10 — G12 incremental mirror stdin isolation
+
+A one-pass mirror after the selector repair still retained only task 1 while Rorqual
+contained tasks 1--21. The nested one-task SSH helper had inherited the here-string
+that supplies the progress loop's filename list, and consumed the remaining labels.
+The progress loop now invokes that helper with stdin detached. The live rerun mirrored
+the completed batch, and the Rorqual and Totoro four-digit task-archive counts both
+verified as 21.
+## 2026-09-10 — G12 batched manifest mirror after first array chunk
+
+The one-artifact-at-a-time progress helper was correct but could not finish a large active array promptly enough: each remote transfer paid its own connection and archive overhead. The replacement obtains strict source and Totoro SHA-256 manifests, refuses an existing mismatched artifact, transfers only missing four-digit task archives in bounded tar batches, verifies each batch in Totoro staging before it becomes visible, then checks the resulting destination manifest against the source. It passed `bash -n`, an initial live 236-archive batch transfer, and a terminal no-op dry run. After Rorqual job 20889483 reached `999 COMPLETED` elements, both hosts retained exactly 1,000 task archives with aggregate manifest SHA-256 `79bb2296bf0b4b4cb8b8f7abf61c56235db37021622bf72f3cdccddc62957696`. This establishes chunk-1 artifact parity only; G12 remains running until all 3,500 configured tasks and the later immutable summary verification are complete.
+## 2026-09-10 — G12 first-chunk closeout and second-chunk release
+
+Rorqual array `20889483` completed all 999 released elements for tasks 2--1000 with no non-completed state. The source and Totoro durable stores each held the exact 1,000 task archives (including the retained task-1 smoke), with matching aggregate manifest SHA-256 `79bb2296bf0b4b4cb8b8f7abf61c56235db37021622bf72f3cdccddc62957696`. The terminal accounting and artifact manifest are retained on Totoro in `receipts/chunk-1-20889483-terminal-receipt.tar.gz` (SHA-256 `2d411584e76e453d8870537a4b3e307d2854622d697635d2be5185ccb058c2a3`). The scheduler’s 1,000-job submission ceiling requires the approved campaign to release bounded ranges; after the verified first range, job `20891302` released tasks 1001--1999 at the unchanged limits: one CPU, 2 GiB, 30 minutes, and no more than 60 running task elements. This is an operational release record, not a G12 or calibration verdict.
+## 2026-09-10 — G12 second-chunk closeout and third-chunk release
+
+Rorqual array `20891302` completed all 999 released elements for tasks 1001--1999 with no non-completed state. Rorqual and Totoro each held the exact 1,999 task archives through task 1999, with matching aggregate manifest SHA-256 `e3fc4e3c4ed8d67302ac54d60c3bacf76612d413ea1b6f15c56f549d51242cb4`. The terminal accounting and full manifest are retained on Totoro in `receipts/chunk-2-20891302-terminal-receipt.tar.gz` (SHA-256 `b26958b1dfbccd73d99e2f8a3c3ddf4ddd602d1be1a11b73b2d626c193deb040`). After parity, job `20892831` released tasks 2000--2998 with the same frozen source, wrapper, and limits: one CPU, 2 GiB, 30 minutes, and at most 60 running task elements. This remains an operational campaign record, not a calibration verdict.
+## 2026-09-10 — G12 third-chunk closeout and final-chunk release
+
+Rorqual array `20892831` completed all 999 released elements for tasks 2000--2998 with no non-completed state. Rorqual and Totoro each held the exact 2,998 task archives through task 2998, with matching aggregate manifest SHA-256 `daaacad4a0f2bf29f523d2d47a5fc0b22f6a70a5902b7062e2e46668523e9c5e`. The terminal accounting and full manifest are retained on Totoro in `receipts/chunk-3-20892831-terminal-receipt.tar.gz` (SHA-256 `951911508ed88ef73a7089a5a72e3d0244f6e07fe768b2ae044f3e66436376d7`). After parity, job `20894495` released the final tasks 2999--3500 with the same frozen source, wrapper, and limits: one CPU, 2 GiB, 30 minutes, and at most 60 running task elements. G12 remains running until the final range’s terminal accounting and full 3,500-archive parity are verified; G13 remains pending.
+## 2026-09-10 — G13 immutable re-verifier task-cell mapping repair
+
+The first no-refit G13 job `20895274` failed after 42 seconds with `Campaign summary has an incomplete all-attempt denominator`; it did not launch a model fit and did not alter any G12 archive. Inspection of a retained task showed that both `profiles.csv` and `selected-fit.csv` already carry `cell`. G13 then merged the frozen manifest `cell` again, producing `cell.x`/`cell.y` while later assessment selected the nonexistent `cell` column. The verifier now parses each `G12_####` identifier, maps it to the frozen manifest, and requires the retained `cell` to agree before assessment. Its self-test now checks both an admitted mapping and a deliberately mismatched cell. The focused test file passed six expectations and the self-test returned `PHYLO_TEMPORAL_OU_G13_REVERIFY_SELFTEST_PASS`. The failed output directory remains retained on Rorqual; the repaired verifier will use a fresh result directory and a separately fingerprinted code snapshot.
+
+## 2026-09-10 — phylogenetic-temporal OU corrected target contract
+
+The frozen G12 worker at `384048d7eb6be3950dcf28a4aef91a3fb616184a` generates intercept, between-species, and within-species effects as `0`, `0.5`, and `0.5` for every P1--P4 cell. The original G11 target registry attached `c(0, 0.5, 0.5)` before sorting its target table, which retained the correct P1 values but permuted P2--P3 truths. The original contract is preserved; corrected source `0ee980cb0ab4c643099094a4e3ab0e8776451928` maps truth by coefficient name and writes a separately fingerprinted corrected-target contract. Focused G11/G13/gate-runner tests, both no-fit self-tests, and G11 passed. This repair does not rerun or modify any G12 fit; a new G13-only archival summary will use the corrected truth registry.
+
+## 2026-09-10 — G13 corrected-truth immutable re-verification
+
+Rorqual job `20895722` used one CPU, a 4 GiB limit, and a two-hour ceiling to inspect the complete 3,500-archive denominator from frozen estimator source `384048d7eb6be3950dcf28a4aef91a3fb616184a`; it completed in 71 seconds with 486,216 KiB maximum RSS and launched no fit. Corrected G13 truths agree with the task worker in every cell. Six of nine primary coefficient-cell rows qualify, but fixed-intercept profile coverage is 0.870 in P1, 0.922 in P2, and 0.895 in P3, all below the predeclared Monte-Carlo-SE-bounded range. Totoro independently replayed the no-fit verifier against its durable archives, reproducing `RESULTS.md`, inventory, summary, and assessment byte-for-byte. The local `G13 --reverify` gate now recalculates the assessment and fails closed with those three rows. The evidence is retained under `simulation-artifacts/2026-09-10-phylo-temporal-ou-g13-truthfix/`; no later temporal structure can advance until this intercept-interval failure is diagnosed and a revised decision is recorded.
+
+## 2026-09-10 — G13 fixed-tree known-covariance GLS mechanism diagnostic
+
+A no-fit, independently regenerated comparison used the exact generating
+phylogenetic-plus-independent-OU covariance for the 15 retained fixed-tree
+pilot datasets. The self-tested calculation ran in 1.76 seconds at one thread
+and retained all inputs/outputs under
+`simulation-artifacts/2026-09-10-phylo-temporal-ou-g13-fixed-tree-truth-gls-r2/`.
+For five draws per cell, known-covariance GLS intercept coverage was 4/5, 5/5,
+and 5/5 for P1--P3, versus the default-profile pilot's 3/5, 4/5, and 5/5;
+mean interval widths were 1.370/2.438/1.235 for GLS and 1.253/1.983/1.601 for
+profiles. This small mechanism diagnostic is not a calibration result. Along
+with the prior dense-profile and fast/default checks, it leaves estimated
+covariance parameters as the leading hypothesis for the failed G13 intercept
+intervals, without establishing causality or changing their unqualified scope.
+
+## 2026-09-10 — paired glmmTMB phylogenetic-OU comparator pilot
+
+The retained five-draw P1--P3 comparator pilot at source `60165971414bf84d13b6b3ac232335a7ba0feddb` fit the additive phylogenetic-stable plus independent-OU Gaussian model in drmTMB and installed glmmTMB 1.1.14. All 30 fits had positive-definite Hessians and all 30 intercept profiles were available. Paired cover/not-cover results agreed for all 15 generated datasets; maximum absolute estimate/lower/upper differences were `9.11e-06`/`0.001794`/`0.001700`. The measured total was about 2.5 CPU minutes at one thread. This is a feasibility and implementation-comparison pre-run only: glmmTMB documents `propto` and `ou` as experimental structures, so the evidence supports no appreciable drmTMB-specific numerical mismatch in these draws but cannot establish interval calibration. Complete evidence is retained in `simulation-artifacts/2026-09-10-phylo-temporal-ou-comparator-pilot-601659714-r5/`.
+
+## 2026-09-10 — proposed paired phylogenetic-OU comparator campaign
+
+The completed five-draw paired pre-run supports a separate 3,000-task P1--P3
+comparison using the original varying-tree G12 generator and one fixed-intercept
+profile from each engine per data set. The measured extrapolation is 8.24
+CPU-hours; the written proposal uses Rorqual at 60 single-core, 4 GiB tasks and
+requires source-pinned archives, no-fit closure, and a fresh explicit campaign
+authorization. It does not change the failed G13 calibration verdict or begin a
+later temporal covariance structure.
+
+## 2026-09-10 — paired phylogenetic-OU comparator campaign tooling prepared
+
+Local source-pinned task and no-fit re-verifier tools now retain two ordered
+engine rows per original varying-tree P1--P3 task, reject malformed task IDs,
+missing archives, invalid SHA-256 sidecars, mixed provenance, duplicates and
+incomplete denominators. The Rorqual wrapper is fixed at one CPU, 4 GiB, 30
+minutes and task IDs 1--3000; its scheduler submission must cap concurrency at
+60. Source-only archive validation at `477f2e6ab64819f4a25a1f19cc9b6c4263ab353c`
+returned SHA-256 `77d3c948b85e0fd4645c2ef429fea43d09def37bce3740a9bfee4fa9fda7be28`
+and excluded platform artifacts. No remote staging or submission occurred.
+
+## 2026-09-11 — paired phylogenetic-OU comparator provisioning
+
+- Added an offline `glmmTMB` dependency-archive builder and a Rorqual-only provisioning job. It starts from the retained, verified G12 Linux R library in a fresh campaign root, validates every newly sealed source tarball, then installs the required `glmmTMB` closure without a network repository.
+- Added shell-boundary checks for the provisioning job. This is campaign plumbing only; it does not change the failed G13 interval verdict or qualify a temporal covariance method.
+- Provisioning attempt `20912135` retained a source-pinned drmTMB build under 2.6 GiB but stopped before `ape` because the R `system2()` environment passed `CXXFLAGS=-O0 -g0` as two shell tokens. The retry changes that environment to the single safe `CXXFLAGS=-O0` token, adds a regression assertion, and uses a fresh stage root; no task fit or G13 result was affected.
+- Corrected provisioning attempt `20912234` built the source-pinned drmTMB and installed `ape` within 2.6 GiB. It then stopped before any comparator fit because the R installer used list-style deletion on a named character vector. The retry uses indexed vector removal, has a regression assertion, and will use another fresh stage root; the prior output is retained.
+- After retained attempt `20912402` exposed `Deriv >= 4.5`, sealed the comparator dependency bundle from the local paired-pilot runtime closure rather than the latest CRAN transitive closure. The retained lock contains `Deriv 4.2.0`, `glmmTMB 1.1.14`, and all resolved source package versions compatible with Rorqual R 4.4.0.
+- Version-locked provisioner `20912485` ran 12m03s below 2.5 GiB and reached the final closure. It stopped because the archive builder's fixed list omitted `microbenchmark` (and could omit other lock members) despite those packages appearing in the sealed lock. The builder now treats adjacent `LOCKED-PACKAGES.csv` as authoritative, retaining all 64 locked source packages for the next fresh-root retry.
+
+## 2026-09-11 — P1 phylogenetic-temporal OU interval-feasibility closeout
+
+The paired phylogenetic stable-intercept plus independent OU route remains a development slice. The retained G13 campaign is still red: it qualified six of nine primary profile rows, while intercept coverage was 0.870, 0.922, and 0.895 in P1--P3. Closeout made that boundary consistent in `check_drm()`, `confint()` help, the reader vignette, and the formula/likelihood design notes: fixed-mean profiles are calculable interval-feasibility diagnostics, not inference-ready results.
+
+Noether's independent mathematical review confirmed the additive covariance and found that the old no-fit verifier did not recompute archive SHA-256 values or bind arbitrary-looking provenance to the frozen worker. The verifier now recalculates each sidecar checksum and requires source `384048d7eb6be3950dcf28a4aef91a3fb616184a` and its exact worker MD5. Pat's reader review found the public profile wording ambiguous; the revised prose preserves the authorized diagnostic calculation while prohibiting an inference claim. The G13 self-test, focused verifier test, paired methods test, G14 and G15 all passed. The exact source `R CMD build` plus `R CMD check --no-manual` completed with `Status: OK`, retained in `simulation-artifacts/2026-09-11-phylo-temporal-ou-closeout/`. G18 passed while requiring G13 to remain red; no campaign task was rerun.

@@ -36,8 +36,11 @@
 intervals usually require explicit target names or target-set shortcuts;
 for a Gaussian temporal AR1, OU, or homogeneous Toeplitz fit, \code{NULL}
 selects every mean-model coefficient. Temporal profile intervals admit mean
-coefficients only. Heterogeneous AR1 supports mean-coefficient Wald
-intervals only, rather than profile intervals.
+coefficients only. The paired phylogenetic-stable plus temporal-OU route
+is interval-feasible but has failed primary calibration for intercept
+profiles; do not present its profile intervals as inference-ready.
+Heterogeneous AR1 supports mean-coefficient Wald intervals only, rather
+than profile intervals.
 Supported shortcuts are \code{"fixed_effects"}, \code{"random_effects"},
 \code{"variance_components"}, and \code{"correlations"}.}
 
@@ -246,9 +249,12 @@ behaviour and does \strong{not} claim nominal coverage on every route.
 fitted-object route when \code{TMB::sdreport()} succeeded.
 \item Gaussian temporal AR1, OU, and homogeneous Toeplitz mean effects: use
 \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
-(or omit \code{parm} for every mean coefficient). Heterogeneous AR1 uses
-\code{confint(fit, parm = "mu:<coefficient>", method = "wald")} when
-the full observed Hessian is positive definite. That route is
+(or omit \code{parm} for every mean coefficient). The paired
+phylogenetic-stable plus temporal-OU route can calculate a fixed-mean
+profile, but its retained primary-cell calibration failed for intercepts;
+use it only as an interval-feasibility diagnostic. Heterogeneous AR1
+uses \code{confint(fit, parm = "mu:<coefficient>", method = "wald")}
+when the full observed Hessian is positive definite. That route is
 interval-feasibility evidence for the fitted data, not coverage or
 standard-error calibration. Temporal variance, persistence, decay,
 bootstrap, and \code{newdata} intervals are unavailable.

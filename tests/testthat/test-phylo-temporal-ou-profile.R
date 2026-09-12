@@ -12,17 +12,24 @@ paired_phylo_temporal_ou_profile_fit <- function(seed = 202609097L) {
 test_that("paired phylogenetic-OU fixed-mean profile endpoints match dense reference", {
   case <- paired_phylo_temporal_ou_profile_fit()
   fit <- case$fit
-  dense <- phylo_temporal_ou_dense_profile_ci(fit, case$tree, level = 0.90)
-  public <- stats::confint(
-    fit, parm = "fixef:mu:x", method = "profile", level = 0.90,
-    profile_engine = "tmbprofile", profile_precision = "fast"
+  targets <- list(
+    list(parm = "fixef:mu:(Intercept)", index = 1L),
+    list(parm = "fixef:mu:x", index = 2L)
   )
-
-  expect_identical(public$parm, "fixef:mu:x")
-  expect_identical(public$method, "profile")
-  expect_identical(public$conf.status, "profile")
-  expect_equal(unname(public$lower), unname(dense[["lower"]]), tolerance = 5e-3)
-  expect_equal(unname(public$upper), unname(dense[["upper"]]), tolerance = 5e-3)
+  for (target in targets) {
+    dense <- phylo_temporal_ou_dense_profile_ci(
+      fit, case$tree, level = 0.90, index = target$index
+    )
+    public <- stats::confint(
+      fit, parm = target$parm, method = "profile", level = 0.90,
+      profile_engine = "tmbprofile", profile_precision = "fast"
+    )
+    expect_identical(public$parm, target$parm)
+    expect_identical(public$method, "profile")
+    expect_identical(public$conf.status, "profile")
+    expect_equal(unname(public$lower), unname(dense[["lower"]]), tolerance = 5e-3)
+    expect_equal(unname(public$upper), unname(dense[["upper"]]), tolerance = 5e-3)
+  }
 })
 
 test_that("paired phylogenetic-OU profile rejects deferred targets and flags irregular Hessians", {

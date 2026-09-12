@@ -1,0 +1,2 @@
+"id","convergence","pd_hess","optimizer_message","profile_available","fit_warning_count","profile_warning_count"
+"P1_01",0,TRUE,"converged (Newton polish; max |gradient| = 3.47e-11)",3,0,0

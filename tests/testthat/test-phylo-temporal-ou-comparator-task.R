@@ -1,0 +1,10 @@
+test_that('paired comparator task worker self-tests and retains both engines', {
+  worker <- testthat::test_path('..', '..', 'tools', 'run-phylo-temporal-ou-comparator-task.R')
+  output <- system2('Rscript', c('--vanilla', worker, '--self-test'), stdout = TRUE, stderr = TRUE)
+  expect_null(attr(output, 'status'))
+  expect_true(any(grepl('PHYLO_TEMPORAL_OU_COMPARATOR_TASK_SELFTEST_PASS', output, fixed = TRUE)))
+  text <- paste(readLines(worker, warn = FALSE), collapse = '\n')
+  expect_true(grepl("c\\('drmTMB', 'glmmTMB'\\)", text))
+  expect_match(text, "file\\.exists\\(file\\.path\\(root, [\"\']\\.git[\"\']\\)\\)")
+  expect_true(grepl('tree = tree', text, fixed = TRUE))
+})

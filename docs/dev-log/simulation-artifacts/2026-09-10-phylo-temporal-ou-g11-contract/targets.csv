@@ -1,0 +1,13 @@
+"cell","parm","primary","truth"
+"P1","fixef:mu:(Intercept)",TRUE,0
+"P1","fixef:mu:between",TRUE,0.5
+"P1","fixef:mu:within",TRUE,0.5
+"P2","fixef:mu:(Intercept)",TRUE,0.5
+"P2","fixef:mu:between",TRUE,0.5
+"P2","fixef:mu:within",TRUE,0
+"P3","fixef:mu:(Intercept)",TRUE,0.5
+"P3","fixef:mu:between",TRUE,0
+"P3","fixef:mu:within",TRUE,0.5
+"P4","fixef:mu:(Intercept)",FALSE,0
+"P4","fixef:mu:between",FALSE,0.5
+"P4","fixef:mu:within",FALSE,0.5

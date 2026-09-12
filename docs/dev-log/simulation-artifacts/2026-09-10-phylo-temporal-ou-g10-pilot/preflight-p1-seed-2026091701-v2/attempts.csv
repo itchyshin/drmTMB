@@ -1,0 +1,3 @@
+"id","cell","replicate","start","decay_start","status","convergence","objective","elapsed_sec","selected","error"
+"P1_01","P1",1,1,0.481589121730374,"ok",0,591.222498027147,0.398,FALSE,NA
+"P1_01","P1",1,2,0.142669977575493,"ok",0,591.222498027069,0.344,TRUE,NA

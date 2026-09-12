@@ -61,8 +61,11 @@
 #'   intervals usually require explicit target names or target-set shortcuts;
 #'   for a Gaussian temporal AR1, OU, or homogeneous Toeplitz fit, `NULL`
 #'   selects every mean-model coefficient. Temporal profile intervals admit mean
-#'   coefficients only. Heterogeneous AR1 supports mean-coefficient Wald
-#'   intervals only, rather than profile intervals.
+#'   coefficients only. The paired phylogenetic-stable plus temporal-OU route
+#'   is interval-feasible but has failed primary calibration for intercept
+#'   profiles; do not present its profile intervals as inference-ready.
+#'   Heterogeneous AR1 supports mean-coefficient Wald intervals only, rather
+#'   than profile intervals.
 #'   Supported shortcuts are `"fixed_effects"`, `"random_effects"`,
 #'   `"variance_components"`, and `"correlations"`.
 #' @param level Confidence level.
@@ -194,9 +197,12 @@
 #'     fitted-object route when \code{TMB::sdreport()} succeeded.
 #'   \item Gaussian temporal AR1, OU, and homogeneous Toeplitz mean effects: use
 #'     \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
-#'     (or omit \code{parm} for every mean coefficient). Heterogeneous AR1 uses
-#'     \code{confint(fit, parm = "mu:<coefficient>", method = "wald")} when
-#'     the full observed Hessian is positive definite. That route is
+#'     (or omit \code{parm} for every mean coefficient). The paired
+#'     phylogenetic-stable plus temporal-OU route can calculate a fixed-mean
+#'     profile, but its retained primary-cell calibration failed for intercepts;
+#'     use it only as an interval-feasibility diagnostic. Heterogeneous AR1
+#'     uses \code{confint(fit, parm = "mu:<coefficient>", method = "wald")}
+#'     when the full observed Hessian is positive definite. That route is
 #'     interval-feasibility evidence for the fitted data, not coverage or
 #'     standard-error calibration. Temporal variance, persistence, decay,
 #'     bootstrap, and \code{newdata} intervals are unavailable.
@@ -770,9 +776,11 @@ confint.drmTMB <- function(
 #'   Gaussian temporal AR1, OU, and homogeneous Toeplitz fits use
 #'   `"temporal_nonmean_intervals_deferred"` for every non-mean target and
 #'   `"temporal_decay_intervals_deferred"` for the OU decay target; only their
-#'   mean regression coefficients are profile-ready. Heterogeneous AR1 uses
-#'   `"hetar1_profile_deferred"` for its mean effects because only its Wald
-#'   route is available.
+#'   mean regression coefficients are profile-ready. The paired
+#'   phylogenetic-stable plus temporal-OU route labels its profile-ready fixed
+#'   effects as interval-feasible rather than inference-ready. Heterogeneous
+#'   AR1 uses `"hetar1_profile_deferred"` for its mean effects because only its
+#'   Wald route is available.
 #'   Derived variance-ratio summaries such as `total_variance_share` and
 #'   `phylo_total_variance_share` are listed as point-estimate targets with
 #'   `profile_ready = FALSE`.

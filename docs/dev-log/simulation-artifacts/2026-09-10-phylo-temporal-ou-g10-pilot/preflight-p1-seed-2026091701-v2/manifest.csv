@@ -1,0 +1,2 @@
+"id","cell","replicate","seed","n_species","schedule","sd_phylo_truth","decay_truth","role"
+"P1_01","P1",1,2026091701,80,"p1",0.6,0.4,"primary_short_series"

@@ -15,7 +15,9 @@ has_ape <- requireNamespace("ape", quietly = TRUE)
 
 > **Development status.** This paired phylogenetic--OU model has passed its
 > parser, dense-likelihood, method, and fixed-mean profile checks. Its retained
-> point-recovery gate has not met the predeclared fixed-effect threshold.
+> point-recovery gate has not met the predeclared fixed-effect threshold, and its
+> retained calibration campaign found intercept-profile undercoverage in three
+> primary cells.
 > Treat the syntax below as a development workflow for checking a model and its
 > diagnostics, not as an inference-qualified routine analysis. In particular,
 > do not report confidence intervals from this paired model until its recovery
@@ -135,7 +137,9 @@ fit$sigma
 ```
 
 `fitted(fit)` and `residuals(fit)` use the estimated stable and temporal
-conditional deviations for these observed rows. `simulate(fit)` draws a new
+conditional deviations for these observed rows. They are diagnostic summaries,
+not directly observed species-specific evolutionary or temporal effects.
+`simulate(fit)` draws a new
 phylogenetic stable vector and a new independent OU path for each species;
 `simulate(fit, re.form = NA)` instead retains the fitted conditional latent
 components. These are in-sample tools only.
@@ -150,13 +154,14 @@ simulate(fit, nsim = 2, re.form = NA)
 ## What can be reported now
 
 This development slice has an independently checked fixed-mean likelihood
-profile calculation, but its recovery evidence is not yet sufficient to qualify
-an interval workflow. For now, use the example to inspect the fitted covariance
-components and the diagnostics; do not use `confint()`, Wald covariance,
-bootstrap intervals, decay or variance-component intervals, forecasts, or
-`newdata` prediction as a reported paired-model result. `check_drm(fit)` is a
-necessary diagnostic but cannot turn an unqualified recovery result into
-calibrated inference.
+profile calculation, but its recovery evidence is not sufficient to qualify an
+inference-ready interval workflow and its retained calibration campaign found
+intercept-profile undercoverage in three primary cells. A profile interval is
+therefore a fit-level interval-feasibility diagnostic, not a reportable
+inference claim. Use the example to inspect fitted covariance components and
+diagnostics; Wald covariance, bootstrap intervals, decay or variance-component
+intervals, forecasts, and `newdata` prediction remain unavailable. `check_drm(fit)`
+cannot turn an unqualified result into calibrated inference.
 
 The existing [temporal AR1 and OU guide](temporal-random-effects.html) remains
 the supported guide for independent-series temporal models. A later
