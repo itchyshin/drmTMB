@@ -93,7 +93,7 @@ test_that("paired phylogenetic-OU conditional and fresh simulations match compon
   )))
 })
 
-test_that("paired phylogenetic-OU inference surface exposes only profile-ready means", {
+test_that("paired phylogenetic-OU profiles are interval-feasible but not inference-ready", {
   fit <- paired_phylo_temporal_ou_fit()
   targets <- profile_targets(fit)
   fixed <- targets[
@@ -107,6 +107,9 @@ test_that("paired phylogenetic-OU inference surface exposes only profile-ready m
   expect_true(all(fixed$profile_ready))
   expect_true(any(nonmean$profile_note == "temporal_nonmean_intervals_deferred"))
   expect_true(any(nonmean$profile_note == "temporal_decay_intervals_deferred"))
+  diagnostics <- check_drm(fit)
+  profile_row <- diagnostics[diagnostics$check == "temporal_mean_profile", , drop = FALSE]
+  expect_identical(profile_row$value, "available_for_this_fit; calibration=failed_in_primary_P1_cells")
   expect_error(stats::vcov(fit), "OU coefficient covariance is not yet qualified")
   expect_error(
     stats::predict(fit, newdata = fit$data[1L, , drop = FALSE]),

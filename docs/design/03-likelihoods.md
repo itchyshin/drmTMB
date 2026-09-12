@@ -143,10 +143,11 @@ non-Gaussian families, non-unit weights, forecasting, and `newdata`.
 
 Independent dense likelihood, score, Hessian, conditional-mode, simulation,
 and fixed-mean profile tests pass. The retained 24-fixture point-recovery
-study did not meet its predeclared mean fixed-effect error threshold. Until a
-revised recovery design and a successful interval-calibration campaign are
-retained, this is a point-fit development route: all interval methods,
-variance/decay inference, forecast, and `newdata` prediction are unavailable.
+study did not meet its predeclared mean fixed-effect error threshold, and the
+retained campaign found intercept-profile undercoverage in three primary cells.
+Fixed-mean profile endpoints are therefore interval-feasibility diagnostics,
+not inference-ready results. Variance/decay inference, forecast, and `newdata`
+prediction remain unavailable.
 
 ## Implemented TMB Routing
 

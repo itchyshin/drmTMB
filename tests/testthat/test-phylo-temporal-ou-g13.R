@@ -16,3 +16,12 @@ test_that('phylo OU G13 re-verifier contains no fit invocation', {
   expect_false(grepl('drmTMB\\s*\\(', text))
   expect_true(grepl('No model fit was launched', text, fixed = TRUE))
 })
+
+test_that('phylo OU G13 re-verifier binds archives and worker provenance', {
+  worker <- testthat::test_path('..', '..', 'tools', 'reverify-phylo-temporal-ou-g13.R')
+  text <- paste(readLines(worker, warn = FALSE), collapse = '\n')
+  expect_true(grepl("campaign_source_commit <- '384048d7eb6be3950dcf28a4aef91a3fb616184a'", text, fixed = TRUE))
+  expect_true(grepl('sha256_file <- function', text, fixed = TRUE))
+  expect_true(grepl('archive SHA-256 does not match checksum sidecar', text, fixed = TRUE))
+  expect_true(grepl('!identical(prov$worker_md5, campaign_worker_md5)', text, fixed = TRUE))
+})

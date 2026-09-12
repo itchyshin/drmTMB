@@ -48,7 +48,9 @@ and its zero- and one-inflation routes.
 Gaussian temporal AR1 and OU fits use
 \code{"temporal_nonmean_intervals_deferred"} for every non-mean target and
 \code{"temporal_decay_intervals_deferred"} for the OU decay target; only their
-mean regression coefficients are profile-ready.
+mean regression coefficients are profile-ready. The paired
+phylogenetic-stable plus temporal-OU route labels its profile-ready fixed
+effects as interval-feasible rather than inference-ready.
 Derived variance-ratio summaries such as \code{total_variance_share} and
 \code{phylo_total_variance_share} are listed as point-estimate targets with
 \code{profile_ready = FALSE}.

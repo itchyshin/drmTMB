@@ -88,22 +88,24 @@ There are 19 gates: 16 runnable and three manual (G0, G12, G17). Every runnable 
 - [x] G14: The reader article distinguishes evolutionary baseline, independent temporal deviation and residual noise; reference/design documentation and pkgdown navigation synchronize.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G14
   EXPECT: PHYLO_TEMPORAL_OU_G14_PASS
-  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G14_PASS. `vignettes/phylogenetic-temporal-effects.Rmd`, formula grammar, likelihood design documentation, limitation register and development-marked pkgdown navigation all distinguish stable tree-correlated variation from independent within-species OU departures. The article visibly retains G9's unqualified recovery status.
+  EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G14_PASS. `vignettes/phylogenetic-temporal-effects.Rmd`, formula grammar, likelihood design documentation, limitation register and development-marked pkgdown navigation all distinguish stable tree-correlated variation from independent within-species OU departures. The article visibly retains G9's unqualified recovery status. The 2026-09-11 recheck returned PHYLO_TEMPORAL_OU_G14_PASS after synchronizing the retained G13 intercept-undercoverage boundary.
 
 - [x] G15: The source-built phylogenetic-temporal article renders and includes a runnable irregular-time workflow and the profile-inference boundary.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G15
   EXPECT: PHYLO_TEMPORAL_OU_G15_PASS
   EVIDENCE: 2026-09-09 direct command returned PHYLO_TEMPORAL_OU_G15_PASS. The gate loads the development package, renders the Rmd into an isolated temporary directory, verifies the HTML title/development status/irregular-time workflow, and fails on missing output or contract text.
 
-- [ ] G16: The final exact source passes `R CMD build` and `R CMD check --no-manual`.
+- [x] G16: The final exact source passes `R CMD build` and `R CMD check --no-manual`.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G16
   EXPECT: PHYLO_TEMPORAL_OU_G16_PASS
-  EVIDENCE: pending
+  EVIDENCE: 2026-09-11 final source build and `R CMD check --no-manual` completed with `Status: OK` at 0 exit status. Retained command receipt and complete log: `docs/dev-log/simulation-artifacts/2026-09-11-phylo-temporal-ou-closeout/package-check-receipt.txt` and `package-check.log`.
 
-- [ ] G17: Independent Noether mathematical review and Pat reader-workflow review find no unresolved blocking defect.
-  EVIDENCE: pending
+- [x] G17: Independent Noether mathematical review and Pat reader-workflow review find no unresolved blocking defect.
+  CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G17
+  EXPECT: PHYLO_TEMPORAL_OU_G17_PASS
+  EVIDENCE: 2026-09-11 Noether independently confirmed the additive covariance, stationary OU normalizers, stable phylogenetic precision, and dense-oracle G3 result; his archive-integrity finding was repaired by exact source/worker binding and SHA-256 verification. Pat found the profile wording could be read as either unavailable or reportable inference; the vignette, formula grammar, likelihood note, profile help, and `check_drm()` now say calculable interval-feasibility diagnostic, not inference-ready. Neither review left a blocking mathematical or reader-workflow defect.
 
-- [ ] G18: The final reverify reports every runnable gate, retained artifact and manual decision; the after-task and plan-versus-actual reports reconcile scope, cost and deferrals.
+- [x] G18: The final reverify reports every runnable gate, retained artifact and manual decision; the after-task and plan-versus-actual reports reconcile scope, cost and deferrals.
   CHECK: Rscript --vanilla tools/phylo-temporal-ou-gates.R G18 --reverify
-  EXPECT: PHYLO_TEMPORAL_OU_G18_PASS
-  EVIDENCE: pending
+  EXPECT: PHYLO_TEMPORAL_OU_G18_INTERVAL_FEASIBILITY_PASS
+  EVIDENCE: 2026-09-11 direct no-refit reverify returned PHYLO_TEMPORAL_OU_G18_INTERVAL_FEASIBILITY_PASS. It rechecked G14--G17, required the exact final source-check receipt, and required the retained red G13 verdict to name all three failed intercept cells. It launched no model fit and did not overwrite campaign evidence.

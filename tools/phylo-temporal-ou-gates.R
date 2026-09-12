@@ -120,17 +120,20 @@ g14 <- function() {
     'The model is additive.',
     'A separable phylogeny-by-time field is a different future',
     'genuinely irregular elapsed times',
-    'do not use `confint()`'
+    'intercept-profile undercoverage in three primary cells',
+    'interval-feasibility diagnostic'
   ))
   need_text(grammar, c(
-    'Implemented paired point-fit development slice',
+    'Implemented paired interval-feasibility development slice',
     'retained 24-fixture point recovery missed',
-    'not an inference-qualified interval workflow'
+    'intercept-profile undercoverage in three primary cells',
+    'not inference-ready results'
   ))
   need_text(likelihood, c(
     'Phylogenetic stable intercept plus independent OU deviations',
     'This is additive, not the later separable field',
-    'point-fit development route'
+    'interval-feasibility diagnostics',
+    'not inference-ready results'
   ))
   need_text(pkgdown, c(
     'Phylogenetic stable effects and OU deviations (development)',
@@ -295,7 +298,8 @@ g15 <- function() {
     'elapsed_values <- c(0, 0.5, 2.5, 5)',
     'phylo(1 | species, tree = tree)',
     'temporal(1 | species, time = elapsed_days, structure = "ou")',
-    'do not use `confint()`'
+    'interval-feasibility diagnostic',
+    'not a reportable'
   ))
   if (!requireNamespace('rmarkdown', quietly = TRUE)) {
     fail('G15 requires rmarkdown to render the reader workflow.')
@@ -320,6 +324,45 @@ g15 <- function() {
     'inference-qualified routine analysis'
   ))
   cat('PHYLO_TEMPORAL_OU_G15_PASS\n')
+}
+
+g16 <- function() {
+  approval()
+  d <- file.path(root, 'docs/dev-log/simulation-artifacts/2026-09-11-phylo-temporal-ou-closeout')
+  receipt <- file.path(d, 'package-check-receipt.txt')
+  log <- file.path(d, 'package-check.log')
+  need_text(receipt, 'P1_G16_SOURCE_CHECK_STATUS=0')
+  need_text(log, c('* checking for file', '* checking tests ...', 'Running ‘testthat.R’', 'Status: OK'))
+  cat('PHYLO_TEMPORAL_OU_G16_PASS\n')
+}
+
+g17 <- function() {
+  approval()
+  report <- file.path(root, 'docs/dev-log/after-task/2026-09-11-phylo-temporal-ou-closeout.md')
+  need_text(report, c(
+    'Noether found',
+    'Pat found',
+    'interval-feasibility diagnostics',
+    'not reportable as inference-ready'
+  ))
+  cat('PHYLO_TEMPORAL_OU_G17_PASS\n')
+}
+
+g18 <- function() {
+  approval()
+  g16(); g17(); g14(); g15()
+  completed <- c('G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9b', 'G9b-full', 'G9c', 'G10', 'G11', 'G12', 'G14', 'G15', 'G16', 'G17')
+  need_text(ledger, paste0('- [x] ', completed, ':'))
+  need_text(ledger, c('- [ ] G9:', '- [ ] G13:', 'G13 is unmet; no later temporal structure may begin'))
+  output <- suppressWarnings(system2('Rscript', c('--vanilla', runner, 'G13', '--reverify'), stdout = TRUE, stderr = TRUE))
+  if (is.null(attr(output, 'status')) ||
+      !any(grepl('G13 primary calibration criteria are unmet:', output, fixed = TRUE)) ||
+      !any(grepl('P1/fixef:mu:(Intercept)', output, fixed = TRUE)) ||
+      !any(grepl('P2/fixef:mu:(Intercept)', output, fixed = TRUE)) ||
+      !any(grepl('P3/fixef:mu:(Intercept)', output, fixed = TRUE))) {
+    fail('G18 expected the retained red G13 calibration verdict.')
+  }
+  cat('PHYLO_TEMPORAL_OU_G18_INTERVAL_FEASIBILITY_PASS\n')
 }
 
 g2_worker <- function() {
@@ -408,6 +451,12 @@ if (identical(args, '--self-test')) {
   g14()
 } else if (identical(args, 'G15')) {
   g15()
+} else if (identical(args, 'G16')) {
+  g16()
+} else if (identical(args, 'G17')) {
+  g17()
+} else if (identical(args, c('G18', '--reverify'))) {
+  g18()
 } else {
-  fail('Use --self-test, G1 through G8, G10, G11, G13 --reverify, G14, or G15; other model gates remain unavailable.')
+  fail('Use --self-test, G1 through G8, G10, G11, G13 --reverify, G14 through G17, or G18 --reverify; other model gates remain unavailable.')
 }

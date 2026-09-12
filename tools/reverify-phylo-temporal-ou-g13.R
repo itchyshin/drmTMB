@@ -6,6 +6,20 @@ if (length(script_arg) != 1L) stop('Run with Rscript.', call. = FALSE)
 script_path <- normalizePath(sub('^--file=', '', script_arg))
 root <- normalizePath(file.path(dirname(script_path), '..'), mustWork = TRUE)
 source(file.path(root, 'tools', 'assess-phylo-temporal-ou-g11.R'))
+campaign_source_commit <- '384048d7eb6be3950dcf28a4aef91a3fb616184a'
+campaign_worker_path <- 'tools/run-phylo-temporal-ou-g12-task.R'
+source_worker_path <- tempfile('g13-source-worker-')
+on.exit(unlink(source_worker_path), add = TRUE)
+source_worker_status <- system2(
+  'git',
+  c('show', paste0(campaign_source_commit, ':', campaign_worker_path)),
+  stdout = source_worker_path,
+  stderr = FALSE
+)
+if (!identical(source_worker_status, 0L) || !file.exists(source_worker_path)) {
+  stop('G13 locked campaign source or worker is absent from this checkout.', call. = FALSE)
+}
+campaign_worker_md5 <- unname(tools::md5sum(source_worker_path))
 value <- function(prefix) { x <- grep(paste0('^', prefix), args, value = TRUE); if (length(x) != 1L) return(NULL); sub(prefix, '', x) }
 validate_task_cells <- function(x, manifest, label) {
   if (!all(c('id', 'cell') %in% names(x))) {
@@ -40,16 +54,23 @@ dir.create(out_dir, recursive = TRUE)
 manifest <- phylo_temporal_ou_g11_manifest(); targets <- phylo_temporal_ou_g11_targets()
 archive_path <- function(task) file.path(campaign_dir, sprintf('task-%04d.tar.gz', task))
 read_csv <- function(path) utils::read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+sha256_file <- function(path) {
+  output <- suppressWarnings(system2('shasum', c('-a', '256', path), stdout = TRUE, stderr = TRUE))
+  if (!is.null(attr(output, 'status')) || length(output) != 1L || !grepl('^[0-9a-f]{64}  ', output)) {
+    return(NA_character_)
+  }
+  sub(' .*', '', output)
+}
 read_task <- function(task) {
   archive <- archive_path(task); sha <- paste0(archive, '.sha256')
   base <- data.frame(task_id = task, archive = basename(archive), archive_present = file.exists(archive),
                      sidecar_present = file.exists(sha), sha256 = NA_character_, complete = FALSE,
                      error = NA_character_, stringsAsFactors = FALSE)
   if (!base$archive_present || !base$sidecar_present) { base$error <- 'missing immutable archive or checksum sidecar'; return(list(inventory = base)) }
-  hash <- unname(tools::md5sum(archive)) # MD5 is a local corruption check; sidecar carries required SHA-256.
   sidecar <- readLines(sha, warn = FALSE)
   if (length(sidecar) != 1L || !grepl('^[0-9a-f]{64}  ', sidecar)) { base$error <- 'malformed SHA-256 sidecar'; return(list(inventory = base)) }
   base$sha256 <- sub(' .*', '', sidecar)
+  if (!identical(sha256_file(archive), base$sha256)) { base$error <- 'archive SHA-256 does not match checksum sidecar'; return(list(inventory = base)) }
   tmp <- tempfile('g13-task-'); dir.create(tmp)
   on.exit(unlink(tmp, recursive = TRUE, force = TRUE), add = TRUE)
   status <- try(utils::untar(archive, exdir = tmp), silent = TRUE)
@@ -78,8 +99,8 @@ strict <- nrow(selected) == 3500L && nrow(attempts) == 7000L && nrow(profiles) =
 if (!strict) stop('G13 denominator or target structure is incomplete.', call. = FALSE)
 keys <- c('source_commit', 'worker_md5', 'assessment_helper_md5', 'profile_engine', 'profile_precision', 'profile_level')
 prov <- lapply(keys, function(k) unique(provenance$value[provenance$key == k])); names(prov) <- keys
-if (any(vapply(prov, length, integer(1)) != 1L) || !grepl('^[0-9a-f]{40}$', prov$source_commit) ||
-    !grepl('^[0-9a-f]{32}$', prov$worker_md5) || !identical(prov$profile_engine, 'tmbprofile') ||
+if (any(vapply(prov, length, integer(1)) != 1L) || !identical(prov$source_commit, campaign_source_commit) ||
+    !identical(prov$worker_md5, campaign_worker_md5) || !identical(prov$profile_engine, 'tmbprofile') ||
     !identical(prov$profile_precision, 'fast') || !identical(prov$profile_level, '0.95')) stop('G13 provenance is malformed or mixed.', call. = FALSE)
 profiles <- validate_task_cells(profiles, manifest, 'profiles')
 selected <- validate_task_cells(selected, manifest, 'selected fits')

@@ -60,7 +60,10 @@
 #'   `NULL` selects all direct Wald-ready targets for Wald intervals. Profile
 #'   intervals usually require explicit target names or target-set shortcuts;
 #'   for a Gaussian temporal AR1 or OU fit, `NULL` selects every mean-model
-#'   coefficient. Temporal profile intervals admit mean coefficients only.
+#'   coefficient. Temporal profile intervals admit mean coefficients only. The
+#'   paired phylogenetic-stable plus temporal-OU route is interval-feasible but
+#'   has failed primary calibration for intercept profiles; do not present its
+#'   profile intervals as inference-ready.
 #'   Supported shortcuts are `"fixed_effects"`, `"random_effects"`,
 #'   `"variance_components"`, and `"correlations"`.
 #' @param level Confidence level.
@@ -194,7 +197,10 @@
 #'     \code{confint(fit, parm = "mu:<coefficient>", method = "profile")}
 #'     (or omit \code{parm} for every mean coefficient). Temporal Wald output
 #'     remains restricted or deferred, and temporal variance, persistence,
-#'     decay, bootstrap, and \code{newdata} intervals are unavailable.
+#'     decay, bootstrap, and \code{newdata} intervals are unavailable. The
+#'     paired phylogenetic-stable plus temporal-OU route can calculate a
+#'     fixed-mean profile, but its retained primary-cell calibration failed for
+#'     intercepts; use it only as an interval-feasibility diagnostic.
 #'     Read \code{check_drm(fit)}: a non-positive-definite fitted Hessian does
 #'     not prevent a finite profile endpoint, but it makes the fitted likelihood
 #'     locally irregular and the interval is not coverage-calibrated.
@@ -765,7 +771,9 @@ confint.drmTMB <- function(
 #'   Gaussian temporal AR1 and OU fits use
 #'   `"temporal_nonmean_intervals_deferred"` for every non-mean target and
 #'   `"temporal_decay_intervals_deferred"` for the OU decay target; only their
-#'   mean regression coefficients are profile-ready.
+#'   mean regression coefficients are profile-ready. The paired
+#'   phylogenetic-stable plus temporal-OU route labels its profile-ready fixed
+#'   effects as interval-feasible rather than inference-ready.
 #'   Derived variance-ratio summaries such as `total_variance_share` and
 #'   `phylo_total_variance_share` are listed as point-estimate targets with
 #'   `profile_ready = FALSE`.

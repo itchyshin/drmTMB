@@ -1387,6 +1387,15 @@ check_temporal_mean_profile <- function(object) {
   if (!drm_has_temporal_mu(object)) {
     return(NULL)
   }
+  temporal <- object$model$structured$temporal_mu
+  if (isTRUE(temporal$paired_phylo_stable)) {
+    return(check_row(
+      "temporal_mean_profile",
+      "note",
+      "available_for_this_fit; calibration=failed_in_primary_P1_cells",
+      "Paired phylogenetic-stable plus temporal-OU mean profiles are calculable for this fit, but the retained calibration campaign found intercept undercoverage in three primary cells. Do not present them as inference-ready."
+    ))
+  }
   structure <- toupper(object$model$structured$temporal_mu$structure)
   if (is.null(object$obj)) {
     return(check_row(
