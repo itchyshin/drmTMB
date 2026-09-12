@@ -105,6 +105,11 @@ An independent direct process sampler was then denied `ps` access by the same
 sandbox and reproduced the numerical fit without an RSS value. This rules out
 the two local telemetry paths used here; it does not establish a memory bound.
 
+The inspected preflight was finally run outside that sandbox and completed in
+54.89 seconds with maximum resident set size 594,640,896 bytes and peak memory
+footprint 569,082,912 bytes. It retains its BFGS fallback, `pdHess = FALSE`, and
+large gradient, so this closes only the sparse-resource measurement gate.
+
 ## Known limitations and open gates
 
 G0 remains open because the lane lease could not be durably persisted. G6 remains

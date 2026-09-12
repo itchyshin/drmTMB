@@ -95187,6 +95187,13 @@ An independent direct process sampler was also denied `ps` access by the same
 sandbox. It reproduced the fit result but recorded no resident-memory value,
 confirming that a resource-capable external preflight is required for G6.
 
+The exact same inspected 1,000-tip script was then run outside the sandbox.
+It completed in 54.89 seconds and `/usr/bin/time -l` reported maximum resident
+set size 594,640,896 bytes (peak memory footprint 569,082,912 bytes). The fit
+still required BFGS fallback and had `pdHess = FALSE` with max gradient
+5.2566678. This closes the resource-measurement preflight, not any numerical or
+inference claim.
+
 ## 2026-09-12 — phylogenetic OU field-registry foundation
 
 The provider now owns an explicit ordered field registry rather than relying on
