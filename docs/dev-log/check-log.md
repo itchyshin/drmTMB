@@ -95140,3 +95140,11 @@ Hessians but fixed gradients 0.120 and 0.046, respectively, above the
 BM climate gradient. These fits are retained as feasibility and negative
 numerical evidence; they do not support a like-for-like likelihood comparison,
 recovery claim, or public climate-scale OU capability claim.
+
+The direct-SD isolation diagnostic removed `sd(TipLabel, level = "phylogenetic")
+~ temp_c + precip_c` while retaining the BM climate-scale proxy model and its
+tree/data receipt. It still returned a fixed gradient of 0.0454 after the
+careful optimizer escalation. The proxy's climate warning is therefore not
+caused by the new direct-SD OU amplitude mapping. Its one-observation-per-species
+configuration remains a numerical feasibility diagnostic only; the exact issue
+dataset is required for the requested empirical acceptance result.
