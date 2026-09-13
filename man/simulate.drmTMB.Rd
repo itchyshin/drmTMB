@@ -83,12 +83,9 @@ user to \code{re.form = NA}. Models without random effects are unaffected by
 \code{re.form}.
 
 For a fit made with \code{missing = miss_control(response = "include")},
-\code{simulate()} returns \code{NA} at masked rows for most families, matching
-\code{residuals()}. The zero-inflated and hurdle count families
-(\code{zi_poisson}, \code{zi_nbinom2}, \code{hurdle_nbinom2}) and \code{truncated_nbinom2}
-currently still simulate a value at masked rows instead of \code{NA}; do not
-rely on those rows for posterior-predictive checks (e.g.
-\code{DHARMa::createDHARMa()}) without masking them yourself first.
+\code{simulate()} returns \code{NA} at masked rows for every family, matching
+\code{residuals()}, so posterior-predictive tools such as
+\code{DHARMa::createDHARMa()} see draws only where a response was observed.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

@@ -2994,12 +2994,9 @@ predict.drmTMB <- function(
 #' `re.form`.
 #'
 #' For a fit made with `missing = miss_control(response = "include")`,
-#' `simulate()` returns `NA` at masked rows for most families, matching
-#' `residuals()`. The zero-inflated and hurdle count families
-#' (`zi_poisson`, `zi_nbinom2`, `hurdle_nbinom2`) and `truncated_nbinom2`
-#' currently still simulate a value at masked rows instead of `NA`; do not
-#' rely on those rows for posterior-predictive checks (e.g.
-#' `DHARMa::createDHARMa()`) without masking them yourself first.
+#' `simulate()` returns `NA` at masked rows for every family, matching
+#' `residuals()`, so posterior-predictive tools such as
+#' `DHARMa::createDHARMa()` see draws only where a response was observed.
 #'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
@@ -3379,13 +3376,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         ifelse(structural_zero, 0L, stats::rpois(length(mu), lambda = mu))
       })
     }
-    # NOTE: NOT masked -- test-missing-response-count-mixtures.R's "MR-T6 ZIP
-    # masks the complete mixture contribution" asserts finite, non-negative,
-    # integer draws at every row (including masked ones); masking here would
-    # break that established contract. See Dinnage audit ledger leaf-A4b (M4)
-    # for the scope decision; that test file is outside this fix's ownership.
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3434,14 +3427,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         stats::qnbinom(u, size = size, mu = mu)
       })
     }
-    # NOTE: NOT masked -- test-missing-response-truncated-nbinom2.R's "MR-T5
-    # mask equals the observed-row truncated NB2 fit" asserts finite,
-    # >= 1, integer draws at every row (including masked ones); masking here
-    # would break that established contract. See Dinnage audit ledger
-    # leaf-A4b (M4) for the scope decision; that test file is outside this
-    # fix's ownership.
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3477,14 +3465,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         )
       })
     }
-    # NOTE: NOT masked -- test-missing-response-count-mixtures.R's "MR-T6
-    # hurdle NB2 masks the complete mixture contribution" asserts finite,
-    # non-negative, integer draws at every row (including masked ones);
-    # masking here would break that established contract. See Dinnage audit
-    # ledger leaf-A4b (M4) for the scope decision; that test file is outside
-    # this fix's ownership.
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3516,14 +3499,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         )
       })
     }
-    # NOTE: NOT masked -- test-missing-response-count-mixtures.R's "MR-T6
-    # ZINB2 masks the complete mixture contribution" asserts finite,
-    # non-negative, integer draws at every row (including masked ones);
-    # masking here would break that established contract. See Dinnage audit
-    # ledger leaf-A4b (M4) for the scope decision; that test file is outside
-    # this fix's ownership.
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
