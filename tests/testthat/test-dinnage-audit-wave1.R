@@ -44,3 +44,42 @@ test_that("M1: a constant weight leaves the mi() MLE unchanged (Dinnage audit)",
   coef_dup <- fit_coef(rbind(dat, dat))
   expect_equal(coef_dup, coef_w2, tolerance = 1e-5)
 })
+
+test_that("Md-D: mi() is rejected outside the mu formula (Dinnage audit)", {
+  # mi() is public API only for the univariate mean formula. Its stub is
+  # `function(x) x`, so on every OTHER parameter it was silently parsed as an
+  # ordinary covariate and discarded (no error, no missing-data handling):
+  # `sigma ~ mi(z)` gave a bit-identical logLik to `sigma ~ z`.
+  set.seed(1)
+  n <- 60
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  dat <- data.frame(
+    y = stats::rgamma(n, shape = 3, rate = 3 / exp(0.4 + 0.3 * x)),
+    x = x,
+    z = z
+  )
+  expect_error(
+    drmTMB(
+      bf(y ~ x, sigma ~ mi(z)),
+      family = stats::Gamma(link = "log"),
+      data = dat
+    ),
+    "mi"
+  )
+
+  # mi() in mu (the supported route) must still work -- a regression guard
+  # for this fix's dpar == "mu" carve-out. Gamma-response mi() supports one
+  # binary missing predictor.
+  zb <- stats::rbinom(n, 1, stats::plogis(0.3 * x))
+  zb[sample.int(n, 8)] <- NA
+  dat_missing <- data.frame(y = dat$y, x = x, z = zb)
+  fit_mi <- drmTMB(
+    bf(y ~ x + mi(z)),
+    family = stats::Gamma(link = "log"),
+    data = dat_missing,
+    impute = list(z = impute_model(z ~ x, family = binomial())),
+    missing = miss_control(predictor = "model")
+  )
+  expect_true(is.finite(as.numeric(logLik(fit_mi))))
+})

@@ -10405,6 +10405,19 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     cli::cli_abort(message)
   }
 
+  # mi() is legal only in the univariate mean formula (mu); on every other
+  # parameter it was previously parsed and silently discarded, since the
+  # public mi() stub is just `function(x) x` and no non-mu formula path
+  # extracts or rejects it (Dinnage audit Md-D). Checked ahead of the
+  # shared `unsupported` list below so it applies uniformly.
+  if (!identical(dpar, "mu") && formula_contains_call(rhs, "mi")) {
+    cli::cli_abort(c(
+      "{.fn mi} is not supported outside the {.code mu} formula.",
+      "x" = "The {.code {dpar}} formula contains {.fn mi}.",
+      "i" = "{.fn mi} models missing values in a predictor of the conditional mean; use ordinary covariates or drop {.fn mi} from {.code {dpar}}."
+    ))
+  }
+
   unsupported <- c("|", "meta_known_V", "meta_V", "gr", "phylo", "spatial")
   if (!isTRUE(allow_offset)) {
     unsupported <- c(unsupported, "offset")

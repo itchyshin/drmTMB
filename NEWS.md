@@ -38,6 +38,13 @@
   pattern and are a known follow-up, not covered by this fix. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
   finding M1.
+* `mi()` is now rejected with an error on every formula parameter except
+  `mu`. The public `mi()` marker is an identity stub (`function(x) x`), and
+  no non-`mu` formula path extracted or rejected it, so e.g. `sigma ~ mi(z)`
+  was silently parsed as an ordinary covariate and gave a bit-identical
+  logLik to `sigma ~ z` -- no error, and no missing-data handling for `z`.
+  Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Md-D.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
