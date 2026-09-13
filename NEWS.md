@@ -66,6 +66,14 @@
   `mspl_frequency_rows$kept` is now threaded through to re-express
   `model$keep` relative to the original input data. Credit: the independent
   evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Md-N.
+* `skew_normal()` now uses the package's own tail-safe `drm_log_pnorm()`
+  (already used by the binomial probit link) for its skew-CDF factor,
+  instead of flooring `pnorm(...)` with `+ 1e-300`. The floor saturated the
+  far-tail log-density to a constant (`log(1e-300) ~= -690.8`) regardless
+  of how far in the tail a point actually was, giving a gradient wrong by
+  orders of magnitude and a plateau a maximiser could sit on. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding Md-M.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the

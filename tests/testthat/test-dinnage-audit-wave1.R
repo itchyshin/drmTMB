@@ -138,3 +138,42 @@ test_that("Md-N: dropped_rows reflects MSPL-discarded rows (Dinnage audit)", {
   expect_equal(nrow(row), 1L)
   expect_match(row$value, "dropped=1", fixed = TRUE)
 })
+
+test_that("Md-M: skew_normal's far tail matches pnorm(log.p = TRUE) (Dinnage audit)", {
+  # skew_normal floored its skew-CDF factor with pnorm(...) + 1e-300 instead
+  # of the package's own tail-safe drm_log_pnorm() (used elsewhere, e.g. the
+  # binomial probit link). At alpha = 10, z = -40 (alpha*z = -400, deep past
+  # where pnorm() underflows to exactly 0), the floor saturates the
+  # log-density to log(1e-300) ~ -690.8 regardless of how far in the tail the
+  # point is; the correct value is a further ~80000 nats more negative.
+  alpha <- 10
+  mu <- 0
+  log_sigma <- 0
+  sigma <- exp(log_sigma)
+  delta <- alpha / sqrt(1 + alpha^2)
+  mean_shift <- delta * sqrt(2 / pi)
+  variance_factor <- 1 - mean_shift^2
+  omega <- sigma / sqrt(variance_factor)
+  xi <- mu - omega * mean_shift
+  target_z <- -40
+  y_target <- xi + target_z * omega
+
+  fit <- allow_nonconvergence(drmTMB(
+    bf(y ~ 1, sigma ~ 1, nu ~ 1),
+    family = skew_normal(),
+    data = data.frame(y = y_target),
+    control = drm_control(se = FALSE)
+  ))
+  par <- fit$opt$par
+  par[names(par) == "beta_mu"] <- mu
+  par[names(par) == "beta_sigma"] <- log_sigma
+  par[names(par) == "beta_nu"] <- alpha
+  nll_pkg <- fit$obj$fn(par)
+  expect_true(is.finite(nll_pkg))
+
+  z <- (y_target - xi) / omega
+  log_density_ref <-
+    log(2) - log(omega) + stats::dnorm(z, log = TRUE) +
+    stats::pnorm(alpha * z, log.p = TRUE)
+  expect_equal(as.numeric(nll_pkg), -log_density_ref, tolerance = 1e-6)
+})

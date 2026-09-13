@@ -2666,12 +2666,17 @@ Type objective_function<Type>::operator()()
       xi(i) = mu(i) - omega(i) * mean_shift;
       if (observed_y(i) == 1) {
         Type z = (y(i) - xi(i)) / omega(i);
-        Type skew_cdf = pnorm(alpha * z, Type(0.0), Type(1.0));
+        // Use the package's own tail-safe log Phi() (drm_log_pnorm(), also
+        // used by the binomial probit link) instead of flooring pnorm() with
+        // + 1e-300: the floor saturates the far tail to a constant, giving a
+        // gradient wrong by orders of magnitude and a plateau a maximiser can
+        // sit on (Dinnage audit Md-M).
+        Type log_skew_cdf = drm_log_pnorm(alpha * z);
         Type log_density =
           log_two -
           log(omega(i)) +
           dnorm(z, Type(0.0), Type(1.0), true) +
-          log(skew_cdf + Type(1e-300));
+          log_skew_cdf;
         nll -= weights(i) * log_density;
       }
     }
