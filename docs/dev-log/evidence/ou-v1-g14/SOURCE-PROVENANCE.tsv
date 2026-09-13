@@ -1,0 +1,11 @@
+source_commit	4fd12c34efe2f954cccd9d9584dd11d843961bfa
+source_dirty	FALSE
+runner_sha256	5a9b4a53bd62e5e2ef3f409fa8680d8ab4d8056b281cac996ca2c01db91d62a7
+design_sha256	e6b0f0722ba649d3428c48c8761d1b4c85952d3ee6421bcf5250b8b0c1734344
+r_version	R version 4.6.0 (2026-04-24)
+platform	aarch64-apple-darwin23
+drmTMB_version	0.7.1
+drmTMB_dll_sha256	12a2a5c4862220d3ed42d94865e6f8b23b1c4c45cc298491bfeab396529acfaf
+command	/Library/Frameworks/R.framework/Resources/bin/exec/R --no-echo --no-restore --file=tools/run-phylo-ou-sigma-recovery-calibration.R --args --calibration
+run_started_utc	2026-09-13 01:14:52 UTC
+elapsed_total_seconds	66.5257589817047

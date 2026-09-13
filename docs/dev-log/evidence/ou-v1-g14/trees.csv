@@ -1,0 +1,4 @@
+"tree_id","n_species","tree_seed","root_to_tip_height","root_retained","tip_order_sha256","newick_sha256","scaling_rule","root_distribution"
+"tree_n32_v1",32,2026091201,1,TRUE,"d6117d01dd58aab1499f95f79b94e7922fdf854925ff6a4621d1548c865f38c3","4a488e18fa68c513023badd4cb07c21ee9d50216c4006993b33de112517ac631","height_one","stationary"
+"tree_n64_v1",64,2026091202,1,TRUE,"15025971b663c3e39aeadc01ba1a1677961fb293a90978c61c332e0c334529ea","68e523ca7118250cf852178fd00e84e9240718283fdd3f019326885fac560f35","height_one","stationary"
+"tree_n12_v1",12,2026091203,1,TRUE,"0ecf9ab6eabd099a84fdffc83c968cbd47f812d93d62f67513db3f15d71a4b6e","fe712bc9a056d77046982e649b26aed725466a9673ac45718cc55ab406413f39","height_one","stationary"
