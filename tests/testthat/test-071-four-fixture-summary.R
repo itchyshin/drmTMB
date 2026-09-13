@@ -34,6 +34,20 @@ test_that("the scoreboard has a distinct ordinary-Laplace classification path", 
   expect_true(is.function(env$sb_ordinary_laplace_summary))
 })
 
+test_that("ordinary-Laplace coverage rows are emitted from the capability registry", {
+  caps <- drmTMB:::drm_julia_capability_comparison()
+  rows <- caps[caps$capability_id %in% c(
+    "ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace"
+  ), , drop = FALSE]
+  expect_identical(rows$capability_id, c(
+    "ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace"
+  ))
+  expect_true(all(rows$r_bridge_status == "supported"))
+  expect_true(all(rows$evidence_url ==
+    "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv"))
+  expect_true(all(grepl("frozen-scenario", rows$claim_boundary, fixed = TRUE)))
+})
+
 test_that("S7 coverage accepts only the declared original writer or scope-fix collector", {
   root <- normalizePath(testthat::test_path("..", ".."))
   tool <- file.path(root, "tools", "write-parity-scoreboard.R")
@@ -617,20 +631,28 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
 })
 
-test_that("S7 reconciliation payload verifies source trees on a compute node", {
+test_that("S7 reconciliation payload proves staged source subsets on a compute node", {
   reconcile <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                                    "julia-r-parity", "071-ordinary-laplace", "s7-fir-reconcile.sh")
   expect_true(file.exists(reconcile))
   text <- paste(readLines(reconcile, warn = FALSE), collapse = "\n")
   expect_match(text, "#SBATCH --cpus-per-task=1", fixed = TRUE)
   expect_match(text, "source-tree-archive-compare", fixed = TRUE)
-  expect_match(text, "diff -qr", fixed = TRUE)
+  expect_match(text, "verify-source-commit.sh", fixed = TRUE)
+  expect_match(text, "SOURCE_COMMIT_SUBSET_PROOF_PASS", fixed = TRUE)
+  expect_match(text, "DESCRIPTION,NAMESPACE,R,src,inst", fixed = TRUE)
+  expect_match(text, "'drmTMB/'", fixed = TRUE)
+  expect_match(text, "Project.toml,src", fixed = TRUE)
+  expect_false(grepl("diff -qr", text, fixed = TRUE))
   expect_match(text, "s7-coverage-summary.tsv", fixed = TRUE)
   expect_match(text, "--drmjl-source-root=${S7_DRMJL_ROOT}", fixed = TRUE)
+  expect_match(text, "source-pins-final.tsv", fixed = TRUE)
+  expect_match(text, "sha256sum", fixed = TRUE)
+  expect_false(grepl("764ceaf9|b877f513", text))
   expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
 })
 
-test_that("S7 coverage writer binds the source-tree comparison to frozen archives", {
+test_that("S7 coverage writer binds the source-subset proof to frozen archives", {
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -644,6 +666,7 @@ test_that("S7 coverage writer binds the source-tree comparison to frozen archive
   receipt <- tempfile("071-s7-source-tree-")
   writeLines(c(
     "source_tree_archive_compare=PASS",
+    "source_subset_commit_proof=PASS",
     paste0("drmtmb_source=", normalizePath(drmtmb)),
     paste0("drmjl_source=", normalizePath(drmjl)),
     paste0("drmtmb_archive_sha256=", drmtmb_sha),
@@ -656,7 +679,7 @@ test_that("S7 coverage writer binds the source-tree comparison to frozen archive
                "drmjl_archive_sha256=unverified"), receipt)
   expect_error(
     env$r071_s7_read_source_tree_check(receipt, drmtmb, drmjl, drmtmb_sha, drmjl_sha),
-    "source-tree archive comparison is invalid"
+    "source-subset commit proof is invalid"
   )
 })
 

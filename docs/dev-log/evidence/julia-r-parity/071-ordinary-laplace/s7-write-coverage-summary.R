@@ -104,18 +104,20 @@ r071_s7_read_source_tree_check <- function(path, source_root, drmjl_source_root,
                                             drmtmb_archive_sha256, drmjl_archive_sha256) {
   if (!file.exists(path)) stop("S7 coverage writer needs a source-tree archive comparison", call. = FALSE)
   lines <- readLines(path, warn = FALSE)
-  keys <- c("source_tree_archive_compare", "drmtmb_source", "drmjl_source",
-            "drmtmb_archive_sha256", "drmjl_archive_sha256")
+  keys <- c("source_tree_archive_compare", "source_subset_commit_proof",
+            "drmtmb_source", "drmjl_source", "drmtmb_archive_sha256",
+            "drmjl_archive_sha256")
   fields <- strsplit(lines, "=", fixed = TRUE)
   observed_keys <- vapply(fields, function(x) if (length(x) == 2L) x[[1L]] else NA_character_, character(1L))
   values <- vapply(fields, function(x) if (length(x) == 2L) x[[2L]] else NA_character_, character(1L))
   if (!identical(observed_keys, keys) || anyNA(values) ||
       !identical(values[[1L]], "PASS") ||
-      !identical(normalizePath(values[[2L]], mustWork = TRUE), normalizePath(source_root, mustWork = TRUE)) ||
-      !identical(normalizePath(values[[3L]], mustWork = TRUE), normalizePath(drmjl_source_root, mustWork = TRUE)) ||
-      !identical(values[[4L]], drmtmb_archive_sha256) ||
-      !identical(values[[5L]], drmjl_archive_sha256)) {
-    stop("S7 coverage source-tree archive comparison is invalid", call. = FALSE)
+      !identical(values[[2L]], "PASS") ||
+      !identical(normalizePath(values[[3L]], mustWork = TRUE), normalizePath(source_root, mustWork = TRUE)) ||
+      !identical(normalizePath(values[[4L]], mustWork = TRUE), normalizePath(drmjl_source_root, mustWork = TRUE)) ||
+      !identical(values[[5L]], drmtmb_archive_sha256) ||
+      !identical(values[[6L]], drmjl_archive_sha256)) {
+    stop("S7 coverage source-subset commit proof is invalid", call. = FALSE)
   }
   invisible(path)
 }

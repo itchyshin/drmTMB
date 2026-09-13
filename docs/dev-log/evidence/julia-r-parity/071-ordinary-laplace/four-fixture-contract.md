@@ -30,10 +30,10 @@ debugging material, not parity evidence.
 
 | Fixture | R formula | Julia target | Current bridge evidence | Admission condition |
 | --- | --- | --- | --- | --- |
-| Binomial RI | `y ~ x + (1 | id)` | `Binomial(); marginal = :Laplace` | historic preflight only; rerun from corrected source | one ordinary mean RI |
-| Poisson RI | `y ~ x + (1 | id)` | `Poisson(); marginal = :Laplace` | historic preflight only; rerun from corrected source | one ordinary mean RI |
-| NB2 RI | `count ~ x + (1 | id), sigma ~ 1` | `NegBinomial2(); marginal = :Laplace` | historic preflight only; rerun from corrected source | one ordinary mean RI, constant `sigma` |
-| coupled NB2 location--scale | `count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)` | matching q=2 location--scale Laplace route | historic preflight only; rerun from corrected source | one matching labelled intercept pair |
+| Binomial RI | `y ~ x + (1 | id)` | `Binomial(); marginal = :Laplace` | retained S7: 500 paired seeds, every free outer target classified | one ordinary mean RI |
+| Poisson RI | `y ~ x + (1 | id)` | `Poisson(); marginal = :Laplace` | retained S7: 500 paired seeds, every free outer target classified | one ordinary mean RI |
+| NB2 RI | `count ~ x + (1 | id), sigma ~ 1` | `NegBinomial2(); marginal = :Laplace` | retained S7: 500 paired seeds, every free outer target classified | one ordinary mean RI, constant `sigma` |
+| coupled NB2 location--scale | `count ~ x + (1 | p | id), sigma ~ z + (1 | p | id)` | matching q=2 location--scale Laplace route | retained S7: 500 paired seeds; every target classified, including retained profile/non-finite outcomes | one matching labelled intercept pair |
 
 The target manifest, not an ad-hoc coefficient vector, will define all common,
 free outer parameters on named link/transformed scales. Inner modes never enter
@@ -68,13 +68,16 @@ non-finite L22 endpoints, must be rerun and retained under the corrected pin.
 
 ## Campaign boundary
 
-Earlier receipts are retained only for diagnosis and must not be reconciled or
-used to support the new classification. The corrected source has not yet
-produced a four-fixture reconciliation. Therefore G4, matrix regeneration, and
-coverage remain open; the historical 32 finite profiles and two matched L22
-non-finite endpoints are not carried into their denominators.
+Earlier receipts remain diagnosis only. The authoritative corrected-source
+campaign is the retained
+[`s7-coverage-summary.tsv`](s7-coverage-summary.tsv), pinned to drmTMB
+`453cff782900aa55211d3f5971c229fc485d291e` and DRM.jl
+`b2caf00f23f080fe89028966a4bfb098ef095510`. It records 500 paired DGP seeds
+per fixture, 2,000 paired data sets, and 17,000 engine-target profile attempts.
+All attempted seeds remain in the unconditional denominator, with fit failure,
+profile failure, non-finite endpoint, and truth-outside statuses kept separate.
 
-These receipts are not interval-coverage evidence. The historical
-[`cost probe`](cost-probe.md) is only a scheduling lead; a fresh corrected-pin
-probe must write the new campaign estimate before the approved retained,
-paired 500-seed-per-fixture DRAC campaign is submitted.
+The campaign estimates empirical profile-interval coverage only for these four
+frozen scenarios. It does not establish general calibration, general R--Julia
+coverage parity, performance, or release readiness. Any future campaign needs
+a new source pin, a new cost receipt, and its own retained denominator.
