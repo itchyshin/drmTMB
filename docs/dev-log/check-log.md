@@ -95448,3 +95448,53 @@ BM had the lowest AIC, and assumed alpha 0.7 was the closest OU value. This is
 an assumed-alpha robustness display, not an alpha estimate or a general
 BM-versus-OU selection claim. Ayumi's exact data/tree receipt is the next
 empirical step.
+
+## 2026-09-13 — Experimental fixed-alpha OU sensitivity API
+
+Added `ou_sensitivity()` as a deliberately bounded public wrapper around the
+native OU provider. It derives an unchanged BM comparator from the submitted
+location-side OU formula, fixes each declared alpha by mapping
+`log_decay_phylo`, and reports conditional log likelihood/AIC, convergence,
+Hessian, gradient, warnings, and every `mu`/`sigma` fixed effect. The helper
+uses `alpha / root_depth` by default so a declared grid has stable meaning
+across ultrametric trees; `alpha_scale = "raw"` preserves native
+branch-length units.
+
+Checks run:
+
+```sh
+air format R/ou-sensitivity.R tests/testthat/test-ou-sensitivity.R
+Rscript -e 'devtools::document()'
+Rscript -e 'devtools::test(filter="ou-sensitivity", reporter="summary")'
+git diff --check
+```
+
+The targeted suite passed, including the BM comparator,
+root-depth and raw-rate mapping, `mu`/`sigma` coefficient extraction,
+scale-side OU refusal, slope refusal, missing-data refusal, duplicate-alpha
+refusal, and the package ultrametric-tree boundary. `pkgdown::build_reference_index()`
+was attempted but stopped on an existing missing `temporal` reference-index
+entry; no generated site artifact was retained. `R CMD check --no-manual`
+began and passed source/namespace/dependency checks, but this local execution
+surface terminated during installation before a package verdict, so it is not
+claimed as a passing check.
+
+The existing `phylo-ou` filter was also run. Its native covariance and parser
+files passed; its retained `phylo-ou-sigma-recovery-calibration` receipt failed
+before modelling because its unrelated smoke-manifest provenance is stale or
+incomplete. That pre-existing receipt failure was not edited or reclassified.
+Re-running the native covariance and parser files individually confirmed both
+pass alongside the focused `ou-sensitivity` file.
+
+Consistency inventory searched with:
+
+```sh
+rg -n "OU v1|ou_sensitivity|fixed[- ]alpha|fixed[- ]decay|phylo\\(1 \\|.*model = \\\"ou\\\"" README.md docs/dev-log/internal-roadmap.md docs/dev-log/known-limitations.md docs/design/01-formula-grammar.md vignettes/formula-grammar.Rmd vignettes/phylogenetic-models.Rmd NEWS.md _pkgdown.yml R/ou-sensitivity.R tests/testthat/test-ou-sensitivity.R
+```
+
+The design note, formula grammar, phylogenetic tutorial, NEWS, limitations,
+reference index, and generated manual page now label this as experimental
+fixed-alpha sensitivity. Full OU v1 remains parked; no frozen manifest row was
+promoted. Open issue inspection found no exact duplicate; #570 concerns a
+different Ayumi sigma-phylo optimizer failure, so the tracker was left
+unchanged.

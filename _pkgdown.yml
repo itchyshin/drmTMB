@@ -178,6 +178,7 @@ reference:
       - miss_control
       - drm_phylo_penalty
       - drm_phylo_penalty_sweep
+      - ou_sensitivity
       - native_reader_contracts
       - check_drm
       - drm_provenance

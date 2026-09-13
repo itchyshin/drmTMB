@@ -117,6 +117,7 @@ new distribution enters the package.
 | `mvbind(y1, y2) ~ x1` | Implemented | Shorthand for identical bivariate location formulas; explicit `mu1`/`mu2` remains preferred for different predictors. |
 | `phylo(1 | species, tree = tree)` in `mu` and/or `sigma` | Implemented | Intercept-only univariate Gaussian phylogenetic location and residual-scale effect; matching `mu`/`sigma` terms estimate one latent structured correlation. Requires an ultrametric tree with branch lengths. |
 | `y ~ x + phylo(1 | species, tree = tree, model = "ou")`, `sigma ~ z`, `sd(species, level = "phylogenetic") ~ w` | Implemented local-fit/oracle slice | Stationary evolutionary OU covariance over phylogenetic branch distance. Brownian motion remains the default. This location-only route has one Gaussian `mu` intercept field, fixed-effect residual `sigma`, and an optional direct phylogenetic-SD amplitude regression; native ML and REML fit. `sigma ~ z` controls independent residual variation and is not a second OU field in this route; the fitted location rate is `decay_phylo` (compatibility name for `alpha_mu`). The retained local panel found weak intercept--tree-field separation, so no point-recovery, interval, or coverage claim is made; decay intervals remain unavailable. |
+| `ou_sensitivity(bf(y ~ x + phylo(1 | species, tree = tree, model = "ou"), sigma ~ z), data, alpha = c(.3, .7, 1.3))` | Experimental fixed-alpha sensitivity | Fits the unchanged BM comparator plus a prespecified location-side OU alpha grid on identical data/tree/formula/control settings. It reports conditional likelihood/AIC, diagnostics, and `mu`/`sigma` coefficients. It does not estimate alpha, choose a process, support scale-side OU, or promote the parked full OU-v1 census. |
 | matching unlabelled `phylo(1 | species, tree = tree, model = "ou")` intercepts in `y ~ ...` and `sigma ~ ...` | Implemented ML local-fit/oracle slice | Independent location and residual-log-scale OU fields with `alpha_mu = decay_phylo` and `alpha_sigma = decay_phylo:sigma`. Fixed `sigma` predictors remain deterministic regression. The Laplace-approximated ML route maps out BM's cross-field correlation, so `corpairs()` exposes no phylogenetic pair. It rejects slopes, labels, direct-SD formulas, known sampling covariance, REML, other random/structured effects, temporal terms, `newdata`, forecasts, and non-Gaussian families. The retained preflight is negative identification evidence, not recovery, interval, coverage, or model-preference evidence. |
 | `y ~ x + phylo(1 | species, tree = tree)`, `sigma ~ z`, `family = beta()` | Implemented exact q1 recovery slice | One unlabelled intercept-only phylogenetic location effect in Beta `mu`; family `sigma` remains fixed-effect-only and controls `phi = sigma^(-2)`. Point recovery passed only in the exact tested `g = 1024, m = 4` regime. This is not `g >= 1024`; slopes, labels/q2+, phylogeny in family `sigma`, direct latent-`sd()` regression, REML, intervals, and coverage remain deferred. |
 | `animal(1 | id, pedigree = pedigree)`, `animal(1 | id, A = A)`, or `animal(1 | id, Ainv = Ainv)` in `mu` and/or `sigma` | Implemented first slice | Univariate Gaussian animal-model random intercept from a dense pedigree-derived additive relationship matrix, precomputed additive relatedness, or inverse-relatedness matrix. Matching `mu`/`sigma` terms estimate one latent structured correlation. One numeric `mu` slope is fitted; the exact A-matrix q1 `sigma` one-slope route is also fitted and inference-ready with caveats under raw log-SD Wald-z intervals. Pedigree/Ainv bridge marshalling, sparse large-pedigree construction, additional multiple or labelled structured-slope layouts outside the exact fitted ledger cells, structured slope correlations, predictor-dependent `corpair()`, and direct-SD grammar remain planned. |
@@ -170,6 +171,26 @@ fit <- drmTMB(
 
 fit$decaypars$phylo[["decay_phylo"]]
 ```
+
+If estimating `decay_phylo` is weak or not the scientific question, hold a
+small, biologically prespecified grid fixed instead. `ou_sensitivity()` then
+keeps the BM comparator and every other fitting choice identical:
+
+```r
+ou_sensitivity(
+  bf(
+    seed_mass ~ habitat +
+      phylo(1 | species, tree = bird_tree, model = "ou"),
+    sigma ~ habitat
+  ),
+  data = bird_data,
+  alpha = c(0.3, 0.7, 1.3)
+)
+```
+
+Read this as sensitivity to assumed decay, not evidence that the grid estimates
+or selects an OU process. This experimental helper is location-side only; it
+does not support a phylogenetic `sigma` field.
 
 `decay_phylo` is the positive \(\alpha\) in
 \(\exp(-\alpha d)\), where \(d\) is phylogenetic branch distance. Smaller

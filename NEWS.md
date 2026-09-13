@@ -58,6 +58,11 @@ every item above.
   coverage, and OU-preference claims remain unavailable. The fitted objective is
   Laplace-approximated ML; retained preflight fixtures are negative
   identifiability evidence, not recovery evidence.
+* `ou_sensitivity()` is an experimental fixed-decay location-side OU robustness
+  tool. It always includes the same-data BM comparator and reports each
+  prespecified alpha's conditional likelihood/AIC, convergence diagnostics, and
+  `mu`/`sigma` coefficients. It does not estimate alpha, choose BM or OU, or
+  widen the parked OU-v1 capability census.
 
 # drmTMB 0.7.0
 

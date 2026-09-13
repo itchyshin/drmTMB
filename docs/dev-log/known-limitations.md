@@ -89,6 +89,11 @@ revisit condition.
   makes no point-recovery, interval, coverage, or OU-preference claim. It is
   not temporal OU, spatial OU, the paired phylogeny-plus-temporal OU route
   above, or a separable phylogeny-by-time field.
+- `ou_sensitivity()` is an experimental alternative when a user wants to ask
+  how a **prespecified** location-side OU decay changes one univariate Gaussian
+  phylogenetic result. It compares BM and each fixed alpha on the same rows,
+  tree, formula, and controls, but it does not estimate alpha, select a process,
+  support a scale-side OU field, or alter the parked full OU-v1 programme.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the
