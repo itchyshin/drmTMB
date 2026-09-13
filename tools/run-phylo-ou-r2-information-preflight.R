@@ -65,7 +65,10 @@ payload <- function(row) {
 
 fit_one <- function(row, start_id) {
   p <- payload(row); warnings <- character(); begun <- Sys.time(); cpu <- proc.time()
-  formula <- bf(y ~ phylo(1 | species, tree = p$tree, model = "ou"), sigma ~ phylo(1 | species, tree = p$tree, model = "ou"))
+  # The formula parser deliberately records a named tree object; a `$` call
+  # would be an unresolvable tree expression at the user-facing boundary.
+  tree <- p$tree
+  formula <- bf(y ~ phylo(1 | species, tree = tree, model = "ou"), sigma ~ phylo(1 | species, tree = tree, model = "ou"))
   control <- drmTMB:::drm_parse_control(drm_control(optimizer = list(eval.max = 1500, iter.max = 1500)))
   spec <- drmTMB:::drm_build_gaussian_ls_spec(formula, p$data, env = environment(), weights = NULL,
     control = control, impute = NULL, missing = drmTMB:::drm_parse_missing_control(miss_control()))
