@@ -95351,3 +95351,20 @@ simulator–fitter mismatch and identified an alpha–amplitude likelihood ridge
 as the plausible geometry. G15 remains a no-go. The next proposed, separately
 approved scope is R3 likelihood-geometry diagnosis on the retained R2 data;
 no family, grammar, correlation, or public-capability work follows from R2.
+
+## 2026-09-12 — OU v1 R3 likelihood geometry: G15 remains no-go
+
+R3 profiled two retained R2 data sets over a 5 by 5 two-rate grid, fixing both
+rates while re-optimising intercepts, field SDs, and latent modes. A timed
+one-point smoke projected the 50 profile points at 125.32 seconds; all points
+were finite. The first data set's truth `(0.7, 1.3)` was 2.885 objective units
+above a high-rate `(8, 8)` minimum and showed sigma-field SD collapse over a
+broad alpha-sigma direction. The complementary data set's truth was only
+0.040 above its grid minimum in a shallow scale-rate direction.
+
+An independent 3-tip 5/7-node Gauss--Hermite calculation matched the native
+TMB Laplace objective to `4.4e-10`, with `8.6e-14` quadrature refinement. It
+validates that small fixed point, not the 128-tip approximation. Fisher's
+independent review therefore keeps G15 at no-go and recommends separately
+approved R3.1 exact-marginal checks at a retained interior truth and ridge
+point before concluding whether the problem is purely information geometry.

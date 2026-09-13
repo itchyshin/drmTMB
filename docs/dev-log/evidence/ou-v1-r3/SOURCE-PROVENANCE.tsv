@@ -1,0 +1,5 @@
+source_commit	c02148ce04c53c8edc50701f96baad3c4487b513
+source_dirty	FALSE
+runner_sha256	2e5a64bc814dca2f3a65e7198daee3351cce830a88f5e3997a84ab352aaf10db
+design_sha256	804240ea4b2ba47c8bf659faf7813a247a501066d4422f508fd8e30a4ce942b1
+command	Rscript tools/run-phylo-ou-r3-geometry.R --run

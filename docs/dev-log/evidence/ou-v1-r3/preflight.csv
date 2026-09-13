@@ -1,0 +1,2 @@
+"task_id","alpha_mu","alpha_sigma","objective","convergence","pdHess","max_gradient","sd_mu","sd_sigma","elapsed_seconds","warning","error","delta_objective"
+"R2_n128_m12_amu0p7_asigma1p3_rep1",0.7,1.3,194.27724527777,0,FALSE,2.35924623653074e-08,0.527498915391444,2.78735284831774e-06,2.506432056427,"NaNs produced",NA,0
