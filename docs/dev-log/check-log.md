@@ -95418,6 +95418,18 @@ geometry-aware native-recovery design/preflight, separating informative and
 weak regimes before any retained campaign. No G15, family expansion, or public
 OU claim follows directly from R3.3.
 
+## 2026-09-13 — OU v1 R6 Ayumi fixed-alpha empirical receipt
+
+R6 reconstructed Ayumi's local passerine AVONET/climate data preparation and
+pruned/repaired Hackett tree, then fit BM and fixed location-side OU strengths
+on identical rows, tree, ML setting, formulas, and optimizer controls. The
+source tree depth was explicitly used to translate the normalized alpha grid
+to its raw branch-length units. All fits converged with positive-definite
+Hessians. BM AIC was 4691.289; fixed OU AIC increased monotonically from
+4705.362 at normalized alpha 0.1 to 5234.478 at 2.5. This is an empirical
+assumed-alpha sensitivity receipt, not rate estimation or a general model
+selection claim.
+
 ## 2026-09-12 — OU v1 R4 geometry recovery preflight: no campaign design
 
 R4 compared one weak and one larger-amplitude, separated-rate 128-species
