@@ -1,0 +1,5 @@
+source_commit	cdd1a6191a61ca97d38809c5a44616b949051a87
+source_dirty	FALSE
+runner_sha256	9c2072be8363d9d5bc23b070113e7eed169031a840cd6524d9c04dc176a84bc2
+command	/Library/Frameworks/R.framework/Resources/bin/exec/R --no-echo --no-restore --file=tools/run-phylo-ou-r2-information-preflight.R --args --local
+run_started_utc	2026-09-13 02:21:45 UTC

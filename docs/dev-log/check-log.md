@@ -95333,3 +95333,21 @@ seeds per ordered rate pair, 128 species, 12 within-species observations, and
 three starts (30 retained fits), with all failures and both rate-error summaries
 kept. Full provenance and exact resume commands are in
 `docs/dev-log/plan-actual/2026-09-12-ou-v1-complete.md`.
+
+## 2026-09-12 — OU v1 R2 information preflight: G15 remains no-go
+
+The approved R2 design strengthened the joint independent OU recovery screen
+to 128 species, 12 observations per species, two ordered rate pairs, five
+independent tree-plus-field draws per pair, and three starts (30 attempts).
+The measured three-start smoke projected 191.61 seconds, so the complete local
+screen remained below the 30-minute boundary. Every attempt, generated tree,
+field, response data set, start, warning, diagnostic, checksum, and
+source-provenance field is retained in `docs/dev-log/evidence/ou-v1-r2/`.
+
+All ten data sets had a qualified numerical fit, but recovery worsened rather
+than improved: median absolute log-rate error was 0.875 for `alpha_mu` and
+1.272 for `alpha_sigma`, with maxima 2.254 and 3.315. Fisher found no
+simulator–fitter mismatch and identified an alpha–amplitude likelihood ridge
+as the plausible geometry. G15 remains a no-go. The next proposed, separately
+approved scope is R3 likelihood-geometry diagnosis on the retained R2 data;
+no family, grammar, correlation, or public-capability work follows from R2.

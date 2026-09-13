@@ -1,0 +1,11 @@
+"task_id","attempt_count","qualified_count","warning_count","boundary_count"
+"R2_n128_m12_amu0p7_asigma1p3_rep1",3,1,1,1
+"R2_n128_m12_amu0p7_asigma1p3_rep2",3,3,0,0
+"R2_n128_m12_amu0p7_asigma1p3_rep3",3,3,0,0
+"R2_n128_m12_amu0p7_asigma1p3_rep4",3,3,0,0
+"R2_n128_m12_amu0p7_asigma1p3_rep5",3,3,0,0
+"R2_n128_m12_amu1p3_asigma0p7_rep1",3,3,0,0
+"R2_n128_m12_amu1p3_asigma0p7_rep2",3,3,0,0
+"R2_n128_m12_amu1p3_asigma0p7_rep3",3,3,0,0
+"R2_n128_m12_amu1p3_asigma0p7_rep4",3,3,0,0
+"R2_n128_m12_amu1p3_asigma0p7_rep5",3,3,0,0
