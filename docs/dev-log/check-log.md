@@ -95305,7 +95305,7 @@ R1 freezes a replicated, intercept-only Gaussian ML design for the existing
 independent OU location/scale fields: 16 ordinary tasks, two deliberately weak
 negative controls, and three fixed starts per task. Its independent stationary
 root-edge oracle and deterministic smoke pass. A source-current twelve-fit
-largest-cell preflight projected all 54 attempts at 183.72 seconds, below the
+largest-cell preflight projected all 54 attempts at 183.46 seconds, below the
 25-minute local threshold, with no campaign launched. Both the smoke and
 preflight receipts record source-current runner/contract hashes and are
 validated for task identifiers, diagnostics, and provenance. This is a

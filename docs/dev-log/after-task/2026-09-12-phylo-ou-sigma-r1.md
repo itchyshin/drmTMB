@@ -20,7 +20,7 @@ The simulator independently draws \(u \sim OU(\alpha_\mu,0.45)\) and \(v \sim OU
 
 - `Rscript tools/verify-phylo-ou-sigma-recovery-calibration.R --all` passed.
 - `Rscript tools/verify-phylo-ou-sigma-recovery-calibration.R --smoke` passed with a retained weak negative-control result.
-- The source-current twelve-fit preflight projected all 54 predeclared attempts at 183.72 seconds, below the 25-minute local calibration threshold; `campaign_launch=FALSE`.
+- The source-current twelve-fit preflight projected all 54 predeclared attempts at 183.46 seconds, below the 25-minute local calibration threshold; `campaign_launch=FALSE`.
 - `Rscript -e 'testthat::test_file("tests/testthat/test-phylo-ou-sigma-recovery-calibration.R", reporter = "summary")'` passed.
 - Unlazy reverify reported all nine R1 gates met.
 
