@@ -39,3 +39,9 @@ Do not re-verify what the map already records; do not re-file issues.
 
 Merge or release; touch the 071 lane (PR #1304 is green as a draft and done);
 run campaigns; spawn sub-agents from a scout.
+
+## Landing state
+
+CARRIED-OVER: `claude/audit-dinnage-wave1-20260913` · draft PR #1361 (CI green on os-matrix and the blind-spot job; release shards re-running after the C17 receipt re-certification) · why: awaits Shinichi's decisions on S3 (#1312) and the M4 count-mixture contract before merge · resume: `cd /Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1 && git pull && cat docs/dev-log/handover/2026-09-13-claude-handover-dinnage-audit.md`
+FINDING-OF-RECORD: an outside, pre-registered, fresh-context audit found what months of inside review missed  vault-note: [[2026-09-13-why-an-outside-audit-found-what-we-missed]]
+FINDING-OF-RECORD: S3's documented PC prior is correct; the measured defect is the log-scale MAP not being parameterisation-invariant  vault-note: [[DECISIONS#D-263]]
