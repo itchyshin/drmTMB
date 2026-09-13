@@ -1,0 +1,30 @@
+bm_config_id,family,response_structure,dpar_set,bm_formula_shape,q,estimator,bm_admission_tier,ou_v1_target,proposed_ou_fields,test_anchor,final_status,notes
+G01,gaussian,univariate_complete,mu,phylo_1,q1,ML_REML,implemented,location_intercept,mu,tests/testthat/test-phylo-gaussian.R:552,FROZEN_PENDING_EVIDENCE,existing OU location route
+G02,gaussian,univariate_complete,mu,phylo_1_plus_x,q2,ML_REML,implemented,independent_intercept_slope,mu_intercept_mu_slope,tests/testthat/test-phylo-gaussian.R:2407,FROZEN_PENDING_EVIDENCE,BM independent fields
+G03,gaussian,univariate_complete,sigma,phylo_1,q1,ML_REML,implemented,scale_intercept,sigma,tests/testthat/test-phylo-gaussian.R:2219,FROZEN_PENDING_EVIDENCE,unmatched scale field
+G04,gaussian,univariate_complete,sigma,phylo_1_plus_x,q2,ML_REML,implemented,scale_intercept_slope,sigma_intercept_sigma_slope,tests/testthat/test-phylo-gaussian.R:2268,FROZEN_PENDING_EVIDENCE,BM independent fields
+G05,gaussian,univariate_complete,mu_plus_sigma,matching_phylo_1,q2,ML_REML,implemented,joint_intercept,mu_sigma,tests/testthat/test-phylo-gaussian.R:1975,FROZEN_PENDING_EVIDENCE,G13 independent ML seed
+G06,gaussian,univariate_complete,mu_plus_sigma,matching_phylo_1_plus_x,q4,ML_REML,implemented,joint_intercept_slope,mu_intercept_mu_slope_sigma_intercept_sigma_slope,tests/testthat/test-phylo-gaussian.R:2332,FROZEN_PENDING_EVIDENCE,requires multivariate OU grammar
+G07,gaussian,univariate_complete,mu,direct_phylo_sd_surface,q1,ML_REML,implemented,direct_sd_location,mu,tests/testthat/test-phylo-gaussian.R:584,FROZEN_PENDING_EVIDENCE,location amplitude surface
+G08,gaussian,univariate_complete,mu,phylo_1_plus_meta_V,q1,ML,implemented,known_V_composition,mu,tests/testthat/test-phylo-gaussian.R:1739,FROZEN_PENDING_EVIDENCE,known covariance composition
+G09,biv_gaussian,bivariate_complete,mu1_plus_mu2,labelled_phylo_intercepts,q2,ML_REML,implemented,bivariate_intercept,mu1_mu2,tests/testthat/test-phylo-gaussian.R:700,FROZEN_PENDING_EVIDENCE,mean correlation
+G10,biv_gaussian,bivariate_complete,mu1_plus_mu2,labelled_phylo_slopes,q2,ML,implemented,bivariate_slope,mu1_slope_mu2_slope,tests/testthat/test-phylo-gaussian.R:800,FROZEN_PENDING_EVIDENCE,slope covariance
+G11,biv_gaussian,bivariate_complete,all_endpoints,labelled_phylo_intercepts,q4,ML_REML,implemented,bivariate_all_endpoint_intercept,mu1_mu2_sigma1_sigma2,tests/testthat/test-phylo-gaussian.R:1237,FROZEN_PENDING_EVIDENCE,all four endpoints
+G12,biv_gaussian,bivariate_complete,mu1_plus_mu2,labelled_phylo_1_plus_x,q4,ML,implemented,bivariate_location_q4,mu1_mu2,tests/testthat/test-phylo-gaussian.R:1541,FROZEN_PENDING_EVIDENCE,partial location covariance
+G13,biv_gaussian,bivariate_complete,mu1_plus_mu2,labelled_phylo_1_plus_x_plus_z,q6,ML,implemented,bivariate_location_q6,mu1_mu2,tests/testthat/test-structured-re-q6-location.R:102,FROZEN_PENDING_EVIDENCE,location covariance
+G14,biv_gaussian,bivariate_complete,all_endpoints,labelled_phylo_1_plus_x,q8,ML,implemented,bivariate_all_endpoint_q8,mu1_mu2_sigma1_sigma2,tests/testthat/test-phylo-gaussian.R:1420,FROZEN_PENDING_EVIDENCE,derived correlations
+G15,biv_gaussian,bivariate_complete,all_endpoints,labelled_phylo_1_plus_x_plus_z,q12,ML,implemented,bivariate_all_endpoint_q12,mu1_mu2_sigma1_sigma2,tests/testthat/test-structured-re-q12-all-four.R:81,FROZEN_PENDING_EVIDENCE,full BM grammar
+G16,gaussian,univariate_missing_response,mu,phylo_1,q1,ML_REML,implemented,missing_response_location,mu,tests/testthat/test-phylo-gaussian.R:1904,FROZEN_PENDING_EVIDENCE,BM drops missing response rows; OU needs its own evidence
+N01,lognormal,univariate_complete,mu,phylo_1,q1,ML,implemented,location_intercept,mu,tests/testthat/test-positive-continuous-structured-mu.R:389,FROZEN_PENDING_EVIDENCE,positive response
+N02,gamma_log,univariate_complete,mu,phylo_1,q1,ML,implemented,location_intercept,mu,tests/testthat/test-positive-continuous-structured-mu.R:516,FROZEN_PENDING_EVIDENCE,positive response
+N03,beta,univariate_complete,mu,direct_sd_phylo_1,q1,ML,implemented,direct_sd_location,mu,tests/testthat/test-beta-phylo-direct-sd.R:116,FROZEN_PENDING_EVIDENCE,exact direct SD cell
+N04,binomial,univariate_complete,mu,phylo_1,q1,ML,implemented,location_intercept,mu,tests/testthat/test-binomial-phylo.R:37,FROZEN_PENDING_EVIDENCE,0_1 and cbind responses
+N05,cumulative_logit,univariate_complete,mu,phylo_1,q1,ML,implemented,location_intercept,mu,tests/testthat/test-cumulative-logit.R:109,FROZEN_PENDING_EVIDENCE,diagnostic BM gate
+N06,student,univariate_complete,nu,phylo_1,q1,ML,implemented,shape_intercept,nu,tests/testthat/test-student-location-scale.R:225,FROZEN_PENDING_EVIDENCE,shape field
+N07,poisson,univariate_complete,mu,phylo_1_or_1_plus_x,q1,ML,implemented,location_intercept_slope,mu,tests/testthat/test-count-structured-mu.R:772,FROZEN_PENDING_EVIDENCE,ordinary non_ZI only
+N08,poisson,univariate_complete,mu,labelled_phylo_1_plus_x,q2,ML,implemented,correlated_intercept_slope,mu,tests/testthat/test-count-structured-mu.R:841,FROZEN_PENDING_EVIDENCE,exact q2 exception
+N09,nbinom2,univariate_complete,mu,phylo_1_or_1_plus_x,q1,ML,implemented,location_intercept_slope,mu,tests/testthat/test-count-structured-mu.R:772,FROZEN_PENDING_EVIDENCE,ordinary non_ZI only
+N10,nbinom2,univariate_complete,mu,labelled_phylo_1_plus_x,q2,ML,implemented,correlated_intercept_slope,mu,tests/testthat/test-count-structured-mu.R:983,FROZEN_PENDING_EVIDENCE,exact q2 exception
+N11,nbinom2,univariate_complete,sigma,phylo_1_plus_x,q1,ML,implemented,scale_intercept_slope,sigma,tests/testthat/test-nbinom2-sigma-structured-recovery.R:36,FROZEN_PENDING_EVIDENCE,includes intercept subset
+N12,zero_one_beta,univariate_complete,mu_sigma_zoi_coi,separate_phylo_1_leaves,q1,ML,implemented,separate_endpoint_intercepts,endpoint_specific,tests/testthat/test-zero-one-beta.R:547,FROZEN_PENDING_EVIDENCE,each endpoint separately
+X01,multiple_families,univariate_complete,multiple,phylo_interaction,q1,ML,implemented,explicit_refusal,none,tests/testthat/test-phylo-interaction.R:351,FROZEN_PENDING_EVIDENCE,two_tree Kronecker BM has no OU selector
