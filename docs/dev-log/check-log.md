@@ -95368,3 +95368,21 @@ validates that small fixed point, not the 128-tip approximation. Fisher's
 independent review therefore keeps G15 at no-go and recommends separately
 approved R3.1 exact-marginal checks at a retained interior truth and ridge
 point before concluding whether the problem is purely information geometry.
+
+## 2026-09-12 — OU v1 R3.1 exact marginal diagnostic: G15 remains no-go
+
+R3.1 fixed both OU rates and both phylogenetic field SDs at an interior point
+and a high-rate/low-amplitude ridge point, then used the native optimized
+intercepts in an independent six-dimensional stationary-tip Gauss--Hermite
+integral. The two-point local calculation took 28.1 seconds. At the interior
+point, the 9-node quadrature objective exceeded native Laplace by 0.4065 NLL
+units; its 7-to-9 refinement was 0.0220. At the ridge point, the difference
+was 0.0735 with a 0.000136 refinement. Thus a material small-tree Laplace
+contribution is now evidenced, but it does not quantify the 128-tip error or
+replace the R2/R3 alpha--amplitude geometry diagnosis.
+
+Fisher independently reviewed the retained inputs and results. G15 remains a
+no-go. The next proposed, separately approved scope is R3.2: a converged
+small-tree exact *relative* profile comparison testing whether Laplace changes
+ordering or flatness across rate/amplitude. No recovery campaign, family
+expansion, correlation, or public OU claim follows from R3.1.

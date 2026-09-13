@@ -1,2 +1,2 @@
 #!/usr/bin/env Rscript
-x<-utils::read.csv("docs/dev-log/evidence/ou-v1-r31/comparison.csv");stopifnot(nrow(x)==2,identical(as.character(x$point),c("interior","ridge")),all(is.finite(x$laplace_minus_q7)),all(is.finite(x$refinement)));cat("OU_V1_R31_PASS\n")
+x<-utils::read.csv("docs/dev-log/evidence/ou-v1-r31/comparison.csv");cols<-c("alpha_mu","alpha_sigma","sd_mu","sd_sigma","mu","logsigma","laplace","quadrature5","quadrature7","quadrature9","laplace_minus_q9","refinement_5_7","refinement_7_9");stopifnot(nrow(x)==2,identical(as.character(x$point),c("interior","ridge")),identical(names(x),c("point",cols)),all(is.finite(as.matrix(x[,cols]))));cat("OU_V1_R31_PASS\n")
