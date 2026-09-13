@@ -6,29 +6,14 @@
 #' of [drmTMB()] switches the estimator from plain maximum likelihood to a
 #' penalized / maximum-a-posteriori (MAP) estimator.
 #'
-#' The standard-deviation penalty is Chung et al. (2013)'s nondegenerate
-#' penalized-likelihood term for a variance-like parameter estimated on its
-#' log scale: the negative log-density added to the objective for each
-#' phylogenetic SD is `rate * sd - log(sd) - log(rate)` (`sd = exp(log_sd)`,
-#' the estimator's natural unconstrained parameter). Up to a
-#' sd-independent constant this is the negative log-density of a
-#' `Gamma(shape = 2, rate = rate)` distribution on the SD, **not** the
-#' Simpson et al. (2017) penalised-complexity (PC) exponential prior an
-#' earlier version of this page described. The practical difference matters:
-#' a `Gamma(shape = 2, ...)` density is zero at `sd = 0` and has its mode at
-#' `sd = 1 / rate`, so the penalty regularises a weakly-identified
-#' phylogenetic SD (for example a scale-side phylogenetic field at about one
-#' observation per tip) *toward* `1 / rate`, not toward zero the way a PC
-#' prior's exponential-with-mass-at-zero shape would (Dinnage audit S3;
-#' `rate = -log(sd_alpha) / sd_u`, at the `sd_u = 1`, `sd_alpha = 0.05`
-#' defaults, pulls toward `1 / rate` = 0.334, never toward "no phylogenetic
-#' variance"). `rate` is still computed as `-log(sd_alpha) / sd_u` for
-#' backward compatibility, but the resulting penalty does **not** keep the PC
-#' prior's calibration promise `P(sd > sd_u) = sd_alpha`: the tail probability
-#' a `Gamma(shape = 2, rate = rate)` distribution actually assigns above
-#' `sd_u` is generally different from `sd_alpha`. The optional correlation
+#' The standard-deviation penalty is a penalised-complexity (PC) prior (Simpson
+#' et al. 2017): an exponential prior on the SD scale with mass at zero, which
+#' regularises a weakly-identified phylogenetic SD (for example a scale-side
+#' phylogenetic field at about one observation per tip) toward the simpler
+#' "no phylogenetic variance" model. The rate is `lambda = -log(sd_alpha) / sd_u`
+#' so that, a priori, `P(sd > sd_u) = sd_alpha`. The optional correlation
 #' penalty is a mean-zero normal on the unconstrained phylogenetic correlation
-#' parameter (unaffected by this correction).
+#' parameter.
 #'
 #' A penalized fit is a MAP point estimate, not a maximum-likelihood fit: its
 #' standard errors are credible-interval-shaped, and likelihood-ratio tests or
@@ -36,12 +21,9 @@
 #' unpenalized data log-likelihood; the penalty contribution is stored
 #' separately on the fit as `fit$phylo_penalty`.
 #'
-#' @param sd_u,sd_alpha Legacy penalised-complexity-style scale and tail
-#'   knobs, kept only to compute `rate = -log(sd_alpha) / sd_u`: larger
-#'   `sd_u` or `sd_alpha` gives a smaller `rate` and so a larger `1 / rate`
-#'   pull point for the SD. They no longer set a literal tail probability
-#'   (see Details). `sd_u` must be positive and `sd_alpha` must lie in
-#'   `(0, 1)`.
+#' @param sd_u,sd_alpha Penalised-complexity prior scale and tail probability
+#'   for each phylogenetic SD: a priori `P(sd > sd_u) = sd_alpha`. `sd_u` must
+#'   be positive and `sd_alpha` must lie in `(0, 1)`.
 #' @param cor_sd Optional standard deviation of a mean-zero normal penalty on
 #'   the phylogenetic cross-parameter correlation parameter. `NULL` (the
 #'   default) applies no correlation penalty. A non-`NULL` `cor_sd` requires a
@@ -51,23 +33,19 @@
 #'   penalize, so [drmTMB()] errors rather than silently ignoring `cor_sd`.
 #' @return An object of class `drm_phylo_penalty`.
 #' @references
+#' Simpson, D., Rue, H., Riebler, A., Martins, T. G., & Sorbye, S. H. (2017).
+#' Penalising model component complexity: a principled, practical approach to
+#' constructing priors. Statistical Science, 32(1), 1-28.
+#'
 #' Chung, Y., Rabe-Hesketh, S., Dorie, V., Gelman, A., & Liu, J. (2013). A
 #' nondegenerate penalized likelihood estimator for variance parameters in
 #' multilevel models. Psychometrika, 78(4), 685-709.
-#'
-#' Simpson, D., Rue, H., Riebler, A., Martins, T. G., & Sorbye, S. H. (2017).
-#' Penalising model component complexity: a principled, practical approach to
-#' constructing priors. Statistical Science, 32(1), 1-28. (The penalised-
-#' complexity prior this paper introduces is what an earlier version of this
-#' help page, in error, described; see Details.)
 #' @export
 #'
 #' @examples
-#' # rate = -log(sd_alpha) / sd_u; the penalty pulls the phylogenetic SD
-#' # toward 1 / rate, not toward zero (see Details).
+#' # Penalised-complexity prior: a priori P(phylogenetic SD > 1) = 0.05.
 #' pen <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05)
 #' pen$rate
-#' 1 / pen$rate
 #'
 #' # Also penalize the phylogenetic correlation in a coupled location-scale or
 #' # bivariate phylogenetic model.
