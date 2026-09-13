@@ -1,5 +1,38 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave 2)
+
+* `simulate()` now returns `NA` at masked missing-response rows for every
+  family, matching `residuals()`. Twelve of thirteen families previously
+  returned the internal missing-response sentinel (0, or 1 for the positive
+  families) at those rows, so posterior-predictive tools such as DHARMa saw
+  fabricated observations. The zero-inflated, hurdle and truncated count
+  families were masked in a second commit after review; two tests that had
+  pinned finite draws at masked rows now assert the masking invariant.
+  Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding M4.
+* `fitted_distribution()`'s `$p()` and `$d()` recycle a scalar threshold
+  across every row for the zero-inflated, hurdle and truncated count
+  families; they previously returned row 1's value only. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding S1.
+* `vcov(fit, type = "robust")` (and `robust = TRUE`) now aborts with class
+  `drmTMB_vcov_robust_unsupported` and says what to try instead; it used to
+  return the model-based matrix silently. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding S4.
+* `AIC()` and `BIC()` called with a drmTMB fit and a foreign model (for
+  example an `lm` fit) return the standard one-row-per-model data frame;
+  they used to drop the foreign model and return a bare scalar. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding S5.
+* Finding M3 (the `fixed_gradient` row of `check_drm()` firing on correct
+  fits at large n) no longer reproduces: the Newton polish added in #1130
+  already drives every correct fit's gradient far below the tolerance. A
+  regression test now locks that behaviour at n = 2000. Finding S3 (the
+  phylogenetic SD penalty's documented prior) stays open as a design
+  decision after review; no change ships for it. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval).
+
 ## Independent-evaluation fixes (wave 1)
 
 * `drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active`
