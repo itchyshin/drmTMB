@@ -1282,17 +1282,26 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (row i represents
+          // weights(i) duplicate observations), so it applies to the
+          // imputation-prior term too, not just the response density
+          // (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type mu1 = mu(i) + beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type mu0 = mu(i) + beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
           Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+          // weights(i) is applied OUTSIDE the two-point mixture, not to each
+          // leaf before logspace_add() combines them: multiplying inside
+          // computes log(p1*f1^w + p0*f0^w) rather than the correct
+          // w*log(p1*f1 + p0*f0) (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
+            drm_response_log_density(model_type, y(i), mu1, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
-          nll -= logspace_add(log_p1 + log_y1, log_p0 + log_y0);
+            drm_response_log_density(model_type, y(i), mu0, log_sigma(i), V_known(i), Type(0.0), 0) : Type(0.0);
+          nll -= weights(i) * logspace_add(log_p1 + log_y1, log_p0 + log_y0);
           mi_x_full(i) = mi_probability(i);
           mu(i) += beta_mu(mi_col) * (mi_probability(i) - X_mu(i, mi_col));
         }
@@ -2565,23 +2574,29 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type mu1 = mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type mu0 = mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_student_log_density(
+            drm_student_log_density(
               y(i), mu1, log_sigma(i), eta_nu(i)) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_student_log_density(
+            drm_student_log_density(
               y(i), mu0, log_sigma(i), eta_nu(i)) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -2811,23 +2826,29 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type mu1 = mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type mu0 = mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), mu1, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), mu0, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -2954,23 +2975,29 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -3081,23 +3108,29 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -3499,25 +3532,31 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta1, log_sigma(i), Type(0.0), trials(i),
               0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta0, log_sigma(i), Type(0.0), trials(i),
               0) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -3670,25 +3709,31 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta1, Type(0.0), Type(0.0), trials(i),
               link_code) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta0, Type(0.0), Type(0.0), trials(i),
               link_code) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -3955,19 +4000,25 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
+            drm_response_log_density(model_type, y(i), eta1, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
+            drm_response_log_density(model_type, y(i), eta0, Type(0.0), Type(0.0), Type(0.0), 0) : Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -4062,7 +4113,9 @@ Type objective_function<Type>::operator()()
         Type log_zi = -logspace_add(Type(0.0), -eta_zi(i));
         Type log_one_minus_zi = -logspace_add(Type(0.0), eta_zi(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
@@ -4075,19 +4128,17 @@ Type objective_function<Type>::operator()()
           Type log_y0 = Type(0.0);
           if (observed_y(i) == 1) {
             if (asDouble(y(i)) == 0.0) {
-              log_y1 = weights(i) *
-                logspace_add(log_zi, log_one_minus_zi - mu1);
-              log_y0 = weights(i) *
-                logspace_add(log_zi, log_one_minus_zi - mu0);
+              log_y1 = logspace_add(log_zi, log_one_minus_zi - mu1);
+              log_y0 = logspace_add(log_zi, log_one_minus_zi - mu0);
             } else {
-              log_y1 = weights(i) *
-                (log_one_minus_zi + dpois(y(i), mu1, true));
-              log_y0 = weights(i) *
-                (log_one_minus_zi + dpois(y(i), mu0, true));
+              log_y1 = log_one_minus_zi + dpois(y(i), mu1, true);
+              log_y0 = log_one_minus_zi + dpois(y(i), mu0, true);
             }
           }
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;
@@ -4351,23 +4402,29 @@ Type objective_function<Type>::operator()()
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
         if (mi_observed(i) == 1) {
-          nll -= mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0;
+          // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
+          nll -= weights(i) *
+            (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
         } else {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
             beta_mu(mi_col) * (Type(0.0) - X_mu(i, mi_col));
+          // weights(i) is applied OUTSIDE the two-point mixture below, not to
+          // each leaf here (Dinnage audit M1).
           Type log_y1 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta1, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
           Type log_y0 = observed_y(i) == 1 ?
-            weights(i) * drm_response_log_density(
+            drm_response_log_density(
               model_type, y(i), eta0, log_sigma(i), Type(0.0), Type(0.0), 0) :
             Type(0.0);
+          // weights(i) applies to the WHOLE mixture, not each leaf before it
+          // (Dinnage audit M1).
           Type log_denom = logspace_add(log_p1 + log_y1, log_p0 + log_y0);
-          nll -= log_denom;
+          nll -= weights(i) * log_denom;
           Type posterior_p1 = exp(log_p1 + log_y1 - log_denom);
           mi_probability(i) = posterior_p1;
           mi_x_full(i) = posterior_p1;

@@ -32,6 +32,15 @@ Type drm_student_log_density(Type y, Type mu, Type log_sigma, Type eta_nu)
 // Contract:
 //   * weights(i) is applied OUTSIDE this leaf at every call site -- do NOT
 //     absorb it here, or every caller's semantics change.
+//   * For a two-point (or quadrature) mi() mixture, "outside this leaf" is
+//     not enough on its own: weights(i) must be applied outside the WHOLE
+//     mixture (after logspace_add() combines the leaves), not to each leaf
+//     before the leaves are combined. `weights(i) * leaf()` computed per leaf
+//     and then mixed computes log(p1*f1^w + p0*f0^w), not the correct
+//     w*log(p1*f1 + p0*f0) -- a constant weight then moves the MLE (Dinnage
+//     audit M1). The mi_family == 1 two-point sites in src/drmTMB.cpp now
+//     call this leaf unweighted and multiply weights(i) into the combined
+//     log_denom afterwards.
 //   * eta_val / log_sigma_val carry live AD gradient; never route them through
 //     asDouble() (that would silently zero their gradients).
 //   * model_type is a plain int (DATA_INTEGER), so this switch is resolved at

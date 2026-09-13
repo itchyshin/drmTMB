@@ -19,6 +19,25 @@
   the false sentence "The log(sigma) clamp does not apply to this family"
   for the other two. Credit: the independent evaluation by Russell Dinnage
   (rdinnager/drmTMB_eval), finding Md-A.
+* `weights()` composed with `mi()` (missing-predictor imputation) no longer
+  moves the maximum-likelihood estimate under a constant reweighting. Ten
+  duplicate call sites in `src/drmTMB.cpp` (one per response family sharing
+  the Bernoulli-imputed, `mi_family == 1` two-point mixture) multiplied
+  `weights(i)` into each mixture leaf BEFORE `logspace_add()` combined them,
+  computing `log(p1*f1^w + p0*f0^w)` instead of the correct
+  `w*log(p1*f1 + p0*f0)`; a constant weight therefore shifted the `mi(x)`
+  coefficient. `weights(i)` now multiplies the combined mixture log-density
+  and the (previously unweighted) imputation-prior term for observed rows,
+  matching the general contract that `weights = c` is identical to literal
+  row duplication. The `drm_response_log_density()` contract comment in
+  `src/drm_response_kernels.h` is updated to spell out that "outside the
+  leaf" means outside the whole mixture, not just outside each leaf call.
+  The `mi_family` quadrature blocks for other imputed-covariate families
+  (ordinal, categorical, beta, Poisson, lognormal, gamma, NB2, Tweedie,
+  zero-one-beta, truncated-NB2, beta-binomial) share a structurally similar
+  pattern and are a known follow-up, not covered by this fix. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding M1.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
