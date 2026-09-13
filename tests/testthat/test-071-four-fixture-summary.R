@@ -1,4 +1,21 @@
+# Source-tree premise (the CI blind spot, docs/dev-log/after-task/
+# 2026-09-05-ci-source-tree-blindspot.md): every block in this file reads
+# paths that .Rbuildignore removes from the tarball (docs/dev-log/evidence/
+# and tools/), so under R CMD check they can only ever be absent. Each block
+# therefore skips on that premise; the blind-spot job runs this file from the
+# source tree, where tools/source-tree-tests.txt lists it.
+r071_skip_unless_source_tree <- function() {
+  root <- testthat::test_path("..", "..")
+  testthat::skip_if(
+    !file.exists(file.path(root, "tools", "write-parity-scoreboard.R")) ||
+      !dir.exists(file.path(root, "docs", "dev-log", "evidence",
+                            "julia-r-parity", "071-ordinary-laplace")),
+    "source tree only: .Rbuildignore removes docs/dev-log and tools/ from the tarball"
+  )
+}
+
 test_that("four-fixture summary fails closed when a fixture receipt is absent", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace",
                               "reconcile-four-fixture-summary.R")
@@ -17,6 +34,7 @@ test_that("four-fixture summary fails closed when a fixture receipt is absent", 
 })
 
 test_that("source staging proves the declared commit and rejects substitute bytes", {
+  r071_skip_unless_source_tree()
   root <- normalizePath(testthat::test_path("..", ".."))
   script <- file.path(root, "docs", "dev-log", "evidence",
                       "julia-r-parity", "071-ordinary-laplace",
@@ -28,6 +46,7 @@ test_that("source staging proves the declared commit and rejects substitute byte
 })
 
 test_that("the scoreboard has a distinct ordinary-Laplace classification path", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "tools", "write-parity-scoreboard.R")
   env <- new.env(parent = globalenv())
   sys.source(tool, envir = env)
@@ -35,6 +54,7 @@ test_that("the scoreboard has a distinct ordinary-Laplace classification path", 
 })
 
 test_that("ordinary-Laplace coverage rows are emitted from the capability registry", {
+  r071_skip_unless_source_tree()
   caps <- drmTMB:::drm_julia_capability_comparison()
   rows <- caps[caps$capability_id %in% c(
     "ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace"
@@ -52,6 +72,7 @@ test_that("ordinary-Laplace coverage rows are emitted from the capability regist
 })
 
 test_that("S7 coverage accepts only the declared original writer or scope-fix collector", {
+  r071_skip_unless_source_tree()
   root <- normalizePath(testthat::test_path("..", ".."))
   tool <- file.path(root, "tools", "write-parity-scoreboard.R")
   env <- new.env(parent = globalenv())
@@ -65,6 +86,7 @@ test_that("S7 coverage accepts only the declared original writer or scope-fix co
 })
 
 test_that("ordinary-Laplace summary rejects a semantic successor commit", {
+  r071_skip_unless_source_tree()
   root <- normalizePath(testthat::test_path("..", ".."))
   tool <- file.path(root, "tools", "write-parity-scoreboard.R")
   env <- new.env(parent = globalenv())
@@ -82,6 +104,7 @@ test_that("ordinary-Laplace summary rejects a semantic successor commit", {
 })
 
 test_that("ordinary-Laplace source-drift guard rejects semantic input changes", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "tools", "write-parity-scoreboard.R")
   env <- new.env(parent = globalenv())
   sys.source(tool, envir = env)
@@ -116,6 +139,7 @@ test_that("ordinary-Laplace source-drift guard rejects semantic input changes", 
 })
 
 test_that("scoreboard requires materialized S7 evidence before current ordinary-Laplace rendering", {
+  r071_skip_unless_source_tree()
   drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
   skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH is not set to a DRM.jl clone")
   root <- normalizePath(testthat::test_path("..", ".."))
@@ -136,6 +160,7 @@ test_that("scoreboard requires materialized S7 evidence before current ordinary-
 })
 
 test_that("scoreboard renders ordinary-Laplace source provenance after S7 materialization", {
+  r071_skip_unless_source_tree()
   drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
   skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH is not set to a DRM.jl clone")
   root <- normalizePath(testthat::test_path("..", ".."))
@@ -152,6 +177,7 @@ test_that("scoreboard renders ordinary-Laplace source provenance after S7 materi
 })
 
 test_that("S7 manifest freezes all four 500-seed fixture denominators", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace",
                               "prepare-s7-campaign-manifest.R")
@@ -179,6 +205,7 @@ test_that("S7 manifest freezes all four 500-seed fixture denominators", {
 })
 
 test_that("S7 profile plan freezes all target truths on their profile scales", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace",
                               "prepare-s7-campaign-manifest.R")
@@ -200,6 +227,7 @@ test_that("S7 profile plan freezes all target truths on their profile scales", {
 })
 
 test_that("S7 campaign fixture factory is deterministic and preserves scalar-RI shapes", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace",
                               "s7-campaign-fixture.R")
@@ -229,6 +257,7 @@ test_that("S7 campaign fixture factory is deterministic and preserves scalar-RI 
 })
 
 test_that("S7 attempt receipts are keyed, terminal, and truth-matched", {
+  r071_skip_unless_source_tree()
   tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace",
                               "s7-attempt-contract.R")
@@ -256,6 +285,7 @@ test_that("S7 attempt receipts are keyed, terminal, and truth-matched", {
 })
 
 test_that("S7 reconciliation requires all 17000 planned terminal attempts", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -288,6 +318,7 @@ test_that("S7 reconciliation requires all 17000 planned terminal attempts", {
 })
 
 test_that("S7 worker specification resolves a task against the frozen plan", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -309,6 +340,7 @@ test_that("S7 worker specification resolves a task against the frozen plan", {
 })
 
 test_that("S7 worker dry-run writes only its immutable planned sidecar", {
+  r071_skip_unless_source_tree()
   root <- normalizePath(testthat::test_path("..", ".."))
   tool <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
                     "071-ordinary-laplace", "s7-run-attempt.R")
@@ -328,6 +360,7 @@ test_that("S7 worker dry-run writes only its immutable planned sidecar", {
 })
 
 test_that("S7 campaign bundle materializes and hashes the frozen denominators", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -351,6 +384,7 @@ test_that("S7 campaign bundle materializes and hashes the frozen denominators", 
 })
 
 test_that("S7 attempt diagnostics classify unavailable uncertainty explicitly", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -373,6 +407,7 @@ test_that("S7 attempt diagnostics classify unavailable uncertainty explicitly", 
 })
 
 test_that("S7 task dry-run expands one immutable array task to its complete attempt set", {
+  r071_skip_unless_source_tree()
   root <- normalizePath(testthat::test_path("..", ".."))
   base <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -399,6 +434,7 @@ test_that("S7 task dry-run expands one immutable array task to its complete atte
 })
 
 test_that("S7 task receipt validator refuses a partially classified task", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -425,6 +461,7 @@ test_that("S7 task receipt validator refuses a partially classified task", {
 })
 
 test_that("S7 fit diagnostics distinguish finite native SEs from unavailable Julia Hessians", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -461,6 +498,7 @@ test_that("S7 fit diagnostics distinguish finite native SEs from unavailable Jul
 })
 
 test_that("S7 per-fit receipt classifies finite, failed, and truth-outside profiles", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -496,6 +534,7 @@ test_that("S7 per-fit receipt classifies finite, failed, and truth-outside profi
 })
 
 test_that("S7 task dispatcher retains every planned target after an individual fit failure", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -536,6 +575,7 @@ test_that("S7 task dispatcher retains every planned target after an individual f
 })
 
 test_that("S7 engine fit factory forwards Laplace only to the Julia engine", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -553,6 +593,7 @@ test_that("S7 engine fit factory forwards Laplace only to the Julia engine", {
 })
 
 test_that("S7 coupled NB2 fixture preserves the q=2 Julia Laplace route", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -569,6 +610,7 @@ test_that("S7 coupled NB2 fixture preserves the q=2 Julia Laplace route", {
 })
 
 test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
+  r071_skip_unless_source_tree()
   worker <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                                 "julia-r-parity", "071-ordinary-laplace", "s7-fir-worker.sh")
   expect_true(file.exists(worker))
@@ -588,6 +630,7 @@ test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
 })
 
 test_that("S7 Fir array payload initializes the pinned runtime before the worker", {
+  r071_skip_unless_source_tree()
   array <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                                "julia-r-parity", "071-ordinary-laplace", "s7-fir-array.sh")
   expect_true(file.exists(array))
@@ -604,6 +647,7 @@ test_that("S7 Fir array payload initializes the pinned runtime before the worker
 })
 
 test_that("S7 task runner requires explicit approval for a live fit", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -618,6 +662,7 @@ test_that("S7 task runner requires explicit approval for a live fit", {
 })
 
 test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
+  r071_skip_unless_source_tree()
   preflight <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                                    "julia-r-parity", "071-ordinary-laplace", "s7-fir-preflight.sh")
   expect_true(file.exists(preflight))
@@ -635,6 +680,7 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
 })
 
 test_that("S7 reconciliation payload proves staged source subsets on a compute node", {
+  r071_skip_unless_source_tree()
   reconcile <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                                    "julia-r-parity", "071-ordinary-laplace", "s7-fir-reconcile.sh")
   expect_true(file.exists(reconcile))
@@ -656,6 +702,7 @@ test_that("S7 reconciliation payload proves staged source subsets on a compute n
 })
 
 test_that("S7 coverage writer binds the source-subset proof to frozen archives", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -687,12 +734,14 @@ test_that("S7 coverage writer binds the source-subset proof to frozen archives",
 })
 
 test_that("S7 source-pinned install declares its compiled TMB shared object", {
+  r071_skip_unless_source_tree()
   description <- testthat::test_path("..", "..", "DESCRIPTION")
   fields <- read.dcf(description, fields = "NeedsCompilation")
   expect_identical(unname(fields[[1L]]), "yes")
 })
 
 test_that("S7 campaign collector refuses an incomplete retained denominator", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -709,6 +758,7 @@ test_that("S7 campaign collector refuses an incomplete retained denominator", {
 })
 
 test_that("S7 coverage summary retains failures in its unconditional denominator", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -746,6 +796,7 @@ test_that("S7 coverage summary retains failures in its unconditional denominator
 })
 
 test_that("S7 coverage writer retains one pinned 500-seed row per target", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -799,6 +850,7 @@ test_that("S7 coverage writer retains one pinned 500-seed row per target", {
 })
 
 test_that("scoreboard keeps S7 coverage outside the generic receipt tier", {
+  r071_skip_unless_source_tree()
   root <- normalizePath(testthat::test_path("..", ".."))
   base <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
                     "071-ordinary-laplace")
@@ -851,6 +903,7 @@ test_that("scoreboard keeps S7 coverage outside the generic receipt tier", {
 })
 
 test_that("S7 campaign collector verifies task receipt checksums", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
@@ -873,6 +926,7 @@ test_that("S7 campaign collector verifies task receipt checksums", {
 })
 
 test_that("S7 campaign collector verifies every declared retained checksum", {
+  r071_skip_unless_source_tree()
   base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
                               "julia-r-parity", "071-ordinary-laplace")
   env <- new.env(parent = globalenv())
