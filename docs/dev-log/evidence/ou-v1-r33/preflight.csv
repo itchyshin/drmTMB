@@ -1,0 +1,2 @@
+"rate_id","amplitude_id","laplace","mode_convergence","min_hessian_eigen","proposal_floor","batches","draws_per_batch","nll_mean","nll_se","min_ess","batch_nll_1","batch_nll_2","batch_nll_3","batch_nll_4","batch_nll_5","batch_nll_6","batch_nll_7","batch_nll_8","elapsed_seconds","projected_full_seconds"
+"ridge","interior",5.72478944705904,0,1.01658218485564,1e-06,4,500,5.73514703213389,0.0198342432040101,308.44451605002,5.68951478771311,5.73877307497708,5.72662847952518,5.78567178632017,NA,NA,NA,NA,0.407,6.512

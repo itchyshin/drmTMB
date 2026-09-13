@@ -95401,3 +95401,19 @@ G15 campaign, family expansion, or public OU claim follows. The next proposed
 task is a fresh, approved convergence-design arc with a predeclared numerical
 error target for both unresolved cells, or an independent integrator with an
 error estimate.
+
+## 2026-09-12 — OU v1 R3.3 importance reference: small-tree ordering resolved
+
+R3.3 replaced the non-converged tensor-product comparison with a directly
+optimized, Laplace-centered importance-sampling reference in six independent
+standard-normal latent coordinates. Both retained cells passed the declared
+criteria: eight 2,000-draw batches, NLL SE below 0.01, and per-batch ESS above
+200. Ridge/interior had NLL 5.72781 (SE 0.00375), versus 6.12928 (SE 0.00595)
+for interior/interior. This resolves the R3.2 small-tree rank ambiguity and
+matches the Laplace direction; it does not imply that Laplace gets contrast
+size, profiles, intervals, 128-tip behavior, or recovery right.
+
+Fisher found no basis for estimator repair. The next proposed work is a
+geometry-aware native-recovery design/preflight, separating informative and
+weak regimes before any retained campaign. No G15, family expansion, or public
+OU claim follows directly from R3.3.

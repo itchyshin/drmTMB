@@ -1,0 +1,8 @@
+item	value
+R32_parent_commit	75c9869bc
+runner_sha256	5b2aad89dcc903cf909b9aba6d3cafbad3c5ab1be624a41148dca62c9f95392b
+verifier_sha256	dca427d167f1db624bfe09a056f876e7849c7883ef12a203c916787c2adae085
+tree_sha256	d4c92c953a1e4c4e4a261526b03ae7d3e3398a11d2cdf162b414f6881cf7baa1
+data_sha256	741aa1618b1edac87e013985f3469304417f734b146ab544f512a05b4eb3cb38
+proposal	mode and eigenvalue-floored inverse numerical Hessian, inflated by 1.5
+reference_criteria	eight batches x 2000 draws; NLL SE <= 0.01; every batch ESS >= 200

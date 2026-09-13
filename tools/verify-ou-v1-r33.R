@@ -1,0 +1,3 @@
+#!/usr/bin/env Rscript
+out <- "docs/dev-log/evidence/ou-v1-r33"; preflight <- identical(commandArgs(trailingOnly = TRUE), "--preflight")
+file_name <- "reference.csv"; expected_n <- 2L; pass <- "OU_V1_R33_PASS\n"; if (preflight) { file_name <- "preflight.csv"; expected_n <- 1L; pass <- "OU_V1_R33_PREFLIGHT_PASS\n" }; x <- utils::read.csv(file.path(out, file_name)); stopifnot(nrow(x) == expected_n, all(is.finite(as.matrix(x[, c("laplace", "nll_mean", "nll_se", "min_ess")]))), all(x$min_ess > 0), all(x$mode_convergence == 0)); if (preflight) stopifnot(is.finite(x$projected_full_seconds), x$projected_full_seconds < 10800); cat(pass)
