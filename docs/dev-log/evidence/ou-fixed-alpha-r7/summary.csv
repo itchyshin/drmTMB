@@ -1,0 +1,33 @@
+"fit","process","alpha","alpha_native","alpha_scale","logLik","AIC","convergence","pdHess","max_gradient","warning","dataset","elapsed_seconds"
+"BM","BM",NA,NA,"root_depth",-2336.64468063406,4691.28936126812,0,TRUE,0.0311156998275002,"","ayumi_passerine_body_mass",36.526
+"OU(alpha=0.1)","OU",0.1,0.0014973081368334,"root_depth",-2343.68106810785,4705.3621362157,0,TRUE,0.000257222625608905,"","ayumi_passerine_body_mass",36.526
+"OU(alpha=0.3)","OU",0.3,0.0044919244105002,"root_depth",-2354.82919101106,4727.65838202211,0,TRUE,3.07367828746042e-07,"","ayumi_passerine_body_mass",36.526
+"OU(alpha=0.7)","OU",0.7,0.0104811569578338,"root_depth",-2383.24631817382,4784.49263634764,0,TRUE,9.22699664513093e-07,"","ayumi_passerine_body_mass",36.526
+"OU(alpha=1.3)","OU",1.3,0.0194650057788342,"root_depth",-2440.43143679577,4898.86287359154,0,TRUE,0.0486534380797055,"","ayumi_passerine_body_mass",36.526
+"OU(alpha=2.5)","OU",2.5,0.037432703420835,"root_depth",-2608.23911646716,5234.47823293432,0,TRUE,0.0202556207907991,"","ayumi_passerine_body_mass",36.526
+"BM","BM",NA,NA,"root_depth",-67.9457249324548,147.89144986491,1,TRUE,0.00218110851230834,"`drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit.","avonet_mass_morphology",3.28000000000001
+"OU(alpha=0.1)","OU",0.1,0.00188509753367183,"root_depth",-70.5617316321448,153.12346326429,0,TRUE,0.000835650382838591,"`drmTMB()` escalated `stats::nlminb()` to the ""careful"" optimizer preset to
+reach convergence.
+ℹ An earlier preset errored or did not converge; inspect
+  `fit$optimizer_attempts`.","avonet_mass_morphology",3.28000000000001
+"OU(alpha=0.3)","OU",0.3,0.00565529260101549,"root_depth",-71.7046697268704,155.409339453741,0,TRUE,0.000763560256770754,"","avonet_mass_morphology",3.28000000000001
+"OU(alpha=0.7)","OU",0.7,0.0131956827357028,"root_depth",-75.2081287000672,162.416257400134,0,TRUE,0.00465518124151653,"`drmTMB()` escalated `stats::nlminb()` to the ""careful"" optimizer preset to
+reach convergence.
+ℹ An earlier preset errored or did not converge; inspect
+  `fit$optimizer_attempts`.","avonet_mass_morphology",3.28000000000001
+"OU(alpha=1.3)","OU",1.3,0.0245062679377338,"root_depth",-82.1038161985323,176.207632397065,1,TRUE,0.0065181777269032,"`drmTMB()`: optimizer reported non-convergence (code 1: false convergence (8)).
+ℹ Treat the estimates and standard errors with caution. The optimizer escalates
+  its preset ladder automatically, so inspect `fit$optimizer_attempts` and run
+  `check_drm()` to diagnose; consider rescaling the data, within-group
+  replication, or a penalized/MAP fit.","avonet_mass_morphology",3.28000000000001
+"OU(alpha=2.5)","OU",2.5,0.0471274383417958,"root_depth",-100.077724779369,212.155449558738,0,TRUE,1.55774727272186e-07,"","avonet_mass_morphology",3.28000000000001
+"BM","BM",NA,NA,"root_depth",-180.292883099443,368.585766198887,0,TRUE,1.52842916706814e-11,"","simulated_informative_ou_alpha_0.7",0.201833333333335
+"OU(alpha=0.1)","OU",0.1,0.0758485093226488,"root_depth",-181.657459288251,371.314918576503,0,TRUE,3.4498869528601e-10,"","simulated_informative_ou_alpha_0.7",0.201833333333335
+"OU(alpha=0.3)","OU",0.3,0.227545527967946,"root_depth",-181.107805301624,370.215610603248,0,TRUE,5.6797616177635e-10,"","simulated_informative_ou_alpha_0.7",0.201833333333335
+"OU(alpha=0.7)","OU",0.7,0.530939565258541,"root_depth",-180.921109969304,369.842219938608,0,TRUE,4.53184115707189e-12,"","simulated_informative_ou_alpha_0.7",0.201833333333335
+"OU(alpha=1.3)","OU",1.3,0.986030621194434,"root_depth",-181.524732410301,371.049464820603,0,TRUE,5.15230627721499e-11,"","simulated_informative_ou_alpha_0.7",0.201833333333335
+"OU(alpha=2.5)","OU",2.5,1.89621273306622,"root_depth",-184.445214875497,376.890429750994,0,TRUE,1.55641610683031e-13,"","simulated_informative_ou_alpha_0.7",0.201833333333335

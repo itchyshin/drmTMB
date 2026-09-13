@@ -1,0 +1,3 @@
+"fit","process","alpha","alpha_native","alpha_scale","logLik","AIC","convergence","pdHess","max_gradient","warning","dataset","elapsed_total_seconds"
+"BM","BM",NA,NA,"root_depth",-180.292883099443,368.585766198887,0,TRUE,1.52842916706814e-11,"","simulation",2.445
+"OU(alpha=0.3)","OU",0.3,0.227545527967946,"root_depth",-181.107805301624,370.215610603248,0,TRUE,5.6797616177635e-10,"","simulation",2.445

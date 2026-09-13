@@ -1,0 +1,5 @@
+dataset	source_or_generator
+ayumi_passerine_body_mass	eco-climatic-rules AVONET plus Delhey climate data and Hackett tree; exact R6 receipt
+avonet_mass_morphology	prepR4pcm avonet_subset matched to eco-climatic-rules Hackett tree; 128 species sampled with seed 20260913
+simulation_moderate	seed 20260913; ape::rcoal(64); stationary OU covariance with normalized alpha 0.7, SD 0.8, residual SD 0.35, 6 rows/species
+simulation_strong	seed 20260913; same tree/design/truth; stationary OU SD 2.0, residual SD 0.15

@@ -95486,6 +95486,32 @@ incomplete. That pre-existing receipt failure was not edited or reclassified.
 Re-running the native covariance and parser files individually confirmed both
 pass alongside the focused `ou-sensitivity` file.
 
+## 2026-09-13 — R7 fixed-alpha application decision
+
+The approved local R7 panel retained Ayumi's R6 receipt, a deterministic
+128-species AVONET mass--morphology usability subset, and two fixed-seed
+stationary-OU simulations (64 species and six observations/species, moderate
+and strong phylogenetic-signal versions). Every one of the 15 small retained
+cells converged with a positive-definite Hessian and no warning. BM was
+lowest-AIC in all four qualified cases:
+Ayumi 4691.289 versus best OU 4705.362; AVONET 70.510 versus 73.476; moderate
+simulation 368.586 versus 369.842; strong simulation -104.980 versus -103.079.
+
+The negative simulated result is preserved rather than explained away: even the
+true-alpha grid member did not win this finite draw. R7 therefore supports the
+experimental fixed-assumption helper as a usability tool but does not support
+free-alpha OU, conditional-AIC selection, a recovery campaign, or any full
+OU-v1 promotion. A separate full 657-species AVONET batch is retained as a
+feasibility failure: its BM fit had false convergence and two OU fits invoked a
+careful optimizer preset, so it has no AIC conclusion. Full evidence and
+per-cell diagnostics are under
+`docs/dev-log/evidence/ou-fixed-alpha-r7/`.
+
+An issue draft that parks future free-rate/correlated OU work with explicit
+reopen gates is retained in that directory. Publishing it to GitHub was blocked
+by the external-action safety layer and requires a fresh repository-specific
+confirmation from Shinichi.
+
 Consistency inventory searched with:
 
 ```sh
