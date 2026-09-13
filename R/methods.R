@@ -2328,7 +2328,17 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @rdname model-fit-extractors
 #' @export
-vcov.drmTMB <- function(object, ...) {
+vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
+  if (identical(type, "robust") || isTRUE(robust)) {
+    cli::cli_abort(
+      c(
+        "Robust (sandwich) standard errors are not implemented for {.cls drmTMB} fits.",
+        "x" = "{.fn vcov} has no {.code type = \"robust\"} route, so requesting it must not silently fall back to the model-based matrix.",
+        "i" = "Try {.fn confint} with {.code method = \"boot\"} for a resampling-based interval, or refit with a heavier-tailed family (e.g. {.fn student}) if the concern is family misspecification."
+      ),
+      class = "drmTMB_vcov_robust_unsupported"
+    )
+  }
   if (drm_is_mspl(object)) {
     return(drm_mspl_vcov(object))
   }
@@ -2554,6 +2564,11 @@ drm_standard_error_status <- function(object) {
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
 #' @param k Numeric penalty per parameter for `AIC()`; the default is `2`.
+#' @param type For `vcov()`, `"model"` (the default) for the model-based
+#'   covariance matrix. `"robust"` is not implemented and errors rather than
+#'   silently falling back to the model-based matrix.
+#' @param robust For `vcov()`, a `TRUE`/`FALSE` alias for
+#'   `type = "robust"`/`type = "model"`; also errors when `TRUE`.
 #'
 #' @return `logLik()` returns an object of class `"logLik"`. `vcov()` returns a
 #'   numeric covariance matrix. `nobs()`, `df.residual()`, and `deviance()`

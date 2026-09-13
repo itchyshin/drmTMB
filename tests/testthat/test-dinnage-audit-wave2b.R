@@ -75,3 +75,18 @@ test_that("M4: the already-correct beta_binomial branch still masks", {
   sims <- stats::simulate(fit, nsim = 2L, seed = 20260913, re.form = NA)
   expect_true(all(is.na(as.matrix(sims[!observed_y, , drop = FALSE]))))
 })
+
+test_that("S4: vcov(fit, type = 'robust') no longer silently returns the model-based matrix", {
+  set.seed(3L)
+  n <- 80L
+  x <- stats::rnorm(n)
+  y <- 0.4 + 0.6 * x + stats::rnorm(n)
+  dat <- data.frame(y = y, x = x)
+  fit <- drmTMB(bf(y ~ x), family = gaussian(), data = dat)
+
+  model_based <- stats::vcov(fit)
+  expect_error(stats::vcov(fit, type = "robust"), class = "drmTMB_vcov_robust_unsupported")
+  expect_error(stats::vcov(fit, robust = TRUE), class = "drmTMB_vcov_robust_unsupported")
+  # The default call is unaffected by the new argument.
+  expect_identical(stats::vcov(fit), model_based)
+})
