@@ -282,6 +282,13 @@ drmTMB <- function(
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
   }
+  # An unused factor level (e.g. left over from a `subset()` without
+  # `droplevels()`) gives a design-matrix column of all zeros, which makes
+  # the fit's Hessian singular: point estimates come back exactly right, but
+  # every standard error is NA (Dinnage audit Md-E). Drop unused levels from
+  # every factor column once, up front, before any family builder constructs
+  # a model frame.
+  data <- droplevels(data)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
   # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route

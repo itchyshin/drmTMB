@@ -83,3 +83,24 @@ test_that("Md-D: mi() is rejected outside the mu formula (Dinnage audit)", {
   )
   expect_true(is.finite(as.numeric(logLik(fit_mi))))
 })
+
+test_that("Md-E: an unused factor level no longer zeroes out every SE (Dinnage audit)", {
+  # A design-matrix column of all zeros (from an unused factor level, e.g.
+  # left over from `subset()` without `droplevels()`) made the fit's Hessian
+  # singular: point estimates were exactly right, but every standard error
+  # came back NA (`sdreport_non_pd_hessian`), even for coefficients unrelated
+  # to the unused level.
+  set.seed(2)
+  n <- 80
+  g <- factor(sample(c("a", "b"), n, replace = TRUE), levels = c("a", "b", "c"))
+  x <- stats::rnorm(n)
+  y <- 1 + 0.5 * x + ifelse(g == "b", 0.3, 0) + stats::rnorm(n, 0, 0.4)
+  dat <- data.frame(y = y, x = x, g = g)
+
+  fit <- drmTMB(bf(y ~ x + g), family = gaussian(), data = dat)
+  se <- summary(fit)$coefficients$std_error
+  expect_true(all(is.finite(se)))
+  # The unused level "c" is dropped up front, so it never becomes its own
+  # (all-zero) coefficient column.
+  expect_false("mu:gc" %in% rownames(summary(fit)$coefficients))
+})

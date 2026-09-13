@@ -45,6 +45,17 @@
   logLik to `sigma ~ z` -- no error, and no missing-data handling for `z`.
   Credit: the independent evaluation by Russell Dinnage
   (rdinnager/drmTMB_eval), finding Md-D.
+* An unused factor level (for example, left over after `subset()` without
+  `droplevels()`) no longer zeroes out every fixed-effect standard error.
+  The empty level's design-matrix column of all zeros made the fit's
+  Hessian singular, so estimates came back exactly right but every SE (not
+  just the empty level's) came back `NA` with a `sdreport_non_pd_hessian`
+  status, and refitting with `drm_control(se = TRUE)` -- the message
+  `check_drm()` printed -- was a no-op, since `se = TRUE` is already the
+  default. `drmTMB()` now calls `droplevels()` on the input data once, up
+  front, before any family builder constructs a model frame. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding Md-E.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
