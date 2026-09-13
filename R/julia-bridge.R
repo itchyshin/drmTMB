@@ -492,8 +492,8 @@ drm_julia_capability_comparison <- function() {
       "https://github.com/itchyshin/drmTMB/issues/544",
       "https://github.com/itchyshin/drmTMB/issues/1142",
       "https://github.com/itchyshin/drmTMB/issues/1142",
-      "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv",
-      "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv"
+      "https://github.com/itchyshin/drmTMB/blob/0285af445d882b9d92c9a3e45181896344cf749f/docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv",
+      "https://github.com/itchyshin/drmTMB/blob/0285af445d882b9d92c9a3e45181896344cf749f/docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv"
     ),
     claim_boundary = c(
       "Route C Gaussian location-scale. All four design/168 limbs met: implementation; focused tests (test/parity/runparity_bridge.jl gaussian-locscale); public docs (docs/src/r-julia-bridge.md); and interval evidence (parity-se.tsv se_gaussian_location_scale, 1.499e-07 abs / 2.169e-06 rel, with a negative control in the same table). The live TMB parity remains OPT-IN by design -- its gate is CRAN-safety motivated (an unguarded live-Julia test once hung win-builder ~10,448s) -- but it is no longer an unverified assumption: measured 2026-08-24, |d_loglik| = 6.257e-09, max|d_coef| = 5.456e-06. NOT interval COVERAGE. PHASE 1.5 CAP LIFTED 2026-08-25 (owner decision, Shinichi). The evidence recorded above already met the design/168 four-limb bar; the cap was a CRAN-facing governance choice, not an evidence one, and the owner has now made that call. D-164 continues to hold the RELEASE -- no CRAN submission is authorised -- but it never held the ledger. WHAT THIS PROMOTION CLAIMS: implemented, tested, publicly documented, and carrying interval/diagnostic evidence. WHAT IT DOES NOT CLAIM: interval COVERAGE -- the interval_status fence on this row is UNCHANGED and every 'NOT interval coverage' qualifier above still stands. PROMOTED experimental -> partial on the bridge axis 2026-09-02 (docs/dev-log/plan/2026-09-01-bridge-promotion-wave1.md): same-target SE parity 1.498725653859e-07 abs / 2.169e-06 rel (SE_PASS), route runs unopted non-interactively post-#1112. PROMOTED r_bridge_status partial -> supported 2026-09-05 (leaf A8, G3 bridge-side inference qualification, docs/dev-log/evidence/julia-r-parity/p2-g3/g3-qualification-receipt.md): engine=\"julia\" vs engine=\"tmb\" on the committed gaussian-locscale fixture, target fixef:mu:x -- both converged; wald delta 6.698e-09/6.695e-09; profile delta 2.797e-06/5.889e-07 (tol 1e-4, both PASS); bootstrap (R=99, independent RNG streams -- seed is not honoured identically across engines, so this compares distributions not draws) tmb=[-0.753364,-0.538943] julia=[-0.739446,-0.544052], both 0/99 replicates failed, intervals OVERLAP; julia estimator=ML (the #1155 estimator-authority cross-check runs unconditionally inside the bridge at fit time and passed on every cell in this receipt). Bridge-side profile/bootstrap inference (G3) is QUALIFIED for this route on this cell -- one fixture, one target; not a coverage claim. BOOTSTRAP CAVEAT (Fisher review 2026-09-05): the bootstrap comparison is OVERLAP ONLY, not agreement within tolerance -- the Julia interval sits nested inside the TMB interval (R = 99, 0/99 failed on both engines) and no same-seed design exists across engines; the promotion rests on the profile and Wald agreement (<= 7.2e-06).",
@@ -2629,8 +2629,15 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   if (!is.null(ordinary_coupled)) {
     labels[["recov"]] <- drm_julia_recov_block_labels(ordinary_coupled$group)
   }
+  # The bare `resd` label exists only for the families the scalar
+  # `marginal = "Laplace"` route admits (`drm_julia_validate_marginal()`:
+  # binomial, poisson, nbinom2). Every other family with a mu-only ordinary
+  # random intercept keeps its established conditional-Gaussian-components
+  # route and must NOT receive a `resd` label here (2026-09-13, CI repair of
+  # test-coefficient-labels.R:869 on PR #1304).
   ordinary_mu_group <- drm_julia_ordinary_mu_intercept_group(formula)
-  if (!is.null(ordinary_mu_group) && is.null(ordinary_coupled)) {
+  if (!is.null(ordinary_mu_group) && is.null(ordinary_coupled) &&
+      isTRUE(family_type %in% c("binomial", "poisson", "nbinom2"))) {
     labels[["resd"]] <- ordinary_mu_group
   }
   # N10 (2026-09-03): a NON-`mu` dpar carrying a bare, ORDINARY (non-phylo,
