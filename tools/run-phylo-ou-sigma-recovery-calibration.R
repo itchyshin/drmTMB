@@ -345,11 +345,18 @@ write_calibration_artifacts <- function(all_conditions, attempts, run_started, e
   writeLines(provenance, file.path(out_dir, "SOURCE-PROVENANCE.tsv"))
   ordinary_selected <- sum(selected$selection_status == "QUALIFIED" & selected$diagnostic_class == "ordinary")
   negative_selected <- sum(selected$selection_status == "QUALIFIED" & selected$diagnostic_class == "negative_control")
+  ordinary_truth <- merge(
+    selected[selected$selection_status == "QUALIFIED" & selected$diagnostic_class == "ordinary", , drop = FALSE],
+    manifest[, c("task_id", "alpha_mu_truth", "alpha_sigma_truth")], by = "task_id", all.x = TRUE, sort = FALSE
+  )
+  median_error_mu <- stats::median(abs(log(ordinary_truth$alpha_mu / ordinary_truth$alpha_mu_truth)))
+  median_error_sigma <- stats::median(abs(log(ordinary_truth$alpha_sigma / ordinary_truth$alpha_sigma_truth)))
   writeLines(c(
     "# OU v1 G14 local calibration", "",
     "This is a deterministic 54-attempt local calibration, not a retained multi-seed recovery campaign or public capability claim.", "",
     sprintf("Ordinary tasks: %d; negative-control tasks: %d; attempts: %d.", sum(all_conditions$design_class == "ordinary"), sum(all_conditions$design_class == "negative_control"), nrow(attempts)),
     sprintf("Qualified selected fits: ordinary %d/%d; negative controls %d/%d.", ordinary_selected, sum(all_conditions$design_class == "ordinary"), negative_selected, sum(all_conditions$design_class == "negative_control")),
+    sprintf("Ordinary selected-fit median absolute log-rate error: alpha_mu %.3f; alpha_sigma %.3f.", median_error_mu, median_error_sigma),
     "Warnings, boundary estimates, and failed starts remain in attempts.csv and are not discarded.",
     "The calibration selects no recovery, interval, model-selection, or public-capability conclusion."
   ), file.path(out_dir, "RESULTS.md"))
