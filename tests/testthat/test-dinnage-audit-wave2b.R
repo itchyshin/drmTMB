@@ -90,3 +90,24 @@ test_that("S4: vcov(fit, type = 'robust') no longer silently returns the model-b
   # The default call is unaffected by the new argument.
   expect_identical(stats::vcov(fit), model_based)
 })
+
+test_that("S5: AIC() with a drmTMB fit and a foreign fit returns one row per model", {
+  set.seed(4L)
+  n <- 80L
+  x <- stats::rnorm(n)
+  y <- 0.4 + 0.6 * x + stats::rnorm(n)
+  dat <- data.frame(y = y, x = x)
+  drm_fit <- drmTMB(bf(y ~ x), family = gaussian(), data = dat)
+  lm_fit <- stats::lm(y ~ x, data = dat)
+
+  tab <- stats::AIC(drm_fit, lm_fit)
+  expect_s3_class(tab, "data.frame")
+  expect_equal(nrow(tab), 2L)
+  expect_equal(tab$AIC[[2L]], stats::AIC(lm_fit), tolerance = 1e-6)
+  expect_equal(tab$df[[2L]], attr(stats::logLik(lm_fit), "df"))
+
+  btab <- stats::BIC(drm_fit, lm_fit)
+  expect_s3_class(btab, "data.frame")
+  expect_equal(nrow(btab), 2L)
+  expect_equal(btab$BIC[[2L]], stats::BIC(lm_fit), tolerance = 1e-6)
+})

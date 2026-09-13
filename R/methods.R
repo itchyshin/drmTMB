@@ -2673,22 +2673,41 @@ drm_warn_information_criterion <- function(fits, what) {
   invisible(NULL)
 }
 
-drm_information_criterion <- function(fits, penalty, what) {
-  if (any(vapply(fits, drm_is_mspl, logical(1L)))) {
-    drm_abort_mspl_inference(fits[[which(vapply(fits, drm_is_mspl, logical(1L)))[[1L]]]], what)
+# `o` may be a drmTMB fit or a foreign fit (e.g. `lm`, `gls`) passed in `...`;
+# foreign fits are read through `stats::logLik()`/`stats::nobs()` like
+# `stats::AIC.default` does, so they keep their own row instead of being
+# silently dropped from the comparison table.
+drm_ic_loglik_df <- function(o) {
+  if (inherits(o, "drmTMB")) {
+    return(list(value = as.numeric(o$logLik), df = as.numeric(o$df)))
   }
-  drm_warn_information_criterion(fits, what)
-  values <- vapply(
-    fits,
-    function(o) -2 * as.numeric(o$logLik) + penalty(o) * as.numeric(o$df),
-    numeric(1L)
+  ll <- stats::logLik(o)
+  list(value = as.numeric(ll), df = as.numeric(attr(ll, "df")))
+}
+
+drm_ic_nobs <- function(o) {
+  if (inherits(o, "drmTMB")) as.numeric(o$nobs) else as.numeric(stats::nobs(o))
+}
+
+drm_information_criterion <- function(fits, penalty, what) {
+  mspl <- which(vapply(fits, drm_is_mspl, logical(1L)))
+  if (length(mspl)) {
+    drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
+  }
+  drm_warn_information_criterion(
+    fits[vapply(fits, inherits, logical(1L), what = "drmTMB")],
+    what
   )
+  computed <- lapply(fits, function(o) {
+    ll_df <- drm_ic_loglik_df(o)
+    list(value = -2 * ll_df$value + penalty(o) * ll_df$df, df = ll_df$df)
+  })
   if (length(fits) == 1L) {
-    return(values[[1L]])
+    return(computed[[1L]]$value)
   }
   data.frame(
-    df = vapply(fits, function(o) as.numeric(o$df), numeric(1L)),
-    stats::setNames(list(values), what)
+    df = vapply(computed, `[[`, numeric(1L), "df"),
+    stats::setNames(list(vapply(computed, `[[`, numeric(1L), "value")), what)
   )
 }
 
@@ -2696,7 +2715,6 @@ drm_information_criterion <- function(fits, penalty, what) {
 #' @export
 AIC.drmTMB <- function(object, ..., k = 2) {
   fits <- c(list(object), list(...))
-  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
   drm_information_criterion(fits, function(o) k, "AIC")
 }
 
@@ -2704,8 +2722,7 @@ AIC.drmTMB <- function(object, ..., k = 2) {
 #' @export
 BIC.drmTMB <- function(object, ...) {
   fits <- c(list(object), list(...))
-  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
-  drm_information_criterion(fits, function(o) log(as.numeric(o$nobs)), "BIC")
+  drm_information_criterion(fits, function(o) log(drm_ic_nobs(o)), "BIC")
 }
 
 #' Likelihood comparison guard for drmTMB fits
