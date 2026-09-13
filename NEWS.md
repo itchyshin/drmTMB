@@ -11,6 +11,14 @@
   upper (runaway-scale) arm, since the lower arm is often a legitimate
   variance-zero boundary (meta-analysis `tau = 0`). Credit: the independent
   evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding C1.
+* `drm_clamped_scale_families()` (and hence `check_drm()`'s
+  `logsigma_clamp_active` row) now names `biv_lognormal` and `biv_student`,
+  not just `biv_gaussian`. `src/drmTMB.cpp` clamps `log_sigma1`/`log_sigma2`
+  identically for all three bivariate families in one shared branch, but the
+  R-side list previously named only `biv_gaussian`, so `check_drm()` printed
+  the false sentence "The log(sigma) clamp does not apply to this family"
+  for the other two. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Md-A.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the

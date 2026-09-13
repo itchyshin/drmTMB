@@ -3497,6 +3497,8 @@ drm_clamped_scale_families <- function() {
   c(
     "gaussian",
     "biv_gaussian",
+    "biv_lognormal",
+    "biv_student",
     "student",
     "skew_normal",
     "lognormal",
