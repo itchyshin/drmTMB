@@ -164,3 +164,43 @@ test_that("fitted_distribution()$p()/$d() recycle a scalar threshold across ever
   expect_identical(fit_hurdle$model$model_type, "hurdle_nbinom2")
   s1_scalar_recycling_case("hurdle_nbinom2", fit_hurdle)
 })
+
+# ---- S3: drm_phylo_penalty()'s SD penalty shape ----------------------------
+#
+# The compiled penalty (`drm_phylo_penalty_value()`, src/drmTMB.cpp) adds
+# `rate * sd - log(sd) - log(rate)` per phylogenetic SD, `sd = exp(log_sd)`.
+# `test-phylo-penalized-map.R` already validates this closed form against the
+# compiled TMB objective's own `fit$phylo_penalty` to `tolerance = 1e-8`, so
+# reusing it here (rather than refitting a phylo model) tests the SHAPE the
+# corrected `?drm_phylo_penalty` documents: up to a `sd`-independent additive
+# constant this is the negative log-density of a `Gamma(shape = 2,
+# rate = rate)` distribution, whose mode is `1 / rate` -- so the penalty
+# regularises the SD *toward* `1 / rate`, not toward zero (a plain
+# exponential-on-SD PC prior would instead be monotonically increasing in
+# `sd`, minimized at `sd -> 0`). Chose to correct the DOCS to match this
+# already-implemented, already-cited (Chung et al. 2013) penalty rather than
+# the CODE: see the ledger and commit message for why.
+drm_phylo_penalty_closed_form <- function(sd, rate) {
+  rate * sd - log(sd) - log(rate)
+}
+
+test_that("the phylogenetic SD penalty is minimized at 1 / rate, not at sd -> 0 (Dinnage audit S3)", {
+  pen <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05)
+  rate <- pen$rate
+  mode <- 1 / rate
+
+  near_zero <- drm_phylo_penalty_closed_form(1e-4, rate)
+  at_mode <- drm_phylo_penalty_closed_form(mode, rate)
+  ten_x_mode <- drm_phylo_penalty_closed_form(10 * mode, rate)
+
+  # The penalty at the documented mode is lower than near sd = 0: the old
+  # ("exponential prior, mass at zero") doc's claimed shape -- monotonically
+  # increasing away from sd = 0 -- does not hold for the code as implemented.
+  expect_lt(at_mode, near_zero)
+  # And lower than 10x the mode, confirming a genuine interior minimum (the
+  # Gamma(shape = 2, ...) shape), not merely "less bad than near zero".
+  expect_lt(at_mode, ten_x_mode)
+
+  # Numeric check against Dinnage's measured default-parameter mode (0.3338).
+  expect_equal(mode, 0.3338082, tolerance = 1e-6)
+})

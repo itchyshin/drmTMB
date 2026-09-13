@@ -7,9 +7,12 @@
 drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = NULL)
 }
 \arguments{
-\item{sd_u, sd_alpha}{Penalised-complexity prior scale and tail probability
-for each phylogenetic SD: a priori \code{P(sd > sd_u) = sd_alpha}. \code{sd_u} must
-be positive and \code{sd_alpha} must lie in \verb{(0, 1)}.}
+\item{sd_u, sd_alpha}{Legacy penalised-complexity-style scale and tail
+knobs, kept only to compute \code{rate = -log(sd_alpha) / sd_u}: larger
+\code{sd_u} or \code{sd_alpha} gives a smaller \code{rate} and so a larger \code{1 / rate}
+pull point for the SD. They no longer set a literal tail probability
+(see Details). \code{sd_u} must be positive and \code{sd_alpha} must lie in
+\verb{(0, 1)}.}
 
 \item{cor_sd}{Optional standard deviation of a mean-zero normal penalty on
 the phylogenetic cross-parameter correlation parameter. \code{NULL} (the
@@ -30,14 +33,29 @@ of \code{\link[=drmTMB]{drmTMB()}} switches the estimator from plain maximum lik
 penalized / maximum-a-posteriori (MAP) estimator.
 }
 \details{
-The standard-deviation penalty is a penalised-complexity (PC) prior (Simpson
-et al. 2017): an exponential prior on the SD scale with mass at zero, which
-regularises a weakly-identified phylogenetic SD (for example a scale-side
-phylogenetic field at about one observation per tip) toward the simpler
-"no phylogenetic variance" model. The rate is \code{lambda = -log(sd_alpha) / sd_u}
-so that, a priori, \code{P(sd > sd_u) = sd_alpha}. The optional correlation
+The standard-deviation penalty is Chung et al. (2013)'s nondegenerate
+penalized-likelihood term for a variance-like parameter estimated on its
+log scale: the negative log-density added to the objective for each
+phylogenetic SD is \code{rate * sd - log(sd) - log(rate)} (\code{sd = exp(log_sd)},
+the estimator's natural unconstrained parameter). Up to a
+sd-independent constant this is the negative log-density of a
+\code{Gamma(shape = 2, rate = rate)} distribution on the SD, \strong{not} the
+Simpson et al. (2017) penalised-complexity (PC) exponential prior an
+earlier version of this page described. The practical difference matters:
+a \code{Gamma(shape = 2, ...)} density is zero at \code{sd = 0} and has its mode at
+\code{sd = 1 / rate}, so the penalty regularises a weakly-identified
+phylogenetic SD (for example a scale-side phylogenetic field at about one
+observation per tip) \emph{toward} \code{1 / rate}, not toward zero the way a PC
+prior's exponential-with-mass-at-zero shape would (Dinnage audit S3;
+\code{rate = -log(sd_alpha) / sd_u}, at the \code{sd_u = 1}, \code{sd_alpha = 0.05}
+defaults, pulls toward \code{1 / rate} = 0.334, never toward "no phylogenetic
+variance"). \code{rate} is still computed as \code{-log(sd_alpha) / sd_u} for
+backward compatibility, but the resulting penalty does \strong{not} keep the PC
+prior's calibration promise \code{P(sd > sd_u) = sd_alpha}: the tail probability
+a \code{Gamma(shape = 2, rate = rate)} distribution actually assigns above
+\code{sd_u} is generally different from \code{sd_alpha}. The optional correlation
 penalty is a mean-zero normal on the unconstrained phylogenetic correlation
-parameter.
+parameter (unaffected by this correction).
 
 A penalized fit is a MAP point estimate, not a maximum-likelihood fit: its
 standard errors are credible-interval-shaped, and likelihood-ratio tests or
@@ -46,9 +64,11 @@ unpenalized data log-likelihood; the penalty contribution is stored
 separately on the fit as \code{fit$phylo_penalty}.
 }
 \examples{
-# Penalised-complexity prior: a priori P(phylogenetic SD > 1) = 0.05.
+# rate = -log(sd_alpha) / sd_u; the penalty pulls the phylogenetic SD
+# toward 1 / rate, not toward zero (see Details).
 pen <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05)
 pen$rate
+1 / pen$rate
 
 # Also penalize the phylogenetic correlation in a coupled location-scale or
 # bivariate phylogenetic model.
@@ -56,11 +76,13 @@ pen_cor <- drm_phylo_penalty(sd_u = 1, sd_alpha = 0.05, cor_sd = 0.5)
 pen_cor$cor_sd
 }
 \references{
-Simpson, D., Rue, H., Riebler, A., Martins, T. G., & Sorbye, S. H. (2017).
-Penalising model component complexity: a principled, practical approach to
-constructing priors. Statistical Science, 32(1), 1-28.
-
 Chung, Y., Rabe-Hesketh, S., Dorie, V., Gelman, A., & Liu, J. (2013). A
 nondegenerate penalized likelihood estimator for variance parameters in
 multilevel models. Psychometrika, 78(4), 685-709.
+
+Simpson, D., Rue, H., Riebler, A., Martins, T. G., & Sorbye, S. H. (2017).
+Penalising model component complexity: a principled, practical approach to
+constructing priors. Statistical Science, 32(1), 1-28. (The penalised-
+complexity prior this paper introduces is what an earlier version of this
+help page, in error, described; see Details.)
 }
