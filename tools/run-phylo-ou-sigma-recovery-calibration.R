@@ -330,7 +330,7 @@ write_calibration_artifacts <- function(all_conditions, attempts, run_started, e
   writeLines(paste(sums, sub(paste0("^", out_dir, "/"), "", artifact_files)), file.path(out_dir, "DATA-SHA256SUMS"))
   provenance <- c(
     paste("source_commit", system2("git", c("rev-parse", "HEAD"), stdout = TRUE), sep = "\t"),
-    paste("source_dirty", length(system2("git", c("status", "--porcelain"), stdout = TRUE)) > 0L, sep = "\t"),
+    paste("source_dirty", length(system2("git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE)) > 0L, sep = "\t"),
     paste("runner_sha256", sha256_file("tools/run-phylo-ou-sigma-recovery-calibration.R"), sep = "\t"),
     paste("design_sha256", sha256_file("docs/design/263-phylo-ou-sigma-recovery-calibration.md"), sep = "\t"),
     paste("r_version", R.version.string, sep = "\t"), paste("platform", R.version$platform, sep = "\t"),
@@ -373,7 +373,7 @@ attempts <- do.call(rbind, lapply(seq_len(nrow(selected)), function(i) {
     fit_one(selected[i, ], start_id, starts[[start_id]])
   }))
 }))
-git_dirty <- length(system2("git", c("status", "--porcelain"), stdout = TRUE)) > 0L
+git_dirty <- length(system2("git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE)) > 0L
 manifest <- data.frame(
   source_commit = system2("git", c("rev-parse", "HEAD"), stdout = TRUE),
   source_dirty = git_dirty,
