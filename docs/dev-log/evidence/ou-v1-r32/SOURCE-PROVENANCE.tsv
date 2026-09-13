@@ -1,0 +1,9 @@
+item	value
+R31_parent_commit	8e52fdad1
+runner_sha256	3441003e76d263f4b08183b6a5f15c93ce32cdaa2a5ec88effa987c1cd186bd4
+verifier_sha256	d6fb9384d277573032c404f536f043ee5a648b5bbaded9032c493c86511d6a1c
+tree_sha256	d4c92c953a1e4c4e4a261526b03ae7d3e3398a11d2cdf162b414f6881cf7baa1
+data_sha256	741aa1618b1edac87e013985f3469304417f734b146ab544f512a05b4eb3cb38
+timed_core_cell_seconds	0.989
+projected_four_cell_seconds	3.956
+quadrature	stationary-tip six-dimensional product Gauss-Hermite; nine nodes, with five/seven-node anchor refinements

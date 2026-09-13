@@ -95386,3 +95386,18 @@ no-go. The next proposed, separately approved scope is R3.2: a converged
 small-tree exact *relative* profile comparison testing whether Laplace changes
 ordering or flatness across rate/amplitude. No recovery campaign, family
 expansion, correlation, or public OU claim follows from R3.1.
+
+## 2026-09-12 — OU v1 R3.2 direct relative profile: unresolved
+
+R3.2 tested whether the small-tree Laplace discrepancy reverses the observed
+profile ordering. Four fixed rate--amplitude cells had the same native and
+nine-node direct rank, but this was not accepted as an exact-rank result. The
+ridge-rate/interior-amplitude direct integral moved by 0.0785 NLL from nine to
+eleven nodes and 0.0413 from eleven to thirteen; interior/interior also had
+not converged at nine nodes. Fisher therefore rejected a rank-agreement claim.
+
+R3.2 is retained negative evidence: no estimator repair, recovery redesign,
+G15 campaign, family expansion, or public OU claim follows. The next proposed
+task is a fresh, approved convergence-design arc with a predeclared numerical
+error target for both unresolved cells, or an independent integrator with an
+error estimate.
