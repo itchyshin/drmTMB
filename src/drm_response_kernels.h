@@ -145,9 +145,14 @@ Type drm_response_log_density(
         lgamma(beta_shape);
     }
     default:
-      // Non-Gaussian response leaves are added in P3; unreachable in P2 (only
-      // the model_type == 1 mi() block calls this helper).
-      return Type(0.0);
+      // Returning Type(0.0) here (a likelihood contribution of 1, i.e. a
+      // silent no-op) let a future family wired into an mi() two-point sum
+      // fit "successfully" with a wrong likelihood before its case was
+      // added here (Dinnage audit Mi-9). model_type is a plain int
+      // (DATA_INTEGER), not an AD variable, so erroring here is a normal
+      // runtime branch, not a taping concern.
+      error("drm_response_log_density(): unhandled model_type");
+      return Type(0.0); // unreachable; keeps the compiler's return-path check happy
   }
 }
 

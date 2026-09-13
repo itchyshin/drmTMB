@@ -74,6 +74,14 @@
   orders of magnitude and a plateau a maximiser could sit on. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
   finding Md-M.
+* The `default:` branch of `drm_response_log_density()`
+  (`src/drm_response_kernels.h`) now calls `error()` instead of silently
+  returning `Type(0.0)` (a likelihood contribution of 1) for an unhandled
+  `model_type`. Every current call site is reachable-safe, so this is a
+  guard against the next family wired into an `mi()` two-point sum before
+  its case is added here, not a fix to an observable behaviour today.
+  Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Mi-9.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
