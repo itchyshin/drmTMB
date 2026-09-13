@@ -95313,3 +95313,23 @@ campaign-readiness result only: it neither runs the full calibration nor
 supports recovery, interval, coverage, model-selection, or public-capability
 claims. See `docs/design/263-phylo-ou-sigma-recovery-calibration.md` and
 `docs/dev-log/after-task/2026-09-12-phylo-ou-sigma-r1.md`.
+
+## 2026-09-12 — OU v1 G0/G14 evidence checkpoint: campaign no-go
+
+OU v1 now has a committed 29-row frozen capability census, including the
+existing Gaussian missing-response BM row, an independent objective/gradient/
+Hessian oracle gate, and a clean-source 54-attempt local G14 receipt. The
+receipt retained all three starts for 16 ordinary and two weak-control tasks.
+All ordinary tasks produced a qualified numerical fit, but selected-fit median
+absolute log-rate error was 0.593 for `alpha_mu` and 1.712 for `alpha_sigma`.
+This fails the proposed future G15 recovery bar of `log(1.5)` and demonstrates
+why convergence and a positive-definite Hessian cannot stand in for recovery.
+
+Fisher's independent review is **NO-GO** for the fixed G15 design. The plan is
+therefore paused before the Totoro rehearsal/campaign and before broader OU
+provider/grammar work, as required by its recovery-failure stop rule. The next
+bounded task is an R2 information preflight: five independent tree-plus-field
+seeds per ordered rate pair, 128 species, 12 within-species observations, and
+three starts (30 retained fits), with all failures and both rate-error summaries
+kept. Full provenance and exact resume commands are in
+`docs/dev-log/plan-actual/2026-09-12-ou-v1-complete.md`.
