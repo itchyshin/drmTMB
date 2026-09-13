@@ -95298,3 +95298,18 @@ the exact data/tree hashes, source commit, ML controls, convergence, gradient,
 warnings, Hessian state, likelihood, AIC, and both rate estimates; it makes no
 OU-versus-BM or recovery claim. A separate approved replicated campaign is
 required for recovery, intervals, coverage, or model-selection promotion.
+
+## 2026-09-12 — R1 OU-sigma recovery-calibration readiness receipt
+
+R1 freezes a replicated, intercept-only Gaussian ML design for the existing
+independent OU location/scale fields: 16 ordinary tasks, two deliberately weak
+negative controls, and three fixed starts per task. Its independent stationary
+root-edge oracle and deterministic smoke pass. A source-current twelve-fit
+largest-cell preflight projected all 54 attempts at 183.72 seconds, below the
+25-minute local threshold, with no campaign launched. Both the smoke and
+preflight receipts record source-current runner/contract hashes and are
+validated for task identifiers, diagnostics, and provenance. This is a
+campaign-readiness result only: it neither runs the full calibration nor
+supports recovery, interval, coverage, model-selection, or public-capability
+claims. See `docs/design/263-phylo-ou-sigma-recovery-calibration.md` and
+`docs/dev-log/after-task/2026-09-12-phylo-ou-sigma-r1.md`.
