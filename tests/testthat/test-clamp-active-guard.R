@@ -139,3 +139,28 @@ test_that("check_drm() reports a clamp-active row (warning when active, ok when 
   row_active <- chk_active[chk_active$check == "logsigma_clamp_active", ]
   expect_equal(row_active$status, "warning")
 })
+
+test_that("check_drm() reports the LOWER clamp arm as a note with lower-bound wording", {
+  # Dinnage audit C1 + Fisher review: a scale that runs to the lower clamp is
+  # reported (it also fires when the response sits on a tiny numeric scale and
+  # the scale coefficients are wrong), but as a note, not a warning, because
+  # sigma -> 0 is a legitimate result (e.g. a meta-analysis at tau = 0).
+  set.seed(1)
+  n <- 60
+  x <- stats::rnorm(n)
+  dat <- data.frame(y = 1 + 0.5 * x + stats::rnorm(n, 0, 0.6), x = x)
+  # A band whose LOWER bound sits above the true log(sigma) (~ -0.5) forces the
+  # lower clamp active deterministically.
+  fit <- allow_nonconvergence(drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(logsigma_clamp = c(0.5, 3))
+  ))
+  chk <- check_drm(fit)
+  row <- chk[chk$check == "logsigma_clamp_active", ]
+  expect_equal(nrow(row), 1L)
+  expect_equal(row$status, "note")
+  expect_match(row$message, "below the clamp band lower bound", fixed = TRUE)
+  expect_match(row$message, "tau = 0", fixed = TRUE)
+})

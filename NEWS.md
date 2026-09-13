@@ -11,6 +11,9 @@
   upper (runaway-scale) arm, since the lower arm is often a legitimate
   variance-zero boundary (meta-analysis `tau = 0`). Credit: the independent
   evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding C1.
+  `check_drm()` now reports the lower arm as a note whose text names the
+  lower bound and the legitimate `tau = 0` case, and the upper arm as a
+  warning (Fisher review of the fix).
 * `drm_clamped_scale_families()` (and hence `check_drm()`'s
   `logsigma_clamp_active` row) now names `biv_lognormal` and `biv_student`,
   not just `biv_gaussian`. `src/drmTMB.cpp` clamps `log_sigma1`/`log_sigma2`
