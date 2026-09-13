@@ -26,11 +26,24 @@ test_that("drm_logsigma_clamp_active flags saturation, ignores healthy and disab
   expect_equal(info2$value, 13.5)
 })
 
-test_that("drm_logsigma_clamp_active ignores the lower (scale -> 0) boundary", {
+test_that("drm_logsigma_clamp_active detects the lower (scale -> 0) boundary too", {
   on <- list(use_logsigma_clamp = 1L, logsigma_clamp = c(-12, 12, 3))
-  # A scale at the lower clamp (e.g. meta-analysis tau -> 0) is a legitimate
-  # variance-zero boundary, not a runaway; it must not trip the clamp warning.
-  expect_null(drm_logsigma_clamp_active(list(log_sigma = -13.2), on))
+  # A scale at the lower clamp (e.g. meta-analysis tau -> 0) is often a
+  # legitimate variance-zero boundary, but it also fires when the response is
+  # on a small numeric scale and the scale coefficient is badly wrong
+  # (Dinnage audit C1). The predicate must be two-sided; severity is decided
+  # downstream (check_drm() reports the lower arm as a note, not a warning).
+  info <- drm_logsigma_clamp_active(list(log_sigma = -13.2), on)
+  expect_false(is.null(info))
+  expect_equal(info$arm, "lower")
+  expect_equal(info$value, -13.2)
+})
+
+test_that("drm_logsigma_clamp_active reports arm = 'upper' on the upper boundary", {
+  on <- list(use_logsigma_clamp = 1L, logsigma_clamp = c(-12, 12, 3))
+  info <- drm_logsigma_clamp_active(list(log_sigma = c(0.1, 14.2)), on)
+  expect_equal(info$arm, "upper")
+  expect_equal(info$value, 14.2)
 })
 
 test_that("drm_logsigma_clamp_active is robust to missing fields and non-finite values", {

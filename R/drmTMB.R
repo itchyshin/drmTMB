@@ -3531,14 +3531,27 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   ]
   values <- unlist(fields, use.names = FALSE)
   values <- values[is.finite(values)]
-  # Only the upper bound flags artificial convergence from a runaway scale
-  # (sigma -> Inf / overflow). The lower bound (sigma -> 0) is the variance-zero
-  # boundary, which is often a legitimate result (e.g. meta-analysis tau = 0) and
-  # is handled by the random-effect SD / scale checks in check_drm().
-  if (length(values) == 0L || !any(values > hi)) {
+  # Both bounds are reported. The UPPER arm stays a warning-strength signal: it
+  # flags artificial convergence from a runaway scale (sigma -> Inf / overflow).
+  # The LOWER arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
+  # tau = 0), so callers should report it as a note rather than a warning -- but
+  # it must be reported, because the same lower-clamp arm also fires when the
+  # response is on a small numeric scale and the scale coefficient is badly
+  # wrong (Dinnage audit C1). Same predicate as R/profile.R:4197.
+  if (length(values) == 0L) {
     return(NULL)
   }
-  list(value = max(values), lo = lo, hi = hi)
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  list(
+    value = if (hit_hi) max(values) else min(values),
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
 }
 
 # Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
@@ -3557,7 +3570,11 @@ drm_warn_if_clamp_active <- function(obj, spec) {
     return(invisible(FALSE))
   }
   info <- drm_logsigma_clamp_active(report, spec$tmb_data)
-  if (is.null(info)) {
+  # The lower arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
+  # tau = 0); it is surfaced by check_drm() (as a note, not a warning) rather
+  # than raised as a fit-time cli warning here, to avoid warning on every
+  # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
+  if (is.null(info) || !identical(info$arm, "upper")) {
     return(invisible(FALSE))
   }
   cli::cli_warn(

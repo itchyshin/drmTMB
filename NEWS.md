@@ -1,5 +1,17 @@
 # drmTMB 0.7.1
 
+## Dinnage independent-evaluation fixes (wave 1)
+
+* `drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active`
+  row) now detects the LOWER `log(sigma)` clamp arm, not just the upper one.
+  Previously a scale-model fit whose raw `log(sigma)` predictor sat on the
+  lower bound (e.g. a response on a small numeric scale) was reported as
+  "the clamp is not active", even though the clamp had changed what the
+  likelihood evaluated. The fit-time `cli_warn()` still fires only for the
+  upper (runaway-scale) arm, since the lower arm is often a legitimate
+  variance-zero boundary (meta-analysis `tau = 0`). Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding C1.
+
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
 `engine = "julia"` bridge work already recorded in detail under the 0.7.0
