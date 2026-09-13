@@ -43,8 +43,11 @@ test_that("ordinary-Laplace coverage rows are emitted from the capability regist
     "ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace"
   ))
   expect_true(all(rows$r_bridge_status == "supported"))
+  # The registry cites the retained receipt by a commit-pinned GitHub URL
+  # (test-julia-gate-vs-engine.R requires every evidence_url to be a GitHub
+  # URL); the bare repository path is the receipt's location, not its citation.
   expect_true(all(rows$evidence_url ==
-    "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv"))
+    "https://github.com/itchyshin/drmTMB/blob/0285af445d882b9d92c9a3e45181896344cf749f/docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv"))
   expect_true(all(grepl("frozen-scenario", rows$claim_boundary, fixed = TRUE)))
 })
 
