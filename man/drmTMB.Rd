@@ -13,6 +13,7 @@ drmTMB(
   impute = NULL,
   missing = miss_control(),
   engine = c("tmb", "julia"),
+  marginal = NULL,
   REML = FALSE,
   penalty = NULL,
   estimator = c("ml", "mspl"),
@@ -114,6 +115,13 @@ the full family-by-route table, which capability-ledger row documents
 each receipt, and current boundaries. \code{engine = "julia"} needs a local
 DRM.jl checkout and the optional \code{JuliaCall} package, and it is not a
 drop-in replacement for every native-TMB workflow.}
+
+\item{marginal}{Optional Julia marginal-integrator selector. The only
+admitted value is \code{"Laplace"}, which requests DRM.jl's explicit
+mode-and-curvature scalar route for an ordinary \code{(1 | group)} Binomial,
+Poisson, or NB2 (\code{sigma ~ 1}) model. It is unavailable on the native TMB
+engine and on coupled NB2 location-scale random effects, which use their
+own q=2 Laplace route.}
 
 \item{REML}{Logical; use restricted maximum likelihood where the selected
 engine supports it. Native \code{engine = "tmb"} restricts the likelihood by
