@@ -856,6 +856,19 @@ drm_family_dpq_poisson <- function() {
 # `qpois(0, mu) = 0` and `u = 1` maps to `qpois(1, mu) = Inf` (ordinary
 # `qpois()` boundary behaviour, unchanged).
 
+# Recycle a length-1 `y`/`u` argument to `nrow(params)` before it reaches an
+# ifelse()-based d()/p()/q() closure. ifelse(test, yes, no) returns a result
+# the LENGTH OF `test`, not of the longer `yes`/`no` operand -- so a scalar
+# `y` against a length-n `params$mu` silently returned length 1 (row 1's
+# value) instead of being recycled across rows the way a plain vectorised
+# call (e.g. stats::ppois(y, lambda = params$mu), no ifelse()) already is.
+# Dinnage audit S1. A no-op when `y`/`u` is already length n (or anything
+# other than length 1); genuine length mismatches still error downstream the
+# same way they did before this helper existed.
+drm_recycle_scalar_arg <- function(y, params) {
+  if (length(y) == 1L) rep(y, nrow(params)) else y
+}
+
 drm_family_dpq_zi_poisson <- function() {
   list(
     dpars = c("mu", "zi"),
@@ -864,11 +877,13 @@ drm_family_dpq_zi_poisson <- function() {
     atoms = c(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       zi <- params$zi
       base <- stats::dpois(y, lambda = params$mu)
       ifelse(y == 0, zi + (1 - zi) * base, (1 - zi) * base)
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       zi <- params$zi
       ifelse(
         y < 0,
@@ -953,12 +968,14 @@ drm_family_dpq_truncated_nbinom2 <- function() {
     atoms = numeric(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       base <- stats::dnbinom(y, size = size, mu = params$mu)
       ifelse(y < 1, 0, base / (1 - p0))
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       cdf <- (stats::pnbinom(y, size = size, mu = params$mu) - p0) / (1 - p0)
@@ -1001,12 +1018,14 @@ drm_family_dpq_hurdle_nbinom2 <- function() {
     atoms = c(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       base <- stats::dnbinom(y, size = size, mu = params$mu)
       ifelse(y == 0, params$hu, (1 - params$hu) * base / (1 - p0))
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       hu <- params$hu
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
@@ -1049,12 +1068,14 @@ drm_family_dpq_zi_nbinom2 <- function() {
     atoms = c(0),
     status = "reference",
     d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       zi <- params$zi
       base <- stats::dnbinom(y, size = size, mu = params$mu)
       ifelse(y == 0, zi + (1 - zi) * base, (1 - zi) * base)
     },
     p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       zi <- params$zi
       ifelse(
