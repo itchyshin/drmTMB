@@ -6,13 +6,15 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 mode <- if (length(args)) args[[1L]] else "--smoke"
-if (!mode %in% c("--smoke", "--preflight", "--contract")) {
-  stop("Usage: Rscript tools/run-phylo-ou-sigma-recovery-calibration.R [--contract|--smoke|--preflight]", call. = FALSE)
+if (!mode %in% c("--smoke", "--preflight", "--calibration", "--contract")) {
+  stop("Usage: Rscript tools/run-phylo-ou-sigma-recovery-calibration.R [--contract|--smoke|--preflight|--calibration]", call. = FALSE)
 }
 
-out_dir <- file.path(
-  "docs", "dev-log", "implementation-recovery", "2026-09-12-phylo-ou-sigma-r1"
-)
+out_dir <- if (identical(mode, "--calibration")) {
+  file.path("docs", "dev-log", "evidence", "ou-v1-g14")
+} else {
+  file.path("docs", "dev-log", "implementation-recovery", "2026-09-12-phylo-ou-sigma-r1")
+}
 if (identical(mode, "--contract")) {
   cat("PHYLO_OU_SIGMA_R1_CONTRACT_PASS\n")
   quit(status = 0L)
@@ -218,18 +220,153 @@ fit_one <- function(row, start_id, start_spec) {
   )
 }
 
+sha256_file <- function(path) {
+  line <- system2("shasum", c("-a", "256", path), stdout = TRUE, stderr = TRUE)
+  if (length(line) != 1L || !grepl("^[[:xdigit:]]{64} ", line)) {
+    stop(sprintf("Could not obtain SHA-256 for %s", path), call. = FALSE)
+  }
+  sub(" .*", "", line)
+}
+
+task_payload <- function(row) {
+  tree <- tree_for(row$n_species)
+  c_mu <- independent_ou_correlation(tree, row$alpha_mu_truth)
+  c_sigma <- independent_ou_correlation(tree, row$alpha_sigma_truth)
+  set.seed(row$seed)
+  u <- drop(t(chol(c_mu)) %*% stats::rnorm(row$n_species, sd = 0.45))
+  set.seed(row$seed + 100000L)
+  v <- drop(t(chol(c_sigma)) %*% stats::rnorm(row$n_species, sd = 0.25))
+  species <- rep(tree$tip.label, each = row$n_each)
+  index <- match(species, tree$tip.label)
+  sigma <- exp(-1 + v[index])
+  set.seed(row$seed + 200000L)
+  dat <- data.frame(y = u[index] + stats::rnorm(length(species), sd = sigma), species = species)
+  list(tree = tree, u = u, v = v, data = dat)
+}
+
+write_calibration_artifacts <- function(all_conditions, attempts, run_started, elapsed_total) {
+  dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+  for (subdir in c("trees", "data", "fields")) dir.create(file.path(out_dir, subdir), showWarnings = FALSE)
+  tree_rows <- do.call(rbind, lapply(unique(all_conditions$n_species), function(n_species) {
+    tree <- tree_for(n_species)
+    tree_id <- sprintf("tree_n%d_v1", n_species)
+    tree_path <- file.path(out_dir, "trees", paste0(tree_id, ".nwk"))
+    ape::write.tree(tree, file = tree_path)
+    data.frame(
+      tree_id = tree_id, n_species = n_species, tree_seed = tree_seed_for(n_species),
+      root_to_tip_height = 1, root_retained = TRUE,
+      tip_order_sha256 = sha256_file({ p <- tempfile(); writeLines(tree$tip.label, p); p }),
+      newick_sha256 = sha256_file(tree_path), scaling_rule = "height_one",
+      root_distribution = "stationary", stringsAsFactors = FALSE
+    )
+  }))
+  utils::write.csv(tree_rows, file.path(out_dir, "trees.csv"), row.names = FALSE)
+  manifest_rows <- lapply(seq_len(nrow(all_conditions)), function(i) {
+    row <- all_conditions[i, , drop = FALSE]
+    payload <- task_payload(row)
+    data_path <- file.path(out_dir, "data", paste0(row$task_id, ".csv"))
+    u_path <- file.path(out_dir, "fields", paste0(row$task_id, "-u.csv"))
+    v_path <- file.path(out_dir, "fields", paste0(row$task_id, "-v.csv"))
+    utils::write.csv(payload$data, data_path, row.names = FALSE)
+    utils::write.csv(data.frame(species = payload$tree$tip.label, u = payload$u), u_path, row.names = FALSE)
+    utils::write.csv(data.frame(species = payload$tree$tip.label, v = payload$v), v_path, row.names = FALSE)
+    data.frame(
+      task_id = row$task_id, design_class = row$design_class, cell_id = row$condition,
+      replicate_seed = row$seed, tree_id = row$tree_id, n_species = row$n_species, n_each = row$n_each,
+      alpha_mu_truth = row$alpha_mu_truth, alpha_sigma_truth = row$alpha_sigma_truth,
+      sd_u_truth = 0.45, sd_v_truth = 0.25, mu_intercept_truth = 0,
+      logsigma_intercept_truth = -1, data_sha256 = sha256_file(data_path),
+      generator_sha256 = sha256_file("tools/run-phylo-ou-sigma-recovery-calibration.R"),
+      stringsAsFactors = FALSE
+    )
+  })
+  manifest <- do.call(rbind, manifest_rows)
+  utils::write.csv(manifest, file.path(out_dir, "manifest.csv"), row.names = FALSE)
+  starts_table <- do.call(rbind, lapply(seq_len(nrow(all_conditions)), function(i) {
+    do.call(rbind, lapply(names(starts), function(start_id) {
+      start <- starts[[start_id]]
+      start_text <- paste(c(start$alpha, start$sd, 0, -1), collapse = ",")
+      start_path <- tempfile(); writeLines(start_text, start_path)
+      data.frame(task_id = all_conditions$task_id[[i]], start_id = start_id,
+        alpha_mu_start = start$alpha[[1L]], alpha_sigma_start = start$alpha[[2L]],
+        sd_u_start = start$sd[[1L]], sd_v_start = start$sd[[2L]],
+        mu_intercept_start = 0, logsigma_intercept_start = -1,
+        internal_start_sha256 = sha256_file(start_path), stringsAsFactors = FALSE)
+    }))
+  }))
+  utils::write.csv(starts_table, file.path(out_dir, "starts.csv"), row.names = FALSE)
+  attempts$attempt_status <- ifelse(attempts$fit_ok, "FIT", "ERROR")
+  attempts$selection_status <- "NOT_SELECTED"
+  selected <- do.call(rbind, lapply(split(attempts, attempts$task_id), function(x) {
+    qualified <- x[x$fit_ok & x$convergence == 0L & x$pdHess & !x$boundary & is.finite(x$objective), , drop = FALSE]
+    if (nrow(qualified)) {
+      picked <- qualified[which.min(qualified$objective), , drop = FALSE]
+      attempts[attempts$task_id == picked$task_id & attempts$start_id == picked$start_id, "selection_status"] <<- "SELECTED"
+      data.frame(task_id = picked$task_id, selection_status = "QUALIFIED", selected_start_id = picked$start_id,
+        selected_objective = picked$objective, selected_pdHess = picked$pdHess,
+        selected_max_abs_gradient = picked$max_gradient, alpha_mu = picked$alpha_mu,
+        alpha_sigma = picked$alpha_sigma, sd_mu = picked$sd_mu, sd_sigma = picked$sd_sigma,
+        mu_intercept = picked$mu_intercept, logsigma_intercept = picked$logsigma_intercept,
+        diagnostic_class = picked$design_class, stringsAsFactors = FALSE)
+    } else {
+      data.frame(task_id = x$task_id[[1L]], selection_status = "NO_QUALIFIED_START", selected_start_id = NA_character_,
+        selected_objective = NA_real_, selected_pdHess = NA, selected_max_abs_gradient = NA_real_,
+        alpha_mu = NA_real_, alpha_sigma = NA_real_, sd_mu = NA_real_, sd_sigma = NA_real_,
+        mu_intercept = NA_real_, logsigma_intercept = NA_real_, diagnostic_class = x$design_class[[1L]], stringsAsFactors = FALSE)
+    }
+  }))
+  utils::write.csv(attempts, file.path(out_dir, "attempts.csv"), row.names = FALSE)
+  utils::write.csv(selected, file.path(out_dir, "selected-fits.csv"), row.names = FALSE)
+  diagnostics <- do.call(rbind, lapply(split(attempts, attempts$task_id), function(x) data.frame(
+    task_id = x$task_id[[1L]], design_class = x$design_class[[1L]],
+    finite_objective_any = any(is.finite(x$objective)), converged_any = any(x$convergence == 0L, na.rm = TRUE),
+    pdHess_any = any(x$pdHess, na.rm = TRUE), qualified_start_count = sum(x$selection_status == "SELECTED"),
+    warning_count = sum(nzchar(x$warnings)), boundary_count = sum(x$boundary, na.rm = TRUE),
+    attempt_count = nrow(x), negative_control_interpretation = ifelse(x$design_class[[1L]] == "negative_control", "weak_identification_expected", "not_applicable"), stringsAsFactors = FALSE)))
+  utils::write.csv(diagnostics, file.path(out_dir, "diagnostics.csv"), row.names = FALSE)
+  artifact_files <- list.files(out_dir, recursive = TRUE, full.names = TRUE)
+  artifact_files <- artifact_files[!basename(artifact_files) %in% c("DATA-SHA256SUMS", "SOURCE-PROVENANCE.tsv", "RESULTS.md")]
+  sums <- vapply(artifact_files, sha256_file, character(1L))
+  writeLines(paste(sums, sub(paste0("^", out_dir, "/"), "", artifact_files)), file.path(out_dir, "DATA-SHA256SUMS"))
+  provenance <- c(
+    paste("source_commit", system2("git", c("rev-parse", "HEAD"), stdout = TRUE), sep = "\t"),
+    paste("source_dirty", length(system2("git", c("status", "--porcelain"), stdout = TRUE)) > 0L, sep = "\t"),
+    paste("runner_sha256", sha256_file("tools/run-phylo-ou-sigma-recovery-calibration.R"), sep = "\t"),
+    paste("design_sha256", sha256_file("docs/design/263-phylo-ou-sigma-recovery-calibration.md"), sep = "\t"),
+    paste("r_version", R.version.string, sep = "\t"), paste("platform", R.version$platform, sep = "\t"),
+    paste("drmTMB_version", as.character(utils::packageVersion("drmTMB")), sep = "\t"),
+    paste("drmTMB_dll_sha256", {
+      dll <- getLoadedDLLs()[["drmTMB"]]
+      if (is.null(dll) || !file.exists(dll[["path"]])) NA_character_ else sha256_file(dll[["path"]])
+    }, sep = "\t"),
+    paste("command", paste(commandArgs(), collapse = " "), sep = "\t"),
+    paste("run_started_utc", format(run_started, tz = "UTC", usetz = TRUE), sep = "\t"),
+    paste("elapsed_total_seconds", elapsed_total, sep = "\t"))
+  writeLines(provenance, file.path(out_dir, "SOURCE-PROVENANCE.tsv"))
+  ordinary_selected <- sum(selected$selection_status == "QUALIFIED" & selected$diagnostic_class == "ordinary")
+  negative_selected <- sum(selected$selection_status == "QUALIFIED" & selected$diagnostic_class == "negative_control")
+  writeLines(c(
+    "# OU v1 G14 local calibration", "",
+    "This is a deterministic 54-attempt local calibration, not a retained multi-seed recovery campaign or public capability claim.", "",
+    sprintf("Ordinary tasks: %d; negative-control tasks: %d; attempts: %d.", sum(all_conditions$design_class == "ordinary"), sum(all_conditions$design_class == "negative_control"), nrow(attempts)),
+    sprintf("Qualified selected fits: ordinary %d/%d; negative controls %d/%d.", ordinary_selected, sum(all_conditions$design_class == "ordinary"), negative_selected, sum(all_conditions$design_class == "negative_control")),
+    "Warnings, boundary estimates, and failed starts remain in attempts.csv and are not discarded.",
+    "The calibration selects no recovery, interval, model-selection, or public-capability conclusion."
+  ), file.path(out_dir, "RESULTS.md"))
+}
+
 all_conditions <- conditions()
 if (identical(mode, "--smoke")) {
   selected <- rbind(
     all_conditions[all_conditions$design_class == "ordinary", ][1L, ],
     all_conditions[all_conditions$design_class == "negative_control", ][1L, ]
   )
-} else {
+} else if (identical(mode, "--preflight")) {
   selected <- all_conditions[
     all_conditions$design_class == "ordinary" & all_conditions$n_species == 64L &
       all_conditions$n_each == 12L,
   ]
-}
+} else selected <- all_conditions
 
 attempts <- do.call(rbind, lapply(seq_len(nrow(selected)), function(i) {
   do.call(rbind, lapply(names(starts), function(start_id) {
@@ -270,6 +407,7 @@ if (identical(mode, "--preflight")) {
   )
   utils::write.csv(preflight, file.path(out_dir, "preflight-summary.csv"), row.names = FALSE)
 }
+if (identical(mode, "--calibration")) write_calibration_artifacts(all_conditions, attempts, run_started, elapsed_total)
 utils::write.csv(all_conditions, file.path(out_dir, "conditions.csv"), row.names = FALSE)
 utils::write.csv(attempts, file.path(out_dir, paste0(sub("--", "", mode), "-attempts.csv")), row.names = FALSE)
 utils::write.csv(manifest, file.path(out_dir, paste0(sub("--", "", mode), "-manifest.csv")), row.names = FALSE)
