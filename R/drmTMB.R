@@ -350,6 +350,7 @@ drmTMB <- function(
     missing_control = missing_control,
     control = control
   )
+  n_rows_before_mspl_filter <- nrow(data)
   mspl_frequency_rows <- drm_mspl_filter_frequency_rows(
     data,
     weights_full,
@@ -581,6 +582,20 @@ drmTMB <- function(
       missing = missing_control
     )
   )
+
+  # check_drm()'s dropped_rows row reads spec$keep, a logical vector the
+  # family builders compute relative to the (possibly MSPL-filtered) `data`
+  # above -- so it never saw rows MSPL discarded before any builder ran, and
+  # reported "no rows were dropped" even when MSPL had discarded some
+  # (Dinnage audit Md-N). Re-express spec$keep relative to the ORIGINAL
+  # input data by threading mspl_frequency_rows$kept through: FALSE for every
+  # row MSPL discarded, and the builder's own keep value for every row MSPL
+  # kept. A no-op when MSPL is not in use (kept is then seq_len(nrow(data))).
+  if (!is.null(spec$keep)) {
+    keep_full <- rep(FALSE, n_rows_before_mspl_filter)
+    keep_full[mspl_frequency_rows$kept] <- spec$keep
+    spec$keep <- keep_full
+  }
 
   drm_fit_spec(
     spec = spec,

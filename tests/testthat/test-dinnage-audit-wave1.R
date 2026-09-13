@@ -104,3 +104,37 @@ test_that("Md-E: an unused factor level no longer zeroes out every SE (Dinnage a
   # (all-zero) coefficient column.
   expect_false("mu:gc" %in% rownames(summary(fit)$coefficients))
 })
+
+test_that("Md-N: dropped_rows reflects MSPL-discarded rows (Dinnage audit)", {
+  # check_drm()'s dropped_rows row reads spec$keep, which the family builders
+  # compute relative to the (already MSPL-filtered) data -- so a row MSPL
+  # discarded because of a zero frequency weight was invisible to it, and it
+  # printed "no rows were dropped" even though MSPL had discarded one.
+  group <- factor(rep(seq_len(10), each = 4L))
+  x <- rep(c(-1.5, -0.5, 0.5, 1.5), 10L)
+  trials <- rep(c(2L, 3L, 2L, 4L), 10L)
+  successes <- rep(c(0L, 1L, 1L, 3L), 10L)
+  frequency <- rep(c(1L, 2L, 1L, 1L), 10L)
+  off <- rep(c(-0.25, 0.1, 0.2, -0.1), 10L)
+  grouped <- data.frame(
+    successes, failures = trials - successes, x, group, off, frequency
+  )
+  with_zero <- rbind(
+    grouped,
+    data.frame(
+      successes = 999L, failures = 0L, x = 999, group = group[[1L]],
+      off = 0, frequency = 0L
+    )
+  )
+  zero_fit <- drmTMB(
+    bf(cbind(successes, failures) ~ x + offset(off) + (1 | group)),
+    binomial(), with_zero,
+    weights = with_zero$frequency,
+    estimator = "mspl",
+    control = drm_control(se = FALSE, optimizer_preset = "careful", multi_start = 2L)
+  )
+  chk <- check_drm(zero_fit)
+  row <- chk[chk$check == "dropped_rows", ]
+  expect_equal(nrow(row), 1L)
+  expect_match(row$value, "dropped=1", fixed = TRUE)
+})

@@ -56,6 +56,16 @@
   front, before any family builder constructs a model frame. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
   finding Md-E.
+* `check_drm()`'s `dropped_rows` row now reflects rows the experimental
+  MSPL estimator discarded because of a zero frequency weight, not just
+  rows dropped by complete-case or known-covariance filtering. MSPL filters
+  `data` before any family builder computes its `keep` vector, so a
+  builder's `keep` was always relative to the already-MSPL-filtered data --
+  MSPL-discarded rows were invisible to it, and the row printed "no rows
+  were dropped" even when MSPL had discarded some.
+  `mspl_frequency_rows$kept` is now threaded through to re-express
+  `model$keep` relative to the original input data. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Md-N.
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
