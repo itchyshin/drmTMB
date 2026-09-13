@@ -95426,3 +95426,13 @@ fits converged cleanly to the same values, but the separated scenario estimated
 alpha_mu 14.231 for a truth of 0.3. Clean convergence is therefore not recovery
 evidence. No retained campaign follows; the next design must screen information
 using profile curvature and vary replication/tree/rate-amplitude jointly.
+
+## 2026-09-13 — OU v1 R5 fixed-alpha sensitivity runner
+
+R5 provides a useful alternative to free alpha estimation: BM plus fixed
+location-side OU alpha values 0.1, 0.3, 0.7, 1.3, and 2.5 on identical data,
+tree, ML, and optimizer settings. On the retained fixture all fits converged;
+BM had the lowest AIC, and assumed alpha 0.7 was the closest OU value. This is
+an assumed-alpha robustness display, not an alpha estimate or a general
+BM-versus-OU selection claim. Ayumi's exact data/tree receipt is the next
+empirical step.

@@ -1,0 +1,1 @@
+test_that("R5 fixes a declared location-side alpha grid", { x<-paste(readLines(testthat::test_path("..","..","tools","run-phylo-ou-r5-fixed-alpha-sensitivity.R")),collapse=" ");expect_match(x,"grid<-c\\(.1,.3,.7,1.3,2.5\\)");expect_match(x,"map\\$log_decay_phylo<-factor\\(NA\\)") })
