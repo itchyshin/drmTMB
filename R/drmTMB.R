@@ -286,9 +286,12 @@ drmTMB <- function(
   # `droplevels()`) gives a design-matrix column of all zeros, which makes
   # the fit's Hessian singular: point estimates come back exactly right, but
   # every standard error is NA (Dinnage audit Md-E). Drop unused levels from
-  # every factor column once, up front, before any family builder constructs
-  # a model frame.
-  data <- droplevels(data)
+  # the factor columns that enter a FIXED-EFFECT design matrix, once, up
+  # front. Responses, `mi()` predictors and random-effect / structured-marker
+  # grouping variables keep their declared level sets: an ordinal response or
+  # an imputed ordinal predictor with an empty category must still reach its
+  # own "empty category" refusal rather than be silently re-levelled.
+  data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
   # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route
@@ -12132,6 +12135,46 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary {.fn beta_binomial} {.code mu} random intercepts on the logit success-probability predictor; count-level overdispersion random effects need their own likelihood and recovery tests."
   ))
+}
+
+# Drop unused levels only from factor columns that appear in plain fixed-effect
+# terms of some distributional-parameter formula (Dinnage audit Md-E). A column
+# is protected -- its levels are left alone -- when it is a response (`lhs` of
+# any entry), or appears inside a random bar `(... | g)`, or inside a marker
+# call whose argument set is a declared contract (`mi()`, `phylo()`,
+# `relmat()`, `spatial()`, `meta_V()`, `precision()`). Protection wins over use
+# so a variable serving both roles is never re-levelled.
+drm_droplevels_fixed_predictors <- function(data, formula) {
+  entries <- formula$entries
+  if (is.null(entries)) {
+    return(data)
+  }
+  protected_calls <- c("mi", "phylo", "relmat", "spatial", "meta_V", "precision")
+  protect <- character(0)
+  use <- character(0)
+  for (entry in entries) {
+    if (!is.null(entry$lhs)) {
+      protect <- c(protect, all.vars(entry$lhs))
+    }
+    if (is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      term_names <- all.names(term)
+      if (is_random_bar_call(term) || any(term_names %in% c("|", "||", protected_calls))) {
+        protect <- c(protect, all.vars(term))
+      } else {
+        use <- c(use, all.vars(term))
+      }
+    }
+  }
+  cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
+  for (col in cols) {
+    if (is.factor(data[[col]])) {
+      data[[col]] <- droplevels(data[[col]])
+    }
+  }
+  data
 }
 
 is_random_bar_call <- function(expr) {

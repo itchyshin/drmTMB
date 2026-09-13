@@ -63,6 +63,7 @@ test-count-structured-mu.R	suggests-package	environment	runs	8
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
 test-cumulative-logit.R	suggests-package	environment	runs	1
+test-dinnage-audit-wave2a.R	cran-lane	environment	runs	2
 test-distributional-outputs.R	cran-lane	environment	runs	3
 test-distributional-outputs.R	suggests-package	environment	runs	2
 test-emmeans-methods.R	suggests-package	environment	runs	19
