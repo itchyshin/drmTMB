@@ -94,6 +94,8 @@ revisit condition.
   phylogenetic result. It compares BM and each fixed alpha on the same rows,
   tree, formula, and controls, but it does not estimate alpha, select a process,
   support a scale-side OU field, or alter the parked full OU-v1 programme.
+  The retained evidence and explicit reopen gates for free-rate or correlated
+  phylogenetic OU are in GitHub issue [#1305](https://github.com/itchyshin/drmTMB/issues/1305).
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent
   slope (`mc-0062`). Its joint-Laplace result and uncertainty agree with the

@@ -95524,3 +95524,14 @@ fixed-alpha sensitivity. Full OU v1 remains parked; no frozen manifest row was
 promoted. Open issue inspection found no exact duplicate; #570 concerns a
 different Ayumi sigma-phylo optimizer failure, so the tracker was left
 unchanged.
+
+## 2026-09-13 — Fixed-alpha OU closure and future trackers
+
+Issue [#1305](https://github.com/itchyshin/drmTMB/issues/1305) now records the
+parked free-rate/correlated phylogenetic-OU programme and its explicit reopen
+gates. It does not promote any additional OU grammar. The separate temporal
+random-effects follow-up belongs to existing issue #1302; a local, evidence-
+linked update draft records that the additive phylogeny-plus-temporal OU slice
+is diagnostic after profile undercoverage, while the remaining temporal work
+must be split by covariance structure and uncertainty claim. See
+`docs/dev-log/after-task/2026-09-13-fixed-alpha-ou-final-closeout.md`.
