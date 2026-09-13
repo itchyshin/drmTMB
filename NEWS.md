@@ -88,10 +88,12 @@
   just the empty level's) came back `NA` with a `sdreport_non_pd_hessian`
   status, and refitting with `drm_control(se = TRUE)` -- the message
   `check_drm()` printed -- was a no-op, since `se = TRUE` is already the
-  default. `drmTMB()` now calls `droplevels()` on the input data once, up
-  front, before any family builder constructs a model frame. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
-  finding Md-E.
+  default. `drmTMB()` now drops unused levels from the factor columns that
+  enter a fixed-effect design matrix, once, up front; responses, `mi()`
+  predictors and random-effect or structured-marker grouping variables keep
+  their declared level sets, so an ordinal response with an empty category
+  still reaches its own refusal. Credit: the independent evaluation by
+  Russell Dinnage (rdinnager/drmTMB_eval), finding Md-E.
 * `check_drm()`'s `dropped_rows` row now reflects rows the experimental
   MSPL estimator discarded because of a zero frequency weight, not just
   rows dropped by complete-case or known-covariance filtering. MSPL filters

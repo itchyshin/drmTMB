@@ -71,6 +71,8 @@ foreign fit returned a scalar before; `simulate()` at masked rows was
 non-`NA` for the count families before.  The two count-mixture tests that
 had pinned finite draws at masked rows were shown to break only through `NA`
 propagation, not through a stated invariant, before they were repaired.
+The eight check-exposed failures were each run on a clean export of
+`origin/main` before being called regressions; all eight passed there.
 
 ## Consistency Audit
 
@@ -94,7 +96,21 @@ S3 builder corrected documentation on a premise the package's own C++
 comments contradicted; the independent review caught it.  M1 was fixed at
 the ten identical sites but eleven quadrature sites remain.  The message
 tool was unavailable, so follow-ups from the review were applied by the
-orchestrator rather than sent back to the builders.
+orchestrator rather than sent back to the builders.  Four staged documents
+rode along in the regression-repair commit because a scoped `git add`
+followed by `git commit` sends the whole index; the check-log carried its
+placeholder in history until this commit.
+
+The first local `R CMD check --as-cran` on the merged branch exposed eight
+failing files that the builders' targeted runs had not: the kernel oracle
+pinned the `1e-300` floor Md-M removed; Md-E's blanket `droplevels(data)`
+re-levelled ordinal responses and `mi()` predictors, so five files lost the
+empty-category refusal they document; and the wave-2a `skip_on_cran()`
+blocks lacked census rows.  A clean export of `origin/main` passed all
+eight, so all were regressions, including two the builder had reported as
+pre-existing flakes.  Md-E was narrowed to fixed-effect predictor factors,
+the oracle now uses the exact Azzalini reference, and the census was
+regenerated (`743024b8b`).
 
 ## Team Learning
 
