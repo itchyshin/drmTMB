@@ -1,6 +1,6 @@
 # drmTMB 0.7.1
 
-## Dinnage independent-evaluation fixes (wave 1)
+## Independent-evaluation fixes (wave 1)
 
 * `drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active`
   row) now detects the LOWER `log(sigma)` clamp arm, not just the upper one.
