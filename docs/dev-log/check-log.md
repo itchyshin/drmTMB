@@ -95417,3 +95417,12 @@ Fisher found no basis for estimator repair. The next proposed work is a
 geometry-aware native-recovery design/preflight, separating informative and
 weak regimes before any retained campaign. No G15, family expansion, or public
 OU claim follows directly from R3.3.
+
+## 2026-09-12 — OU v1 R4 geometry recovery preflight: no campaign design
+
+R4 compared one weak and one larger-amplitude, separated-rate 128-species
+scenario with 12 observations per species and three dispersed starts. All six
+fits converged cleanly to the same values, but the separated scenario estimated
+alpha_mu 14.231 for a truth of 0.3. Clean convergence is therefore not recovery
+evidence. No retained campaign follows; the next design must screen information
+using profile curvature and vary replication/tree/rate-amplitude jointly.

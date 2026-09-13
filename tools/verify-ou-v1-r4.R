@@ -1,0 +1,2 @@
+#!/usr/bin/env Rscript
+mode<-commandArgs(trailingOnly=TRUE);pre<-identical(mode,"--preflight");root<-"docs/dev-log/evidence/ou-v1-r4";x<-utils::read.csv(file.path(root,if(pre)"preflight-attempts.csv" else "attempts.csv"));stopifnot(nrow(x)==if(pre)3L else 6L,all(c("weak","separated")[if(pre)1 else 1:2] %in% x$regime),all(is.finite(x$elapsed_seconds)));cat(if(pre)"OU_V1_R4_PREFLIGHT_PASS\n" else "OU_V1_R4_PASS\n")
