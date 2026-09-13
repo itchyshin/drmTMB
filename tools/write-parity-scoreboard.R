@@ -102,6 +102,38 @@ sb_head_sha <- function(repo) {
   as.character(out)[[1L]]
 }
 
+# A receipt summary necessarily predates the commit that adds the tracked
+# summary and generated Markdown.  Accept that fixed point only when the
+# interval from the receipt pin to the current source has not touched an input
+# that could change the classified evidence or how it is interpreted.
+sb_ordinary_laplace_source_drift <- function(root, from, to) {
+  valid_sha <- function(x) is.character(x) && length(x) == 1L &&
+    grepl("^[0-9a-f]{40}$", x)
+  if (!valid_sha(from) || !valid_sha(to)) {
+    stop("ordinary-Laplace source-drift check needs full git shas", call. = FALSE)
+  }
+  ancestor <- suppressWarnings(system2(
+    "git", c("-C", shQuote(root), "merge-base", "--is-ancestor", from, to),
+    stdout = FALSE, stderr = FALSE
+  ))
+  if (!identical(ancestor, 0L)) return(TRUE)
+  changed <- suppressWarnings(system2(
+    "git", c("-C", shQuote(root), "diff", "--name-only", paste0(from, "..", to)),
+    stdout = TRUE, stderr = FALSE
+  ))
+  status <- attr(changed, "status")
+  if (!is.null(status) && status != 0L) {
+    stop("git diff failed in ordinary-Laplace source-drift check", call. = FALSE)
+  }
+  protected <- c(
+    "^R/", "^src/", "^(DESCRIPTION|NAMESPACE)$",
+    "^inst/extdata/julia-capabilities\\.tsv$",
+    "^tools/write-parity-matrix\\.R$",
+    "^docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/(reconcile-four-fixture-(receipt|summary)\\.R|run-four-fixture-receipt\\.R)$"
+  )
+  any(grepl(paste(protected, collapse = "|"), changed))
+}
+
 # ---- axis vocabularies -----------------------------------------------------
 
 # The status word each twin's capability-status.md gives a row, mapped to a
@@ -225,6 +257,245 @@ sb_all_receipt_ids <- function(ctx) {
   sort(unique(ids))
 }
 
+# The 0.7.1 ordinary-Laplace arc is deliberately NOT a generic PARITY_PASS/
+# SE_PASS receipt.  Its retained evidence is a source-pinned reconciliation of
+# profile terminal classifications, including the coupled L22 non-finite
+# endpoint.  Read the tiny committed summary, never the raw sidecars, and
+# fail closed if it is absent, stale, or changes the frozen denominator.
+sb_ordinary_laplace_summary <- function(root, ctx, drmtmb_sha, historical = FALSE) {
+  path <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                    "071-ordinary-laplace", "reconciled-summary.tsv")
+  empty <- data.frame(capability_id = character(), stringsAsFactors = FALSE)
+  if (!file.exists(path)) return(empty)
+  tab <- utils::read.delim(path, stringsAsFactors = FALSE, check.names = FALSE)
+  required <- c("capability_id", "fixtures", "fixture_count", "declared_target_count",
+                "engine_target_count", "finite_profile_count", "nonfinite_endpoint_count",
+                "other_terminal_count", "classification", "drmtmb_commit", "drm_jl_commit",
+                "runner_sha256")
+  if (!identical(names(tab), required) || nrow(tab) != 2L || anyDuplicated(tab$capability_id)) {
+    stop("0.7.1 ordinary-Laplace summary schema drift: ", path, call. = FALSE)
+  }
+  expected <- data.frame(
+    capability_id = c("ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace"),
+    fixtures = c("binomial_ri,poisson_ri,nb2_ri", "nb2_coupled"),
+    fixture_count = c(3L, 1L), declared_target_count = c(10L, 7L),
+    engine_target_count = c(20L, 14L), finite_profile_count = c(20L, 12L),
+    nonfinite_endpoint_count = c(0L, 2L), other_terminal_count = c(0L, 0L),
+    classification = c("CLASSIFIED_FINITE", "CLASSIFIED_WITH_RETAINED_NONFINITE_ENDPOINT"),
+    stringsAsFactors = FALSE
+  )
+  tab <- tab[match(expected$capability_id, tab$capability_id), , drop = FALSE]
+  summary_sha <- unique(tab$drmtmb_commit)
+  stale <- length(summary_sha) != 1L || sb_ordinary_laplace_source_drift(root, summary_sha, drmtmb_sha) ||
+    any(tab$drm_jl_commit != ctx$pin)
+  if (!identical(tab[names(expected)], expected) || (!historical && stale)) {
+    stop("0.7.1 ordinary-Laplace summary is stale or changes the frozen denominator", call. = FALSE)
+  }
+  runner <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                      "071-ordinary-laplace", "run-four-fixture-receipt.R")
+  if (!file.exists(runner) || any(tab$runner_sha256 != unname(tools::sha256sum(runner)[[1L]]))) {
+    stop("0.7.1 ordinary-Laplace summary runner hash is stale", call. = FALSE)
+  }
+  tab
+}
+
+# The S7 campaign is a separate, retained 500-seed profile-coverage study. It
+# deliberately does not replace the one-draw G4 classification above and does
+# not enter the generic point/SE receipt denominator below.
+sb_ordinary_laplace_s7_columns <- function() {
+  c(
+    "capability_id", "fixture", "engine", "parm", "target_class", "truth",
+    "attempt_count", "unconditional_covered", "unconditional_coverage",
+    "unconditional_mcse", "unconditional_wilson_lower", "unconditional_wilson_upper",
+    "finite_endpoint_count", "conditional_covered", "conditional_coverage",
+    "conditional_mcse", "conditional_wilson_lower", "conditional_wilson_upper",
+    "fit_failed_count", "profile_failed_count", "nonfinite_endpoint_count",
+    "truth_outside_count", "drmtmb_commit", "drm_jl_commit",
+    "campaign_metadata_sha256", "drmtmb_archive_sha256", "drm_jl_archive_sha256",
+    "source_pins_sha256", "runtime_sha256", "source_tree_check_sha256", "collector_sha256", "contract_sha256"
+  )
+}
+
+sb_ordinary_laplace_s7_validate_plan <- function(root, tab) {
+  helper <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                      "071-ordinary-laplace", "prepare-s7-campaign-manifest.R")
+  if (!file.exists(helper)) stop("S7 coverage validator cannot find frozen-plan helper", call. = FALSE)
+  env <- new.env(parent = globalenv())
+  sys.source(helper, envir = env)
+  plan <- env$r071_s7_profile_plan()
+  key <- function(x) paste(x$fixture, x$engine, x$parm, sep = "\r")
+  observed_key <- key(tab)
+  expected_key <- key(plan)
+  if (nrow(plan) != 34L || anyDuplicated(observed_key) || !setequal(observed_key, expected_key)) {
+    stop("S7 ordinary-Laplace coverage summary does not match the frozen profile plan", call. = FALSE)
+  }
+  expected <- plan[match(observed_key, expected_key), c("target_class", "truth"), drop = FALSE]
+  if (!identical(as.character(tab$target_class), as.character(expected$target_class)) ||
+      !isTRUE(all.equal(as.numeric(tab$truth), as.numeric(expected$truth), tolerance = 1e-12))) {
+    stop("S7 ordinary-Laplace coverage summary changes frozen target metadata", call. = FALSE)
+  }
+  invisible(tab)
+}
+
+sb_ordinary_laplace_s7_validate_numeric <- function(tab) {
+  near <- function(x, y) all(is.finite(x) & is.finite(y) & abs(x - y) <= 1e-12)
+  finite <- tab$finite_endpoint_count > 0L
+  conditional_bad <- FALSE
+  if (any(finite)) {
+    conditional_bad <- !near(tab$conditional_coverage[finite],
+                              tab$conditional_covered[finite] / tab$finite_endpoint_count[finite]) ||
+      !near(tab$conditional_mcse[finite], sqrt(tab$conditional_coverage[finite] *
+        (1 - tab$conditional_coverage[finite]) / tab$finite_endpoint_count[finite])) ||
+      any(tab$conditional_wilson_lower[finite] < 0 | tab$conditional_wilson_upper[finite] > 1 |
+          tab$conditional_wilson_lower[finite] > tab$conditional_coverage[finite] |
+          tab$conditional_wilson_upper[finite] < tab$conditional_coverage[finite])
+  }
+  if (any(!finite)) {
+    conditional_bad <- conditional_bad || any(tab$conditional_covered[!finite] != 0L) ||
+      any(!is.na(tab$conditional_coverage[!finite])) ||
+      any(!is.na(tab$conditional_mcse[!finite])) ||
+      any(!is.na(tab$conditional_wilson_lower[!finite])) ||
+      any(!is.na(tab$conditional_wilson_upper[!finite]))
+  }
+  if (any(tab$unconditional_covered < 0L | tab$unconditional_covered > tab$attempt_count) ||
+      any(tab$finite_endpoint_count < 0L | tab$finite_endpoint_count > tab$attempt_count) ||
+      any(tab$conditional_covered < 0L | tab$conditional_covered > tab$finite_endpoint_count) ||
+      !near(tab$unconditional_coverage, tab$unconditional_covered / tab$attempt_count) ||
+      !near(tab$unconditional_mcse, sqrt(tab$unconditional_coverage *
+                                           (1 - tab$unconditional_coverage) / tab$attempt_count)) ||
+      any(tab$unconditional_wilson_lower < 0 | tab$unconditional_wilson_upper > 1 |
+          tab$unconditional_wilson_lower > tab$unconditional_coverage |
+          tab$unconditional_wilson_upper < tab$unconditional_coverage) ||
+      conditional_bad) {
+    stop("S7 ordinary-Laplace coverage summary has inconsistent numeric evidence", call. = FALSE)
+  }
+  invisible(tab)
+}
+
+sb_ordinary_laplace_s7_aggregate <- function(tab) {
+  required <- sb_ordinary_laplace_s7_columns()
+  if (!is.data.frame(tab) || !identical(names(tab), required) || nrow(tab) != 34L ||
+      anyDuplicated(tab[c("fixture", "engine", "parm")]) ||
+      any(tab$attempt_count != 500L) || any(!is.finite(tab$truth))) {
+    stop("S7 ordinary-Laplace coverage summary schema or denominator drift", call. = FALSE)
+  }
+  scalar <- c("binomial_ri", "poisson_ri", "nb2_ri")
+  expected_capability <- ifelse(tab$fixture %in% scalar,
+                                "ordinary_ri_scalar_laplace",
+                                ifelse(tab$fixture == "nb2_coupled",
+                                       "ordinary_nb2_coupled_laplace", NA_character_))
+  fixture_counts <- table(tab$fixture)
+  if (anyNA(expected_capability) || any(tab$capability_id != expected_capability) ||
+      !identical(names(fixture_counts), c("binomial_ri", "nb2_coupled", "nb2_ri", "poisson_ri")) ||
+      !identical(as.integer(fixture_counts), c(6L, 14L, 8L, 6L)) ||
+      any(tab$unconditional_covered + tab$fit_failed_count + tab$profile_failed_count +
+          tab$nonfinite_endpoint_count + tab$truth_outside_count != tab$attempt_count) ||
+      any(tab$conditional_covered + tab$truth_outside_count != tab$finite_endpoint_count)) {
+    stop("S7 ordinary-Laplace coverage summary changes the frozen target set", call. = FALSE)
+  }
+  provenance <- c("drmtmb_commit", "drm_jl_commit", "campaign_metadata_sha256",
+                  "drmtmb_archive_sha256", "drm_jl_archive_sha256", "source_pins_sha256",
+                  "runtime_sha256", "source_tree_check_sha256", "collector_sha256", "contract_sha256")
+  if (any(vapply(provenance, function(name) length(unique(tab[[name]])) != 1L,
+                 logical(1L)))) {
+    stop("S7 ordinary-Laplace coverage summary has mixed provenance", call. = FALSE)
+  }
+  rows <- lapply(split(tab, tab$capability_id), function(x) {
+    data.frame(
+      capability_id = x$capability_id[[1L]],
+      fixture_count = length(unique(x$fixture)),
+      declared_target_count = nrow(x) / 2L,
+      engine_target_count = nrow(x),
+      per_target_attempt_count = unique(x$attempt_count),
+      attempt_count = sum(x$attempt_count),
+      unconditional_covered = sum(x$unconditional_covered),
+      finite_endpoint_count = sum(x$finite_endpoint_count),
+      fit_failed_count = sum(x$fit_failed_count),
+      profile_failed_count = sum(x$profile_failed_count),
+      nonfinite_endpoint_count = sum(x$nonfinite_endpoint_count),
+      truth_outside_count = sum(x$truth_outside_count),
+      classification = "S7_COVERAGE_CLASSIFIED",
+      as.list(x[1L, provenance, drop = FALSE]),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  })
+  out <- do.call(rbind, rows)
+  expected <- c("ordinary_ri_scalar_laplace", "ordinary_nb2_coupled_laplace")
+  out <- out[match(expected, out$capability_id), , drop = FALSE]
+  if (!identical(as.integer(out$fixture_count), c(3L, 1L)) ||
+      !identical(as.integer(out$declared_target_count), c(10L, 7L)) ||
+      !identical(as.integer(out$engine_target_count), c(20L, 14L))) {
+    stop("S7 ordinary-Laplace coverage summary has the wrong capability totals", call. = FALSE)
+  }
+  row.names(out) <- NULL
+  out
+}
+
+sb_ordinary_laplace_s7_source_drift <- function(root, from, to) {
+  if (sb_ordinary_laplace_source_drift(root, from, to)) return(TRUE)
+  changed <- suppressWarnings(system2(
+    "git", c("-C", shQuote(root), "diff", "--name-only", paste0(from, "..", to)),
+    stdout = TRUE, stderr = FALSE
+  ))
+  status <- attr(changed, "status")
+  if (!is.null(status) && status != 0L) stop("git diff failed in S7 source-drift check", call. = FALSE)
+  s7_inputs <- paste0(
+    "^docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/(",
+    "prepare-s7-campaign-(manifest|bundle)\\.R|s7-(attempt-contract|campaign-fixture|fit-attempt|fit-diagnostics|",
+    "live-fit-factory|run-task|task-dispatch|fir-array|fir-worker|fir-preflight|reconcile-campaign)\\.(R|sh))$"
+  )
+  any(grepl(s7_inputs, changed))
+}
+
+# The campaign normally records the frozen writer's digest.  Its successful
+# reconciliation used one explicitly retained orchestration wrapper to source
+# the collector into the global environment; that wrapper is admissible only
+# when its exact, versioned bytes match the digest carried by the coverage row.
+sb_ordinary_laplace_s7_collectors <- function(root) {
+  evidence <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                        "071-ordinary-laplace")
+  paths <- c(
+    writer = file.path(evidence, "s7-write-coverage-summary.R"),
+    scopefix = file.path(evidence, "s7-write-coverage-summary-scopefix.R")
+  )
+  absent <- names(paths)[!file.exists(paths)]
+  if (length(absent)) {
+    stop("S7 coverage collector provenance is incomplete: ",
+         paste(absent, collapse = ", "), call. = FALSE)
+  }
+  vapply(paths, function(path) unname(tools::sha256sum(path)[[1L]]), character(1L))
+}
+
+sb_ordinary_laplace_s7_summary <- function(root, ctx, drmtmb_sha) {
+  path <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                    "071-ordinary-laplace", "s7-coverage-summary.tsv")
+  empty <- data.frame(capability_id = character(), stringsAsFactors = FALSE)
+  if (!file.exists(path)) return(empty)
+  tab <- utils::read.delim(path, stringsAsFactors = FALSE, check.names = FALSE)
+  sidecar <- paste0(path, ".sha256")
+  if (!file.exists(sidecar) || length(lines <- readLines(sidecar, warn = FALSE)) != 1L ||
+      !identical(lines[[1L]], paste(unname(tools::sha256sum(path)[[1L]]), basename(path), sep = "  "))) {
+    stop("S7 ordinary-Laplace coverage summary checksum is missing or stale", call. = FALSE)
+  }
+  sb_ordinary_laplace_s7_validate_plan(root, tab)
+  sb_ordinary_laplace_s7_validate_numeric(tab)
+  aggregated <- sb_ordinary_laplace_s7_aggregate(tab)
+  if (any(aggregated$drm_jl_commit != ctx$pin) ||
+      sb_ordinary_laplace_s7_source_drift(root, aggregated$drmtmb_commit[[1L]], drmtmb_sha)) {
+    stop("S7 ordinary-Laplace coverage summary is stale or changes campaign inputs", call. = FALSE)
+  }
+  contract <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                        "071-ordinary-laplace", "s7-attempt-contract.R")
+  collectors <- sb_ordinary_laplace_s7_collectors(root)
+  if (!file.exists(contract) ||
+      any(!aggregated$collector_sha256 %in% unname(collectors)) ||
+      any(aggregated$contract_sha256 != unname(tools::sha256sum(contract)[[1L]]))) {
+    stop("S7 ordinary-Laplace coverage summary collector or contract hash is stale", call. = FALSE)
+  }
+  aggregated
+}
+
 # WIDENED 2026-09-05 (leaf uncited-random-effects). Until this change the only
 # refusal this file could see was the family-tag one, so a capability the
 # bridge refuses at a REGISTERED GATE -- with the guard named, the
@@ -260,9 +531,14 @@ sb_refusal_cite <- function(bridge_route) {
   if (!length(m) || !nzchar(m)) "" else m
 }
 
-sb_bridge_cell <- function(env, ctx, name, bridge_route) {
+sb_bridge_cell <- function(env, ctx, name, bridge_route, ordinary_summary, s7_summary) {
   ledger_ids <- sb_cited_tsv_ids(ctx, bridge_route)
   ledger_rec <- sb_receipts(env, ctx, ledger_ids)
+
+  ordinary <- ordinary_summary[ordinary_summary$capability_id %in% ledger_ids, , drop = FALSE]
+  if (nrow(ordinary) > 1L) stop("multiple ordinary-Laplace summaries reach ", name, call. = FALSE)
+  s7 <- s7_summary[s7_summary$capability_id %in% ledger_ids, , drop = FALSE]
+  if (nrow(s7) > 1L) stop("multiple S7 ordinary-Laplace summaries reach ", name, call. = FALSE)
 
   alias <- sb_receipt_aliases()[[name]]
   alias_rec <- if (is.null(alias)) {
@@ -307,6 +583,41 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
                 reached = reached))
   }
 
+  if (nrow(s7)) {
+    x <- s7[1L, , drop = FALSE]
+    predecessor <- if (nrow(ordinary)) {
+      p <- ordinary[1L, , drop = FALSE]
+      sprintf("; retained historical G4 classification at drmTMB %s: %s, %d finite profile(s), %d retained non-finite endpoint(s)",
+              p$drmtmb_commit[[1L]], p$classification[[1L]], p$finite_profile_count[[1L]],
+              p$nonfinite_endpoint_count[[1L]])
+    } else ""
+    return(list(
+      verdict = "ORDINARY-LAPLACE-COVERAGE-CLASSIFIED", tier = "s7-coverage-summary",
+      cell = sprintf("0.7.1 retained S7 coverage classification: %s; %d fixture(s), %d declared outer target(s), %d engine-target cells x %d paired seeds = %d attempts; %d unconditional covered, %d finite-endpoint returns, retained failures: fit=%d, profile=%d, non-finite=%d, truth-outside=%d%s (docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv:%d)",
+                     x$classification[[1L]], x$fixture_count[[1L]], x$declared_target_count[[1L]],
+                     x$engine_target_count[[1L]], x$per_target_attempt_count[[1L]],
+                     x$attempt_count[[1L]], x$unconditional_covered[[1L]],
+                     x$finite_endpoint_count[[1L]], x$fit_failed_count[[1L]],
+                     x$profile_failed_count[[1L]], x$nonfinite_endpoint_count[[1L]],
+                     x$truth_outside_count[[1L]], predecessor,
+                     which(s7_summary$capability_id == x$capability_id[[1L]]) + 1L),
+      contradiction = FALSE, reached = reached
+    ))
+  }
+
+  if (nrow(ordinary)) {
+    x <- ordinary[1L, , drop = FALSE]
+    return(list(
+      verdict = "ORDINARY-LAPLACE-CLASSIFIED", tier = "reconciled-summary",
+      cell = sprintf("0.7.1 frozen reconciliation: %s; %d fixture(s), %d declared outer target(s), %d retained engine-target attempts; %d finite profile(s), %d retained non-finite endpoint(s), %d other terminal classification(s) (docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv:%d)",
+                     x$classification[[1L]], x$fixture_count[[1L]], x$declared_target_count[[1L]],
+                     x$engine_target_count[[1L]], x$finite_profile_count[[1L]],
+                     x$nonfinite_endpoint_count[[1L]], x$other_terminal_count[[1L]],
+                     which(ordinary_summary$capability_id == x$capability_id[[1L]]) + 1L),
+      contradiction = FALSE, reached = reached
+    ))
+  }
+
   if (has_pass) {
     tier <- if (any(ledger_rec$status %in% sb_pass_statuses())) "ledgered" else "alias"
     return(list(
@@ -337,7 +648,7 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
 
 # ---- build -----------------------------------------------------------------
 
-sb_build <- function(env, ctx, mat) {
+sb_build <- function(env, ctx, mat, ordinary_summary, s7_summary) {
   j_label <- ctx$drmjl_label(ctx$files$j_status)
   rows <- lapply(seq_len(nrow(mat)), function(i) {
     name <- mat$capability[[i]]
@@ -359,7 +670,7 @@ sb_build <- function(env, ctx, mat) {
                         env$pm_cite(j_label, ctx$j_status$line[[j_i]]), j_status)
     }
 
-    b <- sb_bridge_cell(env, ctx, name, mat$bridge_route[[i]])
+    b <- sb_bridge_cell(env, ctx, name, mat$bridge_route[[i]], ordinary_summary, s7_summary)
 
     data.frame(
       capability = name,
@@ -402,7 +713,7 @@ sb_count_table <- function(values, levels_order) {
              stringsAsFactors = FALSE)
 }
 
-sb_render <- function(env, ctx, sb, drmtmb_sha) {
+sb_render <- function(env, ctx, sb, drmtmb_sha, ordinary_summary, s7_summary) {
   n <- nrow(sb)
   uncited <- c(
     sum(sb$native_R == "UNCITED"),
@@ -415,6 +726,8 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
                               sb$bridge == "UNCITED")
   n_contra <- sum(sb$contradiction)
   n_receipt <- sum(sb$bridge == "RECEIPT")
+  n_ordinary_laplace <- nrow(ordinary_summary)
+  n_s7_ordinary_laplace <- sum(sb$bridge == "ORDINARY-LAPLACE-COVERAGE-CLASSIFIED")
 
   md <- function(x) {
     x <- gsub("\r?\n", " ", x)
@@ -436,7 +749,7 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
   }, character(1L))
 
   bridge_counts <- sb_count_table(sb$bridge,
-    c("RECEIPT", "RECEIPT-NOT-LEDGERED", "RECEIPT-NOT-PASS",
+    c("RECEIPT", "ORDINARY-LAPLACE-CLASSIFIED", "ORDINARY-LAPLACE-COVERAGE-CLASSIFIED", "RECEIPT-NOT-LEDGERED", "RECEIPT-NOT-PASS",
       "REFUSED", "REFUSED+UPSTREAM-RECEIPT", "UNCITED"))
   native_r_counts <- sb_count_table(sb$native_R, c("FITS", "PARTIAL", "NO", "UNCITED"))
   native_j_counts <- sb_count_table(sb$native_Julia, c("FITS", "PARTIAL", "NO", "UNCITED"))
@@ -459,9 +772,19 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "|---|---|",
     sprintf("| drmTMB (this repo, HEAD at generation) | `%s` |", drmtmb_sha),
     sprintf("| DRM.jl (read with `git show`, never the working tree) | `%s` |", ctx$pin),
+    if (nrow(ordinary_summary)) sprintf(
+      "| ordinary-Laplace reconciliation source pin | `%s` in `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` |",
+      ordinary_summary$drmtmb_commit[[1L]]
+    ) else "| ordinary-Laplace reconciliation source pin | no committed summary |",
+    if (nrow(s7_summary)) sprintf(
+      "| ordinary-Laplace S7 campaign source pin | `%s` in `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv` |",
+      s7_summary$drmtmb_commit[[1L]]
+    ) else "| ordinary-Laplace S7 campaign source pin | no committed summary |",
     "",
-    "Both numbers below and every citation in the table are functions of those",
-    "two commits and nothing else. Quote the shas whenever you quote the counts.",
+    "The ordinary-Laplace summary retains its own source pin, DRM.jl pin, and receipt-runner hash.",
+    "It is rejected when a protected evidence input changed after that source pin; later documentation",
+    "and scoreboard-compiler commits do not rewrite the retained receipt evidence. Quote both drmTMB shas",
+    "whenever you quote the ordinary-Laplace counts.",
     "",
     "## THE DENOMINATOR",
     "",
@@ -481,6 +804,10 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).",
     "That is the number a closure may quote as bridge coverage. Every other",
     "verdict is something weaker, and is named below.",
+    sprintf("**%d of %d** capability rows carry a separately classified 0.7.1 ordinary-Laplace", n_ordinary_laplace, n),
+    "frozen receipt. This is not included in the generic point/SE-parity `RECEIPT` count.",
+    sprintf("**%d of %d** capability rows carry a separately classified 0.7.1 retained S7", n_s7_ordinary_laplace, n),
+    "profile-coverage receipt. It is a frozen-scenario evidence exception, not a general coverage or engine-equality claim.",
     "",
     if (n_contra > 0L) {
       c(sprintf("**%d CONTRADICTION(S)**: drmTMB's bridge refuses a route for which DRM.jl", n_contra),
@@ -500,6 +827,8 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "| verdict | meaning |",
     "|---|---|",
     "| `RECEIPT` | a passing receipt row in a DRM.jl evidence table, reached through a committed `inst/extdata/julia-capabilities.tsv` row the matrix cites |",
+    "| `ORDINARY-LAPLACE-CLASSIFIED` | a source-pinned, committed 0.7.1 four-fixture profile-classification summary reached through a ledger row; it is NOT a generic point/SE-parity receipt and NOT interval coverage |",
+    "| `ORDINARY-LAPLACE-COVERAGE-CLASSIFIED` | a source-pinned, retained 500-seed-per-fixture profile-coverage classification on the named frozen scenarios; all failures remain in the unconditional denominator. It is not a generic receipt, general calibration claim, or cross-engine coverage-equality claim |",
     "| `RECEIPT-NOT-LEDGERED` | a passing receipt exists, but NO committed drmTMB ledger row connects it to this capability; the link is a declared alias in the generator |",
     "| `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |",
     "| `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |",
@@ -592,8 +921,12 @@ sb_write <- function(root, drmjl_path,
   env <- sb_matrix_env(root)
   ctx <- env$pm_load_context(root, drmjl_path)
   mat <- env$pm_build_matrix(ctx)
-  sb <- sb_build(env, ctx, mat)
-  lines <- sb_render(env, ctx, sb, sb_head_sha(root))
+  drmtmb_sha <- sb_head_sha(root)
+  s7_summary <- sb_ordinary_laplace_s7_summary(root, ctx, drmtmb_sha)
+  ordinary_summary <- sb_ordinary_laplace_summary(root, ctx, drmtmb_sha,
+                                                    historical = nrow(s7_summary) > 0L)
+  sb <- sb_build(env, ctx, mat, ordinary_summary, s7_summary)
+  lines <- sb_render(env, ctx, sb, drmtmb_sha, ordinary_summary, s7_summary)
   dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
   writeLines(lines, out, useBytes = TRUE)
   message("wrote ", nrow(sb), " scoreboard rows to ", out,

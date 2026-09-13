@@ -503,9 +503,12 @@ revisit condition.
   `mu`, NB2 fixed-`zi` spatial `mu`, and truncated-NB2 hurdle
   `hu ~ relmat(1 | id, Q = Q)` local
   fit-only gates, random effects in `zi`, `hu`, or the count-side `mu` path of
-  zero-inflated or hurdle models are not implemented yet, and cross-parameter
-  covariance among count, dispersion, inflation, hurdle, or shape random
-  effects remains future work. Ordinary Poisson/NB2 fit q=1
+  zero-inflated or hurdle models are not implemented yet. One ordinary NB2
+  exception admits exactly one matching labelled complete-data `mu`/`sigma`
+  random-intercept pair; its source-level parity role does not establish
+  interval coverage or general count cross-parameter covariance. All other
+  cross-parameter covariance among count, dispersion, inflation, hurdle, or
+  shape random effects remains future work. Ordinary Poisson/NB2 fit q=1
   `phylo()`, `spatial()`, `animal()`, or `relmat()` structured `mu`
   intercept-plus-one-slope routes on the log-mean scale; ordinary NB2 separately
   fits exact q=1 structured `sigma` intercept-plus-one-slope routes for those

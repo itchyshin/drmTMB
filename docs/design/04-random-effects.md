@@ -22,7 +22,8 @@ spatial, and derived-inference phases should build on.
 6. Random-effect scale formulae such as `sd(id) ~ x_group`. Implemented for
    one or more distinct unlabelled univariate Gaussian `mu` random intercepts.
 7. Labelled location-scale random-intercept covariance blocks. Implemented for
-   matching univariate Gaussian `mu` and `sigma` intercept terms.
+   matching univariate Gaussian `mu` and `sigma` intercept terms, plus one
+   bounded ordinary NB2 `mu`--`sigma` intercept pair.
 8. Slope-specific random-effect scale models, labelled-block scale models, and
    larger correlations among location and scale random effects when
    identifiable.
@@ -182,10 +183,16 @@ cor(b_j, a_j) = rho_mu_sigma
 
 The fitted correlation is reported under `corpars$mu_sigma` and `corpairs()`
 as `mean-scale`. It is a group-level association between individual average
-response and individual residual scale, not residual `rho12`. Multiple
-independent matched labelled intercept blocks can be used in the same model,
-for example `(1 | p | id)` and `(1 | q | site)` in both `mu` and `sigma`; each
-block gets its own mean-scale correlation row.
+response and individual residual scale, not residual `rho12`. The established
+Gaussian route may use multiple independent matched labelled intercept blocks,
+for example `(1 | p | id)` and `(1 | q | site)` in both `mu` and `sigma`.
+
+The ordinary NB2 extension is deliberately narrower: it admits exactly one
+matching labelled intercept pair in complete, non-zero-inflated data, with no
+structured effects, slopes, missing-data integration, or additional random
+blocks. It uses the same non-centred transform
+`rho = 0.999999 * tanh(eta_cor_mu_sigma)` and is a source-level parity
+prerequisite, not an interval-coverage or general NB2 calibration claim.
 
 Random-effect scale formulae are implemented for the first simple case:
 
@@ -229,17 +236,19 @@ Current implementation details:
   `binomial`, `cumulative_logit`, `skew_normal`, `tweedie`, and `zero_one_beta`,
   which are now backed by DG2 point-recovery evidence with an honest
   small-cluster ML-Laplace SD-bias caveat). Correlated intercept-slope blocks
-  and labelled covariance blocks remain Gaussian-only; residual `sigma` random
-  intercepts are supported for `gaussian` (full), `nbinom2`, `lognormal`, and
+  remain Gaussian-only, while labelled covariance blocks are Gaussian-only
+  except for the one bounded ordinary NB2 mean--scale intercept pair described
+  above; residual `sigma` random intercepts are supported for `gaussian` (full), `nbinom2`, `lognormal`, and
   `Gamma` (the last two intercept-only, Arc 2c, not combinable with a `mu`
   random effect in the same model yet);
 - random-slope terms must be written as `0 + x`, with a single numeric
   predictor, for independent slope terms;
 - ordinary correlated intercept-slope blocks are written as `(1 + x | id)` or
   `(1 + x | p | id)` and currently support one numeric slope;
-- labelled blocks are implemented within univariate Gaussian `mu`, and the
-  first matching labelled `mu`/`sigma` random-intercept covariance block is
-  implemented for syntax such as `(1 | p | id)` in both formulas;
+- labelled blocks are implemented within univariate Gaussian `mu`; matching
+  labelled `mu`/`sigma` random-intercept covariance is also admitted for the
+  one-pair complete-data ordinary NB2 route, with all wider labelled NB2
+  blocks still refused;
 - residual `sigma` random effects support random intercepts and independent
   numeric random slopes; labelled `sigma` intercepts require a matching
   labelled `mu` intercept in this phase;

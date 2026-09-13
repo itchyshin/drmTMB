@@ -80,6 +80,7 @@ bench/*.csv
 bench/results/
 
 # Local Codex handoff and stress-test outputs
+docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/receipt/*
 docs/dev-log/recovery-checkpoints/
 docs/dev-log/ayumi-convergence/**/*.csv
 docs/dev-log/ayumi-convergence/**/*.rds

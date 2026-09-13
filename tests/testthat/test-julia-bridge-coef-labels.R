@@ -66,7 +66,7 @@ test_that("public label mapping reaches raw inference and refuses before setup",
   skip_if_not_installed("JuliaCall")
   object <- list(bridge_public_coef_labels=drmTMB:::drm_julia_bridge_coef_labels(label_fixture()),
     model=list(model_type="gaussian"),bridge_payload=list(formula="y ~ x",data=data.frame(y=1,x=1),options=list()))
-  target <- data.frame(dpar="mu",term="I(x^2)")
+  target <- data.frame(dpar="mu", term="I(x^2)", target_class="fixed-effect")
   setup_calls <- 0L
   local_mocked_bindings(drm_julia_setup=function(...) {setup_calls<<-setup_calls+1L},.package="drmTMB")
   local_mocked_bindings(julia_call=function(...)list(...),.package="JuliaCall")
@@ -96,4 +96,28 @@ test_that("versioned transformed labels preserve training bases for newdata", {
   expect_equal(predict(fit,newdata=new,dpar="mu",type="link"),drop(oracle),tolerance=1e-12)
   rebuilt <- cbind(1,drop(scale(new$x)),poly(new$z,2)) %*% result$coefficients[1:4]
   expect_gt(max(abs(oracle-rebuilt)),1)
+})
+
+test_that("mu-only ordinary random intercept: bare `resd` label only for the scalar Laplace families", {
+  # CI repair 2026-09-13 (PR #1304): the `resd_<group>` label is the DRM.jl
+  # coordinate of the scalar `marginal = "Laplace"` route, which
+  # `drm_julia_validate_marginal()` admits for binomial / poisson / nbinom2
+  # only. A Gaussian mu-only `(1 | g)` keeps its separate
+  # conditional-Gaussian-components route and must stay unlabelled here
+  # (test-coefficient-labels.R pins the Gaussian NULL; this pins both arms).
+  d <- data.frame(y = c(1, 0, 3, 2, 5, 4), x = c(-1, 0, 1, -1, 0, 1),
+                  g = factor(rep(c("a", "b"), each = 3)))
+  f <- drmTMB::bf(y ~ x + (1 | g))
+  for (fam in c("binomial", "poisson", "nbinom2")) {
+    labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+      formula = f, data = d, env = environment(), family_type = fam
+    )
+    expect_identical(labels$resd, "g", info = fam)
+  }
+  for (fam in list("gaussian", "gamma", NULL)) {
+    labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+      formula = f, data = d, env = environment(), family_type = fam
+    )
+    expect_null(labels$resd, info = if (is.null(fam)) "NULL" else fam)
+  }
 })

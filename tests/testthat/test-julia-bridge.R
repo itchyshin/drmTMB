@@ -67,6 +67,167 @@ test_that("bivariate parameter aliases are not required data columns", {
   expect_equal(marshalled, dat[, c("y1", "x", "y2")])
 })
 
+test_that("scalar Laplace is an explicit Julia-only bridge selector", {
+  dat <- data.frame(
+    y = c(0L, 1L, 2L, 1L, 3L, 2L, 4L, 3L),
+    x = seq(-1, 1, length.out = 8L),
+    g = rep(c("a", "b"), each = 4L)
+  )
+  scalar <- bf(y ~ x + (1 | g))
+  payload <- drmTMB:::drm_julia_bridge_payload(
+    formula = scalar,
+    family_type = "poisson",
+    data = dat,
+    env = environment(),
+    marginal = "Laplace"
+  )
+  expect_identical(payload$options$marginal, "Laplace")
+  expect_identical(payload$coef_labels$resd, "g")
+  scalar_parameters <- drmTMB:::drm_julia_structured_parameters(
+    coefficients = c(resd_g = log(0.7)),
+    formula = scalar
+  )
+  expect_equal(
+    unname(scalar_parameters$sdpars$mu[["(1 | g)"]]),
+    0.7
+  )
+  scalar_fit <- drmTMB:::new_drmTMB_julia(
+    result = list(
+      coef_names = c("mu_(Intercept)", "mu_x", "resd_g"),
+      coefficients = c(0.2, 0.5, log(0.7)), vcov = diag(3L),
+      loglik = -10, aic = 26, bic = 29, df = 3L, nobs = 8L,
+      converged = TRUE, marginal = "Laplace", fitted = rep(1, 8L),
+      residuals = rep(0, 8L), sigma = rep(1, 8L), corpairs = list()
+    ),
+    call = quote(drmTMB()), formula = scalar, family = poisson(), data = dat,
+    family_type = "poisson", bridge_payload = payload,
+    requested_marginal = "Laplace"
+  )
+  scalar_targets <- profile_targets(scalar_fit)
+  scalar_sd <- scalar_targets[scalar_targets$parm == "sd:mu:(1 | g)", , drop = FALSE]
+  expect_equal(nrow(scalar_sd), 1L)
+  expect_true(scalar_sd$profile_ready)
+  expect_identical(scalar_sd$tmb_parameter, "resd")
+  expect_identical(
+    drmTMB:::drm_julia_bridge_payload(
+      formula = scalar,
+      family_type = "poisson",
+      data = dat,
+      env = environment()
+    )$options$marginal,
+    NULL
+  )
+
+  coupled <- bf(y ~ x + (1 | p | g), sigma ~ 1 + (1 | p | g))
+  expect_error(
+    drmTMB:::drm_julia_validate_marginal("Laplace", coupled, "nbinom2"),
+    "scalar ordinary"
+  )
+  expect_error(
+    drmTMB(scalar, family = poisson(), data = dat, marginal = "Laplace"),
+    "engine = \"julia\""
+  )
+})
+
+test_that("ordinary coupled NB2 recov coordinates reconstruct native targets", {
+  dat <- data.frame(
+    y = c(0L, 1L, 2L, 1L, 3L, 2L, 4L, 3L),
+    x = seq(-1, 1, length.out = 8L),
+    z = seq(1, -1, length.out = 8L),
+    id = rep(c("a", "b"), each = 4L)
+  )
+  form <- bf(y ~ x + (1 | p | id), sigma ~ z + (1 | p | id))
+  expect_identical(
+    drmTMB:::drm_julia_needed_columns(form),
+    c("y", "x", "id", "z")
+  )
+  expect_identical(
+    names(drmTMB:::drm_julia_bridge_data(dat, form)),
+    c("y", "x", "id", "z")
+  )
+  labels <- drmTMB:::drm_julia_bridge_payload_coef_labels(
+    formula = form,
+    data = dat,
+    env = environment(),
+    family_type = "nbinom2"
+  )
+  expect_identical(labels$recov, c("id:L11", "id:L22", "id:L21"))
+
+  result <- list(
+    coef_names = c(
+      "mu_(Intercept)", "mu_x", "sigma_(Intercept)", "sigma_z",
+      "recov_id:L11", "recov_id:L22", "recov_id:L21"
+    ),
+    coefficients = c(0.2, 0.5, -1.1, 0.3, log(0.6), log(0.8), 0.24),
+    vcov = diag(7L),
+    loglik = -10,
+    aic = 34,
+    bic = 36,
+    df = 7L,
+    nobs = 8L,
+    converged = TRUE,
+    marginal = "LA",
+    fitted = rep(1, 8L),
+    residuals = rep(0, 8L),
+    sigma = rep(1, 8L),
+    corpairs = list()
+  )
+  fit <- drmTMB:::new_drmTMB_julia(
+    result = result,
+    call = quote(drmTMB()),
+    formula = form,
+    family = nbinom2(),
+    data = dat,
+    family_type = "nbinom2"
+  )
+
+  expected_sigma_sd <- sqrt(0.24^2 + 0.8^2)
+  expect_equal(unname(fit$sdpars$mu[["(1 | p | id)"]]), 0.6)
+  expect_equal(unname(fit$sdpars$sigma[["(1 | p | id)"]]), expected_sigma_sd)
+  expect_equal(
+    unname(fit$corpars$mu_sigma[["cor(mu:(Intercept),sigma:(Intercept) | p | id)"]]),
+    0.24 / expected_sigma_sd
+  )
+  fit$bridge_payload <- list(formula = list(), data = dat, tree = NULL, options = list())
+  covariance_targets <- profile_targets(fit)
+  expect_equal(
+    covariance_targets$parm[covariance_targets$target_class == "covariance-coordinate"],
+    c("cholesky:recov:L11", "cholesky:recov:L22", "cholesky:recov:L21")
+  )
+  expect_true(all(covariance_targets$profile_ready[covariance_targets$target_class == "covariance-coordinate"]))
+  expect_identical(fit$effective_integrator, "coupled_locscale_laplace")
+})
+
+test_that("native coupled NB2 declares the Julia working-Cholesky target map", {
+  set.seed(71014L)
+  groups <- factor(rep(seq_len(12L), each = 10L))
+  x <- rep(seq(-1, 1, length.out = 10L), 12L)
+  z <- rep(seq(1, -1, length.out = 10L), 12L)
+  b_mu <- rnorm(12L, 0, 0.45)
+  b_sigma <- 0.45 * b_mu + rnorm(12L, 0, 0.25)
+  dat <- data.frame(
+    y = rnbinom(120L, mu = exp(0.2 + 0.35 * x + b_mu[groups]), size = exp(-0.3 + 0.2 * z + b_sigma[groups])),
+    x = x, z = z, groups = groups
+  )
+  fit <- drmTMB(
+    bf(y ~ x + (1 | p | groups), sigma ~ z + (1 | p | groups)),
+    family = nbinom2(), data = dat, engine = "tmb"
+  )
+  targets <- profile_targets(fit)
+  raw <- targets[targets$target_class == "covariance-coordinate", , drop = FALSE]
+  expect_identical(raw$parm, c("cholesky:recov:L11", "cholesky:recov:L22", "cholesky:recov:L21"))
+  expect_identical(raw$target_type, rep("constrained", 3L))
+  expect_true(all(raw$profile_ready))
+  expect_equal(raw$estimate, drmTMB:::drm_native_coupled_cholesky_values(fit), tolerance = 1e-10)
+  l11 <- confint(fit, parm = "cholesky:recov:L11", method = "profile")
+  l21 <- confint(fit, parm = "cholesky:recov:L21", method = "profile")
+  l22 <- confint(fit, parm = "cholesky:recov:L22", method = "profile")
+  expect_identical(l11$profile.engine, "coupled_cholesky_constrained")
+  expect_identical(l21$conf.status, "profile")
+  expect_true(all(is.finite(c(l11$lower, l11$upper, l21$lower, l21$upper))))
+  expect_identical(l22$conf.status, "profile_failed")
+})
+
 test_that("Julia bridge marshals one phylogenetic tree", {
   tree <- structure(
     list(
@@ -405,7 +566,8 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
       worker_threads = 1L,
       julia_threads = 1L,
       blas_threads = 1L,
-      elapsed = 0.25
+      elapsed = 0.25,
+      profile_audit = list(lower = list(candidate = -0.1))
     ),
     level = 0.80,
     method = "profile"
@@ -414,6 +576,7 @@ test_that("Julia phylo bridge keeps structured scales out of fixed effects", {
   expect_equal(ci$upper, 2.1 * sqrt(2), tolerance = 1e-12)
   expect_equal(ci$profile.engine, "julia_profile_result")
   expect_equal(ci$julia.workers, 1L)
+  expect_equal(ci$julia.profile.audit[[1L]]$lower$candidate, -0.1)
   testthat::local_mocked_bindings(
     drm_julia_call_inference = function(
       object,

@@ -1669,6 +1669,7 @@ drm_profile_targets <- function(object) {
 
   registry_cor_rows <- profile_registry_cor_targets(object)
   add_rows(registry_cor_rows)
+  add_rows(profile_native_coupled_cholesky_targets(object))
   add_rows(profile_derived_summary_targets(object))
   registry_cor_keys <- covariance_block_corpars_keys(
     object$model$random$covariance_blocks
@@ -3270,6 +3271,22 @@ drm_profile_target_confint <- function(
     ))
   }
 
+  if (identical(target$target_class[[1L]], "covariance-coordinate")) {
+    if (!identical(profile_engine, "auto")) {
+      cli::cli_abort(c(
+        "Working-Cholesky intervals use drmTMB's constrained profile engine.",
+        i = "Use {.code profile_engine = \"auto\"}; neither {.code endpoint} nor {.code tmbprofile} can constrain the nonlinear L22/L21 coordinates."
+      ))
+    }
+    if (!isTRUE(target$profile_ready[[1L]])) {
+      cli::cli_abort(c(
+        "Working-Cholesky profile target {.val {target$parm}} is not ready.",
+        i = "Inventory note: {.val {target$profile_note}}."
+      ))
+    }
+    return(drm_profile_native_coupled_cholesky_confint(object, target, level))
+  }
+
   # The endpoint engine must degrade to a per-row failure rather than aborting a
   # mixed-target batch. Handle it before the shared readiness / class checks
   # below (which cli_abort() and are the intended contract for the tmbprofile
@@ -3389,6 +3406,166 @@ drm_profile_failed_confint_row <- function(
     profile.message = message,
     stringsAsFactors = FALSE
   )
+}
+
+drm_profile_native_coupled_cholesky_confint <- function(object, target, level) {
+  if (!identical(object$model$model_type, "nbinom2") ||
+      is.null(drm_julia_coupled_ordinary_mu_sigma(object$formula))) {
+    cli::cli_abort("Working-Cholesky profiles are restricted to the bounded coupled ordinary-NB2 grammar.")
+  }
+  drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
+  control <- profile_endpoint_inner_control(object$control$optimizer %||% list())
+  evaluator <- drm_native_coupled_cholesky_evaluator(object, target, control)
+  theta_hat <- unname(target$estimate[[1L]])
+  nll_hat <- unname(object$opt$objective)
+  baseline <- evaluator$compose(evaluator$start_free, theta_hat)
+  baseline_nll <- unname(object$obj$fn(baseline))
+  if (!is.finite(baseline_nll) || abs(baseline_nll - nll_hat) > 1e-7) {
+    cli::cli_abort(c(
+      "Working-Cholesky profile parameterization does not reproduce the fitted objective.",
+      x = "Target {.val {target$parm}} differs from the fitted objective by {format(baseline_nll - nll_hat, digits = 5)}."
+    ))
+  }
+  cutoff <- stats::qchisq(level, df = 1) / 2
+  endpoint <- function(direction) profile_endpoint_crossing(
+    evaluator = evaluator, theta_hat = theta_hat, nll_hat = nll_hat,
+    cutoff = cutoff, direction = direction, root_tol = 1e-4,
+    max_bracket_steps = 40L, target_name = target$parm,
+    curvature_se = drm_native_coupled_cholesky_curvature_se(object, target),
+    remediation = "This bounded nonlinear coordinate profile retained its failed endpoint; inspect `conf.status` and `profile.message`."
+  )
+  result <- tryCatch(
+    profile_lapply(c(-1L, 1L), endpoint, profile_serial_plan()),
+    error = function(err) err
+  )
+  if (inherits(result, "error")) {
+    return(drm_profile_failed_confint_row(
+      target, level, "coupled_cholesky_constrained", conditionMessage(result)
+    ))
+  }
+  interval <- c(result[[1L]]$theta, result[[2L]]$theta)
+  diagnostics <- profile_interval_diagnostics(
+    interval, transformation = target$transformation, estimate = target$estimate
+  )
+  status <- profile_conf_status_from_diagnostics(diagnostics)
+  if (identical(status, "profile_failed")) interval <- c(NA_real_, NA_real_)
+  data.frame(
+    parm = target$parm, level = level, lower = interval[[1L]], upper = interval[[2L]],
+    scale = target$scale, transformation = target$transformation,
+    tmb_parameter = target$tmb_parameter, index = target$index,
+    method = "profile", profile.engine = "coupled_cholesky_constrained",
+    conf.status = status, profile.boundary = diagnostics$boundary,
+    profile.message = diagnostics$message, stringsAsFactors = FALSE
+  )
+}
+
+drm_native_coupled_cholesky_evaluator <- function(object, target, control) {
+  par0 <- object$opt$par
+  positions <- drm_native_coupled_cholesky_positions(object)
+  if (anyNA(unlist(positions, use.names = FALSE))) {
+    cli::cli_abort("Working-Cholesky profile cannot map the native covariance parameters.")
+  }
+  coord <- target$term[[1L]]
+  excluded <- switch(
+    coord,
+    L11 = positions$log_l11,
+    L22 = positions$log_sd_sigma,
+    L21 = positions$eta,
+    cli::cli_abort("Unknown working-Cholesky coordinate {.val {coord}}.")
+  )
+  free_positions <- setdiff(seq_along(par0), excluded)
+  start_free <- par0[free_positions]
+  rho_and_derivative <- function(eta) {
+    raw <- tanh(eta)
+    rho <- DRM_CORR_GUARD * raw
+    list(rho = rho, derivative = DRM_CORR_GUARD * (1 - raw^2))
+  }
+  compose <- function(pfree, value) {
+    full <- par0
+    full[free_positions] <- pfree
+    if (identical(coord, "L11")) {
+      full[[positions$log_l11]] <- value
+    } else if (identical(coord, "L22")) {
+      rd <- rho_and_derivative(full[[positions$eta]])
+      complement <- 1 - rd$rho^2
+      if (!is.finite(complement) || complement <= 0) return(rep(NA_real_, length(full)))
+      full[[positions$log_sd_sigma]] <- value - 0.5 * log(complement)
+    } else {
+      log_sd <- full[[positions$log_sd_sigma]]
+      scaled <- value / (DRM_CORR_GUARD * exp(log_sd))
+      if (!is.finite(scaled) || abs(scaled) >= 1) return(rep(NA_real_, length(full)))
+      full[[positions$eta]] <- atanh(scaled)
+    }
+    full
+  }
+  lower <- rep(-Inf, length(free_positions))
+  evaluate <- function(value, start) {
+    fn_free <- function(pfree) {
+      full <- compose(pfree, value)
+      if (any(!is.finite(full))) return(1e100)
+      object$obj$fn(full)
+    }
+    gr_free <- function(pfree) {
+      full <- compose(pfree, value)
+      if (any(!is.finite(full))) return(rep(0, length(pfree)))
+      gradient <- object$obj$gr(full)
+      out <- gradient[free_positions]
+      if (identical(coord, "L22")) {
+        rd <- rho_and_derivative(full[[positions$eta]])
+        eta_free <- match(positions$eta, free_positions)
+        out[[eta_free]] <- out[[eta_free]] + gradient[[positions$log_sd_sigma]] * rd$rho * rd$derivative / (1 - rd$rho^2)
+      }
+      if (identical(coord, "L21")) {
+        log_sd_free <- match(positions$log_sd_sigma, free_positions)
+        scaled <- value / (DRM_CORR_GUARD * exp(full[[positions$log_sd_sigma]]))
+        out[[log_sd_free]] <- out[[log_sd_free]] - gradient[[positions$eta]] * scaled / (1 - scaled^2)
+      }
+      out
+    }
+    lower_now <- lower
+    if (identical(coord, "L21") && abs(value) > 0) {
+      log_sd_free <- match(positions$log_sd_sigma, free_positions)
+      lower_now[[log_sd_free]] <- log(abs(value) / DRM_CORR_GUARD) + 1e-8
+    }
+    start <- pmax(start, lower_now + ifelse(is.finite(lower_now), 1e-10, 0))
+    opt <- stats::nlminb(start, fn_free, gr_free, lower = lower_now, control = control)
+    gradient <- tryCatch(gr_free(opt$par), error = function(err) rep(NA_real_, length(opt$par)))
+    max_abs_gradient <- suppressWarnings(max(abs(gradient), na.rm = TRUE))
+    if (!is.finite(max_abs_gradient)) max_abs_gradient <- NA_real_
+    if (!profile_endpoint_convergence_accepted(opt, max_abs_gradient)) {
+      cli::cli_abort(c(
+        "Constrained working-Cholesky optimization failed.",
+        i = "Target {.val {target$parm}} fixed at {format(value, digits = 6)}.",
+        i = "Optimizer convergence code: {format(opt$convergence)}.",
+        i = "Maximum absolute gradient: {format(max_abs_gradient, digits = 4)}."
+      ))
+    }
+    list(nll = unname(opt$objective), par = opt$par)
+  }
+  list(evaluate = evaluate, compose = compose, start_free = start_free)
+}
+
+drm_native_coupled_cholesky_curvature_se <- function(object, target) {
+  if (!drm_has_sdreport_covariance(object)) return(NA_real_)
+  positions <- drm_native_coupled_cholesky_positions(object)
+  covariance <- object$sdr$cov.fixed
+  if (nrow(covariance) < max(unlist(positions, use.names = FALSE))) return(NA_real_)
+  eta <- unname(object$opt$par[[positions$eta]])
+  log_sd <- unname(object$opt$par[[positions$log_sd_sigma]])
+  raw <- tanh(eta); rho <- DRM_CORR_GUARD * raw
+  drho <- DRM_CORR_GUARD * (1 - raw^2)
+  derivative <- rep(0, length(object$opt$par))
+  if (identical(target$term[[1L]], "L11")) {
+    derivative[[positions$log_l11]] <- 1
+  } else if (identical(target$term[[1L]], "L22")) {
+    derivative[[positions$log_sd_sigma]] <- 1
+    derivative[[positions$eta]] <- -rho * drho / (1 - rho^2)
+  } else if (identical(target$term[[1L]], "L21")) {
+    derivative[[positions$log_sd_sigma]] <- exp(log_sd) * rho
+    derivative[[positions$eta]] <- exp(log_sd) * drho
+  } else return(NA_real_)
+  variance <- as.numeric(crossprod(derivative, covariance %*% derivative))
+  if (is.finite(variance) && variance > 0) sqrt(variance) else NA_real_
 }
 
 # TMB::tmbprofile() can corrupt a flat-ridge bracket search with one isolated
@@ -4594,6 +4771,64 @@ profile_registry_cor_targets <- function(object) {
     )
   })
   out[!vapply(out, is.null, logical(1L))]
+}
+
+# The Julia ordinary coupled-NB2 bridge works on its q=2 Cholesky coordinates
+# [log(L11), log(L22), L21].  Native TMB instead optimizes log SDs and a guarded
+# Fisher-like correlation coordinate.  These rows make that exact, bounded
+# coordinate map discoverable for the one grammar for which both engines have a
+# common fit: `mu ~ (1 | tag | group), sigma ~ (1 | tag | group)`.  L22 and L21
+# need the constrained profile route below; they are not aliases for a native
+# SD or correlation interval.
+profile_native_coupled_cholesky_targets <- function(object) {
+  if (!identical(object$model$model_type, "nbinom2")) return(list())
+  coupled <- drm_julia_coupled_ordinary_mu_sigma(object$formula)
+  if (is.null(coupled)) return(list())
+  positions <- drm_native_coupled_cholesky_positions(object)
+  if (anyNA(unlist(positions, use.names = FALSE))) return(list())
+  values <- drm_native_coupled_cholesky_values(object, positions = positions)
+  ready <- !is.null(object$obj) && all(is.finite(values))
+  note <- if (ready) "ready" else if (is.null(object$obj)) "tmb_object_required" else "missing_tmb_parameter"
+  specs <- list(
+    list(coord = "L11", internal = "log_sd_mu", index = 1L),
+    list(coord = "L22", internal = "log_sd_sigma + log_cholesky_complement", index = NA_integer_),
+    list(coord = "L21", internal = "exp(log_sd_sigma) * guarded_correlation", index = NA_integer_)
+  )
+  lapply(seq_along(specs), function(i) {
+    spec <- specs[[i]]
+    new_profile_target_row(
+      parm = paste0("cholesky:recov:", spec$coord),
+      target_class = "covariance-coordinate", dpar = "recov", term = spec$coord,
+      tmb_parameter = spec$internal, index = spec$index,
+      estimate = values[[i]], link_estimate = values[[i]], scale = "working",
+      transformation = "linear_predictor", target_type = "constrained",
+      profile_ready = ready, profile_note = note
+    )
+  })
+}
+
+drm_native_coupled_cholesky_positions <- function(object) {
+  par_names <- names(object$opt$par)
+  locate <- function(name) {
+    hit <- which(par_names == name)
+    if (length(hit) == 1L) hit[[1L]] else NA_integer_
+  }
+  list(
+    log_l11 = locate("log_sd_mu"),
+    log_sd_sigma = locate("log_sd_sigma"),
+    eta = locate("eta_cor_mu_sigma")
+  )
+}
+
+drm_native_coupled_cholesky_values <- function(object, positions = drm_native_coupled_cholesky_positions(object)) {
+  pos <- unlist(positions, use.names = FALSE)
+  if (length(pos) != 3L || anyNA(pos) || any(pos < 1L) || any(pos > length(object$opt$par))) {
+    return(rep(NA_real_, 3L))
+  }
+  log_l11 <- unname(object$opt$par[[positions$log_l11]])
+  log_sd_sigma <- unname(object$opt$par[[positions$log_sd_sigma]])
+  rho <- DRM_CORR_GUARD * tanh(unname(object$opt$par[[positions$eta]]))
+  c(log_l11, log_sd_sigma + 0.5 * log1p(-rho^2), exp(log_sd_sigma) * rho)
 }
 
 new_profile_target_row <- function(
