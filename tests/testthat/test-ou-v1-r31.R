@@ -1,0 +1,1 @@
+test_that("R3.1 contract records both exact-marginal points", { x<-paste(readLines(testthat::test_path("..","..","docs","design","267-ou-v1-r31-exact-marginal.md")),collapse=" "); expect_match(x,"interior"); expect_match(x,"ridge") })
