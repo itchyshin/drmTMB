@@ -81,6 +81,11 @@ random-effect correlation (\code{corpair}) regression, or a modelled
 error naming the unsupported structure for those models and directs the
 user to \code{re.form = NA}. Models without random effects are unaffected by
 \code{re.form}.
+
+For a fit made with \code{missing = miss_control(response = "include")},
+\code{simulate()} returns \code{NA} at masked rows for every family, matching
+\code{residuals()}, so posterior-predictive tools such as
+\code{DHARMa::createDHARMa()} see draws only where a response was observed.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

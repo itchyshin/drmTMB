@@ -2328,7 +2328,17 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @rdname model-fit-extractors
 #' @export
-vcov.drmTMB <- function(object, ...) {
+vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
+  if (identical(type, "robust") || isTRUE(robust)) {
+    cli::cli_abort(
+      c(
+        "Robust (sandwich) standard errors are not implemented for {.cls drmTMB} fits.",
+        "x" = "{.fn vcov} has no {.code type = \"robust\"} route, so requesting it must not silently fall back to the model-based matrix.",
+        "i" = "Try {.fn confint} with {.code method = \"boot\"} for a resampling-based interval, or refit with a heavier-tailed family (e.g. {.fn student}) if the concern is family misspecification."
+      ),
+      class = "drmTMB_vcov_robust_unsupported"
+    )
+  }
   if (drm_is_mspl(object)) {
     return(drm_mspl_vcov(object))
   }
@@ -2554,6 +2564,11 @@ drm_standard_error_status <- function(object) {
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
 #' @param k Numeric penalty per parameter for `AIC()`; the default is `2`.
+#' @param type For `vcov()`, `"model"` (the default) for the model-based
+#'   covariance matrix. `"robust"` is not implemented and errors rather than
+#'   silently falling back to the model-based matrix.
+#' @param robust For `vcov()`, a `TRUE`/`FALSE` alias for
+#'   `type = "robust"`/`type = "model"`; also errors when `TRUE`.
 #'
 #' @return `logLik()` returns an object of class `"logLik"`. `vcov()` returns a
 #'   numeric covariance matrix. `nobs()`, `df.residual()`, and `deviance()`
@@ -2658,22 +2673,41 @@ drm_warn_information_criterion <- function(fits, what) {
   invisible(NULL)
 }
 
-drm_information_criterion <- function(fits, penalty, what) {
-  if (any(vapply(fits, drm_is_mspl, logical(1L)))) {
-    drm_abort_mspl_inference(fits[[which(vapply(fits, drm_is_mspl, logical(1L)))[[1L]]]], what)
+# `o` may be a drmTMB fit or a foreign fit (e.g. `lm`, `gls`) passed in `...`;
+# foreign fits are read through `stats::logLik()`/`stats::nobs()` like
+# `stats::AIC.default` does, so they keep their own row instead of being
+# silently dropped from the comparison table.
+drm_ic_loglik_df <- function(o) {
+  if (inherits(o, "drmTMB")) {
+    return(list(value = as.numeric(o$logLik), df = as.numeric(o$df)))
   }
-  drm_warn_information_criterion(fits, what)
-  values <- vapply(
-    fits,
-    function(o) -2 * as.numeric(o$logLik) + penalty(o) * as.numeric(o$df),
-    numeric(1L)
+  ll <- stats::logLik(o)
+  list(value = as.numeric(ll), df = as.numeric(attr(ll, "df")))
+}
+
+drm_ic_nobs <- function(o) {
+  if (inherits(o, "drmTMB")) as.numeric(o$nobs) else as.numeric(stats::nobs(o))
+}
+
+drm_information_criterion <- function(fits, penalty, what) {
+  mspl <- which(vapply(fits, drm_is_mspl, logical(1L)))
+  if (length(mspl)) {
+    drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
+  }
+  drm_warn_information_criterion(
+    fits[vapply(fits, inherits, logical(1L), what = "drmTMB")],
+    what
   )
+  computed <- lapply(fits, function(o) {
+    ll_df <- drm_ic_loglik_df(o)
+    list(value = -2 * ll_df$value + penalty(o) * ll_df$df, df = ll_df$df)
+  })
   if (length(fits) == 1L) {
-    return(values[[1L]])
+    return(computed[[1L]]$value)
   }
   data.frame(
-    df = vapply(fits, function(o) as.numeric(o$df), numeric(1L)),
-    stats::setNames(list(values), what)
+    df = vapply(computed, `[[`, numeric(1L), "df"),
+    stats::setNames(list(vapply(computed, `[[`, numeric(1L), "value")), what)
   )
 }
 
@@ -2681,7 +2715,6 @@ drm_information_criterion <- function(fits, penalty, what) {
 #' @export
 AIC.drmTMB <- function(object, ..., k = 2) {
   fits <- c(list(object), list(...))
-  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
   drm_information_criterion(fits, function(o) k, "AIC")
 }
 
@@ -2689,8 +2722,7 @@ AIC.drmTMB <- function(object, ..., k = 2) {
 #' @export
 BIC.drmTMB <- function(object, ...) {
   fits <- c(list(object), list(...))
-  fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
-  drm_information_criterion(fits, function(o) log(as.numeric(o$nobs)), "BIC")
+  drm_information_criterion(fits, function(o) log(drm_ic_nobs(o)), "BIC")
 }
 
 #' Likelihood comparison guard for drmTMB fits
@@ -2961,6 +2993,11 @@ predict.drmTMB <- function(
 #' user to `re.form = NA`. Models without random effects are unaffected by
 #' `re.form`.
 #'
+#' For a fit made with `missing = miss_control(response = "include")`,
+#' `simulate()` returns `NA` at masked rows for every family, matching
+#' `residuals()`, so posterior-predictive tools such as
+#' `DHARMa::createDHARMa()` see draws only where a response was observed.
+#'
 #' @param object A `drmTMB` fit.
 #' @param nsim Number of simulated data sets.
 #' @param seed Optional random-number seed. The previous `.Random.seed` state
@@ -3035,6 +3072,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3081,6 +3119,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3102,6 +3141,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3125,6 +3165,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3146,6 +3187,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3176,6 +3218,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3215,6 +3258,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3249,12 +3293,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
-    if (
-      is.list(object$missing_data) &&
-        identical(object$missing_data$response_policy, "include")
-    ) {
-      sims[!object$missing_data$observed_y, ] <- NA_integer_
-    }
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3272,6 +3311,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3299,6 +3339,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3315,6 +3356,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3336,6 +3378,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3357,6 +3400,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3385,6 +3429,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3422,6 +3467,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3455,6 +3501,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 
@@ -3497,6 +3544,7 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     }
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
     return(sims)
   }
 

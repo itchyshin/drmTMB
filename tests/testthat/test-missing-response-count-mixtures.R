@@ -144,10 +144,14 @@ test_that("MR-T6 ZIP masks the complete mixture contribution", {
 
   sims <- simulate(fit, nsim = 3, seed = 2026071603L)
   expect_equal(dim(sims), c(nrow(dat), 3L))
-  expect_true(all(as.matrix(sims) >= 0))
-  expect_true(all(as.matrix(sims) == round(as.matrix(sims))))
-  expect_gt(sum(as.matrix(sims) == 0), 0L)
-  expect_gt(sum(as.matrix(sims) > 0), 0L)
+  # Masked rows carry NA (the package-wide masking contract, #1188; Dinnage
+  # audit M4); the draw-shape checks apply to observed rows only.
+  expect_true(all(is.na(as.matrix(sims)[!observed, ])))
+  obs_sims <- as.matrix(sims)[observed, , drop = FALSE]
+  expect_true(all(obs_sims >= 0))
+  expect_true(all(obs_sims == round(obs_sims)))
+  expect_gt(sum(obs_sims == 0), 0L)
+  expect_gt(sum(obs_sims > 0), 0L)
 })
 
 test_that("MR-T6 ZIP separately masks observed zeros and positives", {
@@ -248,10 +252,14 @@ test_that("MR-T6 ZINB2 masks the complete mixture contribution", {
 
   sims <- simulate(fit, nsim = 3, seed = 2026071623L)
   expect_equal(dim(sims), c(nrow(dat), 3L))
-  expect_true(all(as.matrix(sims) >= 0))
-  expect_true(all(as.matrix(sims) == round(as.matrix(sims))))
-  expect_gt(sum(as.matrix(sims) == 0), 0L)
-  expect_gt(sum(as.matrix(sims) > 0), 0L)
+  # Masked rows carry NA (the package-wide masking contract, #1188; Dinnage
+  # audit M4); the draw-shape checks apply to observed rows only.
+  expect_true(all(is.na(as.matrix(sims)[!observed, ])))
+  obs_sims <- as.matrix(sims)[observed, , drop = FALSE]
+  expect_true(all(obs_sims >= 0))
+  expect_true(all(obs_sims == round(obs_sims)))
+  expect_gt(sum(obs_sims == 0), 0L)
+  expect_gt(sum(obs_sims > 0), 0L)
 })
 
 test_that("MR-T6 ZINB2 separately masks observed zeros and positives", {
@@ -354,10 +362,14 @@ test_that("MR-T6 hurdle NB2 masks the complete mixture contribution", {
 
   sims <- simulate(fit, nsim = 3, seed = 2026071643L)
   expect_equal(dim(sims), c(nrow(dat), 3L))
-  expect_true(all(as.matrix(sims) >= 0))
-  expect_true(all(as.matrix(sims) == round(as.matrix(sims))))
-  expect_gt(sum(as.matrix(sims) == 0), 0L)
-  expect_gt(sum(as.matrix(sims) > 0), 0L)
+  # Masked rows carry NA (the package-wide masking contract, #1188; Dinnage
+  # audit M4); the draw-shape checks apply to observed rows only.
+  expect_true(all(is.na(as.matrix(sims)[!observed, ])))
+  obs_sims <- as.matrix(sims)[observed, , drop = FALSE]
+  expect_true(all(obs_sims >= 0))
+  expect_true(all(obs_sims == round(obs_sims)))
+  expect_gt(sum(obs_sims == 0), 0L)
+  expect_gt(sum(obs_sims > 0), 0L)
 })
 
 test_that("MR-T6 hurdle separately masks observed zeros and positives", {
