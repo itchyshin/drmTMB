@@ -61,3 +61,12 @@ A NEWS-bullet text match used for automated evidence lookup should be case-insen
 ## 12. Cross-Product Coverage
 
 This lane closed GitHub issues and updated the response-map document; it does NOT cover: the 39 still-open `audit-dinnage` issues (Moderates, Minors, UX items, and Mi-13, moved); the M3 sqrt(n) tolerance design question, which stays open under #1309 despite the issue being closed; the S6 bootstrap opt-in implementation; the Md-K public-status decision; the #1301 D-252 vocabulary question; any outreach to Russell Dinnage; the five stale open PRs (#1033, #1110, #1111, #1191, #1304); and any code, test, or `NEWS.md` change, none of which this lane touched. It also does NOT cover re-verifying the underlying fixes: that verification was done in the earlier wave 1 to 3 audit-response arcs and is only cited here, not repeated.
+
+## Addendum (2026-09-15, after the merge of PR #1364)
+
+The G5 route described in section 9 did not hold either: an approval binds the exact ledger path
+and environment, and the validator's own re-verify run refused the gate that called it. G5 is now a
+plain Node structure check (twelve headings in order, the "does NOT cover" marker, no em dash), and
+the hub validator runs standalone after the merge: structure check passed, acceptance ledger
+1 file, every gate satisfied, 8 of 8 met. Lesson: never make the validator a gate CHECK; the
+validator already re-verifies the ledger.
