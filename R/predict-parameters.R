@@ -26,6 +26,18 @@
 #' profile-likelihood uncertainty, or uncertainty for direct random-effect scale
 #' models.
 #'
+#' For a `sigma`/`sigma1`/`sigma2` dpar of a family whose scale is soft-clamped
+#' (see `drm_control(logsigma_clamp = )`), a row whose raw linear predictor
+#' already lies outside the clamp band carries `conf.status = "clamp_limited"`
+#' and `std.error`/`conf.low`/`conf.high` of `NA`: the likelihood is flat with
+#' respect to that row's unclamped predictor, so a Wald interval of the
+#' reported (clamped) quantity is not defined there. Rows inside the band are
+#' unaffected, because the clamp is the identity inside the band and their
+#' Wald interval is unchanged. Use [check_drm()] to see whether a fit's clamp
+#' is active, and rescale the response or widen the band
+#' (`drm_control(logsigma_clamp = )`) before trusting scale-parameter
+#' intervals on a clamp-active fit.
+#'
 #' For native `drmTMB` fits, the stable core columns retain this relative order:
 #' `row`, `row_label`, `dpar`, `component`, `type`, `estimate`, `conf.status`,
 #' and `interval_source`. `conf.status` describes the requested interval result
@@ -288,47 +300,108 @@ predict_parameters_interval <- function(
   se_link <- predict_parameters_link_se(basis, n)
   ok <- is.finite(se_link)
   z <- stats::qnorm(1 - (1 - conf.level) / 2)
-  # `estimate` (the point in the returned row) came from predict(), which
-  # routes sigma-type dpars of clamped families through
-  # drm_clamped_sigma_eta() (Dinnage audit M2, #1308, R/methods.R). Left alone,
-  # the raw-eta endpoints below can put that clamped estimate outside its own
-  # interval whenever the raw predictor is far outside the band (review
-  # "Concrete change" item 1). Clamp each endpoint through the SAME monotonic
-  # map instead of leaving them raw: drm_clamped_sigma_eta() is non-decreasing,
-  # so clamp(eta - z*se) <= clamp(eta) <= clamp(eta + z*se) always holds, which
-  # keeps the interval containing the estimate even when the point has
-  # saturated, and lets the interval saturate the same way the point does.
-  lo_link <- drm_clamped_sigma_eta(object, dpar, basis$eta - z * se_link)
-  hi_link <- drm_clamped_sigma_eta(object, dpar, basis$eta + z * se_link)
+
+  # Fisher's fresh-context review of 2a5b0665e (Dinnage audit M2 follow-up,
+  # #1308; docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md, "### M2
+  # follow-up (2a5b0665e)", REQUIRED items 1-4) rejected clamping the Wald
+  # endpoints through drm_clamped_sigma_eta(): it bought containment of the
+  # clamped point estimate at the cost of coverage -- a clamp-bent row's
+  # interval collapsed to a zero-width point on the clamp asymptote, unflagged
+  # as "wald", and (response scale) its std.error disagreed with conf.low/
+  # conf.high in the same row by up to 6.1e9x because the reported derivative
+  # omitted the clamp's own derivative c'(eta). A Wald interval of the
+  # clamped quantity is not defined at a clamp-bent row (the likelihood is
+  # flat there), so instead: detect rows whose RAW eta already lies outside
+  # the softclamp band (predict_parameters_clamp_bent(), same band-crossing
+  # test drm_profile_direct_sd_clamp_trace() uses at R/profile.R:4374) and
+  # give those rows NA endpoints flagged "clamp_limited" -- the status
+  # drm_profile_clamp_limited_confint_row() already uses at
+  # R/profile.R:3514-3530. Rows inside the band are untouched: the softclamp
+  # (drm_softclamp_log_sd(), R/drmTMB.R:23038-23060) is the identity there, so
+  # the clamped and raw eta coincide and the ordinary raw-eta Wald interval
+  # below is exactly the clamped-quantity interval too.
+  clamp_bent <- ok & predict_parameters_clamp_bent(object, dpar, basis$eta)
+
+  # Guard (review item 4): compute the endpoints only for `ok` rows, so an `NA`
+  # `se_link` (a `wald_unavailable` row) never reaches an arithmetic op whose
+  # result would need to flow through a clamp helper downstream.
+  lo_link <- rep(NA_real_, n)
+  hi_link <- rep(NA_real_, n)
+  lo_link[ok] <- basis$eta[ok] - z * se_link[ok]
+  hi_link[ok] <- basis$eta[ok] + z * se_link[ok]
 
   if (identical(type, "link")) {
     std.error <- se_link
     conf.low <- lo_link
     conf.high <- hi_link
   } else {
-    clamped_eta <- drm_clamped_sigma_eta(object, dpar, basis$eta)
-    derivative <- predict_parameters_inverse_link_derivative(
+    # Review item 2: the derivative is evaluated at the RAW eta, not a clamped
+    # eta -- inside the band (the only place a "wald" row survives) the two
+    # coincide, so this is unchanged from before 2a5b0665e.
+    derivative <- rep(NA_real_, n)
+    derivative[ok] <- predict_parameters_inverse_link_derivative(
       object,
       dpar,
-      clamped_eta
+      basis$eta[ok]
     )
     std.error <- abs(derivative) * se_link
-    conf.low <- drm_inverse_link(object, dpar, lo_link)
-    conf.high <- drm_inverse_link(object, dpar, hi_link)
+    conf.low <- rep(NA_real_, n)
+    conf.high <- rep(NA_real_, n)
+    conf.low[ok] <- drm_inverse_link(object, dpar, lo_link[ok])
+    conf.high[ok] <- drm_inverse_link(object, dpar, hi_link[ok])
   }
 
-  std.error[!ok] <- NA_real_
-  conf.low[!ok] <- NA_real_
-  conf.high[!ok] <- NA_real_
+  std.error[!ok | clamp_bent] <- NA_real_
+  conf.low[!ok | clamp_bent] <- NA_real_
+  conf.high[!ok | clamp_bent] <- NA_real_
+
+  conf.status <- rep("wald", n)
+  conf.status[!ok] <- "wald_unavailable"
+  conf.status[clamp_bent] <- "clamp_limited"
+
+  interval_source <- rep("wald", n)
+  interval_source[!ok | clamp_bent] <- "not_available"
 
   list(
     std.error = std.error,
     conf.low = conf.low,
     conf.high = conf.high,
     conf.level = rep(conf.level, n),
-    conf.status = ifelse(ok, "wald", "wald_unavailable"),
-    interval_source = ifelse(ok, "wald", "not_available")
+    conf.status = conf.status,
+    interval_source = interval_source
   )
+}
+
+# Row-level clamp detection for the Wald interval above: TRUE where `eta`
+# (the RAW, unclamped linear predictor) already lies outside the softclamp
+# band for a sigma-type dpar of a clamped family -- i.e. drm_clamped_sigma_eta()
+# would bend that row. Gated identically to drm_clamped_sigma_eta()
+# (R/methods.R:6235) so the two agree on which rows the clamp ever touches;
+# NA-safe (an eta of NA is never flagged) and always FALSE when the clamp is
+# disabled or inapplicable, matching drm_logsigma_clamp_active()'s band read
+# (R/drmTMB.R:3543-3547).
+predict_parameters_clamp_bent <- function(object, dpar, eta) {
+  bent <- rep(FALSE, length(eta))
+  if (
+    !dpar %in% c("sigma", "sigma1", "sigma2") ||
+      !isTRUE(object$model$model_type %in% drm_clamped_scale_families())
+  ) {
+    return(bent)
+  }
+  tmb_data <- object$model$tmb_data
+  enabled <- tmb_data$use_logsigma_clamp
+  if (length(enabled) != 1L || !identical(as.integer(enabled), 1L)) {
+    return(bent)
+  }
+  band <- tmb_data$logsigma_clamp
+  if (length(band) < 2L || anyNA(band[1:2])) {
+    return(bent)
+  }
+  lo <- band[[1L]]
+  hi <- band[[2L]]
+  finite <- is.finite(eta)
+  bent[finite] <- eta[finite] < lo | eta[finite] > hi
+  bent
 }
 
 predict_parameters_interval_unavailable <- function(

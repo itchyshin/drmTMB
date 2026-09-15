@@ -153,10 +153,17 @@ test_that("M2: the clamp fix is a no-op when the clamp band is not binding", {
 # same code path) and found two repair items. These "M2 repair:" blocks are
 # the TDD red/green pair for both.
 
-test_that("M2 repair: predict_parameters() interval brackets the clamped point estimate (review item 1)", {
-  # m2_fixture() sets se = FALSE (no vcov, so no Wald interval is available at
-  # all); build the same design with se = TRUE so the interval this item
-  # repairs actually gets computed.
+# Fisher's SECOND fresh-context review, of the item-1 fix itself (2a5b0665e,
+# docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md, "### M2 follow-up
+# (2a5b0665e)"), found that clamping the Wald endpoints through the same
+# monotone map bought containment at the cost of coverage: at clamp-bent rows
+# the shipped interval collapsed to a zero-width point on the clamp asymptote,
+# unflagged, and the response-scale std.error disagreed with conf.low/
+# conf.high in the same row by up to 6.1e9x. This shared fixture (same DGP as
+# m2_fixture(), but se = TRUE so the Wald interval these items repair actually
+# gets computed) and the "M2 repair:" blocks below are the TDD red/green pair
+# for Fisher's REQUIRED items 1-4 from that review.
+m2_wald_fixture <- function() {
   set.seed(1308)
   n <- 200
   x <- stats::rnorm(n)
@@ -178,6 +185,30 @@ test_that("M2 repair: predict_parameters() interval brackets the clamped point e
       control = drm_control(logsigma_clamp = band, logsigma_clamp_margin = margin)
     )
   )
+  list(fit = fit, data = d, band = band, margin = margin)
+}
+
+test_that("M2 repair: clamp-bent rows are NA and flagged clamp_limited; in-band rows keep the ordinary Wald interval (review item 1, was 'interval brackets the clamped point estimate')", {
+  # This test replaces the 2a5b0665e version of the same name, which asserted
+  # unconditional containment of the CLAMPED point estimate by CLAMPED
+  # endpoints. Fisher's follow-up review rejected that contract: measured
+  # against an unclamped truth, it bought containment by making clamp-bent
+  # rows a zero-width interval sitting on the clamp asymptote, with coverage
+  # 0.000. The new contract below is what item 1 REQUIRED instead.
+  fx <- m2_wald_fixture()
+  fit <- fx$fit
+  d <- fx$data
+
+  # Independently-computed RAW (unclamped) sigma predictor, same pattern as
+  # m2_raw_sigma_eta() above, to classify rows without depending on the code
+  # under test.
+  raw_eta <- as.vector(
+    stats::model.matrix(~x, data = d) %*% unname(stats::coef(fit)$sigma)
+  )
+  clamp_bent <- raw_eta < fx$band[[1L]] | raw_eta > fx$band[[2L]]
+  n_clamp_bent <- sum(clamp_bent)
+  expect_true(n_clamp_bent > 0L) # else this test is vacuous
+  in_band <- !clamp_bent
 
   out_link <- predict_parameters(
     fit,
@@ -186,9 +217,6 @@ test_that("M2 repair: predict_parameters() interval brackets the clamped point e
     type = "link",
     conf.int = TRUE
   )
-  expect_true(all(out_link$conf.low <= out_link$estimate + 1e-8))
-  expect_true(all(out_link$estimate <= out_link$conf.high + 1e-8))
-
   out_resp <- predict_parameters(
     fit,
     newdata = d,
@@ -196,8 +224,127 @@ test_that("M2 repair: predict_parameters() interval brackets the clamped point e
     type = "response",
     conf.int = TRUE
   )
-  expect_true(all(out_resp$conf.low <= out_resp$estimate + 1e-8))
-  expect_true(all(out_resp$estimate <= out_resp$conf.high + 1e-8))
+
+  # Clamp-bent rows: NA endpoints and NA std.error, flagged "clamp_limited" --
+  # the same status profile()'s drm_profile_clamp_limited_confint_row()
+  # (R/profile.R:3514-3530) already uses for a saturated direct-SD trace.
+  expect_equal(
+    out_link$conf.status[clamp_bent],
+    rep("clamp_limited", n_clamp_bent)
+  )
+  expect_equal(
+    out_resp$conf.status[clamp_bent],
+    rep("clamp_limited", n_clamp_bent)
+  )
+  expect_true(all(is.na(out_link$conf.low[clamp_bent])))
+  expect_true(all(is.na(out_link$conf.high[clamp_bent])))
+  expect_true(all(is.na(out_link$std.error[clamp_bent])))
+  expect_true(all(is.na(out_resp$conf.low[clamp_bent])))
+  expect_true(all(is.na(out_resp$conf.high[clamp_bent])))
+  expect_true(all(is.na(out_resp$std.error[clamp_bent])))
+  # Review item 2: std.error is NA exactly where the endpoints are NA.
+  expect_equal(is.na(out_link$std.error), is.na(out_link$conf.low))
+  expect_equal(is.na(out_link$std.error), is.na(out_link$conf.high))
+  expect_equal(is.na(out_resp$std.error), is.na(out_resp$conf.low))
+  expect_equal(is.na(out_resp$std.error), is.na(out_resp$conf.high))
+
+  # In-band rows: inside the band the clamp is the identity, so the ordinary
+  # raw-eta Wald interval still contains the (identical, clamped) point
+  # estimate and the row is labelled "wald".
+  expect_equal(out_link$conf.status[in_band], rep("wald", sum(in_band)))
+  expect_equal(out_resp$conf.status[in_band], rep("wald", sum(in_band)))
+  expect_true(all(
+    out_link$conf.low[in_band] <= out_link$estimate[in_band] + 1e-8
+  ))
+  expect_true(all(
+    out_link$estimate[in_band] <= out_link$conf.high[in_band] + 1e-8
+  ))
+  expect_true(all(
+    out_resp$conf.low[in_band] <= out_resp$estimate[in_band] + 1e-8
+  ))
+  expect_true(all(
+    out_resp$estimate[in_band] <= out_resp$conf.high[in_band] + 1e-8
+  ))
+})
+
+test_that("M2 repair: in-band Wald intervals are bit-identical to the pre-2a5b0665e raw-eta interval; no 'wald' row is clamp-bent or near-zero-width (review items 1-3)", {
+  fx <- m2_wald_fixture()
+  fit <- fx$fit
+  d <- fx$data
+
+  raw_eta <- as.vector(
+    stats::model.matrix(~x, data = d) %*% unname(stats::coef(fit)$sigma)
+  )
+  clamp_bent <- raw_eta < fx$band[[1L]] | raw_eta > fx$band[[2L]]
+  expect_true(sum(clamp_bent) > 0L) # else this test is vacuous
+  in_band <- !clamp_bent
+
+  # Hand-built raw-eta Wald interval, independent of predict_parameters(),
+  # using the same accessor and formula test-predict-parameters.R uses for the
+  # pre-2a5b0665e (unclamped) contract.
+  basis <- drmTMB:::drm_fixed_effect_basis(
+    fit,
+    newdata = d,
+    dpar = "sigma",
+    covariance = TRUE
+  )
+  X <- as.matrix(basis$X)
+  V <- as.matrix(basis$V)
+  se_hand <- sqrt(rowSums((X %*% V) * X))
+  z <- stats::qnorm(0.975)
+  lo_hand <- basis$eta - z * se_hand
+  hi_hand <- basis$eta + z * se_hand
+
+  out_link <- predict_parameters(
+    fit,
+    newdata = d,
+    dpar = "sigma",
+    type = "link",
+    conf.int = TRUE
+  )
+
+  expect_equal(out_link$std.error[in_band], unname(se_hand[in_band]))
+  expect_equal(out_link$conf.low[in_band], unname(lo_hand[in_band]))
+  expect_equal(out_link$conf.high[in_band], unname(hi_hand[in_band]))
+
+  # No row labelled "wald" is clamp-bent, and no "wald" row's interval is a
+  # near-zero-width point (the containment-only defect item 3 targets: a
+  # clamp-saturated interval can satisfy containment trivially while carrying
+  # no information).
+  wald_rows <- out_link$conf.status == "wald"
+  expect_true(!any(clamp_bent[wald_rows]))
+  widths <- out_link$conf.high[wald_rows] - out_link$conf.low[wald_rows]
+  expect_true(all(widths >= 1e-6))
+})
+
+test_that("M2 repair: an se = FALSE fixed-effect sigma fit reports wald_unavailable without erroring (review item 4)", {
+  fx <- m2_wald_fixture()
+  d <- fx$data
+  fit_no_se <- suppressWarnings(
+    drmTMB(
+      bf(y ~ x, sigma ~ x),
+      family = gaussian(),
+      data = d,
+      control = drm_control(
+        logsigma_clamp = fx$band,
+        logsigma_clamp_margin = fx$margin,
+        se = FALSE
+      )
+    )
+  )
+
+  expect_no_error(
+    out <- predict_parameters(
+      fit_no_se,
+      newdata = d,
+      dpar = "sigma",
+      conf.int = TRUE
+    )
+  )
+  expect_equal(out$conf.status, rep("wald_unavailable", nrow(out)))
+  expect_true(all(is.na(out$conf.low)))
+  expect_true(all(is.na(out$conf.high)))
+  expect_true(all(is.na(out$std.error)))
 })
 
 test_that("M2 repair: predict(fit, dpar = 'sd(id)') matches the kernel's clamped sd(id) (review item 2)", {
