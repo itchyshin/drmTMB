@@ -86,8 +86,11 @@
   95% coverage of 0.910 with a random intercept on `sigma` and 0.928 for
   a `sigma ~ 1` control over 500 replicates each, a shortfall that predates
   this change (`method = "profile"` where available is the safer choice).
-  Random slopes on `sigma`, or a structured effect whose correlation
-  diagonal is not one, give `NA` with a message naming why instead of the
+  Random slopes on `sigma`, a structured effect whose correlation diagonal
+  (measured on the modelled units, e.g. the tips of a tree) is not one, or
+  a fit on which the `log(sigma)` soft clamp is active (the kernel clamps
+  the assembled predictor, so the closed form is no longer the moment the
+  likelihood uses) give `NA` with a message naming why instead of the
   silently wrong median. `summary()$derived$residual_sd` is the marginal
   `sqrt(E[sigma^2])` while the `sigma` parameter row remains the median
   `exp(b0)`; they coincide only when `sigma` carries no random effect. Both repeatability loci
