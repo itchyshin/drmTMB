@@ -10,10 +10,28 @@
 #' et al. 2017): an exponential prior on the SD scale with mass at zero, which
 #' regularises a weakly-identified phylogenetic SD (for example a scale-side
 #' phylogenetic field at about one observation per tip) toward the simpler
-#' "no phylogenetic variance" model. The rate is `lambda = -log(sd_alpha) / sd_u`
-#' so that, a priori, `P(sd > sd_u) = sd_alpha`. The optional correlation
-#' penalty is a mean-zero normal on the unconstrained phylogenetic correlation
-#' parameter.
+#' "no phylogenetic variance" model in the sense that the *prior* places its
+#' mass there — the reported point estimate itself never reaches it; see
+#' below. The rate is `lambda = -log(sd_alpha) / sd_u`
+#' so that, a priori, `P(sd > sd_u) = sd_alpha` holds exactly for this prior.
+#' The optional correlation penalty is a mean-zero normal on the unconstrained
+#' phylogenetic correlation parameter.
+#'
+#' The optimizer works on `log(sd)`, not `sd`, so the penalty actually added to
+#' the objective is the negative log-density of the exponential prior expressed
+#' in `log(sd)`, including the `|d sd / d log(sd)| = sd` change-of-variables
+#' Jacobian: `rate * sd - log(sd) - log(rate)`. Because a maximum-a-posteriori
+#' (MAP) estimate is not invariant to reparameterisation, the fitted penalised
+#' `sd_phylo` is the mode of this log-scale expression, not of the SD-scale
+#' prior, and that mode is never zero: the `-log(sd)` Jacobian term diverges as
+#' `sd -> 0`, so under a flat likelihood the penalty alone pulls the estimate to
+#' `sd = 1/rate` (`0.334` at the defaults `sd_u = 1`, `sd_alpha = 0.05`, where
+#' `rate = -log(0.05) = 2.996`). The SD-scale prior still has mass at zero as
+#' documented; only the reported point estimate does not sit there. A
+#' penalised `sd_phylo` must therefore not be used to test a null hypothesis of
+#' no phylogenetic signal: a likelihood-ratio or Wald test against zero on a
+#' MAP fit is not valid, because the estimator cannot report zero regardless of
+#' the data.
 #'
 #' A penalized fit is a MAP point estimate, not a maximum-likelihood fit: its
 #' standard errors are credible-interval-shaped, and likelihood-ratio tests or
