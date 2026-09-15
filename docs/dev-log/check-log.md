@@ -94610,5 +94610,9 @@ Closeout report:
 - Post-review repairs, same evening: `1c44d2f12` (S2b follow-up 2: design-row diagonal, clamp-active
   refusal) and `19849f0dc` (index by `observation_node_index`, NA when unindexed; reason lists name
   `clamp_limited`). Clean-export as-cran run 3 on `a16ce24b6` (after `1c44d2f12`): identical to run 2 —
-  0 errors, 0 package warnings, 1 NOTE; tests OK (44 s), vignettes OK (63 s). Run 4 on `19849f0dc` is
-  recorded below when it finishes.
+  0 errors, 0 package warnings, 1 NOTE; tests OK (44 s), vignettes OK (63 s). Run 4 on `19849f0dc`
+  (after the design-row index fix): identical — 0 errors, 0 package warnings, 1 NOTE; tests OK (44 s),
+  vignettes OK (63 s). The two commits after it (`a03eb0938`, `e2d41def9`) are comments, help text,
+  NEWS wording and the review file only. Fisher's review chain on S2b closed at `19849f0dc`
+  (ACCEPT-WITH-CHANGES; the one REQUIRED item, two stale comment sentences, applied in `e2d41def9`).
+  Ledger `.unlazy/dinnage-2`: all 27 gates met.

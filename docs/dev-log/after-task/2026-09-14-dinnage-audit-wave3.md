@@ -517,5 +517,11 @@ species/tip index, and returns NA ("not checked") when no row index exists; the 
 FALSE on an indexed non-unit diagonal and NA on an unindexed matrix; NEWS narrows the clamp claim (a
 clamp-active `sigma ~ 1` fit still returns its constant clamped scale) and both help pages add
 `clamp_limited` to their refusal reasons. Clean-export as-cran run 3 on `a16ce24b6` matched run 2
-(0 errors, 0 package warnings, 1 NOTE). A fresh Opus review of `19849f0dc` and as-cran run 4 were
-running when this addendum was written; the handover carries both.
+(0 errors, 0 package warnings, 1 NOTE). Fisher's review of `19849f0dc` (ACCEPT-WITH-CHANGES; measured all four
+structured blocks TRUE on their design rows, including the `phylo_interaction()` block the parent
+refused) required only two stale comment sentences, applied with the clamp-predicate wording in
+`e2d41def9`. Clean-export as-cran run 4 on `19849f0dc` matched runs 2 and 3 (0 errors, 0 package
+warnings, 1 NOTE). The #1301 comment was posted
+(<https://github.com/itchyshin/drmTMB/issues/1301#issuecomment-5674554700>); all five are now posted.
+Ledger: 27 of 27 gates met. Final child count for the arc: 26 (8 Opus: F-B, F-A, and six S2b/M2
+follow-up reviews; 15 Sonnet; 3 Haiku).
