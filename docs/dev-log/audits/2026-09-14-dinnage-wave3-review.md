@@ -39,7 +39,406 @@ Ordered by how hard each finding pushes on an inference claim:
 
 ## Part A — code (M1, M2, S2b)
 
-*(Left empty for the code reviewer.)*
+*Reviewer: Fisher, fresh context, read-only except this file. Worktree
+`/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`. Nothing was
+recompiled; the `.so` in the worktree is the post-M1 kernel, so every runtime
+figure below is measured on the FIXED code unless stated. Line numbers for
+`src/drmTMB.cpp` are the file as of `fc461aae4`; for `R/methods.R` as of
+`0526baa2f` (unchanged at `HEAD`, checked with `git log 0526baa2f..HEAD -- R/methods.R`).*
+
+### M1 (fc461aae4)
+
+VERDICT: ACCEPT-WITH-CHANGES — all eleven blocks carry the weight in the right
+place and the new objective-identity assertion is the right invariant and
+genuinely red, but one test arm is credited with catching a bug it demonstrably
+did not catch, and the two "recorded neighbours" are described less accurately
+than the evidence in this worktree supports.
+
+#### Mechanism
+
+I read all eleven post-fix blocks against the Bernoulli template at
+`src/drmTMB.cpp:1272-1313` (prior `:1289`, mixture `:1304`), one by one, not by
+pattern-matching the first. For each of `mi_family` 2, 3, 4, 10, 12, 5, 8, 11, 6,
+7, 9 the three required properties hold:
+
+| `mi_family` | observed-row prior | per-node `log_y` | closing `nll` |
+|---|---|---|---|
+| 2 ordinal | `:1364` `weights(i) *` | `:1387` unweighted | `:1395` `weights(i) *` |
+| 3 categorical | `:1460` | `:1471` | `:1479` |
+| 4 beta | `:1545` | `:1560` | `:1567` |
+| 10 zero-one-beta | `:1679` | `:1702` | `:1709` |
+| 12 beta-binomial | `:1815` | `:1837` | `:1844` |
+| 5 poisson | `:1892` | `:1903` | `:1910` |
+| 8 nbinom2 | `:1974` | `:1989` | `:1996` |
+| 11 trunc. nbinom2 | `:2081` | `:2097` | `:2104` |
+| 6 lognormal | `:2172` | `:2182` | `:2198` |
+| 7 gamma | `:2265` | `:2279` | `:2286` |
+| 9 tweedie | `:2360` | `:2376` | `:2383` |
+
+Evidence, not inference: I confirmed the eleven closing lines with a targeted
+grep of the post-fix file and then read each block's body; there is no residual
+`weights(i) * drm_response_log_density(` anywhere in `src/drmTMB.cpp`.
+
+Three structural checks the brief asked for, all clean:
+
+* **Third branch.** Nine of the eleven blocks have a third arm for
+  `observed_y(i) == 0` *and* `mi_observed(i) == 0` (`:1580, :1722, :1857, :1923,
+  :2009, :2117, :2212, :2299, :2396`). None of them touches `nll` at all — they
+  only build a prior-mean plug-in for `mi_x_full` / `mu`. That is consistent
+  with the template, where the same case collapses to
+  `weights(i) * logspace_add(log_p1, log_p0) = w * log 1 = 0`. Weighting is
+  vacuous there, so nothing is missing. `mi_family` 2 and 3 have no third arm
+  because their `else` branch already covers it with `log_y = 0` and a
+  normalised state prior, giving `log_denom = 0`.
+* **Lognormal (`mi_family == 6`).** The comment at `:2183-2191` claims the
+  Gauss-Hermite nodes already carry the prior, so no `+ log_density` belongs in
+  the sum. This is **true and I checked the generator, not just the comment**:
+  `drm_lognormal_mi_quadrature()` (`R/missing-data.R:3307-3321`) returns
+  `nodes = sqrt(2) * hermite_nodes` and `weights = hermite_weights / sqrt(pi)`,
+  i.e. probabilists' abscissae with weights summing to 1, and `:2178` forms
+  `x_q = exp(mi_eta(i) + sigma * z_q)`. So `log(w_q) + log f(y | x_q)` is the
+  correct `log E_x[f(y|x)]`. The block's own third arm (`:2213-2221`) uses
+  `prior_norm = sum(mi_quad_weights)` with no density factor, which is the same
+  statement made a second way.
+* **No double counting.** The main Gaussian response loop skips exactly the
+  mixture rows: `src/drmTMB.cpp:2455-2462`,
+  `observed_y(i) == 1 && !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)`,
+  and weights that loop by `weights(i)`. So a weighted row contributes `w` once.
+
+**What the template does not cover, and whether a weighted fit now gets it
+wrong.** The per-block by-products — `posterior = exp(log_terms(q) - log_denom)`,
+`conditional_mean`, `expected_mu`, `mi_state_probability`, and the `REPORT`ed
+`mi_x_full` — are now formed from *unweighted* leaves, so the weight no longer
+tempers the imputation posterior. That is correct and is the same by-product the
+wave-1 review credited to the Bernoulli fix. I found nothing in the eleven blocks
+that a weighted fit now gets wrong. Two adjacent things are wrong for other
+reasons and are covered under "Contract" below.
+
+#### Negative control
+
+`tests/testthat/test-dinnage-audit-m1-families.R` is a real negative control and
+a better one than wave 1's. The load-bearing assertion is
+`fit_w2$obj$fn(p) == 2 * fit_w1$obj$fn(p)` at `1e-10`, evaluated at two parameter
+points (`:38-44`).
+
+*Is it the right invariant?* Yes, and it is strictly stronger than the coefficient
+comparison it accompanies. For a fixed-effect model the weighted log-likelihood
+is `sum_i w_i * l_i(theta)` identically in `theta`, so with `w == 2` the identity
+holds at *every* parameter value, not only at an optimum; any weight that
+multiplies part of a row (a leaf inside a mixture, an unweighted prior) breaks it
+by a parameter-dependent margin rather than by optimiser noise. Two caveats worth
+recording rather than fixing: (i) the identity is only true because these eleven
+fixtures have **no random effects** — RE density terms are correctly unweighted,
+so the same assertion would fail by construction on an RE model, and the helper
+must never be reused there without that caveat; (ii) `run_mi_weight_invariance()`
+now asserts `opt$convergence == 0L` on all three fits (`:20, :23, :26`), which
+closes the wave-1 review's objection that invariance was being asserted at a
+possibly non-optimal point.
+
+The red proof `<scratchpad>/m1-red-final.txt` shows 43 failures with the correct
+signature — `2*obj_w1` vs `obj_w2` off by tens of nats per family (ordinal 159.2
+vs 105.6; beta-binomial 18.3 vs -157.0) and the `mi()` coefficients moving in the
+5th-6th decimal against a `1e-6` tolerance. These would not pass on old code for
+the wrong reason: the quantity compared is the objective itself, not a fitted
+summary. `<scratchpad>/m1-green.txt` shows 77 = 11 x 7 passing assertions and
+`<scratchpad>/m1-regress.txt` shows the whole missing-predictor suite green, so
+`weights = 1` (the default) is unchanged, as it must be since `w * x` at `w = 1`
+is exact.
+
+**Does Tweedie's loosened duplication arm hide anything? It hides that it is not
+a test.** Read the red-run progress line in `m1-red-final.txt`:
+`...tuv.` for the Tweedie block — three dots (the convergence checks), three
+failures (the two identity checks and `coef_w1 == coef_w2`), then a **dot**. The
+fourth assertion, `coef_dup == coef_w2` at `dup_tolerance = 1e-2`, **passed on the
+broken kernel**. Every other family shows `...ABCD` (four failures). So the test
+comment at `:302-304`, "the duplication arm only guards the gross pre-fix bias",
+is false as written: on the measured evidence it guarded nothing. The two identity
+checks are the entire Tweedie negative control, and they are sufficient — but the
+comment must say so.
+
+I re-verified the two numbers that justify the loosening rather than taking them
+on trust, by re-running `<scratchpad>/tweedie-probe2.R` against the current `.so`
+(no recompile):
+
+```
+[with NA]  2*obj_w1: -63.7888192911  obj_w2: -63.7888192911  obj_dup: -65.1243435553
+[20 NA] diff: -1.33552
+```
+
+So on the fixed kernel the M1 identity holds for Tweedie to twelve digits, and
+the duplication gap is 1.336 nats over 20 missing rows — the figure NEWS and the
+test comment quote. And the stated mechanism is exact, not approximate:
+
+```
+var(n rows) : 0.6587214291   var(2n rows): 0.6533659703
+n_obs 62 -> 2(n-1)/(2n-1) = 0.9918699 ; observed ratio = 0.9918699
+```
+
+`stats::var()`'s `n - 1` divisor is the whole of it (`R/missing-data.R:3570`),
+feeding `sigma` into `drm_tweedie_mi_quadrature()`'s
+`upper = max(observed, mu + 8*sqrt(variance), 1)` (`R/missing-data.R:3665-3670`)
+and hence every node and weight at `:3683-3684`. **The finding is real.**
+
+#### Contract
+
+For a user: any fit combining non-`NULL` `weights` with a non-Bernoulli
+`impute_model()` changes — `logLik`, AIC, every estimate — in the direction of
+correctness, and `weights = c` now means row duplication. `weights = 1` /
+`weights = NULL` is bit-identical. Nothing else moves.
+
+The NEWS wave-3 M1 bullet (working-tree `NEWS.md`, uncommitted) is accurate on the
+fix itself and creditably names its two neighbours. Three corrections:
+
+1. **The `mi_family == 0` description is narrower than the defect.** NEWS says the
+   Gaussian latent route breaks invariance "through an unweighted covariate-model
+   density inside a Laplace-integrated latent". The loop at `src/drmTMB.cpp:1215-1217`
+   runs over **every** row, observed or missing, and carries no `weights(i)`. For
+   the observed rows there is no latent and no Laplace: the fix there *is* one
+   line, exactly as in the Bernoulli template at `:1289`. Only the missing rows
+   raise the Laplace question. Saying "not a one-line change" of the whole route
+   reads as "no cheap partial fix exists", which the source contradicts.
+2. **A third site is unrecorded.** `has_mi2` (`src/drmTMB.cpp:1245-1270`, prior at
+   `:1257`) — the second imputed covariate, Gaussian-only — has the identical
+   unweighted prior and is mentioned in neither the commit message nor NEWS. So
+   does the second `mi_family == 0` block at `:4417-4442` (prior `:4429`).
+3. **The Tweedie item is filed as a tolerance nuisance; it is a likelihood
+   -validity finding.** The support is sized **once, from start values**
+   (`R/missing-data.R:3568-3583`: `beta` from `lm.fit`, `phi` from a moment
+   estimate, then `quad_nodes` frozen into the TMB data). If the optimiser walks
+   `sigma_tweedie_mi` well above its start value, the fixed upper limit truncates
+   `int p(x) f(y|x) dx` silently, with no renormalisation of `p` over the
+   retained support and no diagnostic. That is a bias in the objective, not a
+   rounding difference, and it is invisible to every test in the suite.
+
+#### Concrete change
+
+1. **REQUIRED.** Fix the Tweedie test comment,
+   `tests/testthat/test-dinnage-audit-m1-families.R:294-305`. Replace "the
+   duplication arm only guards the gross pre-fix bias" with the measured truth:
+   at `1e-2` that arm **passes on the pre-fix kernel** (`m1-red-final.txt`,
+   progress line `...tuv.`), so the two objective-identity checks are the entire
+   negative control for this family. A comment that credits an arm with a catch
+   it did not make is the kind of thing that survives into a claim.
+2. **REQUIRED.** Correct the NEWS `mi_family == 0` sentence to separate the two
+   cases: the covariate-model density is unweighted **for observed rows as well**,
+   where the repair is the same one-line change as the template; only the missing
+   rows, whose `x_miss` is a Laplace-integrated latent, are genuinely hard. Add
+   `has_mi2` (`src/drmTMB.cpp:1257`) and the second `mi_family == 0` block
+   (`:4429`) to the recorded list.
+3. **REQUIRED.** Re-file the Tweedie quadrature item as a likelihood finding, not
+   only a duplication-tolerance one, naming the start-value-frozen support
+   (`R/missing-data.R:3578-3583`, `3656-3689`) and the silent truncation risk.
+   A `cli_warn()` when the fitted `sigma_tweedie_mi` exceeds the value the support
+   was sized from would make it detectable; that is a separate slice, but the
+   *record* should say what is at risk.
+4. **OPTIONAL.** Add one row-varying-weight arm (e.g. `w = rep(c(1, 2), length.out = n)`
+   compared against the correspondingly expanded data frame) to at least one
+   family. A constant weight cannot detect a row-misaligned `weights(i)` index;
+   the eleven loops run over `mi_x.size()` while `weights` is indexed by response
+   row, and that alignment is currently only implied by `src/drmTMB.cpp:1218`.
+5. **OPTIONAL.** Record, in the same place as the other neighbours, that
+   `sigma_i` is computed and never used inside every one of the eleven quadrature
+   loops (e.g. `:1559`, `:2181`) — dead since `drm_response_log_density()` takes
+   `log_sigma` and `V_known` separately. Cosmetic, but it is eleven copies.
+
+---
+
+### M2 (0526baa2f)
+
+VERDICT: ACCEPT-WITH-CHANGES — the helper is correct and placed correctly at the
+two paths it touches, and the headline defect (a 297-nat gap between `logLik()`
+and a hand-recomputed likelihood under `sigma(fit)`) is genuinely repaired; but
+the "third path cannot fire" rationale is true of the *gate* and false of the
+*defect*, and the commit introduces a new inference inconsistency in
+`predict_parameters()` where the point estimate now falls outside its own
+confidence interval.
+
+#### Mechanism
+
+`drm_clamped_sigma_eta()` (`R/methods.R:6045-6054`) gates on
+`dpar %in% c("sigma", "sigma1", "sigma2")` and
+`object$model$model_type %in% drm_clamped_scale_families()`, then applies
+`drm_softclamp_log_sd(eta, object$model$tmb_data)`. I checked that this R helper
+is the same map the kernel applies, not a lookalike: `R/drmTMB.R:23038-23060`
+implements `hi + margin*tanh((x-hi)/margin)` above and
+`lo - margin*tanh((lo-x)/margin)` below, reading `use_logsigma_clamp` and the
+three-element `logsigma_clamp` band from `tmb_data`; `src/drmTMB.cpp:27-32`
+(`drm_softclamp_log_sigma_one`) is the same two expressions with the same band.
+Evidence, not inference.
+
+**Both call sites verified.**
+
+* `predict.drmTMB()`, `R/methods.R:2942`. Placement is right: it sits after every
+  random-effect contribution (`:2888-2940`) and before `type == "link"` returns or
+  `drm_inverse_link()` fires, which mirrors the kernel, where
+  `drm_softclamp_log_sigma(log_sigma, ...)` is applied to the assembled predictor
+  immediately before `sigma = exp(log_sigma)` (`src/drmTMB.cpp:2436-2440`).
+* `drm_marginal_predict()`, `R/methods.R:6737`, likewise after the fresh RE draw
+  and before the link.
+
+**The delegation claims hold.** `sigma.drmTMB()` (`R/methods.R:4100-4115`) returns
+`predict(object, dpar = "sigma")` for all thirteen univariate families and
+`predict(dpar = "sigma1"/"sigma2")` for the three bivariate ones;
+`observation_sigma()` (`:5760-5765`) and `observation_covariance()` (`:5767`) call
+`predict(dpar = "sigma")`; `drm_fitted_response()` uses `predict.drmTMB(dpar = "sigma")`
+for the truncated/hurdle NB2 means (`:6010-6019`). Outside `R/methods.R` every
+consumer I could find goes through `predict()` too (`R/associate-pairs.R:141-194,
+1269`); nothing reads a raw `report$sigma`.
+
+#### Explicit question: does M2 cover `simulate()`'s marginal path?
+
+**Yes.** `simulate.drmTMB()` (`R/methods.R:3029`) branches on `marginal <- is.null(re.form)`
+(`:3037`). The marginal branch calls `drm_marginal_predict(object, "sigma", re_draws)`
+— e.g. `R/methods.R:3075, 3141, 3163, 3400, 3424, 3452, 3490, 3524, 3533` and the
+bivariate `sigma1`/`sigma2` at `:3568-3569, 3618-3619` — and that function clamps at
+`R/methods.R:6737`. The conditional branch (`re.form = NA`) calls
+`predict(object, dpar = "sigma")` (e.g. `:3081`) and is clamped at `R/methods.R:2942`.
+Both paths are covered.
+
+#### Negative control
+
+`<scratchpad>/m2-red.txt` is a genuine red proof for four of the five test blocks:
+`ll_hand` -572.3 vs `logLik` -275.1, `max(sigma())` 98.2 vs 3.7, band violations
+on both arms, Pearson SD out of range, `simulate()` draw SD out of range.
+
+**The fifth block is vacuous, and the red proof says so.** The progress line is
+`1234567...` — seven failures, then **three dots**: every assertion in
+`test-dinnage-audit-m2.R:108-129` ("the clamp fix is a no-op when the clamp band
+is not binding") passed on the broken code. It has to: `sigma.drmTMB()` delegates
+to `predict(dpar = "sigma")` (`R/methods.R:4100-4115`), so
+`expect_equal(sigma(fit), exp(predict(fit, dpar = "sigma", type = "link")))`
+compares a value with itself through the same code path, clamped or not. The only
+non-tautological line in that block is `expect_equal(..$use_logsigma_clamp, 1L)`.
+The test's *name* is a claim about behaviour it does not test.
+
+Coverage is `gaussian`-only. `drm_clamped_scale_families()` names fourteen model
+types (`R/drmTMB.R:3521-3540`), including three bivariate ones whose `sigma1`/`sigma2`
+dpars the helper is written for; none is exercised. I cannot close that gap
+without fitting, so: **UNVERIFIED** for the other thirteen.
+
+#### Contract — and the two places it is now wrong
+
+**(a) `predict_random_scale_dpar()` is not dead, and the "cannot fire" reasoning
+is the wrong test.** The commit message says this third path "only ever sees
+`sd(...)` dpars and cannot fire". The first half is true — `is_random_scale_dpar()`
+(`R/methods.R:6274-6287`) admits only `random_scale$mu$dpars` /
+`random_scale$phylo$dpars`, which are named `sd(id)`, `sd1(id)`, `sd2(id)`,
+`sd_phylo(species)` (`R/drmTMB.R:4625` `startsWith(dpars, "sd(")`;
+`R/julia-bridge.R:2217` `^sd(_phylo)?\([^()]+\)$`), never `sigma`. So
+`drm_clamped_sigma_eta()` indeed never fires there. But the conclusion drawn from
+that — that the path needs nothing — is false. The kernel **does** clamp the
+direct-SD predictor: `src/drmTMB.cpp:2482-2485`,
+`sd_mu_group(g) = drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta_sd, use_logsigma_clamp, logsigma_clamp), ...)`,
+and the R-side fit summary agrees (`sd_mu_group_values()`, `R/drmTMB.R:3062-3067`,
+applies the same clamp). `predict_random_scale_dpar()` recomputes
+`exp(X %*% coef)` with no clamp at all (`R/methods.R:6322-6326`).
+
+Measured in this worktree on the current `.so` (no recompile), using the package's
+own `new_gaussian_re_scale_data()` fixture with a deliberately narrow band:
+
+```
+bf(y ~ x + (1|id), sigma ~ z, sd(id) ~ w), logsigma_clamp = c(-0.2, 0.2), margin = 0.05
+range predict(fit, dpar = "sd(id)") : 0.0308  3.5534
+range fit$sdpars[["sd(id)"]]        : 0.7788  1.2840   (= exp(lo-margin), exp(hi+margin))
+max |predict - sdpars|              : 2.269
+```
+
+That is the **same** M2 defect — a public accessor reporting a scale the
+likelihood did not use — at a factor of ~25, on a documented call exercised by
+`tests/testthat/test-gaussian-random-effect-scale.R:10` and
+`tests/testthat/test-control.R:301`. M2 fixed two of three paths and retired the
+third on a premise that is true but not the relevant one.
+
+**(b) `predict_parameters()` now returns an estimate outside its own interval.**
+`R/predict-parameters.R:129` takes the point estimate from
+`predict(object, newdata = , dpar = , type = )` — now clamped — while the Wald
+interval is built at `:288-292` from `basis$eta`, the **raw** linear predictor,
+and the response-scale delta method at `:299-303` differentiates the inverse link
+at the same raw `eta`. Before this commit both were the raw predictor and were
+consistent. Measured, same fixture as the M2 test file, `conf.int = TRUE`:
+
+```
+row  estimate    std.error   conf.low    conf.high   conf.status
+1   -1.29999999  0.30508393  -4.2976333  -3.10172628  wald
+5    1.29999999  0.29822746   3.0440672   4.21309735  wald
+```
+
+Rows 1 and 5 have a point estimate that lies entirely outside its own 95%
+interval. An interval that does not contain its own estimate is not a reporting
+blemish; it is a broken inference object, and it is new as of this commit.
+
+**(c) Two smaller consequences worth stating rather than fixing here.**
+`predict(newdata = , dpar = "sigma")` is now saturated for extrapolation — at
+`x = -2.5` in the fixture above the raw predictor is `-3.700` and `predict()`
+returns `-1.300`, the band edge. That is defensible (it is what the model
+evaluates) but it is not in the new help text, which speaks only about the fitted
+rows. And `emm_basis.drmTMB()` (`R/emmeans-preflight.R:41`) hands `emmeans` a
+`bhat` + `X` pair, so any `emmeans(fit, dpar = "sigma")` necessarily reports the
+*unclamped* link and now disagrees with `predict(type = "link")`. That is
+inherent to a linear-basis interface; it should be said once, not discovered.
+
+**(d) A cross-finding with M1, recorded not fixed.** In `model_type == 1` the
+soft clamp is applied at `src/drmTMB.cpp:2436-2439`, *after* the eleven `mi()`
+quadrature blocks, so those blocks pass the **raw** `log_sigma(i)` into
+`drm_response_log_density()` (`:1560`, `:2182`, ...). Every other model type I
+checked clamps first: `model_type == 3` clamps at `:2614` before its `mi()` block
+at `:2617`; likewise `:2869`/`:2874` (4), `:3020`/`:3023` (5), `:3150`/`:3156`
+(10), `:3577`/`:3580` (14). So for a Gaussian fit where the clamp binds *and* a
+covariate is imputed, the objective uses two different scales for different rows,
+and M2's promise that the accessors report "the scale the likelihood used" is
+false for the mixture rows. The clamp is on by default
+(`test-dinnage-audit-m2.R:120` asserts `use_logsigma_clamp == 1L` on a plain fit),
+so this is reachable, though it needs the clamp to actually bind.
+
+The NEWS wave-3 M2 bullet is honest about the part it covers, and the "honest,
+not correct" caveat is the right framing and is repeated in both help pages
+(`man/sigma.drmTMB.Rd`, `man/predict.drmTMB.Rd`). It is **not** honest about
+scope: it says the fix covers "every family in `drm_clamped_scale_families()`" —
+true of the code, untested beyond `gaussian` — and it does not mention that
+`predict(dpar = "sd(id)")` still reports an unclamped scale.
+
+#### Concrete change
+
+1. **REQUIRED.** Repair the `predict_parameters()` inconsistency before this is
+   described as fixed anywhere user-facing. Either clamp `basis$eta` before
+   `R/predict-parameters.R:288-292` and `:299-303` (accepting that the Wald
+   interval around a saturated predictor is then degenerate and should be flagged,
+   e.g. `conf.status = "clamped"`), or leave the interval alone and mark the row
+   `interval_source = "not_available"` when the clamp bent that row's predictor.
+   Silently returning an estimate outside its own CI is the worst of the three.
+2. **REQUIRED.** Retract the "cannot fire" line and either fix
+   `predict_random_scale_dpar()` (`R/methods.R:6322-6326`) by routing `eta`
+   through `drm_softclamp_log_sd(eta, object$model$tmb_data)` before `exp()`, so
+   it agrees with `sd_mu_group_values()` (`R/drmTMB.R:3062-3067`) and the kernel
+   (`src/drmTMB.cpp:2482-2485`), or record it explicitly as an unfixed third path
+   with the measured 25x figure. Do not leave the commit message's claim standing
+   as written — it will be read as "all three paths are clean".
+3. **REQUIRED.** Rename or repair `test-dinnage-audit-m2.R:108-129`. As written
+   the block's only real assertion is `use_logsigma_clamp == 1L`; the other two
+   compare `sigma()` with `exp(predict(type = "link"))`, which is the same code
+   path. To test the stated no-op, compare against
+   `exp(as.vector(model.matrix(~x, d) %*% coef(fit)$sigma))` (the raw predictor,
+   computed independently, exactly as `m2_raw_sigma_eta()` already does at `:45-49`)
+   and assert `is.null(drm_logsigma_clamp_active(fit$report, fit$model$tmb_data))`.
+4. **OPTIONAL.** Add one bivariate case (`biv_gaussian`, `sigma1`/`sigma2`) and one
+   non-Gaussian scale family (`nbinom2` or `beta`, where "sigma" is a dispersion)
+   to the M2 file. The helper's family gate is currently exercised on exactly one
+   of its fourteen entries.
+5. **OPTIONAL.** Add one sentence to `?predict.drmTMB` saying the clamp also
+   applies to `newdata` predictions, so an extrapolated `sigma` saturates at the
+   band edge rather than following the fitted slope, and one to the same page
+   noting that `emmeans` reports the unclamped link by construction.
+6. **OPTIONAL, cross-lane.** Record finding (d) — `model_type == 1` clamping after
+   its `mi()` blocks while every other model type clamps before — as its own
+   issue. It is a one-line move of `src/drmTMB.cpp:2436-2439` above `:1175`, but
+   it changes the objective for a reachable combination and therefore needs its
+   own red proof, which needs a recompile.
+
+---
+
+### S2b
+
+*(Left for a later reviewer.)*
 
 ---
 
