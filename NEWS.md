@@ -87,11 +87,13 @@
   a `sigma ~ 1` control over 500 replicates each, a shortfall that predates
   this change (`method = "profile"` where available is the safer choice).
   Random slopes on `sigma`, a structured effect whose correlation diagonal
-  (measured on the modelled units, e.g. the tips of a tree) is not one, or
-  a fit on which the `log(sigma)` soft clamp is active (the kernel clamps
-  the assembled predictor, so the closed form is no longer the moment the
-  likelihood uses) give `NA` with a message naming why instead of the
-  silently wrong median. `summary()$derived$residual_sd` is the marginal
+  (measured on the rows the design uses, e.g. the tips of a tree, never the
+  latent internal nodes) is not one, or a fit whose `sigma` random effect
+  the `log(sigma)` soft clamp bent (the kernel clamps the assembled
+  predictor, so the closed form is no longer the moment the likelihood
+  uses; a clamp-active `sigma ~ 1` fit still returns its constant clamped
+  scale) give `NA` with a message naming why instead of the silently wrong
+  median. `summary()$derived$residual_sd` is the marginal
   `sqrt(E[sigma^2])` while the `sigma` parameter row remains the median
   `exp(b0)`; they coincide only when `sigma` carries no random effect. Both repeatability loci
   are Gaussian-only, so the three-scale question of de Villemereuil et al.

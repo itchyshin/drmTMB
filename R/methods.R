@@ -4178,8 +4178,11 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' residual variance `exp(2*b0 + 2*sum_k(omega_k^2))` -- `E[sigma^2]`, not the
 #' squared median `exp(2*b0)` -- where `omega_k` are the working-scale
 #' (log-SD) standard deviations of those effects. A random slope on `sigma`,
-#' or a structured `sigma` effect without a verified unit-diagonal
-#' correlation, has no closed-form marginal residual variance here and is
+#' a structured `sigma` effect without a verified unit-diagonal correlation
+#' (measured on the rows the design uses), or a fit whose `sigma` random
+#' effect the `log(sigma)` soft clamp bent (`clamp_limited`; a clamp-active
+#' `sigma ~ 1` fit still returns its constant clamped scale), has no
+#' closed-form marginal residual variance here and is
 #' refused (a `residual_variance.message` attribute on the empty result names
 #' the reason, and is also shown under the (empty) derived table when
 #' printed); see
@@ -4873,10 +4876,11 @@ drm_sigma_random_effect_omega2_sum <- function(object) {
 # (measured: `phylo_mu$precision` is built once in
 # `build_phylo_mu_structure()`, R/drmTMB.R:14083, before `q` is computed),
 # so its tip rows are exactly as measurable there -- this retires the old
-# `q > 1L && type == "phylo"` trusted-by-construction branch entirely. A
-# `q > 1L` block with no such index (e.g. `phylo_interaction()`'s Kronecker
-# of two augmented precisions -- UNVERIFIED whether its tip rows could be
-# extracted the same way) still reports "not checked" rather than a guess.
+# `q > 1L && type == "phylo"` trusted-by-construction branch entirely. Any
+# block, whatever its `q`, is measured on `observation_node_index` (the rows
+# the design loads on, present on every structured builder), so a Kronecker
+# `phylo_interaction()` block is measured on its used rows too; a block with
+# no row index at all reports "not checked" rather than a guess.
 #
 # Returns `TRUE`/`FALSE` when the diagonal was measured (within `tol`), or
 # `NA` when it could not be measured (no precision matrix, non-square, the
@@ -4895,17 +4899,24 @@ drm_structured_sigma_unit_diagonal <- function(phylo_mu, tol = 1e-3) {
   ) {
     return(NA)
   }
-  index <- precision_obj$species_node_index
-  if (is.null(index)) {
+  # Measure on the rows the DESIGN uses: every structured builder records
+  # `observation_node_index` (the precision rows each observation loads on);
+  # the species/tip index is the tree-specific fallback. With no row index at
+  # all the diagonal is NOT measured -- whole-matrix inversion of an augmented
+  # (tips + internal nodes, or Kronecker) precision reads latent rows and
+  # reports a false "not unit" (Fisher, review of 1c44d2f12: phylo_interaction()
+  # whole-matrix range [0.505, 1] while its 30 used rows are exactly 1).
+  index <- phylo_mu$observation_node_index
+  if (is.null(index) || length(index) == 0L) {
+    index <- precision_obj$species_node_index
+  }
+  if (is.null(index) || length(index) == 0L) {
     index <- precision_obj$tip_node_index
   }
-  if (is.null(index)) {
-    if (structured_mu_q(phylo_mu) > 1L) {
-      return(NA)
-    }
-    index <- seq_len(nrow(precision))
+  if (is.null(index) || length(index) == 0L) {
+    return(NA)
   }
-  index <- unname(index)
+  index <- unique(unname(as.integer(index)))
   if (length(index) == 0L || anyNA(index)) {
     return(NA)
   }

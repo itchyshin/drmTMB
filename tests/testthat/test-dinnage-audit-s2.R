@@ -366,17 +366,27 @@ test_that("S2b: a unit-diagonal phylogenetic random intercept on sigma ALONE (no
 })
 
 test_that("S2b: a genuinely non-unit-diagonal structured precision still refuses, by name", {
-  # Hand-built precision with no tip/species index attached (mirroring
-  # phylo_interaction()'s Kronecker block, which carries none either) --
-  # the helper must measure it (there is no index to fall back to) and
-  # refuse, never claim "not checked" as a way to dodge a real answer, and
-  # never claim "unit" for a diagonal that is not.
+  # Hand-built precision whose design rows (observation_node_index, the
+  # index every structured builder records) have a non-unit implied
+  # covariance diagonal: the helper measures those rows and refuses, never
+  # claiming "unit" for a diagonal that is not. A matrix with NO row index
+  # at all is "not checked" (NA), never "not unit": whole-matrix inversion of
+  # an augmented or Kronecker precision reads latent rows (Fisher, review of
+  # 1c44d2f12: phylo_interaction() whole-matrix range [0.505, 1], used rows 1).
   bad_precision <- matrix(c(2, 0.5, 0.2, 0.5, 2, 0.3, 0.2, 0.3, 2), nrow = 3)
-  bad_structured <- list(q = 1L, precision = list(precision = bad_precision))
-
+  bad_structured <- list(
+    q = 1L,
+    observation_node_index = c(1L, 2L, 3L, 1L, 2L),
+    precision = list(precision = bad_precision)
+  )
   expect_identical(
     drmTMB:::drm_structured_sigma_unit_diagonal(bad_structured),
     FALSE
+  )
+  unindexed <- list(q = 1L, precision = list(precision = bad_precision))
+  expect_identical(
+    drmTMB:::drm_structured_sigma_unit_diagonal(unindexed),
+    NA
   )
 })
 

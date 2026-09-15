@@ -38,9 +38,11 @@
 #' denominator is the *marginal* residual variance
 #' `exp(2*b0 + 2*sum_k(omega_k^2))` -- `E[sigma^2]`, not the squared median
 #' `exp(2*b0)` -- and its delta-method gradient is extended over those
-#' `omega_k` positions too. A random slope on `sigma`, or a structured
-#' `sigma` effect without a verified unit-diagonal correlation, has no
-#' closed-form marginal residual variance and is refused with a message
+#' `omega_k` positions too. A random slope on `sigma`, a structured
+#' `sigma` effect without a verified unit-diagonal correlation (measured on
+#' the rows the design uses), or a fit whose `sigma` random effect the
+#' `log(sigma)` soft clamp bent (`clamp_limited`), has no closed-form
+#' marginal residual variance and is refused with a message
 #' naming why; see
 #' `docs/design/275-repeatability-scale-and-residual-variance.md`.
 #'
