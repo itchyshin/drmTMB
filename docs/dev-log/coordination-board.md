@@ -5,6 +5,7 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-15 — Cursor lane OPENED: Dinnage audit third arc (39 open `audit-dinnage` issues).** START HERE: [`handover/2026-09-15-cursor-handover-dinnage-arc3.md`](handover/2026-09-15-cursor-handover-dinnage-arc3.md). Waves A (21 issues, three parallel PRs: docs, check.R, misc code), B (11 decided issues, two PRs), C (`beta_family()` rename, nlme `ranef`/`fixef` generics). Shinichi merges every wave PR after CI green + an independent review; no tags, no release, no message to Russell. Files: `R/check.R`, `R/methods.R` (C17 recert LAST), `R/drmTMB.R`, `R/profile.R`, `R/missing-data.R`, `R/parse-formula.R`, `src/`, `man/`, `tests/`. Does NOT touch `R/julia-bridge.R` or Julia docs (Codex lanes; Md-K #1328 is theirs). Same day: 16 fixed audit issues closed with evidence comments (PRs #1364, #1365); response map sent to Russell privately.
 - **2026-09-15 — Claude (lane `claude/audit-dinnage-wave1-20260913`, PR #1361, now READY): NOTICE for the
   "audit 3" lane working on GitHub Actions.** The release shards on #1361 were red for ONE cause — the
   capability-ledger validator (CI step "Validate generated capability ledger") pins the `R/methods.R`
