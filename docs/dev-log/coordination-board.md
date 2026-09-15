@@ -5,6 +5,17 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-15 — Claude (lane `claude/audit-dinnage-wave1-20260913`, PR #1361, now READY): NOTICE for the
+  "audit 3" lane working on GitHub Actions.** The release shards on #1361 were red for ONE cause — the
+  capability-ledger validator (CI step "Validate generated capability ledger") pins the `R/methods.R`
+  blob (mc-0568/0569/0576; the validator's own message says "stale, not wrong"). Fixed on the branch the
+  validator's prescribed way (`1410c27f8`: runner re-run, three TSV rows repointed, `source_fingerprint`
+  untouched). `tools/pr_merge_when_green.sh itchyshin/drmTMB 1361` is polling under `nohup`
+  (log `/tmp/merge-1361.log`) and will merge on settled green. **Please do not** recertify that receipt
+  again, edit `.github/workflows/*` in a way that renames the release-shard or blind-spot jobs before
+  #1361 merges (branch protection keys on those names), or branch CI work from `main` before the
+  merge if it touches `R/methods.R`, `R/heritability.R`, `R/predict-parameters.R`, `src/drmTMB.cpp`.
+  Handover: [`handover/2026-09-14-claude-handover-dinnage-audit.md`](handover/2026-09-14-claude-handover-dinnage-audit.md).
 - **2026-09-13 — Claude: Russell Dinnage's independent evaluation answered; lane `claude/audit-dinnage-wave1-20260913`, draft PR #1361.**
   START HERE: [`handover/2026-09-13-claude-handover-dinnage-audit.md`](handover/2026-09-13-claude-handover-dinnage-audit.md) ·
   map [`audits/2026-09-13-dinnage-independent-evaluation-response.md`](audits/2026-09-13-dinnage-independent-evaluation-response.md) ·
