@@ -1,5 +1,115 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave 3)
+
+* `weights()` composed with `mi()` now leaves the maximum-likelihood
+  estimate unchanged under a constant reweighting for EVERY imputation
+  family, not only the Bernoulli one repaired in wave 1. The eleven
+  `mi_family` quadrature blocks in `src/drmTMB.cpp` (ordinal, categorical,
+  beta, zero-one-beta, beta-binomial, Poisson, NB2, truncated NB2,
+  lognormal, gamma, Tweedie) multiplied `weights(i)` into each quadrature
+  node before `logspace_add()` combined them and then subtracted the
+  combined log-density with no outer weight at all; the observed-row
+  imputation-prior term was unweighted too. `weights(i)` now multiplies the
+  combined mixture log-density and the observed-row prior, so `weights = c`
+  is literal row duplication and the weighted objective is exactly `c` times
+  the unweighted one (asserted through the fitted TMB objective in the new
+  per-family test, which fails 43 times on the previous kernel). Three
+  neighbours are recorded, not fixed. (1) The Gaussian latent `mi()` route
+  (`mi_family == 0`, two blocks, `src/drmTMB.cpp` near lines 1215 and 4429)
+  and the second-covariate `has_mi2` prior (near line 1257) leave the
+  covariate-model density unweighted: for OBSERVED rows that is the same
+  one-line change as the template; for MISSING rows the covariate is a
+  Laplace-integrated latent, and weighting both terms inside the integral is
+  not the same as weighting the marginal, so that half needs its own design
+  (the exact Gaussian marginal, then weighted, is the clean route). (2) The
+  Tweedie imputation model sizes its fixed 35-node quadrature support from a
+  start-value dispersion built with `stats::var()` (n - 1), so duplicating
+  rows moves the support and the same integral evaluates about 1.3 nats
+  apart; more importantly the support is frozen at the start value, so the
+  integral is silently truncated whenever the fitted imputation scale
+  outgrows it. Its duplication test arm is therefore not a negative control
+  for Tweedie; the objective identity is. Credit: the independent
+  evaluation by Russell Dinnage (finding M1, #1307) and the review that
+  named the eleven sites.
+
+* `sigma()`, `predict(dpar = "sigma")` (both `type = "link"` and
+  `"response"`), `residuals()`, `fitted()` and `simulate()` now report the
+  soft-clamped scale the likelihood actually evaluated for every family in
+  `drm_clamped_scale_families()`. Previously the accessors returned
+  `exp(eta)` on the raw linear predictor while the TMB objective used the
+  clamped value, so on a fit where the clamp binds `sigma()` could exceed the
+  fitted scale many-fold, a hand-recomputed log-likelihood under `sigma(fit)`
+  missed `logLik(fit)` by hundreds of nats, and the Pearson residual spread
+  read about two rather than one. One internal helper now applies the clamp
+  at the two live prediction paths (`predict.drmTMB()` and the marginal
+  predictor `simulate()` uses); the fix is a no-op whenever the clamp is
+  inactive. The independent review of that change found two more raw-scale
+  consumers, repaired in follow-up commits: `predict_parameters()` built
+  its Wald interval from the raw predictor while its estimate was clamped,
+  so 60 of 200 rows on a clamp-active fit showed an estimate outside its
+  own interval; clamping the endpoints instead collapsed the interval to
+  zero width at saturated rows (measured coverage 0), so clamp-bent rows
+  now carry `NA` endpoints flagged `conf.status = "clamp_limited"`, as
+  `profile()` already does for direct SD targets, and in-band rows keep
+  the ordinary Wald interval. That refusal selects on the estimate, not
+  the truth: near the band edge the intervals that are returned are
+  conditioned on the estimate having stayed in band, and the review
+  measured their coverage falling from 0.985 to 0.882 as the true
+  predictor approached the edge (0.98 unconditional), so treat any
+  scale-parameter interval on a clamp-active fit as provisional; and
+  `predict(dpar = "sd(group)")` for a modelled
+  random-effect scale returned `exp(raw eta)` while the kernel and the
+  fit's own `sdpars` use the clamped value. Not yet aligned, and recorded
+  as follow-ups: the response-scale `profile()` output for `sigma`, the
+  Julia-bridge scale target, `summary_parameter_delta_derivative()`, and
+  `check_drm()`'s clamp detector, which does not read a modelled
+  `sd(group)` scale. Reporting the clamped value makes such a fit honest,
+  not correct: when `check_drm()` says the clamp is active, rescale the
+  response and refit. Credit: the independent evaluation by Russell
+  Dinnage (finding M2, #1308).
+
+* `summary()$derived` and the `heritability()`/`icc()`/`repeatability()`
+  accessors now use the marginal residual variance when `sigma` carries
+  random intercepts. `drm_constant_residual_sigma()` returned `exp(b0)`, the
+  median scale, so with a random intercept on `log(sigma)` of SD `omega` the
+  variance-share denominator was too small by a factor `exp(2 omega^2)`
+  (Russell measured +60.6% on the ratio at `omega = 0.8`). The residual
+  variance is now `exp(2 b0 + 2 sum(omega_k^2))`, exactly `E[sigma^2]` for
+  Gaussian random intercepts on the log scale, including a phylogenetic
+  random intercept on `sigma` under the default unit-diagonal correlation;
+  the delta-method standard error of the accessors carries the extra
+  dependence on each `omega_k` (hand-derived and package SEs agree to
+  1e-11). That change corrects WHICH quantity the interval brackets; it
+  does not make the bracket nominal: the accessors' interval is still a
+  Wald interval on a variance ratio, and the independent review measured
+  95% coverage of 0.910 with a random intercept on `sigma` and 0.928 for
+  a `sigma ~ 1` control over 500 replicates each, a shortfall that predates
+  this change (`method = "profile"` where available is the safer choice).
+  Random slopes on `sigma`, or a structured effect whose correlation
+  diagonal is not one, give `NA` with a message naming why instead of the
+  silently wrong median. `summary()$derived$residual_sd` is the marginal
+  `sqrt(E[sigma^2])` while the `sigma` parameter row remains the median
+  `exp(b0)`; they coincide only when `sigma` carries no random effect. Both repeatability loci
+  are Gaussian-only, so the three-scale question of de Villemereuil et al.
+  (2016) does not arise for this number; the audit note
+  `docs/design/275-repeatability-scale-and-residual-variance.md` records
+  that non-Gaussian fits are refused by an error rather than mislabelled,
+  and that latent-scale support for them is a feature decision. Credit:
+  Russell Dinnage (finding S2, #1301) and the independent review that
+  found the accessors rebuild the residual themselves.
+
+* `?drm_phylo_penalty` now describes the estimator the package actually
+  reports. The prior on each phylogenetic SD is the documented exponential
+  (PC) prior with `P(sd > sd_u) = sd_alpha` holding exactly; the penalty is
+  evaluated on `log(sd)` with the change-of-variables Jacobian, so the
+  reported penalised `sd_phylo` is the mode in `log(sd)`, is never zero, and
+  sits at `1/rate` (0.334 at the defaults) under a flat likelihood. A
+  penalised fit must not be used to test a null of no phylogenetic signal.
+  No code or default changed (decision D-266). Credit: Russell Dinnage
+  (finding S3, #1312) and the independent review that overturned the first
+  proposed wording.
+
 ## Independent-evaluation fixes (wave 2)
 
 * `simulate()` now returns `NA` at masked missing-response rows for every
@@ -71,7 +181,7 @@
   The `mi_family` quadrature blocks for other imputed-covariate families
   (ordinal, categorical, beta, Poisson, lognormal, gamma, NB2, Tweedie,
   zero-one-beta, truncated-NB2, beta-binomial) share a structurally similar
-  pattern and are a known follow-up, not covered by this fix. Credit: the
+  pattern and were fixed in wave 3 (above). Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
   finding M1.
 * `mi()` is now rejected with an error on every formula parameter except
