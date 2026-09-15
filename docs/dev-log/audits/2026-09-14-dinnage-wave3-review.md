@@ -436,9 +436,545 @@ true of the code, untested beyond `gaussian` — and it does not mention that
 
 ---
 
-### S2b
+### S2b (3192db3f6)
 
-*(Left for a later reviewer.)*
+VERDICT: ACCEPT-WITH-CHANGES — the algebra is right, the estimand is genuinely
+repaired (500-rep bias +0.0016 against a pre-fix estimand error of 0.169), and the
+delta gradient is exact to 1.7e-11; but the refusal branch makes a measurably false
+claim about `spatial(coords=)`, the phylogenetic case the man pages and NEWS now
+promise produces **no number at either user-facing locus**, and two summary rows now
+report two different residual scales under indistinguishable names.
+
+*Reviewer: Fisher, fresh context, read-only except this file. Worktree
+`/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`. Reviewed commit
+`3192db3f6` only; the concurrent lane's uncommitted edits to
+`R/predict-parameters.R`, `R/methods.R` (~6255-6330) and
+`tests/testthat/test-dinnage-audit-m2.R` were ignored. Line numbers are
+`git show 3192db3f6:<path>`. Nothing was recompiled. Every number below was
+measured in this worktree unless marked UNVERIFIED.*
+
+#### Mechanism
+
+**The closed form is correct; I re-derived it rather than checking it off.** With
+`log sigma_i = b0 + sum_k u_ik`, `u_ik ~ N(0, omega_k^2)` independent,
+`2*sum_k u_ik ~ N(0, 4*sum_k omega_k^2)`, so
+`E[sigma_i^2] = exp(2*b0) * E[exp(2*sum u)] = exp(2*b0) * exp(4*sum omega_k^2 / 2)
+= exp(2*b0 + 2*sum_k omega_k^2)`, and `sqrt(E[sigma^2]) = exp(b0 + sum_k omega_k^2)`.
+`R/methods.R:4725-4729` returns exactly that. The `omega_k` are read from
+`object$sdpars$sigma`, which `split_tmb_sdpars()` fills with `exp(par$log_sd_sigma)`
+(`R/drmTMB.R:22303-22309`) and then **appends** the `sigma`-endpoint phylogenetic SDs
+to (`R/drmTMB.R:22386-22395`) — so both families of `omega_k` really are in the
+vector, and their order does not matter to a sum of squares.
+
+**The clamp is applied consistently within this path, and that is worth stating
+because the neighbouring helper differs.** `sd_mu_group_values()` pushes its `eta`
+through `drm_softclamp_log_sd()` and `drm_exp_sd_logscale_guarded()`
+(`R/drmTMB.R:23062-23067`); the `sigma` branch of `split_tmb_sdpars()` does neither,
+it is a bare `exp()`. The delta-method value function
+`exp(2*t[[1]] + 2*sum(exp(2*t[-1])))` (`R/heritability.R:349`) is the bare `exp()` of
+the same raw working parameters. **Estimate and gradient therefore agree; verified
+numerically** — `drm_constant_residual_sigma(fit)` and the `resid_group$value` at
+`theta_hat` agree to machine precision on fixture A, and
+`drm_sigma_residual_extra_positions()` returned position 4, whose `theta` exponentiates
+to `0.05417465` = `sdpars$sigma` exactly on the phylo fixture. *Caveat, not currently
+recorded anywhere:* the likelihood evaluates `exp(softclamp(eta))`
+(`src/drmTMB.cpp:781, 922`), so `exp(2*b0 + 2*sum omega^2)` is the moment of the
+**unclamped** lognormal and is exact only while the clamp is inactive. On a
+clamp-active fit it is an over-estimate of the residual variance the kernel actually
+used. This is the same honest-but-not-correct situation NEWS already describes for
+M2; it deserves one sentence rather than silence.
+
+**Correlated mu-sigma blocks are handled, and are handled correctly for a reason the
+commit does not state.** `bf(y ~ 1 + (1 | p | id), sigma ~ 1 + (1 | p | id))` is a
+supported route (`tests/testthat/test-reml-ordinary-sigma.R:55-66`). Measured on a
+fitted example: `has_sigma_random_effects()` is `TRUE`, `has_covariance_block_random_effects()`
+is `FALSE`, `sdpars$sigma` holds the single `omega`, and corrected/reported = 1.000.
+It is correct because the cross-`dpar` correlation `rho(u_mu, u_sigma)` **cancels**:
+`Var(y) = E[Var(y|u)] + Var(E[y|u]) = E[sigma^2] + Var(u_mu)`, in which `rho` does
+not appear, and the ratio's gradient with respect to `eta_cor_*` is exactly zero — so
+omitting that position from `cov_sub` (`R/heritability.R:600`) is right, not an
+oversight. **This deserves a fixture**; today it is load-bearing and untested.
+
+**The refusal branch is where the mechanism breaks.** `drm_sigma_random_effect_omega2_sum()`
+does **not** confirm `C_ii = 1`; it infers it from a type string,
+`!identical(structured_mu_type(phylo_mu), "phylo")` (`R/methods.R:4771-4777`), and its own
+comment concedes this ("only `phylo()`'s ultrametric default is verified here"). The
+2026-09-14 ruling it cites said the opposite in terms: *"the refusal should be
+conditioned on the **diagonal of the structured matrix**, not on the word
+'phylogenetic'."* The consequence is measurable, not hypothetical. On
+`bf(y ~ x + (1 | g), sigma ~ spatial(1 | site, coords = coords))` — a supported route
+(`tests/testthat/test-wald-small-sample-default.R:163-170`,
+`tests/testthat/test-profile-targets.R:1275`) — I inverted the fit's own precision
+matrix (`fit$model$structured$phylo_mu$precision$precision`, 25x25) and found
+**`diag(Sigma)` in `[1.000001, 1.000001]`**. The diagonal *is* unit; the closed form
+applies verbatim; the package instead returns `NA` and tells the user *"whose
+correlation matrix is not known to have a unit diagonal"*. That sentence is false for
+this fit, and D-252 names this precise failure mode: *"Never return NaN for a quantity
+that is defined — a refusal is a claim, and this one was false."* It is also a
+capability regression: before `3192db3f6` this fit produced a `derived` row (wrong,
+median-based); it now produces none, where it could produce the right one.
+
+In the *other* direction the assumption currently holds, by construction rather than by
+check: `phylo(term, tree)` exposes no `correlation` argument
+(`R/formula-markers.R:196`), and `grep "correlation = FALSE" R/*.R` returns nothing, so
+the `correlation = FALSE` branch of `drm_phylo_covariance()` is unreachable from the
+formula grammar today and every `phylo()` matrix really is unit-diagonal. Refusing
+`animal()`/`relmat()` is right on the merits (a pedigree `A` has diagonal `1 + F`, a
+user-supplied `K` is arbitrary). A three-line diagonal check would get all four cases
+right and would stop being a guess.
+
+**Two routes I checked and found genuinely safe, so that a later change does not
+reintroduce S2 quietly.** (1) `covariance_registry_member_sd_key()` maps a `sigma`-family
+member of a `q > 2` covariance block into `sdpars$sigma` (`R/methods.R:1831-1839`), and
+`has_sigma_random_effects()` (`R/methods.R:6352-6360`) cannot see that slot — but a
+`q > 2` block needs three or more `dpar`s and both call sites are Gaussian-gated
+(two `dpar`s), so it is unreachable. If a `nbinom2`/`zero_one_beta` route is ever
+admitted to these accessors, S2 returns silently. (2) `sigma ~ spatial(1 | site,
+mesh = mesh)` lives in the separate `mesh_spatial_mu` slot that
+`has_sigma_random_effects()` also cannot see — but it is rejected at fit time
+(`tests/testthat/test-mesh-contract.R:24-27`), so it is unreachable too.
+
+**The delta method itself is correct and well-conditioned.** On fixture A I formed the
+analytic gradient of `r = e^{2a}/(e^{2a} + e^{2b + 2e^{2c}})` by hand and contracted it
+with `cov.fixed`: **package SE 0.08359478, analytic SE 0.08359478, relative difference
+1.7e-11**. The step `h = 1e-5` (`R/heritability.R:583`) sits at the optimum of the
+truncation/rounding trade-off for this function — sweeping
+`h in {1e-3 … 1e-8}` gives max gradient error `1.4e-7, 1.4e-9, 1.7e-11, 3.3e-11,
+5.2e-10, 3.6e-9`. The `exp(2t)` at `t = log(omega)` near zero is not a hazard: `t` is
+merely order `-3` there and the derivative is bounded. `focal_index <- match(focal,
+denom_idx)` (`R/heritability.R:356`) is right in both branches (`heritability`:
+`match(focal, seq_along(sd_values)) == focal`; `icc`/`repeatability`:
+`match(focal, focal) == 1`), and `cov_sub` is indexed by the same `opt$par` positions
+the estimate used, with `drm_variance_ratio_check_cov_alignment()` asserting the
+dimnames agree.
+
+**But the interval is not nominal, and the commit message reads as though it is.**
+500 replicates of fixture A's design (40 groups x 10, `sd_mu = 0.7`, `b0_sigma = -0.3`,
+`omega = 0.6`, true marginal share `0.30294`), all 500 converged with `pdHess`:
+
+| | random intercept on sigma | `sigma ~ 1` control |
+|---|---|---|
+| bias of the estimate | **+0.0016** (MC se 0.0037) | -0.0125 |
+| mean delta SE / empirical SD | 0.942 | 0.941 |
+| 95% Wald coverage | **0.910** (MC se 0.013) | 0.928 (MC se 0.011) |
+
+Read this two ways, because it says two different things. **Estimation: the fix works.**
+The corrected estimator is unbiased for the marginal share, where the pre-fix estimand
+was `0.4717` against a truth of `0.3029` — coverage of *that* quantity by the corrected
+interval is 0.436, which is the size of the defect Russell found. **Inference: the
+interval was already ~2-4 points short of nominal before this commit and still is.**
+The `sigma ~ 1` control is untouched code, so the shortfall is a pre-existing property
+of a Wald interval on a bounded, skewed ratio, **not** something `3192db3f6` introduced
+(0.928 vs 0.910 differ by 0.018 +/- 0.018 — I cannot separate them at this n). The
+commit is therefore not to blame; but NEWS's *"the delta-method standard error of the
+accessors carries the extra dependence on each `omega_k`"* is a *derivative* claim that
+a reader will hear as a *calibration* claim. It is true and I verified it; say what it
+does not buy.
+
+#### Negative control
+
+**Partly legitimate, and weaker than the commit message implies.**
+`red_proof_setup.R:149-151` patches three functions —
+`drm_constant_residual_sigma`, `drm_variance_ratio`, `drm_variance_ratio_delta` — and
+**not** `drm_derived_summary_rows`, which also changed in this commit. Three separate
+problems follow.
+
+1. **Red failure 5 is an artefact, not a bug proof.** It is
+   `Error ... unused arguments (denom_groups = ..., focal_index = ...)`
+   (`<scratchpad>/s2-red.txt:37-38`) — the test calls the *new* helper signature
+   directly, so under the old body it errors on arity. That arm demonstrates that a
+   signature changed, which was never in doubt; it does not demonstrate the old
+   estimate was wrong.
+2. **The red run never reached the phylogenetic fixture.** testthat stopped at its
+   ten-failure cap — *"Maximum number of 10 failures reached, some test results may be
+   missing"* (`<scratchpad>/s2-red.txt` tail) — and fixture C begins around
+   `test-dinnage-audit-s2.R:150`. **There is no red evidence for the phylo arm at all.**
+3. The arms that *are* clean are genuinely clean and fail for the right reason: the
+   marginal-vs-median gap (failures 1-4, e.g. `0.76` vs `1.01`) and the random-slope
+   arm returning `nrow(derived) == 1` where 0 is required (failure 10).
+
+**Green re-run, mine, this worktree:** `testthat::test_file("tests/testthat/test-dinnage-audit-s2.R")`
+→ `[ FAIL 0 | WARN 1 | SKIP 0 | PASS 24 ]`. The one warning is the optimizer-preset
+escalation on the phylo fixture, not an assertion.
+
+**One fixture is built to be able to disable itself.** Fixture C's
+`skip_if(elapsed > 60, ...)` is evaluated *after* the fit, so on a slower machine the
+test reports SKIP and every assertion about the phylogenetic case silently vanishes.
+Given that the same fixture has no red proof, the phylogenetic claim currently rests on
+a single assertion that is allowed to not run.
+
+#### Contract
+
+**What the phylogenetic user actually gets is nothing, at both loci.** This is the most
+serious contract defect and it is measured, not inferred. On
+`bf(y ~ 1 + phylo(1 | species, tree = tree), sigma ~ 1 + phylo(1 | species, tree = tree))`
+(fixture C's own model, converged):
+
+- `summary(fit)$derived` → **0 rows**.
+- `repeatability(fit)` / `icc(fit)` / `heritability(fit)` → **abort**:
+  *"could not locate the working-scale parameter position for one or more structured
+  components"*, raised at `R/heritability.R:312` before the new code is reached.
+
+The cause is naming, and it is the same cause twice. Once a `sigma` endpoint exists,
+`split_tmb_sdpars()` switches to per-`dpar` labels, so the mu component is called
+`"mu:phylo(1 | species)"`. `drm_variance_ratio_positions()`'s structured regex is
+`"^(phylo|animal|relmat|spatial|phylo_interaction)\\("` (`R/heritability.R:453`), which
+does not match a `mu:` prefix, so the term is routed to the (empty) `log_sd_mu` pool
+and yields `NA`. And `derived_summary_random_effect_kind()` returns `NULL` for the same
+label — measured: `"phylo(1 | species)" -> phylo_total_variance_share`,
+`"mu:phylo(1 | species)" -> NULL`. Meanwhile `man/heritability.Rd` and
+`man/summary.drmTMB.Rd` now both state that this configuration is supported, and NEWS
+says *"including a phylogenetic random intercept on `sigma` under the default
+unit-diagonal correlation"*. **The internal helper is correct; no user-facing path
+surfaces it.** Fixture C tests only `drmTMB:::drm_constant_residual_sigma()`, which is
+exactly why the gap survived.
+
+**Two residual scales now ship in one `summary()` object under names that do not
+distinguish them.** Measured on fixture A:
+
+```
+summary(fit)$parameters       sigma            estimate 0.7599138   scale "response"
+summary(fit)$derived          residual_sd      estimate 1.014436    scale "response"
+```
+
+Both are labelled `response`; one is the median `exp(b0)`, the other the RMS
+`exp(b0 + sum omega^2)`; they differ by a third and nothing in the object or either
+help page says why. `man/summary.drmTMB.Rd` documents the change to
+`residual_variance` and never mentions `residual_sd`, nor the `sigma` parameter row it
+now disagrees with. D-252's own diagnosis applies: *"One field name was carrying two
+different quantities, which is the bigger defect."*
+
+**`residual_variance.message` is written and never read.** `grep` across `R/` and
+`tests/` finds exactly one occurrence, the assignment at `R/methods.R:4599`. I
+confirmed the user-visible consequence: for the random-slope fixture,
+`attr(summary(f2)$derived, "residual_variance.message")` is present, and
+`any(grepl("random slope on sigma", capture.output(print(summary(f2)))))` is **FALSE**.
+The convention it says it follows — `std_error.message` (`R/methods.R:4537`) — has no
+consumer either. So the commit-message claim *"attaches `residual_variance.message`
+instead of a silent empty frame"* is literally true and operationally empty: the frame
+is still silent to anyone who does not read attributes. The `heritability()` abort text
+*is* surfaced and is good — it names the defect precisely and I checked all four
+branches of `drm_residual_sigma_na_reason_text()` render.
+
+**One thing the man pages get right and should keep:** the Gaussian/identity gating
+paragraph added to `man/summary.drmTMB.Rd` is accurate and correctly forecloses the
+three-scale question, consistent with the earlier ruling on 275 §5.
+
+#### Scope
+
+- **Only two callers divide by it.** `grep drm_constant_residual_sigma` over `R/`
+  returns `R/heritability.R:296` and `R/methods.R:4591` and nothing else; both are
+  changed in this commit. No third consumer is left on the median.
+- **`exp(unname(beta[[1L]]))` survives at `R/profile.R:1585` and `R/julia-bridge.R:5567`,
+  and should.** Those build the *direct parameter* target row for `sigma`, where
+  `exp(b0)` is the right answer for the coefficient. They are the source of the
+  0.7599-vs-1.0144 collision above — the fix is naming, not arithmetic.
+- **`spatial_mu_residual_scale()` (`R/check.R:3418-3430`) reports `mean(sigma(object))`,
+  a third quantity again** (`0.8085` on fixture A, against median `0.7599` and RMS
+  `1.0144`). It feeds a diagnostic, not an inference, so this is a note rather than a
+  finding — but three residual scales now circulate in one package and only one of them
+  is documented.
+- **DRM.jl parity needs no new fence, but one row is now stale.**
+  `docs/design/parity-matrix.md:90` already records the variance-ratio accessors as
+  `unsupported` on the bridge, measured not assumed, and DRM.jl's `src/heritability.jl`
+  has no random-effect-on-sigma route to reach this case. But the same row asserts the
+  native side is *"point-fit-recovery ... delta-method Wald interval with a small-N
+  sanity check, no coverage study"*, and both halves have moved: the **estimand changed**
+  for any fit with a random intercept on `sigma`, and there **is** a coverage study now
+  (this review, 500 reps, 0.910 / 0.928). The `sigma ~ 1` fixture the parity receipt was
+  measured on (`h2 = 0.647012871707612`) is unaffected — the commit's test (d) asserts
+  bit-identity and I re-confirmed it — so no re-measurement is owed, only a wording
+  update. UNVERIFIED: I did not run DRM.jl.
+
+#### Concrete change
+
+1. **REQUIRED — stop making a false claim about `spatial(coords=)`.** Either (a)
+   condition the refusal on the measured diagonal of the structured matrix, as the
+   2026-09-14 ruling specified, or (b) if the check is deferred, change the message and
+   both help pages to say the diagonal *was not checked* rather than that it *is not
+   unit*. Option (a) is preferable and is the D-252-compliant answer: measured
+   `diag(Sigma) = 1.000001` for `sigma ~ spatial(1 | site, coords = coords)`, so the
+   closed form applies and the package is refusing a defined quantity. Option (b) is
+   acceptable only as an explicit, dated deferral.
+2. **REQUIRED — withdraw or fix the phylogenetic support claim.** `summary()$derived`
+   returns 0 rows and `heritability()`/`icc()`/`repeatability()` abort for
+   `phylo()`-on-mu + `phylo()`-on-`sigma`; the `mu:`-prefixed label defeats
+   `R/heritability.R:453`'s regex and `derived_summary_random_effect_kind()`. Either
+   teach both to strip a `^(mu|sigma):` prefix, or delete the phylogenetic sentence from
+   `man/heritability.Rd`, `man/summary.drmTMB.Rd` and the NEWS bullet and record the gap.
+   Do not leave a help page promising a number the package cannot produce.
+3. **REQUIRED — extend fixture C to a user-facing assertion, and remove its
+   self-disabling skip.** As written it asserts only on the internal helper, which is
+   why item 2 went unnoticed; and `skip_if(elapsed > 60)` after the fit lets the only
+   phylogenetic evidence evaporate on a slow machine. Assert on `summary()$derived` (or
+   the documented refusal) and budget the fixture instead of skipping on it.
+4. **REQUIRED — name the two residual scales.** `summary()$parameters["sigma"]` is
+   `0.7599138` and `summary()$derived$residual_sd` is `1.014436` on the same fit, both
+   marked `scale = "response"`. Document in `man/summary.drmTMB.Rd` that `residual_sd`
+   is `sqrt(E[sigma^2])` and the `sigma` parameter row is the conditional/median scale,
+   and say they coincide only when `sigma` has no random effect.
+5. **REQUIRED — either surface `residual_variance.message` or drop the claim that it
+   replaces silence.** It has no reader anywhere in the package (nor does the
+   `std_error.message` convention it cites), and
+   `print(summary(fit))` does not show it — measured FALSE. Printing one line in
+   `print.summary.drmTMB()` when the attribute is set is the small change; otherwise
+   amend the commit-message/help-page wording.
+6. **REQUIRED — separate the estimation claim from the inference claim in NEWS.** Add
+   that the delta interval remains a Wald interval whose measured coverage on this
+   design is 0.910 (random intercept on `sigma`) and 0.928 (`sigma ~ 1` control), 500
+   replicates each, so the SE change corrects *which* quantity is being bracketed and
+   does **not** make the bracket nominal. Credit that the shortfall predates this
+   commit.
+7. OPTIONAL — add a `(1 | p | id)` fixture. The correlated mu-sigma route is supported,
+   is exercised by users, and is correct here only because `rho` cancels out of both the
+   marginal variance and the gradient. That reasoning is currently in no test and in no
+   comment.
+8. OPTIONAL — record the clamp caveat: `exp(2*b0 + 2*sum omega^2)` is the moment of the
+   unclamped lognormal, so on a clamp-active fit it over-states the residual variance
+   the kernel used (`src/drmTMB.cpp:781, 922`). One sentence beside the M2 wording.
+9. OPTIONAL — record the two unreachable-today S2 routes as guarded assumptions so a
+   later widening does not reintroduce the bug in silence: the `q > 2` covariance-block
+   `sigma` key (`R/methods.R:1831-1839`), invisible to `has_sigma_random_effects()` but
+   unreachable while both call sites are Gaussian-gated; and `mesh_spatial_mu` on
+   `sigma`, likewise invisible but rejected at fit time
+   (`tests/testthat/test-mesh-contract.R:24-27`).
+10. OPTIONAL — update `docs/design/parity-matrix.md:90`: the native estimand moved for
+    random-intercept-on-`sigma` fits, and "no coverage study" is no longer true. The
+    bridge fence itself stands; DRM.jl requires `sigma ~ 1` and cannot reach this case.
+
+---
+
+### M2 follow-up (2a5b0665e)
+
+VERDICT: REJECT — the `sd(group)` half (item 5) and the de-tautologised control
+(item 6) are correct and should be kept, but the `predict_parameters()` half
+(item 4) fixed a visible inconsistency by creating an invisible inference error:
+measured against an unclamped truth, the new interval's coverage of the true
+`sigma` at clamp-saturated rows falls from 0.93-0.97 (the pre-repair raw-eta
+interval) to **0.000 at median width 0.0000**, and it ships with no flag.
+
+#### Mechanism
+
+**The clamp map and the containment claim check out.** `drm_softclamp_log_sd()`
+(`R/drmTMB.R:23038-23060`) is `hi + m*tanh((x-hi)/m)` above the band, `lo -
+m*tanh((lo-x)/m)` below, identity inside; it is continuous, `C^1` (derivative 1
+at each knot) and strictly increasing, so the commit's stated invariant
+`clamp(eta - z*se) <= clamp(eta) <= clamp(eta + z*se)` holds exactly. Re-derived,
+and confirmed empirically: containment now holds for all 200 rows on the
+clamp-active fixture where 100 rows are clamp-bent.
+
+**But containment was the wrong thing to optimise.** The right question is what
+the returned interval is an interval *for*. The package itself answers it:
+`NEWS.md:2982` states the band is "a numerical guard only and does not change
+identifiability", and the fit-time warning (`R/drmTMB.R:3610`) tells the
+user that near the clamp "estimates and standard errors are unreliable". The
+estimand is therefore `sigma`, not `c(sigma)`. I measured both candidate
+intervals against an honest DGP — true `sigma(x) = exp(1.6x)` **unclamped**, the
+band `c(-1, 1)` margin `0.3` set as a guard, 100 replicates, n = 200,
+`scratchpad/fisher-cov3.R`:
+
+| x | true sigma | cov: SHIPPED clamped CI | cov: pre-repair raw-eta CI | median width (raw) |
+|---|---|---|---|---|
+| -2.5 | 0.018 | **0.00** | 0.939 | 0.027 |
+| -1.5 | 0.091 | **0.00** | 0.929 | 0.083 |
+| 0.0 | 1.000 | 0.97 | 0.970 | 0.283 |
+| 1.5 | 11.02 | **0.00** | 0.949 | 14.93 |
+| 2.5 | 54.60 | **0.00** | 0.949 | 145.7 |
+
+At the four clamp-bent rows the shipped interval is a zero-width point sitting on
+the saturation asymptote `exp(1.3) = 3.669` while the truth is 0.018 / 0.091 /
+11.0 / 54.6. The pre-repair raw interval covered at nominal rate *because it was
+honestly enormous* (width 146 on a truth of 54.6) — that width is the correct
+report of "this row carries almost no information about the scale". The new
+interval reports the opposite. I also ran the mirror study with the truth
+generated *through* the clamp (`scratchpad/fisher-coverage.R`, the fixture's own
+DGP): there the shipped interval reads 0.960-0.967 coverage at width 0.0000. That
+number is an artifact of a simulator that puts the truth exactly on the
+asymptote, and should not be cited as validation. So: a user should get the RAW
+interval with a clamp flag, or no interval at all — not this.
+
+**Delta method: the repair is half-applied, and the half it skipped is the one
+that matters.** The reported quantity is `q = g(c(eta))`, so `d q/d eta =
+g'(c(eta)) * c'(eta)`, where `c'(eta) = sech^2((eta-hi)/m)` in the upper tail.
+`R/predict-parameters.R:309-314` evaluates `g'` at the clamped eta (correct) but
+then multiplies by the RAW `se_link` and never by `c'` — so the raw-scale SE is
+pushed straight through a saturating map. Measured on the fixture
+(`scratchpad/fisher-m2f-probe.R`): `c'(eta)` ranges `1.6e-10` to `1`; on the
+worst row the reported link `std.error` is `0.374` against a delta-correct
+`6.2e-11`, and on the response scale the reported SE overstates the
+delta-correct SE by up to **6.1e9x**. The table is therefore internally
+contradictory: the same row carries `conf.high - conf.low = 3.3e-9` and
+`2 * z * std.error = 1.47`. Anyone who rebuilds a ribbon from `std.error` (the
+ordinary broom-style use of this table) gets a different answer from
+`conf.low`/`conf.high` in the same data frame. For a "Wald interval of the
+reported quantity", the delta SE must carry `c'`; since that SE then collapses
+to ~0, the honest conclusion is that no Wald interval should be reported on a
+saturated row at all.
+
+**Latent crash, introduced here.** `drm_softclamp_log_sd()` errors on `NA` input
+whenever the assigned branch has length > 1 (`Error: NAs are not allowed in
+subscripted assignments`; reproduced: `drm_softclamp_log_sd(c(0, NA, 2), band
+c(-1,1,0.3))`). `R/predict-parameters.R:301-302` now feeds
+`basis$eta +/- z*se_link` into it, and `predict_parameters_link_se()`
+(`R/predict-parameters.R:349-361`) is written to return `NA_real_` per row, with
+`ok <- is.finite(se_link)` and `conf.status = "wald_unavailable"`
+(`:320,329`) existing precisely to handle that case. The commit removed a case
+the surrounding code declares supported. I could not reach it end to end (a
+fully-`NA` `vcov` aborts earlier in `drm_fixed_effect_basis_covariance()`, and an
+`NA` covariate is rejected upstream), so the trigger — a finite but indefinite
+`V`, most likely near a clamp boundary — is **UNVERIFIED** as an end-to-end
+reproduction, but the crash at the call-site expression is verified.
+
+**Item 5 (`sd(group)`) is correct.** `predict_random_scale_dpar()`
+(`R/methods.R:6468`) now applies `drm_softclamp_log_sd()` then
+`drm_exp_sd_logscale_guarded()`. That matches the kernel exactly:
+`src/drmTMB.cpp:2474-2486` computes `eta_sd = X_sd_mu * beta_sd_mu` and wraps it
+in the same two functions, gated only on `use_logsigma_clamp` and **not** on
+family — so the R side correctly does not gate on
+`drm_clamped_scale_families()` here either (unlike `drm_clamped_sigma_eta()`,
+which must). It also matches `sd_mu_group_values()` / `sd_phylo_group_values()`
+(`R/drmTMB.R:23062-23092`), hence `fit$sdpars`. Accept as written.
+
+#### Negative control
+
+`scratchpad/m2-repair-red.txt` holds two runs. The first is the `se = FALSE`
+fixture and its four containment failures read `actual: <NA>` — measuring
+nothing, exactly as the brief suspected. The second run is the `se = TRUE`
+fixture and reads `actual: FALSE` at `test-dinnage-audit-m2.R:170,171,180,181`,
+which is the right reason. So the final red proof for item 4 **is** from the
+`se = TRUE` fixture. Good. Item 5's red is in run 1 only (`:178`, `1.2706 vs
+1.2623`, `0.1211 vs 0.7788`) — a genuine numeric mismatch independent of the
+`se` defect, so that is a valid red. Re-ran `test-dinnage-audit-m2.R` at HEAD:
+16 assertions, all green.
+
+Two limits on what the green proves. (a) The containment assertion is the *only*
+new assertion; nothing tests the SE, the width, or coverage, so the regression
+above is invisible to the suite. (b) Item 5's green compares
+`predict(dpar = "sd(id)")` with `fit$sdpars`, and both now route through the same
+R helper `drm_softclamp_log_sd()`. It is a valid check of the eta construction,
+but it is **not** a check that R's clamp equals the kernel's — that comparison
+(against `report$sd_mu_group`, which `src/drmTMB.cpp:2499` already REPORTs) is
+still absent.
+
+#### Contract
+
+`?predict_parameters` (`R/predict-parameters.R:1-64`) says nothing about the
+clamp. Worse, `:23-25` says "response-scale intervals use the model link and a
+delta method standard error", which after this commit describes neither
+endpoint: the endpoints are a monotone transform of the raw Wald interval, and
+the `std.error` is a delta SE for a different quantity. The `conf.status` column
+reads `"wald"` for all 200 rows on the clamp-active fixture — including the 100
+rows whose interval is an artifact of the band.
+
+The `NEWS.md` M2 bullet (`NEWS.md:36-57`) *has* been extended to name
+`predict_parameters()` and `predict(dpar = "sd(group)")`, so it is no longer
+incomplete. It is now inaccurate in a different way: "each endpoint now passes
+through the same monotone map, so containment holds" is true and is offered as
+the repair, with no mention that containment was bought with the interval's
+coverage. The closing line, "Reporting the clamped value makes such a fit honest,
+not correct: when `check_drm()` says the clamp is active, rescale the response
+and refit", is the right instinct — but `check_drm()` does not say it for the
+`sd(group)` case (see Scope 5), and a zero-width interval is not what "honest"
+looks like.
+
+#### Scope — other raw-eta consumers
+
+Fixed: `R/methods.R:2942` (`predict.drmTMB`), `R/methods.R:6882`
+(`drm_marginal_predict`, the `simulate()` path), `R/methods.R:6468`
+(`predict_random_scale_dpar`, this commit), `R/predict-parameters.R:301-302,309`
+(this commit). `emmeans` is `dpar = "mu"`-only
+(`R/emmeans-preflight.R:1-40`) and so is not affected;
+`R/distributional-outputs.R` (quantile / exceedance / centile chart) and
+`prediction_grid()` / `marginal_parameters()` all route through
+`predict.drmTMB()` and inherit the fix.
+
+Still raw, measured or read:
+
+1. `R/methods.R:4723` and `R/methods.R:4729` — `drm_constant_residual_sigma()`
+   returns `exp(b0)` / `exp(b0 + omega2_sum)` from the RAW sigma intercept. This
+   feeds `summary()$derived` (`R/methods.R:4591`) and
+   `heritability()`/`icc()`/`repeatability()` (`R/heritability.R:296`).
+   **Measured** on a clamp-active fit (band `c(-0.2, 0.2)`, margin `0.05`, true
+   residual sd 3): `sigma(fit)[1] = 1.284` while `summary()$derived$residual_sd
+   = 3.074` — the same fit reports two residual SDs 2.4x apart, one from a
+   surface M2 fixed and one from a surface it did not. This is the highest-value
+   unfixed item, because the variance-ratio denominator is the whole quantity.
+2. `R/methods.R:5064` — `summary_parameter_delta_derivative()` uses
+   `exp = exp(eta)` at the raw `link_estimate`, i.e. the same missing `c'` factor
+   as Mechanism above, for the summary table's `sigma` row SE.
+3. `R/profile.R:4509` (`profile_transform_newdata_interval`, `log = exp(eta_interval)`)
+   and `R/profile.R:1585` (`estimate = exp(unname(beta[[1L]]))` for the
+   distributional-scale target) — response-scale profile output for `sigma` is
+   built on the raw predictor. Note the asymmetry: `profile()` already has a
+   clamp-aware refusal for the *direct-SD* targets
+   (`drm_profile_direct_sd_clamp_trace`, `R/profile.R:4322-4377`;
+   `clamp_limited` at `:1118-1121`, `:3446-3452`, `:3514-3530`) but **no**
+   equivalent trace for the residual `log_sigma` predictor.
+4. `R/julia-bridge.R:5567` — same `exp(unname(beta[[1L]]))` pattern for the
+   bridge's scale profile target. Whether DRM.jl clamps at all is **UNVERIFIED**;
+   if it does not, this is correct for that engine and should be commented as
+   such.
+5. `R/drmTMB.R:3557` — `drm_logsigma_clamp_active()` reads only `log_sigma`,
+   `log_sigma1`, `log_sigma2`, never `log_sd_mu_group` (which
+   `src/drmTMB.cpp:2499` REPORTs). So a fit whose only saturated predictor is a
+   modelled random-effect SD gets no clamp note from `check_drm()` and no
+   fit-time warning. This commit makes that gap bite harder: **measured** on the
+   M2 test's own `sd(id)` fixture, 42 of 48 groups are clamp-bent and the
+   reported `sd(id)` spread collapses from a raw `[0.031, 3.553]` (115x) to
+   `[0.779, 1.284]` (1.6x). The new value is what the likelihood used and is the
+   right thing to report — but a reader will read that 1.6x as between-group
+   heterogeneity when it is the band.
+
+#### Concrete change
+
+1. **REQUIRED.** Do not ship the clamped Wald endpoints unflagged. The smallest
+   change consistent with the rest of the package is to reuse the status
+   `profile()` already uses: when `drm_clamped_sigma_eta()` moves a row's eta,
+   return `std.error = conf.low = conf.high = NA_real_` and
+   `conf.status = "clamp_limited"`, `interval_source = "not_available"` for that
+   row, exactly as `drm_profile_clamp_limited_confint_row()`
+   (`R/profile.R:3514-3530`) does. The acceptable alternative is to restore the
+   RAW endpoints (which have near-nominal coverage, table above) and add an
+   explicit `clamp_active` flag plus a documented sentence that on flagged rows
+   the point estimate is the clamped value the likelihood used while the interval
+   is for the unclamped predictor. What must not ship is a zero-width unflagged
+   interval.
+2. **REQUIRED.** Make `std.error` and the endpoints refer to the same quantity.
+   If any clamped endpoint survives, multiply `se_link` by
+   `c'(eta) = sech^2((eta - hi)/m)` (upper) / `sech^2((lo - eta)/m)` (lower),
+   1 inside the band, at `R/predict-parameters.R:305-315`. As shipped the two
+   halves of the same row disagree by up to 6.1e9x.
+3. **REQUIRED.** Add the coverage assertion the containment test does not make:
+   on a clamp-active fixture with an UNCLAMPED truth, assert that a saturated
+   row does not return a finite interval of width < some epsilon claiming to be
+   a `"wald"` interval. Containment alone cannot fail on this defect — it is
+   satisfied trivially by a point.
+4. **REQUIRED.** Guard the `NA` path: compute `lo_link`/`hi_link` only for
+   `ok` rows (`R/predict-parameters.R:288-302`), or make
+   `drm_softclamp_log_sd()` `NA`-safe by masking with `!is.na(x) & x > hi`. One
+   line either way; the surrounding `wald_unavailable` machinery already
+   declares the case supported.
+5. **REQUIRED.** Close the `summary()`/`icc()`/`repeatability()` inconsistency at
+   `R/methods.R:4723,4729`, or state in `?summary.drmTMB` and the accessor pages
+   that `residual_sd` is the unclamped predictor while `sigma()` is the clamped
+   one. Two different residual SDs from one fit with no explanation is the kind
+   of thing the audit exists to catch. (Cross-lane: this touches the S2 lane's
+   function, so it may belong in that lane rather than this commit.)
+6. **REQUIRED.** Soften the `NEWS.md:51-52` sentence. "each endpoint now passes
+   through the same monotone map, so containment holds" states the invariant that
+   was gained without the coverage that was lost. Say what the interval now is,
+   and that a clamp-bent row's interval is not evidence about `sigma`.
+7. **OPTIONAL.** Extend `drm_logsigma_clamp_active()` (`R/drmTMB.R:3557`) to read
+   `log_sd_mu_group` / `log_sd_phylo_group`, so the `sd(group)` saturation this
+   commit now surfaces silently is also reported by `check_drm()`.
+8. **OPTIONAL.** Add the R-vs-kernel clamp equality test the item-5 green does
+   not provide: compare `predict(fit, dpar = "sd(id)")` with
+   `exp(fit$obj$report(...)$log_sd_mu_group)` rather than with `fit$sdpars`,
+   which shares R's helper.
+9. **OPTIONAL.** Add one sentence to `?predict_parameters`
+   (`R/predict-parameters.R:23-25`) naming the clamp and correcting "response-scale
+   intervals use ... a delta method standard error", which is no longer what the
+   endpoints are.
 
 ---
 
