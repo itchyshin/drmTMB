@@ -4166,8 +4166,25 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' denominator from the `icc()`/`repeatability()` accessors (focal component
 #' variance over that component plus the residual only); see
 #' `?heritability` and `docs/design/259-heritability-icc-repeatability.md`
-#' for the distinction. Derived confidence intervals are marked as
-#' unavailable until a nonlinear interval method is implemented.
+#' for the distinction. Both rows are computed only for Gaussian fits with an
+#' identity-link mean, where the latent, expected-data, and observed-data
+#' scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
+#' *Genetics* 204:1281-1294) coincide, so there is no separate latent- or
+#' liability-scale value to distinguish. `residual_variance` is `sigma^2`
+#' when `sigma`'s fixed part reduces to a single log-link intercept; when
+#' `sigma` additionally carries an ordinary random intercept, or a
+#' phylogenetic random intercept with a unit-diagonal correlation (the
+#' default `phylo(...)` route), `residual_variance` is instead the *marginal*
+#' residual variance `exp(2*b0 + 2*sum_k(omega_k^2))` -- `E[sigma^2]`, not the
+#' squared median `exp(2*b0)` -- where `omega_k` are the working-scale
+#' (log-SD) standard deviations of those effects. A random slope on `sigma`,
+#' or a structured `sigma` effect without a verified unit-diagonal
+#' correlation, has no closed-form marginal residual variance here and is
+#' refused (a `residual_variance.message` attribute on the empty result names
+#' the reason); see
+#' `docs/design/275-repeatability-scale-and-residual-variance.md`. Derived
+#' confidence intervals are marked as unavailable until a nonlinear interval
+#' method is implemented.
 #' When `TMB::sdreport()` succeeds, direct response-scale parameter rows also
 #' include delta-method standard errors; descriptive fitted ranges and derived
 #' variance ratios do not.
@@ -4573,7 +4590,15 @@ drm_derived_summary_rows <- function(object) {
   }
   sigma <- drm_constant_residual_sigma(object)
   if (!is.finite(sigma)) {
-    return(empty_derived_summary_parameters())
+    # Name the reason instead of a silent empty frame (Fisher's 2026-09-14
+    # ruling on docs/design/275, "Concrete change" item 3): a random slope on
+    # sigma, or a structured sigma effect without a verified unit-diagonal
+    # correlation, is a different situation from an ordinary heteroscedastic
+    # sigma ~ x fit, and the reader should be told which.
+    out <- empty_derived_summary_parameters()
+    attr(out, "residual_variance.message") <-
+      drm_residual_sigma_na_reason_text(attr(sigma, "reason"))
+    return(out)
   }
   sd_values <- object$sdpars$mu
   if (is.null(sd_values) || length(sd_values) == 0L) {
@@ -4664,6 +4689,18 @@ empty_derived_summary_parameters <- function() {
   )
 }
 
+# The residual scale exp(b0) is exact only when `sigma` is a constant (a
+# single log-link intercept, no random effect). When `sigma` additionally
+# carries an ordinary random intercept, or a phylogenetic random intercept
+# with a unit-diagonal correlation, exp(b0) is sigma's *median*, not its RMS;
+# the correct marginal residual variance is exp(2*b0 + 2*sum_k(omega_k^2))
+# (docs/design/275-repeatability-scale-and-residual-variance.md sections 4-5,
+# Fisher's 2026-09-14 ruling on that note). The return value is `NA_real_`
+# with a `reason` attribute -- consumed by drm_residual_sigma_na_reason_text()
+# -- when no closed-form scalar residual variance exists: more than one fixed
+# coefficient on sigma, a non-log link, a known-dispersion override, a random
+# SLOPE on sigma, or a structured sigma effect without a verified
+# unit-diagonal correlation.
 drm_constant_residual_sigma <- function(object) {
   beta <- object$coefficients$sigma
   if (
@@ -4672,16 +4709,115 @@ drm_constant_residual_sigma <- function(object) {
       !identical(names(beta), "(Intercept)") ||
       !identical(drm_dpar_link(object, "sigma"), "log")
   ) {
-    return(NA_real_)
+    return(structure(NA_real_, reason = "non_constant_sigma_predictor"))
   }
   known_v <- known_v_diag(object)
   if (
     length(known_v) > 0L &&
       any(is.finite(known_v) & abs(known_v) > sqrt(.Machine$double.eps))
   ) {
-    return(NA_real_)
+    return(structure(NA_real_, reason = "known_residual_variance"))
   }
-  exp(unname(beta[[1L]]))
+  b0 <- unname(beta[[1L]])
+  if (!has_sigma_random_effects(object)) {
+    return(exp(b0))
+  }
+  omega2_sum <- drm_sigma_random_effect_omega2_sum(object)
+  if (!is.finite(omega2_sum)) {
+    return(structure(NA_real_, reason = attr(omega2_sum, "reason")))
+  }
+  exp(b0 + omega2_sum)
+}
+
+# Sum of squared working-scale SDs (omega_k^2) across every random effect
+# living on sigma's log-link linear predictor: ordinary random intercepts
+# (`object$model$random$sigma`) and a phylogenetic random intercept
+# (`phylo(1 | group, tree = tree)`, whose default `correlation = TRUE`
+# tree-height normalisation gives a unit correlation diagonal --
+# R/phylo-utils.R:250-252). Returns `NA_real_` with a `reason` attribute --
+# "random_slope_on_sigma" or "structured_sigma_non_unit_diagonal" -- when the
+# sum is not a well-defined scalar: a random SLOPE on sigma (a
+# design-dependent variance, not a single omega), or a structured sigma
+# effect whose correlation matrix is not known to have a unit diagonal (only
+# `phylo()`'s ultrametric default is verified here; `animal()`/`relmat()`/
+# `spatial()` sigma effects use a caller-supplied matrix that need not be
+# unit-diagonal, so they are refused rather than assumed correct). Every
+# sigma-side working-scale SD (ordinary or phylogenetic) is already
+# aggregated into `object$sdpars$sigma` by split_tmb_sdpars(), so once the
+# slope/unit-diagonal checks pass this just sums that vector.
+drm_sigma_random_effect_omega2_sum <- function(object) {
+  random_sigma <- object$model$random$sigma
+  if (is.list(random_sigma) && isTRUE(random_sigma$n_re > 0L)) {
+    coef_names <- random_sigma$coef_names
+    if (any(!is.na(coef_names) & coef_names != "(Intercept)")) {
+      return(structure(NA_real_, reason = "random_slope_on_sigma"))
+    }
+  }
+  phylo_mu <- object$model$structured$phylo_mu
+  if (isTRUE(phylo_mu$has)) {
+    endpoint_dpars <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
+    sigma_idx <- which(endpoint_dpars == "sigma")
+    if (length(sigma_idx) > 0L) {
+      coef_names <- phylo_mu$coef_names
+      if (
+        !is.null(coef_names) &&
+          any(
+            !is.na(coef_names[sigma_idx]) &
+              coef_names[sigma_idx] != "(Intercept)"
+          )
+      ) {
+        return(structure(NA_real_, reason = "random_slope_on_sigma"))
+      }
+      if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+        return(structure(
+          NA_real_,
+          reason = "structured_sigma_non_unit_diagonal"
+        ))
+      }
+    }
+  }
+  sd_sigma <- object$sdpars$sigma
+  if (is.null(sd_sigma) || length(sd_sigma) == 0L) {
+    return(0)
+  }
+  sum(sd_sigma^2)
+}
+
+# Human-readable reason a constant/closed-form residual-scale sigma is not
+# available, shared by drm_derived_summary_rows() (attached as a
+# `residual_variance.message` attribute on the empty result, following the
+# `std_error.message` convention above) and drm_variance_ratio() (used in its
+# abort message) so the two callers name the SAME defect
+# (docs/design/275-repeatability-scale-and-residual-variance.md, Fisher's
+# 2026-09-14 ruling).
+drm_residual_sigma_na_reason_text <- function(reason) {
+  switch(
+    reason,
+    non_constant_sigma_predictor = paste(
+      "This fit has a sigma predictor, a non-log link, or a",
+      "known-dispersion override, so a single scalar residual variance is",
+      "not defined."
+    ),
+    known_residual_variance = paste(
+      "This fit has a known-dispersion override, so a single scalar",
+      "residual variance is not defined."
+    ),
+    random_slope_on_sigma = paste(
+      "This fit has a random slope on sigma (a design-dependent variance,",
+      "not a single scalar), so a single scalar residual variance is not",
+      "defined."
+    ),
+    structured_sigma_non_unit_diagonal = paste(
+      "This fit has a structured sigma random effect whose correlation",
+      "matrix is not known to have a unit diagonal, so a single scalar",
+      "residual variance is not defined."
+    ),
+    paste(
+      "This fit does not have a constant residual scale (sigma ~ 1) or a",
+      "closed-form marginal residual variance, so a single scalar residual",
+      "variance is not defined."
+    )
+  )
 }
 
 derived_summary_random_effect_kind <- function(term) {

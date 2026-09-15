@@ -65,8 +65,25 @@ random-effect variance plus the residual variance), which is a different
 denominator from the \code{icc()}/\code{repeatability()} accessors (focal component
 variance over that component plus the residual only); see
 \code{?heritability} and \code{docs/design/259-heritability-icc-repeatability.md}
-for the distinction. Derived confidence intervals are marked as
-unavailable until a nonlinear interval method is implemented.
+for the distinction. Both rows are computed only for Gaussian fits with an
+identity-link mean, where the latent, expected-data, and observed-data
+scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
+\emph{Genetics} 204:1281-1294) coincide, so there is no separate latent- or
+liability-scale value to distinguish. \code{residual_variance} is \code{sigma^2}
+when \code{sigma}'s fixed part reduces to a single log-link intercept; when
+\code{sigma} additionally carries an ordinary random intercept, or a
+phylogenetic random intercept with a unit-diagonal correlation (the
+default \code{phylo(...)} route), \code{residual_variance} is instead the \emph{marginal}
+residual variance \code{exp(2*b0 + 2*sum_k(omega_k^2))} -- \code{E[sigma^2]}, not the
+squared median \code{exp(2*b0)} -- where \code{omega_k} are the working-scale
+(log-SD) standard deviations of those effects. A random slope on \code{sigma},
+or a structured \code{sigma} effect without a verified unit-diagonal
+correlation, has no closed-form marginal residual variance here and is
+refused (a \code{residual_variance.message} attribute on the empty result names
+the reason); see
+\code{docs/design/275-repeatability-scale-and-residual-variance.md}. Derived
+confidence intervals are marked as unavailable until a nonlinear interval
+method is implemented.
 When \code{TMB::sdreport()} succeeds, direct response-scale parameter rows also
 include delta-method standard errors; descriptive fitted ranges and derived
 variance ratios do not.
