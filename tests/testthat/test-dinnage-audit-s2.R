@@ -146,6 +146,11 @@ test_that("S2: a random SLOPE on sigma is refused by name, not silently returned
     attr(derived, "residual_variance.message"),
     "random slope on sigma"
   )
+  # residual_variance.message must not just be attached, it must be SHOWN
+  # (2026-09-14 ruling, S2b item 5): print.summary.drmTMB() emits it via
+  # cli_text(), which surfaces through message(), not through
+  # capture.output()/stdout.
+  expect_message(print(summary(fit)), "random slope on sigma")
 })
 
 test_that("S2: a unit-diagonal phylogenetic random intercept on sigma gets the same closed form", {
@@ -170,7 +175,6 @@ test_that("S2: a unit-diagonal phylogenetic random intercept on sigma gets the s
     stats::rnorm(length(species), sd = exp(b0_sigma + u_sigma[tip_index]))
   dat <- data.frame(y = y, species = species)
 
-  t0 <- Sys.time()
   fit <- drmTMB(
     bf(
       y ~ 1 + phylo(1 | species, tree = tree),
@@ -178,14 +182,6 @@ test_that("S2: a unit-diagonal phylogenetic random intercept on sigma gets the s
     ),
     family = gaussian(),
     data = dat
-  )
-  elapsed <- as.numeric(Sys.time() - t0, units = "secs")
-  skip_if(
-    elapsed > 60,
-    paste0(
-      "phylo-on-sigma fixture exceeded the 60s budget (", round(elapsed, 1),
-      "s); skipping rather than slowing the suite."
-    )
   )
 
   expect_equal(fit$opt$convergence, 0)
@@ -199,4 +195,38 @@ test_that("S2: a unit-diagonal phylogenetic random intercept on sigma gets the s
     expected_sigma,
     tolerance = 1e-8
   )
+
+  # Negative control for the phylo arm, at the USER-FACING loci (2026-09-14
+  # ruling, S2b items 2-3): this fit has phylo() on BOTH mu and sigma, so
+  # split_tmb_sdpars() prefixes the mu-side label "mu:phylo(1 | species)"
+  # (R/drmTMB.R phylo_mu_sd_labels()); before the fix that prefix defeated
+  # derived_summary_random_effect_kind() (R/methods.R) and
+  # drm_variance_ratio_positions()'s structured-marker regex
+  # (R/heritability.R:453), so summary()$derived returned 0 rows and
+  # repeatability()/icc()/heritability() aborted even though
+  # drm_constant_residual_sigma() above was already correct. Both loci must
+  # now report the SAME closed-form share.
+  expected_residual_variance <- exp(2 * b0_hat + 2 * omega_hat^2)
+  v_mu <- unname(fit$sdpars$mu[["mu:phylo(1 | species)"]])^2
+  expected_share <- v_mu / (v_mu + expected_residual_variance)
+
+  derived <- summary(fit)$derived
+  expect_equal(nrow(derived), 1L)
+  row <- derived["derived:phylo_total_variance_share(species)", , drop = FALSE]
+  expect_equal(nrow(row), 1L)
+  expect_equal(
+    row$residual_variance,
+    expected_residual_variance,
+    tolerance = 1e-8
+  )
+  expect_equal(row$estimate, expected_share, tolerance = 1e-8)
+
+  r <- repeatability(fit)
+  expect_true(is.finite(r$estimate))
+  expect_equal(r$estimate, expected_share, tolerance = 1e-8)
+  expect_true(is.finite(r$se))
+
+  ic <- icc(fit)
+  expect_true(is.finite(ic$estimate))
+  expect_equal(ic$estimate, expected_share, tolerance = 1e-8)
 })

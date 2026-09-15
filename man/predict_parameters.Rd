@@ -81,6 +81,18 @@ method standard error. They do not include random-effect mode uncertainty,
 profile-likelihood uncertainty, or uncertainty for direct random-effect scale
 models.
 
+For a \code{sigma}/\code{sigma1}/\code{sigma2} dpar of a family whose scale is soft-clamped
+(see \code{drm_control(logsigma_clamp = )}), a row whose raw linear predictor
+already lies outside the clamp band carries \code{conf.status = "clamp_limited"}
+and \code{std.error}/\code{conf.low}/\code{conf.high} of \code{NA}: the likelihood is flat with
+respect to that row's unclamped predictor, so a Wald interval of the
+reported (clamped) quantity is not defined there. Rows inside the band are
+unaffected, because the clamp is the identity inside the band and their
+Wald interval is unchanged. Use \code{\link[=check_drm]{check_drm()}} to see whether a fit's clamp
+is active, and rescale the response or widen the band
+(\code{drm_control(logsigma_clamp = )}) before trusting scale-parameter
+intervals on a clamp-active fit.
+
 For native \code{drmTMB} fits, the stable core columns retain this relative order:
 \code{row}, \code{row_label}, \code{dpar}, \code{component}, \code{type}, \code{estimate}, \code{conf.status},
 and \code{interval_source}. \code{conf.status} describes the requested interval result

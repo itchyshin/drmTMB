@@ -449,7 +449,13 @@ drm_variance_ratio_reject_random_slopes <- function(object, quantity) {
 # positions in order (see docs/design/259-heritability-icc-repeatability.md
 # section 1 for why this reproduces split_tmb_sdpars()'s assignment order).
 drm_variance_ratio_positions <- function(object, sd_values) {
-  nm <- names(sd_values)
+  # split_tmb_sdpars() switches to a `mu:`/`sigma:` prefixed label once the
+  # SAME structured term also has a sibling on the other endpoint
+  # (R/drmTMB.R phylo_mu_sd_labels()/split_tmb_sdpars(), e.g.
+  # "mu:phylo(1 | species)" when phylo() is on both mu and sigma) -- strip it
+  # before matching the structured-marker prefix, or the term is misrouted to
+  # the (empty) log_sd_mu pool and yields NA (2026-09-14 ruling, S2b item 2).
+  nm <- sub("^(mu|sigma):", "", names(sd_values))
   structured_prefix <- "^(phylo|animal|relmat|spatial|phylo_interaction)\\("
   is_structured <- grepl(structured_prefix, nm)
   opt_names <- names(object$opt$par)

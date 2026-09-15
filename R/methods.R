@@ -4181,10 +4181,20 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' or a structured `sigma` effect without a verified unit-diagonal
 #' correlation, has no closed-form marginal residual variance here and is
 #' refused (a `residual_variance.message` attribute on the empty result names
-#' the reason); see
+#' the reason, and is also shown under the (empty) derived table when
+#' printed); see
 #' `docs/design/275-repeatability-scale-and-residual-variance.md`. Derived
 #' confidence intervals are marked as unavailable until a nonlinear interval
 #' method is implemented.
+#' The derived table's `residual_sd` column is `sqrt(residual_variance)` --
+#' i.e. `sqrt(E[sigma^2]) = exp(b0 + sum_k(omega_k^2))` -- and this is a
+#' DIFFERENT quantity from the `sigma` row in the `parameters` component,
+#' which is always the conditional/median scale `exp(b0)`. The two coincide
+#' only when `sigma` carries no random effect; when it does, `residual_sd` is
+#' larger (e.g. 1.0144 vs a `sigma` row of 0.7599 on one fixture), and both
+#' are labelled `scale = "response"` because both genuinely are on the
+#' response scale -- they are not alternative scales of the same quantity,
+#' they are two different quantities.
 #' When `TMB::sdreport()` succeeds, direct response-scale parameter rows also
 #' include delta-method standard errors; descriptive fitted ranges and derived
 #' variance ratios do not.
@@ -4442,6 +4452,17 @@ print.summary.drmTMB <- function(x, ...) {
   if (is.data.frame(x$derived) && nrow(x$derived) > 0L) {
     cli::cli_text("Derived summaries:")
     print(drm_summary_print_derived(x$derived))
+  } else if (
+    is.data.frame(x$derived) &&
+      is.character(attr(x$derived, "residual_variance.message"))
+  ) {
+    # Name the reason instead of a silent empty derived block (2026-09-14
+    # ruling, S2b item 5): `residual_variance.message` was previously written
+    # by drm_derived_summary_rows() but had no reader anywhere in the
+    # package.
+    cli::cli_text(
+      "Derived summaries: {attr(x$derived, 'residual_variance.message')}"
+    )
   }
   if (!is.null(x$ordinal)) {
     cli::cli_text("Ordinal cutpoints:")
@@ -4735,13 +4756,16 @@ drm_constant_residual_sigma <- function(object) {
 # (`phylo(1 | group, tree = tree)`, whose default `correlation = TRUE`
 # tree-height normalisation gives a unit correlation diagonal --
 # R/phylo-utils.R:250-252). Returns `NA_real_` with a `reason` attribute --
-# "random_slope_on_sigma" or "structured_sigma_non_unit_diagonal" -- when the
-# sum is not a well-defined scalar: a random SLOPE on sigma (a
-# design-dependent variance, not a single omega), or a structured sigma
-# effect whose correlation matrix is not known to have a unit diagonal (only
-# `phylo()`'s ultrametric default is verified here; `animal()`/`relmat()`/
-# `spatial()` sigma effects use a caller-supplied matrix that need not be
-# unit-diagonal, so they are refused rather than assumed correct). Every
+# "random_slope_on_sigma", "structured_sigma_non_unit_diagonal", or
+# "structured_sigma_diagonal_not_checked" -- when the sum is not a
+# well-defined scalar: a random SLOPE on sigma (a design-dependent variance,
+# not a single omega), or a structured sigma effect whose correlation matrix
+# is MEASURED to not have a unit diagonal, or one whose diagonal could not be
+# measured at all. The diagonal is measured, not inferred from
+# `structured_mu_type()`'s label (2026-09-14 ruling on
+# docs/design/275-repeatability-scale-and-residual-variance.md: "the refusal
+# should be conditioned on the diagonal of the structured matrix, not on the
+# word 'phylogenetic'") -- see drm_structured_sigma_unit_diagonal(). Every
 # sigma-side working-scale SD (ordinary or phylogenetic) is already
 # aggregated into `object$sdpars$sigma` by split_tmb_sdpars(), so once the
 # slope/unit-diagonal checks pass this just sums that vector.
@@ -4768,7 +4792,14 @@ drm_sigma_random_effect_omega2_sum <- function(object) {
       ) {
         return(structure(NA_real_, reason = "random_slope_on_sigma"))
       }
-      if (!identical(structured_mu_type(phylo_mu), "phylo")) {
+      unit_diagonal <- drm_structured_sigma_unit_diagonal(phylo_mu)
+      if (is.na(unit_diagonal)) {
+        return(structure(
+          NA_real_,
+          reason = "structured_sigma_diagonal_not_checked"
+        ))
+      }
+      if (!unit_diagonal) {
         return(structure(
           NA_real_,
           reason = "structured_sigma_non_unit_diagonal"
@@ -4781,6 +4812,73 @@ drm_sigma_random_effect_omega2_sum <- function(object) {
     return(0)
   }
   sum(sd_sigma^2)
+}
+
+# Whether a structured effect's IMPLIED correlation matrix has a unit
+# diagonal, measured by inverting its precision matrix -- not inferred from
+# `structured_mu_type(phylo_mu)`'s label. The 2026-09-14 ruling on
+# docs/design/275-repeatability-scale-and-residual-variance.md found the
+# label-based check false for a measured case
+# (`sigma ~ spatial(1 | site, coords = coords)`, diag(Sigma) = 1.000001 --
+# unit, but refused as "phylogenetic-only"); this checks the actual matrix
+# instead, so `spatial()`, `animal()`, and `relmat()` sigma effects (q == 1:
+# one random-effect column, `precision$precision` indexed 1:1 by the
+# modelled unit -- site/individual/pedigree member) are judged on what they
+# measure to, not on which formula marker produced them.
+#
+# `q > 1L` (`structured_mu_q()`) means `phylo_mu`'s precision is a JOINT
+# block over more than one endpoint's random-effect columns (e.g. the same
+# `phylo()` term attached to both `mu` and `sigma`, or a correlated
+# `(1 | p | id)` block) -- measured directly: for the fixture in
+# tests/testthat/test-dinnage-audit-s2.R (phylo() on both `mu` and `sigma`,
+# `q = 2`), `dim(phylo_mu$precision$precision)` is 38 x 38, not the 20 x 20
+# tip-level matrix, because it spans a latent internal-node basis
+# (`phylo_mu$n_re` ancestral nodes per endpoint), and `diag(solve(Q))` over
+# that basis ranges over `[0.838, 1]` -- it is NOT the tip-level correlation
+# and inverting it would misclassify a `phylo()`-on-`mu`-and-`sigma` fit as
+# non-unit-diagonal. There is currently no accessor that extracts the
+# tip-level submatrix from a joint block, so for `q > 1L` this function does
+# not attempt the inversion: `type == "phylo"` is trusted by construction
+# (`ape::vcv(tree, corr = TRUE)` tree-height normalisation; Fisher's
+# 2026-09-14 review confirmed `correlation = FALSE` is unreachable from the
+# formula grammar today -- `grep -rn "correlation = FALSE" R/*.R` returns
+# nothing -- so every `phylo()` matrix really is unit-diagonal), and any
+# other type in a `q > 1L` block reports "not checked" rather than a guess.
+#
+# Returns `TRUE`/`FALSE` when the diagonal was measured (within `tol`) or
+# trusted by the construction above, or `NA` when it could not be measured
+# (no precision matrix, non-square, or the inversion failed) -- callers must
+# report an `NA` result as "the diagonal was not checked", never as "the
+# diagonal is not unit" (D-252: a refusal is a claim, and a false one is a
+# defect).
+drm_structured_sigma_unit_diagonal <- function(phylo_mu, tol = 1e-3) {
+  if (structured_mu_q(phylo_mu) > 1L) {
+    if (identical(structured_mu_type(phylo_mu), "phylo")) {
+      return(TRUE)
+    }
+    return(NA)
+  }
+  precision <- phylo_mu$precision$precision
+  if (
+    is.null(precision) ||
+      is.null(dim(precision)) ||
+      nrow(precision) != ncol(precision) ||
+      nrow(precision) == 0L
+  ) {
+    return(NA)
+  }
+  covariance <- tryCatch(
+    as.matrix(Matrix::solve(precision)),
+    error = function(e) NULL
+  )
+  if (is.null(covariance)) {
+    return(NA)
+  }
+  d <- diag(covariance)
+  if (length(d) == 0L || anyNA(d) || !all(is.finite(d))) {
+    return(NA)
+  }
+  all(abs(d - 1) <= tol)
 }
 
 # Human-readable reason a constant/closed-form residual-scale sigma is not
@@ -4809,8 +4907,13 @@ drm_residual_sigma_na_reason_text <- function(reason) {
     ),
     structured_sigma_non_unit_diagonal = paste(
       "This fit has a structured sigma random effect whose correlation",
-      "matrix is not known to have a unit diagonal, so a single scalar",
-      "residual variance is not defined."
+      "matrix was measured and does not have a unit diagonal, so a single",
+      "scalar residual variance is not defined."
+    ),
+    structured_sigma_diagonal_not_checked = paste(
+      "This fit has a structured sigma random effect whose correlation",
+      "matrix's diagonal was not checked, so a single scalar residual",
+      "variance is not defined."
     ),
     paste(
       "This fit does not have a constant residual scale (sigma ~ 1) or a",
@@ -4821,6 +4924,13 @@ drm_residual_sigma_na_reason_text <- function(reason) {
 }
 
 derived_summary_random_effect_kind <- function(term) {
+  # split_tmb_sdpars() prefixes the label with `mu:`/`sigma:` once the SAME
+  # structured term also has a sibling on the other endpoint (e.g.
+  # "mu:phylo(1 | species)" when phylo() is on both mu and sigma) -- strip it
+  # before matching, or a phylo()-on-mu-and-sigma fit yields no row here
+  # (2026-09-14 ruling, S2b item 2; mirrors the same fix in
+  # R/heritability.R's drm_variance_ratio_positions()).
+  term <- sub("^(mu|sigma):", "", term)
   if (startsWith(term, "phylo(")) {
     group <- random_intercept_group_from_call(term, "phylo")
     if (is.na(group)) {

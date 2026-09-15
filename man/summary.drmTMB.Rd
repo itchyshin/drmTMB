@@ -80,10 +80,20 @@ squared median \code{exp(2*b0)} -- where \code{omega_k} are the working-scale
 or a structured \code{sigma} effect without a verified unit-diagonal
 correlation, has no closed-form marginal residual variance here and is
 refused (a \code{residual_variance.message} attribute on the empty result names
-the reason); see
+the reason, and is also shown under the (empty) derived table when
+printed); see
 \code{docs/design/275-repeatability-scale-and-residual-variance.md}. Derived
 confidence intervals are marked as unavailable until a nonlinear interval
 method is implemented.
+The derived table's \code{residual_sd} column is \code{sqrt(residual_variance)} --
+i.e. \code{sqrt(E[sigma^2]) = exp(b0 + sum_k(omega_k^2))} -- and this is a
+DIFFERENT quantity from the \code{sigma} row in the \code{parameters} component,
+which is always the conditional/median scale \code{exp(b0)}. The two coincide
+only when \code{sigma} carries no random effect; when it does, \code{residual_sd} is
+larger (e.g. 1.0144 vs a \code{sigma} row of 0.7599 on one fixture), and both
+are labelled \code{scale = "response"} because both genuinely are on the
+response scale -- they are not alternative scales of the same quantity,
+they are two different quantities.
 When \code{TMB::sdreport()} succeeds, direct response-scale parameter rows also
 include delta-method standard errors; descriptive fitted ranges and derived
 variance ratios do not.
