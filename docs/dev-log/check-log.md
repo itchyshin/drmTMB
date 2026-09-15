@@ -94607,3 +94607,8 @@ Closeout report:
   start-value-frozen quadrature support; raw-predictor consumers in `profile()`, the Julia bridge,
   `summary_parameter_delta_derivative()`, and `check_drm()`'s clamp detector; Wald coverage
   0.910/0.928 of the variance-ratio accessors (predates); S6 code.
+- Post-review repairs, same evening: `1c44d2f12` (S2b follow-up 2: design-row diagonal, clamp-active
+  refusal) and `19849f0dc` (index by `observation_node_index`, NA when unindexed; reason lists name
+  `clamp_limited`). Clean-export as-cran run 3 on `a16ce24b6` (after `1c44d2f12`): identical to run 2 —
+  0 errors, 0 package warnings, 1 NOTE; tests OK (44 s), vignettes OK (63 s). Run 4 on `19849f0dc` is
+  recorded below when it finishes.

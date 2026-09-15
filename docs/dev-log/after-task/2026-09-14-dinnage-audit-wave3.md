@@ -506,3 +506,16 @@ exported symbol was added.
    `CARRIED-OVER` line for the S2b-follow-up review and anything else still open.
 8. Post the five approved issue comments (#1307, #1308, #1312, #1315, #1301) after Shinichi's approval, per
    the pre-authorisation envelope; no merge, no release, no message to Russell.
+
+## Addendum (same evening): the S2b review chain closed to a third repair
+
+Fisher's review of `1c44d2f12` (ACCEPT-WITH-CHANGES) found that the fallback for an index-less
+augmented precision still inverted the whole matrix — measured on `phylo_interaction()`, whole-matrix
+diagonal in [0.505, 1] against used rows exactly 1 — and that two contract lines over-claimed. Commit
+`19849f0dc` indexes `observation_node_index` (present on every structured builder), then the
+species/tip index, and returns NA ("not checked") when no row index exists; the guard test asserts
+FALSE on an indexed non-unit diagonal and NA on an unindexed matrix; NEWS narrows the clamp claim (a
+clamp-active `sigma ~ 1` fit still returns its constant clamped scale) and both help pages add
+`clamp_limited` to their refusal reasons. Clean-export as-cran run 3 on `a16ce24b6` matched run 2
+(0 errors, 0 package warnings, 1 NOTE). A fresh Opus review of `19849f0dc` and as-cran run 4 were
+running when this addendum was written; the handover carries both.
