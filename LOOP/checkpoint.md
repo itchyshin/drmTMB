@@ -1,7 +1,7 @@
-GOAL: see GOAL.md.   STATE: S6 note 274 and S2a note 275 + S3 roxygen returned; F-B (Opus docs review) dispatched; M1a and M2 still building.
-ARCS DONE (verified): L0 — `.unlazy/dinnage-2` 8 leaves, OWNS claimed (gate-check --claim). S6 — docs/design/274 (243 lines, 10 sections; G-S6-1/2 MET). S2a+S3 — docs/design/275 (246 lines) + R/penalty.R roxygen (+19/-3); vault D-266 (S3 = document), D-267 (M4 = confirm) committed at shinichi-brain 830f795d.
-ARC IN PROGRESS: B1 (M1a, M2) + F-B — landed when m1-red.txt / m1.patch / m2-red.txt exist and docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md has Part B verdicts.
-NEXT: DOC (document() once) → B2 (M1b after M2 returned; S2b after F-B concurs) → F.
+GOAL: see GOAL.md.   STATE: M1 (fc461aae4) and M2 (0526baa2f) COMMITTED; F-B returned (3x ACCEPT-WITH-CHANGES, CONCUR on S2b); repair-docs and S2b builders live.
+ARCS DONE (verified): L0; S6 note 274; S2a note 275 + S3 roxygen; DOC (document() once: 3 owned man pages only); M1a+M1b — red 43 / green 0 / regression sweep 0-0, commit fc461aae4; M2 — red (297-nat gap) / green / no regressions, commit 0526baa2f; F-B review Part B written (docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md); vault D-266/D-267.
+ARC IN PROGRESS: RP-docs (repair-docs agent applying F-B's 12 items to 274/275/penalty.R) and S2b (builder: methods.R + heritability.R + test-dinnage-audit-s2.R, red first). Landed when the agents' return messages name the files and s2-red.txt exists.
+NEXT: document() for man/drm_phylo_penalty.Rd; commit S3 doc + notes 274/275 + review; dispatch F-A (Opus) on M1+M2+S2b diffs; repairs; NEWS S2 entry; MV; as-cran on clean export; push; Melissa; after-task; handover.
 OPEN GATES (need human): none.
-TRUTH LIVES IN: this worktree, branch claude/audit-dinnage-wave1-20260913 @ d4943d6d0 + LOOP commit; ledger .unlazy/dinnage-2 (ignored); scratchpad /private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/8f8f55b7-b140-47cd-9c21-5e6b2ff7de24/scratchpad.
+TRUTH LIVES IN: this worktree, branch claude/audit-dinnage-wave1-20260913 @ 0526baa2f (unpushed: LOOP kit, M1, M2); NEWS.md wave-3 section uncommitted; ledger .unlazy/dinnage-2; scratchpad red/green proofs (m1-red-final.txt, m1-green.txt, m1-regress.txt, m2-red.txt).
 RESUME: cd /Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1 && cat LOOP/GOAL.md LOOP/checkpoint.md && continue from NEXT.
