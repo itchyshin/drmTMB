@@ -1612,6 +1612,250 @@ table is empty and the attribute is set, and the fixture asserts it with
    assumptions, and `docs/design/parity-matrix.md:90` (*"no coverage study"* is no
    longer true and the estimand moved).
 
+### S2b follow-up 2 (1c44d2f12)
+
+VERDICT: ACCEPT-WITH-CHANGES — both repairs are real and correctly mechanised
+(the tip-row diagonal is the right quantity, and the clamp detector is exactly
+the predicate "the clamp bent at least one observation"), but the new rule is
+"index if present, else measure the whole matrix", which reproduces the same
+false refusal on an index-less augmented precision — measured on
+`phylo_interaction()` — and two contract lines over-claim.
+
+*Reviewer: Fisher, fresh context, read-only except this file. Worktree
+`/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`. Reviewed
+`1c44d2f12` and `a16ce24b6` only. Nothing recompiled. Every number below was
+measured in this worktree unless marked UNVERIFIED. Probe scripts:
+`<scratchpad>/fisher3-*.R`.*
+
+#### Mechanism
+
+**`species_node_index` is the right index, and I re-derived why rather than
+inheriting it.** `drm_phylo_augmented_precision()` builds
+`species_node_index <- tip_node_index[info$species_index]`
+(`R/phylo-utils.R:324-331`), and `build_phylo_mu_structure()` places every
+observation with exactly that object —
+`precision$species_node_index[precision$observation_species_index]`
+(`R/drmTMB.R:14084-14086`). So the rows the new code measures are, by
+construction, the rows the design matrix multiplies. The augmented basis is a
+root-to-tip random walk whose precision is scaled by tree height
+(`R/phylo-utils.R:309-313`), so the tip rows of `solve(Q)` are exactly 1 while
+the internal-node rows are not; measuring the tips is measuring the modelled
+unit. Item 1's mechanism is right.
+
+**The `q > 1` retirement is sound.** `phylo_mu$precision` is built once per term
+(`R/drmTMB.R:14083`) *before* `q` is computed, and the structure carries a single
+`precision` field regardless of how many endpoints share it; the endpoint
+covariance is a separate `q x q` block. So `diag(Q^{-1})[tips]` is the same
+measured quantity for a `q = 2` `phylo()`-on-`mu`-and-`sigma` block as for
+`q = 1`, and the `type == "phylo"` trust branch is genuinely unnecessary now, not
+merely moved. The `q = 2` fixture stays green under the measured rule, which is
+the confirming evidence.
+
+**The defect that survives: an index-less augmented precision is measured on the
+WHOLE matrix, not reported as "not checked".** `R/methods.R:4898-4907` falls back
+to `seq_len(nrow(precision))` whenever both index fields are absent **and**
+`q == 1`. `build_phylo_interaction_mu_structure()` returns
+`precision = list(precision = , log_det_precision = )` and nothing else
+(`R/drmTMB.R:14209-14215`), and a `phylo_interaction()` term on `sigma` alone is
+`q == 1`. Measured, 6-tip x 5-tip trees:
+
+```
+q = 1   type = phylo_interaction   dim(precision) = 80 x 80
+range(diag(solve(Q)))                    = [0.505448, 1]   -> FALSE
+range(diag(solve(Q))[observation_node_index]) = [1, 1]     (30 used rows)
+drm_structured_sigma_unit_diagonal()     -> FALSE
+```
+
+That is the identical false refusal — *"measured and does not have a unit
+diagonal"* about a matrix whose modelled units measure to exactly 1 — that this
+commit was written to remove, surviving one marker over. **It is not user-visible
+today**, and I checked rather than assumed: `sigma ~ phylo_interaction(...)` is
+refused by the grammar gate on the Gaussian route (*"Structured-effect syntax is
+planned, not implemented. The `sigma` formula contains structured marker:
+`phylo_interaction`"*), and both callers of `drm_constant_residual_sigma()` are
+Gaussian-gated (`R/methods.R:4609-4611`, `R/heritability.R:289-294`). So this is
+a **latent** defect, not a live one — but the commit **codifies** it twice, which
+is why it is REQUIRED rather than OPTIONAL: the code comment at
+`R/methods.R:4877-4879` states that such a block *"still reports 'not checked'
+rather than a guess"* (false — for `q == 1` it measures the whole basis and
+returns `FALSE`), and the new guard test at
+`tests/testthat/test-dinnage-audit-s2.R:398-406` names `phylo_interaction()`'s
+Kronecker block as the thing it is mirroring and asserts that *"the helper must
+measure it"*. The next route to be admitted on `sigma` will land on a red-free
+suite that says the wrong rule is the intended one.
+
+**The fix is one line and uniform.** `observation_node_index` — the rows the
+design actually uses — is present on *every* structured builder, not just the
+phylo ones: `R/drmTMB.R:14111` (phylo), `14216` (phylo_interaction), the spatial
+builder, `14520` (animal/relmat). Indexing `diag(solve(Q))` by
+`unique(phylo_mu$observation_node_index)`, with the species/tip index as
+fallback, gets all four right (measured: it returns `[1, 1]` on the
+`phylo_interaction` block above), removes the whole-matrix fallback, and makes
+the "not checked" branch mean what the comment says.
+
+**The clamp detector is the right trigger, and it is right for a sharper reason
+than the commit claims.** Three facts, each re-derived: (i) `REPORT(log_sigma)`
+(`src/drmTMB.cpp:2466`) is the **assembled per-observation** vector — `X*beta`
+(`811`) plus every random-effect contribution (`922`, `1015`) — measured
+`length(report$log_sigma) = 120` on a 120-observation fixture, not 1 and not the
+number of fixed coefficients; (ii) it is reported **after** the clamp (`2437`),
+but the soft clamp is `CondExpGt(x, hi, hi + m*tanh((x-hi)/m), x)`
+(`src/drmTMB.cpp:27-32`) — **exactly** the identity on `[lo, hi]` and **strictly
+outside** `[lo, hi]` whenever its input was, so reading the post-clamp vector
+loses nothing; (iii) therefore `any(values > hi) || any(values < lo)`
+(`R/drmTMB.R:3568-3573`) is exactly the predicate *"the clamp bent at least one
+observation"* — no false positive (an unbent fit is bit-identical inside the
+band) and no false negative. Measured on the predecessor's partly-bent
+configuration, band `c(-0.6, 0.6)`, margin `0.2`:
+
+```
+b0 = -0.0232                      (inside the band)
+range(report$log_sigma) = [-0.7545, 0.7773]   (outside, both arms)
+drm_logsigma_clamp_active() -> arm "upper", value 0.7773
+drm_constant_residual_sigma() -> NA, reason "clamp_limited"
+```
+
+So the answer to the question the repair turns on is **yes**: the detector fires
+for a bent random-effect contribution while the intercept alone is in band. The
+1.47x over-statement the predecessor measured is now refused, not shipped.
+
+**Keeping `exp(c(b0))` in the no-random-effect branch is consistent, not an
+inconsistency — and I measured it rather than argued it.** With `sigma ~ 1` and
+no random effect the assembled predictor is the constant `b0` for every
+observation, so `c(b0)` *is* the scale the likelihood uses; there is no moment to
+get wrong. On a fit forced onto the clamp with band `c(-5, -2)`:
+`drm_constant_residual_sigma() = 0.1652989` and `mean(sigma(fit)) = 0.1652989`,
+identical. A refusal there would be over-conservative and would break the
+`sigma()`-consistency the M2 repair established. The new refusal is correctly
+placed after the `has_sigma_random_effects()` early return
+(`R/methods.R:4746-4748`).
+
+**False-refusal risk is negligible under the shipped default.** The default band
+is `c(-12, 12)` with margin `3` (`R/control.R:178-179`), so the new `NA` fires
+only above `sigma ~ 1.6e5` or below `6e-6` — i.e. on a runaway or a genuinely
+collapsed scale — unless the user narrows the band themselves.
+
+**One fail-open remains.** `tryCatch(object$obj$report(...), error = ...)`
+(`R/methods.R:4762-4765`) degrades a failed detector to *no refusal*, i.e. it
+ships the unclamped moment rather than reporting "not checked". That is the same
+class as the still-open OPTIONAL 5 on ill-conditioned inversions: when a check
+cannot be run, the honest output is `NA` with a "not checked" reason, not the
+trusted branch. (`object$tmb_state$last.par.best` is present and is the full
+fixed-plus-random vector — measured length 28 against 4 fixed parameters — so
+this is a defensive path, not an expected one.)
+
+#### Negative control
+
+**Legitimate, and honestly scoped.** `<scratchpad>/s2b-repair2-red.txt` shows
+**8 failures against the pre-fix tree**, all substantive: five in the
+phylo-on-`sigma`-alone arm (`test-dinnage-audit-s2.R:337`, `348`, `351`, `356`,
+and the `repeatability()` abort at `358`, whose message is verbatim the false
+claim *"was measured and does not have a unit diagonal"*), and three in the clamp
+arm (`418`, `419`, `421`). The spatial arm and the non-unit-refusal arm are **not**
+red, and that is correct rather than a gap: both already passed under the parent,
+so they are regression guards for a capability the repair must not switch off,
+not proofs of a repair. The commit message's "8 red" is accurate for the two arms
+that changed behaviour.
+
+**Green re-run, mine, this worktree:** `testthat::test_local(filter =
+"dinnage-audit-s2")` -> `FAIL 0`, one warning (the optimizer-preset escalation on
+the older phylo fixture, not an assertion). Log:
+`<scratchpad>/fisher3-green.txt`.
+
+#### Contract
+
+**The NEWS diagonal sentence is now true.** `NEWS.md:89-91` — *"a structured
+effect whose correlation diagonal (measured on the modelled units, e.g. the tips
+of a tree) is not one"* — matches the code for every route reachable today, and
+`NEWS.md:79-80`'s *"including a phylogenetic random intercept on `sigma` under
+the default unit-diagonal correlation"* is no longer falsified: `phylo()` on
+`sigma` alone now gets the closed form (asserted at
+`test-dinnage-audit-s2.R:337-370`, green).
+
+**The NEWS clamp sentence is over-broad and falsifiable in one line.**
+`NEWS.md:91-94` says *"... or a fit on which the `log(sigma)` soft clamp is
+active ... give `NA`"*. Measured counterexample, above: a `sigma ~ 1` fit with the
+clamp active returns a finite `0.1652989`, and correctly so. The claim should be
+narrowed to the case the code actually refuses — a fit whose `sigma` **random
+effect** is bent by an active clamp. This is the same defect class the
+predecessor's item 4 named: a sentence in NEWS that the code does not honour.
+
+**The two man pages were not updated and now enumerate an incomplete list of
+refusals.** `man/summary.drmTMB.Rd:80-83` and `man/heritability.Rd:114-118` both
+close their enumeration — *"A random slope on `sigma`, or a structured `sigma`
+effect without a verified unit-diagonal correlation, has no closed-form marginal
+residual variance and is refused with a message naming why"* — and neither
+mentions `clamp_limited`. The commit touched no roxygen (`git show --stat
+1c44d2f12` lists `R/methods.R` and the test file only), so `?repeatability` and
+`?summary.drmTMB` — the enumeration a user actually reads — do not name a
+refusal mode that now exists. The reason **text** itself is good
+(`R/methods.R:4960-4965`) and points at `check_drm()`, which does report the
+clamp state (`R/check.R:602`).
+
+#### Scope — the predecessor's four REQUIRED items
+
+1. **PARTIALLY MET.** Met for every route reachable today (`phylo()` on `sigma`
+   alone and on both endpoints, `spatial()`, `animal()`/`relmat()`), and the
+   `type == "phylo"` trust branch is genuinely gone. Not met as a *rule*: the
+   implemented rule is "index if present, else measure the whole matrix", and the
+   whole-matrix fallback is wrong for any augmented precision that carries no
+   index — measured on `phylo_interaction()` (latent today; see REQUIRED 1).
+2. **MET.** All three directions are present and green, and the red proof shows
+   the two that were repairs. Caveat folded into REQUIRED 1: the third test's
+   stated rationale asserts the wrong rule.
+3. **MET, and better founded than the commit message claims** — the detector is
+   exactly the "clamp bent something" predicate, not an approximation to it, and
+   the no-random-effect branch is correctly left alone.
+4. **PARTIALLY MET.** The diagonal sentence is back in line; the new clamp
+   sentence over-claims, and the two man pages were not brought along.
+- Still open from the earlier lists: OPTIONAL 5 (`rcond` guard -> "not checked"),
+  OPTIONAL 6 (cache/size-guard the dense inversion; still two uncached callers,
+  `R/heritability.R:296`, `R/methods.R:4612`), and items 7/9/10 (the
+  `(1 | p | id)` fixture, the unreachable-today S2 routes, and
+  `docs/design/parity-matrix.md:90`).
+- UNVERIFIED: the bivariate endpoints. `drm_logsigma_clamp_active()` reads
+  `log_sigma1`/`log_sigma2` together, so on a bivariate fit a clamp bent on one
+  endpoint would refuse the other's residual variance; I did not construct one,
+  and the derived/repeatability callers are `model_type == "gaussian"`-gated, so
+  I believe it unreachable.
+- UNVERIFIED: I did not run DRM.jl and did not re-measure the coverage numbers in
+  the NEWS bullet; they are inherited from the previous round.
+
+#### Concrete change
+
+1. **REQUIRED — index the diagonal by the rows the design uses, and make the
+   "not checked" branch mean what its comment says.** Replace the
+   `seq_len(nrow(precision))` fallback (`R/methods.R:4902-4907`) with
+   `unique(phylo_mu$observation_node_index)` (present on every structured
+   builder: `R/drmTMB.R:14111`, `14216`, the spatial builder, `14520`), keeping
+   `species_node_index`/`tip_node_index` as the fallback and returning `NA` when
+   no row index exists at all. Measured justification:
+   `phylo_interaction()`'s `q == 1` Kronecker block reports
+   `range(diag(solve(Q))) = [0.505448, 1]` -> `FALSE` today, while its 30 used
+   rows are exactly `[1, 1]`. Then fix the two places that currently record the
+   wrong rule: the comment at `R/methods.R:4877-4879` (it claims such a block
+   reports "not checked"; it does not), and the guard test at
+   `tests/testthat/test-dinnage-audit-s2.R:398-406`, which should keep asserting
+   that a genuinely non-unit matrix is refused but should stop citing
+   `phylo_interaction()` as the case it mirrors. Latent, not user-visible today —
+   the Gaussian grammar gate refuses `sigma ~ phylo_interaction(...)` — but it is
+   the exact defect this commit exists to remove, and the suite currently blesses
+   it.
+2. **REQUIRED — bring the two contract lines in line with the code.**
+   (a) `NEWS.md:91-94` claims every clamp-active fit gives `NA`; measured
+   counterexample, a `sigma ~ 1` clamp-active fit returns `0.1652989` (correctly,
+   because the assembled predictor is constant). Narrow it to a fit whose `sigma`
+   random effect is bent. (b) `man/summary.drmTMB.Rd:80-83` and
+   `man/heritability.Rd:114-118` enumerate the refusal reasons as a closed list
+   and do not include `clamp_limited`; add it in the roxygen and regenerate, so
+   `?repeatability` names the refusal a user will actually hit.
+3. OPTIONAL — close the detector's fail-open. `R/methods.R:4762-4765` degrades a
+   failed `obj$report()` to *no refusal*, i.e. to the trusted branch. Return `NA`
+   with a "clamp state not checked" reason instead; same principle as OPTIONAL 5
+   (an unrunnable check is "not checked", never "passed").
+4. OPTIONAL — the previous round's items 5, 6, 7, 9 and 10 are all still open and
+   unchanged by this commit.
+
 ---
 
 ## Part B — documents (274, 275, S3 help page)
