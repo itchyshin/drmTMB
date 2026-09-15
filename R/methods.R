@@ -2835,6 +2835,15 @@ deviance.drmTMB <- function(object, ...) {
 #' for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
 #' If distinct labels become identical as numbers (for example, "01" and "1"),
 #' supply character or factor values to preserve their identity.
+#'
+#' For families in [drm_clamped_scale_families()], the `log(sigma)` linear
+#' predictor is soft-clamped inside the TMB likelihood to keep the objective
+#' finite. `predict(dpar = "sigma")` (and the bivariate `sigma1`/`sigma2`)
+#' reports that same clamped scale, on both `type = "link"` and
+#' `type = "response"`, so the value matches what the likelihood actually
+#' evaluated. When `check_drm()` reports the clamp active, this makes the
+#' fit's own diagnostics honest, not correct: the estimate itself is still
+#' unreliable near the clamp (see the rescaling advice there).
 #' @seealso [fitted.drmTMB()], [rho12()], [stats::sigma()], [fitted_distribution()],
 #'   [exceedance()]
 #'
@@ -2930,6 +2939,7 @@ predict.drmTMB <- function(
       )
   }
 
+  eta <- drm_clamped_sigma_eta(object, dpar, eta)
   if (type == "link") {
     return(eta)
   }
@@ -4067,6 +4077,13 @@ residuals.drmTMB <- function(
 #' modelled residual heterogeneity scale, not the square root of the known
 #' sampling variance plus residual variance. Simulation and Pearson residuals
 #' combine known sampling covariance with residual scale internally.
+#'
+#' For families in [drm_clamped_scale_families()], `sigma()` reports the
+#' soft-clamped scale the TMB likelihood actually evaluated (see
+#' [predict.drmTMB()]), the same scale that [residuals.drmTMB()], `fitted()`,
+#' and `simulate()` use. When `check_drm()` reports the clamp active, this
+#' makes the fit honest about what it evaluated, not correct: the estimate
+#' itself is still unreliable near the clamp.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future scale-extractor options.
@@ -6018,6 +6035,23 @@ drm_fitted_response <- function(object) {
   )
 }
 
+# Route a sigma-type linear predictor through the same soft clamp the TMB
+# likelihood applies for scale-bearing families (Dinnage audit M2, issue
+# #1308), so predict()/sigma()/residuals()/fitted()/simulate() report the
+# scale the likelihood actually evaluated instead of the raw, unclamped
+# predictor. A no-op for every other dpar and for families the clamp does not
+# cover; see drm_clamped_scale_families() and drm_softclamp_log_sd()
+# (R/drmTMB.R).
+drm_clamped_sigma_eta <- function(object, dpar, eta) {
+  if (
+    !dpar %in% c("sigma", "sigma1", "sigma2") ||
+      !isTRUE(object$model$model_type %in% drm_clamped_scale_families())
+  ) {
+    return(eta)
+  }
+  drm_softclamp_log_sd(eta, object$model$tmb_data)
+}
+
 drm_inverse_link <- function(object, dpar, eta) {
   link <- drm_dpar_link(object, dpar)
   switch(
@@ -6700,6 +6734,7 @@ drm_marginal_predict <- function(
   if (!is.null(contrib)) {
     eta <- eta + contrib
   }
+  eta <- drm_clamped_sigma_eta(object, dpar, eta)
   if (identical(type, "link")) {
     return(eta)
   }
