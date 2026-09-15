@@ -47,7 +47,7 @@ modelled residual heterogeneity scale, not the square root of the known
 sampling variance plus residual variance. Simulation and Pearson residuals
 combine known sampling covariance with residual scale internally.
 
-For families in \code{\link[=drm_clamped_scale_families]{drm_clamped_scale_families()}}, \code{sigma()} reports the
+For families in \code{drm_clamped_scale_families()}, \code{sigma()} reports the
 soft-clamped scale the TMB likelihood actually evaluated (see
 \code{\link[=predict.drmTMB]{predict.drmTMB()}}), the same scale that \code{\link[=residuals.drmTMB]{residuals.drmTMB()}}, \code{fitted()},
 and \code{simulate()} use. When \code{check_drm()} reports the clamp active, this

@@ -2836,7 +2836,7 @@ deviance.drmTMB <- function(object, ...) {
 #' If distinct labels become identical as numbers (for example, "01" and "1"),
 #' supply character or factor values to preserve their identity.
 #'
-#' For families in [drm_clamped_scale_families()], the `log(sigma)` linear
+#' For families in `drm_clamped_scale_families()`, the `log(sigma)` linear
 #' predictor is soft-clamped inside the TMB likelihood to keep the objective
 #' finite. `predict(dpar = "sigma")` (and the bivariate `sigma1`/`sigma2`)
 #' reports that same clamped scale, on both `type = "link"` and
@@ -4078,7 +4078,7 @@ residuals.drmTMB <- function(
 #' sampling variance plus residual variance. Simulation and Pearson residuals
 #' combine known sampling covariance with residual scale internally.
 #'
-#' For families in [drm_clamped_scale_families()], `sigma()` reports the
+#' For families in `drm_clamped_scale_families()`, `sigma()` reports the
 #' soft-clamped scale the TMB likelihood actually evaluated (see
 #' [predict.drmTMB()]), the same scale that [residuals.drmTMB()], `fitted()`,
 #' and `simulate()` use. When `check_drm()` reports the clamp active, this
@@ -4739,7 +4739,11 @@ drm_constant_residual_sigma <- function(object) {
   ) {
     return(structure(NA_real_, reason = "known_residual_variance"))
   }
-  b0 <- unname(beta[[1L]])
+  # The likelihood evaluates the soft-clamped log-scale predictor for the
+  # clamped-scale families, and sigma() reports that value (Dinnage audit
+  # M2); the residual variance must sit on the same scale or summary()'s
+  # residual_sd and sigma() disagree on a clamp-active fit.
+  b0 <- drm_clamped_sigma_eta(object, "sigma", unname(beta[[1L]]))
   if (!has_sigma_random_effects(object)) {
     return(exp(b0))
   }
