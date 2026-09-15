@@ -525,3 +525,21 @@ warnings, 1 NOTE). The #1301 comment was posted
 (<https://github.com/itchyshin/drmTMB/issues/1301#issuecomment-5674554700>); all five are now posted.
 Ledger: 27 of 27 gates met. Final child count for the arc: 26 (8 Opus: F-B, F-A, and six S2b/M2
 follow-up reviews; 15 Sonnet; 3 Haiku).
+
+## Addendum 2 (2026-09-15): CI red after the close, and the merge
+
+The arc's pushes were red on the four `ubuntu-latest (release)` shards for one cause the after-task did not
+see: the capability-ledger validator pins the `R/methods.R` blob for `mc-0568/0569/0576`, and the M2/S2b
+follow-ups had changed that file after the 13 Sep recert. Recertified the prescribed way in `1410c27f8`
+(new receipt byte-identical to the old on every graded field; `source_fingerprint` untouched). The
+recert run 34965581817 then failed shard 1 on three tests that the local clean-export as-cran runs had
+passed: the S2 phylo-on-sigma fixture (20 tips × 8, omega 0.4) returned `convergence = 1` on the Linux
+runner where locally it had converged only after the "careful" optimizer escalation, and the S2 file's
+`skip_if_not_installed("ape")` sites were missing from `inst/extdata/env-skip-census.tsv`. Fixed
+tests-only in `6d63da083` (fixture 30 × 12, omega 0.6 after a seven-configuration probe: first-preset
+convergence, max |gradient| 1.7e-9, interior estimate; assertions unchanged; census re-derived). CI run
+34968481794 on `6d63da083`: all six jobs green. Merged as 8195b1215 by `tools/pr_merge_when_green.sh`
+under Shinichi's "merge #1361 when green". Two Claude sessions converged on the first fix in the same
+worktree; the second's builder stopped at its clean-tree precondition and nothing was duplicated
+(vault LESSONS 2026-09-15). Ledger for this close: `.unlazy/dinnage-3/` (15 gates); plan-vs-actual row
+`docs/dev-log/plan-actual/2026-09-15-dinnage-arc2-close.md`.

@@ -3,7 +3,7 @@
 **From:** Claude (Fable orchestrating), 2026-09-14.  **Branch:** `claude/audit-dinnage-wave1-20260913`
 in `/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`, pushed to draft PR #1361
 (head `666c1865a` at the first push of this arc; later commits listed below).  **Supersedes**
-`2026-09-13-claude-handover-dinnage-audit.md`, whose four OWED items this arc paid.
+`2026-09-13-claude-handover-dinnage-audit.md`, whose four OWED items this arc paid. **Rewritten 2026-09-15 after the merge:** §OWED is PAID and §Landing state is LANDED; read those two sections first.
 
 ## Critical context
 
@@ -33,18 +33,41 @@ Rd links · `b49ce9f70` zi-nbinom2 contract + `.Rbuildignore` · `1540d95fe` NEW
 `666c1865a` check-log · after-task `ee0f9d60c`. `R CMD check --as-cran` on a clean export of
 `d61f65183`: 0 errors, 0 package warnings, 1 NOTE (new submission).
 
-## OWED next steps (in order)
+## Next steps: none owed (the 14 September OWED list was PAID; section rewritten 2026-09-15)
 
-1. **Close the S2b follow-up-2 review**: read the "### S2b follow-up 2 (1c44d2f12)" section of the
-   review file (if absent, the review did not finish — dispatch a fresh Opus Fisher on `1c44d2f12`);
-   apply any REQUIRED items red-first; confirm the third clean-export as-cran result
-   (`scratchpad/ascran3/check.log` if the session survived, else re-run
-   `NOT_CRAN=false R CMD check --as-cran --no-manual` on a `git archive` export); push.
-2. **Post the five issue comments** (pre-authorised by Shinichi's G0 envelope; drafted at
-   `docs/dev-log/issue-drafts/2026-09-14-dinnage-wave3/` for #1307, #1308, #1312, #1315, #1301) —
-   re-read #1301's draft against the repaired S2b code first.
-3. Fill the last after-task markers (Fisher S2b follow-up-2 verdict, Melissa path) and the ledger's
-   `REVIEW:G-R-2`.
+The three items this section listed on 2026-09-14 were paid by the same lane later that day and on the
+15th, and this section was rewritten so that a reader is not sent to redo them:
+
+1. **S2b follow-up-2 review — closed.** Fisher's fresh-context review of `1c44d2f12` (ACCEPT-WITH-CHANGES)
+   and of its repair `19849f0dc` (ACCEPT-WITH-CHANGES; two stale comment sentences, applied in
+   `e2d41def9`) are in `docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md` under
+   `### S2b follow-up 2` and `### S2b follow-up 3`. Clean-export `R CMD check --as-cran` runs 3 and 4
+   (on `a16ce24b6` and `19849f0dc`): 0 errors, 0 package warnings, 1 NOTE.
+2. **Five issue comments — posted.** #1307, #1308, #1312, #1315 at 2026-09-15T03:44Z; #1301 at 04:04Z
+   (<https://github.com/itchyshin/drmTMB/issues/1301#issuecomment-5674554700>).
+3. **After-task markers and `REVIEW:G-R-2` — filled.** Addendum in
+   `docs/dev-log/after-task/2026-09-14-dinnage-audit-wave3.md`; ledger 27/27; Melissa row
+   `docs/dev-log/plan-actual/2026-09-14-dinnage-wave3.md`.
+
+**And the CI red that followed (2026-09-15).** Every wave-3 push failed the four `ubuntu-latest (release)`
+shards for one cause: the capability-ledger validator pins the `R/methods.R` blob for `mc-0568/0569/0576`,
+and eight audit commits (`0526baa2f` … `e2d41def9`) changed that file after the 13 Sep recert — "stale,
+not wrong", in the validator's own words. Recertified the prescribed way in `1410c27f8` (runner re-run,
+three TSV rows repointed, `source_fingerprint` untouched; the new receipt's graded fields are
+byte-identical to the 13 Sep receipt). CI run 34965581817 on `c612ee284`: ledger step passed.
+
+**Then shard 1 of the recert run (34965581817) failed on three tests** — not the ledger: the S2
+phylo-on-sigma fixture (20 tips × 8, true omega 0.4) returned `convergence = 1` on the Linux runner
+(locally it needed the "careful" optimizer escalation), and `test-dinnage-audit-s2.R`'s
+`skip_if_not_installed("ape")` sites were missing from `inst/extdata/env-skip-census.tsv`. Fixed
+tests-only in `6d63da083`: fixture re-sized to 30 × 12, omega 0.6 (first preset converges, max
+|gradient| 1.7e-9, interior estimate; assertions unchanged) and the census re-derived with
+`tools/write-env-skip-census.R`. CI run 34968481794 on `6d63da083` green; merged as 8195b1215
+under Shinichi's instruction "merge #1361 when green" (`tools/pr_merge_when_green.sh`).
+
+**Rule carried forward:** any branch that edits `R/methods.R` or `R/drmTMB.R` trips the same check and
+needs `tools/recertify-c17.py` run LAST before its receipt (DECISIONS, C17 note); making that blob pin
+robust is a design question, not a workflow bug.
 
 ## Recorded, not fixed (candidates for a third arc; none blocks the PR)
 
@@ -76,9 +99,10 @@ Never stage `.unlazy/`, `LOOP/notes/`, or scratch files. Ledger: `.unlazy/dinnag
 
 ## Landing state
 
-CARRIED-OVER: `claude/audit-dinnage-wave1-20260913` · draft PR #1361 · why: the S2b follow-up-2 repair `1c44d2f12` is committed but its fresh Opus review and third as-cran were still running at handover time, and the five issue comments are drafted (posting pre-authorised); merge awaits Shinichi · resume: `cd /Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1 && git pull && cat docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md`
+LANDED: `claude/audit-dinnage-wave1-20260913` · PR #1361 merged as 8195b1215 on 2026-09-15 · CI run 34968481794 green on `6d63da083` · nothing carried over from this handover. Open gates are Shinichi's alone: whether to send Russell the response map (`docs/dev-log/audits/2026-09-13-dinnage-independent-evaluation-response.md`), and whether to open a third arc from the "Recorded, not fixed" list above.
 FINDING-OF-RECORD: a "single choke point" is a hypothesis to measure, not a plan line — M2 had four surfaces and one repair was rejected at measured coverage 0  vault-note: [[journal/2026-09-14]]
 FINDING-OF-RECORD: the unlazy checker matches EXPECT literally; regex gates never pass  vault-note: [[journal/2026-09-14]]
+FINDING-OF-RECORD: a paid OWED list must be rewritten in place — left standing, it sent the next session to redo finished work; and `lane_preflight` cannot see a sibling Claude session's in-flight run in the same worktree (probe `list_sessions` + `pgrep`)  vault-note: [[memory/LESSONS]] (2026-09-15)
 
 ---
 Read AGENTS.md and docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
