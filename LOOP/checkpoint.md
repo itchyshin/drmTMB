@@ -1,4 +1,4 @@
-GOAL: see GOAL.md.   STATE: ARC COMPLETE. Branch pushed (e2d41def9) to draft PR #1361; as-cran run 4 clean; ledger 27/27; five comments posted; after-task, plan-actual, handover written. LANE: START A FRESH TASK for any third arc.
+GOAL: see GOAL.md.   STATE: ARC COMPLETE; MERGE GATE RUNNING. Shinichi: 'merge #1361 when green'. Release shards were red (ledger receipt stale) -> recertified 1410c27f8, pushed; PR ready; pr_merge_when_green.sh polling under nohup, log /tmp/merge-1361.log. Next session reads that log first.
 ARCS DONE (verified): L0; S6 note 274; S2a note 275 + S3 roxygen; DOC (document() once: 3 owned man pages only); M1a+M1b — red 43 / green 0 / regression sweep 0-0, commit fc461aae4; M2 — red (297-nat gap) / green / no regressions, commit 0526baa2f; F-B review Part B written (docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md); vault D-266/D-267.
 ARC IN PROGRESS: none.
 NEXT: none owed. Shinichi decides merge / message to Russell / a third arc (handover §OWED).
