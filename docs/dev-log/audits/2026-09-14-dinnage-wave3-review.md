@@ -978,6 +978,321 @@ Still raw, measured or read:
 
 ---
 
+### M2 follow-up 2 (e86359fe2)
+
+VERDICT: ACCEPT-WITH-CHANGES — the rejected defect is genuinely gone (no
+zero-width unflagged interval survives, `std.error` and the endpoints now
+refer to the same quantity, and the `NA`-into-clamp crash path is removed by
+deleting the clamp call rather than by guarding it), but the refusal rule is a
+data-dependent selection on the *estimate*, and I measure that the intervals it
+keeps and labels `"wald"` under-cover progressively near the band edge
+(0.985 -> 0.882 over 996 replicates) while the unconditional raw interval is
+0.98 everywhere; that unmeasured selection cost, a help sentence that justifies
+the rule with a flatness claim false at its own boundary, and a public
+`conf.status` table that does not list the new value are what still need fixing.
+
+Reviewed at `e86359fe2` on the worktree
+`/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`; `HEAD` had
+already advanced to `d61f65183` while this review ran, and where that matters it
+is said in place. Probe scripts: `scratchpad/f2-probe1.R`, `f2-probe2.R`,
+`f2-probe3.R`, `f2-scope.R`, `f2-re.R`, `f2-neg.R`, `f2-cov.R`, `f2-cov2.R`.
+
+#### Mechanism — is "raw eta outside `[lo, hi]`" the right definition of clamp-bent?
+
+**As a definition of "the clamp touched this row", it is exact, not a
+threshold.** Re-derived from `drm_softclamp_log_sd()`
+(`R/drmTMB.R:23037-23059`): the function assigns only under `x > hi` and
+`x < lo`, so it is the *identity* on the closed band, and `c'(eta)` is
+`sech^2((eta-hi)/m)` above, `sech^2((lo-eta)/m)` below, `1` inside — continuous
+and equal to 1 at each knot. So "raw eta outside `[lo, hi]`" is the exact
+support of the clamp's action, and `predict_parameters_clamp_bent()`
+(`R/predict-parameters.R:376-402`) agrees with a hand classification on every
+row I checked: 200/200 on the Gaussian fixture, 150/150 on a `biv_gaussian`
+`sigma1` fit, 250/250 on an `nbinom2` dispersion fit. Evidence.
+
+**But the rule's justification in the help text is false at its own boundary.**
+The new roxygen (`R/predict-parameters.R:32-33`) says the endpoints are `NA`
+because "the likelihood is flat with respect to that row's unclamped
+predictor". Measured on the test file's own fixture (`m2_wald_fixture()`,
+band `c(-1, 1)`, margin `0.3`, 100 of 200 rows bent), `c'(eta)` over the bent
+rows runs from `0` to `0.9993`:
+
+| `c'(eta)` among the 100 bent rows | count |
+| --- | --- |
+| `> 0.99` | 3 |
+| `> 0.95` | 11 |
+| `> 0.90` | 13 |
+| `> 0.50` | 28 |
+
+and 18 of the 100 bent rows are moved by the clamp by **less than 0.1 of their
+own `se_link`** (11 by less than `1e-3` on the link scale). The likelihood is
+not flat at those rows; the clamp is numerically invisible there. A
+derivative-based rule (`bent` when `c' < t`) would admit them, but it would
+only move the cliff, not remove it. The defensible statement is the one about
+the *estimand*, not about flatness: the clamp bent that row, so a Wald interval
+built on the raw predictor is not an interval for the reported (clamped)
+quantity, and where the bend is strong no Wald interval exists at all. Fix the
+sentence, keep the rule.
+
+**Does refusing rows just outside the band lose anything? Measured: yes, and in
+a way the test cannot see.** Honest DGP — true `sigma(x) = exp(1.6x)`
+**unclamped**, band `c(-1, 1)` margin `0.3` as a numerical guard, `n = 200`,
+996 usable replicates, link scale, `scratchpad/f2-cov2.R`. `cov_RAW_all` is the
+raw-eta Wald interval evaluated on *every* replicate; `cov | KEPT` is the same
+interval restricted to the replicates in which the shipped rule actually
+returns it (`conf.status == "wald"`):
+
+| true `eta` | inside band? | refusal rate | `cov_RAW_all` | n kept | `cov \| KEPT` (± se) |
+| --- | --- | --- | --- | --- | --- |
+| 0.880 | yes | 0.274 | 0.981 | 723 | 0.985 ± 0.005 |
+| 0.960 | yes | 0.525 | 0.982 | 473 | 0.979 ± 0.007 |
+| 1.000 | at edge | 0.680 | 0.982 | 319 | 0.969 ± 0.010 |
+| 1.040 | no | 0.780 | 0.984 | 219 | 0.959 ± 0.013 |
+| 1.088 | no | 0.885 | 0.985 | 115 | 0.930 ± 0.024 |
+| 1.120 | no | 0.932 | 0.984 | 68 | **0.882 ± 0.039** |
+| 1.200 | no | 0.992 | 0.984 | 8 | 0.250 ± 0.153 |
+
+Three readings, in descending strength.
+
+1. **The refusal is conditioned on the estimate, so it truncates the sampling
+   distribution of the intervals that survive.** The unconditional raw interval
+   is well calibrated at every row (0.981-0.985 against a nominal 0.95 — mildly
+   conservative, honestly so). Restricted to the rows the shipped rule keeps and
+   labels `"wald"`, coverage falls monotonically across seven grid points to
+   0.882 at `eta = 1.12` and 0.25 at `eta = 1.20`. The single worst point rests
+   on 68 kept replicates (1.7 se below nominal) and the 8-replicate point is
+   anecdote, but the **monotone trend over 996 fits with an obvious mechanism**
+   is not: keeping an interval only when the point estimate landed inside the
+   band systematically keeps the replicates whose estimate was pulled toward the
+   band and away from the truth. This is a *new* defect relative to
+   pre-2a5b0665e behaviour, which had no selection and covered at 0.98
+   everywhere. The `"wald"` label is an inference claim of nominal coverage; on
+   the near-edge rows the selected ensemble does not deliver it.
+2. **The two options the previous review sanctioned are not equivalent, and the
+   commit took the weaker one on coverage.** Option 2 — raw endpoints everywhere
+   plus an advisory `clamp_active` flag — has no selection effect by
+   construction. I am not asking for the change (option 1 is defensible on the
+   grounds that a refusal cannot mislead and a wrong number can, and it matches
+   `profile()`'s existing vocabulary), but the cost must be recorded rather than
+   assumed away.
+3. **The availability cost lands hardest on rows that are not saturated.** At
+   `eta_true` of 0.96 and 1.00 — inside or exactly at the band — 52% and 68% of
+   replicates return no interval. A user asking about a covariate value whose
+   true scale is inside the guard band gets "not available" the majority of the
+   time, decided by sampling noise in `beta_sigma`.
+
+**The estimate/interval pairing is the prescribed one, and the help says so —
+barely.** Verified on the fixture: on bent rows `estimate` equals
+`clamp(raw eta)` exactly (`all.equal` TRUE) and is *not* the raw eta, on both
+scales, while `conf.low`/`conf.high`/`std.error` are `NA`. That is exactly what
+item 1 asked for. The roxygen conveys it only through the parenthetical
+"the reported (clamped) quantity" (`R/predict-parameters.R:33-34`); the help
+page never states plainly that the `estimate` column for a `sigma` dpar is the
+clamped scale the likelihood evaluated rather than `exp(eta)`.
+
+**Also verified, on the committed tree:** with `newdata`, `predict()`'s link
+estimate equals `clamp(basis$eta)` to machine zero even for `sigma ~ x + (1|id)`
+(max abs difference 0, vs 4.59 against the raw `basis$eta`), so the flag is
+computed on the same predictor the estimate comes from; and containment holds on
+every kept row of that fit (0 violations of 111).
+
+#### Negative control
+
+`scratchpad/pp-repair-red.txt` is a genuine red for items 1-3, and I checked
+each failure against 2a5b0665e's formula rather than trusting the label.
+
+* Failures 1-8 (`test-dinnage-audit-m2.R:231-244`): status `"wald"` and non-`NA`
+  endpoints on all 100 clamp-bent rows. That is what
+  `conf.status = ifelse(ok, "wald", "wald_unavailable")` had to produce. Right
+  reason.
+* Failures 9-10 (`:307-308`): the in-band endpoint mismatch. I recomputed the
+  old map by hand — `hi + m*tanh((x-hi)/m)` / `lo - m*tanh((lo-x)/m)` at
+  `lo = -1, hi = 1, m = 0.3` — on the four numbers printed in the red proof:
+  `-1.102272 -> -1.098486`, `-1.017310 -> -1.017291`, `1.083449 -> 1.081361`,
+  `1.127844 -> 1.120629`. All four reproduce the red's `actual` column to six
+  decimals. So the old code bent the *endpoint* even on rows whose own eta was
+  in the band, and that is precisely why those rows failed. Right reason, exactly.
+* Failures 11-12 (`:315,317`): a clamp-bent row labelled `"wald"`, and a
+  zero-width `"wald"` interval. The two defects the previous review named. Right
+  reason.
+
+**Item 4 has no negative control, and did not need one.** The third new block
+(`:337-364`, the `se = FALSE` fit) passed on 2a5b0665e as well — the trailing
+dots in the red proof's progress line. I confirmed why: with `se = FALSE`,
+`drm_fixed_effect_basis(covariance = TRUE)` *errors*
+("Fixed-effect covariance is unavailable because `TMB::sdreport()` was skipped"),
+so `predict_parameters_interval()` exits at the early `wald_unavailable` return
+(`R/predict-parameters.R:293-298`) and never reaches the clamp at all. The test
+therefore exercises a path that was already safe. The real repair for item 4 is
+better than the guard that was asked for: the commit **removes the
+`drm_softclamp_log_sd()` call from the interval path entirely**, so the crash is
+structurally unreachable, not merely masked. (The underlying helper is still
+`NA`-unsafe — `drm_softclamp_log_sd(c(0, NA, 2), band c(-1,1,0.3))` still
+errors "NAs are not allowed in subscripted assignments" — but its remaining
+callers are fed etas that are validated finite upstream. **UNVERIFIED** whether
+any reachable path feeds it an `NA`.)
+
+**Green, re-run in this worktree at `e86359fe2`:** `test-dinnage-audit-m2.R`
+42 assertions, 0 failures. Neighbours also green and unregressed:
+`test-predict-parameters.R` (80), `test-marginal-parameters.R` (30),
+`test-plot-parameter-surface.R` (46), `test-distributional-outputs.R` (33).
+
+**What the green does not cover.** (a) No assertion measures coverage, width, or
+availability — the new selection effect above is invisible to the suite, exactly
+as the previous round's regression was. The item-3 assertion
+(`widths >= 1e-6`) is the right shape but it only rules out the *previous*
+failure mode. (b) Only `gaussian` is exercised. I closed that by hand, not in
+the suite: `biv_gaussian` `sigma1` flags 92/150 rows and `nbinom2` `sigma`
+flags 13/250, both matching an independent hand classification exactly.
+
+#### Contract
+
+**The roxygen is the source of truth, and at `e86359fe2` it was not what
+ships — since repaired downstream.** `git show e86359fe2:man/predict_parameters.Rd`
+contains no occurrence of "clamp": the commit changed the roxygen without
+running `devtools::document()`, so as committed the entire new contract was
+invisible at `?predict_parameters`. It was regenerated two commits later, as a
+side effect of `d61f65183` (`man/predict_parameters.Rd`, +12 lines), and the
+current `HEAD` Rd carries the clamp paragraph verbatim. Recorded rather than
+required: the defect is real in the commit under review and already discharged
+in the branch.
+
+**The new status is properly registered, which is the part that is right.**
+`clamp_limited` is already in `interval_status_levels()`
+(`R/profile.R:1442-1457`) and `not_available` in `interval_source_levels()`
+(`:1459`), so `plot_parameter_surface()` excludes those rows from ribbons
+without any change (`R/plot-parameter-surface.R:342-366`) and the four
+neighbouring test files stay green. Reusing `profile()`'s vocabulary was the
+right call.
+
+**But the public vocabulary table does not list it.**
+`vignettes/articles/model-workflow.Rmd:509-521` is the canonical "read
+`conf.status` as an action column" table — the one
+`vignettes/first-week-intervals.Rmd:141-145` sends readers to. It lists 11 of
+the 12 `interval_status_levels()` values. The only one missing is
+`clamp_limited`, and this commit is what makes it reachable from a second public
+surface.
+
+**`R/predict-parameters.R:23-25` is accurate again.** "Response-scale intervals
+use the model link and a delta method standard error" was false under
+2a5b0665e; with the raw endpoints and the derivative back at the raw eta it is
+true once more for every row that returns an interval. Previous OPTIONAL item 9
+is discharged.
+
+**NEWS: the sentence under review is not in the commit.** `e86359fe2` touched
+two files (`R/predict-parameters.R`, `tests/testthat/test-dinnage-audit-m2.R`);
+`git show e86359fe2:NEWS.md` has no wave-3 M2 bullet at all. The text quoted in
+my brief lives only in the **uncommitted** working-tree `NEWS.md` (lines 36-64).
+Judged as a draft, it is honest about the history — it names the zero-width
+collapse and the measured coverage 0, and it does not repeat 2a5b0665e's
+containment framing. It is silent on the one thing a user needs to plan around:
+**which** rows lose their interval, and that the loss is decided by where the
+estimate landed, not by where the truth is.
+
+#### Scope
+
+**Inside `R/predict-parameters.R`, nothing else bypasses the flag.** Traced all
+four early returns (`:262-299`): `not_requested`, `newdata_required`
+(so fitted-row calls never produce an interval at all, clamp or no clamp),
+`is_random_scale_dpar` -> `wald_unavailable` (so `sd(group)` needs no
+`clamp_limited` analogue), and the basis-error `wald_unavailable`. The single
+`"link"`/`"response"` branch at `:334-352` is the only place endpoints are
+built, and both arms are masked by `!ok | clamp_bent` at `:355-357`. `mu`,
+`nu`, `rho12`, `zi`, `hu` correctly never flag, matching the kernel, which
+soft-clamps only `log_sigma`/`log_sigma1`/`log_sigma2` and the direct-SD
+predictor. There is no separate "quantile" branch in this file; the quantile and
+centile surfaces (`R/distributional-outputs.R`, `R/family-dpq.R:1270`) and
+`marginal_parameters()` (`R/marginal-parameters.R:86`) all call
+`predict_parameters()` with `conf.int` left at `FALSE` and read only `estimate`,
+which is the clamped value — consistent, and they overwrite `conf.status` with
+`not_requested` (`R/marginal-parameters.R:153`), so no status is silently
+propagated.
+
+**One residual asymmetry, stated not fixed.** 11 of the 100 *kept* rows on the
+fixture have a raw Wald endpoint lying outside the band, so an interval labelled
+`"wald"` reaches into a region the likelihood cannot evaluate as a scale. That
+is the correct interval for the raw predictor under the "band is a numerical
+guard" reading, and it is the behaviour the previous review endorsed; it is
+worth one sentence rather than a code change.
+
+**Gate mismatch between the two clamp predicates (low priority).**
+`predict_parameters_clamp_bent()` accepts `length(band) >= 2` and checks
+`anyNA(band[1:2])` (`R/predict-parameters.R:390-394`), while
+`drm_softclamp_log_sd()` requires `length(band) >= 3` and all three entries
+finite (`R/drmTMB.R:23044-23048`). A band with a non-finite margin would make
+the clamp a no-op while the flag still fired, refusing intervals with no clamp
+in force. `drm_control()` always constructs a length-3 band
+(`R/drmTMB.R:638-647`) and I measured `c(-1, 1, 0.3)` on the fixture, so I
+believe this is unreachable through the public API; **UNVERIFIED** whether a
+non-finite `logsigma_clamp_margin` can survive validation.
+
+**The `sd(group)` half of 2a5b0665e is untouched and still correct.**
+`git diff 2a5b0665e e86359fe2 -- R/methods.R R/heritability.R` is empty, and
+reading `git show e86359fe2:R/methods.R` (not the working tree, which another
+lane is editing): `predict_random_scale_dpar()` at `:6457-6472` applies
+`drm_softclamp_log_sd(eta, object$model$tmb_data)` before the `link`/`response`
+split, then `drm_exp_sd_logscale_guarded()` on the response arm — the same two
+functions in the same order as `src/drmTMB.cpp:2482-2485` and
+`sd_mu_group_values()`, gated on `use_logsigma_clamp` and not on family, which
+is correct for this predictor. Unchanged from the version accepted last round.
+
+#### Concrete change
+
+1. **REQUIRED.** Replace the "the likelihood is flat with respect to that row's
+   unclamped predictor" clause (`R/predict-parameters.R:32-33`). It is false for
+   13 of the 100 bent rows on the file's own fixture (`c' > 0.90`, up to
+   0.9993) and for the 18 rows the clamp moves by less than 0.1 `se`. Say
+   instead that the clamp bent that row, so the raw-predictor Wald interval is
+   not an interval for the reported clamped quantity, and that where the bend is
+   strong no Wald interval is defined at all.
+2. **DISCHARGED (was REQUIRED).** `e86359fe2` changed the roxygen without running
+   `devtools::document()`, so as committed the new contract never reached
+   `man/predict_parameters.Rd`. `d61f65183` regenerated it. No action; noted so
+   the pattern (roxygen edited, `document()` skipped) is visible.
+3. **REQUIRED.** Add a `clamp_limited` row to the `conf.status` action table at
+   `vignettes/articles/model-workflow.Rmd:509-521` — the only member of
+   `interval_status_levels()` it omits, and now reachable from a second public
+   surface. Action text: the clamp bent this row's predictor, so no Wald
+   interval is reported; check `check_drm()`, rescale the response or widen
+   `drm_control(logsigma_clamp = )`, and refit before interpreting the scale.
+4. **REQUIRED.** Record the availability/selection cost, in the help page and in
+   the NEWS bullet, in one sentence each: whether a row returns an interval
+   depends on where the *estimate* fell relative to the band, not on where the
+   truth is, so near the band edge a majority of rows whose true predictor is
+   inside the band will report no interval (52% at `eta_true = 0.96`, 68% at
+   1.00, measured), and the intervals that are returned there are conditioned on
+   that selection. This is the honest counterpart of the previous round's
+   "coverage 0" disclosure and it should not have to be rediscovered.
+5. **REQUIRED.** Land the NEWS bullet. The sentence this review was asked to
+   judge is not in `e86359fe2`; it is uncommitted working-tree text. As drafted
+   it is accurate about the code and about the history — amend it per item 4 and
+   commit it, so the released note and the shipped behaviour agree.
+6. **OPTIONAL but high value.** Add the coverage assertion the suite still lacks,
+   in the shape the previous review's item 3 intended but one level up: on an
+   **unclamped-truth** DGP, assert that the interval returned on rows labelled
+   `"wald"` covers at approximately nominal rate, and record the refusal rate.
+   Even a 200-replicate pinned-seed check would have caught the selection effect
+   above. Without it, the file's contract is "the code does what the code does".
+7. **OPTIONAL.** Add the two non-Gaussian cases I verified by hand:
+   `biv_gaussian` `sigma1` and one dispersion family (`nbinom2`), asserting the
+   flag matches an independent hand classification. The family gate is currently
+   exercised on 1 of `drm_clamped_scale_families()`'s 14 entries in the suite.
+8. **OPTIONAL.** Rename the `se = FALSE` block (`test-dinnage-audit-m2.R:337`)
+   so it does not read as the red for item 4. It passes on both trees; item 4 is
+   satisfied by deleting the clamp call from the interval path, which is
+   stronger, and the block's real value is as a regression guard on the early
+   `wald_unavailable` return.
+9. **OPTIONAL.** Make the two clamp predicates share one band-validity helper
+   (`R/predict-parameters.R:390-394` vs `R/drmTMB.R:23044-23048`), so the flag
+   can never fire on a band the clamp itself treats as disabled.
+10. **OPTIONAL.** One sentence on each of: that the `estimate` column for a
+    `sigma` dpar is the clamped scale the likelihood evaluated, not `exp(eta)`;
+    and that a kept `"wald"` interval may have an endpoint outside the band
+    (11 of 100 kept rows on the fixture), which is correct for the raw predictor
+    and should be expected rather than reported as a bug.
+
+---
+
 ## Part B — documents (274, 275, S3 help page)
 
 ### B1 — `docs/design/274-bootstrap-interval-bias.md` (S6, #1315)
