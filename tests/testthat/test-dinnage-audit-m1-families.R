@@ -295,13 +295,16 @@ test_that("M1 tweedie: a constant weight leaves the mi() MLE unchanged (Dinnage 
   # not M1: drm_build_tweedie_missing_predictor_model() sizes its fixed
   # 35-node Legendre quadrature support from a start-value dispersion
   # phi = var(x_observed) / mean(mu^power), and stats::var() divides by n - 1,
-  # so rbind(dat, dat) changes phi, the support, and hence the numerical value
-  # of the same integral (measured: 1.3 nats over 20 missing rows at
-  # identical parameters, ~1e-2 on the sigma intercept). The weights = 2 fit
-  # uses the n-row support, so the two objective-identity checks above are
-  # the exact M1 assertion here; the duplication arm only guards the gross
-  # pre-fix bias. Tracked as a separate finding (quadrature support should
-  # not depend on a moment estimate), not fixed in the M1 change.
+  # so rbind(dat, dat) changes phi (ratio 2(n-1)/(2n-1) at n_obs = 62), the
+  # support, and hence the numerical value of the same integral (measured:
+  # 1.34 nats over 20 missing rows at identical parameters, ~1e-2 on the sigma
+  # intercept, while obj_w2 == 2 * obj_w1 holds to twelve digits). At 1e-2
+  # this duplication arm PASSES on the pre-fix kernel too (m1-red-final.txt),
+  # so it is not a negative control for tweedie: the two objective-identity
+  # checks in the helper are the entire M1 assertion for this family. The
+  # start-value-frozen support is a separate likelihood-validity finding
+  # (the integral is silently truncated if the fitted sigma outgrows it),
+  # recorded in NEWS and the after-task, not fixed in the M1 change.
   run_mi_weight_invariance(fit_fn, dat, dup_tolerance = 1e-2)
 })
 
