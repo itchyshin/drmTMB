@@ -1,0 +1,18 @@
+issue	id	shas	on_main	news_wave	news_excerpt
+1306	C1	328507d59 9b4fec4fa	yes	Independent-evaluation fixes (wave 1)	`drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active` row) now detects the LOWER `log(sigma)` clamp arm, not just the upper one.
+1307	M1	bb7b0de8b fc461aae4	yes	Independent-evaluation fixes (wave 3)	`weights()` composed with `mi()` now leaves the maximum-likelihood estimate unchanged under a constant reweighting for EVERY imputation family, not only the Bernoulli one repaired in wave 1.
+1308	M2	0526baa2f 2a5b0665e e86359fe2 d61f65183	yes	Independent-evaluation fixes (wave 3)	`sigma()`, `predict(dpar = "sigma")` (both `type = "link"` and `"response"`), `residuals()`, `fitted()` and `simulate()` now report the soft-clamped scale the likelihood actually evaluated for every family in `drm_clamped_scale_families()`.
+1309	M3	61db027b0	yes	none	none
+1310	M4	90afa4b6a eb122ea31	yes	Independent-evaluation fixes (wave 2)	`simulate()` now returns `NA` at masked missing-response rows for every family, matching `residuals()`.
+1311	S1	769a4e409	yes	Independent-evaluation fixes (wave 2)	`fitted_distribution()`'s `$p()` and `$d()` recycle a scalar threshold across every row for the zero-inflated, hurdle and truncated count families; they previously returned row 1's value only.
+1312	S3	d44a495be	yes	Independent-evaluation fixes (wave 3)	`?drm_phylo_penalty` now describes the estimator the package actually reports.
+1313	S4	797c0c067	yes	Independent-evaluation fixes (wave 2)	`vcov(fit, type = "robust")` (and `robust = TRUE`) now aborts with class `drmTMB_vcov_robust_unsupported` and says what to try instead; it used to return the model-based matrix silently.
+1314	S5	7c1f248fa	yes	Independent-evaluation fixes (wave 2)	`AIC()` and `BIC()` called with a drmTMB fit and a foreign model (for example an `lm` fit) return the standard one-row-per-model data frame; they used to drop the foreign model and return a bare scalar.
+1318	Md-A	0acc4a477	yes	Independent-evaluation fixes (wave 1)	`drm_clamped_scale_families()` (and hence `check_drm()`'s `logsigma_clamp_active` row) now names `biv_lognormal` and `biv_student`, not just `biv_gaussian`.
+1321	Md-D	7c061c8a9	yes	Independent-evaluation fixes (wave 1)	`mi()` is now rejected with an error on every formula parameter except `mu`.
+1322	Md-E	36f903a60 743024b8b	yes	Independent-evaluation fixes (wave 1)	An unused factor level (for example, left over after `subset()` without `droplevels()`) no longer zeroes out every fixed-effect standard error.
+1330	Md-M	813294ac0 743024b8b	yes	Independent-evaluation fixes (wave 1)	`skew_normal()` now uses the package's own tail-safe `drm_log_pnorm()` (already used by the binomial probit link) for its skew-CDF factor, instead of flooring `pnorm(...)` with `+ 1e-300`.
+1331	Md-N	fad47e21a	yes	Independent-evaluation fixes (wave 1)	`check_drm()`'s `dropped_rows` row now reflects rows the experimental MSPL estimator discarded because of a zero frequency weight, not just rows dropped by complete-case or known-covariance filtering.
+1347	Mi-9	46eec76bd	yes	Independent-evaluation fixes (wave 1)	The `default:` branch of `drm_response_log_density()` (`src/drm_response_kernels.h`) now calls `error()` instead of silently returning `Type(0.0)` (a likelihood contribution of 1) for an unhandled `model_type`.
+1352	Mi-14	743191f8b	yes	none	none
+1301	S2	3192db3f6 1c44d2f12 19849f0dc	yes	Independent-evaluation fixes (wave 3)	`summary()$derived` and the `heritability()`/`icc()`/`repeatability()` accessors now use the marginal residual variance when `sigma` carries random intercepts.

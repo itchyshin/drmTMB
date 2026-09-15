@@ -242,3 +242,45 @@ issues as comments instead: S2 → #1301 (repeatability scale, D-252) and the `a
 | UX-3 | [#1358](https://github.com/itchyshin/drmTMB/issues/1358) |
 | UX-4 | [#1359](https://github.com/itchyshin/drmTMB/issues/1359) |
 | UX-5 | [#1360](https://github.com/itchyshin/drmTMB/issues/1360) |
+
+## Closed on GitHub (2026-09-15)
+
+Sixteen issues were closed on 2026-09-15 with an evidence comment each (commit sha on `origin/main`
+and the NEWS.md bullet that credits the finding). Drafts, Rose's review and the posted URLs sit in
+`docs/dev-log/issue-drafts/2026-09-15-dinnage-closeout/` (`EVIDENCE.tsv`, `REVIEW.md`, `CLOSED.tsv`).
+Every fix landed through PR #1361 (`8195b1215`, merged 2026-09-15) except Mi-14, which `743191f8b`
+fixed on 2026-08-30, after the report's pin but before the issue was filed. Two closes are not code fixes
+and their comments say so: S3 (#1312) is decision D-266, documented in `d44a495be`; M3 (#1309) no longer
+reproduces after #1130 and carries a regression lock (`61db027b0`), with the absolute-tolerance design
+question unchanged. #1301 (S2) received a status comment and stays open for the D-252 vocabulary question.
+
+**By status as of 2026-09-15** (the 2026-09-13 table above is kept as the dated record):
+
+| Status | Count | IDs |
+|---|---|---|
+| FIXED | 16 | C1, M1, M2, M3 (not reproducible, locked), M4, S1, S3 (decision D-266), S4, S5, Md-A, Md-D, Md-E, Md-M, Md-N, Mi-9, Mi-14 (pre-audit) |
+| PRESENT (open) | 36 | S6 (design note 274 only), S7, S8, Md-B, Md-C, Md-F, Md-G, Md-H, Md-I, Md-J, Md-L, A-2 to A-8, Mi-1 to Mi-8, Mi-10 to Mi-12, Mi-15, Mi-16, Mi-bundle, UX-1 to UX-5 |
+| MOVED (open) | 1 | Mi-13 |
+| UNCLEAR, a decision (open) | 1 | Md-K |
+| Comment only, not a Dinnage-labelled issue | 1 | S2 on #1301 (fix landed; issue open) |
+
+Closed: 16. Open with the `audit-dinnage` label: 39.
+
+| Issue | ID | Closing evidence |
+|---|---|---|
+| [#1306](https://github.com/itchyshin/drmTMB/issues/1306) | C1 | `328507d59`, `9b4fec4fa` |
+| [#1307](https://github.com/itchyshin/drmTMB/issues/1307) | M1 | `bb7b0de8b`, `fc461aae4` |
+| [#1308](https://github.com/itchyshin/drmTMB/issues/1308) | M2 | `0526baa2f`, `2a5b0665e`, `e86359fe2`, `d61f65183` |
+| [#1309](https://github.com/itchyshin/drmTMB/issues/1309) | M3 | not reproducible after #1130; lock `61db027b0` |
+| [#1310](https://github.com/itchyshin/drmTMB/issues/1310) | M4 | `90afa4b6a`, `eb122ea31` |
+| [#1311](https://github.com/itchyshin/drmTMB/issues/1311) | S1 | `769a4e409` |
+| [#1312](https://github.com/itchyshin/drmTMB/issues/1312) | S3 | decision D-266; `d44a495be` |
+| [#1313](https://github.com/itchyshin/drmTMB/issues/1313) | S4 | `797c0c067` |
+| [#1314](https://github.com/itchyshin/drmTMB/issues/1314) | S5 | `7c1f248fa` |
+| [#1318](https://github.com/itchyshin/drmTMB/issues/1318) | Md-A | `0acc4a477` |
+| [#1321](https://github.com/itchyshin/drmTMB/issues/1321) | Md-D | `7c061c8a9` |
+| [#1322](https://github.com/itchyshin/drmTMB/issues/1322) | Md-E | `36f903a60`, `743024b8b` |
+| [#1330](https://github.com/itchyshin/drmTMB/issues/1330) | Md-M | `813294ac0`, `743024b8b` |
+| [#1331](https://github.com/itchyshin/drmTMB/issues/1331) | Md-N | `fad47e21a` |
+| [#1347](https://github.com/itchyshin/drmTMB/issues/1347) | Mi-9 | `46eec76bd` |
+| [#1352](https://github.com/itchyshin/drmTMB/issues/1352) | Mi-14 | `743191f8b` (pre-audit) |
