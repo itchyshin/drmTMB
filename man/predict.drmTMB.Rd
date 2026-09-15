@@ -89,6 +89,15 @@ present in the new batch. Numeric new values match raw numeric fitted labels;
 for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
 If distinct labels become identical as numbers (for example, "01" and "1"),
 supply character or factor values to preserve their identity.
+
+For families in \code{drm_clamped_scale_families()}, the \code{log(sigma)} linear
+predictor is soft-clamped inside the TMB likelihood to keep the objective
+finite. \code{predict(dpar = "sigma")} (and the bivariate \code{sigma1}/\code{sigma2})
+reports that same clamped scale, on both \code{type = "link"} and
+\code{type = "response"}, so the value matches what the likelihood actually
+evaluated. When \code{check_drm()} reports the clamp active, this makes the
+fit's own diagnostics honest, not correct: the estimate itself is still
+unreliable near the clamp (see the rescaling advice there).
 }
 \examples{
 dat <- data.frame(

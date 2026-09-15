@@ -94578,3 +94578,41 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+
+### 2026-09-14 — Dinnage audit, second arc (branch `claude/audit-dinnage-wave1-20260913`, draft PR #1361)
+
+- Commits of the arc: `fc461aae4` M1 (eleven non-Bernoulli `mi()` sites), `0526baa2f` M2, `2a5b0665e`
+  and `e86359fe2` M2 follow-ups (`predict_parameters()` → `clamp_limited`; `sd(group)` predictor),
+  `3192db3f6` S2b (marginal residual variance), `4ae2f5d99` S2b follow-up (measured diagonal, phylo
+  label prefix), `d61f65183` residual_sd clamp consistency + Rd links, `d44a495be` S3 help page,
+  `37b5d7ce6` design notes 274/275, `b49ce9f70` zi-nbinom2 contract + `.Rbuildignore`,
+  `1540d95fe` NEWS + clamp_limited docs.
+- Red-first evidence per new test, saved in the session scratchpad and summarised in
+  `docs/dev-log/after-task/2026-09-14-dinnage-audit-wave3.md`: M1 43 failures on the pre-fix `.so`
+  (all eleven families) → 0; M2 297-nat log-likelihood gap, Pearson SD 2.02 → green; S2b median 0.76
+  vs marginal 1.01 → green; every follow-up repair red-first as well.
+- Fresh-context Opus (Fisher) reviews of every diff: `docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md`
+  (Part B: 274, 275, S3 — ACCEPT-WITH-CHANGES ×3, CONCUR on S2b; Part A: M1, M2, S2b, S2b follow-up —
+  ACCEPT-WITH-CHANGES; M2 follow-up `2a5b0665e` — REJECT on clamped endpoints, superseded by
+  `e86359fe2` — ACCEPT-WITH-CHANGES). Every REQUIRED item applied or recorded.
+- `R CMD check --as-cran --no-manual` (`NOT_CRAN=false`) on a `git archive` clean export:
+  run 1 on `2a5b0665e` — 1 ERROR (a zi-nbinom2 test pinned the raw sigma scale under extrapolation),
+  2 WARNINGs (Rd links to an internal function; tracked `tools-scratch` at top level), 2 NOTEs (new
+  submission; tracked `.scratch`); run 2 on `d61f65183` — **0 errors, 0 package warnings, 1 NOTE**
+  (new submission); the one remaining WARNING is the environment's missing `checkbashisms` script.
+  Tests OK (44 s), vignette re-build OK (64 s). Later commits are NEWS/docs only.
+- Targeted suites after each fix (`load_all`): mi()/missing-data/dinnage-audit sweep 0/0; M2
+  clamp/residual/simulate/predict 0/0; S2 heritability/summary/derived 467 → 687 passed, 0 failed.
+- Not covered (recorded, not fixed): Gaussian latent `mi()` route weight invariance; Tweedie
+  start-value-frozen quadrature support; raw-predictor consumers in `profile()`, the Julia bridge,
+  `summary_parameter_delta_derivative()`, and `check_drm()`'s clamp detector; Wald coverage
+  0.910/0.928 of the variance-ratio accessors (predates); S6 code.
+- Post-review repairs, same evening: `1c44d2f12` (S2b follow-up 2: design-row diagonal, clamp-active
+  refusal) and `19849f0dc` (index by `observation_node_index`, NA when unindexed; reason lists name
+  `clamp_limited`). Clean-export as-cran run 3 on `a16ce24b6` (after `1c44d2f12`): identical to run 2 —
+  0 errors, 0 package warnings, 1 NOTE; tests OK (44 s), vignettes OK (63 s). Run 4 on `19849f0dc`
+  (after the design-row index fix): identical — 0 errors, 0 package warnings, 1 NOTE; tests OK (44 s),
+  vignettes OK (63 s). The two commits after it (`a03eb0938`, `e2d41def9`) are comments, help text,
+  NEWS wording and the review file only. Fisher's review chain on S2b closed at `19849f0dc`
+  (ACCEPT-WITH-CHANGES; the one REQUIRED item, two stale comment sentences, applied in `e2d41def9`).
+  Ledger `.unlazy/dinnage-2`: all 27 gates met.

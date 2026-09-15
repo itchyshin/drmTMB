@@ -608,6 +608,31 @@ check_logsigma_clamp_active <- function(object) {
       "The log(sigma) clamp is not active at the optimum."
     ))
   }
+  # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps
+  # warning strength: a scale running to +Inf is artificial convergence. The
+  # lower arm is a note: sigma -> 0 is a legitimate result when the residual
+  # scale is genuinely zero (for example a meta-analysis at tau = 0), but the
+  # same arm also fires when the response sits on a very small numeric scale
+  # and the scale coefficients are badly wrong, so it must not be silent.
+  if (identical(info$arm, "lower")) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "note",
+      format_check_number(info$value),
+      sprintf(
+        paste(
+          "The fitted log(sigma) reached %.2f, below the clamp band lower bound %g;",
+          "the scale ran to the lower clamp. This is expected when the residual",
+          "scale is genuinely zero (for example a meta-analysis with tau = 0), but",
+          "it also happens when the response is on a very small numeric scale and",
+          "the scale coefficients are wrong: compare sigma() with the spread of the",
+          "response and consider rescaling the response before refitting."
+        ),
+        info$value,
+        info$lo
+      )
+    ))
+  }
   check_row(
     "logsigma_clamp_active",
     "warning",
@@ -818,9 +843,11 @@ check_hessian_conditioning <- function(object) {
       NA_character_,
       paste(
         "Hessian conditioning is unavailable because this fit has no",
-        "TMB::sdreport() object (drm_control(se = FALSE) was used, or",
-        "sdreport() failed); refit with drm_control(se = TRUE) to compute",
-        "fixed-effect covariance."
+        "TMB::sdreport() object: either drm_control(se = FALSE) was used, or",
+        "sdreport() failed. If se = TRUE was already in force (the default),",
+        "the design is usually rank-deficient: look for a duplicated predictor",
+        "column or a factor level with no observations (drmTMB drops unused",
+        "levels on entry since the Dinnage audit, Md-E), then refit."
       )
     ))
   }

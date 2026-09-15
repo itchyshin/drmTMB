@@ -282,6 +282,16 @@ drmTMB <- function(
   if (!is.data.frame(data)) {
     cli::cli_abort("{.arg data} must be a data frame.")
   }
+  # An unused factor level (e.g. left over from a `subset()` without
+  # `droplevels()`) gives a design-matrix column of all zeros, which makes
+  # the fit's Hessian singular: point estimates come back exactly right, but
+  # every standard error is NA (Dinnage audit Md-E). Drop unused levels from
+  # the factor columns that enter a FIXED-EFFECT design matrix, once, up
+  # front. Responses, `mi()` predictors and random-effect / structured-marker
+  # grouping variables keep their declared level sets: an ordinal response or
+  # an imputed ordinal predictor with an empty category must still reach its
+  # own "empty category" refusal rather than be silently re-levelled.
+  data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
   # `biv_student()` used to abort here for `engine = "julia"` ("the Julia route
@@ -343,6 +353,7 @@ drmTMB <- function(
     missing_control = missing_control,
     control = control
   )
+  n_rows_before_mspl_filter <- nrow(data)
   mspl_frequency_rows <- drm_mspl_filter_frequency_rows(
     data,
     weights_full,
@@ -574,6 +585,20 @@ drmTMB <- function(
       missing = missing_control
     )
   )
+
+  # check_drm()'s dropped_rows row reads spec$keep, a logical vector the
+  # family builders compute relative to the (possibly MSPL-filtered) `data`
+  # above -- so it never saw rows MSPL discarded before any builder ran, and
+  # reported "no rows were dropped" even when MSPL had discarded some
+  # (Dinnage audit Md-N). Re-express spec$keep relative to the ORIGINAL
+  # input data by threading mspl_frequency_rows$kept through: FALSE for every
+  # row MSPL discarded, and the builder's own keep value for every row MSPL
+  # kept. A no-op when MSPL is not in use (kept is then seq_len(nrow(data))).
+  if (!is.null(spec$keep)) {
+    keep_full <- rep(FALSE, n_rows_before_mspl_filter)
+    keep_full[mspl_frequency_rows$kept] <- spec$keep
+    spec$keep <- keep_full
+  }
 
   drm_fit_spec(
     spec = spec,
@@ -3497,6 +3522,8 @@ drm_clamped_scale_families <- function() {
   c(
     "gaussian",
     "biv_gaussian",
+    "biv_lognormal",
+    "biv_student",
     "student",
     "skew_normal",
     "lognormal",
@@ -3531,14 +3558,27 @@ drm_logsigma_clamp_active <- function(report, tmb_data) {
   ]
   values <- unlist(fields, use.names = FALSE)
   values <- values[is.finite(values)]
-  # Only the upper bound flags artificial convergence from a runaway scale
-  # (sigma -> Inf / overflow). The lower bound (sigma -> 0) is the variance-zero
-  # boundary, which is often a legitimate result (e.g. meta-analysis tau = 0) and
-  # is handled by the random-effect SD / scale checks in check_drm().
-  if (length(values) == 0L || !any(values > hi)) {
+  # Both bounds are reported. The UPPER arm stays a warning-strength signal: it
+  # flags artificial convergence from a runaway scale (sigma -> Inf / overflow).
+  # The LOWER arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
+  # tau = 0), so callers should report it as a note rather than a warning -- but
+  # it must be reported, because the same lower-clamp arm also fires when the
+  # response is on a small numeric scale and the scale coefficient is badly
+  # wrong (Dinnage audit C1). Same predicate as R/profile.R:4197.
+  if (length(values) == 0L) {
     return(NULL)
   }
-  list(value = max(values), lo = lo, hi = hi)
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  list(
+    value = if (hit_hi) max(values) else min(values),
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
 }
 
 # Warn at fit time when the log(sigma) clamp is active at the optimum. The clamp
@@ -3557,7 +3597,11 @@ drm_warn_if_clamp_active <- function(obj, spec) {
     return(invisible(FALSE))
   }
   info <- drm_logsigma_clamp_active(report, spec$tmb_data)
-  if (is.null(info)) {
+  # The lower arm (sigma -> 0) is often a legitimate result (e.g. meta-analysis
+  # tau = 0); it is surfaced by check_drm() (as a note, not a warning) rather
+  # than raised as a fit-time cli warning here, to avoid warning on every
+  # variance-zero boundary fit. Only the upper (runaway-scale) arm warns.
+  if (is.null(info) || !identical(info$arm, "upper")) {
     return(invisible(FALSE))
   }
   cli::cli_warn(
@@ -10386,6 +10430,19 @@ drm_reject_phase1_terms <- function(rhs, dpar, allow_offset = FALSE) {
     cli::cli_abort(message)
   }
 
+  # mi() is legal only in the univariate mean formula (mu); on every other
+  # parameter it was previously parsed and silently discarded, since the
+  # public mi() stub is just `function(x) x` and no non-mu formula path
+  # extracts or rejects it (Dinnage audit Md-D). Checked ahead of the
+  # shared `unsupported` list below so it applies uniformly.
+  if (!identical(dpar, "mu") && formula_contains_call(rhs, "mi")) {
+    cli::cli_abort(c(
+      "{.fn mi} is not supported outside the {.code mu} formula.",
+      "x" = "The {.code {dpar}} formula contains {.fn mi}.",
+      "i" = "{.fn mi} models missing values in a predictor of the conditional mean; use ordinary covariates or drop {.fn mi} from {.code {dpar}}."
+    ))
+  }
+
   unsupported <- c("|", "meta_known_V", "meta_V", "gr", "phylo", "spatial")
   if (!isTRUE(allow_offset)) {
     unsupported <- c(unsupported, "offset")
@@ -12078,6 +12135,46 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary {.fn beta_binomial} {.code mu} random intercepts on the logit success-probability predictor; count-level overdispersion random effects need their own likelihood and recovery tests."
   ))
+}
+
+# Drop unused levels only from factor columns that appear in plain fixed-effect
+# terms of some distributional-parameter formula (Dinnage audit Md-E). A column
+# is protected -- its levels are left alone -- when it is a response (`lhs` of
+# any entry), or appears inside a random bar `(... | g)`, or inside a marker
+# call whose argument set is a declared contract (`mi()`, `phylo()`,
+# `relmat()`, `spatial()`, `meta_V()`, `precision()`). Protection wins over use
+# so a variable serving both roles is never re-levelled.
+drm_droplevels_fixed_predictors <- function(data, formula) {
+  entries <- formula$entries
+  if (is.null(entries)) {
+    return(data)
+  }
+  protected_calls <- c("mi", "phylo", "relmat", "spatial", "meta_V", "precision")
+  protect <- character(0)
+  use <- character(0)
+  for (entry in entries) {
+    if (!is.null(entry$lhs)) {
+      protect <- c(protect, all.vars(entry$lhs))
+    }
+    if (is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      term_names <- all.names(term)
+      if (is_random_bar_call(term) || any(term_names %in% c("|", "||", protected_calls))) {
+        protect <- c(protect, all.vars(term))
+      } else {
+        use <- c(use, all.vars(term))
+      }
+    }
+  }
+  cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
+  for (col in cols) {
+    if (is.factor(data[[col]])) {
+      data[[col]] <- droplevels(data[[col]])
+    }
+  }
+  data
 }
 
 is_random_bar_call <- function(expr) {

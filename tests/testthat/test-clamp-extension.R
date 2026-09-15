@@ -123,3 +123,50 @@ test_that("NB2 dispersion is clamp-guarded", {
   expect_clamp_in_band_identity(form, nbinom2(), dat)
   expect_clamp_applied(form, nbinom2(), dat)
 })
+
+test_that("drm_clamped_scale_families() names the bivariate lognormal and Student families (Dinnage audit Md-A)", {
+  # src/drmTMB.cpp clamps log_sigma1/log_sigma2 identically for model types
+  # 2 (biv_gaussian), 19 (biv_lognormal) and 20 (biv_student) -- one shared
+  # branch -- but the R-side family list previously named only biv_gaussian,
+  # so check_drm() printed the false sentence "The log(sigma) clamp does not
+  # apply to this family" for the other two.
+  families <- drm_clamped_scale_families()
+  expect_true("biv_lognormal" %in% families)
+  expect_true("biv_student" %in% families)
+})
+
+test_that("check_drm() reports the clamp as applying to biv_lognormal and biv_student (Dinnage audit Md-A)", {
+  set.seed(6301)
+  n <- 60
+  x <- stats::rnorm(n)
+  z1 <- stats::rnorm(n)
+  z2 <- 0.3 * z1 + sqrt(1 - 0.3^2) * stats::rnorm(n)
+  dat <- data.frame(
+    x = x,
+    y1 = exp(0.2 + 0.3 * x + 0.4 * z1),
+    y2 = exp(-0.1 - 0.2 * x + 0.5 * z2)
+  )
+  form <- bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)
+
+  fit_lognormal <- drmTMB(form, family = biv_lognormal(), data = dat)
+  chk_lognormal <- check_drm(fit_lognormal)
+  row_lognormal <- chk_lognormal[
+    chk_lognormal$check == "logsigma_clamp_active",
+  ]
+  expect_equal(nrow(row_lognormal), 1L)
+  expect_false(grepl("does not apply", row_lognormal$message, fixed = TRUE))
+
+  dat_t <- data.frame(
+    x = x,
+    y1 = 0.2 + 0.3 * x + 0.4 * stats::rt(n, df = 8),
+    y2 = -0.1 - 0.2 * x + 0.5 * stats::rt(n, df = 8)
+  )
+  fit_student <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1, nu = ~1),
+    family = biv_student(), data = dat_t
+  )
+  chk_student <- check_drm(fit_student)
+  row_student <- chk_student[chk_student$check == "logsigma_clamp_active", ]
+  expect_equal(nrow(row_student), 1L)
+  expect_false(grepl("does not apply", row_student$message, fixed = TRUE))
+})

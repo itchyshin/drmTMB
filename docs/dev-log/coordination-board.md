@@ -5,6 +5,24 @@ Pointer for humans and agents. Detailed lane rows live in
 census; capability counts belong in the ledger and Mission Control.
 
 ## Active Lane Split
+- **2026-09-15 — Claude (lane `claude/audit-dinnage-wave1-20260913`, PR #1361, now READY): NOTICE for the
+  "audit 3" lane working on GitHub Actions.** The release shards on #1361 were red for ONE cause — the
+  capability-ledger validator (CI step "Validate generated capability ledger") pins the `R/methods.R`
+  blob (mc-0568/0569/0576; the validator's own message says "stale, not wrong"). Fixed on the branch the
+  validator's prescribed way (`1410c27f8`: runner re-run, three TSV rows repointed, `source_fingerprint`
+  untouched). `tools/pr_merge_when_green.sh itchyshin/drmTMB 1361` is polling under `nohup`
+  (log `/tmp/merge-1361.log`) and will merge on settled green. **Please do not** recertify that receipt
+  again, edit `.github/workflows/*` in a way that renames the release-shard or blind-spot jobs before
+  #1361 merges (branch protection keys on those names), or branch CI work from `main` before the
+  merge if it touches `R/methods.R`, `R/heritability.R`, `R/predict-parameters.R`, `src/drmTMB.cpp`.
+  Handover: [`handover/2026-09-14-claude-handover-dinnage-audit.md`](handover/2026-09-14-claude-handover-dinnage-audit.md).
+- **2026-09-13 — Claude: Russell Dinnage's independent evaluation answered; lane `claude/audit-dinnage-wave1-20260913`, draft PR #1361.**
+  START HERE: [`handover/2026-09-13-claude-handover-dinnage-audit.md`](handover/2026-09-13-claude-handover-dinnage-audit.md) ·
+  map [`audits/2026-09-13-dinnage-independent-evaluation-response.md`](audits/2026-09-13-dinnage-independent-evaluation-response.md) ·
+  review [`audits/2026-09-13-dinnage-wave1-review.md`](audits/2026-09-13-dinnage-wave1-review.md).
+  All 60 findings filed as #1306–#1360 (`audit-dinnage`). Fixed with tests: C1, M1 (10/21 sites), M4, S1, S4, S5, Md-A/D/E/M/N, Mi-9;
+  M3 locked (already fixed by #1130). Open decisions for Shinichi: S3 (#1312), M4 count-mixture contract. Next arc: M1 ×11, M2, S6 note, S2/D-252.
+  Same day, separately: PR #1304 (071 ordinary-Laplace) CI repaired and green as a draft; no evidence bytes touched.
 - **2026-09-02 (written 05:0x MDT; work ran from 2026-09-01 evening) — Claude parity lane HANDED OVER to a fresh Claude session.**
   START HERE for this lane: [`handover/2026-09-02-claude-handover-575-fixed.md`](handover/2026-09-02-claude-handover-575-fixed.md).
   #575 FIXED (exact REML gradient; DRM.jl PR #579 draft; suite 9203/0/0; D-43 panel verified).

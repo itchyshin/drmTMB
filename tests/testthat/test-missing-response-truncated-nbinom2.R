@@ -93,9 +93,13 @@ test_that("MR-T5 mask equals the observed-row truncated NB2 fit", {
 
   sims <- simulate(fit_mask, nsim = 3, seed = 2026071503L)
   expect_equal(dim(sims), c(nrow(dat), 3L))
-  expect_true(all(is.finite(as.matrix(sims))))
-  expect_true(all(as.matrix(sims) >= 1))
-  expect_true(all(as.matrix(sims) == round(as.matrix(sims))))
+  # Masked rows carry NA (the package-wide masking contract, #1188; Dinnage
+  # audit M4); the draw-shape checks apply to observed rows only.
+  expect_true(all(is.na(as.matrix(sims)[!observed, ])))
+  obs_sims <- as.matrix(sims)[observed, , drop = FALSE]
+  expect_true(all(is.finite(obs_sims)))
+  expect_true(all(obs_sims >= 1))
+  expect_true(all(obs_sims == round(obs_sims)))
 })
 
 test_that("MR-T5 retains response-missing rows and drops predictor-missing rows", {

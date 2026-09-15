@@ -1,54 +1,31 @@
-# GOAL — S6 A7 family gate (IMMUTABLE — re-read at the top of EVERY arc)
-
+# GOAL — dinnage-2 (IMMUTABLE — re-read at the top of EVERY arc)
+Read this first, every cycle. Auto-compact eats messages, not this file. Unsure after a compaction?
+Re-read THIS, then checkpoint.md, then continue.
 ## Mission
-
-Ship drmTMB item 1 (#962) **one family at a time**: C++ `has_mi`
-marginalisation for a response family that currently has none, plus an
-R-side spec wire, a known-DGP recovery test, and one honest
-`missing_predictor` ledger row. This is **not** a whitelist-only edit.
-
+On branch `claude/audit-dinnage-wave1-20260913` (draft PR #1361), land the four owed Dinnage-audit items as
+surgical commits: M1 (eleven non-Bernoulli `mi()` quadrature sites weight the mixture, per-family
+invariance test), M2 (`sigma()`/`predict()`/`residuals()`/`simulate()` report the soft-clamped scale),
+S6 (design note 274, no code), S2 (design note 275 under D-252, then the exact
+`drm_constant_residual_sigma()` fix if Fisher concurs), plus the S3 help page (log-scale MAP told
+truthfully). Close with an after-task report, a Melissa plan-actual row, and a handover.
 ## Headline
-
-**First family = Gamma response × one Bernoulli `mi()` predictor.**
-Poisson is already wired (binary predictor only). #962's first unwired
-row is Gamma (`model_type` 5).
-
+M1 — the only audit finding that biases a point estimate through the likelihood; eleven sites still do.
 ## Invariants
-
-- ONE lane: `cursor/lane-s6-family-gate` at
-  `~/local-scratch/lanes/drmTMB-s6-family-gate` from `origin/main`.
-  Do **not** edit the dirty drmTMB primary checkout. Do **not** touch
-  MAG-completeness, MAG-wire, S3-grouping, or `drmTMB-s6-multi-mi`.
-- C++ `has_mi` + `drm_response_log_density` leaf **before** adding
-  `"gamma"` to `drm_missing_predictor_families()`.
-- One family only this slice. Not lognormal, student, beta_binomial,
-  or zi-*.
-- One binary predictor only (sibling of poisson/binomial/nbinom2/beta).
-- Not FIML across a SEM. Not `impute_joint`. Not k ≥ 2 on Gamma.
-- Never claim capability-status `"covered"`.
-- Explicit paths on every `git add`. NEVER `git add -A`.
-
+One lane, this worktree only. Builders never run `devtools::document()` (Ada runs it once). No builder
+recompiles `src/` while another runs `load_all` (M1b waits for M2). Every new test is shown RED on the
+pre-fix code, with the output saved. Every diff gets a fresh-context Opus (Fisher) review before it counts.
+Only the orchestrator writes NEWS.md. ≤5 live sub-agents; scouts spawn nothing. No message to Russell.
 ## Authoritative WHAT
-
-`LOOP/ultra-plan.md`. Charter:
-drmSEM `docs/memory/2026-08-26-next-arc-s6-imputation.md` A7.
-Issue: itchyshin/drmTMB#962.
-
+-> ultra-plan.md (slice table, briefs, decisions locked). This file wins on "what must never be lost".
 ## Definition of done
-
-- Gamma response accepts one `mi()` + Bernoulli `impute_model()`.
-- Manual 2-point-sum logLik identity (G2) and MCAR + MAR recovery
-  smoke (G3, honest tier).
-- Ledger row `mp-gamma-bernoulli` on the existing `missing_predictor`
-  axis.
-- Gate test `predictor_validated` updated in the same commit.
-- drmSEM consumer **not** this slice unless the engine is already
-  merged and the lift is trivial.
-
-## Out of scope
-
-- FIML / `impute_joint` / k ≥ 2 on a non-Gaussian response
-- Continuous missing predictor under Gamma
-- Lognormal / student / beta_binomial / zi-* (next families)
-- drmSEM capability `"covered"`
-- MAG / S3 grouping / dirty primary checkout
+All `.unlazy/dinnage-2` leaf gates green under `--reverify`; `R CMD check --as-cran` on a clean export
+0 errors; branch pushed to PR #1361; after-task + plan-actual + handover written; vault D-entries for
+S3 (= document) and M4 (= confirm) and AGENT_LOG appended.
+## Pre-authorisation
+Scoped edits in this worktree; load_all/test/document; one TMB recompile; as-cran on a clean export; local
+commits; push of this branch to the existing draft PR; status comments on our own issues #1307, #1308,
+#1312, #1315, #1301 drafted to files first.
+## Must stop for
+Merge; release; any public claim beyond those comments; a campaign or run >30 min other than the package
+check; M1 algebra at a site that differs from the template; a Fisher REJECT on M1b/M2/S2b that a bounded
+repair does not clear.

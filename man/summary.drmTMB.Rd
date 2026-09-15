@@ -65,8 +65,39 @@ random-effect variance plus the residual variance), which is a different
 denominator from the \code{icc()}/\code{repeatability()} accessors (focal component
 variance over that component plus the residual only); see
 \code{?heritability} and \code{docs/design/259-heritability-icc-repeatability.md}
-for the distinction. Derived confidence intervals are marked as
-unavailable until a nonlinear interval method is implemented.
+for the distinction. Both rows are computed only for Gaussian fits with an
+identity-link mean, where the latent, expected-data, and observed-data
+scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
+\emph{Genetics} 204:1281-1294) coincide, so there is no separate latent- or
+liability-scale value to distinguish. \code{residual_variance} is \code{sigma^2}
+when \code{sigma}'s fixed part reduces to a single log-link intercept; when
+\code{sigma} additionally carries an ordinary random intercept, or a
+phylogenetic random intercept with a unit-diagonal correlation (the
+default \code{phylo(...)} route), \code{residual_variance} is instead the \emph{marginal}
+residual variance \code{exp(2*b0 + 2*sum_k(omega_k^2))} -- \code{E[sigma^2]}, not the
+squared median \code{exp(2*b0)} -- where \code{omega_k} are the working-scale
+(log-SD) standard deviations of those effects. A random slope on \code{sigma},
+a structured \code{sigma} effect without a verified unit-diagonal correlation
+(measured on the rows the design uses), or a fit that carries a \code{sigma}
+random effect while the \code{log(sigma)} soft clamp bent the assembled
+predictor for at least one observation (\code{clamp_limited}; a clamp-active
+\code{sigma ~ 1} fit still returns its constant clamped scale), has no
+closed-form marginal residual variance here and is
+refused (a \code{residual_variance.message} attribute on the empty result names
+the reason, and is also shown under the (empty) derived table when
+printed); see
+\code{docs/design/275-repeatability-scale-and-residual-variance.md}. Derived
+confidence intervals are marked as unavailable until a nonlinear interval
+method is implemented.
+The derived table's \code{residual_sd} column is \code{sqrt(residual_variance)} --
+i.e. \code{sqrt(E[sigma^2]) = exp(b0 + sum_k(omega_k^2))} -- and this is a
+DIFFERENT quantity from the \code{sigma} row in the \code{parameters} component,
+which is always the conditional/median scale \code{exp(b0)}. The two coincide
+only when \code{sigma} carries no random effect; when it does, \code{residual_sd} is
+larger (e.g. 1.0144 vs a \code{sigma} row of 0.7599 on one fixture), and both
+are labelled \code{scale = "response"} because both genuinely are on the
+response scale -- they are not alternative scales of the same quantity,
+they are two different quantities.
 When \code{TMB::sdreport()} succeeds, direct response-scale parameter rows also
 include delta-method standard errors; descriptive fitted ranges and derived
 variance ratios do not.

@@ -1,5 +1,242 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave 3)
+
+* `weights()` composed with `mi()` now leaves the maximum-likelihood
+  estimate unchanged under a constant reweighting for EVERY imputation
+  family, not only the Bernoulli one repaired in wave 1. The eleven
+  `mi_family` quadrature blocks in `src/drmTMB.cpp` (ordinal, categorical,
+  beta, zero-one-beta, beta-binomial, Poisson, NB2, truncated NB2,
+  lognormal, gamma, Tweedie) multiplied `weights(i)` into each quadrature
+  node before `logspace_add()` combined them and then subtracted the
+  combined log-density with no outer weight at all; the observed-row
+  imputation-prior term was unweighted too. `weights(i)` now multiplies the
+  combined mixture log-density and the observed-row prior, so `weights = c`
+  is literal row duplication and the weighted objective is exactly `c` times
+  the unweighted one (asserted through the fitted TMB objective in the new
+  per-family test, which fails 43 times on the previous kernel). Three
+  neighbours are recorded, not fixed. (1) The Gaussian latent `mi()` route
+  (`mi_family == 0`, two blocks, `src/drmTMB.cpp` near lines 1215 and 4429)
+  and the second-covariate `has_mi2` prior (near line 1257) leave the
+  covariate-model density unweighted: for OBSERVED rows that is the same
+  one-line change as the template; for MISSING rows the covariate is a
+  Laplace-integrated latent, and weighting both terms inside the integral is
+  not the same as weighting the marginal, so that half needs its own design
+  (the exact Gaussian marginal, then weighted, is the clean route). (2) The
+  Tweedie imputation model sizes its fixed 35-node quadrature support from a
+  start-value dispersion built with `stats::var()` (n - 1), so duplicating
+  rows moves the support and the same integral evaluates about 1.3 nats
+  apart; more importantly the support is frozen at the start value, so the
+  integral is silently truncated whenever the fitted imputation scale
+  outgrows it. Its duplication test arm is therefore not a negative control
+  for Tweedie; the objective identity is. Credit: the independent
+  evaluation by Russell Dinnage (finding M1, #1307) and the review that
+  named the eleven sites.
+
+* `sigma()`, `predict(dpar = "sigma")` (both `type = "link"` and
+  `"response"`), `residuals()`, `fitted()` and `simulate()` now report the
+  soft-clamped scale the likelihood actually evaluated for every family in
+  `drm_clamped_scale_families()`. Previously the accessors returned
+  `exp(eta)` on the raw linear predictor while the TMB objective used the
+  clamped value, so on a fit where the clamp binds `sigma()` could exceed the
+  fitted scale many-fold, a hand-recomputed log-likelihood under `sigma(fit)`
+  missed `logLik(fit)` by hundreds of nats, and the Pearson residual spread
+  read about two rather than one. One internal helper now applies the clamp
+  at the two live prediction paths (`predict.drmTMB()` and the marginal
+  predictor `simulate()` uses); the fix is a no-op whenever the clamp is
+  inactive. The independent review of that change found two more raw-scale
+  consumers, repaired in follow-up commits: `predict_parameters()` built
+  its Wald interval from the raw predictor while its estimate was clamped,
+  so 60 of 200 rows on a clamp-active fit showed an estimate outside its
+  own interval; clamping the endpoints instead collapsed the interval to
+  zero width at saturated rows (measured coverage 0), so clamp-bent rows
+  now carry `NA` endpoints flagged `conf.status = "clamp_limited"`, as
+  `profile()` already does for direct SD targets, and in-band rows keep
+  the ordinary Wald interval. That refusal selects on the estimate, not
+  the truth: near the band edge the intervals that are returned are
+  conditioned on the estimate having stayed in band, and the review
+  measured their coverage falling from 0.985 to 0.882 as the true
+  predictor approached the edge (0.98 unconditional), so treat any
+  scale-parameter interval on a clamp-active fit as provisional; and
+  `predict(dpar = "sd(group)")` for a modelled
+  random-effect scale returned `exp(raw eta)` while the kernel and the
+  fit's own `sdpars` use the clamped value. Not yet aligned, and recorded
+  as follow-ups: the response-scale `profile()` output for `sigma`, the
+  Julia-bridge scale target, `summary_parameter_delta_derivative()`, and
+  `check_drm()`'s clamp detector, which does not read a modelled
+  `sd(group)` scale. Reporting the clamped value makes such a fit honest,
+  not correct: when `check_drm()` says the clamp is active, rescale the
+  response and refit. Credit: the independent evaluation by Russell
+  Dinnage (finding M2, #1308).
+
+* `summary()$derived` and the `heritability()`/`icc()`/`repeatability()`
+  accessors now use the marginal residual variance when `sigma` carries
+  random intercepts. `drm_constant_residual_sigma()` returned `exp(b0)`, the
+  median scale, so with a random intercept on `log(sigma)` of SD `omega` the
+  variance-share denominator was too small by a factor `exp(2 omega^2)`
+  (Russell measured +60.6% on the ratio at `omega = 0.8`). The residual
+  variance is now `exp(2 b0 + 2 sum(omega_k^2))`, exactly `E[sigma^2]` for
+  Gaussian random intercepts on the log scale, including a phylogenetic
+  random intercept on `sigma` under the default unit-diagonal correlation;
+  the delta-method standard error of the accessors carries the extra
+  dependence on each `omega_k` (hand-derived and package SEs agree to
+  1e-11). That change corrects WHICH quantity the interval brackets; it
+  does not make the bracket nominal: the accessors' interval is still a
+  Wald interval on a variance ratio, and the independent review measured
+  95% coverage of 0.910 with a random intercept on `sigma` and 0.928 for
+  a `sigma ~ 1` control over 500 replicates each, a shortfall that predates
+  this change (`method = "profile"` where available is the safer choice).
+  Random slopes on `sigma`, a structured effect whose correlation diagonal
+  (measured on the rows the design uses, e.g. the tips of a tree, never the
+  latent internal nodes) is not one, or a fit that carries a `sigma`
+  random effect while the `log(sigma)` soft clamp bent the assembled
+  predictor for at least one observation (the kernel clamps the assembled
+  predictor, so the closed form is no longer the moment the likelihood
+  uses; a clamp-active `sigma ~ 1` fit still returns its constant clamped
+  scale) give `NA` with a message naming why instead of the silently wrong
+  median. `summary()$derived$residual_sd` is the marginal
+  `sqrt(E[sigma^2])` while the `sigma` parameter row remains the median
+  `exp(b0)`; they coincide only when `sigma` carries no random effect. Both repeatability loci
+  are Gaussian-only, so the three-scale question of de Villemereuil et al.
+  (2016) does not arise for this number; the audit note
+  `docs/design/275-repeatability-scale-and-residual-variance.md` records
+  that non-Gaussian fits are refused by an error rather than mislabelled,
+  and that latent-scale support for them is a feature decision. Credit:
+  Russell Dinnage (finding S2, #1301) and the independent review that
+  found the accessors rebuild the residual themselves.
+
+* `?drm_phylo_penalty` now describes the estimator the package actually
+  reports. The prior on each phylogenetic SD is the documented exponential
+  (PC) prior with `P(sd > sd_u) = sd_alpha` holding exactly; the penalty is
+  evaluated on `log(sd)` with the change-of-variables Jacobian, so the
+  reported penalised `sd_phylo` is the mode in `log(sd)`, is never zero, and
+  sits at `1/rate` (0.334 at the defaults) under a flat likelihood. A
+  penalised fit must not be used to test a null of no phylogenetic signal.
+  No code or default changed (decision D-266). Credit: Russell Dinnage
+  (finding S3, #1312) and the independent review that overturned the first
+  proposed wording.
+
+## Independent-evaluation fixes (wave 2)
+
+* `simulate()` now returns `NA` at masked missing-response rows for every
+  family, matching `residuals()`. Twelve of thirteen families previously
+  returned the internal missing-response sentinel (0, or 1 for the positive
+  families) at those rows, so posterior-predictive tools such as DHARMa saw
+  fabricated observations. The zero-inflated, hurdle and truncated count
+  families were masked in a second commit after review; two tests that had
+  pinned finite draws at masked rows now assert the masking invariant.
+  Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding M4.
+* `fitted_distribution()`'s `$p()` and `$d()` recycle a scalar threshold
+  across every row for the zero-inflated, hurdle and truncated count
+  families; they previously returned row 1's value only. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding S1.
+* `vcov(fit, type = "robust")` (and `robust = TRUE`) now aborts with class
+  `drmTMB_vcov_robust_unsupported` and says what to try instead; it used to
+  return the model-based matrix silently. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding S4.
+* `AIC()` and `BIC()` called with a drmTMB fit and a foreign model (for
+  example an `lm` fit) return the standard one-row-per-model data frame;
+  they used to drop the foreign model and return a bare scalar. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding S5.
+* Finding M3 (the `fixed_gradient` row of `check_drm()` firing on correct
+  fits at large n) no longer reproduces: the Newton polish added in #1130
+  already drives every correct fit's gradient far below the tolerance. A
+  regression test now locks that behaviour at n = 2000. Finding S3 (the
+  phylogenetic SD penalty's documented prior) stays open as a design
+  decision after review; no change ships for it. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval).
+
+## Independent-evaluation fixes (wave 1)
+
+* `drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active`
+  row) now detects the LOWER `log(sigma)` clamp arm, not just the upper one.
+  Previously a scale-model fit whose raw `log(sigma)` predictor sat on the
+  lower bound (e.g. a response on a small numeric scale) was reported as
+  "the clamp is not active", even though the clamp had changed what the
+  likelihood evaluated. The fit-time `cli_warn()` still fires only for the
+  upper (runaway-scale) arm, since the lower arm is often a legitimate
+  variance-zero boundary (meta-analysis `tau = 0`). Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding C1.
+  `check_drm()` now reports the lower arm as a note whose text names the
+  lower bound and the legitimate `tau = 0` case, and the upper arm as a
+  warning (Fisher review of the fix).
+* `drm_clamped_scale_families()` (and hence `check_drm()`'s
+  `logsigma_clamp_active` row) now names `biv_lognormal` and `biv_student`,
+  not just `biv_gaussian`. `src/drmTMB.cpp` clamps `log_sigma1`/`log_sigma2`
+  identically for all three bivariate families in one shared branch, but the
+  R-side list previously named only `biv_gaussian`, so `check_drm()` printed
+  the false sentence "The log(sigma) clamp does not apply to this family"
+  for the other two. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Md-A.
+* `weights()` composed with `mi()` (missing-predictor imputation) no longer
+  moves the maximum-likelihood estimate under a constant reweighting. Ten
+  duplicate call sites in `src/drmTMB.cpp` (one per response family sharing
+  the Bernoulli-imputed, `mi_family == 1` two-point mixture) multiplied
+  `weights(i)` into each mixture leaf BEFORE `logspace_add()` combined them,
+  computing `log(p1*f1^w + p0*f0^w)` instead of the correct
+  `w*log(p1*f1 + p0*f0)`; a constant weight therefore shifted the `mi(x)`
+  coefficient. `weights(i)` now multiplies the combined mixture log-density
+  and the (previously unweighted) imputation-prior term for observed rows,
+  matching the general contract that `weights = c` is identical to literal
+  row duplication. The `drm_response_log_density()` contract comment in
+  `src/drm_response_kernels.h` is updated to spell out that "outside the
+  leaf" means outside the whole mixture, not just outside each leaf call.
+  The `mi_family` quadrature blocks for other imputed-covariate families
+  (ordinal, categorical, beta, Poisson, lognormal, gamma, NB2, Tweedie,
+  zero-one-beta, truncated-NB2, beta-binomial) share a structurally similar
+  pattern and were fixed in wave 3 (above). Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding M1.
+* `mi()` is now rejected with an error on every formula parameter except
+  `mu`. The public `mi()` marker is an identity stub (`function(x) x`), and
+  no non-`mu` formula path extracted or rejected it, so e.g. `sigma ~ mi(z)`
+  was silently parsed as an ordinary covariate and gave a bit-identical
+  logLik to `sigma ~ z` -- no error, and no missing-data handling for `z`.
+  Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Md-D.
+* An unused factor level (for example, left over after `subset()` without
+  `droplevels()`) no longer zeroes out every fixed-effect standard error.
+  The empty level's design-matrix column of all zeros made the fit's
+  Hessian singular, so estimates came back exactly right but every SE (not
+  just the empty level's) came back `NA` with a `sdreport_non_pd_hessian`
+  status, and refitting with `drm_control(se = TRUE)` -- the message
+  `check_drm()` printed -- was a no-op, since `se = TRUE` is already the
+  default. `drmTMB()` now drops unused levels from the factor columns that
+  enter a fixed-effect design matrix, once, up front; responses, `mi()`
+  predictors and random-effect or structured-marker grouping variables keep
+  their declared level sets, so an ordinal response with an empty category
+  still reaches its own refusal. Credit: the independent evaluation by
+  Russell Dinnage (rdinnager/drmTMB_eval), finding Md-E.
+* `check_drm()`'s `dropped_rows` row now reflects rows the experimental
+  MSPL estimator discarded because of a zero frequency weight, not just
+  rows dropped by complete-case or known-covariance filtering. MSPL filters
+  `data` before any family builder computes its `keep` vector, so a
+  builder's `keep` was always relative to the already-MSPL-filtered data --
+  MSPL-discarded rows were invisible to it, and the row printed "no rows
+  were dropped" even when MSPL had discarded some.
+  `mspl_frequency_rows$kept` is now threaded through to re-express
+  `model$keep` relative to the original input data. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Md-N.
+* `skew_normal()` now uses the package's own tail-safe `drm_log_pnorm()`
+  (already used by the binomial probit link) for its skew-CDF factor,
+  instead of flooring `pnorm(...)` with `+ 1e-300`. The floor saturated the
+  far-tail log-density to a constant (`log(1e-300) ~= -690.8`) regardless
+  of how far in the tail a point actually was, giving a gradient wrong by
+  orders of magnitude and a plateau a maximiser could sit on. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding Md-M.
+* The `default:` branch of `drm_response_log_density()`
+  (`src/drm_response_kernels.h`) now calls `error()` instead of silently
+  returning `Type(0.0)` (a likelihood contribution of 1) for an unhandled
+  `model_type`. Every current call site is reachable-safe, so this is a
+  guard against the next family wired into an `mi()` two-point sum before
+  its case is added here, not a fix to an observable behaviour today.
+  Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Mi-9.
+
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
 `engine = "julia"` bridge work already recorded in detail under the 0.7.0

@@ -184,8 +184,12 @@ test_that("producer refuses a factor level no row uses, naming the level and dro
   X <- stats::model.matrix(~ x + g_empty, d)
   expect_true("g_emptyunused" %in% colnames(X))
   expect_true(all(X[, "g_emptyunused"] == 0))
+  # Since Dinnage audit Md-E, drmTMB() drops unused levels of fixed-effect
+  # predictor factors on entry, so the TMB fit no longer carries the all-zero
+  # column (and no longer returns all-NA standard errors); the label producer
+  # above still refuses when called on the raw data, which is what it sees.
   ft <- drmTMB(bf(y ~ x + g_empty, sigma ~ 1), family = gaussian(), data = d, engine = "tmb")
-  expect_true("g_emptyunused" %in% names(coef(ft, "mu")))
+  expect_false("g_emptyunused" %in% names(coef(ft, "mu")))
   # Dropping the unused level restores the label producer.
   d2 <- d
   d2$g_empty <- droplevels(d2$g_empty)

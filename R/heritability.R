@@ -25,13 +25,27 @@
 #' `repeatability` and `phylogenetic_signal` until 2026-09-03; they were renamed
 #' so that one word no longer names two different quantities (D-213).
 #'
-#' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`), and
-#' have at least one structured mean random-effect component (`(1 | group)`,
-#' `phylo(...)`, `animal(...)`, `relmat(...)`, or `spatial(...)`); a
-#' component modelled with `sd(group) ~ ...` (location-scale-scale) does not
-#' define a single variance component and is refused. When a fit has more
-#' than one structured component, `component` must name one of them (see
-#' `object$sdpars$mu` for the available labels).
+#' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`) or a
+#' closed-form marginal residual variance, and have at least one structured
+#' mean random-effect component (`(1 | group)`, `phylo(...)`, `animal(...)`,
+#' `relmat(...)`, or `spatial(...)`); a component modelled with
+#' `sd(group) ~ ...` (location-scale-scale) does not define a single variance
+#' component and is refused. When a fit has more than one structured
+#' component, `component` must name one of them (see `object$sdpars$mu` for
+#' the available labels). When `sigma` additionally carries an ordinary
+#' random intercept, or a phylogenetic random intercept with a unit-diagonal
+#' correlation (the default `phylo(...)` route), the residual entry of the
+#' denominator is the *marginal* residual variance
+#' `exp(2*b0 + 2*sum_k(omega_k^2))` -- `E[sigma^2]`, not the squared median
+#' `exp(2*b0)` -- and its delta-method gradient is extended over those
+#' `omega_k` positions too. A random slope on `sigma`, a structured
+#' `sigma` effect without a verified unit-diagonal correlation (measured on
+#' the rows the design uses), or a fit that carries a `sigma` random effect
+#' while the `log(sigma)` soft clamp bent the assembled predictor for at
+#' least one observation (`clamp_limited`), has no closed-form
+#' marginal residual variance and is refused with a message
+#' naming why; see
+#' `docs/design/275-repeatability-scale-and-residual-variance.md`.
 #'
 #' Standard errors and confidence intervals use a delta method on the
 #' working (log-SD) scale: a numeric gradient of the ratio in the log-SD
@@ -285,8 +299,8 @@ drm_variance_ratio <- function(
   sigma <- drm_constant_residual_sigma(object)
   if (!is.finite(sigma)) {
     cli::cli_abort(c(
-      "{.fn {quantity}} requires a constant residual scale ({.code sigma ~ 1}).",
-      "i" = "This fit has a {.field sigma} predictor, a non-log link, or a known-dispersion override, so a single scalar residual variance is not defined."
+      "{.fn {quantity}} requires a constant residual scale ({.code sigma ~ 1}) or a closed-form marginal residual variance.",
+      "i" = drm_residual_sigma_na_reason_text(attr(sigma, "reason"))
     ))
   }
   sd_values <- object$sdpars$mu
@@ -315,8 +329,34 @@ drm_variance_ratio <- function(
   } else {
     denom_idx <- focal
   }
-  denom_positions <- c(positions[denom_idx], resid_position)
-  focal_position <- positions[[focal]]
+
+  # The residual denominator entry is exp(2*beta_sigma) when sigma is a
+  # constant, or exp(2*beta_sigma + 2*sum_k(omega_k^2)) when sigma carries a
+  # (already-validated, see drm_constant_residual_sigma() above) random
+  # intercept / unit-diagonal phylogenetic random intercept -- the same
+  # marginal-residual-variance fix as drm_derived_summary_rows(), extended
+  # here to the delta-method gradient too (docs/design/275 section 5,
+  # Fisher's 2026-09-14 ruling: "both the estimate and the delta-method SE
+  # must change").
+  sigma_extra_positions <- drm_sigma_residual_extra_positions(object)
+  if (is.null(sigma_extra_positions)) {
+    cli::cli_abort(
+      "{.fn {quantity}}: could not locate the working-scale parameter position for the sigma random effect."
+    )
+  }
+  resid_group <- if (length(sigma_extra_positions) == 0L) {
+    list(positions = resid_position, value = function(t) exp(2 * t[[1L]]))
+  } else {
+    list(
+      positions = c(resid_position, sigma_extra_positions),
+      value = function(t) exp(2 * t[[1L]] + 2 * sum(exp(2 * t[-1L])))
+    )
+  }
+  mu_groups <- lapply(positions[denom_idx], function(p) {
+    list(positions = p, value = function(t) exp(2 * t[[1L]]))
+  })
+  denom_groups <- c(mu_groups, list(resid_group))
+  focal_index <- match(focal, denom_idx)
 
   cov_fixed <- drm_sdreport_cov_fixed(object)
   drm_variance_ratio_check_cov_alignment(object, cov_fixed, quantity)
@@ -324,8 +364,8 @@ drm_variance_ratio <- function(
   fit <- drm_variance_ratio_delta(
     theta_hat = object$opt$par,
     cov_fixed = cov_fixed,
-    denom_positions = denom_positions,
-    focal_position = focal_position
+    denom_groups = denom_groups,
+    focal_index = focal_index
   )
 
   crit <- stats::qnorm(1 - (1 - level) / 2)
@@ -412,7 +452,13 @@ drm_variance_ratio_reject_random_slopes <- function(object, quantity) {
 # positions in order (see docs/design/259-heritability-icc-repeatability.md
 # section 1 for why this reproduces split_tmb_sdpars()'s assignment order).
 drm_variance_ratio_positions <- function(object, sd_values) {
-  nm <- names(sd_values)
+  # split_tmb_sdpars() switches to a `mu:`/`sigma:` prefixed label once the
+  # SAME structured term also has a sibling on the other endpoint
+  # (R/drmTMB.R phylo_mu_sd_labels()/split_tmb_sdpars(), e.g.
+  # "mu:phylo(1 | species)" when phylo() is on both mu and sigma) -- strip it
+  # before matching the structured-marker prefix, or the term is misrouted to
+  # the (empty) log_sd_mu pool and yields NA (2026-09-14 ruling, S2b item 2).
+  nm <- sub("^(mu|sigma):", "", names(sd_values))
   structured_prefix <- "^(phylo|animal|relmat|spatial|phylo_interaction)\\("
   is_structured <- grepl(structured_prefix, nm)
   opt_names <- names(object$opt$par)
@@ -437,10 +483,57 @@ drm_variance_ratio_positions <- function(object, sd_values) {
   positions
 }
 
+# Extra working-scale positions (beyond `beta_sigma`) that a random effect on
+# sigma contributes to the marginal residual variance
+# exp(2*beta_sigma + 2*sum_k(omega_k^2)); `integer(0)` when sigma has no
+# random effect (drm_constant_residual_sigma()'s exp(b0) case, unchanged).
+# `has_sigma_random_effects()` (R/methods.R:6216) has already been consulted
+# by drm_constant_residual_sigma() before this is called, and any random
+# slope on sigma or non-unit-diagonal structured sigma effect has already
+# made that helper return NA (caught before this function runs) -- so by the
+# time this runs, every position found here is an ordinary-random-intercept
+# or unit-diagonal-phylogenetic omega_k, mirroring
+# drm_variance_ratio_positions()'s rank-order matching against the *ordered*
+# `log_sd_phylo` vector (phylo_mu_endpoint_dpars() lists mu- and sigma-
+# endpoint terms in the same order split_tmb_sdpars() consumed them in).
+# Returns `NULL` (an internal alignment failure) when
+# has_sigma_random_effects(object) is TRUE but fewer matching positions exist
+# than expected -- the caller aborts rather than silently truncating the
+# gradient.
+drm_sigma_residual_extra_positions <- function(object) {
+  if (!has_sigma_random_effects(object)) {
+    return(integer(0))
+  }
+  opt_names <- names(object$opt$par)
+  positions <- integer(0)
+  random_sigma <- object$model$random$sigma
+  if (is.list(random_sigma) && isTRUE(random_sigma$n_re > 0L)) {
+    log_sd_sigma_positions <- which(opt_names == "log_sd_sigma")
+    n_terms <- random_sigma$n_terms
+    if (length(log_sd_sigma_positions) < n_terms) {
+      return(NULL)
+    }
+    positions <- c(positions, log_sd_sigma_positions[seq_len(n_terms)])
+  }
+  phylo_mu <- object$model$structured$phylo_mu
+  if (isTRUE(phylo_mu$has)) {
+    endpoint_dpars <- sub("[0-9]+$", "", phylo_mu_endpoint_dpars(phylo_mu))
+    sigma_idx <- which(endpoint_dpars == "sigma")
+    if (length(sigma_idx) > 0L) {
+      log_sd_phylo_positions <- which(opt_names == "log_sd_phylo")
+      if (length(log_sd_phylo_positions) < length(endpoint_dpars)) {
+        return(NULL)
+      }
+      positions <- c(positions, log_sd_phylo_positions[sigma_idx])
+    }
+  }
+  positions
+}
+
 # Guard against a silent misalignment between object$opt$par positions
-# (what drm_variance_ratio_positions()/the residual-position lookup resolve
-# denom_positions against) and the row/column order of cov_fixed
-# (object$sdr$cov.fixed): drm_variance_ratio_delta() indexes cov_fixed by
+# (what drm_variance_ratio_positions()/drm_sigma_residual_extra_positions()
+# resolve the denom_groups positions against) and the row/column order of
+# cov_fixed (object$sdr$cov.fixed): drm_variance_ratio_delta() indexes cov_fixed by
 # those same integer positions, so if a future parameter-ordering change
 # ever made the two vectors disagree, the delta SE would silently mix up
 # variances/covariances instead of erroring. Verified identical today for
@@ -459,34 +552,53 @@ drm_variance_ratio_check_cov_alignment <- function(object, cov_fixed, quantity) 
 }
 
 # Numeric-gradient delta method for the ratio
-# g(theta) = exp(2*theta[focal]) / sum(exp(2*theta[denom])), evaluated at
-# `theta_hat[denom_positions]`, with `focal_position` one entry of
-# `denom_positions`. Returns list(estimate, se).
+# g(theta) = value(focal group) / sum(value(each denom group)), evaluated at
+# theta_hat. Each entry of `denom_groups` is
+# list(positions = <integer positions into theta_hat>,
+#      value = function(theta_sub) -> scalar variance contribution);
+# `focal_index` names which entry of `denom_groups` is the numerator.
+#
+# An ordinary (mu/phylo) component's group has ONE position and
+# value = exp(2*theta) -- the original formula, unchanged. The residual
+# group can have MORE than one position once sigma carries a random
+# intercept or unit-diagonal phylogenetic random intercept, because the
+# marginal residual variance exp(2*beta_sigma + 2*sum_k(omega_k^2))
+# (docs/design/275-repeatability-scale-and-residual-variance.md section 5,
+# Fisher's 2026-09-14 ruling) then depends on beta_sigma AND every omega_k;
+# see drm_variance_ratio()'s `resid_group` for how that group is built.
+# Returns list(estimate, se).
 drm_variance_ratio_delta <- function(
   theta_hat,
   cov_fixed,
-  denom_positions,
-  focal_position
+  denom_groups,
+  focal_index
 ) {
-  theta_denom <- unname(theta_hat[denom_positions])
-  focal_slot <- which(denom_positions == focal_position)[[1L]]
+  all_positions <- unique(unlist(lapply(denom_groups, `[[`, "positions")))
+  theta_all <- unname(theta_hat[all_positions])
+  slot_of <- stats::setNames(seq_along(all_positions), all_positions)
 
-  ratio_fun <- function(theta) {
-    v <- exp(2 * theta)
-    v[[focal_slot]] / sum(v)
+  group_values <- function(theta_vec) {
+    vapply(denom_groups, function(g) {
+      g$value(theta_vec[slot_of[as.character(g$positions)]])
+    }, numeric(1))
   }
-  estimate <- ratio_fun(theta_denom)
+
+  ratio_fun <- function(theta_vec) {
+    v <- group_values(theta_vec)
+    v[[focal_index]] / sum(v)
+  }
+  estimate <- ratio_fun(theta_all)
 
   h <- 1e-5
-  grad <- vapply(seq_along(theta_denom), function(j) {
-    plus <- theta_denom
+  grad <- vapply(seq_along(theta_all), function(j) {
+    plus <- theta_all
     plus[[j]] <- plus[[j]] + h
-    minus <- theta_denom
+    minus <- theta_all
     minus[[j]] <- minus[[j]] - h
     (ratio_fun(plus) - ratio_fun(minus)) / (2 * h)
   }, numeric(1))
 
-  cov_sub <- cov_fixed[denom_positions, denom_positions, drop = FALSE]
+  cov_sub <- cov_fixed[all_positions, all_positions, drop = FALSE]
   variance <- as.numeric(t(grad) %*% cov_sub %*% grad)
   se <- if (is.finite(variance) && variance >= 0) sqrt(variance) else NA_real_
 

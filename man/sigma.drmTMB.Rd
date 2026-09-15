@@ -46,6 +46,13 @@ In meta-analytic models fitted with \code{meta_V(V = V)}, this is the
 modelled residual heterogeneity scale, not the square root of the known
 sampling variance plus residual variance. Simulation and Pearson residuals
 combine known sampling covariance with residual scale internally.
+
+For families in \code{drm_clamped_scale_families()}, \code{sigma()} reports the
+soft-clamped scale the TMB likelihood actually evaluated (see
+\code{\link[=predict.drmTMB]{predict.drmTMB()}}), the same scale that \code{\link[=residuals.drmTMB]{residuals.drmTMB()}}, \code{fitted()},
+and \code{simulate()} use. When \code{check_drm()} reports the clamp active, this
+makes the fit honest about what it evaluated, not correct: the estimate
+itself is still unreliable near the clamp.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

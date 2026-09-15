@@ -98,13 +98,27 @@ a fit has two or more structured components. Those rows were called
 \code{repeatability} and \code{phylogenetic_signal} until 2026-09-03; they were renamed
 so that one word no longer names two different quantities (D-213).
 
-Fits must be Gaussian, have a constant residual scale (\code{sigma ~ 1}), and
-have at least one structured mean random-effect component (\code{(1 | group)},
-\code{phylo(...)}, \code{animal(...)}, \code{relmat(...)}, or \code{spatial(...)}); a
-component modelled with \code{sd(group) ~ ...} (location-scale-scale) does not
-define a single variance component and is refused. When a fit has more
-than one structured component, \code{component} must name one of them (see
-\code{object$sdpars$mu} for the available labels).
+Fits must be Gaussian, have a constant residual scale (\code{sigma ~ 1}) or a
+closed-form marginal residual variance, and have at least one structured
+mean random-effect component (\code{(1 | group)}, \code{phylo(...)}, \code{animal(...)},
+\code{relmat(...)}, or \code{spatial(...)}); a component modelled with
+\code{sd(group) ~ ...} (location-scale-scale) does not define a single variance
+component and is refused. When a fit has more than one structured
+component, \code{component} must name one of them (see \code{object$sdpars$mu} for
+the available labels). When \code{sigma} additionally carries an ordinary
+random intercept, or a phylogenetic random intercept with a unit-diagonal
+correlation (the default \code{phylo(...)} route), the residual entry of the
+denominator is the \emph{marginal} residual variance
+\code{exp(2*b0 + 2*sum_k(omega_k^2))} -- \code{E[sigma^2]}, not the squared median
+\code{exp(2*b0)} -- and its delta-method gradient is extended over those
+\code{omega_k} positions too. A random slope on \code{sigma}, a structured
+\code{sigma} effect without a verified unit-diagonal correlation (measured on
+the rows the design uses), or a fit that carries a \code{sigma} random effect
+while the \code{log(sigma)} soft clamp bent the assembled predictor for at
+least one observation (\code{clamp_limited}), has no closed-form
+marginal residual variance and is refused with a message
+naming why; see
+\code{docs/design/275-repeatability-scale-and-residual-variance.md}.
 
 Standard errors and confidence intervals use a delta method on the
 working (log-SD) scale: a numeric gradient of the ratio in the log-SD

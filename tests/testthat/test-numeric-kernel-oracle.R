@@ -140,17 +140,20 @@ test_that("student kernel matches a from-scratch location-scale dt()", {
 })
 
 # ---- skew_normal (model_type 17; src/drmTMB.cpp:2427-2487) -----------------
-# helper-skew-normal-density.R (auto-loaded by testthat) already carries the
-# exact-match reference including the 1e-300 log(Phi(.) + 1e-300) floor at
-# src/drmTMB.cpp:2473.
-test_that("skew_normal kernel matches the floored Azzalini reference", {
+# helper-skew-normal-density.R (auto-loaded by testthat) carries the exact
+# Azzalini reference (log 2 + log phi(z) + log Phi(alpha z) via pnorm(log.p)).
+# The kernel used to floor Phi() with + 1e-300, which saturated the far tail;
+# since Dinnage audit Md-M it uses the tail-safe drm_log_pnorm(), so the exact
+# reference is the oracle (the floored reference stays in the helper for the
+# guard-continuity tests that document the old behaviour).
+test_that("skew_normal kernel matches the exact Azzalini reference", {
   fits <- build_fits(bf(y ~ 1, sigma ~ 1, nu ~ 1), skew_normal(), c(-3, 0, 0.37, 3))
   eval_skew <- function(fit, eta, ls, yv) {
     par <- fit$obj$par
     par <- set_named(par, "beta_mu", eta)
     par <- set_named(par, "beta_sigma", ls)
     par <- set_named(par, "beta_nu", 2)
-    ref <- skew_normal_log_density_tmb_floor_reference(yv, eta, exp(ls), 2)
+    ref <- skew_normal_log_density_reference(yv, eta, exp(ls), 2)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   run_oracle(fits, eval_skew, tol = 1e-9)

@@ -32,3 +32,5 @@
 ^\.mcp\.json$
 ^\.ignore$
 ^graft$
+^\.scratch$
+^tools-scratch$
