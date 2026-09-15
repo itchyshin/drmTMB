@@ -78,7 +78,13 @@ probe (`scratchpad/fisher-s2b2-green.txt`) suggests that review is in progress. 
 environment's missing `checkbashisms` script, the NOTE is "New submission"; 0 errors, 0 package
 warnings, tests OK (44 s), vignette re-build OK (64 s). The branch was pushed as `666c1865a` to the
 existing draft PR #1361 (head confirmed; later commits are docs-only). `docs/dev-log/plan-actual/2026-09-14-dinnage-wave3.md` and
-`docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md` do not exist on disk — `[[TO-FILL]]`.
+`docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md` were written and committed
+(`0c8959b96`, `8e8e244e6`). Fisher's review of the S2b follow-up `4ae2f5d99` came back REJECT (the
+measured-diagonal helper inverted the whole tips-plus-nodes precision and so refused `phylo()` on sigma
+alone); the repair `1c44d2f12` indexes the modelled-unit rows, adds tests in three directions (8 red
+before), and refuses the marginal residual variance on a clamp-active fit with reason `clamp_limited`;
+NEWS amended in `a16ce24b6`. Its fresh Opus review and a third clean-export check were running when
+this report was last edited; the handover carries both.
 
 ## Mathematical Contract
 
@@ -473,7 +479,8 @@ exported symbol was added.
   feature decision, not resolved here.
 - A fresh-context Fisher review of the S2b follow-up (`4ae2f5d99`) has not yet produced a review-file
   section, though a scratch probe (`scratchpad/fisher-s2b2-green.txt`) suggests it is in progress —
-  **`[[TO-FILL]]`**.
+  **REJECT**, repaired in `1c44d2f12` (tip-row diagonal; three-direction tests; `clamp_limited`
+  refusal on a clamp-active fit); the review of that repair is carried over in the handover.
 - The mechanical verifier's literal-EXPECT-string mismatch on three gates (Consistency Audit) was
   repaired and the final `--reverify` pass ran: 26/27 MET, `REVIEW:G-R-2` pending the last verdict.
 
@@ -485,8 +492,8 @@ exported symbol was added.
    in `1540d95fe`, so confirm no further edits are needed).
 5. Pushed `claude/audit-dinnage-wave1-20260913` to the existing draft PR #1361 as `666c1865a` (PR head
    confirmed); CI state after the push is recorded in the handover, not waited on here.
-6. Melissa plan-actual reconcile → `docs/dev-log/plan-actual/2026-09-14-dinnage-wave3.md` —
-   **`[[TO-FILL]]`**.
+6. Melissa plan-actual reconcile → `docs/dev-log/plan-actual/2026-09-14-dinnage-wave3.md` — done
+   (`0c8959b96`): 2 drift (both the phylo-on-sigma claim, answered by `1c44d2f12`), 4 adaptive.
 7. Write the handover → `docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md`, with a
    `CARRIED-OVER` line for the S2b-follow-up review and anything else still open.
 8. Post the five approved issue comments (#1307, #1308, #1312, #1315, #1301) after Shinichi's approval, per

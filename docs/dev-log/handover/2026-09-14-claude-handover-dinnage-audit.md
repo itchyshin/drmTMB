@@ -20,7 +20,9 @@ accepted with wording changes, applied in `1540d95fe`). Fisher then rejected `4a
 measured-diagonal check because it inverted the whole tips-plus-nodes precision and so refused
 `phylo()` on sigma alone (tip diagonal is exactly 1) — the repair (tip-row indexing, three-direction
 tests, and refusing the marginal residual variance on a clamp-active fit with reason `clamp_limited`)
-was IN PROGRESS when this handover was written; see Landing state.
+landed as `1c44d2f12` (NEWS `a16ce24b6`): tip-row diagonal measured, three-direction tests, marginal
+residual variance refused with reason `clamp_limited` on a clamp-active fit. Its fresh Opus review and
+the third clean-export as-cran were running when this handover was last edited; see Landing state.
 
 ## What was accomplished (commits on the branch, oldest first)
 
@@ -33,12 +35,11 @@ Rd links · `b49ce9f70` zi-nbinom2 contract + `.Rbuildignore` · `1540d95fe` NEW
 
 ## OWED next steps (in order)
 
-1. **Land the S2b follow-up-2 repair** if it is not already on the branch: tip-row diagonal
-   measurement (`drm_structured_sigma_unit_diagonal()`, `R/methods.R`), tests in three directions,
-   `clamp_limited` refusal of the marginal residual variance on a clamp-active fit; then a fresh Opus
-   (Fisher) review, `document()`, targeted suites, a third clean-export as-cran, push. Update NEWS's
-   S2 bullet (the phylo-on-sigma sentence and the "correlation diagonal is not one" sentence) to what
-   the repaired code does.
+1. **Close the S2b follow-up-2 review**: read the "### S2b follow-up 2 (1c44d2f12)" section of the
+   review file (if absent, the review did not finish — dispatch a fresh Opus Fisher on `1c44d2f12`);
+   apply any REQUIRED items red-first; confirm the third clean-export as-cran result
+   (`scratchpad/ascran3/check.log` if the session survived, else re-run
+   `NOT_CRAN=false R CMD check --as-cran --no-manual` on a `git archive` export); push.
 2. **Post the five issue comments** (pre-authorised by Shinichi's G0 envelope; drafted at
    `docs/dev-log/issue-drafts/2026-09-14-dinnage-wave3/` for #1307, #1308, #1312, #1315, #1301) —
    re-read #1301's draft against the repaired S2b code first.
@@ -75,7 +76,7 @@ Never stage `.unlazy/`, `LOOP/notes/`, or scratch files. Ledger: `.unlazy/dinnag
 
 ## Landing state
 
-CARRIED-OVER: `claude/audit-dinnage-wave1-20260913` · draft PR #1361 · why: the S2b follow-up-2 repair (Fisher REJECT of `4ae2f5d99`) was in progress at handover time and the five issue comments are drafted, not posted; merge awaits Shinichi · resume: `cd /Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1 && git pull && cat docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md`
+CARRIED-OVER: `claude/audit-dinnage-wave1-20260913` · draft PR #1361 · why: the S2b follow-up-2 repair `1c44d2f12` is committed but its fresh Opus review and third as-cran were still running at handover time, and the five issue comments are drafted (posting pre-authorised); merge awaits Shinichi · resume: `cd /Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1 && git pull && cat docs/dev-log/handover/2026-09-14-claude-handover-dinnage-audit.md`
 FINDING-OF-RECORD: a "single choke point" is a hypothesis to measure, not a plan line — M2 had four surfaces and one repair was rejected at measured coverage 0  vault-note: [[journal/2026-09-14]]
 FINDING-OF-RECORD: the unlazy checker matches EXPECT literally; regex gates never pass  vault-note: [[journal/2026-09-14]]
 

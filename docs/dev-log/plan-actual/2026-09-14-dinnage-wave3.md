@@ -51,3 +51,5 @@ a partly-bent fit) — is Fisher's finding, in Fisher's file, with Fisher's own 
 No routing needed for the recon scout's two wrong reports (`.unlazy` ignore status; the next free design
 number) — both were caught by the orchestrator's own Phase 0.25 sweep before they cost anything and are
 recorded in the after-task's Consistency Audit.
+
+**Post-reconcile note (Ada, same evening).** Both drift rows concerned the phylo-on-sigma claim that Fisher's S2b follow-up review rejected; the repair `1c44d2f12` (tip-row diagonal, three-direction tests, `clamp_limited` refusal on a clamp-active fit) and the NEWS amendment `a16ce24b6` landed after this reconcile, and the after-task/handover now state REJECT-then-repaired rather than "pending". The fresh review of the repair is carried over in the handover; if it rejects again, these rows reopen.
