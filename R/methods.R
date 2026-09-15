@@ -6455,10 +6455,19 @@ predict_random_scale_dpar <- function(
     names_out <- rownames(newdata)
   }
   eta <- as.vector(X %*% object$coefficients[[dpar]])
+  # The kernel soft-clamps this same log(sd) predictor before exponentiating
+  # it (src/drmTMB.cpp ~2482-2485, drm_softclamp_log_sd), and the fit's own
+  # summary agrees: sd_mu_group_values()/sd_phylo_group_values()
+  # (R/drmTMB.R:23062-23092) apply drm_softclamp_log_sd() then
+  # drm_exp_sd_logscale_guarded() to the identical eta. Without the same
+  # clamp here, predict(dpar = "sd(...)") reported the raw, unclamped
+  # predictor and disagreed with fit$sdpars by up to ~25x on a fixture where
+  # the clamp band binds (Dinnage audit M2 review, item 2).
+  eta <- drm_softclamp_log_sd(eta, object$model$tmb_data)
   if (type == "link") {
     stats::setNames(eta, names_out)
   } else {
-    stats::setNames(exp(eta), names_out)
+    stats::setNames(drm_exp_sd_logscale_guarded(eta), names_out)
   }
 }
 

@@ -288,18 +288,29 @@ predict_parameters_interval <- function(
   se_link <- predict_parameters_link_se(basis, n)
   ok <- is.finite(se_link)
   z <- stats::qnorm(1 - (1 - conf.level) / 2)
-  lo_link <- basis$eta - z * se_link
-  hi_link <- basis$eta + z * se_link
+  # `estimate` (the point in the returned row) came from predict(), which
+  # routes sigma-type dpars of clamped families through
+  # drm_clamped_sigma_eta() (Dinnage audit M2, #1308, R/methods.R). Left alone,
+  # the raw-eta endpoints below can put that clamped estimate outside its own
+  # interval whenever the raw predictor is far outside the band (review
+  # "Concrete change" item 1). Clamp each endpoint through the SAME monotonic
+  # map instead of leaving them raw: drm_clamped_sigma_eta() is non-decreasing,
+  # so clamp(eta - z*se) <= clamp(eta) <= clamp(eta + z*se) always holds, which
+  # keeps the interval containing the estimate even when the point has
+  # saturated, and lets the interval saturate the same way the point does.
+  lo_link <- drm_clamped_sigma_eta(object, dpar, basis$eta - z * se_link)
+  hi_link <- drm_clamped_sigma_eta(object, dpar, basis$eta + z * se_link)
 
   if (identical(type, "link")) {
     std.error <- se_link
     conf.low <- lo_link
     conf.high <- hi_link
   } else {
+    clamped_eta <- drm_clamped_sigma_eta(object, dpar, basis$eta)
     derivative <- predict_parameters_inverse_link_derivative(
       object,
       dpar,
-      basis$eta
+      clamped_eta
     )
     std.error <- abs(derivative) * se_link
     conf.low <- drm_inverse_link(object, dpar, lo_link)
