@@ -230,3 +230,207 @@ test_that("S2: a unit-diagonal phylogenetic random intercept on sigma gets the s
   expect_true(is.finite(ic$estimate))
   expect_equal(ic$estimate, expected_share, tolerance = 1e-8)
 })
+
+# S2b follow-up (Fisher's 2026-09-14 fresh-context review,
+# docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md "### S2b follow-up
+# (4ae2f5d99, d61f65183)", REQUIRED items 1-3):
+# drm_structured_sigma_unit_diagonal() must measure the diagonal on the
+# MODELLED-UNIT rows (the tip/species rows indexed by the object's own
+# `precision$tip_node_index` / `precision$species_node_index`), not the
+# whole augmented tips-plus-internal-nodes basis, or `phylo()` on `sigma`
+# ALONE (no `phylo()` on `mu`) is falsely refused as "not unit diagonal"
+# even though its tip-level correlation diagonal is exactly one. And
+# drm_constant_residual_sigma() must refuse the marginal on a clamp-active
+# fit rather than report the unclamped moment of a distribution the
+# likelihood never evaluates.
+
+test_that("S2b: sigma ~ spatial(1 | site, coords = ) with a q == 1 unit-diagonal correlation gets the closed form", {
+  set.seed(20260918)
+  n_site <- 20L
+  n_each <- 8L
+  coords <- data.frame(
+    x = stats::runif(n_site, 0, 10),
+    y = stats::runif(n_site, 0, 10),
+    row.names = paste0("site_", seq_len(n_site))
+  )
+  site <- factor(
+    rep(rownames(coords), each = n_each),
+    levels = rownames(coords)
+  )
+  # Same exponential covariance drm_spatial_coords_precision() builds
+  # (R/drmTMB.R:14688-14735), so the fitted omega recovers something close
+  # to what generated the data.
+  dist_mat <- as.matrix(stats::dist(coords))
+  positive <- as.numeric(dist_mat)[as.numeric(dist_mat) > 0]
+  range <- stats::median(positive)
+  cov <- exp(-dist_mat / range)
+  omega_spatial_true <- 0.4
+  u_sigma <- as.vector(t(chol(cov)) %*% stats::rnorm(n_site)) *
+    omega_spatial_true
+  site_index <- rep(seq_len(n_site), each = n_each)
+  b0_sigma <- -0.3
+  n <- length(site)
+  y <- 2 + stats::rnorm(n, sd = exp(b0_sigma + u_sigma[site_index]))
+  dat <- data.frame(y = y, site = site)
+
+  fit <- drmTMB(
+    bf(y ~ 1, sigma ~ 1 + spatial(1 | site, coords = coords)),
+    family = gaussian(),
+    data = dat
+  )
+  expect_equal(fit$opt$convergence, 0)
+
+  b0_hat <- unname(coef(fit)$sigma[["(Intercept)"]])
+  omega_hat <- unname(fit$sdpars$sigma[[1L]])
+  expected_sigma <- exp(b0_hat + omega_hat^2)
+
+  expect_equal(
+    drmTMB:::drm_constant_residual_sigma(fit),
+    expected_sigma,
+    tolerance = 1e-8
+  )
+})
+
+test_that("S2b: a unit-diagonal phylogenetic random intercept on sigma ALONE (no phylo on mu) gets the closed form -- the regressed arm", {
+  skip_if_not_installed("ape")
+
+  set.seed(20260919)
+  n_tip <- 20L
+  n_each <- 8L
+  n_g <- 10L
+  tree <- ape::rcoal(n_tip)
+  tree$tip.label <- paste0("sp_", seq_len(n_tip))
+  A <- ape::vcv(tree, corr = TRUE)
+  omega_phylo_true <- 0.4
+  u_sigma <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * omega_phylo_true
+  species <- factor(
+    rep(tree$tip.label, each = n_each),
+    levels = tree$tip.label
+  )
+  tip_index <- rep(seq_len(n_tip), each = n_each)
+  n <- length(species)
+  g <- factor(rep(seq_len(n_g), length.out = n))
+  u_mu_g <- stats::rnorm(n_g, sd = 0.5)
+  b0_sigma <- -0.4
+  y <- 2 + u_mu_g[as.integer(g)] +
+    stats::rnorm(n, sd = exp(b0_sigma + u_sigma[tip_index]))
+  dat <- data.frame(y = y, species = species, g = g)
+
+  fit <- drmTMB(
+    bf(
+      y ~ 1 + (1 | g),
+      sigma ~ 1 + phylo(1 | species, tree = tree)
+    ),
+    family = gaussian(),
+    data = dat
+  )
+  expect_equal(fit$opt$convergence, 0)
+
+  b0_hat <- unname(coef(fit)$sigma[["(Intercept)"]])
+  omega_hat <- unname(fit$sdpars$sigma[[1L]])
+  expected_sigma <- exp(b0_hat + omega_hat^2)
+
+  # (b) this is the arm 4ae2f5d99 regressed: phylo()'s q == 1 precision on
+  # `sigma` alone is the 38x38 tips-plus-internal-nodes augmented matrix,
+  # and its tip rows (species_node_index) have a unit diagonal even though
+  # the whole augmented diagonal does not.
+  expect_equal(
+    drmTMB:::drm_constant_residual_sigma(fit),
+    expected_sigma,
+    tolerance = 1e-8
+  )
+
+  expected_residual_variance <- exp(2 * b0_hat + 2 * omega_hat^2)
+  v_g <- unname(fit$sdpars$mu[["(1 | g)"]])^2
+  expected_share <- v_g / (v_g + expected_residual_variance)
+
+  derived <- summary(fit)$derived
+  expect_equal(nrow(derived), 1L)
+  row <- derived["derived:total_variance_share(g)", , drop = FALSE]
+  expect_equal(nrow(row), 1L)
+  expect_equal(
+    row$residual_variance,
+    expected_residual_variance,
+    tolerance = 1e-8
+  )
+  expect_equal(row$estimate, expected_share, tolerance = 1e-8)
+
+  r <- repeatability(fit)
+  expect_true(is.finite(r$estimate))
+  expect_equal(r$estimate, expected_share, tolerance = 1e-8)
+  expect_true(is.finite(r$se))
+
+  ic <- icc(fit)
+  expect_true(is.finite(ic$estimate))
+  expect_equal(ic$estimate, expected_share, tolerance = 1e-8)
+})
+
+test_that("S2b: a genuinely non-unit-diagonal structured precision still refuses, by name", {
+  # Hand-built precision with no tip/species index attached (mirroring
+  # phylo_interaction()'s Kronecker block, which carries none either) --
+  # the helper must measure it (there is no index to fall back to) and
+  # refuse, never claim "not checked" as a way to dodge a real answer, and
+  # never claim "unit" for a diagonal that is not.
+  bad_precision <- matrix(c(2, 0.5, 0.2, 0.5, 2, 0.3, 0.2, 0.3, 2), nrow = 3)
+  bad_structured <- list(q = 1L, precision = list(precision = bad_precision))
+
+  expect_identical(
+    drmTMB:::drm_structured_sigma_unit_diagonal(bad_structured),
+    FALSE
+  )
+})
+
+test_that("S2b: a clamp-active fit refuses the marginal residual variance by name, and the default band still gets the closed form", {
+  set.seed(20260920)
+  n_g <- 12L
+  n_each <- 10L
+  g <- factor(rep(seq_len(n_g), each = n_each))
+  n <- length(g)
+  u_mu <- stats::rnorm(n_g, sd = 0.6)
+  u_sigma <- stats::rnorm(n_g, sd = 1.4)
+  b0_sigma <- 0
+  band <- c(-0.6, 0.6)
+  margin <- 0.2
+  raw_eta <- b0_sigma + u_sigma[g]
+  sigma_clamped <- exp(drmTMB:::drm_softclamp_log_sd(
+    raw_eta,
+    list(use_logsigma_clamp = 1L, logsigma_clamp = c(band, margin))
+  ))
+  y <- 1 + u_mu[g] + stats::rnorm(n, sd = sigma_clamped)
+  dat <- data.frame(y = y, g = g)
+
+  fit_clamped <- suppressWarnings(drmTMB(
+    bf(y ~ 1 + (1 | g), sigma ~ 1 + (1 | g)),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(
+      logsigma_clamp = band,
+      logsigma_clamp_margin = margin
+    )
+  ))
+
+  report <- fit_clamped$obj$report(fit_clamped$tmb_state$last.par.best)
+  info <- drmTMB:::drm_logsigma_clamp_active(report, fit_clamped$model$tmb_data)
+  # Sanity: the fixture really is clamp-active at the optimum.
+  expect_false(is.null(info))
+
+  sigma_na <- drmTMB:::drm_constant_residual_sigma(fit_clamped)
+  expect_true(is.na(sigma_na))
+  expect_identical(attr(sigma_na, "reason"), "clamp_limited")
+
+  expect_error(repeatability(fit_clamped), "clamp")
+
+  fit_default <- suppressWarnings(drmTMB(
+    bf(y ~ 1 + (1 | g), sigma ~ 1 + (1 | g)),
+    family = gaussian(),
+    data = dat
+  ))
+  b0_hat <- unname(coef(fit_default)$sigma[["(Intercept)"]])
+  omega_hat <- unname(fit_default$sdpars$sigma[["(1 | g)"]])
+  expected_sigma <- exp(b0_hat + omega_hat^2)
+  expect_equal(
+    drmTMB:::drm_constant_residual_sigma(fit_default),
+    expected_sigma,
+    tolerance = 1e-8
+  )
+})

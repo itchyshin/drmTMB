@@ -4747,6 +4747,29 @@ drm_constant_residual_sigma <- function(object) {
   if (!has_sigma_random_effects(object)) {
     return(exp(b0))
   }
+  # The kernel clamps the ASSEMBLED predictor log_sigma = X*beta + u, not
+  # just the intercept (src/drmTMB.cpp:2437, applied after every
+  # random-effect contribution at 811/994/1033), so under an active clamp
+  # the quantity the likelihood integrates is E[exp(2*c(b0+u))] -- bounded
+  # by exp(2*(hi+margin)) -- not exp(2*c(b0) + 2*sum omega_k^2) below, which
+  # is unbounded in omega and is the moment of no distribution the
+  # likelihood uses (measured 1.47x high on a partly-bent clamp-active fit;
+  # exact, ratio 1.001, when the clamp is inactive -- Fisher's 2026-09-14
+  # S2b follow-up ruling on docs/design/275). Refuse rather than ship a
+  # hybrid, matching e86359fe2's conf.status = "clamp_limited" treatment of
+  # the same defect in predict_parameters().
+  if (isTRUE(object$model$model_type %in% drm_clamped_scale_families())) {
+    report <- tryCatch(
+      object$obj$report(object$tmb_state$last.par.best),
+      error = function(e) NULL
+    )
+    if (
+      !is.null(report) &&
+        !is.null(drm_logsigma_clamp_active(report, object$model$tmb_data))
+    ) {
+      return(structure(NA_real_, reason = "clamp_limited"))
+    }
+  }
   omega2_sum <- drm_sigma_random_effect_omega2_sum(object)
   if (!is.finite(omega2_sum)) {
     return(structure(NA_real_, reason = attr(omega2_sum, "reason")))
@@ -4825,50 +4848,65 @@ drm_sigma_random_effect_omega2_sum <- function(object) {
 # label-based check false for a measured case
 # (`sigma ~ spatial(1 | site, coords = coords)`, diag(Sigma) = 1.000001 --
 # unit, but refused as "phylogenetic-only"); this checks the actual matrix
-# instead, so `spatial()`, `animal()`, and `relmat()` sigma effects (q == 1:
-# one random-effect column, `precision$precision` indexed 1:1 by the
-# modelled unit -- site/individual/pedigree member) are judged on what they
-# measure to, not on which formula marker produced them.
+# instead.
 #
-# `q > 1L` (`structured_mu_q()`) means `phylo_mu`'s precision is a JOINT
-# block over more than one endpoint's random-effect columns (e.g. the same
-# `phylo()` term attached to both `mu` and `sigma`, or a correlated
-# `(1 | p | id)` block) -- measured directly: for the fixture in
-# tests/testthat/test-dinnage-audit-s2.R (phylo() on both `mu` and `sigma`,
-# `q = 2`), `dim(phylo_mu$precision$precision)` is 38 x 38, not the 20 x 20
-# tip-level matrix, because it spans a latent internal-node basis
-# (`phylo_mu$n_re` ancestral nodes per endpoint), and `diag(solve(Q))` over
-# that basis ranges over `[0.838, 1]` -- it is NOT the tip-level correlation
-# and inverting it would misclassify a `phylo()`-on-`mu`-and-`sigma` fit as
-# non-unit-diagonal. There is currently no accessor that extracts the
-# tip-level submatrix from a joint block, so for `q > 1L` this function does
-# not attempt the inversion: `type == "phylo"` is trusted by construction
-# (`ape::vcv(tree, corr = TRUE)` tree-height normalisation; Fisher's
-# 2026-09-14 review confirmed `correlation = FALSE` is unreachable from the
-# formula grammar today -- `grep -rn "correlation = FALSE" R/*.R` returns
-# nothing -- so every `phylo()` matrix really is unit-diagonal), and any
-# other type in a `q > 1L` block reports "not checked" rather than a guess.
+# The diagonal is measured on the MODELLED-UNIT rows, not necessarily the
+# whole matrix (Fisher's 2026-09-14 S2b follow-up review,
+# docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md "### S2b follow-up
+# (4ae2f5d99, d61f65183)"): a `phylo()` term's precision
+# (`drm_phylo_augmented_precision()`, R/phylo-utils.R:258) is AUGMENTED with
+# a latent internal-node basis -- 38x38 for a 20-tip tree -- and only its
+# tip/species rows are the ones the design matrix actually multiplies;
+# measured directly, those rows have a unit diagonal (`[1, 1]`) even for
+# `phylo()` on `sigma` ALONE, while the whole augmented diagonal ranges over
+# `[0.554, 1]` and would falsely refuse a fit whose modelled units really
+# are unit-diagonal. The object already carries the index:
+# `precision$species_node_index` (set whenever a species/group factor was
+# supplied -- always true for `phylo()`, R/drmTMB.R:14084) or
+# `precision$tip_node_index` when only the latter is present. `spatial()`
+# and `animal()`/`relmat()` (`drm_spatial_coords_precision()`,
+# `drm_known_relatedness_precision()`) carry no such augmentation and no
+# such index, so the diagonal there is measured over the WHOLE matrix, same
+# as before. This indexing is independent of `structured_mu_q()`: a
+# `phylo()` term shared across two endpoints (`q > 1`, e.g. the same term on
+# both `mu` and `sigma`) reuses the identical per-tree precision object
+# (measured: `phylo_mu$precision` is built once in
+# `build_phylo_mu_structure()`, R/drmTMB.R:14083, before `q` is computed),
+# so its tip rows are exactly as measurable there -- this retires the old
+# `q > 1L && type == "phylo"` trusted-by-construction branch entirely. A
+# `q > 1L` block with no such index (e.g. `phylo_interaction()`'s Kronecker
+# of two augmented precisions -- UNVERIFIED whether its tip rows could be
+# extracted the same way) still reports "not checked" rather than a guess.
 #
-# Returns `TRUE`/`FALSE` when the diagonal was measured (within `tol`) or
-# trusted by the construction above, or `NA` when it could not be measured
-# (no precision matrix, non-square, or the inversion failed) -- callers must
-# report an `NA` result as "the diagonal was not checked", never as "the
-# diagonal is not unit" (D-252: a refusal is a claim, and a false one is a
-# defect).
+# Returns `TRUE`/`FALSE` when the diagonal was measured (within `tol`), or
+# `NA` when it could not be measured (no precision matrix, non-square, the
+# inversion failed, or a `q > 1L` block with no modelled-unit index) --
+# callers must report an `NA` result as "the diagonal was not checked",
+# never as "the diagonal is not unit" (D-252: a refusal is a claim, and a
+# false one is a defect).
 drm_structured_sigma_unit_diagonal <- function(phylo_mu, tol = 1e-3) {
-  if (structured_mu_q(phylo_mu) > 1L) {
-    if (identical(structured_mu_type(phylo_mu), "phylo")) {
-      return(TRUE)
-    }
-    return(NA)
-  }
-  precision <- phylo_mu$precision$precision
+  precision_obj <- phylo_mu$precision
+  precision <- precision_obj$precision
   if (
     is.null(precision) ||
       is.null(dim(precision)) ||
       nrow(precision) != ncol(precision) ||
       nrow(precision) == 0L
   ) {
+    return(NA)
+  }
+  index <- precision_obj$species_node_index
+  if (is.null(index)) {
+    index <- precision_obj$tip_node_index
+  }
+  if (is.null(index)) {
+    if (structured_mu_q(phylo_mu) > 1L) {
+      return(NA)
+    }
+    index <- seq_len(nrow(precision))
+  }
+  index <- unname(index)
+  if (length(index) == 0L || anyNA(index)) {
     return(NA)
   }
   covariance <- tryCatch(
@@ -4878,7 +4916,7 @@ drm_structured_sigma_unit_diagonal <- function(phylo_mu, tol = 1e-3) {
   if (is.null(covariance)) {
     return(NA)
   }
-  d <- diag(covariance)
+  d <- diag(covariance)[index]
   if (length(d) == 0L || anyNA(d) || !all(is.finite(d))) {
     return(NA)
   }
@@ -4918,6 +4956,12 @@ drm_residual_sigma_na_reason_text <- function(reason) {
       "This fit has a structured sigma random effect whose correlation",
       "matrix's diagonal was not checked, so a single scalar residual",
       "variance is not defined."
+    ),
+    clamp_limited = paste(
+      "This fit's log(sigma) soft clamp is active at the optimum, so the",
+      "closed-form marginal residual variance (which assumes an unclamped",
+      "random effect) is not defined; see check_drm() for the clamp",
+      "diagnostic."
     ),
     paste(
       "This fit does not have a constant residual scale (sigma ~ 1) or a",
