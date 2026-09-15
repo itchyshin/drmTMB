@@ -338,6 +338,14 @@ approval): `docs/dev-log/issue-drafts/2026-09-14-dinnage-wave3/{1301.S2,1307.M1,
 — all five now exist (the S2 draft, `1301.S2.comment.md`, was completed after the mid-arc draft's cutoff).
 No issue opened or closed in this arc. Posting all five drafts is part of CLOSE, pending approval.
 
+
+**Posted (2026-09-14, evening, pre-authorised at G0):** #1307
+(<https://github.com/itchyshin/drmTMB/issues/1307#issuecomment-5674407202>), #1308
+(<https://github.com/itchyshin/drmTMB/issues/1308#issuecomment-5674407330>), #1312
+(<https://github.com/itchyshin/drmTMB/issues/1312#issuecomment-5674407452>), #1315
+(<https://github.com/itchyshin/drmTMB/issues/1315#issuecomment-5674407575>). The #1301 comment is held
+until Fisher's review of `1c44d2f12` closes; its draft already describes the repaired behaviour.
+
 ## What Did Not Go Smoothly
 
 - **SendMessage was unavailable for the entire arc, so no builder agent could be resumed with its own
