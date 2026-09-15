@@ -156,14 +156,20 @@ test_that("S2: a random SLOPE on sigma is refused by name, not silently returned
 test_that("S2: a unit-diagonal phylogenetic random intercept on sigma gets the same closed form", {
   skip_if_not_installed("ape")
 
+  # 30 tips x 12 observations with a true phylo scale-SD of 0.6: the earlier
+  # 20 x 8 / 0.4 fixture sat close enough to the omega = 0 boundary that
+  # nlminb needed the "careful" escalation locally and returned
+  # convergence = 1 on the Linux CI runner (run 34965581817, 2026-09-15).
+  # Measured here: first preset converges, max |gradient| ~ 1e-9, interior
+  # omega_hat; the closed-form identity below is unchanged by the size.
   set.seed(20260916)
-  n_tip <- 20L
-  n_each <- 8L
+  n_tip <- 30L
+  n_each <- 12L
   tree <- ape::rcoal(n_tip)
   tree$tip.label <- paste0("sp_", seq_len(n_tip))
   A <- ape::vcv(tree, corr = TRUE)
   u_mu <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * 0.9
-  omega_phylo_true <- 0.4
+  omega_phylo_true <- 0.6
   u_sigma <- as.vector(t(chol(A)) %*% stats::rnorm(n_tip)) * omega_phylo_true
   species <- factor(
     rep(tree$tip.label, each = n_each),
