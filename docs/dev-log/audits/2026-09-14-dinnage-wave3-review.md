@@ -1293,6 +1293,327 @@ is correct for this predictor. Unchanged from the version accepted last round.
 
 ---
 
+### S2b follow-up (4ae2f5d99, d61f65183)
+
+VERDICT: REJECT — items 2-6 are genuinely met and `d61f65183`'s direction is
+right and should be kept, but replacing the label-based refusal with a measured
+one introduced the same defect it was asked to remove, in the opposite
+direction: `phylo()` on `sigma` alone is now refused as *"measured and does not
+have a unit diagonal"* when its tip-level correlation diagonal is exactly 1
+(measured), which is a capability regression against the parent commit and
+falsifies the NEWS sentence this repair was written to make true.
+
+*Reviewer: Fisher, fresh context, read-only except this file. Worktree
+`/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`. Reviewed
+`4ae2f5d99` and `d61f65183` only. Nothing recompiled. Every number below was
+measured in this worktree unless marked UNVERIFIED. Probe scripts:
+`<scratchpad>/fisher2-*.R`.*
+
+#### Mechanism
+
+**The measured-diagonal rule is the right rule, and it is applied to the wrong
+matrix.** `drm_structured_sigma_unit_diagonal()` (`R/methods.R:4817-4881`)
+inverts `phylo_mu$precision$precision` whenever `structured_mu_q(phylo_mu) == 1L`.
+For `spatial(1 | site, coords = )` that matrix is the 25x25 site-level
+precision and the rule works exactly as advertised — **measured:
+`diag(solve(Q))` in `[1.000001, 1.000001]`, `unit_diagonal -> TRUE`,
+`summary(fit)$derived` returns 1 row, `residual_sd = 0.7415`** on
+`bf(y ~ x + (1 | g), sigma ~ spatial(1 | site, coords = coords))`. Item 1 is met
+for `spatial()`.
+
+**But `phylo()` on `sigma` alone is `q == 1` too, and its precision is the
+augmented tips-plus-internal-nodes matrix.** The commit's own comment
+(`R/methods.R:4830-4841`) attributes the latent-node basis to `q > 1L` joint
+blocks; that is false. Measured on
+`bf(y ~ 1 + (1 | g), sigma ~ 1 + phylo(1 | species, tree = tree))`, 20 tips,
+converged (`convergence = 0`):
+
+```
+q = 1   type = phylo   dim(precision) = 38 x 38
+range(diag(solve(Q))) = [0.5540601, 1]          -> unit_diagonal = FALSE
+drm_sigma_random_effect_omega2_sum()  -> NA, reason "structured_sigma_non_unit_diagonal"
+summary(fit)$derived                  -> 0 rows
+repeatability(fit)                    -> abort: "...whose correlation matrix was
+                                          MEASURED and does not have a unit diagonal"
+```
+
+The tip-level correlation is unit — `range(diag(ape::vcv(tree, corr = TRUE)))`
+is `[1, 1]`, and `diag(solve(Q))[1:20]` (the tip rows) is **exactly 1** for all
+20 tips; only the 18 internal-node rows range down to 0.554. So the package now
+tells the user a measured falsehood about a quantity that is defined, which is
+the precise D-252 failure the predecessor's item 1 named, and the commit message
+promises *"never a false 'not unit'"*. It is also a **capability regression**:
+with the pre-`4ae2f5d99` predicate restored in-session
+(`assignInNamespace("drm_structured_sigma_unit_diagonal", function(...) TRUE)`),
+the same fit yields `nrow(derived) = 1` and a working
+`repeatability()` (`estimate 1.11e-10, se 2.72e-06`). The suite cannot see this
+because fixture C puts `phylo()` on **both** endpoints, which is `q = 2` and
+takes the trusted-by-construction branch.
+
+**The fix is cheap and exact, and the object already carries what it needs.**
+`drm_phylo_augmented_precision()` returns `tip_node_index` (and
+`species_node_index` when a species factor is supplied) —
+`R/phylo-utils.R:258` et seq.; measured `str()` shows both fields. Measuring
+`diag(solve(Q))[tip_node_index]` rather than the whole augmented diagonal gets
+`phylo()` right, keeps `spatial()`/`relmat()`/`animal()` right (their precision
+is already indexed 1:1 by the modelled unit), and — indexed by the right
+endpoint's rows — would also retire the `q > 1L` "trusted by construction"
+branch entirely. The same latent-basis failure mode presumably reaches
+`phylo_interaction()` on `sigma` (a Kronecker of two augmented precisions);
+UNVERIFIED, I did not fit one.
+
+**The `type == "phylo"` trust inside a `q > 1` block is sound today, and I
+re-verified the premise independently rather than inheriting it.** `phylo()`'s
+formals are `function(term, tree)` (`R/formula-markers.R:196`), and all three
+call sites of the precision builder take the default —
+`R/drmTMB.R:14083`, `14146`, `14147` all call
+`drm_phylo_augmented_precision(tree, species = )` with no `correlation`
+argument, and `grep -rn "correlation = FALSE" R/` returns only the two comment
+lines added by this commit. `correlation = TRUE` forces
+`require_ultrametric = TRUE` (`R/phylo-utils.R:273`) and divides by tree height
+(`R/phylo-utils.R:251-252`). So the claim holds. It is a *grammar* guarantee, not
+a *matrix* guarantee, and it becomes unnecessary once the diagonal is measured on
+the tip rows.
+
+**The prefix strip is safe.** `sub("^(mu|sigma):", "", names(sd_values))`
+(`R/heritability.R:458`) feeds only the `is_structured` classification; positions
+are then assigned by **rank within the `log_sd_mu` / `log_sd_phylo` pools**
+(`R/heritability.R:465-479`), never by name, so two terms colliding to the same
+stripped label cannot cross-assign. In `derived_summary_random_effect_kind()`
+(`R/methods.R:4927-4933`) the strip also removes a `sigma:` prefix, but the only
+caller iterates `object$sdpars$mu` (`R/methods.R:4629`), so a `sigma`-endpoint
+label never reaches it. A group literally named `mu` gives the label
+`(1 | mu)`, which does not match `^(mu|sigma):`. No collision found.
+
+**And the strip is not merely non-harmful — the numbers behind it are right.** I
+re-derived fixture C's share and its delta SE from `fit$sdr$cov.fixed` by hand
+(`share = e^{2 t_mu} / (e^{2 t_mu} + e^{2 b0 + 2 e^{2 t_s}})`, gradient by
+`numDeriv::grad`, contracted with the 3x3 submatrix at positions
+`log_sd_phylo[mu]`, `beta_sigma`, `log_sd_phylo[sigma]`): **independent
+0.11818891, package 0.11818891, estimate 0.71549514 both**. The `eta_cor_phylo`
+position is correctly excluded — `rho(u_mu, u_sigma)` cancels out of the marginal
+variance, so its gradient entry is zero. The rank-order mapping from prefixed
+labels to `log_sd_phylo` positions is therefore right, not just non-aborting.
+
+**Tolerance and conditioning.** `tol = 1e-3` on `abs(d - 1)`
+(`R/methods.R:4880`) is well chosen: an accepted worst case propagates a relative
+error of about `2*sum(omega^2)*1e-3` into `residual_variance` (0.2% at
+`omega = 1`), while an `animal()` pedigree with any inbreeding (`diag = 1 + F`)
+is correctly refused. The `tryCatch` on `Matrix::solve` returns `NA` -> "not
+checked" on a hard failure, which is the honest branch. The gap is **near**
+singularity: an ill-conditioned inversion returns finite garbage, `d` drifts off
+1, and the caller reports *"measured and does not have a unit diagonal"* — the
+same false-claim class again. No `rcond`/condition check is present.
+
+**No size guard, and the cost is not negligible.** The inversion is dense
+(`as.matrix(Matrix::solve(precision))`) and is recomputed on every `summary()`,
+`heritability()`, `icc()` and `repeatability()` call — `drm_constant_residual_sigma()`
+has exactly two callers (`R/heritability.R:296`, `R/methods.R:4612`) and neither
+caches. Measured on a synthetic exponential-correlation precision: **n = 500 ->
+0.05 s, n = 1500 -> 1.19 s, n = 3000 -> 9.63 s / 72 MB dense**. A coords-based
+spatial `sigma` fit with a few thousand sites therefore pays ~10 s per accessor
+call for a check whose answer never changes within a fit. Not a correctness
+defect; a usability one (D-139).
+
+**The clamp question (`d61f65183`), and it is the sharper of the two.** The
+kernel does not clamp the intercept — it clamps the **assembled** predictor:
+`log_sigma = X_sigma * beta_sigma`, then every random-effect contribution is
+added (`src/drmTMB.cpp:811, 994, 1033`), and only then
+`drm_softclamp_log_sigma(log_sigma, ...)` is applied to the whole vector
+(`src/drmTMB.cpp:2437`) before `sigma = exp(log_sigma)`. So the quantity the
+likelihood integrates is `E[exp(2*c(b0 + u))]` with `c` the soft clamp. After
+`d61f65183`, `drm_constant_residual_sigma()` (`R/methods.R:4742-4746`) computes
+`exp(2*c(b0) + 2*sum omega_k^2)` — the second moment of a lognormal centred at
+`c(b0)` and **not** clamped. That is the moment of no distribution the kernel
+uses. Three regimes, all measured on a 40x12 fixture with
+`bf(y ~ 1 + (1|g), sigma ~ 1 + (1|g))` against a 2e6-draw Monte Carlo of the
+kernel's own `E[exp(2*c(b0 + omega*z))]`:
+
+| band, margin | clamp | `residual_sd` | kernel-consistent | ratio | pre-`d61f65183` |
+|---|---|---|---|---|---|
+| `c(-12,12)`, 3 | inactive | 1.8533 | 1.8517 | **1.001** | 1.8533 |
+| `c(-1.2,-0.6)`, 3 | active, partly bent | 2.5128 | 1.7142 | **1.466** | 2.5340 |
+| `c(-1.2,-0.6)`, 0.5 | saturated | 0.9080 | 0.9048 | **1.003** | 343.14 |
+| `c(-1.2,-0.6)`, 0.2 | saturated | 0.6912 | 0.6703 | **1.031** | 8.10 |
+
+Read three things off this. (i) *"a no-op when the clamp is inactive"* is exactly
+true (1.001). (ii) In the **saturated** regime the commit is a large, real repair
+(343 -> 0.908 against a truth of 0.905): `c(b0)` is bounded, so the wild
+over-statement disappears. (iii) In the **partly bent** regime — the one a real
+clamp-active fit actually lands in — the commit moves the number by 1% of the
+error and leaves a **47% over-statement of the residual variance standing**,
+because the clamp's contraction of the random part is exactly what the formula
+omits. This is not cosmetic: on that fit `summary()$derived` reports
+`residual_variance = 6.314` against a kernel-consistent `2.939`, and
+`repeatability()` returns **0.0592 (se 0.0355)** where the kernel-consistent
+value is **0.1208** — the reported point estimate is 2.0x low and the true value
+sits 1.7 SE outside it, with no flag on the row. The sibling repair
+`e86359fe2` refuses exactly this situation one module over
+(`conf.status = "clamp_limited"`, `NA` interval); `summary()$derived` and the
+accessors report a bare number for the same reason. `drmTMB()` and `check_drm()`
+do warn that the clamp is active and that estimates near it are unreliable — that
+is real mitigation and should be credited — but it is a fit-level warning, not a
+statement about this row.
+
+Exactly: under a soft clamp the marginal is `E[exp(2*c(b0+u))]`, which is bounded
+by `exp(2*(hi+m))` however large `omega` is, whereas the code's
+`exp(2*c(b0) + 2*sum omega^2)` is unbounded in `omega`; the two agree only where
+`c` is the identity over essentially all the mass of `b0 + u`. **The code should
+refuse on a clamp-active fit** (`NA` with a named reason) rather than ship a
+hybrid, which is also what makes it consistent with `e86359fe2`.
+
+#### Negative control
+
+**Legitimate this time, and better than its predecessor — but blind on the
+commit's headline claim.** `<scratchpad>/s2b-repair-red.txt` shows five failures
+against the pre-fix tree and all five are substantive, not arity artefacts:
+(1) `expect_message(print(summary(fit)), "random slope on sigma")` fails —
+item 5; (2-4) fixture C's user-facing arm fails with `nrow(derived) = 0`,
+`residual_variance = NA`, `estimate = NA` against expected `0.3`/`0.7` — item 2;
+(5) `repeatability(fit)` aborts at `R/heritability.R:313`. The predecessor's two
+complaints are both answered: the run reaches fixture C (it did not before), and
+nothing here fails on a changed signature.
+
+**Green re-run, mine, this worktree:**
+`testthat::test_local(filter = "dinnage-audit-s2")` -> `FAIL 0`, `PASS 35`,
+`WARN 1` (the optimizer-preset escalation on the phylo fixture, not an
+assertion). Fixture C's `skip_if(elapsed > 60, ...)` is gone (item 3 met) and the
+fixture now asserts at `summary()$derived`, `repeatability()` and `icc()`.
+
+**The gap: `drm_structured_sigma_unit_diagonal()` has no test anywhere.**
+`grep -rln "drm_structured_sigma_unit_diagonal\|structured_sigma_diagonal_not_checked\|structured_sigma_non_unit_diagonal" tests/ R/` returns `R/methods.R` and
+nothing else. The commit's *leading* claim — that
+`sigma ~ spatial(1 | site, coords = )` now gets the closed form — has neither a
+red nor a green assertion; I had to fit it myself to confirm it. That is also
+why the `phylo()`-on-`sigma`-alone regression shipped: no fixture exercises
+`q == 1` phylo on `sigma`, and no fixture exercises a genuinely non-unit matrix
+to prove the refusal still fires when it should.
+
+#### Contract
+
+**`man/summary.drmTMB.Rd` is regenerated and in sync** with the roxygen block
+(`R/methods.R:4184-4197` vs `man/summary.drmTMB.Rd:88-96`, same text), and it
+says what item 4 asked: `residual_sd` is `sqrt(residual_variance)` =
+`sqrt(E[sigma^2]) = exp(b0 + sum omega_k^2)`, the `sigma` parameter row is the
+conditional/median `exp(b0)`, they coincide only when `sigma` carries no random
+effect, and both are `scale = "response"` because they are two quantities rather
+than two scales. Item 4 met. `man/predict.drmTMB.Rd` /
+`man/sigma.drmTMB.Rd` dropping the `\link` to an internal function is correct
+(the R CMD check complaint is real; the function is not exported).
+
+**NEWS item 6 was applied and is honest.** `NEWS.md:83-88` now separates the
+estimation claim from the inference claim in as many words — *"That change
+corrects WHICH quantity the interval brackets; it does not make the bracket
+nominal"* — with the measured 0.910 / 0.928 over 500 replicates each and the
+credit that the shortfall predates the change. This is the wording I asked for.
+
+**Two sentences in that same bullet are now falsified by the regression.**
+`NEWS.md:79-80`: *"including a phylogenetic random intercept on `sigma` under
+the default unit-diagonal correlation"* — true only when `phylo()` is **also** on
+`mu`; measured false for `phylo()` on `sigma` alone. And `NEWS.md:89-91`:
+*"Random slopes on `sigma`, or a structured effect whose correlation diagonal is
+not one, give `NA` with a message naming why"* — the `phylo()`-on-`sigma`-alone
+fit has a diagonal that **is** one and gets the `NA`. The man page's
+*"without a verified unit-diagonal correlation"* wording survives the regression
+intact, but the user-visible message text does not: it now asserts a measurement
+that was not made on the right basis.
+
+**Nothing anywhere records the clamp caveat** (the predecessor's OPTIONAL item
+8). It was optional when the number was transparently the unclamped moment; it is
+not optional now that `d61f65183` advertises scale consistency with `sigma()`
+while leaving a measured 47% residual-variance over-statement and a 2.0x
+distortion of `repeatability()` on a partly-bent fit.
+
+**Item 5 is met.** The new branch in `print.summary.drmTMB()`
+(`R/methods.R:4455-4465`) emits the reason via `cli::cli_text()` when the derived
+table is empty and the attribute is set, and the fixture asserts it with
+`expect_message`. Confirmed green.
+
+#### Scope
+
+- **Still unmet from the predecessor's list:** item 7 (a `(1 | p | id)` fixture —
+  `grep "| p |" tests/testthat/test-dinnage-audit-s2.R` is empty; the `rho`
+  cancellation remains load-bearing and untested, though I re-verified it
+  numerically above via the zero `eta_cor_phylo` gradient), item 8 (clamp caveat,
+  now upgraded — see REQUIRED 3), item 9 (the two unreachable-today S2 routes are
+  still unrecorded), item 10 (`docs/design/parity-matrix.md:90` still reads
+  *"delta-method Wald interval with a small-N sanity check, no coverage study"*,
+  which is no longer true and does not mention the moved estimand).
+- **Blast radius of the regression is bounded to the `sigma` endpoint.** The
+  diagonal check fires only when `which(endpoint_dpars == "sigma")` is non-empty
+  (`R/methods.R:4786-4788`), so `phylo()`-on-`mu`-only fits — the main
+  heritability path — are untouched. Verified by reading the branch, not assumed.
+- **`spatial_mu_residual_scale()` (`R/check.R:3418-3430`) still reports a third
+  residual scale** (`mean(sigma(object))`). Unchanged by these commits and still
+  undocumented; a note, not a finding.
+- UNVERIFIED: `phylo_interaction()` and `animal()`/`relmat()` on `sigma` with
+  `q == 1`. `relmat()`'s user-supplied `Q` is indexed by the modelled unit and
+  should be fine; `phylo_interaction()`'s Kronecker of two augmented precisions
+  looks like the same latent-basis trap as `phylo()`, but I did not fit one.
+- UNVERIFIED: I did not run DRM.jl; the bridge fence at
+  `docs/design/parity-matrix.md:90` still stands on its own measured receipt.
+
+#### Concrete change
+
+1. **REQUIRED — measure the diagonal on the modelled-unit rows, not the whole
+   augmented basis.** `phylo()` on `sigma` alone is `q == 1` with a 38x38
+   tips-plus-nodes precision, so `drm_structured_sigma_unit_diagonal()`
+   (`R/methods.R:4849-4881`) measures `[0.554, 1]` and returns `FALSE`, and the
+   user is told the correlation matrix *"was measured and does not have a unit
+   diagonal"* when `diag(solve(Q))[1:20]` is exactly 1 on every tip. Index
+   `diag(solve(Q))` by `precision$tip_node_index` (or `species_node_index` when a
+   species factor is supplied) — both are already on the object. Done for the
+   right endpoint's rows this also retires the `q > 1L` trusted-by-construction
+   branch, so the `type == "phylo"` guess disappears from the code entirely.
+   Until this lands, the parent commit's behaviour was strictly better for this
+   configuration.
+2. **REQUIRED — give the new helper a test, in all three directions.** It has
+   none. (a) `sigma ~ spatial(1 | site, coords = )` accepts and yields a derived
+   row plus a finite `repeatability()` — this is the commit's headline claim and
+   is currently unasserted. (b) `sigma ~ 1 + phylo(1 | species, tree = )` with
+   **no** `phylo()` on `mu` accepts and returns the closed form — the arm that
+   regressed. (c) A structured `sigma` matrix whose diagonal genuinely is not one
+   still refuses with `structured_sigma_non_unit_diagonal`, so the repair of (a)
+   and (b) cannot be mistaken for switching the guard off.
+3. **REQUIRED — refuse, or flag, the marginal on a clamp-active fit.** The kernel
+   clamps the assembled predictor (`src/drmTMB.cpp:2437`, after the random-effect
+   contributions at `994`/`1033`), so the integrated quantity is
+   `E[exp(2*c(b0+u))]`, bounded by `exp(2*(hi+m))`; the shipped
+   `exp(2*c(b0) + 2*sum omega^2)` (`R/methods.R:4742-4746`) is unbounded in
+   `omega` and is the moment of no distribution the likelihood uses. Measured on a
+   converged, partly-bent fit: `residual_variance` 6.314 vs a kernel-consistent
+   2.939 (1.47x on the SD), and `repeatability()` 0.0592 (se 0.0355) against a
+   kernel-consistent 0.1208 — 2.0x low, 1.7 SE outside, unflagged. Return
+   `NA_real_` with a named reason (e.g. `clamp_active_marginal_undefined`) when
+   `drm_softclamp_log_sd()` bends any fitted row, matching `e86359fe2`'s
+   `conf.status = "clamp_limited"` treatment of the same defect. Keep
+   `d61f65183` either way: it is a genuine repair in the saturated regime
+   (343 -> 0.908 against 0.905) and an exact no-op when the clamp is inactive
+   (ratio 1.001).
+4. **REQUIRED — bring `NEWS.md` back in line with what the code does.**
+   `NEWS.md:79-80` claims support for *"a phylogenetic random intercept on
+   `sigma`"* (true only alongside `phylo()` on `mu`) and `NEWS.md:89-91` claims
+   the `NA` is reserved for *"a structured effect whose correlation diagonal is
+   not one"* (it now also catches one whose diagonal **is** one). Fix the code per
+   REQUIRED 1 and both sentences become true again; if REQUIRED 1 is deferred,
+   the sentences must be narrowed and the deferral dated.
+5. OPTIONAL — report an ill-conditioned inversion as *"not checked"*, not *"not
+   unit"*. `tryCatch` catches a hard failure, but a near-singular precision
+   returns finite garbage whose diagonal drifts off 1 and is then reported as a
+   measurement. An `rcond`/condition guard routes it to the honest branch.
+6. OPTIONAL — guard or cache the inversion. It is dense and recomputed on every
+   `summary()`/`heritability()`/`icc()`/`repeatability()` call (two uncached
+   callers: `R/heritability.R:296`, `R/methods.R:4612`). Measured: 0.05 s at
+   n = 500, 1.19 s at n = 1500, **9.63 s and 72 MB at n = 3000**. Cache the
+   verdict on the fit, or skip the check above a size threshold and report *"not
+   checked"*.
+7. OPTIONAL — the predecessor's items 7, 9 and 10 are all still open: the
+   `(1 | p | id)` fixture, the two unreachable-today S2 routes as guarded
+   assumptions, and `docs/design/parity-matrix.md:90` (*"no coverage study"* is no
+   longer true and the estimand moved).
+
+---
+
 ## Part B — documents (274, 275, S3 help page)
 
 ### B1 — `docs/design/274-bootstrap-interval-bias.md` (S6, #1315)
