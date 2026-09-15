@@ -4179,8 +4179,9 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #' squared median `exp(2*b0)` -- where `omega_k` are the working-scale
 #' (log-SD) standard deviations of those effects. A random slope on `sigma`,
 #' a structured `sigma` effect without a verified unit-diagonal correlation
-#' (measured on the rows the design uses), or a fit whose `sigma` random
-#' effect the `log(sigma)` soft clamp bent (`clamp_limited`; a clamp-active
+#' (measured on the rows the design uses), or a fit that carries a `sigma`
+#' random effect while the `log(sigma)` soft clamp bent the assembled
+#' predictor for at least one observation (`clamp_limited`; a clamp-active
 #' `sigma ~ 1` fit still returns its constant clamped scale), has no
 #' closed-form marginal residual variance here and is
 #' refused (a `residual_variance.message` attribute on the empty result names
@@ -4863,14 +4864,13 @@ drm_sigma_random_effect_omega2_sum <- function(object) {
 # measured directly, those rows have a unit diagonal (`[1, 1]`) even for
 # `phylo()` on `sigma` ALONE, while the whole augmented diagonal ranges over
 # `[0.554, 1]` and would falsely refuse a fit whose modelled units really
-# are unit-diagonal. The object already carries the index:
-# `precision$species_node_index` (set whenever a species/group factor was
-# supplied -- always true for `phylo()`, R/drmTMB.R:14084) or
-# `precision$tip_node_index` when only the latter is present. `spatial()`
-# and `animal()`/`relmat()` (`drm_spatial_coords_precision()`,
-# `drm_known_relatedness_precision()`) carry no such augmentation and no
-# such index, so the diagonal there is measured over the WHOLE matrix, same
-# as before. This indexing is independent of `structured_mu_q()`: a
+# are unit-diagonal. Every structured builder records the rows its design
+# loads on as `observation_node_index` (`phylo()`, `phylo_interaction()`,
+# `spatial()`, `animal()`/`relmat()`; R/drmTMB.R ~14111, ~14216, ~14329,
+# ~14592), and the tree-based precisions additionally carry
+# `precision$species_node_index` / `precision$tip_node_index`; the helper
+# measures on the design rows first and the species/tip index as fallback,
+# never over a whole augmented matrix. This indexing is independent of `structured_mu_q()`: a
 # `phylo()` term shared across two endpoints (`q > 1`, e.g. the same term on
 # both `mu` and `sigma`) reuses the identical per-tree precision object
 # (measured: `phylo_mu$precision` is built once in
@@ -4884,7 +4884,7 @@ drm_sigma_random_effect_omega2_sum <- function(object) {
 #
 # Returns `TRUE`/`FALSE` when the diagonal was measured (within `tol`), or
 # `NA` when it could not be measured (no precision matrix, non-square, the
-# inversion failed, or a `q > 1L` block with no modelled-unit index) --
+# inversion failed, or no row index of any kind, whatever the block's `q`) --
 # callers must report an `NA` result as "the diagonal was not checked",
 # never as "the diagonal is not unit" (D-252: a refusal is a claim, and a
 # false one is a defect).

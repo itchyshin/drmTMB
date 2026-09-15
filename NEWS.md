@@ -88,8 +88,9 @@
   this change (`method = "profile"` where available is the safer choice).
   Random slopes on `sigma`, a structured effect whose correlation diagonal
   (measured on the rows the design uses, e.g. the tips of a tree, never the
-  latent internal nodes) is not one, or a fit whose `sigma` random effect
-  the `log(sigma)` soft clamp bent (the kernel clamps the assembled
+  latent internal nodes) is not one, or a fit that carries a `sigma`
+  random effect while the `log(sigma)` soft clamp bent the assembled
+  predictor for at least one observation (the kernel clamps the assembled
   predictor, so the closed form is no longer the moment the likelihood
   uses; a clamp-active `sigma ~ 1` fit still returns its constant clamped
   scale) give `NA` with a message naming why instead of the silently wrong

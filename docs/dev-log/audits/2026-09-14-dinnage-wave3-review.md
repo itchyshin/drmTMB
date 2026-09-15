@@ -1856,6 +1856,198 @@ clamp state (`R/check.R:602`).
 4. OPTIONAL — the previous round's items 5, 6, 7, 9 and 10 are all still open and
    unchanged by this commit.
 
+### S2b follow-up 3 (19849f0dc)
+
+VERDICT: ACCEPT-WITH-CHANGES — both REQUIRED items are met and the new rule is
+the right one (measured: all four structured blocks now return `TRUE` on the rows
+their design uses, including the `phylo_interaction()` block that the parent
+falsely refused), but the helper's own comment block still states the superseded
+rule in two places, so the file again documents a rule the code does not follow.
+
+*Reviewer: Fisher, fresh context, read-only except this file. Worktree
+`/Users/z3437171/local-scratch/lanes/drmTMB-audit-dinnage-wave1`. Reviewed
+`19849f0dc` only. Nothing recompiled. Every number below was measured in this
+worktree unless marked UNVERIFIED. Probe scripts: `<scratchpad>/fisher4-*.R`.*
+
+#### Mechanism
+
+**`observation_node_index` is what the commit says it is, on all four structured
+builders — re-derived, not inherited.** Each builder computes it from the
+precision object's own row basis, 1-based, and aborts rather than ship an
+unaligned index:
+
+- `phylo()` — `precision$species_node_index[precision$observation_species_index]`
+  (`R/drmTMB.R:14084-14089`), stored at `R/drmTMB.R:14112`.
+- `phylo_interaction()` — `(node_index2 - 1L) * n1 + node_index1`
+  (`R/drmTMB.R:14168`), stored at `R/drmTMB.R:14218`. This is exactly R's
+  row order for `Matrix::kronecker(precision2, precision1)`
+  (`R/drmTMB.R:14161-14165`): row `(i2 - 1) * n1 + i1` is the pair
+  (tip `i1` of tree 1, tip `i2` of tree 2). Re-derived from the kronecker
+  argument order, not assumed.
+- `spatial()` — `match(site, precision$site_levels)` (`R/drmTMB.R:14259`),
+  stored at `R/drmTMB.R:14329`.
+- `animal()`/`relmat()` —
+  `precision$species_node_index[precision$observation_species_index]`
+  (`R/drmTMB.R:14520-14525`), stored at `R/drmTMB.R:14592`.
+
+All four are 1-based row indices into the same matrix the helper inverts; none is
+0-based (the 0-based vector is a *separate* field, `observation_node_index0`,
+written alongside each of the four, and the helper does not touch it). The empty
+structure sets `observation_node_index = integer()`
+(`R/drmTMB.R:13993`), which the new `length(index) == 0L` test handles
+(`R/methods.R:4910-4916`). I found no builder on a different basis.
+
+**Measured helper results, this worktree (`<scratchpad>/fisher4-four.R`),
+structures built directly through `build_structured_mu_structure()` with
+`dpars = "sigma"`:**
+
+| structure | `q` | `dim(Q)` | whole diag | used rows | used diag | helper |
+|---|---|---|---|---|---|---|
+| `phylo()` on `sigma` alone | 1 | 38x38 | [0.554060, 1] | 20 | [1, 1] | `TRUE` |
+| `phylo()` on `mu` **and** `sigma` | 2 | 38x38 | [0.554060, 1] | 20 | [1, 1] | `TRUE` |
+| `spatial(1 \| site, coords =)` | 1 | 12x12 | [1.000001, 1.000001] | 12 | [1.000001, ...] | `TRUE` |
+| `phylo_interaction()` | 1 | 80x80 | **[0.216463, 1]** | 30 | [1, 1] | `TRUE` |
+| `relmat()` (extra, mine) | 1 | 20x20 | [1, 1] | 20 | [1, 1] | `TRUE` |
+
+The `phylo_interaction()` row is the repair: at the parent the index fields were
+absent and `q == 1`, so the fallback measured all 80 rows, whose minimum is
+0.216463 — a `FALSE`, i.e. the false refusal *"was measured and does not have a
+unit diagonal"* about a block whose 30 used rows are exactly 1. It is now `TRUE`.
+(My tree draw differs from the predecessor's, hence 0.216 against his 0.505; the
+sign of the claim is the same.)
+
+**`unique()` is right and the guards still hold — measured, not argued**
+(`<scratchpad>/fisher4-rowsel.R`). `unique()` only removes repeats of the same
+row, so the measured set is unchanged; on the 15-of-20-observed-tip probe the
+index collapses 60 observations to the 15 tips actually loaded and still returns
+`TRUE`. `anyNA(index)` still fires after `as.integer()` (`R/methods.R:4917-4920`),
+and an out-of-range index (`c(1L, 99L)` on a 4x4) returns `NA` through
+`anyNA(d)` (`R/methods.R:4929-4932`) rather than a guess. The one residual hole is
+cosmetic and unreachable: a **negative** index would be R's drop-these-rows
+semantics and silently measure the complement (measured: `c(-1L, -2L)` on a matrix
+whose rows 3-4 are non-unit returns `FALSE`). No builder can produce one — all
+four are `as.integer()` of positive matches with an `anyNA()` abort — so this is
+hardening, not a defect.
+
+**Row selection is real, not incidental.** On a hand-built 4x4 whose implied
+covariance is unit on rows 1-2 and `(4, 0.25)` on rows 3-4: index `1:2` gives
+`TRUE`, index `3:4` gives `FALSE`, all four rows give `FALSE`, no index gives
+`NA`. So the helper is selecting by the supplied rows, not merely branching on
+their presence.
+
+**The structured slot is the only route, and the one slot that carries no row
+index is not reachable on `sigma` — I checked rather than assumed.** The helper is
+called only from `drm_sigma_random_effect_omega2_sum()` on
+`object$model$structured$phylo_mu` (`R/methods.R:4811, 4825`), which is the shared
+slot for all five structured builders (`R/drmTMB.R:14001-14016`).
+`mesh_spatial_mu` is a *different* slot (`R/drmTMB.R:4335`) whose structure
+carries a projection matrix and **no** `observation_node_index`
+(`R/drmTMB.R:14414-14431`) — but `validate_gaussian_mesh_spatial_term()` requires
+`dpar == "mu"` and `sigma ~ 1` (`R/drmTMB.R:14356-14370`), so a mesh field can
+never be the `sigma` random effect whose diagonal this helper would need. No
+silent closed form hides there.
+
+**Cost is not a new problem.** The helper densifies `solve(Q)`; measured 0.08 s
+and 20 MB for an 800-tip tree (1598x1598). Pre-existing, same as the parent.
+
+#### Negative control
+
+**Green, mine, this worktree:** `testthat::test_local(filter =
+"dinnage-audit-s2")` — 0 failures, one warning (the optimizer-preset escalation
+on the older phylo fixture at `test-dinnage-audit-s2.R:178`, not an assertion).
+
+**Both arms of the guard test are non-tautological, for different reasons —
+checked by re-running each against the superseded rule.** Arm 1
+(`test-dinnage-audit-s2.R:378-384`, `observation_node_index = c(1,2,3,1,2)` on a
+3x3 whose implied diagonal is `[0.5137, 0.5425]`) returns `FALSE`; delete the
+`observation_node_index` branch and it would return `NA` and fail, so it guards
+that the new branch is reached. It does **not** discriminate row *selection* —
+its index covers every row, so the parent rule returns `FALSE` too. Arm 2
+(`:386-390`, same matrix, no index) returns `NA` where the parent returned
+`FALSE`; that is the arm that pins the repair. Row selection itself is
+discriminated by the live fixture at `test-dinnage-audit-s2.R:293-337`
+(`phylo()` on `sigma` alone: 20 used rows of a 38-row basis whose whole diagonal
+is `[0.554, 1]`) — it would go red if the index were dropped. Coverage is
+adequate; my 4x4 subset case would make it explicit rather than emergent.
+
+#### Contract
+
+**The clamp claim is now exactly what the code does, on the point the predecessor
+raised.** `drm_constant_residual_sigma()` returns `exp(b0)` from the clamped
+intercept *before* the clamp check (`R/methods.R:4747-4749`), so a clamp-active
+`sigma ~ 1` fit is not refused. Measured (`<scratchpad>/fisher4-clamp.R`, band
+`c(-5, -2)`, margin `0.5`): clamp active `TRUE`,
+`drm_constant_residual_sigma() = 0.2231302` with no `reason`, identical to
+`mean(sigma(fit))`. NEWS's narrowed sentence (`NEWS.md:89-95`) and
+`man/summary.drmTMB.Rd:80-84` both now say this.
+
+**One residual imprecision, in the prose only, and it is the other direction from
+the last one.** The code's predicate is *"`sigma` carries a random effect **and**
+the assembled `log_sigma` was bent anywhere"* — `has_sigma_random_effects()`
+gate at `R/methods.R:4747`, then `drm_logsigma_clamp_active()` on the reported
+assembled vector at `R/methods.R:4766-4773`. NEWS (`NEWS.md:91-92`),
+`man/summary.drmTMB.Rd:80-82` and `man/heritability.Rd:115-117` all say *"a fit
+whose `sigma` random effect the `log(sigma)` soft clamp bent"*, which reads as
+"the random effect was bent". Measured counter-case
+(`<scratchpad>/fisher4-clamp2.R`): `sigma ~ 1 + (1 | g)` with band `c(-5, -2)`,
+fitted `b0 = 4.725`, `omega = 0.1377` — the **intercept** is what left the band,
+the random effect is tiny, and the fit is still refused with
+`reason = "clamp_limited"`. The refusal is correct (the closed form would be
+astronomically wrong there); only the attribution in the help text is. The
+user-facing message itself is accurate — *"This fit's log(sigma) soft clamp is
+active at the optimum"* (`R/methods.R:4972-4977`) — so this is a help-page wording
+fix, not a behaviour claim, hence OPTIONAL.
+
+**`clamp_limited` is in both closed lists**, with roxygen and `.Rd` in sync:
+`R/heritability.R:41-46` -> `man/heritability.Rd:114-119`, and
+`R/methods.R:4180-4186` -> `man/summary.drmTMB.Rd:79-85`. `man/heritability.Rd`
+aliases `repeatability()` and `icc()` (`:4-12`), so `?repeatability` now names the
+refusal a user will hit.
+
+#### Scope
+
+Predecessor item 1 is met on behaviour and on the guard test; **it is met only
+partially on the comment**, which is the one REQUIRED change below. Item 2 is
+fully met. Previous-round OPTIONAL 3 (the fail-open `tryCatch` at
+`R/methods.R:4766-4769`, which degrades a failed `obj$report()` to *no refusal*
+rather than to `NA`) is untouched and still open, as are items 5, 6, 7, 9, 10 from
+the rounds before. Nothing in this commit regressed a previously green arm.
+
+#### Concrete change
+
+1. **REQUIRED — finish the comment the commit started; two sentences in the same
+   block still state the superseded rule.** (a) `R/methods.R:4869-4873`: *"`spatial()`
+   and `animal()`/`relmat()` ... carry no such augmentation and no such index, so
+   the diagonal there is measured over the WHOLE matrix, same as before."* That is
+   now false twice over — both structures carry `observation_node_index`
+   (`R/drmTMB.R:14329`, `R/drmTMB.R:14592`), `relmat()`'s precision object also
+   carries `species_node_index` (measured field list,
+   `<scratchpad>/fisher4-four.R`), and the helper measures the index rows, not the
+   whole matrix. (b) `R/methods.R:4885-4887`: the Returns paragraph still says `NA`
+   fires for *"a `q > 1L` block with no modelled-unit index"*, but the `q`
+   dependence was retired by this very commit — `NA` now fires for **any** `q` with
+   no row index (measured: guard arm 2, `q = 1L`, returns `NA`). Both are the same
+   defect class the last round made REQUIRED: a comment that codifies a rule the
+   code no longer follows is what the next contributor will implement.
+2. **OPTIONAL — say what the clamp predicate is, in the two help pages and NEWS.**
+   Replace *"a fit whose `sigma` random effect the `log(sigma)` soft clamp bent"*
+   with *"a fit that carries a `sigma` random effect and whose assembled
+   `log(sigma)` the soft clamp bent"* (`NEWS.md:91-92`,
+   `man/summary.drmTMB.Rd:80-82` / `R/methods.R:4181-4183`,
+   `man/heritability.Rd:115-117` / `R/heritability.R:42-44`). Evidence: the
+   measured `b0 = 4.725`, `omega = 0.1377` refusal above.
+3. **OPTIONAL — make row selection an explicit unit test.** The shipped guard arms
+   prove the branch is reached and that an index-less matrix is `NA`; neither
+   proves the index is used as a row *selector* (the live phylo fixture does, but
+   only implicitly, and it costs a fit). Four lines, no fit: a 4x4 whose implied
+   covariance is unit on rows 1-2 and `(4, 0.25)` on rows 3-4, asserting `TRUE` for
+   index `1:2` and `FALSE` for index `3:4`.
+4. **OPTIONAL — reject a non-positive index.** `R/methods.R:4917-4920` accepts a
+   negative index and silently measures the complement (measured above). No builder
+   can produce one; one `any(index < 1L)` -> `NA` closes it.
+5. **OPTIONAL — the previous rounds' items (the `obj$report()` fail-open, and
+   5, 6, 7, 9, 10) remain open and unchanged by this commit.**
+
 ---
 
 ## Part B — documents (274, 275, S3 help page)

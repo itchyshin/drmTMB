@@ -78,8 +78,9 @@ residual variance \code{exp(2*b0 + 2*sum_k(omega_k^2))} -- \code{E[sigma^2]}, no
 squared median \code{exp(2*b0)} -- where \code{omega_k} are the working-scale
 (log-SD) standard deviations of those effects. A random slope on \code{sigma},
 a structured \code{sigma} effect without a verified unit-diagonal correlation
-(measured on the rows the design uses), or a fit whose \code{sigma} random
-effect the \code{log(sigma)} soft clamp bent (\code{clamp_limited}; a clamp-active
+(measured on the rows the design uses), or a fit that carries a \code{sigma}
+random effect while the \code{log(sigma)} soft clamp bent the assembled
+predictor for at least one observation (\code{clamp_limited}; a clamp-active
 \code{sigma ~ 1} fit still returns its constant clamped scale), has no
 closed-form marginal residual variance here and is
 refused (a \code{residual_variance.message} attribute on the empty result names
