@@ -15,8 +15,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 documented_exports <- c(
   "animal", "associate_pairs", "association", "beta", "beta_binomial", "bf",
   "biv_associate", "biv_gaussian", "biv_lognormal", "biv_student",
-  "categorical", "centile_chart", "check_drm", "corpair", "corpairs",
-  "cumulative_logit", "drm_control", "drm_formula", "drm_phylo_penalty",
+  "categorical", "centile_chart", "check_drm", "convergence_status", "corpair",
+  "corpairs", "cumulative_logit", "drm_control", "drm_formula", "drm_phylo_penalty",
   "drm_phylo_penalty_sweep", "drmTMB", "exceedance",
   "fitted_distribution", "fixef", "impute_model", "imputed",
   "is_converged", "latent_normal", "lognormal", "make_mesh",
@@ -257,7 +257,7 @@ Deprecated compatibility markers are deliberately omitted.
     </section>
     <section class="drmtmb-map__panel map-inspect">
       <h3>3 · Inspect</h3>
-      <div class="drmtmb-map__node"><strong><a href="../reference/check_drm.html"><code>check_drm()</code></a> + <a href="../reference/is_converged.html"><code>is_converged()</code></a></strong><small>Check convergence, Hessian, gradients, boundaries, and model-specific warnings.</small></div>
+      <div class="drmtmb-map__node"><strong><a href="../reference/check_drm.html"><code>check_drm()</code></a>, <a href="../reference/convergence_status.html"><code>convergence_status()</code></a>, <a href="../reference/is_converged.html"><code>is_converged()</code></a></strong><small>Check convergence, Hessian, gradients, boundaries, and model-specific warnings; read a short status label or one logical flag.</small></div>
       <div class="drmtmb-map__node"><strong>Coefficients and effects</strong><small><a href="../reference/summary.drmTMB.html"><code>summary()</code></a>, <a href="../reference/fixef.html"><code>coef()</code> / <code>fixef()</code></a>, <a href="../reference/ranef.html"><code>ranef()</code></a>.</small></div>
       <div class="drmtmb-map__node"><strong>Model parameters</strong><small><a href="../reference/sigma.drmTMB.html"><code>sigma()</code></a>, <a href="../reference/rho12.html"><code>rho12()</code></a>, <a href="../reference/corpairs.html"><code>corpairs()</code></a>, <a href="../reference/structured_effects.html"><code>structured_effects()</code></a>.</small></div>
       <div class="drmtmb-map__node"><strong><a href="../reference/imputed.html"><code>imputed()</code></a></strong><small>Inspect fitted values for modelled missing predictors.</small></div>
@@ -380,6 +380,7 @@ correlations returned by `corpairs()`.
 | Function | Use it for |
 |---|---|
 | [`check_drm()`](../reference/check_drm.html) | Run the model-aware convergence and identifiability checks. Start here after fitting. |
+| [`convergence_status()`](../reference/convergence_status.html) | Return `"converged"`, `"boundary"`, or `"degenerate"` when a logical flag is not enough. |
 | [`is_converged()`](../reference/is_converged.html) | Return one logical convergence summary for programmatic workflows. |
 | [`summary()`](../reference/summary.drmTMB.html) | Print coefficients, fit information, and optional intervals. |
 | [`coef()` / `fixef()`](../reference/fixef.html) | Extract fixed-effect coefficient blocks; `fixef()` makes the mixed-model meaning explicit. |

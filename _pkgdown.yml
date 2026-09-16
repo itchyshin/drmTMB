@@ -176,6 +176,7 @@ reference:
       - drm_phylo_penalty_sweep
       - native_reader_contracts
       - check_drm
+      - convergence_status
       - drm_provenance
       - is_converged
       - confint.drmTMB

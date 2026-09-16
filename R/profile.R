@@ -2153,6 +2153,7 @@ drm_wald_confint <- function(
   #   "group" (opt-in): shift every structured SD target (mu and sigma alike).
   #   "none" (opt-out): leave every centre at the ML estimate, byte-identical to
   #     the pre-default behaviour.
+  bias_applied <- rep(FALSE, nrow(targets))
   if (!identical(bias_correct, "none")) {
     log_bias <- wald_target_log_bias(
       object,
@@ -2160,6 +2161,7 @@ drm_wald_confint <- function(
       location_only = identical(bias_correct, "location")
     )
     has_bias <- !is.na(log_bias)
+    bias_applied <- has_bias
     targets$link_estimate[has_bias] <-
       targets$link_estimate[has_bias] + log_bias[has_bias]
   }
@@ -2234,6 +2236,9 @@ drm_wald_confint <- function(
     profile.message = NA_character_,
     stringsAsFactors = FALSE
   )
+  if (any(interval_ready & bias_applied)) {
+    out$conf.status[interval_ready & bias_applied] <- "wald_bias_corrected"
+  }
 
   # A Wald interval on a variance component near zero or a correlation near +/-1
   # is unreliable (boundary / chi-square-mixture inference). Keep the interval --
@@ -2245,7 +2250,8 @@ drm_wald_confint <- function(
       sd_boundary = sd_boundary,
       rho_boundary = rho_boundary
     )
-  out$conf.status[at_boundary] <- "wald_at_boundary"
+  at_boundary_no_bias <- at_boundary & !bias_applied
+  out$conf.status[at_boundary_no_bias] <- "wald_at_boundary"
   is_rho12 <- targets$target_class == "residual-correlation"
   at_boundary_profile <- at_boundary & !is_rho12
   at_boundary_rho12 <- at_boundary & is_rho12

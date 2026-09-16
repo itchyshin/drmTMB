@@ -61,6 +61,29 @@
   scale and does not silently rescale the tree to unit height. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
   Mi-6.
+## Independent-evaluation fixes (arc 3, wave B1)
+
+* `check_standard_errors_inflated` now bases its ratio on the median of
+  finite standard errors below the absolute floor (reported as
+  `reference_median=`), so collinear or weakly identified fits still flag
+  pathological inflation. Credit: the independent evaluation by Russell
+  Dinnage (rdinnager/drmTMB_eval), finding Md-B (#1319).
+* Subsetting a `drm_check` object keeps class and `print()` reports
+  `X of N checks shown` when rows are filtered. Credit: Russell Dinnage,
+  finding UX-1 (#1356).
+* `check_drm()` adds `observations_per_parameter` (note below 10 obs per
+  estimated parameter) and `fixed_effect_collinearity` (note when pairwise
+  |r| exceeds 0.99). Credit: Russell Dinnage, findings A-7 (#1337) and
+  Mi-4 (#1342).
+* New `convergence_status()` labels fits `converged`, `boundary`, or
+  `degenerate`; `is_converged()` stays logical and returns `FALSE` on
+  degenerate geometry even when `multi_start` hits optimizer code 0.
+  Credit: Russell Dinnage, finding A-3 (#1333).
+* Wald intervals record `conf.status = "wald_bias_corrected"` when default
+  small-sample bias correction shifts the interval centre; the phylo `g`
+  denominator question is documented in
+  `docs/design/276-phylo-bias-correction-denominator.md`. Credit: Russell
+  Dinnage, finding Md-J (#1327).
 
 ## Independent-evaluation fixes (arc 3, wave A2)
 
