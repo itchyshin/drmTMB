@@ -183,16 +183,20 @@ check_drm <- function(object, ...) {
 #'
 #' `is_converged()` is a compact programmatic flag for workflows that need a
 #' yes/no answer before comparing, displaying, or post-processing a `drmTMB`
-#' fit. By default it checks only stored optimizer status: the `nlminb()`
-#' convergence code must be 0 and the stored objective and log-likelihood must
-#' be finite.
+#' fit. By default it delegates to [convergence_status()]: it returns `TRUE`
+#' when the status is `"converged"` or `"boundary"`, and `FALSE` when the
+#' status is `"degenerate"`. A fit can therefore report optimizer code `0`
+#' while still returning `FALSE` here when the likelihood geometry or
+#' uncertainty diagnostics are degenerate; use [check_drm()] or
+#' [convergence_status()] for detail.
 #'
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
-#' [TMB::sdreport()] output with `pdHess = TRUE`. A fit can therefore be
-#' optimizer-converged while still returning `FALSE` with
-#' `include_hessian = TRUE`; this marks an inference-readiness problem, not
-#' automatic proof that point estimates are unusable.
+#' [TMB::sdreport()] output with `pdHess = TRUE` on top of the default
+#' [convergence_status()] gate. A fit can therefore be `"converged"` while
+#' still returning `FALSE` with `include_hessian = TRUE`; this marks an
+#' inference-readiness problem, not automatic proof that point estimates are
+#' unusable.
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'

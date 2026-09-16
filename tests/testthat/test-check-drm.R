@@ -49,7 +49,7 @@ test_that("is_converged() exposes optimizer and Hessian flags without rerunning"
 
   bad_hessian <- fit
   bad_hessian$sdr$pdHess <- FALSE
-  expect_true(is_converged(bad_hessian))
+  expect_false(is_converged(bad_hessian))
   expect_false(is_converged(bad_hessian, include_hessian = TRUE))
 
   se_skipped <- fit
@@ -410,21 +410,22 @@ test_that("check_drm() warns when residual rho12 is near a requested boundary", 
 })
 
 test_that("check_drm() reports Student-t nu diagnostics", {
-  n <- 160
-  x <- seq(-1, 1, length.out = n)
-  z <- rep(c(-0.5, 0.5), length.out = n)
-  nu_true <- 8
-  dat <- data.frame(x = x, z = z)
-  dat$y <- 0.2 +
-    0.5 * x +
-    exp(-0.4 + 0.2 * z) * stats::qt((seq_len(n) - 0.5) / n, df = nu_true)
-  fit <- drmTMB(
+  set.seed(20260531)
+  n <- 400
+  x <- stats::rnorm(n)
+  z <- stats::rnorm(n)
+  dat <- data.frame(
+    x = x,
+    z = z,
+    y = 0.2 +
+      0.5 * x +
+      exp(-0.4 + 0.2 * z) * stats::rt(n, df = 8)
+  )
+  stable <- drmTMB(
     bf(y ~ x, sigma ~ z, nu ~ 1),
     family = student(),
     data = dat
   )
-  stable <- fit
-  stable$coefficients$nu[[1L]] <- log(6)
 
   chk <- check_drm(stable)
   nu <- chk[chk$check == "student_nu", ]
@@ -433,7 +434,7 @@ test_that("check_drm() reports Student-t nu diagnostics", {
   expect_match(nu$value, "range=")
   expect_true(attr(chk, "ok"))
 
-  near_boundary <- fit
+  near_boundary <- stable
   near_boundary$coefficients$nu[[1L]] <- log(0.01)
   chk_boundary <- check_drm(near_boundary)
   nu_boundary <- chk_boundary[chk_boundary$check == "student_nu", ]
@@ -441,7 +442,7 @@ test_that("check_drm() reports Student-t nu diagnostics", {
   expect_match(nu_boundary$message, "finite-variance boundary")
   expect_false(attr(chk_boundary, "ok"))
 
-  nearly_gaussian <- fit
+  nearly_gaussian <- stable
   nearly_gaussian$coefficients$nu[[1L]] <- log(200)
   chk_gaussian <- check_drm(nearly_gaussian)
   nu_gaussian <- chk_gaussian[chk_gaussian$check == "student_nu", ]
@@ -449,7 +450,7 @@ test_that("check_drm() reports Student-t nu diagnostics", {
   expect_match(nu_gaussian$message, "Gaussian")
   expect_true(attr(chk_gaussian, "ok"))
 
-  invalid <- fit
+  invalid <- stable
   invalid$coefficients$nu[[1L]] <- Inf
   chk_invalid <- check_drm(invalid)
   nu_invalid <- chk_invalid[chk_invalid$check == "student_nu", ]
@@ -459,16 +460,18 @@ test_that("check_drm() reports Student-t nu diagnostics", {
 })
 
 test_that("check_drm() reports predictor-varying Student-t nu ranges", {
-  n <- 180
-  x <- seq(-1, 1, length.out = n)
-  dat <- data.frame(x = x)
-  dat$y <- 0.3 + 0.4 * x + stats::qt((seq_len(n) - 0.5) / n, df = 10)
+  set.seed(20260532)
+  n <- 500
+  x <- seq(-2, 2, length.out = n)
+  dat <- data.frame(
+    x = x,
+    y = 0.3 + 0.4 * x + stats::rt(n, df = 6 + 2 * abs(x))
+  )
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1, nu ~ x),
     family = student(),
     data = dat
   )
-  fit$coefficients$nu[] <- c(log(6), 0.5)
 
   chk <- check_drm(fit)
   nu <- chk[chk$check == "student_nu", ]
@@ -1309,7 +1312,7 @@ test_that("is_converged() reports optimizer and Hessian readiness", {
 
   bad_hessian <- fit
   bad_hessian$sdr$pdHess <- FALSE
-  expect_identical(is_converged(bad_hessian), TRUE)
+  expect_identical(is_converged(bad_hessian), FALSE)
   expect_identical(is_converged(bad_hessian, include_hessian = TRUE), FALSE)
 
   no_sdreport <- fit
