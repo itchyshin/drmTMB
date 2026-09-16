@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: 2026-09-15 ~20:30 MDT (A1 #1368 MERGE-READY — CI run 35046449684 green)
+Updated: 2026-09-15 21:00 MDT (Ada overnight rehydration; **~8 h** to 2026-09-16 05:00 MDT)
 
 ## Current Scope
 
-Wave A only. **No agent merges.** Shinichi merges each Wave A PR after settled green CI + D-263 ACCEPT.
+Wave A only. **No agent merges.** All three Wave A PRs still **OPEN** on GitHub @ 21:00 MDT (live `gh pr view`). Shinichi merges each after settled green CI + D-263 ACCEPT.
 
 ## Done
 
@@ -38,6 +38,12 @@ Wave A only. **No agent merges.** Shinichi merges each Wave A PR after settled g
 - No `git add -A`. No push/merge to `main`, tags, releases, or email from implementation PRs by agents.
 - D-263: builder must not self-ACCEPT.
 
+## Overnight coordinator artifacts
+
+- Wave B dispatch (HOLD): [`LOOP/wave-b-brief.md`](wave-b-brief.md)
+- Morning handoff scratch: [`LOOP/morning-handoff-draft.md`](morning-handoff-draft.md)
+- Handover skeleton: [`docs/dev-log/handover/2026-09-16-cursor-morning-dinnage-arc3.md`](../../handover/2026-09-16-cursor-morning-dinnage-arc3.md)
+
 ## Resume
 
 ```sh
@@ -45,6 +51,7 @@ cd /Users/z3437171/local-scratch/lanes/drmTMB-dinnage-arc3-cursor
 git pull --ff-only origin claude/lane-dinnage-arc3-cursor
 cat docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/GOAL.md
 cat docs/dev-log/lanes/dinnage-arc3-cursor/CLAIMS.md
+gh pr view 1367 1368 1369 --json state,mergedAt,headRefOid,mergeable
 gh pr checks 1368
 gh pr checks 1367
 gh pr checks 1369
