@@ -1,5 +1,19 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (arc 3, wave A2)
+
+* `check_drm()`'s `dropped_rows` row now reports `groups_lost=` when
+  complete-case or known-covariance filtering drops every row for one or
+  more random-effect grouping levels, not only a row count. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  A-8 (#1338).
+
+* Wald intervals for residual `rho12` at a correlation boundary no longer
+  recommend `method = "profile"` when profile intervals are usually identical
+  to Wald there; `check_rho12_boundary()` states the same instead of implying
+  a profile switch. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Mi-5 (#1343).
+
 ## Independent-evaluation fixes (wave 3)
 
 * `weights()` composed with `mi()` now leaves the maximum-likelihood

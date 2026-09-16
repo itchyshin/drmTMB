@@ -42,7 +42,7 @@ test_that("Mi-5: Wald rho12 boundary warning does not recommend profile (Dinnage
   # At rho12 near +/-1, profile intervals match Wald; the generic boundary
   # warning wrongly told users to switch to method = "profile".
   set.seed(1343)
-  dat <- simulate_biv_lognormal_truth(
+  dat <- wave4a_simulate_biv_lognormal(
     n = 160,
     beta1 = c(0.2, 0.1),
     beta2 = c(-0.1, -0.15),
