@@ -1,3 +1,15 @@
+# 2026-09-16 — Coord truth refresh: #1375 merged; #1379 hotfix live (#1375)
+
+**Lane:** Ada · `ada:coord-truth-1379` (coord docs only; gh-verified).
+
+**Evidence:** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) **MERGED** @ `4806b4839` (2026-09-16T17:13:06Z). [#1379](https://github.com/itchyshin/drmTMB/pull/1379) **OPEN** @ `59667a423` (`hotfix/a2-missing-predictor-gate`). [#1377](https://github.com/itchyshin/drmTMB/pull/1377) **OPEN** (may close after #1379). `main` @ `542ca455a`; **`receipt-staleness` on `main` RED** until #1379 lands. **Supersedes** any board/CLAIMS row treating #1375 OPEN or `296a1f763` as current CI truth.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** no merge of #1379/#1377 in this commit.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 MERGED + tip-identity receipt (#1375)
 
 **Lane:** Grace · post-merge receipt on `main` @ `4806b4839`.

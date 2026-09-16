@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~12:00 MDT** · **`main` @ `7e1d187dc`** (B2 merge @ `4806b4839`)
+Updated: **2026-09-16 ~13:22 MDT** · **`main` @ `542ca455a`** (B2 merge @ `4806b4839`)
 
 ## Current scope
 
-**Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) MERGED** @ `4806b4839`. **`main` R-CMD-check RED** — A-2 predictor-fail gate from B2 too broad. **Hotfix [#1379](https://github.com/itchyshin/drmTMB/pull/1379) OPEN** — merge first. **Tip-identity receipt [#1377](https://github.com/itchyshin/drmTMB/pull/1377) OPEN** — receipt-only; merge **after #1379** when R-CMD-check green. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) MERGED** @ `4806b4839` (not OPEN; pre-merge tips like `296a1f763` are historical only). **`main` `receipt-staleness` RED** until hotfix. **Hotfix [#1379](https://github.com/itchyshin/drmTMB/pull/1379) OPEN** @ `59667a423` — merge when R-CMD-check green. **[#1377](https://github.com/itchyshin/drmTMB/pull/1377) OPEN** — close after #1379 if redundant. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
 
 ## Merge record
 
@@ -19,12 +19,12 @@ Updated: **2026-09-16 ~12:00 MDT** · **`main` @ `7e1d187dc`** (B2 merge @ `4806
 | #1371 | Wave B docs-only | **MERGED** | `6580d74b1` |
 | #1373 | B1 check diagnostics | **MERGED** | `f822a34da` |
 | #1375 | B2 surfaces | **MERGED** | `4806b4839` |
-| #1379 | A-2 gate hotfix | OPEN | `hotfix/a2-missing-predictor-gate` |
-| #1377 | tip-identity receipt (post-B2) | OPEN (after #1379) | `cursor/receipt-staleness-b1375-20260916` |
+| #1379 | A-2 gate hotfix + receipts | OPEN | `59667a423` |
+| #1377 | tip-identity receipt (post-B2) | OPEN (likely redundant) | `cursor/receipt-staleness-b1375-20260916` |
 
 ## Wave B
 
-**B2 closed.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) merged @ `4806b4839`. **Unblock `main`:** [#1379](https://github.com/itchyshin/drmTMB/pull/1379) then receipt [#1377](https://github.com/itchyshin/drmTMB/pull/1377). See [`wave-b-brief.md`](wave-b-brief.md) § B2.
+**B2 closed.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) merged @ `4806b4839`. **Unblock `main`:** merge [#1379](https://github.com/itchyshin/drmTMB/pull/1379) @ `59667a423` when green; then close [#1377](https://github.com/itchyshin/drmTMB/pull/1377) if redundant. See [`wave-b-brief.md`](wave-b-brief.md) § B2.
 
 ## Resume
 
