@@ -1,10 +1,22 @@
-# 2026-09-16 — Dinnage arc3 Wave B2 merge main into B2 branch (#1375)
+# 2026-09-16 — Dinnage arc3 Wave B2 merge main sync (#1375)
 
-**Lane:** Grace · merge conflict resolution on `cursor/dinnage-arc3-b2-surfaces-20260916` @ `1424f1971`.
+**Lane:** Grace · `merge origin/main` into B2 branch to clear PR **DIRTY** / **CONFLICTING** (coord-only delta on `main` since `78df3d4d6`).
 
-**Fix:** `git merge origin/main` — sole conflict `docs/dev-log/check-log.md` (coord entries from `main` + Gauss entries from branch tip).
+**Fix:** resolved conflicts in `check-log.md`, `coordination-board.md`, `CLAIMS.md`, `LOOP/checkpoint.md` (fold `main` coord state).
 
-**Non-claims:** no merge of #1375 until settled green CI on post-merge tip.
+**Non-claims:** no #1375 merge until settled green CI on post-sync tip; fresh D-263 re-ACCEPT if tip moves beyond docs-only.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ C17; check-log tip (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `78df3d4d6`; **inert C17 recert** @ `14618e6e4` (`mc-0568` / C17+C14); **check-log merge** (`origin/main` into B2) @ `78df3d4d6`. **D-263: ACCEPT** @ `14618e6e4` (Shinichi). **D-263 re-ACCEPT @ `78df3d4d6`** posted (Composer + reviewer lane). CI [`35125446950`](https://github.com/itchyshin/drmTMB/actions/runs/35125446950) on `78df3d4d6`.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — merge gated on settled green CI + mergeable PR head.
+
+**Non-claims:** no merge of #1375 until fresh D-263 on tip + settled green CI.
 
 ---
 
@@ -12,7 +24,7 @@
 
 **Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
 
-**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `1424f1971`; tip shard fixes (**REML IC**, **A-2 explicit `missing=` gating**, **census TSV**). **D-263: ACCEPT** @ `1424f1971` (Shinichi). CI dispatch [`35124451699`](https://github.com/itchyshin/drmTMB/actions/runs/35124451699) **in flight** on tip.
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `1424f1971`; tip shard fixes (**REML IC**, **A-2 explicit `missing=` gating**, **census TSV**). **D-263: ACCEPT** @ `1424f1971` (Shinichi). CI dispatch [`35124451699`](https://github.com/itchyshin/drmTMB/actions/runs/35125451699) **in flight** on tip.
 
 **Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **MERGE-READY pending settled green CI**; merge when green (keep-going); tip-identity receipt LAST on `R/` before merge. PR comment ACCEPT posted @ tip.
 

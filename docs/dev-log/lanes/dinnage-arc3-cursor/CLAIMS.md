@@ -37,13 +37,13 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 ~10:12 MDT (**B2 #1375 @ `19991695c` — Rd `@param` fix pushed**; prior D-263 ACCEPT stale; await fresh D-263 + green CI).
+Updated: 2026-09-16 ~11:12 MDT (**B2 #1375 @ `78df3d4d6`** — **main sync merge** to clear PR DIRTY; await CI on post-sync tip).
 
-- **`main` tip:** `f2d20fe65` (coord); tip-identity last **green** @ `e169d7a76` (run `35111843393`). Docs-only coord pushes OK; no receipt PR unless `R/` on `main` moves.
-- **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). **B2 `R/` merge:** tip-identity receipt regen **LAST** on branch (or receipt follow-up immediately after merge).
+- **`main` tip:** `4e6c7e00a` (coord); tip-identity last **green** @ `e169d7a76` (run `35111843393`). Docs-only coord pushes OK; no receipt PR unless `R/` on `main` moves.
+- **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). **B2 `R/` merge:** tip-identity receipt follow-up on `main` after merge ([#1374](https://github.com/itchyshin/drmTMB/pull/1374) pattern).
 - **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
 - **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da` (2026-09-16; Shinichi/Grace). Gauss lease `gauss:dinnage-arc3-B1` should **release** when idle.
-- **Wave B2 — PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `19991695c` (`cursor/dinnage-arc3-b2-surfaces-20260916`). Local **47/47** reported. **Rd `@param` fix pushed** on tip. **D-263:** prior **ACCEPT stale**; **awaiting fresh D-263 + settled green CI** (**not MERGE-READY**). **P0:** C17 inert re-cert on earlier tip (`mc-0568` / C17+C14 @ `c493fc0bb`). **P2:** confint Rd cross-link, audit note, check-log (fixer). Prefer **Composer** / Grace watchers; agents **do not merge #1375** until fresh D-263 and CI green. Active lease: `gauss:dinnage-arc3-B2` (release when idle).
+- **Wave B2 — PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `78df3d4d6` (`cursor/dinnage-arc3-b2-surfaces-20260916`). Local **47/47** reported. **Inert C17 recert** @ `14618e6e4`; **D-263 re-ACCEPT @ `78df3d4d6`**. **Main sync merge in flight** (Grace). **Not MERGE-READY** until mergeable head + settled green CI; then merge + receipt PR. Active lease: `gauss:dinnage-arc3-B2` (release when idle).
 - **A4 record:** DONE (#1351).
 - **Wave B docs-only [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGED** — does not gate B1/B2 implementation.
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.
