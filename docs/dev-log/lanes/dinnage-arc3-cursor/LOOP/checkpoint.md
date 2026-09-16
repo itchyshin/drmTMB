@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~11:12 MDT** · **`main` @ `4e6c7e00a`**
+Updated: **2026-09-16 ~11:18 MDT** · **`main` @ `4806b4839`**
 
 ## Current scope
 
-**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`). **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `78df3d4d6` — **main sync merge** (clear PR DIRTY). **D-263 re-ACCEPT @ `78df3d4d6`**. **Not MERGE-READY** until mergeable + green CI on post-sync tip; then merge + [#1374](https://github.com/itchyshin/drmTMB/pull/1374)-style receipt on `main`. Grace poller armed. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) MERGED** @ `4806b4839`. **Tip-identity receipt [#1376](https://github.com/itchyshin/drmTMB/pull/1376) OPEN** (post-B2 regen; local FRESH); merge when CI green. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
 
 ## Merge record
 
@@ -18,11 +18,12 @@ Updated: **2026-09-16 ~11:12 MDT** · **`main` @ `4e6c7e00a`**
 | #1367 | A3 misc | **MERGED** | `e6ca0dc8e` |
 | #1371 | Wave B docs-only | **MERGED** | `6580d74b1` |
 | #1373 | B1 check diagnostics | **MERGED** | `f822a34da` |
-| #1375 | B2 surfaces | OPEN (main sync; await CI) | `78df3d4d6` (C17 @ `14618e6e4`) |
+| #1375 | B2 surfaces | **MERGED** | `4806b4839` |
+| #1376 | tip-identity receipt (post-B2) | OPEN (CI) | `ffbcc6cd8` |
 
 ## Wave B
 
-**Main sync + CI gate.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) on `cursor/dinnage-arc3-b2-surfaces-20260916`. **D-263 re-ACCEPT @ `78df3d4d6`**. Merge when mergeable + settled green CI; receipt PR on `main` after merge. See [`wave-b-brief.md`](wave-b-brief.md) § B2.
+**B2 closed.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) merged @ `4806b4839`. **Receipt follow-up:** [#1376](https://github.com/itchyshin/drmTMB/pull/1376) (merge when CI green). See [`wave-b-brief.md`](wave-b-brief.md) § B2.
 
 ## Resume
 
