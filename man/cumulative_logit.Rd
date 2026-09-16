@@ -25,6 +25,11 @@ The implemented contract is
 ordered-category score, \verb{sum_k k * Pr(y_i = k)}. Ordinal scale or
 discrimination formulas are planned but not exposed in this first
 implementation.
+
+The response may be an ordered factor or an integer-coded category. Integer
+codes are used at face value in increasing numeric order; \code{drmTMB} cannot
+infer whether those numbers represent the scientific ordering the analyst
+intended. Use an ordered factor when labels carry the biological ordering.
 }
 \examples{
 cumulative_logit()

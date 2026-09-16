@@ -407,6 +407,11 @@ beta_binomial <- function() {
 #' discrimination formulas are planned but not exposed in this first
 #' implementation.
 #'
+#' The response may be an ordered factor or an integer-coded category. Integer
+#' codes are used at face value in increasing numeric order; `drmTMB` cannot
+#' infer whether those numbers represent the scientific ordering the analyst
+#' intended. Use an ordered factor when labels carry the biological ordering.
+#'
 #' @return A `drm_family` object.
 #' @export
 #'
