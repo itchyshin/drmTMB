@@ -172,6 +172,7 @@ reference:
       - drm_control
       - objective_at
       - miss_control
+      - drm_validate_complete_predictors
       - drm_phylo_penalty
       - drm_phylo_penalty_sweep
       - native_reader_contracts
@@ -180,6 +181,7 @@ reference:
       - drm_provenance
       - is_converged
       - confint.drmTMB
+      - as.matrix.drm_confint
       - profile_targets
       - profile.drmTMB
       - coevolution-accessors
