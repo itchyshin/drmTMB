@@ -36,10 +36,10 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 ~05:50 MDT (board tip `origin/main` @ `2c15ae63e`; **#1369 MERGED**; #1367 #1368 rebased post-#1369).
+Updated: 2026-09-16 ~06:22 MDT (board tip `origin/main` @ `e6ca0dc8e`; **#1369 + #1367 MERGED**).
 
-- **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGED** on `main` @ `2c15ae63e` (2026-09-16). Wave B unlock **1/2**.
-- Merge queue (Shinichi-authorized): **#1367 → #1368 → #1370 → #1371** after each is MERGEABLE/CLEAN with green CI. **Wave B implementation and Wave C: HOLD until A3 (#1367) on `main`.** Plan: [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md).
+- **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGED** @ `2c15ae63e`. **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGED** @ `e6ca0dc8e`. **Wave B code: UNLOCKED** — spawn B1/B2 per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md).
+- Remaining queue: **#1368 → #1370 → #1371** (CI-green merge only).
 - **A1 docs — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `2aad4c1b8` (rebased post-#1369) (`fix(ci): refresh Dinnage audit manifests` — capability-ledger manifest + `inst/extdata/env-skip-census.tsv` refresh; follows `c68620405` DHARMa **Suggests** + wave1 installed-doc path guards). All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **#1344 cross-PR help cleared.** Independent D-263 **ACCEPT** (docs; unchanged). **CI:** all 6 R-CMD-check jobs **SUCCESS** on run [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684) @ `822763660`; GitHub merge state **MERGEABLE / CLEAN**. **Shinichi merge only — agents must not merge.**
 - **A3 misc code — PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** (`cursor/dinnage-arc3-a3-misc-20260915`), head `684485d73` (rebased onto post-#1369 `main`; C17 recert `pr1367-a3-post-rebase`). D-263 **ACCEPT** unchanged. **Next:** green CI on rebased tip, then merge (B-unlock 2/2).
 - **A4 record:** DONE (#1351).

@@ -1,6 +1,6 @@
 # Wave B dispatch brief (HOLD until A2 + A3 on main)
 
-Status: **HOLD** as of **2026-09-16 ~05:50 MDT**. **#1369 MERGED** on `main` @ `2c15ae63e`. Unlock Wave B **code** only after **#1367** merges (A1 #1368 and audit **#1370** may merge in queue; B still waits on A3).
+Status: **UNLOCKED** as of **2026-09-16 ~06:22 MDT**. **#1369** @ `2c15ae63e` and **#1367** @ `e6ca0dc8e` on `main`. Parent may spawn B1 then B2 per below.
 
 Do **not** start B implementation while A2/A3 are open. Agents must **not** merge any PR.
 
