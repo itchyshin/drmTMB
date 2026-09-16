@@ -1,3 +1,15 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ shard fixes (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `1424f1971`; tip shard fixes (**REML IC**, **A-2 explicit `missing=` gating**, **census TSV**). **D-263: ACCEPT** @ `1424f1971` (Shinichi). CI dispatch [`35124451699`](https://github.com/itchyshin/drmTMB/actions/runs/35124451699) **in flight** on tip.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **MERGE-READY pending settled green CI**; merge when green (keep-going); tip-identity receipt LAST on `R/` before merge. PR comment ACCEPT posted @ tip.
+
+**Non-claims:** merge only after settled green CI on `1424f1971`.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ bf.R fix (#1375)
 
 **Lane:** Ada coordinator · `ada:dinnage-arc3-coord` (coord docs only).
