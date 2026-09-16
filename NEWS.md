@@ -2,6 +2,12 @@
 
 ## Independent-evaluation fixes (wave A1 docs)
 
+* `cumulative_logit()` now documents that integer-coded ordinal responses are
+  accepted at face value in increasing numeric order, and that analysts should
+  use ordered factors when labels carry the scientific order. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-7.
+
 * The capability vignette now lists `lognormal()`, `Gamma(link = "log")`,
   `student()`, and `beta_binomial()` among non-Gaussian response families
   that can fit one binary missing predictor through `mi()`. Credit: the
