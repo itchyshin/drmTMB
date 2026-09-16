@@ -2,6 +2,12 @@
 
 ## Independent-evaluation fixes (wave A1 docs)
 
+* The capability vignette now lists `lognormal()`, `Gamma(link = "log")`,
+  `student()`, and `beta_binomial()` among non-Gaussian response families
+  that can fit one binary missing predictor through `mi()`. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Md-F.
+
 * `meta_V()` now states that a known sampling covariance matrix is matched to
   the retained model frame by row position, not by dimnames. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
