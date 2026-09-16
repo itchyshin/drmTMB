@@ -3,6 +3,7 @@
 Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
 Loading setup script for JuliaCall...
 Finish loading setup script for JuliaCall.
+  Activating project at `~/local-scratch/parity-joint/drmjl-430ef64cc`
 [91m[1mERROR: [22m[39mLoadError: UndefVarError: `loglogistic` not defined
 Stacktrace:
  [1] top-level scope
@@ -15,27 +16,10 @@ Stacktrace:
 [90m   @[39m [90m[4mstdin:3[24m[39m
 in expression starting at /Users/z3437171/.julia/packages/LogExpFunctions/LITgj/ext/LogExpFunctionsInverseFunctionsExt.jl:1
 in expression starting at stdin:3
-drmTMB_drm_bridge (generic function with 1 method)
-  
-drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
-  
-drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
-  
-drmTMB_drm_bridge_inference (generic function with 1 method)
-  
-drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
-  
-drmTMB_drm_bridge_structured (generic function with 1 method)
-  
-drmTMB_mixed_family (generic function with 1 method)
-  
-PHYLO_LABEL_PUBLIC_PASS elapsed=63.197
-Julia exit.
-  Activating project at `~/local-scratch/parity-joint/drmjl-430ef64cc`
 ┌ Error: Error during loading of extension LogExpFunctionsInverseFunctionsExt of LogExpFunctions, use `Base.retry_load_extensions()` to retry.
 │   exception =
 │    1-element ExceptionStack:
-│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_f7psDI".
+│    Failed to precompile LogExpFunctionsInverseFunctionsExt [1e5f9c58-a15c-5ce5-87cf-a68a2eda25d9] to "/Users/z3437171/.julia/compiled/v1.10/LogExpFunctionsInverseFunctionsExt/jl_NzzZfO".
 │    Stacktrace:
 │      [1] error(s::String)
 │        @ Base ./error.jl:35
@@ -110,3 +94,19 @@ Julia exit.
 │     [36] docall(call1::Ptr{Nothing})
 │        @ Main.JuliaCall ~/Library/R/arm64/4.6/library/JuliaCall/julia/setup.jl:0
 └ @ Base loading.jl:1295
+drmTMB_drm_bridge (generic function with 1 method)
+  
+drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
+  
+drmTMB_drm_bridge_q2_phylo (generic function with 1 method)
+  
+drmTMB_drm_bridge_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_fixef_inference (generic function with 1 method)
+  
+drmTMB_drm_bridge_structured (generic function with 1 method)
+  
+drmTMB_mixed_family (generic function with 1 method)
+  
+PHYLO_LABEL_PUBLIC_PASS elapsed=34.889
+Julia exit.
