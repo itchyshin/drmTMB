@@ -36,12 +36,12 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-15 ~18:50 MDT (Cursor; A1 C17 tip refresh).
+Updated: 2026-09-15 ~19:00 MDT (Cursor; A3 tip refresh).
 
 - Base for Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Three Wave A PRs open; agents must not merge.** Shinichi merges only after settled green CI + D-263 ACCEPT on each PR. **Wave B/C: HOLD until A2 (#1369) and A3 (#1367) merged by Shinichi.**
 - **A1 docs — COMPLETE — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `d9f7f12eb` (C17 receipt refresh; follows `c10332534`). All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **#1344 cross-PR help cleared.** Independent D-263 **ACCEPT** (docs). **Next:** settled green CI + Shinichi merge only.
 - **A2 check/profile — PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369)** (`cursor/dinnage-arc3-a2-check-20260915`), head `3805b8520` (C17 recert on branch). Scope: #1338, #1343; `R/check.R`, `R/profile.R`, wave4a tests, `NEWS.md`. Independent D-263 **ACCEPT** at `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)). **Next:** settled green CI + Shinichi merge only (re-pin ACCEPT if review scope moves).
-- **A3 misc code — PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** (`cursor/dinnage-arc3-a3-misc-20260915`), head `ab78327b8`. Code + `NEWS.md` on branch; C17 recert run last on branch. Independent D-263 **ACCEPT** ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)). **Next:** settled green CI + Shinichi merge only.
+- **A3 misc code — PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** (`cursor/dinnage-arc3-a3-misc-20260915`), head `6a5200f39` (CondExp + env-skip census refresh; follows `ab78327b8`). Code + `NEWS.md` on branch; C17 recert run last on branch. Independent D-263 **ACCEPT** unchanged ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)). **Next:** settled green CI + Shinichi merge only (no agent merge).
 - **A4 record:** DONE (#1351).
 - **D-263 review files:** owed per PR before merge; path `docs/dev-log/audits/2026-09-<dd>-dinnage-arc3-<a1|a2|a3>-review.md`.
 

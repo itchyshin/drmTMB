@@ -1,6 +1,6 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: 2026-09-15 ~18:50 MDT (A1 C17 tip d9f7f12eb)
+Updated: 2026-09-15 ~19:00 MDT (A3 tip 6a5200f39)
 
 ## Current Scope
 
@@ -12,7 +12,7 @@ Wave A only. **No agent merges.** Shinichi merges each Wave A PR after settled g
 - A4 #1351 DONE (record + vault skill; no tag/CI change).
 - **A1 docs PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368) COMPLETE** at `d9f7f12eb` (C17 receipt refresh; follows `c10332534`; all A1 issues in-branch). Docs D-263 **ACCEPT**. #1344 cross-PR help cleared.
 - **A2 check/profile PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369):** C17 recert head `3805b8520`; independent re-review **ACCEPT** at `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)). **Do not merge** from agent lanes.
-- **A3 misc PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367):** independent D-263 ACCEPT ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)) on branch head `ab78327b8` (re-verify ACCEPT comment pins if head moves).
+- **A3 misc PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367):** head `6a5200f39` (CondExp + env-skip census refresh). Independent D-263 **ACCEPT** unchanged ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)); **await settled green CI + Shinichi merge only.**
 
 ## Awaiting (merge gates)
 
@@ -20,11 +20,11 @@ Wave A only. **No agent merges.** Shinichi merges each Wave A PR after settled g
 | --- | --- | --- | --- |
 | A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `d9f7f12eb` | Settled green CI + Shinichi merge (docs ACCEPT done) |
 | A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `3805b8520` | Settled green CI + Shinichi merge (ACCEPT @ `b6714135d`) |
-| A3 misc | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `ab78327b8` | Settled green CI + Shinichi merge (ACCEPT done) |
+| A3 misc | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `6a5200f39` | Settled green CI + Shinichi merge (ACCEPT unchanged) |
 
 ## CI snapshot
 
-Heads moved (`#1368` → `d9f7f12eb` after `c10332534`; `#1369` → `3805b8520` for C17). Prior run IDs stale. Re-run `gh pr checks 1368`, `1367`, `1369` before merge.
+Heads moved (`#1368` → `d9f7f12eb`; `#1369` → `3805b8520`; `#1367` → `6a5200f39` for CondExp + env-skip census refresh). Prior run IDs stale. Re-run `gh pr checks 1368`, `1367`, `1369` before merge.
 
 ## Held
 
