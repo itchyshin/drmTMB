@@ -116,6 +116,52 @@
   (finding S3, #1312) and the independent review that overturned the first
   proposed wording.
 
+* The numeric-kernel oracle helper `run_oracle()` now counts grid points
+  whose C++ kernel or reference evaluation is non-finite after explicit
+  exclusions, and fails when that count exceeds a caller-supplied ceiling
+  (`max_nonfinite`). Previously those rows were dropped silently before the
+  relative-error assertion, so a broken kernel could pass with fewer checked
+  points than the grid implied. The beta-binomial oracle pins
+  `max_nonfinite = 0` on the non-excluded grid while keeping a separate,
+  looser tolerance on deliberately excluded huge-`phi` rows. Credit: the
+  independent evaluation by Russell Dinnage (finding Md-G, #1324).
+
+* `beta_binomial()` now nudges extreme logit means inward and floors the
+  beta shape parameters in both the main TMB block and the `mi()` response
+  kernel leaf, matching the guards `beta()` already had. Extreme `beta_mu`
+  values that previously drove `lgamma()` to `-Inf` now return a finite
+  log-density, asserted against an `lbeta()` reference in the audit
+  regression tests. Credit: the independent evaluation by Russell Dinnage
+  (finding Md-H, #1325).
+
+* REML fits now carry `estimator_exact`, and `summary()`/`print()` name
+  whether the fit used exact restricted likelihood or a Laplace/Cox-Reid
+  adjusted profile (Gaussian models with a random effect on `sigma` are
+  labelled adjusted). Credit: the independent evaluation by Russell
+  Dinnage (finding Md-I, #1326).
+
+* Phylogenetic fits now inform when tree tips are absent from the data and
+  the fit uses the subtree induced by the observed species
+  (`validate_phylo_tree()`). Credit: the independent evaluation by Russell
+  Dinnage (finding Mi-6, #1344).
+
+* `simulate()` on `drm_pair_association` objects restores the caller's
+  `.Random.seed` after an internal `set.seed()`, via `on.exit()`. Credit:
+  the independent evaluation by Russell Dinnage (finding Mi-10, #1348).
+
+* The internal O3 AGHQ and Cox-Reid optimizers share one
+  `drm_o3_optim_control()` (`reltol`, `maxit`) and warn when `optim()`
+  returns a non-zero convergence code. Credit: the independent evaluation
+  by Russell Dinnage (finding Mi-12, #1350).
+
+* `summary()` now includes `nobs`, matching `nobs(fit)`. Credit: the
+  independent evaluation by Russell Dinnage (finding UX-2, #1357).
+
+* When `summary()$derived` is empty because a single scalar residual
+  variance is not defined (for example `sigma ~ x`), the empty table carries
+  a message pointing to `$sdpars`, and `print(summary())` repeats it. Credit:
+  the independent evaluation by Russell Dinnage (finding UX-3, #1358).
+
 ## Independent-evaluation fixes (wave 2)
 
 * `simulate()` now returns `NA` at masked missing-response rows for every
