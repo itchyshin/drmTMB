@@ -174,8 +174,9 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # Experimental MSPL adds four audited source sites to drmTMB.cpp: stable
   # abs(log-sech), negative-Huber abs and knot selection, and log-weight max
   # scaling. Their numerical contracts are exercised in test-mspl-kernels.R
-  # and test-mspl-estimator.R. n_cpp = 28L reflects those MSPL sites only;
-  # the binomial link generalisation below did not add any drmTMB.cpp sites.
+  # and test-mspl-estimator.R. A3 beta-binomial finite-shape handling adds two
+  # beta_shape_floor guards to drmTMB.cpp, so n_cpp = 30L. The binomial link
+  # generalisation below did not add any drmTMB.cpp sites.
   #
   # The binomial link generalisation (probit/cloglog) separately adds THREE
   # CondExp sites to drm_numeric.h, all inside drm_log_pnorm() -- the
@@ -186,13 +187,13 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # Bumping the anchor WITHOUT the paired test would be precisely the silent
   # normalisation this guard exists to prevent.
   #
-  # The two additions are to different files and are additive: n_cpp is
-  # MSPL's count unchanged by the link work, n_numeric is the link work's
-  # count unchanged by MSPL.
-  expect_equal(n_cpp, 28L)
+  # A3 response-kernel parity brings drm_response_kernels.h to four
+  # shape-floor guards: two for beta and two for beta-binomial. These mirror
+  # the already-audited beta_shape_floor C0 contract below.
+  expect_equal(n_cpp, 30L)
   expect_equal(n_numeric, 5L)
   expect_equal(n_count, 1L)
-  expect_equal(n_response, 2L)
+  expect_equal(n_response, 4L)
 })
 
 # ---------------------------------------------------------------------------

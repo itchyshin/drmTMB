@@ -1,0 +1,5 @@
+?? docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/sentinel-nohup.out
+?? docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/sentinel-result.txt
+?? docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/sentinel.log
+?? tools/overnight-sentinel-20260916.sh
+?? tools/sentinel-replace-6484ec58.sh
