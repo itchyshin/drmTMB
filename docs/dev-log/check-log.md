@@ -20,6 +20,16 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 
 # Check Log
 
+## 2026-09-16 — Dinnage arc3 merge queue: #1369 merged; #1367/#1368 rebased
+
+**Lane:** Cursor coordinator `dinnage-arc3-cursor` worktree; Shinichi-authorized merges.
+
+**Done:** `origin/main` @ `2c15ae63e` after **#1369** merge. Rebased **#1367** (A3) to `684485d73` with C17 recert `pr1367-a3-post-rebase`. Rebased **#1368** (A1 docs) to `2aad4c1b8`. Updated board tip, `CLAIMS.md`, `LOOP/checkpoint.md`, `wave-b-brief.md`.
+
+**Next:** Wait green CI on #1367, then `gh pr merge --merge` queue #1367 → #1368 → #1370 → #1371. Wave B code unlock after #1367 lands.
+
+---
+
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
 Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree
