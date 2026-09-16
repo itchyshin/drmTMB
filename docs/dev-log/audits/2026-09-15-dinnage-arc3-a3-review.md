@@ -3,43 +3,43 @@
 Reviewer: Cursor reviewer subagent, not the builder.
 PR: https://github.com/itchyshin/drmTMB/pull/1367
 Builder fix comment: https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690092722
-Branch reviewed: `cursor/dinnage-arc3-a3-misc-20260915` at `1f8f0801e3612ad46d0292d7d6c94b94f56a4f8f`
+Branch reviewed: `cursor/dinnage-arc3-a3-misc-20260915` at
+`ab78327b8e49e9b75356da7101b292ac416500db` (NEWS credits addendum;
+code/C17 head was `1f8f0801e3612ad46d0292d7d6c94b94f56a4f8f`)
 Review branch: `claude/pr1367-a3-rereview-20260915`
-Date: 2026-09-15
+Date: 2026-09-15 (NEWS P2 re-check addendum: 2026-09-15)
 
 ## Verdict
 
 ACCEPT-WITH-CHANGES.
 
-The three prior P1 findings are fixed at the new PR head. The C17/C14
+The three prior P1 findings are fixed at the PR head. The C17/C14
 source-compatibility guard passes locally, Curie's Md-H test now reaches both
 the main beta-binomial objective and the `drm_response_log_density()` case-14
-`mi()` leaf, and the seven named A3 follow-up issues now have implementation
-and regression-test coverage in this PR.
+`mi()` leaf, and the eight named A3 follow-up issues now have implementation,
+regression-test, and `NEWS.md` credit coverage in this PR (except the A1-owned
+`?phylo` help wording for #1344).
 
 I do not see a remaining P0/P1 blocker in the code changes reviewed here. The
-remaining work is release/accounting documentation: `NEWS.md` does not mention
-the A3 issue numbers or findings, and the `?phylo` branch-length convention
-part of #1344 is not in this PR. The builder's comment says that #1344 docs
-work is A1-owned; keep that ownership clear before closing #1344 as complete.
-GitHub release shards were still pending when this audit was written, so this
-is a local-source review, not a merge clearance.
+only remaining tracked P2 is the `?phylo` branch-length convention sentence
+for #1344, which stays A1-owned per the builder note. Do not mark #1344 fully
+closed from this PR alone. GitHub CI was re-running after the NEWS commit when
+this addendum was written; this is not a merge clearance.
 
 ## Findings
 
-### P2: A3 issue acceptance still lacks release-note/accounting updates
+### P2 (NEWS): A3 release-note credits — ACCEPT at `ab78327b8`
 
-The code and tests now address the runtime parts of #1324, #1325, #1326,
-#1344, #1348, #1350, #1357, and #1358, but this PR does not edit `NEWS.md`.
-Each named GitHub issue's acceptance list asks for a `NEWS.md` entry crediting
-Russell Dinnage's report. The existing `NEWS.md` wave 3 section credits other
-Dinnage findings, but it does not name the A3 issue numbers or the Md-G/Md-H/
-Md-I/Mi-6/Mi-10/Mi-12/UX-2/UX-3 fixes.
+Status: resolved on PR head `ab78327b8e49e9b75356da7101b292ac416500db`
+(`docs(NEWS): credit Russell Dinnage for arc3 Wave A3 (#1324–#1358)`).
 
-This is not a likelihood or API blocker, and `NEWS.md` is currently a live
-lease in another lane, so I am not calling it a P1 for this code PR. It should
-be resolved before the issues are closed or before the release-note bundle is
-treated as complete.
+Independent re-check (NEWS only, not a full PR re-audit): the wave-3
+independent-evaluation section now adds eight bullets, each crediting Russell
+Dinnage and naming the finding plus issue number: Md-G (#1324), Md-H (#1325),
+Md-I (#1326), Mi-6 (#1344, pruning note only), Mi-10 (#1348), Mi-12 (#1350),
+UX-2 (#1357), UX-3 (#1358). The commit message correctly scopes #1344 to the
+runtime pruning note and leaves `?phylo` wording on A1. This satisfies the
+prior NEWS P2 from ACCEPT-WITH-CHANGES.
 
 ### P2: #1344 is only partly closed here; `?phylo` wording remains A1-owned
 
