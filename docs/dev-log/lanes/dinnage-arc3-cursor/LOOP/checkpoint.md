@@ -1,6 +1,6 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: 2026-09-15 ~18:35 MDT (Wave A independent reviews)
+Updated: 2026-09-15 ~18:45 MDT (A1/A2 C17 refresh heads)
 
 ## Current Scope
 
@@ -10,25 +10,21 @@ Wave A only. **No agent merges.** Shinichi merges each Wave A PR after settled g
 
 - Rehydrated from PR #1366 on branch/worktree `claude/lane-dinnage-arc3-cursor`.
 - A4 #1351 DONE (record + vault skill; no tag/CI change).
-- **A1 docs PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368) COMPLETE** at `c86e86d88` (all A1 issues in-branch). #1344 cross-PR help cleared.
-- **A2 check/profile PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369):** independent re-review **ACCEPT** at `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)). **Do not merge** from agent lanes.
+- **A1 docs PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368) COMPLETE** at `c10332534` (C17 refresh committed; all A1 issues in-branch). Docs D-263 **ACCEPT**. #1344 cross-PR help cleared.
+- **A2 check/profile PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369):** C17 recert head `3805b8520`; independent re-review **ACCEPT** at `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)). **Do not merge** from agent lanes.
 - **A3 misc PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367):** independent D-263 ACCEPT ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)) on branch head `ab78327b8` (re-verify ACCEPT comment pins if head moves).
 
 ## Awaiting (merge gates)
 
 | Slice | PR | Head | Gate |
 | --- | --- | --- | --- |
-| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `c86e86d88` | CI settle + D-263 ACCEPT + Shinichi merge |
-| A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `b6714135d` | Settled green CI + Shinichi merge (ACCEPT done) |
+| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `c10332534` | Settled green CI + Shinichi merge (docs ACCEPT done) |
+| A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `3805b8520` | Settled green CI + Shinichi merge (ACCEPT @ `b6714135d`) |
 | A3 misc | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `ab78327b8` | Settled green CI + Shinichi merge (ACCEPT done) |
 
-## CI snapshot (~18:35 MDT)
+## CI snapshot
 
-- **#1369** @ `b6714135d`: `os-matrix` pass; **all four release shards fail** ([run 35040110746](https://github.com/itchyshin/drmTMB/actions/runs/35040110746)); blind spot pending at snapshot.
-- **#1368**: release shards fail; blind spot pending ([run 35040205075](https://github.com/itchyshin/drmTMB/actions/runs/35040205075)).
-- **#1367** @ `ab78327b8`: `os-matrix` + blind spot pass; release shards pending ([run 35040063672](https://github.com/itchyshin/drmTMB/actions/runs/35040063672)).
-
-Re-run `gh pr checks 1368`, `1367`, `1369` before merge.
+Heads moved (`#1368` → `c10332534`, `#1369` → `3805b8520` for C17). Prior run IDs stale. Re-run `gh pr checks 1368`, `1367`, `1369` before merge.
 
 ## Held
 
