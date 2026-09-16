@@ -2,6 +2,23 @@
 # (rdinnager/drmTMB_eval, pinned at 945da24f, report dated 2026-08-29).
 # One test block per finding fixed in this lane.
 
+test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Dinnage audit)", {
+  vignette <- testthat::test_path("..", "..", "vignettes", "capability-and-limits.Rmd")
+  text <- readLines(vignette, warn = FALSE)
+  row <- grep(
+    "^\\| `binomial\\(\\)`, `poisson\\(\\)`, `nbinom2\\(\\)`, `beta\\(\\)`",
+    text,
+    value = TRUE
+  )
+
+  expect_length(row, 1L)
+  expect_match(row, "`lognormal()`", fixed = TRUE)
+  expect_match(row, "`Gamma(link = \"log\")`", fixed = TRUE)
+  expect_match(row, "`student()`", fixed = TRUE)
+  expect_match(row, "`beta_binomial()`", fixed = TRUE)
+  expect_match(row, "one binary predictor", fixed = TRUE)
+})
+
 test_that("M1: a constant weight leaves the mi() MLE unchanged (Dinnage audit)", {
   # weights(i) previously multiplied each leaf density BEFORE logspace_add()
   # combined them inside the mi() two-point mixture (mi_family == 1), which
