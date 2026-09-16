@@ -6,6 +6,14 @@
 \usage{
 drm_validate_complete_predictors(formula, data)
 }
+\arguments{
+\item{formula}{A \code{drm_formula} object created by \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}}.}
+
+\item{data}{A data frame containing the model variables.}
+}
+\value{
+\code{NULL}, invisibly, when all required predictors are complete.
+}
 \description{
 Used when \code{miss_control(predictor = "fail")} (the default): ordinary model
 columns must be complete; response missingness is handled separately.

@@ -1,3 +1,13 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 Rd args (#1375)
+
+**Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
+
+**Fix:** R CMD check ERROR — undocumented `\arguments` for `drm_validate_complete_predictors` (`formula`, `data`). Added roxygen `@param` / `@return` in `R/missing-data.R`; `devtools::document()`; `tools::checkRd("man/drm_validate_complete_predictors.Rd")` clean.
+
+**Non-claims:** no D-263 ACCEPT; no merge.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 C17 recert (#1375)
 
 **Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.

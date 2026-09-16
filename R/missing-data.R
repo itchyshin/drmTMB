@@ -80,6 +80,11 @@ miss_control <- function(
 #'
 #' Used when `miss_control(predictor = "fail")` (the default): ordinary model
 #' columns must be complete; response missingness is handled separately.
+#'
+#' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
+#' @param data A data frame containing the model variables.
+#'
+#' @return `NULL`, invisibly, when all required predictors are complete.
 drm_validate_complete_predictors <- function(formula, data) {
   needed <- tryCatch(
     drm_julia_needed_columns(formula),
