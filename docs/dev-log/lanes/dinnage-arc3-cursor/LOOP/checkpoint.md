@@ -1,6 +1,6 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 00:10 MDT** (live `gh pr view` + CI; board tip **`origin/main` @ `9ac12d80f99f7857fbdf589c6fcd1e443e1988e1`**; **~4.8 h** to 2026-09-16 05:00 MDT)
+Updated: **2026-09-16 00:10 MDT** (live `gh pr view` + CI; board tip **`origin/main` @ `a48f7e7d01ca46947456b0a35e97830c444ad6fb`**; **~4.8 h** to 2026-09-16 05:00 MDT)
 
 ## Current Scope
 
