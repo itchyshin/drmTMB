@@ -76,6 +76,28 @@ miss_control <- function(
   )
 }
 
+#' Whether `missing =` explicitly requested predictor fail (A-2)
+#'
+#' The formal default `missing = miss_control()` makes `base::missing(missing)`
+#' unusable, so A-2 enforcement keys off the **call**, not the parsed control
+#' alone. Only `miss_control()` with no arguments or an explicit
+#' `predictor = "fail"` triggers early validation; `miss_control(response =
+#' "include")` keeps the existing complete-case row drop for predictors.
+drm_missing_explicit_predictor_fail <- function(missing_call) {
+  if (!is.call(missing_call) || !identical(missing_call[[1L]], quote(miss_control))) {
+    return(FALSE)
+  }
+  if (length(missing_call) == 1L) {
+    return(TRUE)
+  }
+  arg_names <- names(missing_call)[-1L]
+  if (is.null(arg_names)) {
+    return(length(missing_call) >= 3L)
+  }
+  "predictor" %in% arg_names &&
+    identical(as.character(missing_call[["predictor"]]), "fail")
+}
+
 #' Fail early when predictor missingness is disallowed
 #'
 #' Used when `miss_control(predictor = "fail")` (the default): ordinary model
