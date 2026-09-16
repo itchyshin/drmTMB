@@ -14,6 +14,10 @@
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
   Md-F.
 
+* `student()` no longer claims that Student-t is the only implemented family
+  whose public `sigma` is a scale rather than `SD[y]`. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Mi-11.
+
 * `meta_V()` now states that a known sampling covariance matrix is matched to
   the retained model frame by row position, not by dimnames. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
