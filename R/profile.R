@@ -184,6 +184,8 @@
 #'   Bootstrap interval results carry a `"bootstrap.diagnostics"` attribute
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
+#'   For a plain matrix view of the `lower` and `upper` columns, use
+#'   [as.matrix.drm_confint()].
 #'
 #' @section Default uncertainty story:
 #' Use this recipe for ordinary first-week inference; it restates measured

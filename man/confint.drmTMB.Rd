@@ -178,6 +178,8 @@ mark intervals that land near a lower SD boundary or correlation boundary.
 Bootstrap interval results carry a \code{"bootstrap.diagnostics"} attribute
 with one diagnostic row per refit and target, including refit convergence,
 target availability, draw use, and the refit message.
+For a plain matrix view of the \code{lower} and \code{upper} columns, use
+\code{\link[=as.matrix.drm_confint]{as.matrix.drm_confint()}}.
 }
 \description{
 \code{confint()} returns confidence intervals for a fitted \code{drmTMB} model. Wald

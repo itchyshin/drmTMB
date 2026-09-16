@@ -1,3 +1,20 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 C17 recert (#1375)
+
+**Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `9c5a90dd3` (pre-push). D-263 REQUEST CHANGES: Ubuntu shards failed `mc-0568` model-15 fingerprint drift after `R/drmTMB.R` / `R/methods.R` edits.
+
+| Check | Result |
+| --- | --- |
+| C17 model-15 compatibility (`recertify-c17.py --label pr1375-b2`) | ✅ 12/12, `PASS_CURRENT_SOURCE_COMPATIBILITY`; mean_tau_relative_error **inert** (\|change\| 0.000e+00 on mc-0568/0569/0576) |
+| Ledger | ✅ `capability_ledger.py --check`; ✅ 80/80 `test_capability_ledger` (fail-closed C17 modes) |
+| Receipt | `docs/dev-log/implementation-recovery/2026-09-16-pr1375-b2-c17c2-c14-final-source-compatibility/` |
+| Audit note | `docs/dev-log/audits/2026-09-16-dinnage-arc3-b2-review.md` |
+
+**Also:** `?confint.drmTMB` cross-links `as.matrix.drm_confint()`; S7 doc typo in `R/control.R`.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 D-263 REQUEST CHANGES (#1375)
 
 **Lane:** Ada coordinator · `ada:dinnage-arc3-coord` (status); `gauss:dinnage-arc3-B2` (P0 fix).

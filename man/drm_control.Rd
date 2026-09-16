@@ -132,7 +132,7 @@ objective result is kept. Opt-in robustness for weakly identified models;
 \code{multi_start = 1} is the single-start fit and is unchanged. Joint models
 with both scale and zero-inflation predictors (for example \code{sigma ~ ...}
 together with \code{zi ~ ...} on Poisson or \code{nbinom2()} families) can admit
-admit multiple local optima; when a fit looks unstable or convergence
+multiple local optima; when a fit looks unstable or convergence
 checks flag a boundary, try \code{multi_start > 1} before changing the model.}
 
 \item{fallback_optimizer}{\code{NULL} (default) or one \code{\link[stats:optim]{stats::optim()}} method
