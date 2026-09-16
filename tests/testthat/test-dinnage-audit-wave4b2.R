@@ -8,16 +8,20 @@ wave4b2_gaussian_with_na_predictor <- function(n = 40L, n_na = 4L, seed = 1332L)
   data.frame(y = stats::rnorm(n), x = x)
 }
 
+wave4b2_pkg_root <- function() {
+  getNamespaceInfo("drmTMB", "path")
+}
+
 wave4b2_repo_r_drmtmb <- function() {
   normalizePath(
-    file.path(testthat::test_path(), "..", "..", "R", "drmTMB.R"),
+    file.path(wave4b2_pkg_root(), "R", "drmTMB.R"),
     mustWork = TRUE
   )
 }
 
 wave4b2_drm_control_rd <- function() {
   normalizePath(
-    file.path(testthat::test_path(), "..", "..", "man", "drm_control.Rd"),
+    file.path(wave4b2_pkg_root(), "man", "drm_control.Rd"),
     mustWork = TRUE
   )
 }
