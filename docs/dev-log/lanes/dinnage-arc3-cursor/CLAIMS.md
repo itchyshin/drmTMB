@@ -44,6 +44,7 @@ Updated: 2026-09-16 ~06:30 MDT (**#1369 + #1367 MERGED**; **Wave B UNLOCKED**).
 - **A4 record:** DONE (#1351).
 - **D-263 audit markdown — PR [#1370](https://github.com/itchyshin/drmTMB/pull/1370)** (`cursor/dinnage-arc3-d263-audits-20260915`). Re-check CI post-#1367 before merge.
 - **Wave B docs-only — PR [#1371](https://github.com/itchyshin/drmTMB/pull/1371)** (`cursor/docs-mdj-map-20260915`). Does **not** gate B1/B2 implementation.
+- **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.
 
 ## Claim Reporting
 

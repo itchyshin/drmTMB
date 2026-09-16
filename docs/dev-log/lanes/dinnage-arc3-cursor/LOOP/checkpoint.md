@@ -4,7 +4,7 @@ Updated: **2026-09-16 ~06:30 MDT** · merges **#1369 @ `2c15ae63e`**, **#1367 @ 
 
 ## Current scope
 
-Wave A gates for Wave B are satisfied. **Wave B implementation: UNLOCKED** — parent may spawn B1 (Gauss + Curie) per [`wave-b-brief.md`](wave-b-brief.md). Wave A tail still open: #1368, #1370, #1371 (merge only when CI green; agents do not merge unless explicitly authorized).
+Wave A gates for Wave B are satisfied. **Wave B implementation: UNLOCKED** — parent may spawn B1 (Gauss + Curie) per [`wave-b-brief.md`](wave-b-brief.md). Wave A tail still open: #1368, #1370, #1371 (merge only when CI green; agents do not merge unless explicitly authorized). **DRM.jl twin map (Jason):** [`LOOP/drm-jl-followups.md`](drm-jl-followups.md) — coordination only; Codex Julia lane owns filing.
 
 ## Merge record
 
