@@ -1,4 +1,4 @@
-# Session Handoff: Dinnage audit, third arc (39 open issues), for Cursor
+# Session Handoff: Dinnage audit, third arc (38 open issues), for Cursor
 
 Meta: 2026-09-15 · from Claude (Fable, planning session) · to Cursor · TARGET = cursor · AUTHOR = claude.
 Plan approved by Shinichi at G0 on 2026-09-15 with four decisions (section "Key Decisions").
@@ -8,11 +8,11 @@ You are Cursor, picking up the third fix arc for Russell Dinnage's independent e
 
 ## Critical Context
 
-1. **39 issues remain open** under the label `audit-dinnage` (#1315 to #1360 minus the sixteen closed on
-   2026-09-15). Every open issue carries "What Russell found", "Where", "Since-audit status on main",
-   and "Proposed fix". A read-only inventory at `6ccdd737c` (Appendix A) confirms all 39 are still
-   present, with 5 to 30 lines of drift from the line numbers in the issue bodies. Re-find each locus
-   with `grep -n` before editing.
+1. **38 issues remain open** under the label `audit-dinnage` (#1315 to #1360 minus the sixteen closed on
+   2026-09-15 and minus #1351 Mi-13, closed the same day as A4 record). Every open issue carries "What
+   Russell found", "Where", "Since-audit status on main", and "Proposed fix". A read-only inventory at
+   `6ccdd737c` (Appendix A) listed 39 at G0; re-check with `gh issue list --label audit-dinnage --state
+   open` before editing. Re-find each locus with `grep -n` before editing.
 2. **An audit fix never merges on its own builder's tests** (D-263 corollary, learned in waves 1 to 3:
    a fresh-context reviewer overturned three of four builder verdicts). Each wave PR needs a review by
    a fresh chat on a pinned Claude or GPT model, or by Claude, before Shinichi merges it.
@@ -34,15 +34,18 @@ You are Cursor, picking up the third fix arc for Russell Dinnage's independent e
 - 2026-09-15 close-out (PRs #1364, #1365): sixteen issues closed with evidence comments; the response
   map `docs/dev-log/audits/2026-09-13-dinnage-independent-evaluation-response.md` carries a "Closed on
   GitHub" section. Russell has the map (a private issue in his evaluation repo).
-- This session: two read-only scouts sized the 39 open issues and the carried-over items (Appendices A
-  and B); Shinichi answered the four owner questions below. No code was changed.
+- This session: two read-only scouts sized the open-issue set and the carried-over items (Appendices A
+  and B); Shinichi answered the four owner questions below. No code was changed in that planning session.
+- 2026-09-15 evening: Wave A implementation landed on three **OPEN** PRs (not merged): #1368, #1369,
+  #1367. D-263 independent reviews **ACCEPT**; CI green on current heads. Shinichi merge only.
 
 ## Current Working State
 
-- Working: `main` at `958d7c560` (this handover branches from it). CI green. as-cran clean on a clean
-  export at the #1361 merge.
-- In progress: nothing. No wave branch exists yet.
-- Not working / blocked: none. The seven DEFER items below wait on a campaign or a design, not on you.
+- Working: `origin/main` at `3fbb3d516` (board sync after coordinator rehydration). Wave A fixes live on
+  PR branches only until Shinichi merges.
+- In progress: Wave A merge gate — **MERGE-READY**, awaiting Shinichi (#1369 and #1367 unblock Wave B).
+- Not working / blocked: Wave B/C **HOLD** until #1369 and #1367 are on `main`. The seven DEFER items
+  below wait on a campaign or a design, not on you.
 
 ## Key Decisions & Rationale (Shinichi, 2026-09-15, at G0)
 
@@ -72,9 +75,12 @@ clean them, and do not work there. Work in a fresh worktree off `origin/main`.
 
 | Artifact / branch | Committed | Pushed | PR | State |
 |---|---|---|---|---|
-| `main` `958d7c560` (#1364, #1365 merged) | y | y | merged | LANDED |
-| this handover + board row, `claude/dinnage-arc3-handover-20260915` | y | y | docs PR, merge when green | LANDED on merge |
-| wave A/B/C branches | none yet | | | not started |
+| `main` `3fbb3d516` (#1364, #1365, #1366 merged) | y | y | merged | LANDED |
+| this handover + board row, `claude/dinnage-arc3-handover-20260915` | y | y | merged via #1366 | LANDED |
+| Wave A1 docs `#1368` @ `822763660` | y | y | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) OPEN | MERGE-READY (Shinichi) |
+| Wave A2 check `#1369` @ `3805b8520` | y | y | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) OPEN | MERGE-READY (Shinichi) |
+| Wave A3 misc `#1367` @ `6a5200f39` | y | y | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) OPEN | MERGE-READY (Shinichi) |
+| Wave B/C branches | none on `main` | | | HOLD until #1369+#1367 merged |
 
 FINDINGS-OF-RECORD: none. The inventories in the appendices are derived from the issues and the code;
 nothing new was discovered.
@@ -177,7 +183,7 @@ the PR you take. Then `/goal` with wave A1 to A3 as the first arcs.
 Read AGENTS.md and docs/dev-log/handover/2026-09-15-cursor-handover-dinnage-arc3.md. Run the handover rehydration steps, reconcile them with the current git state, then continue only the OWED Next Immediate Steps.
 ```
 
-## Appendix A: inventory of the 39 open issues (read-only scout, main at 6ccdd737c)
+## Appendix A: inventory at G0 (39 open at scout time; #1351 closed same day → 38 open now; scout main `6ccdd737c`)
 
 | # | id | sev | kind | locus (file:function) | fix in one line | size | needs a decision? | groups with |
 |---|----|----|------|------|------|------|------|------|
