@@ -35,7 +35,7 @@ Closed (16), label `audit-dinnage`: #1306 (C1), #1307 (M1), #1308 (M2), #1309 (M
 
 Not closed, comment only: #1301 (S2), fix landed (`3192db3f6`, `1c44d2f12`, `19849f0dc`), stays open for the D-252 vocabulary question. Comment: https://github.com/itchyshin/drmTMB/issues/1301#issuecomment-5687875746
 
-39 `audit-dinnage` issues remain open past this close.
+38 `audit-dinnage` issues remain open past this close (#1351 closed later the same day as A4 record).
 
 ## 8. Consistency Audit
 
@@ -60,7 +60,7 @@ A NEWS-bullet text match used for automated evidence lookup should be case-insen
 
 ## 12. Cross-Product Coverage
 
-This lane closed GitHub issues and updated the response-map document; it does NOT cover: the 39 still-open `audit-dinnage` issues (Moderates, Minors, UX items, and Mi-13, moved); the M3 sqrt(n) tolerance design question, which stays open under #1309 despite the issue being closed; the S6 bootstrap opt-in implementation; the Md-K public-status decision; the #1301 D-252 vocabulary question; any outreach to Russell Dinnage; the five stale open PRs (#1033, #1110, #1111, #1191, #1304); and any code, test, or `NEWS.md` change, none of which this lane touched. It also does NOT cover re-verifying the underlying fixes: that verification was done in the earlier wave 1 to 3 audit-response arcs and is only cited here, not repeated.
+This lane closed GitHub issues and updated the response-map document; it does NOT cover: the 38 still-open `audit-dinnage` issues (Moderates, Minors, UX items, and Mi-13, moved); the M3 sqrt(n) tolerance design question, which stays open under #1309 despite the issue being closed; the S6 bootstrap opt-in implementation; the Md-K public-status decision; the #1301 D-252 vocabulary question; any outreach to Russell Dinnage; the five stale open PRs (#1033, #1110, #1111, #1191, #1304); and any code, test, or `NEWS.md` change, none of which this lane touched. It also does NOT cover re-verifying the underlying fixes: that verification was done in the earlier wave 1 to 3 audit-response arcs and is only cited here, not repeated.
 
 ## Addendum (2026-09-15, after the merge of PR #1364)
 
