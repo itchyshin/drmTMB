@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~10:43 MDT** · **`main` @ `44b0e3b67`**
+Updated: **2026-09-16 ~10:45 MDT** · **`main` @ `44b0e3b67`**
 
 ## Current scope
 
-**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`; coord-only moves since — no receipt PR). **Coord/docs push OK.** **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `05c28c1bb` — **`R/bf.R` name-restore** for skeleton `drm_formula` regression; local **47/47** reported. **D-263:** prior **ACCEPT stale** (incl. @ `296a1f763`); **awaiting fresh D-263 + settled green CI** (run [`35123724324`](https://github.com/itchyshin/drmTMB/actions/runs/35123724324) **in flight**). **P0:** C17 inert re-cert on earlier tip (`mc-0568` / C17+C14 @ `c493fc0bb`). **Not MERGE-READY.** Tip-identity receipt **LAST** on `R/` before merge. Prefer **Composer** / Grace watchers. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`; coord-only moves since — no receipt PR). **Coord/docs push OK.** **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `05c28c1bb` — **`R/bf.R` `call_names` fix**; local **47/47** reported. **D-263: ACCEPT** @ `05c28c1bb` (Shinichi). **MERGE-READY pending settled green CI** — **keep-going:** merge when CI green (run [`35123724324`](https://github.com/itchyshin/drmTMB/actions/runs/35123724324) **in flight**). **P0:** C17 inert re-cert on earlier tip (`mc-0568` / C17+C14 @ `c493fc0bb`). Tip-identity receipt **LAST** on `R/` before merge. Prefer **Composer** / `pr_merge_when_green.sh`. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
 
 ## Merge record
 
@@ -18,11 +18,11 @@ Updated: **2026-09-16 ~10:43 MDT** · **`main` @ `44b0e3b67`**
 | #1367 | A3 misc | **MERGED** | `e6ca0dc8e` |
 | #1371 | Wave B docs-only | **MERGED** | `6580d74b1` |
 | #1373 | B1 check diagnostics | **MERGED** | `f822a34da` |
-| #1375 | B2 surfaces | OPEN (bf name-restore; stale D-263; CI in flight) | `05c28c1bb` |
+| #1375 | B2 surfaces | OPEN (D-263 ACCEPT; CI in flight → merge) | `05c28c1bb` |
 
 ## Wave B
 
-**Awaiting fresh D-263 + settled green CI.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `05c28c1bb` on `cursor/dinnage-arc3-b2-surfaces-20260916`. **`R/bf.R` name-restore** pushed; prior **D-263 ACCEPT stale**. CI run [`35123724324`](https://github.com/itchyshin/drmTMB/actions/runs/35123724324) **in flight**. **Not MERGE-READY.** Merge only after fresh D-263 and settled green CI + tip-identity receipt **LAST** on branch. P2: confint Rd cross-link, audit note, check-log (fixer). See [`wave-b-brief.md`](wave-b-brief.md) § B2.
+**D-263 ACCEPT @ `05c28c1bb`; await settled green CI then merge.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) on `cursor/dinnage-arc3-b2-surfaces-20260916`. CI run [`35123724324`](https://github.com/itchyshin/drmTMB/actions/runs/35123724324) **in flight**. **Keep-going:** `pr_merge_when_green.sh itchyshin/drmTMB 1375` when settled green; tip-identity receipt **LAST** on branch. P2: confint Rd cross-link, audit note (fixer). See [`wave-b-brief.md`](wave-b-brief.md) § B2.
 
 ## Resume
 
