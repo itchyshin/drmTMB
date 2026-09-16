@@ -19,6 +19,41 @@ test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Din
   expect_match(row, "one binary predictor", fixed = TRUE)
 })
 
+test_that("remaining A1 help pages document Dinnage audit caveats", {
+  rd_text <- function(file) {
+    paste(readLines(testthat::test_path("..", "..", "man", file), warn = FALSE),
+      collapse = "\n"
+    )
+  }
+
+  drm_help <- rd_text("drmTMB.Rd")
+  expect_match(drm_help, "conf.status = \"wald_unavailable\"", fixed = TRUE)
+  expect_match(drm_help, "method = \"bootstrap\"", fixed = TRUE)
+
+  predict_help <- rd_text("predict.drmTMB.Rd")
+  expect_match(predict_help, "not always \\code{E[Y]}", fixed = TRUE)
+  expect_match(predict_help, "fitted-row response means", fixed = TRUE)
+
+  summary_help <- rd_text("summary.drmTMB.Rd")
+  expect_match(summary_help, "\\pkg{emmeans}", fixed = TRUE)
+
+  residuals_help <- rd_text("residuals.drmTMB.Rd")
+  expect_match(residuals_help, "DHARMa::createDHARMa", fixed = TRUE)
+  expect_match(residuals_help, "Student-t scale", fixed = TRUE)
+  expect_match(residuals_help, "sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2))",
+    fixed = TRUE
+  )
+
+  sigma_help <- rd_text("sigma.drmTMB.Rd")
+  expect_match(sigma_help, "one scale value per observation", fixed = TRUE)
+  expect_match(sigma_help, "insight::get_sigma()", fixed = TRUE)
+
+  phylo_help <- rd_text("phylo.Rd")
+  expect_match(phylo_help, "does not silently rescale the tree to unit height",
+    fixed = TRUE
+  )
+})
+
 test_that("M1: a constant weight leaves the mi() MLE unchanged (Dinnage audit)", {
   # weights(i) previously multiplied each leaf density BEFORE logspace_add()
   # combined them inside the mi() two-point mixture (mi_family == 1), which

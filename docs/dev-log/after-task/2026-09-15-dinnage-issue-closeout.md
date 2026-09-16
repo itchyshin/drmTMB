@@ -70,3 +70,20 @@ plain Node structure check (twelve headings in order, the "does NOT cover" marke
 the hub validator runs standalone after the merge: structure check passed, acceptance ledger
 1 file, every gate satisfied, 8 of 8 met. Lesson: never make the validator a gate CHECK; the
 validator already re-verifies the ledger.
+
+## Addendum (2026-09-15, Wave A1 docs on PR #1368)
+
+The remaining A1 documentation items were completed on
+`cursor/dinnage-arc3-a1-docs-20260915`: #1317 (`?drmTMB` REML
+`confint()` caveat), #1320 (`?predict.drmTMB` response-scale prediction
+semantics), #1341 (`?summary.drmTMB` `emmeans` discoverability and
+`?residuals.drmTMB` DHARMa example), #1346 (`?residuals.drmTMB` Student-t,
+skew-normal, and beta residual conventions), #1354 (`?sigma.drmTMB` row-wise
+scale return), and #1344 (`?phylo` supplied branch-length scale wording).
+
+Checks: `Rscript -e 'devtools::document()'`; `Rscript -e
+'devtools::test(filter = "dinnage-audit-wave1")'` with PASS 27, WARN 0, FAIL
+0, SKIP 0; and `python3 ~/shinichi-brain/tools/slop_check.py
+/Users/z3437171/local-scratch/lanes/drmTMB-a1-docs/NEWS.md`, FINDINGS 0 for
+this edit. The PR body was updated to remove the stale claim that those issues
+were still lease-blocked. No compiled-code change and no merge.

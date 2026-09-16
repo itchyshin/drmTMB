@@ -53,6 +53,15 @@ soft-clamped scale the TMB likelihood actually evaluated (see
 and \code{simulate()} use. When \code{check_drm()} reports the clamp active, this
 makes the fit honest about what it evaluated, not correct: the estimate
 itself is still unreliable near the clamp.
+
+\code{sigma()} follows \code{drmTMB}'s distributional-regression contract, not the
+scalar summary contract some generic tools expect from \code{\link[stats:sigma]{stats::sigma()}}.
+When the scale formula contains fitted-row variation, such as \code{sigma ~ x},
+\code{sigma()} returns one scale value per observation. Generic helpers that
+assume a scalar residual scale, including \code{insight::get_sigma()}, may
+summarize that vector and hide the fitted heterogeneity; inspect
+\code{range(sigma(fit))} or \code{\link[=predict.drmTMB]{predict.drmTMB()}} with \code{dpar = "sigma"} when the
+scale model is part of the scientific question.
 }
 \examples{
 dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))

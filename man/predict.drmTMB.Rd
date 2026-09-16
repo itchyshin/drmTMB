@@ -84,6 +84,17 @@ This is a distributional-parameter prediction, not an integrated response
 mean, and fixed-effect covariance does not propagate imputation-parameter
 uncertainty through the design basis.
 
+More generally, \code{type = "response"} means "on the response scale of the
+requested distributional parameter", not always \code{E[Y]}. For
+zero-inflated and hurdle count families it returns the component count mean
+when \code{dpar = "mu"}, not the unconditional mean after structural-zero or
+hurdle mixing. For lognormal fits it returns \code{mu} on the log-response scale,
+not \code{exp(mu + sigma^2 / 2)}. For cumulative-logit fits it returns the
+location linear predictor on its response scale, not an expected ordinal
+score. Use \code{\link[=fitted.drmTMB]{fitted.drmTMB()}} for fitted-row response means or expected
+scores; use explicit distributional-parameter predictions when a new-data
+mean must be assembled outside the fitted rows.
+
 Binary predictor labels follow the fitted encoding, regardless of the levels
 present in the new batch. Numeric new values match raw numeric fitted labels;
 for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.

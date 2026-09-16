@@ -20,6 +20,18 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 
 # Check Log
 
+## 2026-09-15 - Dinnage Wave A1 remaining docs (#1368)
+
+Lane: Claude documentation writer on `cursor/dinnage-arc3-a1-docs-20260915`.
+No compiled-code changes. No merge.
+
+| Check | Result |
+| --- | --- |
+| Scope | Closed remaining A1 documentation obligations for #1317, #1320, #1341, #1346, #1354, plus #1344 `?phylo` branch-length wording. |
+| Roxygen | `Rscript -e 'devtools::document()'` rewrote `man/drmTMB.Rd`, `man/predict.drmTMB.Rd`, `man/residuals.drmTMB.Rd`, `man/sigma.drmTMB.Rd`, `man/summary.drmTMB.Rd`, and `man/phylo.Rd`. |
+| Focused tests | `Rscript -e 'devtools::test(filter = "dinnage-audit-wave1")'`: PASS 27, WARN 0, FAIL 0, SKIP 0. |
+| Prose check | `python3 ~/shinichi-brain/tools/slop_check.py /Users/z3437171/local-scratch/lanes/drmTMB-a1-docs/NEWS.md`: FINDINGS 0 for this edit; older file-wide style hits remain pre-existing. |
+
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
 Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree
