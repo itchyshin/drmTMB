@@ -26,7 +26,7 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 - A1 docs PR: issues #1317, #1320, #1323, #1334, #1341, #1345, #1346, #1349, #1354, #1359. Owns roxygen, generated `man/`, `vignettes/capability-and-limits.Rmd`, `NEWS.md`, and its tests/check evidence.
 - A2 check.R PR: issues #1338, #1343. Owns `R/check.R`, `R/profile.R`, `tests/testthat/test-dinnage-audit-wave4a.R`, `NEWS.md`, and focused check evidence. This must finish before any later B1 work.
-- A3 misc code PR: issues #1324, #1325, #1326, #1344, #1348, #1350, #1357, #1358. Owns `src/`, `R/drmTMB.R`, `R/methods.R`, `R/phylo-utils.R`, `R/associate-pairs.R`, `R/aghq-coxreid.R`, related tests, `NEWS.md`, and C17 recertification last via `tools/recertify-c17.py`.
+- A3 misc code PR: issues #1324, #1325, #1326, #1344, #1348, #1350, #1357, #1358. Owns `src/`, `R/drmTMB.R`, `R/methods.R`, `R/phylo-utils.R`, `R/associate-pairs.R`, `R/aghq-coxreid.R`, related tests, and C17 recertification last via `tools/recertify-c17.py`.
 - A4 record: DONE. Issue #1351 was closed at https://github.com/itchyshin/drmTMB/issues/1351#issuecomment-5689879524; the vault CRAN release-gate skill was updated by a separate agent and is being committed in the vault. No tag, release, or CI enforcement change.
 
 ## Held / Protected
@@ -36,12 +36,12 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-15 18:10 MDT (Ada integration poll).
+Updated: 2026-09-15 18:15 MDT (Ada integration poll).
 
-- Base for all Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Zero commits ahead on A1/A2/A3; zero Wave A PRs; none of the cursor branches pushed to origin.**
-- A1 docs worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a1-docs`, branch `cursor/dinnage-arc3-a1-docs-20260915`. **Uncommitted WIP only:** `R/formula-markers.R` (A-4 / #1334 roxygen), `NEWS.md` (one A-4 bullet). Still owed: nine other A1 issues, `man/`, `vignettes/capability-and-limits.Rmd`, per-finding tests N/A for docs PR but `R CMD check` evidence missing.
-- A2 check worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a2-check`, branch `cursor/dinnage-arc3-a2-check-20260915`. **Uncommitted WIP:** `R/check.R` (A-8 / #1338 dropped-groups note). Still owed: `R/profile.R` (Mi-5 / #1343), `tests/testthat/test-dinnage-audit-wave4a.R`, `NEWS.md`, focused check evidence. **Lease:** `claude:drmTMB-a1-docs` holds `R/profile.R`; reconcile before Mi-5.
-- A3 misc worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a3-misc`, branch `cursor/dinnage-arc3-a3-misc-20260915`. **Uncommitted WIP:** `src/drmTMB.cpp`, `src/drm_response_kernels.h` (Md-H / #1325 beta_binomial nudge); untracked `tests/testthat/test-dinnage-audit-a3-curie.R` (Claude Curie lease). Still owed: six other A3 issues, `R/methods.R` (+ C17 recert last), other R files, `NEWS.md`, `test-numeric-kernel-oracle.R`, lease expects `test-dinnage-audit-a3-misc.R`.
+- Base for all Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **A1 has two local commits; A2/A3 remain at base; zero Wave A PRs; none of the cursor specialist branches pushed to origin.**
+- A1 docs worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a1-docs`, branch `cursor/dinnage-arc3-a1-docs-20260915`. **Local commits:** `5399733b9` (A-4 / #1334), `43502894b` (Md-F / #1323). **Uncommitted WIP:** `NEWS.md`, `R/family.R`. Still owed: eight other A1 issues, `man/`, `vignettes/capability-and-limits.Rmd`, per-finding tests N/A for docs PR but `R CMD check` evidence missing.
+- A2 check worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a2-check`, branch `cursor/dinnage-arc3-a2-check-20260915`. **Uncommitted WIP:** `R/check.R` (A-8 / #1338 dropped-groups note). Still owed: `R/profile.R` (Mi-5 / #1343), `tests/testthat/test-dinnage-audit-wave4a.R`, `NEWS.md`, focused check evidence. **Lease:** A1 released `R/profile.R` at 18:15 MDT; A2 may claim it for Mi-5.
+- A3 misc worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a3-misc`, branch `cursor/dinnage-arc3-a3-misc-20260915`. **Uncommitted WIP:** `src/drmTMB.cpp`, `src/drm_response_kernels.h` (Md-H / #1325 beta_binomial nudge); untracked `tests/testthat/test-dinnage-audit-a3-curie.R` (Claude Curie lease). Still owed: six other A3 issues, `R/methods.R` (+ C17 recert last), other R files, `test-numeric-kernel-oracle.R`, lease expects `test-dinnage-audit-a3-misc.R`.
 - A4 record: DONE (#1351).
 - **D-263 review files:** none yet; when each PR opens, fresh reviewer writes `docs/dev-log/audits/2026-09-<dd>-dinnage-arc3-<a1|a2|a3>-review.md` (builder must not self-ACCEPT).
 
@@ -63,7 +63,7 @@ LANE_ID='<specialist>:dinnage-arc3-<domain>' ~/shinichi-brain/tools/lane_lease.s
 Gauss starting point:
 
 ```sh
-LANE_ID='gauss:dinnage-arc3-A3' ~/shinichi-brain/tools/lane_lease.sh --claim drmTMB --paths 'src/,R/drmTMB.R,R/methods.R,R/phylo-utils.R,R/associate-pairs.R,R/aghq-coxreid.R,tests/testthat/test-numeric-kernel-oracle.R,tests/testthat/test-dinnage-audit-wave4a.R,NEWS.md'
+LANE_ID='gauss:dinnage-arc3-A3' ~/shinichi-brain/tools/lane_lease.sh --claim drmTMB --paths 'src/,R/drmTMB.R,R/methods.R,R/phylo-utils.R,R/associate-pairs.R,R/aghq-coxreid.R,tests/testthat/test-numeric-kernel-oracle.R,tests/testthat/test-dinnage-audit-a3-misc.R'
 ```
 
 ## OWED Classification
