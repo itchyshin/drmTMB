@@ -155,6 +155,45 @@ test_that("drm_src_path resolves checkout, Rcheck 00_pkg_src, and win-builder si
   )
 })
 
+test_that("drm_pkg_path resolves checkout, Rcheck 00_pkg_src, and win-builder sibling layouts", {
+  tmp <- tempfile("drm-pkg-layouts-")
+  dir.create(tmp)
+  on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
+
+  write_pkg_file <- function(path) {
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    writeLines("# layout probe", path)
+    normalizePath(path, winslash = "/", mustWork = TRUE)
+  }
+
+  rel <- "R/drmTMB.R"
+
+  pkg_a <- file.path(tmp, "checkout", "drmTMB")
+  r_a <- write_pkg_file(file.path(pkg_a, rel))
+  dir.create(file.path(pkg_a, "tests", "testthat"), recursive = TRUE)
+  expect_equal(
+    drm_pkg_path(rel, start_dir = file.path(pkg_a, "tests", "testthat")),
+    r_a
+  )
+
+  rcheck_b <- file.path(tmp, "unix", "drmTMB.Rcheck")
+  r_b <- write_pkg_file(file.path(rcheck_b, "00_pkg_src", "drmTMB", rel))
+  dir.create(file.path(rcheck_b, "tests", "testthat"), recursive = TRUE)
+  expect_equal(
+    drm_pkg_path(rel, start_dir = file.path(rcheck_b, "tests")),
+    r_b
+  )
+
+  root_c <- file.path(tmp, "winbuilder")
+  r_c <- write_pkg_file(file.path(root_c, "drmTMB", rel))
+  rcheck_c <- file.path(root_c, "drmTMB.Rcheck")
+  dir.create(file.path(rcheck_c, "tests", "testthat"), recursive = TRUE)
+  expect_equal(
+    drm_pkg_path(rel, start_dir = file.path(rcheck_c, "tests")),
+    r_c
+  )
+})
+
 # ---------------------------------------------------------------------------
 # Part A anchor: the enumeration this suite is built against. If a future
 # edit adds/removes a CondExp site, this count changes and flags that the
