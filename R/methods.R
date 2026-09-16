@@ -4392,6 +4392,7 @@ summary.drmTMB <- function(
 
   out <- list(
     call = object$call,
+    nobs = stats::nobs(object),
     coefficients = coefficients,
     parameters = parameters,
     covariance = covariance,
@@ -4403,6 +4404,7 @@ summary.drmTMB <- function(
     logLik = if (drm_is_mspl(object)) NA_real_ else stats::logLik(object),
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
+    estimator_exact = object$estimator_exact,
     convergence = object$opt$convergence,
     conf.int = conf.int,
     conf.level = if (conf.int) level else NA_real_,
@@ -4417,7 +4419,21 @@ summary.drmTMB <- function(
 print.summary.drmTMB <- function(x, ...) {
   cli::cli_text("<summary.drmTMB>")
   if (!is.null(x$estimator)) {
-    cli::cli_text("estimator: {x$estimator}")
+    estimator_detail <- if (identical(x$estimator, "REML") &&
+        !is.null(x$estimator_exact) && !is.na(x$estimator_exact)) {
+      if (isTRUE(x$estimator_exact)) {
+        "exact restricted likelihood"
+      } else {
+        "Laplace/Cox-Reid adjusted profile"
+      }
+    } else {
+      NULL
+    }
+    if (is.null(estimator_detail)) {
+      cli::cli_text("estimator: {x$estimator}")
+    } else {
+      cli::cli_text("estimator: {x$estimator} ({estimator_detail})")
+    }
   }
   if (isTRUE(x$conf.int)) {
     cli::cli_text(
@@ -4947,7 +4963,7 @@ drm_residual_sigma_na_reason_text <- function(reason) {
     non_constant_sigma_predictor = paste(
       "This fit has a sigma predictor, a non-log link, or a",
       "known-dispersion override, so a single scalar residual variance is",
-      "not defined."
+      "not defined. Random-effect SD estimates remain available in $sdpars."
     ),
     known_residual_variance = paste(
       "This fit has a known-dispersion override, so a single scalar",

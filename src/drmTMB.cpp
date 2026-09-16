@@ -3655,12 +3655,13 @@ Type objective_function<Type>::operator()()
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type failures = trials(i) - y(i);
+        Type phi_shape = alpha(i) + beta_shape(i);
         Type log_density =
           lgamma(trials(i) + Type(1.0)) -
           lgamma(y(i) + Type(1.0)) -
           lgamma(failures + Type(1.0)) +
-          lgamma(phi(i)) -
-          lgamma(trials(i) + phi(i)) +
+          lgamma(phi_shape) -
+          lgamma(trials(i) + phi_shape) +
           lgamma(y(i) + alpha(i)) -
           lgamma(alpha(i)) +
           lgamma(failures + beta_shape(i)) -

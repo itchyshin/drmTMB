@@ -137,6 +137,15 @@ validate_phylo_tree <- function(
     as.character(species)
   }
   species_levels <- validate_phylo_species(species_values, tip_label)
+  if (!is.null(species_levels)) {
+    pruned_tips <- setdiff(tip_label, species_levels)
+    if (length(pruned_tips) > 0L) {
+      cli::cli_inform(c(
+        "Pruning {.val {length(pruned_tips)}} phylogeny tip{?s} absent from the data.",
+        "i" = "The fit uses the subtree induced by the observed species."
+      ))
+    }
+  }
   species_index <- if (is.null(species_levels)) {
     NULL
   } else {
