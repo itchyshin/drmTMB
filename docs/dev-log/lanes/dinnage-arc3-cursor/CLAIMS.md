@@ -37,13 +37,13 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 ~09:38 MDT (**B2 #1375 — D-263 re-ACCEPT; await CI** @ `09d61406f`).
+Updated: 2026-09-16 ~10:05 MDT (**B2 #1375 — CI RED; Gauss Rd fix** @ `09d61406f`).
 
-- **`main` tip:** `f4fb5b44` (coord); tip-identity last **green** @ `e169d7a76` (run `35111843393`). Docs-only coord pushes OK; no receipt PR unless `R/` on `main` moves.
+- **`main` tip:** `017ab34da` (coord); tip-identity last **green** @ `e169d7a76` (run `35111843393`). Docs-only coord pushes OK; no receipt PR unless `R/` on `main` moves.
 - **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). **B2 `R/` merge:** tip-identity receipt regen **LAST** on branch (or receipt follow-up immediately after merge).
 - **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
 - **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da` (2026-09-16; Shinichi/Grace). Gauss lease `gauss:dinnage-arc3-B1` should **release** when idle.
-- **Wave B2 — PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `09d61406f` (`cursor/dinnage-arc3-b2-surfaces-20260916`; pkgdown-only tip delta `09d6140` vs `c493fc0bb`). **D-263:** fresh independent **re-ACCEPT** posted on tip (PR review comment; GitHub **Approve** blocked — same-author). **P0:** C17 inert re-cert unchanged (no new `R/` on tip delta). **CI** in flight @ `09d61406f` (run `35116393006`). **Not MERGE-READY** until settled green CI; **merge after green** (Shinichi keep-going). Prefer **Composer** / Grace watchers. Active lease: `gauss:dinnage-arc3-B2` (release when idle).
+- **Wave B2 — PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `09d61406f` (`cursor/dinnage-arc3-b2-surfaces-20260916`). **CI RED:** release shards 1–4 — undocumented Rd `@param` on `drm_validate_complete_predictors` (`formula`, `data`). **Gauss:** Rd/`man/` fix **in flight**. **D-263:** re-ACCEPT on `09d61406f` stands until tip moves; **re-ACCEPT again** after Gauss push (PR review comment; GitHub **Approve** blocked — same-author). **P0:** C17 inert re-cert unchanged on current tip. **No merge** until settled green CI. Prefer **Composer** / Grace watchers. Active lease: `gauss:dinnage-arc3-B2` (release when idle).
 - **A4 record:** DONE (#1351).
 - **Wave B docs-only [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGED** — does not gate B1/B2 implementation.
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.

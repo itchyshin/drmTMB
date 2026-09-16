@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~09:38 MDT** · **`main` @ `f4fb5b44`**
+Updated: **2026-09-16 ~10:05 MDT** · **`main` @ `017ab34da`**
 
 ## Current scope
 
-**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`; coord-only moves since — no receipt PR). **Coord/docs push OK.** **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `09d61406f` — pkgdown-only tip delta vs `c493fc0bb`; **D-263 re-ACCEPT** on tip (independent review comment; GitHub **Approve** blocked — same-author). **P0:** C17 inert re-cert unchanged (no new `R/` on tip delta). **CI** in flight @ `09d61406f` (run `35116393006`). **Not MERGE-READY** until settled green CI; **merge after green** (Shinichi keep-going). Tip-identity receipt **LAST** on `R/` before merge. Prefer **Composer** / Grace watchers. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`; coord-only moves since — no receipt PR). **Coord/docs push OK.** **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `09d61406f` — **CI RED** (release shards: undocumented Rd `@param` on `drm_validate_complete_predictors`, `formula`/`data`). **Gauss** Rd/`man/` fix **in flight**. **D-263 re-ACCEPT** on `09d61406f` valid until tip moves; **re-ACCEPT again** after fix lands. **P0:** C17 inert re-cert unchanged on current tip. **No merge** until settled green CI. Tip-identity receipt **LAST** on `R/` before merge. Prefer **Composer** / Grace watchers. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
 
 ## Merge record
 
@@ -18,11 +18,11 @@ Updated: **2026-09-16 ~09:38 MDT** · **`main` @ `f4fb5b44`**
 | #1367 | A3 misc | **MERGED** | `e6ca0dc8e` |
 | #1371 | Wave B docs-only | **MERGED** | `6580d74b1` |
 | #1373 | B1 check diagnostics | **MERGED** | `f822a34da` |
-| #1375 | B2 surfaces | OPEN (D-263 re-ACCEPT; await CI) | `09d61406f` |
+| #1375 | B2 surfaces | OPEN (CI RED; Gauss Rd fix) | `09d61406f` |
 
 ## Wave B
 
-**Awaiting CI.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `09d61406f` on `cursor/dinnage-arc3-b2-surfaces-20260916`. **D-263 re-ACCEPT** on tip (pkgdown-only delta). Merge after settled green CI + tip-identity receipt **LAST** on branch (Shinichi keep-going). See [`wave-b-brief.md`](wave-b-brief.md) § B2.
+**CI RED @ `09d61406f`.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) on `cursor/dinnage-arc3-b2-surfaces-20260916` — release shards fail on undocumented Rd args for `drm_validate_complete_predictors` (`formula`, `data`). **Gauss** fix in flight. **D-263 re-ACCEPT** stale once tip moves; refresh after Gauss push. **No merge** until settled green CI + tip-identity receipt **LAST** on branch. See [`wave-b-brief.md`](wave-b-brief.md) § B2.
 
 ## Resume
 
