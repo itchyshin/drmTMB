@@ -1,21 +1,16 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~06:35 MDT** · board tip **`origin/main` @ `a543c11a4`**
+Updated: **2026-09-16 ~06:51 MDT** · **`origin/main` @ `3dcd7ab11`**
 
-## Merge record
+## Wave A queue — CLOSED
 
-| PR | Slice | State |
-| --- | --- | --- |
-| #1369 | A2 | **MERGED** `2c15ae63e` |
-| #1367 | A3 | **MERGED** `e6ca0dc8e` |
-| #1368 | A1 docs | merging / **MERGED** (see GitHub) |
-| #1370 | D-263 audit | OPEN — CI on rebased tip |
-| #1371 | Wave B docs | OPEN — merge after #1370 |
+All five PRs **MERGED**: #1369, #1367, #1368, #1370, #1371.
 
 ## Wave B
 
-**UNLOCKED** (#1369 + #1367 on `main`). Spawn B1/B2: [`wave-b-brief.md`](wave-b-brief.md).
+**UNLOCKED.** Next: spawn B1 (Gauss) then B2 per [`wave-b-brief.md`](wave-b-brief.md).
 
-## Queue
-
-Finish **#1370 → #1371** when each is CLEAN + green CI.
+```sh
+git fetch origin main && git rev-parse origin/main
+~/shinichi-brain/tools/lane_launch.sh "/Users/z3437171/Dropbox/Github Local/drmTMB" dinnage-arc3-B1
+```
