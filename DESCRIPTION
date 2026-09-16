@@ -46,6 +46,7 @@ Suggests:
     ape,
     callr,
     detectseparation (>= 0.4.0),
+    DHARMa,
     emmeans,
     extraDistr,
     fmesher,

@@ -2,8 +2,34 @@
 # (rdinnager/drmTMB_eval, pinned at 945da24f, report dated 2026-08-29).
 # One test block per finding fixed in this lane.
 
+source_or_installed_path <- function(..., package = "drmTMB") {
+  parts <- c(...)
+  source_path <- testthat::test_path("..", "..", ...)
+  installed_path <- do.call(
+    system.file,
+    c(as.list(parts), list(package = package))
+  )
+  doc_path <- ""
+  if (identical(parts[[1]], "vignettes")) {
+    doc_path <- do.call(
+      system.file,
+      c(as.list(c("doc", parts[-1])), list(package = package))
+    )
+  }
+  candidates <- c(source_path, installed_path, doc_path)
+  matches <- candidates[nzchar(candidates) & file.exists(candidates)]
+  testthat::skip_if_not(
+    length(matches) > 0L,
+    paste("documentation source file is not available:", file.path(...))
+  )
+  matches[[1]]
+}
+
 test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Dinnage audit)", {
-  vignette <- testthat::test_path("..", "..", "vignettes", "capability-and-limits.Rmd")
+  vignette <- source_or_installed_path(
+    "vignettes",
+    "capability-and-limits.Rmd"
+  )
   text <- readLines(vignette, warn = FALSE)
   row <- grep(
     "^\\| `binomial\\(\\)`, `poisson\\(\\)`, `nbinom2\\(\\)`, `beta\\(\\)`",
@@ -21,7 +47,8 @@ test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Din
 
 test_that("remaining A1 help pages document Dinnage audit caveats", {
   rd_text <- function(file) {
-    paste(readLines(testthat::test_path("..", "..", "man", file), warn = FALSE),
+    path <- source_or_installed_path("man", file)
+    paste(readLines(path, warn = FALSE),
       collapse = "\n"
     )
   }
