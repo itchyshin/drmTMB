@@ -1,41 +1,33 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: 2026-09-15 21:36 MDT (board tip on `origin/main` @ `3fbb3d516`; **~7 h** to 2026-09-16 05:00 MDT)
+Updated: **2026-09-15 21:41 MDT** (live `gh pr view`; board tip **`origin/main` @ `c02290e814`**; **~7.3 h** to 2026-09-16 05:00 MDT)
 
 ## Current Scope
 
-Wave A + D-263 audit docs. **No agent merges.** Wave A PRs #1367 #1368 #1369 and audit-docs **#1370** still **OPEN** on GitHub @ 21:36 MDT (live `gh pr view`). Shinichi merges each after settled green CI + D-263 ACCEPT.
-
-**Board sync:** `origin/main` @ [`3fbb3d516`](https://github.com/itchyshin/drmTMB/commit/3fbb3d516) (`docs(coord): record main board sync @ 506e6bae7`). This push records **#1370 MERGE-READY**.
+Wave A + D-263 audit docs. **No agent merges.** PRs **#1367 #1368 #1369 #1370** still **OPEN** @ 21:41 MDT. Shinichi merges each after settled green CI + independent review ACCEPT.
 
 ## Done
 
-- Rehydrated from PR #1366 on branch/worktree `claude/lane-dinnage-arc3-cursor`.
+- Rehydrated from PR #1366 on coord worktree `local-scratch/lanes/drmTMB-dinnage-arc3-cursor`.
 - A4 #1351 DONE (record + vault skill; no tag/CI change).
-- **A1 docs PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368): MERGE-READY** at `822763660` (capability-ledger manifest + env-skip census refresh; follows `c68620405` DHARMa **Suggests** + wave1 installed-doc path guards; all A1 issues in-branch). Docs D-263 **ACCEPT** (unchanged). #1344 cross-PR help cleared. CI all 6 checks **SUCCESS** on run [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684). **Shinichi merge only — agents must not merge.**
-- **A2 check/profile PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGE-READY** at `3805b8520`; D-263 **ACCEPT** @ `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)); CI all 6 checks **SUCCESS** on run [35040873414](https://github.com/itchyshin/drmTMB/actions/runs/35040873414). **Shinichi merge only — agents must not merge.**
-- **A3 misc PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGE-READY** at `6a5200f39`; D-263 **ACCEPT** ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)); CI all 6 checks **SUCCESS** on run [35042137154](https://github.com/itchyshin/drmTMB/actions/runs/35042137154). **Shinichi merge only — agents must not merge.**
-- **D-263 audit markdown PR [#1370](https://github.com/itchyshin/drmTMB/pull/1370): MERGE-READY** at `348ff67b6`; light review **ACCEPT** ([comment](https://github.com/itchyshin/drmTMB/pull/1370#issuecomment-5691457958)); CI all 6 checks **SUCCESS** on run [35050658346](https://github.com/itchyshin/drmTMB/actions/runs/35050658346); **MERGEABLE / CLEAN**. **Shinichi merge only — agents must not merge.**
+- **A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368): MERGE-READY** @ `822763660`; CI [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684) all green; D-263 ACCEPT (docs).
+- **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGE-READY** @ `3805b8520`; D-263 ACCEPT @ `b6714135d`; CI [35040873414](https://github.com/itchyshin/drmTMB/actions/runs/35040873414) all green.
+- **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGE-READY** @ `6a5200f39`; D-263 ACCEPT; CI [35042137154](https://github.com/itchyshin/drmTMB/actions/runs/35042137154) all green.
+- **D-263 audit [#1370](https://github.com/itchyshin/drmTMB/pull/1370): MERGE-READY** @ `348ff67b6`; light review ACCEPT; CI [35050658346](https://github.com/itchyshin/drmTMB/actions/runs/35050658346) all green; MERGEABLE/CLEAN.
+- Overnight docs: morning-handoff draft, handover near-final, Wave B brief prompts (HOLD).
 
 ## Ready for Shinichi merge (agents: do not merge)
 
 | Slice | PR | Head | Gate |
 | --- | --- | --- | --- |
-| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `822763660` | **MERGE-READY** — CI green run 35046449684; D-263 ACCEPT (docs) |
-| A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `3805b8520` | **MERGE-READY** — CI green run 35040873414; D-263 ACCEPT @ `b6714135d` |
-| A3 misc code | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `6a5200f39` | **MERGE-READY** — CI green run 35042137154; D-263 ACCEPT |
-| D-263 audit notes | [#1370](https://github.com/itchyshin/drmTMB/pull/1370) | `348ff67b6` | **MERGE-READY** — CI green run 35050658346; light review ACCEPT |
-
-## CI snapshot
-
-- **#1369 @ `3805b8520`:** run [35040873414](https://github.com/itchyshin/drmTMB/actions/runs/35040873414) — all 6 checks **SUCCESS** (settled).
-- **#1367 @ `6a5200f39`:** run [35042137154](https://github.com/itchyshin/drmTMB/actions/runs/35042137154) — all 6 checks **SUCCESS** (settled).
-- **#1368 @ `822763660`:** run [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684) — all 6 checks **SUCCESS** (settled).
-- **#1370 @ `348ff67b6`:** run [35050658346](https://github.com/itchyshin/drmTMB/actions/runs/35050658346) — all 6 checks **SUCCESS** (settled).
+| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `822763660` | MERGE-READY |
+| A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `3805b8520` | MERGE-READY — **B unlock** |
+| A3 misc | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `6a5200f39` | MERGE-READY — **B unlock** |
+| D-263 audit notes | [#1370](https://github.com/itchyshin/drmTMB/pull/1370) | `348ff67b6` | MERGE-READY |
 
 ## Held
 
-- Wave B and Wave C: **HOLD** until **A2 (#1369) and A3 (#1367) are merged by Shinichi**.
+- **Wave B and Wave C: HOLD** until **A2 (#1369) and A3 (#1367) merged by Shinichi**.
 - Deferred/protected items unchanged (see `CLAIMS.md`).
 
 ## Integration Rules (unchanged)
@@ -47,19 +39,16 @@ Wave A + D-263 audit docs. **No agent merges.** Wave A PRs #1367 #1368 #1369 and
 
 - Wave B dispatch (HOLD): [`LOOP/wave-b-brief.md`](wave-b-brief.md)
 - Morning handoff scratch: [`LOOP/morning-handoff-draft.md`](morning-handoff-draft.md)
-- Handover skeleton: [`docs/dev-log/handover/2026-09-16-cursor-morning-dinnage-arc3.md`](../../handover/2026-09-16-cursor-morning-dinnage-arc3.md)
+- Handover: [`docs/dev-log/handover/2026-09-16-cursor-morning-dinnage-arc3.md`](../../handover/2026-09-16-cursor-morning-dinnage-arc3.md)
 
 ## Resume
 
 ```sh
 cd /Users/z3437171/local-scratch/lanes/drmTMB-dinnage-arc3-cursor
-git pull --ff-only origin claude/lane-dinnage-arc3-cursor
+git pull --ff-only origin main
 cat docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/GOAL.md
 cat docs/dev-log/lanes/dinnage-arc3-cursor/CLAIMS.md
 gh pr view 1367 1368 1369 1370 --json state,mergedAt,headRefOid,mergeable
-gh pr checks 1368
-gh pr checks 1367
-gh pr checks 1369
-gh pr checks 1370
+gh pr checks 1368 && gh pr checks 1367 && gh pr checks 1369 && gh pr checks 1370
 ~/shinichi-brain/tools/lane_lease.sh --list drmTMB
 ```
