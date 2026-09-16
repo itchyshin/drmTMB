@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~13:45 MDT** · **`main` @ `9aeb36664`** (#1379 merge; B2 @ `4806b4839`)
+Updated: **2026-09-16 ~14:15 MDT** · **`main` @ `4f9699855`** (#1377 merge; #1379 @ `9aeb36664`; B2 @ `4806b4839`)
 
 ## Current scope
 
-**Wave A: CLOSED.** **Wave B: CLOSED** (B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) @ `f822a34da`; B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `4806b4839`). **Hotfix [#1379](https://github.com/itchyshin/drmTMB/pull/1379) MERGED** @ `9aeb36664`. **[#1377](https://github.com/itchyshin/drmTMB/pull/1377) / [#1378](https://github.com/itchyshin/drmTMB/pull/1378) CLOSED** (redundant). **`receipt-staleness` SUCCESS** on `main` after #1379 (run `35141460324`). **Wave C NEXT:** [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Wave A: CLOSED.** **Wave B: CLOSED** (B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) @ `f822a34da`; B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `4806b4839`). **Hotfix [#1379](https://github.com/itchyshin/drmTMB/pull/1379) MERGED** @ `9aeb36664`. **[#1377](https://github.com/itchyshin/drmTMB/pull/1377) MERGED** @ `4f9699855` (empty tree delta vs `c8951f435`). **[#1378](https://github.com/itchyshin/drmTMB/pull/1378) CLOSED** (duplicate). **`receipt-staleness` SUCCESS** on `main` @ `4f9699855` (run `35144807139`). **Wave C NEXT:** [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
 
 ## Merge record
 
@@ -20,8 +20,8 @@ Updated: **2026-09-16 ~13:45 MDT** · **`main` @ `9aeb36664`** (#1379 merge; B2 
 | #1373 | B1 check diagnostics | **MERGED** | `f822a34da` |
 | #1375 | B2 surfaces | **MERGED** | `4806b4839` |
 | #1379 | A-2 gate hotfix + receipts | **MERGED** | `9aeb36664` |
-| #1377 | tip-identity receipt (post-B2) | **CLOSED** (redundant) | — |
-| #1378 | tip-identity receipt (alt) | **CLOSED** (redundant) | — |
+| #1377 | tip-identity receipt (post-B2) | **MERGED** | `4f9699855` |
+| #1378 | tip-identity receipt (alt) | **CLOSED** (duplicate) | — |
 
 ## Wave C
 

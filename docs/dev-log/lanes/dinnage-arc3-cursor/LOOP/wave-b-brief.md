@@ -142,4 +142,4 @@ Red-first; wave1 test style. Coordinate with Gauss on shared branch. No merge.
 
 ## Wave C
 
-**NEXT** (Wave B + [#1379](https://github.com/itchyshin/drmTMB/pull/1379) landed; `receipt-staleness` green on `main`). Issues [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). See handover § Wave C (`beta_family()` rename; nlme `ranef`/`fixef` generics). C17 recert LAST on any `R/methods.R` touch.
+**NEXT** (Wave B + [#1379](https://github.com/itchyshin/drmTMB/pull/1379) + [#1377](https://github.com/itchyshin/drmTMB/pull/1377) on `main` @ `4f9699855`; `receipt-staleness` run `35144807139` green). Issues [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). See handover § Wave C (`beta_family()` rename; nlme `ranef`/`fixef` generics). C17 recert LAST on any `R/methods.R` touch.
