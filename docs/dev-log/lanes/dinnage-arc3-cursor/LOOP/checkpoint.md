@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~09:17 MDT** · **`main` @ `ba2e8d31`**
+Updated: **2026-09-16 ~10:16 MDT** · **`main` @ `45bd67152`**
 
 ## Current scope
 
-**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`; coord-only moves since — no receipt PR). **Coord/docs push OK.** **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `c493fc0bb` — local **47/47**; **D-263 ACCEPT** (independent review comment; GitHub **Approve** blocked — same-author). **P0:** C17 inert re-cert **pushed** (`mc-0568` / C17+C14 on `R/drmTMB.R`, `R/methods.R`). **Awaiting** settled green CI only (**not MERGE-READY** until CI green). **P2:** confint Rd cross-link, audit note, check-log (fixer). Tip-identity receipt **LAST** on `R/` before merge. Prefer **Composer** / Grace watchers. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Receipt gate CLEAR** on `main` (tip-identity green @ `e169d7a76`, run `35111843393`; coord-only moves since — no receipt PR). **Coord/docs + branch push OK.** **Wave A: CLOSED.** **B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. **B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `19991695c` — GitHub **CONFLICTING** with `main`, **rebase in flight**; local **47/47** reported; **Rd `@param` fix** on tip. **D-263:** fresh **ACCEPT** @ `19991695c` (**stale if tip moves** after rebase). **P0:** C17 inert re-cert on earlier tip (`mc-0568` / C17+C14 @ `c493fc0bb`). **Not MERGE-READY** — **no merge** until **mergeable**, settled green CI on post-rebase tip (+ **re-ACCEPT** if head moves). **P2:** confint Rd cross-link, audit note, check-log (fixer). Tip-identity receipt **LAST** on `R/` before merge. Prefer **Composer** / Grace watchers. **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
 
 ## Merge record
 
@@ -18,11 +18,11 @@ Updated: **2026-09-16 ~09:17 MDT** · **`main` @ `ba2e8d31`**
 | #1367 | A3 misc | **MERGED** | `e6ca0dc8e` |
 | #1371 | Wave B docs-only | **MERGED** | `6580d74b1` |
 | #1373 | B1 check diagnostics | **MERGED** | `f822a34da` |
-| #1375 | B2 surfaces | OPEN (D-263 ACCEPT; await CI) | `c493fc0bb` |
+| #1375 | B2 surfaces | OPEN (CONFLICTING; D-263 ACCEPT @ tip) | `19991695c` |
 
 ## Wave B
 
-**Awaiting CI.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `c493fc0bb` on `cursor/dinnage-arc3-b2-surfaces-20260916`. **D-263 ACCEPT** on PR (review comment; formal **Approve** blocked — same-author). P0 C17 inert re-cert **pushed**. Merge after settled green CI + tip-identity receipt **LAST** on branch. P2: docs/audit/check-log (fixer). See [`wave-b-brief.md`](wave-b-brief.md) § B2.
+**Rebase in flight.** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `19991695c` on `cursor/dinnage-arc3-b2-surfaces-20260916` — GitHub **CONFLICTING** with `main`. **D-263 ACCEPT** fresh on tip (**stale if tip moves**). **No merge** until **mergeable**, settled green CI on post-rebase tip (+ **re-ACCEPT** if head moves); tip-identity receipt **LAST** on branch. P2: docs/audit/check-log (fixer). Prefer **Composer**. See [`wave-b-brief.md`](wave-b-brief.md) § B2.
 
 ## Resume
 
