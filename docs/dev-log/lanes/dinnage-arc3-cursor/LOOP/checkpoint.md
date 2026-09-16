@@ -84,3 +84,7 @@ gh pr checks 1368 && gh pr checks 1367 && gh pr checks 1369 && gh pr checks 1370
 ## Sentinel @ 2026-09-16 04:53:20 MDT
 - **HOLD** — B unlock gate not satisfied by 04:45 MDT
 - `origin/main` @ `3f60c1ff0`
+
+## Sentinel @ 2026-09-16 04:57:15 MDT (6484ec58 replacement)
+- **HOLD** — B unlock gate not satisfied by 04:50 MDT
+- `origin/main` @ `db8d90dee`
