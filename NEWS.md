@@ -1,5 +1,67 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave A1 docs)
+
+* `cumulative_logit()` now documents that integer-coded ordinal responses are
+  accepted at face value in increasing numeric order, and that analysts should
+  use ordered factors when labels carry the scientific order. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-7.
+
+* The capability vignette now lists `lognormal()`, `Gamma(link = "log")`,
+  `student()`, and `beta_binomial()` among non-Gaussian response families
+  that can fit one binary missing predictor through `mi()`. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Md-F.
+
+* `student()` no longer claims that Student-t is the only implemented family
+  whose public `sigma` is a scale rather than `SD[y]`. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Mi-11.
+
+* `meta_V()` now states that a known sampling covariance matrix is matched to
+  the retained model frame by row position, not by dimnames. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  A-4.
+
+* `confint()` now states that its returned `parm` column uses fully-qualified
+  target names such as `fixef:sigma:z`, even when the caller selected the same
+  target with a compact label such as `sigma:z`. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding UX-4.
+
+* `?drmTMB` now explains that Wald/profile `confint()` does not currently form
+  intervals for REML-integrated mean coefficients, even though `summary()` and
+  `vcov()` can report finite Wald standard errors from the full `sdreport`
+  covariance. It names bootstrap intervals as the current working alternative.
+  Credit: the independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding S8.
+
+* `?predict.drmTMB` now states that `type = "response"` returns the requested
+  distributional parameter on its response scale, not necessarily `E[Y]`; it
+  points users to `fitted()` for fitted-row response means and expected ordinal
+  scores. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Md-C.
+
+* `?summary.drmTMB` and `?residuals.drmTMB` now make optional `emmeans` and
+  DHARMa workflows discoverable, including a guarded `DHARMa::createDHARMa()`
+  example built from `simulate()`. Credit: the independent evaluation by
+  Russell Dinnage (rdinnager/drmTMB_eval), finding Mi-3.
+
+* `?residuals.drmTMB` now documents Pearson-residual scale conventions for
+  `student()`, `skew_normal()`, and `beta()` alongside the other enumerated
+  families. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Mi-8.
+
+* `?sigma.drmTMB` now states that `sigma()` returns one value per fitted row
+  when the scale formula varies by row, and warns that generic tools expecting
+  a scalar residual scale can summarize away this heterogeneity. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-16.
+
+* `?phylo` now states that drmTMB uses the supplied ultrametric branch-length
+  scale and does not silently rescale the tree to unit height. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-6.
+
 ## Independent-evaluation fixes (wave 3)
 
 * `weights()` composed with `mi()` now leaves the maximum-likelihood
