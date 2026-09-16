@@ -10,9 +10,10 @@ drm_formula(...)
 bf(...)
 }
 \arguments{
-\item{...}{Formulae or named formulae. The unnamed response formula is
-interpreted as the location formula for a univariate model. For bivariate
-models, prefer explicit \code{mu1 = y1 ~ ...} and \code{mu2 = y2 ~ ...} formulas.}
+\item{...}{Formulae or named formulae, or symbols that evaluate to formulas in
+the calling environment. The unnamed response formula is interpreted as the
+location formula for a univariate model. For bivariate models, prefer
+explicit \code{mu1 = y1 ~ ...} and \code{mu2 = y2 ~ ...} formulas.}
 }
 \value{
 A \code{drm_formula} object.

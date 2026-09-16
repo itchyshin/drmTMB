@@ -128,7 +128,11 @@
 #'   each optimizer preset is run from `multi_start` starting points -- the
 #'   principled start plus reproducibly perturbed starts -- and the lowest-
 #'   objective result is kept. Opt-in robustness for weakly identified models;
-#'   `multi_start = 1` is the single-start fit and is unchanged.
+#'   `multi_start = 1` is the single-start fit and is unchanged. Joint models
+#'   with both scale and zero-inflation predictors (for example `sigma ~ ...`
+#'   together with `zi ~ ...` on Poisson or `nbinom2()` families) can admit
+#'   multiple local optima; when a fit looks unstable or convergence
+#'   checks flag a boundary, try `multi_start > 1` before changing the model.
 #' @param fallback_optimizer `NULL` (default) or one [stats::optim()] method
 #'   (`"BFGS"`, `"L-BFGS-B"`, `"Nelder-Mead"`, `"CG"`). When set, and no
 #'   `nlminb()` preset converges, `drmTMB()` tries this optimizer as a final

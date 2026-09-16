@@ -61,6 +61,24 @@
   scale and does not silently rescale the tree to unit height. Credit: the
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
   Mi-6.
+## Independent-evaluation fixes (arc 3, wave B2)
+
+* `miss_control(predictor = "fail")` now errors when ordinary predictors contain
+  missing values, matching the documented default. Credit: Russell Dinnage,
+  finding A-2 (#1332).
+* `bf()` and `drm_formula()` accept formulas held in variables (for example
+  `bf(mu = f_mu, sigma = f_sigma)`). Credit: Russell Dinnage, finding UX-5
+  (#1360).
+* `confint()` results carry class `drm_confint`, and `as.matrix()` returns the
+  two-column matrix shape of `stats::confint()`. Credit: Russell Dinnage, finding
+  Mi-15 (#1353).
+* Minor surfaces bundle: guided errors for mistyped columns, singular weight
+  grammar, AIC/BIC REML warnings only on invalid comparisons, Tweedie power
+  guards, `print()` shows fixed effects, and every unsupported-parameter abort
+  includes a hint. Credit: Russell Dinnage, finding Mi-bundle (#1355).
+* `?drm_control` documents joint `sigma` + `zi` local-optimum risk and
+  `multi_start` advice. Credit: Russell Dinnage, finding S7 (#1316).
+
 ## Independent-evaluation fixes (arc 3, wave B1)
 
 * `check_standard_errors_inflated` now bases its ratio on the median of

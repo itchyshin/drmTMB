@@ -1,10 +1,20 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 merge main sync (#1375)
+
+**Lane:** Grace · `merge origin/main` into B2 branch to clear PR **DIRTY** / **CONFLICTING** (coord-only delta on `main` since `78df3d4d6`).
+
+**Fix:** resolved conflicts in `check-log.md`, `coordination-board.md`, `CLAIMS.md`, `LOOP/checkpoint.md` (fold `main` coord state).
+
+**Non-claims:** no #1375 merge until settled green CI on post-sync tip; fresh D-263 re-ACCEPT if tip moves beyond docs-only.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ C17; check-log tip (#1375)
 
 **Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
 
-**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `78df3d4d6`; **inert C17 recert** @ `14618e6e4` (`mc-0568` / C17+C14); **check-log merge** (`origin/main` into B2) @ `78df3d4d6`. **D-263: ACCEPT** @ `14618e6e4` (Shinichi). Tip moved → **fresh re-ACCEPT @ `78df3d4d6` in flight**. CI [`35125446950`](https://github.com/itchyshin/drmTMB/actions/runs/35125446950) **in flight** on tip.
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `78df3d4d6`; **inert C17 recert** @ `14618e6e4` (`mc-0568` / C17+C14); **check-log merge** (`origin/main` into B2) @ `78df3d4d6`. **D-263: ACCEPT** @ `14618e6e4` (Shinichi). **D-263 re-ACCEPT @ `78df3d4d6`** posted (Composer + reviewer lane). CI [`35125446950`](https://github.com/itchyshin/drmTMB/actions/runs/35125446950) on `78df3d4d6`.
 
-**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **not MERGE-READY** until fresh re-ACCEPT on `78df3d4d6` and settled green CI.
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — merge gated on settled green CI + mergeable PR head.
 
 **Non-claims:** no merge of #1375 until fresh D-263 on tip + settled green CI.
 
@@ -43,6 +53,33 @@
 **Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — **CI RED**; **no merge** until settled green CI; tip-identity receipt LAST on `R/` before merge.
 
 **Non-claims:** no merge; no new D-263 ACCEPT.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 Rd args (#1375)
+
+**Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
+
+**Fix:** R CMD check ERROR — undocumented `\arguments` for `drm_validate_complete_predictors` (`formula`, `data`). Added roxygen `@param` / `@return` in `R/missing-data.R`; `devtools::document()`; `tools::checkRd("man/drm_validate_complete_predictors.Rd")` clean.
+
+**Non-claims:** no D-263 ACCEPT; no merge.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 C17 recert (#1375)
+
+**Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `9c5a90dd3` (pre-push). D-263 REQUEST CHANGES: Ubuntu shards failed `mc-0568` model-15 fingerprint drift after `R/drmTMB.R` / `R/methods.R` edits.
+
+| Check | Result |
+| --- | --- |
+| C17 model-15 compatibility (`recertify-c17.py --label pr1375-b2`) | ✅ 12/12, `PASS_CURRENT_SOURCE_COMPATIBILITY`; mean_tau_relative_error **inert** (\|change\| 0.000e+00 on mc-0568/0569/0576) |
+| Ledger | ✅ `capability_ledger.py --check`; ✅ 80/80 `test_capability_ledger` (fail-closed C17 modes) |
+| Receipt | `docs/dev-log/implementation-recovery/2026-09-16-pr1375-b2-c17c2-c14-final-source-compatibility/` |
+| Audit note | `docs/dev-log/audits/2026-09-16-dinnage-arc3-b2-review.md` |
+
+**Also:** `?confint.drmTMB` cross-links `as.matrix.drm_confint()`; S7 doc typo in `R/control.R`.
 
 ---
 

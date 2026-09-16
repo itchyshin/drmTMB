@@ -76,6 +76,52 @@ miss_control <- function(
   )
 }
 
+#' Fail early when predictor missingness is disallowed
+#'
+#' Used when `miss_control(predictor = "fail")` (the default): ordinary model
+#' columns must be complete; response missingness is handled separately.
+#'
+#' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
+#' @param data A data frame containing the model variables.
+#'
+#' @return `NULL`, invisibly, when all required predictors are complete.
+drm_validate_complete_predictors <- function(formula, data) {
+  needed <- tryCatch(
+    drm_julia_needed_columns(formula),
+    error = function(e) character()
+  )
+  if (!length(needed)) {
+    return(invisible(NULL))
+  }
+  present <- intersect(needed, names(data))
+  response_cols <- unique(unlist(
+    lapply(formula$entries, function(entry) {
+      if (!entry$dpar %in% c("mu", "mu1", "mu2") || is.na(entry$response)) {
+        return(character())
+      }
+      drm_julia_expand_response_columns(entry$response)
+    }),
+    use.names = FALSE
+  ))
+  check_cols <- setdiff(present, response_cols)
+  if (!length(check_cols)) {
+    return(invisible(NULL))
+  }
+  na_cols <- check_cols[vapply(
+    check_cols,
+    function(col) anyNA(data[[col]]),
+    logical(1L)
+  )]
+  if (length(na_cols) > 0L) {
+    cli::cli_abort(c(
+      "{.code miss_control(predictor = \"fail\")} requires complete predictors.",
+      "x" = "Missing values in: {.val {na_cols}}.",
+      "i" = "Use {.code missing = miss_control(predictor = \"model\")} with {.fn mi} on supported routes, or complete the data."
+    ))
+  }
+  invisible(NULL)
+}
+
 #' Define a missing-predictor model
 #'
 #' `impute_model()` wraps the model for a predictor used inside [mi()]. A bare

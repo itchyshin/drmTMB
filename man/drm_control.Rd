@@ -129,7 +129,11 @@ unpolished.}
 each optimizer preset is run from \code{multi_start} starting points -- the
 principled start plus reproducibly perturbed starts -- and the lowest-
 objective result is kept. Opt-in robustness for weakly identified models;
-\code{multi_start = 1} is the single-start fit and is unchanged.}
+\code{multi_start = 1} is the single-start fit and is unchanged. Joint models
+with both scale and zero-inflation predictors (for example \code{sigma ~ ...}
+together with \code{zi ~ ...} on Poisson or \code{nbinom2()} families) can admit
+multiple local optima; when a fit looks unstable or convergence
+checks flag a boundary, try \code{multi_start > 1} before changing the model.}
 
 \item{fallback_optimizer}{\code{NULL} (default) or one \code{\link[stats:optim]{stats::optim()}} method
 (\code{"BFGS"}, \code{"L-BFGS-B"}, \code{"Nelder-Mead"}, \code{"CG"}). When set, and no

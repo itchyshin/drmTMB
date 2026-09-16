@@ -184,6 +184,8 @@
 #'   Bootstrap interval results carry a `"bootstrap.diagnostics"` attribute
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
+#'   For a plain matrix view of the `lower` and `upper` columns, use
+#'   [as.matrix.drm_confint()].
 #'
 #' @section Default uncertainty story:
 #' Use this recipe for ordinary first-week inference; it restates measured
@@ -1878,7 +1880,7 @@ drm_profile_confint <- function(
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
-  out
+  drm_as_confint_table(out)
 }
 
 profile_serial_plan <- function() {
@@ -2049,7 +2051,7 @@ drm_profile_response_newdata_confint <- function(
   out <- do.call(rbind, rows)
   row.names(out) <- NULL
   warn_profile_boundary(out)
-  out
+  drm_as_confint_table(out)
 }
 
 # The Wald path warns at a variance-component or correlation boundary and sends
@@ -2277,7 +2279,7 @@ drm_wald_confint <- function(
   }
 
   row.names(out) <- NULL
-  out
+  drm_as_confint_table(out)
 }
 
 # A structured random-effect SD target sits on the location (mu) axis when its
@@ -2799,7 +2801,7 @@ drm_bootstrap_confint <- function(
   }
 
   attr(out, "bootstrap.diagnostics") <- draws
-  out
+  drm_as_confint_table(out)
 }
 
 validate_bootstrap_replicates <- function(R) {
@@ -3233,7 +3235,7 @@ profile_wald_standard_errors <- function(variances) {
 }
 
 empty_confint_table <- function(method = character()) {
-  data.frame(
+  out <- data.frame(
     parm = character(),
     level = numeric(),
     lower = numeric(),
@@ -3249,6 +3251,34 @@ empty_confint_table <- function(method = character()) {
     profile.message = character(),
     stringsAsFactors = FALSE
   )
+  drm_as_confint_table(out)
+}
+
+#' Coerce a drmTMB confidence-interval table to a matrix
+#'
+#' Returns a two-column numeric matrix with row names taken from `parm`, in the
+#' same shape as [stats::confint()] for ordinary linear models.
+#'
+#' @param x A `drm_confint` object from [confint.drmTMB()].
+#' @param ... Ignored.
+#' @return A numeric matrix with two columns (lower and upper interval limits).
+#' @export
+as.matrix.drm_confint <- function(x, ...) {
+  if (!nrow(x)) {
+    return(matrix(numeric(), nrow = 0L, ncol = 2L))
+  }
+  level <- x$level[[1L]]
+  alpha <- (1 - level) / 2
+  pct <- function(p) paste0(format(100 * p, trim = TRUE, scientific = FALSE), " %")
+  mat <- cbind(x$lower, x$upper)
+  colnames(mat) <- c(pct(alpha), pct(1 - alpha))
+  rownames(mat) <- x$parm
+  mat
+}
+
+drm_as_confint_table <- function(x) {
+  class(x) <- c("drm_confint", "data.frame")
+  x
 }
 
 drm_profile_target_confint <- function(
