@@ -1,5 +1,12 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave A1 docs)
+
+* `meta_V()` now states that a known sampling covariance matrix is matched to
+  the retained model frame by row position, not by dimnames. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  A-4.
+
 ## Independent-evaluation fixes (wave 3)
 
 * `weights()` composed with `mi()` now leaves the maximum-likelihood
