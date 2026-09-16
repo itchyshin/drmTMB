@@ -7,6 +7,10 @@
 #' @param V A column name, vector, diagonal matrix, block-diagonal matrix, or
 #'   full covariance matrix. Diagonal/vector `V` represents independent known
 #'   sampling variances. A matrix represents the known covariance among rows.
+#'   `meta_V()` matches `V` to the model frame by row position after ordinary
+#'   `drmTMB()` row handling; it does not reorder a covariance matrix by row
+#'   names or dimnames. Put the rows of `data` and the rows and columns of `V`
+#'   in the same order before fitting.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export

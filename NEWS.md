@@ -1,5 +1,12 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave A1 docs)
+
+* `meta_V()` now states that a known sampling covariance matrix is matched to
+  the retained model frame by row position, not by dimnames. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  A-4.
+
 ## Independent-evaluation fixes (arc 3, wave A2)
 
 * `check_drm()`'s `dropped_rows` row now reports `groups_lost=` when
