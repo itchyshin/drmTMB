@@ -108,3 +108,19 @@ Board tip: `origin/main` @ `d21848873`.
 | #null | OPEN | fix(check,profile): Dinnage audit wave A2 (#1338, #1343) |
 | #null | OPEN | fix(tmb): Dinnage arc3 Wave A3 |
 | #null | OPEN | docs(dev-log): land Dinnage arc3 A1–A3 D-263 review notes |
+
+## Sentinel finalize @ 2026-09-16 04:51:25 MDT (6484ec58 replacement)
+
+**HANDOFF_FINAL:** Wave B/C still **HOLD** — Shinichi has not merged both **#1369** and **#1367** by 04:50 MDT.
+
+Board tip: `origin/main` @ `b2bff7889`.
+
+### MERGE-READY PRs (agents do not merge)
+
+| PR | State | Notes |
+| --- | --- | --- |
+| #null | OPEN | fix(docs): Dinnage arc3 Wave A1 |
+| #null | OPEN | fix(check,profile): Dinnage audit wave A2 (#1338, #1343) |
+| #null | OPEN | fix(tmb): Dinnage arc3 Wave A3 |
+| #null | OPEN | docs(dev-log): land Dinnage arc3 A1–A3 D-263 review notes |
+| #null | OPEN | docs: Wave B Md-J g-denominator stub + Russell map |
