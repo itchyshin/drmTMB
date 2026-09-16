@@ -1,10 +1,22 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 MERGED + tip-identity receipt (#1375)
+
+**Lane:** Grace · post-merge receipt on `main` @ `4806b4839`.
+
+**Evidence:** [#1375](https://github.com/itchyshin/drmTMB/pull/1375) **MERGED** @ `4806b4839` (merge commit; head `af9fc76ff`). **D-263: ACCEPT** @ `78df3d4d6` (Shinichi). Regenerated `lss-tip-identity/public-001.json`; local `ci-receipt-staleness.sh` **FRESH** (C17 unchanged).
+
+**Coordination update:** tip-identity receipt PR open on `main`; merge when `receipt-staleness` green.
+
+**Non-claims:** receipt PR not merged until CI settled green.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 merge main sync (#1375)
 
 **Lane:** Grace · `merge origin/main` into B2 branch to clear PR **DIRTY** / **CONFLICTING** (coord-only delta on `main` since `78df3d4d6`).
 
 **Fix:** resolved conflicts in `check-log.md`, `coordination-board.md`, `CLAIMS.md`, `LOOP/checkpoint.md` (fold `main` coord state).
 
-**Non-claims:** no #1375 merge until settled green CI on post-sync tip; fresh D-263 re-ACCEPT if tip moves beyond docs-only.
+**Non-claims:** superseded by #1375 merge @ `4806b4839`.
 
 ---
 
