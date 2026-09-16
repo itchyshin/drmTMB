@@ -342,7 +342,10 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
-  if (identical(missing_control$predictor, "fail")) {
+  if (
+    identical(missing_control$predictor, "fail") &&
+      !base::missing(missing)
+  ) {
     drm_validate_complete_predictors(formula, data)
   }
   REML <- drm_control_flag(REML, "REML")

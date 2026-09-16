@@ -2688,15 +2688,13 @@ drm_warn_information_criterion <- function(fits, what) {
     )
   }
   if (any(estimators == "REML")) {
-    reml_comparison_invalid <- length(drm_fits) >= 2L &&
-      (
-        any(estimators != "REML") ||
-          length(unique(vapply(
-            drm_fits[estimators == "REML"],
-            drm_ic_fixed_effect_signature,
-            character(1L)
-          ))) > 1L
-      )
+    reml_comparison_invalid <- length(drm_fits) < 2L ||
+      any(estimators != "REML") ||
+      length(unique(vapply(
+        drm_fits[estimators == "REML"],
+        drm_ic_fixed_effect_signature,
+        character(1L)
+      ))) > 1L
     if (reml_comparison_invalid) {
       cli::cli_warn(
         c(
