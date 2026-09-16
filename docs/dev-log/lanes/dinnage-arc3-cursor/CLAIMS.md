@@ -37,13 +37,13 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 ~08:56 MDT (**#1373 B1 merged**; **Wave B2 UNLOCKED**).
+Updated: 2026-09-16 ~09:04 MDT (**B2 #1375 OPEN** @ `9c5a90dd3`).
 
-- **`main` tip:** `f822a34da` (merge [#1373](https://github.com/itchyshin/drmTMB/pull/1373) Wave B1).
-- **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). No tip-identity regen PR needed after B1 merge.
+- **`main` tip:** `e169d7a76` (post B1 coord unlock; merge [#1373](https://github.com/itchyshin/drmTMB/pull/1373) @ `f822a34da`).
+- **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). **B2 `R/` merge:** tip-identity receipt regen **LAST** on branch (or receipt follow-up immediately after merge).
 - **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
 - **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da` (2026-09-16; Shinichi/Grace). Gauss lease `gauss:dinnage-arc3-B1` should **release** when idle.
-- **Wave B2 — UNLOCKED** — spawn per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) § B2; base `origin/main` @ `f822a34da` or later; prefer **Composer**; agents **do not merge** B2 PR unless green and authorized.
+- **Wave B2 — PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN** @ `9c5a90dd3` (`cursor/dinnage-arc3-b2-surfaces-20260916`). Local **47/47** reported. **Await CI** + **D-263** attributed closeout (#1316, #1332, #1353, #1355, #1360); prefer **Composer** / Grace watchers; agents **do not merge #1375** unless green and authorized. Active lease: `gauss:dinnage-arc3-B2`.
 - **A4 record:** DONE (#1351).
 - **Wave B docs-only [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGED** — does not gate B1/B2 implementation.
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.

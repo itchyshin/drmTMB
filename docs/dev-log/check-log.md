@@ -1,3 +1,15 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 PR open (#1375)
+
+**Lane:** `gauss:dinnage-arc3-B2` · Ada coord note.
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `9c5a90dd3` on `cursor/dinnage-arc3-b2-surfaces-20260916`; local **47/47** reported; CI in flight (R-CMD-check run `35112881554`, `os-matrix` green at open). B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) **MERGED** @ `f822a34da`; `main` @ `e169d7a76`.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B2 in flight; await CI green + **D-263** attributed closeout on #1316, #1332, #1353, #1355, #1360; tip-identity receipt LAST before merge; prefer **Composer** for CI watch; coord push OK.
+
+**Non-claims:** no agent merge of #1375 unless CI settled green and explicitly authorized.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B1 merged (#1373); B2 unlocked
 
 **Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
