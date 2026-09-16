@@ -1,3 +1,13 @@
+# 2026-09-16 — Dinnage arc3 Wave B1 PR open (#1373)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
+
+**Evidence:** PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) OPEN @ `37428bae5` on `cursor/dinnage-arc3-b1-check-20260916`; local 6/6 wave4b1 tests reported; CI pending at open; [#1372](https://github.com/itchyshin/drmTMB/pull/1372) already merged.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B1 in flight; await CI green + D-263 track (#1370); tip-identity receipt LAST before merge; prefer Composer for CI watch.
+
+---
+
 # 2026-09-16 — Dinnage arc3 receipt gate clear (#1372)
 
 **Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.

@@ -37,10 +37,11 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 ~06:40 MDT (**receipt gate clear**; **merge queue resumed**).
+Updated: 2026-09-16 ~06:36 MDT (**B1 PR open**; receipt gate clear).
 
 - **Receipt fix [#1372](https://github.com/itchyshin/drmTMB/pull/1372): MERGED** @ `dd937ac3`. **`receipt-staleness` on `main`:** green (run `35096373487`).
-- **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGED** @ `2c15ae63e`. **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGED** @ `e6ca0dc8e`. **Wave B code: UNLOCKED** — B1 may open PR per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) (tip-identity regen LAST on any `R/` merge).
+- **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) OPEN** @ `37428bae5` (`cursor/dinnage-arc3-b1-check-20260916`). **Local:** 6/6 focused wave4b1 tests. **Awaiting:** CI settle green + **D-263** audit track ([#1370](https://github.com/itchyshin/drmTMB/pull/1370)); prefer **Composer** / Grace watchers for CI — agents do not merge unless green and authorized. **Before merge:** regenerate `lss-tip-identity/public-001.json` LAST on branch (touches `R/check.R`, `R/profile.R`).
+- **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGED** @ `2c15ae63e`. **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGED** @ `e6ca0dc8e`. **Wave B code: IN FLIGHT** (B1 #1373).
 - **Merge queue RESUMED:** **#1368 → #1370** (#1371 merged @ `6580d74b1`); merge when each CI settled green; prefer Grace watchers — agents do not merge unless green and explicitly authorized.
 - **A1 docs — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`). Re-check CI vs post-#1372 `main` before merge.
 - **A4 record:** DONE (#1351).
