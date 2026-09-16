@@ -39,7 +39,7 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 Updated: 2026-09-16 ~10:45 MDT (**B2 #1375 @ `05c28c1bb`** — D-263 **ACCEPT** (Shinichi; `R/bf.R` `call_names` fix); **keep-going** — merge when CI green).
 
-- **`main` tip:** `44b0e3b67` (coord); tip-identity last **green** @ `e169d7a76` (run `35111843393`). Docs-only coord pushes OK; no receipt PR unless `R/` on `main` moves.
+- **`main` tip:** `2d80d22de` (coord); tip-identity last **green** @ `e169d7a76` (run `35111843393`). Docs-only coord pushes OK; no receipt PR unless `R/` on `main` moves.
 - **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). **B2 `R/` merge:** tip-identity receipt regen **LAST** on branch (or receipt follow-up immediately after merge).
 - **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
 - **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da` (2026-09-16; Shinichi/Grace). Gauss lease `gauss:dinnage-arc3-B1` should **release** when idle.
