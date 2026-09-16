@@ -19,6 +19,11 @@
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
   A-4.
 
+* `confint()` now states that its returned `parm` column uses fully-qualified
+  target names such as `fixef:sigma:z`, even when the caller selected the same
+  target with a compact label such as `sigma:z`. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding UX-4.
+
 ## Independent-evaluation fixes (arc 3, wave A2)
 
 * `check_drm()`'s `dropped_rows` row now reports `groups_lost=` when
