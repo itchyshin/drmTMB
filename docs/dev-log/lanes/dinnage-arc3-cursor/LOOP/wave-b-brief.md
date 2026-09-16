@@ -142,4 +142,4 @@ Red-first; wave1 test style. Coordinate with Gauss on shared branch. No merge.
 
 ## Wave C
 
-**HOLD** until Wave B lands. See handover § Wave C (#1339, #1340). Do not unlock from this brief.
+**NEXT** (Wave B + [#1379](https://github.com/itchyshin/drmTMB/pull/1379) landed; `receipt-staleness` green on `main`). Issues [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). See handover § Wave C (`beta_family()` rename; nlme `ranef`/`fixef` generics). C17 recert LAST on any `R/methods.R` touch.
