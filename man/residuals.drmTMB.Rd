@@ -25,9 +25,12 @@ bivariate Gaussian models. For \code{type = "quantile"} with \code{nsim > 1}, an
 }
 \details{
 For univariate Gaussian models, response residuals are \code{y - mu}. Pearson
-residuals divide by the fitted observation standard deviation. If a dense
-known sampling covariance was used, Pearson residuals are whitened by the
-fitted total observation covariance.
+residuals divide by the fitted observation standard deviation. Student-t
+Pearson residuals use the fitted Student-t scale; this is not the marginal
+residual standard deviation when \code{nu > 2}. Skew-normal Pearson residuals use
+the public response-standard-deviation parameter. If a dense known sampling
+covariance was used, Pearson residuals are whitened by the fitted total
+observation covariance.
 
 For lognormal models, response residuals are \code{y - fitted_mean}. Pearson
 residuals are computed on the log-response scale as \code{(log(y) - mu) / sigma}.
@@ -35,9 +38,12 @@ For Gamma models, response residuals are \code{y - mu} and Pearson residuals
 divide by the fitted Gamma standard deviation \code{mu * sigma}, where \code{sigma} is
 the coefficient of variation. For Tweedie models, response residuals are
 \code{y - mu} and Pearson residuals divide by
-\code{sqrt(sigma^2 * mu^nu)}. For zero-one beta models, response residuals
-are observed proportions minus the unconditional fitted mean, including exact
-zero-one boundary mass. For beta-binomial models, response residuals are
+\code{sqrt(sigma^2 * mu^nu)}. For beta models, response residuals are \code{y - mu}
+and Pearson residuals divide by
+\code{sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2))}. For zero-one beta models,
+response residuals are observed proportions minus the unconditional fitted
+mean, including exact zero-one boundary mass. For beta-binomial models,
+response residuals are
 observed success proportions minus fitted \code{mu}, and Pearson residuals
 divide by the fitted beta-binomial proportion standard deviation. For
 binomial models, response residuals are observed success proportions minus
@@ -128,4 +134,14 @@ fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
 residuals(fit)
 residuals(fit, type = "pearson")
 residuals(fit, type = "quantile")
+if (requireNamespace("DHARMa", quietly = TRUE)) {
+  sims <- simulate(fit, nsim = 20)
+  dh <- DHARMa::createDHARMa(
+    simulatedResponse = as.matrix(sims),
+    observedResponse = fit$model$y,
+    fittedPredictedResponse = fitted(fit),
+    integerResponse = FALSE
+  )
+  DHARMa::testUniformity(dh)
+}
 }

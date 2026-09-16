@@ -28,6 +28,40 @@
   target with a compact label such as `sigma:z`. Credit: the independent
   evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding UX-4.
 
+* `?drmTMB` now explains that Wald/profile `confint()` does not currently form
+  intervals for REML-integrated mean coefficients, even though `summary()` and
+  `vcov()` can report finite Wald standard errors from the full `sdreport`
+  covariance. It names bootstrap intervals as the current working alternative.
+  Credit: the independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
+  finding S8.
+
+* `?predict.drmTMB` now states that `type = "response"` returns the requested
+  distributional parameter on its response scale, not necessarily `E[Y]`; it
+  points users to `fitted()` for fitted-row response means and expected ordinal
+  scores. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Md-C.
+
+* `?summary.drmTMB` and `?residuals.drmTMB` now make optional `emmeans` and
+  DHARMa workflows discoverable, including a guarded `DHARMa::createDHARMa()`
+  example built from `simulate()`. Credit: the independent evaluation by
+  Russell Dinnage (rdinnager/drmTMB_eval), finding Mi-3.
+
+* `?residuals.drmTMB` now documents Pearson-residual scale conventions for
+  `student()`, `skew_normal()`, and `beta()` alongside the other enumerated
+  families. Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Mi-8.
+
+* `?sigma.drmTMB` now states that `sigma()` returns one value per fitted row
+  when the scale formula varies by row, and warns that generic tools expecting
+  a scalar residual scale can summarize away this heterogeneity. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-16.
+
+* `?phylo` now states that drmTMB uses the supplied ultrametric branch-length
+  scale and does not silently rescale the tree to unit height. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-6.
+
 ## Independent-evaluation fixes (arc 3, wave A2)
 
 * `check_drm()`'s `dropped_rows` row now reports `groups_lost=` when

@@ -10,7 +10,8 @@ phylo(term, tree)
 \item{term}{Structured random-effect term, currently \code{1 | species} or
 \code{1 + x | species}.}
 
-\item{tree}{Ultrametric phylogeny input with branch lengths.}
+\item{tree}{Ultrametric phylogeny input with branch lengths on the scale the
+analyst wants the phylogenetic covariance to use.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -37,10 +38,10 @@ intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
 Gaussian multiple phylogenetic slopes, pure, labelled, or multiple
 non-Gaussian phylogenetic slopes,
 zero-inflated phylogenetic effects, and phylogenetic slope correlations
-remain planned. The public \code{phylo()} API
-requires an
-ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
-A-inverse sparse-precision path internally.
+remain planned. The public \code{phylo()} API requires an ultrametric tree with
+branch lengths and uses the supplied branch-length scale when building the
+Hadfield and Nakagawa A-inverse sparse-precision path internally; drmTMB
+does not silently rescale the tree to unit height.
 }
 \examples{
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
