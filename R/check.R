@@ -1204,6 +1204,105 @@ check_standard_errors_inflated <- function(object) {
   )
 }
 
+empty_dropped_groups <- function() {
+  data.frame(
+    variable = character(),
+    n_lost = integer(),
+    example = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+check_fit_input_data <- function(object) {
+  keep <- object$model$keep
+  if (is.null(keep)) {
+    return(NULL)
+  }
+  call <- object$call
+  if (is.null(call) || is.null(call$data)) {
+    return(NULL)
+  }
+  env <- if (!is.null(call)) environment(call) else NULL
+  if (is.null(env) || identical(env, emptyenv())) {
+    env <- environment(object$formula)
+  }
+  if (is.null(env) || identical(env, emptyenv())) {
+    env <- parent.frame()
+  }
+  data <- tryCatch(eval(call$data, envir = env), error = function(e) NULL)
+  if (!is.data.frame(data) || nrow(data) != length(keep)) {
+    return(NULL)
+  }
+  data
+}
+
+check_random_grouping_variables <- function(object) {
+  random <- object$model$random
+  if (!is.list(random)) {
+    return(character())
+  }
+  vars <- character()
+  for (block in random) {
+    if (is.list(block) && length(block$group_names) > 0L) {
+      vars <- c(vars, unique(as.character(block$group_names)))
+    }
+  }
+  unique(vars[nzchar(vars)])
+}
+
+check_dropped_group_levels <- function(object) {
+  empty <- empty_dropped_groups()
+  keep <- object$model$keep
+  if (is.null(keep)) {
+    return(empty)
+  }
+  data <- check_fit_input_data(object)
+  if (is.null(data)) {
+    return(empty)
+  }
+  vars <- check_random_grouping_variables(object)
+  if (length(vars) == 0L) {
+    return(empty)
+  }
+  rows <- list()
+  for (var in vars) {
+    if (!var %in% names(data)) {
+      next
+    }
+    g <- data[[var]]
+    if (all(is.na(g))) {
+      next
+    }
+    levels <- if (is.factor(g)) {
+      levels(g)
+    } else {
+      unique(as.character(g[!is.na(g)]))
+    }
+    lost <- character()
+    for (le in levels) {
+      rows_le <- which(!is.na(g) & as.character(g) == le)
+      if (length(rows_le) == 0L) {
+        next
+      }
+      if (!any(keep[rows_le])) {
+        lost <- c(lost, le)
+      }
+    }
+    if (length(lost) > 0L) {
+      rows[[length(rows) + 1L]] <- data.frame(
+        variable = var,
+        n_lost = length(lost),
+        example = lost[[1L]],
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  if (length(rows) == 0L) {
+    return(empty)
+  }
+  do.call(rbind, rows)
+}
+
 check_dropped_rows <- function(object) {
   keep <- object$model$keep
   if (is.null(keep)) {
@@ -1215,14 +1314,43 @@ check_dropped_rows <- function(object) {
     ))
   }
   dropped <- sum(!keep)
+  dropped_groups <- check_dropped_group_levels(object)
+  n_groups_lost <- if (nrow(dropped_groups) > 0L) {
+    sum(dropped_groups$n_lost)
+  } else {
+    0L
+  }
+  group_value <- if (n_groups_lost > 0L) {
+    paste0("; groups_lost=", n_groups_lost)
+  } else {
+    ""
+  }
+  group_message <- if (n_groups_lost > 0L) {
+    first <- dropped_groups[1L, , drop = FALSE]
+    paste0(
+      " At least one grouping variable lost every row for one or more levels: ",
+      first$variable[[1L]],
+      " lost ",
+      first$n_lost[[1L]],
+      " level",
+      if (first$n_lost[[1L]] == 1L) "" else "s",
+      if (nzchar(first$example[[1L]])) paste0(" (for example ", first$example[[1L]], ")") else "",
+      "."
+    )
+  } else {
+    ""
+  }
   check_row(
     "dropped_rows",
-    if (dropped == 0L) "ok" else "note",
-    paste0("nobs=", object$nobs, "; dropped=", dropped),
-    if (dropped == 0L) {
+    if (dropped == 0L && n_groups_lost == 0L) "ok" else "note",
+    paste0("nobs=", object$nobs, "; dropped=", dropped, group_value),
+    if (dropped == 0L && n_groups_lost == 0L) {
       "No rows were dropped by model-frame or known-covariance filtering."
     } else {
-      "Rows were dropped by complete-case or known-covariance filtering."
+      paste0(
+        "Rows were dropped by complete-case or known-covariance filtering.",
+        group_message
+      )
     }
   )
 }
@@ -1388,7 +1516,7 @@ check_rho12_boundary <- function(object, rho_boundary) {
       paste0(
         "At least one fitted residual correlation is close to +/-1 using boundary ",
         rho_boundary,
-        "."
+        ". A profile interval for residual rho12 at this boundary is usually identical to Wald; read conf.status on confint() instead of switching to method = \"profile\"."
       )
     }
   )
