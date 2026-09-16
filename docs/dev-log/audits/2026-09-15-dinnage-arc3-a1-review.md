@@ -10,7 +10,7 @@ Review branch: `cursor/dinnage-arc3-a1-review-20260915`
 
 ACCEPT-WITH-CHANGES.
 
-The PR is a narrow documentation-only slice. It correctly updates the visible documentation for #1334 and #1345, and it fixes the stale `mi()` capability table for #1323. It does not complete the full A1 handover set. Seven listed issues remain owed on the PR, and #1323 still misses the issue's explicit failing/passing test acceptance criterion.
+The PR is a narrow documentation-only slice. It correctly updates the visible documentation for #1334, #1345, and #1359, and it fixes the stale `mi()` capability table for #1323. The new #1349 commit fixes the false `student()` uniqueness claim in the family page, but it still lacks the issue's required NEWS credit. It does not complete the full A1 handover set: #1317, #1320, #1341, #1346, and #1354 remain owed and are blocked on roxygen paths leased by A3.
 
 No scope expansion, likelihood change, parameter-transform change, or hidden API change was found in the reviewed diff. No package tests were run for this review; evidence is from `gh pr view 1368`, `gh pr diff 1368`, issue-body acceptance criteria, and targeted greps of the PR head.
 
@@ -24,6 +24,20 @@ The documentation correction itself is right: the capability table now lists `lo
 
 Requested change before treating #1323 as fully closed: add a small doc-regression or capability-table test, or explicitly amend the issue/PR scope so the missing test is a recorded follow-up rather than an implied closeout criterion.
 
+### P2: #1349 still lacks the required NEWS credit
+
+Status: ACCEPT-WITH-CHANGES.
+
+The documentation correction itself is right: the false claim that Student-t is "the one implemented family" whose public `sigma` is a scale rather than `SD[y]` is gone, and the new wording keeps the Student-t-specific scale explanation (`R/family.R:112`, `man/student.Rd:21` on the PR head). The issue acceptance criteria also require a NEWS entry crediting Russell's report. The current A1 NEWS section credits #1345, #1323, #1334, and #1359, but a targeted grep found no Mi-11/#1349 Student-t scale credit.
+
+Requested change before treating #1349 as fully closed: add a NEWS bullet crediting Mi-11/#1349.
+
+### P3: PR body is stale about #1359
+
+Status: ACCEPT-WITH-CHANGES.
+
+The current PR body still lists #1359 as queued/blocked on `R/profile.R`, but the refreshed diff includes commit `b7331b187` and the documentation now satisfies the #1359 Value-section acceptance (`R/profile.R:176`, `man/confint.drmTMB.Rd:170`, `NEWS.md:22`-`NEWS.md:25` on the PR head). Update the PR body so the remaining owed/blocked list does not contradict the code.
+
 ## Per-issue status
 
 | Issue | Review status | Done on PR #1368? | Notes |
@@ -33,17 +47,17 @@ Requested change before treating #1323 as fully closed: add a small doc-regressi
 | #1323 | ACCEPT-WITH-CHANGES | Partly | Table and NEWS are corrected (`vignettes/capability-and-limits.Rmd:593`, `NEWS.md:11`-`NEWS.md:15`), but the issue's requested failing/passing test is absent. |
 | #1334 | ACCEPT | Yes | `meta_V()` now states positional matching and no dimname reordering in roxygen and generated Rd (`R/formula-markers.R:10`-`R/formula-markers.R:13`, `man/meta_V.Rd:14`-`man/meta_V.Rd:16`, `man/meta_known_V.Rd:14`-`man/meta_known_V.Rd:16`), with NEWS credit (`NEWS.md:17`-`NEWS.md:20`). |
 | #1341 | REJECT as closed by this PR | No | Still owed. No new `emmeans` see-also/section or `DHARMa::createDHARMa()` example is added. The PR body lists this as blocked by the A3 lane. |
-| #1345 | ACCEPT | Yes | `cumulative_logit()` now documents integer-coded ordinal responses as accepted at face value and recommends ordered factors for labelled scientific order (`R/family.R:410`-`R/family.R:413`, `man/cumulative_logit.Rd:29`-`man/cumulative_logit.Rd:32`), with NEWS credit (`NEWS.md:5`-`NEWS.md:9`). |
+| #1345 | ACCEPT | Yes | `cumulative_logit()` now documents integer-coded ordinal responses as accepted at face value and recommends ordered factors for labelled scientific order (`R/family.R:409`-`R/family.R:412`, `man/cumulative_logit.Rd:29`-`man/cumulative_logit.Rd:32`), with NEWS credit (`NEWS.md:5`-`NEWS.md:9`). |
 | #1346 | REJECT as closed by this PR | No | Still owed. No `residuals.drmTMB` Pearson-residual convention update for `student`, `skew_normal`, or `beta` is added. The PR body lists this as blocked by the A3 lane. |
-| #1349 | REJECT as closed by this PR | No | Still owed. `student()` documentation is not changed, despite the PR body noting this path was available for a follow-up commit. |
+| #1349 | ACCEPT-WITH-CHANGES | Partly | `student()`/`?student` no longer makes the false uniqueness claim (`R/family.R:112`, `man/student.Rd:21`), but the required NEWS credit is absent. |
 | #1354 | REJECT as closed by this PR | No | Still owed. No `sigma.drmTMB` return-shape/interface note is added. The PR body lists this as blocked by the A3 lane. |
-| #1359 | REJECT as closed by this PR | No | Still owed. No `confint.drmTMB` Value-section clarification about fully qualified output labels is added. The PR body lists this as owned by A2. |
+| #1359 | ACCEPT | Yes | `confint.drmTMB` now states that returned `parm` values are fully qualified and warns callers to normalize before joining compact labels (`R/profile.R:176`-`R/profile.R:179`, `man/confint.drmTMB.Rd:170`-`man/confint.drmTMB.Rd:173`), with NEWS credit (`NEWS.md:22`-`NEWS.md:25`). The PR body should be updated because it still lists this as queued. |
 
 ## Review checks
 
 - Package scope: preserved. The diff is documentation-only and stays within univariate/bivariate DRM documentation.
 - Likelihood coherence: not affected. No likelihood code changed.
 - Parameter transforms: not affected. No transform code changed.
-- Simulation tests: not relevant to the two pure documentation clarifications, but #1323 still has an explicit missing test acceptance criterion.
-- Docs/examples: updated for #1323, #1334, and #1345 only; the rest of the named A1 issues remain owed.
+- Simulation tests: not relevant to the pure documentation clarifications, but #1323 still has an explicit missing test acceptance criterion.
+- Docs/examples: updated for #1323, #1334, #1345, #1349, and #1359, with #1323 and #1349 still missing one acceptance item each.
 - API consistency: no new inconsistency found. The `meta_known_V()` alias page inherits `meta_V()` wording, which is appropriate for compatibility documentation.
