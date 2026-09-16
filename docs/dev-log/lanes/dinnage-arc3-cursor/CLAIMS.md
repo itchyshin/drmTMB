@@ -32,18 +32,18 @@ The coordinator owns coordination records, status reconciliation, collision reso
 ## Held / Protected
 
 - ~~HOLD Wave B~~ **UNLOCKED 2026-09-16:** A2 (#1369) @ `2c15ae63e` and A3 (#1367) @ `e6ca0dc8e` on `main`. Wave C implementation still HOLD until Wave B lands.
-- **2026-09-16 ~06:40 MDT — Receipt gate CLEAR (main).** [#1372](https://github.com/itchyshin/drmTMB/pull/1372) merged @ `dd937ac3`; `receipt-staleness` run `35096373487` **green**. Coord/docs **push to `main` OK**. **B1 (Gauss):** may **open a PR**; when B1 touches `R/` (or other receipt-hashed paths), **regenerate `docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json` LAST** on the branch before merge (or land a receipt follow-up immediately after merge — do not leave `main` red).
+- ~~HOLD docs-only pushes to `main`~~ **LIFTED 2026-09-16 ~07:44 MDT** after [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (`receipt-staleness` run `35103746783` **green**). Main had re-staled after Wave A tail merges; [#1372](https://github.com/itchyshin/drmTMB/pull/1372) @ `dd937ac3` was the earlier fix. Coord/docs **push to `main` OK**. **B1 / any `R/` merge:** regenerate `docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json` LAST on the branch (or land a receipt follow-up immediately after merge — do not leave `main` red).
 - DEFER / PROTECTED: Md-K/Julia, S6, A-5/A-6, Md-L, Eq-4, variance-ratio interval design, S3 option B, Gaussian latent `mi()` missing-row weighting, raw-predictor sigma-clamp consumers, and M3 sqrt(n) tolerance design.
 
 ## Live Status
 
-Updated: 2026-09-16 ~07:00 MDT (**Wave A closed**; **Wave B UNLOCKED**; B1 in flight).
+Updated: 2026-09-16 ~07:44 MDT (**#1374 merged**; **B1 #1373 awaiting CI**).
 
-- **`main` tip:** `3f32a7545` (post Wave A + check-log).
-- **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1` (branch head `a2673a5`); Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1` (head `d5055cf02`).
-- **Wave B code: UNLOCKED** — spawn/continue B1 then B2 per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md).
-- **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) OPEN** @ `5b5fe25a3` (`cursor/dinnage-arc3-b1-check-20260916`). Await CI + independent D-263 review; agents do not merge unless green and authorized. **Before merge:** regenerate `lss-tip-identity/public-001.json` LAST on branch.
-- **Receipt fix [#1372](https://github.com/itchyshin/drmTMB/pull/1372): MERGED** @ `dd937ac3`.
+- **`main` tip:** `f7b40b75a` (post [#1374](https://github.com/itchyshin/drmTMB/pull/1374) receipt refresh).
+- **Receipt gate:** [#1374](https://github.com/itchyshin/drmTMB/pull/1374) **MERGED** @ `f7b40b75a`; `receipt-staleness` green (run `35103746783`). Prior [#1372](https://github.com/itchyshin/drmTMB/pull/1372) @ `dd937ac3`.
+- **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
+- **Wave B code: IN FLIGHT** — B1 open; B2 per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) after B1.
+- **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) OPEN** @ `994308a08` (`cursor/dinnage-arc3-b1-check-20260916`). **Await CI**; prefer **Composer** / Grace watchers — agents **do not merge #1373** unless green and authorized. Branch already includes tip-identity regen @ `5b5fe25a3`; re-run LAST if `R/` changes again before merge.
 - **A4 record:** DONE (#1351).
 - **Wave B docs-only [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGED** — does not gate B1/B2 implementation.
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.
