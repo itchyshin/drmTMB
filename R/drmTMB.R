@@ -354,6 +354,7 @@ drmTMB <- function(
     control = control
   )
   n_rows_before_mspl_filter <- nrow(data)
+  input_data <- data
   mspl_frequency_rows <- drm_mspl_filter_frequency_rows(
     data,
     weights_full,
@@ -599,6 +600,7 @@ drmTMB <- function(
     keep_full[mspl_frequency_rows$kept] <- spec$keep
     spec$keep <- keep_full
   }
+  spec$input_data <- input_data
 
   drm_fit_spec(
     spec = spec,
