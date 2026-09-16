@@ -1,6 +1,6 @@
 # Wave B dispatch brief (HOLD until A2 + A3 on main)
 
-Status: **HOLD** as of **2026-09-15 21:41 MDT**. Unlock only after Shinichi merges **#1369** and **#1367** (A1 #1368 and audit **#1370** may merge anytime; B still waits on A2+A3).
+Status: **HOLD** as of **2026-09-16 ~05:50 MDT**. **#1369 MERGED** on `main` @ `2c15ae63e`. Unlock Wave B **code** only after **#1367** merges (A1 #1368 and audit **#1370** may merge in queue; B still waits on A3).
 
 Do **not** start B implementation while A2/A3 are open. Agents must **not** merge any PR.
 

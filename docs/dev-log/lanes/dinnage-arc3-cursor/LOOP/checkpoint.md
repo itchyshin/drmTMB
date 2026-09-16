@@ -1,59 +1,37 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~05:00 MDT** · **HANDOFF_FINAL** · board tip **`origin/main` @ `ff28a7510`**
+Updated: **2026-09-16 ~05:50 MDT** · board tip **`origin/main` @ `2c15ae63e`**
 
 ## Current scope
 
-Overnight Cursor coordinator lane **closed**. Wave A + D-263 audit docs + Wave B docs-only (#1371). **No agent merges.** PRs **#1367 #1368 #1369 #1370 #1371** still **OPEN** at closeout. **Blocked on Shinichi merge.**
+Shinichi-authorized merge queue in progress. **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) MERGED** on `main` @ `2c15ae63e`. **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** rebased to `684485d73` (post-#1369); fresh CI pending/green before merge. **A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** rebased to `2aad4c1b8`. **#1370 #1371** MERGEABLE/CLEAN on prior CI; re-check after #1367/#1368 land.
 
-## Done
+## Merge record
 
-- Rehydrated from PR #1366 on coord worktree `local-scratch/lanes/drmTMB-dinnage-arc3-cursor`.
-- A4 #1351 DONE (record + vault skill; no tag/CI change).
-- **A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368): MERGE-READY** @ `822763660`; CI [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684) all green; D-263 ACCEPT (docs).
-- **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGE-READY** @ `3805b8520`; D-263 ACCEPT @ `b6714135d`; CI [35040873414](https://github.com/itchyshin/drmTMB/actions/runs/35040873414) all green.
-- **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGE-READY** @ `6a5200f39`; D-263 ACCEPT; CI [35042137154](https://github.com/itchyshin/drmTMB/actions/runs/35042137154) all green.
-- **D-263 audit [#1370](https://github.com/itchyshin/drmTMB/pull/1370): MERGE-READY @ `fd84f009f`** (rebased from `348ff67b6`); light review **ACCEPT after rebase**; CI [35060483133](https://github.com/itchyshin/drmTMB/actions/runs/35060483133) all 6 green; **MERGEABLE / CLEAN**.
-- **Wave B docs [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGE-READY** @ `d5055cf02`; D-263 light **ACCEPT** (17 closed / 38 open); CI [35053150085](https://github.com/itchyshin/drmTMB/actions/runs/35053150085) all green; MERGEABLE/CLEAN.
-- Overnight docs + sentinel polls; handover deduplicated for morning.
-
-## Ready for Shinichi merge (agents: do not merge)
-
-| Slice | PR | Head | Gate |
+| PR | Slice | State | Notes |
 | --- | --- | --- | --- |
-| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `822763660` | MERGE-READY |
-| A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `3805b8520` | MERGE-READY; B unlock |
-| A3 misc | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `6a5200f39` | MERGE-READY; B unlock |
-| D-263 audit notes | [#1370](https://github.com/itchyshin/drmTMB/pull/1370) | `fd84f009f` | MERGE-READY (rebased from `348ff67b6`) |
-| Wave B docs-only | [#1371](https://github.com/itchyshin/drmTMB/pull/1371) | `d5055cf02` | MERGE-READY |
+| #1369 | A2 check/profile | **MERGED** | merge `2c15ae63e`; B-unlock 1/2 |
+| #1367 | A3 misc | OPEN | rebased; B-unlock 2/2 after merge |
+| #1368 | A1 docs | OPEN | rebased post-#1369 |
+| #1370 | D-263 audit md | OPEN | MERGEABLE/CLEAN |
+| #1371 | Wave B docs-only | OPEN | MERGEABLE/CLEAN; does not unlock B code |
 
-## Held
+## Queue order (CI-green only)
 
-- **Wave B implementation and Wave C: HOLD** until **A2 (#1369) and A3 (#1367) merged by Shinichi**.
-- Deferred/protected items unchanged (see `CLAIMS.md`).
+1. #1367 (A3, B unlock)
+2. #1368 (A1 docs)
+3. #1370 (audit notes)
+4. #1371 (Wave B docs stub)
 
-## Integration rules (unchanged)
+## Wave B
 
-- No `git add -A`. No push/merge to `main`, tags, releases, or email from implementation PRs by agents.
-- D-263: builder must not self-ACCEPT.
-
-## Overnight coordinator artifacts
-
-- Wave B dispatch (HOLD): [`LOOP/wave-b-brief.md`](wave-b-brief.md)
-- Morning handoff: [`docs/dev-log/handover/2026-09-16-cursor-morning-dinnage-arc3.md`](../../handover/2026-09-16-cursor-morning-dinnage-arc3.md)
-
-## Closeout
-
-- HANDOFF_FINAL (~05:00 MDT): overnight Cursor lane done; sentinel confirmed #1369=OPEN and #1367=OPEN (B gate not satisfied).
-- Next owner: Shinichi merges MERGE-READY queue; then unlock Wave B per `wave-b-brief.md`.
+**HOLD** until #1367 on `main`. After both #1369 and #1367 merged: **UNLOCKED** for B1/B2 implementation per [`wave-b-brief.md`](wave-b-brief.md).
 
 ## Resume
 
 ```sh
 cd /Users/z3437171/local-scratch/lanes/drmTMB-dinnage-arc3-cursor
 git pull --ff-only origin main
-cat docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/GOAL.md
-cat docs/dev-log/lanes/dinnage-arc3-cursor/CLAIMS.md
-gh pr view 1367 1368 1369 1370 1371 --json state,mergedAt,headRefOid,mergeable
-~/shinichi-brain/tools/lane_lease.sh --list drmTMB
+gh pr view 1367 1368 1369 1370 1371 --json number,state,mergeable,mergeStateStatus,headRefOid
+cat docs/dev-log/lanes/dinnage-arc3-cursor/LOOP/wave-b-brief.md
 ```
