@@ -36,7 +36,7 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 00:10 MDT (board tip on `origin/main` @ `COORD_BOARD_TIP`; live GitHub OPEN on Wave A, audit-docs #1370, Wave B docs #1371).
+Updated: 2026-09-16 00:10 MDT (board tip on `origin/main` @ `9ac12d80f99f7857fbdf589c6fcd1e443e1988e1`; live GitHub OPEN on Wave A, audit-docs #1370, Wave B docs #1371).
 
 - Base for Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Wave A PRs #1367 #1368 #1369, audit-docs #1370, and Wave B docs #1371 OPEN; agents must not merge.** Shinichi merges only after settled green CI + D-263 ACCEPT on each PR. **Wave B implementation and Wave C: HOLD until A2 (#1369) and A3 (#1367) are merged by Shinichi** (A1 [#1368], audit docs [#1370], and Wave B docs-only [#1371] may merge whenever Shinichi is ready). Ready-to-dispatch Wave B code plan: [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) (do not execute until unlock).
 - **A1 docs — MERGE-READY pending Shinichi — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `822763660` (`fix(ci): refresh Dinnage audit manifests` — capability-ledger manifest + `inst/extdata/env-skip-census.tsv` refresh; follows `c68620405` DHARMa **Suggests** + wave1 installed-doc path guards). All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **#1344 cross-PR help cleared.** Independent D-263 **ACCEPT** (docs; unchanged). **CI:** all 6 R-CMD-check jobs **SUCCESS** on run [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684) @ `822763660`; GitHub merge state **MERGEABLE / CLEAN**. **Shinichi merge only — agents must not merge.**
