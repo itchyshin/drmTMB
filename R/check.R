@@ -237,15 +237,12 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
     cli::cli_abort("{.arg include_hessian} must be `TRUE` or `FALSE`.")
   }
 
-  objective_values <- if (drm_is_mspl(object)) {
-    c(object$opt$objective, object$mspl$unpenalized_laplace_objective)
-  } else {
-    c(object$opt$objective, object$logLik)
+  status <- convergence_status(object)
+  if (!identical(status, "converged") && !identical(status, "boundary")) {
+    return(FALSE)
   }
-  optimizer_ok <- identical(as.integer(object$opt$convergence), 0L) &&
-    isTRUE(all(is.finite(objective_values)))
-  if (!optimizer_ok || !include_hessian) {
-    return(optimizer_ok)
+  if (!include_hessian) {
+    return(TRUE)
   }
 
   if (drm_is_mspl(object)) {
@@ -255,6 +252,141 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
   identical(drm_uncertainty_status(object), "ok") &&
     !is.null(object$sdr) &&
     isTRUE(object$sdr$pdHess)
+}
+
+#' Convergence status for a drmTMB fit
+#'
+#' `convergence_status()` returns a short character label for programmatic
+#' workflows that need more detail than [is_converged()]. A fit can report
+#' optimizer code `0` while the likelihood geometry is degenerate (no proper
+#' maximum or non-finite uncertainty); such fits return `"degenerate"` even
+#' when `multi_start` selected among several starts. `"boundary"` marks an
+#' optimizer-converged fit with variance-component or residual-correlation
+#' parameters near an interpretability boundary. [is_converged()] stays a
+#' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
+#' `FALSE` for `"degenerate"`.
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Reserved for future options.
+#'
+#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`.
+#' @export
+#'
+#' @examples
+#' set.seed(20260916)
+#' dat <- data.frame(y = rnorm(40), x = rnorm(40))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' convergence_status(fit)
+convergence_status <- function(object, ...) {
+  UseMethod("convergence_status")
+}
+
+#' @rdname convergence_status
+#' @export
+convergence_status.default <- function(object, ...) {
+  cli::cli_abort(
+    "{.fn convergence_status} is implemented for {.cls drmTMB} fits."
+  )
+}
+
+#' @rdname convergence_status
+#' @export
+convergence_status.drmTMB <- function(object, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn convergence_status} options."
+    )
+  }
+  if (!drm_optimizer_converged(object)) {
+    return("degenerate")
+  }
+  if (
+    drm_inference_degenerate(object) ||
+      drm_fixed_effect_rank_deficient(object) ||
+      drm_standard_errors_pathological(object)
+  ) {
+    return("degenerate")
+  }
+  if (drm_inference_at_boundary(object)) {
+    return("boundary")
+  }
+  "converged"
+}
+
+drm_optimizer_converged <- function(object) {
+  objective_values <- if (drm_is_mspl(object)) {
+    c(object$opt$objective, object$mspl$unpenalized_laplace_objective)
+  } else {
+    c(object$opt$objective, object$logLik)
+  }
+  identical(as.integer(object$opt$convergence), 0L) &&
+    isTRUE(all(is.finite(objective_values)))
+}
+
+drm_inference_degenerate <- function(object) {
+  if (identical(as.integer(object$opt$convergence), 7L)) {
+    return(TRUE)
+  }
+  if (!drm_optimizer_converged(object)) {
+    return(FALSE)
+  }
+  if (identical(object$control$se, FALSE)) {
+    return(FALSE)
+  }
+  if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
+    return(TRUE)
+  }
+  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
+    return(TRUE)
+  }
+  variances <- diag(vcov)
+  standard_errors <- rep(NA_real_, length(variances))
+  non_negative <- is.finite(variances) & variances >= 0
+  standard_errors[non_negative] <- sqrt(variances[non_negative])
+  !all(is.finite(standard_errors))
+}
+
+drm_standard_errors_pathological <- function(object) {
+  row <- check_standard_errors_inflated(object)
+  !is.null(row) && grepl("n_inflated=[1-9]", row$value, perl = TRUE)
+}
+
+drm_fixed_effect_rank_deficient <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(FALSE)
+  }
+  for (block in X) {
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    dims <- dim(block)
+    if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
+      next
+    }
+    block_rank <- qr(block, tol = 1e-8)$rank
+    if (block_rank < dims[[2L]]) {
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
+drm_inference_at_boundary <- function(object) {
+  if (!drm_optimizer_converged(object) || drm_inference_degenerate(object)) {
+    return(FALSE)
+  }
+  rho_row <- check_rho12_boundary(object, rho_boundary = 0.98)
+  if (!is.null(rho_row) && identical(rho_row$status, "warning")) {
+    return(TRUE)
+  }
+  sd_row <- check_random_effect_sd_boundary(object, sd_boundary = 1e-4)
+  !is.null(sd_row) && identical(sd_row$status, "warning")
 }
 
 #' @rdname check_drm
@@ -278,6 +410,7 @@ check_drm.drmTMB <- function(
 
   rows <- list(
     check_optimizer_convergence(object),
+    check_convergence_status(object),
     check_optimizer_budget(object),
     check_finite_objective(object),
     check_logsigma_clamp_active(object),
@@ -287,6 +420,10 @@ check_drm.drmTMB <- function(
     check_hessian_conditioning(object),
     check_standard_errors_finite(object),
     check_standard_errors_inflated(object),
+    check_weakly_identified_fixed_effects(object),
+    check_observations_per_parameter(object),
+    check_fixed_effect_design_collinearity(object),
+    check_fixed_effect_rank_deficiency(object),
     check_dropped_rows(object),
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
@@ -338,12 +475,34 @@ check_drm.drmTMB <- function(
   rownames(out) <- NULL
   class(out) <- c("drm_check", "data.frame")
   attr(out, "ok") <- !any(out$status %in% c("warning", "error"))
+  attr(out, "n_checks_total") <- nrow(out)
+  out
+}
+
+#' @export
+`[.drm_check` <- function(x, i, j, drop = FALSE) {
+  n_total <- attr(x, "n_checks_total")
+  if (is.null(n_total)) {
+    n_total <- nrow(x)
+  }
+  out <- NextMethod("[")
+  if (!is.data.frame(out)) {
+    return(out)
+  }
+  class(out) <- c("drm_check", "data.frame")
+  attr(out, "n_checks_total") <- n_total
+  attr(out, "ok") <- attr(x, "ok")
   out
 }
 
 #' @export
 print.drm_check <- function(x, ...) {
-  cli::cli_text("<drm_check: {nrow(x)} checks>")
+  n_total <- attr(x, "n_checks_total")
+  if (!is.null(n_total) && nrow(x) < n_total) {
+    cat(sprintf("<drm_check: %d of %d checks shown>\n", nrow(x), n_total))
+  } else {
+    cat(sprintf("<drm_check: %d checks>\n", nrow(x)))
+  }
   n_warn <- sum(x$status == "warning")
   n_error <- sum(x$status == "error")
   n_note <- sum(x$status == "note")
@@ -1164,7 +1323,14 @@ check_standard_errors_inflated <- function(object) {
   if (length(finite_standard_errors) == 0L) {
     return(NULL)
   }
-  median_se <- stats::median(finite_standard_errors)
+  reference_se <- finite_standard_errors[
+    finite_standard_errors < inflated_standard_error_floor
+  ]
+  if (length(reference_se) == 0L) {
+    median_se <- min(finite_standard_errors)
+  } else {
+    median_se <- stats::median(reference_se)
+  }
   inflated <- is.finite(standard_errors) &
     standard_errors >= inflated_standard_error_floor &
     standard_errors >= inflated_standard_error_ratio * median_se
@@ -1181,7 +1347,7 @@ check_standard_errors_inflated <- function(object) {
       n_inflated,
       "; max_se=",
       format_check_number(max(finite_standard_errors)),
-      "; median_se=",
+      "; reference_median=",
       format_check_number(median_se),
       if (n_inflated > 0L) {
         paste0("; example=", param_names[which(inflated)[[1L]]])
@@ -1201,6 +1367,227 @@ check_standard_errors_inflated <- function(object) {
     } else {
       "No fixed-effect standard error is inflated relative to the others."
     }
+  )
+}
+
+check_weakly_identified_fixed_effects <- function(object) {
+  row <- check_standard_errors_inflated(object)
+  if (is.null(row) || !grepl("n_inflated=[1-9]", row$value, perl = TRUE)) {
+    return(NULL)
+  }
+  check_row(
+    "weakly_identified_fixed_effects",
+    "warning",
+    row$value,
+    paste(
+      "At least one fixed-effect standard error is pathologically large",
+      "relative to the reference scale; the fit is not identified enough for",
+      "plain is_converged() to read TRUE and multi_start cannot clear this."
+    )
+  )
+}
+
+check_convergence_status <- function(object) {
+  status <- convergence_status(object)
+  check_row(
+    "convergence_status",
+    switch(
+      status,
+      converged = "ok",
+      boundary = "note",
+      degenerate = "note",
+      "note"
+    ),
+    status,
+    switch(
+      status,
+      converged = paste(
+        "Optimizer convergence and uncertainty diagnostics are consistent with",
+        "a proper interior optimum."
+      ),
+      boundary = paste(
+        "The fit converged but variance-component or residual-correlation",
+        "parameters are near an interpretability boundary; read",
+        "convergence_status() and boundary rows before inference."
+      ),
+      degenerate = paste(
+        "The optimizer reported success but the likelihood geometry or",
+        "uncertainty is degenerate (no reliable maximum or non-finite",
+        "standard errors). multi_start cannot clear this state;",
+        "is_converged() is FALSE."
+      ),
+      "Convergence status could not be classified."
+    )
+  )
+}
+
+observations_per_parameter_threshold <- 10
+
+check_observations_per_parameter <- function(object) {
+  n_obs <- object$nobs
+  n_par <- object$df
+  if (
+    is.null(n_obs) ||
+      is.null(n_par) ||
+      length(n_obs) != 1L ||
+      length(n_par) != 1L ||
+      !is.finite(n_obs) ||
+      !is.finite(n_par) ||
+      n_par <= 0
+  ) {
+    return(NULL)
+  }
+  ratio <- n_obs / n_par
+  low <- ratio < observations_per_parameter_threshold
+  check_row(
+    "observations_per_parameter",
+    if (low) "note" else "ok",
+    paste0(
+      "n_obs=",
+      n_obs,
+      "; n_par=",
+      n_par,
+      "; ratio=",
+      format_check_number(ratio)
+    ),
+    if (low) {
+      paste(
+        "Fewer than",
+        observations_per_parameter_threshold,
+        "observations per estimated parameter; the diagnostic board does not",
+        "become more cautious automatically at small n, so inspect effect",
+        "sizes and uncertainty before interpreting tests."
+      )
+    } else {
+      paste(
+        "Observations per estimated parameter are at or above the small-sample",
+        "note threshold (",
+        observations_per_parameter_threshold,
+        ").",
+        sep = ""
+      )
+    }
+  )
+}
+
+fixed_effect_collinearity_threshold <- 0.99
+
+check_fixed_effect_design_collinearity <- function(
+  object,
+  r_threshold = fixed_effect_collinearity_threshold
+) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(NULL)
+  }
+  max_abs_r <- NA_real_
+  example <- NA_character_
+  for (block in X) {
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    cols <- colnames(block)
+    if (is.null(cols)) {
+      cols <- paste0("col", seq_len(ncol(block)))
+    }
+    numeric_cols <- which(vapply(
+      seq_len(ncol(block)),
+      function(j) {
+        xj <- block[, j, drop = TRUE]
+        is.numeric(xj) && stats::var(xj, na.rm = TRUE) > 0
+      },
+      logical(1L)
+    ))
+    if (length(numeric_cols) < 2L) {
+      next
+    }
+    for (i in seq_len(length(numeric_cols) - 1L)) {
+      for (j in (i + 1L):length(numeric_cols)) {
+        ci <- numeric_cols[[i]]
+        cj <- numeric_cols[[j]]
+        r <- stats::cor(block[, ci], block[, cj], use = "complete.obs")
+        if (!is.finite(r)) {
+          next
+        }
+        abs_r <- abs(r)
+        if (!is.finite(max_abs_r) || abs_r > max_abs_r) {
+          max_abs_r <- abs_r
+          example <- paste0(cols[[ci]], "~", cols[[cj]])
+        }
+      }
+    }
+  }
+  if (!is.finite(max_abs_r)) {
+    return(NULL)
+  }
+  high <- max_abs_r > r_threshold
+  check_row(
+    "fixed_effect_collinearity",
+    if (high) "note" else "ok",
+    paste0(
+      "max_abs_r=",
+      format_check_number(max_abs_r),
+      if (high) paste0("; pair=", example) else ""
+    ),
+    if (high) {
+      paste(
+        "At least one pair of fixed-effect design columns has absolute",
+        "correlation above",
+        r_threshold,
+        "; standard errors may be inflated even when the Hessian is",
+        "positive-definite."
+      )
+    } else {
+      "No fixed-effect design column pair exceeds the collinearity note threshold."
+    }
+  )
+}
+
+check_fixed_effect_rank_deficiency <- function(object) {
+  X <- object$model$X
+  if (is.null(X) || length(X) == 0L) {
+    return(NULL)
+  }
+  deficient <- character()
+  for (i in seq_along(X)) {
+    block <- X[[i]]
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    dims <- dim(block)
+    if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
+      next
+    }
+    block_rank <- qr(block, tol = 1e-8)$rank
+    if (block_rank < dims[[2L]]) {
+      name <- names(X)[[i]]
+      if (is.null(name) || !nzchar(name)) {
+        name <- paste0("X", i)
+      }
+      deficient <- c(
+        deficient,
+        paste0(name, ":rank=", block_rank, "/ncol=", dims[[2L]])
+      )
+    }
+  }
+  if (length(deficient) == 0L) {
+    return(NULL)
+  }
+  check_row(
+    "fixed_effect_rank_deficiency",
+    "warning",
+    paste(deficient, collapse = "; "),
+    paste(
+      "At least one fixed-effect design matrix is rank-deficient;",
+      "coefficients and standard errors are not identified even when the",
+      "optimizer reports convergence."
+    )
   )
 }
 
