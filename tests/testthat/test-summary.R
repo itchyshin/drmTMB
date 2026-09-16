@@ -547,7 +547,7 @@ test_that("summary() reports univariate phylo_total_variance_share as derived", 
   expect_equal(profiled$parameters["sigma", "conf.status"], "wald")
   expect_equal(
     profiled$parameters["sd:mu:phylo(1 | species)", "conf.status"],
-    "wald"
+    "wald_bias_corrected"
   )
   expect_true(is.finite(profiled$parameters["sigma", "conf.low"]))
   expect_true(is.finite(
