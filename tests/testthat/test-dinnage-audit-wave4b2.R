@@ -9,17 +9,11 @@ wave4b2_gaussian_with_na_predictor <- function(n = 40L, n_na = 4L, seed = 1332L)
 }
 
 wave4b2_repo_r_drmtmb <- function() {
-  normalizePath(
-    file.path(testthat::test_path(), "..", "..", "R", "drmTMB.R"),
-    mustWork = TRUE
-  )
+  drm_pkg_path("R/drmTMB.R")
 }
 
 wave4b2_drm_control_rd <- function() {
-  normalizePath(
-    file.path(testthat::test_path(), "..", "..", "man", "drm_control.Rd"),
-    mustWork = TRUE
-  )
+  drm_pkg_path("man/drm_control.Rd")
 }
 
 test_that("A-2: miss_control(predictor = fail) errors on NA predictors (Dinnage audit)", {
