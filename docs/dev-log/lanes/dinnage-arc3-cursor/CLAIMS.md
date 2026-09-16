@@ -36,14 +36,14 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-15 18:15 MDT (Ada integration poll).
+Updated: 2026-09-15 ~18:30 MDT overnight checkpoint (Cursor coordinator).
 
-- Base for all Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **A1 has two local commits; A2/A3 remain at base; zero Wave A PRs; none of the cursor specialist branches pushed to origin.**
-- A1 docs worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a1-docs`, branch `cursor/dinnage-arc3-a1-docs-20260915`. **Local commits:** `5399733b9` (A-4 / #1334), `43502894b` (Md-F / #1323). **Uncommitted WIP:** `NEWS.md`, `R/family.R`. Still owed: eight other A1 issues, `man/`, `vignettes/capability-and-limits.Rmd`, per-finding tests N/A for docs PR but `R CMD check` evidence missing.
-- A2 check worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a2-check`, branch `cursor/dinnage-arc3-a2-check-20260915`. **Uncommitted WIP:** `R/check.R` (A-8 / #1338 dropped-groups note). Still owed: `R/profile.R` (Mi-5 / #1343), `tests/testthat/test-dinnage-audit-wave4a.R`, `NEWS.md`, focused check evidence. **Lease:** A1 released `R/profile.R` at 18:15 MDT; A2 may claim it for Mi-5.
-- A3 misc worktree: `/Users/z3437171/local-scratch/lanes/drmTMB-a3-misc`, branch `cursor/dinnage-arc3-a3-misc-20260915`. **Uncommitted WIP:** `src/drmTMB.cpp`, `src/drm_response_kernels.h` (Md-H / #1325 beta_binomial nudge); untracked `tests/testthat/test-dinnage-audit-a3-curie.R` (Claude Curie lease). Still owed: six other A3 issues, `R/methods.R` (+ C17 recert last), other R files, `test-numeric-kernel-oracle.R`, lease expects `test-dinnage-audit-a3-misc.R`.
-- A4 record: DONE (#1351).
-- **D-263 review files:** none yet; when each PR opens, fresh reviewer writes `docs/dev-log/audits/2026-09-<dd>-dinnage-arc3-<a1|a2|a3>-review.md` (builder must not self-ACCEPT).
+- Base for Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Three Wave A PRs open; no merge authorized overnight. Waves B/C: HOLD.**
+- **A1 docs — COMPLETE — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `c86e86d88`. All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **Next:** settled CI + independent D-263 ACCEPT (builder must not self-ACCEPT).
+- **A2 check/profile — PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369)** (`cursor/dinnage-arc3-a2-check-20260915`), head `b6714135d`. Review-thread fixes pushed; **pending fresh re-review** (and CI green) after first review pass. Scope: #1338, #1343; `R/check.R`, `R/profile.R`, wave4a tests, `NEWS.md`.
+- **A3 misc code — PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** (`cursor/dinnage-arc3-a3-misc-20260915`), head `ab78327b8`. Code + `NEWS.md` on branch; C17 recert run last on branch. **Next:** settled CI + independent D-263 ACCEPT.
+- **A4 record:** DONE (#1351).
+- **D-263 review files:** owed per PR before merge; path `docs/dev-log/audits/2026-09-<dd>-dinnage-arc3-<a1|a2|a3>-review.md`.
 
 ## Claim Reporting
 
