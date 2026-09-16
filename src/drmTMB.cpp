@@ -3626,15 +3626,32 @@ Type objective_function<Type>::operator()()
       REPORT(mi_probability);
       ADREPORT(beta_mi);
     }
-    vector<Type> mu = Type(1.0) / (Type(1.0) + exp(-eta_mu));
+    Type beta_mu_eps = Type(1e-12);
+    Type beta_shape_floor = Type(1e-8);
+    vector<Type> mu(y.size());
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
     vector<Type> alpha(y.size());
     vector<Type> beta_shape(y.size());
     for (int i = 0; i < y.size(); ++i) {
+      Type mu_raw = exp(drm_log_inv_logit(eta_mu(i)));
+      mu(i) = beta_mu_eps +
+        (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
       phi(i) = exp(Type(-2.0) * log_sigma(i));
-      alpha(i) = mu(i) * phi(i);
-      beta_shape(i) = (Type(1.0) - mu(i)) * phi(i);
+      Type alpha_raw = mu(i) * phi(i);
+      Type beta_raw = (Type(1.0) - mu(i)) * phi(i);
+      alpha(i) = CppAD::CondExpLt(
+        alpha_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        alpha_raw
+      );
+      beta_shape(i) = CppAD::CondExpLt(
+        beta_raw,
+        beta_shape_floor,
+        beta_shape_floor,
+        beta_raw
+      );
       if (observed_y(i) == 1 &&
           !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
         Type failures = trials(i) - y(i);

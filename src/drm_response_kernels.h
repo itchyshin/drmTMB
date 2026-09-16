@@ -126,13 +126,20 @@ Type drm_response_log_density(
         shape * log(scale);
     }
     case 14: {
-      // beta_binomial: logit success probability, phi = exp(-2*log_sigma).
+      // beta_binomial: nudged logit mean, phi = exp(-2*log_sigma).
       // Replicates the model_type==14 main-loop density so the mi() 2-point
       // sum and the observed-x loop agree (S6 A7 / #962).
-      Type mu = Type(1.0) / (Type(1.0) + exp(-eta_val));
+      Type beta_mu_eps = Type(1e-12);
+      Type beta_shape_floor = Type(1e-8);
+      Type mu_raw = exp(drm_log_inv_logit(eta_val));
+      Type mu = beta_mu_eps + (Type(1.0) - Type(2.0) * beta_mu_eps) * mu_raw;
       Type phi = exp(Type(-2.0) * log_sigma_val);
-      Type alpha = mu * phi;
-      Type beta_shape = (Type(1.0) - mu) * phi;
+      Type alpha_raw = mu * phi;
+      Type beta_raw = (Type(1.0) - mu) * phi;
+      Type alpha =
+        CppAD::CondExpLt(alpha_raw, beta_shape_floor, beta_shape_floor, alpha_raw);
+      Type beta_shape =
+        CppAD::CondExpLt(beta_raw, beta_shape_floor, beta_shape_floor, beta_raw);
       Type failures = trials_val - y_val;
       return lgamma(trials_val + Type(1.0)) -
         lgamma(y_val + Type(1.0)) -
