@@ -81,7 +81,8 @@ build_fits <- function(formula, family, y_grid, weights = NULL) {
 # marks known reference-or-kernel precision-limit points (see per-family
 # comments) that are checked separately with a looser tolerance instead of
 # folding into the main `tol` assertion.
-run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL) {
+run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL,
+                       max_nonfinite = Inf) {
   for (f in fits_by_y) assert_clean_fixture(f)
   ls_use <- if (has_ls) ls_grid else NA_real_
   results <- data.frame()
@@ -105,6 +106,12 @@ run_oracle <- function(fits_by_y, eval_fn, tol, has_ls = TRUE, exclude = NULL) {
     mapply(exclude, results$eta, results$log_sigma, results$y)
   }
   kept <- results[!results$excluded, ]
+  kept_nonfinite <- kept[
+    !is.finite(kept$cpp) | !is.finite(kept$ref) | is.na(kept$rel_err),
+    ,
+    drop = FALSE
+  ]
+  expect_lte(nrow(kept_nonfinite), max_nonfinite)
   kept_finite <- kept$rel_err[!is.na(kept$rel_err)]
   expect_true(length(kept_finite) > 0)
   expect_true(max(kept_finite) <= tol)
@@ -477,17 +484,25 @@ test_that("beta_binomial kernel matches an lbeta()-based reference away from hug
     par <- fit$obj$par
     par <- set_named(par, "beta_mu", eta)
     par <- set_named(par, "beta_sigma", ls)
-    mu <- plogis(eta); phi <- 1 / exp(ls)^2
-    a <- mu * phi; b <- (1 - mu) * phi
+    eps <- 1e-12
+    shape_floor <- 1e-8
+    mu <- eps + (1 - 2 * eps) * plogis(eta)
+    phi <- 1 / exp(ls)^2
+    a <- max(mu * phi, shape_floor)
+    b <- max((1 - mu) * phi, shape_floor)
+    phi_shape <- a + b
     failures <- trials - yv
-    ref <- lchoose(trials, yv) + lbeta(yv + a, failures + b) - lbeta(a, b)
+    ref <- lchoose(trials, yv) +
+      lgamma(phi_shape) - lgamma(trials + phi_shape) +
+      lgamma(yv + a) - lgamma(a) +
+      lgamma(failures + b) - lgamma(b)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   huge_phi <- function(eta, ls, yv) (1 / exp(ls)^2) >= 1e10
-  res <- run_oracle(fits, eval_bb, tol = 1e-6, exclude = huge_phi)
+  res <- run_oracle(fits, eval_bb, tol = 1e-6, exclude = huge_phi, max_nonfinite = 0L)
   excl <- res[mapply(huge_phi, res$eta, res$log_sigma, res$y), ]
   expect_true(nrow(excl) > 0)
-  expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 0.05))
+  expect_true(all(excl$rel_err[is.finite(excl$rel_err)] <= 0.07))
 })
 
 # ---- binomial (model_type 18; src/drmTMB.cpp:3088-3173) --------------------

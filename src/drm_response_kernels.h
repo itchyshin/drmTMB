@@ -140,12 +140,13 @@ Type drm_response_log_density(
         CppAD::CondExpLt(alpha_raw, beta_shape_floor, beta_shape_floor, alpha_raw);
       Type beta_shape =
         CppAD::CondExpLt(beta_raw, beta_shape_floor, beta_shape_floor, beta_raw);
+      Type phi_shape = alpha + beta_shape;
       Type failures = trials_val - y_val;
       return lgamma(trials_val + Type(1.0)) -
         lgamma(y_val + Type(1.0)) -
         lgamma(failures + Type(1.0)) +
-        lgamma(phi) -
-        lgamma(trials_val + phi) +
+        lgamma(phi_shape) -
+        lgamma(trials_val + phi_shape) +
         lgamma(y_val + alpha) -
         lgamma(alpha) +
         lgamma(failures + beta_shape) -

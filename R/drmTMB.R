@@ -762,6 +762,7 @@ drm_fit_spec <- function(
     df = drm_fit_df(spec, opt),
     nobs = spec$nobs,
     estimator = spec$estimator,
+    estimator_exact = drm_estimator_exact(spec),
     penalty = spec$penalty,
     phylo_penalty = phylo_penalty_value,
     mspl = mspl,
@@ -1323,6 +1324,18 @@ drm_apply_estimator_spec <- function(
   }
   spec$tmb_random_names <- c(spec$random_names, mean_fixed, scale_fixed)
   spec
+}
+
+drm_estimator_exact <- function(spec) {
+  if (!identical(spec$estimator, "REML")) {
+    return(NA)
+  }
+  if (!identical(spec$model_type, "gaussian") &&
+      !identical(spec$model_type, "biv_gaussian")) {
+    return(FALSE)
+  }
+  scale_terms <- c("beta_sigma", "beta_sigma1", "beta_sigma2")
+  !any(scale_terms %in% spec$tmb_random_names)
 }
 
 drm_start_override_empty_record <- function() {

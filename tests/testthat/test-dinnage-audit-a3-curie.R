@@ -30,3 +30,31 @@ test_that("Md-H: beta_binomial kernel stays finite at extreme logit means (Dinna
   expect_true(is.finite(cpp_log_density))
   expect_equal(cpp_log_density, ref, tolerance = 1e-8)
 })
+
+test_that("Md-H: beta_binomial mi() response leaf stays finite at extreme logit means", {
+  ctrl <- drm_control(se = FALSE, logsigma_clamp = NULL)
+  dat <- data.frame(
+    successes = c(0L, 1L, 0L),
+    failures = c(10L, 9L, 10L),
+    x = c(NA, 1, 0),
+    weights = c(1, 0, 0)
+  )
+  fit <- suppressWarnings(drmTMB(
+    bf(cbind(successes, failures) ~ mi(x), sigma ~ 1),
+    data = dat,
+    family = beta_binomial(),
+    weights = weights,
+    impute = list(x = impute_model(x ~ 1, family = binomial())),
+    missing = miss_control(predictor = "model"),
+    control = ctrl
+  ))
+
+  expect_identical(unname(fit$model$tmb_data$has_mi), 1L)
+  expect_identical(unname(fit$model$tmb_data$mi_family), 1L)
+
+  par <- fit$obj$par
+  par[names(par) == "beta_mu"] <- c(700, 0)
+  par[names(par) == "beta_sigma"] <- 0
+
+  expect_true(is.finite(fit$obj$fn(par)))
+})

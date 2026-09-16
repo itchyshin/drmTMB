@@ -689,6 +689,15 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
     cli::cli_abort("Cannot simulate a boundary-unresolved association fit.")
   }
   if (!is.null(seed)) {
+    seed_exists <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    old_seed <- if (seed_exists) get(".Random.seed", envir = .GlobalEnv) else NULL
+    on.exit({
+      if (seed_exists) {
+        assign(".Random.seed", old_seed, envir = .GlobalEnv)
+      } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+        rm(".Random.seed", envir = .GlobalEnv)
+      }
+    }, add = TRUE)
     set.seed(seed)
   }
   if (
