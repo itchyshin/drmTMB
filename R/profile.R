@@ -2242,12 +2242,25 @@ drm_wald_confint <- function(
       rho_boundary = rho_boundary
     )
   out$conf.status[at_boundary] <- "wald_at_boundary"
-  if (any(at_boundary)) {
-    n_boundary <- sum(at_boundary)
+  is_rho12 <- targets$target_class == "residual-correlation"
+  at_boundary_profile <- at_boundary & !is_rho12
+  at_boundary_rho12 <- at_boundary & is_rho12
+  if (any(at_boundary_profile)) {
+    n_boundary <- sum(at_boundary_profile)
     cli::cli_warn(
       c(
-        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary]}} {?is/are} at a variance-component or correlation boundary.",
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_profile]}} {?is/are} at a variance-component or correlation boundary.",
         "i" = "{cli::qty(n_boundary)}Wald coverage is unreliable on the boundary; use {.code confint(method = \"profile\")} for {?this/these} target{?s}."
+      ),
+      class = "drmTMB_wald_boundary_warning"
+    )
+  }
+  if (any(at_boundary_rho12)) {
+    n_boundary <- sum(at_boundary_rho12)
+    cli::cli_warn(
+      c(
+        "{cli::qty(n_boundary)}Wald interval{?s} for {.val {targets$parm[at_boundary_rho12]}} {?is/are} at a residual-correlation boundary.",
+        "i" = "{cli::qty(n_boundary)}Profile intervals for residual rho12 at this boundary are usually identical to Wald; read {.field conf.status} on the returned table instead of switching method."
       ),
       class = "drmTMB_wald_boundary_warning"
     )
