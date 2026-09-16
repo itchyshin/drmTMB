@@ -1,3 +1,49 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 merge main into B2 branch (#1375)
+
+**Lane:** Grace · merge conflict resolution on `cursor/dinnage-arc3-b2-surfaces-20260916` @ `1424f1971`.
+
+**Fix:** `git merge origin/main` — sole conflict `docs/dev-log/check-log.md` (coord entries from `main` + Gauss entries from branch tip).
+
+**Non-claims:** no merge of #1375 until settled green CI on post-merge tip.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ shard fixes (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `1424f1971`; tip shard fixes (**REML IC**, **A-2 explicit `missing=` gating**, **census TSV**). **D-263: ACCEPT** @ `1424f1971` (Shinichi). CI dispatch [`35124451699`](https://github.com/itchyshin/drmTMB/actions/runs/35124451699) **in flight** on tip.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **MERGE-READY pending settled green CI**; merge when green (keep-going); tip-identity receipt LAST on `R/` before merge. PR comment ACCEPT posted @ tip.
+
+**Non-claims:** merge only after settled green CI on `1424f1971`.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 ACCEPT @ bf.R fix (#1375)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `05c28c1bb`; **`R/bf.R` `call_names` fix** (restore names on `drm_formula$calls` after `drm_formula_resolve_input`). **D-263: ACCEPT** @ `05c28c1bb` (Shinichi). CI run [`35123724324`](https://github.com/itchyshin/drmTMB/actions/runs/35123724324) **in flight**.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **MERGE-READY pending settled green CI**; **keep-going** merge via `pr_merge_when_green.sh`; tip-identity receipt LAST on `R/` before merge.
+
+**Non-claims:** merge only after settled green CI.
+
+---
+
+# 2026-09-16 — Dinnage arc3 Wave B2 CI red shard 3 (#1375)
+
+**Lane:** Ada coordinator · `ada:coord-b1375-ci-red` (coord docs only).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `296a1f763`; CI run [`35120853817`](https://github.com/itchyshin/drmTMB/actions/runs/35120853817) — **ubuntu-latest (release) shard 3/4** failed `tests/testthat/test-package-skeleton.R` (`drm_formula`). **D-263 ACCEPT** @ tip **stands until tip moves** (GitHub **Approve** blocked — same-author). Fixer in flight (Composer).
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — **CI RED**; **no merge** until settled green CI; tip-identity receipt LAST on `R/` before merge.
+
+**Non-claims:** no merge; no new D-263 ACCEPT.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 Rd args (#1375)
 
 **Lane:** Gauss · `gauss:dinnage-arc3-B2` · worktree `drmTMB-dinnage-arc3-B2`.
