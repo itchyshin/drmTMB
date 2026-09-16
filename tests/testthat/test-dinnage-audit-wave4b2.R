@@ -8,31 +8,12 @@ wave4b2_gaussian_with_na_predictor <- function(n = 40L, n_na = 4L, seed = 1332L)
   data.frame(y = stats::rnorm(n), x = x)
 }
 
-wave4b2_dev_pkg_root <- function(label) {
-  root <- normalizePath(
-    file.path(testthat::test_path(), "..", ".."),
-    mustWork = FALSE
-  )
-  if (!file.exists(file.path(root, "R", "drmTMB.R"))) {
-    testthat::skip(
-      sprintf("%s requires dev package source; skipped under installed R CMD check", label)
-    )
-  }
-  root
-}
-
 wave4b2_repo_r_drmtmb <- function() {
-  root <- wave4b2_dev_pkg_root("Unsupported-parameter source audit")
-  normalizePath(file.path(root, "R", "drmTMB.R"), mustWork = TRUE)
+  drm_pkg_path("R/drmTMB.R")
 }
 
 wave4b2_drm_control_rd <- function() {
-  root <- wave4b2_dev_pkg_root("drm_control.Rd source audit")
-  rd <- file.path(root, "man", "drm_control.Rd")
-  if (!file.exists(rd)) {
-    testthat::skip("man/drm_control.Rd not available in this check layout")
-  }
-  normalizePath(rd, mustWork = TRUE)
+  drm_pkg_path("man/drm_control.Rd")
 }
 
 test_that("A-2: miss_control(predictor = fail) errors on NA predictors (Dinnage audit)", {
