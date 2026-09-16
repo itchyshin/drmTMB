@@ -342,9 +342,11 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
+  # Only enforce when the caller passes `missing=` explicitly (A-2 audit): the
+  # formal default `missing = miss_control()` makes base::missing() unusable.
   if (
     identical(missing_control$predictor, "fail") &&
-      !base::missing(missing)
+      "missing" %in% names(as.list(fit_call))[-1L]
   ) {
     drm_validate_complete_predictors(formula, data)
   }
