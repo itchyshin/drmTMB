@@ -19,6 +19,11 @@
   independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
   A-4.
 
+* `confint()` now states that its returned `parm` column uses fully-qualified
+  target names such as `fixef:sigma:z`, even when the caller selected the same
+  target with a compact label such as `sigma:z`. Credit: the independent
+  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding UX-4.
+
 ## Independent-evaluation fixes (wave 3)
 
 * `weights()` composed with `mi()` now leaves the maximum-likelihood

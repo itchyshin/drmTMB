@@ -173,7 +173,11 @@
 #' @return A data frame with columns `parm`, `level`, `lower`, `upper`,
 #'   `scale`, `transformation`, `tmb_parameter`, `index`, `method`, and
 #'   `profile.engine`, `conf.status`, `profile.boundary`, and
-#'   `profile.message`. Successful rows currently use
+#'   `profile.message`. The returned `parm` values use the fully-qualified
+#'   target names used by `profile_targets()`, such as `fixef:sigma:z`, even
+#'   when the input `parm` used a compact label such as `sigma:z`. Normalize
+#'   names before joining the result back to user-supplied compact labels.
+#'   Successful rows currently use
 #'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`. Failed numeric
 #'   profile rows use `"profile_failed"` with missing endpoints; profile rows
 #'   mark intervals that land near a lower SD boundary or correlation boundary.

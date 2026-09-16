@@ -167,7 +167,11 @@ arguments internally; set the profile target with \code{parm}.}
 A data frame with columns \code{parm}, \code{level}, \code{lower}, \code{upper},
 \code{scale}, \code{transformation}, \code{tmb_parameter}, \code{index}, \code{method}, and
 \code{profile.engine}, \code{conf.status}, \code{profile.boundary}, and
-\code{profile.message}. Successful rows currently use
+\code{profile.message}. The returned \code{parm} values use the fully-qualified
+target names used by \code{profile_targets()}, such as \code{fixef:sigma:z}, even
+when the input \code{parm} used a compact label such as \code{sigma:z}. Normalize
+names before joining the result back to user-supplied compact labels.
+Successful rows currently use
 \code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}. Failed numeric
 profile rows use \code{"profile_failed"} with missing endpoints; profile rows
 mark intervals that land near a lower SD boundary or correlation boundary.
