@@ -1,30 +1,30 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~06:30 MDT** · merges **#1369 @ `2c15ae63e`**, **#1367 @ `e6ca0dc8e`**
+Updated: **2026-09-16 ~06:33 MDT** · **#1372 @ `dd937ac3`** · **`receipt-staleness` green** (run `35096373487`)
 
 ## Current scope
 
-Wave A gates for Wave B are satisfied. **Wave B implementation: UNLOCKED** — parent may spawn B1 (Gauss + Curie) per [`wave-b-brief.md`](wave-b-brief.md). Wave A tail still open: #1368, #1370, #1371 (merge only when CI green; agents do not merge unless explicitly authorized). **DRM.jl twin map (Jason):** [`LOOP/drm-jl-followups.md`](drm-jl-followups.md) — coordination only; Codex Julia lane owns filing.
+**Main CI triage:** `receipt-staleness` was red (stale parity receipt after code/doc merges); fixed by **#1372**. Docs-only pushes to `main` were **HOLD** until green post-#1372 — **lifted**. Wave A gates for Wave B are satisfied. **Wave B implementation: UNLOCKED** — parent may spawn B1 (Gauss + Curie) per [`wave-b-brief.md`](wave-b-brief.md). **B1:** implement on branches; **R/ merges to `main` gated on #1372** — satisfied. Wave A tail: #1368, #1370 (merge only when CI green). **DRM.jl twin map (Jason):** [`LOOP/drm-jl-followups.md`](drm-jl-followups.md) — coordination only.
 
 ## Merge record
 
 | PR | Slice | State | Merge SHA |
 | --- | --- | --- | --- |
+| #1372 | receipt refresh | **MERGED** | `dd937ac3` |
 | #1369 | A2 check/profile | **MERGED** | `2c15ae63e` |
 | #1367 | A3 misc | **MERGED** | `e6ca0dc8e` |
+| #1371 | Wave B docs-only | **MERGED** | `6580d74b1` |
 | #1368 | A1 docs | OPEN | — |
 | #1370 | D-263 audit md | OPEN | — |
-| #1371 | Wave B docs-only | OPEN | — |
 
 ## Queue order (CI-green, Shinichi merge only)
 
 1. #1368 (A1 docs)
 2. #1370 (audit notes)
-3. #1371 (Wave B docs stub)
 
 ## Wave B
 
-**UNLOCKED.** Base B worktrees on `origin/main` @ `e6ca0dc8e` or later. See B1/B2 prompts in `wave-b-brief.md`.
+**UNLOCKED.** Base B worktrees on `origin/main` @ `dd937ac3` or later. See B1/B2 prompts in `wave-b-brief.md`.
 
 ## Resume
 

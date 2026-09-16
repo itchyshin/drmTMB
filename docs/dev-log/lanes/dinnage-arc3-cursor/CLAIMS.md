@@ -32,18 +32,20 @@ The coordinator owns coordination records, status reconciliation, collision reso
 ## Held / Protected
 
 - ~~HOLD Wave B~~ **UNLOCKED 2026-09-16:** A2 (#1369) @ `2c15ae63e` and A3 (#1367) @ `e6ca0dc8e` on `main`. Wave C implementation still HOLD until Wave B lands.
+- **2026-09-16 ~06:32 MDT — `receipt-staleness` triage (main).** The red `main` badge was **receipt staleness** (`lss-tip-identity/public-001` vs `R/*.R` hashes after #1367/#1371 and coord doc pushes), **not** an R-CMD-check regression. **HOLD:** no further **docs-only** pushes to `main` until `receipt-staleness` on `main` is green **after** [#1372](https://github.com/itchyshin/drmTMB/pull/1372) merges. **#1372 MERGED** @ `dd937ac3`; post-merge workflow run `35096373487` **green** — HOLD **lifted** for docs-only. **B1 (Gauss):** may code on branches anytime; **do not merge `R/`** (or other receipt-hashing paths) to `main` until #1372 is on `main` — **satisfied** as of #1372 merge.
 - DEFER / PROTECTED: Md-K/Julia, S6, A-5/A-6, Md-L, Eq-4, variance-ratio interval design, S3 option B, Gaussian latent `mi()` missing-row weighting, raw-predictor sigma-clamp consumers, and M3 sqrt(n) tolerance design.
 
 ## Live Status
 
-Updated: 2026-09-16 ~06:30 MDT (**#1369 + #1367 MERGED**; **Wave B UNLOCKED**).
+Updated: 2026-09-16 ~06:33 MDT (**#1372 MERGED**; **`receipt-staleness` green on main**).
 
+- **Receipt fix [#1372](https://github.com/itchyshin/drmTMB/pull/1372): MERGED** @ `dd937ac3`. **`receipt-staleness` on `main`:** green (run `35096373487`).
 - **A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGED** @ `2c15ae63e`. **A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGED** @ `e6ca0dc8e`. **Wave B code: UNLOCKED** — spawn B1 then B2 per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md).
-- Remaining Wave A queue: **#1368 → #1370 → #1371** (Shinichi merge when CI green; agents do not merge).
-- **A1 docs — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`). Re-check CI vs post-#1367 `main` before merge.
+- Remaining Wave A queue: **#1368 → #1370** (#1371 merged @ `6580d74b1`; Shinichi merge when CI green; agents do not merge).
+- **A1 docs — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`). Re-check CI vs post-#1372 `main` before merge.
 - **A4 record:** DONE (#1351).
-- **D-263 audit markdown — PR [#1370](https://github.com/itchyshin/drmTMB/pull/1370)** (`cursor/dinnage-arc3-d263-audits-20260915`). Re-check CI post-#1367 before merge.
-- **Wave B docs-only — PR [#1371](https://github.com/itchyshin/drmTMB/pull/1371)** (`cursor/docs-mdj-map-20260915`). Does **not** gate B1/B2 implementation.
+- **D-263 audit markdown — PR [#1370](https://github.com/itchyshin/drmTMB/pull/1370)** (`cursor/dinnage-arc3-d263-audits-20260915`). Re-check CI post-#1372 before merge.
+- **Wave B docs-only — PR [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGED** (`cursor/docs-mdj-map-20260915`). Does **not** gate B1/B2 implementation.
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.
 
 ## Claim Reporting
