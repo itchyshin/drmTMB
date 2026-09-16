@@ -1218,18 +1218,7 @@ check_fit_input_data <- function(object) {
   if (is.null(keep)) {
     return(NULL)
   }
-  call <- object$call
-  if (is.null(call) || is.null(call$data)) {
-    return(NULL)
-  }
-  env <- if (!is.null(call)) environment(call) else NULL
-  if (is.null(env) || identical(env, emptyenv())) {
-    env <- environment(object$formula)
-  }
-  if (is.null(env) || identical(env, emptyenv())) {
-    env <- parent.frame()
-  }
-  data <- tryCatch(eval(call$data, envir = env), error = function(e) NULL)
+  data <- object$model$input_data
   if (!is.data.frame(data) || nrow(data) != length(keep)) {
     return(NULL)
   }
@@ -1516,7 +1505,7 @@ check_rho12_boundary <- function(object, rho_boundary) {
       paste0(
         "At least one fitted residual correlation is close to +/-1 using boundary ",
         rho_boundary,
-        ". A profile interval for residual rho12 at this boundary is usually identical to Wald; read conf.status on confint() instead of switching to method = \"profile\"."
+        ". A profile interval for residual rho12 at this boundary is usually identical to Wald; read conf.status on confint()."
       )
     }
   )

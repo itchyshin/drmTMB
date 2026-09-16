@@ -387,6 +387,7 @@ drm_apply_storage_control <- function(fit, control) {
   if (!isTRUE(control$keep_data)) {
     fit$data <- NULL
     fit$model$data <- NULL
+    fit$model$input_data <- NULL
   }
   if (!isTRUE(control$keep_model_frame)) {
     fit <- drm_drop_model_frames(fit)

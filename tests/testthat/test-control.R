@@ -100,6 +100,7 @@ test_that("memory-light storage keeps core post-fit methods working", {
 
   expect_null(fit$data)
   expect_null(fit$model$data)
+  expect_null(fit$model$input_data)
   expect_null(fit$model$model_frame)
   expect_null(fit$obj)
   expect_length(predict(fit, dpar = "mu"), nrow(dat))
