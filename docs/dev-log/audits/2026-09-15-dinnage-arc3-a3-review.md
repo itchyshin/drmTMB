@@ -7,24 +7,26 @@ Branch reviewed: `cursor/dinnage-arc3-a3-misc-20260915` at
 `ab78327b8e49e9b75356da7101b292ac416500db` (NEWS credits addendum;
 code/C17 head was `1f8f0801e3612ad46d0292d7d6c94b94f56a4f8f`)
 Review branch: `claude/pr1367-a3-rereview-20260915`
-Date: 2026-09-15 (NEWS P2 re-check addendum: 2026-09-15)
+Date: 2026-09-15 (NEWS P2 re-check: 2026-09-15; #1344 help cross-PR: 2026-09-15)
 
 ## Verdict
 
-ACCEPT-WITH-CHANGES.
+ACCEPT pending CI.
 
 The three prior P1 findings are fixed at the PR head. The C17/C14
 source-compatibility guard passes locally, Curie's Md-H test now reaches both
 the main beta-binomial objective and the `drm_response_log_density()` case-14
 `mi()` leaf, and the eight named A3 follow-up issues now have implementation,
-regression-test, and `NEWS.md` credit coverage in this PR (except the A1-owned
-`?phylo` help wording for #1344).
+regression-test, and `NEWS.md` credit coverage on PR #1367. The last tracked
+P2 for this issue set was #1344's `?phylo` branch-length convention sentence;
+that help wording is now on A1 PR #1368 in commit `c86e86d88` (verified on
+`cursor/dinnage-arc3-a1-docs-20260915`, not in the #1367 diff).
 
-I do not see a remaining P0/P1 blocker in the code changes reviewed here. The
-only remaining tracked P2 is the `?phylo` branch-length convention sentence
-for #1344, which stays A1-owned per the builder note. Do not mark #1344 fully
-closed from this PR alone. GitHub CI was re-running after the NEWS commit when
-this addendum was written; this is not a merge clearance.
+I do not see a remaining P0/P1/P2 blocker tied to the #1367 issue set. Do not
+merge on this audit alone: wait for GitHub CI on #1367 to settle green. When
+closing #1344, treat A1 #1368 as a cross-PR dependency: land or merge the A1
+#1344 help with or before treating #1344 fully closed (A3 owns the runtime
+pruning note on #1367).
 
 ## Findings
 
@@ -41,15 +43,19 @@ UX-2 (#1357), UX-3 (#1358). The commit message correctly scopes #1344 to the
 runtime pruning note and leaves `?phylo` wording on A1. This satisfies the
 prior NEWS P2 from ACCEPT-WITH-CHANGES.
 
-### P2: #1344 is only partly closed here; `?phylo` wording remains A1-owned
+### P2: #1344 `?phylo` branch-length help — resolved on A1 #1368 (`c86e86d88`)
 
-`R/phylo-utils.R` now emits a pruning note when the tree has tips absent from
-the observed species, and `tests/testthat/test-dinnage-audit-a3-misc.R` covers
-that note. The other half of #1344 is the `?phylo` branch-length convention
-sentence. This PR does not edit `man/phylo.Rd` or the roxygen source for that
-topic. That matches the builder's note that the help-page wording remains
-A1-owned, but reviewers and issue closers should not mark #1344 fully complete
-from this PR alone.
+Status: cleared for the #1367 issue-set audit (cross-PR).
+
+On #1367, `R/phylo-utils.R` emits a pruning note when the tree has tips absent
+from the observed species, and `tests/testthat/test-dinnage-audit-a3-misc.R`
+covers that note. The `?phylo` branch-length convention sentence is not in the
+#1367 diff; it landed on A1 PR #1368 in commit `c86e86d886d16669286546d80bd4c33e913e2416`,
+which updates `man/phylo.Rd` to state that `phylo()` uses the supplied
+ultrametric branch-length scale and does not silently rescale the tree to unit
+height. Issue closers should still coordinate merge order: #1344 is fully
+addressed only after both #1367 (runtime note) and #1368 (help wording) are
+accounted for.
 
 ## Prior P1 Re-check
 
@@ -98,8 +104,8 @@ Status: implementation/test coverage present, with docs caveats above.
 - #1326 Md-I: `drmTMB` fit objects and summaries now carry
   `estimator_exact`, and printed REML summaries distinguish exact restricted
   likelihood from the Laplace/Cox-Reid adjusted profile.
-- #1344 Mi-6: the runtime pruning note and test are present; `?phylo`
-  branch-length wording remains outside this PR.
+- #1344 Mi-6: runtime pruning note and test on #1367; `?phylo` branch-length
+  help on A1 #1368 (`c86e86d88`).
 - #1348 Mi-10: `simulate.drm_pair_association()` now saves and restores the
   caller's `.Random.seed` when `seed` is supplied.
 - #1350 Mi-12: both O3 `optim()` call sites share `drm_o3_optim_control()` and
