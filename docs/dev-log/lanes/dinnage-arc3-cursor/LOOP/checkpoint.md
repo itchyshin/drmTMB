@@ -1,10 +1,12 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: 2026-09-15 21:00 MDT (Ada overnight rehydration; **~8 h** to 2026-09-16 05:00 MDT)
+Updated: 2026-09-15 21:03 MDT (board tip on `origin/main` @ `506e6bae7`; **~7 h** to 2026-09-16 05:00 MDT)
 
 ## Current Scope
 
-Wave A only. **No agent merges.** All three Wave A PRs still **OPEN** on GitHub @ 21:00 MDT (live `gh pr view`). Shinichi merges each after settled green CI + D-263 ACCEPT.
+Wave A only. **No agent merges.** All three Wave A PRs still **OPEN** on GitHub @ 21:03 MDT (live `gh pr view`). Shinichi merges each after settled green CI + D-263 ACCEPT.
+
+**Board sync:** `origin/main` @ [`506e6bae7`](https://github.com/itchyshin/drmTMB/commit/506e6bae7) (cherry-pick of coord branch `bc42e8996`: board, CLAIMS, LOOP, morning handover skeleton). Coord branch may lag until FF from main.
 
 ## Done
 

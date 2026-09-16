@@ -36,7 +36,7 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-15 21:00 MDT (Ada overnight rehydration; live GitHub still OPEN on all three).
+Updated: 2026-09-15 21:03 MDT (board tip landed on `origin/main` @ `506e6bae7`; live GitHub still OPEN on all three).
 
 - Base for Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Three Wave A PRs OPEN @ 21:00 MDT; agents must not merge.** Shinichi merges only after settled green CI + D-263 ACCEPT on each PR. **Wave B/C: HOLD until A2 (#1369) and A3 (#1367) are merged by Shinichi** (A1 may merge whenever Shinichi is ready). Ready-to-dispatch Wave B plan: [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) (do not execute until unlock).
 - **A1 docs — MERGE-READY pending Shinichi — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `822763660` (`fix(ci): refresh Dinnage audit manifests` — capability-ledger manifest + `inst/extdata/env-skip-census.tsv` refresh; follows `c68620405` DHARMa **Suggests** + wave1 installed-doc path guards). All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **#1344 cross-PR help cleared.** Independent D-263 **ACCEPT** (docs; unchanged). **CI:** all 6 R-CMD-check jobs **SUCCESS** on run [35046449684](https://github.com/itchyshin/drmTMB/actions/runs/35046449684) @ `822763660`; GitHub merge state **MERGEABLE / CLEAN**. **Shinichi merge only — agents must not merge.**
