@@ -1,3 +1,15 @@
+# 2026-09-16 — Dinnage arc3 Wave B2 D-263 REQUEST CHANGES (#1375)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord` (status); `gauss:dinnage-arc3-B2` (P0 fix).
+
+**Evidence:** PR [#1375](https://github.com/itchyshin/drmTMB/pull/1375) OPEN @ `9c5a90dd3` on `cursor/dinnage-arc3-b2-surfaces-20260916`; local **47/47** reported. **D-263 review: REQUEST CHANGES** (not ACCEPT). **P0:** C17/C14 capability-ledger fingerprint drift (`mc-0568`) on `R/drmTMB.R` + `R/methods.R` — Gauss fixer spawned (re-cert + push). **P2:** confint Rd cross-link, audit note, check-log (fixer). `main` @ `ba2e8d31`; tip-identity last green @ `e169d7a76` (run `35111843393`).
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B2 not MERGE-READY; no merge until settled green CI + fresh **D-263 ACCEPT**; tip-identity receipt LAST on `R/` before merge.
+
+**Non-claims:** no agent merge of #1375; no MERGE-READY claim.
+
+---
+
 # 2026-09-16 — Dinnage arc3 Wave B2 PR open (#1375)
 
 **Lane:** `gauss:dinnage-arc3-B2` · Ada coord note.
