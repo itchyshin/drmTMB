@@ -9,7 +9,11 @@ meta_V(V)
 \arguments{
 \item{V}{A column name, vector, diagonal matrix, block-diagonal matrix, or
 full covariance matrix. Diagonal/vector \code{V} represents independent known
-sampling variances. A matrix represents the known covariance among rows.}
+sampling variances. A matrix represents the known covariance among rows.
+\code{meta_V()} matches \code{V} to the model frame by row position after ordinary
+\code{drmTMB()} row handling; it does not reorder a covariance matrix by row
+names or dimnames. Put the rows of \code{data} and the rows and columns of \code{V}
+in the same order before fitting.}
 }
 \value{
 A formula marker; never evaluated by users.

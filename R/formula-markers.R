@@ -7,6 +7,10 @@
 #' @param V A column name, vector, diagonal matrix, block-diagonal matrix, or
 #'   full covariance matrix. Diagonal/vector `V` represents independent known
 #'   sampling variances. A matrix represents the known covariance among rows.
+#'   `meta_V()` matches `V` to the model frame by row position after ordinary
+#'   `drmTMB()` row handling; it does not reorder a covariance matrix by row
+#'   names or dimnames. Put the rows of `data` and the rows and columns of `V`
+#'   in the same order before fitting.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -32,7 +36,8 @@ meta_V <- function(V) {
 #' positive continuous, and semi-continuous predictors. The non-Gaussian
 #' response routes support one binary `mi()` predictor modelled by
 #' `family = binomial()` for `family = poisson()`, `binomial()`, `nbinom2()`,
-#' and `beta()`.
+#' `beta()`, `lognormal()`, `Gamma(link = "log")`, `student()`, and
+#' `beta_binomial()`.
 #'
 #' @param x A predictor in a supported missing-predictor route.
 #'
@@ -177,14 +182,15 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' Gaussian multiple phylogenetic slopes, pure, labelled, or multiple
 #' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
-#' remain planned. The public `phylo()` API
-#' requires an
-#' ultrametric tree with branch lengths and uses the Hadfield and Nakagawa
-#' A-inverse sparse-precision path internally.
+#' remain planned. The public `phylo()` API requires an ultrametric tree with
+#' branch lengths and uses the supplied branch-length scale when building the
+#' Hadfield and Nakagawa A-inverse sparse-precision path internally; drmTMB
+#' does not silently rescale the tree to unit height.
 #'
 #' @param term Structured random-effect term, currently `1 | species` or
 #'   `1 + x | species`.
-#' @param tree Ultrametric phylogeny input with branch lengths.
+#' @param tree Ultrametric phylogeny input with branch lengths on the scale the
+#'   analyst wants the phylogenetic covariance to use.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export

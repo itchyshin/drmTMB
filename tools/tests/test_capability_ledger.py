@@ -335,8 +335,8 @@ class CapabilityLedgerTests(unittest.TestCase):
                 provenance = receipt / "provenance.tsv"
                 provenance.write_text(
                     "\n".join(
-                        "git_blob:R/methods.R\t" + "d" * 40
-                        if line.startswith("git_blob:R/methods.R\t")
+                        "git_blob:R/drmTMB.R\t" + "d" * 40
+                        if line.startswith("git_blob:R/drmTMB.R\t")
                         else line
                         for line in provenance.read_text(encoding="utf-8").splitlines()
                     )
@@ -369,7 +369,7 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ledger.C17_C14_CURRENT_SOURCE_COMPATIBILITY = original
                 shutil.rmtree(receipt, ignore_errors=True)
 
-        self.assertIn("current source blob differs for R/methods.R", blob_message)
+        self.assertIn("current source blob differs for R/drmTMB.R", blob_message)
         self.assertIn("LEAVE source_fingerprint alone", blob_message)
         self.assertNotIn("update source_fingerprint", blob_message)
 

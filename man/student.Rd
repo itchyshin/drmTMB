@@ -18,10 +18,9 @@ Here \code{sigma} is the Student-t \strong{scale}, not the response standard dev
 The density is the location-scale t evaluated at \code{z = (y - mu) / sigma}, so the
 standard deviation of \code{y} is \code{SD[y] = sigma * sqrt(nu / (nu - 2))} for \code{nu > 2}
 and is strictly larger than \code{sigma} (about 73\% larger at \code{nu = 3}, shrinking to
-\code{sigma} as \code{nu -> Inf}). This is the one implemented family whose public
-\code{sigma} is a scale rather than \code{SD[y]}: the location-scale t has no closed-form
-standard-deviation parameterization, and both \code{drmTMB} and its \code{DRM.jl} twin
-fit \code{sigma} as the scale.
+\code{sigma} as \code{nu -> Inf}). The Student-t family uses this scale because the
+location-scale t has no closed-form standard-deviation parameterization, and
+both \code{drmTMB} and its \code{DRM.jl} twin fit \code{sigma} as the scale.
 
 The \code{nu} parameter uses a log link with a lower bound of 2:
 \code{nu = 2 + exp(eta_nu)}. This keeps the fitted distribution in the

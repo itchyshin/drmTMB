@@ -196,6 +196,17 @@
 #'   with a raw DRM.jl error rather than a `drmTMB`-worded one. See
 #'   `docs/design/261-reml-by-route.md` for the full route-by-route table
 #'   before relying on bridge REML for a model not listed there.
+#'
+#'   Under native `REML = TRUE`, admitted mean fixed-effect coefficients are
+#'   marginalised in the TMB objective rather than estimated as ordinary fixed
+#'   parameters. [summary.drmTMB()] and [vcov.drmTMB()] can still report finite
+#'   Wald standard errors for those coefficients from the full `sdreport`
+#'   covariance, but [confint.drmTMB()] does not currently form Wald or profile
+#'   intervals for REML-integrated mean coefficients. Wald rows return `NA`
+#'   bounds with `conf.status = "wald_unavailable"`, and profiling such a mean
+#'   coefficient can fail because the coefficient is not a top-level TMB
+#'   parameter. Use `confint(..., method = "bootstrap")` when an interval for a
+#'   REML mean coefficient is needed.
 #' @param penalty Optional penalty / prior built by [drm_phylo_penalty()], or
 #'   `NULL` (default) for plain maximum likelihood. A non-`NULL` penalty
 #'   switches the fit to a penalized / maximum-a-posteriori (MAP) estimator that

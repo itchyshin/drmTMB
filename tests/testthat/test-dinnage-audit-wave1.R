@@ -2,6 +2,85 @@
 # (rdinnager/drmTMB_eval, pinned at 945da24f, report dated 2026-08-29).
 # One test block per finding fixed in this lane.
 
+source_or_installed_path <- function(..., package = "drmTMB") {
+  parts <- c(...)
+  source_path <- testthat::test_path("..", "..", ...)
+  installed_path <- do.call(
+    system.file,
+    c(as.list(parts), list(package = package))
+  )
+  doc_path <- ""
+  if (identical(parts[[1]], "vignettes")) {
+    doc_path <- do.call(
+      system.file,
+      c(as.list(c("doc", parts[-1])), list(package = package))
+    )
+  }
+  candidates <- c(source_path, installed_path, doc_path)
+  matches <- candidates[nzchar(candidates) & file.exists(candidates)]
+  testthat::skip_if_not(
+    length(matches) > 0L,
+    paste("documentation source file is not available:", file.path(...))
+  )
+  matches[[1]]
+}
+
+test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Dinnage audit)", {
+  vignette <- source_or_installed_path(
+    "vignettes",
+    "capability-and-limits.Rmd"
+  )
+  text <- readLines(vignette, warn = FALSE)
+  row <- grep(
+    "^\\| `binomial\\(\\)`, `poisson\\(\\)`, `nbinom2\\(\\)`, `beta\\(\\)`",
+    text,
+    value = TRUE
+  )
+
+  expect_length(row, 1L)
+  expect_match(row, "`lognormal()`", fixed = TRUE)
+  expect_match(row, "`Gamma(link = \"log\")`", fixed = TRUE)
+  expect_match(row, "`student()`", fixed = TRUE)
+  expect_match(row, "`beta_binomial()`", fixed = TRUE)
+  expect_match(row, "one binary predictor", fixed = TRUE)
+})
+
+test_that("remaining A1 help pages document Dinnage audit caveats", {
+  rd_text <- function(file) {
+    path <- source_or_installed_path("man", file)
+    paste(readLines(path, warn = FALSE),
+      collapse = "\n"
+    )
+  }
+
+  drm_help <- rd_text("drmTMB.Rd")
+  expect_match(drm_help, "conf.status = \"wald_unavailable\"", fixed = TRUE)
+  expect_match(drm_help, "method = \"bootstrap\"", fixed = TRUE)
+
+  predict_help <- rd_text("predict.drmTMB.Rd")
+  expect_match(predict_help, "not always \\code{E[Y]}", fixed = TRUE)
+  expect_match(predict_help, "fitted-row response means", fixed = TRUE)
+
+  summary_help <- rd_text("summary.drmTMB.Rd")
+  expect_match(summary_help, "\\pkg{emmeans}", fixed = TRUE)
+
+  residuals_help <- rd_text("residuals.drmTMB.Rd")
+  expect_match(residuals_help, "DHARMa::createDHARMa", fixed = TRUE)
+  expect_match(residuals_help, "Student-t scale", fixed = TRUE)
+  expect_match(residuals_help, "sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2))",
+    fixed = TRUE
+  )
+
+  sigma_help <- rd_text("sigma.drmTMB.Rd")
+  expect_match(sigma_help, "one scale value per observation", fixed = TRUE)
+  expect_match(sigma_help, "insight::get_sigma()", fixed = TRUE)
+
+  phylo_help <- rd_text("phylo.Rd")
+  expect_match(phylo_help, "does not silently rescale the tree to unit height",
+    fixed = TRUE
+  )
+})
+
 test_that("M1: a constant weight leaves the mi() MLE unchanged (Dinnage audit)", {
   # weights(i) previously multiplied each leaf density BEFORE logspace_add()
   # combined them inside the mi() two-point mixture (mi_family == 1), which

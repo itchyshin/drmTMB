@@ -109,10 +109,9 @@ biv_student <- function() {
 #' The density is the location-scale t evaluated at `z = (y - mu) / sigma`, so the
 #' standard deviation of `y` is `SD[y] = sigma * sqrt(nu / (nu - 2))` for `nu > 2`
 #' and is strictly larger than `sigma` (about 73% larger at `nu = 3`, shrinking to
-#' `sigma` as `nu -> Inf`). This is the one implemented family whose public
-#' `sigma` is a scale rather than `SD[y]`: the location-scale t has no closed-form
-#' standard-deviation parameterization, and both `drmTMB` and its `DRM.jl` twin
-#' fit `sigma` as the scale.
+#' `sigma` as `nu -> Inf`). The Student-t family uses this scale because the
+#' location-scale t has no closed-form standard-deviation parameterization, and
+#' both `drmTMB` and its `DRM.jl` twin fit `sigma` as the scale.
 #'
 #' The `nu` parameter uses a log link with a lower bound of 2:
 #' `nu = 2 + exp(eta_nu)`. This keeps the fitted distribution in the
@@ -406,6 +405,11 @@ beta_binomial <- function() {
 #' ordered-category score, `sum_k k * Pr(y_i = k)`. Ordinal scale or
 #' discrimination formulas are planned but not exposed in this first
 #' implementation.
+#'
+#' The response may be an ordered factor or an integer-coded category. Integer
+#' codes are used at face value in increasing numeric order; `drmTMB` cannot
+#' infer whether those numbers represent the scientific ordering the analyst
+#' intended. Use an ordered factor when labels carry the biological ordering.
 #'
 #' @return A `drm_family` object.
 #' @export

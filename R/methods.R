@@ -2830,6 +2830,17 @@ deviance.drmTMB <- function(object, ...) {
 #' mean, and fixed-effect covariance does not propagate imputation-parameter
 #' uncertainty through the design basis.
 #'
+#' More generally, `type = "response"` means "on the response scale of the
+#' requested distributional parameter", not always `E[Y]`. For
+#' zero-inflated and hurdle count families it returns the component count mean
+#' when `dpar = "mu"`, not the unconditional mean after structural-zero or
+#' hurdle mixing. For lognormal fits it returns `mu` on the log-response scale,
+#' not `exp(mu + sigma^2 / 2)`. For cumulative-logit fits it returns the
+#' location linear predictor on its response scale, not an expected ordinal
+#' score. Use [fitted.drmTMB()] for fitted-row response means or expected
+#' scores; use explicit distributional-parameter predictions when a new-data
+#' mean must be assembled outside the fitted rows.
+#'
 #' Binary predictor labels follow the fitted encoding, regardless of the levels
 #' present in the new batch. Numeric new values match raw numeric fitted labels;
 #' for nonnumeric fitted labels, numeric 0/1 values specify the encoded states.
@@ -3674,9 +3685,12 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' `drmTMB` fit.
 #'
 #' For univariate Gaussian models, response residuals are `y - mu`. Pearson
-#' residuals divide by the fitted observation standard deviation. If a dense
-#' known sampling covariance was used, Pearson residuals are whitened by the
-#' fitted total observation covariance.
+#' residuals divide by the fitted observation standard deviation. Student-t
+#' Pearson residuals use the fitted Student-t scale; this is not the marginal
+#' residual standard deviation when `nu > 2`. Skew-normal Pearson residuals use
+#' the public response-standard-deviation parameter. If a dense known sampling
+#' covariance was used, Pearson residuals are whitened by the fitted total
+#' observation covariance.
 #'
 #' For lognormal models, response residuals are `y - fitted_mean`. Pearson
 #' residuals are computed on the log-response scale as `(log(y) - mu) / sigma`.
@@ -3684,9 +3698,12 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' divide by the fitted Gamma standard deviation `mu * sigma`, where `sigma` is
 #' the coefficient of variation. For Tweedie models, response residuals are
 #' `y - mu` and Pearson residuals divide by
-#' `sqrt(sigma^2 * mu^nu)`. For zero-one beta models, response residuals
-#' are observed proportions minus the unconditional fitted mean, including exact
-#' zero-one boundary mass. For beta-binomial models, response residuals are
+#' `sqrt(sigma^2 * mu^nu)`. For beta models, response residuals are `y - mu`
+#' and Pearson residuals divide by
+#' `sqrt(mu * (1 - mu) * sigma^2 / (1 + sigma^2))`. For zero-one beta models,
+#' response residuals are observed proportions minus the unconditional fitted
+#' mean, including exact zero-one boundary mass. For beta-binomial models,
+#' response residuals are
 #' observed success proportions minus fitted `mu`, and Pearson residuals
 #' divide by the fitted beta-binomial proportion standard deviation. For
 #' binomial models, response residuals are observed success proportions minus
@@ -3786,6 +3803,16 @@ rtweedie_compound <- function(n, mu, phi, power) {
 #' residuals(fit)
 #' residuals(fit, type = "pearson")
 #' residuals(fit, type = "quantile")
+#' if (requireNamespace("DHARMa", quietly = TRUE)) {
+#'   sims <- simulate(fit, nsim = 20)
+#'   dh <- DHARMa::createDHARMa(
+#'     simulatedResponse = as.matrix(sims),
+#'     observedResponse = fit$model$y,
+#'     fittedPredictedResponse = fitted(fit),
+#'     integerResponse = FALSE
+#'   )
+#'   DHARMa::testUniformity(dh)
+#' }
 #' @export
 residuals.drmTMB <- function(
   object,
@@ -4085,6 +4112,15 @@ residuals.drmTMB <- function(
 #' makes the fit honest about what it evaluated, not correct: the estimate
 #' itself is still unreliable near the clamp.
 #'
+#' `sigma()` follows `drmTMB`'s distributional-regression contract, not the
+#' scalar summary contract some generic tools expect from [stats::sigma()].
+#' When the scale formula contains fitted-row variation, such as `sigma ~ x`,
+#' `sigma()` returns one scale value per observation. Generic helpers that
+#' assume a scalar residual scale, including `insight::get_sigma()`, may
+#' summarize that vector and hide the fitted heterogeneity; inspect
+#' `range(sigma(fit))` or [predict.drmTMB()] with `dpar = "sigma"` when the
+#' scale model is part of the scientific question.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future scale-extractor options.
 #'
@@ -4247,6 +4283,9 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'   \code{vignette("capability-and-limits", package = "drmTMB")}: `summary()`
 #'   computes intervals generically for any target, and the tier a given cell
 #'   belongs to is a documentation-level curation, not a runtime guard.
+#'   The optional \pkg{emmeans} package can compute estimated marginal means
+#'   from supported fixed-effect `drmTMB` fits using the package registration
+#'   installed at load time.
 #'
 #' @examples
 #' dat <- data.frame(y = c(0.2, 0.5, 1.1, 1.4), x = c(-1, 0, 1, 2))
@@ -4260,6 +4299,9 @@ round.drmTMB_biv_sigma <- function(x, digits = 0) {
 #'   ci_parm = "sigma",
 #'   profile_precision = "fast"
 #' )
+#' if (requireNamespace("emmeans", quietly = TRUE)) {
+#'   emmeans::emmeans(fit, specs = "x", at = list(x = c(-1, 0, 1)))
+#' }
 #' @export
 summary.drmTMB <- function(
   object,
