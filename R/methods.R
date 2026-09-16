@@ -80,6 +80,17 @@ print.drmTMB <- function(x, ...) {
       "  convergence: {x$opt$convergence} (not converged; see {.fn check_drm})"
     )
   }
+  blocks <- coef(x)
+  if (length(blocks)) {
+    cli::cli_text("  fixed effects:")
+    for (nm in names(blocks)) {
+      block <- blocks[[nm]]
+      if (length(block)) {
+        formatted <- paste0(names(block), " = ", format(signif(block, 4)), collapse = ", ")
+        cli::cli_text("    {nm}: {formatted}")
+      }
+    }
+  }
   invisible(x)
 }
 
@@ -2646,7 +2657,22 @@ logLik.drmTMB <- function(object, ...) {
 # Warn when an information criterion is requested for a fit where it is not a
 # valid comparison. `stats::AIC()`/`BIC()` default methods read the logLik value
 # and ignore the estimator, so the guard lives in the drmTMB methods below.
+drm_ic_fixed_effect_signature <- function(object) {
+  blocks <- coef(object)
+  paste(
+    vapply(
+      names(blocks),
+      function(nm) {
+        paste0(nm, ":", paste(names(blocks[[nm]]), collapse = ","))
+      },
+      character(1L)
+    ),
+    collapse = "|"
+  )
+}
+
 drm_warn_information_criterion <- function(fits, what) {
+  drm_fits <- fits[vapply(fits, inherits, logical(1L), what = "drmTMB")]
   estimators <- vapply(
     fits,
     function(o) if (is.null(o$estimator)) "ML" else o$estimator,
@@ -2662,13 +2688,24 @@ drm_warn_information_criterion <- function(fits, what) {
     )
   }
   if (any(estimators == "REML")) {
-    cli::cli_warn(
-      c(
-        "{what} from a REML fit is comparable only across models with identical fixed effects.",
-        "i" = "Never compare ML with REML, or different mean structures, by {what}; refit with {.code REML = FALSE} for fixed-effect model selection."
-      ),
-      class = "drmTMB_ic_reml_warning"
-    )
+    reml_comparison_invalid <- length(drm_fits) >= 2L &&
+      (
+        any(estimators != "REML") ||
+          length(unique(vapply(
+            drm_fits[estimators == "REML"],
+            drm_ic_fixed_effect_signature,
+            character(1L)
+          ))) > 1L
+      )
+    if (reml_comparison_invalid) {
+      cli::cli_warn(
+        c(
+          "{what} from a REML fit is comparable only across models with identical fixed effects.",
+          "i" = "Never compare ML with REML, or different mean structures, by {what}; refit with {.code REML = FALSE} for fixed-effect model selection."
+        ),
+        class = "drmTMB_ic_reml_warning"
+      )
+    }
   }
   invisible(NULL)
 }

@@ -225,6 +225,13 @@ drm_tweedie_dpq <- function(fun) {
     mu <- rep(params$mu, length.out = n)
     phi <- rep(params$sigma, length.out = n)^2
     power <- rep(params$nu, length.out = n)
+    bad <- !is.finite(power) | power <= 1 | power >= 2
+    if (any(bad)) {
+      cli::cli_abort(c(
+        "Tweedie power must lie strictly between 1 and 2.",
+        "x" = "{cli::qty(sum(bad))} value{?s} outside (1, 2)."
+      ))
+    }
     if (length(unique(power)) == 1L) {
       return(fun(y, mu = mu, phi = phi, power = power[1]))
     }
