@@ -1,6 +1,6 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: 2026-09-15 ~19:10 MDT (A2 CI green @ 3805b8520)
+Updated: 2026-09-15 ~19:35 MDT (A2 + A3 CI green)
 
 ## Current Scope
 
@@ -12,26 +12,26 @@ Wave A only. **No agent merges.** Shinichi merges each Wave A PR after settled g
 - A4 #1351 DONE (record + vault skill; no tag/CI change).
 - **A1 docs PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368) COMPLETE** at `d9f7f12eb` (C17 receipt refresh; follows `c10332534`; all A1 issues in-branch). Docs D-263 **ACCEPT**. #1344 cross-PR help cleared.
 - **A2 check/profile PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369): MERGE-READY** at `3805b8520`; D-263 **ACCEPT** @ `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)); CI all 6 checks **SUCCESS** on run [35040873414](https://github.com/itchyshin/drmTMB/actions/runs/35040873414). **Shinichi merge only — agents must not merge.**
-- **A3 misc PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367):** head `6a5200f39` (CondExp + env-skip census refresh). Independent D-263 **ACCEPT** unchanged ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)); **await settled green CI + Shinichi merge only.**
+- **A3 misc PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367): MERGE-READY** at `6a5200f39`; D-263 **ACCEPT** ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)); CI all 6 checks **SUCCESS** on run [35042137154](https://github.com/itchyshin/drmTMB/actions/runs/35042137154). **Shinichi merge only — agents must not merge.**
 
 ## Ready for Shinichi merge (agents: do not merge)
 
 | Slice | PR | Head | Gate |
 | --- | --- | --- | --- |
 | A2 check/profile | [#1369](https://github.com/itchyshin/drmTMB/pull/1369) | `3805b8520` | **MERGE-READY** — CI green run 35040873414; D-263 ACCEPT @ `b6714135d` |
+| A3 misc code | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `6a5200f39` | **MERGE-READY** — CI green run 35042137154; D-263 ACCEPT |
 
-## Awaiting settled CI (then Shinichi merge)
+## Awaiting green CI (then Shinichi merge)
 
 | Slice | PR | Head | Gate |
 | --- | --- | --- | --- |
-| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `d9f7f12eb` | CI settling (docs D-263 ACCEPT done) |
-| A3 misc | [#1367](https://github.com/itchyshin/drmTMB/pull/1367) | `6a5200f39` | CI settling (D-263 ACCEPT unchanged) |
+| A1 docs | [#1368](https://github.com/itchyshin/drmTMB/pull/1368) | `d9f7f12eb` | **CI red** — DHARMa / wave1 fixes in flight (`cursor/dinnage-arc3-a1-docs-20260915-fix-ci`); docs D-263 ACCEPT done |
 
 ## CI snapshot
 
 - **#1369 @ `3805b8520`:** run [35040873414](https://github.com/itchyshin/drmTMB/actions/runs/35040873414) — all 6 checks **SUCCESS** (settled).
-- **#1368 @ `d9f7f12eb`:** CI **not settled** (release shards still running or red on latest run); re-check `gh pr checks 1368` before merge.
-- **#1367 @ `6a5200f39`:** CI **not settled** (release shards pending on latest run); re-check `gh pr checks 1367` before merge.
+- **#1367 @ `6a5200f39`:** run [35042137154](https://github.com/itchyshin/drmTMB/actions/runs/35042137154) — all 6 checks **SUCCESS** (settled).
+- **#1368 @ `d9f7f12eb`:** **CI red** (DHARMa / wave1); re-check `gh pr checks 1368` after fix branch lands.
 
 ## Held
 
