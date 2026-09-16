@@ -37,13 +37,13 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-16 ~07:44 MDT (**#1374 merged**; **B1 #1373 awaiting CI**).
+Updated: 2026-09-16 ~08:56 MDT (**#1373 B1 merged**; **Wave B2 UNLOCKED**).
 
-- **`main` tip:** `f7b40b75a` (post [#1374](https://github.com/itchyshin/drmTMB/pull/1374) receipt refresh).
-- **Receipt gate:** [#1374](https://github.com/itchyshin/drmTMB/pull/1374) **MERGED** @ `f7b40b75a`; `receipt-staleness` green (run `35103746783`). Prior [#1372](https://github.com/itchyshin/drmTMB/pull/1372) @ `dd937ac3`.
+- **`main` tip:** `f822a34da` (merge [#1373](https://github.com/itchyshin/drmTMB/pull/1373) Wave B1).
+- **Receipt gate:** post-#1373 `receipt-staleness` **green** (run `35111843393` @ `f822a34da`). Prior [#1374](https://github.com/itchyshin/drmTMB/pull/1374) @ `f7b40b75a` (run `35103746783`). No tip-identity regen PR needed after B1 merge.
 - **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
-- **Wave B code: IN FLIGHT** — B1 open; B2 per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) after B1.
-- **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) OPEN** @ `994308a08` (`cursor/dinnage-arc3-b1-check-20260916`). **Await CI**; prefer **Composer** / Grace watchers — agents **do not merge #1373** unless green and authorized. Branch already includes tip-identity regen @ `5b5fe25a3`; re-run LAST if `R/` changes again before merge.
+- **Wave B1 — PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da` (2026-09-16; Shinichi/Grace). Gauss lease `gauss:dinnage-arc3-B1` should **release** when idle.
+- **Wave B2 — UNLOCKED** — spawn per [`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) § B2; base `origin/main` @ `f822a34da` or later; prefer **Composer**; agents **do not merge** B2 PR unless green and authorized.
 - **A4 record:** DONE (#1351).
 - **Wave B docs-only [#1371](https://github.com/itchyshin/drmTMB/pull/1371): MERGED** — does not gate B1/B2 implementation.
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main` (checkpoint cross-link); do not open DRM.jl issues from this Cursor slice.

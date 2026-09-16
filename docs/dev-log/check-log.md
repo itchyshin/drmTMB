@@ -1,3 +1,13 @@
+# 2026-09-16 — Dinnage arc3 Wave B1 merged (#1373); B2 unlocked
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
+
+**Evidence:** PR [#1373](https://github.com/itchyshin/drmTMB/pull/1373) merged @ `f822a34da` (merge commit; Shinichi/Grace). GitHub Actions `receipt-staleness` run `35111843393` green on `main` — no follow-up tip-identity PR.
+
+**Coordination update:** board tip, `CLAIMS.md`, `LOOP/checkpoint.md` — B1 closed; Wave B2 UNLOCKED; spawn brief § B2.
+
+---
+
 # 2026-09-16 — Dinnage arc3 receipt gate clear again (#1374)
 
 **Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
