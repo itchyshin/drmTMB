@@ -590,7 +590,7 @@ response-missingness ledger:
 | Response family | Missing predictor `mi()` (`predictor = "model"`) |
 | --- | :---: |
 | `gaussian()` | ✓ (broad predictor-model catalogue) |
-| `binomial()`, `poisson()`, `nbinom2()`, `beta()` | ✓ (one binary predictor) |
+| `binomial()`, `poisson()`, `nbinom2()`, `beta()`, `lognormal()`, `Gamma(link = "log")`, `student()`, `beta_binomial()` | ✓ (one binary predictor) |
 | every other family | — (rejects) |
 
 Two missing-predictor details:
