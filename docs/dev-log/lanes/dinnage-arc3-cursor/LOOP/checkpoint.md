@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~06:33 MDT** · **#1372 @ `dd937ac3`** · **`receipt-staleness` green** (run `35096373487`)
+Updated: **2026-09-16 ~06:40 MDT** · **receipt gate clear** · **`main` @ `dd937ac3`+**
 
 ## Current scope
 
-**Main CI triage:** `receipt-staleness` was red (stale parity receipt after code/doc merges); fixed by **#1372**. Docs-only pushes to `main` were **HOLD** until green post-#1372 — **lifted**. Wave A gates for Wave B are satisfied. **Wave B implementation: UNLOCKED** — parent may spawn B1 (Gauss + Curie) per [`wave-b-brief.md`](wave-b-brief.md). **B1:** implement on branches; **R/ merges to `main` gated on #1372** — satisfied. Wave A tail: #1368, #1370 (merge only when CI green). **DRM.jl twin map (Jason):** [`LOOP/drm-jl-followups.md`](drm-jl-followups.md) — coordination only.
+**Receipt gate CLEAR** after **#1372** (`dd937ac3`); `receipt-staleness` green (run `35096373487`). **Push coord/docs to `main` OK.** **Merge queue RESUMED:** #1368 → #1370 when each CI settled green (#1371 done); prefer Grace watchers — agents do not merge unless green and authorized. **Wave B: UNLOCKED** — **B1 may open PR** (branch `cursor/dinnage-arc3-b1-check-20260916`); **regenerate tip-identity receipt LAST** on any B1 merge that touches `R/`. **DRM.jl twin map (Jason):** [`LOOP/drm-jl-followups.md`](drm-jl-followups.md) — coordination only.
 
 ## Merge record
 
@@ -17,14 +17,15 @@ Updated: **2026-09-16 ~06:33 MDT** · **#1372 @ `dd937ac3`** · **`receipt-stale
 | #1368 | A1 docs | OPEN | — |
 | #1370 | D-263 audit md | OPEN | — |
 
-## Queue order (CI-green, Shinichi merge only)
+## Queue order (CI-green; Grace watchers / Shinichi merge preferred)
 
-1. #1368 (A1 docs)
-2. #1370 (audit notes)
+1. #1368 (A1 docs) — resume when CI green
+2. #1370 (audit notes) — resume when CI green
+3. ~~#1371~~ merged @ `6580d74b1`
 
 ## Wave B
 
-**UNLOCKED.** Base B worktrees on `origin/main` @ `dd937ac3` or later. See B1/B2 prompts in `wave-b-brief.md`.
+**UNLOCKED.** Base B worktrees on `origin/main` @ `dd937ac3` or later. **B1:** open PR when ready; tip-identity regen LAST on `R/` changes. See `wave-b-brief.md`.
 
 ## Resume
 

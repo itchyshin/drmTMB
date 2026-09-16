@@ -1,3 +1,15 @@
+# 2026-09-16 — Dinnage arc3 receipt gate clear (#1372)
+
+**Lane:** Ada coordinator · `ada:dinnage-arc3-coord`.
+
+**Evidence:** PR [#1372](https://github.com/itchyshin/drmTMB/pull/1372) merged @ `dd937ac3`; GitHub Actions workflow `receipt-staleness` run `35096373487` green on `main`.
+
+**Coordination update:** `coordination-board.md` tip, `docs/dev-log/lanes/dinnage-arc3-cursor/CLAIMS.md`, `LOOP/checkpoint.md` — receipt gate clear; merge queue resumed for #1368/#1370 (#1371 already merged); B1 may open PR with tip-identity regen LAST on `R/` merges; push coord docs to `main` OK.
+
+**Non-claims:** no agent merge of #1368/#1370 unless CI green and explicitly authorized (Grace watchers preferred).
+
+---
+
 # 2026-08-18 — win-builder Julia hang root cause + CRAN-lane hard stop
 
 **Lane:** `cursor/070-julia-skip-winbuilder-fix` (from `origin/main` @ `02b8fbe72`).
@@ -19,16 +31,6 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 ---
 
 # Check Log
-
-## 2026-09-16 — Dinnage arc3 merge queue: #1369 merged; #1367/#1368 rebased
-
-**Lane:** Cursor coordinator `dinnage-arc3-cursor` worktree; Shinichi-authorized merges.
-
-**Done:** `origin/main` @ `2c15ae63e` after **#1369** merge. Rebased **#1367** (A3) to `684485d73` with C17 recert `pr1367-a3-post-rebase`. Rebased **#1368** (A1 docs) to `2aad4c1b8`. Updated board tip, `CLAIMS.md`, `LOOP/checkpoint.md`, `wave-b-brief.md`.
-
-**Next:** Wait green CI on #1367, then `gh pr merge --merge` queue #1367 → #1368 → #1370 → #1371. Wave B code unlock after #1367 lands.
-
----
 
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
@@ -94588,73 +94590,3 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
-
-### 2026-09-14 — Dinnage audit, second arc (branch `claude/audit-dinnage-wave1-20260913`, draft PR #1361)
-
-- Commits of the arc: `fc461aae4` M1 (eleven non-Bernoulli `mi()` sites), `0526baa2f` M2, `2a5b0665e`
-  and `e86359fe2` M2 follow-ups (`predict_parameters()` → `clamp_limited`; `sd(group)` predictor),
-  `3192db3f6` S2b (marginal residual variance), `4ae2f5d99` S2b follow-up (measured diagonal, phylo
-  label prefix), `d61f65183` residual_sd clamp consistency + Rd links, `d44a495be` S3 help page,
-  `37b5d7ce6` design notes 274/275, `b49ce9f70` zi-nbinom2 contract + `.Rbuildignore`,
-  `1540d95fe` NEWS + clamp_limited docs.
-- Red-first evidence per new test, saved in the session scratchpad and summarised in
-  `docs/dev-log/after-task/2026-09-14-dinnage-audit-wave3.md`: M1 43 failures on the pre-fix `.so`
-  (all eleven families) → 0; M2 297-nat log-likelihood gap, Pearson SD 2.02 → green; S2b median 0.76
-  vs marginal 1.01 → green; every follow-up repair red-first as well.
-- Fresh-context Opus (Fisher) reviews of every diff: `docs/dev-log/audits/2026-09-14-dinnage-wave3-review.md`
-  (Part B: 274, 275, S3 — ACCEPT-WITH-CHANGES ×3, CONCUR on S2b; Part A: M1, M2, S2b, S2b follow-up —
-  ACCEPT-WITH-CHANGES; M2 follow-up `2a5b0665e` — REJECT on clamped endpoints, superseded by
-  `e86359fe2` — ACCEPT-WITH-CHANGES). Every REQUIRED item applied or recorded.
-- `R CMD check --as-cran --no-manual` (`NOT_CRAN=false`) on a `git archive` clean export:
-  run 1 on `2a5b0665e` — 1 ERROR (a zi-nbinom2 test pinned the raw sigma scale under extrapolation),
-  2 WARNINGs (Rd links to an internal function; tracked `tools-scratch` at top level), 2 NOTEs (new
-  submission; tracked `.scratch`); run 2 on `d61f65183` — **0 errors, 0 package warnings, 1 NOTE**
-  (new submission); the one remaining WARNING is the environment's missing `checkbashisms` script.
-  Tests OK (44 s), vignette re-build OK (64 s). Later commits are NEWS/docs only.
-- Targeted suites after each fix (`load_all`): mi()/missing-data/dinnage-audit sweep 0/0; M2
-  clamp/residual/simulate/predict 0/0; S2 heritability/summary/derived 467 → 687 passed, 0 failed.
-- Not covered (recorded, not fixed): Gaussian latent `mi()` route weight invariance; Tweedie
-  start-value-frozen quadrature support; raw-predictor consumers in `profile()`, the Julia bridge,
-  `summary_parameter_delta_derivative()`, and `check_drm()`'s clamp detector; Wald coverage
-  0.910/0.928 of the variance-ratio accessors (predates); S6 code.
-- Post-review repairs, same evening: `1c44d2f12` (S2b follow-up 2: design-row diagonal, clamp-active
-  refusal) and `19849f0dc` (index by `observation_node_index`, NA when unindexed; reason lists name
-  `clamp_limited`). Clean-export as-cran run 3 on `a16ce24b6` (after `1c44d2f12`): identical to run 2 —
-  0 errors, 0 package warnings, 1 NOTE; tests OK (44 s), vignettes OK (63 s). Run 4 on `19849f0dc`
-  (after the design-row index fix): identical — 0 errors, 0 package warnings, 1 NOTE; tests OK (44 s),
-  vignettes OK (63 s). The two commits after it (`a03eb0938`, `e2d41def9`) are comments, help text,
-  NEWS wording and the review file only. Fisher's review chain on S2b closed at `19849f0dc`
-  (ACCEPT-WITH-CHANGES; the one REQUIRED item, two stale comment sentences, applied in `e2d41def9`).
-  Ledger `.unlazy/dinnage-2`: all 27 gates met.
-
-### 2026-09-15 — PR #1361 CI red: a stale ledger receipt, then one fragile test fixture and a stale skip census; green, merged
-
-**Reader:** whoever next sees all four `ubuntu-latest (release)` shards fail in under two minutes on a branch that touched `R/methods.R` or `R/drmTMB.R`.
-
-Every wave-3 push of PR #1361 (runs 34924393410 … 34927450959) failed the four release shards at the "Validate generated capability ledger" step: `tools/tests/test_capability_ledger.py` → `mc-0568: current source blob differs for R/methods.R` (receipt `036194a72`, current `14c7741db`). The R suite, `os-matrix` and the blind-spot job were green throughout. Cause: the C17/C14 model-15 receipt pins the whole-file blob of `R/methods.R`; the 13 Sep recert (`30965df50`, at `743024b8b`) predated the M2/S2b follow-ups `0526baa2f` … `e2d41def9`. Stale, not wrong (`source_fingerprint` still matched).
-
-Fix (`1410c27f8`, by the arc session): runner re-run (`C17_COMPAT_RUN_ID=2026-09-15-dinnage-audit-wave3-c17c2-c14-final-source-compatibility`, 1 min 39 s), three TSV rows repointed, `source_fingerprint` untouched. Independent check (this session): the new receipt's graded fields (`status`, `convergence`, `pdHess`, `max_gradient`, `tau_hat`, `mode_correlation`, `boundary_hit`, `support_gate`) are byte-identical to the 13 Sep receipt across all attempts; `summary.tsv` identical (mean tau relative error 0.0990 / 0.1661 / 0.0613; all `PASS_CURRENT_SOURCE_COMPATIBILITY`). Locally `python3 -m unittest tools/tests/test_capability_ledger.py` OK and `capability_ledger.py --check` OK (31 outputs).
-
-CI run 34965581817 on `c612ee284`: ledger step passed on all four shards; shards 2–4, `os-matrix` and blind-spot green; **shard 1 failed on three tests** — `test-dinnage-audit-s2.R:187` (`fit$opt$convergence` 1 on Linux for the 20×8 / omega 0.4 phylo-on-sigma fixture, which locally converged only after the "careful" escalation) and `test-env-skip-census.R:37/:50` (the S2 file's `skip_if_not_installed("ape")` sites absent from the committed census). Fixed tests-only in `6d63da083` (fixture 30×12 / omega 0.6, probed over 7 configurations: first-preset convergence, max |gradient| 1.7e-9; census re-derived). Locally both files green, no warnings. CI run 34968481794 on `6d63da083`: all six jobs SUCCESS. Merged as 8195b1215 by `tools/pr_merge_when_green.sh` under Shinichi's "merge #1361 when green". Two Claude sessions converged on this fix in the same worktree; the second one's builder stopped at its clean-tree precondition and nothing was duplicated (LESSONS 2026-09-15).
-
-### 2026-09-15 — `receipt-staleness` red on `main` after #1361: the lss-tip-identity parity receipt re-run at the same DRM.jl pin
-
-**Reader:** whoever sees `receipt-staleness` fail on `main` right after a merge that touched `R/`.
-
-`main` run 34971355205 (on the #1361 merge `8195b1215`) failed "Detect stale receipts (never regenerate)": `docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json` records SHA-256 of every `R/*.R` file and every DRM.jl `src/*.jl` file it ran against; #1361 changed seven R files (`check.R`, `drmTMB.R`, `family-dpq.R`, `heritability.R`, `methods.R`, `penalty.R`, `predict-parameters.R`), so 47 of 54 recorded R files matched. The C17 model-15 receipt and the phylo-label receipt in the same job were fine (`C17 current-source compatibility PASS`, `PHYLO_LABEL_RECEIPT_PASS`). Same class as the morning's ledger receipt: stale, not wrong.
-
-Regenerated on a branch from `main` (`720335c13`), LAST in the branch, with the script the checker names: `tools/run-julia-phylo-labels-public.R <pinned DRM.jl> <receipt> tree`, against the same DRM.jl clone and ref the previous receipt recorded (`/Users/z3437171/local-scratch/parity-joint/drmjl-main-now` @ `26f4c4ddc`, clean tree), `JULIA_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`. Result: `status PASS`, `source_unchanged TRUE`, all eight checks true (`names`, `covariance`, `likelihood`, `native_parity`, `bridge_parity`, `rows`, `converged`, `source`), bridge differences 0 on mu/sigma/sd_phylo/loglik, native differences ≤ 7.7e-12, `drmjl_ref 26f4c4ddc`, drmTMB 0.7.1, elapsed 95.6 s. Locally `bash tools/ci-receipt-staleness.sh` → 0 STALE lines (was 8 on `720335c13`). Observed in the run log, recorded rather than hidden: Julia printed `LoadError: UndefVarError: \`loglogistic\` not defined` while loading the `LogExpFunctionsInverseFunctionsExt` package extension (a depot-level version mismatch between LogExpFunctions and InverseFunctions in `~/.julia`, not drmTMB or DRM.jl code); the run continued, exited 0, and every check passed, so the receipt stands. Whether the previous receipt's run printed the same is not recorded.
-
-### 2026-09-15 - PR #1369 A2 request-changes repair: fit-time data contract for dropped groups and Wave4a warning capture
-
-**Reader:** whoever next audits #1338 A-8 or #1343 Mi-5 on PR #1369.
-
-The independent D-263 review rejected the first A-8 repair because `check_fit_input_data()` re-evaluated `object$call$data`; a fit made in a local scope then had no recoverable original data, so `check_dropped_group_levels()` returned zero rows and `check_drm()` printed `nobs=272; dropped=48` without `groups_lost=6`. The repair stores the post-fixed-predictor-droplevel, pre-MSPL-filter data frame on `spec$input_data`, reads that stored object in `check_fit_input_data()`, and drops it again under `drm_control(keep_data = FALSE)`. The Wave4a A-8 test now fits inside `local({ ... })`, checks `nrow(check_fit_input_data(fit)) == 320`, and asserts `groups_lost=6` plus `id lost 6 levels`.
-
-The Mi-5 test failure was also real: this testthat's `capture_warnings()` treats the second unnamed argument as `ignore_deprecation`, causing `invalid 'x' type in 'x && y'`. The test now uses `expect_warning()` and checks the warning message. The remaining stale `check_drm()` message text that said `switching to method = "profile"` was removed.
-
-Checks: pre-fix `Rscript -e 'devtools::load_all(); devtools::test(filter = "dinnage-audit-wave4a")'` reproduced `[ FAIL 3 | WARN 0 | SKIP 0 | PASS 1 ]`. After repair, the same command reported `[ FAIL 0 | WARN 0 | SKIP 0 | PASS 11 ]`. Neighboring diagnostics `Rscript -e 'devtools::load_all(); devtools::test(filter = "check-drm")'` reported `[ FAIL 0 | WARN 14 | SKIP 0 | PASS 270 ]`; warnings were existing `sd_phylo()` deprecations and one NaN fixture warning. Storage guard coverage `Rscript -e 'devtools::load_all(); devtools::test(filter = "dinnage-audit-wave4a|control")'` reported `[ FAIL 0 | WARN 2 | SKIP 0 | PASS 340 ]`; warnings were existing `sd_phylo()` deprecations in `test-control.R`.
-
-Consistency scan: `rg "object\\$call\\$data|switching to method = \"profile\"|confint\\(method = \"profile\"\\)|groups_lost|input_data" . --glob '*.{R,Rmd,md}'` found no remaining `object$call$data` diagnostic recovery and no remaining `switching to method = "profile"` wording. `NEWS.md` already contains the #1338 and #1343 A2 bullets, and no formula grammar, likelihood, family, or pkgdown navigation changed. Full `devtools::test()`, `devtools::check()`, and pkgdown checks were not run for this narrow PR-response repair.
-
-Closeout report: `docs/dev-log/after-task/2026-09-15-dinnage-arc3-a2-request-changes.md`.
