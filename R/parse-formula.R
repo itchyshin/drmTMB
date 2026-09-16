@@ -1,3 +1,20 @@
+drm_subset_model_columns <- function(data, vars) {
+  vars <- unique(as.character(vars))
+  missing <- setdiff(vars, names(data))
+  if (length(missing) > 0L) {
+    cli::cli_abort(c(
+      "Could not find every variable from the formula in {.arg data}.",
+      "x" = "Missing: {.val {missing}}.",
+      "i" = "Check spelling and that {.arg data} contains every variable in the formula."
+    ))
+  }
+  data[, vars, drop = FALSE]
+}
+
+drm_unsupported_dpar_hint <- function() {
+  "Name each parameter formula in {.fn bf}, such as {.code bf(y ~ x, sigma ~ x)}."
+}
+
 parse_drm_formula_entries <- function(calls, names) {
   entries <- vector("list", length(calls))
   for (i in seq_along(calls)) {
@@ -116,6 +133,43 @@ parse_drm_formula_entry <- function(expr, name, position) {
 
 is_formula_call <- function(expr) {
   is.call(expr) && identical(expr[[1L]], as.name("~"))
+}
+
+drm_formula_resolve_input <- function(expr, env, position) {
+  if (is_formula_call(expr)) {
+    return(expr)
+  }
+  if (is.symbol(expr)) {
+    val <- tryCatch(
+      eval(expr, envir = env),
+      error = function(e) {
+        cli::cli_abort(c(
+          "{.fn drm_formula} could not evaluate input {position}.",
+          "x" = "Expected a formula or a symbol that holds one.",
+          "i" = "Pass a literal formula such as {.code y ~ x}."
+        ))
+      }
+    )
+    if (!inherits(val, "formula")) {
+      cli::cli_abort(c(
+        "{.fn drm_formula} input {position} must be a formula.",
+        "x" = "Got an object of class {.cls {class(val)}}.",
+        "i" = "Assign a formula to a variable, or pass a literal formula expression."
+      ))
+    }
+    return(drm_formula_to_call(val))
+  }
+  cli::cli_abort(c(
+    "{.fn drm_formula} inputs must be formulas or symbols that evaluate to formulas.",
+    "i" = "Pass a literal formula such as {.code y ~ x}, not an arbitrary expression."
+  ))
+}
+
+drm_formula_to_call <- function(formula) {
+  if (length(formula) == 2L) {
+    return(as.call(list(quote(`~`), formula[[2L]])))
+  }
+  as.call(list(quote(`~`), formula[[2L]], formula[[3L]]))
 }
 
 # `(1 + x || g)` is the lme4/brms spelling for uncorrelated random effects. R

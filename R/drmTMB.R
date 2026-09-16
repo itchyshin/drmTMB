@@ -342,6 +342,9 @@ drmTMB <- function(
   }
   control <- drm_parse_control(control)
   missing_control <- drm_parse_missing_control(missing)
+  if (identical(missing_control$predictor, "fail")) {
+    drm_validate_complete_predictors(formula, data)
+  }
   REML <- drm_control_flag(REML, "REML")
   penalty <- drm_parse_phylo_penalty(penalty)
 
@@ -4145,7 +4148,7 @@ drm_build_gaussian_ls_spec <- function(
     random_effect_vars(sigma_re$terms)
   ))
   if (length(vars) > 0L) {
-    model_keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    model_keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     model_keep <- rep(TRUE, nrow(data))
   }
@@ -4654,7 +4657,8 @@ drm_build_student_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Student-t models only support {.code mu}, {.code sigma}, and {.code nu}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -4787,7 +4791,7 @@ drm_build_student_ls_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -5112,7 +5116,7 @@ drm_build_skew_normal_ls_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -5274,7 +5278,8 @@ drm_build_lognormal_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Lognormal models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -5424,7 +5429,7 @@ drm_build_lognormal_ls_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -5629,7 +5634,8 @@ drm_build_gamma_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Gamma models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -5768,7 +5774,7 @@ drm_build_gamma_ls_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -5969,7 +5975,8 @@ drm_build_tweedie_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn tweedie} models only support {.code mu}, {.code sigma}, and intercept-only {.code nu}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -6063,7 +6070,7 @@ drm_build_tweedie_ls_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -6238,7 +6245,8 @@ drm_build_beta_ls_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Beta models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_mu_dpar)) {
@@ -6425,7 +6433,7 @@ drm_build_beta_ls_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -6657,7 +6665,8 @@ drm_build_zero_one_beta_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Zero-one beta models only support {.code mu}, {.code sigma}, {.code zoi}, and {.code coi}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -6984,7 +6993,7 @@ drm_build_zero_one_beta_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -7179,7 +7188,8 @@ drm_build_beta_binomial_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Beta-binomial models only support {.code mu} and {.code sigma}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -7290,7 +7300,7 @@ drm_build_beta_binomial_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -7592,7 +7602,7 @@ drm_build_binomial_spec <- function(
     keep_vars <- setdiff(keep_vars, mi_setup$variable)
   }
   if (length(keep_vars) > 0L) {
-    keep <- stats::complete.cases(data[, keep_vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, keep_vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -7858,7 +7868,7 @@ drm_build_cumulative_logit_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -8001,7 +8011,8 @@ drm_build_poisson_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "Poisson models only support {.code mu} and optional {.code zi}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -8213,7 +8224,7 @@ drm_build_poisson_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -8468,7 +8479,8 @@ drm_build_nbinom2_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn nbinom2} models only support {.code mu}, {.code sigma}, and optional {.code zi}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -8761,7 +8773,7 @@ drm_build_nbinom2_spec <- function(
     vars <- setdiff(vars, mi_setup$variable)
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -9071,7 +9083,8 @@ drm_build_truncated_nbinom2_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn truncated_nbinom2} models only support {.code mu}, optional {.code sigma}, and optional {.code hu}.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   if (any(is_sd_dpar)) {
@@ -9197,7 +9210,7 @@ drm_build_truncated_nbinom2_spec <- function(
     vars <- setdiff(vars, all.vars(f_mu[[2L]]))
   }
   if (length(vars) > 0L) {
-    keep <- stats::complete.cases(data[, vars, drop = FALSE])
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   } else {
     keep <- rep(TRUE, nrow(data))
   }
@@ -9431,7 +9444,8 @@ drm_build_biv_gaussian_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn biv_gaussian} models only support {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, {.code rho12}, bivariate ordinary location random-effect SD formulas {.code sd1(group)} / {.code sd2(group)}, bivariate phylogenetic location random-effect SD formulas {.code sd_phylo1(group)} / {.code sd_phylo2(group)}, and the first ordinary or phylogenetic location-location {.fn corpair} formulas.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   for (required in c("mu1", "mu2")) {
@@ -9781,7 +9795,7 @@ drm_build_biv_gaussian_spec <- function(
     random_effect_vars(sigma1_re$terms),
     random_effect_vars(sigma2_re$terms)
   ))
-  keep <- stats::complete.cases(data[, vars, drop = FALSE])
+  keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
   if (include_missing_response && any(!keep)) {
     cli::cli_abort(c(
       "Missing predictors, grouping variables, or structured-effect inputs are not implemented for bivariate Gaussian response masks in MD2.",
@@ -10101,7 +10115,8 @@ drm_build_biv_lognormal_spec <- function(
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(
       "{.fn biv_lognormal} supports only {.code mu1}, {.code mu2}, {.code sigma1}, {.code sigma2}, and {.code rho12} formulas.",
-      "x" = "Unsupported parameter{?s}: {.val {unsupported}}."
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = drm_unsupported_dpar_hint()
     ))
   }
   has_bar_term <- vapply(entries, function(entry) {
@@ -17722,7 +17737,7 @@ subset_likelihood_weights <- function(weights, keep, n_data, n_model) {
   if (any(bad)) {
     cli::cli_abort(c(
       "{.arg weights} must be finite and non-missing for all modelled rows.",
-      "x" = "After model-row filtering, {sum(bad)} weight value{?s} are missing or non-finite."
+      "x" = "After model-row filtering, {sum(bad)} weight value{?s} {?is/are} missing or non-finite."
     ))
   }
   if (any(out < 0)) {
