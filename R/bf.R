@@ -35,7 +35,8 @@ drm_formula <- function(...) {
   if (length(calls) == 0L) {
     cli::cli_abort("{.fn drm_formula} requires at least one formula.")
   }
-  names <- names(calls)
+  call_names <- names(calls)
+  names <- call_names
   if (is.null(names)) {
     names <- rep("", length(calls))
   }
@@ -44,6 +45,9 @@ drm_formula <- function(...) {
   calls <- lapply(seq_along(calls), function(i) {
     drm_formula_resolve_input(calls[[i]], env, i)
   })
+  if (!is.null(call_names)) {
+    names(calls) <- call_names
+  }
 
   out <- list(
     calls = calls,
