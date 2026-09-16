@@ -31,17 +31,17 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Held / Protected
 
-- HOLD: all Wave B and Wave C implementation until Wave A coordination says otherwise.
+- HOLD: all Wave B and Wave C implementation until **A2 (#1369) and A3 (#1367) are merged by Shinichi** (independent of whether A1 merges first).
 - DEFER / PROTECTED: Md-K/Julia, S6, A-5/A-6, Md-L, Eq-4, variance-ratio interval design, S3 option B, Gaussian latent `mi()` missing-row weighting, raw-predictor sigma-clamp consumers, and M3 sqrt(n) tolerance design.
 
 ## Live Status
 
-Updated: 2026-09-15 ~18:30 MDT overnight checkpoint (Cursor coordinator).
+Updated: 2026-09-15 ~18:35 MDT (Cursor coordinator; Wave A review gates).
 
-- Base for Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Three Wave A PRs open; no merge authorized overnight. Waves B/C: HOLD.**
-- **A1 docs — COMPLETE — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `c86e86d88`. All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **Next:** settled CI + independent D-263 ACCEPT (builder must not self-ACCEPT).
-- **A2 check/profile — PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369)** (`cursor/dinnage-arc3-a2-check-20260915`), head `b6714135d`. Review-thread fixes pushed; **pending fresh re-review** (and CI green) after first review pass. Scope: #1338, #1343; `R/check.R`, `R/profile.R`, wave4a tests, `NEWS.md`.
-- **A3 misc code — PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** (`cursor/dinnage-arc3-a3-misc-20260915`), head `ab78327b8`. Code + `NEWS.md` on branch; C17 recert run last on branch. **Next:** settled CI + independent D-263 ACCEPT.
+- Base for Wave A branches: `238c1bedc` (= `origin/main` after PR #1366). **Three Wave A PRs open; agents must not merge.** Shinichi merges only after settled green CI + D-263 ACCEPT on each PR. **Wave B/C: HOLD until A2 (#1369) and A3 (#1367) merged by Shinichi.**
+- **A1 docs — COMPLETE — PR [#1368](https://github.com/itchyshin/drmTMB/pull/1368)** (`cursor/dinnage-arc3-a1-docs-20260915`), head `c86e86d88`. All ten A1 issues addressed in-branch (docs, `man/`, vignette, `NEWS.md`, focused evidence). **#1344 cross-PR help cleared** (A3 owns #1344; blocker lifted for A1 coordination). **Next:** settled CI + independent D-263 ACCEPT + Shinichi merge.
+- **A2 check/profile — PR [#1369](https://github.com/itchyshin/drmTMB/pull/1369)** (`cursor/dinnage-arc3-a2-check-20260915`), head `b6714135d`. Scope: #1338, #1343; `R/check.R`, `R/profile.R`, wave4a tests, `NEWS.md`. Independent D-263 **ACCEPT** at `b6714135d` ([comment](https://github.com/itchyshin/drmTMB/pull/1369#issuecomment-5690203422)). **Next:** settled green CI + Shinichi merge only.
+- **A3 misc code — PR [#1367](https://github.com/itchyshin/drmTMB/pull/1367)** (`cursor/dinnage-arc3-a3-misc-20260915`), head `26c4060a9` (audited). Code + `NEWS.md` on branch; C17 recert run last on branch. Independent D-263 **ACCEPT** ([comment](https://github.com/itchyshin/drmTMB/pull/1367#issuecomment-5690207752)). **Next:** settled green CI + Shinichi merge only.
 - **A4 record:** DONE (#1351).
 - **D-263 review files:** owed per PR before merge; path `docs/dev-log/audits/2026-09-<dd>-dinnage-arc3-<a1|a2|a3>-review.md`.
 
