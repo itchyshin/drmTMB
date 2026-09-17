@@ -268,7 +268,7 @@ test_that("fixed-effects beta mu+sigma: typical and boundary (mu near 0/1) theta
   phi <- 8
   y <- stats::rbeta(n, mu * phi, (1 - mu) * phi)
   dat <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = drmTMB::beta(), data = dat)
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = beta_family(), data = dat)
   gcond_prepare(fit$obj)
   gcond_expect_conformance("beta mu+sigma typical", fit$obj, fit$obj$par, GCOND_FIXED_TOL)
   boundary_theta <- fit$obj$par + c(0, 5, 0, 0)
@@ -454,7 +454,7 @@ test_that("Laplace: phylo mu random effect + sd() regression (beta), typical/ext
       sigma ~ x_sigma,
       sd(species, level = "phylogenetic") ~ z_species
     ),
-    family = drmTMB::beta(),
+    family = beta_family(),
     data = dat
   )
   gcond_prepare(fit$obj)

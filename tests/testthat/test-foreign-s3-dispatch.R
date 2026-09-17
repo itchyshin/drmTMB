@@ -25,7 +25,6 @@ fit_with_random_effect <- function() {
 }
 
 test_that("nlme's ranef generic dispatches to drmTMB's method", {
-  skip_if_not_installed("nlme")
   fit <- fit_with_random_effect()
 
   # The regression: this errored with "no applicable method for 'ranef' applied
@@ -39,7 +38,6 @@ test_that("nlme's ranef generic dispatches to drmTMB's method", {
 })
 
 test_that("nlme's fixef generic dispatches to drmTMB's method", {
-  skip_if_not_installed("nlme")
   fit <- fit_with_random_effect()
 
   expect_identical(nlme::fixef(fit), drmTMB::fixef(fit))
@@ -47,8 +45,6 @@ test_that("nlme's fixef generic dispatches to drmTMB's method", {
 })
 
 test_that("the methods are registered against nlme, not merely present", {
-  skip_if_not_installed("nlme")
-
   # Registration is the whole fix, so assert it structurally rather than
   # inferring it from a call that happened to work. If a future refactor drops
   # the .onLoad hook, this fails even if drmTMB's own generic still works.
