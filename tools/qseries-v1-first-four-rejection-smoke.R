@@ -342,7 +342,7 @@ qseries_v1_first_four_fixture <- function() {
       expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
         drmTMB::bf(y ~ x + animal(1 | id, pedigree = ped_beta), sigma ~ 1),
-        family = drmTMB::beta(),
+        family = drmTMB::beta_family(),
         data = dat_beta_animal,
         control = drmTMB::drm_control(se = FALSE)
       )),
@@ -588,7 +588,7 @@ qseries_v1_first_four_fixture <- function() {
           y ~ x,
           sigma ~ animal(1 | id, pedigree = ped_beta_sigma)
         ),
-        family = drmTMB::beta(),
+        family = drmTMB::beta_family(),
         data = dat_beta_sigma_animal,
         control = drmTMB::drm_control(se = FALSE)
       )),

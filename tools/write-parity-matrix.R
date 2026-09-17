@@ -137,9 +137,15 @@ pm_read_tsv <- function(path) {
 # Any change here must be mirrored there; the drift test fails otherwise.
 
 pm_family_constructor <- function(family) {
-  # drmTMB spells the Gamma family with stats::Gamma(); every other admitted
-  # family's constructor shares the family_type string.
-  if (identical(family, "gamma")) "Gamma" else family
+  # drmTMB spells the Gamma family with stats::Gamma(); strict proportions use
+  # beta_family() while the Julia registry tag remains "beta".
+  if (identical(family, "gamma")) {
+    "Gamma"
+  } else if (identical(family, "beta")) {
+    "beta_family"
+  } else {
+    family
+  }
 }
 
 pm_modifier_dpars <- function() c("zi", "hu", "zoi", "coi")

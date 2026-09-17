@@ -25,7 +25,13 @@
 # last test asserts the twins agree whenever the tool file is reachable.
 
 pm_test_family_constructor <- function(family) {
-  if (identical(family, "gamma")) "Gamma" else family
+  if (identical(family, "gamma")) {
+    "Gamma"
+  } else if (identical(family, "beta")) {
+    "beta_family"
+  } else {
+    family
+  }
 }
 
 pm_test_modifier_dpars <- function() c("zi", "hu", "zoi", "coi")
@@ -165,7 +171,7 @@ test_that("beta_binomial is NOT reported covered by the phylo_gamma_beta_binomia
   # The syntax join does not: the row's syntax calls Gamma(), beta_family() and
   # stats::binomial(), never beta_binomial().
   expect_true(pm_test_syntax_calls(trap$syntax, "Gamma"))
-  expect_true(pm_test_syntax_calls(trap$syntax, "beta"))
+  expect_true(pm_test_syntax_calls(trap$syntax, "beta_family"))
   expect_true(pm_test_syntax_calls(trap$syntax, "binomial"))
   expect_false(pm_test_syntax_calls(trap$syntax, "beta_binomial"))
   # Tested against the trap row IN ISOLATION: beta_binomial is genuinely
