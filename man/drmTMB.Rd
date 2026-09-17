@@ -24,7 +24,7 @@ drmTMB(
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
-\code{\link[=tweedie]{tweedie()}}, \code{\link[glmmTMB:beta_family]{beta_family()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
+\code{\link[=tweedie]{tweedie()}}, \code{\link[=beta_family]{beta_family()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
 \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
 or \code{"cloglog"},
 \code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},

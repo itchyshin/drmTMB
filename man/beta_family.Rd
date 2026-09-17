@@ -27,7 +27,7 @@ remains fixed-effect in this first slice.
 }
 \section{Functions}{
 \itemize{
-\item \code{beta()}: Deprecated alias; use \code{\link[glmmTMB:beta_family]{beta_family()}} instead.
+\item \code{beta()}: Deprecated alias; use \code{\link[=beta_family]{beta_family()}} instead.
 
 }}
 \examples{

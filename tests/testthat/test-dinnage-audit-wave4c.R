@@ -14,7 +14,25 @@ test_that("Mi-1: beta_family() is the exported proportion family constructor", {
   expect_equal(fam$family, "beta")
 })
 
-test_that("Mi-2: ranef and fixef dispatch on glmmTMB and lmerMod after drmTMB load", {
+test_that("Mi-2: exported fixef and ranef work with drmTMB-only attach", {
+  skip_if_not_installed("pkgload")
+  withr::local_seed(20260917)
+  dat <- data.frame(
+    y = rnorm(20),
+    x = rnorm(20),
+    id = factor(rep(1:5, each = 4))
+  )
+  pkgload::load_all(test_path(".."), export_all = FALSE, helpers = FALSE, attach = TRUE)
+  expect_true("fixef" %in% getNamespaceExports("drmTMB"))
+  expect_true("ranef" %in% getNamespaceExports("drmTMB"))
+  expect_identical(get("fixef", envir = asNamespace("drmTMB")), get("fixef", envir = asNamespace("nlme")))
+  expect_identical(get("ranef", envir = asNamespace("drmTMB")), get("ranef", envir = asNamespace("nlme")))
+  dfit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat)
+  expect_type(fixef(dfit, "mu"), "double")
+  expect_named(ranef(dfit), "mu")
+})
+
+test_that("Mi-2: foreign glmmTMB and lmerMod extractors work after drmTMB attach", {
   skip_if_not_installed("glmmTMB")
   skip_if_not_installed("lme4")
   skip_if_not_installed("pkgload")
@@ -36,12 +54,4 @@ test_that("Mi-2: ranef and fixef dispatch on glmmTMB and lmerMod after drmTMB lo
   expect_no_error(ranef(lfit))
   expect_no_error(fixef(gfit))
   expect_no_error(fixef(lfit))
-  dat2 <- data.frame(
-    y = rnorm(20),
-    x = rnorm(20),
-    id = factor(rep(1:5, each = 4))
-  )
-  dfit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat2)
-  expect_type(fixef(dfit, "mu"), "double")
-  expect_named(ranef(dfit), "mu")
 })

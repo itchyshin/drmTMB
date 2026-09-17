@@ -494,7 +494,7 @@ drm_family_dpq_gamma <- function() {
 # conversion `simulate.drmTMB()`'s "beta" branch calls (methods.R). The
 # compiled density additionally floors alpha/beta_shape at 1e-8
 # (`CppAD::CondExpLt`) to guard against numeric underflow at extreme (mu,
-# sigma); `stats::{d,p,q}beta_family()` does not apply that floor, so `d()`/`p()`/
+# sigma); `stats::{d,p,q}beta()` does not apply that floor, so `d()`/`p()`/
 # `q()` here can differ from the compiled density at pathological (near-0,
 # near-1, huge-phi) parameter combinations. This is expected to be
 # undetectable at the fixed theta vectors DG2 exercises (interior mu, modest

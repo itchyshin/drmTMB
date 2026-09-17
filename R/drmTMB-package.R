@@ -26,5 +26,8 @@
 #' @importFrom stats lm.fit model.frame model.matrix model.response na.omit
 #' @importFrom stats nlminb predict residuals rnorm sd sigma simulate terms vcov
 #' @importFrom utils packageVersion
+#' @importFrom nlme fixef ranef
+#' @export fixef
+#' @export ranef
 #' @useDynLib drmTMB, .registration = TRUE
 "_PACKAGE"
