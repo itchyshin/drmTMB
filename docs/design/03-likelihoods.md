@@ -32,7 +32,7 @@ Current examples:
 | --- | --- | --- | --- |
 | `gaussian()` | `sigma` | residual SD | larger `sigma` means larger residual variance |
 | `Gamma(link = "log")` | `sigma` | shape `1 / sigma^2` | larger `sigma` means larger coefficient of variation |
-| `beta()` | `sigma` | beta precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
+| `beta_family()` | `sigma` | beta precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
 | `beta_binomial()` | `sigma` | beta precision `phi = 1 / sigma^2` | larger `sigma` means more extra-binomial variation |
 | `nbinom2()` | `sigma` | NB2 size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
 | `student()` | `sigma`, `nu` | scale plus degrees of freedom | larger `sigma` means wider core scale; larger `nu` means lighter tails |
@@ -85,7 +85,7 @@ is the current routing contract:
 | `7` | `family = nbinom2()` | `drm_build_nbinom2_spec()` | Univariate negative-binomial 2 models for overdispersed counts, with `mu` as the count mean, `sigma` as an overdispersion scale, optional ordinary `mu` random intercepts or independent numeric slopes, the first ordinary `sigma` random intercept, one q=1 structured `mu` intercept from `phylo()`, `phylo_interaction()`, `spatial()`, `animal()`, or `relmat()`, and one unlabelled intercept-plus-one-slope term from `phylo()`, `spatial()`, `animal()`, or `relmat()` on the log-mean predictor. |
 | `8` | `family = poisson(link = "log")` plus `zi ~ ...` | `drm_build_poisson_spec()` | Univariate fixed-effect zero-inflated Poisson models, with `mu` as the conditional count mean and `zi` as the structural-zero probability. |
 | `9` | `family = nbinom2()` plus `zi ~ ...` | `drm_build_nbinom2_spec()` | Univariate fixed-effect zero-inflated negative-binomial 2 models, with `mu` as the conditional count mean, `sigma` as the NB2 overdispersion scale, and `zi` as the structural-zero probability. |
-| `10` | `family = beta()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The narrow q1 phylogenetic successor route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. |
+| `10` | `family = beta_family()` | `drm_build_beta_ls_spec()` | Univariate beta mean-scale models for strict continuous proportions, with `mu` as the mean proportion, public `sigma` mapped internally to `phi = 1 / sigma^2`, and ordinary `mu` random intercepts or independent numeric slopes on the logit-mean predictor. The narrow q1 phylogenetic successor route additionally fits `a ~ Normal(0, D_tau A D_tau)` in `mu`, with `log(tau_s) = W_s alpha`; `tau` is the latent location-field SD and is not family `sigma`, precision `phi`, or a conditional response SD. |
 | `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
@@ -166,7 +166,7 @@ no non-logit link, and no `engine = "julia"` claim. Proportions plus
 `weights`, `weights = trials`, and `successes / trials` are rejected because
 top-level `weights` remain likelihood weights, not denominators. Extra-binomial
 variation remains the job of `beta_binomial()`, while continuous proportions
-belong to `beta()` or `zero_one_beta()`.
+belong to `beta_family()` or `zero_one_beta()`.
 
 ## Gaussian Aggregation Branch
 
@@ -582,7 +582,7 @@ drmTMB(
   bf(y ~ z + mi(cover), sigma ~ 1),
   data = dat,
   impute = list(
-    cover = impute_model(cover ~ z, family = beta())
+    cover = impute_model(cover ~ z, family = beta_family())
   ),
   missing = miss_control(predictor = "model")
 )
@@ -2038,19 +2038,19 @@ Matching R syntax:
 ```r
 drmTMB(
   bf(prop ~ habitat, sigma ~ treatment),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 
 drmTMB(
   bf(prop ~ habitat + (1 | plot), sigma ~ treatment),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 
 drmTMB(
   bf(prop ~ habitat + (0 + habitat_score | plot), sigma ~ treatment),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 ```
@@ -2071,7 +2071,7 @@ overdispersed counted successes out of known trials.
 
 Zero-one beta models are for continuous proportions where exact 0 and exact 1
 are structural boundary outcomes. The interior beta component keeps the same
-mean-scale contract as `beta()`:
+mean-scale contract as `beta_family()`:
 
 ```text
 Pr(y_i = 0) = zoi_i (1 - coi_i)

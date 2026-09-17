@@ -514,7 +514,7 @@ test_that("structured Julia bridge gates are intentional and pre-JuliaCall", {
     "structured_unsupported_family",
     drmTMB(
       bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = transform(dat, y = pmin(pmax(stats::plogis(y), 0.01), 0.99)),
       engine = "julia"
     ),

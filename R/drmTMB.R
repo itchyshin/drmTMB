@@ -67,7 +67,7 @@
 #' @param formula A `drm_formula` object created by [drm_formula()] or [bf()].
 #' @param family A response family, such as [stats::gaussian()], [student()],
 #'   [skew_normal()], [lognormal()], [stats::Gamma()] with `link = "log"`,
-#'   \code{\link[=tweedie]{tweedie()}}, [beta()], [zero_one_beta()],
+#'   \code{\link[=tweedie]{tweedie()}}, [beta_family()], [zero_one_beta()],
 #'   [beta_binomial()], [stats::binomial()] with `link = "logit"`, `"probit"`,
 #'   or `"cloglog"`,
 #'   [cumulative_logit()], [stats::poisson()] with `link = "log"`, [nbinom2()],
@@ -96,7 +96,7 @@
 #'   cumulative_logit()))` for an ordered predictor, or
 #'   `list(habitat = impute_model(habitat ~ z, family = categorical()))` for
 #'   an unordered predictor, or
-#'   `list(cover = impute_model(cover ~ z, family = beta()))` for a strict
+#'   `list(cover = impute_model(cover ~ z, family = beta_family()))` for a strict
 #'   proportion predictor in `(0, 1)`, or
 #'   `list(cover = impute_model(cover ~ z, family = zero_one_beta()))` for a
 #'   boundary proportion predictor in `[0, 1]`, or
@@ -434,7 +434,7 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(response = \"include\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta()}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, and the non-hurdle {.fn truncated_nbinom2} route.",
+      "x" = "Missing-response masking is currently validated for {.code gaussian()}, {.code biv_gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.code binomial()}, {.code poisson()}, {.code nbinom2()}, {.code beta_family()}, {.fn zero_one_beta}, {.fn beta_binomial}, {.fn cumulative_logit}, and the non-hurdle {.fn truncated_nbinom2} route.",
       "i" = "Use {.code missing = miss_control(response = \"drop\")} (complete-case) for a {.val {family_type}} response until its observed-data likelihood slice lands."
     ))
   }
@@ -444,14 +444,14 @@ drmTMB <- function(
   ) {
     cli::cli_abort(c(
       "{.code miss_control(predictor = \"model\")} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue), {.code nbinom2()} responses (one binary or one Gaussian missing predictor), and {.code poisson()}/{.code binomial()}/{.code beta()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial}/{.fn student} responses (one binary missing predictor).",
+      "x" = "Missing-predictor {.fn mi} models are currently validated only for {.code gaussian()} responses (the broad predictor-family catalogue), {.code nbinom2()} responses (one binary or one Gaussian missing predictor), and {.code poisson()}/{.code binomial()}/{.code beta_family()}/{.code Gamma(link = \"log\")}/{.fn lognormal}/{.fn beta_binomial}/{.fn student} responses (one binary missing predictor).",
       "i" = "Use complete predictors, or {.code missing = miss_control(predictor = \"fail\")}, for a {.val {family_type}} response until its {.fn mi} slice lands."
     ))
   }
   if (!family_type %in% drm_missing_predictor_families() && !is.null(impute)) {
     cli::cli_abort(c(
       "{.arg impute} is not implemented for the {.val {family_type}} response family yet.",
-      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, {.code beta()}, {.code Gamma(link = \"log\")}, {.fn lognormal}, {.fn beta_binomial}, and {.fn student} responses.",
+      "x" = "{.fn mi} predictor models are currently validated only for {.code gaussian()}, {.code poisson()}, {.code binomial()}, {.code nbinom2()}, {.code beta_family()}, {.code Gamma(link = \"log\")}, {.fn lognormal}, {.fn beta_binomial}, and {.fn student} responses.",
       "i" = "Drop {.arg impute} (or use a supported response) for a {.val {family_type}} model until its {.fn mi} slice lands."
     ))
   }
@@ -6246,7 +6246,7 @@ drm_build_beta_ls_spec <- function(
   reject_planned_bounded_inflation(
     entries = entries,
     unsupported = unsupported,
-    family_label = "beta()"
+    family_label = "beta_family()"
   )
   if (length(unsupported) > 0L) {
     cli::cli_abort(c(

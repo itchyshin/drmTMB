@@ -52,7 +52,7 @@ probability and the first public claim is parity with `stats::glm()` for
 fixed-effect logit models.
 
 This route is not `beta_binomial()`: it has no `sigma` and no extra-binomial
-variation. It is also not a continuous-proportion model; use `beta()` or
+variation. It is also not a continuous-proportion model; use `beta_family()` or
 `zero_one_beta()` when the response is a measured proportion rather than a
 counted event out of known trials.
 
@@ -69,7 +69,7 @@ can look like an arithmetic proportion while losing the binomial denominator in
 ordinary model-frame handling.
 
 Continuous proportions created as `successes / trials` are still valid data for
-`beta()`, but they no longer carry the binomial denominator. Use
+`beta_family()`, but they no longer carry the binomial denominator. Use
 `beta_binomial()` when the number of trials is part of the sampling process.
 Use `stats::binomial()` only when ordinary binomial
 sampling variation is the intended model; use `beta_binomial()` when the data

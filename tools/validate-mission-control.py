@@ -27703,7 +27703,7 @@ def main() -> int:
         "nbinom2()": 15,
         "poisson()": 14,
         "student()": 2,
-        "beta()": 2,
+        "beta_family()": 2,
         "non-count or extended count families": 1,
         "Gamma()": 1,
         "cumulative_logit()": 1,

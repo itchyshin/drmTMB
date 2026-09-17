@@ -112,7 +112,7 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "YES", ""),
 
     row("phylo_gamma_beta_binomial", "beta", "TSV", "inst/extdata/julia-capabilities.tsv",
-        "bf(y ~ x + phylo(1|species, tree=tree)), beta()",
+        "bf(y ~ x + phylo(1|species, tree=tree)), beta_family()",
         "REFUSES", "shared code branch, not re-run separately",
         "REFUSES", "not among DRM.jl's two Cox-Reid REML families",
         "REFUSES", "family_type \"beta\" not in gate",
@@ -217,7 +217,7 @@ drm_reml_route_table_rows <- function(pkg_root = ".") {
         "YES", ""),
 
     row("fe_beta", "", "TSV (A3, PR #1168)", "inst/extdata/julia-capabilities.tsv",
-        "bf(y ~ x, sigma ~ 1), beta(), fixed-effect only",
+        "bf(y ~ x, sigma ~ 1), beta_family(), fixed-effect only",
         "REFUSES", "shared code branch, not re-run separately",
         "REFUSES", "not a Cox-Reid REML family",
         "REFUSES", "family_type \"beta\" not in gate",

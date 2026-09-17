@@ -3,7 +3,7 @@
 This sheet is the fourth one-page design unit under the Slice 292
 comprehensive blueprint. It follows the ADEMP structure of Morris, White, and
 Crowther (2019) and the transparent-reporting checklist of Williams et al.
-(2024). It records the admitted fixed-effect `beta()` and `beta_binomial()`
+(2024). It records the admitted fixed-effect `beta_family()` and `beta_binomial()`
 lane for bounded responses before any larger Phase 18 grid is added.
 
 ## A - Aims
@@ -60,7 +60,7 @@ code.
 
 | Factor | Initial levels | Reason |
 | --- | --- | --- |
-| `family` | `beta()`, `beta_binomial()` | Separate continuous strict proportions from denominator-aware success counts. |
+| `family` | `beta_family()`, `beta_binomial()` | Separate continuous strict proportions from denominator-aware success counts. |
 | `n` | 160, 480 | Small and moderate samples for fixed-effect bounded-response recovery. |
 | `trials` | 8-12, 20-30 for beta-binomial cells | Low versus moderate denominator information; not used for strict beta cells. |
 | `beta0`, `beta1` | `-0.20`, `0.60` | Baseline away from exact boundaries with a moderate mean effect on the logit scale. |
@@ -96,7 +96,7 @@ Fit the strict continuous-proportion model:
 drmTMB(
   bf(prop ~ x, sigma ~ z),
   data = dat,
-  family = beta()
+  family = beta_family()
 )
 ```
 
@@ -141,7 +141,7 @@ silently adjusted.
 | 1. Aims | Primary and secondary aims are stated above. |
 | 2. DGP | Strict beta and beta-binomial mechanisms, denominator generation, and varied factors are explicit. |
 | 3. Estimands | Mean, public scale, scale-ratio, precision-transform, and fitted proportion rows are named. |
-| 4. Methods | The intended `beta()` and `beta_binomial()` `drmTMB` models are stated. |
+| 4. Methods | The intended `beta_family()` and `beta_binomial()` `drmTMB` models are stated. |
 | 5. Performance measures | Bias, RMSE, Wald coverage, convergence, warning rate, runtime, and boundary ledgers are defined. |
 | 6. Software/settings | Per-run session metadata remains the runner responsibility. |
 | 7. Code availability | Existing fixed-effect tests document the likelihood contracts; new DGP helpers should live under `inst/sim/` before broad runs. |

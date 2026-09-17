@@ -29,14 +29,14 @@ test_that("beta response mask is inert: include == complete-case (and stays fini
 
   fit_mask <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dd$masked,
     missing = miss_control(response = "include"),
     control = drm_control(se = FALSE)
   )
   fit_cc <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dd$masked[observed, , drop = FALSE],
     control = drm_control(se = FALSE)
   )
@@ -70,7 +70,7 @@ test_that("beta masked-row placeholder (0, outside (0,1)) stays out of the likel
   dd <- missing_response_beta_data()
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dd$masked,
     missing = miss_control(response = "include"),
     control = drm_control(se = FALSE)
@@ -87,7 +87,7 @@ test_that("beta MCAR-masked responses recover the mean AND the dispersion (phi !
   )
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dd$masked,
     missing = miss_control(response = "include"),
     control = drm_control(se = FALSE)
@@ -109,7 +109,7 @@ test_that("response = 'include' masks missing beta responses but drops missing-p
 
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dd$masked,
     missing = miss_control(response = "include"),
     control = drm_control(se = FALSE)

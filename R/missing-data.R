@@ -16,7 +16,7 @@
 #' negative-binomial count, positive continuous lognormal or Gamma, and
 #' exact-zero semi-continuous Tweedie missing predictors can use fixed-effect
 #' predictor models supplied by [impute_model()]. The non-Gaussian response
-#' slices support `poisson()`, `binomial()`, `nbinom2()`, `beta()`,
+#' slices support `poisson()`, `binomial()`, `nbinom2()`, `beta_family()`,
 #' `Gamma(link = "log")`, `lognormal()`, `beta_binomial()`, and
 #' `student()` responses, each with one
 #' fixed-effect Bernoulli/logit binary missing predictor.
@@ -176,7 +176,7 @@ drm_validate_complete_predictors <- function(formula, data) {
 #'   continuous predictor route. `binomial(link = "logit")` fits the binary
 #'   missing-predictor route. [cumulative_logit()] fits the ordered categorical
 #'   missing-predictor route. [categorical()] fits the unordered categorical
-#'   missing-predictor route. [beta()] fits the strict beta/proportion
+#'   missing-predictor route. [beta_family()] fits the strict beta/proportion
 #'   missing-predictor route. [zero_one_beta()] fits the boundary-proportion
 #'   missing-predictor route. [beta_binomial()] fits a denominator-aware
 #'   success/trial proportion route and requires `trials`. `poisson(link =
@@ -196,7 +196,7 @@ drm_validate_complete_predictors <- function(formula, data) {
 #' impute_model(treatment ~ z, family = binomial())
 #' impute_model(score ~ z, family = cumulative_logit())
 #' impute_model(habitat ~ z, family = categorical())
-#' impute_model(cover ~ z, family = beta())
+#' impute_model(cover ~ z, family = beta_family())
 #' impute_model(cover ~ z, family = zero_one_beta())
 #' impute_model(success ~ z, family = beta_binomial(), trials = trials)
 #' impute_model(abundance ~ z, family = poisson())
@@ -984,7 +984,7 @@ drm_validate_named_impute_entry <- function(
     cli::cli_abort(c(
       "Non-Gaussian {.arg impute} models currently support fixed effects only.",
       "x" = "The first finite-state missing-predictor slices do not support grouped or structured covariate effects.",
-      "i" = "Use syntax such as {.code impute = list(x = impute_model(x ~ z, family = binomial()))}, {.code impute_model(x ~ z, family = cumulative_logit())}, {.code impute_model(x ~ z, family = categorical())}, {.code impute_model(x ~ z, family = beta())}, {.code impute_model(x ~ z, family = zero_one_beta())}, {.code impute_model(success ~ z, family = beta_binomial(), trials = trials)}, {.code impute_model(x ~ z, family = poisson())}, {.code impute_model(x ~ z, family = nbinom2())}, {.code impute_model(x ~ z, family = truncated_nbinom2())}, {.code impute_model(x ~ z, family = lognormal())}, {.code impute_model(x ~ z, family = Gamma(link = \"log\"))}, or {.code impute_model(x ~ z, family = tweedie())}."
+      "i" = "Use syntax such as {.code impute = list(x = impute_model(x ~ z, family = binomial()))}, {.code impute_model(x ~ z, family = cumulative_logit())}, {.code impute_model(x ~ z, family = categorical())}, {.code impute_model(x ~ z, family = beta_family())}, {.code impute_model(x ~ z, family = zero_one_beta())}, {.code impute_model(success ~ z, family = beta_binomial(), trials = trials)}, {.code impute_model(x ~ z, family = poisson())}, {.code impute_model(x ~ z, family = nbinom2())}, {.code impute_model(x ~ z, family = truncated_nbinom2())}, {.code impute_model(x ~ z, family = lognormal())}, {.code impute_model(x ~ z, family = Gamma(link = \"log\"))}, or {.code impute_model(x ~ z, family = tweedie())}."
     ))
   }
   rhs_names <- all.names(
@@ -5431,7 +5431,7 @@ drm_imputed_route_conditional_sd <- function(predictor) {
     grid <- if (!is.null(predictor$quadrature_values)) {
       predictor$quadrature_values
     } else if (!is.null(predictor$quadrature_probabilities)) {
-      # The `beta()` route does not store `quadrature_values`; the shared
+      # The `beta_family()` route does not store `quadrature_values`; the shared
       # node grid is only available as the (rounded) column names of
       # `quadrature_probabilities`. This loses precision to the
       # `format(nodes, digits = 4)` rounding applied when those column names

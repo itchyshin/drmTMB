@@ -36,7 +36,7 @@ meta_V <- function(V) {
 #' positive continuous, and semi-continuous predictors. The non-Gaussian
 #' response routes support one binary `mi()` predictor modelled by
 #' `family = binomial()` for `family = poisson()`, `binomial()`, `nbinom2()`,
-#' `beta()`, `lognormal()`, `Gamma(link = "log")`, `student()`, and
+#' `beta_family()`, `lognormal()`, `Gamma(link = "log")`, `student()`, and
 #' `beta_binomial()`.
 #'
 #' @param x A predictor in a supported missing-predictor route.

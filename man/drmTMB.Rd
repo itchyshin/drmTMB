@@ -24,7 +24,7 @@ drmTMB(
 
 \item{family}{A response family, such as \code{\link[stats:gaussian]{stats::gaussian()}}, \code{\link[=student]{student()}},
 \code{\link[=skew_normal]{skew_normal()}}, \code{\link[=lognormal]{lognormal()}}, \code{\link[stats:Gamma]{stats::Gamma()}} with \code{link = "log"},
-\code{\link[=tweedie]{tweedie()}}, \code{\link[=beta]{beta()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
+\code{\link[=tweedie]{tweedie()}}, \code{\link[glmmTMB:beta_family]{beta_family()}}, \code{\link[=zero_one_beta]{zero_one_beta()}},
 \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
 or \code{"cloglog"},
 \code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
@@ -56,7 +56,7 @@ define Gaussian models for numeric missing predictors. Use
 a binary predictor, \code{list(score = impute_model(score ~ z, family = cumulative_logit()))} for an ordered predictor, or
 \code{list(habitat = impute_model(habitat ~ z, family = categorical()))} for
 an unordered predictor, or
-\code{list(cover = impute_model(cover ~ z, family = beta()))} for a strict
+\code{list(cover = impute_model(cover ~ z, family = beta_family()))} for a strict
 proportion predictor in \verb{(0, 1)}, or
 \code{list(cover = impute_model(cover ~ z, family = zero_one_beta()))} for a
 boundary proportion predictor in \verb{[0, 1]}, or

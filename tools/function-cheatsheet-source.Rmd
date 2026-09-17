@@ -245,7 +245,7 @@ Deprecated compatibility markers are deliberately omitted.
     <section class="drmtmb-map__panel map-spec">
       <h3>1 · Specify</h3>
       <div class="drmtmb-map__node"><strong><a href="../reference/drm_formula.html"><code>drm_formula()</code> / <code>bf()</code></a></strong><small>Join location, scale, shape, inflation, and coscale formulas.</small></div>
-      <div class="drmtmb-map__node"><strong>Choose a family</strong><small><a href="../reference/student.html"><code>student()</code></a>, <a href="../reference/beta.html"><code>beta()</code></a>, <a href="../reference/nbinom2.html"><code>nbinom2()</code></a>, and the other family constructors below.</small></div>
+      <div class="drmtmb-map__node"><strong>Choose a family</strong><small><a href="../reference/student.html"><code>student()</code></a>, <a href="../reference/beta.html"><code>beta_family()</code></a>, <a href="../reference/nbinom2.html"><code>nbinom2()</code></a>, and the other family constructors below.</small></div>
       <div class="drmtmb-map__node"><strong>Special data</strong><small><a href="../reference/meta_V.html"><code>meta_V()</code></a>, <a href="../reference/miss_control.html"><code>miss_control()</code></a>, <a href="../reference/mi.html"><code>mi()</code></a>, <a href="../reference/impute_model.html"><code>impute_model()</code></a>.</small></div>
       <div class="drmtmb-map__node"><strong>Dependence</strong><small><a href="../reference/phylo.html"><code>phylo()</code></a>, <a href="../reference/spatial.html"><code>spatial()</code></a>, <a href="../reference/animal.html"><code>animal()</code></a>, <a href="../reference/relmat.html"><code>relmat()</code></a>, <a href="../reference/corpair.html"><code>corpair()</code></a>.</small></div>
     </section>
@@ -327,7 +327,7 @@ Deprecated compatibility markers are deliberately omitted.
 | [`skew_normal()`](../reference/skew_normal.html) | Skew-normal location-scale-shape models. |
 | [`lognormal()`](../reference/lognormal.html) | Positive continuous responses on the lognormal scale. |
 | [`tweedie()`](../reference/tweedie.html) | Non-negative semicontinuous responses that may include exact zeroes. |
-| [`beta()`](../reference/beta.html) | Strict proportions inside `(0, 1)`. |
+| [`beta_family()`](../reference/beta.html) | Strict proportions inside `(0, 1)`. |
 | [`zero_one_beta()`](../reference/zero_one_beta.html) | Continuous proportions with structural exact zeroes or ones. |
 | [`beta_binomial()`](../reference/beta_binomial.html) | Success counts with a known denominator and extra-binomial variation. |
 | [`categorical()`](../reference/categorical.html) | An unordered categorical missing-predictor model in `impute_model()`. |

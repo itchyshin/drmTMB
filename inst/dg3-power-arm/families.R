@@ -15,7 +15,7 @@
 # Mis-spec pairing follows verification-spec.md's Arm B table. Where the
 # table's literal pairing is not implementable with the CURRENT drmTMB
 # surface (e.g. no map/fixed-parameter control to force a wrong tweedie
-# power; beta()/beta-support families cannot accept an exact atom without
+# power; beta_family()/beta-support families cannot accept an exact atom without
 # erroring), a documented, defensible substitute is used and flagged
 # "[SUBSTITUTE]" in the mis-spec name/comment -- never silently swapped.
 
@@ -369,7 +369,7 @@ dg3_spec_beta <- list(
       )
     },
     fit = function(dat) {
-      drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat, control = fast_control)
+      drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat, control = fast_control)
     },
     response = NULL
   ),
@@ -394,10 +394,10 @@ dg3_spec_beta <- list(
         )
       },
       fit_true = function(dat) {
-        drmTMB(bf(y ~ x, sigma ~ x), family = beta(), data = dat, control = fast_control)
+        drmTMB(bf(y ~ x, sigma ~ x), family = beta_family(), data = dat, control = fast_control)
       },
       fit_wrong = function(dat) {
-        drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat, control = fast_control)
+        drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat, control = fast_control)
       },
       response = NULL
     ),
@@ -405,7 +405,7 @@ dg3_spec_beta <- list(
       # [SUBSTITUTE]: the table's "wrong family" column for this row has no
       # safe cross-family partner for beta's bounded (0,1) support inside the
       # package (gamma/lognormal are (0, Inf); zero_one_beta's atoms at
-      # {0,1} would make beta()'s density undefined at those exact points,
+      # {0,1} would make beta_family()'s density undefined at those exact points,
       # erroring rather than fitting). Substituted with a standard, equally
       # legitimate GAMLSS-diagnostic mis-spec: an omitted quadratic term in
       # the mean's link-scale predictor (worm-plot/QQ literature's classic
@@ -417,7 +417,7 @@ dg3_spec_beta <- list(
         # mean-centered quadratic (E[x^2] = 1 under x ~ N(0,1)) keeps mu_true
         # away from the 0/1 boundary on average -- an UNcentered 0.9*x^2 term
         # (tried first) pushed mu_true so close to 1 for most of the sample
-        # that rbeta() underflowed to exact 1s, erroring beta()'s (0,1)-open
+        # that rbeta() underflowed to exact 1s, erroring beta_family()'s (0,1)-open
         # support requirement on ~100% of seeds; a DGP bug, not a harness or
         # diagnostic finding. A hard clamp on the tail (rare |x| > ~2.5 still
         # pushed mu_true to ~0.99 with phi_true = 6.25, giving shape2 small
@@ -431,10 +431,10 @@ dg3_spec_beta <- list(
         )
       },
       fit_true = function(dat) {
-        drmTMB(bf(y ~ x + I(x^2), sigma ~ 1), family = beta(), data = dat, control = fast_control)
+        drmTMB(bf(y ~ x + I(x^2), sigma ~ 1), family = beta_family(), data = dat, control = fast_control)
       },
       fit_wrong = function(dat) {
-        drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat, control = fast_control)
+        drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat, control = fast_control)
       },
       response = NULL
     )
@@ -1113,7 +1113,7 @@ dg3_spec_zero_one_beta <- list(
   mis_specs = list(
     list(
       # [SUBSTITUTE]: same epsilon-substitution idea as tweedie's mis-spec 1
-      # (beta()'s density is undefined at exact 0/1, so a literal
+      # (beta_family()'s density is undefined at exact 0/1, so a literal
       # "interior-only" refit on unmodified data errors rather than fits).
       name = "ignore_atoms_epsilon_substituted_beta_SUBSTITUTE",
       dgp = function(seed, n) {
@@ -1137,7 +1137,7 @@ dg3_spec_zero_one_beta <- list(
         dat_eps <- dat
         dat_eps$y[dat_eps$y == 0] <- 1e-4
         dat_eps$y[dat_eps$y == 1] <- 1 - 1e-4
-        drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat_eps, control = fast_control)
+        drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat_eps, control = fast_control)
       },
       response = NULL
     ),

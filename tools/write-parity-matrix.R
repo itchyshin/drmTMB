@@ -532,7 +532,7 @@ pm_capability_entries <- function(ctx) {
     fam("Zero-inflated NB2 (ZINB)", "nbinom2", modifier = "zi",
         boundary = sprintf("ZINB is nbinom2() plus a `zi ~` formula on both engines (%s);", hurdle_msg)),
     fam("Beta proportions", "beta",
-        boundary = sprintf("fixed-effect beta() only here; the phylo Beta cell is ledgered on the non-Gaussian phylo row (%s); relmat on beta() is refused (%s);", pm_cite_tsv(ctx, "phylo_gamma_beta_binomial"), pm_cite_gates(ctx, "structured_unsupported_family"))),
+        boundary = sprintf("fixed-effect beta_family() only here; the phylo Beta cell is ledgered on the non-Gaussian phylo row (%s); relmat on beta_family() is refused (%s);", pm_cite_tsv(ctx, "phylo_gamma_beta_binomial"), pm_cite_gates(ctx, "structured_unsupported_family"))),
     fam("Truncated NB2 (zero-truncated counts)", "truncated_nbinom2"),
     # RE-MEASURED 2026-09-05 live at DRM.jl 430ef64cc
     # (docs/dev-log/evidence/julia-r-parity/docs-staleness/hurdle-cross-spelling-probe.R):

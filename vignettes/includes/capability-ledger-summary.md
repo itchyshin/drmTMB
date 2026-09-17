@@ -14,7 +14,7 @@ The canonical ledger was last updated **2026-08-27**. These counts and permissio
 
 **Exact scope and caveat.** An ML fixed-effect Beta location coefficient at tested sample sizes 50, 150, or 500. Wald mean-coefficient intervals have calibration evidence in those designs; random effects, other parameters, other sample sizes, and other families are not covered.
 
-**Concrete fallback.** For a different structure, use a fixed-effect `beta()` location model without `phylo()` or random terms.
+**Concrete fallback.** For a different structure, use a fixed-effect `beta_family()` location model without `phylo()` or random terms.
 
 ### Binomial location (`mu`) random slope {.drmtmb-route-card .drmtmb-route-interval}
 

@@ -1599,7 +1599,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "`binomial()`",
             "`poisson()`",
             "`nbinom2()`",
-            "`beta()`",
+            "`beta_family()`",
             "`student()`",
             "`lognormal()`",
             '`Gamma(link = "log")`',
@@ -2469,7 +2469,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             animal,
         )
         self.assertIn("beta `sigma` accepts an intercept only", animal)
-        self.assertNotIn("a `beta()` animal intercept in `mu` or `sigma`", animal)
+        self.assertNotIn("a `beta_family()` animal intercept in `mu` or `sigma`", animal)
 
         relmat = " ".join(
             (ROOT / "vignettes/relmat-known-matrices.Rmd").read_text().split()

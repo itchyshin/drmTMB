@@ -15,7 +15,7 @@ fit_missing_predictor_beta <- function(dat) {
     bf(y ~ z + mi(cover), sigma ~ 1),
     data = dat,
     impute = list(
-      cover = impute_model(cover ~ z, family = beta())
+      cover = impute_model(cover ~ z, family = beta_family())
     ),
     missing = miss_control(predictor = "model"),
     control = drm_control(se = FALSE)
@@ -111,7 +111,7 @@ test_that("beta mi() predictor model combines with response masks", {
     bf(y ~ z + mi(cover), sigma ~ 1),
     data = dat,
     impute = list(
-      cover = impute_model(cover ~ z, family = beta())
+      cover = impute_model(cover ~ z, family = beta_family())
     ),
     missing = miss_control(response = "include", predictor = "model"),
     control = drm_control(se = FALSE)
@@ -139,7 +139,7 @@ test_that("beta mi() validates first proportion predictor boundary", {
       bf(y ~ z + mi(cover), sigma ~ 1),
       data = dat_boundary,
       impute = list(
-        cover = impute_model(cover ~ z, family = beta())
+        cover = impute_model(cover ~ z, family = beta_family())
       ),
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE)
@@ -155,7 +155,7 @@ test_that("beta mi() validates first proportion predictor boundary", {
       bf(y ~ z + mi(cover), sigma ~ 1),
       data = dat_factor,
       impute = list(
-        cover = impute_model(cover ~ z, family = beta())
+        cover = impute_model(cover ~ z, family = beta_family())
       ),
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE)
@@ -168,7 +168,7 @@ test_that("beta mi() validates first proportion predictor boundary", {
       bf(y ~ z + mi(cover), sigma ~ 1),
       data = dat,
       impute = list(
-        cover = impute_model(cover ~ z + (1 | site), family = beta())
+        cover = impute_model(cover ~ z + (1 | site), family = beta_family())
       ),
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE)

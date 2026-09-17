@@ -80,7 +80,7 @@ would touch code outside this task's family set.
   `model_type == 15`, which is `"zero_one_beta"`): `phi = 1/sigma^2`,
   `shape1 = mu*phi`, `shape2 = (1-mu)*phi`. The compiled density additionally
   floors `alpha`/`beta_shape` at `1e-8` via `CppAD::CondExpLt` to guard
-  numeric underflow; `stats::{d,p,q}beta()` applies no such floor, so `d()`
+  numeric underflow; `stats::{d,p,q}beta_family()` applies no such floor, so `d()`
   can differ from the compiled density at pathological (near-boundary `mu`,
   huge `phi`) parameter combinations. Not exercised by DG2's fixed theta
   vectors (interior `mu`, modest `phi`); flagged as a residual uncertainty
@@ -161,7 +161,7 @@ either file by this batch.
 ## Flagged uncertainties (not silently resolved)
 
 1. **Beta's `1e-8` floor.** The compiled density clamps `alpha`/`beta_shape`
-   away from 0; `stats::{d,p,q}beta()` does not. DG2's fixed theta vectors
+   away from 0; `stats::{d,p,q}beta_family()` does not. DG2's fixed theta vectors
    (interior `mu`, modest `phi`) never approach the floor, so this is
    undetected here. A future DG2 pass that deliberately probes extreme
    `(mu, sigma)` combinations near the beta family's numeric edge should

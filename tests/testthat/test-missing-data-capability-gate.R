@@ -42,7 +42,7 @@ cap_family_cases <- function() {
     nbinom2           = list(fam = nbinom2(),                data = base(rnbinom(n, mu = 3, size = 2))),
     tweedie           = list(fam = tweedie(),                data = base(pmax(0, rnorm(n, 2)))),
     truncated_nbinom2 = list(fam = truncated_nbinom2(),      data = base(1L + rpois(n, 3))),
-    beta              = list(fam = beta(),                   data = base(plogis(rnorm(n)))),
+    beta              = list(fam = beta_family(),                   data = base(plogis(rnorm(n)))),
     zero_one_beta     = list(fam = zero_one_beta(),          data = base(plogis(rnorm(n)))),
     beta_binomial     = list(fam = beta_binomial(),          data = base(rbinom(n, 1, 0.5))),
     cumulative_logit  = list(fam = cumulative_logit(),

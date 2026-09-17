@@ -134,7 +134,7 @@ drm_wfg_case_spec <- function(slug) {
     ),
     "proportion-beta" = list(
       formula = quote(bf(y ~ x, sigma ~ 1)),
-      family = quote(beta())
+      family = quote(beta_family())
     ),
     "meta-analysis-V" = list(
       formula = quote(bf(y ~ x + meta_V(V = v), sigma ~ 1)),

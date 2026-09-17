@@ -162,7 +162,7 @@ test_that("beta_binomial is NOT reported covered by the phylo_gamma_beta_binomia
   # says beta_binomial has a row.
   expect_true(any(grepl("beta_binomial", tsv$capability_id, fixed = TRUE)))
 
-  # The syntax join does not: the row's syntax calls Gamma(), beta() and
+  # The syntax join does not: the row's syntax calls Gamma(), beta_family() and
   # stats::binomial(), never beta_binomial().
   expect_true(pm_test_syntax_calls(trap$syntax, "Gamma"))
   expect_true(pm_test_syntax_calls(trap$syntax, "beta"))

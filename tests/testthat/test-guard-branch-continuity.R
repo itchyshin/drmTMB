@@ -431,7 +431,7 @@ test_that("beta_shape_floor: REPORT(alpha) is continuous at alpha_raw = 1e-8 fro
   dat <- data.frame(y = stats::rbeta(n, 5, 5))
   fit <- allow_nonconvergence(drmTMB(
     bf(y ~ 1, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = drm_control(
       se = FALSE,
@@ -488,7 +488,7 @@ test_that("prior_norm floor: REPORT(mi_x_full) stays finite and continuous as pr
   fit <- allow_nonconvergence(drmTMB(
     bf(y ~ z + mi(cover), sigma ~ 1),
     data = dat,
-    impute = list(cover = impute_model(cover ~ z, family = beta())),
+    impute = list(cover = impute_model(cover ~ z, family = beta_family())),
     missing = miss_control(response = "include", predictor = "model"),
     control = drm_control(
       se = FALSE,

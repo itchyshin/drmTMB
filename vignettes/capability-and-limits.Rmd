@@ -290,7 +290,7 @@ report the point estimate with confidence.
 
 A retained multi-seed coverage campaign checked the fixed-effect mean
 coefficients of `binomial()`, `poisson()`,
-`beta()`, and `nbinom2()` across `n` in `{50, 150, 500}`, 400 seeds per
+`beta_family()`, and `nbinom2()` across `n` in `{50, 150, 500}`, 400 seeds per
 cell. Every cell cleared the bar: finite rate at 1.00 and Wald coverage
 between 0.922 and 0.973, with no worsening at the smallest sample size and
 no systematic under-coverage. That holds even under stress -- a rare-event
@@ -300,15 +300,15 @@ not, by itself, a reason to distrust these intervals.
 
 The same campaign extended to `nbinom2()` location-scale models, where
 both the mean coefficients and the `sigma ~ x` dispersion coefficients are
-calibrated (coverage 0.93-0.97 across `n`), and to `beta()` location-scale
+calibrated (coverage 0.93-0.97 across `n`), and to `beta_family()` location-scale
 models on interior proportions, where mean and `sigma ~ x` coefficients are
-also calibrated (coverage 0.93-0.95). The `beta()` result carries one hard
+also calibrated (coverage 0.93-0.95). The `beta_family()` result carries one hard
 requirement: the family strictly needs responses in the open interval
 `(0, 1)`. An observation with an exact 0 or exact 1 -- a boundary
 proportion that arises naturally from rounding at extreme covariate
 values -- produces a non-finite result by design, not a bug to route
 around. If your proportions can legitimately sit at the boundary, fit
-`zero_one_beta()` instead of `beta()`.
+`zero_one_beta()` instead of `beta_family()`.
 
 ### Ordinary non-Gaussian random slopes: profile intervals with caveats
 
@@ -590,7 +590,7 @@ response-missingness ledger:
 | Response family | Missing predictor `mi()` (`predictor = "model"`) |
 | --- | :---: |
 | `gaussian()` | ✓ (broad predictor-model catalogue) |
-| `binomial()`, `poisson()`, `nbinom2()`, `beta()`, `lognormal()`, `Gamma(link = "log")`, `student()`, `beta_binomial()` | ✓ (one binary predictor) |
+| `binomial()`, `poisson()`, `nbinom2()`, `beta_family()`, `lognormal()`, `Gamma(link = "log")`, `student()`, `beta_binomial()` | ✓ (one binary predictor) |
 | every other family | — (rejects) |
 
 Two missing-predictor details:

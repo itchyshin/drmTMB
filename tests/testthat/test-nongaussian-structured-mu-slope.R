@@ -92,7 +92,7 @@ test_that("non-count structured mu one-slope cells fit and expose intercept + sl
 
   fit_beta <- drmTMB(
     bf(y ~ x + animal(1 + x | id, pedigree = ped_beta), sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat_beta,
     control = drm_control(se = FALSE)
   )

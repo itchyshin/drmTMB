@@ -337,7 +337,7 @@ qseries_v1_first_four_fixture <- function() {
       gate_id = "nongaussian_struct_fit_beta_mu_animal",
       cell_id = "qseries_beta_mu_animal_rejected",
       formula_cell = "animal(1 | id, pedigree = ped) in mu",
-      family = "beta()",
+      family = "beta_family()",
       provider = "animal",
       expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(
@@ -580,7 +580,7 @@ qseries_v1_first_four_fixture <- function() {
       gate_id = "nongaussian_struct_fit_beta_sigma_animal",
       cell_id = "qseries_beta_sigma_animal_rejected",
       formula_cell = "animal(1 | id, pedigree = ped) in sigma",
-      family = "beta()",
+      family = "beta_family()",
       provider = "animal",
       expected_status = "expected_fit",
       expr = quote(drmTMB::drmTMB(

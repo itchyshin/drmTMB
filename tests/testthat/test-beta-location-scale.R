@@ -140,7 +140,7 @@ test_that("drmTMB fits fixed-effect beta mean-scale models", {
 
   fit <- drmTMB(
     bf(prop ~ x, sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = sim$data
   )
 
@@ -188,7 +188,7 @@ test_that("beta mu supports ordinary random intercepts", {
 
   fit <- drmTMB(
     bf(prop ~ x + (1 | id), sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = sim$data
   )
 
@@ -238,7 +238,7 @@ test_that("beta admits an intercept-only q1 phylogenetic mu effect", {
   tree <- sim$tree
   fit <- drmTMB(
     bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ x),
-    family = beta(),
+    family = beta_family(),
     data = sim$data,
     control = drm_control(se = FALSE)
   )
@@ -316,7 +316,7 @@ test_that("beta likelihood matches independent dbeta calculation", {
 
   fit <- drmTMB(
     bf(prop ~ x, sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = sim$data
   )
 
@@ -340,7 +340,7 @@ test_that("beta methods return mean and public sigma scales", {
   sim <- new_beta_data(n = 180, seed = 20260616)
   fit <- drmTMB(
     bf(prop ~ x, sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = sim$data
   )
 
@@ -396,7 +396,7 @@ test_that("beta handles factor predictors and scale edge cases", {
 
   fit <- drmTMB(
     bf(prop ~ group, sigma ~ group),
-    family = beta(),
+    family = beta_family(),
     data = dat
   )
 
@@ -415,7 +415,7 @@ test_that("beta handles factor predictors and scale edge cases", {
         shape2 = (1 - mu) * phi
       )
     )
-    drmTMB(bf(prop ~ 1, sigma ~ 1), family = beta(), data = dat)
+    drmTMB(bf(prop ~ 1, sigma ~ 1), family = beta_family(), data = dat)
   }
   small <- beta_case(-0.25, 0.18)
   large <- beta_case(0.75, 1.10)
@@ -432,7 +432,7 @@ test_that("beta supports default sigma and complete-case filtering", {
   sim <- new_beta_data(n = 120, seed = 20260618)
   fit_default_sigma <- drmTMB(
     bf(prop ~ x),
-    family = beta(),
+    family = beta_family(),
     data = sim$data
   )
 
@@ -457,7 +457,7 @@ test_that("beta supports default sigma and complete-case filtering", {
 
   fit <- drmTMB(
     bf(prop ~ x, sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = dat
   )
 
@@ -478,7 +478,7 @@ test_that("beta rejects boundary and unsupported inputs", {
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = transform(dat, y = c(0, 0.2, 0.7, 0.9))
     ),
     "strictly between 0 and 1"
@@ -486,7 +486,7 @@ test_that("beta rejects boundary and unsupported inputs", {
   expect_error(
     drmTMB(
       bf(y ~ x + (1 | id), sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = transform(dat, y = c(0, 0.2, 0.7, 0.9))
     ),
     "strictly between 0 and 1"
@@ -494,7 +494,7 @@ test_that("beta rejects boundary and unsupported inputs", {
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = transform(dat, y = c(0.1, 0.2, 0.7, 1))
     ),
     "strictly between 0 and 1"
@@ -502,65 +502,65 @@ test_that("beta rejects boundary and unsupported inputs", {
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = transform(dat, y = NA_real_)
     ),
     "No complete observations"
   )
   expect_error(
-    drmTMB(bf(y ~ x, phi ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, phi ~ 1), family = beta_family(), data = dat),
     "only support|location formula"
   )
   expect_error(
-    drmTMB(bf(y ~ x, nu ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, nu ~ 1), family = beta_family(), data = dat),
     "only support|location formula"
   )
   expect_error(
-    drmTMB(bf(y ~ x, zoi ~ x, coi ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, zoi ~ x, coi ~ 1), family = beta_family(), data = dat),
     "Zero-one-inflated bounded-response likelihoods"
   )
   expect_error(
-    drmTMB(bf(y ~ x, zoi ~ x + (1 | id)), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, zoi ~ x + (1 | id)), family = beta_family(), data = dat),
     "Zero-one-inflated bounded-response random effects"
   )
   expect_error(
-    drmTMB(bf(y ~ x, coi ~ x + (0 + x | id)), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, coi ~ x + (0 + x | id)), family = beta_family(), data = dat),
     "Zero-one-inflated bounded-response random effects"
   )
   expect_error(
-    drmTMB(bf(mu = ~x, sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(mu = ~x, sigma ~ 1), family = beta_family(), data = dat),
     "must include a response"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1, sigma ~ x), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, sigma ~ 1, sigma ~ x), family = beta_family(), data = dat),
     "at most one"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 + x | id), sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x + (1 + x | id), sigma ~ 1), family = beta_family(), data = dat),
     "Only independent"
   )
   expect_error(
-    drmTMB(bf(y ~ x + (1 | p | id), sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x + (1 | p | id), sigma ~ 1), family = beta_family(), data = dat),
     "random intercepts"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1 + (1 | id)), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, sigma ~ 1 + (1 | id)), family = beta_family(), data = dat),
     "sigma.*random effects"
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = beta_family(), data = dat),
     "Random-effect scale"
   )
   expect_error(
     drmTMB(
       bf(y ~ x + meta_V(V = rep(0.1, 4)), sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = dat
     ),
     "meta_V"
   )
   expect_error(
-    drmTMB(bf(mvbind(y, y) ~ x, sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(mvbind(y, y) ~ x, sigma ~ 1), family = beta_family(), data = dat),
     "mvbind"
   )
   binom_dat <- data.frame(
@@ -571,7 +571,7 @@ test_that("beta rejects boundary and unsupported inputs", {
   expect_error(
     drmTMB(
       bf(cbind(success, failure) ~ x, sigma ~ 1),
-      family = beta(),
+      family = beta_family(),
       data = binom_dat
     ),
     "single strict proportion"
@@ -586,7 +586,7 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
   expect_error(
     drmTMB(
       bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ x),
-      family = beta(),
+      family = beta_family(),
       data = sim$data
     ),
     "intercept-only q1"
@@ -594,7 +594,7 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
   expect_error(
     drmTMB(
       bf(y ~ x + phylo(1 | p | species, tree = tree), sigma ~ x),
-      family = beta(),
+      family = beta_family(),
       data = sim$data
     ),
     "unlabelled q1"
@@ -602,7 +602,7 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
   expect_error(
     drmTMB(
       bf(y ~ x + phylo(1 | species, tree = tree) + (1 | species), sigma ~ x),
-      family = beta(),
+      family = beta_family(),
       data = sim$data
     ),
     "cannot yet be combined"
@@ -610,7 +610,7 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
   expect_error(
     drmTMB(
       bf(y ~ x, sigma ~ x + phylo(1 | species, tree = tree)),
-      family = beta(),
+      family = beta_family(),
       data = sim$data
     ),
     "Structured-effect syntax is planned"
@@ -622,7 +622,7 @@ test_that("beta phylogenetic mu admission keeps unsupported neighbours closed", 
         sigma ~ x,
         sd(species, level = "phylogenetic") ~ 1 + x
       ),
-      family = beta(),
+      family = beta_family(),
       data = sim$data
     ),
     "varies within"

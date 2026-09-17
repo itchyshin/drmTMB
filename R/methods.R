@@ -108,7 +108,6 @@ print.drmTMB <- function(x, ...) {
 #'
 #' @return A named numeric vector when `dpar` is supplied, otherwise a named
 #'   list of coefficient vectors.
-#' @export
 #'
 #' @examples
 #' set.seed(20260525)
@@ -127,10 +126,6 @@ print.drmTMB <- function(x, ...) {
 #' coef(fit)
 #' names(coef(fit))
 #' identical(coef(fit), fixef(fit))
-fixef <- function(object, ...) {
-  UseMethod("fixef")
-}
-
 #' @rdname fixef
 #' @export
 fixef.drmTMB <- function(object, dpar = NULL, ...) {
@@ -153,7 +148,6 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #'
 #' @return A named list of random-effect blocks when `dpar = NULL`, otherwise
 #'   one random-effect block.
-#' @export
 #'
 #' @examples
 #' set.seed(20260525)
@@ -168,10 +162,6 @@ fixef.drmTMB <- function(object, dpar = NULL, ...) {
 #' fit <- drmTMB(bf(y ~ x + (1 | id), sigma ~ 1), data = dat)
 #' names(ranef(fit))
 #' head(ranef(fit, "mu")$terms[["(1 | id)"]])
-ranef <- function(object, ...) {
-  UseMethod("ranef")
-}
-
 #' @rdname ranef
 #' @export
 ranef.drmTMB <- function(object, dpar = NULL, ...) {

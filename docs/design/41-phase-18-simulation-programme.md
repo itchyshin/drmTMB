@@ -821,7 +821,7 @@ gate.
      `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`.
      The lane adds DGP, summariser, smoke runner, grid writer, first-wave
      runner inclusion, and a manual `proportion_fixed_effect` Actions task for
-     `beta()` and `beta_binomial()`, while keeping exact 0/1 boundary mass,
+     `beta_family()` and `beta_binomial()`, while keeping exact 0/1 boundary mass,
      `zoi`/`coi`, bounded-response random effects beyond the beta and
      beta-binomial ordinary `mu` intercept/slope slices, structured bounded
      responses, and mixed-response bounded models outside the fitted claim.
@@ -858,7 +858,7 @@ gate.
      low-overdispersion cells still show fixed-`sigma` recovery problems.
 164. Slice D3 records the zero-one bounded-response design gate in
      `docs/design/114-phase-18-zero-one-bounded-response-design-gate-slice-d3.md`.
-     The gate separates strict `beta()` responses, denominator-aware
+     The gate separates strict `beta_family()` responses, denominator-aware
      `beta_binomial()` responses, and fixed-effect zero-one beta responses with
      exact 0/1 mass. It originally opened no likelihood, formula grammar, TMB
      code, or `zoi`/`coi` random-effect route.
@@ -878,7 +878,7 @@ gate.
      `docs/design/117-phase-18-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md`.
      The lane adds DGP, summariser, smoke runner, grid writer, first-wave
      runner inclusion, and a manual `bounded_response_mu_random_intercept`
-     Actions task for `beta()` and `beta_binomial()` with ordinary `(1 | id)`
+     Actions task for `beta_family()` and `beta_binomial()` with ordinary `(1 | id)`
      in `mu`; independent numeric slopes now have focused source tests. It
      records fixed-effect Wald rows plus direct-SD profile rows and keeps
      correlated bounded-response random slopes, labelled covariance, `sigma` random

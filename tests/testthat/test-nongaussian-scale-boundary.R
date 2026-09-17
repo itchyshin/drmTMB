@@ -45,7 +45,7 @@ test_that("non-Gaussian sigma random effects have a specific boundary", {
     "random intercepts are implemented"
   )
   expect_error(
-    drmTMB(bf(y_prop ~ x, sigma ~ x + (1 | id)), family = beta(), data = dat),
+    drmTMB(bf(y_prop ~ x, sigma ~ x + (1 | id)), family = beta_family(), data = dat),
     boundary
   )
   expect_error(

@@ -145,7 +145,7 @@ evidence cell names the PRs and the build the new numbers came from.
 ### phylo_gamma_beta_binomial -- beta
 
 - **Source**: TSV (`inst/extdata/julia-capabilities.tsv`)
-- **Formula**: `bf(y ~ x + phylo(1|species, tree=tree)), beta()`
+- **Formula**: `bf(y ~ x + phylo(1|species, tree=tree)), beta_family()`
 - **Native TMB**: REFUSES -- shared code branch, not re-run separately
 - **Native DRM.jl**: REFUSES -- not among DRM.jl's two Cox-Reid REML families
 - **Bridge (`engine = "julia"`)**: REFUSES -- family_type "beta" not in gate
@@ -280,7 +280,7 @@ evidence cell names the PRs and the build the new numbers came from.
 ### fe_beta
 
 - **Source**: TSV (A3, PR #1168) (`inst/extdata/julia-capabilities.tsv`)
-- **Formula**: `bf(y ~ x, sigma ~ 1), beta(), fixed-effect only`
+- **Formula**: `bf(y ~ x, sigma ~ 1), beta_family(), fixed-effect only`
 - **Native TMB**: REFUSES -- shared code branch, not re-run separately
 - **Native DRM.jl**: REFUSES -- not a Cox-Reid REML family
 - **Bridge (`engine = "julia"`)**: REFUSES -- family_type "beta" not in gate

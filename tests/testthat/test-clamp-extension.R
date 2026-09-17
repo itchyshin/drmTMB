@@ -103,8 +103,8 @@ test_that("beta scale is clamp-guarded", {
     z = z
   )
   form <- bf(y ~ x, sigma ~ z)
-  expect_clamp_in_band_identity(form, beta(), dat)
-  expect_clamp_applied(form, beta(), dat)
+  expect_clamp_in_band_identity(form, beta_family(), dat)
+  expect_clamp_applied(form, beta_family(), dat)
 })
 
 test_that("NB2 dispersion is clamp-guarded", {

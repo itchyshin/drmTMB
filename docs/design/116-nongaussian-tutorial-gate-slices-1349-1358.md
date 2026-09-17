@@ -20,11 +20,11 @@ The proportion decision table is:
 ```text
 0/1 event or ordinary successes out of known trials -> stats::binomial()
 overdispersed successes out of known trials -> beta_binomial()
-continuous proportions strictly inside (0, 1) -> beta()
+continuous proportions strictly inside (0, 1) -> beta_family()
 continuous proportions on [0, 1] with structural exact boundaries -> zero_one_beta()
 ```
 
-`beta()` and `beta_binomial()` also have ordinary unlabelled `mu` random
+`beta_family()` and `beta_binomial()` also have ordinary unlabelled `mu` random
 intercepts as first mixed-model slices. `zero_one_beta()` is fixed-effect only:
 `mu`, `sigma`, `zoi`, and `coi` formulas can vary with predictors, but bar
 terms in those parameters still belong to the planned ledger.

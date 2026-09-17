@@ -146,7 +146,7 @@ test_that("M1 beta: a constant weight leaves the mi() MLE unchanged (Dinnage aud
     drmTMB(
       bf(y ~ z + mi(cover), sigma ~ 1),
       data = data,
-      impute = list(cover = impute_model(cover ~ z, family = beta())),
+      impute = list(cover = impute_model(cover ~ z, family = beta_family())),
       missing = miss_control(predictor = "model"),
       control = drm_control(se = FALSE),
       weights = weights

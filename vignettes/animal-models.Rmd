@@ -452,7 +452,7 @@ The following animal-model routes remain planned:
 - richer non-Gaussian animal structured effects: labelled covariance blocks,
   multiple structured slopes, structured scale routes beyond the NB2 one-slope
   gate, and q=2 or q=4 non-Gaussian animal covariance blocks. Exact q=1
-  animal gates already fit today for `poisson()`, `nbinom2()`, and `beta()`:
+  animal gates already fit today for `poisson()`, `nbinom2()`, and `beta_family()`:
   Poisson, NB2, and beta `mu` accept an unlabelled intercept plus one independent
   slope; NB2 `sigma` accepts the same q1 intercept-plus-one-slope form; beta
   `sigma` accepts an intercept only. These rows retain their recorded

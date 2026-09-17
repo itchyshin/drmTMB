@@ -86,7 +86,7 @@ test_that("beta: animal(1 | id) on log_sigma recovers the injected field", {
 
   fit <- drmTMB(
     bf(y ~ x, sigma ~ animal(1 | id, pedigree = ped)),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = drm_control(se = FALSE)
   )

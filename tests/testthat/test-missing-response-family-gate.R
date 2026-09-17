@@ -12,7 +12,7 @@ drm_missing_gate_candidates <- function() {
     poisson           = poisson(),
     binomial          = binomial(),
     nbinom2           = nbinom2(),
-    beta              = beta(),
+    beta              = beta_family(),
     gamma             = Gamma(link = "log"),
     student           = student(),
     lognormal         = lognormal(),

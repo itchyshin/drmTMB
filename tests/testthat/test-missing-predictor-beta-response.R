@@ -36,7 +36,7 @@ fit_missing_predictor_beta_response <- function(dat) {
   drmTMB(
     bf(y ~ z + mi(treatment), sigma ~ 1),
     data = dat,
-    family = beta(),
+    family = beta_family(),
     impute = list(
       treatment = impute_model(treatment ~ z, family = binomial())
     ),
@@ -110,7 +110,7 @@ test_that("beta-response mi() recovers mean, dispersion, and predictor model", {
 
   fit <- drmTMB(
     bf(y ~ z + mi(x), sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = d,
     impute = list(x = impute_model(x ~ z, family = binomial())),
     missing = miss_control(predictor = "model")

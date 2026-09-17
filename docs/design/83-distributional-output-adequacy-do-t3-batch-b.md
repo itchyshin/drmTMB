@@ -218,7 +218,7 @@ under `NOT_CRAN`, on Totoro/DRAC per the compute directive.
    probing near-degenerate cutpoints should re-check this.
 2. **beta_binomial's/beta's shared `1e-8` floor gap carries forward.** Batch
    A flagged that the compiled beta density floors `alpha`/`beta_shape` at
-   `1e-8` (`CppAD::CondExpLt`) while `stats::{d,p,q}beta()` does not;
+   `1e-8` (`CppAD::CondExpLt`) while `stats::{d,p,q}beta_family()` does not;
    `drm_beta_binomial_dpmf()` reuses `drm_beta_shapes()` and so inherits the
    same gap at pathological (near-0/near-1 `mu`, huge `phi`) parameter
    combinations. Undetected at DG2's interior fixed theta.

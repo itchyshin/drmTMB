@@ -271,7 +271,7 @@ cell_registry <- list(
   ),
   "mc-0013" = list(
     # Random-effect SD target: the independent random-SLOPE SD component of
-    # an intercept+slope animal() block on mu (beta() has no slope-only
+    # an intercept+slope animal() block on mu (beta_family() has no slope-only
     # animal() grammar -- see tools/arc2-beta-animal-fixtures.R).
     target = "sd:mu:animal(0 + x | id)",
     family_name = "beta",
@@ -296,7 +296,7 @@ cell_registry <- list(
     dgp_id = "arc2_beta_animal_mu_slope_sd",
     formula_label = paste0(
       "bf(y ~ x + animal(1 + x | id, pedigree = pedigree), sigma ~ 1); ",
-      "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
+      "beta_family() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 animal random-slope SD on mu (logit link), independent of a 0.50 animal random-intercept SD; 40-individual (3-generation) pedigree, 20 observations per individual, log-SD internal scale",
     true_value = function(fx) fx$sd_slope,
@@ -304,7 +304,7 @@ cell_registry <- list(
   ),
   "mc-0015" = list(
     # Random-effect SD target: an intercept-only animal() block on sigma
-    # (beta()'s scale side only admits intercept-only structured terms).
+    # (beta_family()'s scale side only admits intercept-only structured terms).
     target = "sd:sigma:animal(1 | id)",
     family_name = "beta",
     family = function() drmTMB::beta(),
@@ -323,7 +323,7 @@ cell_registry <- list(
     dgp_id = "arc2_beta_animal_sigma_intercept_sd",
     formula_label = paste0(
       "bf(y ~ x, sigma ~ animal(1 | id, pedigree = pedigree)); ",
-      "beta() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
+      "beta_family() (logit/log); ML; drm_control(optimizer_preset = \"robust\")"
     ),
     true_parameter_scale = "0.55 animal random-intercept SD on sigma (log link); 40-individual (3-generation) pedigree, 40 observations per individual for within-group replication, log-SD internal scale",
     true_value = function(fx) fx$sd_animal_sigma,
@@ -334,7 +334,7 @@ cell_registry <- list(
     # intercept+slope phylo() block on sigma. NB2 (a count family) gates
     # structured sigma terms to unlabelled intercept-plus-one-slope only
     # (validate_*_sigma_random_terms(), R/drmTMB.R) -- the opposite of
-    # beta()'s intercept-only scale gate mc-0015 relies on -- so the fitted
+    # beta_family()'s intercept-only scale gate mc-0015 relies on -- so the fitted
     # formula must include `1 + x` even though only the intercept SD is
     # profiled here (mirrors mc-0013's slope-only targeting of an
     # intercept+slope animal() block).
