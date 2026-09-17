@@ -27,7 +27,17 @@
 #' @importFrom stats nlminb predict residuals rnorm sd sigma simulate terms vcov
 #' @importFrom utils packageVersion
 #' @importFrom nlme fixef ranef
-#' @export fixef
-#' @export ranef
 #' @useDynLib drmTMB, .registration = TRUE
 "_PACKAGE"
+
+#' Re-exported from \pkg{nlme}: extract fixed effects.
+#'
+#' @importFrom nlme fixef
+#' @export
+fixef <- nlme::fixef
+
+#' Re-exported from \pkg{nlme}: extract random effects.
+#'
+#' @importFrom nlme ranef
+#' @export
+ranef <- nlme::ranef
