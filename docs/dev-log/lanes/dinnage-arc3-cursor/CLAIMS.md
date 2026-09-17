@@ -37,15 +37,16 @@ The coordinator owns coordination records, status reconciliation, collision reso
 
 ## Live Status
 
-Updated: 2026-09-17 (Cursor/Composer · `cursor:dinnage-arc3-wave-c`).
+Updated: 2026-09-17 (Grace · merge gate; gh-verified).
 
-- **`main` tip:** `538302d9c`. **`receipt-staleness` green** on `main`.
+- **`main` tip:** `a59d0e64f`. **`receipt-staleness`:** unchanged until #1380 merge.
+- **Receipt gate:** green on `main`; do **not** reopen pre-merge B2 tips (`296a1f763`, `78df3d4d6`, etc.) or closed duplicate [#1378](https://github.com/itchyshin/drmTMB/pull/1378) as live work.
 - **Wave A — all MERGED:** A2 [#1369](https://github.com/itchyshin/drmTMB/pull/1369) @ `2c15ae63e`; A3 [#1367](https://github.com/itchyshin/drmTMB/pull/1367) @ `e6ca0dc8e`; A1 [#1368](https://github.com/itchyshin/drmTMB/pull/1368) @ `f8745242`; D-263 audits [#1370](https://github.com/itchyshin/drmTMB/pull/1370) @ `3dcd7ab1`; Md-J map [#1371](https://github.com/itchyshin/drmTMB/pull/1371) @ `6580d74b1`.
 - **Wave B1 — [#1373](https://github.com/itchyshin/drmTMB/pull/1373) MERGED** @ `f822a34da`. Release `gauss:dinnage-arc3-B1` when idle.
 - **Wave B2 — [#1375](https://github.com/itchyshin/drmTMB/pull/1375) MERGED** @ `4806b4839` (2026-09-16). Release `gauss:dinnage-arc3-B2` when idle.
 - **Hotfix — [#1379](https://github.com/itchyshin/drmTMB/pull/1379) MERGED** @ `9aeb36664` (`hotfix/a2-missing-predictor-gate`: A-2 gate + C17 + tip-identity + `drm_pkg_path`).
 - **Receipt — [#1377](https://github.com/itchyshin/drmTMB/pull/1377) MERGED** @ `4f9699855` (no file delta vs post-#1379 coord). **[#1378](https://github.com/itchyshin/drmTMB/pull/1378) CLOSED** (duplicate).
-- **Wave C — IN PROGRESS:** [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340) on branch `cursor/dinnage-arc3-wave-c` ([`LOOP/wave-b-brief.md`](LOOP/wave-b-brief.md) § Wave C).
+- **Wave C — MERGE-PENDING:** [#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `b60beecc9` · **D-263 ACCEPT** ([5718829248](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718829248)). Await green CI → merge + receipt ([#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340)).
 - **A4 record:** DONE (#1351).
 - **Jason / landscape:** [`LOOP/drm-jl-followups.md`](LOOP/drm-jl-followups.md) on `main`; do not open DRM.jl issues from this Cursor slice.
 

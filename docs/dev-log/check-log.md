@@ -1,3 +1,27 @@
+# 2026-09-17 — Dinnage arc3 Wave C CI red @ 2905e44; merge blocked (#1380)
+
+**Lane:** Grace · merge gate (Composer).
+
+**Evidence:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) OPEN @ `2905e44ecb2471b26807abb6f09e9aff84d1e436`. **D-263: ACCEPT** @ tip ([5718488524](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718488524)). CI [`35252129804`](https://github.com/itchyshin/drmTMB/actions/runs/35252129804) **failure**: ubuntu-latest (release) shard 3/4 — `test-env-skip-census.R` (committed census missing `test-dinnage-audit-wave4c.R` runtime-conditional row).
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** **no merge**; no receipt on `main`; D-263 ACCEPT void if tip moves before merge.
+
+---
+
+# 2026-09-17 — Dinnage arc3 Wave C D-263 REJECT @ tip (#1380)
+
+**Lane:** Grace · merge gate held (Composer coord).
+
+**Evidence:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) OPEN @ `6f46d089f1c15c8fc32a184b422ac51acbba17ac`. CI [`35248209220`](https://github.com/itchyshin/drmTMB/actions/runs/35248209220) all SUCCESS on that tip. **D-263: REJECT** @ tip ([comment 5718384588](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718384588); P1 `NEWS.md` vs removed deprecated `drmTMB::beta()`). Prior ACCEPT @ `97bd85427` superseded by tip delta.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** **no merge** of #1380; no receipt-staleness on `main` until post-merge; fixer owns alias/NEWS alignment on branch.
+
+---
+
 # 2026-09-16 — Coord truth refresh: #1375 merged; #1379 hotfix live (#1375)
 
 **Lane:** Ada · `ada:coord-truth-1379` (coord docs only; gh-verified).
