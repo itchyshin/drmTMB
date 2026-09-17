@@ -1,3 +1,15 @@
+# 2026-09-17 — Dinnage arc3 Wave C MERGED + tip-identity receipt (#1380)
+
+**Lane:** Grace · merge gate (Composer).
+
+**Evidence:** [#1380](https://github.com/itchyshin/drmTMB/pull/1380) **MERGED** @ `9c2c6a29c` (2026-09-17T18:18:10Z). Branch tip `46f2bf523` (includes census fix `b60beecc9`). CI [`35255223781`](https://github.com/itchyshin/drmTMB/actions/runs/35255223781) all SUCCESS. **D-263: ACCEPT** @ `b60beecc9` ([5718829248](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718829248)). Refreshed `lss-tip-identity/public-001.json` R/ hashes on `main`; local `ci-receipt-staleness.sh` **FRESH**.
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md` — **Wave C DONE**.
+
+**Non-claims:** no release/tag; confirm `receipt-staleness` workflow on `main` after push.
+
+---
+
 # 2026-09-17 — Dinnage arc3 Wave C CI red @ 2905e44; merge blocked (#1380)
 
 **Lane:** Grace · merge gate (Composer).
