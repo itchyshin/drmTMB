@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-16 ~14:15 MDT** · **`main` @ `4f9699855`** (#1377 merge; #1379 @ `9aeb36664`; B2 @ `4806b4839`)
+Updated: **2026-09-17** · **`main` @ `538302d9c`** · **Wave C HOLD** ([#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `6f46d089`)
 
 ## Current scope
 
-**Wave A: CLOSED.** **Wave B: CLOSED** (B1 [#1373](https://github.com/itchyshin/drmTMB/pull/1373) @ `f822a34da`; B2 [#1375](https://github.com/itchyshin/drmTMB/pull/1375) @ `4806b4839`). **Hotfix [#1379](https://github.com/itchyshin/drmTMB/pull/1379) MERGED** @ `9aeb36664`. **[#1377](https://github.com/itchyshin/drmTMB/pull/1377) MERGED** @ `4f9699855` (empty tree delta vs `c8951f435`). **[#1378](https://github.com/itchyshin/drmTMB/pull/1378) CLOSED** (duplicate). **`receipt-staleness` SUCCESS** on `main` @ `4f9699855` (run `35144807139`). **Wave C NEXT:** [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). **DRM.jl twin map (Jason):** [`drm-jl-followups.md`](drm-jl-followups.md).
+**Wave A/B: CLOSED.** **Wave C HOLD:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `6f46d089f` · **D-263 REJECT** @ tip ([5718384588](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718384588)). CI green [`35248209220`](https://github.com/itchyshin/drmTMB/actions/runs/35248209220) — **no merge** until new tip + green CI + fresh D-263 ACCEPT. Issues [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). Composer fixer in flight.
 
 ## Merge record
 
@@ -25,7 +25,7 @@ Updated: **2026-09-16 ~14:15 MDT** · **`main` @ `4f9699855`** (#1377 merge; #13
 
 ## Wave C
 
-**Unlocked** after Wave B + #1379. Issues [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). See [`wave-b-brief.md`](wave-b-brief.md) § Wave C and handover § Wave C.
+PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) on `cursor/dinnage-arc3-wave-c`. **HOLD** — D-263 REJECT @ `6f46d089`; await fix + re-review. See [`wave-b-brief.md`](wave-b-brief.md) § Wave C.
 
 ## Resume
 
