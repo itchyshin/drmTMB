@@ -2,12 +2,9 @@
 % Please edit documentation in R/family.R
 \name{beta_family}
 \alias{beta_family}
-\alias{beta}
 \title{Beta response family}
 \usage{
 beta_family()
-
-beta()
 }
 \value{
 A \code{drm_family} object.
@@ -25,12 +22,6 @@ Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter the logit-\code{mu} predictor; \code{sigma}
 remains fixed-effect in this first slice.
 }
-\section{Functions}{
-\itemize{
-\item \code{beta()}: Deprecated alias; use \code{\link[=beta_family]{beta_family()}} instead.
-
-}}
 \examples{
 beta_family()
 }
-\keyword{internal}
