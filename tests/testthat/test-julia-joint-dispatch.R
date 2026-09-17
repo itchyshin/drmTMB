@@ -1,5 +1,6 @@
 test_that("public Julia entry routes joint models before legacy impute refusal", {
   testthat::local_mocked_bindings(
+    drm_julia_setup = function(...) invisible(NULL),
     drmTMB_julia_joint_bridge = function(...) list(joint_args = list(...)),
     .package = "drmTMB"
   )

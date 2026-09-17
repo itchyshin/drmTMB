@@ -284,13 +284,6 @@ beta_family <- function() {
   )
 }
 
-#' @keywords internal
-#' @describeIn beta_family Deprecated alias; use [beta_family()] instead.
-beta <- function() {
-  lifecycle::deprecate_warn("0.7.1", "beta()", "beta_family()")
-  beta_family()
-}
-
 #' Zero-one beta response family
 #'
 #' `zero_one_beta()` defines a one-response distribution for continuous
