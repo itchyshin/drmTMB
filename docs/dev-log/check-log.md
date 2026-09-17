@@ -1,3 +1,15 @@
+# 2026-09-17 — Dinnage arc3 Wave C CI red @ 2905e44; merge blocked (#1380)
+
+**Lane:** Grace · merge gate (Composer).
+
+**Evidence:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) OPEN @ `2905e44ecb2471b26807abb6f09e9aff84d1e436`. **D-263: ACCEPT** @ tip ([5718488524](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718488524)). CI [`35252129804`](https://github.com/itchyshin/drmTMB/actions/runs/35252129804) **failure**: ubuntu-latest (release) shard 3/4 — `test-env-skip-census.R` (committed census missing `test-dinnage-audit-wave4c.R` runtime-conditional row).
+
+**Coordination update:** board, `CLAIMS.md`, `LOOP/checkpoint.md`.
+
+**Non-claims:** **no merge**; no receipt on `main`; D-263 ACCEPT void if tip moves before merge.
+
+---
+
 # 2026-09-17 — Dinnage arc3 Wave C D-263 REJECT @ tip (#1380)
 
 **Lane:** Grace · merge gate held (Composer coord).

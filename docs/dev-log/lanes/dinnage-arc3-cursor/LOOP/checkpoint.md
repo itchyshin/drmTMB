@@ -1,10 +1,10 @@
 # Dinnage Arc3 Coordinator Checkpoint
 
-Updated: **2026-09-17** · **`main` @ `538302d9c`** · **Wave C HOLD** ([#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `6f46d089`)
+Updated: **2026-09-17** · **`main` @ `538302d9c`** · **Wave C HOLD** ([#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `2905e44`)
 
 ## Current scope
 
-**Wave A/B: CLOSED.** **Wave C HOLD:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `6f46d089f` · **D-263 REJECT** @ tip ([5718384588](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718384588)). CI green [`35248209220`](https://github.com/itchyshin/drmTMB/actions/runs/35248209220) — **no merge** until new tip + green CI + fresh D-263 ACCEPT. Issues [#1339](https://github.com/itchyshin/drmTMB/issues/1339), [#1340](https://github.com/itchyshin/drmTMB/issues/1340). Composer fixer in flight.
+**Wave A/B: CLOSED.** **Wave C HOLD:** PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) @ `2905e44e` · **D-263 ACCEPT** @ tip ([5718488524](https://github.com/itchyshin/drmTMB/pull/1380#issuecomment-5718488524)). CI **RED** [`35252129804`](https://github.com/itchyshin/drmTMB/actions/runs/35252129804) (shard 3/4: `test-env-skip-census.R`). **No merge** until green CI (re-ACCEPT if tip moves). Composer: refresh env-skip census.
 
 ## Merge record
 
@@ -25,7 +25,7 @@ Updated: **2026-09-17** · **`main` @ `538302d9c`** · **Wave C HOLD** ([#1380](
 
 ## Wave C
 
-PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) on `cursor/dinnage-arc3-wave-c`. **HOLD** — D-263 REJECT @ `6f46d089`; await fix + re-review. See [`wave-b-brief.md`](wave-b-brief.md) § Wave C.
+PR [#1380](https://github.com/itchyshin/drmTMB/pull/1380) on `cursor/dinnage-arc3-wave-c`. **HOLD** — D-263 ACCEPT @ `2905e44`; CI red (env-skip census). See [`wave-b-brief.md`](wave-b-brief.md) § Wave C.
 
 ## Resume
 
