@@ -1,4 +1,13 @@
 test_that("Mi-1: unqualified beta() is base::beta after drmTMB attach", {
+  # devtools::test attaches unexported namespace objects via pkgload; the release
+  # contract is `library(drmTMB)` on the installed package (test_check() path).
+  if (exists("beta", envir = asNamespace("drmTMB"), inherits = FALSE) &&
+      identical(
+        get("beta", envir = environment()),
+        get("beta", envir = asNamespace("drmTMB"), inherits = FALSE)
+      )) {
+    skip("pkgload dev attach binds unexported beta(); install attach is covered by test_check()")
+  }
   withr::local_options(lifecycle_verbosity = "quiet")
   expect_equal(beta(2, 3), base::beta(2, 3))
   expect_equal(beta(0.5, 0.5), base::beta(0.5, 0.5))
@@ -8,6 +17,17 @@ test_that("Mi-1: beta_family() is the exported proportion family constructor", {
   fam <- drmTMB::beta_family()
   expect_s3_class(fam, "drm_family")
   expect_equal(fam$family, "beta")
+})
+
+test_that("Mi-1: unexported drmTMB:::beta() aliases beta_family()", {
+  withr::local_options(lifecycle_verbosity = "warning")
+  expect_false("beta" %in% getNamespaceExports("drmTMB"))
+  expect_warning(
+    fam <- drmTMB:::beta(),
+    "deprecated",
+    fixed = FALSE
+  )
+  expect_equal(fam, drmTMB::beta_family())
 })
 
 test_that("Mi-2: exported fixef and ranef work with drmTMB-only attach", {

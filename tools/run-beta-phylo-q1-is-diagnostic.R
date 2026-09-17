@@ -231,7 +231,7 @@ fit_diagnostic_dataset <- function(row, base) {
         y ~ x + drmTMB::phylo(1 | spp_id, tree = tree),
         sigma ~ x
       ),
-      family = drmTMB::beta(),
+      family = drmTMB::beta_family(),
       data = generated$data,
       control = drmTMB::drm_control(optimizer_preset = "robust")
     ),

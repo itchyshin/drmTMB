@@ -33,7 +33,7 @@ b1_beta_mu_intercept <- function(seed, rung) {
   list(
     data = data.frame(prop = stats::rbeta(n, stats::plogis(eta) * phi, (1 - stats::plogis(eta)) * phi), x, z, id),
     truth = list(sd = truth_sd, field = effect, target = "sd:mu:(1 | id)"),
-    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(prop ~ x + (1 | id), sigma ~ z), family = drmTMB::beta(), data = dat)
+    fit = function(dat) drmTMB::drmTMB(drmTMB::bf(prop ~ x + (1 | id), sigma ~ z), family = drmTMB::beta_family(), data = dat)
   )
 }
 

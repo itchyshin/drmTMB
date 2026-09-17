@@ -275,7 +275,7 @@ cell_registry <- list(
     # animal() grammar -- see tools/arc2-beta-animal-fixtures.R).
     target = "sd:mu:animal(0 + x | id)",
     family_name = "beta",
-    family = function() drmTMB::beta(),
+    family = function() drmTMB::beta_family(),
     # `animal()` requires a bare symbol for pedigree/A/Ainv (R/parse-formula.R
     # ~line 760), resolved later from the formula's own environment -- same
     # bare-symbol requirement mc-0274/mc-0277 solve for phylo()'s `tree`.
@@ -307,7 +307,7 @@ cell_registry <- list(
     # (beta_family()'s scale side only admits intercept-only structured terms).
     target = "sd:sigma:animal(1 | id)",
     family_name = "beta",
-    family = function() drmTMB::beta(),
+    family = function() drmTMB::beta_family(),
     formula = function(fx) {
       pedigree <- fx$pedigree
       drmTMB::bf(y ~ x, sigma ~ drmTMB::animal(1 | id, pedigree = pedigree))
