@@ -25,7 +25,7 @@ simulation, and recovery tests.
 - `Gamma(link = "log")`: `mu`, `sigma` as coefficient of variation;
   fixed-effect univariate path and ordinary unlabelled `mu` random intercepts
   plus independent numeric slopes implemented for positive responses.
-- `beta()`: `mu`, `sigma` for strict continuous proportions; fixed-effect
+- `beta_family()`: `mu`, `sigma` for strict continuous proportions; fixed-effect
   univariate path and ordinary unlabelled `mu` random intercepts plus
   independent numeric slopes implemented with `phi = 1 / sigma^2` internally.
 
@@ -147,7 +147,7 @@ Percent data should be represented according to how the data were generated.
 Continuous proportions require a logit-linked `mu`; public scale naming should
 remain consistent with the rest of `drmTMB`.
 
-- `beta()`: implemented for continuous proportions in `(0, 1)` with `mu` and
+- `beta_family()`: implemented for continuous proportions in `(0, 1)` with `mu` and
   public `sigma`; ordinary unlabelled random intercepts and independent numeric
   slopes may enter the logit-`mu` predictor. One exact recovery-grade
   `animal()` gate admits a `mu` intercept or one-slope, or a `sigma` intercept,
@@ -179,11 +179,11 @@ Recommended user guidance:
   ordinary binomial sampling variation.
 - Use `beta_binomial()` for success counts with known denominators and
   extra-binomial variation.
-- Use `beta()` for continuous rates strictly between 0 and 1.
+- Use `beta_family()` for continuous rates strictly between 0 and 1.
 - Use `zero_one_beta()` when continuous rates include structural exact 0 or 1
   values.
 
-The implemented `beta()`, `zero_one_beta()`, `beta_binomial()`,
+The implemented `beta_family()`, `zero_one_beta()`, `beta_binomial()`,
 `truncated_nbinom2()`, hurdle NB2, and cumulative-logit seeds give users
 strict-proportion, zero-one bounded, denominator-aware proportion,
 positive-count, hurdle-count, and ordered-score routes while keeping every new

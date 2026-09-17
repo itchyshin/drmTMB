@@ -49,7 +49,7 @@ READER_SUMMARY_SPECS = (
         ),
         "interval_method": "Wald mean-coefficient interval",
         "fallback": (
-            "For a different structure, use a fixed-effect `beta()` location "
+            "For a different structure, use a fixed-effect `beta_family()` location "
             "model without `phylo()` or random terms."
         ),
     },
@@ -271,7 +271,7 @@ ASSOCIATION_COUNT = 6
 # drm_missing_predictor_families() (R/missing-data.R:366-368) and its use sites
 # (R/drmTMB.R:277-296): 13 cells for the gaussian() response x its 13-family
 # impute_model() catalogue (gaussian itself plus 12 non-Gaussian predictor
-# families); 8 cells for poisson()/binomial()/nbinom2()/beta()/gamma()/
+# families); 8 cells for poisson()/binomial()/nbinom2()/beta_family()/gamma()/
 # lognormal()/beta_binomial()/student() responses, each admitting only one
 # binary (bernoulli) missing predictor; mp-nbinom2-gaussian (nbinom2 x
 # one Gaussian predictor); plus mp-gaussian-gaussian-k2-indep;

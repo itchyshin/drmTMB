@@ -58,7 +58,7 @@ quantity each `sigma` formula models.
 | Two positive multiplicative responses | `biv_lognormal()` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | log-response SDs and log-residual correlation | exact fixed-effect complete-pair slice; `rho12` is not raw-scale correlation or latent `eta`; direct profile is primary only within the tested fixed-effect n/rho coverage ladder, while random effects, sigma/rho predictors, and wider claims remain deferred |
 | Positive response with mean-CV interpretation | `Gamma(link = "log")` | `mu`, `sigma` | coefficient of variation | `mu` random intercepts/slopes and a `sigma` random intercept are fitted; its exact ordinary log-`sigma` intercept domain is inference-ready with caveats at true SD 0.40, `n_each=12`, and `M >= 32` (`M=16` borderline); `sigma` slopes and bivariate models are planned |
 | Non-negative semicontinuous response with exact zeros | `tweedie()` | `mu`, `sigma`, `nu` | public scale with `phi = sigma^2` | ordinary `mu` random intercepts and independent slopes are fitted; the exact slope cell is inference-ready with caveats for true SD 0.50 and M>=16; `nu ~ 1` remains intercept-only and other distributional random effects are planned |
-| Continuous proportion in `(0, 1)` | `beta()` | `mu`, `sigma` | public scale mapped to beta precision | ordinary `mu` random intercepts/slopes and exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates are fitted; exact 0/1 boundary values use `zero_one_beta()` |
+| Continuous proportion in `(0, 1)` | `beta_family()` | `mu`, `sigma` | public scale mapped to beta precision | ordinary `mu` random intercepts/slopes and exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates are fitted; exact 0/1 boundary values use `zero_one_beta()` |
 | Continuous proportion in `[0, 1]` with structural exact 0 or 1 values | `zero_one_beta()` | `mu`, `sigma`, `zoi`, `coi` | public interior beta scale mapped to precision | ordinary `mu` random intercepts and independent slopes are fitted; exact ordinary `zoi` q1 intercept/same-raw-symbol slope plus `coi` q1 intercept/same-raw-symbol slope routes are fitted at point-fit recovery only; broader atom random effects are planned |
 | Event indicator or successes out of known trials | `stats::binomial(link = "logit")` | `mu` | no modelled `sigma`; ordinary binomial sampling variation | ordinary `mu` random intercepts and independent slopes are fitted; use `cbind(successes, failures)` for trial totals |
 | Successes out of known trials | `beta_binomial()` | `mu`, `sigma` | extra-binomial variation | `mu` random intercepts and independent slopes implemented (recovery grade); `sigma` random effects and bivariate models planned |
@@ -146,7 +146,7 @@ or comparator quantities:
 | `gaussian()` | residual SD `sigma` | residual SD | larger `sigma` means larger residual variance |
 | `Gamma(link = "log")` | coefficient of variation `sigma` | shape `1 / sigma^2` | larger `sigma` means larger response CV |
 | `tweedie()` | public scale `sigma` | dispersion `phi = sigma^2` | larger `sigma` means larger semicontinuous-response variance |
-| `beta()` | public scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
+| `beta_family()` | public scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means lower precision and larger variance |
 | `zero_one_beta()` | interior beta scale `sigma` | precision `phi = 1 / sigma^2` for the interior component | larger `sigma` means more variation among non-boundary proportions |
 | `beta_binomial()` | extra-binomial scale `sigma` | precision `phi = 1 / sigma^2` | larger `sigma` means more among-trial probability variation |
 | `nbinom2()` | overdispersion scale `sigma` | size `theta = 1 / sigma^2` | larger `sigma` means more extra-Poisson variation |
@@ -172,7 +172,7 @@ then transform those fitted quantities for the scale your reader needs.
 | `lognormal()` | log-scale variance is `sigma^2`; response variance is `(exp(sigma^2) - 1) * exp(2 * mu + sigma^2)` |
 | `Gamma(link = "log")` | residual SD is `mu * sigma`; variance is `(mu * sigma)^2` |
 | `tweedie()` | mean is `mu`; variance is `sigma^2 * mu^nu`, with `1 < nu < 2` |
-| `beta()` | variance is `mu * (1 - mu) * sigma^2 / (1 + sigma^2)` |
+| `beta_family()` | variance is `mu * (1 - mu) * sigma^2 / (1 + sigma^2)` |
 | `zero_one_beta()` | mean is `(1 - zoi) * mu + zoi * coi`; variance combines the interior beta second moment with exact boundary mass |
 | `beta_binomial()` | proportion variance is `mu * (1 - mu) * (1 + trials * sigma^2) / (trials * (1 + sigma^2))` |
 | `poisson(link = "log")` | variance is `mu`; there is no modelled `sigma` |
@@ -427,7 +427,7 @@ E[y_i]
 ```r
 drmTMB(
   bf(cover ~ habitat, sigma ~ treatment),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 ```

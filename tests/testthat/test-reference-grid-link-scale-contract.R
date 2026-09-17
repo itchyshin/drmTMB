@@ -161,7 +161,7 @@ test_that("reference grids preserve link-response contracts for implemented univ
   )
   beta_fit <- drmTMB(
     bf(y ~ x, sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = beta_dat,
     control = control
   )

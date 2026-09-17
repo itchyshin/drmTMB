@@ -68,7 +68,7 @@ family are now closed, since both families ARE promoted in this batch:
   `{d,p,q}` closures -- share the one helper.
 
 **Not newly flagged:** batch A's beta `1e-8` floor gap (compiled
-`alpha`/`beta_shape` floor vs. `stats::{d,p,q}beta()`'s lack of one) carries
+`alpha`/`beta_shape` floor vs. `stats::{d,p,q}beta_family()`'s lack of one) carries
 forward into `zero_one_beta`'s interior beta component unchanged (same
 undetected-at-DG2-tolerance caveat, noted again below since it now applies to
 a second family).

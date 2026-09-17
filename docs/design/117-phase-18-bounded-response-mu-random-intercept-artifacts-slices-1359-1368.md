@@ -9,12 +9,12 @@ belong in the failure ledger.
 ## Implemented Claim
 
 Slices 1359-1368 add a Phase 18 artifact path for ordinary unlabelled
-`mu` random intercepts in `beta()` and `beta_binomial()` models:
+`mu` random intercepts in `beta_family()` and `beta_binomial()` models:
 
 ```r
 drmTMB(
   bf(prop ~ x + (1 | id), sigma ~ z),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 
@@ -113,7 +113,7 @@ This slice deliberately keeps the following outside the admitted surface:
 - correlated bounded-response random slopes;
 - labelled covariance blocks;
 - `sigma` random effects;
-- exact 0/1 boundary mass in `beta()`;
+- exact 0/1 boundary mass in `beta_family()`;
 - zero-one beta random effects in `mu`, `sigma`, `zoi`, or `coi`;
 - structured bounded-response effects;
 - known covariance for bounded responses; and

@@ -7,7 +7,7 @@ test_that("all-missing responses reject for every MR-T1 route", {
     "At least one observed Gaussian response"
   )
   expect_error(
-    drmTMB(bf(y ~ x), beta(), dat, missing = include),
+    drmTMB(bf(y ~ x), beta_family(), dat, missing = include),
     "At least one observed beta response"
   )
   expect_error(
@@ -47,7 +47,7 @@ test_that("masked rows do not hide invalid observed response values", {
 
   beta_dat <- transform(base, y = c(0.2, NA, 0, 0.4, 0.6, 0.8))
   expect_error(
-    drmTMB(bf(y ~ x), beta(), beta_dat, missing = include),
+    drmTMB(bf(y ~ x), beta_family(), beta_dat, missing = include),
     "strictly between 0 and 1"
   )
 

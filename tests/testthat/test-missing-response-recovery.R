@@ -185,7 +185,7 @@ test_that("beta missing responses recover fixed, dispersion, and random paramete
 
   fit <- drmTMB(
     bf(prop ~ x + (1 | id), sigma ~ z),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     missing = miss_control(response = "include"),
     control = drm_control(se = FALSE)

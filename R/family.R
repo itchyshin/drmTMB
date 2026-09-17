@@ -255,7 +255,7 @@ tweedie <- function() {
 
 #' Beta response family
 #'
-#' `beta()` defines a one-response distribution for continuous proportions
+#' `beta_family()` defines a one-response distribution for continuous proportions
 #' strictly inside `(0, 1)`, with formulas for mean `mu` and scale `sigma`.
 #'
 #' The implemented contract is
@@ -266,15 +266,12 @@ tweedie <- function() {
 #' `(1 | id)` and `(0 + x | id)` may enter the logit-`mu` predictor; `sigma`
 #' remains fixed-effect in this first slice.
 #'
-#' This helper masks [base::beta()] when `drmTMB` is attached. Use
-#' `base::beta()` for the mathematical beta function.
-#'
 #' @return A `drm_family` object.
 #' @export
 #'
 #' @examples
-#' beta()
-beta <- function() {
+#' beta_family()
+beta_family <- function() {
   structure(
     list(
       name = "beta",
@@ -285,6 +282,13 @@ beta <- function() {
     ),
     class = "drm_family"
   )
+}
+
+#' @keywords internal
+#' @describeIn beta_family Deprecated alias; use [beta_family()] instead.
+beta <- function() {
+  lifecycle::deprecate_warn("0.7.1", "beta()", "beta_family()")
+  beta_family()
 }
 
 #' Zero-one beta response family
@@ -298,7 +302,7 @@ beta <- function() {
 #' `logit(coi) = eta_coi`. Here `zoi` is the probability that an observation
 #' is exactly 0 or 1, and `coi` is the conditional probability of an exact 1
 #' given that the observation is on the boundary. Interior observations follow
-#' the same beta mean-scale contract as [beta()], with internal precision
+#' the same beta mean-scale contract as [beta_family()], with internal precision
 #' `phi = 1 / sigma^2`.
 #'
 #' `fitted()` returns the unconditional response mean

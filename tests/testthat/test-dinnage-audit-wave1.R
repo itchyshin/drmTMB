@@ -32,7 +32,7 @@ test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Din
   )
   text <- readLines(vignette, warn = FALSE)
   row <- grep(
-    "^\\| `binomial\\(\\)`, `poisson\\(\\)`, `nbinom2\\(\\)`, `beta\\(\\)`",
+    "^\\| `binomial\\(\\)`, `poisson\\(\\)`, `nbinom2\\(\\)`, `beta_family\\(\\)`",
     text,
     value = TRUE
   )

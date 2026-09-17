@@ -134,7 +134,7 @@ drm_wfg_case_spec <- function(slug) {
     ),
     "proportion-beta" = list(
       formula = quote(bf(y ~ x, sigma ~ 1)),
-      family = quote(beta())
+      family = quote(beta_family())
     ),
     "meta-analysis-V" = list(
       formula = quote(bf(y ~ x + meta_V(V = v), sigma ~ 1)),
@@ -246,7 +246,7 @@ drm_wfg_fit_slug <- function(slug, fixtures_root, jl_path) {
         ),
         "proportion-beta" = list(
           formula = drmTMB::bf(y ~ x, sigma ~ 1),
-          family = drmTMB::beta()
+          family = beta_family()
         ),
         "meta-analysis-V" = list(
           formula = drmTMB::bf(y ~ x + meta_V(V = v), sigma ~ 1),

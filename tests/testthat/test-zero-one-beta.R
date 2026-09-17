@@ -2010,7 +2010,7 @@ test_that("zero-one beta validates malformed and neighbouring inputs", {
     )
   )
   expect_error(
-    drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat),
+    drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat),
     "strictly between 0 and 1"
   )
   expect_error(

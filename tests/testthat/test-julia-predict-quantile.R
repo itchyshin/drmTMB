@@ -319,7 +319,7 @@ drm_quantile_bridge_specs <- function() {
         d
       },
       fml = quote(drmTMB::bf(y ~ x, sigma ~ 1)),
-      fam = quote(drmTMB::beta()), newdata = nd_x
+      fam = quote(beta_family()), newdata = nd_x
     ),
     binomial = list(
       build = function() {

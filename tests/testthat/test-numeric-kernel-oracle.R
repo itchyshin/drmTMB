@@ -403,7 +403,7 @@ beta_shapes <- function(eta, ls) {
   )
 }
 test_that("beta kernel matches a floor-matched dbeta() away from huge phi", {
-  fits <- build_fits(bf(y ~ 1, sigma ~ 1), beta(), c(1e-6, 0.5, 1 - 1e-6))
+  fits <- build_fits(bf(y ~ 1, sigma ~ 1), beta_family(), c(1e-6, 0.5, 1 - 1e-6))
   eval_beta <- function(fit, eta, ls, yv) {
     par <- fit$obj$par
     par <- set_named(par, "beta_mu", eta)
@@ -421,7 +421,7 @@ test_that("beta kernel matches a floor-matched dbeta() away from huge phi", {
 # ---- zero_one_beta (model_type 15; src/drmTMB.cpp:2935-3030) --------------
 # Needs >= 1 interior response value in the fitted data; each fixture carries
 # the target y plus a weight-0 interior anchor row (y = 0.4), same convention
-# as hurdle_nbinom2 above. Same huge-phi exclusion as beta().
+# as hurdle_nbinom2 above. Same huge-phi exclusion as beta_family().
 zob_row_ref <- function(eta, ls, y, zoi, coi) {
   if (y <= 0) return(log(zoi) + log1p(-coi))
   if (y >= 1) return(log(zoi) + log(coi))
@@ -454,7 +454,7 @@ test_that("zero_one_beta kernel matches a floor-matched atom/dbeta() mixture", {
 })
 
 # ---- beta_binomial (model_type 14; src/drmTMB.cpp:3030-3088) --------------
-# Same lgamma-cancellation limitation as beta() above, but sharper: with
+# Same lgamma-cancellation limitation as beta_family() above, but sharper: with
 # trials = 1000 and log_sigma = -15 (phi ~ 1e13), lgamma(phi) - lgamma(trials
 # + phi) alone subtracts two ~1.3e14-magnitude values to recover an O(10)
 # answer. The compiled kernel, dbinom-style direct lgamma differences in R,

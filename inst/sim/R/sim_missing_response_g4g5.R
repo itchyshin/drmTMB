@@ -263,7 +263,7 @@ mr_g4g5_fit_t1_ri <- function(route, data, se = FALSE) {
       missing = miss_control(response = "include"), control = drm_control(se = se)),
     nbinom2 = drmTMB(bf(count ~ x + (1 | id), sigma ~ z), nbinom2(), data,
       missing = miss_control(response = "include"), control = drm_control(se = se)),
-    beta = drmTMB(bf(prop ~ x + (1 | id), sigma ~ z), beta(), data,
+    beta = drmTMB(bf(prop ~ x + (1 | id), sigma ~ z), beta_family(), data,
       missing = miss_control(response = "include"), control = drm_control(se = se))
   )
 }

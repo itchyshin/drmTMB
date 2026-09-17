@@ -26,7 +26,7 @@ boundary proportion, denominator-aware beta-binomial proportion, count,
 positive continuous, and semi-continuous predictors. The non-Gaussian
 response routes support one binary \code{mi()} predictor modelled by
 \code{family = binomial()} for \code{family = poisson()}, \code{binomial()}, \code{nbinom2()},
-\code{beta()}, \code{lognormal()}, \code{Gamma(link = "log")}, \code{student()}, and
+\code{beta_family()}, \code{lognormal()}, \code{Gamma(link = "log")}, \code{student()}, and
 \code{beta_binomial()}.
 }
 \examples{

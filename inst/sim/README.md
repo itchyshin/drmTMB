@@ -73,7 +73,7 @@ Current pilot files:
 - `docs/design/49-phase-18-count-mu-random-effect-ademp.md` is the one-page
   ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane.
 - `docs/design/50-phase-18-proportion-fixed-effect-ademp.md` is the one-page
-  ADEMP sheet for the fixed-effect `beta()` and `beta_binomial()` lane.
+  ADEMP sheet for the fixed-effect `beta_family()` and `beta_binomial()` lane.
 - `docs/design/51-phase-18-ordinal-fixed-effect-ademp.md` is the one-page
   ADEMP sheet for the fixed-effect `cumulative_logit()` ordinal lane.
 - `docs/design/52-phase-18-bivariate-rho12-ademp.md` is the one-page ADEMP
@@ -125,7 +125,7 @@ Current pilot files:
   positive-continuous responses, ordinal responses, and shape families.
 - `docs/design/110-phase-18-proportion-fixed-effect-artifacts-slices-1289-1298.md`
   records the DGP, smoke, grid, first-wave, and Actions artifact lane for
-  fixed-effect `beta()` and `beta_binomial()` models.
+  fixed-effect `beta_family()` and `beta_binomial()` models.
 - `docs/design/111-phase-18-positive-continuous-fixed-effect-artifacts-slices-1299-1308.md`
   records the same artifact path for fixed-effect `lognormal()` and
   `Gamma(link = "log")` models.
@@ -134,7 +134,7 @@ Current pilot files:
 - `docs/design/115-phase-18-zero-one-beta-fixed-effect-artifacts-slices-1339-1348.md`
   records the same artifact path for fixed-effect `zero_one_beta()` models.
 - `docs/design/117-phase-18-bounded-response-mu-random-intercept-artifacts-slices-1359-1368.md`
-  records the artifact path for ordinary `mu` random intercepts in `beta()`
+  records the artifact path for ordinary `mu` random intercepts in `beta_family()`
   and `beta_binomial()` models.
 - `docs/design/118-phase-18-positive-continuous-mu-random-intercept-artifacts-slices-1369-1378.md`
   records the artifact path for ordinary `mu` random intercepts in
@@ -338,10 +338,10 @@ Current pilot files:
   zero-truncated NB2 count data with one ordinary grouped `mu` random
   intercept, `mu ~ x + (1 | id)`, and fixed-effect `sigma ~ z`.
 - `dgp/sim_dgp_proportion_fixed_effect.R` generates strict continuous
-  `beta()` proportions and denominator-aware `beta_binomial()` successes with
+  `beta_family()` proportions and denominator-aware `beta_binomial()` successes with
   fixed-effect `mu ~ x` and `sigma ~ z`.
 - `dgp/sim_dgp_bounded_response_mu_random_intercept.R` generates strict
-  continuous `beta()` proportions and denominator-aware `beta_binomial()`
+  continuous `beta_family()` proportions and denominator-aware `beta_binomial()`
   successes with one ordinary grouped `mu` random intercept,
   `mu ~ x + (1 | id)`, and fixed-effect `sigma ~ z`.
 - `dgp/sim_dgp_positive_continuous_fixed_effect.R` generates positive
@@ -404,10 +404,10 @@ Current pilot files:
 - `fit/sim_summarise_truncated_nbinom2_mu_random_intercept.R` summarises fixed
   zero-truncated NB2 `mu` and `sigma` coefficients plus the direct ordinary
   positive-count `mu` random-intercept SD on the public SD scale.
-- `fit/sim_summarise_proportion_fixed_effect.R` summarises fixed `beta()` and
+- `fit/sim_summarise_proportion_fixed_effect.R` summarises fixed `beta_family()` and
   `beta_binomial()` `mu` and `sigma` coefficients on their link scales.
 - `fit/sim_summarise_bounded_response_mu_random_intercept.R` summarises
-  fixed `beta()` and `beta_binomial()` `mu` and `sigma` coefficients plus the
+  fixed `beta_family()` and `beta_binomial()` `mu` and `sigma` coefficients plus the
   direct ordinary logit-mean random-intercept SD on the public SD scale.
 - `fit/sim_summarise_positive_continuous_fixed_effect.R` summarises fixed
   `lognormal()` and `Gamma(link = "log")` `mu` and `sigma` coefficients on
@@ -554,9 +554,9 @@ Current pilot files:
 - `run/sim_run_truncated_nbinom2_mu_random_intercept_smoke.R` does the same
   for the zero-truncated NB2 ordinary `mu` random-intercept surface.
 - `run/sim_run_proportion_fixed_effect_smoke.R` does the same for the
-  fixed-effect `beta()` and `beta_binomial()` proportion surface.
+  fixed-effect `beta_family()` and `beta_binomial()` proportion surface.
 - `run/sim_run_bounded_response_mu_random_intercept_smoke.R` does the same for
-  the ordinary bounded-response `mu` random-intercept surface for `beta()` and
+  the ordinary bounded-response `mu` random-intercept surface for `beta_family()` and
   `beta_binomial()`.
 - `run/sim_run_positive_continuous_fixed_effect_smoke.R` does the same for the
   fixed-effect `lognormal()` and `Gamma(link = "log")` positive-continuous
@@ -643,7 +643,7 @@ Current pilot files:
   replicate-level, manifest, failure-ledger, fixed-effect Wald interval, Wald
   coverage, direct-SD profile interval, and profile coverage CSVs.
 - `run/sim_write_proportion_fixed_effect_grid.R` writes the fixed-effect
-  `beta()` and `beta_binomial()` artifact set with aggregate, replicate-level,
+  `beta_family()` and `beta_binomial()` artifact set with aggregate, replicate-level,
   manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage CSVs.
 - `run/sim_write_bounded_response_mu_random_intercept_grid.R` writes the
   bounded-response `mu` random-intercept artifact set with aggregate,
@@ -879,11 +879,11 @@ Current pilot files:
   interval, Wald coverage, direct-SD profile interval, and profile coverage
   outputs.
 - `run/sim_summary_proportion_fixed_effect_smoke.R` runs a tiny fixed-effect
-  `beta()` and `beta_binomial()` summary smoke grid and returns aggregate,
+  `beta_family()` and `beta_binomial()` summary smoke grid and returns aggregate,
   replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald
   coverage outputs.
 - `run/sim_summary_bounded_response_mu_random_intercept_smoke.R` runs a tiny
-  `beta()` and `beta_binomial()` ordinary `mu` random-intercept summary smoke
+  `beta_family()` and `beta_binomial()` ordinary `mu` random-intercept summary smoke
   grid and returns aggregate, replicate, manifest, failure-ledger,
   fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and
   profile coverage outputs.

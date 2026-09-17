@@ -27,7 +27,7 @@
 # Separately, `validate_*_sigma_random_terms()` (R/drmTMB.R) gates count
 # (nbinom2/poisson/etc.) structured `sigma` terms to unlabelled
 # intercept-PLUS-one-slope only (`provider(1 + x | group, ...)`) --
-# the OPPOSITE of beta()'s intercept-only scale gate that
+# the OPPOSITE of beta_family()'s intercept-only scale gate that
 # tools/arc2-beta-animal-fixtures.R's mc-0015 relies on. So every DGP here
 # draws an independent structured INTERCEPT effect (the profiled target,
 # `true_sd_intercept`) and a distinct structured SLOPE effect (nuisance,
@@ -51,7 +51,7 @@
 #     (raised from 40/1000 -- see the 2026-08-02 DESIGN ITERATION note below)
 #
 # animal converged at the same 40-individual/n_each = 25-40 scale that
-# Arc 2's beta() sigma-side cells (mc-0015) already validated; phylo and
+# Arc 2's beta_family() sigma-side cells (mc-0015) already validated; phylo and
 # spatial needed substantially more replication (see DESIGN ITERATION NOTES)
 # because their group-level correlation structure is smooth/dense (a
 # phylogenetic correlation matrix, or an exponential spatial covariance),

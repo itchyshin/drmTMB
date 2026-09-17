@@ -58,8 +58,8 @@ test_that("internal link table maps implemented distributional parameters", {
   expect_equal(unname(skew_normal()$links[["nu"]]), "identity")
   expect_equal(unname(truncated_nbinom2()$links[["mu"]]), "log")
   expect_equal(unname(truncated_nbinom2()$links[["sigma"]]), "log")
-  expect_equal(unname(beta()$links[["mu"]]), "logit")
-  expect_equal(unname(beta()$links[["sigma"]]), "log")
+  expect_equal(unname(beta_family()$links[["mu"]]), "logit")
+  expect_equal(unname(beta_family()$links[["sigma"]]), "log")
   expect_equal(unname(zero_one_beta()$links[["mu"]]), "logit")
   expect_equal(unname(zero_one_beta()$links[["sigma"]]), "log")
   expect_equal(unname(zero_one_beta()$links[["zoi"]]), "logit")
@@ -239,7 +239,7 @@ test_that("fitted response helper uses family-specific response summaries", {
   )
   fit_beta <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat_beta
   )
   fit_zinb2 <- drmTMB(

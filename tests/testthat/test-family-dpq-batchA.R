@@ -229,7 +229,7 @@ test_that("beta: DG2 inverse identity, normalization, density + external pbeta()
   )
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = fast_control
   )
@@ -269,7 +269,7 @@ test_that("beta: DG3 smoke -- quantile residuals ~ N(0,1) under the true DGP", {
   )
   fit <- drmTMB(
     bf(y ~ x, sigma ~ 1),
-    family = beta(),
+    family = beta_family(),
     data = dat,
     control = fast_control
   )

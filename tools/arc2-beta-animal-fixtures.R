@@ -3,7 +3,7 @@
 #
 # Unlike the other Arc 2 profile-feasibility cells (mc-0186, mc-0263,
 # mc-0274, mc-0277), no existing tests/testthat/ file defines a *named*,
-# reusable fixture-builder function for a beta() + animal() model -- the
+# reusable fixture-builder function for a beta_family() + animal() model -- the
 # closest precedents (tests/testthat/test-nongaussian-structured-mu-slope.R's
 # "beta x animal(1 + x | id, pedigree)" block and
 # tests/testthat/test-nongaussian-structured-boundary.R's
@@ -44,7 +44,7 @@
 # (unrelated founders) to 0.5 (full sibs) and a non-trivial mean of ~0.16 --
 # real pedigree structure, never collapsing to `diag(40)`.
 
-# --- mc-0013: beta() x animal(1 + x | id) on mu -----------------------------
+# --- mc-0013: beta_family() x animal(1 + x | id) on mu -----------------------------
 #
 # `animal()` on a non-Gaussian `mu` only admits "intercept-only or one-slope"
 # structured terms (see the boundary check in
@@ -124,7 +124,7 @@ beta_animal_mu_slope_fixture <- function(
   names(slope_effect) <- id_levels
   eta <- beta0 + beta_x * x + intercept_effect[id] + slope_effect[id] * x
   mu <- stats::plogis(eta)
-  # beta()'s implemented contract is logit(mu) = eta_mu, log(sigma) =
+  # beta_family()'s implemented contract is logit(mu) = eta_mu, log(sigma) =
   # eta_sigma, phi = 1 / sigma^2 (R/family.R); phi here is the fixed true
   # dispersion (sigma ~ 1 in the fitted formula), not itself a target.
   y <- stats::rbeta(length(id), mu * phi, (1 - mu) * phi)
@@ -141,7 +141,7 @@ beta_animal_mu_slope_fixture <- function(
   )
 }
 
-# --- mc-0015: beta() x animal(1 | id) on sigma ------------------------------
+# --- mc-0015: beta_family() x animal(1 | id) on sigma ------------------------------
 #
 # The scale (sigma) side has no observation-level `mu` signal from the animal
 # effect -- the group-level draw only shifts each individual's dispersion --

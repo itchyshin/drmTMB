@@ -133,7 +133,7 @@ test_that("Bartlett identities hold for beta (bounded family)", {
   phi <- 1 / sigma^2
   y <- stats::rbeta(n, shape1 = mu * phi, shape2 = (1 - mu) * phi)
   dat <- data.frame(y = y, x = x)
-  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = beta(), data = dat)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = beta_family(), data = dat)
 
   res <- score_consistency(fit, nsim = 80, seed = 3)
 

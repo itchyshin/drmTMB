@@ -17,7 +17,7 @@ response model.}
 continuous predictor route. \code{binomial(link = "logit")} fits the binary
 missing-predictor route. \code{\link[=cumulative_logit]{cumulative_logit()}} fits the ordered categorical
 missing-predictor route. \code{\link[=categorical]{categorical()}} fits the unordered categorical
-missing-predictor route. \code{\link[=beta]{beta()}} fits the strict beta/proportion
+missing-predictor route. \code{\link[=beta_family]{beta_family()}} fits the strict beta/proportion
 missing-predictor route. \code{\link[=zero_one_beta]{zero_one_beta()}} fits the boundary-proportion
 missing-predictor route. \code{\link[=beta_binomial]{beta_binomial()}} fits a denominator-aware
 success/trial proportion route and requires \code{trials}. \code{poisson(link = "log")}, \code{\link[=nbinom2]{nbinom2()}}, and \code{\link[=truncated_nbinom2]{truncated_nbinom2()}} fit count
@@ -59,7 +59,7 @@ impute_model(x ~ z)
 impute_model(treatment ~ z, family = binomial())
 impute_model(score ~ z, family = cumulative_logit())
 impute_model(habitat ~ z, family = categorical())
-impute_model(cover ~ z, family = beta())
+impute_model(cover ~ z, family = beta_family())
 impute_model(cover ~ z, family = zero_one_beta())
 impute_model(success ~ z, family = beta_binomial(), trials = trials)
 impute_model(abundance ~ z, family = poisson())

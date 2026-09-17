@@ -36,7 +36,7 @@
 # `fn_name`, so a separate top-level helper is silently never sourced.
 #
 # `n_founders = 4` (40 individuals, the SAME 3-generation synthetic pedigree
-# already validated for mc-0013/mc-0015 under beta()) is kept as the default
+# already validated for mc-0013/mc-0015 under beta_family()) is kept as the default
 # here rather than pre-emptively widened to 8: mc-0423 (animal, NB2 q1
 # sigma-only) needed n_founders raised to 8 only after a DIAGNOSED,
 # seed-specific failure, and a multi-seed cor(v_mu, v_sigma) scan at

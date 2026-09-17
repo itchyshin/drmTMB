@@ -38,7 +38,8 @@ Imports:
     methods,
     stats,
     TMB (>= 1.9.6),
-    utils
+    utils,
+    nlme
 LinkingTo:
     RcppEigen,
     TMB
@@ -59,7 +60,6 @@ Suggests:
     metadat,
     metafor,
     mvtnorm,
-    nlme,
     numDeriv,
     ordinal,
     palmerpenguins,

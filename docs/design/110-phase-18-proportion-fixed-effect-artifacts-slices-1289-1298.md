@@ -7,13 +7,13 @@ in the failure ledger.
 
 ## Implemented Claim
 
-Slices 1289-1298 add a Phase 18 artifact path for fixed-effect `beta()` and
+Slices 1289-1298 add a Phase 18 artifact path for fixed-effect `beta_family()` and
 `beta_binomial()` models:
 
 ```r
 drmTMB(
   bf(prop ~ x, sigma ~ z),
-  family = beta(),
+  family = beta_family(),
   data = dat
 )
 

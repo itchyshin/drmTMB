@@ -344,7 +344,7 @@ pr2_recovery_attempt <- function(row, identity = NULL) {
           sigma ~ x_sigma,
           sd(spp_id, level = "phylogenetic") ~ x_tau
         ),
-        family = drmTMB::beta(),
+        family = drmTMB::beta_family(),
         data = generated$data,
         control = drmTMB::drm_control(
           optimizer_preset = "robust",

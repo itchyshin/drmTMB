@@ -68,6 +68,8 @@ test-dinnage-audit-s2.R	suggests-package	environment	runs	2
 test-dinnage-audit-wave1.R	runtime-conditional	runtime	depends	1
 test-dinnage-audit-wave2a.R	cran-lane	environment	runs	2
 test-dinnage-audit-wave4b2.R	suggests-package	environment	runs	1
+test-dinnage-audit-wave4c.R	runtime-conditional	runtime	depends	1
+test-dinnage-audit-wave4c.R	suggests-package	environment	runs	2
 test-distributional-outputs.R	cran-lane	environment	runs	3
 test-distributional-outputs.R	suggests-package	environment	runs	2
 test-emmeans-methods.R	suggests-package	environment	runs	19
@@ -79,7 +81,6 @@ test-family-dpq-batchB.R	suggests-package	environment	runs	2
 test-family-dpq-batchC.R	suggests-package	environment	runs	2
 test-family-dpq-batchD.R	cran-lane	environment	runs	2
 test-family-dpq-batchD.R	suggests-package	environment	runs	3
-test-foreign-s3-dispatch.R	suggests-package	environment	runs	3
 test-formula-double-bar.R	cran-lane	environment	runs	2
 test-formula-grouping-guard.R	cran-lane	environment	runs	1
 test-formula-smooth-terms.R	cran-lane	environment	runs	1

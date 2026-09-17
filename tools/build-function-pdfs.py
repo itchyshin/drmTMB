@@ -114,7 +114,7 @@ MAP_SUPPORT = [
         "RESPONSE FAMILIES",
         [
             ("student(), skew_normal(), lognormal(), tweedie()", "Continuous and semicontinuous responses."),
-            ("beta(), zero_one_beta(), beta_binomial()", "Proportions and success counts."),
+            ("beta_family(), zero_one_beta(), beta_binomial()", "Proportions and success counts."),
             ("nbinom2(), truncated_nbinom2()", "Ordinary, hurdle, or positive counts."),
             ("categorical(), cumulative_logit(), biv_gaussian()", "Categorical imputation, ordinal, or paired Gaussian responses."),
         ],

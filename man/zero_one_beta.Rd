@@ -20,7 +20,7 @@ The implemented fixed-effect contract is \code{logit(mu) = eta_mu},
 \code{logit(coi) = eta_coi}. Here \code{zoi} is the probability that an observation
 is exactly 0 or 1, and \code{coi} is the conditional probability of an exact 1
 given that the observation is on the boundary. Interior observations follow
-the same beta mean-scale contract as \code{\link[=beta]{beta()}}, with internal precision
+the same beta mean-scale contract as \code{\link[=beta_family]{beta_family()}}, with internal precision
 \code{phi = 1 / sigma^2}.
 
 \code{fitted()} returns the unconditional response mean

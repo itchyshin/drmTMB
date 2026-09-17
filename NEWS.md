@@ -1,5 +1,19 @@
 # drmTMB 0.7.1
 
+## Independent-evaluation fixes (wave C API)
+
+* Exported `beta_family()` for strict continuous-proportion models so the
+  unqualified name `beta()` no longer masks [base::beta()]. The old
+  `beta()` constructor remains available as a deprecated unexported alias
+  (`drmTMB::beta()`). Credit: the independent evaluation by Russell Dinnage
+  (rdinnager/drmTMB_eval), finding Mi-1 ([#1339](https://github.com/itchyshin/drmTMB/issues/1339)).
+
+* `fixef()` and `ranef()` now re-export `nlme`'s shared generics (as
+  `glmmTMB` and `lme4` already do), so loading `drmTMB` after `glmmTMB` or
+  `lme4` no longer breaks mixed-model extractors on foreign fits. Credit: the
+  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
+  Mi-2 ([#1340](https://github.com/itchyshin/drmTMB/issues/1340)).
+
 ## Independent-evaluation fixes (wave A1 docs)
 
 * `cumulative_logit()` now documents that integer-coded ordinal responses are

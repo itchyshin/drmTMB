@@ -1,8 +1,8 @@
-# drmTMB defines its own `fixef()` and `ranef()` generics (R/methods.R). `nlme`
-# defines generics of the same name, and `lme4` and `glmmTMB` re-export nlme's
-# rather than defining their own. So attach order alone decides which generic a
-# bare `ranef(fit)` reaches, and before the dynamic registration in R/zzz.R a
-# reader who wrote `library(drmTMB); library(glmmTMB)` lost `ranef()` entirely.
+# drmTMB re-exports `nlme`'s `fixef()` and `ranef()` (R/drmTMB-package.R), matching
+# `lme4` and `glmmTMB`. NAMESPACE registration alone does not attach
+# `fixef.drmTMB` / `ranef.drmTMB` to `nlme`'s generic, so `R/zzz.R` registers them
+# at load time. These tests call `nlme::ranef()` / `nlme::fixef()` directly so they
+# do not depend on attach order or on attaching comparator packages in the suite.
 #
 # These tests exercise nlme's generic directly. That is the generic that was
 # broken, and calling it explicitly reproduces the failure without attaching
@@ -25,7 +25,6 @@ fit_with_random_effect <- function() {
 }
 
 test_that("nlme's ranef generic dispatches to drmTMB's method", {
-  skip_if_not_installed("nlme")
   fit <- fit_with_random_effect()
 
   # The regression: this errored with "no applicable method for 'ranef' applied
@@ -39,7 +38,6 @@ test_that("nlme's ranef generic dispatches to drmTMB's method", {
 })
 
 test_that("nlme's fixef generic dispatches to drmTMB's method", {
-  skip_if_not_installed("nlme")
   fit <- fit_with_random_effect()
 
   expect_identical(nlme::fixef(fit), drmTMB::fixef(fit))
@@ -47,8 +45,6 @@ test_that("nlme's fixef generic dispatches to drmTMB's method", {
 })
 
 test_that("the methods are registered against nlme, not merely present", {
-  skip_if_not_installed("nlme")
-
   # Registration is the whole fix, so assert it structurally rather than
   # inferring it from a call that happened to work. If a future refactor drops
   # the .onLoad hook, this fails even if drmTMB's own generic still works.

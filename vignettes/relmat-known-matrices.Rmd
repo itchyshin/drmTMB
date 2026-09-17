@@ -610,7 +610,7 @@ point estimates but are not coverage-validated: `Gamma()`, `poisson()`, and
 Separately, `truncated_nbinom2()` (with its hurdle NB2 alias) accepts a
 diagnostic-only intercept-only `hu` gate. Use that route only to confirm
 fit/extractor feasibility; it does not establish point-estimate recovery.
-The `beta()` family and the families with no structured layer still
+The `beta_family()` family and the families with no structured layer still
 reject `relmat()`.
 
 Known sampling covariance is a different model layer, not a separate
