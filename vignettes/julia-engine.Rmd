@@ -27,22 +27,22 @@ package build, so that installing or reading `drmTMB` does not require Julia.
 
 ## Setup and prerequisites
 
-Install **Julia 1.10 or later** and the optional R package `JuliaCall`. DRM.jl
-currently needs a local source checkout; installing a registered package named
-`DRM` is not the setup route used by this bridge.
+Install **Julia 1.10 or later** and the optional R package `JuliaCall`. The
+Julia companion is transitioning from **DRM.jl** to **DRModels.jl**. The bridge
+accepts either module from a local source checkout; registration is not required.
 
 Run once in a terminal, choosing a directory where you keep source packages:
 
 ```sh
-git clone https://github.com/itchyshin/DRM.jl.git
-julia --project=DRM.jl -e 'using Pkg; Pkg.instantiate()'
+git clone https://github.com/itchyshin/DRModels.jl.git
+julia --project=DRModels.jl -e 'using Pkg; Pkg.instantiate()'
 ```
 
 Then, in R, set the checkout path **before the first Julia call**:
 
 ```{r julia-install, eval=FALSE}
 install.packages("JuliaCall")
-Sys.setenv(DRM_JL_PATH = "/absolute/path/to/DRM.jl")
+Sys.setenv(DRMODELS_JL_PATH = "/absolute/path/to/DRModels.jl")
 library(drmTMB)
 ```
 
@@ -51,7 +51,18 @@ no test opt-in is required. Julia startup remains disabled in marked R package
 check processes unless explicitly enabled for repository testing. Do not enable
 live Julia tests on CRAN or win-builder.
 
-Replace the path with the directory containing DRM.jl's `Project.toml` and
+Use `options(drmTMB.DRModels.jl.path = "/absolute/path/to/DRModels.jl")`
+to override the environment setting. The search order is the DRModels option,
+`DRMODELS_JL_PATH`, the legacy `drmTMB.DRM.jl.path` option, `DRM_JL_PATH`,
+then sibling directories `../DRModels.jl` and `../DRM.jl`. Existing checkouts
+and old settings keep working; their directory names need not change.
+After activating the checkout, the bridge reads the package name declared in
+that checkout's `Project.toml` (`DRModels` or legacy `DRM`) and verifies that
+Julia resolved and loaded that same source path. It does not silently fall back
+to a different module or checkout. Restart R after changing checkouts or
+updating the module name.
+
+Replace the path with the directory containing the checkout's `Project.toml` and
 `src/`. The bridge initializes Julia when needed. The first call includes
 startup and compilation; time later calls separately when comparing repeated
 workflows. Keep the checkout revision with your analysis so results can be

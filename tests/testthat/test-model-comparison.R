@@ -141,15 +141,15 @@ drm_mc_julia_native <- function(dat, full_mu, full_sigma, red_mu, red_sigma) {
   )
   JuliaCall::julia_command(sprintf("drm_mc_dat = (; %s);", cols))
   JuliaCall::julia_command(sprintf(
-    "drm_mc_full = DRM.drm(DRM.bf(DRM.@formula(%s), DRM.@formula(%s)), DRM.Gaussian(); data = drm_mc_dat);",
+    "drm_mc_full = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(%s), drmTMB_backend.@formula(%s)), drmTMB_backend.Gaussian(); data = drm_mc_dat);",
     full_mu, full_sigma
   ))
   JuliaCall::julia_command(sprintf(
-    "drm_mc_red = DRM.drm(DRM.bf(DRM.@formula(%s), DRM.@formula(%s)), DRM.Gaussian(); data = drm_mc_dat);",
+    "drm_mc_red = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(%s), drmTMB_backend.@formula(%s)), drmTMB_backend.Gaussian(); data = drm_mc_dat);",
     red_mu, red_sigma
   ))
   out <- JuliaCall::julia_eval(
-    "let t = DRM.lrtest(drm_mc_red, drm_mc_full); [DRM.aicc(drm_mc_full), DRM.aicc(drm_mc_red), t.statistic, Float64(t.dof), t.pvalue] end"
+    "let t = drmTMB_backend.lrtest(drm_mc_red, drm_mc_full); [drmTMB_backend.aicc(drm_mc_full), drmTMB_backend.aicc(drm_mc_red), t.statistic, Float64(t.dof), t.pvalue] end"
   )
   list(aicc_full = out[[1]], aicc_red = out[[2]], statistic = out[[3]], df = out[[4]], p.value = out[[5]])
 }
@@ -269,16 +269,16 @@ drm_mc_julia_ri_native <- function(dat) {
     "drm_mc_ri_d = (; y = drm_mc_ri_y, x = drm_mc_ri_x, g = drm_mc_ri_g);"
   )
   JuliaCall::julia_command(paste0(
-    "drm_mc_ri_full = DRM.drm(DRM.bf(DRM.@formula(y ~ 1 + x + (1 | g)), ",
-    "DRM.@formula(sigma ~ 1)), DRM.Gaussian(); data = drm_mc_ri_d);"
+    "drm_mc_ri_full = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(y ~ 1 + x + (1 | g)), ",
+    "drmTMB_backend.@formula(sigma ~ 1)), drmTMB_backend.Gaussian(); data = drm_mc_ri_d);"
   ))
   JuliaCall::julia_command(paste0(
-    "drm_mc_ri_red = DRM.drm(DRM.bf(DRM.@formula(y ~ 1 + x), ",
-    "DRM.@formula(sigma ~ 1)), DRM.Gaussian(); data = drm_mc_ri_d);"
+    "drm_mc_ri_red = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(y ~ 1 + x), ",
+    "drmTMB_backend.@formula(sigma ~ 1)), drmTMB_backend.Gaussian(); data = drm_mc_ri_d);"
   ))
   out <- JuliaCall::julia_eval(paste0(
-    "let t = DRM.lrtest(drm_mc_ri_red, drm_mc_ri_full); ",
-    "[DRM.aicc(drm_mc_ri_full), DRM.aicc(drm_mc_ri_red), t.statistic, ",
+    "let t = drmTMB_backend.lrtest(drm_mc_ri_red, drm_mc_ri_full); ",
+    "[drmTMB_backend.aicc(drm_mc_ri_full), drmTMB_backend.aicc(drm_mc_ri_red), t.statistic, ",
     "Float64(t.dof), t.pvalue] end"
   ))
   list(aicc_full = out[[1]], aicc_red = out[[2]], statistic = out[[3]],

@@ -48,7 +48,7 @@ drm_parity_environment_absent_patterns <- c(
   "libjulia cannot be located",                           # JuliaCall::julia_setup()
   "libjulia located at .* is not a valid file",           # JuliaCall::julia_setup()
   "sysimage at path: .* is not found",                    # JuliaCall::julia_setup()
-  "needs a local DRM\\.jl checkout, and none was found",  # drm_julia_setup()
+  "needs a local DRModels\\.jl.*checkout, and none was found",  # drm_julia_setup()
   "DRM\\.jl path .* does not exist",                       # drm_julia_setup(): bad DRM_JL_PATH
   "does not look like a DRM\\.jl checkout"                 # drm_julia_setup(): no Project.toml
 )

@@ -261,7 +261,7 @@ test_that("Gaussian x Poisson cross-family fit returns latent rho + profile CI",
   jl_path <- drm_test_drmjl_path("DRM_JL_XFAM_PATH")
   skip_if_not(dir.exists(jl_path), "DRM.jl cross-family engine not available")
   drm_test_local_julia_home()
-  withr::local_options(list(drmTMB.DRM.jl.path = jl_path))
+  drm_test_local_drmjl_path(jl_path)
 
   # Reset the shared Julia setup cache so DRM is (re)activated from jl_path.
   setup_state <- get("drm_julia_setup_state", asNamespace("drmTMB"))
@@ -345,7 +345,10 @@ drm_xfam_tier2_fit <- function(fam_expr, make_data, n = 150L) {
       if (nzchar(julia_home)) {
         Sys.setenv(JULIA_HOME = julia_home)
       }
-      options(drmTMB.DRM.jl.path = jl_path)
+      options(
+        drmTMB.DRModels.jl.path = jl_path,
+        drmTMB.DRM.jl.path = jl_path
+      )
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
       dat <- make_data(n)
       family <- c(
@@ -501,7 +504,10 @@ drm_xfam_xsigma_fit <- function(n = 150L) {
       if (nzchar(julia_home)) {
         Sys.setenv(JULIA_HOME = julia_home)
       }
-      options(drmTMB.DRM.jl.path = jl_path)
+      options(
+        drmTMB.DRModels.jl.path = jl_path,
+        drmTMB.DRM.jl.path = jl_path
+      )
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
       set.seed(20260610)

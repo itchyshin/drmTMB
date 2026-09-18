@@ -1,22 +1,40 @@
-# Issue #1127: DRM_JL_PATH is the source of truth for every test file's
-# Julia-engine path, with DRM_JL_PHYLO_PATH as a fallback (kept for callers
-# still using the older phylo-only env var). A legacy family-specific
-# `envvar` (e.g. "DRM_JL_XFAM_PATH") is honored first if set, so existing
-# opt-in overrides keep working, then falls through to DRM_JL_PATH and
-# finally DRM_JL_PHYLO_PATH. This is the only place DRM_JL_PHYLO_PATH is
-# read (gate N7-G3).
+# Family-specific opt-ins keep precedence. General settings follow the bridge:
+# canonical option/env, legacy option/env, then the older phylo-only fallback.
+# This remains the only place DRM_JL_PHYLO_PATH is read (gate N7-G3).
 drm_test_drmjl_path <- function(envvar = "DRM_JL_PATH") {
-  if (!identical(envvar, "DRM_JL_PATH") && !identical(envvar, "DRM_JL_PHYLO_PATH")) {
+  if (!envvar %in% c("DRMODELS_JL_PATH", "DRM_JL_PATH", "DRM_JL_PHYLO_PATH")) {
     path <- Sys.getenv(envvar, "")
     if (nzchar(path)) {
       return(path)
     }
   }
-  path <- Sys.getenv("DRM_JL_PATH", "")
-  if (!nzchar(path)) {
-    path <- Sys.getenv("DRM_JL_PHYLO_PATH", "")
+  candidates <- list(
+    getOption("drmTMB.DRModels.jl.path", ""),
+    Sys.getenv("DRMODELS_JL_PATH", ""),
+    getOption("drmTMB.DRM.jl.path", ""),
+    Sys.getenv("DRM_JL_PATH", ""),
+    Sys.getenv("DRM_JL_PHYLO_PATH", "")
+  )
+  for (path in candidates) {
+    if (is.character(path) && length(path) == 1L && !is.na(path) && nzchar(path)) {
+      return(path)
+    }
   }
-  path
+  ""
+}
+
+# Bind a test-selected checkout through both the canonical and legacy bridge
+# settings. The canonical option must carry the selected path because the
+# production resolver intentionally prefers it over every legacy setting.
+drm_test_local_drmjl_path <- function(path, .local_envir = parent.frame()) {
+  withr::local_options(
+    list(
+      drmTMB.DRModels.jl.path = path,
+      drmTMB.DRM.jl.path = path
+    ),
+    .local_envir = .local_envir
+  )
+  invisible(path)
 }
 
 drm_test_julia_home <- function() {
@@ -140,7 +158,7 @@ drm_skip_live_julia <- function() {
   # skips with one reason. A path that exists but is not DRM.jl still
   # proceeds and fails loudly (that is the point).
   if (!dir.exists(drm_test_drmjl_path())) {
-    testthat::skip("DRM.jl engine not available (set DRM_JL_PATH)")
+    testthat::skip("DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)")
   }
   if (identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true")) {
     return(invisible(TRUE))

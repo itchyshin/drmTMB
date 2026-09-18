@@ -134,6 +134,9 @@ test-julia-inference.R	engine-drm-jl	environment	skips	7
 test-julia-inference.R	suggests-package	environment	runs	30
 test-julia-missing.R	engine-drm-jl	environment	skips	8
 test-julia-missing.R	suggests-package	environment	runs	15
+test-julia-module-compat.R	build-premise	build	skips	1
+test-julia-module-compat.R	env-var-optin	environment	skips	1
+test-julia-module-compat.R	suggests-package	environment	runs	2
 test-julia-noninteractive-lane.R	build-premise	build	skips	1
 test-julia-noninteractive-lane.R	runtime-conditional	runtime	depends	1
 test-julia-objective-at-bridge.R	engine-drm-jl	environment	skips	3
