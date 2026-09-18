@@ -1750,14 +1750,18 @@ class CapabilityLedgerTests(unittest.TestCase):
             "q1 structured `sigma` one-slope paths fit for",
             surfaces["phylogenetic-spatial.Rmd"],
         )
-        self.assertIn(
-            "a q1 `sigma` one-slope point-fit/extractor route",
-            surfaces["implementation-map.Rmd"],
-        )
-        self.assertIn(
-            "unlabelled correlated intercept-slope and multi-slope blocks",
-            surfaces["implementation-map.Rmd"],
-        )
+        overview = surfaces["implementation-map.Rmd"]
+        for link in (
+            "animal-models.html",
+            "relmat-known-matrices.html",
+            "structural-dependence.html",
+            "formula-grammar.html",
+            "count-nbinom2.html",
+            "distribution-families.html",
+            "proportion-beta-binomial.html",
+        ):
+            self.assertIn(link, overview)
+        self.assertNotRegex(overview, r"\\b(?:mc|mr|as)-\\d{4}[a-z]?\\b")
         self.assertIn(
             "Unlabelled ordinary correlated residual-scale intercept-slope",
             surfaces["02-family-registry.md"],
@@ -1791,10 +1795,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["model-map.Rmd"],
         )
         self.assertIn(
-            "Poisson/NB2 q1 single-provider structured `mu`",
-            surfaces["implementation-map.Rmd"],
-        )
-        self.assertIn(
             "Ordinary non-zero-inflated NB2 fits a plain log-`sigma` random intercept",
             surfaces["34-validation-debt-register.md"],
         )
@@ -1805,10 +1805,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn(
             "one truncated-NB2 q=1 `hu ~ relmat(1 | id, K/Q = ...)` diagnostic-only route",
             surfaces["model-map.Rmd"],
-        )
-        self.assertIn(
-            "one diagnostic-only truncated-NB2 q=1 `hu ~ relmat(K/Q)` intercept",
-            surfaces["implementation-map.Rmd"],
         )
         self.assertIn(
             "exact recovery-grade NB2\n  q=1 `sigma` intercept-plus-one-slope routes",
@@ -1903,7 +1899,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "41-phase-18-simulation-programme.md",
             "59-structural-slope-and-non-gaussian-map.md",
             "79-supported-nongaussian-evidence-goal.md",
-            "implementation-map.Rmd",
             "known-limitations.md",
         ):
             self.assertIn("crossed", surfaces[name])
@@ -1972,12 +1967,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "Ordinary ordinal random effects, other structured routes",
             surfaces["formula-grammar.Rmd"],
         )
-        self.assertIn(
-            "eligible cumulative-logit, Student-t, beta, Tweedie, skew-normal, and zero-one-beta routes",
-            surfaces["implementation-map.Rmd"],
-        )
-        self.assertIn("exact `mc-0539` is inference-ready with caveats", surfaces["implementation-map.Rmd"])
-        self.assertIn("exact `mc-0575` is inference-ready with caveats", surfaces["implementation-map.Rmd"])
         self.assertIn(
             "zero_one_beta()` | `mu` logit",
             surfaces["02-family-registry.md"],
@@ -2099,7 +2088,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
-            "implementation-map.Rmd",
             "spatial-models.Rmd",
         ):
             self.assertIn("non-Gaussian spatial", surfaces[name])
@@ -2110,9 +2098,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
-            "implementation-map.Rmd",
             "spatial-models.Rmd",
-            "source-map.Rmd",
             "which-scale.Rmd",
         ):
             normalized = " ".join(surfaces[name].split())
@@ -2225,7 +2211,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         phylo_surfaces = {
             name: " ".join(reader_vignette_path(name).read_text().split())
             for name in (
-                "implementation-map.Rmd",
                 "phylogenetic-models.Rmd",
                 "phylogenetic-spatial.Rmd",
                 "structural-dependence.Rmd",
@@ -2282,7 +2267,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "programme": ROOT / "docs/design/41-phase-18-simulation-programme.md",
             "debt": ROOT / "docs/design/34-validation-debt-register.md",
             "model_map": ROOT / "vignettes/model-map.Rmd",
-            "implementation_map": ROOT / "vignettes/implementation-map.Rmd",
         }
         normalized = {
             name: " ".join(path.read_text().split())
@@ -2298,7 +2282,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "readiness": "beyond the two exact q1 intercept gates",
             "debt": "zero-inflated spatial effects beyond the exact Poisson gate",
             "model_map": "and zero-inflated spatial effects |",
-            "implementation_map": "beyond the exact Poisson `zi`, fixed-`zi` Poisson `mu`, and fixed-`zi` NB2 `mu` gates",
         }
         for name, stale in stale_by_surface.items():
             self.assertNotIn(stale, normalized[name], name)

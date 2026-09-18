@@ -55,10 +55,10 @@ through checking, interpretation, and reporting.
 
 | Response or scientific question | Family route | Worked guide |
 | --- | --- | --- |
-| Continuous response with changing mean or residual variation | Gaussian; Student-t for heavy tails; skew-normal for asymmetry | [When variance carries signal, Part 1](location-scale.html), [Part 2](location-scale-scale.html), and [Robust continuous responses](robust-student.html) |
+| Continuous response with changing mean or residual variation | Gaussian; Student-t for heavy tails; Skew-normal for asymmetry | [When variance carries signal, Part 1](location-scale.html), [Part 2](location-scale-scale.html), and [Robust continuous responses](robust-student.html) |
 | Positive continuous response | Lognormal, Gamma, or Tweedie, depending on the mean--variance relationship and support | [Choosing response families](distribution-families.html) |
 | Counts, extra variation, extra zeros, or a hurdle process | Poisson, negative-binomial 2, zero-inflated, zero-truncated, or hurdle models | [Count abundance and extra zeros](count-nbinom2.html) |
-| Continuous proportions, exact boundary values, or successes out of trials | Beta, zero--one beta, binomial, or beta-binomial | [Proportions and success rates](proportion-beta-binomial.html) |
+| Continuous proportions, exact boundary values, or successes out of trials | Beta, Zero-one beta, binomial, or beta-binomial | [Proportions and success rates](proportion-beta-binomial.html) |
 | Ordered categories | Cumulative-logit model | [Choosing response families](distribution-families.html#cumulative-logit-ordinal) |
 | Two continuous outcomes with a direct joint distribution | Bivariate Gaussian, lognormal, or Student-t | [Changing residual coupling with rho12](bivariate-coscale.html) and [Bivariate non-Gaussian models](bivariate-nongaussian.html) |
 | Two outcomes of different kinds | Staged latent-normal association for reviewed family pairs | [Association between mixed outcome pairs](cross-family.html) |

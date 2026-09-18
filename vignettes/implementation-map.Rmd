@@ -95,6 +95,29 @@ When several structures seem plausible, read the
 terms. A simpler model that answers the biological question clearly is usually
 a better starting point than an unlisted combination.
 
+### Exact extensions that need a guide-specific check
+
+Some useful routes are deliberately narrow. For Gaussian scale models, there
+is **a q1 `sigma` one-slope point-fit/extractor route** for each documented
+structured provider; this does not imply interval or coverage support. Ordinary
+Gaussian scale models also include **unlabelled correlated intercept-slope and multi-slope blocks**, but labelled and cross-formula covariance remains outside
+the supported surface.
+
+For phylogenetic count and shape models, the exact available extensions are
+**Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope**, **NB2 q1
+phylogenetic `sigma`**, **Student-t q1 phylogenetic `nu`**, and
+**cumulative-logit q1 phylogenetic `mu`**. Each has the evidence and inference
+scope stated in its linked guide; do not treat the list as approval for another
+parameter, covariance structure, or slope pattern.
+
+Across providers, **Poisson/NB2 q1 single-provider structured `mu`** routes
+remain restricted to their documented intercept-plus-one-slope forms. For hurdle models there is one diagnostic-only truncated-NB2 q=1 `hu ~ relmat(K/Q)` intercept; broader hurdle random effects remain unsupported.
+
+For extra-zero count models, fixed-`zi` NB2 and fixed-`zi` Poisson location
+models are separate documented routes. The structured Poisson `zi` extension
+is diagnostic-only and limited to its stated spatial intercept; it does not
+establish a general random-effect or structured-inflation model.
+
 ## Keep the correlation targets distinct
 
 `drmTMB` exposes several correlations because they describe different levels of
