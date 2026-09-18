@@ -262,7 +262,7 @@ test_that("producer refuses a character column whose R level order is not the or
 # Part 2: live Julia.
 # ---------------------------------------------------------------------------
 
-# The G5 RED control below drives DRM.jl's OWN echo check
+# The G5 RED control below drives the selected Julia backend's OWN echo check
 # (`_bridge_check_coef_labels_fidelity`, DRM.jl #467 A6) by corrupting the
 # marshalled payload, so it can only run on an engine build that HAS that
 # check. Measured 2026-09-05: against the standing pin DRM.jl 430ef64cc the
@@ -272,7 +272,7 @@ test_that("producer refuses a character column whose R level order is not the or
 fc_engine_has_fidelity_check <- function() {
   drmTMB:::drm_julia_setup()
   isTRUE(JuliaCall::julia_eval(
-    "isdefined(DRM, :_bridge_check_coef_labels_fidelity)"
+    "isdefined(drmTMB_backend, :_bridge_check_coef_labels_fidelity)"
   ))
 }
 

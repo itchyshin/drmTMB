@@ -391,7 +391,10 @@ drm_structured_relmat_fit <- function(n = 30L) {
       if (nzchar(julia_home)) {
         Sys.setenv(JULIA_HOME = julia_home)
       }
-      options(drmTMB.DRM.jl.path = jl_path)
+      # Set the canonical option in the clean child.  The bridge deliberately
+      # gives it precedence over legacy DRM_JL_PATH, so setting only the
+      # legacy option could silently test an inherited DRModels checkout.
+      options(drmTMB.DRModels.jl.path = jl_path)
       suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
 
       # A block-structured relatedness correlation K over n individuals: two
