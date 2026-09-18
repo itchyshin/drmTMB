@@ -255,8 +255,8 @@ one.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have deviations structured by a user-supplied latent covariance or precision matrix? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in `mu` | Fitted first slice. `K` is a covariance matrix; `Q` is a precision matrix. |
-| Does one numeric fixed-effect slope also have known-matrix deviations? | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` in `mu` | Fitted first univariate one-slope slice with independent intercept and slope fields. Additional structured-slope layouts outside the exact fitted bivariate ledger cells and intercept-slope correlations remain planned. |
-| Does a one-response Gaussian model have known-matrix residual-scale deviations? | `relmat(1 | id, Q = Q)` in `sigma`, alone or matching the `mu` term; `relmat(1 + x | id, K = K)` for the exact one-slope route | The residual-scale intercept is fitted. The exact K/Q q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` `relmat()` intercepts estimate one known-matrix mean-scale correlation. Broader K/Q bridge claims, additional multiple or labelled sigma-slope layouts outside the exact fitted bivariate ledger cells, and structured slope correlations remain planned. |
+| Does one numeric fixed-effect slope also have known-matrix deviations? | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` in `mu` | Fitted first univariate one-slope slice with independent intercept and slope fields. Additional structured-slope layouts outside the documented fitted bivariate models and intercept-slope correlations remain planned. |
+| Does a one-response Gaussian model have known-matrix residual-scale deviations? | `relmat(1 | id, Q = Q)` in `sigma`, alone or matching the `mu` term; `relmat(1 + x | id, K = K)` for the exact one-slope route | The residual-scale intercept is fitted. The exact K/Q q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` `relmat()` intercepts estimate one known-matrix mean-scale correlation. Broader K/Q bridge claims, additional multiple or labelled sigma-slope layouts outside the documented fitted bivariate models, and structured slope correlations remain planned. |
 | Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | ML fits both representations. Native REML has `point_fit_recovery` evidence only for the exact supplied-`K`, location-intercept cell with constant residual formulas, complete pairs, unit weights, and no other model layer. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. `Q` remains ML-only for this bivariate route. |
 | Does the known-matrix layer link means and residual scales across two responses? | the same labelled `relmat(1 | p | id, Q = Q)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "relmat")` reports six constant latent relatedness correlations; profile intervals for those derived correlations remain unavailable. |
 | Does the known-matrix layer change multiple slopes or a predictor-dependent correlation? | examples such as `relmat(1 + x + z | id, K = K)` or `relmat()` `corpair()` formulas | Planned. These routes need matrix validation, diagnostics, recovery tests, interval targets, and examples before use. |
@@ -279,7 +279,7 @@ fit_relmat <- drmTMB(
 )
 ```
 
-For the exact Arc 1a REML route, keep `sigma ~ 1`, use an unlabelled intercept
+For the tested univariate Gaussian REML models, keep `sigma ~ 1`, use an unlabelled intercept
 or independent intercept-plus-one-numeric-slope shape, and set `REML = TRUE`:
 
 ```r
@@ -294,10 +294,10 @@ fit_relmat_reml <- drmTMB(
 )
 ```
 
-The multi-seed campaign used the `K` representation shown here, with
+Simulation checks used the `K` representation shown here, with
 `n_each = 20` and exactly `M = {8, 16, 32}` relatedness levels. `Q` has
-deterministic representation-parity evidence only, not multi-seed campaign
-coverage. Those Arc 1a domains do not admit slope-only, labelled,
+deterministic representation-parity evidence only; its interval coverage has
+not been tested across simulated datasets. These models do not admit slope-only, labelled,
 multiple-slope, scale-side, bivariate, or non-Gaussian REML routes. The
 separate exact bivariate supplied-`K` exception is shown next.
 
@@ -600,15 +600,15 @@ The following `relmat()` routes remain planned:
   terms, extra random effects, incomplete pairs, non-unit weights, or
   nonconstant `sigma1`, `sigma2`, or `rho12` formulas;
 - non-Gaussian known-matrix structured effects beyond the first
-  recovery-grade gates noted below.
+  models with point-estimate recovery evidence noted below.
 
 Several non-Gaussian families already fit a first q1 unlabelled `relmat()`
-structured gate with route-specific evidence. The recovery-grade routes support
+structured model with route-specific evidence. The recovery-grade routes support
 point estimates but are not coverage-validated: `Gamma()`, `poisson()`, and
 `nbinom2()` each accept a `mu` intercept plus one independent slope;
 `nbinom2()` also accepts a `sigma` intercept plus one independent slope.
 Separately, `truncated_nbinom2()` (with its hurdle NB2 alias) accepts a
-diagnostic-only intercept-only `hu` gate. Use that route only to confirm
+diagnostic-only intercept-only `hu` model. Use that route only to confirm
 fit/extractor feasibility; it does not establish point-estimate recovery.
 The `beta_family()` family and the families with no structured layer still
 reject `relmat()`.
