@@ -2,6 +2,15 @@
 
 ## API compatibility fixes
 
+* The Julia bridge now prefers the `DRModels` module and falls back to `DRM`,
+  including joint missing-predictor fits and generated inference helpers.
+  Set `drmTMB.DRModels.jl.path` or `DRMODELS_JL_PATH` for the checkout;
+  `drmTMB.DRM.jl.path`, `DRM_JL_PATH`, and `../DRM.jl` remain supported.
+  Automatic sibling discovery also checks `../DRModels.jl` first. Julia and
+  `JuliaCall` remain optional; the default TMB engine is unchanged.
+
+## Independent-evaluation fixes
+
 * Exported `beta_family()` for strict continuous-proportion models so the
   unqualified name `beta()` no longer masks [base::beta()]. The old
   `beta()` constructor remains available as a deprecated unexported alias

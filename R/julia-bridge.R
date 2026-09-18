@@ -2794,7 +2794,7 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
   # Lambda/rho12 -> phi via `pack_phi`, Julia-side); `formula`/`family`/
   # `data`/`tree`/`options` are exactly the payload `drm_bridge` itself takes.
   result <- JuliaCall::julia_call(
-    "DRM.drm_bridge_objective_at",
+    "drmTMB_backend.drm_bridge_objective_at",
     payload$formula,
     family_tag,
     as.list(payload$data),
@@ -2811,7 +2811,7 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
   )
   if (!identical(result[["contract"]], "bridge_objective_at_v1")) {
     cli::cli_abort(c(
-      "{.code DRM.drm_bridge_objective_at} returned an unrecognised contract tag.",
+      "{.code drm_bridge_objective_at} returned an unrecognised contract tag.",
       i = "Expected {.val bridge_objective_at_v1}; got {.val {result[['contract']]}}. The DRM.jl-side return shape may have changed incompatibly."
     ))
   }
@@ -4176,20 +4176,20 @@ drm_julia_conditional_gaussian_components_source <- function() {
     sep = "\n",
     "begin",
     "function drmTMB_drm_bridge_conditional_gaussian_components(formula, family, data, tree, options)",
-    "    dat = DRM._bridge_data(data)",
-    "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
-    "    fam = DRM._bridge_family(family)",
-    "    fam isa DRM.Gaussian || throw(ArgumentError(\"conditional bridge requires Gaussian family\"))",
-    "    opts = DRM._bridge_options(options)",
-    "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
-    "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
+    "    dat = drmTMB_backend._bridge_data(data)",
+    "    bundle, dat = drmTMB_backend._bridge_formula(formula, family, dat)",
+    "    fam = drmTMB_backend._bridge_family(family)",
+    "    fam isa drmTMB_backend.Gaussian || throw(ArgumentError(\"conditional bridge requires Gaussian family\"))",
+    "    opts = drmTMB_backend._bridge_options(options)",
+    "    tree_obj = tree === nothing ? nothing : drmTMB_backend._bridge_tree(tree)",
+    "    fit = drmTMB_backend._bridge_fit(bundle, fam, dat; tree = tree_obj, K = nothing, A = nothing, coords = nothing, options = opts)",
     "    forms = Dict(bundle.forms)",
     "    haskey(forms, :mu) || throw(ArgumentError(\"conditional bridge requires a mean formula\"))",
-    "    _, re, metav, structured = DRM._split_ranef(forms[:mu])",
+    "    _, re, metav, structured = drmTMB_backend._split_ranef(forms[:mu])",
     "    metav === nothing || throw(ArgumentError(\"conditional bridge does not admit known-variance mean routes\"))",
     "    structured === nothing || throw(ArgumentError(\"conditional bridge does not admit structured mean routes\"))",
     "    isempty(re) && throw(ArgumentError(\"conditional bridge requires an ordinary mean random effect\"))",
-    "    effects = DRM.ranef(fit)",
+    "    effects = drmTMB_backend.ranef(fit)",
     "    length(effects) == length(re) || throw(ArgumentError(\"conditional bridge random-effect payload count mismatch\"))",
     "    components = Any[]",
     "    groups = Symbol[]",
@@ -4199,11 +4199,11 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "        grp isa Symbol || throw(ArgumentError(\"conditional bridge requires symbolic grouping variables\"))",
     "        grp in groups && throw(ArgumentError(\"conditional bridge does not admit repeated grouping variables\"))",
     "        push!(groups, grp)",
-    "        kind, var = DRM._re_kind(lhs)",
+    "        kind, var = drmTMB_backend._re_kind(lhs)",
     "        kind in (:intercept, :slope, :corr) || throw(ArgumentError(\"conditional bridge found an unsupported random-effect shape\"))",
     "        kind === :corr && (correlated += 1)",
     "        labels = collect(getproperty(dat, grp))",
-    "        gidx, G = DRM._group_index(labels)",
+    "        gidx, G = drmTMB_backend._group_index(labels)",
     "        level_values = Vector{Any}(undef, G)",
     "        for i in eachindex(labels)",
     "            x = labels[i]",
@@ -4231,13 +4231,13 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "    correlated == 0 || length(components) == 1 || throw(ArgumentError(\"conditional bridge does not mix correlated and scalar components\"))",
     "    sigma_clamp_active = false",
     "    if length(components) > 1 && haskey(forms, :sigma)",
-    "        _, Xsigma, _ = DRM._design(bundle.response, forms[:sigma], dat)",
+    "        _, Xsigma, _ = drmTMB_backend._design(bundle.response, forms[:sigma], dat)",
     "        sigma_block = findfirst(p -> first(p) === :sigma, fit.blocks)",
     "        sigma_block === nothing && throw(ArgumentError(\"conditional bridge is missing the sigma coefficient block\"))",
     "        eta_sigma = Xsigma * fit.theta[last(fit.blocks[sigma_block])]",
     "        sigma_clamp_active = any(abs.(eta_sigma) .>= 30.0)",
     "    end",
-    "    out = DRM._bridge_flatten(fit; family = String(family))",
+    "    out = drmTMB_backend._bridge_flatten(fit; family = String(family))",
     "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_ordinary_components_v2\", \"components\" => components, \"sigma_clamp_active\" => sigma_clamp_active)",
     "    return out",
     "end",
@@ -4249,6 +4249,28 @@ drm_julia_conditional_gaussian_components_source <- function() {
 ## Stable private source accessor for callers that registered the original v1
 ## entry point; the generated Julia source also defines that entry point as an alias.
 drm_julia_conditional_gaussian_ri_source <- drm_julia_conditional_gaussian_components_source
+
+# All Julia calls, including generated helpers, resolve through this one alias.
+# Import after activating the requested project; old checkouts still export DRM.
+drm_julia_load_module <- function(command = JuliaCall::julia_command) {
+  failures <- character()
+  for (module in c("DRModels", "DRM")) {
+    loaded <- tryCatch({
+      command(paste0("import ", module, "; drmTMB_backend = ", module))
+      TRUE
+    }, error = function(error) {
+      failures <<- c(failures, paste0(module, ": ", conditionMessage(error)))
+      FALSE
+    })
+    if (loaded) return(module)
+  }
+  details <- paste(failures, collapse = "\n")
+  cli::cli_abort(c(
+    "Could not load DRModels or DRM from the activated Julia project.",
+    i = "Instantiate the selected checkout, restart R, and retry.",
+    i = "{details}"
+  ))
+}
 
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
@@ -4268,21 +4290,21 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   # and a mistyped path surfaced as a bare normalizePath() error.
   if (!nzchar(path)) {
     cli::cli_abort(c(
-      "{.code engine = \"julia\"} needs a local DRM.jl checkout, and none was found.",
-      i = "One-time: {.code git clone https://github.com/itchyshin/DRM.jl} then {.code julia --project=DRM.jl -e 'using Pkg; Pkg.instantiate()'}.",
-      i = "Per session (before the first julia call): {.code Sys.setenv(DRM_JL_PATH = \"/path/to/DRM.jl\")} or {.code options(drmTMB.DRM.jl.path = ...)}."
+      "{.code engine = \"julia\"} needs a local DRModels.jl (or legacy DRM.jl) checkout, and none was found.",
+      i = "One-time: {.code git clone https://github.com/itchyshin/DRModels.jl} then {.code julia --project=DRModels.jl -e 'using Pkg; Pkg.instantiate()'}.",
+      i = "Before the first Julia call, set {.envvar DRMODELS_JL_PATH} or {.code options(drmTMB.DRModels.jl.path = ...)}. Legacy {.envvar DRM_JL_PATH} and {.code options(drmTMB.DRM.jl.path = ...)} also work."
     ))
   }
   if (!dir.exists(path)) {
     cli::cli_abort(c(
-      "The DRM.jl path {.path {path}} does not exist.",
-      i = "Check {.envvar DRM_JL_PATH} / {.code options(drmTMB.DRM.jl.path)} -- it must point at the cloned DRM.jl directory."
+      "The DRModels.jl / DRM.jl path {.path {path}} does not exist.",
+      i = "Check {.envvar DRMODELS_JL_PATH} / {.code options(drmTMB.DRModels.jl.path)} (or the legacy DRM settings); point at the cloned directory."
     ))
   }
   if (!file.exists(file.path(path, "Project.toml"))) {
     cli::cli_abort(c(
-      "{.path {path}} exists but does not look like a DRM.jl checkout (no {.file Project.toml}).",
-      i = "Point {.envvar DRM_JL_PATH} at the repository root, the directory containing {.file Project.toml} and {.file src/}."
+      "{.path {path}} exists but does not look like a DRModels.jl / DRM.jl checkout (no {.file Project.toml}).",
+      i = "Point {.envvar DRMODELS_JL_PATH} (or legacy {.envvar DRM_JL_PATH}) at the repository root, containing {.file Project.toml} and {.file src/}."
     ))
   }
   normalized_path <- normalizePath(path, winslash = "/", mustWork = TRUE)
@@ -4296,22 +4318,18 @@ drm_julia_setup <- function(path = drm_julia_path()) {
     i = "Starting Julia (first call in a session takes ~30-60 s; later calls are fast)..."
   ))
   JuliaCall::julia_setup(installJulia = FALSE)
-  if (nzchar(normalized_path)) {
-    JuliaCall::julia_command(paste0(
-      "import Pkg; Pkg.activate(",
-      drm_julia_quote(normalized_path),
-      "); using DRM"
-    ))
-  } else {
-    JuliaCall::julia_command("using DRM")
-  }
+  drm_julia_setup_state$ready <- FALSE
+  JuliaCall::julia_command(paste0(
+    "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
+  ))
+  drm_julia_setup_state$module <- drm_julia_load_module()
   # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
   # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
   JuliaCall::julia_command("using Random")
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge(formula, family, data, tree, options) =",
-      "DRM.drm_bridge(formula = formula, family = family, data = data, tree = tree, options = options)"
+      "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, tree = tree, options = options)"
     )
   )
   # The bounded ordinary Gaussian stored-prediction route reuses DRM.jl's
@@ -4321,13 +4339,13 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge_q2_phylo(Y, X, species, tree, options) =",
-      "DRM.drm_bridge_q2_phylo(Y = Y, X = X, species = species, tree = tree, options = options)"
+      "drmTMB_backend.drm_bridge_q2_phylo(Y = Y, X = X, species = species, tree = tree, options = options)"
     )
   )
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge_inference(formula, family, data, tree, options, method, level, B, seed, threads, parm) =",
-      "DRM.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads, parm = parm)"
+      "drmTMB_backend.drm_bridge_inference(formula = formula, family = family, data = data, tree = tree, options = options, method = method, level = level, B = B, seed = seed, threads = threads, parm = parm)"
     )
   )
   # Ordinary fixed-effect profile / bootstrap intervals (#460). DRM.jl has no
@@ -4346,12 +4364,12 @@ drm_julia_setup <- function(path = drm_julia_path()) {
     paste(
       sep = "\n",
       "function drmTMB_drm_bridge_fixef_inference(formula, family, data, tree, K, A, coords, options, method, level, B, seed, threads, dpar, coefname)",
-      "    dat = DRM._bridge_data(data)",
-      "    bundle, dat = DRM._bridge_formula(formula, family, dat)",
-      "    fam = DRM._bridge_family(family)",
-      "    opts = DRM._bridge_options(options)",
-      "    tree_obj = tree === nothing ? nothing : DRM._bridge_tree(tree)",
-      "    fit = DRM._bridge_fit(bundle, fam, dat; tree = tree_obj, K = K, A = A, coords = coords, options = opts)",
+      "    dat = drmTMB_backend._bridge_data(data)",
+      "    bundle, dat = drmTMB_backend._bridge_formula(formula, family, dat)",
+      "    fam = drmTMB_backend._bridge_family(family)",
+      "    opts = drmTMB_backend._bridge_options(options)",
+      "    tree_obj = tree === nothing ? nothing : drmTMB_backend._bridge_tree(tree)",
+      "    fit = drmTMB_backend._bridge_fit(bundle, fam, dat; tree = tree_obj, K = K, A = A, coords = coords, options = opts)",
       "    blockparm = Symbol(dpar)",
       "    function drmTMB_pick_fixef_row(rows)",
       "        hit = filter(r -> r.param === blockparm && r.coef == coefname, rows)",
@@ -4359,31 +4377,31 @@ drm_julia_setup <- function(path = drm_julia_path()) {
       "        first(hit)",
       "    end",
       "    if method == \"profile\"",
-      "        result = DRM.profile_result(fit; level = level, threads = threads, parm = blockparm => String(coefname))",
+      "        result = drmTMB_backend.profile_result(fit; level = level, threads = threads, parm = blockparm => String(coefname))",
       "        row = drmTMB_pick_fixef_row(result.ci)",
-      "        outcome = if isdefined(DRM, :_bridge_profile_outcome)",
-      "            DRM._bridge_profile_outcome(result, row)",
+      "        outcome = if isdefined(drmTMB_backend, :_bridge_profile_outcome)",
+      "            drmTMB_backend._bridge_profile_outcome(result, row)",
       "        else",
       "            (status = result.failed > 0 ? \"profile_failed\" : \"profile\",",
       "             message = result.failed > 0 ? \"profile solve failed; per-row diagnostics unavailable\" : \"profile_result completed\")",
       "        end",
-      "        return DRM._bridge_inference_flatten(row; method = \"profile\", status = outcome.status,",
+      "        return drmTMB_backend._bridge_inference_flatten(row; method = \"profile\", status = outcome.status,",
       "            attempted = result.attempted, used = result.used, failed = result.failed,",
       "            elapsed = result.elapsed, threaded = result.threaded, worker_threads = result.worker_threads,",
       "            julia_threads = result.julia_threads, blas_threads = result.blas_threads,",
       "            message = outcome.message)",
       "    elseif method == \"bootstrap\"",
       "        rng = seed === nothing ? Random.default_rng() : Random.MersenneTwister(Int(seed))",
-      "        result = if fit isa DRM.DrmFit{<:DRM.Gaussian}",
-      "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
+      "        result = if fit isa drmTMB_backend.DrmFit{<:drmTMB_backend.Gaussian}",
+      "            drmTMB_backend.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
       "                tree = tree_obj, K = K, A = A, coords = coords, threads = threads, failures = :skip, check_converged = true,",
       "                algorithm = Symbol(get(opts, :algorithm, :auto)), g_tol = Float64(get(opts, :g_tol, 1e-8)))",
       "        else",
-      "            DRM.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
+      "            drmTMB_backend.bootstrap_result(fit; data = dat, B = Int(B), level = level, rng = rng,",
       "                tree = tree_obj, K = K, A = A, coords = coords, threads = threads, failures = :skip, check_converged = true)",
       "        end",
       "        row = drmTMB_pick_fixef_row(result.summary)",
-      "        return DRM._bridge_inference_flatten(row; method = \"bootstrap\",",
+      "        return drmTMB_backend._bridge_inference_flatten(row; method = \"bootstrap\",",
       "            status = result.used >= 2 ? \"bootstrap\" : \"bootstrap_unavailable\",",
       "            attempted = result.attempted, used = result.used, failed = result.failed,",
       "            elapsed = result.elapsed, threaded = result.threaded, worker_threads = result.worker_threads,",
@@ -4401,7 +4419,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   JuliaCall::julia_command(
     paste(
       "drmTMB_drm_bridge_structured(formula, family, data, K, A, coords, options) =",
-      "DRM.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
+      "drmTMB_backend.drm_bridge(formula = formula, family = family, data = data, K = K, A = A, coords = coords, options = options)"
     )
   )
   # DRM.jl's `drm_bridge_objective_at` (DRM.jl#590, `src/bridge.jl`, exported,
@@ -4419,21 +4437,20 @@ drm_julia_setup <- function(path = drm_julia_path()) {
 }
 
 drm_julia_path <- function() {
-  explicit <- getOption("drmTMB.DRM.jl.path", "")
-  if (is.character(explicit) && length(explicit) == 1L && nzchar(explicit)) {
-    return(explicit)
-  }
-  env_path <- Sys.getenv("DRM_JL_PATH", "")
-  if (nzchar(env_path)) {
-    return(env_path)
-  }
-  sibling <- normalizePath(
-    file.path(getwd(), "..", "DRM.jl"),
-    winslash = "/",
-    mustWork = FALSE
+  candidates <- list(
+    getOption("drmTMB.DRModels.jl.path", ""),
+    Sys.getenv("DRMODELS_JL_PATH", ""),
+    getOption("drmTMB.DRM.jl.path", ""),
+    Sys.getenv("DRM_JL_PATH", "")
   )
-  if (dir.exists(sibling)) {
-    return(sibling)
+  for (path in candidates) {
+    if (is.character(path) && length(path) == 1L && !is.na(path) && nzchar(path)) {
+      return(path)
+    }
+  }
+  for (name in c("DRModels.jl", "DRM.jl")) {
+    sibling <- normalizePath(file.path(getwd(), "..", name), winslash = "/", mustWork = FALSE)
+    if (dir.exists(sibling)) return(sibling)
   }
   ""
 }
@@ -8273,14 +8290,14 @@ drm_julia_as_matrix <- function(x) {
 drm_julia_xfam_helper_source <- function() {
   paste(
     "function drmTMB_mixed_family(y1, X1, fam1::AbstractString, y2, X2, fam2::AbstractString, Xsigma1, Xsigma2)",
-    "    _fam(s) = s == \"gaussian\" ? DRM.Gaussian() :",
-    "             s == \"poisson\"  ? DRM.Poisson() :",
-    "             s == \"binomial\" ? DRM.Binomial() :",
-    "             s == \"nbinom2\"  ? DRM.NegBinomial2() :",
-    "             s == \"beta\"     ? DRM.Beta() :",
-    "             s == \"gamma\"    ? DRM.Gamma() :",
+    "    _fam(s) = s == \"gaussian\" ? drmTMB_backend.Gaussian() :",
+    "             s == \"poisson\"  ? drmTMB_backend.Poisson() :",
+    "             s == \"binomial\" ? drmTMB_backend.Binomial() :",
+    "             s == \"nbinom2\"  ? drmTMB_backend.NegBinomial2() :",
+    "             s == \"beta\"     ? drmTMB_backend.Beta() :",
+    "             s == \"gamma\"    ? drmTMB_backend.Gamma() :",
     "             error(\"unsupported cross-family tag: \" * s)",
-    "    r = DRM.fit_mixed_family(; y1 = Float64.(vec(y1)), X1 = Float64.(X1), fam1 = _fam(fam1),",
+    "    r = drmTMB_backend.fit_mixed_family(; y1 = Float64.(vec(y1)), X1 = Float64.(X1), fam1 = _fam(fam1),",
     "                               y2 = Float64.(vec(y2)), X2 = Float64.(X2), fam2 = _fam(fam2),",
     "                               Xsigma1 = Float64.(Xsigma1), Xsigma2 = Float64.(Xsigma2),",
     "                               profile = true, B = 0)",
@@ -8661,7 +8678,7 @@ confint.drmTMB_julia_xfam <- function(
   if (!identical(level, 0.95)) {
     cli::cli_abort(c(
       "Cross-family Julia fits currently return a fixed 95% interval for {.code rho_latent}.",
-      i = "The latent-correlation CIs are computed at {.code level = 0.95} inside DRM.fit_mixed_family."
+      i = "The latent-correlation CIs are computed at {.code level = 0.95} inside {.code fit_mixed_family}."
     ))
   }
   if (!is.null(parm) && !identical(parm, "rho_latent")) {

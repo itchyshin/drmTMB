@@ -9,13 +9,13 @@ drm_julia_joint_requested <- function(formula, impute, missing) {
 }
 
 drm_julia_require_joint_capability <- function(
-  available = isTRUE(JuliaCall::julia_eval("isdefined(DRM, :drm_bridge_joint)"))
+  available = isTRUE(JuliaCall::julia_eval("isdefined(drmTMB_backend, :drm_bridge_joint)"))
 ) {
   if (!isTRUE(available)) {
     cli::cli_abort(c(
-      "Your DRM.jl checkout is too old for this joint missing-predictor model.",
-      i = "The loaded checkout does not provide {.code DRM.drm_bridge_joint}.",
-      i = "Update the checkout referenced by {.envvar DRM_JL_PATH}, restart R, and retry."
+      "Your DRModels.jl / DRM.jl checkout is too old for this joint missing-predictor model.",
+      i = "The loaded checkout does not provide {.code drm_bridge_joint}.",
+      i = "Update the checkout referenced by {.envvar DRMODELS_JL_PATH} (or legacy {.envvar DRM_JL_PATH}), restart R, and retry."
     ))
   }
   invisible(TRUE)
@@ -30,7 +30,7 @@ drm_julia_call_joint <- function(payload) {
   }
   drm_julia_setup()
   drm_julia_require_joint_capability()
-  JuliaCall::julia_call("DRM.drm_bridge_joint", payload)
+  JuliaCall::julia_call("drmTMB_backend.drm_bridge_joint", payload)
 }
 
 drmTMB_julia_joint_bridge <- function(

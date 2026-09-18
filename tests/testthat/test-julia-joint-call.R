@@ -26,5 +26,5 @@ test_that("joint call checks the DRM capability after setup and before dispatch"
   )
   out <- drmTMB:::drm_julia_call_joint(list(contract = "test"))
   expect_identical(events, c("setup", "capability", "call"))
-  expect_identical(out[[1L]], "DRM.drm_bridge_joint")
+  expect_identical(out[[1L]], "drmTMB_backend.drm_bridge_joint")
 })

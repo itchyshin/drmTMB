@@ -324,7 +324,7 @@ test_that("gaussian(): an ordinary mean-side (1 | g) is untouched by the fence (
   }, error = function(e) e)
   expect_false(is.null(err))
   msg <- conditionMessage(err)
-  expect_match(msg, "needs a local DRM.jl checkout", fixed = TRUE)
+  expect_match(msg, "needs a local DRModels.jl (or legacy DRM.jl) checkout", fixed = TRUE)
   gates <- drmTMB:::drm_julia_intentional_gates()
   fence_pattern <- gates$message_pattern[gates$gate_id == "fe_only_random_effects"]
   expect_false(grepl(fence_pattern, msg))
@@ -346,7 +346,7 @@ test_that("poisson(): phylo(1 | sp) is untouched by the fence (reaches Julia set
   }, error = function(e) e)
   expect_false(is.null(err))
   msg <- conditionMessage(err)
-  expect_match(msg, "needs a local DRM.jl checkout", fixed = TRUE)
+  expect_match(msg, "needs a local DRModels.jl (or legacy DRM.jl) checkout", fixed = TRUE)
   gates <- drmTMB:::drm_julia_intentional_gates()
   fence_pattern <- gates$message_pattern[gates$gate_id == "fe_only_random_effects"]
   expect_false(grepl(fence_pattern, msg))
@@ -402,7 +402,7 @@ test_that("gaussian(): sigma ~ phylo(1 | sp) is untouched by the fence (reaches 
   }, error = function(e) e)
   expect_false(is.null(err))
   msg <- conditionMessage(err)
-  expect_match(msg, "needs a local DRM.jl checkout", fixed = TRUE)
+  expect_match(msg, "needs a local DRModels.jl (or legacy DRM.jl) checkout", fixed = TRUE)
   gates <- drmTMB:::drm_julia_intentional_gates()
   fence_pattern <- gates$message_pattern[gates$gate_id == "fe_only_random_effects"]
   expect_false(grepl(fence_pattern, msg))
