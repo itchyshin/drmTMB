@@ -215,15 +215,15 @@ lrt_boundary_julia <- function(dat, full_rhs, reduced_rhs, q) {
     else "lrtb_d = (; y = lrtb_y, x = lrtb_x, g = lrtb_g, h = lrtb_h);"
   )
   JuliaCall::julia_command(sprintf(
-    "lrtb_full = DRM.drm(DRM.bf(DRM.@formula(y ~ %s), DRM.@formula(sigma ~ 1)), DRM.Gaussian(); data = lrtb_d);",
+    "lrtb_full = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(y ~ %s), drmTMB_backend.@formula(sigma ~ 1)), drmTMB_backend.Gaussian(); data = lrtb_d);",
     full_rhs
   ))
   JuliaCall::julia_command(sprintf(
-    "lrtb_reduced = DRM.drm(DRM.bf(DRM.@formula(y ~ %s), DRM.@formula(sigma ~ 1)), DRM.Gaussian(); data = lrtb_d);",
+    "lrtb_reduced = drmTMB_backend.drm(drmTMB_backend.bf(drmTMB_backend.@formula(y ~ %s), drmTMB_backend.@formula(sigma ~ 1)), drmTMB_backend.Gaussian(); data = lrtb_d);",
     reduced_rhs
   ))
   JuliaCall::julia_eval(sprintf(
-    "let t = DRM.lrt_boundary(lrtb_full, lrtb_reduced; q = %d); Dict(\"statistic\" => t.statistic, \"q\" => t.q, \"pvalue\" => t.pvalue, \"pvalue_naive\" => t.pvalue_naive, \"loglik_full\" => DRM.loglik(lrtb_full), \"loglik_reduced\" => DRM.loglik(lrtb_reduced)) end",
+    "let t = drmTMB_backend.lrt_boundary(lrtb_full, lrtb_reduced; q = %d); Dict(\"statistic\" => t.statistic, \"q\" => t.q, \"pvalue\" => t.pvalue, \"pvalue_naive\" => t.pvalue_naive, \"loglik_full\" => drmTMB_backend.loglik(lrtb_full), \"loglik_reduced\" => drmTMB_backend.loglik(lrtb_reduced)) end",
     q
   ))
 }
@@ -273,7 +273,7 @@ test_that("lrt_boundary matches DRM.jl's native lrt_boundary on committed fixtur
     expect_lt(abs(log(r$pvalue_naive) - log(j$pvalue_naive)), fx$p_tol, label = paste(fx$id, "log pvalue_naive"))
     # The p-value function itself, on an identical statistic: 1e-12 relative.
     j_at_r <- JuliaCall::julia_eval(sprintf(
-      "(DRM.chibar_pvalue(%.17g, 1), DRM.chibar_pvalue(%.17g, 2))", r$statistic, r$statistic
+      "(drmTMB_backend.chibar_pvalue(%.17g, 1), drmTMB_backend.chibar_pvalue(%.17g, 2))", r$statistic, r$statistic
     ))
     expect_equal(chibar_pvalue(r$statistic, 1), j_at_r[[1L]], tolerance = 1e-12, info = fx$id)
     expect_equal(chibar_pvalue(r$statistic, 2), j_at_r[[2L]], tolerance = 1e-12, info = fx$id)

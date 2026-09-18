@@ -4251,24 +4251,27 @@ drm_julia_conditional_gaussian_components_source <- function() {
 drm_julia_conditional_gaussian_ri_source <- drm_julia_conditional_gaussian_components_source
 
 # All Julia calls, including generated helpers, resolve through this one alias.
-# Import after activating the requested project; old checkouts still export DRM.
-drm_julia_load_module <- function(command = JuliaCall::julia_command) {
-  failures <- character()
-  for (module in c("DRModels", "DRM")) {
-    loaded <- tryCatch({
-      command(paste0("import ", module, "; drmTMB_backend = ", module))
-      TRUE
-    }, error = function(error) {
-      failures <<- c(failures, paste0(module, ": ", conditionMessage(error)))
-      FALSE
-    })
-    if (loaded) return(module)
-  }
-  details <- paste(failures, collapse = "\n")
-  cli::cli_abort(c(
-    "Could not load DRModels or DRM from the activated Julia project.",
-    i = "Instantiate the selected checkout, restart R, and retry.",
-    i = "{details}"
+# Select the identity declared by this checkout, never a later LOAD_PATH entry.
+# Check both resolution and the loaded module: Julia caches modules by PkgId.
+# Import/dependency failures deliberately propagate without a fallback import.
+drm_julia_load_module <- function(path, evaluate = JuliaCall::julia_eval) {
+  evaluate(paste(
+    "let root = realpath(", drm_julia_quote(path), ")",
+    "    project_file = joinpath(root, \"Project.toml\")",
+    "    realpath(Base.active_project()) == realpath(project_file) || error(\"The selected Julia checkout is not active\")",
+    "    project = Pkg.TOML.parsefile(project_file)",
+    "    name = get(project, \"name\", \"\")",
+    "    name in (\"DRModels\", \"DRM\") || error(\"Selected checkout must declare DRModels or DRM\")",
+    "    id = Base.PkgId(Base.UUID(project[\"uuid\"]), name)",
+    "    expected = realpath(joinpath(root, \"src\", name * \".jl\"))",
+    "    resolved = Base.locate_package(id)",
+    "    (resolved !== nothing && realpath(resolved) == expected) || error(\"Julia resolved the backend outside the selected checkout\")",
+    "    backend = Base.require(id)",
+    "    loaded = pathof(backend)",
+    "    (loaded !== nothing && realpath(loaded) == expected) || error(\"Julia already loaded this backend from a different checkout; restart R\")",
+    "    global drmTMB_backend = backend",
+    "    name",
+    "end", sep = "\n"
   ))
 }
 
@@ -4322,7 +4325,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   JuliaCall::julia_command(paste0(
     "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
   ))
-  drm_julia_setup_state$module <- drm_julia_load_module()
+  drm_julia_setup_state$module <- drm_julia_load_module(normalized_path)
   # Random is Julia's own stdlib (not a DRM.jl addition); the fixed-effect
   # inference wrapper below seeds `bootstrap_result()`'s RNG with it.
   JuliaCall::julia_command("using Random")
