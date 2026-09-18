@@ -25,7 +25,8 @@ testthat::test_local(".",
   stop_on_failure = TRUE, load_package = "none", reporter = "summary")
 ```
 
-All four files passed; three pre-existing missing-fixture skips remain. The new
+All four files passed: 283 assertions, zero failures, three pre-existing
+missing-fixture skips. The new
 module compatibility file passed 36 assertions. An ignored symlink to the
 installed `drmTMB.so` avoided recompiling unchanged TMB code; this check is R glue
 evidence, not proof of a fresh package build. `git diff --check` passed.
@@ -33,8 +34,16 @@ evidence, not proof of a fresh package build. `git diff --check` passed.
 A real R/JuliaCall smoke on Julia 1.10.0 loaded the legacy module and fitted
 24 Gaussian observations with `bf(y ~ x, sigma ~ 1)`, seed 269:
 `D269_LIVE_PASS module=DRM logLik=-2.703051`. Julia used four threads and BLAS one.
-The renamed checkout smoke reached `DRModels` but failed during dependency load:
-ForwardDiff was not installed in that environment. No canonical fit is claimed.
+The first renamed checkout smoke reached `DRModels` but failed during dependency
+load because its project lacked a working dependency manifest. A disposable
+project at `/private/tmp/drmodels-smoke.n9RqeT` then used read-only symlinks to
+the renamed Project/src/ext (source `f80e4bc61a1aacf300290a7145393bb8b72a81b7`)
+and the legacy checkout's working Manifest. Its dependency declarations are
+identical. That fresh R process passed:
+`D269_LIVE_PASS module=DRModels logLik=-2.703051`.
+Legacy source was `27fc9202064bbbdb36592649e46229e3cabe6cbd`.
+Neither Julia source checkout was modified. These are tiny bridge smokes,
+not new package-wide parity or inference evidence.
 
 ## Consistency audit
 
@@ -56,10 +65,13 @@ cli expressions; the diagnostic now interpolates the captured text safely and a
 ## What did not go smoothly
 
 JuliaCall initially could not find Julia on PATH. Setting `JULIA_HOME` to the
-installed Julia directory fixed discovery. The canonical environment needs its
-owner to instantiate dependencies. Open PR #1111 touches documentation in the
-bridge file; the coordinator therefore approved stacking on its branch
-`codex/julia-current-surface-docs`, not publishing a competing PR against main.
+installed Julia directory fixed discovery. Open PR #1111 touches documentation
+in the bridge file. Attempting the coordinator-approved stack exposed that its
+branch was 914 main commits behind and produced genuine conflicts, including a
+modify/delete conflict for the fence test. The rebase was aborted cleanly.
+The coordinator then approved a narrow main-based draft PR with a merge hold
+until #1111 is merged or formally closed and the compatibility PR is reconciled.
+No foreign branch was rewritten.
 
 ## Team learning and process improvements
 
@@ -80,12 +92,12 @@ with roxygen after reconciling that PR; no man pages were hand edited here.
 
 ## GitHub issue maintenance
 
-This compatibility PR stacks on #1111. No issue closures, changes to #1380,
+This compatibility PR targets main with an explicit #1111 merge hold. No issue closures, changes to #1380,
 merges, releases, registry actions, or GitHub settings are authorized here.
 
 ## Known limitations and next actions
 
-Obtain a successful canonical DRModels smoke once its checkout is instantiated.
 R CMD check with compilation/full tests was estimated at 45–90 minutes and was
 not launched under the bounded-check authorization. Run that check after approval.
-Review and land the stack in dependency order; this task does not merge it.
+Reconcile the older #1111 PR before merging this compatibility change; this task
+does not merge either PR. Main help/roxygen work remains with #1110's owner.
