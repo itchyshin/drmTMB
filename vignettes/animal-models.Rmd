@@ -158,8 +158,8 @@ overview](structural-dependence.html) is where that choice gets made.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have additive individual deviations? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` in `mu` | Fitted first slice. Dense pedigree construction, covariance input, and precision input are supported. |
-| Does one numeric fixed-effect slope also have additive individual deviations? | `animal(1 + x | individual, pedigree = pedigree)` in `mu` | Fitted first univariate one-slope slice with independent intercept and slope fields. Additional structured-slope layouts outside the exact fitted bivariate ledger cells and intercept-slope correlations remain planned. |
-| Does a one-response Gaussian model have additive residual-scale deviations? | `animal(1 | individual, Ainv = Ainv)` in `sigma`, alone or matching the `mu` term; `animal(1 + x | individual, A = A)` for the exact one-slope route | The residual-scale intercept is fitted. The exact A-matrix q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` animal intercepts estimate one animal mean-scale correlation. Pedigree/Ainv bridge marshalling, additional multiple or labelled sigma-slope layouts outside the exact fitted bivariate ledger cells, and structured slope correlations remain planned. |
+| Does one numeric fixed-effect slope also have additive individual deviations? | `animal(1 + x | individual, pedigree = pedigree)` in `mu` | Fitted first univariate one-slope slice with independent intercept and slope fields. Additional structured-slope layouts outside the documented fitted bivariate models and intercept-slope correlations remain planned. |
+| Does a one-response Gaussian model have additive residual-scale deviations? | `animal(1 | individual, Ainv = Ainv)` in `sigma`, alone or matching the `mu` term; `animal(1 + x | individual, A = A)` for the exact one-slope route | The residual-scale intercept is fitted. The exact A-matrix q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` animal intercepts estimate one animal mean-scale correlation. Pedigree/Ainv bridge marshalling, additional multiple or labelled sigma-slope layouts outside the documented fitted bivariate models, and structured slope correlations remain planned. |
 | Do two Gaussian response means share an animal-model correlation? | matching labelled `animal(1 | p | individual, pedigree = pedigree)`, `animal(1 | p | individual, A = A)`, or `animal(1 | p | individual, Ainv = Ainv)` terms in `mu1` and `mu2` | Fitted first q=2 location-location slice. `corpairs(level = "animal")` reports the latent animal correlation separately from residual `rho12`. |
 | Do animal-model deviations link means and residual scales across two responses? | the same labelled `animal(1 | p | individual, Ainv = Ainv)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "animal")` reports six constant latent animal correlations; profile intervals for those derived correlations remain unavailable. |
 | Does the animal effect change multiple slopes or a predictor-dependent correlation? | examples such as `animal(1 + x + z | individual, pedigree = pedigree)` or animal `corpair()` formulas | Planned. These routes need separate diagnostics, recovery tests, interval targets, and examples before use. |
@@ -182,7 +182,7 @@ fit_animal <- drmTMB(
 )
 ```
 
-For the exact Arc 1a REML route, keep `sigma ~ 1`, use an unlabelled intercept
+For the tested univariate Gaussian REML models, keep `sigma ~ 1`, use an unlabelled intercept
 or independent intercept-plus-one-numeric-slope shape, and set `REML = TRUE`:
 
 ```r
@@ -197,10 +197,10 @@ fit_animal_reml <- drmTMB(
 )
 ```
 
-The multi-seed campaign used the `A` representation shown here, with
+Simulation checks used the `A` representation shown here, with
 `n_each = 20` and one fixed `M = 8` relationship matrix. Pedigree and `Ainv`
-inputs have deterministic representation-parity evidence only, not multi-seed
-campaign coverage. These domains do not admit slope-only, labelled,
+inputs have deterministic representation-parity evidence only; their interval
+coverage has not been tested across simulated datasets. These models do not admit slope-only, labelled,
 multiple-slope, scale-side, bivariate, or non-Gaussian REML routes.
 
 For two responses, use the same animal block label in `mu1` and `mu2`:
@@ -451,8 +451,8 @@ The following animal-model routes remain planned:
 - generic direct-SD grammar for animal-model standard deviations;
 - richer non-Gaussian animal structured effects: labelled covariance blocks,
   multiple structured slopes, structured scale routes beyond the NB2 one-slope
-  gate, and q=2 or q=4 non-Gaussian animal covariance blocks. Exact q=1
-  animal gates already fit today for `poisson()`, `nbinom2()`, and `beta_family()`:
+  model, and q=2 or q=4 non-Gaussian animal covariance blocks. The following q=1
+  animal models already fit today for `poisson()`, `nbinom2()`, and `beta_family()`:
   Poisson, NB2, and beta `mu` accept an unlabelled intercept plus one independent
   slope; NB2 `sigma` accepts the same q1 intercept-plus-one-slope form; beta
   `sigma` accepts an intercept only. These rows retain their recorded

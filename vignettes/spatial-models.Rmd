@@ -154,7 +154,7 @@ relatedness- and tree-based ones.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have smooth site-level location deviations? | `spatial(1 | site, coords = coords)` in `mu` | Fitted first coordinate-spatial intercept slice. |
-| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Fixed-kappa intercept at `point_fit_recovery` for the exact tested fixed-domain `n = 128, 256` designs. The retained `n = 64` rung failed; intervals, coverage, and range remain unclaimed. |
+| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Fixed-kappa intercept with point-estimate recovery evidence for the exact tested fixed-domain `n = 128, 256` designs. The tested `n = 64` design failed; intervals, coverage, and range remain unclaimed. |
 | Does one predictor have a spatially varying slope? | `spatial(1 + depth | site, coords = coords)` in `mu` | Fitted one numeric-slope slice. The intercept and slope fields are independent and have separate SDs. |
 | Do two Gaussian response means share a coordinate-spatial correlation? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "spatial")` reports the latent spatial row separately from residual `rho12`. |
 | Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived and unavailable for intervals. |
@@ -219,8 +219,8 @@ field values. The displayed `profile_targets()` row is deliberately not ready:
 this local-fit slice does not claim a field-scale interval.
 
 The raw GMRF field scale has point-recovery evidence for the exact tested
-fixed-domain `n = 128` and `n = 256` designs. The retained `n = 64` rung
-failed, so this is not a universal `n >= 128` guarantee. The mesh slice rejects
+fixed-domain `n = 128` and `n = 256` designs. The tested `n = 64` design
+failed, so this is not a universal `n >= 128` guarantee. The mesh model rejects
 raw geographic degrees, mesh slopes or labels,
 `sigma`/shape mesh effects, non-Gaussian or bivariate models, mesh-plus-coords
 formulas, extrapolation beyond the mesh, range estimation, anisotropy,
@@ -237,7 +237,7 @@ fit_spatial_slope <- drmTMB(
 )
 ```
 
-For the exact Arc 1a REML route, keep `sigma ~ 1`, use an unlabelled intercept
+For the tested univariate Gaussian REML models, keep `sigma ~ 1`, use an unlabelled intercept
 or independent intercept-plus-one-numeric-slope shape, and set `REML = TRUE`:
 
 ```r
@@ -252,7 +252,7 @@ fit_spatial_reml <- drmTMB(
 )
 ```
 
-The multi-seed campaign used the coordinate representation shown here, with
+Simulation checks used the coordinate representation shown here, with
 `n_each = 20` and exactly `M = {8, 16, 32}` sites. This is not a continuous
 minimum-sample-size claim, and it does not admit estimated range, labelled,
 slope-only, multiple-slope, scale-side, other bivariate, or non-Gaussian REML
@@ -460,8 +460,8 @@ knitr::kable(spatial_sd, align = c("l", "r", "l", "l"))
 ```
 
 For the exact fixed-kappa bivariate Gaussian location model, the calibrated
-**M rung** has 36 sites with three complete response pairs per site and the
-baseline ring geometry. Native REML for this cell requires unit weights,
+example uses 36 sites with three complete response pairs per site and the
+tested ring geometry. Native REML for this model requires unit weights,
 intercept-only `sigma1`, `sigma2`, and `rho12`, no known `meta_V()` covariance,
 and no additional ordinary random effect, direct-SD formula, or `corpair()`
 regression.
@@ -485,11 +485,12 @@ fit_spatial_q2_example <- drmTMB(
 )
 ```
 
-The prospective campaign retained every attempted dataset. At M, all-attempt
-coverage was 0.938, 0.932, and 0.938 for the first spatial SD, second spatial
+Simulation checks retained every attempted dataset. With 36 sites and three
+response pairs per site, all-attempt coverage was 0.938, 0.932, and 0.938 for the first spatial SD, second spatial
 SD, and latent spatial correlation; finite-profile rates were 1.000, 1.000,
-and 0.986. The higher H rung (36 sites x 8 observations) also passed jointly.
-The smaller L rung (12 x 3) failed and is not part of the interval claim.
+and 0.986. All three targets also met the calibration criteria with 36 sites
+and eight observations per site. The smaller design (12 sites with three
+observations per site) failed and is not part of the interval claim.
 
 ```{r spatial-q2-profile-intervals}
 spatial_q2_targets <- c(
@@ -561,7 +562,7 @@ marks the estimate with a hollow circle. The eye's horizontal span is the
 interval; there is no separate interval bar. Separate facet scales keep
 standard deviations and correlation on their own units.
 
-```{r spatial-q2-confidence-eye, fig.width = 9.2, fig.height = 3.1, fig.cap = "Confidence Eye for the three direct fixed-kappa Gaussian q2 spatial targets at the tested M rung (36 sites x 3 observations, baseline ring geometry). Each coloured pale eye spans a 95% endpoint profile-likelihood interval; the larger hollow circle is the point estimate. Calibration passed jointly at the exact M and H rungs and failed at L.", fig.alt = "Three side-by-side facets show coloured tapered confidence eyes for two spatial standard deviations and one latent spatial correlation. Each eye's horizontal width is its 95 percent profile interval, and a large hollow circle marks the estimate. Each facet uses its own horizontal scale."}
+```{r spatial-q2-confidence-eye, fig.width = 9.2, fig.height = 3.1, fig.cap = "Confidence Eye for the three direct fixed-kappa Gaussian q2 spatial targets with 36 sites x 3 observations in the tested ring geometry. Each coloured pale eye spans a 95% endpoint profile-likelihood interval; the larger hollow circle is the point estimate. All three targets met the calibration criteria with 36 sites and either 3 or 8 observations per site, but failed with 12 sites and 3 observations per site.", fig.alt = "Three side-by-side facets show coloured tapered confidence eyes for two spatial standard deviations and one latent spatial correlation. Each eye's horizontal width is its 95 percent profile interval, and a large hollow circle marks the estimate. Each facet uses its own horizontal scale."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggplot(spatial_q2_eye) +
     ggplot2::geom_vline(
@@ -663,7 +664,7 @@ The following spatial routes remain deferred:
 - direct spatial SD surfaces;
 - predictor-dependent spatial `corpair()` regressions;
 - simultaneous `phylo()` plus `spatial()` layers in the same formula;
-- non-Gaussian spatial structured effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` gates.
+- non-Gaussian spatial structured effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` models.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the

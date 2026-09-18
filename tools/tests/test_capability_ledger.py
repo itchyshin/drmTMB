@@ -2245,7 +2245,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         for gate in (
             "Poisson/NB2 q1 animal `mu` intercept-plus-one-slope",
             "NB2 q1 animal `sigma`",
-            "beta animal route",
+            "beta animal models",
             "Poisson/NB2 q1 relmat `mu` intercept-plus-one-slope",
             "NB2 q1 relmat `sigma`",
             "Gamma q1 relmat `mu`",
@@ -2487,7 +2487,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertIn(claim, relmat)
         self.assertIn(
-            "diagnostic-only intercept-only `hu` gate",
+            "diagnostic-only intercept-only `hu` model",
             relmat,
         )
         self.assertIn(
