@@ -56,8 +56,11 @@ to override the environment setting. The search order is the DRModels option,
 `DRMODELS_JL_PATH`, the legacy `drmTMB.DRM.jl.path` option, `DRM_JL_PATH`,
 then sibling directories `../DRModels.jl` and `../DRM.jl`. Existing checkouts
 and old settings keep working; their directory names need not change.
-After activating the checkout, the bridge tries `DRModels` first and falls
-back to `DRM`. Restart R after changing checkouts or updating the module name.
+After activating the checkout, the bridge reads the package name declared in
+that checkout's `Project.toml` (`DRModels` or legacy `DRM`) and verifies that
+Julia resolved and loaded that same source path. It does not silently fall back
+to a different module or checkout. Restart R after changing checkouts or
+updating the module name.
 
 Replace the path with the directory containing the checkout's `Project.toml` and
 `src/`. The bridge initializes Julia when needed. The first call includes
