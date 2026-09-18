@@ -95,11 +95,14 @@ and do not generalise it to correlated, labelled, or more complex slopes.
 The most developed structured models are Gaussian ones. Checked intervals cover
 a structured Gaussian mean intercept, selected Gaussian scale effects with one
 numeric slope, and selected bivariate Gaussian mean slopes. Their interval
-method is part of the result: use plain `confint(fit)` for the selected
-bivariate mean-slope forms, and do not turn off its default small-sample
-correction. For the selected Gaussian scale forms, a profile interval remains a
-feasibility check rather than a reporting interval. Other structured Gaussian
-shapes do not inherit these interval permissions.
+method is part of the result: for the checked Gaussian mean-intercept forms,
+use the default bias-corrected, small-sample-t Wald interval. For the selected
+bivariate mean-slope forms, use plain `confint(fit)` and do not turn off its
+default small-sample correction. For the checked Gaussian scale-slope forms,
+the assessed interval is the uncorrected log-standard-deviation Wald interval;
+profile intervals remain feasibility checks at eight structured levels rather
+than reporting intervals. Other structured Gaussian shapes do not inherit
+these interval permissions.
 
 For a pure Gaussian mean model, REML is available for an unlabelled spatial,
 animal, or relatedness intercept, or for that intercept plus one independent
@@ -205,15 +208,16 @@ Missing-predictor support is narrower:
 | Response model | Missing-predictor support |
 | --- | --- |
 | Gaussian location model | Broad catalogue of predictor models |
-| Negative-binomial model | One binary or one Gaussian missing predictor |
+| Negative-binomial (`nbinom2()`) model | One binary or one Gaussian missing predictor |
 | Binomial, Poisson, strict beta, lognormal, Gamma, Student-t, or beta-binomial model | One binary missing predictor |
 | Other response models | Not available |
 
-Do not combine multiple missing predictors, a non-binary missing predictor for
-the listed non-Gaussian responses, response masking and `mi()` in one fit, or
-random/structured/zero-inflated response terms with `mi()`. Multivariate
-missing-predictor models and missing-data EM, profile, and REML methods are not
-available.
+Outside Gaussian response models, missing predictors are limited to the
+binary-predictor routes and the `nbinom2()` Gaussian-predictor route listed
+above. Do not combine multiple missing predictors, response masking and `mi()`
+in one fit, or random/structured/zero-inflated response terms with `mi()`.
+Multivariate missing-predictor models and missing-data EM, profile, and REML
+methods are not available.
 
 ## Important limitations and next steps
 

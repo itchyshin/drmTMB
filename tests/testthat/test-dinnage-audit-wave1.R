@@ -31,18 +31,25 @@ test_that("Md-F: capability table lists non-Gaussian one-binary mi() routes (Din
     "capability-and-limits.Rmd"
   )
   text <- readLines(vignette, warn = FALSE)
-  row <- grep(
-    "^\\| `binomial\\(\\)`, `poisson\\(\\)`, `nbinom2\\(\\)`, `beta_family\\(\\)`",
+  binary_row <- grep(
+    "^\\| Binomial, Poisson, strict beta, lognormal, Gamma, Student-t, or beta-binomial model",
+    text,
+    value = TRUE
+  )
+  nbinom_row <- grep(
+    "^\\| Negative-binomial \\(`nbinom2\\(\\)`\\) model",
     text,
     value = TRUE
   )
 
-  expect_length(row, 1L)
-  expect_match(row, "`lognormal()`", fixed = TRUE)
-  expect_match(row, "`Gamma(link = \"log\")`", fixed = TRUE)
-  expect_match(row, "`student()`", fixed = TRUE)
-  expect_match(row, "`beta_binomial()`", fixed = TRUE)
-  expect_match(row, "one binary predictor", fixed = TRUE)
+  expect_length(binary_row, 1L)
+  expect_match(binary_row, "One binary missing predictor", fixed = TRUE)
+  expect_length(nbinom_row, 1L)
+  expect_match(
+    nbinom_row,
+    "One binary or one Gaussian missing predictor",
+    fixed = TRUE
+  )
 })
 
 test_that("remaining A1 help pages document Dinnage audit caveats", {
