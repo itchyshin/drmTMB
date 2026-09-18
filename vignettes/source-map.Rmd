@@ -1,8 +1,8 @@
 ---
-title: "Implemented source map"
+title: "Find the right drmTMB guide"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Implemented source map}
+  %\VignetteIndexEntry{Find the right drmTMB guide}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,229 +21,89 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
   main table {
     display: block;
-    min-width: 900px;
+    min-width: 720px;
     max-width: 100%;
     overflow-x: auto;
   }
 }
 </style>
 
-This developer article maps the implemented `drmTMB` model paths to the files
-that define, test, and document them. It is written for contributors who need to
-make a small, reviewable change without rediscovering the whole package.
+`drmTMB` fits distributional regression models for one or two responses. A
+distributional model can describe the expected response and other features of
+its distribution, such as residual variation, tail shape, zero probability, or
+residual correlation. This page helps you find the public guide that matches
+your question.
 
-The source map is not a roadmap. It records what currently exists and where the
-evidence lives. User-facing availability belongs in `model-map` and
-`implementation-map`; evidence status belongs in
-`docs/design/34-validation-debt-register.md`; sequence and future work belong
-in the [current reporting boundary](capability-and-limits.html). Planned features belong in design notes until implementation,
-tests, diagnostics, documentation, and after-task evidence all exist.
+If this is your first `drmTMB` model, begin with
+[Distributional regression with drmTMB](drmTMB.html). It introduces the formula
+interface, fits a small Gaussian location--scale model, and gives a short path
+through checking, interpretation, and reporting.
 
-## Routing overview
+## Choose a guide by task
 
-All fitted models enter through `drmTMB()` in `R/drmTMB.R`. The family router
-dispatches to one of the implemented builders:
+| Your task | Start here | What you will learn |
+| --- | --- | --- |
+| Decide whether a model is available | [What can I fit today?](model-map.html) | The current one-response, two-response, and structural-dependence scope. |
+| Choose a response distribution | [Choosing response families](distribution-families.html) | How the measurement process determines the family and the meaning of each distributional parameter. |
+| Decide which kind of variation to model | [Which scale are you modelling?](which-scale.html) | The difference between residual `sigma`, group-level standard deviations, known sampling variance, likelihood weights, and residual `rho12`. |
+| Write a formula | [Formula grammar](formula-grammar.html) | The supported `mu`, `sigma`, shape, zero-probability, hurdle, and two-response formula forms. |
+| Check and interpret a fitted model | [Checking and using fitted models](model-workflow.html) | `check_drm()`, summaries, intervals, predictions, fitted distributions, residuals, and simulation. |
+| Decide whether an estimate is ready to report | [Can I fit and report this model?](capability-and-limits.html) | The exact fitted scope, inference limits, and reporting cautions for specialised models. |
+| Find a function quickly | [Function map and cheat sheet](function-map-cheatsheet.html) | The main fitting, checking, extraction, prediction, and reporting functions. |
 
-```text
-gaussian()                  -> drm_build_gaussian_ls_spec()
-student()                   -> drm_build_student_ls_spec()
-skew_normal()               -> drm_build_skew_normal_ls_spec()
-lognormal()                 -> drm_build_lognormal_ls_spec()
-Gamma(link = "log")         -> drm_build_gamma_ls_spec()
-tweedie()                   -> drm_build_tweedie_ls_spec()
-beta_family()                      -> drm_build_beta_ls_spec()
-zero_one_beta()             -> drm_build_zero_one_beta_spec()
-beta_binomial()             -> drm_build_beta_binomial_spec()
-binomial(link = "logit")    -> drm_build_binomial_spec()
-cumulative_logit()          -> drm_build_cumulative_logit_spec()
-poisson(link = "log")       -> drm_build_poisson_spec()
-poisson(link = "log") + zi  -> drm_build_poisson_spec()
-nbinom2()                   -> drm_build_nbinom2_spec()
-nbinom2() + zi              -> drm_build_nbinom2_spec()
-truncated_nbinom2()         -> drm_build_truncated_nbinom2_spec()
-truncated_nbinom2() + hu    -> drm_build_truncated_nbinom2_spec()
-biv_gaussian()              -> drm_build_biv_gaussian_spec()
-c(gaussian(), gaussian())   -> drm_build_biv_gaussian_spec()
-list(gaussian(), gaussian()) -> drm_build_biv_gaussian_spec()
-```
+## Choose by response type
 
-The R builders assemble model frames, design matrices, starting values, random
-effect metadata, known covariance objects, and the TMB data list. The current
-TMB template then uses these integer model paths:
+| Response or scientific question | Family route | Worked guide |
+| --- | --- | --- |
+| Continuous response with changing mean or residual variation | Gaussian; Student-t for heavy tails; skew-normal for asymmetry | [When variance carries signal, Part 1](location-scale.html), [Part 2](location-scale-scale.html), and [Robust continuous responses](robust-student.html) |
+| Positive continuous response | Lognormal, Gamma, or Tweedie, depending on the mean--variance relationship and support | [Choosing response families](distribution-families.html) |
+| Counts, extra variation, extra zeros, or a hurdle process | Poisson, negative-binomial 2, zero-inflated, zero-truncated, or hurdle models | [Count abundance and extra zeros](count-nbinom2.html) |
+| Continuous proportions, exact boundary values, or successes out of trials | Beta, zero--one beta, binomial, or beta-binomial | [Proportions and success rates](proportion-beta-binomial.html) |
+| Ordered categories | Cumulative-logit model | [Choosing response families](distribution-families.html#cumulative-logit-ordinal) |
+| Two continuous outcomes with a direct joint distribution | Bivariate Gaussian, lognormal, or Student-t | [Changing residual coupling with rho12](bivariate-coscale.html) and [Bivariate non-Gaussian models](bivariate-nongaussian.html) |
+| Two outcomes of different kinds | Staged latent-normal association for reviewed family pairs | [Association between mixed outcome pairs](cross-family.html) |
 
-```text
-model_type = 1   univariate Gaussian location-scale engine
-model_type = 2   bivariate Gaussian location-scale-coscale engine
-model_type = 3   univariate Student-t location-scale-shape engine
-model_type = 4   univariate lognormal location-scale engine
-model_type = 5   univariate Gamma mean-CV engine
-model_type = 6   univariate Poisson mean engine
-model_type = 7   univariate negative-binomial 2 mean-dispersion engine
-model_type = 8   univariate zero-inflated Poisson engine
-model_type = 9   univariate zero-inflated negative-binomial 2 engine
-model_type = 10  univariate beta mean-scale engine
-model_type = 15  univariate zero-one beta mean-scale-boundary engine
-model_type = 11  univariate zero-truncated negative-binomial 2 engine
-model_type = 12  univariate hurdle negative-binomial 2 engine
-model_type = 13  univariate cumulative-logit ordinal engine
-model_type = 14  univariate beta-binomial mean-overdispersion engine
-model_type = 16  univariate Tweedie mean-scale-power engine
-model_type = 17  univariate skew-normal location-scale-shape engine
-model_type = 18  univariate binomial event-probability engine
-model_type = 99  internal phylogenetic prior helper used by tests
-```
+Choose the family from how the response was generated, not from which model is
+most familiar. The family guide states the response support and the scale on
+which `mu`, `sigma`, `nu`, `zi`, `hu`, `zoi`, and `coi` are interpreted.
 
-The `model_type = 99` path is not a user-facing family. It lets tests compare
-the hidden phylogenetic precision prior used inside the Gaussian engine against
-the same objective in isolation.
+## Choose a dependence guide
 
-Post-fit response-scale transforms live in `R/methods.R`. `predict()` delegates
-implemented distributional-parameter links to `drm_dpar_link()` and
-`drm_inverse_link()`, while `fitted()` delegates family-specific response
-summaries to `drm_fitted_response()`. These helpers keep future non-identity
-`mu` families from silently inheriting Gaussian assumptions.
+Ordinary random effects describe exchangeable groups. Structured effects add
+known relationships among levels, such as shared ancestry, coordinates, or a
+supplied relatedness matrix.
 
-Likelihood weights are a model-fitting option rather than formula grammar.
-`drmTMB(..., weights = w)` evaluates one non-negative row multiplier per
-modelled row, stores the processed vector in `fit$model$weights`, exposes it
-through `weights(fit)`, and passes it to TMB as `DATA_VECTOR(weights)`.
-`meta_V(V = V)` remains the preferred route for known sampling variance or
-covariance; deprecated `meta_known_V(V = V)` is the compatibility alias.
+| Dependence in the data | Public guide |
+| --- | --- |
+| Repeated observations or grouped individuals | [Distributional regression with drmTMB](drmTMB.html) and [Formula grammar](formula-grammar.html) |
+| Shared phylogenetic history | [Phylogenetic structured effects](phylogenetic-models.html) |
+| Spatial coordinates | [Coordinate-spatial structured effects](spatial-models.html) |
+| Pedigree or animal-model relatedness | [Animal models and relatedness](animal-models.html) |
+| A supplied covariance or precision matrix for latent effects | [Known-matrix relmat models](relmat-known-matrices.html) |
+| Known sampling variance or covariance | [Meta-analysis with known sampling variances](meta-analysis.html) |
+| An overview comparing these choices | [Structural dependence overview](structural-dependence.html) |
 
-## Implemented paths
+Known sampling covariance and latent relatedness answer different questions.
+Use `meta_V(V = V)` when `V` describes known observation-level sampling error;
+use `relmat(K = K)` or `relmat(Q = Q)` when the matrix describes related latent
+effects.
 
-| Path | User-facing syntax | R builder and helpers | TMB branch | Main tests | Main docs |
-|---|---|---|---|---|---|
-| Gaussian location-scale | `drm_formula(y ~ x, sigma ~ z)` | `drm_build_gaussian_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::gaussian()` | `model_type = 1` in `src/drmTMB.cpp` | `tests/testthat/test-gaussian-location-scale.R`, `tests/testthat/test-comparators.R` | `vignettes/location-scale.Rmd`, `docs/design/13-gaussian-location-scale-math.md` |
-| Gaussian location random effects | `y ~ x + (1 \| id)`; `y ~ x + (1 + x \| id)`; labelled form `(1 + x \| p \| id)` | `extract_random_mu_terms()` and `build_random_mu_structure()` inside the Gaussian builder | `model_type = 1`; `u_mu`, `log_sd_mu`, and `eta_cor_mu` blocks | `tests/testthat/test-gaussian-random-intercepts.R`, `tests/testthat/test-comparators.R` | `docs/design/04-random-effects.md`, `vignettes/formula-grammar.Rmd` |
-| Gaussian residual scale random effects | `sigma ~ z + (1 \| id)` | `extract_random_sigma_terms()` and `build_random_sigma_structure()` inside the Gaussian builder | `model_type = 1`; `u_sigma` and `log_sd_sigma` blocks | `tests/testthat/test-gaussian-random-intercepts.R` | `docs/design/04-random-effects.md`, `vignettes/which-scale.Rmd` |
-| Gaussian random-effect scale models | `sd(id) ~ w`; `sd(site) ~ site_type` | `parse_sd_mu_entries()` and `build_sd_mu_structure()` inside the Gaussian builder | `model_type = 1`; `X_sd_mu`, `beta_sd_mu`, and `mu_re_sd_row` | `tests/testthat/test-gaussian-random-effect-scale.R`, `tests/testthat/test-comparators.R` | `docs/design/18-random-effect-scale-models.md`, `docs/design/13-gaussian-location-scale-math.md` |
-| Gaussian meta-analysis with known sampling covariance | `yi ~ x + meta_V(V = vi)` or `meta_V(V = V)`; deprecated `meta_known_V(V = V)` remains a compatibility alias | `meta_V()` and deprecated `meta_known_V()` in `R/formula-markers.R`; `evaluate_known_v()` and `subset_known_v()` in `R/drmTMB.R` | `model_type = 1`; diagonal path adds `V_known`, dense path uses `density::MVNORM`; a dense `V` is row-order-aligned, subset on both axes after model-frame exclusions, and must be finite, symmetric, non-negative on the diagonal, and positive semidefinite. It is known sampling covariance, not likelihood weights or latent dependence. | `tests/testthat/test-meta-known-v.R`, `tests/testthat/test-comparators.R`, `tests/testthat/test-check-drm.R`; implemented/tested but tier-unregistered, with no interval or coverage claim | `vignettes/meta-analysis.Rmd`, `docs/design/08-meta-analysis.md` |
-| Gaussian phylogenetic structured effects | `phylo(1 \| species, tree = tree)` and one numeric `phylo(1 + x \| species, tree = tree)` slope in univariate Gaussian `mu`; documented `sigma` intercepts; matching labelled bivariate q=2 `mu1`/`mu2` terms; constant q=4 location-scale blocks where supported | `phylo()` marker and helpers in `R/phylo-utils.R`; `build_phylo_mu_structure()` and sibling structured-effect builders inside the Gaussian and bivariate Gaussian paths | `model_type = 1` and `model_type = 2`; `u_phylo`, `log_sd_phylo`, `theta_phylo`, sparse `Q_phylo`, q=2 phylogenetic `corpairs()`, and derived q=4 endpoint rows | `tests/testthat/test-phylo-gaussian.R`, `tests/testthat/test-phylo-utils.R`, `tests/testthat/test-profile-targets.R`, `tests/testthat/test-check-drm.R` | `vignettes/phylogenetic-models.Rmd`, `vignettes/articles/phylogenetic-spatial.Rmd`, `vignettes/structural-dependence.Rmd`, `docs/design/09-phylogenetic-and-spatial-speed.md`, `docs/design/16-phylo-spatial-common-math.md` |
-| Gaussian coordinate spatial effects | `spatial(1 \| site, coords = coords)` or one numeric `spatial(1 + x \| site, coords = coords)` slope in univariate `mu`; matching labelled bivariate q=2 `mu1`/`mu2` terms; matching all-four q=4 `mu1`/`mu2`/`sigma1`/`sigma2` terms | `spatial()` marker and coordinate helpers inside `R/drmTMB.R`; `build_spatial_mu_structure()` and the bivariate structured q4 admission path reuse the structured precision backend and store spatial labels for R output | `model_type = 1` and `model_type = 2`; `u_phylo`, `log_sd_phylo`, and `theta_phylo` internally, labelled as `spatial_mu`, `spatial(1 \| site)`, q=2 spatial `corpairs()`, and derived q=4 spatial endpoint rows in R output | `tests/testthat/test-spatial-gaussian.R`, `tests/testthat/test-profile-targets.R`, `tests/testthat/test-check-drm.R` | `vignettes/spatial-models.Rmd`, `vignettes/structural-dependence.Rmd`, `vignettes/implementation-map.Rmd`, `docs/design/09-phylogenetic-and-spatial-speed.md`, `docs/design/16-phylo-spatial-common-math.md`, `docs/design/66-implementation-map-slices-356-405.md` |
-| Gaussian animal and lower-level relatedness effects | `animal(1 \| id, Ainv = Ainv)` or `relmat(1 \| id, Q = Q)` in `mu` and `sigma` intercept routes; one numeric `mu` slope; matching labelled bivariate q=2 `mu1`/`mu2` blocks; constant all-four q=4 location-scale endpoint blocks. The exact bivariate REML exception is matching supplied-`K` `relmat(1 \| p \| id, K = K)` intercepts in `mu1` and `mu2` with constant residual formulas. | `animal()` and `relmat()` marker parsing plus `build_known_relatedness_mu_structure()` and bivariate structured q4 admission inside `R/drmTMB.R`; `drm_reml_admits_biv_relmat_q2_intercept()` is the fail-closed supplied-`K` REML predicate | `model_type = 1` and `model_type = 2`; known covariance or precision matrices reuse the structured `u_phylo`, `log_sd_phylo`, and `theta_phylo` backend with `animal_mu`, `animal_sigma`, `relmat_mu`, or `relmat_sigma` labels in R output. Bivariate relmat REML is `point_fit_recovery` only for matching labelled `K` location intercepts; `Q`, slopes, q4+, scale-side terms, extra layers, missing/weighted pairs, intervals, and coverage remain excluded. | `tests/testthat/test-animal-relmat-gaussian.R`, `tests/testthat/test-reml-bivariate-relmat-q2.R`, `tests/testthat/test-arc1b-s2r-relmat-q2-recovery-runner.R`, `tests/testthat/test-profile-targets.R`, `tests/testthat/test-check-drm.R` | `vignettes/animal-models.Rmd`, `vignettes/relmat-known-matrices.Rmd`, `vignettes/structural-dependence.Rmd`, `docs/dev-log/2026-07-15-arc1b-s2r-symbolic-alignment.md` |
-| Likelihood row weights | `drmTMB(..., weights = w)` | `evaluate_likelihood_weights_arg()` and `subset_likelihood_weights()` in `R/drmTMB.R`; `weights.drmTMB()` in `R/methods.R` | `DATA_VECTOR(weights)` multiplies independent row contributions; full dense known-covariance blocks reject non-unit weights | `tests/testthat/test-gaussian-location-scale.R`, `tests/testthat/test-biv-gaussian.R` | `docs/design/22-likelihood-weights.md`, `docs/design/03-likelihoods.md` |
-| Student-t location-scale-shape | `drm_formula(y ~ x, sigma ~ z, nu ~ w)` | `student()` in `R/family.R`; `drm_build_student_ls_spec()` in `R/drmTMB.R` | `model_type = 3`; `nu = 2 + exp(eta_nu)` | `tests/testthat/test-student-location-scale.R` | `vignettes/robust-student.Rmd`, `docs/design/14-gamlss-parameter-names.md` |
-| Skew-normal location-scale-shape | `drm_formula(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ w)` with `family = skew_normal()` | `skew_normal()` in `R/family.R`; `drm_build_skew_normal_ls_spec()` in `R/drmTMB.R`; fixed `sigma`/`nu` predictors combine with ordinary unlabelled `mu` random intercepts or independent numeric slopes | `model_type = 17`; mean-parameterized skew-normal with mean `mu = eta_mu + Zb`, SD `sigma = exp(eta_sigma)`, and slant `nu = eta_nu`; internal scale `omega` and location `xi` rescale so the fitted mean and SD equal `mu` and `sigma`; ordinary `mu` random effects have recovery evidence; the exact Arc 4c independent-slope cell is inference-ready with caveats for true SD 0.50 and M>=16, while `nu` slant remains diagnostic grade only | `tests/testthat/test-skew-normal-location-scale.R`, `tests/testthat/test-phase18-skew-normal-fixed-effect.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R`, `tests/testthat/test-confint-skew-normal-slant.R`, `tests/testthat/test-skew-normal-density-contract.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`, `docs/design/123-phase-18-skew-normal-source-map-slices-1519-1538.md` |
-| Lognormal location-scale | Separate routes: `drm_formula(biomass ~ x + (1 \| id), sigma ~ z)` or `drm_formula(biomass ~ x, sigma ~ z + (1 \| id))` | `lognormal()` in `R/family.R`; `drm_build_lognormal_ls_spec()` in `R/drmTMB.R`; ordinary `mu` and `sigma` random-effect builders route their separate gates | `model_type = 4`; `log(y) ~ Normal(mu, sigma^2)` with the log-Jacobian term; an ordinary scale intercept enters log-`sigma`; `mu` and `sigma` random effects cannot be combined | `tests/testthat/test-lognormal-location-scale.R`, `tests/testthat/test-arc2c-sigma-random-intercept.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md` |
-| Gamma mean-CV | Separate routes: `drm_formula(biomass ~ x + (1 \| id), sigma ~ z)` or `drm_formula(biomass ~ x, sigma ~ z + (1 \| id))` with `family = Gamma(link = "log")` | `drm_build_gamma_ls_spec()` in `R/drmTMB.R`; generic family object from `stats::Gamma(link = "log")`; ordinary `mu` and `sigma` random-effect builders route their separate gates | `model_type = 5`; `shape = 1 / sigma^2`, `scale = mu * sigma^2`; an ordinary scale intercept enters log-CV; `mu` and `sigma` random effects cannot be combined | `tests/testthat/test-gamma-location-scale.R`, `tests/testthat/test-arc2c-sigma-random-intercept.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Tweedie mean-scale-power | `drm_formula(biomass ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)` with `family = tweedie()` | `tweedie()` in `R/family.R`; `drm_build_tweedie_ls_spec()` and `rtweedie_compound()` in `R/drmTMB.R` and `R/methods.R`; ordinary unlabelled `mu` random intercepts and independent numeric slopes use the common random-`mu` path | `model_type = 16`; `mu = exp(eta_mu + Zb)`, `phi = sigma^2`, `nu = 1 + plogis(eta_nu)`, and `Var(y) = sigma^2 * mu^nu`; ordinary `mu` random effects have recovery evidence; the exact Arc 4c independent-slope cell is inference-ready with caveats for true SD 0.50 and M>=16, and `nu` remains intercept-only | `tests/testthat/test-tweedie-location-scale.R`, `tests/testthat/test-family-link-contract.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`, `docs/design/27-tweedie-family-plan.md` |
-| Beta mean-scale | `drm_formula(prop ~ x + (1 \| id) + (0 + x \| id), sigma ~ z)` with `family = beta_family()` | `beta_family()` in `R/family.R`; `drm_build_beta_ls_spec()` in `R/drmTMB.R`; `extract_random_mu_terms()` and `build_random_mu_structure()` route ordinary `mu` intercepts and independent numeric slopes | `model_type = 10`; `mu = logit^{-1}(eta_mu + Z b)`, `phi = 1 / sigma^2`, `alpha = mu * phi`, `beta_shape = (1 - mu) * phi`; ordinary `mu` random effects use `u_mu` and `log_sd_mu` | `tests/testthat/test-beta-location-scale.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R` | `vignettes/proportion-beta-binomial.Rmd`, `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Zero-one beta mean-scale-boundary | `drm_formula(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z, zoi ~ w, coi ~ v)`; exact atom gates use `bf(prop ~ x, sigma ~ 1, zoi ~ 1 + (1 | id), coi ~ 1)`, same-raw-symbol `bf(prop ~ x, sigma ~ 1, zoi ~ x + (0 + x | id), coi ~ 1)`, `bf(prop ~ x, sigma ~ 1, zoi ~ 1, coi ~ 1 + (1 | id))`, or same-raw-symbol `bf(prop ~ x, sigma ~ 1, zoi ~ 1, coi ~ x + (0 + x | id))` | `zero_one_beta()` in `R/family.R`; `drm_build_zero_one_beta_spec()` in `R/drmTMB.R`; `prepare_zero_one_beta_response()`, start/map helpers, exact atom validators, and the independent `u_zoi`/`log_sd_zoi` and `u_coi`/`log_sd_coi` carriers combine fixed predictors with admitted ordinary `mu` or exact atom q1 effects | `model_type = 15`; interior observations use `mu = logit^{-1}(eta_mu + Zb)` and `phi = 1 / sigma^2`; boundary mass uses `zoi = logit^{-1}(eta_zoi + Z_zoi b_zoi)` and exact-one probability among boundary observations uses `coi = logit^{-1}(eta_coi + Z_coi b_coi)` for the exact intercept or same-raw-symbol slope gate; the atom gates are point-fit-only, with direct profiles, intervals, coverage, joint atom effects, and broader neighbours unavailable | `tests/testthat/test-zero-one-beta.R`, `tests/testthat/test-family-link-contract.R`, `tests/testthat/test-phase18-zero-one-beta-fixed-effect.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R` | `vignettes/proportion-beta-binomial.Rmd`, `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/dev-log/2026-08-02-lane-c-c17c2-coi-slope-symbolic-alignment.md`, `docs/dev-log/implementation-recovery/2026-08-02-lane-c-c17c2-zob-coi-slope-recovery-totoro-run-1/README.md` |
-| Beta-binomial mean-overdispersion | `drm_formula(cbind(successes, failures) ~ x + (1 \| id) + (0 + x \| id), sigma ~ z)` with `family = beta_binomial()` | `beta_binomial()` in `R/family.R`; `drm_build_beta_binomial_spec()` in `R/drmTMB.R`; `extract_random_mu_terms()` and `build_random_mu_structure()` route ordinary `mu` intercepts and independent numeric slopes | `model_type = 14`; `mu = logit^{-1}(eta_mu + Z b)`, `phi = 1 / sigma^2`, successes follow a beta-binomial distribution with known trial totals; ordinary `mu` random effects use `u_mu` and `log_sd_mu` | `tests/testthat/test-beta-binomial.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R` | `vignettes/proportion-beta-binomial.Rmd`, `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Binomial event-probability | `drm_formula(y01 ~ x + (1 \| id) + (0 + x \| id))` or the corresponding `cbind(successes, failures)` response with `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` in `R/drmTMB.R`; `prepare_binomial_response()`, `binomial_start()`, and `binomial_map()` route fixed effects plus ordinary `mu` random intercepts and independent slopes and require explicit 0/1 or `cbind(successes, failures)` responses | `model_type = 18`; `mu = logit^{-1}(offset + X beta + Zb)`, successes follow a binomial distribution with stored trial totals, and the likelihood includes the binomial normalizing constant for fixed-path `stats::glm()` parity | `tests/testthat/test-binomial-response.R`, `tests/testthat/test-arc2b-mu-random-slope.R` | `vignettes/distribution-families.Rmd`, `docs/design/01-formula-grammar.md`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Cumulative-logit ordinal location | `drm_formula(score ~ x + (1 | id) + (0 + x | id))` with `family = cumulative_logit()` | `cumulative_logit()` in `R/family.R`; `drm_build_cumulative_logit_spec()` in `R/drmTMB.R`; ordinary unlabelled `mu` random intercepts and independent numeric slopes use the common random-`mu` path | `model_type = 13`; `Pr(y_i <= k) = logit^{-1}(theta_k - mu_i)` with `mu_i = eta_mu_i + Zb`, ordered cutpoints, and fixed latent logistic scale; one exact q1 `mu ~ phylo()` intercept is diagnostic-only | `tests/testthat/test-cumulative-logit.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Poisson mean | `drm_formula(count ~ x + offset(log(effort)))` with `family = poisson(link = "log")`; ordinary q=1 structured mean slices use `bf(count ~ x + phylo(1 \| species, tree = tree))`, `bf(count ~ x + spatial(1 \| site, coords = coords))`, `bf(count ~ x + animal(1 \| id, Ainv = Ainv))`, or `bf(count ~ x + relmat(1 \| id, Q = Q))` | `drm_build_poisson_spec()` in `R/drmTMB.R`; generic family object from `stats::poisson(link = "log")`; `extract_gaussian_mu_phylo_term()`, `extract_gaussian_mu_spatial_term()`, `extract_gaussian_mu_known_term()`, and `build_structured_mu_structure()` route one q=1 structured count effect; `inst/sim/dgp/sim_dgp_poisson_phylo_q1.R`, `inst/sim/fit/sim_summarise_poisson_phylo_q1.R`, `inst/sim/run/sim_run_poisson_phylo_q1_smoke.R`, and `inst/sim/run/sim_write_poisson_phylo_q1_grid.R` provide the smoke, profile-interval, and formal-grid workflow. Large evidence campaigns run locally or on Totoro/DRAC, never as GitHub Actions artifacts. | `model_type = 6`; fixed path uses `y ~ Poisson(mu)` with `mu = exp(offset + X beta)`; q=1 structured paths add `u_phylo`, `log_sd_phylo`, a marker-specific sparse precision matrix, and `mu = exp(offset + X beta + a_level)` | `tests/testthat/test-poisson-mean.R`, `tests/testthat/test-count-structured-mu.R`, `tests/testthat/test-nongaussian-structured-boundary.R`, `tests/testthat/test-phase18-poisson-phylo-q1.R` | `vignettes/distribution-families.Rmd`, `vignettes/model-map.Rmd`, `vignettes/implementation-map.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`, `docs/design/67-sdstar-p8-poisson-q1.md`, `docs/design/70-phase-18-poisson-structured-q1-ademp.md`, `docs/design/72-poisson-phylo-q1-runner-contract.md` |
-| Zero-inflated Poisson | `drm_formula(count ~ x + offset(log(effort)), zi ~ z)` with `family = poisson(link = "log")` | `drm_build_poisson_spec()` in `R/drmTMB.R`; `zi` formula adds the structural-zero block | `model_type = 8`; `Pr(y = 0) = zi + (1 - zi) exp(-mu)` and `Pr(y > 0) = (1 - zi) Poisson(y \| mu)` | `tests/testthat/test-zi-poisson.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Negative-binomial 2 mean-dispersion | `drm_formula(count ~ x + (1 \| id) + (0 + x \| id), sigma ~ z)`, `bf(count ~ x, sigma ~ z + (1 \| id))`, or `bf(count ~ x + phylo(1 \| species, tree = tree), sigma ~ z)` with `family = nbinom2()`; the structured `mu` term can also be `spatial()`, `animal()`, or `relmat()` q=1 | `nbinom2()` in `R/family.R`; `drm_build_nbinom2_spec()` in `R/drmTMB.R`; `extract_random_sigma_terms()` and `build_random_sigma_structure()` route the first NB2 overdispersion random-intercept gate; `extract_gaussian_mu_phylo_term()`, `extract_gaussian_mu_spatial_term()`, `extract_gaussian_mu_known_term()`, and `build_structured_mu_structure()` route one q=1 structured NB2 count effect; `inst/sim/dgp/sim_dgp_nbinom2_sigma_random_effect.R`, `inst/sim/fit/sim_summarise_nbinom2_sigma_random_effect.R`, `inst/sim/run/sim_run_nbinom2_sigma_random_effect_smoke.R`, and `inst/sim/run/sim_write_nbinom2_sigma_random_effect_grid.R` provide the dedicated NB2 log-`sigma` smoke-grid artifacts; `inst/sim/dgp/sim_dgp_nbinom2_phylo_q1.R`, `inst/sim/fit/sim_summarise_nbinom2_phylo_q1.R`, `inst/sim/run/sim_run_nbinom2_phylo_q1_smoke.R`, and `inst/sim/run/sim_write_nbinom2_phylo_q1_grid.R` provide overdispersion-aware NB2 q=1 phylogenetic artifacts with an ordinary grouped comparator row, the Slices 541-555 formal-audit hold, and the Slices 561-575 sharded formal-grid dispatch guard | `model_type = 7`; `mu = exp(offset + X beta + Z b)` for ordinary grouped `mu` effects, `sigma = exp(X beta + Z b)` for ordinary grouped `sigma` intercepts, or `mu = exp(offset + X beta + a_level)` for q=1 structured `mu`; `Var(y) = mu + sigma^2 * mu^2`; ordinary `mu` random effects use `u_mu` and `log_sd_mu`; ordinary `sigma` random intercepts use `u_sigma` and `log_sd_sigma`; q=1 structured routes use `u_phylo`, `log_sd_phylo`, and a marker-specific sparse precision matrix; shared NB2 count-kernel helper | `tests/testthat/test-nbinom2-location-scale.R`, `tests/testthat/test-count-structured-mu.R`, `tests/testthat/test-phase18-nbinom2-sigma-random-effect.R`, `tests/testthat/test-phase18-nbinom2-phylo-q1.R`, `tests/testthat/test-count-kernels.R`, `tests/testthat/test-comparators.R` | `vignettes/count-nbinom2.Rmd`, `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md`, `docs/design/73-phase-18-nbinom2-sigma-random-intercept-ademp.md`, `docs/design/74-phase-18-nbinom2-phylo-q1-ademp.md`, `docs/design/75-phase-18-nbinom2-phylo-q1-formal-audit.md`, `docs/design/76-phase-18-nbinom2-phylo-q1-sharded-formal-grid.md`, `docs/design/79-supported-nongaussian-evidence-goal.md` |
-| Zero-inflated negative-binomial 2 | `drm_formula(count ~ x + offset(log(effort)), sigma ~ z, zi ~ w)` with `family = nbinom2()` | `nbinom2()` in `R/family.R`; `drm_build_nbinom2_spec()` in `R/drmTMB.R`; `zi` formula adds the structural-zero block | `model_type = 9`; count component `mu = exp(offset + X beta)`, `Var(y) = mu + sigma^2 * mu^2`, `Pr(y = 0) = zi + (1 - zi) NB2(0 \| mu, sigma)`, and `Pr(y > 0) = (1 - zi) NB2(y \| mu, sigma)`; shared NB2 count-kernel helper | `tests/testthat/test-zi-nbinom2.R`, `tests/testthat/test-count-kernels.R` | `vignettes/count-nbinom2.Rmd`, `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Zero-truncated negative-binomial 2 | `drm_formula(count ~ x + (1 \| id) + (0 + x \| id), sigma ~ z)` with `family = truncated_nbinom2()` | `truncated_nbinom2()` in `R/family.R`; `drm_build_truncated_nbinom2_spec()` in `R/drmTMB.R`; `extract_random_mu_terms()` and `build_random_mu_structure()` route ordinary non-hurdle `mu` intercepts and independent numeric slopes | `model_type = 11`; `Pr_trunc(y) = Pr_NB2(y) / (1 - Pr_NB2(0))`; fitted returns `mu / (1 - Pr_NB2(0))`; ordinary `mu` random effects use `u_mu` and `log_sd_mu`; shared NB2 count-kernel helper | `tests/testthat/test-truncated-nbinom2-location-scale.R`, `tests/testthat/test-nongaussian-mu-random-slopes.R`, `tests/testthat/test-count-kernels.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Hurdle negative-binomial 2 | `drm_formula(count ~ x, sigma ~ z, hu ~ w)` with `family = truncated_nbinom2()` | `truncated_nbinom2()` in `R/family.R`; `drm_build_truncated_nbinom2_spec()` in `R/drmTMB.R`; `hu` formula adds the hurdle-zero block | `model_type = 12`; `Pr(y = 0) = hu`; `Pr(y > 0) = (1 - hu) Pr_trunc(y)`; fitted returns `(1 - hu) * mu / (1 - Pr_NB2(0))`; shared NB2 count-kernel helper | `tests/testthat/test-hurdle-nbinom2.R`, `tests/testthat/test-count-kernels.R` | `vignettes/distribution-families.Rmd`, `docs/design/02-family-registry.md`, `docs/design/03-likelihoods.md`, `docs/design/19-family-link-contract.md` |
-| Bivariate Gaussian location-coscale | `mu1 = y1 ~ x`; `mu2 = y2 ~ x`; `sigma1 ~ z1`; `sigma2 ~ z2`; `rho12 ~ w`; optional matching `(1 \| p \| id)` random intercepts in `mu1`/`mu2`, `sigma1`/`sigma2`, one same-response `mu`/`sigma` pair, or the all-four `mu1`/`mu2`/`sigma1`/`sigma2` block | `biv_gaussian()` in `R/family.R`; `drm_build_biv_gaussian_spec()` in `R/drmTMB.R`; `rho12()` and `corpairs()` in `R/methods.R` | `model_type = 2`; `rho12 = 0.999999 * tanh(eta_rho12)`; bivariate group-level correlations use `eta_cor_mu` for `mu1`/`mu2`, `eta_cor_sigma` for `sigma1`/`sigma2`, `eta_cor_mu_sigma` for same-response mean-scale pairs, and `u_re_cov` for all-four q=4 blocks | `tests/testthat/test-biv-gaussian.R` | `vignettes/bivariate-coscale.Rmd`, `docs/design/15-location-coscale-phylogenetic-extension.md`, `docs/design/20-coscale-correlation-pairs.md` |
-| Exact bivariate Student-t source slice | `mu1 = y1 ~ x1`; `mu2 = y2 ~ x2`; intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12` | `biv_student()` in `R/family.R`; `drm_build_biv_student_spec()` in `R/drmTMB.R`; `fitted()`, `sigma()`, `rho12()`, and `simulate()` in `R/methods.R` | `model_type = 20`; `nu = 2 + exp(eta_nu)`; `rho12 = 0.999999 * tanh(eta_rho12)`; one chi-squared mixing draw is shared by each simulated pair | `tests/testthat/test-biv-student.R` | `docs/design/234-arc6-4-bivariate-student-contract.md`; source-tested only, with smoke/recovery/interval/capability work deferred |
-| Bivariate Gaussian known sampling covariance | `meta_V(V = V)` in one bivariate location formula, with `V` a row-paired `2n` by `2n` matrix; deprecated `meta_known_V(V = V)` remains a compatibility alias | `meta_vcov_bivariate()` in `R/meta-vcov.R`; `evaluate_biv_known_v()` and `subset_biv_known_v()` in `R/drmTMB.R` | `model_type = 2`; dense `V_known_matrix` plus fitted residual `sigma1`, `sigma2`, and `rho12`; dense storage is diagnostic-visible but not a large-data claim | `tests/testthat/test-biv-gaussian.R`, `tests/testthat/test-meta-vcov.R`, `tests/testthat/test-check-drm.R` | `vignettes/meta-analysis.Rmd`, `vignettes/testing-likelihoods.Rmd` |
+## Keep correlation layers separate
 
-## What the source map protects
+For two responses, `rho12` is residual correlation within an observation after
+the fitted mean and scale models. `corpairs()` reports correlations among
+group-level random effects. A staged mixed-outcome association estimates a
+latent-normal association after fitting and fixing the marginal models. These
+quantities are not interchangeable; choose the guide whose correlation scale
+matches the scientific question.
 
-When a feature changes, update all rows touched by that feature. A change to the
-Student-t likelihood, for example, should be checked against:
+## If your exact model is not shown
 
-```text
-R/family.R
-R/drmTMB.R
-src/drmTMB.cpp
-tests/testthat/test-student-location-scale.R
-vignettes/robust-student.Rmd
-vignettes/testing-likelihoods.Rmd
-vignettes/adding-families.Rmd
-docs/design/03-likelihoods.md
-docs/design/14-gamlss-parameter-names.md
-```
-
-A change to residual bivariate correlation `rho12` should be checked against:
-
-```text
-R/family.R
-R/drmTMB.R
-R/methods.R
-src/drmTMB.cpp
-tests/testthat/test-biv-gaussian.R
-vignettes/bivariate-coscale.Rmd
-vignettes/formula-grammar.Rmd
-vignettes/testing-likelihoods.Rmd
-docs/design/03-likelihoods.md
-docs/design/15-location-coscale-phylogenetic-extension.md
-```
-
-The goal is consistency. The symbolic equations, R syntax, TMB branch, tests,
-vignettes, and check log should make the same claim.
-
-## C++ modularization boundary
-
-The C++ template is still one compiled TMB entry point. The modularization plan
-in `docs/design/36-cpp-modularization-source-map.md` should be treated as the
-source of truth before moving code out of `src/drmTMB.cpp`. Its first pass
-has moved only pure numeric and NB2 count-kernel helpers into headers:
-`src/drm_numeric.h` and `src/drm_count_kernels.h`. It did not move `DATA_*`
-declarations, `PARAMETER_*` declarations, `REPORT()` calls,
-`ADREPORT()` calls, R builders, formula grammar, or public branch IDs.
-
-The ordinary Poisson/NB2 q=1 structured `mu` routes were added inside
-`src/drmTMB.cpp` rather than as part of that refactor. Future C++ cleanup should
-therefore update the modularization source map before moving any shared
-structured-effect prior helper, and should keep count-route `u_phylo`,
-`log_sd_phylo`, `Q_phylo`, profile-target, marker-specific `ranef()`, and
-`check_drm()` labels stable across the move.
-
-## Validation-debt register
-
-The stable-core matrix in the README and model-map article is backed by
-`docs/design/34-validation-debt-register.md`. That register records whether
-each advertised surface is `covered`, `partial`, `opt-in`, or `blocked`, and it
-names the tests, diagnostics, interval route, docs, and explicit debt for each
-row. When a surface moves from planned or first-slice status to routine support,
-update the register with the implementation, tests, docs, NEWS, check-log
-evidence, and after-task report in the same pull request.
-
-The public status words are the reader-facing version of that internal ledger.
-`Stable` maps to a covered routine path, `first slice` maps to a covered but
-narrow fitted path, `opt-in control` maps to scalability or memory hardening,
-and `planned`, `reserved`, `unsupported`, or `blocked` rows stay out of runnable
-analysis examples until code, tests, docs, and after-task evidence exist.
-
-## Current boundaries
-
-The following neighbouring features are intentionally not implemented as fitted
-models yet:
-
-- mixed composed families such as `c(gaussian(), poisson())`;
-- the future `meta_V()` umbrella, including proportional sampling-variance
-  models such as `meta_V(w = w, scale = "proportional")`;
-- bivariate Student-t or bivariate skew-normal families;
-- residual-scale bivariate random slopes, `rho12` random effects, formal q > 2
-  bivariate location recovery grids, and cross-parameter covariance blocks
-  beyond the currently implemented ordinary slope-only, ordinary q4/q6 location,
-  ordinary intercept, phylogenetic, animal, and `relmat()` random-effect slices;
-- mesh/SPDE spatial fields, additional multiple or labelled spatial-slope
-  layouts outside the exact fitted ledger cells, spatial sigma-slope intervals
-  beyond the point-fit/extractor q1 route, slope
-  correlations, direct spatial SD surfaces, spatial `corpair()` regressions,
-  and non-Gaussian spatial effects outside the exact ordinary Poisson/NB2 q1
-  spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`,
-  Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu`
-  gates;
-- structured effects in `rho12`, and shape/other distributional-parameter
-  structured effects outside the exact Student-t `nu ~ phylo()` and spatial
-  component gates named above;
-- derived profile-likelihood intervals for q=4 and other indirect covariance
-  summaries beyond direct profile-ready targets.
-
-Do not present those forms as runnable examples until the source map has an
-implemented row with code, tests, and documentation.
-
-One neighbouring combination now has both a targeted validation test and a
-careful tutorial explanation: Gaussian known-covariance meta-analysis with
-`sd(group) ~ predictors`. The test checks the fitted objective against an
-independent dense marginal Gaussian likelihood. The tutorial explains that
-`sigma` is residual heterogeneity and `sd(group)` is group-level heterogeneity
-in a random effect.
+Do not infer support from a nearby formula. Check
+[What can I fit today?](model-map.html), then read
+[Can I fit and report this model?](capability-and-limits.html) for the exact
+family, distributional parameter, dependence structure, and interval scope.
+After fitting, run `check_drm(fit)` before interpreting estimates and use
+`profile_targets(fit)` before requesting profile intervals. If the requested
+combination is not currently supported, fit the closest simpler model described
+on those pages rather than relying on unlisted syntax.
