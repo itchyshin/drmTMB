@@ -16,7 +16,7 @@ contract_fixture <- function(files = list(), manifest = NULL, exceptions = NULL)
   base_files <- list(
     "adding-families.Rmd" = "fit$opt$convergence",
     "testing-likelihoods.Rmd" = "fit$model$X",
-    "source-map.Rmd" = "fit$model$weights",
+    "source-map.Rmd" = "Find the right public guide.",
     "large-data.Rmd" = "`fit$obj` was intentionally dropped",
     "figure-gallery.Rmd" = paste(
       'pred_tail$model <- "Tail weight"',
@@ -32,9 +32,9 @@ contract_fixture <- function(files = list(), manifest = NULL, exceptions = NULL)
   if (is.null(manifest)) {
     manifest <- data.frame(
       vignette = names(files),
-      audience = c("contributor", "contributor", "contributor", rep("reader", length(files) - 3L)),
-      permitted_private_fields = c("opt", "model", "model", rep("", length(files) - 3L)),
-      rationale = c("convergence assertion", "likelihood reconstruction", "source documentation", rep("", length(files) - 3L)),
+      audience = c("contributor", "contributor", rep("reader", length(files) - 2L)),
+      permitted_private_fields = c("opt", "model", rep("", length(files) - 2L)),
+      rationale = c("convergence assertion", "likelihood reconstruction", rep("", length(files) - 2L)),
       stringsAsFactors = FALSE
     )
   }

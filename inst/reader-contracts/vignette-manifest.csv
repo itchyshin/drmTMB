@@ -32,7 +32,7 @@ proportion-beta-binomial.Rmd,reader,,
 relmat-known-matrices.Rmd,reader,,
 robust-student.Rmd,reader,,
 simulation-plot-grammar.Rmd,reader,,
-source-map.Rmd,contributor,model,"Contributor source map documents the stored processed weights."
+source-map.Rmd,reader,,
 spatial-models.Rmd,reader,,
 structural-dependence.Rmd,reader,,
 testing-likelihoods.Rmd,contributor,model,"Contributor likelihood checks reconstruct values from stored model matrices and response data."
