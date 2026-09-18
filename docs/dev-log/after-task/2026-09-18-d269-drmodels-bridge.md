@@ -18,6 +18,13 @@ The path resolver prefers the canonical option/environment settings and retains
 legacy settings and both sibling directory names. Tests, README, NEWS, and the
 Julia-engine vignette describe this transition.
 
+The follow-up Rose repair also binds every dedicated cross-family test checkout
+through both the canonical and legacy options. This matters when a developer has
+a global canonical checkout configured: the family helper may deliberately
+select `DRM_JL_XFAM_PATH`, `DRM_JL_XFAM_TIER2_PATH`, or
+`DRM_JL_XSIGMA_PATH`, and that selected checkout must remain authoritative when
+the production resolver runs.
+
 ## 3a. Decisions and Rejected Alternatives
 
 Use the selected checkout's declared identity and check source provenance.
@@ -28,7 +35,8 @@ Retain the draft merge hold because this repair does not reconcile #1111.
 ## 4. Files Touched
 
 This repair changes `R/julia-bridge.R`, `tests/testthat/helper-julia-bridge-path.R`,
-`tests/testthat/test-julia-module-compat.R`, `tests/testthat/test-model-comparison.R`,
+`tests/testthat/test-julia-module-compat.R`, `tests/testthat/test-xfam-bridge.R`,
+`tests/testthat/test-model-comparison.R`,
 `tests/testthat/test-coevolution-accessors.R`, `tests/testthat/test-lrt-boundary.R`,
 this report and `docs/dev-log/check-log.d/2026-09-18-d269-drmodels-bridge.md`.
 Earlier commits in this PR also changed `R/julia-joint-call.R`, README, NEWS,
@@ -86,6 +94,12 @@ with filter `^(model-comparison|coevolution-accessors|lrt-boundary)$` and
 11 explicit skips (five longer non-CRAN tests and six live Julia tests).
 This bounded run does not revalidate the q4 or boundary-test live fits.
 
+For the family-checkout precedence follow-up, the module-compatibility file
+passed 44 assertions with zero failures or errors and one live-Julia skip. The
+cross-family bridge file passed 54 assertions with zero failures or errors and
+four unavailable-live-engine skips. Both focused runs completed in under ten
+seconds after package loading; no campaign or full check was launched.
+
 ## 8. Consistency Audit
 
 Searched executable module references with
@@ -95,6 +109,10 @@ The model-comparison, boundary-test and coevolution native oracles now also use
 that alias, including qualified formula macros. Shared test path resolution
 accepts canonical options/environment settings, retains family-specific
 overrides and legacy fallbacks, and checks canonical-only settings do not skip.
+All three dedicated cross-family checkout routes now carry the helper-selected
+path into the production resolver's canonical option; structured `relmat`
+configuration was inspected but was not changed because it is not a
+family-specific caller in this finding.
 Historical evidence and model-capability descriptions retain their original names.
 No likelihood, family registry, TMB source, dependency, or version changes.
 
@@ -112,6 +130,13 @@ process with its old import-canonical/catch/fallback behavior. The new tests
 then produced four failures: wrong stacked identity, swallowed dependency
 failure (two assertions), and foreign cached source accepted. Tracked source
 was unchanged by this experiment.
+
+For the follow-up precedence regression, the first run failed at
+`drm_test_local_drmjl_path()` because that test-only binding helper did not yet
+exist. A separate reproduction showed the full defect directly:
+`HELPER=family-selected RESOLVER=global-canonical`. After adding the helper and
+wiring the three cross-family caller routes, the regression evaluates
+`drm_julia_setup()`'s default `path` expression and obtains `family-selected`.
 
 ## 9. What Did Not Go Smoothly
 
@@ -163,6 +188,9 @@ the former canonical-first/fallback loader. They require the wording
 before merge. The coordinator explicitly withheld edits to these paths under
 the overlapping-ownership guard; this repair leaves both untouched and records
 the wording correction as a pending ownership hold.
+The family-specific follow-up is test-configuration evidence only; its four
+live cross-family cells skipped because no dedicated checkout was configured,
+so it does not add numerical cross-family parity evidence.
 
 ## 12. Cross-Product Coverage
 

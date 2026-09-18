@@ -53,6 +53,30 @@ test_that("test path settings support canonical-only configurations and family o
   expect_silent(.drm_skip_live_julia_impl())
 })
 
+test_that("family-specific checkout reaches production setup selection", {
+  withr::local_options(list(
+    drmTMB.DRModels.jl.path = "global-canonical",
+    drmTMB.DRM.jl.path = NULL
+  ))
+  withr::local_envvar(c(
+    DRMODELS_JL_PATH = NA,
+    DRM_JL_PATH = NA,
+    DRM_JL_XFAM_PATH = "family-selected"
+  ))
+
+  selected <- drm_test_drmjl_path("DRM_JL_XFAM_PATH")
+  expect_identical(selected, "family-selected")
+
+  drm_test_local_drmjl_path(selected)
+  expect_identical(drm_julia_path(), selected)
+
+  setup_path <- eval(
+    formals(drm_julia_setup)[["path"]],
+    envir = environment(drm_julia_setup)
+  )
+  expect_identical(setup_path, selected)
+})
+
 test_that("stacked Julia environments cannot substitute a different checkout", {
   skip_if_not(identical(Sys.getenv("DRMTMB_JULIA_TESTS"), "true"))
   julia <- Sys.which("julia")

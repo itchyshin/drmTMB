@@ -23,6 +23,20 @@ drm_test_drmjl_path <- function(envvar = "DRM_JL_PATH") {
   ""
 }
 
+# Bind a test-selected checkout through both the canonical and legacy bridge
+# settings. The canonical option must carry the selected path because the
+# production resolver intentionally prefers it over every legacy setting.
+drm_test_local_drmjl_path <- function(path, .local_envir = parent.frame()) {
+  withr::local_options(
+    list(
+      drmTMB.DRModels.jl.path = path,
+      drmTMB.DRM.jl.path = path
+    ),
+    .local_envir = .local_envir
+  )
+  invisible(path)
+}
+
 drm_test_julia_home <- function() {
   home <- Sys.getenv("DRM_JL_JULIA_HOME", "")
   if (!nzchar(home)) {
