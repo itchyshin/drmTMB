@@ -145,7 +145,12 @@ test_that("setup activates before importing and registers only shared-alias help
         commands <<- c(commands, code)
         invisible(NULL)
       },
-      julia_eval = function(code, ...) selected, .package = "JuliaCall"
+      julia_eval = function(code, ...) {
+        if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
+          return(c(manifest = "", manifest_format = "2.0", runtime = "1.10.0"))
+        }
+        selected
+      }, .package = "JuliaCall"
     )
     expect_message(drm_julia_setup(root), "Starting Julia")
     expect_match(commands[[1L]], "Pkg.activate(", fixed = TRUE)
@@ -159,4 +164,39 @@ test_that("setup activates before importing and registers only shared-alias help
     drm_julia_setup(root)
     expect_length(commands, n)
   }
+})
+
+test_that("an unsupported selected manifest format stops before checkout activation", {
+  skip_if_not_installed("JuliaCall")
+  root <- withr::local_tempdir()
+  writeLines('name = "DRModels"', file.path(root, "Project.toml"))
+  state <- new.env(parent = emptyenv())
+  local_mocked_bindings(drm_julia_setup_state = state,
+                        drm_julia_cran_lane_blocked = function(...) FALSE)
+  commands <- character()
+  local_mocked_bindings(
+    julia_setup = function(...) invisible(NULL),
+    julia_command = function(code) {
+      commands <<- c(commands, code)
+      invisible(NULL)
+    },
+    julia_eval = function(code, ...) {
+      if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
+        return(c(
+          manifest = file.path(root, "Manifest.toml"),
+          manifest_format = "2.1",
+          runtime = "1.10.0"
+        ))
+      }
+      "DRModels"
+    },
+    .package = "JuliaCall"
+  )
+
+  expect_error(
+    drm_julia_setup(root),
+    "format 2.1.*Julia 1.13"
+  )
+  expect_length(commands, 0L)
+  expect_false(isTRUE(state$ready))
 })

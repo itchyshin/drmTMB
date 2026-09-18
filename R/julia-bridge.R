@@ -4275,6 +4275,41 @@ drm_julia_load_module <- function(path, evaluate = JuliaCall::julia_eval) {
   ))
 }
 
+drm_julia_manifest_runtime <- function(path, evaluate = JuliaCall::julia_eval) {
+  result <- evaluate(paste(
+    "let project_file = joinpath(realpath(", drm_julia_quote(path), "), \"Project.toml\")",
+    "    manifest_file = Base.project_file_manifest_path(project_file)",
+    "    if manifest_file === nothing",
+    "        (\"\", \"\", string(VERSION))",
+    "    else",
+    "        manifest = Base.parsed_toml(manifest_file)",
+    "        (manifest_file, string(get(manifest, \"manifest_format\", \"\")), string(VERSION))",
+    "    end",
+    "end", sep = "\n"
+  ))
+  result <- unname(unlist(result, use.names = FALSE))
+  if (length(result) != 3L) {
+    cli::cli_abort("Could not inspect the selected Julia checkout's manifest before loading it.")
+  }
+  stats::setNames(as.character(result), c("manifest", "manifest_format", "runtime"))
+}
+
+drm_julia_check_manifest_runtime <- function(path, evaluate = JuliaCall::julia_eval) {
+  info <- drm_julia_manifest_runtime(path, evaluate = evaluate)
+  runtime <- sub("[-+].*$", "", info[["runtime"]])
+  if (
+    identical(info[["manifest_format"]], "2.1") &&
+      utils::compareVersion(runtime, "1.13.0") < 0L
+  ) {
+    cli::cli_abort(c(
+      "Cannot load the selected DRModels.jl / DRM.jl checkout with this Julia runtime.",
+      x = "Its manifest {.file {info[[\"manifest\"]]}} uses format 2.1, which requires Julia 1.13 or later; this R session uses Julia {info[[\"runtime\"]]}.",
+      i = "Use a compatible Julia runtime, or prepare this checkout's dependencies with the Julia version used by R, then restart R."
+    ))
+  }
+  invisible(info)
+}
+
 drm_julia_setup <- function(path = drm_julia_path()) {
   # Hard stop on the CRAN / win-builder lane. Suggests JuliaCall + host Julia is
   # not enough to justify entering julia_setup(): Ligges R-release hung for
@@ -4322,6 +4357,7 @@ drm_julia_setup <- function(path = drm_julia_path()) {
   ))
   JuliaCall::julia_setup(installJulia = FALSE)
   drm_julia_setup_state$ready <- FALSE
+  drm_julia_check_manifest_runtime(normalized_path)
   JuliaCall::julia_command(paste0(
     "import Pkg; Pkg.activate(", drm_julia_quote(normalized_path), ")"
   ))
