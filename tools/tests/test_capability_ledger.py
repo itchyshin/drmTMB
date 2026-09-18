@@ -1395,7 +1395,14 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(article.count("meta_known_V(V = V)"), 1)
         self.assertEqual(len(re.findall(r"\btau\b", article)), 1)
         self.assertIn('<details class="drmtmb-notation">', article)
-        self.assertIn("Supported (legacy ledger label)", article)
+        for label in (
+            "**Point estimate and interval:**",
+            "**Point estimate only:**",
+            "**Feasibility only:**",
+            "**Not available:**",
+        ):
+            self.assertIn(label, article)
+        self.assertNotIn("Supported (legacy ledger label)", article)
         self.assertNotIn("Five non-Gaussian families now carry", article)
         self.assertNotIn("All five admitted fixed-effect", article)
         self.assertNotRegex(
@@ -2365,7 +2372,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "diagnostic-only Student-t q1 `nu ~ phylo",
             "intercept-only `mu ~ spatial(1 | ...)`",
             "`mu ~ spatial(1 + x | ...)` is recovery-grade",
-            "Capability tiers, defined once",
+            "## Evidence and exact tested scopes",
             "fixed-`zi` Poisson",
             "diagnostic-only fixed-`zi` NB2",
         ):
@@ -2550,7 +2557,12 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("Poisson `mu ~ spatial(1 | site", public["README"])
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
-        self.assertIn("Row-specific single-smoke slices", public["capability"])
+        capability = " ".join(public["capability"].split())
+        self.assertIn(
+            "**Feasibility only:** the model can be fitted and its result extracted, "
+            "but it is not a scientific reporting route.",
+            capability,
+        )
         # pkgdown-site/llms.txt is a git-ignored pkgdown BUILD artifact, not a ledger
         # output. Assert on it only when it is version-controlled; a git-ignored local
         # build may be stale or absent, and the authoritative surface check is the README
@@ -2632,7 +2644,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
 
     def test_provider_vignettes_show_exact_arc1a_reml_calls_and_sd_semantics(self):
-        vignette = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
+        vignette = " ".join(
+            (ROOT / "vignettes/capability-and-limits.Rmd").read_text().split()
+        )
         providers = {
             "spatial": (ROOT / "vignettes/spatial-models.Rmd").read_text(),
             "animal": (ROOT / "vignettes/animal-models.Rmd").read_text(),
@@ -2650,29 +2664,56 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertIn("animal_scale * sqrt(diag(A))", providers["animal"])
         self.assertNotIn("Read the fitted animal-model location SD", providers["animal"])
         self.assertNotIn("animal endpoint standard deviations", providers["animal"])
+        for term in (
+            "spatial(1 + x | site, coords = coords)",
+            "animal(1 + x | id, A = A)",
+            "relmat(1 + x | id, K = K)",
+        ):
+            self.assertIn(
+                f"bf(y ~ x + {term}, sigma ~ 1), "
+                "family = gaussian(), data = dat, REML = TRUE",
+                vignette,
+            )
         self.assertIn(
-            "Arc 1a additionally accepts a\n"
-            "pure-`mu`, univariate `spatial()`, `animal()`, or `relmat()` term",
+            "For a pure Gaussian mean model, REML is available for an unlabelled "
+            "spatial, animal, or relatedness intercept, or for that intercept plus "
+            "one independent numeric slope, when `sigma ~ 1`.",
+            vignette,
+        )
+        self.assertIn(
+            "Pedigree and `Ainv` animal inputs and relmat `Q` are accepted "
+            "representations, but they do not automatically inherit every "
+            "uncertainty result obtained with `A` and `K`.",
             vignette,
         )
         self.assertNotIn("eight anchor cells", vignette.lower())
         self.assertNotIn(
-            "rejects non-phylogenetic\nmean-side structured effects",
+            "rejects non-phylogenetic mean-side structured effects",
             vignette,
         )
         self.assertIn(
-            "q1 `mu` and the exact phylo/relmat slope-only q2 `mu1:x`/`mu2:x` SD rows use\n"
-            "the default location-axis bias-corrected, small-sample-t Wald channel",
+            "for the checked Gaussian mean-intercept forms, use the default "
+            "bias-corrected, small-sample-t Wald interval",
             vignette,
         )
         self.assertIn(
-            "raw uncorrected log-SD Wald-z",
+            "For the checked Gaussian scale-slope forms, the assessed interval "
+            "is the uncorrected log-standard-deviation Wald interval; "
+            "profile intervals remain feasibility checks at eight structured "
+            "levels rather than reporting intervals",
             vignette,
         )
-        self.assertIn("diagnostic-only at `g = 8`", vignette)
+        self.assertIn(
+            "For the selected bivariate mean-slope forms, use plain `confint(fit)` "
+            "and do not turn off its default small-sample correction",
+            vignette,
+        )
         self.assertIn("the covariance is `s_j^2 K_h`", vignette)
-        self.assertIn("marginal\nSD `s_j sqrt(K_h[ii])`", vignette)
-        self.assertIn("`M` is the number of structured levels", vignette)
+        self.assertIn(
+            "the marginal standard deviation at level `i` is `s_j sqrt(K_h[ii])`",
+            vignette,
+        )
+        self.assertIn("only when that matrix diagonal is one", vignette)
         self.assertNotIn(
             "structured-RE anchor cells above, `method = \"profile\"`",
             vignette,
