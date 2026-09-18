@@ -1,141 +1,111 @@
 # drmTMB 0.7.1
 
-## Independent-evaluation fixes (wave C API)
+## API compatibility fixes
 
 * Exported `beta_family()` for strict continuous-proportion models so the
   unqualified name `beta()` no longer masks [base::beta()]. The old
   `beta()` constructor remains available as a deprecated unexported alias
-  (`drmTMB::beta()`). Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Mi-1 ([#1339](https://github.com/itchyshin/drmTMB/issues/1339)).
+  (`drmTMB::beta()`).
 
 * `fixef()` and `ranef()` now re-export `nlme`'s shared generics (as
   `glmmTMB` and `lme4` already do), so loading `drmTMB` after `glmmTMB` or
-  `lme4` no longer breaks mixed-model extractors on foreign fits. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  Mi-2 ([#1340](https://github.com/itchyshin/drmTMB/issues/1340)).
+  `lme4` no longer breaks mixed-model extractors on foreign fits.
 
-## Independent-evaluation fixes (wave A1 docs)
+## Documentation fixes
 
 * `cumulative_logit()` now documents that integer-coded ordinal responses are
   accepted at face value in increasing numeric order, and that analysts should
-  use ordered factors when labels carry the scientific order. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  Mi-7.
+  use ordered factors when labels carry the scientific order.
 
 * The capability vignette now lists `lognormal()`, `Gamma(link = "log")`,
   `student()`, and `beta_binomial()` among non-Gaussian response families
-  that can fit one binary missing predictor through `mi()`. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  Md-F.
+  that can fit one binary missing predictor through `mi()`.
 
 * `student()` no longer claims that Student-t is the only implemented family
-  whose public `sigma` is a scale rather than `SD[y]`. Credit: the independent
-  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Mi-11.
+  whose public `sigma` is a scale rather than `SD[y]`.
 
 * `meta_V()` now states that a known sampling covariance matrix is matched to
-  the retained model frame by row position, not by dimnames. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  A-4.
+  the retained model frame by row position, not by dimnames.
 
 * `confint()` now states that its returned `parm` column uses fully-qualified
   target names such as `fixef:sigma:z`, even when the caller selected the same
-  target with a compact label such as `sigma:z`. Credit: the independent
-  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding UX-4.
+  target with a compact label such as `sigma:z`.
 
 * `?drmTMB` now explains that Wald/profile `confint()` does not currently form
   intervals for REML-integrated mean coefficients, even though `summary()` and
   `vcov()` can report finite Wald standard errors from the full `sdreport`
   covariance. It names bootstrap intervals as the current working alternative.
-  Credit: the independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
-  finding S8.
+
 
 * `?predict.drmTMB` now states that `type = "response"` returns the requested
   distributional parameter on its response scale, not necessarily `E[Y]`; it
   points users to `fitted()` for fitted-row response means and expected ordinal
-  scores. Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Md-C.
+  scores.
 
 * `?summary.drmTMB` and `?residuals.drmTMB` now make optional `emmeans` and
   DHARMa workflows discoverable, including a guarded `DHARMa::createDHARMa()`
-  example built from `simulate()`. Credit: the independent evaluation by
-  Russell Dinnage (rdinnager/drmTMB_eval), finding Mi-3.
+  example built from `simulate()`.
 
 * `?residuals.drmTMB` now documents Pearson-residual scale conventions for
   `student()`, `skew_normal()`, and `beta()` alongside the other enumerated
-  families. Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Mi-8.
+  families.
 
 * `?sigma.drmTMB` now states that `sigma()` returns one value per fitted row
   when the scale formula varies by row, and warns that generic tools expecting
-  a scalar residual scale can summarize away this heterogeneity. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  Mi-16.
+  a scalar residual scale can summarize away this heterogeneity.
 
 * `?phylo` now states that drmTMB uses the supplied ultrametric branch-length
-  scale and does not silently rescale the tree to unit height. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  Mi-6.
-## Independent-evaluation fixes (arc 3, wave B2)
+  scale and does not silently rescale the tree to unit height.
 
 * `miss_control(predictor = "fail")` now errors when ordinary predictors contain
-  missing values, matching the documented default. Credit: Russell Dinnage,
-  finding A-2 (#1332).
+  missing values, matching the documented default.
 * `bf()` and `drm_formula()` accept formulas held in variables (for example
-  `bf(mu = f_mu, sigma = f_sigma)`). Credit: Russell Dinnage, finding UX-5
-  (#1360).
+  `bf(mu = f_mu, sigma = f_sigma)`).
 * `confint()` results carry class `drm_confint`, and `as.matrix()` returns the
-  two-column matrix shape of `stats::confint()`. Credit: Russell Dinnage, finding
-  Mi-15 (#1353).
+  two-column matrix shape of `stats::confint()`.
 * Minor surfaces bundle: guided errors for mistyped columns, singular weight
   grammar, AIC/BIC REML warnings only on invalid comparisons, Tweedie power
   guards, `print()` shows fixed effects, and every unsupported-parameter abort
-  includes a hint. Credit: Russell Dinnage, finding Mi-bundle (#1355).
+  includes a hint.
 * `?drm_control` documents joint `sigma` + `zi` local-optimum risk and
-  `multi_start` advice. Credit: Russell Dinnage, finding S7 (#1316).
+  `multi_start` advice.
 
-## Independent-evaluation fixes (arc 3, wave B1)
+## Diagnostics and convergence fixes
 
 * `check_standard_errors_inflated` now bases its ratio on the median of
   finite standard errors below the absolute floor (reported as
   `reference_median=`), so collinear or weakly identified fits still flag
-  pathological inflation. Credit: the independent evaluation by Russell
-  Dinnage (rdinnager/drmTMB_eval), finding Md-B (#1319).
+  pathological inflation.
 * Subsetting a `drm_check` object keeps class and `print()` reports
-  `X of N checks shown` when rows are filtered. Credit: Russell Dinnage,
-  finding UX-1 (#1356).
+  `X of N checks shown` when rows are filtered.
 * `check_drm()` adds `observations_per_parameter` (note below 10 obs per
   estimated parameter) and `fixed_effect_collinearity` (note when pairwise
-  |r| exceeds 0.99). Credit: Russell Dinnage, findings A-7 (#1337) and
-  Mi-4 (#1342).
+  |r| exceeds 0.99).
 * New `convergence_status()` labels fits `converged`, `boundary`, or
   `degenerate`; `is_converged()` stays logical and returns `FALSE` on
   degenerate geometry even when `multi_start` hits optimizer code 0.
-  Credit: Russell Dinnage, finding A-3 (#1333).
+
 * Wald intervals record `conf.status = "wald_bias_corrected"` when default
   small-sample bias correction shifts the interval centre; the phylo `g`
   denominator question is documented in
-  `docs/design/276-phylo-bias-correction-denominator.md`. Credit: Russell
-  Dinnage, finding Md-J (#1327).
+  the supporting technical documentation.
 
-## Independent-evaluation fixes (arc 3, wave A2)
+## Missing-data and interval-guidance fixes
 
 * `check_drm()`'s `dropped_rows` row now reports `groups_lost=` when
   complete-case or known-covariance filtering drops every row for one or
-  more random-effect grouping levels, not only a row count. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding
-  A-8 (#1338).
+  more random-effect grouping levels, not only a row count.
 
 * Wald intervals for residual `rho12` at a correlation boundary no longer
   recommend `method = "profile"` when profile intervals are usually identical
   to Wald there; `check_rho12_boundary()` states the same instead of implying
-  a profile switch. Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Mi-5 (#1343).
+  a profile switch.
 
-## Independent-evaluation fixes (wave 3)
+## Weighted missing-data fixes
 
 * `weights()` composed with `mi()` now leaves the maximum-likelihood
   estimate unchanged under a constant reweighting for EVERY imputation
-  family, not only the Bernoulli one repaired in wave 1. The eleven
+  family, not only the Bernoulli family repaired previously. The eleven
   `mi_family` quadrature blocks in `src/drmTMB.cpp` (ordinal, categorical,
   beta, zero-one-beta, beta-binomial, Poisson, NB2, truncated NB2,
   lognormal, gamma, Tweedie) multiplied `weights(i)` into each quadrature
@@ -160,9 +130,7 @@
   apart; more importantly the support is frozen at the start value, so the
   integral is silently truncated whenever the fitted imputation scale
   outgrows it. Its duplication test arm is therefore not a negative control
-  for Tweedie; the objective identity is. Credit: the independent
-  evaluation by Russell Dinnage (finding M1, #1307) and the review that
-  named the eleven sites.
+  for Tweedie; the objective identity is.
 
 * `sigma()`, `predict(dpar = "sigma")` (both `type = "link"` and
   `"response"`), `residuals()`, `fitted()` and `simulate()` now report the
@@ -197,8 +165,7 @@
   `check_drm()`'s clamp detector, which does not read a modelled
   `sd(group)` scale. Reporting the clamped value makes such a fit honest,
   not correct: when `check_drm()` says the clamp is active, rescale the
-  response and refit. Credit: the independent evaluation by Russell
-  Dinnage (finding M2, #1308).
+  response and refit.
 
 * `summary()$derived` and the `heritability()`/`icc()`/`repeatability()`
   accessors now use the marginal residual variance when `sigma` carries
@@ -230,11 +197,9 @@
   `exp(b0)`; they coincide only when `sigma` carries no random effect. Both repeatability loci
   are Gaussian-only, so the three-scale question of de Villemereuil et al.
   (2016) does not arise for this number; the audit note
-  `docs/design/275-repeatability-scale-and-residual-variance.md` records
+  the supporting technical documentation records
   that non-Gaussian fits are refused by an error rather than mislabelled,
-  and that latent-scale support for them is a feature decision. Credit:
-  Russell Dinnage (finding S2, #1301) and the independent review that
-  found the accessors rebuild the residual themselves.
+  and that latent-scale support for them is a feature decision.
 
 * `?drm_phylo_penalty` now describes the estimator the package actually
   reports. The prior on each phylogenetic SD is the documented exponential
@@ -243,9 +208,7 @@
   reported penalised `sd_phylo` is the mode in `log(sd)`, is never zero, and
   sits at `1/rate` (0.334 at the defaults) under a flat likelihood. A
   penalised fit must not be used to test a null of no phylogenetic signal.
-  No code or default changed (decision D-266). Credit: Russell Dinnage
-  (finding S3, #1312) and the independent review that overturned the first
-  proposed wording.
+  No code or default changed.
 
 * The numeric-kernel oracle helper `run_oracle()` now counts grid points
   whose C++ kernel or reference evaluation is non-finite after explicit
@@ -254,46 +217,38 @@
   relative-error assertion, so a broken kernel could pass with fewer checked
   points than the grid implied. The beta-binomial oracle pins
   `max_nonfinite = 0` on the non-excluded grid while keeping a separate,
-  looser tolerance on deliberately excluded huge-`phi` rows. Credit: the
-  independent evaluation by Russell Dinnage (finding Md-G, #1324).
+  looser tolerance on deliberately excluded huge-`phi` rows.
 
 * `beta_binomial()` now nudges extreme logit means inward and floors the
   beta shape parameters in both the main TMB block and the `mi()` response
   kernel leaf, matching the guards `beta()` already had. Extreme `beta_mu`
   values that previously drove `lgamma()` to `-Inf` now return a finite
   log-density, asserted against an `lbeta()` reference in the audit
-  regression tests. Credit: the independent evaluation by Russell Dinnage
-  (finding Md-H, #1325).
+  regression tests.
 
 * REML fits now carry `estimator_exact`, and `summary()`/`print()` name
   whether the fit used exact restricted likelihood or a Laplace/Cox-Reid
   adjusted profile (Gaussian models with a random effect on `sigma` are
-  labelled adjusted). Credit: the independent evaluation by Russell
-  Dinnage (finding Md-I, #1326).
+  labelled adjusted).
 
 * Phylogenetic fits now inform when tree tips are absent from the data and
   the fit uses the subtree induced by the observed species
-  (`validate_phylo_tree()`). Credit: the independent evaluation by Russell
-  Dinnage (finding Mi-6, #1344).
+  (`validate_phylo_tree()`).
 
 * `simulate()` on `drm_pair_association` objects restores the caller's
-  `.Random.seed` after an internal `set.seed()`, via `on.exit()`. Credit:
-  the independent evaluation by Russell Dinnage (finding Mi-10, #1348).
+  `.Random.seed` after an internal `set.seed()`, via `on.exit()`.
 
-* The internal O3 AGHQ and Cox-Reid optimizers share one
+* The AGHQ and Cox-Reid optimizers share one
   `drm_o3_optim_control()` (`reltol`, `maxit`) and warn when `optim()`
-  returns a non-zero convergence code. Credit: the independent evaluation
-  by Russell Dinnage (finding Mi-12, #1350).
+  returns a non-zero convergence code.
 
-* `summary()` now includes `nobs`, matching `nobs(fit)`. Credit: the
-  independent evaluation by Russell Dinnage (finding UX-2, #1357).
+* `summary()` now includes `nobs`, matching `nobs(fit)`.
 
 * When `summary()$derived` is empty because a single scalar residual
   variance is not defined (for example `sigma ~ x`), the empty table carries
-  a message pointing to `$sdpars`, and `print(summary())` repeats it. Credit:
-  the independent evaluation by Russell Dinnage (finding UX-3, #1358).
+  a message pointing to `$sdpars`, and `print(summary())` repeats it.
 
-## Independent-evaluation fixes (wave 2)
+## Core modelling fixes
 
 * `simulate()` now returns `NA` at masked missing-response rows for every
   family, matching `residuals()`. Twelve of thirteen families previously
@@ -302,31 +257,24 @@
   fabricated observations. The zero-inflated, hurdle and truncated count
   families were masked in a second commit after review; two tests that had
   pinned finite draws at masked rows now assert the masking invariant.
-  Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding M4.
+
 * `fitted_distribution()`'s `$p()` and `$d()` recycle a scalar threshold
   across every row for the zero-inflated, hurdle and truncated count
-  families; they previously returned row 1's value only. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
-  finding S1.
+  families; they previously returned row 1's value only.
 * `vcov(fit, type = "robust")` (and `robust = TRUE`) now aborts with class
   `drmTMB_vcov_robust_unsupported` and says what to try instead; it used to
-  return the model-based matrix silently. Credit: the independent
-  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding S4.
+  return the model-based matrix silently.
 * `AIC()` and `BIC()` called with a drmTMB fit and a foreign model (for
   example an `lm` fit) return the standard one-row-per-model data frame;
-  they used to drop the foreign model and return a bare scalar. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
-  finding S5.
-* Finding M3 (the `fixed_gradient` row of `check_drm()` firing on correct
-  fits at large n) no longer reproduces: the Newton polish added in #1130
+  they used to drop the foreign model and return a bare scalar.
+* The `fixed_gradient` row of `check_drm()` no longer fires on correct fits at
+  large n: the Newton polish added in
   already drives every correct fit's gradient far below the tolerance. A
-  regression test now locks that behaviour at n = 2000. Finding S3 (the
-  phylogenetic SD penalty's documented prior) stays open as a design
-  decision after review; no change ships for it. Credit: the independent
-  evaluation by Russell Dinnage (rdinnager/drmTMB_eval).
+  regression test now locks that behaviour at n = 2000. The phylogenetic SD
+  penalty's documented prior stays open as a design
+  decision after review; no change ships for it.
 
-## Independent-evaluation fixes (wave 1)
+## Formula parsing and diagnostics fixes
 
 * `drm_logsigma_clamp_active()` (and `check_drm()`'s `logsigma_clamp_active`
   row) now detects the LOWER `log(sigma)` clamp arm, not just the upper one.
@@ -335,19 +283,14 @@
   "the clamp is not active", even though the clamp had changed what the
   likelihood evaluated. The fit-time `cli_warn()` still fires only for the
   upper (runaway-scale) arm, since the lower arm is often a legitimate
-  variance-zero boundary (meta-analysis `tau = 0`). Credit: the independent
-  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding C1.
-  `check_drm()` now reports the lower arm as a note whose text names the
-  lower bound and the legitimate `tau = 0` case, and the upper arm as a
-  warning (Fisher review of the fix).
+  variance-zero boundary (meta-analysis `tau = 0`).
 * `drm_clamped_scale_families()` (and hence `check_drm()`'s
   `logsigma_clamp_active` row) now names `biv_lognormal` and `biv_student`,
   not just `biv_gaussian`. `src/drmTMB.cpp` clamps `log_sigma1`/`log_sigma2`
   identically for all three bivariate families in one shared branch, but the
   R-side list previously named only `biv_gaussian`, so `check_drm()` printed
   the false sentence "The log(sigma) clamp does not apply to this family"
-  for the other two. Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Md-A.
+  for the other two.
 * `weights()` composed with `mi()` (missing-predictor imputation) no longer
   moves the maximum-likelihood estimate under a constant reweighting. Ten
   duplicate call sites in `src/drmTMB.cpp` (one per response family sharing
@@ -364,16 +307,13 @@
   The `mi_family` quadrature blocks for other imputed-covariate families
   (ordinal, categorical, beta, Poisson, lognormal, gamma, NB2, Tweedie,
   zero-one-beta, truncated-NB2, beta-binomial) share a structurally similar
-  pattern and were fixed in wave 3 (above). Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
-  finding M1.
+  pattern and were fixed in the weighted-missing-data section above.
 * `mi()` is now rejected with an error on every formula parameter except
   `mu`. The public `mi()` marker is an identity stub (`function(x) x`), and
   no non-`mu` formula path extracted or rejected it, so e.g. `sigma ~ mi(z)`
   was silently parsed as an ordinary covariate and gave a bit-identical
   logLik to `sigma ~ z` -- no error, and no missing-data handling for `z`.
-  Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Md-D.
+
 * An unused factor level (for example, left over after `subset()` without
   `droplevels()`) no longer zeroes out every fixed-effect standard error.
   The empty level's design-matrix column of all zeros made the fit's
@@ -385,8 +325,7 @@
   enter a fixed-effect design matrix, once, up front; responses, `mi()`
   predictors and random-effect or structured-marker grouping variables keep
   their declared level sets, so an ordinal response with an empty category
-  still reaches its own refusal. Credit: the independent evaluation by
-  Russell Dinnage (rdinnager/drmTMB_eval), finding Md-E.
+  still reaches its own refusal.
 * `check_drm()`'s `dropped_rows` row now reflects rows the experimental
   MSPL estimator discarded because of a zero frequency weight, not just
   rows dropped by complete-case or known-covariance filtering. MSPL filters
@@ -395,24 +334,20 @@
   MSPL-discarded rows were invisible to it, and the row printed "no rows
   were dropped" even when MSPL had discarded some.
   `mspl_frequency_rows$kept` is now threaded through to re-express
-  `model$keep` relative to the original input data. Credit: the independent
-  evaluation by Russell Dinnage (rdinnager/drmTMB_eval), finding Md-N.
+  `model$keep` relative to the original input data.
 * `skew_normal()` now uses the package's own tail-safe `drm_log_pnorm()`
   (already used by the binomial probit link) for its skew-CDF factor,
   instead of flooring `pnorm(...)` with `+ 1e-300`. The floor saturated the
   far-tail log-density to a constant (`log(1e-300) ~= -690.8`) regardless
   of how far in the tail a point actually was, giving a gradient wrong by
-  orders of magnitude and a plateau a maximiser could sit on. Credit: the
-  independent evaluation by Russell Dinnage (rdinnager/drmTMB_eval),
-  finding Md-M.
+  orders of magnitude and a plateau a maximiser could sit on.
 * The `default:` branch of `drm_response_log_density()`
   (`src/drm_response_kernels.h`) now calls `error()` instead of silently
   returning `Type(0.0)` (a likelihood contribution of 1) for an unhandled
   `model_type`. Every current call site is reachable-safe, so this is a
   guard against the next family wired into an `mi()` two-point sum before
   its case is added here, not a fix to an observable behaviour today.
-  Credit: the independent evaluation by Russell Dinnage
-  (rdinnager/drmTMB_eval), finding Mi-9.
+
 
 Version bump only -- tagging, release and CRAN submission remain the
 maintainer's ceremonies. This heading summarizes, at a glance, the
@@ -420,21 +355,20 @@ maintainer's ceremonies. This heading summarizes, at a glance, the
 section below:
 
 * `engine = "julia"` masked-response fits: the `is_converged()` and
-  bootstrap defects are fixed upstream in DRM.jl (#646).
+  bootstrap defects are fixed upstream in DRM.jl.
 * `engine = "julia"` bridge-side profile/bootstrap inference is qualified
-  (G3) on two routes: `base_gaussian_location_scale` and
+  on two routes: `base_gaussian_location_scale` and
   `plain_binomial_nonphylo`.
 * `engine = "julia"` admits `beta_binomial()` and `cumulative_logit()` on
   fixed-effect routes, and `predict()` on `cumulative_logit()` Julia fits
   now matches `engine = "tmb"`.
-* REML support is tabled by route and measured across both engines
-  (#1142), and `drm_julia_reml_supported()` now also covers
-  Location-Scale-Scale `sd(...)` models, promoting Capability Row 12
-  (`location_scale_scale`) from `partial` to `covered` (DRM.jl #558).
+* REML support is tabled by route and measured across both engines, and
+  `drm_julia_reml_supported()` now also covers Location-Scale-Scale `sd(...)`
+  models, promoting the location-scale-scale route from `partial` to
+  `covered`.
 
 See the 0.7.0 section immediately below for the full, measured detail on
 every item above.
-
 # drmTMB 0.7.0
 
 ## `engine = "julia"` control surface: no silent drops, boundary made permanent (leaf-engine-control-surface)
