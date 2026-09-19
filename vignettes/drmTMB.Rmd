@@ -30,16 +30,18 @@ if (!"package:drmTMB" %in% search()) {
 }
 </style>
 
-`drmTMB` fits distributional regression models for one or two responses. This
-introduction explains the model components, fits a first model, and shows how
-to interpret it. If you only need to find a function or tutorial, use the
-shorter [Get started function map](https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.html).
+`drmTMB` fits distributional regression models for one or two responses. Start
+here if you have one response and want to ask whether predictors change its
+average, its residual variability, or both. This article fits a small Gaussian
+model, explains the output, and shows what to check before interpretation.
 
 The central workflow is simple: write one formula for each parameter you want
-to estimate, then check that the fitted model matches the symbolic model you had
-in mind. The broader implemented map lives in
-[What can I fit today?](model-map.html), and family choice lives in
-[Choosing response families](distribution-families.html).
+to estimate, fit the simplest model that answers the question, and check the
+fit before interpreting it. If you instead have a phylogenetic tree, begin
+with [Phylogenetic mixed models](phylogenetic-models.html). If your response is
+an effect size with known sampling variance or covariance, begin with
+[Mean effects and residual heterogeneity](meta-analysis.html). The broader
+map, including other response types, is [What can I fit today?](model-map.html).
 
 The parameter names stay consistent across the site. Location is a
 family-specific centre or location parameter; for Gaussian models it is the
@@ -129,43 +131,23 @@ variances, read [When variance carries signal, Part
 2](location-scale-scale.html) when predictors model a grouped or
 phylogenetic random-effect SD through `sd()`.
 
-## Learning path
+## Choose your next guide
 
-Start with the question you want to answer, not with the full list of features.
-The tutorials are arranged so that each article pairs symbolic equations, R
-syntax, fitted output, and interpretation.
+The first fit above is the right next step when your response is continuous and
+you want to model its average and residual variation. Choose another guide only
+when your data require it.
 
-The opening rows below follow the Get started menu: check the reporting
-boundary, choose a family, find the smallest useful function sequence, and
-then check the fitted model. The remaining rows route common modelling and
-diagnostic questions to the matching guide.
-
-| If your question is... | Read this first | Main parameter |
+| If your question is... | Continue with | Key distinction |
 | --- | --- | --- |
-| Can I fit this model, report its point estimate or interval, and what should I try if I cannot? | [Can I fit and report this model?](capability-and-limits.html) | reporting scope and named fallback |
-| Which family fits my response — continuous, count, proportion, or robust? | [Choosing response families](distribution-families.html) | family-specific `mu`, `sigma`, `nu`, `zi`, `hu` |
-| I know my task but not which function or shortest workflow to use. | [Function map and cheat sheet](https://itchyshin.github.io/drmTMB/articles/function-map-cheatsheet.html) | task-to-function route and minimal workflow |
-| After fitting, which checks and interval-status columns should I read? | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) | `check_drm()`, `profile_targets()`, `conf.status` |
-| How do I profile a random-effect SD and know when not to trust the interval? | [First-week intervals: fit, profile, and boundary](first-week-intervals.html) | `profile_targets()`, `confint(method = "profile")`, `profile.boundary` |
-| Am I modelling residual variation, group-level variation, or likelihood weights? | [Which scale are you modelling?](which-scale.html) | `sigma`, `sd(group)`, `weights` |
-| Do group or phylogenetic covariance rows answer a bivariate question beyond residual coupling? | [What can I fit today?](model-map.html) | `corpairs()`, `corpair()`, `sd1(group, level = "phylogenetic")`, `sd2(group, level = "phylogenetic")` |
-| Do predictors change the mean and residual variability of one response? | [When variance carries signal, Part 1](location-scale.html) | `mu`, `sigma` |
-| Do predictors change residual variability and the SD of a grouped or phylogenetic random effect? | [When variance carries signal, Part 2](location-scale-scale.html) | `mu`, `sigma`, `sd(group)` |
-| Do counts show extra-Poisson variation or structural zeros? | [Count abundance and extra zeros](count-nbinom2.html) | NB2 `mu`, `sigma`, `zi` |
-| Are proportions successes out of trials, continuous rates inside `(0, 1)`, or continuous rates with structural exact boundaries? | [Proportions and success rates](proportion-beta-binomial.html) | beta-binomial, beta, and zero-one beta `mu`, `sigma`, `zoi`, `coi` |
-| Does a predictor change residual coupling between two responses? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` |
-| Do repeated individuals have correlated average responses after accounting for residual coupling? | [Changing residual coupling with rho12](bivariate-coscale.html) | `corpairs(level = "group")` |
-| Do effect sizes have known sampling variances or covariance? (a specialist route, not a family choice for raw response data) | [Mean effects and residual heterogeneity in meta-analysis](meta-analysis.html) | `meta_V(V = V)`, `sigma` (implemented/tested; tier unregistered, with no interval or coverage claim) |
-| Do species trait means remain similar after accounting for shared ancestry, do sites share coordinate-structured deviations, or do individuals have known relatedness? | [Structural dependence overview](structural-dependence.html) | `animal()`, `phylo()`, `spatial()`, `relmat()` |
-| I have more than one candidate fit — which one should I report? | [Model selection with AIC and BIC](model-selection.html) | `AIC()`, `BIC()` |
-| Is the fitted distribution itself adequate, not just the mean structure? | [Distributional outputs and adequacy](https://itchyshin.github.io/drmTMB/articles/distributional-outputs-and-adequacy.html) | `worm_plot()`, `qq_plot()`, `centile_chart()` |
-| The optimizer did not converge cleanly — what do I check? | [Errors, warnings, and convergence](convergence.html) | `optimizer_convergence`, `fixed_gradient` |
-| My fit is slow or memory-heavy — how do I keep fitting at this scale? | [Working with large data](large-data.html) | `keep_data`, `keep_model_frame`, `se = FALSE`, `se_group_sd` |
+| Which response family fits continuous, count, proportion, robust, or zero-heavy data? | [Choosing response families](distribution-families.html) | A family determines what `mu`, `sigma`, and any extra parameters mean. |
+| Do related species, sites, animals, or a supplied relationship matrix share deviations? | [Structural dependence overview](structural-dependence.html) | A structured deviation is not the same as residual variation or residual correlation. |
+| Do two responses remain associated after their means and residual SDs are modelled? | [Changing residual coupling with rho12](bivariate-coscale.html) | `rho12` is residual coupling, not a correlation among groups or species. |
+| Do effect sizes come with known sampling variances or covariance? | [Mean effects and residual heterogeneity](meta-analysis.html) | This is a Gaussian known-variance analysis, not a family for raw observations. |
+| Is an estimate or interval safe to report? | [Can I fit and report this model?](capability-and-limits.html) | A model that fits can still have weak diagnostics or unsupported uncertainty. |
 
-Here `nu` is a shape parameter, `zi` and `hu` are zero-process parameters, and
-`sd(group)` refers to a group-level random-effect standard deviation rather than
-the residual scale `sigma`. Use the model guide "What can I fit today?" when you
-need the longer status map before choosing syntax.
+Use [What can I fit today?](model-map.html) only when you need a compact
+route-and-limitation map. For any model, run `check_drm()` before interpreting
+coefficients or intervals.
 
 For a first applied analysis, fit the simplest model that answers the question,
 run `check_drm()`, and then read the coefficient table on the parameter scale

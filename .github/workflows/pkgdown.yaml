@@ -48,18 +48,16 @@ jobs:
           needs: website
 
       - name: Build site
-        run: pkgdown::build_site(new_process = FALSE, install = FALSE)
-        shell: Rscript {0}
+        run: Rscript tools/build-pkgdown.R
+
+      - name: Verify public documentation surface
+        run: Rscript tools/check-pkgdown-public-surface.R pkgdown-site
 
       - name: Fix favicon MIME markup
         run: Rscript tools/fix-pkgdown-favicon-mime.R pkgdown-site
 
       - name: Fix reference example alt text
         run: Rscript tools/fix-pkgdown-reference-alt.R pkgdown-site
-
-      - name: Strip internal-only pages
-        continue-on-error: true
-        run: Rscript tools/strip-pkgdown-internal-pages.R pkgdown-site
 
       - uses: actions/upload-pages-artifact@v5.0.0
         with:

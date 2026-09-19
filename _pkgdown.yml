@@ -17,9 +17,6 @@ template:
 development:
   mode: default
 
-redirects:
-  - ["ROADMAP.html", "articles/capability-and-limits.html"]
-
 navbar:
   structure:
     left: [intro, reference, model_guides, tutorials, diagnostics, developer, news]
@@ -43,8 +40,6 @@ navbar:
       menu:
         - text: What can I fit today?
           href: articles/model-map.html
-        - text: Detailed implementation status
-          href: articles/implementation-map.html
         - text: Which scale are you modelling?
           href: articles/which-scale.html
         - text: Choosing response families
@@ -108,6 +103,8 @@ navbar:
     developer:
       text: Developer Notes
       menu:
+        - text: Detailed model map for contributors
+          href: articles/implementation-map.html
         - text: Formula grammar
           href: articles/formula-grammar.html
         - text: Adding families
@@ -254,7 +251,6 @@ articles:
       - which-scale
       - distribution-families
       - model-map
-      - implementation-map
       - model-selection
       - missing-data
   - title: Location and Scale
@@ -300,6 +296,7 @@ articles:
       - articles/simulation-plot-grammar
   - title: Developer Notes
     contents:
+      - implementation-map
       - formula-grammar
       - adding-families
       - source-map

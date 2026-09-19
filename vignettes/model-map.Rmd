@@ -21,14 +21,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 }
 </style>
 
-This guide is the user-facing status map for `drmTMB`. It is not a worked
-tutorial. Use it when you want to know whether a model is implemented, which
-article to read next, and which syntax belongs to the current package rather
-than the roadmap.
-
-If you have not fit a model yet, begin with
-[Distributional regression with drmTMB](drmTMB.html), then return here when you
-need the implemented-versus-planned boundary.
+Use this guide to choose a route from your scientific question. It is not a
+tutorial: each linked guide gives the data setup, runnable example, and
+interpretation. If you have not fit a model yet, begin with the route that
+matches your data below.
 
 The main design rule is one formula per distributional parameter. For one
 response, the most common parameters are the location `mu`, the residual scale
@@ -39,55 +35,25 @@ Equivalently, `mu` is the location term, `sigma` is the scale term,
 family-specific parameters such as Student-t `nu` are shape terms, and
 coscale means a residual-correlation parameter such as bivariate `rho12`.
 
-Use this guide as the landing page when you are deciding which article to read
-next. The quick rule is: use the worked tutorials for a fitted analysis, use
-the model guides for vocabulary and implemented-versus-planned status, and use
-the reference pages when you already know the function name.
-For a finer table of random-effect types, dependence layers, q, random slopes,
-`corpairs()`, `zi`, and `hu`, use the
-[implementation map](implementation-map.html).
+## Choose a route
 
-Start from the scientific question, then move to syntax and interpretation.
-This keeps planned features from looking like fitted routes.
-
-| If your question is... | Fit now | Interpret as | Planned neighbour |
+| If your data and question are... | Eligible route | Key limitation | Next guide |
 | --- | --- | --- | --- |
-| Do predictors change the expected response? | `mu ~ x` or `mu1 = y1 ~ x`, `mu2 = y2 ~ x` | location effects on the response mean or expected value | richer mixed-response bivariate families |
-| Do predictors change residual variability? | `sigma ~ z`; ordinary NB2, lognormal, and Gamma can add `sigma ~ z + (1 | id)` | residual scale on the family-specific scale, often `log(sigma)` | non-Gaussian `sigma` slopes and random effects outside those three intercept gates |
-| Do groups vary in average response or slopes? | `(1 | id)`, `(0 + x | id)`, or supported `(1 + x | id)` routes | ordinary group-level random effects in `mu` | correlated non-Gaussian slopes and broader p8/q8 endpoint variants |
-| Do related species, sites, animals, or known matrices structure `mu`? | `phylo()`, coordinate `spatial()`, `animal()`, or `relmat()` in fitted Gaussian routes; ordinary Poisson and NB2 also support one q=1 structured `mu` intercept-plus-one-slope term through the same marker families | latent structured deviations, separate from residual `rho12` | pure, multiple, or labelled count structured slopes and richer non-Gaussian structured routes beyond the exact ordinary Poisson/NB2 q=1 gate |
-| Do two responses remain correlated after their means and scales are modelled? | `rho12 ~ x` | residual coscale, not group or structured covariance | random effects in `rho12` |
-| Do extra zeros, exact boundaries, or hurdle probability vary with predictors? | fixed-effect `zi ~ x` or `hu ~ x` where supported; a truncated-NB2 hurdle can use one diagnostic-only q=1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; `zero_one_beta()` uses fixed-effect `zoi ~ x` and `coi ~ x`, plus exact point-fit-only ordinary `zoi ~ 1 + (1 | id)`, same-raw-symbol `zoi ~ x + (0 + x | id)`, `coi ~ 1 + (1 | id)`, or same-raw-symbol `coi ~ x + (0 + x | id)` q1 routes | probability-component fixed effects; the exact zero-one-beta atom gates support point recovery, not profiles, intervals, or coverage; sparse observed atoms or weak boundary-row predictor spread can weaken individual `coi` modes | random effects or structured dependence in `zi`, transformed/mismatched or broader atom slopes, joint atom effects, and `hu` routes beyond the exact q=1 `relmat()` intercept |
+| One response, and predictors may change its average or residual variability | Gaussian location-scale regression, then a family matched to the response | A family changes the meaning of `mu`, `sigma`, and any extra parameters. | [Distributional regression](drmTMB.html), then [Choosing response families](distribution-families.html) |
+| A continuous trait or response measured across related species, with a tree | Gaussian `phylo()` model | You need enough replication to distinguish tree-structured and residual variation. | [Phylogenetic mixed models](phylogenetic-models.html) |
+| Effect sizes with known sampling variances or covariance | Gaussian `meta_V(V = V)` model | It is not a response family for raw observations; check diagnostics before using uncertainty. | [Mean effects and residual heterogeneity](meta-analysis.html) |
+| Two responses measured together | Bivariate Gaussian model with response-specific means and scales | `rho12` is residual coupling, not a correlation among groups or species. | [Changing residual coupling with rho12](bivariate-coscale.html) |
+| Counts, proportions, excess zeros, or robust continuous data | An eligible fixed-effect response-family route | Do not add a random or structured term merely because the neighbouring family accepts one. | [Choosing response families](distribution-families.html) |
+| A tree, coordinates, pedigree, or known relationship matrix structures observations | A Gaussian structured-effect route | Structured deviations are distinct from residual variation and residual correlation. | [Structural dependence overview](structural-dependence.html) |
 
-The map hierarchy is: this page helps users choose a fitted route, the
-implementation map checks fitted-versus-planned boundaries, the source map
-points contributors to code and tests, and the validation-debt register records
-the evidence behind advertised surfaces.
+Before reporting an estimate or interval, run `check_drm()` and read
+[Can I fit and report this model?](capability-and-limits.html). For exact
+syntax at an advanced boundary, use the [implementation map](implementation-map.html).
 
-The Reference index is also part of the workflow. Post-fit helpers are grouped
-so that a reader can move from fitted models to summaries, predictions,
-uncertainty, and plots without guessing which functions are user-facing:
-
-| Reference group | Current user-facing functions | Use when... |
-| --- | --- | --- |
-| Model fitting and post-fit tools | `drmTMB()`, `check_drm()`, `summary()`, `confint()`, `profile_targets()`, `prediction_grid()`, `predict_parameters()`, `marginal_parameters()`, `fixef()`, `ranef()`, `sigma()`, `rho12()`, `corpairs()` | You need to fit, check, summarize, predict, or extract fitted quantities. |
-| Visualization | `plot_parameter_surface()`, `plot_corpairs()` | You already have a `predict_parameters()` or `corpairs()` table and want an optional `ggplot2` display of fitted estimates and any explicit interval columns. |
-
-Planned plotting helpers stay out of the Reference index until they are
-exported, documented, tested, and connected to a stable data contract.
-
-For Phase 17 visualization decisions, start from the table or extractor that
-matches the question before choosing a plot:
-
-| If you want to show... | Start from | Current display route | Check before styling |
-| --- | --- | --- | --- |
-| observed responses | the original analysis data | draw raw points or summaries on the observed-response scale | do not place raw response points on scale, correlation, or random-effect SD axes |
-| fitted `mu`, `sigma`, shape, or zero-inflation surfaces | `prediction_grid()` then `predict_parameters(conf.int = TRUE)` when Wald fixed-effect intervals are needed | `plot_parameter_surface()` for estimate surfaces and explicit interval bands, or your own `ggplot2` layers | `dpar`, `type`, `conf.status`, `conf.level`, and `interval_source` columns |
-| fitted random-effect SD surfaces | `prediction_grid()` then `predict_parameters(..., dpar = "sd(group)")`, optionally followed by `marginal_parameters()` | table first; custom plot only after residual `sigma` and random-effect SDs are separated | component `random-effect-sd-model`, group-level predictors, and interval status |
-| adjusted or empirical marginal summaries | `prediction_grid(..., margin = "empirical")` then `marginal_parameters()` | table first; custom plot only after the averaging rule is clear | focal variables, `by`, margin metadata, and weights rule |
-| residual, group-level, phylogenetic, or spatial correlations | `rho12()` or `corpairs()` | `plot_corpairs()` for explicit `corpairs()` tables; custom plots for planned layers | correlation layer, `conf.status`, `interval_source`, and whether the row is direct or derived |
-| fitted intervals | `predict_parameters(conf.int = TRUE)`, `confint()`, or `summary(conf.int = TRUE)` | interval table first; ribbons are drawn only from explicit interval columns | `conf.status`, `conf.level`, `profile.boundary`, `profile.message`, and `interval_source` |
-| diagnostics before interpretation | `check_drm()` | diagnostic table first; diagnostic plots remain planned | convergence, Hessian, boundary, design, and retained-object status |
+After fitting, start with `check_drm()`, then use `summary()`, `sigma()`,
+`rho12()`, or `corpairs()` according to the parameter you set out to estimate.
+Use an interval only when the fitted object reports a usable status for that
+specific quantity.
 
 | If the scientific phrase is... | It usually maps to... | Start here |
 | --- | --- | --- |
@@ -98,25 +64,11 @@ matches the question before choosing a plot:
 | pedigree, tree, coordinate, or known-matrix dependence | `animal()`, `phylo()`, `spatial()`, or `relmat()` depending on the source | [Structural dependence overview](structural-dependence.html) |
 | fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) |
 
-## Stable-core matrix
+## Advanced routes and limitations
 
-Use this matrix before treating a syntax pattern as available. "Stable" means a
-routine fitted surface with tests and user-facing documentation. "First slice"
-means the model fits, but only inside the stated boundary. "Opt-in control"
-means the feature is a hardening or large-data path, not a promise that every
-neighbouring model scales the same way. The evidence and debt ledger behind the
-matrix lives in `docs/design/34-validation-debt-register.md`.
-
-Read the status words this way:
-
-| Status word | Meaning for a fitted analysis |
-|---|---|
-| Stable | Routine fitted path with tests, diagnostics or interval status, and a reader-facing example or guide. |
-| Implemented, source-tested; ledger tier unregistered | The syntax and focused source tests exist, but no capability-ledger cell currently authorizes a stronger reader-facing maturity tier. |
-| First slice | Fitted and tested, but intentionally narrow; stay inside the named formula, family, and data-shape boundary. |
-| Opt-in control | Available for hardening, scalability, or memory control, but not a modelling guarantee for neighbouring surfaces. |
-| Planned or reserved | Public grammar or roadmap wording may exist, but `drmTMB()` should reject it or treat it as design-only until likelihood, tests, docs, and after-task evidence land. |
-| Unsupported or blocked | Do not use as analysis syntax; fit the nearest implemented model or follow the named fallback in [Can I fit and report this model?](capability-and-limits.html) before interpreting a richer structure. |
+The table below is for a reader who already knows the route they need. It gives
+the eligible syntax, the nearest important boundary, and the checks needed
+before reporting uncertainty. It is not a menu of features to combine.
 
 | Model surface | Status | Fitted today | Not yet | Interval and diagnostic status |
 |---|---|---|---|---|

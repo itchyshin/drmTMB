@@ -48,7 +48,7 @@ In ecology and evolution, this can ask whether the residual association between
 traits such as body mass and litter size differs among terrestrial, aquatic,
 and aerial lifestyles after modelling response-specific means and dispersion.
 
-## Equations for the implemented model
+## The bivariate Gaussian model
 
 For observation `i`, the implemented fixed-effect bivariate Gaussian model is:
 
@@ -118,11 +118,10 @@ Omega_i[2, 2] = sigma2_i^2
 Omega_i[1, 2] = Omega_i[2, 1] = rho12_i * sigma1_i * sigma2_i
 ```
 
-Implementation note: `drmTMB` internally evaluates residual correlations as
-`0.999999 * tanh(eta_rho12_i)`. The tiny multiplier keeps covariance
-matrices strictly positive definite near the boundaries. It is not a
-biological scaling factor, and it should not change how users interpret the
-model.
+To keep covariance matrices strictly positive definite near their boundaries,
+the fitted correlation is evaluated as
+`0.999999 * tanh(eta_rho12_i)`. This tiny safeguard is not a biological scaling
+factor and does not change how you interpret the model.
 
 The matching `drmTMB` syntax is:
 
@@ -187,7 +186,7 @@ drmTMB(
 )
 ```
 
-This expands internally to `mu1 = y1 ~ x1 + x2` and
+`mvbind()` is shorthand for `mu1 = y1 ~ x1 + x2` and
 `mu2 = y2 ~ x1 + x2`. Use explicit `mu1` and `mu2` formulas whenever the
 responses need different location predictors.
 
@@ -313,7 +312,7 @@ corpairs(fit_biv)[
 
 The `rho12` coefficients are fitted on the linear-predictor scale
 `eta_rho12`; the response transform is
-`rho12 = tanh(eta_rho12)` with the tiny internal guard described above. Use
+`rho12 = tanh(eta_rho12)` with the boundary safeguard described above. Use
 `rho12(fit)` to read them as residual correlations, and use `corpairs(fit)` to
 place residual `rho12` in a table that is ready to hold other correlation
 levels later. In this example, a positive coefficient for `disturbance` means
@@ -423,8 +422,8 @@ profile counterpart. Treat both as computed but not coverage-certified: no
 simulation study yet establishes their nominal coverage for a regression
 `rho12`. Fit `rho12 ~ 1` when you want the constant residual-correlation profile
 interval. That interval is finite and can be reported, but its coverage is not
-certified either: the current ledger has no committed bivariate fixed-effect
-CI-coverage study for this constant `rho12` cell.
+established: there is no bivariate fixed-effect confidence-interval coverage
+study for this constant `rho12` model.
 
 ```{r bivariate-coscale-rho12-curve, fig.width = 6, fig.height = 4, fig.cap = "Fitted residual `rho12` over disturbance after modelling response-specific means and residual SDs; the ribbon is a 95% Wald confidence interval computed for each supplied row (coverage not certified) and the dotted line marks zero residual correlation.", fig.alt = "Line plot of fitted residual rho12 correlation over disturbance with a pale 95 percent Wald confidence ribbon and a dotted zero line, increasing from negative to positive values and crossing zero near average disturbance."}
 rho_grid <- data.frame(
@@ -746,7 +745,7 @@ These targets are separate from residual `rho12`. Returned diagnostic profile
 rows include `profile.boundary` and `profile.message`; a non-`"ok"` message is a
 prompt to inspect `check_drm(fit)` and the profile path.
 
-## First slope-slope covariance slice
+## Slope-slope covariance
 
 The first ordinary bivariate random-slope route asks a narrower
 plasticity-syndrome question: do individuals with steeper response-1 slopes
@@ -797,14 +796,12 @@ Hessian, and boundary checks.
 This slope-only route deliberately excludes random intercepts from the same
 labelled bivariate block. If the scientific question needs baseline
 individual differences and slope differences in the same two-response block,
-matching q4 and q6 location blocks are now source-tested with syntax such as
-`(1 + x | p | id)` or `(1 + x + z | p | id)` in both location formulas. Treat
-those routes as fitted extractor/profile-target slices rather than a full
-tutorial or broad simulation claim. Matching q2 `sigma1`/`sigma2` scale-slope
-blocks and same-response q2 `mu`/`sigma` slope covariance are now fitted as
-their own routes. The first ordinary q8 all-endpoint block has opt-in
-smoke/recovery artifact tasks; broader p8/q8 variants and coverage or power
-claims remain planned.
+matching location blocks can use syntax such as `(1 + x | p | id)` or
+`(1 + x + z | p | id)` in both location formulas. Those combinations are not
+developed as full teaching examples or broad simulation results. Matching
+`sigma1`/`sigma2` scale-slope blocks and same-response `mu`/`sigma` slope
+covariance are separate model combinations. Broader location-scale slope
+variants, and any coverage or power claims for them, are not yet available.
 
 ## Boundaries for this covariance layer
 
@@ -821,12 +818,9 @@ Other implemented ordinary bivariate random-intercept rows include
 `mu1`-`mu2` row, four mean-scale rows (`mu1`-`sigma1`, `mu1`-`sigma2`,
 `mu2`-`sigma1`, and `mu2`-`sigma2`), and one `sigma1`-`sigma2` row.
 
-The first ordinary bivariate slope-slope route is now the matching
-`(0 + x | p | id)` block in both `mu1` and `mu2`. The first ordinary q8
-all-endpoint block is available as a diagnostic artifact lane, not a tutorial
-or coverage claim. Broader p8/q8 location-scale slope variants, random effects
-in `rho12`, bivariate `meta_V()` plus random effects,
-mixed-response families, and ordinary spatial group-level covariance remain
-future work unless a later status map says otherwise. For phylogenetic
-covariance, use the structural-dependence tutorial and keep those rows
-separate from both ordinary group-level covariance and residual `rho12`.
+For a bivariate slope-slope model, use the matching `(0 + x | p | id)` block
+in both `mu1` and `mu2`. Random effects in `rho12`, bivariate `meta_V()` with
+random effects, mixed-response families, and ordinary spatial group-level
+covariance are not available in this tutorial. For phylogenetic covariance,
+continue to the structural-dependence tutorial and keep those rows separate
+from both ordinary group-level covariance and residual `rho12`.

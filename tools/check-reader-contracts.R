@@ -180,6 +180,31 @@ reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "ins
   source_vignettes <- sort(unique(names(source_paths)))
   problems <- character()
 
+  # These are reader-facing sources.  Keep the old companion-package spelling
+  # out of prose and setup instructions so new users are not sent to a retired
+  # project name or environment variable.
+  public_doc_paths <- c(
+    file.path(root, "README.md"),
+    file.path(root, "_pkgdown.yml"),
+    unname(source_paths)
+  )
+  public_doc_paths <- public_doc_paths[file.exists(public_doc_paths)]
+  retired_name_pattern <- "DRM[.]jl|DRM_JL_PATH|drmTMB[.]DRM[.]jl[.]path"
+  for (path in public_doc_paths) {
+    lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
+    hits <- grep(retired_name_pattern, lines, perl = TRUE)
+    if (length(hits)) {
+      problems <- c(
+        problems,
+        sprintf(
+          "Retired DRModels name in public documentation: %s:%s",
+          sub(paste0("^", root, "/?"), "", path),
+          paste(hits, collapse = ", " )
+        )
+      )
+    }
+  }
+
   ambiguous_names <- unique(names(source_paths)[duplicated(names(source_paths))])
   if (length(ambiguous_names)) {
     problems <- reader_contract_problem(

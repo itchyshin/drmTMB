@@ -32,7 +32,21 @@ parameter name.
 
 </details>
 
+## Reader decision path
+
+Use this three-step path when choosing and reporting a model:
+
+1. **What can the package fit?** Start with [What can I fit today?](model-map.html)
+   to choose a documented family, parameter, and dependence structure.
+2. **What are the important limits?** Use the exact reporting checks below
+   before treating a fitted value or interval as a scientific result.
+3. **Which tutorial comes next?** Follow the linked family, structured-effect,
+   bivariate, or missing-data tutorial after you have identified the route that
+   matches your question.
+
 ## Before reporting
+
+### Important limits
 
 Start with these four questions:
 
@@ -219,7 +233,7 @@ in one fit, or random/structured/zero-inflated response terms with `mi()`.
 Multivariate missing-predictor models and missing-data EM, profile, and REML
 methods are not available.
 
-## Important limitations and next steps
+## Important limits and next tutorial
 
 - A cumulative-logit random-slope method used in development is not exposed as
   a public reporting route. Use the ordinary public model only at the scope
@@ -234,6 +248,7 @@ methods are not available.
   structure, use fixed effects, or choose a family whose boundary behaviour
   matches the response. Do not present an exploratory fit as a calibrated one.
 
-The companion articles on distribution families, structured effects, bivariate
-models, and missing data provide worked examples. This page is deliberately a
-reporting guide: it tells you what to fit, what to report, and where to stop.
+Choose the next worked tutorial from [response families](distribution-families.html),
+[structured effects](structural-dependence.html), [bivariate models](bivariate-nongaussian.html),
+or [missing data](missing-data.html). This page is deliberately a reporting
+guide: it tells you what to fit, what to report, and where to stop.

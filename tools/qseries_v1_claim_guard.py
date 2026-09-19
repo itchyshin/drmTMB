@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Guard Q-Series v1.0 release wording against claim inflation.
 
-This is a developer helper for release prep. It checks that public/status files
-point to the generated Q-Series v1.0 release-status summary, and that obvious
-positive completion/support wording is absent from those files.
+This is a developer helper for release prep. It checks that contributor status
+files point to the generated Q-Series v1.0 release-status summary, and that
+obvious positive completion/support wording is absent from those files.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 STATUS_LINK = "docs/dev-log/release-audits/q-series-v1-release-status.md"
 STATUS_PATH = ROOT / STATUS_LINK
 STATUS_REFERENCE_PATHS = (
-    pathlib.Path("README.md"),
     pathlib.Path("docs/dev-log/internal-roadmap.md"),
     pathlib.Path("NEWS.md"),
     pathlib.Path("docs/dev-log/known-limitations.md"),
@@ -71,7 +70,6 @@ SUPPORT_CELLS_LINK = "docs/dev-log/dashboard/structured-re-q-series-support-cell
 # cells) is guarded first; extend the tuple as higher-q cells admit.
 CATALOG_REQUIRED_DIMENSION_PATTERNS = ("q12",)
 CATALOG_CAPABILITY_FILES = (
-    pathlib.Path("README.md"),
     pathlib.Path("docs/dev-log/internal-roadmap.md"),
 )
 

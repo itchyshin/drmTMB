@@ -1279,10 +1279,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_reader_navigation_redirect_and_public_language_contract(self):
         config = (ROOT / "_pkgdown.yml").read_text()
-        self.assertIn(
-            '- ["ROADMAP.html", "articles/capability-and-limits.html"]',
-            config,
-        )
+        self.assertNotIn("ROADMAP.html", config)
         intro = config.split("    intro:", 1)[1].split("    model_guides:", 1)[0]
         intro_pairs = re.findall(
             r"- text: ([^\n]+)\n\s+href: ([^\n]+)", intro
@@ -1335,17 +1332,19 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(capability_choice_entries.count("model-map"), 1)
         self.assertNotIn("articles/function-map-cheatsheet", capability_choice_entries)
 
-        learning_path = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
-            "## Learning path", 1
-        )[1]
+        next_guide = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
+            "## Choose your next guide", 1
+        )[1].split("## Check before interpreting", 1)[0]
         learning_links = (
-            "capability-and-limits.html",
             "distribution-families.html",
-            "function-map-cheatsheet.html",
-            "model-workflow.html",
+            "structural-dependence.html",
+            "bivariate-coscale.html",
+            "meta-analysis.html",
+            "capability-and-limits.html",
         )
-        learning_positions = [learning_path.index(link) for link in learning_links]
+        learning_positions = [next_guide.index(link) for link in learning_links]
         self.assertEqual(learning_positions, sorted(learning_positions))
+        self.assertIn("model-map.html", next_guide)
 
         design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
         vignette_stems = {
@@ -2025,11 +2024,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             "exact q1 `mu ~ phylo(1 | id, tree = tree)` intercept",
             surfaces["06-distribution-roadmap.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Tweedie and\n  skew-normal both fit ordinary unlabelled `mu` random intercepts",
             surfaces["README.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Ordinary\n  unlabelled `mu` random intercepts and independent numeric slopes are\n  recovery-grade",
             surfaces["README.md"],
         )
@@ -2064,10 +2063,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(stale, ordinal_combined)
         self.assertNotIn("skew-normal is a fixed-effect first slice", surfaces["README.md"])
-        self.assertIn(
-            "Every fitted univariate\nnon-Gaussian family has an ordinary recovery-grade `mu` random intercept and\nindependent numeric slope",
-            surfaces["README.md"],
-        )
+        self.assertIn("What can I fit today?", surfaces["README.md"])
+        self.assertIn("articles/model-map.html", surfaces["README.md"])
+        self.assertNotIn("ordinary recovery-grade `mu` random intercept", surfaces["README.md"])
         self.assertIn(
             "Can I fit and report this model?",
             surfaces["drmTMB.Rmd"],
@@ -2084,8 +2082,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["model-map.Rmd"],
         )
         self.assertNotIn("and non-Gaussian paths remain planned", surfaces["model-map.Rmd"])
+        self.assertIn("articles/model-map.html", surfaces["README.md"])
+        self.assertIn("Can I fit and report this model?", surfaces["README.md"])
         for name in (
-            "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
             "spatial-models.Rmd",
@@ -2095,7 +2094,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn("non-Gaussian spatial effects are still", surfaces[name])
             self.assertNotIn("non-Gaussian spatial effects, and", surfaces[name])
         for name in (
-            "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
             "spatial-models.Rmd",
@@ -2114,7 +2112,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             "gates outside the exact ordinary Poisson/NB2",
             surfaces["spatial-models.Rmd"],
         )
-        for name in ("README.md", "model-map.Rmd"):
+        self.assertNotIn(
+            "non-Gaussian phylogenetic slopes outside the exact",
+            surfaces["README.md"],
+        )
+        for name in ("model-map.Rmd",):
             self.assertIn(
                 "non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope gates",
                 surfaces[name],
@@ -2180,7 +2182,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "Exact q1 NB2 structured `sigma` intercept-plus-one-slope routes",
             surfaces["NEWS.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "exact q=1 NB2 structured `sigma` intercept-plus-one-slope routes",
             surfaces["README.md"],
         )
@@ -2211,7 +2213,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         phylo_surfaces = {
             name: " ".join(reader_vignette_path(name).read_text().split())
             for name in (
-                "phylogenetic-models.Rmd",
                 "phylogenetic-spatial.Rmd",
                 "structural-dependence.Rmd",
             )
@@ -2443,10 +2444,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for claim in (
             "Poisson has no residual `sigma` formula",
-            "NB2 overdispersion deviations",
-            "Student-t tail-weight deviations",
-            "cumulative-logit location deviations",
-            "unlabelled intercept plus one independent slope at recovery grade",
+            "NB2 instead has a modelled overdispersion `sigma`",
+            "One ordinary Poisson or NB2",
+            "For the complete syntax boundary, including unsupported combinations",
         ):
             self.assertIn(claim, phylo)
         self.assertNotIn("count families have no residual `sigma` formula", phylo)
@@ -2536,8 +2536,9 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ROOT / "vignettes/capability-and-limits.Rmd"
             ).read_text(),
         }
-        self.assertIn("Poisson slope-only `mu ~ spatial(0 + x", public["README"])
-        self.assertIn("Poisson `mu ~ spatial(1 | site", public["README"])
+        self.assertIn("What can I fit today?", public["README"])
+        self.assertIn("articles/model-map.html", public["README"])
+        self.assertNotIn("Poisson slope-only `mu ~ spatial(0 + x", public["README"])
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
         capability = " ".join(public["capability"].split())
@@ -2579,10 +2580,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         count = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
         self.assertIn("diagnostic-only probability-component", count)
         self.assertNotIn("recovery-grade probability-component", count)
-        count_surfaces = {
-            "README": public["README"],
-            "count source": count,
-        }
+        self.assertIn("articles/model-map.html", public["README"])
+        count_surfaces = {"count source": count}
         # Same rule as llms.txt above: the rendered article is a git-ignored pkgdown
         # build artifact; assert on it only when version-controlled, so a stale local
         # render cannot fail this ledger test. The tracked count source (asserted in the
