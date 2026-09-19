@@ -161,29 +161,14 @@ head(sigma(fit)^2) # fitted residual variances
 - **Event indicators or successes out of known trials.** Use native TMB
   `stats::binomial(link = "logit")` for event-probability models
   with 0/1 responses or `cbind(successes, failures)` counts when ordinary
-  binomial sampling variation is enough. Ordinary `mu` random intercepts and
-  independent numeric slopes are fitted first slices; only the exact
-  independent-slope design recorded in the capability ledger has
-  `inference_ready_with_caveats` coverage evidence. Use `beta_binomial()` with
+  binomial sampling variation is enough. Ordinary mean-model random intercepts
+  and independent slopes are available for a limited set of models. Use `beta_binomial()` with
   `cbind(successes, failures)` when the data need extra-binomial variation
-  through `sigma`. Public non-Gaussian REML is this binomial route only
-  (O2: `mc-0060` random intercept, `mc-0062` independent slope), and it is
-  diagnostic-only; use ML for scientific reporting. Every other
-  non-Gaussian family rejects `REML = TRUE`. The package-private AGHQ plus
-  Cox-Reid estimator (O3) is not what `drmTMB(REML = TRUE)` runs; public
-  cumulative-logit slopes (`mc-0227`) stay ML `point_fit_recovery`.
-  Fixed-only, multiple-term, correlated, labelled, structured, and
-  missing-response binomial REML routes are unavailable. Correlated or
-  labelled binomial random slopes, structured
-  effects, `sigma` formulas, and bivariate or mixed responses remain
-  unsupported. `engine = "julia"` fits fixed-effect-only
-  `stats::binomial(link = "logit")` and, with a large-p `phylo()` term,
-  mean-only phylogenetic binomial; non-phylogenetic binomial random
-  intercepts, slopes, or structured effects through `engine = "julia"` remain
-  unsupported. Ordinary
-  repeated-measure beta-binomial random intercepts in `mu` are fitted as a
-  first slice with syntax such as
-  `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`.
+  through `sigma`. Use ML for scientific reporting. `REML = TRUE` is otherwise
+  a Gaussian-model option. The optional Julia engine currently covers only
+  fixed-effect binomial examples, so keep the native R engine for binomial
+  random effects or structured dependence. A beta-binomial repeated-measures
+  model can use `bf(cbind(successes, failures) ~ x + (1 | id), sigma ~ z)`.
   Read
   [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
 - **Continuous proportions with structural exact 0 or 1 values.** Use
@@ -290,14 +275,14 @@ claim about every `g >= 1024`. Here family `sigma` controls
 SD. Phylogeny in family `sigma`, phylogenetic slopes or labels, direct
 latent-`sd()` regression, REML, intervals, and coverage remain unsupported.
 
-## Stable-core matrix
+## Start with stable routes
 
-Use this table when you need a quick status check before fitting a model.
-"Stable" means a routine fitted surface with tests and user-facing docs. "First
-slice" means fitted but intentionally narrow. "Opt-in control" means a
-hardening or large-data path, not a general modelling guarantee.
-The evidence and debt ledger behind these rows lives in
-`docs/design/34-validation-debt-register.md`.
+The package is strongest for the workflows illustrated in its articles. It is
+not a promise that every combination of response family, random effect,
+structured dependence, and inference method is ready for applied analysis.
+Use the [model map](https://itchyshin.github.io/drmTMB/articles/model-map.html)
+to choose a supported route, then read [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
+before relying on a more specialised model.
 
 Read status words consistently:
 
