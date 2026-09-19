@@ -32,17 +32,17 @@ out$result <- tryCatch({
   payload <- drm_julia_phylo_newick(tree)
   ord <- if(direct_order=="tree") order(match(d$species,payload$tip_order)) else seq_len(n)
   dd <- d[ord,,drop=FALSE]
+  JuliaCall::julia_eval("using DRModels, LinearAlgebra, StatsModels")
   JuliaCall::julia_assign("label_tree",payload$newick)
   for(nm in names(dd)) JuliaCall::julia_assign(paste0("label_",nm),dd[[nm]])
   direct <- JuliaCall::julia_eval('begin
-    using DRM, LinearAlgebra
     pt = augmented_phy(label_tree)
     pf = drm(bf(@formula(y ~ x + phylo(1 | species)), @formula(sigma ~ x), @formula(sd(species, phylogenetic) ~ z)), Gaussian();
         data=(y=label_y,x=label_x,z=label_z,species=label_species),tree=pt)
     Dict("mu"=>coef(pf,:mu),"sigma"=>coef(pf,:sigma),"sd_phylo"=>coef(pf,:sd_phylo),
       "loglik"=>loglik(pf),"fitted"=>fitted(pf),"converged"=>is_converged(pf),
-      "labels"=>pt.leaf_names,"covariance"=>DRM.sigma_phy_dense(pt),
-      "julia"=>string(VERSION),"threads"=>Threads.nthreads(),"blas"=>BLAS.get_num_threads(),"source"=>pathof(DRM))
+      "labels"=>pt.leaf_names,"covariance"=>DRModels.sigma_phy_dense(pt),
+      "julia"=>string(VERSION),"threads"=>Threads.nthreads(),"blas"=>BLAS.get_num_threads(),"source"=>pathof(DRModels))
   end')
   pull <- function(f) list(mu=unname(coef(f,"mu")),sigma=unname(coef(f,"sigma")),
      sd_phylo=unname(coef(f,if(inherits(f,"drmTMB_julia"))"sd_phylo" else "sd_phylo(species)")),
@@ -63,7 +63,7 @@ out$result <- tryCatch({
     bridge_parity=all(bridge_diff<=4e-6),
     rows=max(abs(fitted(bridge)-direct$fitted[order(ord)]))<1e-8,
     converged=all(vapply(fits,function(f)isTRUE(f$converged),TRUE)),
-    source=normalizePath(direct$source)==file.path(jroot,"src","DRM.jl"))
+    source=normalizePath(direct$source)==file.path(jroot,"src","DRModels.jl"))
   list(status=if(all(checks)) "PASS" else "FAIL",checks=as.list(checks),labels=labels,
        payload=payload,data=d,permutation=ord,direct_order=direct_order,outputs=fits,
        bridge_fitted=unname(fitted(bridge)),native_correlation=unname(K),

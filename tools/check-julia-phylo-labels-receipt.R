@@ -340,10 +340,10 @@ validate_receipt <- function(receipt, current = FALSE, rroot = NULL) {
   expect(identical(direct$labels, tip_order), "direct labels differ from payload tip_order")
   expect(identical(direct$threads, 1) && identical(direct$blas, 1),
          "direct receipt must use one Julia and one BLAS thread")
-  drm_sources <- names(source_before)[grepl("/src/DRM[.]jl$", names(source_before))]
-  expect(length(drm_sources) == 1L, "source manifest must identify exactly one Julia DRM.jl")
+  drm_sources <- names(source_before)[grepl("/src/DRModels[.]jl$", names(source_before))]
+  expect(length(drm_sources) == 1L, "source manifest must identify exactly one Julia DRModels.jl")
   expect(identical(normalizePath(direct$source, mustWork = FALSE), normalizePath(drm_sources, mustWork = FALSE)),
-         "direct source path is not the exact DRM.jl recorded in the manifest")
+         "direct source path is not the exact DRModels.jl recorded in the manifest")
   direct_covariance <- numeric_matrix(field(direct_raw, "covariance", "result$outputs$direct"),
     "result$outputs$direct$covariance", p, p)
   expect(max_abs(direct_covariance - tree$covariance) <= 1e-12,

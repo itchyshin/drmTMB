@@ -1,0 +1,3 @@
+| Date | Slice | Evidence | Boundary |
+| --- | --- | --- | --- |
+| 2026-09-18 | D-269 phylogenetic-label receipt recertification after DRModels rename | Regenerated `public-001.json` and raw log from `DRModels.jl` `90fbb0e28306fa09a68dc2b03d74c981a74fe908` using Julia 1.13.0: workflow PASS in 38.454 seconds; independent verifier passed 12 mutation-rejection controls and the 12-label/72-row/8-check receipt; `ci-receipt-staleness.sh` reports 54/54 R and 95/95 DRModels-side entries current. | This refresh proves this one shuffled-row Gaussian phylogenetic LSS receipt against the merged renamed package. It does not run a full R check, alter C17, change the model API, release software, or deploy pages. See ../after-task/2026-09-18-d269-phylo-receipt-recert.md. |
