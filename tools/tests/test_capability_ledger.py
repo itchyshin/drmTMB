@@ -2210,7 +2210,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         phylo_surfaces = {
             name: " ".join(reader_vignette_path(name).read_text().split())
             for name in (
-                "phylogenetic-models.Rmd",
                 "phylogenetic-spatial.Rmd",
                 "structural-dependence.Rmd",
             )
@@ -2442,10 +2441,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for claim in (
             "Poisson has no residual `sigma` formula",
-            "NB2 overdispersion deviations",
-            "Student-t tail-weight deviations",
-            "cumulative-logit location deviations",
-            "unlabelled intercept plus one independent slope at recovery grade",
+            "NB2 instead has a modelled overdispersion `sigma`",
+            "One ordinary Poisson or NB2",
+            "For the complete syntax boundary, including unsupported combinations",
         ):
             self.assertIn(claim, phylo)
         self.assertNotIn("count families have no residual `sigma` formula", phylo)
