@@ -2533,8 +2533,9 @@ class CapabilityLedgerTests(unittest.TestCase):
                 ROOT / "vignettes/capability-and-limits.Rmd"
             ).read_text(),
         }
-        self.assertIn("Poisson slope-only `mu ~ spatial(0 + x", public["README"])
-        self.assertIn("Poisson `mu ~ spatial(1 | site", public["README"])
+        self.assertIn("What can I fit today?", public["README"])
+        self.assertIn("articles/model-map.html", public["README"])
+        self.assertNotIn("Poisson slope-only `mu ~ spatial(0 + x", public["README"])
         self.assertIn("ten Q-Series v1.0 rows", public["ROADMAP"])
         self.assertIn("ten row-specific\n  diagnostic-only gates", public["NEWS"])
         capability = " ".join(public["capability"].split())
