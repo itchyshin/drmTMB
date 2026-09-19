@@ -2024,11 +2024,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             "exact q1 `mu ~ phylo(1 | id, tree = tree)` intercept",
             surfaces["06-distribution-roadmap.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Tweedie and\n  skew-normal both fit ordinary unlabelled `mu` random intercepts",
             surfaces["README.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "Ordinary\n  unlabelled `mu` random intercepts and independent numeric slopes are\n  recovery-grade",
             surfaces["README.md"],
         )
@@ -2063,10 +2063,9 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(stale, ordinal_combined)
         self.assertNotIn("skew-normal is a fixed-effect first slice", surfaces["README.md"])
-        self.assertIn(
-            "Every fitted univariate\nnon-Gaussian family has an ordinary recovery-grade `mu` random intercept and\nindependent numeric slope",
-            surfaces["README.md"],
-        )
+        self.assertIn("What can I fit today?", surfaces["README.md"])
+        self.assertIn("articles/model-map.html", surfaces["README.md"])
+        self.assertNotIn("ordinary recovery-grade `mu` random intercept", surfaces["README.md"])
         self.assertIn(
             "Can I fit and report this model?",
             surfaces["drmTMB.Rmd"],
@@ -2083,8 +2082,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["model-map.Rmd"],
         )
         self.assertNotIn("and non-Gaussian paths remain planned", surfaces["model-map.Rmd"])
+        self.assertIn("articles/model-map.html", surfaces["README.md"])
+        self.assertIn("Can I fit and report this model?", surfaces["README.md"])
         for name in (
-            "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
             "spatial-models.Rmd",
@@ -2094,7 +2094,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertNotIn("non-Gaussian spatial effects are still", surfaces[name])
             self.assertNotIn("non-Gaussian spatial effects, and", surfaces[name])
         for name in (
-            "README.md",
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
             "spatial-models.Rmd",
@@ -2113,7 +2112,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             "gates outside the exact ordinary Poisson/NB2",
             surfaces["spatial-models.Rmd"],
         )
-        for name in ("README.md", "model-map.Rmd"):
+        self.assertNotIn(
+            "non-Gaussian phylogenetic slopes outside the exact",
+            surfaces["README.md"],
+        )
+        for name in ("model-map.Rmd",):
             self.assertIn(
                 "non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope gates",
                 surfaces[name],
@@ -2179,7 +2182,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             "Exact q1 NB2 structured `sigma` intercept-plus-one-slope routes",
             surfaces["NEWS.md"],
         )
-        self.assertIn(
+        self.assertNotIn(
             "exact q=1 NB2 structured `sigma` intercept-plus-one-slope routes",
             surfaces["README.md"],
         )
@@ -2577,10 +2580,8 @@ class CapabilityLedgerTests(unittest.TestCase):
         count = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
         self.assertIn("diagnostic-only probability-component", count)
         self.assertNotIn("recovery-grade probability-component", count)
-        count_surfaces = {
-            "README": public["README"],
-            "count source": count,
-        }
+        self.assertIn("articles/model-map.html", public["README"])
+        count_surfaces = {"count source": count}
         # Same rule as llms.txt above: the rendered article is a git-ignored pkgdown
         # build artifact; assert on it only when version-controlled, so a stale local
         # render cannot fail this ledger test. The tracked count source (asserted in the
