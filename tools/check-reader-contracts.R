@@ -11,8 +11,7 @@ reader_contract_private_fields <- c(
 
 reader_contract_contributor_permissions <- c(
   "adding-families.Rmd" = "opt",
-  "testing-likelihoods.Rmd" = "model",
-  "source-map.Rmd" = "model"
+  "testing-likelihoods.Rmd" = "model"
 )
 
 reader_contract_contributors <- names(reader_contract_contributor_permissions)
