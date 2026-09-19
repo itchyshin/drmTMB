@@ -99,12 +99,9 @@ recover the familiar `tau^2` simply by squaring `sigma`. The marker
 `meta_V()` puts the *known* variance into the likelihood; `sigma` estimates the
 *unknown* variance that is left over.
 
-This is an implemented, source-tested interface and the example below checks
-its ML fit against `metafor`. It does **not** currently have a registered
-`meta_V()` capability-ledger cell, so this tutorial does not assign it an
-evidence tier or make an interval-coverage claim. Treat fitted-model intervals
-as the methods returned by the current fit, and state their source when
-reporting them.
+The example below compares an ML fit with `metafor`. It does **not** establish
+the coverage of confidence intervals. Treat any interval as the method returned
+by this fit, and name that method when reporting it.
 
 ## A simulated dataset
 
@@ -337,7 +334,7 @@ least one study with repeated rows; a data set with exactly one row per study is
 the single-level model shown above, where `sigma` alone represents
 between-study heterogeneity.
 
-## Layered heterogeneity: an experimental contract
+## Layered heterogeneity: use cautiously
 
 When repeated effects are nested in studies, three SD layers answer different
 questions: known sampling uncertainty in `meta_V(V = V)`, residual
@@ -369,14 +366,13 @@ drmTMB(
 )
 ```
 
-These formulas are an **experimental local-contract surface**, not a claim of
-calibrated inference. In the Arc 7B local sentinel, the dense-`V` LSS study-SD
+These layered formulas are for exploratory fitting, not for calibrated
+interval-based conclusions. In a small dense-`V` example, study-level SD
 profiles had non-finite endpoints despite a positive-definite Hessian. Before
-using these layered fits for interval-based conclusions, inspect every profile
-target and consult the current development evidence. A random term in `sigma`,
-such as `sigma ~ z + (1 | study)`, is a different double-hierarchical model: it
-models variation in residual SD, not variation in the SD of the location random
-effect.
+using a layered fit for an interval-based conclusion, inspect every requested
+profile target. A random term in `sigma`, such as `sigma ~ z + (1 | study)`, is
+a different double-hierarchical model: it models variation in residual SD, not
+variation in the SD of the location random effect.
 
 ## Known sampling variance is not a weight
 

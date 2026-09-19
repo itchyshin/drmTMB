@@ -1,8 +1,8 @@
 ---
-title: "Choose a supported model"
+title: "Detailed model map for contributors"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Choose a supported model}
+  %\VignetteIndexEntry{Detailed model map for contributors}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -28,18 +28,17 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 }
 </style>
 
-This page helps you choose a `drmTMB` model without treating every possible
-combination of family, distributional parameter, and dependence structure as
-equally established. Start with the scientific question, follow the matching
-worked guide, and then check the exact reporting scope before interpreting an
-interval or a specialised random effect.
+This is a contributor reference for the detailed combinations of family,
+distributional parameter, and dependence structure currently described by
+`drmTMB`. It preserves the exact boundaries behind the public guides; it is not
+the starting point for choosing an analysis.
 
-For a compact overview of currently fitted syntax, see
-[What can I fit today?](model-map.html). For the evidence and reporting boundary
-of a particular estimate, use
-[Can I fit and report this model?](capability-and-limits.html).
+To choose an analysis, begin with [What can I fit today?](model-map.html), then
+use [Can I fit and report this model?](capability-and-limits.html) for the
+reporting boundary and its next-tutorial links. Return here when maintaining
+documentation or checking the exact public scope of a specialised combination.
 
-## Build the model in four choices
+## How this reference is organised
 
 1. **Choose the response family.** Match the support and measurement process:
    continuous, positive, count, proportion, success/trial, ordinal, or two

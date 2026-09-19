@@ -31,62 +31,25 @@ The design rule is that larger `sigma` should mean larger modelled
 variability, even when another package or textbook writes the same likelihood
 with a precision parameter such as `phi` or `theta`.
 
-<div class="drmtmb-first-actions" role="navigation" aria-label="First actions">
-  <p class="drmtmb-first-actions__eyebrow">A clear first path</p>
-  <p class="drmtmb-first-actions__primary"><a href="https://itchyshin.github.io/drmTMB/articles/location-scale.html">Fit a Gaussian location-scale model</a></p>
-  <p class="drmtmb-first-actions__secondary">Before reporting, check <a href="https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html">Can I fit and report this?</a> <span aria-hidden="true">·</span> Prefer to work directly in Julia? Open the optional <a href="https://github.com/itchyshin/DRModels.jl">DRModels.jl companion (formerly DRM.jl)</a>.</p>
-</div>
+## Start with your scientific question
 
-## Start here
+Choose one route. Each begins with a runnable example and tells you what to
+check before interpreting the result.
 
-- New to the package? Read
-  [Getting started](https://itchyshin.github.io/drmTMB/articles/drmTMB.html).
-- Before choosing syntax or reporting an estimate, read
-  [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
-  It distinguishes a fitted route from a point estimate or interval that has
-  evidence for reporting, and names a simpler fallback where one is needed.
-- Need the syntax available for a particular family? Use
-  [What can I fit today?](https://itchyshin.github.io/drmTMB/articles/model-map.html)
-  and then the [implementation map](https://itchyshin.github.io/drmTMB/articles/implementation-map.html)
-  for technical detail.
-- Not sure which response family fits your data? Use
-  [Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
-- Unsure whether you are modelling residual variation, group variation, or
-  known sampling uncertainty? Read
-  [Which scale are you modelling?](https://itchyshin.github.io/drmTMB/articles/which-scale.html).
-- Fitting a bivariate Gaussian model? See
-  [Changing residual coupling with `rho12`](https://itchyshin.github.io/drmTMB/articles/bivariate-coscale.html).
-- Working with effect sizes or study-level sampling uncertainty? See
-  [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html).
-- Need a one-screen family × dpar × RE × interval-tier skim? Read
-  [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
-- First-week uncertainty path (fit → profile an RE-SD → read `profile.boundary`)?
-  See
-  [First-week intervals](https://itchyshin.github.io/drmTMB/articles/first-week-intervals.html).
-- Checking a fitted model? See
-  [Model workflow](https://itchyshin.github.io/drmTMB/articles/model-workflow.html)
-  and the [`check_drm()` reference](https://itchyshin.github.io/drmTMB/reference/check_drm.html).
+| If your data and question are... | Start here | Important limit |
+| --- | --- | --- |
+| One response, and predictors may change its average or residual variability | [Distributional regression with drmTMB](https://itchyshin.github.io/drmTMB/articles/drmTMB.html) | Begin with the simplest response family that matches the data; a successful fit still needs `check_drm()`. |
+| A trait or response measured across related species, with a tree | [Phylogenetic mixed models](https://itchyshin.github.io/drmTMB/articles/phylogenetic-models.html) | The first worked route is Gaussian and needs repeated observations within species to separate phylogenetic from residual variation. |
+| One Gaussian response measured at named sites with coordinates | [Coordinate-spatial structured effects](https://itchyshin.github.io/drmTMB/articles/spatial-models.html) | Start with a coordinate-spatial location intercept. Repeated observations within sites are needed to separate site-level spatial variation from residual variation; range and interval claims are not established by this first route. |
+| Effect sizes with known sampling variances or covariance | [Mean effects and residual heterogeneity](https://itchyshin.github.io/drmTMB/articles/meta-analysis.html) | This is a Gaussian known-variance route, not a response-family choice for raw observations. |
 
-## Release status
+For a count, proportion, zero-heavy, robust, bivariate, spatial, pedigree, or
+known-matrix analysis, use [What can I fit today?](https://itchyshin.github.io/drmTMB/articles/model-map.html)
+to find the relevant guide. Before reporting an estimate or interval, read
+[Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
 
-This documentation describes `drmTMB` 0.7.1, the current pre-CRAN version.
-
-`drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
-documentation was built, it had not yet been submitted to or accepted by
-CRAN. The package remains intentionally bounded: use it for the implemented
-one-response and two-response workflows listed below, and treat unsupported
-model classes as future work rather than hidden features.
-
-The first CRAN release is targeted at **0.7.0**, not 1.0 — an honest reflection
-that much of the family and inference surface is still scaffolded or
-recovery-grade. "v1.0" throughout the dev-log denotes the later
-complete-capability maturity milestone. The contributor-facing
-[Q-Series release status](https://github.com/itchyshin/drmTMB/blob/main/docs/dev-log/release-audits/q-series-v1-release-status.md)
-ledger tracks that milestone: it separates implemented/basic-working Gaussian
-structured-effect rows and basic-distribution recovery rows from post-v1.0
-`inference_ready` and `supported` validation. It is a release-planning ledger,
-not a broader support claim. Contributors can audit the larger R/Julia boundary
-in the [finish capability matrix](https://github.com/itchyshin/drmTMB/blob/main/docs/design/168-r-julia-finish-capability-matrix.md).
+`DRModels.jl` is an optional Julia companion; it is not required to use this R
+package.
 
 ## Install
 
@@ -468,7 +431,7 @@ admits univariate phylogenetic `mu` mean-side, `sigma` scale-side, and the
 matched q2 mean-and-scale block, plus bivariate phylogenetic structured
 effects in every covariance layout, including the dense (unstructured) q4
 location-scale block, subject to sample-size requirements; AI-REML and REML
-for the labelled two-slope q8-shaped cell remain rejected. Direct DRM.jl q4
+for the labelled two-slope q8-shaped cell remain rejected. Direct DRModels.jl q4
 profile/bootstrap machinery is separate from the R bridge and does not by
 itself establish calibrated Ayumi-scale intervals.
 

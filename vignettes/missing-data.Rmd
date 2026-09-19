@@ -68,8 +68,8 @@ retains and marginalises missing responses for `gaussian()`, bivariate Gaussian,
 `beta_family()` fits, plus whole-row `beta_binomial()` and ordered-factor
 `cumulative_logit()` fits, the non-hurdle `truncated_nbinom2()` route, and
 fixed-effect zero-inflated Poisson, zero-inflated NB2, and hurdle NB2 routes.
-Student-t, lognormal, Gamma, beta-binomial, and truncated NB2 include ordinary
-random-intercept recovery evidence;
+Student-t, lognormal, Gamma, beta-binomial, and truncated NB2 have also been
+checked with ordinary random intercepts;
 skew-normal, Tweedie, and zero-one beta are fixed-effect routes. These ticks do
 not automatically extend to every structured modifier supported by a family.
 
@@ -80,12 +80,11 @@ formulas, such as `body_mass ~ moisture + canopy`, or `impute_model(...)`
 objects when a predictor-model family must be stated explicitly. Do not wrap
 the `impute` entry itself in `drm_formula()`.
 
-## Capability matrix
+## What each route supports
 
-The two missing-data modes are validated per response family. A checkmark means
-the mode is implemented and recovery-tested; a dash means it is not implemented
-and the fit rejects loudly (a family-specific error), so an unsupported request
-never silently degrades to a wrong likelihood.
+The two missing-data modes differ by response family. A checkmark means the
+model can fit that combination; a dash means it cannot, and the fit gives a
+family-specific error rather than silently using a different likelihood.
 
 | Response family | `response = "include"` (mask/marginalise) | `predictor = "model"` (`mi()`) |
 | --- | :---: | :---: |
@@ -108,14 +107,10 @@ never silently degrades to a wrong likelihood.
 | zero-inflated NB2 | ✓ (fixed effects; zeros and positives tested separately) | — |
 | hurdle NB2 | ✓ (fixed effects; hurdle mass and truncated positive component) | — |
 
-The package keeps separate single-source-of-truth inventories for response and
-predictor missingness. A positive runtime test reconciles all fitted response
-routes with the generated response ledger, while the predictor anti-drift test
-still requires every family outside `drm_missing_predictor_families()` to
-reject. Route-specific response tests retain the unsupported-neighbour checks.
-Only the Gaussian response carries the broad predictor-family catalogue
-tabulated below; the non-Gaussian responses currently model one binary
-(Bernoulli/logit) missing predictor each.
+The table records the response-model combinations currently supported for
+missing responses. Only the Gaussian response has the broad predictor-family
+catalogue tabulated below; the non-Gaussian responses can currently model one
+binary (Bernoulli/logit) missing predictor each.
 
 ## What is fitted now
 
@@ -181,8 +176,8 @@ This table is the practical starting point:
 | Positive continuous values | `impute_model(x ~ z, family = lognormal())` or `impute_model(x ~ z, family = Gamma(link = "log"))` | deterministic positive quadrature nodes |
 | Non-negative semi-continuous values with exact zeros | `impute_model(x ~ z, family = tweedie())` | exact zero mass plus positive quadrature nodes |
 
-Rendering this article is also a smoke test: the worked examples below fit one
-model for each supported predictor-family route.
+The worked examples below show one model for each supported predictor-family
+route.
 
 ## Relation to gllvmTMB and glmmTMB
 
@@ -250,8 +245,8 @@ length(fitted(fit_response))
 sum(is.na(residuals(fit_response)))
 ```
 
-The fitted and residual vectors preserve the input row order, so row accounting
-does not require inspecting fit internals:
+The fitted and residual vectors preserve the input row order, so you can check
+row accounting directly:
 
 ```{r}
 head(data.frame(
@@ -417,10 +412,10 @@ imputed(fit_binary)
 ```
 
 Here `treatment ~ z` is the formula for the missing predictor itself. It is not
-wrapped in `drm_formula()`. Internally, `drmTMB` sums over the two possible
-states for each missing treatment value. `imputed(fit_binary)` reports the
-fitted conditional probability that the missing predictor is in the second
-factor level.
+wrapped in `drm_formula()`. For each missing treatment value, the likelihood
+considers the two possible states. `imputed(fit_binary)` reports the fitted
+conditional probability that the missing predictor is in the second factor
+level.
 
 ## Non-Gaussian responses with binary missing predictors
 
@@ -1007,7 +1002,7 @@ automatically inherit structure from the response model. That explicitness is
 intentional: a model for a missing trait is a scientific model for the trait,
 not just a technical patch for a response regression.
 
-## Current boundaries
+## Limits of the current routes
 
 The current implementation deliberately keeps several features out of scope:
 
@@ -1028,8 +1023,7 @@ The current implementation deliberately keeps several features out of scope:
 - `imputed()` does not summarize missing responses.
 - Simulated imputations, posterior means, credible intervals, and
   multiple-imputation pooling are not implemented.
-- Measurement-error models are a later modelling lane, not part of this
-  missing-data interface.
+- Measurement-error models are not part of this missing-data interface.
 
 When you need one of those routes, treat the current error as a design boundary
 rather than a failed fit. For now, fit the supported likelihood-based route, use

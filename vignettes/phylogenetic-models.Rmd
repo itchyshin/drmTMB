@@ -39,18 +39,19 @@ has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
 }
 </style>
 
-Closely related species are not independent observations. They share ancestry,
-so a trait value carried by one species is partly inherited from the same
-nodes that shaped its relatives. A phylogenetic mixed model encodes that shared
-history as a structured random effect: a species-level deviation whose
-covariance is read off the tree, so that sister taxa are expected to deviate
-from the regression line in the same direction.
+Use this guide when you have a dated, ultrametric phylogenetic tree and want to
+ask whether closely related species depart from a regression in similar ways.
+Closely related species are not independent observations: they share ancestry.
+A phylogenetic mixed model represents that history as a species-level random
+effect whose covariance comes from the tree, so sister taxa can tend to depart
+from a regression in the same direction.
 
-`drmTMB` exposes this through the `phylo()` term. This article explains where
-the covariance comes from, how to write a `phylo()` model for a Gaussian
-response, and how the same syntax carries over to non-Gaussian responses such
-as counts. Everything below runs at build time on a small simulated tree, so
-you can read the fitted numbers next to the values that generated them.
+`drmTMB` exposes this through the `phylo()` term. The runnable example starts
+with a Gaussian trait measured repeatedly within species. Those repeats help
+separate phylogenetic variation from residual variation. Count examples appear
+later, but their uncertainty support is narrower. If you only have one
+measurement per species, treat separation of these two sources of variation
+with particular caution.
 
 If you are choosing between `animal()`, `phylo()`, `spatial()`, and `relmat()`,
 read the [structural-dependence overview](structural-dependence.html) first.
@@ -116,9 +117,9 @@ tree <- rcoal(n_species, tip.label = paste0("sp", seq_len(n_species)))
 c(ultrametric = is.ultrametric(tree), n_tip = length(tree$tip.label))
 ```
 
-The covariance $A$ implied by this tree is available from the same internal
-helper the fitting code uses. We only need it here to *simulate* a trait with
-known phylogenetic structure; you never compute it by hand for a real fit.
+The covariance $A$ implied by this tree is used here only to simulate a trait
+with known phylogenetic structure. You do not compute it by hand for a real
+fit: provide the tree to `phylo()` instead.
 
 ```{r tip-covariance, eval = has_ape}
 A <- drmTMB:::drm_phylo_tip_covariance(tree)
@@ -426,53 +427,24 @@ summary(fit_big)$parameters
 # cost grows roughly linearly in the number of species rather than cubically.
 ```
 
-## What `phylo()` fits today
+## Choose a phylogenetic route
 
-This is a reader-level summary of the current capability ledger. The tier words
-matter: **diagnostic-only** means a fit/extractor smoke, **point-fit recovery**
-means simulation or oracle evidence for fitted values, and **inference-ready
-with caveats** means interval evidence exists only inside the stated design.
-The [model map](model-map.html) gives the wider package-level boundary.
+Start with the Gaussian example in this article if you have repeated continuous
+measurements within species. It is the clearest route for learning what the
+tree term, phylogenetic SD, and residual SD each mean.
 
-<style>
-.phylo-capability-table {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.phylo-capability-table table {
-  min-width: 760px;
-}
-</style>
+| If your question is... | Eligible route | Read or do next | Key limitation |
+| --- | --- | --- | --- |
+| Do related species differ around a continuous-response regression? | `phylo(1 | species, tree = tree)` in the Gaussian mean formula | Work through the example above, then run `check_drm()`. | With little within-species replication, phylogenetic and residual SDs can be hard to distinguish. |
+| Do predictors change phylogenetic variation or residual variation? | Gaussian `phylo()` terms in the mean and/or scale formula | [When variance carries signal, Part II](location-scale-scale.html) | Interpret each scale separately; a fitted term is not by itself evidence that every interval is reliable. |
+| Are count means structured by ancestry? | One ordinary Poisson or NB2 `phylo(1 + x | species, tree = tree)` mean term | Use the count-family guide and inspect diagnostics. | This route has a narrower evidence base than the Gaussian example; do not generalize its uncertainty to richer count structures. |
+| Do two continuous responses share phylogenetic deviations? | Matching `phylo()` terms in two Gaussian mean formulas | Use [Structural dependence overview](structural-dependence.html). | Phylogenetic covariance is distinct from bivariate residual correlation `rho12`. |
 
-<div class="phylo-capability-table" markdown="1">
-
-| Question | Syntax | Status |
-| --- | --- | --- |
-| Gaussian location SD | `phylo(1 | species, tree = tree)` or one independent slope in `mu` | ML intercept: inference-ready with caveats. ML intercept-plus-slope and REML intercept: point-fit recovery. |
-| Gaussian residual-scale phylogeny | `sigma ~ phylo(1 | species, tree = tree)` or one independent slope | ML intercept: point-fit recovery. ML intercept-plus-slope: inference-ready with caveats. REML pure scale route: point-fit recovery. |
-| Gaussian location and residual scale together | matching labelled `phylo()` terms in `mu` and `sigma` | Constant and first one-slope q=2 blocks have ML point-fit recovery; the constant REML q=2 block also has point-fit recovery. |
-| Gaussian predictor-dependent phylogenetic SD | `phylo(1 | species, tree = tree)` in `mu` plus `sd(species, level = "phylogenetic") ~ x` | Fitted direct-SD route; REML admission is included in the q=1 point-fit-recovery cell. This is not a blanket interval/coverage claim. |
-| Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope | `phylo(1 + x | species, tree = tree)` in `mu` | The exact unlabelled intercept plus one independent slope at recovery grade has point-fit recovery. |
-| NB2 overdispersion deviations | NB2 q1 phylogenetic `sigma` via `phylo(1 + x | species, tree = tree)` | The exact unlabelled intercept-plus-one-slope route has point-fit recovery; no interval or coverage promotion. |
-| Gamma or lognormal location SD | `phylo(1 | species, tree = tree)` in `mu` | Exact ML intercept routes have point-fit recovery; slopes, structured `sigma`, REML, and intervals are outside those cells. |
-| Beta phylogenetic location-SD regression | `phylo(1 | spp_id, tree = tree)` in `mu` plus `sd(spp_id, level = "phylogenetic") ~ x` | Exact unlabelled q=1 ML route is inference-ready with caveats only for the validated interior-response, 1,024-species, four-replicate designs. Family `sigma` remains fixed-effect and $\phi = \sigma^{-2}$. |
-| Student-t tail-weight deviations | Student-t q1 phylogenetic `nu` via `phylo(1 | species, tree = tree)` | Diagnostic-only fit/extractor evidence; not point-fit recovery. |
-| cumulative-logit location deviations | cumulative-logit q1 phylogenetic `mu` via `phylo(1 | species, tree = tree)` | Diagnostic-only fit/extractor evidence; not point-fit recovery. |
-| Two Gaussian means sharing phylogeny | matching `phylo(1 | p | species, tree = tree)` in `mu1` and `mu2` | Intercept q=2 has ML and REML point-fit recovery; the exact ML slope-only q=2 cell is inference-ready with caveats. Read correlations with `corpairs(level = "phylogenetic")`. |
-| Bivariate phylogenetic location-scale blocks | matching labelled `phylo()` terms across `mu1`, `mu2`, `sigma1`, and `sigma2` | Exact q=2+q=2 and broader all-four cells are fitted, but their evidence ranges from diagnostic-only to point-fit recovery; they are not blanket interval/coverage claims. |
-
-</div>
-
-When a predictor changes the phylogenetic SD itself, or when the model contains
-location plus two scale submodels, continue with [When variance carries signal,
-Part II: location-scale-scale models](location-scale-scale.html). For the
-bivariate covariance layouts and the broader parity ladder, use the
-[structural-dependence tutorial](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html).
-
-Anything outside these exact rows remains unpromoted, including other
-non-Gaussian families, additional slope/label combinations, public matrix input
-such as `phylo(1 | species, A = A)`, simultaneous `phylo()` and `spatial()`
-layers, and structured random effects inside residual `rho12`.
+For the complete syntax boundary, including unsupported combinations, see
+[What can I fit today?](model-map.html). Do not treat a successful fit as a
+general interval or coverage guarantee. The current public routes do not cover
+simultaneous phylogenetic and spatial layers, structured effects in `rho12`, or
+arbitrary additional slope and label combinations.
 
 ## References
 

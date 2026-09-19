@@ -1279,10 +1279,7 @@ class CapabilityLedgerTests(unittest.TestCase):
 
     def test_reader_navigation_redirect_and_public_language_contract(self):
         config = (ROOT / "_pkgdown.yml").read_text()
-        self.assertIn(
-            '- ["ROADMAP.html", "articles/capability-and-limits.html"]',
-            config,
-        )
+        self.assertNotIn("ROADMAP.html", config)
         intro = config.split("    intro:", 1)[1].split("    model_guides:", 1)[0]
         intro_pairs = re.findall(
             r"- text: ([^\n]+)\n\s+href: ([^\n]+)", intro
@@ -1335,17 +1332,19 @@ class CapabilityLedgerTests(unittest.TestCase):
         self.assertEqual(capability_choice_entries.count("model-map"), 1)
         self.assertNotIn("articles/function-map-cheatsheet", capability_choice_entries)
 
-        learning_path = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
-            "## Learning path", 1
-        )[1]
+        next_guide = (ROOT / "vignettes" / "drmTMB.Rmd").read_text().split(
+            "## Choose your next guide", 1
+        )[1].split("## Check before interpreting", 1)[0]
         learning_links = (
-            "capability-and-limits.html",
             "distribution-families.html",
-            "function-map-cheatsheet.html",
-            "model-workflow.html",
+            "structural-dependence.html",
+            "bivariate-coscale.html",
+            "meta-analysis.html",
+            "capability-and-limits.html",
         )
-        learning_positions = [learning_path.index(link) for link in learning_links]
+        learning_positions = [next_guide.index(link) for link in learning_links]
         self.assertEqual(learning_positions, sorted(learning_positions))
+        self.assertIn("model-map.html", next_guide)
 
         design = (ROOT / "docs" / "design" / "226-reader-learning-path.md").read_text()
         vignette_stems = {
