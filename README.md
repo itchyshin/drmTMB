@@ -14,6 +14,10 @@
 > for the documented workflows and their current evidence; anything beyond
 > those stated boundaries remains provisional.
 
+`drmTMB` 0.7.1 is an experimental pre-CRAN release. The guides below describe
+the workflows that can be fitted today; they do not turn an internal release
+ledger into evidence for a scientific conclusion.
+
 `drmTMB` fits fast distributional regression models for one or two responses
 using Template Model Builder. Use it when predictors may affect not only the
 expected response `mu`, but also residual scale `sigma`, shape such as

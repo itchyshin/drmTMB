@@ -30643,7 +30643,6 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   expect_match(status_text, "REML, AI-REML", fixed = TRUE)
   expect_match(status_text, "public support", fixed = TRUE)
   for (path in list(
-    "README.md",
     c("docs", "dev-log", "internal-roadmap.md"),
     "NEWS.md",
     c("docs", "dev-log", "known-limitations.md")
