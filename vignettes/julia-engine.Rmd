@@ -46,27 +46,16 @@ Sys.setenv(DRMODELS_JL_PATH = "/absolute/path/to/DRModels.jl")
 library(drmTMB)
 ```
 
-The same setup works in ordinary noninteractive scripts run with `Rscript`;
-no test opt-in is required. Julia startup remains disabled in marked R package
-check processes unless explicitly enabled for repository testing. Do not enable
-live Julia tests on CRAN or win-builder.
-
 Use `options(drmTMB.DRModels.jl.path = "/absolute/path/to/DRModels.jl")`
-to override the environment setting. The search order is the DRModels option,
-`DRMODELS_JL_PATH`, then compatibility settings retained for older local
-configurations. New analyses should use the DRModels option or
-`DRMODELS_JL_PATH`.
-After activating the checkout, the bridge reads the package name declared in
-that checkout's `Project.toml` (`DRModels`) and verifies that
-Julia resolved and loaded that same source path. It does not silently fall back
-to a different module or checkout. Restart R after changing checkouts or
-updating the module name.
+instead of the environment setting if you prefer to keep the path in your R
+setup. For a new analysis, use one of these two settings. Restart R after
+changing checkouts.
 
 Replace the path with the directory containing the checkout's `Project.toml` and
-`src/`. The bridge initializes Julia when needed. The first call includes
-startup and compilation; time later calls separately when comparing repeated
-workflows. Keep the checkout revision with your analysis so results can be
-reproduced; a package version alone may describe more than one source build.
+`src/`. The bridge initializes Julia when needed. The first fit includes
+startup and compilation, so compare later fits when timing a repeated
+workflow. Record the checkout revision with an analysis that needs to be
+reproduced.
 
 ## Start with an ordinary regression
 
@@ -228,45 +217,24 @@ range is a separate diagnostic. Generic Julia profiles now report failed
 nuisance solves, but successful optimizer termination does not by itself prove
 a global optimum or a practical large-tree runtime.
 
-### Which routes have bridge-side profile and bootstrap intervals
+### Which interval routes can I use?
 
-`r_bridge_status` in `inst/extdata/julia-capabilities.tsv` marks whether
-`engine = "julia"` profile and bootstrap intervals have been checked against
-`engine = "tmb"` on the same fitted target, not just whether the family fits.
-Two routes carry `r_bridge_status` `"supported"` today:
-`base_gaussian_location_scale` (the fixed-effect Gaussian location-scale
-model) and `plain_binomial_nonphylo` (a `stats::binomial()` fit without
-`phylo()`). For each, Wald and profile confidence intervals on a fixed-effect
-mean coefficient agree with `engine = "tmb"` within `1e-4`, and both engines
-converge. Bootstrap intervals (`R = 99`) overlap between engines, but this is
-a weaker claim than profile or Wald agreement: `engine = "tmb"` and
-`engine = "julia"` draw bootstrap replicates from independent random-number
-streams, so the same `seed` does not reproduce the same replicates across
-engines, and there is no same-seed design to compare against. Treat a
-bootstrap-interval comparison as overlap evidence, not agreement within
-tolerance, even where both engines report `0/99` failed replicates.
-
-`biv_gaussian_residual` (the residual-only bivariate Gaussian route, fitting
-`rho12` without a structured or phylogenetic covariance term) is expected to
-join those two once drmTMB#1187 lands; as of this vignette it still carries
-`r_bridge_status` `"partial"` because the bridge has no profile- or
-bootstrap-ready target for that route on any parameter. `#1187` adds one.
-Until it merges, use `engine = "tmb"` for residual bivariate Gaussian
-intervals.
+For ordinary fixed-effect Gaussian location-scale models and ordinary binomial
+models, the Julia bridge supports Wald and profile intervals for fixed-effect
+mean coefficients. Bootstrap results can be useful as a sensitivity check, but
+they are not a substitute for a successful profile or for evidence about
+interval coverage. For residual-only bivariate Gaussian models, use
+`engine = "tmb"` when you need intervals. Check the
+[capability guide](capability-and-limits.html) for the fitted route and target
+before interpreting any Julia-engine interval.
 
 ### REML standard errors are not directly comparable across engines
 
-Where REML is admitted on the bridge (see `docs/design/261-reml-by-route.md`),
-a fixed-effect mean-block Wald standard error is not expected to match
-between engines by construction, not error: `engine = "tmb"`'s `sdreport()`
-moves the mean coefficients into TMB's random-effect block under REML and
-propagates variance-parameter uncertainty into their reported standard
-errors, while DRModels.jl profiles the mean coefficients out exactly at each
-variance-parameter value and reports the canonical GLS covariance
-`(Xmu' Vhat^-1 Xmu)^-1` with no such propagation (drmTMB#1201). Two more REML
-routes are landing after this vignette: the mean-only phylogenetic Gaussian
-cell (drmTMB#1199) and the residual-only bivariate Gaussian cell
-(drmTMB#1197).
+On a supported REML route, a fixed-effect Wald standard error can differ
+between the Julia and TMB engines because they use different uncertainty
+calculations. That difference is not, by itself, evidence that either fit is
+wrong. Do not treat standard errors from the two engines as interchangeable;
+use the engine and interval method documented for your fitted route.
 
 ## One modelled missing predictor (development route)
 
@@ -359,24 +327,14 @@ model you intend to fit. In particular:
 - Missing-response inclusion and REML depend on the model route. Most
   non-Gaussian bridge routes fit ML only, but large-p Poisson `phylo()` is a
   genuine exception: the bridge fits `REML = TRUE` there by Cox-Reid Laplace,
-  a route native `engine = "tmb"` does not have. See the REML column in the
-  table below and `docs/design/261-reml-by-route.md` before assuming ML-only.
-- Accepted families do not imply that every combination of structured effects,
-  weights, controls and post-fit methods is admitted. `phylo()`, `relmat()`,
-  `animal()` and `spatial()` terms on the fixed-effect-only families below are
-  already refused by existing gates before Julia starts. An ordinary
-  random-effect term (`(1 | g)`, a random slope) or an `sd()`/`sd_phylo()`
-  scale submodel on one of these families lands with drmTMB#1196: for
-  `student()`, `lognormal()`, `truncated_nbinom2()`, `zero_one_beta()`,
-  `tweedie()`, `beta_binomial()`, `cumulative_logit()`, and `skew_normal()`
-  once #1176 lands, such a term is refused before Julia starts, naming the
-  family and pointing to `engine = "tmb"`. Until #1196 merges, that
-  combination is not refused by `drmTMB` before Julia starts; the call
-  round-trips to DRModels.jl and DRModels.jl refuses it in its own words instead (for
-  example, `TruncatedNegBinomial2() currently supports fixed effects only`,
-  pinned in `tests/testthat/test-julia-family-truncated_nbinom2.R`). Treat any
-  such combination as unsupported regardless of which side reports the
-  refusal.
+  a route native `engine = "tmb"` does not have. Check the table below before
+  assuming that a non-Gaussian Julia model is ML-only.
+- An accepted family does not mean that every random effect, structured term,
+  weight, control, or post-fit method is available. The fixed-effect-only
+  families in the table do not support `phylo()`, `relmat()`, `animal()`,
+  `spatial()`, ordinary random effects, or `sd()`/`sd_phylo()` scale models on
+  the Julia route. Use `engine = "tmb"` if your analysis needs one of those
+  extensions.
 - `predict()` on new data currently has narrower Julia support than in-sample
   prediction; do not assume that every distributional parameter is available.
 
@@ -385,32 +343,21 @@ and retain the warning or error when reporting the limitation.
 
 ## Family and route reference
 
-Every family below has a same-target parity receipt against `engine = "tmb"`
-on a committed fixture (coefficients and log-likelihood within 1e-4, Wald SEs
-within 1e-3 relative), except the one row marked "not yet admitted". The
-"Receipt" column names the capability-ledger row
-(`inst/extdata/julia-capabilities.tsv`, `r_bridge_status` column) where one
-exists; three fixed-effect-only families were admitted without a ledger row
-yet, so their receipt lives only in the family's own test file.
+The table below is a starting point, not a promise that every neighbouring
+formula will work. Choose the listed route, then consult the
+[capability guide](capability-and-limits.html) before adding terms or choosing
+an interval.
 
-| Family | `engine = "julia"` route | Receipt |
-|---|---|---|
-| `gaussian()` | fixed effect; mean-only `phylo()`; coupled mean+`sigma` phylo; ordinary random intercept/slope on `mu` and `sigma`; `relmat()`/`spatial()`/`animal()` | `base_gaussian_location_scale`, `gaussian_phylo_mean`, `gaussian_random_intercept_mu`, `gaussian_random_slope_mu`, `gaussian_sigma_random_intercept`, `general_covariance_structured`, `location_scale_scale` (partial/experimental; see the TSV for which) |
-| `biv_gaussian()` | fixed effect (residual `rho12`); coupled q = 4 phylo | `biv_gaussian_residual`, `biv_q4_phylo_reml` |
-| `student()` | fixed effect only | `fe_student` |
-| `lognormal()` | fixed effect only | `fe_lognormal` |
-| `poisson()` | fixed effect; large-p `phylo()`; `zi` dpar on the fixed-effect route | `fe_poisson`, `phylo_count_large_p`, `zi_poisson` |
-| `nbinom2()` | fixed effect; large-p `phylo()`; coupled mean+`sigma` phylo; `zi` dpar; `hu` dpar (bridge spelling only -- see note below) | `fe_nbinom2`, `phylo_count_large_p`, `zi_nbinom2`, `hurdle_nbinom2` |
-| `gamma()` | fixed effect; large-p `phylo()`; coupled mean+`sigma` phylo | `fe_gamma`, `phylo_gamma_beta_binomial` |
-| `beta_family()` | fixed effect; large-p `phylo()`; coupled mean+`sigma` phylo | `fe_beta`, `phylo_gamma_beta_binomial` |
-| `stats::binomial(link = "logit")` | fixed effect; large-p mean-only `phylo()` | `plain_binomial_nonphylo`, `phylo_gamma_beta_binomial` |
-| `truncated_nbinom2()` | fixed effect only | no ledger row yet; `tests/testthat/test-julia-family-truncated_nbinom2.R` |
-| `zero_one_beta()` | fixed effect only | no ledger row yet; `tests/testthat/test-julia-family-zero_one_beta.R` |
-| `tweedie()` | fixed effect only | no ledger row yet; `tests/testthat/test-julia-family-tweedie.R` |
-| `beta_binomial()` | fixed effect only (`phylo()` refuses: DRModels.jl's phylo `BetaBinomial` route is constant-`sigma` only, no receipt) | `fe_beta_binomial` |
-| `cumulative_logit()` | fixed effect only | no ledger row yet; `tests/testthat/test-julia-family-cumulative_logit.R` |
-| `skew_normal()` | not yet admitted (open PR) | none |
-| any other family (`zi_poisson()`/`zi_nbinom2()`/`hurdle_nbinom2()` as their own family constructors, mixture families, etc.) | refused | none |
+| Family | Available Julia route |
+|---|---|
+| `gaussian()` | fixed effects; selected `phylo()`, ordinary random-effect, `relmat()`, `spatial()`, and `animal()` routes |
+| `biv_gaussian()` | fixed effects with residual `rho12`; selected coupled phylogenetic route |
+| `student()` or `lognormal()` | fixed effects only |
+| `poisson()` or `nbinom2()` | fixed effects; selected large-phylogeny routes; fixed-effect `zi` terms; `nbinom2()` also has the Julia hurdle spelling below |
+| `gamma()` or `beta_family()` | fixed effects; selected large-phylogeny routes |
+| `stats::binomial(link = "logit")` | fixed effects; selected large-phylogeny mean route |
+| `truncated_nbinom2()`, `zero_one_beta()`, `tweedie()`, `beta_binomial()`, or `cumulative_logit()` | fixed effects only |
+| `skew_normal()` or another family | not currently available through the Julia engine |
 
 The `zi` and `hu` dpars are not separate families: they are formula terms
 (`bf(y ~ x, zi ~ x)` or `bf(y ~ x, hu ~ x)`) added to `poisson()` or
@@ -419,46 +366,14 @@ route rather than through a family-specific ledger row. `hu` has a spelling
 mismatch between engines today: native `engine = "tmb"` fits the hurdle model
 as `truncated_nbinom2()` with `hu ~ ...`, while `engine = "julia"` fits it as
 `nbinom2()` with `hu ~ ...` (DRModels.jl reads `hu` on `nbinom2()` as the hurdle
-model). The same call does not fit on both engines yet; see `hurdle_nbinom2`
-in the capability table for the measured cross-spelling receipt and the
-tracked defect.
-### Julia optimizer controls
+model). The same call does not fit on both engines yet. Use the TMB spelling
+when you need a model that can move between both engines.
 
-For the base Julia bridge, use the Julia-native controls through the existing
-`drm_control()` interface:
+### Controls
 
-```r
-control = drm_control(optimizer = list(g_tol = 1e-6, algorithm = "lbfgs"))
-```
-
-These settings control DRModels.jl's gradient tolerance and solver choice. They do
-not make its optimizer equivalent to TMB's `nlminb()` presets or iteration
-budgets.
-
-The forwarded set is a **closed whitelist**, and it is short:
-
-| `drm_control()` setting | reaches DRModels.jl as | where |
-|---|---|---|
-| `optimizer$g_tol` | `drm(; g_tol =)` | every base / phylo / bivariate route |
-| `optimizer$algorithm` | `drm(; algorithm =)`, one of `"auto"`, `"gls"`, `"lbfgs"`, `"em"`, `"sparse"`, `"sparse_lbfgs"` | as above, except q = 4 |
-| `optimizer$q4_vcov` | `drm(; q4_vcov =)` | bivariate q = 4 phylogenetic only |
-
-On the bivariate q = 4 phylogenetic route `optimizer$g_tol` is forwarded as
-DRModels.jl's `q4_g_tol` (that route's *outer*-gradient tolerance) and
-`optimizer$algorithm` is refused, because its optimiser has no
-solver-selection setting.
-
-Everything else `drm_control()` carries is rejected before Julia starts, with
-an error naming the setting -- it is never silently ignored. That includes the
-storage flags (`se`, `keep_data`, `keep_model_frame`, `keep_tmb_object`), the
-SE-shaping flags (`se_report_covariance`, `se_skip_delta_method`,
-`se_group_sd`), `sparse_fixed`, `aggregate_gaussian`, `logsigma_clamp`,
-`logsigma_clamp_margin`, `optimizer_preset`, `newton_polish`, `multi_start`,
-`fallback_optimizer`, `start`, and any `nlminb()` name inside `optimizer`
-(`iter.max`, `eval.max`, `rel.tol`, ...). Each of these describes an
-`nlminb()`/TMB program that DRModels.jl does not run, so there is nothing to
-forward it to: **use `engine = "tmb"` when you need one of them.**
-
-The structured, bivariate q2 structured, and cross-family Julia routes are
-narrower again: they accept only a default `control`, so even
-`optimizer$g_tol` is refused there.
+Start with the default control settings when using the Julia engine. Its
+advanced optimizer settings are intentionally narrower than the TMB controls,
+and some structured and multi-response Julia routes accept no extra controls.
+If your analysis depends on a particular `drm_control()` setting, use
+`engine = "tmb"` unless the [capability guide](capability-and-limits.html)
+explicitly lists it for your route.

@@ -47,8 +47,10 @@ coscale means a residual-correlation parameter such as bivariate `rho12`.
 | A tree, coordinates, pedigree, or known relationship matrix structures observations | A Gaussian structured-effect route | Structured deviations are distinct from residual variation and residual correlation. | [Structural dependence overview](structural-dependence.html) |
 
 Before reporting an estimate or interval, run `check_drm()` and read
-[Can I fit and report this model?](capability-and-limits.html). For exact
-syntax at an advanced boundary, use the [implementation map](implementation-map.html).
+[Can I fit and report this model?](capability-and-limits.html). If your model
+combines a family, random effect, or structured term not shown in its worked
+guide, check that page before extending the formula: nearby examples are not
+automatically interchangeable.
 
 After fitting, start with `check_drm()`, then use `summary()`, `sigma()`,
 `rho12()`, or `corpairs()` according to the parameter you set out to estimate.
@@ -64,11 +66,12 @@ specific quantity.
 | pedigree, tree, coordinate, or known-matrix dependence | `animal()`, `phylo()`, `spatial()`, or `relmat()` depending on the source | [Structural dependence overview](structural-dependence.html) |
 | fitted interval status or boundary diagnostics | `profile_targets()`, `conf.status`, `profile.boundary`, `profile.message` | [Checking and using fitted models](https://itchyshin.github.io/drmTMB/articles/model-workflow.html) |
 
-## Advanced routes and limitations
+## Checking a less common model
 
-The table below is for a reader who already knows the route they need. It gives
-the eligible syntax, the nearest important boundary, and the checks needed
-before reporting uncertainty. It is not a menu of features to combine.
+Use this table when your question needs a less common family, dependence
+structure, or uncertainty calculation. It says what you can fit now, what to
+leave for a later analysis, and when an interval needs extra care. It is not a
+menu of features to combine.
 
 | Model surface | Status | Fitted today | Not yet | Interval and diagnostic status |
 |---|---|---|---|---|
@@ -117,12 +120,12 @@ Implemented one-response surfaces include:
 | Do groups differ in residual-scale slopes? | `sigma ~ x + (0 + w | group)` for independent Gaussian residual-scale slopes | [Which scale are you modelling?](which-scale.html) |
 | Does a group-level predictor change among-group SD in the mean model? | `sd(group) ~ x_group` for unlabelled Gaussian `mu` random intercepts | [Which scale are you modelling?](which-scale.html) |
 | Is the response continuous, count, bounded, robust, or zero-inflated? | fixed-effect non-Gaussian families | [Choosing response families](distribution-families.html) |
-| Do repeated groups need non-Gaussian mean random effects? | selected ordinary non-Gaussian `mu` random intercepts and independent numeric slopes | [Implementation map](implementation-map.html) |
+| Do repeated groups need non-Gaussian mean random effects? | selected ordinary non-Gaussian `mu` random intercepts and independent numeric slopes | [Can I fit and report this model?](capability-and-limits.html) |
 | Are the large residuals changing the location and scale conclusions? | fixed-effect Student-t `mu`, `sigma`, and `nu` formulas | [Robust continuous responses](robust-student.html) |
 | Is the response an event probability, successes out of known trials, a strict continuous proportion, or a structural-boundary continuous proportion? | `stats::binomial(link = "logit")` for ordinary binomial event probabilities, `beta_binomial()` for overdispersed success counts, `beta_family()` for strict continuous proportions, and `zero_one_beta()` for exact structural 0/1 values; each has ordinary `mu` random intercepts and independent numeric slopes; exact binomial and zero-one-beta slope cells have design-specific inference-ready-with-caveats evidence | [Proportions and success rates](proportion-beta-binomial.html) |
 | Does the response have known sampling variance or covariance? | Gaussian `meta_V(V = V)` | [Mean effects and residual heterogeneity](meta-analysis.html) |
 | Do species means remain similar after shared ancestry is included? | `phylo(1 | species, tree = tree)` in univariate Gaussian `mu` | [Structural dependence overview](structural-dependence.html) |
-| Are count means phylogenetically structured? | `phylo(1 | species, tree = tree)` in ordinary Poisson or ordinary NB2 `mu` | [Implementation map](implementation-map.html) |
+| Are count means phylogenetically structured? | `phylo(1 | species, tree = tree)` in ordinary Poisson or ordinary NB2 `mu` | [Can I fit and report this model?](capability-and-limits.html) |
 | Do nearby sites share smooth location deviations or smooth slope differences? | `spatial(1 | site, coords = coords)` or one numeric `spatial(1 + x | site, coords = coords)` slope in univariate Gaussian `mu` | [Structural dependence overview](structural-dependence.html) |
 
 The random-effect scale terms are deliberately separate. `sigma ~ x` models
