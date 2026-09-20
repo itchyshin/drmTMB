@@ -70,6 +70,73 @@ test_that("the scanner catches bare and backticked private output routes", {
   }
 })
 
+test_that("reader-facing sources reject unambiguous internal process language", {
+  root <- contract_fixture(files = list(
+    "reader.Rmd" = "Issue #859 tracks this reader route."
+  ))
+  writeLines(
+    "The final wording landed in PR #1390.",
+    file.path(root, "README.md")
+  )
+  writeLines(
+    "description: Consult the capability ledger before use.",
+    file.path(root, "_pkgdown.yml")
+  )
+  dir.create(file.path(root, "vignettes", "articles"))
+  file.rename(
+    file.path(root, "vignettes", "source-map.Rmd"),
+    file.path(root, "vignettes", "articles", "source-map.Rmd")
+  )
+  writeLines(
+    c(
+      "The scoreboard is green.",
+      "Fixture evidence supports this sentence.",
+      "See docs/dev-log/check-log.md for details.",
+      "Rose approval is still pending.",
+      "A persona review is required.",
+      "The worktree carries the draft.",
+      "This remains in the implementation lane.",
+      "The development arc is not complete."
+    ),
+    file.path(root, "vignettes", "articles", "source-map.Rmd")
+  )
+
+  problems <- paste(contract_linter$reader_contract_lint(root), collapse = "\n")
+  expect_match(problems, "PR/issue identifier.*README[.]md")
+  expect_match(problems, "PR/issue identifier.*reader[.]Rmd")
+  expect_match(problems, "capability ledger.*_pkgdown[.]yml")
+  expect_match(problems, "scoreboard.*source-map[.]Rmd")
+  expect_match(problems, "fixture evidence.*source-map[.]Rmd")
+  expect_match(problems, "dev-log path.*source-map[.]Rmd")
+  expect_match(problems, "agent/persona review or approval.*source-map[.]Rmd")
+  expect_match(problems, "worktree.*source-map[.]Rmd")
+  expect_match(problems, "implementation/development lane or arc.*source-map[.]Rmd")
+})
+
+test_that("source-only process lint allows scientific uses and ignores built output", {
+  scientific_text <- c(
+    "The arc of a circle defines the sampling boundary.",
+    "A biological lane connected the two habitat patches.",
+    "Replicates were assigned to each experimental lane.",
+    "Agent-based simulations reproduce the movement process."
+  )
+  root <- contract_fixture(files = list(
+    "reader.Rmd" = scientific_text
+  ))
+  writeLines(scientific_text, file.path(root, "README.md"))
+  writeLines(
+    "description: Agent-based simulations across experimental lanes.",
+    file.path(root, "_pkgdown.yml")
+  )
+  dir.create(file.path(root, "docs"))
+  writeLines(
+    "Generated site text mentions PR #999 and a worktree.",
+    file.path(root, "docs", "index.html")
+  )
+
+  expect_length(contract_linter$reader_contract_lint(root), 0L)
+})
+
 test_that("route scanning keeps contributor permissions exact", {
   root <- contract_fixture(files = list("adding-families.Rmd" = "`opt`$convergence\n`sdpars`$mu"))
   expect_match(

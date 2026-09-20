@@ -165,6 +165,28 @@ reader_contract_source_paths <- function(vignette_dir) {
   paths
 }
 
+reader_contract_internal_process_patterns <- c(
+  "PR/issue identifier" = "\\b(?:PR|pull[[:space:]-]+request|issue)[[:space:]]*#[0-9]+\\b",
+  "capability ledger" = "\\bcapability[[:space:]-]+ledger\\b",
+  "scoreboard" = "\\bscoreboard\\b",
+  "fixture evidence" = "\\bfixture(?:[[:space:]-]+based)?[[:space:]-]+evidence\\b",
+  "dev-log path" = "docs/dev-log(?:/|\\b)",
+  "agent/persona review or approval" = paste0(
+    "\\b(?:(?:agent|persona|Ada|Boole|Noether|Fisher|Curie|Rose|Florence|Pat|",
+    "Grace|Karpinski|Hopper|P(?:ó|o)lya|Lovelace|Darwin|Emmy|Jason)",
+    "[[:space:]-]+(?:review|approval)|(?:review|approval)[[:space:]]+",
+    "(?:by|from)[[:space:]]+(?:the[[:space:]]+)?",
+    "(?:agent|persona|Ada|Boole|Noether|Fisher|Curie|Rose|Florence|Pat|",
+    "Grace|Karpinski|Hopper|P(?:ó|o)lya|Lovelace|Darwin|Emmy|Jason))\\b"
+  ),
+  "worktree" = "\\bworktrees?\\b",
+  "implementation/development lane or arc" = paste0(
+    "\\b(?:(?:implementation|development)[[:space:]-]+(?:lane|arc)s?|",
+    "(?:lane|arc)s?[[:space:]-]+(?:for|of)[[:space:]-]+",
+    "(?:implementation|development))\\b"
+  )
+)
+
 reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "inst", "reader-contracts")) {
   root <- normalizePath(root, mustWork = TRUE)
   vignette_dir <- file.path(root, "vignettes")
@@ -180,17 +202,21 @@ reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "ins
   source_vignettes <- sort(unique(names(source_paths)))
   problems <- character()
 
-  # These are reader-facing sources.  Keep the old companion-package spelling
-  # out of prose and setup instructions so new users are not sent to a retired
-  # project name or environment variable.
-  public_doc_paths <- c(
+  # These are the reader-facing source inputs.  The scope is intentionally
+  # source-only: generated pkgdown output under docs/ is not an authority and
+  # is not scanned.  Police both shipped and pkgdown-only Rmd sources alongside
+  # README and the pkgdown configuration.
+  public_source_paths <- c(
     file.path(root, "README.md"),
     file.path(root, "_pkgdown.yml"),
     unname(source_paths)
   )
-  public_doc_paths <- public_doc_paths[file.exists(public_doc_paths)]
+  public_source_paths <- public_source_paths[file.exists(public_source_paths)]
+
+  # Keep the old companion-package spelling out of prose and setup instructions
+  # so new users are not sent to a retired project name or environment variable.
   retired_name_pattern <- "DRM[.]jl|DRM_JL_PATH|drmTMB[.]DRM[.]jl[.]path"
-  for (path in public_doc_paths) {
+  for (path in public_source_paths) {
     lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
     hits <- grep(retired_name_pattern, lines, perl = TRUE)
     if (length(hits)) {
@@ -202,6 +228,30 @@ reader_contract_lint <- function(root = ".", contract_dir = file.path(root, "ins
           paste(hits, collapse = ", " )
         )
       )
+    }
+  }
+
+  for (path in public_source_paths) {
+    lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
+    relative_path <- sub(paste0("^", root, "/?"), "", path)
+    for (label in names(reader_contract_internal_process_patterns)) {
+      hits <- grep(
+        reader_contract_internal_process_patterns[[label]],
+        lines,
+        ignore.case = TRUE,
+        perl = TRUE
+      )
+      if (length(hits)) {
+        problems <- reader_contract_problem(
+          problems,
+          sprintf(
+            "Internal process language (%s) in reader source: %s:%s",
+            label,
+            relative_path,
+            paste(hits, collapse = ", ")
+          )
+        )
+      }
     }
   }
 
