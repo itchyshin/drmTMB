@@ -2118,7 +2118,7 @@ class CapabilityLedgerTests(unittest.TestCase):
         )
         for name in ("model-map.Rmd",):
             self.assertIn(
-                "non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope gates",
+                "non-Gaussian phylogenetic slopes outside the exact unlabelled Poisson/NB2 q1 intercept-plus-one-slope forms",
                 surfaces[name],
             )
             self.assertNotIn(
@@ -2604,7 +2604,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             )
         model_map = (ROOT / "vignettes/model-map.Rmd").read_text()
         self.assertIn(
-            "both fixed-`zi` spatial-`mu` gates have no recovery, interval, or coverage promotion",
+            "both fixed-`zi` spatial-`mu` forms lack evidence supporting parameter recovery, interval reporting, or coverage",
             model_map,
         )
         spatial = (ROOT / "vignettes/spatial-models.Rmd").read_text()
