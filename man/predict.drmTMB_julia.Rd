@@ -71,7 +71,7 @@ inherits that method's contract exactly: a matrix with one row per
 observation and one column per \code{prob}, columns named as percentages,
 \code{attr(., "calibrated") == FALSE} (a distributional plug-in interval at the
 point estimate, not a calibrated-coverage interval), and the
-\code{"spike"}/\code{"unimplemented"} family status gate. Because the parameters come
+\code{"spike"}/\code{"unimplemented"} family status rules. Because the parameters come
 from this method's own reconstruction, the quantiles are FIXED-EFFECT,
 population-level for \code{newdata} rows and carry the same conditional
 random-effect scope as \code{type = "response"} for stored rows. For a bivariate

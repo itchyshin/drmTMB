@@ -37,7 +37,7 @@ uncertainty diagnostics are degenerate; use \code{\link[=check_drm]{check_drm()}
 Set \code{include_hessian = TRUE} when the next step needs Wald-style
 uncertainty. In that mode, \code{is_converged()} also requires successful
 \code{\link[TMB:sdreport]{TMB::sdreport()}} output with \code{pdHess = TRUE} on top of the default
-\code{\link[=convergence_status]{convergence_status()}} gate. A fit can therefore be \code{"converged"} while
+\code{\link[=convergence_status]{convergence_status()}} requirements. A fit can therefore be \code{"converged"} while
 still returning \code{FALSE} with \code{include_hessian = TRUE}; this marks an
 inference-readiness problem, not automatic proof that point estimates are
 unusable.

@@ -64,7 +64,7 @@ one.}
 \item{level}{Confidence level for the Wald interval. Default \code{0.95}.}
 
 \item{method}{Either \code{"delta"} (default) or \code{"profile"}. \code{"profile"} is
-accepted for signature parity only and always aborts in this slice.}
+not implemented and always aborts.}
 }
 \value{
 A one-row data frame (class \code{drm_heritability}) with columns
@@ -73,9 +73,7 @@ and \code{method}.
 }
 \description{
 \code{heritability()}, \code{icc()}, and \code{repeatability()} are derived-quantity
-accessors for structured-Gaussian \code{drmTMB} fits, ported term-for-term from
-\code{DRM.jl}'s \code{src/heritability.jl} (design doc
-\code{docs/design/259-heritability-icc-repeatability.md}). All three report the
+accessors for structured-Gaussian \code{drmTMB} fits. All three report the
 share of total variance carried by one structured random-effect component
 relative to a denominator on the working (log-SD) scale:
 }
@@ -94,9 +92,8 @@ denominator).
 \code{summary()}'s derived rows, named \code{total_variance_share} and
 \code{phylo_total_variance_share}, use the total-variance (heritability-style)
 denominator, so they can differ from \code{icc()}/\code{repeatability()} here whenever
-a fit has two or more structured components. Those rows were called
-\code{repeatability} and \code{phylogenetic_signal} until 2026-09-03; they were renamed
-so that one word no longer names two different quantities (D-213).
+a fit has two or more structured components. Their names make the denominator
+explicit so that one label does not refer to two different quantities.
 
 Fits must be Gaussian, have a constant residual scale (\code{sigma ~ 1}) or a
 closed-form marginal residual variance, and have at least one structured
@@ -117,18 +114,16 @@ the rows the design uses), or a fit that carries a \code{sigma} random effect
 while the \code{log(sigma)} soft clamp bent the assembled predictor for at
 least one observation (\code{clamp_limited}), has no closed-form
 marginal residual variance and is refused with a message
-naming why; see
-\code{docs/design/275-repeatability-scale-and-residual-variance.md}.
+naming why.
 
 Standard errors and confidence intervals use a delta method on the
 working (log-SD) scale: a numeric gradient of the ratio in the log-SD
 parameters, combined with the fixed-parameter covariance
 (\code{object$sdr$cov.fixed}) via the quadratic form, then a Wald interval at
 \code{level}, clamped to \verb{[0, 1]}. This is a delta-method approximation; not a coverage claim.
-See the design doc for the sanity-check evidence this slice carries.
 
-\code{method = "profile"} is accepted for call-site parity with \code{DRM.jl} but is
-\strong{not implemented} in this slice; it aborts naming \code{method = "delta"} as
+\code{method = "profile"} is accepted but is \strong{not implemented}; it aborts
+naming \code{method = "delta"} as
 the supported option.
 }
 \examples{

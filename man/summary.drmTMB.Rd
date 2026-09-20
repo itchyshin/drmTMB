@@ -63,8 +63,7 @@ The derived component reports simple point-estimate variance ratios --
 ingredients are unambiguous. Both divide by the TOTAL variance (every mu
 random-effect variance plus the residual variance), which is a different
 denominator from the \code{icc()}/\code{repeatability()} accessors (focal component
-variance over that component plus the residual only); see
-\code{?heritability} and \code{docs/design/259-heritability-icc-repeatability.md}
+variance over that component plus the residual only); see \code{?heritability}
 for the distinction. Both rows are computed only for Gaussian fits with an
 identity-link mean, where the latent, expected-data, and observed-data
 scales of de Villemereuil, Schielzeth, Nakagawa & Morrissey (2016,
@@ -85,8 +84,7 @@ predictor for at least one observation (\code{clamp_limited}; a clamp-active
 closed-form marginal residual variance here and is
 refused (a \code{residual_variance.message} attribute on the empty result names
 the reason, and is also shown under the (empty) derived table when
-printed); see
-\code{docs/design/275-repeatability-scale-and-residual-variance.md}. Derived
+printed). Derived
 confidence intervals are marked as unavailable until a nonlinear interval
 method is implemented.
 The derived table's \code{residual_sd} column is \code{sqrt(residual_variance)} --
@@ -132,11 +130,11 @@ if (requireNamespace("emmeans", quietly = TRUE)) {
 }
 }
 \seealso{
-The tier definitions and per-cell evidence behind these interval
-targets, including random-effect standard-deviation rows, are curated in
-\code{vignette("capability-and-limits", package = "drmTMB")}: \code{summary()}
-computes intervals generically for any target, and the tier a given cell
-belongs to is a documentation-level curation, not a runtime guard.
+The model-specific evidence behind these interval targets, including
+random-effect standard-deviation rows, is summarized in
+\code{vignette("capability-and-limits", package = "drmTMB")}. \code{summary()}
+can compute intervals for targets whose coverage has not been measured, so a
+successful computation is not by itself evidence of calibrated coverage.
 The optional \pkg{emmeans} package can compute estimated marginal means
 from supported fixed-effect \code{drmTMB} fits using the package registration
 installed at load time.

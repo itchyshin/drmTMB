@@ -23,7 +23,7 @@ The implemented contract is
 the mean, not more precision.
 Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter the logit-\code{mu} predictor; \code{sigma}
-remains fixed-effect in this first slice.
+must remain fixed-effect.
 }
 \section{Functions}{
 \itemize{

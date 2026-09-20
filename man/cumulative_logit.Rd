@@ -23,8 +23,7 @@ The implemented contract is
 \verb{mu_i = X_mu[i, ] beta_mu} and
 \verb{theta[1] < theta[2] < ... < theta[K - 1]}. \code{fitted()} returns the expected
 ordered-category score, \verb{sum_k k * Pr(y_i = k)}. Ordinal scale or
-discrimination formulas are planned but not exposed in this first
-implementation.
+discrimination formulas are not supported.
 
 The response may be an ordered factor or an integer-coded category. Integer
 codes are used at face value in increasing numeric order; \code{drmTMB} cannot

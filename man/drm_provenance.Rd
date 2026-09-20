@@ -28,10 +28,9 @@ machine-readable record that identifies the BUILD instead.
 An installed package has no \code{.git} directory to consult, so the git
 commit SHA and working-tree dirty flag are never read at call time.
 Instead they are captured once, at build time, by
-\code{tools/drmtmb_provenance.R} (invoked from \code{configure}/\code{configure.win}
-before \verb{inst/} is copied into the installed package) and baked into
-\code{inst/build-provenance.dcf}. \code{drm_provenance()} only reads that baked
-file. When it is missing -- for example under \code{devtools::load_all()}, or
+the package's configure step and stored with the installed package.
+\code{drm_provenance()} only reads that stored record. When it is missing -- for
+example under \code{devtools::load_all()}, or
 a build whose \code{configure} step did not run -- the git fields are \code{NA}
 with \code{source = "unavailable"} and a stated \code{reason}, rather than a guess.
 When \code{configure} ran but git information itself was unavailable at build

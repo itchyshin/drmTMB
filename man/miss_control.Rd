@@ -20,8 +20,7 @@ responses and masks their response likelihood contribution.}
 predictors. \code{"model"} enables the current \code{mi()} predictor-model routes when
 paired with a matching \code{impute} formula or \code{\link[=impute_model]{impute_model()}} in \code{\link[=drmTMB]{drmTMB()}}.}
 
-\item{engine}{Missing-data engine. Only \code{"laplace"} is implemented in this
-slice.}
+\item{engine}{Missing-data engine. Only \code{"laplace"} is implemented.}
 }
 \value{
 A \code{drm_missing_control} object.

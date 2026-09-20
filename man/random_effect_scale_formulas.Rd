@@ -38,18 +38,15 @@ generic spelling for these targets. The historical spellings
 \code{sd_phylo(species) ~ predictors}, \code{sd_phylo1(species) ~ predictors}, and
 \code{sd_phylo2(species) ~ predictors} are \strong{deprecated (soft)}: they still
 parse and fit identically, but emit a one-time deprecation warning per
-session and should not be used in new formulas. Future spatial,
-animal-model, and user-supplied relatedness direct-SD routes are planned
-to use the same \verb{level = } grammar, such as \code{sd(group, level = "spatial")}
-or \code{sd1(group, level = "animal")}, rather than adding parallel
-\verb{sd_spatial*()}, \verb{sd_animal*()}, and \verb{sd_relmat*()} families.
+session and should not be used in new formulas. Spatial, animal-model, and
+user-supplied relatedness direct-SD routes are not currently supported.
 
 These formulas model the standard deviation of a latent random-effect block.
 They are distinct from residual scale formulas such as \code{sigma ~ predictors}
 and from latent correlation formulas such as \code{\link[=corpair]{corpair()}}. Non-Gaussian
 random-effect scale formulas, spatial/animal/relmat direct-SD formulas, and
 explicit coefficient-specific targets such as
-\code{sd(group, dpar = "mu", coef = "slope") ~ predictors} remain planned.
+\code{sd(group, dpar = "mu", coef = "slope") ~ predictors} are not supported.
 }
 \examples{
 bf(y ~ x + (1 | id), sigma ~ z, sd(id) ~ habitat)

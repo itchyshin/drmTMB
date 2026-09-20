@@ -59,10 +59,10 @@ to the plain continuous case automatically) and the exact left limit
 Tweedie's atom at \code{y = 0} and \code{zero_one_beta}'s atoms at \code{y = 0} and \code{y = 1},
 with no epsilon offset (see \code{drm_atom_left_limit()}).
 
-\code{fitted_distribution()$status == "spike"} families (feasibility spikes,
-not yet DG2/DG3-verified) still compute a residual, but emit a one-time
-\code{\link[cli:cli_warn]{cli::cli_warn()}} per \code{model_type} per session flagging that the residual
-is exploratory, not DG-verified. \code{status == "unimplemented"} families
+Families with \code{fitted_distribution()$status == "spike"} have not been
+evaluated for residual diagnostics. They still compute a residual, but emit a
+one-time \code{\link[cli:cli_warn]{cli::cli_warn()}} per \code{model_type} per session stating that the result is
+exploratory. \code{status == "unimplemented"} families
 already raise a clear error inside \code{fitted_distribution()}, before this
 function's body runs.
 

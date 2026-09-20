@@ -18,10 +18,10 @@ fitted transform enforces \code{nu > 2}; its marginal standard deviations are
 \code{sigma_j * sqrt(nu / (nu - 2))}.
 }
 \details{
-The first implementation allows fixed effects in \code{mu1} and \code{mu2}, with
+The current model allows fixed effects in \code{mu1} and \code{mu2}, with
 intercept-only \code{sigma1}, \code{sigma2}, shared \code{nu}, and \code{rho12}. Random effects,
 parameter predictors outside the locations, missing response pairs, and
-interval inference are deferred.
+interval inference are not supported.
 }
 \examples{
 biv_student()

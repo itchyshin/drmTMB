@@ -39,8 +39,7 @@ the among-axis structure of a q = 4 "coevolution" fit: a bivariate Gaussian
 location-scale model whose four axes \code{mu1}, \code{mu2}, \code{sigma1}, \code{sigma2} share
 one structured random effect (\code{phylo()}, \code{animal()}, \code{relmat()}, or
 \code{spatial()}) with a dense 4 x 4 among-axis covariance \code{Sigma_a}. They are
-ported term-for-term from \code{DRM.jl}'s \code{src/coevo_accessors.jl} (#1118) and
-return the same quantities:
+defined for the following quantities:
 }
 \details{
 \itemize{
