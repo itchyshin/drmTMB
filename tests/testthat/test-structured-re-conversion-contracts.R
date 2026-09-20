@@ -30644,7 +30644,6 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
   expect_match(status_text, "public support", fixed = TRUE)
   for (path in list(
     c("docs", "dev-log", "internal-roadmap.md"),
-    "NEWS.md",
     c("docs", "dev-log", "known-limitations.md")
   )) {
     text <- paste(
@@ -30657,6 +30656,12 @@ test_that("q-series v1 readiness reset separates basic-working from support", {
       fixed = TRUE
     )
   }
+  news_text <- paste(readLines(structured_re_artifact_path("NEWS.md"), warn = FALSE), collapse = "\n")
+  expect_match(
+    news_text,
+    "https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html",
+    fixed = TRUE
+  )
   python3 <- Sys.which("python3")
   testthat::skip_if(python3 == "", "python3 is not available")
   repo_root <- dirname(structured_re_artifact_path("DESCRIPTION"))

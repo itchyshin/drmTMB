@@ -19842,13 +19842,22 @@ def main() -> int:
     for reference_path in (
         ROOT / "README.md",
         INTERNAL_ROADMAP,
-        ROOT / "NEWS.md",
         ROOT / "docs" / "dev-log" / "known-limitations.md",
     ):
         if reference_path.exists() and v1_status_link not in reference_path.read_text(
             encoding="utf-8"
         ):
             errors.append(f"{rel_path(reference_path)} must link to {v1_status_link}")
+    public_capability_guide = (
+        "https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html"
+    )
+    news_path = ROOT / "NEWS.md"
+    if news_path.exists() and "Q-Series" in news_path.read_text(encoding="utf-8"):
+        if public_capability_guide not in news_path.read_text(encoding="utf-8"):
+            errors.append(
+                "NEWS.md Q-Series entries must link readers to the public "
+                "capability-and-limits guide"
+            )
     for claim_guard_error in qseries_v1_claim_guard.check_claims(ROOT):
         errors.append(f"qseries v1 claim guard: {claim_guard_error}")
 

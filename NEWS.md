@@ -2197,7 +2197,7 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * `predict()` is deliberately unchanged: conditional prediction at the original
   data is correct, and was not the defect.
 
-* Found by the Arc B numerical audit's score-consistency check, not by reading
+* Found by a numerical audit's score-consistency check, not by reading
   the code — the first Bartlett identity `E[score] = 0` failed on the
   random-effect variance component at `z = 5.36` (60 replicates) growing to
   `10.59` (200), and now measures `z = -0.205`. No documented supported
@@ -2228,17 +2228,17 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `rho12` model and supplies no simultaneous eta bands, profiles, calibrated association-regression coverage, random
   effects, offsets, missing association predictors, aliases, or dot expansion.
 
-## Arc 6.5 Bernoulli × Bernoulli development slice (superseded for intervals)
+## Bernoulli × Bernoulli association (superseded for intervals)
 
 * Historical point-estimate note, superseded by **Association alpha intervals**
   above: `associate_pairs()` admits two frozen literal Bernoulli-logit margins and
   estimates a latent-normal `eta` using deterministic bivariate-normal
   rectangle probabilities. Its alpha-scale Godambe-Wald interval is now
-  interval-feasible when diagnostics pass, while its retained recovery campaign
-  remains HOLD and coverage remains uncalibrated. It is neither `rho12` nor an
+  interval-feasible when diagnostics pass, while its recovery study has not met
+  the required criteria and coverage remains uncalibrated. It is neither `rho12` nor an
   observed-scale correlation or odds ratio.
 
-## Arc 6.4 exact bivariate Student-t development slice
+## Exact bivariate Student-t likelihood: initial implementation
 
 * `biv_student()` now fits one bounded exact bivariate Student-t likelihood:
   fixed-effect `mu1`/`mu2`, constant Student-t scales `sigma1`/`sigma2`, one
@@ -2247,10 +2247,10 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   margins, because each pair shares the same scale-mixture draw. The route is
   source-tested only; random/structured effects, scale/shape/correlation
   predictors, partial pairs, offsets, weights, `meta_V`, `mi()`, REML, Julia,
-  intervals, coverage, smoke, recovery, and capability promotion remain
-  deferred.
+  and intervals remain unavailable. Numerical fit checks, parameter-recovery
+  studies, and interval-coverage studies have not yet established reliability.
 
-## Arc 6.3 exact bivariate lognormal development slice
+## Exact bivariate lognormal likelihood: initial implementation
 
 * `biv_lognormal()` now fits one bounded exact bivariate-lognormal likelihood:
   fixed-effect `mu1`/`mu2`, constant log-response SDs, and a constant `rho12`.
@@ -2258,7 +2258,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   the frozen-margin `eta` or a raw-scale correlation. The route accepts only
   complete, finite, positive pairs with unit weights; all random/structured
   effects, sigma/rho predictors, offsets, `meta_V`, `mi()`, REML, Julia,
-  intervals, coverage, and capability claims remain deferred.
+  and intervals remain unavailable. Interval coverage and broader reliability
+  have not yet been established.
 
 ## Cross-family association first implementation (superseded for intervals)
 
@@ -2286,9 +2287,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   same model: on a 20-group fixture they agree in log-likelihood and in every
   fixed-effect coefficient, while the correlated `(1 + x | g)` block stays
   distinct.
-* This is a formula rewrite onto a route drmTMB already fits and has certified.
-  No likelihood, no TMB change, and no new capability claim: no ledger cell
-  changes tier, and the desugaring is inert on formulas that contain no `||`.
+* This is a formula rewrite onto an existing model. It does not change the
+  likelihood or the reliability evidence for that model, and it leaves formulas
+  without `||` unchanged.
 * A categorical slope under `||` is rejected rather than silently accepted. In
   `lme4` `||` splits by formula term rather than by design-matrix column, so a
   factor slope keeps its within-factor correlations and is not in fact
@@ -2298,9 +2299,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   model frame is evaluated. A reader arriving from `mgcv` or `gamlss` previously
   got R's own `could not find function "s"`; the message now points at `poly()`
   and `splines::ns()` and states that penalised smooths are not implemented.
-* A user-facing error no longer leaks internal roadmap vocabulary: the
-  univariate Gaussian parameter check named "Phase 1" instead of naming the
-  supported distributional parameters.
+* The univariate Gaussian parameter error now names the supported
+  distributional parameters.
 * The simple-grouping rule (`(1 | g1/g2)` and `(1 | g1:g2)` are not implemented)
   is now locked by tests on both the `mu` and `sigma` parse paths, where the
   guard is duplicated.
@@ -2318,14 +2318,14 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   mistaken for a fitted result. A long-standing inverted axis label on the
   simulation bias panel is corrected. Documentation only; no code change.
 
-## Arc 4c ordinary `mu` random-slope profile coverage
+## Ordinary `mu` random-slope profile coverage
 
-* The exact independent `mu` random-slope cells for `skew_normal()`
-  (`mc-0464`), `tweedie()` (`mc-0539`), and `zero_one_beta()` (`mc-0575`) are
-  now `inference_ready_with_caveats` for the standard ML-Laplace profile
-  interval. A retained 1,200-attempt-per-M Fir campaign supports a deployment
-  floor of M=16 for each family at true slope SD 0.50. The ledger estimator
-  remains `ML`; no cell earns `supported` status.
+* Independent `mu` random slopes for `skew_normal()`, `tweedie()`, and
+  `zero_one_beta()` now have profile-interval evidence with caveats under
+  standard maximum likelihood with the Laplace approximation. A simulation
+  study with 1,200 attempts per tested group count supports use from 16 groups
+  in the tested designs, at true slope SD 0.50. This does not establish general
+  reliability beyond those designs.
 * This narrow result does not cover other SDs, observation counts, group grids,
   correlated or labelled slopes, scale/shape random effects, structured
   effects, REML, or AGHQ. Skew-normal retains slant-identification risk,
@@ -2354,9 +2354,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `g = 256` and `g = 512` results remain explicit HOLDs. REML, q2/q4, labels,
   phylogenetic slopes, phylogeny in family `sigma`, direct `sd()` regression,
   `zero_one_beta()`, missing/external data, intervals, coverage, and broader
-  Beta or all-family claims remain outside this PR.
+  Beta or all-family claims remain outside this result.
 
-## Exact supplied-relatedness q2 REML intercept (Arc 1b-S2R)
+## Exact supplied-relatedness q2 REML intercept
 
 * `drmTMB(..., REML = TRUE)` now admits one exact bivariate-Gaussian
   supplied-relatedness location cell: matching labelled
@@ -2374,9 +2374,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * This is a `point_fit_recovery` admission only. Supplied precision `Q`,
   `animal()`, slopes, scale-side blocks, q4 or larger blocks, non-Gaussian
   families, intervals, coverage, AI-REML, and `supported` claims remain outside
-  this arc.
+  this result.
 
-## Exact bivariate-spatial q2 REML intercept (Arc 1b-S1)
+## Exact bivariate-spatial q2 REML intercept
 
 * `drmTMB(..., REML = TRUE)` now admits one exact bivariate-Gaussian
   coordinate-spatial location cell: matching labelled
@@ -2394,8 +2394,8 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * This is a `point_fit_recovery` admission only. Spatial slopes, range
   estimation, animal-model bivariate REML, supplied-`Q` relatedness REML,
   scale-side q2, q4 or larger blocks, intervals, coverage, AI-REML, and
-  `supported` claims remain outside this spatial arc. Arc 1b-S2R subsequently
-  admits only the exact matching supplied-`K` `relmat()` q2 location-intercept
+  `supported` claims remain outside this spatial result. The supplied-relatedness
+  result above subsequently admits only the exact matching supplied-`K` `relmat()` q2 location-intercept
   cell at the same evidence tier.
 * A subsequent prospective Confidence Eye campaign promoted the two direct
   spatial-SD cells and their joint latent spatial correlation target to
@@ -2407,7 +2407,7 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   geometries or information configurations, and `supported` remain outside
   the claim.
 
-## Positive-continuous q1 structured location intercepts (Arc 3a)
+## Positive-continuous q1 structured location intercepts
 
 * Native univariate ML now fits one unlabelled q1 structured intercept in
   `mu` for Gamma-`phylo()`, lognormal-`phylo()`, and
@@ -2423,9 +2423,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   cells are therefore `point_fit_recovery`; no interval tier is implied.
 * New-route slopes, labels/q2+, `sigma` structure, joint `mu`/`sigma`,
   simultaneous structured providers, spatial/animal, bivariate responses, REML, intervals, coverage,
-  and `supported` claims remain outside this arc.
+  and `supported` claims remain outside this result.
 
-## Exact-Gaussian REML for mean-side structured providers (Arc 1a)
+## Exact-Gaussian REML for mean-side structured providers
 
 * `drmTMB(..., REML = TRUE)` now admits pure-`mu`, univariate Gaussian
   `spatial()`, `animal()`, and `relmat()` terms as an unlabelled intercept or an
@@ -2446,9 +2446,9 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `s_j^2 K_h`; a node's marginal SD is `s_j sqrt(K_h[ii])`, so it equals
   `s_j` only when that diagonal entry is one. Slope-only,
   labelled or multiple slopes, sigma random effects, matched `mu+sigma`,
-  bivariate and non-Gaussian routes remain outside this Arc 1a claim.
+  bivariate and non-Gaussian routes remain outside this result.
 
-## Residual-scale random intercepts for lognormal and Gamma (Arc 2c)
+## Residual-scale random intercepts for lognormal and Gamma
 
 * `predict(..., dpar = "sigma")` now includes the fitted residual-scale random
   intercept for `lognormal()` and `Gamma(link = "log")` models; `sigma()`,
@@ -2461,40 +2461,38 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
 * As with the mean random effects, the `sigma`-SD is fit by maximum likelihood
   with the Laplace approximation and can be biased downward when the number of
   groups or the per-group replication is small. Point recovery at 40 groups
-  has -3% to -4% relative bias. The separate Arc 4a iid campaign promotes only
-  the lognormal route to `inference_ready_with_caveats` for true SD 0.4,
+  has -3% to -4% relative bias. A separate simulation study provides interval
+  evidence with caveats only for the lognormal route at true SD 0.4,
   `n_each=12`, and exactly `M={16,32,64}`; coverage is mildly
   anti-conservative, not nominal. Gamma retains point-recovery evidence only.
-  Sentinels remain in `tests/testthat/test-arc2c-sigma-random-intercept.R`.
-* Scope (first gate): one independent `sigma` random intercept only. A `sigma`
+* Scope of this initial change: one independent `sigma` random intercept only. A `sigma`
   random slope, labelled covariance blocks, and combining a `sigma` random
   effect with a `mu` random effect in the same model remain rejected until joint
   recovery tests exist. The other non-Gaussian families still reject `sigma`
   random effects.
 
-## Random slopes for the intercept-only families (Arc 2b)
+## Random slopes for the intercept-only families
 
 * One independent `mu` random slope `(0 + x | id)` is now accepted for the five
-  families that gained a random intercept in Arc 2a: `binomial()`,
+  families that previously gained a random intercept: `binomial()`,
   `cumulative_logit()`, `skew_normal()`, `tweedie()`, and `zero_one_beta()`.
-  Combined with Arc 2a, every fitted univariate family now supports both a mean
+  With this addition, every fitted univariate family now supports both a mean
   random intercept and an independent mean random slope.
 * Random-effect standard deviations for these families are fit by maximum
   likelihood with the Laplace approximation and can be biased downward when the
   number of groups or the per-group replication is small. All five have point
   recovery from a 60-seed sweep (per-family relative slope-SD bias of -2% to
-  -9% at 40 groups). A separate Arc 4a iid campaign promoted the binomial
+  -9% at 40 groups). A separate simulation study supported the binomial
   route to `inference_ready_with_caveats` at true SD 0.6, 12 observations and
   12 trials per observation, and exactly `M={32,64}`; it is coverage-backed but
-  mildly anti-conservative rather than certified nominal. Single-seed recovery
-  checks remain in `tests/testthat/test-arc2b-mu-random-slope.R`.
-  Later campaigns promoted cumulative-logit (`mc-0227`) and the three Arc 4c
-  cells above under their own exact design-specific caveats.
+  mildly anti-conservative rather than certified nominal.
+  Later studies supported cumulative-logit and the skew-normal, Tweedie, and
+  zero-one-beta models described above, each with its own design-specific caveats.
 * Scope: one independent `mu` slope only. Correlated intercept-slope blocks
   `(1 + x | id)`, labelled covariance blocks `(0 + x | p | id)`, and
   `sigma`/shape/inflation-dpar random effects remain rejected for these families.
 
-## Random intercepts for every family (Arc 2a)
+## Random intercepts for every family
 
 * An ordinary `mu` random intercept `(1 | group)` is now accepted for the five
   families that previously rejected all random effects: `binomial()`,
@@ -2504,8 +2502,7 @@ See also the vignette *First-week intervals: fit, profile, and boundary*.
   `beta()`, `beta_binomial()`, `student()`, `truncated_nbinom2()`) that already
   did.
 * Fits are by maximum likelihood (Laplace). Random-effect standard deviations
-  are recovered at a known data-generating point (per-family DG2 sentinels in
-  `tests/testthat/test-arc2a-mu-random-intercept.R`). With few or small clusters
+  are recovered in per-family tests at known data-generating values. With few or small clusters
   the random-effect standard deviation can be biased low under the Laplace
   approximation; adaptive Gauss-Hermite quadrature is the standard remedy for
   the non-Gaussian families and remains planned.
@@ -3004,13 +3001,12 @@ than that matrix.
   cross-check, REML, AI-REML, bridge parity, the structured q8 rows, or
   `supported` wording.
 
-* The [detailed Q-Series v1.0 release status](https://github.com/itchyshin/drmTMB/blob/main/docs/dev-log/release-audits/q-series-v1-release-status.md)
-  now separates implemented/basic-working Gaussian structured-effect rows, 27 non-Gaussian
-  recovery rows, and 10 non-Gaussian diagnostic-only rows from post-v1.0
-  `inference_ready` and
-  `supported` validation. This is release-planning evidence only; it does not
-  authorize coverage, q4/q8 promotion, broad bridge support, REML, AI-REML, or
-  public-support wording.
+* Structured-effect evidence distinguishes implemented Gaussian models,
+  27 non-Gaussian models with parameter-recovery evidence, and 10 non-Gaussian
+  models with diagnostic-only evidence. These counts do not establish reliable
+  intervals, interval coverage, q4/q8 reliability, broad bridge support, REML,
+  or AI-REML. See [Can I fit and report this?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
+  for guidance on fitting, reporting estimates, and reporting uncertainty.
 
 * The Q-Series v1.0 practical surface now includes ten row-specific
   diagnostic-only gates—fit-and-diagnose routes that are not yet supported for
@@ -3106,15 +3102,15 @@ than that matrix.
 * `confint()` now warns when a default Wald interval is requested for the skew-normal slant `nu`, recommending `method = "profile"` (or `method = "bootstrap"`) instead. An ADEMP pilot found the Wald slant interval over-rejects near `nu = 0` (24-40% false positives versus the nominal 5%) because the Azzalini information is near-singular at `alpha = 0`. A later fixed-effect guard grid kept tail-floor exposure and fixed-gradient diagnostics visible rather than treating finite likelihoods as interval evidence. The warning is scoped to skew-normal `nu` only; Wald intervals for other families, including Student-t `nu` (tail shape) and Tweedie `nu` (power), are unchanged.
 * `confint(method = "profile")` now accepts `profile_endpoint_max_eval` for direct scalar endpoint profiles, giving long variance-component or correlation diagnostics an explicit endpoint-evaluation budget. When the budget is reached, `confint()` returns an endpoint `profile_failed` row with missing endpoints instead of silently falling through to a full-profile fallback. The Ayumi q4 developer harness can pass the same budget through `DRMTMB_AYUMI_Q4_PROFILE_ENDPOINT_MAX_EVAL` and now separates returned-fit status from convergence/Hessian inference status (#555).
 * `confint(method = "profile")` now returns an explicit row-level `conf.status = "profile_failed"` with missing endpoints when a direct numeric profile target fails during endpoint or `tmbprofile` evaluation, instead of aborting the whole interval request or labelling a non-finite interval as a successful profile. Focused regression tests keep bivariate q=4 phylogenetic location-scale sigma SDs visible as direct native-TMB ML profile targets, check weak-Hessian profile status for those sigma targets, and leave q4 phylogenetic correlations derived and not profile-ready (#551).
-* Phase 18 now has a standalone fixed-effect skew-normal artifact lane (`skew_normal_fixed_effect`). The new DGP, summariser, smoke runner, grid writer, manual Actions task, and focused tests save aggregate, replicate-level, manifest, failure-ledger, fixed-effect Wald interval, optional profile, optional parametric-bootstrap, interval-evidence, interval-diagnostic, and interval-failure artifacts for `bf(y ~ x, sigma ~ z, nu ~ w), family = skew_normal()`. The default grid uses moderate shape-recovery sample sizes (`n = 720` and `1440`) because stochastic skewness recovery is sample-size dependent; this is repeatable smoke/grid infrastructure, not a formal 500- or 1000-replicate operating-characteristic result.
+* Simulation tools now assess fixed-effect skew-normal models specified as `bf(y ~ x, sigma ~ z, nu ~ w), family = skew_normal()`. They save individual and aggregate results, warnings and failures, fixed-effect Wald intervals, and optional profile and parametric-bootstrap intervals. The default sample sizes are `n = 720` and `1440` because skewness recovery depends on sample size. These tools enable repeatable checks; this entry does not report a formal 500- or 1000-replicate study of bias or interval coverage.
 * `skew_normal()` now fits the first univariate fixed-effect skew-normal location-scale-shape route with public `mu = E[y]`, public `sigma = SD[y]`, and residual slant `nu` on the identity scale. The TMB likelihood transforms internally to native skew-normal `xi`, `omega`, and `alpha = nu`; focused tests cover density normalization, native-density comparison, Gaussian normal limit, positive and negative skew recovery, predictor-dependent `nu`, Gaussian false-positive behaviour, simulation, fixed-effect interval visibility, and malformed-neighbour rejection. Random effects, `sd(group)`, known sampling covariance, structured effects, bivariate skew-normal models, residual `rho12`, latent `skew(id)`, and `skew` aliases remain planned.
 * `drmTMB()` now forwards `REML = TRUE` through the experimental `engine = "julia"` bridge for one route-specific bivariate q = 4 Gaussian phylogenetic location-scale DRM.jl cell when the installed DRM.jl build supports that Patterson-Thompson REML diagnostic. The bridge article now shows the glmmTMB-style top-level `REML = TRUE/FALSE` switch, the labelled four-axis `phylo()` syntax, and the current missing-response boundary. This bridge evidence does not establish native-TMB q4 REML; the native route has separate recovery evidence. It also does not establish HSquared AI-REML, non-Gaussian REML, broad R-to-Julia bridge support, public optimizer controls, q4 interval reliability, or q4 interval coverage; weights, missing-predictor imputation, non-default control, most non-Gaussian families, unsupported phylogenetic neighbours, `corpair()` entries, simulation, and persistent Julia handles remain native-TMB or future bridge work (#544).
 * `drmTMB()` now records `estimator`, `REML`, `requested_REML`, and `effective_REML` on experimental Julia-engine fits, so downstream diagnostics can distinguish requested REML from the estimator actually fitted. Unsupported Julia REML requests now warn with the exact unsupported cell, fall back to ML, and state that native `engine = "tmb"` is only an REML fallback for its documented univariate Gaussian REML slice rather than for every rejected Julia cell (#555).
 * `biv_gaussian()` now fits the first ordinary q8 all-endpoint location-scale slope covariance slice: matching labelled `(1 + x | p | id)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2`. The fitted block has eight endpoint SDs and 28 latent group-level correlations across response-specific location intercepts, location slopes, scale intercepts, and scale slopes. The SDs appear in `sdpars$mu` and `sdpars$sigma`; the correlations appear in `corpars$re_cov`, `corpairs(level = "group", block = "p")`, `summary()$covariance`, `profile_targets()`, and `check_drm()`. The Phase 18 registry now exposes opt-in `biv_gaussian_q8_endpoint` and `biv_gaussian_q8_endpoint_recovery` Actions tasks; the recovery lane reports bias, RMSE, MCSE, and explicit interval unavailability. A 2026-06-07 local two-cell audit ran 20 replicates per cell and kept q8 at `hold_diagnostic`: 38/40 manifests completed, model-convergence rates were 0.263 and 0.158, positive-Hessian rates were 0 in both cells, two replicates failed with non-positive leading minors, and no Wald intervals were usable. Q8 still has no coverage result, power claim, predictor-dependent `corpair()` regression, random `rho12`, structured q8 sibling, or non-Gaussian q8 route.
 * `biv_gaussian()` now fits the first same-response location-scale slope covariance slice: matching labelled `(0 + x | p | id)` terms in `mu1`/`sigma1` or `mu2`/`sigma2`. The location-slope SD appears in `sdpars$mu`, the scale-slope SD appears in `sdpars$sigma`, and the group-level `cor(mu1:x,sigma1:x | p | id)` or `cor(mu2:x,sigma2:x | p | id)` row appears in `corpars$mu_sigma`, `corpairs(class = "mean-scale-slope")`, `summary()$parameters`, `profile_targets()`, and `check_drm()`. Cross-response pairs, mismatched coefficients, and univariate labelled `sigma` slopes remain closed; the all-endpoint q8 route is a separate source-tested slice.
 * The Phase 18 same-response bivariate Gaussian q=2 `mu`/`sigma` slope covariance lane now has smoke and multi-replicate recovery artifacts (`biv_gaussian_mu_sigma_slope` and `biv_gaussian_mu_sigma_slope_recovery`). The lane reuses the fitted matching `(0 + x | p | id)` terms in `mu1` and `sigma1`, reports 12 estimands, emits bias, RMSE, empirical SE, MCSE, and fixed-effect Wald coverage tables, and keeps the two slope SDs plus the derived `mu_sigma` correlation out of Wald interval claims. A local 2026-06-06 formal audit ran 500 replicates in each of the two default recovery cells and produced 1,000 `ok` manifest rows, but convergence/positive-Hessian rates were 0.856 and 0.884 and all-replicate fixed-effect Wald coverage was 0.796-0.850. A follow-up hardening audit regenerated and robust-refit the 130 weak replicates; none were rescued, all retained false-convergence and `pdHess = FALSE`, and estimates were unchanged. Among interval-available converged fits, fixed-effect Wald coverage was 0.930-0.972, and endpoint profiles succeeded on two clean representative fits for `rho12`, both slope SDs, and `cor(mu1:x,sigma1:x | p | id)`. This is diagnostic evidence and profile feasibility, not power-grid support.
-* The ordinary NB2 `mu` random-effect surface now has a standalone recovery artifact lane (`nbinom2_mu_re_recovery`), parallel to the Poisson one: it runs the already-recovery-capable smoke summary at recovery-scale `n_rep` and emits isolated bias/RMSE/MCSE, Wald-coverage, and profile-coverage CSVs through an opt-in Actions task, as a `ready_grid` `random_slopes` registry row. (The truncated-NB2 `mu` random-intercept surface already had an equivalent standalone coverage-emitting lane through its existing `truncated_nbinom2_mu_random_intercept` task, so it needed no new writer.)
-* The ordinary Poisson `mu` random-effect surface now has a standalone, dispatchable recovery artifact lane (`poisson_mu_re_recovery`) — the first non-Gaussian recovery artifact lane. The recovery contract (bias, RMSE, MCSE, Wald coverage for the fixed mean coefficients, and profile coverage for the random-effect SD) was already computed by the smoke summary; the new opt-in lane runs it at recovery-scale `n_rep` and emits isolated CSV artifacts instead of only riding the combined first-wave summary. It is a `ready_grid` `random_slopes` registry row.
+* Simulation tools for ordinary NB2 `mu` random effects now save separate summaries of bias, root mean squared error (RMSE), Monte Carlo standard error (MCSE), and Wald and profile interval coverage across repeated fits. Zero-truncated NB2 random-intercept models already had equivalent output. This adds a way to run and summarize recovery studies; it does not itself establish coverage.
+* Simulation tools for ordinary Poisson `mu` random effects now save separate repeated-fit summaries of bias, RMSE, MCSE, Wald interval coverage for fixed mean coefficients, and profile interval coverage for the random-effect SD. These quantities were previously available only within a combined pilot summary; no new coverage result is claimed here.
 * The Phase 18 bivariate Gaussian slope-only `mu1`/`mu2` covariance lane now has a multi-replicate recovery companion (`biv_gaussian_mu_slope_recovery`). It reuses the smoke DGP, fit, and runner for the matching `(0 + x | p | id)` block and reports bias, RMSE, empirical SE, Monte Carlo standard error, and Wald interval coverage across its 10 estimands. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints; the two slope random-effect SDs and the derived slope-slope correlation stay `derived_interval_unavailable`. The lane is a `ready_grid` `random_slopes` registry row with its own opt-in Actions task and grid writer.
 * The Phase 18 bivariate Gaussian q=6 `mu1`/`mu2` location covariance lane now has a multi-replicate recovery companion (`biv_gaussian_q6_location_recovery`). It reuses the smoke DGP, fit, and runner for the matching `(1 + x + z | p | id)` block in both location formulas and reports bias, RMSE, empirical SE, Monte Carlo standard error, and Wald interval coverage across its 30 estimands. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints; the six location random-effect SDs and the fifteen derived location-location correlations stay `derived_interval_unavailable`. The lane is a `ready_grid` `random_slopes` registry row with its own opt-in Actions task and grid writer.
 * The Phase 18 bivariate Gaussian q=2 residual-scale intercept covariance lane now has a multi-replicate recovery companion (`biv_gaussian_q2_scale_recovery`). It reuses the smoke DGP, fit, and runner, runs at recovery-scale `n_rep`, and reports bias, RMSE, empirical SE, Monte Carlo standard error, and Wald interval coverage. Wald coverage is reported only for the fixed `mu1`/`mu2` endpoints that carry a standard error; the random-effect scale SDs and the derived scale-scale correlation stay `derived_interval_unavailable`. The lane is registered as a `ready_grid` `correlation_blocks` row with its own opt-in Actions task and grid writer, and its design sheet is `docs/design/156-phase-18-bivariate-scale-q2-recovery-ademp.md`.
@@ -3162,19 +3158,19 @@ than that matrix.
 * `poisson()` now fits the labelled-scalar spatial count route `bf(count ~ x + spatial(1 | p | site, coords = coords))`. The label is treated as a scalar covariance-block tag for the existing q1 spatial `mu` field and is exposed through `sdpars$mu`, `ranef("spatial_mu")`, and a direct `profile_targets()` row. This is local fit-only evidence only: q2/q4 count covariance, labelled slopes, simultaneous structured providers, intervals, coverage, `inference_ready`, `supported`, REML, AI-REML, bridge support, and public support remain out of scope.
 * `nbinom2()` now fits the ordinary, non-zero-inflated q=1 phylogenetic `mu` intercept with syntax `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)`. The fitted effect is on the log-mean scale while `sigma` remains fixed-effect overdispersion; `sdpars$mu`, `ranef("phylo_mu")`, `profile_targets()` as a direct `log_sd_phylo` target, and `check_drm()` phylogenetic diagnostics expose the route. Historical note, superseded by current recovery evidence: exact q1 structured `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Labelled q2/q4 count blocks, zero-inflated NB2 phylogeny, richer structured sigma blocks, structured-sigma intervals/coverage, simultaneous structured count types, and count cross-parameter covariance remain planned.
 * `poisson()` and `nbinom2()` now fit q=1 `spatial()`, `animal()`, and `relmat()` `mu` intercepts for ordinary non-zero-inflated count models, extending the existing q=1 `phylo()` count route. The fitted log-mean structured SD appears in `sdpars$mu`, marker-specific `ranef()` blocks such as `ranef("spatial_mu")`, direct `profile_targets()` rows through `log_sd_phylo`, and `check_drm()` structured diagnostics. Historical note, superseded by current recovery evidence: exact q1 structured NB2 `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Pure or multiple structured count slopes, labelled q2/q4 count covariance beyond the exact Poisson scalar-label gate, zero-inflated structured effects beyond the exact local-fit gates, simultaneous structured count types, richer structured sigma blocks, and structured-sigma intervals/coverage remain planned.
-* Phase 18 now has an opt-in count structured q1 artifact lane for ordinary Poisson/NB2 `spatial()`, `animal()`, and `relmat()` `mu` intercepts. The new DGP, summariser, smoke runner, summary helper, grid writer, manual `count_structured_q1` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct `log_sd_phylo` profile-target, optional profile-interval, interval-evidence, interval-diagnostic, and interval-failure artifacts without adding zero-inflated structure, structured slopes, labelled count covariance, structured NB2 `sigma`, `task = "all"` inclusion, or formal recovery claims.
+* Simulation tools now assess ordinary Poisson/NB2 models with one structured `mu` intercept supplied through `spatial()`, `animal()`, or `relmat()`. They retain individual and aggregate fit results, warnings and failures, fixed-effect Wald intervals and coverage, and optional intervals for direct `log_sd_phylo` profile targets. This adds no formal recovery result and does not cover zero-inflated structure, structured slopes, labelled count covariance, or structured NB2 `sigma`.
 * `nbinom2()` now fits the first ordinary log-`sigma` random-intercept gate for non-zero-inflated models, with syntax such as `bf(count ~ x, sigma ~ z + (1 | id))`. The fitted effect models grouped overdispersion on the log-`sigma` scale and is exposed through `sdpars$sigma`, `random_effects$sigma`, `sigma()`, `predict(dpar = "sigma")`, direct `log_sd_sigma` profile targets, and `check_drm()` replication diagnostics. Historical note, superseded by current recovery evidence: exact q1 structured NB2 `sigma` intercept-plus-one-slope routes now fit for phylo/spatial/animal/relmat. Ordinary NB2 `sigma` slopes, labelled covariance blocks, joint `mu`/`sigma` random effects, zero-inflated/truncated/hurdle NB2 scale random effects, richer structured sigma blocks, structured-sigma intervals/coverage, and Poisson scale random effects remain planned or inapplicable.
 * `beta()` and `beta_binomial()` now support ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(prop ~ x + (1 | id) + (0 + x | id), sigma ~ z)` for strict `(0, 1)` responses and `bf(cbind(success, failure) ~ x + (1 | id) + (0 + x | id), sigma ~ z)` for counted successes out of known trials. The fitted logit-mean or logit-success-probability SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics; correlated bounded-response random slopes, labelled covariance blocks, `sigma` random effects, exact 0/1 boundary mass, `zoi`/`coi`, structured effects, known covariance, and bivariate or mixed bounded-response models remain planned.
 * `student()` now supports ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z, nu ~ 1)`. The fitted location SD appears in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics. Historical note: correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, and known covariance remain planned; the later Arc 6.4 exact `biv_student()` source slice is deliberately narrower and carries no recovery claim.
 * `lognormal()` and `Gamma(link = "log")` now support ordinary unlabelled `mu` random intercepts and independent numeric slopes such as `bf(y ~ x + (1 | id) + (0 + x | id), sigma ~ z)`. The fitted SDs appear in `sdpars$mu`, `random_effects$mu`, direct `profile_targets()` rows, and `check_drm()` replication diagnostics. This historical ordinary-effect entry is superseded in part by the exact Arc 3a q1 Gamma-phylo and lognormal-phylo/relmat intercept gates; correlated positive-continuous random slopes, labelled covariance blocks, `sigma` slopes, labelled or combined `sigma` random effects, other structured positive-continuous effects, known covariance, and bivariate or mixed positive-continuous models remain planned.
-* Phase 18 now has a Student-t `mu` random-intercept artifact lane for `student()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `student_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu` with fixed-effect `sigma` and `nu`, while keeping correlated Student-t random slopes, labelled covariance blocks, `sigma` random effects, `nu` random effects beyond the exact phylo local-fit gate, broad structured effects, known covariance, and bivariate Student-t models out of scope.
-* Phase 18 now has a zero-truncated NB2 `mu` random-intercept artifact lane for `truncated_nbinom2()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `truncated_nbinom2_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`, while keeping correlated zero-truncated NB2 random slopes, labelled covariance blocks, `sigma` random effects, hurdle random effects, zero-inflated zero-truncated models, structured effects, and bivariate count models out of scope.
-* Phase 18 now has a bounded-response `mu` random-intercept artifact lane for `beta()` and `beta_binomial()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `bounded_response_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`. Historical boundary note, superseded for the exact zero-one-beta ordinary `zoi` q1 intercept and same-raw-symbol slope gates: other zero-one beta random effects, correlated bounded-response slopes, labelled covariance blocks, structured effects, known covariance, and mixed bounded-response models remain out of scope.
-* Phase 18 now has a fixed-effect proportion artifact lane for `beta()` and `beta_binomial()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `proportion_fixed_effect` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage artifacts while keeping exact 0/1 boundary mass, `zoi`/`coi`, correlated bounded-response random slopes, labelled covariance blocks, `sigma` random effects, structured bounded responses, and mixed-response bounded models out of scope.
-* Phase 18 now has a fixed-effect positive-continuous artifact lane for `lognormal()` and `Gamma(link = "log")`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `positive_continuous_fixed_effect` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage artifacts while keeping Tweedie, generalized Gamma, positive-response random effects beyond the ordinary `mu` intercept slice, known-covariance positive responses, structured positive responses, and mixed-response positive-continuous models out of scope.
-* Phase 18 now has a positive-continuous `mu` random-intercept artifact lane for `lognormal()` and `Gamma(link = "log")`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `positive_continuous_mu_random_intercept` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, direct-SD profile interval, and profile coverage artifacts for ordinary `(1 | id)` in `mu`, while keeping correlated positive-continuous random slopes, labelled covariance blocks, `sigma` random effects, Tweedie, generalized Gamma, structured effects, known covariance, and mixed positive-continuous models out of scope.
-* Phase 18 added a fixed-effect ordinal artifact lane for `cumulative_logit()`. Historical note, superseded in part by later ordinary `mu` intercept/slope recovery and an exact phylogenetic intercept gate: this artifact lane itself covers only aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, Wald coverage, cutpoint, and cutpoint-ordering outputs; correlated/labelled or other structured ordinal effects, ordinal scale/discrimination formulas, bivariate ordinal models, and mixed-response ordinal models remain out of scope.
-* Phase 18 now has a fixed-effect zero-one beta artifact lane for `zero_one_beta()`. The new DGP, summariser, smoke runner, grid writer, first-wave runner inclusion, manual `zero_one_beta_fixed_effect` Actions task, and focused tests save aggregate, replicate, manifest, failure-ledger, fixed-effect Wald interval, and Wald coverage artifacts. Historical boundary note, superseded for the exact ordinary `zoi` q1 intercept and same-raw-symbol slope gates: other zero-one random effects, covariance blocks, denominator syntax, known covariance, structured bounded responses, and bivariate or mixed bounded-response models remain out of scope.
+* Simulation tools for `student()` now record repeated-fit results, failures, fixed-effect Wald intervals, direct-SD profile intervals, and their coverage for ordinary `(1 | id)` in `mu` with fixed-effect `sigma` and `nu`. These outputs do not establish reliable coverage. Correlated Student-t slopes, labelled covariance, `sigma` random effects, broad structured effects, known covariance, and bivariate Student-t models are outside this study design. A separately tested phylogenetic `nu` random-intercept model has local fitting evidence only; other `nu` random effects remain outside scope.
+* Simulation tools for `truncated_nbinom2()` now record the same fit, failure, Wald-interval, direct-SD profile-interval, and coverage summaries for ordinary `(1 | id)` in `mu`. These outputs do not establish reliable coverage. Correlated slopes, labelled covariance, `sigma` or hurdle random effects, zero-inflated zero-truncated models, structured effects, and bivariate count models remain outside scope.
+* Simulation tools for `beta()` and `beta_binomial()` now record fit results, failures, fixed-effect Wald intervals, direct-SD profile intervals, and their coverage for ordinary `(1 | id)` in `mu`. These outputs do not establish reliable coverage. Later work separately added ordinary zero-one-beta `zoi` intercepts and slopes using the same raw predictor symbol. Other zero-one-beta random effects, correlated bounded-response slopes, labelled covariance, structured effects, known covariance, and mixed bounded-response models remain outside this study design.
+* Fixed-effect `beta()` and `beta_binomial()` simulation tools now save individual and aggregate results, failures, Wald intervals, and their coverage. This is infrastructure for checking intervals, not a coverage result. Structural exact 0/1 mass, `zoi`/`coi`, correlated bounded-response slopes, labelled covariance, `sigma` random effects, structured effects, and mixed-response bounded models remain outside scope.
+* Fixed-effect `lognormal()` and `Gamma(link = "log")` simulation tools now save individual and aggregate results, failures, Wald intervals, and their coverage. This is infrastructure for checking intervals, not a coverage result. Tweedie, generalized Gamma, positive-response random effects beyond the ordinary `mu` intercept, known sampling covariance, structured effects, and mixed positive-continuous responses remain outside scope.
+* Simulation tools for `lognormal()` and `Gamma(link = "log")` models with ordinary `(1 | id)` in `mu` now save fit results, failures, fixed-effect Wald intervals, direct-SD profile intervals, and their coverage. These outputs do not establish reliable coverage. Correlated slopes, labelled covariance, `sigma` random effects, Tweedie, generalized Gamma, structured effects, known covariance, and mixed positive-continuous models remain outside this study design.
+* Fixed-effect `cumulative_logit()` simulation tools now save fit and failure summaries, fixed-effect Wald intervals and coverage, cutpoints, and cutpoint-ordering checks. Later work separately assessed ordinary `mu` intercepts/slopes and one phylogenetic intercept model. Correlated or labelled effects, other structured ordinal effects, scale/discrimination formulas, cutpoint-specific predictors, bivariate ordinal models, and mixed-response ordinal models remain outside this study design.
+* Fixed-effect `zero_one_beta()` simulation tools now save individual and aggregate results, failures, fixed-effect Wald intervals, and their coverage. These outputs do not establish reliable coverage. Later work separately added ordinary `zoi` and `coi` intercepts and slopes using the same raw predictor symbol. Other zero-one-beta random effects, covariance blocks, denominator syntax, known covariance, structured effects, and bivariate or mixed bounded-response models remain outside this study design.
 * Phase 18 Slice C now closes the count first-wave review lane as a documented evidence inventory rather than a new syntax lane. The new count-closure note ties together paired Poisson/NB2 `mu` random effects, NB2 log-`sigma` random intercepts, Poisson q1 phylo, NB2 q1 phylo, the NB2 `hold_smoke_only` formal gate, and the next Slice D choices while keeping COM-Poisson, generalized Poisson, Tweedie, zero-one beta, skew-normal, and new random-effect syntax out of scope.
 * Phase 18 now has an overdispersion-aware NB2 phylogenetic q1 formal-admission lane for `bf(count ~ x + phylo(1 | species, tree = tree), sigma ~ z)`. The new ADEMP sheet, DGP, target-plus-grouped-comparator fitter, summariser, smoke runner, summary helper, grid writer, formal-grid spec/read-back QA helpers, promotion-decision helper, focused tests, and manual `nbinom2_phylo_q1_formal` Actions task save aggregate, replicate, manifest, failure-ledger, Wald interval, Wald coverage, direct `log_sd_phylo` profile-target, optional profile-interval, interval-evidence, interval-diagnostic, and interval-failure artifacts. This does not create formal recovery or coverage claims until the 500-replicate grid is run and audited.
 * Phase 18 Slices 541-555 now record a local NB2 phylogenetic q1 formal-audit pass. The all-cell sentinel ran 288 formal cells once and the representative audit ran 24 formal-shaped cells with five replicates each, both with direct `log_sd_phylo` profiles and grouped-comparator rows. The artifacts passed read-back QA, all sentinel fits and all replicate-audit rows converged, and the promotion helper correctly keeps the route at `hold_smoke_only` because the 500-replicate formal recovery gate was not run. Profile failures at true `sd_phylo = 0` and fixed-`sigma` instability in low-count, low-overdispersion cells remain visible audit boundaries.
@@ -3256,7 +3252,7 @@ than that matrix.
 * Phase 18 now has its first one-page ADEMP sheet for the admitted Gaussian location-scale lane, tying the existing `phase18_dgp_gaussian_ls()` helper to aims, DGP conditions, estimands, methods, performance measures, and Williams-style reporting checks before larger grids run.
 * Phase 18 now has a one-page ADEMP sheet for the admitted Gaussian `meta_V(V = V)` lane, keeping known sampling covariance as input data and public residual `sigma` as the fitted heterogeneity estimand before vector or dense known-`V` grids expand.
 * Phase 18 now has a one-page ADEMP sheet for the paired Poisson/NB2 `mu` random-effect lane, keeping the first count grid to ordinary non-zero-inflated `mu` random intercepts and independent numeric slopes while zero-inflated, hurdle, zero-truncated, structured, correlated-slope, and labelled covariance count models remain failure-ledger rows.
-* Phase 18 now has a one-page ADEMP sheet for the fixed-effect proportion lane, separating strict continuous `beta()` responses from denominator-aware `beta_binomial()` success counts while keeping exact 0/1 boundary mass outside that earlier beta/beta-binomial artifact lane. Random effects beyond the beta and beta-binomial ordinary `mu` intercept/slope slices, structured effects, known sampling covariance, and mixed-response bounded models remain in the failure ledger.
+* The fixed-effect proportion simulation design distinguishes continuous `beta()` responses from denominator-aware `beta_binomial()` success counts. Structural exact 0/1 mass, random effects beyond ordinary `mu` intercepts/slopes, structured effects, known sampling covariance, and mixed-response bounded models remain outside that study design.
 * Phase 18 added a one-page ADEMP sheet for the fixed-effect ordinal lane. Historical note, superseded in part by later ordinary `mu` intercept/slope recovery and an exact phylogenetic intercept gate: correlated/labelled or other structured ordinal effects, scale/discrimination formulas, cutpoint-specific predictors, bivariate ordinal models, and mixed-response ordinal models remain in the failure ledger.
 * Phase 18 now has a one-page ADEMP sheet for the bivariate Gaussian residual `rho12` lane, defining the response-specific mean and scale DGP, residual covariance matrix, response-scale `rho12` grids, and boundary diagnostics while keeping group-level `corpairs()`, structured correlations, known sampling covariance, random effects in `rho12`, mixed-response families, and bivariate random-slope covariance in separate design or failure-ledger lanes.
 * Broader bivariate random-slope combination boundaries now have focused error coverage for unsupported residual-scale slope variants, cross-response or coefficient-mismatched same-response location-scale slope combinations, and all-four q=8-style slope requests while the matching q2 `sigma1`/`sigma2` scale-slope route is fitted separately.
