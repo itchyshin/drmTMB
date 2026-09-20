@@ -29,7 +29,7 @@ test_that("public release identity matches DESCRIPTION", {
     paste0("# drmTMB ", version),
     fixed = TRUE
   )
-  expect_match(surfaces[["pkgdown"]], paste0(version, " pre-CRAN"), fixed = TRUE)
+  expect_match(surfaces[["pkgdown"]], paste0(version, " development"), fixed = TRUE)
   expect_match(surfaces[["vignette"]], paste0("`drmTMB` ", version), fixed = TRUE)
 
   current_reader_text <- paste(

@@ -14,7 +14,7 @@
 > for the documented workflows and their current evidence; anything beyond
 > those stated boundaries remains provisional.
 
-`drmTMB` 0.7.0 is on CRAN; 0.7.1 is the development version. The guides below describe
+`drmTMB` 0.7.1 is the development version; 0.7.0 is on CRAN. The guides below describe
 the workflows that can be fitted today; they do not turn an internal release
 ledger into evidence for a scientific conclusion.
 
