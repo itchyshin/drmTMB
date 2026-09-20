@@ -281,11 +281,11 @@ ci_profile_parallel <- confint(
 )
 ```
 
-Bootstrap intervals are a heavier simulation-refit audit. They require the
-fitted model data, so do not combine them with
+Bootstrap intervals repeatedly simulate and refit the model, so they take more
+time and require the fitted model data. Do not combine them with
 `drm_control(keep_data = FALSE)` unless you refit the final model with
-`keep_data = TRUE` first. Use a small `R` as a smoke test, then increase `R`
-only for the final check:
+`keep_data = TRUE` first. Start with a small `R` to check that the setup works,
+then increase `R` for the final analysis:
 
 ```{r, purl=FALSE}
 ci_boot <- confint(
@@ -302,15 +302,13 @@ ci_boot <- confint(
 Treat these routes as different evidence, not as interchangeable defaults. Wald
 intervals are the routine first pass, endpoint profiles are likelihood-based
 checks for direct scalar targets, full `TMB::tmbprofile()` is the debugging and
-comparison route, and bootstrap is a slower refit-based audit.
+comparison route, and bootstrap is a slower refit-based option.
 
-The current endpoint benchmark artifact gives a scale for those choices. The
-plot below uses the synthetic Gaussian phylogenetic benchmark rows recorded in
-`docs/dev-log/benchmarks/profile-scalar-endpoint-v2.csv`. It intentionally uses
-points only: elapsed seconds are local timing measurements from one machine, not
-confidence intervals.
+The synthetic Gaussian phylogenetic example below gives a rough sense of these
+choices. Its points are elapsed seconds measured on one machine, not confidence
+intervals or promises about your computer.
 
-```{r large-data-profile-benchmark-timing, eval=has_ggplot2, echo=FALSE, message=FALSE, warning=FALSE, fig.width=7.4, fig.height=4.4, fig.cap="Development benchmark timings for direct scalar profile intervals. Points are elapsed seconds from one local synthetic Gaussian phylogenetic benchmark table; they are performance measurements, not confidence intervals.", fig.alt="Horizontal dot plot comparing tmbprofile, endpoint, and endpoint multicore elapsed seconds for residual sigma and phylogenetic SD benchmark scenarios. Endpoint and endpoint multicore are faster than tmbprofile in every shown successful benchmark row."}
+```{r large-data-profile-benchmark-timing, eval=has_ggplot2, echo=FALSE, message=FALSE, warning=FALSE, fig.width=7.4, fig.height=4.4, fig.cap="Timing examples for direct scalar profile intervals. Points are elapsed seconds from one local synthetic Gaussian phylogenetic benchmark table; they are performance measurements, not confidence intervals.", fig.alt="Horizontal dot plot comparing tmbprofile, endpoint, and endpoint multicore elapsed seconds for residual sigma and phylogenetic SD benchmark scenarios. Endpoint and endpoint multicore are faster than tmbprofile in every shown successful benchmark row."}
 profile_bench <- data.frame(
   scenario = c(
     rep("sigma\n10k rows / 1k species", 3),
@@ -510,15 +508,14 @@ Rscript bench/large-phylo-location.R --rows 100000 --species 1000 \
   --sigma-x true --memory-light true --output bench/results.csv
 ```
 
-The benchmark is intentionally outside the package test suite. It can be slow,
-and it measures local hardware, BLAS, compiler, and operating-system behaviour
-as much as package code.
+Run this benchmark only when you need to understand this model shape on your
+own hardware. It can be slow, and its results reflect your hardware, BLAS,
+compiler, and operating system as well as package code.
 
-## What the current development benchmarks say
+## What these benchmark examples show
 
-The development benchmark table in `docs/dev-log/benchmark-results.md` records
-selected local runs. Treat the numbers as planning evidence, not as speed
-promises for your computer.
+The table gives selected measurements from one local machine. Use them to plan
+a first run, not as speed promises for your computer.
 
 | Scenario | Local result | What to learn |
 | --- | --- | --- |

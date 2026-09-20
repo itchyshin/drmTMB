@@ -187,13 +187,9 @@ show.
 its own free parameters: heavy tails fit as Gaussian, ignored
 overdispersion or zero-inflation in a family with no free dispersion
 parameter, ignored truncation, a missing zero/one atom, and the
-heteroscedasticity example reproduced above. A 400-seed gated campaign
-across all fitted families (tweedie: 99 of 400 seeds locally, 66/99
-dispersion-arm non-convergence, full run deferred to Totoro)
-(`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/`)
-confirms type-I error at or below the nominal rate under a correctly
-specified fit, with power >= 0.8 (commonly 0.9-1.0) for these detectable
-mis-specifications.
+heteroscedasticity example reproduced above. In these situations, a clear
+departure in the residual plots is a reason to reconsider the family or its
+distributional formulas; it is not, by itself, proof of the replacement model.
 
 **Does not detect -- a structural blind spot, not evidence of adequacy.**
 When a fitted family's own free nuisance, dispersion, or inflation
@@ -227,11 +223,9 @@ mis-specification.**
   parameter uncertainty. `centile_chart()` is a model-conditional curve at
   that same point estimate, not a WHO-style or other population reference
   standard.
-- A distributional-output or adequacy tick never changes, or implies
-  anything about, a family's separate inference-tier status (see
-  `vignettes/capability-and-limits.Rmd`). Fitting quantiles and residuals
-  for a family does not certify its confidence intervals.
+- Quantile predictions and residual diagnostics do not establish that a
+  confidence interval is appropriate. For family-specific limits and
+  inference guidance, see [Capability and limits](capability-and-limits.html).
 
-See `docs/dev-log/known-limitations.md` for the full scope note and
-`docs/dev-log/simulation-artifacts/2026-07-12-dg3-power-arm-gated/` for the
-underlying campaign this section summarizes.
+See also [Checking and using fitted models](model-workflow.html) for the
+post-fit workflow that starts with these diagnostics.

@@ -31,7 +31,7 @@ Eight comparisons follow, each built from a real dataset, a real `drmTMB` fit,
 and a real fit from the comparator package alongside it. **These eight models
 were chosen because a package this article already depends on fits them too;
 that set is small next to what `drmTMB` implements as a whole, and the
-package's design documents record the rest of that surface.**
+article is not a catalogue of every available model.**
 
 Every comparison here is single-seed and single-dataset. Each one shows that
 `drmTMB`'s likelihood and optimizer reach the same optimum as another
@@ -39,9 +39,9 @@ implementation of the same model, on the data shown. It is **not** evidence
 about interval calibration, coverage, bias, or small-sample behaviour, and no
 standard error or confidence interval is compared anywhere in this article.
 Agreement licenses the model both packages fit on the dataset shown; for any
-other model, `drmTMB`'s evidence is its own recovery and coverage studies,
-recorded per capability in the package's design documents and capability
-ledger.
+other model, assess its assumptions and inference separately. See
+[Capability and limits](capability-and-limits.html) when choosing a model
+outside these examples.
 
 ## What this article compares
 
@@ -58,7 +58,7 @@ article did, comparison by comparison.
 | Distributional (`sigma`) submodel, fixed effects | 2, 3, 6, 7, 8 | yes, five times | 2, 3 STRONG (a between-study heterogeneity SD, not a residual scale; 2's `sigma` formula is intercept-only, 3's carries a covariate) · 6, 7, 8 WEAK |
 | Distributional (`sigma`) submodel, ordinary random effect | none | not compared here | nothing to classify |
 | Residual correlation `rho12` with a predictor | none | not compared here | nothing to classify |
-| The rest of the implemented model surface | none | not compared here; the design documents record what it contains | nothing to classify |
+| Other `drmTMB` models and structures | none | not compared here; see [Capability and limits](capability-and-limits.html) | nothing to classify |
 
 Comparisons 6, 7, and 8 fit `mu` and `sigma` jointly in one model. The
 agreement reported for each is a property of that joint fit; it does not
@@ -69,15 +69,13 @@ shares no estimation code with `drmTMB`; **WEAK** means it is built on the
 same TMB automatic-differentiation stack and outer optimizer, so agreement is
 a consistency check between related implementations rather than a
 cross-implementation one; **unclassified** means the comparator is a separate
-engine whose independence `drmTMB`'s design documents have not yet
-classified.
+engine, but we have not yet assessed how independent its estimation route is.
 
 ## Checked against a separate estimation engine
 
 The three comparisons in this section are against `lme4` and `metafor`,
-which share no estimation code with `drmTMB`
-(`docs/design/242-external-comparator-evidence-class.md`). Agreement here is
-a genuine cross-implementation check.
+which share no estimation code with `drmTMB`. Agreement here is a genuine
+cross-implementation check.
 
 ### Comparison 1: contagious bovine pleuropneumonia across periods and herds
 
@@ -181,8 +179,7 @@ BCG vaccination reduces tuberculosis risk on average, with real heterogeneity
 between the 13 trials, and `drmTMB` reproduces the estimate a `metafor` user
 already trusts before being asked to trust anything new.
 
-**Independence: STRONG** (`metafor`,
-`docs/design/242-external-comparator-evidence-class.md`).
+**Independence: STRONG** (`metafor` shares no estimation code with `drmTMB`).
 
 ### Comparison 3: does heterogeneity itself differ by allocation design?
 
@@ -252,11 +249,9 @@ heterogeneity SD under `meta_V()`, not a residual scale.
 
 ## Checked against `ordinal`
 
-`ordinal` is a separate estimation engine, but
-`docs/design/242-external-comparator-evidence-class.md` has not yet
-classified its independence strength the way it classifies `lme4`,
-`metafor`, and `glmmTMB`, so the two comparisons in this section are
-reported without one.
+`ordinal` is a separate estimation engine, but we have not yet assessed how
+independent its estimation route is. The two comparisons in this section are
+therefore reported without an independence label.
 
 ### Comparison 4: does serving temperature shift wine bitterness ratings?
 
@@ -352,27 +347,21 @@ makes it checkable rather than merely plausible.
 
 This licenses point-fit parity only, on this dataset. It does not license any
 REML or interval claim for `cumulative_logit()` random effects in general.
-The capability-ledger cell behind the model fitted here is `mc-0225`
-(`cumulative_logit`, `mu`, ordinary random intercept, ML), recorded at
-`interval_feasible`. That tier is narrow: it establishes computational
-interval feasibility for that one cell's direct intercept-SD target on a
-frozen low-rung fixture, it was not evaluated for coverage or calibration,
-and it carries no public interval guidance, no broader family or formula
-support, and nothing about correlated or labelled effects. A random *slope*
-on this family is a different cell (`mc-0227`, recorded one tier lower at
-`point_fit_recovery`, the rung directly beneath `interval_feasible`) and is not
-what this comparison fits.
+In particular, this comparison does not establish confidence-interval
+calibration, coverage, or support for other ordinal random-effect structures.
+It fits an ordinary random intercept, not a random slope, correlated effect,
+or labelled effect.
 
-**Independence:** `ordinal` is not yet classified in `drmTMB`'s design
-documents.
+**Independence:** `ordinal` is a separate estimation engine, but its
+independence has not yet been assessed.
 
 ## Checked against a package built on the same machinery
 
 The three comparisons in this section are against `glmmTMB`, which is built
 on the same TMB automatic-differentiation stack and outer optimizer as
-`drmTMB` (`docs/design/242-external-comparator-evidence-class.md`).
-Agreement here is a consistency check between related implementations, not a
-cross-implementation check. It is also, uncomfortably, where `drmTMB`'s
+`drmTMB`. Agreement here is a consistency check between related
+implementations, not a cross-implementation check. It is also, uncomfortably,
+where `drmTMB`'s
 stated differentiator lives: no separate estimation engine checked a
 residual-scale submodel anywhere in this article.
 
@@ -603,7 +592,7 @@ separate estimation engines. Three are against `glmmTMB`, which is built on
 the same TMB automatic-differentiation stack and outer optimizer as
 `drmTMB`, so they check consistency between related implementations rather
 than across independent ones. Two are against `ordinal`, whose independence
-`drmTMB`'s design documents have not yet classified. It is worth naming
+has not yet been assessed. It is worth naming
 where the
 distributional-parameter comparisons fall among those three groups: every
 comparison of a residual-scale submodel in this article — the capability
@@ -614,8 +603,8 @@ on a `sigma` linear predictor are the two meta-analysis comparisons, where
 These eight models were compared against packages listed in `drmTMB`'s
 `DESCRIPTION` under `Suggests`, because those are the packages this article
 can call. `drmTMB` implements a great deal more than eight models; what it
-implements, and what evidence stands behind each capability, is recorded in
-the package's design documents and capability ledger rather than here.
+implements beyond these examples is summarized in
+[Capability and limits](capability-and-limits.html).
 
 ## Reproducing these numbers
 
