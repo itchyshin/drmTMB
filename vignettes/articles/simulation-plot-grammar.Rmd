@@ -36,13 +36,12 @@ knitr::opts_chunk$set(
 }
 </style>
 
-This article shows the plot grammar that Phase 18 simulation reports should use
-before broad simulation grids are advertised as evidence. It is a display
-contract, not a final result report. It assumes you are already tracking a
-slice in the [implementation map](implementation-map.html) and need its
-recovery evidence plotted before closing that slice out. The small tables
-below are illustrative fixtures that mimic the columns a real simulation
-summary should carry.
+This article shows how to plot simulation results so readers can assess bias,
+interval coverage, fitting problems, and computing time. The tables and figures
+use illustrative data; they are not measured results for `drmTMB`. Replace them
+with results from your own repeated simulations before drawing conclusions
+about a model or estimator. For the models currently available, see
+[Can I fit and report this model?](capability-and-limits.html).
 
 Simulation figures should answer the same reader questions across continuous,
 proportion, count, and meta-analysis examples:
@@ -368,7 +367,7 @@ The missing rows are part of the message, so unsupported cells stay visible as
 and a proportion example should not invent a random-effect SD if that surface
 was not fitted. Real bias reports should replace the fixture quantiles above
 with one row per replicate estimate or error, then overplot the aggregate mean
-and MCSE interval produced by the Phase 18 summary helpers. RMSE should remain
+and its Monte Carlo standard-error (MCSE) interval. RMSE should remain
 an aggregate root-mean-square summary with its own MCSE interval, not a cloud
 whose center could be mistaken for a mean absolute error.
 
