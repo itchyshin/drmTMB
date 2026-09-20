@@ -14,7 +14,7 @@
 > for the documented workflows and their current evidence; anything beyond
 > those stated boundaries remains provisional.
 
-`drmTMB` 0.7.1 is an experimental pre-CRAN release. The guides below describe
+`drmTMB` 0.7.1 is the development version; 0.7.0 is on CRAN. The guides below describe
 the workflows that can be fitted today; they do not turn an internal release
 ledger into evidence for a scientific conclusion.
 
@@ -57,16 +57,18 @@ package.
 
 ## Install
 
-`drmTMB` is not on CRAN yet. Install the current development source from
-GitHub with `pak`:
+Install the released version from CRAN:
+
+```r
+install.packages("drmTMB")
+```
+
+Or install the current development source from GitHub with `pak`:
 
 ```r
 install.packages("pak")
 pak::pak("itchyshin/drmTMB")
 ```
-
-After CRAN accepts the package, install the released version with
-`install.packages("drmTMB")`.
 
 Then load the package and run a small smoke test:
 
