@@ -8,10 +8,10 @@
 
 ## Model more than the average
 
-`drmTMB` is an R package for **distributional regression**. Distributional
-regression lets predictors change not only an outcome's average, but also other
-features of its distribution: for example, how variable it is or how likely it
-is to be zero.
+`drmTMB` is an R package that fits **distributional regression models (DRMs)**
+for one or two responses. Distributional regression lets predictors change
+not only an outcome's average, but also other features of its distribution:
+for example, how variable it is or how likely it is to be zero.
 
 Use it for questions such as: does temperature change average growth; is growth
 less predictable in one habitat; or, after accounting for their averages and
@@ -42,8 +42,11 @@ known-matrix analysis, use [What can I fit today?](https://itchyshin.github.io/d
 to find the relevant guide. Before reporting an estimate or interval, read
 [Can I fit and report this model?](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html).
 
-`DRModels.jl` is an optional Julia companion; it is not required to use this R
-package.
+`drmTMB` uses **Template Model Builder (TMB)** to fit models by default.
+`DRModels.jl` is an optional Julia companion. For supported models, the
+[Julia engine guide](https://itchyshin.github.io/drmTMB/articles/julia-engine.html)
+shows how to select it from R with `engine = "julia"` and explains its limits.
+Julia is not required to install or use the default R workflow.
 
 ## Install
 
@@ -140,8 +143,9 @@ in those guides, not on this landing page.
 
 For a full list of supported routes and their boundaries, use the linked model
 map rather than treating a long status table as a tutorial.
-| Surface | Current status | Interval and diagnostic status | Main boundary |
-| --- | --- | --- | --- |
+
+| Surface | Current status | Main boundary |
+| --- | --- | --- |
 | One-response families | Start with the documented family examples | Use the response-family guide before adding random or structured effects |
 | Gaussian random effects | Established starting point for repeated measurements | Use the relevant model guide for random slopes and uncertainty |
 | Random-effect scale models | Available for the documented Gaussian examples | Do not infer support for every scale model |

@@ -1,0 +1,2 @@
+?? docs/dev-log/implementation-recovery/2026-09-20-pr1398-reader-vocabulary-c17c2-c14-final-source-compatibility/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-09-20-pr1398-reader-vocabulary-c17c2-c14-final-source-compatibility/provenance.tsv

@@ -142,7 +142,7 @@
 #'   fixed-effect Gaussian `impute_model()` for a continuous missing
 #'   predictor (k = 1; no grouped/structured predictor model, no k = 2).
 #' @param engine Computational engine. The default `"tmb"` uses the native
-#'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRM.jl
+#'   `drmTMB` TMB backend. `"julia"` routes an admitted model to the DRModels.jl
 #'   bridge: Gaussian, bivariate Gaussian, Student-t, lognormal, Poisson,
 #'   NB2, Gamma, Beta, and Binomial on the fixed-effect route (several with
 #'   an additional large-p `phylo()` or coupled location-scale phylo route),
@@ -153,7 +153,7 @@
 #'   relative); see \code{vignette("julia-engine", package = "drmTMB")} for
 #'   the full family-by-route table, which capability-ledger row documents
 #'   each receipt, and current boundaries. `engine = "julia"` needs a local
-#'   DRM.jl checkout and the optional `JuliaCall` package, and it is not a
+#'   DRModels.jl checkout and the optional `JuliaCall` package, and it is not a
 #'   drop-in replacement for every native-TMB workflow.
 #' @param REML Logical; use restricted maximum likelihood where the selected
 #'   engine supports it. Native `engine = "tmb"` restricts the likelihood by
@@ -193,7 +193,7 @@
 #'   routes, an ordinary Gaussian `mu` random intercept, and large-p Poisson
 #'   `phylo()` (a Cox-Reid Laplace route native `engine = "tmb"` does not have)
 #'   currently fit `REML = TRUE`; every other bridge route refuses it, some
-#'   with a raw DRM.jl error rather than a `drmTMB`-worded one. See
+#'   with a raw DRModels.jl error rather than a `drmTMB`-worded one. See
 #'   `docs/design/261-reml-by-route.md` for the full route-by-route table
 #'   before relying on bridge REML for a model not listed there.
 #'
