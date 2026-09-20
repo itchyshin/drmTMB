@@ -15,7 +15,7 @@
     "R/control.R": "d151e35a973d2332cf0b0cbf0547bf9c96f4c534b458b668a3fa6d7e24c8775d",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "80ef3b42460050466b12c3bb50c97e6b5e6cd32a28b29021e2c5585cc1a37dc3",
-    "R/drmTMB.R": "532788b7d183c73d4a7378e3e5da11b8bb4508785e0013fbd46b8a7cce26af0f",
+    "R/drmTMB.R": "71e11a0a817839f79507a093882a3229a52be03b21313785418140a698379c3d",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "07b105d7f508cd6e024a71904674ee7cb4dbc7d862ae87d58803388d086063aa",
     "R/family.R": "2464cff7fe6d8a25c730480defe961013ff8c98a884b16e4a801b55ea976bf39",
@@ -607,10 +607,10 @@
     "direct_order": "tree",
     "outputs": {
       "native": {
-        "mu": [0.27501793136182762, 0.22373803708579493],
-        "sigma": [-0.93889050281293374, -0.0059595983003246653],
-        "sd_phylo": [-0.7685546170327725, -0.50563284680893139],
-        "loglik": -47.951068142352305,
+        "mu": [0.27501793136182756, 0.22373803708579493],
+        "sigma": [-0.93889050281293362, -0.0059595983003247624],
+        "sd_phylo": [-0.76855461703277295, -0.5056328468089315],
+        "loglik": -47.951068142352348,
         "converged": true
       },
       "bridge": {
@@ -689,21 +689,21 @@
       "drmjl_ref": "90fbb0e28306fa09a68dc2b03d74c981a74fe908",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmplWioGF/pkgload16dd2366770d4/drmTMB.so",
-          "sha256": "e429c08fcd0262c841a9de8da59453eb0d6d91bbd884b744ec1e0704707a6129"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmp7QodQx/pkgloade9b252d390ad/drmTMB.so",
+          "sha256": "e50947d6a68a5cc284d0a07c953b0a320dda4c930122283025460a4b35e15267"
         }
       }
     },
     "oracle_errors": {
-      "native": 2.8421709430404007e-14,
-      "bridge": 1.4210854715202004e-14,
-      "direct": 1.4210854715202004e-14
+      "native": 7.815970093361102e-14,
+      "bridge": 0,
+      "direct": 0
     },
     "native_differences": {
-      "mu": 4.6745940451842216e-13,
-      "sigma": 2.2439133884333273e-12,
-      "sd_phylo": 7.7358119909831657e-12,
-      "loglik": 2.8421709430404007e-14
+      "mu": 4.674038933671909e-13,
+      "sigma": 2.244010532947982e-12,
+      "sd_phylo": 7.7357009686807032e-12,
+      "loglik": 7.1054273576010019e-14
     },
     "bridge_differences": {
       "mu": 0,
@@ -728,7 +728,7 @@
     "R/control.R": "d151e35a973d2332cf0b0cbf0547bf9c96f4c534b458b668a3fa6d7e24c8775d",
     "R/distributional-outputs.R": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
     "R/drmTMB-package.R": "80ef3b42460050466b12c3bb50c97e6b5e6cd32a28b29021e2c5585cc1a37dc3",
-    "R/drmTMB.R": "532788b7d183c73d4a7378e3e5da11b8bb4508785e0013fbd46b8a7cce26af0f",
+    "R/drmTMB.R": "71e11a0a817839f79507a093882a3229a52be03b21313785418140a698379c3d",
     "R/emmeans-preflight.R": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
     "R/family-dpq.R": "07b105d7f508cd6e024a71904674ee7cb4dbc7d862ae87d58803388d086063aa",
     "R/family.R": "2464cff7fe6d8a25c730480defe961013ff8c98a884b16e4a801b55ea976bf39",
@@ -864,6 +864,6 @@
     "/Users/z3437171/local-scratch/lanes/drmodels-receipt-origin-main/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 38.454000000000001,
+  "elapsed": 42.015999999999998,
   "status": "PASS"
 }

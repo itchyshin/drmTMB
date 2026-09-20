@@ -3,7 +3,6 @@
 Julia version 1.13.0 at location /Users/z3437171/.julia/juliaup/julia-1.13.0+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin will be used.
 Loading setup script for JuliaCall...
 Finish loading setup script for JuliaCall.
-  Activating project at `~/local-scratch/lanes/drmodels-receipt-origin-main`
 drmTMB_drm_bridge (generic function with 1 method)
   
 drmTMB_drm_bridge_conditional_gaussian_ri (generic function with 1 method)
@@ -18,5 +17,6 @@ drmTMB_drm_bridge_structured (generic function with 1 method)
   
 drmTMB_mixed_family (generic function with 1 method)
   
-PHYLO_LABEL_PUBLIC_PASS elapsed=38.454
+PHYLO_LABEL_PUBLIC_PASS elapsed=42.016
 Julia exit.
+  Activating project at `~/local-scratch/lanes/drmodels-receipt-origin-main`
