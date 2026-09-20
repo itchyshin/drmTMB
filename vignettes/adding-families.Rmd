@@ -15,16 +15,16 @@ This article describes the workflow for adding a distribution family to
 `drmTMB`. It is written for contributors, not end users. A new family is not a
 single constructor in `R/family.R`; it is a contract across symbolic equations,
 formula grammar, R builders, TMB likelihood code, simulation, tests,
-documentation, pkgdown, and after-task notes.
+documentation, and pkgdown.
 
 Read [Formula grammar](formula-grammar.html) first for the current parser
 vocabulary; this article is about adding a family the grammar does not yet
 support.
 
-The planning references are `docs/design/02-family-registry.md`,
-`docs/design/03-likelihoods.md`, `docs/design/05-testing-strategy.md`, and
-`docs/design/19-family-link-contract.md`, plus
-`.agents/skills/add-family/SKILL.md`.
+Use [Testing likelihoods](testing-likelihoods.html) for validation and
+[Capability and limits](capability-and-limits.html) for the combinations users
+can rely on today. Together with Formula grammar above, these are the public
+references a contribution should keep in sync.
 
 ## Scope first
 
@@ -115,8 +115,7 @@ correlation, a copula parameter, or unsupported.
 
 ## Define the registry entry
 
-Each family needs a small structured contract. The design document lists these
-fields:
+Each family needs a small structured contract with these fields:
 
 ```text
 name
@@ -339,8 +338,8 @@ checks remain portable.
 
 ## Update user and developer documentation
 
-A family task is incomplete until the documentation tells the same story as the
-code and tests.
+A family is incomplete until the documentation tells the same story as the code
+and tests.
 
 Update these files when relevant:
 
@@ -351,11 +350,9 @@ R/methods.R
 R/check.R
 src/drmTMB.cpp
 tests/testthat/test-<family>.R
-docs/design/02-family-registry.md
-docs/design/03-likelihoods.md
-docs/design/05-testing-strategy.md
-docs/design/06-distribution-roadmap.md
 vignettes/distribution-families.Rmd
+vignettes/formula-grammar.Rmd
+vignettes/capability-and-limits.Rmd
 vignettes/testing-likelihoods.Rmd
 README.md
 NEWS.md
@@ -369,10 +366,10 @@ For exported family constructors, add roxygen documentation and examples. If
 the family changes the user-facing learning path, add or update a vignette and
 make sure `_pkgdown.yml` exposes it in the right section.
 
-## Close with an after-task audit
+## Check public consistency
 
-Before merging or pushing a family change, use the after-task audit. The
-minimum closure record should answer:
+Before presenting a family as implemented, make sure the public documentation
+answers:
 
 - What model is now implemented?
 - Which equations define the likelihood?
@@ -381,13 +378,12 @@ minimum closure record should answer:
 - Which simulation, comparator, or independent likelihood checks passed?
 - Did `devtools::document()`, `devtools::test()`, `pkgdown::check_pkgdown()`,
   `pkgdown::build_site()`, and `devtools::check()` pass?
-- Which docs, future-work design entries, NEWS bullets, and known-limitations notes were
-  synchronized?
-- What did not go smoothly?
+- Which public pages and release notes state the supported scope and known
+  limitations?
 
-Write the answer in `docs/dev-log/check-log.md` and in a compact after-task
-file under `docs/dev-log/after-task/`.
+Put those answers in the family reference, the relevant worked vignette, and
+[Capability and limits](capability-and-limits.html). If a limitation changes
+how readers should interpret a fit, state it beside the first relevant example.
 
-The goal is not bureaucracy. It is how `drmTMB` avoids the usual modelling
-package failure mode: code, equations, examples, and tests drifting apart while
-the public API still looks confident.
+Readers should see the same model boundary in the code examples, equations,
+tests, and public API documentation.
