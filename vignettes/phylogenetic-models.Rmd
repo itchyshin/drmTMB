@@ -339,9 +339,10 @@ the linear predictor of the count mean through the log link, so related species
 share a baseline abundance. Two differences from the Gaussian case:
 
 - Poisson has no residual `sigma` formula. NB2 instead has a modelled
-  overdispersion `sigma`; its exact q1 phylogenetic `sigma` gate accepts an
-  intercept plus one independent slope at recovery grade, separately from the
-  `mu` field;
+  overdispersion `sigma`; its exact q1 phylogenetic `sigma` model accepts an
+  intercept plus one independent slope, separately from the `mu` field.
+  Parameter recovery has been checked for this form; this does not establish
+  the reliability of its intervals;
 - the simulated deviation is built from the **correlation** form of $A$ (unit
   diagonal) scaled by the phylogenetic SD, so the SD is interpretable on the
   log-mean scale.

@@ -869,7 +869,7 @@ Current planned but not implemented syntax includes:
   effects outside the exact ordinary Poisson/NB2 q1 spatial `mu`
   intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t
   spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and
-  fixed-`zi` NB2 spatial `mu` gates.
+  fixed-`zi` NB2 spatial `mu` forms.
 
 With the scale vocabulary settled, move on to
 [Choosing response families](distribution-families.html) to pick a family,

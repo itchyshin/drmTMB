@@ -277,7 +277,7 @@ estimates and are not coverage-validated, so trust the point estimate, not the
 interval, and treat them as exploratory. Correlated slopes, labelled covariance
 blocks, scale (`sigma`) and shape (`nu`) random effects, known sampling
 covariance (`meta_V`), other structured terms, and bivariate Student-t models
-are genuinely later phases. Start with this fixed-effect path when you need a
+remain planned extensions. Start with this fixed-effect path when you need a
 robust continuous comparison to a Gaussian location-scale model.
 
 Skew-normal residual asymmetry is a separate fitted fixed-effect family:
