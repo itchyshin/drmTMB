@@ -112,8 +112,8 @@ ci_site[, c("parm", "lower", "upper", "conf.status", "profile.boundary")]
 **When not to trust a returned interval**
 
 - `profile.boundary == TRUE` on a usable interval: treat the interval as
-  indicative of scale, not as a calibrated `level` interval. The D-117
-  10-group random-effect SD gate measured conditional coverage as low as
+  indicative of scale, not as a calibrated `level` interval. In a 10-group
+  random-effect SD study, conditional coverage was as low as
   0.1021 against a nominal 0.95 when that flag was set (and 0 of 89 in one
   cell where boundary hits are rare); the same behaviour appears in `lme4`
   on the same seeds (see `?confint.drmTMB` Boundary intervals). Prefer more

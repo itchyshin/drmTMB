@@ -292,8 +292,7 @@ drmTMB(
 
 Use this model when the question is residual asymmetry rather than heavy tails.
 The fitted first slice has density, Gaussian-limit, positive- and negative-skew
-recovery, false-positive, interval-visibility, and Phase 18 smoke/grid artifact
-tests. Random effects, known covariance, structured effects, bivariate
+recovery, false-positive, and interval-visibility checks. Random effects, known covariance, structured effects, bivariate
 skew-normal models, residual `rho12`, aliases such as `skew ~ x`, and
 ID-level skewness such as future `skew(id) ~ x` remain later routes. Gaussian,
 Student-t, and skew-normal fits answer different residual-distribution

@@ -63,7 +63,7 @@ Install the released version from CRAN:
 install.packages("drmTMB")
 ```
 
-Or install the current development source from GitHub with `pak`:
+To try development changes before a release, install from GitHub with `pak`:
 
 ```r
 install.packages("pak")

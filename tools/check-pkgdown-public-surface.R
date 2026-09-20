@@ -41,4 +41,34 @@ if (any(leaks)) {
   )
 }
 
+# Reader-facing pages must explain a model and its limits, not expose the
+# package's issue tracker, internal decision records, or implementation lanes.
+# Scan visible HTML text because pkgdown also renders public roxygen help.
+process_patterns <- c(
+  "PR/issue identifier" = "\\b(?:PR|pull[[:space:]-]+request|issue)[[:space:]]*#[0-9]+\\b",
+  "internal decision identifier" = "\\bD-[0-9]+\\b",
+  "development evidence path" = "docs/dev-log(?:/|\\b)",
+  "capability ledger" = "\\bcapability[[:space:]-]+ledger\\b",
+  "implementation/development lane or arc" = "\\b(?:(?:implementation|development)[[:space:]-]+(?:lane|arc)s?|(?:lane|arc)s?[[:space:]-]+(?:for|of)[[:space:]-]+(?:implementation|development))\\b"
+)
+visible_text <- function(path) {
+  text <- paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = " ")
+  text <- gsub("<script[^>]*>.*?</script>|<style[^>]*>.*?</style>", " ", text, perl = TRUE)
+  text <- gsub("<[^>]+>", " ", text, perl = TRUE)
+  gsub("&[[:alnum:]#]+;", " ", text, perl = TRUE)
+}
+rendered_slop <- unlist(lapply(html_files, function(path) {
+  text <- visible_text(path)
+  hits <- names(process_patterns)[vapply(process_patterns, grepl, logical(1), x = text, perl = TRUE)]
+  if (!length(hits)) return(character())
+  paste0(sub(paste0("^", site_dir, "/"), "", path), " (", paste(hits, collapse = ", "), ")")
+}), use.names = FALSE)
+if (length(rendered_slop)) {
+  stop(
+    "Rendered public documentation contains internal process language: ",
+    paste(rendered_slop, collapse = "; "),
+    call. = FALSE
+  )
+}
+
 cat("PKGDOWN PUBLIC SURFACE PASS\n")
