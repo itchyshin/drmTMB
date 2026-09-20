@@ -55,21 +55,21 @@ variability change with an environmental predictor, after accounting for
 repeated measures from the same site or species? In `drmTMB`, that question is
 written as one formula for the mean and one formula for the residual scale.
 
-## Install the pre-CRAN release
+## Install
 
-This vignette describes `drmTMB` 0.7.1, the current pre-CRAN version.
+This vignette describes `drmTMB` 0.7.1, the current development version.
+`drmTMB` 0.7.0 is the first CRAN release. Install it from CRAN:
 
-`drmTMB` 0.7.0 is the first CRAN-targeted release. At the time this
-documentation was built, it had not yet been accepted by CRAN. Install the
-current development source from GitHub with `pak`:
+```r
+install.packages("drmTMB")
+```
+
+Or install the current development source from GitHub with `pak`:
 
 ```r
 install.packages("pak")
 pak::pak("itchyshin/drmTMB")
 ```
-
-After CRAN accepts the package, install the released version with
-`install.packages("drmTMB")`.
 
 You need R 4.1.0 or newer and a working compiler toolchain because TMB models
 are compiled during installation. If installation fails while compiling C++,
