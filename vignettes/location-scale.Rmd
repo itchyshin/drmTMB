@@ -269,7 +269,7 @@ Before interpreting coefficients, check the fitted object:
 check_drm(fit_growth)
 ```
 
-The interval target inventory is part of the same interpretation gate. For this
+Before choosing an interval, check which parameters can be profiled. For this
 fixed-effect example, every coefficient is a direct profile target:
 
 ```{r location-scale-profile-targets}

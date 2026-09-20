@@ -438,8 +438,8 @@ predictor-dependent parameter has no single scalar target. The one-row
 particular biological row, not to `corpairs()`. These row-specific intervals
 are computed but not coverage-certified. The constant `rho12 ~ 1`
 profile interval is likewise interval-feasible rather than coverage-certified:
-the current ledger records no committed bivariate fixed-effect CI-coverage
-simulation for either form.
+The available bivariate fixed-effect simulation evidence does not establish
+how often these intervals contain the true value for either form.
 
 ```{r, eval = FALSE}
 biv_grid <- data.frame(

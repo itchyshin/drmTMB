@@ -41,10 +41,9 @@ interpretation, uncertainty display, distributional adequacy checking, fitted
 interactions, correlation summaries, and later simulation diagnostics. Between
 them the panels exercise all six public plotting functions:
 `plot_parameter_surface()`, `worm_plot()`, `qq_plot()`, `centile_chart()`,
-`plot_corpairs()`, and the `plot()` method for profile objects. It is different
-from the internal
-count-pilot diagnostics used while developing the first Poisson/NB2 simulation
-plumbing. The panels apply the same location-scale reading pattern taught in
+`plot_corpairs()`, and the `plot()` method for profile objects. The examples
+cover more than Poisson/NB2 counts: choose a display that matches your response
+family and the quantity you want to estimate. The panels apply the same location-scale reading pattern taught in
 the family tutorials, such as [When variance carries signal, Part
 1](location-scale.html); read one of those first for the modelling
 context behind a given figure.
@@ -2412,7 +2411,7 @@ uncertainty from aggregate CSVs alone. The comprehensive simulation programme
 should not be count-only. It should add continuous, meta-analysis, proportion,
 count, ordinal, bivariate, random-slope, and structured-dependence surfaces as
 each surface becomes ready. Real simulation reports should also show the run
-manifest and warning/error ledger so missing or failed fits are not hidden
+settings and a record of warnings and errors so missing or failed fits are not hidden
 behind clean-looking panels.
 
 ## Gallery source map
