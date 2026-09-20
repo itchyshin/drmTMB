@@ -1,0 +1,3 @@
+| Date | Change | Verification | Scope |
+| --- | --- | --- | --- |
+| 2026-09-20 | Family and count guides explain model choices and evidence limits in reader language; four stale documentation assertions now enforce those limits. | Reader contract PASS; four rendered-surface expectations PASS; 80 capability and 47 adjacent Python tests PASS; 31 generated outputs current; both pkgdown pages rendered with installed drmTMB 0.7.1; executable chunks and display equations unchanged. | Two Rmd pages and four reader-text tests; [after-task evidence](../after-task/2026-09-20-reader-family-count.md). No API, figure, workflow, or release changes. |

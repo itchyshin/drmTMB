@@ -37,17 +37,13 @@ a separate structural zero? This tutorial assumes the location-scale reading
 pattern from [When variance carries signal, Part 1](location-scale.html) and extends
 it to a count mean and dispersion.
 
-This article stays inside the currently implemented `drmTMB` count surface:
-univariate NB2 models, fixed-effect zero-inflated NB2 models, ordinary Poisson
-and NB2 `mu` random-effect paths, and the first ordinary Poisson/NB2 q=1
-structured `mu` intercept-plus-one-slope routes for `phylo()`, `spatial()`,
-`animal()`, and `relmat()`. Ordinary NB2 also has a first grouped
-overdispersion path in `sigma` and exact q1 structured `sigma`
-intercept-plus-one-slope routes for those four providers at recovery grade.
-The worked example below remains fixed-effect so the mean, overdispersion, and
-structural-zero pieces are easy to read before adding grouped or structured
-log-mean effects, grouped overdispersion, or the narrow
-structured-overdispersion routes.
+Start with an NB2 model when counts vary more than a Poisson model predicts.
+Use `mu` for expected abundance, `sigma` for extra-Poisson variation, and add
+`zi` only when a separate zero-producing process makes biological sense.
+The worked example fits these three parts with measured predictors. For
+repeated sampling within sites, or dependence among species or locations, see
+[Adding grouped or structured effects](#adding-grouped-or-structured-effects)
+after working through the example.
 
 The source motivation comes from Nakagawa et al. (2026), who use
 location-scale models to discuss heteroscedasticity in continuous, count, and
@@ -388,22 +384,18 @@ soil, unsuitable host tissue, unsurveyable habitat, or true absence.
 AIC(fit_nb2, fit_zinb2)
 ```
 
-## Current Boundary
+## Adding grouped or structured effects
 
-The implemented count path is still intentionally narrow. Fixed-effect
-Poisson, NB2, zero-inflated Poisson, zero-inflated NB2, zero-truncated NB2,
-and hurdle NB2 models are fitted. Ordinary non-zero-inflated Poisson and NB2
-`mu` models can also fit unlabelled random intercepts and independent numeric
-random slopes such as `(1 | site)` and `(0 + effort | site)`. The
-first structured count routes are ordinary Poisson and ordinary NB2 q=1
-structured `mu` intercept-plus-one-slope terms via
-`phylo(1 + x | species, tree = tree)`, `spatial()`, `animal()`, and `relmat()`,
-one at a time, on the log-mean scale (recovery grade -- trust the point
-estimate, not the interval). Ordinary NB2 also fits `sigma ~ z + (1 | id)` as
-a grouped overdispersion random intercept on the log-`sigma` scale and the
-same four q=1 structured intercept-plus-one-slope shapes in `sigma`, separately
-from `mu`, at recovery grade. Zero-inflated, hurdle, and truncated scale-side
-count routes remain fixed-effect only.
+If you repeatedly sample the same site, add an ordinary random intercept
+`(1 | site)` to the count mean. An independent numeric slope such as
+`(0 + effort | site)` lets the effect of effort vary among sites. These mean
+effects are available for Poisson and NB2 models without zero inflation.
+For NB2, `sigma ~ z + (1 | id)` also lets extra-Poisson variation differ among
+groups. Keep `sigma` free of random effects in zero-inflated, hurdle, and
+zero-truncated models.
+
+If your question concerns structural zeros, start with the fixed-effect model
+used above:
 
 ```r
 drmTMB(
@@ -413,74 +405,63 @@ drmTMB(
 )
 ```
 
-For ordinary non-zero-inflated NB2 models, the fitted q1 structured boundary
-is wider than an intercept: unlabelled `phylo()`, `spatial()`, `animal()`, and
-`relmat()` intercept-plus-one-slope terms fit in `mu`, and the exact same four
-providers fit q1 structured `sigma` intercept-plus-one-slope routes at recovery
-grade. For example, the two separate fitted shapes are:
+For dependence described by a tree, coordinates, pedigree, or relatedness
+matrix, use `phylo()`, `spatial()`, `animal()`, or `relmat()`, respectively.
+Poisson and NB2 models without zero inflation allow one such term with an
+intercept and one numeric slope in `mu`. NB2 allows the same terms in `sigma`,
+fitted separately from the structured `mu` term. For example, choose the first
+formula to model species differences in mean abundance and its response to
+`x`, or the second to model species differences in overdispersion:
 
 ```r
 bf(count ~ habitat + phylo(1 + x | species, tree = tree), sigma ~ z)
 bf(count ~ habitat, sigma ~ z + phylo(1 + x | species, tree = tree))
 ```
 
-The structured-`sigma` rows do not yet have interval or coverage promotion.
-Pure, labelled, or multiple structured slopes and richer count covariance
-remain planned.
+These structured models have simulation checks on point estimates; those
+checks do not establish reliable confidence intervals. Use
+`check_drm(fit)` after fitting, and consult
+[Can I fit and report this model?](capability-and-limits.html) before reporting
+uncertainty. Structured slope-only terms, multiple slopes, and labelled
+covariance blocks are unavailable.
 
-Hurdle NB2 has one separate diagnostic-only structured probability route: an
-unlabelled q=1 relatedness intercept in `hu`, supplied by `K` or `Q`:
+For a hurdle NB2 model, you can explore whether related groups have similar
+zero probabilities with one relatedness intercept in `hu`. Supply either a
+covariance matrix `K` or its precision matrix `Q`:
 
 ```r
 bf(count ~ habitat, sigma ~ treatment,
   hu ~ relmat(1 | id, K = K))
 ```
 
-Treat this exact route as diagnostic-only fit/extractor evidence. It does not
-establish point-estimate recovery, intervals, coverage, slopes, labels, or other
-structured providers.
+Zero-inflated Poisson also allows one spatial intercept in the zero
+probability, `zi ~ spatial(1 | id, coords = coords)`. Alternatively, keep
+zero inflation constant and put the spatial intercept in the mean:
 
-Zero-inflated Poisson likewise has one diagnostic-only probability-component
-gate, `zi ~ spatial(1 | id, coords = coords)`, for a q=1 structured intercept.
-It confirms fit/extractor feasibility but does not establish point-estimate
-recovery, NB2 `zi`, spatial slopes, labels, intervals, or coverage.
+```r
+# Poisson
+bf(count ~ habitat + spatial(1 | site, coords = coords), zi ~ 1)
+# NB2
+bf(count ~ habitat + spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1)
+```
 
-Two separate gates keep zero inflation fixed and put one q=1 spatial intercept
-in the count mean. The exact diagnostic-only formulas are
-`bf(count ~ habitat + spatial(1 | site, coords = coords), zi ~ 1)` for Poisson
-and
-`bf(count ~ habitat + spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1)`
-for NB2. Both confirm only local fit/extractor feasibility. These two gates do
-not establish point-estimate recovery, intervals, or coverage, and neither is
-evidence for a random effect in `zi`.
+The hurdle-relatedness and zero-inflated spatial models above have been checked
+for fitting and extracting results only. Their point-estimate accuracy and
+confidence intervals have not been validated. Use them for exploratory work;
+the fixed-effect example earlier in this tutorial is the starting point for
+learning how the zero and count components differ.
 
-Do not teach the following as fitted count examples yet:
+One NB2 model without zero inflation can combine a spatial mean intercept
+with a relatedness mean intercept:
+`mu ~ spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)`.
+Its point estimates have simulation checks, but its intervals do not. This
+does not extend to other combinations of structured effects.
 
-- correlated or labelled NB2 `mu` random-slope blocks;
-- ordinary NB2 `sigma` random slopes, labelled blocks, richer structured
-  effects beyond the exact q1 routes, or `zi` random effects beyond the exact
-  Poisson q=1 spatial-`zi` intercept;
-- random effects in zero-inflated Poisson beyond the exact q=1 spatial `zi`
-  intercept; fixed-`zi` Poisson or NB2 spatial-`mu` routes beyond the two exact
-  diagnostic-only q=1 intercept gates; and other zero-inflated NB2, truncated
-  NB2, or hurdle NB2 count-`mu` components;
-- `sd(group) ~ ...` random-effect scale models;
-- `meta_V(V = V)` or deprecated `meta_known_V(V = V)` with counts;
-- zero-inflated structured count models beyond the exact q=1 Poisson
-  `zi ~ spatial()` intercept and the exact diagnostic-only fixed-`zi` Poisson
-  and NB2 `mu ~ spatial()` intercepts, and hurdle structured routes beyond the
-  exact q=1 `hu ~ relmat(K/Q)` intercept; pure, labelled, or multiple
-  structured count slopes; simultaneous structured count types beyond the
-  exact crossed NB2 `mu ~ spatial() + relmat()` recovery-only gate; and labelled
-  structured count covariance;
-- richer or labelled NB2 phylogenetic slopes, richer NB2 `sigma` phylogeny,
-  and zero-inflated NB2 phylogeny;
-- pure, labelled, or multiple phylogenetic count slopes or labelled q2/q4
-  phylogenetic count covariance;
-- bivariate or mixed-response count models such as
-  `family = c(gaussian(), nbinom2())`;
-- COM-Poisson underdispersion models.
-
-Those are useful future routes, but each needs its own likelihood path,
-simulation recovery, diagnostics, and a [source-map](source-map.html) update
-before it becomes tutorial syntax.
+For your next fit, keep ordinary count slopes independent, use at most the
+structured terms described above, and leave ordinary NB2 `sigma` slopes and
+`sd(group)` formulas out. Zero-truncated NB2 allows ordinary mean intercepts
+and independent slopes when there is no `hu` formula; an active hurdle formula
+does not allow those mean random effects. Known sampling covariance via
+`meta_V(V = V)`, bivariate or mixed-response count models, and COM-Poisson
+underdispersion models are unavailable. If your design needs one of these,
+choose a model that supports it before interpreting results.

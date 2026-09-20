@@ -1782,8 +1782,10 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["02-family-registry.md"],
         )
         self.assertIn(
-            "`mu` intercept-plus-one-slope routes using one of",
-            surfaces["distribution-families.Rmd"],
+            "Poisson and NB2 models without zero inflation allow one such term "
+            "with an intercept and one numeric slope in `mu`. NB2 also allows "
+            "these terms separately in `sigma`.",
+            " ".join(surfaces["distribution-families.Rmd"].split()),
         )
         self.assertIn(
             "Poisson/NB2 q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` `mu` intercept-plus-one-slope routes",
@@ -1798,8 +1800,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["34-validation-debt-register.md"],
         )
         self.assertIn(
-            "q=1 `hu ~ relmat(1 | id, K/Q = ...)` intercept route",
+            "hu ~ relmat(1 | id, K = K)",
             surfaces["distribution-families.Rmd"],
+        )
+        self.assertIn(
+            "one relatedness intercept in `hu`, supplied as either a covariance "
+            "matrix `K` or precision matrix `Q`",
+            " ".join(surfaces["distribution-families.Rmd"].split()),
         )
         self.assertIn(
             "one truncated-NB2 q=1 `hu ~ relmat(1 | id, K/Q = ...)` diagnostic-only route",
@@ -1913,8 +1920,6 @@ class CapabilityLedgerTests(unittest.TestCase):
             "34-validation-debt-register.md",
             "46-pre-simulation-readiness-matrix.md",
             "109-phase-18-core-family-completion-map-slices-1279-1288.md",
-            "count-nbinom2.Rmd",
-            "distribution-families.Rmd",
             "formula-grammar.Rmd",
             "model-map.Rmd",
         ):
@@ -1922,6 +1927,24 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn("NB2", surfaces[name])
             self.assertIn("spatial", surfaces[name])
             self.assertIn("relmat", surfaces[name])
+        count = " ".join(surfaces["count-nbinom2.Rmd"].split())
+        self.assertIn("One NB2 model without zero inflation", count)
+        self.assertIn(
+            "mu ~ spatial(1 | site, coords = coords) + relmat(1 | id, Q = Q)",
+            count,
+        )
+        self.assertIn(
+            "Its point estimates have simulation checks, but its intervals do not.",
+            count,
+        )
+        self.assertIn(
+            "This does not extend to other combinations of structured effects.",
+            count,
+        )
+        self.assertIn(
+            "count-nbinom2.html#adding-grouped-or-structured-effects",
+            surfaces["distribution-families.Rmd"],
+        )
         self.assertIn(
             "Superseded boundary (2026-07-14)",
             surfaces["134-phase-18-count-structured-q1-artifacts-slices-1721-1728.md"],
@@ -2130,15 +2153,15 @@ class CapabilityLedgerTests(unittest.TestCase):
             surfaces["implementation-map.Rmd"],
         )
         self.assertIn(
-            "The eligible ordinary routes accept unlabelled `mu` random intercepts",
-            surfaces["distribution-families.Rmd"],
+            "random intercept such as `(1 | site)` in `mu`. An independent numeric slope",
+            " ".join(surfaces["distribution-families.Rmd"].split()),
         )
         self.assertIn(
-            "an active `hu` formula does not",
-            surfaces["distribution-families.Rmd"],
+            "an active hurdle formula does not allow those mean random effects",
+            " ".join(surfaces["count-nbinom2.Rmd"].split()),
         )
         self.assertIn(
-            "exact q=1 `mu`/`sigma ~ animal()` recovery-grade gates",
+            "the tested single-term `animal()` effects in `mu` or `sigma` can be fitted",
             surfaces["distribution-families.Rmd"],
         )
         self.assertNotIn(
@@ -2430,13 +2453,22 @@ class CapabilityLedgerTests(unittest.TestCase):
         for stale in forbidden:
             self.assertNotIn(stale, surfaces, stale)
 
+        # Contributor records retain their evidence labels; reader pages state
+        # the fitting-only limit directly beside the affected model.
         for claim in (
-            "diagnostic-only q=1 Poisson `zi ~ spatial",
             "diagnostic-only q1 `hu ~ relmat",
             "diagnostic-only q1 `mu ~ phylo",
             "diagnostic-only fixed-`zi` Poisson",
         ):
             self.assertIn(claim, surfaces, claim)
+        count = " ".join((ROOT / "vignettes/count-nbinom2.Rmd").read_text().split())
+        self.assertIn("zi ~ spatial(1 | id, coords = coords)", count)
+        self.assertIn(
+            "The hurdle-relatedness and zero-inflated spatial models above have "
+            "been checked for fitting and extracting results only. Their "
+            "point-estimate accuracy and confidence intervals have not been validated.",
+            count,
+        )
 
     def test_provider_tutorials_name_exact_nongaussian_rows(self):
         phylo = " ".join(
@@ -2578,8 +2610,13 @@ class CapabilityLedgerTests(unittest.TestCase):
             self.assertIn("Poisson `mu ~ spatial(1 | site", llms)
 
         count = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
-        self.assertIn("diagnostic-only probability-component", count)
         self.assertNotIn("recovery-grade probability-component", count)
+        for page in ("count-nbinom2.Rmd", "distribution-families.Rmd"):
+            self.assertNotRegex(
+                (ROOT / "vignettes" / page).read_text(),
+                r"\b(?:diagnostic-only|recovery[ -]grade|gate|ledger|q\s*=?\s*[124])\b",
+                page,
+            )
         self.assertIn("articles/model-map.html", public["README"])
         count_surfaces = {"count source": count}
         # Same rule as llms.txt above: the rendered article is a git-ignored pkgdown
@@ -2593,15 +2630,24 @@ class CapabilityLedgerTests(unittest.TestCase):
             count_surfaces["llms"] = llms
         for name, text in count_surfaces.items():
             normalized = " ".join(text.split())
-            self.assertIn("fixed-`zi`", normalized, name)
+            self.assertIn("keep zero inflation constant", normalized, name)
             self.assertIn("Poisson", normalized, name)
             self.assertIn("NB2", normalized, name)
-            self.assertIn("diagnostic-only", normalized, name)
             self.assertIn(
-                "do not establish point-estimate recovery, intervals, or coverage",
+                "checked for fitting and extracting results only",
                 normalized,
                 name,
             )
+            self.assertIn(
+                "point-estimate accuracy and confidence intervals have not been validated",
+                normalized,
+                name,
+            )
+            for formula in (
+                "bf(count ~ habitat + spatial(1 | site, coords = coords), zi ~ 1)",
+                "bf(count ~ habitat + spatial(1 | site, coords = coords), sigma ~ 1, zi ~ 1)",
+            ):
+                self.assertIn(formula, normalized, name)
         model_map = (ROOT / "vignettes/model-map.Rmd").read_text()
         self.assertIn(
             "both fixed-`zi` spatial-`mu` gates have no recovery, interval, or coverage promotion",
@@ -2717,11 +2763,21 @@ class CapabilityLedgerTests(unittest.TestCase):
 
         count_vignette = (ROOT / "vignettes/count-nbinom2.Rmd").read_text()
         count_intro = count_vignette.split("The source motivation", maxsplit=1)[0]
+        self.assertIn("#adding-grouped-or-structured-effects", count_intro)
+        count_guidance = " ".join(count_vignette.split())
         self.assertIn(
-            "exact q1 structured `sigma`\nintercept-plus-one-slope routes",
-            count_intro,
+            "NB2 allows the same terms in `sigma`, fitted separately from the structured `mu` term",
+            count_guidance,
         )
-        self.assertIn("at recovery grade", count_intro)
+        self.assertIn(
+            "bf(count ~ habitat, sigma ~ z + phylo(1 + x | species, tree = tree))",
+            count_guidance,
+        )
+        self.assertIn(
+            "These structured models have simulation checks on point estimates; "
+            "those checks do not establish reliable confidence intervals.",
+            count_guidance,
+        )
 
         historical_count = (
             ROOT / "docs/design/67-sdstar-p8-poisson-q1.md"
