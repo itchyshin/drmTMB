@@ -2,8 +2,9 @@
 """Guard Q-Series v1.0 release wording against claim inflation.
 
 This is a developer helper for release prep. It checks that contributor status
-files point to the generated Q-Series v1.0 release-status summary, and that
-obvious positive completion/support wording is absent from those files.
+files point to the generated Q-Series v1.0 release-status summary, while public
+NEWS points readers to the public guide instead of the private release record.
+It also rejects obvious positive completion/support wording.
 """
 
 from __future__ import annotations
@@ -20,8 +21,11 @@ STATUS_LINK = "docs/dev-log/release-audits/q-series-v1-release-status.md"
 STATUS_PATH = ROOT / STATUS_LINK
 STATUS_REFERENCE_PATHS = (
     pathlib.Path("docs/dev-log/internal-roadmap.md"),
-    pathlib.Path("NEWS.md"),
     pathlib.Path("docs/dev-log/known-limitations.md"),
+)
+NEWS_PATH = pathlib.Path("NEWS.md")
+PUBLIC_CAPABILITY_GUIDE = (
+    "https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html"
 )
 REQUIRED_STATUS_PHRASES = (
     "release-planning boundary, not a support promotion",
@@ -141,6 +145,27 @@ def check_claims(root: pathlib.Path = ROOT) -> list[str]:
                 if pattern.search(line) and not has_boundary(line):
                     errors.append(
                         f"{relative_path.as_posix()}:{line_number}: "
+                        "possible inflated Q-Series v1 claim: "
+                        f"{line.strip()}"
+                    )
+
+    news_path = root / NEWS_PATH
+    if not news_path.exists():
+        errors.append(f"{NEWS_PATH.as_posix()}: missing public NEWS file")
+    else:
+        news_text = news_path.read_text(encoding="utf-8")
+        if "Q-Series" in news_text and PUBLIC_CAPABILITY_GUIDE not in news_text:
+            errors.append(
+                f"{NEWS_PATH.as_posix()}: Q-Series entries must link readers to "
+                f"{PUBLIC_CAPABILITY_GUIDE} rather than a private release record"
+            )
+        for line_number, line in enumerate(news_text.splitlines(), start=1):
+            if "Q-Series" not in line:
+                continue
+            for pattern in FORBIDDEN_PUBLIC_PATTERNS:
+                if pattern.search(line) and not has_boundary(line):
+                    errors.append(
+                        f"{NEWS_PATH.as_posix()}:{line_number}: "
                         "possible inflated Q-Series v1 claim: "
                         f"{line.strip()}"
                     )
