@@ -23,6 +23,7 @@ words. No likelihood, formula grammar, API, version, or release claim changed.
 
 - `vignettes/distribution-families.Rmd`
 - `vignettes/count-nbinom2.Rmd`
+- `tools/tests/test_capability_ledger.py` (four reader-text tests only)
 - `docs/dev-log/check-log.d/2026-09-20-reader-family-count.md`
 - This report.
 
@@ -41,12 +42,21 @@ words. No likelihood, formula grammar, API, version, or release claim changed.
   executable chunks and display equations, expected new prose in `<main>`, and
   zero forbidden terminology matches in both Rmd sources and rendered HTML.
 - `git diff --check`: PASS.
+- Full `tools.tests.test_capability_ledger` suite: 80/80 PASS after updating
+  four tests that required the removed process labels literally.
+- The adjacent Python suites from the same CI step (profile reconcilers,
+  target promotion, CI guard, CI C1, and profile truth): 47/47 PASS.
+- `python3 tools/capability_ledger.py --check`: PASS, 31 generated outputs.
 
 ## Tests of the tests
 
 The existing public-surface test rejects a synthetic page containing an issue
 number and implementation-lane prose, and accepts ordinary scientific prose.
-No test files changed. The focused scratch scan checked these exact patterns:
+The four capability tests retain their scientific limits and exact route
+checks in plain language, and reject the old internal labels on these pages.
+In-memory negative controls confirmed that the updated check rejects both
+restoring `diagnostic-only gate` and falsely saying the intervals have been
+validated. The focused scratch scan checked these exact patterns:
 `\bgates?\b`, `\bledger\b`, `recovery[ -]grade`, `diagnostic-only`,
 `\bq\s*=?\s*[124]\b`, `mc-[0-9]+`, `inference[_ -]ready`, `docs/dev-log`,
 and `\b(?:PR|issue)\s*#[0-9]+`.
@@ -75,6 +85,11 @@ renders completed without that warning. Automatic approval review rejected
 editing the shared check log because of ownership concerns and requested an
 isolated `check-log.d` entry; this report uses that alternative.
 
+The first CI run (35523181977, head `922339d32`) failed four capability tests
+that froze the removed wording. All four reproduced locally; substituting only
+the two baseline page texts made all four pass. The explicitly authorized
+repair updates only those four tests to check the same routes and limitations.
+
 ## Team learning
 
 Keep simulation design detail beside the affected model. Introductory family
@@ -85,7 +100,8 @@ choice. A working fit and validated uncertainty require different statements.
 
 No design documents changed because behavior is unchanged. Rendered HTML is
 local verification output; the normal pkgdown workflow will publish the Rmd
-changes. Figures, assets, tests, and workflow files were untouched.
+changes. Figures, assets, package tests under `tests/`, and workflow files
+were untouched; the four documentation assertions in `tools/tests/` were updated.
 
 ## Known limitations and next actions
 
