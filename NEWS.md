@@ -1723,14 +1723,16 @@ Template Model Builder.
 
 ## Lognormal ordinary correlated slope
 
-* Complete-data ordinary `lognormal()` `y ~ x + (1 + x | id)` now has a
-  `point_fit_recovery` ledger cell (`mc-0720`) for `sd0`, `sd1`, and
-  group-level `rho_re` under the same design-17 map as Poisson
-  (`ρ = 0.999999 tanh(η)`). This is not the independent-slope cell `mc-0380`
-  and not Wave 2.5 NB2 `mc-0719`. A slope predictor that is constant within
-  every group now aborts before the fit (unidentified `sd1` / `rho_re`).
-  Gamma neighbour, REML, missing-response, labelled blocks,
-  mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
+* Complete-data `lognormal()` models with `y ~ x + (1 + x | id)` now have
+  simulation evidence for recovery of the group-level intercept SD, slope SD,
+  and their correlation on the log-response scale. This addition estimates
+  the intercept and slope jointly; their correlation is not residual `rho12`.
+  The slope predictor must vary within at least one group. A predictor that
+  is constant within every group is rejected before fitting because its slope
+  SD and intercept-slope correlation cannot be identified.
+  This addition does not cover Gamma models, REML, missing responses, labelled
+  covariance blocks, or mixed `(1 | g) + (1 + x | g)` terms. Confidence
+  intervals remain unavailable, and their coverage has not been established.
 
 * **CRAN / win-builder Julia hang (post-#1061).** The `^julia` invert filter
   correctly excluded `test-julia-*.R`, but `test-binomial-response.R` still
@@ -1743,52 +1745,57 @@ Template Model Builder.
 
 ## Binomial ordinary correlated slope
 
-* Complete-data binomial logit `cbind(success, failure) ~ x + (1 + x | id)` now
-  has a `point_fit_recovery` ledger cell (`mc-0717`) for `sd0`, `sd1`, and
-  group-level `rho_re` under the log-sech Cholesky. This is not the
-  independent-slope cell `mc-0061`. A slope predictor that is constant within
-  every group now aborts before the fit (unidentified `sd1` / `rho_re`). REML,
-  missing-response, labelled blocks, mixed `(1 | g) + (1 + x | g)`, intervals,
-  and coverage remain rejected.
+* Complete-data binomial models with a logit link and
+  `cbind(success, failure) ~ x + (1 + x | id)` now have simulation evidence
+  for recovery of the group-level intercept SD, slope SD, and their correlation
+  on the log-odds scale. The intercept and slope are estimated jointly.
+  The slope predictor must vary within at least one group. A predictor that
+  is constant within every group is rejected before fitting because its slope
+  SD and intercept-slope correlation cannot be identified.
+  This addition does not cover REML, missing responses, labelled covariance
+  blocks, or mixed `(1 | g) + (1 + x | g)` terms. Confidence intervals remain
+  unavailable, and their coverage has not been established.
 
 ## Poisson ordinary correlated slope
 
-* Complete-data Poisson log `count ~ x + (1 + x | id)` now has a
-  `point_fit_recovery` ledger cell (`mc-0718`) for `sd0`, `sd1`, and
-  group-level `rho_re` under the design-17 map `ρ = 0.999999 tanh(η)`.
-  This is not the independent-slope cell `mc-0431` and not Wave 1 binomial
-  `mc-0717`. REML, missing-response, labelled blocks, mixed
-  `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
+* Complete-data Poisson models with a log link and
+  `count ~ x + (1 + x | id)` now have simulation evidence for recovery of the
+  group-level intercept SD, slope SD, and their correlation on the log-mean
+  scale. The intercept and slope are estimated jointly.
+  This addition does not cover REML, missing responses, labelled covariance
+  blocks, or mixed `(1 | g) + (1 + x | g)` terms. Confidence intervals remain
+  unavailable, and their coverage has not been established.
 
 ## NB2 ordinary correlated slope
 
-* Complete-data ordinary `nbinom2()` `count ~ x + (1 + x | id)` now has a
-  `point_fit_recovery` ledger cell (`mc-0719`) for `sd0`, `sd1`, and
-  group-level `rho_re` under the same design-17 map as Poisson
-  (`ρ = 0.999999 tanh(η)`). This is not the independent-slope cell `mc-0402`
-  and not Wave 2 Poisson `mc-0718`. A slope predictor that is constant within
-  every group now aborts before the fit (unidentified `sd1` / `rho_re`).
-  Zero-inflated or truncated NB2, REML, missing-response, labelled blocks,
-  mixed `(1 | g) + (1 + x | g)`, intervals, and coverage remain rejected.
+* Complete-data `nbinom2()` models with `count ~ x + (1 + x | id)` now have
+  simulation evidence for recovery of the group-level intercept SD, slope SD,
+  and their correlation on the log-mean scale. The intercept and slope are
+  estimated jointly. The slope predictor must vary within at least one group.
+  A predictor that is constant within every group is rejected before fitting
+  because its slope SD and intercept-slope correlation cannot be identified.
+  This addition does not cover zero-inflated or truncated negative-binomial
+  models, REML, missing responses, labelled covariance blocks, or mixed
+  `(1 | g) + (1 + x | g)` terms. Confidence intervals remain unavailable, and
+  their coverage has not been established.
 
 ## Binomial responses accept a phylogenetic random effect
 
-* `binomial()` was the only common response family that could not take a
-  structured random effect -- `gaussian`, `poisson`, `nbinom2`, `Gamma` and
-  `beta` all accepted the identical `phylo(1 | id, tree = tree)` term while a
-  binomial model aborted at the structured-effect gate (#1048). Phylogenetic
-  logistic regression (a binary trait on a tree) is the canonical
-  comparative-methods use of a binary response, so the hole was conspicuous.
+* `binomial()` now accepts `phylo(1 | species, tree = tree)` in the `mu`
+  formula, allowing logistic regression to account for shared ancestry.
+  Use one unlabelled phylogenetic random intercept with either a binary
+  response or the two-column `cbind(successes, failures)` response.
+  Phylogenetic slopes, labelled covariance blocks, `spatial()`/`animal()`/
+  `relmat()`, combinations with ordinary random effects, and combinations with
+  missing-predictor `mi()` terms are rejected with explicit messages.
 
-  The first slice is deliberately narrow, matching how `beta` and
-  `zero_one_beta` grew provider by provider: one unlabelled q1 `phylo()`
-  intercept on `mu`, in either the Bernoulli or the two-column
-  `cbind(successes, failures)` form. Phylogenetic slopes, labelled covariance
-  blocks, `spatial`/`animal`/`relmat` providers, combination with ordinary
-  random effects, and combination with missing-predictor `mi()` all refuse with
-  explicit messages rather than fitting silently narrower models. Supporting
-  recovery evidence (slope and `sd_phylo` essentially unbiased by 160 tips,
-  Laplace small-sample attenuation ~9% at 40-80 tips) is recorded on #1048.
+  Supporting Bernoulli simulations in the Julia twin used a unit-height
+  balanced tree, 12 observations per tip, and 30 replicates per tree size.
+  The fixed-effect slope and phylogenetic SD (`sd_phylo`) were essentially
+  unbiased at 160 tips. At 40 and 80 tips, the phylogenetic SD was about 9%
+  too small under the Laplace approximation. These checks concern point
+  estimates for that Bernoulli design; they do not establish recovery for
+  the two-column response or confidence-interval coverage.
 
 ## Fixed: penalized fits reported `phylo_penalty` and `logLik` off the optimum
 
