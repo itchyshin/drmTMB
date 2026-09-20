@@ -79,12 +79,12 @@ note because it cannot re-evaluate the gradient without \code{fit$obj}, and
 profile-likelihood confidence intervals will be unavailable.}
 
 \item{sparse_fixed}{Logical; opt-in control for sparse fixed-effect
-design matrices. The first fitted path is limited to univariate Gaussian
+design matrices. This option is limited to univariate Gaussian
 \code{mu} fixed effects with no random effects and intercept-only \code{sigma}.}
 
 \item{aggregate_gaussian}{Logical; opt-in control for sufficient-
-statistic row aggregation in univariate Gaussian fixed-effect models. The
-first fitted path rejects random effects, structured effects, known
+statistic row aggregation in univariate Gaussian fixed-effect models. This
+option rejects random effects, structured effects, known
 sampling covariance, bivariate models, non-Gaussian families, non-unit
 likelihood weights, and combined sparse fixed-effect matrices.}
 
@@ -111,8 +111,8 @@ preset does not converge.}
 objective or the step, not on the gradient norm, so on a flat or
 weakly-curved surface (for example a variance component identified by
 few groups) \code{nlminb()} can report convergence while the true gradient at
-that point is still far from zero (issue #1130). Rather than tightening
-\code{rel.tol}/\code{x.tol} -- which on the same fixture instead produced a
+that point is still far from zero. Rather than tightening
+\code{rel.tol}/\code{x.tol} -- which in the tested flat-surface case instead produced a
 spurious "singular convergence" code without reliably landing closer to
 the true optimum -- the default fixed \code{rel.tol}/\code{x.tol} (\code{nlminb()}'s
 own) are left alone, and a Newton polish step is applied to whatever

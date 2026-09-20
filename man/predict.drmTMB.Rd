@@ -66,7 +66,7 @@ RESPONSE distribution (not of a linear predictor): \code{qnorm}-style inverse
 CDF evaluation via \code{\link[=fitted_distribution]{fitted_distribution()}}\verb{$q()} at \code{\link[=predict_parameters]{predict_parameters()}}'s
 fixed-effect, population-level parameter estimates -- see
 \code{\link[=fitted_distribution]{fitted_distribution()}} for the fixed-effect-only scope and the
-\code{"spike"}/\code{"unimplemented"} status gate this inherits (a \code{"spike"}-status
+\code{"spike"}/\code{"unimplemented"} status rules this inherits (a \code{"spike"}-status
 family emits a one-time warning; an unregistered \code{model_type} raises a
 clear error). For bivariate \code{biv_gaussian} fits, \code{dpar} selects which
 response's MARGINAL quantile to return (\code{"mu1"}/\code{"sigma1"} for response 1,

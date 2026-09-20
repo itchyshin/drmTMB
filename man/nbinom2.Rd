@@ -20,12 +20,13 @@ The implemented contract is
 extra-Poisson variation. Internally this is equivalent to the usual NB2
 size parameter \code{size = 1 / sigma^2}. Ordinary non-zero-inflated NB2 models
 also support one complete-data unlabelled \code{(1 + x | id)} ML-Laplace
-correlated intercept-slope block on the log-mean (\code{mc-0719}), and
-first-slice random intercepts on the log-\code{sigma} predictor,
+correlated intercept-slope block on the log-mean. Only point-estimate recovery
+has been checked for this block; do not treat its intervals as
+coverage-validated. Random intercepts on the log-\code{sigma} predictor are supported,
 such as \code{bf(count ~ x, sigma ~ z + (1 | id))}. Structured \code{sigma} effects
 (\code{phylo}/\code{spatial}/\code{animal}/\code{relmat}) also fit as a point-recovery route
 (trust the point estimate, not the interval; not yet coverage-verified).
-NB2 \code{sigma} random slopes remain planned. Zero-inflated NB2 supports only
+NB2 \code{sigma} random slopes are not supported. Zero-inflated NB2 supports only
 the point-fit-only IID control \code{bf(count ~ fixed_effects, sigma ~ 1 + (1 | group), zi ~ 1)} under ML with complete responses; zero-inflated
 sigma predictors, slopes, labels, and other random-effect combinations
 remain unsupported.

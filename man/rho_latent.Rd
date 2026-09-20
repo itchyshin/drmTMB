@@ -15,9 +15,9 @@ rho_latent(object, ...)
 The latent / link-scale correlation between the two responses.
 }
 \description{
-The cross-family route is reachable from R (\code{engine = "julia"} with a
-\code{c(family1, family2)} pair) and tested, but its capability-ledger status
-is \code{experimental}/\code{partial} (\code{inst/extdata/julia-capabilities.tsv},
-\code{cross_family_latent}). This extractor reads \code{rho_latent} off an existing
+The cross-family route is experimental and partial. It is reachable from R
+with \code{engine = "julia"} and a \code{c(family1, family2)} pair, but it currently
+provides point estimates without standard errors or confidence intervals.
+This extractor reads \code{rho_latent} from an existing
 \code{drmTMB_julia_xfam} object.
 }
