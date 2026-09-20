@@ -6,34 +6,24 @@
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-> **Warning — experimental software.** `drmTMB` is experimental and should be
-> used at your own risk. A successful fit, a green diagnostic, or package
-> availability is not enough on its own: independently check data preparation,
-> model specification, convergence, and scientific conclusions. See
-> [Capabilities and limits](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
-> for the documented workflows and their current evidence; anything beyond
-> those stated boundaries remains provisional.
+## Model more than the average
 
-`drmTMB` 0.7.1 is the development version; 0.7.0 is on CRAN. The guides below describe
-the workflows that can be fitted today; they do not turn an internal release
-ledger into evidence for a scientific conclusion.
+`drmTMB` is an R package for **distributional regression**. Distributional
+regression lets predictors change not only an outcome's average, but also other
+features of its distribution: for example, how variable it is or how likely it
+is to be zero.
 
-`drmTMB` fits fast distributional regression models for one or two responses
-using Template Model Builder. Use it when predictors may affect not only the
-expected response `mu`, but also residual scale `sigma`, shape such as
-Student-t `nu`, zero or hurdle probabilities, random-effect scales, or
-bivariate residual correlation `rho12`.
+Use it for questions such as: does temperature change average growth; is growth
+less predictable in one habitat; or, after accounting for their averages and
+variability, do two responses still vary together? Examples begin in ecology,
+evolution, and environmental science, but the same questions arise in many
+applied fields.
 
-The first examples are motivated by ecology, evolution, and environmental
-science, but the package is general-purpose. The public scale parameter is
-`sigma`. For Gaussian residual-variance or meta-analytic heterogeneity
-summaries, report fitted `sigma^2`; for Gamma, Tweedie, beta, count,
-zero-inflated, hurdle, Student-t, and bivariate models, use the family-specific
-transformations in
-[Choosing response families](https://itchyshin.github.io/drmTMB/articles/distribution-families.html).
-The design rule is that larger `sigma` should mean larger modelled
-variability, even when another package or textbook writes the same likelihood
-with a precision parameter such as `phi` or `theta`.
+> **Experimental software.** Start with a documented example, check the fitted
+> model, and read [Capabilities and limits](https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html)
+> before reporting a result. A successful fit alone does not validate an analysis.
+
+`drmTMB` 0.7.1 is the development version; 0.7.0 is on CRAN.
 
 ## Start with your scientific question
 
@@ -63,7 +53,7 @@ Install the released version from CRAN:
 install.packages("drmTMB")
 ```
 
-Or install the current development source from GitHub with `pak`:
+To try development changes before a release, install from GitHub with `pak`:
 
 ```r
 install.packages("pak")

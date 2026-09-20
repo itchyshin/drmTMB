@@ -27,6 +27,7 @@ test-nongaussian-structured-boundary.R
 test-parity-fenced-boundaries.R
 test-parity-matrix.R
 test-phase18-actions-runner.R
+test-pkgdown-public-surface.R
 test-pkgdown-reference-index.R
 test-positive-continuous-structured-mu.R
 test-profile-shape-boundary.R
