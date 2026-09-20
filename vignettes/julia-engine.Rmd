@@ -12,9 +12,12 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(drmTMB)
 ```
 
-The Julia engine is available now as an **optional backend** for `drmTMB`.
-You keep the R formula and data interface and select `engine = "julia"` when
-fitting a supported model. The default, `engine = "tmb"`, does not require Julia.
+**DRModels.jl** is the optional Julia companion to the R package `drmTMB`.
+Here, an **engine** is the software that fits the model. You keep the R formula
+and data interface and select `engine = "julia"` when fitting a supported
+model. The default, `engine = "tmb"`, uses **Template Model Builder (TMB)** and
+does not require Julia. The two engines do not support every model or summary
+in the same way; check the limits in this guide before switching.
 
 Julia is useful for repeated fitting and for models that can use DRModels.jl's sparse
 structured solvers. It also fits ordinary regression models: a large phylogeny
