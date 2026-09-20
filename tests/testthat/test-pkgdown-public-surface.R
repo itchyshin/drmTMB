@@ -12,8 +12,9 @@ test_that("rendered pkgdown prose rejects internal process language", {
   writeLines("Reader documentation", file.path(site, "llms.txt"))
 
   checker <- testthat::test_path("..", "..", "tools", "check-pkgdown-public-surface.R")
-  rscript <- Sys.which("Rscript")
-  testthat::skip_if_not(nzchar(rscript), "Rscript is not available")
+  testthat::skip_if_not(file.exists(checker), "pkgdown source checker is not in this build")
+  rscript <- file.path(R.home("bin"), "Rscript")
+  testthat::skip_if_not(file.exists(rscript), "Rscript is not available")
   result <- suppressWarnings(system2(rscript, c(checker, site), stdout = TRUE, stderr = TRUE))
 
   expect_true(is.numeric(attr(result, "status")))
@@ -34,8 +35,9 @@ test_that("rendered pkgdown prose keeps ordinary scientific language", {
   writeLines("Reader documentation", file.path(site, "llms.txt"))
 
   checker <- testthat::test_path("..", "..", "tools", "check-pkgdown-public-surface.R")
-  rscript <- Sys.which("Rscript")
-  testthat::skip_if_not(nzchar(rscript), "Rscript is not available")
+  testthat::skip_if_not(file.exists(checker), "pkgdown source checker is not in this build")
+  rscript <- file.path(R.home("bin"), "Rscript")
+  testthat::skip_if_not(file.exists(rscript), "Rscript is not available")
   result <- system2(rscript, c(checker, site), stdout = TRUE, stderr = TRUE)
 
   expect_null(attr(result, "status"))

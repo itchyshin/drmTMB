@@ -245,6 +245,8 @@ test-phylo-interaction.R	cran-lane	environment	runs	4
 test-phylo-penalized-map.R	cran-lane	environment	runs	3
 test-phylo-penalty-sweep.R	cran-lane	environment	runs	3
 test-phylo-penalty-sweep.R	suggests-package	environment	runs	4
+test-pkgdown-public-surface.R	build-premise	build	skips	2
+test-pkgdown-public-surface.R	external-tool	environment	runs	2
 test-pkgdown-reference-index.R	build-premise	build	skips	1
 test-pkgdown-reference-index.R	runtime-conditional	runtime	depends	1
 test-plot-corpairs.R	suggests-package	environment	runs	6
