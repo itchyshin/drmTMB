@@ -1379,6 +1379,22 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(stale, public_text)
 
+        model_map = (ROOT / "vignettes" / "model-map.Rmd").read_text()
+        for reader_marker in (
+            "Use this guide to choose a route from your scientific question.",
+            "runnable example, and\ninterpretation.",
+            "| If your data and question are... | Eligible route | Key limitation | Next guide |",
+            "Before reporting an estimate or interval, run `check_drm()`",
+        ):
+            self.assertIn(reader_marker, model_map)
+        for internal_phrase in (
+            "implemented-versus-planned boundary",
+            "validation-debt register",
+            "evidence behind advertised surfaces",
+            "source map points contributors",
+        ):
+            self.assertNotIn(internal_phrase, model_map)
+
     def test_capability_article_has_reporting_rule_and_stable_terms(self):
         article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
         css = (ROOT / "pkgdown" / "extra.css").read_text()
