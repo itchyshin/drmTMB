@@ -127,6 +127,25 @@ grep alone.
 - Multi-lane documentation work means no `AGENTS.md` snapshot-pointer update
   belongs in this patch.  The coordination board remains the cross-lane pointer.
 
+## Four-site continuation map (do not fold into this patch)
+
+The overall reader-first arc is broader than this one prose repair.  These are
+the next independently auditable targets, recorded here so they do not vanish
+when the structural page is finished.
+
+| Site | Next reader problem | Evidence-backed next slice | Boundary |
+|---|---|---|---|
+| drmTMB | The public model map still reads as an implementation register. | Rewrite only its less-common-model table around a scientific question, a reportability decision, and the next specialist guide. | Preserve precise scope in detailed guides; do not alter the engine or formula API. |
+| drmTMB | Reference and installation surfaces sometimes teach contributor machinery to ordinary users. | Rename the public `_pkgdown.yml` reference descriptions to reader purposes; remove comparator/test/render dependencies from the ordinary README install route. | Keep contributor requirements elsewhere. |
+| gllvmTMB | `current-limits.Rmd` repeats internal status labels instead of telling a reader what they may safely start, explore, or avoid. | Replace the status glossary with three decisions: safe starting point within tested conditions, exploratory only, and do not use for this purpose. | Retain every family, link, rank, sample-size, interval, and uncertainty qualifier in a detail block or specialist guide. |
+| GLLVModels.jl | Advisory R/Julia parity CI is red across NB2, truncated-NB2, and Student-t mechanisms. | Do not make a speculative repair.  First create build-independent, family-specific health invariants against an authoritative frozen build. | This is a diagnostic finding, not evidence that the documentation work regressed parity. |
+| DRModels.jl | Documenter landing and beginner routes need the same question-first reader audit. | Audit source plus rendered site before proposing any targeted prose PR. | Do not expand into formula grammar, the core engine, API changes, or repository renames. |
+
+For all subsequent slices, retain the same completion evidence: source review,
+reader-contract checks, successful render, a manual first-screen reading, and
+an Unlazy acceptance ledger.  No source grep or green CI badge alone proves a
+reader route is understandable.
+
 ## Rehydration and next immediate steps
 
 ```sh
