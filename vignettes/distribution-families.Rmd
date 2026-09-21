@@ -144,16 +144,16 @@ lognormal and Gamma scale routes must be fitted separately from their `mu`
 random-effect routes. Tweedie still requires intercept-only `nu ~ 1`, and
 skew-normal `nu` remains fixed-effect residual slant.
 
-For other non-Gaussian structured effects, the point-estimate checks cover
-specific Gamma `relmat()` effects in `mu`, beta `animal()` effects in `mu` or
-`sigma`, and Student-t `spatial(1 + x | ...)` effects in `mu`. Student-t
-intercept-only spatial `mu`, Student-t `nu ~ phylo(1 | id, tree = tree)`, and
-ordinal `mu ~ phylo(1 | id, tree = tree)` have been checked for fitting and
-extracting results only; their estimation accuracy and intervals are unvalidated.
-These results do not justify combining terms or moving them to other parameters.
-Fixed-effect Wald intervals are available where the fixed
-coefficient covariance is available; profile targets remain limited to direct
-optimized parameters listed by `profile_targets()`.
+For non-Gaussian models with phylogenetic, spatial, pedigree, or relatedness
+effects, use only the family-and-term combinations listed above. Some
+combinations have been checked only for whether they fit and return results;
+others also have simulation evidence for point estimates. Neither statement
+automatically supports confidence intervals. Before reporting an interval,
+check [Can I fit and report this model?](capability-and-limits.html). Do not
+combine listed terms or move them to another model component unless that
+combination is explicitly supported. Fixed-effect Wald intervals are available
+where the fixed-coefficient covariance is available; `profile_targets()` lists
+the parameters that can currently be profiled.
 
 The current design keeps constructor names close to base R where possible. For
 example, exposure in count models is written with the standard formula term
@@ -340,15 +340,14 @@ drmTMB(
 
 For this family, `predict(fit, dpar = "mu")` returns the mean of `log(y)`,
 `sigma(fit)` returns the standard deviation of `log(y)`, and `fitted(fit)`
-returns the arithmetic response mean. Use this path when multiplicative
-variation is scientifically natural and the response values are positive and
-finite. A `mu` random intercept and independent slopes have simulation checks
-on point estimates. An ordinary log-`sigma` random intercept can also be fitted;
-its tested confidence intervals missed the true value slightly more often than
-their stated confidence level implies. Fit the `mu` and `sigma`
-random-effect routes separately; the package rejects their combination. Scale slopes, known sampling
-covariance, phylogenetic terms, and bivariate lognormal extensions beyond the
-separate fixed-effect complete-pair slice are planned later.
+returns the arithmetic response mean. Use this model for positive responses
+when multiplicative variation is biologically plausible. You may include a
+random intercept or independent slopes in the mean model, or a random
+intercept in the `sigma` model, but not both in the same fit. Treat intervals
+for the `sigma` random intercept cautiously: in the tested simulations, they
+were slightly less reliable than their nominal confidence level. Phylogenetic
+terms, scale slopes, known sampling covariance, and bivariate lognormal models
+beyond the supported fixed-effect complete-pair case are not yet available.
 
 Gamma mean-CV models are implemented for positive continuous responses where
 relative variability is the scale target:
@@ -942,12 +941,11 @@ colnames(ordinal_probability) <- levels(dat$score)
 cbind(ordinal_grid, ordinal_probability)
 ```
 
-For this fixed-effect example, the first table is the appropriate uncertainty
-route for the location coefficient. The category-probability table is a fitted
-description, not a category-probability interval. `profile_targets()` shows
-that raw `ordinal:theta_ord:*` entries are internal optimisation coordinates;
-they are not a public response-scale cutpoint estimand or a reportable cutpoint
-interval.
+For this fixed-effect example, report uncertainty for the habitat coefficient
+from the first table. Treat the category probabilities as fitted descriptions,
+not probability intervals. Do not report intervals for the individual
+cutpoints: drmTMB does not yet provide a public, interpretable cutpoint-interval
+method.
 
 ```r
 profile_targets(fit_ordinal)[, c(

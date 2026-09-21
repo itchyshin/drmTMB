@@ -29,13 +29,13 @@ library(drmTMB)
 </style>
 
 Many ecological responses are counts: fledglings per nest, parasites per host,
-insects in a trap, or soil invertebrates in a quadrat. A Poisson model is the
-natural baseline, but it fixes the variance equal to the mean. The
-location-scale count question is sharper: do predictors change the expected
-abundance, the extra-Poisson variation around that abundance, or the chance of
-a separate structural zero? This tutorial assumes the location-scale reading
-pattern from [When variance carries signal, Part 1](location-scale.html) and extends
-it to a count mean and dispersion.
+insects in a trap, or soil invertebrates in a quadrat. This page helps you
+model counts when predictors may affect more than their average. Ask three
+separate questions: do predictors change expected abundance, do counts vary
+more than a Poisson model expects, or is there a biological reason for an
+additional source of zeros? Start with the worked NB2 example below. Read
+[When variance carries signal, Part 1](location-scale.html) for more background
+on modelling average and variability separately.
 
 Start with an NB2 model when counts vary more than a Poisson model predicts.
 Use `mu` for expected abundance, `sigma` for extra-Poisson variation, and add
@@ -418,12 +418,12 @@ bf(count ~ habitat + phylo(1 + x | species, tree = tree), sigma ~ z)
 bf(count ~ habitat, sigma ~ z + phylo(1 + x | species, tree = tree))
 ```
 
-These structured models have simulation checks on point estimates; those
-checks do not establish reliable confidence intervals. Use
-`check_drm(fit)` after fitting, and consult
+These structured count models can be used for point estimates in the
+combinations shown above, but their confidence intervals have not yet been
+shown to be reliable. Run `check_drm(fit)` after fitting and consult
 [Can I fit and report this model?](capability-and-limits.html) before reporting
-uncertainty. Structured slope-only terms, multiple slopes, and labelled
-covariance blocks are unavailable.
+uncertainty. Slope-only structured terms, more than one structured slope, and
+labelled covariance blocks are not available.
 
 For a hurdle NB2 model, you can explore whether related groups have similar
 zero probabilities with one relatedness intercept in `hu`. Supply either a
