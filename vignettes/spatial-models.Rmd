@@ -301,8 +301,8 @@ fit_spatial_q2_reml <- drmTMB(
 ```
 
 Here the coordinates define a fixed spatial covariance matrix. This cell has
-dense-oracle and retained-denominator point-recovery evidence only; it does not
-authorize interval, coverage, range-estimation, slope, scale-side, or q4
+point-recovery evidence from fixed-covariance simulations only; it does not
+support interval, coverage, range-estimation, slope, scale-side, or q4
 claims.
 
 For a constant location-scale spatial block, use the same labelled `spatial()`
@@ -485,10 +485,10 @@ fit_spatial_q2_example <- drmTMB(
 )
 ```
 
-Simulation checks retained every attempted dataset. With 36 sites and three
-response pairs per site, all-attempt coverage was 0.938, 0.932, and 0.938 for the first spatial SD, second spatial
+Across all simulated data sets, with 36 sites and three response pairs per
+site, coverage was 0.938, 0.932, and 0.938 for the first spatial SD, second spatial
 SD, and latent spatial correlation; finite-profile rates were 1.000, 1.000,
-and 0.986. All three targets also met the calibration criteria with 36 sites
+and 0.986. All three targets also met the study's calibration criterion with 36 sites
 and eight observations per site. The smaller design (12 sites with three
 observations per site) failed and is not part of the interval claim.
 
@@ -648,8 +648,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-This result supports `inference_ready_with_caveats` only for the exact tested
-M/H fixed-kappa ring configurations. It does not establish mesh intervals,
+This result supports profile intervals only for the exact tested fixed-kappa
+ring configurations. It does not establish mesh intervals,
 estimated range, spatial slopes, q4+, non-Gaussian spatial models, spatial
 scale models, derived observed correlations, geometry robustness, or the
 `supported` tier.
@@ -664,7 +664,7 @@ The following spatial routes remain deferred:
 - direct spatial SD surfaces;
 - predictor-dependent spatial `corpair()` regressions;
 - simultaneous `phylo()` plus `spatial()` layers in the same formula;
-- non-Gaussian spatial structured effects outside the exact ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope, recovery-grade NB2 q1 spatial `sigma`, Student-t spatial `mu`, Poisson spatial `zi`, fixed-`zi` Poisson spatial `mu`, and fixed-`zi` NB2 spatial `mu` models.
+- non-Gaussian spatial structured effects other than the documented Poisson and NB2 one-response location models with an intercept plus one slope, the NB2 one-response scale model, Student-t location models, Poisson zero-inflation models, and fixed-zero-inflation Poisson or NB2 location models.
 
 Use the [structural-dependence overview](structural-dependence.html) when you
 are choosing among `animal()`, `phylo()`, `spatial()`, and `relmat()`. Use the
