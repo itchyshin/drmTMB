@@ -9,6 +9,9 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (!"package:drmTMB" %in% search()) {
+  library(drmTMB)
+}
 ```
 
 <style>
@@ -41,6 +44,56 @@ model?](capability-and-limits.html).
 Meta-analysis is not listed as a separate family. It uses `family = gaussian()`
 with `meta_V(V = V)`, while deprecated `meta_known_V(V = V)` remains a
 compatibility alias.
+
+## Start with one measurement question
+
+Suppose you measured growth as a continuous response and want to know whether
+two habitats differ in both average growth and its predictability. Because the
+measurements can take any real value and roughly symmetric residual variation
+is a sensible starting point, begin with `gaussian()`. This family makes the
+two model components easy to state: `mu` is expected growth and `sigma` is the
+residual standard deviation around that expectation.
+
+The following example simulates a small data set and fits one formula for each
+component:
+
+```{r first-family-fit, results = "hide"}
+set.seed(13)
+n <- 120
+growth_dat <- data.frame(
+  habitat = factor(rep(c("forest", "grassland"), each = n / 2))
+)
+growth_dat$growth <- rnorm(
+  n,
+  mean = ifelse(growth_dat$habitat == "grassland", 1.6, 1),
+  sd = ifelse(growth_dat$habitat == "grassland", 0.9, 0.6)
+)
+
+fit_growth <- drmTMB(
+  bf(growth ~ habitat, sigma ~ habitat),
+  family = gaussian(),
+  data = growth_dat
+)
+
+check_drm(fit_growth)
+```
+
+The `mu` habitat coefficient is the fitted difference in expected growth.
+The `sigma` habitat coefficient is on the log residual-SD scale, so
+exponentiating it gives the fitted ratio of residual SDs:
+
+```{r first-family-interpret}
+sd_ratio <- exp(coef(fit_growth, "sigma")[["habitatgrassland"]])
+round(sd_ratio, 2)
+```
+
+A ratio above 1 means that growth varies more among grassland observations
+after accounting for their different mean. A ratio below 1 would mean that
+grassland growth is more predictable. Next, run `check_drm(fit_growth)` as
+shown above and continue to [When variance carries signal, Part
+1](location-scale.html) for confidence intervals, predictions, and reporting.
+If the response was not continuous and roughly symmetric, use the matrix below
+to choose a different family before adapting the formula.
 
 ## At a glance
 
