@@ -195,7 +195,7 @@ distributional formulas; it is not, by itself, proof of the replacement model.
 When a fitted family's own free nuisance, dispersion, or inflation
 parameter can absorb a mis-specification, the marginal quantile residual
 stays close to N(0,1) even though the mean or variance structure is wrong.
-Examples from the same campaign: heteroscedasticity absorbed by Student-t
+Simulation examples show heteroscedasticity absorbed by Student-t
 `nu` (power 0.035, versus 1.0 for the same heteroscedasticity under
 Gaussian, which has no absorbing parameter); missing zero-inflation
 absorbed by `nbinom2`'s `sigma` (power 0.035, versus 0.96 under Poisson);
