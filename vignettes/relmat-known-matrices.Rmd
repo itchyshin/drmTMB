@@ -255,11 +255,11 @@ one.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have deviations structured by a user-supplied latent covariance or precision matrix? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` in `mu` | Fitted first slice. `K` is a covariance matrix; `Q` is a precision matrix. |
-| Does one numeric fixed-effect slope also have known-matrix deviations? | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` in `mu` | Fitted first univariate one-slope slice with independent intercept and slope fields. Additional structured-slope layouts outside the documented fitted bivariate models and intercept-slope correlations remain planned. |
-| Does a one-response Gaussian model have known-matrix residual-scale deviations? | `relmat(1 | id, Q = Q)` in `sigma`, alone or matching the `mu` term; `relmat(1 + x | id, K = K)` for the exact one-slope route | The residual-scale intercept is fitted. The exact K/Q q1 `sigma` one-slope route is fitted and inference-ready with caveats under raw uncorrected log-SD Wald-z intervals; profile is diagnostic-only at `g = 8`. Matching univariate `mu` and `sigma` `relmat()` intercepts estimate one known-matrix mean-scale correlation. Broader K/Q bridge claims, additional multiple or labelled sigma-slope layouts outside the documented fitted bivariate models, and structured slope correlations remain planned. |
-| Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | ML fits both representations. Native REML has `point_fit_recovery` evidence only for the exact supplied-`K`, location-intercept cell with constant residual formulas, complete pairs, unit weights, and no other model layer. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. `Q` remains ML-only for this bivariate route. |
-| Does the known-matrix layer link means and residual scales across two responses? | the same labelled `relmat(1 | p | id, Q = Q)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first q=4 location-scale slice. `corpairs(level = "relmat")` reports six constant latent relatedness correlations; profile intervals for those derived correlations remain unavailable. |
-| Does the known-matrix layer change multiple slopes or a predictor-dependent correlation? | examples such as `relmat(1 + x + z | id, K = K)` or `relmat()` `corpair()` formulas | Planned. These routes need matrix validation, diagnostics, recovery tests, interval targets, and examples before use. |
+| Does one numeric fixed-effect slope also have known-matrix deviations? | `relmat(1 + x | id, K = K)` or `relmat(1 + x | id, Q = Q)` in `mu` | This one-slope model fits independent structured intercept and slope variation. Other structured-slope designs and intercept--slope correlations are not yet supported. |
+| Does a one-response Gaussian model have known-matrix residual-scale deviations? | `relmat(1 | id, Q = Q)` in `sigma`, alone or matching the `mu` term; `relmat(1 + x | id, K = K)` for the exact one-slope route | The residual-scale intercept is fitted. For the documented one-slope K/Q route, standard-error intervals use an uncorrected Wald approximation on log standard deviation, so read them cautiously; with eight groups, profile intervals are for diagnosis rather than a calibrated interval estimate. Matching univariate `mu` and `sigma` `relmat()` intercepts estimate one known-matrix mean--scale correlation. Models with several structured scale slopes, labelled scale slopes beyond the documented bivariate models, or correlations between structured slopes are not yet supported. |
+| Do two Gaussian response means share a known-matrix latent correlation? | matching labelled `relmat(1 | p | id, K = K)` or `relmat(1 | p | id, Q = Q)` terms in `mu1` and `mu2` | ML fits both representations. For native REML, we have checked point estimates only in one narrow model: a supplied `K`, intercept-only location formulas, constant residual formulas, complete pairs, unit weights, and no other model layer. Do not assume interval coverage has been established for other REML models. `corpairs(level = "relmat")` reports the latent relatedness correlation separately from residual `rho12`. `Q` remains ML-only for this bivariate route. |
+| Does the known-matrix layer link means and residual scales across two responses? | the same labelled `relmat(1 | p | id, Q = Q)` term in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted first four-parameter location--scale model. `corpairs(level = "relmat")` reports six constant latent relatedness correlations; profile intervals for those derived correlations are not yet available. |
+| Does the known-matrix layer change multiple slopes or a predictor-dependent correlation? | examples such as `relmat(1 + x + z | id, K = K)` or `relmat()` `corpair()` formulas | Not yet supported. Wait for a documented guide before using these models. |
 
 Use `animal()` when the matrix is additive relatedness for individual animal
 models. Use `phylo()` when the matrix comes from a species tree and the tree
@@ -347,11 +347,10 @@ rho12(fit_relmat_q2_reml)
 `corpairs()` reports the fitted latent known-matrix correlation among line or
 unit-level location deviations. `rho12()` reports the residual correlation
 between responses after fixed effects and random effects have been included.
-The REML claim stops at `point_fit_recovery`: intervals and coverage remain
-unvalidated.
+For this REML model, we have checked point estimates but not interval coverage.
 
-The precision representation remains available for the established ML q2
-route, not for this bivariate REML exception:
+The precision representation remains available for the established bivariate
+ML model, not for this bivariate REML exception:
 
 ```r
 Q <- solve(K)
@@ -369,19 +368,18 @@ fit_relmat_q2_ml <- drmTMB(
 )
 ```
 
-For reports, keep this intercept-only q=2 known-matrix correlation point-only.
-The profile mechanism is callable, but interval calibration and coverage are
-still planned for this row:
+For reports, treat this intercept-only bivariate known-matrix correlation as a
+point estimate. The profile calculation can run, but interval calibration and
+coverage have not yet been established for this model:
 
 ```r
 relmat_pairs <- corpairs(fit_relmat_q2_reml, level = "relmat")
 plot_corpairs(relmat_pairs)
 ```
 
-That plot should be read as a latent known-matrix correlation display, not as a
-residual `rho12` plot. Do not add an interval eye until this exact row has
-validated interval evidence. The q=4 rows below are also point-only: current q=4
-`relmat()` correlations are derived rows.
+That plot shows a latent known-matrix correlation, not residual `rho12`.
+Its interval has not been established. The all-four-endpoint models below also
+provide point estimates only: their `relmat()` correlations are derived values.
 
 When the scientific question is whether known-matrix deviations in means and
 residual scales covary, use the same labelled `relmat()` term in all four
@@ -405,8 +403,8 @@ fit_relmat_q4 <- drmTMB(
 corpairs(fit_relmat_q4, level = "relmat")
 ```
 
-The q=4 path is constant across levels and responses: it estimates four latent
-known-matrix endpoint scale parameters and six latent correlations. Each
+This all-four-endpoint model is constant across levels and responses: it
+estimates four latent known-matrix scale parameters and six latent correlations. Each
 endpoint's level-specific marginal SD also includes the corresponding known
 diagonal multiplier. This is not a direct-SD model and it does not make the
 residual correlation `rho12` known-matrix structured.
@@ -420,22 +418,21 @@ After fitting, inspect the relatedness layer before interpreting it:
 | `check_drm(fit)` | Confirm the `relmat()` layer was recognized and review matrix/replication diagnostics. |
 | `summary(fit)$parameters` | Read the fitted latent known-matrix scale `s`; level `i` has marginal SD `s sqrt(K[i, i])`. |
 | `ranef(fit, "relmat_mu")` | Inspect conditional deviations on the fitted relatedness layer. |
-| `summary(fit)$covariance` | Check how the `relmat()` SD or q=2 correlation is reported beside other covariance layers. |
-| `profile_targets(fit)` | See which relatedness SD or q=2 correlation targets can be profiled directly; q=4 correlations are derived-only in the first slice. |
-| `corpairs(fit, level = "relmat")` | Read the fitted q=2 relatedness mean-mean correlation, or the six q=4 relatedness endpoint correlations when the model has the all-four block. |
+| `summary(fit)$covariance` | Check how the `relmat()` SD or bivariate mean--mean correlation is reported beside other covariance layers. |
+| `profile_targets(fit)` | See which relatedness SD or mean--mean correlation targets can be profiled directly; all-four-endpoint correlations are derived point estimates in the current model. |
+| `corpairs(fit, level = "relmat")` | Read the fitted bivariate mean--mean correlation, or the six endpoint correlations when the model has the all-four block. |
 
 ## Rendered checks
 
 The examples below keep the matrix, standard deviations, and correlation row in
 separate visual grammars. The known matrix is raw input structure, not
-uncertainty. The latent relmat scale `s` uses the validated default
-location-axis bias-corrected small-sample-t Wald channel for the exact K-matrix
-q1 row. The plot multiplies its point and interval endpoints by each known
-`sqrt(K[i, i])` before comparing node marginal SDs with residual `sigma`, whose
-interval uses its ordinary Wald route.
-The intercept-only q=2 relatedness correlation is a point estimate with a dotted
-zero line. Its profile mechanics are diagnostic-only; interval calibration and
-coverage are still planned.
+uncertainty. For the documented one-response `K`-matrix model, the latent
+relatedness scale `s` uses the default small-sample Wald interval on the
+location scale. The plot multiplies its point and interval endpoints by each
+known `sqrt(K[i, i])` before comparing node marginal SDs with residual `sigma`,
+whose interval uses its ordinary Wald route. The intercept-only bivariate
+relatedness correlation is a point estimate with a dotted zero line; its
+interval calibration and coverage have not yet been established.
 
 ```{r relmat-guide-fit}
 relmat_example <- simulate_relmat_guide_data()
@@ -566,7 +563,7 @@ relmat_q2_pairs <- corpairs(
 relmat_q2_pairs
 ```
 
-```{r relmat-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "`relmat()` intercept-only q=2 location-location point estimate from `corpairs()`; the dotted vertical line marks zero correlation and no interval is shown because calibration remains planned.", fig.alt = "Single-row point plot for the known-matrix relmat mean-mean correlation, with a hollow point estimate to the right of the dotted zero reference line."}
+```{r relmat-q2-confidence-eye, fig.width = 6.4, fig.height = 2.7, fig.cap = "`relmat()` intercept-only bivariate mean--mean point estimate from `corpairs()`; the dotted vertical line marks zero correlation, and no interval is shown because calibration has not yet been established.", fig.alt = "Single-row point plot for the known-matrix relmat mean-mean correlation, with a hollow point estimate to the right of the dotted zero reference line."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   relmat_q2_display <- relmat_q2_pairs
   relmat_q2_display$display_label <- "relmat\nmu1-mu2"
@@ -592,12 +589,12 @@ The following `relmat()` routes are not yet supported:
 
 - multiple structured slopes such as `relmat(1 + x + z | id, K = K)`;
 - known-matrix intercept-slope correlations;
-- multiple or labelled residual-scale structured slopes beyond the exact q1
-  `relmat(1 + x | id, K = K)` sigma route;
+- multiple or labelled residual-scale structured slopes beyond the documented
+  one-slope `relmat(1 + x | id, K = K)` sigma route;
 - predictor-dependent `relmat()` `corpair()` regressions;
 - generic direct-SD grammar for known-matrix standard deviations;
-- bivariate relmat REML with `Q`, slopes, q4 or larger blocks, scale-side
-  terms, extra random effects, incomplete pairs, non-unit weights, or
+- bivariate relmat REML with `Q`, slopes, all-four-endpoint or larger models,
+  scale-side terms, extra random effects, incomplete pairs, non-unit weights, or
   nonconstant `sigma1`, `sigma2`, or `rho12` formulas;
 - non-Gaussian known-matrix structured effects beyond the models described
   below.
