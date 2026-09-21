@@ -176,17 +176,15 @@ parameter boundaries. Inspect a `note`; resolve a `warning` or `error` before
 treating estimates as stable. The [errors, warnings, and convergence
 guide](convergence.html) explains what to try next.
 
-The key rule is to keep correlation layers separate. A bivariate residual
-`rho12` is within-observation coupling after the two means and residual SDs are
-modelled. A random-effect correlation is a group-level quantity. Phylogenetic
-rows from `corpairs(..., level = "phylogenetic")` are structured-effect
-quantities, and the first coordinate-spatial mean-mean row is reported by
-`corpairs(..., level = "spatial")` when matching labelled spatial terms are
-fitted in `mu1` and `mu2`. The constant coordinate-spatial q=4 location-scale
-block is also fitted when matching labelled spatial terms appear in all four
-`mu1`/`mu2`/`sigma1`/`sigma2` endpoints. Predictor-dependent spatial
-`corpair()` rows remain planned. Those layers should not be reported as if they
-were the same estimand.
+Keep correlation layers separate. A bivariate residual `rho12` describes how
+two responses vary together within an observation after their means and
+residual SDs are modelled. A random-effect correlation instead describes how
+group-level deviations vary together. Phylogenetic and spatial structure are
+further kinds of group-level pattern. They answer different biological
+questions and should not be reported as the same quantity. If correlation is
+your scientific question, continue with the [structural dependence
+overview](structural-dependence.html) before adding it to this introductory
+model.
 
 Use [Can I fit and report this model?](capability-and-limits.html) for the
 current reporting boundary and named fallback; use the [model map](model-map.html)
