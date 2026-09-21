@@ -94789,3 +94789,24 @@ Closeout report:
 `docs/dev-log/after-task/2026-08-19-function-map-cheatsheet-restoration.md`.
 
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
+
+## 2026-09-21 — structural-dependence reader repair (PR #1418)
+
+Rewrote the `## Pick the route` table and `## Fitted versus planned` section
+of `vignettes/structural-dependence.Rmd` so the deliberately failing
+`test_reader_navigation_redirect_and_public_language_contract` (added on this
+branch as `8401f134b`) goes green: opening sentence "Choose the structure
+that matches your scientific question.", the required four-column table
+header, and the sentence "A successful fit does not show that every related
+model is reliable." are now present; the three banned internal phrases
+(`Pedigree/Ainv bridge marshalling`, `recovery-grade NB2`,
+`fixed-kappa mesh intercept`) are removed. Confirmed the red test failed for
+exactly the missing opening sentence before editing, and re-ran the full
+80-test `tools/tests/test_capability_ledger.py` module after editing (not
+only the target test) because two other tests in the same file require exact
+gate-name substrings (for example "NB2 q1 phylogenetic `sigma`") to remain in
+this file; all 80 pass. `Rscript tools/check-reader-contracts.R` reports
+`Reader vignette contract: OK`; the article renders with `rmarkdown::render()`
+and its first table parses to 4 header cells and 5 data rows of 4 cells each.
+PR #1418 stays in draft; not merged. Report:
+`docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md`.
