@@ -1288,6 +1288,7 @@ class CapabilityLedgerTests(unittest.TestCase):
             intro_pairs,
             [
                 ("Overview and first model", "articles/drmTMB.html"),
+                ("Find the right guide for your question", "articles/source-map.html"),
                 ("Can I fit and report this?", "articles/capability-and-limits.html"),
                 ("Choose a family", "articles/distribution-families.html"),
                 ("Function map and cheat sheet", "articles/function-map-cheatsheet.html"),
@@ -1309,12 +1310,12 @@ class CapabilityLedgerTests(unittest.TestCase):
             ),
             1,
         )
-        getting_started = config.split("  - title: Getting Started", 1)[1].split(
-            "  - title: Capability and Model Choice", 1
+        getting_started = config.split("  - title: Where should I start?", 1)[1].split(
+            "  - title: Which model matches my question and data?", 1
         )[0]
         capability_choice = config.split(
-            "  - title: Capability and Model Choice", 1
-        )[1].split("  - title: Location and Scale", 1)[0]
+            "  - title: Which model matches my question and data?", 1
+        )[1].split("  - title: Do predictors change the mean, the variation, or both?", 1)[0]
         article_entry_pattern = (
             r"^\s{6}- ((?:articles/)?[A-Za-z0-9][A-Za-z0-9-]*)\s*$"
         )
