@@ -165,7 +165,7 @@ data.frame(
 
 The original plain-binomial slice was fixed-effect only. The current R engine
 also fits ordinary unlabelled `mu` random intercepts and independent numeric
-slopes at recovery grade. It still rejects non-logit links, factor responses,
+slopes (point estimate only). It still rejects non-logit links, factor responses,
 proportions with trial weights, correlated or labelled slopes, structured
 effects, bivariate or mixed responses, and `engine = "julia"`.
 
@@ -580,9 +580,9 @@ Do not teach the following as fitted proportion examples yet:
 - `phylo()`, `spatial()`, `animal()`, or `relmat()` bounded-response models,
   with one exception: `beta_family()` already accepts a single unlabelled `animal()`
   term -- an intercept or one-slope on `mu`, or an intercept on `sigma`, one
-  endpoint at a time -- but only at recovery grade (trust the point estimate,
-  not the interval), so it is held back here on tier grounds, not for want of
-  likelihood code;
+  endpoint at a time -- but that route is point estimate only (trust the point
+  estimate, not the interval), so it is held back here on tier grounds, not for
+  want of likelihood code;
 - bivariate or mixed-response bounded models such as
   `family = c(beta_family(), gaussian())`;
 - ordered beta or beta-binomial zero-inflation;

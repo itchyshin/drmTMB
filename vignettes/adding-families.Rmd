@@ -205,8 +205,8 @@ the family to a model builder. In broad terms, that builder must:
 For the Student-t family, ordinary `sigma` random effects, `meta_V(V = V)`,
 random-effect scale formulae, and bivariate terms remain unavailable. The
 formula grammar documents the narrow exceptions separately: selected `mu`
-structured paths are recovery-grade and an intercept-only phylogenetic `nu`
-path is diagnostic-grade. That distinction matters: a fitted exception is not
+structured paths are point estimate only and an intercept-only phylogenetic
+`nu` path is diagnostic only. That distinction matters: a fitted exception is not
 a blanket random-effect capability. A clear unsupported-feature error is
 better than a plausible fit whose likelihood has not been implemented.
 
