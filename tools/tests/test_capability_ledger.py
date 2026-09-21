@@ -1742,10 +1742,11 @@ class CapabilityLedgerTests(unittest.TestCase):
             "exact A-matrix q1 `sigma` one-slope route",
             surfaces["animal-models.Rmd"],
         )
-        self.assertIn(
-            "exact K/Q q1 `sigma` one-slope route",
-            surfaces["relmat-known-matrices.Rmd"],
-        )
+        relmat = surfaces["relmat-known-matrices.Rmd"]
+        self.assertIn("relmat(1 + x | id, K = K)", relmat)
+        self.assertIn("relmat(1 + x | id, Q = Q)", relmat)
+        self.assertIn("in `sigma`", relmat)
+        self.assertIn("For the documented one-slope K/Q route", relmat)
         self.assertIn(
             "q1 structured `sigma` one-slope paths fit for",
             surfaces["phylogenetic-spatial.Rmd"],
