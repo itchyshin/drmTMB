@@ -21,7 +21,17 @@ test_that("public release identity matches DESCRIPTION", {
 
   version <- unname(read.dcf(public_paths[["description"]], fields = "Version")[[1L]])
   read_text <- function(path) paste(readLines(path, warn = FALSE), collapse = "\n")
+  description_text <- read_text(public_paths[["description"]])
+  description_words <- gsub("[[:space:]]+", " ", description_text)
   surfaces <- lapply(public_paths[names(public_paths) != "description"], read_text)
+
+  expect_match(
+    description_words,
+    "Predictors can change an outcome's average, residual variability, shape, or probability of zero",
+    fixed = TRUE
+  )
+  expect_false(grepl("staged for later phases", description_words, fixed = TRUE))
+  expect_false(grepl("distributional-output and adequacy", description_words, fixed = TRUE))
 
   expect_match(surfaces[["readme"]], paste0("`drmTMB` ", version), fixed = TRUE)
   expect_match(
