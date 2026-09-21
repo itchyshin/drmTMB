@@ -178,6 +178,7 @@ Use maximum likelihood (the default) to compare models with different fixed
 effects. Restricted likelihood is primarily for the documented Gaussian
 workflows. Always inspect `check_drm()` and the interval output before
 reporting a complex model.
+
 ## Project status
 
 The package is under active development. See
