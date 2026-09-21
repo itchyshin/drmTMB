@@ -2787,8 +2787,9 @@ class CapabilityLedgerTests(unittest.TestCase):
             count_guidance,
         )
         self.assertIn(
-            "These structured models have simulation checks on point estimates; "
-            "those checks do not establish reliable confidence intervals.",
+            "These structured count models can be used for point estimates in the "
+            "combinations shown above, but their confidence intervals have not yet "
+            "been shown to be reliable.",
             count_guidance,
         )
 
