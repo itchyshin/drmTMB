@@ -2111,7 +2111,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         for name in (
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
-            "spatial-models.Rmd",
         ):
             self.assertIn("non-Gaussian spatial", surfaces[name])
             self.assertIn("outside the", surfaces[name])
@@ -2120,7 +2119,6 @@ class CapabilityLedgerTests(unittest.TestCase):
         for name in (
             "model-map.Rmd",
             "phylogenetic-spatial.Rmd",
-            "spatial-models.Rmd",
             "which-scale.Rmd",
         ):
             normalized = " ".join(surfaces[name].split())
@@ -2132,6 +2130,19 @@ class CapabilityLedgerTests(unittest.TestCase):
                 "fixed-`zi` NB2 spatial `mu`",
             ):
                 self.assertIn(gate, normalized)
+        # The spatial learning page names the same supported routes in reader
+        # language rather than exposing the internal q1/zi gate labels.
+        spatial = " ".join(surfaces["spatial-models.Rmd"].split())
+        self.assertIn("non-Gaussian spatial", spatial)
+        self.assertIn("other than the documented", spatial)
+        for route in (
+            "Poisson and NB2 one-response location models with an intercept plus one slope",
+            "NB2 one-response scale model",
+            "Student-t location models",
+            "Poisson zero-inflation models",
+            "fixed-zero-inflation Poisson or NB2 location models",
+        ):
+            self.assertIn(route, spatial)
         self.assertNotIn(
             "gates outside the exact ordinary Poisson/NB2",
             surfaces["spatial-models.Rmd"],
