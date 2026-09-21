@@ -44,15 +44,28 @@ the within-observation residual correlation between two responses. Use
 `corpairs()` for fitted latent random-effect correlations and `rho12()` for
 fitted residual response-response correlations.
 
+A successful fit does not show that every related model is reliable. Each row
+below names the exact family, mean, residual scale, and correlation structure
+that has a worked example and its own checks. Before reporting an estimate or
+interval from any of these routes, read
+[Can I fit and report this model?](capability-and-limits.html).
+
+In this table, "q1" means one distributional parameter carries the structured
+effect, "q2" means two response means share one structured correlation, and
+"q4" means all four parameters of a two-response model (`mu1`, `mu2`,
+`sigma1`, `sigma2`) share one structured block; "`zi`" names a zero-inflation
+model and "`hu`" names a hurdle model; "diagnostic-only" means a fit can be
+obtained and inspected, but is not yet a scientific reporting route.
+
 ## Pick the route
 
 | Your question | A sensible starting point | What to check before reporting | Read next |
 | --- | --- | --- | --- |
-| Do related individuals share additive genetic deviations, such as heritable trait differences? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2, and q4 routes. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 animal `mu` intercept-plus-one-slope, NB2 q1 animal `sigma` (run `check_drm()` and read the guide before reporting it), and the beta animal models described in the guide. Assembling the pedigree or `Ainv` relatedness matrix automatically, sparse large-pedigree construction, additional multiple or labelled slope layouts outside the documented fitted models, and non-Gaussian neighbours outside those models are not available yet. | [Animal models and additive relatedness](animal-models.html) |
-| Do related species share evolutionary deviations? | `phylo(1 | species, tree = tree)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2/q4, direct-SD, and `corpair()` routes. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope and NB2 q1 phylogenetic `sigma` (run `check_drm()` and read the guide before reporting it); Student-t q1 phylogenetic `nu` is diagnostic-only, while cumulative-logit q1 phylogenetic `mu` is diagnostic-only. Neighbouring non-Gaussian routes are not available yet. | [Phylogenetic structured effects](phylogenetic-models.html) |
-| Do nearby sites share smooth deviations, either through coordinates or a smooth field fitted from a mesh? | `spatial(1 | site, coords = coords)`, `spatial(1 + depth | site, coords = coords)`, or `spatial(1 | site, mesh = mesh)` for a mesh-based option with a fixed spatial range | Fitted for the documented coordinate-spatial Gaussian `mu`/`sigma`, slope, q2, and q4 routes. The separate mesh route is only `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` for a projected-coordinate, fixed-kappa Gaussian `mu` intercept at local-fit level. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope and NB2 q1 spatial `sigma` (run `check_drm()` and read the guide before reporting it); Student-t q1 spatial `mu` is diagnostic-only for the intercept and has only a preliminary check for the intercept-plus-one-slope route. All three spatial-inflation models (Poisson `zi`, fixed-`zi` Poisson `mu`, and fixed-`zi` NB2 `mu`) are diagnostic-only routes checked on a single example. Mesh slopes/range and other mesh fields, additional multiple or labelled coordinate-slope layouts outside the documented fitted models, non-Gaussian routes outside those exact models, and spatial `corpair()` routes are not available yet. | [Coordinate-spatial structured effects](spatial-models.html) |
-| Does the same response need both species and site structure at once? | Fit separate `phylo()` and `spatial()` models for now | A combined route is not available yet; simultaneous structural layers need their own identifiability checks before use. | [Structural dependence tutorial](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html) |
-| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2, and q4 routes. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 relmat `mu` intercept-plus-one-slope, NB2 q1 relmat `sigma` (run `check_drm()` and read the guide before reporting it), Gamma q1 relmat `mu`, and truncated-NB2 q1 relmat `hu`. Additional multiple or labelled slope layouts outside the documented fitted models, broader K/Q bridge claims, predictor-dependent `corpair()` routes, and non-Gaussian neighbours outside those models are not available yet. | [Known-matrix relatedness with relmat](relmat-known-matrices.html) |
+| Do related individuals share additive genetic deviations, such as heritable trait differences? | `animal(1 | individual, pedigree = pedigree)`, `animal(1 | individual, A = A)`, or `animal(1 | individual, Ainv = Ainv)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2, and q4 routes. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 animal `mu` intercept-plus-one-slope, NB2 q1 animal `sigma` (point estimate only; see the guide), and the beta animal models described in the guide. Pedigree and `Ainv` inputs are fitted, but interval results checked with an `A` matrix do not yet carry over to pedigree or `Ainv` input for the one-slope `sigma` route. Sparse large-pedigree construction, additional multiple or labelled slope layouts outside the documented fitted models, and non-Gaussian neighbours outside those models are not available yet. | [Animal models and additive relatedness](animal-models.html) |
+| Do related species share evolutionary deviations? | `phylo(1 | species, tree = tree)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2/q4, direct-SD, and `corpair()` routes. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 phylogenetic `mu` intercept-plus-one-slope and NB2 q1 phylogenetic `sigma` (point estimate only; see the guide); Student-t q1 phylogenetic `nu` is diagnostic-only, while cumulative-logit q1 phylogenetic `mu` is diagnostic-only. Neighbouring non-Gaussian routes are not available yet. | [Phylogenetic structured effects](phylogenetic-models.html) |
+| Do nearby sites share smooth deviations, either through coordinates or a smooth field fitted from a mesh? | `spatial(1 | site, coords = coords)`, `spatial(1 + depth | site, coords = coords)`, or `spatial(1 | site, mesh = mesh)` for a mesh-based option with a fixed spatial range | Fitted for the documented coordinate-spatial Gaussian `mu`/`sigma`, slope, q2, and q4 routes. The separate mesh route is only `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` for a projected-coordinate Gaussian `mu` intercept with a spatial range you set rather than estimate, for the tested designs. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 spatial `mu` intercept-plus-one-slope and NB2 q1 spatial `sigma` (point estimate only; see the guide); Student-t q1 spatial `mu` is diagnostic-only for the intercept and point estimate only for the intercept-plus-one-slope route. All three spatial-inflation models (Poisson `zi`, fixed-`zi` Poisson `mu`, and fixed-`zi` NB2 `mu`) are diagnostic-only routes checked on a single example. Mesh slopes/range and other mesh fields, additional multiple or labelled coordinate-slope layouts outside the documented fitted models, non-Gaussian routes outside those exact models, and spatial `corpair()` routes are not available yet. | [Coordinate-spatial structured effects](spatial-models.html) |
+| Does the same response need both species and site structure at once? | Fit separate `phylo()` and `spatial()` sensitivity models for now | A combined route is not available yet. Report each fit as a sensitivity analysis and state which structure it omits; simultaneous structural layers need their own identifiability checks before use. | [Structural dependence tutorial](https://itchyshin.github.io/drmTMB/articles/phylogenetic-spatial.html) |
+| Is the known matrix neither a pedigree, species tree, nor spatial coordinate surface? | `relmat(1 | id, K = K)` or `relmat(1 | id, Q = Q)` | Fitted for the documented Gaussian `mu`/`sigma`, slope, q2, and q4 routes. The supported non-Gaussian models fit ordinary Poisson/NB2 q1 relmat `mu` intercept-plus-one-slope, NB2 q1 relmat `sigma` (point estimate only; see the guide), Gamma q1 relmat `mu`, and truncated-NB2 q1 relmat `hu` (diagnostic-only). Additional multiple or labelled slope layouts outside the documented fitted models, other `K`/`Q` uses, predictor-dependent `corpair()` routes, and non-Gaussian neighbours outside those models are not available yet. | [Known-matrix relatedness with relmat](relmat-known-matrices.html) |
 
 ## What to read next
 
@@ -86,29 +99,27 @@ rows should stay visually separate.
 
 ## Fitted versus planned
 
-A successful fit does not show that every related model is reliable. Each row
-in the table above names the exact combination of family, mean, residual
-scale, and correlation structure that has a worked example and its own checks.
-A model that looks similar but changes one of those pieces, a different
-family, an extra slope, or a combined structure, needs its own check before
-you trust its numbers: start with `check_drm()` and the guide the route links
-to.
+A route one step away from the exact combination named in the table above, a
+different family, an extra slope, or a combined structure, needs its own
+check before you trust its numbers: start with `check_drm()` and the guide
+the route links to.
 
-The fitted first slices are useful for applied work, but they are not full
-parity across every structural layer. Fitting matching structured terms in two
+The routes fitted so far are useful for applied work, but they do not cover
+every structure equally. Fitting matching structured terms in two Gaussian
 response means links those two traits through one shared structured
 correlation. Adding matching structured terms to all four pieces of a
-model, both means and both residual scales, links them through one
-four-parameter structured block for constant location-scale covariance. The
-univariate intercept route can also enter `sigma` for `phylo()`, `spatial()`,
-`animal()`, and `relmat()`. A one-slope `sigma` route also fits for all four
-structures: for `phylo()`, `animal()` with an additive relatedness matrix, and
-`relmat()` with `K` or `Q`, that route has an interval you can report, with
-caveats explained in each guide; for `spatial()`, you can fit and inspect the
-estimate, but do not report an interval for it yet. None of this implies
-multiple or labelled structured slopes, non-Gaussian structural effects
-outside the exact model-specific support named above, or predictor-dependent
-`corpair()` regressions unless the route table explicitly names that support.
+two-response Gaussian model, both means and both residual scales, links them
+through one block across all four pieces (four standard deviations and six
+correlations). The univariate intercept route can also enter `sigma` for
+`phylo()`, `spatial()`, `animal()`, and `relmat()`. The exact Gaussian
+one-slope `sigma` route also fits for all four structures: for `phylo()`,
+`animal()` with an additive relatedness matrix, and `relmat()` with `K` or
+`Q`, that route has an interval you can report, with caveats explained in
+each guide; for `spatial()`, you can fit and inspect the estimate, but do not
+report an interval for it yet. None of this implies multiple or labelled
+structured slopes, non-Gaussian structural effects outside the exact
+model-specific support named above, or predictor-dependent `corpair()`
+regressions unless the route table explicitly names that support.
 
 Known sampling covariance belongs to the meta-analysis route, not `relmat()`.
 Use `relmat()` for latent random-effect relatedness matrices; use

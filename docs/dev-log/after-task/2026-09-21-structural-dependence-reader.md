@@ -18,10 +18,12 @@ three columns (`Question | Current route | Status`) to the required four
 Read next`), adding a `Read next` link to each structure's specialist guide.
 Removed the three banned internal phrases (`Pedigree/Ainv bridge marshalling`,
 `recovery-grade NB2`, `fixed-kappa mesh intercept`), replacing each with plain
-wording that keeps the same limitation: pedigree/`Ainv` matrix assembly stays
-"not available yet"; the two `recovery-grade NB2` mentions became "run
-`check_drm()` and read the guide before reporting it"; the mesh route is now
-described as "a mesh-based option with a fixed spatial range." Added the
+wording: pedigree/`Ainv` matrix assembly stays "not available yet"; the four
+`recovery-grade NB2` mentions became "run `check_drm()` and read the guide
+before reporting it"; the mesh route is now described as "a mesh-based option
+with a fixed spatial range." A later review pass (see Section 13) found the
+pedigree/`Ainv` replacement changed the claim itself rather than only its
+wording, and corrected it; see Section 13 for the fix. Added the
 required sentence "A successful fit does not show that every related model is
 reliable." as the opening of the "Fitted versus planned" section, followed by
 a plain-language explanation that a fit's success does not certify a
@@ -196,21 +198,21 @@ spans and did not mis-split any of the eleven such occurrences.
 
 The `## Fitted versus planned` section still uses `q1`/`q2`/`q4` shorthand in
 two remaining sentences (the univariate-intercept-into-`sigma` sentence and
-the four-provider one-slope `sigma` sentence); this shorthand is not on this
-file's banned-phrase list and is not covered by an "explain q on first use"
-requirement in the reader-contract test, but a later editorial pass could
-still expand it further, matching `model-map.Rmd`'s own explicit "in developer
+the four-provider one-slope `sigma` sentence); a short "how to read this
+table" paragraph now defines `q1`/`q2`/`q4` once, above the table (Section
+13), but a later editorial pass could still expand the shorthand further in
+this section too, matching `model-map.Rmd`'s own explicit "in developer
 shorthand, q=4 ... means four distributional endpoints" aside. The three
-`spatial-inflation` models (`zi ~ spatial()`, fixed-`zi` `mu ~ spatial()`
+spatial-inflation models (`zi ~ spatial()`, fixed-`zi` `mu ~ spatial()`
 variants) remain described as "diagnostic-only ... checked on a single
-example" is required verbatim by a sibling test and by the mission's
-own "keep every caveat" instruction, but it is still one of the harder
-sentences in the article for a first-time reader; the linked spatial guide is
-where a fuller explanation belongs. This patch does not touch the other
-three sites in the four-site continuation map (drmTMB's model map already
-done separately; drmTMB reference/README surfaces; gllvmTMB's beginner
-article, limits article, and phylogeny article) named in the handover remain
-remain open work for a separate slice.
+example." This wording is required verbatim by a sibling test and matches the
+mission's own "keep every caveat" instruction, but it is still one of the
+harder sentences in the article for a first-time reader; the linked spatial
+guide is where a fuller explanation belongs. This patch does not touch the
+other three sites in the four-site continuation map (drmTMB's model map
+already done separately; drmTMB reference/README surfaces; gllvmTMB's
+beginner article, limits article, and phylogeny article) named in the
+handover: they remain open work for a separate slice.
 
 ## 11. Team Learning
 
@@ -235,3 +237,130 @@ vignette; `README.md`; `_pkgdown.yml`; the drmTMB model-map reader repair
 named in the handover's four-site continuation map; figures; the formula
 grammar or engine; CI configuration; or release/versioning. This patch keeps
 PR #1418 in draft; it does not merge or mark the PR ready.
+
+## 13. Review Pass (independent Fable read, second commit)
+
+An independent Fable (Pat + Rose) read-only review of the first commit
+(`b1c3ecd1f`) is recorded at
+`/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-gllvmTMB/6ac54b83-96de-40ee-a57d-bf2257837e2b/scratchpad/S4-drmtmb-findings.md`
+(1 BLOCKING, 9 SHOULD-FIX, 5 NIT, 5 OK). Disposition of every item, in the
+review's own numbering:
+
+1. **SHOULD-FIX, applied.** The limits page was never linked from this
+   article. Added "Before reporting an estimate or interval from any of
+   these routes, read [Can I fit and report this model?](capability-and-limits.html)."
+   to the new paragraph directly above the table.
+2. **SHOULD-FIX, applied.** Moved the required sentence "A successful fit
+   does not show that every related model is reliable." from the
+   `## Fitted versus planned` section (two screens down) to a new paragraph
+   directly above `## Pick the route`. Confirmed by parsing the rendered
+   page: the sentence now sits at character 1130 of the extracted body text,
+   before "Pick the route" at character 1890.
+3. **SHOULD-FIX, applied.** Added a "How to read this table" paragraph,
+   directly above the table, defining `q1`/`q2`/`q4`, `` `zi` ``, `` `hu` ``,
+   and "diagnostic-only" in plain words. Did not rewrite the table itself,
+   per the review's own scoping ("the fix is one line ... not a rewrite").
+4. **OK, no change.**
+5. **BLOCKING, applied.** The animal row's third column previously read
+   "Assembling the pedigree or `Ainv` relatedness matrix automatically, ...
+   are not available yet," which contradicted the same row's second column
+   (`animal(1 | individual, pedigree = pedigree)` as a starting point) and
+   `animal-models.Rmd`'s own "Fitted first slice. Dense pedigree
+   construction, covariance input, and precision input are supported."
+   Replaced with "Pedigree and `Ainv` inputs are fitted, but interval
+   results checked with an `A` matrix do not yet carry over to pedigree or
+   `Ainv` input for the one-slope `sigma` route," which restates the true
+   `docs/design/01-formula-grammar.md`/`capability-and-limits.Rmd` limit
+   (interval inheritance, not input support), and kept "sparse large-pedigree
+   construction ... are not available yet" as a genuinely separate, correct
+   limitation.
+6. **SHOULD-FIX, applied.** Restored "Gaussian" in both sentences of
+   `## Fitted versus planned` that had dropped it ("two Gaussian response
+   means," "a two-response Gaussian model"), matching `animal-models.Rmd`,
+   `spatial-models.Rmd`, and `relmat-known-matrices.Rmd`.
+7. **SHOULD-FIX, applied.** Changed "A one-slope `sigma` route also fits for
+   all four structures" to "The exact Gaussian one-slope `sigma` route also
+   fits for all four structures," so the sentence no longer reads as if it
+   covered the NB2 one-slope `sigma` route, which every family guide holds
+   at point-estimate-only.
+8. **SHOULD-FIX, applied.** Replaced all four "(run `check_drm()` and read
+   the guide before reporting it)" parentheticals (animal, phylogenetic,
+   spatial, relmat `sigma` rows) with "(point estimate only; see the
+   guide)," the site's own plain tier label from
+   `capability-and-limits.Rmd` lines 73-74. Replaced the spatial row's "has
+   only a preliminary check for the intercept-plus-one-slope route" (an
+   undefined fourth tier) with "is point estimate only for the
+   intercept-plus-one-slope route."
+9. **SHOULD-FIX, applied.** Restored "sensitivity" in the combined
+   phylo+spatial row ("Fit separate `phylo()` and `spatial()` sensitivity
+   models for now") and added "Report each fit as a sensitivity analysis and
+   state which structure it omits," matching
+   `vignettes/articles/phylogenetic-spatial.Rmd` lines 384, 568, and 589.
+10. **SHOULD-FIX, applied.** Added "(diagnostic-only)" after "truncated-NB2
+    q1 relmat `hu`" in the relmat row, matching
+    `relmat-known-matrices.Rmd`'s "a diagnostic-only intercept-only `hu`
+    model." Verified the required substring "truncated-NB2 q1 relmat `hu`"
+    (needed by `test_provider_claims_name_exact_nongaussian_gates`) still
+    appears as a contiguous substring before the added parenthetical.
+11. **NIT, applied.** Reworded "links them through one four-parameter
+    structured block" to "links them through one block across all four
+    pieces (four standard deviations and six correlations)," since
+    `spatial-models.Rmd` and `relmat-known-matrices.Rmd` describe the block
+    as four SDs and six correlations, not four free parameters.
+12. **OK, no change.**
+13. **SHOULD-FIX, applied.** Replaced "The fitted first slices are useful
+    for applied work, but they are not full parity across every structural
+    layer" (programme words "slice"/"parity") with "The routes fitted so far
+    are useful for applied work, but they do not cover every structure
+    equally."
+14. **NIT, applied.** Reworded the mesh sentence from "...for a
+    projected-coordinate, fixed-kappa Gaussian `mu` intercept at local-fit
+    level" to "...for a projected-coordinate Gaussian `mu` intercept with a
+    spatial range you set rather than estimate, for the tested designs,"
+    matching `spatial-models.Rmd`'s own framing of that same limit. Reworded
+    the relmat row's "broader K/Q bridge claims" to "other `K`/`Q` uses."
+15. **OK, no change.**
+16. **OK, no change** (scope re-confirmed unchanged after this pass: the
+    same three lease-claimed files).
+17. **OK, no change.**
+18. **NIT, applied.** Corrected this report's own inaccuracies: Section 2
+    said "the two `recovery-grade NB2` mentions" (there were four); Section
+    2's "keeps the same limitation" claim about the pedigree/`Ainv`
+    replacement is now qualified, since item 5 shows the first pass changed
+    the claim, not only its wording; Section 10 had two malformed sentences
+    (a missing clause after "checked on a single example," and a duplicated
+    "remain remain"), both rewritten.
+19. **NIT, declined here; recorded for a separate task.** The review found
+    the same "recovery-grade NB2" and "Pedigree/Ainv bridge marshalling"
+    phrasing still present on `vignettes/model-map.Rmd`,
+    `vignettes/which-scale.Rmd`, `vignettes/animal-models.Rmd`, and
+    `vignettes/articles/phylogenetic-spatial.Rmd`, none of which the
+    reader-contract test covers. The review itself scopes this as "not this
+    PR's scope; record it." Declined to fix inline here because those files
+    are outside the three lease-claimed paths for this task; flagged as a
+    background task (`task_9fbe201a`, "Replace recovery-grade/bridge-
+    marshalling wording repo-wide") with the correct interval-inheritance
+    framing from item 5 included, so the same mistake is not repeated there.
+
+Gates re-run after this pass, all from the worktree root:
+
+- `python3 -m unittest tools.tests.test_capability_ledger`: `Ran 80 tests in
+  2.010s` / `OK`, plus `C14 receipt equivalence: OK` and `capability-ledger:
+  OK`.
+- `Rscript --vanilla -e 'rmarkdown::render("vignettes/structural-dependence.Rmd", output_dir = tempdir(), quiet = TRUE)'`:
+  exit 0.
+- `Rscript --vanilla -e 'rmarkdown::render("vignettes/structural-dependence.Rmd", output_dir = "<scratchpad>/render/drmtmb", quiet = TRUE)'`:
+  exit 0.
+- `Rscript tools/check-reader-contracts.R`: `Reader vignette contract: OK`.
+- `git diff --check`: clean.
+- Re-checked the three originally banned phrases plus the additional jargon
+  named in items 14 and 19 (`fixed-kappa`, `local-fit level`, `bridge
+  claims`, `bridge marshalling`): no matches in
+  `vignettes/structural-dependence.Rmd`.
+- Re-parsed the rendered HTML table: still 4 header cells and 5 data rows of
+  4 `<td>` cells each.
+- `git diff -- vignettes/structural-dependence.Rmd | grep "^+"` searched for
+  the em-dash character: no matches.
+- `python3 ~/shinichi-brain/tools/slop_check.py docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md`:
+  re-run until `✅` / `FINDINGS: 0` (see the tool's own output for the exact
+  count at the time of the second commit).

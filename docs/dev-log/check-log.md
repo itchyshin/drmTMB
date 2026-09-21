@@ -94810,3 +94810,32 @@ this file; all 80 pass. `Rscript tools/check-reader-contracts.R` reports
 and its first table parses to 4 header cells and 5 data rows of 4 cells each.
 PR #1418 stays in draft; not merged. Report:
 `docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md`.
+
+## 2026-09-21 (later) — structural-dependence reader repair, review pass
+
+An independent Fable (Pat + Rose) read of the rendered page (recorded at
+`scratchpad/S4-drmtmb-findings.md`) found 1 BLOCKING, 9 SHOULD-FIX, 5 NIT
+against commit `b1c3ecd1f`. The BLOCKING item: the animal row's replacement
+for `Pedigree/Ainv bridge marshalling` had turned an interval-inheritance
+limit into a false "assembling the pedigree ... is not available yet,"
+contradicting the same row's own starting point
+(`animal(1 | individual, pedigree = pedigree)`) and `animal-models.Rmd`'s
+"Fitted first slice." Restored the true limit: pedigree/`Ainv` inputs are
+fitted, but interval results checked with an `A` matrix do not carry over to
+them for the one-slope `sigma` route. Applied all 9 SHOULD-FIX items (linked
+`capability-and-limits.html`; moved "A successful fit does not show..." above
+the table; added a "how to read this table" line for `q1`/`q2`/`q4`/`zi`/`hu`
+/"diagnostic-only"; restored "Gaussian" twice in `## Fitted versus planned`;
+added "exact Gaussian" to the one-slope `sigma` sentence; replaced five
+vaguer tier words with the site's own "point estimate only" label; restored
+"sensitivity" in the combined row; labelled the relmat `hu` route
+diagnostic-only) and 4 of 5 NIT items (four-parameter block wording; mesh
+"fixed-kappa"/"local-fit level" jargon; relmat "bridge claims" jargon;
+this report's own two malformed sentences and a wrong count). Declined the
+fifth NIT (the same phrasing elsewhere in `model-map.Rmd`, `which-scale.Rmd`,
+`animal-models.Rmd`, and `articles/phylogenetic-spatial.Rmd`) as out of this
+lease's scope and flagged it as a background task instead
+(`task_9fbe201a`). Full 80-test module, both renders, the reader-contract
+checker, and `git diff --check` all re-run clean. Report addendum:
+`docs/dev-log/after-task/2026-09-21-structural-dependence-reader.md` Section
+13.
