@@ -588,7 +588,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
 ## Boundaries
 
-The following `relmat()` routes remain planned:
+The following `relmat()` routes are not yet supported:
 
 - multiple structured slopes such as `relmat(1 + x + z | id, K = K)`;
 - known-matrix intercept-slope correlations;
@@ -599,19 +599,21 @@ The following `relmat()` routes remain planned:
 - bivariate relmat REML with `Q`, slopes, q4 or larger blocks, scale-side
   terms, extra random effects, incomplete pairs, non-unit weights, or
   nonconstant `sigma1`, `sigma2`, or `rho12` formulas;
-- non-Gaussian known-matrix structured effects beyond the first
-  models with point-estimate recovery evidence noted below.
+- non-Gaussian known-matrix structured effects beyond the models described
+  below.
 
-Several non-Gaussian families already fit a first q1 unlabelled `relmat()`
-structured model with route-specific evidence. The recovery-grade routes support
-point estimates but are not coverage-validated: `Gamma()`, `poisson()`, and
-`nbinom2()` each accept a `mu` intercept plus one independent slope;
-`nbinom2()` also accepts a `sigma` intercept plus one independent slope.
+For several non-Gaussian response distributions, `relmat()` currently fits one
+unlabelled structured intercept and, where stated, one independent slope.
+Simulation studies have checked whether the point estimates recover known
+values, but have not yet assessed how well the corresponding intervals cover
+the truth. `Gamma()`, `poisson()`, and `nbinom2()` each accept a `mu` intercept
+plus one independent slope; `nbinom2()` also accepts a `sigma` intercept plus
+one independent slope.
 Separately, `truncated_nbinom2()` (with its hurdle NB2 alias) accepts a
-diagnostic-only intercept-only `hu` model. Use that route only to confirm
-fit/extractor feasibility; it does not establish point-estimate recovery.
-The `beta_family()` family and the families with no structured layer still
-reject `relmat()`.
+diagnostic-only intercept-only `hu` model. Use that route only to check that a
+fit and its reported values can be obtained; it does not establish
+point-estimate recovery. The `beta_family()` family and the families with no
+structured layer still reject `relmat()`.
 
 Known sampling covariance is a different model layer, not a separate
 relatedness route. If the matrix describes known observation-level
