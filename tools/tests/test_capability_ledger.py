@@ -1395,6 +1395,20 @@ class CapabilityLedgerTests(unittest.TestCase):
         ):
             self.assertNotIn(internal_phrase, model_map)
 
+        structural = (ROOT / "vignettes" / "structural-dependence.Rmd").read_text()
+        for reader_marker in (
+            "Choose the structure that matches your scientific question.",
+            "| Your question | A sensible starting point | What to check before reporting | Read next |",
+            "A successful fit does not show that every related model is reliable.",
+        ):
+            self.assertIn(reader_marker, structural)
+        for internal_phrase in (
+            "Pedigree/Ainv bridge marshalling",
+            "recovery-grade NB2",
+            "fixed-kappa mesh intercept",
+        ):
+            self.assertNotIn(internal_phrase, structural)
+
     def test_capability_article_has_reporting_rule_and_stable_terms(self):
         article = (ROOT / "vignettes/capability-and-limits.Rmd").read_text()
         css = (ROOT / "pkgdown" / "extra.css").read_text()
