@@ -368,9 +368,13 @@ drm_known_relatedness_precision <- function(
   marker = "relmat",
   object = "Q",
   group_name = "id",
-  tolerance = sqrt(.Machine$double.eps)
+  tolerance = sqrt(.Machine$double.eps),
+  reported_matrix_type = NULL
 ) {
   matrix_type <- match.arg(matrix_type)
+  if (is.null(reported_matrix_type)) {
+    reported_matrix_type <- matrix_type
+  }
   group <- as.character(group)
   if (length(group) == 0L || anyNA(group) || any(!nzchar(group))) {
     cli::cli_abort(
@@ -421,7 +425,7 @@ drm_known_relatedness_precision <- function(
   out <- list(
     precision = precision$precision,
     log_det_precision = precision$log_det_precision,
-    matrix_type = matrix_type,
+    matrix_type = reported_matrix_type,
     object = object,
     node_labels = labels,
     species_levels = observed,
@@ -438,15 +442,117 @@ drm_pedigree_relatedness_precision <- function(
   object = "pedigree",
   group_name = "id"
 ) {
-  A <- drm_pedigree_additive_relationship(pedigree, object = object)
+  Ainv <- drm_pedigree_sparse_precision(pedigree, object = object)
   drm_known_relatedness_precision(
-    A,
+    Ainv,
     group = group,
-    matrix_type = "covariance",
+    matrix_type = "precision",
     marker = "animal",
     object = object,
-    group_name = group_name
+    group_name = group_name,
+    # The caller still supplied a pedigree (a covariance-side input); only the
+    # internal route to A^-1 changed, so the reported label must not move.
+    reported_matrix_type = "covariance"
   )
+}
+
+# Sparse pedigree precision A^-1 via the Henderson (1976) / Quaas (1976) rules.
+#
+# The additive relationship A is still formed densely because the inbreeding
+# coefficients F come from its diagonal, but A^-1 is assembled directly from
+# the Mendelian sampling variances rather than inverted. The dense chol2inv
+# this replaces returned ~n^2 numerically-nonzero entries, so every TMB
+# factorisation paid dense cost on a matrix that is O(n)-sparse in truth.
+#
+# PROVENANCE: the sparse assembly mirrors gllvmTMB's .gllvm_pedigree_precision()
+# (R/pedigree-precision.R), whose own pedigree standardisation, parent
+# normalisation, topological ordering and dense tabular A were ported from this
+# package. See inst/COPYRIGHTS.
+drm_pedigree_sparse_precision <- function(pedigree, object = "pedigree") {
+  A <- drm_pedigree_additive_relationship(pedigree, object = object)
+  ids <- rownames(A)
+  n <- length(ids)
+  inbreeding <- diag(A) - 1
+
+  ped <- drm_standardize_pedigree(pedigree, object = object)
+  ped <- ped[match(ids, ped$id), , drop = FALSE]
+  dam_index <- match(ped$dam, ids)
+  sire_index <- match(ped$sire, ids)
+
+  index <- seq_len(n)
+  has_dam <- !is.na(dam_index)
+  has_sire <- !is.na(sire_index)
+  dam_inbreeding <- ifelse(has_dam, inbreeding[dam_index], 0)
+  sire_inbreeding <- ifelse(has_sire, inbreeding[sire_index], 0)
+
+  # Mendelian sampling variance d_i, by how many parents are known.
+  both <- has_dam & has_sire
+  dam_only <- has_dam & !has_sire
+  sire_only <- has_sire & !has_dam
+  mendelian <- rep(1, n)
+  mendelian[both] <- 0.5 -
+    0.25 * (dam_inbreeding[both] + sire_inbreeding[both])
+  mendelian[dam_only] <- 0.75 - 0.25 * dam_inbreeding[dam_only]
+  mendelian[sire_only] <- 0.75 - 0.25 * sire_inbreeding[sire_only]
+
+  invalid <- !is.finite(mendelian) | mendelian <= 0
+  if (any(invalid)) {
+    cli::cli_abort(c(
+      "{.fn animal} pedigree {.field {object}} produced a non-positive Mendelian sampling variance.",
+      "x" = "Individual{?s} {.val {ids[invalid]}} implied an inbreeding coefficient outside {.code [0, 1)}."
+    ))
+  }
+  weight <- 1 / mendelian
+
+  # Each animal contributes at most 9 entries; sparseMatrix sums duplicates.
+  sire_child <- index[has_sire]
+  sire_parent <- sire_index[has_sire]
+  sire_weight <- weight[has_sire]
+  dam_child <- index[has_dam]
+  dam_parent <- dam_index[has_dam]
+  dam_weight <- weight[has_dam]
+  both_sire <- sire_index[both]
+  both_dam <- dam_index[both]
+  both_weight <- weight[both]
+
+  precision <- Matrix::sparseMatrix(
+    i = c(
+      index,
+      sire_child,
+      sire_parent,
+      sire_parent,
+      dam_child,
+      dam_parent,
+      dam_parent,
+      both_sire,
+      both_dam
+    ),
+    j = c(
+      index,
+      sire_parent,
+      sire_child,
+      sire_parent,
+      dam_parent,
+      dam_child,
+      dam_parent,
+      both_dam,
+      both_sire
+    ),
+    x = c(
+      weight,
+      -0.5 * sire_weight,
+      -0.5 * sire_weight,
+      0.25 * sire_weight,
+      -0.5 * dam_weight,
+      -0.5 * dam_weight,
+      0.25 * dam_weight,
+      0.25 * both_weight,
+      0.25 * both_weight
+    ),
+    dims = c(n, n),
+    dimnames = list(ids, ids)
+  )
+  Matrix::drop0(precision)
 }
 
 drm_pedigree_additive_relationship <- function(pedigree, object = "pedigree") {
