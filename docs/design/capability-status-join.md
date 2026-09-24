@@ -9,7 +9,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `e9aa324e1fe4b3ce37cac22e7f21ce800498b14f` |
+| drmTMB (this repo, HEAD at generation) | `89fca4c532835749e65037e00961cb3fc1255c87` |
 | DRM.jl, at the programme pin, read with `git show` -- never its working tree | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
 
 The canonical DRM.jl clone normally sits on some lane's branch. Reading its
