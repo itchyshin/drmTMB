@@ -1,7 +1,8 @@
-GOAL: see GOAL.md.   STATE: kit scaffolded; ledger being written; no slice dispatched yet.
-ARCS DONE (verified): none.
-ARC IN PROGRESS: A0 (S0 recon). Landed when `docs/dev-log/loop/arc1-honest-ledger/recon.md` exists and names the #1111 overlap verdict.
-NEXT: A0, then A1 batch.
-OPEN GATES (need human): none.
-TRUTH LIVES IN: worktree ~/local-scratch/lanes/drmTMB-arc1-honest-ledger, branch claude/lane-arc1-honest-ledger (local, not pushed), base origin/main 7f7293f2d. Ledger: .unlazy/arc1-honest-ledger/ (untracked run state). Plan: LOOP/lanes/arc1-honest-ledger/ultra-plan.md. DRModels pin checkout: ~/local-scratch/lanes/DRModels-pin-da8b3f871.
-RESUME: In ~/local-scratch/lanes/drmTMB-arc1-honest-ledger read LOOP/lanes/arc1-honest-ledger/GOAL.md -> checkpoint.md -> ultra-plan.md -> arcs.md, then continue from NEXT with the arc-loop skill.
+GOAL: see GOAL.md.   STATE: batch 1 in flight (5 live).
+ARCS DONE (verified): none. Ledger written before dispatch: .unlazy/arc1-honest-ledger/GATES.md (D1-D5) + gates/leaf-{S0,S1a,S1b,S2,S8,S9}.md; native DLL built in this worktree (36 s).
+ARC IN PROGRESS: A0 + A1. In flight: S0 recon (Haiku), S1a honest state + gate (Sonnet, tmb_engineer), S2 admission census (Sonnet, simulation_tester), S8 issue census (Sonnet), S9 #1304 absorption note (Sonnet). Each landed = its leaf file passes `gate-check --reverify` run by the conductor.
+ADAPTIVE CHANGE: S1b runs AFTER S1a returns (both edit tools/write-parity-matrix.R: pin helper + cellmap wiring). S1a also owns docs/design/parity-matrix.md (byte-identical test forces regeneration). S8 runs as one Sonnet agent (scout + verify merged). Record in plan-actual.
+NEXT: reverify each returned leaf; commit its files; dispatch S1b when S1a is verified; then C1 (write leaf gates for S3-S7 before dispatch).
+OPEN GATES (need human): none. T10 only if S0 reports #1111 overlap on refusal functions.
+TRUTH LIVES IN: worktree ~/local-scratch/lanes/drmTMB-arc1-honest-ledger, branch claude/lane-arc1-honest-ledger (local), base origin/main 7f7293f2d. Lease: LANE_ID claude:drmTMB:arc1. Ledger: .unlazy/arc1-honest-ledger/ (untracked). DRModels pin: ~/local-scratch/lanes/DRModels-pin-da8b3f871. Julia 1.13.0 bin: /Users/z3437171/.julia/juliaup/julia-1.13.0+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin.
+RESUME: In ~/local-scratch/lanes/drmTMB-arc1-honest-ledger read LOOP/lanes/arc1-honest-ledger/GOAL.md -> checkpoint.md -> ultra-plan.md -> arcs.md; run gate-check --status on each .unlazy/arc1-honest-ledger/gates/leaf-*.md; re-dispatch any batch-1 slice whose output file is missing; continue from NEXT.
