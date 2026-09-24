@@ -1,0 +1,64 @@
+grid built: 61 cells (3 positive/negative controls)
+PRE-RUN [1/3] biv_gaussian x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2
+PRE-RUN [2/3] gaussian x none x mu
+PRE-RUN [3/3] binomial x (1|g) x mu
+PRE-RUN elapsed_s=68.681 extrapolated_total_min=23.275
+[4/61] gaussian x (1|g) x mu
+[5/61] gaussian x (1|g) x sigma
+[6/61] gaussian x (1+x|g) x mu
+[7/61] gaussian x (1+x|g) x sigma
+[8/61] gaussian x phylo x mu
+[9/61] gaussian x phylo x sigma
+[10/61] gaussian x relmat x mu
+[11/61] gaussian x spatial x mu
+[12/61] gaussian x animal x mu
+[13/61] biv_gaussian x none x mu1
+[14/61] biv_gaussian x (1|g) x mu1
+[15/61] biv_gaussian x (1|g) x sigma1
+[16/61] biv_gaussian x (1+x|g) x mu1
+[17/61] biv_gaussian x (1+x|g) x sigma1
+[18/61] biv_gaussian x bivariate q2 phylo x mu1,mu2
+[19/61] biv_gaussian x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2
+[20/61] student x none x mu
+[21/61] lognormal x none x mu
+[22/61] poisson x none x mu
+[23/61] poisson x (1|g) x mu
+[24/61] poisson x (1+x|g) x mu
+[25/61] poisson x phylo x mu
+[26/61] poisson x relmat x mu
+[27/61] poisson x animal x mu
+[28/61] nbinom2 x none x mu
+[29/61] nbinom2 x (1|g) x mu
+[30/61] nbinom2 x (1|g) x sigma
+[31/61] nbinom2 x (1+x|g) x mu
+[32/61] nbinom2 x (1+x|g) x sigma
+[33/61] nbinom2 x phylo x mu
+[34/61] nbinom2 x relmat x mu
+[35/61] nbinom2 x animal x mu
+[36/61] gamma x none x mu
+[37/61] gamma x (1|g) x mu
+[38/61] gamma x (1|g) x sigma
+[39/61] gamma x (1+x|g) x mu
+[40/61] gamma x (1+x|g) x sigma
+[41/61] gamma x phylo x mu
+[42/61] gamma x relmat x mu
+[43/61] gamma x animal x mu
+[44/61] beta x none x mu
+[45/61] beta x (1|g) x mu
+[46/61] beta x (1|g) x sigma
+[47/61] beta x (1+x|g) x mu
+[48/61] beta x (1+x|g) x sigma
+[49/61] beta x phylo x mu
+[50/61] binomial x none x mu
+[51/61] binomial x (1+x|g) x mu
+[52/61] binomial x phylo x mu
+[53/61] truncated_nbinom2 x none x mu
+[54/61] zero_one_beta x none x mu
+[55/61] tweedie x none x mu
+[56/61] beta_binomial x none x mu
+[57/61] cumulative_logit x none x mu
+[58/61] biv_student x none x mu1
+[59/61] skew_normal x none x mu
+[60/61] biv_lognormal x none x mu1
+[61/61] truncated_nbinom2 x hu modifier (finding 7 cross-spelling probe) x hu
+[62/62] #1267 probe: poisson() + hu ~ 1
