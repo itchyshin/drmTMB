@@ -90,6 +90,41 @@ sb_test_zero_eligible_fixture <- function() {
   sb_test_ctx(cellmap, intervals)
 }
 
+# ---- D6 (Noether review item 5, follow-up slice, 2026-09-24) --------------
+#
+# The scoreboard and the matrix must agree: a capability the matrix reads as
+# FENCED (a SIGNED `inst/extdata/julia-fences.tsv` row) or OWNER-DECISION (a
+# PENDING-OWNER row) may never read UNCITED on the scoreboard's bridge axis.
+# `sb_fence_verdict()` reads `ctx$fences` -- populated by `pm_load_context()`,
+# the SAME committed file `pm_honest_state()` reads for the matrix -- as a
+# FALLBACK ahead of the final UNCITED return, never as an override: a name
+# that already resolves to REFUSED, RECEIPT, or RECEIPT-NOT-PASS keeps that
+# verdict even when it also appears in the fence file.
+
+sb_test_fences_ctx <- function(fences_rows) {
+  ctx <- sb_test_ctx(
+    cellmap_rows = data.frame(cell_id = character(0), capability_id = character(0),
+                              status = character(0), convention = character(0),
+                              line = integer(0), stringsAsFactors = FALSE),
+    interval_rows = data.frame(cell_id = character(0), method = character(0),
+                               status = character(0), line = integer(0),
+                               stringsAsFactors = FALSE)
+  )
+  ctx$files$fences <- "inst/extdata/julia-fences.tsv"
+  ctx$fences <- fences_rows
+  ctx
+}
+
+sb_test_fences_rows <- function() {
+  data.frame(
+    capability = c("Fam Signed Row", "Fam Pending Row"),
+    status = c("signed", "pending-owner"),
+    decision = c("Signed scope decision, out of bounds for now.", "Ticket pending Shinichi's answer."),
+    ticket = c("", "T9"), owner = c("", "Shinichi"),
+    line = c(2L, 3L), stringsAsFactors = FALSE
+  )
+}
+
 test_that("pm_cellmap_method_evidence: a MAPPED, non-convention cell with a matching receipt is eligible", {
   root <- sb_test_tool_root()
   skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
@@ -182,6 +217,62 @@ test_that("an ordinary capability row's cellmap-joined interval receipt is folde
   expect_true(any(grepl("cellmap-joined", rec$label, fixed = TRUE)))
 })
 
+test_that("sb_bridge_cell: a SIGNED fence row reads FENCED, citing the decision and file:line, when otherwise UNCITED (D6)", {
+  root <- sb_test_tool_root()
+  skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
+  env <- sb_test_env(root)
+  ctx <- sb_test_fences_ctx(sb_test_fences_rows())
+
+  cell <- env$sb_bridge_cell(env, ctx, "Fam Signed Row", "route note, no ledger citation")
+  expect_identical(cell$verdict, "FENCED")
+  expect_true(grepl("julia-fences.tsv:2", cell$cell, fixed = TRUE))
+  expect_true(grepl("Signed scope decision, out of bounds for now.", cell$cell, fixed = TRUE))
+})
+
+test_that("sb_bridge_cell: a PENDING-OWNER fence row reads OWNER-DECISION, citing ticket and owner, when otherwise UNCITED (D6)", {
+  root <- sb_test_tool_root()
+  skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
+  env <- sb_test_env(root)
+  ctx <- sb_test_fences_ctx(sb_test_fences_rows())
+
+  cell <- env$sb_bridge_cell(env, ctx, "Fam Pending Row", "route note, no ledger citation")
+  expect_identical(cell$verdict, "OWNER-DECISION")
+  expect_true(grepl("julia-fences.tsv:3", cell$cell, fixed = TRUE))
+  expect_true(grepl("T9", cell$cell, fixed = TRUE))
+  expect_true(grepl("Shinichi", cell$cell, fixed = TRUE))
+})
+
+test_that("sb_bridge_cell RED CONTROL: a row absent from the fence file still reads UNCITED (D6)", {
+  root <- sb_test_tool_root()
+  skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
+  env <- sb_test_env(root)
+  ctx <- sb_test_fences_ctx(sb_test_fences_rows())
+
+  cell <- env$sb_bridge_cell(env, ctx, "Not In The Fence File", "route note, no ledger citation")
+  expect_identical(cell$verdict, "UNCITED")
+})
+
+test_that("sb_bridge_cell: a fence-file row is a FALLBACK, never an override, of an existing RECEIPT verdict (D6)", {
+  root <- sb_test_tool_root()
+  skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
+  env <- sb_test_env(root)
+  ctx <- sb_test_two_cell_fixture()
+  ctx$files$fences <- "inst/extdata/julia-fences.tsv"
+  # A fence entry under the SAME name a passing cellmap receipt already
+  # resolves through pm_method_row()'s "Profile-likelihood CIs" join: if the
+  # fence check ran BEFORE the receipt check, this decision would wrongly
+  # replace real evidence with a generic ticket.
+  ctx$fences <- data.frame(
+    capability = "Profile-likelihood CIs", status = "pending-owner",
+    decision = "should never be reached", ticket = "T99", owner = "Nobody",
+    line = 9L, stringsAsFactors = FALSE
+  )
+
+  cell <- env$sb_bridge_cell(env, ctx, "Profile-likelihood CIs", "route note, no ledger citation")
+  expect_identical(cell$verdict, "RECEIPT-NOT-LEDGERED")
+  expect_false(grepl("T99", cell$cell, fixed = TRUE))
+})
+
 test_that("interval receipts join family-specific capabilities end to end at the pin", {
   drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
   skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH must name the DRModels checkout at the pin")
@@ -205,6 +296,51 @@ test_that("interval receipts join family-specific capabilities end to end at the
   matrix_state <- mat$honest_state[mat$capability %in% c("Profile-likelihood CIs", "Parametric bootstrap CIs")]
   expect_true(all(matrix_state == "CITED-LIMITED"))
   expect_false(any(generic$bridge == "UNCITED"))
+})
+
+test_that("D6 at the pin: fence-file rows the matrix reads FENCED/OWNER-DECISION are not UNCITED on the scoreboard", {
+  drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
+  skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH must name the DRModels checkout at the pin")
+  root <- sb_test_tool_root()
+  skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
+  env <- sb_test_env(root)
+  ctx <- env$pm_load_context(root, drmjl)
+  mat <- env$pm_build_matrix(ctx)
+  sb <- env$sb_build(env, ctx, mat)
+
+  fenced_or_owner <- mat$capability[mat$honest_state %in% c("FENCED", "OWNER-DECISION")]
+  # The known D6 targets (Noether review item 5, follow-up slice): every one
+  # of these is FENCED or OWNER-DECISION on the matrix via a julia-fences.tsv
+  # row, and every one used to read UNCITED on the scoreboard.
+  targets <- c("Cross-family bivariate (different families for y1 y2)",
+               "Missing-predictor imputation (mi())",
+               "R to Julia bridge (engine=julia)",
+               "AGHQ adaptive-quadrature marginal estimator",
+               "Variational (VA/ELBO) marginal estimator")
+  expect_true(all(targets %in% fenced_or_owner))
+  sb_targets <- sb[sb$capability %in% targets, , drop = FALSE]
+  expect_identical(nrow(sb_targets), length(targets))
+  expect_false(any(sb_targets$bridge == "UNCITED"))
+  expect_true(all(sb_targets$bridge %in% c("FENCED", "OWNER-DECISION")))
+
+  # A row already correct via evidence (a real receipt or a named pre-Julia
+  # refusal) keeps that reading even though it ALSO appears in the fence
+  # file: the fence check is a fallback, never an override.
+  unaffected <- c(`Model comparison suite (LRT/anova/AICc/weights/update)` = "RECEIPT",
+                  `Heritability/repeatability/ICC accessors` = "REFUSED",
+                  `Gaussian phylogenetic random intercept + slope, two SDs (mean)` = "REFUSED")
+  for (nm in names(unaffected)) {
+    expect_identical(sb$bridge[sb$capability == nm], unname(unaffected[[nm]]))
+  }
+
+  # The one row the coordinator named as a LEGITIMATE remaining disagreement:
+  # "Non-Gaussian phylogenetic location-scale (mu + log sigma)" is
+  # CITED-LIMITED on the matrix through its native-side scope note alone (no
+  # julia-fences.tsv row), so its bridge refusal has no gate yet and it is
+  # correctly reported, not papered over.
+  residual <- "Non-Gaussian phylogenetic location-scale (μ + log σ)"
+  expect_false(residual %in% ctx$fences$capability)
+  expect_identical(sb$bridge[sb$capability == residual], "UNCITED")
 })
 
 cat("SCOREBOARD_CELLMAP_CONTRACT_PASS\n")

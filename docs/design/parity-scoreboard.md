@@ -8,7 +8,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `e9aa324e1fe4b3ce37cac22e7f21ce800498b14f` |
+| drmTMB (this repo, HEAD at generation) | `6424ae93c73fa0a9ecc3c9f6e1d5ea941a078ead` |
 | DRM.jl (read with `git show`, never the working tree) | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
 
 Both numbers below and every citation in the table are functions of those
@@ -20,10 +20,10 @@ two commits and nothing else. Quote the shas whenever you quote the counts.
 `docs/design/capability-status.md` (45 rows), each matched byte-for-byte to a row of DRM.jl's file
 (48 rows).
 
-**UNCITED cells: 6 of 135** (45 capabilities x 3 axes). 6 of the 45 capabilities
+**UNCITED cells: 1 of 135** (45 capabilities x 3 axes). 1 of the 45 capabilities
 carry at least one UNCITED cell.
 
-Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 6 UNCITED**.
+Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 1 UNCITED**.
 
 **33 of 45** capabilities are reachable through `engine = "julia"` with a
 PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).
@@ -48,10 +48,15 @@ of that name in that file.
 | `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |
 | `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |
 | `REFUSED+UPSTREAM-RECEIPT` | refused by drmTMB, yet DRM.jl carries a receipt -- a contradiction, counted above |
-| `UNCITED` | no receipt and no cited refusal. Includes every row whose `bridge_route` only ASSERTS "no bridge route" with no file:line behind it |
+| `FENCED` | no receipt and no cited refusal, but `inst/extdata/julia-fences.tsv` records a SIGNED scope decision for this capability -- the SAME file the matrix's `FENCED` state reads (D6, Noether review item 5) |
+| `OWNER-DECISION` | no receipt and no cited refusal, but `inst/extdata/julia-fences.tsv` names a PENDING-OWNER ticket and owner for this capability -- again, the same file the matrix reads |
+| `UNCITED` | no receipt, no cited refusal, and no fence-file row. Includes every row whose `bridge_route` only ASSERTS "no bridge route" with no file:line behind it |
 
 `UNCITED` is never an inference and never a blank. It is the count of cells
-the programme cannot point at.
+the programme cannot point at. A `FENCED` or `OWNER-DECISION` cell is a named
+decision, not a gap, so neither counts toward the UNCITED total above (D6):
+the matrix and this file read the same fence file so they cannot disagree
+about which cells those are.
 
 ## Counts
 
@@ -67,7 +72,9 @@ the programme cannot point at.
 | bridge | `RECEIPT-NOT-LEDGERED` | 1 |
 | bridge | `RECEIPT-NOT-PASS` | 2 |
 | bridge | `REFUSED` | 3 |
-| bridge | `UNCITED` | 6 |
+| bridge | `FENCED` | 3 |
+| bridge | `OWNER-DECISION` | 2 |
+| bridge | `UNCITED` | 1 |
 
 ## The scoreboard
 
@@ -108,27 +115,22 @@ the programme cannot point at.
 | `Wald SEs and CIs (observed information)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:123, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:181, `implemented`) | receipt capability_id=base_gaussian_location_scale status=SE_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:2); receipt capability_id=base_gaussian_location_scale status=PARITY_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:2); receipt capability_id=base_gaussian_location_scale status=INTERVAL_PASS "gauss_locscale_fe, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:11; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:2); +1 more receipt row(s) |
 | `Profile-likelihood CIs` | FITS | FITS | RECEIPT-NOT-LEDGERED | FITS (docs/design/capability-status.md:124, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:182, `implemented`) | receipt capability_id=fe_beta status=INTERVAL_PASS "fe_beta, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:2; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:12); receipt capability_id=fe_gamma status=INTERVAL_PASS "fe_gamma, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:3; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:15); receipt capability_id=fe_lognormal status=INTERVAL_PASS "fe_lognormal, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:4; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:18); +10 more receipt row(s) |
 | `Parametric bootstrap CIs` | FITS | FITS | RECEIPT-NOT-PASS | FITS (docs/design/capability-status.md:125, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:183, `implemented`) | receipt capability_id=fe_beta status=INTERVAL_MISMATCH "fe_beta, bootstrap interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:2; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:13); receipt capability_id=fe_gamma status=INTERVAL_MISMATCH "fe_gamma, bootstrap interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:3; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:16); receipt capability_id=fe_lognormal status=INTERVAL_MISMATCH "fe_lognormal, bootstrap interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:4; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:19); +10 more receipt row(s) |
-| `AGHQ adaptive-quadrature marginal estimator` | NO | FITS | UNCITED | NO (docs/design/capability-status.md:126, `planned`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:184, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Variational (VA/ELBO) marginal estimator` | NO | NO | UNCITED | NO (docs/design/capability-status.md:127, `planned`) | NO (DRM.jl@da8b3f87:docs/design/capability-status.md:185, `planned`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
+| `AGHQ adaptive-quadrature marginal estimator` | NO | FITS | OWNER-DECISION | NO (docs/design/capability-status.md:126, `planned`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:184, `implemented`) | OWNER-DECISION (inst/extdata/julia-fences.tsv:5): ticket T1, owner Shinichi -- fence now with an R refusal naming the native route; exposing AGHQ on the bridge is Arc 2 widening |
+| `Variational (VA/ELBO) marginal estimator` | NO | NO | OWNER-DECISION | NO (docs/design/capability-status.md:127, `planned`) | NO (DRM.jl@da8b3f87:docs/design/capability-status.md:185, `planned`) | OWNER-DECISION (inst/extdata/julia-fences.tsv:6): ticket T2, owner Shinichi -- fence now, same shape as T1; exposing VA/ELBO on the bridge is Arc 2 widening |
 | `Chi-bar-square boundary LRT p-value` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:128, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:186, `implemented`) | receipt capability_id=accessor_chibar_boundary status=PARITY_PASS "lrt_boundary/chibar_pvalue on two engine=julia fits (Gaussian random intercept, n=360, G=30)" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:30) |
 | `Model comparison suite (LRT/anova/AICc/weights/update)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:129, `scope-limited`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:187, `implemented`) | receipt capability_id=accessor_model_comparison status=PARITY_PASS "aicc/lrtest on an engine=julia fit (Gaussian random intercept, n=360, G=30)" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:31) |
 | `Heritability/repeatability/ICC accessors` | PARTIAL | FITS | REFUSED | PARTIAL (docs/design/capability-status.md:130, `point-fit-recovery`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:188, `implemented`) | refused at R/heritability.R:226 |
 | `Bivariate structured random effect on all four axes (q4 PLSM)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:242, `point-fit-recovery`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:290, `implemented`) | receipt capability_id=biv_q4_phylo_reml status=PARITY_PASS "REML bivariate DENSE q4 phylo location-scale, all four axes on one label" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:34) |
-| `Cross-family bivariate (different families for y1 y2)` | NO | NO | UNCITED | NO (docs/design/capability-status.md:243, `planned`) | NO (DRM.jl@da8b3f87:docs/design/capability-status.md:291, `missing`) | UNCITED -- no receipt reaches this capability (ledger row(s) `cross_family_latent` carry no receipt row at the ref) |
+| `Cross-family bivariate (different families for y1 y2)` | NO | NO | FENCED | NO (docs/design/capability-status.md:243, `planned`) | NO (DRM.jl@da8b3f87:docs/design/capability-status.md:291, `missing`) | FENCED (inst/extdata/julia-fences.tsv:2): D-179 #3: mixed-family bivariate responses are permanently out of scope for engine = "julia"; do not spend simulation-recovery compute here |
 | `Missing-response handling (native, per fitted route)` | FITS | NO | RECEIPT | FITS (docs/design/capability-status.md:244, `implemented`) | NO (DRM.jl@da8b3f87:docs/design/capability-status.md:292, `missing`) | receipt capability_id=gaussian_response_mask status=PARITY_PASS "Gaussian observed-response mask (miss_control(response = 'include'))" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:35) |
-| `Missing-predictor imputation (mi())` | FITS | PARTIAL | UNCITED | FITS (docs/design/capability-status.md:245, `implemented`) | PARTIAL (DRM.jl@da8b3f87:docs/design/capability-status.md:293, `experimental`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `R to Julia bridge (engine=julia)` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:246, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:294, `implemented`) | UNCITED -- no receipt reaches this capability (ledger row(s) `engine_control_surface` carry no receipt row at the ref) |
+| `Missing-predictor imputation (mi())` | FITS | PARTIAL | FENCED | FITS (docs/design/capability-status.md:245, `implemented`) | PARTIAL (DRM.jl@da8b3f87:docs/design/capability-status.md:293, `experimental`) | FENCED (inst/extdata/julia-fences.tsv:4): D-181/D-209: mi() on the bridge is fenced out of the twin claim; no R-parity claim is made for the route |
+| `R to Julia bridge (engine=julia)` | FITS | FITS | FENCED | FITS (docs/design/capability-status.md:246, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:294, `implemented`) | FENCED (inst/extdata/julia-fences.tsv:3): drmTMB#1108: the drm_control() surface that crosses to DRM.jl is a permanently narrow whitelist (optimizer$g_tol, optimizer$algorithm, and q4-only optimizer$q4_vcov); every other control field refuses before JuliaCall |
 
 ## Every UNCITED bridge cell, with what is missing
 
-6 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
+1 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
 
 - `Non-Gaussian phylogenetic location-scale (μ + log σ)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `AGHQ adaptive-quadrature marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Variational (VA/ELBO) marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Cross-family bivariate (different families for y1 y2)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `cross_family_latent` carry no receipt row at the ref)
-- `Missing-predictor imputation (mi())` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `R to Julia bridge (engine=julia)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `engine_control_surface` carry no receipt row at the ref)
 
 ## Contradictions
 

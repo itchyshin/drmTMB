@@ -409,6 +409,25 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
                 reached = reached))
   }
 
+  # D6 (Noether review item 5, follow-up slice, 2026-09-24): before falling
+  # to UNCITED, read `inst/extdata/julia-fences.tsv` -- the SAME committed
+  # file `pm_honest_state()` reads for the matrix's FENCED/OWNER-DECISION
+  # states (A7), reached here through `ctx$fences`, which `pm_load_context()`
+  # already populated (one reader, not two; no separate TSV load in this
+  # file). A cell with no other evidence and no other refusal, but named in
+  # the fence file, is a SCOPED decision, not an absence of evidence -- it is
+  # never UNCITED. This is a FALLBACK, not an override: a row that already
+  # reads REFUSED, RECEIPT, or RECEIPT-NOT-PASS above keeps that verdict even
+  # when it also appears in the fence file (e.g. "Heritability/repeatability/
+  # ICC accessors" stays REFUSED, "Model comparison suite..." stays RECEIPT),
+  # exactly mirroring which fence rows the matrix's OWNER-DECISION/FENCED
+  # states are cited FOR on the six rows this fix targets.
+  fence <- sb_fence_verdict(env, ctx, name)
+  if (!is.null(fence)) {
+    return(list(verdict = fence$verdict, tier = "-", cell = fence$cell,
+                contradiction = FALSE, reached = reached))
+  }
+
   list(verdict = "UNCITED", tier = "-",
        cell = sprintf("UNCITED -- no receipt reaches this capability%s",
                       if (length(ledger_ids)) {
@@ -418,6 +437,30 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
                         " (its matrix `bridge_route` cites no ledger row)"
                       }),
        contradiction = FALSE, reached = reached)
+}
+
+# The julia-fences.tsv verdict for `name` (the rendered capability label --
+# the same key `pm_honest_state()` matches on), or NULL when `name` is not in
+# the fence file. `signed` -> FENCED, citing the fence's own decision and
+# file:line; `pending-owner` -> OWNER-DECISION, citing ticket and owner. Any
+# other status word in that column is a generation error, not a silent
+# fall-through -- the same discipline `pm_honest_state()` applies.
+sb_fence_verdict <- function(env, ctx, name) {
+  i <- match(name, ctx$fences$capability)
+  if (is.na(i)) return(NULL)
+  status <- ctx$fences$status[[i]]
+  cite <- env$pm_cite(ctx$files$fences, ctx$fences$line[[i]])
+  if (identical(status, "signed")) {
+    return(list(verdict = "FENCED",
+                cell = sprintf("FENCED (%s): %s", cite, ctx$fences$decision[[i]])))
+  }
+  if (identical(status, "pending-owner")) {
+    return(list(verdict = "OWNER-DECISION",
+                cell = sprintf("OWNER-DECISION (%s): ticket %s, owner %s -- %s",
+                               cite, ctx$fences$ticket[[i]], ctx$fences$owner[[i]],
+                               ctx$fences$decision[[i]])))
+  }
+  stop("unknown julia-fences.tsv status word for ", name, ": ", status, call. = FALSE)
 }
 
 # ---- build -----------------------------------------------------------------
@@ -522,7 +565,7 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
 
   bridge_counts <- sb_count_table(sb$bridge,
     c("RECEIPT", "RECEIPT-NOT-LEDGERED", "RECEIPT-NOT-PASS",
-      "REFUSED", "REFUSED+UPSTREAM-RECEIPT", "UNCITED"))
+      "REFUSED", "REFUSED+UPSTREAM-RECEIPT", "FENCED", "OWNER-DECISION", "UNCITED"))
   native_r_counts <- sb_count_table(sb$native_R, c("FITS", "PARTIAL", "NO", "UNCITED"))
   native_j_counts <- sb_count_table(sb$native_Julia, c("FITS", "PARTIAL", "NO", "UNCITED"))
 
@@ -589,10 +632,15 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "| `RECEIPT-NOT-PASS` | receipt rows exist but none passes (a negative control, or `NO_NATIVE_COMPARATOR`) |",
     "| `REFUSED` | drmTMB's bridge refuses the route -- at `drm_julia_family_tag()` for an unadmitted family, or at a named pre-Julia guard behind a registered gate -- with the line |",
     "| `REFUSED+UPSTREAM-RECEIPT` | refused by drmTMB, yet DRM.jl carries a receipt -- a contradiction, counted above |",
-    "| `UNCITED` | no receipt and no cited refusal. Includes every row whose `bridge_route` only ASSERTS \"no bridge route\" with no file:line behind it |",
+    "| `FENCED` | no receipt and no cited refusal, but `inst/extdata/julia-fences.tsv` records a SIGNED scope decision for this capability -- the SAME file the matrix's `FENCED` state reads (D6, Noether review item 5) |",
+    "| `OWNER-DECISION` | no receipt and no cited refusal, but `inst/extdata/julia-fences.tsv` names a PENDING-OWNER ticket and owner for this capability -- again, the same file the matrix reads |",
+    "| `UNCITED` | no receipt, no cited refusal, and no fence-file row. Includes every row whose `bridge_route` only ASSERTS \"no bridge route\" with no file:line behind it |",
     "",
     "`UNCITED` is never an inference and never a blank. It is the count of cells",
-    "the programme cannot point at.",
+    "the programme cannot point at. A `FENCED` or `OWNER-DECISION` cell is a named",
+    "decision, not a gap, so neither counts toward the UNCITED total above (D6):",
+    "the matrix and this file read the same fence file so they cannot disagree",
+    "about which cells those are.",
     "",
     "## Counts",
     "",
