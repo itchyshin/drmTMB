@@ -1,0 +1,290 @@
+[1/290] gaussian x none x mu -> ADMIT
+[2/290] gaussian x none x sigma -> NOT_APPLICABLE
+[3/290] gaussian x (1|g) x mu -> ADMIT
+[4/290] gaussian x (1|g) x sigma -> ADMIT
+[5/290] gaussian x (1+x|g) x mu -> ADMIT
+[6/290] gaussian x (1+x|g) x sigma -> ADMIT
+[7/290] gaussian x phylo x mu -> ADMIT
+[8/290] gaussian x phylo x sigma -> ADMIT
+[9/290] gaussian x relmat x mu -> ADMIT
+[10/290] gaussian x relmat x sigma -> REFUSE_UNGATED
+[11/290] gaussian x spatial x mu -> ADMIT
+[12/290] gaussian x spatial x sigma -> REFUSE_UNGATED
+[13/290] gaussian x animal x mu -> ADMIT
+[14/290] gaussian x animal x sigma -> REFUSE_UNGATED
+[15/290] gaussian x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[16/290] gaussian x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[17/290] gaussian x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[18/290] biv_gaussian x none x mu1 -> ADMIT
+[19/290] biv_gaussian x none x sigma1 -> NOT_APPLICABLE
+[20/290] biv_gaussian x (1|g) x mu1 -> ADMIT
+[21/290] biv_gaussian x (1|g) x sigma1 -> ADMIT
+[22/290] biv_gaussian x (1+x|g) x mu1 -> ADMIT
+[23/290] biv_gaussian x (1+x|g) x sigma1 -> ADMIT
+[24/290] biv_gaussian x phylo x mu1 -> REFUSE
+[25/290] biv_gaussian x phylo x sigma1 -> REFUSE
+[26/290] biv_gaussian x relmat x mu1 -> REFUSE_UNGATED
+[27/290] biv_gaussian x relmat x sigma1 -> REFUSE_UNGATED
+[28/290] biv_gaussian x spatial x mu1 -> REFUSE_UNGATED
+[29/290] biv_gaussian x spatial x sigma1 -> REFUSE_UNGATED
+[30/290] biv_gaussian x animal x mu1 -> REFUSE_UNGATED
+[31/290] biv_gaussian x animal x sigma1 -> REFUSE_UNGATED
+[32/290] biv_gaussian x bivariate q2 phylo x mu1,mu2 -> ADMIT
+[33/290] biv_gaussian x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> ADMIT
+[34/290] biv_gaussian x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> ADMIT
+[35/290] student x none x mu -> ADMIT
+[36/290] student x none x sigma -> NOT_APPLICABLE
+[37/290] student x (1|g) x mu -> REFUSE
+[38/290] student x (1|g) x sigma -> REFUSE
+[39/290] student x (1+x|g) x mu -> REFUSE
+[40/290] student x (1+x|g) x sigma -> REFUSE
+[41/290] student x phylo x mu -> REFUSE_UNGATED
+[42/290] student x phylo x sigma -> REFUSE_UNGATED
+[43/290] student x relmat x mu -> REFUSE
+[44/290] student x relmat x sigma -> REFUSE
+[45/290] student x spatial x mu -> REFUSE
+[46/290] student x spatial x sigma -> REFUSE
+[47/290] student x animal x mu -> REFUSE
+[48/290] student x animal x sigma -> REFUSE
+[49/290] student x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[50/290] student x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[51/290] student x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[52/290] lognormal x none x mu -> ADMIT
+[53/290] lognormal x none x sigma -> NOT_APPLICABLE
+[54/290] lognormal x (1|g) x mu -> REFUSE
+[55/290] lognormal x (1|g) x sigma -> REFUSE
+[56/290] lognormal x (1+x|g) x mu -> REFUSE
+[57/290] lognormal x (1+x|g) x sigma -> REFUSE
+[58/290] lognormal x phylo x mu -> REFUSE_UNGATED
+[59/290] lognormal x phylo x sigma -> REFUSE_UNGATED
+[60/290] lognormal x relmat x mu -> REFUSE
+[61/290] lognormal x relmat x sigma -> REFUSE
+[62/290] lognormal x spatial x mu -> REFUSE
+[63/290] lognormal x spatial x sigma -> REFUSE
+[64/290] lognormal x animal x mu -> REFUSE
+[65/290] lognormal x animal x sigma -> REFUSE
+[66/290] lognormal x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[67/290] lognormal x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[68/290] lognormal x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[69/290] poisson x none x mu -> ADMIT
+[70/290] poisson x none x sigma -> NOT_APPLICABLE
+[71/290] poisson x (1|g) x mu -> ADMIT
+[72/290] poisson x (1|g) x sigma -> NOT_APPLICABLE
+[73/290] poisson x (1+x|g) x mu -> ADMIT
+[74/290] poisson x (1+x|g) x sigma -> NOT_APPLICABLE
+[75/290] poisson x phylo x mu -> ADMIT
+[76/290] poisson x phylo x sigma -> NOT_APPLICABLE
+[77/290] poisson x relmat x mu -> ADMIT
+[78/290] poisson x relmat x sigma -> NOT_APPLICABLE
+[79/290] poisson x spatial x mu -> REFUSE_UNGATED
+[80/290] poisson x spatial x sigma -> NOT_APPLICABLE
+[81/290] poisson x animal x mu -> ADMIT
+[82/290] poisson x animal x sigma -> NOT_APPLICABLE
+[83/290] poisson x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[84/290] poisson x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[85/290] poisson x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[86/290] nbinom2 x none x mu -> ADMIT
+[87/290] nbinom2 x none x sigma -> NOT_APPLICABLE
+[88/290] nbinom2 x (1|g) x mu -> ADMIT
+[89/290] nbinom2 x (1|g) x sigma -> ADMIT
+[90/290] nbinom2 x (1+x|g) x mu -> ADMIT
+[91/290] nbinom2 x (1+x|g) x sigma -> ADMIT
+[92/290] nbinom2 x phylo x mu -> ADMIT
+[93/290] nbinom2 x phylo x sigma -> REFUSE_UNGATED
+[94/290] nbinom2 x relmat x mu -> ADMIT
+[95/290] nbinom2 x relmat x sigma -> REFUSE_UNGATED
+[96/290] nbinom2 x spatial x mu -> REFUSE_UNGATED
+[97/290] nbinom2 x spatial x sigma -> REFUSE_UNGATED
+[98/290] nbinom2 x animal x mu -> ADMIT
+[99/290] nbinom2 x animal x sigma -> REFUSE_UNGATED
+[100/290] nbinom2 x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[101/290] nbinom2 x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[102/290] nbinom2 x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[103/290] gamma x none x mu -> ADMIT
+[104/290] gamma x none x sigma -> NOT_APPLICABLE
+[105/290] gamma x (1|g) x mu -> ADMIT
+[106/290] gamma x (1|g) x sigma -> ADMIT
+[107/290] gamma x (1+x|g) x mu -> ADMIT
+[108/290] gamma x (1+x|g) x sigma -> ADMIT
+[109/290] gamma x phylo x mu -> ADMIT
+[110/290] gamma x phylo x sigma -> REFUSE_UNGATED
+[111/290] gamma x relmat x mu -> ADMIT
+[112/290] gamma x relmat x sigma -> REFUSE_UNGATED
+[113/290] gamma x spatial x mu -> REFUSE_UNGATED
+[114/290] gamma x spatial x sigma -> REFUSE_UNGATED
+[115/290] gamma x animal x mu -> ADMIT
+[116/290] gamma x animal x sigma -> REFUSE_UNGATED
+[117/290] gamma x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[118/290] gamma x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[119/290] gamma x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[120/290] beta x none x mu -> ADMIT
+[121/290] beta x none x sigma -> NOT_APPLICABLE
+[122/290] beta x (1|g) x mu -> ADMIT
+[123/290] beta x (1|g) x sigma -> ADMIT
+[124/290] beta x (1+x|g) x mu -> ADMIT
+[125/290] beta x (1+x|g) x sigma -> ADMIT
+[126/290] beta x phylo x mu -> ADMIT
+[127/290] beta x phylo x sigma -> REFUSE_UNGATED
+[128/290] beta x relmat x mu -> REFUSE
+[129/290] beta x relmat x sigma -> REFUSE
+[130/290] beta x spatial x mu -> REFUSE
+[131/290] beta x spatial x sigma -> REFUSE
+[132/290] beta x animal x mu -> REFUSE
+[133/290] beta x animal x sigma -> REFUSE
+[134/290] beta x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[135/290] beta x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[136/290] beta x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[137/290] binomial x none x mu -> ADMIT
+[138/290] binomial x none x sigma -> NOT_APPLICABLE
+[139/290] binomial x (1|g) x mu -> ADMIT
+[140/290] binomial x (1|g) x sigma -> NOT_APPLICABLE
+[141/290] binomial x (1+x|g) x mu -> ADMIT
+[142/290] binomial x (1+x|g) x sigma -> NOT_APPLICABLE
+[143/290] binomial x phylo x mu -> ADMIT
+[144/290] binomial x phylo x sigma -> NOT_APPLICABLE
+[145/290] binomial x relmat x mu -> REFUSE
+[146/290] binomial x relmat x sigma -> NOT_APPLICABLE
+[147/290] binomial x spatial x mu -> REFUSE
+[148/290] binomial x spatial x sigma -> NOT_APPLICABLE
+[149/290] binomial x animal x mu -> REFUSE
+[150/290] binomial x animal x sigma -> NOT_APPLICABLE
+[151/290] binomial x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[152/290] binomial x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[153/290] binomial x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[154/290] truncated_nbinom2 x none x mu -> ADMIT
+[155/290] truncated_nbinom2 x none x sigma -> NOT_APPLICABLE
+[156/290] truncated_nbinom2 x (1|g) x mu -> REFUSE
+[157/290] truncated_nbinom2 x (1|g) x sigma -> REFUSE
+[158/290] truncated_nbinom2 x (1+x|g) x mu -> REFUSE
+[159/290] truncated_nbinom2 x (1+x|g) x sigma -> REFUSE
+[160/290] truncated_nbinom2 x phylo x mu -> REFUSE_UNGATED
+[161/290] truncated_nbinom2 x phylo x sigma -> REFUSE_UNGATED
+[162/290] truncated_nbinom2 x relmat x mu -> REFUSE
+[163/290] truncated_nbinom2 x relmat x sigma -> REFUSE
+[164/290] truncated_nbinom2 x spatial x mu -> REFUSE
+[165/290] truncated_nbinom2 x spatial x sigma -> REFUSE
+[166/290] truncated_nbinom2 x animal x mu -> REFUSE
+[167/290] truncated_nbinom2 x animal x sigma -> REFUSE
+[168/290] truncated_nbinom2 x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[169/290] truncated_nbinom2 x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[170/290] truncated_nbinom2 x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[171/290] zero_one_beta x none x mu -> ADMIT
+[172/290] zero_one_beta x none x sigma -> NOT_APPLICABLE
+[173/290] zero_one_beta x (1|g) x mu -> REFUSE
+[174/290] zero_one_beta x (1|g) x sigma -> REFUSE
+[175/290] zero_one_beta x (1+x|g) x mu -> REFUSE
+[176/290] zero_one_beta x (1+x|g) x sigma -> REFUSE
+[177/290] zero_one_beta x phylo x mu -> REFUSE_UNGATED
+[178/290] zero_one_beta x phylo x sigma -> REFUSE_UNGATED
+[179/290] zero_one_beta x relmat x mu -> REFUSE
+[180/290] zero_one_beta x relmat x sigma -> REFUSE
+[181/290] zero_one_beta x spatial x mu -> REFUSE
+[182/290] zero_one_beta x spatial x sigma -> REFUSE
+[183/290] zero_one_beta x animal x mu -> REFUSE
+[184/290] zero_one_beta x animal x sigma -> REFUSE
+[185/290] zero_one_beta x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[186/290] zero_one_beta x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[187/290] zero_one_beta x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[188/290] tweedie x none x mu -> ADMIT
+[189/290] tweedie x none x sigma -> NOT_APPLICABLE
+[190/290] tweedie x (1|g) x mu -> REFUSE
+[191/290] tweedie x (1|g) x sigma -> REFUSE
+[192/290] tweedie x (1+x|g) x mu -> REFUSE
+[193/290] tweedie x (1+x|g) x sigma -> REFUSE
+[194/290] tweedie x phylo x mu -> REFUSE_UNGATED
+[195/290] tweedie x phylo x sigma -> REFUSE_UNGATED
+[196/290] tweedie x relmat x mu -> REFUSE
+[197/290] tweedie x relmat x sigma -> REFUSE
+[198/290] tweedie x spatial x mu -> REFUSE
+[199/290] tweedie x spatial x sigma -> REFUSE
+[200/290] tweedie x animal x mu -> REFUSE
+[201/290] tweedie x animal x sigma -> REFUSE
+[202/290] tweedie x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[203/290] tweedie x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[204/290] tweedie x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[205/290] beta_binomial x none x mu -> ADMIT
+[206/290] beta_binomial x none x sigma -> NOT_APPLICABLE
+[207/290] beta_binomial x (1|g) x mu -> REFUSE
+[208/290] beta_binomial x (1|g) x sigma -> REFUSE
+[209/290] beta_binomial x (1+x|g) x mu -> REFUSE
+[210/290] beta_binomial x (1+x|g) x sigma -> REFUSE
+[211/290] beta_binomial x phylo x mu -> REFUSE_UNGATED
+[212/290] beta_binomial x phylo x sigma -> REFUSE_UNGATED
+[213/290] beta_binomial x relmat x mu -> REFUSE
+[214/290] beta_binomial x relmat x sigma -> REFUSE
+[215/290] beta_binomial x spatial x mu -> REFUSE
+[216/290] beta_binomial x spatial x sigma -> REFUSE
+[217/290] beta_binomial x animal x mu -> REFUSE
+[218/290] beta_binomial x animal x sigma -> REFUSE
+[219/290] beta_binomial x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[220/290] beta_binomial x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[221/290] beta_binomial x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[222/290] cumulative_logit x none x mu -> ADMIT
+[223/290] cumulative_logit x none x sigma -> NOT_APPLICABLE
+[224/290] cumulative_logit x (1|g) x mu -> REFUSE
+[225/290] cumulative_logit x (1|g) x sigma -> NOT_APPLICABLE
+[226/290] cumulative_logit x (1+x|g) x mu -> REFUSE
+[227/290] cumulative_logit x (1+x|g) x sigma -> NOT_APPLICABLE
+[228/290] cumulative_logit x phylo x mu -> REFUSE_UNGATED
+[229/290] cumulative_logit x phylo x sigma -> NOT_APPLICABLE
+[230/290] cumulative_logit x relmat x mu -> REFUSE
+[231/290] cumulative_logit x relmat x sigma -> NOT_APPLICABLE
+[232/290] cumulative_logit x spatial x mu -> REFUSE
+[233/290] cumulative_logit x spatial x sigma -> NOT_APPLICABLE
+[234/290] cumulative_logit x animal x mu -> REFUSE
+[235/290] cumulative_logit x animal x sigma -> NOT_APPLICABLE
+[236/290] cumulative_logit x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[237/290] cumulative_logit x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[238/290] cumulative_logit x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[239/290] biv_student x none x mu1 -> ADMIT
+[240/290] biv_student x none x sigma1 -> NOT_APPLICABLE
+[241/290] biv_student x (1|g) x mu1 -> REFUSE
+[242/290] biv_student x (1|g) x sigma1 -> REFUSE
+[243/290] biv_student x (1+x|g) x mu1 -> REFUSE
+[244/290] biv_student x (1+x|g) x sigma1 -> REFUSE
+[245/290] biv_student x phylo x mu1 -> REFUSE_UNGATED
+[246/290] biv_student x phylo x sigma1 -> REFUSE_UNGATED
+[247/290] biv_student x relmat x mu1 -> REFUSE
+[248/290] biv_student x relmat x sigma1 -> REFUSE
+[249/290] biv_student x spatial x mu1 -> REFUSE
+[250/290] biv_student x spatial x sigma1 -> REFUSE
+[251/290] biv_student x animal x mu1 -> REFUSE
+[252/290] biv_student x animal x sigma1 -> REFUSE
+[253/290] biv_student x bivariate q2 phylo x mu1,mu2 -> REFUSE_UNGATED
+[254/290] biv_student x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> REFUSE_UNGATED
+[255/290] biv_student x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> REFUSE_UNGATED
+[256/290] skew_normal x none x mu -> ADMIT
+[257/290] skew_normal x none x sigma -> NOT_APPLICABLE
+[258/290] skew_normal x (1|g) x mu -> REFUSE
+[259/290] skew_normal x (1|g) x sigma -> REFUSE
+[260/290] skew_normal x (1+x|g) x mu -> REFUSE
+[261/290] skew_normal x (1+x|g) x sigma -> REFUSE
+[262/290] skew_normal x phylo x mu -> REFUSE_UNGATED
+[263/290] skew_normal x phylo x sigma -> REFUSE_UNGATED
+[264/290] skew_normal x relmat x mu -> REFUSE
+[265/290] skew_normal x relmat x sigma -> REFUSE
+[266/290] skew_normal x spatial x mu -> REFUSE
+[267/290] skew_normal x spatial x sigma -> REFUSE
+[268/290] skew_normal x animal x mu -> REFUSE
+[269/290] skew_normal x animal x sigma -> REFUSE
+[270/290] skew_normal x bivariate q2 phylo x mu1,mu2 -> NOT_APPLICABLE
+[271/290] skew_normal x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[272/290] skew_normal x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> NOT_APPLICABLE
+[273/290] biv_lognormal x none x mu1 -> ADMIT
+[274/290] biv_lognormal x none x sigma1 -> NOT_APPLICABLE
+[275/290] biv_lognormal x (1|g) x mu1 -> REFUSE
+[276/290] biv_lognormal x (1|g) x sigma1 -> REFUSE
+[277/290] biv_lognormal x (1+x|g) x mu1 -> REFUSE
+[278/290] biv_lognormal x (1+x|g) x sigma1 -> REFUSE
+[279/290] biv_lognormal x phylo x mu1 -> REFUSE_UNGATED
+[280/290] biv_lognormal x phylo x sigma1 -> REFUSE
+[281/290] biv_lognormal x relmat x mu1 -> REFUSE
+[282/290] biv_lognormal x relmat x sigma1 -> REFUSE
+[283/290] biv_lognormal x spatial x mu1 -> REFUSE
+[284/290] biv_lognormal x spatial x sigma1 -> REFUSE
+[285/290] biv_lognormal x animal x mu1 -> REFUSE
+[286/290] biv_lognormal x animal x sigma1 -> REFUSE
+[287/290] biv_lognormal x bivariate q2 phylo x mu1,mu2 -> REFUSE_UNGATED
+[288/290] biv_lognormal x bivariate q4 dense phylo x mu1,mu2,sigma1,sigma2 -> REFUSE
+[289/290] biv_lognormal x bivariate q4 block-diagonal phylo x mu1,mu2,sigma1,sigma2 -> REFUSE
+[290/290] truncated_nbinom2 x hu modifier (finding 7 cross-spelling probe) x hu -> ADMIT
