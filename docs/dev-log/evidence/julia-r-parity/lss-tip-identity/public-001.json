@@ -43,7 +43,7 @@
     "R/objective-at.R": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1",
     "R/parse-formula.R": "9e51c947109f5a3402e3dae3ff400dc05283126ddefcb83b4ea17712431e051b",
     "R/penalty.R": "de5dae88497da26e0ba46eaa1b580a12bb5ce288b6534e72f88a8b9df6f43615",
-    "R/phylo-utils.R": "a05e3e7596730780ef3b053f85970a3e460887f42f551d59da8e96229319c593",
+    "R/phylo-utils.R": "5d044e7411f313190fe9e31297ee814f779a5cb0964639873c8c99af0fef81de",
     "R/plot-corpairs.R": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "f0ea68820b0867764cd87b3276d2294144ac7dc1509032570de8750f78521404",
@@ -689,8 +689,8 @@
       "drmjl_ref": "da8b3f8711beb5ef3186b890544c2e7850c7f194",
       "native_dll": {
         "drmTMB": {
-          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//Rtmpa5uAqx/pkgloadd7cc4528b7cb/drmTMB.so",
-          "sha256": "2ab721689b99e7cb3dc870af6e1732b4cae53d693b966dcb14b95b55fb283560"
+          "path": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpyCKrcE/pkgloada6492fd23907/drmTMB.so",
+          "sha256": "ad58b9c07700ead1fcf384e899ec7b264ba32a272df15c3e5df028cebec78ca8"
         }
       }
     },
@@ -756,7 +756,7 @@
     "R/objective-at.R": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1",
     "R/parse-formula.R": "9e51c947109f5a3402e3dae3ff400dc05283126ddefcb83b4ea17712431e051b",
     "R/penalty.R": "de5dae88497da26e0ba46eaa1b580a12bb5ce288b6534e72f88a8b9df6f43615",
-    "R/phylo-utils.R": "a05e3e7596730780ef3b053f85970a3e460887f42f551d59da8e96229319c593",
+    "R/phylo-utils.R": "5d044e7411f313190fe9e31297ee814f779a5cb0964639873c8c99af0fef81de",
     "R/plot-corpairs.R": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
     "R/plot-parameter-surface.R": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
     "R/predict-parameters.R": "f0ea68820b0867764cd87b3276d2294144ac7dc1509032570de8750f78521404",
@@ -864,6 +864,6 @@
     "/Users/z3437171/local-scratch/lanes/DRModels-pin-da8b3f871/src/zeroonebeta.jl": "5dc9a58d69eb0ae219b7bf70873402119bcdd78a7aaa5082b89a7b9a4e6923f8"
   },
   "source_unchanged": true,
-  "elapsed": 75.866,
+  "elapsed": 47.085000000000001,
   "status": "PASS"
 }
