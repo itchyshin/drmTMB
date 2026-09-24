@@ -18,5 +18,5 @@ comment only after yes; T8 moot (#1421 merged as `7f7293f2d`).
 
 ## Changes after dispatch (2026-09-24)
 - T11 (Shinichi): 'Profile-likelihood CIs' and 'Parametric bootstrap CIs' read CITED-LIMITED from family interval receipts through the shared cellmap; convention cells excluded (D-234). Implemented in S1b.
-- Honest-state rule correction (conductor, after reverify): cited  rows held below covered read CITED-PARTIAL (12 family rows had fallen to UNCITED). For Rose's S11 review.
+- Honest-state rule correction (conductor, after reverify): cited `supported` rows held below covered read CITED-PARTIAL (12 family rows had fallen to UNCITED). For Rose's S11 review.
 - C1 re-slicing: every change to R/julia-bridge.R and inst/extdata/julia-gates.tsv (S4 refusals, S7 fence refusals for T1-T4/T6, gate rows for the 39 ungated refusal keys, and the T5 summary() note) goes to ONE builder in sequence (reuse the S1a agent). S5 keeps only ledger TSV rows (julia-capabilities.tsv + dashboard copy) and runs in parallel. S6 becomes conditional on uncited > 0 after S1b.
