@@ -17,6 +17,6 @@ drmTMB_drm_bridge_structured (generic function with 1 method)
   
 drmTMB_mixed_family (generic function with 1 method)
   
-PHYLO_LABEL_PUBLIC_PASS elapsed=75.866
+PHYLO_LABEL_PUBLIC_PASS elapsed=47.085
 Julia exit.
   Activating project at `~/local-scratch/lanes/DRModels-pin-da8b3f871`
