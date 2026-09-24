@@ -150,6 +150,23 @@ pm_family_constructor <- function(family) {
 
 pm_modifier_dpars <- function() c("zi", "hu", "zoi", "coi")
 
+# Which of the modifier dpars (zi, hu, zoi, coi) are INTRINSIC to `family` --
+# part of the family's OWN dpar set, not a route modifier layered on top of a
+# plainer family (a ZIP row's `zi ~ ...` modifies plain Poisson; zero_one_beta's
+# `zoi`/`coi` are two of its four native dpars, so a `zoi ~ ...` / `coi ~ ...`
+# formula on a zero_one_beta() call is not a "modifier route" at all). Derived
+# from the family's own `drm_family` object (`R/family.R`, looked up via the
+# registry helper `drm_julia_registry_family_object()`) so a FUTURE family with
+# an intrinsic zi/hu/zoi/coi dpar is picked up automatically -- this must never
+# hard-code one family's name (S1a, drmTMB #1184 follow-up).
+pm_intrinsic_modifier_dpars <- function(family) {
+  obj <- asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+  if (is.null(obj) || is.null(obj$dpars)) {
+    return(character())
+  }
+  intersect(pm_modifier_dpars(), obj$dpars)
+}
+
 # TRUE when `syntax` CALLS the constructor: `poisson(` preceded by start of
 # string or a non-identifier character. `beta(` does not match `beta_binomial(`
 # (the character after `beta` is `_`, not `(`), and `binomial(` inside
@@ -171,7 +188,16 @@ pm_syntax_has_modifier <- function(syntax, dpar) {
 # row evidences ZIP, not Poisson).
 pm_tsv_rows_for_family <- function(tsv, family, modifier = NULL) {
   hit <- tsv$route == "base" & pm_syntax_calls(tsv$syntax, pm_family_constructor(family))
-  any_mod <- Reduce(`|`, lapply(pm_modifier_dpars(), function(d) pm_syntax_has_modifier(tsv$syntax, d)))
+  # A modifier dpar that is INTRINSIC to `family` (zero_one_beta's zoi/coi) does
+  # not make a row a "modifier route": only an EXTRANEOUS modifier dpar formula
+  # excludes a row from the plain family route (S1a join fix; drmTMB #1184
+  # follow-up -- `fe_zero_one_beta` could never join before this).
+  extraneous_mods <- setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  any_mod <- if (length(extraneous_mods)) {
+    Reduce(`|`, lapply(extraneous_mods, function(d) pm_syntax_has_modifier(tsv$syntax, d)))
+  } else {
+    rep(FALSE, nrow(tsv))
+  }
   has_re_term <- grepl("|", tsv$syntax, fixed = TRUE)
   if (is.null(modifier)) {
     hit & !any_mod & !has_re_term
@@ -250,6 +276,8 @@ pm_load_context <- function(root, drmjl_path) {
     r_status = "docs/design/capability-status.md",
     tsv = "inst/extdata/julia-capabilities.tsv",
     gates = "inst/extdata/julia-gates.tsv",
+    defects = "inst/extdata/julia-defects.tsv",
+    fences = "inst/extdata/julia-fences.tsv",
     registry = "R/julia-family-registry.R",
     bridge = "R/julia-bridge.R",
     drmtmb = "R/drmTMB.R",
@@ -276,6 +304,8 @@ pm_load_context <- function(root, drmjl_path) {
     j_status_lines = j_status_lines,
     tsv = pm_read_tsv(file.path(root, files$tsv)),
     gates = pm_read_tsv(file.path(root, files$gates)),
+    defects = pm_read_tsv(file.path(root, files$defects)),
+    fences = pm_read_tsv(file.path(root, files$fences)),
     registry = ns$drm_julia_family_registry(),
     supported_dpars = ns$julia_bridge_supported_dpars(),
     registry_lines = pm_read_lines(file.path(root, files$registry)),
@@ -403,6 +433,7 @@ pm_family_entry <- function(ctx, name, family, modifier = NULL, boundary = "",
   hit <- pm_tsv_rows_for_family(ctx$tsv, family, modifier)
   route_id <- pm_route_id(family, modifier)
   fam_tag_cite <- pm_cite_r(ctx, "bridge", "drm_julia_family_tag <- function(")
+  r_bridge_status_raw <- NA_character_
 
   if (!is.null(reg) && isTRUE(reg$fe)) {
     fe_cite <- pm_cite_r(ctx, "registry", sprintf("spec(\"%s\"", family))
@@ -414,6 +445,8 @@ pm_family_entry <- function(ctx, name, family, modifier = NULL, boundary = "",
       r_bridge_status <- paste(sprintf("%s (%s)", ctx$tsv$r_bridge_status[hit], pm_cite(ctx$files$tsv, ctx$tsv$line[hit])), collapse = "; ")
       claim_status <- paste(sprintf("%s (%s)", ctx$tsv$claim_status[hit], pm_cite(ctx$files$tsv, ctx$tsv$line[hit])), collapse = "; ")
       boundary <- trimws(paste(boundary, sprintf("see claim_boundary at %s.", pm_cite_tsv_rows(ctx, which(hit)))))
+      raw_vals <- unique(ctx$tsv$r_bridge_status[hit])
+      r_bridge_status_raw <- if (length(raw_vals) == 1L) raw_vals else NA_character_
     } else {
       bridge_route <- sprintf("%s; NO TSV ROW", admitted)
       r_bridge_status <- "unledgered (no TSV row)"
@@ -447,7 +480,8 @@ pm_family_entry <- function(ctx, name, family, modifier = NULL, boundary = "",
   }
   list(name = name, bridge_route = bridge_route, r_bridge_status = r_bridge_status,
        claim_status = claim_status, boundary = boundary, next_action = next_action,
-       green_override = green_override)
+       green_override = green_override, gate_ids = character(0),
+       r_bridge_status_raw = r_bridge_status_raw)
 }
 
 # A structural row: named TSV rows and/or gates, plus a route note.
@@ -458,11 +492,14 @@ pm_struct_entry <- function(ctx, name, tsv_ids = character(), gate_ids = charact
   if (length(gate_ids)) parts <- c(parts, pm_cite_gates(ctx, gate_ids))
   if (nzchar(route_note)) parts <- c(parts, route_note)
   bridge_route <- paste(parts, collapse = "; ")
+  r_bridge_status_raw <- NA_character_
   if (length(tsv_ids)) {
     idx <- match(tsv_ids, ctx$tsv$capability_id)
     r_bridge_status <- paste(sprintf("%s (%s)", ctx$tsv$r_bridge_status[idx], pm_cite(ctx$files$tsv, ctx$tsv$line[idx])), collapse = "; ")
     claim_status <- paste(sprintf("%s (%s)", ctx$tsv$claim_status[idx], pm_cite(ctx$files$tsv, ctx$tsv$line[idx])), collapse = "; ")
     boundary <- trimws(paste(boundary, sprintf("see claim_boundary at %s.", pm_cite_tsv_rows(ctx, idx))))
+    raw_vals <- unique(ctx$tsv$r_bridge_status[idx])
+    r_bridge_status_raw <- if (length(raw_vals) == 1L) raw_vals else NA_character_
   } else if (length(gate_ids)) {
     idx <- match(gate_ids, ctx$gates$gate_id)
     r_bridge_status <- paste(sprintf("%s (%s)", ctx$gates$r_bridge_status[idx], pm_cite(ctx$files$gates, ctx$gates$line[idx])), collapse = "; ")
@@ -473,7 +510,8 @@ pm_struct_entry <- function(ctx, name, tsv_ids = character(), gate_ids = charact
   }
   list(name = name, bridge_route = bridge_route, r_bridge_status = r_bridge_status,
        claim_status = claim_status, boundary = boundary, next_action = next_action,
-       green_override = green_override)
+       green_override = green_override, gate_ids = gate_ids,
+       r_bridge_status_raw = r_bridge_status_raw)
 }
 
 pm_capability_entries <- function(ctx) {
@@ -734,6 +772,88 @@ pm_is_cited <- function(x) {
   grepl(":[0-9]+\\b|receipt |gate `|docs/|tests/", x, perl = TRUE)
 }
 
+# The honest state of ONE row (Pre-G0 amendments A4-A7): DEFECT, GREEN, FENCED,
+# OWNER-DECISION, CITED-PARTIAL, CITED-LIMITED, or UNCITED, evaluated in that
+# order -- the FIRST match wins (A4). `defects` and `fences` are read from
+# inst/extdata/julia-{defects,fences}.tsv, keyed on `capability` -- the row's
+# rendered NAME, the same string a human reads in the matrix, never a TSV
+# `capability_id` (a fence or a defect is a decision ABOUT A ROW, not about one
+# underlying ledger cell).
+#   green                 the existing mechanical GREEN rule, unchanged (A4)
+#   gate_ids              gate_id(s) this row's bridge_route already cites; a
+#                         fence mentioned only in prose (a claim_boundary) does
+#                         NOT fence the row (A4) -- only a real gate_id or a
+#                         `fences` row does
+#   r_bridge_status       the RAW `julia-capabilities.tsv` r_bridge_status for
+#                         a TSV-joined row (NA when unledgered, gated, or the
+#                         joined rows disagree) -- D-233's own axis (A6)
+#   boundary              the rendered claim_boundary/NEXT text for this row
+#   native_scope_limited  TRUE when native_R or native_Julia reads
+#                         `scope-limited` for this capability
+pm_honest_state <- function(capability, green, gate_ids, r_bridge_status,
+                            boundary, native_scope_limited, defects, fences) {
+  if (capability %in% defects$capability) {
+    return("DEFECT")
+  }
+  if (isTRUE(green)) {
+    return("GREEN")
+  }
+  gated <- length(gate_ids) > 0L && any(nzchar(gate_ids))
+  signed <- capability %in% fences$capability[fences$status == "signed"]
+  if (gated || signed) {
+    return("FENCED")
+  }
+  if (capability %in% fences$capability[fences$status == "pending-owner"]) {
+    return("OWNER-DECISION")
+  }
+  cited <- pm_is_cited(boundary)
+  if (cited && identical(r_bridge_status, "partial")) {
+    return("CITED-PARTIAL")
+  }
+  if (cited && (identical(r_bridge_status, "experimental") ||
+                identical(r_bridge_status, "unsupported") ||
+                isTRUE(native_scope_limited))) {
+    return("CITED-LIMITED")
+  }
+  # A cited row whose bridge evidence already meets the stronger `supported`
+  # bar, but which is not GREEN because its claim_status is held below
+  # `covered` (promotion is maintainer-only), is cited evidence above D-233's
+  # `partial` bar rather than a gap. Checked after CITED-LIMITED so a
+  # scope-limited native side still reads CITED-LIMITED.
+  if (cited && identical(r_bridge_status, "supported")) {
+    return("CITED-PARTIAL")
+  }
+  "UNCITED"
+}
+
+# A NEXT/boundary addendum for FENCED-via-`julia-fences.tsv`, OWNER-DECISION,
+# and DEFECT rows, derived from that TSV row's own text and file:line so it
+# cannot go stale the way a hand-typed curated string can (S1a). A FENCED row
+# resolved by an ordinary gate join already carries its gate citation in
+# `bridge_route`, so `gated` suppresses a redundant note there. Empty string
+# for every other state.
+pm_state_derived_note <- function(ctx, state, capability, gated) {
+  if (identical(state, "DEFECT")) {
+    i <- match(capability, ctx$defects$capability)
+    return(sprintf(" DEFECT (%s): %s (receipt %s).",
+                   pm_cite(ctx$files$defects, ctx$defects$line[[i]]),
+                   ctx$defects$finding[[i]], ctx$defects$receipt[[i]]))
+  }
+  if (identical(state, "FENCED") && !gated) {
+    i <- match(capability, ctx$fences$capability)
+    return(sprintf(" FENCE (%s): %s.",
+                   pm_cite(ctx$files$fences, ctx$fences$line[[i]]),
+                   ctx$fences$decision[[i]]))
+  }
+  if (identical(state, "OWNER-DECISION")) {
+    i <- match(capability, ctx$fences$capability)
+    return(sprintf(" OWNER-DECISION (%s): ticket %s, owner %s -- %s.",
+                   pm_cite(ctx$files$fences, ctx$fences$line[[i]]),
+                   ctx$fences$ticket[[i]], ctx$fences$owner[[i]], ctx$fences$decision[[i]]))
+  }
+  ""
+}
+
 pm_build_matrix <- function(ctx) {
   entries <- pm_capability_entries(ctx)
   names_r <- ctx$r_status$capability
@@ -766,10 +886,20 @@ pm_build_matrix <- function(ctx) {
     if (!green && !pm_is_cited(boundary)) {
       stop("non-green row without a cited boundary or next action: ", e$name, call. = FALSE)
     }
+    gated <- length(e$gate_ids) > 0L && any(nzchar(e$gate_ids))
+    native_scope_limited <- ctx$r_status$status[match(e$name, ctx$r_status$capability)] == "scope-limited" ||
+      ctx$j_status$status[match(e$name, ctx$j_status$capability)] == "scope-limited"
+    honest_state <- pm_honest_state(
+      capability = e$name, green = green, gate_ids = e$gate_ids,
+      r_bridge_status = e$r_bridge_status_raw, boundary = boundary,
+      native_scope_limited = native_scope_limited,
+      defects = ctx$defects, fences = ctx$fences
+    )
+    boundary <- paste0(boundary, pm_state_derived_note(ctx, honest_state, e$name, gated))
     data.frame(
       capability = e$name, green = green, native_R = nr, native_Julia = nj,
       bridge_route = e$bridge_route, r_bridge_status = e$r_bridge_status,
-      claim_status = e$claim_status, boundary = boundary,
+      claim_status = e$claim_status, honest_state = honest_state, boundary = boundary,
       stringsAsFactors = FALSE
     )
   })
@@ -799,7 +929,7 @@ pm_render <- function(ctx, mat) {
   routes <- pm_admitted_routes(ctx$registry, ctx$supported_dpars)
   missing_routes <- pm_routes_without_row(routes, ctx$tsv)
   n_green <- sum(mat$green)
-  cols <- c("capability", "native_R", "native_Julia", "bridge_route", "r_bridge_status", "claim_status", "boundary")
+  cols <- c("capability", "native_R", "native_Julia", "bridge_route", "r_bridge_status", "claim_status", "honest_state", "boundary")
   header <- paste0("| ", paste(cols, collapse = " | "), " |")
   sep <- paste0("|", paste(rep("---", length(cols)), collapse = "|"), "|")
   body <- vapply(seq_len(nrow(mat)), function(i) {
@@ -821,6 +951,7 @@ pm_render <- function(ctx, mat) {
     sprintf("- drmTMB `%s` (native_R axis; %d rows)", ctx$files$r_status, nrow(ctx$r_status)),
     sprintf("- DRM.jl `%s` at pin `%s` (native_Julia axis; %d rows), read with `git show`, never the working tree", ctx$files$j_status, ctx$pin, nrow(ctx$j_status)),
     sprintf("- `%s` (bridge ledger; %d rows) and `%s` (intentional gates; %d rows)", ctx$files$tsv, nrow(ctx$tsv), ctx$files$gates, nrow(ctx$gates)),
+    sprintf("- `%s` (measured defects; %d rows) and `%s` (signed/pending-owner fences; %d rows)", ctx$files$defects, nrow(ctx$defects), ctx$files$fences, nrow(ctx$fences)),
     sprintf("- `%s` (family registry; %d rows, %d admitted on the fixed-effect route)", ctx$files$registry, length(ctx$registry), sum(is.na(routes$modifier))),
     "- receipts: DRM.jl `docs/dev-log/evidence/parity-{se,fixtures,intervals,classc,phylo-nongaussian}.tsv` at the same pin",
     "",
@@ -850,6 +981,11 @@ pm_render <- function(ctx, mat) {
     "- `boundary`: why the row is not GREEN, with a citation or a receipt id, and",
     "  the next action that would move it. Receipt ids name rows in DRM.jl's",
     "  evidence tables at the pin.",
+    "- `honest_state`: `pm_honest_state()`'s classification of this row, in",
+    "  precedence order DEFECT > GREEN > FENCED > OWNER-DECISION >",
+    "  CITED-PARTIAL > CITED-LIMITED > UNCITED (Arc 1 honest ledger, Pre-G0",
+    "  amendments A4-A7). `tools/parity-honesty-gate.R` exits non-zero while",
+    "  any row reads UNCITED or DEFECT.",
     sprintf("- GREEN = native_R `implemented` AND native_Julia `implemented` AND bridge `claim_status` `covered`, unless the row states a written override: **%d of %d** rows.", n_green, nrow(mat)),
     "",
     "## The matrix",
