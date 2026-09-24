@@ -78,6 +78,22 @@ pm_git_show <- function(repo, ref, path) {
   pm_git(repo, "show", shQuote(paste0(ref, ":", path)))
 }
 
+# The shared pin helper (S1b, tools/parity-pin.R): the ONE place that reads
+# the programme pin from source-pins.json and verifies a DRModels checkout's
+# HEAD against it. Loaded the same way `write-parity-scoreboard.R`'s
+# `sb_matrix_env()` loads THIS file, so all three generators (this one, the
+# scoreboard, and the capability-status join) reach the identical pin logic
+# regardless of which file sys.source()s which.
+pm_pin_env <- function(root) {
+  path <- file.path(root, "tools", "parity-pin.R")
+  if (!file.exists(path)) {
+    stop("tools/parity-pin.R not found under ", root, call. = FALSE)
+  }
+  env <- new.env(parent = globalenv())
+  sys.source(path, envir = env)
+  env
+}
+
 # The line number of the `which`-th line at or after `from` matching
 # `pattern` (fixed string). A missing anchor is a generation error:
 # citations must never rot silently.
@@ -268,7 +284,11 @@ pm_load_context <- function(root, drmjl_path) {
   }
   ns <- asNamespace("drmTMB")
 
-  pin <- pm_git(drmjl_path, "rev-parse", "HEAD")
+  # ONE READ PATH for the DRModels pin (S1b, amendment A8): tools/parity-pin.R
+  # is the only place any of the three generators reads or verifies it. A
+  # mismatched checkout is refused here, before anything is read from it.
+  pin_env <- pm_pin_env(root)
+  pin <- pin_env$pp_verify_pin(drmjl_path, root = root)
   pin_short <- substr(pin, 1L, 8L)
   drmjl_label <- function(path) sprintf("DRM.jl@%s:%s", pin_short, path)
 
@@ -278,6 +298,7 @@ pm_load_context <- function(root, drmjl_path) {
     gates = "inst/extdata/julia-gates.tsv",
     defects = "inst/extdata/julia-defects.tsv",
     fences = "inst/extdata/julia-fences.tsv",
+    cellmap = "inst/extdata/julia-interval-cellmap.tsv",
     registry = "R/julia-family-registry.R",
     bridge = "R/julia-bridge.R",
     drmtmb = "R/drmTMB.R",
@@ -289,7 +310,8 @@ pm_load_context <- function(root, drmjl_path) {
     j_fixtures = "docs/dev-log/evidence/parity-fixtures.tsv",
     j_intervals = "docs/dev-log/evidence/parity-intervals.tsv",
     j_classc = "docs/dev-log/evidence/parity-classc.tsv",
-    j_phylo_ng = "docs/dev-log/evidence/parity-phylo-nongaussian.tsv"
+    j_phylo_ng = "docs/dev-log/evidence/parity-phylo-nongaussian.tsv",
+    j_intervals_tool = "tools/parity_intervals.R"
   )
 
   r_status_lines <- pm_read_lines(file.path(root, files$r_status))
@@ -297,6 +319,7 @@ pm_load_context <- function(root, drmjl_path) {
 
   ctx <- list(
     root = root, drmjl_path = drmjl_path, pin = pin, pin_short = pin_short,
+    pin_env = pin_env,
     files = files, drmjl_label = drmjl_label,
     r_status = pm_parse_status_table(r_status_lines),
     j_status = pm_parse_status_table(j_status_lines),
@@ -306,6 +329,7 @@ pm_load_context <- function(root, drmjl_path) {
     gates = pm_read_tsv(file.path(root, files$gates)),
     defects = pm_read_tsv(file.path(root, files$defects)),
     fences = pm_read_tsv(file.path(root, files$fences)),
+    cellmap = pm_read_tsv(file.path(root, files$cellmap)),
     registry = ns$drm_julia_family_registry(),
     supported_dpars = ns$julia_bridge_supported_dpars(),
     registry_lines = pm_read_lines(file.path(root, files$registry)),
@@ -313,7 +337,8 @@ pm_load_context <- function(root, drmjl_path) {
     drmtmb_lines = pm_read_lines(file.path(root, files$drmtmb)),
     heritability_lines = pm_read_lines(file.path(root, files$heritability)),
     plan_lines = pm_read_lines(file.path(root, files$plan)),
-    j_bridge_lines = pm_git_show(drmjl_path, pin, files$j_bridge)
+    j_bridge_lines = pm_git_show(drmjl_path, pin, files$j_bridge),
+    j_intervals_tool_lines = pm_git_show(drmjl_path, pin, files$j_intervals_tool)
   )
   ctx$j_receipts <- lapply(
     c(se = "j_se", fixtures = "j_fixtures", intervals = "j_intervals",
@@ -408,6 +433,123 @@ pm_drmjl_tag_cite <- function(ctx, tag) {
 
 pm_plan_leaf <- function(ctx, leaf) {
   sprintf("leaf %s (%s)", leaf, pm_cite_r(ctx, "plan", sprintf("| **%s** |", leaf)))
+}
+
+# ---- interval cellmap evidence for the two generic method rows (S1b, T11) --
+#
+# Owner decision T11 (Shinichi, 2026-09-24): the "Profile-likelihood CIs" and
+# "Parametric bootstrap CIs" rows read CITED-LIMITED from FAMILY receipts,
+# computed from data, never typed as prose. The evidence for a method is the
+# set of `inst/extdata/julia-interval-cellmap.tsv` rows that are MAPPED and
+# NOT compared under a D-234 engineering convention (rho12 / REML mean-block
+# SEs), each joined to its receipt row for that method in DRM.jl's
+# `docs/dev-log/evidence/parity-intervals.tsv` at the pin. A method with zero
+# eligible cells stays UNCITED -- `pm_method_row()` returns that case
+# explicitly instead of writing around it.
+#
+# Adapted from the capability_id join design in the unmerged Codex branch
+# codex/parity-scoreboard-join (f27c9a78a "fail closed on parity interval
+# receipts", 470bb7f29 "connect parity interval receipts safely"): that
+# branch assumed DRM.jl's own parity-intervals.tsv would grow a
+# `capability_id` column so it could join directly. At this pin
+# (da8b3f8711b) it has not, so the join lives in drmTMB's own committed
+# cellmap instead -- but the same fail-closed spirit survives: an unmapped
+# cell is recorded as UNMAPPED (never guessed), a missing or duplicated
+# receipt row aborts generation rather than being silently skipped, and the
+# two generic method rows are UNCITED, not covered, whenever no eligible cell
+# exists.
+pm_cellmap_method_evidence <- function(ctx, method) {
+  cm <- ctx$cellmap
+  eligible <- cm[cm$status == "MAPPED" & cm$convention == "FALSE", , drop = FALSE]
+  if (!nrow(eligible)) {
+    return(eligible[0L, , drop = FALSE])
+  }
+  ivl <- ctx$j_receipts$intervals
+  rows <- lapply(seq_len(nrow(eligible)), function(i) {
+    cell_id <- eligible$cell_id[[i]]
+    keep <- ivl$cell_id == cell_id & ivl$method == method
+    if (sum(keep) != 1L) {
+      stop(sprintf(
+        "interval receipt cell_id=%s method=%s matches %d row(s) in %s at the pin (need exactly 1)",
+        cell_id, method, sum(keep), ctx$files$j_intervals
+      ), call. = FALSE)
+    }
+    data.frame(
+      capability_id = eligible$capability_id[[i]], cell_id = cell_id,
+      cellmap_line = eligible$line[[i]], receipt_status = ivl$status[keep],
+      receipt_line = ivl$line[keep], stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+# One citation-carrying clause per eligible cell: capability_id, the cellmap
+# file:line that maps it, and the DRM.jl receipt file:line and status.
+pm_cellmap_evidence_clause <- function(ctx, ev_row) {
+  sprintf("`%s` (%s; %s status=%s)", ev_row$capability_id,
+          pm_cite(ctx$files$cellmap, ev_row$cellmap_line),
+          pm_cite(ctx$drmjl_label(ctx$files$j_intervals), ev_row$receipt_line),
+          ev_row$receipt_status)
+}
+
+pm_cite_j_intervals_tool <- function(ctx, pattern, which = 1L) {
+  pm_cite(ctx$drmjl_label(ctx$files$j_intervals_tool),
+          pm_grep_line(ctx$j_intervals_tool_lines, pattern, ctx$files$j_intervals_tool, which = which))
+}
+
+# Bootstrap-only addendum (T11): every eligible cell's bootstrap receipt reads
+# `INTERVAL_MISMATCH`, and that is the design, not a finding of disagreement --
+# DRModels scores bootstrap by distributional overlap, because each engine
+# draws its own resamples, and the generic classifier that emits
+# `INTERVAL_MISMATCH` applies the SAME relative-difference/width-ratio bar to
+# bootstrap as to wald/profile, which independent resamples routinely miss
+# even while the two intervals overlap.
+pm_bootstrap_design_note <- function(ctx) {
+  resample_cite <- pm_cite_j_intervals_tool(ctx, "since each engine draws its own resamples")
+  mismatch_cite <- pm_cite_j_intervals_tool(ctx, "INTERVAL_MISMATCH")
+  sprintf(paste0(
+    " Every eligible cell's bootstrap receipt reads `INTERVAL_MISMATCH`, BY DESIGN: ",
+    "DRModels scores bootstrap by distributional overlap because each engine draws its own ",
+    "resamples (DRModels %s), and the classifier that assigns `INTERVAL_MISMATCH` (DRModels %s) ",
+    "applies the same tolerance bar used for wald/profile, which independent resamples routinely ",
+    "miss even when the two intervals in fact overlap."
+  ), resample_cite, mismatch_cite)
+}
+
+# The generic-method row itself. `route_note` is unchanged prose about the
+# bridge's profile/bootstrap target inventory; `boundary` is built entirely
+# from the cellmap join. CITED-LIMITED requires a cited boundary whose
+# r_bridge_status_raw reads "experimental" (A6); this struct entry has no TSV
+# row of its own; setting it directly is what makes T11 machine-checkable
+# instead of a claim resting on prose alone.
+pm_method_row <- function(ctx, name, method, route_note, extra_boundary = "", next_action = "") {
+  ev <- pm_cellmap_method_evidence(ctx, method)
+  if (!nrow(ev)) {
+    return(pm_struct_entry(
+      ctx, name, route_note = route_note,
+      boundary = sprintf(
+        "UNCITED BY DESIGN (T11, Shinichi 2026-09-24): no row of `%s` is both MAPPED and NOT a D-234 convention cell while carrying a %s receipt in DRM.jl's `%s` at the pin; a generic %s claim needs family-specific evidence before one can be cited.",
+        ctx$files$cellmap, method, ctx$files$j_intervals, tolower(name)
+      ),
+      next_action = next_action
+    ))
+  }
+  clauses <- vapply(seq_len(nrow(ev)),
+                    function(i) pm_cellmap_evidence_clause(ctx, ev[i, , drop = FALSE]),
+                    character(1L))
+  bootstrap_note <- if (identical(method, "bootstrap")) pm_bootstrap_design_note(ctx) else ""
+  boundary <- sprintf(paste0(
+    "CELLMAP-JOINED EVIDENCE (T11, Shinichi 2026-09-24; computed from data, not typed as prose): ",
+    "%d capability_id(s) join a MAPPED, non-convention (D-234) row of `%s` to a %s receipt in ",
+    "DRM.jl's `%s` at the pin, one fixture per family: %s.%s ",
+    "This supports those NAMED family routes only; it is not a generic %s claim and not interval ",
+    "coverage (D-181 #2)."
+  ), nrow(ev), ctx$files$cellmap, method, ctx$files$j_intervals,
+     paste(clauses, collapse = "; "), bootstrap_note, tolower(name))
+  if (nzchar(extra_boundary)) boundary <- paste(boundary, extra_boundary)
+  entry <- pm_struct_entry(ctx, name, route_note = route_note, boundary = boundary, next_action = next_action)
+  entry$r_bridge_status_raw <- "experimental"
+  entry
 }
 
 # ---- the rows --------------------------------------------------------------
@@ -709,14 +851,27 @@ pm_capability_entries <- function(ctx) {
        boundary = sprintf("%s; %s; MEASURED 2026-09-05 at DRM.jl aee371cc9 (%s): same fixture, same call, both engines -- coefficients 1.317e-12 (4/4 name-matched, 0 only-tmb, 0 only-julia), logLik 5.684e-14, SE 6.406e-08 abs / 1.256e-06 rel (4/4), Wald endpoints on `fixef:mu:x` 6.698e-09 (lower) / 6.695e-09 (upper). ONE fixture draw on ONE route; NOT interval coverage (D-181 #2);", rec("se", "cell_id", "se_gaussian_location_scale"), rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "wald")), inf_receipt),
        green_override = "the ledgered row is the Gaussian location-scale cell alone; Wald coverage on every other route rests on that row's own SE receipt, not on this capability row",
        next_action = "none pending on this axis; per-row SE receipts are the next_action of each family row"),
-    st("Profile-likelihood CIs",
-       route_note = sprintf("bridge profile intervals support one fixed-effect coefficient, one Gaussian phylo SD target, or all four q4 axes (%s)", interval_targets),
-       boundary = sprintf("MEASURED 2026-09-05 at DRM.jl aee371cc9 (%s): `base_gaussian_location_scale`, target `fixef:mu:x`, both engines converged -- profile endpoints agree to 2.797e-06 (lower) / 5.889e-07 (upper), inside the committed 1e-4 bar, with a red control that FAILS the same two deltas at 1e-9 (the check can fail). TWO STANDING BOUNDARIES, neither closed by that receipt. (1) STRUCTURAL, and NARROWED rather than closed -- #1187 merged 2026-09-07 (drmTMB fa8da23f1). drm_julia_wald_targets() now sets `fixef_profile_ready <- !is.null(payload) && !is_biv_structured` (%s), where `is_biv_structured` additionally requires a tree/matrix/kwarg covariance provider, so a PLAIN residual bivariate fit is now READY where it was unconditionally refused. MEASURED on that route (%s): `profile_targets()` returns 9 rows, 7 profile-ready, all 7 profiling to finite intervals; same-target agreement against engine = \"tmb\" is 2.146e-06 on `fixef:mu1:x` and 6.450e-06 on `fixef:rho12:(Intercept)`, both inside the 1e-4 bar, with the 1e-9 red control FAILING both (the check can fail). The 2 rows that remain not-ready are the response-scale `sigma1`/`sigma2` display aliases, Wald-only by design (%s). STILL FENCED: a bivariate fit that DOES carry a covariance provider, which reports profile_note=\"missing_tmb_parameter\". (2) UPSTREAM RECEIPT STALE AND UNJOINABLE: %s was written at drmtmb_version 0.7.0, before the per-coefficient route existed, so it understates the engine; and DRM.jl's interval table is keyed by `cell_id` with no `capability_id` column, so no capability_id-keyed receipt for this method can exist upstream at all. NOT interval coverage (D-181 #2).", inf_receipt, biv_profile_fence, a8b_receipt, wald_scale_alias, rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "profile"))),
-       next_action = "give DRM.jl's docs/dev-log/evidence/parity-intervals.tsv a capability_id column and regenerate it against a current drmTMB, so the profile receipt becomes joinable upstream; until #1187 lands, a user wanting an interval on a bivariate Julia fit should use method = \"wald\""),
-    st("Parametric bootstrap CIs",
-       route_note = sprintf("bridge bootstrap intervals support one fixed-effect coefficient, one Gaussian phylo SD target, or all four q4 axes (%s)", interval_targets),
-       boundary = sprintf("MEASURED 2026-09-05 at DRM.jl aee371cc9 (%s): `base_gaussian_location_scale`, target `fixef:mu:x`, R = 99, seed = 20260905 -- tmb [-0.753364, -0.538943] and julia [-0.739446, -0.544052], 0 of 99 replicates failed on EITHER engine, intervals overlap. The two engines draw from independent RNG streams, so this is a distributional-overlap check, not an endpoint-equality one. THREE STANDING BOUNDARIES. (1) STRUCTURAL, and NARROWED rather than closed -- #1187 merged 2026-09-07. The same `fixef_profile_ready` line (%s) gates bootstrap as well as profile, and now admits a plain residual bivariate fit: confint(method = \"bootstrap\") returns an interval where it previously refused. MEASURED (%s): R = 99, seed = 20260905 -- `fixef:mu1:x` tmb [0.189390, 0.454525] vs julia [0.233072, 0.447526]; `fixef:rho12:(Intercept)` tmb [0.224018, 0.484242] vs julia [0.216558, 0.499635]; 0 of 99 replicates failed on EITHER engine on EITHER target, and both pairs overlap -- a distributional-overlap check, not endpoint equality, because the engines draw from independent RNG streams. STILL FENCED: a bivariate fit carrying a covariance provider. (2) MASKED RESPONSES, CLOSED on both sides but the tracking issue is still open: drmTMB #1226 (merged 2026-09-06) supplies mask-preserving replicates under `missing = miss_control(response = \"include\")`, and DRM.jl's engine-side counterpart `_restore_response_mask!` is on DRM.jl main; issue #1188 remains OPEN. (3) UPSTREAM RECEIPT STALE AND UNJOINABLE: %s was written at drmtmb_version 0.7.0 and DRM.jl's interval table carries no `capability_id` column. NOT interval coverage (D-181 #2).", inf_receipt, biv_profile_fence, a8b_receipt, rec("intervals", "cell_id", "gauss_locscale_fe", where = list(method = "bootstrap"))),
-       next_action = "#1226 and #1187 have both landed; what remains is to give DRM.jl's parity-intervals.tsv a capability_id column so the bootstrap receipt becomes joinable upstream"),
+    # T11 (Shinichi, 2026-09-24): these two rows read CITED-LIMITED from
+    # family receipts joined through the cellmap, computed by
+    # pm_method_row() -- not typed as prose. Each `extra_boundary` below is
+    # UNCHANGED prose from before S1b (still cited against
+    # biv_profile_fence/a8b_receipt/wald_scale_alias); only the "how is this
+    # row cited at all" clause is now data-driven. The old "give DRM.jl's
+    # parity-intervals.tsv a capability_id column" next_action is gone: S1b
+    # solved the join a different way (drmTMB's own cellmap), so asking
+    # upstream for a schema change is no longer the open question.
+    pm_method_row(ctx, "Profile-likelihood CIs", "profile",
+      route_note = sprintf("bridge profile intervals support one fixed-effect coefficient, one Gaussian phylo SD target, or all four q4 axes (%s)", interval_targets),
+      extra_boundary = sprintf(
+        "STANDING BIVARIATE BOUNDARY, NARROWED rather than closed -- #1187 merged 2026-09-07 (drmTMB fa8da23f1). drm_julia_wald_targets() now sets `fixef_profile_ready <- !is.null(payload) && !is_biv_structured` (%s), where `is_biv_structured` additionally requires a tree/matrix/kwarg covariance provider, so a PLAIN residual bivariate fit is now READY where it was unconditionally refused. MEASURED on that route (%s): `profile_targets()` returns 9 rows, 7 profile-ready, all 7 profiling to finite intervals; same-target agreement against engine = \"tmb\" is 2.146e-06 on `fixef:mu1:x` and 6.450e-06 on `fixef:rho12:(Intercept)`, both inside the 1e-4 bar, with the 1e-9 red control FAILING both (the check can fail). The 2 rows that remain not-ready are the response-scale `sigma1`/`sigma2` display aliases, Wald-only by design (%s). STILL FENCED: a bivariate fit that DOES carry a covariance provider, which reports profile_note=\"missing_tmb_parameter\".",
+        biv_profile_fence, a8b_receipt, wald_scale_alias),
+      next_action = "none pending on the family-specific join (S1b, cellmap-based); a GENERIC (cross-family) profile-likelihood method claim is an owner decision, not scheduled on any leaf"),
+    pm_method_row(ctx, "Parametric bootstrap CIs", "bootstrap",
+      route_note = sprintf("bridge bootstrap intervals support one fixed-effect coefficient, one Gaussian phylo SD target, or all four q4 axes (%s)", interval_targets),
+      extra_boundary = sprintf(
+        "STANDING BIVARIATE BOUNDARY, NARROWED rather than closed -- #1187 merged 2026-09-07. The same `fixef_profile_ready` line (%s) gates bootstrap as well as profile, and now admits a plain residual bivariate fit: confint(method = \"bootstrap\") returns an interval where it previously refused. MEASURED (%s): R = 99, seed = 20260905 -- `fixef:mu1:x` tmb [0.189390, 0.454525] vs julia [0.233072, 0.447526]; `fixef:rho12:(Intercept)` tmb [0.224018, 0.484242] vs julia [0.216558, 0.499635]; 0 of 99 replicates failed on EITHER engine on EITHER target, and both pairs overlap -- a distributional-overlap check, not endpoint equality, because the engines draw from independent RNG streams. STILL FENCED: a bivariate fit carrying a covariance provider. MASKED RESPONSES, CLOSED on both sides but the tracking issue is still open: drmTMB #1226 (merged 2026-09-06) supplies mask-preserving replicates under `missing = miss_control(response = \"include\")`, and DRM.jl's engine-side counterpart `_restore_response_mask!` is on DRM.jl main; issue #1188 remains OPEN.",
+        biv_profile_fence, a8b_receipt),
+      next_action = "none pending on the family-specific join (S1b, cellmap-based); a GENERIC (cross-family) parametric-bootstrap method claim is an owner decision, not scheduled on any leaf"),
     st("AGHQ adaptive-quadrature marginal estimator",
        route_note = "no bridge route: nothing to marshal on the R side",
        boundary = sprintf("native R has an INTERNAL implementation with no exported symbol (R/aghq-coxreid.R, tests/testthat/test-aghq-coxreid.R), so no estimator a user can select from drmTMB() -- `planned` records the exposure gap, not an empty R/ (%s); DRM.jl's is Poisson `(1 \\| g)` only (%s).", rs("`R/aghq-coxreid.R` (added 2026-07-18"), jsl("Poisson `(1 | g)` only")),

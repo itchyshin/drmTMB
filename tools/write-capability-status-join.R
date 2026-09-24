@@ -16,10 +16,18 @@
 # matrix refuses to render. It never aborts on an unmatched row; an unmatched
 # row is its output.
 #
-# HOW DRM.jl IS READ. With `git show <ref>:<path>` against a DRM.jl repository,
+# HOW DRM.jl IS READ. With `git show <pin>:<path>` against a DRM.jl repository,
 # never its working tree -- the canonical clone routinely sits on some other
 # lane's branch, and reading that would silently report another agent's
-# in-flight edit as the state of main. The default ref is `origin/main`.
+# in-flight edit as the state of main. The pin is the programme pin
+# (docs/dev-log/loop/parity-joint-20260905/source-pins.json repins[-1]),
+# read and verified through `tools/parity-pin.R` (S1b, amendment A8) -- the
+# SAME pin `write-parity-matrix.R` and `write-parity-scoreboard.R` read, so
+# this file can never quietly compare against a different DRModels commit
+# than the other two. Before S1b this file instead read a caller-selectable
+# git ref (default `origin/main`, overridable by an environment variable);
+# that let it drift from the pin the rest of the ledger is honest against,
+# which is exactly what one read path exists to prevent.
 #
 # The parser is the matrix generator's `pm_parse_status_table()`, reached by
 # `sys.source()`. One parser, so the row set here and the row set in the matrix
@@ -27,9 +35,9 @@
 #
 # USAGE (from the drmTMB source checkout; no Julia is started):
 #   DRM_JL_REPO=/path/to/DRM.jl Rscript tools/write-capability-status-join.R
-#   Rscript tools/write-capability-status-join.R <drmjl-repo> [<ref>] [<out>]
+#   Rscript tools/write-capability-status-join.R <drmjl-repo> [<out>]
 #
-# Both shas -- drmTMB's HEAD and the resolved DRM.jl ref -- are written into the
+# Both shas -- drmTMB's HEAD and the programme pin -- are written into the
 # output. Running this twice at the same two commits yields byte-identical
 # output.
 
@@ -56,12 +64,17 @@ csj_git <- function(repo, ...) {
   as.character(out)
 }
 
-csj_build <- function(root, drmjl_repo, ref) {
+csj_build <- function(root, drmjl_repo) {
   env <- csj_matrix_env(root)
+  # ONE READ PATH for the DRModels pin (S1b, amendment A8): tools/parity-pin.R,
+  # loaded transitively through write-parity-matrix.R's pm_pin_env(). Refuses
+  # `drmjl_repo` outright when its HEAD is not the programme pin, rather than
+  # reading and reporting on whatever commit it happens to be on.
+  pin_env <- env$pm_pin_env(root)
   path <- "docs/design/capability-status.md"
 
-  drmtmb_sha <- csj_git(root, "rev-parse", "HEAD")[[1L]]
-  drmjl_sha <- csj_git(drmjl_repo, "rev-parse", ref)[[1L]]
+  drmtmb_sha <- pin_env$pp_git_rev_parse(root)
+  drmjl_sha <- pin_env$pp_verify_pin(drmjl_repo, root = root)
 
   r_lines <- readLines(file.path(root, path), warn = FALSE, encoding = "UTF-8")
   j_lines <- csj_git(drmjl_repo, "show", shQuote(paste0(drmjl_sha, ":", path)))
@@ -76,7 +89,7 @@ csj_build <- function(root, drmjl_repo, ref) {
   both <- both[order(both$line_r), , drop = FALSE]
   differing <- both[both$status_r != both$status_j, , drop = FALSE]
 
-  list(path = path, drmtmb_sha = drmtmb_sha, drmjl_sha = drmjl_sha, ref = ref,
+  list(path = path, drmtmb_sha = drmtmb_sha, drmjl_sha = drmjl_sha,
        r = r, j = j, only_r = only_r, only_j = only_j,
        both = both, differing = differing, env = env)
 }
@@ -101,12 +114,13 @@ csj_render <- function(x) {
     "| input | sha |",
     "|---|---|",
     sprintf("| drmTMB (this repo, HEAD at generation) | `%s` |", x$drmtmb_sha),
-    sprintf("| DRM.jl `%s`, read with `git show` -- never its working tree | `%s` |",
-            x$ref, x$drmjl_sha),
+    sprintf("| DRM.jl, at the programme pin, read with `git show` -- never its working tree | `%s` |",
+            x$drmjl_sha),
     "",
     "The canonical DRM.jl clone normally sits on some lane's branch. Reading its",
     "working tree would report that lane's in-flight edit as the state of main, so",
-    "this file reads a named ref and records the sha it resolved to.",
+    "this file reads the programme pin (docs/dev-log/loop/parity-joint-20260905/source-pins.json",
+    "repins[-1], via tools/parity-pin.R) and refuses a checkout on any other commit.",
     "",
     "## Counts",
     "",
@@ -175,9 +189,9 @@ csj_render <- function(x) {
   )
 }
 
-csj_write <- function(root, drmjl_repo, ref = "origin/main",
+csj_write <- function(root, drmjl_repo,
                       out = file.path(root, "docs", "design", "capability-status-join.md")) {
-  x <- csj_build(root, drmjl_repo, ref)
+  x <- csj_build(root, drmjl_repo)
   lines <- csj_render(x)
   dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
   writeLines(lines, out, useBytes = TRUE)
@@ -194,9 +208,8 @@ main <- function() {
     stop("Set DRM_JL_REPO (or pass it as the first argument) to a DRM.jl repository.",
          call. = FALSE)
   }
-  ref <- if (length(args) >= 2L) args[[2L]] else Sys.getenv("DRM_JL_REF", unset = "origin/main")
-  out <- if (length(args) >= 3L) args[[3L]] else file.path("docs", "design", "capability-status-join.md")
-  csj_write(".", repo, ref, out)
+  out <- if (length(args) >= 2L) args[[2L]] else file.path("docs", "design", "capability-status-join.md")
+  csj_write(".", repo, out)
 }
 
 if (sys.nframe() == 0L) {

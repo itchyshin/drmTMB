@@ -8,7 +8,7 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `54df129feb0de63e2f46c6b43878b8161c4049ba` |
+| drmTMB (this repo, HEAD at generation) | `e9aa324e1fe4b3ce37cac22e7f21ce800498b14f` |
 | DRM.jl (read with `git show`, never the working tree) | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
 
 Both numbers below and every citation in the table are functions of those
@@ -20,12 +20,12 @@ two commits and nothing else. Quote the shas whenever you quote the counts.
 `docs/design/capability-status.md` (45 rows), each matched byte-for-byte to a row of DRM.jl's file
 (48 rows).
 
-**UNCITED cells: 8 of 135** (45 capabilities x 3 axes). 8 of the 45 capabilities
+**UNCITED cells: 6 of 135** (45 capabilities x 3 axes). 6 of the 45 capabilities
 carry at least one UNCITED cell.
 
-Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 8 UNCITED**.
+Per axis: native_R 0 UNCITED, native_Julia 0 UNCITED, **bridge 6 UNCITED**.
 
-**31 of 45** capabilities are reachable through `engine = "julia"` with a
+**33 of 45** capabilities are reachable through `engine = "julia"` with a
 PASSING receipt reached through a committed ledger row (verdict `RECEIPT`).
 That is the number a closure may quote as bridge coverage. Every other
 verdict is something weaker, and is named below.
@@ -63,33 +63,33 @@ the programme cannot point at.
 | native_Julia | `FITS` | 41 |
 | native_Julia | `PARTIAL` | 1 |
 | native_Julia | `NO` | 3 |
-| bridge | `RECEIPT` | 31 |
-| bridge | `RECEIPT-NOT-LEDGERED` | 2 |
-| bridge | `RECEIPT-NOT-PASS` | 1 |
+| bridge | `RECEIPT` | 33 |
+| bridge | `RECEIPT-NOT-LEDGERED` | 1 |
+| bridge | `RECEIPT-NOT-PASS` | 2 |
 | bridge | `REFUSED` | 3 |
-| bridge | `UNCITED` | 8 |
+| bridge | `UNCITED` | 6 |
 
 ## The scoreboard
 
 | capability | native_R | native_Julia | bridge | native_R evidence | native_Julia evidence | bridge evidence |
 |---|---|---|---|---|---|---|
-| `Gaussian location-scale (ML)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:43, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:41, `implemented`) | receipt capability_id=base_gaussian_location_scale status=SE_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:2); receipt capability_id=base_gaussian_location_scale status=PARITY_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:2) |
+| `Gaussian location-scale (ML)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:43, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:41, `implemented`) | receipt capability_id=base_gaussian_location_scale status=SE_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:2); receipt capability_id=base_gaussian_location_scale status=PARITY_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:2); receipt capability_id=base_gaussian_location_scale status=INTERVAL_PASS "gauss_locscale_fe, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:11; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:2); +1 more receipt row(s) |
 | `Bivariate Gaussian coscale (rho12)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:44, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:42, `implemented`) | receipt capability_id=biv_gaussian_residual status=SE_PASS "Bivariate Gaussian, rho12 ~ 1, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:3) |
-| `Student-t location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:45, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:43, `implemented`) | receipt capability_id=fe_student status=SE_PASS "Student-t (nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:10); receipt capability_id=fe_student status=PARITY_PASS "Student-t (nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:12) |
-| `LogNormal location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:46, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:44, `implemented`) | receipt capability_id=fe_lognormal status=SE_PASS "Lognormal, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:11); receipt capability_id=fe_lognormal status=PARITY_PASS "Lognormal, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:13) |
-| `Gamma location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:47, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:45, `implemented`) | receipt capability_id=fe_gamma status=SE_PASS "Gamma (log link), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:12); receipt capability_id=fe_gamma status=PARITY_PASS "Gamma (log link), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:6) |
-| `Poisson counts` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:48, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:46, `implemented`) | receipt capability_id=fe_poisson status=SE_PASS "Poisson, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:13); receipt capability_id=fe_poisson status=PARITY_PASS "Poisson, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:4) |
-| `NegBinomial2 (NB2) counts` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:49, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:47, `implemented`) | receipt capability_id=fe_nbinom2 status=SE_PASS "NegBinomial2, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:14); receipt capability_id=fe_nbinom2 status=PARITY_PASS "NegBinomial2, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:5) |
-| `Zero-inflated Poisson (ZIP)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:50, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:48, `implemented`) | receipt capability_id=zi_poisson status=SE_PASS "Zero-inflated Poisson (zi ~ x), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:16); receipt capability_id=zi_poisson status=PARITY_PASS "Zero-inflated Poisson (zi ~ x), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:15) |
-| `Zero-inflated NB2 (ZINB)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:51, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:49, `implemented`) | receipt capability_id=zi_nbinom2 status=SE_PASS "Zero-inflated NegBinomial2 (zi ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:17); receipt capability_id=zi_nbinom2 status=PARITY_PASS "Zero-inflated NegBinomial2 (zi ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:16) |
-| `Beta proportions` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:52, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:50, `implemented`) | receipt capability_id=fe_beta status=SE_PASS "Beta (logit mu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:15); receipt capability_id=fe_beta status=PARITY_PASS "Beta (logit mu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:14) |
-| `Truncated NB2 (zero-truncated counts)` | FITS | FITS | RECEIPT-NOT-LEDGERED | FITS (docs/design/capability-status.md:53, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:51, `implemented`) | receipt capability_id=truncated_nbinom2 status=SE_PASS "Truncated NegBinomial2 (mu ~ x, sigma ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:22); receipt capability_id=truncated_nbinom2 status=PARITY_PASS "Truncated NegBinomial2 (mu ~ x, sigma ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:27) |
+| `Student-t location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:45, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:43, `implemented`) | receipt capability_id=fe_student status=SE_PASS "Student-t (nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:10); receipt capability_id=fe_student status=PARITY_PASS "Student-t (nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:12); receipt capability_id=fe_student status=INTERVAL_PASS "fe_student, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:7; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:32); +1 more receipt row(s) |
+| `LogNormal location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:46, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:44, `implemented`) | receipt capability_id=fe_lognormal status=SE_PASS "Lognormal, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:11); receipt capability_id=fe_lognormal status=PARITY_PASS "Lognormal, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:13); receipt capability_id=fe_lognormal status=INTERVAL_PASS "fe_lognormal, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:4; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:17); +1 more receipt row(s) |
+| `Gamma location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:47, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:45, `implemented`) | receipt capability_id=fe_gamma status=SE_PASS "Gamma (log link), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:12); receipt capability_id=fe_gamma status=PARITY_PASS "Gamma (log link), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:6); receipt capability_id=fe_gamma status=INTERVAL_PASS "fe_gamma, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:3; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:14); +1 more receipt row(s) |
+| `Poisson counts` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:48, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:46, `implemented`) | receipt capability_id=fe_poisson status=SE_PASS "Poisson, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:13); receipt capability_id=fe_poisson status=PARITY_PASS "Poisson, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:4); receipt capability_id=fe_poisson status=INTERVAL_PASS "poisson_fe, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:13; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:8); +1 more receipt row(s) |
+| `NegBinomial2 (NB2) counts` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:49, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:47, `implemented`) | receipt capability_id=fe_nbinom2 status=SE_PASS "NegBinomial2, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:14); receipt capability_id=fe_nbinom2 status=PARITY_PASS "NegBinomial2, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:5); receipt capability_id=fe_nbinom2 status=INTERVAL_PASS "fe_nbinom2, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:5; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:20); +1 more receipt row(s) |
+| `Zero-inflated Poisson (ZIP)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:50, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:48, `implemented`) | receipt capability_id=zi_poisson status=SE_PASS "Zero-inflated Poisson (zi ~ x), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:16); receipt capability_id=zi_poisson status=PARITY_PASS "Zero-inflated Poisson (zi ~ x), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:15); receipt capability_id=zi_poisson status=INTERVAL_PASS "zi_poisson, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:15; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:29); +1 more receipt row(s) |
+| `Zero-inflated NB2 (ZINB)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:51, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:49, `implemented`) | receipt capability_id=zi_nbinom2 status=SE_PASS "Zero-inflated NegBinomial2 (zi ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:17); receipt capability_id=zi_nbinom2 status=PARITY_PASS "Zero-inflated NegBinomial2 (zi ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:16); receipt capability_id=zi_nbinom2 status=INTERVAL_PASS "zi_nbinom2, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:14; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:26); +1 more receipt row(s) |
+| `Beta proportions` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:52, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:50, `implemented`) | receipt capability_id=fe_beta status=SE_PASS "Beta (logit mu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:15); receipt capability_id=fe_beta status=PARITY_PASS "Beta (logit mu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:14); receipt capability_id=fe_beta status=INTERVAL_PASS "fe_beta, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:2; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:11); +1 more receipt row(s) |
+| `Truncated NB2 (zero-truncated counts)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:53, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:51, `implemented`) | receipt capability_id=fe_truncated_nbinom2 status=INTERVAL_PASS "fe_truncated_nbinom2, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:8; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:35); receipt capability_id=fe_truncated_nbinom2 status=INTERVAL_PASS "fe_truncated_nbinom2, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:8; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:36) |
 | `Hurdle NB2` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:54, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:52, `implemented`) | receipt capability_id=hurdle_nbinom2 status=SE_PASS "Hurdle NegBinomial2 (hu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:18); receipt capability_id=hurdle_nbinom2 status=PARITY_PASS "Hurdle NegBinomial2 (hu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:17) |
 | `Cumulative logit (ordinal)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:55, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:53, `implemented`) | receipt capability_id=fe_cumulative_logit status=SE_PASS "Cumulative logit (score ~ x, 3 ordered levels), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:24); receipt capability_id=fe_cumulative_logit status=PARITY_PASS "Cumulative logit (score ~ x, 3 ordered levels; cutpoints in fit$ordinal), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:28) |
 | `Beta-binomial proportions` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:56, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:54, `implemented`) | receipt capability_id=fe_beta_binomial status=SE_PASS "Beta-binomial (logit mu, log sigma, trials), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:9); receipt capability_id=fe_beta_binomial status=PARITY_PASS "Beta-binomial (logit mu, log sigma, trials), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:11) |
-| `Zero-one-inflated beta` | FITS | FITS | RECEIPT-NOT-LEDGERED | FITS (docs/design/capability-status.md:57, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:55, `implemented`) | receipt capability_id=zero_one_beta status=SE_PASS "Zero-one-inflated beta (mu ~ x, sigma ~ z, zoi ~ w, coi ~ v), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:20); receipt capability_id=zero_one_beta status=PARITY_PASS "Zero-one-inflated beta (mu ~ x, sigma ~ z, zoi ~ w, coi ~ v), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:26) |
-| `Tweedie (compound Poisson-Gamma)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:58, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:56, `implemented`) | receipt capability_id=fe_tweedie status=SE_PASS "Tweedie (log mu, log sigma, logit12 nu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:7); receipt capability_id=fe_tweedie status=PARITY_PASS "Tweedie (log mu, log sigma, logit12 nu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:10) |
-| `Skew-normal location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:59, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:57, `implemented`) | receipt capability_id=fe_skew_normal status=SE_PASS "Skew-normal (mu ~ x, sigma ~ z, nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:26); receipt capability_id=fe_skew_normal status=PARITY_PASS "Skew-normal (mu ~ x, sigma ~ z, nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:29) |
+| `Zero-one-inflated beta` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:57, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:55, `implemented`) | receipt capability_id=fe_zero_one_beta status=INTERVAL_PASS "fe_zero_one_beta, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:10; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:41); receipt capability_id=fe_zero_one_beta status=INTERVAL_PASS "fe_zero_one_beta, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:10; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:42) |
+| `Tweedie (compound Poisson-Gamma)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:58, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:56, `implemented`) | receipt capability_id=fe_tweedie status=SE_PASS "Tweedie (log mu, log sigma, logit12 nu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:7); receipt capability_id=fe_tweedie status=PARITY_PASS "Tweedie (log mu, log sigma, logit12 nu), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:10); receipt capability_id=fe_tweedie status=INTERVAL_PASS "fe_tweedie, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:9; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:38); +1 more receipt row(s) |
+| `Skew-normal location-scale` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:59, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:57, `implemented`) | receipt capability_id=fe_skew_normal status=SE_PASS "Skew-normal (mu ~ x, sigma ~ z, nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:26); receipt capability_id=fe_skew_normal status=PARITY_PASS "Skew-normal (mu ~ x, sigma ~ z, nu ~ 1), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:29); receipt capability_id=fe_skew_normal status=INTERVAL_PASS "fe_skew_normal, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:6; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:23); +1 more receipt row(s) |
 | `Binomial (logistic)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:60, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:58, `implemented`) | receipt capability_id=plain_binomial_nonphylo status=SE_PASS "Binomial (logit, trials), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:5); receipt capability_id=plain_binomial_nonphylo status=PARITY_PASS "Binomial (logit, trials), fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:7) |
 | `Gaussian random intercept (mean)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:70, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:74, `implemented`) | receipt capability_id=gaussian_random_intercept_mu status=PARITY_PASS "Gaussian, ordinary (1 \| g) mean random intercept, sigma ~ 1, ML" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-classc.tsv:12); receipt capability_id=gaussian_random_intercept_mu status=PARITY_PASS "Gaussian, ordinary (1 \| g) mean random intercept, sigma ~ 1, REML" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-classc.tsv:13) |
 | `Gaussian random slope (mean)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:71, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:75, `implemented`) | receipt capability_id=gaussian_random_slope_mu status=PARITY_PASS "Gaussian, correlated (1 + x \| g) mean intercept+slope block, sigma ~ 1, ML" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-classc.tsv:14) |
@@ -105,9 +105,9 @@ the programme cannot point at.
 | `REML (Gaussian fixed-effect location-scale)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:120, `point-fit-recovery`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:175, `implemented`) | receipt capability_id=gaussian_reml_location_scale status=PARITY_PASS "REML Gaussian location-scale, fixed effects (bf(y ~ x, sigma ~ z), REML = TRUE)" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:32) |
 | `REML with ordinary random effects (Gaussian mean)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:121, `point-fit-recovery`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:176, `implemented`) | receipt capability_id=gaussian_reml_random_intercept_mu status=SE_PASS "REML Gaussian mean random intercept (1 \| g), fixed-effect SEs" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:28); receipt capability_id=gaussian_reml_random_intercept_mu status=PARITY_PASS "REML Gaussian mean random intercept (bf(y ~ x + (1 \| g), sigma ~ 1), REML = TRUE)" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:33) |
 | `REML bivariate phylogenetic location-scale (q4, all axes)` | PARTIAL | FITS | RECEIPT | PARTIAL (docs/design/capability-status.md:122, `scope-limited`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:177, `implemented`) | receipt capability_id=biv_q4_phylo_reml status=PARITY_PASS "REML bivariate DENSE q4 phylo location-scale, all four axes on one label" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:34) |
-| `Wald SEs and CIs (observed information)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:123, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:181, `implemented`) | receipt capability_id=base_gaussian_location_scale status=SE_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:2); receipt capability_id=base_gaussian_location_scale status=PARITY_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:2) |
-| `Profile-likelihood CIs` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:124, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:182, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
-| `Parametric bootstrap CIs` | FITS | FITS | UNCITED | FITS (docs/design/capability-status.md:125, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:183, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
+| `Wald SEs and CIs (observed information)` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:123, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:181, `implemented`) | receipt capability_id=base_gaussian_location_scale status=SE_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-se.tsv:2); receipt capability_id=base_gaussian_location_scale status=PARITY_PASS "Gaussian location-scale, fixed effects" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:2); receipt capability_id=base_gaussian_location_scale status=INTERVAL_PASS "gauss_locscale_fe, wald interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:11; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:2); +1 more receipt row(s) |
+| `Profile-likelihood CIs` | FITS | FITS | RECEIPT-NOT-LEDGERED | FITS (docs/design/capability-status.md:124, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:182, `implemented`) | receipt capability_id=fe_beta status=INTERVAL_PASS "fe_beta, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:2; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:12); receipt capability_id=fe_gamma status=INTERVAL_PASS "fe_gamma, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:3; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:15); receipt capability_id=fe_lognormal status=INTERVAL_PASS "fe_lognormal, profile interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:4; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:18); +10 more receipt row(s) |
+| `Parametric bootstrap CIs` | FITS | FITS | RECEIPT-NOT-PASS | FITS (docs/design/capability-status.md:125, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:183, `implemented`) | receipt capability_id=fe_beta status=INTERVAL_MISMATCH "fe_beta, bootstrap interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:2; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:13); receipt capability_id=fe_gamma status=INTERVAL_MISMATCH "fe_gamma, bootstrap interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:3; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:16); receipt capability_id=fe_lognormal status=INTERVAL_MISMATCH "fe_lognormal, bootstrap interval (cellmap-joined)" (inst/extdata/julia-interval-cellmap.tsv:4; DRM.jl@da8b3f87:docs/dev-log/evidence/parity-intervals.tsv:19); +10 more receipt row(s) |
 | `AGHQ adaptive-quadrature marginal estimator` | NO | FITS | UNCITED | NO (docs/design/capability-status.md:126, `planned`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:184, `implemented`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `Variational (VA/ELBO) marginal estimator` | NO | NO | UNCITED | NO (docs/design/capability-status.md:127, `planned`) | NO (DRM.jl@da8b3f87:docs/design/capability-status.md:185, `planned`) | UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row) |
 | `Chi-bar-square boundary LRT p-value` | FITS | FITS | RECEIPT | FITS (docs/design/capability-status.md:128, `implemented`) | FITS (DRM.jl@da8b3f87:docs/design/capability-status.md:186, `implemented`) | receipt capability_id=accessor_chibar_boundary status=PARITY_PASS "lrt_boundary/chibar_pvalue on two engine=julia fits (Gaussian random intercept, n=360, G=30)" (DRM.jl@da8b3f87:docs/dev-log/evidence/parity-fixtures.tsv:30) |
@@ -121,11 +121,9 @@ the programme cannot point at.
 
 ## Every UNCITED bridge cell, with what is missing
 
-8 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
+6 of 45 capabilities have no receipt and no cited refusal on the bridge axis:
 
 - `Non-Gaussian phylogenetic location-scale (μ + log σ)` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Profile-likelihood CIs` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
-- `Parametric bootstrap CIs` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `AGHQ adaptive-quadrature marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `Variational (VA/ELBO) marginal estimator` -- UNCITED -- no receipt reaches this capability (its matrix `bridge_route` cites no ledger row)
 - `Cross-family bivariate (different families for y1 y2)` -- UNCITED -- no receipt reaches this capability (ledger row(s) `cross_family_latent` carry no receipt row at the ref)
@@ -136,13 +134,12 @@ the programme cannot point at.
 
 None.
 
-## Evidence that exists and lifts nothing
+## Receipt inventory and connection boundary
 
 Receipt rows DRM.jl carries at this sha that no capability above reaches --
-either because no ledger row and no declared alias connects them, or because
-the table they live in is not joinable by `capability_id`. They are listed so
-the UNCITED count above cannot be read as "no evidence exists"; it means no
-evidence is CONNECTED.
+because no ledger row, no declared alias, and no cellmap row connects the
+receipt to a capability. They are listed so the UNCITED count above cannot
+be read as "no evidence exists"; it means no evidence is CONNECTED.
 
 `capability_id`s with receipt rows that no capability row reaches (14):
 
@@ -161,53 +158,54 @@ evidence is CONNECTED.
 - `gaussian_phylo_slope_two_sd_mu`
 - `tweedie_random_intercept_mu`
 
-`docs/dev-log/evidence/parity-intervals.tsv` is keyed by `cell_id`, carries no `capability_id`, and is therefore
-not joined at all. Its rows at this sha:
+`docs/dev-log/evidence/parity-intervals.tsv` is keyed by `cell_id`, not `capability_id`. `inst/extdata/julia-interval-cellmap.tsv` (S1b) is the
+join: it maps each cell_id to a drmTMB capability_id (a verbatim match or a stated rename),
+or records it UNMAPPED -- never guessed. Its rows at this sha, with the mapped capability_id:
 
-| cell_id | method | status |
-|---|---|---|
-| `gauss_locscale_fe` | `wald` | `INTERVAL_PASS` |
-| `gauss_locscale_fe` | `profile` | `INTERVAL_PASS` |
-| `gauss_locscale_fe` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `gauss_mean_only` | `wald` | `INTERVAL_PASS` |
-| `gauss_mean_only` | `profile` | `INTERVAL_PASS` |
-| `gauss_mean_only` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `poisson_fe` | `wald` | `INTERVAL_PASS` |
-| `poisson_fe` | `profile` | `INTERVAL_PASS` |
-| `poisson_fe` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_beta` | `wald` | `INTERVAL_PASS` |
-| `fe_beta` | `profile` | `INTERVAL_PASS` |
-| `fe_beta` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_gamma` | `wald` | `INTERVAL_PASS` |
-| `fe_gamma` | `profile` | `INTERVAL_PASS` |
-| `fe_gamma` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_lognormal` | `wald` | `INTERVAL_PASS` |
-| `fe_lognormal` | `profile` | `INTERVAL_PASS` |
-| `fe_lognormal` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_nbinom2` | `wald` | `INTERVAL_PASS` |
-| `fe_nbinom2` | `profile` | `INTERVAL_PASS` |
-| `fe_nbinom2` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_skew_normal` | `wald` | `INTERVAL_PASS` |
-| `fe_skew_normal` | `profile` | `INTERVAL_PASS` |
-| `fe_skew_normal` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `zi_nbinom2` | `wald` | `INTERVAL_PASS` |
-| `zi_nbinom2` | `profile` | `INTERVAL_PASS` |
-| `zi_nbinom2` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `zi_poisson` | `wald` | `INTERVAL_PASS` |
-| `zi_poisson` | `profile` | `INTERVAL_PASS` |
-| `zi_poisson` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_student` | `wald` | `INTERVAL_PASS` |
-| `fe_student` | `profile` | `INTERVAL_PASS` |
-| `fe_student` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_truncated_nbinom2` | `wald` | `INTERVAL_PASS` |
-| `fe_truncated_nbinom2` | `profile` | `INTERVAL_PASS` |
-| `fe_truncated_nbinom2` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_tweedie` | `wald` | `INTERVAL_PASS` |
-| `fe_tweedie` | `profile` | `INTERVAL_PASS` |
-| `fe_tweedie` | `bootstrap` | `INTERVAL_MISMATCH` |
-| `fe_zero_one_beta` | `wald` | `INTERVAL_PASS` |
-| `fe_zero_one_beta` | `profile` | `INTERVAL_PASS` |
-| `fe_zero_one_beta` | `bootstrap` | `INTERVAL_MISMATCH` |
+| cell_id | capability_id | method | status |
+|---|---|---|---|
+| `gauss_locscale_fe` | `base_gaussian_location_scale` | `wald` | `INTERVAL_PASS` |
+| `gauss_locscale_fe` | `base_gaussian_location_scale` | `profile` | `INTERVAL_PASS` |
+| `gauss_locscale_fe` | `base_gaussian_location_scale` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `gauss_mean_only` | (UNMAPPED) | `wald` | `INTERVAL_PASS` |
+| `gauss_mean_only` | (UNMAPPED) | `profile` | `INTERVAL_PASS` |
+| `gauss_mean_only` | (UNMAPPED) | `bootstrap` | `INTERVAL_MISMATCH` |
+| `poisson_fe` | `fe_poisson` | `wald` | `INTERVAL_PASS` |
+| `poisson_fe` | `fe_poisson` | `profile` | `INTERVAL_PASS` |
+| `poisson_fe` | `fe_poisson` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_beta` | `fe_beta` | `wald` | `INTERVAL_PASS` |
+| `fe_beta` | `fe_beta` | `profile` | `INTERVAL_PASS` |
+| `fe_beta` | `fe_beta` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_gamma` | `fe_gamma` | `wald` | `INTERVAL_PASS` |
+| `fe_gamma` | `fe_gamma` | `profile` | `INTERVAL_PASS` |
+| `fe_gamma` | `fe_gamma` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_lognormal` | `fe_lognormal` | `wald` | `INTERVAL_PASS` |
+| `fe_lognormal` | `fe_lognormal` | `profile` | `INTERVAL_PASS` |
+| `fe_lognormal` | `fe_lognormal` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_nbinom2` | `fe_nbinom2` | `wald` | `INTERVAL_PASS` |
+| `fe_nbinom2` | `fe_nbinom2` | `profile` | `INTERVAL_PASS` |
+| `fe_nbinom2` | `fe_nbinom2` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_skew_normal` | `fe_skew_normal` | `wald` | `INTERVAL_PASS` |
+| `fe_skew_normal` | `fe_skew_normal` | `profile` | `INTERVAL_PASS` |
+| `fe_skew_normal` | `fe_skew_normal` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `zi_nbinom2` | `zi_nbinom2` | `wald` | `INTERVAL_PASS` |
+| `zi_nbinom2` | `zi_nbinom2` | `profile` | `INTERVAL_PASS` |
+| `zi_nbinom2` | `zi_nbinom2` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `zi_poisson` | `zi_poisson` | `wald` | `INTERVAL_PASS` |
+| `zi_poisson` | `zi_poisson` | `profile` | `INTERVAL_PASS` |
+| `zi_poisson` | `zi_poisson` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_student` | `fe_student` | `wald` | `INTERVAL_PASS` |
+| `fe_student` | `fe_student` | `profile` | `INTERVAL_PASS` |
+| `fe_student` | `fe_student` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_truncated_nbinom2` | `fe_truncated_nbinom2` | `wald` | `INTERVAL_PASS` |
+| `fe_truncated_nbinom2` | `fe_truncated_nbinom2` | `profile` | `INTERVAL_PASS` |
+| `fe_truncated_nbinom2` | `fe_truncated_nbinom2` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_tweedie` | `fe_tweedie` | `wald` | `INTERVAL_PASS` |
+| `fe_tweedie` | `fe_tweedie` | `profile` | `INTERVAL_PASS` |
+| `fe_tweedie` | `fe_tweedie` | `bootstrap` | `INTERVAL_MISMATCH` |
+| `fe_zero_one_beta` | `fe_zero_one_beta` | `wald` | `INTERVAL_PASS` |
+| `fe_zero_one_beta` | `fe_zero_one_beta` | `profile` | `INTERVAL_PASS` |
+| `fe_zero_one_beta` | `fe_zero_one_beta` | `bootstrap` | `INTERVAL_MISMATCH` |
 
 ## What this file does NOT claim
 
@@ -217,9 +215,11 @@ not joined at all. Its rows at this sha:
 - `native_R` and `native_Julia` are re-projections of each twin's own status
   file. When that file and the underlying cell census disagree, the census
   wins and this file is wrong.
-- `docs/dev-log/evidence/parity-intervals.tsv` is keyed by `cell_id` and carries no `capability_id`, so it is not
-  joined here. Interval receipts therefore do not lift any cell out of
-  `UNCITED`.
+- `docs/dev-log/evidence/parity-intervals.tsv` is joined only through `inst/extdata/julia-interval-cellmap.tsv`'s MAPPED rows (S1b); its UNMAPPED
+  cell_id (`gauss_mean_only` at this pin) contributes no evidence to any capability row.
+  `INTERVAL_PASS`/`INTERVAL_OVERLAP_ONLY` count as passing evidence here; `INTERVAL_MISMATCH`
+  does not -- every bootstrap cell at this pin reads `INTERVAL_MISMATCH` BY DESIGN (independent
+  resamples), not as a failure; see "Parametric bootstrap CIs" in `docs/design/parity-matrix.md`.
 - A drmTMB capability with no row of that name in DRM.jl's file cannot appear
   here at all: the shared join aborts on it. `docs/design/capability-status-join.md`
   is the artefact that reports those.

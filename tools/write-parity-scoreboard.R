@@ -91,16 +91,6 @@ sb_matrix_env <- function(root) {
   env
 }
 
-sb_head_sha <- function(repo) {
-  out <- suppressWarnings(system2(
-    "git", c("-C", shQuote(repo), "rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE
-  ))
-  status <- attr(out, "status")
-  if (!is.null(status) && status != 0L) {
-    stop("git rev-parse HEAD failed in ", repo, call. = FALSE)
-  }
-  as.character(out)[[1L]]
-}
 
 # ---- axis vocabularies -----------------------------------------------------
 
@@ -123,11 +113,25 @@ sb_native_verdict <- function(status) {
 # Receipt statuses that count as evidence the route WORKS. Anything else
 # (NEGATIVE_CONTROL_OK proves the check can fail; NO_NATIVE_COMPARATOR proves
 # there was nothing to compare against) is a receipt but not a passing one.
-sb_pass_statuses <- function() c("SE_PASS", "PARITY_PASS")
+sb_pass_statuses <- function() {
+  # INTERVAL_PASS / INTERVAL_OVERLAP_ONLY (S1b): parity-intervals.tsv's own
+  # passing statuses, reached only through the cellmap join below (this
+  # table is not in sb_receipt_tables() -- it stays keyed by `cell_id`, never
+  # `capability_id`). INTERVAL_OVERLAP_ONLY is deliberately evidence of
+  # COMPATIBLE intervals, not endpoint equality: independent bootstrap
+  # streams cannot share endpoints. Adapted from the unmerged Codex branch
+  # codex/parity-scoreboard-join (f27c9a78a), which added the same two
+  # statuses when it assumed DRM.jl's table would grow a `capability_id`
+  # column; at this pin it has not, so they are recognised here instead,
+  # where the cellmap performs the join.
+  c("SE_PASS", "PARITY_PASS", "INTERVAL_PASS", "INTERVAL_OVERLAP_ONLY")
+}
 
 # Evidence tables keyed by `capability_id`. parity-intervals.tsv is keyed by
-# `cell_id` and carries no capability_id, so it cannot be joined this way; it
-# is not consulted here, and rows that depend on it read UNCITED.
+# `cell_id` and carries no capability_id column at this pin, so it is not
+# listed here; `sb_cellmap_receipts()` joins it separately, through
+# `inst/extdata/julia-interval-cellmap.tsv` (S1b), rather than by widening
+# this list to a table this pin's schema cannot support.
 sb_receipt_tables <- function() c("se", "fixtures", "classc", "phylo_ng")
 
 # DECLARED capability-name -> receipt capability_id aliases: DRM.jl carries
@@ -150,6 +154,61 @@ sb_receipt_aliases <- function() {
   )
 }
 
+# `capability` name -> generic-method key, for the two rows T11 (S1b) puts
+# behind the interval cellmap rather than a TSV ledger row or a name alias:
+# "Profile-likelihood CIs" and "Parametric bootstrap CIs" in
+# `docs/design/capability-status.md`. `tools/write-parity-matrix.R`'s
+# `pm_method_row()` computes the identical evidence for the matrix; this is
+# the scoreboard's read of the SAME cellmap (A8: "cannot disagree on these
+# rows"), not a second, independently-typed join.
+sb_cellmap_method_rows <- function() {
+  list(`Profile-likelihood CIs` = "profile", `Parametric bootstrap CIs` = "bootstrap")
+}
+
+# Interval receipts (`docs/dev-log/evidence/parity-intervals.tsv`) joined to a
+# capability_id THROUGH `inst/extdata/julia-interval-cellmap.tsv` (S1b): a
+# MAPPED cellmap row names the capability_id a DRModels interval `cell_id`
+# evidences (a verbatim match or a stated rename); an UNMAPPED cell_id
+# (`gauss_mean_only` at this pin) contributes nothing. `ids` may be ordinary
+# ledger capability_ids (the per-family join) or, via `sb_cellmap_method_rows()`,
+# the synthetic "one id per eligible cell" set `pm_cellmap_method_evidence()`
+# returns for a generic method row.
+#
+# Adapted from the capability_id join design in the unmerged Codex branch
+# codex/parity-scoreboard-join (f27c9a78a "fail closed on parity interval
+# receipts", 470bb7f29 "connect parity interval receipts safely"): that
+# branch assumed DRM.jl's own parity-intervals.tsv would grow a
+# `capability_id` column and joined on it directly. At this pin
+# (da8b3f8711b) it has not, so the join lives in drmTMB's own committed
+# cellmap instead -- but the same fail-closed spirit survives: a cellmap row
+# citing a cell_id with no receipt row at the pin is a stop
+# (`pm_cellmap_method_evidence()`'s own check), never a silent skip.
+sb_cellmap_receipts <- function(env, ctx, ids) {
+  empty <- function() data.frame(id = character(0L), status = character(0L),
+                                 label = character(0L), cite = character(0L),
+                                 stringsAsFactors = FALSE)
+  if (!length(ids)) return(empty())
+  cm <- ctx$cellmap
+  mapped <- cm[cm$status == "MAPPED" & cm$capability_id %in% ids, , drop = FALSE]
+  if (!nrow(mapped)) return(empty())
+  ivl <- ctx$j_receipts$intervals
+  out <- lapply(seq_len(nrow(mapped)), function(i) {
+    cell_id <- mapped$cell_id[[i]]
+    rows <- ivl[ivl$cell_id == cell_id, , drop = FALSE]
+    if (!nrow(rows)) {
+      stop("cellmap row cites cell_id with no interval receipt at the pin: ", cell_id, call. = FALSE)
+    }
+    data.frame(
+      id = mapped$capability_id[[i]], status = rows$status,
+      label = sprintf("%s, %s interval (cellmap-joined)", rows$cell_id, rows$method),
+      cite = sprintf("%s; %s", env$pm_cite(ctx$files$cellmap, mapped$line[[i]]),
+                     env$pm_cite(ctx$drmjl_label(ctx$files$j_intervals), rows$line)),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, out)
+}
+
 # ---- the joins -------------------------------------------------------------
 
 # The bridge ledger capability_ids a matrix row cites, read from the
@@ -170,7 +229,8 @@ sb_cited_tsv_ids <- function(ctx, bridge_route) {
 }
 
 # Every receipt row in DRM.jl's capability_id-keyed evidence tables, for the
-# given ids, as a data.frame(id, status, label, cite).
+# given ids, as a data.frame(id, status, label, cite) -- PLUS, since S1b, any
+# interval receipt the cellmap joins to one of `ids` (sb_cellmap_receipts()).
 sb_receipts <- function(env, ctx, ids) {
   if (!length(ids)) {
     return(data.frame(id = character(0L), status = character(0L),
@@ -192,6 +252,8 @@ sb_receipts <- function(env, ctx, ids) {
       stringsAsFactors = FALSE
     )
   }
+  cellmap_rows <- sb_cellmap_receipts(env, ctx, ids)
+  if (nrow(cellmap_rows)) out[[length(out) + 1L]] <- cellmap_rows
   if (!length(out)) {
     return(data.frame(id = character(0L), status = character(0L),
                       label = character(0L), cite = character(0L),
@@ -282,11 +344,34 @@ sb_bridge_cell <- function(env, ctx, name, bridge_route) {
     r
   }
 
+  # T11 / S1b: "Profile-likelihood CIs" and "Parametric bootstrap CIs" carry
+  # no TSV ledger row and no name alias -- their evidence is the SAME cellmap
+  # join `pm_method_row()` computes for the matrix (A8: "cannot disagree on
+  # these rows"). Folded into `alias_rec`: like a name alias, it connects
+  # evidence without a direct ledger row, so it takes the same
+  # RECEIPT-NOT-LEDGERED / RECEIPT-NOT-PASS tier below.
+  method_key <- sb_cellmap_method_rows()[[name]]
+  if (!is.null(method_key)) {
+    # `ev` is ALREADY filtered to `method_key` (pm_cellmap_method_evidence()
+    # returns exactly one receipt row per eligible cell_id, for that method);
+    # re-deriving through sb_cellmap_receipts(ids) here would pull EVERY
+    # method for those ids (wald included) and mislabel the row.
+    ev <- env$pm_cellmap_method_evidence(ctx, method_key)
+    if (nrow(ev)) {
+      alias_rec <- rbind(alias_rec, data.frame(
+        id = ev$capability_id, status = ev$receipt_status,
+        label = sprintf("%s, %s interval (cellmap-joined)", ev$cell_id, method_key),
+        cite = sprintf("%s; %s", env$pm_cite(ctx$files$cellmap, ev$cellmap_line),
+                       env$pm_cite(ctx$drmjl_label(ctx$files$j_intervals), ev$receipt_line)),
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+
   refused <- sb_is_refused(bridge_route)
   all_rec <- rbind(ledger_rec, alias_rec)
   has_pass <- any(all_rec$status %in% sb_pass_statuses())
-  reached <- paste(unique(c(ledger_ids, if (is.null(alias)) character(0L) else alias)),
-                   collapse = ";")
+  reached <- paste(unique(c(ledger_ids, alias_rec$id)), collapse = ";")
 
   if (refused) {
     cite <- sb_refusal_cite(bridge_route)
@@ -543,13 +628,12 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
       "None."
     },
     "",
-    "## Evidence that exists and lifts nothing",
+    "## Receipt inventory and connection boundary",
     "",
     "Receipt rows DRM.jl carries at this sha that no capability above reaches --",
-    "either because no ledger row and no declared alias connects them, or because",
-    "the table they live in is not joinable by `capability_id`. They are listed so",
-    "the UNCITED count above cannot be read as \"no evidence exists\"; it means no",
-    "evidence is CONNECTED.",
+    "because no ledger row, no declared alias, and no cellmap row connects the",
+    "receipt to a capability. They are listed so the UNCITED count above cannot",
+    "be read as \"no evidence exists\"; it means no evidence is CONNECTED.",
     "",
     if (length(orphan_ids)) {
       c(sprintf("`capability_id`s with receipt rows that no capability row reaches (%d):",
@@ -560,14 +644,19 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
       "Every receipt `capability_id` is reached by some capability row."
     },
     "",
-    sprintf("`%s` is keyed by `cell_id`, carries no `capability_id`, and is therefore",
-            ctx$files$j_intervals),
-    "not joined at all. Its rows at this sha:",
+    sprintf("`%s` is keyed by `cell_id`, not `capability_id`. `%s` (S1b) is the",
+            ctx$files$j_intervals, ctx$files$cellmap),
+    "join: it maps each cell_id to a drmTMB capability_id (a verbatim match or a stated rename),",
+    "or records it UNMAPPED -- never guessed. Its rows at this sha, with the mapped capability_id:",
     "",
-    "| cell_id | method | status |",
-    "|---|---|---|",
-    sprintf("| `%s` | `%s` | `%s` |", ctx$j_receipts$intervals$cell_id,
-            ctx$j_receipts$intervals$method, ctx$j_receipts$intervals$status),
+    "| cell_id | capability_id | method | status |",
+    "|---|---|---|---|",
+    {
+      cm_id <- ctx$cellmap$capability_id[match(ctx$j_receipts$intervals$cell_id, ctx$cellmap$cell_id)]
+      cm_cell <- ifelse(is.na(cm_id) | !nzchar(cm_id), "(UNMAPPED)", sprintf("`%s`", cm_id))
+      sprintf("| `%s` | %s | `%s` | `%s` |", ctx$j_receipts$intervals$cell_id, cm_cell,
+              ctx$j_receipts$intervals$method, ctx$j_receipts$intervals$status)
+    },
     "",
     "## What this file does NOT claim",
     "",
@@ -577,10 +666,12 @@ sb_render <- function(env, ctx, sb, drmtmb_sha) {
     "- `native_R` and `native_Julia` are re-projections of each twin's own status",
     "  file. When that file and the underlying cell census disagree, the census",
     "  wins and this file is wrong.",
-    sprintf("- `%s` is keyed by `cell_id` and carries no `capability_id`, so it is not",
-            ctx$files$j_intervals),
-    "  joined here. Interval receipts therefore do not lift any cell out of",
-    "  `UNCITED`.",
+    sprintf("- `%s` is joined only through `%s`'s MAPPED rows (S1b); its UNMAPPED",
+            ctx$files$j_intervals, ctx$files$cellmap),
+    "  cell_id (`gauss_mean_only` at this pin) contributes no evidence to any capability row.",
+    "  `INTERVAL_PASS`/`INTERVAL_OVERLAP_ONLY` count as passing evidence here; `INTERVAL_MISMATCH`",
+    "  does not -- every bootstrap cell at this pin reads `INTERVAL_MISMATCH` BY DESIGN (independent",
+    "  resamples), not as a failure; see \"Parametric bootstrap CIs\" in `docs/design/parity-matrix.md`.",
     "- A drmTMB capability with no row of that name in DRM.jl's file cannot appear",
     "  here at all: the shared join aborts on it. `docs/design/capability-status-join.md`",
     "  is the artefact that reports those."
@@ -593,7 +684,11 @@ sb_write <- function(root, drmjl_path,
   ctx <- env$pm_load_context(root, drmjl_path)
   mat <- env$pm_build_matrix(ctx)
   sb <- sb_build(env, ctx, mat)
-  lines <- sb_render(env, ctx, sb, sb_head_sha(root))
+  # drmTMB's OWN HEAD -- a different question from the DRModels pin
+  # `ctx$pin` already carries -- read through the same shared helper
+  # (tools/parity-pin.R, loaded transitively via ctx$pin_env) so the literal
+  # git-plumbing call lives in exactly one file (S1b).
+  lines <- sb_render(env, ctx, sb, ctx$pin_env$pp_git_rev_parse(root))
   dir.create(dirname(out), recursive = TRUE, showWarnings = FALSE)
   writeLines(lines, out, useBytes = TRUE)
   message("wrote ", nrow(sb), " scoreboard rows to ", out,

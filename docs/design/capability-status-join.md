@@ -9,12 +9,13 @@ from the drmTMB source checkout (no Julia is started).
 
 | input | sha |
 |---|---|
-| drmTMB (this repo, HEAD at generation) | `54df129feb0de63e2f46c6b43878b8161c4049ba` |
-| DRM.jl `da8b3f8711beb5ef3186b890544c2e7850c7f194`, read with `git show` -- never its working tree | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
+| drmTMB (this repo, HEAD at generation) | `e9aa324e1fe4b3ce37cac22e7f21ce800498b14f` |
+| DRM.jl, at the programme pin, read with `git show` -- never its working tree | `da8b3f8711beb5ef3186b890544c2e7850c7f194` |
 
 The canonical DRM.jl clone normally sits on some lane's branch. Reading its
 working tree would report that lane's in-flight edit as the state of main, so
-this file reads a named ref and records the sha it resolved to.
+this file reads the programme pin (docs/dev-log/loop/parity-joint-20260905/source-pins.json
+repins[-1], via tools/parity-pin.R) and refuses a checkout on any other commit.
 
 ## Counts
 
