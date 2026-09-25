@@ -17,25 +17,47 @@
 # receipt.md; the caller (main()) stops before the full sweep if the
 # extrapolated total exceeds 30 minutes.
 
-# ---- environment (belt and braces; the launcher also exports these) -------
+# ---- environment (the launcher exports these; never overwrite a path) ----
 
+# The DRModels checkout and the Julia binary come from the CALLER's
+# environment: DRM_JL_PATH must be set (main() then refuses it unless it is at
+# the programme pin, via tools/parity-pin.R); DRM_JL_PHYLO_PATH defaults to
+# DRM_JL_PATH only when unset; JULIA_HOME is used only when set (otherwise
+# JuliaCall finds `julia` on PATH). The thread caps and test flags are policy,
+# so they are always set.
 sweep_set_env <- function() {
+  drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
+  if (!nzchar(drmjl)) {
+    stop(
+      "DRM_JL_PATH must name the DRModels checkout at the programme pin ",
+      "(docs/dev-log/loop/parity-joint-20260905/source-pins.json repins[-1].drmjl_base).",
+      call. = FALSE
+    )
+  }
+  if (!nzchar(Sys.getenv("DRM_JL_PHYLO_PATH", unset = ""))) {
+    Sys.setenv(DRM_JL_PHYLO_PATH = drmjl)
+  }
   Sys.setenv(
-    JULIA_HOME = "/Users/z3437171/.julia/juliaup/julia-1.13.0+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin",
-    DRM_JL_PATH = file.path(Sys.getenv("HOME"), "local-scratch/lanes/DRModels-pin-da8b3f871"),
-    DRM_JL_PHYLO_PATH = file.path(Sys.getenv("HOME"), "local-scratch/lanes/DRModels-pin-da8b3f871"),
     DRMTMB_JULIA_TESTS = "true",
     NOT_CRAN = "true",
     OPENBLAS_NUM_THREADS = "1",
     OMP_NUM_THREADS = "1",
     JULIA_NUM_THREADS = "4"
   )
-  julia_home <- Sys.getenv("JULIA_HOME")
+  julia_home <- Sys.getenv("JULIA_HOME", unset = "")
   path <- Sys.getenv("PATH")
-  if (!grepl(julia_home, path, fixed = TRUE)) {
+  if (nzchar(julia_home) && !grepl(julia_home, path, fixed = TRUE)) {
     Sys.setenv(PATH = paste(julia_home, path, sep = .Platform$path.sep))
   }
   invisible(NULL)
+}
+
+# The ONE DRModels pin read path (tools/parity-pin.R, amendment A8): refuse a
+# checkout whose HEAD is not the programme pin, and return that pin.
+sweep_verify_pin <- function(root = ".") {
+  pin_env <- new.env(parent = globalenv())
+  sys.source(file.path(root, "tools", "parity-pin.R"), envir = pin_env)
+  pin_env$pp_verify_pin(Sys.getenv("DRM_JL_PATH"), root = root)
 }
 
 # ---- reuse the S2 census tool's family/formula helpers ---------------------
@@ -545,6 +567,8 @@ sweep_prerun <- function(census_env, grid, cells, log_con = NULL) {
 main <- function() {
   sweep_set_env()
   root <- "."
+  # Checked BEFORE the sweep, so a mismatched checkout never costs a run.
+  drmjl_ref <- sweep_verify_pin(root)
   outdir <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "arc1-model-identity")
   dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
   sweep_path <- file.path(outdir, "sweep.tsv")
@@ -619,12 +643,13 @@ main <- function() {
   errors <- sweep_tab[sweep_tab$classification == "ERROR", , drop = FALSE]
   positive_row <- sweep_tab[sweep_tab$control == "positive", , drop = FALSE]
 
-  drmjl_ref <- tryCatch(
-    system2("git", c("-C", shQuote(Sys.getenv("DRM_JL_PATH")), "rev-parse", "HEAD"), stdout = TRUE),
-    error = function(e) NA_character_
-  )
+  julia_bin <- if (nzchar(Sys.getenv("JULIA_HOME"))) {
+    file.path(Sys.getenv("JULIA_HOME"), "julia")
+  } else {
+    Sys.which("julia")
+  }
   julia_version <- tryCatch(
-    system2(file.path(Sys.getenv("JULIA_HOME"), "julia"), "--version", stdout = TRUE),
+    system2(julia_bin, "--version", stdout = TRUE),
     error = function(e) NA_character_
   )
 

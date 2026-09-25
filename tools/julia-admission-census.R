@@ -406,6 +406,25 @@ census_run_cell <- function(family, structure, dpar, gates, fixture) {
     # message check and the gates' own `message_pattern`s match reliably.
     cli.condition_width = Inf
   ))
+  # drm_julia_path() (R/julia-bridge.R) has one more fallback the scrub above
+  # cannot clear: a sibling `../DRModels.jl` or `../DRM.jl` of getwd(). Run
+  # from a maintainer's repository root, that sibling usually exists, and the
+  # "no live Julia" promise would silently break (ADMIT cells would boot
+  # JuliaCall). So each cell runs from a fresh empty directory, and the tool
+  # refuses to continue unless the bridge now resolves no checkout at all.
+  cell_dir <- tempfile("admission-census-cwd-")
+  dir.create(cell_dir)
+  withr::defer(unlink(cell_dir, recursive = TRUE, force = TRUE))
+  withr::local_dir(cell_dir)
+  resolved <- utils::getFromNamespace("drm_julia_path", "drmTMB")()
+  if (nzchar(resolved)) {
+    stop(
+      "admission census refuses to run: drmTMB would still resolve a Julia ",
+      "checkout (", resolved, ") after clearing every path; the census must ",
+      "never boot a live Julia process.",
+      call. = FALSE
+    )
+  }
   data <- fixture$data
   tree <- fixture$tree
   K <- fixture$K
