@@ -25,7 +25,14 @@ r071_skip_unless_source_tree <- function() {
 # ARC 1 PR-D FOLD NOTE (docs/dev-log/loop/arc1-honest-ledger/pr1304-fold-provenance.md):
 # Folded from itchyshin/drmTMB#1304 (commit 9e959fc8a for this file's skip-guard revision)
 # with the adaptations listed in the provenance note (the package attach in the helper
-# above, and the removed blocks below). The folded evidence records two pin sets:
+# above, the removed blocks below, and a repaired regex in two blocks). The repair: the
+# "no top-level sbatch" guard in the "S7 Fir preflight ..." and "S7 reconciliation
+# payload ..." blocks was `^[^#]*\\bsbatch\\b` without multiline mode, run on the whole
+# script joined into one string. `^` then matches only at position 0, where each script
+# starts with `#!`, so the guard could never fail. It now reads `(?m)^[^#\\n]*\\bsbatch\\b`,
+# which checks every line; measured: an injected uncommented `sbatch` line is now caught,
+# the committed scripts still pass, and a commented mention still passes.
+# The folded evidence records two pin sets:
 # s7-coverage-summary.tsv at drmTMB 453cff782 / DRM.jl b2caf00f23f080fe89028966a4bfb098ef095510,
 # and reconciled-summary.tsv and cost-probe.md at drmTMB 9939ace07 / DRM.jl
 # b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c (superseded preliminary receipts).
@@ -584,7 +591,8 @@ test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
   expect_match(text, "SLURM_ARRAY_TASK_ID=1501", fixed = TRUE)
   expect_match(text, "dependencies = NA", fixed = TRUE)
   expect_false(grepl("dependencies = TRUE", text, fixed = TRUE))
-  expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
+  # ARC 1 PR-D FOLD ADAPTATION: (?m) added; see the header note.
+  expect_false(grepl("(?m)^[^#\\n]*\\bsbatch\\b", text, perl = TRUE))
 })
 
 test_that("S7 reconciliation payload proves staged source subsets on a compute node", {
@@ -606,7 +614,8 @@ test_that("S7 reconciliation payload proves staged source subsets on a compute n
   expect_match(text, "source-pins-final.tsv", fixed = TRUE)
   expect_match(text, "sha256sum", fixed = TRUE)
   expect_false(grepl("764ceaf9|b877f513", text))
-  expect_false(grepl("^[^#]*\\bsbatch\\b", text, perl = TRUE))
+  # ARC 1 PR-D FOLD ADAPTATION: (?m) added; see the header note.
+  expect_false(grepl("(?m)^[^#\\n]*\\bsbatch\\b", text, perl = TRUE))
 })
 
 test_that("S7 coverage writer binds the source-subset proof to frozen archives", {

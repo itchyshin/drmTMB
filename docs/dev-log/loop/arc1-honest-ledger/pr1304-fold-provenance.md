@@ -139,14 +139,14 @@ section 0 before relying on any of them.
 `ade8aea08`, `217f5bcdf`, `9a0f66297`, `854d6381c`, `ddf16873e`, `fcf925e93`, `453cff782`,
 `30dcb9103`, `0285af445`, `0dfbbbb31`, `9e959fc8a`. It tests the folded tooling on synthetic
 inputs and on the folded files, which carry the two pin sets listed at the top of this note. It is not a
-byte-for-byte copy. Three adaptations were made, all on the test side, none touching R/ or src/:
+byte-for-byte copy. Four adaptations were made, all on the test side, none touching R/ or src/:
 
 1. **Nine of the original 38 `test_that()` blocks are not folded**, because they exercise code this
    Arc 1 fold deliberately does not port (see "what was left out" below). Running them here, with
    today's `origin/main`, would fail them for reasons that have nothing to do with whether the
    FOLD-NOW evidence itself is sound. Their titles are recorded in a comment at the top of the file
    and repeated below for a single point of truth. The remaining 29 blocks are unchanged from
-   #1304's text.
+   #1304's text, except for the one-line regex repair in two of them (item 3).
 2. The shared helper `r071_skip_unless_source_tree()` now attaches the `drmTMB` package
    (`library(drmTMB)`, guarded so it is a no-op if already attached) before its skip check. #1304's
    suite ran under `devtools::test()`, which attaches the package under test automatically before any
@@ -155,7 +155,22 @@ byte-for-byte copy. Three adaptations were made, all on the test side, none touc
    and preserves scalar-RI shapes`) calls a helper that in turn calls `bf()`, which is only defined
    once drmTMB is attached. This is a plain `library()` call, not a change to R/ or to drmTMB's own
    behaviour.
-3. `inst/extdata/env-skip-census.tsv` was regenerated (not hand-edited) with
+3. **Two vacuous guards repaired.** The blocks "S7 Fir preflight is compute-node-only and runs one
+   retained task" and "S7 reconciliation payload proves staged source subsets on a compute node"
+   each end with a "no top-level `sbatch`" guard, `expect_false(grepl("^[^#]*\\bsbatch\\b", text,
+   perl = TRUE))`, copied verbatim from #1304 at `9e959fc8a`. `text` is the whole script joined
+   into one string and the pattern has no multiline flag, so `^` anchors only at position 0; both
+   scripts start with `#!/usr/bin/env bash`, so `[^#]*` is empty there and the guard could never
+   fail. Measured in review and re-measured here: with an uncommented
+   `sbatch --array=1-2000 s7-fir-array.sh` line injected after line 3 of each script, the inherited
+   pattern returns `FALSE` (guard passes) and the repaired pattern returns `TRUE` (guard fails). The
+   repair is `(?m)^[^#\n]*\bsbatch\b` (as written in the R source: `"(?m)^[^#\\n]*\\bsbatch\\b"`), which
+   checks every line; on the committed scripts it returns `FALSE`, and a commented `# sbatch` line
+   still passes. The same guard in the worker and array blocks is unanchored and was already
+   working, so it is unchanged. This is an inherited defect, not one the fold introduced; it is
+   repaired rather than kept verbatim because a guard that cannot fail reads as a working
+   no-submit check.
+4. `inst/extdata/env-skip-census.tsv` was regenerated (not hand-edited) with
    `Rscript --no-init-file tools/write-env-skip-census.R` after the test file above was in place. It
    now carries one new row, `test-071-four-fixture-summary.R  build-premise  build  skips  1`.
    #1304's own version of this census (at `9e959fc8a`) carried two rows for this file:
