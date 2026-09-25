@@ -1,0 +1,813 @@
+# Source-tree premise (the CI blind spot, docs/dev-log/after-task/
+# 2026-09-05-ci-source-tree-blindspot.md): every block in this file reads
+# paths that .Rbuildignore removes from the tarball (docs/dev-log/evidence/
+# and tools/), so under R CMD check they can only ever be absent. Each block
+# therefore skips on that premise; the blind-spot job runs this file from the
+# source tree, where tools/source-tree-tests.txt lists it.
+r071_skip_unless_source_tree <- function() {
+  # ARC 1 PR-D FOLD ADAPTATION: the original #1304 suite ran under devtools::test(),
+  # which attaches the package under test before any test file runs, so bf() and the
+  # family constructors were always in scope. Running this file standalone via
+  # testthat::test_file() does not attach the package first, so attach it explicitly
+  # here (a plain library() call, not an R/ or Arc-2 change).
+  if (!"package:drmTMB" %in% search()) {
+    suppressPackageStartupMessages(library(drmTMB))
+  }
+  root <- testthat::test_path("..", "..")
+  testthat::skip_if(
+    !file.exists(file.path(root, "tools", "write-parity-scoreboard.R")) ||
+      !dir.exists(file.path(root, "docs", "dev-log", "evidence",
+                            "julia-r-parity", "071-ordinary-laplace")),
+    "source tree only: .Rbuildignore removes docs/dev-log and tools/ from the tarball"
+  )
+}
+
+# ARC 1 PR-D FOLD NOTE (docs/dev-log/loop/arc1-honest-ledger/pr1304-fold-provenance.md):
+# Folded from itchyshin/drmTMB#1304 (commit 9e959fc8a for this file's skip-guard revision)
+# with the adaptations listed in the provenance note (the package attach in the helper
+# above, the removed blocks below, and a repaired regex in two blocks). The repair: the
+# "no top-level sbatch" guard in the "S7 Fir preflight ..." and "S7 reconciliation
+# payload ..." blocks was `^[^#]*\\bsbatch\\b` without multiline mode, run on the whole
+# script joined into one string. `^` then matches only at position 0, where each script
+# starts with `#!`, so the guard could never fail. It now reads `(?m)^[^#\\n]*\\bsbatch\\b`,
+# which checks every line; measured: an injected uncommented `sbatch` line is now caught,
+# the committed scripts still pass, and a commented mention still passes.
+# The folded evidence records two pin sets:
+# s7-coverage-summary.tsv at drmTMB 453cff782 / DRM.jl b2caf00f23f080fe89028966a4bfb098ef095510,
+# and reconciled-summary.tsv and cost-probe.md at drmTMB 9939ace07 / DRM.jl
+# b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c (superseded preliminary receipts).
+# Nine test_that() blocks from the original #1304 file (38 blocks there, 29 here) are NOT
+# folded here because they require code this Arc 1 fold does not port.
+# Six need either tools/write-parity-scoreboard.R's new sb_ordinary_laplace_*() functions
+# (Arc 1 PR-A owns that generator's rewrite; #1304's patch to it is adopted-as-pattern, not
+# copied, per the absorption note), or the two new ordinary_ri_scalar_laplace /
+# ordinary_nb2_coupled_laplace rows in drmTMB:::drm_julia_capability_comparison(), which is
+# Arc 2 (the marginal= argument). Two more (the "scoreboard requires materialized S7
+# evidence ..." and "scoreboard renders ... after S7 materialization" blocks) call main's
+# sb_write() under a DRM_JL_PATH skip and assert ordinary-Laplace rendering that main's
+# generator does not produce: on main the first would pass vacuously and the second would
+# fail on the missing "ordinary-Laplace reconciliation source pin" text.
+# The eight titles, for provenance: "the scoreboard has a
+# distinct ordinary-Laplace classification path"; "ordinary-Laplace coverage rows are
+# emitted from the capability registry"; "S7 coverage accepts only the declared original
+# writer or scope-fix collector"; "ordinary-Laplace summary rejects a semantic successor
+# commit"; "ordinary-Laplace source-drift guard rejects semantic input changes";
+# "scoreboard requires materialized S7 evidence before current ordinary-Laplace rendering";
+# "scoreboard renders ordinary-Laplace source provenance after S7 materialization";
+# "scoreboard keeps S7 coverage outside the generic receipt tier".
+# The ninth, "S7 source-pinned install declares its compiled TMB shared object", expects
+# DESCRIPTION to declare `NeedsCompilation: yes`. DESCRIPTION on main has no NeedsCompilation
+# field; #1304 added it in commit 764ceaf9b, which is Arc 2 and is not ported by this fold.
+# See the fold provenance note for the full file-by-file account.
+
+test_that("four-fixture summary fails closed when a fixture receipt is absent", {
+  r071_skip_unless_source_tree()
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "reconcile-four-fixture-summary.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  expect_true(is.function(env$r071_reconcile_all))
+  empty <- tempfile("071-empty-receipt-")
+  dir.create(empty)
+  expect_error(
+    env$r071_reconcile_all(root = normalizePath(testthat::test_path("..", "..")),
+                            drmjl_path = normalizePath(testthat::test_path("..", "..")),
+                            out = empty),
+    "missing binomial_ri profile receipt"
+  )
+})
+
+test_that("source staging proves the declared commit and rejects substitute bytes", {
+  r071_skip_unless_source_tree()
+  root <- normalizePath(testthat::test_path("..", ".."))
+  script <- file.path(root, "docs", "dev-log", "evidence",
+                      "julia-r-parity", "071-ordinary-laplace",
+                      "test-source-commit-proof.sh")
+  expect_true(file.exists(script))
+  result <- system2("bash", script, stdout = TRUE, stderr = TRUE)
+  expect_identical(attr(result, "status"), NULL)
+  expect_true(any(grepl("SOURCE_COMMIT_PROOF_TEST_PASS", result, fixed = TRUE)))
+})
+
+test_that("S7 manifest freezes all four 500-seed fixture denominators", {
+  r071_skip_unless_source_tree()
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "prepare-s7-campaign-manifest.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  manifest <- env$r071_s7_manifest()
+  expect_identical(nrow(manifest), 2000L)
+  expect_identical(manifest$array_index, seq_len(2000L))
+  expect_identical(manifest$logical_task_id, seq_len(2000L))
+  expect_identical(names(table(manifest$fixture)), c(
+    "binomial_ri", "nb2_coupled", "nb2_ri", "poisson_ri"
+  ))
+  expect_true(all(as.integer(table(manifest$fixture)) == 500L))
+  expect_true(all(vapply(split(manifest$dgp_seed, manifest$fixture),
+                         function(x) length(unique(x)) == 500L, logical(1))))
+  fixture_info <- env$r071_s7_fixture_table()
+  for (i in seq_len(nrow(fixture_info))) {
+    rows <- manifest[manifest$fixture == fixture_info$fixture[[i]], , drop = FALSE]
+    expect_identical(rows$fixture_index, rep.int(fixture_info$fixture_index[[i]], 500L))
+    expect_identical(rows$dgp_seed, fixture_info$seed_base[[i]] + seq_len(500L))
+  }
+  expect_identical(env$r071_s7_task(manifest, 1L), manifest[1L, , drop = FALSE])
+  expect_error(env$r071_s7_task(manifest, 2001L), "outside the frozen 1..2000 array")
+})
+
+test_that("S7 profile plan freezes all target truths on their profile scales", {
+  r071_skip_unless_source_tree()
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "prepare-s7-campaign-manifest.R")
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  plan <- env$r071_s7_profile_plan()
+  expect_identical(nrow(plan), 34L)
+  expect_identical(as.integer(table(plan$fixture)), c(6L, 14L, 8L, 6L))
+  expect_identical(anyDuplicated(plan[c("fixture", "engine", "parm")]), 0L)
+  expect_true(all(is.finite(plan$truth)))
+  coupled <- plan[plan$fixture == "nb2_coupled" & plan$engine == "tmb", , drop = FALSE]
+  expect_identical(coupled$parm, c(
+    "fixef:mu:(Intercept)", "fixef:mu:x", "fixef:sigma:(Intercept)",
+    "fixef:sigma:z", "cholesky:recov:L11", "cholesky:recov:L22",
+    "cholesky:recov:L21"
+  ))
+  expect_equal(coupled$truth, c(0.2, 0.35, 0.15, -0.1,
+                                 log(0.45), log(0.125), -0.10125))
+})
+
+test_that("S7 campaign fixture factory is deterministic and preserves scalar-RI shapes", {
+  r071_skip_unless_source_tree()
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "s7-campaign-fixture.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  sys.source(tool, envir = env)
+  manifest_tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                       "julia-r-parity", "071-ordinary-laplace",
+                                       "prepare-s7-campaign-manifest.R")
+  manifest_env <- new.env(parent = globalenv())
+  sys.source(manifest_tool, envir = manifest_env)
+  profile_plan <- manifest_env$r071_s7_profile_plan()
+  for (fixture in manifest_env$r071_s7_fixture_table()$fixture) {
+    one <- env$r071_s7_make_fixture(fixture, 71011001L)
+    again <- env$r071_s7_make_fixture(fixture, 71011001L)
+    expect_identical(one$data, again$data, info = fixture)
+    expect_identical(one$formula, again$formula, info = fixture)
+    expected_truths <- profile_plan[profile_plan$fixture == fixture & profile_plan$engine == "tmb",
+                                   c("parm", "target_class", "truth"), drop = FALSE]
+    row.names(expected_truths) <- NULL
+    expect_identical(one$target_truths, expected_truths, info = fixture)
+  }
+  expect_false(identical(
+    env$r071_s7_make_fixture("poisson_ri", 71011001L)$data,
+    env$r071_s7_make_fixture("poisson_ri", 71011002L)$data
+  ))
+})
+
+test_that("S7 attempt receipts are keyed, terminal, and truth-matched", {
+  r071_skip_unless_source_tree()
+  tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace",
+                              "s7-attempt-contract.R")
+  expect_true(file.exists(tool))
+  env <- new.env(parent = globalenv())
+  manifest_tool <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                       "julia-r-parity", "071-ordinary-laplace",
+                                       "prepare-s7-campaign-manifest.R")
+  sys.source(manifest_tool, envir = env)
+  sys.source(tool, envir = env)
+  row <- data.frame(
+    logical_task_id = 1501L, fixture = "nb2_coupled", dgp_seed = 71014001L,
+    engine = "julia", parm = "cholesky:recov:L22", truth = log(0.125),
+    fit_status = "returned", profile_status = "nonfinite_endpoint",
+    stringsAsFactors = FALSE
+  )
+  expect_identical(env$r071_s7_attempt_key(row),
+                   "1501-nb2_coupled-71014001-julia-cholesky_recov_L22")
+  expect_silent(env$r071_s7_validate_attempt(row))
+  row$truth <- 0.125
+  expect_error(env$r071_s7_validate_attempt(row), "truth does not match frozen profile plan")
+  row$truth <- log(0.125)
+  row$profile_status <- "started"
+  expect_error(env$r071_s7_validate_attempt(row), "terminal")
+})
+
+test_that("S7 reconciliation requires all 17000 planned terminal attempts", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  expected <- env$r071_s7_expected_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan())
+  expect_identical(nrow(expected), 17000L)
+  attempts <- transform(expected, fit_status = "returned", profile_status = "profile")
+  expect_error(
+    env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts),
+    "diagnostic"
+  )
+  attempts$estimate <- attempts$truth
+  attempts$link_estimate <- attempts$truth
+  attempts$std_error <- NA_real_
+  attempts$std_error_status <- "unavailable"
+  attempts$convergence_status <- "converged"
+  attempts$gradient_max_abs <- NA_real_
+  attempts$gradient_status <- "unavailable"
+  attempts$hessian_status <- "unavailable"
+  attempts$lower <- attempts$truth - 1
+  attempts$upper <- attempts$truth + 1
+  reconciled <- env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts)
+  expect_identical(reconciled$attempt_count, 17000L)
+  expect_identical(reconciled$profile_count, 17000L)
+  expect_error(
+    env$r071_s7_reconcile_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan(), attempts[-1L, ]),
+    "missing or duplicate"
+  )
+})
+
+test_that("S7 worker specification resolves a task against the frozen plan", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  sys.source(file.path(base, "s7-run-attempt.R"), envir = env)
+  spec <- env$r071_s7_worker_spec(
+    manifest = env$r071_s7_manifest(), profile_plan = env$r071_s7_profile_plan(),
+    task = 1501L, engine = "julia", parm = "cholesky:recov:L22"
+  )
+  expect_identical(spec$fixture, "nb2_coupled")
+  expect_identical(spec$dgp_seed, 71014001L)
+  expect_equal(spec$truth, log(0.125))
+  expect_error(
+    env$r071_s7_worker_spec(env$r071_s7_manifest(), env$r071_s7_profile_plan(),
+                             task = 1L, engine = "tmb", parm = "cholesky:recov:L22"),
+    "absent from the frozen profile plan"
+  )
+})
+
+test_that("S7 worker dry-run writes only its immutable planned sidecar", {
+  r071_skip_unless_source_tree()
+  root <- normalizePath(testthat::test_path("..", ".."))
+  tool <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity",
+                    "071-ordinary-laplace", "s7-run-attempt.R")
+  out <- tempfile("071-s7-worker-")
+  dir.create(out)
+  status <- system2("Rscript", c(
+    tool, paste0("--root=", root), "--task=1501", "--engine=julia",
+    "--parm=cholesky:recov:L22", paste0("--out=", out), "--dry-run=true"
+  ))
+  expect_identical(status, 0L)
+  planned <- utils::read.delim(file.path(out, "planned-attempt.tsv"),
+                               stringsAsFactors = FALSE, check.names = FALSE)
+  expect_identical(planned$fixture, "nb2_coupled")
+  expect_identical(planned$dgp_seed, 71014001L)
+  expect_equal(planned$truth, log(0.125))
+  expect_false(file.exists(file.path(out, "profile-receipt.tsv")))
+})
+
+test_that("S7 campaign bundle materializes and hashes the frozen denominators", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "prepare-s7-campaign-bundle.R"), envir = env)
+  bundle <- tempfile("071-s7-bundle-")
+  dir.create(bundle)
+  receipt <- env$r071_s7_write_campaign_bundle(bundle)
+  expect_identical(receipt$manifest_rows, 2000L)
+  expect_identical(receipt$profile_plan_rows, 34L)
+  expect_true(file.exists(file.path(bundle, "s7-manifest.tsv")))
+  expect_true(file.exists(file.path(bundle, "s7-profile-plan.tsv")))
+  expect_true(file.exists(file.path(bundle, "campaign.json")))
+  expect_match(receipt$manifest_sha256, "^[0-9a-f]{64}$")
+  expect_match(receipt$profile_plan_sha256, "^[0-9a-f]{64}$")
+  expect_match(receipt$campaign_sha256, "^[0-9a-f]{64}$")
+  expect_identical(
+    env$r071_s7_read_campaign_bundle(bundle)$manifest,
+    env$r071_s7_manifest()
+  )
+})
+
+test_that("S7 attempt diagnostics classify unavailable uncertainty explicitly", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  attempt <- env$r071_s7_complete_attempt(
+    logical_task_id = 1501L, fixture = "nb2_coupled", dgp_seed = 71014001L,
+    engine = "julia", parm = "cholesky:recov:L22", truth = log(0.125),
+    estimate = log(0.11), link_estimate = log(0.11),
+    std_error = NA_real_, std_error_status = "unavailable",
+    convergence_status = "converged", gradient_max_abs = NA_real_,
+    gradient_status = "unavailable", hessian_status = "unavailable",
+    fit_status = "returned", profile_status = "nonfinite_endpoint",
+    lower = NA_real_, upper = Inf
+  )
+  expect_silent(env$r071_s7_validate_attempt(attempt))
+  expect_identical(attempt$std_error_status, "unavailable")
+  attempt$std_error_status <- ""
+  expect_error(env$r071_s7_validate_attempt(attempt), "diagnostic classification")
+})
+
+test_that("S7 task dry-run expands one immutable array task to its complete attempt set", {
+  r071_skip_unless_source_tree()
+  root <- normalizePath(testthat::test_path("..", ".."))
+  base <- file.path(root, "docs", "dev-log", "evidence", "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "prepare-s7-campaign-bundle.R"), envir = env)
+  bundle <- tempfile("071-s7-task-bundle-")
+  out <- tempfile("071-s7-task-out-")
+  dir.create(bundle)
+  dir.create(out)
+  env$r071_s7_write_campaign_bundle(bundle)
+  tool <- file.path(base, "s7-run-task.R")
+  status <- system2("Rscript", c(
+    tool, paste0("--root=", root), paste0("--bundle=", bundle), "--task=1501",
+    paste0("--out=", out), "--dry-run=true"
+  ))
+  expect_identical(status, 0L)
+  planned <- utils::read.delim(file.path(out, "planned-task.tsv"),
+                               stringsAsFactors = FALSE, check.names = FALSE)
+  expect_identical(nrow(planned), 14L)
+  expect_identical(unique(planned$fixture), "nb2_coupled")
+  expect_identical(unique(planned$logical_task_id), 1501L)
+  expect_identical(as.integer(table(planned$engine)), c(7L, 7L))
+  expect_false(file.exists(file.path(out, "attempts.tsv")))
+})
+
+test_that("S7 task receipt validator refuses a partially classified task", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  sys.source(file.path(base, "s7-run-task.R"), envir = env)
+  bundle <- list(manifest = env$r071_s7_manifest(), profile_plan = env$r071_s7_profile_plan())
+  plan <- env$r071_s7_task_attempt_plan(bundle, 1501L)
+  attempts <- do.call(rbind, lapply(seq_len(nrow(plan)), function(i) {
+    row <- plan[i, , drop = FALSE]
+    env$r071_s7_complete_attempt(
+      logical_task_id = row$logical_task_id, fixture = row$fixture, dgp_seed = row$dgp_seed,
+      engine = row$engine, parm = row$parm, truth = row$truth,
+      estimate = row$truth, link_estimate = row$truth,
+      std_error = NA_real_, std_error_status = "unavailable",
+      convergence_status = "converged", gradient_max_abs = NA_real_,
+      gradient_status = "unavailable", hessian_status = "unavailable",
+      fit_status = "returned", profile_status = "profile",
+      lower = row$truth - 1, upper = row$truth + 1
+    )
+  }))
+  expect_silent(env$r071_s7_validate_task_attempts(plan, attempts))
+  expect_error(env$r071_s7_validate_task_attempts(plan, attempts[-1L, ]), "count")
+})
+
+test_that("S7 fit diagnostics distinguish finite native SEs from unavailable Julia Hessians", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-fit-diagnostics.R"), envir = env)
+  native <- list(
+    opt = list(convergence = 0L, par = c(beta_mu = 0.1)),
+    sdr = list(cov.fixed = matrix(0.04, 1, 1), pdHess = TRUE),
+    gradient_max_component = 0.001
+  )
+  target <- data.frame(tmb_parameter = "beta_mu", index = 1L,
+                       link_estimate = 0.1, transformation = "linear_predictor")
+  native_out <- env$r071_s7_fit_diagnostics(native, target, engine = "tmb")
+  expect_equal(native_out$std_error, 0.2)
+  expect_identical(native_out$std_error_status, "finite")
+  expect_identical(native_out$convergence_status, "converged")
+  expect_identical(native_out$gradient_status, "finite")
+  expect_identical(native_out$hessian_status, "positive_definite")
+  julia <- list(
+    opt = list(convergence = 0L), diagnostics = list(gradient = NULL),
+    vcov = matrix(0.09, 1, 1, dimnames = list("mu_(Intercept)", "mu_(Intercept)"))
+  )
+  julia_target <- data.frame(tmb_parameter = "mu_(Intercept)", index = 1L,
+                             link_estimate = 0.2, transformation = "linear_predictor")
+  julia_out <- env$r071_s7_fit_diagnostics(julia, julia_target, engine = "julia")
+  expect_equal(julia_out$std_error, 0.3)
+  expect_identical(julia_out$std_error_status, "finite")
+  expect_identical(julia_out$gradient_status, "unavailable")
+  expect_identical(julia_out$hessian_status, "unavailable")
+  native$gradient_max_component <- NULL
+  native$gradient <- c(-0.05, 0.12)
+  native_fallback <- env$r071_s7_fit_diagnostics(native, target, engine = "tmb")
+  expect_equal(native_fallback$gradient_max_abs, 0.12)
+  expect_identical(native_fallback$gradient_status, "finite")
+})
+
+test_that("S7 per-fit receipt classifies finite, failed, and truth-outside profiles", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "prepare-s7-campaign-manifest.R"), envir = env)
+  sys.source(file.path(base, "s7-attempt-contract.R"), envir = env)
+  sys.source(file.path(base, "s7-fit-diagnostics.R"), envir = env)
+  sys.source(file.path(base, "s7-fit-attempt.R"), envir = env)
+  spec <- data.frame(
+    logical_task_id = 1L, fixture = "binomial_ri", dgp_seed = 71011001L,
+    engine = "tmb", parm = "fixef:mu:(Intercept)", truth = -0.1
+  )
+  target <- data.frame(
+    parm = "fixef:mu:(Intercept)", estimate = -0.12, link_estimate = -0.12,
+    tmb_parameter = "beta_mu", index = 1L, transformation = "linear_predictor"
+  )
+  fit <- list(
+    opt = list(convergence = 0L, par = c(beta_mu = -0.12)),
+    sdr = list(cov.fixed = matrix(0.04, 1, 1), pdHess = TRUE),
+    gradient_max_component = 0.002
+  )
+  inventory <- function(object) target
+  finite_profile <- function(...) data.frame(lower = -0.5, upper = 0.3)
+  out <- env$r071_s7_attempt_from_fit(fit, spec, inventory, finite_profile)
+  expect_identical(out$profile_status, "profile")
+  expect_equal(out$std_error, 0.2)
+  expect_equal(out$lower, -0.5)
+  outside_profile <- function(...) data.frame(lower = 0.1, upper = 0.3)
+  outside <- env$r071_s7_attempt_from_fit(fit, spec, inventory, outside_profile)
+  expect_identical(outside$profile_status, "truth_outside")
+  failed <- env$r071_s7_fit_failed_attempt(spec)
+  expect_identical(failed$fit_status, "fit_failed")
+  expect_identical(failed$hessian_status, "fit_failed")
+})
+
+test_that("S7 task dispatcher retains every planned target after an individual fit failure", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R",
+                 "s7-fit-diagnostics.R", "s7-fit-attempt.R", "s7-run-task.R",
+                 "s7-task-dispatch.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  bundle <- list(manifest = env$r071_s7_manifest(), profile_plan = env$r071_s7_profile_plan())
+  task <- env$r071_s7_task(bundle$manifest, 1L)
+  plan <- bundle$profile_plan[bundle$profile_plan$fixture == task$fixture[[1L]], , drop = FALSE]
+  plan <- transform(
+    plan, logical_task_id = task$logical_task_id[[1L]],
+    dgp_seed = task$dgp_seed[[1L]]
+  )[, c("logical_task_id", "fixture", "dgp_seed", "engine", "parm", "truth")]
+  make_fixture <- function(fixture, seed) list(fixture = fixture, seed = seed)
+  fit_factory <- function(spec, fixture) {
+    if (identical(spec$parm[[1L]], "sd:mu:(1 | group)")) stop("deliberate fit failure")
+    list(
+      target = data.frame(
+        parm = spec$parm, estimate = spec$truth, link_estimate = spec$truth,
+        tmb_parameter = "beta_mu", index = 1L, transformation = "linear_predictor"
+      ),
+      opt = list(convergence = 0L, par = c(beta_mu = spec$truth)),
+      sdr = list(cov.fixed = matrix(0.04, 1, 1), pdHess = TRUE),
+      gradient_max_component = 0.001, truth = spec$truth
+    )
+  }
+  out <- env$r071_s7_dispatch_task(
+    plan, make_fixture, fit_factory,
+    target_inventory = function(fit) fit$target,
+    profile_fun = function(object, ...) data.frame(lower = object$truth - 1, upper = object$truth + 1)
+  )
+  expect_identical(nrow(out), 6L)
+  expect_identical(sum(out$fit_status == "fit_failed"), 2L)
+  expect_identical(sum(out$profile_status == "profile"), 4L)
+  expect_silent(env$r071_s7_validate_task_attempts(plan, out))
+})
+
+test_that("S7 engine fit factory forwards Laplace only to the Julia engine", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-live-fit-factory.R"), envir = env)
+  fixture <- list(formula = quote(y ~ x), family = "family", data = data.frame(y = 1), marginal = "Laplace")
+  capture <- function(...) list(...)
+  tmb_spec <- data.frame(engine = "tmb")
+  julia_spec <- data.frame(engine = "julia")
+  tmb_args <- env$r071_s7_engine_fit(tmb_spec, fixture, drm_fit = capture)
+  julia_args <- env$r071_s7_engine_fit(julia_spec, fixture, drm_fit = capture)
+  expect_identical(tmb_args$engine, "tmb")
+  expect_false("marginal" %in% names(tmb_args))
+  expect_identical(julia_args$engine, "julia")
+  expect_identical(julia_args$marginal, "Laplace")
+})
+
+test_that("S7 coupled NB2 fixture preserves the q=2 Julia Laplace route", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-campaign-fixture.R"), envir = env)
+  sys.source(file.path(base, "s7-live-fit-factory.R"), envir = env)
+  suppressPackageStartupMessages(library(drmTMB))
+  fixture <- env$r071_s7_make_fixture("nb2_coupled", 71014001L)
+  expect_null(fixture$marginal)
+  captured <- env$r071_s7_engine_fit(
+    data.frame(engine = "julia", stringsAsFactors = FALSE), fixture,
+    drm_fit = function(...) list(...)
+  )
+  expect_false("marginal" %in% names(captured))
+})
+
+test_that("S7 Fir worker wrapper is no-submit and one-thread fail-closed", {
+  r071_skip_unless_source_tree()
+  worker <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                "julia-r-parity", "071-ordinary-laplace", "s7-fir-worker.sh")
+  expect_true(file.exists(worker))
+  expect_identical(system2("bash", c("-n", worker)), 0L)
+  text <- paste(readLines(worker, warn = FALSE), collapse = "\n")
+  expect_match(text, "#SBATCH --cpus-per-task=1", fixed = TRUE)
+  expect_match(text, "#SBATCH --time=02:00:00", fixed = TRUE)
+  expect_match(text, "SLURM_JOB_ID", fixed = TRUE)
+  expect_match(text, "1..2000", fixed = TRUE)
+  expect_match(text, "OPENBLAS_NUM_THREADS=1", fixed = TRUE)
+  expect_match(text, "JULIA_NUM_THREADS=1", fixed = TRUE)
+  expect_match(text, "attempts.tsv", fixed = TRUE)
+  expect_match(text, "SHA256SUMS", fixed = TRUE)
+  expect_match(text, "COMMITTED", fixed = TRUE)
+  expect_match(text, "incoming", fixed = TRUE)
+  expect_false(grepl("\\bsbatch\\b", text))
+})
+
+test_that("S7 Fir array payload initializes the pinned runtime before the worker", {
+  r071_skip_unless_source_tree()
+  array <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                               "julia-r-parity", "071-ordinary-laplace", "s7-fir-array.sh")
+  expect_true(file.exists(array))
+  expect_identical(system2("bash", c("-n", array)), 0L)
+  text <- paste(readLines(array, warn = FALSE), collapse = "\n")
+  expect_match(text, "--account=def-snakagaw_cpu", fixed = TRUE)
+  expect_match(text, "--partition=cpubase_bycore_b1", fixed = TRUE)
+  expect_match(text, "module load StdEnv/2023 r/4.6.1 julia/1.12.5", fixed = TRUE)
+  expect_match(text, "R_LIBS_USER", fixed = TRUE)
+  expect_match(text, "JULIA_DEPOT_PATH", fixed = TRUE)
+  expect_match(text, "DRM_JL_PATH", fixed = TRUE)
+  expect_match(text, "s7-fir-worker.sh", fixed = TRUE)
+  expect_false(grepl("\\bsbatch\\b", text))
+})
+
+test_that("S7 task runner requires explicit approval for a live fit", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-run-task.R"), envir = env)
+  common <- c("--root=/tmp", "--bundle=/tmp", "--task=1", "--out=/tmp")
+  dry <- env$r071_s7_task_args(c(common, "--dry-run=true"))
+  expect_false(env$r071_s7_task_execution_allowed(dry))
+  refused <- env$r071_s7_task_args(c(common, "--dry-run=false"))
+  expect_error(env$r071_s7_task_execution_allowed(refused), "approved=true")
+  approved <- env$r071_s7_task_args(c(common, "--dry-run=false", "--approved=true"))
+  expect_true(env$r071_s7_task_execution_allowed(approved))
+})
+
+test_that("S7 Fir preflight is compute-node-only and runs one retained task", {
+  r071_skip_unless_source_tree()
+  preflight <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                   "julia-r-parity", "071-ordinary-laplace", "s7-fir-preflight.sh")
+  expect_true(file.exists(preflight))
+  expect_identical(system2("bash", c("-n", preflight)), 0L)
+  text <- paste(readLines(preflight, warn = FALSE), collapse = "\n")
+  expect_match(text, "#SBATCH --account=def-snakagaw_cpu", fixed = TRUE)
+  expect_match(text, "#SBATCH --partition=cpubase_bycore_b1", fixed = TRUE)
+  expect_match(text, "JULIA_DEPOT_PATH", fixed = TRUE)
+  expect_match(text, "R_LIBS_USER", fixed = TRUE)
+  expect_match(text, "Pkg.instantiate", fixed = TRUE)
+  expect_match(text, "SLURM_ARRAY_TASK_ID=1501", fixed = TRUE)
+  expect_match(text, "dependencies = NA", fixed = TRUE)
+  expect_false(grepl("dependencies = TRUE", text, fixed = TRUE))
+  # ARC 1 PR-D FOLD ADAPTATION: (?m) added; see the header note.
+  expect_false(grepl("(?m)^[^#\\n]*\\bsbatch\\b", text, perl = TRUE))
+})
+
+test_that("S7 reconciliation payload proves staged source subsets on a compute node", {
+  r071_skip_unless_source_tree()
+  reconcile <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                                   "julia-r-parity", "071-ordinary-laplace", "s7-fir-reconcile.sh")
+  expect_true(file.exists(reconcile))
+  text <- paste(readLines(reconcile, warn = FALSE), collapse = "\n")
+  expect_match(text, "#SBATCH --cpus-per-task=1", fixed = TRUE)
+  expect_match(text, "source-tree-archive-compare", fixed = TRUE)
+  expect_match(text, "verify-source-commit.sh", fixed = TRUE)
+  expect_match(text, "SOURCE_COMMIT_SUBSET_PROOF_PASS", fixed = TRUE)
+  expect_match(text, "DESCRIPTION,NAMESPACE,R,src,inst", fixed = TRUE)
+  expect_match(text, "'drmTMB/'", fixed = TRUE)
+  expect_match(text, "Project.toml,src", fixed = TRUE)
+  expect_false(grepl("diff -qr", text, fixed = TRUE))
+  expect_match(text, "s7-coverage-summary.tsv", fixed = TRUE)
+  expect_match(text, "--drmjl-source-root=${S7_DRMJL_ROOT}", fixed = TRUE)
+  expect_match(text, "source-pins-final.tsv", fixed = TRUE)
+  expect_match(text, "sha256sum", fixed = TRUE)
+  expect_false(grepl("764ceaf9|b877f513", text))
+  # ARC 1 PR-D FOLD ADAPTATION: (?m) added; see the header note.
+  expect_false(grepl("(?m)^[^#\\n]*\\bsbatch\\b", text, perl = TRUE))
+})
+
+test_that("S7 coverage writer binds the source-subset proof to frozen archives", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  sys.source(file.path(base, "s7-write-coverage-summary.R"), envir = env)
+  drmtmb <- tempfile("071-s7-drmtmb-")
+  drmjl <- tempfile("071-s7-drmjl-")
+  dir.create(drmtmb)
+  dir.create(drmjl)
+  drmtmb_sha <- paste(rep("a", 64L), collapse = "")
+  drmjl_sha <- paste(rep("b", 64L), collapse = "")
+  receipt <- tempfile("071-s7-source-tree-")
+  writeLines(c(
+    "source_tree_archive_compare=PASS",
+    "source_subset_commit_proof=PASS",
+    paste0("drmtmb_source=", normalizePath(drmtmb)),
+    paste0("drmjl_source=", normalizePath(drmjl)),
+    paste0("drmtmb_archive_sha256=", drmtmb_sha),
+    paste0("drmjl_archive_sha256=", drmjl_sha)
+  ), receipt)
+  expect_silent(env$r071_s7_read_source_tree_check(
+    receipt, drmtmb, drmjl, drmtmb_sha, drmjl_sha
+  ))
+  writeLines(c(readLines(receipt, warn = FALSE),
+               "drmjl_archive_sha256=unverified"), receipt)
+  expect_error(
+    env$r071_s7_read_source_tree_check(receipt, drmtmb, drmjl, drmtmb_sha, drmjl_sha),
+    "source-subset commit proof is invalid"
+  )
+})
+
+
+test_that("S7 campaign collector refuses an incomplete retained denominator", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
+                 "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  campaign <- tempfile("071-s7-campaign-")
+  dir.create(campaign)
+  dir.create(file.path(campaign, "bundle"))
+  dir.create(file.path(campaign, "tasks"))
+  env$r071_s7_write_campaign_bundle(file.path(campaign, "bundle"))
+  expect_error(env$r071_s7_collect_campaign(campaign), "missing committed S7 task receipts")
+})
+
+test_that("S7 coverage summary retains failures in its unconditional denominator", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R",
+                 "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  expected <- env$r071_s7_expected_attempts(env$r071_s7_manifest(), env$r071_s7_profile_plan())
+  attempts <- transform(
+    expected,
+    estimate = truth,
+    link_estimate = truth,
+    std_error = NA_real_,
+    std_error_status = "unavailable",
+    convergence_status = "unavailable",
+    gradient_max_abs = NA_real_,
+    gradient_status = "unavailable",
+    hessian_status = "unavailable",
+    fit_status = "returned",
+    profile_status = "profile",
+    lower = truth - 1,
+    upper = truth + 1
+  )
+  attempts$profile_status[attempts$fixture == "binomial_ri" & attempts$engine == "tmb" &
+                            attempts$parm == "fixef:mu:(Intercept)" & attempts$dgp_seed == 71011001L] <- "truth_outside"
+  summary <- env$r071_s7_coverage_summary(attempts)
+  row <- summary[summary$fixture == "binomial_ri" & summary$engine == "tmb" &
+                   summary$parm == "fixef:mu:(Intercept)", , drop = FALSE]
+  expect_identical(nrow(row), 1L)
+  expect_identical(row$attempt_count, 500L)
+  expect_identical(row$unconditional_covered, 499L)
+  expect_identical(row$finite_endpoint_count, 500L)
+  expect_identical(row$conditional_covered, 499L)
+  expect_identical(row$truth_outside_count, 1L)
+})
+
+test_that("S7 coverage writer retains one pinned 500-seed row per target", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "s7-attempt-contract.R",
+                 "s7-reconcile-campaign.R", "s7-write-coverage-summary.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  manifest <- env$r071_s7_manifest()
+  profile_plan <- env$r071_s7_profile_plan()
+  attempts <- transform(
+    env$r071_s7_expected_attempts(manifest, profile_plan),
+    estimate = truth,
+    link_estimate = truth,
+    std_error = NA_real_,
+    std_error_status = "unavailable",
+    convergence_status = "unavailable",
+    gradient_max_abs = NA_real_,
+    gradient_status = "unavailable",
+    hessian_status = "unavailable",
+    fit_status = "returned",
+    profile_status = "profile",
+    lower = truth - 1,
+    upper = truth + 1
+  )
+  tab <- env$r071_s7_coverage_table(
+    attempts = attempts,
+    profile_plan = profile_plan,
+    provenance = list(
+      drmtmb_commit = "764ceaf9b1b688b98fc4143656cc4ed08ec0a8c6",
+      drm_jl_commit = "b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c",
+      campaign_metadata_sha256 = paste(rep("a", 64L), collapse = ""),
+      drmtmb_archive_sha256 = paste(rep("b", 64L), collapse = ""),
+      drm_jl_archive_sha256 = paste(rep("c", 64L), collapse = ""),
+      source_pins_sha256 = paste(rep("d", 64L), collapse = ""),
+      runtime_sha256 = paste(rep("e", 64L), collapse = ""),
+      source_tree_check_sha256 = paste(rep("1", 64L), collapse = ""),
+      collector_sha256 = paste(rep("f", 64L), collapse = ""),
+      contract_sha256 = paste(rep("0", 64L), collapse = "")
+    )
+  )
+  expect_identical(nrow(tab), 34L)
+  expect_true(all(tab$attempt_count == 500L))
+  expect_identical(sum(tab$attempt_count), 17000L)
+  expect_identical(sum(tab$unconditional_covered), 17000L)
+  expect_identical(sum(tab$finite_endpoint_count), 17000L)
+  expect_identical(sort(unique(tab$capability_id)), c(
+    "ordinary_nb2_coupled_laplace", "ordinary_ri_scalar_laplace"
+  ))
+  expect_true(all(tab$drmtmb_commit == "764ceaf9b1b688b98fc4143656cc4ed08ec0a8c6"))
+  expect_true(all(tab$collector_sha256 == paste(rep("f", 64L), collapse = "")))
+})
+
+test_that("S7 campaign collector verifies task receipt checksums", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
+                 "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  task <- tempfile("071-s7-task-")
+  dir.create(task)
+  writeLines("planned", file.path(task, "planned-task.tsv"))
+  writeLines("attempts", file.path(task, "attempts.tsv"))
+  checksums <- vapply(c("planned-task.tsv", "attempts.tsv"), function(file) {
+    paste(env$r071_s7_sha256(file.path(task, file)), file)
+  }, character(1L))
+  writeLines(checksums, file.path(task, "SHA256SUMS"))
+  file.create(file.path(task, "COMMITTED"))
+  expect_silent(env$r071_s7_verify_task_checksums(task))
+  writeLines("tampered", file.path(task, "attempts.tsv"))
+  expect_error(env$r071_s7_verify_task_checksums(task), "checksum mismatch")
+})
+
+test_that("S7 campaign collector verifies every declared retained checksum", {
+  r071_skip_unless_source_tree()
+  base <- testthat::test_path("..", "..", "docs", "dev-log", "evidence",
+                              "julia-r-parity", "071-ordinary-laplace")
+  env <- new.env(parent = globalenv())
+  for (file in c("prepare-s7-campaign-manifest.R", "prepare-s7-campaign-bundle.R",
+                 "s7-attempt-contract.R", "s7-run-task.R", "s7-reconcile-campaign.R")) {
+    sys.source(file.path(base, file), envir = env)
+  }
+  task <- tempfile("071-s7-extended-task-")
+  dir.create(task)
+  dir.create(file.path(task, "profiles"))
+  for (file in c("planned-task.tsv", "attempts.tsv", "fixture.rds", "runtime-provenance.tsv",
+                 file.path("profiles", "1-attempt.tsv"))) {
+    writeLines(file, file.path(task, file))
+  }
+  files <- c("planned-task.tsv", "attempts.tsv", "fixture.rds", "runtime-provenance.tsv",
+             file.path("profiles", "1-attempt.tsv"))
+  checksums <- vapply(files, function(file) {
+    paste(env$r071_s7_sha256(file.path(task, file)), file)
+  }, character(1L))
+  writeLines(checksums, file.path(task, "SHA256SUMS"))
+  file.create(file.path(task, "COMMITTED"))
+  expect_silent(env$r071_s7_verify_task_checksums(task))
+  writeLines(c(checksums, paste(rep("a", 64L), collapse = ""), "../outside"),
+             file.path(task, "SHA256SUMS"))
+  expect_error(env$r071_s7_verify_task_checksums(task), "checksum schema drift")
+})
