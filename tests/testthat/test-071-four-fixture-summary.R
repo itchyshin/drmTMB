@@ -31,11 +31,16 @@ r071_skip_unless_source_tree <- function() {
 # b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c (superseded preliminary receipts).
 # Nine test_that() blocks from the original #1304 file (38 blocks there, 29 here) are NOT
 # folded here because they require code this Arc 1 fold does not port.
-# Eight need either tools/write-parity-scoreboard.R's new sb_ordinary_laplace_*() functions
+# Six need either tools/write-parity-scoreboard.R's new sb_ordinary_laplace_*() functions
 # (Arc 1 PR-A owns that generator's rewrite; #1304's patch to it is adopted-as-pattern, not
 # copied, per the absorption note), or the two new ordinary_ri_scalar_laplace /
 # ordinary_nb2_coupled_laplace rows in drmTMB:::drm_julia_capability_comparison(), which is
-# Arc 2 (the marginal= argument). Their titles, for provenance: "the scoreboard has a
+# Arc 2 (the marginal= argument). Two more (the "scoreboard requires materialized S7
+# evidence ..." and "scoreboard renders ... after S7 materialization" blocks) call main's
+# sb_write() under a DRM_JL_PATH skip and assert ordinary-Laplace rendering that main's
+# generator does not produce: on main the first would pass vacuously and the second would
+# fail on the missing "ordinary-Laplace reconciliation source pin" text.
+# The eight titles, for provenance: "the scoreboard has a
 # distinct ordinary-Laplace classification path"; "ordinary-Laplace coverage rows are
 # emitted from the capability registry"; "S7 coverage accepts only the declared original
 # writer or scope-fix collector"; "ordinary-Laplace summary rejects a semantic successor

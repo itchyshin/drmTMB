@@ -158,12 +158,17 @@ byte-for-byte copy. Three adaptations were made, all on the test side, none touc
 3. `inst/extdata/env-skip-census.tsv` was regenerated (not hand-edited) with
    `Rscript --no-init-file tools/write-env-skip-census.R` after the test file above was in place. It
    now carries one new row, `test-071-four-fixture-summary.R  build-premise  build  skips  1`.
-   #1304's own version of this census carried two new rows for this file (`build-premise` and
-   `engine-drm-jl`); the second row came from the `DRM_JL_PATH`-gated skip inside one of the two
-   `test_that()` blocks this fold leaves out ("scoreboard requires materialized S7 evidence before
-   current ordinary-Laplace rendering"). Since that block is not folded, its skip site is gone, and
-   the regenerated census correctly has one row instead of two. This is the generator working
-   correctly on the file actually present, not a discrepancy to fix.
+   #1304's own version of this census (at `9e959fc8a`) carried two rows for this file:
+   `build-premise build skips 2` and `engine-drm-jl environment skips 2`. Three of those four skip
+   sites sat in the two removed scoreboard-rendering blocks ("scoreboard requires materialized S7
+   evidence before current ordinary-Laplace rendering" and "scoreboard renders ordinary-Laplace
+   source provenance after S7 materialization"): one `DRM_JL_PATH` skip in each (the two
+   `engine-drm-jl` sites) and the `skip_if(!file.exists(coverage), "S7 coverage receipt is not
+   materialized yet")` skip in the "renders" block (one of the two `build-premise` sites). With
+   those blocks removed (this fold removes nine blocks in all; the other seven carry no census skip
+   site), the regenerated census has `build-premise` at 1 and no `engine-drm-jl` row. This is the
+   generator working correctly on the file actually present, not a discrepancy to fix; regenerating
+   the census reproduces the committed file exactly.
 
 Verification: `Rscript --no-init-file -e 'r <- as.data.frame(testthat::test_file("tests/testthat/test-071-four-fixture-summary.R", reporter="silent")); stopifnot(sum(r$failed)==0, !any(r$error), sum(r$passed) >= 1); cat("PRD-G4-OK", sum(r$passed), "\n")'`
 (the exact G4 gate command) prints `PRD-G4-OK 182` in a fresh R session with no other setup beyond
@@ -192,8 +197,9 @@ the one-time `pkgload::load_all(recompile=TRUE)` build already on disk.
   (`test-dinnage-audit-wave1.R`, `test-pkgdown-public-surface.R`) that still exist on `origin/main`
   today; that part of #1304's patch was already stale and would not be picked up even if this file
   were in scope here.
-- The nine `test_that()` blocks removed from `test-071-four-fixture-summary.R` (eight for Arc-2
-  dependencies, one more found only by actually running the suite):
+- The nine `test_that()` blocks removed from `test-071-four-fixture-summary.R` (eight that test
+  scoreboard-generator or capability-registry behaviour this fold does not port, one more found only
+  by actually running the suite):
   - "the scoreboard has a distinct ordinary-Laplace classification path"
   - "ordinary-Laplace coverage rows are emitted from the capability registry"
   - "S7 coverage accepts only the declared original writer or scope-fix collector"
@@ -203,12 +209,21 @@ the one-time `pkgload::load_all(recompile=TRUE)` build already on disk.
   - "scoreboard renders ordinary-Laplace source provenance after S7 materialization"
   - "scoreboard keeps S7 coverage outside the generic receipt tier"
 
-    These eight all source `tools/write-parity-scoreboard.R` and call one of the
-    `sb_ordinary_laplace_*()` functions just described, or call
-    `drmTMB:::drm_julia_capability_comparison()` and expect the two new (Arc 2) rows to be present.
-    Running them against today's `main`, unmodified, fails them for a reason that has nothing to do
-    with whether the underlying evidence is sound: the functions and rows they need are Arc 2, not
-    ported here.
+    Six of these eight need code this fold does not port: five source
+    `tools/write-parity-scoreboard.R` and call one of the `sb_ordinary_laplace_*()` functions just
+    described, and one ("ordinary-Laplace coverage rows are emitted from the capability registry")
+    calls `drmTMB:::drm_julia_capability_comparison()` and expects the two new (Arc 2) rows. The
+    other two ("scoreboard requires materialized S7 evidence ..." and "scoreboard renders
+    ordinary-Laplace source provenance ...") call neither. They skip unless `DRM_JL_PATH` names a
+    DRM.jl clone, then call `sb_write()`, which `main` already has, and they assert ordinary-Laplace
+    rendering that only #1304's generator produces. Against `main`'s generator the "requires" block
+    would pass vacuously (the coverage file exists, so it asserts only that `sb_write()` does not
+    error) and the "renders" block would fail on the missing "ordinary-Laplace reconciliation source
+    pin" text. Measured on this branch, whose `tools/write-parity-scoreboard.R` is identical to
+    `origin/main`'s, with a local DRM.jl clone at `e9d50a110`: `sb_write()` returned without error,
+    and the rendered file did not contain that text. None of the eight fails because the underlying
+    evidence is unsound; each tests generator or registry behaviour that is Arc 2 or Arc 1 PR-A
+    work, not ported here.
   - "S7 source-pinned install declares its compiled TMB shared object"
 
     This one checks that `DESCRIPTION` declares `NeedsCompilation: yes`. `origin/main`'s `DESCRIPTION`
