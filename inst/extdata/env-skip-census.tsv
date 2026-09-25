@@ -49,6 +49,7 @@ test-biv-student.R	suggests-package	environment	runs	4
 test-boundary-surfacing.R	cran-lane	environment	runs	6
 test-check-conditioning.R	platform-numeric	runtime	depends	3
 test-check-drm.R	cran-lane	environment	runs	1
+test-check-phylo-sd-shared-shift.R	suggests-package	environment	runs	5
 test-coefficient-labels.R	engine-drm-jl	environment	skips	10
 test-coefficient-labels.R	suggests-package	environment	runs	5
 test-coevolution-accessors.R	cran-lane	environment	runs	4

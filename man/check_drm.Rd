@@ -109,7 +109,16 @@ smallest spatial SD is tiny relative to the residual scale. If a Gaussian
 fit includes \code{sd_phylo(species) ~ x_species},
 \code{sd_phylo1(species) ~ x_species}, or
 \code{sd_phylo2(species) ~ x_species}, it reports species replication and the
-fitted direct-SD surface range. If a univariate Gaussian fit used
+fitted direct-SD surface range. When that phylogenetic SD depends on
+covariates (for example \code{sd(species, level = "phylogenetic") ~ x_species}),
+the \code{phylo_sd_shared_shift} row reports \code{z_shared}, the size of any common
+shift in the fitted phylogenetic effects in prior-SD units. Such a shift
+adds shift x SD to every mean, a curved function of the SD covariates, so it
+can stand in for curvature missing from the location formula and give the
+likelihood more than one optimum. The row is a \code{note} when
+\code{abs(z_shared) >= 2} and a \code{warning} when \code{abs(z_shared) >= 3}; then check
+the mean for missing curvature, refit from other starting values, and
+interpret location coefficients with care. If a univariate Gaussian fit used
 \code{drm_control(aggregate_gaussian = TRUE)}, it reports original rows,
 aggregation cells, compression ratio, and largest cell size. If a fit was
 stored with
