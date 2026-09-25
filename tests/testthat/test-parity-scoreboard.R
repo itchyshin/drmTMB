@@ -352,8 +352,10 @@ test_that("D6 at the pin: fence-file rows the matrix reads FENCED/OWNER-DECISION
   # The one row the coordinator named as a LEGITIMATE remaining disagreement:
   # "Non-Gaussian phylogenetic location-scale (mu + log sigma)" is
   # CITED-LIMITED on the matrix through its native-side scope note alone (no
-  # julia-fences.tsv row), so its bridge refusal has no gate yet and it is
-  # correctly reported, not papered over.
+  # julia-fences.tsv row, no bridge evidence). The bridge does NOT refuse this
+  # route: the coupled mu + sigma phylo shape is ADMITTED for nbinom2, gamma
+  # and beta with no ledger row (Arc 1 part 2 ledgers or gates it). The
+  # scoreboard's UNCITED is the honest reading, not papered over.
   residual <- "Non-Gaussian phylogenetic location-scale (μ + log σ)"
   expect_false(residual %in% ctx$fences$capability)
   expect_identical(sb$bridge[sb$capability == residual], "UNCITED")

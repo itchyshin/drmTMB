@@ -301,6 +301,13 @@ checkout.
 - [ ] D1: no row UNCITED or DEFECT
   CHECK: `cd $W && DRM_JL_PATH=$P Rscript tools/parity-honesty-gate.R`
   EXPECT: `uncited=0 defect=0` and exit 0
+  KNOWN EXCEPTION (PR #1425 review, 2026-09-24): `uncited=0` is not yet the whole
+  claim. "Non-Gaussian phylogenetic location-scale (μ + log σ)" reads CITED-LIMITED
+  only because its native side is `scope-limited` (`pm_honest_state()` takes that
+  path even when `r_bridge_status` is NA); it has no bridge evidence and no fence,
+  the bridge ADMITS the coupled route (nbinom2/gamma/beta) with no ledger row, and
+  the scoreboard still reads it UNCITED. D1 is not met until that row gets a bridge
+  citation or a fence, or `pm_honest_state()` requires bridge evidence on that path.
 - [ ] D1b: every OWNER-DECISION row names a ticket and an owner
   CHECK: `Rscript tools/parity-honesty-gate.R --list owner-decision`
   EXPECT: each line matches `T[0-9]+ owner=Shinichi`
