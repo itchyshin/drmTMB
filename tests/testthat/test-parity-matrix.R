@@ -123,6 +123,20 @@ pm_test_source_tool <- function(path) {
   env
 }
 
+# The generators refuse a DRModels checkout that is not at the programme pin
+# (tools/parity-pin.R). A developer's everyday clone is usually NOT at the
+# pin, so the at-pin tests SKIP on a mismatch -- naming both shas -- instead
+# of erroring inside the generator. The hard refusal stays in the generators.
+pm_test_skip_unless_at_pin <- function(root, drmjl) {
+  pin_env <- pm_test_source_tool(file.path(root, "tools", "parity-pin.R"))
+  pin <- pin_env$pp_pin(root)
+  head <- tryCatch(pin_env$pp_git_rev_parse(drmjl), error = function(e) NA_character_)
+  if (!identical(head, pin)) {
+    skip(sprintf("DRModels checkout at %s is on %s, not the programme pin %s", drmjl, head, pin))
+  }
+  invisible(pin)
+}
+
 test_that("every route the bridge admits has a TSV row", {
   tsv <- pm_test_read_tsv()
   routes <- pm_test_admitted_routes(
@@ -228,6 +242,7 @@ test_that("tools/write-parity-matrix.R regenerates byte-identically and matches 
   drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
   skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH is not set to a DRM.jl clone")
   root <- normalizePath(testthat::test_path("..", ".."))
+  pin <- pm_test_skip_unless_at_pin(root, drmjl)
 
   env <- pm_test_source_tool(tool)
   out1 <- tempfile(fileext = ".md")
@@ -247,12 +262,10 @@ test_that("tools/write-parity-matrix.R regenerates byte-identically and matches 
   pin_line <- grep("at pin `[0-9a-f]{40}`", committed, value = TRUE)
   expect_length(pin_line, 1L)
   committed_pin <- sub(".*at pin `([0-9a-f]{40})`.*", "\\1", pin_line)
-  clone_pin <- env$pm_git(drmjl, "rev-parse", "HEAD")
-  if (identical(clone_pin, committed_pin)) {
-    expect_identical(gen, committed)
-  } else {
-    skip(sprintf("DRM.jl clone is at %s, committed artefact was generated at %s: currency not checked", substr(clone_pin, 1, 8), substr(committed_pin, 1, 8)))
-  }
+  # The clone is at the programme pin (checked above), so the committed
+  # artefact must name that pin and match the regeneration byte for byte.
+  expect_identical(committed_pin, pin)
+  expect_identical(gen, committed)
 })
 
 test_that("the test's matcher twin agrees with the tool's matcher", {

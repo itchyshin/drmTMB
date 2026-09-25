@@ -37,6 +37,20 @@ sb_test_env <- function(root) {
   env
 }
 
+# pm_load_context() refuses a DRModels checkout that is not at the programme
+# pin (tools/parity-pin.R). A developer's everyday clone is usually NOT at the
+# pin, so the at-pin tests SKIP on a mismatch -- naming both shas -- instead
+# of erroring inside the generator.
+sb_test_skip_unless_at_pin <- function(env, root, drmjl) {
+  pin_env <- env$pm_pin_env(root)
+  pin <- pin_env$pp_pin(root)
+  head <- tryCatch(pin_env$pp_git_rev_parse(drmjl), error = function(e) NA_character_)
+  if (!identical(head, pin)) {
+    skip(sprintf("DRModels checkout at %s is on %s, not the programme pin %s", drmjl, head, pin))
+  }
+  invisible(pin)
+}
+
 # A minimal fixture `ctx`: just enough for pm_cellmap_method_evidence() and
 # sb_bridge_cell() to run without pm_load_context()'s real files, package
 # load, or DRModels clone. `cellmap_rows` and `interval_rows` are data.frames
@@ -279,6 +293,7 @@ test_that("interval receipts join family-specific capabilities end to end at the
   root <- sb_test_tool_root()
   skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
   env <- sb_test_env(root)
+  sb_test_skip_unless_at_pin(env, root, drmjl)
   ctx <- env$pm_load_context(root, drmjl)
 
   expect_true(all(c("cell_id", "capability_id", "status", "convention") %in% names(ctx$cellmap)))
@@ -304,6 +319,7 @@ test_that("D6 at the pin: fence-file rows the matrix reads FENCED/OWNER-DECISION
   root <- sb_test_tool_root()
   skip_if(!nzchar(root), "tools/ is not reachable (installed package)")
   env <- sb_test_env(root)
+  sb_test_skip_unless_at_pin(env, root, drmjl)
   ctx <- env$pm_load_context(root, drmjl)
   mat <- env$pm_build_matrix(ctx)
   sb <- env$sb_build(env, ctx, mat)
