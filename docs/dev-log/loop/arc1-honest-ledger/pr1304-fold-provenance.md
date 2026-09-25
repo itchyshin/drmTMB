@@ -208,10 +208,11 @@ the one-time `pkgload::load_all(recompile=TRUE)` build already on disk.
 - **`tools/source-tree-tests.txt`** gained exactly one line, `test-071-four-fixture-summary.R`,
   in commit `709efbeb0` on this branch. It was regenerated with
   `Rscript --no-init-file tools/run-source-tree-tests.R --update`, not edited by hand, and
-  `tools/run-source-tree-tests.R --check` agrees with it at 39 files. #1304's own version of this file also dropped two lines
-  (`test-dinnage-audit-wave1.R`, `test-pkgdown-public-surface.R`) that still exist on `origin/main`
-  today; that part of #1304's patch was already stale and would not be picked up even if this file
-  were in scope here.
+  `tools/run-source-tree-tests.R --check` agrees with it at 39 files. #1304's own change to this
+  file adds that one line and removes nothing (`diff` of merge-base `1ae582c9f` against #1304's head
+  `9e959fc8a` shows only the addition). Its copy predates two lines `main` gained later
+  (`test-dinnage-audit-wave1.R` in `0f7e8bf2b`, `test-pkgdown-public-surface.R` in `ac886734c`), so
+  copying #1304's whole file would drop them; regenerating it avoids that.
 - The nine `test_that()` blocks removed from `test-071-four-fixture-summary.R` (eight that test
   scoreboard-generator or capability-registry behaviour this fold does not port, one more found only
   by actually running the suite):
@@ -251,10 +252,19 @@ the one-time `pkgload::load_all(recompile=TRUE)` build already on disk.
 
 ## 3. What went to the Arc 2 list
 
-Unchanged from the absorption note; repeated here for a single point of truth in this branch:
+Based on the absorption note, with commit provenance re-checked against `git show --stat` for every
+#1304 commit that touches `R/`, `src/` or `DESCRIPTION` (`git log 1ae582c9f..9e959fc8a -- R src
+DESCRIPTION` lists seven: `6bb773332`, `a03e3ad96`, `4ae31d5d5`, `d24a30d09`, `764ceaf9b`,
+`0285af445`, `e6b4981bc`; each appears below):
 
 - A public `marginal = "Laplace"` argument on `drmTMB()` for `engine = "julia"` (`R/drmTMB.R`,
-  `R/julia-bridge.R`). Provenance: #1304, commits `a03e3ad96`, `46ec8a1ac`, `19d20ef1b`.
+  `R/julia-bridge.R`), including the bridge's `resd` coefficient label limited to the families that
+  route admits (binomial, poisson, nbinom2). Provenance: #1304, commits `a03e3ad96` and
+  `e6b4981bc`. (Commits `46ec8a1ac` and `19d20ef1b` touch only the folded fixture script and its
+  test, not `R/`; they belong to the folded evidence, not to this item.)
+- Julia profile endpoint diagnostics on the bridge: a `profile_audit` result from DRModels carried
+  into a `julia.profile.audit` column of the bridge's `confint()` rows (`R/julia-bridge.R`).
+  Provenance: #1304, commit `d24a30d09`. `main` has no `profile_audit` in `R/`.
 - A native (TMB) coupled NB2 `mu`/`sigma` labelled random-intercept pair (`src/drmTMB.cpp`,
   `R/drmTMB.R`). Provenance: #1304, commit `6bb773332`.
 - The native coupled-Cholesky profiling path for that route (`R/profile.R`). Provenance: #1304,
