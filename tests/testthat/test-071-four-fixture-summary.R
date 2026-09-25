@@ -25,8 +25,10 @@ r071_skip_unless_source_tree <- function() {
 # ARC 1 PR-D FOLD NOTE (docs/dev-log/loop/arc1-honest-ledger/pr1304-fold-provenance.md):
 # Folded from itchyshin/drmTMB#1304 (commit 9e959fc8a for this file's skip-guard revision)
 # with the adaptations listed in the provenance note (the package attach in the helper
-# above, and the removed blocks below); evidence measured against DRM.jl
-# b2caf00f23f080fe89028966a4bfb098ef095510.
+# above, and the removed blocks below). The folded evidence records two pin sets:
+# s7-coverage-summary.tsv at drmTMB 453cff782 / DRM.jl b2caf00f23f080fe89028966a4bfb098ef095510,
+# and reconciled-summary.tsv and cost-probe.md at drmTMB 9939ace07 / DRM.jl
+# b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c (superseded preliminary receipts).
 # Nine test_that() blocks from the original #1304 file (38 blocks there, 29 here) are NOT
 # folded here because they require code this Arc 1 fold does not port.
 # Eight need either tools/write-parity-scoreboard.R's new sb_ordinary_laplace_*() functions

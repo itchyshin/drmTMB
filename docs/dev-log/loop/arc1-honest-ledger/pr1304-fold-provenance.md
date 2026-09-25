@@ -5,13 +5,23 @@ Author: Hopper, working the PR-D slice of Arc 1 (drmTMB R-Julia parity). This no
 plan written earlier at `docs/dev-log/loop/arc1-honest-ledger/pr1304-absorption.md` (in the
 `drmTMB-arc1-honest-ledger` worktree). #1304's own branch, `codex/071-ordinary-laplace-bridge`, was
 read only (fetched with `git fetch`, read with `git show`), never checked out or edited. Nothing on
-GitHub was touched.
+#1304 was touched on GitHub.
 
-Every file below that is genuinely new evidence was measured against DRM.jl (DRModels)
-`b2caf00f23f080fe89028966a4bfb098ef095510` (short `b2caf00f`), with drmTMB frozen at `453cff782` for
-the campaign run. Nothing here is relabelled to the current pin
-`da8b3f8711beb5ef3186b890544c2e7850c7f194`; that pin is not mentioned anywhere in the folded material
-because none of it was measured there.
+The folded evidence carries **two** pin sets, and each file keeps the one it records itself:
+
+- `s7-coverage-summary.tsv` (the retained S7 campaign, 34 rows, 17,000 profile attempts) records
+  drmTMB `453cff782900aa55211d3f5971c229fc485d291e` and DRM.jl (DRModels)
+  `b2caf00f23f080fe89028966a4bfb098ef095510` (short `b2caf00f`) in every row.
+- `reconciled-summary.tsv` and `cost-probe.md` (the preliminary four-fixture receipts and the S6 cost
+  probe) record drmTMB `9939ace07967af9a9b6e23a4d021080d5d7d76a7` and DRM.jl
+  `b877f5136dbd13b6ff1cb3a1de02ee826b0fdf1c` (short `b877f513`). `four-fixture-contract.md`
+  ("Supersession notice (2026-09-11)") records that `b877f513` had an objective/gradient defect, so
+  these two files are superseded diagnostics, not current parity or coverage evidence.
+- `four-fixture-contract.md` names both sets; the 2026-09-12 check-log and after-task entries name
+  the S7 set. The scripts record no pin of their own.
+
+Nothing here is relabelled to the current pin `da8b3f8711beb5ef3186b890544c2e7850c7f194`; that pin
+is not mentioned anywhere in the folded material because none of it was measured there.
 
 ## 0. Read this first: what the folded files describe
 
@@ -27,10 +37,17 @@ In particular:
   marshals `p` as a covariance label and profiles `cholesky:recov:L11/L22/L21`. On `main` the
   bridge does not do this, and `main` rejects an NB2 `sigma` random effect combined with `mu`
   random effects (`validate_nbinom2_sigma_random_terms()` in `R/drmTMB.R`).
-- **The `marginal = "Laplace"` argument.** Every Julia target in the campaign was fitted with
-  `marginal = "Laplace"` (`s7-campaign-fixture.R`). `drmTMB()` on `main` has no `marginal`
-  argument, so `main` cannot rerun these fits. 14 of the 34 rows in `s7-coverage-summary.tsv`
-  (7,000 of the 17,000 profile attempts) are the coupled NB2 labelled `mu`/`sigma` route, which
+- **The `marginal = "Laplace"` argument.** `s7-campaign-fixture.R` requests `marginal = "Laplace"`
+  for the three scalar fixtures (`binomial_ri`, `poisson_ri`, `nb2_ri`) and `marginal = NULL` for
+  `nb2_coupled`; `run-four-fixture-receipt.R` records the coupled request as `"default"`.
+  `drmTMB()` on `main` has no `marginal` argument, so `main` cannot rerun the three scalar fits.
+  *Provenance note (fold, not #1304):* `s7-campaign-fixture.R`'s own comment says the coupled
+  fixture "uses DRM.jl's separate q=2 Laplace route", and `four-fixture-contract.md` calls it a
+  "q=2 location--scale Laplace route". No folded file records the integrator Julia actually used
+  for any target: the per-task receipts that carry `requested_marginal` and `effective_marginal`
+  are not in #1304's tree or this one, and neither folded TSV has those columns. So which integrator
+  the coupled route used is #1304's statement, not shown by the folded evidence. 14 of the 34 rows
+  in `s7-coverage-summary.tsv` (7,000 of the 17,000 profile attempts) are the coupled NB2 labelled `mu`/`sigma` route, which
   `main` rejects. Neither `capability_id` in the folded TSVs (`ordinary_ri_scalar_laplace`,
   `ordinary_nb2_coupled_laplace`) is in `inst/extdata/julia-capabilities.tsv`.
 - **Tests and receipts cited but not folded.** The after-task entry
@@ -51,35 +68,35 @@ first, that introduced or last touched that file on `codex/071-ordinary-laplace-
 
 ### The 071-ordinary-laplace evidence directory (27 files copied verbatim)
 
-| Path | #1304 commit(s) | DRModels SHA |
+| Path | #1304 commit(s) | Pin recorded in the file |
 |---|---|---|
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/four-fixture-contract.md` | `d51ced6c0`, `a03e3ad96`, `925ace233`, `9abb2d0f0`, `e46c2d700`, `90051c6ea`, `79d766431`, `fcf925e93`, `6f1d49d46`, `0285af445` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/cost-probe.md` | `704e2fe25` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` | `29773fb5d` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv` | `30dcb9103` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv.sha256` | `30dcb9103` | b2caf00f (checksum of the row above; brought along even though the fold gate's path pattern does not require a `.tsv.sha256` extension, since a checksum without its data file is useless) |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconcile-four-fixture-receipt.R` | `e58a28273`, `0094a19a6`, `627805ae1`, `90051c6ea`, `340a60c5f`, `e9eae1473` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconcile-four-fixture-summary.R` | `9939ace07` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/run-four-fixture-receipt.R` | `a03e3ad96`, `e58a28273`, `3efd65083`, `4ae31d5d5`, `c65355508`, `0094a19a6`, `627805ae1`, `925ace233`, `90051c6ea`, `e9eae1473`, `64c3c1fc7` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/verify-source-commit.sh` | `fcf925e93`, `d63d98387`, `0285af445` | b2caf00f (generic proof, needs no pin itself) |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/test-source-commit-proof.sh` | `fcf925e93`, `0285af445` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/prepare-s7-campaign-bundle.R` | `c2d9917f3` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/prepare-s7-campaign-manifest.R` | `07c50af0b` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-attempt-contract.R` | `0972c8670`, `c2d9917f3` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-campaign-fixture.R` | `f9a40fa60`, `46ec8a1ac`, `19d20ef1b` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-array.sh` | `d49b2b9fc` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-preflight.sh` | `a113cf029`, `e1f672db8` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-reconcile.sh` | `9a0f66297`, `854d6381c`, `0285af445` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-worker.sh` | `9c7ee1c47`, `947edd2f4`, `7317e1671` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fit-attempt.R` | `98113e7c4` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fit-diagnostics.R` | `95469aac8` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-live-fit-factory.R` | `568056fbc`, `19d20ef1b` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-reconcile-campaign.R` | `621891c51`, `453cff782` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-run-attempt.R` | `952446b68`, `f7426669a` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-run-task.R` | `e474864bd`, `95469aac8`, `98113e7c4`, `568056fbc`, `947edd2f4` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-task-dispatch.R` | `568056fbc` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-write-coverage-summary-scopefix.R` | `30dcb9103` | b2caf00f |
-| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-write-coverage-summary.R` | `ade8aea08`, `9a0f66297`, `854d6381c`, `0285af445` | b2caf00f |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/four-fixture-contract.md` | `d51ced6c0`, `a03e3ad96`, `925ace233`, `9abb2d0f0`, `e46c2d700`, `90051c6ea`, `79d766431`, `fcf925e93`, `6f1d49d46`, `0285af445` | both: drmTMB `9939ace07` / DRM.jl `b877f513` (preliminary, superseded) and drmTMB `453cff782` / DRM.jl `b2caf00f` (S7 campaign) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/cost-probe.md` | `704e2fe25` | drmTMB `9939ace07` / DRM.jl `b877f513` (preliminary, superseded per `four-fixture-contract.md`) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconciled-summary.tsv` | `29773fb5d` | drmTMB `9939ace07` / DRM.jl `b877f513` (preliminary, superseded per `four-fixture-contract.md`) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv` | `30dcb9103` | drmTMB `453cff782` / DRM.jl `b2caf00f` (every row) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-coverage-summary.tsv.sha256` | `30dcb9103` | none (checksum of the row above; brought along even though the fold gate's path pattern does not require a `.tsv.sha256` extension, since a checksum without its data file is useless) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconcile-four-fixture-receipt.R` | `e58a28273`, `0094a19a6`, `627805ae1`, `90051c6ea`, `340a60c5f`, `e9eae1473` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/reconcile-four-fixture-summary.R` | `9939ace07` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/run-four-fixture-receipt.R` | `a03e3ad96`, `e58a28273`, `3efd65083`, `4ae31d5d5`, `c65355508`, `0094a19a6`, `627805ae1`, `925ace233`, `90051c6ea`, `e9eae1473`, `64c3c1fc7` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/verify-source-commit.sh` | `fcf925e93`, `d63d98387`, `0285af445` | none (generic proof, needs no pin itself) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/test-source-commit-proof.sh` | `fcf925e93`, `0285af445` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/prepare-s7-campaign-bundle.R` | `c2d9917f3` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/prepare-s7-campaign-manifest.R` | `07c50af0b` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-attempt-contract.R` | `0972c8670`, `c2d9917f3` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-campaign-fixture.R` | `f9a40fa60`, `46ec8a1ac`, `19d20ef1b` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-array.sh` | `d49b2b9fc` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-preflight.sh` | `a113cf029`, `e1f672db8` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-reconcile.sh` | `9a0f66297`, `854d6381c`, `0285af445` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fir-worker.sh` | `9c7ee1c47`, `947edd2f4`, `7317e1671` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fit-attempt.R` | `98113e7c4` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-fit-diagnostics.R` | `95469aac8` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-live-fit-factory.R` | `568056fbc`, `19d20ef1b` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-reconcile-campaign.R` | `621891c51`, `453cff782` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-run-attempt.R` | `952446b68`, `f7426669a` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-run-task.R` | `e474864bd`, `95469aac8`, `98113e7c4`, `568056fbc`, `947edd2f4` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-task-dispatch.R` | `568056fbc` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-write-coverage-summary-scopefix.R` | `30dcb9103` | none (tooling) |
+| `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-write-coverage-summary.R` | `ade8aea08`, `9a0f66297`, `854d6381c`, `0285af445` | none (tooling) |
 
 The directory also holds a `README.md` that this fold added (it is not from #1304); it points to
 section 0 above. That is 27 folded files, one per row: four-fixture-contract.md,
@@ -120,7 +137,8 @@ section 0 before relying on any of them.
 `e474864bd`, `95469aac8`, `98113e7c4`, `568056fbc`, `9c7ee1c47`, `947edd2f4`, `7317e1671`,
 `a113cf029`, `621891c51`, `46ec8a1ac`, `d49b2b9fc`, `e1f672db8`, `19d20ef1b`, `764ceaf9b`,
 `ade8aea08`, `217f5bcdf`, `9a0f66297`, `854d6381c`, `ddf16873e`, `fcf925e93`, `453cff782`,
-`30dcb9103`, `0285af445`, `0dfbbbb31`, `9e959fc8a`, measured at DRModels b2caf00f. It is not a
+`30dcb9103`, `0285af445`, `0dfbbbb31`, `9e959fc8a`. It tests the folded tooling on synthetic
+inputs and on the folded files, which carry the two pin sets listed at the top of this note. It is not a
 byte-for-byte copy. Three adaptations were made, all on the test side, none touching R/ or src/:
 
 1. **Nine of the original 38 `test_that()` blocks are not folded**, because they exercise code this
@@ -155,7 +173,8 @@ the one-time `pkgload::load_all(recompile=TRUE)` build already on disk.
 
 - **`docs/dev-log/after-task/2026-09-12-071-ordinary-laplace-closeout.md`** is not folded. The
   absorption note tags this file ARC-2 (its "Implemented" section is the two new capability-registry
-  rows and the `marginal=`-keyed rendering, not the GHQ-32 finding itself), and Arc 1 does not widen
+  rows and the `marginal=`-keyed rendering; its only GHQ-32 content is one sentence saying the scalar
+  `:Laplace` route is distinct from the legacy GHQ-32 `:LA` route), and Arc 1 does not widen
   coverage. It is left out.
 - **`tools/write-parity-scoreboard.R`** is not touched here. #1304's patch to it adds
   `sb_ordinary_laplace_summary()`, `sb_ordinary_laplace_source_drift()`,
@@ -227,16 +246,17 @@ Unchanged from the absorption note; repeated here for a single point of truth in
 > branch.
 >
 > Your closeout note (`docs/dev-log/after-task/2026-09-12-071-ordinary-laplace-closeout.md` on this
-> PR) reports that DRModels' default ordinary random-intercept route uses GHQ-32 integration, not
-> Laplace, for a scalar mu-only (1 | g) Binomial, Poisson, or NB2 random intercept. That is a useful
-> finding; the closeout note itself is not folded, so it stays the source for it. What is folded is
-> the four-fixture Laplace-marginal coverage campaign (every Julia target fitted with
-> `marginal = "Laplace"`, including the coupled NB2 route), the reconciliation and coverage-summary
-> tooling that produced it, and the source subset verifier that checks a staged campaign archive
-> against its declared Git commit. They land on a new branch as historical evidence, with full
-> provenance back to this PR's commits and the DRM.jl pin they were measured at (b2caf00f).
+> PR) states that the scalar `:Laplace` route is distinct from the legacy GHQ-32 `:LA` route. The
+> closeout note is not folded, so it stays the source for that statement. What is folded is the
+> four-fixture coverage campaign (the three scalar fixtures request `marginal = "Laplace"`; the
+> coupled NB2 fixture passes no `marginal`), the reconciliation and coverage-summary tooling that
+> produced it, and the source subset verifier that checks a staged campaign archive against its
+> declared Git commit. They land on a new branch as historical evidence, with provenance back to
+> this PR's commits and the pins each file records: the S7 coverage summary at drmTMB `453cff782` /
+> DRM.jl `b2caf00f`, and the preliminary reconciliation and cost probe at drmTMB `9939ace07` /
+> DRM.jl `b877f513`.
 >
-> The new `marginal = "Laplace"` argument, the coupled NB2 mean-scale random-intercept route, and the
+> The new `marginal = "Laplace"` argument, the coupled NB2 `mu`/`sigma` random-intercept route, and the
 > two new ledger rows they introduce are new public API and new coverage. Arc 1 is deliberately
 > scoped to making the existing ledger honest before any coverage widens, so that part moves to a
 > separate follow-up arc rather than landing here. It is listed in full, with this PR named as its
