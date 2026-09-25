@@ -5,13 +5,42 @@ Author: Hopper, working the PR-D slice of Arc 1 (drmTMB R-Julia parity). This no
 plan written earlier at `docs/dev-log/loop/arc1-honest-ledger/pr1304-absorption.md` (in the
 `drmTMB-arc1-honest-ledger` worktree). #1304's own branch, `codex/071-ordinary-laplace-bridge`, was
 read only (fetched with `git fetch`, read with `git show`), never checked out or edited. Nothing on
-GitHub was touched. This branch is not committed here; the conductor commits it.
+GitHub was touched.
 
 Every file below that is genuinely new evidence was measured against DRM.jl (DRModels)
 `b2caf00f23f080fe89028966a4bfb098ef095510` (short `b2caf00f`), with drmTMB frozen at `453cff782` for
 the campaign run. Nothing here is relabelled to the current pin
 `da8b3f8711beb5ef3186b890544c2e7850c7f194`; that pin is not mentioned anywhere in the folded material
 because none of it was measured there.
+
+## 0. Read this first: what the folded files describe
+
+The folded prose and scripts are kept byte for byte, so they still speak in the present tense about
+#1304's own code. That code is **not on `main`** after this fold; it is on the Arc 2 list (section 3).
+In particular:
+
+- **The scoreboard reader.** `check-log.d/2026-09-09-071-ordinary-laplace-summary-gate.md` says
+  `tools/write-parity-scoreboard.R` reads `reconciled-summary.tsv` and emits
+  `ORDINARY-LAPLACE-CLASSIFIED`. On `main` it does neither; the `sb_ordinary_laplace_*()` functions
+  were not folded.
+- **The coupled-NB2 bridge and Cholesky profiling.** `four-fixture-contract.md` says the bridge
+  marshals `p` as a covariance label and profiles `cholesky:recov:L11/L22/L21`. On `main` the
+  bridge does not do this, and `main` rejects an NB2 `sigma` random effect combined with `mu`
+  random effects (`validate_nbinom2_sigma_random_terms()` in `R/drmTMB.R`).
+- **The `marginal = "Laplace"` argument.** Every Julia target in the campaign was fitted with
+  `marginal = "Laplace"` (`s7-campaign-fixture.R`). `drmTMB()` on `main` has no `marginal`
+  argument, so `main` cannot rerun these fits. 14 of the 34 rows in `s7-coverage-summary.tsv`
+  (7,000 of the 17,000 profile attempts) are the coupled NB2 labelled `mu`/`sigma` route, which
+  `main` rejects. Neither `capability_id` in the folded TSVs (`ordinary_ri_scalar_laplace`,
+  `ordinary_nb2_coupled_laplace`) is in `inst/extdata/julia-capabilities.tsv`.
+- **Tests and receipts cited but not folded.** The after-task entry
+  `2026-09-12-071-source-subset-proof-reconciliation.md` cites two live scoreboard tests that are
+  among the nine blocks not folded (section 2), and a Nibi receipt,
+  `s7-source-commit-proof-21753825.tsv`, that is in neither #1304's tree nor this one.
+
+So this folded material is **historical evidence measured on #1304's Arc 2 routes**. It is not a claim
+that `main` admits those routes, and it is not evidence that `main` can reproduce the fits. The
+directory's `README.md` points here.
 
 ## 1. What was folded (file by file)
 
@@ -20,7 +49,7 @@ first, that introduced or last touched that file on `codex/071-ordinary-laplace-
 `git log <merge-base>..codex/071-ordinary-laplace-bridge -- <path>`, merge-base
 `1ae582c9fc9060071bb147ea4aa7206744392419`).
 
-### The 071-ordinary-laplace evidence directory (26 files copied verbatim)
+### The 071-ordinary-laplace evidence directory (27 files copied verbatim)
 
 | Path | #1304 commit(s) | DRModels SHA |
 |---|---|---|
@@ -52,8 +81,8 @@ first, that introduced or last touched that file on `codex/071-ordinary-laplace-
 | `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-write-coverage-summary-scopefix.R` | `30dcb9103` | b2caf00f |
 | `docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/s7-write-coverage-summary.R` | `ade8aea08`, `9a0f66297`, `854d6381c`, `0285af445` | b2caf00f |
 
-That is 27 files (the table above lists 26 rows; `test-source-commit-proof.sh` and
-`verify-source-commit.sh` are each their own row, so the full set is: four-fixture-contract.md,
+The directory also holds a `README.md` that this fold added (it is not from #1304); it points to
+section 0 above. That is 27 folded files, one per row: four-fixture-contract.md,
 cost-probe.md, reconciled-summary.tsv, s7-coverage-summary.tsv, s7-coverage-summary.tsv.sha256,
 reconcile-four-fixture-receipt.R, reconcile-four-fixture-summary.R, run-four-fixture-receipt.R,
 verify-source-commit.sh, test-source-commit-proof.sh, prepare-s7-campaign-bundle.R,
@@ -68,6 +97,9 @@ drops the mode): `test-source-commit-proof.sh` and `verify-source-commit.sh` wer
 directly), so they keep their original mode.
 
 ### Check-log and after-task entries (9 files copied verbatim, dates unchanged)
+
+Like the evidence directory, these entries describe #1304 code that is not on `main`; read
+section 0 before relying on any of them.
 
 | Path | #1304 commit(s) |
 |---|---|
@@ -134,13 +166,10 @@ the one-time `pkgload::load_all(recompile=TRUE)` build already on disk.
   it if the source has drifted on a protected path) is worth reusing, but as a pattern to
   reimplement against whichever `capability_id` Arc 1's own ledger assigns, not as code to copy
   here. It is adopted in Arc 1 PR-A, not copied in PR-D.
-- **`tools/source-tree-tests.txt`** is not touched here. It needs exactly one added line
-  (`test-071-four-fixture-summary.R`) once this test lands on `main`, generated by
-  `tools/run-source-tree-tests.R --update`, not by hand. That file is outside this slice's OWNS list
-  (`leaf-PRD.md` scopes this worktree to the evidence directory, the test, the check-log and
-  after-task entries, and the env-skip census) and is left for whichever slice regenerates it next
-  (most likely alongside PR-A or PR-B, when the honesty-gate tooling changes touch the same
-  generated-file family). #1304's own version of this file also dropped two lines
+- **`tools/source-tree-tests.txt`** gained exactly one line, `test-071-four-fixture-summary.R`,
+  in commit `709efbeb0` on this branch. It was regenerated with
+  `Rscript --no-init-file tools/run-source-tree-tests.R --update`, not edited by hand, and
+  `tools/run-source-tree-tests.R --check` agrees with it at 39 files. #1304's own version of this file also dropped two lines
   (`test-dinnage-audit-wave1.R`, `test-pkgdown-public-surface.R`) that still exist on `origin/main`
   today; that part of #1304's patch was already stale and would not be picked up even if this file
   were in scope here.
@@ -197,13 +226,15 @@ Unchanged from the absorption note; repeated here for a single point of truth in
 > auditing the parity ledger for honesty, and has now folded the reusable part of it into a fresh
 > branch.
 >
-> The finding that DRModels' default ordinary random-intercept route reports GHQ-32 integration, not
-> Laplace, for a scalar mu-only (1 | g) Binomial, Poisson, or NB2 random intercept is genuinely new
-> and useful, and it describes a route the bridge can already reach. The four-fixture campaign
-> evidence for that, the reconciliation and coverage-summary tooling that produced it, and the source
-> subset verifier that checks a staged campaign archive against its declared Git commit, are folded
-> onto a new branch with full provenance back to this PR's commits and the DRM.jl pin they were
-> measured at (b2caf00f).
+> Your closeout note (`docs/dev-log/after-task/2026-09-12-071-ordinary-laplace-closeout.md` on this
+> PR) reports that DRModels' default ordinary random-intercept route uses GHQ-32 integration, not
+> Laplace, for a scalar mu-only (1 | g) Binomial, Poisson, or NB2 random intercept. That is a useful
+> finding; the closeout note itself is not folded, so it stays the source for it. What is folded is
+> the four-fixture Laplace-marginal coverage campaign (every Julia target fitted with
+> `marginal = "Laplace"`, including the coupled NB2 route), the reconciliation and coverage-summary
+> tooling that produced it, and the source subset verifier that checks a staged campaign archive
+> against its declared Git commit. They land on a new branch as historical evidence, with full
+> provenance back to this PR's commits and the DRM.jl pin they were measured at (b2caf00f).
 >
 > The new `marginal = "Laplace"` argument, the coupled NB2 mean-scale random-intercept route, and the
 > two new ledger rows they introduce are new public API and new coverage. Arc 1 is deliberately

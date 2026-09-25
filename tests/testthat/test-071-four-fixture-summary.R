@@ -23,22 +23,28 @@ r071_skip_unless_source_tree <- function() {
 }
 
 # ARC 1 PR-D FOLD NOTE (docs/dev-log/loop/arc1-honest-ledger/pr1304-fold-provenance.md):
-# Folded verbatim from itchyshin/drmTMB#1304 (commit 9e959fc8a for this file's skip-guard
-# revision), evidence measured against DRM.jl b2caf00f23f080fe89028966a4bfb098ef095510.
-# Eight test_that() blocks from the original #1304 file are NOT folded here because they
-# require code this Arc 1 fold does not port: either tools/write-parity-scoreboard.R's new
-# sb_ordinary_laplace_*() functions (Arc 1 PR-A owns that generator's rewrite; #1304's patch
-# to it is adopted-as-pattern, not copied, per the absorption note), or the two new
-# ordinary_ri_scalar_laplace / ordinary_nb2_coupled_laplace rows in
-# drmTMB:::drm_julia_capability_comparison(), which is Arc 2 (the marginal= argument). Their
-# titles, for provenance: "the scoreboard has a distinct ordinary-Laplace classification
-# path"; "ordinary-Laplace coverage rows are emitted from the capability registry"; "S7
-# coverage accepts only the declared original writer or scope-fix collector";
-# "ordinary-Laplace summary rejects a semantic successor commit"; "ordinary-Laplace
-# source-drift guard rejects semantic input changes"; "scoreboard requires materialized S7
-# evidence before current ordinary-Laplace rendering"; "scoreboard renders ordinary-Laplace
-# source provenance after S7 materialization"; "scoreboard keeps S7 coverage outside the
-# generic receipt tier". See the fold provenance note for the full file-by-file account.
+# Folded from itchyshin/drmTMB#1304 (commit 9e959fc8a for this file's skip-guard revision)
+# with the adaptations listed in the provenance note (the package attach in the helper
+# above, and the removed blocks below); evidence measured against DRM.jl
+# b2caf00f23f080fe89028966a4bfb098ef095510.
+# Nine test_that() blocks from the original #1304 file (38 blocks there, 29 here) are NOT
+# folded here because they require code this Arc 1 fold does not port.
+# Eight need either tools/write-parity-scoreboard.R's new sb_ordinary_laplace_*() functions
+# (Arc 1 PR-A owns that generator's rewrite; #1304's patch to it is adopted-as-pattern, not
+# copied, per the absorption note), or the two new ordinary_ri_scalar_laplace /
+# ordinary_nb2_coupled_laplace rows in drmTMB:::drm_julia_capability_comparison(), which is
+# Arc 2 (the marginal= argument). Their titles, for provenance: "the scoreboard has a
+# distinct ordinary-Laplace classification path"; "ordinary-Laplace coverage rows are
+# emitted from the capability registry"; "S7 coverage accepts only the declared original
+# writer or scope-fix collector"; "ordinary-Laplace summary rejects a semantic successor
+# commit"; "ordinary-Laplace source-drift guard rejects semantic input changes";
+# "scoreboard requires materialized S7 evidence before current ordinary-Laplace rendering";
+# "scoreboard renders ordinary-Laplace source provenance after S7 materialization";
+# "scoreboard keeps S7 coverage outside the generic receipt tier".
+# The ninth, "S7 source-pinned install declares its compiled TMB shared object", expects
+# DESCRIPTION to declare `NeedsCompilation: yes`. DESCRIPTION on main has no NeedsCompilation
+# field; #1304 added it in commit 764ceaf9b, which is Arc 2 and is not ported by this fold.
+# See the fold provenance note for the full file-by-file account.
 
 test_that("four-fixture summary fails closed when a fixture receipt is absent", {
   r071_skip_unless_source_tree()
