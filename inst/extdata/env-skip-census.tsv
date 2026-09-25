@@ -86,6 +86,7 @@ test-formula-grouping-guard.R	cran-lane	environment	runs	1
 test-formula-smooth-terms.R	cran-lane	environment	runs	1
 test-function-map-cheatsheet.R	build-premise	build	skips	2
 test-heritability.R	suggests-package	environment	runs	1
+test-julia-admission-census.R	build-premise	build	skips	1
 test-julia-biv-confint.R	suggests-package	environment	runs	7
 test-julia-biv-inference.R	build-premise	build	skips	1
 test-julia-biv-inference.R	engine-drm-jl	environment	skips	1
@@ -208,9 +209,13 @@ test-objective-at.R	cran-lane	environment	runs	2
 test-offset-families.R	cran-lane	environment	runs	4
 test-optimizer-tolerance.R	suggests-package	environment	runs	1
 test-parity-fenced-boundaries.R	build-premise	build	skips	2
+test-parity-honesty.R	build-premise	build	skips	13
 test-parity-matrix.R	build-premise	build	skips	3
 test-parity-matrix.R	engine-drm-jl	environment	skips	2
-test-parity-matrix.R	runtime-conditional	runtime	depends	1
+test-parity-pin.R	build-premise	build	skips	2
+test-parity-pin.R	external-tool	environment	runs	1
+test-parity-scoreboard.R	build-premise	build	skips	13
+test-parity-scoreboard.R	engine-drm-jl	environment	skips	3
 test-phase18-actions-runner.R	build-premise	build	skips	3
 test-phase18-actions-runner.R	runtime-conditional	runtime	depends	1
 test-phase18-animal-relmat-q2-grid-writer.R	cran-lane	environment	runs	1

@@ -1,0 +1,291 @@
+family	structure	dpar	formula	decision	gate_id	ledger_row
+gaussian	none	mu	bf(mu = y ~ x, sigma = ~1)	ADMIT		base_gaussian_location_scale
+gaussian	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+gaussian	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1)	ADMIT		gaussian_random_intercept_mu
+gaussian	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g))	ADMIT		gaussian_sigma_random_intercept
+gaussian	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1)	ADMIT		gaussian_random_slope_mu
+gaussian	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g))	ADMIT		
+gaussian	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	ADMIT		gaussian_phylo_mean;phylo_gamma_beta_binomial
+gaussian	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	ADMIT		
+gaussian	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1)	ADMIT		general_covariance_structured
+gaussian	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `relmat(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+gaussian	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1)	ADMIT		
+gaussian	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `spatial(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+gaussian	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1)	ADMIT		
+gaussian	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `animal(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+gaussian	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+gaussian	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+gaussian	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+biv_gaussian	none	mu1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	ADMIT		biv_gaussian_residual
+biv_gaussian	none	sigma1	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+biv_gaussian	(1|g)	mu1	bf(mu1 = y1 ~ x + (1 | g), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	ADMIT		
+biv_gaussian	(1|g)	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + (1 | g), sigma2 = ~1, rho12 = ~1)	ADMIT		
+biv_gaussian	(1+x|g)	mu1	bf(mu1 = y1 ~ x + (1 + x | g), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	ADMIT		
+biv_gaussian	(1+x|g)	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + (1 + x | g), sigma2 = ~1, rho12 = ~1)	ADMIT		
+biv_gaussian	phylo	mu1	bf(mu1 = y1 ~ x + phylo(1 | sp, tree = tree), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE	biv_invalid_partial_phylo	
+biv_gaussian	phylo	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + phylo(1 | sp, tree = tree), sigma2 = ~1, rho12 = ~1)	REFUSE	biv_invalid_partial_phylo	
+biv_gaussian	relmat	mu1	bf(mu1 = y1 ~ x + relmat(1 | id, K = K), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` bivariate q2 structured models require matching structured terms in `mu1` and `mu2`. | ℹ Use matching `relmat(1 | p | group, K = K)` or `animal(1 | p | group, A = A)` terms in both location formulas, or use native `engine = "tmb"`.	
+biv_gaussian	relmat	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + relmat(1 | id, K = K), sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` bivariate q2 structured models require matching structured terms in `mu1` and `mu2`. | ℹ Use matching `relmat(1 | p | group, K = K)` or `animal(1 | p | group, A = A)` terms in both location formulas, or use native `engine = "tmb"`.	
+biv_gaussian	spatial	mu1	bf(mu1 = y1 ~ x + spatial(1 | site, coords = co), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` bivariate q2 structured models require matching structured terms in `mu1` and `mu2`. | ℹ Use matching `relmat(1 | p | group, K = K)` or `animal(1 | p | group, A = A)` terms in both location formulas, or use native `engine = "tmb"`.	
+biv_gaussian	spatial	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + spatial(1 | site, coords = co), sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` bivariate q2 structured models require matching structured terms in `mu1` and `mu2`. | ℹ Use matching `relmat(1 | p | group, K = K)` or `animal(1 | p | group, A = A)` terms in both location formulas, or use native `engine = "tmb"`.	
+biv_gaussian	animal	mu1	bf(mu1 = y1 ~ x + animal(1 | id, A = A), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` bivariate q2 structured models require matching structured terms in `mu1` and `mu2`. | ℹ Use matching `relmat(1 | p | group, K = K)` or `animal(1 | p | group, A = A)` terms in both location formulas, or use native `engine = "tmb"`.	
+biv_gaussian	animal	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + animal(1 | id, A = A), sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` bivariate q2 structured models require matching structured terms in `mu1` and `mu2`. | ℹ Use matching `relmat(1 | p | group, K = K)` or `animal(1 | p | group, A = A)` terms in both location formulas, or use native `engine = "tmb"`.	
+biv_gaussian	bivariate q2 phylo	mu1,mu2	bf(mu1 = y1 ~ x + phylo(1 | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | sp, tree = tree), sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	ADMIT		
+biv_gaussian	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree), sigma1 = ~1 + phylo(1 | p | sp, tree = tree), sigma2 = ~1 + phylo(1 | p | sp, tree = tree), rho12 = ~1)	ADMIT		
+biv_gaussian	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree), sigma1 = ~1 + phylo(1 | ps | sp, tree = tree), sigma2 = ~1 + phylo(1 | ps | sp, tree = tree), rho12 = ~1)	ADMIT		
+student	none	mu	bf(mu = y ~ x, sigma = ~1, nu = ~1)	ADMIT		fe_student
+student	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+student	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1, nu = ~1)	REFUSE	fe_only_random_effects	
+student	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g), nu = ~1)	REFUSE	fe_only_random_effects	
+student	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1, nu = ~1)	REFUSE	fe_only_random_effects	
+student	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g), nu = ~1)	REFUSE	fe_only_random_effects	
+student	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1, nu = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+student	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree), nu = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+student	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+student	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K), nu = ~1)	REFUSE	structured_unsupported_family	
+student	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+student	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co), nu = ~1)	REFUSE	structured_unsupported_family	
+student	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+student	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A), nu = ~1)	REFUSE	structured_unsupported_family	
+student	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+student	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+student	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+lognormal	none	mu	bf(mu = y ~ x, sigma = ~1)	ADMIT		fe_lognormal
+lognormal	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+lognormal	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1)	REFUSE	fe_only_random_effects	
+lognormal	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g))	REFUSE	fe_only_random_effects	
+lognormal	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1)	REFUSE	fe_only_random_effects	
+lognormal	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g))	REFUSE	fe_only_random_effects	
+lognormal	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+lognormal	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+lognormal	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1)	REFUSE	structured_unsupported_family	
+lognormal	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE	structured_unsupported_family	
+lognormal	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1)	REFUSE	structured_unsupported_family	
+lognormal	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE	structured_unsupported_family	
+lognormal	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1)	REFUSE	structured_unsupported_family	
+lognormal	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE	structured_unsupported_family	
+lognormal	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+lognormal	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+lognormal	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+poisson	none	mu	bf(mu = y ~ x)	ADMIT		fe_poisson
+poisson	none	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	(1|g)	mu	bf(mu = y ~ x + (1 | g))	ADMIT		
+poisson	(1|g)	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g))	ADMIT		gaussian_random_slope_mu
+poisson	(1+x|g)	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree))	ADMIT		phylo_count_large_p
+poisson	phylo	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K))	ADMIT		general_covariance_structured
+poisson	relmat	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co))	REFUSE_UNGATED	UNGATED: `engine = "julia"` routes `spatial()` only for Gaussian fits (coordinate-based range estimation is Gaussian-only in DRM.jl). | ℹ For a "poisson" spatial random intercept, pass a precomputed spatial covariance as `relmat(1 | site, K = K)`, or use `engine = "tmb"`.	
+poisson	spatial	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A))	ADMIT		
+poisson	animal	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+poisson	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+poisson	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+poisson	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+nbinom2	none	mu	bf(mu = y ~ x, sigma = ~1)	ADMIT		fe_nbinom2
+nbinom2	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+nbinom2	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1)	ADMIT		
+nbinom2	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g))	ADMIT		
+nbinom2	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1)	ADMIT		
+nbinom2	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g))	ADMIT		
+nbinom2	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	ADMIT		phylo_count_large_p
+nbinom2	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports `phylo(1 | group, tree = tree)` or `phylo(1+x | group, tree = tree)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for residual-scale phylogenetic effects or direct-SD formulas.	
+nbinom2	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1)	ADMIT		general_covariance_structured
+nbinom2	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `relmat(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+nbinom2	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` routes `spatial()` only for Gaussian fits (coordinate-based range estimation is Gaussian-only in DRM.jl). | ℹ For a "nbinom2" spatial random intercept, pass a precomputed spatial covariance as `relmat(1 | site, K = K)`, or use `engine = "tmb"`.	
+nbinom2	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `spatial(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+nbinom2	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1)	ADMIT		
+nbinom2	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `animal(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+nbinom2	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+nbinom2	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+nbinom2	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+gamma	none	mu	bf(mu = y ~ x, sigma = ~1)	ADMIT		fe_gamma
+gamma	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+gamma	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1)	ADMIT		
+gamma	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g))	ADMIT		
+gamma	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1)	ADMIT		
+gamma	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g))	ADMIT		
+gamma	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	ADMIT		phylo_gamma_beta_binomial
+gamma	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports `phylo(1 | group, tree = tree)` or `phylo(1+x | group, tree = tree)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for residual-scale phylogenetic effects or direct-SD formulas.	
+gamma	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1)	ADMIT		general_covariance_structured
+gamma	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `relmat(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+gamma	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` routes `spatial()` only for Gaussian fits (coordinate-based range estimation is Gaussian-only in DRM.jl). | ℹ For a "gamma" spatial random intercept, pass a precomputed spatial covariance as `relmat(1 | site, K = K)`, or use `engine = "tmb"`.	
+gamma	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `spatial(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+gamma	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1)	ADMIT		
+gamma	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports only `animal(1 | group, ...)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for structured slopes, residual-scale structured effects, or direct-SD formulas.	
+gamma	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+gamma	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+gamma	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+beta	none	mu	bf(mu = y ~ x, sigma = ~1)	ADMIT		fe_beta
+beta	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+beta	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1)	ADMIT		
+beta	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g))	ADMIT		
+beta	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1)	ADMIT		
+beta	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g))	ADMIT		
+beta	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	ADMIT		phylo_gamma_beta_binomial
+beta	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` currently supports `phylo(1 | group, tree = tree)` or `phylo(1+x | group, tree = tree)` in the `mu` formula. | ℹ Use native `engine = "tmb"` for residual-scale phylogenetic effects or direct-SD formulas.	
+beta	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1)	REFUSE	structured_unsupported_family	
+beta	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE	structured_unsupported_family	
+beta	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1)	REFUSE	structured_unsupported_family	
+beta	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE	structured_unsupported_family	
+beta	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1)	REFUSE	structured_unsupported_family	
+beta	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE	structured_unsupported_family	
+beta	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+beta	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+beta	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+binomial	none	mu	bf(mu = y ~ x)	ADMIT		plain_binomial_nonphylo
+binomial	none	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	(1|g)	mu	bf(mu = y ~ x + (1 | g))	ADMIT		
+binomial	(1|g)	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g))	ADMIT		
+binomial	(1+x|g)	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree))	ADMIT		phylo_gamma_beta_binomial
+binomial	phylo	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K))	REFUSE	structured_unsupported_family	
+binomial	relmat	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co))	REFUSE	structured_unsupported_family	
+binomial	spatial	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A))	REFUSE	structured_unsupported_family	
+binomial	animal	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+binomial	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+binomial	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+binomial	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+truncated_nbinom2	none	mu	bf(mu = y ~ x, sigma = ~1)	ADMIT		fe_truncated_nbinom2
+truncated_nbinom2	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+truncated_nbinom2	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1)	REFUSE	fe_only_random_effects	
+truncated_nbinom2	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g))	REFUSE	fe_only_random_effects	
+truncated_nbinom2	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1)	REFUSE	fe_only_random_effects	
+truncated_nbinom2	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g))	REFUSE	fe_only_random_effects	
+truncated_nbinom2	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+truncated_nbinom2	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+truncated_nbinom2	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1)	REFUSE	structured_unsupported_family	
+truncated_nbinom2	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE	structured_unsupported_family	
+truncated_nbinom2	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1)	REFUSE	structured_unsupported_family	
+truncated_nbinom2	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE	structured_unsupported_family	
+truncated_nbinom2	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1)	REFUSE	structured_unsupported_family	
+truncated_nbinom2	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE	structured_unsupported_family	
+truncated_nbinom2	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+truncated_nbinom2	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+truncated_nbinom2	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+zero_one_beta	none	mu	bf(mu = y ~ x, sigma = ~1, zoi = ~1, coi = ~1)	ADMIT		fe_zero_one_beta
+zero_one_beta	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+zero_one_beta	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1, zoi = ~1, coi = ~1)	REFUSE	fe_only_random_effects	
+zero_one_beta	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g), zoi = ~1, coi = ~1)	REFUSE	fe_only_random_effects	
+zero_one_beta	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1, zoi = ~1, coi = ~1)	REFUSE	fe_only_random_effects	
+zero_one_beta	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g), zoi = ~1, coi = ~1)	REFUSE	fe_only_random_effects	
+zero_one_beta	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1, zoi = ~1, coi = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+zero_one_beta	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree), zoi = ~1, coi = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+zero_one_beta	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1, zoi = ~1, coi = ~1)	REFUSE	structured_unsupported_family	
+zero_one_beta	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K), zoi = ~1, coi = ~1)	REFUSE	structured_unsupported_family	
+zero_one_beta	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1, zoi = ~1, coi = ~1)	REFUSE	structured_unsupported_family	
+zero_one_beta	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co), zoi = ~1, coi = ~1)	REFUSE	structured_unsupported_family	
+zero_one_beta	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1, zoi = ~1, coi = ~1)	REFUSE	structured_unsupported_family	
+zero_one_beta	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A), zoi = ~1, coi = ~1)	REFUSE	structured_unsupported_family	
+zero_one_beta	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+zero_one_beta	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+zero_one_beta	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+tweedie	none	mu	bf(mu = y ~ x, sigma = ~1, nu = ~1)	ADMIT		fe_tweedie
+tweedie	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+tweedie	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1, nu = ~1)	REFUSE	fe_only_random_effects	
+tweedie	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g), nu = ~1)	REFUSE	fe_only_random_effects	
+tweedie	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1, nu = ~1)	REFUSE	fe_only_random_effects	
+tweedie	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g), nu = ~1)	REFUSE	fe_only_random_effects	
+tweedie	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1, nu = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+tweedie	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree), nu = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+tweedie	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+tweedie	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K), nu = ~1)	REFUSE	structured_unsupported_family	
+tweedie	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+tweedie	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co), nu = ~1)	REFUSE	structured_unsupported_family	
+tweedie	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+tweedie	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A), nu = ~1)	REFUSE	structured_unsupported_family	
+tweedie	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+tweedie	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+tweedie	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+beta_binomial	none	mu	bf(mu = cbind(s, f) ~ x, sigma = ~1)	ADMIT		fe_beta_binomial
+beta_binomial	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+beta_binomial	(1|g)	mu	bf(mu = cbind(s, f) ~ x + (1 | g), sigma = ~1)	REFUSE	fe_only_random_effects	
+beta_binomial	(1|g)	sigma	bf(mu = cbind(s, f) ~ x, sigma = ~1 + (1 | g))	REFUSE	fe_only_random_effects	
+beta_binomial	(1+x|g)	mu	bf(mu = cbind(s, f) ~ x + (1 + x | g), sigma = ~1)	REFUSE	fe_only_random_effects	
+beta_binomial	(1+x|g)	sigma	bf(mu = cbind(s, f) ~ x, sigma = ~1 + (1 + x | g))	REFUSE	fe_only_random_effects	
+beta_binomial	phylo	mu	bf(mu = cbind(s, f) ~ x + phylo(1 | sp, tree = tree), sigma = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+beta_binomial	phylo	sigma	bf(mu = cbind(s, f) ~ x, sigma = ~1 + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+beta_binomial	relmat	mu	bf(mu = cbind(s, f) ~ x + relmat(1 | id, K = K), sigma = ~1)	REFUSE	structured_unsupported_family	
+beta_binomial	relmat	sigma	bf(mu = cbind(s, f) ~ x, sigma = ~1 + relmat(1 | id, K = K))	REFUSE	structured_unsupported_family	
+beta_binomial	spatial	mu	bf(mu = cbind(s, f) ~ x + spatial(1 | site, coords = co), sigma = ~1)	REFUSE	structured_unsupported_family	
+beta_binomial	spatial	sigma	bf(mu = cbind(s, f) ~ x, sigma = ~1 + spatial(1 | site, coords = co))	REFUSE	structured_unsupported_family	
+beta_binomial	animal	mu	bf(mu = cbind(s, f) ~ x + animal(1 | id, A = A), sigma = ~1)	REFUSE	structured_unsupported_family	
+beta_binomial	animal	sigma	bf(mu = cbind(s, f) ~ x, sigma = ~1 + animal(1 | id, A = A))	REFUSE	structured_unsupported_family	
+beta_binomial	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+beta_binomial	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+beta_binomial	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+cumulative_logit	none	mu	bf(mu = y_ordinal ~ x)	ADMIT		fe_cumulative_logit
+cumulative_logit	none	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	(1|g)	mu	bf(mu = y_ordinal ~ x + (1 | g))	REFUSE	fe_only_random_effects	
+cumulative_logit	(1|g)	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	(1+x|g)	mu	bf(mu = y_ordinal ~ x + (1 + x | g))	REFUSE	fe_only_random_effects	
+cumulative_logit	(1+x|g)	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	phylo	mu	bf(mu = y_ordinal ~ x + phylo(1 | sp, tree = tree))	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+cumulative_logit	phylo	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	relmat	mu	bf(mu = y_ordinal ~ x + relmat(1 | id, K = K))	REFUSE	structured_unsupported_family	
+cumulative_logit	relmat	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	spatial	mu	bf(mu = y_ordinal ~ x + spatial(1 | site, coords = co))	REFUSE	structured_unsupported_family	
+cumulative_logit	spatial	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	animal	mu	bf(mu = y_ordinal ~ x + animal(1 | id, A = A))	REFUSE	structured_unsupported_family	
+cumulative_logit	animal	sigma	NOT_APPLICABLE: family has no sigma dpar (dispersionless)	NOT_APPLICABLE		
+cumulative_logit	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+cumulative_logit	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+cumulative_logit	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+biv_student	none	mu1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	ADMIT		fe_biv_student
+biv_student	none	sigma1	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+biv_student	(1|g)	mu1	bf(mu1 = y1 ~ x + (1 | g), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_student	(1|g)	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + (1 | g), sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_student	(1+x|g)	mu1	bf(mu1 = y1 ~ x + (1 + x | g), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_student	(1+x|g)	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + (1 + x | g), sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_student	phylo	mu1	bf(mu1 = y1 ~ x + phylo(1 | sp, tree = tree), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+biv_student	phylo	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + phylo(1 | sp, tree = tree), sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. | ✖ Non-intercept formula on "sigma1". | ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho predictors are deferred on `engine = "julia"` exactly as th ...	
+biv_student	relmat	mu1	bf(mu1 = y1 ~ x + relmat(1 | id, K = K), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_student	relmat	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + relmat(1 | id, K = K), sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_student	spatial	mu1	bf(mu1 = y1 ~ x + spatial(1 | site, coords = co), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_student	spatial	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + spatial(1 | site, coords = co), sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_student	animal	mu1	bf(mu1 = y1 ~ x + animal(1 | id, A = A), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_student	animal	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + animal(1 | id, A = A), sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_student	bivariate q2 phylo	mu1,mu2	bf(mu1 = y1 ~ x + phylo(1 | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | sp, tree = tree), sigma1 = ~1, sigma2 = ~1, nu = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+biv_student	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree), sigma1 = ~1 + phylo(1 | p | sp, tree = tree), sigma2 = ~1 + phylo(1 | p | sp, tree = tree), nu = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. | ✖ Non-intercept formula on "sigma1" and "sigma2". | ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho predictors are deferred on `engine = "julia"`  ...	
+biv_student	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree), sigma1 = ~1 + phylo(1 | ps | sp, tree = tree), sigma2 = ~1 + phylo(1 | ps | sp, tree = tree), nu = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `biv_student()` currently allows fixed-effect `mu1`/`mu2` only, with intercept-only `sigma1`, `sigma2`, shared `nu`, and `rho12`. | ✖ Non-intercept formula on "sigma1" and "sigma2". | ℹ Random or structured effects, `meta_V()`, offsets, and sigma/nu/rho predictors are deferred on `engine = "julia"`  ...	
+skew_normal	none	mu	bf(mu = y ~ x, sigma = ~1, nu = ~1)	ADMIT		fe_skew_normal
+skew_normal	none	sigma	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+skew_normal	(1|g)	mu	bf(mu = y ~ x + (1 | g), sigma = ~1, nu = ~1)	REFUSE	fe_only_random_effects	
+skew_normal	(1|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 | g), nu = ~1)	REFUSE	fe_only_random_effects	
+skew_normal	(1+x|g)	mu	bf(mu = y ~ x + (1 + x | g), sigma = ~1, nu = ~1)	REFUSE	fe_only_random_effects	
+skew_normal	(1+x|g)	sigma	bf(mu = y ~ x, sigma = ~1 + (1 + x | g), nu = ~1)	REFUSE	fe_only_random_effects	
+skew_normal	phylo	mu	bf(mu = y ~ x + phylo(1 | sp, tree = tree), sigma = ~1, nu = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+skew_normal	phylo	sigma	bf(mu = y ~ x, sigma = ~1 + phylo(1 | sp, tree = tree), nu = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+skew_normal	relmat	mu	bf(mu = y ~ x + relmat(1 | id, K = K), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+skew_normal	relmat	sigma	bf(mu = y ~ x, sigma = ~1 + relmat(1 | id, K = K), nu = ~1)	REFUSE	structured_unsupported_family	
+skew_normal	spatial	mu	bf(mu = y ~ x + spatial(1 | site, coords = co), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+skew_normal	spatial	sigma	bf(mu = y ~ x, sigma = ~1 + spatial(1 | site, coords = co), nu = ~1)	REFUSE	structured_unsupported_family	
+skew_normal	animal	mu	bf(mu = y ~ x + animal(1 | id, A = A), sigma = ~1, nu = ~1)	REFUSE	structured_unsupported_family	
+skew_normal	animal	sigma	bf(mu = y ~ x, sigma = ~1 + animal(1 | id, A = A), nu = ~1)	REFUSE	structured_unsupported_family	
+skew_normal	bivariate q2 phylo	mu1,mu2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+skew_normal	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+skew_normal	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	NOT_APPLICABLE: bivariate structure on a univariate-only family	NOT_APPLICABLE		
+biv_lognormal	none	mu1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	ADMIT		fe_biv_lognormal
+biv_lognormal	none	sigma1	NOT_APPLICABLE: 'none' carries no RE term; only the mu-side plain formula is tested	NOT_APPLICABLE		
+biv_lognormal	(1|g)	mu1	bf(mu1 = y1 ~ x + (1 | g), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_lognormal	(1|g)	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + (1 | g), sigma2 = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_lognormal	(1+x|g)	mu1	bf(mu1 = y1 ~ x + (1 + x | g), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_lognormal	(1+x|g)	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + (1 + x | g), sigma2 = ~1, rho12 = ~1)	REFUSE	fe_only_random_effects	
+biv_lognormal	phylo	mu1	bf(mu1 = y1 ~ x + phylo(1 | sp, tree = tree), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+biv_lognormal	phylo	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + phylo(1 | sp, tree = tree), sigma2 = ~1, rho12 = ~1)	REFUSE	unadmitted_predictor_dpar	
+biv_lognormal	relmat	mu1	bf(mu1 = y1 ~ x + relmat(1 | id, K = K), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_lognormal	relmat	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + relmat(1 | id, K = K), sigma2 = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_lognormal	spatial	mu1	bf(mu1 = y1 ~ x + spatial(1 | site, coords = co), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_lognormal	spatial	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + spatial(1 | site, coords = co), sigma2 = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_lognormal	animal	mu1	bf(mu1 = y1 ~ x + animal(1 | id, A = A), mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_lognormal	animal	sigma1	bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1 + animal(1 | id, A = A), sigma2 = ~1, rho12 = ~1)	REFUSE	structured_unsupported_family	
+biv_lognormal	bivariate q2 phylo	mu1,mu2	bf(mu1 = y1 ~ x + phylo(1 | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | sp, tree = tree), sigma1 = ~1, sigma2 = ~1, rho12 = ~1)	REFUSE_UNGATED	UNGATED: `engine = "julia"` can marshal `phylo()` only for univariate Gaussian, Poisson, NB2, Gamma, Beta, Binomial, or bivariate Gaussian (q=4) fits. | ℹ Use native `engine = "tmb"` for other phylogenetic fits until the bridge has parity tests.	
+biv_lognormal	bivariate q4 dense phylo	mu1,mu2,sigma1,sigma2	bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree), sigma1 = ~1 + phylo(1 | p | sp, tree = tree), sigma2 = ~1 + phylo(1 | p | sp, tree = tree), rho12 = ~1)	REFUSE	unadmitted_predictor_dpar	
+biv_lognormal	bivariate q4 block-diagonal phylo	mu1,mu2,sigma1,sigma2	bf(mu1 = y1 ~ x + phylo(1 | p | sp, tree = tree), mu2 = y2 ~ x + phylo(1 | p | sp, tree = tree), sigma1 = ~1 + phylo(1 | ps | sp, tree = tree), sigma2 = ~1 + phylo(1 | ps | sp, tree = tree), rho12 = ~1)	REFUSE	unadmitted_predictor_dpar	
+truncated_nbinom2	hu modifier (finding 7 cross-spelling probe)	hu	bf(y ~ x, sigma ~ 1, hu ~ 1)	ADMIT		hurdle_nbinom2
