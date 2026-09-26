@@ -697,14 +697,13 @@ A Gaussian REML fit is labeled `estimator = "REML"` and goes through the same
 `check_drm()`, profile, and standard-error diagnostics as an ML fit; REML does
 not change how you read them.
 
-For a binomial model, use `REML = FALSE` for scientific reporting. The admitted
-O2 binomial REML route agrees with `glmmTMB(REML = TRUE)` in deterministic
-joint-Laplace checks and returns finite uncertainty for the tested ordinary
-intercept and independent-slope fits, but it is only diagnostic evidence. It
-has no recovery or coverage campaign. An internal cumulative-logit estimator
-combining adaptive Gauss-Hermite quadrature with a Cox-Reid adjustment is not
-exposed through `drmTMB()` and does not authorize an interval from a public
-ordinal fit.
+For a binomial model, use `REML = FALSE` for scientific reporting. In the
+tested ordinary-intercept and independent-slope examples, the available
+binomial REML calculation agreed with `glmmTMB(REML = TRUE)` and returned finite
+uncertainty. That is a narrow diagnostic check, not evidence that the estimator
+recovers parameters well or that its intervals have reliable coverage. A
+separate cumulative-logit fitting method is not available through `drmTMB()`;
+it does not justify reporting an interval from a public ordinal fit.
 
 ## Separate optimization from uncertainty
 
