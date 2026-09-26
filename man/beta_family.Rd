@@ -15,6 +15,8 @@ A \code{drm_family} object.
 \description{
 \code{beta_family()} defines a one-response distribution for continuous proportions
 strictly inside \verb{(0, 1)}, with formulas for mean \code{mu} and scale \code{sigma}.
+Write \code{family = beta_family()}. Unqualified \code{beta()} is \code{\link[base:beta]{base::beta()}},
+the Euler beta function, and is not a drmTMB family.
 }
 \details{
 The implemented contract is
@@ -23,11 +25,13 @@ The implemented contract is
 the mean, not more precision.
 Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter the logit-\code{mu} predictor; \code{sigma}
-must remain fixed-effect.
+remains fixed-effect in this first slice.
 }
 \section{Functions}{
 \itemize{
 \item \code{beta()}: Deprecated alias; use \code{\link[=beta_family]{beta_family()}} instead.
+Not exported (it would mask \code{\link[base:beta]{base::beta()}}). Call \code{drmTMB:::beta()} only
+if an old script still needs the alias.
 
 }}
 \examples{

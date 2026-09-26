@@ -257,6 +257,8 @@ tweedie <- function() {
 #'
 #' `beta_family()` defines a one-response distribution for continuous proportions
 #' strictly inside `(0, 1)`, with formulas for mean `mu` and scale `sigma`.
+#' Write `family = beta_family()`. Unqualified `beta()` is [base::beta()],
+#' the Euler beta function, and is not a drmTMB family.
 #'
 #' The implemented contract is
 #' `logit(mu) = eta_mu`, `log(sigma) = eta_sigma`, and internal precision
@@ -286,9 +288,86 @@ beta_family <- function() {
 
 #' @keywords internal
 #' @describeIn beta_family Deprecated alias; use [beta_family()] instead.
+#'   Not exported (it would mask [base::beta()]). Call `drmTMB:::beta()` only
+#'   if an old script still needs the alias.
 beta <- function() {
   lifecycle::deprecate_warn("0.7.1", "beta()", "beta_family()")
   beta_family()
+}
+
+drm_family_call_parts <- function(fun) {
+  if (is.symbol(fun) && identical(fun, quote(beta))) {
+    return(list(pkg = NULL, name = "beta"))
+  }
+  if (
+    is.call(fun) &&
+      length(fun) == 3L &&
+      (identical(fun[[1L]], quote(`::`)) || identical(fun[[1L]], quote(`:::`)))
+  ) {
+    return(list(
+      pkg = as.character(fun[[2L]]),
+      name = as.character(fun[[3L]]),
+      ns_op = as.character(fun[[1L]])
+    ))
+  }
+  NULL
+}
+
+drm_is_bare_euler_beta_call <- function(expr) {
+  if (!is.call(expr) || length(expr) != 1L) {
+    return(FALSE)
+  }
+  info <- drm_family_call_parts(expr[[1L]])
+  if (is.null(info) || !identical(info$name, "beta")) {
+    return(FALSE)
+  }
+  if (identical(info$pkg, "drmTMB")) {
+    return(FALSE)
+  }
+  is.null(info$pkg) || info$pkg %in% c("base", "stats")
+}
+
+drm_is_unexported_drmtmb_beta_call <- function(expr) {
+  if (!is.call(expr) || length(expr) != 1L) {
+    return(FALSE)
+  }
+  info <- drm_family_call_parts(expr[[1L]])
+  !is.null(info) &&
+    identical(info$name, "beta") &&
+    identical(info$pkg, "drmTMB") &&
+    identical(info$ns_op, "::")
+}
+
+drm_abort_base_beta_as_family <- function() {
+  cli::cli_abort(
+    c(
+      "{.code family = beta()} is {.code base::beta()}, the Euler beta function, not a {.pkg drmTMB} family.",
+      "x" = "Unqualified {.code beta()} stopped masking {.code base::beta()} in 0.7.1.",
+      "i" = "Use {.code family = beta_family()} for continuous proportions in (0, 1)."
+    ),
+    class = "drmTMB_base_beta_family_error"
+  )
+}
+
+drm_eval_family_arg <- function(expr, env) {
+  if (drm_is_bare_euler_beta_call(expr)) {
+    drm_abort_base_beta_as_family()
+  }
+  if (drm_is_unexported_drmtmb_beta_call(expr)) {
+    cli::cli_abort(
+      c(
+        "{.code drmTMB::beta()} is not an exported object.",
+        "x" = "The 0.7.1 rename left the old constructor unexported so it would not mask {.code base::beta()}.",
+        "i" = "Use {.code family = beta_family()}."
+      ),
+      class = "drmTMB_base_beta_family_error"
+    )
+  }
+  family <- eval(expr, envir = env)
+  if (is.function(family) && identical(family, base::beta)) {
+    drm_abort_base_beta_as_family()
+  }
+  family
 }
 
 #' Zero-one beta response family

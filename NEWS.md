@@ -1,3 +1,11 @@
+# drmTMB (development)
+
+## Bug fixes
+
+* `family = beta()` now fails with a drmTMB message that names
+  `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
+  `beta()` stays unexported so it does not mask [base::beta()] (#1420).
+
 # drmTMB 0.7.1
 
 ## API compatibility fixes
@@ -15,7 +23,7 @@
 * Exported `beta_family()` for strict continuous-proportion models so the
   unqualified name `beta()` no longer masks [base::beta()]. The old
   `beta()` constructor remains available as a deprecated unexported alias
-  (`drmTMB::beta()`).
+  (`drmTMB:::beta()`). `drmTMB::beta()` is not exported.
 
 * `fixef()` and `ranef()` now re-export `nlme`'s shared generics (as
   `glmmTMB` and `lme4` already do), so loading `drmTMB` after `glmmTMB` or
