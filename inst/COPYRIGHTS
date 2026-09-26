@@ -106,14 +106,13 @@ Two things are adapted from gllvmTMB commit `431e173f7198f74c356ec3099ffa211f1ee
 
 ## Meuwissen-Luo inbreeding (2026-09-24)
 
-`drm_pedigree_inbreeding_meuwissen_luo()` in `R/phylo-utils.R` reimplements
-the Meuwissen & Luo (1992) T-row / max-heap walk for pedigree inbreeding
-coefficients. The method is the published algorithm (Genet. Sel. Evol.
-24:305-313). The walk structure follows HSquared.jl
+`drm_pedigree_inbreeding_meuwissen_luo()` in `R/phylo-utils.R` calls the
+C walk in `src/meuwissen_luo.c`. The method is the published algorithm
+(Genet. Sel. Evol. 24:305-313). The walk structure follows HSquared.jl
 `_meuwissen_luo_inbreeding` (MIT License) at
 `src/pedigree.jl` commit `eee5f7aa7640abafa6b2efd2b71a66182db77459`.
-HSquared.jl source is not vendored; the R function is a fresh
-implementation. No gllvmTMB or other GPL source is copied.
+HSquared.jl source is not vendored; the C walk and private R reference
+are fresh implementations. No gllvmTMB or other GPL source is copied.
 The subsequent sparse A^{-1} assembly remains the
 Henderson (1976) / Quaas (1976) construction already documented for
 gllvmTMB's `.gllvm_pedigree_precision()`.

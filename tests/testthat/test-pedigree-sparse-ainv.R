@@ -249,3 +249,28 @@ test_that("pedigree A-inverse stores O(n) nonzeros, not O(n^2)", {
   expect_lt(nnz, 9L * n)
   expect_lt(nnz, n^2 / 10)
 })
+
+test_that("Meuwissen-Luo C path is loaded and matches dense F", {
+  expect_true(
+    is.loaded("drm_meuwissen_luo_inbreeding", PACKAGE = "drmTMB", type = "CALL")
+  )
+  set.seed(26)
+  n_founder <- 20L
+  n <- 400L
+  ids <- sprintf("i%03d", seq_len(n))
+  dam <- rep(NA_character_, n)
+  sire <- rep(NA_character_, n)
+  for (i in (n_founder + 1L):n) {
+    parents <- sample.int(i - 1L, 2L)
+    dam[[i]] <- ids[[parents[[1L]]]]
+    sire[[i]] <- ids[[parents[[2L]]]]
+  }
+  ped <- data.frame(id = ids, dam = dam, sire = sire, stringsAsFactors = FALSE)
+  A <- drm_pedigree_additive_relationship(ped)
+  ped_ord <- ped[match(rownames(A), ped$id), , drop = FALSE]
+  F_c <- drm_pedigree_inbreeding_meuwissen_luo(ped_ord)
+  F_r <- drm_pedigree_inbreeding_meuwissen_luo_r(ped_ord)
+  expect_equal(unname(F_c), unname(F_r), tolerance = 1e-12)
+  expect_equal(unname(F_c), unname(diag(A) - 1), tolerance = 1e-8)
+  expect_identical(names(F_c), ped_ord$id)
+})

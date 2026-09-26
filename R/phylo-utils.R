@@ -499,9 +499,11 @@ drm_pedigree_sparse_precision_dense_F <- function(
 #
 # PROVENANCE: method is Meuwissen & Luo, Genet. Sel. Evol. 24:305-313 (1992).
 # The T-row / max-heap walk matches HSquared.jl `_meuwissen_luo_inbreeding`
-# (MIT). Reimplemented in R; HSquared.jl source is not vendored. No gllvmTMB
-# or other GPL source is copied.
-drm_pedigree_inbreeding_meuwissen_luo <- function(ped, object = "pedigree") {
+# (MIT). The fit path calls src/meuwissen_luo.c after load. The R walk
+# below is a private same-algorithm reference for tests and A/B benches.
+# HSquared.jl source is not vendored. No gllvmTMB or other GPL source is
+# copied.
+drm_pedigree_inbreeding_parent_index <- function(ped, object = "pedigree") {
   n <- nrow(ped)
   ids <- ped$id
   sire <- match(ped$sire, ids)
@@ -521,6 +523,23 @@ drm_pedigree_inbreeding_meuwissen_luo <- function(ped, object = "pedigree") {
       ))
     }
   }
+  list(ids = ids, sire = sire, dam = dam)
+}
+
+drm_pedigree_inbreeding_meuwissen_luo <- function(ped, object = "pedigree") {
+  idx <- drm_pedigree_inbreeding_parent_index(ped, object = object)
+  F <- .Call("drm_meuwissen_luo_inbreeding", idx$sire, idx$dam, PACKAGE = "drmTMB")
+  names(F) <- idx$ids
+  F
+}
+
+# Private R reference of the same walk (bench / identity only).
+drm_pedigree_inbreeding_meuwissen_luo_r <- function(ped, object = "pedigree") {
+  idx <- drm_pedigree_inbreeding_parent_index(ped, object = object)
+  n <- length(idx$ids)
+  ids <- idx$ids
+  sire <- idx$sire
+  dam <- idx$dam
 
   F <- numeric(n)
   L <- numeric(n)
