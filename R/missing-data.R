@@ -209,6 +209,7 @@ drm_validate_complete_predictors <- function(formula, data) {
 #' impute_model(biomass ~ z, family = Gamma(link = "log"))
 #' impute_model(biomass ~ z, family = tweedie())
 impute_model <- function(formula, family = stats::gaussian(), trials = NULL) {
+  family <- drm_eval_family_arg(substitute(family), parent.frame())
   if (!inherits(formula, "formula") || length(formula) != 3L) {
     cli::cli_abort(
       "{.arg formula} must be a two-sided formula such as {.code x ~ z}."
@@ -307,6 +308,9 @@ categorical <- function() {
 }
 
 drm_impute_family_type <- function(family) {
+  if (is.function(family) && identical(family, base::beta)) {
+    drm_abort_base_beta_as_family()
+  }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }
@@ -390,7 +394,7 @@ drm_impute_family_type <- function(family) {
   }
   cli::cli_abort(c(
     "Unsupported missing-predictor family {.val {label}}.",
-    "i" = "The fitted predictor-model families are currently {.code gaussian()}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.fn categorical}, {.fn beta}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn lognormal}, {.code Gamma(link = \"log\")}, and {.fn tweedie}."
+    "i" = "The fitted predictor-model families are currently {.code gaussian()}, {.code binomial(link = \"logit\")}, {.fn cumulative_logit}, {.fn categorical}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn lognormal}, {.code Gamma(link = \"log\")}, and {.fn tweedie}."
   ))
 }
 
@@ -2399,7 +2403,7 @@ drm_zero_one_beta_missing_predictor_response <- function(x, variable) {
     cli::cli_abort(c(
       "Zero-one beta/proportion missing-predictor models require observed values in [0, 1].",
       "x" = "Predictor {.val {variable}} contains out-of-range or non-finite observed values.",
-      "i" = "Use {.fn beta} for strict proportions or another predictor family when the support is not bounded by 0 and 1."
+      "i" = "Use {.fn beta_family} for strict proportions or another predictor family when the support is not bounded by 0 and 1."
     ))
   }
   x
@@ -2644,7 +2648,7 @@ drm_beta_binomial_missing_predictor_response <- function(
     cli::cli_abort(c(
       "Observed {.fn mi} proportions cannot be used without matching beta-binomial success counts.",
       "x" = "Predictor {.val {variable}} is observed in row{?s} where success column {.val {success_variable}} is missing.",
-      "i" = "Use {.fn beta} or {.fn zero_one_beta} for proportion-only predictors, or provide success counts and trial counts."
+      "i" = "Use {.fn beta_family} or {.fn zero_one_beta} for proportion-only predictors, or provide success counts and trial counts."
     ))
   }
   if (any(value_observed & observed)) {
