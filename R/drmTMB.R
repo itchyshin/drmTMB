@@ -6323,6 +6323,13 @@ drm_build_beta_ls_spec <- function(
   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
   mu_entry$rhs <- mu_animal$rhs
   validate_beta_animal_mu_structured_term(mu_animal$term)
+  # #1284: admit relmat(1 | id, K = K) alongside phylo()/animal() -- all three
+  # funnel through the identical build_structured_mu_structure()/Q_phylo
+  # plumbing (relmat differs only in how the known matrix is supplied), so the
+  # same narrow q1-intercept-only gate applies.
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  validate_beta_relmat_mu_structured_term(mu_relmat$term)
   sigma_animal <- extract_gaussian_mu_known_term(
     sigma_entry,
     "animal",
@@ -6333,17 +6340,22 @@ drm_build_beta_ls_spec <- function(
     sigma_animal$term$dpars <- "sigma"
   }
   validate_beta_animal_sigma_structured_term(sigma_animal$term)
-  if (!is.null(mu_phylo$term) && !is.null(mu_animal$term)) {
+  n_mu_structured <- sum(
+    !is.null(mu_phylo$term), !is.null(mu_animal$term), !is.null(mu_relmat$term)
+  )
+  if (n_mu_structured > 1L) {
     cli::cli_abort(c(
       "A {.fn beta} model can use only one structured {.code mu} provider in this route.",
-      "x" = "The formula contains both {.fn phylo} and {.fn animal} terms.",
-      "i" = "Use one unlabelled q1 {.fn phylo} or {.fn animal} intercept in {.code mu}; simultaneous structured providers remain deferred."
+      "x" = "The formula contains more than one of {.fn phylo}, {.fn animal}, and {.fn relmat}.",
+      "i" = "Use one unlabelled q1 {.fn phylo}, {.fn animal}, or {.fn relmat} intercept in {.code mu}; simultaneous structured providers remain deferred."
     ))
   }
   beta_mu_structured_term <- if (!is.null(mu_phylo$term)) {
     mu_phylo$term
-  } else {
+  } else if (!is.null(mu_animal$term)) {
     mu_animal$term
+  } else {
+    mu_relmat$term
   }
   if (!is.null(beta_mu_structured_term) && !is.null(sigma_animal$term)) {
     cli::cli_abort(c(
@@ -6360,10 +6372,10 @@ drm_build_beta_ls_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_mu_random_terms(mu_re$terms)
-  if (!is.null(mu_phylo$term) && length(mu_re$terms) > 0L) {
+  if (!is.null(beta_mu_structured_term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(c(
-      "A {.fn beta} phylogenetic {.code mu} effect cannot yet be combined with an ordinary {.code mu} random effect.",
-      "i" = "Use either {.code phylo(1 | id, tree = tree)} or an ordinary {.code (1 | id)} term for this q1 prerequisite."
+      "A {.fn beta} {.fn {structured_mu_type(beta_mu_structured_term)}} {.code mu} effect cannot yet be combined with an ordinary {.code mu} random effect.",
+      "i" = "Use either the structured term or an ordinary {.code (1 | id)} term for this q1 prerequisite, not both."
     ))
   }
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
@@ -7556,9 +7568,27 @@ drm_build_binomial_spec <- function(
   # how beta and zero-one-beta grew provider by provider: phylo only (no
   # spatial/animal/relmat yet), intercept only (no slopes, no labels), not
   # combinable with mi() or with ordinary random effects in this slice.
+  #
+  # #1283: admit relmat(1 | id, K = K) alongside phylo(), reusing the identical
+  # build_structured_mu_structure()/Q_phylo plumbing -- relmat differs from
+  # phylo only in how the known correlation matrix is supplied (a name-keyed
+  # matrix instead of a tree), so the same q1-intercept-only gate applies.
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
-  binomial_structured_term <- mu_phylo$term
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  if (!is.null(mu_phylo$term) && !is.null(mu_relmat$term)) {
+    cli::cli_abort(c(
+      "A binomial model can use only one structured {.code mu} provider in this route.",
+      "x" = "The formula contains both {.fn phylo} and {.fn relmat} terms.",
+      "i" = "Use one unlabelled q1 {.fn phylo} or {.fn relmat} intercept in {.code mu}; simultaneous structured providers remain deferred."
+    ))
+  }
+  binomial_structured_term <- if (!is.null(mu_phylo$term)) {
+    mu_phylo$term
+  } else {
+    mu_relmat$term
+  }
   validate_binomial_structured_mu_term(binomial_structured_term, mu_re$terms)
   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
   include_missing_predictor <- isTRUE(mi_setup$enabled)
@@ -7583,8 +7613,8 @@ drm_build_binomial_spec <- function(
   }
   if (include_missing_predictor && !is.null(binomial_structured_term)) {
     cli::cli_abort(c(
-      "A binomial {.fn phylo} effect cannot yet be combined with missing-predictor {.fn mi}.",
-      "i" = "Fit the phylogenetic slice without {.code miss_control(predictor = \"model\")}."
+      "A binomial {.fn {structured_mu_type(binomial_structured_term)}} effect cannot yet be combined with missing-predictor {.fn mi}.",
+      "i" = "Fit the structured slice without {.code miss_control(predictor = \"model\")}."
     ))
   }
   drm_reject_phase1_terms(mu_entry$rhs, mu_entry$dpar, allow_offset = TRUE)
@@ -12083,29 +12113,61 @@ validate_beta_phylo_mu_structured_term <- function(term) {
   invisible(NULL)
 }
 
+# #1284: admit relmat(1 | id, K = K) alongside phylo()/animal() for beta() mu --
+# same narrow q1-intercept-only gate, mirroring validate_beta_phylo_mu_structured_term.
+validate_beta_relmat_mu_structured_term <- function(term) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn relmat} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code relmat(1 | id, K = K)}; labelled covariance and q2/q4 beta models remain deferred."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "{.fn beta} {.fn relmat} {.code mu} effects currently support only an intercept-only q1 term.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code relmat(1 | id, K = K)}; structured slopes remain deferred."
+    ))
+  }
+  invisible(NULL)
+}
+
 validate_binomial_structured_mu_term <- function(term, re_terms) {
   if (is.null(term)) {
     return(invisible(NULL))
   }
   # First binomial structured slice (#1048): one unlabelled q1 phylo() intercept.
+  # #1283: relmat() admitted alongside phylo() -- both funnel through the
+  # identical build_structured_mu_structure()/Q_phylo plumbing, so the same
+  # narrow q1-intercept-only gate applies to whichever provider was supplied.
+  marker <- structured_mu_type(term)
+  example <- if (identical(marker, "relmat")) {
+    "relmat(1 | id, K = K)"
+  } else {
+    "phylo(1 | id, tree = tree)"
+  }
   if (!is.null(term$covariance_label)) {
     cli::cli_abort(c(
-      "Binomial {.fn phylo} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "Binomial {.fn {marker}} {.code mu} effects currently support only an unlabelled q1 intercept.",
       "x" = "Requested labelled structured term: {.code {term$label}}.",
-      "i" = "Use {.code phylo(1 | id, tree = tree)}; labelled covariance blocks remain deferred."
+      "i" = "Use {.code {example}}; labelled covariance blocks remain deferred."
     ))
   }
   if (!structured_term_is_intercept_only(term)) {
     cli::cli_abort(c(
-      "Binomial {.fn phylo} {.code mu} effects currently support only an intercept-only q1 term.",
+      "Binomial {.fn {marker}} {.code mu} effects currently support only an intercept-only q1 term.",
       "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
-      "i" = "Use {.code phylo(1 | id, tree = tree)}; phylogenetic slopes remain deferred."
+      "i" = "Use {.code {example}}; structured slopes remain deferred."
     ))
   }
   if (length(re_terms) > 0L) {
     cli::cli_abort(c(
-      "A binomial {.fn phylo} effect cannot yet be combined with ordinary random effects.",
-      "i" = "Use one of {.code phylo(1 | id, tree = tree)} or {.code (1 | id)}, not both, in this slice."
+      "A binomial {.fn {marker}} effect cannot yet be combined with ordinary random effects.",
+      "i" = "Use one of {.code {example}} or {.code (1 | id)}, not both, in this slice."
     ))
   }
   invisible(NULL)
