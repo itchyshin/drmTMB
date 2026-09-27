@@ -6,6 +6,16 @@
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
+## Documentation
+
+* `?heritability` no longer describes the `heritability()`/`icc()`/
+  `repeatability()` point estimate as "relative to a denominator on the
+  working (log-SD) scale". The estimate is a variance-share ratio in
+  `[0, 1]` on the natural (variance) scale; only its standard error and
+  confidence interval use a delta method on the working (log-SD) scale, as
+  the next paragraph already said. The computation itself was already
+  correct (verified numerically); only the description was wrong (#1231).
+
 # drmTMB 0.7.1
 
 ## API compatibility fixes
