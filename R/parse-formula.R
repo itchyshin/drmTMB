@@ -836,28 +836,47 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
   }
 
   if (identical(marker, "phylo")) {
-    extra <- setdiff(marker_arg_names, "tree")
-    if (
-      length(marker_args) != 1L ||
-        !identical(marker_arg_names, "tree") ||
-        length(extra) > 0L
-    ) {
+    extra <- setdiff(marker_arg_names, c("tree", "tolerance"))
+    tree_hits <- which(marker_arg_names == "tree")
+    if (length(tree_hits) != 1L || length(extra) > 0L) {
       cli::cli_abort(c(
-        "{.fn phylo} requires a single named {.arg tree} argument.",
+        "{.fn phylo} requires a single named {.arg tree} argument and an optional {.arg tolerance}.",
         "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}.",
         "i" = "The public phylogeny API will build a sparse A-inverse from an ultrametric tree with branch lengths."
       ))
     }
-    if (!is.symbol(marker_args[[1L]])) {
+    tree_arg <- marker_args[[tree_hits]]
+    if (!is.symbol(tree_arg)) {
       cli::cli_abort(c(
         "{.arg tree} must be the name of a phylogeny object.",
         "x" = "Use syntax like {.code phylo(1 | species, tree = tree)}."
       ))
     }
+    tolerance_hits <- which(marker_arg_names == "tolerance")
+    tolerance <- if (length(tolerance_hits) == 0L) {
+      sqrt(.Machine$double.eps)
+    } else {
+      tolerance_value <- tryCatch(
+        eval(marker_args[[tolerance_hits]], envir = baseenv()),
+        error = function(e) NULL
+      )
+      if (
+        !is.numeric(tolerance_value) ||
+          length(tolerance_value) != 1L ||
+          is.na(tolerance_value) ||
+          tolerance_value <= 0
+      ) {
+        cli::cli_abort(c(
+          "{.arg tolerance} in {.fn phylo} must be a single positive number.",
+          "x" = "Use syntax like {.code phylo(1 | species, tree = tree, tolerance = 1e-4)}."
+        ))
+      }
+      tolerance_value
+    }
     return(c(
       list(type = "phylo", dpar = dpar),
       term,
-      list(tree = as.character(marker_args[[1L]]))
+      list(tree = as.character(tree_arg), tolerance = tolerance)
     ))
   }
 

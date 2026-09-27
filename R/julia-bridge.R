@@ -3770,9 +3770,18 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
     }
     groups <- vapply(phylo_terms, `[[`, character(1L), "group")
     trees <- vapply(phylo_terms, `[[`, character(1L), "tree")
-    if (length(unique(groups)) != 1L || length(unique(trees)) != 1L) {
+    tolerances <- vapply(
+      phylo_terms,
+      function(t) if (is.null(t$tolerance)) sqrt(.Machine$double.eps) else t$tolerance,
+      double(1L)
+    )
+    if (
+      length(unique(groups)) != 1L ||
+        length(unique(trees)) != 1L ||
+        length(unique(tolerances)) != 1L
+    ) {
       cli::cli_abort(c(
-        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree and grouping factor.",
+        "{.code engine = \"julia\"} requires all bivariate {.fn phylo} terms to share one tree, grouping factor, and tolerance.",
         i = "Use native {.code engine = \"tmb\"} for heterogeneous phylogenetic structure across axes."
       ))
     }
@@ -3793,6 +3802,11 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   }
 
   tree <- get(rep_term$tree, envir = env, inherits = TRUE)
+  tolerance <- if (is.null(rep_term$tolerance)) {
+    sqrt(.Machine$double.eps)
+  } else {
+    rep_term$tolerance
+  }
   species <- as.character(data[[rep_term$group]])
   cache <- drm_julia_phylo_payload_cache
   if (
@@ -3804,12 +3818,13 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
       identical(cache$full_family_type, family_type) &&
       identical(cache$full_locscale_mode, locscale_mode) &&
       identical(cache$full_coupled_phylo_tag, coupled_phylo_tag) &&
-      identical(cache$full_species, species)
+      identical(cache$full_species, species) &&
+      identical(cache$full_tolerance, tolerance)
   ) {
     return(cache$full_payload)
   }
 
-  info <- validate_phylo_tree(tree, species = species)
+  info <- validate_phylo_tree(tree, species = species, tolerance = tolerance)
   tree_payload <- drm_julia_phylo_tree_payload(tree, info = info)
   row_order <- order(
     match(species, tree_payload$tip_order),
@@ -3838,6 +3853,7 @@ drm_julia_phylo_payload <- function(formula, family_type, data, env) {
   cache$full_locscale_mode <- locscale_mode
   cache$full_coupled_phylo_tag <- coupled_phylo_tag
   cache$full_species <- species
+  cache$full_tolerance <- tolerance
   cache$full_payload <- payload
   payload
 }
