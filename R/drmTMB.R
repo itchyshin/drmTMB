@@ -7256,6 +7256,27 @@ drm_build_beta_binomial_spec <- function(
   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
   mu_entry$rhs <- mu_re$rhs
   validate_beta_binomial_mu_random_terms(mu_re$terms)
+  # #1282: admit phylo(1 | species)/relmat(1 | id, K = K) on mu -- both funnel
+  # through the identical build_structured_mu_structure()/Q_phylo plumbing
+  # that binomial (#1048, #1283) and beta (#1284) already use, so the same
+  # narrow q1-intercept-only gate applies here.
+  mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
+  mu_entry$rhs <- mu_phylo$rhs
+  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
+  mu_entry$rhs <- mu_relmat$rhs
+  if (!is.null(mu_phylo$term) && !is.null(mu_relmat$term)) {
+    cli::cli_abort(c(
+      "A beta-binomial model can use only one structured {.code mu} provider in this route.",
+      "x" = "The formula contains both {.fn phylo} and {.fn relmat} terms.",
+      "i" = "Use one unlabelled q1 {.fn phylo} or {.fn relmat} intercept in {.code mu}; simultaneous structured providers remain deferred."
+    ))
+  }
+  beta_binomial_structured_term <- if (!is.null(mu_phylo$term)) {
+    mu_phylo$term
+  } else {
+    mu_relmat$term
+  }
+  validate_beta_binomial_structured_mu_term(beta_binomial_structured_term, mu_re$terms)
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
   validate_beta_binomial_sigma_random_terms(sigma_re$terms)
@@ -7277,7 +7298,8 @@ drm_build_beta_binomial_spec <- function(
   }
   if (
     include_missing_predictor &&
-      (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L)
+      (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L ||
+        !is.null(beta_binomial_structured_term))
   ) {
     cli::cli_abort(c(
       "The first beta-binomial-response {.fn mi} slice is fixed-effect {.code mu}/{.code sigma} only.",
@@ -7301,6 +7323,7 @@ drm_build_beta_binomial_spec <- function(
     all.vars(f_mu),
     all.vars(f_sigma),
     random_effect_vars(mu_re$terms),
+    structured_mu_vars(beta_binomial_structured_term),
     impute_vars
   ))
   if (include_missing_response) {
@@ -7405,6 +7428,11 @@ drm_build_beta_binomial_spec <- function(
     cli::cli_abort("Internal model-frame mismatch in beta-binomial model.")
   }
   re_mu <- build_random_mu_structure(mu_re$terms, data_model)
+  phylo_mu <- build_structured_mu_structure(
+    beta_binomial_structured_term,
+    data_model,
+    env
+  )
 
   spec <- list(
     model_type = "beta_binomial",
@@ -7427,8 +7455,11 @@ drm_build_beta_binomial_spec <- function(
       mu = re_mu,
       sigma = empty_random_sigma_structure(nrow(data_model))
     ),
-    random_scale = list(mu = empty_sd_mu_structure(re_mu$n_re)),
-    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    random_scale = list(
+      mu = empty_sd_mu_structure(re_mu$n_re),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = phylo_mu),
     missing_predictor = missing_predictor,
     denominator = response[c("success_name", "failure_name", "trials")],
     data = data_model,
@@ -7441,10 +7472,14 @@ drm_build_beta_binomial_spec <- function(
       X_mu,
       X_sigma,
       re_mu = re_mu,
-      observed_y = observed_y
+      observed_y = observed_y,
+      phylo_mu = phylo_mu
     ),
-    map = beta_binomial_map(re_mu),
-    random_names = if (re_mu$n_re > 0L) "u_mu" else NULL
+    map = beta_binomial_map(re_mu, phylo_mu),
+    random_names = c(
+      if (re_mu$n_re > 0L) "u_mu",
+      if (isTRUE(phylo_mu$has)) "u_phylo"
+    )
   )
   if (include_missing_predictor) {
     spec$start$beta_mi <- missing_predictor$beta_start
@@ -12186,6 +12221,43 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     "x" = "Unsupported random-effect term{?s}: {.code {labels}}.",
     "i" = "This slice adds only ordinary {.fn beta_binomial} {.code mu} random intercepts on the logit success-probability predictor; count-level overdispersion random effects need their own likelihood and recovery tests."
   ))
+}
+
+# #1282: admit phylo(1 | species)/relmat(1 | id, K = K) on beta_binomial's mu,
+# mirroring validate_binomial_structured_mu_term (#1048, #1283) -- both funnel
+# through the identical build_structured_mu_structure()/Q_phylo plumbing, so
+# the same narrow q1-intercept-only gate applies.
+validate_beta_binomial_structured_mu_term <- function(term, re_terms) {
+  if (is.null(term)) {
+    return(invisible(NULL))
+  }
+  marker <- structured_mu_type(term)
+  example <- if (identical(marker, "relmat")) {
+    "relmat(1 | id, K = K)"
+  } else {
+    "phylo(1 | id, tree = tree)"
+  }
+  if (!is.null(term$covariance_label)) {
+    cli::cli_abort(c(
+      "Beta-binomial {.fn {marker}} {.code mu} effects currently support only an unlabelled q1 intercept.",
+      "x" = "Requested labelled structured term: {.code {term$label}}.",
+      "i" = "Use {.code {example}}; labelled covariance blocks remain deferred."
+    ))
+  }
+  if (!structured_term_is_intercept_only(term)) {
+    cli::cli_abort(c(
+      "Beta-binomial {.fn {marker}} {.code mu} effects currently support only an intercept-only q1 term.",
+      "x" = "Requested structured coefficient{?s}: {.val {term$coef_names}}.",
+      "i" = "Use {.code {example}}; structured slopes remain deferred."
+    ))
+  }
+  if (length(re_terms) > 0L) {
+    cli::cli_abort(c(
+      "A beta-binomial {.fn {marker}} effect cannot yet be combined with ordinary random effects.",
+      "i" = "Use one of {.code {example}} or {.code (1 | id)}, not both, in this slice."
+    ))
+  }
+  invisible(NULL)
 }
 
 # Drop unused levels only from factor columns that appear in plain fixed-effect
@@ -18741,7 +18813,8 @@ beta_binomial_start <- function(
   X_mu,
   X_sigma,
   re_mu = empty_random_mu_structure(length(successes)),
-  observed_y = rep(TRUE, length(successes))
+  observed_y = rep(TRUE, length(successes)),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
   trials <- successes + failures
   successes_start <- successes[observed_y]
@@ -18782,6 +18855,7 @@ beta_binomial_start <- function(
     y_scale,
     observed_y = observed_y
   )
+  phylo_start <- gaussian_phylo_start(resid, phylo_mu)
 
   c(
     list(
@@ -18805,17 +18879,18 @@ beta_binomial_start <- function(
       beta_sigma1 = 0,
       beta_sigma2 = 0,
       beta_rho12 = 0,
-      u_phylo = 0,
-      log_sd_phylo = 0,
+      u_phylo = phylo_start$u_phylo,
+      log_sd_phylo = phylo_start$log_sd_phylo,
       eta_cor_phylo = 0
     )
   )
 }
 
 beta_binomial_map <- function(
-  re_mu = empty_random_mu_structure(1L)
+  re_mu = empty_random_mu_structure(1L),
+  phylo_mu = empty_phylo_mu_structure()
 ) {
-  beta_ls_map(re_mu = re_mu)
+  beta_ls_map(re_mu = re_mu, phylo_mu = phylo_mu)
 }
 
 binomial_start <- function(
@@ -21222,6 +21297,7 @@ make_tmb_data_core <- function(spec) {
   if (identical(spec$model_type, "beta_binomial")) {
     re_mu <- spec$random$mu
     sd_mu <- spec$random_scale$mu
+    phylo_mu <- spec$structured$phylo_mu
     return(list(
       model_type = 14L,
       link_code = 0L,
@@ -21272,11 +21348,29 @@ make_tmb_data_core <- function(spec) {
       sigma_re_pair_index = -1L,
       sigma_re_cross_cor = 0L,
       sigma_re_cross_mu = 0L,
-      has_phylo_mu = 0L,
+      # #1282: admit phylo()/relmat() on beta_binomial's mu, mirroring the
+      # binomial (#1048) and beta (#1284) wiring -- these five fields used to
+      # be hard-coded to the empty values, which silently discarded a parsed
+      # structured term at the data-assembly step even though the R builder
+      # had already validated and stored it (the #1049 has_phylo_mu = 0L
+      # no-op pattern).
+      has_phylo_mu = as.integer(isTRUE(phylo_mu$has)),
       phylo_mu_sd_row = 0L,
-      phylo_mu_node_index = 0L,
-      Q_phylo = dummy_sparse,
-      log_det_Q_phylo = 0
+      phylo_mu_node_index = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$observation_node_index0
+      } else {
+        0L
+      },
+      Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$precision
+      } else {
+        dummy_sparse
+      },
+      log_det_Q_phylo = if (isTRUE(phylo_mu$has)) {
+        phylo_mu$precision$log_det_precision
+      } else {
+        0
+      }
     ))
   }
   if (identical(spec$model_type, "binomial")) {
