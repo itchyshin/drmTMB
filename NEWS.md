@@ -1,5 +1,18 @@
 # drmTMB (development)
 
+## Test infrastructure
+
+* The numeric-kernel extreme-value oracle's `run_oracle()` helper
+  (`tests/testthat/test-numeric-kernel-oracle.R`) now fails closed on
+  non-finite grid points by default (`max_nonfinite = 0L`, was `Inf`), so a
+  family can no longer silently drop grid points from its own strict
+  assertion. This is how the `beta_binomial` guard gap (Md-H) escaped
+  detection: only 51% of its grid was actually asserted. Six existing
+  families (gamma, nbinom2, zi_nbinom2, truncated_nbinom2, hurdle_nbinom2,
+  binomial) have real, characterized non-finite points at the eta = +-700 /
+  +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
+  opt out explicitly with a documented count (#1324).
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names
