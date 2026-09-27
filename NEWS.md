@@ -1,5 +1,14 @@
 # drmTMB (development)
 
+## New features
+
+* `phylo()` gains a user-facing `tolerance` argument for the ultrametricity
+  check (`phylo(1 | species, tree = tree, tolerance = 1e-4)`), defaulting to
+  the previous `sqrt(.Machine$double.eps)`. Previously this scale-relative
+  tolerance was only reachable via the internal `validate_phylo_tree()` and
+  a tree that missed it by a negligible margin had no override short of
+  editing the tree itself (#1158).
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names

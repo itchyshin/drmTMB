@@ -191,6 +191,13 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #'   `1 + x | species`.
 #' @param tree Ultrametric phylogeny input with branch lengths on the scale the
 #'   analyst wants the phylogenetic covariance to use.
+#' @param tolerance Relative tolerance for the ultrametricity check, applied as
+#'   `tolerance * scale` where `scale` is the tree height (see
+#'   `validate_phylo_tree()`). Defaults to `sqrt(.Machine$double.eps)`. Raise
+#'   it only after confirming with
+#'   `range(ape::node.depth.edgelength(tree)[seq_len(ape::Ntip(tree))])` that
+#'   the tip-depth spread is genuinely negligible for the tree, not a real
+#'   problem with it.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
@@ -199,7 +206,8 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)
 #' bf(count ~ x + phylo(1 | species, tree = tree))
 #' bf(count ~ x + phylo(1 + x | species, tree = tree))
-phylo <- function(term, tree) {
+#' bf(y ~ x + phylo(1 | species, tree = tree, tolerance = 1e-4))
+phylo <- function(term, tree, tolerance = sqrt(.Machine$double.eps)) {
   invisible(NULL)
 }
 
