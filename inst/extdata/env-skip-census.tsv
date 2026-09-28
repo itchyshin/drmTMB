@@ -37,10 +37,14 @@ test-beta-phylo-q1-sd-coverage-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-sd-interior-recovery-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-sd-regression-runner.R	build-premise	build	skips	1
 test-beta-phylo-q1-successor-runners.R	build-premise	build	skips	1
+test-beta-relmat.R	cran-lane	environment	runs	5
+test-beta-relmat.R	suggests-package	environment	runs	1
 test-binomial-correlated-re-mspl-prereq.R	suggests-package	environment	runs	1
 test-binomial-links.R	cran-lane	environment	runs	1
 test-binomial-phylo.R	cran-lane	environment	runs	5
 test-binomial-phylo.R	suggests-package	environment	runs	1
+test-binomial-relmat.R	cran-lane	environment	runs	6
+test-binomial-relmat.R	suggests-package	environment	runs	1
 test-biv-lognormal-rho12-coverage-docs.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	suggests-package	environment	runs	1
