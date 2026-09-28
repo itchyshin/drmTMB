@@ -60,7 +60,7 @@ assert_clean_fixture <- function(fit) {
   expect_identical(length(fit$obj$env$random), 0L)
 }
 
-build_fits <- function(formula, family, y_grid, weights = NULL) {
+build_fits <- function(formula, family, y_grid, weights = NULL, control = ctrl) {
   out <- list()
   for (yv in y_grid) {
     dat <- data.frame(y = yv)
@@ -69,7 +69,7 @@ build_fits <- function(formula, family, y_grid, weights = NULL) {
       data = dat,
       family = family,
       weights = weights,
-      control = ctrl
+      control = control
     ))
     out[[as.character(yv)]] <- fit
   }
@@ -629,7 +629,25 @@ test_that("binomial kernel matches dbinom()", {
 # log_sigma sub-range; the breakdown region is characterized, not asserted
 # to silently improve, by the second test.
 test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweedie() breakdown", {
-  fits <- build_fits(bf(y ~ 1, sigma ~ 1, nu ~ 1), tweedie(), c(0.01, 1, 100))
+  # `newton_polish = FALSE`: the default (`newton_polish = TRUE`, via the
+  # shared `ctrl`) hangs building the y = 0.01 fixture. `drm_newton_polish()`
+  # probes `obj$gr()` at points finite-differenced away from the reported
+  # optimum (R/drmTMB.R:1119-on), and one of those perturbed evaluations does
+  # not return within 90s+ (verified interactively with `Rprof()`: the sample
+  # trace sits entirely inside a single `.Call("EvalADFunObject", ...)` for
+  # the whole profiled window, i.e. one gradient call, not a slow many-step
+  # loop) -- consistent with TMB's own `dtweedie()` (already documented above
+  # as unreliable at small phi) entering a non-terminating series evaluation
+  # near that perturbed point. Without `newton_polish`, the same fixture
+  # builds in ~2s. This is safe here specifically because `eval_tw()` below
+  # overwrites every free parameter (`beta_mu`/`beta_sigma`/`beta_nu`) with
+  # the grid's own values before calling `obj$fn()` -- the fitted/polished
+  # optimum itself is never read, only used as a template AD object. The
+  # underlying hang is a drmTMB engine issue (Newton-polish x TMB::dtweedie()
+  # at small phi), not a test issue; it is out of scope for this oracle file
+  # and is reported separately, not fixed here.
+  ctrl_tw <- drm_control(se = FALSE, logsigma_clamp = NULL, newton_polish = FALSE)
+  fits <- build_fits(bf(y ~ 1, sigma ~ 1, nu ~ 1), tweedie(), c(0.01, 1, 100), control = ctrl_tw)
   safe_ls_grid <- c(-5, -3, -1, 0, 2, 5)
   eval_tw <- function(fit, eta, ls, yv) {
     par <- fit$obj$par
@@ -657,11 +675,34 @@ test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweed
     }
   }
   results$rel_err <- mapply(rel_err, results$cpp, results$ref)
+
+  # 86 of these 126 points (68%): tweedie::dtweedie() itself underflows to
+  # exactly 0 (hence log() = -Inf), not NA/NaN, whenever the true density is
+  # below the smallest representable double -- reached across most of this
+  # grid's extreme eta corners (mu = exp(eta) up to ~1e304 / down to ~1e-305).
+  # Confirmed reference-side, not kernel-side: `cpp` stays finite at every one
+  # of the 86 points (verified: `all(is.finite(nf$cpp))`), and at five
+  # representative corners spanning every extreme eta (+-700, +-40, -5, 40),
+  # `cpp` agrees with an independent log-space reference -- the vendored
+  # compound Poisson-gamma series `tweedie_compound_log_density_reference()`
+  # (helper-tweedie-density.R, already used elsewhere in this suite) -- to
+  # <= ~1e-12 relative, i.e. the compiled kernel is correct exactly where
+  # tweedie::dtweedie() breaks down. Same category as the gamma / nbinom2 /
+  # binomial reference-underflow cases documented elsewhere in this file
+  # (#1439), just a larger fraction here because tweedie's tail is heavier at
+  # this grid's extremes. Counted explicitly rather than silently vanishing.
+  nonfinite <- oracle_kept_nonfinite(results)
+  expect_lte(nrow(nonfinite), 86L)
   finite_re <- results$rel_err[!is.na(results$rel_err)]
   expect_true(length(finite_re) > 0)
   expect_true(max(finite_re) <= 1e-6)
 })
 
+## No fail-closed non-finite accounting is added to this second block: unlike
+## the block above, it does not sweep a grid and cannot silently drop a
+## point. It evaluates exactly two fixed (eta = 0, y = 1) points -- log_sigma
+## = -5 ("clean") and -15 ("broken") -- and asserts on both of them directly
+## with `expect_lt()` / `expect_gt()` (#1324 follow-up).
 test_that("tweedie's TMB::dtweedie() breakdown at small phi is confirmed and localized", {
   fit <- build_fits(bf(y ~ 1, sigma ~ 1, nu ~ 1), tweedie(), 1)[["1"]]
   eval_at <- function(ls) {

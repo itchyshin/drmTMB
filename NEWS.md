@@ -12,6 +12,18 @@
   binomial) have real, characterized non-finite points at the eta = +-700 /
   +-40 grid boundary (reference-formula overflow, not kernel bugs) and now
   opt out explicitly with a documented count (#1324).
+* The tweedie kernel oracle's own inline eta x log_sigma sweep (it predates
+  `run_oracle()` and keeps its own narrower `safe_ls_grid`, so it is not
+  routed through that helper) now applies the same fail-closed non-finite
+  accounting via the shared `oracle_kept_nonfinite()` counter: 86 of its 126
+  grid points (68%) have `tweedie::dtweedie()` underflowing to exactly 0 in
+  the deep tail, confirmed reference-side (not kernel-side) against an
+  independent log-space reference. Building this block's `y = 0.01` fixture
+  under the default `newton_polish = TRUE` control was also found to hang
+  (a `drm_newton_polish()` finite-difference gradient probe that does not
+  return); the block now builds its fixtures with `newton_polish = FALSE`,
+  which does not change what is asserted (the sweep overwrites every free
+  parameter before evaluating) (#1324 follow-up).
 
 ## Bug fixes
 
