@@ -36,6 +36,17 @@ pm_test_family_constructor <- function(family) {
 
 pm_test_modifier_dpars <- function() c("zi", "hu", "zoi", "coi")
 
+# Twin of tools/write-parity-matrix.R's pm_intrinsic_modifier_dpars(): which
+# modifier dpars are INTRINSIC to `family` (zero_one_beta's zoi/coi), derived
+# from the family's own `drm_family` object, never hard-coded per family.
+pm_test_intrinsic_modifier_dpars <- function(family) {
+  obj <- drmTMB:::drm_julia_registry_family_object(family)
+  if (is.null(obj) || is.null(obj$dpars)) {
+    return(character())
+  }
+  intersect(pm_test_modifier_dpars(), obj$dpars)
+}
+
 pm_test_syntax_calls <- function(syntax, constructor) {
   grepl(paste0("(^|[^A-Za-z0-9_.])", constructor, "\\("), syntax, perl = TRUE)
 }
@@ -46,7 +57,12 @@ pm_test_syntax_has_modifier <- function(syntax, dpar) {
 
 pm_test_tsv_rows_for_family <- function(tsv, family, modifier = NULL) {
   hit <- tsv$route == "base" & pm_test_syntax_calls(tsv$syntax, pm_test_family_constructor(family))
-  any_mod <- Reduce(`|`, lapply(pm_test_modifier_dpars(), function(d) pm_test_syntax_has_modifier(tsv$syntax, d)))
+  extraneous_mods <- setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family))
+  any_mod <- if (length(extraneous_mods)) {
+    Reduce(`|`, lapply(extraneous_mods, function(d) pm_test_syntax_has_modifier(tsv$syntax, d)))
+  } else {
+    rep(FALSE, nrow(tsv))
+  }
   has_re_term <- grepl("|", tsv$syntax, fixed = TRUE)
   if (is.null(modifier)) hit & !any_mod & !has_re_term else hit & pm_test_syntax_has_modifier(tsv$syntax, modifier)
 }
@@ -107,7 +123,21 @@ pm_test_source_tool <- function(path) {
   env
 }
 
-test_that("every route the bridge admits has a TSV row (RED until the ledgering leaf lands)", {
+# The generators refuse a DRModels checkout that is not at the programme pin
+# (tools/parity-pin.R). A developer's everyday clone is usually NOT at the
+# pin, so the at-pin tests SKIP on a mismatch -- naming both shas -- instead
+# of erroring inside the generator. The hard refusal stays in the generators.
+pm_test_skip_unless_at_pin <- function(root, drmjl) {
+  pin_env <- pm_test_source_tool(file.path(root, "tools", "parity-pin.R"))
+  pin <- pin_env$pp_pin(root)
+  head <- tryCatch(pin_env$pp_git_rev_parse(drmjl), error = function(e) NA_character_)
+  if (!identical(head, pin)) {
+    skip(sprintf("DRModels checkout at %s is on %s, not the programme pin %s", drmjl, head, pin))
+  }
+  invisible(pin)
+}
+
+test_that("every route the bridge admits has a TSV row", {
   tsv <- pm_test_read_tsv()
   routes <- pm_test_admitted_routes(
     drmTMB:::drm_julia_family_registry(),
@@ -123,38 +153,29 @@ test_that("every route the bridge admits has a TSV row (RED until the ledgering 
 
   missing <- pm_test_routes_without_row(routes, tsv)
 
-  # Known-pending as of parity-a2 (2026-09-05): these five A4 registry rows
-  # (R/julia-family-registry.R) landed ahead of their TSV rows, which arrive
-  # together in PR #1184 (branch claude/parity-a4-integration; verified by
-  # `git show FETCH_HEAD:inst/extdata/julia-capabilities.tsv` there, which
-  # already carries fe_truncated_nbinom2/fe_zero_one_beta/fe_tweedie/
-  # fe_cumulative_logit/fe_skew_normal alongside the existing fe_beta_binomial,
-  # 30 rows total). beta_binomial is NOT pending here: it already has a real
-  # TSV row (#1172, already in this branch's history).
-  # skew_normal added 2026-09-06: the comment above already named `fe_skew_normal`
-  # as one of the FIVE rows #1184 carries, but the vector listed only four, so the
-  # first branch to add the skew_normal registry row (this one) tripped a guard that
-  # was meant to let it through. Verified rather than assumed: #1184's diff carries
-  # the fe_skew_normal row.
-  pending_1184 <- c(
-    "truncated_nbinom2", "zero_one_beta", "tweedie", "cumulative_logit",
-    "skew_normal"
-  )
-  new_gaps <- setdiff(missing, pending_1184)
-  skip_if(
-    length(missing) > 0L && length(new_gaps) == 0L,
-    sprintf(
-      "%d routes await their TSV row from PR #1184 (not yet merged here): %s",
-      length(missing), paste(missing, collapse = ", ")
-    )
-  )
+  # S1a (2026-09-24): #1184 merged 2026-09-06, so every A4 family's TSV row
+  # has long since landed, and the S1a join fix (tools/write-parity-matrix.R's
+  # pm_intrinsic_modifier_dpars()) lets `fe_zero_one_beta` join on the plain
+  # family route too (zoi/coi are INTRINSIC to zero_one_beta, not a modifier
+  # route). Measured empty at this pin. If a route the bridge admits is ever
+  # KNOWINGLY left unledgered pending a later slice (Arc 1 plan S5's admission
+  # census), name it here with a one-line reason -- never bring back a silent
+  # skip.
+  expected_unledgered_for_S5 <- character(0)
 
+  new_gaps <- setdiff(missing, expected_unledgered_for_S5)
+  fixed_early <- setdiff(expected_unledgered_for_S5, missing)
   expect(
-    length(new_gaps) == 0L,
+    length(new_gaps) == 0L && length(fixed_early) == 0L,
     sprintf(
-      "%d of %d routes the bridge admits have NO row in julia-capabilities.tsv beyond the #1184-pending set (route == \"base\" and syntax calling the family constructor%s): %s",
-      length(new_gaps), nrow(routes), " plus the modifier's `dpar ~` formula for a modifier route",
-      paste(new_gaps, collapse = ", ")
+      paste0(
+        "the bridge-admitted routes and expected_unledgered_for_S5 have drifted apart (route == \"base\" ",
+        "and syntax calling the family constructor%s): NEW GAPS not in expected_unledgered_for_S5: %s; ",
+        "entries in expected_unledgered_for_S5 that are no longer missing (update the S5 note): %s"
+      ),
+      " plus the modifier's `dpar ~` formula for a modifier route",
+      if (length(new_gaps)) paste(new_gaps, collapse = ", ") else "(none)",
+      if (length(fixed_early)) paste(fixed_early, collapse = ", ") else "(none)"
     )
   )
 })
@@ -221,6 +242,7 @@ test_that("tools/write-parity-matrix.R regenerates byte-identically and matches 
   drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
   skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH is not set to a DRM.jl clone")
   root <- normalizePath(testthat::test_path("..", ".."))
+  pin <- pm_test_skip_unless_at_pin(root, drmjl)
 
   env <- pm_test_source_tool(tool)
   out1 <- tempfile(fileext = ".md")
@@ -240,12 +262,10 @@ test_that("tools/write-parity-matrix.R regenerates byte-identically and matches 
   pin_line <- grep("at pin `[0-9a-f]{40}`", committed, value = TRUE)
   expect_length(pin_line, 1L)
   committed_pin <- sub(".*at pin `([0-9a-f]{40})`.*", "\\1", pin_line)
-  clone_pin <- env$pm_git(drmjl, "rev-parse", "HEAD")
-  if (identical(clone_pin, committed_pin)) {
-    expect_identical(gen, committed)
-  } else {
-    skip(sprintf("DRM.jl clone is at %s, committed artefact was generated at %s: currency not checked", substr(clone_pin, 1, 8), substr(committed_pin, 1, 8)))
-  }
+  # The clone is at the programme pin (checked above), so the committed
+  # artefact must name that pin and match the regeneration byte for byte.
+  expect_identical(committed_pin, pin)
+  expect_identical(gen, committed)
 })
 
 test_that("the test's matcher twin agrees with the tool's matcher", {
