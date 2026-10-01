@@ -28,11 +28,13 @@ drmTMB(
 \code{\link[=beta_binomial]{beta_binomial()}}, \code{\link[stats:binomial]{stats::binomial()}} with \code{link = "logit"}, \code{"probit"},
 or \code{"cloglog"},
 \code{\link[=cumulative_logit]{cumulative_logit()}}, \code{\link[stats:poisson]{stats::poisson()}} with \code{link = "log"}, \code{\link[=nbinom2]{nbinom2()}},
-\code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
+\code{\link[=truncated_nbinom2]{truncated_nbinom2()}}, \code{\link[=truncated_poisson]{truncated_poisson()}}, or \code{\link[=biv_gaussian]{biv_gaussian()}}. Adding
 \code{zi ~ predictors} to a Poisson or \code{nbinom2()} model fits the corresponding
 zero-inflated count model. Adding \code{hu ~ predictors} to a
 \code{truncated_nbinom2()} model fits a hurdle count model whose nonzero counts
-use the zero-truncated NB2 component. The current
+use the zero-truncated NB2 component; adding \code{hu ~ predictors} to a
+\code{truncated_poisson()} model fits the corresponding hurdle Poisson model
+(fixed effects only). The current
 bivariate Gaussian engine also accepts
 \code{family = c(gaussian(), gaussian())} and
 \code{family = list(gaussian(), gaussian())}.}
@@ -232,8 +234,8 @@ fixed-effect Bernoulli/binomial event-probability models,
 fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 zero-inflated negative-binomial mean-dispersion, zero-truncated
-negative-binomial mean-dispersion, and hurdle negative-binomial
-mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
+negative-binomial mean-dispersion, hurdle negative-binomial
+mean-dispersion, and zero-truncated and hurdle Poisson models for counts. Student-t, lognormal, Gamma, beta,
 ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 zero-truncated negative-binomial \code{mu} formulas support ordinary unlabelled
 random intercepts and independent numeric slopes where

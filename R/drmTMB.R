@@ -13,8 +13,8 @@
 #' fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 #' mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 #' zero-inflated negative-binomial mean-dispersion, zero-truncated
-#' negative-binomial mean-dispersion, and hurdle negative-binomial
-#' mean-dispersion models for counts. Student-t, lognormal, Gamma, beta,
+#' negative-binomial mean-dispersion, hurdle negative-binomial
+#' mean-dispersion, and zero-truncated and hurdle Poisson models for counts. Student-t, lognormal, Gamma, beta,
 #' ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 #' zero-truncated negative-binomial `mu` formulas support ordinary unlabelled
 #' random intercepts and independent numeric slopes where
@@ -71,11 +71,13 @@
 #'   [beta_binomial()], [stats::binomial()] with `link = "logit"`, `"probit"`,
 #'   or `"cloglog"`,
 #'   [cumulative_logit()], [stats::poisson()] with `link = "log"`, [nbinom2()],
-#'   [truncated_nbinom2()], or [biv_gaussian()]. Adding
+#'   [truncated_nbinom2()], [truncated_poisson()], or [biv_gaussian()]. Adding
 #'   `zi ~ predictors` to a Poisson or `nbinom2()` model fits the corresponding
 #'   zero-inflated count model. Adding `hu ~ predictors` to a
 #'   `truncated_nbinom2()` model fits a hurdle count model whose nonzero counts
-#'   use the zero-truncated NB2 component. The current
+#'   use the zero-truncated NB2 component; adding `hu ~ predictors` to a
+#'   `truncated_poisson()` model fits the corresponding hurdle Poisson model
+#'   (fixed effects only). The current
 #'   bivariate Gaussian engine also accepts
 #'   `family = c(gaussian(), gaussian())` and
 #'   `family = list(gaussian(), gaussian())`.
@@ -579,6 +581,13 @@ drmTMB <- function(
       missing = missing_control
     ),
     truncated_nbinom2 = drm_build_truncated_nbinom2_spec(
+      formula,
+      data,
+      env = formula_env,
+      weights = weights_full,
+      missing = missing_control
+    ),
+    truncated_poisson = drm_build_truncated_poisson_spec(
       formula,
       data,
       env = formula_env,
@@ -3748,6 +3757,12 @@ drm_family_type <- function(family) {
   ) {
     return("truncated_nbinom2")
   }
+  if (
+    inherits(family, "drm_family") &&
+      identical(family$name, "truncated_poisson")
+  ) {
+    return("truncated_poisson")
+  }
   if (inherits(family, "drm_family") && identical(family$name, "beta")) {
     return("beta")
   }
@@ -3810,7 +3825,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn truncated_poisson}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula."
   )
 }
 
@@ -8022,7 +8037,11 @@ drm_build_poisson_spec <- function(
     cli::cli_abort(c(
       "Poisson models only support {.code mu} and optional {.code zi}.",
       "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
-      "i" = drm_unsupported_dpar_hint()
+      "i" = if ("hu" %in% unsupported) {
+        "For a hurdle Poisson model (Bernoulli zero part, zero-truncated Poisson positive part) use {.code family = truncated_poisson()} with an {.code hu ~ ...} formula, for example {.code bf(count ~ x, hu ~ w)}. For zero-inflated counts use {.code zi ~ ...} with {.fn poisson}."
+      } else {
+        drm_unsupported_dpar_hint()
+      }
     ))
   }
   if (any(is_sd_dpar)) {
@@ -9421,6 +9440,208 @@ drm_build_truncated_nbinom2_spec <- function(
   } else {
     length(spec$y)
   }
+  spec
+}
+
+# Zero-truncated Poisson and hurdle Poisson (fixed-effect route). Formula
+# parameters: `mu` (log-mean of the untruncated Poisson) and optional `hu`
+# (logit probability of a hurdle zero). There is no `sigma`. Random effects,
+# structured terms, offsets, `meta_V()`, missing-response masking, and `mi()`
+# are refused. The likelihood is written from the math, independently of the
+# NB2 hurdle branch: zero part Bernoulli(hu), positive part
+# y log(mu) - mu - log(y!) - log(1 - exp(-mu)) for y >= 1.
+drm_build_truncated_poisson_spec <- function(
+  formula,
+  data,
+  env = parent.frame(),
+  weights = NULL,
+  missing = miss_control()
+) {
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  is_sd_dpar <- startsWith(dpars, "sd(")
+
+  unsupported <- setdiff(dpars[!is_sd_dpar], c("mu", "hu"))
+  if (length(unsupported) > 0L) {
+    cli::cli_abort(c(
+      "{.fn truncated_poisson} models only support {.code mu} and optional {.code hu}.",
+      "x" = "Unsupported parameter{?s}: {.val {unsupported}}.",
+      "i" = if ("sigma" %in% unsupported) {
+        "The Poisson family has no {.code sigma}. Use {.fn truncated_nbinom2} for overdispersed zero-truncated or hurdle counts."
+      } else if ("zi" %in% unsupported) {
+        "{.code zi} is the zero-inflation parameter of {.fn poisson}; a hurdle model uses {.code hu}."
+      } else {
+        drm_unsupported_dpar_hint()
+      }
+    ))
+  }
+  if (any(is_sd_dpar)) {
+    cli::cli_abort(c(
+      "Random-effect scale formulae are not implemented for {.fn truncated_poisson} models.",
+      "i" = "Start with fixed-effect formulas such as {.code bf(count ~ x, hu ~ w)}."
+    ))
+  }
+  if (sum(dpars == "mu") != 1L) {
+    cli::cli_abort(
+      "A {.fn truncated_poisson} model requires exactly one location formula."
+    )
+  }
+  if (sum(dpars == "hu") > 1L) {
+    cli::cli_abort(
+      "A {.fn truncated_poisson} model can have at most one hurdle {.code hu} formula."
+    )
+  }
+
+  mu_entry <- entries[[which(dpars == "mu")]]
+  hu_entry <- if (any(dpars == "hu")) {
+    entries[[which(dpars == "hu")]]
+  } else {
+    NULL
+  }
+  has_hu <- !is.null(hu_entry)
+
+  if (is.na(mu_entry$response)) {
+    cli::cli_abort(
+      "The {.code mu} formula must include a response on the left-hand side."
+    )
+  }
+  if (has_hu && !is.na(hu_entry$response)) {
+    cli::cli_abort(
+      "The {.code hu} formula must be one-sided, for example {.code hu ~ survey_method}."
+    )
+  }
+  if (is_mvbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn mvbind} shorthand is only available for two-response Gaussian models.",
+      "x" = "{.fn truncated_poisson} models currently support one count response."
+    ))
+  }
+  if (is_cbind_lhs(mu_entry$lhs)) {
+    cli::cli_abort(c(
+      "{.fn truncated_poisson} models require a single count response.",
+      "x" = "Denominator syntax such as {.code cbind(successes, failures)} is for binomial-type models."
+    ))
+  }
+  for (entry in c(list(mu_entry), if (has_hu) list(hu_entry))) {
+    drm_reject_phase1_terms(entry$rhs, entry$dpar)
+  }
+
+  f_mu <- drm_entry_formula(mu_entry, response = TRUE)
+  f_hu <- if (has_hu) drm_entry_formula(hu_entry, response = FALSE) else NULL
+  vars <- unique(c(all.vars(f_mu), if (has_hu) all.vars(f_hu)))
+  if (length(vars) > 0L) {
+    keep <- stats::complete.cases(drm_subset_model_columns(data, vars))
+  } else {
+    keep <- rep(TRUE, nrow(data))
+  }
+  data_model <- data[keep, , drop = FALSE]
+  weights_model <- subset_likelihood_weights(
+    weights,
+    keep,
+    nrow(data),
+    sum(keep)
+  )
+
+  mf_mu <- stats::model.frame(f_mu, data = data_model, na.action = stats::na.omit)
+  mf_hu <- if (has_hu) {
+    stats::model.frame(f_hu, data = data_model, na.action = stats::na.omit)
+  } else {
+    NULL
+  }
+  y <- stats::model.response(mf_mu)
+  if (length(y) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  count_tolerance <- sqrt(.Machine$double.eps)
+  invalid_count <- !all(is.finite(y)) ||
+    any(abs(y - round(y)) > count_tolerance)
+  if (has_hu && (invalid_count || any(y < 0))) {
+    cli::cli_abort(c(
+      "{.fn truncated_poisson} hurdle models require non-negative integer count response values.",
+      "x" = "The response {.val {mu_entry$response}} contains negative, non-integer, or non-finite values after missing-row filtering."
+    ))
+  }
+  if (!has_hu && (invalid_count || any(y <= 0))) {
+    cli::cli_abort(c(
+      "{.fn truncated_poisson} models require positive integer count response values.",
+      "x" = "The response {.val {mu_entry$response}} contains zero, negative, non-integer, or non-finite values after missing-row filtering.",
+      "i" = "Add an {.code hu ~ 1} formula to model the zeros as a hurdle, or use {.fn poisson} with {.code zi ~ ...} for zero-inflated counts."
+    ))
+  }
+  if (!any(y > 0)) {
+    cli::cli_abort(c(
+      "{.fn truncated_poisson} models need at least one positive count.",
+      "x" = "The positive-count Poisson component cannot be estimated from all-zero responses."
+    ))
+  }
+
+  X_mu <- stats::model.matrix(
+    stats::delete.response(stats::terms(mf_mu)),
+    mf_mu
+  )
+  X_hu <- if (has_hu) stats::model.matrix(stats::terms(mf_hu), mf_hu) else NULL
+  if (has_hu && nrow(X_hu) != length(y)) {
+    cli::cli_abort("Internal model-frame mismatch in hurdle Poisson model.")
+  }
+  if (has_hu && ncol(X_hu) == 0L) {
+    cli::cli_abort(c(
+      "Cannot fit a zero-column {.code hu} formula in a hurdle Poisson model.",
+      "i" = "Use a formula with an intercept or predictors, such as {.code hu ~ 1} or {.code hu ~ survey_method}."
+    ))
+  }
+  start <- if (has_hu) {
+    hurdle_poisson_start(y, X_mu, X_hu)
+  } else {
+    truncated_poisson_start(y, X_mu)
+  }
+
+  spec <- list(
+    model_type = if (has_hu) "hurdle_poisson" else "truncated_poisson",
+    y = as.numeric(y),
+    weights = weights_model,
+    V_known = rep(0, length(y)),
+    V_known_diag = rep(0, length(y)),
+    V_known_type = "none",
+    has_known_v = FALSE,
+    X = if (has_hu) list(mu = X_mu, hu = X_hu) else list(mu = X_mu),
+    terms = if (has_hu) {
+      list(
+        mu = stats::delete.response(stats::terms(mf_mu)),
+        hu = stats::terms(mf_hu)
+      )
+    } else {
+      list(mu = stats::delete.response(stats::terms(mf_mu)))
+    },
+    model_frame = if (has_hu) {
+      list(mu = mf_mu, hu = mf_hu)
+    } else {
+      list(mu = mf_mu)
+    },
+    random = list(
+      mu = empty_random_mu_structure(length(y)),
+      sigma = empty_random_sigma_structure(nrow(data_model))
+    ),
+    random_scale = list(
+      mu = empty_sd_mu_structure(0L),
+      phylo = empty_sd_phylo_structure()
+    ),
+    structured = list(phylo_mu = empty_phylo_mu_structure()),
+    missing_data = NULL,
+    data = data_model,
+    variables = vars,
+    keep = keep,
+    dpars = if (has_hu) c("mu", "hu") else "mu",
+    start = start,
+    map = truncated_poisson_map(has_hu),
+    random_names = NULL
+  )
+  spec$tmb_data <- add_covariance_block_tmb_data(
+    make_tmb_data(spec),
+    spec
+  )
+  spec$nobs <- length(spec$y)
   spec
 }
 
@@ -19329,6 +19550,43 @@ hurdle_nbinom2_map <- function(
   out
 }
 
+truncated_poisson_start <- function(y, X_mu) {
+  # Moment-corrected start: fit the untruncated Poisson GLM, then shift the
+  # intercept down so that mean(mu / (1 - exp(-mu))) matches mean(y).
+  base <- poisson_start(y, X_mu)
+  beta_mu <- base$beta_mu
+  for (iter in seq_len(25L)) {
+    mu <- exp(as.vector(X_mu %*% beta_mu))
+    pos_mean <- mu / pmax(-expm1(-mu), 1e-12)
+    shift <- log(mean(y) / mean(pos_mean))
+    if (!is.finite(shift) || abs(shift) < 1e-6) break
+    beta_mu[[1L]] <- beta_mu[[1L]] + shift
+  }
+  base$beta_mu <- beta_mu
+  base
+}
+
+hurdle_poisson_start <- function(y, X_mu, X_hu) {
+  pos <- y > 0
+  out <- truncated_poisson_start(
+    y[pos],
+    X_mu[pos, , drop = FALSE]
+  )
+  hu0 <- min(max(mean(y == 0), 0.02), 0.8)
+  beta_hu <- numeric(ncol(X_hu))
+  beta_hu[[1L]] <- stats::qlogis(hu0)
+  out$beta_zi <- beta_hu
+  out
+}
+
+truncated_poisson_map <- function(has_hu = FALSE) {
+  out <- poisson_map()
+  if (isTRUE(has_hu)) {
+    out$beta_zi <- NULL
+  }
+  out
+}
+
 zi_nbinom2_start <- function(
   y,
   X_mu,
@@ -21773,6 +22031,64 @@ make_tmb_data_core <- function(spec) {
       }
     ))
   }
+  if (spec$model_type %in% c("truncated_poisson", "hurdle_poisson")) {
+    return(list(
+      model_type = if (identical(spec$model_type, "hurdle_poisson")) 22L else 21L,
+      link_code = 0L,
+      y = spec$y,
+      trials = tmb_trials,
+      weights = spec$weights,
+      offset_mu = offset_mu,
+      V_known = spec$V_known_diag,
+      V_known_matrix = dummy_matrix,
+      V_known_type = 0L,
+      y1 = numeric(1),
+      y2 = numeric(1),
+      X_mu = spec$X$mu,
+      X_sigma = dummy_matrix,
+      X_nu = dummy_matrix,
+      X_zi = if (identical(spec$model_type, "hurdle_poisson")) spec$X$hu else dummy_matrix,
+      X_sd_mu = dummy_matrix,
+      has_sd_mu_model = 0L,
+      X_sd_phylo = dummy_matrix,
+      report_group_sd = 0L,
+      has_sd_phylo_model = 0L,
+      sd_phylo_beta_offset = 0L,
+      X_mu1 = dummy_matrix,
+      X_mu2 = dummy_matrix,
+      X_sigma1 = dummy_matrix,
+      X_sigma2 = dummy_matrix,
+      X_rho12 = dummy_matrix,
+      X_cor_mu = dummy_matrix,
+      has_cor_mu_model = 0L,
+      n_mu_re_terms = 0L,
+      n_mu_re_cors = 0L,
+      mu_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      mu_re_value = dummy_matrix,
+      mu_re_term = 0L,
+      mu_re_dpar = 0L,
+      mu_re_pos = 0L,
+      mu_re_cor_id = -1L,
+      mu_re_pair_index = -1L,
+      mu_re_sd_row = -1L,
+      n_sigma_re_terms = 0L,
+      n_sigma_re_cors = 0L,
+      n_mu_sigma_re_cors = 0L,
+      sigma_re_index = matrix(0L, nrow = 1L, ncol = 1L),
+      sigma_re_value = dummy_matrix,
+      sigma_re_term = 0L,
+      sigma_re_dpar = 0L,
+      sigma_re_cor_id = -1L,
+      sigma_re_pair_index = -1L,
+      sigma_re_cross_cor = 0L,
+      sigma_re_cross_mu = 0L,
+      has_phylo_mu = 0L,
+      phylo_mu_sd_row = 0L,
+      phylo_mu_node_index = 0L,
+      Q_phylo = dummy_sparse,
+      log_det_Q_phylo = 0
+    ))
+  }
   if (identical(spec$model_type, "zi_nbinom2")) {
     phylo_mu <- spec$structured$phylo_mu
     re_sigma <- spec$random$sigma
@@ -22025,6 +22341,18 @@ split_tmb_parameters <- function(par, spec) {
     names(beta_sigma) <- colnames(spec$X$sigma)
     names(beta_zi) <- colnames(spec$X$zi)
     return(list(mu = beta_mu, sigma = beta_sigma, zi = beta_zi))
+  }
+  if (identical(spec$model_type, "truncated_poisson")) {
+    beta_mu <- unname(par$beta_mu)
+    names(beta_mu) <- colnames(spec$X$mu)
+    return(list(mu = beta_mu))
+  }
+  if (identical(spec$model_type, "hurdle_poisson")) {
+    beta_mu <- unname(par$beta_mu)
+    beta_hu <- unname(par$beta_zi)
+    names(beta_mu) <- colnames(spec$X$mu)
+    names(beta_hu) <- colnames(spec$X$hu)
+    return(list(mu = beta_mu, hu = beta_hu))
   }
   if (identical(spec$model_type, "hurdle_nbinom2")) {
     beta_mu <- unname(par$beta_mu)
@@ -22319,7 +22647,9 @@ split_tmb_sdpars <- function(par, spec) {
         "nbinom2",
         "zi_nbinom2",
         "truncated_nbinom2",
-        "hurdle_nbinom2"
+        "hurdle_nbinom2",
+        "truncated_poisson",
+        "hurdle_poisson"
       )
   ) {
     return(list())
@@ -22743,7 +23073,9 @@ split_tmb_random_effects <- function(par, spec) {
         "nbinom2",
         "zi_nbinom2",
         "truncated_nbinom2",
-        "hurdle_nbinom2"
+        "hurdle_nbinom2",
+        "truncated_poisson",
+        "hurdle_poisson"
       )
   ) {
     return(list())

@@ -65,12 +65,13 @@
 #' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch D, these 18 established fitted `model_type` values are
+#' As of DO-T3 batch D, these 20 established fitted `model_type` values are
 #' promoted
 #' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
 #' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
 #' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
 #' `"zi_poisson"`, `"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`,
+#' `"truncated_poisson"`, `"hurdle_poisson"`,
 #' `"zi_nbinom2"`, and `"biv_gaussian"`.
 #' **`"skew_normal"` promotion is a distributional-output-axis result only**
 #' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
@@ -116,6 +117,8 @@ drm_family_dpq <- function(object) {
     nbinom2 = drm_family_dpq_nbinom2(),
     truncated_nbinom2 = drm_family_dpq_truncated_nbinom2(),
     hurdle_nbinom2 = drm_family_dpq_hurdle_nbinom2(),
+    truncated_poisson = drm_family_dpq_truncated_poisson(),
+    hurdle_poisson = drm_family_dpq_hurdle_poisson(),
     zi_nbinom2 = drm_family_dpq_zi_nbinom2(),
     biv_gaussian = drm_family_dpq_biv_gaussian(),
     cli::cli_abort(c(
@@ -1049,6 +1052,75 @@ drm_family_dpq_hurdle_nbinom2 <- function() {
       p0 <- stats::dnbinom(0, size = size, mu = params$mu)
       frac <- pmin(pmax((u - hu) / (1 - hu), 0), 1)
       stats::qnbinom(p0 + (1 - p0) * frac, size = size, mu = params$mu)
+    }
+  )
+}
+
+# ---- truncated_poisson / hurdle_poisson (reference, discrete) ---------------
+#
+# Zero-truncated Poisson on `{1, 2, ...}` renormalized by `1 - p0`,
+# `p0 = dpois(0, mu)`, matching the compiled kernel (src/drmTMB.cpp,
+# model_type == 21): `dpois(y, mu) / (1 - p0)` for `y >= 1`. The hurdle
+# version (model_type == 22) is `P(Y = 0) = hu` and `(1 - hu) *
+# truncated pmf` for `y >= 1`, so with the same "fraction" transform as
+# "hurdle_nbinom2": `F(y) = hu + (1 - hu) * (ppois(y) - p0) / (1 - p0)` and
+# `q(u) = qpois(p0 + (1 - p0) * frac, mu)`, `frac = clamp((u - hu)/(1 - hu))`.
+# No isolated atom outside the lattice, so `atoms = numeric(0)` for the plain
+# truncated model and `atoms = c(0)` (DG2 bookkeeping only) for the hurdle.
+
+drm_family_dpq_truncated_poisson <- function() {
+  list(
+    dpars = "mu",
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = numeric(0),
+    status = "reference",
+    d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      p0 <- stats::dpois(0, lambda = params$mu)
+      ifelse(y < 1, 0, stats::dpois(y, lambda = params$mu) / (1 - p0))
+    },
+    p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      p0 <- stats::dpois(0, lambda = params$mu)
+      cdf <- (stats::ppois(y, lambda = params$mu) - p0) / (1 - p0)
+      ifelse(y < 1, 0, cdf)
+    },
+    q = function(u, params) {
+      p0 <- stats::dpois(0, lambda = params$mu)
+      stats::qpois(p0 + u * (1 - p0), lambda = params$mu)
+    }
+  )
+}
+
+drm_family_dpq_hurdle_poisson <- function() {
+  list(
+    dpars = c("mu", "hu"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = c(0),
+    status = "reference",
+    d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      p0 <- stats::dpois(0, lambda = params$mu)
+      base <- stats::dpois(y, lambda = params$mu)
+      ifelse(y == 0, params$hu, (1 - params$hu) * base / (1 - p0))
+    },
+    p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      hu <- params$hu
+      p0 <- stats::dpois(0, lambda = params$mu)
+      trunc_cdf <- pmax(
+        (stats::ppois(pmax(y, 0), lambda = params$mu) - p0) / (1 - p0),
+        0
+      )
+      ifelse(y < 0, 0, hu + (1 - hu) * trunc_cdf)
+    },
+    q = function(u, params) {
+      hu <- params$hu
+      p0 <- stats::dpois(0, lambda = params$mu)
+      frac <- pmin(pmax((u - hu) / (1 - hu), 0), 1)
+      stats::qpois(p0 + (1 - p0) * frac, lambda = params$mu)
     }
   )
 }

@@ -4671,6 +4671,64 @@ Type objective_function<Type>::operator()()
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_zi);
+  } else if (model_type == 21) {
+    // Zero-truncated Poisson (positive counts only).
+    //   log p(y) = y log(mu) - mu - log(y!) - log(1 - exp(-mu)),  y >= 1.
+    // log(1 - exp(-mu)) is computed with drm_log1mexp() on log P(0) = -mu.
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> trunc_prob(y.size());
+    vector<Type> positive_mean(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_trunc_prob = drm_log1mexp(-mu(i));
+      trunc_prob(i) = exp(log_trunc_prob);
+      positive_mean(i) = mu(i) / trunc_prob(i);
+      if (observed_y(i) == 1) {
+        nll -= weights(i) * (dpois(y(i), mu(i), true) - log_trunc_prob);
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(trunc_prob);
+    REPORT(positive_mean);
+    ADREPORT(beta_mu);
+  } else if (model_type == 22) {
+    // Hurdle Poisson: zero part Bernoulli(hu); positive part zero-truncated
+    // Poisson. hu = logit^{-1}(eta_hu) carried in X_zi / beta_zi, as for the
+    // hurdle NB2 route (model_type 12).
+    vector<Type> eta_mu = X_mu * beta_mu;
+    vector<Type> eta_hu = X_zi * beta_zi;
+    vector<Type> mu = exp(eta_mu);
+    vector<Type> hu = Type(1.0) / (Type(1.0) + exp(-eta_hu));
+    vector<Type> trunc_prob(y.size());
+    vector<Type> positive_mean(y.size());
+    vector<Type> fitted_mean(y.size());
+    for (int i = 0; i < y.size(); ++i) {
+      Type log_trunc_prob = drm_log1mexp(-mu(i));
+      trunc_prob(i) = exp(log_trunc_prob);
+      positive_mean(i) = mu(i) / trunc_prob(i);
+      fitted_mean(i) = (Type(1.0) - hu(i)) * positive_mean(i);
+      if (observed_y(i) == 1) {
+        Type log_hu = -logspace_add(Type(0.0), -eta_hu(i));
+        Type log_one_minus_hu = -logspace_add(Type(0.0), eta_hu(i));
+        int yi = (int) asDouble(y(i));
+        if (yi == 0) {
+          nll -= weights(i) * log_hu;
+        } else {
+          nll -= weights(i) * (
+            log_one_minus_hu + dpois(y(i), mu(i), true) - log_trunc_prob);
+        }
+      }
+    }
+    REPORT(eta_mu);
+    REPORT(mu);
+    REPORT(eta_hu);
+    REPORT(hu);
+    REPORT(trunc_prob);
+    REPORT(positive_mean);
+    REPORT(fitted_mean);
+    ADREPORT(beta_mu);
+    ADREPORT(beta_zi);
   } else if (model_type == 9) {
     vector<Type> eta_mu = offset_mu + X_mu * beta_mu;
     vector<Type> log_sigma = X_sigma * beta_sigma;

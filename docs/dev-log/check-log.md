@@ -94791,3 +94791,5 @@ Closeout report:
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
 
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
+
+| 2026-10-01 | `truncated_poisson()` + `hu` hurdle Poisson (#1267, DRModels.jl #726) | `test-truncated-poisson-hurdle.R` all pass (hand ll 1e-10; glm+VGAM::pospoisson decomposition 1e-6; DRModels.jl n=80 fixture 1e-6); full-suite result in the PR | Draft PR; fixed-effect only; RE/missing/emmeans/Julia refused |

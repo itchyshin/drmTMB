@@ -1,5 +1,17 @@
 # drmTMB (development)
 
+## New features
+
+* New `truncated_poisson()` family. With an `hu ~ ...` formula it fits a
+  fixed-effect hurdle Poisson model (zero part Bernoulli(`hu`), positive part
+  zero-truncated Poisson), the Poisson analogue of `truncated_nbinom2()` plus
+  `hu`; without `hu` it fits the plain zero-truncated Poisson. `predict()`,
+  `fitted()`, `residuals()`, `simulate()`, `confint()` and
+  `fitted_distribution()` work. Random effects, structured terms, offsets,
+  missing-response masking, `mi()`, `emmeans` and `engine = "julia"` are
+  refused with a message. `poisson()` with `hu` stays refused, and the message
+  now points to `truncated_poisson()` (#1267).
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names
