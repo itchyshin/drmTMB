@@ -692,6 +692,11 @@ revisit condition.
   release-tag full-OS-matrix check is not red on these recovery-grade
   diagnostics. This is a property of the estimator near the boundary, not a
   defect in the shipped fixed-effect / inference-ready surface.
+  For the nbinom2 file specifically, the cross-platform failure in #1444 was
+  the TEST DATA, not the optimizer: `MASS::mvrnorm()` draws through `eigen()`,
+  so the same seed gave different data on macOS and Linux. The generator now
+  draws through `chol()`; data and fitted gains are identical on both platforms
+  over 32 seeds per case. The gate stays until Windows is measured.
 - Internal phylogenetic tree validation, dense Brownian covariance comparators,
   sparse augmented Brownian precision helpers, pure-R prior checks, hidden TMB
   prior parity checks, and fitted univariate Gaussian `mu` simulation tests now
