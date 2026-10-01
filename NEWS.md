@@ -1,5 +1,18 @@
 # drmTMB (development)
 
+## New features
+
+* Fixed-effect binomial and Bernoulli fits are now screened for
+  (quasi-)complete separation at fit time (Konis 2007 linear-programming check,
+  base R, no new dependency). When the maximum-likelihood estimate does not
+  exist, the fit is still returned but a `drmTMB_separation_warning` names the
+  coefficients that can diverge and their standard errors (`summary()`,
+  `vcov()`) are `Inf`. Near separation (a fitted probability within 1e-8 of 0/1
+  with a Wald standard error above 1e4 or unavailable) is flagged the same way.
+  DRModels.jl runs the same check with the same constants (#1268, twin of
+  DRModels.jl #731/#728). No refusal and no penalised fit by default; random-effect
+  routes are not screened. Healthy fits are unchanged.
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names

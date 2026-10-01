@@ -256,6 +256,22 @@
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
+#'
+#' @section Separation in binomial fits:
+#' A fixed-effect binomial or Bernoulli fit (no random effects, no `phylo()`
+#' term, no `mi()` predictor model; `estimator = "ml"`) is screened for
+#' (quasi-)complete separation at fit time with the linear-programming check of
+#' Konis (2007): the maximum-likelihood estimate does not exist when some
+#' direction `d` makes the signed design `X~ d >= 0` on every row. The fit is
+#' still returned, but a `drmTMB_separation_warning` names the coefficients that
+#' can diverge and their standard errors (`summary()`, `vcov()`) are `Inf`. Near
+#' separation (a fitted probability within 1e-8 of 0 or 1 together with a Wald
+#' standard error above 1e4 or unavailable) is flagged the same way. The point
+#' estimates under separation are arbitrary stopping points of the optimiser,
+#' and are not expected to match another engine's. DRModels.jl runs the same
+#' check with the same constants, so the two packages flag the same coefficients.
+#' There is no refusal and no penalised fit by default; `estimator = "mspl"` is
+#' the finite-estimate route.
 #' @export
 #'
 #' @examples
@@ -797,6 +813,10 @@ drm_fit_spec <- function(
     provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
+  # Separation screen (#1268): detect and warn; SEs of flagged coefficients are
+  # reported as Inf (see `drm_separation_flagged_labels()`).
+  fit$separation <- drm_separation_screen(fit)
+  drm_warn_separation(fit$separation)
   drm_apply_storage_control(fit, control)
 }
 

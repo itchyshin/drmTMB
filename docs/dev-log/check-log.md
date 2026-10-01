@@ -1,3 +1,15 @@
+# 2026-09-30 — Binomial separation: detect and warn (#1268, twin of DRModels.jl #731/#728)
+
+**Lane:** Claude · branch `claude/separation-1268` (DRAFT PR; not merged, D-164).
+
+**Change:** `R/separation.R` (base-R Konis LP screen), wired into `drm_fit_spec()`; `summary()`/`vcov()` report `Inf` for flagged coefficients. Fixed-effect binomial only (no RE / phylo / mi / MSPL).
+
+**Evidence:** `tests/testthat/test-binomial-separation.R` (35 expectations) pass; `filter = "binomial|mspl"` with `NOT_CRAN=true` (783 expectations) 0 failed / 0 warnings; control fits identical to installed main (max |diff| = 0, coef + vcov + logLik). Flagged-coefficient constants match the Julia twin.
+
+**Non-claims:** no coefficient agreement under separation; random-intercept routes not screened; full `R CMD check` not run.
+
+---
+
 # 2026-09-17 — Dinnage arc3 Wave C MERGED + tip-identity receipt (#1380)
 
 **Lane:** Grace · merge gate (Composer).
