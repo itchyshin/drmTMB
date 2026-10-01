@@ -93,7 +93,8 @@ test_that("hurdle Poisson likelihood equals hand computation to 1e-10", {
   y_edge <- c(0, 1, 1, 2, 30)
   d_edge <- data.frame(y = y_edge)
   fit_edge <- drmTMB(bf(y ~ 1, hu ~ 1), family = truncated_poisson(), data = d_edge)
-  for (b in c(-12, -4, -0.5, 3, 6)) {
+  # b = -16 gives mu < 1e-6, exercising log1mexp's series branch
+  for (b in c(-16, -12, -4, -0.5, 3, 6)) {
     par <- fit_edge$obj$par
     par[names(par) == "beta_mu"] <- b
     par[names(par) == "beta_zi"] <- -0.4
@@ -235,8 +236,14 @@ test_that("truncated_poisson refuses unsupported inputs with guidance", {
   expect_error(drmTMB(bf(y ~ x, hu = y ~ x), family = fam, data = dat), "one-sided")
   expect_error(drmTMB(bf(y ~ x, hu ~ 1, hu ~ x), family = fam, data = dat), "at most one")
   expect_error(drmTMB(bf(y ~ x, hu ~ 0), family = fam, data = dat), "zero-column")
-  expect_error(drmTMB(bf(y ~ x + (1 | id), hu ~ 1), family = fam, data = dat))
-  expect_error(drmTMB(bf(y ~ x, hu ~ x + (1 | id)), family = fam, data = dat))
+  expect_error(
+    drmTMB(bf(y ~ x + (1 | id), hu ~ 1), family = fam, data = dat),
+    "unsupported term"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, hu ~ x + (1 | id)), family = fam, data = dat),
+    "Hurdle random effects are not implemented"
+  )
   expect_error(
     drmTMB(bf(y ~ x, hu ~ 1), family = fam, data = transform(dat, y = c(0, -1, 2, 3, 1, 2))),
     "non-negative integer"
@@ -284,7 +291,8 @@ test_that("emmeans and the Julia bridge refuse truncated_poisson cleanly", {
       family = truncated_poisson(),
       data = dat,
       engine = "julia"
-    )
+    ),
+    "currently supports"
   )
 })
 
@@ -302,4 +310,85 @@ test_that("fitted_distribution() and profile() work on a hurdle Poisson fit", {
   )
   pr <- profile(fit, parm = "fixef:hu:w")
   expect_s3_class(pr, "profile.drmTMB")
+})
+
+test_that("truncated_poisson and truncated_nbinom2 refuse mi() in mu", {
+  set.seed(733)
+  dat <- data.frame(x = stats::rnorm(40))
+  dat$y <- stats::rpois(40, exp(0.6 + 0.3 * dat$x)) + 1
+  dat$x[c(3, 11, 27)] <- NA
+  # Without the explicit refusal these silently fit the complete cases.
+  expect_error(
+    drmTMB(bf(y ~ mi(x), hu ~ 1), family = truncated_poisson(), data = dat),
+    "mi.*not implemented for .*truncated_poisson"
+  )
+  expect_error(
+    drmTMB(bf(y ~ mi(x)), family = truncated_poisson(), data = dat),
+    "mi.*not implemented for .*truncated_poisson"
+  )
+  expect_error(
+    drmTMB(bf(y ~ mi(x), hu ~ 1), family = truncated_nbinom2(), data = dat),
+    "mi.*not implemented for .*truncated_nbinom2"
+  )
+  expect_error(
+    drmTMB(bf(y ~ mi(x)), family = truncated_nbinom2(), data = dat),
+    "mi.*not implemented for .*truncated_nbinom2"
+  )
+})
+
+test_that("zero-truncated quantiles and simulations stay on the positive support", {
+  mu <- c(1e-15, 1e-10, 1e-7, 0.01, 1, 2, 25)
+  sigma <- rep(0.5, length(mu))
+  tp <- drm_family_dpq_truncated_poisson()
+  tnb <- drm_family_dpq_truncated_nbinom2()
+  hp <- drm_family_dpq_hurdle_poisson()
+  hnb <- drm_family_dpq_hurdle_nbinom2()
+  for (u in c(0, 1e-12, 0.5, 0.999)) {
+    expect_true(all(tp$q(u, list(mu = mu)) >= 1))
+    expect_true(all(tnb$q(u, list(mu = mu, sigma = sigma)) >= 1))
+  }
+  # u = 0 is the smallest supported value, 1
+  expect_equal(tp$q(0, list(mu = 2)), 1)
+  expect_equal(tnb$q(0, list(mu = 2, sigma = 0.5)), 1)
+  expect_equal(tp$q(0.5, list(mu = 1e-15)), 1)
+  # hurdle: u <= hu is the zero; u > hu is a positive count even at tiny mu
+  hu <- rep(0.3, length(mu))
+  expect_equal(hp$q(0.2, list(mu = mu, hu = hu)), rep(0, length(mu)))
+  expect_equal(hnb$q(0.2, list(mu = mu, sigma = sigma, hu = hu)), rep(0, length(mu)))
+  expect_true(all(hp$q(0.9, list(mu = mu, hu = hu)) >= 1))
+  expect_true(all(hnb$q(0.9, list(mu = mu, sigma = sigma, hu = hu)) >= 1))
+  # at tiny mu the truncated pmf is (numerically) a point mass at 1
+  expect_equal(tp$d(1, data.frame(mu = 1e-15)), 1, tolerance = 1e-12)
+  expect_equal(tp$p(1, data.frame(mu = 1e-15)), 1, tolerance = 1e-12)
+
+  # near 1, the old lower-tail form p0 + u * (1 - p0) rounded to 1 and
+  # returned Inf at tiny mu; the upper-tail helpers stay finite and positive
+  r <- c(0.5, 0.99, 1 - 1e-15)
+  for (m in c(exp(-35), 1e-20)) {
+    expect_equal(drm_truncated_qpois(r, m), rep(1, 3))
+    expect_equal(drm_truncated_qnbinom2(r, size = 4, mu = m), rep(1, 3))
+  }
+  # and agree with the textbook lower-tail form away from the boundary
+  for (m in c(0.3, 2, 25)) {
+    p0 <- stats::dpois(0, m)
+    expect_equal(
+      drm_truncated_qpois(r[1:2], m),
+      stats::qpois(p0 + r[1:2] * (1 - p0), m)
+    )
+    p0 <- stats::dnbinom(0, size = 4, mu = m)
+    expect_equal(
+      drm_truncated_qnbinom2(r[1:2], size = 4, mu = m),
+      stats::qnbinom(p0 + r[1:2] * (1 - p0), size = 4, mu = m)
+    )
+  }
+
+  # simulate(): a near-zero location must still draw positive counts
+  dat <- data.frame(y = c(1, 1, 1, 2, 1, 1, 1, 1, 1, 1))
+  fit <- drmTMB(bf(y ~ 1), family = truncated_poisson(), data = dat)
+  fit_tiny <- fit
+  # predict() reads fit$coefficients, so set a near-zero location directly
+  fit_tiny$coefficients$mu[[1L]] <- -35
+  expect_lt(max(predict(fit_tiny, dpar = "mu")), 1e-12)
+  sims <- unlist(simulate(fit_tiny, nsim = 20, seed = 4), use.names = FALSE)
+  expect_true(all(sims == 1))
 })

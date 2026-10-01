@@ -9173,6 +9173,13 @@ drm_build_truncated_nbinom2_spec <- function(
       "x" = "Denominator syntax such as {.code cbind(successes, failures)} is planned for beta-binomial models, not zero-truncated count models."
     ))
   }
+  if (formula_contains_call(mu_entry$rhs, "mi")) {
+    cli::cli_abort(c(
+      "{.fn mi} missing-predictor models are not implemented for {.fn truncated_nbinom2}.",
+      "x" = "The {.code mu} formula contains {.fn mi}.",
+      "i" = "Impute the predictor before fitting, or drop incomplete rows explicitly; {.fn truncated_nbinom2} will not silently fit complete cases."
+    ))
+  }
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   if (!is.null(meta$V)) {
@@ -9520,6 +9527,13 @@ drm_build_truncated_poisson_spec <- function(
     cli::cli_abort(c(
       "{.fn truncated_poisson} models require a single count response.",
       "x" = "Denominator syntax such as {.code cbind(successes, failures)} is for binomial-type models."
+    ))
+  }
+  if (formula_contains_call(mu_entry$rhs, "mi")) {
+    cli::cli_abort(c(
+      "{.fn mi} missing-predictor models are not implemented for {.fn truncated_poisson}.",
+      "x" = "The {.code mu} formula contains {.fn mi}.",
+      "i" = "Impute the predictor before fitting, or drop incomplete rows explicitly; {.fn truncated_poisson} will not silently fit complete cases."
     ))
   }
   for (entry in c(list(mu_entry), if (has_hu) list(hu_entry))) {

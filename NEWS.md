@@ -14,6 +14,14 @@
 
 ## Bug fixes
 
+* `truncated_nbinom2()` now refuses `mi()` in the `mu` formula with a message
+  instead of silently fitting the complete cases (`truncated_poisson()` gets
+  the same refusal).
+* Zero-truncated and hurdle count quantiles (`fitted_distribution()$q`) and
+  `simulate()` draws for `truncated_nbinom2()` (with or without `hu`) no longer
+  return 0 on the positive part or `Inf` at very small `mu`: the positive-part
+  quantile is computed in a stable upper-tail form and floored at 1.
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).

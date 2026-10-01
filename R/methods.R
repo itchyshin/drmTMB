@@ -3461,18 +3461,16 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         mu <- drm_marginal_predict(object, "mu", re_draws)
         sigma <- drm_marginal_predict(object, "sigma", re_draws)
         size <- drm_nbinom2_size(sigma)
-        p0 <- truncated_nbinom2_p0(mu, sigma)
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-        stats::qnbinom(u, size = size, mu = mu)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
+        drm_truncated_qnbinom2(r, size = size, mu = mu)
       })
     } else {
       mu <- predict(object, dpar = "mu")
       sigma <- predict(object, dpar = "sigma")
       size <- drm_nbinom2_size(sigma)
-      p0 <- truncated_nbinom2_p0(mu, sigma)
       sims <- replicate(nsim, {
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-        stats::qnbinom(u, size = size, mu = mu)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
+        drm_truncated_qnbinom2(r, size = size, mu = mu)
       })
     }
     sims <- as.data.frame(sims)
@@ -3489,27 +3487,25 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         mu <- drm_marginal_predict(object, "mu", re_draws)
         sigma <- drm_marginal_predict(object, "sigma", re_draws)
         size <- drm_nbinom2_size(sigma)
-        p0 <- truncated_nbinom2_p0(mu, sigma)
         hurdle_zero <- stats::runif(length(mu)) < hu
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
         ifelse(
           hurdle_zero,
           0L,
-          stats::qnbinom(u, size = size, mu = mu)
+          drm_truncated_qnbinom2(r, size = size, mu = mu)
         )
       })
     } else {
       mu <- predict(object, dpar = "mu")
       sigma <- predict(object, dpar = "sigma")
       size <- drm_nbinom2_size(sigma)
-      p0 <- truncated_nbinom2_p0(mu, sigma)
       sims <- replicate(nsim, {
         hurdle_zero <- stats::runif(length(mu)) < hu
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
         ifelse(
           hurdle_zero,
           0L,
-          stats::qnbinom(u, size = size, mu = mu)
+          drm_truncated_qnbinom2(r, size = size, mu = mu)
         )
       })
     }
@@ -3525,10 +3521,9 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
     has_hu <- identical(object$model$model_type, "hurdle_poisson")
     hu <- if (has_hu) predict(object, dpar = "hu") else NULL
     mu <- predict(object, dpar = "mu")
-    p0 <- stats::dpois(0, lambda = mu)
     sims <- replicate(nsim, {
-      u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-      positive <- stats::qpois(u, lambda = mu)
+      r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
+      positive <- drm_truncated_qpois(r, mu)
       if (has_hu) {
         ifelse(stats::runif(length(mu)) < hu, 0L, positive)
       } else {
