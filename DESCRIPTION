@@ -58,6 +58,7 @@ Suggests:
     statmod,
     testthat (>= 3.0.0),
     tweedie,
+    VGAM,
     withr
 Config/testthat/edition: 3
 VignetteBuilder: knitr
