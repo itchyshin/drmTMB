@@ -219,23 +219,6 @@ number.}
 A \code{drmTMB} fit object.
 }
 
-\section{Separation in binomial fits}{
-
-A fixed-effect binomial or Bernoulli fit (no random effects, no \code{phylo()}
-term, no \code{mi()} predictor model; \code{estimator = "ml"}) is screened for
-(quasi-)complete separation at fit time with the linear-programming check of
-Konis (2007): the maximum-likelihood estimate does not exist when some
-direction \code{d} makes the signed design \verb{X~ d >= 0} on every row. The fit is
-still returned, but a \code{drmTMB_separation_warning} names the coefficients that
-can diverge and their standard errors (\code{summary()}, \code{vcov()}) are \code{Inf}. Near
-separation (a fitted probability within 1e-8 of 0 or 1 together with a Wald
-standard error above 1e4 or unavailable) is flagged the same way. The point
-estimates under separation are arbitrary stopping points of the optimiser,
-and are not expected to match another engine's. DRModels.jl runs the same
-check with the same constants, so the two packages flag the same coefficients.
-There is no refusal and no penalised fit by default; \code{estimator = "mspl"} is
-the finite-estimate route.
-}
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
 supports univariate Gaussian location-scale models,
@@ -301,6 +284,34 @@ Bivariate Gaussian location formulas may be written explicitly as
 \code{mu1 = y1 ~ ...}, \code{mu2 = y2 ~ ...}, or with \code{mvbind(y1, y2) ~ ...} shorthand
 when both responses share the same location predictors.
 }
+\section{Separation in binomial fits}{
+
+A fixed-effect binomial or Bernoulli fit (no random effects, no \code{phylo()}
+term, no \code{mi()} predictor model; \code{estimator = "ml"}) is screened for
+(quasi-)complete separation at fit time: the maximum-likelihood estimate does
+not exist when some direction \code{d} makes the signed design \code{X~ d >= 0} on
+every row and \verb{> 0} on at least one (Albert and Anderson 1984; Konis 2007).
+The check is a non-negative least-squares (Farkas) formulation solved in base
+R. The fit is still returned, but a \code{drmTMB_separation_warning} names the
+coefficients that can diverge: their standard errors (\code{summary()}, \code{vcov()})
+are \code{Inf}, and their Wald intervals (\code{confint()}, \code{summary(conf.int = TRUE)},
+\code{tidy()}) are \verb{(-Inf, Inf)} with \code{conf.status = "wald_separation"}. A
+coefficient is flagged when any separating direction moves it, which can
+list more coefficients than the single direction reported by the
+\code{detectseparation} package. Near separation is flagged the same way, on a
+scale-free rule: a fitted probability within 1e-8 of 0 or 1, a coefficient
+whose own contribution spans the whole 1e-8 to 1 - 1e-8 probability range
+(\verb{|beta_j| * range(x_j)} above 36.8 on the logit scale), and a Wald
+\verb{|z| < 0.05} for it. An unavailable standard error (\code{drm_control(se = FALSE)}, a failed Hessian) is never read as near separation. If the check
+runs out of its iteration budget, a warning says it was inconclusive rather
+than reporting no separation. The point estimates under separation are
+arbitrary stopping points of the optimiser and are not expected to match
+another engine's. DRModels.jl runs the same check with the same constants,
+so the two packages flag the same coefficients. There is no refusal and no
+penalised fit by default; \code{estimator = "mspl"} is the finite-estimate route.
+Healthy (non-separated) fits are unchanged.
+}
+
 \examples{
 set.seed(20260525)
 dat <- data.frame(

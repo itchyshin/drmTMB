@@ -3,15 +3,23 @@
 ## New features
 
 * Fixed-effect binomial and Bernoulli fits are now screened for
-  (quasi-)complete separation at fit time (Konis 2007 linear-programming check,
-  base R, no new dependency). When the maximum-likelihood estimate does not
-  exist, the fit is still returned but a `drmTMB_separation_warning` names the
-  coefficients that can diverge and their standard errors (`summary()`,
-  `vcov()`) are `Inf`. Near separation (a fitted probability within 1e-8 of 0/1
-  with a Wald standard error above 1e4 or unavailable) is flagged the same way.
-  DRModels.jl runs the same check with the same constants (#1268, twin of
-  DRModels.jl #731/#728). No refusal and no penalised fit by default; random-effect
-  routes are not screened. Healthy fits are unchanged.
+  (quasi-)complete separation at fit time (the Albert-Anderson / Konis
+  criterion, decided by a base-R non-negative least-squares solve; no new
+  dependency). When the maximum-likelihood estimate does not exist, the fit is
+  still returned but a `drmTMB_separation_warning` names the coefficients that
+  can diverge (any coefficient some separating direction moves; this is not the
+  `detectseparation` listing). Their standard errors (`summary()`, `vcov()`) are
+  `Inf` and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`,
+  `tidy()`) are `(-Inf, Inf)` with `conf.status = "wald_separation"`. Near
+  separation is flagged on a scale-free rule (a fitted probability within 1e-8
+  of 0/1, a coefficient whose own contribution spans that whole probability
+  range, and Wald `|z| < 0.05`); an unavailable standard error, e.g.
+  `drm_control(se = FALSE)`, is never read as near separation. A check that runs
+  out of its iteration budget warns that it was inconclusive. Bootstrap refits
+  do not repeat the warning. DRModels.jl runs the same check with the same
+  constants (#1268, twin of DRModels.jl #731/#728). No refusal and no penalised
+  fit by default; random-effect routes are not screened. Healthy fits are
+  unchanged.
 
 ## Bug fixes
 

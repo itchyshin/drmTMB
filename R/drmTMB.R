@@ -260,18 +260,29 @@
 #' @section Separation in binomial fits:
 #' A fixed-effect binomial or Bernoulli fit (no random effects, no `phylo()`
 #' term, no `mi()` predictor model; `estimator = "ml"`) is screened for
-#' (quasi-)complete separation at fit time with the linear-programming check of
-#' Konis (2007): the maximum-likelihood estimate does not exist when some
-#' direction `d` makes the signed design `X~ d >= 0` on every row. The fit is
-#' still returned, but a `drmTMB_separation_warning` names the coefficients that
-#' can diverge and their standard errors (`summary()`, `vcov()`) are `Inf`. Near
-#' separation (a fitted probability within 1e-8 of 0 or 1 together with a Wald
-#' standard error above 1e4 or unavailable) is flagged the same way. The point
-#' estimates under separation are arbitrary stopping points of the optimiser,
-#' and are not expected to match another engine's. DRModels.jl runs the same
-#' check with the same constants, so the two packages flag the same coefficients.
-#' There is no refusal and no penalised fit by default; `estimator = "mspl"` is
-#' the finite-estimate route.
+#' (quasi-)complete separation at fit time: the maximum-likelihood estimate does
+#' not exist when some direction `d` makes the signed design `X~ d >= 0` on
+#' every row and `> 0` on at least one (Albert and Anderson 1984; Konis 2007).
+#' The check is a non-negative least-squares (Farkas) formulation solved in base
+#' R. The fit is still returned, but a `drmTMB_separation_warning` names the
+#' coefficients that can diverge: their standard errors (`summary()`, `vcov()`)
+#' are `Inf`, and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`,
+#' `tidy()`) are `(-Inf, Inf)` with `conf.status = "wald_separation"`. A
+#' coefficient is flagged when any separating direction moves it, which can
+#' list more coefficients than the single direction reported by the
+#' `detectseparation` package. Near separation is flagged the same way, on a
+#' scale-free rule: a fitted probability within 1e-8 of 0 or 1, a coefficient
+#' whose own contribution spans the whole 1e-8 to 1 - 1e-8 probability range
+#' (`|beta_j| * range(x_j)` above 36.8 on the logit scale), and a Wald
+#' `|z| < 0.05` for it. An unavailable standard error (`drm_control(se =
+#' FALSE)`, a failed Hessian) is never read as near separation. If the check
+#' runs out of its iteration budget, a warning says it was inconclusive rather
+#' than reporting no separation. The point estimates under separation are
+#' arbitrary stopping points of the optimiser and are not expected to match
+#' another engine's. DRModels.jl runs the same check with the same constants,
+#' so the two packages flag the same coefficients. There is no refusal and no
+#' penalised fit by default; `estimator = "mspl"` is the finite-estimate route.
+#' Healthy (non-separated) fits are unchanged.
 #' @export
 #'
 #' @examples
