@@ -185,6 +185,18 @@ validate_phylo_temporal_ou_pair <- function(temporal_term, phylo_term, data, env
     ))
   }
   tree <- evaluate_phylo_tree(phylo_term$tree, env)
+  # Refuse extra tips before validate_phylo_tree(), which would otherwise
+  # announce that it prunes them and the next check would then refuse the fit.
+  if (inherits(tree, "phylo")) {
+    extra_tips <- setdiff(tree$tip.label, unique(species))
+    if (length(extra_tips) > 0L) {
+      cli::cli_abort(c(
+        "The paired phylogenetic-temporal OU model requires tree tips to match the observed species.",
+        "x" = "The tree has {length(extra_tips)} tip{?s} with no observations, for example {.val {utils::head(extra_tips, 3L)}}.",
+        "i" = "Prune first, for example {.code tree <- ape::keep.tip(tree, unique(as.character(data$species)))}, then refit."
+      ))
+    }
+  }
   tree_info <- validate_phylo_tree(tree, species = species)
   if (!setequal(tree_info$tip_label, unique(species)) ||
       length(tree_info$tip_label) != length(unique(species))) {

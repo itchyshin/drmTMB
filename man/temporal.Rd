@@ -33,6 +33,16 @@ from persistent within-series deviations; it is deferred for homogeneous
 Toeplitz covariance. Homogeneous Toeplitz fits provide likelihood-profile
 intervals for mean regression coefficients only. Scale and lag-correlation
 intervals remain unavailable.
+
+Development only: with \code{structure = "ou"}, \code{temporal()} may be paired with
+\code{phylo(1 | species, tree = tree)} on the same grouping column. That fits a
+stable tree-correlated species intercept plus independent within-species OU
+deviations, reported as \code{sd_phylo_stable}, \code{sd_temporal} and
+\code{decay_temporal}. The paired route refuses an ordinary \code{(1 | species)}
+intercept (the stable component is already the phylogenetic term), needs
+tree tips that exactly match the observed species, at least three species,
+two distinct times per species and three distinct positive lags, and has
+point estimates only: its intervals are not calibrated.
 }
 \examples{
 bf(y ~ treatment + temporal(1 | id, time = occasion, structure = "ar1"),

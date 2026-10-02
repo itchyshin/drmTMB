@@ -1773,10 +1773,10 @@ drm_profile_targets <- function(object) {
       identical(temporal$structure, "ou")) {
     value <- object$decaypars$temporal[[temporal_mu_decay_label(temporal)]]
     add_rows(list(new_profile_target_row(
-      parm = paste0("decay:temporal:", temporal$label),
+      parm = paste0("decay:temporal:", temporal_mu_decay_label(temporal)),
       target_class = "temporal-decay",
       dpar = "temporal",
-      term = temporal$label,
+      term = temporal_mu_decay_label(temporal),
       tmb_parameter = "theta_temporal",
       index = 1L,
       estimate = unname(value),
@@ -2220,6 +2220,16 @@ warn_profile_boundary <- function(out) {
 warn_temporal_profile_hessian <- function(object) {
   if (!drm_has_temporal_mu(object)) {
     return(invisible(object))
+  }
+  if (isTRUE(object$model$structured$temporal_mu$paired_phylo_stable)) {
+    cli::cli_warn(
+      c(
+        "Profile intervals from the paired {.fn phylo} plus OU {.fn temporal} model are not calibrated.",
+        "!" = "This development route has point-recovery evidence only; no interval-calibration study has been run.",
+        "i" = "Do not report these intervals as confidence intervals."
+      ),
+      class = "drmTMB_paired_phylo_temporal_profile_warning"
+    )
   }
   hessian_regular <- identical(drm_uncertainty_status(object), "ok") &&
     !is.null(object$sdr) && isTRUE(object$sdr$pdHess)

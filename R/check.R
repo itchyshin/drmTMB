@@ -91,7 +91,11 @@
 #' Hessian is not usable, or intentionally deferred for OU. The separate
 #' `temporal_mean_profile` row records whether fixed-effect profile intervals
 #' can be computed and whether the fitted Hessian makes their nuisance
-#' parameters locally irregular.
+#' parameters locally irregular. `temporal_boundary` warns when residual
+#' `sigma` collapses below 1e-3 of the response SD, an OU decay leaves
+#' correlation at about 1 or 0 at every observed lag, or AR1 persistence
+#' exceeds 0.999 in absolute value; such fits report
+#' `convergence_status() == "boundary"`.
 #'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
@@ -280,8 +284,9 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' optimizer code `0` while the likelihood geometry is degenerate (no proper
 #' maximum or non-finite uncertainty); such fits return `"degenerate"` even
 #' when `multi_start` selected among several starts. `"boundary"` marks an
-#' optimizer-converged fit with variance-component or residual-correlation
-#' parameters near an interpretability boundary. [is_converged()] stays a
+#' optimizer-converged fit with variance-component, residual-correlation, or
+#' temporal (residual SD, OU decay, AR1 persistence) parameters near an
+#' interpretability boundary. [is_converged()] stays a
 #' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
 #' `FALSE` for `"degenerate"`.
 #'
@@ -405,7 +410,11 @@ drm_inference_at_boundary <- function(object) {
     return(TRUE)
   }
   sd_row <- check_random_effect_sd_boundary(object, sd_boundary = 1e-4)
-  !is.null(sd_row) && identical(sd_row$status, "warning")
+  if (!is.null(sd_row) && identical(sd_row$status, "warning")) {
+    return(TRUE)
+  }
+  temporal_row <- check_temporal_boundary(object)
+  !is.null(temporal_row) && identical(temporal_row$status, "warning")
 }
 
 #' @rdname check_drm
@@ -447,6 +456,7 @@ check_drm.drmTMB <- function(
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_interval_reliability_scope(object),
+    check_temporal_boundary(object),
     check_temporal_mean_wald(object),
     check_temporal_mean_profile(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
@@ -1447,8 +1457,8 @@ check_convergence_status <- function(object) {
         "a proper interior optimum."
       ),
       boundary = paste(
-        "The fit converged but variance-component or residual-correlation",
-        "parameters are near an interpretability boundary; read",
+        "The fit converged but variance-component, residual-correlation, or",
+        "temporal parameters are near an interpretability boundary; read",
         "convergence_status() and boundary rows before inference."
       ),
       degenerate = paste(
@@ -1905,6 +1915,98 @@ check_interval_reliability_scope <- function(object) {
       " random-effect standard-deviation target",
       if (n_targets == 1L) "" else "s",
       ". `check_drm()` assesses the fit, not interval reliability: a target can pass every check above and still return an interval that `confint()` warns about at a variance boundary. Before reporting an interval, call `confint()` and read `conf.status` and any boundary warning."
+    )
+  )
+}
+
+# Temporal parameters can run to an interpretability boundary while the
+# optimizer, Hessian and standard errors all look regular: the residual SD can
+# collapse into the temporal process, an OU decay can run to zero (the process
+# becomes a per-series constant) or to infinity relative to the sampling gaps
+# (white noise), and AR1 persistence can run to +/-1. None of these is a
+# variance-component SD, so check_random_effect_sd_boundary() never sees them.
+# Thresholds are relative to the data: residual sigma below 1e-3 of the
+# response SD; OU decay * longest within-series span below 1e-4 (correlation
+# above 0.9999 at every observed lag) or decay * shortest positive gap above
+# 30 (correlation below 1e-13 at every observed lag); |AR1 phi| above 0.999.
+temporal_boundary_thresholds <- list(
+  sigma_ratio = 1e-3,
+  decay_span = 1e-4,
+  decay_gap = 30,
+  ar1_phi = 0.999
+)
+
+drm_temporal_boundary_findings <- function(object) {
+  temporal <- object$model$structured$temporal_mu
+  limits <- temporal_boundary_thresholds
+  found <- character()
+  sigma_value <- tryCatch(
+    as.numeric(stats::sigma(object))[[1L]],
+    error = function(e) NA_real_
+  )
+  response_sd <- stats::sd(object$model$y, na.rm = TRUE)
+  if (is.finite(sigma_value) && is.finite(response_sd) && response_sd > 0 &&
+      sigma_value / response_sd < limits$sigma_ratio) {
+    found <- c(found, paste0(
+      "sigma_ratio=", format_check_number(sigma_value / response_sd)
+    ))
+  }
+  if (identical(temporal$structure, "ou")) {
+    decay <- unname(object$decaypars$temporal[[1L]])
+    gap <- as.numeric(temporal$gap)
+    starts <- temporal$series_start0 + 1L
+    spans <- vapply(seq_len(length(starts) - 1L), function(i) {
+      idx <- seq.int(starts[[i]], starts[[i + 1L]] - 1L)
+      sum(gap[idx[-1L]])
+    }, numeric(1L))
+    positive <- gap[gap > 0]
+    if (is.finite(decay) && length(spans) > 0L &&
+        decay * max(spans) < limits$decay_span) {
+      found <- c(found, paste0(
+        "decay_x_max_span=", format_check_number(decay * max(spans))
+      ))
+    }
+    if (is.finite(decay) && length(positive) > 0L &&
+        decay * min(positive) > limits$decay_gap) {
+      found <- c(found, paste0(
+        "decay_x_min_gap=", format_check_number(decay * min(positive))
+      ))
+    }
+  }
+  if (identical(temporal$structure, "ar1")) {
+    phi <- unname(object$corpars$temporal[[1L]])
+    if (is.finite(phi) && abs(phi) > limits$ar1_phi) {
+      found <- c(found, paste0("phi=", format_check_number(phi)))
+    }
+  }
+  found
+}
+
+check_temporal_boundary <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(NULL)
+  }
+  found <- drm_temporal_boundary_findings(object)
+  if (length(found) == 0L) {
+    return(check_row(
+      "temporal_boundary",
+      "ok",
+      NA_character_,
+      "Residual sigma and the temporal persistence or decay are away from their boundaries."
+    ))
+  }
+  check_row(
+    "temporal_boundary",
+    "warning",
+    paste(found, collapse = "; "),
+    paste(
+      "A temporal parameter is at an interpretability boundary:",
+      "sigma_ratio means the residual SD collapsed into the temporal process;",
+      "decay_x_max_span means OU correlation is ~1 at every observed lag",
+      "(a per-series constant); decay_x_min_gap means OU correlation is ~0 at",
+      "every observed lag (white noise); phi means AR1 persistence is at +/-1.",
+      "Do not read the variance components separately; collect more series or",
+      "occasions, or fit a simpler temporal model."
     )
   )
 }

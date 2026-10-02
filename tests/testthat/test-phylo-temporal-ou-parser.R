@@ -118,4 +118,20 @@ test_that("paired phylo() plus OU rechecks retained rows after response omission
     ),
     "tips to match"
   )
+  # The refusal comes before the generic pruning notice, so the user is not
+  # told the tree will be pruned and then told the fit is refused.
+  messages <- character()
+  withCallingHandlers(
+    try(drmTMB(
+      bf(y ~ phylo(1 | species, tree = tree) +
+           temporal(1 | species, time = elapsed, structure = "ou"),
+         sigma ~ 1),
+      data = subset_data, family = gaussian(), REML = FALSE
+    ), silent = TRUE),
+    message = function(m) {
+      messages <<- c(messages, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  expect_false(any(grepl("Pruning", messages, fixed = TRUE)))
 })
