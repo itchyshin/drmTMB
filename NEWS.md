@@ -27,6 +27,15 @@
   bootstrap, forecast, and `newdata` intervals remain unavailable. The
   retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
   has no calibrated coverage claim.
+* `temporal(1 | id, time = occasion, structure = "homtoep")` fits a
+  homogeneous Toeplitz marginal covariance `sigma^2 R` on a complete, equally
+  spaced panel of 3--12 integer occasions, with one free correlation per lag
+  (`cor_lag1`, `cor_lag2`, ...) parameterised by partial autocorrelations so
+  `R` stays positive definite. `sigma` is the total within-series SD; no
+  separate residual SD or `(1 | id)` intercept is estimated. A retained
+  4,000-fit campaign qualified mean-coefficient profile intervals in three
+  predeclared 80-series, six-occasion cells only. `vcov()`, Wald, scale, and
+  lag-correlation intervals are unavailable.
 * Development only: `phylo(1 | species, tree = tree) + temporal(1 | species,
   time = elapsed, structure = "ou")` fits a stable tree-correlated species
   intercept plus independent within-species OU deviations
