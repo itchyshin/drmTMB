@@ -230,14 +230,64 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # shape-floor guards: two for beta and two for beta-binomial. These mirror
   # the already-audited beta_shape_floor C0 contract below.
   #
+  # The temporal AR1 route (#1302) adds SEVEN drmTMB.cpp sites. In
+  # drm_neg_log_abs_tanh(): an |theta| select, an a < 0.5 clamp (never active
+  # on the selected branch, where a <= exp(-2)), and a series/direct switch at
+  # a = 1e-3. In drm_ar1_transition_sd(): an x < 700 clamp (C0; exp(-700) is
+  # below double resolution of 1), a series/expm1 switch at x = 1e-5, an
+  # |theta| select, and a direct/expm1 switch at |theta| = 1. 30L -> 37L is
+  # bumped together with the paired continuity tests below.
+  #
   # The temporal OU route (#1302) adds ONE drmTMB.cpp site,
   # drm_one_minus_exp_neg(): a series/direct switch for 1 - exp(-x) at
-  # x = 1e-5, used for the OU transition variance. 30L -> 31L is bumped
+  # x = 1e-5, used for the OU transition variance. 37L -> 38L is bumped
   # together with its paired C1 continuity test below.
-  expect_equal(n_cpp, 31L)
+  expect_equal(n_cpp, 38L)
   expect_equal(n_numeric, 5L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 4L)
+})
+
+# ---------------------------------------------------------------------------
+# Sites: drm_neg_log_abs_tanh() and drm_ar1_transition_sd() (src/drmTMB.cpp).
+# Class: C1 expected at all three switches: a = 1e-3 (series vs direct
+# 2 * atanh(a)), x = 1e-5 (series vs 1 - exp(-x)), and |theta| = 1 (direct
+# 1 - phi^(2 gap) vs the expm1 form). Each pair is the same analytic function.
+# ---------------------------------------------------------------------------
+test_that("temporal AR1 transition switches agree in value and derivative", {
+  a0 <- 1e-3
+  atanh_series <- function(a) 2 * a * (1 + a^2 * (1 / 3 + a^2 / 5))
+  atanh_direct <- function(a) log((1 + a) / (1 - a))
+  expect_lt(rel_diff(atanh_series(a0), atanh_direct(a0)), VALUE_TOL)
+  expect_lt(
+    rel_diff(2 * (1 + a0^2 + a0^4), 2 / (1 - a0^2)),
+    DERIV_TOL
+  )
+
+  x0 <- 1e-5
+  om_series <- function(x) x * (1 - x * (0.5 - x / 6))
+  om_direct <- function(x) 1 - exp(-x)
+  expect_lt(rel_diff(om_series(x0), om_direct(x0)), VALUE_TOL)
+  expect_lt(rel_diff(1 - x0 + x0^2 / 2, exp(-x0)), DERIV_TOL)
+
+  one_minus_direct <- function(theta, gap) 1 - (tanh(theta)^2)^gap
+  one_minus_expm1 <- function(theta, gap) {
+    a <- exp(-2 * abs(theta))
+    neg_log_abs_tanh <- if (a < 1e-3) atanh_series(a) else atanh_direct(a)
+    -expm1(-2 * gap * neg_log_abs_tanh)
+  }
+  for (gap in c(1, 7, 50)) {
+    expect_lt(rel_diff(one_minus_expm1(1, gap), one_minus_direct(1, gap)), VALUE_TOL)
+    h <- 1e-6
+    d_direct <- (one_minus_direct(1 + h, gap) - one_minus_direct(1 - h, gap)) / (2 * h)
+    d_expm1 <- (one_minus_expm1(1 + h, gap) - one_minus_expm1(1 - h, gap)) / (2 * h)
+    expect_lt(rel_diff(d_expm1, d_direct), 1e-4)
+  }
+
+  # Why the expm1 branch exists: near the unit root the direct subtraction is
+  # zero while the expm1 form keeps the correct tiny positive variance.
+  expect_identical(one_minus_direct(25, 1), 0)
+  expect_gt(one_minus_expm1(25, 1), 0)
 })
 
 # ---------------------------------------------------------------------------
