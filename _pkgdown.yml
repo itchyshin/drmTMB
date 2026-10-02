@@ -321,6 +321,7 @@ articles:
       - structural-dependence
       - animal-models
       - temporal-random-effects
+      - phylogenetic-temporal-effects
       - phylogenetic-models
       - bipartite-phylogenetic-interactions
       - spatial-models
