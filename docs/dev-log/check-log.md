@@ -1,3 +1,15 @@
+# 2026-10-01 — Separation screen review fixes (#1268, PR #1442 review; twin DRModels.jl)
+
+**Lane:** Claude · branch `claude/separation-1268` (DRAFT PR; not merged, D-164).
+
+**Change:** `R/separation.R` — scale-free near rule (fitted probability within 1e-8 of 0/1, `|beta_j| * range(x_j)` above the full link span, Wald `|z| < 0.05`; a missing SE never counts); Lawson-Hanson NNLS (Farkas) screen replaces the Bland-rule simplex, bounded, with an "inconclusive" warning when the budget runs out. `R/profile.R` — flagged coefficients' Wald intervals are `(-Inf, Inf)` with `conf.status = "wald_separation"` (confint, summary CI, tidy); bootstrap refits muffle the separation warning.
+
+**Evidence (Totoro, private lib):** `test-binomial-separation.R` 95 expectations, 0 failed; binomial-links / binomial-response / phase18-binomial-fixed-effect / bootstrap-cbind / missing-response-binomial / confint-skew-normal-slant / summary-derived-rows 0 failed. `R CMD check --no-manual --ignore-vignettes`: Status OK. Healthy fits (steep slope raw and x/1e5, the 40-row control, a two-covariate fit) byte-identical to pre-feature main `0eb046785` (coef, vcov, logLik, summary SE, confint: `identical()` TRUE). Twin agreement: 600 random designs (304 separated, grouped trials included) give identical separated / conclusive / flagged verdicts in R and Julia. Timing (old -> new screen, Totoro, single thread): n = 1000, p = 40 continuous, separated 326 s -> 0.07 s; overlapping-x variant 301 s -> 0.06 s; n = 10,000, p = 20 non-separated 0.09 s -> 0.02 s (Mac).
+
+**Non-claims:** no coefficient agreement under separation; no `detectseparation` parity (we flag any coefficient some separating direction moves); random-intercept routes not screened; the near rule's 0.05 threshold is calibrated on simulated logit designs (finite-MLE fits reached |z| >= 0.15 in 9,110 extreme cases), not proved.
+
+---
+
 # 2026-09-30 — Binomial separation: detect and warn (#1268, twin of DRModels.jl #731/#728)
 
 **Lane:** Claude · branch `claude/separation-1268` (DRAFT PR; not merged, D-164).
