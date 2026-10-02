@@ -4625,7 +4625,7 @@ print.summary.drmTMB <- function(x, ...) {
     print(drm_summary_print_parameters(x$parameters))
     if (isTRUE(x$temporal_parameters_point_only)) {
       cli::cli_text(
-        "Temporal fit: sigma, SD, persistence, and decay rows are point estimates only; their standard errors are withheld."
+        "Temporal fit: sigma, SD, persistence, decay, and lag-correlation rows are point estimates only; their standard errors are withheld."
       )
     }
   }
