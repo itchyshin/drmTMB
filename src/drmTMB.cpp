@@ -1075,34 +1075,41 @@ Type objective_function<Type>::operator()()
       }
     }
 
-    if (has_temporal_mu == 1) {
+    // AR1 and OU retain a latent temporal process. Homogeneous Toeplitz is an
+    // identified *marginal* covariance model: a free Toeplitz correlation plus
+    // a separately estimated iid residual scale has an exact covariance ridge
+    // at one observation per series--occasion, so it is evaluated directly in
+    // the Gaussian likelihood below.
+    if (has_temporal_mu == 1 && temporal_mu_structure != 3) {
       Type sd_temporal = exp(log_sd_temporal(0));
       Type phi_temporal = tanh(theta_temporal(0));
       Type decay_temporal = exp(theta_temporal(0));
-      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
-        int first = temporal_mu_series_start(series);
-        int last_exclusive = temporal_mu_series_start(series + 1);
-        nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
-        for (int node = first + 1; node < last_exclusive; ++node) {
-          Type transition;
-          Type transition_sd;
-          if (temporal_mu_structure == 1) {
-            transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
-            transition_sd = drm_ar1_transition_sd(
-              theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+      {
+        for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+          int first = temporal_mu_series_start(series);
+          int last_exclusive = temporal_mu_series_start(series + 1);
+          nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
+          for (int node = first + 1; node < last_exclusive; ++node) {
+            Type transition;
+            Type transition_sd;
+            if (temporal_mu_structure == 1) {
+              transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
+              transition_sd = drm_ar1_transition_sd(
+                theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+              );
+            } else {
+              transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
+              transition_sd = sqrt(drm_one_minus_exp_neg(
+                Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
+              ));
+            }
+            nll -= dnorm(
+              u_temporal(node),
+              transition * u_temporal(node - 1),
+              transition_sd,
+              true
             );
-          } else {
-            transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
-            transition_sd = sqrt(drm_one_minus_exp_neg(
-              Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
-            ));
           }
-          nll -= dnorm(
-            u_temporal(node),
-            transition * u_temporal(node - 1),
-            transition_sd,
-            true
-          );
         }
       }
       for (int i = 0; i < y.size(); ++i) {
@@ -2568,6 +2575,50 @@ Type objective_function<Type>::operator()()
       }
       density::MVNORM_t<Type> neg_log_density(Omega);
       nll += neg_log_density(y - mu);
+    } else if (has_temporal_mu == 1 && temporal_mu_structure == 3) {
+      // Marginal homogeneous Toeplitz covariance: beta_sigma is the total
+      // within-series SD and no independent residual component is estimated.
+      int n_occ = theta_temporal.size() + 1;
+      vector<Type> rho(n_occ);
+      vector<Type> ar(n_occ - 1);
+      rho(0) = Type(1.0);
+      Type innovation_var = Type(1.0);
+      for (int m = 0; m < n_occ - 1; ++m) {
+        Type reflection = tanh(theta_temporal(m));
+        Type prediction = Type(0.0);
+        for (int j = 0; j < m; ++j) prediction += ar(j) * rho(m - j);
+        rho(m + 1) = prediction + reflection * innovation_var;
+        vector<Type> ar_new(n_occ - 1);
+        ar_new(m) = reflection;
+        for (int j = 0; j < m; ++j) ar_new(j) = ar(j) - reflection * ar(m - 1 - j);
+        ar = ar_new;
+        innovation_var *= Type(1.0) - reflection * reflection;
+      }
+      Type sd_total = sigma(0);
+      matrix<Type> covariance(n_occ, n_occ);
+      for (int i = 0; i < n_occ; ++i) {
+        for (int j = 0; j < n_occ; ++j) {
+          covariance(i, j) = sd_total * sd_total * rho(abs(i - j));
+        }
+      }
+      density::MVNORM_t<Type> temporal_density(covariance);
+      // The temporal node layout has exactly one observed response per node.
+      // Reverse it once so each series is evaluated in O(K), rather than
+      // repeatedly scanning all observations (O(n * number_of_series)).
+      vector<int> observation_for_node(y.size());
+      for (int i = 0; i < y.size(); ++i) {
+        observation_for_node(temporal_mu_node_index(i)) = i;
+      }
+      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+        int first = temporal_mu_series_start(series);
+        vector<Type> residual(n_occ);
+        for (int node = 0; node < n_occ; ++node) {
+          int observation = observation_for_node(first + node);
+          residual(node) = y(observation) - mu(observation);
+        }
+        nll += temporal_density(residual);
+      }
+      REPORT(rho);
     } else {
       for (int i = 0; i < y.size(); ++i) {
         if (
