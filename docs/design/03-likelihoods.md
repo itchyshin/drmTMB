@@ -120,6 +120,52 @@ route excludes decay and variance parameters, warns if the fitted Hessian is
 irregular, and has deterministic dense-oracle checks but no general coverage
 claim.
 
+### Homogeneous Toeplitz discrete-occasion effects
+
+`temporal(1 | id, time = occasion, structure = "homtoep")` is a direct
+Gaussian ML **marginal covariance** provider for a common, complete, equally
+spaced integer schedule with 3--12 occasions. It has no ordinary random
+intercept in this first slice. For every series,
+
+\[
+y_i \sim N(X_i\beta, \sigma^2 R),\qquad
+R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}).
+\]
+
+The fitted `cor_lag1`, ..., `cor_lag(K-1)` values are correlations, not free
+unconstrained parameters. The native provider maps unconstrained partial
+autocorrelations through `tanh()` and the inverse-Levinson recursion, which
+keeps `R` positive definite. It evaluates the full multivariate-normal density
+for each independent series, including its normalizer. This is a discrete-lag
+model: irregular time and unequal retained schedules are rejected and directed
+to OU.
+
+`sigma` is the total within-series SD. A latent process SD plus an independently
+estimated iid residual SD is intentionally absent: with one response per
+series--occasion and a free lag correlation at every distance, those components
+have an exact covariance-preserving ridge. AR1 and OU retain that separate
+process/residual interpretation because their restricted correlation functions
+identify it.
+
+The current provider has deterministic dense-covariance, score, two-step
+Hessian, residual-whitening, and correlated-residual simulation agreement. A
+retained 4,000-fit campaign qualified likelihood-profile intervals for mean
+regression coefficients in its three predeclared primary cells: 80 series on
+six common occasions with AR1-shaped, non-exponential, and negative first-lag
+correlations. Use
+`confint(fit, parm = "mu:<coefficient>", method = "profile")` for that
+profile-only route. The retained 20-series stress cell had lower intercept
+coverage (0.916), and the campaign does not establish coverage for arbitrary
+panel sizes or correlation patterns.
+
+Wald, total-scale, and lag-correlation intervals remain unavailable. So do
+prediction on `newdata`, forecasting, and ordinary-intercept composition.
+
+For fitted observations, `fitted()` returns the marginal mean and `residuals()`
+returns `y - fitted`. Pearson residuals use the Cholesky whitening of the
+block Toeplitz covariance. Both simulation modes draw one correlated residual
+vector per series because this model has no conditional temporal random effect.
+
 ### Phylogenetic stable intercept plus independent OU deviations
 
 The development-only paired route combines `phylo(1 | species, tree = tree)`
