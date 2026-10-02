@@ -118,6 +118,33 @@ validate_temporal_raw_data <- function(term, data) {
   invisible(NULL)
 }
 
+# Positive within-series lags that decide the lag-variation rules exactly,
+# without forming the O(m^2) pairwise lag matrix of a long series. The rules
+# ask whether the pooled distinct positive lags number at least `required`
+# (at most 3) and, for AR1, whether any lag is odd. A series with m <= 4
+# distinct times contributes its full pairwise set. A longer series already
+# has m - 1 >= 4 distinct lags from its first time, so three of them decide
+# the count rule; an odd lag exists exactly when the integer times have mixed
+# parity, and the first such time supplies an odd witness.
+temporal_lag_witnesses <- function(time_series) {
+  x <- sort(unique(as.numeric(time_series)))
+  m <- length(x)
+  if (m < 2L) {
+    return(numeric())
+  }
+  if (m <= 4L) {
+    lags <- abs(outer(x, x, "-"))
+    return(lags[upper.tri(lags, diag = FALSE)])
+  }
+  witnesses <- x[2:4] - x[[1L]]
+  parity <- x %% 2
+  mixed <- which(parity != parity[[1L]])
+  if (length(mixed) > 0L) {
+    witnesses <- c(witnesses, x[[mixed[[1L]]]] - x[[1L]])
+  }
+  witnesses
+}
+
 # The first phylogenetic-temporal provider is additive: a stable phylogenetic
 # intercept plus independent OU paths within each species.  It is intentionally
 # distinct from the later separable phylogeny-by-OU field.
@@ -173,10 +200,7 @@ validate_phylo_temporal_ou_pair <- function(temporal_term, phylo_term, data, env
       "x" = "Insufficient time variation for {.val {bad}}."
     ))
   }
-  lags <- unlist(lapply(by_species, function(x) {
-    x <- sort(unique(x))
-    abs(outer(x, x, "-"))[upper.tri(outer(x, x, "-"), diag = FALSE)]
-  }), use.names = FALSE)
+  lags <- unlist(lapply(by_species, temporal_lag_witnesses), use.names = FALSE)
   lags <- sort(unique(lags[lags > 0]))
   if (length(lags) < 3L) {
     cli::cli_abort(c(
@@ -263,12 +287,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     time_series <- ordered_time[from:to]
     if (length(time_series) > 1L) {
       gap[(from + 1L):to] <- diff(time_series)
-      pairwise_lags <- c(
-        pairwise_lags,
-        abs(outer(time_series, time_series, "-"))[upper.tri(
-          outer(time_series, time_series, "-"), diag = FALSE
-        )]
-      )
+      pairwise_lags <- c(pairwise_lags, temporal_lag_witnesses(time_series))
     }
   }
   if (identical(term$structure, "ar1")) {
