@@ -52,11 +52,15 @@ are finite integers and are not rank-compressed, so an interval from occasion
 1 to 3 is a two-occasion transition. Duplicate ID--occasion records are
 rejected before response omission.
 
-This route is native Gaussian maximum likelihood with constant `sigma`. It
-supports fixed-effect Wald intervals, in-sample fitted values, residuals, and
-simulation. It does not yet support REML, temporal slopes, an OU process,
+This route is native Gaussian maximum likelihood with constant `sigma`. AR1
+supports its existing fixed-effect Wald route when the full Hessian is regular,
+and AR1 or OU supports mean-coefficient likelihood profiles through
+`confint(..., parm = "mu:<coefficient>", method = "profile")`. A finite profile
+endpoint does not calibrate coverage, especially when `check_drm()` reports an
+irregular fitted Hessian. The route supports in-sample fitted values,
+residuals, and simulation. It does not yet support REML, temporal slopes,
 forecasting or `newdata` prediction, or confidence intervals for process SD,
-persistence, ordinary-intercept SD, or residual SD.
+persistence or decay, ordinary-intercept SD, or residual SD.
 
 Implemented:
 

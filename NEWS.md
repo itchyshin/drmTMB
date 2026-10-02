@@ -6,19 +6,27 @@
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
-## Gaussian temporal AR1 random effects
+## Gaussian temporal AR1 and OU random effects
 
-* Native ML now fits one univariate Gaussian stationary temporal AR1 intercept
-  field with real integer occasion gaps through
+* Native ML now fits univariate Gaussian stationary temporal intercept fields:
+  AR1 with real integer occasion gaps through
   `temporal(1 | id, time = occasion, structure = "ar1")`. It can be paired
   with one ordinary `(1 | id)` random intercept using the same ID, separating
-  stable differences, temporal persistence, and residual `sigma`.
+  stable differences, temporal persistence, and residual `sigma`. The OU route
+  uses finite numeric elapsed time and a positive exponential decay rate.
 * `vcov()`, `summary(conf.int = TRUE)`, and `confint(method = "wald")` expose
   mean-coefficient uncertainty only when the full observed Hessian supports
-  it. Variance/persistence intervals, profile/bootstrap inference, forecasts,
-  and `newdata` prediction remain unavailable. The retained pilot found one
-  unavailable primary-cell interval, so this release contains no calibrated
-  coverage claim.
+  it. Both temporal structures also profile fixed mean coefficients through
+  `confint(..., parm = "mu:<coefficient>", method = "profile")`; profile
+  endpoints can remain finite when a fitted Hessian is irregular, so
+  `check_drm()` records that situation. A retained 3,000-fit OU campaign
+  qualified fixed-`mu` profile intervals in its exact U1--U3 cells; this is
+  not a general temporal coverage claim. The OU elapsed-time route uses
+  `structure = "ou"` with a positive decay rate; its Wald intervals remain
+  deferred behind the AR1 calibration blocker. Variance/persistence,
+  bootstrap, forecast, and `newdata` intervals remain unavailable. The
+  retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
+  has no calibrated coverage claim.
 
 # drmTMB 0.7.1
 
