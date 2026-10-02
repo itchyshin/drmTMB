@@ -189,3 +189,31 @@ test_that("OU reference mutations detect lost elapsed-time and series structure"
   }
   expect_false(isTRUE(all.equal(normalized, unnormalized)))
 })
+
+test_that("temporal OU matches the dense oracle on the small-gap series branch", {
+  # 2 * decay * gap < 1e-5 selects the Taylor branch of 1 - exp(-x).
+  set.seed(77)
+  elapsed <- c(0, 1e-7, 1, 1 + 2e-7, 4)
+  dat <- do.call(rbind, lapply(paste0("s", seq_len(25L)), function(id) {
+    data.frame(id = id, elapsed = elapsed, x = stats::rnorm(length(elapsed)))
+  }))
+  dat$y <- 0.2 + 0.5 * dat$x + stats::rnorm(nrow(dat))
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = dat, family = gaussian(), REML = FALSE
+  ))
+  par <- fit$opt$par
+  par[["log_sd_temporal"]] <- log(0.7)
+  par[["beta_sigma"]] <- log(0.6)
+  for (decay in c(0.05, 0.5, 3)) {
+    par[["theta_temporal"]] <- log(decay)
+    expect_lt(2 * decay * 2e-7, 1e-5)
+    expect_equal(
+      as.numeric(fit$obj$fn(par)),
+      ou_dense_nll_at(fit, par),
+      tolerance = 1e-7,
+      info = paste("decay =", decay)
+    )
+    expect_true(all(is.finite(fit$obj$gr(par))))
+  }
+})

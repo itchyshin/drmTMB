@@ -62,10 +62,12 @@ test_that("temporal OU defers Wald intervals until the inherited calibration pre
   expect_identical(temporal_profile$status, "note")
   expect_match(temporal_profile$value, "available_for_this_fit")
   expect_match(temporal_profile$message, "coverage calibration remains unresolved")
+  # vcov() is refused by design, but the checks still read the full fixed
+  # covariance rather than reporting the refusal as missing uncertainty.
+  covariance <- drmTMB:::drm_check_covariance(fit)
+  expect_identical(nrow(covariance), length(fit$opt$par))
   se_row <- temporal_check[temporal_check$check == "standard_errors_finite", , drop = FALSE]
-  expect_identical(se_row$status, "note")
-  expect_match(se_row$message, "withheld by design")
-  expect_false(drmTMB:::drm_inference_degenerate(fit))
+  expect_false(grepl("Could not extract", se_row$message))
 })
 
 test_that("temporal OU profiles mean coefficients and rejects deferred targets", {
@@ -244,4 +246,38 @@ test_that("temporal OU rejects invalid metadata before response omission", {
     drmTMB::drmTMB(drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1), data = non_numeric, family = gaussian()),
     "finite numeric"
   )
+})
+
+test_that("temporal OU convergence checks see pathological non-mean directions", {
+  set.seed(12)
+  dat <- expand.grid(
+    elapsed = c(0, 1, 2, 5, 9),
+    id = sprintf("id_%02d", seq_len(30L)),
+    KEEP.OUT.ATTRS = FALSE,
+    stringsAsFactors = FALSE
+  )
+  dat$x <- stats::rnorm(nrow(dat))
+  dat$y <- 0.3 * dat$x + stats::rnorm(nrow(dat))
+  fit <- suppressWarnings(drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = dat, family = gaussian(), REML = FALSE
+  ))
+  # White noise leaves sigma and the OU process unseparated; the full fixed
+  # covariance carries the huge SEs that vcov() would never show.
+  fixed_se <- sqrt(diag(fit$sdr$cov.fixed))
+  expect_gt(max(fixed_se), 1000)
+  expect_false(identical(convergence_status(fit), "converged"))
+  expect_false(is_converged(fit))
+})
+
+test_that("temporal OU summaries withhold sigma and SD standard errors", {
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(y ~ x + temporal(1 | id, time = elapsed, structure = "ou"), sigma ~ 1),
+    data = temporal_ou_data(),
+    family = gaussian(),
+    REML = FALSE
+  )
+  s <- summary(fit)
+  expect_true(all(is.na(s$parameters$std_error)))
+  expect_message(print(s), "standard errors are withheld")
 })
