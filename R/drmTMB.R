@@ -319,7 +319,7 @@ drmTMB <- function(
   formula_env <- drm_formula_env(formula, parent.frame())
   if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU effects are implemented only by the native TMB Gaussian route.",
+      "Temporal AR1, OU, and homtoep effects are implemented only by the native TMB Gaussian route.",
       "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
     ))
   }
@@ -371,13 +371,13 @@ drmTMB <- function(
   family_type <- drm_family_type(family)
   if (drm_formula_has_temporal(formula) && !identical(family_type, "gaussian")) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU effects are implemented only for univariate Gaussian models.",
+      "Temporal AR1, OU, and homtoep effects are implemented only for univariate Gaussian models.",
       "i" = "Use {.code family = gaussian()} with a temporal term in the {.code mu} formula."
     ))
   }
   if (drm_formula_has_temporal(formula) && isTRUE(REML)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU Gaussian models currently use maximum likelihood.",
+      "Temporal AR1, OU, and homtoep Gaussian models currently use maximum likelihood.",
       "i" = "Set {.code REML = FALSE}."
     ))
   }
@@ -674,7 +674,7 @@ drm_fit_spec <- function(
       isTRUE(spec$structured$temporal_mu$has)
   ) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU models are currently implemented with maximum likelihood only.",
+      "Temporal AR1, OU, and homtoep models are currently implemented with maximum likelihood only.",
       "i" = "Use {.code REML = FALSE}."
     ))
   }
@@ -4075,7 +4075,7 @@ drm_build_gaussian_ls_spec <- function(
   validate_temporal_raw_data(mu_temporal$term, data)
   if (!is.null(mu_temporal$term) && !is.null(weights) && any(weights != 1)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU Gaussian models currently require unit likelihood weights.",
+      "Temporal AR1, OU, and homtoep Gaussian models currently require unit likelihood weights.",
       "i" = "Remove {.arg weights} or supply one weight for every observation while the unweighted marginal covariance route is fitted."
     ))
   }
@@ -4090,7 +4090,7 @@ drm_build_gaussian_ls_spec <- function(
       isTRUE(control$aggregate_gaussian)
   )) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU Gaussian models do not support this additional modelling feature yet.",
+      "Temporal AR1, OU, and homtoep Gaussian models do not support this additional modelling feature yet.",
       "i" = "Use fixed mean predictors and offsets, {.code sigma ~ 1}, and at most one matching {.code (1 | id)} intercept."
     ))
   }
@@ -4100,7 +4100,7 @@ drm_build_gaussian_ls_spec <- function(
     logical(1)
   ))) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU effects are only implemented for the Gaussian {.code mu} formula.",
+      "Temporal AR1, OU, and homtoep effects are only implemented for the Gaussian {.code mu} formula.",
       "i" = "Use {.code y ~ temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code y ~ temporal(1 | id, time = elapsed, structure = \"ou\")}, with {.code sigma ~ 1}."
     ))
   }
@@ -4162,7 +4162,7 @@ drm_build_gaussian_ls_spec <- function(
   if (!is.null(mu_temporal$term) && length(active_structured) > 0L &&
       !isTRUE(paired_phylo_temporal_ou)) {
     cli::cli_abort(c(
-      "Temporal AR1 and OU models cannot be combined with another structured effect in this slice.",
+      "Temporal AR1, OU, and homtoep models cannot be combined with another structured effect in this slice.",
       "x" = "The model also contains {.val {active_structured}}.",
       "i" = "The only admitted combined route is {.code phylo(1 | species, tree = tree) + temporal(1 | species, time = elapsed, structure = \"ou\")}."
     ))

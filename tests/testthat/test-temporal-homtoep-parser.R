@@ -60,6 +60,12 @@ test_that("homtoep rejects irregular, incomplete, and oversized retained schedul
     "alpha-site"
   )
 
+  too_few_series <- homtoep_panel(0:3)
+  expect_error(
+    drmTMB:::build_temporal_mu_structure(term, too_few_series),
+    "at least as many series as occasions"
+  )
+
   oversized <- homtoep_panel(0:12)
   expect_error(
     drmTMB:::build_temporal_mu_structure(term, oversized),

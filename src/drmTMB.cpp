@@ -2578,45 +2578,62 @@ Type objective_function<Type>::operator()()
     } else if (has_temporal_mu == 1 && temporal_mu_structure == 3) {
       // Marginal homogeneous Toeplitz covariance: beta_sigma is the total
       // within-series SD and no independent residual component is estimated.
+      //
+      // R is parameterised by partial autocorrelations r_m = tanh(theta_m).
+      // The likelihood is evaluated by the Durbin--Levinson prediction-error
+      // decomposition instead of a Cholesky factor of sigma^2 R: each series
+      // contributes sum_t [log(sigma) + 0.5 log v_t + e_t^2 / (2 sigma^2 v_t)]
+      // with one-step prediction errors e_t and innovation variances
+      // v_t = prod_{m <= t} (1 - r_m^2). log v_t is accumulated from the
+      // stable log(sech(theta)) (1 - r^2 = sech^2), so it stays exact when
+      // tanh(theta) rounds to +/-1, where forming R and factorising it can
+      // lose positive definiteness in floating point.
       int n_occ = theta_temporal.size() + 1;
+      vector<Type> log_innovation(n_occ);
+      log_innovation(0) = Type(0.0);
+      for (int m = 0; m < n_occ - 1; ++m) {
+        log_innovation(m + 1) = log_innovation(m) +
+          Type(2.0) * drm_log_sech(theta_temporal(m));
+      }
+      // ar_order(t, j): coefficient on lag j + 1 of the order-t predictor.
+      matrix<Type> ar_order(n_occ, n_occ);
+      ar_order.setZero();
       vector<Type> rho(n_occ);
-      vector<Type> ar(n_occ - 1);
       rho(0) = Type(1.0);
-      Type innovation_var = Type(1.0);
       for (int m = 0; m < n_occ - 1; ++m) {
         Type reflection = tanh(theta_temporal(m));
         Type prediction = Type(0.0);
-        for (int j = 0; j < m; ++j) prediction += ar(j) * rho(m - j);
-        rho(m + 1) = prediction + reflection * innovation_var;
-        vector<Type> ar_new(n_occ - 1);
-        ar_new(m) = reflection;
-        for (int j = 0; j < m; ++j) ar_new(j) = ar(j) - reflection * ar(m - 1 - j);
-        ar = ar_new;
-        innovation_var *= Type(1.0) - reflection * reflection;
-      }
-      Type sd_total = sigma(0);
-      matrix<Type> covariance(n_occ, n_occ);
-      for (int i = 0; i < n_occ; ++i) {
-        for (int j = 0; j < n_occ; ++j) {
-          covariance(i, j) = sd_total * sd_total * rho(abs(i - j));
+        for (int j = 0; j < m; ++j) prediction += ar_order(m, j) * rho(m - j);
+        rho(m + 1) = prediction + reflection * exp(log_innovation(m));
+        ar_order(m + 1, m) = reflection;
+        for (int j = 0; j < m; ++j) {
+          ar_order(m + 1, j) = ar_order(m, j) - reflection * ar_order(m, m - 1 - j);
         }
       }
-      density::MVNORM_t<Type> temporal_density(covariance);
+      Type log_sd_total = log(sigma(0));
+      Type variance_total = sigma(0) * sigma(0);
+      const Type half_log_two_pi = Type(0.5) * log(Type(2.0) * Type(M_PI));
       // The temporal node layout has exactly one observed response per node.
-      // Reverse it once so each series is evaluated in O(K), rather than
+      // Reverse it once so each series is evaluated in O(K^2), rather than
       // repeatedly scanning all observations (O(n * number_of_series)).
       vector<int> observation_for_node(y.size());
       for (int i = 0; i < y.size(); ++i) {
         observation_for_node(temporal_mu_node_index(i)) = i;
       }
+      vector<Type> residual(n_occ);
       for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
         int first = temporal_mu_series_start(series);
-        vector<Type> residual(n_occ);
         for (int node = 0; node < n_occ; ++node) {
           int observation = observation_for_node(first + node);
           residual(node) = y(observation) - mu(observation);
         }
-        nll += temporal_density(residual);
+        for (int t = 0; t < n_occ; ++t) {
+          Type prediction = Type(0.0);
+          for (int j = 0; j < t; ++j) prediction += ar_order(t, j) * residual(t - 1 - j);
+          Type error = residual(t) - prediction;
+          nll += half_log_two_pi + log_sd_total + Type(0.5) * log_innovation(t) +
+            Type(0.5) * error * error * exp(-log_innovation(t)) / variance_total;
+        }
       }
       REPORT(rho);
     } else {

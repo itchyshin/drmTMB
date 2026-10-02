@@ -125,7 +125,8 @@ claim.
 `temporal(1 | id, time = occasion, structure = "homtoep")` is a direct
 Gaussian ML **marginal covariance** provider for a common, complete, equally
 spaced integer schedule with 3--12 occasions. It has no ordinary random
-intercept in this first slice. For every series,
+intercept in this first slice, and it needs at least as many series as
+occasions (a floor for estimability, not a design recommendation). For every series,
 
 \[
 y_i \sim N(X_i\beta, \sigma^2 R),\qquad
@@ -134,9 +135,15 @@ R = \operatorname{Toeplitz}(1, r_1, \ldots, r_{K-1}).
 
 The fitted `cor_lag1`, ..., `cor_lag(K-1)` values are correlations, not free
 unconstrained parameters. The native provider maps unconstrained partial
-autocorrelations through `tanh()` and the inverse-Levinson recursion, which
-keeps `R` positive definite. It evaluates the full multivariate-normal density
-for each independent series, including its normalizer. This is a discrete-lag
+autocorrelations through `tanh()` and the inverse-Levinson recursion. In exact
+arithmetic every finite partial autocorrelation vector gives a positive-definite
+`R`; in floating point `R` can be numerically singular once several `|r_m|` are
+close to 1 (its determinant is the product of the innovation variances
+`1 - r_m^2`). The native likelihood therefore never factorises `R`: it uses the
+Levinson--Durbin prediction-error decomposition, with each innovation variance
+accumulated as `log(sech(theta)^2)` in a form that stays exact when `tanh`
+rounds to +/-1. This equals the full multivariate-normal density, including its
+normalizer, and stays finite where a Cholesky factor of `sigma^2 R` fails. This is a discrete-lag
 model: irregular time and unequal retained schedules are rejected and directed
 to OU.
 
@@ -162,8 +169,9 @@ Wald, total-scale, and lag-correlation intervals remain unavailable. So do
 prediction on `newdata`, forecasting, and ordinary-intercept composition.
 
 For fitted observations, `fitted()` returns the marginal mean and `residuals()`
-returns `y - fitted`. Pearson residuals use the Cholesky whitening of the
-block Toeplitz covariance. Both simulation modes draw one correlated residual
+returns `y - fitted`. Pearson residuals are the standardized one-step
+prediction errors, which equal the Cholesky whitening of the block Toeplitz
+covariance. Both simulation modes draw one correlated residual
 vector per series because this model has no conditional temporal random effect.
 
 ### Phylogenetic stable intercept plus independent OU deviations

@@ -167,7 +167,9 @@ is whether correlation departs from AR1's exponential pattern. It estimates a
 separate correlation for each lag: visits one occasion apart share
 `cor_lag1`, visits two occasions apart share `cor_lag2`, and so on. This is
 more flexible than AR1, so it needs a common panel rather than the irregular
-or incomplete schedules accepted by AR1 and OU.
+or incomplete schedules accepted by AR1 and OU, and at least as many series
+as occasions. That is only a floor: the interval evidence below comes from
+80-series panels.
 
 The example below simulates 80 sites, each visited at the same six equally
 spaced occasions. Its lag correlations (0.60, 0.45, 0.40, 0.30, 0.20) decay

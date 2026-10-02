@@ -334,6 +334,18 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
         "i" = "Use OU or AR1 for incomplete repeated records, or retain a common complete panel."
       ))
     }
+    # The lag-(K - 1) correlation rests on one pair per series, and the
+    # K - 1 free correlations need at least as many independent series to be
+    # estimable at all. This is a floor, not a design recommendation: the
+    # retained profile campaign qualified 80-series panels only, and its
+    # 20-series stress cell already under-covered.
+    if (length(series_levels) < n_occasions) {
+      cli::cli_abort(c(
+        "Temporal HOMTOEP needs at least as many series as occasions.",
+        "x" = "Found {length(series_levels)} series for {n_occasions} occasions.",
+        "i" = "Collect more series, use fewer common occasions, or fit AR1 or OU, which estimate one persistence or decay parameter."
+      ))
+    }
     occasion_index <- match(occasion, occasion_levels)
   }
   starts <- c(which(!duplicated(ordered_series)), length(ordering) + 1L)
@@ -431,27 +443,38 @@ temporal_mu_tmb_data <- function(spec) {
   )
 }
 
-temporal_homtoep_correlations <- function(theta) {
+# Levinson--Durbin map from partial autocorrelations r_m = tanh(theta_m) to
+# the Toeplitz lag correlations, the order-t one-step predictor coefficients
+# (row t + 1 of `ar`, lag j in column j), and the log innovation variances
+# log v_t = sum_{m <= t} log(1 - r_m^2). 1 - r^2 is sech(theta)^2, and its log
+# is accumulated as 2 * (log 2 - |theta| - log1p(exp(-2|theta|))), so it stays
+# exact when tanh(theta) rounds to +/-1. Mirrors the native likelihood.
+temporal_homtoep_levinson <- function(theta) {
   theta <- as.numeric(theta)
   K <- length(theta) + 1L
+  log_sech2 <- 2 * (log(2) - abs(theta) - log1p(exp(-2 * abs(theta))))
+  log_v <- c(0, cumsum(log_sech2))
+  ar <- matrix(0, K, K)
   rho <- numeric(K)
   rho[[1L]] <- 1
-  ar <- numeric()
-  innovation_var <- 1
   for (m in seq_along(theta)) {
     reflection <- tanh(theta[[m]])
-    prediction <- if (m == 1L) 0 else sum(ar * rho[m:2L])
-    rho[[m + 1L]] <- prediction + reflection * innovation_var
-    ar_new <- numeric(m)
-    ar_new[[m]] <- reflection
-    if (m > 1L) ar_new[seq_len(m - 1L)] <- ar - reflection * rev(ar)
-    ar <- ar_new
-    innovation_var <- innovation_var * (1 - reflection^2)
+    prediction <- if (m == 1L) 0 else sum(ar[m, seq_len(m - 1L)] * rho[m:2L])
+    rho[[m + 1L]] <- prediction + reflection * exp(log_v[[m]])
+    ar[m + 1L, m] <- reflection
+    if (m > 1L) {
+      previous <- ar[m, seq_len(m - 1L)]
+      ar[m + 1L, seq_len(m - 1L)] <- previous - reflection * rev(previous)
+    }
   }
-  rho
+  list(rho = rho, ar = ar, log_v = log_v)
 }
 
-temporal_homtoep_marginal_block <- function(object) {
+temporal_homtoep_correlations <- function(theta) {
+  temporal_homtoep_levinson(theta)$rho
+}
+
+temporal_homtoep_fit_levinson <- function(object) {
   temporal <- object$model$structured$temporal_mu
   if (!identical(temporal$structure, "homtoep")) {
     cli::cli_abort("Internal error: homogeneous Toeplitz covariance was requested for a different temporal structure.")
@@ -461,8 +484,11 @@ temporal_homtoep_marginal_block <- function(object) {
       max(abs(sigma - sigma[[1L]])) > sqrt(.Machine$double.eps)) {
     cli::cli_abort("Internal homogeneous Toeplitz error: the total covariance SD must be finite and constant.")
   }
-  rho <- c(1, unname(object$corpars$temporal))
-  sigma[[1L]]^2 * stats::toeplitz(rho)
+  par <- object$opt$par
+  theta <- unname(par[names(par) == "theta_temporal"])
+  out <- temporal_homtoep_levinson(theta)
+  out$sd <- sigma[[1L]] * exp(0.5 * out$log_v)
+  out
 }
 
 temporal_homtoep_series_rows <- function(object) {
@@ -477,20 +503,37 @@ temporal_homtoep_series_rows <- function(object) {
   })
 }
 
+# Draws and whitened residuals use the same prediction-error recursion as the
+# likelihood: x_t = sum_j ar[t, j] x_{t - j} + sd_t z_t is exactly
+# chol(sigma^2 R) %*% z, without factorising a near-singular R.
 temporal_homtoep_marginal_draw <- function(object, mu) {
-  root <- chol(temporal_homtoep_marginal_block(object))
+  levinson <- temporal_homtoep_fit_levinson(object)
   out <- numeric(length(mu))
   for (rows in temporal_homtoep_series_rows(object)) {
-    out[rows] <- mu[rows] + as.vector(t(root) %*% stats::rnorm(length(rows)))
+    z <- stats::rnorm(length(rows))
+    x <- numeric(length(rows))
+    for (t in seq_along(rows)) {
+      prediction <- if (t == 1L) 0 else
+        sum(levinson$ar[t, seq_len(t - 1L)] * x[(t - 1L):1L])
+      x[[t]] <- prediction + levinson$sd[[t]] * z[[t]]
+    }
+    out[rows] <- mu[rows] + x
   }
   out
 }
 
 temporal_homtoep_marginal_whiten <- function(object, response) {
-  root <- chol(temporal_homtoep_marginal_block(object))
+  levinson <- temporal_homtoep_fit_levinson(object)
   out <- numeric(length(response))
   for (rows in temporal_homtoep_series_rows(object)) {
-    out[rows] <- as.vector(forwardsolve(t(root), response[rows]))
+    x <- response[rows]
+    e <- numeric(length(rows))
+    for (t in seq_along(rows)) {
+      prediction <- if (t == 1L) 0 else
+        sum(levinson$ar[t, seq_len(t - 1L)] * x[(t - 1L):1L])
+      e[[t]] <- (x[[t]] - prediction) / levinson$sd[[t]]
+    }
+    out[rows] <- e
   }
   out
 }
