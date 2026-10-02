@@ -146,8 +146,8 @@ and fixed-mean profile tests pass. The retained 24-fixture point-recovery
 study did not meet its predeclared mean fixed-effect error threshold; the
 replacement G9b study (24 contrast fixtures plus 300 independently generated
 trees) met its predeclared point-recovery criteria. Until an
-interval-calibration campaign is retained, this is a point-fit development
-route: all interval methods,
+interval-calibration campaign is retained, this is a
+point-fit development route: all interval methods,
 variance/decay inference, forecast, and `newdata` prediction are unavailable.
 
 ## Implemented TMB Routing
