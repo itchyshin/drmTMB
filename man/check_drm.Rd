@@ -133,7 +133,11 @@ inference is available for this fit, unavailable because its full observed
 Hessian is not usable, or intentionally deferred for OU. The separate
 \code{temporal_mean_profile} row records whether fixed-effect profile intervals
 can be computed and whether the fitted Hessian makes their nuisance
-parameters locally irregular.
+parameters locally irregular. \code{temporal_boundary} warns when residual
+\code{sigma} collapses below 1e-3 of the response SD, an OU decay leaves
+correlation at about 1 or 0 at every observed lag, or AR1 persistence
+exceeds 0.999 in absolute value; such fits report
+\code{convergence_status() == "boundary"}.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
