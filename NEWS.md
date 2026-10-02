@@ -10,12 +10,15 @@
   can diverge (any coefficient some separating direction moves; this is not the
   `detectseparation` listing). Their standard errors (`summary()`, `vcov()`) are
   `Inf` and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`,
-  `tidy()`) are `(-Inf, Inf)` with `conf.status = "wald_separation"`. Near
-  separation is flagged on a scale-free rule (a fitted probability within 1e-8
+  `tidy()`) are `(-Inf, Inf)` with `conf.status = "wald_separation"`. The check
+  is scale-free (no absolute floor on column scale; a single far outlier does
+  not distort it). When it proves there is no separation the fit is left alone,
+  even if a Wald `|z|` is tiny. Only when it runs out of its iteration budget is
+  a scale-free near-separation rule consulted (a fitted probability within 1e-8
   of 0/1, a coefficient whose own contribution spans that whole probability
-  range, and Wald `|z| < 0.05`); an unavailable standard error, e.g.
-  `drm_control(se = FALSE)`, is never read as near separation. A check that runs
-  out of its iteration budget warns that it was inconclusive. Bootstrap refits
+  range, and Wald `|z| < 0.05`); otherwise it warns that the check was
+  inconclusive. An unavailable standard error, e.g. `drm_control(se = FALSE)`,
+  is never read as near separation. Bootstrap refits
   do not repeat the warning. DRModels.jl runs the same check with the same
   constants (#1268, twin of DRModels.jl #731/#728). No refusal and no penalised
   fit by default; random-effect routes are not screened. Healthy fits are

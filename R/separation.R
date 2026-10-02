@@ -30,13 +30,21 @@
 # Starting from U = all rows, every non-zero residual moves the rows it
 # separates out of U; when the residual vanishes the remaining rows J are tied
 # (a_i . d = 0 for every d in C), and C spans the null space of A_J.
-# Coefficient j is flagged iff that null space has a non-zero j-th coordinate,
-# i.e. iff SOME direction in C moves beta_j. (detectseparation reports the
+# Coefficient j is flagged iff that null space has a non-zero j-th coordinate
+# (tested on the basis-free projector diagonal), i.e. iff SOME direction in C
+# moves beta_j; an aliased column whose combination uses a flagged column is
+# flagged with it. (detectseparation reports the
 # components of one particular LP direction instead, so the two can differ in
 # which coefficients they list; we do not claim parity with it.) Typically one
 # or two NNLS solves; each is bounded by an iteration budget, and an exhausted
 # budget is reported (`conclusive = FALSE`) and warned about, never read as
-# "no separation".
+# "no separation". Columns are scaled by their median non-zero |entry| and
+# rows to unit length, so the check is invariant to column units (no absolute
+# floor) and robust to a single far outlier.
+#
+# Near separation: when the check PROVES there is no separation the MLE exists
+# and is finite, so its Wald SE stands even if |z| is tiny (Hauck-Donner). The
+# scale-free near rule below is consulted only when the check is inconclusive.
 #
 # Scope: fixed-effect binomial fits (no random effects, no phylo term, no
 # missing-predictor model). Random-effect routes are not screened: a random
@@ -45,7 +53,7 @@
 
 # Constants shared with the DRModels.jl twin; keep identical in both packages.
 drm_sep_obj_tol <- function() 1e-9   # row margin (box-scaled direction) above this => row separated
-drm_sep_coef_tol <- function() 1e-6  # |null-space coordinate| above this => coefficient flagged
+drm_sep_coef_tol <- function() 1e-6  # null-space projector sqrt(diag) above this => coefficient flagged
 drm_sep_rank_tol <- function() 1e-10 # relative singular value below this => rank-deficient
 drm_sep_resid_tol <- function() 1e-8 # relative NNLS residual below this => no separating direction
 drm_sep_max_iter <- function(q) 20L * q + 200L  # NNLS budget (inner steps) per screen
@@ -56,7 +64,9 @@ drm_sep_near_z <- function() 0.05    # ... and |beta_j / SE_j| below this ...
 # g(1 - near_p) - g(near_p); 36.84 on the logit scale).
 
 # Signed, column-scaled, row-normalised constraint matrix. Returns
-# list(A, keep) where `keep` indexes the columns of `X` that are screened.
+# list(A, keep, alias, alias_coef): `keep` indexes the columns of `X` that are
+# screened, `alias` the aliased (rank-deficient) ones and `alias_coef` their
+# coefficients on the kept columns.
 drm_sep_constraints <- function(X, successes, failures) {
   p <- ncol(X)
   pos <- which(successes > 0 & rowSums(abs(X)) > 0)
@@ -65,16 +75,34 @@ drm_sep_constraints <- function(X, successes, failures) {
   if (nrow(M) == 0L) {
     return(list(A = matrix(0, 0L, 0L), keep = integer()))
   }
-  sc <- pmax(apply(abs(M), 2L, max), .Machine$double.eps)
+  # Column scale: the median non-zero |entry| (1 for an all-zero column).
+  # Any positive column scaling leaves separation unchanged; the median keeps
+  # a single far outlier from shrinking every other entry towards the
+  # tolerances, and has no absolute floor (a 1e-200-scaled column is screened).
+  sc <- apply(abs(M), 2L, function(col) {
+    nz <- col[col != 0]
+    if (length(nz)) stats::median(nz) else 1
+  })
   M <- sweep(M, 2L, sc, "/")
+  M <- M / sqrt(rowSums(M^2))   # rows are non-zero by construction
   qrM <- qr(M, LAPACK = TRUE)
   dR <- abs(diag(qr.R(qrM)))
   r <- if (dR[[1L]] == 0) 0L else sum(dR > drm_sep_rank_tol() * dR[[1L]])
   keep <- sort(qrM$pivot[seq_len(r)])
   A <- M[, keep, drop = FALSE]
+  # Aliased columns (not screened) as combinations of the kept ones, so a
+  # column riding on a flagged one (e.g. x2 = 2 x) can be named too.
+  alias <- setdiff(seq_len(p), keep)
+  alias_coef <- matrix(0, length(keep), length(alias))
+  if (length(alias) && length(keep)) {
+    alias_coef <- qr.coef(qr(A), M[, alias, drop = FALSE])
+    alias_coef[is.na(alias_coef)] <- 0
+    alias_coef <- matrix(alias_coef, length(keep), length(alias))
+  }
   nrm <- sqrt(rowSums(A^2))
   ok <- nrm > 0
-  list(A = A[ok, , drop = FALSE] / nrm[ok], keep = keep)
+  list(A = A[ok, , drop = FALSE] / nrm[ok], keep = keep, alias = alias,
+       alias_coef = alias_coef)
 }
 
 # Lawson-Hanson NNLS: minimise || t(A) y + cvec || over y >= 0. Returns
@@ -86,10 +114,18 @@ drm_sep_nnls <- function(A, cvec, maxiter) {
   P <- logical(m)
   banned <- logical(m)
   r <- cvec
-  tol <- 1e-12 * max(1, sqrt(sum(cvec^2)))
   iter <- 0L
+  rtol <- drm_sep_resid_tol() * max(1, sqrt(sum(cvec^2)))
   repeat {
+    # A residual this small certifies no separating direction (the caller
+    # applies the same threshold); stop rather than chase rounding noise.
+    if (sqrt(sum(r^2)) <= rtol) {
+      return(list(r = r, converged = TRUE, iter = iter))
+    }
     w <- -as.numeric(A %*% r)
+    # KKT tolerance on the box-scaled margin a_i . r / max|r| (rounding on
+    # ill-conditioned designs is ~1e-10; the caller's feasibility check is 1e-8)
+    tol <- max(1e-9 * max(abs(r)), 1e-12 * max(1, sqrt(sum(cvec^2))))
     w[P] <- -Inf
     blocked <- banned & w > tol
     w[banned] <- -Inf
@@ -181,14 +217,21 @@ drm_detect_separation <- function(X, successes, failures, max_iter = NULL) {
       rep(FALSE, q)
     } else {
       N <- sv$v[, (rk + 1L):q, drop = FALSE]
-      apply(abs(N), 1L, max) > drm_sep_coef_tol()
+      # sqrt of the null-space projector diagonal: basis-invariant
+      sqrt(rowSums(N^2)) > drm_sep_coef_tol()
     }
   }
-  list(separated = TRUE, flagged = keep[flag], conclusive = conclusive)
+  flagged <- keep[flag]
+  if (length(cons$alias) && any(flag)) {
+    rides <- colSums(abs(cons$alias_coef[flag, , drop = FALSE])) > 1e-8
+    flagged <- sort(c(flagged, cons$alias[rides]))
+  }
+  list(separated = TRUE, flagged = flagged, conclusive = conclusive)
 }
 
-# Near separation (no exact separating direction, but a coefficient sits far
-# out on a flat likelihood ridge). Scale-free: coefficient j is flagged when
+# Near separation (the exact check was inconclusive, and a coefficient sits far
+# out on a flat likelihood ridge). Consulted only when `drm_detect_separation()`
+# returns `conclusive = FALSE`. Scale-free: coefficient j is flagged when
 # some fitted probability is within `drm_sep_near_p()` of 0 or 1, beta_j alone
 # moves the linear predictor across the whole [p, 1 - p] range
 # (|beta_j| * range(x_j) > g(1 - p) - g(p)), and its Wald |z| is below
@@ -232,7 +275,12 @@ drm_separation_screen <- function(fit) {
   flagged <- det$flagged
   if (det$separated) {
     status <- "complete_or_quasi"
-  } else {
+  } else if (!det$conclusive) {
+    # The near rule is consulted only when the exact check could not decide.
+    # When it proves "not separated" the MLE exists and is finite, and its Wald
+    # SE is the real curvature: a tiny |z| there is a legitimate (Hauck-Donner)
+    # result, not separation (#1442 review: a far x outlier made a null slope
+    # look near-separated).
     beta <- fit$coefficients$mu
     eta <- as.numeric(X %*% beta)
     if (!is.null(spec$offset$mu)) eta <- eta + spec$offset$mu
@@ -252,7 +300,7 @@ drm_separation_screen <- function(fit) {
     if (length(near)) {
       status <- "near"
       flagged <- near
-    } else if (!det$conclusive) {
+    } else {
       status <- "inconclusive"
     }
   }

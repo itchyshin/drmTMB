@@ -270,8 +270,10 @@
 #' `tidy()`) are `(-Inf, Inf)` with `conf.status = "wald_separation"`. A
 #' coefficient is flagged when any separating direction moves it, which can
 #' list more coefficients than the single direction reported by the
-#' `detectseparation` package. Near separation is flagged the same way, on a
-#' scale-free rule: a fitted probability within 1e-8 of 0 or 1, a coefficient
+#' `detectseparation` package; an aliased column that is a multiple of a
+#' flagged one is named too. If the exact check cannot decide (its iteration
+#' budget runs out), a near-separation rule is consulted and flags a
+#' coefficient the same way when all of these hold: a fitted probability within 1e-8 of 0 or 1, a coefficient
 #' whose own contribution spans the whole 1e-8 to 1 - 1e-8 probability range
 #' (`|beta_j| * range(x_j)` above 36.8 on the logit scale), and a Wald
 #' `|z| < 0.05` for it. An unavailable standard error (`drm_control(se =

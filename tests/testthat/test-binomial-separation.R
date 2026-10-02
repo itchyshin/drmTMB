@@ -251,6 +251,54 @@ test_that("healthy fit: the screen leaves vcov and estimates byte-identical", {
   expect_identical(logLik(fit), logLik(bare))
 })
 
+# #914 / #1442 second review: a single far x outlier with fitted p at 0 made a
+# null slope look near-separated under the ungated near rule (glm z = 0.003,
+# span 3209). The first input is the reviewer's; the other two came from a
+# 400-design high-leverage scan (7/388 flagged before, 0 after). The exact check
+# proves "not separated" on all three, so the near rule is not consulted.
+sep_outlier_cases <- list(
+  list(x = c(-0.096, -0.034, -0.872, -1.225, -1.425, 0.954, -0.471, -1e6),
+       y = c(1, 1, 0, 1, 0, 0, 0, 0)),
+  list(x = c(1.358, 0.809, -0.605, 0.121, 2.017, 0.44, 1.099, -0.235, 0.892,
+             0.291, 2.65, -0.707, -0.48, -1e5),
+       y = c(1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0)),
+  list(x = c(1.896, 0.339, -0.784, 1.051, 0.373, 0.325, -0.248, -0.534, -1e5),
+       y = c(1, 0, 1, 0, 1, 1, 1, 0, 0))
+)
+
+test_that("far x outlier with a null slope is not near-separated (#914 review)", {
+  for (cs in sep_outlier_cases) {
+    d <- drmTMB:::drm_detect_separation(cbind(1, cs$x), cs$y, 1 - cs$y)
+    expect_false(d$separated)
+    expect_true(d$conclusive)
+    out <- sep_fit(cs$y, cs$x)
+    expect_length(out$sep_warns, 0L)
+    expect_identical(out$fit$separation$status, "none")
+    expect_true(all(is.finite(summary(out$fit)$coefficients[, "std_error"])))
+  }
+})
+
+test_that("tiny column scales are screened (no absolute floor) (#914 review)", {
+  y <- c(0, 0, 0, 1, 1, 1)
+  for (s in c(1, 1e-200, 1e200)) {
+    d <- drmTMB:::drm_detect_separation(cbind(1, (1:6) * s), y, 1 - y)
+    expect_true(d$separated)
+    expect_identical(d$flagged, c(1L, 2L))
+  }
+})
+
+test_that("an aliased column riding on a flagged one is named (#914 review)", {
+  xq <- c(-2, -1, 0, 0, 1, 2)
+  d <- drmTMB:::drm_detect_separation(cbind(1, xq, 2 * xq), c(0, 0, 0, 1, 1, 1),
+                                      c(1, 1, 1, 0, 0, 0))
+  expect_true(d$separated)
+  expect_identical(d$flagged, c(2L, 3L))
+  # an aliased copy of the (unflagged) intercept is not named
+  d2 <- drmTMB:::drm_detect_separation(cbind(1, xq, 3), c(0, 0, 0, 1, 1, 1),
+                                       c(1, 1, 1, 0, 0, 0))
+  expect_identical(d2$flagged, 2L)
+})
+
 test_that("inconclusive check warns, never reads as no separation", {
   # overlapping toy: proving "no separation" needs NNLS steps, so a zero budget
   # leaves the check inconclusive (a complete-separation design is decided at
