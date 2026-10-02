@@ -169,7 +169,32 @@ separate correlation for each lag: visits one occasion apart share
 more flexible than AR1, so it needs a common panel rather than the irregular
 or incomplete schedules accepted by AR1 and OU.
 
-```{r, eval = FALSE}
+The example below simulates 80 sites, each visited at the same six equally
+spaced occasions. Its lag correlations (0.60, 0.45, 0.40, 0.30, 0.20) decay
+more slowly than an AR1 pattern with the same first-lag value would
+(0.60, 0.36, 0.22, 0.13, 0.08).
+
+```{r}
+set.seed(20261002)
+n_site_toep <- 80
+toep_occasions <- 0:5
+true_cor_lag <- c(0.60, 0.45, 0.40, 0.30, 0.20)
+R_toep <- stats::toeplitz(c(1, true_cor_lag))
+total_sd <- 0.80
+
+complete_regular_panel <- data.frame(
+  site = factor(rep(sprintf("site_%02d", seq_len(n_site_toep)),
+                    each = length(toep_occasions))),
+  occasion = rep(toep_occasions, n_site_toep),
+  treatment = rep(rep(c(0, 1), length.out = length(toep_occasions)),
+                  n_site_toep)
+)
+within_site <- unlist(lapply(seq_len(n_site_toep), function(i) {
+  as.vector(t(chol(R_toep)) %*% rnorm(length(toep_occasions), sd = total_sd))
+}), use.names = FALSE)
+complete_regular_panel$y <- 1.0 + 0.40 * complete_regular_panel$treatment +
+  within_site
+
 toeplitz_fit <- drmTMB(
   bf(
     y ~ treatment + temporal(1 | site, time = occasion, structure = "homtoep"),
@@ -179,6 +204,14 @@ toeplitz_fit <- drmTMB(
   family = gaussian(),
   REML = FALSE
 )
+
+toeplitz_estimates <- c(
+  logLik = as.numeric(logLik(toeplitz_fit)),
+  toeplitz_fit$coefficients$mu,
+  sigma_total = unname(sigma(toeplitz_fit)[1L]),
+  toeplitz_fit$corpars$temporal
+)
+round(toeplitz_estimates, 4)
 
 confint(
   toeplitz_fit,
