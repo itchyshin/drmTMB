@@ -1,5 +1,3 @@
-pkgload::load_all(".", compile = TRUE, quiet = TRUE)
-
 source(testthat::test_path("helper-temporal-homtoep-reference.R"))
 
 homtoep_native_data <- function() {

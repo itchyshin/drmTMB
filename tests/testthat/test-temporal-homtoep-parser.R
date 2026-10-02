@@ -1,5 +1,3 @@
-pkgload::load_all(".", compile = TRUE, quiet = TRUE)
-
 homtoep_panel <- function(occasion = c(0L, 2L, 4L), ids = c("a", "b", "c")) {
   dat <- expand.grid(
     id = ids,

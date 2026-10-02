@@ -1,5 +1,3 @@
-pkgload::load_all('.', compile = TRUE, quiet = TRUE)
-
 homtoep_profile_fit <- function() {
   set.seed(202609130)
   dat <- expand.grid(id = sprintf('s%02d', 1:20), occasion = c(0L, 2L, 4L, 6L))
