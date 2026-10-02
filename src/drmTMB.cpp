@@ -103,6 +103,17 @@ Type drm_ar1_transition_sd(Type theta, Type phi, int gap) {
   return exp(drm_log_sech(theta) + Type(0.5) * log(geometric_sum));
 }
 
+// `1 - exp(-x)` loses its positive difference when x is much smaller than
+// machine precision.  CppAD does not provide an AD overload of `expm1`, so
+// use its stable Taylor representation near zero and the direct expression
+// elsewhere.  Temporal gaps are positive after the R-side key check.
+template<class Type>
+Type drm_one_minus_exp_neg(Type x) {
+  Type direct = Type(1.0) - exp(-x);
+  Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
+  return CppAD::CondExpLt(x, Type(1e-5), series, direct);
+}
+
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
 // [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
 template<class Type>
@@ -454,6 +465,8 @@ Type objective_function<Type>::operator()()
   DATA_IVECTOR(temporal_mu_node_index);
   DATA_IVECTOR(temporal_mu_series_start);
   DATA_IVECTOR(temporal_mu_gap);
+  DATA_VECTOR(temporal_mu_elapsed_gap);
+  DATA_INTEGER(temporal_mu_structure);
   // Scoped second structured location field (M5 row 105): its own group
   // precision (spatial coordinate kernel vs relatedness Q), always q = 1
   // intercept-only, so no among-endpoint theta is needed.
@@ -1036,17 +1049,27 @@ Type objective_function<Type>::operator()()
       }
 
     if (has_temporal_mu == 1) {
-      Type phi_temporal = tanh(theta_temporal(0));
       Type sd_temporal = exp(log_sd_temporal(0));
+      Type phi_temporal = tanh(theta_temporal(0));
+      Type decay_temporal = exp(theta_temporal(0));
       for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
         int first = temporal_mu_series_start(series);
         int last_exclusive = temporal_mu_series_start(series + 1);
         nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
         for (int node = first + 1; node < last_exclusive; ++node) {
-          Type transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
-          Type transition_sd = drm_ar1_transition_sd(
-            theta_temporal(0), phi_temporal, temporal_mu_gap(node)
-          );
+          Type transition;
+          Type transition_sd;
+          if (temporal_mu_structure == 1) {
+            transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
+            transition_sd = drm_ar1_transition_sd(
+              theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+            );
+          } else {
+            transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
+            transition_sd = sqrt(drm_one_minus_exp_neg(
+              Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
+            ));
+          }
           nll -= dnorm(
             u_temporal(node),
             transition * u_temporal(node - 1),
@@ -1061,7 +1084,8 @@ Type objective_function<Type>::operator()()
       REPORT(u_temporal);
       REPORT(log_sd_temporal);
       REPORT(theta_temporal);
-      REPORT(phi_temporal);
+      if (temporal_mu_structure == 1) REPORT(phi_temporal);
+      if (temporal_mu_structure == 2) REPORT(decay_temporal);
       REPORT(sd_temporal);
     }
 

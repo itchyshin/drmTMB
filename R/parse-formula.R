@@ -818,7 +818,7 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     ) {
       cli::cli_abort(c(
         "{.fn temporal} requires named {.arg time} and {.arg structure} arguments.",
-        "x" = "Use syntax like {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
       ))
     }
     if (
@@ -828,7 +828,7 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
       cli::cli_abort(c(
         "{.fn temporal} currently supports one intercept-only unlabelled random effect.",
         "x" = "Temporal slopes and covariance-block labels are not implemented.",
-        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
       ))
     }
     time_arg <- marker_args[[match("time", marker_arg_names)]]
@@ -836,19 +836,18 @@ parse_structured_marker_call <- function(expr, marker, dpar) {
     if (!is.symbol(time_arg)) {
       cli::cli_abort(c(
         "{.arg time} in {.fn temporal} must name an occasion variable.",
-        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+        "x" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
       ))
     }
     if (
       !is.character(structure_arg) ||
         length(structure_arg) != 1L ||
         is.na(structure_arg) ||
-        !identical(structure_arg, "ar1")
+        !structure_arg %in% c("ar1", "ou")
     ) {
       cli::cli_abort(c(
-        "{.arg structure} in {.fn temporal} must be {.val ar1}.",
-        "x" = "OU temporal fitting is not implemented.",
-        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+        "{.arg structure} in {.fn temporal} must be {.val ar1} or {.val ou}.",
+        "i" = "Use {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
       ))
     }
     return(c(

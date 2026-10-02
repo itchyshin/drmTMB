@@ -1,6 +1,6 @@
-# Temporal AR1 structures deliberately have their own layout rather than using
+# Temporal structures deliberately have their own layout rather than using
 # the sparse-precision provider interface.  The native likelihood needs the
-# observed integer gaps, and an observation-to-state permutation lets it retain
+# observed gaps, and an observation-to-state permutation lets it retain
 # the user's original row order for fitted values and residuals.
 
 empty_temporal_mu_structure <- function() {
@@ -20,6 +20,10 @@ empty_temporal_mu_structure <- function() {
     series_start0 = 0L,
     gap = 0L
   )
+}
+
+temporal_structure_name <- function(term) {
+  paste("Temporal", toupper(term$structure))
 }
 
 drm_formula_has_temporal <- function(formula) {
@@ -49,8 +53,8 @@ extract_gaussian_mu_temporal_term <- function(entry, dpar = entry$dpar) {
   }
   if (sum(is_temporal) > 1L) {
     cli::cli_abort(c(
-      "Only one temporal AR1 effect is implemented in {.code {dpar}}.",
-      "x" = "Use one term such as {.code temporal(1 | id, time = occasion, structure = \"ar1\").}"
+      "Only one temporal effect is implemented in {.code {dpar}}.",
+      "x" = "Use one term such as {.code temporal(1 | id, time = occasion, structure = \"ar1\")} or {.code temporal(1 | id, time = elapsed, structure = \"ou\").}"
     ))
   }
   temporal_terms <- Filter(
@@ -71,7 +75,7 @@ validate_temporal_raw_data <- function(term, data) {
   missing_columns <- setdiff(required, names(data))
   if (length(missing_columns) > 0L) {
     cli::cli_abort(c(
-      "Temporal AR1 inputs must be columns in {.arg data}.",
+      "{temporal_structure_name(term)} inputs must be columns in {.arg data}.",
       "x" = "Missing temporal column{?s}: {.val {missing_columns}}."
     ))
   }
@@ -79,17 +83,23 @@ validate_temporal_raw_data <- function(term, data) {
   occasion <- data[[term$time]]
   if (anyNA(id) || anyNA(occasion)) {
     cli::cli_abort(c(
-      "Temporal AR1 identifiers and occasions must be complete before response omission.",
+      "{temporal_structure_name(term)} identifiers and times must be complete before response omission.",
       "x" = "Column{?s} {.val {required}} contain missing value{?s}.",
       "i" = "Repair {.arg id} and {.arg time} metadata before fitting."
     ))
   }
   time_is_numeric <- is.numeric(occasion) &&
     !inherits(occasion, c("Date", "POSIXt", "difftime"))
-  if (!time_is_numeric || any(!is.finite(occasion)) || any(occasion != round(occasion))) {
+  if (!time_is_numeric || any(!is.finite(occasion))) {
+    cli::cli_abort(c(
+      "Temporal inputs must be finite numeric values.",
+      "x" = "{.arg {term$time}} cannot be a factor, date-time value, or non-finite value."
+    ))
+  }
+  if (identical(term$structure, "ar1") && any(occasion != round(occasion))) {
     cli::cli_abort(c(
       "Temporal AR1 occasions must be finite integers.",
-      "x" = "{.arg {term$time}} cannot be a factor, date-time value, fractional value, or non-finite value.",
+      "x" = "{.arg {term$time}} cannot be fractional for {.val ar1}.",
       "i" = "Use the original integer sampling occasion; its gaps are part of the AR1 model."
     ))
   }
@@ -100,7 +110,7 @@ validate_temporal_raw_data <- function(term, data) {
   ))
   if (any(duplicate_key)) {
     cli::cli_abort(c(
-      "Temporal AR1 series-occasion keys must be unique before response omission.",
+      "{temporal_structure_name(term)} series-time keys must be unique before response omission.",
       "x" = "{sum(duplicate_key)} duplicated {.code ({term$group}, {term$time})} key{?s} found.",
       "i" = "Use one response per series and occasion, or aggregate the data before fitting."
     ))
@@ -120,13 +130,13 @@ validate_temporal_gaussian_terms <- function(
   }
   if (!is_intercept_one(sigma_rhs) || length(sigma_re$terms) > 0L) {
     cli::cli_abort(c(
-      "Temporal AR1 Gaussian models currently require {.code sigma ~ 1}.",
-      "i" = "Use a constant residual SD while temporal AR1 effects are fitted."
+      "{temporal_structure_name(term)} Gaussian models currently require {.code sigma ~ 1}.",
+      "i" = "Use a constant residual SD while temporal effects are fitted."
     ))
   }
   if (length(mu_re$terms) > 1L) {
     cli::cli_abort(c(
-      "Temporal AR1 models allow at most one ordinary random intercept.",
+      "{temporal_structure_name(term)} models allow at most one ordinary random intercept.",
       "x" = "Additional ordinary random effects are not implemented with {.fn temporal}."
     ))
   }
@@ -145,8 +155,8 @@ validate_temporal_gaussian_terms <- function(
     }
     if (length(unique(as.character(data[[term$group]]))) < 2L) {
       cli::cli_abort(c(
-        "A temporal AR1 model with an ordinary random intercept requires multiple series.",
-        "i" = "Fit AR1-only for one series, or provide observations from at least two IDs."
+        "A {tolower(temporal_structure_name(term))} model with an ordinary random intercept requires multiple series.",
+        "i" = "Fit the temporal process without an ordinary intercept for one series, or provide observations from at least two IDs."
       ))
     }
   }
@@ -159,7 +169,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   }
   validate_temporal_raw_data(term, data)
   id <- as.character(data[[term$group]])
-  occasion <- as.integer(data[[term$time]])
+  occasion <- as.numeric(data[[term$time]])
   series_levels <- unique(id)
   series_index <- match(id, series_levels)
   original_row <- seq_along(id)
@@ -168,8 +178,8 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   ordered_time <- occasion[ordering]
   starts <- c(which(!duplicated(ordered_series)), length(ordering) + 1L)
   n_series <- length(series_levels)
-  gap <- integer(length(ordering))
-  pairwise_lags <- integer()
+  gap <- if (identical(term$structure, "ar1")) integer(length(ordering)) else numeric(length(ordering))
+  pairwise_lags <- numeric()
   for (series in seq_len(n_series)) {
     from <- starts[[series]]
     to <- starts[[series + 1L]] - 1L
@@ -178,25 +188,31 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
       gap[(from + 1L):to] <- diff(time_series)
       pairwise_lags <- c(
         pairwise_lags,
-        as.integer(abs(outer(time_series, time_series, "-"))[upper.tri(
+        abs(outer(time_series, time_series, "-"))[upper.tri(
           outer(time_series, time_series, "-"), diag = FALSE
-        )])
+        )]
       )
     }
   }
-  distinct_lags <- sort(unique(pairwise_lags[pairwise_lags > 0L]))
+  if (identical(term$structure, "ar1")) {
+    gap <- as.integer(gap)
+  }
+  distinct_lags <- sort(unique(pairwise_lags[pairwise_lags > 0]))
   required_lags <- if (has_ordinary_intercept) 3L else 2L
-  if (length(distinct_lags) < required_lags || !any(distinct_lags %% 2L == 1L)) {
+  has_required_lags <- length(distinct_lags) >= required_lags && (
+    identical(term$structure, "ou") || any(distinct_lags %% 2L == 1L)
+  )
+  if (!has_required_lags) {
     cli::cli_abort(c(
-      "Temporal AR1 occasions do not provide the required lag variation.",
-      "x" = "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}, including an odd lag.",
-      "i" = "Keep genuine integer gaps and collect more distinct within-series occasions."
+      paste0("Temporal ", toupper(term$structure), " occasions do not provide the required lag variation."),
+      "x" = "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}.",
+      "i" = "Keep genuine sampling gaps and collect more distinct within-series occasions."
     ))
   }
   if (has_ordinary_intercept && n_series < 2L) {
     cli::cli_abort(c(
-      "A temporal AR1 model with an ordinary random intercept requires multiple series.",
-      "i" = "Fit AR1-only for one series, or provide observations from at least two IDs."
+      "A {tolower(temporal_structure_name(term))} model with an ordinary random intercept requires multiple series.",
+      "i" = "Fit the temporal process without an ordinary intercept for one series, or provide observations from at least two IDs."
     ))
   }
   observation_node_index <- integer(nrow(data))
@@ -204,7 +220,7 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
   list(
     has = TRUE,
     type = "temporal",
-    label = paste0("temporal(1 | ", term$group, ", time = ", term$time, ", structure = \"ar1\")"),
+    label = paste0("temporal(1 | ", term$group, ", time = ", term$time, ", structure = \"", term$structure, "\")"),
     group = term$group,
     time = term$time,
     structure = term$structure,
@@ -226,14 +242,18 @@ temporal_mu_tmb_data <- function(spec) {
       has_temporal_mu = 0L,
       temporal_mu_node_index = 0L,
       temporal_mu_series_start = 0L,
-      temporal_mu_gap = 0L
+      temporal_mu_gap = 0L,
+      temporal_mu_elapsed_gap = 0,
+      temporal_mu_structure = 0L
     ))
   }
   list(
     has_temporal_mu = 1L,
     temporal_mu_node_index = temporal$observation_node_index0,
     temporal_mu_series_start = temporal$series_start0,
-    temporal_mu_gap = temporal$gap
+    temporal_mu_gap = as.integer(round(temporal$gap)),
+    temporal_mu_elapsed_gap = as.numeric(temporal$gap),
+    temporal_mu_structure = if (identical(temporal$structure, "ar1")) 1L else 2L
   )
 }
 
@@ -256,6 +276,13 @@ drm_temporal_mean_target_parm <- function(object) {
 }
 
 validate_temporal_wald_parm <- function(object, parm) {
+  temporal <- object$model$structured$temporal_mu
+  if (identical(temporal$structure, "ou")) {
+    cli::cli_abort(c(
+      "OU mean-coefficient Wald intervals are not yet qualified.",
+      "i" = "The inherited AR1 calibration prerequisite remains unresolved; OU Wald intervals are deferred."
+    ))
+  }
   allowed <- drm_temporal_mean_target_parm(object)
   requested <- if (is.null(parm)) allowed else as.character(parm)
   bad <- setdiff(requested, allowed)
@@ -269,6 +296,27 @@ validate_temporal_wald_parm <- function(object, parm) {
   requested
 }
 
+validate_temporal_profile_parm <- function(object, parm) {
+  targets <- drm_profile_targets(object)
+  allowed <- drm_temporal_mean_target_parm(object)
+  selected <- if (is.null(parm)) {
+    targets[match(allowed, targets$parm), , drop = FALSE]
+  } else {
+    profile_match_confint_targets(targets, parm, fixed_only = FALSE)
+  }
+  bad <- selected$parm[!selected$parm %in% allowed]
+  if (length(bad) > 0L) {
+    temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
+    cli::cli_abort(c(
+      "Temporal {temporal_structure} profile intervals currently support mean regression coefficients only.",
+      "x" = "Unsupported temporal profile target{?s}: {.val {bad}}.",
+      "i" = "Use {.val {allowed}} or compact coefficient labels such as {.val mu:x} with {.code method = \"profile\"}.",
+      "i" = "Variance components and persistence or decay intervals remain deferred."
+    ))
+  }
+  selected$parm
+}
+
 temporal_mu_contribution <- function(object) {
   temporal <- object$model$structured$temporal_mu
   values <- object$random_effects$temporal$values
@@ -278,7 +326,11 @@ temporal_mu_contribution <- function(object) {
 drm_fresh_temporal_mu_values <- function(object) {
   temporal <- object$model$structured$temporal_mu
   sd <- unname(object$sdpars$mu[[temporal_mu_sd_label(temporal)]])
-  phi <- unname(object$corpars$temporal[[temporal$label]])
+  temporal_parameter <- if (identical(temporal$structure, "ar1")) {
+    unname(object$corpars$temporal[[temporal$label]])
+  } else {
+    unname(object$decaypars$temporal[[temporal$label]])
+  }
   latent <- numeric(temporal$n_re)
   starts <- temporal$series_start0 + 1L
   for (series in seq_len(temporal$n_series)) {
@@ -287,9 +339,17 @@ drm_fresh_temporal_mu_values <- function(object) {
     latent[[first]] <- stats::rnorm(1L)
     if (last > first) {
       for (node in (first + 1L):last) {
-        transition <- phi^temporal$gap[[node]]
+        transition <- if (identical(temporal$structure, "ar1")) {
+          temporal_parameter^temporal$gap[[node]]
+        } else {
+          exp(-temporal_parameter * temporal$gap[[node]])
+        }
         latent[[node]] <- transition * latent[[node - 1L]] +
-          sqrt(1 - transition^2) * stats::rnorm(1L)
+          sqrt(if (identical(temporal$structure, "ou")) {
+            -expm1(-2 * temporal_parameter * temporal$gap[[node]])
+          } else {
+            1 - transition^2
+          }) * stats::rnorm(1L)
       }
     }
   }
