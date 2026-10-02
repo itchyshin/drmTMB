@@ -211,6 +211,13 @@ head(fitted(ou_fit))
 simulate(ou_fit, nsim = 2)
 ```
 
+With only four time points per site, this example separates the residual SD
+and the OU process weakly. The data were simulated with `sigma = 0.40` and a
+process SD of 0.65, but the fit attributes most of the within-site variation
+to the OU process (estimated `sigma` about 0.19, process SD about 0.68). Do
+not read the split between `sigma` and the process SD as well determined from
+a design this short; more occasions per series are needed for that.
+
 For OU, `elapsed_days` must be finite numeric, genuine gaps are retained, and
 duplicate site--time records must be aggregated before fitting. Input order may
 be shuffled. In-sample fitted values, residuals, and conditional or fresh
