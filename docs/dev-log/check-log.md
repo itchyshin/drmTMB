@@ -231,6 +231,23 @@ entered `JuliaCall::julia_setup()` and hung Ligges R-release (`v57uv6zakfKO`,
 
 # Check Log
 
+## 2026-09-10 — homogeneous Toeplitz calibrated mean-profile interface
+
+Lane: Codex, `codex/temporal-homtoep-v1-20260910`. The retained 4,000-fit
+campaign qualifies likelihood-profile intervals for mean regression effects in
+the three predeclared 80-series, six-occasion primary cells. It does not
+qualify Wald, total-scale, lag-correlation, ordinary-intercept, forecasting, or
+`newdata` inference.
+
+| Check | Result |
+| --- | --- |
+| Public interval surface | `confint(..., parm = "mu:<coefficient>", method = "profile")` and the matching `summary(..., method = "profile")` route now work for homogeneous Toeplitz mean coefficients only; Wald and non-mean profile targets still fail clearly. |
+| Review repairs and focused tests | Independent Noether and Pat review found stale profile-refusal expectations, ambiguous Wald-deferral text, and numeric internal IDs in incomplete-panel errors. The repaired native, parser, and profile tests pass: public fixed-mean profiles return finite endpoints; `vcov()` and Wald intervals remain unavailable with an explicit profile/Wald distinction; incomplete factor IDs retain their supplied labels. |
+| Reader acceptance | `Rscript --vanilla tools/temporal-homtoep-gates.R T3-11` rendered the temporal vignette, regenerated and checked `man/temporal.Rd`, and emitted `TEMPORAL_HOMTOEP_T3_11_PASS`. |
+| Scope | The documentation sends genuinely irregular elapsed time to OU and retains the 20-site stress intercept coverage of 0.916 as a limit on the claim. |
+| Independent review | Noether cleared the marginal likelihood, PACF map, normalization, and profile/Wald boundary after the repair. Pat cleared the applied workflow, retained scope, label-aware error, and rendered help. |
+| Local package verification | The repaired source built with `R CMD build .`. The final `R CMD check --no-manual` completed installation, examples, documentation, full tests, and vignette rebuilding. Its two warnings are the known source-layout result of omitting generated `inst/doc` outputs from the tarball; they are retained as warnings rather than described as clean verification. |
+
 ## 2026-08-17 — Design 257 Wave 3 lognormal ordinary correlated q2 (`mc-0720`)
 
 Lane: Cursor, `cursor/ng-correlated-slope-wave3-lognormal` on worktree
@@ -94896,3 +94913,139 @@ contract still requires an explicit decision.
 ## 2026-09-10 — G9b full phylogenetic-stable plus independent OU point recovery
 
 `Rscript --vanilla -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-phylo-temporal-ou-gate-runner.R", reporter="summary")'` passed before the frozen v5 runner checkpoint. `Rscript --vanilla tools/run-phylo-temporal-ou-g9b-full.R` retained 24 contrast fits/48 starts and 300 independent-tree fits/600 starts. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full` returned `PHYLO_TEMPORAL_OU_G9B_FULL_PASS`. The v5 criteria passed between/within contrast MAE 0.123/0.071, median absolute log-SD/decay errors 0.163/0.280, and standardized ensemble intercept bias 0.032/0.072/0.063. G9 remains failed; G10--G13 and all interval claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S0 parameter map
+
+The approved P2 lane was corrected before provider work because its first base named
+but did not contain the direct-OU gate runner required by the child fingerprint. The
+new lane base `c6ff7c47e` contains direct-OU closeout `73a440c3b`; fresh calls to
+`Rscript --vanilla tools/temporal-ou-gates.R` for G1--G11 and G16 each emitted its
+expected pass receipt. `Rscript --vanilla tools/temporal-homtoep-gates.R T3-2` now
+returns `TEMPORAL_HOMTOEP_T3_2_PASS`. It selects the inverse-Levinson
+reflection-coefficient map, validates 480 deterministic matrices for K=1--12,
+checks inverse reconstruction and two finite-difference steps, matches both the
+independent `stats::toeplitz()` construction and the local dense construction, and
+retains counterexamples for lag-wise squashing (indefinite R) and generic Cholesky
+(non-Toeplitz R). No formula grammar, native provider, public documentation, or
+calibration claim changed; T3-1 remains the next gate.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S1 grammar and layout
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-1` returned
+`TEMPORAL_HOMTOEP_T3_1_PASS`. `homtoep` is now the sole admitted new temporal
+keyword: it requires finite integer occasions, a common complete equally spaced
+retained schedule of 3--12 occasions, and stores both schedule levels and the
+original-row-to-occasion index mapping. Raw duplicate ID--occasion keys still fail
+before response omission. Irregular or incomplete panels receive an error directing
+the user to OU or AR1. The direct fit path stops explicitly until T3-3 supplies the
+native provider, preventing an accidental fall-through to OU. Targeted regressions
+passed for `test-temporal-parser.R`, `test-temporal-gaussian-smoke.R`,
+`test-temporal-identities.R`, `test-temporal-ou.R`,
+`test-temporal-ou-dense-oracle.R`, the Toeplitz map, and the new parser suite.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S2 native provider
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-3` emitted
+`TEMPORAL_HOMTOEP_T3_3_PASS`; T3-1 and T3-2 were then reverified with their
+expected receipts. The provider represents every standardized series path with
+a positive-definite Toeplitz covariance built from inverse-Levinson
+partial-autocorrelation coordinates, and applies a full normalized MVN density
+per independent series. The independent dense oracle matches the optimized
+objective, score, two finite-difference Hessian steps (1e-4 and 1e-5), and
+conditional temporal modes. The oracle initially used the wrong triangular
+Cholesky solve; the corrected `forwardsolve(t(chol(V)), residual)` calculation
+was independently reconciled with the native objective before the gate passed.
+The provider now reports `cor_lag*` correlations and correctly labels its one
+starting vector as partial autocorrelations rather than an OU decay. It is
+still a point-fit validation slice: recovery, simulation, prediction, reader
+workflow, and all interval or calibration claims remain pending.
+
+## 2026-09-10 — temporal homogeneous Toeplitz S3 methods and simulation
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-4` emitted
+`TEMPORAL_HOMTOEP_T3_4_PASS`. `fitted()` and `residuals()` use the conditional
+Toeplitz modes in original input-row order. `simulate(re.form = NA)` holds those
+modes fixed, while the default simulation redraws an independent dense Toeplitz
+path for each series before residual noise. Seeded conditional and fresh draws
+match an independent dense Cholesky construction. `vcov()`, Wald summaries, and
+both Wald and profile interval entry points now reject this uncalibrated
+provider explicitly; `check_drm()` records the same calibration-deferred reason.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-5 reductions and mutations
+
+`Rscript --vanilla tools/temporal-homtoep-gates.R T3-5` emitted
+`TEMPORAL_HOMTOEP_T3_5_PASS`. With only the first partial autocorrelation
+nonzero, the native provider matches the independent dense AR1 covariance; with
+all partial autocorrelations zero, it matches the diagonal temporal covariance.
+The deterministic mutation test rejects an indefinite direct-lag matrix and an
+irregular schedule, and distinguishes the correct independent-series covariance
+and normalized likelihood from deliberately shared-series and no-normalizer
+variants.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-6 retained point recovery
+
+`Rscript --vanilla tools/run-temporal-homtoep-recovery.R` emitted
+`TEMPORAL_HOMTOEP_RECOVERY_PASS` under committed source `b9dacf42d`; the
+read-only verifier then emitted `TEMPORAL_HOMTOEP_T3_6_PASS`. The final-source
+artifact retains twelve frozen fits and twelve starts: three AR1, three
+non-exponential, three negative-lag primary fits, and three low-information
+stress fits. All nine primary fits were finite. Primary mean absolute
+fixed-effect error was 0.0611, median absolute SD error 0.0933, and median lag
+RMSE 0.1098, all within their frozen point-recovery criteria. The stress cell is
+retained but excluded from those primary thresholds. This is not interval or
+coverage evidence.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7 timed pilot
+
+The source-faithful five-seed-per-cell pilot at `0cb70fe7f` retained 15 finite
+selected fits and 15 starts across AR1-shaped, non-exponential, and negative-lag
+six-occasion cells. `/usr/bin/time -l` measured 39.42 seconds wall time and
+438 MB peak memory; total fitting time inside the runner was 13.538 seconds.
+All 15 profile requests produced the deliberate not-yet-qualified error and no
+profile intervals. All fits converged but each recorded `NaNs produced` and a
+non-positive-definite Hessian flag. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7` emitted
+`TEMPORAL_HOMTOEP_T3_7_PASS` because the gate checks retained measurement and
+denominator completeness, not inferential qualification. Those diagnostics
+block T3-8/T3-9 campaign progression until a bounded inference diagnosis and
+qualification slice resolves them.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7a identifiability diagnosis
+
+The pilot's false Hessians arise from an exact covariance ridge. For a free
+Toeplitz correlation matrix, `V = s_a^2 R + sigma^2 I` is unchanged by choosing
+an admissible scale factor `c`, setting `s_a,new^2 = c s_a^2`,
+`rho_new(d) = rho(d) / c` for every positive lag, and
+`sigma_new^2 = sigma^2 + (1 - c) s_a^2`. The new correlation matrix remains
+positive definite for an open range of `c`; the executable test confirms exact
+dense covariance and likelihood equality and valid inverse-Levinson
+coordinates. Thus one response per series--occasion cannot separately identify
+the temporal SD, residual SD, and all free lag correlations. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7a` emitted
+`TEMPORAL_HOMTOEP_T3_7A_PASS`. The current direct provider is retained as a
+point-fit research artifact only; calibration and campaign gates require a
+model-redesign decision.
+
+## 2026-09-10 — temporal homogeneous Toeplitz redesign decision brief
+
+T3-7a's exact covariance ridge changes the next delivery action. The original
+provider cannot separately estimate `sd_temporal`, `sigma`, and all free
+Toeplitz lag correlations with one row per series--occasion. The scoped brief
+`T3-8-REDESIGN-DECISION.md` records the two identified replacements: M, a
+marginal Toeplitz covariance with one total within-series SD for ordinary CSV
+panels; or R, a replicated latent Toeplitz process with an explicit replicate
+key. It recommends M while preserving AR1/OU as the routes that separately
+interpret temporal and residual variance. T3-7b is a manual semantic-interface
+gate; it must be selected explicitly before T3-8 calibration, a campaign, or
+reader-facing promotion proceeds.
+
+## 2026-09-10 — temporal homogeneous Toeplitz T3-7c marginal candidate spike
+
+An independent pure-R marginal Toeplitz likelihood was fitted to one simulated
+80-series by six-occasion panel. The likelihood uses one total within-series SD
+and free PACF-derived lag correlations, with no separately estimated residual
+SD. It converged with objective 507.260020 and a minimum numerical observed-
+information eigenvalue of 47.771361. `Rscript --vanilla
+tools/temporal-homtoep-gates.R T3-7c` emitted
+`TEMPORAL_HOMTOEP_T3_7C_PASS`. This supports M as an identified candidate design;
+it is not a public interface, recovery, interval, calibration, or campaign claim.
