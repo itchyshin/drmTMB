@@ -1,0 +1,147 @@
+---
+title: "Temporal AR1 random effects"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Temporal AR1 random effects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(drmTMB)
+```
+
+Repeated measurements can vary for three different reasons. Individuals or
+sites may have stable baseline differences, their deviations may persist from
+one occasion to the next, and each observation has independent residual noise.
+The Gaussian temporal AR1 model separates those components while estimating
+the effects of treatments or other predictors.
+
+For observation \\(t\\) in series \\(i\\), the model is
+
+\\[
+y_{it}=x_{it}^{T}\\beta+b_i+a_{it}+\\epsilon_{it},
+\\]
+
+where \\(b_i\\) is the stable series intercept, \\(a_{it}\\) is a stationary
+temporal process with covariance
+\\(\\operatorname{Cov}(a_{it},a_{is})=s_a^2\\phi^{|t-s|}\\), and
+\\(\\epsilon_{it}\\) is independent residual noise. The process SD \\(s_a\\),
+ordinary-intercept SD \\(s_b\\), and residual SD \\(\\sigma\\) measure different
+sources of variation. Persistence \\(\\phi\\) is the correlation one occasion
+apart and can be negative or positive.
+
+## A repeated-site example
+
+This example creates measurements from sites visited on genuinely irregular
+integer occasions. The gap between occasions 1 and 3 remains a two-occasion
+gap when the model is fitted.
+
+```{r}
+set.seed(20260908)
+n_site <- 48
+occasion_values <- c(0L, 1L, 3L, 4L, 6L, 7L)
+n_time <- length(occasion_values)
+
+site <- factor(rep(paste0("site_", seq_len(n_site)), each = n_time))
+occasion <- rep(occasion_values, n_site)
+treatment <- rep(rep(c(0, 1), length.out = n_time), n_site)
+
+R_ar1 <- 0.55 ^ abs(outer(occasion_values, occasion_values, "-"))
+temporal_effect <- unlist(lapply(seq_len(n_site), function(i) {
+  as.vector(t(chol(R_ar1)) %*% rnorm(n_time, sd = 0.70))
+}), use.names = FALSE)
+site_intercept <- rep(rnorm(n_site, sd = 0.50), each = n_time)
+
+dat <- data.frame(
+  y = 1.2 + 0.45 * treatment + 0.08 * occasion +
+    site_intercept + temporal_effect + rnorm(n_site * n_time, sd = 0.45),
+  treatment = treatment,
+  occasion = occasion,
+  site = site
+)
+```
+
+Fit an ordinary random intercept and the temporal process together. Both terms
+use `site`; the first captures stable site-to-site differences and the second
+captures deviations through time within each site. Here `treatment` compares
+treated and untreated visits within sites after accounting for a linear
+occasion trend.
+
+```{r}
+fit <- drmTMB(
+  bf(
+    y ~ treatment + occasion +
+      (1 | site) +
+      temporal(1 | site, time = occasion, structure = "ar1"),
+    sigma ~ 1
+  ),
+  data = dat,
+  family = gaussian(),
+  REML = FALSE
+)
+
+summary(fit, conf.int = TRUE, method = "wald")
+confint(fit, method = "wald")
+```
+
+The key point estimates can be collected in one place. The temporal process SD
+is the `fit$sdpars$mu` entry whose name starts with `temporal_sd`, and the
+residual SD is the exponentiated `sigma` intercept because `sigma ~ 1`.
+
+```{r}
+sd_mu <- fit$sdpars$mu
+key_estimates <- c(
+  logLik = as.numeric(logLik(fit)),
+  fit$coefficients$mu,
+  sd_site = unname(sd_mu[["(1 | site)"]]),
+  sd_temporal = unname(sd_mu[startsWith(names(sd_mu), "temporal_sd")]),
+  phi = unname(fit$corpars$temporal),
+  sigma = exp(unname(fit$coefficients$sigma))
+)
+round(key_estimates, 4)
+```
+
+The mean-model coefficient rows report the intercept, treatment, and occasion
+effects with normal-reference Wald intervals. `fit$sdpars$mu` contains separate
+ordinary-intercept and temporal process SDs, while `fit$corpars$temporal` contains persistence. Read a positive
+persistence estimate as deviations tending to continue in the same direction
+over adjacent occasions; read a negative value as alternating deviations.
+
+```{r}
+fit$sdpars$mu
+fit$corpars$temporal
+head(fitted(fit))
+head(residuals(fit))
+simulate(fit, nsim = 2)
+simulate(fit, nsim = 2, re.form = NA)
+```
+
+`fitted()` and `residuals()` are conditional on the estimated site and temporal
+deviations. The default `simulate()` call draws fresh stable and temporal
+effects, while `re.form = NA` retains the fitted conditional effects. Use the
+first for a new realization from the fitted model and the second to simulate
+around the observations' fitted latent structure.
+
+## What the intervals cover
+
+For this first temporal route, `vcov()` and `confint()` deliberately expose
+uncertainty for the fixed mean coefficients only. Their covariance comes from
+the full observed marginal-likelihood Hessian, including the estimated
+variance and persistence parameters. The process SD, ordinary-intercept SD,
+persistence, and residual SD are point estimates in this release. Profile and
+bootstrap intervals for temporal fits are not available.
+
+Wald output is available only when the full observed marginal-likelihood
+Hessian is positive definite. If that check fails, `vcov()` and `confint()`
+give an explicit unavailable-inference diagnostic instead of an interval. The
+first calibration pilot found such a residual-SD boundary in a primary short-
+series case, so these intervals are not yet a general coverage claim.
+
+The fit supports in-sample predictions, fitted values, residuals, and
+simulation. It does not support forecasting or `newdata` prediction. Supply a
+finite integer time column, retain its real gaps, and ensure that every
+site--occasion pair is unique. If a site was measured more than once at an
+occasion, aggregate those records before fitting. An AR1-only fit omits `(1 | site)` but keeps the
+same `temporal()` term.
