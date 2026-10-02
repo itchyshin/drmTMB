@@ -13,9 +13,12 @@ test_that("paired phylogenetic-OU fixed-mean profile endpoints match dense refer
   case <- paired_phylo_temporal_ou_profile_fit()
   fit <- case$fit
   dense <- phylo_temporal_ou_dense_profile_ci(fit, case$tree, level = 0.90)
-  public <- stats::confint(
-    fit, parm = "fixef:mu:x", method = "profile", level = 0.90,
-    profile_engine = "tmbprofile", profile_precision = "fast"
+  expect_warning(
+    public <- stats::confint(
+      fit, parm = "fixef:mu:x", method = "profile", level = 0.90,
+      profile_engine = "tmbprofile", profile_precision = "fast"
+    ),
+    class = "drmTMB_paired_phylo_temporal_profile_warning"
   )
 
   expect_identical(public$parm, "fixef:mu:x")
@@ -52,11 +55,14 @@ test_that("paired phylogenetic-OU profile rejects deferred targets and flags irr
   irregular <- fit
   irregular$sdr$pdHess <- FALSE
   expect_warning(
-    irregular_ci <- stats::confint(
-      irregular, parm = "mu:x", method = "profile", level = 0.90,
-      profile_engine = "tmbprofile", profile_precision = "fast"
+    expect_warning(
+      irregular_ci <- stats::confint(
+        irregular, parm = "mu:x", method = "profile", level = 0.90,
+        profile_engine = "tmbprofile", profile_precision = "fast"
+      ),
+      class = "drmTMB_temporal_profile_hessian_warning"
     ),
-    class = "drmTMB_temporal_profile_hessian_warning"
+    class = "drmTMB_paired_phylo_temporal_profile_warning"
   )
   expect_identical(irregular_ci$conf.status, "profile")
   temporal_check <- check_drm(irregular)

@@ -213,6 +213,16 @@ phylo <- function(term, tree) {
 #' accompany either structure to represent stable between-series differences
 #' separately from persistent within-series deviations.
 #'
+#' Development only: with `structure = "ou"`, `temporal()` may be paired with
+#' `phylo(1 | species, tree = tree)` on the same grouping column. That fits a
+#' stable tree-correlated species intercept plus independent within-species OU
+#' deviations, reported as `sd_phylo_stable`, `sd_temporal` and
+#' `decay_temporal`. The paired route refuses an ordinary `(1 | species)`
+#' intercept (the stable component is already the phylogenetic term), needs
+#' tree tips that exactly match the observed species, at least three species,
+#' two distinct times per species and three distinct positive lags, and has
+#' point estimates only: its intervals are not calibrated.
+#'
 #' @param term Temporal random-effect term, currently `1 | id`.
 #' @param time Name of the integer occasion (`"ar1"`) or numeric elapsed-time
 #'   (`"ou"`) variable.

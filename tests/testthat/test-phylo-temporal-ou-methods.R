@@ -114,3 +114,43 @@ test_that("paired phylogenetic-OU inference surface exposes only profile-ready m
   )
   expect_identical(temporal$structure, "ou")
 })
+
+test_that("a paired fit whose residual SD collapses is reported as a boundary fit", {
+  skip_if_not_installed("ape")
+  # The article's generator (set.seed(20260909)) with 16 species: sigma runs
+  # to ~3e-5 while the optimizer, Hessian and SEs look regular.
+  set.seed(20260909)
+  n_species <- 16L
+  elapsed_values <- c(0, 0.5, 2.5, 5)
+  tree <- ape::rcoal(n_species, tip.label = paste0("sp", seq_len(n_species)))
+  A <- drm_phylo_tip_covariance(tree)
+  stable <- drop(t(chol(A)) %*% stats::rnorm(n_species, sd = 0.45))
+  names(stable) <- tree$tip.label
+  R_ou <- exp(-0.45 * abs(outer(elapsed_values, elapsed_values, "-")))
+  ou_by_species <- lapply(tree$tip.label, function(species) {
+    drop(t(chol(R_ou)) %*% stats::rnorm(length(elapsed_values), sd = 0.55))
+  })
+  names(ou_by_species) <- tree$tip.label
+  dat <- do.call(rbind, lapply(tree$tip.label, function(species) {
+    treatment <- rep(c(-0.5, 0.5), length.out = length(elapsed_values))
+    data.frame(
+      species = species, elapsed_days = elapsed_values, treatment = treatment,
+      y = 1 + 0.4 * treatment + stable[[species]] + ou_by_species[[species]] +
+        stats::rnorm(length(elapsed_values), sd = 0.35)
+    )
+  }))
+  dat$species <- factor(dat$species, levels = tree$tip.label)
+  fit <- suppressWarnings(drmTMB(
+    bf(y ~ treatment + phylo(1 | species, tree = tree) +
+         temporal(1 | species, time = elapsed_days, structure = "ou"),
+       sigma ~ 1),
+    data = dat, family = gaussian(), REML = FALSE
+  ))
+  expect_identical(as.integer(fit$opt$convergence), 0L)
+  expect_lt(unname(stats::sigma(fit)[[1L]]), 1e-3)
+  rows <- check_drm(fit)
+  boundary <- rows[rows$check == "temporal_boundary", , drop = FALSE]
+  expect_identical(boundary$status, "warning")
+  expect_match(boundary$value, "sigma_ratio=")
+  expect_identical(convergence_status(fit), "boundary")
+})

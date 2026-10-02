@@ -152,9 +152,12 @@ key_estimates <- c(
 round(key_estimates, 4)
 ```
 
-With a smaller panel (for example 8 or 16 species at these four times), the
-residual SD can run to zero while the OU term absorbs it; `check_drm()` then
-reports the scale clamp, and the fit should not be read component by
+With a smaller panel the residual SD can run to zero while the OU term
+absorbs it. With this same generator and 16 species, `sigma` falls to about
+3e-5 although the optimizer, Hessian and standard errors look regular;
+`check_drm()` reports this in its `temporal_boundary` row and
+`convergence_status(fit)` returns `"boundary"`. At 8 species the optimizer
+also stops with false convergence. Such fits should not be read component by
 component.
 
 `fitted(fit)` and `residuals(fit)` use the estimated stable and temporal
