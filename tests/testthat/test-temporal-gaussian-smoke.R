@@ -179,6 +179,17 @@ test_that("temporal AR1 exposes labelled components and mean-only Wald inference
     colnames(stats::vcov(fit)),
     c("mu:(Intercept)", "mu:treatment")
   )
+  temporal_check <- check_drm(fit)
+  temporal_wald <- temporal_check[temporal_check$check == "temporal_mean_wald", , drop = FALSE]
+  expect_identical(temporal_wald$status, "note")
+  expect_match(temporal_wald$value, "available_for_this_fit")
+  expect_match(temporal_wald$message, "coverage calibration remains unresolved")
+  non_pd <- fit
+  non_pd$sdr$pdHess <- FALSE
+  non_pd_check <- check_drm(non_pd)
+  non_pd_wald <- non_pd_check[non_pd_check$check == "temporal_mean_wald", , drop = FALSE]
+  expect_identical(non_pd_wald$status, "warning")
+  expect_match(non_pd_wald$value, "reason=full_hessian")
   intervals <- stats::confint(fit, method = "wald")
   expect_setequal(intervals$parm, c("fixef:mu:(Intercept)", "fixef:mu:treatment"))
   summary_wald <- summary(fit, conf.int = TRUE, method = "wald")
