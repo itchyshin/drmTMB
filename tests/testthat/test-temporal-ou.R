@@ -62,6 +62,10 @@ test_that("temporal OU defers Wald intervals until the inherited calibration pre
   expect_identical(temporal_profile$status, "note")
   expect_match(temporal_profile$value, "available_for_this_fit")
   expect_match(temporal_profile$message, "coverage calibration remains unresolved")
+  se_row <- temporal_check[temporal_check$check == "standard_errors_finite", , drop = FALSE]
+  expect_identical(se_row$status, "note")
+  expect_match(se_row$message, "withheld by design")
+  expect_false(drmTMB:::drm_inference_degenerate(fit))
 })
 
 test_that("temporal OU profiles mean coefficients and rejects deferred targets", {

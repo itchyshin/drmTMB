@@ -356,6 +356,11 @@ drm_inference_degenerate <- function(object) {
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(TRUE)
   }
+  if (drm_temporal_wald_deferred(object)) {
+    # OU temporal fits withhold vcov() by design (Wald inference is deferred),
+    # so a refused vcov() is not evidence of degenerate geometry.
+    return(FALSE)
+  }
   vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
   if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
     return(TRUE)
@@ -1270,7 +1275,24 @@ check_sdreport_status <- function(object) {
   )
 }
 
+drm_temporal_wald_deferred <- function(object) {
+  drm_has_temporal_mu(object) &&
+    identical(object$model$structured$temporal_mu$structure, "ou")
+}
+
 check_standard_errors_finite <- function(object) {
+  if (drm_temporal_wald_deferred(object)) {
+    return(check_row(
+      "standard_errors_finite",
+      "note",
+      NA_character_,
+      paste(
+        "Fixed-effect standard errors are withheld by design for temporal OU",
+        "fits while OU Wald inference is deferred; use mean-coefficient",
+        "profile intervals instead."
+      )
+    ))
+  }
   vcov <- tryCatch(stats::vcov(object), error = function(e) e)
   if (inherits(vcov, "error")) {
     return(check_row(
