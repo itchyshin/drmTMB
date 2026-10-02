@@ -75,32 +75,59 @@ Type drm_log_sech(Type eta) {
 }
 
 // Integer AR1 gaps must preserve a negative persistence sign for odd gaps.
-// Repeated multiplication is AD-safe and avoids log(phi), which is undefined
-// for the admitted negative-persistence half of the parameter space.
+// Repeated squaring is AD-safe (multiplications only; the exponent is data),
+// avoids log(phi), which is undefined for negative persistence, and costs
+// O(log gap) rather than O(gap) operations.
 template<class Type>
 Type drm_integer_power(Type base, int exponent) {
   Type out = Type(1.0);
-  for (int k = 0; k < exponent; ++k) {
-    out *= base;
+  Type factor = base;
+  while (exponent > 0) {
+    if (exponent & 1) {
+      out *= factor;
+    }
+    exponent >>= 1;
+    if (exponent > 0) {
+      factor *= factor;
+    }
   }
   return out;
 }
 
-// The transition variance is 1 - tanh(theta)^(2 * gap).  Computing that
-// subtraction directly loses all precision when tanh(theta) rounds to one.
-// Factor it as sech(theta)^2 times a finite geometric sum instead.  This is
-// algebraically identical for every interior theta and remains positive when
-// the transformed persistence reaches a floating-point boundary.
+// Stable -log|tanh(theta)| = 2 * atanh(exp(-2 * |theta|)) for |theta| >= 1,
+// where a = exp(-2|theta|) <= exp(-2). The odd series a + a^3/3 + a^5/5 is used
+// for a < 1e-3 (truncation below a^7/7, i.e. relative error < 1e-21), so the
+// value stays exact to rounding when tanh(theta) rounds to +/-1. The argument
+// is clamped so the branch CppAD does not select stays finite.
+template<class Type>
+Type drm_neg_log_abs_tanh(Type theta) {
+  Type abs_theta = CppAD::CondExpGe(theta, Type(0.0), theta, -theta);
+  Type a = exp(Type(-2.0) * abs_theta);
+  Type a_safe = CppAD::CondExpLt(a, Type(0.5), a, Type(0.5));
+  Type a2 = a_safe * a_safe;
+  Type series = Type(2.0) * a_safe * (Type(1.0) + a2 * (Type(1.0) / Type(3.0) + a2 / Type(5.0)));
+  Type direct = log((Type(1.0) + a_safe) / (Type(1.0) - a_safe));
+  return CppAD::CondExpLt(a_safe, Type(1e-3), series, direct);
+}
+
+// The transition SD is sqrt(1 - tanh(theta)^(2 * gap)). For |theta| < 1
+// (|phi| < 0.762) the power is small enough that the direct subtraction loses
+// no precision. Otherwise 1 - phi^(2 gap) = -expm1(-x) with
+// x = 2 * gap * (-log|tanh(theta)|), using a third-order Taylor series below
+// x = 1e-5 (relative error < x^3/24 < 1e-16) and the direct form above. Near
+// the unit root this reproduces sech(theta)^2 * sum_{k<gap} phi^(2k) to
+// rounding, with O(log gap) cost. Unselected branches are kept finite.
 template<class Type>
 Type drm_ar1_transition_sd(Type theta, Type phi, int gap) {
-  Type phi_squared = phi * phi;
-  Type power = Type(1.0);
-  Type geometric_sum = Type(0.0);
-  for (int k = 0; k < gap; ++k) {
-    geometric_sum += power;
-    power *= phi_squared;
-  }
-  return exp(drm_log_sech(theta) + Type(0.5) * log(geometric_sum));
+  Type phi_power = drm_integer_power(phi * phi, gap);
+  Type direct = Type(1.0) - phi_power;
+  Type x = Type(2.0) * Type(gap) * drm_neg_log_abs_tanh(theta);
+  Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
+  Type x_safe = CppAD::CondExpLt(x, Type(700.0), x, Type(700.0));
+  Type expm1_form = CppAD::CondExpLt(x_safe, Type(1e-5), series, Type(1.0) - exp(-x_safe));
+  Type abs_theta = CppAD::CondExpGe(theta, Type(0.0), theta, -theta);
+  Type one_minus = CppAD::CondExpLt(abs_theta, Type(1.0), direct, expm1_form);
+  return sqrt(one_minus);
 }
 
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
@@ -987,7 +1014,7 @@ Type objective_function<Type>::operator()()
         }
       }
 
-      if (n_sigma_re_terms > 0) {
+    if (n_sigma_re_terms > 0) {
       vector<Type> sd_sigma_re = exp(log_sd_sigma);
       // Same-dpar residual-scale correlations: a correlated intercept+slope block
       // such as `sigma ~ x + (1 + x | id)`. Mirrors the bivariate loop's ordering.
@@ -1033,7 +1060,7 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < u_sigma.size(); ++j) {
         nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
       }
-      }
+    }
 
     if (has_temporal_mu == 1) {
       Type phi_temporal = tanh(theta_temporal(0));
