@@ -11,13 +11,17 @@
 # identical on macOS arm64 and Linux x86, and so are the fitted gains (to 3 dp,
 # 32 seeds per case). Over those seeds the scale case gives a sigma-minus-mean
 # gain from 0 to 140 (median 30), so a weak-signal seed can sit near any fixed
-# threshold; seed 1 is a clear-signal draw (gain 47.3, mean-phylo gain 0.0).
+# threshold. Seed 1 was chosen after a 32-seed sweep in which the scale
+# thresholds pass on 22 of 32 seeds. This test is a wiring regression guard on
+# one clear-signal dataset; it does not claim a recovery rate (seed 1: gain
+# 47.3, mean-phylo gain 0.0).
 # In the mean case sigma~phylo legitimately absorbs part of a species-level
 # mean signal as extra dispersion (gain 0 to 105; >= 3 on 28 of 32 seeds), so a
 # small absolute gain is NOT the mis-wire signature. The mis-wire made the
 # sigma~phylo fit numerically identical to the mu~phylo fit, so the guard is
 # the GAP between the two: mu-minus-sigma gain was >= 5.6 on every seed and
-# 57.1 on seed 101. A returned mis-wire gives a gap of exactly 0 in both tests.
+# 57.1 on seed 101. A returned mis-wire gives a gap of ≈0 (same objective;
+# equal up to optimizer tolerance) in both tests.
 
 nb2_sigma_phylo_data <- function(seed, where = c("sigma", "mean"),
                                  n_sp = 45, n_each = 18, sd_u = 1.2) {
@@ -30,8 +34,8 @@ nb2_sigma_phylo_data <- function(seed, where = c("sigma", "mean"),
   # Draw u ~ N(0, sd_u^2 V) through the Cholesky factor, NOT MASS::mvrnorm().
   # mvrnorm() goes through eigen(), whose eigenvector signs and ordering depend
   # on the BLAS/LAPACK build, so the same seed gave different data on macOS
-  # arm64 and Linux x86 (#1444). chol() is unique for a positive-definite V, so
-  # this draw is identical on every platform.
+  # arm64 and Linux x86 (#1444). chol() is unique for positive-definite V (no
+  # sign/order ambiguity); measured bit-identical on macOS arm64 and Linux x86.
   u <- as.numeric(t(chol(sd_u^2 * V)) %*% rnorm(n_sp))
   names(u) <- tree$tip.label
   sp <- rep(tree$tip.label, each = n_each)
@@ -93,6 +97,7 @@ test_that("nbinom2 structured sigma does NOT absorb a mean-phylo signal (mis-wir
   # a mean-phylo signal must be captured by mu~phylo (seed 101: gain 57.1)
   expect_gt(fit_ll(fM) - fit_ll(f0), 5)
   # ... and far better than by sigma~phylo (seed 101: gap 57.1). Under the old
-  # mis-wire fS was numerically identical to fM, so this gap was exactly 0.
+  # mis-wire fS was numerically identical to fM, so this gap was ≈0 (same
+  # objective; equal up to optimizer tolerance).
   expect_gt((fit_ll(fM) - fit_ll(f0)) - (fit_ll(fS) - fit_ll(f0)), 20)
 })
