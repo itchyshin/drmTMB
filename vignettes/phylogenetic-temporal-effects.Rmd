@@ -66,7 +66,7 @@ with ranks.
 library(ape)
 set.seed(20260909)
 
-n_species <- 8L
+n_species <- 60L
 elapsed_values <- c(0, 0.5, 2.5, 5)
 tree <- rcoal(n_species, tip.label = paste0("sp", seq_len(n_species)))
 
@@ -134,8 +134,28 @@ from being read as evolutionary variation, or vice versa.
 ```{r components, eval = has_ape}
 fit$sdpars$mu
 fit$decaypars$temporal
-fit$sigma
+sigma(fit)[1]
 ```
+
+The data were simulated with `sd_phylo_stable = 0.45`, `sd_temporal = 0.55`,
+`decay_temporal = 0.45`, `sigma = 0.35`, intercept 1, and treatment effect
+0.4. One compact vector collects the point estimates for comparison:
+
+```{r key-estimates, eval = has_ape}
+key_estimates <- c(
+  logLik = as.numeric(logLik(fit)),
+  fit$coefficients$mu,
+  fit$sdpars$mu,
+  fit$decaypars$temporal,
+  sigma = unname(sigma(fit)[1])
+)
+round(key_estimates, 4)
+```
+
+With a smaller panel (for example 8 or 16 species at these four times), the
+residual SD can run to zero while the OU term absorbs it; `check_drm()` then
+reports the scale clamp, and the fit should not be read component by
+component.
 
 `fitted(fit)` and `residuals(fit)` use the estimated stable and temporal
 conditional deviations for these observed rows. `simulate(fit)` draws a new
@@ -146,8 +166,8 @@ components. These are in-sample tools only.
 ```{r in-sample-tools, eval = has_ape}
 head(fitted(fit))
 head(residuals(fit))
-simulate(fit, nsim = 2)
-simulate(fit, nsim = 2, re.form = NA)
+head(simulate(fit, nsim = 2))
+head(simulate(fit, nsim = 2, re.form = NA))
 ```
 
 ## What can be reported now
