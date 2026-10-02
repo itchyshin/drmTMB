@@ -229,10 +229,44 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # A3 response-kernel parity brings drm_response_kernels.h to four
   # shape-floor guards: two for beta and two for beta-binomial. These mirror
   # the already-audited beta_shape_floor C0 contract below.
-  expect_equal(n_cpp, 30L)
+  #
+  # The temporal OU route (#1302) adds ONE drmTMB.cpp site,
+  # drm_one_minus_exp_neg(): a series/direct switch for 1 - exp(-x) at
+  # x = 1e-5, used for the OU transition variance. 30L -> 31L is bumped
+  # together with its paired C1 continuity test below.
+  expect_equal(n_cpp, 31L)
   expect_equal(n_numeric, 5L)
   expect_equal(n_count, 1L)
   expect_equal(n_response, 4L)
+})
+
+# ---------------------------------------------------------------------------
+# Site: drm_one_minus_exp_neg (src/drmTMB.cpp), threshold x = 1e-5.
+# Class: C1 expected. The temporal OU transition variance needs 1 - exp(-x),
+# whose direct form loses its positive difference for x far below machine
+# precision. Below the threshold a third-order Taylor series takes over. The
+# branches must agree in value and first derivative at the switch point.
+# ---------------------------------------------------------------------------
+test_that("drm_one_minus_exp_neg: series and direct branches agree at x = 1e-5", {
+  x0 <- 1e-5
+  series <- function(x) x * (1 - x * (0.5 - x / 6))
+  direct <- function(x) 1 - exp(-x)
+  series_der <- 1 - x0 + x0^2 / 2
+  direct_der <- exp(-x0)
+
+  expect_lt(rel_diff(series(x0), direct(x0)), VALUE_TOL)
+  expect_lt(rel_diff(series_der, direct_der), DERIV_TOL)
+
+  for (h in c(1e-2 * x0, 1e-3 * x0)) {
+    fd_s <- (series(x0 + h) - series(x0 - h)) / (2 * h)
+    fd_d <- (direct(x0 + h) - direct(x0 - h)) / (2 * h)
+    expect_lt(rel_diff(fd_s, fd_d), 1e-4)
+  }
+
+  # Why the branch exists: far below the threshold the direct form loses
+  # all relative precision while the series stays exact to rounding.
+  expect_lt(rel_diff(series(1e-18), 1e-18), 1e-12)
+  expect_gt(rel_diff(direct(1e-18), 1e-18), 1e-3)
 })
 
 # ---------------------------------------------------------------------------

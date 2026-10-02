@@ -1,5 +1,11 @@
+# The assessment helper lives in tools/, which .Rbuildignore keeps out of the
+# built package, so this suite runs only from a source checkout.
 assessment_path <- testthat::test_path(
   "..", "..", "tools", "temporal-ou-profile-campaign-assessment.R"
+)
+testthat::skip_if_not(
+  file.exists(assessment_path),
+  "tools/temporal-ou-profile-campaign-assessment.R is not in the built package"
 )
 assessment_environment <- new.env(parent = baseenv())
 sys.source(assessment_path, envir = assessment_environment)
