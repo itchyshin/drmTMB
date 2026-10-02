@@ -4504,6 +4504,7 @@ summary.drmTMB <- function(
     conf.method = if (conf.int) method else NA_character_,
     confint = ci
   )
+  out$temporal_parameters_point_only <- drm_has_temporal_mu(object)
   class(out) <- "summary.drmTMB"
   out
 }
@@ -4557,6 +4558,11 @@ print.summary.drmTMB <- function(x, ...) {
       "Distributional, random-effect, scale, and correlation parameters:"
     )
     print(drm_summary_print_parameters(x$parameters))
+    if (isTRUE(x$temporal_parameters_point_only)) {
+      cli::cli_text(
+        "Temporal fit: sigma, SD, persistence, and decay rows are point estimates only; their standard errors are withheld."
+      )
+    }
   }
   if (is.data.frame(x$covariance) && nrow(x$covariance) > 0L) {
     cli::cli_text("Random-effect covariance summaries:")
@@ -5268,6 +5274,11 @@ empty_summary_parameters <- function() {
 drm_summary_add_parameter_standard_errors <- function(object, parameters) {
   parameters$std_error <- NA_real_
   if (nrow(parameters) == 0L || !drm_has_sdreport_covariance(object)) {
+    return(summary_parameter_order_columns(parameters))
+  }
+  if (drm_has_temporal_mu(object)) {
+    # Temporal fits report sigma, SD, persistence, and decay as point
+    # estimates only; their uncertainty is not qualified.
     return(summary_parameter_order_columns(parameters))
   }
 
