@@ -1,0 +1,6 @@
+"criterion","observed","threshold","pass"
+"at least 22 finite selected fits",24,">= 22",TRUE
+"exactly 48 retained start attempts",48,"48 and two per fixture",TRUE
+"mean absolute fixed-effect error <= 0.15",0.182169945047971,"<= 0.15",FALSE
+"median absolute log-SD error <= 0.25",0.152662891529279,"<= 0.25",TRUE
+"median absolute log-decay error <= 0.35",0.27585537894658,"<= 0.35",TRUE

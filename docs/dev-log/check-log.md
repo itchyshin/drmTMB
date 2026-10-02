@@ -86348,7 +86348,7 @@ Evidence:
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-conversion-contracts', stop_on_failure = TRUE)"`
   then passed with 4,096 assertions, 0 failures, 0 warnings, and 0 skips.
 - `Rscript --vanilla -e "devtools::test(filter = 'structured-re-bridge-fixtures|structured-re-conversion-contracts', stop_on_failure = TRUE)"`
-  passed with 4,812 assertions, 0 failures, 0 warnings, and 0 skips.
+  passed with 4,813 assertions, 0 failures, 0 warnings, and 0 skips.
 - `python3 -m py_compile tools/validate-mission-control.py` passed.
 - `python3 tools/validate-mission-control.py` passed and reported 16
   structured RE q4 intercept denominator-precheck rows.
@@ -94837,3 +94837,62 @@ Closeout report:
 | 2026-09-09 | Temporal OU retained profile campaign | Fir array `58908599`: 60 sealed shards, 180 `COMPLETED|0:0` Slurm records; Totoro checksum mirror and G15 reverify PASS | All nine 1,000-data-set cell-coefficient rows meet availability, MCSE-bounded coverage, bias, and profile-width SE-analogue criteria. The durable immutable-summary SHA-256 is `e303d8c3c688baf5ea3655a459d8f8215d8e85326eb6db86aa5dfb353b191cc5`; U1 retains 999/1,000 availability rather than omitting its one unavailable interval. | Codex |
 | 2026-09-09 | Temporal OU calibration wording synchronization | G10 reader-content and G11 source-faithful vignette render pass; documentation scope rechecked | Public temporal documentation now distinguishes the qualified 3,000-fit OU fixed-`mu` profile campaign (exact U1--U3 scenarios) from uncalibrated AR1 and broader temporal claims. No estimator, campaign artifact, threshold, or Wald-inference boundary changed. | Codex |
 | 2026-09-09 | Phylogenetic stable-intercept plus independent-OU Ultra Plan | Prior-work sweep, official glmmTMB covariance source map, NotebookLM connection preflight, two independent plan reviews, and Unlazy ledger parse completed | First slice is explicitly `phylo()` stable intercept plus independent same-species OU. The wrong separable field is mutation-gated; profile calibration is predeclared but not authorized or run. | Codex / Noether / Pat / Rose |
+
+| 2026-09-09 | Phylogenetic-temporal OU Phase 0 bootstrap | P1 and source-map runner self-tests; G1; M01-bootstrap; M02; M03; focused testthat 6 passes | P1 execution is anchored to a1d01dab3. Source map is cited and separates a blocked Toeplitz parameterisation lead; no estimator, fit, campaign, or public capability changed. | Codex |
+
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU parser/layout | G2 PASS; paired parser 13 assertions; existing temporal parser 6; OU 64; runner 6 | Admits only same-ID `phylo(1 | species, tree = tree)` plus OU and checks raw and retained support. A successful point fit is not oracle or inference evidence. | Codex |
+
+| 2026-09-09 | Phylogenetic stable-intercept plus independent OU dense oracle | G3-G6 PASS; 19 independent dense-oracle assertions; 6 gate-runner assertions | Direct `ape::vcv()` covariance matches objective, score and Hessian; reductions and all six wrong-model mutations are retained. This is deterministic evidence, not inference or campaign evidence. | Codex |
+
+## 2026-09-09 — phylogenetic-temporal OU methods gate
+
+G7 now reconstructs the combined model's conditional fitted values/residuals and both
+simulation modes from separate phylogenetic-stable and independent OU contributions.
+The runner returned `PHYLO_TEMPORAL_OU_G7_PASS`; focused paired parser, dense oracle,
+methods, existing temporal parser/OU, and runner tests passed. The suite uses a
+non-boundary deterministic fixture and keeps Wald covariance, non-mean intervals and
+newdata prediction unavailable. Evidence:
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-methods.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU dense profile gate
+
+G8 independently re-optimized the paired model's dense marginal likelihood under fixed
+mean slope values. Its 90% likelihood-ratio endpoints (0.17577, 0.59428) agree with the
+public TMB-profile endpoints (0.17544, 0.59399), and the gate also fences deferred
+interval targets plus the irregular-Hessian warning. `PHYLO_TEMPORAL_OU_G8_PASS` is
+retained in `docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-profile.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU G9 retained recovery failure
+
+G9 is unmet. The corrected 50-species 24-fixture denominator retained all 24 selected
+fits and 48 starts, and passed SD/decay criteria, but fixed-effect error was 0.182 >
+0.150. A separate 80-species diagnostic under the same seeds/thresholds reduced it to
+0.165 but also failed. Earlier immutable directories retain formula/list/provenance
+runner failures and the ordered-treatment confounding diagnosis. No threshold, seed or
+failure was changed or suppressed. See
+`docs/dev-log/after-task/2026-09-09-phylo-temporal-ou-recovery-failure.md`.
+
+## 2026-09-09 — phylogenetic-temporal OU reader workflow
+
+G14 and G15 now pass. The source-built article `phylogenetic-temporal-effects.Rmd`
+uses irregular elapsed times and separates `sd_phylo_stable`, `sd_temporal`,
+`decay_temporal`, and residual `sigma`. It is deliberately navigation-marked
+**development**: the retained G9 recovery failure means that no paired-model
+interval or forecasting claim is made. The G15 runner loads the local package,
+renders the article in an isolated temporary directory, and verifies the
+rendered reader-facing boundary text.
+
+## 2026-09-09 — phylogenetic-temporal OU recovery diagnosis and runner repair
+
+The retained G9 denominators isolate the failure to intercept MAE: v4 has
+intercept/between/within MAEs 0.339/0.131/0.077 and v6 has
+0.336/0.104/0.055. The current aggregate criterion remains failed. The future
+recovery runner now reads the paired public `decay_temporal` label through its
+helper; a disposable six-species, 24-fixture smoke retained 24 finite decay
+estimates, then was removed because it is not evidence. A revised recovery
+contract still requires an explicit decision.
+
+
+## 2026-09-10 — G9b full phylogenetic-stable plus independent OU point recovery
+
+`Rscript --vanilla -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-phylo-temporal-ou-gate-runner.R", reporter="summary")'` passed before the frozen v5 runner checkpoint. `Rscript --vanilla tools/run-phylo-temporal-ou-g9b-full.R` retained 24 contrast fits/48 starts and 300 independent-tree fits/600 starts. `Rscript --vanilla tools/phylo-temporal-ou-gates.R G9b-full` returned `PHYLO_TEMPORAL_OU_G9B_FULL_PASS`. The v5 criteria passed between/within contrast MAE 0.123/0.071, median absolute log-SD/decay errors 0.163/0.280, and standardized ensemble intercept bias 0.032/0.072/0.063. G9 remains failed; G10--G13 and all interval claims remain pending.
