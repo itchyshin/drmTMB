@@ -317,6 +317,12 @@ drmTMB <- function(
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
+  if (identical(engine, "julia") && drm_formula_has_temporal(formula)) {
+    cli::cli_abort(c(
+      "Temporal AR1 effects are implemented only by the native TMB Gaussian route.",
+      "i" = "Use {.code engine = \"tmb\"} with {.code family = gaussian()}."
+    ))
+  }
   if (identical(engine, "julia")) {
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
@@ -363,6 +369,18 @@ drmTMB <- function(
   )
 
   family_type <- drm_family_type(family)
+  if (drm_formula_has_temporal(formula) && !identical(family_type, "gaussian")) {
+    cli::cli_abort(c(
+      "Temporal AR1 effects are implemented only for univariate Gaussian models.",
+      "i" = "Use {.code family = gaussian()} with a temporal term in the {.code mu} formula."
+    ))
+  }
+  if (drm_formula_has_temporal(formula) && isTRUE(REML)) {
+    cli::cli_abort(c(
+      "Temporal AR1 Gaussian models currently use maximum likelihood.",
+      "i" = "Set {.code REML = FALSE}."
+    ))
+  }
   drm_validate_mspl_request(
     estimator = estimator,
     engine = engine,
@@ -649,6 +667,18 @@ drm_fit_spec <- function(
     fit_call <- match.call()
   }
 
+  if (
+    isTRUE(REML) &&
+      is.list(spec$structured) &&
+      is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    cli::cli_abort(c(
+      "Temporal AR1 models are currently implemented with maximum likelihood only.",
+      "i" = "Use {.code REML = FALSE}."
+    ))
+  }
+
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
   drm_validate_binomial_q2_context(spec, REML = REML)
@@ -689,7 +719,27 @@ drm_fit_spec <- function(
     silent = TRUE
   )
 
-  optimizer <- drm_optimize_with_preset_retry(obj, control)
+  temporal_starts <- if (
+    is.list(spec$structured) &&
+      is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    drm_temporal_persistence_starts(obj)
+  } else {
+    NULL
+  }
+  optimizer <- drm_optimize_with_preset_retry(
+    obj,
+    control,
+    starts = temporal_starts
+  )
+  if (!is.null(temporal_starts) && is.data.frame(optimizer$start_attempts)) {
+    optimizer$start_attempts$persistence_start <- vapply(
+      temporal_starts,
+      function(start) tanh(start[[match("theta_temporal", names(start))]]),
+      numeric(1L)
+    )
+  }
   opt <- optimizer$opt
   if (isTRUE(control$newton_polish)) {
     opt <- drm_newton_polish(opt, obj$fn, obj$gr)
@@ -792,6 +842,7 @@ drm_fit_spec <- function(
     REML = isTRUE(REML),
     optimizer_used = optimizer$selected,
     optimizer_attempts = optimizer$attempts,
+    temporal_start_attempts = optimizer$start_attempts,
     gradient = fit_gradient$gradient,
     gradient_max_component = fit_gradient$max_component,
     provenance = drm_provenance()
@@ -856,11 +907,22 @@ drm_perturbed_starts <- function(par, n_start) {
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
 # last error is re-raised for the caller's tryCatch to record.
-drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
-  starts <- drm_perturbed_starts(obj$par, n_start)
+drm_optimize_multistart <- function(
+  obj,
+  optimizer,
+  control_opt,
+  n_start,
+  starts = NULL
+) {
+  if (is.null(starts)) {
+    starts <- drm_perturbed_starts(obj$par, n_start)
+  }
   best <- NULL
   last_error <- NULL
-  for (start in starts) {
+  start_rows <- vector("list", length(starts))
+  for (start_index in seq_along(starts)) {
+    start <- starts[[start_index]]
+    elapsed_start <- proc.time()[["elapsed"]]
     res <- tryCatch(
       optimizer(
         start = start,
@@ -870,8 +932,18 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
       ),
       error = function(e) e
     )
+    elapsed <- proc.time()[["elapsed"]] - elapsed_start
     if (inherits(res, "error")) {
       last_error <- res
+      start_rows[[start_index]] <- data.frame(
+        start = as.integer(start_index),
+        status = "error",
+        convergence = NA_integer_,
+        objective = NA_real_,
+        elapsed_sec = elapsed,
+        selected = FALSE,
+        stringsAsFactors = FALSE
+      )
       next
     }
     obj_value <- if (length(res$objective) == 1L && is.finite(res$objective)) {
@@ -879,14 +951,37 @@ drm_optimize_multistart <- function(obj, optimizer, control_opt, n_start) {
     } else {
       Inf
     }
+    start_rows[[start_index]] <- data.frame(
+      start = as.integer(start_index),
+      status = "ok",
+      convergence = as.integer(res$convergence),
+      objective = as.numeric(res$objective),
+      elapsed_sec = elapsed,
+      selected = FALSE,
+      stringsAsFactors = FALSE
+    )
     if (is.null(best) || obj_value < best$value) {
-      best <- list(opt = res, value = obj_value)
+      best <- list(opt = res, value = obj_value, index = start_index)
     }
   }
   if (is.null(best)) {
     stop(last_error)
   }
+  start_rows[[best$index]]$selected <- TRUE
+  attr(best$opt, "drm_start_attempts") <- do.call(rbind, start_rows)
   best$opt
+}
+
+drm_temporal_persistence_starts <- function(obj) {
+  position <- match("theta_temporal", names(obj$par))
+  if (is.na(position)) {
+    cli::cli_abort("Internal temporal AR1 start error: theta_temporal is not an outer TMB parameter.")
+  }
+  positive <- obj$par
+  negative <- obj$par
+  positive[[position]] <- atanh(0.3)
+  negative[[position]] <- -atanh(0.3)
+  list(positive, negative)
 }
 
 drm_optimize_with_preset_retry <- function(
@@ -894,7 +989,8 @@ drm_optimize_with_preset_retry <- function(
   control,
   optimizer = stats::nlminb,
   fallback_fn = stats::optim,
-  warn = TRUE
+  warn = TRUE,
+  starts = NULL
 ) {
   attempt_specs <- drm_optimizer_attempt_specs(control)
   n_start <- if (is.null(control$multi_start)) 1L else control$multi_start
@@ -912,7 +1008,8 @@ drm_optimize_with_preset_retry <- function(
           obj,
           optimizer,
           spec$control,
-          n_start
+          n_start,
+          starts = starts
         )
       ),
       error = function(e) list(ok = FALSE, value = e)
@@ -945,7 +1042,12 @@ drm_optimize_with_preset_retry <- function(
             "i" = "An earlier preset errored or did not converge; inspect {.code fit$optimizer_attempts}."
           ))
         }
-        return(list(opt = opt, selected = selected, attempts = attempts))
+        return(list(
+          opt = opt,
+          selected = selected,
+          attempts = attempts,
+          start_attempts = attr(opt, "drm_start_attempts")
+        ))
       }
       # A non-converged result (false convergence or non-finite objective) is not
       # accepted: escalate to the next preset in the ladder, keeping this attempt
@@ -1065,7 +1167,12 @@ drm_optimize_with_preset_retry <- function(
     attempts <- drm_optimizer_attempts_frame(rows)
     selected_row <- attempts[attempts$attempt == best_i, , drop = FALSE]
     selected <- drm_optimizer_selected_record(selected_row)
-    return(list(opt = opts[[best_i]], selected = selected, attempts = attempts))
+    return(list(
+      opt = opts[[best_i]],
+      selected = selected,
+      attempts = attempts,
+      start_attempts = attr(opts[[best_i]], "drm_start_attempts")
+    ))
   }
 
   attempts <- drm_optimizer_attempts_frame(rows)
@@ -3922,6 +4029,40 @@ drm_build_gaussian_ls_spec <- function(
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
+  mu_temporal <- extract_gaussian_mu_temporal_term(mu_entry)
+  mu_entry$rhs <- mu_temporal$rhs
+  validate_temporal_raw_data(mu_temporal$term, data)
+  if (!is.null(mu_temporal$term) && !is.null(weights) && any(weights != 1)) {
+    cli::cli_abort(c(
+      "Temporal AR1 Gaussian models currently require unit likelihood weights.",
+      "i" = "Remove {.arg weights} or supply one weight for every observation while the unweighted marginal covariance route is fitted."
+    ))
+  }
+  if (!is.null(mu_temporal$term) && (
+    !is.null(meta$V) ||
+      length(sd_mu_entries) > 0L ||
+      length(sd_phylo_entries) > 0L ||
+      !is.null(impute) ||
+      include_missing_response ||
+      identical(missing$predictor, "model") ||
+      isTRUE(control$sparse_fixed) ||
+      isTRUE(control$aggregate_gaussian)
+  )) {
+    cli::cli_abort(c(
+      "Temporal AR1 Gaussian models do not support this additional modelling feature yet.",
+      "i" = "Use fixed mean predictors and offsets, {.code sigma ~ 1}, and at most one matching {.code (1 | id)} intercept."
+    ))
+  }
+  if (any(vapply(
+    sigma_entry$structured,
+    function(term) identical(term$type, "temporal"),
+    logical(1)
+  ))) {
+    cli::cli_abort(c(
+      "Temporal AR1 effects are only implemented for the Gaussian {.code mu} formula.",
+      "i" = "Use {.code y ~ temporal(1 | id, time = occasion, structure = \"ar1\")} and {.code sigma ~ 1}."
+    ))
+  }
   mu_phylo <- extract_gaussian_mu_phylo_term(mu_entry)
   mu_entry$rhs <- mu_phylo$rhs
   mu_phylo_interaction <- extract_gaussian_mu_phylo_interaction_term(mu_entry)
@@ -3974,6 +4115,13 @@ drm_build_gaussian_ls_spec <- function(
       "i" = "Fit one structured layer at a time until multiple structured layers have their own identifiability checks."
     ))
   }
+  if (!is.null(mu_temporal$term) && length(active_structured) > 0L) {
+    cli::cli_abort(c(
+      "Temporal AR1 models cannot be combined with another structured effect in this first slice.",
+      "x" = "The model also contains {.val {active_structured}}.",
+      "i" = "Fit one temporal AR1 effect with an optional ordinary {.code (1 | id)} intercept."
+    ))
+  }
   structured_terms <- lapply(
     names(raw_structured_terms),
     function(marker) {
@@ -4012,6 +4160,13 @@ drm_build_gaussian_ls_spec <- function(
   mu_entry$rhs <- mu_re$rhs
   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
   sigma_entry$rhs <- sigma_re$rhs
+  validate_temporal_gaussian_terms(
+    mu_temporal$term,
+    mu_re,
+    sigma_re,
+    sigma_entry$rhs,
+    data
+  )
   if (!is.null(mesh_spatial_term) && length(mu_re$terms) > 0L) {
     cli::cli_abort(
       "The first mesh spatial route cannot yet be combined with ordinary random effects."
@@ -4152,6 +4307,9 @@ drm_build_gaussian_ls_spec <- function(
     unlist(lapply(f_sd_phylo, all.vars), use.names = FALSE),
     structured_mu_vars(structured_term),
     structured_mu_vars(mesh_spatial_term),
+    if (!is.null(mu_temporal$term)) {
+      c(mu_temporal$term$group, mu_temporal$term$time)
+    },
     vapply(sd_mu_targets, `[[`, character(1), "group"),
     vapply(sd_phylo_targets, `[[`, character(1), "group"),
     random_effect_vars(mu_re$terms),
@@ -4364,6 +4522,11 @@ drm_build_gaussian_ls_spec <- function(
     data_model
   )
   phylo_mu <- build_structured_mu_structure(structured_term, data_model, env)
+  temporal_mu <- build_temporal_mu_structure(
+    mu_temporal$term,
+    data_model,
+    has_ordinary_intercept = length(mu_re$terms) == 1L
+  )
   if (!is.null(mesh_spatial_term) &&
       (include_missing_response || include_missing_predictor)) {
     cli::cli_abort(c(
@@ -4407,6 +4570,25 @@ drm_build_gaussian_ls_spec <- function(
     observed_y = observed_y
   )
   start <- c(start, gaussian_ls_dummy_start(phylo_mu, y = y[observed_y]))
+  if (isTRUE(temporal_mu$has)) {
+    temporal_components <- if (length(mu_re$terms) == 1L) 3 else 2
+    temporal_var <- stats::var(
+      y[observed_y] - as.vector(
+        X_mu[observed_y, , drop = FALSE] %*% start$beta_mu
+      )
+    )
+    if (!is.finite(temporal_var) || temporal_var <= 0) {
+      temporal_var <- 1
+    }
+    component_sd <- sqrt(temporal_var / temporal_components)
+    start$beta_sigma[[1L]] <- log(component_sd)
+    if (length(mu_re$terms) == 1L) {
+      start$log_sd_mu[] <- log(component_sd)
+    }
+    start$u_temporal <- numeric(temporal_mu$n_re)
+    start$log_sd_temporal <- log(component_sd)
+    start$theta_temporal <- atanh(0.3)
+  }
   if (isTRUE(mesh_spatial_mu$has)) {
     start$u_phylo2 <- numeric(mesh_spatial_mu$n_re)
     start$log_sd_phylo2 <- log(mesh_spatial_field_scale_start(
@@ -4524,7 +4706,11 @@ drm_build_gaussian_ls_spec <- function(
     ),
     aggregation = list(gaussian = gaussian_aggregation),
     random_scale = list(mu = sd_mu, phylo = sd_phylo),
-    structured = list(phylo_mu = phylo_mu, mesh_spatial_mu = mesh_spatial_mu),
+    structured = list(
+      phylo_mu = phylo_mu,
+      mesh_spatial_mu = mesh_spatial_mu,
+      temporal_mu = temporal_mu
+    ),
     missing_predictor = missing_predictor,
     missing_predictor2 = missing_predictor2,
     data = data_model,
@@ -4539,7 +4725,8 @@ drm_build_gaussian_ls_spec <- function(
         sd_mu,
         phylo_mu,
         re_mu_sigma,
-        sd_phylo
+        sd_phylo,
+        temporal_mu
       )
       if (
         include_missing_predictor &&
@@ -4555,6 +4742,7 @@ drm_build_gaussian_ls_spec <- function(
       if (re_cov_blocks$n_qgt2_re > 0L) "u_re_cov",
       if (isTRUE(phylo_mu$has)) "u_phylo",
       if (isTRUE(mesh_spatial_mu$has)) "u_phylo2",
+      if (isTRUE(temporal_mu$has)) "u_temporal",
       if (
         include_missing_predictor &&
           identical(missing_predictor$family, "gaussian")
@@ -20049,7 +20237,8 @@ gaussian_ls_map <- function(
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
   phylo_mu = empty_phylo_mu_structure(),
   re_mu_sigma = empty_mu_sigma_random_covariance(re_sigma$n_re),
-  sd_phylo = empty_sd_phylo_structure()
+  sd_phylo = empty_sd_phylo_structure(),
+  temporal_mu = empty_temporal_mu_structure()
 ) {
   out <- list(
     beta_mu1 = factor(NA),
@@ -20065,6 +20254,11 @@ gaussian_ls_map <- function(
   if (!isTRUE(phylo_mu$has)) {
     out$u_phylo <- factor(NA)
     out$log_sd_phylo <- factor(NA)
+  }
+  if (!isTRUE(temporal_mu$has)) {
+    out$u_temporal <- factor(NA)
+    out$log_sd_temporal <- factor(NA)
+    out$theta_temporal <- factor(NA)
   }
   if (isTRUE(phylo_mu$has) && sd_phylo$n_models > 0L) {
     out$log_sd_phylo <- factor(NA)
@@ -20237,6 +20431,7 @@ add_covariance_block_tmb_data <- function(tmb_data, spec) {
     tmb_data,
     structured_mu_tmb_data(spec),
     structured_mu2_tmb_data(spec),
+    temporal_mu_tmb_data(spec),
     drm_sparse_fixed_tmb_data(spec),
     drm_gaussian_aggregation_tmb_data(spec),
     drm_tmb_missing_predictor_data(spec),
@@ -20443,6 +20638,9 @@ add_covariance_probe_parameter <- function(spec) {
   has_mi_struct <- has_mi &&
     is.list(spec$missing_predictor$structured) &&
     isTRUE(spec$missing_predictor$structured$enabled)
+  has_temporal_mu <- is.list(spec$structured) &&
+    is.list(spec$structured$temporal_mu) &&
+    isTRUE(spec$structured$temporal_mu$has)
   if (is.null(spec$start$u_re_cov)) {
     spec$start$u_re_cov <- 0
   }
@@ -20461,11 +20659,29 @@ add_covariance_probe_parameter <- function(spec) {
   if (is.null(spec$start$beta_coi)) {
     spec$start$beta_coi <- 0
   }
+  if (is.null(spec$start$u_temporal)) {
+    spec$start$u_temporal <- 0
+  }
+  if (is.null(spec$start$log_sd_temporal)) {
+    spec$start$log_sd_temporal <- 0
+  }
+  if (is.null(spec$start$theta_temporal)) {
+    spec$start$theta_temporal <- 0
+  }
   if (is.null(spec$map)) {
     spec$map <- list()
   }
   if (is.null(spec$map$beta_cor_mu) && !has_cor_mu_model) {
     spec$map$beta_cor_mu <- factor(NA)
+  }
+  if (is.null(spec$map$u_temporal) && !has_temporal_mu) {
+    spec$map$u_temporal <- factor(NA)
+  }
+  if (is.null(spec$map$log_sd_temporal) && !has_temporal_mu) {
+    spec$map$log_sd_temporal <- factor(NA)
+  }
+  if (is.null(spec$map$theta_temporal) && !has_temporal_mu) {
+    spec$map$theta_temporal <- factor(NA)
   }
   if (
     is.null(spec$map$beta_zoi) &&
@@ -22361,6 +22577,19 @@ split_tmb_sdpars <- function(par, spec) {
     out$sigma <- sd_sigma
   }
   if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    temporal <- spec$structured$temporal_mu
+    out$mu <- c(
+      out$mu,
+      stats::setNames(
+        exp(unname(par$log_sd_temporal[[1L]])),
+        temporal_mu_sd_label(temporal)
+      )
+    )
+  }
+  if (
     identical(spec$model_type, "zero_one_beta") &&
       is.list(spec$random$zoi) && spec$random$zoi$n_re > 0L
   ) {
@@ -22540,6 +22769,16 @@ split_tmb_corpars <- function(par, spec) {
       tanh(unname(par$eta_cor_sigma[seq_len(spec$random$sigma$n_cors)]))
     names(rho_sigma) <- spec$random$sigma$cor_labels
     out$sigma <- rho_sigma
+  }
+  if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    temporal <- spec$structured$temporal_mu
+    out$temporal <- stats::setNames(
+      tanh(unname(par$theta_temporal[[1L]])),
+      temporal$label
+    )
   }
   if (is.list(spec$random$covariance_blocks)) {
     rho_re_cov <- covariance_block_correlations_from_par(
@@ -22784,6 +23023,21 @@ split_tmb_random_effects <- function(par, spec) {
       )
     }
     out$sigma <- format_random_effect_values(latent, values, spec$random$sigma)
+  }
+  if (
+    is.list(spec$structured$temporal_mu) &&
+      isTRUE(spec$structured$temporal_mu$has)
+  ) {
+    temporal <- spec$structured$temporal_mu
+    latent <- unname(par$u_temporal[seq_len(temporal$n_re)])
+    names(latent) <- temporal$node_labels
+    values <- exp(unname(par$log_sd_temporal[[1L]])) * latent
+    names(values) <- names(latent)
+    out$temporal <- list(
+      values = values,
+      latent = latent,
+      terms = list(ar1 = values)
+    )
   }
   if (
     identical(spec$model_type, "zero_one_beta") &&
