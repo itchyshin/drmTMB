@@ -73,8 +73,12 @@ test_that("homtoep methods use marginal means and correlated residual draws", {
   expect_identical(temporal_wald$status, "note")
   expect_match(temporal_wald$value, "toeplitz_calibration_deferred")
   expect_match(temporal_wald$message, "likelihood profiles are qualified")
+  # Convergence and standard-error checks read the full sdreport fixed
+  # covariance for temporal fits (vcov() is withheld for Toeplitz), so a
+  # healthy fit reports finite standard errors and is not degenerate.
   standard_errors <- temporal_check[temporal_check$check == "standard_errors_finite", , drop = FALSE]
-  expect_match(standard_errors$message, "likelihood profiles are qualified")
+  expect_identical(standard_errors$status, "ok")
+  expect_false(drmTMB:::drm_inference_degenerate(fit))
   direct <- drmTMB:::drm_summary_direct_parameters(fit)
   toeplitz_rows <- direct[direct$dpar == "temporal", , drop = FALSE]
   expect_true(all(toeplitz_rows$component == "temporal-correlation"))
