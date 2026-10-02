@@ -14,12 +14,15 @@ has_ape <- requireNamespace("ape", quietly = TRUE)
 ```
 
 > **Development status.** This paired phylogenetic--OU model has passed its
-> parser, dense-likelihood, method, and fixed-mean profile checks. Its retained
-> point-recovery gate has not met the predeclared fixed-effect threshold.
+> parser, dense-likelihood, method, and fixed-mean profile checks. Its first
+> 24-fixture point-recovery gate missed the predeclared fixed-effect threshold;
+> a replacement point-recovery study (24 contrast fixtures plus 300
+> independently generated trees) then met all of its predeclared point
+> criteria. No interval-calibration study has been run.
 > Treat the syntax below as a development workflow for checking a model and its
 > diagnostics, not as an inference-qualified routine analysis. In particular,
-> do not report confidence intervals from this paired model until its recovery
-> and calibration gates are repaired and passed.
+> do not report confidence intervals from this paired model until its
+> calibration gates are run and passed.
 
 A comparative time-series data set can contain three different kinds of
 variation. Closely related species can have similar *stable* baselines because

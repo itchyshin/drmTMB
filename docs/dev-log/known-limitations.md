@@ -71,10 +71,11 @@ revisit condition.
   time = elapsed, structure = "ou")` Gaussian ML route is a separate,
   point-fit development slice: it separates a stable tree-correlated species
   intercept from independent within-species OU deviations. Its dense-likelihood,
-  methods, and fixed-mean profile identities pass, but its retained 24-fixture
-  recovery study missed the fixed-effect error threshold. It has no qualified
-  interval, forecast, `newdata`, variance, or decay-inference claim while the
-  recovery design and calibration evidence are repaired. It is not the future
+  methods, and fixed-mean profile identities pass. Its retained 24-fixture
+  recovery study missed the fixed-effect error threshold; the replacement G9b
+  study (24 contrast fixtures plus 300 trees) met its point-recovery criteria.
+  It has no qualified interval, forecast, `newdata`, variance, or
+  decay-inference claim; interval-calibration gates G10--G13 have not run. It is not the future
   separable phylogeny-by-OU field.
 - Binomial `REML = TRUE` is a diagnostic-only O2 route for one ordinary
   unlabelled location (`mu`) random intercept (`mc-0060`) or independent

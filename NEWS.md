@@ -27,6 +27,12 @@
   bootstrap, forecast, and `newdata` intervals remain unavailable. The
   retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
   has no calibrated coverage claim.
+* Development only: `phylo(1 | species, tree = tree) + temporal(1 | species,
+  time = elapsed, structure = "ou")` fits a stable tree-correlated species
+  intercept plus independent within-species OU deviations
+  (`sd_phylo_stable`, `sd_temporal`, `decay_temporal`). A 300-tree study
+  supports point recovery only; no interval method is qualified for this
+  paired model. See `vignette("phylogenetic-temporal-effects")`.
 
 # drmTMB 0.7.1
 
