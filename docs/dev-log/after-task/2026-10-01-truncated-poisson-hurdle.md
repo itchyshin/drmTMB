@@ -25,6 +25,12 @@ See the PR description table. Deliberately not paralleled (refused with a messag
 
 `tests/testthat/test-truncated-poisson-hurdle.R` (new): hand likelihood to 1e-10; `glm` + `VGAM::vglm(pospoisson)` decomposition at n = 600, seed 726; DRModels.jl n = 80 fixture constants to 1e-6; plain truncated vs `VGAM::pospoisson`; methods; distribution functions; refusals. See the PR for the full-suite result.
 
+## Review fixes, round 2 (2026-10-02)
+
+- The upper-tail-only quantile helpers from 98c05f6b broke the right-inverse at CDF jump points (`q(F(y))` returned `y + 1` at about a fifth of them), for `truncated_nbinom2()`/hurdle NB2 on main as well as the new family. The zero-truncated CDF is now one helper per family that evaluates the more accurate tail, and the quantile is stepped to the exact generalized inverse of that CDF (hurdle: of `hu + (1 - hu) F(y)`). A test written first, red on 98c05f6b, checks `q(F(y)) == y` and the inverse conditions over mu in `[1e-12, 2500]`, four NB2 scales and two `hu` values.
+- `truncated_poisson()` is in `tools/function-cheatsheet-source.Rmd`; the C17/C14 model-15 receipt is re-certified (fingerprint moved only because two model-type names were added inside an authenticated anchor); offset refusals are tested; the unsupported-family message and the `truncated_poisson()` help page are updated.
+- Measured results are in the check-log row of the same date.
+
 ## Non-claims
 
 No coverage or interval-calibration study was run for this family; the Wald and profile intervals are the generic engine paths. No random-effect, structured, missing-data, `emmeans`, or Julia-bridge support. `fitted()` is the unconditional hurdle mean, as for hurdle NB2.
