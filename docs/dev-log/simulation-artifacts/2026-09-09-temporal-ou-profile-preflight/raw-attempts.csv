@@ -1,0 +1,3 @@
+"fixture","cell","seed","start","decay_start","status","convergence","objective","elapsed_sec","selected","warning","error"
+"U1_2026091201","U1",2026091201,1,0.802648536217291,"ok",0,570.841880729405,0.38,FALSE,"",NA
+"U1_2026091201","U1",2026091201,2,0.237783295959155,"ok",0,570.841880729324,0.281,TRUE,"",NA

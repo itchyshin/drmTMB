@@ -1,0 +1,13 @@
+"fixture","cell","replicate","start","status","convergence","objective","elapsed_sec","selected","warning","error"
+"A_ar1_r01","A_ar1",1,1,"ok",0,594.598264329591,0.356999999999999,TRUE,"NaNs produced",NA
+"A_ar1_r02","A_ar1",2,1,"ok",0,570.680250272931,0.468,TRUE,"NaNs produced",NA
+"A_ar1_r03","A_ar1",3,1,"ok",0,592.509059223004,0.411999999999999,TRUE,"NaNs produced",NA
+"B_nonexponential_r01","B_nonexponential",1,1,"ok",0,592.548803830891,0.347000000000001,TRUE,"NaNs produced",NA
+"B_nonexponential_r02","B_nonexponential",2,1,"ok",0,593.773186014005,0.381,TRUE,"NaNs produced",NA
+"B_nonexponential_r03","B_nonexponential",3,1,"ok",0,611.410076591889,0.405000000000001,TRUE,"NaNs produced",NA
+"C_negative_lag_r01","C_negative_lag",1,1,"ok",0,608.059234683073,0.411999999999999,TRUE,"NaNs produced",NA
+"C_negative_lag_r02","C_negative_lag",2,1,"ok",0,600.853145223642,0.427,TRUE,"NaNs produced",NA
+"C_negative_lag_r03","C_negative_lag",3,1,"ok",0,609.200883390295,0.419000000000004,TRUE,"NaNs produced",NA
+"D_stress_r01","D_stress",1,1,"ok",0,80.1814538330264,0.0519999999999996,TRUE,"NaNs produced",NA
+"D_stress_r02","D_stress",2,1,"ok",0,77.7973550632874,0.0599999999999952,TRUE,"NaNs produced",NA
+"D_stress_r03","D_stress",3,1,"ok",0,83.1496555711745,0.0700000000000003,TRUE,"NaNs produced",NA
