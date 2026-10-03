@@ -1,5 +1,36 @@
 # drmTMB (development)
 
+## New features
+
+* Fixed-effect binomial and Bernoulli fits are now screened for
+  (quasi-)complete separation at fit time (the Albert-Anderson / Konis
+  criterion, decided by a base-R non-negative least-squares solve; no new
+  dependency). When the maximum-likelihood estimate does not exist, the fit is
+  still returned but a `drmTMB_separation_warning` names the coefficients that
+  can diverge (any coefficient some separating direction moves; this is not the
+  `detectseparation` listing). Their standard errors (`summary()`, `vcov()`) are
+  `Inf` and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`) are
+  `(-Inf, Inf)` with `conf.status = "wald_separation"`. On such a fit
+  `convergence_status()` is now `"degenerate"` and `is_converged()` is `FALSE`
+  (they read the infinite standard errors), and `check_drm()` reports a
+  `standard_errors_finite` warning that names the flagged coefficients in place
+  of the earlier `weakly_identified_fixed_effects` and
+  `standard_errors_inflated` rows. The check
+  is scale-free (no absolute floor on column scale; a single far outlier does
+  not distort it). When it proves there is no separation the fit is left alone,
+  even if a Wald `|z|` is tiny. Only when it runs out of its iteration budget is
+  a scale-free near-separation rule consulted (a fitted probability within 1e-8
+  of 0/1, a coefficient whose own contribution spans that whole probability
+  range, and Wald `|z| < 0.05`); otherwise it warns that the check was
+  inconclusive. An unavailable standard error, e.g. `drm_control(se = FALSE)`,
+  is never read as near separation. Bootstrap refits
+  do not repeat the warning. DRModels.jl runs the same check with the same
+  constants, so the two packages flag the same coefficients for the logit link,
+  the only binomial link DRModels.jl fits (#1268, twin of DRModels.jl
+  #731/#728). No refusal and no penalised
+  fit by default; random-effect routes are not screened. Healthy fits are
+  unchanged.
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names

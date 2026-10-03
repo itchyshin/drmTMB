@@ -256,6 +256,41 @@
 #' @param ... Reserved for future model options.
 #'
 #' @return A `drmTMB` fit object.
+#'
+#' @section Separation in binomial fits:
+#' A fixed-effect binomial or Bernoulli fit (no random effects, no `phylo()`
+#' term, no `mi()` predictor model; `estimator = "ml"`) is screened for
+#' (quasi-)complete separation at fit time: the maximum-likelihood estimate does
+#' not exist when some direction `d` makes the signed design `X~ d >= 0` on
+#' every row and `> 0` on at least one (Albert and Anderson 1984; Konis 2007).
+#' The check is a non-negative least-squares (Farkas) formulation solved in base
+#' R. The fit is still returned, but a `drmTMB_separation_warning` names the
+#' coefficients that can diverge: their standard errors (`summary()`, `vcov()`)
+#' are `Inf`, and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`)
+#' are `(-Inf, Inf)` with `conf.status = "wald_separation"`. Because those
+#' standard errors are not finite, `convergence_status()` reports
+#' `"degenerate"`, `is_converged()` returns `FALSE`, and the
+#' `standard_errors_finite` row of `check_drm()` warns and names the flagged
+#' coefficients. A
+#' coefficient is flagged when any separating direction moves it, which can
+#' list more coefficients than the single direction reported by the
+#' `detectseparation` package; an aliased column that is a multiple of a
+#' flagged one is named too. If the exact check cannot decide (its iteration
+#' budget runs out), a near-separation rule is consulted and flags a
+#' coefficient the same way when all of these hold: a fitted probability within 1e-8 of 0 or 1, a coefficient
+#' whose own contribution spans the whole 1e-8 to 1 - 1e-8 probability range
+#' (`|beta_j| * range(x_j)` above that range on the link scale: 36.8 for logit,
+#' 11.2 for probit, 21.3 for cloglog), and a Wald
+#' `|z| < 0.05` for it. An unavailable standard error (`drm_control(se =
+#' FALSE)`, a failed Hessian) is never read as near separation. If the check
+#' runs out of its iteration budget, a warning says it was inconclusive rather
+#' than reporting no separation. The point estimates under separation are
+#' arbitrary stopping points of the optimiser and are not expected to match
+#' another engine's. DRModels.jl runs the same check with the same constants,
+#' so for the logit link (the only binomial link DRModels.jl fits) the two
+#' packages flag the same coefficients. There is no refusal and no
+#' penalised fit by default; `estimator = "mspl"` is the finite-estimate route.
+#' Healthy (non-separated) fits are unchanged.
 #' @export
 #'
 #' @examples
@@ -797,6 +832,10 @@ drm_fit_spec <- function(
     provenance = drm_provenance()
   )
   class(fit) <- "drmTMB"
+  # Separation screen (#1268): detect and warn; SEs of flagged coefficients are
+  # reported as Inf (see `drm_separation_flagged_labels()`).
+  fit$separation <- drm_separation_screen(fit)
+  drm_warn_separation(fit$separation)
   drm_apply_storage_control(fit, control)
 }
 

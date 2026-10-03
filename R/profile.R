@@ -2199,11 +2199,19 @@ drm_wald_confint <- function(
     drm_sdreport_cov_fixed(object)
   }
   se <- profile_wald_standard_errors(variances)
+  # Separation (#1268): a flagged coefficient has an infinite standard error
+  # (vcov/summary report Inf), so its Wald interval is the whole real line,
+  # whether or not the Hessian was usable.
+  separated <- targets$parm %in%
+    paste0("fixef:", drm_separation_flagged_labels(object))
   interval_ready <- hessian_ready &
     is.finite(targets$link_estimate) &
-    is.finite(se)
+    is.finite(se) &
+    !separated
   lower <- rep(NA_real_, nrow(targets))
   upper <- rep(NA_real_, nrow(targets))
+  lower[separated] <- -Inf
+  upper[separated] <- Inf
   if (any(interval_ready)) {
     link_lower <- targets$link_estimate[interval_ready] -
       crit[interval_ready] * se[interval_ready]
@@ -2241,6 +2249,7 @@ drm_wald_confint <- function(
   if (any(interval_ready & bias_applied)) {
     out$conf.status[interval_ready & bias_applied] <- "wald_bias_corrected"
   }
+  out$conf.status[separated] <- "wald_separation"
 
   # A Wald interval on a variance component near zero or a correlation near +/-1
   # is unreliable (boundary / chi-square-mixture inference). Keep the interval --
@@ -2951,7 +2960,12 @@ bootstrap_refit_one <- function(
       if (!is.null(refit_missing)) {
         arguments$missing <- refit_missing
       }
-      do.call(drmTMB, arguments)
+      # The seed fit already reported any separation; replicate refits stay
+      # quiet (#1268) instead of warning once per draw.
+      withCallingHandlers(
+        do.call(drmTMB, arguments),
+        drmTMB_separation_warning = function(w) invokeRestart("muffleWarning")
+      )
     },
     error = function(err) err
   )

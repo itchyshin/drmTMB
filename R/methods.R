@@ -2399,6 +2399,14 @@ vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
   if (isTRUE(object$REML) && anyNA(diag(out))) {
     out <- fill_from(out, object$sdr$cov.fixed, names(object$opt$par))
   }
+  # Separation (#1268): a coefficient that can diverge has an infinite variance.
+  flagged <- match(drm_separation_flagged_labels(object), labels)
+  flagged <- flagged[!is.na(flagged)]
+  if (length(flagged)) {
+    out[flagged, ] <- NaN
+    out[, flagged] <- NaN
+    out[cbind(flagged, flagged)] <- Inf
+  }
   out
 }
 
@@ -4643,12 +4651,14 @@ drm_summary_coefficients <- function(object) {
     )
     out$std_error.status <- drm_standard_error_status(object)
     attr(out, "std_error.message") <- conditionMessage(vcov)
+    out$std_error[labels %in% drm_separation_flagged_labels(object)] <- Inf
     return(out)
   }
   variances <- diag(vcov)
   se <- rep(NA_real_, length(variances))
   ok <- is.finite(variances) & variances >= 0
   se[ok] <- sqrt(variances[ok])
+  se[labels %in% drm_separation_flagged_labels(object)] <- Inf
   data.frame(
     estimate = est,
     std_error = se,
