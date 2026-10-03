@@ -197,7 +197,7 @@ test-mspl-link-general.R	suggests-package	environment	runs	1
 test-nbinom2-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-nbinom2-sigma-structured-recovery.R	cran-lane	environment	runs	2
 test-nbinom2-sigma-structured-recovery.R	env-var-optin	environment	skips	2
-test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	4
+test-nbinom2-sigma-structured-recovery.R	suggests-package	environment	runs	2
 test-nongaussian-structured-boundary.R	build-premise	build	skips	1
 test-nongaussian-structured-boundary.R	cran-lane	environment	runs	1
 test-nongaussian-structured-boundary.R	external-tool	environment	runs	1
