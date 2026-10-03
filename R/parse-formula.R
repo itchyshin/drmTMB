@@ -1118,6 +1118,15 @@ parse_structured_bar_term <- function(expr, marker) {
     ))
   }
 
+  if (identical(marker, "temporal")) {
+    # temporal() admits no slope at all, so the one-slope advice below would
+    # send the user to a form the temporal-specific check then rejects.
+    cli::cli_abort(c(
+      "{.fn temporal} currently supports one intercept-only unlabelled random effect.",
+      "x" = "Temporal slopes and covariance-block labels are not implemented.",
+      "i" = "Use {.code temporal(1 | id, time = ..., structure = ...)}; see {.help drmTMB::temporal} for the admitted structures."
+    ))
+  }
   cli::cli_abort(c(
     "{.fn {marker}} currently reserves only intercept and one-slope structured terms.",
     "x" = "Use {.code {marker}(1 | group, ...)} or {.code {marker}(1 + x | group, ...)}.",
