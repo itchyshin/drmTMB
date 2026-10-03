@@ -6,7 +6,7 @@
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
-## Gaussian temporal AR1 and OU random effects
+## Gaussian temporal random effects
 
 * Native ML now fits univariate Gaussian stationary temporal intercept fields:
   AR1 with real integer occasion gaps through
@@ -38,6 +38,10 @@
   4,000-fit campaign qualified mean-coefficient profile intervals in three
   predeclared 80-series, six-occasion cells only. `vcov()`, Wald, scale, and
   lag-correlation intervals are unavailable.
+* `check_drm()` gains a `temporal_boundary` row for temporal fits. It warns
+  when residual `sigma` collapses into the temporal process, AR1 persistence
+  reaches +/-1, or OU correlation is about 1 or about 0 at every observed lag,
+  and `convergence_status()` then reports `"boundary"` for that fit.
 * Development only: `phylo(1 | species, tree = tree) + temporal(1 | species,
   time = elapsed, structure = "ou")` fits a stable tree-correlated species
   intercept plus independent within-species OU deviations

@@ -36,14 +36,26 @@ test_that("an OU decay that runs to zero is reported as a boundary fit", {
   fit <- fit_temporal_ou_boundary(temporal_boundary_panel(
     2, b_sd = 0.6, ou_sd = 0.2, decay = 0.01
   ))
-  expect_identical(as.integer(fit$opt$convergence), 0L)
-  expect_true(isTRUE(fit$sdr$pdHess))
-  expect_lt(unname(fit$decaypars$temporal[[1L]]), 1e-6)
+  # The rule's own threshold, not one optimizer path's end point: how close to
+  # zero the decay lands depends on the platform's optimizer trajectory.
+  max_span <- 6
+  expect_lt(
+    unname(fit$decaypars$temporal[[1L]]) * max_span,
+    drmTMB:::temporal_boundary_thresholds$decay_span
+  )
   row <- boundary_row(fit)
   expect_identical(row$status, "warning")
   expect_match(row$value, "decay_x_max_span=")
-  expect_identical(convergence_status(fit), "boundary")
-  expect_true(is_converged(fit))
+  if (identical(as.integer(fit$opt$convergence), 0L) && isTRUE(fit$sdr$pdHess)) {
+    # The reference path (Linux CI): optimizer and Hessian look regular, so
+    # only the temporal_boundary row can flag the fit.
+    expect_identical(convergence_status(fit), "boundary")
+    expect_true(is_converged(fit))
+  } else {
+    # Another optimizer path may also leave the Hessian irregular at the same
+    # boundary; the fit must still never read as cleanly converged.
+    expect_false(identical(convergence_status(fit), "converged"))
+  }
 })
 
 test_that("a healthy OU fit has no temporal boundary row warning", {

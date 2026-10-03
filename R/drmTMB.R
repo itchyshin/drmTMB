@@ -728,6 +728,16 @@ drm_fit_spec <- function(
   } else {
     NULL
   }
+  if (
+    !is.null(temporal_starts) &&
+      !is.null(control$multi_start) &&
+      control$multi_start > 1L
+  ) {
+    cli::cli_warn(c(
+      "{.code drm_control(multi_start = {control$multi_start})} is not used for temporal fits.",
+      "i" = "Temporal fits use fixed structure-specific starting values instead; inspect {.code fit$temporal_start_attempts}."
+    ))
+  }
   optimizer <- drm_optimize_with_preset_retry(
     obj,
     control,
@@ -867,6 +877,10 @@ drm_fit_spec <- function(
     gradient_max_component = fit_gradient$max_component,
     provenance = drm_provenance()
   )
+  if (is.null(temporal_starts)) {
+    # Only temporal fits carry a start-attempt table.
+    fit$temporal_start_attempts <- NULL
+  }
   class(fit) <- "drmTMB"
   drm_apply_storage_control(fit, control)
 }
@@ -926,7 +940,10 @@ drm_perturbed_starts <- function(par, n_start) {
 # Run a single optimizer preset from `n_start` starting points and return the
 # result with the lowest finite objective. With n_start == 1 this is exactly the
 # single-start call, so the default fit is unchanged. If every start errors, the
-# last error is re-raised for the caller's tryCatch to record.
+# last error is re-raised for the caller's tryCatch to record. The per-start
+# table (with wall-clock timings) is attached as the `drm_start_attempts`
+# attribute only when the caller supplied explicit `starts` (temporal fits), so
+# every other fit's `opt` stays exactly as before.
 drm_optimize_multistart <- function(
   obj,
   optimizer,
@@ -934,6 +951,7 @@ drm_optimize_multistart <- function(
   n_start,
   starts = NULL
 ) {
+  record_starts <- !is.null(starts)
   if (is.null(starts)) {
     starts <- drm_perturbed_starts(obj$par, n_start)
   }
@@ -987,8 +1005,10 @@ drm_optimize_multistart <- function(
   if (is.null(best)) {
     stop(last_error)
   }
-  start_rows[[best$index]]$selected <- TRUE
-  attr(best$opt, "drm_start_attempts") <- do.call(rbind, start_rows)
+  if (record_starts) {
+    start_rows[[best$index]]$selected <- TRUE
+    attr(best$opt, "drm_start_attempts") <- do.call(rbind, start_rows)
+  }
   best$opt
 }
 
