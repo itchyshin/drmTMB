@@ -278,7 +278,13 @@ temporal_mu_tmb_data <- function(spec) {
     has_temporal_mu = 1L,
     temporal_mu_node_index = temporal$observation_node_index0,
     temporal_mu_series_start = temporal$series_start0,
-    temporal_mu_gap = as.integer(round(temporal$gap)),
+    # OU reads only the elapsed gap; its integer gap slot is unused, and coercing
+    # very large elapsed gaps (e.g. seconds over decades) would warn spuriously.
+    temporal_mu_gap = if (identical(temporal$structure, "ou")) {
+      integer(length(temporal$gap))
+    } else {
+      as.integer(round(temporal$gap))
+    },
     temporal_mu_elapsed_gap = as.numeric(temporal$gap),
     temporal_mu_structure = if (identical(temporal$structure, "ar1")) 1L else 2L
   )

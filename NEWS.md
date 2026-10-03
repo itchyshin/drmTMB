@@ -27,6 +27,10 @@
   bootstrap, forecast, and `newdata` intervals remain unavailable. The
   retained AR1 pilot found one unavailable primary-cell Wald interval, so AR1
   has no calibrated coverage claim.
+* `check_drm()` gains a `temporal_boundary` row for temporal fits. It warns
+  when residual `sigma` collapses into the temporal process, AR1 persistence
+  reaches +/-1, or OU correlation is about 1 or about 0 at every observed lag,
+  and `convergence_status()` then reports `"boundary"` for that fit.
 
 # drmTMB 0.7.1
 

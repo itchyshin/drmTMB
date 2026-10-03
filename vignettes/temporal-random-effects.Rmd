@@ -203,16 +203,23 @@ ou_fit <- drmTMB(
   data = dat_irregular, family = gaussian(), REML = FALSE
 )
 summary(ou_fit)
-ou_fit$decaypars$temporal
+ou_parameter_table <- summary(ou_fit)$parameters
+ou_parameter_table[
+  startsWith(rownames(ou_parameter_table), "decay:temporal:"),
+  "estimate",
+  drop = FALSE
+]
 
-sd_mu_ou <- ou_fit$sdpars$mu
+ou_estimate <- function(prefix) {
+  unname(ou_parameter_table$estimate[startsWith(rownames(ou_parameter_table), prefix)])
+}
 ou_key_estimates <- c(
   logLik = as.numeric(logLik(ou_fit)),
-  ou_fit$coefficients$mu,
-  sd_site = unname(sd_mu_ou[["(1 | site)"]]),
-  sd_temporal = unname(sd_mu_ou[startsWith(names(sd_mu_ou), "temporal_sd")]),
-  decay = unname(ou_fit$decaypars$temporal),
-  sigma = exp(unname(ou_fit$coefficients$sigma))
+  coef(ou_fit, "mu"),
+  sd_site = ou_estimate("sd:mu:(1 | site)"),
+  sd_temporal = ou_estimate("sd:mu:temporal_sd"),
+  decay = ou_estimate("decay:temporal:"),
+  sigma = exp(unname(coef(ou_fit, "sigma")))
 )
 round(ou_key_estimates, 4)
 confint(ou_fit, parm = "mu:treatment", method = "profile")
@@ -232,10 +239,10 @@ For OU, `elapsed_days` must be finite numeric, genuine gaps are retained, and
 duplicate site--time records must be aggregated before fitting. Input order may
 be shuffled. In-sample fitted values, residuals, and conditional or fresh
 simulation follow the AR1 conventions. Forecasting and `newdata` prediction
-remain unavailable. `ou_fit$decaypars$temporal` is the positive decay rate in
-the units of `elapsed_days`: if you change days to hours, the numerical rate
-changes by the inverse factor while the fitted correlation over a physical gap
-does not. OU Wald inference through `vcov()`, `confint(..., method = "wald")`,
+remain unavailable. The `decay:temporal:` row of `summary(ou_fit)$parameters`
+is the positive decay rate in the units of `elapsed_days`: if you change days
+to hours, the numerical rate changes by the inverse factor while the fitted
+correlation over a physical gap does not. OU Wald inference through `vcov()`, `confint(..., method = "wald")`,
 and `summary(..., conf.int = TRUE, method = "wald")` remains unavailable.
 Use `confint(..., parm = "mu:<coefficient>", method = "profile")` for a mean
 effect, read its `conf.status`, and inspect `check_drm(ou_fit)` before
