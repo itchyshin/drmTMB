@@ -163,6 +163,17 @@ validate_temporal_gaussian_terms <- function(
   invisible(NULL)
 }
 
+temporal_integer_gcd <- function(a, b) {
+  a <- abs(as.integer(a))
+  b <- abs(as.integer(b))
+  while (b > 0L) {
+    remainder <- a %% b
+    a <- b
+    b <- remainder
+  }
+  a
+}
+
 build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FALSE) {
   if (is.null(term)) {
     return(empty_temporal_mu_structure())
@@ -203,10 +214,26 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     identical(term$structure, "ou") || any(distinct_lags %% 2L == 1L)
   )
   if (!has_required_lags) {
+    is_ar1 <- identical(term$structure, "ar1")
+    common_gap <- if (is_ar1) Reduce(temporal_integer_gcd, distinct_lags, 0L) else 0L
+    advice <- if (common_gap > 1L && length(distinct_lags) >= required_lags) {
+      c("i" = paste0(
+        "Every lag is a multiple of {common_gap}. If occasions are equally spaced in ",
+        "steps of {common_gap} (for example, surveys every {common_gap} years), divide ",
+        "{.arg {term$time}} by {common_gap} so persistence is estimated per ",
+        "{common_gap}-unit step."
+      ))
+    } else {
+      c("i" = "Keep genuine sampling gaps and collect more distinct within-series occasions.")
+    }
     cli::cli_abort(c(
       paste0("Temporal ", toupper(term$structure), " occasions do not provide the required lag variation."),
-      "x" = "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}.",
-      "i" = "Keep genuine sampling gaps and collect more distinct within-series occasions."
+      "x" = if (is_ar1) {
+        "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}, including an odd lag."
+      } else {
+        "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}."
+      },
+      advice
     ))
   }
   if (has_ordinary_intercept && n_series < 2L) {

@@ -86,32 +86,42 @@ summary(fit, conf.int = TRUE, method = "wald")
 confint(fit, method = "wald")
 ```
 
-The key point estimates can be collected in one place. The temporal process SD
-is the `fit$sdpars$mu` entry whose name starts with `temporal_sd`, and the
+The key point estimates can be collected in one place. The `parameters` table
+returned by `summary()` has one row per variance and correlation parameter,
+named as in `profile_targets()`: the ordinary-intercept SD is
+`sd:mu:(1 | site)`, the temporal process SD is the `sd:mu:` row whose name
+continues with `temporal_sd`, and persistence is the `cor:temporal:` row. The
 residual SD is the exponentiated `sigma` intercept because `sigma ~ 1`.
 
 ```{r}
-sd_mu <- fit$sdpars$mu
+parameter_table <- summary(fit)$parameters
+parameter_estimate <- function(prefix) {
+  unname(parameter_table$estimate[startsWith(rownames(parameter_table), prefix)])
+}
 key_estimates <- c(
   logLik = as.numeric(logLik(fit)),
-  fit$coefficients$mu,
-  sd_site = unname(sd_mu[["(1 | site)"]]),
-  sd_temporal = unname(sd_mu[startsWith(names(sd_mu), "temporal_sd")]),
-  phi = unname(fit$corpars$temporal),
-  sigma = exp(unname(fit$coefficients$sigma))
+  coef(fit, "mu"),
+  sd_site = parameter_estimate("sd:mu:(1 | site)"),
+  sd_temporal = parameter_estimate("sd:mu:temporal_sd"),
+  phi = parameter_estimate("cor:temporal:"),
+  sigma = exp(unname(coef(fit, "sigma")))
 )
 round(key_estimates, 4)
 ```
 
 The mean-model coefficient rows report the intercept, treatment, and occasion
-effects with normal-reference Wald intervals. `fit$sdpars$mu` contains separate
-ordinary-intercept and temporal process SDs, while `fit$corpars$temporal` contains persistence. Read a positive
+effects with normal-reference Wald intervals. The `sd:mu:` rows contain
+separate ordinary-intercept and temporal process SDs, while the
+`cor:temporal:` row contains persistence. Read a positive
 persistence estimate as deviations tending to continue in the same direction
 over adjacent occasions; read a negative value as alternating deviations.
 
 ```{r}
-fit$sdpars$mu
-fit$corpars$temporal
+parameter_table[
+  grepl("^(sd:mu:|cor:temporal:)", rownames(parameter_table)),
+  "estimate",
+  drop = FALSE
+]
 head(fitted(fit))
 head(residuals(fit))
 simulate(fit, nsim = 2)

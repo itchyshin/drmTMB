@@ -25,7 +25,7 @@ documented_exports <- c(
   "plot_parameter_surface", "predict_parameters", "prediction_grid",
   "profile_targets", "qq_plot", "ranef", "relmat", "rho12", "rho_latent",
   "skew_normal", "spatial", "spatial_coords", "structured_effects", "student",
-  "truncated_nbinom2", "tweedie", "worm_plot", "zero_one_beta"
+  "temporal", "truncated_nbinom2", "tweedie", "worm_plot", "zero_one_beta"
 )
 deprecated_exports <- c("gr", "meta_known_V")
 stopifnot(setequal(
@@ -247,7 +247,7 @@ Deprecated compatibility markers are deliberately omitted.
       <div class="drmtmb-map__node"><strong><a href="../reference/drm_formula.html"><code>drm_formula()</code> / <code>bf()</code></a></strong><small>Join location, scale, shape, inflation, and coscale formulas.</small></div>
       <div class="drmtmb-map__node"><strong>Choose a family</strong><small><a href="../reference/student.html"><code>student()</code></a>, <a href="../reference/beta_family.html"><code>beta_family()</code></a>, <a href="../reference/nbinom2.html"><code>nbinom2()</code></a>, and the other family constructors below.</small></div>
       <div class="drmtmb-map__node"><strong>Special data</strong><small><a href="../reference/meta_V.html"><code>meta_V()</code></a>, <a href="../reference/miss_control.html"><code>miss_control()</code></a>, <a href="../reference/mi.html"><code>mi()</code></a>, <a href="../reference/impute_model.html"><code>impute_model()</code></a>.</small></div>
-      <div class="drmtmb-map__node"><strong>Dependence</strong><small><a href="../reference/phylo.html"><code>phylo()</code></a>, <a href="../reference/spatial.html"><code>spatial()</code></a>, <a href="../reference/animal.html"><code>animal()</code></a>, <a href="../reference/relmat.html"><code>relmat()</code></a>, <a href="../reference/corpair.html"><code>corpair()</code></a>.</small></div>
+      <div class="drmtmb-map__node"><strong>Dependence</strong><small><a href="../reference/phylo.html"><code>phylo()</code></a>, <a href="../reference/spatial.html"><code>spatial()</code></a>, <a href="../reference/animal.html"><code>animal()</code></a>, <a href="../reference/relmat.html"><code>relmat()</code></a>, <a href="../reference/temporal.html"><code>temporal()</code></a>, <a href="../reference/corpair.html"><code>corpair()</code></a>.</small></div>
     </section>
     <section class="drmtmb-map__panel map-fit">
       <h3>2 · Fit</h3>
@@ -356,6 +356,7 @@ family constructors.
 | [`spatial_coords()`](../reference/spatial_coords.html) | Convert longitude and latitude to an explicitly chosen projected coordinate system. |
 | [`make_mesh()`](../reference/make_mesh.html) | Build the fixed-kappa SPDE mesh and projection inputs used by mesh spatial effects. |
 | [`relmat()`](../reference/relmat.html) | A structured effect from a user-supplied relationship or precision matrix. |
+| [`temporal()`](../reference/temporal.html) | A Gaussian mean random effect whose deviations are correlated through time within each series. |
 | [`corpair()`](../reference/corpair.html) | Mark one current q=2 labelled ordinary or phylogenetic location-location correlation formula. Keep this distinct from residual `rho12 = ~ ...`. |
 | [`sd(group) ~ ...`, `sd1(group) ~ ...`, `sd2(group) ~ ...`](../reference/random_effect_scale_formulas.html) | Formula-only syntax for Gaussian location random-effect SDs. These are not replacements for `stats::sd()`. |
 | [`drm_phylo_penalty()`](../reference/drm_phylo_penalty.html) | Define the documented penalized/MAP prior for weakly identified phylogenetic SDs or correlations. Penalized fits are MAP fits, not ordinary ML fits for LR tests or AIC comparisons. |
