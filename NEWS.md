@@ -9,8 +9,13 @@
   still returned but a `drmTMB_separation_warning` names the coefficients that
   can diverge (any coefficient some separating direction moves; this is not the
   `detectseparation` listing). Their standard errors (`summary()`, `vcov()`) are
-  `Inf` and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`,
-  `tidy()`) are `(-Inf, Inf)` with `conf.status = "wald_separation"`. The check
+  `Inf` and their Wald intervals (`confint()`, `summary(conf.int = TRUE)`) are
+  `(-Inf, Inf)` with `conf.status = "wald_separation"`. On such a fit
+  `convergence_status()` is now `"degenerate"` and `is_converged()` is `FALSE`
+  (they read the infinite standard errors), and `check_drm()` reports a
+  `standard_errors_finite` warning that names the flagged coefficients in place
+  of the earlier `weakly_identified_fixed_effects` and
+  `standard_errors_inflated` rows. The check
   is scale-free (no absolute floor on column scale; a single far outlier does
   not distort it). When it proves there is no separation the fit is left alone,
   even if a Wald `|z|` is tiny. Only when it runs out of its iteration budget is
@@ -20,7 +25,9 @@
   inconclusive. An unavailable standard error, e.g. `drm_control(se = FALSE)`,
   is never read as near separation. Bootstrap refits
   do not repeat the warning. DRModels.jl runs the same check with the same
-  constants (#1268, twin of DRModels.jl #731/#728). No refusal and no penalised
+  constants, so the two packages flag the same coefficients for the logit link,
+  the only binomial link DRModels.jl fits (#1268, twin of DRModels.jl
+  #731/#728). No refusal and no penalised
   fit by default; random-effect routes are not screened. Healthy fits are
   unchanged.
 

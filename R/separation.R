@@ -7,7 +7,7 @@
 #
 # Policy (owner decision 2026-09-30, "detect and warn"): the fit is still
 # returned, a warning names the affected coefficients, and their standard
-# errors are reported as Inf (vcov, summary, Wald confint and tidy agree). No
+# errors are reported as Inf (vcov, summary and Wald confint agree). No
 # refusal and no penalised estimator by default (MSPL stays an explicit opt-in,
 # `estimator = "mspl"`). The two packages agree on WHICH coefficients are
 # flagged and on the warning, not on the (non-existent) maximum-likelihood

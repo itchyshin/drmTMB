@@ -1296,12 +1296,20 @@ check_standard_errors_finite <- function(object) {
     )
   }
 
+  # Separation (#1268): name the coefficients whose SE is Inf by design.
+  separated <- drm_separation_flagged_labels(object)
   check_row(
     "standard_errors_finite",
     if (ok) "ok" else "warning",
     value,
     if (ok) {
       "All fixed-effect standard errors are finite."
+    } else if (length(separated)) {
+      paste0(
+        "Separation: no finite maximum-likelihood estimate for ",
+        paste(separated, collapse = ", "),
+        "; the standard error of each is reported as Inf (see the fit-time separation warning)."
+      )
     } else {
       "At least one fixed-effect standard error is non-finite; inspect Hessian status, identifiability, and model scaling."
     }

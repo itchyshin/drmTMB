@@ -218,7 +218,6 @@ number.}
 \value{
 A \code{drmTMB} fit object.
 }
-
 \description{
 \code{drmTMB()} is the main model-fitting entry point. The current implementation
 supports univariate Gaussian location-scale models,
@@ -294,8 +293,12 @@ every row and \verb{> 0} on at least one (Albert and Anderson 1984; Konis 2007).
 The check is a non-negative least-squares (Farkas) formulation solved in base
 R. The fit is still returned, but a \code{drmTMB_separation_warning} names the
 coefficients that can diverge: their standard errors (\code{summary()}, \code{vcov()})
-are \code{Inf}, and their Wald intervals (\code{confint()}, \code{summary(conf.int = TRUE)},
-\code{tidy()}) are \verb{(-Inf, Inf)} with \code{conf.status = "wald_separation"}. A
+are \code{Inf}, and their Wald intervals (\code{confint()}, \code{summary(conf.int = TRUE)})
+are \verb{(-Inf, Inf)} with \code{conf.status = "wald_separation"}. Because those
+standard errors are not finite, \code{convergence_status()} reports
+\code{"degenerate"}, \code{is_converged()} returns \code{FALSE}, and the
+\code{standard_errors_finite} row of \code{check_drm()} warns and names the flagged
+coefficients. A
 coefficient is flagged when any separating direction moves it, which can
 list more coefficients than the single direction reported by the
 \code{detectseparation} package; an aliased column that is a multiple of a
@@ -303,13 +306,15 @@ flagged one is named too. If the exact check cannot decide (its iteration
 budget runs out), a near-separation rule is consulted and flags a
 coefficient the same way when all of these hold: a fitted probability within 1e-8 of 0 or 1, a coefficient
 whose own contribution spans the whole 1e-8 to 1 - 1e-8 probability range
-(\verb{|beta_j| * range(x_j)} above 36.8 on the logit scale), and a Wald
+(\verb{|beta_j| * range(x_j)} above that range on the link scale: 36.8 for logit,
+11.2 for probit, 21.3 for cloglog), and a Wald
 \verb{|z| < 0.05} for it. An unavailable standard error (\code{drm_control(se = FALSE)}, a failed Hessian) is never read as near separation. If the check
 runs out of its iteration budget, a warning says it was inconclusive rather
 than reporting no separation. The point estimates under separation are
 arbitrary stopping points of the optimiser and are not expected to match
 another engine's. DRModels.jl runs the same check with the same constants,
-so the two packages flag the same coefficients. There is no refusal and no
+so for the logit link (the only binomial link DRModels.jl fits) the two
+packages flag the same coefficients. There is no refusal and no
 penalised fit by default; \code{estimator = "mspl"} is the finite-estimate route.
 Healthy (non-separated) fits are unchanged.
 }

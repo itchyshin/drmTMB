@@ -76,7 +76,8 @@ sep_fit <- function(y, x, ...) {
 }
 
 # A flagged coefficient: Inf variance, NaN covariances, SE Inf, and the Wald
-# interval (confint, summary(conf.int = TRUE), tidy) is (-Inf, Inf).
+# interval (confint, summary(conf.int = TRUE)) is (-Inf, Inf), status
+# "wald_separation". drmTMB has no tidy() method.
 sep_check_flagged <- function(fit, label) {
   vc <- vcov(fit)
   expect_identical(vc[label, label], Inf)
@@ -88,6 +89,7 @@ sep_check_flagged <- function(fit, label) {
   expect_identical(ci$conf.status, "wald_separation")
   sm <- summary(fit, conf.int = TRUE)$coefficients
   expect_identical(unname(unlist(sm[label, c("conf.low", "conf.high")])), c(-Inf, Inf))
+  expect_identical(sm[label, "conf.status"], "wald_separation")
 }
 
 test_that("LP screen: complete, quasi-complete and overlapping toys", {
@@ -143,6 +145,15 @@ test_that("quasi-complete separation toy flags the slope only", {
   sep_check_flagged(out$fit, "mu:x")
   ci <- confint(out$fit, parm = "fixef:mu:(Intercept)")
   expect_true(all(is.finite(c(ci$lower, ci$upper))))
+  # The diagnostics read the Inf SE: degenerate, and check_drm() names it.
+  expect_identical(convergence_status(out$fit), "degenerate")
+  expect_false(is_converged(out$fit))
+  chk <- check_drm(out$fit)
+  row <- chk[chk$check == "standard_errors_finite", ]
+  expect_identical(row$status, "warning")
+  expect_match(row$message, "Separation", fixed = TRUE)
+  expect_match(row$message, "mu:x", fixed = TRUE)
+  expect_no_match(row$message, "mu:(Intercept)", fixed = TRUE)
 })
 
 test_that("cbind(successes, failures) and weights through drmTMB()", {
@@ -323,14 +334,20 @@ test_that("timing guard: separated designs with many columns stay fast", {
   X[cbind(which(lv > 1), lv[lv > 1])] <- 1
   y <- ifelse(lv %% 3 == 0, 0, ifelse(lv %% 3 == 1, 1, as.numeric(seq_len(n) %% 2 == 1)))
   t <- system.time(d <- drmTMB:::drm_detect_separation(X, y, 1 - y))[["elapsed"]]
-  expect_true((d$separated && d$conclusive && t < 5) || !d$conclusive)
+  # The verdict is asserted on its own, so an exhausted budget cannot pass
+  # vacuously; the wall-clock bound is loose (typically well under a second)
+  # so a slow runner does not flake, while a stalling solver still fails.
+  expect_true(d$conclusive)
+  expect_true(d$separated)
+  expect_lt(t, 30)
   i <- seq_len(10000)
   Xb <- cbind(1, outer(i, 1:9, function(a, b) sin(0.37 * a * b)))
   yb <- as.numeric(Xb[, 2] > 0)
   t2 <- system.time(db <- drmTMB:::drm_detect_separation(Xb, yb, 1 - yb))[["elapsed"]]
+  expect_true(db$conclusive)
   expect_true(db$separated)
   expect_identical(db$flagged, 1:10)
-  expect_lt(t2, 5)
+  expect_lt(t2, 30)
 })
 
 test_that("bootstrap refits do not repeat the separation warning", {
