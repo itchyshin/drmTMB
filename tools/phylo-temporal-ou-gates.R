@@ -13,7 +13,9 @@ fail <- function(...) stop(..., call. = FALSE)
 need_file <- function(path) if (!file.exists(path)) fail('Missing required file: ', path)
 need_text <- function(path, patterns) {
   need_file(path)
-  text <- paste(readLines(path, warn = FALSE), collapse = '\n')
+  # Match on whitespace-normalised text: pandoc re-wraps rendered HTML
+  # (--wrap=auto), so a contract phrase can straddle a line break there (G15).
+  text <- gsub('[[:space:]]+', ' ', paste(readLines(path, warn = FALSE), collapse = ' '))
   absent <- patterns[!vapply(patterns, grepl, logical(1), x = text,
                               fixed = TRUE, USE.NAMES = FALSE)]
   if (length(absent)) fail('Missing contract text: ', paste(absent, collapse = '; '))
