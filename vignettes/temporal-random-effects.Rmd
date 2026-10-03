@@ -217,11 +217,16 @@ toeplitz_fit <- drmTMB(
   REML = FALSE
 )
 
+toeplitz_parameters <- summary(toeplitz_fit)$parameters
+lag_rows <- startsWith(rownames(toeplitz_parameters), "cor:temporal:")
 toeplitz_estimates <- c(
   logLik = as.numeric(logLik(toeplitz_fit)),
-  toeplitz_fit$coefficients$mu,
+  coef(toeplitz_fit, "mu"),
   sigma_total = unname(sigma(toeplitz_fit)[1L]),
-  toeplitz_fit$corpars$temporal
+  setNames(
+    toeplitz_parameters$estimate[lag_rows],
+    toeplitz_parameters$term[lag_rows]
+  )
 )
 round(toeplitz_estimates, 4)
 
