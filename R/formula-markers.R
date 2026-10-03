@@ -205,6 +205,7 @@ phylo <- function(term, tree) {
 
 #' Temporal random-effect marker
 #'
+#' @description
 #' `temporal()` adds a stationary Gaussian deviation for repeated observations
 #' within a sampled individual or site. `structure = "ar1"` uses finite integer
 #' occasions and permits signed one-occasion persistence. `structure = "ou"`

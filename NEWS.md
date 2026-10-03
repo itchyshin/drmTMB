@@ -6,7 +6,7 @@
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
-## Gaussian temporal AR1 and OU random effects
+## Gaussian temporal random effects
 
 * Native ML now fits univariate Gaussian stationary temporal intercept fields:
   AR1 with real integer occasion gaps through

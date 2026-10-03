@@ -129,11 +129,15 @@ REML, non-unit weights, forecasts, and `newdata` prediction.
 
 The fit keeps the phylogenetic and temporal components distinct in its
 structured metadata. The exact labels are intended to prevent a temporal SD
-from being read as evolutionary variation, or vice versa.
+from being read as evolutionary variation, or vice versa. The `parameters`
+table returned by `summary()` reports each component under that label in its
+`term` column.
 
 ```{r components, eval = has_ape}
-fit$sdpars$mu
-fit$decaypars$temporal
+parameter_table <- summary(fit)$parameters
+component_estimates <- setNames(parameter_table$estimate, parameter_table$term)
+component_estimates[c("sd_temporal", "sd_phylo_stable")]
+component_estimates["decay_temporal"]
 sigma(fit)[1]
 ```
 
@@ -144,9 +148,8 @@ The data were simulated with `sd_phylo_stable = 0.45`, `sd_temporal = 0.55`,
 ```{r key-estimates, eval = has_ape}
 key_estimates <- c(
   logLik = as.numeric(logLik(fit)),
-  fit$coefficients$mu,
-  fit$sdpars$mu,
-  fit$decaypars$temporal,
+  coef(fit, "mu"),
+  component_estimates[c("sd_temporal", "sd_phylo_stable", "decay_temporal")],
   sigma = unname(sigma(fit)[1])
 )
 round(key_estimates, 4)
