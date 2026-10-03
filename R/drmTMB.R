@@ -3826,7 +3826,7 @@ drm_family_type <- function(family) {
     ))
   }
   cli::cli_abort(
-    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn truncated_poisson}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 and hurdle Poisson models use {.fn truncated_nbinom2} or {.fn truncated_poisson} plus a {.code hu ~ ...} formula."
+    "Currently supported families are {.code gaussian()}, {.fn student}, {.fn skew_normal}, {.fn lognormal}, {.fn biv_lognormal}, {.fn biv_student}, {.code Gamma(link = \"log\")}, {.fn tweedie}, {.fn beta_family}, {.fn zero_one_beta}, {.fn beta_binomial}, {.code binomial(link = \"logit\"/\"probit\"/\"cloglog\")}, {.fn cumulative_logit}, {.code poisson(link = \"log\")}, {.fn nbinom2}, {.fn truncated_nbinom2}, {.fn truncated_poisson}, {.fn biv_gaussian}, {.code c(gaussian(), gaussian())}, and {.code list(gaussian(), gaussian())}. Zero-inflated Poisson and NB2 models use the same family route plus a {.code zi ~ ...} formula; hurdle NB2 models use {.fn truncated_nbinom2} plus a {.code hu ~ ...} formula, and hurdle Poisson models use {.fn truncated_poisson} plus a {.code hu ~ ...} formula."
   )
 }
 
