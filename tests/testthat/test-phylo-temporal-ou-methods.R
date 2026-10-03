@@ -152,5 +152,13 @@ test_that("a paired fit whose residual SD collapses is reported as a boundary fi
   boundary <- rows[rows$check == "temporal_boundary", , drop = FALSE]
   expect_identical(boundary$status, "warning")
   expect_match(boundary$value, "sigma_ratio=")
-  expect_identical(convergence_status(fit), "boundary")
+  # convergence_status() ranks "degenerate" above "boundary". On the reference
+  # optimizer path (Totoro) the Hessian and standard errors stay regular, so only
+  # the temporal_boundary row can flag the fit; on Linux CI the same collapse
+  # can also leave the Hessian or standard errors irregular (run 37087762781).
+  irregular <- drmTMB:::drm_inference_degenerate(fit) ||
+    drmTMB:::drm_fixed_effect_rank_deficient(fit) ||
+    drmTMB:::drm_standard_errors_pathological(fit)
+  expect_identical(convergence_status(fit), if (irregular) "degenerate" else "boundary")
+  expect_false(identical(convergence_status(fit), "converged"))
 })
