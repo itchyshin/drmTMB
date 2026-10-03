@@ -25,8 +25,11 @@ model is a different model, fitted with \code{\link[=poisson]{poisson()}} and a 
 The implemented contract is \code{log(mu) = eta_mu} and, when \code{hu} is present,
 \code{logit(hu) = eta_hu}. The positive-count log-density is
 \code{y * log(mu) - mu - lgamma(y + 1) - log(1 - exp(-mu))}. The response mean is
-\code{(1 - hu) * mu / (1 - exp(-mu))}. The Poisson family has no \code{sigma}; use
-\code{\link[=truncated_nbinom2]{truncated_nbinom2()}} for overdispersed positive or hurdle counts.
+\code{(1 - hu) * mu / (1 - exp(-mu))}, which is what \code{\link[=fitted]{fitted()}} returns;
+\code{predict(dpar = "mu", type = "response")} returns the untruncated component
+mean \code{mu}, as for the other hurdle and zero-inflated count routes. The
+Poisson family has no \code{sigma}; use \code{\link[=truncated_nbinom2]{truncated_nbinom2()}} for overdispersed
+positive or hurdle counts.
 
 This first slice is fixed-effect only: random effects, structured effects,
 offsets, missing-response masking, and \code{mi()} predictors are not

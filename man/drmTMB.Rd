@@ -235,7 +235,8 @@ fixed-effect cumulative-logit ordinal location models, fixed-effect Poisson
 mean, zero-inflated Poisson, negative-binomial mean-dispersion,
 zero-inflated negative-binomial mean-dispersion, zero-truncated
 negative-binomial mean-dispersion, hurdle negative-binomial
-mean-dispersion, and zero-truncated and hurdle Poisson models for counts. Student-t, lognormal, Gamma, beta,
+mean-dispersion, and zero-truncated and hurdle Poisson models for counts.
+Student-t, lognormal, Gamma, beta,
 ordinary Poisson, ordinary negative-binomial, beta-binomial, and
 zero-truncated negative-binomial \code{mu} formulas support ordinary unlabelled
 random intercepts and independent numeric slopes where

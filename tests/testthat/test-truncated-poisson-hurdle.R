@@ -244,6 +244,20 @@ test_that("truncated_poisson refuses unsupported inputs with guidance", {
     drmTMB(bf(y ~ x, hu ~ x + (1 | id)), family = fam, data = dat),
     "Hurdle random effects are not implemented"
   )
+  # Offsets are refused: the compiled model_type 21/22 branches never read
+  # offset_mu, so accepting one would silently drop it from the fit.
+  expect_error(
+    drmTMB(bf(y ~ x + offset(x), hu ~ 1), family = fam, data = dat),
+    "unsupported term.*offset"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x + offset(x)), family = fam, data = transform(dat, y = y + 1)),
+    "unsupported term.*offset"
+  )
+  expect_error(
+    drmTMB(bf(y ~ x, hu ~ x + offset(x)), family = fam, data = dat),
+    "offset"
+  )
   expect_error(
     drmTMB(bf(y ~ x, hu ~ 1), family = fam, data = transform(dat, y = c(0, -1, 2, 3, 1, 2))),
     "non-negative integer"
@@ -391,4 +405,165 @@ test_that("zero-truncated quantiles and simulations stay on the positive support
   expect_lt(max(predict(fit_tiny, dpar = "mu")), 1e-12)
   sims <- unlist(simulate(fit_tiny, nsim = 20, seed = 4), use.names = FALSE)
   expect_true(all(sims == 1))
+})
+
+test_that("zero-truncated and hurdle quantiles are the exact inverse of the CDF", {
+  # q(u) is the smallest y with F(y) >= u. At an exact CDF value u = F(y) it
+  # must therefore return y itself wherever F jumps at y (F(y) > F(y - 1))
+  # and F(y) < 1, the contract base R's qpois(ppois(y)) keeps. Review of
+  # 98c05f6b: upper-tail-only quantile helpers returned y + 1 at about a fifth
+  # of the jump points, for the existing NB2 entries as well as the new
+  # Poisson ones; the right-inverse checks elsewhere use u away from jumps.
+  entries <- list(
+    truncated_poisson = drm_family_dpq_truncated_poisson(),
+    hurdle_poisson = drm_family_dpq_hurdle_poisson(),
+    truncated_nbinom2 = drm_family_dpq_truncated_nbinom2(),
+    hurdle_nbinom2 = drm_family_dpq_hurdle_nbinom2()
+  )
+  mus <- c(1e-12, 1e-7, 5e-7, 0.01, 0.3, 1, 2, 7.5, 25, 150, 2500)
+  sigmas <- c(0.2, 0.7, 1.5, 3)
+  hus <- c(0.05, 0.6)
+  cases <- list()
+  add_case <- function(name, ...) {
+    cases[[length(cases) + 1L]] <<- list(name = name, params = data.frame(...))
+  }
+  for (mu in mus) {
+    add_case("truncated_poisson", mu = mu)
+    for (hu in hus) add_case("hurdle_poisson", mu = mu, hu = hu)
+    for (sigma in sigmas) {
+      add_case("truncated_nbinom2", mu = mu, sigma = sigma)
+      for (hu in hus) add_case("hurdle_nbinom2", mu = mu, sigma = sigma, hu = hu)
+    }
+  }
+
+  u_grid <- c(0, 1e-12, seq(0.001, 0.999, length.out = 301), 1 - 1e-12, 1 - 1e-15)
+  bad_jump <- bad_inverse <- bad_support <- bad_monotone <- character(0)
+  n_jumps <- 0L
+  for (case in cases) {
+    entry <- entries[[case$name]]
+    hurdle <- startsWith(case$name, "hurdle")
+    lowest <- if (hurdle) 0 else 1
+    mu <- case$params$mu
+    sigma <- if (is.null(case$params$sigma)) 0 else case$params$sigma
+    sd <- sqrt(mu + mu^2 * sigma^2)
+    y <- 0:min(ceiling(mu + 12 * sd + 12), 6000)
+    label <- paste0(
+      case$name, "(",
+      paste(names(case$params), unlist(case$params), sep = " = ", collapse = ", "),
+      ")"
+    )
+    rows <- function(n) case$params[rep(1L, n), , drop = FALSE]
+
+    # q(F(y)) == y at every jump point below 1
+    cdf <- entry$p(y, rows(length(y)))
+    left <- c(0, cdf[-length(cdf)])
+    jump <- cdf > left & cdf < 1 & y >= lowest
+    n_jumps <- n_jumps + sum(jump)
+    q_at_cdf <- entry$q(cdf[jump], rows(sum(jump)))
+    if (!identical(as.numeric(q_at_cdf), as.numeric(y[jump]))) {
+      wrong <- which(q_at_cdf != y[jump])
+      bad_jump <- c(bad_jump, paste0(
+        label, ": q(F(y)) != y at y = ",
+        paste(utils::head(y[jump][wrong], 4), collapse = ", "),
+        " (", length(wrong), " of ", sum(jump), ")"
+      ))
+    }
+
+    # generalized inverse at the CDF values, a few ulps either side of them,
+    # and a regular grid: F(q(u)) >= u and F(q(u) - 1) < u
+    at <- cdf[cdf < 1]
+    u <- sort(unique(c(
+      u_grid, at, at * (1 - 4 * .Machine$double.eps),
+      pmin(at * (1 + 4 * .Machine$double.eps), 1 - 1e-16)
+    )))
+    qu <- entry$q(u, rows(length(u)))
+    if (!all(is.finite(qu)) || any(qu < lowest) || any(qu %% 1 != 0)) {
+      bad_support <- c(bad_support, label)
+      next
+    }
+    if (is.unsorted(qu)) bad_monotone <- c(bad_monotone, label)
+    f_q <- entry$p(qu, rows(length(u)))
+    f_below <- entry$p(qu - 1, rows(length(u)))
+    ok <- f_q >= u & (qu == lowest | f_below < u)
+    if (!all(ok)) {
+      bad_inverse <- c(bad_inverse, paste0(
+        label, ": ", sum(!ok), " of ", length(u), " u values, e.g. u = ",
+        format(u[!ok][1], digits = 17), " -> ", qu[!ok][1]
+      ))
+    }
+  }
+  expect_gt(n_jumps, 10000L)
+  expect_identical(bad_jump, character(0))
+  expect_identical(bad_inverse, character(0))
+  expect_identical(bad_support, character(0))
+  expect_identical(bad_monotone, character(0))
+})
+
+test_that("zero-truncated quantiles keep precision in both tails", {
+  # Away from the jump points the quantile agrees with the textbook lower-tail
+  # transform q(p0 + u * (1 - p0)) wherever that form is itself accurate, in
+  # the far lower tail at large mu as well as the bulk.
+  tp <- drm_family_dpq_truncated_poisson()
+  tnb <- drm_family_dpq_truncated_nbinom2()
+  for (mu in c(0.3, 2, 25, 400)) {
+    p0 <- stats::dpois(0, mu)
+    u <- c(1e-9, 1e-4, 0.2, 0.5, 0.8, 0.9999)
+    # Poisson at mu = 400: also u ~ 4e-29, far below what 1 - P(Y > y) / q0
+    # can resolve; the textbook form is exact there because p0 underflows
+    u_pois <- if (mu > 100) c(stats::ppois(200, mu) / 3, u) else u
+    expect_equal(
+      tp$q(u_pois, list(mu = rep(mu, length(u_pois)))),
+      stats::qpois(p0 + u_pois * (1 - p0), mu),
+      label = paste("truncated_poisson mu =", mu)
+    )
+    size <- drm_nbinom2_size(0.5)
+    p0 <- stats::dnbinom(0, size = size, mu = mu)
+    expect_equal(
+      tnb$q(u, list(mu = rep(mu, length(u)), sigma = rep(0.5, length(u)))),
+      stats::qnbinom(p0 + u * (1 - p0), size = size, mu = mu),
+      label = paste("truncated_nbinom2 mu =", mu)
+    )
+  }
+  # far lower tail at large mu: the CDF stays relative-accurate below 1e-16
+  # (the upper-tail form alone returns 0 here), so q(F(y)) == y there too
+  y <- 200:240
+  params <- data.frame(mu = rep(400, length(y)))
+  cdf <- tp$p(y, params)
+  expect_true(all(cdf > 0 & cdf < 1e-16))
+  expect_equal(cdf, stats::ppois(y, 400) / (1 - stats::dpois(0, 400)), tolerance = 1e-12)
+  expect_identical(tp$q(cdf, params), as.numeric(y))
+})
+
+test_that("simulate() draws follow the zero-truncated pmf", {
+  # simulate() draws through the same quantile helpers, so its positive part
+  # must reproduce the truncated pmf (and stay on {1, 2, ...}).
+  set.seed(734)
+  dat <- data.frame(x = stats::rnorm(80))
+  mu_true <- exp(0.7 + 0.3 * dat$x)
+  p0 <- stats::dpois(0, mu_true)
+  dat$y <- stats::qpois(p0 + stats::runif(80) * (1 - p0), mu_true)
+  fit <- drmTMB(bf(y ~ x), family = truncated_poisson(), data = dat)
+  entry <- drm_family_dpq(fit)
+  params <- data.frame(mu = predict(fit, dpar = "mu"))
+  sims <- as.matrix(simulate(fit, nsim = 400, seed = 735))
+  expect_true(all(sims >= 1 & sims %% 1 == 0))
+  for (k in 1:5) {
+    expect_lt(abs(mean(sims == k) - mean(entry$d(k, params))), 0.015)
+  }
+
+  dat_nb <- dat
+  size <- 3
+  p0 <- stats::dnbinom(0, size = size, mu = mu_true)
+  dat_nb$y <- stats::qnbinom(p0 + stats::runif(80) * (1 - p0), size = size, mu = mu_true)
+  fit_nb <- drmTMB(bf(y ~ x), family = truncated_nbinom2(), data = dat_nb)
+  entry_nb <- drm_family_dpq(fit_nb)
+  params_nb <- data.frame(
+    mu = predict(fit_nb, dpar = "mu"),
+    sigma = predict(fit_nb, dpar = "sigma")
+  )
+  sims_nb <- as.matrix(simulate(fit_nb, nsim = 400, seed = 736))
+  expect_true(all(sims_nb >= 1 & sims_nb %% 1 == 0))
+  for (k in 1:5) {
+    expect_lt(abs(mean(sims_nb == k) - mean(entry_nb$d(k, params_nb))), 0.015)
+  }
 })
