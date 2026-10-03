@@ -276,6 +276,17 @@ validate_temporal_gaussian_terms <- function(
   invisible(NULL)
 }
 
+temporal_integer_gcd <- function(a, b) {
+  a <- abs(as.integer(a))
+  b <- abs(as.integer(b))
+  while (b > 0L) {
+    remainder <- a %% b
+    a <- b
+    b <- remainder
+  }
+  a
+}
+
 build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FALSE, paired_phylo_stable = FALSE) {
   if (is.null(term)) {
     return(empty_temporal_mu_structure())
@@ -311,10 +322,26 @@ build_temporal_mu_structure <- function(term, data, has_ordinary_intercept = FAL
     identical(term$structure, "ou") || any(distinct_lags %% 2L == 1L)
   )
   if (!has_required_lags) {
+    is_ar1 <- identical(term$structure, "ar1")
+    common_gap <- if (is_ar1) Reduce(temporal_integer_gcd, distinct_lags, 0L) else 0L
+    advice <- if (common_gap > 1L && length(distinct_lags) >= required_lags) {
+      c("i" = paste0(
+        "Every lag is a multiple of {common_gap}. If occasions are equally spaced in ",
+        "steps of {common_gap} (for example, surveys every {common_gap} years), divide ",
+        "{.arg {term$time}} by {common_gap} so persistence is estimated per ",
+        "{common_gap}-unit step."
+      ))
+    } else {
+      c("i" = "Keep genuine sampling gaps and collect more distinct within-series occasions.")
+    }
     cli::cli_abort(c(
       paste0("Temporal ", toupper(term$structure), " occasions do not provide the required lag variation."),
-      "x" = "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}.",
-      "i" = "Keep genuine sampling gaps and collect more distinct within-series occasions."
+      "x" = if (is_ar1) {
+        "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}, including an odd lag."
+      } else {
+        "Found distinct positive lags {.val {distinct_lags}}; this model needs at least {required_lags}."
+      },
+      advice
     ))
   }
   if (isTRUE(paired_phylo_stable) && n_series < 3L) {
@@ -370,7 +397,13 @@ temporal_mu_tmb_data <- function(spec) {
     has_temporal_mu = 1L,
     temporal_mu_node_index = temporal$observation_node_index0,
     temporal_mu_series_start = temporal$series_start0,
-    temporal_mu_gap = as.integer(round(temporal$gap)),
+    # OU reads only the elapsed gap; its integer gap slot is unused, and coercing
+    # very large elapsed gaps (e.g. seconds over decades) would warn spuriously.
+    temporal_mu_gap = if (identical(temporal$structure, "ou")) {
+      integer(length(temporal$gap))
+    } else {
+      as.integer(round(temporal$gap))
+    },
     temporal_mu_elapsed_gap = as.numeric(temporal$gap),
     temporal_mu_structure = if (identical(temporal$structure, "ar1")) 1L else 2L
   )

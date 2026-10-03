@@ -6671,6 +6671,7 @@ has_structured_mu_effect <- function(object) {
 n_mu_random_effect_terms <- function(object) {
   length(object$model$random$mu$labels) +
     n_mu_covariance_block_random_effect_terms(object) +
+    as.integer(drm_has_temporal_mu(object)) +
     if (has_structured_mu_effect(object) &&
       any(sub("[0-9]+$", "", phylo_mu_endpoint_dpars(
         object$model$structured$phylo_mu
