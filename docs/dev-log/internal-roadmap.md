@@ -73,6 +73,14 @@ ledgers disagree, the stricter row wins until the evidence is reconciled.
 
 ## Version 1.0 maturity surface (the milestone, not the next release)
 
+- **Temporal AR1 and OU follow-up remains gated:** the Gaussian ML
+  `temporal(1 | id, time = occasion, structure = "ar1")` route, its
+  positive-decay elapsed-time OU companion, and optional
+  same-ID ordinary intercept are implemented. OU Wald output remains deferred; AR1 output remains calibration-gated.
+  Final-source recovery and a five-seed timing pilot are retained, but primary
+  C1 had only 4/5 interval availability. Diagnose that boundary before seeking
+  campaign authority; do not reinterpret the pilot as coverage evidence.
+
 - **Arc 3a is recovery-certified:** native univariate ML fits unlabelled
   q1 `mu` intercepts for Gamma-`phylo()`, lognormal-`phylo()`, and
   lognormal-`relmat()` using `K` or `Q`. All three exact cells are

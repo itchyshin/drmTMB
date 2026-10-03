@@ -26,8 +26,9 @@ workflows that need more detail than \code{\link[=is_converged]{is_converged()}}
 optimizer code \code{0} while the likelihood geometry is degenerate (no proper
 maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
 when \code{multi_start} selected among several starts. \code{"boundary"} marks an
-optimizer-converged fit with variance-component or residual-correlation
-parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a
+optimizer-converged fit with variance-component, residual-correlation, or
+temporal (residual SD, OU decay, AR1 persistence) parameters near an
+interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a
 plain logical: it is \code{TRUE} for \code{"converged"} and \code{"boundary"}, and
 \code{FALSE} for \code{"degenerate"}.
 }
