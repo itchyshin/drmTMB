@@ -75,7 +75,7 @@ test_that("Mi-bundle: unsupported-parameter aborts include an i hint (Dinnage au
 test_that("Mi-bundle: all drmTMB unsupported-parameter branches carry an i hint (Dinnage audit)", {
   lines <- readLines(wave4b2_repo_r_drmtmb(), warn = FALSE)
   hits <- grep('"x" = "Unsupported parameter', lines, fixed = FALSE)
-  expect_length(hits, 17L)
+  expect_length(hits, 18L)
   for (line_no in hits) {
     block <- paste(lines[line_no:min(line_no + 4L, length(lines))], collapse = "\n")
     expect_match(

@@ -297,6 +297,7 @@ test-spatial-gaussian.R	cran-lane	environment	runs	1
 test-structured-re-ademp-scaffold.R	build-premise	build	skips	1
 test-structured-re-conversion-contracts.R	build-premise	build	skips	2
 test-structured-re-conversion-contracts.R	external-tool	environment	runs	4
+test-truncated-poisson-hurdle.R	suggests-package	environment	runs	2
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14

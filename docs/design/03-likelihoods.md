@@ -63,7 +63,7 @@ The corresponding R density call uses standard deviation, as in
 The R builders use descriptive model labels, such as `"gaussian"`,
 `"student"`, `"skew_normal"`, `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`, `"beta_binomial"`,
 `"poisson"`, `"zi_poisson"`, `"cumulative_logit"`, `"nbinom2"`, `"truncated_nbinom2"`,
-`"hurdle_nbinom2"`, `"zi_nbinom2"`, `"biv_gaussian"`,
+`"hurdle_nbinom2"`, `"truncated_poisson"`, `"hurdle_poisson"`, `"zi_nbinom2"`, `"biv_gaussian"`,
 `"biv_lognormal"`, and `"biv_student"`. Before calling
 the TMB template, `make_tmb_data()` turns
 those labels into integer branches in `src/drmTMB.cpp`. Unknown labels are
@@ -89,6 +89,8 @@ is the current routing contract:
 | `15` | `family = zero_one_beta()` | `drm_build_zero_one_beta_spec()` | Univariate zero-one beta models for continuous proportions on `[0, 1]`, with `mu` and `sigma` describing the interior beta component, `zoi` as exact-boundary probability, `coi` as the conditional probability of an exact one among boundary observations, and ordinary `mu` random intercepts or independent numeric slopes, with the exact Arc 4c slope cell inference-ready with caveats for true SD 0.50 and M>=16 and a strictly-interior-generator caveat. The point-fit-only `zoi` q1 routes admit either one unlabelled intercept `(1 | id)` or one slope-only effect when the fixed and random terms use the same raw symbol, such as `zoi ~ x + (0 + x | id)`; `coi` random effects remain unsupported. |
 | `11` | `family = truncated_nbinom2()` | `drm_build_truncated_nbinom2_spec()` | Univariate zero-truncated negative-binomial 2 models for positive counts, with `mu` and `sigma` describing the untruncated NB2 component and ordinary `mu` random intercepts or independent numeric slopes. |
 | `12` | `family = truncated_nbinom2()` plus `hu ~ ...` | `drm_build_truncated_nbinom2_spec()` | Univariate hurdle negative-binomial 2 models, with fixed-effect `mu`, `sigma`, and `hu`, plus the exact diagnostic-only q1 `hu ~ relmat(1 | id, K/Q = ...)` intercept; nonzero counts follow the zero-truncated NB2 component. Other hurdle-side and count-side random effects remain blocked. |
+| `21` | `family = truncated_poisson()` | `drm_build_truncated_poisson_spec()` | Univariate zero-truncated Poisson models with a fixed-effect log-mean `mu`; the response must be strictly positive. Fixed-effect only. |
+| `22` | `family = truncated_poisson()` plus `hu ~ ...` | `drm_build_truncated_poisson_spec()` | Univariate hurdle Poisson models with fixed-effect `mu` and `hu`; nonzero counts follow the zero-truncated Poisson component. Fixed-effect only. |
 | `13` | `family = cumulative_logit()` | `drm_build_cumulative_logit_spec()` | Univariate cumulative-logit ordinal location models, with ordered cutpoints, fixed latent logistic scale, ordinary recovery-grade `mu` random intercepts and independent numeric slopes, plus the exact local-fit q1 `mu ~ phylo(1 | id, tree = tree)` intercept. |
 | `14` | `family = beta_binomial()` | `drm_build_beta_binomial_spec()` | Univariate beta-binomial models for counted successes out of known trials, with `mu` as success probability, `sigma` as extra-binomial variation, and ordinary `mu` random intercepts or independent numeric slopes on the logit success-probability predictor. |
 | `18` | `family = stats::binomial(link = "logit")` | `drm_build_binomial_spec()` | Univariate Bernoulli/binomial logit models for 0/1 responses or two-column `cbind(successes, failures)` responses, with `mu` as event probability and no public `sigma`, including an ordinary `mu` random intercept `(1 | group)` (Arc 2a; not combinable with missing-predictor `mi()` yet). |
@@ -2631,6 +2633,35 @@ Here `mu` and `sigma` continue to describe the untruncated NB2 component.
 returns the unconditional response mean `(1 - hu) * mu / (1 - Pr_NB2(0))`.
 Zeros are allowed only when the `hu` formula is present, and at least one
 positive count must remain after missing-row filtering.
+
+## Implemented Hurdle Poisson
+
+Hurdle Poisson models use `truncated_poisson()` with an `hu ~ ...` formula
+(the Poisson analogue of the hurdle NB2 route; `poisson()` with `hu` stays
+refused and points to this spelling). The Poisson family has no `sigma`:
+
+```text
+eta_mu_i = X_mu[i, ] beta_mu,   mu_i = exp(eta_mu_i)
+eta_hu_i = X_hu[i, ] beta_hu,   hu_i = logit^{-1}(eta_hu_i)
+Z_i = 1 - exp(-mu_i)
+```
+
+```text
+Pr(y_i = 0) = hu_i
+Pr(y_i = k > 0) = (1 - hu_i) mu_i^k exp(-mu_i) / (k! Z_i)
+E[y_i] = (1 - hu_i) mu_i / Z_i
+```
+
+`log(Z_i)` is computed as `log1mexp(-mu_i)` (`drm_log1mexp()`), so it stays
+accurate for very small and very large `mu_i`. Without an `hu` formula the
+model is the plain zero-truncated Poisson and requires strictly positive
+counts. The likelihood factorises into a Bernoulli zero part and a
+zero-truncated Poisson positive part, so the fit agrees with the
+`glm(y == 0 ~ w, binomial)` plus `VGAM::vglm(y ~ x, pospoisson)` decomposition
+(`tests/testthat/test-truncated-poisson-hurdle.R`). Random effects, structured
+terms, offsets, missing-response masking, `mi()` predictors, `emmeans`
+support, and the Julia bridge are not implemented for this family in this
+slice and are refused with a message.
 
 ## Implemented Zero-Inflated Negative Binomial 2
 

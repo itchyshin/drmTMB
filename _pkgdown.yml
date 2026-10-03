@@ -141,6 +141,7 @@ reference:
       - tweedie
       - nbinom2
       - truncated_nbinom2
+      - truncated_poisson
       - biv_gaussian
       - biv_lognormal
       - biv_student

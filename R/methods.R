@@ -25,6 +25,8 @@ print.drmTMB <- function(x, ...) {
     nbinom2 = "negative binomial 2 mean-dispersion",
     truncated_nbinom2 = "zero-truncated negative binomial 2 mean-dispersion",
     hurdle_nbinom2 = "hurdle negative binomial 2 mean-dispersion",
+    truncated_poisson = "zero-truncated Poisson mean",
+    hurdle_poisson = "hurdle Poisson mean",
     zi_nbinom2 = "zero-inflated negative binomial 2 mean-dispersion",
     biv_gaussian = "bivariate Gaussian location-scale-coscale",
     biv_lognormal = "bivariate lognormal location-scale-coscale",
@@ -3459,18 +3461,16 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         mu <- drm_marginal_predict(object, "mu", re_draws)
         sigma <- drm_marginal_predict(object, "sigma", re_draws)
         size <- drm_nbinom2_size(sigma)
-        p0 <- truncated_nbinom2_p0(mu, sigma)
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-        stats::qnbinom(u, size = size, mu = mu)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
+        drm_truncated_qnbinom2(r, size = size, mu = mu)
       })
     } else {
       mu <- predict(object, dpar = "mu")
       sigma <- predict(object, dpar = "sigma")
       size <- drm_nbinom2_size(sigma)
-      p0 <- truncated_nbinom2_p0(mu, sigma)
       sims <- replicate(nsim, {
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
-        stats::qnbinom(u, size = size, mu = mu)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
+        drm_truncated_qnbinom2(r, size = size, mu = mu)
       })
     }
     sims <- as.data.frame(sims)
@@ -3487,30 +3487,49 @@ simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NULL, ...) 
         mu <- drm_marginal_predict(object, "mu", re_draws)
         sigma <- drm_marginal_predict(object, "sigma", re_draws)
         size <- drm_nbinom2_size(sigma)
-        p0 <- truncated_nbinom2_p0(mu, sigma)
         hurdle_zero <- stats::runif(length(mu)) < hu
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
         ifelse(
           hurdle_zero,
           0L,
-          stats::qnbinom(u, size = size, mu = mu)
+          drm_truncated_qnbinom2(r, size = size, mu = mu)
         )
       })
     } else {
       mu <- predict(object, dpar = "mu")
       sigma <- predict(object, dpar = "sigma")
       size <- drm_nbinom2_size(sigma)
-      p0 <- truncated_nbinom2_p0(mu, sigma)
       sims <- replicate(nsim, {
         hurdle_zero <- stats::runif(length(mu)) < hu
-        u <- p0 + pmax(stats::runif(length(mu)), .Machine$double.eps) * (1 - p0)
+        r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
         ifelse(
           hurdle_zero,
           0L,
-          stats::qnbinom(u, size = size, mu = mu)
+          drm_truncated_qnbinom2(r, size = size, mu = mu)
         )
       })
     }
+    sims <- as.data.frame(sims)
+    names(sims) <- paste0("sim_", seq_len(nsim))
+    sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
+    return(sims)
+  }
+
+  if (
+    object$model$model_type %in% c("truncated_poisson", "hurdle_poisson")
+  ) {
+    has_hu <- identical(object$model$model_type, "hurdle_poisson")
+    hu <- if (has_hu) predict(object, dpar = "hu") else NULL
+    mu <- predict(object, dpar = "mu")
+    sims <- replicate(nsim, {
+      r <- pmax(stats::runif(length(mu)), .Machine$double.eps)
+      positive <- drm_truncated_qpois(r, mu)
+      if (has_hu) {
+        ifelse(stats::runif(length(mu)) < hu, 0L, positive)
+      } else {
+        positive
+      }
+    })
     sims <- as.data.frame(sims)
     names(sims) <- paste0("sim_", seq_len(nsim))
     sims[] <- lapply(sims, function(col) drm_mask_missing_response_values(object, col))
@@ -4017,6 +4036,25 @@ residuals.drmTMB <- function(
       response / sqrt(hurdle_nbinom2_variance(mu, sigma, hu))
     ))
   }
+  if (
+    object$model$model_type %in% c("truncated_poisson", "hurdle_poisson")
+  ) {
+    mu <- predict(object, dpar = "mu")
+    hu <- if (identical(object$model$model_type, "hurdle_poisson")) {
+      predict(object, dpar = "hu")
+    } else {
+      0
+    }
+    fitted_mean <- truncated_poisson_mean(mu, hu)
+    response <- object$model$y - fitted_mean
+    if (type == "response") {
+      return(drm_mask_missing_response_values(object, response))
+    }
+    return(drm_mask_missing_response_values(
+      object,
+      response / sqrt(truncated_poisson_variance(mu, hu))
+    ))
+  }
   if (identical(object$model$model_type, "zi_nbinom2")) {
     mu <- predict(object, dpar = "mu")
     sigma <- predict(object, dpar = "sigma")
@@ -4179,6 +4217,8 @@ sigma.drmTMB <- function(object, ...) {
   if (
     identical(object$model$model_type, "poisson") ||
       identical(object$model$model_type, "zi_poisson") ||
+      identical(object$model$model_type, "truncated_poisson") ||
+      identical(object$model$model_type, "hurdle_poisson") ||
       identical(object$model$model_type, "binomial") ||
       identical(object$model$model_type, "cumulative_logit")
   ) {
@@ -6250,6 +6290,25 @@ hurdle_nbinom2_variance <- function(mu, sigma, hu) {
   )
 }
 
+# Zero-truncated Poisson positive part, optionally mixed with a hurdle zero of
+# probability `hu` (hu = 0 gives the plain zero-truncated Poisson). With
+# q = 1 - exp(-mu): positive mean m = mu / q, positive variance
+# m * (1 + mu - m); hurdle mean (1 - hu) m and variance
+# (1 - hu) v + hu (1 - hu) m^2.
+truncated_poisson_positive_mean <- function(mu) {
+  mu / pmax(-expm1(-mu), .Machine$double.eps)
+}
+
+truncated_poisson_mean <- function(mu, hu = 0) {
+  (1 - hu) * truncated_poisson_positive_mean(mu)
+}
+
+truncated_poisson_variance <- function(mu, hu = 0) {
+  m <- truncated_poisson_positive_mean(mu)
+  v <- m * (1 + mu - m)
+  pmax((1 - hu) * v + hu * (1 - hu) * m^2, .Machine$double.eps)
+}
+
 beta_binomial_proportion_variance <- function(mu, sigma, trials) {
   pmax(
     mu * (1 - mu) * (1 + trials * sigma^2) / (trials * (1 + sigma^2)),
@@ -6411,6 +6470,14 @@ drm_fitted_response <- function(object) {
     zi <- predict.drmTMB(object, dpar = "zi")
     return((1 - zi) * mu)
   }
+  if (identical(object$model$model_type, "truncated_poisson")) {
+    return(truncated_poisson_mean(predict.drmTMB(object, dpar = "mu")))
+  }
+  if (identical(object$model$model_type, "hurdle_poisson")) {
+    mu <- predict.drmTMB(object, dpar = "mu")
+    hu <- predict.drmTMB(object, dpar = "hu")
+    return(truncated_poisson_mean(mu, hu))
+  }
   if (
     identical(object$model$model_type, "gaussian") ||
       identical(object$model$model_type, "student") ||
@@ -6496,6 +6563,8 @@ drm_dpar_link <- function(object, dpar) {
     nbinom2 = c(mu = "log", sigma = "log"),
     truncated_nbinom2 = c(mu = "log", sigma = "log"),
     hurdle_nbinom2 = c(mu = "log", sigma = "log", hu = "logit"),
+    truncated_poisson = c(mu = "log"),
+    hurdle_poisson = c(mu = "log", hu = "logit"),
     zi_nbinom2 = c(mu = "log", sigma = "log", zi = "logit"),
     biv_gaussian = c(
       mu1 = "identity",

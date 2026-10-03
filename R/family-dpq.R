@@ -65,12 +65,13 @@
 #' residuals, `predict(type = "quantile")`, `exceedance()`) route through, so
 #' the public-to-native parameter conversion is not re-derived in each caller.
 #'
-#' As of DO-T3 batch D, these 18 established fitted `model_type` values are
+#' As of DO-T3 batch D, these 20 established fitted `model_type` values are
 #' promoted
 #' (`status = "reference"`): `"gaussian"`, `"student"`, `"skew_normal"`,
 #' `"lognormal"`, `"gamma"`, `"tweedie"`, `"beta"`, `"zero_one_beta"`,
 #' `"beta_binomial"`, `"binomial"`, `"cumulative_logit"`, `"poisson"`,
 #' `"zi_poisson"`, `"nbinom2"`, `"truncated_nbinom2"`, `"hurdle_nbinom2"`,
+#' `"truncated_poisson"`, `"hurdle_poisson"`,
 #' `"zi_nbinom2"`, and `"biv_gaussian"`.
 #' **`"skew_normal"` promotion is a distributional-output-axis result only**
 #' (DG2/DG3 for `{d,p,q}` correctness); it does not certify the skew_normal
@@ -116,6 +117,8 @@ drm_family_dpq <- function(object) {
     nbinom2 = drm_family_dpq_nbinom2(),
     truncated_nbinom2 = drm_family_dpq_truncated_nbinom2(),
     hurdle_nbinom2 = drm_family_dpq_hurdle_nbinom2(),
+    truncated_poisson = drm_family_dpq_truncated_poisson(),
+    hurdle_poisson = drm_family_dpq_hurdle_poisson(),
     zi_nbinom2 = drm_family_dpq_zi_nbinom2(),
     biv_gaussian = drm_family_dpq_biv_gaussian(),
     cli::cli_abort(c(
@@ -961,11 +964,137 @@ drm_family_dpq_nbinom2 <- function() {
 # 0` is the correct left limit at the smallest supported value `y = 1`.
 #
 # CDF: `F(y) = (pnbinom(y, size, mu) - p0) / (1 - p0)` for `y >= 1`, `F(y) =
-# 0` for `y < 1` (`d()` similarly floors at 0 below the support). Quantile:
-# `q(u) = qnbinom(p0 + u * (1 - p0), size, mu)` -- the SAME transform
-# `simulate.drmTMB()`'s truncated_nbinom2 branch already draws with (methods.R:
-# `u <- p0 + pmax(runif, eps) * (1 - p0); qnbinom(u, ...)`), here as the
-# deterministic right-inverse rather than a random draw.
+# 0` for `y < 1` (`d()` similarly floors at 0 below the support), evaluated by
+# `drm_truncated_pnbinom2()` in whichever tail keeps precision. Quantile: the
+# smallest `y >= 1` with `F(y) >= u`, i.e. `qnbinom(p0 + u * (1 - p0), size,
+# mu)` up to rounding, computed by `drm_truncated_qnbinom2()` as the exact
+# inverse of that CDF -- the SAME helper `simulate.drmTMB()`'s
+# truncated_nbinom2 branch draws with, here as the deterministic right-inverse
+# rather than a random draw.
+
+# ---- zero-truncated count CDF and quantile helpers ---------------------------
+#
+# For a count Y with untruncated zero mass p0 and q0 = 1 - p0, the
+# zero-truncated CDF is F(y) = P(Y <= y | Y >= 1) for y >= 1 and 0 below 1.
+# Each textbook form loses precision somewhere: the lower-tail form
+# (P(Y <= y) - p0) / q0 cancels to 0/0 at tiny mu, where p0 and P(Y <= y)
+# both round to 1, and the upper-tail form 1 - P(Y > y) / q0 cannot resolve
+# values below about 1e-16, the far lower tail at large mu.
+# drm_truncated_count_cdf() therefore uses the lower-tail form while
+# P(Y <= y) <= 1/2 and the upper-tail form otherwise, with q0 from expm1().
+#
+# The quantile is the smallest y >= 1 with F(y) >= u. For the hurdle it is 0
+# when u <= hu and otherwise the smallest y >= 1 with hu + (1 - hu) F(y) >= u.
+# drm_truncated_count_q() takes a candidate from the base quantile function in
+# the matching tail -- q(p0 + frac * q0) while that target is at most 1/2,
+# else q((1 - frac) * q0, lower.tail = FALSE), with frac = u for the plain
+# model -- and then steps it to the exact generalized inverse of the CDF
+# above. The step is what makes q(F(y)) == y at the CDF's jump points:
+# rounding in the transformed target can land on either side of a jump, and
+# the candidate alone then returns y + 1 (the upper-tail-only helpers of
+# 98c05f6b did so at about a fifth of the jump points). The upper-tail
+# candidate keeps tiny-mu quantiles finite and on {1, 2, ...}, where
+# p0 + u * q0 rounds to 1 (Inf) or to p0 (0). Shared by the truncated/hurdle
+# dpq entries and simulate.drmTMB(); the dpq p() closures call the same CDF
+# helpers, so q() inverts exactly the CDF that p() reports.
+
+drm_truncated_count_cdf <- function(y, lower, upper, p0, q0) {
+  cdf <- ifelse(lower <= 0.5, (lower - p0) / q0, 1 - upper / q0)
+  ifelse(y < 1, 0, pmin(pmax(cdf, 0), 1))
+}
+
+drm_truncated_ppois <- function(y, mu) {
+  drm_truncated_count_cdf(
+    y,
+    lower = stats::ppois(y, lambda = mu),
+    upper = stats::ppois(y, lambda = mu, lower.tail = FALSE),
+    p0 = exp(-mu),
+    q0 = -expm1(-mu)
+  )
+}
+
+drm_truncated_pnbinom2 <- function(y, size, mu) {
+  log_p0 <- -size * log1p(mu / size)
+  drm_truncated_count_cdf(
+    y,
+    lower = stats::pnbinom(y, size = size, mu = mu),
+    upper = stats::pnbinom(y, size = size, mu = mu, lower.tail = FALSE),
+    p0 = exp(log_p0),
+    q0 = -expm1(log_p0)
+  )
+}
+
+# `base_q(p, i, lower_tail)` is the untruncated quantile and `cdf(y, i)` the
+# zero-truncated CDF, both for the elements `i`; all other arguments are
+# already recycled to one common length. `hu = NULL` is the plain model.
+drm_truncated_count_q <- function(u, hu, p0, q0, base_q, cdf) {
+  frac <- if (is.null(hu)) u else pmin(pmax((u - hu) / (1 - hu), 0), 1)
+  target <- p0 + frac * q0
+  q <- rep(NA_real_, length(u))
+  lower <- which(target <= 0.5)
+  upper <- which(target > 0.5)
+  q[lower] <- base_q(target[lower], lower, TRUE)
+  q[upper] <- base_q((1 - frac[upper]) * q0[upper], upper, FALSE)
+  q <- pmax(q, 1)
+  full_cdf <- if (is.null(hu)) {
+    cdf
+  } else {
+    function(y, i) hu[i] + (1 - hu[i]) * cdf(y, i)
+  }
+  # Step down while the value below still reaches u, then up while the value
+  # itself falls short, so q is the smallest y >= 1 with full_cdf(y) >= u.
+  # The candidate is off by rounding only, so each loop runs a step or two.
+  i <- which(is.finite(q) & q > 1 & !is.na(u))
+  while (length(i)) {
+    i <- i[which(full_cdf(q[i] - 1, i) >= u[i])]
+    q[i] <- q[i] - 1
+    i <- i[q[i] > 1]
+  }
+  i <- which(is.finite(q) & !is.na(u))
+  while (length(i)) {
+    i <- i[which(full_cdf(q[i], i) < u[i])]
+    q[i] <- q[i] + 1
+  }
+  if (is.null(hu)) q else ifelse(u <= hu, 0, q)
+}
+
+drm_truncated_qpois <- function(u, mu, hu = NULL) {
+  n <- if (length(u) && length(mu)) max(length(u), length(mu), length(hu)) else 0L
+  u <- rep_len(u, n)
+  mu <- rep_len(mu, n)
+  if (!is.null(hu)) hu <- rep_len(hu, n)
+  drm_truncated_count_q(
+    u, hu,
+    p0 = exp(-mu),
+    q0 = -expm1(-mu),
+    base_q = function(p, i, lower_tail) {
+      stats::qpois(p, lambda = mu[i], lower.tail = lower_tail)
+    },
+    cdf = function(y, i) drm_truncated_ppois(y, mu[i])
+  )
+}
+
+drm_truncated_qnbinom2 <- function(u, size, mu, hu = NULL) {
+  n <- if (length(u) && length(size) && length(mu)) {
+    max(length(u), length(size), length(mu), length(hu))
+  } else {
+    0L
+  }
+  u <- rep_len(u, n)
+  size <- rep_len(size, n)
+  mu <- rep_len(mu, n)
+  if (!is.null(hu)) hu <- rep_len(hu, n)
+  log_p0 <- -size * log1p(mu / size)
+  drm_truncated_count_q(
+    u, hu,
+    p0 = exp(log_p0),
+    q0 = -expm1(log_p0),
+    base_q = function(p, i, lower_tail) {
+      stats::qnbinom(p, size = size[i], mu = mu[i], lower.tail = lower_tail)
+    },
+    cdf = function(y, i) drm_truncated_pnbinom2(y, size[i], mu[i])
+  )
+}
 
 drm_family_dpq_truncated_nbinom2 <- function() {
   list(
@@ -984,14 +1113,11 @@ drm_family_dpq_truncated_nbinom2 <- function() {
     p = function(y, params) {
       y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
-      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
-      cdf <- (stats::pnbinom(y, size = size, mu = params$mu) - p0) / (1 - p0)
-      ifelse(y < 1, 0, cdf)
+      drm_truncated_pnbinom2(y, size = size, mu = params$mu)
     },
     q = function(u, params) {
       size <- drm_nbinom2_size(params$sigma)
-      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
-      stats::qnbinom(p0 + u * (1 - p0), size = size, mu = params$mu)
+      drm_truncated_qnbinom2(u, size = size, mu = params$mu)
     }
   )
 }
@@ -1011,11 +1137,14 @@ drm_family_dpq_truncated_nbinom2 <- function() {
 #
 # CDF: `F(0) = hu`; for `y >= 1`, `F(y) = hu + (1 - hu) * truncated_F(y)`
 # where `truncated_F(y) = (pnbinom(y, size, mu) - p0) / (1 - p0)` is the SAME
-# truncated-CDF "truncated_nbinom2" computes. Quantile: solving for the
-# smallest y with `F(y) >= u` gives `q(u) = qnbinom(p0 + (1 - p0) * frac,
-# size, mu)` where `frac = (u - hu) / (1 - hu)` clamped to `[0, 1]` -- the
-# same "fraction" transform as "zi_poisson"/"zi_nbinom2", composed with
-# "truncated_nbinom2"'s own `p0 + (1 - p0) * (...)` quantile transform.
+# truncated-CDF "truncated_nbinom2" computes (`drm_truncated_pnbinom2()`).
+# Quantile: solving for the smallest y with `F(y) >= u` gives
+# `q(u) = qnbinom(p0 + (1 - p0) * frac, size, mu)` up to rounding (at least 1,
+# and 0 when `u <= hu`) where `frac = (u - hu) / (1 - hu)` clamped to
+# `[0, 1]` -- the same "fraction" transform as "zi_poisson"/"zi_nbinom2",
+# composed with "truncated_nbinom2"'s own `p0 + (1 - p0) * (...)` quantile
+# transform. `drm_truncated_qnbinom2(hu = )` steps the result to the exact
+# inverse of this hurdle CDF, so `q(F(y)) == y` at its jump points.
 
 drm_family_dpq_hurdle_nbinom2 <- function() {
   list(
@@ -1035,20 +1164,77 @@ drm_family_dpq_hurdle_nbinom2 <- function() {
       y <- drm_recycle_scalar_arg(y, params)
       size <- drm_nbinom2_size(params$sigma)
       hu <- params$hu
-      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
-      trunc_cdf <- pmax(
-        (stats::pnbinom(pmax(y, 0), size = size, mu = params$mu) - p0) /
-          (1 - p0),
-        0
-      )
+      trunc_cdf <- drm_truncated_pnbinom2(y, size = size, mu = params$mu)
       ifelse(y < 0, 0, hu + (1 - hu) * trunc_cdf)
     },
     q = function(u, params) {
       size <- drm_nbinom2_size(params$sigma)
+      drm_truncated_qnbinom2(u, size = size, mu = params$mu, hu = params$hu)
+    }
+  )
+}
+
+# ---- truncated_poisson / hurdle_poisson (reference, discrete) ---------------
+#
+# Zero-truncated Poisson on `{1, 2, ...}` renormalized by `1 - p0`,
+# `p0 = dpois(0, mu)`, matching the compiled kernel (src/drmTMB.cpp,
+# model_type == 21): `dpois(y, mu) / (1 - p0)` for `y >= 1`. The hurdle
+# version (model_type == 22) is `P(Y = 0) = hu` and `(1 - hu) *
+# truncated pmf` for `y >= 1`, so with the same "fraction" transform as
+# "hurdle_nbinom2": `F(y) = hu + (1 - hu) * (ppois(y) - p0) / (1 - p0)` and
+# `q(u) = qpois(p0 + (1 - p0) * frac, mu)` up to rounding,
+# `frac = clamp((u - hu)/(1 - hu))`, at least 1 on the positive part (0 only
+# when `u <= hu`). The CDF is `drm_truncated_ppois()` and the quantile its
+# exact inverse `drm_truncated_qpois()` (see the helpers above); `1 - p0` is
+# computed as `-expm1(-mu)` for precision at tiny mu.
+# No isolated atom outside the lattice, so `atoms = numeric(0)` for the plain
+# truncated model and `atoms = c(0)` (DG2 bookkeeping only) for the hurdle.
+
+drm_family_dpq_truncated_poisson <- function() {
+  list(
+    dpars = "mu",
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = numeric(0),
+    status = "reference",
+    d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      q0 <- -expm1(-params$mu)
+      ifelse(y < 1, 0, stats::dpois(y, lambda = params$mu) / q0)
+    },
+    p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      drm_truncated_ppois(y, params$mu)
+    },
+    q = function(u, params) {
+      drm_truncated_qpois(u, params$mu)
+    }
+  )
+}
+
+drm_family_dpq_hurdle_poisson <- function() {
+  list(
+    dpars = c("mu", "hu"),
+    discrete = TRUE,
+    has_atom = FALSE,
+    atoms = c(0),
+    status = "reference",
+    d = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
+      q0 <- -expm1(-params$mu)
+      base <- stats::dpois(y, lambda = params$mu)
+      ifelse(y == 0, params$hu, (1 - params$hu) * base / q0)
+    },
+    p = function(y, params) {
+      y <- drm_recycle_scalar_arg(y, params)
       hu <- params$hu
-      p0 <- stats::dnbinom(0, size = size, mu = params$mu)
-      frac <- pmin(pmax((u - hu) / (1 - hu), 0), 1)
-      stats::qnbinom(p0 + (1 - p0) * frac, size = size, mu = params$mu)
+      trunc_cdf <- drm_truncated_ppois(y, params$mu)
+      ifelse(y < 0, 0, hu + (1 - hu) * trunc_cdf)
+    },
+    q = function(u, params) {
+      # F(0) = hu, so u <= hu maps to 0; above hu the positive part lives on
+      # {1, 2, ...} and must not round back to 0 at tiny mu.
+      drm_truncated_qpois(u, params$mu, hu = params$hu)
     }
   )
 }
