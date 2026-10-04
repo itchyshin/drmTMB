@@ -1,3 +1,19 @@
+# 2026-10-04: phylogenetic tree-height documentation correction
+
+Corrected `phylo()` roxygen, generated help and NEWS to describe the existing
+unit-height Brownian covariance. No fitting code or defaults changed. Added
+branch-unit invariance tests and corrected the help contract that previously
+required the false absolute-scale claim (Ayumi-495/LS_ecogeographical-rules#49).
+
+Focused local tests using the installed 0.7.1 engine: 29 tests, 220 passed
+expectations, zero failures, errors or skips. R expression equivalence,
+`tools::checkRd`, `git diff --check`, `pkgdown::check_pkgdown()` and a local
+`phylo` reference-page build/content check passed. The full package suite,
+release checks, deployment and Ayumi's empirical fits were not checked.
+
+Report: `docs/dev-log/after-task/2026-10-04-phylo-tree-height-docs.md`.
+Local branch: `codex/phylo-height-docs`; original checkout preserved.
+
 # 2026-09-17 — Dinnage arc3 Wave C MERGED + tip-identity receipt (#1380)
 
 **Lane:** Grace · merge gate (Composer).

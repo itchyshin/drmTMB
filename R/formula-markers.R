@@ -163,34 +163,39 @@ animal <- function(term, pedigree = NULL, A = NULL, Ainv = NULL) {
 #' `phylo()` marks user-facing syntax for phylogenetic dependence. The current
 #' fitted paths support Gaussian location and residual-scale effects,
 #' response-specific direct-SD formulas for location effects, labelled
-#' bivariate Gaussian location-scale blocks, and the first ordinary Poisson q=1
-#' and NB2 q=1 location effects. Use `phylo(1 | species, tree = tree)` in
+#' bivariate Gaussian location-scale blocks, and single-axis ordinary Poisson
+#' and NB2 location effects. Use `phylo(1 | species, tree = tree)` in
 #' univariate Gaussian `mu`, univariate Gaussian `sigma`, ordinary Poisson `mu`,
 #' or ordinary NB2 `mu`, `phylo(1 + x | species, tree = tree)` for the
-#' unlabelled ordinary Poisson/NB2 count one-slope gate, one numeric univariate
+#' supported unlabelled ordinary Poisson/NB2 count slope, one numeric univariate
 #' Gaussian `mu` slope with independent intercept/slope SDs, matching
 #' univariate Gaussian `mu` and
 #' `sigma` intercept terms for a mean-scale phylogenetic correlation, matching
 #' terms in bivariate Gaussian `mu1` and `mu2`, matching labelled all-four
 #' intercept terms across Gaussian `mu1`, `mu2`, `sigma1`, and `sigma2`, or the
-#' first shared-label all-four one-slope point-fit/extractor cell. A single
+#' supported shared-label all-four one-slope model. A single
 #' shared intercept label estimates the full q4 block; a `mu1`/`mu2` intercept
 #' label plus a separate `sigma1`/`sigma2` intercept label estimates the
-#' block-diagonal fallback. The all-four `phylo(1 + x | p | species, tree =
-#' tree)` cell is native point-fit/extractor evidence only; bridge parity,
+#' block-diagonal fallback. The all-four `phylo(1 + x | p | species, tree = tree)`
+#' model has native point-fit/extractor evidence only; bridge parity,
 #' intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
 #' Gaussian multiple phylogenetic slopes, pure, labelled, or multiple
 #' non-Gaussian phylogenetic slopes,
 #' zero-inflated phylogenetic effects, and phylogenetic slope correlations
-#' remain planned. The public `phylo()` API requires an ultrametric tree with
-#' branch lengths and uses the supplied branch-length scale when building the
-#' Hadfield and Nakagawa A-inverse sparse-precision path internally; drmTMB
-#' does not silently rescale the tree to unit height.
+#' are not supported. The public `phylo()` API requires an ultrametric tree with
+#' branch lengths and normalizes the Brownian covariance by the tree height
+#' when building the Hadfield and Nakagawa A-inverse sparse-precision path.
+#' Thus the latent Brownian field has unit variance at each tip, and the fitted
+#' phylogenetic SD uses this unit-height convention.
+#' Multiplying all branch lengths by a positive constant
+#' leaves the normalized covariance unchanged. The supplied tree object is not
+#' modified.
 #'
 #' @param term Structured random-effect term, currently `1 | species` or
 #'   `1 + x | species`.
-#' @param tree Ultrametric phylogeny input with branch lengths on the scale the
-#'   analyst wants the phylogenetic covariance to use.
+#' @param tree Ultrametric phylogeny input with branch lengths. Relative branch
+#'   lengths determine the phylogenetic covariance; absolute tree height is
+#'   normalized internally.
 #'
 #' @return A formula marker; never evaluated by users.
 #' @export
