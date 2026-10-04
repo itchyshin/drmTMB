@@ -1,0 +1,12 @@
+"seed","selected","objective","elapsed_sec","pd_hessian","vcov_available","interval_available","sigma","warning","error"
+2026091101,TRUE,633.351675075892,3.647,FALSE,FALSE,FALSE,0.000337864520163293,"`drmTMB()` escalated `stats::nlminb()` to the ""careful"" optimizer preset to
+reach convergence.
+ℹ An earlier preset errored or did not converge; inspect
+  `fit$optimizer_attempts`. | NaNs produced","Fixed-effect covariance is unavailable because TMB::sdreport() did not
+report a positive-definite Hessian.
+ℹ Refit with `control = drm_control(se = TRUE)` for `vcov()`, Wald standard
+  errors, or Wald confidence intervals."
+2026091102,TRUE,641.302025375272,2.868,TRUE,TRUE,TRUE,0.512387785311358,"",""
+2026091103,TRUE,672.175260891715,1.055,TRUE,TRUE,TRUE,0.493135354097247,"",""
+2026091104,TRUE,660.419842032001,1.637,TRUE,TRUE,TRUE,0.000240211717344806,"",""
+2026091105,TRUE,644.854723210312,1.786,TRUE,TRUE,TRUE,0.0901225683517835,"",""

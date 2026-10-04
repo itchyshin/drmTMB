@@ -1,0 +1,46 @@
+"fixture","cell","role","seed","n_id","n_time","decay_truth","ordinary_intercept","selected","objective","convergence","elapsed_sec","pd_hessian","n_intervals","interval_available","interval_status","warning","error"
+"U1_2026091201","U1","combined_short",2026091201,80,6,0.4,TRUE,TRUE,570.841880729252,0,1.115,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U1_2026091202","U1","combined_short",2026091202,80,6,0.4,TRUE,TRUE,591.68883566395,0,2.651,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U1_2026091203","U1","combined_short",2026091203,80,6,0.4,TRUE,TRUE,600.702080451105,0,0.832,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U1_2026091204","U1","combined_short",2026091204,80,6,0.4,TRUE,TRUE,591.47962216507,0,0.948,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U1_2026091205","U1","combined_short",2026091205,80,6,0.4,TRUE,TRUE,612.073237326017,0,0.928000000000001,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U2_2026091201","U2","combined_persistent",2026091201,80,12,0.15,TRUE,TRUE,1120.05817001734,0,2.111,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U2_2026091202","U2","combined_persistent",2026091202,80,12,0.15,TRUE,TRUE,1173.39440235798,0,1.804,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U2_2026091203","U2","combined_persistent",2026091203,80,12,0.15,TRUE,TRUE,1152.07388946835,0,1.936,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U2_2026091204","U2","combined_persistent",2026091204,80,12,0.15,TRUE,TRUE,1158.94066023124,0,2.038,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U2_2026091205","U2","combined_persistent",2026091205,80,12,0.15,TRUE,TRUE,1181.79504741551,0,1.973,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U3_2026091201","U3","ou_only",2026091201,80,12,0.7,FALSE,TRUE,1202.88220451748,0,2.908,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U3_2026091202","U3","ou_only",2026091202,80,12,0.7,FALSE,TRUE,1237.03153377554,0,2.02,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U3_2026091203","U3","ou_only",2026091203,80,12,0.7,FALSE,TRUE,1219.31307107976,0,1.871,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U3_2026091204","U3","ou_only",2026091204,80,12,0.7,FALSE,TRUE,1211.20510096833,0,2.028,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA
+"U3_2026091205","U3","ou_only",2026091205,80,12,0.7,FALSE,TRUE,1230.50756784701,0,2.278,TRUE,0,FALSE,"OU mean-coefficient Wald intervals are not yet qualified.
+ℹ The inherited AR1 calibration prerequisite remains unresolved; OU Wald
+  intervals are deferred.","",NA

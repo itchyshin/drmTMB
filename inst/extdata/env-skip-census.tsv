@@ -246,6 +246,10 @@ test-phylo-interaction.R	cran-lane	environment	runs	4
 test-phylo-penalized-map.R	cran-lane	environment	runs	3
 test-phylo-penalty-sweep.R	cran-lane	environment	runs	3
 test-phylo-penalty-sweep.R	suggests-package	environment	runs	4
+test-phylo-temporal-ou-gate-runner.R	build-premise	build	skips	2
+test-phylo-temporal-ou-gate-runner.R	external-tool	environment	runs	1
+test-phylo-temporal-ou-gate-runner.R	suggests-package	environment	runs	1
+test-phylo-temporal-ou-methods.R	suggests-package	environment	runs	1
 test-pkgdown-public-surface.R	build-premise	build	skips	2
 test-pkgdown-public-surface.R	external-tool	environment	runs	2
 test-pkgdown-reference-index.R	build-premise	build	skips	1
@@ -297,6 +301,7 @@ test-spatial-gaussian.R	cran-lane	environment	runs	1
 test-structured-re-ademp-scaffold.R	build-premise	build	skips	1
 test-structured-re-conversion-contracts.R	build-premise	build	skips	2
 test-structured-re-conversion-contracts.R	external-tool	environment	runs	4
+test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14
