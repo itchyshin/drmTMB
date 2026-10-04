@@ -460,6 +460,33 @@ test_that("drm_phylo_augmented_precision matches the dense Brownian comparator",
   )
 })
 
+test_that("default phylogenetic covariance is invariant to branch-length units", {
+  tree <- tiny_ultrametric_tree()
+  scaled_tree <- tree
+  scaled_tree$edge.length <- 100 * tree$edge.length
+
+  covariance <- drmTMB:::drm_phylo_tip_covariance(tree)
+  scaled_covariance <- drmTMB:::drm_phylo_tip_covariance(scaled_tree)
+  precision <- drmTMB:::drm_phylo_augmented_precision(tree)
+  scaled_precision <- drmTMB:::drm_phylo_augmented_precision(scaled_tree)
+
+  expect_equal(unname(diag(covariance)), rep(1, length(tree$tip.label)))
+  expect_equal(scaled_covariance, covariance, tolerance = 1e-12)
+  expect_equal(scaled_precision$precision, precision$precision, tolerance = 1e-12)
+  expect_equal(scaled_precision$log_det_precision, precision$log_det_precision,
+    tolerance = 1e-12
+  )
+  expect_equal(scaled_precision$height, 100 * precision$height)
+
+  # A raw Brownian covariance is the contrasting convention: its units change.
+  raw_covariance <- drmTMB:::drm_phylo_tip_covariance(tree, correlation = FALSE)
+  scaled_raw_covariance <- drmTMB:::drm_phylo_tip_covariance(
+    scaled_tree, correlation = FALSE
+  )
+  expect_equal(scaled_raw_covariance, 100 * raw_covariance, tolerance = 1e-12)
+  expect_false(isTRUE(all.equal(scaled_raw_covariance, raw_covariance)))
+})
+
 tiny_non_ultrametric_tree <- function() {
   tree <- tiny_ultrametric_tree()
   # Shorten the sp_a branch so root-to-tip depths differ (1.5, 2, 2).

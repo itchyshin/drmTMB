@@ -10,8 +10,9 @@ phylo(term, tree)
 \item{term}{Structured random-effect term, currently \code{1 | species} or
 \code{1 + x | species}.}
 
-\item{tree}{Ultrametric phylogeny input with branch lengths on the scale the
-analyst wants the phylogenetic covariance to use.}
+\item{tree}{Ultrametric phylogeny input with branch lengths. Relative branch
+lengths determine the phylogenetic covariance; absolute tree height is
+normalized internally.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -33,15 +34,20 @@ intercept terms across Gaussian \code{mu1}, \code{mu2}, \code{sigma1}, and \code
 supported shared-label all-four one-slope model. A single
 shared intercept label estimates the full q4 block; a \code{mu1}/\code{mu2} intercept
 label plus a separate \code{sigma1}/\code{sigma2} intercept label estimates the
-block-diagonal fallback. The all-four \code{phylo(1 + x | p | species, tree = tree)} model has native point-fit/extractor evidence only; bridge parity,
+block-diagonal fallback. The all-four \code{phylo(1 + x | p | species, tree = tree)}
+model has native point-fit/extractor evidence only; bridge parity,
 intervals, coverage, REML, AI-REML, block-diagonal all-four slope layouts,
 Gaussian multiple phylogenetic slopes, pure, labelled, or multiple
 non-Gaussian phylogenetic slopes,
 zero-inflated phylogenetic effects, and phylogenetic slope correlations
 are not supported. The public \code{phylo()} API requires an ultrametric tree with
-branch lengths and uses the supplied branch-length scale when building the
-Hadfield and Nakagawa A-inverse sparse-precision path internally; drmTMB
-does not silently rescale the tree to unit height.
+branch lengths and normalizes the Brownian covariance by the tree height
+when building the Hadfield and Nakagawa A-inverse sparse-precision path.
+Thus the latent Brownian field has unit variance at each tip, and the fitted
+phylogenetic SD uses this unit-height convention.
+Multiplying all branch lengths by a positive constant
+leaves the normalized covariance unchanged. The supplied tree object is not
+modified.
 }
 \examples{
 bf(y ~ x + phylo(1 | species, tree = tree), sigma ~ z)

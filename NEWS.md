@@ -1,5 +1,15 @@
 # drmTMB (development)
 
+## Documentation fixes
+
+* `?phylo` now correctly describes the existing unit-height convention:
+  drmTMB divides the Brownian covariance by tree height, so multiplying all
+  branch lengths by the same positive constant leaves the normalized
+  covariance unchanged. The input tree object is not modified. This corrects
+  the earlier claim of preserving the supplied absolute branch-length scale;
+  no fitting behavior or numerical default changed (Ayumi-495/
+  LS_ecogeographical-rules#49).
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names
@@ -72,8 +82,9 @@
   when the scale formula varies by row, and warns that generic tools expecting
   a scalar residual scale can summarize away this heterogeneity.
 
-* `?phylo` now states that drmTMB uses the supplied ultrametric branch-length
-  scale and does not silently rescale the tree to unit height.
+* `?phylo` added branch-length-scale guidance. Its description of absolute
+  scale preservation was incorrect; see the development documentation
+  correction above for the existing unit-height covariance convention.
 
 * `miss_control(predictor = "fail")` now errors when ordinary predictors contain
   missing values, matching the documented default.
