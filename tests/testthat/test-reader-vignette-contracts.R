@@ -54,6 +54,14 @@ test_that("the scanner catches private slots regardless of object name", {
   )
 })
 
+test_that("the OU decay slot is policed like the correlation slot", {
+  root <- contract_fixture(files = list("reader.Rmd" = "ou_fit$decaypars$temporal"))
+  expect_match(
+    paste(contract_linter$reader_contract_lint(root), collapse = "\n"),
+    "Undeclared private access in reader.Rmd.*decaypars"
+  )
+})
+
 test_that("the scanner catches bracket private slots regardless of object name", {
   root <- contract_fixture(files = list("reader.Rmd" = 'x[["sdpars"]][["mu"]]'))
   expect_match(
@@ -322,7 +330,7 @@ test_that("the live corpus has the complete immutable manifest", {
     file.path(project_root, "vignettes")
   )
   source_vignettes <- names(source_paths)
-  expect_equal(nrow(manifest), 38L)
+  expect_equal(nrow(manifest), 39L)
   expect_equal(sum(grepl("/articles/", source_paths, fixed = TRUE)), 6L)
   expect_identical(anyDuplicated(manifest$vignette), 0L)
   expect_setequal(manifest$vignette, source_vignettes)
