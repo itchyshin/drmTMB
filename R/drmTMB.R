@@ -1116,7 +1116,15 @@ drm_optimize_with_preset_retry <- function(
 # would bias a profile-likelihood comparison between the two (#1130 CI
 # follow-up): the polished side reaches a lower nll for free, which the
 # unpolished side cannot match, artificially narrowing the interval.
-drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
+drm_newton_polish <- function(
+  opt,
+  fn,
+  gr,
+  grad_tol = 1e-8,
+  max_iter = 3L,
+  trust_radius = 1,
+  max_backtrack = 4L
+) {
   par <- opt$par
   grad <- tryCatch(as.numeric(gr(par)), error = function(e) NULL)
   if (is.null(grad) || !all(is.finite(grad))) {
@@ -1139,23 +1147,49 @@ drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
     if (is.null(step) || !all(is.finite(step))) {
       break
     }
-    par_new <- par - step
-    grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
-    # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
-    # attribute that nlminb's own `$objective` never has. Assigning it
-    # unstripped leaked the attribute through `stored_loglik` into the public
-    # `logLik()` object and broke test-animal-relmat-gaussian.R (Rose f3 pass,
-    # 2026-09-03). Strip it at the source, where the value enters the polish.
-    objective_new <- tryCatch(
-      as.numeric(fn(par_new)),
-      error = function(e) NA_real_
-    )
-    if (
-      is.null(grad_new) ||
-        !all(is.finite(grad_new)) ||
-        !is.finite(objective_new) ||
-        objective_new > objective + 1e-8
-    ) {
+    # #1441: a plain Newton step on an ill-conditioned Hessian can overshoot
+    # badly. On a Tweedie y = 0.01 fixture
+    # (tests/testthat/test-numeric-kernel-oracle.R:552) the unguarded step
+    # moved beta_sigma from -6.35 to -23.6 and beta_nu from 2.44 to -24.4 --
+    # about 27x `trust_radius` below -- landing at a point where TMB's
+    # dtweedie bound-search loops for ~1e9 iterations and fn()/gr() never
+    # return (docs/dev-log; see test-newton-polish-guard.R). Cap the step's
+    # max-abs component to `trust_radius`, then backtrack (halve, up to
+    # `max_backtrack` times) if it does not improve the objective, before
+    # giving up on this iteration. `trust_radius = 1` is generous for a
+    # *polish* step -- nlminb has already converged approximately, so a
+    # well-conditioned polish step is empirically far smaller than 1 on
+    # every existing fixture (test-newton-polish-guard.R) -- while still
+    # well inside the ~27x overshoot that caused the hang.
+    step_max <- max(abs(step))
+    if (is.finite(step_max) && step_max > trust_radius) {
+      step <- step * (trust_radius / step_max)
+    }
+    accepted <- FALSE
+    grad_new <- NULL
+    objective_new <- NA_real_
+    for (bt in seq_len(max_backtrack + 1L)) {
+      par_new <- par - step
+      # `fn()` (TMB's `obj$fn`) returns a value carrying a stray `logarithm`
+      # attribute that nlminb's own `$objective` never has. Assigning it
+      # unstripped leaked the attribute through `stored_loglik` into the
+      # public `logLik()` object and broke test-animal-relmat-gaussian.R
+      # (Rose f3 pass, 2026-09-03). Strip it at the source, where the value
+      # enters the polish.
+      objective_new <- tryCatch(
+        as.numeric(fn(par_new)),
+        error = function(e) NA_real_
+      )
+      if (is.finite(objective_new) && objective_new <= objective + 1e-8) {
+        grad_new <- tryCatch(as.numeric(gr(par_new)), error = function(e) NULL)
+        if (!is.null(grad_new) && all(is.finite(grad_new))) {
+          accepted <- TRUE
+          break
+        }
+      }
+      step <- step / 2
+    }
+    if (!accepted) {
       break
     }
     par <- par_new

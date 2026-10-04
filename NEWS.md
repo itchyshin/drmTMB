@@ -12,6 +12,16 @@
 
 ## Bug fixes
 
+* `drm_newton_polish()` (the default `newton_polish = TRUE` post-fit polish)
+  now caps its Newton step to a trust radius and backtracks (halving, up to
+  a few times) before falling back to the unpolished optimum, instead of
+  taking an unguarded full step. On a Tweedie fixture with a tiny response
+  (`y = 0.01`), the previous unguarded step moved `beta_sigma` from -6.35 to
+  -23.6 and `beta_nu` from 2.44 to -24.4 -- into a region where TMB's
+  `dtweedie` bound-search loops for roughly 1e9 iterations, hanging the fit
+  indefinitely. Behaviour on well-conditioned fits, where the step never
+  approaches the trust radius, is unchanged (#1441).
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
