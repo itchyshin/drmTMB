@@ -1,4 +1,4 @@
-# 226 — One canonical reader learning path across 38 vignettes
+# 226 — One canonical reader learning path across 40 vignettes
 
 ## 1. The problem
 
@@ -35,10 +35,11 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 38 vignettes after the
+The synchronized placement table below now contains 40 vignettes after the
 location-scale tutorial was split into two shorter parts, the first-week
-interval and bivariate non-Gaussian routes were added, and the comparator
-article was placed under stage 5.
+interval and bivariate non-Gaussian routes were added, the comparator
+article was placed under stage 5, and the temporal random-effect tutorial
+and its development-only phylogenetic OU companion were added to stage 4.
 
 ## 2. The canonical sequence
 
@@ -86,7 +87,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-38 rows. Role legend: **tutorial** = worked biological example with fitted
+40 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -113,6 +114,8 @@ path.
 | 12 | `meta-analysis` | Specialist branch | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
 | 13 | `structural-dependence` | 4. Random & structured effects | route-chooser | Overview and router across `animal()`, `phylo()`, `spatial()`, `relmat()` before the reader picks a specific structured-effect tutorial. |
 | 14 | `animal-models` | 4. Random & structured effects | tutorial | Worked `animal()` / additive-relatedness tutorial. |
+| 14a | `temporal-random-effects` | 4. Random & structured effects | tutorial | Worked `temporal()` tutorial separating stable series differences, temporal persistence, and residual noise in repeated Gaussian measurements. |
+| 14b | `phylogenetic-temporal-effects` | 4. Random & structured effects | tutorial | Development-only worked example pairing a stable `phylo()` species intercept with independent within-species `temporal(structure = "ou")` deviations; read after `temporal-random-effects`. Point estimates only. |
 | 15 | `phylogenetic-models` | 4. Random & structured effects | tutorial | Worked `phylo()` tutorial for phylogenetic mixed models. |
 | 16 | `bipartite-phylogenetic-interactions` | 4. Random & structured effects | tutorial | Worked two-tree `phylo_interaction()` tutorial. |
 | 17 | `spatial-models` | 4. Random & structured effects | tutorial | Worked `spatial()` coordinate-structured tutorial. |
@@ -134,12 +137,12 @@ path.
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 | 34 | `comparing-with-other-packages` | 5. Uncertainty & inference boundaries | guide | Fits eight models drmTMB shares with `lme4`, `glmmTMB`, `metafor` and `ordinal`, and shows the estimates agreeing on matched scales. Read when the question is "should I trust this package", after the reader can already fit and interpret a model. States which comparisons are independent engines and which share drmTMB's TMB stack. |
 
-Total: 38 placed. Stage counts **after the §9 corrections**: **1. First fit**
+Total: 40 placed. Stage counts **after the §9 corrections**: **1. First fit**
 = 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 9 ·
-**Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
+**Specialist branch** = 3 · **4. Random & structured effects** = 9 ·
 **5. Uncertainty & inference boundaries** = 5 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-4 + 4 + 9 + 3 + 7 + 5 + 1 + 5 = 38.
+4 + 4 + 9 + 3 + 9 + 5 + 1 + 5 = 40.
 
 Two rows deserve a placement note beyond the reason column:
 

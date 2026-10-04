@@ -79,6 +79,10 @@ navbar:
           href: articles/structural-dependence.html
         - text: Animal models and relatedness
           href: articles/animal-models.html
+        - text: Temporal AR1, OU, and Toeplitz effects
+          href: articles/temporal-random-effects.html
+        - text: Phylogenetic stable effects and OU deviations (development)
+          href: articles/phylogenetic-temporal-effects.html
         - text: Phylogenetic structured effects
           href: articles/phylogenetic-models.html
         - text: Two-tree phylogenetic interactions
@@ -156,6 +160,7 @@ reference:
       - spatial_coords
       - make_mesh
       - relmat
+      - temporal
       - corpair
   - title: Deprecated marker internals
     desc: Older deprecated formula markers kept out of the main reader path.
@@ -315,6 +320,8 @@ articles:
     contents:
       - structural-dependence
       - animal-models
+      - temporal-random-effects
+      - phylogenetic-temporal-effects
       - phylogenetic-models
       - bipartite-phylogenetic-interactions
       - spatial-models

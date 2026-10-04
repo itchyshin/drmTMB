@@ -74,6 +74,73 @@ Type drm_log_sech(Type eta) {
   return log(Type(2.0)) - abs_eta - log(Type(1.0) + exp(Type(-2.0) * abs_eta));
 }
 
+// Integer AR1 gaps must preserve a negative persistence sign for odd gaps.
+// Repeated squaring is AD-safe (multiplications only; the exponent is data),
+// avoids log(phi), which is undefined for negative persistence, and costs
+// O(log gap) rather than O(gap) operations.
+template<class Type>
+Type drm_integer_power(Type base, int exponent) {
+  Type out = Type(1.0);
+  Type factor = base;
+  while (exponent > 0) {
+    if (exponent & 1) {
+      out *= factor;
+    }
+    exponent >>= 1;
+    if (exponent > 0) {
+      factor *= factor;
+    }
+  }
+  return out;
+}
+
+// Stable -log|tanh(theta)| = 2 * atanh(exp(-2 * |theta|)) for |theta| >= 1,
+// where a = exp(-2|theta|) <= exp(-2). The odd series a + a^3/3 + a^5/5 is used
+// for a < 1e-3 (truncation below a^7/7, i.e. relative error < 1e-21), so the
+// value stays exact to rounding when tanh(theta) rounds to +/-1. The argument
+// is clamped so the branch CppAD does not select stays finite.
+template<class Type>
+Type drm_neg_log_abs_tanh(Type theta) {
+  Type abs_theta = CppAD::CondExpGe(theta, Type(0.0), theta, -theta);
+  Type a = exp(Type(-2.0) * abs_theta);
+  Type a_safe = CppAD::CondExpLt(a, Type(0.5), a, Type(0.5));
+  Type a2 = a_safe * a_safe;
+  Type series = Type(2.0) * a_safe * (Type(1.0) + a2 * (Type(1.0) / Type(3.0) + a2 / Type(5.0)));
+  Type direct = log((Type(1.0) + a_safe) / (Type(1.0) - a_safe));
+  return CppAD::CondExpLt(a_safe, Type(1e-3), series, direct);
+}
+
+// The transition SD is sqrt(1 - tanh(theta)^(2 * gap)). For |theta| < 1
+// (|phi| < 0.762) the power is small enough that the direct subtraction loses
+// no precision. Otherwise 1 - phi^(2 gap) = -expm1(-x) with
+// x = 2 * gap * (-log|tanh(theta)|), using a third-order Taylor series below
+// x = 1e-5 (relative error < x^3/24 < 1e-16) and the direct form above. Near
+// the unit root this reproduces sech(theta)^2 * sum_{k<gap} phi^(2k) to
+// rounding, with O(log gap) cost. Unselected branches are kept finite.
+template<class Type>
+Type drm_ar1_transition_sd(Type theta, Type phi, int gap) {
+  Type phi_power = drm_integer_power(phi * phi, gap);
+  Type direct = Type(1.0) - phi_power;
+  Type x = Type(2.0) * Type(gap) * drm_neg_log_abs_tanh(theta);
+  Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
+  Type x_safe = CppAD::CondExpLt(x, Type(700.0), x, Type(700.0));
+  Type expm1_form = CppAD::CondExpLt(x_safe, Type(1e-5), series, Type(1.0) - exp(-x_safe));
+  Type abs_theta = CppAD::CondExpGe(theta, Type(0.0), theta, -theta);
+  Type one_minus = CppAD::CondExpLt(abs_theta, Type(1.0), direct, expm1_form);
+  return sqrt(one_minus);
+}
+
+// `1 - exp(-x)` loses its positive difference when x is much smaller than
+// machine precision.  CppAD does not provide an AD overload of `expm1`, so
+// use its stable Taylor representation near zero and the direct expression
+// elsewhere.  Temporal gaps are positive after the R-side key check.
+template<class Type>
+Type drm_one_minus_exp_neg(Type x) {
+  Type direct = Type(1.0) - exp(-x);
+  Type series = x * (Type(1.0) - x * (Type(0.5) - x / Type(6.0)));
+  return CppAD::CondExpLt(x, Type(1e-5), series, direct);
+}
+
 // Paper-sign negative Huber function D(x): zero at the origin, quadratic in
 // [-1, 1], and linear in the tails. MSPL adds D to the maximized criterion.
 template<class Type>
@@ -421,6 +488,12 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(has_phylo_mu_q2_covariance);
   DATA_SPARSE_MATRIX(Q_phylo);
   DATA_SCALAR(log_det_Q_phylo);
+  DATA_INTEGER(has_temporal_mu);
+  DATA_IVECTOR(temporal_mu_node_index);
+  DATA_IVECTOR(temporal_mu_series_start);
+  DATA_IVECTOR(temporal_mu_gap);
+  DATA_VECTOR(temporal_mu_elapsed_gap);
+  DATA_INTEGER(temporal_mu_structure);
   // Scoped second structured location field (M5 row 105): its own group
   // precision (spatial coordinate kernel vs relatedness Q), always q = 1
   // intercept-only, so no among-endpoint theta is needed.
@@ -502,6 +575,9 @@ Type objective_function<Type>::operator()()
   PARAMETER_VECTOR(u_coi);
   PARAMETER_VECTOR(log_sd_coi);
   PARAMETER_VECTOR(u_phylo);
+  PARAMETER_VECTOR(u_temporal);
+  PARAMETER_VECTOR(log_sd_temporal);
+  PARAMETER_VECTOR(theta_temporal);
   PARAMETER_VECTOR(u_re_cov);
   PARAMETER_VECTOR(log_sd_re_cov);
   PARAMETER_VECTOR(theta_re_cov);
@@ -997,6 +1073,54 @@ Type objective_function<Type>::operator()()
       for (int j = 0; j < u_sigma.size(); ++j) {
         nll -= dnorm(u_sigma(j), Type(0.0), Type(1.0), true);
       }
+    }
+
+    // AR1 and OU retain a latent temporal process. Homogeneous Toeplitz is an
+    // identified *marginal* covariance model: a free Toeplitz correlation plus
+    // a separately estimated iid residual scale has an exact covariance ridge
+    // at one observation per series--occasion, so it is evaluated directly in
+    // the Gaussian likelihood below.
+    if (has_temporal_mu == 1 && temporal_mu_structure != 3) {
+      Type sd_temporal = exp(log_sd_temporal(0));
+      Type phi_temporal = tanh(theta_temporal(0));
+      Type decay_temporal = exp(theta_temporal(0));
+      {
+        for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+          int first = temporal_mu_series_start(series);
+          int last_exclusive = temporal_mu_series_start(series + 1);
+          nll -= dnorm(u_temporal(first), Type(0.0), Type(1.0), true);
+          for (int node = first + 1; node < last_exclusive; ++node) {
+            Type transition;
+            Type transition_sd;
+            if (temporal_mu_structure == 1) {
+              transition = drm_integer_power(phi_temporal, temporal_mu_gap(node));
+              transition_sd = drm_ar1_transition_sd(
+                theta_temporal(0), phi_temporal, temporal_mu_gap(node)
+              );
+            } else {
+              transition = exp(-decay_temporal * temporal_mu_elapsed_gap(node));
+              transition_sd = sqrt(drm_one_minus_exp_neg(
+                Type(2.0) * decay_temporal * temporal_mu_elapsed_gap(node)
+              ));
+            }
+            nll -= dnorm(
+              u_temporal(node),
+              transition * u_temporal(node - 1),
+              transition_sd,
+              true
+            );
+          }
+        }
+      }
+      for (int i = 0; i < y.size(); ++i) {
+        mu(i) += sd_temporal * u_temporal(temporal_mu_node_index(i));
+      }
+      REPORT(u_temporal);
+      REPORT(log_sd_temporal);
+      REPORT(theta_temporal);
+      if (temporal_mu_structure == 1) REPORT(phi_temporal);
+      if (temporal_mu_structure == 2) REPORT(decay_temporal);
+      REPORT(sd_temporal);
     }
 
     if (has_phylo_mu == 1) {
@@ -2451,6 +2575,67 @@ Type objective_function<Type>::operator()()
       }
       density::MVNORM_t<Type> neg_log_density(Omega);
       nll += neg_log_density(y - mu);
+    } else if (has_temporal_mu == 1 && temporal_mu_structure == 3) {
+      // Marginal homogeneous Toeplitz covariance: beta_sigma is the total
+      // within-series SD and no independent residual component is estimated.
+      //
+      // R is parameterised by partial autocorrelations r_m = tanh(theta_m).
+      // The likelihood is evaluated by the Durbin--Levinson prediction-error
+      // decomposition instead of a Cholesky factor of sigma^2 R: each series
+      // contributes sum_t [log(sigma) + 0.5 log v_t + e_t^2 / (2 sigma^2 v_t)]
+      // with one-step prediction errors e_t and innovation variances
+      // v_t = prod_{m <= t} (1 - r_m^2). log v_t is accumulated from the
+      // stable log(sech(theta)) (1 - r^2 = sech^2), so it stays exact when
+      // tanh(theta) rounds to +/-1, where forming R and factorising it can
+      // lose positive definiteness in floating point.
+      int n_occ = theta_temporal.size() + 1;
+      vector<Type> log_innovation(n_occ);
+      log_innovation(0) = Type(0.0);
+      for (int m = 0; m < n_occ - 1; ++m) {
+        log_innovation(m + 1) = log_innovation(m) +
+          Type(2.0) * drm_log_sech(theta_temporal(m));
+      }
+      // ar_order(t, j): coefficient on lag j + 1 of the order-t predictor.
+      matrix<Type> ar_order(n_occ, n_occ);
+      ar_order.setZero();
+      vector<Type> rho(n_occ);
+      rho(0) = Type(1.0);
+      for (int m = 0; m < n_occ - 1; ++m) {
+        Type reflection = tanh(theta_temporal(m));
+        Type prediction = Type(0.0);
+        for (int j = 0; j < m; ++j) prediction += ar_order(m, j) * rho(m - j);
+        rho(m + 1) = prediction + reflection * exp(log_innovation(m));
+        ar_order(m + 1, m) = reflection;
+        for (int j = 0; j < m; ++j) {
+          ar_order(m + 1, j) = ar_order(m, j) - reflection * ar_order(m, m - 1 - j);
+        }
+      }
+      Type log_sd_total = log(sigma(0));
+      Type variance_total = sigma(0) * sigma(0);
+      const Type half_log_two_pi = Type(0.5) * log(Type(2.0) * Type(M_PI));
+      // The temporal node layout has exactly one observed response per node.
+      // Reverse it once so each series is evaluated in O(K^2), rather than
+      // repeatedly scanning all observations (O(n * number_of_series)).
+      vector<int> observation_for_node(y.size());
+      for (int i = 0; i < y.size(); ++i) {
+        observation_for_node(temporal_mu_node_index(i)) = i;
+      }
+      vector<Type> residual(n_occ);
+      for (int series = 0; series + 1 < temporal_mu_series_start.size(); ++series) {
+        int first = temporal_mu_series_start(series);
+        for (int node = 0; node < n_occ; ++node) {
+          int observation = observation_for_node(first + node);
+          residual(node) = y(observation) - mu(observation);
+        }
+        for (int t = 0; t < n_occ; ++t) {
+          Type prediction = Type(0.0);
+          for (int j = 0; j < t; ++j) prediction += ar_order(t, j) * residual(t - 1 - j);
+          Type error = residual(t) - prediction;
+          nll += half_log_two_pi + log_sd_total + Type(0.5) * log_innovation(t) +
+            Type(0.5) * error * error * exp(-log_innovation(t)) / variance_total;
+        }
+      }
+      REPORT(rho);
     } else {
       for (int i = 0; i < y.size(); ++i) {
         if (

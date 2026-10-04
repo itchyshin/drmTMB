@@ -156,6 +156,7 @@ map rather than treating a long status table as a tutorial.
 | Phylogenetic structured effects | Begin with a documented Gaussian example | Other family and inference combinations need separate support |
 | Coordinate spatial effects | Begin with a documented Gaussian example | Do not extend the example by analogy |
 | Animal and relatedness effects | Begin with a documented Gaussian example | Complex covariance structures need separate support |
+| Temporal AR1, OU, and Toeplitz effects | One univariate Gaussian ML route: <code>temporal(1 &#124; id, time = occasion, structure = &quot;ar1&quot;)</code>, <code>temporal(1 &#124; id, time = elapsed, structure = &quot;ou&quot;)</code>, or, for a complete equally spaced panel of 3--12 occasions, <code>temporal(1 &#124; id, time = occasion, structure = &quot;homtoep&quot;)</code>; see [Temporal AR1, OU, and Toeplitz effects](https://itchyshin.github.io/drmTMB/articles/temporal-random-effects.html) | Mean-coefficient Wald (AR1 only) and profile intervals; no process, persistence, decay, total-scale, or lag-correlation intervals, forecasts, or `newdata` prediction |
 | Intervals and diagnostics | Available for documented targets | Inspect diagnostics before interpreting uncertainty |
 | Large-data controls | Available for documented Gaussian workflows | They are not a general performance guarantee |
 | Planned neighbours | Not ready for applied use | Use a simpler documented model or another package |
