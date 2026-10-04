@@ -141,10 +141,10 @@ simulate_spatial_q2_guide_data <- function(seed = 20260803) {
 
 Use `spatial()` when named sites have coordinates and nearby sites may have
 similar location deviations after fixed effects have been included. The fitted
-coordinate route uses a table supplied as `coords = coords`. A separate,
-fixed-kappa mesh/SPDE route is now available for one univariate Gaussian
-location intercept: its observation field is `A_st %*% omega`, not the dense
-coordinate route or a site-to-mesh-node lookup. If distance between sites is
+coordinate route uses a table supplied as `coords = coords`. A separate
+mesh/SPDE route with a fixed spatial range is now available for one univariate
+Gaussian location intercept: its observation field is `A_st %*% omega`, not
+the dense coordinate route or a site-to-mesh-node lookup. If distance between sites is
 not what couples your observations, the [structural-dependence
 overview](structural-dependence.html) compares this route against the
 relatedness- and tree-based ones.
@@ -154,7 +154,7 @@ relatedness- and tree-based ones.
 | Question | Syntax | Status |
 | --- | --- | --- |
 | Does one Gaussian response have smooth site-level location deviations? | `spatial(1 | site, coords = coords)` in `mu` | Fitted first coordinate-spatial intercept slice. |
-| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Fixed-kappa intercept with point-estimate recovery evidence for the exact tested fixed-domain `n = 128, 256` designs. The tested `n = 64` design failed; intervals, coverage, and range remain unclaimed. |
+| Does one Gaussian response have a mesh/SPDE location field on projected coordinates? | `bf(y ~ spatial(1 | site, mesh = mesh), sigma ~ 1)` | Intercept with a fixed spatial range (`kappa` is set in advance, not estimated); point estimate only for the exact tested fixed-domain `n = 128, 256` designs. The tested `n = 64` design failed; intervals, coverage, and range remain unclaimed. |
 | Does one predictor have a spatially varying slope? | `spatial(1 + depth | site, coords = coords)` in `mu` | Fitted one numeric-slope slice. The intercept and slope fields are independent and have separate SDs. |
 | Do two Gaussian response means share a coordinate-spatial correlation? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1` and `mu2` | Fitted q=2 location-location slice. `corpairs(level = "spatial")` reports the latent spatial row separately from residual `rho12`. |
 | Do spatial location and scale deviations covary across two Gaussian responses? | matching `spatial(1 | p | site, coords = coords)` terms in `mu1`, `mu2`, `sigma1`, and `sigma2` | Fitted constant q=4 location-scale slice. Six latent spatial rows are reported through `corpairs(level = "spatial")`; q=4 correlations are derived and unavailable for intervals. |
@@ -171,7 +171,7 @@ fit_spatial <- drmTMB(
 )
 ```
 
-## Geographic coordinates and the fixed-kappa mesh route
+## Geographic coordinates and the fixed-range mesh route
 
 Longitude and latitude are not model coordinates: decimal degrees are not a
 metric distance system. Choose a projected CRS appropriate for the study area,
@@ -349,7 +349,7 @@ numeric slope field with the same coordinate precision and separate SDs. It
 does not estimate an intercept-slope correlation. Spatial `sigma` is supported
 through a separate route -- a standalone `sigma ~ spatial(1 | site)` or
 `sigma ~ spatial(1 + depth | site)` field, or the matched location-scale block --
-which fits at recovery grade (trust the point estimate, not the interval); this
+which is point estimate only (trust the point estimate, not the interval); this
 `mu` one-slope term is not that route.
 
 ## Rendered checks
@@ -459,9 +459,9 @@ spatial_sd <- data.frame(
 knitr::kable(spatial_sd, align = c("l", "r", "l", "l"))
 ```
 
-For the exact fixed-kappa bivariate Gaussian location model, the calibrated
-example uses 36 sites with three complete response pairs per site and the
-tested ring geometry. Native REML for this model requires unit weights,
+For the exact bivariate Gaussian location model with a fixed spatial range,
+the calibrated example uses 36 sites with three complete response pairs per
+site and the tested ring geometry. Native REML for this model requires unit weights,
 intercept-only `sigma1`, `sigma2`, and `rho12`, no known `meta_V()` covariance,
 and no additional ordinary random effect, direct-SD formula, or `corpair()`
 regression.
@@ -562,7 +562,7 @@ marks the estimate with a hollow circle. The eye's horizontal span is the
 interval; there is no separate interval bar. Separate facet scales keep
 standard deviations and correlation on their own units.
 
-```{r spatial-q2-confidence-eye, fig.width = 9.2, fig.height = 3.1, fig.cap = "Confidence Eye for the three direct fixed-kappa Gaussian q2 spatial targets with 36 sites x 3 observations in the tested ring geometry. Each coloured pale eye spans a 95% endpoint profile-likelihood interval; the larger hollow circle is the point estimate. All three targets met the calibration criteria with 36 sites and either 3 or 8 observations per site, but failed with 12 sites and 3 observations per site.", fig.alt = "Three side-by-side facets show coloured tapered confidence eyes for two spatial standard deviations and one latent spatial correlation. Each eye's horizontal width is its 95 percent profile interval, and a large hollow circle marks the estimate. Each facet uses its own horizontal scale."}
+```{r spatial-q2-confidence-eye, fig.width = 9.2, fig.height = 3.1, fig.cap = "Confidence Eye for the three direct Gaussian q2 spatial targets (fixed spatial range) with 36 sites x 3 observations in the tested ring geometry. Each coloured pale eye spans a 95% endpoint profile-likelihood interval; the larger hollow circle is the point estimate. All three targets met the calibration criteria with 36 sites and either 3 or 8 observations per site, but failed with 12 sites and 3 observations per site.", fig.alt = "Three side-by-side facets show coloured tapered confidence eyes for two spatial standard deviations and one latent spatial correlation. Each eye's horizontal width is its 95 percent profile interval, and a large hollow circle marks the estimate. Each facet uses its own horizontal scale."}
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggplot(spatial_q2_eye) +
     ggplot2::geom_vline(
@@ -648,8 +648,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-This result supports profile intervals only for the exact tested fixed-kappa
-ring configurations. It does not establish mesh intervals,
+This result supports profile intervals only for the exact tested ring
+configurations with a fixed spatial range. It does not establish mesh intervals,
 estimated range, spatial slopes, q4+, non-Gaussian spatial models, spatial
 scale models, derived observed correlations, geometry robustness, or the
 `supported` tier.
