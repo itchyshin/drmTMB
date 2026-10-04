@@ -350,7 +350,7 @@ drm_inference_degenerate <- function(object) {
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(TRUE)
   }
-  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  vcov <- tryCatch(drm_check_covariance(object), error = function(e) NULL)
   if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
     return(TRUE)
   }
@@ -1262,8 +1262,25 @@ check_sdreport_status <- function(object) {
   )
 }
 
+# Covariance read by the convergence and standard-error checks. Temporal fits
+# trim vcov() to the mean coefficients (the only Wald target they expose), so
+# reading vcov() there would hide a pathological sigma, SD, or persistence
+# direction. For temporal fits the checks read the full fixed-parameter
+# covariance from sdreport() instead, with unique row names.
+drm_check_covariance <- function(object) {
+  if (!drm_has_temporal_mu(object)) {
+    return(stats::vcov(object))
+  }
+  cov_fixed <- drm_sdreport_cov_fixed(object)
+  labels <- make.unique(names(object$opt$par), sep = "_")
+  if (length(labels) == nrow(cov_fixed)) {
+    dimnames(cov_fixed) <- list(labels, labels)
+  }
+  cov_fixed
+}
+
 check_standard_errors_finite <- function(object) {
-  vcov <- tryCatch(stats::vcov(object), error = function(e) e)
+  vcov <- tryCatch(drm_check_covariance(object), error = function(e) e)
   if (inherits(vcov, "error")) {
     return(check_row(
       "standard_errors_finite",
@@ -1325,7 +1342,7 @@ check_standard_errors_inflated <- function(object) {
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(NULL)
   }
-  vcov <- tryCatch(stats::vcov(object), error = function(e) NULL)
+  vcov <- tryCatch(drm_check_covariance(object), error = function(e) NULL)
   if (is.null(vcov) || !is.matrix(vcov) || nrow(vcov) == 0L) {
     return(NULL)
   }
