@@ -2,6 +2,7 @@ file	gate_class	axis	ci_status	sites
 helper-fragile-recovery.R	env-var-optin	environment	skips	1
 helper-julia-bridge-path.R	cran-lane	environment	runs	2
 helper-julia-bridge-path.R	engine-drm-jl	environment	skips	1
+test-071-four-fixture-summary.R	build-premise	build	skips	1
 test-adequacy.R	suggests-package	environment	runs	4
 test-aghq-coxreid.R	cran-lane	environment	runs	1
 test-aghq-coxreid.R	suggests-package	environment	runs	2

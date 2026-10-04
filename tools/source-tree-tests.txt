@@ -1,6 +1,7 @@
 # Test files whose premise is a path .Rbuildignore removes from the
 # tarball, so R CMD check can only ever SKIP them. Derived by
 # tools/run-source-tree-tests.R --update; do not hand-edit.
+test-071-four-fixture-summary.R
 test-arc1b-s2r-relmat-q2-recovery-runner.R
 test-arc1b-spatial-q2-reml-recovery.R
 test-arc4c-drac-dispatch.R
