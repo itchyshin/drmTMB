@@ -20,12 +20,16 @@ test-biv-lognormal-rho12-coverage-docs.R
 test-dinnage-audit-wave1.R
 test-estimator-surface-conformance.R
 test-function-map-cheatsheet.R
+test-julia-admission-census.R
 test-julia-gate-vs-engine.R
 test-mesh-recovery-v3-contract.R
 test-missing-predictor-prediction.R
 test-nongaussian-structured-boundary.R
 test-parity-fenced-boundaries.R
+test-parity-honesty.R
 test-parity-matrix.R
+test-parity-pin.R
+test-parity-scoreboard.R
 test-phase18-actions-runner.R
 test-pkgdown-public-surface.R
 test-pkgdown-reference-index.R
