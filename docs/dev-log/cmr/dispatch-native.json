@@ -1,0 +1,33 @@
+{
+  "phase": "producer",
+  "milestone": "M0-M1",
+  "workers": [
+    {
+      "task": "cmr_recon",
+      "model": "gpt-6-luna",
+      "effort": "low",
+      "state": "completed"
+    },
+    {
+      "task": "cmr_ranga",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "state": "running"
+    },
+    {
+      "task": "cmr_julia_m1",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "state": "running"
+    },
+    {
+      "task": "cmr_r_m1",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "state": "running"
+    }
+  ],
+  "max_active_children": 3,
+  "fresh_briefs": true,
+  "nested_delegation": false
+}
