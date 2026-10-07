@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f3ff392b140b6c25b5fa69063e4657c7b65c74efedea7306c4cfb95b9a600d81",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "post-draft review per protocols/writing-naturalness.md; checked claims against M1 reports, frozen M2 contract, generator, fixture hashes, and current worktree status",
+  "genre": "technical after-task receipt",
+  "coverage": "whole 12-section receipt",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "Specific counts, equations, boundaries, and explicit limits make this report direct; the required 12-section structure adds some regularity but does not obscure the evidence.",
+  "confidence": "medium",
+  "confidence_reason": "The prose and fixture assertions were checked against local artifacts; no independent reviewer or full package validation was used.",
+  "examples": [
+    {
+      "location": "Section 1",
+      "cue": "This receipt covers fixture preparation only; it does not claim model recovery or interval calibration.",
+      "impact": "Sets the evidence boundary before details.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "This receipt covers fixture preparation only; it does not claim model recovery or interval calibration."
+    },
+    {
+      "location": "Section 5",
+      "cue": "No package tests, Julia/R fits, or 500/2000-replicate campaign ran.",
+      "impact": "Makes the unrun work visible alongside checks that did run.",
+      "repair": "no change needed",
+      "line": 27,
+      "quote": "No package tests, Julia/R fits, or 500/2000-replicate campaign ran."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "not_applicable",
+  "science_gate_reason": "This engineering receipt reports no biological result or scientific interpretation.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "I checked the DGP values, seed registry, row counts, hashes, run boundary, current method-file presence, commits, and residual limits against the manifest, generator, command outputs, M1 receipts, and M2 contract.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references or bibliographic claims appear in the receipt.",
+  "date": "2026-10-06",
+  "calibration_status": "No independent controls or calibration examples were reviewed in this assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}
