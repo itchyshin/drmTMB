@@ -1,3 +1,18 @@
+# 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
+
+Stopped three silent input-drop bugs on `cursor/triage-pilot-inputs`.
+User-set factor contrasts are restored after `droplevels()`; unused-level
+drops that invalidate a contrast matrix warn
+(`drmTMB_contrasts_unused_levels`). `gaussian(link = "log")` and
+`gaussian(link = "inverse")` now error like Gamma/Poisson instead of fitting
+identity. `confint(method = "bootstrap")` reports
+`bootstrap_incomplete` and warns when failed refits are dropped.
+
+Regression file: `tests/testthat/test-silent-input-drops.R`. Existing
+allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
+`test-biv-lognormal.R` accept the new status. NEWS, `?confint.drmTMB`, and
+`docs/design/03-likelihoods.md` updated.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17

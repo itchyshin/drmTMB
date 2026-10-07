@@ -12,6 +12,20 @@
 
 ## Bug fixes
 
+* User-set factor contrasts such as `contr.sum` are restored after unused
+  levels are dropped. When unused levels are removed, drmTMB warns that the
+  original contrast matrix cannot be reused instead of silently switching
+  to treatment coding (#1495).
+
+* `gaussian(link = "log")` and `gaussian(link = "inverse")` now error
+  instead of silently fitting the identity-link Gaussian model. Use
+  [lognormal()] for a log-scale mean on positive data (#1482).
+
+* `confint(..., method = "bootstrap")` no longer reports
+  `conf.status = "bootstrap"` after dropping failed refits. Those rows
+  use `bootstrap_incomplete` and warn
+  (`drmTMB_bootstrap_incomplete_warning`) (#1458).
+
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
   `TMB::tmbprofile()` run. The private trace now stores one objective value
