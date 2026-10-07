@@ -1,3 +1,12 @@
+# 2026-10-07 — triage pilot: close verdicts + update/level fixes
+
+Pilot on `itchyshin/drmTMB`, rebased onto current main. Close-candidate
+verdicts are in `triage/pilot_close_verdicts.md` (recommendations only).
+Quick fixes on `cursor/triage-pilot-quick`: `update.drmTMB()` (#1241) and
+`validate_profile_level()` in `heritability()`/`icc()`/`repeatability()`
+(#1480). Main already carries the evaluated `miss_control()` `explicit`
+attribute for #1484; this rebase does not change that path.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
