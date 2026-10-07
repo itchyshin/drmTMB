@@ -57,8 +57,37 @@ refits; the new status says when that sample is a selected subset.
 
 ## Checks Run
 
-Recorded after the verification pass on this branch. See the pull
-request body for the exact test and `R CMD check` output.
+This cloud VM had no R toolchain. Local verification used Ubuntu 24.04
+R 4.3.3, TMB, and testthat installed for the run — not the package CI
+image.
+
+Targeted `pkgload::load_all()` + `testthat::test_file()`:
+
+- `test-silent-input-drops.R`: 5 tests, 0 failed, 0 errors, 0 skipped
+- `test-gamma-location-scale.R`: 7 tests, 0 failed, 0 errors, 0 skipped
+- `test-biv-lognormal.R`: 6 tests, 0 failed, 0 errors, 0 skipped
+- `test-dinnage-audit-wave1.R`: Md-E unused-level SE test passed; one
+  pre-existing MSPL `%||%` error under `load_all()` (rlang not imported
+  in NAMESPACE; not introduced here)
+- `test-julia-inference.R`: the `#1458` mock path needs `{ape}`; after
+  installing ape, remaining failures were the same pre-existing `%||%`
+  lookup in `new_drmTMB_julia()`. The helper-level
+  `bootstrap_conf_status()` / `bootstrap_reconcile_status()` tests
+  passed in `test-silent-input-drops.R`.
+
+`R CMD build --no-build-vignettes` produced `drmTMB_0.7.1.tar.gz`.
+
+`R CMD check --as-cran --no-vignettes --no-manual --no-tests` with
+`_R_CHECK_FORCE_SUGGESTS_=false`: **3 WARNINGs, 7 NOTEs, 0 ERRORs**.
+Examples, including `--run-donttest`, passed. The WARNINGs are
+environment/vignette-index issues (`checkbashisms`, `pandoc`,
+`inst/doc` skipped because vignettes were not built). One NOTE named
+`contrasts<-` on the first check; that call was replaced with
+`attr(..., "contrasts") <-`. The remaining `%||%` NOTE is pre-existing.
+The full testthat suite was not run under `R CMD check`; it is a
+multi-hour shard on this package.
+
+`tools::checkRd("man/confint.drmTMB.Rd")` was clean.
 
 ## Tests Of The Tests
 

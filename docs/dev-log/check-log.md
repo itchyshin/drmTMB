@@ -13,7 +13,14 @@ allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
 `test-biv-lognormal.R` accept the new status. NEWS, `?confint.drmTMB`, and
 `docs/design/03-likelihoods.md` updated.
 
-Check results: see the after-task report and the pull request.
+Targeted tests: `test-silent-input-drops.R` 5/5 pass;
+`test-gamma-location-scale.R` 7/7; `test-biv-lognormal.R` 6/6.
+`R CMD check --as-cran --no-vignettes --no-manual --no-tests` on
+R 4.3.3: 0 ERROR, 3 WARNING (missing checkbashisms/pandoc/inst/doc
+because vignettes were not built), 7 NOTE (suggested packages,
+installed size, clock, `%||%` pre-existing, unavailable Rd xrefs,
+non-portable compile flag). Full suite not run under `R CMD check`.
+PR: https://github.com/itchyshin/drmTMB/pull/1501.
 
 # 2026-10-04: phylogenetic tree-height documentation correction
 

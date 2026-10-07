@@ -12261,7 +12261,7 @@ drm_droplevels_keep_contrasts <- function(x, col) {
     return(dropped)
   }
   if (identical(levels(dropped), levels(x))) {
-    contrasts(dropped) <- user_contrasts
+    attr(dropped, "contrasts") <- user_contrasts
     return(dropped)
   }
   cli::cli_warn(
