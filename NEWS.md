@@ -26,9 +26,9 @@
   `conf.status = "bootstrap"` after dropping failed refits. Those rows
   use `bootstrap_incomplete` and warn
   (`drmTMB_bootstrap_incomplete_warning`). An at-boundary row that also
-  dropped refits still warns, and `plot_parameter_surface()` /
-  `plot_corpairs()` keep incomplete and at-boundary intervals visible
-  (#1458).
+  dropped refits still warns and names `bootstrap_at_boundary`, and
+  `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
+  at-boundary intervals visible (#1458).
 
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full

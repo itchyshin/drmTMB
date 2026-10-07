@@ -1,3 +1,10 @@
+# 2026-10-07: at-boundary incomplete warning names the row status (#1501)
+
+`warn_bootstrap_incomplete()` now prints the flagged row's
+`conf.status` (`bootstrap_at_boundary` when that is the label), instead
+of always saying `bootstrap_incomplete`. `R/drmTMB.R` was not touched;
+C17 receipts were not re-run.
+
 # 2026-10-07: review fixes for #1501 (contrasts, bootstrap, Julia link)
 
 Review of PR #1501 asked for six follow-ups on `cursor/triage-pilot-inputs`.
