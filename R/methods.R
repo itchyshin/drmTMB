@@ -5882,8 +5882,40 @@ drm_prediction_matrix <- function(object, newdata, dpar) {
   drm_fixed_effect_matrix(
     object$model$terms[[dpar]],
     newdata,
-    sparse = drm_fixed_effect_is_sparse(object, dpar)
+    sparse = drm_fixed_effect_is_sparse(object, dpar),
+    contrasts.arg = drm_fitted_contrasts(object, dpar)
   )
+}
+
+# Prefer the contrast list stored on the fitted design matrix. Fall back to
+# factor attributes on the model-frame template so predict(newdata) and the
+# emmeans basis keep user-set coding such as contr.sum (#1495).
+drm_fitted_contrasts <- function(object, dpar) {
+  X <- object$model$X[[dpar]]
+  if (!is.null(X)) {
+    fitted <- attr(X, "contrasts")
+    if (!is.null(fitted) && length(fitted) > 0L) {
+      return(fitted)
+    }
+  }
+  template <- drm_prediction_template_data(object, dpar)
+  if (!is.data.frame(template)) {
+    return(NULL)
+  }
+  out <- list()
+  for (name in names(template)) {
+    if (!is.factor(template[[name]])) {
+      next
+    }
+    cmat <- attr(template[[name]], "contrasts")
+    if (!is.null(cmat)) {
+      out[[name]] <- cmat
+    }
+  }
+  if (length(out) == 0L) {
+    return(NULL)
+  }
+  out
 }
 
 drm_fixed_effect_basis <- function(
@@ -6000,11 +6032,16 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
         i = "Fitted level{?s}: {.val {levels(source)}}."
       ))
     }
-    newdata[[name]] <- factor(
+    rebuilt <- factor(
       value,
       levels = levels(source),
       ordered = is.ordered(source)
     )
+    source_contrasts <- attr(source, "contrasts")
+    if (!is.null(source_contrasts)) {
+      attr(rebuilt, "contrasts") <- source_contrasts
+    }
+    newdata[[name]] <- rebuilt
   }
   newdata
 }

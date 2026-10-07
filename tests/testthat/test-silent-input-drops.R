@@ -26,6 +26,24 @@ test_that("user-set factor contrasts survive droplevels when every level is used
   )
 })
 
+test_that("predict(newdata) keeps user-set contrasts and matches lm (#1495)", {
+  set.seed(3)
+  d <- data.frame(
+    y = stats::rnorm(30),
+    g = factor(rep(c("a", "b", "c"), 10))
+  )
+  stats::contrasts(d$g) <- stats::contr.sum(3)
+  fit <- drmTMB(bf(y ~ g, sigma ~ 1), data = d, family = gaussian())
+  nd <- data.frame(g = factor(c("a", "b", "c"), levels = levels(d$g)))
+
+  expect_equal(
+    as.numeric(predict(fit, newdata = nd)),
+    as.numeric(stats::predict(stats::lm(y ~ g, d), newdata = nd)),
+    tolerance = 1e-6
+  )
+  expect_equal(names(coef(fit, "mu")), c("(Intercept)", "g1", "g2"))
+})
+
 test_that("unused levels still drop, and user-set contrasts warn instead of vanishing (#1495)", {
   set.seed(2)
   d <- data.frame(
@@ -59,6 +77,22 @@ test_that("gaussian(link = 'log') and gaussian(link = 'inverse') error instead o
   expect_error(
     drmTMB:::drm_family_type(gaussian(link = "log")),
     "identity link"
+  )
+  expect_error(
+    drmTMB:::drm_family_type(gaussian(link = "log")),
+    "Gamma"
+  )
+  expect_error(
+    drmTMB:::drm_julia_xfam_family_tag(gaussian(link = "log")),
+    "identity link"
+  )
+  expect_error(
+    drmTMB:::drm_julia_is_cross_family(c(poisson(), gaussian(link = "log"))),
+    "identity link"
+  )
+  expect_error(
+    drmTMB:::drm_julia_is_cross_family(c(poisson(), gaussian(link = "log"))),
+    "Gamma"
   )
   expect_error(
     drmTMB:::drm_family_type(gaussian(link = "inverse")),
@@ -163,4 +197,77 @@ test_that("confint(method = 'bootstrap') warns and flags dropped refits (#1458)"
   expect_equal(ci$bootstrap.n, 4L)
   expect_equal(ci$bootstrap.failed, 1L)
   expect_true(is.finite(ci$lower) && is.finite(ci$upper))
+})
+
+test_that("at-boundary bootstrap still warns about dropped refits (#1458)", {
+  at_boundary <- data.frame(
+    parm = "sd(group)",
+    conf.status = "bootstrap_at_boundary",
+    bootstrap.n = 39L,
+    bootstrap.failed = 1L,
+    stringsAsFactors = FALSE
+  )
+  expect_warning(
+    drmTMB:::warn_bootstrap_incomplete(at_boundary),
+    class = "drmTMB_bootstrap_incomplete_warning"
+  )
+
+  clean_boundary <- at_boundary
+  clean_boundary$bootstrap.failed <- 0L
+  expect_no_warning(
+    drmTMB:::warn_bootstrap_incomplete(clean_boundary),
+    class = "drmTMB_bootstrap_incomplete_warning"
+  )
+
+  set.seed(20261007)
+  dat <- data.frame(y = stats::rnorm(24), x = stats::rnorm(24))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+
+  testthat::local_mocked_bindings(
+    bootstrap_refit_one = function(
+      object,
+      simulations,
+      index,
+      target_names,
+      refit_control
+    ) {
+      out <- drmTMB:::bootstrap_empty_draws(index, target_names)
+      if (identical(index, 1L)) {
+        out$refit_status <- "refit_nonconverged"
+        out$refit_message <- "mocked failure"
+        return(out)
+      }
+      out$refit_ok <- TRUE
+      out$refit_converged <- TRUE
+      out$target_available <- TRUE
+      out$estimate <- 0.1 * index
+      out$link_estimate <- 0.1 * index
+      out$estimate_finite <- TRUE
+      out$link_estimate_finite <- TRUE
+      out$refit_status <- "ok"
+      out$refit_message <- "ok"
+      out$refit_convergence <- 0L
+      out
+    },
+    bootstrap_boundary_share_at = function(...) 1,
+    .package = "drmTMB"
+  )
+
+  ci <- NULL
+  expect_warning(
+    expect_warning(
+      ci <- stats::confint(
+        fit,
+        parm = "fixef:mu:x",
+        method = "bootstrap",
+        R = 5L,
+        seed = 20261007
+      ),
+      class = "drmTMB_bootstrap_boundary_warning"
+    ),
+    class = "drmTMB_bootstrap_incomplete_warning"
+  )
+  expect_equal(ci$conf.status, "bootstrap_at_boundary")
+  expect_equal(ci$bootstrap.n, 4L)
+  expect_equal(ci$bootstrap.failed, 1L)
 })

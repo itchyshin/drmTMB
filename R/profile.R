@@ -275,7 +275,8 @@
 #' Failed refits are often the hard draws, so a percentile computed from the
 #' survivors can be too narrow or shifted. `bootstrap.n` and
 #' `bootstrap.failed` report the split; the status is not a clean
-#' `"bootstrap"` interval.
+#' `"bootstrap"` interval. An at-boundary row that also dropped refits keeps
+#' that failure count and still warns.
 #'
 #' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
 #' `profile.boundary = TRUE`, but return missing endpoints and are not warned about
@@ -2860,8 +2861,19 @@ bootstrap_reconcile_status <- function(out, warn = TRUE) {
 }
 
 warn_bootstrap_incomplete <- function(out) {
+  failed <- if ("bootstrap.failed" %in% names(out)) {
+    !is.na(out$bootstrap.failed) & out$bootstrap.failed > 0L
+  } else {
+    rep(FALSE, nrow(out))
+  }
+  # Relabelling an incomplete percentile as bootstrap_at_boundary must not
+  # hide dropped refits (#1458). The failure count stays on the row; this
+  # warning still fires when that count is positive.
   incomplete <- !is.na(out$conf.status) &
-    out$conf.status == "bootstrap_incomplete"
+    (
+      out$conf.status == "bootstrap_incomplete" |
+        (out$conf.status == "bootstrap_at_boundary" & failed)
+    )
   if (!any(incomplete)) {
     return(invisible(out))
   }

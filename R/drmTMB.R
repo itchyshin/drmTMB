@@ -3712,7 +3712,7 @@ drm_require_gaussian_identity_link <- function(family) {
       "{.pkg drmTMB} Gaussian models currently require {.code gaussian()}, identity link.",
       "x" = "Received Gaussian link {.val {family$link}}.",
       "i" = "The implemented Gaussian contract is {.code mu = X_mu beta_mu} on the identity scale.",
-      "i" = "Use {.fn lognormal} for a log-scale mean on positive data, or transform the response yourself."
+      "i" = "Use {.fn lognormal} or {.code Gamma(link = \"log\")} for a log-scale mean on positive data, or transform the response yourself."
     ))
   }
   invisible(family)
