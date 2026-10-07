@@ -4,8 +4,15 @@ Review of draft PR #1500 (`4932d9482`). `update.drmTMB()` now errors on
 unnamed `...` arguments. The #1484 evaluated-control change is reverted:
 `miss_control(response = "include")` again drops incomplete predictor rows
 (A-2 / #1332 call-syntax check). Confirmed 13 failures in 11 missing-response
-files on the previous head; those tests were not edited. C17/C14 receipt
-re-run is required because `R/methods.R` is pinned.
+files on the previous head; those tests were not edited.
+
+C17/C14 runner re-ran at `75651e720` (12/12 PASS). mean_tau_relative_error
+drifted at most 1.322e-11 (float noise). The same 1.3e-11 drift is
+reproduced on `main` `75845a3d`, so it predates this PR;
+`source_fingerprint` left alone. No `Fixes #1484` / `Closes #1484`: that
+issue stays open pending a maintainer decision.
+Receipt: `docs/dev-log/implementation-recovery/2026-10-07-pr1500-review-c17c2-c14-final-source-compatibility/`.
+`python3 tools/capability_ledger.py --check` OK; 80 ledger unit tests OK.
 
 # 2026-10-07 — triage pilot: close verdicts + update/level/miss_control fixes
 
