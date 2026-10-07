@@ -3,10 +3,12 @@
 ## Goal
 
 Give applied users and package contributors a measured close-candidate pass
-on six open issues, and land three small user-facing fixes that do not need a
-new design decision: `update()` for ordinary `drmTMB` fits, `level` validation
-on variance-ratio extractors, and `miss_control(predictor = "fail")` that
-follows the evaluated control object.
+on six open issues, and land two small user-facing fixes that do not need a
+new design decision: `update()` for ordinary `drmTMB` fits, and `level`
+validation on variance-ratio extractors. An attempted
+`miss_control(predictor = "fail")` evaluated-control change for #1484 was
+reverted and is waiting on a maintainer decision; merging this branch must
+not auto-close #1484.
 
 ## Implemented
 
@@ -19,10 +21,9 @@ On the same branch, `update.drmTMB()` refits from the stored call with a new
 `bf()` / `drm_formula()` or named arguments such as `data`.
 `drm_variance_ratio()` now calls `validate_profile_level()` before any
 interval arithmetic, so `heritability()`, `icc()`, and `repeatability()`
-error on `level = 95`, `0`, or `-1`. The missing-predictor fail check uses
-the parsed control's `predictor` field whenever the caller supplied
-`missing =`, including a stored control or a variable holding `"fail"`.
-Omitting `missing` still drops incomplete predictor rows.
+error on `level = 95`, `0`, or `-1`. A first-pass change that honoured the
+evaluated `miss_control()` `predictor` field (#1484) was reverted: that
+semantics change is waiting on a maintainer decision, so #1484 stays open.
 
 ## Mathematical Contract
 
@@ -34,10 +35,11 @@ strictly in `(0, 1)`.
 
 - `R/methods.R`: `update.drmTMB()`.
 - `R/heritability.R`: `validate_profile_level(level)` in `drm_variance_ratio()`.
-- `R/missing-data.R`, `R/drmTMB.R`: evaluated `predictor = "fail"` check.
+- `R/missing-data.R`, `R/drmTMB.R`: #1484 evaluated-control edit reverted;
+  A-2 / #1332 call-syntax helper restored.
 - `tests/testthat/test-update-drmTMB.R`,
-  `tests/testthat/test-miss-control-predictor-fail.R`,
   `tests/testthat/test-heritability.R`.
+  The #1484 regression file was removed with the revert.
 - `NEWS.md`, `man/update.drmTMB.Rd`, `man/heritability.Rd`, `man/miss_control.Rd`,
   `_pkgdown.yml`, `docs/design/capability-status.md`,
   `docs/design/parity-matrix.md`, `tools/write-parity-matrix.R`,
@@ -53,8 +55,7 @@ succeeded.
 Focused testthat files, after one test fix (Gaussian `y + 1` does not change
 logLik when an intercept is present):
 
-- `test-update-drmTMB.R`: 1 test, 0 fail
-- `test-miss-control-predictor-fail.R`: 1 test, 0 fail
+- `test-update-drmTMB.R`: 1 test, 0 fail (later 9/9 including unnamed extras)
 - `test-missing-data-control.R`: 3 tests, 0 fail
 - `test-dinnage-audit-wave4b2.R`: 9 pass, 1 skip (`tweedie` not installed)
 - heritability `#1480` level block: 9 `expect_error` successes
@@ -70,9 +71,10 @@ uninstalled `fmesher`/`sf`. The full testthat suite was not run.
 
 The #1480 dummy-object test failed before `validate_profile_level()` was
 added, because `drm_variance_ratio()` continued into family checks. The
-#1484 stored-control and `predictor = pf` calls failed on current `main`
-and pass after the evaluated-control check. The #1241 test asks for a
-refit that current `main` cannot dispatch.
+#1241 test asks for a refit that current `main` cannot dispatch. An
+evaluated-control check for stored `miss_control(predictor = "fail")` was
+tried for #1484 and then reverted; that issue stays open pending a
+maintainer decision.
 
 ## Consistency Audit
 
@@ -86,19 +88,21 @@ not current capability claims.
 
 ## GitHub Issue Maintenance
 
-Did not close or comment on any issue. The PR body uses `Fixes #1241`,
-`Fixes #1480`, and `Fixes #1484`. Close verdicts for #1323 and #1015 are
-recommendations only.
+Did not close or comment on any issue. The PR body uses `Fixes #1241` and
+`Fixes #1480` only. It must not say `Fixes #1484` or `Closes #1484`: the
+#1484 evaluated-control fix was reverted and is waiting on a maintainer
+decision, so merging must leave #1484 open. Close verdicts for #1323 and
+#1015 are recommendations only.
 
 ## What Did Not Go Smoothly
 
 #1332 keyed the fail check off call syntax so
 `miss_control(response = "include")` could drop incomplete predictors while
-keeping default `predictor = "fail"`. Honoring the evaluated field means an
-explicit `missing = miss_control(response = "include")` now errors when
-predictors are missing, which matches `?miss_control`. Users who want
-missing-response include plus complete-case predictors still omit `missing`
-or need a later `predictor = "drop"` design.
+keeping default `predictor = "fail"`. A first-pass #1484 change honoured
+the evaluated field and broke 13 missing-response tests. That change is
+reverted; the call-syntax helper is restored until a maintainer decides
+whether an explicit `response = "include"` / `"drop"` should drop those
+rows or error.
 
 ## Team Learning
 
