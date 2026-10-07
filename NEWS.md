@@ -1,5 +1,22 @@
 # drmTMB (development)
 
+## New features
+
+* `update()` now has an `update.drmTMB()` method. It refits from the stored
+  call with a new `bf()` / `drm_formula()` object, or with named arguments
+  such as `data` or `family`, and reuses the original defaults. An unnamed
+  argument in `...` now errors instead of being silently ignored (#1241).
+
+## Bug fixes
+
+* `heritability()`, `icc()`, and `repeatability()` now reject a `level`
+  that is not one number strictly between 0 and 1, matching `confint()`
+  instead of returning `NaN` or inverted bounds (#1480).
+
+* `family = beta()` now fails with a drmTMB message that names
+  `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
+  `beta()` stays unexported so it does not mask [base::beta()] (#1420).
+
 ## Documentation fixes
 
 * `?phylo` now correctly describes the existing unit-height convention:
@@ -9,12 +26,6 @@
   the earlier claim of preserving the supplied absolute branch-length scale;
   no fitting behavior or numerical default changed (Ayumi-495/
   LS_ecogeographical-rules#49).
-
-## Bug fixes
-
-* `family = beta()` now fails with a drmTMB message that names
-  `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
-  `beta()` stays unexported so it does not mask [base::beta()] (#1420).
 
 # drmTMB 0.7.1
 

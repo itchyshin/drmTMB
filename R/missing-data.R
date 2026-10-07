@@ -83,6 +83,8 @@ miss_control <- function(
 #' alone. Only `miss_control()` with no arguments or an explicit
 #' `predictor = "fail"` triggers early validation; `miss_control(response =
 #' "include")` keeps the existing complete-case row drop for predictors.
+#' Stored controls and `predictor` values held in a variable are unchanged
+#' until #1484 gets an explicit design decision.
 #'
 #' @param missing_call The unevaluated `missing =` argument as a call object.
 #' @noRd

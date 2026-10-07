@@ -1,3 +1,36 @@
+# 2026-10-07 — PR #1500 review: unnamed update() extras + revert #1484 semantics
+
+Review of draft PR #1500 (`4932d9482`). `update.drmTMB()` now errors on
+unnamed `...` arguments. The #1484 evaluated-control change is reverted:
+`miss_control(response = "include")` again drops incomplete predictor rows
+(A-2 / #1332 call-syntax check). Confirmed 13 failures in 11 missing-response
+files on the previous head; those tests were not edited.
+
+C17/C14 runner re-ran at `75651e720` (12/12 PASS). mean_tau_relative_error
+drifted at most 1.322e-11 (float noise). The same 1.3e-11 drift is
+reproduced on `main` `75845a3d`, so it predates this PR;
+`source_fingerprint` left alone. No `Fixes #1484` / `Closes #1484`: that
+issue stays open pending a maintainer decision.
+Receipt: `docs/dev-log/implementation-recovery/2026-10-07-pr1500-review-c17c2-c14-final-source-compatibility/`.
+`python3 tools/capability_ledger.py --check` OK; 80 ledger unit tests OK.
+
+# 2026-10-07 — triage pilot: close verdicts + update/level/miss_control fixes
+
+Pilot on `itchyshin/drmTMB` at `75845a3d0`. Close-candidate verdicts are in
+`triage/pilot_close_verdicts.md` (recommendations only; no issue comments or
+closes). Quick fixes on `cursor/triage-pilot-quick`: `update.drmTMB()` (#1241),
+`validate_profile_level()` in `heritability()`/`icc()`/`repeatability()` (#1480),
+and evaluated `miss_control(predictor = "fail")` (#1484).
+
+Focused tests (R 4.3.3, installed TMB engine): `test-update-drmTMB.R` 1/1
+pass; `test-miss-control-predictor-fail.R` 1/1 pass;
+`test-missing-data-control.R` 3/3 pass; `test-dinnage-audit-wave4b2.R` 9 pass,
+1 skip (`tweedie` missing); heritability `#1480` level block 9/9 expect_error
+pass. `R CMD check --no-vignettes --no-manual --no-tests` on
+`drmTMB_0.7.1.tar.gz`: examples OK; Status 2 WARNINGs (vignettes not built
+into `inst/doc`) and 4 NOTEs (missing Suggests, installed size, pre-existing
+`%||%` globals, missing `fmesher`/`sf` Rd xrefs). Full testthat suite not run.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

@@ -190,7 +190,8 @@ than `implemented` because the rest of the named suite is deliberately absent:
 `drm_lrtest()` is implemented but neither exported nor wired in, and
 `anova.drmTMB()` (`R/methods.R`, which predates the port) still aborts with
 "`anova()` likelihood-ratio comparisons are not implemented for `drmTMB` fits";
-there is no `update.drmTMB()` method in `NAMESPACE`; and `weights.drmTMB()`
+`update.drmTMB()` (`R/methods.R`, #1241) now refits from the stored call;
+and `weights.drmTMB()`
 returns the prior per-observation weights, not Akaike model weights -- DRM.jl's
 `weights(fit)` returns `ones(nobs(fit))`, so this is a shared naming boundary
 rather than an R-side gap.
