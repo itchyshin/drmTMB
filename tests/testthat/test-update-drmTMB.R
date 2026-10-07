@@ -22,5 +22,9 @@ test_that("update.drmTMB refits with a new formula and reused defaults (#1241)",
 
   shifted <- transform(dat, y = y + 1)
   refit <- update(fit, data = shifted)
-  expect_false(isTRUE(all.equal(as.numeric(logLik(fit)), as.numeric(logLik(refit)))))
+  expect_equal(
+    unname(coef(refit, "mu")[["(Intercept)"]]),
+    unname(coef(fit, "mu")[["(Intercept)"]]) + 1,
+    tolerance = 1e-4
+  )
 })

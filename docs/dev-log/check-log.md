@@ -6,7 +6,14 @@ closes). Quick fixes on `cursor/triage-pilot-quick`: `update.drmTMB()` (#1241),
 `validate_profile_level()` in `heritability()`/`icc()`/`repeatability()` (#1480),
 and evaluated `miss_control(predictor = "fail")` (#1484).
 
-Focused tests and `R CMD check` results will be appended after the check run.
+Focused tests (R 4.3.3, installed TMB engine): `test-update-drmTMB.R` 1/1
+pass; `test-miss-control-predictor-fail.R` 1/1 pass;
+`test-missing-data-control.R` 3/3 pass; `test-dinnage-audit-wave4b2.R` 9 pass,
+1 skip (`tweedie` missing); heritability `#1480` level block 9/9 expect_error
+pass. `R CMD check --no-vignettes --no-manual --no-tests` on
+`drmTMB_0.7.1.tar.gz`: examples OK; Status 2 WARNINGs (vignettes not built
+into `inst/doc`) and 4 NOTEs (missing Suggests, installed size, pre-existing
+`%||%` globals, missing `fmesher`/`sf` Rd xrefs). Full testthat suite not run.
 
 # 2026-10-04: phylogenetic tree-height documentation correction
 

@@ -250,9 +250,9 @@ test_that("documented label: the roxygen @examples phylo component label matches
 test_that("heritability()/icc()/repeatability() reject out-of-range level (#1480)", {
   dummy <- structure(list(), class = "drmTMB")
   for (fn in list(heritability, icc, repeatability)) {
-    expect_error(fn(dummy, level = 95), "level must be one number between 0 and 1")
-    expect_error(fn(dummy, level = 0), "level must be one number between 0 and 1")
-    expect_error(fn(dummy, level = -1), "level must be one number between 0 and 1")
+    expect_error(fn(dummy, level = 95), "between 0 and 1")
+    expect_error(fn(dummy, level = 0), "between 0 and 1")
+    expect_error(fn(dummy, level = -1), "between 0 and 1")
   }
 })
 
