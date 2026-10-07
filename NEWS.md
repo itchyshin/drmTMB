@@ -26,9 +26,9 @@
   `conf.status = "bootstrap"` after dropping failed refits. Those rows
   use `bootstrap_incomplete` and warn
   (`drmTMB_bootstrap_incomplete_warning`). An at-boundary row that also
-  dropped refits still warns, and `plot_parameter_surface()` /
-  `plot_corpairs()` keep incomplete and at-boundary intervals visible
-  (#1458).
+  dropped refits still warns and names `bootstrap_at_boundary`, and
+  `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
+  at-boundary intervals visible (#1458).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.

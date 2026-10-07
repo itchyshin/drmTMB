@@ -209,6 +209,7 @@ test_that("at-boundary bootstrap still warns about dropped refits (#1458)", {
   )
   expect_warning(
     drmTMB:::warn_bootstrap_incomplete(at_boundary),
+    regexp = "bootstrap_at_boundary",
     class = "drmTMB_bootstrap_incomplete_warning"
   )
 
@@ -265,6 +266,7 @@ test_that("at-boundary bootstrap still warns about dropped refits (#1458)", {
       ),
       class = "drmTMB_bootstrap_boundary_warning"
     ),
+    regexp = "bootstrap_at_boundary",
     class = "drmTMB_bootstrap_incomplete_warning"
   )
   expect_equal(ci$conf.status, "bootstrap_at_boundary")

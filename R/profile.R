@@ -276,7 +276,7 @@
 #' survivors can be too narrow or shifted. `bootstrap.n` and
 #' `bootstrap.failed` report the split; the status is not a clean
 #' `"bootstrap"` interval. An at-boundary row that also dropped refits keeps
-#' that failure count and still warns.
+#' that failure count and still warns, naming `bootstrap_at_boundary`.
 #'
 #' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
 #' `profile.boundary = TRUE`, but return missing endpoints and are not warned about
@@ -2878,11 +2878,12 @@ warn_bootstrap_incomplete <- function(out) {
     return(invisible(out))
   }
   n_incomplete <- sum(incomplete)
+  statuses <- unique(as.character(out$conf.status[incomplete]))
   cli::cli_warn(
     c(
       "{cli::qty(n_incomplete)}Bootstrap interval{?s} for {.val {out$parm[incomplete]}} {?was/were} computed after dropping failed refits.",
       "!" = "Failed refits are not a random subset: they are often the hard draws, so the percentile interval can be too narrow or shifted.",
-      "i" = "Read {.field bootstrap.n} and {.field bootstrap.failed}. The status is {.val bootstrap_incomplete}, not a clean {.val bootstrap} interval."
+      "i" = "Read {.field bootstrap.n} and {.field bootstrap.failed}. The status is {.val {statuses}}, not a clean {.val bootstrap} interval."
     ),
     class = "drmTMB_bootstrap_incomplete_warning"
   )

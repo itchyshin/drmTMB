@@ -330,7 +330,7 @@ Failed refits are often the hard draws, so a percentile computed from the
 survivors can be too narrow or shifted. \code{bootstrap.n} and
 \code{bootstrap.failed} report the split; the status is not a clean
 \code{"bootstrap"} interval. An at-boundary row that also dropped refits
-keeps that failure count and still warns.
+keeps that failure count and still warns, naming \code{bootstrap_at_boundary}.
 
 Rows with \code{conf.status = "profile_failed"} or \code{"clamp_limited"} also carry
 \code{profile.boundary = TRUE}, but return missing endpoints and are not warned about
