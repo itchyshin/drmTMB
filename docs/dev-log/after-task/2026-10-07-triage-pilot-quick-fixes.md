@@ -46,7 +46,25 @@ strictly in `(0, 1)`.
 
 ## Checks Run
 
-Recorded after the focused test and `devtools::check()` run on this branch.
+The cloud image had no R. Ubuntu 24.04 `r-base` 4.3.3 was installed, then TMB,
+cli, lifecycle, RcppEigen, and testthat. `R CMD INSTALL` of this branch
+succeeded.
+
+Focused testthat files, after one test fix (Gaussian `y + 1` does not change
+logLik when an intercept is present):
+
+- `test-update-drmTMB.R`: 1 test, 0 fail
+- `test-miss-control-predictor-fail.R`: 1 test, 0 fail
+- `test-missing-data-control.R`: 3 tests, 0 fail
+- `test-dinnage-audit-wave4b2.R`: 9 pass, 1 skip (`tweedie` not installed)
+- heritability `#1480` level block: 9 `expect_error` successes
+
+`R CMD build --no-build-vignettes` then
+`R CMD check --no-vignettes --no-manual --no-tests` on `drmTMB_0.7.1.tar.gz`
+finished with examples OK and Status 2 WARNINGs, 4 NOTEs. The WARNINGs are from
+skipping vignette rebuild (`inst/doc` absent). The NOTEs are missing Suggests,
+installed size 98.1 Mb, pre-existing `%||%` globals on R 4.3, and Rd xrefs to
+uninstalled `fmesher`/`sf`. The full testthat suite was not run.
 
 ## Tests Of The Tests
 
