@@ -27,5 +27,6 @@
     "abandoned": 0
   },
   "remote_authority": "none; local-only commit",
-  "efficiency": "Global checker requests fresh task based on historical guardian sessions; second context compaction also requires fresh execution context. No efficiency pass claimed."
+  "efficiency": "Current parent receipt reports two compactions against the limit of one. Global historical guardian failures also exist. Fresh continuation is required; no efficiency pass is claimed.",
+  "handoff_gate": "Executed before continuation checkpoint; exit 1. Unpublished current branch is explicitly CARRIED-OVER because remote authority is absent. Full programme has ten unmet gates; unrelated historical branch states are PROTECTED."
 }
