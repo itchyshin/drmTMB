@@ -13,6 +13,9 @@ allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
 `test-biv-lognormal.R` accept the new status. NEWS, `?confint.drmTMB`, and
 `docs/design/03-likelihoods.md` updated.
 
+Targeted tests: `test-silent-input-drops.R` 5/5 pass;
+`test-gamma-location-scale.R` 7/7; `test-biv-lognormal.R` 6/6.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
