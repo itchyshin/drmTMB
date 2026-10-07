@@ -299,13 +299,6 @@ confint.drm_cjs <- function(object, parm, level = 0.95,
   if (process == "phi" && (!is.numeric(x$interval_length) ||
                             any(!is.finite(x$interval_length)) || any(x$interval_length <= 0)))
     stop("`newdata$phi$interval_length` must contain positive finite values.", call. = FALSE)
-  known <- if (process == "phi") object$training_phi_data else object$training_p_data
-  lookup <- if (process == "phi") c("id", "interval_start", "interval_end") else c("id", "occasion")
-  if (any(!vapply(seq_len(nrow(x)), function(i) {
-    any(vapply(seq_len(nrow(known)), function(j) all(vapply(lookup, function(k)
-      identical(as.character(x[[k]][i]), as.character(known[[k]][j])), logical(1))), logical(1)))
-  }, logical(1))))
-    stop("`newdata$", process, "` contains an unknown id or occasion/interval key.", call. = FALSE)
   design <- object[[process]]
   vars <- all.vars(design$terms)
   if (!all(vars %in% names(x)))
@@ -348,26 +341,36 @@ confint.drm_cjs <- function(object, parm, level = 0.95,
   eta
 }
 
+.cmr_profile_value <- function(object, j, value, start = object$optimizer$par) {
+  free <- start[-j]
+  objective <- function(other) {
+    full <- start
+    full[j] <- value
+    full[-j] <- other
+    object$obj$fn(full)
+  }
+  if (!length(free)) {
+    result <- tryCatch(objective(numeric()), error = function(e) NA_real_)
+    return(if (is.finite(result)) result else NA_real_)
+  }
+  opt <- tryCatch(stats::nlminb(free, objective,
+                                control = list(iter.max = 300L, eval.max = 400L)),
+                  error = function(e) NULL)
+  if (is.null(opt) || opt$convergence != 0L || !is.finite(opt$objective)) return(NA_real_)
+  full <- start
+  full[j] <- value
+  full[-j] <- opt$par
+  gradient <- tryCatch(object$obj$gr(full)[-j], error = function(e) NA_real_)
+  if (!length(gradient) || any(!is.finite(gradient)) || max(abs(gradient)) > 1e-4)
+    return(NA_real_)
+  opt$objective
+}
+
 .cmr_profile_endpoint <- function(object, j, estimate, se, level) {
   parhat <- object$optimizer$par
   cutoff <- stats::qchisq(level, df = 1L)
   center <- object$obj$fn(parhat)
-  fn_at <- function(value, start) {
-    free <- start[-j]
-    objective <- function(other) {
-      full <- start
-      full[j] <- value
-      full[-j] <- other
-      object$obj$fn(full)
-    }
-    opt <- tryCatch(stats::nlminb(free, objective,
-                                  control = list(iter.max = 300L, eval.max = 400L)),
-                    error = function(e) NULL)
-    if (length(free) && (is.null(opt) || opt$convergence != 0L || !is.finite(opt$objective)))
-      return(NA_real_)
-    if (!length(free)) return(2 * (objective(numeric()) - center))
-    2 * (opt$objective - center)
-  }
+  fn_at <- function(value, start) 2 * (.cmr_profile_value(object, j, value, start) - center)
   limits <- c(NA_real_, NA_real_)
   status <- c("failed", "failed")
   for (side in seq_len(2L)) {
@@ -410,7 +413,9 @@ confint.drm_cjs <- function(object, parm, level = 0.95,
                                phi = stats::formula(object$phi$terms),
                                p = stats::formula(object$p$terms),
                                phi_data = sim$phi_data, p_data = sim$p_data,
-                               terminal_constraint = object$terminal_constraint),
+                               terminal_constraint = object$terminal_constraint,
+                               contrasts = list(phi = object$phi$contrasts,
+                                                p = object$p$contrasts)),
                       error = function(e) e)
     if (inherits(result, "error")) {
       records[[i]] <- list(replicate = i, status = "failed", converged = FALSE,

@@ -10,7 +10,7 @@ make_cmr_methods_fit <- function() {
     }
   }
   d <- cmr_data(histories, id = paste0("bird", seq_len(nrow(histories))),
-                occasions = c(0, 1, 2, 3), intervals = c(1, 1.5, 1),
+                occasions = c(1, 2, 3, 4), intervals = c(1, 1.5, 1),
                 units = "years")
   drm_cjs(d, terminal_constraint = list(phi = .7))
 }
@@ -47,9 +47,12 @@ test_that("CJS training prediction returns only contributing keyed rows", {
   expect_equal(nrow(pr$phi), sum(fit$phi_active))
   expect_equal(nrow(pr$p), sum(fit$p_active))
   expect_equal(pr$phi$phi_interval, pr$phi$phi_unit ^ pr$phi$interval_length)
+  expect_false("eta" %in% names(pr$phi))
   lk <- predict(fit, type = "link")
   expect_true("eta" %in% names(lk$phi))
   expect_true("eta" %in% names(lk$p))
+  expect_true("interval_length" %in% names(lk$phi))
+  expect_false("phi_unit" %in% names(lk$phi))
   expect_equal(lk$phi$eta, as.numeric(fit$phi$X[fit$phi_active, , drop = FALSE] %*%
                                         fit$coefficients$phi + fit$phi$offset[fit$phi_active]))
 })
@@ -66,7 +69,7 @@ test_that("CJS newdata prediction is keyed, schema-checked, and unit-checked", {
   expect_equal(pr$p$occasion, 1)
   expect_error(predict(fit, newdata = within(nd, units <- "days")), "units")
   nd$phi$id <- "not-in-training"
-  expect_error(predict(fit, newdata = nd), "id")
+  expect_equal(predict(fit, newdata = nd)$phi$id, "not-in-training")
   nd$phi$id <- "bird1"
   nd$p$extra <- 1
   expect_error(predict(fit, newdata = nd), "schema")
@@ -88,6 +91,36 @@ test_that("CJS prediction reuses factor coding and offsets", {
   phi$missing <- 1
   nd$phi <- phi
   expect_error(predict(fit, newdata = nd), "schema")
+})
+
+test_that("R prediction matches the shared fixed-coefficient literal fixture", {
+  fit <- make_cmr_methods_schema_fit()
+  phi_data <- fit$training_phi_data
+  phi_data$x <- seq_len(nrow(phi_data)) / 10
+  p_data <- fit$training_p_data
+  p_data$x <- seq_len(nrow(p_data)) / 10
+  fit <- drm_cjs(fit$data, phi = ~ x + group + offset(off),
+                 p = ~ x + group + offset(off), phi_data = phi_data,
+                 p_data = p_data, terminal_constraint = list(phi = .75))
+  fit$coefficients$phi <- c("(Intercept)" = .2, x = .1, groupB = -.3)
+  fit$coefficients$p <- c("(Intercept)" = .5, x = -.2, groupB = .4)
+  fit$terminal_constraint <- list(phi = .75)
+  fit$convergence <- 0L
+  fit$gradient_norm <- 0
+  fixture <- read.csv(testthat::test_path("..", "..", "docs", "dev-log", "cmr", "fixtures", "prediction-m2.csv"), stringsAsFactors = FALSE)
+  phi <- fixture[fixture$process == "phi", c("id", "interval_start", "interval_end", "interval_length", "x", "group", "off")]
+  phi$group <- factor(phi$group, levels = c("A", "B"))
+  p <- fixture[fixture$process == "p", c("id", "occasion", "x", "group", "off")]
+  p$group <- factor(p$group, levels = c("A", "B"))
+  pred <- predict(fit, newdata = list(phi = phi, p = p, units = "years"))
+  link <- predict(fit, newdata = list(phi = phi, p = p, units = "years"), type = "link")
+  expect_equal(link$phi$eta, fixture$eta_expected[fixture$process == "phi"], tolerance = 1e-12)
+  expect_equal(link$p$eta, fixture$eta_expected[fixture$process == "p"], tolerance = 1e-12)
+  expect_equal(pred$phi$phi_unit, fixture$unit_probability_expected[fixture$process == "phi"], tolerance = 1e-12)
+  expect_equal(pred$phi$phi_interval, fixture$probability_expected[fixture$process == "phi"], tolerance = 1e-12)
+  expect_equal(pred$p$p, fixture$probability_expected[fixture$process == "p"], tolerance = 1e-12)
+  expect_identical(names(pred$phi), c("id", "interval_start", "interval_end", "interval_length", "phi_unit", "phi_interval"))
+  expect_identical(names(link$phi), c("id", "interval_start", "interval_end", "interval_length", "eta"))
 })
 
 test_that("CJS simulation preserves layouts, expands frequencies, and refits", {
@@ -146,4 +179,46 @@ test_that("CJS bootstrap retains an attempt ledger", {
   expect_true(all(c("lower", "upper") %in% colnames(ci)))
   expect_named(attr(ci, "target_status"), names(coef(fit)))
   expect_named(attr(ci, "n_usable_target"), names(coef(fit)))
+  too_high <- confint(fit, parm = names(coef(fit))[[1L]], method = "bootstrap",
+                      nsim = 2, seed = 25, min_usable = 3)
+  expect_identical(attr(too_high, "target_status")[[1L]], "insufficient_usable")
+})
+
+test_that("CJS bootstrap refits preserve fitted factor contrasts", {
+  original <- options(contrasts = c("contr.treatment", "contr.poly"))
+  on.exit(options(original), add = TRUE)
+  fit <- make_cmr_methods_schema_fit()
+  target <- "p:groupB"
+  expect_true(target %in% names(coef(fit)))
+  options(contrasts = c("contr.sum", "contr.poly"))
+  ci <- confint(fit, parm = target, method = "bootstrap", nsim = 2,
+                seed = 510, min_usable = 1)
+  ledger <- attr(ci, "attempts")
+  expect_true(all(ledger$status == "usable"))
+  expect_equal(names(attr(ci, "target_status")), target)
+  expect_equal(attr(ci, "n_usable_target")[[target]], 2L)
+})
+
+test_that("CJS Wald and profile diagnostics agree with their likelihood calculations", {
+  fit <- make_cmr_methods_fit()
+  level <- 0.8
+  z <- stats::qnorm((1 + level) / 2)
+  wald <- confint(fit, method = "wald", level = level)
+  se <- sqrt(diag(vcov(fit)))
+  estimates <- coef(fit)
+  expect_equal(wald[, "lower"], estimates - z * se, tolerance = 1e-10)
+  expect_equal(wald[, "upper"], estimates + z * se, tolerance = 1e-10)
+
+  profile <- confint(fit, method = "profile", level = level)
+  cutoff <- stats::qchisq(level, df = 1)
+  statuses <- attr(profile, "endpoint_status")
+  for (nm in rownames(profile)) {
+    j <- match(nm, names(fit$optimizer$par))
+    for (side in seq_len(2L)) if (statuses[nm, side] == "ok") {
+      endpoint_nll <- drmTMB:::.cmr_profile_value(fit, j, profile[nm, side])
+      expect_true(is.finite(endpoint_nll))
+      expect_equal(2 * (endpoint_nll - fit$obj$fn(fit$optimizer$par)), cutoff,
+                   tolerance = 2e-3)
+    }
+  }
 })

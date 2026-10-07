@@ -1,0 +1,14 @@
+/Users/z3437171/.zprofile:26: nice(5) failed: operation not permitted
+                   cell replicate status converged gradient_norm    logLik
+  survival_coefficients         1 usable      TRUE  6.347384e-06 -60.65485
+  survival_coefficients         2 usable      TRUE  1.543981e-05 -63.32300
+ detection_coefficients         1 usable      TRUE  5.190562e-07 -61.45647
+ detection_coefficients         2 usable      TRUE  3.618605e-06 -55.66104
+ truth_logLik                   reason
+    -61.56092 relative convergence (4)
+    -66.83241 relative convergence (4)
+    -64.19684 relative convergence (4)
+    -56.25025 relative convergence (4)
+CMR_M2_RECOVERY_FIXTURES=4
+CMR_M2_RECOVERY_OK
+

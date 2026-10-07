@@ -1,0 +1,76 @@
+---
+title: "First-capture-conditional capture-recapture"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{First-capture-conditional capture-recapture}
+  %\VignetteEngine{ knitr::rmarkdown }
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+if (identical(Sys.getenv("DRMTMB_CMR_SOURCE"), "true")) {
+  devtools::load_all(".", quiet = TRUE)
+} else {
+  library(drmTMB)
+}
+```
+
+`drm_cjs()` fits a fixed-effects Cormack–Jolly–Seber model conditional on each
+animal's first capture. The survival formula models logit unit-time apparent
+survival. Over an interval of length `Delta`, survival is `phi_unit^Delta`; the
+detection formula models detection conditional on being alive and surveyed.
+This route does not estimate abundance or unseen animals.
+
+## Fit a model
+
+```{r fit}
+y <- rbind(
+  c(1, 0, 0, 0), c(1, 0, 1, 0), c(1, 1, 0, 0), c(1, 1, 1, 0),
+  c(1, 0, 0, 1), c(1, 0, 1, 1), c(1, 1, 0, 1), c(1, 1, 1, 1)
+)
+d <- cmr_data(y, id = seq_len(nrow(y)), occasions = 1:4, units = "years",
+              frequency = c(12, 4, 8, 4, 4, 4, 4, 4))
+fit <- drm_cjs(d, phi = ~1, p = ~1)
+coef(fit)
+```
+
+## Predict and simulate conditionally
+
+Training predictions return only keyed interval and occasion rows that
+contribute to the objective.
+
+```{r predict}
+pred <- predict(fit)
+head(pred$phi)
+head(pred$p)
+```
+
+Simulation retains the observed first-capture times, survey masks, and
+administrative endpoints. It conditions on the first-capture emission and
+keeps death absorbing. Supplying a seed gives reproducible data without
+changing the caller's random-number stream.
+
+```{r simulate}
+simulated <- simulate(fit, nsim = 1L, seed = 20261006)[[1L]]
+refit <- drm_cjs(simulated$data, phi = ~1, p = ~1,
+                 phi_data = simulated$phi_data, p_data = simulated$p_data)
+coef(refit)
+```
+
+## Inspect fixed-effect intervals
+
+Wald and profile intervals use the CJS-specific observed likelihood curvature
+and constrained CJS refits, respectively. The parametric bootstrap retains
+every attempt and its status. Results expose a status for each coefficient.
+These methods have not passed the programme's separate recovery and coverage
+qualification, so available intervals do not establish nominal calibration.
+
+```{r intervals}
+ci <- confint(fit, method = "wald")
+attr(ci, "target_status")
+```
+
+The current implementation covers fixed-effects CJS. Shared and persistent
+individual effects, predictor-dependent random-effect standard deviations,
+and reference-cohort selection correction are later programme stages.

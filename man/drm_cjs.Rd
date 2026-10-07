@@ -14,7 +14,8 @@ drm_cjs(
   sd_phi = NULL,
   sd_p = NULL,
   terminal_constraint = NULL,
-  control = list()
+  control = list(),
+  contrasts = list(phi = NULL, p = NULL)
 )
 }
 \arguments{
@@ -42,6 +43,10 @@ strictly between zero and one. It applies at the final declared interval
 or occasion, not at each individual's administrative endpoint.}
 
 \item{control}{Options passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
+
+\item{contrasts}{Optional named list with process-specific factor contrasts
+for \code{phi} and \code{p}. The fitted coding is retained for prediction
+and bootstrap refits.}
 }
 \value{
 A \code{drm_cjs} fit containing the optimizer and TMB objective.
