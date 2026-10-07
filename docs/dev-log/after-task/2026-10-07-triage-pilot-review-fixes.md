@@ -51,12 +51,33 @@ quantiles of retained refits.
   `tests/testthat/test-plot-parameter-surface.R`,
   `tests/testthat/test-plot-corpairs.R`.
 - `NEWS.md`, `man/confint.drmTMB.Rd`, `docs/dev-log/check-log.md`, this report.
-- C17 model-15 receipt to be rewired after `R/drmTMB.R` / `R/methods.R` moved.
+- C17 model-15 receipt rewired to
+  `docs/dev-log/implementation-recovery/2026-10-07-triage-1501-c17c2-c14-final-source-compatibility/`
+  after `R/drmTMB.R` / `R/methods.R` moved.
 
 ## Checks Run
 
-Targeted tests and C17 recertify are recorded in the follow-up commit
-after this review-fix slice.
+This cloud VM had no R toolchain. Verification used Ubuntu 24.04
+R 4.3.3 with TMB, testthat, and pkgload installed for the run.
+
+Targeted `pkgload::load_all()` + `testthat::test_file()`:
+
+- `test-silent-input-drops.R`: 7 tests, 0 failed, 0 errors, 0 skipped (0.06 min)
+- `test-plot-parameter-surface.R`: 10 tests, 0 failed; 8 skipped (no ggplot2); filter test passed
+- `test-plot-corpairs.R`: 8 tests, 0 failed; 6 skipped (no ggplot2); filter test passed
+- `test-sparse-fixed-effects.R`: 7 tests, 0 failed, 2 skipped on CRAN (0.01 min)
+- `test-emmeans-preflight.R`: 3 tests, 0 failed (0.05 min)
+
+`python3 tools/recertify-c17.py --label triage-1501` ran the committed
+runner. All three cells stayed 4/4 `PASS_CURRENT_SOURCE_COMPATIBILITY`.
+Worst `|change|` in `mean_tau_relative_error` was 1.322e-11 (float
+noise; previous recert accepted 3.119e-12). The authenticated
+model-15 `source_fingerprint` was unchanged, so the receipt was
+rewired in cheap mode: new paths and `current_source_sha`, fingerprint
+left alone.
+
+`python3 tools/capability_ledger.py --check`: OK (31 generated outputs).
+`python3 -m unittest tools.tests.test_capability_ledger -q`: 80 tests OK.
 
 ## Consistency Audit
 

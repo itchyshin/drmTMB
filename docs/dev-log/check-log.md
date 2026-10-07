@@ -8,7 +8,9 @@ and `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
 at-boundary intervals visible. The Julia mixed-pair tag now runs the same
 Gaussian identity-link check; the error names `Gamma(link = "log")` as
 well as `lognormal()`. C17 model-15 receipts were recertified after
-`R/drmTMB.R` / `R/methods.R` moved.
+`R/drmTMB.R` / `R/methods.R` moved: runner 4/4 PASS on mc-0568/0569/0576,
+worst `|change|` 1.322e-11 (float noise), `source_fingerprint` unchanged,
+`tools/capability_ledger.py --check` OK.
 
 # 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
 
