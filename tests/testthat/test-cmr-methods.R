@@ -122,9 +122,17 @@ test_that("CJS Wald inference is guarded and profile intervals are likelihood ba
   ci <- confint(fit, method = "wald")
   expect_equal(rownames(ci), names(coef(fit)))
   expect_true(all(c("lower", "upper") %in% colnames(ci)))
+  expect_named(attr(ci, "target_status"), names(coef(fit)))
+  expect_true(all(attr(ci, "target_status") == "ok"))
+  boundary_fit <- fit
+  boundary_fit$coefficients$phi[[1L]] <- 50
+  guarded <- confint(boundary_fit, parm = names(coef(fit))[[1L]], method = "wald")
+  expect_true(is.na(guarded[1L, 1L]))
+  expect_match(attr(guarded, "target_status")[[1L]], "unavailable")
   prof <- confint(fit, method = "profile", level = .8)
   expect_equal(rownames(prof), names(coef(fit)))
   expect_true(!is.null(attr(prof, "endpoint_status")))
+  expect_named(attr(prof, "target_status"), names(coef(fit)))
 })
 
 test_that("CJS bootstrap retains an attempt ledger", {
@@ -136,4 +144,6 @@ test_that("CJS bootstrap retains an attempt ledger", {
   expect_true(all(c("replicate", "status", "converged", "usable", "message") %in% names(ledger)))
   expect_equal(sum(ledger$usable), attr(ci, "n_usable"))
   expect_true(all(c("lower", "upper") %in% colnames(ci)))
+  expect_named(attr(ci, "target_status"), names(coef(fit)))
+  expect_named(attr(ci, "n_usable_target"), names(coef(fit)))
 })

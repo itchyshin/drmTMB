@@ -192,10 +192,16 @@ confint.drm_cjs <- function(object, parm, level = 0.95,
   ans <- matrix(NA_real_, length(parm), 2L,
                 dimnames = list(parm, c("lower", "upper")))
   if (method == "wald") {
-    variance <- vcov.drm_cjs(object)
-    se <- sqrt(diag(variance)[parm])
-    ans[,] <- cbind(estimates[parm] - z * se, estimates[parm] + z * se)
+    variance <- tryCatch(vcov.drm_cjs(object), error = function(e) e)
+    target_status <- setNames(rep("ok", length(parm)), parm)
+    if (inherits(variance, "error")) {
+      target_status[] <- paste0("unavailable: ", conditionMessage(variance))
+    } else {
+      se <- sqrt(diag(variance)[parm])
+      ans[,] <- cbind(estimates[parm] - z * se, estimates[parm] + z * se)
+    }
     attr(ans, "method") <- "wald"
+    attr(ans, "target_status") <- target_status
     return(ans)
   }
   .cmr_methods_validate_fit(object)
@@ -214,20 +220,33 @@ confint.drm_cjs <- function(object, parm, level = 0.95,
     }
     attr(ans, "method") <- "profile"
     attr(ans, "endpoint_status") <- statuses
+    attr(ans, "target_status") <- setNames(apply(statuses, 1L, function(x) {
+      if (all(x == "ok")) "ok" else if (any(x == "ok")) "partial" else "unavailable"
+    }), parm)
     return(ans)
   }
   nsim <- .cmr_validate_count(nsim, "nsim")
   min_usable <- .cmr_validate_count(min_usable, "min_usable")
   draws <- .cmr_bootstrap_coefficients(object, nsim, seed)
   usable <- vapply(draws$attempts$coefficients, function(x) !is.null(x), logical(1))
-  if (sum(usable) >= min_usable) {
-    sample <- do.call(rbind, draws$attempts$coefficients[usable])
-    ans[,] <- t(apply(sample[, parm, drop = FALSE], 2L, stats::quantile,
-                      probs = c((1 - level) / 2, 1 - (1 - level) / 2),
-                      names = FALSE, type = 7))
+  sample <- if (any(usable)) do.call(rbind, draws$attempts$coefficients[usable]) else NULL
+  target_status <- setNames(rep("insufficient_usable", length(parm)), parm)
+  n_usable_target <- setNames(integer(length(parm)), parm)
+  for (nm in parm) {
+    values <- if (is.null(sample)) numeric() else sample[, nm]
+    values <- values[is.finite(values)]
+    n_usable_target[[nm]] <- length(values)
+    if (length(values) >= min_usable) {
+      ans[nm, ] <- stats::quantile(values,
+                                   probs = c((1 - level) / 2, 1 - (1 - level) / 2),
+                                   names = FALSE, type = 7)
+      target_status[[nm]] <- "ok"
+    }
   }
   attr(ans, "method") <- "bootstrap"
-  attr(ans, "status") <- if (sum(usable) >= min_usable) "usable" else "insufficient_usable"
+  attr(ans, "status") <- if (all(target_status == "ok")) "usable" else "insufficient_usable"
+  attr(ans, "target_status") <- target_status
+  attr(ans, "n_usable_target") <- n_usable_target
   attr(ans, "attempts") <- draws$attempts
   attr(ans, "n_usable") <- sum(usable)
   ans
