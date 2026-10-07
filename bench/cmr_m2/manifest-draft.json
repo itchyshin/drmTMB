@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "status": "frozen draft; fixture bytes, DGPs, seed convention, estimands, and gates are fixed; no fitting or recovery campaign run",
+  "stage": "M2 deterministic recovery smoke",
+  "scope": "fixed-effects first-capture-conditional CJS only",
+  "implementation_readiness": {
+    "fit_api": "available in both products from M1 (Julia cjs; R drm_cjs)",
+    "simulation_api": "M2 predict/simulate/inference method definitions are present in the current shared working trees, but remain uncommitted concurrent work and were not verified in this fixture slice",
+    "smoke_state": "literal generated datasets are ready; no fitting or public-API generation call was run because this slice is restricted to light parsing and fixture-integrity checks"
+  },
+  "generator": {
+    "algorithm": "SplitMix64-v1",
+    "uniform_conversion": "top 53 bits divided by 2^53, yielding [0,1)",
+    "seed_formula": "20261006 + 10000000*stage_index + 100000*cell_index + replicate_index",
+    "stage_index": 0,
+    "cell_indices": {
+      "survival_coefficients": 1,
+      "detection_coefficients": 2
+    },
+    "replicate_indices": [
+      1,
+      2
+    ],
+    "ordering": "for each individual, draw masked-survey indicators in increasing post-capture occasion order; then draw interval survival and, when alive and surveyed, detection in increasing interval order",
+    "conditioning": "first capture occasion is fixed in advance and its emission is conditioned upon; simulation starts alive immediately after that capture",
+    "administrative_followup": "simulate through each individual's declared administrative endpoint; do not truncate at last capture",
+    "masking": "each post-capture survey is independently observed with probability 0.92; an unobserved survey is stored as capture blank and observed=0, while latent survival still advances",
+    "death": "absorbing; once dead, no later captures occur",
+    "frequency": "one per literal individual; no frequency expansion in this fixture",
+    "units": "years; interval lengths are already in years",
+    "stage_indices": {
+      "fixture_smoke": 0,
+      "pilot": 1,
+      "screen": 2,
+      "qualification": 3
+    },
+    "fixed_seeds": [
+      {
+        "cell": "survival_coefficients",
+        "replicate": 1,
+        "seed": 20361007
+      },
+      {
+        "cell": "survival_coefficients",
+        "replicate": 2,
+        "seed": 20361008
+      },
+      {
+        "cell": "detection_coefficients",
+        "replicate": 1,
+        "seed": 20461007
+      },
+      {
+        "cell": "detection_coefficients",
+        "replicate": 2,
+        "seed": 20461008
+      }
+    ]
+  },
+  "common_design": {
+    "individuals_per_dataset": 32,
+    "occasions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "interval_lengths": [
+      1.0,
+      0.5,
+      1.5,
+      1.0
+    ],
+    "first_capture": "occasion 5 for ids with i mod 11 = 0; otherwise occasion 1 for odd i and occasion 2 for even i",
+    "administrative_end": "occasion 4 when i mod 7 = 0 and first_capture < 5; otherwise occasion 5",
+    "x_phi": "-0.5 for odd i, +0.5 for even i",
+    "z_p": "-0.5 when floor(i/2) is odd, +0.5 otherwise",
+    "final_first_histories": "retained; likelihood contribution is one and they do not inform coefficients"
+  },
+  "cells": [
+    {
+      "cell": "survival_coefficients",
+      "role": "fixed-effects recovery smoke for phi coefficients",
+      "formula": {
+        "phi": "~ 1 + x_phi",
+        "p": "~ 1"
+      },
+      "terminal_constraint": {
+        "p": 0.6
+      },
+      "truth": {
+        "beta_phi": [
+          1.2,
+          -0.45
+        ],
+        "beta_p": "fixed by terminal constraint"
+      },
+      "estimands": [
+        {
+          "name": "beta_phi_intercept",
+          "component": "phi",
+          "truth": 1.2
+        },
+        {
+          "name": "beta_phi_x_phi",
+          "component": "phi",
+          "truth": -0.45
+        },
+        {
+          "name": "phi_unit_x_minus_0_5",
+          "component": "phi_unit",
+          "truth": "logistic(1.20 - 0.45*(-0.5))"
+        },
+        {
+          "name": "phi_unit_x_plus_0_5",
+          "component": "phi_unit",
+          "truth": "logistic(1.20 - 0.45*(+0.5))"
+        }
+      ]
+    },
+    {
+      "cell": "detection_coefficients",
+      "role": "fixed-effects recovery smoke for p coefficients",
+      "formula": {
+        "phi": "~ 1",
+        "p": "~ 1 + z_p"
+      },
+      "terminal_constraint": {
+        "phi": 0.8
+      },
+      "truth": {
+        "beta_phi": "fixed by terminal constraint",
+        "beta_p": [
+          0.1,
+          0.65
+        ]
+      },
+      "estimands": [
+        {
+          "name": "beta_p_intercept",
+          "component": "p",
+          "truth": 0.1
+        },
+        {
+          "name": "beta_p_z_p",
+          "component": "p",
+          "truth": 0.65
+        },
+        {
+          "name": "p_z_minus_0_5",
+          "component": "p",
+          "truth": "logistic(0.10 + 0.65*(-0.5))"
+        },
+        {
+          "name": "p_z_plus_0_5",
+          "component": "p",
+          "truth": "logistic(0.10 + 0.65*(+0.5))"
+        }
+      ]
+    }
+  ],
+  "fixture_files": {
+    "histories": "fixtures/histories.csv",
+    "phi_predictors": "fixtures/phi_predictors.csv",
+    "p_predictors": "fixtures/p_predictors.csv",
+    "regenerate": "python3 bench/cmr_m2/generate_fixture.py"
+  },
+  "denominators": {
+    "generated_attempts": "all 2 fixed-seed datasets per cell",
+    "fit_attempts": "every attempted fit, including errors, nonconvergence, boundary, singular-Hessian, and failed fits",
+    "usable_point_estimates": "converged fit with finite component-labelled coefficients and finite gradient; report count over all attempted fits",
+    "wald_available": "usable fit plus finite positive-definite observed Hessian and no fitted-probability boundary flag; denominator is all attempted fits",
+    "coverage": "covered usable intervals divided by usable intervals; also report covered usable intervals divided by all attempts",
+    "no_replacement": "never replace a failed attempt or extend a seed range after inspecting outcomes"
+  },
+  "smoke_acceptance_when_api_ready": {
+    "purpose": "mechanism and pipeline smoke only; not empirical recovery qualification or calibration",
+    "data_integrity": [
+      "regeneration reproduces all three fixture CSV files byte-for-byte",
+      "same fixture hashes and row counts in Julia and R worktrees",
+      "each history has exactly one observed first capture; no capture follows admin_end",
+      "all masked captures are blank with observed=0; latent generator advances across masked occasions",
+      "final-first histories remain and contribute likelihood one"
+    ],
+    "fit_diagnostics": [
+      "fit status and failure reason are retained for every dataset",
+      "successful fits have finite labelled estimates, finite objective and gradient norm <= 1e-4",
+      "Wald intervals are reported only when Hessian is finite positive definite and probabilities are not boundary flagged"
+    ],
+    "statistical_boundary": "No coefficient-distance or coverage pass/fail claim is made from two datasets per cell. Any coefficient error greater than 0.75 is a diagnostic stop-and-investigate trigger, not an acceptance threshold or evidence of recovery."
+  },
+  "later_recovery_gates_not_run": {
+    "pilot": {
+      "replicates_per_cell": 10,
+      "gate": "estimate runtime and partition failures before any larger stage"
+    },
+    "screen": {
+      "replicates_per_cell": 500,
+      "gate": "separate parent review after pilot; not authorized by this manifest"
+    },
+    "qualification": {
+      "replicates_per_primary_cell": 2000,
+      "gate": "separate approval after screen; not authorized by this manifest"
+    },
+    "point_recovery": "report bias and RMSE for each named coefficient and response-scale estimand, with Monte Carlo uncertainty; never pool phi and p",
+    "usable_fraction": "one-sided 95% Clopper-Pearson lower bound >= 0.95",
+    "bias": "absolute bias <= 0.02 on probability estimands, with its 95% Monte Carlo interval fully inside [-0.02, 0.02]; coefficient-scale bias reported separately and no threshold claimed until parent review",
+    "nominal_95_coverage": "two-sided Monte Carlo interval must lie within [0.925, 0.975]; exact coverage 1.000 is a simulator audit trigger, not a pass",
+    "pending_claims": [
+      "coverage calibration",
+      "boundary validity",
+      "performance",
+      "broad identifiability",
+      "R/Julia fitted-estimator equivalence"
+    ],
+    "seed_ranges": {
+      "pilot": "20261006 + 10000000*1 + 100000*cell_index + replicate_index; replicate 1..10",
+      "screen": "20261006 + 10000000*2 + 100000*cell_index + replicate_index; replicate 1..500",
+      "qualification": "20261006 + 10000000*3 + 100000*cell_index + replicate_index; replicate 1..2000",
+      "cell_indices": {
+        "survival_coefficients": 1,
+        "detection_coefficients": 2
+      },
+      "purpose": "disjoint deterministic streams; generated datasets must be retained as literal inputs for both products"
+    }
+  },
+  "runtime_and_compute": {
+    "current_fit_estimate": "not applicable: this slice ran no fits; the assigned validation boundary was limited to parsing and fixture integrity",
+    "future_pilot_estimate": "before any fit, estimate one tiny fit per product at <1 minute each based on M1 smoke evidence; then measure the 10-fit pilot. If the projected pilot exceeds 3 hours, provide pre-run test evidence and obtain approval before proceeding.",
+    "thread_caps": {
+      "JULIA_NUM_THREADS": 4,
+      "OPENBLAS_NUM_THREADS": 1
+    },
+    "campaigns": "no 500- or 2000-replicate campaign has run or is authorized; campaigns must not use GitHub Actions"
+  },
+  "frozen_at": "2026-10-06",
+  "calibration_status": "pending; no calibration or coverage claim",
+  "fixture_sha256": {
+    "generate_fixture.py": "4f72c29f6d6a459fa707f946528ae27f6fa581f062c15c0990073e68433d2f07",
+    "fixtures/histories.csv": "66c9b956049c00acd49f1bb9b95eeba9ee48719851ca3968d5550e2f4477714b",
+    "fixtures/phi_predictors.csv": "6d0abfd16ce6c842c63d808298b3e9431cdea7b7df54bb97a9196eb4cb29aa70",
+    "fixtures/p_predictors.csv": "74f17fabcd4f544789ec4d4718db6095a1ffaa4b597090c47a158e2d24adbe5c"
+  }
+}
