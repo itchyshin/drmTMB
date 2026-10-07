@@ -4,7 +4,9 @@ Root: /private/tmp/cmr-drmtmb-20261006
 Peer: /Users/z3437171/.codex/worktrees/cmr-cjs/DRM.jl
 Branch: codex/cmr-cjs
 Status: M0 and M1 accepted locally. M2-M6 remain OWED. No abandoned leaf.
-Production identity: inspect this branch HEAD and the following checkpoint commit; exact identities are recorded in the local handoff.
+Accepted native M1 production commit: 409f77d82a70455068fb6c624105181f6588d38e
+Peer accepted production commit: ef25bdff31038c02bfa27c693dd642c02ac49087
+Landing state: CARRIED-OVER on codex/cmr-cjs, local commits only because remote publication authority is absent. Resume in this exact root from this checkpoint, then proceed to M2; do not reset or recreate the checkout.
 
 ## Accepted evidence and do-not-redo fence
 
