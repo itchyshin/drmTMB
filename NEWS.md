@@ -12,6 +12,20 @@
 
 ## Bug fixes
 
+* User-set factor contrasts such as `contr.sum` are restored after unused
+  levels are dropped. When unused levels are removed, drmTMB warns that the
+  original contrast matrix cannot be reused instead of silently switching
+  to treatment coding (#1495).
+
+* `gaussian(link = "log")` and `gaussian(link = "inverse")` now error
+  instead of silently fitting the identity-link Gaussian model. Use
+  [lognormal()] for a log-scale mean on positive data (#1482).
+
+* `confint(..., method = "bootstrap")` no longer reports
+  `conf.status = "bootstrap"` after dropping failed refits. Those rows
+  use `bootstrap_incomplete` and warn
+  (`drmTMB_bootstrap_incomplete_warning`) (#1458).
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).

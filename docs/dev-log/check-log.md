@@ -1,3 +1,20 @@
+# 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
+
+Stopped three silent input-drop bugs on `cursor/triage-pilot-inputs`.
+User-set factor contrasts are restored after `droplevels()`; unused-level
+drops that invalidate a contrast matrix warn
+(`drmTMB_contrasts_unused_levels`). `gaussian(link = "log")` and
+`gaussian(link = "inverse")` now error like Gamma/Poisson instead of fitting
+identity. `confint(method = "bootstrap")` reports
+`bootstrap_incomplete` and warns when failed refits are dropped.
+
+Regression file: `tests/testthat/test-silent-input-drops.R`. Existing
+allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
+`test-biv-lognormal.R` accept the new status. NEWS, `?confint.drmTMB`, and
+`docs/design/03-likelihoods.md` updated.
+
+Check results: see the after-task report and the pull request.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

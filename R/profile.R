@@ -181,6 +181,8 @@
 #'   `conf.status = "wald"`, `"profile"`, or `"bootstrap"`. Failed numeric
 #'   profile rows use `"profile_failed"` with missing endpoints; profile rows
 #'   mark intervals that land near a lower SD boundary or correlation boundary.
+#'   Bootstrap rows that drop failed refits use `"bootstrap_incomplete"`
+#'   rather than a clean `"bootstrap"` status.
 #'   Bootstrap interval results carry a `"bootstrap.diagnostics"` attribute
 #'   with one diagnostic row per refit and target, including refit convergence,
 #'   target availability, draw use, and the refit message.
@@ -266,6 +268,14 @@
 #' zero, while a true SD of 0.9 put none there. The flag needs at least 20
 #' retained draws to fire, because a share computed from a handful of resamples
 #' is noise; `bootstrap.n` reports how many were retained.
+#'
+#' The same route flags a row with `conf.status = "bootstrap_incomplete"` and
+#' warns (class `drmTMB_bootstrap_incomplete_warning`) when at least two
+#' refits succeeded but one or more requested replicates were dropped.
+#' Failed refits are often the hard draws, so a percentile computed from the
+#' survivors can be too narrow or shifted. `bootstrap.n` and
+#' `bootstrap.failed` report the split; the status is not a clean
+#' `"bootstrap"` interval.
 #'
 #' Rows with `conf.status = "profile_failed"` or `"clamp_limited"` also carry
 #' `profile.boundary = TRUE`, but return missing endpoints and are not warned about
@@ -1456,6 +1466,8 @@ interval_status_levels <- function() {
     "derived_interval_unavailable",
     "wald_unavailable",
     "bootstrap_unavailable",
+    "bootstrap_incomplete",
+    "bootstrap_at_boundary",
     "target_unavailable",
     "profile_unavailable",
     "not_requested"
@@ -2724,10 +2736,10 @@ drm_bootstrap_confint <- function(
     draws$draw_used[target_index] <- finite
     n_ok <- sum(finite)
     failed <- nrow(target_draws) - n_ok
-    if (n_ok < 2L) {
+    status <- bootstrap_conf_status(n_ok, failed)
+    if (identical(status, "bootstrap_unavailable")) {
       lower <- NA_real_
       upper <- NA_real_
-      status <- "bootstrap_unavailable"
       message <- "fewer than two successful bootstrap refits"
     } else {
       qs <- bootstrap_percentile_interval(
@@ -2737,7 +2749,6 @@ drm_bootstrap_confint <- function(
       )
       lower <- qs[[1L]]
       upper <- qs[[2L]]
-      status <- "bootstrap"
       # Test on the NATURAL scale, not `draw_values`: the latter is the link
       # scale whenever the percentile is taken there, and "an SD near zero" is
       # only meaningful untransformed. This matches `wald_boundary_targets()`,
@@ -2783,7 +2794,7 @@ drm_bootstrap_confint <- function(
   # The boundary test is a property of the FIT, not of the interval method, so
   # the same detector serves all three routes.
   at_boundary <- !is.na(out$conf.status) &
-    out$conf.status == "bootstrap" &
+    out$conf.status %in% c("bootstrap", "bootstrap_incomplete") &
     is.finite(out$lower) &
     is.finite(out$upper) &
     boundary_fraction >= bootstrap_boundary_share
@@ -2799,9 +2810,71 @@ drm_bootstrap_confint <- function(
       class = "drmTMB_bootstrap_boundary_warning"
     )
   }
+  warn_bootstrap_incomplete(out)
 
   attr(out, "bootstrap.diagnostics") <- draws
   drm_as_confint_table(out)
+}
+
+# Percentile bootstrap from a selected subset of refits is not a clean
+# `"bootstrap"` interval. Any dropped replicate changes the sample the
+# percentile is computed from; failed draws are often the hard ones (#1458).
+bootstrap_conf_status <- function(n_ok, failed) {
+  n_ok <- as.integer(n_ok)[[1L]]
+  failed <- as.integer(failed)[[1L]]
+  if (!is.finite(n_ok) || n_ok < 2L) {
+    return("bootstrap_unavailable")
+  }
+  if (is.finite(failed) && failed > 0L) {
+    return("bootstrap_incomplete")
+  }
+  "bootstrap"
+}
+
+bootstrap_reconcile_status <- function(out, warn = TRUE) {
+  if (
+    !is.data.frame(out) ||
+      !all(c("conf.status", "bootstrap.n", "bootstrap.failed") %in% names(out))
+  ) {
+    return(out)
+  }
+  replace <- !is.na(out$conf.status) &
+    out$conf.status %in% c(
+      "bootstrap",
+      "bootstrap_unavailable",
+      "bootstrap_incomplete"
+    )
+  if (any(replace)) {
+    out$conf.status[replace] <- vapply(
+      which(replace),
+      function(i) {
+        bootstrap_conf_status(out$bootstrap.n[[i]], out$bootstrap.failed[[i]])
+      },
+      character(1L)
+    )
+  }
+  if (isTRUE(warn)) {
+    warn_bootstrap_incomplete(out)
+  }
+  out
+}
+
+warn_bootstrap_incomplete <- function(out) {
+  incomplete <- !is.na(out$conf.status) &
+    out$conf.status == "bootstrap_incomplete"
+  if (!any(incomplete)) {
+    return(invisible(out))
+  }
+  n_incomplete <- sum(incomplete)
+  cli::cli_warn(
+    c(
+      "{cli::qty(n_incomplete)}Bootstrap interval{?s} for {.val {out$parm[incomplete]}} {?was/were} computed after dropping failed refits.",
+      "!" = "Failed refits are not a random subset: they are often the hard draws, so the percentile interval can be too narrow or shifted.",
+      "i" = "Read {.field bootstrap.n} and {.field bootstrap.failed}. The status is {.val bootstrap_incomplete}, not a clean {.val bootstrap} interval."
+    ),
+    class = "drmTMB_bootstrap_incomplete_warning"
+  )
+  invisible(out)
 }
 
 validate_bootstrap_replicates <- function(R) {

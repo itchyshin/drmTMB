@@ -973,7 +973,10 @@ test_that("confint returns bootstrap intervals for direct targets", {
 
   expect_equal(ci$parm, c("sigma", "sd:mu:(1 | ID)"))
   expect_equal(ci$method, rep("bootstrap", 2L))
-  expect_true(all(ci$conf.status %in% c("bootstrap", "bootstrap_unavailable")))
+  expect_true(all(
+    ci$conf.status %in%
+      c("bootstrap", "bootstrap_incomplete", "bootstrap_unavailable")
+  ))
   expect_true(all(ci$bootstrap.n <= 3L))
   expect_true(all(ci$bootstrap.failed >= 0L))
   expect_equal(unique(ci$bootstrap.parallel), "none")
