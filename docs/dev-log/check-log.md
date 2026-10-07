@@ -1,3 +1,15 @@
+# 2026-10-07: review fixes for #1501 (contrasts, bootstrap, Julia link)
+
+Review of PR #1501 asked for six follow-ups on `cursor/triage-pilot-inputs`.
+`predict(newdata)` and the emmeans basis now carry fitted contrasts, so a
+`contr.sum` fit no longer errors with "Could not align the mu design
+matrix". At-boundary bootstrap rows still warn when refits were dropped,
+and `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
+at-boundary intervals visible. The Julia mixed-pair tag now runs the same
+Gaussian identity-link check; the error names `Gamma(link = "log")` as
+well as `lognormal()`. C17 model-15 receipts were recertified after
+`R/drmTMB.R` / `R/methods.R` moved.
+
 # 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
 
 Stopped three silent input-drop bugs on `cursor/triage-pilot-inputs`.

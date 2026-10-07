@@ -18,13 +18,17 @@
   to treatment coding (#1495).
 
 * `gaussian(link = "log")` and `gaussian(link = "inverse")` now error
-  instead of silently fitting the identity-link Gaussian model. Use
-  [lognormal()] for a log-scale mean on positive data (#1482).
+  instead of silently fitting the identity-link Gaussian model, including
+  a Gaussian member of a Julia mixed pair. Use [lognormal()] or
+  `Gamma(link = "log")` for a log-scale mean on positive data (#1482).
 
 * `confint(..., method = "bootstrap")` no longer reports
   `conf.status = "bootstrap"` after dropping failed refits. Those rows
   use `bootstrap_incomplete` and warn
-  (`drmTMB_bootstrap_incomplete_warning`) (#1458).
+  (`drmTMB_bootstrap_incomplete_warning`). An at-boundary row that also
+  dropped refits still warns, and `plot_parameter_surface()` /
+  `plot_corpairs()` keep incomplete and at-boundary intervals visible
+  (#1458).
 
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full

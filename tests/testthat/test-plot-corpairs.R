@@ -52,20 +52,38 @@ test_that("plot_corpairs() returns a ggplot for corpairs tables", {
 
 test_that("plot_corpairs interval filter keeps bootstrap intervals (#713.5)", {
   data <- data.frame(
-    conf.low = c(0, 0, 0, NA),
-    conf.high = c(1, 1, 1, NA),
-    .drmTMB_conf_status = c("wald", "profile", "bootstrap", "not_requested"),
-    .drmTMB_interval_source = c("wald", "profile", "bootstrap", "not_available"),
+    conf.low = c(0, 0, 0, 0, 0, NA),
+    conf.high = c(1, 1, 1, 1, 1, NA),
+    .drmTMB_conf_status = c(
+      "wald",
+      "profile",
+      "bootstrap",
+      "bootstrap_incomplete",
+      "bootstrap_at_boundary",
+      "not_requested"
+    ),
+    .drmTMB_interval_source = c(
+      "wald",
+      "profile",
+      "bootstrap",
+      "bootstrap",
+      "bootstrap",
+      "not_available"
+    ),
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
 
   available <- drmTMB:::plot_corpairs_interval_available(data)
-  expect_equal(available, c(TRUE, TRUE, TRUE, FALSE))
+  expect_equal(available, c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE))
 
   kept <- drmTMB:::plot_corpairs_interval_data(data)
-  expect_equal(nrow(kept), 3L)
+  expect_equal(nrow(kept), 5L)
   expect_true("bootstrap" %in% kept$.drmTMB_interval_source)
+  expect_true(all(
+    c("bootstrap_incomplete", "bootstrap_at_boundary") %in%
+      kept$.drmTMB_conf_status
+  ))
 })
 
 test_that("plot_corpairs() keeps conventional CI lines optional", {
