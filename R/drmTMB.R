@@ -317,6 +317,16 @@ drmTMB <- function(
   drm_reject_smooth_terms(formula)
   formula <- drm_desugar_double_bars(formula, data)
   formula_env <- drm_formula_env(formula, parent.frame())
+  missing_control <- drm_parse_missing_control(missing)
+  # A-2 / #1484: when the caller supplies `missing =`, honor the evaluated
+  # control's `predictor` field. Omitting `missing` keeps complete-case row
+  # drop even though the formal default is `miss_control()`.
+  if (
+    "missing" %in% names(as.list(fit_call))[-1L] &&
+      drm_missing_explicit_predictor_fail(missing_control)
+  ) {
+    drm_validate_complete_predictors(formula, data)
+  }
   if (identical(engine, "julia")) {
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
@@ -342,16 +352,6 @@ drmTMB <- function(
     ))
   }
   control <- drm_parse_control(control)
-  missing_control <- drm_parse_missing_control(missing)
-  # A-2 (#1332): fail on NA predictors only when the caller explicitly passes
-  # `miss_control()` or `miss_control(predictor = "fail")`, not when they only
-  # set `response = "include"` (row drop for incomplete predictors stays).
-  if (
-    "missing" %in% names(as.list(fit_call))[-1L] &&
-      drm_missing_explicit_predictor_fail(fit_call$missing)
-  ) {
-    drm_validate_complete_predictors(formula, data)
-  }
   REML <- drm_control_flag(REML, "REML")
   penalty <- drm_parse_phylo_penalty(penalty)
 

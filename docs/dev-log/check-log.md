@@ -1,3 +1,13 @@
+# 2026-10-07 — triage pilot: close verdicts + update/level/miss_control fixes
+
+Pilot on `itchyshin/drmTMB` at `75845a3d0`. Close-candidate verdicts are in
+`triage/pilot_close_verdicts.md` (recommendations only; no issue comments or
+closes). Quick fixes on `cursor/triage-pilot-quick`: `update.drmTMB()` (#1241),
+`validate_profile_level()` in `heritability()`/`icc()`/`repeatability()` (#1480),
+and evaluated `miss_control(predictor = "fail")` (#1484).
+
+Focused tests and `R CMD check` results will be appended after the check run.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

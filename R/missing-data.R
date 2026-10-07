@@ -30,8 +30,11 @@
 #'   response missing is omitted. `"include"` keeps rows with supported missing
 #'   responses and masks their response likelihood contribution.
 #' @param predictor Predictor missingness policy. `"fail"` errors on missing
-#'   predictors. `"model"` enables the current `mi()` predictor-model routes when
-#'   paired with a matching `impute` formula or [impute_model()] in [drmTMB()].
+#'   predictors when `missing =` is supplied, including when the control is
+#'   stored in a variable. `"model"` enables the current `mi()` predictor-model
+#'   routes when paired with a matching `impute` formula or [impute_model()] in
+#'   [drmTMB()]. Omitting `missing` in [drmTMB()] still drops incomplete
+#'   predictor rows.
 #' @param engine Missing-data engine. Only `"laplace"` is implemented in this
 #'   slice.
 #'
@@ -76,29 +79,20 @@ miss_control <- function(
   )
 }
 
-#' Whether `missing =` explicitly requested predictor fail (A-2)
+#' Whether the parsed missing-data control requests predictor fail (A-2 / #1484)
 #'
 #' The formal default `missing = miss_control()` makes `base::missing(missing)`
-#' unusable, so A-2 enforcement keys off the **call**, not the parsed control
-#' alone. Only `miss_control()` with no arguments or an explicit
-#' `predictor = "fail"` triggers early validation; `miss_control(response =
-#' "include")` keeps the existing complete-case row drop for predictors.
+#' unusable, so the fit path applies this check only when the caller supplied
+#' `missing =`. The decision uses the evaluated control's `predictor` field,
+#' not the spelling of the call, so a stored control or `predictor` held in a
+#' variable still errors. Omitting `missing` keeps the documented complete-case
+#' row drop.
 #'
-#' @param missing_call The unevaluated `missing =` argument as a call object.
+#' @param missing_control A parsed `drm_missing_control` object.
 #' @noRd
-drm_missing_explicit_predictor_fail <- function(missing_call) {
-  if (!is.call(missing_call) || !identical(missing_call[[1L]], quote(miss_control))) {
-    return(FALSE)
-  }
-  if (length(missing_call) == 1L) {
-    return(TRUE)
-  }
-  arg_names <- names(missing_call)[-1L]
-  if (is.null(arg_names)) {
-    return(length(missing_call) >= 3L)
-  }
-  "predictor" %in% arg_names &&
-    identical(as.character(missing_call[["predictor"]]), "fail")
+drm_missing_explicit_predictor_fail <- function(missing_control) {
+  inherits(missing_control, "drm_missing_control") &&
+    identical(missing_control$predictor, "fail")
 }
 
 #' Fail early when predictor missingness is disallowed

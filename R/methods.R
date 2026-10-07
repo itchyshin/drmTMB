@@ -2773,6 +2773,63 @@ anova.drmTMB <- function(object, ..., test = NULL) {
   )
 }
 
+#' Update a drmTMB fit
+#'
+#' Refit from the stored call, replacing the `bf()` / `drm_formula()` object
+#' and any named arguments while reusing the original family, data, and other
+#' defaults. This is the R generic `update()` used by `lme4` and `glmmTMB`,
+#' not Akaike model weights.
+#'
+#' @param object A `drmTMB` fit with a stored call.
+#' @param formula. An optional new [drm_formula()] or [bf()] object. A bare
+#'   `formula` is refused; pass a full distributional formula.
+#' @param ... Named arguments to replace or add in the stored call, such as
+#'   `data`, `family`, `control`, or `REML`.
+#' @param evaluate If `TRUE` (default), evaluate the updated call; if `FALSE`,
+#'   return the call.
+#'
+#' @return A new `drmTMB` fit, or the updated call when `evaluate = FALSE`.
+#'
+#' @examples
+#' set.seed(1)
+#' dat <- data.frame(y = rnorm(40), x = rnorm(40))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+#' update(fit, bf(y ~ 1, sigma ~ 1))
+#'
+#' @export
+#' @importFrom stats update
+update.drmTMB <- function(object, formula., ..., evaluate = TRUE) {
+  call <- object$call
+  if (is.null(call)) {
+    cli::cli_abort(
+      "{.fn update} needs a stored call on the {.cls drmTMB} fit."
+    )
+  }
+  if (!missing(formula.)) {
+    if (!inherits(formula., "drm_formula")) {
+      cli::cli_abort(
+        "{.arg formula.} must be created with {.fn drm_formula} or {.fn bf}."
+      )
+    }
+    call$formula <- substitute(formula.)
+  }
+  extras <- match.call(expand.dots = FALSE)$...
+  if (length(extras)) {
+    existing <- !is.na(match(names(extras), names(call)))
+    for (a in names(extras)[existing]) {
+      call[[a]] <- extras[[a]]
+    }
+    if (any(!existing)) {
+      call <- as.call(c(as.list(call), extras[!existing]))
+    }
+  }
+  if (isTRUE(evaluate)) {
+    eval(call, parent.frame())
+  } else {
+    call
+  }
+}
+
 #' @rdname model-fit-extractors
 #' @export
 nobs.drmTMB <- function(object, ...) {

@@ -190,6 +190,7 @@ reference:
       - imputed
       - model-fit-extractors
       - anova.drmTMB
+      - update.drmTMB
       - model-comparison
       - lrt-boundary
       - marginal_parameters

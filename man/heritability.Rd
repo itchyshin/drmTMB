@@ -61,7 +61,9 @@ arguments such as \verb{tree =}/\verb{Ainv =}/\verb{K =} from the label -- see t
 structured component; ignored (and unnecessary) when the fit has exactly
 one.}
 
-\item{level}{Confidence level for the Wald interval. Default \code{0.95}.}
+\item{level}{Confidence level for the Wald interval. Default \code{0.95}.
+Must be one number strictly between 0 and 1; values such as \code{95} or \code{0}
+error rather than returning \code{NaN} or inverted bounds.}
 
 \item{method}{Either \code{"delta"} (default) or \code{"profile"}. \code{"profile"} is
 not implemented and always aborts.}
