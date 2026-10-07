@@ -1,0 +1,7 @@
+after-task structure check passed
+Error: Acceptance ledger has UNMET gates -- the report is well-formed but the work is not finished:
+  ./.unlazy/cmr-m1/GATES.md
+  ./.unlazy/cmr/GATES.md
+Finish the slice, or mark the gate ABANDONED with its handoff note, then re-run.
+Detail: node "/Users/z3437171/shinichi-brain/skills/unlazy/scripts/gate-check.mjs" --status
+Execution halted

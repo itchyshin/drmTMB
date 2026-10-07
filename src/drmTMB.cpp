@@ -14,6 +14,7 @@
 #include <TMB.hpp>
 #include "drm_count_kernels.h"
 #include "drm_response_kernels.h"
+#include "cjs_kernel.hpp"
 
 // Smooth clamp of a log-sigma linear predictor. EXACTLY identity inside the band
 // [lo, hi] (so a well-posed fit, whose log-sigma lies in the band, is unchanged
@@ -517,6 +518,29 @@ void drm_separable_cov_logdet_quad(const matrix<Type>& covariance,
 template<class Type>
 Type objective_function<Type>::operator()()
 {
+  DATA_INTEGER(model_type);
+  // CJS histories have their own data and likelihood contract. Dispatch before
+  // ordinary-response fields so CJS callers do not supply dummy legacy data.
+  if (model_type == 1000) {
+    DATA_INTEGER(cmr_N);
+    DATA_INTEGER(cmr_T);
+    DATA_IVECTOR(cmr_y);
+    DATA_IVECTOR(cmr_observed);
+    DATA_IVECTOR(cmr_first);
+    DATA_IVECTOR(cmr_end);
+    DATA_VECTOR(cmr_delta);
+    DATA_IVECTOR(cmr_frequency);
+    DATA_MATRIX(cmr_X_phi);
+    DATA_MATRIX(cmr_X_p);
+    DATA_VECTOR(cmr_offset_phi);
+    DATA_VECTOR(cmr_offset_p);
+    PARAMETER_VECTOR(beta_phi);
+    PARAMETER_VECTOR(beta_p);
+    vector<Type> eta_phi = cmr_X_phi * beta_phi + cmr_offset_phi;
+    vector<Type> eta_p = cmr_X_p * beta_p + cmr_offset_p;
+    return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+                   cmr_delta, eta_phi, eta_p, cmr_frequency, cmr_N, cmr_T);
+  }
   DATA_VECTOR(y);
   DATA_IVECTOR(observed_y);
   DATA_IVECTOR(observed_y1);
@@ -564,7 +588,6 @@ Type objective_function<Type>::operator()()
   DATA_INTEGER(V_known_type);
   DATA_VECTOR(y1);
   DATA_VECTOR(y2);
-  DATA_INTEGER(model_type);
   DATA_INTEGER(use_mspl);
   DATA_SCALAR(mspl_c_n);
   DATA_INTEGER(mspl_q);

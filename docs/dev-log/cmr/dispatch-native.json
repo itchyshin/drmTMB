@@ -1,33 +1,61 @@
 {
-  "phase": "producer",
-  "milestone": "M0-M1",
-  "workers": [
+  "authority": "explicit user-approved model/effort table, 2026-10-06",
+  "dispatch": "native collaboration.spawn_agent, fresh fork_turns=none",
+  "fallback_reason": "enforced codex-tier-batch CLI rejected gpt-6-luna with current ChatGPT account",
+  "failed_cli_receipts": "docs/dev-log/cmr/m0-failed-cli/",
+  "children": [
     {
       "task": "cmr_recon",
       "model": "gpt-6-luna",
       "effort": "low",
-      "state": "completed"
+      "milestone": "M0",
+      "result": "completed; parent verification retained"
     },
     {
       "task": "cmr_ranga",
       "model": "gpt-6-luna",
       "effort": "medium",
-      "state": "running"
+      "milestone": "M0",
+      "result": "completed; parent verification retained"
     },
     {
       "task": "cmr_julia_m1",
       "model": "gpt-6.1-sol",
       "effort": "high",
-      "state": "running"
+      "milestone": "M1",
+      "result": "completed; parent verification retained"
     },
     {
       "task": "cmr_r_m1",
       "model": "gpt-6-luna",
       "effort": "medium",
-      "state": "running"
+      "milestone": "M1",
+      "result": "completed; parent verification retained"
+    },
+    {
+      "task": "cmr_curie_m1",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "milestone": "M1",
+      "result": "completed; parent verification retained"
+    },
+    {
+      "task": "cmr_boole_m1",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "milestone": "M1",
+      "result": "completed; test-only audit"
     }
   ],
-  "max_active_children": 3,
-  "fresh_briefs": true,
-  "nested_delegation": false
+  "checks": {
+    "max_concurrent_children": 3,
+    "M0_producers": 2,
+    "M1_producers": 4,
+    "M1_ceiling_producers": 1,
+    "nested_delegation": false,
+    "ultra_effort": false,
+    "credentials_changed": false
+  },
+  "limits": "Native tool dispatch records explicit accepted selectors. The CLI enforcement audit cannot certify these native calls. It must not be reported as a passing CLI audit.",
+  "repair_accounting": "R worker returned a repaired units label and report; parent fixed six contract gaps. Curie omitted the requested report; parent supplied curie-m1.md. Native receipts do not replace a passing CLI routing audit."
 }

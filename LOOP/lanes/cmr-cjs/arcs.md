@@ -1,7 +1,7 @@
 # CMR arcs
 
-- [ ] M0: evidence and contract
-- [ ] M1: exact fixed-effects twins
+- [x] M0: evidence and contract
+- [x] M1: exact fixed-effects twins
 - [ ] M2: usable fixed-effects routes
 - [ ] M3: shared heterogeneity
 - [ ] M4: individual heterogeneity
