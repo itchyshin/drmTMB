@@ -150,7 +150,10 @@ test_that("biv_lognormal supports direct rho12 Wald, profile, and bootstrap inte
   expect_equal(profile_ci$method, "profile")
   expect_true(profile_ci$conf.status %in% c("profile", "profile_failed"))
   expect_equal(bootstrap$method, "bootstrap")
-  expect_true(bootstrap$conf.status %in% c("bootstrap", "bootstrap_unavailable"))
+  expect_true(
+    bootstrap$conf.status %in%
+      c("bootstrap", "bootstrap_incomplete", "bootstrap_unavailable")
+  )
   expect_equal(bootstrap$bootstrap.n + bootstrap$bootstrap.failed, 2L)
   expect_s3_class(attr(bootstrap, "bootstrap.diagnostics", exact = TRUE), "data.frame")
 })

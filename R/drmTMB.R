@@ -3699,11 +3699,31 @@ drm_binomial_links <- function() c("logit", "probit", "cloglog")
 drm_binomial_link_code <- function(link) switch(link, logit = 0L, probit = 1L, cloglog = 2L,
   cli::cli_abort("Internal error: unsupported binomial link {.val {link}}."))
 
+# The TMB Gaussian branch implements identity-mean location only. Accepting
+# `gaussian(link = "log")` or `gaussian(link = "inverse")` used to drop the
+# requested link with no message (#1482). Honouring those links would be a
+# new likelihood; until that exists, fail like Gamma and Poisson.
+drm_require_gaussian_identity_link <- function(family) {
+  if (!inherits(family, "family") || !identical(family$family, "gaussian")) {
+    return(invisible(family))
+  }
+  if (!identical(family$link, "identity")) {
+    cli::cli_abort(c(
+      "{.pkg drmTMB} Gaussian models currently require {.code gaussian()}, identity link.",
+      "x" = "Received Gaussian link {.val {family$link}}.",
+      "i" = "The implemented Gaussian contract is {.code mu = X_mu beta_mu} on the identity scale.",
+      "i" = "Use {.fn lognormal} or {.code Gamma(link = \"log\")} for a log-scale mean on positive data, or transform the response yourself."
+    ))
+  }
+  invisible(family)
+}
+
 drm_family_type <- function(family) {
   if (is.function(family) && identical(family, base::beta)) {
     drm_abort_base_beta_as_family()
   }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
+    drm_require_gaussian_identity_link(family)
     return("gaussian")
   }
   if (inherits(family, "family") && identical(family$family, "Gamma")) {
@@ -3801,6 +3821,7 @@ drm_family_type <- function(family) {
       ))
     }
     if (identical(family_names, c("gaussian", "gaussian"))) {
+      lapply(composed, drm_require_gaussian_identity_link)
       return("biv_gaussian")
     }
     cli::cli_abort(c(
@@ -12222,10 +12243,35 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      data[[col]] <- drm_droplevels_keep_contrasts(data[[col]], col)
     }
   }
   data
+}
+
+# `droplevels()` rebuilds the factor and drops its `contrasts` attribute even
+# when every declared level is used. Restore user-set contrasts when the level
+# set is unchanged. When unused levels are dropped, the original contrast
+# matrix no longer matches, so warn instead of silently switching to treatment
+# coding (#1495).
+drm_droplevels_keep_contrasts <- function(x, col) {
+  dropped <- droplevels(x)
+  user_contrasts <- attr(x, "contrasts")
+  if (is.null(user_contrasts)) {
+    return(dropped)
+  }
+  if (identical(levels(dropped), levels(x))) {
+    attr(dropped, "contrasts") <- user_contrasts
+    return(dropped)
+  }
+  cli::cli_warn(
+    c(
+      "Unused levels were dropped from factor {.field {col}}, so its user-set contrasts could not be reused.",
+      "i" = "The remaining levels use default contrast coding. Drop unused levels and set contrasts yourself before calling {.fn drmTMB} if you need a specific coding."
+    ),
+    class = "drmTMB_contrasts_unused_levels"
+  )
+  dropped
 }
 
 is_random_bar_call <- function(expr) {

@@ -312,6 +312,7 @@ drm_impute_family_type <- function(family) {
     drm_abort_base_beta_as_family()
   }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
+    drm_require_gaussian_identity_link(family)
     return("gaussian")
   }
   # The logit-only restriction here is DELIBERATE (design 252 §6), not an

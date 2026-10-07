@@ -1,3 +1,48 @@
+# 2026-10-07: at-boundary incomplete warning names the row status (#1501)
+
+`warn_bootstrap_incomplete()` now prints the flagged row's
+`conf.status` (`bootstrap_at_boundary` when that is the label), instead
+of always saying `bootstrap_incomplete`. `R/drmTMB.R` was not touched;
+C17 receipts were not re-run.
+
+# 2026-10-07: review fixes for #1501 (contrasts, bootstrap, Julia link)
+
+Review of PR #1501 asked for six follow-ups on `cursor/triage-pilot-inputs`.
+`predict(newdata)` and the emmeans basis now carry fitted contrasts, so a
+`contr.sum` fit no longer errors with "Could not align the mu design
+matrix". At-boundary bootstrap rows still warn when refits were dropped,
+and `plot_parameter_surface()` / `plot_corpairs()` keep incomplete and
+at-boundary intervals visible. The Julia mixed-pair tag now runs the same
+Gaussian identity-link check; the error names `Gamma(link = "log")` as
+well as `lognormal()`. C17 model-15 receipts were recertified after
+`R/drmTMB.R` / `R/methods.R` moved: runner 4/4 PASS on mc-0568/0569/0576,
+worst `|change|` 1.322e-11 (float noise), `source_fingerprint` unchanged,
+`tools/capability_ledger.py --check` OK.
+
+# 2026-10-07: triage pilot — silent input drops (#1495, #1482, #1458)
+
+Stopped three silent input-drop bugs on `cursor/triage-pilot-inputs`.
+User-set factor contrasts are restored after `droplevels()`; unused-level
+drops that invalidate a contrast matrix warn
+(`drmTMB_contrasts_unused_levels`). `gaussian(link = "log")` and
+`gaussian(link = "inverse")` now error like Gamma/Poisson instead of fitting
+identity. `confint(method = "bootstrap")` reports
+`bootstrap_incomplete` and warns when failed refits are dropped.
+
+Regression file: `tests/testthat/test-silent-input-drops.R`. Existing
+allow-lists in `test-profile-targets.R`, `test-julia-inference.R`, and
+`test-biv-lognormal.R` accept the new status. NEWS, `?confint.drmTMB`, and
+`docs/design/03-likelihoods.md` updated.
+
+Targeted tests: `test-silent-input-drops.R` 5/5 pass;
+`test-gamma-location-scale.R` 7/7; `test-biv-lognormal.R` 6/6.
+`R CMD check --as-cran --no-vignettes --no-manual --no-tests` on
+R 4.3.3: 0 ERROR, 3 WARNING (missing checkbashisms/pandoc/inst/doc
+because vignettes were not built), 7 NOTE (suggested packages,
+installed size, clock, `%||%` pre-existing, unavailable Rd xrefs,
+non-portable compile flag). Full suite not run under `R CMD check`.
+PR: https://github.com/itchyshin/drmTMB/pull/1501.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

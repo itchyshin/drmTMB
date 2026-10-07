@@ -351,10 +351,21 @@ plot_parameter_surface_interval_data <- function(data) {
 
 plot_parameter_surface_interval_available <- function(data) {
   # bootstrap is a legitimate interval source (see interval_source_levels()), so
-  # keep it in the available whitelist alongside wald and profile.
+  # keep it in the available whitelist alongside wald and profile. Incomplete
+  # and at-boundary bootstrap rows stay plottable (#1458); their conf.status
+  # already marks the caveat.
   unavailable_status <- c(
     "",
-    setdiff(interval_status_levels(), c("wald", "profile", "bootstrap"))
+    setdiff(
+      interval_status_levels(),
+      c(
+        "wald",
+        "profile",
+        "bootstrap",
+        "bootstrap_incomplete",
+        "bootstrap_at_boundary"
+      )
+    )
   )
   status <- as.character(data$conf.status)
   source <- as.character(data$interval_source)

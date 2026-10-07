@@ -175,6 +175,8 @@ Successful rows currently use
 \code{conf.status = "wald"}, \code{"profile"}, or \code{"bootstrap"}. Failed numeric
 profile rows use \code{"profile_failed"} with missing endpoints; profile rows
 mark intervals that land near a lower SD boundary or correlation boundary.
+Bootstrap rows that drop failed refits use \code{"bootstrap_incomplete"}
+rather than a clean \code{"bootstrap"} status.
 Bootstrap interval results carry a \code{"bootstrap.diagnostics"} attribute
 with one diagnostic row per refit and target, including refit convergence,
 target availability, draw use, and the refit message.
@@ -320,6 +322,15 @@ bound and a true SD of 0.25 put 5\% there with a lower endpoint of exactly
 zero, while a true SD of 0.9 put none there. The flag needs at least 20
 retained draws to fire, because a share computed from a handful of resamples
 is noise; \code{bootstrap.n} reports how many were retained.
+
+The same route flags a row with \code{conf.status = "bootstrap_incomplete"} and
+warns (class \code{drmTMB_bootstrap_incomplete_warning}) when at least two
+refits succeeded but one or more requested replicates were dropped.
+Failed refits are often the hard draws, so a percentile computed from the
+survivors can be too narrow or shifted. \code{bootstrap.n} and
+\code{bootstrap.failed} report the split; the status is not a clean
+\code{"bootstrap"} interval. An at-boundary row that also dropped refits
+keeps that failure count and still warns, naming \code{bootstrap_at_boundary}.
 
 Rows with \code{conf.status = "profile_failed"} or \code{"clamp_limited"} also carry
 \code{profile.boundary = TRUE}, but return missing endpoints and are not warned about
