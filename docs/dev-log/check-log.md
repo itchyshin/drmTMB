@@ -1,3 +1,10 @@
+# 2026-10-07 — PR #1500 rebase: unnamed update() extras; keep main #1484 path
+
+`update.drmTMB()` now errors on unnamed `...` arguments. The original
+review reverted an earlier #1484 evaluated-control change; current main
+already has the `explicit`-attribute path, so this rebase keeps that
+implementation and does not claim `Fixes #1484`.
+
 # 2026-10-07 — triage pilot: close verdicts + update/level fixes
 
 Pilot on `itchyshin/drmTMB`, rebased onto current main. Close-candidate

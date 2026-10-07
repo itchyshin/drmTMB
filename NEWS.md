@@ -4,7 +4,8 @@
 
 * `update()` now has an `update.drmTMB()` method. It refits from the stored
   call with a new `bf()` / `drm_formula()` object, or with named arguments
-  such as `data` or `family`, and reuses the original defaults (#1241).
+  such as `data` or `family`, and reuses the original defaults. An unnamed
+  argument in `...` now errors instead of being silently ignored (#1241).
 
 ## Bug fixes
 
