@@ -11,6 +11,9 @@
 #'   survival) or `list(p = 0.4)` (final-occasion detection). Values must be
 #'   strictly between zero and one. It applies at the final declared interval
 #'   or occasion, not at each individual's administrative endpoint.
+#' @param contrasts Optional named list of process-specific contrast specifications,
+#'   `list(phi = ..., p = ...)`. The fitted coding is retained for prediction and
+#'   bootstrap refits.
 #' @param selection Reserved for the later reference-selection stage; currently
 #'   must be `NULL`.
 #' @param sd_phi,sd_p Reserved for later random-effect SD models; currently must
@@ -20,7 +23,8 @@
 #' @export
 drm_cjs <- function(data, phi = ~1, p = ~1, phi_data = NULL, p_data = NULL,
                     selection = NULL, sd_phi = NULL, sd_p = NULL,
-                    terminal_constraint = NULL, control = list()) {
+                    terminal_constraint = NULL, control = list(),
+                    contrasts = list(phi = NULL, p = NULL)) {
   if (!inherits(data, "cmr_data")) stop("`data` must be made by cmr_data().", call. = FALSE)
   if (!is.null(selection) || !is.null(sd_phi) || !is.null(sd_p))
     stop("selection and random-effect SD formulas are reserved for later CJS stages.", call. = FALSE)
@@ -44,8 +48,11 @@ drm_cjs <- function(data, phi = ~1, p = ~1, phi_data = NULL, p_data = NULL,
   phi_active <- phi_rows$t >= data$first[phi_rows$i] & phi_rows$t < data$end[phi_rows$i]
   if (!any(p_active))
     stop("CJS fitting needs at least one surveyed post-capture occasion to inform detection.", call. = FALSE)
-  p_design <- .cmr_design(p, p_frame, "p", p_active)
-  phi_design <- .cmr_design(phi, phi_frame, "phi", phi_active)
+  if (!is.list(contrasts) || is.null(names(contrasts)) ||
+      any(!names(contrasts) %in% c("phi", "p")) || anyDuplicated(names(contrasts)))
+    stop("`contrasts` must be a named list with optional `phi` and `p` specifications.", call. = FALSE)
+  p_design <- .cmr_design(p, p_frame, "p", p_active, contrasts$p)
+  phi_design <- .cmr_design(phi, phi_frame, "phi", phi_active, contrasts$phi)
   for (design in list(phi_design, p_design)) {
     if (ncol(design$X) && qr(design$X)$rank < ncol(design$X))
       stop("`", design$process, "` design is rank deficient; remove linearly dependent predictors.", call. = FALSE)
@@ -111,6 +118,11 @@ drm_cjs <- function(data, phi = ~1, p = ~1, phi_data = NULL, p_data = NULL,
   n_informative <- sum(data$first < data$end)
   n_post_occasions <- sum(p_active)
   structure(list(data = data, logLik = -final_nll, objective = -final_nll,
+                 # Keep the keyed source rows as well as the fitted designs.
+                 # A design matrix cannot be inverted to recover factors,
+                 # transforms, interactions, or offset expressions for
+                 # conditional simulation and prediction on the training set.
+                 training_phi_data = phi_frame, training_p_data = p_frame,
                  coefficients = list(phi = setNames(opt$par[seq_len(ncol(phi_design$X))], phi_design$columns),
                                      p = setNames(opt$par[ncol(phi_design$X) + seq_len(ncol(p_design$X))], p_design$columns)),
                  optimizer = opt, gradient = grad, gradient_fd = fd,
@@ -153,11 +165,11 @@ drm_cjs <- function(data, phi = ~1, p = ~1, phi_data = NULL, p_data = NULL,
   joined
 }
 
-.cmr_design <- function(formula, frame, process, active) {
+.cmr_design <- function(formula, frame, process, active, contrasts = NULL) {
   tr <- stats::terms(formula)
   mf <- stats::model.frame(tr, data = frame[active, , drop = FALSE],
                            na.action = stats::na.fail, drop.unused.levels = TRUE)
-  xa <- stats::model.matrix(tr, mf)
+  xa <- stats::model.matrix(tr, mf, contrasts.arg = contrasts)
   off <- stats::model.offset(mf); if (is.null(off)) off <- rep(0, nrow(xa))
   if (any(!is.finite(xa)) || any(!is.finite(off)))
     stop("`", process, "` design and offsets must contain finite values.", call. = FALSE)

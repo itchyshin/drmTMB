@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "status": "frozen draft; fixture bytes, DGPs, seed convention, estimands, and gates are fixed; no fitting or recovery campaign run",
+  "status": "frozen deterministic recovery smoke inputs and acceptance checks; no recovery or calibration campaign",
   "stage": "M2 deterministic recovery smoke",
   "scope": "fixed-effects first-capture-conditional CJS only",
   "implementation_readiness": {
-    "fit_api": "available in both products from M1 (Julia cjs; R drm_cjs)",
-    "simulation_api": "M2 predict/simulate/inference method definitions are present in the current shared working trees, but remain uncommitted concurrent work and were not verified in this fixture slice",
-    "smoke_state": "literal generated datasets are ready; no fitting or public-API generation call was run because this slice is restricted to light parsing and fixture-integrity checks"
+    "fit_api": "available and exercised in both products from M1 (Julia cjs; R drm_cjs)",
+    "simulation_api": "M2 methods are implemented and covered by their targeted tests; this fixture uses literal generated histories rather than either product simulation API",
+    "smoke_state": "four deterministic fits run in both products; acceptance requires all four to converge with finite likelihoods no worse than their known generating-parameter likelihoods"
   },
   "generator": {
     "algorithm": "SplitMix64-v1",
@@ -94,7 +94,7 @@
           1.2,
           -0.45
         ],
-        "beta_p": "fixed by terminal constraint"
+        "beta_p": "estimated companion intercept; generating value logit(0.60); only terminal occasion p fixed at 0.60"
       },
       "estimands": [
         {
@@ -130,7 +130,7 @@
         "phi": 0.8
       },
       "truth": {
-        "beta_phi": "fixed by terminal constraint",
+        "beta_phi": "estimated companion intercept; generating value logit(0.80); only terminal unit-time survival fixed at 0.80",
         "beta_p": [
           0.1,
           0.65

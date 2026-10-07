@@ -1,5 +1,7 @@
 # Curie M2 recovery-smoke fixture receipt — 2026-10-06
 
+> Preparation-stage receipt. Subsequent execution and acceptance results are recorded in the parent execution addendum below and `r-m2-recovery-smoke.log` / `julia-m2-recovery-smoke.log`.
+
 ## 1. Goal
 
 Prepare a deterministic, shared R/Julia fixture and frozen manifest draft for the M2 fixed-effects CJS recovery smoke. This receipt covers fixture preparation only; it does not claim model recovery or interval calibration.
@@ -8,11 +10,11 @@ Prepare a deterministic, shared R/Julia fixture and frozen manifest draft for th
 
 Added `bench/cmr_m2/` in both product worktrees with one shared SplitMix64-v1 generator, literal history and keyed predictor CSVs, and `manifest-draft.json`. The fixture contains two fixed-effects cells, two seed-separated datasets per cell, 32 individuals per dataset, five occasions, irregular intervals, administrative endpoints, survey masks, and final-first histories. Each product worktree has byte-identical generator, manifest, and CSVs.
 
-The survival cell estimates `beta_phi = (1.20, -0.45)` with `p` fixed at 0.60. The detection cell estimates `beta_p = (0.10, 0.65)` with `phi` fixed at 0.80. Both use logit links and the interval survival rule `logistic(X_phi beta_phi)^Delta`. The first capture is fixed and its emission is conditioned upon.
+The survival cell generates `beta_phi = (1.20, -0.45)` with constant detection probability 0.60; the detection intercept is estimated in each fit, with only terminal detection constrained to 0.60. The detection cell generates `beta_p = (0.10, 0.65)` with constant unit-time survival 0.80; the survival intercept is estimated, with only terminal survival constrained to 0.80. Both use logit links and the interval survival rule `logistic(X_phi beta_phi)^Delta`. The first capture is fixed and its emission is conditioned upon.
 
 ## 3a. Decisions and Rejected Alternatives
 
-The fixture generator uses a specified SplitMix64-v1 stream and a fixed seed formula so it does not depend on R or Julia's default RNG implementation. The generated CSVs, not independently regenerated language-specific draws, are the shared fit inputs. The smoke manifest keeps the two component estimands separate and records the terminal constraint needed to identify each cell.
+The fixture generator uses a specified SplitMix64-v1 stream and a fixed seed formula so it does not depend on R or Julia's default RNG implementation. The generated CSVs, not independently regenerated language-specific draws, are the shared fit inputs. Each smoke fit estimates the companion process intercept; the terminal constraint fixes only the terminal occasion probability. The smoke manifest records the generating values, fitted nuisance intercept, and terminal constraint separately.
 
 The M2 methods are visible in concurrent, uncommitted edits in both worktrees. This slice did not run a fit or call those methods because its validation boundary was limited to light parsing and fixture-integrity checks. Their implementation and execution remain unverified here.
 
@@ -53,3 +55,7 @@ A custom, explicitly specified PRNG plus literal shared inputs makes a cross-lan
 ## 12. Cross-Product Coverage
 
 This receipt covers deterministic fixture generation, shared-byte identity, manifest parsing, and basic history-layout checks in the Julia and R worktrees. It does not cover M2 method execution, prediction, conditional simulation through either product API, fixed-effect recovery, inference, coverage, campaign performance, package regression, or publication readiness.
+
+## Parent execution addendum — 2026-10-06
+
+Both product runners later fitted all four shared datasets. All fits converged with finite likelihoods at least as large as the corresponding generating-parameter likelihood, and both languages matched on literal inputs. The original coefficient-error trigger remains a diagnostic only: these four deliberately low-information datasets do not establish coefficient recovery, identifiability, interval availability, coverage, calibration, or speed. The manifest now correctly records that each fit estimates the companion process intercept while only the final occasion/interval probability is constrained.
