@@ -1,3 +1,12 @@
+# 2026-10-07 — PR #1500 review: unnamed update() extras + revert #1484 semantics
+
+Review of draft PR #1500 (`4932d9482`). `update.drmTMB()` now errors on
+unnamed `...` arguments. The #1484 evaluated-control change is reverted:
+`miss_control(response = "include")` again drops incomplete predictor rows
+(A-2 / #1332 call-syntax check). Confirmed 13 failures in 11 missing-response
+files on the previous head; those tests were not edited. C17/C14 receipt
+re-run is required because `R/methods.R` is pinned.
+
 # 2026-10-07 — triage pilot: close verdicts + update/level/miss_control fixes
 
 Pilot on `itchyshin/drmTMB` at `75845a3d0`. Close-candidate verdicts are in

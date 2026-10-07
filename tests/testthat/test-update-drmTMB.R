@@ -27,4 +27,10 @@ test_that("update.drmTMB refits with a new formula and reused defaults (#1241)",
     unname(coef(fit, "mu")[["(Intercept)"]]) + 1,
     tolerance = 1e-4
   )
+
+  # Unnamed extras must not be silently dropped (review of #1241 / PR #1500).
+  expect_error(
+    update(fit, bf(y ~ 1, sigma ~ 1), shifted),
+    "named arguments"
+  )
 })

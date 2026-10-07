@@ -17,11 +17,8 @@ response missing is omitted. \code{"include"} keeps rows with supported missing
 responses and masks their response likelihood contribution.}
 
 \item{predictor}{Predictor missingness policy. \code{"fail"} errors on missing
-predictors when \code{missing =} is supplied, including when the control is
-stored in a variable. \code{"model"} enables the current \code{mi()} predictor-model
-routes when paired with a matching \code{impute} formula or \code{\link[=impute_model]{impute_model()}} in
-\code{\link[=drmTMB]{drmTMB()}}. Omitting \code{missing} in \code{\link[=drmTMB]{drmTMB()}} still drops incomplete
-predictor rows.}
+predictors. \code{"model"} enables the current \code{mi()} predictor-model routes when
+paired with a matching \code{impute} formula or \code{\link[=impute_model]{impute_model()}} in \code{\link[=drmTMB]{drmTMB()}}.}
 
 \item{engine}{Missing-data engine. Only \code{"laplace"} is implemented.}
 }

@@ -13,7 +13,8 @@
 \code{formula} is refused; pass a full distributional formula.}
 
 \item{...}{Named arguments to replace or add in the stored call, such as
-\code{data}, \code{family}, \code{control}, or \code{REML}.}
+\code{data}, \code{family}, \code{control}, or \code{REML}. Unnamed extras abort; they would
+otherwise be ignored and silently refit the original data.}
 
 \item{evaluate}{If \code{TRUE} (default), evaluate the updated call; if \code{FALSE},
 return the call.}

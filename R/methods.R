@@ -2784,7 +2784,8 @@ anova.drmTMB <- function(object, ..., test = NULL) {
 #' @param formula. An optional new [drm_formula()] or [bf()] object. A bare
 #'   `formula` is refused; pass a full distributional formula.
 #' @param ... Named arguments to replace or add in the stored call, such as
-#'   `data`, `family`, `control`, or `REML`.
+#'   `data`, `family`, `control`, or `REML`. Unnamed extras abort; they would
+#'   otherwise be ignored and silently refit the original data.
 #' @param evaluate If `TRUE` (default), evaluate the updated call; if `FALSE`,
 #'   return the call.
 #'
@@ -2815,8 +2816,15 @@ update.drmTMB <- function(object, formula., ..., evaluate = TRUE) {
   }
   extras <- match.call(expand.dots = FALSE)$...
   if (length(extras)) {
-    existing <- !is.na(match(names(extras), names(call)))
-    for (a in names(extras)[existing]) {
+    extra_names <- names(extras)
+    if (is.null(extra_names) || any(!nzchar(extra_names))) {
+      cli::cli_abort(c(
+        "{.fn update} requires named arguments in {.arg ...}.",
+        "i" = "Pass values as {.code data = ...}, {.code family = ...}, or another named argument; an unnamed extra is ignored and would silently refit the original data."
+      ))
+    }
+    existing <- !is.na(match(extra_names, names(call)))
+    for (a in extra_names[existing]) {
       call[[a]] <- extras[[a]]
     }
     if (any(!existing)) {

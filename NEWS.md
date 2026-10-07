@@ -4,18 +4,14 @@
 
 * `update()` now has an `update.drmTMB()` method. It refits from the stored
   call with a new `bf()` / `drm_formula()` object, or with named arguments
-  such as `data` or `family`, and reuses the original defaults (#1241).
+  such as `data` or `family`, and reuses the original defaults. An unnamed
+  argument in `...` now errors instead of being silently ignored (#1241).
 
 ## Bug fixes
 
 * `heritability()`, `icc()`, and `repeatability()` now reject a `level`
   that is not one number strictly between 0 and 1, matching `confint()`
   instead of returning `NaN` or inverted bounds (#1480).
-
-* `miss_control(predictor = "fail")` is honored from the evaluated control
-  object, so a stored control or a `predictor` value held in a variable
-  errors on missing predictors. Omitting `missing` still uses complete-case
-  row drop (#1484).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
