@@ -11,6 +11,30 @@ structured effect, cross-family bivariate, missing-response handling and
 to use instead today, and whether the fence is permanent or carries a stated
 revisit condition.
 
+- Exact rank-deficient fixed-effect designs now stop before fitting, with
+  class `drmTMB_rank_deficient_design`. The check uses a QR tolerance of
+  `1e-10` on every distributional-parameter matrix in the model, including
+  `mu`, `sigma`, `nu`, `zi`, `hu`, `zoi`, `coi`, `rho12`, bivariate blocks,
+  direct SD designs, and the Julia bridge's R `model.matrix()`. A near-copy
+  still fits; `check_drm()` remains the report for weak identification.
+  Dispersion estimates at a simpler-family limit are flagged and left
+  unchanged. For `nbinom2`, `zi_nbinom2`, `hurdle_nbinom2`,
+  `truncated_nbinom2`, `beta`, `beta_binomial`, and `zero_one_beta`, a row
+  with `sigma^2 < 0.001` is at the limit (`size` or precision above 1000).
+  For `student` and `biv_student`, `nu > 1000` is the Gaussian limit.
+  `summary()` sets the Wald standard error to `NA` only when that
+  coefficient's design column is nonzero only on limit rows. `confint()`
+  sets `conf.status` to `boundary_limit` and leaves the endpoints missing.
+  `vcov()` still returns the raw covariance, so do not read those diagonals
+  as Wald standard errors. The flag uses the fixed linear predictor
+  `X %*% beta`, not a random-effect-adjusted `sigma`. Gaussian, gamma,
+  lognormal, and Tweedie `sigma` are interior scales and are not flagged.
+  `corpairs()` profile intervals are not masked. The Julia-engine
+  `summary()` and `check_drm()` do not yet blank these standard errors or
+  report `dispersion_boundary` or `hessian_conditioning`. On the TMB engine,
+  the `hessian_conditioning` note uses the correlation-scaled condition
+  number of `sdr$cov.fixed` when every diagonal entry is positive. A
+  negative covariance eigenvalue still warns from the raw covariance.
 - The Q-Series v1.0 release boundary is generated in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates
   implemented/basic-working Gaussian structured-effect rows and
