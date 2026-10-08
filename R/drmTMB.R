@@ -713,11 +713,6 @@ drm_fit_spec <- function(
   # sees below, per the selected-optimum invariant (docs/design/35).
   fit_gradient <- drm_fit_gradient(obj, opt)
   drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
-  drm_warn_if_gradient_not_stationary(
-    fit_gradient$gradient,
-    fit_gradient$max_component,
-    newton_polish = isTRUE(control$newton_polish)
-  )
 
   uncertainty <- drm_compute_uncertainty(
     obj,
@@ -726,6 +721,14 @@ drm_fit_spec <- function(
     estimator = spec$estimator
   )
   sdr <- uncertainty$sdr
+  # After sdreport, so the warning can use `sdr$cov.fixed`. The polish
+  # tolerance stays `1e-8`; the warning uses the scale-free Newton step.
+  drm_warn_if_gradient_not_stationary(
+    fit_gradient$gradient,
+    fit_gradient$max_component,
+    newton_polish = isTRUE(control$newton_polish),
+    cov_fixed = drm_stationarity_covariance(sdr)
+  )
   # sdreport() can leave the mutable full parameter vector at a Hessian
   # perturbation. Use the selected pre-SE state for random/marginalized entries;
   # parList still takes fixed parameters from opt$par and does not mutate obj.
@@ -1122,12 +1125,19 @@ drm_optimize_with_preset_retry <- function(
 # follow-up): the polished side reaches a lower nll for free, which the
 # unpolished side cannot match, artificially narrowing the interval.
 #
-# `DRM_NEWTON_GRAD_TOL` is the stationarity bar this polish aims for.
-# `convergence_status()` / `is_converged()` use the same value on the stored
-# gradient (#1452). A failed polish still returns the unpolished `opt` with
-# nlminb's code unchanged; the fit path warns and the status functions read
-# the stored gradient rather than treating code 0 as stationary.
+# `DRM_NEWTON_GRAD_TOL` is only the target this polish aims for. It is not
+# the convergence verdict. A raw gradient of `1e-8` is not scale-free: a
+# predictor rescaled by 1000, or an uncentred year, can sit well above it at
+# a true optimum, and `newton_polish = FALSE` then flags every clean fit.
+# `convergence_status()` / `is_converged()` instead flag a Newton step larger
+# than `DRM_GRADIENT_STEP_TOL` in standard-error units (#1452). A failed
+# polish still returns the unpolished `opt` with nlminb's code unchanged.
 DRM_NEWTON_GRAD_TOL <- 1e-8
+
+# Flag when the Newton step `cov.fixed %*% gradient`, divided by the
+# parameter's standard error, exceeds this value. The same number is the
+# absolute-gradient fallback when no usable Hessian is stored.
+DRM_GRADIENT_STEP_TOL <- 1e-3
 
 drm_newton_polish <- function(opt, fn, gr, grad_tol = DRM_NEWTON_GRAD_TOL, max_iter = 3L) {
   par <- opt$par
@@ -3527,30 +3537,27 @@ drm_convergence_label <- function(convergence, message = NULL) {
   }
 }
 
-# Warn when the stored gradient is above the Newton-polish tolerance, or is
-# not finite. nlminb code 0 includes relative and X convergence, which can
-# stop away from a stationary point; a polish that cannot reach
-# `DRM_NEWTON_GRAD_TOL` used to return that code unchanged and silent (#1452).
+# Warn when the stored gradient fails the scale-free stationarity check, or
+# is not finite. nlminb code 0 includes relative and X convergence, which can
+# stop away from a stationary point (#1452). `1e-8` remains the polish
+# target only; this warning uses the Newton step in SE units.
 drm_warn_if_gradient_not_stationary <- function(
   gradient,
   max_component = NA_character_,
   newton_polish = TRUE,
-  tol = DRM_NEWTON_GRAD_TOL
+  cov_fixed = NULL,
+  tol = DRM_GRADIENT_STEP_TOL
 ) {
-  if (!drm_stored_gradient_not_stationary(gradient, tol = tol)) {
+  decision <- drm_gradient_stationarity(gradient, cov_fixed = cov_fixed, tol = tol)
+  if (!isTRUE(decision$flag)) {
     return(invisible(FALSE))
   }
-  component <- if (
-    is.character(max_component) &&
-      length(max_component) == 1L &&
-      !is.na(max_component) &&
-      nzchar(max_component)
-  ) {
+  component <- drm_gradient_component_label(
+    gradient,
+    decision$index,
     max_component
-  } else {
-    "unknown"
-  }
-  if (!is.numeric(gradient) || !all(is.finite(gradient))) {
+  )
+  if (identical(decision$scale, "nonfinite")) {
     cli::cli_warn(
       c(
         "{.fn drmTMB}: the fixed-effect gradient at the reported optimum is not finite.",
@@ -3560,20 +3567,43 @@ drm_warn_if_gradient_not_stationary <- function(
     )
     return(invisible(TRUE))
   }
-  max_abs <- max(abs(gradient))
-  lead <- if (isTRUE(newton_polish)) {
-    "Newton polish did not bring the gradient within tolerance"
-  } else {
-    "Newton polish is off and the stored gradient exceeds the polish tolerance"
+  measure <- format(decision$measure, digits = 3, scientific = TRUE)
+  if (identical(decision$scale, "se")) {
+    cli::cli_warn(
+      c(
+        "{.fn drmTMB}: the Newton step at the reported optimum is {measure} standard errors (largest component is {.val {component}}).",
+        "i" = "The flag is a step above {tol} SE, from max |{.code sdr$cov.fixed %*% gradient}| / SE. {.fn is_converged} is FALSE. Newton polish still targets a raw gradient of {DRM_NEWTON_GRAD_TOL}."
+      ),
+      class = "drmTMB_gradient_warning"
+    )
+    return(invisible(TRUE))
   }
   cli::cli_warn(
     c(
-      "{.fn drmTMB}: {lead} (max |gradient| = {format(max_abs, digits = 3, scientific = TRUE)}; largest component is {.val {component}}).",
-      "i" = "The tolerance is {tol}. Optimizer code 0 can stop on a relative step while this gradient is still large. {.fn is_converged} is FALSE; run {.fn check_drm}."
+      "{.fn drmTMB}: no usable fixed-effect Hessian is stored, and the largest |gradient| is {measure} (component {.val {component}}).",
+      "i" = "Without a Hessian the flag is an absolute gradient above {tol}. {.fn is_converged} is FALSE."
     ),
     class = "drmTMB_gradient_warning"
   )
   invisible(TRUE)
+}
+
+drm_gradient_component_label <- function(gradient, index, fallback) {
+  if (is.numeric(index) && length(index) == 1L && !is.na(index)) {
+    nm <- names(gradient)
+    if (!is.null(nm) && index >= 1L && index <= length(nm) && nzchar(nm[[index]])) {
+      return(nm[[index]])
+    }
+  }
+  if (
+    is.character(fallback) &&
+      length(fallback) == 1L &&
+      !is.na(fallback) &&
+      nzchar(fallback)
+  ) {
+    return(fallback)
+  }
+  "unknown"
 }
 
 # Warn at fit time when the optimizer did not converge, so a non-converged fit
@@ -7397,6 +7427,7 @@ drm_build_beta_binomial_spec <- function(
     nrow(data),
     sum(keep)
   )
+  drm_reject_cbind_response_columns(mu_entry$lhs, data, "Beta-binomial")
 
   mf_mu <- stats::model.frame(
     f_mu,
@@ -7699,6 +7730,7 @@ drm_build_binomial_spec <- function(
     nrow(data),
     sum(keep)
   )
+  drm_reject_cbind_response_columns(mu_entry$lhs, data, "Binomial")
 
   mf_mu <- stats::model.frame(
     f_mu,
@@ -17970,19 +18002,59 @@ is_diagonal_known_v <- function(value) {
 # Factor and ordered-factor columns store integer level codes. `as.numeric()`
 # on those codes is not the measurement (labels "3", "7", "12" become 1, 2, 3).
 # `is.finite()` is TRUE for those codes, so a later finite-value check does not
-# catch them. Binomial already refuses a factor response. Continuous and count
-# builders must refuse here, before `is.finite()`, `round()`, or `as.numeric()`,
-# which otherwise fit the codes or throw an unrelated base-R error.
-# `cumulative_logit()` requires an ordered response and must not call this.
+# catch them. Date and POSIXt columns likewise become day or second counts
+# under `as.numeric()`. Binomial already refuses a bare factor response.
+# Continuous and count builders must refuse here, before `is.finite()`,
+# `round()`, or `as.numeric()`, which otherwise fit the codes or throw an
+# unrelated base-R error. `cumulative_logit()` requires an ordered response
+# and must not call this.
 drm_reject_factor_response <- function(y, response, family) {
-  if (!is.factor(y)) {
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "{family} response values must be numeric, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+    ))
+  }
+  drm_reject_date_response(y, response, family)
+}
+
+drm_reject_date_response <- function(y, response, family) {
+  if (!(inherits(y, "Date") || inherits(y, "POSIXt"))) {
     return(invisible(y))
   }
   cli::cli_abort(c(
-    "{family} response values must be numeric, not a factor.",
+    "{family} response values must be numeric, not a date or time.",
     "x" = "Response {.val {response}} has class {.val {class(y)}}.",
-    "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+    "i" = "Date and time columns are not on the model's scale. Convert the column to a numeric response yourself (for example days or years) before fitting."
   ))
+}
+
+# `cbind()` turns a factor or date column into numbers before
+# `prepare_binomial_response()` sees the matrix. Evaluate each argument of
+# the formula's `cbind()` call in `data`, where the column still has its
+# class, and reject those columns (#1481).
+drm_reject_cbind_response_columns <- function(lhs, data, family) {
+  if (is.character(lhs) && length(lhs) == 1L && grepl("^cbind\\(", lhs)) {
+    lhs <- str2lang(lhs)
+  }
+  lhs <- strip_parens(lhs)
+  if (!is_cbind_lhs(lhs)) {
+    return(invisible(NULL))
+  }
+  args <- as.list(lhs)[-1L]
+  for (arg in args) {
+    value <- tryCatch(
+      eval(arg, envir = data, enclos = baseenv()),
+      error = function(e) NULL
+    )
+    if (is.null(value)) {
+      next
+    }
+    label <- paste(deparse(arg), collapse = " ")
+    drm_reject_factor_response(value, label, family)
+  }
+  invisible(NULL)
 }
 
 prepare_zero_one_beta_response <- function(y, response) {
@@ -18111,6 +18183,7 @@ prepare_binomial_response <- function(y, response, has_weights = FALSE) {
     ))
   }
 
+  drm_reject_date_response(y, response, "Binomial")
   if (is.factor(y)) {
     cli::cli_abort(c(
       "Binomial response values must be explicit 0/1 data, not a factor.",

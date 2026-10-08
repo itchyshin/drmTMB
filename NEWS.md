@@ -15,24 +15,33 @@
 * Gaussian, Student-t, skew-normal, and the other continuous and count
   builders now refuse a factor or ordered-factor response instead of fitting
   its integer level codes or failing with an unrelated base-R message.
-  The error names the response column. `cumulative_logit()` still accepts an
-  ordered factor. A numeric response is unchanged (#1481).
+  The same refusal applies to a factor or date column inside
+  `cbind(successes, failures)` for binomial and beta-binomial, on the
+  native fit and on the Julia bridge, because `cbind()` used to convert
+  the column before the response check. A `Date` or `POSIXt` response is
+  refused with the same kind of error. The error names the column.
+  `cumulative_logit()` still accepts an ordered factor. A numeric response
+  is unchanged (#1481).
 
 * `qq_plot()` and `worm_plot()` warn, and repeat the count in the subtitle,
   when they omit non-finite quantile residuals (`u` at 0 or 1). Those points
   stay off the order-statistic grid, so the plotted finite residuals are
-  unchanged. Missing-response `NA` rows are not part of the count (#1460).
+  unchanged. Missing-response `NA` rows are not part of the count. When
+  `nsim > 1` drops a different count from each realization, each realization
+  keeps its own theoretical quantiles and the envelope is interpolated onto
+  the shortest realization's grid (#1460).
 
 * `is_converged()` is now `FALSE` and `convergence_status()` returns
-  `"gradient"` when the stored fixed-effect gradient exceeds the
-  Newton-polish tolerance `1e-8`, or is not finite. A failed polish also
-  warns and names the largest gradient component. Fitted coefficients are
-  unchanged. A fit with no stored `gradient` field is graded as before.
-  This changes the convergence flag, not the estimates: an nlminb code of 0
-  used to read as converged even when the largest gradient component was
-  above `1e-8`. Those fits now warn at fit time. Phase 18 replicate
-  ledgers treat that warning like the existing convergence warning: it is
-  not a second failure row (#1452).
+  `"gradient"` when the Newton step at the stored gradient,
+  `sdr$cov.fixed %*% gradient` divided by the parameter standard error,
+  exceeds `0.001`, or the gradient is not finite. With no usable Hessian
+  the same `0.001` cutoff is absolute. `1e-8` remains only the Newton-polish
+  target: a predictor rescaled by 1000, an uncentred year, or
+  `newton_polish = FALSE` on a clean fit is not flagged for a large raw
+  gradient alone. Fitted coefficients are unchanged. A fit with no stored
+  `gradient` field is graded as before. Phase 18 replicate summaries record
+  `convergence_status` and still omit the gradient warning from the failure
+  ledger (#1452).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.

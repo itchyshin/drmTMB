@@ -157,6 +157,72 @@ test_that("the Julia bridge rejects a factor response and still allows cumulativ
   )
 })
 
+test_that("cbind factor and date responses are rejected", {
+  set.seed(1)
+  n <- 30
+  x <- stats::rnorm(n)
+  successes <- stats::rbinom(n, 6, stats::plogis(0.2 * x))
+  d <- data.frame(
+    successes = successes,
+    failures = 6 - successes,
+    x = x
+  )
+  numeric_fit <- drmTMB(
+    bf(cbind(successes, failures) ~ x),
+    family = stats::binomial(),
+    data = d
+  )
+  expect_s3_class(numeric_fit, "drmTMB")
+
+  d_factor <- d
+  d_factor$successes <- factor(d_factor$successes)
+  expect_error(
+    drmTMB(
+      bf(cbind(successes, failures) ~ x),
+      family = stats::binomial(),
+      data = d_factor
+    ),
+    "not a factor"
+  )
+  expect_error(
+    drmTMB(
+      bf(cbind(successes, failures) ~ x, sigma ~ 1),
+      family = beta_binomial(),
+      data = d_factor
+    ),
+    "not a factor"
+  )
+  expect_error(
+    drm_julia_reject_factor_responses(
+      d_factor,
+      bf(cbind(successes, failures) ~ x),
+      "binomial"
+    ),
+    "not a factor"
+  )
+
+  d_date <- data.frame(y = as.Date("2020-01-01") + seq_len(n), x = x)
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = stats::gaussian(), data = d_date),
+    "date or time"
+  )
+  d_time <- data.frame(y = as.POSIXct("2020-01-01", tz = "UTC") + seq_len(n), x = x)
+  expect_error(
+    drmTMB(bf(y ~ x, sigma ~ 1), family = stats::gaussian(), data = d_time),
+    "date or time"
+  )
+  d_cbind_date <- d
+  d_cbind_date$successes <- as.Date("2020-01-01") + d$successes
+  expect_error(
+    drmTMB(
+      bf(cbind(successes, failures) ~ x),
+      family = stats::binomial(),
+      data = d_cbind_date
+    ),
+    "date or time"
+  )
+})
+
 test_that("a numeric Gaussian response still fits", {
   set.seed(1)
   n <- 30

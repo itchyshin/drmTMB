@@ -196,9 +196,10 @@ check_drm <- function(object, ...) {
 #' when the status is `"converged"` or `"boundary"`, and `FALSE` when the
 #' status is `"degenerate"` or `"gradient"`. A fit can therefore report
 #' optimizer code `0` while still returning `FALSE` here when the likelihood
-#' geometry is degenerate, or when the stored gradient is above the
-#' Newton-polish tolerance (`1e-8` on the largest absolute component). Use
-#' [check_drm()] or [convergence_status()] for detail.
+#' geometry is degenerate, or when the Newton step at the stored gradient
+#' exceeds `0.001` standard errors. The raw `1e-8` cutoff is only the
+#' Newton-polish target, not this flag. Use [check_drm()] or
+#' [convergence_status()] for detail.
 #'
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
@@ -275,13 +276,15 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' optimizer code `0` while the likelihood geometry is degenerate (no proper
 #' maximum or non-finite uncertainty); such fits return `"degenerate"` even
 #' when `multi_start` selected among several starts. `"gradient"` marks an
-#' otherwise successful fit whose stored fixed-effect gradient still exceeds
-#' the Newton-polish tolerance, including a polish that returned without
-#' reaching it. `"boundary"` marks an optimizer-converged, stationary fit
-#' with variance-component or residual-correlation parameters near an
-#' interpretability boundary. [is_converged()] stays a plain logical: it is
-#' `TRUE` for `"converged"` and `"boundary"`, and `FALSE` for `"degenerate"`
-#' and `"gradient"`.
+#' otherwise successful fit whose Newton step, `sdr$cov.fixed %*% gradient`
+#' divided by each parameter's standard error, still exceeds `0.001`. When
+#' no usable Hessian is stored, the same `0.001` is applied to the largest
+#' absolute gradient component. The Newton polish still targets a raw
+#' gradient of `1e-8`; that cutoff is not this status. `"boundary"` marks
+#' an optimizer-converged, stationary fit with variance-component or
+#' residual-correlation parameters near an interpretability boundary.
+#' [is_converged()] stays a plain logical: it is `TRUE` for `"converged"`
+#' and `"boundary"`, and `FALSE` for `"degenerate"` and `"gradient"`.
 #'
 #' A missing `gradient` field (a hand-built object, or a fit saved before the
 #' gradient was stored) is not treated as a failure. A stored non-finite
@@ -332,7 +335,12 @@ convergence_status.drmTMB <- function(object, ...) {
   # `[[` not `$`: `$` partially matches, so a fit with
   # `gradient_max_component` and no `gradient` element would hand the
   # component name to the stationarity check and look non-stationary.
-  if (drm_stored_gradient_not_stationary(object[["gradient"]])) {
+  if (
+    drm_stored_gradient_not_stationary(
+      object[["gradient"]],
+      cov_fixed = drm_stationarity_covariance(object[["sdr"]])
+    )
+  ) {
     return("gradient")
   }
   if (drm_inference_at_boundary(object)) {
@@ -341,23 +349,114 @@ convergence_status.drmTMB <- function(object, ...) {
   "converged"
 }
 
-# TRUE when a stored gradient is non-finite or its largest absolute component
-# exceeds the Newton-polish tolerance. NULL means the gradient was never
-# stored; that is not evidence of a bad optimum (#1452).
+# TRUE when a stored gradient is non-finite, or the Newton step in SE units
+# exceeds `DRM_GRADIENT_STEP_TOL`. NULL means the gradient was never stored;
+# that is not evidence of a bad optimum (#1452).
 drm_stored_gradient_not_stationary <- function(
   gradient,
-  tol = DRM_NEWTON_GRAD_TOL
+  cov_fixed = NULL,
+  tol = DRM_GRADIENT_STEP_TOL
 ) {
+  isTRUE(drm_gradient_stationarity(gradient, cov_fixed = cov_fixed, tol = tol)$flag)
+}
+
+# `sdr$cov.fixed` is the fixed-effect covariance, so `cov %*% g` is the
+# Newton step. Use it only when the Hessian is positive definite. Otherwise
+# the caller falls back to the absolute gradient.
+drm_stationarity_covariance <- function(sdr) {
+  if (is.null(sdr) || !isTRUE(sdr[["pdHess"]])) {
+    return(NULL)
+  }
+  cov <- sdr[["cov.fixed"]]
+  if (!is.matrix(cov)) {
+    return(NULL)
+  }
+  cov
+}
+
+# `scale` is `"se"` (Newton step / SE), `"absolute"` (no usable Hessian),
+# `"nonfinite"`, or `"absent"`. `measure` is the largest step in that scale.
+drm_gradient_stationarity <- function(
+  gradient,
+  cov_fixed = NULL,
+  tol = DRM_GRADIENT_STEP_TOL
+) {
+  absent <- list(
+    flag = FALSE,
+    measure = NA_real_,
+    scale = "absent",
+    index = NA_integer_
+  )
   if (is.null(gradient)) {
-    return(FALSE)
+    return(absent)
   }
   if (!is.numeric(gradient) || !all(is.finite(gradient))) {
-    return(TRUE)
+    return(list(
+      flag = TRUE,
+      measure = NA_real_,
+      scale = "nonfinite",
+      index = NA_integer_
+    ))
   }
   if (length(gradient) == 0L) {
-    return(FALSE)
+    return(list(
+      flag = FALSE,
+      measure = 0,
+      scale = "absolute",
+      index = NA_integer_
+    ))
   }
-  max(abs(gradient)) > tol
+  step <- drm_newton_step_in_se(gradient, cov_fixed)
+  if (!is.null(step)) {
+    index <- which.max(step)
+    measure <- step[[index]]
+    return(list(
+      flag = isTRUE(measure > tol),
+      measure = measure,
+      scale = "se",
+      index = index
+    ))
+  }
+  abs_g <- abs(as.numeric(gradient))
+  index <- which.max(abs_g)
+  measure <- abs_g[[index]]
+  list(
+    flag = isTRUE(measure > tol),
+    measure = measure,
+    scale = "absolute",
+    index = index
+  )
+}
+
+# Elementwise |cov.fixed %*% g| / sqrt(diag(cov.fixed)). NULL when the
+# covariance cannot be used, so the caller falls back to |g|.
+drm_newton_step_in_se <- function(gradient, cov_fixed) {
+  if (!is.matrix(cov_fixed) || !is.numeric(cov_fixed)) {
+    return(NULL)
+  }
+  g <- as.numeric(gradient)
+  n <- length(g)
+  if (!identical(nrow(cov_fixed), n) || !identical(ncol(cov_fixed), n)) {
+    return(NULL)
+  }
+  if (!all(is.finite(cov_fixed))) {
+    return(NULL)
+  }
+  if (!is.null(names(gradient)) && !is.null(colnames(cov_fixed))) {
+    idx <- match(names(gradient), colnames(cov_fixed))
+    if (!anyNA(idx) && identical(length(unique(idx)), n)) {
+      cov_fixed <- cov_fixed[idx, idx, drop = FALSE]
+    }
+  }
+  se <- sqrt(diag(cov_fixed))
+  if (!all(is.finite(se)) || any(se <= 0)) {
+    return(NULL)
+  }
+  delta <- tryCatch(as.numeric(cov_fixed %*% g), error = function(e) NULL)
+  if (is.null(delta) || length(delta) != n || !all(is.finite(delta))) {
+    return(NULL)
+  }
+  abs(delta) / se
 }
 
 drm_optimizer_converged <- function(object) {
@@ -1465,8 +1564,9 @@ check_convergence_status <- function(object) {
         "is_converged() is FALSE."
       ),
       gradient = paste(
-        "The optimizer reported code 0, but the stored fixed-effect gradient",
-        "exceeds the Newton-polish tolerance (or is not finite).",
+        "The optimizer reported code 0, but the Newton step at the stored",
+        "gradient exceeds 0.001 standard errors (or the gradient is not",
+        "finite; without a Hessian the same 0.001 cutoff is absolute).",
         "is_converged() is FALSE. Inspect fit$gradient and the fixed_gradient row."
       ),
       "Convergence status could not be classified."

@@ -30,6 +30,35 @@ test_that("missing-response NA rows do not raise the non-finite count", {
   expect_equal(qd$sample, c(-0.5, 0.5))
 })
 
+test_that("unequal non-finite drops use a common theoretical grid", {
+  col_long <- c(-2, -1, 0, 1, 2)
+  col_short <- c(-Inf, -0.5, 0.5, Inf, NA_real_)
+  z <- cbind(col_long, col_short)
+  qd <- NULL
+  expect_warning(
+    qd <- drm_quantile_residual_qq_from_matrix(z),
+    class = "drmTMB_quantile_residual_warning"
+  )
+  sim1 <- qd[qd$sim == 1L, , drop = FALSE]
+  sim2 <- qd[qd$sim == 2L, , drop = FALSE]
+  expect_equal(sim1$theoretical, stats::qnorm(stats::ppoints(5)))
+  expect_equal(sim2$theoretical, stats::qnorm(stats::ppoints(2)))
+
+  envelope <- drm_adequacy_envelope(qd, "sample")
+  grid <- stats::qnorm(stats::ppoints(2))
+  expect_equal(envelope$theoretical, grid)
+  expect_equal(nrow(envelope), 2L)
+  interpolated_long <- stats::approx(
+    sim1$theoretical,
+    sim1$sample,
+    xout = grid,
+    rule = 1
+  )$y
+  expect_equal(envelope$ymin, pmin(interpolated_long, sim2$sample))
+  expect_equal(envelope$ymax, pmax(interpolated_long, sim2$sample))
+  expect_false(isTRUE(all.equal(envelope$theoretical, sim1$theoretical[1:2])))
+})
+
 test_that("the QQ subtitle names a positive omission count", {
   data <- data.frame(theoretical = 0, sample = 0, deviation = 0)
   expect_false(grepl("omitted", drm_adequacy_qq_subtitle("base", data), fixed = TRUE))

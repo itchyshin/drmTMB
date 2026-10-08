@@ -431,6 +431,46 @@ test_that("Phase 18 replicate runner does not ledger the gradient warning", {
 
   expect_identical(result$status, "ok")
   expect_length(result$warnings, 0L)
+  expect_true(is.na(result$summary$convergence_status))
+})
+
+test_that("Phase 18 runner records convergence_status on a drmTMB summary", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  set.seed(1)
+  x <- stats::rnorm(30)
+  dat <- data.frame(y = 0.2 + 0.4 * x + stats::rnorm(30, sd = 0.5), x = x)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = stats::gaussian(), data = dat)
+  cell <- data.frame(cell_id = "gauss_001", n = 30L)
+  seed_row <- data.frame(
+    cell_id = "gauss_001",
+    cell_index = 1L,
+    replicate = 1L,
+    seed = 11L
+  )
+  result <- phase18_run_replicate(
+    cell,
+    seed_row,
+    function(cell, seed, cell_id, replicate) dat,
+    function(data, cell) fit,
+    function(fit, truth, cell_id, replicate, elapsed, warnings) {
+      data.frame(converged = isTRUE(fit$opt$convergence == 0L))
+    }
+  )
+  expect_true(result$summary$converged)
+  expect_identical(result$summary$convergence_status, convergence_status(fit))
+  expect_identical(result$summary$convergence_status, "converged")
 })
 
 test_that("Phase 18 replicate runner validates malformed inputs", {

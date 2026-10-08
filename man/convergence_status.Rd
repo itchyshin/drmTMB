@@ -26,13 +26,16 @@ workflows that need more detail than \code{\link[=is_converged]{is_converged()}}
 optimizer code \code{0} while the likelihood geometry is degenerate (no proper
 maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
 when \code{multi_start} selected among several starts. \code{"gradient"} marks an
-otherwise successful fit whose stored fixed-effect gradient still exceeds
-the Newton-polish tolerance, including a polish that returned without
-reaching it. \code{"boundary"} marks an optimizer-converged, stationary fit
-with variance-component or residual-correlation parameters near an
-interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a plain logical: it is
-\code{TRUE} for \code{"converged"} and \code{"boundary"}, and \code{FALSE} for \code{"degenerate"}
-and \code{"gradient"}.
+otherwise successful fit whose Newton step, \code{sdr$cov.fixed \%*\% gradient}
+divided by each parameter's standard error, still exceeds \code{0.001}. When
+no usable Hessian is stored, the same \code{0.001} is applied to the largest
+absolute gradient component. The Newton polish still targets a raw
+gradient of \code{1e-8}; that cutoff is not this status. \code{"boundary"} marks
+an optimizer-converged, stationary fit with variance-component or
+residual-correlation parameters near an interpretability boundary.
+\code{\link[=is_converged]{is_converged()}} stays a plain logical: it is \code{TRUE} for
+\code{"converged"} and \code{"boundary"}, and \code{FALSE} for \code{"degenerate"} and
+\code{"gradient"}.
 
 A missing \code{gradient} field (a hand-built object, or a fit saved before the
 gradient was stored) is not treated as a failure. A stored non-finite

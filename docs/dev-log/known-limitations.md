@@ -16,13 +16,16 @@ revisit condition.
   coerced, and `cumulative_logit()` still requires an ordered factor.
   `qq_plot()` and `worm_plot()` still omit non-finite quantile residuals from
   the order statistics; they warn with a count instead of moving the
-  theoretical quantiles. When `nsim > 1` drops a different count from each
-  column, the envelope can compare different theoretical quantiles.
-  `is_converged()` on a Julia-engine fit still reads only the optimizer code.
-  It does not apply the native Newton-polish tolerance `1e-8`, and
-  `include_hessian` is still unused there (#1483). `multi_start` still
+  plotted finite points. When `nsim > 1` drops a different count from each
+  realization, the envelope uses the shortest realization's theoretical
+  grid. `is_converged()` on a Julia-engine fit still reads only the optimizer
+  code. It does not apply the native Newton step in standard-error units,
+  and `include_hessian` is still unused there (#1483). `multi_start` still
   selects the lowest objective. `check_fixed_gradient()` still recomputes
-  the live gradient at tolerance `1e-3`.
+  the live gradient at tolerance `1e-3`. Phase 18 files under `inst/sim`
+  other than `sim_runner.R` still record `converged` as optimiser code 0.
+  `bootstrap_refit_one()` in `R/profile.R` still accepts a refit when
+  `opt$convergence == 0`.
 
 - The Q-Series v1.0 release boundary is generated in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates

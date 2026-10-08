@@ -2974,7 +2974,12 @@ drm_julia_reject_factor_responses <- function(data, formula, family_type) {
       next
     }
     response <- as.character(entry$response)
-    if (grepl("^cbind\\(", response)) {
+    family_label <- paste0(family_type, " (engine = julia)")
+    # cbind() would turn a factor or date column into numbers before the
+    # bridge sees it. Inspect the formula arguments in `data` instead.
+    if (grepl("^cbind\\(", response) || is_cbind_lhs(entry$lhs)) {
+      lhs <- if (!is.null(entry$lhs)) entry$lhs else str2lang(response)
+      drm_reject_cbind_response_columns(lhs, data, family_label)
       next
     }
     if (!response %in% names(data)) {
@@ -2983,7 +2988,7 @@ drm_julia_reject_factor_responses <- function(data, formula, family_type) {
     drm_reject_factor_response(
       data[[response]],
       response,
-      paste0(family_type, " (engine = julia)")
+      family_label
     )
   }
   invisible(NULL)
@@ -6729,10 +6734,10 @@ rho12.drmTMB_julia <- function(object, ...) {
 
 #' @export
 is_converged.drmTMB_julia <- function(object, include_hessian = FALSE, ...) {
-  # Not the native #1452 rule. DRM.jl's gradient is not on the TMB outer
-  # gradient scale that DRM_NEWTON_GRAD_TOL grades, so this method still
-  # reads optimizer code 0 only. `include_hessian` is also unused here
-  # (#1483). The native drmTMB method consults fit$gradient.
+  # Not the native #1452 rule. DRM.jl's gradient is not on the TMB
+  # covariance scale that the Newton-step / SE verdict uses, so this method
+  # still reads optimizer code 0 only. `include_hessian` is also unused here
+  # (#1483). The native drmTMB method consults fit$gradient and sdr$cov.fixed.
   isTRUE(object$opt$convergence == 0L)
 }
 
@@ -8302,6 +8307,8 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
     paste(entry$response, "~", rhs),
     env = env
   )
+  lhs <- if (!is.null(entry$lhs)) entry$lhs else entry$response
+  drm_reject_cbind_response_columns(lhs, data, "cross-family Julia")
   mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
   y_raw <- stats::model.response(mf)
   drm_reject_factor_response(y_raw, entry$response, "cross-family Julia")

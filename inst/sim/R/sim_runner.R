@@ -62,6 +62,7 @@ phase18_run_replicate <- function(
           elapsed = proc.time()[["elapsed"]] - started,
           warnings = warnings
         )
+        summary <- phase18_attach_convergence_status(summary, fit)
       },
       error = function(e) {
         status <<- "error"
@@ -73,9 +74,9 @@ phase18_run_replicate <- function(
       # informational: the simulation summary already tracks per-fit
       # convergence, pdHess, and scale state, so capturing them here would
       # double-count them as ledger failures. The gradient warning (#1452)
-      # is the same kind of signal: is_converged() is FALSE when the stored
-      # gradient exceeds the Newton-polish tolerance, and the coefficients
-      # are unchanged. Record every other warning.
+      # stays muffled. The replicate summary records `convergence_status()`
+      # in its own column, which is the scale-free Newton-step verdict, not
+      # optimiser code 0. Record every other warning.
       own <- c(
         "drmTMB_convergence_warning",
         "drmTMB_gradient_warning",
@@ -107,6 +108,34 @@ phase18_run_replicate <- function(
     saveRDS(result, result_path)
   }
   result
+}
+
+# Record the scale-free convergence verdict on the replicate summary. The
+# caller-supplied summary may still store optimiser code 0 in `converged`;
+# this column is the `convergence_status()` label. A non-drmTMB fit, or a
+# summary that is not a data frame, is left unchanged apart from an `NA`
+# status on a non-empty data frame.
+phase18_attach_convergence_status <- function(summary, fit) {
+  if (!is.data.frame(summary) || nrow(summary) == 0L) {
+    return(summary)
+  }
+  status <- NA_character_
+  if (inherits(fit, "drmTMB")) {
+    status <- tryCatch(
+      as.character(convergence_status(fit)),
+      error = function(e) NA_character_
+    )
+  }
+  if (
+    length(status) != 1L ||
+      !is.character(status) ||
+      anyNA(status) ||
+      !isTRUE(nzchar(status))
+  ) {
+    status <- NA_character_
+  }
+  summary$convergence_status <- status
+  summary
 }
 
 phase18_run_replicates <- function(
