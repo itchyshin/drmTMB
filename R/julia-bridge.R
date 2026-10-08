@@ -2286,10 +2286,19 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
       }
       drm_julia_check_factor_level_fidelity(mf, coded, dpar, data)
     }
-    cols <- tryCatch(
-      colnames(stats::model.matrix(stats::terms(mf), mf)),
+    X_labels <- tryCatch(
+      stats::model.matrix(stats::terms(mf), mf),
       error = function(e) NULL
     )
+    if (!is.null(X_labels)) {
+      # Same pre-fit refusal as the TMB engine (#1470): an exact aliased
+      # column is not sent to DRM.jl to come back as a converged fit with
+      # no usable standard error.
+      drm_abort_rank_deficient_designs(
+        stats::setNames(list(X_labels), label_key)
+      )
+    }
+    cols <- if (is.null(X_labels)) NULL else colnames(X_labels)
     if (!is.null(cols)) {
       # `as.list()`, not the bare character vector: JuliaCall auto-unboxes a
       # length-1 R atomic vector to a Julia SCALAR (a bare `String`, not a

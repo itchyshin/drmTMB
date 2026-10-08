@@ -12,6 +12,10 @@
 #' [TMB::sdreport()], the fixed-effect Hessian's minimum eigenvalue and
 #' condition number at the optimum (`hessian_conditioning`; a comparable, but
 #' not numerically identical, read of the same object underlying `pdHess`).
+#' The reported `cond=` value is the condition number of the correlation-scaled
+#' covariance when every diagonal entry is positive, so a large raw condition
+#' number caused only by parameter units does not raise the note. A negative
+#' covariance eigenvalue still warns from the raw covariance.
 #' `hessian_conditioning` is computed from
 #' [TMB::sdreport()]'s already-materialized fixed-effect covariance
 #' (`sdr$cov.fixed`), never by evaluating the TMB C++ object directly, so it
@@ -25,7 +29,9 @@
 #' correlation), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' Student-t `nu` boundary behaviour, dispersion parameters at a simpler-family
+#' limit (`dispersion_boundary`: negative-binomial or beta `sigma^2` below
+#' 0.001, or Student-t `nu` above 1000), skew-normal `nu` finite-value checks,
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -443,6 +449,7 @@ check_drm.drmTMB <- function(
     check_interval_reliability_scope(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
+    check_dispersion_boundary(object),
     check_skew_normal_nu(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
@@ -1006,7 +1013,8 @@ check_hessian_conditioning <- function(object) {
     }
     return(hessian_conditioning_row(
       eig,
-      "the separately evaluated MSPL outer Hessian (optimHess on the unpenalized Laplace objective)"
+      "the separately evaluated MSPL outer Hessian (optimHess on the unpenalized Laplace objective)",
+      condition = drm_correlation_scaled_condition(object$mspl$numerical$hessian)
     ))
   }
   if (is.null(object$sdr)) {
@@ -1050,6 +1058,41 @@ check_hessian_conditioning <- function(object) {
 }
 
 hessian_conditioning_ill_threshold <- 1e8
+
+# Condition number of the correlation-scaled matrix D^{-1/2} M D^{-1/2},
+# where D = diag(M). This is the condition number after each parameter's
+# own curvature (or variance) has been scaled out. Returns NA when a
+# diagonal entry is non-positive, so the caller keeps the raw condition
+# number. An indefinite matrix with a positive diagonal still returns a
+# number; the caller must not use it to override a negative-eigenvalue warning.
+drm_correlation_scaled_condition <- function(mat) {
+  if (
+    is.null(mat) ||
+      !is.matrix(mat) ||
+      nrow(mat) == 0L ||
+      nrow(mat) != ncol(mat) ||
+      !all(is.finite(mat))
+  ) {
+    return(NA_real_)
+  }
+  mat <- (mat + t(mat)) / 2
+  diagonal <- diag(mat)
+  if (any(!is.finite(diagonal) | diagonal <= 0)) {
+    return(NA_real_)
+  }
+  scale <- sqrt(diagonal)
+  scaled <- mat / outer(scale, scale)
+  scaled <- (scaled + t(scaled)) / 2
+  eigenvalues <- eigen(scaled, symmetric = TRUE, only.values = TRUE)$values
+  if (!all(is.finite(eigenvalues))) {
+    return(NA_real_)
+  }
+  min_abs <- min(abs(eigenvalues))
+  if (min_abs <= 0) {
+    return(Inf)
+  }
+  max(abs(eigenvalues)) / min_abs
+}
 
 # Roundoff floor for TRUSTING the SIGN of `sdr$cov.fixed`'s most extreme
 # (algebraically smallest) eigenvalue, in the COVARIANCE's own eigenvalue
@@ -1108,7 +1151,17 @@ hessian_conditioning_cov_row <- function(cov, source) {
 
   mu_min_trusted_negative <- mu_min < -tol_cov
   min_eig <- if (mu_min_trusted_negative) 1 / mu_min else 1 / mu_max
-  condition <- if (min_abs_cov <= 0) Inf else max_abs_cov / min_abs_cov
+  raw_condition <- if (min_abs_cov <= 0) Inf else max_abs_cov / min_abs_cov
+  # Correlation-scaled condition (#1251). A clean location-scale fit can have
+  # a raw condition number above 1e8 only because the intercept and a slope
+  # live on different units (airquality Ozone ~ Temp, cond about 5e8) while
+  # the correlation-scaled Hessian is ordinary. The negative-eigenvalue
+  # warning above still uses the raw covariance: scaling must not hide an
+  # indefinite Hessian. The note threshold uses the scaled number when every
+  # covariance diagonal is positive, and the raw number otherwise.
+  scaled_condition <- drm_correlation_scaled_condition(cov)
+  condition <- if (is.na(scaled_condition)) raw_condition else scaled_condition
+  scaled_used <- !is.na(scaled_condition)
 
   status <- if (mu_min_trusted_negative) {
     "warning"
@@ -1143,14 +1196,30 @@ hessian_conditioning_cov_row <- function(cov, source) {
         )
       } else if (identical(status, "note")) {
         paste0(
-          "The condition number exceeds ",
+          if (scaled_used) {
+            "The correlation-scaled condition number exceeds "
+          } else {
+            "The condition number exceeds "
+          },
           hessian_conditioning_ill_threshold,
           ", signalling a near-flat, weakly identified direction; a clean",
           " pdHess is necessary, not sufficient. Treat standard errors and",
-          " correlations among the affected parameters with caution."
+          " correlations among the affected parameters with caution.",
+          if (scaled_used) {
+            " Parameter scale has been removed, so a large raw condition number caused only by units does not raise this note."
+          } else {
+            ""
+          }
         )
       } else {
-        "This fit's Hessian conditioning is within the requested threshold."
+        paste0(
+          "This fit's Hessian conditioning is within the requested threshold.",
+          if (scaled_used) {
+            " The reported condition number is correlation-scaled, so differences in parameter units are not counted as ill conditioning."
+          } else {
+            ""
+          }
+        )
       }
     )
   )
@@ -1162,7 +1231,13 @@ hessian_conditioning_cov_row <- function(cov, source) {
 # not part of, the `obj$he()` removal described above.
 hessian_conditioning_eps_multiplier <- 100
 
-hessian_conditioning_row <- function(eig, source) {
+hessian_conditioning_row <- function(eig, source, condition = NA_real_) {
+  scaled_condition <- if (length(condition) == 1L) {
+    condition[[1L]]
+  } else {
+    NA_real_
+  }
+  scaled_used <- FALSE
   min_eig <- min(eig)
   max_abs_eig <- max(abs(eig))
   tol <- hessian_conditioning_eps_multiplier *
@@ -1192,7 +1267,9 @@ hessian_conditioning_row <- function(eig, source) {
     status <- "ok"
     condition <- max_abs_eig / max(abs(min_eig), .Machine$double.eps)
   } else {
-    condition <- max_abs_eig / min_eig
+    raw_condition <- max_abs_eig / min_eig
+    scaled_used <- !is.na(scaled_condition)
+    condition <- if (scaled_used) scaled_condition else raw_condition
     status <- if (condition > hessian_conditioning_ill_threshold) {
       "note"
     } else {
@@ -1231,7 +1308,11 @@ hessian_conditioning_row <- function(eig, source) {
         )
       } else if (identical(status, "note")) {
         paste0(
-          "The condition number exceeds ",
+          if (scaled_used) {
+            "The correlation-scaled condition number exceeds "
+          } else {
+            "The condition number exceeds "
+          },
           hessian_conditioning_ill_threshold,
           " with a resolvably positive minimum eigenvalue, signalling a ",
           "near-flat, weakly identified direction; a clean pdHess is ",
@@ -1239,7 +1320,14 @@ hessian_conditioning_row <- function(eig, source) {
           "among the affected parameters with caution."
         )
       } else {
-        "This fit's Hessian conditioning is within the requested threshold."
+        paste0(
+          "This fit's Hessian conditioning is within the requested threshold.",
+          if (scaled_used) {
+            " The reported condition number is correlation-scaled."
+          } else {
+            ""
+          }
+        )
       }
     )
   )
@@ -1964,6 +2052,321 @@ check_student_nu <- function(object) {
     "ok",
     value,
     "All fitted Student-t nu values are finite and above the boundary at 2."
+  )
+}
+
+# Simpler-family dispersion limits (#1496). NB2 `sigma^2` is `1/size` and
+# beta `sigma^2` is `1/phi`. Below 1e-3 the estimate sits at the Poisson or
+# infinite-precision limit (Rule R3b's threshold). Student-t `nu = 2 + exp(eta)`
+# above 1000 is the Gaussian limit. The point estimate is left unchanged.
+# A coefficient is marked only when every row where its design column is
+# nonzero is a limit row, which is the spray-E dummy and the intercept-only
+# `sigma ~ 1` cases. A coefficient that also loads on non-limit rows keeps
+# its standard error; `check_drm()` still warns that some fitted values are
+# at the limit. Gaussian, gamma, lognormal, and Tweedie `sigma` are interior
+# scales, not a nested simpler family, and are not marked here.
+drm_dispersion_sigma2_limit <- 1e-3
+drm_student_nu_limit <- 1000
+
+drm_dispersion_limit_model_types <- function() {
+  c(
+    "nbinom2",
+    "zi_nbinom2",
+    "hurdle_nbinom2",
+    "truncated_nbinom2",
+    "beta",
+    "beta_binomial",
+    "zero_one_beta",
+    "student",
+    "biv_student"
+  )
+}
+
+drm_fixed_linear_predictor <- function(X, beta) {
+  if (is.null(X) || is.null(beta) || length(beta) == 0L) {
+    return(NULL)
+  }
+  X <- as.matrix(X)
+  if (ncol(X) != length(beta) || nrow(X) == 0L) {
+    return(NULL)
+  }
+  beta_names <- names(beta)
+  col_names <- colnames(X)
+  if (
+    !is.null(beta_names) &&
+      !is.null(col_names) &&
+      !identical(beta_names, col_names)
+  ) {
+    index <- match(col_names, beta_names)
+    if (anyNA(index)) {
+      return(NULL)
+    }
+    beta <- beta[index]
+  }
+  as.vector(X %*% as.numeric(beta))
+}
+
+drm_design_terms_only_on_rows <- function(X, beta, at_limit) {
+  if (is.null(X) || is.null(beta) || length(beta) == 0L) {
+    return(character())
+  }
+  X <- as.matrix(X)
+  if (
+    nrow(X) != length(at_limit) ||
+      ncol(X) != length(beta) ||
+      !any(at_limit)
+  ) {
+    return(character())
+  }
+  beta_names <- names(beta)
+  col_names <- colnames(X)
+  if (is.null(col_names) || length(col_names) != ncol(X)) {
+    col_names <- if (!is.null(beta_names) && length(beta_names) == ncol(X)) {
+      beta_names
+    } else {
+      paste0("b", seq_len(ncol(X)))
+    }
+  }
+  if (
+    !is.null(beta_names) &&
+      !identical(beta_names, col_names)
+  ) {
+    index <- match(col_names, beta_names)
+    if (anyNA(index)) {
+      return(character())
+    }
+    beta <- beta[index]
+  }
+  active_tol <- 1e-8 * max(1, max(abs(X), na.rm = TRUE))
+  flagged <- character()
+  for (j in seq_len(ncol(X))) {
+    active <- is.finite(X[, j]) & abs(X[, j]) > active_tol
+    if (any(active) && all(at_limit[active])) {
+      flagged <- c(flagged, col_names[[j]])
+    }
+  }
+  unique(flagged)
+}
+
+drm_dispersion_boundary_report <- function(object) {
+  model_type <- object$model$model_type
+  if (
+    is.null(model_type) ||
+      !model_type %in% drm_dispersion_limit_model_types()
+  ) {
+    return(NULL)
+  }
+  sigma_types <- c(
+    "nbinom2",
+    "zi_nbinom2",
+    "hurdle_nbinom2",
+    "truncated_nbinom2",
+    "beta",
+    "beta_binomial",
+    "zero_one_beta"
+  )
+  nu_types <- c("student", "biv_student")
+  blocks <- list()
+  if (model_type %in% sigma_types) {
+    for (dpar in intersect(
+      c("sigma", "sigma1", "sigma2"),
+      names(object$coefficients)
+    )) {
+      blocks[[dpar]] <- "sigma2"
+    }
+  }
+  if (model_type %in% nu_types) {
+    for (dpar in intersect(c("nu", "nu1", "nu2"), names(object$coefficients))) {
+      blocks[[dpar]] <- "student_nu"
+    }
+  }
+  if (length(blocks) == 0L) {
+    return(NULL)
+  }
+
+  coefficient_rows <- character()
+  parms <- character()
+  parameter_parms <- character()
+  n_limit <- 0L
+  min_sigma2 <- Inf
+  max_nu <- -Inf
+  saw_sigma <- FALSE
+  saw_nu <- FALSE
+
+  for (dpar in names(blocks)) {
+    beta <- object$coefficients[[dpar]]
+    X <- object$model$X[[dpar]]
+    eta <- drm_fixed_linear_predictor(X, beta)
+    if (is.null(eta)) {
+      next
+    }
+    if (identical(blocks[[dpar]], "sigma2")) {
+      sigma2 <- exp(2 * eta)
+      at_limit <- is.finite(sigma2) & sigma2 < drm_dispersion_sigma2_limit
+      finite <- sigma2[is.finite(sigma2)]
+      if (length(finite) > 0L) {
+        saw_sigma <- TRUE
+        min_sigma2 <- min(min_sigma2, min(finite))
+      }
+    } else {
+      nu <- 2 + exp(eta)
+      at_limit <- is.finite(nu) & nu > drm_student_nu_limit
+      finite <- nu[is.finite(nu)]
+      if (length(finite) > 0L) {
+        saw_nu <- TRUE
+        max_nu <- max(max_nu, max(finite))
+      }
+    }
+    n_limit <- n_limit + sum(at_limit)
+    terms <- drm_design_terms_only_on_rows(X, beta, at_limit)
+    if (length(terms) > 0L) {
+      coefficient_rows <- c(coefficient_rows, paste0(dpar, ":", terms))
+      parms <- c(parms, paste0("fixef:", dpar, ":", terms))
+    }
+    if (
+      length(beta) == 1L &&
+        identical(names(beta), "(Intercept)") &&
+        length(at_limit) > 0L &&
+        all(at_limit)
+    ) {
+      parameter_parms <- c(parameter_parms, dpar)
+      parms <- c(parms, dpar)
+    }
+  }
+
+  at_limit <- n_limit > 0L
+  value_bits <- character()
+  if (saw_sigma && is.finite(min_sigma2)) {
+    value_bits <- c(
+      value_bits,
+      paste0("min_sigma2=", format_check_number(min_sigma2))
+    )
+  }
+  if (saw_nu && is.finite(max_nu)) {
+    value_bits <- c(
+      value_bits,
+      paste0("max_nu=", format_check_number(max_nu))
+    )
+  }
+  value_bits <- c(value_bits, paste0("n_limit_rows=", n_limit))
+  if (length(coefficient_rows) > 0L) {
+    value_bits <- c(
+      value_bits,
+      paste0("terms=", paste(coefficient_rows, collapse = ","))
+    )
+  }
+  list(
+    at_limit = at_limit,
+    coefficient_rows = unique(coefficient_rows),
+    parms = unique(parms),
+    parameter_parms = unique(parameter_parms),
+    value = paste(value_bits, collapse = "; "),
+    message = if (at_limit) {
+      paste(
+        "At least one fitted dispersion value is at a simpler-family limit:",
+        "NB2 or beta sigma^2 below",
+        drm_dispersion_sigma2_limit,
+        "(size or precision above 1000), or Student-t nu above",
+        drm_student_nu_limit,
+        "(the Gaussian limit).",
+        "The point estimate is unchanged.",
+        "Wald standard errors for a coefficient whose design column is",
+        "nonzero only on those rows are not usable: summary() sets them to",
+        "NA and confint() sets conf.status to boundary_limit.",
+        "vcov() still returns the raw covariance; do not read those",
+        "diagonals as Wald standard errors.",
+        "A coefficient that also loads on non-limit rows keeps its standard",
+        "error. Compare the nested simpler model (Poisson for nbinom2,",
+        "a Gaussian for a huge Student-t nu) before reporting the limit",
+        "coefficient."
+      )
+    } else {
+      "No fitted dispersion value is at a simpler-family limit."
+    }
+  )
+}
+
+drm_warn_dispersion_boundary <- function(report) {
+  if (is.null(report) || !isTRUE(report$at_limit)) {
+    return(invisible(FALSE))
+  }
+  terms <- report$coefficient_rows
+  cli::cli_warn(
+    c(
+      "A dispersion estimate is at a simpler-family limit, so its Wald standard error is not usable.",
+      if (length(terms) > 0L) {
+        "x" = "Affected coefficients: {.val {terms}}."
+      },
+      "i" = "The point estimate is unchanged. {.fn summary} reports {.val NA} for those standard errors and {.fn confint} sets {.field conf.status} to {.val boundary_limit}. {.fn vcov} still returns the raw covariance."
+    ),
+    class = "drmTMB_dispersion_boundary_warning"
+  )
+  invisible(TRUE)
+}
+
+drm_blank_boundary_standard_errors <- function(object, labels, se) {
+  report <- drm_dispersion_boundary_report(object)
+  if (
+    is.null(report) ||
+      !isTRUE(report$at_limit) ||
+      length(report$coefficient_rows) == 0L ||
+      length(se) != length(labels)
+  ) {
+    return(se)
+  }
+  se[labels %in% report$coefficient_rows] <- NA_real_
+  se
+}
+
+# Blank Wald endpoints for coefficients whose design support is entirely on
+# simpler-family limit rows. The point estimate is not rewritten. `vcov()`
+# is not touched. `corpairs()` profile intervals are a separate rho12 path
+# and are not masked here.
+drm_mask_dispersion_boundary_confint <- function(object, table, warn = TRUE) {
+  if (
+    !is.data.frame(table) ||
+      !"parm" %in% names(table) ||
+      nrow(table) == 0L
+  ) {
+    return(table)
+  }
+  report <- drm_dispersion_boundary_report(object)
+  if (
+    is.null(report) ||
+      !isTRUE(report$at_limit) ||
+      length(report$parms) == 0L
+  ) {
+    return(table)
+  }
+  hit <- table$parm %in% report$parms
+  if (!any(hit)) {
+    return(table)
+  }
+  if ("lower" %in% names(table)) {
+    table$lower[hit] <- NA_real_
+  }
+  if ("upper" %in% names(table)) {
+    table$upper[hit] <- NA_real_
+  }
+  if ("conf.status" %in% names(table)) {
+    table$conf.status[hit] <- "boundary_limit"
+  }
+  if (isTRUE(warn)) {
+    drm_warn_dispersion_boundary(report)
+  }
+  table
+}
+
+check_dispersion_boundary <- function(object) {
+  report <- drm_dispersion_boundary_report(object)
+  if (is.null(report)) {
+    return(NULL)
+  }
+  check_row(
+    "dispersion_boundary",
+    if (isTRUE(report$at_limit)) "warning" else "ok",
+    report$value,
+    report$message
   )
 }
 

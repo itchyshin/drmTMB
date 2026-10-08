@@ -275,6 +275,13 @@ or a correlation approaches \verb{+/-1}, and each warns about its own case.
 undercovers under boundary (chi-square-mixture) inference. That warning
 recommends \code{method = "profile"}.
 
+A dispersion coefficient that is nonzero only on rows at a simpler-family
+limit (negative-binomial or beta \code{sigma^2} below 0.001, or Student-t \code{nu}
+above 1000) is not given a usable interval. \code{confint()} sets \code{lower} and
+\code{upper} to \code{NA} and \code{conf.status} to \code{"boundary_limit"}, and warns with
+class \code{drmTMB_dispersion_boundary_warning}. The point estimate is unchanged.
+\code{vcov()} still returns the raw covariance.
+
 \code{method = "profile"} sets \code{profile.boundary = TRUE} and warns (class
 \code{drmTMB_profile_boundary_warning}) when it returns a usable interval that
 reaches a boundary. \strong{A profile interval is not a repair for a boundary.}

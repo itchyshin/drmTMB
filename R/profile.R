@@ -221,6 +221,13 @@
 #' undercovers under boundary (chi-square-mixture) inference. That warning
 #' recommends `method = "profile"`.
 #'
+#' A dispersion coefficient that is nonzero only on rows at a simpler-family
+#' limit (negative-binomial or beta `sigma^2` below 0.001, or Student-t `nu`
+#' above 1000) is not given a usable interval. `confint()` sets `lower` and
+#' `upper` to `NA` and `conf.status` to `"boundary_limit"`, and warns with
+#' class `drmTMB_dispersion_boundary_warning`. The point estimate is unchanged.
+#' `vcov()` still returns the raw covariance.
+#'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
@@ -511,18 +518,21 @@ confint.drmTMB <- function(
     }
     all_targets <- drm_profile_targets(object)
     targets <- profile_match_bootstrap_targets(all_targets, parm)
-    return(drm_bootstrap_confint(
+    return(drm_mask_dispersion_boundary_confint(
       object,
-      targets = targets,
-      level = level,
-      R = R,
-      seed = seed,
-      parallel = bootstrap_parallel,
-      workers = workers,
-      refit_control = refit_control,
-      re_form = bootstrap_re_form,
-      sd_boundary = sd_boundary,
-      rho_boundary = rho_boundary
+      drm_bootstrap_confint(
+        object,
+        targets = targets,
+        level = level,
+        R = R,
+        seed = seed,
+        parallel = bootstrap_parallel,
+        workers = workers,
+        refit_control = refit_control,
+        re_form = bootstrap_re_form,
+        sd_boundary = sd_boundary,
+        rho_boundary = rho_boundary
+      )
     ))
   }
 
@@ -544,19 +554,22 @@ confint.drmTMB <- function(
       profile_dots,
       profile_maxit = profile_maxit
     )
-    return(do.call(
-      drm_profile_response_newdata_confint,
-      c(
-        list(
-          object = object,
-          parm = parm,
-          newdata = newdata,
-          level = level,
-          trace = trace,
-          parallel = parallel,
-          workers = workers
-        ),
-        profile_args
+    return(drm_mask_dispersion_boundary_confint(
+      object,
+      do.call(
+        drm_profile_response_newdata_confint,
+        c(
+          list(
+            object = object,
+            parm = parm,
+            newdata = newdata,
+            level = level,
+            trace = trace,
+            parallel = parallel,
+            workers = workers
+          ),
+          profile_args
+        )
       )
     ))
   }
@@ -620,20 +633,23 @@ confint.drmTMB <- function(
     profile_dots,
     profile_maxit = profile_maxit
   )
-  do.call(
-    drm_profile_confint,
-    c(
-      list(
-        object = object,
-        parm = targets$parm,
-        level = level,
-        trace = trace,
-        parallel = parallel,
-        workers = workers,
-        profile_engine = profile_engine,
-        profile_endpoint_max_eval = profile_endpoint_max_eval
-      ),
-      profile_args
+  drm_mask_dispersion_boundary_confint(
+    object,
+    do.call(
+      drm_profile_confint,
+      c(
+        list(
+          object = object,
+          parm = targets$parm,
+          level = level,
+          trace = trace,
+          parallel = parallel,
+          workers = workers,
+          profile_engine = profile_engine,
+          profile_endpoint_max_eval = profile_endpoint_max_eval
+        ),
+        profile_args
+      )
     )
   )
 }
@@ -2116,7 +2132,8 @@ drm_wald_confint <- function(
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
-  bias_correct = c("location", "none", "group")
+  bias_correct = c("location", "none", "group"),
+  dispersion_warn = TRUE
 ) {
   small_sample_df <- match.arg(small_sample_df)
   bias_correct <- match.arg(bias_correct)
@@ -2279,6 +2296,11 @@ drm_wald_confint <- function(
   }
 
   row.names(out) <- NULL
+  out <- drm_mask_dispersion_boundary_confint(
+    object,
+    out,
+    warn = dispersion_warn
+  )
   drm_as_confint_table(out)
 }
 

@@ -165,9 +165,24 @@ test_that("fixed-effect formulas support standard R transformations and interact
     0.1 * dat$x1 * dat$x2 +
     stats::rnorm(n, sd = 0.5)
 
+  # poly(x, 2) already spans 1, x, and x^2, so adding I(x^2) is an exact
+  # alias. drmTMB refuses that before fitting (#1470) instead of returning
+  # a coefficient whose Wald standard error is not usable.
+  expect_error(
+    drmTMB(
+      drm_formula(
+        y ~ poly(x, 2) + I(x^2) + (x1 + x2 + x3)^2,
+        sigma ~ 1
+      ),
+      family = gaussian(),
+      data = dat
+    ),
+    class = "drmTMB_rank_deficient_design"
+  )
+
   fit <- drmTMB(
     drm_formula(
-      y ~ poly(x, 2) + I(x^2) + (x1 + x2 + x3)^2,
+      y ~ I(x^2) + (x1 + x2 + x3)^2,
       sigma ~ poly(z, 2) + x1:x2
     ),
     family = gaussian(),
@@ -179,8 +194,6 @@ test_that("fixed-effect formulas support standard R transformations and interact
     names(coef(fit, "mu")),
     c(
       "(Intercept)",
-      "poly(x, 2)1",
-      "poly(x, 2)2",
       "I(x^2)",
       "x1",
       "x2",
@@ -196,12 +209,8 @@ test_that("fixed-effect formulas support standard R transformations and interact
   )
 
   newdata <- dat[1:4, ]
-  mu_poly <- stats::poly(dat$x, 2)
-  mu_poly_new <- stats::predict(mu_poly, newdata$x)
   expected_mu_X <- cbind(
     "(Intercept)" = 1,
-    "poly(x, 2)1" = mu_poly_new[, 1],
-    "poly(x, 2)2" = mu_poly_new[, 2],
     "I(x^2)" = newdata$x^2,
     "x1" = newdata$x1,
     "x2" = newdata$x2,

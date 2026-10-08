@@ -45,6 +45,41 @@ Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the 
 `R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
 
 Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+# 2026-10-08: triage F convergence honesty (#1470, #1496, #1251)
+
+Exact rank-deficient distributional designs now stop before fitting
+(`drmTMB_rank_deficient_design`, QR tolerance `1e-10`) on every `spec$X`
+block and on the Julia bridge's R design matrix. Dispersion coefficients
+supported only on simpler-family limit rows (`sigma^2 < 0.001` for NB2 and
+beta families; Student-t `nu > 1000`) keep their estimates; `summary()` sets
+the Wald SE to `NA`, `confint()` uses `conf.status = boundary_limit`, and
+`check_drm()` adds `dispersion_boundary`. `hessian_conditioning` reports the
+correlation-scaled condition number of `sdr$cov.fixed` when every diagonal
+is positive. Phase 18 ignores `drmTMB_dispersion_boundary_warning`.
+
+Local tests, 0 failures: new `test-convergence-honesty-triage-f.R` 53 pass;
+`test-check-conditioning.R` 31 pass / 2 skip / 1 warn;
+`test-check-drm.R` 263 / 1 / 3; `test-fit-convergence-warning.R` 16;
+`test-summary.R` 200; `test-summary-derived-rows.R` 10;
+`test-confint-skew-normal-slant.R` 5; `test-nbinom2-location-scale.R` 157;
+`test-truncated-nbinom2-location-scale.R` 78 pass / 1 new dispersion warn;
+`test-hurdle-nbinom2.R` 60; `test-zi-nbinom2.R` 59 / 2 clamp warns;
+`test-gaussian-location-scale.R` re-run pass / 1 CRAN skip;
+`test-student-location-scale.R` 47; `test-beta-location-scale.R` 85 / 2 skip;
+`test-gamma-location-scale.R` 76; `test-lognormal-location-scale.R` 62;
+`test-tweedie-location-scale.R` 82 / 1 skip / 1 warn;
+`test-skew-normal-location-scale.R` 76; `test-phase18-sim-runner.R` 73;
+`test-dinnage-audit-wave4b1.R` pass / 1 pre-existing Wald-boundary warn;
+`test-comparators.R` 32 pass / 17 skip (lme4, glmmTMB, metafor absent).
+
+`python3 tools/recertify-c17.py --label triage-f --tolerance 1e-10`:
+worst `|change|` `1.322e-11` on mc-0569, fingerprint unchanged
+`5ab7a9640a93…`. That is the same rerun float noise already accepted on main
+(2026-09-26 receipt recorded `3.119e-12`). `capability_ledger.py --check` OK.
+No other recertify tool pins `R/check.R`, `R/profile.R`, `R/julia-bridge.R`,
+or `inst/sim/R/sim_runner.R`.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-f-convergence-honesty.md`.
 
 # 2026-10-04: phylogenetic tree-height documentation correction
 

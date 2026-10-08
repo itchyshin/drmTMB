@@ -66,6 +66,36 @@
   when a modelled column contains `NA` instead of sending it to Julia.
   The main bridge records how many rows it dropped, and `check_drm()`
   reports that count. `response = "include"` is unchanged.
+* Exact rank-deficient fixed-effect designs now stop before fitting, for
+  every distributional parameter (`mu`, `sigma`, `nu`, `zi`, `hu`, `zoi`,
+  `coi`, `rho12`, the bivariate blocks, and direct SD designs) and for the
+  Julia bridge's R design matrix. The message names the aliased columns.
+  This is a behaviour change: the same design used to be able to return
+  `converged = TRUE` with no usable Wald standard errors. Near-collinear
+  columns, below the 1e-10 QR tolerance, still fit and stay visible to
+  `check_drm()` (Fixes #1470).
+
+* Negative-binomial, beta, and Student-t fits that reach a simpler-family
+  limit now say so. A coefficient whose design column is nonzero only on
+  rows with `sigma^2 < 0.001` (NB2 or beta; precision or size above 1000)
+  or Student-t `nu > 1000` keeps its point estimate, but `summary()` sets
+  that Wald standard error to `NA`, `confint()` sets `conf.status` to
+  `boundary_limit` with missing endpoints, and `check_drm()` adds a
+  `dispersion_boundary` warning. `print()` states the limit without
+  warning. `vcov()` still returns the raw covariance. This is a behaviour
+  change for those boundary fits: a finite Wald standard error is no
+  longer printed as if it were usable. Gaussian, gamma, lognormal, and
+  Tweedie `sigma` are not flagged. The Julia-engine summary is not yet
+  blanked (Fixes #1496).
+
+* `check_drm()`'s `hessian_conditioning` note now uses the correlation-scaled
+  condition number of `sdr$cov.fixed` when every diagonal entry is positive.
+  A clean Gaussian location-scale fit whose raw condition number is large
+  only because covariates have different units, such as `Ozone ~ Temp + Wind`
+  with `sigma ~ Temp` on `airquality`, no longer raises the note. A
+  negative covariance eigenvalue still warns from the raw covariance, and
+  a genuinely ill-conditioned correlation structure still notes
+  (Fixes #1251).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.

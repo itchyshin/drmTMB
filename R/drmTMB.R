@@ -638,6 +638,84 @@ drmTMB <- function(
   )
 }
 
+# Exact (not merely correlated) aliasing in any distributional-parameter
+# design. `lm()` would put NA on the redundant column and say it is not
+# defined because of singularities. drmTMB does not drop the column: the only
+# pre-fit handling the mean design already had was the REML refusal of a
+# rank-deficient `mu` matrix, which stops rather than rewriting the model.
+# The same refusal now runs for every fixed-effect block (`mu`, `sigma`,
+# `nu`, `zi`, `hu`, `zoi`, `coi`, `rho12`, the bivariate blocks, and direct
+# SD designs) before `MakeADFun()`, on ML and REML. The tolerance is 1e-10,
+# tighter than `qr()`'s 1e-7 default, so the near-collinear diagnostic
+# fixtures (predictor noise of 1e-7 or 1e-9) still fit and stay visible to
+# `check_drm()`. An exact copy (`xdup == x`, or `x2 == 2 * x`) is refused.
+drm_aliased_columns <- function(X, tol = 1e-10) {
+  if (is.null(X) || (!is.matrix(X) && !inherits(X, "Matrix"))) {
+    return(character())
+  }
+  n_col <- ncol(X)
+  if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+    return(character())
+  }
+  if (anyNA(X)) {
+    return(character())
+  }
+  design <- X
+  decomposition <- tryCatch(qr(design, tol = tol), error = function(e) NULL)
+  if (
+    is.null(decomposition) &&
+      inherits(design, "Matrix") &&
+      nrow(design) * n_col <= 200000L
+  ) {
+    design <- as.matrix(design)
+    decomposition <- tryCatch(qr(design, tol = tol), error = function(e) NULL)
+  }
+  if (is.null(decomposition) || is.null(decomposition$rank)) {
+    return(character())
+  }
+  if (decomposition$rank >= n_col) {
+    return(character())
+  }
+  cols <- colnames(X)
+  if (is.null(cols) || length(cols) != n_col) {
+    cols <- paste0("column_", seq_len(n_col))
+  }
+  pivot <- decomposition$pivot
+  if (is.null(pivot) || length(pivot) != n_col) {
+    return(cols)
+  }
+  cols[pivot[seq.int(decomposition$rank + 1L, n_col)]]
+}
+
+drm_abort_rank_deficient_designs <- function(X_list) {
+  if (!is.list(X_list) || length(X_list) == 0L) {
+    return(invisible(NULL))
+  }
+  pieces <- character()
+  for (i in seq_along(X_list)) {
+    name <- names(X_list)[[i]]
+    if (is.null(name) || !nzchar(name)) {
+      name <- paste0("X", i)
+    }
+    aliased <- drm_aliased_columns(X_list[[i]])
+    if (length(aliased) == 0L) {
+      next
+    }
+    pieces <- c(pieces, paste0(name, ": ", paste(aliased, collapse = ", ")))
+  }
+  if (length(pieces) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(
+    c(
+      "A fixed-effect design is rank deficient, so the coefficients are not identified and Wald standard errors would not be usable.",
+      "x" = "Aliased columns (the same columns {.fn lm} would leave undefined because of singularities): {.val {pieces}}.",
+      "i" = "Drop the duplicated or linearly dependent term from that distributional parameter and refit. {.fn drmTMB} stops before fitting instead of returning {.code converged = TRUE} with no usable standard errors."
+    ),
+    class = "drmTMB_rank_deficient_design"
+  )
+}
+
 drm_fit_spec <- function(
   spec,
   formula,
@@ -651,6 +729,7 @@ drm_fit_spec <- function(
   if (is.null(fit_call)) {
     fit_call <- match.call()
   }
+  drm_abort_rank_deficient_designs(spec$X)
 
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)

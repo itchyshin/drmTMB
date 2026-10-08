@@ -69,14 +69,15 @@ phase18_run_replicate <- function(
       }
     ),
     warning = function(w) {
-      # The drmTMB convergence and clamp-active warnings are informational: the
-      # simulation summary already tracks per-fit convergence, pdHess, and scale
-      # state, so capturing them here would double-count them as ledger failures.
-      # Record every other warning.
+      # The drmTMB convergence, clamp-active, and dispersion-boundary warnings
+      # are informational: the simulation summary already tracks per-fit
+      # convergence, pdHess, and scale state, so capturing them here would
+      # double-count them as ledger failures. Record every other warning.
       own <- c(
         "drmTMB_convergence_warning",
         "drmTMB_clamp_active_warning",
-        "drmTMB_nonfinite_objective_warning"
+        "drmTMB_nonfinite_objective_warning",
+        "drmTMB_dispersion_boundary_warning"
       )
       if (!inherits(w, own)) {
         warnings <<- c(warnings, conditionMessage(w))

@@ -127,6 +127,7 @@ drm_mspl_summary_coefficients <- function(object, labels, est) {
       ok <- TRUE
     }
   }
+  se <- drm_blank_boundary_standard_errors(object, labels, se)
   out <- data.frame(
     estimate = est,
     std_error = se,
