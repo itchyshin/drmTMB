@@ -8223,17 +8223,20 @@ drmTMB_julia_xfam_bridge <- function(
 # Build the (y, X) design for the mu1 / mu2 location formulas and the optional
 # Xsigma1 / Xsigma2 dispersion (log-sigma sub-model) designs. Mirrors the native
 # biv_gaussian extraction: each location entry carries a response and an RHS,
-# which we turn into `response ~ rhs` and pass through model.frame / model.matrix
-# on complete cases.
+# which we turn into `response ~ rhs` and pass through model.frame on complete
+# cases. The design matrix is built only after every axis has been cut to the
+# same original-row index, so a factor level emptied by that cut is not left
+# as an all-zero column.
 #
 # A `sigma_k` entry carries only an RHS (no response), so we pair it with its
-# axis's mu response to build `mu_response ~ sigma_rhs`; na.omit then drops the
-# SAME rows the mu axis dropped, keeping the dispersion design row-aligned with
-# its location design. An absent `sigma_k` formula yields an intercept-only
-# Xsigma (the current scalar-dispersion behaviour). `tags` is the per-axis DRM
-# family tag (e.g. "gaussian", "poisson"); a `sigma_k` formula on a
-# dispersionless axis (Poisson / Binomial) is rejected, since DRM.jl carries no
-# dispersion sub-model there.
+# axis's mu response to build `mu_response ~ sigma_rhs`. na.omit on that frame
+# can drop extra rows when a sigma covariate is missing. An absent `sigma_k`
+# formula yields an intercept-only Xsigma (the current scalar-dispersion
+# behaviour). `tags` is the per-axis DRM family tag (e.g. "gaussian",
+# "poisson"); a `sigma_k` formula on a dispersionless axis (Poisson / Binomial)
+# is rejected, since DRM.jl carries no dispersion sub-model there.
+# `cbind(successes, failures)` and `offset()` are refused here: model.matrix
+# would otherwise drop the failures column or the offset with no message.
 drm_julia_xfam_axes <- function(formula, data, env, tags) {
   entries <- formula$entries
   dpars <- vapply(entries, `[[`, character(1L), "dpar")
@@ -8266,10 +8269,11 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
 
   mu1 <- drm_julia_xfam_axis(entries[[which(dpars == "mu1")]], data, env, "mu1")
   mu2 <- drm_julia_xfam_axis(entries[[which(dpars == "mu2")]], data, env, "mu2")
-  # Each axis drops its own NAs first. A length check is not alignment
-  # (#1454): y1 missing on row 3 and y2 missing on row 7 both leave n - 1
-  # rows of different observations. The intersection below is the shared
-  # complete case, in the original row order.
+  # Each axis records the original rows its own model.frame kept. A length
+  # check is not alignment (#1454): y1 missing on row 3 and y2 missing on row
+  # 7 both leave n - 1 rows of different observations. The intersection below
+  # is the shared complete case, in the original row order. Designs are built
+  # from those shared rows, not from each axis's own complete cases.
 
   sigma1 <- drm_julia_xfam_sigma(
     entry = if (any(dpars == "sigma1")) {
@@ -8307,21 +8311,13 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
   drm_julia_xfam_align_axes(mu1, mu2, sigma1, sigma2)
 }
 
-# Build one axis's Xsigma design (the log-sigma sub-model regressors). An absent
-# `entry` (no sigma_k formula) returns an intercept-only design over the mu
-# axis's rows, reproducing the scalar-dispersion default. A present entry must
-# land on a dispersion-carrying axis (Gaussian / NB2 / Beta / Gamma); on a
-# dispersionless axis (Poisson / Binomial) it is rejected. The design is built
-# from `mu_response ~ sigma_rhs`. na.omit on that frame can drop extra rows
-# when a sigma covariate is missing. The caller then intersects every axis
-# onto one row index.
+# Record one axis's model frame and the original rows it kept. The design
+# matrix is not built here: shared-row alignment can empty a factor level, and
+# a matrix built before that cut would keep an all-zero column (#1454).
 drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
   dispersionless <- drm_julia_dispersionless_families()
   if (is.null(entry)) {
-    return(list(
-      X = matrix(1, nrow = length(mu$y), ncol = 1L),
-      coef_names = "(Intercept)"
-    ))
+    return(list(rows = NULL))
   }
   if (tag %in% dispersionless) {
     cli::cli_abort(c(
@@ -8334,21 +8330,19 @@ drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
       "The {.code {dpar}} formula must be one-sided (no response on the left-hand side)."
     )
   }
+  drm_julia_xfam_refuse_offset(entry$rhs, dpar)
   rhs <- deparse1(entry$rhs)
   f <- stats::as.formula(
     paste(mu$response, "~", rhs),
     env = env
   )
   mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
-  X <- stats::model.matrix(
-    stats::delete.response(stats::terms(mf)),
-    mf
-  )
+  drm_julia_xfam_refuse_offset_terms(mf, dpar)
   rows <- drm_julia_model_frame_rows(mf, nrow(data))
   # Do not require rows == mu$rows here. A sigma covariate can be missing on
   # a row the location axis kept. drm_julia_xfam_align_axes() drops that row
   # from every axis so the designs stay paired (#1454).
-  list(X = X, coef_names = colnames(X), rows = rows)
+  list(mf = mf, rows = rows)
 }
 
 drm_julia_xfam_axis <- function(entry, data, env, dpar) {
@@ -8357,17 +8351,23 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
       "The {.code {dpar}} formula must include a response on the left-hand side."
     )
   }
+  # Refuse before the shared-row index is chosen. A complete cbind() fit and a
+  # cbind() fit with NA rows both hit this gate. The old length check aborted
+  # the same fits only because as.numeric() had turned the two columns into 2n
+  # values; subsetting that vector then kept the successes and dropped the
+  # failures (#1454).
+  drm_julia_xfam_refuse_cbind(entry$response, dpar)
+  drm_julia_xfam_refuse_offset(entry$rhs, dpar)
   rhs <- deparse1(entry$rhs)
   f <- stats::as.formula(
     paste(entry$response, "~", rhs),
     env = env
   )
   mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
-  y <- as.numeric(stats::model.response(mf))
-  X <- stats::model.matrix(
-    stats::delete.response(stats::terms(mf)),
-    mf
-  )
+  drm_julia_xfam_refuse_offset_terms(mf, dpar)
+  y <- stats::model.response(mf)
+  drm_julia_xfam_refuse_matrix_response(y, dpar)
+  y <- as.numeric(y)
   if (length(y) == 0L) {
     cli::cli_abort(
       "No complete observations remain for {.code {dpar}} after dropping missing rows."
@@ -8376,10 +8376,116 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
   list(
     response = entry$response,
     y = y,
-    X = X,
-    coef_names = colnames(X),
+    mf = mf,
     rows = drm_julia_model_frame_rows(mf, nrow(data))
   )
+}
+
+drm_julia_xfam_refuse_cbind <- function(response, dpar) {
+  response <- as.character(response)
+  if (length(response) != 1L || is.na(response)) {
+    return(invisible(NULL))
+  }
+  if (grepl("^cbind\\s*\\(", response)) {
+    drm_julia_xfam_cbind_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_refuse_matrix_response <- function(y, dpar) {
+  if (is.matrix(y)) {
+    drm_julia_xfam_cbind_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_cbind_abort <- function(dpar) {
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cross-family models cannot take a {.code cbind()} response on {.code {dpar}}.",
+    x = "Flattening {.code cbind(successes, failures)} and then keeping the first {.code n} entries drops the failures on every fit, with or without missing values.",
+    i = "Use a single 0/1 column, or {.code engine = \"tmb\"} for binomial trials."
+  ))
+}
+
+drm_julia_xfam_refuse_offset <- function(rhs, dpar) {
+  if (formula_contains_call(rhs, "offset")) {
+    drm_julia_xfam_offset_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_refuse_offset_terms <- function(mf, dpar) {
+  if (!is.null(attr(stats::terms(mf), "offset"))) {
+    drm_julia_xfam_offset_abort(dpar)
+  }
+  invisible(NULL)
+}
+
+drm_julia_xfam_offset_abort <- function(dpar) {
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cross-family models cannot include {.fn offset} on {.code {dpar}}.",
+    x = "{.fn model.matrix} drops {.fn offset}, so the fit would ignore that term.",
+    i = "Move the offset into the linear predictor as a covariate, or use {.code engine = \"tmb\"}."
+  ))
+}
+
+drm_julia_xfam_used_levels <- function(col) {
+  if (!is.factor(col)) {
+    return(character())
+  }
+  lv <- levels(col)
+  lv[tabulate(as.integer(col), nbins = length(lv)) > 0L]
+}
+
+# Rebuild one design on the shared rows. droplevels() removes a level that the
+# other axis's missingness emptied, so model.matrix does not emit an all-zero
+# column for it. A factor left with fewer than two observed levels, or any
+# other rank-deficient design, is refused.
+drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
+  after <- mf[pos, , drop = FALSE]
+  for (nm in names(mf)) {
+    col <- mf[[nm]]
+    if (!is.factor(col)) {
+      next
+    }
+    used_before <- drm_julia_xfam_used_levels(col)
+    used_after <- drm_julia_xfam_used_levels(after[[nm]])
+    lost <- setdiff(used_before, used_after)
+    if (length(lost) > 0L && length(used_after) < 2L) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} cross-family alignment removed every shared row of a factor level on {.code {dpar}}.",
+        x = "{.field {nm}} would keep {length(used_after)} observed level{?s}, so the design is no longer identifiable. Lost level{?s}: {.val {lost}}.",
+        i = "Drop that level from the data and refit, or use {.code engine = \"tmb\"}."
+      ))
+    }
+  }
+  after <- droplevels(after)
+  tt <- stats::terms(after)
+  attr(tt, "xlev") <- NULL
+  X <- tryCatch(
+    stats::model.matrix(stats::delete.response(tt), after),
+    error = function(e) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} could not rebuild the {.code {dpar}} design on the shared rows.",
+        x = conditionMessage(e),
+        i = "A missing value on another axis can empty a factor level. Drop that level, or use {.code engine = \"tmb\"}."
+      ))
+    }
+  )
+  if (qr(X)$rank < ncol(X)) {
+    zero <- colnames(X)[colSums(abs(X)) < sqrt(.Machine$double.eps)]
+    zero_note <- if (length(zero) > 0L) {
+      paste0("All-zero columns: ", paste(zero, collapse = ", "), ".")
+    } else {
+      "The shared rows do not identify every column."
+    }
+    cli::cli_abort(c(
+      "{.code engine = \"julia\"} cross-family alignment made the {.code {dpar}} design rank deficient.",
+      x = zero_note,
+      i = "An {.code NA} on another axis removed the rows that identified a column. Drop that level or covariate pattern, or use {.code engine = \"tmb\"}."
+    ))
+  }
+  X
 }
 
 # Row positions kept by model.frame(..., na.action = na.omit). The omitted
@@ -8394,7 +8500,8 @@ drm_julia_model_frame_rows <- function(mf, n) {
 
 # One complete-case index for every cross-family design (#1454). `rows` on
 # each piece are original data positions. The result keeps those positions
-# that every piece kept, in increasing order, and subsets y and X to match.
+# that every piece kept, in increasing order, subsets y to match, and builds
+# each design matrix on that shared frame.
 drm_julia_xfam_align_axes <- function(mu1, mu2, sigma1, sigma2) {
   common <- Reduce(
     intersect,
@@ -8407,14 +8514,14 @@ drm_julia_xfam_align_axes <- function(mu1, mu2, sigma1, sigma2) {
     ))
   }
   list(
-    mu1 = drm_julia_xfam_take_rows(mu1, common),
-    mu2 = drm_julia_xfam_take_rows(mu2, common),
-    sigma1 = drm_julia_xfam_take_rows(sigma1, common),
-    sigma2 = drm_julia_xfam_take_rows(sigma2, common)
+    mu1 = drm_julia_xfam_finalize_axis(mu1, common, "mu1"),
+    mu2 = drm_julia_xfam_finalize_axis(mu2, common, "mu2"),
+    sigma1 = drm_julia_xfam_finalize_axis(sigma1, common, "sigma1"),
+    sigma2 = drm_julia_xfam_finalize_axis(sigma2, common, "sigma2")
   )
 }
 
-drm_julia_xfam_take_rows <- function(axis, rows) {
+drm_julia_xfam_finalize_axis <- function(axis, rows, dpar) {
   pos <- match(rows, axis$rows)
   if (anyNA(pos)) {
     cli::cli_abort(
@@ -8424,9 +8531,35 @@ drm_julia_xfam_take_rows <- function(axis, rows) {
   if (!is.null(axis$y)) {
     axis$y <- axis$y[pos]
   }
-  axis$X <- axis$X[pos, , drop = FALSE]
+  if (is.null(axis$mf)) {
+    axis$X <- matrix(
+      1,
+      nrow = length(rows),
+      ncol = 1L,
+      dimnames = list(NULL, "(Intercept)")
+    )
+    axis$coef_names <- "(Intercept)"
+  } else {
+    axis$X <- drm_julia_xfam_design_from_frame(axis$mf, pos, dpar)
+    axis$coef_names <- colnames(axis$X)
+    axis$mf <- NULL
+  }
   axis$rows <- rows
   axis
+}
+
+# Place reduced-row fitted values and residuals back onto the original data.
+# Dropped rows stay NA, so position i of fitted() is row i of data.
+drm_julia_xfam_place_rows <- function(values, rows, n) {
+  values <- as.numeric(values)
+  if (length(rows) != length(values)) {
+    cli::cli_abort(
+      "Cross-family fitted values and kept rows have different lengths."
+    )
+  }
+  out <- rep(NA_real_, n)
+  out[rows] <- values
+  out
 }
 
 drm_julia_call_xfam <- function(
@@ -8554,17 +8687,38 @@ new_drmTMB_julia_xfam <- function(
     sigma1 = sigma_coef_axis(result[["sigma_coef1"]], axes$sigma1$coef_names),
     sigma2 = sigma_coef_axis(result[["sigma_coef2"]], axes$sigma2$coef_names)
   )
-  fitted_link <- list(
+  kept_rows <- axes$mu1$rows
+  n_data <- nrow(data)
+  link_kept <- list(
     mu1 = as.numeric(axes$mu1$X %*% coefficients$mu1),
     mu2 = as.numeric(axes$mu2$X %*% coefficients$mu2)
   )
+  fitted_kept <- list(
+    mu1 = drm_julia_tag_linkinv(families[[1L]])(link_kept$mu1),
+    mu2 = drm_julia_tag_linkinv(families[[2L]])(link_kept$mu2)
+  )
+  # fitted() and residuals() use the original row positions. A row dropped
+  # by the shared complete case is NA, including a row the other response
+  # still observed.
+  fitted_link <- list(
+    mu1 = drm_julia_xfam_place_rows(link_kept$mu1, kept_rows, n_data),
+    mu2 = drm_julia_xfam_place_rows(link_kept$mu2, kept_rows, n_data)
+  )
   fitted <- list(
-    mu1 = drm_julia_tag_linkinv(families[[1L]])(fitted_link$mu1),
-    mu2 = drm_julia_tag_linkinv(families[[2L]])(fitted_link$mu2)
+    mu1 = drm_julia_xfam_place_rows(fitted_kept$mu1, kept_rows, n_data),
+    mu2 = drm_julia_xfam_place_rows(fitted_kept$mu2, kept_rows, n_data)
   )
   residuals <- list(
-    mu1 = as.numeric(axes$mu1$y) - fitted$mu1,
-    mu2 = as.numeric(axes$mu2$y) - fitted$mu2
+    mu1 = drm_julia_xfam_place_rows(
+      as.numeric(axes$mu1$y) - fitted_kept$mu1,
+      kept_rows,
+      n_data
+    ),
+    mu2 = drm_julia_xfam_place_rows(
+      as.numeric(axes$mu2$y) - fitted_kept$mu2,
+      kept_rows,
+      n_data
+    )
   )
   coefficient_blocks <- c(coefficients, sigma_coef)
   coefficient_blocks <- coefficient_blocks[vapply(
@@ -8615,6 +8769,7 @@ new_drmTMB_julia_xfam <- function(
     fitted_link = fitted_link,
     fitted = fitted,
     residuals = residuals,
+    kept_rows = kept_rows,
     loadings = c(
       lambda1 = scalar(result[["lambda1"]]),
       lambda2 = scalar(result[["lambda2"]])

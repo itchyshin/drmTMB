@@ -26,23 +26,34 @@
   got the same treatment for a huge argument, which is the kernel used by
   bivariate Student-t.
 
-* The Julia bridge defines `%||%` itself. Base R only added that operator in
-  4.5.0, and `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
+* The Julia bridge defines `%||%` itself when the running R does not
+  already provide it. Base R added that operator in 4.4.0, and
+  `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
   diagnostics, and the MSPL link code errored on older R with
-  "could not find function `%||%`". The package definition has the same
-  meaning: the right-hand side only when the left-hand side is `NULL`.
+  "could not find function `%||%`". The definition matches base: the
+  right-hand side only when the left-hand side is `NULL`. A second copy
+  from a rebase does not replace it.
 
 * `engine = "julia"` cross-family fits now drop one shared complete case.
   A length check used to pair row 3 of one response with a different row of
   the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
   and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
   missing sigma covariate drops that row from the location axes too.
-  Structured `response = "drop"`
-  fits drop those rows, and error if that would remove a whole grouping
-  level from the covariance. Bivariate q2 structured fits error when a
-  modelled column contains `NA` instead of sending it to Julia. The main
-  bridge records how many rows it dropped, and `check_drm()` reports that
-  count. `response = "include"` is unchanged.
+  Each design is rebuilt on those shared rows. A factor level that the
+  drop empties is removed from the design; if that leaves fewer than two
+  observed levels, or the design is rank deficient, the fit stops.
+  `fitted()` and `residuals()` are the length of the original data, with
+  `NA` on dropped rows, and the kept positions are stored in `kept_rows`.
+  `cbind(successes, failures)` is refused on a cross-family axis, with or
+  without missing values: flattening that response and keeping the first
+  `n` entries dropped the failures. A single 0/1 column is unchanged.
+  `offset()` on a location or sigma formula is refused, because
+  `model.matrix()` would have ignored it. Structured `response = "drop"`
+  fits drop incomplete rows, and error if that would remove a whole
+  grouping level from the covariance. Bivariate q2 structured fits error
+  when a modelled column contains `NA` instead of sending it to Julia.
+  The main bridge records how many rows it dropped, and `check_drm()`
+  reports that count. `response = "include"` is unchanged.
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
