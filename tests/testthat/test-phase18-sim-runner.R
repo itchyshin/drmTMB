@@ -386,6 +386,53 @@ test_that("Phase 18 replicate runner captures warnings and errors", {
   expect_null(result$summary)
 })
 
+test_that("Phase 18 replicate runner does not ledger the gradient warning", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  cell <- data.frame(cell_id = "meta_v_001", n = 3L)
+  seed_row <- data.frame(
+    cell_id = "meta_v_001",
+    cell_index = 1L,
+    replicate = 1L,
+    seed = 214L
+  )
+  quiet_dgp <- function(cell, seed, cell_id, replicate) {
+    data.frame(y = seq_len(cell$n[[1L]]))
+  }
+  gradient_fit <- function(data, cell) {
+    cli::cli_warn(
+      "Newton polish did not bring the gradient within tolerance.",
+      class = "drmTMB_gradient_warning"
+    )
+    list(ok = TRUE)
+  }
+  summarise_fun <- function(fit, truth, cell_id, replicate, elapsed, warnings) {
+    data.frame(ok = TRUE)
+  }
+
+  result <- phase18_run_replicate(
+    cell,
+    seed_row,
+    quiet_dgp,
+    gradient_fit,
+    summarise_fun
+  )
+
+  expect_identical(result$status, "ok")
+  expect_length(result$warnings, 0L)
+})
+
 test_that("Phase 18 replicate runner validates malformed inputs", {
   source(
     system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),

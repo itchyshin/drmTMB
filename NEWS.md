@@ -30,7 +30,9 @@
   unchanged. A fit with no stored `gradient` field is graded as before.
   This changes the convergence flag, not the estimates: an nlminb code of 0
   used to read as converged even when the largest gradient component was
-  above `1e-8`. Those fits now warn at fit time (#1452).
+  above `1e-8`. Those fits now warn at fit time. Phase 18 replicate
+  ledgers treat that warning like the existing convergence warning: it is
+  not a second failure row (#1452).
 
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.

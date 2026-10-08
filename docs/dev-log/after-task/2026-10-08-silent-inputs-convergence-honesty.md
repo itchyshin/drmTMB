@@ -160,7 +160,13 @@ does not apply `1e-8`. `multi_start` still picks the lowest objective.
 `check_fixed_gradient()` still recomputes a live gradient at `1e-3`.
 `profile()` polish does not emit the fit-time gradient warning. The
 `methods.R` `report()` error path and the log-sigma clamp detector were
-left unchanged.
+left unchanged. Phase 18's replicate runner does not copy
+`drmTMB_gradient_warning` into the failure ledger, matching the existing
+treatment of `drmTMB_convergence_warning`. CI on the first push failed
+four phase18 grid-writer expectations because that warning was counted as
+a replicate failure (`test-phase18-biv-gaussian-q8-endpoint.R`,
+`test-phase18-biv-gaussian-q6-location.R`,
+`test-phase18-animal-relmat-q4-grid-writer.R`).
 
 ## Ledger
 

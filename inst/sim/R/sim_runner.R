@@ -69,12 +69,16 @@ phase18_run_replicate <- function(
       }
     ),
     warning = function(w) {
-      # The drmTMB convergence and clamp-active warnings are informational: the
-      # simulation summary already tracks per-fit convergence, pdHess, and scale
-      # state, so capturing them here would double-count them as ledger failures.
-      # Record every other warning.
+      # The drmTMB convergence, gradient, and clamp-active warnings are
+      # informational: the simulation summary already tracks per-fit
+      # convergence, pdHess, and scale state, so capturing them here would
+      # double-count them as ledger failures. The gradient warning (#1452)
+      # is the same kind of signal: is_converged() is FALSE when the stored
+      # gradient exceeds the Newton-polish tolerance, and the coefficients
+      # are unchanged. Record every other warning.
       own <- c(
         "drmTMB_convergence_warning",
+        "drmTMB_gradient_warning",
         "drmTMB_clamp_active_warning",
         "drmTMB_nonfinite_objective_warning"
       )
