@@ -174,6 +174,155 @@ test_that("bivariate q2 structured payloads refuse incomplete rows (#1454)", {
   expect_equal(nrow(payload$data), 4L)
 })
 
+test_that("cross-family cbind() responses are refused with and without NA (#1454)", {
+  d <- data.frame(
+    s = c(2, 0, 1, 4),
+    f = c(1, 3, 2, 1),
+    y2 = c(1, 2, 0, 1),
+    x = c(0.2, -0.4, 0.1, 0.3)
+  )
+  form <- bf(mu1 = cbind(s, f) ~ x, mu2 = y2 ~ x)
+  # No missing values. The old length check aborted this fit because the
+  # flattened response had length 2n. Subsetting that vector kept successes
+  # only. The refusal has to fire before any shared-row index is built.
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      form, d, environment(), c("binomial", "poisson")
+    ),
+    "cbind"
+  )
+  d$s[2] <- NA
+  d$y2[4] <- NA
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      form, d, environment(), c("binomial", "poisson")
+    ),
+    "cbind"
+  )
+  # A single 0/1 column is still a binomial response this route can marshal.
+  d$y1 <- c(0, 1, 0, 1)
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+    d,
+    environment(),
+    c("binomial", "poisson")
+  )
+  expect_equal(ax$mu1$y, c(0, 1, 0))
+  expect_equal(ax$mu2$y, c(1, 2, 0))
+})
+
+test_that("cross-family formulas refuse offset() on location and sigma (#1454)", {
+  d <- data.frame(
+    y1 = stats::rnorm(8),
+    y2 = stats::rpois(8, 2),
+    x = stats::rnorm(8),
+    z = stats::runif(8, 0.2, 2)
+  )
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y1 ~ x + offset(log(z)), mu2 = y2 ~ x),
+      d,
+      environment(),
+      c("gaussian", "poisson")
+    ),
+    "offset"
+  )
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~offset(log(z))),
+      d,
+      environment(),
+      c("gaussian", "poisson")
+    ),
+    "offset"
+  )
+})
+
+test_that("an NA on y1 that empties a mu2 factor level rebuilds the design (#1454)", {
+  d <- data.frame(
+    y1 = c(1, 1, 1, 1, 1, 1),
+    y2 = c(1, 2, 3, 4, 5, 6),
+    g = factor(c("a", "a", "b", "b", "c", "c"), levels = c("a", "b", "c"))
+  )
+  d$y1[5:6] <- NA
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ 1, mu2 = y2 ~ g),
+    d,
+    environment(),
+    c("gaussian", "poisson")
+  )
+  shared <- 1:4
+  expect_identical(ax$mu1$rows, shared)
+  expect_identical(ax$mu2$rows, shared)
+  rebuilt <- stats::model.matrix(~g, droplevels(d[shared, , drop = FALSE]))
+  expect_identical(ax$mu2$coef_names, colnames(rebuilt))
+  expect_equal(unname(ax$mu2$X), unname(rebuilt))
+  expect_false(any(colSums(abs(ax$mu2$X)) == 0))
+  expect_false("gc" %in% ax$mu2$coef_names)
+
+  # One observed level left: the contrast cannot be built. Refuse rather than
+  # send a rank-deficient design.
+  d2 <- data.frame(
+    y1 = c(1, 1, 1, 1),
+    y2 = c(1, 2, 3, 4),
+    g = factor(c("a", "a", "b", "b"), levels = c("a", "b"))
+  )
+  d2$y1[3:4] <- NA
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y1 ~ 1, mu2 = y2 ~ g),
+      d2,
+      environment(),
+      c("gaussian", "poisson")
+    ),
+    "factor level"
+  )
+
+  result <- list(
+    rho_latent = 0.1,
+    rho_ci_wald_lower = -0.2,
+    rho_ci_wald_upper = 0.4,
+    rho_ci_prof_lower = -0.1,
+    rho_ci_prof_upper = 0.3,
+    beta1 = 0.5,
+    beta2 = c(0.2, -0.4),
+    sigma_coef1 = -0.2,
+    sigma_coef2 = numeric(),
+    lambda1 = 0.3,
+    lambda2 = 0.1,
+    sigma1 = 0.8,
+    sigma2 = NaN,
+    loglik = -12,
+    converged = TRUE
+  )
+  fit <- drmTMB:::new_drmTMB_julia_xfam(
+    result = result,
+    call = quote(drmTMB()),
+    formula = bf(mu1 = y1 ~ 1, mu2 = y2 ~ g),
+    family = c(gaussian(), poisson()),
+    families = c("gaussian", "poisson"),
+    axes = ax,
+    data = d
+  )
+  expect_identical(fit$kept_rows, shared)
+  expect_length(fitted(fit)$mu1, nrow(d))
+  expect_length(residuals(fit)$mu2, nrow(d))
+  expect_true(all(is.na(fitted(fit)$mu1[5:6])))
+  expect_true(all(is.na(residuals(fit)$mu2[5:6])))
+  expect_equal(fitted(fit)$mu1[shared], rep(0.5, 4))
+  expect_equal(
+    fitted(fit)$mu2[shared],
+    as.numeric(exp(ax$mu2$X %*% c(0.2, -0.4)))
+  )
+  # y2 is observed on the dropped rows. residuals() is still NA there,
+  # because those rows are not in the fit.
+  expect_false(anyNA(d$y2[5:6]))
+  expect_equal(
+    residuals(fit)$mu2[shared],
+    d$y2[shared] - fitted(fit)$mu2[shared]
+  )
+})
+
 test_that("the main Julia drop records a complete-case count for check_drm() (#1454)", {
   f <- bf(y ~ x)
   dat <- data.frame(y = c(1, NA, 3), x = c(1, 2, 3))
