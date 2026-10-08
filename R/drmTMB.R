@@ -333,7 +333,7 @@ drmTMB <- function(
       family = family,
       data = data,
       env = formula_env,
-      weights_missing = base::missing(weights),
+      weights_missing = drm_julia_weights_absent(weights),
       control = control,
       impute = impute,
       missing = missing,

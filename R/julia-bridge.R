@@ -604,6 +604,18 @@ drm_julia_phase15_admitted_cells <- function() {
 drm_julia_setup_state <- new.env(parent = emptyenv())
 drm_julia_phylo_payload_cache <- new.env(parent = emptyenv())
 
+# `weights = NULL` is the formal default and means "no weights", including
+# when a wrapper forwards its own `weights = NULL` argument. `missing()`
+# alone treats that forwarded NULL as a request for weights and the bridge
+# then refuses it (#1450). An expression that cannot be evaluated is still
+# treated as supplied, so the weights refusal fires before Julia starts.
+drm_julia_weights_absent <- function(weights) {
+  if (base::missing(weights)) {
+    return(TRUE)
+  }
+  isTRUE(tryCatch(is.null(weights), error = function(e) FALSE))
+}
+
 drmTMB_julia_bridge <- function(
   formula,
   family,
@@ -919,14 +931,45 @@ drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
   list(group = spec$components[[1L]]$group, dpar = spec$dpar)
 }
 
+# `identical()` is type-strict, so a default stored as an integer (`3L`,
+# `c(-12L, 12L)`) or `start = list()` (the constructor's empty form of
+# "no start values", the same setting as `NULL`) was refused as a
+# non-default control (#1471). Numeric values compare after `as.numeric()`.
+# Only `start` treats an empty list as `NULL`; other fields keep
+# `identical()` so an empty list cannot hide a real optimizer setting.
+drm_julia_same_control_value <- function(
+  value,
+  default,
+  empty_list_is_null = FALSE
+) {
+  if (isTRUE(empty_list_is_null)) {
+    absent <- function(x) {
+      is.null(x) || (is.list(x) && !is.data.frame(x) && length(x) == 0L)
+    }
+    if (absent(value) && absent(default)) {
+      return(TRUE)
+    }
+  }
+  if (
+    is.numeric(value) &&
+      is.numeric(default) &&
+      length(value) == length(default) &&
+      !anyNA(value) &&
+      !anyNA(default)
+  ) {
+    return(identical(as.numeric(value), as.numeric(default)))
+  }
+  identical(value, default)
+}
+
 # All-or-nothing control gate, still used by the cross-family and general-
 # covariance structured bridges, whose option payloads have no optimizer
 # passthrough yet. The main univariate / bivariate bridge uses
-# `drm_julia_translate_control()` instead.
+# `drm_julia_translate_control()` instead. Both compare values with
+# `drm_julia_same_control_value()`, not `identical()` (#1471).
 drm_julia_default_control <- function(control) {
   if (inherits(control, "drm_control")) {
-    default <- drm_control()
-    return(identical(control, default))
+    return(length(drm_julia_nondefault_control_fields(control)) == 0L)
   }
   is.null(control) || (is.list(control) && length(control) == 0L)
 }
@@ -952,7 +995,11 @@ drm_julia_nondefault_control_fields <- function(control) {
   default <- drm_control()
   changed <- character()
   for (field in setdiff(names(default), "optimizer")) {
-    if (!identical(control[[field]], default[[field]])) {
+    if (!drm_julia_same_control_value(
+      control[[field]],
+      default[[field]],
+      empty_list_is_null = identical(field, "start")
+    )) {
       changed <- c(changed, field)
     }
   }
@@ -965,7 +1012,10 @@ drm_julia_nondefault_control_fields <- function(control) {
     default_optimizer <- list()
   }
   for (name in names(optimizer)) {
-    if (!identical(optimizer[[name]], default_optimizer[[name]])) {
+    if (!drm_julia_same_control_value(
+      optimizer[[name]],
+      default_optimizer[[name]]
+    )) {
       changed <- c(changed, paste0("optimizer$", name))
     }
   }
@@ -1062,7 +1112,11 @@ drm_julia_translate_control <- function(control) {
   default <- drm_control()
   unsupported <- character()
   for (field in drm_julia_unsupported_control_fields()) {
-    if (!identical(control[[field]], default[[field]])) {
+    if (!drm_julia_same_control_value(
+      control[[field]],
+      default[[field]],
+      empty_list_is_null = identical(field, "start")
+    )) {
       unsupported <- c(unsupported, field)
     }
   }
@@ -6698,9 +6752,47 @@ rho12.drmTMB_julia <- function(object, ...) {
   rho
 }
 
+# Shared by `drmTMB_julia`, `drmTMB_julia_xfam` (its own method delegates
+# here), and `drmTMB_julia_joint` (no method of its own; it inherits the
+# julia class). `include_hessian = TRUE` requires the coefficient
+# covariance the bridge stored: Julia fits have no TMB::sdreport() and
+# therefore no `pdHess` flag (#1483).
+drm_julia_is_converged <- function(object, include_hessian = FALSE, ...) {
+  dots <- list(...)
+  if (length(dots) > 0L) {
+    cli::cli_abort(
+      "{.arg ...} is reserved for future {.fn is_converged} options."
+    )
+  }
+  if (
+    !is.logical(include_hessian) ||
+      length(include_hessian) != 1L ||
+      is.na(include_hessian)
+  ) {
+    cli::cli_abort("{.arg include_hessian} must be `TRUE` or `FALSE`.")
+  }
+  if (!isTRUE(object$opt$convergence == 0L)) {
+    return(FALSE)
+  }
+  if (!isTRUE(include_hessian)) {
+    return(TRUE)
+  }
+  drm_julia_vcov_positive_definite(object$vcov)
+}
+
+drm_julia_vcov_positive_definite <- function(V) {
+  if (!is.matrix(V) || !is.numeric(V)) {
+    return(FALSE)
+  }
+  if (nrow(V) < 1L || nrow(V) != ncol(V) || !all(is.finite(V))) {
+    return(FALSE)
+  }
+  !inherits(tryCatch(chol(V), error = function(e) e), "error")
+}
+
 #' @export
 is_converged.drmTMB_julia <- function(object, include_hessian = FALSE, ...) {
-  isTRUE(object$opt$convergence == 0L)
+  drm_julia_is_converged(object, include_hessian = include_hessian, ...)
 }
 
 # Locate the formula entry that supplies a retained fixed-effect distributional
@@ -8680,7 +8772,10 @@ is_converged.drmTMB_julia_xfam <- function(
   include_hessian = FALSE,
   ...
 ) {
-  isTRUE(object$opt$convergence == 0L)
+  # Cross-family fits do not store a coefficient covariance, so
+  # `include_hessian = TRUE` is FALSE unless a positive-definite `vcov`
+  # is actually present (#1483).
+  drm_julia_is_converged(object, include_hessian = include_hessian, ...)
 }
 
 #' Extract a latent-scale correlation from a cross-family Julia fit
