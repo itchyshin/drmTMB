@@ -184,5 +184,13 @@ returns the raw covariance.
 
 ## Next Actions
 
+This draft must land after PR #1503 (`cursor/triage-d-silent-inputs`, #1452)
+and needs a rebase onto that branch. #1503 changes `convergence_status()` to
+a scale-free Newton step, `max |sdr$cov.fixed %*% gradient| / SE > 1e-3`,
+with the same `0.001` used as an absolute cutoff only when there is no
+usable Hessian. This branch does not add a fixed absolute gradient cutoff.
+On rebase, keep `drmTMB_gradient_warning` in the Phase 18 ignore list
+alongside `drmTMB_dispersion_boundary_warning`.
+
 Watch the draft pull request's CI. Do not merge it and do not close the
 issues from this branch.

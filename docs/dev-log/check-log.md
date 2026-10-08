@@ -45,6 +45,15 @@ Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the 
 `R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
 
 Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+# 2026-10-08: triage F must land after #1503
+
+PR #1503 (`cursor/triage-d-silent-inputs`) changes `convergence_status()` for
+#1452 to a scale-free Newton step: `max |sdr$cov.fixed %*% gradient| / SE > 1e-3`,
+with a `1e-3` absolute fallback only when there is no Hessian. This branch
+does not add a fixed absolute gradient cutoff. Draft PR #1505 must land after
+#1503 and be rebased onto it. Keep `drmTMB_gradient_warning` in the Phase 18
+ignore list together with `drmTMB_dispersion_boundary_warning`.
+
 # 2026-10-08: triage F convergence honesty (#1470, #1496, #1251)
 
 Exact rank-deficient distributional designs now stop before fitting
