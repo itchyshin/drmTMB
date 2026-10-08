@@ -40,6 +40,15 @@ C17 recertify on `ac0491e40` with `--tolerance 2e-11`: mc-0568 `|change|`
 `python3 tools/capability_ledger.py --check` passed. Receipt:
 `docs/dev-log/implementation-recovery/2026-10-08-silent-inputs-c17c2-c14-final-source-compatibility`.
 
+CI run 37707949545 failed on shards 2/4 and 4/4: Phase 18 failure
+ledgers counted `drmTMB_gradient_warning` as a replicate failure
+(`test-phase18-biv-gaussian-q6-location.R`,
+`test-phase18-biv-gaussian-q8-endpoint.R`,
+`test-phase18-animal-relmat-q4-grid-writer.R`). Shards 1/4 and 3/4 and
+the source-tree job passed. `inst/sim/R/sim_runner.R` now ignores that
+class the same way it ignores `drmTMB_convergence_warning`.
+`test-phase18-sim-runner.R`: 72 passed, 0 failed.
+
 Report: `docs/dev-log/after-task/2026-10-08-silent-inputs-convergence-honesty.md`.
 
 # 2026-10-04: phylogenetic tree-height documentation correction
