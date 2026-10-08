@@ -8266,11 +8266,10 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
 
   mu1 <- drm_julia_xfam_axis(entries[[which(dpars == "mu1")]], data, env, "mu1")
   mu2 <- drm_julia_xfam_axis(entries[[which(dpars == "mu2")]], data, env, "mu2")
-  # Length is not enough (#1454): y1 missing on row 3 and y2 missing on row 7
-  # both leave n - 1 rows, and those rows are different observations.
-  if (!identical(mu1$rows, mu2$rows)) {
-    drm_julia_xfam_abort_row_mismatch("mu1", mu1$rows, "mu2", mu2$rows)
-  }
+  # Each axis drops its own NAs first. A length check is not alignment
+  # (#1454): y1 missing on row 3 and y2 missing on row 7 both leave n - 1
+  # rows of different observations. The intersection below is the shared
+  # complete case, in the original row order.
 
   sigma1 <- drm_julia_xfam_sigma(
     entry = if (any(dpars == "sigma1")) {
@@ -8296,8 +8295,16 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
     env = env,
     dpar = "sigma2"
   )
+  # An intercept-only sigma design has no covariate missingness of its own.
+  # Tie it to its location rows so it does not widen the shared index.
+  if (is.null(sigma1$rows)) {
+    sigma1$rows <- mu1$rows
+  }
+  if (is.null(sigma2$rows)) {
+    sigma2$rows <- mu2$rows
+  }
 
-  list(mu1 = mu1, mu2 = mu2, sigma1 = sigma1, sigma2 = sigma2)
+  drm_julia_xfam_align_axes(mu1, mu2, sigma1, sigma2)
 }
 
 # Build one axis's Xsigma design (the log-sigma sub-model regressors). An absent
@@ -8305,8 +8312,9 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
 # axis's rows, reproducing the scalar-dispersion default. A present entry must
 # land on a dispersion-carrying axis (Gaussian / NB2 / Beta / Gamma); on a
 # dispersionless axis (Poisson / Binomial) it is rejected. The design is built
-# from `mu_response ~ sigma_rhs` so na.omit drops the same rows the mu axis did,
-# keeping Xsigma row-aligned with X.
+# from `mu_response ~ sigma_rhs`. na.omit on that frame can drop extra rows
+# when a sigma covariate is missing. The caller then intersects every axis
+# onto one row index.
 drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
   dispersionless <- drm_julia_dispersionless_families()
   if (is.null(entry)) {
@@ -8337,9 +8345,9 @@ drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
     mf
   )
   rows <- drm_julia_model_frame_rows(mf, nrow(data))
-  if (!identical(rows, mu$rows)) {
-    drm_julia_xfam_abort_row_mismatch(dpar, rows, "mu", mu$rows)
-  }
+  # Do not require rows == mu$rows here. A sigma covariate can be missing on
+  # a row the location axis kept. drm_julia_xfam_align_axes() drops that row
+  # from every axis so the designs stay paired (#1454).
   list(X = X, coef_names = colnames(X), rows = rows)
 }
 
@@ -8384,29 +8392,41 @@ drm_julia_model_frame_rows <- function(mf, n) {
   seq_len(n)[-as.integer(dropped)]
 }
 
-drm_julia_xfam_abort_row_mismatch <- function(left_name, left_rows, right_name, right_rows) {
-  n_compare <- min(length(left_rows), length(right_rows))
-  disagree <- NA_integer_
-  if (n_compare > 0L) {
-    mismatch <- which(left_rows[seq_len(n_compare)] != right_rows[seq_len(n_compare)])
-    if (length(mismatch) > 0L) {
-      disagree <- mismatch[[1L]]
-    }
+# One complete-case index for every cross-family design (#1454). `rows` on
+# each piece are original data positions. The result keeps those positions
+# that every piece kept, in increasing order, and subsets y and X to match.
+drm_julia_xfam_align_axes <- function(mu1, mu2, sigma1, sigma2) {
+  common <- Reduce(
+    intersect,
+    list(mu1$rows, mu2$rows, sigma1$rows, sigma2$rows)
+  )
+  if (length(common) == 0L) {
+    cli::cli_abort(c(
+      "No complete observations remain for {.code engine = \"julia\"} cross-family models after aligning missing rows.",
+      i = "Each response and modelled predictor has to be observed together on at least one row. Drop the incomplete rows yourself, or use {.code engine = \"tmb\"}."
+    ))
   }
-  detail <- if (is.na(disagree)) {
-    "Cross-family fits do not yet support per-axis missingness."
-  } else {
-    paste0(
-      "The kept-row vectors first disagree at position ", disagree,
-      " (row ", left_rows[[disagree]], " versus row ", right_rows[[disagree]],
-      "). Cross-family fits do not yet support per-axis missingness."
+  list(
+    mu1 = drm_julia_xfam_take_rows(mu1, common),
+    mu2 = drm_julia_xfam_take_rows(mu2, common),
+    sigma1 = drm_julia_xfam_take_rows(sigma1, common),
+    sigma2 = drm_julia_xfam_take_rows(sigma2, common)
+  )
+}
+
+drm_julia_xfam_take_rows <- function(axis, rows) {
+  pos <- match(rows, axis$rows)
+  if (anyNA(pos)) {
+    cli::cli_abort(
+      "Cross-family row alignment lost a shared row while subsetting a design."
     )
   }
-  cli::cli_abort(c(
-    "{.code engine = \"julia\"} cross-family designs must keep the same rows.",
-    x = "{.code {left_name}} kept {length(left_rows)} row{?s}; {.code {right_name}} kept {length(right_rows)}.",
-    i = detail
-  ))
+  if (!is.null(axis$y)) {
+    axis$y <- axis$y[pos]
+  }
+  axis$X <- axis$X[pos, , drop = FALSE]
+  axis$rows <- rows
+  axis
 }
 
 drm_julia_call_xfam <- function(

@@ -32,9 +32,12 @@
   "could not find function `%||%`". The package definition has the same
   meaning: the right-hand side only when the left-hand side is `NULL`.
 
-* `engine = "julia"` cross-family fits now refuse missing values that do not
-  fall on the same rows. A length check used to pair row 3 of one response
-  with a different row of the other (#1454). Structured `response = "drop"`
+* `engine = "julia"` cross-family fits now drop one shared complete case.
+  A length check used to pair row 3 of one response with a different row of
+  the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
+  and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
+  missing sigma covariate drops that row from the location axes too.
+  Structured `response = "drop"`
   fits drop those rows, and error if that would remove a whole grouping
   level from the covariance. Bivariate q2 structured fits error when a
   modelled column contains `NA` instead of sending it to Julia. The main

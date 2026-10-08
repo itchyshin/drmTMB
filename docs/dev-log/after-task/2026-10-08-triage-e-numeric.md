@@ -25,7 +25,9 @@ and the kernel is `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads this TMB obj
 
 `drm_log1mexp()` and `drm_log1p_nonnegative()` in `src/drm_numeric.h` clamp each branch's argument into the region where that branch is finite. The selected value and its first derivative stay the ones the old code computed. Clamping the input before the series would have moved a cloglog `log(mu)` off `eta`.
 
-Cross-family Julia axes compare the row index kept by `na.omit`, not the length of what remains. A sigma design must keep the same rows as its location axis. Structured `response = "drop"` now drops incomplete rows and errors if that would remove a grouping level from the covariance. Bivariate q2 structured payloads error when a modelled column contains `NA`. The main bridge stores the drop count, and `check_drm()` prints a `dropped_rows` row when that slot is present. `response = "include"` still passes the supplied rows through.
+The univariate Student constant lives only in `drm_student_log_density()`. The two missing-predictor leaves and the main observed-data loop in `src/drmTMB.cpp` call that function. Those call sites were not given their own formula, and `src/drmTMB.cpp` was not edited.
+
+Cross-family Julia axes each drop their own `NA`s, then keep the intersection of those row indices. An `NA` in `y1` on row 3 and an `NA` in `y2` on row 7 drops both rows from both responses, so position `i` of each design is the same original observation. A missing sigma covariate drops that row from the location axes too. Structured `response = "drop"` now drops incomplete rows and errors if that would remove a grouping level from the covariance. Bivariate q2 structured payloads error when a modelled column contains `NA`. The main bridge stores the drop count, and `check_drm()` prints a `dropped_rows` row when that slot is present. `response = "include"` still passes the supplied rows through.
 
 `R/zzz.R` defines `%||%`. Base R added that operator in 4.5.0, and this package allows R >= 4.1. The Julia bridge, its diagnostics, and the MSPL link code already called it.
 
@@ -41,13 +43,13 @@ Cross-family Julia axes compare the row index kept by `na.omit`, not the length 
 
 ## Checks
 
-Local R 4.3.3. The package was installed with `R CMD INSTALL` into `/workspace/.Rlib` after the C++ edit. The final green union of the related files is 179 tests, 0 failures, 17 skips, 1488 expectations.
+Local R 4.3.3. The package was installed with `R CMD INSTALL` into `/workspace/.Rlib` after the C++ edit. The final green union of the related files is 179 tests, 0 failures, 17 skips, 1503 expectations. The staggered-NA cross-family test is in that count and does not start Julia.
 
 | File | Tests | Failed | Skipped | Expectations |
 | --- | ---: | ---: | ---: | ---: |
 | test-student-large-nu.R | 2 | 0 | 0 | 23 |
 | test-log1mexp-ad.R | 2 | 0 | 0 | 26 |
-| test-julia-missing-alignment.R | 6 | 0 | 0 | 20 |
+| test-julia-missing-alignment.R | 6 | 0 | 0 | 35 |
 | test-student-location-scale.R | 6 | 0 | 0 | 47 |
 | test-numeric-kernel-oracle.R | 19 | 0 | 0 | 392 |
 | test-biv-student.R | 8 | 0 | 0 | 67 |
@@ -102,7 +104,7 @@ The Student regression compares the compiled objective with `stats::dt()` from `
 
 The cloglog regression checks five successes at `eta` in `{-30,-37,-40,-60}`. The negative log-likelihood stays within `1e-4` of `-5 * eta`, and the Hessian is finite. A zero-truncated NB2 grid does the same at `eta_mu` in `{-37,-38,-44}`.
 
-The Julia regression does not start Julia. It calls `drm_julia_xfam_axes()`, `drm_julia_drop_structured_missing()`, and `drm_julia_biv_known_structured_payload()` and expects an error for disagreeing `NA` patterns, a lost grouping level, and an incomplete q2 response.
+The Julia regression does not start Julia. It calls `drm_julia_xfam_axes()` with `y1` missing on row 3 and `y2` missing on row 7 and checks that both designs keep original rows except 3 and 7, including positions 3:6. It also checks that a lost grouping level and an incomplete q2 response still error.
 
 ## What did not go smoothly
 
@@ -114,7 +116,7 @@ Ubuntu's R is 4.3.3, so the pre-existing `%||%` calls in the Julia bridge failed
 
 - Student fits with `nu` above about `1e4` to `1e6` can move. The old objective in that region was rounding noise. Moderate `nu` stays on the lgamma branch and matches the previous `dt()` oracle.
 - Cloglog, truncated NB2, hurdle NB2, and ordinal-interval likelihood values are unchanged. Hessians that were `NaN` at the extreme edge become finite.
-- Cross-family Julia fits whose responses are missing on different rows now error. Shared complete cases still fit.
+- Cross-family Julia fits with staggered missing rows now use one shared complete case. Estimates change relative to the old mis-paired fit. Shared complete cases still fit. `R/drmTMB.R` and `R/methods.R` did not change, so the C17 receipt was not recertified.
 - Structured Julia `response = "drop"` now drops incomplete rows. Estimates can change relative to the old path, which forwarded `NA` and could return `NaN`. Losing a whole grouping level is now an error.
 - q2 structured Julia fits with `NA` in a modelled column now error.
 - `check_drm()` on a Julia fit that went through the drop filter gains a `dropped_rows` row. A drop of one or more rows is a note and does not flip `attr(ok)`. Mocks without the slot are unchanged. `response = "include"` is unchanged.
@@ -126,4 +128,4 @@ No issue was closed from this working tree. The draft pull request uses `Fixes #
 
 ## Known limitations
 
-Beta and NB2 lgamma ratios at extreme dispersion are still the expressions named above. Cross-family Julia fits still have no per-axis missingness model. The next step for a user who needs different missing rows on the two responses is to drop to one complete-case index before calling `drmTMB()`, or to fit with `engine = "tmb"`.
+Beta and NB2 lgamma ratios at extreme dispersion are still the expressions named above. Cross-family Julia fits do not keep a response that is missing on a row the other response observed. Both axes lose that row. A user who wants a per-axis missingness model, rather than one shared complete case, still needs `engine = "tmb"`.
