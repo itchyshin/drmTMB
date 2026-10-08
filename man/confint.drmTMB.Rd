@@ -276,11 +276,16 @@ undercovers under boundary (chi-square-mixture) inference. That warning
 recommends \code{method = "profile"}.
 
 A dispersion coefficient that is nonzero only on rows at a simpler-family
-limit (negative-binomial or beta \code{sigma^2} below 0.001, or Student-t \code{nu}
-above 1000) is not given a usable interval. \code{confint()} sets \code{lower} and
-\code{upper} to \code{NA} and \code{conf.status} to \code{"boundary_limit"}, and warns with
-class \code{drmTMB_dispersion_boundary_warning}. The point estimate is unchanged.
-\code{vcov()} still returns the raw covariance.
+limit is not given a usable Wald interval. For NB2 and its variants the
+limit is extra-Poisson variance \code{mu * sigma^2} below 0.001, evaluated at
+the fitted \code{mu}. Student-t \code{nu} above 1000 is the Gaussian limit; \code{nu} is
+dimensionless, so that cutoff does not depend on response units. Beta,
+beta-binomial, and zero-one-beta are not flagged. Wald \code{confint()} sets
+\code{lower} and \code{upper} to \code{NA}, \code{conf.status} to \code{"boundary_limit"}, and
+\code{interval_source} to \code{"not_available"}, and warns with class
+\code{drmTMB_dispersion_boundary_warning}. Profile and bootstrap intervals are
+not blanked. The point estimate is unchanged. \code{vcov()} still returns the
+raw covariance.
 
 \code{method = "profile"} sets \code{profile.boundary = TRUE} and warns (class
 \code{drmTMB_profile_boundary_warning}) when it returns a usable interval that

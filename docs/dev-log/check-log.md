@@ -45,6 +45,24 @@ Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the 
 `R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
 
 Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+# 2026-10-08: triage F review round (draft #1505, still blocked on merge)
+
+The dispersion limit for NB2 and its variants is now the extra-Poisson
+variance `mu * sigma^2 < 1e-3`, evaluated at the fitted `mu`. Beta,
+beta-binomial, and zero-one-beta are not flagged. Student-t `nu > 1000`
+stays because `nu` is dimensionless. Only Wald intervals are blanked;
+blanked rows set `interval_source` to `not_available`, and
+`boundary_limit` is one new string in `interval_status_levels()` (PR #1501
+adds `bootstrap_incomplete` to that same vector). Phase 18 records
+`dispersion_boundary` on the replicate summary and no longer muffles the
+warning. The rank check uses complete-case rows, factors a sparse `sparseQR`
+inside the same tryCatch that reads `$rank`, and warns with
+`drmTMB_rank_check_skipped` when a large sparse design cannot be factored.
+Cross-family Julia `mu` and `sigma` designs call the same refusal. An empty
+factor cell (`y ~ site * trt`) is still a rank-deficient error; that design
+call is unchanged. Julia `summary()` / `check_drm.drmTMB_julia` remain a
+follow-up. This draft still lands after #1503.
+
 # 2026-10-08: triage F must land after #1503
 
 PR #1503 (`cursor/triage-d-silent-inputs`) changes `convergence_status()` for

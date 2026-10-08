@@ -30,8 +30,10 @@
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, dispersion parameters at a simpler-family
-#' limit (`dispersion_boundary`: negative-binomial or beta `sigma^2` below
-#' 0.001, or Student-t `nu` above 1000), skew-normal `nu` finite-value checks,
+#' limit (`dispersion_boundary`: for NB2 and its variants, extra-Poisson
+#' variance `mu * sigma^2` below 0.001 of the Poisson variance, evaluated at
+#' the fitted `mu`; Student-t `nu` above 1000, which is scale-free because
+#' `nu` is dimensionless), skew-normal `nu` finite-value checks,
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -2055,17 +2057,24 @@ check_student_nu <- function(object) {
   )
 }
 
-# Simpler-family dispersion limits (#1496). NB2 `sigma^2` is `1/size` and
-# beta `sigma^2` is `1/phi`. Below 1e-3 the estimate sits at the Poisson or
-# infinite-precision limit (Rule R3b's threshold). Student-t `nu = 2 + exp(eta)`
-# above 1000 is the Gaussian limit. The point estimate is left unchanged.
-# A coefficient is marked only when every row where its design column is
-# nonzero is a limit row, which is the spray-E dummy and the intercept-only
-# `sigma ~ 1` cases. A coefficient that also loads on non-limit rows keeps
-# its standard error; `check_drm()` still warns that some fitted values are
-# at the limit. Gaussian, gamma, lognormal, and Tweedie `sigma` are interior
-# scales, not a nested simpler family, and are not marked here.
-drm_dispersion_sigma2_limit <- 1e-3
+# Simpler-family dispersion limits (#1496). NB2 variance is
+# `mu + mu^2 * sigma^2`, so the extra variance relative to the Poisson
+# variance `mu` is `mu * sigma^2`. A row is at the Poisson limit when that
+# ratio is below 1e-3 (extra variance under 0.1% of the mean), evaluated at
+# the fitted `mu`. An absolute `sigma^2 < 0.001` cutoff is not scale-free:
+# `mu = 1000`, `size = 2000` has `sigma^2 = 0.0005` but `mu * sigma^2 = 0.5`
+# (`var/mean` about 1.5) and a usable standard error. Beta, beta-binomial,
+# and zero-one-beta have no simpler family at large precision, so they are
+# not flagged. Student-t `nu = 2 + exp(eta)` above 1000 is the Gaussian
+# limit. `nu` is dimensionless, so this cutoff does not depend on the units
+# of the response or the covariates; excess kurtosis `6 / (nu - 4)` is about
+# 0.006 at `nu = 1000`. The point estimate is left unchanged. A coefficient
+# is marked only when every row where its design column is nonzero is a
+# limit row. A coefficient that also loads on non-limit rows keeps its
+# standard error; `check_drm()` still warns that some fitted values are at
+# the limit. Only Wald intervals are blanked. Gaussian, gamma, lognormal,
+# and Tweedie `sigma` are interior scales and are not marked here.
+drm_dispersion_extra_poisson_limit <- 1e-3
 drm_student_nu_limit <- 1000
 
 drm_dispersion_limit_model_types <- function() {
@@ -2074,12 +2083,37 @@ drm_dispersion_limit_model_types <- function() {
     "zi_nbinom2",
     "hurdle_nbinom2",
     "truncated_nbinom2",
-    "beta",
-    "beta_binomial",
-    "zero_one_beta",
     "student",
     "biv_student"
   )
+}
+
+drm_dispersion_mu_dpar <- function(dpar) {
+  switch(
+    dpar,
+    sigma = "mu",
+    sigma1 = "mu1",
+    sigma2 = "mu2",
+    NA_character_
+  )
+}
+
+# Fitted mean on the response scale for the location paired with `dpar`.
+# NB2 variants use a log link, so this is `exp(X_mu %*% beta_mu)`. Missing
+# location coefficients mean the extra-Poisson ratio cannot be evaluated and
+# the caller must not flag the scale.
+drm_dispersion_fitted_mu <- function(object, dpar) {
+  mu_dpar <- drm_dispersion_mu_dpar(dpar)
+  if (is.na(mu_dpar)) {
+    return(NULL)
+  }
+  beta <- object$coefficients[[mu_dpar]]
+  X <- object$model$X[[mu_dpar]]
+  eta <- drm_fixed_linear_predictor(X, beta)
+  if (is.null(eta) || is.null(object$model$model_type)) {
+    return(NULL)
+  }
+  drm_inverse_link(object, mu_dpar, eta)
 }
 
 drm_fixed_linear_predictor <- function(X, beta) {
@@ -2160,10 +2194,7 @@ drm_dispersion_boundary_report <- function(object) {
     "nbinom2",
     "zi_nbinom2",
     "hurdle_nbinom2",
-    "truncated_nbinom2",
-    "beta",
-    "beta_binomial",
-    "zero_one_beta"
+    "truncated_nbinom2"
   )
   nu_types <- c("student", "biv_student")
   blocks <- list()
@@ -2188,7 +2219,7 @@ drm_dispersion_boundary_report <- function(object) {
   parms <- character()
   parameter_parms <- character()
   n_limit <- 0L
-  min_sigma2 <- Inf
+  min_extra <- Inf
   max_nu <- -Inf
   saw_sigma <- FALSE
   saw_nu <- FALSE
@@ -2201,12 +2232,20 @@ drm_dispersion_boundary_report <- function(object) {
       next
     }
     if (identical(blocks[[dpar]], "sigma2")) {
+      mu <- drm_dispersion_fitted_mu(object, dpar)
+      if (is.null(mu) || length(mu) != length(eta)) {
+        next
+      }
       sigma2 <- exp(2 * eta)
-      at_limit <- is.finite(sigma2) & sigma2 < drm_dispersion_sigma2_limit
-      finite <- sigma2[is.finite(sigma2)]
+      extra <- mu * sigma2
+      at_limit <- is.finite(extra) &
+        is.finite(mu) &
+        mu > 0 &
+        extra < drm_dispersion_extra_poisson_limit
+      finite <- extra[is.finite(extra)]
       if (length(finite) > 0L) {
         saw_sigma <- TRUE
-        min_sigma2 <- min(min_sigma2, min(finite))
+        min_extra <- min(min_extra, min(finite))
       }
     } else {
       nu <- 2 + exp(eta)
@@ -2236,10 +2275,10 @@ drm_dispersion_boundary_report <- function(object) {
 
   at_limit <- n_limit > 0L
   value_bits <- character()
-  if (saw_sigma && is.finite(min_sigma2)) {
+  if (saw_sigma && is.finite(min_extra)) {
     value_bits <- c(
       value_bits,
-      paste0("min_sigma2=", format_check_number(min_sigma2))
+      paste0("min_extra_poisson=", format_check_number(min_extra))
     )
   }
   if (saw_nu && is.finite(max_nu)) {
@@ -2264,15 +2303,18 @@ drm_dispersion_boundary_report <- function(object) {
     message = if (at_limit) {
       paste(
         "At least one fitted dispersion value is at a simpler-family limit:",
-        "NB2 or beta sigma^2 below",
-        drm_dispersion_sigma2_limit,
-        "(size or precision above 1000), or Student-t nu above",
+        "NB2 extra-Poisson variance mu * sigma^2 below",
+        drm_dispersion_extra_poisson_limit,
+        "(relative to the Poisson variance of 1), or Student-t nu above",
         drm_student_nu_limit,
-        "(the Gaussian limit).",
+        "(the Gaussian limit; nu is dimensionless, so this cutoff does not",
+        "depend on response units).",
         "The point estimate is unchanged.",
         "Wald standard errors for a coefficient whose design column is",
         "nonzero only on those rows are not usable: summary() sets them to",
-        "NA and confint() sets conf.status to boundary_limit.",
+        "NA and Wald confint() sets conf.status to boundary_limit and",
+        "interval_source to not_available.",
+        "Profile and bootstrap intervals are not blanked.",
         "vcov() still returns the raw covariance; do not read those",
         "diagonals as Wald standard errors.",
         "A coefficient that also loads on non-limit rows keeps its standard",
@@ -2297,7 +2339,7 @@ drm_warn_dispersion_boundary <- function(report) {
       if (length(terms) > 0L) {
         "x" = "Affected coefficients: {.val {terms}}."
       },
-      "i" = "The point estimate is unchanged. {.fn summary} reports {.val NA} for those standard errors and {.fn confint} sets {.field conf.status} to {.val boundary_limit}. {.fn vcov} still returns the raw covariance."
+      "i" = "The point estimate is unchanged. {.fn summary} reports {.val NA} for those Wald standard errors, and Wald {.fn confint} sets {.field conf.status} to {.val boundary_limit} and {.field interval_source} to {.val not_available}. Profile and bootstrap intervals are not blanked. {.fn vcov} still returns the raw covariance."
     ),
     class = "drmTMB_dispersion_boundary_warning"
   )
@@ -2319,9 +2361,11 @@ drm_blank_boundary_standard_errors <- function(object, labels, se) {
 }
 
 # Blank Wald endpoints for coefficients whose design support is entirely on
-# simpler-family limit rows. The point estimate is not rewritten. `vcov()`
-# is not touched. `corpairs()` profile intervals are a separate rho12 path
-# and are not masked here.
+# simpler-family limit rows. Profile and bootstrap rows are left unchanged.
+# The point estimate is not rewritten. `vcov()` is not touched.
+# `corpairs()` profile intervals are a separate rho12 path and are not
+# masked here. Blanked rows get `interval_source = "not_available"` so the
+# parameter-surface and corpairs unavailable lists drop them.
 drm_mask_dispersion_boundary_confint <- function(object, table, warn = TRUE) {
   if (
     !is.data.frame(table) ||
@@ -2339,6 +2383,9 @@ drm_mask_dispersion_boundary_confint <- function(object, table, warn = TRUE) {
     return(table)
   }
   hit <- table$parm %in% report$parms
+  if ("method" %in% names(table)) {
+    hit <- hit & (is.na(table$method) | table$method == "wald")
+  }
   if (!any(hit)) {
     return(table)
   }
@@ -2351,6 +2398,10 @@ drm_mask_dispersion_boundary_confint <- function(object, table, warn = TRUE) {
   if ("conf.status" %in% names(table)) {
     table$conf.status[hit] <- "boundary_limit"
   }
+  if (!"interval_source" %in% names(table)) {
+    table$interval_source <- rep("wald", nrow(table))
+  }
+  table$interval_source[hit] <- "not_available"
   if (isTRUE(warn)) {
     drm_warn_dispersion_boundary(report)
   }

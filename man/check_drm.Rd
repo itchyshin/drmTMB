@@ -72,8 +72,10 @@ correlation), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, dispersion parameters at a simpler-family
-limit (\code{dispersion_boundary}: negative-binomial or beta \code{sigma^2} below
-0.001, or Student-t \code{nu} above 1000), skew-normal \code{nu} finite-value checks,
+limit (\code{dispersion_boundary}: for NB2 and its variants, extra-Poisson
+variance \code{mu * sigma^2} below 0.001 of the Poisson variance, evaluated at
+the fitted \code{mu}; Student-t \code{nu} above 1000, which is scale-free because
+\code{nu} is dimensionless), skew-normal \code{nu} finite-value checks,
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a

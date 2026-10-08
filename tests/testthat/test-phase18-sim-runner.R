@@ -710,7 +710,7 @@ test_that("Phase 18 replicate runner validates result directory reads", {
   )
 })
 
-test_that("Phase 18 replicate runner ignores dispersion-boundary warnings", {
+test_that("Phase 18 replicate runner records a dispersion_boundary flag", {
   source(
     system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
     local = TRUE
@@ -740,7 +740,20 @@ test_that("Phase 18 replicate runner ignores dispersion-boundary warnings", {
       class = "drmTMB_dispersion_boundary_warning"
     )
     warning("unrelated ledger warning", call. = FALSE)
-    list(estimate = 1)
+    X <- matrix(1, 4, 1, dimnames = list(NULL, "(Intercept)"))
+    structure(
+      list(
+        model = list(
+          model_type = "nbinom2",
+          X = list(sigma = X, mu = X)
+        ),
+        coefficients = list(
+          sigma = c(`(Intercept)` = -20),
+          mu = c(`(Intercept)` = 0)
+        )
+      ),
+      class = "drmTMB"
+    )
   }
   summarise_fun <- function(fit, truth, cell_id, replicate, elapsed, warnings) {
     data.frame(warning_count = length(warnings))
@@ -755,6 +768,8 @@ test_that("Phase 18 replicate runner ignores dispersion-boundary warnings", {
   )
 
   expect_identical(result$status, "ok")
-  expect_equal(result$warnings, "unrelated ledger warning")
-  expect_equal(result$summary$warning_count, 1L)
+  expect_true(any(grepl("unrelated ledger warning", result$warnings, fixed = TRUE)))
+  expect_true(any(grepl("simpler-family", result$warnings)))
+  expect_true(isTRUE(result$summary$dispersion_boundary))
+  expect_equal(result$summary$warning_count, 2L)
 })

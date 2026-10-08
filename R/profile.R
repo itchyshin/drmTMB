@@ -222,11 +222,16 @@
 #' recommends `method = "profile"`.
 #'
 #' A dispersion coefficient that is nonzero only on rows at a simpler-family
-#' limit (negative-binomial or beta `sigma^2` below 0.001, or Student-t `nu`
-#' above 1000) is not given a usable interval. `confint()` sets `lower` and
-#' `upper` to `NA` and `conf.status` to `"boundary_limit"`, and warns with
-#' class `drmTMB_dispersion_boundary_warning`. The point estimate is unchanged.
-#' `vcov()` still returns the raw covariance.
+#' limit is not given a usable Wald interval. For NB2 and its variants the
+#' limit is extra-Poisson variance `mu * sigma^2` below 0.001, evaluated at
+#' the fitted `mu`. Student-t `nu` above 1000 is the Gaussian limit; `nu` is
+#' dimensionless, so that cutoff does not depend on response units. Beta,
+#' beta-binomial, and zero-one-beta are not flagged. Wald `confint()` sets
+#' `lower` and `upper` to `NA`, `conf.status` to `"boundary_limit"`, and
+#' `interval_source` to `"not_available"`, and warns with class
+#' `drmTMB_dispersion_boundary_warning`. Profile and bootstrap intervals are
+#' not blanked. The point estimate is unchanged. `vcov()` still returns the
+#' raw covariance.
 #'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
@@ -518,21 +523,18 @@ confint.drmTMB <- function(
     }
     all_targets <- drm_profile_targets(object)
     targets <- profile_match_bootstrap_targets(all_targets, parm)
-    return(drm_mask_dispersion_boundary_confint(
+    return(drm_bootstrap_confint(
       object,
-      drm_bootstrap_confint(
-        object,
-        targets = targets,
-        level = level,
-        R = R,
-        seed = seed,
-        parallel = bootstrap_parallel,
-        workers = workers,
-        refit_control = refit_control,
-        re_form = bootstrap_re_form,
-        sd_boundary = sd_boundary,
-        rho_boundary = rho_boundary
-      )
+      targets = targets,
+      level = level,
+      R = R,
+      seed = seed,
+      parallel = bootstrap_parallel,
+      workers = workers,
+      refit_control = refit_control,
+      re_form = bootstrap_re_form,
+      sd_boundary = sd_boundary,
+      rho_boundary = rho_boundary
     ))
   }
 
@@ -554,22 +556,19 @@ confint.drmTMB <- function(
       profile_dots,
       profile_maxit = profile_maxit
     )
-    return(drm_mask_dispersion_boundary_confint(
-      object,
-      do.call(
-        drm_profile_response_newdata_confint,
-        c(
-          list(
-            object = object,
-            parm = parm,
-            newdata = newdata,
-            level = level,
-            trace = trace,
-            parallel = parallel,
-            workers = workers
-          ),
-          profile_args
-        )
+    return(do.call(
+      drm_profile_response_newdata_confint,
+      c(
+        list(
+          object = object,
+          parm = parm,
+          newdata = newdata,
+          level = level,
+          trace = trace,
+          parallel = parallel,
+          workers = workers
+        ),
+        profile_args
       )
     ))
   }
@@ -633,23 +632,20 @@ confint.drmTMB <- function(
     profile_dots,
     profile_maxit = profile_maxit
   )
-  drm_mask_dispersion_boundary_confint(
-    object,
-    do.call(
-      drm_profile_confint,
-      c(
-        list(
-          object = object,
-          parm = targets$parm,
-          level = level,
-          trace = trace,
-          parallel = parallel,
-          workers = workers,
-          profile_engine = profile_engine,
-          profile_endpoint_max_eval = profile_endpoint_max_eval
-        ),
-        profile_args
-      )
+  do.call(
+    drm_profile_confint,
+    c(
+      list(
+        object = object,
+        parm = targets$parm,
+        level = level,
+        trace = trace,
+        parallel = parallel,
+        workers = workers,
+        profile_engine = profile_engine,
+        profile_endpoint_max_eval = profile_endpoint_max_eval
+      ),
+      profile_args
     )
   )
 }
@@ -1474,7 +1470,11 @@ interval_status_levels <- function() {
     "bootstrap_unavailable",
     "target_unavailable",
     "profile_unavailable",
-    "not_requested"
+    "not_requested",
+    # Wald-only blanking for a simpler-family dispersion limit (#1496).
+    # PR #1501 adds `bootstrap_incomplete` to this same vector; keep this
+    # addition to one string so that rebase stays a one-line conflict.
+    "boundary_limit"
   )
 }
 

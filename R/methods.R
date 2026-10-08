@@ -4403,17 +4403,13 @@ summary.drmTMB <- function(
       coefficient_ci <- ci
       parameter_ci <- ci
     } else {
-      parameter_ci <- drm_mask_dispersion_boundary_confint(
+      parameter_ci <- drm_summary_profile_confint(
         object,
-        drm_summary_profile_confint(
-          object,
-          ci_parm = ci_parm,
-          level = level,
-          trace = trace,
-          profile_precision = profile_precision,
-          ...
-        ),
-        warn = FALSE
+        ci_parm = ci_parm,
+        level = level,
+        trace = trace,
+        profile_precision = profile_precision,
+        ...
       )
       coefficient_ci <- summary_profile_coefficient_ci(
         object,

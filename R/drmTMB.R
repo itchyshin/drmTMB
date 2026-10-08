@@ -649,6 +649,54 @@ drmTMB <- function(
 # tighter than `qr()`'s 1e-7 default, so the near-collinear diagnostic
 # fixtures (predictor noise of 1e-7 or 1e-9) still fit and stay visible to
 # `check_drm()`. An exact copy (`xdup == x`, or `x2 == 2 * x`) is refused.
+# Drop rows that contain NA and check the remaining design. An empty factor
+# cell is a column of zeros, not an NA, and is still a rank deficiency; that
+# case is unchanged (it errors). A design with no complete row is not checked.
+drm_complete_case_design <- function(X) {
+  if (!anyNA(X)) {
+    return(X)
+  }
+  if (inherits(X, "Matrix")) {
+    keep <- Matrix::rowSums(is.na(X)) == 0
+    return(X[keep, , drop = FALSE])
+  }
+  X[stats::complete.cases(X), , drop = FALSE]
+}
+
+# `base::qr()` stores rank at `$rank`. A Matrix `sparseQR` is an S4 object:
+# `$rank` errors, and there is no `rank` slot. Read `$rank` inside the
+# tryCatch so that error does not escape, then take the column permutation
+# from `@q` (0-based) and the rank from the R diagonal with the same relative
+# tolerance. A failed factorization of a large sparse design warns instead of
+# pretending the design is full rank.
+drm_qr_rank_and_pivot <- function(q, tol) {
+  dollar <- tryCatch(
+    list(rank = q$rank, pivot = q$pivot),
+    error = function(e) NULL
+  )
+  if (!is.null(dollar) && !is.null(dollar$rank)) {
+    return(dollar)
+  }
+  if (!isS4(q) || !methods::is(q, "sparseQR")) {
+    return(list(rank = NULL, pivot = NULL))
+  }
+  Rdiag <- tryCatch(
+    abs(diag(as.matrix(qr.R(q)))),
+    error = function(e) NULL
+  )
+  if (is.null(Rdiag) || length(Rdiag) == 0L || !any(is.finite(Rdiag))) {
+    return(list(rank = NULL, pivot = NULL))
+  }
+  scale <- max(Rdiag, na.rm = TRUE)
+  rank <- if (!is.finite(scale) || scale <= 0) {
+    0L
+  } else {
+    as.integer(sum(Rdiag > tol * scale))
+  }
+  pivot <- if (methods::.hasSlot(q, "q")) as.integer(q@q) + 1L else NULL
+  list(rank = rank, pivot = pivot)
+}
+
 drm_aliased_columns <- function(X, tol = 1e-10) {
   if (is.null(X) || (!is.matrix(X) && !inherits(X, "Matrix"))) {
     return(character())
@@ -657,34 +705,51 @@ drm_aliased_columns <- function(X, tol = 1e-10) {
   if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
     return(character())
   }
-  if (anyNA(X)) {
+  X <- drm_complete_case_design(X)
+  n_col <- ncol(X)
+  if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
     return(character())
   }
   design <- X
-  decomposition <- tryCatch(qr(design, tol = tol), error = function(e) NULL)
+  info <- tryCatch(
+    drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+    error = function(e) NULL
+  )
   if (
-    is.null(decomposition) &&
+    (is.null(info) || is.null(info$rank)) &&
       inherits(design, "Matrix") &&
       nrow(design) * n_col <= 200000L
   ) {
     design <- as.matrix(design)
-    decomposition <- tryCatch(qr(design, tol = tol), error = function(e) NULL)
+    info <- tryCatch(
+      drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+      error = function(e) NULL
+    )
   }
-  if (is.null(decomposition) || is.null(decomposition$rank)) {
+  if (is.null(info) || is.null(info$rank)) {
+    if (inherits(X, "Matrix") && nrow(X) * n_col > 200000L) {
+      cli::cli_warn(
+        c(
+          "The rank check could not factor a large sparse design, so aliased columns were not identified.",
+          "i" = "The fit continues. If standard errors are missing, drop linearly dependent columns and refit."
+        ),
+        class = "drmTMB_rank_check_skipped"
+      )
+    }
     return(character())
   }
-  if (decomposition$rank >= n_col) {
+  if (info$rank >= n_col) {
     return(character())
   }
   cols <- colnames(X)
   if (is.null(cols) || length(cols) != n_col) {
     cols <- paste0("column_", seq_len(n_col))
   }
-  pivot <- decomposition$pivot
+  pivot <- info$pivot
   if (is.null(pivot) || length(pivot) != n_col) {
     return(cols)
   }
-  cols[pivot[seq.int(decomposition$rank + 1L, n_col)]]
+  cols[pivot[seq.int(info$rank + 1L, n_col)]]
 }
 
 drm_abort_rank_deficient_designs <- function(X_list) {

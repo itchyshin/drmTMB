@@ -21,14 +21,18 @@ had was the REML refusal, which stops rather than rewriting the model.
 
 A dispersion coefficient whose design column is nonzero only on limit rows
 keeps its point estimate. `summary()` sets that Wald standard error to `NA`.
-`confint()` sets `lower` and `upper` to `NA` and `conf.status` to
-`boundary_limit`, and both warn with class
-`drmTMB_dispersion_boundary_warning`. `print()` states the limit.
-`check_drm()` adds `dispersion_boundary` (`warning` when any fitted row is
-at the limit, `ok` when the family applies and none is). The limit is
-`sigma^2 < 0.001` for `nbinom2`, `zi_nbinom2`, `hurdle_nbinom2`,
-`truncated_nbinom2`, `beta`, `beta_binomial`, and `zero_one_beta`, and
-`nu > 1000` for `student` and `biv_student`. `vcov()` is unchanged.
+Wald `confint()` sets `lower` and `upper` to `NA`, `conf.status` to
+`boundary_limit`, and `interval_source` to `not_available`, and warns with
+class `drmTMB_dispersion_boundary_warning`. Profile and bootstrap intervals
+are not blanked. `print()` states the limit. `check_drm()` adds
+`dispersion_boundary` (`warning` when any fitted row is at the limit, `ok`
+when the family applies and none is). For NB2 and its variants the limit is
+`mu * sigma^2 < 0.001`, the extra variance relative to the Poisson variance,
+evaluated at the fitted `mu`. Beta, beta-binomial, and zero-one-beta are
+not flagged. `nu > 1000` remains the limit for `student` and `biv_student`
+because `nu` is dimensionless. `vcov()` is unchanged. Phase 18 writes
+`dispersion_boundary` on each replicate summary and does not muffle the
+warning.
 `hessian_conditioning` now reports the condition number of the
 correlation-scaled fixed-effect covariance when every diagonal entry is
 positive. A negative covariance eigenvalue still warns from the raw matrix.
@@ -37,11 +41,17 @@ The reported `min_eig=` value is still the raw implied Hessian eigenvalue.
 ## Mathematical Contract
 
 Location, scale, shape, and coscale are unchanged. For NB2,
-`Var(y) = mu + sigma^2 mu^2` and `size = 1/sigma^2`. The Poisson limit is
-the nested model `sigma^2 = 0`. The flag treats `sigma^2 < 0.001`
-(`size > 1000`) as that limit. Beta and beta-binomial use the same
-`phi = 1/sigma^2` scale. Student-t `nu = 2 + exp(eta_nu)` above 1000 is the
-Gaussian limit. No likelihood, link, or coefficient value was rewritten.
+`Var(y) = mu + sigma^2 mu^2` and `size = 1/sigma^2`, so
+`(Var(y) - mu) / mu = mu * sigma^2`. The Poisson limit is the nested model
+`sigma^2 = 0`. The flag treats `mu * sigma^2 < 0.001` as that limit, at the
+fitted `mu`. An absolute `sigma^2` cutoff is not used: `mu = 1000` and
+`size = 2000` has `sigma^2 = 0.0005` but extra variance `0.5` times the
+mean, and that standard error stays. Beta, beta-binomial, and zero-one-beta
+have no simpler family at large precision, so they are not flagged.
+Student-t `nu = 2 + exp(eta_nu)` above 1000 is the Gaussian limit. Excess
+kurtosis is `6 / (nu - 4)`, about 0.006 at `nu = 1000`, and `nu` does not
+scale with the response. No likelihood, link, or coefficient value was
+rewritten.
 `rho12` remains the residual correlation and is not used as a name for these
 dispersion limits.
 
@@ -62,7 +72,8 @@ covariance eigenvalue.
 - `R/check.R`: dispersion-limit report, correlation-scaled condition number.
 - `R/methods.R`, `R/profile.R`, `R/mspl-estimator.R`: blank limit Wald
   standard errors and intervals; `print()` line.
-- `inst/sim/R/sim_runner.R`: ignore `drmTMB_dispersion_boundary_warning`.
+- `inst/sim/R/sim_runner.R`: record `dispersion_boundary` per replicate.
+- `R/predict-parameters.R`, `R/plot-parameter-surface.R` consumers: Wald rows that use a blanked coefficient are `boundary_limit` / `not_available`.
 - `tests/testthat/test-convergence-honesty-triage-f.R` and updates to
   `test-comparators.R`, `test-gaussian-location-scale.R`,
   `test-phase18-sim-runner.R`.
@@ -72,7 +83,22 @@ covariance eigenvalue.
 
 ## Checks Run
 
-Local `pkgload::load_all()` on R 4.3.3. No failures in the files below.
+Review round, local `pkgload::load_all()` on R 4.3.3, 0 failures.
+`test-convergence-honesty-triage-f.R` 74 pass. `test-phase18-sim-runner.R`
+75 pass. `test-plot-parameter-surface.R` 46 pass. `test-plot-corpairs.R`
+48 pass. `test-check-conditioning.R` 31 pass, 2 skip, 1 warn.
+`test-check-drm.R` 263 pass, 1 skip, 3 warn. `test-fit-convergence-warning.R`
+16 pass. `test-summary.R` 200 pass. `test-summary-derived-rows.R` 10 pass.
+`test-nbinom2-location-scale.R` 157 pass.
+`test-truncated-nbinom2-location-scale.R` 78 pass, 1 warn.
+`test-hurdle-nbinom2.R` 60 pass. `test-zi-nbinom2.R` 59 pass, 2 warn.
+`test-gaussian-location-scale.R` 80 pass, 1 skip.
+`test-student-location-scale.R` 47 pass. `test-beta-location-scale.R` 85 pass,
+2 skip. `test-comparators.R` 32 pass, 17 skip. Total 1361 pass, 23 skip,
+7 warn, 0 fail.
+
+The first round, before this review, was also local `pkgload::load_all()` on
+R 4.3.3. No failures in the files below.
 Counts are testthat progress glyphs (`.` pass, `S` skip, `W` warning).
 
 | File | Pass | Skip | Warn | Fail |
@@ -177,10 +203,11 @@ a new standing rule yet.
 Gaussian, gamma, lognormal, and Tweedie `sigma` are not flagged. The
 dispersion flag uses `X %*% beta`, so a random-effect-adjusted `sigma` can
 sit on the limit while the fixed coefficient keeps its standard error.
-`corpairs()` profile intervals are not masked. Julia `summary()` and
-`check_drm.drmTMB_julia` do not blank the dispersion standard error and do
-not report `dispersion_boundary` or `hessian_conditioning`. `vcov()` still
-returns the raw covariance.
+`corpairs()` profile intervals are not masked. Follow-up: Julia `summary()`
+and `check_drm.drmTMB_julia` do not blank the dispersion standard error and
+do not report `dispersion_boundary` or `hessian_conditioning`. `vcov()` still
+returns the raw covariance. An empty-cell interaction still errors and was
+not changed.
 
 ## Next Actions
 
@@ -189,8 +216,18 @@ and needs a rebase onto that branch. #1503 changes `convergence_status()` to
 a scale-free Newton step, `max |sdr$cov.fixed %*% gradient| / SE > 1e-3`,
 with the same `0.001` used as an absolute cutoff only when there is no
 usable Hessian. This branch does not add a fixed absolute gradient cutoff.
-On rebase, keep `drmTMB_gradient_warning` in the Phase 18 ignore list
-alongside `drmTMB_dispersion_boundary_warning`.
+On rebase, keep `drmTMB_gradient_warning` in the Phase 18 ignore list.
+`dispersion_boundary` is a summary column, not an ignored warning class.
+PR #1501 adds `bootstrap_incomplete` to `interval_status_levels()`; this
+branch adds only `boundary_limit`.
+
+An empty-cell interaction such as `y ~ site * trt` still errors as rank
+deficient. Whether it should fit like `lm()` with `NA` coefficients is
+waiting on Shinichi and was not changed.
+
+Follow-up, not in this draft: Julia `summary()` and `check_drm.drmTMB_julia`
+do not blank a Poisson-limit Wald standard error and do not report
+`dispersion_boundary` or `hessian_conditioning`.
 
 Watch the draft pull request's CI. Do not merge it and do not close the
 issues from this branch.

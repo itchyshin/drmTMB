@@ -8350,7 +8350,8 @@ drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
   rows <- drm_julia_model_frame_rows(mf, nrow(data))
   # Do not require rows == mu$rows here. A sigma covariate can be missing on
   # a row the location axis kept. drm_julia_xfam_align_axes() drops that row
-  # from every axis so the designs stay paired (#1454).
+  # from every axis so the designs stay paired (#1454). The rank check runs
+  # in drm_julia_xfam_design_from_frame() after the shared rows are chosen.
   list(mf = mf, rows = rows)
 }
 
