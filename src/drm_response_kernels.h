@@ -9,6 +9,9 @@
 // (LOOP/notes/A7-student-nu-abi.md). weights(i) stay outside.
 // logLik.drmTMB() reads the TMB objective built from this function.
 // fitted_distribution() uses stats::dt(), which is already stable.
+// The three univariate call sites in src/drmTMB.cpp (the two missing-predictor
+// leaves and the main observed-data loop) call this function. They do not
+// carry their own lgamma expression.
 //
 // The textbook constant lgamma((nu+1)/2) - lgamma(nu/2) cancels once nu is
 // past about 1e6: the two lgamma values are about (nu/2) log(nu/2), and the

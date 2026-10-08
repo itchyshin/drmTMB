@@ -4,22 +4,35 @@
 # different observations. Structured response = "drop" did not drop. The q2
 # bridge checked the control and not the data.
 
-test_that("cross-family axes refuse NA patterns that keep the same count of different rows (#1454)", {
+test_that("cross-family axes line up staggered NAs on one complete-case index (#1454)", {
   set.seed(1)
   d <- data.frame(x = stats::rnorm(30))
   d$y1 <- stats::rnorm(30)
   d$y2 <- stats::rpois(30, 3)
   d$y1[3] <- NA
   d$y2[7] <- NA
-  expect_error(
-    drmTMB:::drm_julia_xfam_axes(
-      bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
-      d,
-      environment(),
-      c("gaussian", "poisson")
-    ),
-    "per-axis missingness"
+  # Pure R mapping. drm_julia_xfam_axes() does not start Julia.
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x),
+    d,
+    environment(),
+    c("gaussian", "poisson")
   )
+  shared <- setdiff(seq_len(30), c(3L, 7L))
+  expect_identical(ax$mu1$rows, shared)
+  expect_identical(ax$mu2$rows, shared)
+  expect_identical(ax$sigma1$rows, shared)
+  expect_identical(ax$sigma2$rows, shared)
+  expect_equal(ax$mu1$y, d$y1[shared])
+  expect_equal(ax$mu2$y, d$y2[shared])
+  expect_equal(unname(ax$mu1$X[, "x"]), d$x[shared])
+  expect_equal(unname(ax$mu2$X[, "x"]), d$x[shared])
+  # The old length check kept 29 rows and paired y1[4:7] with y2[3:6].
+  # Positions 3:6 of the aligned vectors are original rows 4, 5, 6 and 8.
+  lined <- c(4L, 5L, 6L, 8L)
+  expect_equal(ax$mu1$y[3:6], d$y1[lined])
+  expect_equal(ax$mu2$y[3:6], d$y2[lined])
+  expect_false(isTRUE(all.equal(ax$mu1$y[3:6], d$y1[4:7])))
 })
 
 test_that("cross-family axes keep a shared complete-case index (#1454)", {
@@ -43,7 +56,7 @@ test_that("cross-family axes keep a shared complete-case index (#1454)", {
   expect_equal(unname(ax$mu2$X[, "x"]), unname(ax$mu1$X[, "x"]))
 })
 
-test_that("cross-family sigma design refuses a different complete-case index (#1454)", {
+test_that("cross-family sigma missingness drops that row from every axis (#1454)", {
   set.seed(1)
   d <- data.frame(
     y1 = stats::rnorm(20),
@@ -52,15 +65,19 @@ test_that("cross-family sigma design refuses a different complete-case index (#1
     z = stats::rnorm(20)
   )
   d$z[4] <- NA
-  expect_error(
-    drmTMB:::drm_julia_xfam_axes(
-      bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~z),
-      d,
-      environment(),
-      c("gaussian", "poisson")
-    ),
-    "per-axis missingness"
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~z),
+    d,
+    environment(),
+    c("gaussian", "poisson")
   )
+  shared <- setdiff(seq_len(20), 4L)
+  expect_identical(ax$mu1$rows, shared)
+  expect_identical(ax$mu2$rows, shared)
+  expect_identical(ax$sigma1$rows, shared)
+  expect_equal(ax$mu1$y, d$y1[shared])
+  expect_equal(ax$mu2$y, d$y2[shared])
+  expect_equal(unname(ax$sigma1$X[, "z"]), d$z[shared])
 })
 
 test_that("structured response = 'drop' removes incomplete rows and keeps group levels (#1454)", {
