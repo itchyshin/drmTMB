@@ -200,18 +200,24 @@ check_drm <- function(object, ...) {
 #' [convergence_status()] for detail.
 #'
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
-#' uncertainty. In that mode, `is_converged()` also requires successful
-#' [TMB::sdreport()] output with `pdHess = TRUE` on top of the default
-#' [convergence_status()] gate. A fit can therefore be `"converged"` while
-#' still returning `FALSE` with `include_hessian = TRUE`; this marks an
-#' inference-readiness problem, not automatic proof that point estimates are
-#' unusable.
+#' uncertainty. In that mode, `is_converged()` also requires a
+#' positive-definite Hessian on top of the default
+#' [convergence_status()] gate. A native fit reads [TMB::sdreport()]
+#' `pdHess`. An `engine = "julia"` fit has no `sdreport` object; it
+#' requires the coefficient covariance stored on the fit (`vcov()`) to
+#' be finite and positive definite. A legacy cross-family Julia fit does
+#' not store that covariance, so `include_hessian = TRUE` returns `FALSE`.
+#' A fit can therefore be `"converged"` while still returning `FALSE`
+#' with `include_hessian = TRUE`; this marks an inference-readiness
+#' problem, not automatic proof that point estimates are unusable.
 #'
 #' Use [check_drm()] when you need the full diagnostic table and messages.
 #'
 #' @param object A `drmTMB` fit.
-#' @param include_hessian Logical; require a positive-definite
-#'   [TMB::sdreport()] Hessian in addition to optimizer convergence.
+#' @param include_hessian Logical; require a positive-definite Hessian
+#'   in addition to optimizer convergence. Native fits read
+#'   [TMB::sdreport()] `pdHess`. Julia-engine fits require a finite
+#'   positive-definite coefficient covariance from `vcov()`.
 #' @param ... Reserved for future convergence options.
 #'
 #' @return A single logical value.

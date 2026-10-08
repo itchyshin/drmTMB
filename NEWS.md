@@ -12,6 +12,48 @@
 
 ## Bug fixes
 
+* `engine = "julia"` formula marshalling no longer stops with
+  `could not find function "%||%"`. Base R has defined `%||%` since 4.4.0,
+  so the missing package definition only affected R before 4.4. The bridge
+  and the MSPL link code already called that operator; the package now
+  defines it for those versions. `NULL %||% x` is `x`, and any other
+  left-hand value, including an empty vector, is kept.
+
+* `engine = "julia"` accepts `weights = NULL`, including when a wrapper
+  forwards its own `weights = NULL` argument. The weights expression is
+  evaluated in `data` and then in the caller, the same order the native
+  engine uses. A column therefore wins over a same-named `NULL` in the
+  caller: `weights = w` is refused when `data` has a column `w`, even if a
+  global `w` is `NULL`. A missing argument, a literal `NULL`, and a symbol
+  that evaluates to `NULL` with no such column still mean no weights, on
+  the ordinary, structured, bivariate q2 structured, cross-family, and
+  joint missing-predictor routes. A non-NULL weight vector is still refused
+  before Julia starts. Previously any supplied `weights` argument, including
+  `NULL`, aborted with "does not support weights yet" (#1450).
+
+* `engine = "julia"` treats a `drm_control()` setting as unchanged when
+  its value equals the default. `logsigma_clamp_margin = 3L`,
+  `logsigma_clamp = c(-12L, 12L)`, and `start = list()` (no start values)
+  are accepted on the main control translator and on the all-or-nothing
+  routes (structured, bivariate q2 structured, cross-family, and the joint
+  missing-predictor adapter). A value that differs from the default,
+  including a non-empty start list, is still refused before Julia starts.
+  Previously `identical()` treated those default-valued inputs as
+  unsupported control settings (#1471).
+
+* `is_converged(include_hessian = TRUE)` now reads the argument for
+  Julia-engine fits (`drmTMB_julia`, including joint fits, and
+  `drmTMB_julia_xfam`). The fit must have optimizer code 0 and a finite
+  positive-definite coefficient covariance. A missing, non-finite, or
+  non-positive-definite covariance returns `FALSE`. Invalid
+  `include_hessian` values and extra arguments error, as they do for
+  native fits. `is_converged(fit)` without `include_hessian` is unchanged.
+  Previously the Julia methods ignored `include_hessian` and could return
+  `TRUE` when the covariance was not positive definite (#1483).
+  `check_drm()` uses that same `chol()` test on the Julia
+  `bridge_covariance` row: a finite covariance that is not positive
+  definite is a warning, including a matrix whose diagonal is positive.
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
