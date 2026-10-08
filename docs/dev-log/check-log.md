@@ -35,6 +35,11 @@ errors, all 19 errors in `test-julia-diagnostics.R` (`could not find function
 "%||%"` inside pre-existing `new_drmTMB_julia()`, line not in this diff).
 Re-ran adequacy with the tweedie package visible: 23 passed, 0 skipped, 0
 warnings. Factor-response file after the Julia guard test: 24 passed.
+C17 recertify on `ac0491e40` with `--tolerance 2e-11`: mc-0568 `|change|`
+`3.030e-12`, mc-0569 `1.322e-11`, mc-0576 `5.263e-12`.
+`python3 tools/capability_ledger.py --check` passed. Receipt:
+`docs/dev-log/implementation-recovery/2026-10-08-silent-inputs-c17c2-c14-final-source-compatibility`.
+
 Report: `docs/dev-log/after-task/2026-10-08-silent-inputs-convergence-honesty.md`.
 
 # 2026-10-04: phylogenetic tree-height documentation correction

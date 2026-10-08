@@ -140,9 +140,7 @@ issues.
 `graft` is not installed in this environment, so the builders were found by
 reading call sites rather than from the graph. `test-julia-diagnostics.R`
 cannot construct a mock Julia fit here because `%||%` is not visible in the
-drmTMB namespace; that failure is older than this branch. The first C17
-receipt is not yet re-certified in this note; `R/drmTMB.R` changed, so the
-ledger step follows the commit that contains the source edit.
+drmTMB namespace; that failure is older than this branch.
 
 ## Team Learning
 
@@ -164,8 +162,17 @@ does not apply `1e-8`. `multi_start` still picks the lowest objective.
 `methods.R` `report()` error path and the log-sigma clamp detector were
 left unchanged.
 
+## Ledger
+
+`python3 tools/recertify-c17.py --label silent-inputs --tolerance 2e-11`
+on commit `ac0491e40`. `mean_tau_relative_error` moved by `3.030e-12`
+(mc-0568), `1.322e-11` (mc-0569), and `5.263e-12` (mc-0576). The worst
+change matches the float noise previously measured on unchanged `main`.
+The zero-one-beta builder text now contains the factor abort, so the
+model-15 source fingerprint moved; the likelihood did not. Receipt:
+`docs/dev-log/implementation-recovery/2026-10-08-silent-inputs-c17c2-c14-final-source-compatibility`.
+`python3 tools/capability_ledger.py --check` passed.
+
 ## Next Actions
 
-Re-certify the C17 model-15 receipt after the source commit, with tolerance
-`2e-11`, because earlier model-15 reruns on unchanged `main` already moved
-by about `1e-11`. Watch CI on the draft PR. Do not merge.
+Watch CI on the draft PR. Do not merge.
