@@ -97,6 +97,10 @@ Review round, local `pkgload::load_all()` on R 4.3.3, 0 failures.
 2 skip. `test-comparators.R` 32 pass, 17 skip. Total 1361 pass, 23 skip,
 7 warn, 0 fail.
 
+C17 recertification used `--label triage-f-review --tolerance 1e-10` after
+commit `6f4605b87`. `mean_tau_relative_error` was bit-identical to the
+triage-f receipt on all three cells. The model-15 fingerprint is unchanged.
+
 The first round, before this review, was also local `pkgload::load_all()` on
 R 4.3.3. No failures in the files below.
 Counts are testthat progress glyphs (`.` pass, `S` skip, `W` warning).

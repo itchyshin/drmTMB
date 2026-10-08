@@ -63,6 +63,11 @@ factor cell (`y ~ site * trt`) is still a rank-deficient error; that design
 call is unchanged. Julia `summary()` / `check_drm.drmTMB_julia` remain a
 follow-up. This draft still lands after #1503.
 
+`python3 tools/recertify-c17.py --label triage-f-review --tolerance 1e-10`
+ran after commit `6f4605b87`. Against the triage-f receipt,
+`mean_tau_relative_error` changed by `0` on mc-0568, mc-0569, and mc-0576.
+The model-15 fingerprint is unchanged (`5ab7a9640a93…`).
+
 # 2026-10-08: triage F must land after #1503
 
 PR #1503 (`cursor/triage-d-silent-inputs`) changes `convergence_status()` for
