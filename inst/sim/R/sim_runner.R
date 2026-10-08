@@ -73,6 +73,9 @@ phase18_run_replicate <- function(
       # are informational: the simulation summary already tracks per-fit
       # convergence, pdHess, and scale state, so capturing them here would
       # double-count them as ledger failures. Record every other warning.
+      # PR #1503 (#1452) also muffles drmTMB_gradient_warning. This branch
+      # does not add an absolute gradient cutoff. On rebase onto
+      # cursor/triage-d-silent-inputs, keep that class in this vector.
       own <- c(
         "drmTMB_convergence_warning",
         "drmTMB_clamp_active_warning",

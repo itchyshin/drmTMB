@@ -74,6 +74,9 @@ test_that("exact aliased columns are refused on every distributional design", {
   ))
   expect_s3_class(near, "drmTMB")
   full <- drmTMB(bf(y ~ 1, sigma ~ x), data = dat)
+  # Clean full-rank fit. This test does not add an absolute gradient cutoff.
+  # The scale-free rule, max |cov.fixed %*% gradient| / SE > 1e-3, with a
+  # 1e-3 absolute fallback only when there is no Hessian, is #1452 on PR #1503.
   expect_true(is_converged(full))
 })
 
