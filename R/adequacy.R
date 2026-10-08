@@ -308,19 +308,54 @@ drm_quantile_residual_qq_from_matrix <- function(z) {
   out
 }
 
-# Per-rank [min, max] envelope across realizations, for the "value" column
-# ("sample" for qq_plot(), "deviation" for worm_plot()). Degenerates to a
-# zero-width band when every realization is identical (continuous, atom-free
-# families; nsim == 1).
+# [min, max] envelope across realizations, for the "value" column ("sample"
+# for qq_plot(), "deviation" for worm_plot()). Degenerates to a zero-width
+# band when every realization is identical (continuous, atom-free families;
+# nsim == 1).
+#
+# Each realization already carries its own theoretical quantiles. When every
+# realization keeps the same number of finite residuals, those quantiles
+# agree at each rank, and the envelope is the per-rank range. When they
+# differ, rank alignment would borrow the first realization's theoretical
+# quantiles for a shorter or longer vector (#1460). The envelope is then
+# interpolated onto the shortest realization's theoretical grid, which lies
+# inside every longer realization, so each simulation is compared through
+# its own quantiles.
 drm_adequacy_envelope <- function(data, value) {
-  by_rank <- split(data[[value]], data$rank)
-  theoretical_by_rank <- split(data$theoretical, data$rank)
-  ranks <- as.integer(names(by_rank))
-  out <- data.frame(
-    rank = ranks,
-    theoretical = vapply(theoretical_by_rank, `[`, numeric(1), 1L),
-    ymin = vapply(by_rank, min, numeric(1)),
-    ymax = vapply(by_rank, max, numeric(1))
+  sims <- split(data, data$sim)
+  n_finite <- vapply(sims, nrow, integer(1L))
+  if (length(sims) == 0L || length(unique(n_finite)) == 1L || min(n_finite) < 2L) {
+    by_rank <- split(data[[value]], data$rank)
+    theoretical_by_rank <- split(data$theoretical, data$rank)
+    ranks <- as.integer(names(by_rank))
+    out <- data.frame(
+      rank = ranks,
+      theoretical = vapply(theoretical_by_rank, function(x) {
+        if (length(unique(x)) == 1L) x[[1L]] else NA_real_
+      }, numeric(1)),
+      ymin = vapply(by_rank, min, numeric(1)),
+      ymax = vapply(by_rank, max, numeric(1))
+    )
+    return(out[order(out$rank), , drop = FALSE])
+  }
+  m <- min(n_finite)
+  grid <- stats::qnorm(stats::ppoints(m))
+  columns <- lapply(sims, function(sim) {
+    stats::approx(
+      x = sim$theoretical,
+      y = sim[[value]],
+      xout = grid,
+      rule = 1
+    )$y
+  })
+  mat <- do.call(cbind, columns)
+  keep <- apply(mat, 1L, function(row) all(is.finite(row)))
+  mat <- mat[keep, , drop = FALSE]
+  grid <- grid[keep]
+  data.frame(
+    rank = seq_along(grid),
+    theoretical = grid,
+    ymin = apply(mat, 1L, min),
+    ymax = apply(mat, 1L, max)
   )
-  out[order(out$rank), , drop = FALSE]
 }

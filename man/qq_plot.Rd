@@ -34,9 +34,12 @@ mis-specification of the fitted distributional form.
 }
 \details{
 When \code{nsim > 1}, a pale grey envelope (with a darker outline) overplots the
-per-rank range across the \code{nsim} Dunn-Smyth realizations, so a single
-randomized draw is not over-read; the first realization's points are drawn
-on top.
+range across the \code{nsim} Dunn-Smyth realizations, so a single randomized
+draw is not over-read; the first realization's points are drawn on top.
+Each realization keeps its own theoretical quantiles. If the realizations
+drop different numbers of non-finite residuals, the envelope is
+interpolated onto the shortest realization's theoretical grid instead of
+lining the vectors up by rank.
 
 A residual of \code{-Inf} or \code{Inf} (\code{u} exactly 0 or 1) is a gross misfit. Those
 points are omitted from the order statistics, the omission count is warned,

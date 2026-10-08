@@ -1,5 +1,9 @@
 # After Task: Silent inputs and convergence honesty
 
+The absolute `1e-8` gradient verdict in this note was replaced after review.
+Read `2026-10-08-review-scale-free-gradient.md` for the Newton-step rule,
+the `cbind()` factor check, and the QQ envelope grid.
+
 Reader: an applied ecology or evolution user who fits one or two responses,
 and a package contributor checking that a code-0 fit and a QQ plot mean what
 they appear to mean.
