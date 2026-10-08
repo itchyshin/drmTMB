@@ -40,6 +40,11 @@ per-rank range across the \code{nsim} Dunn-Smyth realizations, so a single
 randomized draw is not over-read; the first realization's points and
 fitted trend are drawn on top.
 
+A residual of \code{-Inf} or \code{Inf} (\code{u} exactly 0 or 1) is a gross misfit. Those
+points are omitted from the order statistics, the omission count is warned,
+and the subtitle repeats the count. Missing-response \code{NA} rows are not
+part of that count.
+
 This is fixed-effect adequacy only -- see \code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}. A
 flat worm plot is "no detectable departure" evidence about the fixed-effect
 distributional form, never a general validity or calibration claim.

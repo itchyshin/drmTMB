@@ -194,10 +194,11 @@ check_drm <- function(object, ...) {
 #' yes/no answer before comparing, displaying, or post-processing a `drmTMB`
 #' fit. By default it delegates to [convergence_status()]: it returns `TRUE`
 #' when the status is `"converged"` or `"boundary"`, and `FALSE` when the
-#' status is `"degenerate"`. A fit can therefore report optimizer code `0`
-#' while still returning `FALSE` here when the likelihood geometry or
-#' uncertainty diagnostics are degenerate; use [check_drm()] or
-#' [convergence_status()] for detail.
+#' status is `"degenerate"` or `"gradient"`. A fit can therefore report
+#' optimizer code `0` while still returning `FALSE` here when the likelihood
+#' geometry is degenerate, or when the stored gradient is above the
+#' Newton-polish tolerance (`1e-8` on the largest absolute component). Use
+#' [check_drm()] or [convergence_status()] for detail.
 #'
 #' Set `include_hessian = TRUE` when the next step needs Wald-style
 #' uncertainty. In that mode, `is_converged()` also requires successful
@@ -273,16 +274,23 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' workflows that need more detail than [is_converged()]. A fit can report
 #' optimizer code `0` while the likelihood geometry is degenerate (no proper
 #' maximum or non-finite uncertainty); such fits return `"degenerate"` even
-#' when `multi_start` selected among several starts. `"boundary"` marks an
-#' optimizer-converged fit with variance-component or residual-correlation
-#' parameters near an interpretability boundary. [is_converged()] stays a
-#' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
-#' `FALSE` for `"degenerate"`.
+#' when `multi_start` selected among several starts. `"gradient"` marks an
+#' otherwise successful fit whose stored fixed-effect gradient still exceeds
+#' the Newton-polish tolerance, including a polish that returned without
+#' reaching it. `"boundary"` marks an optimizer-converged, stationary fit
+#' with variance-component or residual-correlation parameters near an
+#' interpretability boundary. [is_converged()] stays a plain logical: it is
+#' `TRUE` for `"converged"` and `"boundary"`, and `FALSE` for `"degenerate"`
+#' and `"gradient"`.
+#'
+#' A missing `gradient` field (a hand-built object, or a fit saved before the
+#' gradient was stored) is not treated as a failure. A stored non-finite
+#' gradient is `"gradient"`.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
-#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`.
+#' @return One of `"converged"`, `"boundary"`, `"degenerate"`, or `"gradient"`.
 #' @export
 #'
 #' @examples
@@ -321,10 +329,35 @@ convergence_status.drmTMB <- function(object, ...) {
   ) {
     return("degenerate")
   }
+  # `[[` not `$`: `$` partially matches, so a fit with
+  # `gradient_max_component` and no `gradient` element would hand the
+  # component name to the stationarity check and look non-stationary.
+  if (drm_stored_gradient_not_stationary(object[["gradient"]])) {
+    return("gradient")
+  }
   if (drm_inference_at_boundary(object)) {
     return("boundary")
   }
   "converged"
+}
+
+# TRUE when a stored gradient is non-finite or its largest absolute component
+# exceeds the Newton-polish tolerance. NULL means the gradient was never
+# stored; that is not evidence of a bad optimum (#1452).
+drm_stored_gradient_not_stationary <- function(
+  gradient,
+  tol = DRM_NEWTON_GRAD_TOL
+) {
+  if (is.null(gradient)) {
+    return(FALSE)
+  }
+  if (!is.numeric(gradient) || !all(is.finite(gradient))) {
+    return(TRUE)
+  }
+  if (length(gradient) == 0L) {
+    return(FALSE)
+  }
+  max(abs(gradient)) > tol
 }
 
 drm_optimizer_converged <- function(object) {
@@ -1410,6 +1443,7 @@ check_convergence_status <- function(object) {
       converged = "ok",
       boundary = "note",
       degenerate = "note",
+      gradient = "warning",
       "note"
     ),
     status,
@@ -1429,6 +1463,11 @@ check_convergence_status <- function(object) {
         "uncertainty is degenerate (no reliable maximum or non-finite",
         "standard errors). multi_start cannot clear this state;",
         "is_converged() is FALSE."
+      ),
+      gradient = paste(
+        "The optimizer reported code 0, but the stored fixed-effect gradient",
+        "exceeds the Newton-polish tolerance (or is not finite).",
+        "is_converged() is FALSE. Inspect fit$gradient and the fixed_gradient row."
       ),
       "Convergence status could not be classified."
     )

@@ -380,7 +380,7 @@ correlations returned by `corpairs()`.
 | Function | Use it for |
 |---|---|
 | [`check_drm()`](../reference/check_drm.html) | Run the model-aware convergence and identifiability checks. Start here after fitting. |
-| [`convergence_status()`](../reference/convergence_status.html) | Return `"converged"`, `"boundary"`, or `"degenerate"` when a logical flag is not enough. |
+| [`convergence_status()`](../reference/convergence_status.html) | Return `"converged"`, `"boundary"`, `"degenerate"`, or `"gradient"` when a logical flag is not enough. |
 | [`is_converged()`](../reference/is_converged.html) | Return one logical convergence summary for programmatic workflows. |
 | [`summary()`](../reference/summary.drmTMB.html) | Print coefficients, fit information, and optional intervals. |
 | [`coef()` / `fixef()`](../reference/fixef.html) | Extract fixed-effect coefficient blocks; `fixef()` makes the mixed-model meaning explicit. |

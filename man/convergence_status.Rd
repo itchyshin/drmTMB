@@ -18,18 +18,25 @@ convergence_status(object, ...)
 \item{...}{Reserved for future options.}
 }
 \value{
-One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}.
+One of \code{"converged"}, \code{"boundary"}, \code{"degenerate"}, or \code{"gradient"}.
 }
 \description{
 \code{convergence_status()} returns a short character label for programmatic
 workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit can report
 optimizer code \code{0} while the likelihood geometry is degenerate (no proper
 maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
-when \code{multi_start} selected among several starts. \code{"boundary"} marks an
-optimizer-converged fit with variance-component or residual-correlation
-parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a
-plain logical: it is \code{TRUE} for \code{"converged"} and \code{"boundary"}, and
-\code{FALSE} for \code{"degenerate"}.
+when \code{multi_start} selected among several starts. \code{"gradient"} marks an
+otherwise successful fit whose stored fixed-effect gradient still exceeds
+the Newton-polish tolerance, including a polish that returned without
+reaching it. \code{"boundary"} marks an optimizer-converged, stationary fit
+with variance-component or residual-correlation parameters near an
+interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a plain logical: it is
+\code{TRUE} for \code{"converged"} and \code{"boundary"}, and \code{FALSE} for \code{"degenerate"}
+and \code{"gradient"}.
+
+A missing \code{gradient} field (a hand-built object, or a fit saved before the
+gradient was stored) is not treated as a failure. A stored non-finite
+gradient is \code{"gradient"}.
 }
 \examples{
 set.seed(20260916)

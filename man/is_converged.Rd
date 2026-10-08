@@ -28,10 +28,11 @@ A single logical value.
 yes/no answer before comparing, displaying, or post-processing a \code{drmTMB}
 fit. By default it delegates to \code{\link[=convergence_status]{convergence_status()}}: it returns \code{TRUE}
 when the status is \code{"converged"} or \code{"boundary"}, and \code{FALSE} when the
-status is \code{"degenerate"}. A fit can therefore report optimizer code \code{0}
-while still returning \code{FALSE} here when the likelihood geometry or
-uncertainty diagnostics are degenerate; use \code{\link[=check_drm]{check_drm()}} or
-\code{\link[=convergence_status]{convergence_status()}} for detail.
+status is \code{"degenerate"} or \code{"gradient"}. A fit can therefore report
+optimizer code \code{0} while still returning \code{FALSE} here when the likelihood
+geometry is degenerate, or when the stored gradient is above the
+Newton-polish tolerance (\code{1e-8} on the largest absolute component). Use
+\code{\link[=check_drm]{check_drm()}} or \code{\link[=convergence_status]{convergence_status()}} for detail.
 }
 \details{
 Set \code{include_hessian = TRUE} when the next step needs Wald-style
