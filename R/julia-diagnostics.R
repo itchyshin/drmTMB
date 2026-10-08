@@ -320,15 +320,30 @@ check_julia_bridge_covariance <- function(object) {
   if (is.character(dpars) && length(dpars) > 0L && !identical(status, "ok")) {
     value <- paste0(value, "; finite_dpars=", paste(dpars, collapse = ","))
   }
+  row_status <- switch(
+    status,
+    ok = "ok",
+    skipped = "note",
+    unsupported = "note",
+    "warning"
+  )
+  # A finite covariance can still be indefinite. Use the same chol() test as
+  # is_converged(include_hessian = TRUE) so the two readers cannot disagree.
+  if (
+    identical(row_status, "ok") &&
+      !isTRUE(drm_julia_vcov_positive_definite(object$vcov))
+  ) {
+    row_status <- "warning"
+    value <- paste0(value, "; positive_definite=FALSE")
+    message <- paste0(
+      message,
+      " The matrix is not positive definite by the same chol() test ",
+      "is_converged(include_hessian = TRUE) uses."
+    )
+  }
   check_row(
     "bridge_covariance",
-    switch(
-      status,
-      ok = "ok",
-      skipped = "note",
-      unsupported = "note",
-      "warning"
-    ),
+    row_status,
     value,
     paste0(
       message,

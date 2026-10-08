@@ -468,17 +468,41 @@ test_that("check_drm() flags a Julia fit whose bridge covariance came back wholl
   expect_false(attr(dc, "ok"))
 })
 
-test_that("a complete covariance with a negative variance is caught by the standard-error row, which the completeness status cannot see", {
+test_that("a complete covariance with a negative variance is caught by the standard-error row and the positive-definite test", {
   fit <- drm_test_julia_diag_fit(vcov = diag(c(0.01, -0.02, 0.03)))
   # Every entry is finite, so the constructor's own completeness check is "ok".
+  # chol() still fails, which is the same test is_converged(include_hessian = TRUE) uses.
   expect_identical(fit$uncertainty$status, "ok")
+  expect_false(is_converged(fit, include_hessian = TRUE))
+  expect_true(is_converged(fit))
   dc <- check_drm(fit)
-  expect_identical(dc[dc$check == "bridge_covariance", ]$status, "ok")
+  cov_row <- dc[dc$check == "bridge_covariance", ]
+  expect_identical(cov_row$status, "warning")
+  expect_match(cov_row$value, "positive_definite=FALSE", fixed = TRUE)
+  expect_match(cov_row$message, "chol()", fixed = TRUE)
 
   se_row <- dc[dc$check == "bridge_standard_errors", ]
   expect_identical(se_row$status, "warning")
   expect_match(se_row$value, "nonfinite=1", fixed = TRUE)
   expect_match(se_row$message, "mu_x", fixed = TRUE)
+  expect_false(attr(dc, "ok"))
+})
+
+test_that("a finite covariance with a positive diagonal that is not positive definite warns, matching is_converged()", {
+  # Off-diagonal 2 makes the matrix indefinite while every variance stays positive,
+  # so the standard-error row cannot see the failure.
+  vcov <- diag(c(1, 1, 1))
+  vcov[1L, 2L] <- vcov[2L, 1L] <- 2
+  fit <- drm_test_julia_diag_fit(vcov = vcov)
+  expect_identical(fit$uncertainty$status, "ok")
+  expect_false(drmTMB:::drm_julia_vcov_positive_definite(fit$vcov))
+  expect_false(is_converged(fit, include_hessian = TRUE))
+  expect_true(is_converged(fit))
+  dc <- check_drm(fit)
+  cov_row <- dc[dc$check == "bridge_covariance", ]
+  expect_identical(cov_row$status, "warning")
+  expect_match(cov_row$value, "positive_definite=FALSE", fixed = TRUE)
+  expect_identical(dc[dc$check == "bridge_standard_errors", ]$status, "ok")
   expect_false(attr(dc, "ok"))
 })
 

@@ -86,6 +86,43 @@ test_that("engine = julia accepts weights = NULL and still refuses a weight vect
   expect_match(message, "weights")
   expect_false(grepl("JuliaCall", message, fixed = TRUE))
 
+  # A data column wins over a same-named NULL in the caller. Native evaluation
+  # uses that column; the Julia gate must refuse it rather than fit unweighted.
+  dat_w <- dat
+  dat_w$w <- rep(1, nrow(dat_w))
+  w <- NULL
+  native_w <- evaluate_likelihood_weights_arg(
+    weights_expr = quote(w),
+    data = dat_w,
+    env = environment()
+  )
+  expect_equal(native_w, dat_w$w)
+  expect_false(drm_julia_weights_absent(quote(w), data = dat_w, env = environment()))
+  message <- julia_gate_message(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      data = dat_w,
+      engine = "julia",
+      weights = w
+    )
+  )
+  expect_match(message, "does not support")
+  expect_match(message, "weights")
+  expect_false(grepl("JuliaCall", message, fixed = TRUE))
+  expect_false(grepl("DRModels", message, fixed = TRUE))
+
+  # The same symbol with no column evaluates to NULL and means no weights.
+  message <- julia_gate_message(
+    drmTMB(
+      bf(y ~ x, sigma ~ 1),
+      data = dat,
+      engine = "julia",
+      weights = w
+    )
+  )
+  expect_false(grepl("does not support", message, fixed = TRUE))
+  expect_pre_julia_dispatch(message)
+
   message <- julia_gate_message(
     drmTMB(
       bf(y ~ x, sigma ~ 1),
