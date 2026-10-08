@@ -1,3 +1,18 @@
+# 2026-10-08: Student large-nu logLik, log1mexp AD ceiling, Julia NA alignment
+
+Fixed three open bugs on `cursor/triage-e-numeric`.
+
+- #1462: `drm_student_log_density()` keeps the lgamma constant for `nu < 1e4` and uses a three-term Stirling series for `nu >= 1e4`, with `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads that objective. `fitted_distribution()` already uses `stats::dt()`.
+- #1472: `drm_log1mexp()` and `drm_log1p_nonnegative()` clamp each `CppAD::CondExp` branch into the region where that branch is finite. The selected value is unchanged. Cloglog successes at `eta <= -40` and zero-truncated NB2 at `eta_mu <= -38` now have a finite Hessian.
+- #1454: cross-family Julia axes compare kept row indices, including sigma designs. Structured `response = "drop"` drops incomplete rows and errors if a grouping level disappears. q2 structured payloads refuse incomplete modelled columns. `check_drm()` reports the main-route drop count when the bridge recorded one.
+- Portability: package code defines `%||%`, which base R only provides from 4.5.0. `DESCRIPTION` allows R >= 4.1.
+
+Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the related files: 179 tests, 0 failures, 17 skips (live Julia or `NOT_CRAN`), 1488 expectations. New files: `test-student-large-nu.R` (2/23), `test-log1mexp-ad.R` (2/26), `test-julia-missing-alignment.R` (6/20). The first numeric-oracle tweedie case failed only because `{tweedie}` was not installed; after installing it, 19/392 passed. The CondExp enumeration anchor moved from 5/4 to 9/8 in `drm_numeric.h` / `drm_response_kernels.h` and passed.
+
+`R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

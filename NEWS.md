@@ -12,6 +12,35 @@
 
 ## Bug fixes
 
+* `family = student()` no longer reports a log-likelihood above the Gaussian
+  maximum when `nu` is huge. The compiled density evaluates
+  `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,
+  and uses `log1p` for `z^2/nu` (#1462). Moderate `nu` is unchanged. A fit
+  that previously stopped at `nu` around `1e6` or larger can move, because
+  the old objective was rounding noise. `logLik()` reads that objective.
+  `fitted_distribution()` already used `stats::dt()`.
+
+* Binomial cloglog and zero-truncated or hurdle NB2 Hessians stay finite when
+  a success probability or a truncated mean is far below `1e-16` (#1472).
+  The log-likelihood value at those points is unchanged. `drm_log1p_nonnegative()`
+  got the same treatment for a huge argument, which is the kernel used by
+  bivariate Student-t.
+
+* The Julia bridge defines `%||%` itself. Base R only added that operator in
+  4.5.0, and `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
+  diagnostics, and the MSPL link code errored on older R with
+  "could not find function `%||%`". The package definition has the same
+  meaning: the right-hand side only when the left-hand side is `NULL`.
+
+* `engine = "julia"` cross-family fits now refuse missing values that do not
+  fall on the same rows. A length check used to pair row 3 of one response
+  with a different row of the other (#1454). Structured `response = "drop"`
+  fits drop those rows, and error if that would remove a whole grouping
+  level from the covariance. Bivariate q2 structured fits error when a
+  modelled column contains `NA` instead of sending it to Julia. The main
+  bridge records how many rows it dropped, and `check_drm()` reports that
+  count. `response = "include"` is unchanged.
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).

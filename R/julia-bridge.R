@@ -763,6 +763,8 @@ drmTMB_julia_bridge <- function(
   # rows through returns NaN / non-convergence instead of the dropped-case fit
   # native TMB gives. Dropping here also keeps the fit's stored data, nobs, and
   # phylo row_order / species consistent on the complete-case data.
+  # The dropped count is stored on the data and copied onto the fit so
+  # check_drm() can report it (#1454). response = "include" does not drop.
   if (identical(missing_control$response, "drop")) {
     data <- drm_julia_drop_missing_rows(data, formula)
   }
@@ -2950,14 +2952,82 @@ drm_julia_expand_response_columns <- function(response) {
 drm_julia_drop_missing_rows <- function(data, formula, phylo_payload = NULL) {
   needed <- drm_julia_needed_columns(formula, phylo_payload = phylo_payload)
   present <- intersect(needed, names(data))
+  n_input <- nrow(data)
   if (length(present) == 0L) {
+    attr(data, "drm_julia_n_dropped") <- 0L
+    attr(data, "drm_julia_n_input") <- n_input
     return(data)
   }
   keep <- stats::complete.cases(data[, present, drop = FALSE])
-  if (all(keep)) {
+  n_dropped <- sum(!keep)
+  if (n_dropped == 0L) {
+    attr(data, "drm_julia_n_dropped") <- 0L
+    attr(data, "drm_julia_n_input") <- n_input
     return(data)
   }
-  data[keep, , drop = FALSE]
+  out <- data[keep, , drop = FALSE]
+  attr(out, "drm_julia_n_dropped") <- as.integer(n_dropped)
+  attr(out, "drm_julia_n_input") <- as.integer(n_input)
+  out
+}
+
+# Rows the structured bridge may drop under response = "drop" (#1454).
+# A grouping level that disappears would leave the user-supplied covariance
+# aligned to levels the reduced data no longer contains, so that case errors
+# instead of subsetting the matrix.
+drm_julia_drop_structured_missing <- function(data, formula) {
+  terms <- drm_julia_collect_structured_terms(formula)
+  group <- if (length(terms) == 1L) terms[[1L]]$group else NA_character_
+  levels_before <- NULL
+  if (!is.na(group) && group %in% names(data)) {
+    levels_before <- unique(as.character(data[[group]]))
+    levels_before <- levels_before[!is.na(levels_before)]
+  }
+  dropped <- drm_julia_drop_missing_rows(data, formula)
+  if (!is.null(levels_before) && group %in% names(dropped)) {
+    levels_after <- unique(as.character(dropped[[group]]))
+    levels_after <- levels_after[!is.na(levels_after)]
+    lost <- setdiff(levels_before, levels_after)
+    if (length(lost) > 0L) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} structured models cannot drop every row of a grouping level.",
+        x = "{.field {group}} would lose {length(lost)} level{?s}, including {.val {lost[[1L]]}}.",
+        i = "The covariance is aligned to the levels in {.arg data}. Remove that level from the data and from the covariance, or use {.code engine = \"tmb\"}."
+      ))
+    }
+  }
+  dropped
+}
+
+# q2 structured payloads require complete modelled columns (#1454). The bridge
+# already rejects include/impute controls; this checks the data themselves.
+drm_julia_require_complete_rows <- function(data, formula, route) {
+  needed <- drm_julia_needed_columns(formula)
+  present <- intersect(needed, names(data))
+  if (length(present) == 0L) {
+    return(invisible(NULL))
+  }
+  keep <- stats::complete.cases(data[, present, drop = FALSE])
+  if (all(keep)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} {route} require complete responses and predictors.",
+    x = "{sum(!keep)} row{?s} have a missing response or predictor.",
+    i = "Drop those rows before calling {.fn drmTMB}, or use native {.code engine = \"tmb\"} for missing-data routes."
+  ))
+}
+
+drm_julia_missing_rows_slot <- function(data) {
+  n_dropped <- attr(data, "drm_julia_n_dropped", exact = TRUE)
+  if (is.null(n_dropped)) {
+    return(NULL)
+  }
+  n_input <- attr(data, "drm_julia_n_input", exact = TRUE)
+  list(
+    n_dropped = as.integer(n_dropped),
+    n_input = as.integer(if (is.null(n_input)) NA_integer_ else n_input)
+  )
 }
 
 drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
@@ -4651,6 +4721,7 @@ new_drmTMB_julia <- function(
     bic = as.numeric(result[["bic"]]),
     df = as.integer(result[["df"]]),
     nobs = as.integer(result[["nobs"]]),
+    missing_rows = drm_julia_missing_rows_slot(data),
     fitted = drm_julia_plain(result[["fitted"]]),
     conditional_re = drm_julia_conditional_re_plain(result[["conditional_re"]]),
     residuals = drm_julia_plain(result[["residuals"]]),
@@ -7442,6 +7513,14 @@ drmTMB_julia_biv_known_structured_bridge <- function(
       i = "Use {.code missing = miss_control(response = \"drop\", predictor = \"fail\")}, or use native {.code engine = \"tmb\"} for missing-data routes."
     ))
   }
+  # The control gate above accepts the default drop policy. It does not look
+  # at the data, so NA rows used to reach Julia (#1454). This route does not
+  # subset the shared covariance, so incomplete rows are refused.
+  drm_julia_require_complete_rows(
+    data,
+    formula,
+    "bivariate q2 structured models"
+  )
   if (!drm_julia_default_control(control)) {
     drm_julia_abort_nondefault_control(
       route = "bivariate q2 structured models",
@@ -7492,6 +7571,13 @@ drm_julia_biv_known_structured_payload <- function(
   env,
   method = "ML"
 ) {
+  # #1454: the bridge's miss_control gate does not look at the rows. Refuse
+  # here as well so a direct payload call cannot forward NA responses.
+  drm_julia_require_complete_rows(
+    data,
+    formula,
+    "bivariate q2 structured models"
+  )
   if (!identical(family_type, "biv_gaussian")) {
     cli::cli_abort(
       "{.code engine = \"julia\"} bivariate q2 structured payloads require {.fn biv_gaussian}."
@@ -7693,6 +7779,12 @@ drmTMB_julia_structured_bridge <- function(
       "{.code engine = \"julia\"} structured models do not support this {.arg missing} route yet.",
       i = "Supported: {.code response = \"drop\"}, or {.code response = \"include\"} for Gaussian (observed-data fit, tree kept whole). Use {.code engine = \"tmb\"} otherwise."
     ))
+  }
+  # response = "drop" is the supported default, but this route used to forward
+  # data unchanged (#1454). Drop the same complete-case rows as the main
+  # bridge. response = "include" still passes the supplied rows through.
+  if (identical(missing_control$response, "drop")) {
+    data <- drm_julia_drop_structured_missing(data, formula)
   }
   if (!drm_julia_default_control(control)) {
     drm_julia_abort_nondefault_control(
@@ -8174,12 +8266,10 @@ drm_julia_xfam_axes <- function(formula, data, env, tags) {
 
   mu1 <- drm_julia_xfam_axis(entries[[which(dpars == "mu1")]], data, env, "mu1")
   mu2 <- drm_julia_xfam_axis(entries[[which(dpars == "mu2")]], data, env, "mu2")
-  if (length(mu1$y) != length(mu2$y)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family responses must have equal length after dropping missing rows.",
-      x = "{.code mu1} has {length(mu1$y)} complete row{?s}; {.code mu2} has {length(mu2$y)}.",
-      i = "Cross-family fits do not yet support per-axis missingness."
-    ))
+  # Length is not enough (#1454): y1 missing on row 3 and y2 missing on row 7
+  # both leave n - 1 rows, and those rows are different observations.
+  if (!identical(mu1$rows, mu2$rows)) {
+    drm_julia_xfam_abort_row_mismatch("mu1", mu1$rows, "mu2", mu2$rows)
   }
 
   sigma1 <- drm_julia_xfam_sigma(
@@ -8246,14 +8336,11 @@ drm_julia_xfam_sigma <- function(entry, mu, tag, data, env, dpar) {
     stats::delete.response(stats::terms(mf)),
     mf
   )
-  if (nrow(X) != length(mu$y)) {
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family {.code {dpar}} design must align row-for-row with its {.code mu} axis.",
-      x = "{.code {dpar}} has {nrow(X)} complete row{?s}; its {.code mu} axis has {length(mu$y)}.",
-      i = "Cross-family fits do not yet support per-axis missingness."
-    ))
+  rows <- drm_julia_model_frame_rows(mf, nrow(data))
+  if (!identical(rows, mu$rows)) {
+    drm_julia_xfam_abort_row_mismatch(dpar, rows, "mu", mu$rows)
   }
-  list(X = X, coef_names = colnames(X))
+  list(X = X, coef_names = colnames(X), rows = rows)
 }
 
 drm_julia_xfam_axis <- function(entry, data, env, dpar) {
@@ -8282,8 +8369,44 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
     response = entry$response,
     y = y,
     X = X,
-    coef_names = colnames(X)
+    coef_names = colnames(X),
+    rows = drm_julia_model_frame_rows(mf, nrow(data))
   )
+}
+
+# Row positions kept by model.frame(..., na.action = na.omit). The omitted
+# index is into the data passed to model.frame, which is the user's data.
+drm_julia_model_frame_rows <- function(mf, n) {
+  dropped <- attr(mf, "na.action")
+  if (is.null(dropped) || length(dropped) == 0L) {
+    return(seq_len(n))
+  }
+  seq_len(n)[-as.integer(dropped)]
+}
+
+drm_julia_xfam_abort_row_mismatch <- function(left_name, left_rows, right_name, right_rows) {
+  n_compare <- min(length(left_rows), length(right_rows))
+  disagree <- NA_integer_
+  if (n_compare > 0L) {
+    mismatch <- which(left_rows[seq_len(n_compare)] != right_rows[seq_len(n_compare)])
+    if (length(mismatch) > 0L) {
+      disagree <- mismatch[[1L]]
+    }
+  }
+  detail <- if (is.na(disagree)) {
+    "Cross-family fits do not yet support per-axis missingness."
+  } else {
+    paste0(
+      "The kept-row vectors first disagree at position ", disagree,
+      " (row ", left_rows[[disagree]], " versus row ", right_rows[[disagree]],
+      "). Cross-family fits do not yet support per-axis missingness."
+    )
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} cross-family designs must keep the same rows.",
+    x = "{.code {left_name}} kept {length(left_rows)} row{?s}; {.code {right_name}} kept {length(right_rows)}.",
+    i = detail
+  ))
 }
 
 drm_julia_call_xfam <- function(
@@ -8488,6 +8611,10 @@ new_drmTMB_julia_xfam <- function(
     bic = bic,
     df = df,
     nobs = length(axes$mu1$y),
+    missing_rows = list(
+      n_input = nrow(data),
+      n_dropped = as.integer(nrow(data) - length(axes$mu1$rows))
+    ),
     opt = drm_julia_opt_slot(result),
     uncertainty = list(
       status = "unavailable",
