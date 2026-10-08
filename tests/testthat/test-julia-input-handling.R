@@ -1,7 +1,8 @@
 # Regression tests for the Julia-engine input gates (#1450, #1471, #1483).
-# None of these tests install Julia or JuliaCall. A gate that should open
-# is asserted by reaching the JuliaCall requirement, which sits after the
-# weights and control checks. A gate that should stay closed errors first.
+# None of these tests install Julia. A gate that should open is asserted by
+# stopping at the pre-dispatch requirement that sits after the weights and
+# control checks: missing JuliaCall, or a JuliaCall install with no
+# DRModels.jl checkout. A gate that should stay closed errors first.
 
 julia_input_dat <- function() {
   data.frame(y = c(0.2, -0.4, 0.1, 0.8, -0.2, 0.3), x = 1:6)
@@ -15,6 +16,14 @@ julia_gate_message <- function(expr) {
     },
     error = function(e) conditionMessage(e)
   )
+}
+
+# The open gate must get past weights and control and stop before a Julia
+# process starts. CI installs the suggested JuliaCall package and then stops
+# on the missing checkout; a machine without that package stops one step earlier.
+expect_pre_julia_dispatch <- function(message) {
+  expect_false(grepl("NO_ERROR", message, fixed = TRUE))
+  expect_match(message, "JuliaCall|DRModels\\.jl")
 }
 
 test_that("the Julia bridge null-coalesce operator is defined", {
@@ -59,7 +68,7 @@ test_that("engine = julia accepts weights = NULL and still refuses a weight vect
   )) {
     message <- julia_gate_message(eval(expr))
     expect_false(grepl("weights", message, fixed = TRUE))
-    expect_match(message, "JuliaCall")
+    expect_pre_julia_dispatch(message)
   }
 
   # A real weight vector is refused before Julia is loaded. The same flag
@@ -141,7 +150,7 @@ test_that("engine = julia accepts type-equivalent control defaults (#1471)", {
       drmTMB(bf(y ~ x, sigma ~ 1), data = dat, engine = "julia", control = ctrl)
     )
     expect_false(grepl("does not support", message, fixed = TRUE))
-    expect_match(message, "JuliaCall")
+    expect_pre_julia_dispatch(message)
   }
   message <- julia_gate_message(
     drmTMB(

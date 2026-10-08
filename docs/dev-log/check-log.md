@@ -1,3 +1,27 @@
+# 2026-10-08: Julia input gates for weights, control defaults, and Hessian convergence
+
+Fixed three Julia-engine input bugs on branch `cursor/triage-c-bridge-inputs`
+(draft PR #1502). `weights = NULL` is no longer treated as a supplied weight
+vector (#1450). Integer and empty-list spellings of `drm_control()` defaults
+pass the Julia control gate (#1471). `is_converged(include_hessian = TRUE)`
+reads the stored covariance for `drmTMB_julia`, joint fits, and
+`drmTMB_julia_xfam` (#1483). The package now defines `%||%`, which formula
+marshalling and `drm_mspl_link_name()` already called.
+
+No Julia binary was used. `tests/testthat/test-julia-input-handling.R` passed
+92 expectations with JuliaCall absent and again with a local JuliaCall stub
+installed. The 15 `test-missing-response*.R` files passed 1087 expectations
+(1 skip). The 11 mock Julia glue files passed 1211 expectations with a
+JuliaCall namespace stub (0 failures, 0 errors, 12 skips).
+`test-mspl-link-dispatch.R` passed 18 expectations, 0 failures, 0 errors, 0 skips.
+`python3 tools/capability_ledger.py --check` and
+`python3 -m unittest tools/tests/test_capability_ledger.py` passed after
+C17 recertification. Worst `|change|` in `mean_tau_relative_error` was
+1.322e-11 on mc-0569, inside `--tolerance 1e-10`. `source_fingerprint` was
+left at `5ab7a9640a93…`. The full `R CMD check` was not run locally.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-c-bridge-inputs.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing
