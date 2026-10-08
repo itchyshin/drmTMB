@@ -1,3 +1,96 @@
+# 2026-10-08: review of #1503 — scale-free gradient, cbind factors, QQ grid
+
+Code Reviewer blocked #1452 only. The absolute `1e-8` raw-gradient verdict is
+no longer the convergence status. `DRM_NEWTON_GRAD_TOL` stays the Newton-polish
+target. `convergence_status()` returns `"gradient"` when
+`max |sdr$cov.fixed %*% gradient| / SE > 1e-3` (`DRM_GRADIENT_STEP_TOL`), and
+falls back to `max |gradient| > 1e-3` when `sdr$pdHess` is not true. A missing
+`gradient` field is still not a failure. A non-finite gradient still is.
+
+`phase18_attach_convergence_status()` writes that label onto the Phase 18
+replicate summary. `sim_runner.R` still muffles `drmTMB_gradient_warning`.
+Other `inst/sim` files still store optimiser code 0, and
+`bootstrap_refit_one()` (`R/profile.R`) still treats code 0 as converged.
+Both are follow-ups, not this change.
+
+`drm_reject_cbind_response_columns()` evaluates each `cbind()` argument in
+`data` before `model.frame()`, on the binomial and beta-binomial builders and
+on the Julia bridge, including the cross-family axis. A factor or `Date` /
+`POSIXt` column inside `cbind()` aborts. Single-column `Date` / `POSIXt`
+responses abort through `drm_reject_date_response()`.
+
+`drm_adequacy_envelope()` interpolates onto `qnorm(ppoints(min_m))` when
+realizations keep different numbers of finite residuals. Equal-length
+realizations still use the per-rank range.
+
+C17 recertify `--label triage-d --tolerance 1e-10` on the working tree
+against receipt `2026-10-08-silent-inputs`: `|change|` `0` on mc-0568,
+mc-0569, and mc-0576. `source_fingerprint` stayed
+`7ea129715fd4…` because the new text is outside the model-15 anchors.
+`python3 tools/capability_ledger.py --check` passed. Receipt:
+`docs/dev-log/implementation-recovery/2026-10-08-triage-d-c17c2-c14-final-source-compatibility`.
+
+Local tests, `NOT_CRAN=true`: `test-fit-convergence-warning.R` 52 passed,
+`test-factor-response.R` 31 passed, `test-quantile-residual-nonfinite.R`
+24 passed, `test-phase18-sim-runner.R` 76 passed,
+`test-binomial-response.R` 60 passed, `test-adequacy.R` 23 passed.
+0 failed.
+
+Report: `docs/dev-log/after-task/2026-10-08-review-scale-free-gradient.md`.
+
+# 2026-10-08: silent inputs and convergence honesty (#1481, #1460, #1452)
+
+One draft branch, `cursor/triage-d-silent-inputs`. No open PR already covered
+these three issues (pilot #1500 is #1241 and #1480 only).
+
+#1481: `drm_reject_factor_response()` aborts a factor or ordered-factor response
+before `as.numeric()` / `round()` / `is.finite()`. Applied to Gaussian,
+Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta,
+Poisson, nbinom2, truncated nbinom2 (including the hurdle route),
+`biv_gaussian`, `biv_lognormal`, `biv_student`, the Julia bridge payload,
+both structured Julia data routes, and the cross-family Julia axis.
+`cumulative_logit()` is exempt. Binomial already refused. Character columns
+are still coerced.
+
+#1460: `drm_quantile_residual_qq_from_matrix()` still drops non-finite quantile
+residuals from the order statistics, and now warns with class
+`drmTMB_quantile_residual_warning`, records
+`n_nonfinite_quantile_residuals`, and repeats the count in the qq/worm
+subtitle. Missing-response `NA` is not in the count. Finite plotted points
+are unchanged. Clamping was rejected because it would move every theoretical
+quantile.
+
+#1452: `convergence_status()` returns `"gradient"` and `is_converged()` is
+`FALSE` when the stored gradient is non-finite or its largest absolute
+component exceeds `DRM_NEWTON_GRAD_TOL` (`1e-8`). The field is read with
+`[[` so `gradient_max_component` cannot partial-match a missing `gradient`.
+A failed `obj$gr()` stores `NA_real_` rather than `NULL`. Fit time warns
+with class `drmTMB_gradient_warning` and names the largest component.
+Newton steps and coefficients are unchanged. Julia `is_converged` methods
+still use only the optimizer code (#1483).
+
+Local suite, `NOT_CRAN=true`, ggplot2 installed, OpenBLAS threads 1.
+Thirty-nine test files: 4950 expectations passed, 0 failed, 6 skipped, 19
+errors, all 19 errors in `test-julia-diagnostics.R` (`could not find function
+"%||%"` inside pre-existing `new_drmTMB_julia()`, line not in this diff).
+Re-ran adequacy with the tweedie package visible: 23 passed, 0 skipped, 0
+warnings. Factor-response file after the Julia guard test: 24 passed.
+C17 recertify on `ac0491e40` with `--tolerance 2e-11`: mc-0568 `|change|`
+`3.030e-12`, mc-0569 `1.322e-11`, mc-0576 `5.263e-12`.
+`python3 tools/capability_ledger.py --check` passed. Receipt:
+`docs/dev-log/implementation-recovery/2026-10-08-silent-inputs-c17c2-c14-final-source-compatibility`.
+
+CI run 37707949545 failed on shards 2/4 and 4/4: Phase 18 failure
+ledgers counted `drmTMB_gradient_warning` as a replicate failure
+(`test-phase18-biv-gaussian-q6-location.R`,
+`test-phase18-biv-gaussian-q8-endpoint.R`,
+`test-phase18-animal-relmat-q4-grid-writer.R`). Shards 1/4 and 3/4 and
+the source-tree job passed. `inst/sim/R/sim_runner.R` now ignores that
+class the same way it ignores `drmTMB_convergence_warning`.
+`test-phase18-sim-runner.R`: 72 passed, 0 failed.
+
+Report: `docs/dev-log/after-task/2026-10-08-silent-inputs-convergence-honesty.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

@@ -721,6 +721,14 @@ drm_fit_spec <- function(
     estimator = spec$estimator
   )
   sdr <- uncertainty$sdr
+  # After sdreport, so the warning can use `sdr$cov.fixed`. The polish
+  # tolerance stays `1e-8`; the warning uses the scale-free Newton step.
+  drm_warn_if_gradient_not_stationary(
+    fit_gradient$gradient,
+    fit_gradient$max_component,
+    newton_polish = isTRUE(control$newton_polish),
+    cov_fixed = drm_stationarity_covariance(sdr)
+  )
   # sdreport() can leave the mutable full parameter vector at a Hessian
   # perturbation. Use the selected pre-SE state for random/marginalized entries;
   # parList still takes fixed parameters from opt$par and does not mutate obj.
@@ -1116,7 +1124,22 @@ drm_optimize_with_preset_retry <- function(
 # would bias a profile-likelihood comparison between the two (#1130 CI
 # follow-up): the polished side reaches a lower nll for free, which the
 # unpolished side cannot match, artificially narrowing the interval.
-drm_newton_polish <- function(opt, fn, gr, grad_tol = 1e-8, max_iter = 3L) {
+#
+# `DRM_NEWTON_GRAD_TOL` is only the target this polish aims for. It is not
+# the convergence verdict. A raw gradient of `1e-8` is not scale-free: a
+# predictor rescaled by 1000, or an uncentred year, can sit well above it at
+# a true optimum, and `newton_polish = FALSE` then flags every clean fit.
+# `convergence_status()` / `is_converged()` instead flag a Newton step larger
+# than `DRM_GRADIENT_STEP_TOL` in standard-error units (#1452). A failed
+# polish still returns the unpolished `opt` with nlminb's code unchanged.
+DRM_NEWTON_GRAD_TOL <- 1e-8
+
+# Flag when the Newton step `cov.fixed %*% gradient`, divided by the
+# parameter's standard error, exceeds this value. The same number is the
+# absolute-gradient fallback when no usable Hessian is stored.
+DRM_GRADIENT_STEP_TOL <- 1e-3
+
+drm_newton_polish <- function(opt, fn, gr, grad_tol = DRM_NEWTON_GRAD_TOL, max_iter = 3L) {
   par <- opt$par
   grad <- tryCatch(as.numeric(gr(par)), error = function(e) NULL)
   if (is.null(grad) || !all(is.finite(grad))) {
@@ -3476,6 +3499,12 @@ drm_fit_gradient <- function(obj, opt) {
     error = function(e) NULL
   )
   if (is.null(gradient) || !all(is.finite(gradient))) {
+    # Store NA rather than NULL when the gradient call errors, so a later
+    # status check can tell "evaluated and unusable" from "field absent"
+    # on a hand-built or older fit object (#1452).
+    if (is.null(gradient)) {
+      gradient <- NA_real_
+    }
     return(list(gradient = gradient, max_component = NA_character_))
   }
   names(gradient) <- names(opt$par)
@@ -3506,6 +3535,75 @@ drm_convergence_label <- function(convergence, message = NULL) {
   } else {
     sprintf("optimizer reported non-convergence (code %s)", convergence)
   }
+}
+
+# Warn when the stored gradient fails the scale-free stationarity check, or
+# is not finite. nlminb code 0 includes relative and X convergence, which can
+# stop away from a stationary point (#1452). `1e-8` remains the polish
+# target only; this warning uses the Newton step in SE units.
+drm_warn_if_gradient_not_stationary <- function(
+  gradient,
+  max_component = NA_character_,
+  newton_polish = TRUE,
+  cov_fixed = NULL,
+  tol = DRM_GRADIENT_STEP_TOL
+) {
+  decision <- drm_gradient_stationarity(gradient, cov_fixed = cov_fixed, tol = tol)
+  if (!isTRUE(decision$flag)) {
+    return(invisible(FALSE))
+  }
+  component <- drm_gradient_component_label(
+    gradient,
+    decision$index,
+    max_component
+  )
+  if (identical(decision$scale, "nonfinite")) {
+    cli::cli_warn(
+      c(
+        "{.fn drmTMB}: the fixed-effect gradient at the reported optimum is not finite.",
+        "i" = "Optimizer code 0 does not mean the fit is stationary. {.fn is_converged} is FALSE. Inspect {.code fit$gradient}."
+      ),
+      class = "drmTMB_gradient_warning"
+    )
+    return(invisible(TRUE))
+  }
+  measure <- format(decision$measure, digits = 3, scientific = TRUE)
+  if (identical(decision$scale, "se")) {
+    cli::cli_warn(
+      c(
+        "{.fn drmTMB}: the Newton step at the reported optimum is {measure} standard errors (largest component is {.val {component}}).",
+        "i" = "The flag is a step above {tol} SE, from max |{.code sdr$cov.fixed %*% gradient}| / SE. {.fn is_converged} is FALSE. Newton polish still targets a raw gradient of {DRM_NEWTON_GRAD_TOL}."
+      ),
+      class = "drmTMB_gradient_warning"
+    )
+    return(invisible(TRUE))
+  }
+  cli::cli_warn(
+    c(
+      "{.fn drmTMB}: no usable fixed-effect Hessian is stored, and the largest |gradient| is {measure} (component {.val {component}}).",
+      "i" = "Without a Hessian the flag is an absolute gradient above {tol}. {.fn is_converged} is FALSE."
+    ),
+    class = "drmTMB_gradient_warning"
+  )
+  invisible(TRUE)
+}
+
+drm_gradient_component_label <- function(gradient, index, fallback) {
+  if (is.numeric(index) && length(index) == 1L && !is.na(index)) {
+    nm <- names(gradient)
+    if (!is.null(nm) && index >= 1L && index <= length(nm) && nzchar(nm[[index]])) {
+      return(nm[[index]])
+    }
+  }
+  if (
+    is.character(fallback) &&
+      length(fallback) == 1L &&
+      !is.na(fallback) &&
+      nzchar(fallback)
+  ) {
+    return(fallback)
+  }
+  "unknown"
 }
 
 # Warn at fit time when the optimizer did not converge, so a non-converged fit
@@ -4207,6 +4305,7 @@ drm_build_gaussian_ls_spec <- function(
     }
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Gaussian")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && any(!observed_y)) {
@@ -4833,6 +4932,7 @@ drm_build_student_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Student-t")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
@@ -5154,6 +5254,7 @@ drm_build_skew_normal_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "skew-normal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -5466,6 +5567,7 @@ drm_build_lognormal_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Lognormal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -5811,6 +5913,7 @@ drm_build_gamma_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Gamma")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -6108,6 +6211,7 @@ drm_build_tweedie_ls_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Tweedie")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -6470,6 +6574,7 @@ drm_build_beta_ls_spec <- function(
     na.action = stats::na.omit
   )
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "Beta")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (!is.null(dim(y))) {
@@ -7036,6 +7141,7 @@ drm_build_zero_one_beta_spec <- function(
     na.action = stats::na.omit
   )
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Zero-one beta")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
@@ -7321,6 +7427,7 @@ drm_build_beta_binomial_spec <- function(
     nrow(data),
     sum(keep)
   )
+  drm_reject_cbind_response_columns(mu_entry$lhs, data, "Beta-binomial")
 
   mf_mu <- stats::model.frame(
     f_mu,
@@ -7623,6 +7730,7 @@ drm_build_binomial_spec <- function(
     nrow(data),
     sum(keep)
   )
+  drm_reject_cbind_response_columns(mu_entry$lhs, data, "Binomial")
 
   mf_mu <- stats::model.frame(
     f_mu,
@@ -8268,6 +8376,7 @@ drm_build_poisson_spec <- function(
     NULL
   }
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "Poisson")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y) == 0L) {
@@ -8815,6 +8924,7 @@ drm_build_nbinom2_spec <- function(
     NULL
   }
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "nbinom2")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -9248,6 +9358,7 @@ drm_build_truncated_nbinom2_spec <- function(
     NULL
   }
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "truncated nbinom2")
 
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -9856,6 +9967,8 @@ drm_build_biv_gaussian_spec <- function(
 
   y1_raw <- stats::model.response(mf_mu1)
   y2_raw <- stats::model.response(mf_mu2)
+  drm_reject_factor_response(y1_raw, mu1_entry$response, "biv_gaussian")
+  drm_reject_factor_response(y2_raw, mu2_entry$response, "biv_gaussian")
   observed_y1 <- !is.na(y1_raw)
   observed_y2 <- !is.na(y2_raw)
   if (!include_missing_response && any(!observed_y1 | !observed_y2)) {
@@ -10141,6 +10254,13 @@ drm_build_biv_lognormal_spec <- function(
   response_names <- vapply(response_entries, `[[`, character(1), "response")
   if (all(response_names %in% names(data))) {
     responses <- lapply(response_names, function(name) data[[name]])
+    for (i in seq_along(responses)) {
+      drm_reject_factor_response(
+        responses[[i]],
+        response_names[[i]],
+        "biv_lognormal"
+      )
+    }
     if (any(vapply(responses, function(y) any(!is.finite(y) | is.na(y)), logical(1L)))) {
       cli::cli_abort(
         "{.fn biv_lognormal} currently requires complete, finite response pairs."
@@ -10251,6 +10371,13 @@ drm_build_biv_student_spec <- function(
   response_names <- vapply(response_entries, `[[`, character(1L), "response")
   if (all(response_names %in% names(data))) {
     responses <- lapply(response_names, function(name) data[[name]])
+    for (i in seq_along(responses)) {
+      drm_reject_factor_response(
+        responses[[i]],
+        response_names[[i]],
+        "biv_student"
+      )
+    }
     if (
       any(vapply(
         responses,
@@ -17872,6 +17999,64 @@ is_diagonal_known_v <- function(value) {
   !any(abs(off_diag) > sqrt(.Machine$double.eps))
 }
 
+# Factor and ordered-factor columns store integer level codes. `as.numeric()`
+# on those codes is not the measurement (labels "3", "7", "12" become 1, 2, 3).
+# `is.finite()` is TRUE for those codes, so a later finite-value check does not
+# catch them. Date and POSIXt columns likewise become day or second counts
+# under `as.numeric()`. Binomial already refuses a bare factor response.
+# Continuous and count builders must refuse here, before `is.finite()`,
+# `round()`, or `as.numeric()`, which otherwise fit the codes or throw an
+# unrelated base-R error. `cumulative_logit()` requires an ordered response
+# and must not call this.
+drm_reject_factor_response <- function(y, response, family) {
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "{family} response values must be numeric, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+    ))
+  }
+  drm_reject_date_response(y, response, family)
+}
+
+drm_reject_date_response <- function(y, response, family) {
+  if (!(inherits(y, "Date") || inherits(y, "POSIXt"))) {
+    return(invisible(y))
+  }
+  cli::cli_abort(c(
+    "{family} response values must be numeric, not a date or time.",
+    "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+    "i" = "Date and time columns are not on the model's scale. Convert the column to a numeric response yourself (for example days or years) before fitting."
+  ))
+}
+
+# `cbind()` turns a factor or date column into numbers before
+# `prepare_binomial_response()` sees the matrix. Evaluate each argument of
+# the formula's `cbind()` call in `data`, where the column still has its
+# class, and reject those columns (#1481).
+drm_reject_cbind_response_columns <- function(lhs, data, family) {
+  if (is.character(lhs) && length(lhs) == 1L && grepl("^cbind\\(", lhs)) {
+    lhs <- str2lang(lhs)
+  }
+  lhs <- strip_parens(lhs)
+  if (!is_cbind_lhs(lhs)) {
+    return(invisible(NULL))
+  }
+  args <- as.list(lhs)[-1L]
+  for (arg in args) {
+    value <- tryCatch(
+      eval(arg, envir = data, enclos = baseenv()),
+      error = function(e) NULL
+    )
+    if (is.null(value)) {
+      next
+    }
+    label <- paste(deparse(arg), collapse = " ")
+    drm_reject_factor_response(value, label, family)
+  }
+  invisible(NULL)
+}
+
 prepare_zero_one_beta_response <- function(y, response) {
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -17998,6 +18183,7 @@ prepare_binomial_response <- function(y, response, has_weights = FALSE) {
     ))
   }
 
+  drm_reject_date_response(y, response, "Binomial")
   if (is.factor(y)) {
     cli::cli_abort(c(
       "Binomial response values must be explicit 0/1 data, not a factor.",

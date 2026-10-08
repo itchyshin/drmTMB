@@ -267,8 +267,30 @@ drm_reset_adequacy_warning_state <- function() {
 # the plot draws.
 drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L, response = NULL) {
   z <- drm_quantile_residuals(object, seed = seed, nsim = nsim, response = response)
+  drm_quantile_residual_qq_from_matrix(z)
+}
+
+# Order statistics for one matrix of quantile residuals (columns are
+# realizations). Non-finite entries are qnorm(u) at u = 0 or 1. They stay
+# out of the order statistics, because including them would move every
+# theoretical quantile, but the omission is counted and warned (#1460).
+# Missing-response NA rows are excluded from that count.
+drm_quantile_residual_qq_from_matrix <- function(z) {
   if (is.null(dim(z))) {
     z <- matrix(z, ncol = 1L)
+  }
+  n_nonfinite <- sum(vapply(seq_len(ncol(z)), function(j) {
+    col <- z[, j]
+    sum(!is.na(col) & !is.finite(col))
+  }, integer(1L)))
+  if (n_nonfinite > 0L) {
+    cli::cli_warn(
+      c(
+        "{n_nonfinite} non-finite quantile residual{?s} ({.code -Inf} or {.code Inf}, from {.code u} at 0 or 1) {?was/were} omitted from this QQ or worm plot.",
+        "i" = "These are the strongest misfit points. The plot and its theoretical quantiles use only the remaining finite residuals. Missing-response {.code NA} rows are not included in this count."
+      ),
+      class = "drmTMB_quantile_residual_warning"
+    )
   }
   cols <- lapply(seq_len(ncol(z)), function(j) {
     zz <- sort(z[is.finite(z[, j]), j])
@@ -282,22 +304,58 @@ drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L, respon
   })
   out <- do.call(rbind, cols)
   out$deviation <- out$sample - out$theoretical
+  attr(out, "n_nonfinite_quantile_residuals") <- n_nonfinite
   out
 }
 
-# Per-rank [min, max] envelope across realizations, for the "value" column
-# ("sample" for qq_plot(), "deviation" for worm_plot()). Degenerates to a
-# zero-width band when every realization is identical (continuous, atom-free
-# families; nsim == 1).
+# [min, max] envelope across realizations, for the "value" column ("sample"
+# for qq_plot(), "deviation" for worm_plot()). Degenerates to a zero-width
+# band when every realization is identical (continuous, atom-free families;
+# nsim == 1).
+#
+# Each realization already carries its own theoretical quantiles. When every
+# realization keeps the same number of finite residuals, those quantiles
+# agree at each rank, and the envelope is the per-rank range. When they
+# differ, rank alignment would borrow the first realization's theoretical
+# quantiles for a shorter or longer vector (#1460). The envelope is then
+# interpolated onto the shortest realization's theoretical grid, which lies
+# inside every longer realization, so each simulation is compared through
+# its own quantiles.
 drm_adequacy_envelope <- function(data, value) {
-  by_rank <- split(data[[value]], data$rank)
-  theoretical_by_rank <- split(data$theoretical, data$rank)
-  ranks <- as.integer(names(by_rank))
-  out <- data.frame(
-    rank = ranks,
-    theoretical = vapply(theoretical_by_rank, `[`, numeric(1), 1L),
-    ymin = vapply(by_rank, min, numeric(1)),
-    ymax = vapply(by_rank, max, numeric(1))
+  sims <- split(data, data$sim)
+  n_finite <- vapply(sims, nrow, integer(1L))
+  if (length(sims) == 0L || length(unique(n_finite)) == 1L || min(n_finite) < 2L) {
+    by_rank <- split(data[[value]], data$rank)
+    theoretical_by_rank <- split(data$theoretical, data$rank)
+    ranks <- as.integer(names(by_rank))
+    out <- data.frame(
+      rank = ranks,
+      theoretical = vapply(theoretical_by_rank, function(x) {
+        if (length(unique(x)) == 1L) x[[1L]] else NA_real_
+      }, numeric(1)),
+      ymin = vapply(by_rank, min, numeric(1)),
+      ymax = vapply(by_rank, max, numeric(1))
+    )
+    return(out[order(out$rank), , drop = FALSE])
+  }
+  m <- min(n_finite)
+  grid <- stats::qnorm(stats::ppoints(m))
+  columns <- lapply(sims, function(sim) {
+    stats::approx(
+      x = sim$theoretical,
+      y = sim[[value]],
+      xout = grid,
+      rule = 1
+    )$y
+  })
+  mat <- do.call(cbind, columns)
+  keep <- apply(mat, 1L, function(row) all(is.finite(row)))
+  mat <- mat[keep, , drop = FALSE]
+  grid <- grid[keep]
+  data.frame(
+    rank = seq_along(grid),
+    theoretical = grid,
+    ymin = apply(mat, 1L, min),
+    ymax = apply(mat, 1L, max)
   )
-  out[order(out$rank), , drop = FALSE]
 }

@@ -75,7 +75,15 @@ test_that("GAMLSS-Primer Fig-4c: a location-only fit to heteroscedastic gaussian
   # statistic table worm_plot() draws from, so the assertion is about
   # exactly what the plot shows.
   qd_true <- drm_quantile_residual_qq_data(fit_true)
-  qd_mis <- drm_quantile_residual_qq_data(fit_mis)
+  # The location-only fit puts at least one Gaussian quantile residual at
+  # +/-Inf (u at 0 or 1). That point is the misfit the plot must not hide
+  # (#1460); the finite order statistics used below are unchanged.
+  qd_mis <- NULL
+  expect_warning(
+    qd_mis <- drm_quantile_residual_qq_data(fit_mis),
+    class = "drmTMB_quantile_residual_warning"
+  )
+  expect_gte(attr(qd_mis, "n_nonfinite_quantile_residuals"), 1L)
   r2 <- function(qd) {
     fit_lm <- stats::lm(
       deviation ~ poly(theoretical, 3, raw = TRUE),
