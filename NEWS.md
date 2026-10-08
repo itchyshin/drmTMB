@@ -75,18 +75,23 @@
   columns, below the 1e-10 QR tolerance, still fit and stay visible to
   `check_drm()` (Fixes #1470).
 
-* Negative-binomial, beta, and Student-t fits that reach a simpler-family
-  limit now say so. A coefficient whose design column is nonzero only on
-  rows with `sigma^2 < 0.001` (NB2 or beta; precision or size above 1000)
-  or Student-t `nu > 1000` keeps its point estimate, but `summary()` sets
-  that Wald standard error to `NA`, `confint()` sets `conf.status` to
-  `boundary_limit` with missing endpoints, and `check_drm()` adds a
+* Negative-binomial and Student-t fits that reach a simpler-family limit
+  now say so. For NB2 and its variants the limit is the extra-Poisson
+  variance `mu * sigma^2` below 0.001, evaluated at the fitted `mu`, not an
+  absolute `sigma^2` cutoff. Student-t `nu > 1000` stays, because `nu` is
+  dimensionless. Beta, beta-binomial, and zero-one-beta are not flagged.
+  A coefficient whose design column is nonzero only on those rows keeps its
+  point estimate, but `summary()` sets that Wald standard error to `NA`.
+  Wald `confint()` sets `conf.status` to `boundary_limit`,
+  `interval_source` to `not_available`, and the endpoints to `NA`. Profile
+  and bootstrap intervals are not blanked. `check_drm()` adds a
   `dispersion_boundary` warning. `print()` states the limit without
   warning. `vcov()` still returns the raw covariance. This is a behaviour
   change for those boundary fits: a finite Wald standard error is no
   longer printed as if it were usable. Gaussian, gamma, lognormal, and
-  Tweedie `sigma` are not flagged. The Julia-engine summary is not yet
-  blanked (Fixes #1496).
+  Tweedie `sigma` are not flagged. The Julia-engine `summary()` and
+  `check_drm()` still do not blank these standard errors; that is a
+  follow-up (Fixes #1496).
 
 * `check_drm()`'s `hessian_conditioning` note now uses the correlation-scaled
   condition number of `sdr$cov.fixed` when every diagonal entry is positive.
