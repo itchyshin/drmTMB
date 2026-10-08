@@ -12,11 +12,15 @@ the covariance, not only the optimizer code.
 
 ## Implemented
 
-`drmTMB()` now sets `weights_missing` with `drm_julia_weights_absent()`.
-A missing argument and an evaluated `NULL` both count as no weights. An
-expression that cannot be evaluated still counts as supplied, so the
-weights refusal runs before Julia starts. The native TMB path still uses
-`missing(weights)` only to capture `substitute(weights)` for the TMB data.
+`drmTMB()` captures `substitute(weights)` and passes that expression to
+`drm_julia_weights_absent()`. The helper evaluates it in `data` and then in
+the caller, the same order as `evaluate_likelihood_weights_arg()`. A column
+named `w` therefore counts as weights even when the caller has `w <- NULL`,
+and the Julia engine refuses that call. A missing argument, a literal
+`NULL`, and a symbol that evaluates to `NULL` with no such column still
+mean no weights. An expression that cannot be evaluated still counts as
+supplied, so the weights refusal runs before Julia starts. The native TMB
+path still uses `missing(weights)` only to capture `substitute(weights)`.
 
 The Julia control comparison uses exact numeric equality after
 `as.numeric()`, so `3L` matches `3` and `c(-12L, 12L)` matches
@@ -33,9 +37,19 @@ the native method. The default call still reports optimizer code 0 only.
 method. A missing or non-positive-definite covariance returns `FALSE`.
 
 `%||%` is defined in `R/zzz.R` as `if (is.null(x)) y else x`. Formula
-marshalling and `drm_mspl_link_name()` already called it. Without the
-definition, an open weights or control gate died with
-`could not find function "%||%"` before the JuliaCall check.
+marshalling and `drm_mspl_link_name()` already called it. Base R has defined
+`%||%` since 4.4.0, so the missing package definition only affected R before
+4.4. Without the definition, an open weights or control gate on those
+versions died with `could not find function "%||%"` before the JuliaCall
+check.
+
+`check_drm()` reads the Julia covariance with the same `chol()` test.
+`check_julia_bridge_covariance()` downgrades an otherwise `ok` row to a
+warning when `drm_julia_vcov_positive_definite()` is not true, and it
+records `positive_definite=FALSE`. A matrix with a positive diagonal that
+fails `chol()` warns on `bridge_covariance` and leaves the standard-error
+row ok. The engine-control claim now says the gate matches numeric defaults
+after `as.numeric()` and treats `start = list()` as no start.
 
 ## Mathematical Contract
 
@@ -183,8 +197,34 @@ with optimizer code 0 and a bad covariance still returns `TRUE` under the
 default. Cross-family objects store no `vcov`, so
 `include_hessian = TRUE` returns `FALSE` for them.
 
+## Review repair
+
+The first weights gate evaluated `weights` in the caller only. With a data
+column `w` and a global `w <- NULL`, `engine = "julia"` treated the call as
+unweighted. `engine = "tmb"` used the column, and main refused the Julia
+call. `substitute(weights)` now runs inside `drmTMB()`, and
+`drm_julia_weights_absent()` evaluates that expression in `data`, then the
+caller enclosure. `tests/testthat/test-julia-input-handling.R` covers that
+case and expects the weights refusal.
+
+Local re-run on R 4.3.3 with Julia absent:
+`test-julia-input-handling.R` passed 101 expectations,
+`test-julia-diagnostics.R` passed 135 (2 skips), and
+`test-julia-gate-vs-engine.R` passed 154. None failed or errored.
+
+The second C17 run, label `triage-c-bridge-weights`, compared the new
+`R/drmTMB.R` blob with the 2026-10-08 receipt. `|change|` was 0.000e+00 on
+mc-0568, mc-0569, and mc-0576, inside `--tolerance 1e-10`. The claim note
+records that the earlier ~1e-11 drift versus the 2026-09-26 receipt (worst
+1.322e-11 on mc-0569) already exists on main `75845a3d`. That is why the
+tolerance is `1e-10`. `source_fingerprint` stayed
+`5ab7a9640a9356b872086acc15fc431b839e9c2b710d7afe7ff667efb0fad61c`.
+`python3 tools/capability_ledger.py --check` passed after the claim append,
+and `python3 -m unittest tools/tests/test_capability_ledger.py` passed
+(80 tests).
+
 ## Next Actions
 
-Watch the draft PR's `R CMD check`. Do not merge it from this task, and do
-not close the three issues until that check is green and a reviewer accepts
-the behaviour changes above.
+Watch the draft PR's `R CMD check` after this repair. Do not merge it from
+this task, and do not close the three issues until that check is green and
+a reviewer accepts the behaviour changes above.

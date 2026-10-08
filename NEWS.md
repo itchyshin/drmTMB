@@ -50,6 +50,9 @@
   native fits. `is_converged(fit)` without `include_hessian` is unchanged.
   Previously the Julia methods ignored `include_hessian` and could return
   `TRUE` when the covariance was not positive definite (#1483).
+  `check_drm()` uses that same `chol()` test on the Julia
+  `bridge_covariance` row: a finite covariance that is not positive
+  definite is a warning, including a matrix whose diagonal is positive.
 
 * `profile()` and `confint(method = "profile")` no longer keep the full
   fixed-parameter vector for every objective evaluation of a full
