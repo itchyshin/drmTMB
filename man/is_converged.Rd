@@ -17,8 +17,10 @@ is_converged(object, ...)
 
 \item{...}{Reserved for future convergence options.}
 
-\item{include_hessian}{Logical; require a positive-definite
-\code{\link[TMB:sdreport]{TMB::sdreport()}} Hessian in addition to optimizer convergence.}
+\item{include_hessian}{Logical; require a positive-definite Hessian
+in addition to optimizer convergence. Native fits read
+\code{\link[TMB:sdreport]{TMB::sdreport()}} \code{pdHess}. Julia-engine fits require a finite
+positive-definite coefficient covariance from \code{vcov()}.}
 }
 \value{
 A single logical value.
@@ -35,10 +37,15 @@ uncertainty diagnostics are degenerate; use \code{\link[=check_drm]{check_drm()}
 }
 \details{
 Set \code{include_hessian = TRUE} when the next step needs Wald-style
-uncertainty. In that mode, \code{is_converged()} also requires successful
-\code{\link[TMB:sdreport]{TMB::sdreport()}} output with \code{pdHess = TRUE} on top of the default
-\code{\link[=convergence_status]{convergence_status()}} requirements. A fit can therefore be \code{"converged"} while
-still returning \code{FALSE} with \code{include_hessian = TRUE}; this marks an
+uncertainty. In that mode, \code{is_converged()} also requires a
+positive-definite Hessian on top of the default
+\code{\link[=convergence_status]{convergence_status()}} requirements. A native fit reads
+\code{\link[TMB:sdreport]{TMB::sdreport()}} \code{pdHess}. An \code{engine = "julia"} fit has no
+\code{sdreport} object; it requires the coefficient covariance stored on the
+fit (\code{vcov()}) to be finite and positive definite. A legacy cross-family
+Julia fit does not store that covariance, so \code{include_hessian = TRUE}
+returns \code{FALSE}. A fit can therefore be \code{"converged"} while still
+returning \code{FALSE} with \code{include_hessian = TRUE}; this marks an
 inference-readiness problem, not automatic proof that point estimates are
 unusable.
 

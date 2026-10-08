@@ -1,3 +1,10 @@
+# Null-coalescing operator already used by the Julia bridge and the MSPL
+# link code. It was called without a definition, so formula marshalling
+# aborted with "could not find function `%||%`" before JuliaCall.
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
 .onLoad <- function(libname, pkgname) {
   if (requireNamespace("emmeans", quietly = TRUE)) {
     emmeans::.emm_register("drmTMB", pkgname)
