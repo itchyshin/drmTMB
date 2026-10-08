@@ -1,3 +1,30 @@
+# 2026-10-08: Review repair for Julia weights evaluation and covariance checks
+
+Code review blocked draft PR #1502 on the weights gate. `weights = w` is now
+evaluated in `data` and then in the caller, the same order
+`evaluate_likelihood_weights_arg()` uses. A data column `w` is refused for
+`engine = "julia"` even when a global `w` is `NULL`. `check_drm()` warns on
+the Julia `bridge_covariance` row when `chol()` fails, matching
+`is_converged(include_hessian = TRUE)`. The engine-control claim no longer
+says the gate uses `identical()`.
+
+`tools/recertify-c17.py --label triage-c-bridge-weights --tolerance 1e-10`
+reproduced model 15 with `|change|` 0.000e+00 on mc-0568, mc-0569, and
+mc-0576 versus the earlier 2026-10-08 receipt. The claim records that the
+~1e-11 drift versus the 2026-09-26 receipt (worst 1.322e-11 on mc-0569)
+already exists on main `75845a3d`, which is why `--tolerance 1e-10` was used.
+`source_fingerprint` stayed `5ab7a9640a93…`.
+`python3 tools/capability_ledger.py --check` passed, and
+`python3 -m unittest tools/tests/test_capability_ledger.py` passed (80 tests).
+
+Local re-run on R 4.3.3, Julia absent: `test-julia-input-handling.R`
+passed 101 expectations (0 failed, 0 errors, 0 skipped);
+`test-julia-diagnostics.R` passed 135 (0 failed, 0 errors, 2 skipped);
+`test-julia-gate-vs-engine.R` passed 154 (0 failed, 0 errors, 0 skipped).
+The full `R CMD check` is the pull-request CI job, not a local run.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-c-bridge-inputs.md`.
+
 # 2026-10-08: Julia input gates for weights, control defaults, and Hessian convergence
 
 Fixed three Julia-engine input bugs on branch `cursor/triage-c-bridge-inputs`
