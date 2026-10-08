@@ -328,12 +328,20 @@ drmTMB <- function(
         "{.arg penalty} is not supported with {.code engine = \"julia\"} yet."
       )
     }
+    # Same data-then-caller evaluation as the native weights path.
+    # substitute() must run here: inside the helper it would see this
+    # argument, not the caller's expression.
+    weights_expr <- if (base::missing(weights)) NULL else substitute(weights)
     return(drmTMB_julia_bridge(
       formula = formula,
       family = family,
       data = data,
       env = formula_env,
-      weights_missing = drm_julia_weights_absent(weights),
+      weights_missing = drm_julia_weights_absent(
+        weights_expr,
+        data = data,
+        env = parent.frame()
+      ),
       control = control,
       impute = impute,
       missing = missing,

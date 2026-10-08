@@ -13,17 +13,23 @@
 ## Bug fixes
 
 * `engine = "julia"` formula marshalling no longer stops with
-  `could not find function "%||%"` before Julia is started. The bridge and
-  the MSPL link code already called that operator; it is now defined.
-  `NULL %||% x` is `x`, and any other left-hand value is kept.
+  `could not find function "%||%"`. Base R has defined `%||%` since 4.4.0,
+  so the missing package definition only affected R before 4.4. The bridge
+  and the MSPL link code already called that operator; the package now
+  defines it for those versions. `NULL %||% x` is `x`, and any other
+  left-hand value, including an empty vector, is kept.
 
 * `engine = "julia"` accepts `weights = NULL`, including when a wrapper
-  forwards its own `weights = NULL` argument. That value is the formal
-  default and means no weights, on the ordinary, structured, bivariate q2
-  structured, cross-family, and joint missing-predictor routes. A non-NULL
-  weight vector is still refused before Julia starts. Previously any
-  supplied `weights` argument, including `NULL`, aborted with "does not
-  support weights yet" (#1450).
+  forwards its own `weights = NULL` argument. The weights expression is
+  evaluated in `data` and then in the caller, the same order the native
+  engine uses. A column therefore wins over a same-named `NULL` in the
+  caller: `weights = w` is refused when `data` has a column `w`, even if a
+  global `w` is `NULL`. A missing argument, a literal `NULL`, and a symbol
+  that evaluates to `NULL` with no such column still mean no weights, on
+  the ordinary, structured, bivariate q2 structured, cross-family, and
+  joint missing-predictor routes. A non-NULL weight vector is still refused
+  before Julia starts. Previously any supplied `weights` argument, including
+  `NULL`, aborted with "does not support weights yet" (#1450).
 
 * `engine = "julia"` treats a `drm_control()` setting as unchanged when
   its value equals the default. `logsigma_clamp_margin = 3L`,
