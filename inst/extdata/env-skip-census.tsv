@@ -60,6 +60,7 @@ test-comparators-external-oracle.R	suggests-package	environment	runs	7
 test-comparators-phase19.R	suggests-package	environment	runs	12
 test-comparators.R	suggests-package	environment	runs	18
 test-control.R	cran-lane	environment	runs	4
+test-convergence-honesty-triage-f.R	platform-numeric	runtime	depends	1
 test-count-structured-mu.R	suggests-package	environment	runs	8
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
