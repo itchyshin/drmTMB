@@ -50,6 +50,58 @@ test_that("a clean Gaussian fit converges and emits no convergence warning", {
   expect_equal(fit$opt$convergence, 0L)
 })
 
+test_that("a stored gradient above the polish tolerance is not converged", {
+  set.seed(1)
+  n <- 40
+  x <- stats::rnorm(n)
+  dat <- data.frame(y = 0.3 + 0.5 * x + stats::rnorm(n, sd = 0.4), x = x)
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = stats::gaussian(), data = dat)
+  expect_true(is_converged(fit))
+  expect_identical(convergence_status(fit), "converged")
+  expect_true(is.numeric(fit$gradient))
+  expect_true(max(abs(fit$gradient)) <= drmTMB:::DRM_NEWTON_GRAD_TOL)
+
+  fit$gradient <- c(beta_mu = 1e-3)
+  fit$gradient_max_component <- "beta_mu"
+  expect_false(is_converged(fit))
+  expect_identical(convergence_status(fit), "gradient")
+  row <- check_convergence_status(fit)
+  expect_identical(row$status, "warning")
+  expect_match(row$value, "gradient", fixed = TRUE)
+
+  fit$gradient <- NULL
+  expect_true(is_converged(fit))
+  expect_identical(convergence_status(fit), "converged")
+
+  fit$gradient <- NA_real_
+  expect_false(is_converged(fit))
+  expect_identical(convergence_status(fit), "gradient")
+})
+
+test_that("a non-stationary stored gradient warns and names the component", {
+  expect_no_warning(
+    drm_warn_if_gradient_not_stationary(
+      c(beta_mu = 1e-12),
+      "beta_mu",
+      newton_polish = TRUE
+    )
+  )
+  expect_warning(
+    drm_warn_if_gradient_not_stationary(
+      c(beta_sigma = 0.014),
+      "beta_sigma",
+      newton_polish = TRUE
+    ),
+    "beta_sigma",
+    class = "drmTMB_gradient_warning"
+  )
+  expect_warning(
+    drm_warn_if_gradient_not_stationary(NA_real_, NA_character_, newton_polish = TRUE),
+    "not finite",
+    class = "drmTMB_gradient_warning"
+  )
+})
+
 test_that("drm_warn_if_nonfinite_objective is silent on a finite objective and warns otherwise", {
   expect_no_warning(drm_warn_if_nonfinite_objective(list(objective = -123.4)))
   expect_warning(

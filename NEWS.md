@@ -12,6 +12,26 @@
 
 ## Bug fixes
 
+* Gaussian, Student-t, skew-normal, and the other continuous and count
+  builders now refuse a factor or ordered-factor response instead of fitting
+  its integer level codes or failing with an unrelated base-R message.
+  The error names the response column. `cumulative_logit()` still accepts an
+  ordered factor. A numeric response is unchanged (#1481).
+
+* `qq_plot()` and `worm_plot()` warn, and repeat the count in the subtitle,
+  when they omit non-finite quantile residuals (`u` at 0 or 1). Those points
+  stay off the order-statistic grid, so the plotted finite residuals are
+  unchanged. Missing-response `NA` rows are not part of the count (#1460).
+
+* `is_converged()` is now `FALSE` and `convergence_status()` returns
+  `"gradient"` when the stored fixed-effect gradient exceeds the
+  Newton-polish tolerance `1e-8`, or is not finite. A failed polish also
+  warns and names the largest gradient component. Fitted coefficients are
+  unchanged. A fit with no stored `gradient` field is graded as before.
+  This changes the convergence flag, not the estimates: an nlminb code of 0
+  used to read as converged even when the largest gradient component was
+  above `1e-8`. Those fits now warn at fit time (#1452).
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).

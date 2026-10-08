@@ -2837,6 +2837,7 @@ drm_julia_bridge_payload <- function(
     env = env
   )
   formula_spec <- drm_julia_formula_spec(formula, phylo_payload = phylo_payload)
+  drm_julia_reject_factor_responses(data, formula, family_type)
   data_out <- drm_julia_bridge_data(
     data = data,
     formula = formula,
@@ -2958,6 +2959,34 @@ drm_julia_drop_missing_rows <- function(data, formula, phylo_payload = NULL) {
     return(data)
   }
   data[keep, , drop = FALSE]
+}
+
+# The native builders reject a factor response before as.numeric() turns level
+# codes into the fitted numbers. The Julia bridge otherwise forwards the data
+# frame unchanged, so the same mistake would cross into DRM.jl. Ordered
+# responses stay legal for cumulative_logit().
+drm_julia_reject_factor_responses <- function(data, formula, family_type) {
+  if (identical(family_type, "cumulative_logit")) {
+    return(invisible(NULL))
+  }
+  for (entry in formula$entries) {
+    if (is.na(entry$response) || !entry$dpar %in% c("mu", "mu1", "mu2")) {
+      next
+    }
+    response <- as.character(entry$response)
+    if (grepl("^cbind\\(", response)) {
+      next
+    }
+    if (!response %in% names(data)) {
+      next
+    }
+    drm_reject_factor_response(
+      data[[response]],
+      response,
+      paste0(family_type, " (engine = julia)")
+    )
+  }
+  invisible(NULL)
 }
 
 drm_julia_bridge_data <- function(data, formula, phylo_payload = NULL) {
@@ -6700,6 +6729,10 @@ rho12.drmTMB_julia <- function(object, ...) {
 
 #' @export
 is_converged.drmTMB_julia <- function(object, include_hessian = FALSE, ...) {
+  # Not the native #1452 rule. DRM.jl's gradient is not on the TMB outer
+  # gradient scale that DRM_NEWTON_GRAD_TOL grades, so this method still
+  # reads optimizer code 0 only. `include_hessian` is also unused here
+  # (#1483). The native drmTMB method consults fit$gradient.
   isTRUE(object$opt$convergence == 0L)
 }
 
@@ -7620,6 +7653,7 @@ drm_julia_biv_known_structured_payload <- function(
     )
   }
   labels <- vapply(terms, `[[`, character(1L), "label")
+  drm_julia_reject_factor_responses(data, formula, family_type)
   data_out <- drm_julia_bridge_data(data, formula)
   # Design 258 S7, widened to this route (N1, 2026-09-03): the SAME producer
   # labels mu1/mu2/sigma1/sigma2/rho12 from `formula$entries` and, for this
@@ -7817,6 +7851,7 @@ drm_julia_structured_payload <- function(formula, family_type, data, env) {
     )
   }
 
+  drm_julia_reject_factor_responses(data, formula, family_type)
   data_out <- drm_julia_bridge_data(data, formula)
   # Design 258 S7, widened to this route (N1, 2026-09-03): the SAME producer
   # the base bridge uses labels mu/sigma from `formula$entries` and, for this
@@ -8268,7 +8303,9 @@ drm_julia_xfam_axis <- function(entry, data, env, dpar) {
     env = env
   )
   mf <- stats::model.frame(f, data = data, na.action = stats::na.omit)
-  y <- as.numeric(stats::model.response(mf))
+  y_raw <- stats::model.response(mf)
+  drm_reject_factor_response(y_raw, entry$response, "cross-family Julia")
+  y <- as.numeric(y_raw)
   X <- stats::model.matrix(
     stats::delete.response(stats::terms(mf)),
     mf
@@ -8680,6 +8717,8 @@ is_converged.drmTMB_julia_xfam <- function(
   include_hessian = FALSE,
   ...
 ) {
+  # Same limit as is_converged.drmTMB_julia: no TMB-scale stored gradient,
+  # and include_hessian is unused (#1452, #1483).
   isTRUE(object$opt$convergence == 0L)
 }
 

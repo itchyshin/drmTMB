@@ -11,6 +11,19 @@ structured effect, cross-family bivariate, missing-response handling and
 to use instead today, and whether the fence is permanent or carries a stated
 revisit condition.
 
+- Silent-input and convergence-honesty fixes (#1481, #1460, #1452) leave
+  these boundaries in place. A character response that looks numeric is still
+  coerced, and `cumulative_logit()` still requires an ordered factor.
+  `qq_plot()` and `worm_plot()` still omit non-finite quantile residuals from
+  the order statistics; they warn with a count instead of moving the
+  theoretical quantiles. When `nsim > 1` drops a different count from each
+  column, the envelope can compare different theoretical quantiles.
+  `is_converged()` on a Julia-engine fit still reads only the optimizer code.
+  It does not apply the native Newton-polish tolerance `1e-8`, and
+  `include_hessian` is still unused there (#1483). `multi_start` still
+  selects the lowest objective. `check_fixed_gradient()` still recomputes
+  the live gradient at tolerance `1e-3`.
+
 - The Q-Series v1.0 release boundary is generated in
   `docs/dev-log/release-audits/q-series-v1-release-status.md`. It separates
   implemented/basic-working Gaussian structured-effect rows and

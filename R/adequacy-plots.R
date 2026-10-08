@@ -25,6 +25,11 @@
 #' randomized draw is not over-read; the first realization's points and
 #' fitted trend are drawn on top.
 #'
+#' A residual of `-Inf` or `Inf` (`u` exactly 0 or 1) is a gross misfit. Those
+#' points are omitted from the order statistics, the omission count is warned,
+#' and the subtitle repeats the count. Missing-response `NA` rows are not
+#' part of that count.
+#'
 #' This is fixed-effect adequacy only -- see [drm_quantile_residuals()]. A
 #' flat worm plot is "no detectable departure" evidence about the fixed-effect
 #' distributional form, never a general validity or calibration claim.
@@ -114,9 +119,12 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
       x = "Theoretical N(0,1) quantile",
       y = "Deviation (ordered residual - theoretical quantile)",
       title = "Worm plot of randomized quantile residuals",
-      subtitle = paste(
-        "Fixed-effect adequacy: flat = no detectable departure from N(0,1);",
-        "a bend flags mis-specification. Not a validity or calibration claim."
+      subtitle = drm_adequacy_qq_subtitle(
+        paste(
+          "Fixed-effect adequacy: flat = no detectable departure from N(0,1);",
+          "a bend flags mis-specification. Not a validity or calibration claim."
+        ),
+        data
       )
     )
 }
@@ -133,6 +141,11 @@ worm_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
 #' per-rank range across the `nsim` Dunn-Smyth realizations, so a single
 #' randomized draw is not over-read; the first realization's points are drawn
 #' on top.
+#'
+#' A residual of `-Inf` or `Inf` (`u` exactly 0 or 1) is a gross misfit. Those
+#' points are omitted from the order statistics, the omission count is warned,
+#' and the subtitle repeats the count. Missing-response `NA` rows are not
+#' part of that count.
 #'
 #' This is fixed-effect adequacy only -- see [drm_quantile_residuals()]. See
 #' [worm_plot()] for the detrended variant that makes systematic bends easier
@@ -210,11 +223,34 @@ qq_plot <- function(object, seed = NULL, nsim = 1L, response = NULL, ...) {
       x = "Theoretical N(0,1) quantile",
       y = "Randomized quantile residual",
       title = "Normal QQ plot of randomized quantile residuals",
-      subtitle = paste(
-        "Fixed-effect adequacy: on the line = no detectable departure from",
-        "N(0,1). Not a validity or calibration claim."
+      subtitle = drm_adequacy_qq_subtitle(
+        paste(
+          "Fixed-effect adequacy: on the line = no detectable departure from",
+          "N(0,1). Not a validity or calibration claim."
+        ),
+        data
       )
     )
+}
+
+drm_adequacy_qq_subtitle <- function(base, data) {
+  n <- attr(data, "n_nonfinite_quantile_residuals")
+  if (
+    is.null(n) ||
+      length(n) != 1L ||
+      !is.finite(n) ||
+      n <= 0
+  ) {
+    return(base)
+  }
+  paste(
+    base,
+    sprintf(
+      "%d non-finite residual%s omitted (u at 0 or 1; the strongest misfit points).",
+      n,
+      if (n == 1) "" else "s"
+    )
+  )
 }
 
 drm_adequacy_plot_dots <- function(dots) {

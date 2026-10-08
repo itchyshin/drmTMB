@@ -1,3 +1,42 @@
+# 2026-10-08: silent inputs and convergence honesty (#1481, #1460, #1452)
+
+One draft branch, `cursor/triage-d-silent-inputs`. No open PR already covered
+these three issues (pilot #1500 is #1241 and #1480 only).
+
+#1481: `drm_reject_factor_response()` aborts a factor or ordered-factor response
+before `as.numeric()` / `round()` / `is.finite()`. Applied to Gaussian,
+Student-t, skew-normal, lognormal, Gamma, Tweedie, beta, zero-one beta,
+Poisson, nbinom2, truncated nbinom2 (including the hurdle route),
+`biv_gaussian`, `biv_lognormal`, `biv_student`, the Julia bridge payload,
+both structured Julia data routes, and the cross-family Julia axis.
+`cumulative_logit()` is exempt. Binomial already refused. Character columns
+are still coerced.
+
+#1460: `drm_quantile_residual_qq_from_matrix()` still drops non-finite quantile
+residuals from the order statistics, and now warns with class
+`drmTMB_quantile_residual_warning`, records
+`n_nonfinite_quantile_residuals`, and repeats the count in the qq/worm
+subtitle. Missing-response `NA` is not in the count. Finite plotted points
+are unchanged. Clamping was rejected because it would move every theoretical
+quantile.
+
+#1452: `convergence_status()` returns `"gradient"` and `is_converged()` is
+`FALSE` when the stored gradient is non-finite or its largest absolute
+component exceeds `DRM_NEWTON_GRAD_TOL` (`1e-8`). The field is read with
+`[[` so `gradient_max_component` cannot partial-match a missing `gradient`.
+A failed `obj$gr()` stores `NA_real_` rather than `NULL`. Fit time warns
+with class `drmTMB_gradient_warning` and names the largest component.
+Newton steps and coefficients are unchanged. Julia `is_converged` methods
+still use only the optimizer code (#1483).
+
+Local suite, `NOT_CRAN=true`, ggplot2 installed, OpenBLAS threads 1.
+Thirty-nine test files: 4950 expectations passed, 0 failed, 6 skipped, 19
+errors, all 19 errors in `test-julia-diagnostics.R` (`could not find function
+"%||%"` inside pre-existing `new_drmTMB_julia()`, line not in this diff).
+Re-ran adequacy with the tweedie package visible: 23 passed, 0 skipped, 0
+warnings. Factor-response file after the Julia guard test: 24 passed.
+Report: `docs/dev-log/after-task/2026-10-08-silent-inputs-convergence-honesty.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

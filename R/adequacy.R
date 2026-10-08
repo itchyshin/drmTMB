@@ -267,8 +267,30 @@ drm_reset_adequacy_warning_state <- function() {
 # the plot draws.
 drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L, response = NULL) {
   z <- drm_quantile_residuals(object, seed = seed, nsim = nsim, response = response)
+  drm_quantile_residual_qq_from_matrix(z)
+}
+
+# Order statistics for one matrix of quantile residuals (columns are
+# realizations). Non-finite entries are qnorm(u) at u = 0 or 1. They stay
+# out of the order statistics, because including them would move every
+# theoretical quantile, but the omission is counted and warned (#1460).
+# Missing-response NA rows are excluded from that count.
+drm_quantile_residual_qq_from_matrix <- function(z) {
   if (is.null(dim(z))) {
     z <- matrix(z, ncol = 1L)
+  }
+  n_nonfinite <- sum(vapply(seq_len(ncol(z)), function(j) {
+    col <- z[, j]
+    sum(!is.na(col) & !is.finite(col))
+  }, integer(1L)))
+  if (n_nonfinite > 0L) {
+    cli::cli_warn(
+      c(
+        "{n_nonfinite} non-finite quantile residual{?s} ({.code -Inf} or {.code Inf}, from {.code u} at 0 or 1) {?was/were} omitted from this QQ or worm plot.",
+        "i" = "These are the strongest misfit points. The plot and its theoretical quantiles use only the remaining finite residuals. Missing-response {.code NA} rows are not included in this count."
+      ),
+      class = "drmTMB_quantile_residual_warning"
+    )
   }
   cols <- lapply(seq_len(ncol(z)), function(j) {
     zz <- sort(z[is.finite(z[, j]), j])
@@ -282,6 +304,7 @@ drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L, respon
   })
   out <- do.call(rbind, cols)
   out$deviation <- out$sample - out$theoretical
+  attr(out, "n_nonfinite_quantile_residuals") <- n_nonfinite
   out
 }
 
