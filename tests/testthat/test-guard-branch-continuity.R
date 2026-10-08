@@ -229,10 +229,19 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # A3 response-kernel parity brings drm_response_kernels.h to four
   # shape-floor guards: two for beta and two for beta-binomial. These mirror
   # the already-audited beta_shape_floor C0 contract below.
+  #
+  # #1472 adds two argument clamps inside drm_log1mexp() and two inside
+  # drm_log1p_nonnegative(), so each unselected branch stays finite. The
+  # selected value is unchanged; continuity at the existing switch points
+  # is still the paired check below, and the Hessian at the cloglog and
+  # truncated-NB edge is test-log1mexp-ad.R. n_numeric is therefore 9L.
+  # #1462 adds four clamps in drm_student_log_density() (the lgamma branch,
+  # the Stirling branch, the switch, and the kernel cap). Value continuity
+  # across nu = 1e4 is test-student-large-nu.R. n_response is therefore 8L.
   expect_equal(n_cpp, 30L)
-  expect_equal(n_numeric, 5L)
+  expect_equal(n_numeric, 9L)
   expect_equal(n_count, 1L)
-  expect_equal(n_response, 4L)
+  expect_equal(n_response, 8L)
 })
 
 # ---------------------------------------------------------------------------

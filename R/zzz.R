@@ -1,3 +1,11 @@
+# Base R added `%||%` in 4.5.0. DESCRIPTION allows R >= 4.1, and the Julia
+# bridge, its diagnostics, and the MSPL link code already use the operator.
+# Same meaning as base and as rlang: the right-hand side only when the
+# left-hand side is NULL.
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
 .onLoad <- function(libname, pkgname) {
   if (requireNamespace("emmeans", quietly = TRUE)) {
     emmeans::.emm_register("drmTMB", pkgname)
