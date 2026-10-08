@@ -63,6 +63,16 @@ factor cell (`y ~ site * trt`) is still a rank-deficient error; that design
 call is unchanged. Julia `summary()` / `check_drm.drmTMB_julia` remain a
 follow-up. This draft still lands after #1503.
 
+CI on `60ad3d14c` failed four tests that the rank refusal reaches first.
+`test-prediction-grid.R` had two fixtures whose columns were exact aliases
+(`tagged` copied `season`; `habitat` was the sum of two site dummies); those
+fixtures are now full rank. The MSPL duplicate-column case expects
+`drmTMB_rank_deficient_design` instead of the later MSPL message. Construct 7
+in `test-coefficient-labels.R` is an empty-cell interaction and still errors;
+the test now expects that error. `inst/extdata/env-skip-census.tsv` records
+the platform-numeric skip in the triage-F test. Empty-cell behaviour is
+unchanged.
+
 `python3 tools/recertify-c17.py --label triage-f-review --tolerance 1e-10`
 ran after commit `6f4605b87`. Against the triage-f receipt,
 `mean_tau_relative_error` changed by `0` on mc-0568, mc-0569, and mc-0576.
