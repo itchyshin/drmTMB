@@ -1,0 +1,13 @@
+ℹ Testing drmTMB
+associate-pairs-gaussian-bernoulli: ...............................W.........
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Gaussian x Bernoulli association fences unsupported public methods ('test-associate-pairs-gaussian-bernoulli.R:230:3') - Adding new snapshot:
+Code
+  associate_pairs(fits$gaussian, fits$binary, kernel = latent_normal())
+Condition
+  Error in `associate_pairs()`:
+  ! Supply `association = ~ 1`; Arc 6 has no implicit association model.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
