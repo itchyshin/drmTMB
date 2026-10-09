@@ -47,7 +47,11 @@
   contrasts (`fb`, `fc`). A non-reference treatment level that the drop
   empties is still removed. Removing the reference level stops the fit
   and names that level, instead of keeping a column such as `gc` and
-  silently changing its baseline. Fewer than two observed levels, a
+  silently changing its baseline. A character or logical predictor is
+  factored from the full frame before that check. `g = c("a", "a", "b",
+  "b", "c", "c")` with the `"a"` rows removed by the other response stops
+  the fit and names `"a"`, instead of keeping `gc` against a new baseline
+  `b`. Fewer than two observed levels, a
   contrast coding that cannot be kept, or any other aliased column
   (tolerance 1e-10) also stops the fit.
   `fitted()` and `residuals()` are the length of the original data, with

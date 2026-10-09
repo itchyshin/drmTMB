@@ -437,6 +437,25 @@ test_that("emptying the treatment reference level errors and does not switch the
   )
 })
 
+test_that("a character column that loses its first level errors instead of moving the baseline", {
+  d <- data.frame(
+    y1 = c(1, 1, 1, 1, 1, 1),
+    y2 = c(1, 2, 3, 4, 5, 6),
+    g = c("a", "a", "b", "b", "c", "c"),
+    stringsAsFactors = FALSE
+  )
+  d$y1[1:2] <- NA
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y1 ~ 1, mu2 = y2 ~ g),
+      d,
+      environment(),
+      c("gaussian", "poisson")
+    ),
+    "reference level \"a\""
+  )
+})
+
 test_that("the cross-family rank check uses drm_aliased_columns at tolerance 1e-10", {
   set.seed(1504)
   n <- 40L
