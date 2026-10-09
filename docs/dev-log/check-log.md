@@ -6,7 +6,9 @@ Rebased `cursor/triage-f-convergence` onto `af2ee2501` (`cursor/triage-e-numeric
 
 For treatment 0/1 columns, the intercept is blanked when every reference row is at the limit. `sigma ~ g` blanks the near-Poisson level whether that level is the reference or the contrast. The contrast against a blanked reference can still have a Wald standard error in the thousands. `sigma ~ 0 + g` keeps a finite standard error for the other level. `contr.sum` is not rewritten.
 
-Local R 4.3.3, reinstall without recompile. `test-convergence-honesty-triage-f.R`: 0 failures, 111 expectations. `test-phase18-nbinom2-mu-random-effect.R`: 0 failures, 46 expectations (the smoke expects 0 failure rows). `test-phase18-sim-runner.R`: 0 failures, 75 expectations. Full `testthat::test_dir()` is recorded in the next paragraph of this entry once it finishes. C17 recertification is `python3 tools/recertify-c17.py --label triage-f-rebase --tolerance 1e-10` after this rebase, because `R/drmTMB.R` and `R/methods.R` differ from the pinned blobs.
+Local R 4.3.3, reinstall without recompile. `test-convergence-honesty-triage-f.R`: 0 failures, 111 expectations. `test-phase18-nbinom2-mu-random-effect.R`: 0 failures, 46 expectations (the smoke expects 0 failure rows). `test-phase18-sim-runner.R`: 0 failures, 75 expectations. Full `testthat::test_dir()`: PASS 45232, FAIL 1, ERROR 3, WARN 78, SKIP 438. Those four are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path under `.Rlib` rather than `inst/`. Live engine tests skipped: `DRMODELS_JL_PATH` was unset (0 live tests ran, 67 skipped).
+
+C17 was recertified at `fdfe6ac6e` with `python3 tools/recertify-c17.py --label triage-f-rebase --tolerance 1e-10`. `mean_tau_relative_error` was bit-identical on mc-0568, mc-0569, and mc-0576 (`|change|` 0). The receipt is `docs/dev-log/implementation-recovery/2026-10-09-triage-f-rebase-c17c2-c14-final-source-compatibility/`.
 
 # 2026-10-09: character predictors use the full-frame reference level
 
