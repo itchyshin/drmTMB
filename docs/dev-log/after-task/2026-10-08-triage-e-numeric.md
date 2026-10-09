@@ -143,6 +143,12 @@ The rank check is `drm_aliased_columns(X, tol = 1e-10)`, not `qr()` at its defau
 
 `test-julia-missing-alignment.R` now checks `contr.sum` with and without dropped rows, an ordered factor, an emptied reference level `a`, and a near-collinear design at noise `1e-8` against an exact duplicate column. Those checks call `drm_julia_xfam_axes()`, which calls `drm_julia_xfam_design_from_frame()`. Julia itself is not installed here, and no `DRM_JL_PATH` is set, so live `engine = "julia"` fits were skipped. The column names are assigned in R before DRM.jl is started.
 
+## Character and logical predictors (2026-10-09)
+
+Reader: someone who passes a character grouping column, not a factor, into a cross-family formula.
+
+`model.frame()` on this R keeps that column as character. The reference guard skipped it, subset the rows, and let `model.matrix()` build a new factor from what remained. With `g = c("a", "a", "b", "b", "c", "c")` and the `"a"` rows removed because `y1` is `NA`, the rebuilt column was `gc` and the baseline had moved from `a` to `b`. The same function now converts character and logical predictors with `factor()` on the full frame before the row subset, then runs the existing reference check. The response column is not converted. The character case errors and names level `"a"`.
+
 ## Known limitations
 
 Beta and NB2 lgamma ratios at extreme dispersion are still the expressions named above. Cross-family Julia fits do not keep a response that is missing on a row the other response observed. Both axes lose that row. A user who wants a per-axis missingness model, rather than one shared complete case, still needs `engine = "tmb"`. The univariate Julia bridge still refuses an ordered factor and an explicit `contr.sum` before DRM.jl starts, because that route lets DRM.jl rebuild the factor. The cross-family route sends the numeric design from R, so those columns are kept there.
