@@ -303,6 +303,9 @@ drmTMB <- function(
   # grouping variables keep their declared level sets: an ordinal response or
   # an imputed ordinal predictor with an empty category must still reach its
   # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
@@ -635,6 +638,149 @@ drmTMB <- function(
   )
 }
 
+# Exact (not merely correlated) aliasing in any distributional-parameter
+# design. `lm()` would put NA on the redundant column and say it is not
+# defined because of singularities. drmTMB does not drop the column: the only
+# pre-fit handling the mean design already had was the REML refusal of a
+# rank-deficient `mu` matrix, which stops rather than rewriting the model.
+# The same refusal now runs for every fixed-effect block (`mu`, `sigma`,
+# `nu`, `zi`, `hu`, `zoi`, `coi`, `rho12`, the bivariate blocks, and direct
+# SD designs) before `MakeADFun()`, on ML and REML. The tolerance is 1e-10,
+# tighter than `qr()`'s 1e-7 default, so the near-collinear diagnostic
+# fixtures (predictor noise of 1e-7 or 1e-9) still fit and stay visible to
+# `check_drm()`. An exact copy (`xdup == x`, or `x2 == 2 * x`) is refused.
+# Drop rows that contain NA and check the remaining design. An empty factor
+# cell is a column of zeros, not an NA, and is still a rank deficiency; that
+# case is unchanged (it errors). A design with no complete row is not checked.
+drm_complete_case_design <- function(X) {
+  if (!anyNA(X)) {
+    return(X)
+  }
+  if (inherits(X, "Matrix")) {
+    keep <- Matrix::rowSums(is.na(X)) == 0
+    return(X[keep, , drop = FALSE])
+  }
+  X[stats::complete.cases(X), , drop = FALSE]
+}
+
+# `base::qr()` stores rank at `$rank`. A Matrix `sparseQR` is an S4 object:
+# `$rank` errors, and there is no `rank` slot. Read `$rank` inside the
+# tryCatch so that error does not escape, then take the column permutation
+# from `@q` (0-based) and the rank from the R diagonal with the same relative
+# tolerance. A failed factorization of a large sparse design warns instead of
+# pretending the design is full rank.
+drm_qr_rank_and_pivot <- function(q, tol) {
+  dollar <- tryCatch(
+    list(rank = q$rank, pivot = q$pivot),
+    error = function(e) NULL
+  )
+  if (!is.null(dollar) && !is.null(dollar$rank)) {
+    return(dollar)
+  }
+  if (!isS4(q) || !methods::is(q, "sparseQR")) {
+    return(list(rank = NULL, pivot = NULL))
+  }
+  Rdiag <- tryCatch(
+    abs(diag(as.matrix(qr.R(q)))),
+    error = function(e) NULL
+  )
+  if (is.null(Rdiag) || length(Rdiag) == 0L || !any(is.finite(Rdiag))) {
+    return(list(rank = NULL, pivot = NULL))
+  }
+  scale <- max(Rdiag, na.rm = TRUE)
+  rank <- if (!is.finite(scale) || scale <= 0) {
+    0L
+  } else {
+    as.integer(sum(Rdiag > tol * scale))
+  }
+  pivot <- if (methods::.hasSlot(q, "q")) as.integer(q@q) + 1L else NULL
+  list(rank = rank, pivot = pivot)
+}
+
+drm_aliased_columns <- function(X, tol = 1e-10) {
+  if (is.null(X) || (!is.matrix(X) && !inherits(X, "Matrix"))) {
+    return(character())
+  }
+  n_col <- ncol(X)
+  if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+    return(character())
+  }
+  X <- drm_complete_case_design(X)
+  n_col <- ncol(X)
+  if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+    return(character())
+  }
+  design <- X
+  info <- tryCatch(
+    drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+    error = function(e) NULL
+  )
+  if (
+    (is.null(info) || is.null(info$rank)) &&
+      inherits(design, "Matrix") &&
+      nrow(design) * n_col <= 200000L
+  ) {
+    design <- as.matrix(design)
+    info <- tryCatch(
+      drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+      error = function(e) NULL
+    )
+  }
+  if (is.null(info) || is.null(info$rank)) {
+    if (inherits(X, "Matrix") && nrow(X) * n_col > 200000L) {
+      cli::cli_warn(
+        c(
+          "The rank check could not factor a large sparse design, so aliased columns were not identified.",
+          "i" = "The fit continues. If standard errors are missing, drop linearly dependent columns and refit."
+        ),
+        class = "drmTMB_rank_check_skipped"
+      )
+    }
+    return(character())
+  }
+  if (info$rank >= n_col) {
+    return(character())
+  }
+  cols <- colnames(X)
+  if (is.null(cols) || length(cols) != n_col) {
+    cols <- paste0("column_", seq_len(n_col))
+  }
+  pivot <- info$pivot
+  if (is.null(pivot) || length(pivot) != n_col) {
+    return(cols)
+  }
+  cols[pivot[seq.int(info$rank + 1L, n_col)]]
+}
+
+drm_abort_rank_deficient_designs <- function(X_list) {
+  if (!is.list(X_list) || length(X_list) == 0L) {
+    return(invisible(NULL))
+  }
+  pieces <- character()
+  for (i in seq_along(X_list)) {
+    name <- names(X_list)[[i]]
+    if (is.null(name) || !nzchar(name)) {
+      name <- paste0("X", i)
+    }
+    aliased <- drm_aliased_columns(X_list[[i]])
+    if (length(aliased) == 0L) {
+      next
+    }
+    pieces <- c(pieces, paste0(name, ": ", paste(aliased, collapse = ", ")))
+  }
+  if (length(pieces) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(
+    c(
+      "A fixed-effect design is rank deficient, so the coefficients are not identified and Wald standard errors would not be usable.",
+      "x" = "Aliased columns (the same columns {.fn lm} would leave undefined because of singularities): {.val {pieces}}.",
+      "i" = "Drop the duplicated or linearly dependent term from that distributional parameter and refit. {.fn drmTMB} stops before fitting instead of returning {.code converged = TRUE} with no usable standard errors."
+    ),
+    class = "drmTMB_rank_deficient_design"
+  )
+}
+
 drm_fit_spec <- function(
   spec,
   formula,
@@ -648,6 +794,7 @@ drm_fit_spec <- function(
   if (is.null(fit_call)) {
     fit_call <- match.call()
   }
+  drm_abort_rank_deficient_designs(spec$X)
 
   spec$response_names <- drm_spec_response_names(spec)
   spec <- add_covariance_probe_parameter(spec)
@@ -12222,7 +12369,7 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
   data

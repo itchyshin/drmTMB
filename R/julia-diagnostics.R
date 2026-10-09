@@ -54,7 +54,8 @@ check_drm.drmTMB_julia <- function(
     check_julia_optimizer_convergence(object),
     check_julia_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_julia_bridge_covariance(object),
-    check_julia_bridge_standard_errors(object)
+    check_julia_bridge_standard_errors(object),
+    check_julia_dropped_rows(object)
   )
   rows <- Filter(Negate(is.null), rows)
   out <- do.call(rbind, rows)
@@ -62,6 +63,41 @@ check_drm.drmTMB_julia <- function(
   class(out) <- c("drm_check", "data.frame")
   attr(out, "ok") <- !any(out$status %in% c("warning", "error"))
   out
+}
+
+# Complete-case count recorded by the bridge (#1454). Absent on fits built
+# without that filter (diagnostic mocks, and response = "include"). A note
+# does not flip attr(ok).
+check_julia_dropped_rows <- function(object) {
+  info <- object$missing_rows
+  if (is.null(info) || is.null(info$n_dropped) || length(info$n_dropped) != 1L) {
+    return(NULL)
+  }
+  dropped <- as.integer(info$n_dropped)
+  n_input <- info$n_input
+  check_row(
+    "dropped_rows",
+    if (is.na(dropped) || dropped == 0L) "ok" else "note",
+    paste0(
+      "n_input=",
+      if (is.null(n_input)) NA_integer_ else n_input,
+      "; nobs=",
+      object$nobs,
+      "; dropped=",
+      dropped
+    ),
+    if (is.na(dropped) || dropped == 0L) {
+      "No rows were dropped by the Julia bridge's complete-case filter."
+    } else {
+      paste0(
+        "The Julia bridge dropped ",
+        dropped,
+        " incomplete row",
+        if (dropped == 1L) "" else "s",
+        " before calling DRM.jl. nobs is the complete-case count."
+      )
+    }
+  )
 }
 
 # The engine/route/estimator header row. Always a NOTE, never a warning: it
@@ -86,9 +122,11 @@ check_julia_engine_route <- function(object) {
       "engine = \"tmb\" checks that do NOT run here include the optimizer ",
       "evaluation budget, the finite-objective and log-sigma clamp checks, ",
       "sdreport status, Hessian positive-definiteness and conditioning, ",
-      "inflated standard errors, dropped rows, and every random-effect, ",
-      "rho12, phylogenetic, spatial, and family-parameter boundary check. A ",
-      "clean table here is therefore a narrower claim than a clean ",
+      "inflated standard errors, and every random-effect, ",
+      "rho12, phylogenetic, spatial, and family-parameter boundary check. ",
+      "A dropped_rows row is added only when this bridge recorded a ",
+      "complete-case filter; it does not repeat the native lost-group census. ",
+      "A clean table here is therefore a narrower claim than a clean ",
       "engine = \"tmb\" table on the same model."
     )
   )

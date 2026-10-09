@@ -1,3 +1,152 @@
+# 2026-10-09: dispersion warning only when a standard error is blanked
+
+Rebased `cursor/triage-f-convergence` onto `af2ee2501` (`cursor/triage-e-numeric`). `drm_dispersion_boundary_report()` sets `at_limit` only when `coefficient_rows` or `parameter_parms` is non-empty. `check_drm()` warns in that case, notes when some rows are under the limit and nothing is blanked, and is `ok` otherwise. `summary()` and `print()` still key off `at_limit`, so a continuous `sigma ~ z` no longer warns or prints missing standard errors.
+
+`sigma` in `mu * sigma^2` is `predict(object, dpar = dpar, type = "response")`. A fit `sigma ~ 1 + (1 | g)` therefore uses the group-level log-`sigma` shifts. If `predict()` errors, a `drmTMB` object warns with class `drmTMB_dispersion_predict_fallback` and the check uses `exp(eta)` from the fixed linear predictor. A plain list stays quiet.
+
+For treatment 0/1 columns, the intercept is blanked when every reference row is at the limit. `sigma ~ g` blanks the near-Poisson level whether that level is the reference or the contrast. The contrast against a blanked reference can still have a Wald standard error in the thousands. `sigma ~ 0 + g` keeps a finite standard error for the other level. `contr.sum` is not rewritten.
+
+Local R 4.3.3, reinstall without recompile. `test-convergence-honesty-triage-f.R`: 0 failures, 111 expectations. `test-phase18-nbinom2-mu-random-effect.R`: 0 failures, 46 expectations (the smoke expects 0 failure rows). `test-phase18-sim-runner.R`: 0 failures, 75 expectations. Full `testthat::test_dir()`: PASS 45232, FAIL 1, ERROR 3, WARN 78, SKIP 438. Those four are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path under `.Rlib` rather than `inst/`. Live engine tests skipped: `DRMODELS_JL_PATH` was unset (0 live tests ran, 67 skipped).
+
+C17 was recertified at `fdfe6ac6e` with `python3 tools/recertify-c17.py --label triage-f-rebase --tolerance 1e-10`. `mean_tau_relative_error` was bit-identical on mc-0568, mc-0569, and mc-0576 (`|change|` 0). The receipt is `docs/dev-log/implementation-recovery/2026-10-09-triage-f-rebase-c17c2-c14-final-source-compatibility/`.
+
+# 2026-10-09: character predictors use the full-frame reference level
+
+`model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 71 expectations. `test-xfam-bridge.R`: 0 failures, 43 expectations, 6 skips (live Julia and `{glmmTMB}`). Full `testthat::test_dir()`: PASS 45117, FAIL 4, WARN 77, SKIP 440. The four failures are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. `{JuliaCall}` is installed, so the old fence failure that stopped on a missing JuliaCall message did not recur. Live engine tests still skipped: `DRMODELS_JL_PATH` was unset for the suite (0 live tests ran, 67 skipped).
+
+# 2026-10-09: NB2 dispersion uses the fitted mean, rank check stays in the design
+
+Rebased `cursor/triage-f-convergence` onto `46d125a50`. `drm_julia_xfam_axis()` and `drm_julia_xfam_sigma()` no longer call `drm_abort_rank_deficient_designs()` on an undefined `X`. The check is `drm_aliased_columns(X, tol = 1e-10)` inside `drm_julia_xfam_design_from_frame()`, then the shared abort. The duplicate helpers in `R/julia-bridge.R` were deleted.
+
+`drm_dispersion_fitted_mu()` uses `predict(dpar = mu)`, so an NB2 fit of `y ~ offset(log(t))` with `t = 1000` and size 2000 keeps a finite `SE(sigma)`. The same formula plus `(1 | g)` does too. The old `exp(X %*% beta)` path ignored the offset and the random effect and blanked that standard error. A mock without `predict()` still uses the fixed linear predictor. Beta-binomial tends to the binomial as precision grows; the comment says that, and the check still does not flag it. Empty-cell `site * trt` behaviour is unchanged.
+
+`test-convergence-honesty-triage-f.R`: 0 failures, 79 expectations. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Those files call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R. `contrasts(f) <- contr.sum(3)` keeps columns `f1`, `f2`, matching `engine = "tmb"`, with and without dropped rows. An emptied treatment reference errors and names the level. The rank check is `drm_aliased_columns(X, tol = 1e-10)`.
+
+Full `testthat::test_dir()` on this branch: PASS 45124, FAIL 6, WARN 78, SKIP 446. Five of the six failures are the same VM limits as the contrast branch (missing `{ape}`, missing `{JuliaCall}` at the fence before the DRM path message, the sparse `crossprod` in `test-missing-predictor-prediction.R`, and the registry path under `.Rlib`). The sixth was `test-phase18-nbinom2-mu-random-effect.R`: the smoke fit's `sigma ~ z` puts 132 of 440 rows under `mu * sigma^2 < 0.001`, so the runner records one `drmTMB_dispersion_boundary_warning`. No sigma coefficient is supported only on those rows, and both `SE(sigma)` values stay finite. The test now expects that one warning. Re-run after the expectation change: 0 failures, 49 expectations.
+
+Julia 1.10.10 is installed at `~/julia`, `JuliaCall` is installed, and `using DRModels` succeeds at `/tmp/DRModels.jl`. Embedding that Julia in R segfaults during `JuliaCall::julia_setup()` (exit 139), so a live `engine = "julia"` fit was not started. The bridge summary on the full suite was 0 live tests ran, 67 skipped.
+
+# 2026-10-09: cross-family contrasts kept, reference level refused
+
+`contrasts(f) <- contr.sum(3)` was becoming treatment columns `fb`, `fc` because `droplevels()` calls `factor()` and drops the contrasts attribute, even when no level was removed. `drm_droplevels_keep_contrasts_factor()` drops unused levels and writes that attribute back. The cross-family rebuild and the TMB pre-fit drop both use it, so a Julia cross-family design and `engine = "tmb"` both keep `f1`, `f2`, with and without dropped rows that leave every level in the data. An ordered factor keeps `o.L` and `o.Q`.
+
+Removing the treatment reference level on a cross-family axis now errors and names the level. The fit no longer keeps a column such as `gc` and silently changes its baseline from `c - a` to `c - b`. A non-reference treatment level that the shared-row drop empties is still removed.
+
+The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
+
+`R/drmTMB.R` changed, so C17 was recertified (`python3 tools/recertify-c17.py --label contrasts-xfam --tolerance 1e-10`) at `b86043991`. Worst `|change|` in mean tau relative error was `1.322e-11` (mc-0569), inside the `1e-10` tolerance. The other two cells moved by `3.030e-12` and `5.263e-12`. That is the same float noise previously recorded on this receipt, not a model-15 shift. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
+
+# 2026-10-08: cross-family cbind, emptied factor levels, offset refusal
+
+Review round on draft PR #1504. R only. `src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited, so C17 was not recertified.
+
+- `cbind(successes, failures)` on a cross-family axis errors before the shared-row index is built, with or without `NA`. A single 0/1 column still marshals.
+- Each axis design is rebuilt on the shared rows. An `NA` on `y1` that empties factor level `c` on `mu2` drops that column. One observed level left, or a rank-deficient design, errors.
+- `fitted()` and `residuals()` are indexed like the original data. Dropped rows are `NA`. `kept_rows` stores the fitted positions.
+- `offset()` on a cross-family location or sigma formula errors. `model.matrix()` had been dropping it.
+- `%||%` in `R/zzz.R` matches `if (is.null(x)) y else x` and is defined only when R does not already have it (base since 4.4.0). A rebase against the bridge-inputs copy keeps one definition.
+- The lost-level guard was not extended. The structured payload already errors unless there is exactly one structured term.
+
+Local R 4.3.3, reinstall without recompile. `test-julia-missing-alignment.R` 9 tests, 0 failures, 57 expectations. Also green, no Julia process: `test-xfam-bridge.R` 12/0/6 skip/43, `test-coefficient-labels.R` 44/0/11/100, `test-julia-diagnostics.R` 22/0/2/123, `test-julia-bridge.R` 16/0/2/139, `test-julia-structured.R` 9/0/1/59, `test-julia-missing.R` 8/0/5/5. The related-file union is 182 tests, 0 failures, 17 skips, 1525 expectations.
+
+`lss-tip-identity` hashes every `R/*.R`. This round edits `R/julia-bridge.R` and `R/zzz.R`. That receipt will be regenerated once on `main` after the batch lands. It was not rewritten here.
+
+# 2026-10-08: Student large-nu logLik, log1mexp AD ceiling, Julia NA alignment
+
+Fixed three open bugs on `cursor/triage-e-numeric`.
+
+- #1462: `drm_student_log_density()` keeps the lgamma constant for `nu < 1e4` and uses a three-term Stirling series for `nu >= 1e4`, with `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads that objective. `fitted_distribution()` already uses `stats::dt()`.
+- #1472: `drm_log1mexp()` and `drm_log1p_nonnegative()` clamp each `CppAD::CondExp` branch into the region where that branch is finite. The selected value is unchanged. Cloglog successes at `eta <= -40` and zero-truncated NB2 at `eta_mu <= -38` now have a finite Hessian.
+- #1454: cross-family Julia axes intersect kept row indices, including sigma designs, so staggered `NA`s stay on one complete-case index. Structured `response = "drop"` drops incomplete rows and errors if a grouping level disappears. q2 structured payloads refuse incomplete modelled columns. `check_drm()` reports the main-route drop count when the bridge recorded one. The Student fix stays inside `drm_student_log_density()`; the three `src/drmTMB.cpp` call sites already call that function and were not patched. `R/drmTMB.R` and `R/methods.R` are unchanged, so C17 was not recertified.
+- Portability: package code defines `%||%`, which base R provides from 4.4.0. `DESCRIPTION` allows R >= 4.1. The review round guards that definition so a rebase keeps one copy.
+
+Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the related files: 179 tests, 0 failures, 17 skips (live Julia or `NOT_CRAN`), 1488 expectations. New files: `test-student-large-nu.R` (2/23), `test-log1mexp-ad.R` (2/26), `test-julia-missing-alignment.R` (6/20). The first numeric-oracle tweedie case failed only because `{tweedie}` was not installed; after installing it, 19/392 passed. The CondExp enumeration anchor moved from 5/4 to 9/8 in `drm_numeric.h` / `drm_response_kernels.h` and passed.
+
+`R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+# 2026-10-08: triage F review round (draft #1505, still blocked on merge)
+
+The dispersion limit for NB2 and its variants is now the extra-Poisson
+variance `mu * sigma^2 < 1e-3`, evaluated at the fitted `mu`. Beta,
+beta-binomial, and zero-one-beta are not flagged. Student-t `nu > 1000`
+stays because `nu` is dimensionless. Only Wald intervals are blanked;
+blanked rows set `interval_source` to `not_available`, and
+`boundary_limit` is one new string in `interval_status_levels()` (PR #1501
+adds `bootstrap_incomplete` to that same vector). Phase 18 records
+`dispersion_boundary` on the replicate summary and no longer muffles the
+warning. The rank check uses complete-case rows, factors a sparse `sparseQR`
+inside the same tryCatch that reads `$rank`, and warns with
+`drmTMB_rank_check_skipped` when a large sparse design cannot be factored.
+Cross-family Julia `mu` and `sigma` designs call the same refusal. An empty
+factor cell (`y ~ site * trt`) is still a rank-deficient error; that design
+call is unchanged. Julia `summary()` / `check_drm.drmTMB_julia` remain a
+follow-up. This draft still lands after #1503.
+
+CI on `60ad3d14c` failed four tests that the rank refusal reaches first.
+`test-prediction-grid.R` had two fixtures whose columns were exact aliases
+(`tagged` copied `season`; `habitat` was the sum of two site dummies); those
+fixtures are now full rank. The MSPL duplicate-column case expects
+`drmTMB_rank_deficient_design` instead of the later MSPL message. Construct 7
+in `test-coefficient-labels.R` is an empty-cell interaction and still errors;
+the test now expects that error. `inst/extdata/env-skip-census.tsv` records
+the platform-numeric skip in the triage-F test. Empty-cell behaviour is
+unchanged.
+
+`python3 tools/recertify-c17.py --label triage-f-review --tolerance 1e-10`
+ran after commit `6f4605b87`. Against the triage-f receipt,
+`mean_tau_relative_error` changed by `0` on mc-0568, mc-0569, and mc-0576.
+The model-15 fingerprint is unchanged (`5ab7a9640a93…`).
+
+# 2026-10-08: triage F must land after #1503
+
+PR #1503 (`cursor/triage-d-silent-inputs`) changes `convergence_status()` for
+#1452 to a scale-free Newton step: `max |sdr$cov.fixed %*% gradient| / SE > 1e-3`,
+with a `1e-3` absolute fallback only when there is no Hessian. This branch
+does not add a fixed absolute gradient cutoff. Draft PR #1505 must land after
+#1503 and be rebased onto it. Keep `drmTMB_gradient_warning` in the Phase 18
+ignore list together with `drmTMB_dispersion_boundary_warning`.
+
+# 2026-10-08: triage F convergence honesty (#1470, #1496, #1251)
+
+Exact rank-deficient distributional designs now stop before fitting
+(`drmTMB_rank_deficient_design`, QR tolerance `1e-10`) on every `spec$X`
+block and on the Julia bridge's R design matrix. Dispersion coefficients
+supported only on simpler-family limit rows (`sigma^2 < 0.001` for NB2 and
+beta families; Student-t `nu > 1000`) keep their estimates; `summary()` sets
+the Wald SE to `NA`, `confint()` uses `conf.status = boundary_limit`, and
+`check_drm()` adds `dispersion_boundary`. `hessian_conditioning` reports the
+correlation-scaled condition number of `sdr$cov.fixed` when every diagonal
+is positive. Phase 18 ignores `drmTMB_dispersion_boundary_warning`.
+
+Local tests, 0 failures: new `test-convergence-honesty-triage-f.R` 53 pass;
+`test-check-conditioning.R` 31 pass / 2 skip / 1 warn;
+`test-check-drm.R` 263 / 1 / 3; `test-fit-convergence-warning.R` 16;
+`test-summary.R` 200; `test-summary-derived-rows.R` 10;
+`test-confint-skew-normal-slant.R` 5; `test-nbinom2-location-scale.R` 157;
+`test-truncated-nbinom2-location-scale.R` 78 pass / 1 new dispersion warn;
+`test-hurdle-nbinom2.R` 60; `test-zi-nbinom2.R` 59 / 2 clamp warns;
+`test-gaussian-location-scale.R` re-run pass / 1 CRAN skip;
+`test-student-location-scale.R` 47; `test-beta-location-scale.R` 85 / 2 skip;
+`test-gamma-location-scale.R` 76; `test-lognormal-location-scale.R` 62;
+`test-tweedie-location-scale.R` 82 / 1 skip / 1 warn;
+`test-skew-normal-location-scale.R` 76; `test-phase18-sim-runner.R` 73;
+`test-dinnage-audit-wave4b1.R` pass / 1 pre-existing Wald-boundary warn;
+`test-comparators.R` 32 pass / 17 skip (lme4, glmmTMB, metafor absent).
+
+`python3 tools/recertify-c17.py --label triage-f --tolerance 1e-10`:
+worst `|change|` `1.322e-11` on mc-0569, fingerprint unchanged
+`5ab7a9640a93…`. That is the same rerun float noise already accepted on main
+(2026-09-26 receipt recorded `3.119e-12`). `capability_ledger.py --check` OK.
+No other recertify tool pins `R/check.R`, `R/profile.R`, `R/julia-bridge.R`,
+or `inst/sim/R/sim_runner.R`.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-f-convergence-honesty.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

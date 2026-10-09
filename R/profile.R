@@ -221,6 +221,23 @@
 #' undercovers under boundary (chi-square-mixture) inference. That warning
 #' recommends `method = "profile"`.
 #'
+#' A dispersion coefficient that is nonzero only on rows at a simpler-family
+#' limit is not given a usable Wald interval. For NB2 and its variants the
+#' limit is extra-Poisson variance `mu * sigma^2` below 0.001, with `mu` and
+#' `sigma` from `predict(..., type = "response")`, so an offset or a random
+#' effect on `sigma` is included. A treatment-contrast intercept is blanked
+#' when that reference level is entirely at the limit. A continuous `sigma`
+#' covariate that also loads on rows above the limit keeps its standard error,
+#' and `check_drm()` records a note rather than a warning. Student-t `nu`
+#' above 1000 is the Gaussian limit; `nu` is
+#' dimensionless, so that cutoff does not depend on response units. Beta,
+#' beta-binomial, and zero-one-beta are not flagged. Wald `confint()` sets
+#' `lower` and `upper` to `NA`, `conf.status` to `"boundary_limit"`, and
+#' `interval_source` to `"not_available"`, and warns with class
+#' `drmTMB_dispersion_boundary_warning`. Profile and bootstrap intervals are
+#' not blanked. The point estimate is unchanged. `vcov()` still returns the
+#' raw covariance.
+#'
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
@@ -1458,7 +1475,11 @@ interval_status_levels <- function() {
     "bootstrap_unavailable",
     "target_unavailable",
     "profile_unavailable",
-    "not_requested"
+    "not_requested",
+    # Wald-only blanking for a simpler-family dispersion limit (#1496).
+    # PR #1501 adds `bootstrap_incomplete` to this same vector; keep this
+    # addition to one string so that rebase stays a one-line conflict.
+    "boundary_limit"
   )
 }
 
@@ -2116,7 +2137,8 @@ drm_wald_confint <- function(
   sd_boundary = 1e-4,
   rho_boundary = 0.98,
   small_sample_df = c("location", "none", "group"),
-  bias_correct = c("location", "none", "group")
+  bias_correct = c("location", "none", "group"),
+  dispersion_warn = TRUE
 ) {
   small_sample_df <- match.arg(small_sample_df)
   bias_correct <- match.arg(bias_correct)
@@ -2279,6 +2301,11 @@ drm_wald_confint <- function(
   }
 
   row.names(out) <- NULL
+  out <- drm_mask_dispersion_boundary_confint(
+    object,
+    out,
+    warn = dispersion_warn
+  )
   drm_as_confint_table(out)
 }
 

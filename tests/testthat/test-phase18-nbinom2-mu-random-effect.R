@@ -165,7 +165,16 @@ test_that("Phase 18 NB2 mu random-effect smoke runner summarises output", {
   expect_equal(nrow(out$aggregate), 6L)
   expect_equal(nrow(out$manifest), 1L)
   expect_identical(out$manifest$status, "ok")
+  # Fitted sigma ~ z can put some rows under mu * sigma^2 < 0.001. Those
+  # columns also load on rows above the limit, so no standard error is
+  # blanked and the runner must not record a dispersion-boundary warning.
   expect_equal(nrow(out$failures), 0L)
+  expect_false(any(out$run$summary$dispersion_boundary))
+  expect_true(all(is.finite(
+    out$run$summary$std.error[
+      out$run$summary$parameter_class == "fixed_sigma"
+    ]
+  )))
   expect_equal(nrow(out$wald_intervals), 6L)
   expect_equal(nrow(out$wald_coverage), 4L)
   expect_equal(nrow(out$profile_intervals), 2L)

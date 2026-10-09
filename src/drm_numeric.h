@@ -15,23 +15,53 @@ Type drm_log1p_exp_stable(Type eta)
 // Stable log(1 + x) for non-negative x. The direct expression loses x when
 // x is tiny; the short alternating series is accurate in that region and
 // remains differentiable on the TMB tape.
+//
+// The conditional records both branches. For huge x the unselected series
+// is x^3/3 and overflows to +Inf, which makes the Hessian NaN even though
+// the direct branch is the one selected. Each branch therefore sees x
+// clamped into the region where that branch is finite. The selected value
+// is unchanged.
 template<class Type>
 Type drm_log1p_nonnegative(Type x)
 {
+  Type x_cut = Type(1e-5);
+  Type x_series = CppAD::CondExpLt(x, x_cut, x, x_cut);
   Type series =
-    x - x * x / Type(2.0) + x * x * x / Type(3.0);
-  Type direct = log(Type(1.0) + x);
-  return CppAD::CondExpLt(x, Type(1e-5), series, direct);
+    x_series - x_series * x_series / Type(2.0) +
+    x_series * x_series * x_series / Type(3.0);
+  Type x_direct = CppAD::CondExpLt(x, x_cut, x_cut, x);
+  Type direct = log(Type(1.0) + x_direct);
+  return CppAD::CondExpLt(x, x_cut, series, direct);
 }
 
+// log(1 - exp(log_p)) for log_p <= 0.
+//
+// The conditional records both branches (#1472). Two of them are non-finite
+// on the side where they are not selected:
+//   * u = -log_p below about 1.1e-16: exp(log_p) rounds to 1, so the direct
+//     branch is log(0) = -Inf and the Hessian is NaN. The series branch,
+//     which is selected for u < 1e-6, stays finite and equals log(u) there.
+//     A cloglog success at eta = -40 is this case: the log-likelihood is
+//     eta, the gradient is finite, and the old Hessian was NaN.
+//   * u very large: the cubic series overflows to +Inf while the direct
+//     branch is selected.
+// Clamping each branch's u into its own finite region leaves the selected
+// value and its first derivative unchanged. Do not clamp log_p itself
+// before the series: that would replace log(u) with log(1.2e-16) and move
+// the cloglog log-likelihood off eta.
 template<class Type>
 Type drm_log1mexp(Type log_p)
 {
   Type u = -log_p;
-  Type series_arg = u - u * u / Type(2.0) + u * u * u / Type(6.0);
+  Type u_cut = Type(1e-6);
+  Type u_series = CppAD::CondExpLt(u, u_cut, u, u_cut);
+  Type series_arg =
+    u_series - u_series * u_series / Type(2.0) +
+    u_series * u_series * u_series / Type(6.0);
   Type series = log(series_arg);
-  Type direct = log(Type(1.0) - exp(log_p));
-  return CppAD::CondExpLt(u, Type(1e-6), series, direct);
+  Type u_direct = CppAD::CondExpLt(u, u_cut, u_cut, u);
+  Type direct = log(Type(1.0) - exp(-u_direct));
+  return CppAD::CondExpLt(u, u_cut, series, direct);
 }
 
 template<class Type>

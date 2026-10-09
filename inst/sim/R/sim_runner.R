@@ -62,6 +62,7 @@ phase18_run_replicate <- function(
           elapsed = proc.time()[["elapsed"]] - started,
           warnings = warnings
         )
+        summary <- phase18_attach_dispersion_boundary(summary, fit)
       },
       error = function(e) {
         status <<- "error"
@@ -69,10 +70,15 @@ phase18_run_replicate <- function(
       }
     ),
     warning = function(w) {
-      # The drmTMB convergence and clamp-active warnings are informational: the
-      # simulation summary already tracks per-fit convergence, pdHess, and scale
-      # state, so capturing them here would double-count them as ledger failures.
-      # Record every other warning.
+      # The drmTMB convergence and clamp-active warnings are informational:
+      # the simulation summary already tracks per-fit convergence, pdHess,
+      # and scale state, so capturing them here would double-count them as
+      # ledger failures. The dispersion-boundary warning is not muffled.
+      # `phase18_attach_dispersion_boundary()` records a per-replicate flag,
+      # the same shape as `convergence_status` on PR #1503. PR #1503 also
+      # muffles drmTMB_gradient_warning. This branch does not add an absolute
+      # gradient cutoff. On rebase onto cursor/triage-d-silent-inputs, keep
+      # that class in this vector and keep both summary columns.
       own <- c(
         "drmTMB_convergence_warning",
         "drmTMB_clamp_active_warning",
@@ -103,6 +109,35 @@ phase18_run_replicate <- function(
     saveRDS(result, result_path)
   }
   result
+}
+
+# Record whether the fit sits on a simpler-family dispersion limit. The
+# column is TRUE, FALSE, or NA. A non-drmTMB fit, or a summary that is not a
+# data frame, is left unchanged apart from an NA flag on a non-empty data
+# frame. The warning itself is not muffled: a summarise step that prints the
+# boundary still lands in `warnings`.
+phase18_attach_dispersion_boundary <- function(summary, fit) {
+  if (!is.data.frame(summary) || nrow(summary) == 0L) {
+    return(summary)
+  }
+  flag <- NA
+  if (inherits(fit, "drmTMB")) {
+    flag <- tryCatch(
+      {
+        report_fun <- getFromNamespace(
+          "drm_dispersion_boundary_report",
+          "drmTMB"
+        )
+        isTRUE(report_fun(fit)$at_limit)
+      },
+      error = function(e) NA
+    )
+  }
+  if (length(flag) != 1L || is.na(flag)) {
+    flag <- NA
+  }
+  summary$dispersion_boundary <- flag
+  summary
 }
 
 phase18_run_replicates <- function(

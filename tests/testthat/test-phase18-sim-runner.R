@@ -709,3 +709,67 @@ test_that("Phase 18 replicate runner validates result directory reads", {
     "not a valid Phase 18 replicate result"
   )
 })
+
+test_that("Phase 18 replicate runner records a dispersion_boundary flag", {
+  source(
+    system.file("sim/R/sim_registry.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_utils.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+  source(
+    system.file("sim/R/sim_runner.R", package = "drmTMB", mustWork = TRUE),
+    local = TRUE
+  )
+
+  cell <- data.frame(cell_id = "nbinom2_boundary_001", n = 4L)
+  seed_row <- data.frame(
+    cell_id = "nbinom2_boundary_001",
+    cell_index = 1L,
+    replicate = 1L,
+    seed = 1496L
+  )
+  dgp_fun <- function(cell, seed, cell_id, replicate) {
+    data.frame(y = rep(1, cell$n[[1L]]))
+  }
+  fit_fun <- function(data, cell) {
+    cli::cli_warn(
+      "dispersion at a simpler-family limit",
+      class = "drmTMB_dispersion_boundary_warning"
+    )
+    warning("unrelated ledger warning", call. = FALSE)
+    X <- matrix(1, 4, 1, dimnames = list(NULL, "(Intercept)"))
+    structure(
+      list(
+        model = list(
+          model_type = "nbinom2",
+          X = list(sigma = X, mu = X)
+        ),
+        coefficients = list(
+          sigma = c(`(Intercept)` = -20),
+          mu = c(`(Intercept)` = 0)
+        )
+      ),
+      class = "drmTMB"
+    )
+  }
+  summarise_fun <- function(fit, truth, cell_id, replicate, elapsed, warnings) {
+    data.frame(warning_count = length(warnings))
+  }
+
+  result <- phase18_run_replicate(
+    cell,
+    seed_row,
+    dgp_fun,
+    fit_fun,
+    summarise_fun
+  )
+
+  expect_identical(result$status, "ok")
+  expect_true(any(grepl("unrelated ledger warning", result$warnings, fixed = TRUE)))
+  expect_true(any(grepl("simpler-family", result$warnings)))
+  expect_true(isTRUE(result$summary$dispersion_boundary))
+  expect_equal(result$summary$warning_count, 2L)
+})

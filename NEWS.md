@@ -12,6 +12,114 @@
 
 ## Bug fixes
 
+* `family = student()` no longer reports a log-likelihood above the Gaussian
+  maximum when `nu` is huge. The compiled density evaluates
+  `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,
+  and uses `log1p` for `z^2/nu` (#1462). Moderate `nu` is unchanged. A fit
+  that previously stopped at `nu` around `1e6` or larger can move, because
+  the old objective was rounding noise. `logLik()` reads that objective.
+  `fitted_distribution()` already used `stats::dt()`.
+
+* Binomial cloglog and zero-truncated or hurdle NB2 Hessians stay finite when
+  a success probability or a truncated mean is far below `1e-16` (#1472).
+  The log-likelihood value at those points is unchanged. `drm_log1p_nonnegative()`
+  got the same treatment for a huge argument, which is the kernel used by
+  bivariate Student-t.
+
+* The Julia bridge defines `%||%` itself when the running R does not
+  already provide it. Base R added that operator in 4.4.0, and
+  `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
+  diagnostics, and the MSPL link code errored on older R with
+  "could not find function `%||%`". The definition matches base: the
+  right-hand side only when the left-hand side is `NULL`. A second copy
+  from a rebase does not replace it.
+
+* `engine = "julia"` cross-family fits now drop one shared complete case.
+  A length check used to pair row 3 of one response with a different row of
+  the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
+  and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
+  missing sigma covariate drops that row from the location axes too.
+  Each design is rebuilt on those shared rows. Assigned contrasts are
+  kept, including `contr.sum` and the polynomial contrasts of an ordered
+  factor, so `contrasts(f) <- contr.sum(3)` still yields columns `f1` and
+  `f2` when every level remains. The same helper now drops unused levels
+  on the TMB engine, which had been recoding those columns as treatment
+  contrasts (`fb`, `fc`). A non-reference treatment level that the drop
+  empties is still removed. Removing the reference level stops the fit
+  and names that level, instead of keeping a column such as `gc` and
+  silently changing its baseline. A character or logical predictor is
+  factored from the full frame before that check. `g = c("a", "a", "b",
+  "b", "c", "c")` with the `"a"` rows removed by the other response stops
+  the fit and names `"a"`, instead of keeping `gc` against a new baseline
+  `b`. Fewer than two observed levels, a
+  contrast coding that cannot be kept, or any other aliased column
+  (tolerance 1e-10) also stops the fit.
+  `fitted()` and `residuals()` are the length of the original data, with
+  `NA` on dropped rows, and the kept positions are stored in `kept_rows`.
+  `cbind(successes, failures)` is refused on a cross-family axis, with or
+  without missing values: flattening that response and keeping the first
+  `n` entries dropped the failures. A single 0/1 column is unchanged.
+  `offset()` on a location or sigma formula is refused, because
+  `model.matrix()` would have ignored it. Structured `response = "drop"`
+  fits drop incomplete rows, and error if that would remove a whole
+  grouping level from the covariance. Bivariate q2 structured fits error
+  when a modelled column contains `NA` instead of sending it to Julia.
+  The main bridge records how many rows it dropped, and `check_drm()`
+  reports that count. `response = "include"` is unchanged.
+* Exact rank-deficient fixed-effect designs now stop before fitting, for
+  every distributional parameter (`mu`, `sigma`, `nu`, `zi`, `hu`, `zoi`,
+  `coi`, `rho12`, the bivariate blocks, and direct SD designs) and for the
+  Julia bridge's R design matrix. The message names the aliased columns.
+  This is a behaviour change: the same design used to be able to return
+  `converged = TRUE` with no usable Wald standard errors. Near-collinear
+  columns, below the 1e-10 QR tolerance, still fit and stay visible to
+  `check_drm()` (Fixes #1470).
+
+* Negative-binomial and Student-t fits that reach a simpler-family limit
+  now say so. For NB2 and its variants the limit is the extra-Poisson
+  variance `mu * sigma^2` below 0.001. `mu` and `sigma` both come from
+  `predict(..., type = "response")`, so the ratio includes the offset and
+  any random effect on the count mean or on `sigma`, not `exp(X %*% beta)`
+  and not an absolute `sigma^2` cutoff. Student-t
+  `nu > 1000` stays, because `nu` is dimensionless. Beta and zero-one-beta
+  are not flagged. A beta-binomial tends to the binomial as its precision
+  grows, and that limit is not applied here.
+  A coefficient whose design column is nonzero only on those rows keeps its
+  point estimate, but `summary()` sets that Wald standard error to `NA`.
+  For `sigma ~ g` with treatment contrasts, the intercept is that reference
+  level: if every row of the reference level is at the limit, the intercept
+  is blanked too, so the near-Poisson level is blanked whether or not it is
+  the reference. The contrast against that blanked reference can still have
+  a very large Wald standard error, because it is not supported only on
+  limit rows. `sigma ~ 0 + g` gives the other level a finite standard error.
+  `contr.sum` and a continuous covariate are left as they are.
+  A continuous `sigma ~ z` that also loads on rows above the limit keeps
+  every standard error. `check_drm()` then records a note, and `summary()`
+  and `print()` do not claim those standard errors are missing.
+  Wald `confint()` sets `conf.status` to `boundary_limit`,
+  `interval_source` to `not_available`, and the endpoints to `NA` only for
+  a blanked coefficient. Profile
+  and bootstrap intervals are not blanked. `check_drm()` warns only when
+  at least one standard error is blanked. `print()` states that case
+  without a second warning. If `predict()` fails on a `drmTMB` fit, the
+  check warns with class `drmTMB_dispersion_predict_fallback` and uses the
+  fixed linear predictor. `vcov()` still returns the raw covariance. This is a behaviour
+  change for those boundary fits: a finite Wald standard error is no
+  longer printed as if it were usable, and a fit that merely has some rows
+  under the limit no longer warns. Gaussian, gamma, lognormal, and
+  Tweedie `sigma` are not flagged. The Julia-engine `summary()` and
+  `check_drm()` still do not blank these standard errors; that is a
+  follow-up (Fixes #1496).
+
+* `check_drm()`'s `hessian_conditioning` note now uses the correlation-scaled
+  condition number of `sdr$cov.fixed` when every diagonal entry is positive.
+  A clean Gaussian location-scale fit whose raw condition number is large
+  only because covariates have different units, such as `Ozone ~ Temp + Wind`
+  with `sigma ~ Temp` on `airquality`, no longer raises the note. A
+  negative covariance eigenvalue still warns from the raw covariance, and
+  a genuinely ill-conditioned correlation structure still notes
+  (Fixes #1251).
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).
