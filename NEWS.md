@@ -39,9 +39,17 @@
   the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
   and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
   missing sigma covariate drops that row from the location axes too.
-  Each design is rebuilt on those shared rows. A factor level that the
-  drop empties is removed from the design; if that leaves fewer than two
-  observed levels, or the design is rank deficient, the fit stops.
+  Each design is rebuilt on those shared rows. Assigned contrasts are
+  kept, including `contr.sum` and the polynomial contrasts of an ordered
+  factor, so `contrasts(f) <- contr.sum(3)` still yields columns `f1` and
+  `f2` when every level remains. The same helper now drops unused levels
+  on the TMB engine, which had been recoding those columns as treatment
+  contrasts (`fb`, `fc`). A non-reference treatment level that the drop
+  empties is still removed. Removing the reference level stops the fit
+  and names that level, instead of keeping a column such as `gc` and
+  silently changing its baseline. Fewer than two observed levels, a
+  contrast coding that cannot be kept, or any other aliased column
+  (tolerance 1e-10) also stops the fit.
   `fitted()` and `residuals()` are the length of the original data, with
   `NA` on dropped rows, and the kept positions are stored in `kept_rows`.
   `cbind(successes, failures)` is refused on a cross-family axis, with or

@@ -339,3 +339,137 @@ test_that("the main Julia drop records a complete-case count for check_drm() (#1
   expect_match(row$value, "dropped=1", fixed = TRUE)
   expect_match(row$message, "complete-case", fixed = TRUE)
 })
+
+# contr.sum(3) on a three-level factor. Column names are f1, f2 when the
+# contrast attribute survives. base::droplevels() used to recode them as
+# treatment columns fb, fc.
+alignment_sum_data <- function(drop_rows = FALSE) {
+  f <- factor(rep(c("a", "b", "c"), each = 12))
+  stats::contrasts(f) <- stats::contr.sum(3)
+  d <- data.frame(
+    y1 = stats::rnorm(36),
+    y2 = stats::rpois(36, 2),
+    f = f
+  )
+  if (drop_rows) {
+    # One row from each level. Every level remains, so the coding must not change.
+    d$y1[c(1L, 13L, 25L)] <- NA
+    d$y2[c(2L, 14L, 26L)] <- NA
+  }
+  d
+}
+
+alignment_sum_names <- function(data) {
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ f, mu2 = y2 ~ f),
+    data,
+    environment(),
+    c("gaussian", "poisson")
+  )
+  ft <- drmTMB(
+    bf(y1 ~ f),
+    family = gaussian(),
+    data = data,
+    engine = "tmb"
+  )
+  list(julia = ax$mu1$coef_names, tmb = names(coef(ft, "mu")), axes = ax)
+}
+
+test_that("contr.sum columns stay f1, f2 on a cross-family design and on engine = tmb", {
+  hit <- FALSE
+  ns <- asNamespace("drmTMB")
+  orig <- get("drm_julia_xfam_design_from_frame", envir = ns)
+  wrapper <- function(mf, pos, dpar) {
+    hit <<- TRUE
+    orig(mf, pos, dpar)
+  }
+  environment(wrapper) <- environment()
+  unlockBinding("drm_julia_xfam_design_from_frame", ns)
+  assign("drm_julia_xfam_design_from_frame", wrapper, envir = ns)
+  on.exit({
+    assign("drm_julia_xfam_design_from_frame", orig, envir = ns)
+    lockBinding("drm_julia_xfam_design_from_frame", ns)
+  }, add = TRUE)
+
+  full <- alignment_sum_names(alignment_sum_data(FALSE))
+  expect_true(hit)
+  expect_identical(full$julia, c("(Intercept)", "f1", "f2"))
+  expect_identical(full$julia, full$tmb)
+
+  dropped <- alignment_sum_names(alignment_sum_data(TRUE))
+  expect_identical(dropped$julia, c("(Intercept)", "f1", "f2"))
+  expect_identical(dropped$julia, dropped$tmb)
+  expect_false(any(c("fb", "fc") %in% dropped$julia))
+
+  body <- paste(deparse(orig), collapse = "\n")
+  expect_match(body, "drm_aliased_columns(X, tol = 1e-10)", fixed = TRUE)
+})
+
+test_that("an ordered factor keeps contr.poly columns through the cross-family rebuild", {
+  o <- ordered(rep(c("a", "b", "c"), each = 8))
+  d <- data.frame(y1 = stats::rnorm(24), y2 = stats::rpois(24, 2), o = o)
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ o, mu2 = y2 ~ 1),
+    d,
+    environment(),
+    c("gaussian", "poisson")
+  )
+  ft <- drmTMB(bf(y1 ~ o), family = gaussian(), data = d, engine = "tmb")
+  expect_identical(ax$mu1$coef_names, c("(Intercept)", "o.L", "o.Q"))
+  expect_identical(ax$mu1$coef_names, names(coef(ft, "mu")))
+})
+
+test_that("emptying the treatment reference level errors and does not switch the baseline", {
+  d <- data.frame(
+    y1 = c(1, 1, 1, 1, 1, 1),
+    y2 = c(1, 2, 3, 4, 5, 6),
+    g = factor(c("a", "a", "b", "b", "c", "c"), levels = c("a", "b", "c"))
+  )
+  d$y1[1:2] <- NA
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y1 ~ 1, mu2 = y2 ~ g),
+      d,
+      environment(),
+      c("gaussian", "poisson")
+    ),
+    "reference level \"a\""
+  )
+})
+
+test_that("the cross-family rank check uses drm_aliased_columns at tolerance 1e-10", {
+  set.seed(1504)
+  n <- 40L
+  x <- stats::rnorm(n)
+  # Noise of 1e-8 is full rank at 1e-10 and rank-deficient at qr()'s 1e-7 default.
+  d <- data.frame(
+    y1 = stats::rnorm(n),
+    y2 = stats::rnorm(n),
+    x = x,
+    z = x + 1e-8 * stats::rnorm(n)
+  )
+  ax <- drmTMB:::drm_julia_xfam_axes(
+    bf(mu1 = y1 ~ x + z, mu2 = y2 ~ 1),
+    d,
+    environment(),
+    c("gaussian", "poisson")
+  )
+  expect_identical(ax$mu1$coef_names, c("(Intercept)", "x", "z"))
+
+  d$z <- d$x
+  expect_error(
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y1 ~ x + z, mu2 = y2 ~ 1),
+      d,
+      environment(),
+      c("gaussian", "poisson")
+    ),
+    class = "drmTMB_rank_deficient_design"
+  )
+
+  mf <- stats::model.frame(y1 ~ x + z, d)
+  expect_error(
+    drmTMB:::drm_julia_xfam_design_from_frame(mf, seq_len(nrow(mf)), "mu1"),
+    class = "drmTMB_rank_deficient_design"
+  )
+})

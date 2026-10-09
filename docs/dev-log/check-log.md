@@ -1,3 +1,15 @@
+# 2026-10-09: cross-family contrasts kept, reference level refused
+
+`contrasts(f) <- contr.sum(3)` was becoming treatment columns `fb`, `fc` because `droplevels()` calls `factor()` and drops the contrasts attribute, even when no level was removed. `drm_droplevels_keep_contrasts_factor()` drops unused levels and writes that attribute back. The cross-family rebuild and the TMB pre-fit drop both use it, so a Julia cross-family design and `engine = "tmb"` both keep `f1`, `f2`, with and without dropped rows that leave every level in the data. An ordered factor keeps `o.L` and `o.Q`.
+
+Removing the treatment reference level on a cross-family axis now errors and names the level. The fit no longer keeps a column such as `gc` and silently changes its baseline from `c - a` to `c - b`. A non-reference treatment level that the shared-row drop empties is still removed.
+
+The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
+
+`R/drmTMB.R` changed, so C17 is recertified in this round. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
+
 # 2026-10-08: cross-family cbind, emptied factor levels, offset refusal
 
 Review round on draft PR #1504. R only. `src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited, so C17 was not recertified.

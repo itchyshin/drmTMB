@@ -8437,10 +8437,185 @@ drm_julia_xfam_used_levels <- function(col) {
   lv[tabulate(as.integer(col), nbins = length(lv)) > 0L]
 }
 
-# Rebuild one design on the shared rows. droplevels() removes a level that the
-# other axis's missingness emptied, so model.matrix does not emit an all-zero
-# column for it. A factor left with fewer than two observed levels, or any
-# other rank-deficient design, is refused.
+# Treatment reference: the contrast row that is all zeros. `contr.sum` and
+# `contr.poly` have no such row. `NA` means "do not treat any level as the
+# baseline that other columns are compared with".
+drm_factor_reference_level <- function(col) {
+  if (!is.factor(col) || nlevels(col) < 2L) {
+    return(NA_character_)
+  }
+  ctr <- tryCatch(stats::contrasts(col), error = function(e) NULL)
+  if (!is.matrix(ctr) || is.null(rownames(ctr))) {
+    return(NA_character_)
+  }
+  zero <- which(apply(abs(ctr) < 1e-8, 1L, all))
+  if (length(zero) == 1L) rownames(ctr)[zero] else NA_character_
+}
+
+# Rows of a stored contrast matrix for the levels that remain. NULL when the
+# stored coding cannot be kept (the remaining columns would not be a full
+# contrast basis). Callers then refuse, instead of letting `factor()` invent
+# treatment columns.
+drm_contrast_subset <- function(col, levels_keep) {
+  ctr <- attr(col, "contrasts")
+  if (!is.matrix(ctr) || is.null(rownames(ctr))) {
+    return(NULL)
+  }
+  if (!all(levels_keep %in% rownames(ctr))) {
+    return(NULL)
+  }
+  sub <- ctr[levels_keep, , drop = FALSE]
+  if (ncol(sub) == 0L) {
+    return(NULL)
+  }
+  alive <- colSums(abs(sub)) > 1e-8
+  sub <- sub[, alive, drop = FALSE]
+  if (ncol(sub) != length(levels_keep) - 1L || nrow(sub) != length(levels_keep)) {
+    return(NULL)
+  }
+  sub
+}
+
+# `droplevels.factor()` calls `factor()`, which drops a contrasts attribute.
+# `contrasts(f) <- contr.sum(3)` then becomes treatment columns `fb`, `fc`
+# even when every level is still present. Ordered factors keep `contr.poly`
+# only because that coding is the ordered default, not a stored matrix.
+# This helper drops unused levels and writes the stored contrasts back.
+drm_droplevels_keep_contrasts_factor <- function(col) {
+  if (!is.factor(col)) {
+    return(col)
+  }
+  used <- levels(col)[tabulate(as.integer(col), nbins = nlevels(col)) > 0L]
+  if (length(used) == nlevels(col)) {
+    return(col)
+  }
+  if (is.ordered(col) || is.null(attr(col, "contrasts"))) {
+    return(droplevels(col))
+  }
+  sub <- drm_contrast_subset(col, used)
+  new <- droplevels(col)
+  if (!is.null(sub)) {
+    stats::contrasts(new) <- sub
+  }
+  new
+}
+
+drm_droplevels_keep_contrasts <- function(data) {
+  if (!is.data.frame(data)) {
+    return(data)
+  }
+  for (nm in names(data)) {
+    if (is.factor(data[[nm]])) {
+      data[[nm]] <- drm_droplevels_keep_contrasts_factor(data[[nm]])
+    }
+  }
+  data
+}
+
+# Rank check used by the cross-family design. The canonical copies live in
+# R/drmTMB.R on the convergence branch. Delete these three once that branch
+# is rebased here: drmTMB.R is collated first, and a second copy in this file
+# would replace it.
+drm_complete_case_design <- function(X) {
+    if (!anyNA(X)) {
+      return(X)
+    }
+    if (inherits(X, "Matrix")) {
+      keep <- Matrix::rowSums(is.na(X)) == 0
+      return(X[keep, , drop = FALSE])
+    }
+    X[stats::complete.cases(X), , drop = FALSE]
+  }
+
+  drm_qr_rank_and_pivot <- function(q, tol) {
+    dollar <- tryCatch(
+      list(rank = q$rank, pivot = q$pivot),
+      error = function(e) NULL
+    )
+    if (!is.null(dollar) && !is.null(dollar$rank)) {
+      return(dollar)
+    }
+    if (!isS4(q) || !methods::is(q, "sparseQR")) {
+      return(list(rank = NULL, pivot = NULL))
+    }
+    Rdiag <- tryCatch(
+      abs(diag(as.matrix(qr.R(q)))),
+      error = function(e) NULL
+    )
+    if (is.null(Rdiag) || length(Rdiag) == 0L || !any(is.finite(Rdiag))) {
+      return(list(rank = NULL, pivot = NULL))
+    }
+    scale <- max(Rdiag, na.rm = TRUE)
+    rank <- if (!is.finite(scale) || scale <= 0) {
+      0L
+    } else {
+      as.integer(sum(Rdiag > tol * scale))
+    }
+    pivot <- if (methods::.hasSlot(q, "q")) as.integer(q@q) + 1L else NULL
+    list(rank = rank, pivot = pivot)
+  }
+
+  drm_aliased_columns <- function(X, tol = 1e-10) {
+    if (is.null(X) || (!is.matrix(X) && !inherits(X, "Matrix"))) {
+      return(character())
+    }
+    n_col <- ncol(X)
+    if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+      return(character())
+    }
+    X <- drm_complete_case_design(X)
+    n_col <- ncol(X)
+    if (is.null(n_col) || n_col < 2L || nrow(X) < 1L) {
+      return(character())
+    }
+    design <- X
+    info <- tryCatch(
+      drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+      error = function(e) NULL
+    )
+    if (
+      (is.null(info) || is.null(info$rank)) &&
+        inherits(design, "Matrix") &&
+        nrow(design) * n_col <= 200000L
+    ) {
+      design <- as.matrix(design)
+      info <- tryCatch(
+        drm_qr_rank_and_pivot(qr(design, tol = tol), tol),
+        error = function(e) NULL
+      )
+    }
+    if (is.null(info) || is.null(info$rank)) {
+      if (inherits(X, "Matrix") && nrow(X) * n_col > 200000L) {
+        cli::cli_warn(
+          c(
+            "The rank check could not factor a large sparse design, so aliased columns were not identified.",
+            "i" = "The fit continues. If standard errors are missing, drop linearly dependent columns and refit."
+          ),
+          class = "drmTMB_rank_check_skipped"
+        )
+      }
+      return(character())
+    }
+    if (info$rank >= n_col) {
+      return(character())
+    }
+    cols <- colnames(X)
+    if (is.null(cols) || length(cols) != n_col) {
+      cols <- paste0("column_", seq_len(n_col))
+    }
+    pivot <- info$pivot
+    if (is.null(pivot) || length(pivot) != n_col) {
+      return(cols)
+    }
+    cols[pivot[seq.int(info$rank + 1L, n_col)]]
+  }
+
+# Rebuild one design on the shared rows. Unused factor levels are dropped
+# without discarding a contrasts attribute, so `contr.sum` stays `f1`, `f2`
+# and an ordered factor stays on `contr.poly`. Emptying the treatment
+# reference level is refused: `droplevels()` would keep the column name and
+# change the baseline. Fewer than two observed levels, a contrast coding that
+# cannot be kept, or any other aliased column (tolerance 1e-10) is refused.
 drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
   after <- mf[pos, , drop = FALSE]
   for (nm in names(mf)) {
@@ -8451,6 +8626,14 @@ drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
     used_before <- drm_julia_xfam_used_levels(col)
     used_after <- drm_julia_xfam_used_levels(after[[nm]])
     lost <- setdiff(used_before, used_after)
+    ref <- drm_factor_reference_level(col)
+    if (!is.na(ref) && !(ref %in% used_after)) {
+      cli::cli_abort(c(
+        "{.code engine = \"julia\"} cross-family alignment removed the reference level {.val {ref}} of {.field {nm}} on {.code {dpar}}.",
+        x = "Refitting would keep a column such as {.code {nm}c} and change its baseline. The fit stops instead of switching the reference silently.",
+        i = "Set the reference to a level that still has rows, then refit."
+      ))
+    }
     if (length(lost) > 0L && length(used_after) < 2L) {
       cli::cli_abort(c(
         "{.code engine = \"julia\"} cross-family alignment removed every shared row of a factor level on {.code {dpar}}.",
@@ -8458,8 +8641,16 @@ drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
         i = "Drop that level from the data and refit, or use {.code engine = \"tmb\"}."
       ))
     }
+    if (length(lost) > 0L && is.matrix(attr(col, "contrasts"))) {
+      if (is.null(drm_contrast_subset(col, used_after))) {
+        cli::cli_abort(c(
+          "{.code engine = \"julia\"} cross-family alignment removed level{?s} {.val {lost}} of {.field {nm}} on {.code {dpar}}, and that contrast coding cannot be kept.",
+          i = "Drop those levels and set the contrasts again on the levels that remain, or use {.code engine = \"tmb\"}."
+        ))
+      }
+    }
   }
-  after <- droplevels(after)
+  after <- drm_droplevels_keep_contrasts(after)
   tt <- stats::terms(after)
   attr(tt, "xlev") <- NULL
   X <- tryCatch(
@@ -8472,18 +8663,30 @@ drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
       ))
     }
   )
-  if (qr(X)$rank < ncol(X)) {
-    zero <- colnames(X)[colSums(abs(X)) < sqrt(.Machine$double.eps)]
-    zero_note <- if (length(zero) > 0L) {
-      paste0("All-zero columns: ", paste(zero, collapse = ", "), ".")
-    } else {
-      "The shared rows do not identify every column."
+  aliased <- drm_aliased_columns(X, tol = 1e-10)
+  if (
+    length(aliased) == 0L &&
+      ncol(X) < 2L &&
+      nrow(X) > 0L &&
+      max(abs(X)) == 0
+  ) {
+    aliased <- if (is.null(colnames(X))) "column_1" else colnames(X)
+  }
+  if (length(aliased) > 0L) {
+    if (
+      ncol(X) >= 2L &&
+        exists("drm_abort_rank_deficient_designs", mode = "function")
+    ) {
+      drm_abort_rank_deficient_designs(stats::setNames(list(X), dpar))
     }
-    cli::cli_abort(c(
-      "{.code engine = \"julia\"} cross-family alignment made the {.code {dpar}} design rank deficient.",
-      x = zero_note,
-      i = "An {.code NA} on another axis removed the rows that identified a column. Drop that level or covariate pattern, or use {.code engine = \"tmb\"}."
-    ))
+    cli::cli_abort(
+      c(
+        "{.code engine = \"julia\"} cross-family alignment made the {.code {dpar}} design rank deficient.",
+        x = "Aliased columns: {.val {aliased}}.",
+        i = "An {.code NA} on another axis removed the rows that identified a column. Drop that level or covariate pattern, or use {.code engine = \"tmb\"}."
+      ),
+      class = "drmTMB_rank_deficient_design"
+    )
   }
   X
 }
