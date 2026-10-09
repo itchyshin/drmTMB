@@ -277,8 +277,13 @@ recommends \code{method = "profile"}.
 
 A dispersion coefficient that is nonzero only on rows at a simpler-family
 limit is not given a usable Wald interval. For NB2 and its variants the
-limit is extra-Poisson variance \code{mu * sigma^2} below 0.001, evaluated at
-the fitted \code{mu}. Student-t \code{nu} above 1000 is the Gaussian limit; \code{nu} is
+limit is extra-Poisson variance \code{mu * sigma^2} below 0.001, with \code{mu} and
+\code{sigma} from \code{predict(..., type = "response")}, so an offset or a random
+effect on \code{sigma} is included. A treatment-contrast intercept is blanked
+when that reference level is entirely at the limit. A continuous \code{sigma}
+covariate that also loads on rows above the limit keeps its standard error,
+and \code{check_drm()} records a note rather than a warning. Student-t \code{nu}
+above 1000 is the Gaussian limit; \code{nu} is
 dimensionless, so that cutoff does not depend on response units. Beta,
 beta-binomial, and zero-one-beta are not flagged. Wald \code{confint()} sets
 \code{lower} and \code{upper} to \code{NA}, \code{conf.status} to \code{"boundary_limit"}, and

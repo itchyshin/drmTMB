@@ -77,21 +77,36 @@
 
 * Negative-binomial and Student-t fits that reach a simpler-family limit
   now say so. For NB2 and its variants the limit is the extra-Poisson
-  variance `mu * sigma^2` below 0.001, evaluated at the fitted count-component
-  mean, including the offset and any location random effect, not at
-  `exp(X %*% beta)` and not at an absolute `sigma^2` cutoff. Student-t
+  variance `mu * sigma^2` below 0.001. `mu` and `sigma` both come from
+  `predict(..., type = "response")`, so the ratio includes the offset and
+  any random effect on the count mean or on `sigma`, not `exp(X %*% beta)`
+  and not an absolute `sigma^2` cutoff. Student-t
   `nu > 1000` stays, because `nu` is dimensionless. Beta and zero-one-beta
   are not flagged. A beta-binomial tends to the binomial as its precision
   grows, and that limit is not applied here.
   A coefficient whose design column is nonzero only on those rows keeps its
   point estimate, but `summary()` sets that Wald standard error to `NA`.
+  For `sigma ~ g` with treatment contrasts, the intercept is that reference
+  level: if every row of the reference level is at the limit, the intercept
+  is blanked too, so the near-Poisson level is blanked whether or not it is
+  the reference. The contrast against that blanked reference can still have
+  a very large Wald standard error, because it is not supported only on
+  limit rows. `sigma ~ 0 + g` gives the other level a finite standard error.
+  `contr.sum` and a continuous covariate are left as they are.
+  A continuous `sigma ~ z` that also loads on rows above the limit keeps
+  every standard error. `check_drm()` then records a note, and `summary()`
+  and `print()` do not claim those standard errors are missing.
   Wald `confint()` sets `conf.status` to `boundary_limit`,
-  `interval_source` to `not_available`, and the endpoints to `NA`. Profile
-  and bootstrap intervals are not blanked. `check_drm()` adds a
-  `dispersion_boundary` warning. `print()` states the limit without
-  warning. `vcov()` still returns the raw covariance. This is a behaviour
+  `interval_source` to `not_available`, and the endpoints to `NA` only for
+  a blanked coefficient. Profile
+  and bootstrap intervals are not blanked. `check_drm()` warns only when
+  at least one standard error is blanked. `print()` states that case
+  without a second warning. If `predict()` fails on a `drmTMB` fit, the
+  check warns with class `drmTMB_dispersion_predict_fallback` and uses the
+  fixed linear predictor. `vcov()` still returns the raw covariance. This is a behaviour
   change for those boundary fits: a finite Wald standard error is no
-  longer printed as if it were usable. Gaussian, gamma, lognormal, and
+  longer printed as if it were usable, and a fit that merely has some rows
+  under the limit no longer warns. Gaussian, gamma, lognormal, and
   Tweedie `sigma` are not flagged. The Julia-engine `summary()` and
   `check_drm()` still do not blank these standard errors; that is a
   follow-up (Fixes #1496).

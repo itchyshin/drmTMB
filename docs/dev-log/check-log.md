@@ -1,3 +1,13 @@
+# 2026-10-09: dispersion warning only when a standard error is blanked
+
+Rebased `cursor/triage-f-convergence` onto `af2ee2501` (`cursor/triage-e-numeric`). `drm_dispersion_boundary_report()` sets `at_limit` only when `coefficient_rows` or `parameter_parms` is non-empty. `check_drm()` warns in that case, notes when some rows are under the limit and nothing is blanked, and is `ok` otherwise. `summary()` and `print()` still key off `at_limit`, so a continuous `sigma ~ z` no longer warns or prints missing standard errors.
+
+`sigma` in `mu * sigma^2` is `predict(object, dpar = dpar, type = "response")`. A fit `sigma ~ 1 + (1 | g)` therefore uses the group-level log-`sigma` shifts. If `predict()` errors, a `drmTMB` object warns with class `drmTMB_dispersion_predict_fallback` and the check uses `exp(eta)` from the fixed linear predictor. A plain list stays quiet.
+
+For treatment 0/1 columns, the intercept is blanked when every reference row is at the limit. `sigma ~ g` blanks the near-Poisson level whether that level is the reference or the contrast. The contrast against a blanked reference can still have a Wald standard error in the thousands. `sigma ~ 0 + g` keeps a finite standard error for the other level. `contr.sum` is not rewritten.
+
+Local R 4.3.3, reinstall without recompile. `test-convergence-honesty-triage-f.R`: 0 failures, 111 expectations. `test-phase18-nbinom2-mu-random-effect.R`: 0 failures, 46 expectations (the smoke expects 0 failure rows). `test-phase18-sim-runner.R`: 0 failures, 75 expectations. Full `testthat::test_dir()` is recorded in the next paragraph of this entry once it finishes. C17 recertification is `python3 tools/recertify-c17.py --label triage-f-rebase --tolerance 1e-10` after this rebase, because `R/drmTMB.R` and `R/methods.R` differ from the pinned blobs.
+
 # 2026-10-09: character predictors use the full-frame reference level
 
 `model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.

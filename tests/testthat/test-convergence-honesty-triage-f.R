@@ -245,8 +245,32 @@ test_that("dispersion-limit detection covers sibling families without changing e
     )
   )
   partial_report <- drmTMB:::drm_dispersion_boundary_report(partial)
+  # x is a 0/1 treatment column. The reference row (x = 0) is at the limit
+  # and the other row is not, so the intercept is blanked and the slope is kept.
   expect_true(partial_report$at_limit)
-  expect_length(partial_report$coefficient_rows, 0L)
+  expect_identical(partial_report$coefficient_rows, "sigma:(Intercept)")
+
+  continuous <- list(
+    model = list(
+      model_type = "nbinom2",
+      X = list(
+        sigma = cbind(`(Intercept)` = 1, z = c(-1, 0, 1)),
+        mu = cbind(`(Intercept)` = 1, z = c(0, 0, 0))
+      )
+    ),
+    coefficients = list(
+      sigma = c(`(Intercept)` = -2, z = 3),
+      mu = c(`(Intercept)` = log(5), z = 0)
+    )
+  )
+  continuous_report <- drmTMB:::drm_dispersion_boundary_report(continuous)
+  expect_false(continuous_report$at_limit)
+  expect_length(continuous_report$coefficient_rows, 0L)
+  expect_gt(continuous_report$n_limit_rows, 0L)
+  expect_false(drmTMB:::drm_treatment_reference_at_limit(
+    cbind(`(Intercept)` = 1, g1 = c(1, 0, -1)),
+    c(TRUE, FALSE, FALSE)
+  ))
 
   expect_null(drmTMB:::drm_dispersion_boundary_report(list(
     model = list(
@@ -453,4 +477,128 @@ test_that("NB2 offset(log(t)) keeps a finite SE(sigma), with and without a rando
   expect_true(is.finite(sm_re$coefficients["sigma:(Intercept)", "std_error"]))
   report_re <- drmTMB:::drm_dispersion_boundary_report(fit_re)
   expect_false(isTRUE(report_re$at_limit))
+})
+
+test_that("a continuous sigma covariate keeps its SE when only some rows are at the limit", {
+  set.seed(1518)
+  n <- 400L
+  z <- seq(-1, 1, length.out = n)
+  eta <- -2 + 3 * z
+  y <- stats::rnbinom(n, mu = 5, size = 1 / exp(2 * eta))
+  fit <- drmTMB(
+    bf(y ~ 1, sigma ~ z),
+    family = nbinom2(),
+    data = data.frame(y = y, z = z)
+  )
+  report <- drmTMB:::drm_dispersion_boundary_report(fit)
+  expect_false(report$at_limit)
+  expect_length(report$coefficient_rows, 0L)
+  expect_gt(report$n_limit_rows, 0L)
+  expect_false(grepl("not usable", report$message, fixed = TRUE))
+  expect_false(grepl(
+    "No fitted dispersion value is at a simpler-family limit",
+    report$message,
+    fixed = TRUE
+  ))
+  boundary <- check_drm(fit)
+  boundary <- boundary[boundary$check == "dispersion_boundary", ]
+  expect_equal(boundary$status, "note")
+  expect_no_warning(
+    sm <- summary(fit),
+    class = "drmTMB_dispersion_boundary_warning"
+  )
+  sigma_rows <- grep("^sigma:", rownames(sm$coefficients), value = TRUE)
+  expect_true(all(is.finite(sm$coefficients[sigma_rows, "std_error"])))
+  printed <- character()
+  withCallingHandlers(
+    print(fit),
+    message = function(m) {
+      printed <<- c(printed, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  expect_false(any(grepl("dispersion boundary", printed, fixed = TRUE)))
+})
+
+test_that("the Poisson-limit treatment level is blanked whether or not it is the reference", {
+  set.seed(1519)
+  g <- factor(rep(c("a", "b"), each = 60L))
+  log_sigma <- ifelse(g == "a", -4.5, 0)
+  y <- stats::rnbinom(length(g), mu = 5, size = 1 / exp(2 * log_sigma))
+  d <- data.frame(y = y, g = g)
+
+  fit_a <- drmTMB(bf(y ~ 1, sigma ~ g), family = nbinom2(), data = d)
+  expect_warning(
+    sm_a <- summary(fit_a),
+    class = "drmTMB_dispersion_boundary_warning"
+  )
+  expect_true(is.na(sm_a$coefficients["sigma:(Intercept)", "std_error"]))
+  # gb is the contrast against the blanked reference, so its Wald SE stays
+  # large. It is not blanked: the column is nonzero on the level that is
+  # not at the limit. sigma ~ 0 + g below gives that level a finite SE.
+  expect_true(is.finite(sm_a$coefficients["sigma:gb", "std_error"]))
+  expect_gt(sm_a$coefficients["sigma:gb", "std_error"], 100)
+
+  d_b <- d
+  d_b$g <- stats::relevel(d_b$g, ref = "b")
+  fit_b <- drmTMB(bf(y ~ 1, sigma ~ g), family = nbinom2(), data = d_b)
+  expect_warning(
+    sm_b <- summary(fit_b),
+    class = "drmTMB_dispersion_boundary_warning"
+  )
+  expect_true(is.na(sm_b$coefficients["sigma:ga", "std_error"]))
+  expect_true(is.finite(sm_b$coefficients["sigma:(Intercept)", "std_error"]))
+  expect_lt(sm_b$coefficients["sigma:(Intercept)", "std_error"], 2)
+
+  fit_cell <- drmTMB(bf(y ~ 1, sigma ~ 0 + g), family = nbinom2(), data = d)
+  expect_warning(
+    sm_cell <- summary(fit_cell),
+    class = "drmTMB_dispersion_boundary_warning"
+  )
+  expect_true(is.na(sm_cell$coefficients["sigma:ga", "std_error"]))
+  expect_true(is.finite(sm_cell$coefficients["sigma:gb", "std_error"]))
+  expect_lt(sm_cell$coefficients["sigma:gb", "std_error"], 2)
+})
+
+test_that("mu * sigma^2 uses predict(sigma) so a sigma random effect counts", {
+  set.seed(1520)
+  g <- factor(rep(seq_len(6L), each = 30L))
+  log_sigma <- ifelse(g == "6", -5, 0)
+  y <- stats::rnbinom(length(g), mu = 5, size = 1 / exp(2 * log_sigma))
+  fit <- drmTMB(
+    bf(y ~ 1, sigma ~ 1 + (1 | g)),
+    family = nbinom2(),
+    data = data.frame(y = y, g = g)
+  )
+  mu_hat <- stats::predict(fit, dpar = "mu", type = "response")
+  sigma_hat <- stats::predict(fit, dpar = "sigma", type = "response")
+  extra <- mu_hat * sigma_hat^2
+  fixed_extra <- mu_hat * exp(2 * unname(coef(fit, "sigma")[["(Intercept)"]]))
+  expect_lt(min(extra), min(fixed_extra) * 0.5)
+  report <- drmTMB:::drm_dispersion_boundary_report(fit)
+  expect_equal(report$min_extra, min(extra[is.finite(extra)]))
+  expect_false(report$at_limit)
+  expect_true(is.finite(summary(fit)$coefficients["sigma:(Intercept)", "std_error"]))
+})
+
+test_that("a drmTMB object warns when predict() fails and a list mock stays quiet", {
+  X <- matrix(1, 4, 1, dimnames = list(NULL, "(Intercept)"))
+  fields <- list(
+    model = list(
+      model_type = "nbinom2",
+      X = list(sigma = X, mu = X),
+      offset = list(sigma = 0)
+    ),
+    coefficients = list(
+      sigma = c(`(Intercept)` = -1),
+      mu = c(`(Intercept)` = log(5))
+    )
+  )
+  broken <- structure(fields, class = "drmTMB")
+  expect_warning(
+    report <- drmTMB:::drm_dispersion_boundary_report(broken),
+    class = "drmTMB_dispersion_predict_fallback"
+  )
+  expect_true(is.finite(report$min_extra))
+  expect_silent(drmTMB:::drm_dispersion_boundary_report(fields))
 })

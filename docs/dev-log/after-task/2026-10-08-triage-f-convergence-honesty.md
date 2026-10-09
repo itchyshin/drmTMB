@@ -25,10 +25,12 @@ Wald `confint()` sets `lower` and `upper` to `NA`, `conf.status` to
 `boundary_limit`, and `interval_source` to `not_available`, and warns with
 class `drmTMB_dispersion_boundary_warning`. Profile and bootstrap intervals
 are not blanked. `print()` states the limit. `check_drm()` adds
-`dispersion_boundary` (`warning` when any fitted row is at the limit, `ok`
-when the family applies and none is). For NB2 and its variants the limit is
-`mu * sigma^2 < 0.001`, the extra variance relative to the Poisson variance,
-evaluated at the fitted `mu`. Beta, beta-binomial, and zero-one-beta are
+`dispersion_boundary` (`warning` only when a coefficient's Wald standard
+error is blanked, `note` when some rows are at the limit and nothing is
+blanked, `ok` when the family applies and no row is at the limit). For NB2
+and its variants the limit is `mu * sigma^2 < 0.001`, the extra variance
+relative to the Poisson variance, with `mu` and `sigma` from
+`predict(..., type = "response")`. Beta, beta-binomial, and zero-one-beta are
 not flagged. `nu > 1000` remains the limit for `student` and `biv_student`
 because `nu` is dimensionless. `vcov()` is unchanged. Phase 18 writes
 `dispersion_boundary` on each replicate summary and does not muffle the
@@ -205,10 +207,11 @@ a new standing rule yet.
 ## Known Limitations
 
 Gaussian, gamma, lognormal, and Tweedie `sigma` are not flagged. The
-dispersion flag uses `predict(dpar = mu)`, so the count-component mean
-includes the offset and the location random effects. A zero-inflated,
-hurdle, or truncated NB2 still uses that count-component mean, not the
-marginal mean.
+dispersion flag uses `predict(dpar = mu)` and `predict(dpar = sigma)`, so
+the extra-Poisson ratio includes the offset and random effects on either
+parameter. A zero-inflated, hurdle, or truncated NB2 still uses the
+count-component mean, not the marginal mean. `contr.sum` on `sigma` is not
+given the treatment-reference intercept blank.
 `corpairs()` profile intervals are not masked. Follow-up: Julia `summary()`
 and `check_drm.drmTMB_julia` do not blank the dispersion standard error and
 do not report `dispersion_boundary` or `hessian_conditioning`. `vcov()` still
@@ -246,10 +249,22 @@ The branch was rebased onto `cursor/triage-e-numeric` at `46d125a50`. The rank c
 
 `drm_dispersion_fitted_mu()` now calls `predict(object, dpar = mu, type = "response")`. For `y ~ offset(log(t))` with `t = 1000` and NB2 size 2000, the extra-Poisson ratio stays near 0.5 and `SE(sigma)` stays finite. The same model with `(1 | g)` does too. A hand-built mock that has no `predict()` method still uses `X %*% beta`.
 
-The comment that said beta-binomial has no simpler family now says it tends to the binomial as precision grows, and that this check does not flag it.
+The comment that said beta-binomial has no simpler family now says it tends to the binomial as precision grows, and that this check does not flag it. The Phase 18 expectation written in the next paragraph was the false positive; the following section replaces it.
 
 The cross-family test calls `drm_julia_xfam_axes()`, which calls `drm_julia_xfam_design_from_frame()` in R, and checks that the rank line is `drm_aliased_columns(X, tol = 1e-10)`. An empty-cell `site * trt` design is still refused.
 
 Full `testthat::test_dir()`: PASS 45124, FAIL 6, WARN 78, SKIP 446. Five failures match the contrast-branch VM (no `{ape}`, the Julia fence stops on missing `{JuliaCall}` before the DRM path message, one sparse `crossprod`, and the installed-package registry path). The sixth is the Phase 18 NB2 mu random-effect smoke. Its fitted `sigma ~ z` puts 132 of 440 rows under `mu * sigma^2 < 0.001` whether `mu` is `exp(X %*% beta)` or `predict(dpar = "mu")`. The runner records that warning. Both sigma columns also load on rows above the limit, so `SE(sigma)` stays finite. The test now expects that one warning (0 failures, 49 expectations on re-run).
 
 Julia 1.10.10 and DRModels.jl 0.7.2 load in a Julia process, and `{JuliaCall}` is installed. `JuliaCall::julia_setup()` segfaults inside R (exit 139), so the live `engine = "julia"` tests stayed skipped: 0 live tests ran, 67 skipped.
+
+## Dispersion warning only when a standard error is blanked (2026-10-09)
+
+Reader: an applied user reading `summary()` on an NB2 fit, and the contributor who next edits `drm_dispersion_boundary_report()`.
+
+`at_limit` used to mean `n_limit > 0`. A well-identified `sigma ~ z` then warned, `summary()` talked about missing standard errors, and the Phase 18 runner stored that warning as a failure even though no coefficient was blanked. `at_limit` is now `length(coefficient_rows) + length(parameter_parms) > 0`. `check_drm()` warns in that case, notes when some rows are under the limit and nothing is blanked, and is `ok` otherwise. `summary()` and `print()` still key off `at_limit`, so they stay quiet when every standard error is kept.
+
+`sigma` in `mu * sigma^2` is `predict(object, dpar = dpar, type = "response")`, squared. A model `sigma ~ 1 + (1 | g)` therefore counts the group-level log-`sigma` shifts. The fallback, if `predict()` errors, is `exp(eta)` from the fixed linear predictor. A `drmTMB` object warns with class `drmTMB_dispersion_predict_fallback`. A plain list mock does not.
+
+For treatment contrasts only, if every row where the non-intercept columns are 0 is at the limit, `(Intercept)` is blanked. That is the reference-level log-`sigma`. `sigma ~ g` with the near-Poisson level as the reference and with it as the contrast then both blank that level. The contrast against the blanked reference can still have a Wald standard error in the thousands, because that column is nonzero on the level that is not at the limit. `sigma ~ 0 + g` reports a finite standard error for that other level. `contr.sum` uses `-1` and is not rewritten. A continuous `z` is not a 0/1 dummy, so its intercept stays.
+
+The Phase 18 NB2 mu random-effect smoke expects 0 failures and `dispersion_boundary` false. Suite counts for this round are in `docs/dev-log/check-log.md`.

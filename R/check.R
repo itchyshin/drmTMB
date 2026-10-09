@@ -31,9 +31,12 @@
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
 #' Student-t `nu` boundary behaviour, dispersion parameters at a simpler-family
 #' limit (`dispersion_boundary`: for NB2 and its variants, extra-Poisson
-#' variance `mu * sigma^2` below 0.001 of the Poisson variance, evaluated at
-#' the fitted `mu`; Student-t `nu` above 1000, which is scale-free because
-#' `nu` is dimensionless), skew-normal `nu` finite-value checks,
+#' variance `mu * sigma^2` below 0.001 of the Poisson variance, with `mu` and
+#' `sigma` from `predict(..., type = "response")` so an offset or a random
+#' effect is included; a warning only when a coefficient's Wald standard
+#' error is blanked, and a note when some rows are at the limit but every
+#' coefficient keeps its standard error; Student-t `nu` above 1000, which is
+#' scale-free because `nu` is dimensionless), skew-normal `nu` finite-value checks,
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -2072,9 +2075,16 @@ check_student_nu <- function(object) {
 # 0.006 at `nu = 1000`. The point estimate is left unchanged. A coefficient
 # is marked only when every row where its design column is nonzero is a
 # limit row. A coefficient that also loads on non-limit rows keeps its
-# standard error; `check_drm()` still warns that some fitted values are at
-# the limit. Only Wald intervals are blanked. Gaussian, gamma, lognormal,
-# and Tweedie `sigma` are interior scales and are not marked here.
+# standard error. `check_drm()` warns only when at least one of those
+# standard errors is blanked. Rows at the limit with nothing blanked are a
+# note, and `summary()` keeps the standard errors. For a treatment contrast,
+# the intercept is the reference-level coefficient: if every row where the
+# other columns are zero is at the limit, that intercept is blanked too.
+# `contr.sum` and a continuous covariate are not rewritten that way. NB2
+# `sigma` in `mu * sigma^2` comes from `predict(dpar, type = "response")`,
+# so a random effect on `sigma` is included. Only Wald intervals are
+# blanked. Gaussian, gamma, lognormal, and Tweedie `sigma` are interior
+# scales and are not marked here.
 drm_dispersion_extra_poisson_limit <- 1e-3
 drm_student_nu_limit <- 1000
 
@@ -2104,7 +2114,9 @@ drm_dispersion_mu_dpar <- function(dpar) {
 # random effect on that location. It is not `exp(X %*% beta)`, and it is
 # not the marginal mean of a zero-inflated, hurdle, or truncated fit.
 # A hand-built mock with no `predict()` method falls back to the fixed
-# linear predictor. Missing location coefficients mean the extra-Poisson
+# linear predictor and stays quiet. A `drmTMB` object that cannot
+# `predict()` warns and uses the same fallback, which drops offsets and
+# random effects. Missing location coefficients mean the extra-Poisson
 # ratio cannot be evaluated and the caller must not flag the scale.
 drm_dispersion_fitted_mu <- function(object, dpar) {
   mu_dpar <- drm_dispersion_mu_dpar(dpar)
@@ -2113,9 +2125,11 @@ drm_dispersion_fitted_mu <- function(object, dpar) {
   }
   mu <- tryCatch(
     as.numeric(stats::predict(object, dpar = mu_dpar, type = "response")),
-    error = function(e) NULL
+    error = function(e) e
   )
-  if (!is.null(mu) && length(mu) > 0L && any(is.finite(mu))) {
+  if (inherits(mu, "error")) {
+    drm_warn_dispersion_predict_fallback(object, mu_dpar, mu)
+  } else if (length(mu) > 0L && any(is.finite(mu))) {
     return(mu)
   }
   beta <- object$coefficients[[mu_dpar]]
@@ -2125,6 +2139,50 @@ drm_dispersion_fitted_mu <- function(object, dpar) {
     return(NULL)
   }
   drm_inverse_link(object, mu_dpar, eta)
+}
+
+# Response-scale `sigma`, including random effects when `predict()` can see
+# them. `eta` is the fixed linear predictor on the log-`sigma` scale. The
+# fallback is `exp(eta)`, which is the fixed-effect `sigma` only.
+drm_dispersion_fitted_sigma <- function(object, dpar, eta) {
+  sigma <- tryCatch(
+    as.numeric(stats::predict(object, dpar = dpar, type = "response")),
+    error = function(e) e
+  )
+  if (inherits(sigma, "error")) {
+    drm_warn_dispersion_predict_fallback(object, dpar, sigma)
+  } else if (
+    length(sigma) > 0L &&
+      any(is.finite(sigma)) &&
+      (is.null(eta) || length(sigma) == length(eta))
+  ) {
+    return(sigma)
+  } else if (inherits(object, "drmTMB")) {
+    drm_warn_dispersion_predict_fallback(
+      object,
+      dpar,
+      simpleError("predict() did not return one finite sigma per row")
+    )
+  }
+  if (is.null(eta)) {
+    return(NULL)
+  }
+  exp(eta)
+}
+
+drm_warn_dispersion_predict_fallback <- function(object, dpar, err) {
+  if (!inherits(object, "drmTMB")) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(
+    c(
+      "Could not read fitted {.val {dpar}} with {.fn predict}, so the dispersion-limit check used the fixed linear predictor.",
+      "i" = "Offsets and random effects on {.val {dpar}} are absent from that fallback.",
+      "x" = conditionMessage(err)
+    ),
+    class = "drmTMB_dispersion_predict_fallback"
+  )
+  invisible(TRUE)
 }
 
 drm_fixed_linear_predictor <- function(X, beta) {
@@ -2193,6 +2251,36 @@ drm_design_terms_only_on_rows <- function(X, beta, at_limit) {
   unique(flagged)
 }
 
+# Treatment coding stores the reference level in `(Intercept)`. That column
+# is 1 on every row, so the column rule keeps its standard error even when
+# the reference level itself is entirely at the Poisson limit. Blank the
+# intercept when every reference row is at the limit. A reference row is a
+# row whose non-intercept columns are all ~0, and only when those columns
+# are 0/1 dummies. `contr.sum` uses -1 and a continuous covariate is not
+# 0/1, so both keep the intercept.
+drm_treatment_reference_at_limit <- function(X, at_limit) {
+  if (is.null(X) || length(at_limit) == 0L) {
+    return(FALSE)
+  }
+  X <- as.matrix(X)
+  if (nrow(X) != length(at_limit) || ncol(X) < 2L) {
+    return(FALSE)
+  }
+  cols <- colnames(X)
+  if (is.null(cols) || sum(cols == "(Intercept)") != 1L) {
+    return(FALSE)
+  }
+  others <- X[, cols != "(Intercept)", drop = FALSE]
+  tol <- 1e-8
+  near0 <- abs(others) <= tol
+  near1 <- abs(others - 1) <= tol
+  if (anyNA(near0) || !all(near0 | near1)) {
+    return(FALSE)
+  }
+  ref <- rowSums(near0) == ncol(others)
+  any(ref) && all(at_limit[ref])
+}
+
 drm_dispersion_boundary_report <- function(object) {
   model_type <- object$model$model_type
   if (
@@ -2244,10 +2332,16 @@ drm_dispersion_boundary_report <- function(object) {
     }
     if (identical(blocks[[dpar]], "sigma2")) {
       mu <- drm_dispersion_fitted_mu(object, dpar)
-      if (is.null(mu) || length(mu) != length(eta)) {
+      sigma <- drm_dispersion_fitted_sigma(object, dpar, eta)
+      if (
+        is.null(mu) ||
+          is.null(sigma) ||
+          length(mu) != length(sigma) ||
+          length(sigma) != length(eta)
+      ) {
         next
       }
-      sigma2 <- exp(2 * eta)
+      sigma2 <- sigma^2
       extra <- mu * sigma2
       at_limit <- is.finite(extra) &
         is.finite(mu) &
@@ -2269,6 +2363,12 @@ drm_dispersion_boundary_report <- function(object) {
     }
     n_limit <- n_limit + sum(at_limit)
     terms <- drm_design_terms_only_on_rows(X, beta, at_limit)
+    if (
+      identical(blocks[[dpar]], "sigma2") &&
+        drm_treatment_reference_at_limit(X, at_limit)
+    ) {
+      terms <- unique(c("(Intercept)", terms))
+    }
     if (length(terms) > 0L) {
       coefficient_rows <- c(coefficient_rows, paste0(dpar, ":", terms))
       parms <- c(parms, paste0("fixef:", dpar, ":", terms))
@@ -2284,7 +2384,10 @@ drm_dispersion_boundary_report <- function(object) {
     }
   }
 
-  at_limit <- n_limit > 0L
+  coefficient_rows <- unique(coefficient_rows)
+  parameter_parms <- unique(parameter_parms)
+  parms <- unique(parms)
+  at_limit <- length(coefficient_rows) > 0L || length(parameter_parms) > 0L
   value_bits <- character()
   if (saw_sigma && is.finite(min_extra)) {
     value_bits <- c(
@@ -2307,9 +2410,11 @@ drm_dispersion_boundary_report <- function(object) {
   }
   list(
     at_limit = at_limit,
-    coefficient_rows = unique(coefficient_rows),
-    parms = unique(parms),
-    parameter_parms = unique(parameter_parms),
+    n_limit_rows = n_limit,
+    min_extra = if (saw_sigma && is.finite(min_extra)) min_extra else NA_real_,
+    coefficient_rows = coefficient_rows,
+    parms = parms,
+    parameter_parms = parameter_parms,
     value = paste(value_bits, collapse = "; "),
     message = if (at_limit) {
       paste(
@@ -2325,6 +2430,8 @@ drm_dispersion_boundary_report <- function(object) {
         "nonzero only on those rows are not usable: summary() sets them to",
         "NA and Wald confint() sets conf.status to boundary_limit and",
         "interval_source to not_available.",
+        "For a treatment contrast, the intercept is blanked when the",
+        "reference level is entirely at that limit.",
         "Profile and bootstrap intervals are not blanked.",
         "vcov() still returns the raw covariance; do not read those",
         "diagonals as Wald standard errors.",
@@ -2332,6 +2439,17 @@ drm_dispersion_boundary_report <- function(object) {
         "error. Compare the nested simpler model (Poisson for nbinom2,",
         "a Gaussian for a huge Student-t nu) before reporting the limit",
         "coefficient."
+      )
+    } else if (n_limit > 0L) {
+      paste(
+        "Some fitted rows are at a simpler-family limit: NB2 extra-Poisson",
+        "variance mu * sigma^2 below",
+        drm_dispersion_extra_poisson_limit,
+        "or Student-t nu above",
+        drm_student_nu_limit,
+        ". Every coefficient also loads on rows that are not at that limit,",
+        "so those Wald standard errors are kept. summary() does not set them",
+        "to NA."
       )
     } else {
       "No fitted dispersion value is at a simpler-family limit."
@@ -2426,7 +2544,13 @@ check_dispersion_boundary <- function(object) {
   }
   check_row(
     "dispersion_boundary",
-    if (isTRUE(report$at_limit)) "warning" else "ok",
+    if (isTRUE(report$at_limit)) {
+      "warning"
+    } else if (isTRUE(report$n_limit_rows > 0L)) {
+      "note"
+    } else {
+      "ok"
+    },
     report$value,
     report$message
   )
