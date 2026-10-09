@@ -398,27 +398,59 @@ test_that("rank check uses complete cases, sparse QR, and the Julia cross-family
 
   dat <- data.frame(
     y = stats::rnorm(12),
+    y2 = stats::rnorm(12),
     x = c(1:6, 1:6),
     xdup = c(1:6, 1:6)
   )
+  # The rank check lives in the shared-row design, not in the axis builder.
+  # Building X inside the axis left a reference to an undefined X after the
+  # alignment rebase.
   expect_error(
-    drmTMB:::drm_julia_xfam_axis(
-      list(response = "y", rhs = quote(x + xdup), dpar = "mu1"),
+    drmTMB:::drm_julia_xfam_axes(
+      bf(mu1 = y ~ x + xdup, mu2 = y2 ~ 1),
       data = dat,
       env = environment(),
-      dpar = "mu1"
+      tags = c("gaussian", "poisson")
     ),
     class = "drmTMB_rank_deficient_design"
   )
+  mf <- stats::model.frame(y ~ x + xdup, dat)
   expect_error(
-    drmTMB:::drm_julia_xfam_sigma(
-      list(response = NA_character_, rhs = quote(x + xdup), dpar = "sigma1"),
-      mu = list(y = dat$y, response = "y"),
-      tag = "gaussian",
-      data = dat,
-      env = environment(),
-      dpar = "sigma1"
-    ),
+    drmTMB:::drm_julia_xfam_design_from_frame(mf, seq_len(nrow(mf)), "mu1"),
     class = "drmTMB_rank_deficient_design"
   )
+  body <- paste(deparse(drmTMB:::drm_julia_xfam_design_from_frame), collapse = "\n")
+  expect_match(body, "drm_aliased_columns(X, tol = 1e-10)", fixed = TRUE)
+})
+
+test_that("NB2 offset(log(t)) keeps a finite SE(sigma), with and without a random effect", {
+  set.seed(1505)
+  n <- 80L
+  t <- rep(1000, n)
+  y <- stats::rnbinom(n, mu = 1000, size = 2000)
+  d <- data.frame(y = y, t = t)
+  fit <- drmTMB(
+    bf(y ~ offset(log(t)), sigma ~ 1),
+    family = nbinom2(),
+    data = d
+  )
+  sm <- summary(fit)
+  expect_true(is.finite(sm$coefficients["sigma:(Intercept)", "std_error"]))
+  report <- drmTMB:::drm_dispersion_boundary_report(fit)
+  expect_false(isTRUE(report$at_limit))
+
+  set.seed(1506)
+  g <- factor(rep(seq_len(10L), each = 8L))
+  u <- stats::rnorm(10L, 0, 0.25)
+  y_re <- stats::rnbinom(n, mu = 1000 * exp(u[g]), size = 2000)
+  d_re <- data.frame(y = y_re, t = t, g = g)
+  fit_re <- drmTMB(
+    bf(y ~ offset(log(t)) + (1 | g), sigma ~ 1),
+    family = nbinom2(),
+    data = d_re
+  )
+  sm_re <- summary(fit_re)
+  expect_true(is.finite(sm_re$coefficients["sigma:(Intercept)", "std_error"]))
+  report_re <- drmTMB:::drm_dispersion_boundary_report(fit_re)
+  expect_false(isTRUE(report_re$at_limit))
 })

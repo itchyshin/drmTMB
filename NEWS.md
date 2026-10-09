@@ -77,9 +77,12 @@
 
 * Negative-binomial and Student-t fits that reach a simpler-family limit
   now say so. For NB2 and its variants the limit is the extra-Poisson
-  variance `mu * sigma^2` below 0.001, evaluated at the fitted `mu`, not an
-  absolute `sigma^2` cutoff. Student-t `nu > 1000` stays, because `nu` is
-  dimensionless. Beta, beta-binomial, and zero-one-beta are not flagged.
+  variance `mu * sigma^2` below 0.001, evaluated at the fitted count-component
+  mean, including the offset and any location random effect, not at
+  `exp(X %*% beta)` and not at an absolute `sigma^2` cutoff. Student-t
+  `nu > 1000` stays, because `nu` is dimensionless. Beta and zero-one-beta
+  are not flagged. A beta-binomial tends to the binomial as its precision
+  grows, and that limit is not applied here.
   A coefficient whose design column is nonzero only on those rows keeps its
   point estimate, but `summary()` sets that Wald standard error to `NA`.
   Wald `confint()` sets `conf.status` to `boundary_limit`,

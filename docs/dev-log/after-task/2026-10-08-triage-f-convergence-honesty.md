@@ -205,8 +205,10 @@ a new standing rule yet.
 ## Known Limitations
 
 Gaussian, gamma, lognormal, and Tweedie `sigma` are not flagged. The
-dispersion flag uses `X %*% beta`, so a random-effect-adjusted `sigma` can
-sit on the limit while the fixed coefficient keeps its standard error.
+dispersion flag uses `predict(dpar = mu)`, so the count-component mean
+includes the offset and the location random effects. A zero-inflated,
+hurdle, or truncated NB2 still uses that count-component mean, not the
+marginal mean.
 `corpairs()` profile intervals are not masked. Follow-up: Julia `summary()`
 and `check_drm.drmTMB_julia` do not blank the dispersion standard error and
 do not report `dispersion_boundary` or `hessian_conditioning`. `vcov()` still
@@ -235,3 +237,19 @@ do not blank a Poisson-limit Wald standard error and do not report
 
 Watch the draft pull request's CI. Do not merge it and do not close the
 issues from this branch.
+
+## Rebase onto the contrast branch (2026-10-09)
+
+Reader: the person merging draft #1505 after #1504.
+
+The branch was rebased onto `cursor/triage-e-numeric` at `46d125a50`. The rank checks that #1505 had placed inside `drm_julia_xfam_axis()` and `drm_julia_xfam_sigma()` referenced `X` after that rebase, because those functions no longer build the design. Both checks now run only in `drm_julia_xfam_design_from_frame()`, which calls `drm_aliased_columns(X, tol = 1e-10)` and then `drm_abort_rank_deficient_designs()`. The duplicate copies of the rank helpers were removed from `R/julia-bridge.R`. `R/drmTMB.R` is the only definition.
+
+`drm_dispersion_fitted_mu()` now calls `predict(object, dpar = mu, type = "response")`. For `y ~ offset(log(t))` with `t = 1000` and NB2 size 2000, the extra-Poisson ratio stays near 0.5 and `SE(sigma)` stays finite. The same model with `(1 | g)` does too. A hand-built mock that has no `predict()` method still uses `X %*% beta`.
+
+The comment that said beta-binomial has no simpler family now says it tends to the binomial as precision grows, and that this check does not flag it.
+
+The cross-family test calls `drm_julia_xfam_axes()`, which calls `drm_julia_xfam_design_from_frame()` in R, and checks that the rank line is `drm_aliased_columns(X, tol = 1e-10)`. An empty-cell `site * trt` design is still refused.
+
+Full `testthat::test_dir()`: PASS 45124, FAIL 6, WARN 78, SKIP 446. Five failures match the contrast-branch VM (no `{ape}`, the Julia fence stops on missing `{JuliaCall}` before the DRM path message, one sparse `crossprod`, and the installed-package registry path). The sixth is the Phase 18 NB2 mu random-effect smoke. Its fitted `sigma ~ z` puts 132 of 440 rows under `mu * sigma^2 < 0.001` whether `mu` is `exp(X %*% beta)` or `predict(dpar = "mu")`. The runner records that warning. Both sigma columns also load on rows above the limit, so `SE(sigma)` stays finite. The test now expects that one warning (0 failures, 49 expectations on re-run).
+
+Julia 1.10.10 and DRModels.jl 0.7.2 load in a Julia process, and `{JuliaCall}` is installed. `JuliaCall::julia_setup()` segfaults inside R (exit 139), so the live `engine = "julia"` tests stayed skipped: 0 live tests ran, 67 skipped.
