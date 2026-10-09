@@ -2063,9 +2063,10 @@ check_student_nu <- function(object) {
 # ratio is below 1e-3 (extra variance under 0.1% of the mean), evaluated at
 # the fitted `mu`. An absolute `sigma^2 < 0.001` cutoff is not scale-free:
 # `mu = 1000`, `size = 2000` has `sigma^2 = 0.0005` but `mu * sigma^2 = 0.5`
-# (`var/mean` about 1.5) and a usable standard error. Beta, beta-binomial,
-# and zero-one-beta have no simpler family at large precision, so they are
-# not flagged. Student-t `nu = 2 + exp(eta)` above 1000 is the Gaussian
+# (`var/mean` about 1.5) and a usable standard error. Beta and zero-one-beta
+# are not flagged: a large precision is not a simpler one-parameter family.
+# A beta-binomial tends to the binomial as its precision grows, and that
+# limit is not applied here. Student-t `nu = 2 + exp(eta)` above 1000 is the Gaussian
 # limit. `nu` is dimensionless, so this cutoff does not depend on the units
 # of the response or the covariates; excess kurtosis `6 / (nu - 4)` is about
 # 0.006 at `nu = 1000`. The point estimate is left unchanged. A coefficient
@@ -2099,13 +2100,23 @@ drm_dispersion_mu_dpar <- function(dpar) {
 }
 
 # Fitted mean on the response scale for the location paired with `dpar`.
-# NB2 variants use a log link, so this is `exp(X_mu %*% beta_mu)`. Missing
-# location coefficients mean the extra-Poisson ratio cannot be evaluated and
-# the caller must not flag the scale.
+# For NB2 this is the count-component mean, including the offset and any
+# random effect on that location. It is not `exp(X %*% beta)`, and it is
+# not the marginal mean of a zero-inflated, hurdle, or truncated fit.
+# A hand-built mock with no `predict()` method falls back to the fixed
+# linear predictor. Missing location coefficients mean the extra-Poisson
+# ratio cannot be evaluated and the caller must not flag the scale.
 drm_dispersion_fitted_mu <- function(object, dpar) {
   mu_dpar <- drm_dispersion_mu_dpar(dpar)
   if (is.na(mu_dpar)) {
     return(NULL)
+  }
+  mu <- tryCatch(
+    as.numeric(stats::predict(object, dpar = mu_dpar, type = "response")),
+    error = function(e) NULL
+  )
+  if (!is.null(mu) && length(mu) > 0L && any(is.finite(mu))) {
+    return(mu)
   }
   beta <- object$coefficients[[mu_dpar]]
   X <- object$model$X[[mu_dpar]]

@@ -165,7 +165,19 @@ test_that("Phase 18 NB2 mu random-effect smoke runner summarises output", {
   expect_equal(nrow(out$aggregate), 6L)
   expect_equal(nrow(out$manifest), 1L)
   expect_identical(out$manifest$status, "ok")
-  expect_equal(nrow(out$failures), 0L)
+  # Fitted sigma ~ z is near the Poisson limit on part of z. The runner
+  # records that dispersion-boundary warning. Both sigma columns also load
+  # on rows above the limit, so those Wald standard errors stay finite.
+  expect_equal(nrow(out$failures), 1L)
+  expect_identical(out$failures$status, "ok")
+  expect_identical(out$failures$severity, "warning")
+  expect_match(out$failures$message, "simpler-family limit", fixed = TRUE)
+  expect_true(all(out$run$summary$dispersion_boundary))
+  expect_true(all(is.finite(
+    out$run$summary$std.error[
+      out$run$summary$parameter_class == "fixed_sigma"
+    ]
+  )))
   expect_equal(nrow(out$wald_intervals), 6L)
   expect_equal(nrow(out$wald_coverage), 4L)
   expect_equal(nrow(out$profile_intervals), 2L)
