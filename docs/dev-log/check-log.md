@@ -1,3 +1,51 @@
+# 2026-10-09: character predictors use the full-frame reference level
+
+`model.frame()` leaves a character or logical predictor as character or logical. The reference-level guard only inspected factors, so `g = c("a", "a", "b", "b", "c", "c")` with the `"a"` rows dropped by the other response rebuilt treatment columns against baseline `b` and kept `gc`. `drm_julia_xfam_design_from_frame()` now calls `factor()` on those columns using the full frame, then applies the same reference check. The response column is left unchanged. `R/drmTMB.R` and `R/methods.R` were not edited, so C17 was not recertified.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 71 expectations. `test-xfam-bridge.R`: 0 failures, 43 expectations, 6 skips (live Julia and `{glmmTMB}`). Full `testthat::test_dir()`: PASS 45117, FAIL 4, WARN 77, SKIP 440. The four failures are this VM: two B1 adapter errors because `{ape}` is absent, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. `{JuliaCall}` is installed, so the old fence failure that stopped on a missing JuliaCall message did not recur. Live engine tests still skipped: `DRMODELS_JL_PATH` was unset for the suite (0 live tests ran, 67 skipped).
+
+# 2026-10-09: cross-family contrasts kept, reference level refused
+
+`contrasts(f) <- contr.sum(3)` was becoming treatment columns `fb`, `fc` because `droplevels()` calls `factor()` and drops the contrasts attribute, even when no level was removed. `drm_droplevels_keep_contrasts_factor()` drops unused levels and writes that attribute back. The cross-family rebuild and the TMB pre-fit drop both use it, so a Julia cross-family design and `engine = "tmb"` both keep `f1`, `f2`, with and without dropped rows that leave every level in the data. An ordered factor keeps `o.L` and `o.Q`.
+
+Removing the treatment reference level on a cross-family axis now errors and names the level. The fit no longer keeps a column such as `gc` and silently changes its baseline from `c - a` to `c - b`. A non-reference treatment level that the shared-row drop empties is still removed.
+
+The rank check in `drm_julia_xfam_design_from_frame()` calls `drm_aliased_columns(X, tol = 1e-10)`. A design with predictor noise of `1e-8` still builds. An exact copy of a column errors with class `drmTMB_rank_deficient_design`. `qr()`'s default tolerance is `1e-7`.
+
+`R/drmTMB.R` changed, so C17 was recertified (`python3 tools/recertify-c17.py --label contrasts-xfam --tolerance 1e-10`) at `b86043991`. Worst `|change|` in mean tau relative error was `1.322e-11` (mc-0569), inside the `1e-10` tolerance. The other two cells moved by `3.030e-12` and `5.263e-12`. That is the same float noise previously recorded on this receipt, not a model-15 shift. `R/methods.R` and `src/drmTMB.cpp` did not change. `lss-tip-identity` hashes every `R/*.R` and will be regenerated once on `main`. It was not rewritten here.
+
+Local R 4.3.3. `test-julia-missing-alignment.R`: 0 failures, 70 expectations. Related files re-run with no failures: coefficient labels, xfam bridge, formula constructs, dinnage wave 1, julia diagnostics, julia bridge, julia structured, julia missing. Full `testthat::test_dir()`: PASS 45044, FAIL 5, WARN 77, SKIP 446. The five failures are this VM, not the contrast change: two B1 adapter errors because `{ape}` is absent, one Julia fence that stops on missing `{JuliaCall}` before the DRM.jl path message, one sparse `crossprod` in `test-missing-predictor-prediction.R` (`R/methods.R`, not edited), and one registry path that points at the installed package under `.Rlib` rather than `inst/`. Live Julia tests skipped: Julia is not installed on this VM, and `DRMODELS_JL_PATH` / `DRM_JL_PATH` is unset, so the live engine did not start. The column checks call `drm_julia_xfam_axes()` and `drm_julia_xfam_design_from_frame()` in R, which is the design the Julia fit sends.
+
+# 2026-10-08: cross-family cbind, emptied factor levels, offset refusal
+
+Review round on draft PR #1504. R only. `src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited, so C17 was not recertified.
+
+- `cbind(successes, failures)` on a cross-family axis errors before the shared-row index is built, with or without `NA`. A single 0/1 column still marshals.
+- Each axis design is rebuilt on the shared rows. An `NA` on `y1` that empties factor level `c` on `mu2` drops that column. One observed level left, or a rank-deficient design, errors.
+- `fitted()` and `residuals()` are indexed like the original data. Dropped rows are `NA`. `kept_rows` stores the fitted positions.
+- `offset()` on a cross-family location or sigma formula errors. `model.matrix()` had been dropping it.
+- `%||%` in `R/zzz.R` matches `if (is.null(x)) y else x` and is defined only when R does not already have it (base since 4.4.0). A rebase against the bridge-inputs copy keeps one definition.
+- The lost-level guard was not extended. The structured payload already errors unless there is exactly one structured term.
+
+Local R 4.3.3, reinstall without recompile. `test-julia-missing-alignment.R` 9 tests, 0 failures, 57 expectations. Also green, no Julia process: `test-xfam-bridge.R` 12/0/6 skip/43, `test-coefficient-labels.R` 44/0/11/100, `test-julia-diagnostics.R` 22/0/2/123, `test-julia-bridge.R` 16/0/2/139, `test-julia-structured.R` 9/0/1/59, `test-julia-missing.R` 8/0/5/5. The related-file union is 182 tests, 0 failures, 17 skips, 1525 expectations.
+
+`lss-tip-identity` hashes every `R/*.R`. This round edits `R/julia-bridge.R` and `R/zzz.R`. That receipt will be regenerated once on `main` after the batch lands. It was not rewritten here.
+
+# 2026-10-08: Student large-nu logLik, log1mexp AD ceiling, Julia NA alignment
+
+Fixed three open bugs on `cursor/triage-e-numeric`.
+
+- #1462: `drm_student_log_density()` keeps the lgamma constant for `nu < 1e4` and uses a three-term Stirling series for `nu >= 1e4`, with `drm_log1p_nonnegative(z^2/nu)`. `logLik()` reads that objective. `fitted_distribution()` already uses `stats::dt()`.
+- #1472: `drm_log1mexp()` and `drm_log1p_nonnegative()` clamp each `CppAD::CondExp` branch into the region where that branch is finite. The selected value is unchanged. Cloglog successes at `eta <= -40` and zero-truncated NB2 at `eta_mu <= -38` now have a finite Hessian.
+- #1454: cross-family Julia axes intersect kept row indices, including sigma designs, so staggered `NA`s stay on one complete-case index. Structured `response = "drop"` drops incomplete rows and errors if a grouping level disappears. q2 structured payloads refuse incomplete modelled columns. `check_drm()` reports the main-route drop count when the bridge recorded one. The Student fix stays inside `drm_student_log_density()`; the three `src/drmTMB.cpp` call sites already call that function and were not patched. `R/drmTMB.R` and `R/methods.R` are unchanged, so C17 was not recertified.
+- Portability: package code defines `%||%`, which base R provides from 4.4.0. `DESCRIPTION` allows R >= 4.1. The review round guards that definition so a rebase keeps one copy.
+
+Local R 4.3.3, drmTMB installed to `/workspace/.Rlib`. Final green union of the related files: 179 tests, 0 failures, 17 skips (live Julia or `NOT_CRAN`), 1488 expectations. New files: `test-student-large-nu.R` (2/23), `test-log1mexp-ad.R` (2/26), `test-julia-missing-alignment.R` (6/20). The first numeric-oracle tweedie case failed only because `{tweedie}` was not installed; after installing it, 19/392 passed. The CondExp enumeration anchor moved from 5/4 to 9/8 in `drm_numeric.h` / `drm_response_kernels.h` and passed.
+
+`R/drmTMB.R`, `R/methods.R`, and `src/drmTMB.cpp` were not edited, so C14/C17 was not recertified. `lss-tip-identity` hashes every `R/*.R`; `R/julia-bridge.R`, `R/julia-diagnostics.R`, and `R/zzz.R` will make that receipt stale on the next push to `main`. It was not rewritten here. Receipt staleness does not run on pull requests.
+
+Report: `docs/dev-log/after-task/2026-10-08-triage-e-numeric.md`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing

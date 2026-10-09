@@ -1703,7 +1703,24 @@ sigma_i = exp(eta_sigma_i)
 nu_i = 2 + exp(eta_nu_i)
 ```
 
-The TMB likelihood includes all Student-t normalizing constants:
+The TMB likelihood includes all Student-t normalizing constants. The
+expression below is the density. For `nu < 1e4` the compiled code evaluates
+the lgamma difference directly. For `nu >= 1e4` it uses the Stirling series
+in `a = nu/2`,
+
+```text
+lgamma(a + 1/2) - lgamma(a) - 0.5 log(2 a pi)
+  = -0.5 log(2 pi) - 1/(8a) + 1/(192 a^3) - 1/(640 a^5) + ...
+```
+
+and `drm_log1p_nonnegative(z^2/nu)` for the kernel. Those two substitutions
+are the same function: as `nu` grows the log-density tends to the Gaussian
+log-density, and it no longer climbs above that limit because of lgamma
+cancellation (#1462). `logLik()` reads this TMB objective.
+`fitted_distribution()` uses `stats::dt()`, which was already stable. The
+bivariate Student density (`model_type` 20) is a separate expression: in two
+dimensions the lgamma difference is exactly `-log(2 pi)`, and the kernel
+already uses `drm_log1p_nonnegative`.
 
 ```text
 z_i = (y_i - mu_i) / sigma_i

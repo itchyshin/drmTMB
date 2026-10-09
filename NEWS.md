@@ -12,6 +12,61 @@
 
 ## Bug fixes
 
+* `family = student()` no longer reports a log-likelihood above the Gaussian
+  maximum when `nu` is huge. The compiled density evaluates
+  `lgamma((nu+1)/2) - lgamma(nu/2)` with a Stirling series for `nu >= 1e4`,
+  and uses `log1p` for `z^2/nu` (#1462). Moderate `nu` is unchanged. A fit
+  that previously stopped at `nu` around `1e6` or larger can move, because
+  the old objective was rounding noise. `logLik()` reads that objective.
+  `fitted_distribution()` already used `stats::dt()`.
+
+* Binomial cloglog and zero-truncated or hurdle NB2 Hessians stay finite when
+  a success probability or a truncated mean is far below `1e-16` (#1472).
+  The log-likelihood value at those points is unchanged. `drm_log1p_nonnegative()`
+  got the same treatment for a huge argument, which is the kernel used by
+  bivariate Student-t.
+
+* The Julia bridge defines `%||%` itself when the running R does not
+  already provide it. Base R added that operator in 4.4.0, and
+  `DESCRIPTION` allows R >= 4.1, so formula marshalling, bridge
+  diagnostics, and the MSPL link code errored on older R with
+  "could not find function `%||%`". The definition matches base: the
+  right-hand side only when the left-hand side is `NULL`. A second copy
+  from a rebase does not replace it.
+
+* `engine = "julia"` cross-family fits now drop one shared complete case.
+  A length check used to pair row 3 of one response with a different row of
+  the other when the `NA`s were staggered (#1454). An `NA` in `y1` on row 3
+  and an `NA` in `y2` on row 7 now drops both rows from both axes, and a
+  missing sigma covariate drops that row from the location axes too.
+  Each design is rebuilt on those shared rows. Assigned contrasts are
+  kept, including `contr.sum` and the polynomial contrasts of an ordered
+  factor, so `contrasts(f) <- contr.sum(3)` still yields columns `f1` and
+  `f2` when every level remains. The same helper now drops unused levels
+  on the TMB engine, which had been recoding those columns as treatment
+  contrasts (`fb`, `fc`). A non-reference treatment level that the drop
+  empties is still removed. Removing the reference level stops the fit
+  and names that level, instead of keeping a column such as `gc` and
+  silently changing its baseline. A character or logical predictor is
+  factored from the full frame before that check. `g = c("a", "a", "b",
+  "b", "c", "c")` with the `"a"` rows removed by the other response stops
+  the fit and names `"a"`, instead of keeping `gc` against a new baseline
+  `b`. Fewer than two observed levels, a
+  contrast coding that cannot be kept, or any other aliased column
+  (tolerance 1e-10) also stops the fit.
+  `fitted()` and `residuals()` are the length of the original data, with
+  `NA` on dropped rows, and the kept positions are stored in `kept_rows`.
+  `cbind(successes, failures)` is refused on a cross-family axis, with or
+  without missing values: flattening that response and keeping the first
+  `n` entries dropped the failures. A single 0/1 column is unchanged.
+  `offset()` on a location or sigma formula is refused, because
+  `model.matrix()` would have ignored it. Structured `response = "drop"`
+  fits drop incomplete rows, and error if that would remove a whole
+  grouping level from the covariance. Bivariate q2 structured fits error
+  when a modelled column contains `NA` instead of sending it to Julia.
+  The main bridge records how many rows it dropped, and `check_drm()`
+  reports that count. `response = "include"` is unchanged.
+
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).

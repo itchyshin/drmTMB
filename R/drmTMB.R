@@ -303,6 +303,9 @@ drmTMB <- function(
   # grouping variables keep their declared level sets: an ordinal response or
   # an imputed ordinal predictor with an empty category must still reach its
   # own "empty category" refusal rather than be silently re-levelled.
+  # `droplevels()` itself rebuilds the factor and drops a contrasts
+  # attribute, so `contrasts(f) <- contr.sum(3)` became treatment columns.
+  # The helper drops unused levels and puts that attribute back (#1495).
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
@@ -12222,7 +12225,7 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
     if (is.factor(data[[col]])) {
-      data[[col]] <- droplevels(data[[col]])
+      data[[col]] <- drm_droplevels_keep_contrasts_factor(data[[col]])
     }
   }
   data
