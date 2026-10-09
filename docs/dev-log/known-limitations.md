@@ -28,20 +28,31 @@ revisit condition.
   Dispersion estimates at a simpler-family limit are flagged and left
   unchanged. For `nbinom2`, `zi_nbinom2`, `hurdle_nbinom2`, and
   `truncated_nbinom2`, a row is at the limit when the extra-Poisson
-  variance `mu * sigma^2` is below 0.001, evaluated at the fitted `mu`.
-  Beta, beta-binomial, and zero-one-beta are not flagged. For `student`
-  and `biv_student`, `nu > 1000` is the Gaussian limit; `nu` is
-  dimensionless, so the cutoff does not depend on response units.
-  `summary()` sets the Wald standard error to `NA` only when that
-  coefficient's design column is nonzero only on limit rows. Wald
-  `confint()` sets `conf.status` to `boundary_limit`, `interval_source` to
-  `not_available`, and leaves the endpoints missing. Profile and bootstrap
-  intervals are not blanked. `vcov()` still returns the raw covariance, so
-  do not read those diagonals as Wald standard errors. The flag uses the
-  fixed linear predictor `X %*% beta`, not a random-effect-adjusted
-  `sigma`. Gaussian, gamma, lognormal, and Tweedie `sigma` are interior
-  scales and are not flagged. `corpairs()` profile intervals are not
-  masked. Follow-up: the Julia-engine `summary()` and
+  variance `mu * sigma^2` is below 0.001. `mu` and `sigma` come from
+  `predict(..., type = "response")`, so an offset or a random effect on
+  either parameter is included. If `predict()` fails, a `drmTMB` fit warns
+  with class `drmTMB_dispersion_predict_fallback` and the check uses the
+  fixed linear predictor. Beta, beta-binomial, and zero-one-beta are not
+  flagged. For `student` and `biv_student`, `nu > 1000` is the Gaussian
+  limit; `nu` is dimensionless, so the cutoff does not depend on response
+  units. `summary()` sets the Wald standard error to `NA` only when that
+  coefficient's design column is nonzero only on limit rows, or, for a
+  treatment contrast on `sigma`, when the reference level is entirely at
+  the limit and the intercept is that level. A continuous covariate that
+  also loads on rows above the limit keeps its standard error.
+  `check_drm()` warns only in the blanked case. Some rows at the limit
+  with nothing blanked are a note, and `summary()` and `print()` do not
+  claim those standard errors are missing. Wald `confint()` sets
+  `conf.status` to `boundary_limit`, `interval_source` to `not_available`,
+  and leaves the endpoints missing. Profile and bootstrap intervals are
+  not blanked. `vcov()` still returns the raw covariance, so do not read
+  those diagonals as Wald standard errors.   `contr.sum` is not rewritten
+  into a treatment blank. When the reference level is the one at the limit,
+  the treatment contrast against it can still have a very large Wald
+  standard error. `sigma ~ 0 + g` reports a finite standard error for the
+  level that is not at the limit. Gaussian, gamma, lognormal, and Tweedie `sigma`
+  are interior scales and are not flagged. `corpairs()` profile intervals
+  are not masked. Follow-up: the Julia-engine `summary()` and
   `check_drm.drmTMB_julia` do not yet blank these standard errors or report
   `dispersion_boundary` or `hessian_conditioning`. On the TMB engine, the
   `hessian_conditioning` note uses the correlation-scaled condition number
