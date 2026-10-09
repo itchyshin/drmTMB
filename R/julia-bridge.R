@@ -8612,11 +8612,26 @@ drm_complete_case_design <- function(X) {
 
 # Rebuild one design on the shared rows. Unused factor levels are dropped
 # without discarding a contrasts attribute, so `contr.sum` stays `f1`, `f2`
-# and an ordered factor stays on `contr.poly`. Emptying the treatment
-# reference level is refused: `droplevels()` would keep the column name and
-# change the baseline. Fewer than two observed levels, a contrast coding that
-# cannot be kept, or any other aliased column (tolerance 1e-10) is refused.
+# and an ordered factor stays on `contr.poly`. Character and logical
+# predictors are factored from the full frame first: `model.frame()` leaves
+# them as character or logical, and `model.matrix()` would otherwise build
+# levels from the rows that remain and move the treatment baseline.
+# Emptying the treatment reference level is refused: `droplevels()` would
+# keep the column name and change the baseline. Fewer than two observed
+# levels, a contrast coding that cannot be kept, or any other aliased
+# column (tolerance 1e-10) is refused.
 drm_julia_xfam_design_from_frame <- function(mf, pos, dpar) {
+  resp <- attr(stats::terms(mf), "response")
+  resp_name <- if (!is.null(resp) && resp > 0L) names(mf)[[resp]] else NA_character_
+  for (nm in names(mf)) {
+    if (!is.na(resp_name) && identical(nm, resp_name)) {
+      next
+    }
+    col <- mf[[nm]]
+    if (is.character(col) || is.logical(col)) {
+      mf[[nm]] <- factor(col)
+    }
+  }
   after <- mf[pos, , drop = FALSE]
   for (nm in names(mf)) {
     col <- mf[[nm]]
