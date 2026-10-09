@@ -36,12 +36,12 @@ Cross-family Julia axes each record the original rows their own `model.frame()` 
 ## Files
 
 - `src/drm_response_kernels.h`, `src/drm_numeric.h`
-- `R/julia-bridge.R`, `R/julia-diagnostics.R`, `R/zzz.R`
+- `R/julia-bridge.R`, `R/julia-diagnostics.R`, `R/zzz.R`, `R/drmTMB.R` (contrast round only)
 - `tests/testthat/test-student-large-nu.R`, `test-log1mexp-ad.R`, `test-julia-missing-alignment.R`
 - `tests/testthat/test-guard-branch-continuity.R`, `test-julia-diagnostics.R`
 - `docs/design/03-likelihoods.md`, `NEWS.md`, this report, `docs/dev-log/check-log.md`
 
-`src/drmTMB.cpp`, `R/drmTMB.R`, and `R/methods.R` were not edited. The C14/C17 fingerprint covers sections of those two R and C++ files only, so it was not recertified. The header edits are outside that hash.
+`src/drmTMB.cpp` and `R/methods.R` were not edited. The first two rounds did not edit `R/drmTMB.R`. The contrast round does, so C17 is recertified for that edit. The header edits are outside the C17 hash.
 
 ## Checks
 
@@ -131,6 +131,18 @@ Ubuntu's R is 4.3.3, so the pre-existing `%||%` calls in the Julia bridge failed
 
 No issue was closed from this working tree. The draft pull request uses `Fixes #1462`, `Fixes #1472`, and `Fixes #1454`. Open PRs #1500 and #1443 mention those issues and do not fix them.
 
+## Contrast round (2026-10-09)
+
+Reader: someone who sets `contrasts(f) <- contr.sum(3)` or an ordered factor, and expects the same column names from `engine = "tmb"` and from a Julia cross-family design.
+
+`base::droplevels()` calls `factor()`, which drops a contrasts attribute. The cross-family rebuild was doing that even when every level was still present, so `f1` and `f2` became `fb` and `fc`. `drm_droplevels_keep_contrasts_factor()` drops unused levels and puts the stored contrasts back, including `contr.poly` on an ordered factor. `drm_julia_xfam_design_from_frame()` uses it. `drm_droplevels_fixed_predictors()` in `R/drmTMB.R` uses it too, because otherwise `engine = "tmb"` still recoded the columns and the two engines did not match. That is the same drop the unused-level fix at those two sites was doing. A later pass can point any other `droplevels()` of a fixed-effect factor at this helper.
+
+If the shared-row drop removes the treatment reference level, the fit errors and names the level. It does not keep `gc` and change the baseline from `c - a` to `c - b`. A non-reference treatment level that disappears is still dropped. A stored contrast matrix that cannot be subset to the remaining levels is refused.
+
+The rank check is `drm_aliased_columns(X, tol = 1e-10)`, not `qr()` at its default `1e-7`. Copies of that helper sit in `R/julia-bridge.R` until the convergence branch, which already defines them in `R/drmTMB.R`, is rebased here. The second copy should be deleted on that rebase so the package keeps one definition.
+
+`test-julia-missing-alignment.R` now checks `contr.sum` with and without dropped rows, an ordered factor, an emptied reference level `a`, and a near-collinear design at noise `1e-8` against an exact duplicate column. Those checks call `drm_julia_xfam_axes()`, which calls `drm_julia_xfam_design_from_frame()`. Julia itself is not installed here, and no `DRM_JL_PATH` is set, so live `engine = "julia"` fits were skipped. The column names are assigned in R before DRM.jl is started.
+
 ## Known limitations
 
-Beta and NB2 lgamma ratios at extreme dispersion are still the expressions named above. Cross-family Julia fits do not keep a response that is missing on a row the other response observed. Both axes lose that row. A user who wants a per-axis missingness model, rather than one shared complete case, still needs `engine = "tmb"`.
+Beta and NB2 lgamma ratios at extreme dispersion are still the expressions named above. Cross-family Julia fits do not keep a response that is missing on a row the other response observed. Both axes lose that row. A user who wants a per-axis missingness model, rather than one shared complete case, still needs `engine = "tmb"`. The univariate Julia bridge still refuses an ordered factor and an explicit `contr.sum` before DRM.jl starts, because that route lets DRM.jl rebuild the factor. The cross-family route sends the numeric design from R, so those columns are kept there.
