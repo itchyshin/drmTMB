@@ -108,7 +108,7 @@ points exceed 1e-7.
 - #1467: fixed with tests.
 - #1468: NaN and the cliff above `eta_nu = 12` fixed with tests; small-phi
   series cliff (TMB) needs a decision.
-- #1324: fixed (carries #1439, which can be closed as superseded).
+- #1324: fixed for `run_oracle()` and the beta-binomial reference (carries #1439, which can be closed as superseded). The first tweedie oracle block now counts its dropped points too, with #1440's measured bound of 86 of 126 (reference-side `tweedie::dtweedie()` underflow), and asserts the kernel finite at every point. I could not re-measure the 86 here because the `tweedie` package is unavailable; CI is the first real check. #1440's `newton_polish = FALSE` workaround is not carried, so #1440 needs a rebase onto this PR or can be closed.
 - #1462, #1472: already fixed in open draft PR #1504 (same functions); not
   duplicated here to avoid conflicting hunks.
 - #710: findings 1, 3, 4, 5, 6 were already merged (issue comments of
@@ -128,9 +128,12 @@ compiled probe (`obj$fn` at fixed parameters) before choosing a fix.
 
 ## 10. Known Residuals
 
-- mi() copies of the beta-binomial lgamma sum in `src/drmTMB.cpp`
-  (`mi_family == 12`) are lane A's and still use the old form; they can
-  switch to `drm_beta_binomial_log_density()` after this merges.
+- mi() beta-binomial covariate prior (`mi_family == 12`, `src/drmTMB.cpp`
+  ~1801 and ~1825) still uses the old lgamma sum, and its `phi` has no clamp.
+  These lines are inside the `has_mi` blocks, so they are left for whoever
+  lands the mi() work (Cursor #1513); swap in
+  `drm_beta_binomial_log_density()` there. The response leaf (case 14) is
+  fixed and now tested through an mi() fit.
 - TMB `dtweedie()` small-phi cliff (also the pre-existing
   `log_sigma <= -8` oracle finding).
 - Gamma and beta use the same `lgamma(shape)` pattern; not changed.

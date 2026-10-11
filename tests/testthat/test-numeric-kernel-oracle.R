@@ -167,6 +167,43 @@ test_that("oracle_kept_nonfinite() counts every non-finite or undefined comparis
   expect_equal(nrow(oracle_kept_nonfinite(clean)), 0L)
 })
 
+# The fail-closed default is itself a contract (#1324): nine cells (gaussian,
+# student, skew_normal, lognormal, poisson, the nbinom2 robust transcription,
+# zi_poisson, beta, zero_one_beta) rely on it, so reverting it to `Inf` would
+# leave every one of them silently dropping non-finite points. Pin the formal,
+# and prove end to end that a grid with a planted NaN reference is rejected.
+test_that("run_oracle() fails closed by default on a non-finite grid point (#1324)", {
+  expect_identical(formals(run_oracle)$max_nonfinite, 0L)
+
+  fits <- build_fits(bf(y ~ 1, sigma ~ 1), gaussian(), 0)
+  planted <- function(fit, eta, ls, yv) {
+    par <- set_named(set_named(fit$obj$par, "beta_mu", eta), "beta_sigma", ls)
+    ref <- stats::dnorm(yv, eta, exp(ls), log = TRUE)
+    # One planted undefined reference value in an otherwise exact grid.
+    if (eta == 0 && ls == 0) ref <- NaN
+    c(cpp = -fit$obj$fn(par), ref = ref)
+  }
+  # Count the expectation failures run_oracle() raises (expect_failure() only
+  # inspects the first expectation, which is a passing fixture check).
+  count_failures <- function(code) {
+    n <- 0L
+    withCallingHandlers(
+      code,
+      expectation_failure = function(e) {
+        n <<- n + 1L
+        invokeRestart("continue_test")
+      }
+    )
+    n
+  }
+  expect_gt(count_failures(run_oracle(fits, planted, tol = 1e-8)), 0L)
+  # The explicit opt-out still works and is counted, not silent.
+  expect_identical(
+    count_failures(run_oracle(fits, planted, tol = 1e-8, max_nonfinite = 1L)),
+    0L
+  )
+})
+
 # ---- gaussian (model_type 1; src/drmTMB.cpp:686-780ish) --------------------
 test_that("gaussian kernel matches dnorm() on the extreme grid", {
   fits <- build_fits(bf(y ~ 1, sigma ~ 1), gaussian(), c(-3, 0, 0.37, 3))
@@ -656,6 +693,18 @@ test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweed
     }
   }
   results$rel_err <- mapply(rel_err, results$cpp, results$ref)
+
+  # This block predates run_oracle() and keeps its own narrower log_sigma grid,
+  # so it used to drop every non-finite point without counting it (#1324,
+  # #1440). Count them through the shared helper. #1440 measured 86 of these
+  # 126 points (68%): tweedie::dtweedie() underflows to exactly 0 (log() =
+  # -Inf) at the extreme eta corners (mu = exp(eta) up to ~1e304 / down to
+  # ~1e-305), which is a reference-side breakdown, not a kernel one. The kernel
+  # side is asserted finite at every point, so only the reference may drop
+  # out, and only up to that measured count.
+  expect_true(all(is.finite(results$cpp)))
+  nonfinite <- oracle_kept_nonfinite(results)
+  expect_lte(nrow(nonfinite), 86L)
   finite_re <- results$rel_err[!is.na(results$rel_err)]
   expect_true(length(finite_re) > 0)
   expect_true(max(finite_re) <= 1e-6)
