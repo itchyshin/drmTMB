@@ -52,10 +52,15 @@ unweighted fit; weight 2 matches a duplicated row in the response only
 `predict()` / `simulate()` honour fitted coefficients and refuse
 `weights=`.
 
+C17 is bit-identical on mc-0568 / 0569 / 0576. The env-skip census
+gained the new `skip_on_cran()` site in
+`test-mi-quadrature-1476-1477.R`.
+
 ## Left
 
-Full local `testthat` suite and C17 (`R/drmTMB.R` and `R/methods.R`
-changed). Draft PR must land after #1504. Do not merge.
+Draft PR must land after #1504. Do not merge. Remaining local-suite
+noise is this VM: missing `{JuliaCall}`, no DRM.jl path, and the
+pre-existing sparse `crossprod` in missing-predictor prediction.
 
 Refs #1477
 Refs #1476
