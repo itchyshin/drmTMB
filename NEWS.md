@@ -12,6 +12,14 @@
 
 ## Bug fixes
 
+* `profile()` and `confint(method = "profile")` no longer keep the full
+  fixed-parameter vector for every objective evaluation of a full
+  `TMB::tmbprofile()` run. The private trace now stores one objective value
+  and one error slot per evaluation and reduces the direct-SD clamp check as
+  it goes, so a 3,020-evaluation profile of an 82-parameter fit shrank from
+  6.5 MB to 51 KB with identical curves and clamp status. Set
+  `options(drmTMB.profile_trace_par = TRUE)` to keep the full trail for
+  debugging (#1387).
 * `family = beta()` now fails with a drmTMB message that names
   `beta_family()`, instead of `base::beta()`'s `argument "a" is missing`.
   `beta()` stays unexported so it does not mask [base::beta()] (#1420).

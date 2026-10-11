@@ -4318,19 +4318,56 @@ drm_tmbprofile <- function(object, target_name, lincomb, trace, ...) {
   )
 }
 
-drm_profile_trace_object <- function(object, target_name, lincomb) {
+# Issue #1387: TMB::tmbprofile() calls obj$fn() once per inner evaluation, so
+# the trace must not keep a data-sized record per call.  Each evaluation keeps
+# only its scalar objective and error message.  The only consumer of the fixed
+# vector, the direct-SD clamp check below, is reduced on the fly into counts,
+# so memory no longer grows as O(evaluations x length(par)).  Set
+# `options(drmTMB.profile_trace_par = TRUE)` to retain the full per-evaluation
+# `par` trail for debugging.
+drm_profile_trace_object <- function(
+  object,
+  target_name,
+  lincomb,
+  keep_par = isTRUE(getOption("drmTMB.profile_trace_par", FALSE))
+) {
   evaluations <- new.env(parent = emptyenv())
-  evaluations$entries <- list()
+  evaluations$n <- 0L
+  evaluations$objective <- numeric()
+  evaluations$error <- character()
+  evaluations$par <- list()
+  clamp_band <- drm_profile_direct_sd_clamp_band(object)
+  # Without direct-SD predictors the per-evaluation status reduces to a
+  # finiteness check, so skip the parList() reconstruction on every call.
+  has_direct_sd <- is.numeric(clamp_band) && drm_profile_has_direct_sd(object)
+  evaluations$clamp <- if (is.numeric(clamp_band)) {
+    c(active = 0L, unavailable = 0L)
+  }
   obj <- object$obj
   original_fn <- obj$fn
 
   record_evaluation <- function(par) {
-    index <- length(evaluations$entries) + 1L
-    evaluations$entries[[index]] <- list(
-      par = stats::setNames(as.numeric(par), names(par)),
-      objective = NA_real_,
-      error = NULL
-    )
+    index <- evaluations$n + 1L
+    evaluations$n <- index
+    evaluations$objective[[index]] <- NA_real_
+    evaluations$error[[index]] <- NA_character_
+    if (keep_par) {
+      evaluations$par[[index]] <- stats::setNames(as.numeric(par), names(par))
+    }
+    if (is.numeric(clamp_band)) {
+      status <- if (has_direct_sd) {
+        drm_profile_direct_sd_clamp_par_status(object, par, clamp_band)
+      } else if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
+        NA
+      } else {
+        FALSE
+      }
+      if (is.na(status)) {
+        evaluations$clamp[["unavailable"]] <- evaluations$clamp[["unavailable"]] + 1L
+      } else if (status) {
+        evaluations$clamp[["active"]] <- evaluations$clamp[["active"]] + 1L
+      }
+    }
     index
   }
 
@@ -4339,16 +4376,16 @@ drm_profile_trace_object <- function(object, target_name, lincomb) {
     value <- tryCatch(
       original_fn(par),
       error = function(err) {
-        evaluations$entries[[index]]$error <- conditionMessage(err)
+        evaluations$error[[index]] <- conditionMessage(err)
         stop(err)
       }
     )
-    evaluations$entries[[index]]$objective <- as.numeric(value)
+    evaluations$objective[[index]] <- as.numeric(value)[1L]
     value
   }
 
   snapshot <- function() {
-    list(
+    out <- list(
       target_name = target_name,
       lincomb = as.numeric(lincomb),
       baseline = list(
@@ -4358,27 +4395,36 @@ drm_profile_trace_object <- function(object, target_name, lincomb) {
         ),
         objective = as.numeric(object$opt$objective)
       ),
-      evaluations = evaluations$entries
+      n_evaluations = evaluations$n,
+      objective = evaluations$objective,
+      error = evaluations$error,
+      clamp = evaluations$clamp
     )
+    if (keep_par) {
+      out$evaluations <- lapply(seq_len(evaluations$n), function(i) {
+        list(
+          par = evaluations$par[[i]],
+          objective = evaluations$objective[[i]],
+          error = if (!is.na(evaluations$error[[i]])) evaluations$error[[i]]
+        )
+      })
+    }
+    out
   }
 
   list(obj = obj, snapshot = snapshot)
 }
 
-# A direct-SD clamp changes the likelihood whenever its raw group-level
-# log-scale predictor is outside the identity band.  The full TMB profile API
-# does not return every constrained optimizer state, but it does call obj$fn()
-# for every fixed parameter vector it evaluates.  Direct-SD predictors depend
-# only on that fixed vector, so tracing those calls is sufficient here.  Any
-# reconstruction failure is deliberately unavailable rather than treated as no
-# clamp contact.
-drm_profile_direct_sd_clamp_trace <- function(object, profile) {
+# Returns the two-element clamp band when the direct-SD clamp is active, the
+# string "not_applicable" when it is off, or "trace_incomplete" when the band
+# is malformed.
+drm_profile_direct_sd_clamp_band <- function(object) {
   tmb_data <- object$model$tmb_data
   if (
     length(tmb_data$use_logsigma_clamp) != 1L ||
       !identical(as.integer(tmb_data$use_logsigma_clamp), 1L)
   ) {
-    return(list(status = "not_applicable"))
+    return("not_applicable")
   }
   band <- tmb_data$logsigma_clamp
   if (
@@ -4386,45 +4432,84 @@ drm_profile_direct_sd_clamp_trace <- function(object, profile) {
       any(!is.finite(band[seq_len(2L)])) ||
       band[[1L]] >= band[[2L]]
   ) {
-    return(list(status = "trace_incomplete"))
+    return("trace_incomplete")
+  }
+  band
+}
+
+drm_profile_has_direct_sd <- function(object) {
+  random_scale <- object$model$random_scale
+  n_mu <- random_scale$mu$n_models
+  n_phylo <- if (is.list(random_scale$phylo)) random_scale$phylo$n_models
+  # Fall back to full classification whenever the structure is unexpected.
+  if (length(n_mu) != 1L || is.na(n_mu)) {
+    return(TRUE)
+  }
+  n_mu > 0L || (length(n_phylo) == 1L && !is.na(n_phylo) && n_phylo > 0L)
+}
+
+# TRUE when any raw direct-SD log-scale predictor at fixed vector `par` lies
+# outside `band`, FALSE when none does, NA when it cannot be reconstructed.
+drm_profile_direct_sd_clamp_par_status <- function(object, par, band) {
+  if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
+    return(NA)
+  }
+  par_list <- tryCatch(
+    object$obj$env$parList(par),
+    error = function(err) NULL
+  )
+  if (is.null(par_list)) {
+    return(NA)
+  }
+  eta <- tryCatch(
+    drm_direct_sd_logscale_values(par_list, object$model),
+    error = function(err) NULL
+  )
+  if (is.null(eta) || !length(eta)) {
+    return(FALSE)
+  }
+  values <- unlist(eta, use.names = FALSE)
+  if (!length(values) || any(!is.finite(values))) {
+    return(NA)
+  }
+  any(values < band[[1L]] | values > band[[2L]])
+}
+
+# A direct-SD clamp changes the likelihood whenever its raw group-level
+# log-scale predictor is outside the identity band.  The full TMB profile API
+# does not return every constrained optimizer state, but it does call obj$fn()
+# for every fixed parameter vector it evaluates.  Direct-SD predictors depend
+# only on that fixed vector, so tracing those calls is sufficient here.  The
+# trace reduces each call to clamp counts as it happens (issue #1387); a trace
+# that instead carries per-evaluation `par` entries is classified here.  Any
+# reconstruction failure is deliberately unavailable rather than treated as no
+# clamp contact.
+drm_profile_direct_sd_clamp_trace <- function(object, profile) {
+  band <- drm_profile_direct_sd_clamp_band(object)
+  if (is.character(band)) {
+    return(list(status = band))
   }
   trace <- attr(profile, "drmTMB_profile_trace", exact = TRUE)
-  if (!is.list(trace) || !is.list(trace$baseline) || !is.list(trace$evaluations)) {
+  if (!is.list(trace) || !is.list(trace$baseline)) {
     return(list(status = "trace_incomplete"))
   }
-  entries <- c(list(trace$baseline), trace$evaluations)
-  if (!length(entries)) {
+  counts <- trace$clamp
+  has_counts <- is.numeric(counts) &&
+    all(c("active", "unavailable") %in% names(counts))
+  if (!has_counts && !is.list(trace$evaluations)) {
     return(list(status = "trace_incomplete"))
+  }
+  entries <- list(trace$baseline)
+  if (!has_counts) {
+    entries <- c(entries, trace$evaluations)
   }
   active <- vapply(entries, function(entry) {
-    par <- entry$par
-    if (!is.numeric(par) || !length(par) || any(!is.finite(par))) {
-      return(NA)
-    }
-    par_list <- tryCatch(
-      object$obj$env$parList(par),
-      error = function(err) NULL
-    )
-    if (is.null(par_list)) {
-      return(NA)
-    }
-    eta <- tryCatch(
-      drm_direct_sd_logscale_values(par_list, object$model),
-      error = function(err) NULL
-    )
-    if (is.null(eta) || !length(eta)) {
-      return(FALSE)
-    }
-    values <- unlist(eta, use.names = FALSE)
-    if (!length(values) || any(!is.finite(values))) {
-      return(NA)
-    }
-    any(values < band[[1L]] | values > band[[2L]])
+    drm_profile_direct_sd_clamp_par_status(object, entry$par, band)
   }, logical(1L))
-  if (anyNA(active)) {
+  if (anyNA(active) || (has_counts && counts[["unavailable"]] > 0L)) {
     return(list(status = "trace_incomplete"))
   }
-  if (any(active)) {
+  if (any(active) || (has_counts && counts[["active"]] > 0L)) {
     return(list(status = "clamp_limited"))
   }
   list(status = "ok")
