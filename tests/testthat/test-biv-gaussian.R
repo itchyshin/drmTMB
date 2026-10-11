@@ -443,7 +443,7 @@ new_biv_gaussian_corpair_data <- function(
   x <- stats::rnorm(n)
   ecology_id <- stats::rnorm(n_id)
   ecology <- ecology_id[id]
-  rho_group <- 0.999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
+  rho_group <- 0.99999999 * tanh(beta_cor[[1L]] + beta_cor[[2L]] * ecology_id)
   beta_mu1 <- c(0.2, 0.45)
   beta_mu2 <- c(-0.15, -0.35)
   sigma1 <- 0.35
@@ -2386,7 +2386,7 @@ test_that("bivariate Gaussian fits same-response mu/sigma covariance", {
     u_sigma = seq(0.9, -0.6, length.out = re_sigma$n_re),
     log_sd_sigma = log(sim$sd_sigma),
     eta_cor_sigma = 0,
-    eta_cor_mu_sigma = atanh(rho_transform / 0.999999)
+    eta_cor_mu_sigma = atanh(rho_transform / 0.99999999)
   )
 
   transformed <- drmTMB:::transform_biv_sigma_random_effects(
@@ -2516,7 +2516,7 @@ test_that("bivariate Gaussian fits same-response mu/sigma slope covariance", {
     u_sigma = seq(0.6, -0.5, length.out = re_sigma$n_re),
     log_sd_sigma = log(sim$sd_sigma),
     eta_cor_sigma = 0,
-    eta_cor_mu_sigma = atanh(rho_transform / 0.999999)
+    eta_cor_mu_sigma = atanh(rho_transform / 0.99999999)
   )
 
   transformed <- drmTMB:::transform_biv_sigma_random_effects(

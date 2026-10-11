@@ -160,10 +160,35 @@ test_that("setup activates before importing and registers only shared-alias help
     expect_false(any(grepl("\\b(DRM|DRModels)[.,]", helpers)))
     expect_true(any(grepl("isdefined(drmTMB_backend,", helpers, fixed = TRUE)))
     expect_true(any(grepl("drmTMB_backend.drm_bridge", helpers, fixed = TRUE)))
+    # #1157: every setup command ends in `;`, so JuliaCall does not echo the
+    # helper definitions ("drmTMB_drm_bridge (generic function with 1 method)").
+    expect_true(all(endsWith(trimws(commands, "right"), ";")))
     n <- length(commands)
     drm_julia_setup(root)
     expect_length(commands, n)
   }
+})
+
+test_that("setup commands are sent without echoing their value (#1157)", {
+  # JuliaCall::julia_command(cmd) displays the value unless `cmd` ends in `;`
+  # (its default `show_value = !endsWith(trimws(cmd, "right"), ";")`).
+  expect_identical(drm_julia_quiet_command("using Random"), "using Random;")
+  expect_identical(drm_julia_quiet_command("f(x) = x\n  "), "f(x) = x;")
+  expect_identical(drm_julia_quiet_command("using Random;"), "using Random;")
+  expect_identical(
+    drm_julia_quiet_command(c("function f()", "    1", "end")),
+    "function f()\n    1\nend;"
+  )
+  for (source in list(
+    drm_julia_conditional_gaussian_components_source(),
+    drm_julia_xfam_helper_source()
+  )) {
+    expect_true(endsWith(drm_julia_quiet_command(source), ";"))
+  }
+  # No setup command bypasses the quiet helper (the echo returned if one did).
+  setup_body <- paste(deparse(body(drm_julia_setup)), collapse = "\n")
+  expect_false(grepl("julia_command(", setup_body, fixed = TRUE))
+  expect_match(setup_body, "drm_julia_setup_command(", fixed = TRUE)
 })
 
 test_that("an unsupported selected manifest format stops before checkout activation", {
