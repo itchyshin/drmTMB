@@ -34,8 +34,15 @@ for q = 4 bivariate fits,
 
 \item{seed}{Optional bootstrap seed.}
 
-\item{threads}{Logical; request Julia-side threaded inference for the
-profile / bootstrap path.}
+\item{threads}{Logical; request Julia-side threaded refits for the
+profile / bootstrap path. \code{threads = TRUE} uses the threads Julia already
+has; it cannot start more. Set \code{JULIA_NUM_THREADS} (for example
+\code{Sys.setenv(JULIA_NUM_THREADS = "8")}) before the first
+\code{engine = "julia"} call in a fresh R session. If Julia is running
+single-threaded, refits run serially and a one-time message says so.
+Setting \code{JULIA_NUM_THREADS} alone does not parallelise refits either,
+because \code{threads} defaults to \code{FALSE}. Avoid combining many Julia threads
+with many BLAS threads.}
 
 \item{...}{Unused.}
 }

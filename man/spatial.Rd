@@ -12,7 +12,8 @@ spatial(term, coords = NULL, mesh = NULL)
 \item{coords}{Coordinate object, such as a data frame or matrix of spatial
 coordinates.}
 
-\item{mesh}{Reserved; precomputed mesh inputs are not supported.}
+\item{mesh}{A fixed-kappa mesh object from \code{\link[=make_mesh]{make_mesh()}}. Fitted only for the
+univariate Gaussian \code{mu} intercept with \code{sigma ~ 1}; see Description.}
 }
 \value{
 A formula marker; never evaluated by users.
@@ -33,10 +34,20 @@ q=4 location-scale block. Fitted non-Gaussian spatial routes cover the
 univariate student \code{mu} q=1 intercept or one-slope, ordinary Poisson and NB2
 \code{mu} q=1 intercepts or one-slopes, zero-inflated Poisson \code{zi} q=1 intercept,
 and the NB2 \code{sigma} q=1 one-slope, all at recovery grade: trust the point
-estimate, not the interval. Mesh inputs, multiple structured slopes,
-residual-scale structured slopes beyond the supported NB2 slope, slope
-correlations, and predictor-dependent spatial \code{corpair()} regression are not
-supported.
+estimate, not the interval.
+}
+\details{
+A precomputed mesh from \code{\link[=make_mesh]{make_mesh()}} is fitted for one route only: a
+univariate Gaussian, unlabelled \code{mu} intercept with constant residual scale,
+\code{bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)}, with kappa fixed at
+the value given to \code{\link[=make_mesh]{make_mesh()}}. Its point estimates have recovery evidence
+for the tested designs; intervals, coverage, and the spatial range are not
+claimed. Any other mesh use, including \code{sigma ~ z}, a mesh slope, a labelled
+or bivariate mesh term, or a non-Gaussian family, is rejected; use
+\code{coords = coords} for those models where a coordinate route exists.
+Multiple structured slopes, residual-scale structured slopes beyond the
+supported NB2 slope, slope correlations, and predictor-dependent spatial
+\code{corpair()} regression are not supported.
 }
 \examples{
 # Fitted for univariate Gaussian mu with coords:
@@ -49,4 +60,6 @@ bf(
   sigma2 = ~ 1,
   rho12 = ~ 1
 )
+# Fixed-kappa mesh intercept (mesh from make_mesh()); requires sigma ~ 1:
+bf(y ~ x + spatial(1 | site, mesh = mesh), sigma ~ 1)
 }

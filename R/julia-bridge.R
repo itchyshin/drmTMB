@@ -5377,8 +5377,15 @@ vcov.drmTMB_julia <- function(object, ...) {
 #' @param method `"wald"` (default), `"profile"`, or `"bootstrap"`.
 #' @param R Bootstrap replicate count (used only when `method = "bootstrap"`).
 #' @param seed Optional bootstrap seed.
-#' @param threads Logical; request Julia-side threaded inference for the
-#'   profile / bootstrap path.
+#' @param threads Logical; request Julia-side threaded refits for the
+#'   profile / bootstrap path. `threads = TRUE` uses the threads Julia already
+#'   has; it cannot start more. Set `JULIA_NUM_THREADS` (for example
+#'   `Sys.setenv(JULIA_NUM_THREADS = "8")`) before the first
+#'   `engine = "julia"` call in a fresh R session. If Julia is running
+#'   single-threaded, refits run serially and a one-time message says so.
+#'   Setting `JULIA_NUM_THREADS` alone does not parallelise refits either,
+#'   because `threads` defaults to `FALSE`. Avoid combining many Julia threads
+#'   with many BLAS threads.
 #' @param ... Unused.
 #'
 #' @return A confidence-interval data frame with the shared `parm`, `level`,
@@ -7341,7 +7348,7 @@ drm_julia_quantile_trials <- function(object, newdata) {
 #' observation and one column per `prob`, columns named as percentages,
 #' `attr(., "calibrated") == FALSE` (a distributional plug-in interval at the
 #' point estimate, not a calibrated-coverage interval), and the
-#' `"spike"`/`"unimplemented"` family status gate. Because the parameters come
+#' `"spike"`/`"unimplemented"` family status rules. Because the parameters come
 #' from this method's own reconstruction, the quantiles are FIXED-EFFECT,
 #' population-level for `newdata` rows and carry the same conditional
 #' random-effect scope as `type = "response"` for stored rows. For a bivariate
@@ -9137,12 +9144,9 @@ df.residual.drmTMB_julia_xfam <- function(object, ...) {
 
 #' Summary for a cross-family Julia fit
 #'
-#' The cross-family route (`drmTMB(bf(...), c(fam1, fam2), engine = "julia")`,
-#' via `drm_julia_call_xfam()` -> DRM.fit_mixed_family) is reachable from R
-#' and tested (`tests/testthat/test-xfam-bridge.R`), but its
-#' capability-ledger status is `experimental`/`partial`
-#' (`inst/extdata/julia-capabilities.tsv`, `cross_family_latent`). This
-#' summary reports point estimates only: the bridge does not retain a named
+#' The cross-family route
+#' `drmTMB(bf(...), c(fam1, fam2), engine = "julia")` is experimental and
+#' partial. This summary reports point estimates only: the bridge does not retain a named
 #' covariance matrix, so standard errors and Wald intervals are deliberately
 #' unavailable.
 #'
@@ -9247,10 +9251,10 @@ is_converged.drmTMB_julia_xfam <- function(
 
 #' Extract a latent-scale correlation from a cross-family Julia fit
 #'
-#' The cross-family route is reachable from R (`engine = "julia"` with a
-#' `c(family1, family2)` pair) and tested, but its capability-ledger status
-#' is `experimental`/`partial` (`inst/extdata/julia-capabilities.tsv`,
-#' `cross_family_latent`). This extractor reads `rho_latent` off an existing
+#' The cross-family route is experimental and partial. It is reachable from R
+#' with `engine = "julia"` and a `c(family1, family2)` pair, but it currently
+#' provides point estimates without standard errors or confidence intervals.
+#' This extractor reads `rho_latent` from an existing
 #' `drmTMB_julia_xfam` object.
 #'
 #' @param object A `drmTMB_julia_xfam` cross-family fit.
