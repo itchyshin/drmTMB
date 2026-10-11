@@ -69,6 +69,15 @@ a generic default, validation, docs, and a row in the catalog below.
   n = 8 gave different log-likelihoods on `y` and `y / sd(y)`). A scale that
   is small everywhere, a user-narrowed band, and a meta-analysis at tau = 0
   keep the earlier note-only behaviour.
+- Flag-only boundary and adequacy rows (owner decision 4, 2026-10-11) —
+  `beta_binomial_sigma_boundary` (extra-binomial variance below 0.1% of the
+  binomial variance on some rows; #1273), `direct_sd_clamp_active` (a
+  group-level log-SD from an `sd(group)` formula outside the clamp band at
+  the optimum), and `residual_outliers` (more `|quantile residual| > 3` than
+  the 0.999 quantile of Binomial(n, 0.0027)). Each row appears only when it
+  fires, as a note, and none changes estimates. The tighter `is_converged()`
+  rule from the same decision (Newton step in standard-error units) is in
+  PR #1503.
 
 ## Interval methods — when to use which (findings)
 
@@ -76,7 +85,7 @@ a generic default, validation, docs, and a row in the catalog below.
 | --- | --- | --- | --- |
 | Wald | `"wald"` | `pdHess = TRUE`, parameter off its boundary | Instant. On a penalized PD fit it returns finite SD/correlation intervals immediately. Invalid when `pdHess = FALSE`. Under `REML = TRUE` the integrated mean coefficients read the full REML `sdreport()` covariance, as `vcov()` does (#1317). |
 | Profile | `"profile"` | identified targets; gold standard near boundaries | Requires **explicit target names** (`parm = "sd:mu:..."` / compact labels) — calling it with no target errors by design. A flat profile is honest evidence of weak identifiability; can fail/slow on the coupled-q4 boundary (the q4 profile errors at ~1 obs/tip). |
-| Parametric bootstrap | `"bootstrap"` | PD fits (including penalized PD); well-posed refits; targets whose ML estimator is nearly unbiased | A percentile interval re-applies the estimator's bias, so it under-covers one-sidedly on scale intercepts at small n (#1315; doc 274). **Works on a positive-definite fit but is expensive** (~17 min at n=300 on a penalized coupled-q4 fit; returned intervals for all 12 targets). **Fails on a non-PD flat ridge** — refits inherit the ridge and 0 converge (Guedon et al. 2024). So the penalty, by restoring a PD fit, also restores bootstrap as an option. |
+| Parametric bootstrap | `"bootstrap"` | PD fits (including penalized PD); well-posed refits; targets whose ML estimator is nearly unbiased | A percentile interval re-applies the estimator's bias, so it under-covers one-sidedly on scale intercepts at small n (#1315; doc 274); `bootstrap_interval = "basic"` or `"bc"` re-centres it (opt-in, not yet coverage-calibrated). **Works on a positive-definite fit but is expensive** (~17 min at n=300 on a penalized coupled-q4 fit; returned intervals for all 12 targets). **Fails on a non-PD flat ridge** — refits inherit the ridge and 0 converge (Guedon et al. 2024). So the penalty, by restoring a PD fit, also restores bootstrap as an option. |
 
 Summary: for the **identified** models (mean-phylo, fixed-effect scale, residual
 `rho12`, separable blocks that reach `pdHess = TRUE`) all three methods are
