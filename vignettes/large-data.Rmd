@@ -285,10 +285,9 @@ ci_profile_parallel <- confint(
 `parallel = "multicore"` uses process forking, which Windows does not provide
 (see `?drmTMB-parallel` for the full parallel-execution guide).
 On Windows, `confint()` stops with an error saying that
-`parallel = "multicore"` is not available on Windows; it does not fall back to
-another backend. Windows users should keep the default
-`parallel = "none"`, which runs the same targets one after another and returns
-the same intervals, only more slowly:
+`parallel = "multicore"` is not available; it does not fall back to another
+backend. Use `parallel = "cluster"` for socket workers, or keep
+`parallel = "none"` to run the same targets one after another:
 
 ```{r, purl=FALSE}
 ci_profile_serial <- confint(
@@ -317,9 +316,10 @@ ci_boot <- confint(
 )
 ```
 
-The same Windows restriction applies to bootstrap intervals; drop the
-`parallel` and `workers` arguments (or set `parallel = "none"`) to run the
-refits serially.
+The same Windows restriction applies to bootstrap intervals: do not pass
+`parallel = "multicore"`. Use `parallel = "cluster"` for socket workers, or
+drop `parallel` and `workers` (or set `parallel = "none"`) to run the refits
+serially.
 
 Treat these routes as different evidence, not as interchangeable defaults. Wald
 intervals are the routine first pass, endpoint profiles are likelihood-based

@@ -118,3 +118,16 @@ DRModels.jl still needs to switch its first example to the habitat-growth data
 (n = 120, seed 1; cross-language RNGs differ, so the data must be shipped as a
 table). Adding sleepstudy-style classic twins for Orthodont, Rail, Dyestuff, Pastes,
 and grouseticks, are left for an owner decision.
+
+## Rebase onto main (cleanup run)
+
+Rebased onto `origin/main` at `6beb1f2a0` (after #1507 and #1527). The three
+unique lane-F commits replayed cleanly. `vignettes/large-data.Rmd` kept main's
+Windows `parallel = "cluster"` sentence from #1523 and the lane-F note that
+`parallel = "multicore"` errors on Windows with no fallback. The serial
+example stays; the Windows sentence now names `cluster` as the worker backend
+and `none` as the serial fallback so the two notes do not contradict. No
+`R/drmTMB.R` or `R/methods.R` change, so C17 was not recertified. Local
+checks: `capability_ledger.py --check` OK; `tools/check-reader-contracts.R`
+OK; `test-release-identity.R` 20 pass; `test-reader-vignette-contracts.R`
+35 pass.
