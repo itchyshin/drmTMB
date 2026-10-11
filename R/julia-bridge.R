@@ -6551,7 +6551,11 @@ drm_julia_response_for_dpar <- function(responses, dpar) {
 drm_julia_residual_rho12_corpair <- function(object, rho) {
   responses <- drm_julia_response_names(object)
   n_coef <- length(object$coefficients[["rho12"]])
-  eta <- atanh(pmax(pmin(rho, 1 - 1e-12), -1 + 1e-12))
+  # Same guarded link as the native engine (#1190, decision 16): TMB maps
+  # rho12 = 0.999999 * tanh(eta), so eta = atanh(rho / 0.999999), computed with
+  # guarded_correlation_link() as the random-effect corpairs do. The old
+  # atanh(rho) clamp reported a link value inconsistent with that map.
+  eta <- guarded_correlation_link(rho, guard = 0.999999)
   new_corpair_row(
     level = "residual",
     group = NA_character_,
