@@ -6041,6 +6041,12 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
   }
   for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
+    if (is.character(source) || is.logical(source)) {
+      # model.matrix() builds levels from the rows it is given, so a
+      # character or logical training column must be rebuilt with the fitted
+      # levels before a partial prediction grid reaches it (#1497).
+      source <- factor(source)
+    }
     if (!is.factor(source)) {
       next
     }
