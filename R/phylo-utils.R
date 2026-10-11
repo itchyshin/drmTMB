@@ -361,17 +361,28 @@ drm_phylo_augmented_precision <- function(
   out
 }
 
-# Character labels for relmat()/animal() ids. as.character(100000) is
-# "1e+05", which never matches matrix or pedigree labels written "100000", while
-# the same ids stored as integer give "100000" (#1485). Whole-number doubles are
-# therefore written as plain digits; every other value keeps as.character().
+# Canonical character labels for relmat()/animal() ids (#1485). R writes a
+# whole-number double id such as 100000 as "1e+05" whenever it coerces it
+# (as.character(), dimnames<-, factor levels), while users and integer ids give
+# "100000". Both spellings must match, so every side -- data ids, matrix
+# dimnames, and pedigree id/dam/sire -- goes through this function: whole-number
+# doubles are written as plain digits, and character labels in scientific
+# notation that denote a whole number are rewritten the same way. Every other
+# label is kept as is.
 drm_id_labels <- function(x) {
-  if (is.factor(x) || !is.double(x)) {
-    return(as.character(x))
+  if (is.double(x) && !is.factor(x)) {
+    out <- as.character(x)
+    whole <- is.finite(x) & x == trunc(x) & abs(x) < 2^53
+    out[whole] <- formatC(x[whole], format = "f", digits = 0L)
+    return(out)
   }
   out <- as.character(x)
-  whole <- is.finite(x) & x == trunc(x) & abs(x) < 2^53
-  out[whole] <- formatC(x[whole], format = "f", digits = 0L)
+  sci <- !is.na(out) & grepl("^[-+]?[0-9.]+[eE][-+]?[0-9]+$", out)
+  if (any(sci)) {
+    num <- suppressWarnings(as.numeric(out[sci]))
+    whole <- is.finite(num) & num == trunc(num) & abs(num) < 2^53
+    out[sci][whole] <- formatC(num[whole], format = "f", digits = 0L)
+  }
   out
 }
 
@@ -401,6 +412,10 @@ drm_known_relatedness_precision <- function(
     marker = marker,
     object = object
   )
+  canonical <- drm_id_labels(rownames(mat))
+  if (!anyDuplicated(canonical)) {
+    dimnames(mat) <- list(canonical, canonical)
+  }
   labels <- rownames(mat)
   observed <- unique(group)
   missing <- setdiff(observed, labels)

@@ -6043,12 +6043,15 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
       ))
     }
   }
+  bare_only <- drm_bare_only_term_variables(terms)
   for (name in intersect(intersect(names(newdata), names(template)), needed)) {
     source <- template[[name]]
-    if (is.character(source) || is.logical(source)) {
-      # model.matrix() builds levels from the rows it is given, so a
-      # character or logical training column must be rebuilt with the fitted
-      # levels before a partial prediction grid reaches it (#1497).
+    if (is.character(source) && name %in% bare_only) {
+      # model.matrix() builds levels from the rows it is given, so a character
+      # training column used as a bare term must be rebuilt with the fitted
+      # levels before a partial prediction grid reaches it (#1497). A column
+      # that also appears inside a transform (as.numeric(x), I(x * z), mi(x))
+      # is left alone: the transform must see the raw values.
       source <- factor(source)
     }
     if (!is.factor(source)) {
@@ -6070,6 +6073,19 @@ drm_prepare_model_matrix_newdata <- function(newdata, dpar, terms, template) {
     )
   }
   newdata
+}
+
+# Variables that enter the right-hand side only as bare names, never inside a
+# transform or marker call (#1497 review).
+drm_bare_only_term_variables <- function(terms) {
+  vars <- as.list(attr(stats::delete.response(terms), "variables"))[-1L]
+  if (length(vars) == 0L) {
+    return(character())
+  }
+  bare <- vapply(vars, is.name, logical(1L))
+  bare_names <- vapply(vars[bare], as.character, character(1L))
+  inside <- unique(unlist(lapply(vars[!bare], all.vars), use.names = FALSE))
+  setdiff(bare_names, inside)
 }
 
 drm_prepare_random_scale_newdata <- function(sd_target, newdata, dpar) {

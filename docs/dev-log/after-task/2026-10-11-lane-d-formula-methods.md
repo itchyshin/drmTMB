@@ -18,8 +18,11 @@ on `main` at `75845a3d` before it was changed.
   partial grid then failed to align with the coefficients, a one-row grid hit
   the base-R "contrasts can be applied only to factors with 2 or more levels"
   error, and an unseen value never reached the designed unknown-level message.
-  Character and logical template columns are now converted with `factor()`
-  first, the same coding `model.matrix()` used at fit time.
+  A character template column that enters the formula only as a bare term is
+  now converted with `factor()` first, the same coding `model.matrix()` used
+  at fit time. After review, columns that also appear inside a transform
+  (`as.numeric(flag)`, `I(x * flag)`, `nchar(chr)`, `mi(x)`) and logical
+  columns are left raw, as on `main`, so transforms keep seeing raw values.
 - **#1486.** `drmTMB()` called `list(...)`, which evaluated every extra
   argument. `subset = cyl == 4` therefore failed with "object 'cyl' not
   found". The guard now checks `...length()` and the unevaluated names. It
@@ -28,9 +31,11 @@ on `main` at `75845a3d` before it was changed.
 - **#1485.** `relmat()`/`animal()` matched ids through `as.character()`, so the
   double `100000` became `"1e+05"` and never matched labels written
   `"100000"`, although the same ids stored as integers did match. The new
-  `drm_id_labels()` writes whole-number doubles as plain digits. It is used
-  for the grouping column, inside `drm_known_relatedness_precision()`, and for
-  pedigree `id`/`dam`/`sire`.
+  `drm_id_labels()` writes whole-number doubles as plain digits and rewrites
+  scientific-notation labels of whole numbers (`"1e+05"`) the same way. After
+  review it is applied to both sides: the data ids, the matrix dimnames, and
+  pedigree `id`/`dam`/`sire`. A matrix whose labels R itself wrote as
+  `"1e+05"` therefore still matches, as it did on `main`.
 - **#1487.** `simulate.drmTMB()` used lme4's argument name with the reverse
   meanings (`NULL` = fresh random effects, `NA` = fitted ones held fixed),
   while its docs claimed the lme4 convention. The owner chose to adopt lme4's
@@ -53,7 +58,10 @@ on `main` at `75845a3d` before it was changed.
   (`attr(, "explicit")`), and `drmTMB()` reads that record from the evaluated
   object. Every literal spelling keeps its old meaning:
   `miss_control(response = ...)` and an omitted `missing` still drop
-  incomplete rows. Plain-list controls never trigger the check. With the
+  incomplete rows. Plain-list controls never trigger the check. One spelling
+  does change: `missing = drmTMB::miss_control()` and controls passed through
+  `do.call()` were never recognised by the call-syntax check, so they used to
+  drop incomplete rows. They now error like `miss_control()`. With the
   coordinator's agreement, this touches only `miss_control()` and the old
   helper in lane A's `R/missing-data.R`.
 
@@ -100,6 +108,12 @@ fitted contrasts on the rebuilt factor. `confint(bootstrap_re_form =)` uses
 the same `NA`/`NULL` meaning as `simulate()`, so the two cannot drift apart.
 
 ## What Did Not Go Smoothly
+
+An independent review found that the first #1485 fix normalised only the data
+side, which broke matrices labelled `"1e+05"` that `main` handled. It also
+found that the first #1497 fix factor-coerced columns that transforms also
+used. Both were fixed with tests. The lesson: when a fix normalises one side
+of a match, test the other spelling too.
 
 Five of the eleven issues already had open fix PRs from an earlier triage
 pass. Their PR links are visible only in each issue's `closed_by_pull_requests`

@@ -62,3 +62,18 @@ test_that("miss_control() records which arguments were supplied", {
     c(response = TRUE, predictor = FALSE, engine = FALSE)
   )
 })
+
+test_that("namespaced and do.call() controls follow the evaluated control", {
+  d <- miss_control_na_predictor_data()
+  expect_error(
+    drmTMB(bf(Wind ~ Solar.R), data = d, missing = drmTMB::miss_control()),
+    "requires complete predictors"
+  )
+  expect_error(
+    do.call(
+      drmTMB,
+      list(formula = bf(Wind ~ Solar.R), data = d, missing = miss_control())
+    ),
+    "requires complete predictors"
+  )
+})
