@@ -95,12 +95,15 @@
 #' @param R Number of parametric-bootstrap refits when
 #'   `method = "bootstrap"`.
 #' @param seed Optional seed for bootstrap simulation.
-#' @param parallel Profile or bootstrap backend: `"none"` or Unix
-#'   `"multicore"`. For profile intervals, targets or `newdata` rows are split
+#' @param parallel Profile or bootstrap backend: `"none"`, Unix
+#'   `"multicore"`, or socket `"cluster"` (PSOCK, any platform including
+#'   Windows). For profile intervals, targets or `newdata` rows are split
 #'   across workers. For bootstrap intervals, refits are split across workers.
+#'   Every backend returns the serial result; see [drmTMB-parallel].
 #' @param workers Requested profile or bootstrap workers. If `NULL` and
-#'   `parallel = "multicore"`, `drmTMB` uses about half the detected CPU cores.
-#'   Multicore execution is capped at the number of jobs and at 10 workers.
+#'   `parallel` is not `"none"`, `drmTMB` uses about half the detected CPU
+#'   cores. Parallel execution is capped at the number of jobs and at 10
+#'   workers.
 #'   Keep BLAS and OpenMP threads at one while workers run; see
 #'   [drmTMB-parallel].
 #' @param refit_control Optional [drm_control()] object used for bootstrap
@@ -422,7 +425,7 @@ confint.drmTMB <- function(
   profile_endpoint_max_eval = NULL,
   R = 199L,
   seed = NULL,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   refit_control = NULL,
   sd_boundary = 1e-4,
@@ -765,9 +768,9 @@ profile_targets <- function(object, ready_only = FALSE) {
 #' @param parallel Parallel backend for profiling several targets. `"none"`
 #'   (the default) profiles targets one after another. `"multicore"` profiles
 #'   independent targets in forked worker processes with
-#'   [parallel::mclapply()]; it is available on Unix-alikes only, and the
-#'   returned curves are identical to the serial result because every target
-#'   starts from the same pinned optimum. A single target is always profiled
+#'   [parallel::mclapply()] on Unix-alikes; `"cluster"` uses socket (PSOCK)
+#'   workers on any platform. The returned curves are identical to the serial
+#'   result because every target starts from the same pinned optimum. A single target is always profiled
 #'   serially. Keep `TMB::openmp()` and BLAS threads at one when using
 #'   `"multicore"`; see [drmTMB-parallel].
 #' @param workers Optional positive whole number of worker processes for
@@ -802,7 +805,7 @@ profile.drmTMB <- function(
   compare = FALSE,
   first_pass_ystep = 0.5,
   first_pass_ytol = 2,
-  parallel = c("none", "multicore"),
+  parallel = c("none", "multicore", "cluster"),
   workers = NULL,
   ...
 ) {
@@ -1241,7 +1244,22 @@ profile_controls_label <- function(args) {
 # atanh round-trips stay finite. This must match the guard used by rho_response()
 # and guarded_correlation_link() (methods.R) so the forward link and its inverse
 # agree; the DRM.jl twin must mirror the same value (issue #713.6).
+# Random-effect correlation targets use DRM_RE_CORR_GUARD (methods.R, 0.99999999,
+# raised with src/drmTMB.cpp in #1190); DRM_CORR_GUARD is the residual/phylo
+# guard.
 DRM_CORR_GUARD <- 0.999999
+
+# The shared "tanh" correlation transformation serves random-effect targets
+# (guard DRM_RE_CORR_GUARD) and the phylogenetic correlation `eta_cor_phylo`
+# (TMB's rho_phylo / rho_node keep 0.999999). Pick the guard from the TMB
+# parameter the target profiles (#1190).
+profile_correlation_guard <- function(tmb_parameter) {
+  if (length(tmb_parameter) && identical(as.character(tmb_parameter[[1L]]), "eta_cor_phylo")) {
+    DRM_CORR_GUARD
+  } else {
+    DRM_RE_CORR_GUARD
+  }
+}
 
 profile_transform_values <- function(values, target) {
   switch(
@@ -1250,7 +1268,7 @@ profile_transform_values <- function(values, target) {
     ordered_cutpoint = values,
     exp = exp(values),
     plogis = stats::plogis(values),
-    tanh = DRM_CORR_GUARD * tanh(values),
+    tanh = profile_correlation_guard(target$tmb_parameter) * tanh(values),
     rho12_tanh = rho_response(values),
     values
   )
@@ -1390,7 +1408,7 @@ resolve_bootstrap_parallel <- function(parallel, missing_arg = FALSE) {
   if (isTRUE(missing_arg)) {
     return("none")
   }
-  match.arg(parallel, c("none", "multicore"))
+  match.arg(parallel, c("none", "multicore", "cluster"))
 }
 
 validate_profile_maxit <- function(profile_maxit) {
@@ -1784,7 +1802,7 @@ drm_profile_targets <- function(object) {
         } else {
           guarded_correlation_link(
             unname(values[[i]]),
-            guard = DRM_CORR_GUARD
+            guard = profile_correlation_guard(internal)
           )
         },
         scale = "response",
@@ -2678,6 +2696,11 @@ drm_bootstrap_confint <- function(
   }
   plan <- bootstrap_parallel_plan(R, parallel = parallel, workers = workers)
   refit_control <- bootstrap_refit_control(refit_control)
+  if (!identical(plan$backend, "none")) {
+    # Outer bootstrap workers already use the cores; never nest multi-start
+    # workers inside them (see ?drmTMB-parallel).
+    refit_control$parallel <- "none"
+  }
   if (nrow(targets) == 0L) {
     return(empty_confint_table(method = "bootstrap"))
   }
@@ -2854,17 +2877,18 @@ bootstrap_parallel_plan <- function(R, parallel, workers) {
     !is.character(parallel) ||
       length(parallel) != 1L ||
       is.na(parallel) ||
-      !parallel %in% c("none", "multicore")
+      !parallel %in% c("none", "multicore", "cluster")
   ) {
     cli::cli_abort(
-      "{.arg parallel} must be one of {.val none} or {.val multicore}."
+      "{.arg parallel} must be one of {.val none}, {.val multicore}, or {.val cluster}."
     )
   }
   workers <- resolve_parallel_workers(workers, parallel)
   if (identical(parallel, "multicore") && .Platform$OS.type == "windows") {
-    cli::cli_abort(
-      "{.code parallel = \"multicore\"} is not available on Windows."
-    )
+    cli::cli_abort(c(
+      "{.code parallel = \"multicore\"} is not available on Windows.",
+      i = "Use {.code parallel = \"cluster\"} for socket (PSOCK) workers."
+    ))
   }
   actual_workers <- if (identical(parallel, "none")) {
     1L
@@ -2932,12 +2956,56 @@ bootstrap_refit_control <- function(refit_control) {
 }
 
 profile_lapply <- function(indices, worker, plan) {
+  drm_parallel_lapply(indices, worker, plan)
+}
+
+bootstrap_lapply <- function(indices, worker, plan) {
+  drm_parallel_lapply(indices, worker, plan)
+}
+
+# One dispatcher for the "none" | "multicore" | "cluster" backends. Workers
+# receive the same inputs as the serial lapply(), so every backend returns
+# the same values. A fitted TMB object shipped to a socket worker arrives with
+# a null external pointer; TMB re-tapes it on first use from the serialized
+# data, parameters, and `last.par` state (TMB::MakeADFun's isNullPointer()
+# check), so profile workers reproduce the serial curve without refitting.
+drm_parallel_lapply <- function(indices, worker, plan) {
   if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
     return(lapply(indices, worker))
+  }
+  if (identical(plan$backend, "cluster")) {
+    return(drm_cluster_lapply(indices, worker, plan$workers))
   }
   drm_mclapply_stop_on_error(
     parallel::mclapply(indices, worker, mc.cores = plan$workers)
   )
+}
+
+drm_cluster_lapply <- function(indices, worker, workers) {
+  cl <- parallel::makePSOCKcluster(workers)
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  parallel::clusterCall(cl, drm_cluster_worker_init, drm_cluster_lib_paths())
+  parallel::parLapply(cl, indices, worker)
+}
+
+# The library holding the drmTMB build this session loaded goes first, so
+# socket workers load the same build even when it was attached with
+# `library(drmTMB, lib.loc = ...)` rather than from `.libPaths()`.
+drm_cluster_lib_paths <- function() {
+  pkg_path <- tryCatch(
+    getNamespaceInfo("drmTMB", "path"),
+    error = function(err) NA_character_
+  )
+  own_lib <- if (is.character(pkg_path) && !is.na(pkg_path)) dirname(pkg_path)
+  unique(c(own_lib, .libPaths()))
+}
+
+# Runs on each socket worker: use the caller's library paths so the worker
+# loads the same drmTMB build, then attach its namespace and DLL.
+drm_cluster_worker_init <- function(lib_paths) {
+  .libPaths(lib_paths)
+  suppressPackageStartupMessages(loadNamespace("drmTMB"))
+  invisible(NULL)
 }
 
 # parallel::mclapply() turns a worker error into a "try-error" element and only
@@ -2953,13 +3021,6 @@ drm_mclapply_stop_on_error <- function(results) {
     stop(as.character(results[[which(failed)[[1L]]]]), call. = FALSE)
   }
   results
-}
-
-bootstrap_lapply <- function(indices, worker, plan) {
-  if (identical(plan$backend, "none") || identical(plan$workers, 1L)) {
-    return(lapply(indices, worker))
-  }
-  parallel::mclapply(indices, worker, mc.cores = plan$workers)
 }
 
 bootstrap_refit_one <- function(
@@ -4675,7 +4736,7 @@ profile_transform_interval <- function(interval, target) {
     linear_predictor = interval,
     exp = exp(interval),
     plogis = stats::plogis(interval),
-    tanh = DRM_CORR_GUARD * tanh(interval),
+    tanh = profile_correlation_guard(target$tmb_parameter) * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
   )
@@ -4687,7 +4748,8 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     drm_dpar_link(object, dpar),
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
-    atanh_re_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
+    atanh_re_guarded = rho_response(eta_interval, guard = DRM_RE_CORR_GUARD),
+    atanh_phylo_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -4700,6 +4762,7 @@ profile_newdata_transformation <- function(object, dpar) {
     log = "exp",
     atanh_guarded = "rho12_tanh",
     atanh_re_guarded = "random_effect_correlation_tanh",
+    atanh_phylo_guarded = "random_effect_correlation_tanh",
     "unknown"
   )
 }
@@ -4759,7 +4822,7 @@ profile_registry_cor_targets <- function(object) {
       link_estimate = if (is_unstructured_corr) {
         NA_real_
       } else {
-        guarded_correlation_link(estimate, guard = DRM_CORR_GUARD)
+        guarded_correlation_link(estimate, guard = DRM_RE_CORR_GUARD)
       },
       scale = "response",
       transformation = if (is_unstructured_corr) {
@@ -5329,7 +5392,9 @@ profile_newdata_dpar <- function(object, parm) {
   ]
   corpair <- corpair[vapply(
     corpair,
-    function(dpar) identical(drm_dpar_link(object, dpar), "atanh_re_guarded"),
+    function(dpar) {
+      drm_dpar_link(object, dpar) %in% c("atanh_re_guarded", "atanh_phylo_guarded")
+    },
     logical(1)
   )]
   supported <- c(scale_or_residual, corpair)
