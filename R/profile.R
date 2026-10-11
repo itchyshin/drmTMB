@@ -170,6 +170,15 @@
 #'   marginal draw is not yet implemented, and it makes the resulting
 #'   intervals **anticonservative** because between-group variability is
 #'   never resampled -- it is not a neutral alternative to the default.
+#' @param bootstrap_interval Interval shape for `method = "bootstrap"`, built
+#'   from the same refit draws. `"percentile"` (the default) takes quantiles
+#'   of the draws. `"basic"` reflects them about the estimate,
+#'   `2 * estimate - quantile`, and `"bc"` is the bias-corrected percentile
+#'   interval; both re-centre an interval whose draws sit a bias away from the
+#'   estimate. `"basic"` and `"bc"` are computed on the fitted link scale and
+#'   back-transformed, so SD intervals stay positive and correlation intervals
+#'   stay inside `(-1, 1)`. The accelerated BCa interval is not implemented.
+#'   See the "Bootstrap intervals on biased targets" section.
 #' @param ... Additional arguments passed to [TMB::tmbprofile()] when
 #'   `method = "profile"` and the `tmbprofile` profile engine is used.
 #'   `drmTMB` supplies the profiled `obj`, `name`, `lincomb`, and `trace`
@@ -325,7 +334,10 @@
 #' `docs/design/274-bootstrap-interval-bias.md`. For scale intercepts and
 #' random-effect SDs at small `n` or few groups, prefer `method = "wald"` or
 #' `method = "profile"`; use the bootstrap where the estimator is close to
-#' unbiased, such as mean coefficients.
+#' unbiased, such as mean coefficients. When a bootstrap is still wanted for a
+#' biased target, `bootstrap_interval = "basic"` or `"bc"` re-centres the
+#' interval on the estimate; neither has yet been calibrated by the coverage
+#' simulation in that design note, so the default stays `"percentile"`.
 #'
 #' @section Ordinal cutpoints:
 #' For a `cumulative_logit()` fit, the public ordinal targets are the ordered
@@ -460,6 +472,7 @@ confint.drmTMB <- function(
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
   bootstrap_re_form = NULL,
+  bootstrap_interval = c("percentile", "basic", "bc"),
   ...
 ) {
   drm_abort_mspl_inference(object, "confint")
@@ -471,6 +484,8 @@ confint.drmTMB <- function(
   profile_precision_missing <- missing(profile_precision)
   parallel_missing <- missing(parallel)
   method_missing <- missing(method)
+  bootstrap_interval_missing <- missing(bootstrap_interval)
+  bootstrap_interval <- match.arg(bootstrap_interval)
   profile_engine <- match.arg(profile_engine)
   small_sample_df <- match.arg(small_sample_df)
   bias_correct <- match.arg(bias_correct)
@@ -481,6 +496,15 @@ confint.drmTMB <- function(
   )
   if (!is.null(newdata) && method_missing) {
     method <- "profile"
+  }
+  if (
+    !bootstrap_interval_missing &&
+      !identical(bootstrap_interval, "percentile") &&
+      !identical(method, "bootstrap")
+  ) {
+    cli::cli_abort(
+      "{.arg bootstrap_interval} is only used when {.code method = \"bootstrap\"}."
+    )
   }
   validate_profile_level(level)
   profile_precision <- resolve_profile_precision(
@@ -554,7 +578,8 @@ confint.drmTMB <- function(
       refit_control = refit_control,
       re_form = bootstrap_re_form,
       sd_boundary = sd_boundary,
-      rho_boundary = rho_boundary
+      rho_boundary = rho_boundary,
+      interval = bootstrap_interval
     ))
   }
 
@@ -2712,7 +2737,8 @@ drm_bootstrap_confint <- function(
   refit_control,
   re_form = NULL,
   sd_boundary = 1e-4,
-  rho_boundary = 0.98
+  rho_boundary = 0.98,
+  interval = "percentile"
 ) {
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
@@ -2806,14 +2832,15 @@ drm_bootstrap_confint <- function(
       status <- "bootstrap_unavailable"
       message <- "fewer than two successful bootstrap refits"
     } else {
-      qs <- bootstrap_percentile_interval(
+      qs <- bootstrap_interval_endpoints(
         target_draws = target_draws[finite, , drop = FALSE],
         target = target,
-        probs = probs
+        probs = probs,
+        interval = interval
       )
       lower <- qs[[1L]]
       upper <- qs[[2L]]
-      status <- "bootstrap"
+      status <- if (all(is.finite(qs))) "bootstrap" else "bootstrap_unavailable"
       # Test on the NATURAL scale, not `draw_values`: the latter is the link
       # scale whenever the percentile is taken there, and "an SD near zero" is
       # only meaningful untransformed. This matches `wald_boundary_targets()`,
@@ -2825,6 +2852,15 @@ drm_bootstrap_confint <- function(
         rho_boundary = rho_boundary
       )
       message <- paste0(n_ok, "/", nrow(target_draws), " successful refits")
+      if (!identical(interval, "percentile")) {
+        message <- paste0(message, "; ", interval, " interval")
+      }
+      if (!all(is.finite(qs))) {
+        message <- paste0(
+          message,
+          "; bias-correction undefined (every draw on one side of the estimate)"
+        )
+      }
     }
     intervals[[i]] <- data.frame(
       parm = target$parm,
@@ -3147,6 +3183,62 @@ bootstrap_percentile_interval <- function(target_draws, target, probs) {
     names = FALSE,
     type = 8
   )
+}
+
+# Interval shapes for the parametric bootstrap (owner decision 17, #1315;
+# docs/design/274-bootstrap-interval-bias.md section 5). All reuse the same
+# refit draws; none needs extra refits.
+#   "percentile": quantiles of the draws (the default, unchanged).
+#   "basic": the reflected interval 2 * theta_hat - q*, which re-centres a
+#     draw distribution that sits a bias b away from theta_hat (Davison and
+#     Hinkley 1997, sec. 5.2).
+#   "bc": bias-corrected percentile, z0 = qnorm(share of draws below
+#     theta_hat), levels pnorm(2 * z0 + qnorm(probs)) (Efron and Tibshirani
+#     1993, ch. 14). No acceleration term, so this is BC, not BCa; BCa needs
+#     n jackknife refits per target and is not implemented.
+# Percentile keeps its historical scale choice (link scale for exp targets).
+# Basic and BC work on the link scale whenever the target's transformation is
+# a known monotone link, so the reflected interval cannot leave the parameter
+# space (an SD stays positive, a correlation stays inside (-1, 1)).
+bootstrap_interval_endpoints <- function(
+  target_draws,
+  target,
+  probs,
+  interval = "percentile"
+) {
+  if (identical(interval, "percentile")) {
+    return(bootstrap_percentile_interval(target_draws, target, probs))
+  }
+  on_link <- target$transformation[[1L]] %in%
+    c("linear_predictor", "exp", "plogis", "tanh", "rho12_tanh")
+  draws <- if (on_link) target_draws$link_estimate else target_draws$estimate
+  theta_hat <- if (on_link) target$link_estimate[[1L]] else target$estimate[[1L]]
+  draws <- draws[is.finite(draws)]
+  if (length(draws) < 2L || length(theta_hat) != 1L || !is.finite(theta_hat)) {
+    return(c(NA_real_, NA_real_))
+  }
+  endpoints <- switch(
+    interval,
+    basic = {
+      q <- stats::quantile(draws, probs = rev(probs), names = FALSE, type = 8)
+      2 * theta_hat - q
+    },
+    bc = {
+      below <- (sum(draws < theta_hat) + 0.5 * sum(draws == theta_hat)) /
+        length(draws)
+      z0 <- stats::qnorm(below)
+      if (!is.finite(z0)) {
+        return(c(NA_real_, NA_real_))
+      }
+      adjusted <- stats::pnorm(2 * z0 + stats::qnorm(probs))
+      stats::quantile(draws, probs = adjusted, names = FALSE, type = 8)
+    },
+    cli::cli_abort("Internal error: unknown bootstrap interval {.val {interval}}.")
+  )
+  if (on_link) {
+    endpoints <- profile_transform_interval(endpoints, target)
+  }
+  endpoints
 }
 
 bootstrap_percentile_draws <- function(target_draws, target) {

@@ -68,7 +68,33 @@ well-conditioned known `V` on a small numeric scale was reported as
 singular. The floor is removed; the tolerance is now relative to the largest
 eigenvalue.
 
-**#1387 was dropped** at the coordinator's request after it was already
+**Owner decision 4 (#1469, #1273): flag-only `check_drm()` rows.** Three
+rows were added to `R/check.R`. Each appears only when it fires, as a note,
+and none changes an estimate:
+- `beta_binomial_sigma_boundary` fires when the extra-binomial variance,
+  `(trials - 1) * sigma^2 / (1 + sigma^2)`, is below 1e-3 on some rows. In
+  #1273, log sigma was -8.3 in drmTMB and -4.2 in DRModels.jl on the same
+  likelihood.
+- `direct_sd_clamp_active` fires when a group-level log-SD from an
+  `sd(group)` formula is outside the clamp band at the optimum.
+- `residual_outliers` fires when more quantile residuals exceed 3 in absolute
+  value than the 0.999 quantile of Binomial(n, 0.0027). It uses a fixed seed
+  and leaves the global RNG untouched. Infinite residuals count as outliers.
+
+The decision also asked for a tighter `is_converged()` (a Newton step in
+standard-error units). Open PR #1503 already implements that for #1452 in the
+same functions, so it was not duplicated here.
+
+**Owner decision 17 (#1315): opt-in basic and bias-corrected bootstrap.**
+`confint(..., method = "bootstrap", bootstrap_interval = c("percentile",
+"basic", "bc"))` keeps the percentile interval as the default. The basic and
+BC intervals reuse the same draws. They are computed on the link scale for
+known monotone transforms, so SD intervals stay positive and correlation
+intervals stay inside (-1, 1). BCa is not implemented because it needs n
+jackknife refits per target. Passing the argument with another method
+aborts.
+
+ at the coordinator's request after it was already
 implemented here: the performance lane owns it. The tested patch was handed
 to that lane and removed from this branch.
 
@@ -83,7 +109,7 @@ to avoid roxygen-version churn, which lane G owns.
 
 ## Checks Run
 
-`test-lane-c-convergence-inference.R` passes (47 expectations) on the
+`test-lane-c-convergence-inference.R` passes (77 expectations) on the
 branch build, and its new expectations fail on main. Twenty-eight related
 files (skew-normal, clamp, check_drm, convergence warning, start contract,
 REML, bootstrap, corpairs, meta-analysis known V, profile trace) pass with 0

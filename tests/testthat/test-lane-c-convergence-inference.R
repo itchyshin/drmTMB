@@ -229,3 +229,179 @@ test_that("corpairs() refuses newdata instead of silently ignoring it (#802)", {
   expect_identical(ci$conf.status, "profile")
   expect_true(is.finite(ci$lower) && is.finite(ci$upper))
 })
+
+# Owner decision 4 (11 Oct 2026): flag-only check_drm() rows.
+
+test_that("beta-binomial sigma at the binomial limit gets a boundary note (#1273)", {
+  set.seed(1273)
+  n <- 200
+  x <- stats::rnorm(n)
+  trials <- rep(10L, n)
+  successes <- stats::rbinom(n, trials, stats::plogis(0.2 + 0.5 * x))
+  dat <- data.frame(s = successes, f = trials - successes, x = x)
+  fit <- suppressWarnings(drmTMB(
+    bf(cbind(s, f) ~ x, sigma ~ 1),
+    family = beta_binomial(),
+    data = dat
+  ))
+  # Binomial data drive the beta-binomial sigma to the boundary.
+  expect_lt(exp(unname(coef(fit, "sigma"))), 0.01)
+  chk <- check_drm(fit)
+  row <- chk[chk$check == "beta_binomial_sigma_boundary", ]
+  expect_identical(nrow(row), 1L)
+  expect_identical(row$status, "note")
+  expect_match(row$message, "binomial limit", fixed = TRUE)
+  # Flag only: estimates are unchanged by running the check.
+  expect_identical(coef(fit), coef(fit))
+
+  # Moderate overdispersion does not fire the row.
+  p <- stats::rbeta(n, 2, 3)
+  dat$s <- stats::rbinom(n, trials, p)
+  dat$f <- trials - dat$s
+  fit_od <- drmTMB(bf(cbind(s, f) ~ x, sigma ~ 1), family = beta_binomial(), data = dat)
+  chk_od <- check_drm(fit_od)
+  expect_false("beta_binomial_sigma_boundary" %in% chk_od$check)
+})
+
+test_that("a direct-SD formula at the log-SD clamp gets a note", {
+  # 12 groups, 4 rows each: the sd(ID) ~ x slope runs the smallest group
+  # log-SD to about -16, below the default clamp band of [-12, 12].
+  set.seed(20260730)
+  id <- factor(rep(seq_len(12), each = 4))
+  x <- rep(seq(-0.6, 0.6, length.out = 12), each = 4)
+  b <- stats::rnorm(12, sd = 0.4)
+  dat <- data.frame(y = 0.2 + 0.5 * x + b[id] + stats::rnorm(48, sd = 0.5), x = x, ID = id)
+  fit <- drmTMB(
+    bf(y ~ x + (1 | ID), sigma ~ 1, sd(ID) ~ x),
+    family = gaussian(),
+    data = dat
+  )
+  row <- check_drm(fit)
+  row <- row[row$check == "direct_sd_clamp_active", ]
+  expect_identical(nrow(row), 1L)
+  expect_identical(row$status, "note")
+  expect_match(row$message, "clamp_limited", fixed = TRUE)
+
+  # Without a direct-SD formula the row never appears.
+  plain <- drmTMB(bf(y ~ x + (1 | ID), sigma ~ 1), family = gaussian(), data = dat)
+  expect_false("direct_sd_clamp_active" %in% check_drm(plain)$check)
+})
+
+test_that("excess |quantile residual| > 3 gets a note; Gaussian data does not", {
+  set.seed(1469)
+  n <- 400
+  x <- stats::rnorm(n)
+  # 5% gross outliers 10 units above an otherwise Gaussian response.
+  contaminated <- stats::rnorm(n) + ifelse(seq_len(n) %% 20L == 0L, 10, 0)
+  heavy <- data.frame(y = 1 + 0.5 * x + contaminated, x = x)
+  fit_heavy <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = heavy)
+  row <- check_drm(fit_heavy)
+  row <- row[row$check == "residual_outliers", ]
+  expect_identical(nrow(row), 1L)
+  expect_identical(row$status, "note")
+  expect_match(row$message, "student()", fixed = TRUE)
+
+  clean <- data.frame(y = 1 + 0.5 * x + stats::rnorm(n), x = x)
+  fit_clean <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = clean)
+  expect_false("residual_outliers" %in% check_drm(fit_clean)$check)
+})
+
+test_that("the residual-outlier row leaves the global RNG stream untouched", {
+  set.seed(7)
+  dat <- data.frame(y = stats::rnorm(50), x = stats::rnorm(50))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  set.seed(99)
+  before <- stats::runif(1)
+  set.seed(99)
+  invisible(check_drm(fit))
+  expect_identical(stats::runif(1), before)
+})
+
+# Owner decision 17 (#1315): opt-in basic and bias-corrected bootstrap shapes.
+
+test_that("basic and bc bootstrap endpoints follow their definitions (#1315)", {
+  set.seed(1315)
+  draws <- stats::rnorm(999, mean = -0.1, sd = 0.2)
+  target <- data.frame(
+    transformation = "exp",
+    link_estimate = 0,
+    estimate = 1,
+    stringsAsFactors = FALSE
+  )
+  td <- data.frame(link_estimate = draws, estimate = exp(draws))
+  probs <- c(0.025, 0.975)
+  q <- stats::quantile(draws, probs, names = FALSE, type = 8)
+
+  pct <- drmTMB:::bootstrap_interval_endpoints(td, target, probs, "percentile")
+  expect_equal(pct, exp(q))
+
+  basic <- drmTMB:::bootstrap_interval_endpoints(td, target, probs, "basic")
+  expect_equal(basic, exp(2 * 0 - rev(q)))
+  # The draws sit 0.1 below the estimate on the link scale; basic re-centres.
+  expect_gt(mean(log(basic)), mean(log(pct)))
+  expect_true(all(basic > 0))
+
+  bc <- drmTMB:::bootstrap_interval_endpoints(td, target, probs, "bc")
+  z0 <- stats::qnorm(mean(draws < 0))
+  expect_equal(
+    bc,
+    exp(stats::quantile(draws, stats::pnorm(2 * z0 + stats::qnorm(probs)),
+      names = FALSE, type = 8
+    ))
+  )
+  expect_gt(mean(log(bc)), mean(log(pct)))
+
+  # Every draw on one side of the estimate leaves BC undefined.
+  one_sided <- data.frame(link_estimate = abs(draws) + 1, estimate = 1)
+  expect_true(all(is.na(
+    drmTMB:::bootstrap_interval_endpoints(one_sided, target, probs, "bc")
+  )))
+
+  # Correlation targets reflect on the link scale and stay inside (-1, 1).
+  rho_target <- data.frame(
+    transformation = "rho12_tanh",
+    link_estimate = 2.5,
+    estimate = tanh(2.5),
+    stringsAsFactors = FALSE
+  )
+  rho_draws <- data.frame(link_estimate = stats::rnorm(999, 2, 0.5), estimate = NA_real_)
+  rho_basic <- drmTMB:::bootstrap_interval_endpoints(rho_draws, rho_target, probs, "basic")
+  expect_true(all(abs(rho_basic) < 1))
+})
+
+test_that("confint() exposes bootstrap_interval only for method = 'bootstrap' (#1315)", {
+  set.seed(13150)
+  dat <- data.frame(y = stats::rnorm(40), x = stats::rnorm(40))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  expect_error(
+    confint(fit, method = "wald", bootstrap_interval = "basic"),
+    "only used when"
+  )
+  pct <- suppressWarnings(confint(fit, parm = "sigma", method = "bootstrap", R = 30, seed = 1))
+  bas <- suppressWarnings(confint(
+    fit,
+    parm = "sigma",
+    method = "bootstrap",
+    R = 30,
+    seed = 1,
+    bootstrap_interval = "basic"
+  ))
+  expect_identical(bas$conf.status, "bootstrap")
+  expect_match(bas$profile.message, "basic interval", fixed = TRUE)
+  expect_true(bas$lower > 0 && bas$upper > bas$lower)
+  # The default is the historical percentile interval.
+  draws <- attr(pct, "bootstrap.diagnostics")
+  used <- draws$draw_used & draws$parm == "sigma"
+  expect_equal(
+    c(pct$lower, pct$upper),
+    exp(stats::quantile(draws$draw_value[used], c(0.025, 0.975), names = FALSE, type = 8))
+  )
+  est <- log(stats::sigma(fit)[[1L]])
+  expect_equal(
+    c(bas$lower, bas$upper),
+    exp(2 * est - rev(stats::quantile(draws$draw_value[used], c(0.025, 0.975),
+      names = FALSE, type = 8
+    ))),
+    tolerance = 1e-6
+  )
+})

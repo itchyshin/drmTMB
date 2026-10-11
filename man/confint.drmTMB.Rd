@@ -25,6 +25,7 @@
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
   bootstrap_re_form = NULL,
+  bootstrap_interval = c("percentile", "basic", "bc"),
   ...
 )
 }
@@ -162,6 +163,16 @@ this is a documented escape hatch for random-effect structures whose
 marginal draw is not yet implemented, and it makes the resulting
 intervals \strong{anticonservative} because between-group variability is
 never resampled -- it is not a neutral alternative to the default.}
+
+\item{bootstrap_interval}{Interval shape for \code{method = "bootstrap"}, built
+from the same refit draws. \code{"percentile"} (the default) takes quantiles
+of the draws. \code{"basic"} reflects them about the estimate,
+\code{2 * estimate - quantile}, and \code{"bc"} is the bias-corrected percentile
+interval; both re-centre an interval whose draws sit a bias away from the
+estimate. \code{"basic"} and \code{"bc"} are computed on the fitted link scale and
+back-transformed, so SD intervals stay positive and correlation intervals
+stay inside \code{(-1, 1)}. The accelerated BCa interval is not implemented.
+See the "Bootstrap intervals on biased targets" section.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
@@ -385,7 +396,10 @@ the issue, not re-derived here; the mechanism and options are in
 \code{docs/design/274-bootstrap-interval-bias.md}. For scale intercepts and
 random-effect SDs at small \code{n} or few groups, prefer \code{method = "wald"} or
 \code{method = "profile"}; use the bootstrap where the estimator is close to
-unbiased, such as mean coefficients.
+unbiased, such as mean coefficients. When a bootstrap is still wanted for a
+biased target, \code{bootstrap_interval = "basic"} or \code{"bc"} re-centres the
+interval on the estimate; neither has yet been calibrated by the coverage
+simulation in that design note, so the default stays \code{"percentile"}.
 }
 
 \section{Ordinal cutpoints}{

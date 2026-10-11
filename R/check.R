@@ -25,7 +25,11 @@
 #' correlation), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks
+#' and a Wald caveat near `nu = 0`, a beta-binomial `sigma` at the binomial
+#' limit, a direct-SD `sd(group)` formula at the log-SD clamp, more
+#' `|quantile residual| > 3` than a correct model would give (these last three
+#' rows appear only when they fire, as notes),
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -484,6 +488,9 @@ check_drm.drmTMB <- function(
     check_student_nu(object),
     check_skew_normal_nu(object),
     check_skew_normal_nu_wald(object),
+    check_beta_binomial_sigma_boundary(object),
+    check_direct_sd_clamp_active(object),
+    check_residual_outliers(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -2115,6 +2122,184 @@ check_skew_normal_nu_wald <- function(object) {
     "ok",
     value,
     "Fitted skew-normal nu values stay away from the singular Gaussian null at nu = 0."
+  )
+}
+
+# Flag-only boundary and adequacy rows (owner decision 4, 11 Oct 2026). Each
+# returns NULL unless it fires, so check_drm() tables for unaffected fits are
+# unchanged, and none of them touches estimates or standard errors.
+
+# Beta-binomial sigma near 0 is the binomial limit: with phi = 1 / sigma^2 the
+# intra-class correlation is rho = sigma^2 / (1 + sigma^2), and the variance
+# inflation over the binomial is 1 + (trials - 1) * rho. When that excess is
+# below 1e-3 for every row, log(sigma) is a flat direction: engines stop at
+# different points along it (#1273: log sigma -8.3 in drmTMB, -4.2 in
+# DRModels.jl on the same data, with matching logLik), and its Wald standard
+# error describes the flat ridge rather than the data. The 1e-3 cut mirrors
+# the extra-Poisson limit used for NB2 and is a design assumption.
+drm_beta_binomial_limit <- 1e-3
+
+check_beta_binomial_sigma_boundary <- function(object) {
+  if (!identical(object$model$model_type, "beta_binomial")) {
+    return(NULL)
+  }
+  sigma <- tryCatch(
+    as.numeric(predict(object, dpar = "sigma", type = "response")),
+    error = function(e) NULL
+  )
+  trials <- as.numeric(object$model$trials)
+  if (
+    is.null(sigma) ||
+      length(sigma) != length(trials) ||
+      !length(sigma) ||
+      any(!is.finite(sigma))
+  ) {
+    return(NULL)
+  }
+  rho <- sigma^2 / (1 + sigma^2)
+  excess <- pmax(trials - 1, 0) * rho
+  at_limit <- excess < drm_beta_binomial_limit
+  if (!any(at_limit)) {
+    return(NULL)
+  }
+  check_row(
+    "beta_binomial_sigma_boundary",
+    "note",
+    paste0(
+      "min_sigma=",
+      format_check_number(min(sigma)),
+      "; max_extra_binomial=",
+      format_check_number(max(excess)),
+      "; n_limit_rows=",
+      sum(at_limit),
+      "/",
+      length(at_limit)
+    ),
+    paste(
+      if (all(at_limit)) {
+        "The fitted beta-binomial sigma is at the binomial limit for every row"
+      } else {
+        "The fitted beta-binomial sigma is at the binomial limit for some rows"
+      },
+      "(extra-binomial variance below 0.1% of the binomial variance).",
+      "log(sigma) is then a flat direction: its estimate and Wald standard",
+      "error describe the boundary, not the data, and another engine can stop",
+      "elsewhere on the same likelihood. Compare logLik() with a binomial()",
+      "fit; if they agree, report the binomial model."
+    )
+  )
+}
+
+# Direct-SD formulas (`sd(group) ~ x`) are soft-clamped on the log-SD scale,
+# like log(sigma). A raw group-level log-SD predictor outside the band means the
+# clamp bends the likelihood at the optimum; the profile engine already refuses
+# such intervals (`clamp_limited`), and this row surfaces the same contact on
+# the fit itself.
+check_direct_sd_clamp_active <- function(object) {
+  spec <- object$model
+  has_direct_sd <- isTRUE(spec$random_scale$mu$n_models > 0L) ||
+    (is.list(spec$random_scale$phylo) &&
+      isTRUE(spec$random_scale$phylo$n_models > 0L))
+  band <- spec$tmb_data$logsigma_clamp
+  if (
+    !has_direct_sd ||
+      !identical(as.integer(spec$tmb_data$use_logsigma_clamp), 1L) ||
+      length(band) < 2L ||
+      any(!is.finite(band[1:2])) ||
+      is.null(object$obj) ||
+      is.null(object$tmb_state$last.par.best)
+  ) {
+    return(NULL)
+  }
+  par_list <- tryCatch(
+    object$obj$env$parList(
+      object$opt$par,
+      par = object$tmb_state$last.par.best
+    ),
+    error = function(e) NULL
+  )
+  eta <- if (is.null(par_list)) {
+    NULL
+  } else {
+    tryCatch(
+      drm_direct_sd_logscale_values(par_list, spec),
+      error = function(e) NULL
+    )
+  }
+  values <- unlist(eta, use.names = FALSE)
+  values <- values[is.finite(values)]
+  if (!length(values) || !any(values < band[[1L]] | values > band[[2L]])) {
+    return(NULL)
+  }
+  check_row(
+    "direct_sd_clamp_active",
+    "note",
+    paste0(
+      "log_sd_range=[",
+      format_check_number(min(values)),
+      ",",
+      format_check_number(max(values)),
+      "]; band=[",
+      format_check_number(band[[1L]]),
+      ",",
+      format_check_number(band[[2L]]),
+      "]"
+    ),
+    paste(
+      "A group-level log-SD from the sd(group) formula lies outside the clamp",
+      "band at the optimum, so the clamp bends the likelihood there: the",
+      "affected SDs and their standard errors reflect the band, and profile",
+      "intervals for them return conf.status = \"clamp_limited\". Simplify the",
+      "sd(group) formula or add replication within groups."
+    )
+  )
+}
+
+# Under a correct model, randomized quantile residuals are standard normal, so
+# P(|r| > 3) = 0.0027. The row fires when the count of |r| > 3 exceeds the
+# 0.999 quantile of Binomial(n, 0.0027) (and at least two such rows), i.e. more
+# outliers than a correctly specified model would plausibly give. A fixed seed
+# makes the discrete-family randomization reproducible; the global RNG state
+# is restored by drm_dunn_smyth_u().
+check_residual_outliers <- function(object) {
+  r <- tryCatch(
+    suppressWarnings(drm_quantile_residuals(object, seed = 20261011L)),
+    error = function(e) NULL
+  )
+  r <- as.numeric(r)
+  # An infinite residual (an observation the fitted distribution puts beyond
+  # double precision) is an outlier, not missing.
+  r <- r[!is.na(r)]
+  n <- length(r)
+  if (n < 10L) {
+    return(NULL)
+  }
+  p_tail <- 2 * stats::pnorm(-3)
+  n_out <- sum(abs(r) > 3)
+  limit <- stats::qbinom(0.999, n, p_tail)
+  if (n_out < 2L || n_out <= limit) {
+    return(NULL)
+  }
+  check_row(
+    "residual_outliers",
+    "note",
+    paste0(
+      "n_abs_gt_3=",
+      n_out,
+      "/",
+      n,
+      "; expected=",
+      format_check_number(n * p_tail),
+      "; limit_p999=",
+      limit
+    ),
+    paste(
+      "More randomized quantile residuals exceed 3 in absolute value than a",
+      "correctly specified model would plausibly give (0.27% expected).",
+      "Inspect residuals(fit, type = \"quantile\"), consider a heavier-tailed",
+      "family such as student(), or model the scale with predictors before",
+      "trusting tail-sensitive summaries."
+    )
   )
 }
 
