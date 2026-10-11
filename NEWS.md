@@ -1,5 +1,13 @@
 # drmTMB (development)
 
+## New features
+
+* `anova()` on nested `drmTMB` fits now returns a likelihood-ratio table
+  instead of aborting, with the REML/MAP guards of `drm_lrtest()`. When the
+  larger model adds one or two random-effect SDs, it reports the
+  chi-bar-square p-value from `lrt_boundary()` and warns that it did so
+  (#1240). `anova()` on `engine = "julia"` fits still refuses.
+
 ## Documentation fixes
 
 * `?phylo` now correctly describes the existing unit-height convention:

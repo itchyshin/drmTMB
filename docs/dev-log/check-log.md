@@ -1,3 +1,12 @@
+# 2026-10-18 — rebase #1528 onto main after #1527
+
+#1527 already wired `anova.drmTMB()` to `drm_lrtest()` on main (`6144c1dee`).
+This rebase keeps that implementation (fits ordered by parameter count;
+`npar`/`Df` columns; chi-bar-square when one or two SDs are added). The
+parallel #1528 implementation and its `test-anova-drmtmb.R` (which expected
+`Chi Df` and argument-order refusal) were not replayed. NEWS now records the
+landed #1240 behaviour. `test-anova-lrt.R` on main remains the test file.
+
 # 2026-10-11: rebase #1508 onto main after #1507/#1527
 
 Rebased `claude/lane-d-formula-methods` onto `6beb1f2a0`. Intermediate C17
