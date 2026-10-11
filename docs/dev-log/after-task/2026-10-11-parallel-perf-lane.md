@@ -70,8 +70,30 @@ worker would have to rebuild and refit. Documented in `?drmTMB-parallel`.
 ## Checks
 
 Narrow: `test-arc-d-profile-trace.R` (6 tests), `test-profile-parallel.R`
-(3 tests), `test-multi-start.R` (6 tests), all passing. Full-suite shard
-results are recorded in the PR body.
+(3 tests), `test-multi-start.R` (6 tests) and `test-env-skip-census.R` all
+pass against the installed branch build.
+
+Full suite, 4 shards, `NOT_CRAN=true`, installed build (R 4.3.3, apt
+packages): 3,200 tests, 148 failing or erroring across 46 files. I re-ran
+those 46 files on a clean `origin/main` worktree built from the same `src/`:
+147 of the 148 fail there too. They are Julia-bridge tests (no Julia here)
+and tests needing Suggests that apt does not ship. The one failure unique to
+the branch was the env-skip census, which needed the new
+`skip_on_os("windows")` sites in `test-profile-parallel.R`. I regenerated it
+with `tools/write-env-skip-census.R`, and it now passes. `tools::codoc()`,
+`tools::checkDocFiles()`, `tools::undoc()`, `tools::checkRd()` on the four
+touched Rd files, and `pkgdown::check_pkgdown()` are clean. I did not run
+`R CMD check` locally; CI runs it.
+
+## Ownership
+
+The coordinator assigned the docs halves of #1237 and #1249 to a separate
+docs lane. `?drmTMB-parallel` was written for #1232, #1254 and #1236 (stating
+the single-fit policy), but its "Do not nest parallel layers" section
+overlaps #1237's docs ask. The docs lane can take that section over or
+dedupe it. This PR has no code side for #1237 or #1249: with no OpenMP in
+the build, there is no inner-thread layer to guard or record yet. Both land
+with the #1250 plan.
 
 ## Next
 
