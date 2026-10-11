@@ -1,3 +1,12 @@
+# 2026-10-11: rebase #1506 onto main after #1507/#1527
+
+Rebased `claude/lane-f-docs-tutorials` onto `6beb1f2a0`. Docs only; no C17.
+`large-data.Rmd` kept main's Windows `parallel = "cluster"` sentence and the
+lane-F multicore-abort / serial example, then named cluster as the Windows
+worker backend so the two notes do not contradict. Tests: `capability_ledger.py
+--check` OK; `tools/check-reader-contracts.R` OK; `test-release-identity.R`
+20 pass; `test-reader-vignette-contracts.R` 35 pass.
+
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
 Owner decisions 18 and 19 implemented on `claude/drm-parallel-perf-2`,
