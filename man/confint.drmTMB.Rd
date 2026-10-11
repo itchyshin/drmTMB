@@ -87,7 +87,9 @@ across workers. For bootstrap intervals, refits are split across workers.}
 
 \item{workers}{Requested profile or bootstrap workers. If \code{NULL} and
 \code{parallel = "multicore"}, \code{drmTMB} uses about half the detected CPU cores.
-Multicore execution is capped at the number of jobs and at 10 workers.}
+Multicore execution is capped at the number of jobs and at 10 workers.
+Keep BLAS and OpenMP threads at one while workers run; see
+\link{drmTMB-parallel}.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because

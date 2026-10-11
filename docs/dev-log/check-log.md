@@ -1,3 +1,16 @@
+# 2026-10-11: parallel and performance lane (#1387, #1247; plans for #1248, #914, #1250, #1254, #861)
+
+`drm_profile_trace_object()` no longer stores `par` per objective evaluation
+(6.5 MB to 51 KB on a 3,020-evaluation profile; identical curves and clamp
+status). `profile()` gains `parallel`/`workers` (2.40x on four targets,
+identical apart from `elapsed`). Multicore worker errors now abort. New
+`?drmTMB-parallel` thread-policy topic. Measured, not adopted: relaxed
+`inner.control` (no gain, estimates bitwise equal) and forked multi_start
+(2.7x, needs a TMB-environment handoff design).
+
+Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
+Branch: `claude/drm-parallel-perf`.
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing
