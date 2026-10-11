@@ -90,9 +90,12 @@ Every backend returns the serial result; see \link{drmTMB-parallel}.}
 \item{workers}{Requested profile or bootstrap workers. If \code{NULL} and
 \code{parallel} is not \code{"none"}, \code{drmTMB} uses about half the detected CPU
 cores. Parallel execution is capped at the number of jobs and at 10
-workers.
-Keep BLAS and OpenMP threads at one while workers run; see
-\link{drmTMB-parallel}.}
+workers. drmTMB's TMB code is compiled without OpenMP, so parallel speed
+comes from these workers, not from \code{TMB_NTHREADS} or
+\code{OMP_NUM_THREADS}; keep the BLAS library at one thread (for example
+\code{OPENBLAS_NUM_THREADS=1}) while workers run. See \link{drmTMB-parallel} and
+"Where the parallel work happens" in
+\code{vignette("large-data", package = "drmTMB")}.}
 
 \item{refit_control}{Optional \code{\link[=drm_control]{drm_control()}} object used for bootstrap
 refits. The default skips \code{TMB::sdreport()} and drops the TMB object because

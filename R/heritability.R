@@ -1,9 +1,7 @@
 #' Heritability, ICC, and repeatability accessors
 #'
 #' `heritability()`, `icc()`, and `repeatability()` are derived-quantity
-#' accessors for structured-Gaussian `drmTMB` fits, ported term-for-term from
-#' `DRM.jl`'s `src/heritability.jl` (design doc
-#' `docs/design/259-heritability-icc-repeatability.md`). All three report the
+#' accessors for structured-Gaussian `drmTMB` fits. All three report the
 #' share of total variance carried by one structured random-effect component
 #' relative to a denominator on the working (log-SD) scale:
 #'
@@ -21,9 +19,8 @@
 #' `summary()`'s derived rows, named `total_variance_share` and
 #' `phylo_total_variance_share`, use the total-variance (heritability-style)
 #' denominator, so they can differ from `icc()`/`repeatability()` here whenever
-#' a fit has two or more structured components. Those rows were called
-#' `repeatability` and `phylogenetic_signal` until 2026-09-03; they were renamed
-#' so that one word no longer names two different quantities (D-213).
+#' a fit has two or more structured components. Their names make the denominator
+#' explicit so that one label does not refer to two different quantities.
 #'
 #' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`) or a
 #' closed-form marginal residual variance, and have at least one structured
@@ -44,18 +41,16 @@
 #' while the `log(sigma)` soft clamp bent the assembled predictor for at
 #' least one observation (`clamp_limited`), has no closed-form
 #' marginal residual variance and is refused with a message
-#' naming why; see
-#' `docs/design/275-repeatability-scale-and-residual-variance.md`.
+#' naming why.
 #'
 #' Standard errors and confidence intervals use a delta method on the
 #' working (log-SD) scale: a numeric gradient of the ratio in the log-SD
 #' parameters, combined with the fixed-parameter covariance
 #' (`object$sdr$cov.fixed`) via the quadratic form, then a Wald interval at
 #' `level`, clamped to `[0, 1]`. This is a delta-method approximation; not a coverage claim.
-#' See the design doc for the sanity-check evidence this slice carries.
 #'
-#' `method = "profile"` is accepted for call-site parity with `DRM.jl` but is
-#' **not implemented** in this slice; it aborts naming `method = "delta"` as
+#' `method = "profile"` is accepted but is **not implemented**; it aborts
+#' naming `method = "delta"` as
 #' the supported option.
 #'
 #' @param object A `drmTMB` fit.
@@ -68,7 +63,7 @@
 #'   one.
 #' @param level Confidence level for the Wald interval. Default `0.95`.
 #' @param method Either `"delta"` (default) or `"profile"`. `"profile"` is
-#'   accepted for signature parity only and always aborts in this slice.
+#'   not implemented and always aborts.
 #' @param ... Reserved for future extractor options.
 #'
 #' @return A one-row data frame (class `drm_heritability`) with columns

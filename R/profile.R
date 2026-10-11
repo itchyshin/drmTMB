@@ -24,7 +24,7 @@
 #' response-scale value for each supplied row. Row-specific `rho12` profile
 #' intervals from a regression `rho12` formula are computable this way, but no
 #' simulation has measured their coverage; treat them as interval-feasible,
-#' not as a calibrated `level` interval (tracked as issue #802).
+#' not as calibrated `level` intervals.
 #'
 #' Modelled missing-predictor bootstrap is not yet implemented: it requires
 #' joint predictor simulation and refits that preserve the imputation model and
@@ -103,9 +103,12 @@
 #' @param workers Requested profile or bootstrap workers. If `NULL` and
 #'   `parallel` is not `"none"`, `drmTMB` uses about half the detected CPU
 #'   cores. Parallel execution is capped at the number of jobs and at 10
-#'   workers.
-#'   Keep BLAS and OpenMP threads at one while workers run; see
-#'   [drmTMB-parallel].
+#'   workers. drmTMB's TMB code is compiled without OpenMP, so parallel
+#'   speed comes from these workers, not from `TMB_NTHREADS` or
+#'   `OMP_NUM_THREADS`; keep the BLAS library at one thread (for example
+#'   `OPENBLAS_NUM_THREADS=1`) while workers run. See [drmTMB-parallel] and
+#'   "Where the parallel work happens" in
+#'   `vignette("large-data", package = "drmTMB")`.
 #' @param refit_control Optional [drm_control()] object used for bootstrap
 #'   refits. The default skips `TMB::sdreport()` and drops the TMB object because
 #'   bootstrap intervals use refit point estimates.
@@ -211,9 +214,9 @@
 #'     that interval as indicative of scale, not as a calibrated
 #'     \code{level} interval (see Boundary intervals below).
 #'   \item A computable interval is not coverage certification. Check the
-#'     exact cell in
+#'     exact model and parameter combination in
 #'     \href{https://itchyshin.github.io/drmTMB/articles/capability-and-limits.html}{Capabilities and limits}
-#'     before reporting a route as inference-ready.
+#'     before reporting its intervals as coverage-validated.
 #' }
 #'
 #' For a short applied walkthrough, see the vignette
@@ -231,13 +234,13 @@
 #' `method = "profile"` sets `profile.boundary = TRUE` and warns (class
 #' `drmTMB_profile_boundary_warning`) when it returns a usable interval that
 #' reaches a boundary. **A profile interval is not a repair for a boundary.**
-#' Conditional on that flag, a seeded 10-group random-effect SD gate measured
+#' Conditional on that flag, a seeded 10-group random-effect SD simulation measured
 #' coverage at 0.1021, 0.2387, and 0.8683 against a nominal 0.95, and 0 of 89 in a
-#' fourth cell where boundary hits are rare (0.09% of fits). The mechanism is a
+#' fourth scenario where boundary hits are rare (0.09% of fits). The mechanism is a
 #' maximum likelihood random-effect SD biased 8.3%-15.8% low at small group counts,
 #' which anchors the interval low so that it misses from above.
 #'
-#' Unconditionally -- across all fits, flagged or not -- the same gate measured
+#' Unconditionally -- across all fits, flagged or not -- the same simulation measured
 #' 0.9248 against a nominal 0.95 over 400,000 attempts. A flagged interval is the
 #' bad case, not the typical one, and the flag is returned in the table so you can
 #' tell which case you are in.
@@ -289,16 +292,16 @@
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
 #' `zero_one_beta()`, `nbinom2()`, and `zi_nbinom2()`, but the maximum
 #' likelihood point estimate it is built around is **biased low** for this
-#' class of cell: eleven of twelve retained ML estimates fell below truth in
-#' the sibling `nbinom2` provider cells (fit-level one-sided sign test
-#' `p = 0.0032`; `p = 0.0625` at cell level, once the shared data-generating
+#' model class: eleven of twelve retained ML estimates fell below truth in
+#' the sibling `nbinom2` provider scenarios (fit-level one-sided sign test
+#' `p = 0.0032`; `p = 0.0625` at scenario level, once the shared data-generating
 #' process and random-number stream are respected). Two corrections that exist
 #' elsewhere for this bias do not reach these routes: `bias_correct` shifts
 #' only the `method = "wald"` centre and never a profile endpoint, and native
 #' scale-side REML is unavailable here because `drm_validate_reml_spec()`
 #' admits only Gaussian and binomial models. The profile interval therefore
-#' inherits the bias of its centre uncorrected. These routes carry point-fit
-#' recovery evidence only, and no seeded campaign has yet measured the
+#' inherits the bias of its centre uncorrected. Only point-estimate recovery has
+#' been checked for these routes, and no simulation study has yet measured the
 #' coverage of a profile interval built on them, so treat the endpoints as a
 #' computed profile rather than calibrated inference.
 #'
@@ -338,10 +341,9 @@
 #' not derived: the `log(g / (g - 1))` SD-scale centre
 #' shift is about **twice** the leading-order REML SD correction
 #' (`0.5 * log(g / (g - 1))`), matching the larger ML shrinkage measured on these
-#' structured/bivariate cells (their effective df is well below `g - 1`). The
-#' magnitude's authority is the per-model-class simulation in
-#' `docs/design/219-structured-re-small-sample-bias-correction.md`, not a single
-#' source. Relevant references:
+#' structured/bivariate models (their effective df is well below `g - 1`). The
+#' magnitude used here comes from separate simulations for each structured or
+#' bivariate model class, not from a single general correction. Relevant references:
 #'
 #' Restricted maximum likelihood and the variance-component bias that motivates
 #' the centre shift (REML debiases the variance by `g/(g-1)`; the shift here is on
@@ -408,11 +410,11 @@
 #' Wolak, M. E., Fairbairn, D. J., & Paulsen, Y. R. (2012). Guidelines for
 #' estimating repeatability. Methods in Ecology and Evolution, 3(1), 129-137.
 #' \doi{10.1111/j.2041-210X.2011.00125.x}
-#' @seealso The tier definitions and per-cell evidence behind these interval
-#'   targets, including random-effect standard-deviation rows, are curated in
-#'   \code{vignette("capability-and-limits", package = "drmTMB")}: `confint()`
-#'   computes generically for any target, and the tier a given cell belongs to
-#'   is a documentation-level curation, not a runtime guard.
+#' @seealso The model-specific evidence behind these interval targets, including
+#'   random-effect standard-deviation rows, is summarized in
+#'   \code{vignette("capability-and-limits", package = "drmTMB")}. `confint()`
+#'   can compute intervals for targets whose coverage has not been measured, so a
+#'   successful computation is not by itself evidence of calibrated coverage.
 #' @export
 confint.drmTMB <- function(
   object,
