@@ -4529,35 +4529,69 @@ Type objective_function<Type>::operator()()
         if (latent_gaussian_row && asDouble(weights(i)) != 1.0) {
           // Laplace marginal m_hat_i of the row over x, from FIXED parameters:
           // l(x) = log f(y | eta0 + beta (x - x0)) + log N(x; mu_x, s_x),
-          // concave in x, maximised by damped Newton steps started at the
-          // prior mean. Nothing here depends on x_miss, so the latent
-          // problem is unchanged by the weight.
+          // concave in x. A plain capped Newton iteration can 2-cycle (second
+          // adversarial review: y = 5, beta = -3, alpha = 0.108 never reached
+          // the mode), so each step is back-tracked on the x-dependent part of
+          // l (halved until l does not decrease). Started at the prior mean,
+          // 20 steps match the exact-mode Laplace value to ~1e-7 on random
+          // draws including alpha down to 1e-10 and y up to 200. Nothing here
+          // depends on x_miss, so the latent problem is unchanged by the
+          // weight.
           Type beta_x = beta_mu(mi_col);
           Type x0 = X_mu(i, mi_col);
           Type eta0 = eta_mu(i) - beta_x * (nbinom2_mi_x_full(i) - x0);
           Type s2 = nbinom2_sigma_mi * nbinom2_sigma_mi;
           Type alpha_i = exp(Type(2.0) * log_sigma(i)) + Type(1e-300);
+          Type log_alpha_i = log(alpha_i);
+          Type y_i = y(i);
           Type x_hat = nbinom2_mi_eta(i);
           Type curv = Type(1.0) / s2;
-          for (int it = 0; it < 12; ++it) {
+          Type step_cap = Type(2.0) * nbinom2_sigma_mi + Type(1.0);
+          for (int it = 0; it < 20; ++it) {
             Type eta_x = eta0 + beta_x * (x_hat - x0);
+            eta_x = CppAD::CondExpGt(eta_x, Type(700.0), Type(700.0), eta_x);
+            eta_x = CppAD::CondExpLt(eta_x, Type(-700.0), Type(-700.0), eta_x);
             Type m_x = exp(eta_x);
             Type denom_x = Type(1.0) + alpha_i * m_x;
-            Type score_eta = (y(i) - m_x) / denom_x;
-            Type info_eta = (Type(1.0) + alpha_i * y(i)) * m_x /
+            Type score_eta = (y_i - m_x) / denom_x;
+            Type info_eta = (Type(1.0) + alpha_i * y_i) * m_x /
               (denom_x * denom_x);
             Type grad_x = beta_x * score_eta -
               (x_hat - nbinom2_mi_eta(i)) / s2;
             curv = beta_x * beta_x * info_eta + Type(1.0) / s2;
             Type step = grad_x / curv;
-            Type cap = Type(2.0) * nbinom2_sigma_mi + Type(1.0);
-            step = CppAD::CondExpGt(step, cap, cap, step);
-            step = CppAD::CondExpLt(step, -cap, -cap, step);
-            x_hat = x_hat + step;
+            step = CppAD::CondExpGt(step, step_cap, step_cap, step);
+            step = CppAD::CondExpLt(step, -step_cap, -step_cap, step);
+            Type eta_old = eta_x;
+            Type l_old = y_i * eta_old -
+              (y_i + Type(1.0) / alpha_i) *
+                drm_log1p_exp_stable(log_alpha_i + eta_old) -
+              Type(0.5) * (x_hat - nbinom2_mi_eta(i)) *
+                (x_hat - nbinom2_mi_eta(i)) / s2;
+            Type t_step = Type(1.0);
+            for (int k = 0; k < 8; ++k) {
+              Type x_try = x_hat + t_step * step;
+              Type eta_try = eta0 + beta_x * (x_try - x0);
+              eta_try = CppAD::CondExpGt(eta_try, Type(700.0), Type(700.0), eta_try);
+              eta_try = CppAD::CondExpLt(eta_try, Type(-700.0), Type(-700.0), eta_try);
+              Type l_try = y_i * eta_try -
+                (y_i + Type(1.0) / alpha_i) *
+                  drm_log1p_exp_stable(log_alpha_i + eta_try) -
+                Type(0.5) * (x_try - nbinom2_mi_eta(i)) *
+                  (x_try - nbinom2_mi_eta(i)) / s2;
+              t_step = CppAD::CondExpGt(l_try, l_old, t_step, t_step * Type(0.5));
+            }
+            x_hat = x_hat + t_step * step;
           }
           Type eta_hat = eta0 + beta_x * (x_hat - x0);
+          eta_hat = CppAD::CondExpGt(eta_hat, Type(700.0), Type(700.0), eta_hat);
+          eta_hat = CppAD::CondExpLt(eta_hat, Type(-700.0), Type(-700.0), eta_hat);
+          Type m_hat = exp(eta_hat);
+          Type denom_hat = Type(1.0) + alpha_i * m_hat;
+          curv = beta_x * beta_x * (Type(1.0) + alpha_i * y_i) * m_hat /
+            (denom_hat * denom_hat) + Type(1.0) / s2;
           Type log_m_hat =
-            drm_nbinom2_log_density(y(i), eta_hat, log_sigma(i)) +
+            drm_nbinom2_log_density(y_i, eta_hat, log_sigma(i)) +
             dnorm(x_hat, nbinom2_mi_eta(i), nbinom2_sigma_mi, true) +
             Type(0.5) * log(Type(2.0) * M_PI) - Type(0.5) * log(curv);
           nll -= (weights(i) - Type(1.0)) * log_m_hat;

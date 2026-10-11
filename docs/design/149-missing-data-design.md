@@ -614,7 +614,7 @@ gives the same fit as duplicating the row, and a zero weight removes the row.
   no closed form, so the row uses the same device as the Gaussian route: the
   latent joint (prior and response) stays UNWEIGHTED, and the row adds
   `(w_i - 1) * log m_hat_i`, where `m_hat_i` is the Laplace marginal computed
-  from fixed parameters only: 12 damped Newton steps on the concave
+  from fixed parameters only: 20 backtracking Newton steps (step cap `2 s_x + 1`, up to 8 halvings on `l`; a capped undamped Newton can 2-cycle) on the concave
   `l(x) = log f(y | eta0 + beta (x - x0)) + log N(x; mu_x, s_x)` from the prior
   mean, then `l(x_hat) + 0.5 log 2 pi - 0.5 log H(x_hat)`. Nothing in the
   correction depends on `x_miss`, so the inner mode, curvature and `imputed()`
@@ -625,7 +625,7 @@ gives the same fit as duplicating the row, and a zero weight removes the row.
   Laplace equals `log m_hat_i` at the mode, so the row contributes
   `w_i * log m_hat_i`: an integer weight matches duplication to the Laplace
   tolerance, `w = 0` drops the row, a constant weight leaves the MLE
-  unchanged, and the cost is 12 extra evaluations per weighted latent row.
+  unchanged, and the cost is a 20-step Newton per weighted latent row.
 - Missing or non-finite weights on any modelled row (rows kept for `mi()`
   included) are an error of class `drmTMB_weights_invalid`.
 - The post-fit posterior of a missing predictor does not depend on the weight:
