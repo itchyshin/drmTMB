@@ -55,12 +55,13 @@ not be told two different things on two pages.
 - **#1244 (`location-scale-scale.Rmd`).** `R_s` was already defined; the page
   now says the model has one repeatability per sex and that `repeatability()`,
   `icc()`, and `heritability()` refuse such a fit.
-- **#1237, #1249 (thread policy).** `large-data.Rmd` gained "Where the parallel
-  work happens". The package is compiled without OpenMP
-  (`TMB::openmp(DLL = "drmTMB")` returns 1 and the install log has no
-  `-fopenmp`), so `TMB_NTHREADS`/`OMP_NUM_THREADS` do not speed up a native
-  fit; profile and bootstrap parallelism comes from `parallel = "multicore"`
-  with BLAS pinned to one thread.
+- **#1237, #1249 (thread policy, docs halves).** The full policy lives in
+  `?drmTMB-parallel`, added by the perf lane's PR #1510, so this lane does not
+  write a second copy. `large-data.Rmd` gained one paragraph that states the
+  core fact (the package is compiled without OpenMP: `TMB::openmp(DLL =
+  "drmTMB")` returns 1 and the install log has no `-fopenmp`), says to keep
+  BLAS at one thread under `parallel = "multicore"`, and points to
+  `?drmTMB-parallel`.
 - **#1140 (roxygen drift).** See below.
 
 ## Already fixed on main (no text change)
