@@ -1,3 +1,15 @@
+# 2026-10-11: STEP 2 #1459 gates (no quadrature rewrite)
+
+Warning `drmTMB_mi_weights_prior_unweighted` now fires only on the unweighted Gaussian prior paths: `src/drmTMB.cpp:1301`, `:1342`, and the nbinom2 x Gaussian copy at `:4556`. Beta `mi()` plus `weights = 2` does not warn. Weight 0 uses `if (asDouble(weights(i)) > 0)`; the pin is a weight-0 Gaussian row at `y = 1e200` with finite `fn` and `gr`. M1 helper re-polishes weight-2 from the unit-weight MLE and restores the dup-vs-w2 coefficient compare; any leftover gap is Gamma-only. `predict()` / `simulate()` allow `weights = 1`. Julia refuses non-unit weights for every family, including Beta `mi()` with `weights = 2`, before the family check. `.Rlib/` gitignored. Tracked C17 run-1 folder restored. C17 `--label triage-i-mi-r2 --tolerance 1e-10`: `|change| 0.000e+00` on mc-0568 / 0569 / 0576 at `8f6165344`. No quadrature code in this slice.
+
+Focused local: `test-mi-weights-1459.R` 0 fail / 10 tests; `test-julia-mi-weights.R` 0 fail / 5 tests; `test-guard-branch-continuity.R` 0 fail / 15 tests (`n_cpp = 32L`); Dinnage M1 families 0 fail / 11 tests.
+
+STEP 1 estimate only (no rewrite): adaptive posterior-mode GH is a high-invasiveness change across the 13 Gaussian-response `mi_family` blocks plus copied loops; a unimodal Newton proposal may still miss U-shaped Beta. Fallback is revert Beta to the old 15-node GL and pin known `integrate()` failures as follow-ups. See `docs/dev-log/after-task/2026-10-11-triage-i-mi-r2-gates.md`.
+
+Refs #1459
+Refs #1477
+Refs #1476
+
 # 2026-10-11: R reviewer #1459 acceptance
 
 `weights = 1` with `mi()` matches the unweighted fit (coef, logLik, nll to 1e-10) and does not emit `drmTMB_mi_weights_prior_unweighted`. Weight 2 matches a duplicated row in the response term only; `nll_dup - nll_w2 = -prior_row2`. Weight 0 or `NA` on a missing `mi()` covariate is `drmTMB_mi_zero_weight_missing` before the generic NA-weight abort (named error, not a drop). `predict()` / `simulate()` honour fitted coefficients and refuse `weights=` with `drmTMB_mi_weights_predict_unsupported`. Renormalised Beta/Gamma quadrature mass is 1. CondExp anchor in `drmTMB.cpp` is 33L (weight-0 helper + two IS `s_floor`s).
