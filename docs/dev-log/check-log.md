@@ -94840,3 +94840,5 @@ Closeout report:
 | 2026-08-31 | Integration and joint prediction labels (DRM.jl#563) | 1019 R assertions/1live skip;8 one-session cases;13 receipt corruption controls | Bounded PASS; full parity/performance and package gates OPEN | Codex / Rose |
 
 | 2026-09-24 | Sparse Quaas A-inverse for `animal()` pedigrees (#740) | `test-pedigree-sparse-ainv.R` 6 pass/0 fail; `test-animal-relmat-gaussian.R` 479 pass/0 fail; identity vs `chol2inv(chol(A))` < 1e-6 at n in {250,500,1000,2000,4000}; stored nonzeros 16,000,000 -> 27,830 at n=4000 | PASS; no fit-level wall-time claim made (needs a large-n animal cell) | Cursor / Shannon |
+
+| 2026-10-11 | ZI/hurdle count `mu` random intercept (#1451, lane N1) | `test-zi-hurdle-mu-random-intercept.R` 70 pass/0 fail; Salamanders ZINB/ZIP/hurdle NB2 `(1 \| site)` vs glmmTMB 1.1.8: logLik 1e-5, fixed effects 1e-3, RE SD 1e-3; zi/hurdle/nbinom2/phylo-interaction/count-structured files green | PASS for the first slice; full-suite counts in the PR | Claude / Gauss |
