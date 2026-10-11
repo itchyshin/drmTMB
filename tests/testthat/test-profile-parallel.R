@@ -54,9 +54,10 @@ test_that("multicore worker errors abort like the serial path", {
 # Issue #1236: parallel = "cluster" (PSOCK) workers load the installed drmTMB
 # build, so these tests need a real installation, not a pkgload dev namespace.
 skip_unless_installed_build <- function() {
-  ns_path <- getNamespaceInfo("drmTMB", "path")
-  testthat::skip_if_not(
-    file.exists(file.path(ns_path, "Meta", "package.rds")),
+  # An installed package ships its compiled library under libs/; a
+  # pkgload::load_all() dev namespace has none for a PSOCK worker to load.
+  testthat::skip_if(
+    !nzchar(system.file("libs", package = "drmTMB")),
     "cluster workers need an installed drmTMB build"
   )
 }
