@@ -129,6 +129,16 @@ automatic-differentiation object is not available. If a fit used
 finite-standard-error checks are reported as notes. If \code{sdreport()} was
 requested but failed, those rows are warnings.
 
+The \code{response_residual_outliers} row counts quantile residuals (see
+\code{\link[=drm_quantile_residuals]{drm_quantile_residuals()}}, computed with a fixed seed) beyond |3|. Under
+the fitted family about 0.27\% of rows should fall there; the row is a
+\code{warning} when the observed count is improbable under that rate
+(one-sided binomial p-value below 1e-4). A sentinel code such as \code{-9999}
+left in the response, a unit error, or a family with tails that are too
+light all trigger it. Scale and shape coefficients absorb such damage
+first, so the mean model can look fine while \code{sigma} is badly attenuated.
+Fits for which quantile residuals are not available get no row.
+
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
 dropped rows or a singly observed random-effect level. A \code{warning} means the

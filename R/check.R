@@ -87,6 +87,16 @@
 #' finite-standard-error checks are reported as notes. If `sdreport()` was
 #' requested but failed, those rows are warnings.
 #'
+#' The `response_residual_outliers` row counts quantile residuals (see
+#' [drm_quantile_residuals()], computed with a fixed seed) beyond |3|. Under
+#' the fitted family about 0.27% of rows should fall there; the row is a
+#' `warning` when the observed count is improbable under that rate
+#' (one-sided binomial p-value below 1e-4). A sentinel code such as `-9999`
+#' left in the response, a unit error, or a family with tails that are too
+#' light all trigger it. Scale and shape coefficients absorb such damage
+#' first, so the mean model can look fine while `sigma` is badly attenuated.
+#' Fits for which quantile residuals are not available get no row.
+#'
 #' Use `check_drm()` before interpreting coefficients, fitted values, or
 #' response-scale quantities. A `note` records something to inspect, such as
 #' dropped rows or a singly observed random-effect level. A `warning` means the
@@ -439,6 +449,7 @@ check_drm.drmTMB <- function(
     check_fixed_effect_rank_deficiency(object),
     check_dropped_rows(object),
     check_scale_positive(object),
+    check_response_residual_outliers(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
     check_interval_reliability_scope(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),

@@ -10,6 +10,17 @@
   no fitting behavior or numerical default changed (Ayumi-495/
   LS_ecogeographical-rules#49).
 
+## Diagnostics
+
+* `check_drm()` has a new `response_residual_outliers` row. It counts
+  quantile residuals beyond |3|; under the fitted family about 0.27% of rows
+  should fall there. The row warns when the count is improbable under that
+  rate (one-sided binomial p-value below 1e-4). Before this, a response
+  holding a sentinel code such as `-9999` returned a clean board, while
+  `sigma` had bent to absorb the damage and the mean model still looked
+  publishable. Thanks to Russell Dinnage for the report (Dinnage audit A-5,
+  #1335).
+
 ## Bug fixes
 
 * `family = beta()` now fails with a drmTMB message that names
