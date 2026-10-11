@@ -330,6 +330,14 @@ R_s = \frac{\sigma_{b,s}^2}
 {\sigma_{b,s}^2 + \sigma_{e,s}^2}.
 \]
 
+Because both `sd(individual) ~ sex` and `sigma ~ sex` depend on sex, this
+model has one repeatability per sex, not one scalar for the whole population.
+Report $R_s$ for each sex, or as a function of the `sd()` and `sigma`
+predictors in a richer model. The scalar helpers `repeatability()`, `icc()`, and
+`heritability()` refuse a fit like this one, because they need a constant
+residual scale (`sigma ~ 1`) and a random-effect SD that does not depend on
+predictors; compute $R_s$ from the predicted SDs as shown above instead.
+
 Repeatability is derived from the two fitted scale submodels; it is not a
 fourth formula. The calculation above is a point estimate. It does not supply
 an uncertainty interval for this nonlinear ratio.
