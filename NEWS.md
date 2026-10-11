@@ -12,6 +12,17 @@
 
 ## Bug fixes
 
+* `engine = "julia"` now refuses `mi()` plus non-unit observation weights
+  with class `drmTMB_julia_mi_weights_unsupported`. DRModels.jl ignores
+  weights on both the response and the imputation prior. Unit weights
+  (`weights = 1`) are treated as omitted. Native `engine = "tmb"` still
+  fits; a classed warning (`drmTMB_mi_weights_prior_unweighted`) records
+  that the imputation prior ignores the weight until #1459 is decided.
+  Weight 0 or `NA` on a row whose `mi()` predictor is missing is a named
+  error (`drmTMB_mi_zero_weight_missing`). `predict()` and `simulate()`
+  refuse an explicit `weights` argument on an `mi()` fit
+  (`drmTMB_mi_weights_predict_unsupported`) (Refs #1459).
+
 * Profile confidence intervals now explicitly average parameter coordinates
   at tied objective values. This preserves the existing interpolation result
   while avoiding a spurious "collapsing to unique 'x' values" warning from

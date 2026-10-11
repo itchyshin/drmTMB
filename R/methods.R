@@ -2956,6 +2956,7 @@ predict.drmTMB <- function(
   prob = c(0.025, 0.5, 0.975),
   ...
 ) {
+  drm_abort_mi_weights_predict(object, list(...))
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
@@ -3124,6 +3125,7 @@ predict.drmTMB <- function(
 #' simulate(fit, nsim = 2, seed = 1)
 #' @export
 simulate.drmTMB <- function(object, nsim = 1, seed = NULL, re.form = NA, ...) {
+  drm_abort_mi_weights_predict(object, list(...))
   if (!base::missing(re.form)) {
     drm_simulate_re_form_semantics_message()
   }
