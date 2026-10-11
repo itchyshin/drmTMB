@@ -31,6 +31,31 @@ identical apart from `elapsed`). Multicore worker errors now abort. New
 Report: `docs/dev-log/after-task/2026-10-11-parallel-perf-lane.md`.
 Branch: `claude/drm-parallel-perf`.
 
+# 2026-10-11: cumulative_logit `disc ~ z` discrimination submodel (#966)
+
+Added a fixed-effect discrimination formula to `cumulative_logit()`
+(owner decision 24(a)): `Pr(y <= k) = logit^-1(disc * (theta_k - mu))`,
+`log(disc) = Z gamma`, with the `disc` intercept fixed at 0 because the latent
+scale is not identifiable alongside free cutpoints (same constraint as
+`ordinal::clm(scale = ~ z)`, whose `zeta = -gamma`). `disc` rides the
+`X_sigma`/`beta_sigma` slot of model_type 13; `disc ~ 1` is byte-identical to
+the location-only fit. `engine = "julia"` refuses `disc`.
+
+Environment: R 4.3.3 from Ubuntu apt (TMB 1.9.10, ordinal 2023.12.4); CRAN
+blocked. New test file `test-cumulative-logit-disc.R` was committed failing
+first (6 errors), then 51 expectations pass: exact `disc ~ 1` equality,
+recovery (n = 3000), `ordinal::clm` comparator (continuous and factor `z`;
+`ordinal::wine` logLik -86.43946 on both engines), hand-built probabilities.
+
+Full `devtools::test()` on `origin/main` @ `75845a3d` (435 files, 3195 tests,
+47568 expectations): 14 failed, 134 errors, 110 skipped. Same suite on this
+branch before the census row (436 files, 3202 tests, 47631 expectations): 16
+failed, 134 errors, 109 skipped. 146 failing tests are identical on both
+(R 4.3.3 lacks `%||%`, no Julia, snapshot drift); the only branch-only failure
+was `test-env-skip-census.R`, fixed by adding the
+`test-cumulative-logit-disc.R` row to `inst/extdata/env-skip-census.tsv`.
+Rebased onto `origin/main` @ `cb030402` (only `NEWS.md` overlapped).
+
 # 2026-10-04: phylogenetic tree-height documentation correction
 
 Corrected `phylo()` roxygen, generated help and NEWS to describe the existing
