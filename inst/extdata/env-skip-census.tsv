@@ -46,6 +46,7 @@ test-biv-lognormal-rho12-coverage-driver.R	build-premise	build	skips	1
 test-biv-lognormal-rho12-coverage-driver.R	suggests-package	environment	runs	1
 test-biv-lognormal.R	suggests-package	environment	runs	6
 test-biv-student.R	suggests-package	environment	runs	4
+test-bootstrap-shards.R	os	environment	runs	1
 test-boundary-surfacing.R	cran-lane	environment	runs	6
 test-check-conditioning.R	platform-numeric	runtime	depends	3
 test-check-drm.R	cran-lane	environment	runs	1
@@ -255,7 +256,10 @@ test-plot-parameter-surface.R	suggests-package	environment	runs	8
 test-poisson-ordinary-correlated-q2.R	suggests-package	environment	runs	1
 test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
-test-profile-parallel.R	os	environment	runs	2
+test-profile-parallel.R	build-premise	build	skips	1
+test-profile-parallel.R	cran-lane	environment	runs	2
+test-profile-parallel.R	os	environment	runs	4
+test-profile-parallel.R	runtime-conditional	runtime	depends	1
 test-profile-plots.R	suggests-package	environment	runs	3
 test-profile-shape-boundary.R	build-premise	build	skips	1
 test-profile-shape-boundary.R	suggests-package	environment	runs	2
