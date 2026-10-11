@@ -53,10 +53,26 @@ drm_abort_mi_zero_weight_missing <- function(weights, observed_x, variable) {
     c(
       "{.arg weights} of 0 or NA are not allowed on a row whose {.fn mi} predictor is missing.",
       x = "{sum(bad)} row{?s} {?has/have} a missing {.val {variable}} value and a zero or missing weight.",
-      i = "Give that row a positive weight, or drop it before fitting."
+      i = "This is a named error, not a silent drop. Give that row a positive weight, or drop it before fitting."
     ),
     class = "drmTMB_mi_zero_weight_missing"
   )
+}
+
+drm_abort_mi_zero_weight_missing_in_data <- function(data, weights, impute) {
+  if (is.null(weights) || is.null(impute) || !is.list(impute) || !length(impute)) {
+    return(invisible(FALSE))
+  }
+  vars <- names(impute)
+  vars <- vars[!is.na(vars) & nzchar(vars)]
+  for (variable in vars) {
+    if (!variable %in% names(data)) {
+      next
+    }
+    observed <- !is.na(data[[variable]])
+    drm_abort_mi_zero_weight_missing(weights, observed, variable)
+  }
+  invisible(FALSE)
 }
 
 drm_abort_julia_mi_nonunit_weights <- function(weights) {

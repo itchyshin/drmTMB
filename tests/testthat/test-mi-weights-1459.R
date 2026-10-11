@@ -38,7 +38,19 @@ test_that("weight 0 or NA on a missing mi() covariate is a named error", {
     drmTMB:::drm_abort_mi_zero_weight_missing(c(1, 1, 1, 0), observed, "x"),
     class = "drmTMB_mi_zero_weight_missing"
   )
-})
+  dat <- data.frame(x = c(0.1, NA_real_, 0.3), y = 1:3)
+  impute <- list(x = x ~ 1)
+  expect_false(drmTMB:::drm_abort_mi_zero_weight_missing_in_data(dat, NULL, impute))
+  expect_false(drmTMB:::drm_abort_mi_zero_weight_missing_in_data(dat, rep(1, 3), impute))
+  expect_error(
+    drmTMB:::drm_abort_mi_zero_weight_missing_in_data(dat, c(1, 0, 1), impute),
+    class = "drmTMB_mi_zero_weight_missing"
+  )
+  expect_error(
+    drmTMB:::drm_abort_mi_zero_weight_missing_in_data(dat, c(1, NA, 1), impute),
+    class = "drmTMB_mi_zero_weight_missing"
+  )
+}))
 
 test_that("predict/simulate refuse an explicit weights argument on an mi() fit", {
   object <- list(missing_data = list(predictors = list(x = list(variable = "x"))))
@@ -88,7 +100,9 @@ gaussian_mi_prior_term <- function(fit, rows = NULL) {
 test_that("weights = 1 with mi() matches the unweighted fit exactly (#1459)", {
   dat <- mi_weights_1459_data()
   fit0 <- fit_mi_weights_1459(dat)
-  fit1 <- suppressWarnings(fit_mi_weights_1459(dat, weights = rep(1, nrow(dat))))
+  expect_no_warning(
+    fit1 <- fit_mi_weights_1459(dat, weights = rep(1, nrow(dat)))
+  )
   expect_equal(unname(unlist(coef(fit0))), unname(unlist(coef(fit1))), tolerance = 1e-10)
   expect_equal(as.numeric(logLik(fit0)), as.numeric(logLik(fit1)), tolerance = 1e-10)
   expect_equal(
@@ -128,12 +142,18 @@ test_that("weight-2 matches a duplicated row in the response only (#1459 pending
   )))
 })
 
-test_that("weight 0 on a missing mi() covariate is a named error at fit time", {
+test_that("weight 0 or NA on a missing mi() covariate is a named error at fit time", {
   dat <- mi_weights_1459_data()
-  w <- rep(1, nrow(dat))
-  w[6] <- 0
+  w0 <- rep(1, nrow(dat))
+  w0[6] <- 0
   expect_error(
-    fit_mi_weights_1459(dat, weights = w),
+    fit_mi_weights_1459(dat, weights = w0),
+    class = "drmTMB_mi_zero_weight_missing"
+  )
+  w_na <- rep(1, nrow(dat))
+  w_na[6] <- NA_real_
+  expect_error(
+    fit_mi_weights_1459(dat, weights = w_na),
     class = "drmTMB_mi_zero_weight_missing"
   )
 })
