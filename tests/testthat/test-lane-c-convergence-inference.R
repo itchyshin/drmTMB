@@ -158,7 +158,7 @@ test_that("strongly skewed residuals away from nu = 0 pass the Wald caveat (#133
     data = dat,
     control = drm_control(se = FALSE, optimizer_preset = "careful")
   )
-  skip_if(min(abs(predict(fit, dpar = "nu"))) < 1, "fitted slant did not separate from 0")
+  expect_gte(min(abs(predict(fit, dpar = "nu"))), 2)
   row <- check_drm(fit)
   row <- row[row$check == "skew_normal_nu_wald", ]
   expect_identical(row$status, "ok")
