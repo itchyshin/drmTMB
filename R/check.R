@@ -25,7 +25,10 @@
 #' correlation), dropped rows,
 #' positive scale parameters, random-effect standard deviations near the lower
 #' boundary, bivariate residual-correlation `rho12` values near the boundary,
-#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks,
+#' Student-t `nu` boundary behaviour, skew-normal `nu` finite-value checks
+#' and a Wald caveat near `nu = 0`, a beta-binomial `sigma` at the binomial
+#' limit and a direct-SD `sd(group)` formula at the log-SD clamp (these last
+#' two rows appear only when they fire, as notes),
 #' known sampling covariance summaries,
 #' dense known-covariance storage scale, dense fixed-effect design size and
 #' density, random-effect replication, and random-slope design variation. If a
@@ -279,6 +282,22 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' plain logical: it is `TRUE` for `"converged"` and `"boundary"`, and
 #' `FALSE` for `"degenerate"`.
 #'
+#' One degenerate case is a Gaussian, lognormal, Student, skew-normal, or
+#' Gamma scale predictor that drives some observations to the lower
+#' `log(sigma)` clamp (see [drm_control()]) while others keep an ordinary
+#' scale (fitted `sigma` spanning more than four orders of magnitude), in a
+#' model without [meta_V()], where the observation with the smallest fitted
+#' scale is fitted exactly (standardized residual below 1e-3). The scale then
+#' shrinks to zero at a point the location predictor passes through, so the
+#' likelihood has no finite maximum and the estimates depend on the clamp band
+#' and on the units of the response. A well-posed fit whose response merely
+#' sits on a small numeric scale is not flagged (its smallest-scale residual is
+#' an ordinary draw); `check_drm()` notes the clamp contact instead. A
+#' meta-analysis whose heterogeneity `sigma` reaches zero is not affected,
+#' because the known sampling variance keeps its likelihood bounded. The
+#' verdict is stored on the fit, so it is reported even with
+#' `drm_control(keep_tmb_object = FALSE)`.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
@@ -317,7 +336,8 @@ convergence_status.drmTMB <- function(object, ...) {
   if (
     drm_inference_degenerate(object) ||
       drm_fixed_effect_rank_deficient(object) ||
-      drm_standard_errors_pathological(object)
+      drm_standard_errors_pathological(object) ||
+      drm_scale_clamp_unbounded(object)
   ) {
     return("degenerate")
   }
@@ -359,6 +379,22 @@ drm_inference_degenerate <- function(object) {
   non_negative <- is.finite(variances) & variances >= 0
   standard_errors[non_negative] <- sqrt(variances[non_negative])
   !all(is.finite(standard_errors))
+}
+
+# A continuous-family scale predictor that drives an exactly fitted
+# observation to the lower log(sigma) clamp means the likelihood has no finite
+# maximum (#1469); see drm_scale_clamp_unbounded_verdict(). The verdict is
+# stored on the fit at fit time so it survives `keep_tmb_object = FALSE`;
+# objects created before it existed are recomputed when the TMB object is
+# available.
+drm_scale_clamp_unbounded <- function(object) {
+  if (!is.null(object$scale_clamp_unbounded)) {
+    return(isTRUE(object$scale_clamp_unbounded))
+  }
+  isTRUE(tryCatch(
+    drm_scale_clamp_unbounded_verdict(object),
+    error = function(e) FALSE
+  ))
 }
 
 drm_standard_errors_pathological <- function(object) {
@@ -444,6 +480,9 @@ check_drm.drmTMB <- function(
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
     check_skew_normal_nu(object),
+    check_skew_normal_nu_wald(object),
+    check_beta_binomial_sigma_boundary(object),
+    check_direct_sd_clamp_active(object),
     check_known_v(object),
     check_fixed_effect_design_size(object),
     check_gaussian_aggregation(object),
@@ -783,10 +822,33 @@ check_logsigma_clamp_active <- function(object) {
   }
   # Both clamp arms are reported (Dinnage audit C1). The upper arm keeps
   # warning strength: a scale running to +Inf is artificial convergence. The
-  # lower arm is a note: sigma -> 0 is a legitimate result when the residual
-  # scale is genuinely zero (for example a meta-analysis at tau = 0), but the
-  # same arm also fires when the response sits on a very small numeric scale
-  # and the scale coefficients are badly wrong, so it must not be silent.
+  # lower arm is a warning only in the unbounded-likelihood case of #1469 (see
+  # drm_scale_clamp_unbounded()); otherwise it is a note: sigma -> 0 is a
+  # legitimate result when the residual scale is genuinely zero (for example a
+  # meta-analysis at tau = 0), but the same arm also fires when the response
+  # sits on a very small numeric scale and the scale coefficients are badly
+  # wrong, so it must not be silent.
+  if (identical(info$arm, "lower") && drm_scale_clamp_unbounded(object)) {
+    return(check_row(
+      "logsigma_clamp_active",
+      "warning",
+      format_check_number(info$value),
+      sprintf(
+        paste(
+          "The fitted log(sigma) reached %.2f, below the clamp band lower bound %g,",
+          "at an observation the location predictor fits exactly, while other",
+          "observations keep an ordinary scale (fitted sigma spans more than four",
+          "orders of magnitude). Without a known sampling variance, the likelihood",
+          "then has no finite maximum: the estimates",
+          "depend on the clamp band and on the units of the response, so",
+          "convergence_status() is \"degenerate\". Simplify the scale formula or",
+          "collect more observations per scale parameter."
+        ),
+        info$value,
+        info$lo
+      )
+    ))
+  }
   if (identical(info$arm, "lower")) {
     return(check_row(
       "logsigma_clamp_active",
@@ -2007,6 +2069,186 @@ check_skew_normal_nu <- function(object) {
   )
 }
 
+# The skew-normal information matrix is singular at nu = 0 (the Gaussian
+# null), where the slant enters the likelihood only at third order (Azzalini
+# 1985). Wald standard errors for the nu submodel are therefore unreliable
+# whenever fitted nu values sit near or cross zero: an independent evaluation
+# measured a Wald type-I error of 0.236 at nominal 0.05 for `nu ~ x` on
+# Gaussian data (Dinnage, #1336), and the profile interval only partly
+# repaired it (0.093). At the null the slant estimate is widely spread, so a
+# sign change across rows is flagged as well as |nu| < 2; that neighbourhood is
+# a design assumption, not a calibrated threshold.
+check_skew_normal_nu_wald <- function(object) {
+  if (!identical(object$model$model_type, "skew_normal")) {
+    return(NULL)
+  }
+  nu <- tryCatch(predict(object, dpar = "nu"), error = function(e) NULL)
+  if (is.null(nu) || !length(nu) || !all(is.finite(nu))) {
+    # check_skew_normal_nu() already reports unusable nu values.
+    return(NULL)
+  }
+  min_abs <- min(abs(nu))
+  crosses_zero <- min(nu) < 0 && max(nu) > 0
+  value <- paste0(
+    "min_abs=",
+    format_check_number(min_abs),
+    "; crosses_zero=",
+    crosses_zero
+  )
+  if (min_abs < 2 || crosses_zero) {
+    return(check_row(
+      "skew_normal_nu_wald",
+      "note",
+      value,
+      paste(
+        "Fitted skew-normal nu values are near or cross 0, the Gaussian null",
+        "where the skew-normal information matrix is singular. Wald standard",
+        "errors, z tests, and Wald intervals for the nu coefficients are not",
+        "reliable there (measured type-I error 0.236 at nominal 0.05 for",
+        "nu ~ x on Gaussian data), and profile intervals only partly repair",
+        "this. Compare logLik() or AIC() against a gaussian() fit with the",
+        "same mu and sigma formulas before reporting skewness or its predictors."
+      )
+    ))
+  }
+  check_row(
+    "skew_normal_nu_wald",
+    "ok",
+    value,
+    "Fitted skew-normal nu values stay away from the singular Gaussian null at nu = 0."
+  )
+}
+
+# Flag-only boundary and adequacy rows (owner decision 4, 11 Oct 2026). Each
+# returns NULL unless it fires, so check_drm() tables for unaffected fits are
+# unchanged, and none of them touches estimates or standard errors.
+
+# Beta-binomial sigma near 0 is the binomial limit: with phi = 1 / sigma^2 the
+# intra-class correlation is rho = sigma^2 / (1 + sigma^2), and the variance
+# inflation over the binomial is 1 + (trials - 1) * rho. When that excess is
+# below 1e-3 for every row, log(sigma) is a flat direction: engines stop at
+# different points along it (#1273: log sigma -8.3 in drmTMB, -4.2 in
+# DRModels.jl on the same data, with matching logLik), and its Wald standard
+# error describes the flat ridge rather than the data. The 1e-3 cut mirrors
+# the extra-Poisson limit used for NB2 and is a design assumption.
+drm_beta_binomial_limit <- 1e-3
+
+check_beta_binomial_sigma_boundary <- function(object) {
+  if (!identical(object$model$model_type, "beta_binomial")) {
+    return(NULL)
+  }
+  sigma <- tryCatch(
+    as.numeric(predict(object, dpar = "sigma", type = "response")),
+    error = function(e) NULL
+  )
+  trials <- as.numeric(object$model$trials)
+  if (
+    is.null(sigma) ||
+      length(sigma) != length(trials) ||
+      !length(sigma) ||
+      any(!is.finite(sigma))
+  ) {
+    return(NULL)
+  }
+  rho <- sigma^2 / (1 + sigma^2)
+  excess <- pmax(trials - 1, 0) * rho
+  at_limit <- excess < drm_beta_binomial_limit
+  if (!any(at_limit)) {
+    return(NULL)
+  }
+  check_row(
+    "beta_binomial_sigma_boundary",
+    "note",
+    paste0(
+      "min_sigma=",
+      format_check_number(min(sigma)),
+      "; max_extra_binomial=",
+      format_check_number(max(excess)),
+      "; n_limit_rows=",
+      sum(at_limit),
+      "/",
+      length(at_limit)
+    ),
+    paste(
+      if (all(at_limit)) {
+        "The fitted beta-binomial sigma is at the binomial limit for every row"
+      } else {
+        "The fitted beta-binomial sigma is at the binomial limit for some rows"
+      },
+      "(extra-binomial variance below 0.1% of the binomial variance).",
+      "log(sigma) is then a flat direction: its estimate and Wald standard",
+      "error describe the boundary, not the data, and another engine can stop",
+      "elsewhere on the same likelihood. Compare logLik() with a binomial()",
+      "fit; if they agree, report the binomial model."
+    )
+  )
+}
+
+# Direct-SD formulas (`sd(group) ~ x`) are soft-clamped on the log-SD scale,
+# like log(sigma). A raw group-level log-SD predictor outside the band means the
+# clamp bends the likelihood at the optimum; the profile engine already refuses
+# such intervals (`clamp_limited`), and this row surfaces the same contact on
+# the fit itself.
+check_direct_sd_clamp_active <- function(object) {
+  spec <- object$model
+  has_direct_sd <- isTRUE(spec$random_scale$mu$n_models > 0L) ||
+    (is.list(spec$random_scale$phylo) &&
+      isTRUE(spec$random_scale$phylo$n_models > 0L))
+  band <- spec$tmb_data$logsigma_clamp
+  if (
+    !has_direct_sd ||
+      !identical(as.integer(spec$tmb_data$use_logsigma_clamp), 1L) ||
+      length(band) < 2L ||
+      any(!is.finite(band[1:2])) ||
+      is.null(object$obj) ||
+      is.null(object$tmb_state$last.par.best)
+  ) {
+    return(NULL)
+  }
+  par_list <- tryCatch(
+    object$obj$env$parList(
+      object$opt$par,
+      par = object$tmb_state$last.par.best
+    ),
+    error = function(e) NULL
+  )
+  eta <- if (is.null(par_list)) {
+    NULL
+  } else {
+    tryCatch(
+      drm_direct_sd_logscale_values(par_list, spec),
+      error = function(e) NULL
+    )
+  }
+  values <- unlist(eta, use.names = FALSE)
+  values <- values[is.finite(values)]
+  if (!length(values) || !any(values < band[[1L]] | values > band[[2L]])) {
+    return(NULL)
+  }
+  check_row(
+    "direct_sd_clamp_active",
+    "note",
+    paste0(
+      "log_sd_range=[",
+      format_check_number(min(values)),
+      ",",
+      format_check_number(max(values)),
+      "]; band=[",
+      format_check_number(band[[1L]]),
+      ",",
+      format_check_number(band[[2L]]),
+      "]"
+    ),
+    paste(
+      "A group-level log-SD from the sd(group) formula lies outside the clamp",
+      "band at the optimum, so the clamp bends the likelihood there: the",
+      "affected SDs and their standard errors reflect the band, and profile",
+      "intervals for them return conf.status = \"clamp_limited\". Simplify the",
+      "sd(group) formula or add replication within groups."
+    )
+  )
+}
+
 check_known_v <- function(object) {
   if (!isTRUE(object$model$has_known_v)) {
     return(NULL)
@@ -2021,7 +2263,10 @@ check_known_v <- function(object) {
       symmetric = TRUE,
       only.values = TRUE
     )$values
-    tol <- sqrt(.Machine$double.eps) * max(abs(eig), 1)
+    # Relative to the largest eigenvalue only: an absolute floor of 1 made the
+    # rank test unit-dependent, so a well-conditioned V on a small numeric
+    # scale (sampling variances ~1e-10) was reported as singular (#710).
+    tol <- sqrt(.Machine$double.eps) * max(abs(eig))
     rank <- sum(eig > tol)
     positive_eig <- eig[eig > tol]
     condition <- if (length(positive_eig) == 0L) {

@@ -24,6 +24,17 @@ parameterization: \code{\link[=fitted]{fitted()}} returns \code{E[y] = mu}, \cod
 Positive \code{nu} gives right-skewed residuals, negative \code{nu} gives left-skewed
 residuals, and \code{nu = 0} reduces to the Gaussian location-scale likelihood.
 
+Do not read Wald standard errors, z tests, or Wald intervals for the \code{nu}
+coefficients literally when the slant is near zero. At \code{nu = 0} the score
+for the slant is identically zero, so the information matrix is singular
+and the Wald approximation breaks down nearby. An independent evaluation
+(Dinnage, issue #1336) found that \code{nu ~ x} Wald tests on Gaussian data
+rejected about 24\% of the time at nominal 5\%, and profile intervals only
+reduced this to about 9\%. To ask whether residuals are skewed, compare
+\code{\link[=logLik]{logLik()}} or \code{\link[=AIC]{AIC()}} with a \code{gaussian()} fit of the same \code{mu} and \code{sigma}
+formulas. \code{\link[=check_drm]{check_drm()}} adds a \code{skew_normal_nu_wald} note when a fitted
+slant is within 2 of zero or changes sign across observations.
+
 Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter \code{mu}. Correlated or labelled \code{mu}
 slopes, \code{sigma} or \code{nu} random effects, \code{sd(group)} scale formulas, structured

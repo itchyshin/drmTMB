@@ -25,6 +25,7 @@
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
   bootstrap_re_form = NULL,
+  bootstrap_interval = c("percentile", "basic", "bc"),
   ...
 )
 }
@@ -162,6 +163,16 @@ this is a documented escape hatch for random-effect structures whose
 marginal draw is not yet implemented, and it makes the resulting
 intervals \strong{anticonservative} because between-group variability is
 never resampled -- it is not a neutral alternative to the default.}
+
+\item{bootstrap_interval}{Interval shape for \code{method = "bootstrap"}, built
+from the same refit draws. \code{"percentile"} (the default) takes quantiles
+of the draws. \code{"basic"} reflects them about the estimate,
+\code{2 * estimate - quantile}, and \code{"bc"} is the bias-corrected percentile
+interval; both re-centre an interval whose draws sit a bias away from the
+estimate. \code{"basic"} and \code{"bc"} are computed on the fitted link scale and
+back-transformed, so SD intervals stay positive and correlation intervals
+stay inside \code{(-1, 1)}. The accelerated BCa interval is not implemented.
+See the "Bootstrap intervals on biased targets" section.}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
@@ -355,6 +366,41 @@ inherits the bias of its centre uncorrected. Only point-estimate recovery has
 been checked for these routes, and no simulation study has yet measured the
 coverage of a profile interval built on them, so treat the endpoints as a
 computed profile rather than calibrated inference.
+}
+
+\section{REML fits}{
+
+With \code{REML = TRUE}, the mean (\code{mu}) coefficients are integrated out of the
+likelihood as TMB random effects, and so are the \code{sigma} coefficients when
+\code{sigma} has random effects. \code{method = "wald"} reads their standard
+errors from the full REML \code{\link[TMB:sdreport]{TMB::sdreport()}} covariance, the same source as
+\code{\link[=vcov]{vcov()}} and \code{\link[=summary]{summary()}}, so a Wald interval is returned wherever a
+standard error is printed. \code{method = "profile"} cannot hold an integrated
+coefficient fixed and stops with a message naming the alternatives:
+\code{method = "wald"}, \code{method = "bootstrap"}, or a refit with \code{REML = FALSE}.
+Random-effect SD and other non-integrated targets profile as usual.
+}
+
+\section{Bootstrap intervals on biased targets}{
+
+\code{method = "bootstrap"} is a parametric \emph{percentile} bootstrap: it simulates
+from the fitted model and refits with the same maximum likelihood estimator.
+When that estimator is biased, each refit adds the bias again, so the
+percentile interval is centred near twice the bias away from the truth
+instead of near the estimate. An independent evaluation (Dinnage, issue
+#1315) measured this on a Gaussian \code{sigma} intercept at \code{n = 100} and
+\code{R = 199}: the bootstrap midpoint sat 2.35 times the ML bias below the
+estimate, and coverage was 0.852 against 0.896 for Wald and 0.912 for
+profile at a nominal 0.95, with almost every miss on the high side. An
+unbiased mean slope showed no such gap. Those figures are transcribed from
+the issue, not re-derived here; the mechanism and options are in
+\code{docs/design/274-bootstrap-interval-bias.md}. For scale intercepts and
+random-effect SDs at small \code{n} or few groups, prefer \code{method = "wald"} or
+\code{method = "profile"}; use the bootstrap where the estimator is close to
+unbiased, such as mean coefficients. When a bootstrap is still wanted for a
+biased target, \code{bootstrap_interval = "basic"} or \code{"bc"} re-centres the
+interval on the estimate; neither has yet been calibrated by the coverage
+simulation in that design note, so the default stays \code{"percentile"}.
 }
 
 \section{Ordinal cutpoints}{

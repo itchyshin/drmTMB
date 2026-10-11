@@ -1,3 +1,12 @@
+# 2026-10-11: #1509 rebase, env-skip census, C17 recertify
+
+Rebased `claude/lane-c-convergence-inference` onto `6beb1f2a0`. Regenerated
+`inst/extdata/env-skip-census.tsv` (873 sites; byte-identical to `main`).
+C17 recertified as `pr-1509-rebase` (`|change| 0`). `R/julia-bridge.R`
+untouched. Refs trimmed to `#1317`, `#1336`, `#1315`, `#802`, `#710`.
+
+Report: `docs/dev-log/after-task/2026-10-11-lane-c-convergence-inference.md`.
+
 # 2026-10-11: parallel lane follow-up (PSOCK cluster, parallel multi-start, bootstrap shards)
 
 Owner decisions 18 and 19 implemented on `claude/drm-parallel-perf-2`,

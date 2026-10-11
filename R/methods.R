@@ -893,7 +893,11 @@ rho12.drmTMB <- function(
 #'   summary. Predictor-dependent `rho12` is summarized by its mean, minimum,
 #'   and maximum over the fitted rows. Rows include `conf.status` and
 #'   `interval_source` so point-only and interval-aware pair tables use the same
-#'   provenance vocabulary as prediction tables.
+#'   provenance vocabulary as prediction tables. Its interval is
+#'   `"derived_interval_unavailable"`; `corpairs()` does not take `newdata`,
+#'   so ask for row-specific intervals with
+#'   `confint(fit, parm = "rho12", newdata = grid, method = "profile")` or
+#'   `predict_parameters(fit, newdata = grid, dpar = "rho12", conf.int = TRUE)`.
 #'
 #' @examples
 #' set.seed(1)
@@ -964,6 +968,18 @@ corpairs.drmTMB <- function(
   if (!conf.int && length(list(...)) > 0L) {
     cli::cli_abort(
       "Additional arguments in {.arg ...} are only used when {.code conf.int = TRUE}."
+    )
+  }
+  # `newdata` would otherwise fall through `...` to the profile engine, which
+  # ignores it for the scalar corpairs targets, so a user asking for a
+  # row-specific regression-`rho12` interval silently got none (#802).
+  if ("newdata" %in% names(list(...))) {
+    cli::cli_abort(
+      c(
+        "{.fn corpairs} does not use {.arg newdata}: it reports one row per fitted correlation pair.",
+        "i" = "For row-specific intervals of a predictor-dependent {.code rho12}, use {.code confint(fit, parm = \"rho12\", newdata = newdata, method = \"profile\")} or {.code predict_parameters(fit, newdata = newdata, dpar = \"rho12\", conf.int = TRUE)}."
+      ),
+      class = "drmTMB_corpairs_newdata_unsupported"
     )
   }
 
