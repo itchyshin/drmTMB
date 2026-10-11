@@ -12,6 +12,19 @@
 
 ## Bug fixes
 
+* Gamma `mi()` no longer uses a fixed 20-node Gauss-Laguerre rule whose
+  mass collapsed for CV below about 16% (shape above about 40). Missing-x
+  rows now use a 31-node Gauss-Hermite rule on a mean/CV-matched lognormal
+  proposal, reweighted by the Gamma density and renormalised to mass 1.
+  A 10% CV predictor is recovered instead of plateauing near CV 0.125
+  (Refs #1477).
+
+* Beta and zero-one-Beta `mi()` no longer use a fixed 15-node Gauss-Legendre
+  rule whose quadrature mass ranged from 0.13 to 1.62. Interior nodes are a
+  31-node logit-normal Gauss-Hermite rule, renormalised so the Beta prior
+  mass is 1 within `1e-10` on an 81-node reference. Zero and one remain
+  exact atoms (Refs #1476).
+
 * `engine = "julia"` now refuses `mi()` plus non-unit observation weights
   with class `drmTMB_julia_mi_weights_unsupported`. DRModels.jl ignores
   weights on both the response and the imputation prior. Unit weights

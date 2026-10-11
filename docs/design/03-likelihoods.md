@@ -614,11 +614,16 @@ x_i ~ Beta(m_i phi, (1 - m_i) phi)
 For observed `cover_i`, the row contributes the beta predictor-model
 likelihood and, when the response is observed, the Gaussian response density.
 For missing `cover_i`, TMB integrates over the possible proportion values with
-fixed Gauss-Legendre quadrature:
+a 31-node Gauss-Hermite rule on the logit scale. Nodes follow a logit-normal
+proposal matched to the current Beta mean and variance; each node is
+reweighted by the Beta / logit-normal density ratio and the prior mass is
+renormalised to 1 (#1476):
 
 ```text
-log L_i = log sum_q w_q
-  p_beta(x_q | m_i, sigma_mi)
+x_q = expit(logit(m_i) + s_i z_q)
+log L_i = log sum_q
+  (w_q p_beta(x_q | m_i, sigma_mi) / p_logitnorm(x_q))
+  / mass
   p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
 ```
 
@@ -681,10 +686,11 @@ log L_i = log sum_q w_q
   p(y_i | mu_i(x_q), sigma_i)
 ```
 
-The zero and one nodes have quadrature weight one because they represent point
-mass. Interior nodes use the same fixed Gauss-Legendre rule as the strict beta
-route. When both the response and the boundary-proportion predictor are
-missing, the row is retained for accounting but contributes no direct
+The zero and one nodes are exact point masses. Interior nodes use the same
+logit-normal Gauss-Hermite rule as the strict beta route, renormalised so the
+interior prior mass is 1. When both the response and the boundary-proportion
+predictor are missing, the row is retained for accounting but contributes no
+direct
 likelihood. `imputed()` reports the fitted conditional quadrature mean for
 missing rows, and `fit$missing_data$predictors[[name]]$quadrature_probabilities`
 stores the normalized zero, interior, and one weights.
@@ -988,17 +994,22 @@ log L_i =
   + observed_y_i log Normal(y_i | mu_i(x_i), sigma_i)
 ```
 
-For missing `biomass_i`, TMB integrates over positive predictor states by
-deterministic Gauss-Laguerre quadrature. With Laguerre nodes `t_k` and weights
-`w_k`,
+For missing `biomass_i`, TMB integrates over positive predictor states by a
+31-node Gauss-Hermite rule on a mean/CV-matched lognormal proposal. That keeps
+nodes on the Gamma mass when the CV is small (shape 100 at CV 10%), which a
+fixed 20-node Gauss-Laguerre rule missed (#1477). Each node is reweighted by
+the Gamma / lognormal density ratio and the prior mass is renormalised to 1.
+`drm_log1p_nonnegative()` is used for `log(1 + CV^2)` so a tiny CV stays
+finite on the TMB tape:
 
 ```text
-x_ik = scale_xi t_k
+x_q = exp(log(mu_xi) - s^2/2 + s z_q),   s^2 = log(1 + sigma_x^2)
 
 log L_i =
-  log sum_k
-    w_k t_k^(shape_x - 1) / Gamma(shape_x)
-    p(y_i | mu_i(x_ik), sigma_i) ^ observed_y_i
+  log sum_q
+    (w_q p_gamma(x_q | shape_x, scale_xi) / p_lognormal(x_q))
+    / mass
+    p(y_i | mu_i(x_q), sigma_i) ^ observed_y_i
 ```
 
 When both the response and the positive predictor are missing, the row is
