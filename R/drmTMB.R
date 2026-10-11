@@ -22612,7 +22612,10 @@ modelled_corpair_values <- function(par, spec) {
     return(numeric())
   }
   eta <- as.vector(model$X %*% unname(par$beta_cor_mu[seq_len(ncol(model$X))]))
-  DRM_RE_CORR_GUARD * tanh(eta)
+  # Group correlations use rho_mu_group (random-effect guard); the modelled
+  # phylogenetic correlation keeps rho_node's 0.999999 (#1190).
+  guard <- if (corpair_model_is_phylogenetic(model)) 0.999999 else DRM_RE_CORR_GUARD
+  guard * tanh(eta)
 }
 
 # Per-level labels for a modelled group mu correlation. Each fitted correlation

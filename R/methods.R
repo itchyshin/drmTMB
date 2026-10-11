@@ -5325,7 +5325,7 @@ summary_parameter_delta_derivative <- function(target) {
     linear_predictor = 1,
     exp = exp(eta),
     plogis = stats::plogis(eta) * stats::plogis(-eta),
-    tanh = DRM_RE_CORR_GUARD * (1 - tanh(eta)^2),
+    tanh = profile_correlation_guard(target$tmb_parameter) * (1 - tanh(eta)^2),
     rho12_tanh = 0.999999 * (1 - tanh(eta)^2),
     NA_real_
   )
@@ -6463,6 +6463,7 @@ drm_inverse_link <- function(object, dpar, eta) {
     logit12 = 1 + stats::plogis(eta),
     atanh_guarded = rho_response(eta),
     atanh_re_guarded = rho_response(eta, guard = DRM_RE_CORR_GUARD),
+    atanh_phylo_guarded = rho_response(eta, guard = 0.999999),
     cli::cli_abort("Internal error: unknown inverse link {.val {link}}.")
   )
 }
@@ -6481,6 +6482,11 @@ drm_dpar_link <- function(object, dpar) {
   # refactored: unifying the two would require every model_type to carry a
   # drm_family object and is deferred to avoid destabilizing link resolution.
   if (startsWith(dpar, "corpair(")) {
+    # A modelled phylogenetic correlation keeps TMB's 0.999999 guard (rho_node);
+    # a modelled group correlation uses the random-effect guard (#1190).
+    if (isTRUE(has_modelled_phylo_correlation(object$model))) {
+      return("atanh_phylo_guarded")
+    }
     return("atanh_re_guarded")
   }
   links <- switch(

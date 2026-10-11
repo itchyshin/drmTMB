@@ -17,7 +17,6 @@ drm_re_guard_fit <- function() {
 }
 
 test_that("R and TMB agree on the random-effect correlation at an extreme eta (#1190)", {
-  skip_on_cran()
   fit <- drm_re_guard_fit()
   expect_identical(drmTMB:::DRM_RE_CORR_GUARD, 0.99999999)
   expect_identical(drmTMB:::DRM_CORR_GUARD, 0.999999) # residual/phylo guard unchanged
@@ -46,4 +45,31 @@ test_that("R and TMB agree on the random-effect correlation at an extreme eta (#
 
 test_that("the residual rho12 guard is unchanged at 0.999999 (#1190)", {
   expect_equal(drmTMB:::rho_response(40), 0.999999, tolerance = 1e-14)
+})
+
+# A modelled phylogenetic correlation (`corpair(...)` on a phylo term) keeps
+# TMB's 0.999999 guard (rho_node), while a modelled group correlation uses the
+# random-effect guard (rho_mu_group). The `ape`-gated phylo tests do not run
+# everywhere, so this pins the split with fake fit objects.
+test_that("modelled phylogenetic correlations keep 0.999999, group ones use the RE guard (#1190)", {
+  mk <- function(level) {
+    structure(
+      list(model = list(
+        model_type = "gaussian",
+        random = list(mu = list(cor_model = list(n_models = 1L, level = level)))
+      )),
+      class = "drmTMB"
+    )
+  }
+  phylo <- mk("phylogenetic")
+  group <- mk("group")
+  dpar <- "corpair(1 + x | g)"
+  expect_identical(drmTMB:::drm_dpar_link(phylo, dpar), "atanh_phylo_guarded")
+  expect_identical(drmTMB:::drm_dpar_link(group, dpar), "atanh_re_guarded")
+  expect_equal(drmTMB:::drm_inverse_link(phylo, dpar, 30), 0.999999, tolerance = 1e-14)
+  expect_equal(drmTMB:::drm_inverse_link(group, dpar, 30), 0.99999999, tolerance = 1e-14)
+  # Profile transformation follows the TMB parameter the target profiles.
+  expect_identical(drmTMB:::profile_correlation_guard("eta_cor_phylo"), 0.999999)
+  expect_identical(drmTMB:::profile_correlation_guard("eta_cor_mu"), 0.99999999)
+  expect_identical(drmTMB:::profile_correlation_guard("eta_cor_mu_sigma"), 0.99999999)
 })

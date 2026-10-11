@@ -1246,6 +1246,18 @@ profile_controls_label <- function(args) {
 # guard.
 DRM_CORR_GUARD <- 0.999999
 
+# The shared "tanh" correlation transformation serves random-effect targets
+# (guard DRM_RE_CORR_GUARD) and the phylogenetic correlation `eta_cor_phylo`
+# (TMB's rho_phylo / rho_node keep 0.999999). Pick the guard from the TMB
+# parameter the target profiles (#1190).
+profile_correlation_guard <- function(tmb_parameter) {
+  if (length(tmb_parameter) && identical(as.character(tmb_parameter[[1L]]), "eta_cor_phylo")) {
+    DRM_CORR_GUARD
+  } else {
+    DRM_RE_CORR_GUARD
+  }
+}
+
 profile_transform_values <- function(values, target) {
   switch(
     target$transformation,
@@ -1253,7 +1265,7 @@ profile_transform_values <- function(values, target) {
     ordered_cutpoint = values,
     exp = exp(values),
     plogis = stats::plogis(values),
-    tanh = DRM_RE_CORR_GUARD * tanh(values),
+    tanh = profile_correlation_guard(target$tmb_parameter) * tanh(values),
     rho12_tanh = rho_response(values),
     values
   )
@@ -1787,7 +1799,7 @@ drm_profile_targets <- function(object) {
         } else {
           guarded_correlation_link(
             unname(values[[i]]),
-            guard = DRM_RE_CORR_GUARD
+            guard = profile_correlation_guard(internal)
           )
         },
         scale = "response",
@@ -4678,7 +4690,7 @@ profile_transform_interval <- function(interval, target) {
     linear_predictor = interval,
     exp = exp(interval),
     plogis = stats::plogis(interval),
-    tanh = DRM_RE_CORR_GUARD * tanh(interval),
+    tanh = profile_correlation_guard(target$tmb_parameter) * tanh(interval),
     rho12_tanh = rho_response(interval),
     interval
   )
@@ -4691,6 +4703,7 @@ profile_transform_newdata_interval <- function(interval, object, dpar, offset) {
     log = exp(eta_interval),
     atanh_guarded = rho_response(eta_interval),
     atanh_re_guarded = rho_response(eta_interval, guard = DRM_RE_CORR_GUARD),
+    atanh_phylo_guarded = rho_response(eta_interval, guard = DRM_CORR_GUARD),
     cli::cli_abort(
       "Internal error: no response-scale profile transformation for {.val {dpar}}."
     )
@@ -4703,6 +4716,7 @@ profile_newdata_transformation <- function(object, dpar) {
     log = "exp",
     atanh_guarded = "rho12_tanh",
     atanh_re_guarded = "random_effect_correlation_tanh",
+    atanh_phylo_guarded = "random_effect_correlation_tanh",
     "unknown"
   )
 }
@@ -5332,7 +5346,9 @@ profile_newdata_dpar <- function(object, parm) {
   ]
   corpair <- corpair[vapply(
     corpair,
-    function(dpar) identical(drm_dpar_link(object, dpar), "atanh_re_guarded"),
+    function(dpar) {
+      drm_dpar_link(object, dpar) %in% c("atanh_re_guarded", "atanh_phylo_guarded")
+    },
     logical(1)
   )]
   supported <- c(scale_or_residual, corpair)

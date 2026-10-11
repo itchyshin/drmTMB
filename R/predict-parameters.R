@@ -457,6 +457,7 @@ predict_parameters_inverse_link_derivative <- function(object, dpar, eta) {
     },
     atanh_guarded = 0.999999 * (1 - tanh(eta)^2),
     atanh_re_guarded = DRM_RE_CORR_GUARD * (1 - tanh(eta)^2),
+    atanh_phylo_guarded = 0.999999 * (1 - tanh(eta)^2),
     cli::cli_abort(
       "Internal error: unknown inverse-link derivative {.val {link}}."
     )
